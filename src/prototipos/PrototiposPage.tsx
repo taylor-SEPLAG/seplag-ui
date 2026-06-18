@@ -13577,6 +13577,7 @@ export function PrototiposFolhaPagamentoFormPage() {
     setValue("categoria", "");
     setValue("abrangenciaSubcategorias", []);
     setValue("cargo", "");
+    setValue("grupoEleitos", "");
   };
 
   const validarObrigatoriosFolha = (data: FolhaPagamentoForm) => {
@@ -13891,6 +13892,19 @@ export function PrototiposFolhaPagamentoFormPage() {
                     optionValue="value"
                     disabled={isSomenteLeitura}
                     getFormErrorMessage={() => getFormErrorMessage("cargo")}
+                  />
+                  <DropdownFieldSeplag
+                    name="grupoEleitos"
+                    control={control}
+                    label="Grupo de eleitos"
+                    cols="12 12 6"
+                    options={folhaPagamentoGrupoEleitosOptions}
+                    optionLabel="label"
+                    optionValue="value"
+                    disabled={isSomenteLeitura}
+                    getFormErrorMessage={() =>
+                      getFormErrorMessage("grupoEleitos")
+                    }
                   />
                 </div>
               </section>
