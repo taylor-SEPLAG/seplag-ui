@@ -1185,6 +1185,20 @@ export const folhaPagamentoMockRepository = {
 
     return structuredClone(folhasPagamentoMock[index]);
   },
+  excluirFolha: (id: number): boolean => {
+    const index = folhasPagamentoMock.findIndex((folha) => folha.id === id);
+    if (index < 0) return false;
+
+    const [folhaExcluida] = folhasPagamentoMock.splice(index, 1);
+    const competencia = competenciasFolhaMock.find(
+      (item) => item.id === folhaExcluida.competenciaId,
+    );
+    if (competencia) {
+      competencia.totalFolhas = Math.max(0, competencia.totalFolhas - 1);
+    }
+
+    return true;
+  },
   listarExecucoes: (): FolhaPagamentoExecucaoRow[] =>
     structuredClone(folhasPagamentoExecucoesMock),
   listarPessoaLogs: (): FolhaPagamentoPessoaLogRow[] =>
@@ -1325,6 +1339,8 @@ export const folhaPagamentoService = {
   criarFolha: folhaPagamentoMockRepository.criarFolha,
   // TODO backend: PUT /folhas-pagamento/{id}
   atualizarFolha: folhaPagamentoMockRepository.atualizarFolha,
+  // TODO backend: DELETE /folhas-pagamento/{id}
+  excluirFolha: folhaPagamentoMockRepository.excluirFolha,
   // TODO backend: POST /folhas-pagamento/{id}/executar
   executarFolha: (_request: ExecutarFolhaPagamentoRequest) => undefined,
   // TODO backend: GET /folhas-pagamento/{id}/execucoes
