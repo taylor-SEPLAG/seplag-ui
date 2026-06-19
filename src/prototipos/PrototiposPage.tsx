@@ -325,13 +325,6 @@ const menuFolha: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
-      {
-        label: "Grupos de Cálculo da Folha",
-        icon: "pi pi-circle-on",
-        to: "/prototipos/folha/grupos-calculo",
-        visibleOnMenu: true,
-        visibleOnRouter: true,
-      },
       { label: "Parâmetros de Folha", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
       {
         label: "Tabelas de Referência",
@@ -346,23 +339,23 @@ const menuFolha: IMenuSeplag[] = [
     ],
   },
   {
-    label: "Processamento",
+    label: "Folha",
     icon: "pi pi-cog",
     url: "#",
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
       {
-        label: "Competências da Folha",
+        label: "Competência da folha",
         icon: "pi pi-circle-on",
         to: FOLHA_COMPETENCIAS_BASE_PATH,
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
       {
-        label: "Processamento da Folha",
+        label: "Grupos de Cálculo da Folha",
         icon: "pi pi-circle-on",
-        to: FOLHA_PROCESSAMENTO_BASE_PATH,
+        to: "/prototipos/folha/grupos-calculo",
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
@@ -370,6 +363,13 @@ const menuFolha: IMenuSeplag[] = [
         label: "Folha de Pagamento",
         icon: "pi pi-circle-on",
         to: FOLHA_PAGAMENTO_BASE_PATH,
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+      },
+      {
+        label: "Processamento da Folha",
+        icon: "pi pi-circle-on",
+        to: FOLHA_PROCESSAMENTO_BASE_PATH,
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
@@ -15285,7 +15285,6 @@ export function PrototiposFolhaPagamentoPage({
                 : "Processamento indisponível para esta situação"
             }
             icon="pi pi-play"
-            style={{ backgroundColor: "#16a34a" }}
             disabled={!folhaPodeProcessar(row)}
             onClick={() => abrirProcessamentoDireto(row)}
           />
