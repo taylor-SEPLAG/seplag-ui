@@ -325,13 +325,6 @@ const menuFolha: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
-      {
-        label: "Grupos de Cálculo da Folha",
-        icon: "pi pi-circle-on",
-        to: "/prototipos/folha/grupos-calculo",
-        visibleOnMenu: true,
-        visibleOnRouter: true,
-      },
       { label: "Parâmetros de Folha", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
       {
         label: "Tabelas de Referência",
@@ -346,23 +339,23 @@ const menuFolha: IMenuSeplag[] = [
     ],
   },
   {
-    label: "Processamento",
+    label: "Folha",
     icon: "pi pi-cog",
     url: "#",
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
       {
-        label: "Competências da Folha",
+        label: "Competência da folha",
         icon: "pi pi-circle-on",
         to: FOLHA_COMPETENCIAS_BASE_PATH,
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
       {
-        label: "Processamento da Folha",
+        label: "Grupos de Cálculo da Folha",
         icon: "pi pi-circle-on",
-        to: FOLHA_PROCESSAMENTO_BASE_PATH,
+        to: "/prototipos/folha/grupos-calculo",
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
@@ -370,6 +363,13 @@ const menuFolha: IMenuSeplag[] = [
         label: "Folha de Pagamento",
         icon: "pi pi-circle-on",
         to: FOLHA_PAGAMENTO_BASE_PATH,
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+      },
+      {
+        label: "Processamento da Folha",
+        icon: "pi pi-circle-on",
+        to: FOLHA_PROCESSAMENTO_BASE_PATH,
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
@@ -13577,6 +13577,7 @@ export function PrototiposFolhaPagamentoFormPage() {
     setValue("categoria", "");
     setValue("abrangenciaSubcategorias", []);
     setValue("cargo", "");
+    setValue("grupoEleitos", "");
   };
 
   const validarObrigatoriosFolha = (data: FolhaPagamentoForm) => {
@@ -13891,6 +13892,19 @@ export function PrototiposFolhaPagamentoFormPage() {
                     optionValue="value"
                     disabled={isSomenteLeitura}
                     getFormErrorMessage={() => getFormErrorMessage("cargo")}
+                  />
+                  <DropdownFieldSeplag
+                    name="grupoEleitos"
+                    control={control}
+                    label="Grupo de eleitos"
+                    cols="12 12 6"
+                    options={folhaPagamentoGrupoEleitosOptions}
+                    optionLabel="label"
+                    optionValue="value"
+                    disabled={isSomenteLeitura}
+                    getFormErrorMessage={() =>
+                      getFormErrorMessage("grupoEleitos")
+                    }
                   />
                 </div>
               </section>
@@ -14336,6 +14350,9 @@ export function PrototiposFolhaPagamentoPage({
   const [modalDetalheAberto, setModalDetalheAberto] = useState(false);
   const [modalExecucoesAberto, setModalExecucoesAberto] = useState(false);
   const [modalProcessamentoAberto, setModalProcessamentoAberto] = useState(false);
+  const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
+  const [folhaParaExcluir, setFolhaParaExcluir] =
+    useState<FolhaPagamentoRow | null>(null);
   const [modalLogAberto, setModalLogAberto] = useState(false);
   const [modalPessoaLogAberto, setModalPessoaLogAberto] = useState(false);
   const [modalRelatorioTecnicoAberto, setModalRelatorioTecnicoAberto] =
@@ -15198,9 +15215,46 @@ export function PrototiposFolhaPagamentoPage({
     setModalExecucoesAberto(true);
   };
 
-  const excluirFolha = (folha: FolhaPagamentoRow) => {
-    setFolhas((current) => current.filter((item) => item.id !== folha.id));
+  const folhaPossuiProcessamentoRegistrado = (folha: FolhaPagamentoRow) =>
+    execucoes.some((execucao) => execucao.folhaPagamentoId === folha.id) ||
+    folhaTemHistoricoProcessamento(folha);
+
+  const solicitarExclusaoFolha = (folha: FolhaPagamentoRow) => {
+    if (folhaPossuiProcessamentoRegistrado(folha)) {
+      setFeedback(
+        "Não é permitido excluir esta folha, pois ela já possui processamento registrado.",
+      );
+      return;
+    }
+
+    setFeedback("");
+    setFolhaParaExcluir(folha);
+    setModalExclusaoAberto(true);
+  };
+
+  const cancelarExclusaoFolha = () => {
+    setModalExclusaoAberto(false);
+    setFolhaParaExcluir(null);
+  };
+
+  const confirmarExclusaoFolha = () => {
+    if (!folhaParaExcluir) return;
+
+    folhaPagamentoService.excluirFolha(folhaParaExcluir.id);
+    setFolhas((current) =>
+      current.filter((item) => item.id !== folhaParaExcluir.id),
+    );
+    cancelarExclusaoFolha();
     setFeedback("Folha excluída com sucesso.");
+  };
+
+  const abrirProcessamentoDireto = (folha: FolhaPagamentoRow) => {
+    if (!folhaPodeProcessar(folha)) {
+      setFeedback(getMensagemBloqueioProcessamento(folha));
+      return;
+    }
+
+    navigate(`${FOLHA_PROCESSAMENTO_BASE_PATH}/novo?folhaId=${folha.id}`);
   };
 
   const folhaColumns: ColumnMetaSeplag<FolhaPagamentoRow>[] = [
@@ -15209,7 +15263,7 @@ export function PrototiposFolhaPagamentoPage({
     {
       header: "Ação",
       body: (row) => (
-        <div className="acoes-table">
+        <div className="acoes-table" style={{ display: "flex", gap: "8px" }}>
           <BotaoIconSeplag
             type="button"
             tooltip="Visualizar"
@@ -15225,10 +15279,21 @@ export function PrototiposFolhaPagamentoPage({
           />
           <BotaoIconSeplag
             type="button"
+            tooltip={
+              folhaPodeProcessar(row)
+                ? "Processar esta folha"
+                : "Processamento indisponível para esta situação"
+            }
+            icon="pi pi-play"
+            disabled={!folhaPodeProcessar(row)}
+            onClick={() => abrirProcessamentoDireto(row)}
+          />
+          <BotaoIconSeplag
+            type="button"
             tooltip="Excluir"
             icon="pi pi-trash"
             severity="danger"
-            onClick={() => excluirFolha(row)}
+            onClick={() => solicitarExclusaoFolha(row)}
           />
         </div>
       ),
@@ -15546,7 +15611,7 @@ export function PrototiposFolhaPagamentoPage({
         tooltip="Excluir"
         icon="pi pi-trash"
         style={{ backgroundColor: "#d32f2f", color: "#ffffff" }}
-        onClick={() => excluirFolha(folha)}
+        onClick={() => solicitarExclusaoFolha(folha)}
       />
     </>
   );
@@ -15905,6 +15970,38 @@ export function PrototiposFolhaPagamentoPage({
             />
           </div>
         </CardSeplag>
+
+        <ModalSeplag
+          visible={modalExclusaoAberto}
+          titulo="Confirmar exclusão"
+          fechar={cancelarExclusaoFolha}
+          tamanho="520px"
+          customFooter={
+            <div className="prototype-form-actions">
+              <BotaoVoltarSeplag
+                type="button"
+                label="Cancelar"
+                icon="pi pi-times"
+                onClick={cancelarExclusaoFolha}
+              />
+              <BotaoSeplag
+                type="button"
+                label="Excluir"
+                icon="pi pi-trash"
+                style={{ backgroundColor: "#d32f2f", color: "#ffffff" }}
+                onClick={confirmarExclusaoFolha}
+              />
+            </div>
+          }
+        >
+          <div className="col-12 prototype-catalogo-view-content">
+            <p>
+              Deseja realmente excluir a folha{" "}
+              <strong>{folhaParaExcluir?.nome}</strong>?
+            </p>
+            <p>Esta ação não poderá ser desfeita.</p>
+          </div>
+        </ModalSeplag>
 
         <ModalSeplag
           visible={modalProcessamentoAberto}
@@ -16627,6 +16724,7 @@ export function PrototiposFolhaPagamentoPage({
 
 export function PrototiposFolhaProcessamentoFormPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const folhas = folhaPagamentoService.listarFolhas();
   const competenciaVigente = folhaPagamentoService
     .listarCompetencias()
@@ -16635,7 +16733,12 @@ export function PrototiposFolhaProcessamentoFormPage() {
   const [processamentoErrors, setProcessamentoErrors] =
     useState<Partial<Record<keyof ProcessamentoFolhaForm, string>>>({});
 
+  const folhaIdSelecionada = Number(searchParams.get("folhaId"));
+  const folhaSelecionadaPorAtalho = Number.isFinite(folhaIdSelecionada)
+    ? folhas.find((folha) => folha.id === folhaIdSelecionada)
+    : undefined;
   const folhaDisponivel =
+    folhaSelecionadaPorAtalho ??
     folhas.find((folha) =>
       ["ABERTO", "PROCESSO_COM_SUCESSO", "PROCESSO_COM_ERRO"].includes(
         folha.situacao,
