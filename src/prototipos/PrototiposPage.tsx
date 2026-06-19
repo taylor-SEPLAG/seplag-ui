@@ -15263,7 +15263,7 @@ export function PrototiposFolhaPagamentoPage({
     {
       header: "Ação",
       body: (row) => (
-        <div className="acoes-table">
+        <div className="acoes-table" style={{ display: "flex", gap: "8px" }}>
           <BotaoIconSeplag
             type="button"
             tooltip="Visualizar"
@@ -15285,6 +15285,7 @@ export function PrototiposFolhaPagamentoPage({
                 : "Processamento indisponível para esta situação"
             }
             icon="pi pi-play"
+            style={{ backgroundColor: "#16a34a" }}
             disabled={!folhaPodeProcessar(row)}
             onClick={() => abrirProcessamentoDireto(row)}
           />
