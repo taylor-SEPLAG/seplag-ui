@@ -1,1 +1,0 @@
-import{t as e}from"./jsx-runtime-CUBmso4R.js";var t=e();function n({children:e,text:n}){return(0,t.jsx)(`div`,{className:`layout-footer`,children:e??(0,t.jsx)(`span`,{children:n})})}export{n as t};

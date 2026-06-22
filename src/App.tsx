@@ -343,6 +343,7 @@ function CalendarioPage() {
     null,
   );
   const isCalendarioRoute = location.pathname === "/calendario";
+  const isProcessoRoute = location.pathname === "/calendario/processo";
   const menuItems = [
     { label: "Calendário", to: "/calendario", icon: FiCalendar },
     { label: "Processo", to: "/calendario/processo", icon: FiFileText },
@@ -798,6 +799,84 @@ function CalendarioPage() {
   };
   const esocialTimelineMilestones =
     esocialTimelineMilestonesByMonth[visibleMonthKey] ?? [];
+  const sigepProcessSteps = [
+    {
+      title: "Refinamento",
+      description:
+        "PO, analistas e time tecnico detalham as necessidades e alinham regras de negocio.",
+      meta: "Entrada: demandas priorizadas",
+    },
+    {
+      title: "Planning",
+      description:
+        "As historias sao estimadas, fatiadas e selecionadas para a sprint de desenvolvimento.",
+      meta: "Saida: sprint planejada",
+    },
+    {
+      title: "Sprint DEV",
+      description:
+        "Desenvolvedores implementam as US, integram servicos, ajustam telas e preparam evidencias.",
+      meta: "Duracao media: 15 dias",
+    },
+    {
+      title: "Sprint Teste",
+      description:
+        "QA valida a entrega da sprint DEV passada. O teste é sempre realizado em D-1 da entrega anterior, nao da entrega atual.",
+      meta: "Referencia: sprint DEV anterior",
+    },
+    {
+      title: "Review",
+      description:
+        "O incremento e apresentado, validado com os envolvidos e preparado para entrega.",
+      meta: "Marco de validacao",
+    },
+    {
+      title: "Entrega",
+      description:
+        "A versao aprovada segue para publicacao, comunicacao e acompanhamento pos-entrega.",
+      meta: "Fim do ciclo",
+    },
+  ];
+  const sigepDefinitionCards = [
+    {
+      title: "DoR do desenvolvimento",
+      items: [
+        "User Story detalhada (regra de negócio)",
+        "Critérios de aceite definidos",
+        "Protótipo anexado",
+        "Estimativa técnica (Story Points)",
+        "Mapeamento de alteração/criação DBA",
+      ],
+    },
+    {
+      title: "DoD do desenvolvimento",
+      items: [
+        "Desenvolvimento concluído e disponível no ambiente de DEV",
+        "Code Review realizado",
+        "Testes de critérios de aceite realizados",
+        "Aprovação com PO/Analistas",
+      ],
+    },
+    {
+      title: "DoR de teste",
+      items: [
+        "Regras de negócio claras",
+        "Critérios de aceite definidos",
+        "Cenários de teste mapeados e escritos",
+        "Massa de dados identificada",
+        "Desenvolvimento disponível no ambiente de teste",
+      ],
+    },
+    {
+      title: "DoD de teste",
+      items: [
+        "Critérios de aceite validados",
+        "Sem defeitos críticos",
+        "Aprovação com PO/Analistas",
+        "Entrega disponível no ambiente de Homologação",
+      ],
+    },
+  ];
 
   return (
     <div className="calendar-shell">
@@ -1008,6 +1087,78 @@ function CalendarioPage() {
                   </div>
                 </div>
               </details>
+            </div>
+          </section>
+        ) : null}
+
+        {isProcessoRoute ? (
+          <section className="calendar-main-panel">
+            <header className="calendar-panel-header">
+              <FiFileText aria-hidden="true" />
+              <h1>Processo de Desenvolvimento do SIGEP</h1>
+            </header>
+            <div className="calendar-process-content">
+              <section className="calendar-process-overview" aria-label="Resumo do processo">
+                <div>
+                  <span>CICLO CONTINUO</span>
+                  <strong>Refinar, desenvolver, testar e entregar</strong>
+                  <p>
+                    O fluxo organiza as atividades do SIGEP em sprints conectadas,
+                    mantendo alinhamento entre negocio, desenvolvimento, testes e
+                    entrega.
+                  </p>
+                </div>
+              </section>
+
+              <ol className="sigep-flow" aria-label="Fluxograma do processo de desenvolvimento do SIGEP">
+                {sigepProcessSteps.map((step, index) => (
+                  <li className="sigep-flow-step" key={step.title}>
+                    <div className="sigep-flow-node">
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <h2>{step.title}</h2>
+                      <p>{step.description}</p>
+                      <small>{step.meta}</small>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              <section className="sigep-definitions" aria-label="DoR e DoD do desenvolvimento e teste">
+                {sigepDefinitionCards.map((card) => (
+                  <article className="sigep-definition-card" key={card.title}>
+                    <h2>{card.title}</h2>
+                    <ul>
+                      {card.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </article>
+                ))}
+              </section>
+
+              <section className="calendar-process-notes" aria-label="Pontos de controle">
+                <article>
+                  <strong>Controle de escopo</strong>
+                  <p>
+                    Demandas entram no ciclo apos priorizacao e refinamento, evitando
+                    mudancas sem avaliacao durante a sprint.
+                  </p>
+                </article>
+                <article>
+                  <strong>Qualidade integrada</strong>
+                  <p>
+                    Testes acompanham o desenvolvimento e sustentam a decisao de
+                    apresentar, ajustar ou liberar a entrega.
+                  </p>
+                </article>
+                <article>
+                  <strong>Melhoria continua</strong>
+                  <p>
+                    Review e retrospectiva alimentam os proximos refinamentos e
+                    reduzem riscos do ciclo seguinte.
+                  </p>
+                </article>
+              </section>
             </div>
           </section>
         ) : null}
