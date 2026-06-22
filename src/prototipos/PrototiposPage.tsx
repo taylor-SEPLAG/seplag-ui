@@ -20060,7 +20060,6 @@ export function PrototiposFolhaCatalogoRubricasPage() {
               columns={catalogoColumns}
               hasEventoAcao
               handleView={(row) => navigate(`/prototipos/folha/catalogo-rubricas/${row.id}`)}
-              handleInativar={(row) => row.status === "Ativa" ? handleInativar(row) : null}
               handleOnPageChange={() => {}}
             />
           </div>
