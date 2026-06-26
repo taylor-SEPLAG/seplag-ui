@@ -8622,6 +8622,41 @@
   border-color: #8fb3d1;
 }
 
+.prototype-folha-home-config-observation-field {
+  display: grid;
+  gap: 6px;
+  padding: 0 12px;
+}
+
+.prototype-folha-home-config-observation-field span {
+  color: #4b5563;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.prototype-folha-home-config-observation-field textarea {
+  width: 100%;
+  min-height: 76px;
+  resize: vertical;
+  padding: 9px 10px;
+  border: 1px solid #cfd8e3;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #001f3f;
+  font: inherit;
+  line-height: 1.35;
+}
+
+.prototype-folha-home-config-observation-field textarea:focus {
+  border-color: #005ca9;
+  box-shadow: 0 0 0 2px rgba(0, 92, 169, 0.12);
+  outline: 0;
+}
+
+.prototype-folha-home-config-observation-field textarea:hover {
+  border-color: #8fb3d1;
+}
 .prototype-folha-home-schedule-config .prototype-folha-home-icon-actions {
   align-items: center;
   gap: 8px;
@@ -8799,12 +8834,18 @@
 }
 
 .prototype-folha-home-panel-toolbar {
+  display: flex;
+  justify-content: flex-start;
   padding-bottom: 4px;
 }
 
 .prototype-folha-home-full-action.p-button {
-  width: 100%;
-  min-height: 42px;
+  display: inline-flex;
+  width: fit-content;
+  min-width: 0;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px;
   justify-content: center;
   background: #005ca9;
   border-color: #005ca9;
@@ -10019,4 +10060,34 @@
   .prototype-dynamic-report-manager-filters {
     grid-template-columns: 1fr;
   }
+}
+
+.prototype-folha-referencia-vigencias-rpps th:nth-child(1),
+.prototype-folha-referencia-vigencias-rpps td:nth-child(1) {
+  width: 10%;
+}
+
+.prototype-folha-referencia-vigencias-rpps th:nth-child(2),
+.prototype-folha-referencia-vigencias-rpps td:nth-child(2) {
+  width: 16%;
+}
+
+.prototype-folha-referencia-vigencias-rpps th:nth-child(3),
+.prototype-folha-referencia-vigencias-rpps td:nth-child(3) {
+  width: 24%;
+}
+
+.prototype-folha-referencia-vigencias-rpps th:nth-child(4),
+.prototype-folha-referencia-vigencias-rpps td:nth-child(4) {
+  width: 24%;
+}
+
+.prototype-folha-referencia-vigencias-rpps th:nth-child(5),
+.prototype-folha-referencia-vigencias-rpps td:nth-child(5) {
+  width: 13%;
+}
+
+.prototype-folha-referencia-vigencias-rpps th:nth-child(6),
+.prototype-folha-referencia-vigencias-rpps td:nth-child(6) {
+  width: 13%;
 }

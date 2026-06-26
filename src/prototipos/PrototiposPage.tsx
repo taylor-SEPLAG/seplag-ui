@@ -3036,6 +3036,9 @@ interface FolhaTabelaReferenciaVigenciaRow {
   ano: string;
   vigencia: ReactNode;
   situacao: "Ativo" | "Inativo";
+  aplicavelPara?: string;
+  tipoCalculo?: string;
+  regraIncidencia?: string;
 }
 
 interface FolhaTabelaReferenciaRow {
@@ -3048,6 +3051,10 @@ interface FolhaTabelaReferenciaRow {
 interface FolhaTabelaReferenciaVigenciaForm {
   descricao: string;
   anoBase: string;
+  aplicavelPara: string[];
+  tipoCalculo: string;
+  regraIncidencia: string;
+  valorReferenciaId: string;
   tetoPrevidenciario: string;
   inicioVigencia: string;
   fimVigencia: string;
@@ -3068,6 +3075,69 @@ interface FolhaTabelaReferenciaNovaFaixaForm {
   percentual: string;
 }
 
+
+type FolhaTabelaReferenciaRegraIncidencia =
+  | "REMUNERACAO_TOTAL"
+  | "ATE_TETO_RGPS"
+  | "EXCEDENTE_TETO_RGPS"
+  | "EXCEDENTE_SALARIO_MINIMO"
+  | "EXCEDENTE_VALOR_REFERENCIA"
+  | "FAIXAS_PROGRESSIVAS";
+
+const folhaTabelaReferenciaAplicavelParaOptions = [
+  { label: "Ativo", value: "ATIVO" },
+  { label: "Inativo", value: "INATIVO" },
+  { label: "Pensionista", value: "PENSIONISTA" },
+  { label: "Militar", value: "MILITAR" },
+  { label: "Todos", value: "TODOS" },
+];
+
+const folhaTabelaReferenciaTipoCalculoOptions = [
+  { label: "Vínculo", value: "VINCULO" },
+  { label: "Pessoa", value: "PESSOA" },
+  { label: "Contrato", value: "CONTRATO" },
+];
+
+const folhaTabelaReferenciaRegraIncidenciaOptions: {
+  label: string;
+  value: FolhaTabelaReferenciaRegraIncidencia;
+}[] = [
+  { label: "Sobre remuneração total", value: "REMUNERACAO_TOTAL" },
+  { label: "Até o teto do RGPS", value: "ATE_TETO_RGPS" },
+  { label: "Sobre excedente do teto do RGPS", value: "EXCEDENTE_TETO_RGPS" },
+  { label: "Sobre excedente do salário mínimo", value: "EXCEDENTE_SALARIO_MINIMO" },
+  { label: "Sobre excedente de valor de referência", value: "EXCEDENTE_VALOR_REFERENCIA" },
+  { label: "Por faixas de contribuição", value: "FAIXAS_PROGRESSIVAS" },
+];
+
+const folhaTabelaReferenciaValorReferenciaOptions = [
+  { label: "Salário Mínimo", value: "SALARIO_MINIMO" },
+  { label: "Teto RGPS", value: "TETO_RGPS" },
+  { label: "Faixa Isenção", value: "FAIXA_ISENCAO" },
+];
+
+const folhaTabelaReferenciaRegraLabel = (value?: string) =>
+  folhaTabelaReferenciaRegraIncidenciaOptions.find((option) => option.value === value)
+    ?.label ?? "-";
+
+const folhaTabelaReferenciaAplicavelLabel = (value?: string) =>
+  folhaTabelaReferenciaAplicavelParaOptions.find((option) => option.value === value)
+    ?.label ?? "-";
+
+const folhaTabelaReferenciaTipoCalculoLabel = (value?: string) =>
+  folhaTabelaReferenciaTipoCalculoOptions.find((option) => option.value === value)
+    ?.label ?? "-";
+
+const getReferenciaAutomaticaRppsLabel = (regra?: string) => {
+  if (regra === "EXCEDENTE_TETO_RGPS") return "Teto RGPS vigente automático";
+  if (regra === "EXCEDENTE_SALARIO_MINIMO") return "Salário mínimo vigente automático";
+  return "Não informado";
+};
+
+const isRegraExcedenteReferencia = (regra?: string) =>
+  regra === "EXCEDENTE_TETO_RGPS" ||
+  regra === "EXCEDENTE_SALARIO_MINIMO" ||
+  regra === "EXCEDENTE_VALOR_REFERENCIA";
 const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
   {
     id: 1,
@@ -3147,11 +3217,37 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
       {
         id: 301,
         ano: "2026",
-        vigencia: (
-          <>
-            01/01/2026 até <em>vigente</em>
-          </>
-        ),
+        aplicavelPara: "Ativo",
+        tipoCalculo: "Vínculo",
+        regraIncidencia: "Sobre remuneração total",
+        vigencia: "02/01/2026 até 31/12/2026",
+        situacao: "Ativo",
+      },
+      {
+        id: 302,
+        ano: "2026",
+        aplicavelPara: "Inativo",
+        tipoCalculo: "Vínculo",
+        regraIncidencia: "Sobre excedente do teto do RGPS",
+        vigencia: "02/01/2026 até 31/12/2026",
+        situacao: "Ativo",
+      },
+      {
+        id: 303,
+        ano: "2026",
+        aplicavelPara: "Pensionista",
+        tipoCalculo: "Vínculo",
+        regraIncidencia: "Sobre excedente de valor de referência",
+        vigencia: "02/01/2026 até 31/12/2026",
+        situacao: "Ativo",
+      },
+      {
+        id: 304,
+        ano: "2026",
+        aplicavelPara: "Militar",
+        tipoCalculo: "Vínculo",
+        regraIncidencia: "Por faixas de contribuição",
+        vigencia: "02/01/2026 até 31/12/2026",
         situacao: "Ativo",
       },
     ],
@@ -3229,7 +3325,7 @@ const folhaTabelaReferenciaFaixasMock: FolhaTabelaReferenciaFaixaRow[] = [
 
 const folhaTabelaReferenciaVigenciaTabs: TabItemSeplag[] = [
   { label: "Dados Gerais", value: "dados-gerais" },
-  { label: "Faixa de Contribuição", value: "faixa-contribuicao" },
+  { label: "Faixas de Contribuição", value: "faixa-contribuicao" },
 ];
 
 const parseMoedaReferencia = (valor: string) => {
@@ -10881,7 +10977,7 @@ export function PrototiposFolhaPage() {
 
   const atualizarSessaoCronograma = (
     cronogramaId: number,
-    changes: Partial<{ titulo: string }>,
+    changes: Partial<{ titulo: string; observacao: string }>,
   ) => {
     setCronogramasFolha((current) =>
       current.map((cronograma) =>
@@ -11024,7 +11120,7 @@ export function PrototiposFolhaPage() {
                 <div className="prototype-folha-home-panel-toolbar">
                   <BotaoSeplag
                     type="button"
-                    label="+ Novo Informativo"
+                    label="Novo Informativo"
                     icon="pi pi-plus"
                     className="prototype-folha-home-full-action"
                     onClick={abrirNovoInformativo}
@@ -11358,7 +11454,7 @@ export function PrototiposFolhaCronogramaPage() {
 
   const atualizarSessaoCronograma = (
     cronogramaId: number,
-    changes: Partial<{ titulo: string }>,
+    changes: Partial<{ titulo: string; observacao: string }>,
   ) => {
     setCronogramasFolha((current) =>
       current.map((cronograma) =>
@@ -11414,6 +11510,7 @@ export function PrototiposFolhaCronogramaPage() {
         id: Math.max(...current.map((item) => item.id), 0) + 1,
         titulo: `Nova seção ${current.length + 1}`,
         marcador: corAleatoria,
+        observacao: "",
         eventos: [],
       },
     ]);
@@ -11514,6 +11611,20 @@ export function PrototiposFolhaCronogramaPage() {
                       />
                     </div>
                   </div>
+
+                  <label className="prototype-folha-home-config-observation-field">
+                    <span>Observação</span>
+                    <textarea
+                      aria-label="Observação da seção"
+                      value={cronograma.observacao ?? ""}
+                      rows={3}
+                      onChange={(event) =>
+                        atualizarSessaoCronograma(cronograma.id, {
+                          observacao: event.target.value,
+                        })
+                      }
+                    />
+                  </label>
 
                   <div className="prototype-folha-home-config-event-header">
                     <span />
@@ -11834,10 +11945,12 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                             }
                           />
                         </div>
-                        <table>
+                        <table className={tabela.sigla === "RPPS" ? "prototype-folha-referencia-vigencias-rpps" : undefined}>
                           <thead>
                             <tr>
                               <th>Ano</th>
+                              {tabela.sigla === "RPPS" ? <th>Aplicável Para</th> : null}
+                              {tabela.sigla === "RPPS" ? <th>Regra de Incidência</th> : null}
                               <th>Vigência</th>
                               <th>Situação</th>
                               <th>Ações</th>
@@ -11847,6 +11960,12 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                             {vigenciasFiltradas.map((vigencia) => (
                               <tr key={vigencia.id}>
                                 <td>{vigencia.ano}</td>
+                                {tabela.sigla === "RPPS" ? (
+                                  <td>{vigencia.aplicavelPara ?? "-"}</td>
+                                ) : null}
+                                {tabela.sigla === "RPPS" ? (
+                                  <td>{vigencia.regraIncidencia ?? "-"}</td>
+                                ) : null}
                                 <td>{vigencia.vigencia}</td>
                                 <td>{renderSituacaoTabelaReferencia(vigencia.situacao)}</td>
                                 <td>
@@ -11881,7 +12000,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                             ))}
                             {!vigenciasFiltradas.length ? (
                               <tr>
-                                <td colSpan={4} className="prototype-empty-table-cell">
+                                <td colSpan={tabela.sigla === "RPPS" ? 6 : 4} className="prototype-empty-table-cell">
                                   Nenhuma vigência encontrada.
                                 </td>
                               </tr>
@@ -11951,13 +12070,27 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const tabela =
     folhaTabelasReferenciaMock.find((item) => String(item.id) === tabelaId) ??
     folhaTabelasReferenciaMock[0];
+  const isTabelaRpps = tabela.sigla === "RPPS";
   const isEditing = Boolean(vigenciaId);
   const [activeTab, setActiveTab] = useState("dados-gerais");
   const [dadosGeraisSalvos, setDadosGeraisSalvos] = useState(isEditing);
   const [feedback, setFeedback] = useState("");
   const [faixasVigencia, setFaixasVigencia] =
     useState<FolhaTabelaReferenciaFaixaRow[]>(() =>
-      isEditing ? folhaTabelaReferenciaFaixasMock : [],
+      isTabelaRpps
+        ? [
+            {
+              id: 1,
+              ordem: 1,
+              faixaInicial: "R$ 0,00",
+              faixaFinal: "Em aberto",
+              percentual: "14",
+              contribuicaoFaixa: "Calculada pelo motor",
+            },
+          ]
+        : isEditing
+          ? folhaTabelaReferenciaFaixasMock
+          : [],
     );
   const [novaFaixaForm, setNovaFaixaForm] =
     useState<FolhaTabelaReferenciaNovaFaixaForm>({
@@ -11965,16 +12098,44 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       percentual: "",
     });
   const [modalNovaFaixaAberto, setModalNovaFaixaAberto] = useState(false);
-  const { control, handleSubmit } = useForm<FolhaTabelaReferenciaVigenciaForm>({
+  const { control, handleSubmit, watch, setValue } = useForm<FolhaTabelaReferenciaVigenciaForm>({
     defaultValues: {
-      descricao: isEditing ? "testeddd" : "",
-      anoBase: isEditing ? "2026" : "",
-      tetoPrevidenciario: isEditing ? "R$ 8.475,55" : "",
-      inicioVigencia: isEditing ? "02/06/2026" : "",
-      fimVigencia: "",
+      descricao: isTabelaRpps ? "RPPS 2026 - Servidor Ativo" : isEditing ? "testeddd" : "",
+      anoBase: isEditing || isTabelaRpps ? "2026" : "",
+      aplicavelPara: isTabelaRpps ? ["ATIVO"] : [],
+      tipoCalculo: isTabelaRpps ? "VINCULO" : "",
+      regraIncidencia: isTabelaRpps ? "REMUNERACAO_TOTAL" : "",
+      valorReferenciaId: "",
+      tetoPrevidenciario: isTabelaRpps ? "" : isEditing ? "R$ 8.475,55" : "",
+      inicioVigencia: isTabelaRpps ? "02/01/2026" : isEditing ? "02/06/2026" : "",
+      fimVigencia: isTabelaRpps ? "31/12/2026" : "",
       observacoes: "",
     },
   });
+  const regraIncidenciaSelecionada = watch("regraIncidencia");
+  const valorReferenciaSelecionado = watch("valorReferenciaId");
+  const tetoPrevidenciarioSelecionado = watch("tetoPrevidenciario");
+
+  useEffect(() => {
+    if (!isTabelaRpps) return;
+
+    if (regraIncidenciaSelecionada === "REMUNERACAO_TOTAL") {
+      setFaixasVigencia([
+        {
+          id: 1,
+          ordem: 1,
+          faixaInicial: "R$ 0,00",
+          faixaFinal: "Em aberto",
+          percentual: "14",
+          contribuicaoFaixa: "Calculada pelo motor",
+        },
+      ]);
+    }
+
+    if (regraIncidenciaSelecionada === "ATE_TETO_RGPS" && valorReferenciaSelecionado !== "TETO_RGPS") {
+      setValue("valorReferenciaId", "TETO_RGPS");
+    }
+  }, [isTabelaRpps, regraIncidenciaSelecionada, setValue, valorReferenciaSelecionado]);
   const tabsVigencia = folhaTabelaReferenciaVigenciaTabs.map((tab) =>
     tab.value === "faixa-contribuicao"
       ? { ...tab, disabled: !dadosGeraisSalvos }
@@ -11990,17 +12151,168 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     0,
   );
 
+  const isFaixaAberta = (faixa: Pick<FolhaTabelaReferenciaFaixaRow, "faixaFinal">) =>
+    faixa.faixaFinal.trim().toLowerCase() === "em aberto";
+
+  const parseDataVigenciaReferencia = (valor?: string) => {
+    if (!valor) return undefined;
+    const [dia, mes, ano] = valor.split("/").map(Number);
+    if (!dia || !mes || !ano) return undefined;
+    return new Date(ano, mes - 1, dia).getTime();
+  };
+
+  const vigenciasSobrepostas = (inicioA?: string, fimA?: string, inicioB?: string, fimB?: string) => {
+    const inicio1 = parseDataVigenciaReferencia(inicioA);
+    const fim1 = parseDataVigenciaReferencia(fimA) ?? Number.POSITIVE_INFINITY;
+    const inicio2 = parseDataVigenciaReferencia(inicioB);
+    const fim2 = parseDataVigenciaReferencia(fimB) ?? Number.POSITIVE_INFINITY;
+
+    if (inicio1 === undefined || inicio2 === undefined) return false;
+    return inicio1 <= fim2 && inicio2 <= fim1;
+  };
   const abrirModalNovaFaixa = () => {
-    setNovaFaixaForm({ faixaFinal: "R$ 0,00", percentual: "" });
+    if (
+      isTabelaRpps &&
+      regraIncidenciaSelecionada === "REMUNERACAO_TOTAL" &&
+      faixasVigencia.length >= 1
+    ) {
+      setFeedback("Sobre remuneração total permite apenas uma faixa aberta.");
+      return;
+    }
+
+    const faixaFinalPadrao =
+      isTabelaRpps && regraIncidenciaSelecionada === "ATE_TETO_RGPS"
+        ? tetoPrevidenciarioSelecionado || "Teto RGPS"
+        : isTabelaRpps && isRegraExcedenteReferencia(regraIncidenciaSelecionada)
+          ? "Em aberto"
+          : "R$ 0,00";
+
+    setNovaFaixaForm({
+      faixaFinal: faixaFinalPadrao,
+      percentual: isTabelaRpps ? "14" : "",
+    });
     setModalNovaFaixaAberto(true);
   };
 
-  const salvarVigencia = () => {
+  const salvarVigencia = (data: FolhaTabelaReferenciaVigenciaForm) => {
+    if (isTabelaRpps) {
+      if (!data.aplicavelPara?.length) {
+        setFeedback("Informe ao menos um público em Aplicável para.");
+        return;
+      }
+
+      if (!data.tipoCalculo) {
+        setFeedback("Informe o Tipo de Cálculo do RPPS.");
+        return;
+      }
+
+      if (!data.regraIncidencia) {
+        setFeedback("Informe a Regra de Incidência do RPPS.");
+        return;
+      }
+
+      const regraExigeValorReferencia =
+        data.regraIncidencia === "EXCEDENTE_VALOR_REFERENCIA";
+
+      if (regraExigeValorReferencia && !data.valorReferenciaId) {
+        setFeedback("Informe o Valor de Referência exigido pela regra selecionada.");
+        return;
+      }
+
+      if (
+        data.regraIncidencia === "ATE_TETO_RGPS" &&
+        !data.tetoPrevidenciario?.trim() &&
+        data.valorReferenciaId !== "TETO_RGPS"
+      ) {
+        setFeedback("Para 'Até o teto do RGPS', informe o teto previdenciário ou selecione Teto RGPS como valor de referência.");
+        return;
+      }
+
+      if (data.regraIncidencia === "ATE_TETO_RGPS") {
+        const ultimaFaixa = faixasVigencia[faixasVigencia.length - 1];
+        const fechamentoEsperado = data.tetoPrevidenciario?.trim() || "Teto RGPS";
+
+        if (faixasVigencia.some(isFaixaAberta)) {
+          setFeedback("Até o teto do RGPS não permite faixa aberta acima do teto.");
+          return;
+        }
+
+        if (ultimaFaixa && ultimaFaixa.faixaFinal !== fechamentoEsperado) {
+          setFeedback("Para 'Até o teto do RGPS', a última faixa deve fechar no teto.");
+          return;
+        }
+      }
+
+      if (data.regraIncidencia === "REMUNERACAO_TOTAL") {
+        if (faixasVigencia.length !== 1 || !isFaixaAberta(faixasVigencia[0])) {
+          setFeedback("Sobre remuneração total permite apenas uma faixa aberta.");
+          return;
+        }
+      }
+
+      if (data.regraIncidencia === "FAIXAS_PROGRESSIVAS" && !faixasVigencia.length) {
+        setFeedback("Por faixas de contribuição exige ao menos uma faixa cadastrada.");
+        return;
+      }
+
+      if (isRegraExcedenteReferencia(data.regraIncidencia)) {
+        const possuiPercentual = faixasVigencia.some((faixa) => faixa.percentual.trim());
+        if (!possuiPercentual) {
+          setFeedback("Regras de excedente exigem percentual de contribuição.");
+          return;
+        }
+      }
+
+      if (data.tetoPrevidenciario?.trim()) {
+        if (faixasVigencia.some(isFaixaAberta)) {
+          setFeedback("Quando há Teto Previdenciário, a última faixa deve fechar no teto.");
+          return;
+        }
+
+        const ultimaFaixa = faixasVigencia[faixasVigencia.length - 1];
+        if (ultimaFaixa && ultimaFaixa.faixaFinal !== data.tetoPrevidenciario) {
+          setFeedback("A última faixa deve possuir Valor Final igual ao Teto Previdenciário.");
+          return;
+        }
+      }
+
+      const vigenciaAtualId = Number(vigenciaId);
+      const temSobreposicao = folhaTabelasReferenciaMock
+        .find((item) => item.sigla === "RPPS")
+        ?.vigencias.some((vigencia) => {
+          if (vigencia.id === vigenciaAtualId) return false;
+          const mesmoAplicavel = data.aplicavelPara.some(
+            (aplicavel) => folhaTabelaReferenciaAplicavelLabel(aplicavel) === vigencia.aplicavelPara,
+          );
+          const mesmoTipoCalculo =
+            folhaTabelaReferenciaTipoCalculoLabel(data.tipoCalculo) === vigencia.tipoCalculo;
+          const mesmaRegra =
+            folhaTabelaReferenciaRegraLabel(data.regraIncidencia) === vigencia.regraIncidencia;
+
+          return (
+            mesmoAplicavel &&
+            mesmoTipoCalculo &&
+            mesmaRegra &&
+            vigenciasSobrepostas(
+              data.inicioVigencia,
+              data.fimVigencia,
+              typeof vigencia.vigencia === "string" ? vigencia.vigencia.slice(0, 10) : undefined,
+              typeof vigencia.vigencia === "string" ? vigencia.vigencia.slice(-10) : undefined,
+            )
+          );
+        });
+
+      if (temSobreposicao) {
+        setFeedback("Já existe vigência RPPS sobreposta para o mesmo Aplicável Para, Tipo de Cálculo e Regra de Incidência.");
+        return;
+      }
+    }
+
     if (activeTab === "dados-gerais" && !dadosGeraisSalvos) {
       setDadosGeraisSalvos(true);
       setActiveTab("faixa-contribuicao");
       setFeedback(
-        "Dados gerais salvos com sucesso. A aba Faixa de Contribuição foi habilitada.",
+        "Dados gerais salvos com sucesso. A aba Faixas de Contribuição foi habilitada.",
       );
       return;
     }
@@ -12011,25 +12323,40 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const salvarNovaFaixa = () => {
     const faixaFinal = novaFaixaForm.faixaFinal.trim() || "R$ 0,00";
     const percentual = novaFaixaForm.percentual.trim();
+    const faixaAberta = isFaixaAberta({ faixaFinal });
 
-    if (!percentual || parseMoedaReferencia(faixaFinal) <= 0) {
+    if (faixasVigencia.length && isFaixaAberta(faixasVigencia[faixasVigencia.length - 1])) {
+      setFeedback("Não é possível adicionar faixa após uma faixa em aberto.");
+      return;
+    }
+
+    if (
+      isTabelaRpps &&
+      regraIncidenciaSelecionada === "REMUNERACAO_TOTAL" &&
+      faixasVigencia.length >= 1
+    ) {
+      setFeedback("Sobre remuneração total permite apenas uma faixa aberta.");
+      return;
+    }
+
+    if (!percentual || (!faixaAberta && parseMoedaReferencia(faixaFinal) <= 0)) {
       setFeedback("Informe Faixa Final e Percentual (%) para adicionar a faixa.");
       return;
     }
+
+    const faixaInicial = getProximaFaixaInicialReferencia(faixasVigencia);
 
     setFaixasVigencia((current) => [
       ...current,
       {
         id: Date.now(),
         ordem: current.length + 1,
-        faixaInicial: getProximaFaixaInicialReferencia(current),
+        faixaInicial,
         faixaFinal,
         percentual,
-        contribuicaoFaixa: calcularContribuicaoFaixaReferencia(
-          getProximaFaixaInicialReferencia(current),
-          faixaFinal,
-          percentual,
-        ),
+        contribuicaoFaixa: faixaAberta
+          ? "Calculada pelo motor"
+          : calcularContribuicaoFaixaReferencia(faixaInicial, faixaFinal, percentual),
       },
     ]);
     setModalNovaFaixaAberto(false);
@@ -12083,11 +12410,61 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                         cols="12 12 4"
                         getFormErrorMessage={() => null}
                       />
+                      {isTabelaRpps ? (
+                        <>
+                          <MultiSelectFieldSeplag
+                            name="aplicavelPara"
+                            control={control}
+                            label="Aplicável para"
+                            required
+                            cols="12 12 6"
+                            options={folhaTabelaReferenciaAplicavelParaOptions}
+                            optionLabel="label"
+                            optionValue="value"
+                            selectedItemsLabel="{0} públicos selecionados"
+                            getFormErrorMessage={() => null}
+                          />
+                          <DropdownFieldSeplag
+                            name="tipoCalculo"
+                            control={control}
+                            label="Tipo de Cálculo"
+                            required
+                            cols="12 12 3"
+                            options={folhaTabelaReferenciaTipoCalculoOptions}
+                            optionLabel="label"
+                            optionValue="value"
+                            getFormErrorMessage={() => null}
+                          />
+                          <DropdownFieldSeplag
+                            name="regraIncidencia"
+                            control={control}
+                            label="Regra de Incidência"
+                            required
+                            cols="12 12 3"
+                            options={folhaTabelaReferenciaRegraIncidenciaOptions}
+                            optionLabel="label"
+                            optionValue="value"
+                            getFormErrorMessage={() => null}
+                          />
+                          <DropdownFieldSeplag
+                            name="valorReferenciaId"
+                            control={control}
+                            label="Valor de Referência"
+                            required={regraIncidenciaSelecionada === "EXCEDENTE_VALOR_REFERENCIA"}
+                            cols="12 12 3"
+                            options={folhaTabelaReferenciaValorReferenciaOptions}
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Selecione..."
+                            getFormErrorMessage={() => null}
+                          />
+                        </>
+                      ) : null}
                       <TextFieldSeplag
                         name="tetoPrevidenciario"
                         control={control}
                         label="Teto Previdenciário"
-                        required
+                        required={!isTabelaRpps}
                         cols="12 12 3"
                         getFormErrorMessage={() => null}
                       />
@@ -12122,19 +12499,27 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                 ) : (
                   <>
                     <div className="prototype-folha-referencia-vigencia-panel-title">
-                      <h3>Faixa de Contribuição</h3>
+                      <h3>Faixas de Contribuição</h3>
                     </div>
                     <div className="prototype-folha-referencia-calculo-summary">
                       <div>
                         <span>Teto Previdenciário</span>
-                        <strong>R$ 8.475,55</strong>
+                        <strong>
+                          {isTabelaRpps
+                            ? tetoPrevidenciarioSelecionado ||
+                              folhaTabelaReferenciaValorReferenciaOptions.find(
+                                (option) => option.value === valorReferenciaSelecionado,
+                              )?.label ||
+                              getReferenciaAutomaticaRppsLabel(regraIncidenciaSelecionada)
+                            : "R$ 8.475,55"}
+                        </strong>
                       </div>
                       <div>
                         <span>Total de Faixas</span>
                         <strong>{faixasVigencia.length}</strong>
                       </div>
                       <div>
-                        <span>Desconto Máximo CLT</span>
+                        <span>{isTabelaRpps ? "Contribuição estimada" : "Desconto Máximo CLT"}</span>
                         <strong>{formatMoedaReferencia(descontoMaximo)}</strong>
                       </div>
                     </div>
