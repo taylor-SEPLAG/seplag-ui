@@ -10237,30 +10237,40 @@
 
 .prototype-folha-referencia-vigencias-rpps th:nth-child(1),
 .prototype-folha-referencia-vigencias-rpps td:nth-child(1) {
-  width: 10%;
+  width: 8%;
 }
 
 .prototype-folha-referencia-vigencias-rpps th:nth-child(2),
 .prototype-folha-referencia-vigencias-rpps td:nth-child(2) {
-  width: 16%;
+  width: 13%;
 }
 
 .prototype-folha-referencia-vigencias-rpps th:nth-child(3),
 .prototype-folha-referencia-vigencias-rpps td:nth-child(3) {
-  width: 24%;
+  width: 15%;
 }
 
 .prototype-folha-referencia-vigencias-rpps th:nth-child(4),
 .prototype-folha-referencia-vigencias-rpps td:nth-child(4) {
-  width: 24%;
+  width: 14%;
 }
 
 .prototype-folha-referencia-vigencias-rpps th:nth-child(5),
 .prototype-folha-referencia-vigencias-rpps td:nth-child(5) {
-  width: 13%;
+  width: 20%;
 }
 
 .prototype-folha-referencia-vigencias-rpps th:nth-child(6),
 .prototype-folha-referencia-vigencias-rpps td:nth-child(6) {
-  width: 13%;
+  width: 14%;
+}
+
+.prototype-folha-referencia-vigencias-rpps th:nth-child(7),
+.prototype-folha-referencia-vigencias-rpps td:nth-child(7) {
+  width: 8%;
+}
+
+.prototype-folha-referencia-vigencias-rpps th:nth-child(8),
+.prototype-folha-referencia-vigencias-rpps td:nth-child(8) {
+  width: 8%;
 }
