@@ -456,18 +456,10 @@ const prototypeSystems = [
     icon: "pi pi-users",
     status: "Protótipo disponível",
   },
-  {
-    id: "folha",
-    title: "Folha de Pagamento",
-    description: "Protótipos para rubricas, grupos de cálculo, grupos de eleitos e lançamentos financeiros.",
-    path: "/prototipos/folha",
-    icon: "pi pi-money-bill",
-    status: "Protótipo em evolução",
-  },
 ];
 
 const sistemas: AppSystemItemSeplag[] = [
-  { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: "#/prototipos/sigep", icon: "pi pi-users" },
+  { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: "#/prototipos/sigep/categoria", icon: "pi pi-users" },
   { id: "folha", label: "FOLHA", url: "#/prototipos/folha", icon: "pi pi-money-bill" },
   { id: "pericia", label: "PERÍCIA", url: "#/prototipos/pericia", icon: "pi pi-plus-circle" },
   { id: "consignado", label: "CONSIGNADO", url: "#/prototipos/consignado", icon: "pi pi-wallet" },
@@ -476,6 +468,82 @@ const sistemas: AppSystemItemSeplag[] = [
   { id: "aposentadoria", label: "APOSENTADORIA", url: "#/prototipos/aposentadoria", icon: "pi pi-users" },
   { id: "conformidade", label: "CONFORMIDADE", url: "#/prototipos/conformidade", icon: "pi pi-verified" },
   { id: "auditoria", label: "AUDITORIA", url: "#/prototipos/auditoria", icon: "pi pi-check-square" },
+];
+
+const sigepDashboardModules = [
+  {
+    id: "gestao-pessoas",
+    label: "Gestão de Pessoas",
+    description: "Cadastros e estruturas funcionais do SIGEP.",
+    path: "/prototipos/sigep/categoria",
+    icon: "pi pi-users",
+    status: "Disponível",
+    featured: true,
+  },
+  {
+    id: "folha",
+    label: "Folha",
+    description: "Rubricas, grupos, processamento e lançamentos financeiros.",
+    path: "/prototipos/folha",
+    icon: "pi pi-money-bill",
+    status: "Em evolução",
+  },
+  {
+    id: "pericia",
+    label: "Perícia",
+    description: "Fluxos periciais e acompanhamento de atendimentos.",
+    path: "/prototipos/pericia",
+    icon: "pi pi-plus-circle",
+    status: "Em desenvolvimento",
+  },
+  {
+    id: "consignado",
+    label: "Consignado",
+    description: "Consulta e gestão de consignações funcionais.",
+    path: "/prototipos/consignado",
+    icon: "pi pi-wallet",
+    status: "Em desenvolvimento",
+  },
+  {
+    id: "contagem-tempo",
+    label: "Contagem de Tempo",
+    description: "Análise de vínculos, períodos e averbações.",
+    path: "/prototipos/contagem-tempo",
+    icon: "pi pi-clock",
+    status: "Em desenvolvimento",
+  },
+  {
+    id: "e-social",
+    label: "E-Social",
+    description: "Eventos, integrações e conformidade cadastral.",
+    path: "/prototipos/e-social",
+    icon: "pi pi-file",
+    status: "Em desenvolvimento",
+  },
+  {
+    id: "aposentadoria",
+    label: "Aposentadoria",
+    description: "Simulações, processos e regras previdenciárias.",
+    path: "/prototipos/aposentadoria",
+    icon: "pi pi-users",
+    status: "Em desenvolvimento",
+  },
+  {
+    id: "conformidade",
+    label: "Conformidade",
+    description: "Auditoria preventiva, validações e relatórios.",
+    path: "/prototipos/conformidade",
+    icon: "pi pi-verified",
+    status: "Em desenvolvimento",
+  },
+  {
+    id: "auditoria",
+    label: "Auditoria",
+    description: "Acompanhamento de trilhas, achados e evidências.",
+    path: "/prototipos/auditoria",
+    icon: "pi pi-check-square",
+    status: "Em desenvolvimento",
+  },
 ];
 
 const USUARIO_FOLHA_LOGADO = "ROBERTO JUNIOR";
@@ -5514,11 +5582,49 @@ export function PrototiposEstruturaOrganizacionalPage() {
 
 export function PrototiposSigepPage() {
   return (
-    <PrototypeSystemPage
-      nomeSistema="GESTÃO DE PESSOAS"
-      ambienteSistema="Teste"
-      menuItems={menuGestaoPessoas}
-    />
+    <main className="prototype-sigep-home-page">
+      <section className="prototype-sigep-home-header">
+        <Link to="/prototipos" className="prototype-sigep-home-back">
+          <i className="pi pi-arrow-left" aria-hidden="true" />
+          Protótipos
+        </Link>
+        <span>SIGEP</span>
+        <h1>Tela inicial do SIGEP</h1>
+        <p>
+          Selecione um módulo para acessar os fluxos prototipados do sistema.
+        </p>
+      </section>
+
+      <section className="prototype-sigep-home-grid" aria-label="Módulos do SIGEP">
+        {sigepDashboardModules.map((module) => (
+          <Link
+            key={module.id}
+            to={module.path}
+            className="prototype-sigep-home-link"
+            aria-label={`Acessar módulo ${module.label}`}
+          >
+            <CardSeplag
+              cols="12"
+              cardHeaderClassNames={`prototype-sigep-home-card${
+                module.featured ? " is-featured" : ""
+              }`}
+            >
+              <article className="prototype-sigep-home-card-content">
+                <div className="prototype-sigep-home-icon" aria-hidden="true">
+                  <i className={module.icon} />
+                </div>
+                <div>
+                  <span>{module.status}</span>
+                  <h2>{module.label}</h2>
+                  <p>{module.description}</p>
+                </div>
+                <i className="pi pi-arrow-right prototype-sigep-home-action" aria-hidden="true" />
+              </article>
+            </CardSeplag>
+          </Link>
+        ))}
+      </section>
+    </main>
   );
 }
 
