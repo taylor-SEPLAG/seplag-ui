@@ -10274,3 +10274,108 @@
 .prototype-folha-referencia-vigencias-rpps td:nth-child(8) {
   width: 8%;
 }
+.prototype-folha-parametros-header {
+  display: grid;
+  gap: 6px;
+  padding: 0 0 18px;
+}
+
+.prototype-folha-parametros-header h2 {
+  margin: 0;
+  color: #102a43;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.prototype-folha-parametros-header p {
+  margin: 0;
+  max-width: 760px;
+  color: #52616b;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.prototype-folha-valores-referencia-list {
+  overflow-x: auto;
+}
+
+.prototype-folha-valores-referencia-table {
+  width: 100%;
+  min-width: 1040px;
+  border-collapse: collapse;
+  border: 1px solid #d6e4f0;
+  table-layout: fixed;
+}
+
+.prototype-folha-valores-referencia-table th,
+.prototype-folha-valores-referencia-table td {
+  min-height: 64px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334e68;
+  font-size: 0.9rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.prototype-folha-valores-referencia-table th {
+  background: #f8fafc;
+  color: #102a43;
+  font-weight: 800;
+}
+
+.prototype-folha-valores-referencia-table th:nth-child(1),
+.prototype-folha-valores-referencia-table td:nth-child(1) {
+  width: 18%;
+}
+
+.prototype-folha-valores-referencia-table th:nth-child(2),
+.prototype-folha-valores-referencia-table td:nth-child(2) {
+  width: 21%;
+}
+
+.prototype-folha-valores-referencia-table th:nth-child(3),
+.prototype-folha-valores-referencia-table td:nth-child(3) {
+  width: 10%;
+}
+
+.prototype-folha-valores-referencia-table th:nth-child(4),
+.prototype-folha-valores-referencia-table td:nth-child(4) {
+  width: 17%;
+}
+
+.prototype-folha-valores-referencia-table th:nth-child(5),
+.prototype-folha-valores-referencia-table td:nth-child(5) {
+  width: 12%;
+}
+
+.prototype-folha-valores-referencia-table th:nth-child(6),
+.prototype-folha-valores-referencia-table td:nth-child(6) {
+  width: 10%;
+}
+
+.prototype-folha-valores-referencia-table th:nth-child(7),
+.prototype-folha-valores-referencia-table td:nth-child(7) {
+  width: 12%;
+}
+
+.prototype-folha-referencia-expand--small {
+  width: 36px;
+  height: 36px;
+  border-width: 2px;
+}
+
+.prototype-folha-valores-referencia-expanded-row > td {
+  padding: 0;
+  background: #fbfdff;
+}
+
+.prototype-folha-valores-referencia-vigencias {
+  padding: 12px 18px 16px;
+  border-top: 0;
+}
+
+.prototype-folha-valores-referencia-vigencias table {
+  min-width: 780px;
+}

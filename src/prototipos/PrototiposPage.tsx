@@ -5,7 +5,7 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Controller, useForm, type FieldErrors } from "react-hook-form";
 import {
   BotaoLimparFiltroSeplag,
@@ -126,6 +126,12 @@ const getFolhaTabelaReferenciaEditarVigenciaPath = (
   tabelaId: number,
   vigenciaId: number,
 ) => `${FOLHA_TABELAS_REFERENCIA_BASE_PATH}/${tabelaId}/vigencias/${vigenciaId}/editar`;
+const getFolhaValorReferenciaNovaVigenciaPath = (codigo: string) =>
+  `/prototipos/folha/valores-referencia/${codigo}/vigencias/novo`;
+const getFolhaValorReferenciaEditarVigenciaPath = (
+  codigo: string,
+  vigenciaId: number,
+) => `/prototipos/folha/valores-referencia/${codigo}/vigencias/${vigenciaId}/editar`;
 
 interface CargoConcursoRouteProps {
   routePrefix?: string;
@@ -325,9 +331,8 @@ const menuFolha: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
-      { label: "Parâmetros de Folha", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
       {
-        label: "Tabelas de Referência",
+        label: "Parâmetros de Folha",
         icon: "pi pi-circle-on",
         to: FOLHA_TABELAS_REFERENCIA_BASE_PATH,
         visibleOnMenu: true,
@@ -3137,6 +3142,33 @@ interface FolhaTabelaReferenciaVigenciaForm {
   observacoes: string;
 }
 
+
+interface FolhaValorReferenciaVigenciaRow {
+  id: number;
+  ano: string;
+  vigencia: string;
+  valor: string;
+  situacao: FolhaTabelaReferenciaVigenciaRow["situacao"];
+  inicioVigencia: string;
+  fimVigencia?: string;
+}
+
+interface FolhaValorReferenciaRow {
+  codigo: string;
+  nome: string;
+  tipo: "Monetário";
+  vigencias: FolhaValorReferenciaVigenciaRow[];
+}
+
+interface FolhaValorReferenciaVigenciaForm {
+  codigo: string;
+  nome: string;
+  tipo: string;
+  valor: string;
+  inicioVigencia: string;
+  fimVigencia: string;
+  observacoes: string;
+}
 interface FolhaTabelaReferenciaFaixaRow {
   id: number;
   ordem: number;
@@ -3178,6 +3210,11 @@ const folhaTabelaReferenciaPlanoPrevidenciarioOptions = [
   { label: "Plano Financeiro", value: "PLANO_FINANCEIRO" },
   { label: "Plano Previdenciário", value: "PLANO_PREVIDENCIARIO" },
   { label: "PREVCOM", value: "PREVCOM" },
+];
+
+const folhaTabelaReferenciaPrevcomPatrocinadorOptions = [
+  { label: "Sim", value: "SIM" },
+  { label: "Não", value: "NAO" },
 ];
 
 const folhaTabelaReferenciaTipoCalculoOptions = [
@@ -3404,35 +3441,147 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
   },
   {
     id: 4,
-    sigla: "SALÁRIO MÍNIMO",
-    nome: "",
+    sigla: "PREVCOM",
+    nome: "PREVIDÊNCIA COMPLEMENTAR",
     vigencias: [
       {
         id: 401,
         ano: "2026",
-        vigencia: (
-          <>
-            01/01/2026 até <em>vigente</em>
-          </>
-        ),
-        situacao: "Ativo",
+        vigencia: "01/01/2026 até 31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+      },
+    ],
+  },
+];
+
+const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
+  {
+    codigo: "SALARIO_MINIMO",
+    nome: "Salário Mínimo",
+    tipo: "Monetário",
+    vigencias: [
+      {
+        id: 1001,
+        ano: "2026",
+        vigencia: "01/01/2026 até 31/12/2026",
+        valor: "R$ 1.621,00",
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
       },
     ],
   },
   {
-    id: 5,
-    sigla: "SALÁRIO FAMÍLIA",
-    nome: "",
+    codigo: "TETO_RGPS",
+    nome: "Teto RGPS/INSS",
+    tipo: "Monetário",
     vigencias: [
       {
-        id: 501,
+        id: 1002,
         ano: "2026",
-        vigencia: (
-          <>
-            01/01/2026 até <em>vigente</em>
-          </>
-        ),
-        situacao: "Ativo",
+        vigencia: "01/01/2026 até 31/12/2026",
+        valor: "R$ 8.475,55",
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
+      },
+    ],
+  },
+  {
+    codigo: "ISENCAO_LC700",
+    nome: "Faixa Isenção LC 700/2021",
+    tipo: "Monetário",
+    vigencias: [
+      {
+        id: 1003,
+        ano: "2026",
+        vigencia: "01/01/2026 até 31/12/2026",
+        valor: "R$ 4.318,01",
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
+      },
+    ],
+  },
+  {
+    codigo: "LIMITE_PREV_PM_BM",
+    nome: "Limite Prev. PM/BM",
+    tipo: "Monetário",
+    vigencias: [
+      {
+        id: 1004,
+        ano: "2026",
+        vigencia: "01/01/2026 até 31/12/2026",
+        valor: "R$ 11.005,95",
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
+      },
+    ],
+  },
+  {
+    codigo: "DEDUCAO_DEP_IRRF",
+    nome: "Dedução Dependente IRRF",
+    tipo: "Monetário",
+    vigencias: [
+      {
+        id: 1005,
+        ano: "2026",
+        vigencia: "01/01/2026 até 31/12/2026",
+        valor: "R$ 189,59",
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
+      },
+    ],
+  },
+  {
+    codigo: "DEDUCAO_SIMPL_IRRF",
+    nome: "Dedução Simplificada IRRF",
+    tipo: "Monetário",
+    vigencias: [
+      {
+        id: 1006,
+        ano: "2026",
+        vigencia: "01/01/2026 até 31/12/2026",
+        valor: "R$ 564,80",
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
+      },
+    ],
+  },
+  {
+    codigo: "ISENCAO_65_IRRF",
+    nome: "Isenção IRRF 65+",
+    tipo: "Monetário",
+    vigencias: [
+      {
+        id: 1007,
+        ano: "2026",
+        vigencia: "01/01/2026 até 31/12/2026",
+        valor: "R$ 2.824,00",
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
+      },
+    ],
+  },
+  {
+    codigo: "SALARIO_FAMILIA",
+    nome: "Salário Família",
+    tipo: "Monetário",
+    vigencias: [
+      {
+        id: 1008,
+        ano: "2026",
+        vigencia: "01/01/2026 até 31/12/2026",
+        valor: "R$ 65,00",
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
       },
     ],
   },
@@ -11959,6 +12108,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
     },
   });
   const [linhasExpandidas, setLinhasExpandidas] = useState<number[]>([]);
+  const [valoresExpandidos, setValoresExpandidos] = useState<string[]>([]);
   const [filtrosVigencia, setFiltrosVigencia] = useState<
     Record<number, { ano: string; status: "" | FolhaTabelaReferenciaVigenciaRow["situacao"] }>
   >({});
@@ -11967,7 +12117,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
   const termoTabela = filtros.tabela?.trim().toLowerCase() ?? "";
 
   const tabelasFiltradas = folhaTabelasReferenciaMock.filter((tabela) => {
-    const descricao = `${tabela.sigla} ${tabela.nome}`.toLowerCase();
+    const descricao = (tabela.sigla + " " + tabela.nome).toLowerCase();
     return !termoTabela || descricao.includes(termoTabela);
   });
 
@@ -11976,6 +12126,14 @@ export function PrototiposFolhaTabelasReferenciaPage() {
       current.includes(id)
         ? current.filter((item) => item !== id)
         : [...current, id],
+    );
+  };
+
+  const toggleValorReferencia = (codigo: string) => {
+    setValoresExpandidos((current) =>
+      current.includes(codigo)
+        ? current.filter((item) => item !== codigo)
+        : [...current, codigo],
     );
   };
 
@@ -11990,6 +12148,61 @@ export function PrototiposFolhaTabelasReferenciaPage() {
     return <span className={badgeClass}>{situacao}</span>;
   };
 
+  const renderAcoesVigenciaTabela = (
+    tabela: FolhaTabelaReferenciaRow,
+    vigencia: FolhaTabelaReferenciaVigenciaRow,
+  ) => (
+    <div className="prototype-folha-referencia-actions">
+      <BotaoIconSeplag
+        type="button"
+        tooltip="Visualizar vigência"
+        icon="pi pi-eye"
+        onClick={() =>
+          setFeedback("Visualização da vigência " + vigencia.ano + " selecionada.")
+        }
+      />
+      <BotaoIconSeplag
+        severity="warning"
+        type="button"
+        tooltip="Editar vigência"
+        icon="pi pi-pencil"
+        onClick={() =>
+          navigate(
+            getFolhaTabelaReferenciaEditarVigenciaPath(
+              tabela.id,
+              vigencia.id,
+            ),
+          )
+        }
+      />
+    </div>
+  );
+
+  const renderAcoesVigenciaValor = (
+    valor: FolhaValorReferenciaRow,
+    vigencia: FolhaValorReferenciaVigenciaRow,
+  ) => (
+    <div className="prototype-folha-referencia-actions">
+      <BotaoIconSeplag
+        type="button"
+        tooltip="Visualizar vigência"
+        icon="pi pi-eye"
+        onClick={() =>
+          setFeedback("Visualização de " + valor.codigo + " " + vigencia.ano + " selecionada.")
+        }
+      />
+      <BotaoIconSeplag
+        severity="warning"
+        type="button"
+        tooltip="Editar vigência"
+        icon="pi pi-pencil"
+        onClick={() =>
+          navigate(getFolhaValorReferenciaEditarVigenciaPath(valor.codigo, vigencia.id))
+        }
+      />
+    </div>
+  );
+
   return (
     <PrototypeSystemPage
       nomeSistema="FOLHA"
@@ -12000,6 +12213,13 @@ export function PrototiposFolhaTabelasReferenciaPage() {
         {feedback ? (
           <div className="prototype-validation-panel">{feedback}</div>
         ) : null}
+
+        <div className="prototype-folha-parametros-header">
+          <h2>Parâmetros de Folha</h2>
+          <p>
+            Gerencie tabelas complexas e valores de referência utilizados nos cálculos da folha.
+          </p>
+        </div>
 
         <CardSeplag
           title="Tabelas de Referência"
@@ -12047,7 +12267,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                   return atendeAno && atendeStatus;
                 });
                 const titulo = tabela.nome
-                  ? `${tabela.sigla}- ${tabela.nome}`
+                  ? tabela.sigla + "- " + tabela.nome
                   : tabela.sigla;
 
                 return (
@@ -12072,9 +12292,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                           onClick={() => toggleTabela(tabela.id)}
                         >
                           <i
-                            className={`pi ${
-                              isExpanded ? "pi-chevron-up" : "pi-chevron-down"
-                            }`}
+                            className={"pi " + (isExpanded ? "pi-chevron-up" : "pi-chevron-down")}
                             aria-hidden="true"
                           />
                         </button>
@@ -12166,34 +12384,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                                 ) : null}
                                 <td>{vigencia.vigencia}</td>
                                 <td>{renderSituacaoTabelaReferencia(vigencia.situacao)}</td>
-                                <td>
-                                  <div className="prototype-folha-referencia-actions">
-                                    <BotaoIconSeplag
-                                      type="button"
-                                      tooltip="Visualizar vigência"
-                                      icon="pi pi-eye"
-                                      onClick={() =>
-                                        setFeedback(
-                                          `Visualização da vigência ${vigencia.ano} selecionada.`,
-                                        )
-                                      }
-                                    />
-                                    <BotaoIconSeplag
-                                      severity="warning"
-                                      type="button"
-                                      tooltip="Editar vigência"
-                                      icon="pi pi-pencil"
-                                      onClick={() =>
-                                        navigate(
-                                          getFolhaTabelaReferenciaEditarVigenciaPath(
-                                            tabela.id,
-                                            vigencia.id,
-                                          ),
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                </td>
+                                <td>{renderAcoesVigenciaTabela(tabela, vigencia)}</td>
                               </tr>
                             ))}
                             {!vigenciasFiltradas.length ? (
@@ -12237,24 +12428,124 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                 Nenhuma tabela encontrada.
               </div>
             )}
-            <div className="prototype-folha-referencia-pagination">
-              <button type="button" disabled>
-                <i className="pi pi-angle-double-left" aria-hidden="true" />
-              </button>
-              <button type="button" disabled>
-                <i className="pi pi-angle-left" aria-hidden="true" />
-              </button>
-              <span>1</span>
-              <button type="button" disabled>
-                <i className="pi pi-angle-right" aria-hidden="true" />
-              </button>
-              <button type="button" disabled>
-                <i className="pi pi-angle-double-right" aria-hidden="true" />
-              </button>
-              <select aria-label="Registros por página" value="10" onChange={() => {}}>
-                <option value="10">10</option>
-              </select>
-            </div>
+          </div>
+        </CardSeplag>
+
+        <CardSeplag
+          title="Valores de Referência"
+          cols="12"
+          cardHeaderClassNames="prototype-regime-card"
+        >
+          <div className="col-12 prototype-folha-referencia-list prototype-folha-valores-referencia-list">
+            <table className="prototype-folha-valores-referencia-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Nome</th>
+                  <th>Tipo</th>
+                  <th>Vigência Atual</th>
+                  <th>Valor Atual</th>
+                  <th>Situação</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {folhaValoresReferenciaMock.map((valor) => {
+                  const vigenciaAtual = valor.vigencias[0];
+                  const isExpanded = valoresExpandidos.includes(valor.codigo);
+
+                  return (
+                    <Fragment key={valor.codigo}>
+                      <tr>
+                        <td>{valor.codigo}</td>
+                        <td>{valor.nome}</td>
+                        <td>{valor.tipo}</td>
+                        <td>{vigenciaAtual.vigencia}</td>
+                        <td>{vigenciaAtual.valor}</td>
+                        <td>{renderSituacaoTabelaReferencia(vigenciaAtual.situacao)}</td>
+                        <td>
+                          <div className="prototype-folha-referencia-actions">
+                            <BotaoIconSeplag
+                              type="button"
+                              tooltip="Nova vigência"
+                              icon="pi pi-plus"
+                              onClick={() =>
+                                navigate(getFolhaValorReferenciaNovaVigenciaPath(valor.codigo))
+                              }
+                            />
+                            <BotaoIconSeplag
+                              type="button"
+                              tooltip="Visualizar vigência atual"
+                              icon="pi pi-eye"
+                              onClick={() =>
+                                setFeedback("Visualização de " + valor.codigo + " selecionada.")
+                              }
+                            />
+                            <BotaoIconSeplag
+                              severity="warning"
+                              type="button"
+                              tooltip="Editar vigência atual"
+                              icon="pi pi-pencil"
+                              onClick={() =>
+                                navigate(
+                                  getFolhaValorReferenciaEditarVigenciaPath(
+                                    valor.codigo,
+                                    vigenciaAtual.id,
+                                  ),
+                                )
+                              }
+                            />
+                            <button
+                              type="button"
+                              className="prototype-folha-referencia-expand prototype-folha-referencia-expand--small"
+                              aria-label={
+                                isExpanded ? "Recolher vigências" : "Expandir vigências"
+                              }
+                              onClick={() => toggleValorReferencia(valor.codigo)}
+                            >
+                              <i
+                                className={"pi " + (isExpanded ? "pi-chevron-up" : "pi-chevron-down")}
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      {isExpanded ? (
+                        <tr className="prototype-folha-valores-referencia-expanded-row">
+                          <td colSpan={7}>
+                            <div className="prototype-folha-referencia-vigencias prototype-folha-valores-referencia-vigencias">
+                              <table>
+                                <thead>
+                                  <tr>
+                                    <th>Ano</th>
+                                    <th>Vigência</th>
+                                    <th>Valor</th>
+                                    <th>Situação</th>
+                                    <th>Ações</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {valor.vigencias.map((vigencia) => (
+                                    <tr key={vigencia.id}>
+                                      <td>{vigencia.ano}</td>
+                                      <td>{vigencia.vigencia}</td>
+                                      <td>{vigencia.valor}</td>
+                                      <td>{renderSituacaoTabelaReferencia(vigencia.situacao)}</td>
+                                      <td>{renderAcoesVigenciaValor(valor, vigencia)}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </CardSeplag>
       </div>
@@ -12269,6 +12560,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     folhaTabelasReferenciaMock.find((item) => String(item.id) === tabelaId) ??
     folhaTabelasReferenciaMock[0];
   const isTabelaRpps = tabela.sigla === "RPPS";
+  const isTabelaPrevcom = tabela.sigla === "PREVCOM";
   const isEditing = Boolean(vigenciaId);
   const [activeTab, setActiveTab] = useState("dados-gerais");
   const [dadosGeraisSalvos, setDadosGeraisSalvos] = useState(isEditing);
@@ -12298,7 +12590,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const [modalNovaFaixaAberto, setModalNovaFaixaAberto] = useState(false);
   const { control, handleSubmit, watch, setValue } = useForm<FolhaTabelaReferenciaVigenciaForm>({
     defaultValues: {
-      descricao: isTabelaRpps ? "RPPS 2026 - Servidor Ativo" : isEditing ? "testeddd" : "",
+      descricao: isTabelaRpps ? "RPPS 2026 - Servidor Ativo" : isTabelaPrevcom ? "PREVCOM 2026" : isEditing ? "testeddd" : "",
       anoBase: isEditing || isTabelaRpps ? "2026" : "",
       aplicavelPara: isTabelaRpps ? ["ATIVO"] : [],
       condicaoEspecial: isTabelaRpps ? "NENHUMA" : "",
@@ -12383,7 +12675,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   ]);
   const tabsVigencia = folhaTabelaReferenciaVigenciaTabs.map((tab) =>
     tab.value === "faixa-contribuicao"
-      ? { ...tab, disabled: !dadosGeraisSalvos }
+      ? { ...tab, disabled: isTabelaPrevcom || !dadosGeraisSalvos }
       : tab,
   );
   const tituloTabela = `TABELA - ${tabela.sigla}${
@@ -12538,6 +12830,21 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         setFeedback("Já existe vigência RPPS sobreposta para a mesma combinação de Aplicável para, Condição Especial, Plano Previdenciário, Tipo de Cálculo e Regra de Incidência.");
         return;
       }
+    }
+
+    if (isTabelaPrevcom && activeTab === "dados-gerais") {
+      if (!data.tetoRgpsReferencia?.trim()) {
+        setFeedback("Informe o Teto RGPS usado como referência.");
+        return;
+      }
+
+      if (!data.percentualMaximoPatrocinador?.trim()) {
+        setFeedback("Informe o Percentual máximo com patrocinador.");
+        return;
+      }
+
+      setFeedback("Registro salvo com sucesso!");
+      return;
     }
 
     if (activeTab === "dados-gerais" && !dadosGeraisSalvos) {
@@ -12738,7 +13045,41 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                           ) : null}
                         </>
                       ) : null}
-                      {exibirTetoPrevidenciario ? (
+                      {isTabelaPrevcom ? (
+                        <>
+                          <DropdownFieldSeplag
+                            name="tetoRgpsReferencia"
+                            control={control}
+                            label="Teto RGPS usado como referência"
+                            required
+                            cols="12 12 4"
+                            options={folhaTabelaReferenciaValorReferenciaOptions.filter(
+                              (option) => option.value === "TETO_RGPS",
+                            )}
+                            optionLabel="label"
+                            optionValue="value"
+                            getFormErrorMessage={() => null}
+                          />
+                          <TextFieldSeplag
+                            name="percentualMaximoPatrocinador"
+                            control={control}
+                            label="Percentual máximo com patrocinador"
+                            required
+                            cols="12 12 4"
+                            getFormErrorMessage={() => null}
+                          />
+                          <DropdownFieldSeplag
+                            name="permitePatrocinador"
+                            control={control}
+                            label="Permite patrocinador"
+                            cols="12 12 4"
+                            options={folhaTabelaReferenciaPrevcomPatrocinadorOptions}
+                            optionLabel="label"
+                            optionValue="value"
+                            getFormErrorMessage={() => null}
+                          />
+                        </>
+                      ) : null}                      {exibirTetoPrevidenciario ? (
                         <TextFieldSeplag
                           name="tetoPrevidenciario"
                           control={control}
@@ -12963,6 +13304,183 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   );
 }
 
+export function PrototiposFolhaValorReferenciaVigenciaFormPage() {
+  const navigate = useNavigate();
+  const { codigo, vigenciaId } = useParams();
+  const valorReferencia =
+    folhaValoresReferenciaMock.find((item) => item.codigo === codigo) ??
+    folhaValoresReferenciaMock[0];
+  const vigenciaAtual = valorReferencia.vigencias.find(
+    (vigencia) => String(vigencia.id) === vigenciaId,
+  ) ?? valorReferencia.vigencias[0];
+  const isEditing = Boolean(vigenciaId);
+  const [feedback, setFeedback] = useState("");
+  const { control, handleSubmit } = useForm<FolhaValorReferenciaVigenciaForm>({
+    defaultValues: {
+      codigo: valorReferencia.codigo,
+      nome: valorReferencia.nome,
+      tipo: valorReferencia.tipo,
+      valor: isEditing ? vigenciaAtual.valor : "",
+      inicioVigencia: isEditing ? vigenciaAtual.inicioVigencia : "01/01/2026",
+      fimVigencia: isEditing ? vigenciaAtual.fimVigencia ?? "" : "31/12/2026",
+      observacoes: "",
+    },
+  });
+
+  const parseDataVigenciaValorReferencia = (valor?: string) => {
+    if (!valor) return undefined;
+    const [dia, mes, ano] = valor.split("/").map(Number);
+    if (!dia || !mes || !ano) return undefined;
+    return new Date(ano, mes - 1, dia).getTime();
+  };
+
+  const vigenciasValorSobrepostas = (
+    inicioA?: string,
+    fimA?: string,
+    inicioB?: string,
+    fimB?: string,
+  ) => {
+    const inicio1 = parseDataVigenciaValorReferencia(inicioA);
+    const fim1 = parseDataVigenciaValorReferencia(fimA) ?? Number.POSITIVE_INFINITY;
+    const inicio2 = parseDataVigenciaValorReferencia(inicioB);
+    const fim2 = parseDataVigenciaValorReferencia(fimB) ?? Number.POSITIVE_INFINITY;
+
+    if (inicio1 === undefined || inicio2 === undefined) return false;
+    return inicio1 <= fim2 && inicio2 <= fim1;
+  };
+
+  const salvarValorReferencia = (data: FolhaValorReferenciaVigenciaForm) => {
+    if (!data.valor?.trim()) {
+      setFeedback("Informe o Valor.");
+      return;
+    }
+
+    if (!data.inicioVigencia?.trim()) {
+      setFeedback("Informe o Início da Vigência.");
+      return;
+    }
+
+    const vigenciaAtualId = Number(vigenciaId);
+    const temSobreposicao = valorReferencia.vigencias.some((vigencia) => {
+      if (vigencia.id === vigenciaAtualId) return false;
+      return vigenciasValorSobrepostas(
+        data.inicioVigencia,
+        data.fimVigencia,
+        vigencia.inicioVigencia,
+        vigencia.fimVigencia,
+      );
+    });
+
+    if (temSobreposicao) {
+      setFeedback(
+        "Já existe vigência sobreposta para o valor de referência " + valorReferencia.codigo + ".",
+      );
+      return;
+    }
+
+    setFeedback("Registro salvo com sucesso!");
+  };
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="FOLHA"
+      ambienteSistema="Teste"
+      menuItems={menuFolha}
+    >
+      <form onSubmit={handleSubmit(salvarValorReferencia)}>
+        <div className="prototype-page-content prototype-page-content--white prototype-folha-referencia-form-page">
+          {feedback ? (
+            <div className="prototype-validation-panel">{feedback}</div>
+          ) : null}
+
+          <CardSeplag
+            title={"VALOR DE REFERÊNCIA - " + valorReferencia.codigo}
+            cols="12"
+            cardHeaderClassNames="prototype-regime-card"
+          >
+            <div className="col-12 prototype-folha-referencia-vigencia-form">
+              <div className="prototype-folha-referencia-vigencia-panel">
+                <div className="prototype-folha-referencia-vigencia-panel-title">
+                  <h3>{isEditing ? "Editar Vigência" : "Nova Vigência"}</h3>
+                </div>
+                <div className="grid prototype-folha-referencia-vigencia-fields">
+                  <TextFieldSeplag
+                    name="codigo"
+                    control={control}
+                    label="Código do Valor de Referência"
+                    disabled
+                    cols="12 12 4"
+                    getFormErrorMessage={() => null}
+                  />
+                  <TextFieldSeplag
+                    name="nome"
+                    control={control}
+                    label="Nome do Valor de Referência"
+                    disabled
+                    cols="12 12 5"
+                    getFormErrorMessage={() => null}
+                  />
+                  <TextFieldSeplag
+                    name="tipo"
+                    control={control}
+                    label="Tipo"
+                    disabled
+                    cols="12 12 3"
+                    getFormErrorMessage={() => null}
+                  />
+                  <TextFieldSeplag
+                    name="valor"
+                    control={control}
+                    label="Valor"
+                    required
+                    placeholder="Ex.: R$ 1.621,00"
+                    cols="12 12 4"
+                    getFormErrorMessage={() => null}
+                  />
+                  <TextFieldSeplag
+                    name="inicioVigencia"
+                    control={control}
+                    label="Início da Vigência"
+                    required
+                    cols="12 12 4"
+                    getFormErrorMessage={() => null}
+                  />
+                  <TextFieldSeplag
+                    name="fimVigencia"
+                    control={control}
+                    label="Fim da Vigência"
+                    placeholder="dd/mm/aaaa"
+                    cols="12 12 4"
+                    getFormErrorMessage={() => null}
+                  />
+                  <TextAreaFieldSeplag
+                    name="observacoes"
+                    control={control}
+                    label="Observações"
+                    placeholder="Observações..."
+                    cols="12"
+                    rows={4}
+                    maxLength={500}
+                    getFormErrorMessage={() => null}
+                  />
+                </div>
+
+                <div className="prototype-category-form-footer prototype-folha-referencia-vigencia-footer">
+                  <BotaoVoltarSeplag
+                    type="button"
+                    label="Voltar"
+                    onClick={() => navigate(FOLHA_TABELAS_REFERENCIA_BASE_PATH)}
+                  />
+                  <BotaoSalvarSeplag type="submit" label="Salvar" />
+                </div>
+              </div>
+            </div>
+          </CardSeplag>
+        </div>
+      </form>
+    </PrototypeSystemPage>
+  );
+}
 export function PrototiposFolhaGruposFolhaPage() {
   const navigate = useNavigate();
   const [grupos] = useState<GrupoFolhaRow[]>(() =>
