@@ -629,6 +629,30 @@ const documentosLegaisMock: DocumentoLegalAssociadoSeplag[] = [
     categoria: "Decreto",
     descricao: "Procedimentos para tramitação digital.",
   },
+  {
+    id: "lc-202-2004",
+    titulo: "Lei Complementar 202/2004",
+    categoria: "Lei Complementar",
+    descricao: "Regime de previdência dos servidores públicos do Estado de Mato Grosso.",
+  },
+  {
+    id: "lc-654-2020",
+    titulo: "Lei Complementar 654/2020",
+    categoria: "Lei Complementar",
+    descricao: "Altera regras de contribuição previdenciária do RPPS.",
+  },
+  {
+    id: "lc-700-2021",
+    titulo: "Lei Complementar 700/2021",
+    categoria: "Lei Complementar",
+    descricao: "Regras previdenciárias para inativos, pensionistas e doença incapacitante.",
+  },
+  {
+    id: "lc-712-2022",
+    titulo: "Lei Complementar 712/2022",
+    categoria: "Lei Complementar",
+    descricao: "Regras do Sistema de Proteção Social dos Militares.",
+  },
 ];
 
 const estruturaOrganizacionalNiveis: EstruturaOrganizacionalNivelSeplag[] = [
@@ -3106,6 +3130,7 @@ const folhaConformidadeDefaultFilters: FolhaConformidadeFiltroForm = {
 
 interface FolhaTabelaReferenciaVigenciaRow {
   id: number;
+  nome?: string;
   ano: string;
   vigencia: ReactNode;
   situacao: "Agendado" | "Ativo" | "Encerrado" | "Inativo";
@@ -3114,8 +3139,15 @@ interface FolhaTabelaReferenciaVigenciaRow {
   planoPrevidenciario?: string;
   tipoCalculo?: string;
   regraIncidencia?: string;
+  valorReferenciaId?: string;
+  limiteProventos?: string;
+  proventosAPartirDe?: string;
+  proventosAte?: string;
+  tetoPrevidenciario?: string;
+  percentualContribuicao?: string;
   inicioVigencia?: string;
   fimVigencia?: string;
+  baseLegal?: string[];
 }
 
 interface FolhaTabelaReferenciaRow {
@@ -3135,10 +3167,13 @@ interface FolhaTabelaReferenciaVigenciaForm {
   regraIncidencia: string;
   valorReferenciaId: string;
   limiteProventos: string;
+  proventosAPartirDe: string;
+  proventosAte: string;
   tetoPrevidenciario: string;
   percentualContribuicao: string;
   inicioVigencia: string;
   fimVigencia: string;
+  baseLegal: string[];
   observacoes: string;
 }
 
@@ -3190,6 +3225,7 @@ type FolhaTabelaReferenciaRegraIncidencia =
   | "EXCEDENTE_TETO_RGPS"
   | "EXCEDENTE_SALARIO_MINIMO"
   | "EXCEDENTE_VALOR_REFERENCIA"
+  | "ISENTO_ATE_VALOR_REFERENCIA"
   | "FAIXAS_PROGRESSIVAS";
 
 const folhaTabelaReferenciaAplicavelParaOptions = [
@@ -3232,13 +3268,14 @@ const folhaTabelaReferenciaRegraIncidenciaOptions: {
   { label: "Sobre excedente do teto do RGPS", value: "EXCEDENTE_TETO_RGPS" },
   { label: "Sobre excedente do salário mínimo", value: "EXCEDENTE_SALARIO_MINIMO" },
   { label: "Sobre excedente de valor de referência", value: "EXCEDENTE_VALOR_REFERENCIA" },
+  { label: "Isento até valor de referência", value: "ISENTO_ATE_VALOR_REFERENCIA" },
   { label: "Por faixas de contribuição", value: "FAIXAS_PROGRESSIVAS" },
 ];
 
 const folhaTabelaReferenciaValorReferenciaOptions = [
   { label: "Salário Mínimo", value: "SALARIO_MINIMO" },
   { label: "Teto RGPS", value: "TETO_RGPS" },
-  { label: "Faixa Isenção", value: "FAIXA_ISENCAO" },
+  { label: "Faixa Isenção LC 700/2021", value: "ISENCAO_LC700" },
   { label: "Valor parametrizado", value: "VALOR_PARAMETRIZADO" },
 ];
 
@@ -3374,66 +3411,90 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
     vigencias: [
       {
         id: 301,
+        nome: "RPPS 01 – Servidor Civil Ativo",
         ano: "2026",
-        aplicavelPara: "Ativo",
+        aplicavelPara: "Servidor Civil",
         condicaoEspecial: "Nenhuma",
         planoPrevidenciario: "Geral",
         tipoCalculo: "Vínculo",
         regraIncidencia: "Sobre remuneração total",
+        percentualContribuicao: "14",
         inicioVigencia: "02/01/2026",
         fimVigencia: "31/12/2026",
+        baseLegal: ["lc-202-2004", "lc-654-2020"],
         vigencia: "02/01/2026 até 31/12/2026",
         situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
       },
       {
         id: 302,
+        nome: "RPPS 02 – Servidor Civil Ativo",
         ano: "2026",
-        aplicavelPara: "Ativo",
+        aplicavelPara: "Servidor Civil",
         condicaoEspecial: "Previdência complementar",
         planoPrevidenciario: "PREVCOM",
         tipoCalculo: "Vínculo",
         regraIncidencia: "Até o teto do RGPS",
+        valorReferenciaId: "TETO_RGPS",
+        tetoPrevidenciario: "R$ 8.475,55",
+        percentualContribuicao: "14",
         inicioVigencia: "02/01/2026",
         fimVigencia: "31/12/2026",
+        baseLegal: ["lc-202-2004", "lc-654-2020"],
         vigencia: "02/01/2026 até 31/12/2026",
         situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
       },
       {
         id: 303,
+        nome: "RPPS 03 – Servidor Civil Inativo ou Pensionista",
+        ano: "2026",
+        aplicavelPara: "Inativo, Pensionista",
+        condicaoEspecial: "Nenhuma",
+        planoPrevidenciario: "Geral",
+        tipoCalculo: "Vínculo",
+        regraIncidencia: "Isento até valor de referência",
+        valorReferenciaId: "ISENCAO_LC700",
+        proventosAte: "R$ 4.318,01",
+        percentualContribuicao: "0",
+        inicioVigencia: "02/01/2026",
+        fimVigencia: "31/12/2026",
+        baseLegal: ["lc-202-2004", "lc-700-2021"],
+        vigencia: "02/01/2026 até 31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
+      },
+      {
+        id: 304,
+        nome: "RPPS 04 – Servidor Civil Inativo ou Pensionista",
         ano: "2026",
         aplicavelPara: "Inativo, Pensionista",
         condicaoEspecial: "Nenhuma",
         planoPrevidenciario: "Geral",
         tipoCalculo: "Vínculo",
         regraIncidencia: "Sobre excedente de valor de referência",
+        valorReferenciaId: "ISENCAO_LC700",
+        proventosAPartirDe: "R$ 4.318,02",
+        proventosAte: "R$ 11.776,34",
+        percentualContribuicao: "14",
         inicioVigencia: "02/01/2026",
         fimVigencia: "31/12/2026",
-        vigencia: "02/01/2026 até 31/12/2026",
-        situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
-      },
-      {
-        id: 304,
-        ano: "2026",
-        aplicavelPara: "Militar",
-        condicaoEspecial: "Nenhuma",
-        planoPrevidenciario: "Geral",
-        tipoCalculo: "Vínculo",
-        regraIncidencia: "Por faixas de contribuição",
-        inicioVigencia: "02/01/2026",
-        fimVigencia: "31/12/2026",
+        baseLegal: ["lc-202-2004", "lc-700-2021"],
         vigencia: "02/01/2026 até 31/12/2026",
         situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
       },
       {
         id: 305,
+        nome: "RPPS 05 – Servidor Civil Inativo ou Pensionista",
         ano: "2026",
         aplicavelPara: "Inativo, Pensionista",
-        condicaoEspecial: "Doença incapacitante",
+        condicaoEspecial: "Nenhuma",
         planoPrevidenciario: "Geral",
         tipoCalculo: "Vínculo",
-        regraIncidencia: "Sobre excedente do teto do RGPS",
+        regraIncidencia: "Sobre excedente do salário mínimo",
+        valorReferenciaId: "SALARIO_MINIMO",
+        proventosAPartirDe: "R$ 11.776,35",
+        percentualContribuicao: "14",
         inicioVigencia: "02/01/2026",
         fimVigencia: "31/12/2026",
+        baseLegal: ["lc-202-2004", "lc-654-2020"],
         vigencia: "02/01/2026 até 31/12/2026",
         situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
       },
@@ -3441,8 +3502,8 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
   },
   {
     id: 4,
-    sigla: "PREVCOM",
-    nome: "PREVIDÊNCIA COMPLEMENTAR",
+    sigla: "RPC",
+    nome: "REGIME DE PREVIDÊNCIA COMPLEMENTAR",
     vigencias: [
       {
         id: 401,
@@ -3456,6 +3517,100 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
   },
 ];
 
+const FOLHA_TABELAS_REFERENCIA_RPPS_STORAGE_KEY =
+  "sigep.prototipos.folha.tabelasReferencia.rpps.vigencias";
+
+const formatarPeriodoVigenciaReferencia = (inicioVigencia?: string, fimVigencia?: string) =>
+  `${inicioVigencia || "-"} até ${fimVigencia?.trim() || "vigente"}`;
+
+const normalizarVigenciaTabelaReferencia = (
+  vigencia: FolhaTabelaReferenciaVigenciaRow,
+): FolhaTabelaReferenciaVigenciaRow => {
+  const aplicavelParaNormalizado =
+    vigencia.aplicavelPara === "Ativo" ? "Servidor Civil" : vigencia.aplicavelPara;
+  const nomeNormalizado =
+    vigencia.nome ??
+    (aplicavelParaNormalizado === "Servidor Civil"
+      ? "RPPS 01 – Servidor Civil Ativo"
+      : undefined);
+
+  return {
+    ...vigencia,
+    nome: nomeNormalizado,
+    aplicavelPara: aplicavelParaNormalizado,
+    vigencia:
+      typeof vigencia.vigencia === "string"
+        ? vigencia.vigencia
+        : formatarPeriodoVigenciaReferencia(vigencia.inicioVigencia, vigencia.fimVigencia),
+    situacao: calcularSituacaoVigenciaReferencia(
+      vigencia.inicioVigencia,
+      vigencia.fimVigencia,
+    ),
+  };
+};
+
+const getFolhaTabelaReferenciaRppsMockVigencias = () =>
+  folhaTabelasReferenciaMock.find((item) => item.sigla === "RPPS")?.vigencias ?? [];
+
+const lerFolhaTabelaReferenciaRppsVigencias = (): FolhaTabelaReferenciaVigenciaRow[] => {
+  const vigenciasMock = getFolhaTabelaReferenciaRppsMockVigencias();
+
+  if (typeof window === "undefined") return vigenciasMock;
+
+  const stored = window.localStorage.getItem(FOLHA_TABELAS_REFERENCIA_RPPS_STORAGE_KEY);
+  if (!stored) return vigenciasMock;
+
+  try {
+    const parsed = JSON.parse(stored) as FolhaTabelaReferenciaVigenciaRow[];
+    if (!Array.isArray(parsed)) return vigenciasMock;
+
+    const vigenciasPersistidas = parsed
+      .filter((vigencia) => vigencia && typeof vigencia.id === "number")
+      .map(normalizarVigenciaTabelaReferencia);
+    const vigenciasMockNormalizadas = vigenciasMock.map(normalizarVigenciaTabelaReferencia);
+    const idsPersistidos = new Set(vigenciasPersistidas.map((vigencia) => vigencia.id));
+
+    return [
+      ...vigenciasMockNormalizadas.filter((vigencia) => !idsPersistidos.has(vigencia.id)),
+      ...vigenciasPersistidas,
+    ];
+  } catch {
+    return vigenciasMock;
+  }
+};
+
+const salvarFolhaTabelaReferenciaRppsVigencias = (
+  vigencias: FolhaTabelaReferenciaVigenciaRow[],
+) => {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.setItem(
+    FOLHA_TABELAS_REFERENCIA_RPPS_STORAGE_KEY,
+    JSON.stringify(vigencias.map(normalizarVigenciaTabelaReferencia)),
+  );
+};
+
+const getFolhaTabelasReferenciaPersistidas = (): FolhaTabelaReferenciaRow[] =>
+  folhaTabelasReferenciaMock.map((tabela) =>
+    tabela.sigla === "RPPS"
+      ? { ...tabela, vigencias: lerFolhaTabelaReferenciaRppsVigencias() }
+      : tabela,
+  );
+
+const salvarFolhaTabelaReferenciaRppsVigencia = (
+  vigencia: FolhaTabelaReferenciaVigenciaRow,
+) => {
+  const vigenciasAtuais = lerFolhaTabelaReferenciaRppsVigencias();
+  const vigenciaNormalizada = normalizarVigenciaTabelaReferencia(vigencia);
+  const jaExiste = vigenciasAtuais.some((item) => item.id === vigenciaNormalizada.id);
+  const proximasVigencias = jaExiste
+    ? vigenciasAtuais.map((item) =>
+        item.id === vigenciaNormalizada.id ? vigenciaNormalizada : item,
+      )
+    : [...vigenciasAtuais, vigenciaNormalizada];
+
+  salvarFolhaTabelaReferenciaRppsVigencias(proximasVigencias);
+};
 const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
   {
     codigo: "SALARIO_MINIMO",
@@ -12113,10 +12268,17 @@ export function PrototiposFolhaTabelasReferenciaPage() {
     Record<number, { ano: string; status: "" | FolhaTabelaReferenciaVigenciaRow["situacao"] }>
   >({});
   const [feedback, setFeedback] = useState("");
+  const [tabelasReferencia, setTabelasReferencia] = useState<
+    FolhaTabelaReferenciaRow[]
+  >(() => getFolhaTabelasReferenciaPersistidas());
   const filtros = watch();
   const termoTabela = filtros.tabela?.trim().toLowerCase() ?? "";
 
-  const tabelasFiltradas = folhaTabelasReferenciaMock.filter((tabela) => {
+  useEffect(() => {
+    setTabelasReferencia(getFolhaTabelasReferenciaPersistidas());
+  }, []);
+
+  const tabelasFiltradas = tabelasReferencia.filter((tabela) => {
     const descricao = (tabela.sigla + " " + tabela.nome).toLowerCase();
     return !termoTabela || descricao.includes(termoTabela);
   });
@@ -12356,6 +12518,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                         <table className={tabela.sigla === "RPPS" ? "prototype-folha-referencia-vigencias-rpps" : undefined}>
                           <thead>
                             <tr>
+                              {tabela.sigla === "RPPS" ? <th>Nome</th> : null}
                               <th>Ano</th>
                               {tabela.sigla === "RPPS" ? <th>Aplicável para</th> : null}
                               {tabela.sigla === "RPPS" ? <th>Condição Especial</th> : null}
@@ -12369,6 +12532,9 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                           <tbody>
                             {vigenciasFiltradas.map((vigencia) => (
                               <tr key={vigencia.id}>
+                                {tabela.sigla === "RPPS" ? (
+                                  <td>{vigencia.nome ?? "-"}</td>
+                                ) : null}
                                 <td>{vigencia.ano}</td>
                                 {tabela.sigla === "RPPS" ? (
                                   <td>{vigencia.aplicavelPara ?? "-"}</td>
@@ -12389,7 +12555,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                             ))}
                             {!vigenciasFiltradas.length ? (
                               <tr>
-                                <td colSpan={tabela.sigla === "RPPS" ? 8 : 4} className="prototype-empty-table-cell">
+                                <td colSpan={tabela.sigla === "RPPS" ? 9 : 4} className="prototype-empty-table-cell">
                                   Nenhuma vigência encontrada.
                                 </td>
                               </tr>
@@ -12556,11 +12722,12 @@ export function PrototiposFolhaTabelasReferenciaPage() {
 export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const navigate = useNavigate();
   const { tabelaId, vigenciaId } = useParams();
+  const tabelasReferencia = getFolhaTabelasReferenciaPersistidas();
   const tabela =
-    folhaTabelasReferenciaMock.find((item) => String(item.id) === tabelaId) ??
-    folhaTabelasReferenciaMock[0];
+    tabelasReferencia.find((item) => String(item.id) === tabelaId) ??
+    tabelasReferencia[0];
   const isTabelaRpps = tabela.sigla === "RPPS";
-  const isTabelaPrevcom = tabela.sigla === "PREVCOM";
+  const isTabelaPrevcom = tabela.sigla === "RPC";
   const isEditing = Boolean(vigenciaId);
   const [activeTab, setActiveTab] = useState("dados-gerais");
   const [dadosGeraisSalvos, setDadosGeraisSalvos] = useState(isEditing);
@@ -12590,7 +12757,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const [modalNovaFaixaAberto, setModalNovaFaixaAberto] = useState(false);
   const { control, handleSubmit, watch, setValue } = useForm<FolhaTabelaReferenciaVigenciaForm>({
     defaultValues: {
-      descricao: isTabelaRpps ? "RPPS 2026 - Servidor Ativo" : isTabelaPrevcom ? "PREVCOM 2026" : isEditing ? "testeddd" : "",
+      descricao: isTabelaRpps ? "RPPS 02 – Servidor Civil Ativo" : isTabelaPrevcom ? "RPC 2026" : isEditing ? "testeddd" : "",
       anoBase: isEditing || isTabelaRpps ? "2026" : "",
       aplicavelPara: isTabelaRpps ? ["ATIVO"] : [],
       condicaoEspecial: isTabelaRpps ? "NENHUMA" : "",
@@ -12599,10 +12766,13 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       regraIncidencia: isTabelaRpps ? "REMUNERACAO_TOTAL" : "",
       valorReferenciaId: "",
       limiteProventos: "",
+      proventosAPartirDe: "",
+      proventosAte: "",
       tetoPrevidenciario: isTabelaRpps ? "" : isEditing ? "R$ 8.475,55" : "",
       percentualContribuicao: isTabelaRpps ? "14" : "",
       inicioVigencia: isTabelaRpps ? "02/01/2026" : isEditing ? "02/06/2026" : "",
       fimVigencia: isTabelaRpps ? "31/12/2026" : "",
+      baseLegal: [],
       observacoes: "",
     },
   });
@@ -12612,6 +12782,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const tetoPrevidenciarioSelecionado = watch("tetoPrevidenciario");
   const percentualContribuicaoSelecionado = watch("percentualContribuicao");
   const isRegraFaixasProgressivas = regraIncidenciaSelecionada === "FAIXAS_PROGRESSIVAS";
+  const isRegraIsentoValorReferencia = regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA";
   const exibirLimiteProventos = aplicavelParaSelecionado.some((aplicavel) =>
     ["INATIVO", "PENSIONISTA"].includes(aplicavel),
   );
@@ -12737,19 +12908,41 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         return;
       }
 
+      if (!data.baseLegal?.length) {
+        setFeedback("Informe a Base Legal da vigência RPPS.");
+        return;
+      }
+
       const regraExigeValorReferencia =
-        data.regraIncidencia === "EXCEDENTE_VALOR_REFERENCIA";
+        data.regraIncidencia === "EXCEDENTE_VALOR_REFERENCIA" ||
+        data.regraIncidencia === "ISENTO_ATE_VALOR_REFERENCIA";
 
       if (regraExigeValorReferencia && !data.valorReferenciaId) {
         setFeedback("Informe o Valor de Referência exigido pela regra selecionada.");
         return;
       }
 
-      if (data.regraIncidencia !== "FAIXAS_PROGRESSIVAS") {
+      if (
+        data.regraIncidencia !== "FAIXAS_PROGRESSIVAS" &&
+        data.regraIncidencia !== "ISENTO_ATE_VALOR_REFERENCIA"
+      ) {
         if (!data.percentualContribuicao?.trim()) {
           setFeedback("Informe o Percentual de Contribuição.");
           return;
         }
+      }
+
+      if (
+        activeTab === "dados-gerais" &&
+        !dadosGeraisSalvos &&
+        data.regraIncidencia === "FAIXAS_PROGRESSIVAS"
+      ) {
+        setDadosGeraisSalvos(true);
+        setActiveTab("faixa-contribuicao");
+        setFeedback(
+          "Dados gerais salvos com sucesso. Cadastre as faixas de contribuição para concluir.",
+        );
+        return;
       }
 
       if (data.regraIncidencia === "FAIXAS_PROGRESSIVAS") {
@@ -12792,7 +12985,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       }
 
       const vigenciaAtualId = Number(vigenciaId);
-      const temSobreposicao = folhaTabelasReferenciaMock
+      const temSobreposicao = getFolhaTabelasReferenciaPersistidas()
         .find((item) => item.sigla === "RPPS")
         ?.vigencias.some((vigencia) => {
           if (vigencia.id === vigenciaAtualId) return false;
@@ -12830,6 +13023,38 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         setFeedback("Já existe vigência RPPS sobreposta para a mesma combinação de Aplicável para, Condição Especial, Plano Previdenciário, Tipo de Cálculo e Regra de Incidência.");
         return;
       }
+
+      const novaVigencia: FolhaTabelaReferenciaVigenciaRow = {
+        id: Number.isFinite(vigenciaAtualId) && vigenciaAtualId > 0 ? vigenciaAtualId : Date.now(),
+        nome: data.descricao,
+        ano: data.anoBase,
+        aplicavelPara: data.aplicavelPara
+          .map(folhaTabelaReferenciaAplicavelLabel)
+          .join(", "),
+        condicaoEspecial: folhaTabelaReferenciaCondicaoEspecialLabel(data.condicaoEspecial),
+        planoPrevidenciario: folhaTabelaReferenciaPlanoPrevidenciarioLabel(data.planoPrevidenciario),
+        tipoCalculo: folhaTabelaReferenciaTipoCalculoLabel(data.tipoCalculo),
+        regraIncidencia: folhaTabelaReferenciaRegraLabel(data.regraIncidencia),
+        valorReferenciaId: data.valorReferenciaId,
+        limiteProventos: data.limiteProventos,
+        proventosAPartirDe: data.proventosAPartirDe,
+        proventosAte: data.proventosAte,
+        tetoPrevidenciario: data.tetoPrevidenciario,
+        percentualContribuicao:
+          data.regraIncidencia === "ISENTO_ATE_VALOR_REFERENCIA"
+            ? "0"
+            : data.percentualContribuicao,
+        inicioVigencia: data.inicioVigencia,
+        fimVigencia: data.fimVigencia,
+        baseLegal: data.baseLegal,
+        vigencia: formatarPeriodoVigenciaReferencia(data.inicioVigencia, data.fimVigencia),
+        situacao: calcularSituacaoVigenciaReferencia(data.inicioVigencia, data.fimVigencia),
+      };
+
+      salvarFolhaTabelaReferenciaRppsVigencia(novaVigencia);
+      setFeedback("Registro salvo com sucesso!");
+      window.setTimeout(() => navigate(FOLHA_TABELAS_REFERENCIA_BASE_PATH), 650);
+      return;
     }
 
     if (isTabelaPrevcom && activeTab === "dados-gerais") {
@@ -13015,7 +13240,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                             name="valorReferenciaId"
                             control={control}
                             label="Valor de Referência"
-                            required={regraIncidenciaSelecionada === "EXCEDENTE_VALOR_REFERENCIA"}
+                            required={regraIncidenciaSelecionada === "EXCEDENTE_VALOR_REFERENCIA" || regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA"}
                             cols="12 12 3"
                             options={folhaTabelaReferenciaValorReferenciaOptions}
                             optionLabel="label"
@@ -13023,7 +13248,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                             placeholder="Selecione..."
                             getFormErrorMessage={() => null}
                           />
-                          {!isRegraFaixasProgressivas ? (
+                          {!isRegraFaixasProgressivas && !isRegraIsentoValorReferencia ? (
                             <TextFieldSeplag
                               name="percentualContribuicao"
                               control={control}
@@ -13034,14 +13259,24 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                             />
                           ) : null}
                           {exibirLimiteProventos ? (
-                            <TextFieldSeplag
-                              name="limiteProventos"
-                              control={control}
-                              label="Limite de Proventos"
-                              placeholder="Ex.: R$ 9.000,00"
-                              cols="12 12 3"
-                              getFormErrorMessage={() => null}
-                            />
+                            <>
+                              <TextFieldSeplag
+                                name="proventosAPartirDe"
+                                control={control}
+                                label="Proventos a partir de"
+                                placeholder="Ex.: R$ 4.318,02"
+                                cols="12 12 3"
+                                getFormErrorMessage={() => null}
+                              />
+                              <TextFieldSeplag
+                                name="proventosAte"
+                                control={control}
+                                label="Proventos até"
+                                placeholder="Ex.: R$ 11.776,34"
+                                cols="12 12 3"
+                                getFormErrorMessage={() => null}
+                              />
+                            </>
                           ) : null}
                         </>
                       ) : null}
@@ -13104,6 +13339,31 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                         placeholder="dd/mm/aaaa"
                         cols="12 12 3"
                         getFormErrorMessage={() => null}
+                      />
+                      <Controller
+                        name="baseLegal"
+                        control={control}
+                        render={({ field }) => (
+                          <div className="col-12">
+                            <DocumentosLegaisAssociadosSeplag
+                              label="Base Legal"
+                              required={isTabelaRpps}
+                              options={documentosLegaisMock}
+                              value={field.value}
+                              onChange={field.onChange}
+                              placeholder="Selecione a lei da vigência"
+                              filtroPlaceholder="Filtrar por lei, número ou descrição..."
+                              onNovoCadastro={() =>
+                                setFeedback(
+                                  "Novo cadastro de lei deve ser realizado no cadastro de documentos legais.",
+                                )
+                              }
+                              onVisualizar={(documento) =>
+                                setFeedback(`Base legal selecionada: ${documento.titulo}`)
+                              }
+                            />
+                          </div>
+                        )}
                       />
                       <TextAreaFieldSeplag
                         name="observacoes"
