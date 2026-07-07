@@ -3534,26 +3534,8 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
         situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
       },
       {
-        id: 306,
-        nome: "RPPS 05 – Militar até o limite legal PM/BM",
-        ano: "2026",
-        aplicavelPara: "Militar",
-        situacoesFuncionaisMilitar: "Ativo, Inativo, Pensionista",
-        condicaoEspecial: "Nenhuma",
-        planoPrevidenciario: "Geral",
-        tipoCalculo: "Vínculo",
-        regraIncidencia: "Sobre remuneração até valor de referência",
-        valorReferenciaId: "LIMITE_PREV_PM_BM",
-        percentualContribuicao: "10,5",
-        inicioVigencia: "02/01/2026",
-        fimVigencia: "31/12/2026",
-        baseLegal: ["lc-202-2004", "lc-712-2022"],
-        vigencia: "02/01/2026 até 31/12/2026",
-        situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
-      },
-      {
         id: 307,
-        nome: "RPPS 06 – Militar sobre parcela excedente ao limite legal PM/BM",
+        nome: "RPPS 05 – Militar por faixas do limite legal PM/BM",
         ano: "2026",
         aplicavelPara: "Militar",
         situacoesFuncionaisMilitar: "Ativo, Inativo, Pensionista",
@@ -3588,7 +3570,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
       },
       {
         id: 308,
-        nome: "RPPS 07 – Beneficiário com doença incapacitante sobre excedente do teto RGPS",
+        nome: "RPPS 06 – Beneficiário com doença incapacitante sobre excedente do teto RGPS",
         ano: "2026",
         aplicavelPara: "Inativo, Pensionista",
         condicaoEspecial: "Doença incapacitante",
@@ -3630,9 +3612,8 @@ const folhaTabelaReferenciaRppsNomesPorId: Record<number, string> = {
   302: "RPPS 02 – Servidor Civil Ativo PREVCOM (até o teto do RGPS)",
   303: "RPPS 03 – Inativo/Pensionista LC 700 por faixas de proventos",
   305: "RPPS 04 – Inativo/Pensionista sobre excedente do salário mínimo",
-  306: "RPPS 05 – Militar até o limite legal PM/BM",
-  307: "RPPS 06 – Militar sobre parcela excedente ao limite legal PM/BM",
-  308: "RPPS 07 – Beneficiário com doença incapacitante sobre excedente do teto RGPS",
+  307: "RPPS 05 – Militar por faixas do limite legal PM/BM",
+  308: "RPPS 06 – Beneficiário com doença incapacitante sobre excedente do teto RGPS",
 };
 
 const formatarPeriodoVigenciaReferencia = (inicioVigencia?: string, fimVigencia?: string) =>
@@ -3686,6 +3667,7 @@ const lerFolhaTabelaReferenciaRppsVigencias = (): FolhaTabelaReferenciaVigenciaR
           vigencia &&
           typeof vigencia.id === "number" &&
           vigencia.id !== 304 &&
+          vigencia.id !== 306 &&
           !(
             vigencia.id === 303 &&
             (!Array.isArray(vigencia.faixasContribuicao) ||
