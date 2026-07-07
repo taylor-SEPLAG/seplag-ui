@@ -3130,6 +3130,7 @@ const folhaConformidadeDefaultFilters: FolhaConformidadeFiltroForm = {
 
 interface FolhaTabelaReferenciaVigenciaRow {
   id: number;
+  modeloRppsId?: number;
   nome?: string;
   ano: string;
   vigencia: ReactNode;
@@ -3291,6 +3292,7 @@ const folhaTabelaReferenciaValorReferenciaOptions = [
   { label: "Salário Mínimo", value: "SALARIO_MINIMO" },
   { label: "Teto RGPS", value: "TETO_RGPS" },
   { label: "Faixa Isenção LC 700/2021", value: "ISENCAO_LC700" },
+  { label: "Limite Proventos LC 700/2021", value: "LIMITE_PROVENTOS_LC700" },
   { label: "Limite Previdenciário PM/BM", value: "LIMITE_PREV_PM_BM" },
   { label: "Valor parametrizado", value: "VALOR_PARAMETRIZADO" },
 ];
@@ -3448,7 +3450,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
     vigencias: [
       {
         id: 301,
-        nome: "RPPS 01 – Servidor Civil Ativo (remuneração total)",
+        nome: "RPPS – Servidor Civil Ativo (remuneração total)",
         ano: "2026",
         aplicavelPara: "Servidor Civil",
         condicaoEspecial: "Nenhuma",
@@ -3464,7 +3466,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
       },
       {
         id: 302,
-        nome: "RPPS 02 – Servidor Civil Ativo PREVCOM (até o teto do RGPS)",
+        nome: "RPPS – Servidor Civil Ativo PREVCOM (até o teto do RGPS)",
         ano: "2026",
         aplicavelPara: "Servidor Civil",
         condicaoEspecial: "Previdência complementar",
@@ -3474,6 +3476,16 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
         valorReferenciaId: "TETO_RGPS",
         tetoPrevidenciario: "R$ 8.475,55",
         percentualContribuicao: "14",
+        faixasContribuicao: [
+          {
+            id: 1,
+            ordem: 1,
+            faixaInicial: "R$ 0,00",
+            faixaFinal: "R$ 8.475,55",
+            percentual: "14",
+            contribuicaoFaixa: "Calculada pelo motor",
+          },
+        ],
         inicioVigencia: "02/01/2026",
         fimVigencia: "31/12/2026",
         baseLegal: ["lc-202-2004", "lc-654-2020"],
@@ -3482,7 +3494,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
       },
       {
         id: 303,
-        nome: "RPPS 03 – Inativo/Pensionista LC 700 por faixas de proventos",
+        nome: "RPPS – Inativo/Pensionista LC 700 por faixas de proventos",
         ano: "2026",
         aplicavelPara: "Inativo, Pensionista",
         condicaoEspecial: "Nenhuma",
@@ -3490,6 +3502,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
         tipoCalculo: "Vínculo",
         regraIncidencia: "Por faixas de contribuição",
         valorReferenciaId: "ISENCAO_LC700",
+        proventosAPartirDe: "R$ 0,00",
         proventosAte: "R$ 11.776,34",
         faixasContribuicao: [
           {
@@ -3517,7 +3530,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
       },
       {
         id: 305,
-        nome: "RPPS 04 – Inativo/Pensionista sobre excedente do salário mínimo",
+        nome: "RPPS – Inativo/Pensionista sobre excedente do salário mínimo",
         ano: "2026",
         aplicavelPara: "Inativo, Pensionista",
         condicaoEspecial: "Nenhuma",
@@ -3527,6 +3540,24 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
         valorReferenciaId: "SALARIO_MINIMO",
         proventosAPartirDe: "R$ 11.776,35",
         percentualContribuicao: "14",
+        faixasContribuicao: [
+          {
+            id: 1,
+            ordem: 1,
+            faixaInicial: "R$ 0,00",
+            faixaFinal: "R$ 1.621,00",
+            percentual: "0",
+            contribuicaoFaixa: "Isento",
+          },
+          {
+            id: 2,
+            ordem: 2,
+            faixaInicial: "R$ 1.621,01",
+            faixaFinal: "Em aberto",
+            percentual: "14",
+            contribuicaoFaixa: "Calculada pelo motor",
+          },
+        ],
         inicioVigencia: "02/01/2026",
         fimVigencia: "31/12/2026",
         baseLegal: ["lc-202-2004", "lc-654-2020"],
@@ -3535,7 +3566,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
       },
       {
         id: 307,
-        nome: "RPPS 05 – Militar por faixas do limite legal PM/BM",
+        nome: "RPPS – Militar por faixas do limite legal PM/BM",
         ano: "2026",
         aplicavelPara: "Militar",
         situacoesFuncionaisMilitar: "Ativo, Inativo, Pensionista",
@@ -3570,7 +3601,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
       },
       {
         id: 308,
-        nome: "RPPS 06 – Beneficiário com doença incapacitante sobre excedente do teto RGPS",
+        nome: "RPPS – Beneficiário com doença incapacitante sobre excedente do teto RGPS",
         ano: "2026",
         aplicavelPara: "Inativo, Pensionista",
         condicaoEspecial: "Doença incapacitante",
@@ -3606,16 +3637,53 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
 
 const FOLHA_TABELAS_REFERENCIA_RPPS_STORAGE_KEY =
   "sigep.prototipos.folha.tabelasReferencia.rpps.vigencias";
+const FOLHA_TABELA_REFERENCIA_RPPS_BASE_ID = 3;
 
 const folhaTabelaReferenciaRppsNomesPorId: Record<number, string> = {
-  301: "RPPS 01 – Servidor Civil Ativo (remuneração total)",
-  302: "RPPS 02 – Servidor Civil Ativo PREVCOM (até o teto do RGPS)",
-  303: "RPPS 03 – Inativo/Pensionista LC 700 por faixas de proventos",
-  305: "RPPS 04 – Inativo/Pensionista sobre excedente do salário mínimo",
-  307: "RPPS 05 – Militar por faixas do limite legal PM/BM",
-  308: "RPPS 06 – Beneficiário com doença incapacitante sobre excedente do teto RGPS",
+  301: "RPPS – Servidor Civil Ativo (remuneração total)",
+  302: "RPPS – Servidor Civil Ativo PREVCOM (até o teto do RGPS)",
+  303: "RPPS – Inativo/Pensionista LC 700 por faixas de proventos",
+  305: "RPPS – Inativo/Pensionista sobre excedente do salário mínimo",
+  307: "RPPS – Militar por faixas do limite legal PM/BM",
+  308: "RPPS – Beneficiário com doença incapacitante sobre excedente do teto RGPS",
 };
 
+const folhaTabelaReferenciaRppsModeloIds = Object.keys(folhaTabelaReferenciaRppsNomesPorId).map(Number);
+
+const isFolhaTabelaReferenciaRppsModeloId = (id?: number) =>
+  typeof id === "number" && folhaTabelaReferenciaRppsModeloIds.includes(id);
+
+const getFolhaTabelaReferenciaRppsModeloId = (vigencia: FolhaTabelaReferenciaVigenciaRow) =>
+  vigencia.modeloRppsId ?? (isFolhaTabelaReferenciaRppsModeloId(vigencia.id) ? vigencia.id : undefined);
+
+const getFolhaTabelaReferenciaRppsModeloById = (modeloRppsId?: number) =>
+  getFolhaTabelaReferenciaRppsMockVigencias().find((vigencia) => vigencia.id === modeloRppsId);
+
+const aplicarModeloRppsNaVigencia = (
+  vigencia: FolhaTabelaReferenciaVigenciaRow,
+  modelo?: FolhaTabelaReferenciaVigenciaRow,
+): FolhaTabelaReferenciaVigenciaRow => {
+  if (!modelo) return vigencia;
+
+  return {
+    ...vigencia,
+    modeloRppsId: modelo.id,
+    nome: vigencia.nome ?? modelo.nome,
+    aplicavelPara: modelo.aplicavelPara,
+    situacoesFuncionaisMilitar: modelo.situacoesFuncionaisMilitar,
+    condicaoEspecial: modelo.condicaoEspecial,
+    planoPrevidenciario: modelo.planoPrevidenciario,
+    tipoCalculo: modelo.tipoCalculo,
+    regraIncidencia: modelo.regraIncidencia,
+    valorReferenciaId: vigencia.valorReferenciaId ?? modelo.valorReferenciaId,
+    proventosAPartirDe: vigencia.proventosAPartirDe ?? modelo.proventosAPartirDe,
+    proventosAte: vigencia.proventosAte ?? modelo.proventosAte,
+    tetoPrevidenciario: vigencia.tetoPrevidenciario ?? modelo.tetoPrevidenciario,
+    percentualContribuicao: vigencia.percentualContribuicao ?? modelo.percentualContribuicao,
+    faixasContribuicao: vigencia.faixasContribuicao ?? modelo.faixasContribuicao,
+    baseLegal: vigencia.baseLegal ?? modelo.baseLegal,
+  };
+};
 const formatarPeriodoVigenciaReferencia = (inicioVigencia?: string, fimVigencia?: string) =>
   `${inicioVigencia || "-"} até ${fimVigencia?.trim() || "vigente"}`;
 
@@ -3624,17 +3692,32 @@ const normalizarVigenciaTabelaReferencia = (
 ): FolhaTabelaReferenciaVigenciaRow => {
   const aplicavelParaNormalizado =
     vigencia.aplicavelPara === "Ativo" ? "Servidor Civil" : vigencia.aplicavelPara;
+  const modeloRppsId = getFolhaTabelaReferenciaRppsModeloId(vigencia);
+  const modeloRpps = getFolhaTabelaReferenciaRppsModeloById(modeloRppsId);
+  const vigenciaComModelo = aplicarModeloRppsNaVigencia(vigencia, modeloRpps);
   const nomeNormalizado =
+    modeloRpps?.nome ??
     folhaTabelaReferenciaRppsNomesPorId[vigencia.id] ??
     vigencia.nome ??
     (aplicavelParaNormalizado === "Servidor Civil"
       ? folhaTabelaReferenciaRppsNomesPorId[301]
       : undefined);
 
+  const faixasNormalizadas =
+    modeloRppsId === 302
+      ? getFaixasAutomaticasRppsPorRegra("ATE_TETO_RGPS", "14")
+      : modeloRppsId === 305
+        ? getFaixasAutomaticasRppsPorRegra("EXCEDENTE_SALARIO_MINIMO", "14")
+        : vigenciaComModelo.faixasContribuicao;
+
   return {
-    ...vigencia,
+    ...vigenciaComModelo,
+    modeloRppsId,
     nome: nomeNormalizado,
-    aplicavelPara: aplicavelParaNormalizado,
+    aplicavelPara: vigenciaComModelo.aplicavelPara === "Ativo" ? "Servidor Civil" : vigenciaComModelo.aplicavelPara,
+    proventosAPartirDe:
+      modeloRppsId === 303 ? "R$ 0,00" : vigenciaComModelo.proventosAPartirDe,
+    faixasContribuicao: faixasNormalizadas,
     vigencia:
       typeof vigencia.vigencia === "string"
         ? vigencia.vigencia
@@ -3713,12 +3796,18 @@ const getFolhaTabelasReferenciaListagem = (
 
     if (tabela.sigla !== "RPPS") return [tabela];
 
-    return tabela.vigencias.map((vigencia) => ({
+    const modelosRpps = getFolhaTabelaReferenciaRppsMockVigencias().map(
+      normalizarVigenciaTabelaReferencia,
+    );
+
+    return modelosRpps.map((modelo) => ({
       ...tabela,
-      id: vigencia.id,
+      id: modelo.id,
       tabelaBaseId: tabela.id,
-      nome: vigencia.nome ?? tabela.nome,
-      vigencias: [vigencia],
+      nome: modelo.nome ?? tabela.nome,
+      vigencias: tabela.vigencias
+        .filter((vigencia) => getFolhaTabelaReferenciaRppsModeloId(vigencia) === modelo.id)
+        .map((vigencia) => aplicarModeloRppsNaVigencia(vigencia, modelo)),
     }));
   });
 
@@ -3785,6 +3874,23 @@ const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
       },
     ],
   },
+  {
+    codigo: "LIMITE_PROVENTOS_LC700",
+    nome: "Limite Proventos LC 700/2021",
+    tipo: "Monetário",
+    vigencias: [
+      {
+        id: 1009,
+        ano: "2026",
+        vigencia: "01/01/2026 até 31/12/2026",
+        valor: "R$ 11.776,34",
+        inicioVigencia: "01/01/2026",
+        fimVigencia: "31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
+      },
+    ],
+  },
+
   {
     codigo: "LIMITE_PREV_PM_BM",
     nome: "Limite Prev. PM/BM",
@@ -3944,6 +4050,69 @@ const calcularContribuicaoFaixaReferencia = (
 
   return formatMoedaReferencia(contribuicao);
 };
+
+
+const getFaixasAutomaticasRppsPorRegra = (
+  regraIncidencia?: string,
+  percentual = "14",
+): FolhaTabelaReferenciaFaixaRow[] => {
+  if (
+    regraIncidencia === "ATE_TETO_RGPS" ||
+    regraIncidencia === "Até o teto do RGPS"
+  ) {
+    return [
+      {
+        id: 1,
+        ordem: 1,
+        faixaInicial: "R$ 0,00",
+        faixaFinal: "R$ 8.475,55",
+        percentual,
+        contribuicaoFaixa: "Calculada pelo motor",
+      },
+    ];
+  }
+
+  if (
+    regraIncidencia === "EXCEDENTE_SALARIO_MINIMO" ||
+    regraIncidencia === "Sobre excedente do salário mínimo"
+  ) {
+    return [
+      {
+        id: 1,
+        ordem: 1,
+        faixaInicial: "R$ 0,00",
+        faixaFinal: "R$ 1.621,00",
+        percentual: "0",
+        contribuicaoFaixa: "Isento",
+      },
+      {
+        id: 2,
+        ordem: 2,
+        faixaInicial: "R$ 1.621,01",
+        faixaFinal: "Em aberto",
+        percentual,
+        contribuicaoFaixa: "Calculada pelo motor",
+      },
+    ];
+  }
+
+  return [
+    {
+      id: 1,
+      ordem: 1,
+      faixaInicial: "R$ 0,00",
+      faixaFinal: "Em aberto",
+      percentual,
+      contribuicaoFaixa: "Calculada pelo motor",
+    },
+  ];
+};
+
+const isFaixasAutomaticasRpps = (faixas: FolhaTabelaReferenciaFaixaRow[]) =>
+  faixas.length > 0 &&
+  faixas.every((faixa) =>
+    ["Isento", "Calculada pelo motor"].includes(faixa.contribuicaoFaixa),
+  );
 
 const folhaCompetenciaSituacaoMeta: Record<
   FolhaCompetenciaSituacao,
@@ -12430,7 +12599,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
   };
 
   const getFolhaTabelaReferenciaRouteId = (tabela: FolhaTabelaReferenciaRow) =>
-    tabela.tabelaBaseId ?? tabela.id;
+    tabela.sigla === "RPPS" && tabela.tabelaBaseId ? tabela.id : tabela.tabelaBaseId ?? tabela.id;
 
   const renderSituacaoTabelaReferencia = (
     situacao: FolhaTabelaReferenciaVigenciaRow["situacao"],
@@ -12654,44 +12823,41 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                         <table className={tabela.sigla === "RPPS" ? "prototype-folha-referencia-vigencias-rpps" : undefined}>
                           <thead>
                             <tr>
-                              {tabela.sigla === "RPPS" ? <th>Nome</th> : null}
                               <th>Ano</th>
-                              {tabela.sigla === "RPPS" ? <th>Aplicável para</th> : null}
-                              {tabela.sigla === "RPPS" ? <th>Condição Especial</th> : null}
-                              {tabela.sigla === "RPPS" ? <th>Plano Previdenciário</th> : null}
-                              {tabela.sigla === "RPPS" ? <th>Regra de Incidência</th> : null}
+                              {tabela.sigla === "RPPS" ? <th>Referência</th> : null}
+                              {tabela.sigla === "RPPS" ? <th>Percentual/Faixas</th> : null}
                               <th>Vigência</th>
                               <th>Situação</th>
                               <th>Ações</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {vigenciasFiltradas.map((vigencia) => (
-                              <tr key={vigencia.id}>
-                                {tabela.sigla === "RPPS" ? (
-                                  <td>{vigencia.nome ?? "-"}</td>
-                                ) : null}
-                                <td>{vigencia.ano}</td>
-                                {tabela.sigla === "RPPS" ? (
-                                  <td>{vigencia.aplicavelPara ?? "-"}</td>
-                                ) : null}
-                                {tabela.sigla === "RPPS" ? (
-                                  <td>{vigencia.condicaoEspecial ?? "Nenhuma"}</td>
-                                ) : null}
-                                {tabela.sigla === "RPPS" ? (
-                                  <td>{vigencia.planoPrevidenciario ?? "Geral"}</td>
-                                ) : null}
-                                {tabela.sigla === "RPPS" ? (
-                                  <td>{vigencia.regraIncidencia ?? "-"}</td>
-                                ) : null}
-                                <td>{vigencia.vigencia}</td>
-                                <td>{renderSituacaoTabelaReferencia(vigencia.situacao)}</td>
-                                <td>{renderAcoesVigenciaTabela(tabela, vigencia)}</td>
-                              </tr>
-                            ))}
+                            {vigenciasFiltradas.map((vigencia) => {
+                              const valorReferenciaLabel = vigencia.valorReferenciaId
+                                ? folhaTabelaReferenciaValorReferenciaOptions.find(
+                                    (option) => option.value === vigencia.valorReferenciaId,
+                                  )?.label ?? vigencia.valorReferenciaId
+                                : "Não se aplica";
+                              const percentualOuFaixas = vigencia.percentualContribuicao
+                                ? vigencia.percentualContribuicao + "%"
+                                : vigencia.faixasContribuicao?.length
+                                  ? vigencia.faixasContribuicao.length + " faixas"
+                                  : "-";
+
+                              return (
+                                <tr key={vigencia.id}>
+                                  <td>{vigencia.ano}</td>
+                                  {tabela.sigla === "RPPS" ? <td>{valorReferenciaLabel}</td> : null}
+                                  {tabela.sigla === "RPPS" ? <td>{percentualOuFaixas}</td> : null}
+                                  <td>{vigencia.vigencia}</td>
+                                  <td>{renderSituacaoTabelaReferencia(vigencia.situacao)}</td>
+                                  <td>{renderAcoesVigenciaTabela(tabela, vigencia)}</td>
+                                </tr>
+                              );
+                            })}
                             {!vigenciasFiltradas.length ? (
                               <tr>
-                                <td colSpan={tabela.sigla === "RPPS" ? 9 : 4} className="prototype-empty-table-cell">
+                                <td colSpan={tabela.sigla === "RPPS" ? 6 : 4} className="prototype-empty-table-cell">
                                   Nenhuma vigência encontrada.
                                 </td>
                               </tr>
@@ -12859,31 +13025,42 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const navigate = useNavigate();
   const { tabelaId, vigenciaId } = useParams();
   const tabelasReferencia = getFolhaTabelasReferenciaPersistidas();
+  const tabelasReferenciaListagem = getFolhaTabelasReferenciaListagem(tabelasReferencia);
   const tabela =
+    tabelasReferenciaListagem.find((item) => String(item.id) === tabelaId) ??
     tabelasReferencia.find((item) => String(item.id) === tabelaId) ??
     tabelasReferencia[0];
-  const isTabelaRpps = tabela.sigla === "RPPS";
+  const tabelaRppsBase = tabelasReferencia.find(
+    (item) => item.id === FOLHA_TABELA_REFERENCIA_RPPS_BASE_ID,
+  );
+  const modeloRppsIdRota = Number(tabelaId);
+  const isRotaModeloRpps = isFolhaTabelaReferenciaRppsModeloId(modeloRppsIdRota);
+  const isTabelaRpps = tabela.sigla === "RPPS" || isRotaModeloRpps;
   const isTabelaPrevcom = tabela.sigla === "RPC";
   const isEditing = Boolean(vigenciaId);
-  const vigenciaAtual = tabela.vigencias.find((vigencia) => String(vigencia.id) === vigenciaId);
+  const vigenciaAtual = isTabelaRpps
+    ? tabelaRppsBase?.vigencias.find((vigencia) => String(vigencia.id) === vigenciaId)
+    : tabela.vigencias.find((vigencia) => String(vigencia.id) === vigenciaId);
+  const modeloRppsId = isTabelaRpps
+    ? isRotaModeloRpps
+      ? modeloRppsIdRota
+      : getFolhaTabelaReferenciaRppsModeloId(vigenciaAtual ?? tabela.vigencias[0])
+    : undefined;
+  const modeloRppsAtual = getFolhaTabelaReferenciaRppsModeloById(modeloRppsId);
+  const vigenciaFormularioBase = isTabelaRpps
+    ? vigenciaAtual
+      ? aplicarModeloRppsNaVigencia(vigenciaAtual, modeloRppsAtual)
+      : modeloRppsAtual
+    : vigenciaAtual;
   const [activeTab, setActiveTab] = useState("dados-gerais");
-  const [dadosGeraisSalvos, setDadosGeraisSalvos] = useState(isEditing);
+  const [dadosGeraisSalvos, setDadosGeraisSalvos] = useState(isEditing || isTabelaRpps);
   const [feedback, setFeedback] = useState("");
   const [faixasVigencia, setFaixasVigencia] =
     useState<FolhaTabelaReferenciaFaixaRow[]>(() => {
       if (isTabelaRpps) {
-        return vigenciaAtual?.faixasContribuicao?.length
-          ? vigenciaAtual.faixasContribuicao
-          : [
-              {
-                id: 1,
-                ordem: 1,
-                faixaInicial: "R$ 0,00",
-                faixaFinal: "Em aberto",
-                percentual: "14",
-                contribuicaoFaixa: "Calculada pelo motor",
-              },
-            ];
+        return vigenciaFormularioBase?.faixasContribuicao?.length
+          ? vigenciaFormularioBase.faixasContribuicao
+          : getFaixasAutomaticasRppsPorRegra(vigenciaFormularioBase?.regraIncidencia);
       }
 
       return isEditing ? folhaTabelaReferenciaFaixasMock : [];
@@ -12896,67 +13073,64 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const [modalNovaFaixaAberto, setModalNovaFaixaAberto] = useState(false);
   const { control, handleSubmit, watch, setValue } = useForm<FolhaTabelaReferenciaVigenciaForm>({
     defaultValues: {
-      descricao: vigenciaAtual?.nome ?? (isTabelaRpps ? "Nova regra RPPS" : isTabelaPrevcom ? "RPC 2026" : isEditing ? "testeddd" : ""),
-      anoBase: vigenciaAtual?.ano ?? (isEditing || isTabelaRpps ? "2026" : ""),
+      descricao: vigenciaFormularioBase?.nome ?? (isTabelaRpps ? "Nova regra RPPS" : isTabelaPrevcom ? "RPC 2026" : isEditing ? "testeddd" : ""),
+      anoBase: vigenciaFormularioBase?.ano ?? (isEditing || isTabelaRpps ? "2026" : ""),
       aplicavelPara: isTabelaRpps
         ? folhaTabelaReferenciaValuesFromLabels(
             folhaTabelaReferenciaAplicavelParaOptions,
-            vigenciaAtual?.aplicavelPara,
+            vigenciaFormularioBase?.aplicavelPara,
           ).length
           ? folhaTabelaReferenciaValuesFromLabels(
               folhaTabelaReferenciaAplicavelParaOptions,
-              vigenciaAtual?.aplicavelPara,
+              vigenciaFormularioBase?.aplicavelPara,
             )
           : ["ATIVO"]
         : [],
       situacoesFuncionaisMilitar: folhaTabelaReferenciaValuesFromLabels(
         folhaTabelaReferenciaSituacaoFuncionalMilitarOptions,
-        vigenciaAtual?.situacoesFuncionaisMilitar,
+        vigenciaFormularioBase?.situacoesFuncionaisMilitar,
       ),
       condicaoEspecial: folhaTabelaReferenciaValueFromLabel(
         folhaTabelaReferenciaCondicaoEspecialOptions,
-        vigenciaAtual?.condicaoEspecial,
+        vigenciaFormularioBase?.condicaoEspecial,
       ) || (isTabelaRpps ? "NENHUMA" : ""),
       planoPrevidenciario: folhaTabelaReferenciaValueFromLabel(
         folhaTabelaReferenciaPlanoPrevidenciarioOptions,
-        vigenciaAtual?.planoPrevidenciario,
+        vigenciaFormularioBase?.planoPrevidenciario,
       ) || (isTabelaRpps ? "GERAL" : ""),
       tipoCalculo: folhaTabelaReferenciaValueFromLabel(
         folhaTabelaReferenciaTipoCalculoOptions,
-        vigenciaAtual?.tipoCalculo,
+        vigenciaFormularioBase?.tipoCalculo,
       ) || (isTabelaRpps ? "VINCULO" : ""),
       regraIncidencia: folhaTabelaReferenciaValueFromLabel(
         folhaTabelaReferenciaRegraIncidenciaOptions,
-        vigenciaAtual?.regraIncidencia,
+        vigenciaFormularioBase?.regraIncidencia,
       ) || (isTabelaRpps ? "REMUNERACAO_TOTAL" : ""),
-      valorReferenciaId: vigenciaAtual?.valorReferenciaId ?? "",
-      limiteProventos: vigenciaAtual?.limiteProventos ?? "",
-      proventosAPartirDe: vigenciaAtual?.proventosAPartirDe ?? "",
-      proventosAte: vigenciaAtual?.proventosAte ?? "",
-      tetoPrevidenciario: vigenciaAtual?.tetoPrevidenciario ?? (isTabelaRpps ? "" : isEditing ? "R$ 8.475,55" : ""),
-      percentualContribuicao: vigenciaAtual?.percentualContribuicao ?? (isTabelaRpps ? "14" : ""),
-      inicioVigencia: vigenciaAtual?.inicioVigencia ?? (isTabelaRpps ? "02/01/2026" : isEditing ? "02/06/2026" : ""),
-      fimVigencia: vigenciaAtual?.fimVigencia ?? (isTabelaRpps ? "31/12/2026" : ""),
-      baseLegal: vigenciaAtual?.baseLegal ?? [],
+      valorReferenciaId: vigenciaFormularioBase?.valorReferenciaId ?? "",
+      limiteProventos: vigenciaFormularioBase?.limiteProventos ?? "",
+      proventosAPartirDe: vigenciaFormularioBase?.proventosAPartirDe ?? "",
+      proventosAte: vigenciaFormularioBase?.proventosAte ?? "",
+      tetoPrevidenciario: vigenciaFormularioBase?.tetoPrevidenciario ?? (isTabelaRpps ? "" : isEditing ? "R$ 8.475,55" : ""),
+      percentualContribuicao: vigenciaFormularioBase?.percentualContribuicao ?? (isTabelaRpps ? "14" : ""),
+      inicioVigencia: vigenciaFormularioBase?.inicioVigencia ?? (isTabelaRpps ? "02/01/2026" : isEditing ? "02/06/2026" : ""),
+      fimVigencia: vigenciaFormularioBase?.fimVigencia ?? (isTabelaRpps ? "31/12/2026" : ""),
+      baseLegal: vigenciaFormularioBase?.baseLegal ?? [],
       observacoes: "",
     },
   });
-  const aplicavelParaSelecionado = watch("aplicavelPara") ?? [];
   const regraIncidenciaSelecionada = watch("regraIncidencia");
   const valorReferenciaSelecionado = watch("valorReferenciaId");
   const tetoPrevidenciarioSelecionado = watch("tetoPrevidenciario");
   const percentualContribuicaoSelecionado = watch("percentualContribuicao");
   const isRegraFaixasProgressivas = regraIncidenciaSelecionada === "FAIXAS_PROGRESSIVAS";
   const isRegraIsentoValorReferencia = regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA";
-  const isAplicavelMilitar = aplicavelParaSelecionado.includes("MILITAR");
-  const exibirLimiteProventos = aplicavelParaSelecionado.some((aplicavel) =>
-    ["INATIVO", "PENSIONISTA"].includes(aplicavel),
-  );
+  const exibirValorReferenciaRpps = isTabelaRpps && Boolean(vigenciaFormularioBase?.valorReferenciaId);
+  const exibirPercentualRpps =
+    isTabelaRpps && !isRegraFaixasProgressivas && !isRegraIsentoValorReferencia;
+  const exibirEnquadramentoProventosRpps =
+    isTabelaRpps && [303, 305].includes(modeloRppsId ?? 0);
   const exibirTetoPrevidenciario =
-    !isTabelaRpps ||
-    ["ATE_TETO_RGPS", "EXCEDENTE_TETO_RGPS", "FAIXAS_PROGRESSIVAS"].includes(
-      regraIncidenciaSelecionada,
-    );
+    !isTabelaRpps || ["ATE_TETO_RGPS", "EXCEDENTE_TETO_RGPS"].includes(regraIncidenciaSelecionada);
 
   useEffect(() => {
     if (!isTabelaRpps) return;
@@ -12988,20 +13162,19 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       }
 
       const percentual = percentualContribuicaoSelecionado || "14";
-      if (possuiFaixaUnicaAberta && current[0].percentual === percentual) {
+      const faixasAutomaticas = getFaixasAutomaticasRppsPorRegra(
+        regraIncidenciaSelecionada,
+        percentual,
+      );
+
+      if (
+        isFaixasAutomaticasRpps(current) &&
+        JSON.stringify(current) === JSON.stringify(faixasAutomaticas)
+      ) {
         return current;
       }
 
-      return [
-        {
-          id: 1,
-          ordem: 1,
-          faixaInicial: "R$ 0,00",
-          faixaFinal: "Em aberto",
-          percentual,
-          contribuicaoFaixa: "Calculada pelo motor",
-        },
-      ];
+      return faixasAutomaticas;
     });
   }, [
     isRegraFaixasProgressivas,
@@ -13016,9 +13189,11 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       ? { ...tab, disabled: isTabelaPrevcom || !dadosGeraisSalvos }
       : tab,
   );
-  const tituloTabela = `TABELA - ${tabela.sigla}${
-    tabela.nome ? ` - ${tabela.nome}` : ""
-  }`;
+  const nomeTituloTabela = isTabelaRpps && vigenciaFormularioBase?.nome ? vigenciaFormularioBase.nome : tabela.nome;
+  const tituloTabela =
+    isTabelaRpps && nomeTituloTabela?.startsWith("RPPS")
+      ? `TABELA - ${nomeTituloTabela}`
+      : `TABELA - ${tabela.sigla}${nomeTituloTabela ? ` - ${nomeTituloTabela}` : ""}`;
   const proximaOrdemFaixa = faixasVigencia.length + 1;
   const proximaFaixaInicial = getProximaFaixaInicialReferencia(faixasVigencia);
   const descontoMaximo = faixasVigencia.reduce(
@@ -13105,19 +13280,6 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         }
       }
 
-      if (
-        activeTab === "dados-gerais" &&
-        !dadosGeraisSalvos &&
-        data.regraIncidencia === "FAIXAS_PROGRESSIVAS"
-      ) {
-        setDadosGeraisSalvos(true);
-        setActiveTab("faixa-contribuicao");
-        setFeedback(
-          "Dados gerais salvos com sucesso. Cadastre as faixas de contribuição para concluir.",
-        );
-        return;
-      }
-
       if (data.regraIncidencia === "FAIXAS_PROGRESSIVAS") {
         if (!faixasVigencia.length) {
           setFeedback("Por faixas de contribuição exige ao menos uma faixa cadastrada.");
@@ -13158,39 +13320,22 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       }
 
       const vigenciaAtualId = Number(vigenciaId);
+      const modeloRppsSalvo = modeloRppsAtual ?? vigenciaFormularioBase;
+      const modeloRppsIdSalvo = modeloRppsId ?? modeloRppsSalvo?.id;
+
+      if (!modeloRppsSalvo || !modeloRppsIdSalvo) {
+        setFeedback("Modelo RPPS não encontrado para esta vigência.");
+        return;
+      }
+
       const temSobreposicao = getFolhaTabelasReferenciaPersistidas()
         .find((item) => item.sigla === "RPPS")
         ?.vigencias.some((vigencia) => {
           if (vigencia.id === vigenciaAtualId) return false;
-          const aplicavelLabel = data.aplicavelPara
-            .map(folhaTabelaReferenciaAplicavelLabel)
-            .join(", ");
-          const mesmoAplicavel = aplicavelLabel === vigencia.aplicavelPara;
-          const situacoesFuncionaisMilitarLabel = data.situacoesFuncionaisMilitar
-            .map(folhaTabelaReferenciaSituacaoFuncionalMilitarLabel)
-            .join(", ");
-          const mesmaSituacaoFuncionalMilitar =
-            !data.aplicavelPara.includes("MILITAR") ||
-            situacoesFuncionaisMilitarLabel ===
-              (vigencia.situacoesFuncionaisMilitar ?? "");
-          const mesmaCondicao =
-            folhaTabelaReferenciaCondicaoEspecialLabel(data.condicaoEspecial) ===
-            (vigencia.condicaoEspecial ?? "Nenhuma");
-          const mesmoPlano =
-            folhaTabelaReferenciaPlanoPrevidenciarioLabel(data.planoPrevidenciario) ===
-            (vigencia.planoPrevidenciario ?? "Geral");
-          const mesmoTipoCalculo =
-            folhaTabelaReferenciaTipoCalculoLabel(data.tipoCalculo) === vigencia.tipoCalculo;
-          const mesmaRegra =
-            folhaTabelaReferenciaRegraLabel(data.regraIncidencia) === vigencia.regraIncidencia;
+          const mesmoModelo = getFolhaTabelaReferenciaRppsModeloId(vigencia) === modeloRppsIdSalvo;
 
           return (
-            mesmoAplicavel &&
-            mesmaSituacaoFuncionalMilitar &&
-            mesmaCondicao &&
-            mesmoPlano &&
-            mesmoTipoCalculo &&
-            mesmaRegra &&
+            mesmoModelo &&
             vigenciasSobrepostas(
               data.inicioVigencia,
               data.fimVigencia,
@@ -13201,39 +13346,28 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         });
 
       if (temSobreposicao) {
-        setFeedback("Já existe vigência RPPS sobreposta para a mesma combinação de Aplicável para, Situação Funcional, Condição Especial, Plano Previdenciário, Tipo de Cálculo e Regra de Incidência.");
+        setFeedback("Já existe vigência RPPS sobreposta para este mesmo modelo.");
         return;
       }
 
       const novaVigencia: FolhaTabelaReferenciaVigenciaRow = {
         id: Number.isFinite(vigenciaAtualId) && vigenciaAtualId > 0 ? vigenciaAtualId : Date.now(),
-        nome: data.descricao,
+        modeloRppsId: modeloRppsIdSalvo,
+        nome: modeloRppsSalvo.nome,
         ano: data.anoBase,
-        aplicavelPara: data.aplicavelPara
-          .map(folhaTabelaReferenciaAplicavelLabel)
-          .join(", "),
-        situacoesFuncionaisMilitar: data.aplicavelPara.includes("MILITAR")
-          ? data.situacoesFuncionaisMilitar
-              .map(folhaTabelaReferenciaSituacaoFuncionalMilitarLabel)
-              .join(", ")
-          : undefined,
-        condicaoEspecial: folhaTabelaReferenciaCondicaoEspecialLabel(data.condicaoEspecial),
-        planoPrevidenciario: folhaTabelaReferenciaPlanoPrevidenciarioLabel(data.planoPrevidenciario),
-        tipoCalculo: folhaTabelaReferenciaTipoCalculoLabel(data.tipoCalculo),
-        regraIncidencia: folhaTabelaReferenciaRegraLabel(data.regraIncidencia),
-        valorReferenciaId: data.valorReferenciaId,
+        aplicavelPara: modeloRppsSalvo.aplicavelPara,
+        situacoesFuncionaisMilitar: modeloRppsSalvo.situacoesFuncionaisMilitar,
+        condicaoEspecial: modeloRppsSalvo.condicaoEspecial,
+        planoPrevidenciario: modeloRppsSalvo.planoPrevidenciario,
+        tipoCalculo: modeloRppsSalvo.tipoCalculo,
+        regraIncidencia: modeloRppsSalvo.regraIncidencia,
+        valorReferenciaId: data.valorReferenciaId || modeloRppsSalvo.valorReferenciaId,
         limiteProventos: data.limiteProventos,
-        proventosAPartirDe: data.proventosAPartirDe,
-        proventosAte: data.proventosAte,
-        tetoPrevidenciario: data.tetoPrevidenciario,
-        percentualContribuicao:
-          data.regraIncidencia === "ISENTO_ATE_VALOR_REFERENCIA"
-            ? "0"
-            : data.percentualContribuicao,
-        faixasContribuicao:
-          data.regraIncidencia === "FAIXAS_PROGRESSIVAS"
-            ? faixasVigencia
-            : undefined,
+        proventosAPartirDe: data.proventosAPartirDe || modeloRppsSalvo.proventosAPartirDe,
+        proventosAte: data.proventosAte || modeloRppsSalvo.proventosAte,
+        tetoPrevidenciario: data.tetoPrevidenciario || modeloRppsSalvo.tetoPrevidenciario,
+        percentualContribuicao: data.percentualContribuicao || modeloRppsSalvo.percentualContribuicao,
+        faixasContribuicao: faixasVigencia.length ? faixasVigencia : modeloRppsSalvo.faixasContribuicao,
         inicioVigencia: data.inicioVigencia,
         fimVigencia: data.fimVigencia,
         baseLegal: data.baseLegal,
@@ -13354,14 +13488,16 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                       <h3>Dados Gerais</h3>
                     </div>
                     <div className="grid prototype-folha-referencia-vigencia-fields">
-                      <TextFieldSeplag
-                        name="descricao"
-                        control={control}
-                        label="Descrição"
-                        required
-                        cols="12 12 8"
-                        getFormErrorMessage={() => null}
-                      />
+                      {!isTabelaRpps ? (
+                        <TextFieldSeplag
+                          name="descricao"
+                          control={control}
+                          label="Descrição"
+                          required
+                          cols="12 12 8"
+                          getFormErrorMessage={() => null}
+                        />
+                      ) : null}
                       <TextFieldSeplag
                         name="anoBase"
                         control={control}
@@ -13372,91 +13508,53 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                       />
                       {isTabelaRpps ? (
                         <>
-                          <MultiSelectFieldSeplag
-                            name="aplicavelPara"
-                            control={control}
-                            label="Aplicável para"
-                            required
-                            cols="12 12 6"
-                            options={folhaTabelaReferenciaAplicavelParaOptions}
-                            optionLabel="label"
-                            optionValue="value"
-                            selectedItemsLabel="{0} públicos selecionados"
-                            getFormErrorMessage={() => null}
-                          />
-                          {isAplicavelMilitar ? (
-                            <MultiSelectFieldSeplag
-                              name="situacoesFuncionaisMilitar"
+                          <div className="col-12">
+                            <div className="prototype-folha-referencia-vigencia-panel-title">
+                              <h3>Características da Regra</h3>
+                            </div>
+                            <div className="grid prototype-folha-referencia-vigencia-fields">
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Aplicável para</strong>
+                                <p>{vigenciaFormularioBase?.aplicavelPara ?? "-"}</p>
+                              </div>
+                              {vigenciaFormularioBase?.situacoesFuncionaisMilitar ? (
+                                <div className="col-12 md:col-6 lg:col-3">
+                                  <strong>Situação Funcional</strong>
+                                  <p>{vigenciaFormularioBase.situacoesFuncionaisMilitar}</p>
+                                </div>
+                              ) : null}
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Condição Especial</strong>
+                                <p>{vigenciaFormularioBase?.condicaoEspecial ?? "Nenhuma"}</p>
+                              </div>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Plano Previdenciário</strong>
+                                <p>{vigenciaFormularioBase?.planoPrevidenciario ?? "Geral"}</p>
+                              </div>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Tipo de Cálculo</strong>
+                                <p>{vigenciaFormularioBase?.tipoCalculo ?? "Vínculo"}</p>
+                              </div>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Regra de Incidência</strong>
+                                <p>{vigenciaFormularioBase?.regraIncidencia ?? "-"}</p>
+                              </div>
+                            </div>
+                          </div>
+                          {exibirValorReferenciaRpps ? (
+                            <DropdownFieldSeplag
+                              name="valorReferenciaId"
                               control={control}
-                              label="Situação Funcional"
-                              required
-                              cols="12 12 6"
-                              options={folhaTabelaReferenciaSituacaoFuncionalMilitarOptions}
+                              label="Valor de Referência"
+                              cols="12 12 3"
+                              options={folhaTabelaReferenciaValorReferenciaOptions}
                               optionLabel="label"
                               optionValue="value"
-                              selectedItemsLabel="{0} situações selecionadas"
+                              placeholder="Selecione..."
                               getFormErrorMessage={() => null}
                             />
                           ) : null}
-                          <DropdownFieldSeplag
-                            name="condicaoEspecial"
-                            control={control}
-                            label="Condição Especial"
-                            cols="12 12 3"
-                            options={folhaTabelaReferenciaCondicaoEspecialOptions}
-                            optionLabel="label"
-                            optionValue="value"
-                            getFormErrorMessage={() => null}
-                          />
-                          <DropdownFieldSeplag
-                            name="planoPrevidenciario"
-                            control={control}
-                            label="Plano Previdenciário"
-                            cols="12 12 3"
-                            options={folhaTabelaReferenciaPlanoPrevidenciarioOptions}
-                            optionLabel="label"
-                            optionValue="value"
-                            getFormErrorMessage={() => null}
-                          />
-                          <DropdownFieldSeplag
-                            name="tipoCalculo"
-                            control={control}
-                            label="Tipo de Cálculo"
-                            required
-                            cols="12 12 3"
-                            options={folhaTabelaReferenciaTipoCalculoOptions}
-                            optionLabel="label"
-                            optionValue="value"
-                            getFormErrorMessage={() => null}
-                          />
-                          <DropdownFieldSeplag
-                            name="regraIncidencia"
-                            control={control}
-                            label="Regra de Incidência"
-                            required
-                            cols="12 12 3"
-                            options={folhaTabelaReferenciaRegraIncidenciaOptions}
-                            optionLabel="label"
-                            optionValue="value"
-                            getFormErrorMessage={() => null}
-                          />
-                          <DropdownFieldSeplag
-                            name="valorReferenciaId"
-                            control={control}
-                            label="Valor de Referência"
-                            required={
-                              regraIncidenciaSelecionada === "ATE_VALOR_REFERENCIA" ||
-                              regraIncidenciaSelecionada === "EXCEDENTE_VALOR_REFERENCIA" ||
-                              regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA"
-                            }
-                            cols="12 12 3"
-                            options={folhaTabelaReferenciaValorReferenciaOptions}
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="Selecione..."
-                            getFormErrorMessage={() => null}
-                          />
-                          {!isRegraFaixasProgressivas && !isRegraIsentoValorReferencia ? (
+                          {exibirPercentualRpps ? (
                             <TextFieldSeplag
                               name="percentualContribuicao"
                               control={control}
@@ -13466,7 +13564,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                               getFormErrorMessage={() => null}
                             />
                           ) : null}
-                          {exibirLimiteProventos ? (
+                          {exibirEnquadramentoProventosRpps ? (
                             <>
                               <TextFieldSeplag
                                 name="proventosAPartirDe"
