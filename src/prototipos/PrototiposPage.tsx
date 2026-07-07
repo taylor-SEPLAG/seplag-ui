@@ -3135,6 +3135,7 @@ interface FolhaTabelaReferenciaVigenciaRow {
   vigencia: ReactNode;
   situacao: "Agendado" | "Ativo" | "Encerrado" | "Inativo";
   aplicavelPara?: string;
+  situacoesFuncionaisMilitar?: string;
   condicaoEspecial?: string;
   planoPrevidenciario?: string;
   tipoCalculo?: string;
@@ -3161,6 +3162,7 @@ interface FolhaTabelaReferenciaVigenciaForm {
   descricao: string;
   anoBase: string;
   aplicavelPara: string[];
+  situacoesFuncionaisMilitar: string[];
   condicaoEspecial: string;
   planoPrevidenciario: string;
   tipoCalculo: string;
@@ -3221,6 +3223,7 @@ interface FolhaTabelaReferenciaNovaFaixaForm {
 
 type FolhaTabelaReferenciaRegraIncidencia =
   | "REMUNERACAO_TOTAL"
+  | "ATE_VALOR_REFERENCIA"
   | "ATE_TETO_RGPS"
   | "EXCEDENTE_TETO_RGPS"
   | "EXCEDENTE_SALARIO_MINIMO"
@@ -3233,6 +3236,12 @@ const folhaTabelaReferenciaAplicavelParaOptions = [
   { label: "Inativo", value: "INATIVO" },
   { label: "Pensionista", value: "PENSIONISTA" },
   { label: "Militar", value: "MILITAR" },
+];
+
+const folhaTabelaReferenciaSituacaoFuncionalMilitarOptions = [
+  { label: "Ativo", value: "ATIVO" },
+  { label: "Inativo", value: "INATIVO" },
+  { label: "Pensionista", value: "PENSIONISTA" },
 ];
 
 const folhaTabelaReferenciaCondicaoEspecialOptions = [
@@ -3264,6 +3273,10 @@ const folhaTabelaReferenciaRegraIncidenciaOptions: {
   value: FolhaTabelaReferenciaRegraIncidencia;
 }[] = [
   { label: "Sobre remuneração total", value: "REMUNERACAO_TOTAL" },
+  {
+    label: "Sobre remuneração até valor de referência",
+    value: "ATE_VALOR_REFERENCIA",
+  },
   { label: "Até o teto do RGPS", value: "ATE_TETO_RGPS" },
   { label: "Sobre excedente do teto do RGPS", value: "EXCEDENTE_TETO_RGPS" },
   { label: "Sobre excedente do salário mínimo", value: "EXCEDENTE_SALARIO_MINIMO" },
@@ -3276,6 +3289,7 @@ const folhaTabelaReferenciaValorReferenciaOptions = [
   { label: "Salário Mínimo", value: "SALARIO_MINIMO" },
   { label: "Teto RGPS", value: "TETO_RGPS" },
   { label: "Faixa Isenção LC 700/2021", value: "ISENCAO_LC700" },
+  { label: "Limite Previdenciário PM/BM", value: "LIMITE_PREV_PM_BM" },
   { label: "Valor parametrizado", value: "VALOR_PARAMETRIZADO" },
 ];
 
@@ -3286,6 +3300,11 @@ const folhaTabelaReferenciaRegraLabel = (value?: string) =>
 const folhaTabelaReferenciaAplicavelLabel = (value?: string) =>
   folhaTabelaReferenciaAplicavelParaOptions.find((option) => option.value === value)
     ?.label ?? "-";
+
+const folhaTabelaReferenciaSituacaoFuncionalMilitarLabel = (value?: string) =>
+  folhaTabelaReferenciaSituacaoFuncionalMilitarOptions.find(
+    (option) => option.value === value,
+  )?.label ?? "-";
 
 const folhaTabelaReferenciaTipoCalculoLabel = (value?: string) =>
   folhaTabelaReferenciaTipoCalculoOptions.find((option) => option.value === value)
@@ -3300,6 +3319,8 @@ const folhaTabelaReferenciaPlanoPrevidenciarioLabel = (value?: string) =>
     ?.label ?? "Geral";
 
 const getReferenciaAutomaticaRppsLabel = (regra?: string) => {
+  if (regra === "ATE_VALOR_REFERENCIA")
+    return "Limite Prev. PM/BM vigente automático";
   if (regra === "ATE_TETO_RGPS") return "Teto RGPS vigente automático";
   if (regra === "EXCEDENTE_TETO_RGPS") return "Teto RGPS vigente automático";
   if (regra === "EXCEDENTE_SALARIO_MINIMO") return "Salário mínimo vigente automático";
@@ -3495,6 +3516,24 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
         inicioVigencia: "02/01/2026",
         fimVigencia: "31/12/2026",
         baseLegal: ["lc-202-2004", "lc-654-2020"],
+        vigencia: "02/01/2026 até 31/12/2026",
+        situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
+      },
+      {
+        id: 306,
+        nome: "RPPS 06 – Militar Ativo, Inativo ou Pensionista (até o limite legal)",
+        ano: "2026",
+        aplicavelPara: "Militar",
+        situacoesFuncionaisMilitar: "Ativo, Inativo, Pensionista",
+        condicaoEspecial: "Nenhuma",
+        planoPrevidenciario: "Geral",
+        tipoCalculo: "Vínculo",
+        regraIncidencia: "Sobre remuneração até valor de referência",
+        valorReferenciaId: "LIMITE_PREV_PM_BM",
+        percentualContribuicao: "10,5",
+        inicioVigencia: "02/01/2026",
+        fimVigencia: "31/12/2026",
+        baseLegal: ["lc-202-2004", "lc-712-2022"],
         vigencia: "02/01/2026 até 31/12/2026",
         situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
       },
@@ -4629,7 +4668,7 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "Todos",
     tipoVinculo: "Todos",
     situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
-    inicioVigencia: "01/2026",
+    inicioVigencia: "01/01/2026",
     fimVigencia: "-",
     rubricas: 42,
     pendencias: 0,
@@ -4643,7 +4682,7 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "Todos",
     tipoVinculo: "Efetivo",
     situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
-    inicioVigencia: "01/2026",
+    inicioVigencia: "01/01/2026",
     fimVigencia: "-",
     rubricas: 35,
     pendencias: 0,
@@ -4657,7 +4696,7 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "SEDUC",
     tipoVinculo: "Efetivo",
     situacao: STATUS_OPERACIONAL_VIGENCIA.AGENDADO_ENCERRAMENTO,
-    inicioVigencia: "01/2026",
+    inicioVigencia: "01/01/2026",
     fimVigencia: "06/2026",
     rubricas: 38,
     pendencias: 1,
@@ -4671,7 +4710,7 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "Todos",
     tipoVinculo: "Contratado",
     situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
-    inicioVigencia: "01/2026",
+    inicioVigencia: "01/01/2026",
     fimVigencia: "-",
     rubricas: 21,
     pendencias: 0,
@@ -4685,7 +4724,7 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "Todos",
     tipoVinculo: "Comissionado",
     situacao: STATUS_OPERACIONAL_VIGENCIA.AGENDADO,
-    inicioVigencia: "06/2026",
+    inicioVigencia: "01/06/2026",
     fimVigencia: "-",
     rubricas: 18,
     pendencias: 2,
@@ -4699,8 +4738,8 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "Todos",
     tipoVinculo: "Aposentado",
     situacao: STATUS_OPERACIONAL_VIGENCIA.ENCERRADO,
-    inicioVigencia: "01/2025",
-    fimVigencia: "12/2025",
+    inicioVigencia: "01/01/2025",
+    fimVigencia: "31/12/2025",
     rubricas: 27,
     pendencias: 0,
   },
@@ -4713,7 +4752,7 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "Todos",
     tipoVinculo: "Pensionista",
     situacao: "ENCERRADO",
-    inicioVigencia: "02/2026",
+    inicioVigencia: "01/02/2026",
     fimVigencia: "08/2026",
     rubricas: 16,
     pendencias: 3,
@@ -4727,7 +4766,7 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "PGE",
     tipoVinculo: "Efetivo",
     situacao: "ATIVO",
-    inicioVigencia: "01/2026",
+    inicioVigencia: "01/01/2026",
     fimVigencia: "-",
     rubricas: 38,
     pendencias: 1,
@@ -4741,7 +4780,7 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "SEDUC",
     tipoVinculo: "Efetivo",
     situacao: "ATIVO",
-    inicioVigencia: "03/2026",
+    inicioVigencia: "01/03/2026",
     fimVigencia: "-",
     rubricas: 44,
     pendencias: 0,
@@ -4755,8 +4794,8 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     orgaoSetor: "SEPLAG",
     tipoVinculo: "Contratado",
     situacao: "ENCERRADO",
-    inicioVigencia: "01/2025",
-    fimVigencia: "04/2026",
+    inicioVigencia: "01/01/2025",
+    fimVigencia: "30/04/2026",
     rubricas: 19,
     pendencias: 0,
   },
@@ -4769,8 +4808,8 @@ const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
       ...gruposCalculoMock[0],
       codigo: "G001-V1",
       situacao: "ENCERRADO",
-      inicioVigencia: "01/2025",
-      fimVigencia: "12/2025",
+      inicioVigencia: "01/01/2025",
+      fimVigencia: "31/12/2025",
       rubricas: 39,
     },
   ],
@@ -4780,8 +4819,8 @@ const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
       ...gruposCalculoMock[1],
       codigo: "G010-V1",
       situacao: "ENCERRADO",
-      inicioVigencia: "01/2025",
-      fimVigencia: "12/2025",
+      inicioVigencia: "01/01/2025",
+      fimVigencia: "31/12/2025",
       rubricas: 31,
     },
   ],
@@ -4791,8 +4830,8 @@ const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
       ...gruposCalculoMock[2],
       codigo: "G011-V2",
       situacao: "ATIVO",
-      inicioVigencia: "01/2026",
-      fimVigencia: "05/2026",
+      inicioVigencia: "01/01/2026",
+      fimVigencia: "31/05/2026",
       rubricas: 36,
       pendencias: 0,
     },
@@ -4800,8 +4839,8 @@ const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
       ...gruposCalculoMock[2],
       codigo: "G011-V1",
       situacao: "ENCERRADO",
-      inicioVigencia: "03/2025",
-      fimVigencia: "12/2025",
+      inicioVigencia: "01/03/2025",
+      fimVigencia: "31/12/2025",
       rubricas: 34,
       pendencias: 0,
     },
@@ -4813,8 +4852,8 @@ const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
       ...gruposCalculoMock[4],
       codigo: "G030-V1",
       situacao: "ENCERRADO",
-      inicioVigencia: "01/2025",
-      fimVigencia: "12/2025",
+      inicioVigencia: "01/01/2025",
+      fimVigencia: "31/12/2025",
       rubricas: 15,
       pendencias: 0,
     },
@@ -12760,6 +12799,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       descricao: isTabelaRpps ? "RPPS 02 – Servidor Civil Ativo" : isTabelaPrevcom ? "RPC 2026" : isEditing ? "testeddd" : "",
       anoBase: isEditing || isTabelaRpps ? "2026" : "",
       aplicavelPara: isTabelaRpps ? ["ATIVO"] : [],
+      situacoesFuncionaisMilitar: [],
       condicaoEspecial: isTabelaRpps ? "NENHUMA" : "",
       planoPrevidenciario: isTabelaRpps ? "GERAL" : "",
       tipoCalculo: isTabelaRpps ? "VINCULO" : "",
@@ -12783,6 +12823,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const percentualContribuicaoSelecionado = watch("percentualContribuicao");
   const isRegraFaixasProgressivas = regraIncidenciaSelecionada === "FAIXAS_PROGRESSIVAS";
   const isRegraIsentoValorReferencia = regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA";
+  const isAplicavelMilitar = aplicavelParaSelecionado.includes("MILITAR");
   const exibirLimiteProventos = aplicavelParaSelecionado.some((aplicavel) =>
     ["INATIVO", "PENSIONISTA"].includes(aplicavel),
   );
@@ -12798,6 +12839,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     const referenciaAutomaticaPorRegra: Partial<
       Record<FolhaTabelaReferenciaRegraIncidencia, string>
     > = {
+      ATE_VALOR_REFERENCIA: "LIMITE_PREV_PM_BM",
       ATE_TETO_RGPS: "TETO_RGPS",
       EXCEDENTE_TETO_RGPS: "TETO_RGPS",
       EXCEDENTE_SALARIO_MINIMO: "SALARIO_MINIMO",
@@ -12898,6 +12940,11 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         return;
       }
 
+      if (data.aplicavelPara.includes("MILITAR") && !data.situacoesFuncionaisMilitar?.length) {
+        setFeedback("Informe ao menos uma Situação Funcional para o público Militar.");
+        return;
+      }
+
       if (!data.tipoCalculo) {
         setFeedback("Informe o Tipo de Cálculo do RPPS.");
         return;
@@ -12914,6 +12961,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       }
 
       const regraExigeValorReferencia =
+        data.regraIncidencia === "ATE_VALOR_REFERENCIA" ||
         data.regraIncidencia === "EXCEDENTE_VALOR_REFERENCIA" ||
         data.regraIncidencia === "ISENTO_ATE_VALOR_REFERENCIA";
 
@@ -12993,6 +13041,13 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
             .map(folhaTabelaReferenciaAplicavelLabel)
             .join(", ");
           const mesmoAplicavel = aplicavelLabel === vigencia.aplicavelPara;
+          const situacoesFuncionaisMilitarLabel = data.situacoesFuncionaisMilitar
+            .map(folhaTabelaReferenciaSituacaoFuncionalMilitarLabel)
+            .join(", ");
+          const mesmaSituacaoFuncionalMilitar =
+            !data.aplicavelPara.includes("MILITAR") ||
+            situacoesFuncionaisMilitarLabel ===
+              (vigencia.situacoesFuncionaisMilitar ?? "");
           const mesmaCondicao =
             folhaTabelaReferenciaCondicaoEspecialLabel(data.condicaoEspecial) ===
             (vigencia.condicaoEspecial ?? "Nenhuma");
@@ -13006,6 +13061,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
 
           return (
             mesmoAplicavel &&
+            mesmaSituacaoFuncionalMilitar &&
             mesmaCondicao &&
             mesmoPlano &&
             mesmoTipoCalculo &&
@@ -13020,7 +13076,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         });
 
       if (temSobreposicao) {
-        setFeedback("Já existe vigência RPPS sobreposta para a mesma combinação de Aplicável para, Condição Especial, Plano Previdenciário, Tipo de Cálculo e Regra de Incidência.");
+        setFeedback("Já existe vigência RPPS sobreposta para a mesma combinação de Aplicável para, Situação Funcional, Condição Especial, Plano Previdenciário, Tipo de Cálculo e Regra de Incidência.");
         return;
       }
 
@@ -13031,6 +13087,11 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         aplicavelPara: data.aplicavelPara
           .map(folhaTabelaReferenciaAplicavelLabel)
           .join(", "),
+        situacoesFuncionaisMilitar: data.aplicavelPara.includes("MILITAR")
+          ? data.situacoesFuncionaisMilitar
+              .map(folhaTabelaReferenciaSituacaoFuncionalMilitarLabel)
+              .join(", ")
+          : undefined,
         condicaoEspecial: folhaTabelaReferenciaCondicaoEspecialLabel(data.condicaoEspecial),
         planoPrevidenciario: folhaTabelaReferenciaPlanoPrevidenciarioLabel(data.planoPrevidenciario),
         tipoCalculo: folhaTabelaReferenciaTipoCalculoLabel(data.tipoCalculo),
@@ -13194,6 +13255,20 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                             selectedItemsLabel="{0} públicos selecionados"
                             getFormErrorMessage={() => null}
                           />
+                          {isAplicavelMilitar ? (
+                            <MultiSelectFieldSeplag
+                              name="situacoesFuncionaisMilitar"
+                              control={control}
+                              label="Situação Funcional"
+                              required
+                              cols="12 12 6"
+                              options={folhaTabelaReferenciaSituacaoFuncionalMilitarOptions}
+                              optionLabel="label"
+                              optionValue="value"
+                              selectedItemsLabel="{0} situações selecionadas"
+                              getFormErrorMessage={() => null}
+                            />
+                          ) : null}
                           <DropdownFieldSeplag
                             name="condicaoEspecial"
                             control={control}
@@ -13240,7 +13315,11 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                             name="valorReferenciaId"
                             control={control}
                             label="Valor de Referência"
-                            required={regraIncidenciaSelecionada === "EXCEDENTE_VALOR_REFERENCIA" || regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA"}
+                            required={
+                              regraIncidenciaSelecionada === "ATE_VALOR_REFERENCIA" ||
+                              regraIncidenciaSelecionada === "EXCEDENTE_VALOR_REFERENCIA" ||
+                              regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA"
+                            }
                             cols="12 12 3"
                             options={folhaTabelaReferenciaValorReferenciaOptions}
                             optionLabel="label"
