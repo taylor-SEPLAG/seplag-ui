@@ -653,7 +653,7 @@
   letter-spacing: 0.04em;
 }
 
-.calendar-process-overview strong {
+.calendar-process-overview > div > strong {
   display: block;
   color: #002b4f;
   font-size: 22px;
@@ -668,9 +668,66 @@
   line-height: 1.55;
 }
 
+.calendar-process-definition-lines {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.calendar-process-definition-lines p {
+  margin: 0;
+}
+
+.calendar-process-definition-lines strong {
+  color: #002b4f;
+  font-weight: 800;
+}
+
+.calendar-process-duration-card {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 18px 20px;
+  border: 1px solid #c4d4e4;
+  border-left: 5px solid #0d77b5;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(0, 74, 120, 0.08);
+}
+
+.calendar-process-duration-card span {
+  display: block;
+  margin-bottom: 6px;
+  color: #005a92;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.calendar-process-duration-card strong {
+  display: block;
+  color: #002b4f;
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.calendar-process-duration-card p {
+  margin: 6px 0 0;
+  color: #425466;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.calendar-process-duration-card > p {
+  margin: 0;
+  padding-left: 18px;
+  border-left: 1px solid #d5e0eb;
+}
+
 .sigep-flow {
   display: grid;
-  grid-template-columns: repeat(6, minmax(150px, 1fr));
+  grid-template-columns: repeat(7, minmax(140px, 1fr));
   gap: 26px;
   margin: 0;
   padding: 0;
@@ -695,7 +752,8 @@
 }
 
 .sigep-flow-node {
-  min-height: 245px;
+  min-height: 270px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   padding: 16px;
@@ -721,6 +779,7 @@
 
 .sigep-flow-node h2 {
   margin: 14px 0 8px;
+  min-height: 42px;
   color: #002b4f;
   font-size: 17px;
   line-height: 1.2;
@@ -728,6 +787,7 @@
 
 .sigep-flow-node p {
   margin: 0;
+  min-height: 108px;
   color: #425466;
   font-size: 13px;
   line-height: 1.45;
@@ -1443,6 +1503,17 @@
     font-size: 19px;
   }
 
+  .calendar-process-duration-card {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-process-duration-card > p {
+    padding-left: 0;
+    padding-top: 14px;
+    border-top: 1px solid #d5e0eb;
+    border-left: 0;
+  }
+
   .sigep-flow {
     grid-template-columns: 1fr;
     gap: 14px;
@@ -1450,6 +1521,11 @@
 
   .sigep-flow-node {
     min-height: auto;
+  }
+
+  .sigep-flow-node h2,
+  .sigep-flow-node p {
+    min-height: 0;
   }
 
   .sigep-definitions {

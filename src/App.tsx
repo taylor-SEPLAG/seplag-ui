@@ -68,9 +68,15 @@ import {
   PrototiposFolhaCatalogoRubricasPage,
   PrototiposFolhaCatalogoRubricaViewPage,
   PrototiposFolhaPage,
+  PrototiposImportarIngressoPage,
+  PrototiposIngressoDetalhePage,
+  PrototiposIngressosPage,
   PrototiposMatrizValidacaoTesteFormPage,
   PrototiposMatrizValidacaoTestePage,
+  PrototiposNovoIngressoPage,
   PrototiposPage,
+  PrototiposPessoaFisicaFormPage,
+  PrototiposPessoaVinculosPage,
   PrototiposPericiaPage,
   PrototiposSigepPage,
   PrototiposSigepRegimeJuridicoNovoPage,
@@ -79,6 +85,7 @@ import {
   PrototiposSigepRegimeJuridicoTestePage,
   PrototiposTipoVinculoTesteFormPage,
   PrototiposTipoVinculoTestePage,
+  PrototiposVinculoDetalhePage,
 } from "./prototipos/PrototiposPage";
 
 function HomePage() {
@@ -803,37 +810,43 @@ function CalendarioPage() {
     {
       title: "Refinamento",
       description:
-        "PO, analistas e time tecnico detalham as necessidades e alinham regras de negocio.",
+        "PO, analistas e time técnico detalham as necessidades e alinham regras de negócio.",
       meta: "Entrada: demandas priorizadas",
     },
     {
       title: "Planning",
       description:
-        "As historias sao estimadas, fatiadas e selecionadas para a sprint de desenvolvimento.",
-      meta: "Saida: sprint planejada",
+        "As histórias são estimadas, fatiadas e selecionadas para a sprint de desenvolvimento.",
+      meta: "Saída: sprint planejada",
+    },
+    {
+      title: "Mapeamento DBA",
+      description:
+        "São identificadas alterações ou criações de banco de dados necessárias para atender a User Story.",
+      meta: "Entrada para desenvolvimento",
     },
     {
       title: "Sprint DEV",
       description:
-        "Desenvolvedores implementam as US, integram servicos, ajustam telas e preparam evidencias.",
-      meta: "Duracao media: 15 dias",
+        "Desenvolvedores implementam as US, integram serviços, ajustam telas e preparam evidências.",
+      meta: "Duração média: 15 dias",
     },
     {
       title: "Sprint Teste",
       description:
-        "QA valida a entrega da sprint DEV passada. O teste é sempre realizado em D-1 da entrega anterior, nao da entrega atual.",
-      meta: "Referencia: sprint DEV anterior",
+        "QA valida a entrega da sprint DEV passada. O teste é sempre realizado em D-1 da entrega anterior, não da entrega atual.",
+      meta: "Referência: sprint DEV anterior",
     },
     {
       title: "Review",
       description:
-        "O incremento e apresentado, validado com os envolvidos e preparado para entrega.",
-      meta: "Marco de validacao",
+        "O incremento é apresentado, validado com os envolvidos e preparado para entrega.",
+      meta: "Marco de validação",
     },
     {
       title: "Entrega",
       description:
-        "A versao aprovada segue para publicacao, comunicacao e acompanhamento pos-entrega.",
+        "A versão aprovada segue para publicação, comunicação e acompanhamento pós-entrega.",
       meta: "Fim do ciclo",
     },
   ];
@@ -1100,14 +1113,26 @@ function CalendarioPage() {
             <div className="calendar-process-content">
               <section className="calendar-process-overview" aria-label="Resumo do processo">
                 <div>
-                  <span>CICLO CONTINUO</span>
+                  <span>CICLO CONTÍNUO</span>
                   <strong>Refinar, desenvolver, testar e entregar</strong>
                   <p>
                     O fluxo organiza as atividades do SIGEP em sprints conectadas,
-                    mantendo alinhamento entre negocio, desenvolvimento, testes e
+                    mantendo alinhamento entre negócio, desenvolvimento, testes e
                     entrega.
                   </p>
                 </div>
+              </section>
+
+              <section className="calendar-process-duration-card" aria-label="Tempo total da sprint">
+                <div>
+                  <span>TEMPO TOTAL DA SPRINT</span>
+                  <strong>30 dias</strong>
+                  <p>15 dias de desenvolvimento e 15 dias de teste.</p>
+                </div>
+                <p>
+                  Observação: esse prazo pode ser alterado conforme o refinamento
+                  das demandas e a maturidade dos processos.
+                </p>
               </section>
 
               <ol className="sigep-flow" aria-label="Fluxograma do processo de desenvolvimento do SIGEP">
@@ -1122,6 +1147,24 @@ function CalendarioPage() {
                   </li>
                 ))}
               </ol>
+
+              <section className="calendar-process-overview" aria-label="Conceitos de DoR e DoD">
+                <div>
+                  <span>CRITÉRIOS DE PRONTO E CONCLUÍDO</span>
+                  <strong>Entenda os conceitos de DoR e DoD</strong>
+                  <div className="calendar-process-definition-lines">
+                    <p>
+                      <strong>DoR:</strong> define as condições mínimas para uma
+                      atividade entrar no fluxo de desenvolvimento ou teste.
+                    </p>
+                    <p>
+                      <strong>DoD:</strong> define os critérios que precisam ser
+                      atendidos para considerar a etapa concluída e pronta para
+                      seguir no processo.
+                    </p>
+                  </div>
+                </div>
+              </section>
 
               <section className="sigep-definitions" aria-label="DoR e DoD do desenvolvimento e teste">
                 {sigepDefinitionCards.map((card) => (
@@ -1249,6 +1292,34 @@ function App() {
       <Route
         path="/prototipos/sigep/controle-vagas/integracao"
         element={<PrototiposControleVagasIntegracaoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos"
+        element={<PrototiposIngressosPage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos/novo"
+        element={<PrototiposNovoIngressoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos/importar"
+        element={<PrototiposImportarIngressoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos/:id"
+        element={<PrototiposIngressoDetalhePage />}
+      />
+      <Route
+        path="/prototipos/sigep/pessoa-fisica/novo"
+        element={<PrototiposPessoaFisicaFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/pessoas/:matricula/vinculos"
+        element={<PrototiposPessoaVinculosPage />}
+      />
+      <Route
+        path="/prototipos/sigep/vinculos/:id"
+        element={<PrototiposVinculoDetalhePage />}
       />
       <Route
         path="/prototipos/sigep/categoria"
