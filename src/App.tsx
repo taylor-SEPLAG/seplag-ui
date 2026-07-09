@@ -63,6 +63,7 @@ import {
   PrototiposFolhaSolicitacoesAjustesPage,
   PrototiposFolhaTabelaReferenciaVigenciaFormPage,
   PrototiposFolhaTabelasReferenciaPage,
+  PrototiposFolhaValorReferenciaVigenciaFormPage,
   PrototiposFolhaConformidadePage,
   PrototiposFolhaPenhoraJudicialPage,
   PrototiposFolhaCatalogoRubricasPage,
@@ -1486,6 +1487,14 @@ function App() {
       <Route
         path="/prototipos/folha/tabelas-referencia/:tabelaId/vigencias/:vigenciaId/editar"
         element={<PrototiposFolhaTabelaReferenciaVigenciaFormPage />}
+      />
+      <Route
+        path="/prototipos/folha/valores-referencia/:codigo/vigencias/novo"
+        element={<PrototiposFolhaValorReferenciaVigenciaFormPage />}
+      />
+      <Route
+        path="/prototipos/folha/valores-referencia/:codigo/vigencias/:vigenciaId/editar"
+        element={<PrototiposFolhaValorReferenciaVigenciaFormPage />}
       />
       <Route
         path="/prototipos/folha/relatorios/conformidade"
