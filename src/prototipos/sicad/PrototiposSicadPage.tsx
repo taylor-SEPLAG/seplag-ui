@@ -2263,11 +2263,13 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
   const handleAlterarPrioridade = () => {
     const prioridade = getValues("prioridade");
     atualizarSicadOcorrenciaMock(ocorrencia.id, (current) => ({ ...current, prioridade }));
-    sincronizarOcorrenciaService(registrarHistoricoSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, "Prioridade alterada", Prioridade atualizada para .));
+    sincronizarOcorrenciaService(registrarHistoricoSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, "Prioridade alterada", "Prioridade atualizada para " + prioridade + "."));
   };
 
   const handleAlterarResponsavel = () => {
-    addHistorico("Responsável alterado", `Responsável atualizado para ${getValues("responsavel")}.`);
+    const responsavel = getValues("responsavel");
+    atualizarSicadOcorrenciaMock(ocorrencia.id, (current) => ({ ...current, responsavel }));
+    sincronizarOcorrenciaService(registrarHistoricoSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, "Responsável alterado", "Responsável atualizado para " + responsavel + "."));
   };
 
   const showTechnicalAnalysis = sicadTemAlgumaPermissao([
@@ -2976,6 +2978,7 @@ export const sicadOccurrenceRoutes = {
   relatorios: getSicadHashPath("/ocorrencias/relatorios"),
   baseConhecimento: getSicadHashPath("/ocorrencias/base-conhecimento"),
 };
+
 
 
 

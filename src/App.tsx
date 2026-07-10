@@ -130,7 +130,7 @@ function HomePage() {
       titulo: "Folha de Pagamento",
       descricao: "Protótipos para grupos de cálculo, folhas por competência, rubricas e cálculos.",
       status: "Em evolução",
-      to: "/prototipos/folha",
+      to: "/prototipos/sigep/folha/painel-informativo",
       links: [
         { label: "Competências da Folha", to: "/prototipos/folha/processamento/competencias" },
         { label: "Processamento da Folha", to: "/prototipos/folha/processamento/processamento-folha" },
@@ -1296,6 +1296,14 @@ function App() {
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
       <Route
+        path="/prototipos/sigep/gestao/painel-informativo"
+        element={<PrototiposFolhaPage modulo="gestao-pessoas" />}
+      />
+      <Route
+        path="/prototipos/sigep/painel-informativo"
+        element={<Navigate to="/prototipos/sigep/gestao/painel-informativo" replace />}
+      />
+      <Route
         path="/prototipos/sigep/componentes"
         element={<PrototiposComponentesPage />}
       />
@@ -1483,7 +1491,18 @@ function App() {
         path="/prototipos/sigep/cargo-concurso-teste/matriz-validacao/:id/editar"
         element={<PrototiposMatrizValidacaoTesteFormPage />}
       />
-      <Route path="/prototipos/folha" element={<PrototiposFolhaPage />} />
+      <Route
+        path="/prototipos/folha"
+        element={<Navigate to="/prototipos/sigep/folha/painel-informativo" replace />}
+      />
+      <Route
+        path="/prototipos/folha/painel-informativo"
+        element={<Navigate to="/prototipos/sigep/folha/painel-informativo" replace />}
+      />
+      <Route
+        path="/prototipos/sigep/folha/painel-informativo"
+        element={<PrototiposFolhaPage />}
+      />
       <Route
         path="/prototipos/folha/cronograma"
         element={<PrototiposFolhaCronogramaPage />}

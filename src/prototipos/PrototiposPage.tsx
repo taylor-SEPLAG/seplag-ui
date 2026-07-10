@@ -98,10 +98,14 @@ import type {
 } from "./folhaPagamento/types";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
+const SIGEP_PAINEL_INFORMATIVO_PATH =
+  "/prototipos/sigep/gestao/painel-informativo";
 const SIGEP_CARGO_CONCURSO_TESTE_BASE_PATH =
   "/prototipos/sigep/cargo-concurso-teste";
 const FOLHA_PAGAMENTO_BASE_PATH =
   "/prototipos/folha/processamento/folha-pagamento";
+const FOLHA_PAINEL_INFORMATIVO_PATH =
+  "/prototipos/sigep/folha/painel-informativo";
 const FOLHA_PROCESSAMENTO_BASE_PATH =
   "/prototipos/folha/processamento/processamento-folha";
 const FOLHA_COMPETENCIAS_BASE_PATH =
@@ -139,9 +143,9 @@ interface CargoConcursoRouteProps {
 
 const menuGestaoPessoas: IMenuSeplag[] = [
   {
-    label: "Página Inicial",
+    label: "Painel Informativo",
     icon: "pi pi-home",
-    to: "/prototipos/sigep",
+    to: SIGEP_PAINEL_INFORMATIVO_PATH,
     visibleOnMenu: true,
     visibleOnRouter: true,
   },
@@ -299,9 +303,9 @@ const menuGestaoPessoas: IMenuSeplag[] = [
 
 const menuFolha: IMenuSeplag[] = [
   {
-    label: "Página Inicial",
+    label: "Painel Informativo",
     icon: "pi pi-home",
-    to: "/prototipos/folha",
+    to: FOLHA_PAINEL_INFORMATIVO_PATH,
     visibleOnMenu: true,
     visibleOnRouter: true,
   },
@@ -473,8 +477,8 @@ const prototypeSystems = [
 ];
 
 const sistemas: AppSystemItemSeplag[] = [
-  { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: "#/prototipos/sigep/categoria", icon: "pi pi-users" },
-  { id: "folha", label: "FOLHA", url: "#/prototipos/folha", icon: "pi pi-money-bill" },
+  { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: `#${SIGEP_PAINEL_INFORMATIVO_PATH}`, icon: "pi pi-users" },
+  { id: "folha", label: "FOLHA", url: `#${FOLHA_PAINEL_INFORMATIVO_PATH}`, icon: "pi pi-money-bill" },
   { id: "pericia", label: "PERÍCIA", url: "#/prototipos/pericia", icon: "pi pi-plus-circle" },
   { id: "consignado", label: "CONSIGNADO", url: "#/prototipos/consignado", icon: "pi pi-wallet" },
   { id: "contagem-tempo", label: "CONTAGEM DE TEMPO", url: "#/prototipos/contagem-tempo", icon: "pi pi-clock" },
@@ -489,7 +493,7 @@ const sigepDashboardModules = [
     id: "gestao-pessoas",
     label: "Gestão de Pessoas",
     description: "Cadastros e estruturas funcionais do SIGEP.",
-    path: "/prototipos/sigep/categoria",
+    path: SIGEP_PAINEL_INFORMATIVO_PATH,
     icon: "pi pi-users",
     status: "Disponível",
     featured: true,
@@ -498,7 +502,7 @@ const sigepDashboardModules = [
     id: "folha",
     label: "Folha",
     description: "Rubricas, grupos, processamento e lançamentos financeiros.",
-    path: "/prototipos/folha",
+    path: FOLHA_PAINEL_INFORMATIVO_PATH,
     icon: "pi pi-money-bill",
     status: "Em evolução",
   },
@@ -13818,7 +13822,14 @@ const saveFolhaCronogramaState = (state: FolhaCronogramaState) => {
   window.localStorage.setItem(FOLHA_CRONOGRAMA_STORAGE_KEY, JSON.stringify(state));
 };
 
-export function PrototiposFolhaPage() {
+interface PrototiposFolhaPageProps {
+  modulo?: "folha" | "gestao-pessoas";
+}
+
+export function PrototiposFolhaPage({
+  modulo = "folha",
+}: PrototiposFolhaPageProps = {}) {
+  const isGestaoPessoas = modulo === "gestao-pessoas";
   const navigate = useNavigate();
   const [modoEdicaoHomeFolha, setModoEdicaoHomeFolha] = useState(true);
   const [modalNovoInformativoAberto, setModalNovoInformativoAberto] =
@@ -14305,9 +14316,9 @@ export function PrototiposFolhaPage() {
 
   return (
     <PrototypeSystemPage
-      nomeSistema="FOLHA"
+      nomeSistema={isGestaoPessoas ? "GESTÃO DE PESSOAS" : "FOLHA"}
       ambienteSistema="Teste"
-      menuItems={menuFolha}
+      menuItems={isGestaoPessoas ? menuGestaoPessoas : menuFolha}
     >
       <div className="prototype-page-content prototype-page-content--white">
         <div className="prototype-folha-home-page">
@@ -14945,7 +14956,7 @@ export function PrototiposFolhaCronogramaPage() {
               <BotaoVoltarSeplag
                 type="button"
                 label="Voltar"
-                onClick={() => navigate("/prototipos/folha")}
+                onClick={() => navigate(FOLHA_PAINEL_INFORMATIVO_PATH)}
               />
               <BotaoSalvarSeplag
                 type="button"
@@ -14956,7 +14967,7 @@ export function PrototiposFolhaCronogramaPage() {
                     tituloCiclo,
                     secoes: cronogramasFolha,
                   });
-                  navigate("/prototipos/folha");
+                  navigate(FOLHA_PAINEL_INFORMATIVO_PATH);
                 }}
               />
             </div>

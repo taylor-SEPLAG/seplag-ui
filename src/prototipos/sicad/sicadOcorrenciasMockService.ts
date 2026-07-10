@@ -369,7 +369,7 @@ export function assumirSicadOcorrenciaMock(id: string, usuario: SicadUsuarioMock
     status: "Em Análise",
     historico: [
       ...ocorrencia.historico,
-      criarHistorico(usuario, "Assumiu a ocorrência", Responsável alterado para .),
+      criarHistorico(usuario, "Assumiu a ocorrência", "Responsável alterado para " + usuario.nome + "."),
       criarHistorico(usuario, "Status alterado", `Status alterado para Em Análise. Status anterior: ${ocorrencia.status}.`),
     ],
   }));
@@ -379,7 +379,7 @@ export function solicitarInformacoesSicadOcorrenciaMock(id: string, usuario: Sic
   return atualizarSicadOcorrenciaMock(id, (ocorrencia) => ({
     ...ocorrencia,
     status: "Aguardando Informações",
-    comentarios: [...ocorrencia.comentarios, criarComentario(usuario, Solicitação de informações: )],
+    comentarios: [...ocorrencia.comentarios, criarComentario(usuario, "Solicitação de informações: " + texto)],
     historico: [
       ...ocorrencia.historico,
       criarHistorico(usuario, "Solicitação de informações", "Analista solicitou informações complementares ao suporte."),
@@ -393,10 +393,10 @@ export function responderInformacoesSicadOcorrenciaMock(id: string, usuario: Sic
     ...ocorrencia,
     status: "Em Análise",
     anexos: [...ocorrencia.anexos, ...anexos],
-    comentarios: [...ocorrencia.comentarios, criarComentario(usuario, Resposta do suporte: )],
+    comentarios: [...ocorrencia.comentarios, criarComentario(usuario, "Resposta do suporte: " + texto)],
     historico: [
       ...ocorrencia.historico,
-      criarHistorico(usuario, "Informações complementadas", anexos.length ? Suporte respondeu e anexou  arquivo(s). : "Suporte respondeu a solicitação."),
+      criarHistorico(usuario, "Informações complementadas", anexos.length ? "Suporte respondeu e anexou " + anexos.length + " arquivo(s)." : "Suporte respondeu a solicitação."),
       criarHistorico(usuario, "Status alterado", `Status alterado para Em Análise. Status anterior: ${ocorrencia.status}.`),
     ],
   }));
@@ -409,7 +409,7 @@ export function salvarRedmineSicadOcorrenciaMock(id: string, usuario: SicadUsuar
     status: "Em Desenvolvimento",
     historico: [
       ...ocorrencia.historico,
-      criarHistorico(usuario, "Número Redmine registrado", Número Redmine informado: .),
+      criarHistorico(usuario, "Número Redmine registrado", "Número Redmine informado: " + numeroRedmine + "."),
       criarHistorico(usuario, "Status alterado", `Status alterado para Em Desenvolvimento após geração do modelo ${tipoModelo}. Status anterior: ${ocorrencia.status}.`),
     ],
   }));
@@ -429,4 +429,5 @@ export function reordenarSicadFilaMock(id: string, direction: "up" | "down") {
   salvarSicadOcorrenciasMock(nextOcorrencias);
   return listarSicadFilaOcorrenciasMock();
 }
+
 
