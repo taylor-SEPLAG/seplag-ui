@@ -4155,7 +4155,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
           {
             id: 1,
             ordem: 1,
-            faixaInicial: "R$ 1.621,01",
+            faixaInicial: "R$ 11.776,34",
             faixaFinal: "Em aberto",
             percentual: "14",
             contribuicaoFaixa: "Sobre excedente do salário mínimo",
@@ -15599,7 +15599,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         const faixaSalarioMinimo = {
           id: 1,
           ordem: 1,
-          faixaInicial: "R$ 1.621,01",
+          faixaInicial: "R$ 11.776,34",
           faixaFinal: "Em aberto",
           percentual,
           contribuicaoFaixa: "Sobre excedente do salário mínimo",

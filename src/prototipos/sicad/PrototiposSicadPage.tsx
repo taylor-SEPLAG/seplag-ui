@@ -246,6 +246,40 @@ type SicadFilaOcorrenciasFiltroForm = {
   data: string;
 };
 
+type SicadRelatoriosFiltroForm = {
+  periodoInicial: string;
+  periodoFinal: string;
+  tipo: string;
+  ambiente: string;
+  prioridade: string;
+  status: string;
+  orgao: string;
+  responsavel: string;
+  usuario: string;
+  cpf: string;
+  numeroSolicitacaoPrestacao: string;
+  numeroRedmine: string;
+};
+
+type SicadRelatorioOcorrenciaMock = {
+  id: string;
+  numero: string;
+  dataAbertura: string;
+  dataConclusao: string;
+  tipo: string;
+  titulo: string;
+  ambiente: string;
+  prioridade: string;
+  status: SicadFilaOcorrenciaStatus;
+  responsavel: string;
+  orgao: string;
+  usuario: string;
+  cpf: string;
+  numeroSolicitacaoPrestacao: string;
+  numeroRedmine: string;
+  tempoAtendimento: string;
+};
+
 type SicadOcorrenciaAnexoMock = {
   nome: string;
   tamanho: string;
@@ -292,6 +326,25 @@ type SicadOcorrenciaDetalheStorage = {
   comentarios: SicadOcorrenciaComentarioMock[];
 };
 
+type SicadDashboardMetric = {
+  id: string;
+  label: string;
+  value: number;
+  trend: number;
+  icon: string;
+  tone: "blue" | "orange" | "red" | "purple" | "teal" | "green";
+};
+
+type SicadDashboardChartItem = {
+  label: string;
+  value: number;
+  color: string;
+};
+
+type SicadDashboardBarItem = SicadDashboardChartItem;
+
+type SicadModeloRedmineTipo = "Desenvolvimento" | "Banco de Dados";
+
 type SicadAnaliseTecnicaForm = {
   causaProvavel: string;
   observacoesTecnicas: string;
@@ -328,6 +381,64 @@ const sicadCausaProvavelOptions = [
   { label: "Erro ainda em análise", value: "Erro ainda em análise" },
 ];
 
+const sicadDashboardMetricsMock: SicadDashboardMetric[] = [
+  { id: "novas", label: "Novas", value: 28, trend: 12, icon: "pi pi-file", tone: "blue" },
+  { id: "analise", label: "Em Análise", value: 52, trend: 8, icon: "pi pi-search", tone: "orange" },
+  { id: "aguardando", label: "Aguardando Informações", value: 17, trend: -15, icon: "pi pi-comments", tone: "red" },
+  { id: "desenvolvimento", label: "Em Desenvolvimento", value: 31, trend: 10, icon: "pi pi-code", tone: "purple" },
+  { id: "validacao", label: "Em Validação", value: 14, trend: -7, icon: "pi pi-clipboard", tone: "teal" },
+  { id: "concluidas", label: "Concluídas", value: 86, trend: 18, icon: "pi pi-check-circle", tone: "green" },
+];
+
+const sicadDashboardTipoMock: SicadDashboardChartItem[] = [
+  { label: "Erro", value: 87, color: "#2f80df" },
+  { label: "Melhoria", value: 57, color: "#46b86b" },
+  { label: "Solicitação", value: 45, color: "#f4bd22" },
+  { label: "Dúvida", value: 27, color: "#8059c7" },
+  { label: "Outro", value: 12, color: "#5dbceb" },
+];
+
+const sicadDashboardPrioridadeMock: SicadDashboardChartItem[] = [
+  { label: "Alta", value: 91, color: "#e94b4b" },
+  { label: "Média", value: 80, color: "#f28a2d" },
+  { label: "Baixa", value: 46, color: "#f4bd22" },
+  { label: "Crítica", value: 11, color: "#9ca3af" },
+];
+
+const sicadDashboardStatusMock: SicadDashboardChartItem[] = [
+  { label: "Novas", value: 28, color: "#2f80df" },
+  { label: "Em Análise", value: 52, color: "#f28a2d" },
+  { label: "Aguardando Informações", value: 17, color: "#e94b4b" },
+  { label: "Em Desenvolvimento", value: 31, color: "#8059c7" },
+  { label: "Em Validação", value: 14, color: "#15a3b3" },
+  { label: "Concluídas", value: 86, color: "#46b86b" },
+];
+
+const sicadDashboardOrgaoMock: SicadDashboardBarItem[] = [
+  { label: "SEPLAG", value: 68, color: "#2f80df" },
+  { label: "SEFAZ", value: 42, color: "#2f80df" },
+  { label: "SES", value: 37, color: "#2f80df" },
+  { label: "SINFRA", value: 26, color: "#2f80df" },
+  { label: "SEDUC", value: 18, color: "#2f80df" },
+  { label: "SESP", value: 15, color: "#2f80df" },
+  { label: "SETASC", value: 12, color: "#2f80df" },
+  { label: "Outros", value: 10, color: "#2f80df" },
+];
+
+const sicadRelatoriosOcorrenciasMock: SicadRelatorioOcorrenciaMock[] = [
+  { id: "000012-2024", numero: "000012/2024", dataAbertura: "31/05/2024 10:43", dataConclusao: "02/06/2024 14:21", tipo: "Bug", titulo: "Erro ao gerar relatório financeiro", ambiente: "Produção", prioridade: "Alta", status: "Concluído", responsavel: "Mariana Costa", orgao: "SEPLAG", usuario: "Taylor Santos", cpf: "123.456.789-00", numeroSolicitacaoPrestacao: "12345/2024", numeroRedmine: "RED-24567", tempoAtendimento: "1d 3h 38m" },
+  { id: "000011-2024", numero: "000011/2024", dataAbertura: "30/05/2024 16:15", dataConclusao: "-", tipo: "Melhoria", titulo: "Inclusão de filtro por data", ambiente: "Homologação", prioridade: "Média", status: "Em Análise", responsavel: "João Pereira", orgao: "SEFAZ", usuario: "Roberto Junior", cpf: "987.654.321-00", numeroSolicitacaoPrestacao: "12344/2024", numeroRedmine: "RED-24566", tempoAtendimento: "10h 22m" },
+  { id: "000010-2024", numero: "000010/2024", dataAbertura: "30/05/2024 09:22", dataConclusao: "31/05/2024 11:05", tipo: "Bug", titulo: "Sistema não permite excluir anexo", ambiente: "Produção", prioridade: "Alta", status: "Concluído", responsavel: "Ana Carolina", orgao: "CGE", usuario: "Marcos Lima", cpf: "456.789.123-00", numeroSolicitacaoPrestacao: "12343/2024", numeroRedmine: "RED-24565", tempoAtendimento: "1d 1h 43m" },
+  { id: "000009-2024", numero: "000009/2024", dataAbertura: "29/05/2024 14:50", dataConclusao: "-", tipo: "Dúvida", titulo: "Como configurar permissões de usuário?", ambiente: "Homologação", prioridade: "Baixa", status: "Aguardando Informações", responsavel: "Lucas Almeida", orgao: "SEPLAG", usuario: "Carla Souza", cpf: "321.654.987-00", numeroSolicitacaoPrestacao: "12342/2024", numeroRedmine: "RED-24564", tempoAtendimento: "1d 20h 15m" },
+  { id: "000008-2024", numero: "000008/2024", dataAbertura: "29/05/2024 11:10", dataConclusao: "30/05/2024 15:30", tipo: "Melhoria", titulo: "Relatório gerencial com gráfico", ambiente: "Produção", prioridade: "Média", status: "Concluído", responsavel: "Mariana Silva", orgao: "SEPLAG", usuario: "Helena Prado", cpf: "654.123.987-00", numeroSolicitacaoPrestacao: "12341/2024", numeroRedmine: "RED-24563", tempoAtendimento: "1d 4h 20m" },
+  { id: "000007-2024", numero: "000007/2024", dataAbertura: "28/05/2024 17:35", dataConclusao: "-", tipo: "Integração", titulo: "Erro 500 ao salvar registro", ambiente: "Produção", prioridade: "Alta", status: "Em Desenvolvimento", responsavel: "Rafael Costa", orgao: "SES", usuario: "Paulo Mendes", cpf: "789.123.456-00", numeroSolicitacaoPrestacao: "12340/2024", numeroRedmine: "RED-24562", tempoAtendimento: "2d 2h 55m" },
+  { id: "000006-2024", numero: "000006/2024", dataAbertura: "28/05/2024 10:01", dataConclusao: "29/05/2024 16:45", tipo: "Banco de Dados", titulo: "Ajuste na exportação para Excel", ambiente: "Homologação", prioridade: "Baixa", status: "Concluído", responsavel: "João Pereira", orgao: "SEFAZ", usuario: "Fernanda Reis", cpf: "147.258.369-00", numeroSolicitacaoPrestacao: "12339/2024", numeroRedmine: "RED-24561", tempoAtendimento: "1d 6h 44m" },
+  { id: "000005-2024", numero: "000005/2024", dataAbertura: "27/05/2024 09:40", dataConclusao: "-", tipo: "Regra de negócio", titulo: "Validação de prestação não aplicada", ambiente: "Produção", prioridade: "Crítica", status: "Em Validação", responsavel: "Ana Oliveira", orgao: "PGE", usuario: "Ricardo Alves", cpf: "258.369.147-00", numeroSolicitacaoPrestacao: "12338/2024", numeroRedmine: "RED-24560", tempoAtendimento: "3d 5h 12m" },
+  { id: "000004-2024", numero: "000004/2024", dataAbertura: "26/05/2024 15:18", dataConclusao: "-", tipo: "Inconsistência cadastral", titulo: "Dados do credor não atualizados", ambiente: "Local", prioridade: "Média", status: "Novo", responsavel: "-", orgao: "SEPLAG", usuario: "Juliana Rocha", cpf: "369.147.258-00", numeroSolicitacaoPrestacao: "12337/2024", numeroRedmine: "-", tempoAtendimento: "4h 30m" },
+  { id: "000003-2024", numero: "000003/2024", dataAbertura: "25/05/2024 08:05", dataConclusao: "-", tipo: "Dúvida", titulo: "Orientação sobre adiantamento", ambiente: "Produção", prioridade: "Baixa", status: "Cancelado", responsavel: "Carlos Silva", orgao: "SES", usuario: "Patrícia Moura", cpf: "159.357.486-00", numeroSolicitacaoPrestacao: "12336/2024", numeroRedmine: "-", tempoAtendimento: "6h 12m" },
+  { id: "000002-2024", numero: "000002/2024", dataAbertura: "24/05/2024 13:27", dataConclusao: "-", tipo: "Integração", titulo: "Falha na integração com FIPLAN", ambiente: "Homologação", prioridade: "Alta", status: "Em Análise", responsavel: "Mariana Costa", orgao: "SEFAZ", usuario: "Eduardo Neves", cpf: "753.951.852-00", numeroSolicitacaoPrestacao: "12335/2024", numeroRedmine: "RED-24559", tempoAtendimento: "2d 8h 10m" },
+  { id: "000001-2024", numero: "000001/2024", dataAbertura: "23/05/2024 11:12", dataConclusao: "24/05/2024 10:30", tipo: "Melhoria", titulo: "Campo observação no formulário", ambiente: "Produção", prioridade: "Média", status: "Concluído", responsavel: "Rafael Lima", orgao: "SEPLAG", usuario: "Larissa Nunes", cpf: "852.741.963-00", numeroSolicitacaoPrestacao: "12334/2024", numeroRedmine: "RED-24558", tempoAtendimento: "23h 18m" },
+];
 const sicadDetalheOcorrenciaMock: SicadOcorrenciaDetalheMock = {
   id: "000123-2024",
   numero: "2025-000123",
@@ -1899,6 +2010,10 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
   const [informacoesSolicitadas, setInformacoesSolicitadas] = useState("");
   const [respostaSuporte, setRespostaSuporte] = useState("");
   const [anexosResposta, setAnexosResposta] = useState<ArquivoAnexadoSeplag[]>([]);
+  const [modalRedmineAberto, setModalRedmineAberto] = useState(false);
+  const [tipoModeloRedmine, setTipoModeloRedmine] = useState<SicadModeloRedmineTipo>("Desenvolvimento");
+  const [textoModeloRedmine, setTextoModeloRedmine] = useState("");
+  const [numeroRedmineModal, setNumeroRedmineModal] = useState("");
 
   const { control, getValues, setValue } = useForm<SicadAnaliseTecnicaForm>({
     defaultValues: {
@@ -2070,11 +2185,98 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
     alterarStatus(getValues("status"), "Status atualizado manualmente pela análise técnica.");
   };
 
+  const gerarTextoModeloRedmine = (tipoModelo: SicadModeloRedmineTipo) => {
+    const evidencias = ocorrencia.anexos.length
+      ? ocorrencia.anexos.map((anexo) => `- ${anexo.nome} (${anexo.tamanho})`).join("\n")
+      : "- Sem evidências anexadas.";
+    const analiseTecnica = getValues("observacoesTecnicas") || "Análise técnica pendente.";
+
+    if (tipoModelo === "Banco de Dados") {
+      return [
+        `Título: ${ocorrencia.titulo}`,
+        `Ambiente: ${ocorrencia.ambiente}`,
+        `Órgão: ${ocorrencia.orgao}`,
+        `Usuário: ${ocorrencia.usuario}`,
+        `CPF: ${ocorrencia.cpf}`,
+        `Matrícula: ${ocorrencia.matricula}`,
+        `Nº Solicitação/Prestação: ${ocorrencia.numeroSolicitacaoPrestacao}`,
+        "",
+        "Problema:",
+        ocorrencia.descricao,
+        "",
+        "Mensagem de erro:",
+        ocorrencia.mensagemErro || "Não informado.",
+        "",
+        "Ajuste solicitado:",
+        analiseTecnica,
+        "",
+        "Evidências:",
+        evidencias,
+      ].join("\n");
+    }
+
+    return [
+      `Título: ${ocorrencia.titulo}`,
+      `Tipo: ${ocorrencia.tipo}`,
+      `Prioridade: ${ocorrencia.prioridade}`,
+      `Ambiente: ${ocorrencia.ambiente}`,
+      `Órgão: ${ocorrencia.orgao}`,
+      `Usuário: ${ocorrencia.usuario}`,
+      `CPF: ${ocorrencia.cpf}`,
+      `Matrícula: ${ocorrencia.matricula}`,
+      `Nº Solicitação/Prestação: ${ocorrencia.numeroSolicitacaoPrestacao}`,
+      "",
+      "Descrição:",
+      ocorrencia.descricao,
+      "",
+      "Mensagem de erro:",
+      ocorrencia.mensagemErro || "Não informado.",
+      "",
+      "Análise Técnica:",
+      analiseTecnica,
+      "",
+      "Evidências:",
+      evidencias,
+    ].join("\n");
+  };
+
+  const handleAlterarTipoModeloRedmine = (tipoModelo: SicadModeloRedmineTipo) => {
+    setTipoModeloRedmine(tipoModelo);
+    setTextoModeloRedmine(gerarTextoModeloRedmine(tipoModelo));
+  };
+
   const handleGerarModeloRedmine = () => {
-    const numeroRedmine = getValues("numeroRedmine") || "REDMINE-98765";
+    const tipoModelo: SicadModeloRedmineTipo = "Desenvolvimento";
+
+    setTipoModeloRedmine(tipoModelo);
+    setTextoModeloRedmine(gerarTextoModeloRedmine(tipoModelo));
+    setNumeroRedmineModal(getValues("numeroRedmine"));
+    setModalRedmineAberto(true);
+  };
+
+  const handleCopiarModeloRedmine = async () => {
+    if (!textoModeloRedmine.trim()) return;
+
+    await navigator.clipboard?.writeText(textoModeloRedmine);
+    addHistorico("Modelo Redmine copiado", `Modelo ${tipoModeloRedmine} copiado para a área de transferência.`);
+  };
+
+  const handleSalvarModeloRedmine = () => {
+    const numeroRedmine = numeroRedmineModal.trim();
+
+    if (!numeroRedmine) return;
+
+    const nextOcorrencia = { ...ocorrencia, status: "Em Desenvolvimento" as SicadFilaOcorrenciaStatus };
+    const nextHistorico = [
+      ...historico,
+      criarHistorico("Número Redmine registrado", `Número Redmine informado: ${numeroRedmine}.`),
+      criarHistorico("Status alterado", `Status alterado para Em Desenvolvimento após geração do modelo ${tipoModeloRedmine}.`),
+    ];
 
     setValue("numeroRedmine", numeroRedmine);
-    addHistorico("Modelo Redmine gerado", `Modelo técnico preparado para ${numeroRedmine}.`);
+    setValue("status", "Em Desenvolvimento");
+    setModalRedmineAberto(false);
+    sincronizarDetalhe(nextOcorrencia, nextHistorico, comentarios);
   };
 
   const handleAlterarPrioridade = () => {
@@ -2401,29 +2603,385 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
             <small>{informacoesSolicitadas.length}/2000</small>
           </label>
         </ModalSeplag>
+
+        <ModalSeplag
+          titulo="Gerar Modelo Redmine"
+          visible={modalRedmineAberto}
+          fechar={() => setModalRedmineAberto(false)}
+          funcAcao={handleSalvarModeloRedmine}
+          labelFechar="Cancelar"
+          labelAcao="Salvar"
+          iconAcao="pi pi-save"
+          tamanho="58rem"
+        >
+          <fieldset className="prototype-sicad-redmine-options col-12">
+            <legend>Tipo de modelo</legend>
+            <label>
+              <input
+                type="radio"
+                name="tipoModeloRedmine"
+                checked={tipoModeloRedmine === "Desenvolvimento"}
+                onChange={() => handleAlterarTipoModeloRedmine("Desenvolvimento")}
+              />
+              <span>Desenvolvimento</span>
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="tipoModeloRedmine"
+                checked={tipoModeloRedmine === "Banco de Dados"}
+                onChange={() => handleAlterarTipoModeloRedmine("Banco de Dados")}
+              />
+              <span>Banco de Dados</span>
+            </label>
+          </fieldset>
+
+          <label className="prototype-sicad-modal-field prototype-sicad-redmine-text col-12">
+            <span>Texto do chamado</span>
+            <textarea
+              value={textoModeloRedmine}
+              onChange={(event) => setTextoModeloRedmine(event.target.value)}
+              rows={14}
+            />
+          </label>
+
+          <div className="prototype-sicad-redmine-copy col-12">
+            <BotaoSeplag
+              type="button"
+              label="Copiar"
+              icon="pi pi-copy"
+              variant="back"
+              onClick={handleCopiarModeloRedmine}
+            />
+          </div>
+
+          <label className="prototype-sicad-modal-field col-12">
+            <span>Número Redmine</span>
+            <input
+              value={numeroRedmineModal}
+              onChange={(event) => setNumeroRedmineModal(event.target.value)}
+              placeholder="Ex.: REDMINE-98765"
+            />
+          </label>
+        </ModalSeplag>
       </main>
     </SicadShell>
   );
 }
 
-export function PrototiposSicadOcorrenciasDashboardPage() {
+function getSicadDashboardTotal(items: SicadDashboardChartItem[]) {
+  return items.reduce((total, item) => total + item.value, 0);
+}
+
+function getSicadDashboardPercent(value: number, total: number) {
+  if (!total) return 0;
+
+  return Math.round((value / total) * 100);
+}
+
+function getSicadDashboardConicGradient(items: SicadDashboardChartItem[]) {
+  const total = getSicadDashboardTotal(items);
+  let start = 0;
+
+  return items
+    .map((item) => {
+      const size = total ? (item.value / total) * 100 : 0;
+      const end = start + size;
+      const segment = `${item.color} ${start}% ${end}%`;
+      start = end;
+
+      return segment;
+    })
+    .join(", ");
+}
+
+function SicadDashboardMetricCard({ metric }: Readonly<{ metric: SicadDashboardMetric }>) {
+  const trendPositive = metric.trend >= 0;
+
   return (
-    <SicadPlaceholderPage
-      title="Dashboard"
-      requiredPermissions={["acessarDashboard"]}
-    />
+    <CardSeplag cols="12" cardHeaderClassNames={`prototype-sicad-dashboard-metric prototype-sicad-dashboard-metric--${metric.tone}`}>
+      <article>
+        <span className="prototype-sicad-dashboard-metric-icon">
+          <i className={metric.icon} />
+        </span>
+        <div>
+          <span>{metric.label}</span>
+          <strong>{metric.value}</strong>
+        </div>
+      </article>
+      <footer className={trendPositive ? "is-positive" : "is-negative"}>
+        <i className={`pi ${trendPositive ? "pi-caret-up" : "pi-caret-down"}`} />
+        <span>{Math.abs(metric.trend)}% vs. período anterior</span>
+      </footer>
+    </CardSeplag>
+  );
+}
+
+function SicadDashboardDonutChart({
+  title,
+  items,
+}: Readonly<{
+  title: string;
+  items: SicadDashboardChartItem[];
+}>) {
+  const total = getSicadDashboardTotal(items);
+  const gradient = getSicadDashboardConicGradient(items);
+
+  return (
+    <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-dashboard-chart-card">
+      <header className="prototype-sicad-dashboard-chart-header">
+        <h2>{title}</h2>
+      </header>
+      <div className="prototype-sicad-dashboard-donut-wrap">
+        <div
+          className="prototype-sicad-dashboard-donut"
+          style={{ background: `conic-gradient(${gradient})` }}
+          role="img"
+          aria-label={`${title}. Total ${total}`}
+        >
+          <div>
+            <span>Total</span>
+            <strong>{total}</strong>
+          </div>
+        </div>
+      </div>
+      <ul className="prototype-sicad-dashboard-legend">
+        {items.map((item) => {
+          const percent = getSicadDashboardPercent(item.value, total);
+
+          return (
+            <li key={item.label}>
+              <span className="prototype-sicad-dashboard-dot" style={{ backgroundColor: item.color }} />
+              <strong>{item.label}</strong>
+              <span>{item.value}</span>
+              <span>{percent}%</span>
+            </li>
+          );
+        })}
+      </ul>
+    </CardSeplag>
+  );
+}
+
+function SicadDashboardBarChart({
+  title,
+  items,
+}: Readonly<{
+  title: string;
+  items: SicadDashboardBarItem[];
+}>) {
+  const total = getSicadDashboardTotal(items);
+  const maxValue = Math.max(...items.map((item) => item.value));
+
+  return (
+    <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-dashboard-chart-card prototype-sicad-dashboard-bar-card">
+      <header className="prototype-sicad-dashboard-chart-header col-12">
+        <h2>{title}</h2>
+      </header>
+      <div className="prototype-sicad-dashboard-bars col-12">
+        {items.map((item) => (
+          <div className="prototype-sicad-dashboard-bar-row" key={item.label}>
+            <span>{item.label}</span>
+            <div>
+              <span style={{ width: `${(item.value / maxValue) * 100}%`, backgroundColor: item.color }} />
+            </div>
+            <strong>{item.value}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="prototype-sicad-dashboard-total-row col-12">
+        <span>Total</span>
+        <strong>{total}</strong>
+      </div>
+    </CardSeplag>
+  );
+}
+export function PrototiposSicadOcorrenciasDashboardPage() {
+  if (!sicadTemPermissao("acessarDashboard")) {
+    return (
+      <SicadAccessDeniedPage
+        title="Dashboard"
+        requiredPermissions={["acessarDashboard"]}
+      />
+    );
+  }
+
+  return (
+    <SicadShell>
+      <main className="prototype-sicad-page prototype-sicad-dashboard-page">
+        <header className="prototype-sicad-dashboard-header">
+          <div>
+            <h1>Dashboard de Ocorrências</h1>
+            <span className="prototype-sicad-dashboard-title-spacer" aria-hidden="true" />
+          </div>
+          <div className="prototype-sicad-dashboard-filter" aria-label="Filtro de período">
+            <button type="button" aria-label="Selecionar período">
+              <i className="pi pi-calendar" />
+            </button>
+            <select defaultValue="30">
+              <option value="30">Últimos 30 dias</option>
+              <option value="60">Últimos 60 dias</option>
+              <option value="90">Últimos 90 dias</option>
+            </select>
+          </div>
+        </header>
+
+        <section className="prototype-sicad-dashboard-metrics" aria-label="Indicadores de ocorrências">
+          {sicadDashboardMetricsMock.map((metric) => (
+            <SicadDashboardMetricCard key={metric.id} metric={metric} />
+          ))}
+        </section>
+
+        <section className="prototype-sicad-dashboard-charts" aria-label="Gráficos de ocorrências">
+          <SicadDashboardDonutChart title="Ocorrências por Tipo" items={sicadDashboardTipoMock} />
+          <SicadDashboardDonutChart title="Ocorrências por Prioridade" items={sicadDashboardPrioridadeMock} />
+          <SicadDashboardDonutChart title="Ocorrências por Status" items={sicadDashboardStatusMock} />
+          <SicadDashboardBarChart title="Ocorrências por Órgão" items={sicadDashboardOrgaoMock} />
+        </section>
+      </main>
+    </SicadShell>
   );
 }
 
 export function PrototiposSicadOcorrenciasRelatoriosPage() {
+  const emptyFilters: SicadRelatoriosFiltroForm = {
+    periodoInicial: "",
+    periodoFinal: "",
+    tipo: "",
+    ambiente: "",
+    prioridade: "",
+    status: "",
+    orgao: "",
+    responsavel: "",
+    usuario: "",
+    cpf: "",
+    numeroSolicitacaoPrestacao: "",
+    numeroRedmine: "",
+  };
+
+  const { control, handleSubmit, reset } = useForm<SicadRelatoriosFiltroForm>({ defaultValues: emptyFilters });
+  const [filtrosAplicados, setFiltrosAplicados] = useState<SicadRelatoriosFiltroForm>(emptyFilters);
+  const getFormErrorMessage = () => null;
+
+  const relatoriosFiltrados = useMemo(() => {
+    const normalized = (value: string) => value.trim().toLocaleLowerCase("pt-BR");
+
+    return sicadRelatoriosOcorrenciasMock.filter((ocorrencia) => {
+      const periodoInicialMatch = normalized(ocorrencia.dataAbertura).includes(normalized(filtrosAplicados.periodoInicial));
+      const periodoFinalMatch = !filtrosAplicados.periodoFinal || normalized(ocorrencia.dataConclusao).includes(normalized(filtrosAplicados.periodoFinal));
+
+      return (
+        periodoInicialMatch &&
+        periodoFinalMatch &&
+        (!filtrosAplicados.tipo || ocorrencia.tipo === filtrosAplicados.tipo) &&
+        (!filtrosAplicados.ambiente || ocorrencia.ambiente === filtrosAplicados.ambiente) &&
+        (!filtrosAplicados.prioridade || ocorrencia.prioridade === filtrosAplicados.prioridade) &&
+        (!filtrosAplicados.status || ocorrencia.status === filtrosAplicados.status) &&
+        (!filtrosAplicados.orgao || ocorrencia.orgao === filtrosAplicados.orgao) &&
+        (!filtrosAplicados.responsavel || ocorrencia.responsavel === filtrosAplicados.responsavel) &&
+        normalized(ocorrencia.usuario).includes(normalized(filtrosAplicados.usuario)) &&
+        normalized(ocorrencia.cpf).includes(normalized(filtrosAplicados.cpf)) &&
+        normalized(ocorrencia.numeroSolicitacaoPrestacao).includes(normalized(filtrosAplicados.numeroSolicitacaoPrestacao)) &&
+        normalized(ocorrencia.numeroRedmine).includes(normalized(filtrosAplicados.numeroRedmine))
+      );
+    });
+  }, [filtrosAplicados]);
+
+  const handleLimparFiltros = () => {
+    reset(emptyFilters);
+    setFiltrosAplicados(emptyFilters);
+  };
+
+  const handleExportar = (tipo: "Excel" | "PDF") => {
+    window.alert("Exportação " + tipo + " simulada com " + relatoriosFiltrados.length + " registro(s).");
+  };
+
+  const columns: ColumnMetaSeplag<SicadRelatorioOcorrenciaMock>[] = [
+    { field: "numero", header: "Nº", body: (rowData) => renderSicadOccurrenceNumber(rowData.numero) },
+    { field: "dataAbertura", header: "Data abertura", body: (rowData) => renderSicadOccurrenceDate(rowData.dataAbertura) },
+    {
+      field: "dataConclusao",
+      header: "Data conclusão",
+      body: (rowData) => rowData.dataConclusao === "-" ? <span className="prototype-sicad-table-nowrap-cell">-</span> : renderSicadOccurrenceDate(rowData.dataConclusao),
+    },
+    { field: "tipo", header: "Tipo", body: (rowData) => renderSicadOccurrenceType(rowData.tipo) },
+    {
+      field: "titulo",
+      header: "Título",
+      body: (rowData) => (
+        <div className="prototype-sicad-occurrence-title-cell">
+          <strong title={rowData.titulo}>{rowData.titulo}</strong>
+        </div>
+      ),
+    },
+    { field: "ambiente", header: "Ambiente", body: (rowData) => <SicadTableBadge tone="blue">{rowData.ambiente}</SicadTableBadge> },
+    { field: "prioridade", header: "Prioridade", body: (rowData) => <SicadTableBadge tone={getSicadPriorityTone(rowData.prioridade)}>{rowData.prioridade}</SicadTableBadge> },
+    { field: "status", header: "Status", body: (rowData) => renderSicadFilaStatus(rowData.status) },
+    { field: "responsavel", header: "Responsável", body: (rowData) => <span className="prototype-sicad-table-nowrap-cell">{rowData.responsavel}</span> },
+    { field: "orgao", header: "Órgão", body: (rowData) => <span className="prototype-sicad-table-nowrap-cell">{rowData.orgao}</span> },
+    { field: "numeroSolicitacaoPrestacao", header: "Nº Solicitação/Prestação", body: (rowData) => <span className="prototype-sicad-table-nowrap-cell">{rowData.numeroSolicitacaoPrestacao}</span> },
+    { field: "numeroRedmine", header: "Nº Redmine", body: (rowData) => <span className="prototype-sicad-table-nowrap-cell">{rowData.numeroRedmine}</span> },
+    { field: "tempoAtendimento", header: "Tempo Atendimento", body: (rowData) => <span className="prototype-sicad-table-nowrap-cell">{rowData.tempoAtendimento}</span> },
+  ];
+
+  if (!sicadTemPermissao("acessarRelatorios")) {
+    return <SicadAccessDeniedPage title="Relatórios de Ocorrências" requiredPermissions={["acessarRelatorios"]} />;
+  }
+
   return (
-    <SicadPlaceholderPage
-      title="Relatórios"
-      requiredPermissions={["acessarRelatorios"]}
-    />
+    <SicadShell>
+      <main className="prototype-sicad-page prototype-sicad-list-page prototype-sicad-reports-page">
+        <header className="prototype-sicad-list-header">
+          <h1>Relatórios de Ocorrências</h1>
+        </header>
+
+        <form onSubmit={handleSubmit(setFiltrosAplicados)} noValidate>
+          <CardSeplag cols="12" title="Filtros" cardHeaderClassNames="prototype-sicad-filter-card prototype-sicad-reports-filter-card">
+            <TextFieldSeplag<SicadRelatoriosFiltroForm> name="periodoInicial" label="Período inicial" control={control} cols="12 12 2" placeholder="dd/mm/aaaa" />
+            <TextFieldSeplag<SicadRelatoriosFiltroForm> name="periodoFinal" label="Período final" control={control} cols="12 12 2" placeholder="dd/mm/aaaa" />
+            <DropdownFieldSeplag<SicadRelatoriosFiltroForm> name="tipo" label="Tipo" control={control} cols="12 12 2" options={sicadOccurrenceTypeOptions} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={getFormErrorMessage} />
+            <DropdownFieldSeplag<SicadRelatoriosFiltroForm> name="ambiente" label="Ambiente" control={control} cols="12 12 2" options={sicadEnvironmentOptions} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={getFormErrorMessage} />
+            <DropdownFieldSeplag<SicadRelatoriosFiltroForm> name="prioridade" label="Prioridade" control={control} cols="12 12 2" options={sicadPriorityOptions} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={getFormErrorMessage} />
+            <DropdownFieldSeplag<SicadRelatoriosFiltroForm> name="status" label="Status" control={control} cols="12 12 2" options={sicadFilaStatusOptions} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={getFormErrorMessage} />
+            <DropdownFieldSeplag<SicadRelatoriosFiltroForm> name="orgao" label="Órgão" control={control} cols="12 12 3" options={sicadOrgaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={getFormErrorMessage} />
+            <DropdownFieldSeplag<SicadRelatoriosFiltroForm> name="responsavel" label="Responsável" control={control} cols="12 12 3" options={sicadResponsavelOptions} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={getFormErrorMessage} />
+            <TextFieldSeplag<SicadRelatoriosFiltroForm> name="usuario" label="Usuário" control={control} cols="12 12 3" placeholder="Digite o nome do usuário" />
+            <TextFieldSeplag<SicadRelatoriosFiltroForm> name="cpf" label="CPF" control={control} cols="12 12 3" placeholder="Digite o CPF" />
+            <TextFieldSeplag<SicadRelatoriosFiltroForm> name="numeroSolicitacaoPrestacao" label="Nº Solicitação/Prestação" control={control} cols="12 12 3" placeholder="Digite o número" />
+            <TextFieldSeplag<SicadRelatoriosFiltroForm> name="numeroRedmine" label="Nº Redmine" control={control} cols="12 12 3" placeholder="Digite o número do Redmine" />
+            <div className="prototype-sicad-reports-filter-actions col-12">
+              <div>
+                <BotaoConsultarSeplag type="submit" label="Consultar" />
+                <BotaoLimparFiltroSeplag type="button" label="Limpar" onClick={handleLimparFiltros} />
+              </div>
+              <div className="prototype-sicad-reports-export-actions">
+                <BotaoSeplag type="button" label="Exportar Excel" icon="pi pi-file-excel" style={{ backgroundColor: "#078b43", color: "#ffffff" }} onClick={() => handleExportar("Excel")} />
+                <BotaoSeplag type="button" label="Exportar PDF" icon="pi pi-file-pdf" style={{ backgroundColor: "#d81f2a", color: "#ffffff" }} onClick={() => handleExportar("PDF")} />
+              </div>
+            </div>
+          </CardSeplag>
+        </form>
+
+        <CardSeplag cols="12" title={"Resultados (" + relatoriosFiltrados.length + ")"} cardHeaderClassNames="prototype-sicad-table-card prototype-sicad-reports-table-card">
+          <div className="prototype-sicad-table-wrapper prototype-sicad-reports-table-wrapper col-12">
+            <TablePaginadoSeplag<SicadRelatorioOcorrenciaMock>
+              data={{ content: relatoriosFiltrados, totalRecords: relatoriosFiltrados.length, pageActual: 0, totalPages: 1 }}
+              rows={12}
+              columns={columns}
+              lazy={false}
+              paginator={false}
+              selectionMode={null}
+              handleOnPageChange={() => {}}
+            />
+            <div className="prototype-sicad-table-footer">
+              Exibindo {relatoriosFiltrados.length ? 1 : 0} a {relatoriosFiltrados.length} de {relatoriosFiltrados.length} registros
+            </div>
+          </div>
+        </CardSeplag>
+      </main>
+    </SicadShell>
   );
 }
-
 export function PrototiposSicadBaseConhecimentoPage() {
   return (
     <SicadPlaceholderPage
@@ -2442,6 +3000,23 @@ export const sicadOccurrenceRoutes = {
   relatorios: getSicadHashPath("/ocorrencias/relatorios"),
   baseConhecimento: getSicadHashPath("/ocorrencias/base-conhecimento"),
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
