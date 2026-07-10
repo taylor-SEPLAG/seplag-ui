@@ -1,0 +1,1293 @@
+.prototype-sicad-shell {
+  min-height: 100vh;
+}
+
+.prototype-sicad-shell .layout-wrapper,
+.prototype-sicad-shell .layout-main {
+  min-height: 100vh;
+}
+
+.prototype-sicad-shell .layout-scroll {
+  min-height: calc(100vh - 60px);
+}
+
+.prototype-sicad-shell .layout-logo {
+  padding: 1.2rem 0.6rem;
+}
+
+.prototype-sicad-shell .layout-logo img {
+  width: 96%;
+  max-width: 265px;
+}
+
+.prototype-sicad-shell .layout-sidebar {
+  width: 285px;
+}
+
+.prototype-sicad-shell .layout-main {
+  margin-left: 285px;
+}
+
+.prototype-sicad-shell .layout-static-sidebar-inactive .layout-sidebar {
+  transform: translateX(-285px);
+}
+
+.prototype-sicad-shell .layout-static-sidebar-inactive .layout-main,
+.prototype-sicad-shell .layout-overlay .layout-main {
+  margin-left: 0;
+}
+
+.prototype-sicad-shell .layout-overlay .layout-sidebar {
+  transform: translateX(-285px);
+}
+
+.prototype-sicad-home-page {
+  min-height: 100%;
+  padding: 34px 32px 48px;
+  background:
+    radial-gradient(circle at top left, rgba(0, 84, 148, 0.08), transparent 32%),
+    linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+}
+
+
+.prototype-sicad-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 28px;
+  align-items: stretch;
+}
+
+.prototype-sicad-action-link {
+  display: block;
+  min-height: 156px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.prototype-sicad-action-link > .col-12 {
+  height: 100%;
+}
+
+.prototype-sicad-action-card {
+  height: 100%;
+  overflow: hidden;
+  border: 0;
+  border-radius: 10px;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.prototype-sicad-action-link:hover .prototype-sicad-action-card,
+.prototype-sicad-action-link:focus-visible .prototype-sicad-action-card {
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.2);
+  transform: translateY(-2px);
+}
+
+.prototype-sicad-action-link:focus-visible {
+  outline: 3px solid rgba(0, 84, 148, 0.28);
+  outline-offset: 5px;
+}
+
+.prototype-sicad-action-card .p-card-body,
+.prototype-sicad-action-card .p-card-content,
+.prototype-sicad-action-card .grid {
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.prototype-sicad-action-card-content {
+  position: relative;
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 156px;
+  padding: 20px 56px 20px 20px;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+.prototype-sicad-action-card-content::before,
+.prototype-sicad-action-card-content::after {
+  position: absolute;
+  right: -12px;
+  bottom: -1px;
+  left: 0;
+  height: 50px;
+  content: "";
+  pointer-events: none;
+}
+
+.prototype-sicad-action-card-content::before {
+  opacity: 0.23;
+  background: #ffffff;
+  clip-path: polygon(0 75%, 10% 40%, 20% 70%, 32% 38%, 45% 36%, 56% 48%, 68% 22%, 80% 18%, 91% 38%, 100% 0, 100% 100%, 0 100%);
+}
+
+.prototype-sicad-action-card-content::after {
+  opacity: 0.16;
+  background: #ffffff;
+  clip-path: polygon(0 100%, 12% 72%, 24% 86%, 38% 58%, 52% 64%, 65% 46%, 78% 56%, 90% 24%, 100% 44%, 100% 100%);
+}
+
+.prototype-sicad-action-card-content h2 {
+  position: relative;
+  z-index: 1;
+  max-width: 265px;
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.18rem;
+  font-weight: 800;
+  line-height: 1.22;
+}
+
+.prototype-sicad-action-card-content p {
+  position: relative;
+  z-index: 1;
+  max-width: 220px;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.94);
+  line-height: 1.4;
+}
+
+.prototype-sicad-action-icon {
+  position: absolute;
+  top: -16px;
+  right: -12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 4px solid rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: 1.38rem;
+}
+
+.prototype-sicad-action-arrow {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 1.1rem;
+}
+
+.prototype-sicad-action-card--blue .prototype-sicad-action-card-content,
+.prototype-sicad-action-card--blue .prototype-sicad-action-icon {
+  background: linear-gradient(135deg, #005494 0%, #0877b8 100%);
+}
+
+.prototype-sicad-action-card--green .prototype-sicad-action-card-content,
+.prototype-sicad-action-card--green .prototype-sicad-action-icon {
+  background: linear-gradient(135deg, #2f8f4e 0%, #68bd78 100%);
+}
+
+.prototype-sicad-action-card--orange .prototype-sicad-action-card-content,
+.prototype-sicad-action-card--orange .prototype-sicad-action-icon {
+  background: linear-gradient(135deg, #f28a2e 0%, #ffb04f 100%);
+}
+
+.prototype-sicad-action-card--purple .prototype-sicad-action-card-content,
+.prototype-sicad-action-card--purple .prototype-sicad-action-icon {
+  background: linear-gradient(135deg, #4e3b87 0%, #7b5ead 100%);
+}
+
+@media (max-width: 1280px) {
+  .prototype-sicad-action-grid {
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .prototype-sicad-shell .layout-main {
+    margin-left: 0;
+  }
+
+  .prototype-sicad-shell .layout-sidebar {
+    transform: translateX(-285px);
+  }
+
+  .prototype-sicad-shell .layout-mobile-sidebar-active .layout-sidebar {
+    transform: translateX(0);
+  }
+
+  .prototype-sicad-home-page {
+    padding: 22px 16px 36px;
+  }
+
+  .prototype-sicad-action-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .prototype-sicad-action-link,
+  .prototype-sicad-action-card-content {
+    min-height: 178px;
+  }
+}
+
+.prototype-sicad-page {
+  min-height: 100%;
+  padding: 34px 32px 48px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+}
+
+.prototype-sicad-placeholder-card {
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.prototype-sicad-placeholder-content {
+  padding: 8px;
+}
+
+.prototype-sicad-placeholder-content span {
+  display: block;
+  margin-bottom: 8px;
+  color: #006b4f;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.prototype-sicad-placeholder-content h1 {
+  margin: 0;
+  color: #102a43;
+  font-size: 1.85rem;
+  line-height: 1.2;
+}
+
+.prototype-sicad-form-page {
+  padding-top: 26px;
+}
+
+.prototype-sicad-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.prototype-sicad-breadcrumb a {
+  color: #005494;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.prototype-sicad-breadcrumb a:hover,
+.prototype-sicad-breadcrumb a:focus-visible {
+  text-decoration: underline;
+}
+
+.prototype-sicad-breadcrumb i {
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+.prototype-sicad-page-title {
+  margin-bottom: 14px;
+}
+
+.prototype-sicad-page-title h1 {
+  margin: 0;
+  color: #0b315f;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.prototype-sicad-page-title p {
+  margin: 4px 0 0;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.prototype-sicad-occurrence-card {
+  border: 1px solid #d9e2ec;
+  border-radius: 7px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+.prototype-sicad-occurrence-card .p-card-body,
+.prototype-sicad-occurrence-card .p-card-content {
+  padding: 0;
+}
+
+.prototype-sicad-occurrence-card .grid {
+  margin: 0;
+  padding: 12px 12px 0;
+}
+
+.prototype-sicad-occurrence-card .content-rotulo {
+  gap: 4px;
+}
+
+.prototype-sicad-occurrence-card .label-rotulo {
+  color: #243b53;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-occurrence-card .p-inputtext,
+.prototype-sicad-occurrence-card .p-dropdown {
+  border-color: #cbd5e1;
+  border-radius: 5px;
+  box-shadow: none;
+  font-size: 0.88rem;
+}
+
+.prototype-sicad-occurrence-card textarea.p-inputtextarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.prototype-sicad-priority-field > .col-12 {
+  padding: 0;
+}
+
+.prototype-sicad-priority-field .label-rotulo {
+  margin-bottom: 7px;
+}
+
+.prototype-sicad-priority-field .p-radiobutton {
+  margin-right: 4px;
+}
+
+.prototype-sicad-upload {
+  width: 100%;
+  min-height: 74px;
+  padding: 16px;
+  border: 1px dashed #1a86e8;
+  border-radius: 6px;
+  background: #f8fbff;
+}
+
+.prototype-sicad-upload .p-fileupload,
+.prototype-sicad-upload .p-fileupload-basic,
+.prototype-sicad-upload .p-fileupload-buttonbar {
+  display: flex;
+  justify-content: flex-start;
+  width: auto;
+}
+
+.prototype-sicad-upload .p-fileupload-choose,
+.prototype-sicad-upload .p-button {
+  width: auto;
+  min-width: 0;
+  max-width: max-content;
+  padding-right: 14px;
+  padding-left: 14px;
+  white-space: nowrap;
+}
+
+.prototype-sicad-form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  padding: 14px 4px 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.prototype-sicad-form-actions .p-button {
+  min-width: 132px;
+}
+
+@media (max-width: 720px) {
+  .prototype-sicad-page-title h1 {
+    font-size: 1.45rem;
+  }
+
+  .prototype-sicad-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .prototype-sicad-form-actions .p-button {
+    width: 100%;
+  }
+}
+
+
+.prototype-sicad-access-denied p {
+  max-width: 720px;
+  margin: 10px 0 6px;
+  color: #475569;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.prototype-sicad-access-denied small {
+  display: block;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.prototype-sicad-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 26px;
+}
+
+.prototype-sicad-list-header h1 {
+  margin: 0 0 8px;
+  color: #102a43;
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.prototype-sicad-list-header .prototype-sicad-breadcrumb {
+  margin-bottom: 0;
+}
+
+.prototype-sicad-filter-card,
+.prototype-sicad-table-card {
+  border: 1px solid #d9e2ec;
+  border-radius: 7px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+}
+
+.prototype-sicad-filter-card .p-card-body,
+.prototype-sicad-table-card .p-card-body,
+.prototype-sicad-filter-card .p-card-content,
+.prototype-sicad-table-card .p-card-content {
+  padding: 0;
+}
+
+.prototype-sicad-filter-card .grid,
+.prototype-sicad-table-card .grid {
+  margin: 0;
+  padding: 14px 14px 0;
+}
+
+.prototype-sicad-filter-card h5,
+.prototype-sicad-table-card h5 {
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-filter-card .label-rotulo {
+  color: #243b53;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-filter-card .p-inputtext,
+.prototype-sicad-filter-card .p-dropdown {
+  border-color: #cbd5e1;
+  border-radius: 5px;
+  box-shadow: none;
+  font-size: 0.88rem;
+}
+
+.prototype-sicad-filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  padding-top: 8px;
+  padding-bottom: 16px;
+}
+
+.prototype-sicad-filter-actions .p-button {
+  min-width: 145px;
+}
+
+.prototype-sicad-table-total {
+  align-self: center;
+  color: #334155;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.prototype-sicad-table-wrapper {
+  overflow-x: hidden;
+  padding-bottom: 0;
+}
+
+.prototype-sicad-table-wrapper .p-datatable {
+  font-size: 0.78rem;
+}
+
+.prototype-sicad-table-wrapper .p-datatable table {
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: fixed;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th {
+  overflow: hidden;
+  padding: 0.55rem 0.45rem;
+  background: #f8fafc;
+  color: #1f2937;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td {
+  overflow: hidden;
+  padding: 0.5rem 0.45rem;
+  vertical-align: middle;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  white-space: nowrap;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(1),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(1) {
+  width: 7.2%;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(2),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(2) {
+  width: 8.8%;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(3),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(3) {
+  width: 8.2%;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(4),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(4) {
+  width: 23%;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(5),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(5) {
+  width: 8.2%;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(6),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(6) {
+  width: 7.2%;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(7),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(7) {
+  width: 10.5%;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(8),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(8) {
+  width: 6.8%;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(9),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(9) {
+  width: 13%;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(10),
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(10) {
+  width: 7.1%;
+  text-align: center;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr:has(.prototype-sicad-response-badge) > td {
+  background: #fff4c2;
+}
+
+.prototype-sicad-table-wrapper .p-datatable .p-datatable-tbody > tr:has(.prototype-sicad-response-badge):hover > td {
+  background: #ffeaa0;
+}
+
+.prototype-sicad-occurrence-title-cell {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.prototype-sicad-occurrence-title-cell strong {
+  overflow: hidden;
+  color: #1f2937;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prototype-sicad-response-badge,
+.prototype-sicad-table-badge {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  border-radius: 5px;
+  padding: 3px 7px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.prototype-sicad-response-badge {
+  background: #d92d20;
+  color: #ffffff;
+}
+
+.prototype-sicad-table-badge--blue {
+  border: 1px solid #93c5fd;
+  background: #dbeafe;
+  color: #075985;
+}
+
+.prototype-sicad-table-badge--green {
+  border: 1px solid #86efac;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.prototype-sicad-table-badge--orange {
+  border: 1px solid #fdba74;
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.prototype-sicad-table-badge--red {
+  border: 1px solid #fca5a5;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.prototype-sicad-table-badge--purple {
+  border: 1px solid #d8b4fe;
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.prototype-sicad-table-badge--teal {
+  border: 1px solid #5eead4;
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.prototype-sicad-table-badge--gray {
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.prototype-sicad-table-footer {
+  padding: 12px 2px 16px;
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .prototype-sicad-filter-actions {
+    flex-direction: column-reverse;
+  }
+
+  .prototype-sicad-filter-actions .p-button {
+    width: 100%;
+  }
+}
+
+.prototype-sicad-filter-accordion {
+  border: 1px solid #d9e2ec;
+  border-radius: 7px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+  overflow: hidden;
+}
+
+.prototype-sicad-filter-accordion > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 52px;
+  padding: 0 18px;
+  color: #1f2937;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.prototype-sicad-filter-accordion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.prototype-sicad-filter-accordion > summary i {
+  color: #005494;
+  font-size: 0.9rem;
+  transition: transform 160ms ease;
+}
+
+.prototype-sicad-filter-accordion[open] > summary {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.prototype-sicad-filter-accordion[open] > summary i {
+  transform: rotate(180deg);
+}
+
+.prototype-sicad-filter-accordion .prototype-sicad-filter-card {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.prototype-sicad-table-break-cell {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.12;
+  white-space: normal;
+}
+
+.prototype-sicad-table-nowrap-cell {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.prototype-sicad-table-number-cell,
+.prototype-sicad-table-date-cell,
+.prototype-sicad-table-type-cell {
+  font-weight: 650;
+}
+
+.prototype-sicad-table-wrapper .p-button.p-button-icon-only {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}
+
+.prototype-sicad-table-badge--multiline {
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  line-height: 1.05;
+  text-align: center;
+  white-space: normal;
+}
+
+.prototype-sicad-queue-page .prototype-sicad-list-header p {
+  margin: -2px 0 0;
+  color: #475569;
+  font-size: 0.92rem;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable {
+  font-size: 0.76rem;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th,
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td {
+  padding-right: 0.36rem;
+  padding-left: 0.36rem;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(1),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(1) {
+  width: 8.4%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(2),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(2) {
+  width: 7.2%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(3),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(3) {
+  width: 7.7%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(4),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(4) {
+  width: 7.8%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(5),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(5) {
+  width: 20%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(6),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(6) {
+  width: 7.6%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(7),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(7) {
+  width: 7.2%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(8),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(8) {
+  width: 10%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(9),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(9) {
+  width: 10.8%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(10),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(10) {
+  width: 5.8%;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-thead > tr > th:nth-child(11),
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr > td:nth-child(11) {
+  width: 7.5%;
+  text-align: center;
+}
+
+.prototype-sicad-queue-order-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.prototype-sicad-queue-order-cell strong {
+  min-width: 20px;
+  color: #334155;
+}
+
+.prototype-sicad-queue-order-cell span {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.prototype-sicad-queue-order-cell .p-button.p-button-icon-only,
+.prototype-sicad-queue-table-wrapper .p-button.p-button-icon-only {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.prototype-sicad-queue-table-wrapper .p-datatable .p-datatable-tbody > tr:has(.prototype-sicad-table-badge--teal) > td {
+  background: inherit;
+}
+
+.prototype-sicad-detail-page {
+  gap: 12px;
+  padding-top: 18px;
+}
+
+.prototype-sicad-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.prototype-sicad-detail-header h1 {
+  margin: 8px 0 0;
+  color: #052e56;
+  font-size: 1.55rem;
+  line-height: 1.15;
+}
+
+.prototype-sicad-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.prototype-sicad-breadcrumb a {
+  color: #005494;
+  text-decoration: none;
+}
+
+.prototype-sicad-detail-top-actions,
+.prototype-sicad-detail-actions,
+.prototype-sicad-comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.prototype-sicad-detail-top-actions .p-button,
+.prototype-sicad-detail-actions .p-button,
+.prototype-sicad-comment-actions .p-button {
+  min-width: max-content;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 0.78rem;
+}
+
+.prototype-sicad-detail-card {
+  border: 1px solid #d9e2ec;
+  border-radius: 7px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.prototype-sicad-detail-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.prototype-sicad-detail-card-content h2,
+.prototype-sicad-technical-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #00386b;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-detail-card-content h2 i,
+.prototype-sicad-technical-header h2 i {
+  color: #005494;
+}
+
+.prototype-sicad-detail-card-content p {
+  margin: 0;
+  color: #334155;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.prototype-sicad-detail-general-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 22px;
+}
+
+.prototype-sicad-detail-general-grid > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.prototype-sicad-detail-general-grid span:first-child {
+  color: #0f172a;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-detail-general-grid strong {
+  overflow: hidden;
+  color: #1f2937;
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+}
+
+.prototype-sicad-detail-wide {
+  grid-column: span 2;
+}
+
+.prototype-sicad-detail-summary-grid,
+.prototype-sicad-detail-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.prototype-sicad-detail-bottom-grid {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+}
+
+.prototype-sicad-attachment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prototype-sicad-attachment-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px 126px 30px;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  border-top: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 0.78rem;
+}
+
+.prototype-sicad-attachment-list span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prototype-sicad-attachment-list small {
+  color: #475569;
+  font-size: 0.72rem;
+}
+
+.prototype-sicad-attachment-list button {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: #005494;
+  cursor: pointer;
+}
+
+.prototype-sicad-history-table-wrapper {
+  overflow-x: auto;
+}
+
+.prototype-sicad-history-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  color: #1f2937;
+  font-size: 0.76rem;
+}
+
+.prototype-sicad-history-table th,
+.prototype-sicad-history-table td {
+  border-top: 1px solid #e2e8f0;
+  padding: 7px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prototype-sicad-history-table th {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.prototype-sicad-comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prototype-sicad-comment-item {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.prototype-sicad-comment-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #005494;
+  font-weight: 800;
+}
+
+.prototype-sicad-comment-item header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #0f172a;
+  font-size: 0.78rem;
+}
+
+.prototype-sicad-comment-item header span {
+  color: #64748b;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.prototype-sicad-comment-item p {
+  margin-top: 4px;
+}
+
+.prototype-sicad-comment-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-comment-editor textarea {
+  min-height: 86px;
+  resize: vertical;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 10px;
+  color: #1f2937;
+  font: inherit;
+  font-weight: 500;
+}
+
+.prototype-sicad-comment-editor small {
+  align-self: flex-end;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.prototype-sicad-technical-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prototype-sicad-technical-header span {
+  color: #005494;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.prototype-sicad-technical-form {
+  margin: 0;
+}
+
+.prototype-sicad-technical-form .field {
+  margin-bottom: 0.65rem;
+}
+
+.prototype-sicad-detail-actions {
+  justify-content: flex-start;
+  padding-top: 4px;
+  border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 1180px) {
+  .prototype-sicad-detail-general-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prototype-sicad-detail-summary-grid,
+  .prototype-sicad-detail-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .prototype-sicad-detail-header {
+    flex-direction: column;
+  }
+
+  .prototype-sicad-detail-top-actions,
+  .prototype-sicad-detail-top-actions .p-button,
+  .prototype-sicad-detail-actions .p-button,
+  .prototype-sicad-comment-actions .p-button {
+    width: 100%;
+  }
+
+  .prototype-sicad-detail-general-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prototype-sicad-detail-wide {
+    grid-column: auto;
+  }
+
+  .prototype-sicad-attachment-list li {
+    grid-template-columns: minmax(0, 1fr) 30px;
+  }
+
+  .prototype-sicad-attachment-list small {
+    display: none;
+  }
+}
+
+.prototype-sicad-list-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  padding: 2px 0 12px;
+}
+
+.prototype-sicad-list-toolbar .p-button {
+  min-width: max-content;
+  height: 36px;
+  padding: 0 14px;
+}
+
+.prototype-sicad-profile-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 14px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.prototype-sicad-profile-switcher label {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.prototype-sicad-profile-switcher select {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #00386b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.prototype-sicad-support-answer-card .prototype-sicad-comment-editor textarea,
+.prototype-sicad-modal-field textarea {
+  min-height: 110px;
+}
+
+.prototype-sicad-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-modal-field textarea {
+  resize: vertical;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 10px;
+  color: #1f2937;
+  font: inherit;
+  font-weight: 500;
+}
+
+.prototype-sicad-modal-field small {
+  align-self: flex-end;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.prototype-sicad-support-upload .p-fileupload-buttonbar {
+  justify-content: flex-start;
+}

@@ -81,6 +81,16 @@ import {
   PrototiposTipoVinculoTesteFormPage,
   PrototiposTipoVinculoTestePage,
 } from "./prototipos/PrototiposPage";
+import {
+  PrototiposSicadBaseConhecimentoPage,
+  PrototiposSicadFilaOcorrenciasPage,
+  PrototiposSicadMinhasOcorrenciasPage,
+  PrototiposSicadNovaOcorrenciaPage,
+  PrototiposSicadOcorrenciaDetalhePage,
+  PrototiposSicadOcorrenciasDashboardPage,
+  PrototiposSicadOcorrenciasRelatoriosPage,
+  PrototiposSicadPage,
+} from "./prototipos/sicad/PrototiposSicadPage";
 
 function HomePage() {
   const sistemas = [
@@ -96,6 +106,16 @@ function HomePage() {
         { label: "Regime Jurídico", to: "/prototipos/sigep/regime-juridico" },
         { label: "Controle de Vagas", to: "/prototipos/sigep/controle-vagas" },
         { label: "Componentes", to: "/prototipos/sigep/componentes" },
+      ],
+    },
+    {
+      sigla: "SICAD",
+      titulo: "Sistema de Concessão de Adiantamento",
+      descricao: "Protótipos do SICAD separados do SIGEP, usando a biblioteca de componentes da SEPLAG.",
+      status: "Em prototipação",
+      to: "/prototipos/sicad",
+      links: [
+        { label: "Tela inicial", to: "/prototipos/sicad" },
       ],
     },
     {
@@ -1174,6 +1194,63 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/calendario/*" element={<CalendarioPage />} />
       <Route path="/prototipos" element={<PrototiposPage />} />
+      <Route path="/prototipos/sicad" element={<PrototiposSicadPage />} />
+      <Route
+        path="/prototipos/sicad/ocorrencias/nova"
+        element={<PrototiposSicadNovaOcorrenciaPage />}
+      />
+      <Route
+        path="/prototipos/sicad/ocorrencias/minhas"
+        element={<PrototiposSicadMinhasOcorrenciasPage />}
+      />
+      <Route
+        path="/prototipos/sicad/ocorrencias/fila"
+        element={<PrototiposSicadFilaOcorrenciasPage />}
+      />
+      <Route
+        path="/prototipos/sicad/ocorrencias/dashboard"
+        element={<PrototiposSicadOcorrenciasDashboardPage />}
+      />
+      <Route
+        path="/prototipos/sicad/ocorrencias/relatorios"
+        element={<PrototiposSicadOcorrenciasRelatoriosPage />}
+      />
+      <Route
+        path="/prototipos/sicad/ocorrencias/base-conhecimento"
+        element={<PrototiposSicadBaseConhecimentoPage />}
+      />
+      <Route
+        path="/prototipos/sicad/ocorrencias/:id"
+        element={<PrototiposSicadOcorrenciaDetalhePage />}
+      />
+      <Route
+        path="/ocorrencias/nova"
+        element={<PrototiposSicadNovaOcorrenciaPage />}
+      />
+      <Route
+        path="/ocorrencias/minhas"
+        element={<PrototiposSicadMinhasOcorrenciasPage />}
+      />
+      <Route
+        path="/ocorrencias/fila"
+        element={<PrototiposSicadFilaOcorrenciasPage />}
+      />
+      <Route
+        path="/ocorrencias/dashboard"
+        element={<PrototiposSicadOcorrenciasDashboardPage />}
+      />
+      <Route
+        path="/ocorrencias/relatorios"
+        element={<PrototiposSicadOcorrenciasRelatoriosPage />}
+      />
+      <Route
+        path="/ocorrencias/base-conhecimento"
+        element={<PrototiposSicadBaseConhecimentoPage />}
+      />
+      <Route
+        path="/ocorrencias/:id"
+        element={<PrototiposSicadOcorrenciaDetalhePage />}
+      />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
       <Route
         path="/prototipos/sigep/componentes"

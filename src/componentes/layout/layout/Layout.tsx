@@ -37,6 +37,7 @@ export interface LayoutSeplagProps {
     confirmarSenha: string,
   ) => void;
   onSelecionarVinculo: (vinculo: IVinculoSeplag) => void;
+  profileExtraActions?: ReactNode;
 }
 
 export function LayoutSeplag({
@@ -57,6 +58,7 @@ export function LayoutSeplag({
   onLogout,
   onAlterarSenha,
   onSelecionarVinculo,
+  profileExtraActions,
 }: Readonly<LayoutSeplagProps>) {
   const [layoutColorMode] = useState("light");
   const [staticMenuInactive, setStaticMenuInactive] = useState(false);
@@ -129,6 +131,7 @@ export function LayoutSeplag({
           onLogout={onLogout}
           onAlterarSenha={onAlterarSenha}
           onSelecionarVinculo={onSelecionarVinculo}
+          extraActions={profileExtraActions}
         />
         <AppMenuSeplag items={menuItems} onMenuItemClick={onMenuItemClick} />
       </nav>
@@ -155,3 +158,5 @@ export function LayoutSeplag({
     </div>
   );
 }
+
+

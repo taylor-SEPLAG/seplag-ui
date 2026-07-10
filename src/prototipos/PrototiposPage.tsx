@@ -461,6 +461,14 @@ const prototypeSystems = [
     icon: "pi pi-users",
     status: "Protótipo disponível",
   },
+  {
+    id: "sicad",
+    title: "SICAD",
+    description: "Sistema de Concessão de Adiantamento",
+    path: "/prototipos/sicad",
+    icon: "pi pi-wallet",
+    status: "Protótipo disponível",
+  },
 ];
 
 const sistemas: AppSystemItemSeplag[] = [
@@ -3474,7 +3482,6 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
         tipoCalculo: "Vínculo",
         regraIncidencia: "Até o teto do RGPS",
         valorReferenciaId: "TETO_RGPS",
-        tetoPrevidenciario: "R$ 8.475,55",
         percentualContribuicao: "14",
         faixasContribuicao: [
           {
@@ -3544,18 +3551,10 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
           {
             id: 1,
             ordem: 1,
-            faixaInicial: "R$ 0,00",
-            faixaFinal: "R$ 1.621,00",
-            percentual: "0",
-            contribuicaoFaixa: "Isento",
-          },
-          {
-            id: 2,
-            ordem: 2,
             faixaInicial: "R$ 1.621,01",
             faixaFinal: "Em aberto",
             percentual: "14",
-            contribuicaoFaixa: "Calculada pelo motor",
+            contribuicaoFaixa: "Sobre excedente do salário mínimo",
           },
         ],
         inicioVigencia: "02/01/2026",
@@ -3706,9 +3705,7 @@ const normalizarVigenciaTabelaReferencia = (
   const faixasNormalizadas =
     modeloRppsId === 302
       ? getFaixasAutomaticasRppsPorRegra("ATE_TETO_RGPS", "14")
-      : modeloRppsId === 305
-        ? getFaixasAutomaticasRppsPorRegra("EXCEDENTE_SALARIO_MINIMO", "14")
-        : vigenciaComModelo.faixasContribuicao;
+      : vigenciaComModelo.faixasContribuicao;
 
   return {
     ...vigenciaComModelo,
@@ -3717,6 +3714,7 @@ const normalizarVigenciaTabelaReferencia = (
     aplicavelPara: vigenciaComModelo.aplicavelPara === "Ativo" ? "Servidor Civil" : vigenciaComModelo.aplicavelPara,
     proventosAPartirDe:
       modeloRppsId === 303 ? "R$ 0,00" : vigenciaComModelo.proventosAPartirDe,
+    tetoPrevidenciario: undefined,
     faixasContribuicao: faixasNormalizadas,
     vigencia:
       typeof vigencia.vigencia === "string"
@@ -3735,10 +3733,12 @@ const getFolhaTabelaReferenciaRppsMockVigencias = () =>
 const lerFolhaTabelaReferenciaRppsVigencias = (): FolhaTabelaReferenciaVigenciaRow[] => {
   const vigenciasMock = getFolhaTabelaReferenciaRppsMockVigencias();
 
-  if (typeof window === "undefined") return vigenciasMock;
+  const vigenciasMockNormalizadas = vigenciasMock.map(normalizarVigenciaTabelaReferencia);
+
+  if (typeof window === "undefined") return vigenciasMockNormalizadas;
 
   const stored = window.localStorage.getItem(FOLHA_TABELAS_REFERENCIA_RPPS_STORAGE_KEY);
-  if (!stored) return vigenciasMock;
+  if (!stored) return vigenciasMockNormalizadas;
 
   try {
     const parsed = JSON.parse(stored) as FolhaTabelaReferenciaVigenciaRow[];
@@ -3758,7 +3758,6 @@ const lerFolhaTabelaReferenciaRppsVigencias = (): FolhaTabelaReferenciaVigenciaR
           ),
       )
       .map(normalizarVigenciaTabelaReferencia);
-    const vigenciasMockNormalizadas = vigenciasMock.map(normalizarVigenciaTabelaReferencia);
     const idsPersistidos = new Set(vigenciasPersistidas.map((vigencia) => vigencia.id));
 
     return [
@@ -3973,6 +3972,11 @@ const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
   },
 ];
 
+const getFolhaValorReferenciaAtual = (codigo?: string) =>
+  codigo
+    ? folhaValoresReferenciaMock.find((valor) => valor.codigo === codigo)?.vigencias[0]?.valor
+    : undefined;
+
 const folhaTabelaReferenciaFaixasMock: FolhaTabelaReferenciaFaixaRow[] = [
   {
     id: 1,
@@ -4065,7 +4069,7 @@ const getFaixasAutomaticasRppsPorRegra = (
         id: 1,
         ordem: 1,
         faixaInicial: "R$ 0,00",
-        faixaFinal: "R$ 8.475,55",
+        faixaFinal: getFolhaValorReferenciaAtual("TETO_RGPS") ?? "R$ 8.475,55",
         percentual,
         contribuicaoFaixa: "Calculada pelo motor",
       },
@@ -13124,13 +13128,36 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const percentualContribuicaoSelecionado = watch("percentualContribuicao");
   const isRegraFaixasProgressivas = regraIncidenciaSelecionada === "FAIXAS_PROGRESSIVAS";
   const isRegraIsentoValorReferencia = regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA";
-  const exibirValorReferenciaRpps = isTabelaRpps && Boolean(vigenciaFormularioBase?.valorReferenciaId);
+  const isModeloRppsLc700 = modeloRppsId === 303;
+  const isModeloRppsSalarioMinimo = modeloRppsId === 305;
+  const isModeloRppsMilitar = modeloRppsId === 307;
+  const isValorReferenciaFixoRpps = modeloRppsId === 302;
+  const valorReferenciaFixoLabel =
+    isValorReferenciaFixoRpps && vigenciaFormularioBase?.valorReferenciaId
+      ? folhaTabelaReferenciaValorReferenciaOptions.find(
+          (option) => option.value === vigenciaFormularioBase.valorReferenciaId,
+        )?.label ?? vigenciaFormularioBase.valorReferenciaId
+      : undefined;
+  const faixaIsencaoLc700Resumo = getFolhaValorReferenciaAtual("ISENCAO_LC700") ?? "R$ 4.318,01";
+  const limiteProventosLc700Resumo =
+    getFolhaValorReferenciaAtual("LIMITE_PROVENTOS_LC700") ?? vigenciaFormularioBase?.proventosAte ?? "R$ 11.776,34";
+  const salarioMinimoResumo = getFolhaValorReferenciaAtual("SALARIO_MINIMO") ?? "R$ 1.621,00";
+  const enquadramentoSalarioMinimoResumo = `Proventos superiores a ${limiteProventosLc700Resumo}`;
+  const limitePrevidenciarioMilitarResumo = getFolhaValorReferenciaAtual("LIMITE_PREV_PM_BM") ?? "R$ 11.005,95";
+  const percentualLc700Resumo =
+    vigenciaFormularioBase?.faixasContribuicao?.find((faixa) => faixa.percentual && faixa.percentual !== "0")?.percentual ?? "14";
+  const exibirValorReferenciaSeparadoRpps =
+    isTabelaRpps &&
+    !isValorReferenciaFixoRpps &&
+    !isModeloRppsLc700 &&
+    !isModeloRppsSalarioMinimo &&
+    !isModeloRppsMilitar &&
+    Boolean(vigenciaFormularioBase?.valorReferenciaId);
   const exibirPercentualRpps =
-    isTabelaRpps && !isRegraFaixasProgressivas && !isRegraIsentoValorReferencia;
-  const exibirEnquadramentoProventosRpps =
-    isTabelaRpps && [303, 305].includes(modeloRppsId ?? 0);
-  const exibirTetoPrevidenciario =
-    !isTabelaRpps || ["ATE_TETO_RGPS", "EXCEDENTE_TETO_RGPS"].includes(regraIncidenciaSelecionada);
+    isTabelaRpps &&
+    (isModeloRppsLc700 || (!isRegraFaixasProgressivas && !isRegraIsentoValorReferencia));
+  const exibirEnquadramentoProventosRpps = false;
+  const exibirTetoPrevidenciario = !isTabelaRpps;
 
   useEffect(() => {
     if (!isTabelaRpps) return;
@@ -13153,6 +13180,26 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     }
 
     setFaixasVigencia((current) => {
+      if (isModeloRppsSalarioMinimo) {
+        const percentual = percentualContribuicaoSelecionado || "14";
+        const faixaSalarioMinimo = {
+          id: 1,
+          ordem: 1,
+          faixaInicial: "R$ 1.621,01",
+          faixaFinal: "Em aberto",
+          percentual,
+          contribuicaoFaixa: "Sobre excedente do salário mínimo",
+        };
+
+        return current.length === 1 &&
+          current[0].faixaInicial === faixaSalarioMinimo.faixaInicial &&
+          current[0].faixaFinal === faixaSalarioMinimo.faixaFinal &&
+          current[0].percentual === faixaSalarioMinimo.percentual &&
+          current[0].contribuicaoFaixa === faixaSalarioMinimo.contribuicaoFaixa
+          ? current
+          : [faixaSalarioMinimo];
+      }
+
       const possuiFaixaUnicaAberta =
         current.length === 1 &&
         current[0].faixaFinal.trim().toLowerCase() === "em aberto";
@@ -13177,6 +13224,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       return faixasAutomaticas;
     });
   }, [
+    isModeloRppsSalarioMinimo,
     isRegraFaixasProgressivas,
     isTabelaRpps,
     percentualContribuicaoSelecionado,
@@ -13200,6 +13248,20 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     (total, faixa) => total + parseMoedaReferencia(faixa.contribuicaoFaixa),
     0,
   );
+  const referenciaAutomaticaResumo = getReferenciaAutomaticaRppsLabel(regraIncidenciaSelecionada);
+  const valorReferenciaAtualResumo = getFolhaValorReferenciaAtual(valorReferenciaSelecionado);
+  const referenciaRegraTitulo =
+    isTabelaRpps && valorReferenciaSelecionado === "TETO_RGPS"
+      ? "Teto RGPS"
+      : isTabelaRpps
+        ? "Referência da Regra"
+        : "Teto Previdenciário";
+  const referenciaRegraResumo = isTabelaRpps
+    ? valorReferenciaAtualResumo ||
+      (referenciaAutomaticaResumo === "Não informado"
+        ? "Não se aplica"
+        : referenciaAutomaticaResumo)
+    : "R$ 8.475,55";
 
   const isFaixaAberta = (faixa: Pick<FolhaTabelaReferenciaFaixaRow, "faixaFinal">) =>
     faixa.faixaFinal.trim().toLowerCase() === "em aberto";
@@ -13365,7 +13427,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         limiteProventos: data.limiteProventos,
         proventosAPartirDe: data.proventosAPartirDe || modeloRppsSalvo.proventosAPartirDe,
         proventosAte: data.proventosAte || modeloRppsSalvo.proventosAte,
-        tetoPrevidenciario: data.tetoPrevidenciario || modeloRppsSalvo.tetoPrevidenciario,
+        tetoPrevidenciario: undefined,
         percentualContribuicao: data.percentualContribuicao || modeloRppsSalvo.percentualContribuicao,
         faixasContribuicao: faixasVigencia.length ? faixasVigencia : modeloRppsSalvo.faixasContribuicao,
         inicioVigencia: data.inicioVigencia,
@@ -13539,9 +13601,55 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                                 <strong>Regra de Incidência</strong>
                                 <p>{vigenciaFormularioBase?.regraIncidencia ?? "-"}</p>
                               </div>
+                              {valorReferenciaFixoLabel ? (
+                                <div className="col-12 md:col-6 lg:col-3">
+                                  <strong>Valor de Referência</strong>
+                                  <p>{valorReferenciaFixoLabel}</p>
+                                </div>
+                              ) : null}
                             </div>
                           </div>
-                          {exibirValorReferenciaRpps ? (
+                          {isModeloRppsLc700 ? (
+                            <>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Faixa de Isenção</strong>
+                                <p>{faixaIsencaoLc700Resumo}</p>
+                              </div>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Limite de Proventos</strong>
+                                <p>{limiteProventosLc700Resumo}</p>
+                              </div>
+                            </>
+                          ) : null}
+                          {isModeloRppsSalarioMinimo ? (
+                            <>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Referência de Cálculo</strong>
+                                <p>Salário Mínimo</p>
+                              </div>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Valor da Referência</strong>
+                                <p>{salarioMinimoResumo}</p>
+                              </div>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Enquadramento da Regra</strong>
+                                <p>{enquadramentoSalarioMinimoResumo}</p>
+                              </div>
+                            </>
+                          ) : null}
+                          {isModeloRppsMilitar ? (
+                            <>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Referência da Regra</strong>
+                                <p>Limite Previdenciário PM/BM</p>
+                              </div>
+                              <div className="col-12 md:col-6 lg:col-3">
+                                <strong>Valor da Referência</strong>
+                                <p>{limitePrevidenciarioMilitarResumo}</p>
+                              </div>
+                            </>
+                          ) : null}
+                          {exibirValorReferenciaSeparadoRpps ? (
                             <DropdownFieldSeplag
                               name="valorReferenciaId"
                               control={control}
@@ -13550,7 +13658,6 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                               options={folhaTabelaReferenciaValorReferenciaOptions}
                               optionLabel="label"
                               optionValue="value"
-                              placeholder="Selecione..."
                               getFormErrorMessage={() => null}
                             />
                           ) : null}
@@ -13620,7 +13727,8 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                             getFormErrorMessage={() => null}
                           />
                         </>
-                      ) : null}                      {exibirTetoPrevidenciario ? (
+                      ) : null}
+                      {exibirTetoPrevidenciario ? (
                         <TextFieldSeplag
                           name="tetoPrevidenciario"
                           control={control}
@@ -13688,29 +13796,68 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                     <div className="prototype-folha-referencia-vigencia-panel-title">
                       <h3>Faixas de Contribuição</h3>
                     </div>
-                    <div className="prototype-folha-referencia-calculo-summary">
+                    <div
+                      className={`prototype-folha-referencia-calculo-summary${
+                        isModeloRppsLc700 || isModeloRppsSalarioMinimo || isModeloRppsMilitar
+                          ? " prototype-folha-referencia-calculo-summary--quatro"
+                          : ""
+                      }`}
+                    >
+                      {isModeloRppsLc700 ? (
+                        <>
+                          <div>
+                            <span>Faixa de Isenção</span>
+                            <strong>{faixaIsencaoLc700Resumo}</strong>
+                          </div>
+                          <div>
+                            <span>Limite de Proventos</span>
+                            <strong>{limiteProventosLc700Resumo}</strong>
+                          </div>
+                        </>
+                      ) : isModeloRppsSalarioMinimo ? (
+                        <>
+                          <div>
+                            <span>Referência de Cálculo</span>
+                            <strong>Salário Mínimo</strong>
+                          </div>
+                          <div>
+                            <span>Valor da Referência</span>
+                            <strong>{salarioMinimoResumo}</strong>
+                          </div>
+                          <div>
+                            <span>Enquadramento</span>
+                            <strong>{enquadramentoSalarioMinimoResumo}</strong>
+                          </div>
+                        </>
+                      ) : isModeloRppsMilitar ? (
+                        <>
+                          <div>
+                            <span>Referência da Regra</span>
+                            <strong>Limite Previdenciário PM/BM</strong>
+                          </div>
+                          <div>
+                            <span>Valor da Referência</span>
+                            <strong>{limitePrevidenciarioMilitarResumo}</strong>
+                          </div>
+                        </>
+                      ) : (
+                        <div>
+                          <span>{referenciaRegraTitulo}</span>
+                          <strong>{referenciaRegraResumo}</strong>
+                        </div>
+                      )}
+                      {!isModeloRppsSalarioMinimo ? (
+                        <div>
+                          <span>Total de Faixas</span>
+                          <strong>{faixasVigencia.length}</strong>
+                        </div>
+                      ) : null}
                       <div>
-                        <span>Teto Previdenciário</span>
-                        <strong>
-                          {isTabelaRpps
-                            ? tetoPrevidenciarioSelecionado ||
-                              folhaTabelaReferenciaValorReferenciaOptions.find(
-                                (option) => option.value === valorReferenciaSelecionado,
-                              )?.label ||
-                              getReferenciaAutomaticaRppsLabel(regraIncidenciaSelecionada)
-                            : "R$ 8.475,55"}
-                        </strong>
-                      </div>
-                      <div>
-                        <span>Total de Faixas</span>
-                        <strong>{faixasVigencia.length}</strong>
-                      </div>
-                      <div>
-                        <span>{isTabelaRpps ? "Contribuição estimada" : "Desconto Máximo CLT"}</span>
-                        <strong>{formatMoedaReferencia(descontoMaximo)}</strong>
+                        <span>{isTabelaRpps ? "Cálculo" : "Desconto Máximo CLT"}</span>
+                        <strong>{isTabelaRpps ? "Calculado na folha" : formatMoedaReferencia(descontoMaximo)}</strong>
                       </div>
                     </div>
-                    {!isTabelaRpps || isRegraFaixasProgressivas ? (
+                    {!isModeloRppsMilitar && (!isTabelaRpps || isRegraFaixasProgressivas) ? (
                       <div className="prototype-folha-referencia-faixa-toolbar">
                         <BotaoSeplag
                           type="button"
@@ -13775,24 +13922,24 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                           ) : null}
                         </tbody>
                       </table>
-                      <div className="prototype-folha-referencia-pagination prototype-folha-referencia-pagination--inner">
-                        <button type="button" disabled>
-                          <i className="pi pi-angle-double-left" aria-hidden="true" />
-                        </button>
-                        <button type="button" disabled>
-                          <i className="pi pi-angle-left" aria-hidden="true" />
-                        </button>
-                        <span>1</span>
-                        <button type="button" disabled>
-                          <i className="pi pi-angle-right" aria-hidden="true" />
-                        </button>
-                        <button type="button" disabled>
-                          <i className="pi pi-angle-double-right" aria-hidden="true" />
-                        </button>
-                        <select aria-label="Registros por página" value="10" onChange={() => {}}>
-                          <option value="10">10</option>
-                        </select>
-                      </div>
+                    </div>
+                    <div className="prototype-folha-referencia-pagination prototype-folha-referencia-pagination--inner prototype-folha-referencia-pagination--below-table">
+                      <button type="button" disabled>
+                        <i className="pi pi-angle-double-left" aria-hidden="true" />
+                      </button>
+                      <button type="button" disabled>
+                        <i className="pi pi-angle-left" aria-hidden="true" />
+                      </button>
+                      <span>1</span>
+                      <button type="button" disabled>
+                        <i className="pi pi-angle-right" aria-hidden="true" />
+                      </button>
+                      <button type="button" disabled>
+                        <i className="pi pi-angle-double-right" aria-hidden="true" />
+                      </button>
+                      <select aria-label="Registros por página" value="10" onChange={() => {}}>
+                        <option value="10">10</option>
+                      </select>
                     </div>
                   </>
                 )}
