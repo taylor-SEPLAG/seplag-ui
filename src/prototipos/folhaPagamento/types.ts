@@ -37,12 +37,16 @@ export type FolhaPagamentoRubricaLogSituacao =
 
 export type SolicitacaoAjusteFolhaSituacao =
   | "NOVA"
+  | "AGUARDANDO_ANALISE"
+  | "AGUARDANDO_AJUSTE"
+  | "AGUARDANDO_CORRECAO"
   | "EM_CORRECAO"
   | "CORRIGIDO"
   | "DEVOLVIDO"
+  | "REJEITADA_CONFORMIDADE"
   | "CONCLUIDO";
 
-export type SolicitacaoAjusteFolhaPerfil = "CONFORMIDADE" | "FOLHA";
+export type SolicitacaoAjusteFolhaPerfil = "SETORIAL" | "CONFORMIDADE" | "FOLHA";
 
 export type GrupoFolhaSituacao =
   | "RASCUNHO"
@@ -272,6 +276,8 @@ export interface SolicitacaoAjusteFolhaRow {
   situacao: SolicitacaoAjusteFolhaSituacao;
   motivoAbertura: string;
   motivoDevolucao?: string;
+  complementoConformidade?: string;
+  parecerSetorial?: string;
 }
 
 export type CreateFolhaPagamentoRequest = FolhaPagamentoForm & {

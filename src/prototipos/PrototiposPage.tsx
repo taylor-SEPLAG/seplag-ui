@@ -257,6 +257,7 @@ const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Tipo de Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vacância", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -1299,6 +1300,70 @@ interface TipoVinculoTesteRow {
   situacao: "ATIVO" | "ENCERRADO";
 }
 
+type IngressoSituacao =
+  | "Aguardando Documentação"
+  | "Em Análise"
+  | "Aprovado"
+  | "Concluído";
+
+type IngressoTipo =
+  | "Concurso"
+  | "Processo Seletivo"
+  | "Nomeação"
+  | "Exclusivo Comissionado"
+  | "Residente Técnico"
+  | "Estagiário";
+
+type IngressoDetalheTab =
+  | "dados-basicos"
+  | "documentacao"
+  | "validacoes"
+  | "formalizacao"
+  | "exercicio"
+  | "vinculo"
+  | "prestacao-contas"
+  | "historico";
+
+type NovoIngressoTab =
+  | "tipo-ingresso"
+  | "documentacao"
+  | "analise-provimento"
+  | "efetivo-exercicio";
+
+interface IngressoRow {
+  id: number;
+  nome: string;
+  cpf: string;
+  matricula: string;
+  tipoIngresso: IngressoTipo;
+  tipoVinculo: string;
+  orgao: string;
+  cargo: string;
+  situacao: IngressoSituacao;
+  dataIngresso: string;
+}
+
+interface IngressoCandidatoRow {
+  id: number;
+  nome: string;
+  classificacao: string;
+  cargo: string;
+  tipoVaga: "PCD" | "Ampla Concorrência";
+}
+
+interface IngressoConcursoProcessoRow {
+  id: number;
+  titulo: string;
+  tipo: "Concurso" | "Processo Seletivo";
+  orgao: string;
+  edital: string;
+  candidatos: IngressoCandidatoRow[];
+}
+
+interface IngressoFiltroForm {
+  concursoProcessoSeletivo: string;
+}
+
 interface MatrizValidacaoTesteRow {
   id: number;
   instituicao: string;
@@ -1794,6 +1859,500 @@ const tiposVinculoTesteMock: TipoVinculoTesteRow[] = [
     vigencia: "01/01/2026 -",
     situacao: "ENCERRADO",
   },
+];
+
+const ingressosMock: IngressoRow[] = [
+  {
+    id: 1,
+    nome: "João Silva",
+    cpf: "000.000.000-00",
+    matricula: "123456",
+    tipoIngresso: "Concurso",
+    tipoVinculo: "Efetivo",
+    orgao: "SES",
+    cargo: "Analista Administrativo",
+    situacao: "Aguardando Documentação",
+    dataIngresso: "2026-01-15",
+  },
+  {
+    id: 2,
+    nome: "Maria Souza",
+    cpf: "111.111.111-11",
+    matricula: "654321",
+    tipoIngresso: "Processo Seletivo",
+    tipoVinculo: "Temporário",
+    orgao: "SEDUC",
+    cargo: "Professor",
+    situacao: "Em Análise",
+    dataIngresso: "2026-02-03",
+  },
+  {
+    id: 3,
+    nome: "Carlos Pereira",
+    cpf: "222.222.222-22",
+    matricula: "789012",
+    tipoIngresso: "Nomeação",
+    tipoVinculo: "Comissionado",
+    orgao: "SEPLAG",
+    cargo: "Assessor Técnico",
+    situacao: "Aprovado",
+    dataIngresso: "2026-03-20",
+  },
+  {
+    id: 4,
+    nome: "Ana Costa",
+    cpf: "333.333.333-33",
+    matricula: "345678",
+    tipoIngresso: "Reintegração",
+    tipoVinculo: "Efetivo",
+    orgao: "SEFAZ",
+    cargo: "Gestor Governamental",
+    situacao: "Concluído",
+    dataIngresso: "2026-04-08",
+  },
+  {
+    id: 5,
+    nome: "Fernanda Rocha",
+    cpf: "444.444.444-44",
+    matricula: "456789",
+    tipoIngresso: "Concurso",
+    tipoVinculo: "Efetivo",
+    orgao: "SES",
+    cargo: "Analista Administrativo",
+    situacao: "Aguardando Documentação",
+    dataIngresso: "2026-01-18",
+  },
+  {
+    id: 6,
+    nome: "Rafael Martins",
+    cpf: "555.555.555-55",
+    matricula: "567890",
+    tipoIngresso: "Processo Seletivo",
+    tipoVinculo: "Temporário",
+    orgao: "SEDUC",
+    cargo: "Professor",
+    situacao: "Em Análise",
+    dataIngresso: "2026-02-05",
+  },
+  {
+    id: 7,
+    nome: "Bruno Almeida",
+    cpf: "666.666.666-66",
+    matricula: "678901",
+    tipoIngresso: "Concurso",
+    tipoVinculo: "Efetivo",
+    orgao: "SEFAZ",
+    cargo: "Gestor Governamental",
+    situacao: "Aprovado",
+    dataIngresso: "2026-04-10",
+  },
+  {
+    id: 8,
+    nome: "Luciana Freitas",
+    cpf: "777.777.777-77",
+    matricula: "789123",
+    tipoIngresso: "Concurso",
+    tipoVinculo: "Efetivo",
+    orgao: "SEDUC",
+    cargo: "Professor",
+    situacao: "Aguardando Documentação",
+    dataIngresso: "2026-01-22",
+  },
+  {
+    id: 9,
+    nome: "Marcos Vinícius",
+    cpf: "888.888.888-88",
+    matricula: "891234",
+    tipoIngresso: "Concurso",
+    tipoVinculo: "Efetivo",
+    orgao: "SEDUC",
+    cargo: "Técnico Administrativo Educacional",
+    situacao: "Em Análise",
+    dataIngresso: "2026-01-25",
+  },
+  {
+    id: 10,
+    nome: "Patrícia Nunes",
+    cpf: "999.999.999-99",
+    matricula: "912345",
+    tipoIngresso: "Processo Seletivo",
+    tipoVinculo: "Temporário",
+    orgao: "SES",
+    cargo: "Enfermeiro",
+    situacao: "Aguardando Documentação",
+    dataIngresso: "2026-02-08",
+  },
+  {
+    id: 11,
+    nome: "Diego Campos",
+    cpf: "123.123.123-12",
+    matricula: "123789",
+    tipoIngresso: "Processo Seletivo",
+    tipoVinculo: "Temporário",
+    orgao: "SES",
+    cargo: "Técnico de Enfermagem",
+    situacao: "Em Análise",
+    dataIngresso: "2026-02-10",
+  },
+  {
+    id: 12,
+    nome: "Camila Teixeira",
+    cpf: "234.234.234-23",
+    matricula: "234890",
+    tipoIngresso: "Processo Seletivo",
+    tipoVinculo: "Temporário",
+    orgao: "SEFAZ",
+    cargo: "Analista Fazendário",
+    situacao: "Aprovado",
+    dataIngresso: "2026-02-14",
+  },
+  {
+    id: 13,
+    nome: "Henrique Lopes",
+    cpf: "345.345.345-34",
+    matricula: "345901",
+    tipoIngresso: "Processo Seletivo",
+    tipoVinculo: "Temporário",
+    orgao: "SEFAZ",
+    cargo: "Analista Fazendário",
+    situacao: "Aguardando Documentação",
+    dataIngresso: "2026-02-16",
+  },
+];
+
+const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
+  {
+    id: 1,
+    titulo: "Concurso SES 2026",
+    tipo: "Concurso",
+    orgao: "SES",
+    edital: "Edital 001/2026",
+    candidatos: [
+      {
+        id: 1,
+        nome: "João Silva",
+        classificacao: "1º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "Ampla Concorrência",
+      },
+      {
+        id: 5,
+        nome: "Fernanda Rocha",
+        classificacao: "2º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "PCD",
+      },
+    ],
+  },
+  {
+    id: 2,
+    titulo: "Concurso SEDUC 2026",
+    tipo: "Concurso",
+    orgao: "SEDUC",
+    edital: "Edital 002/2026",
+    candidatos: [
+      {
+        id: 8,
+        nome: "Luciana Freitas",
+        classificacao: "1º",
+        cargo: "Professor",
+        tipoVaga: "Ampla Concorrência",
+      },
+      {
+        id: 9,
+        nome: "Marcos Vinícius",
+        classificacao: "2º",
+        cargo: "Técnico Administrativo Educacional",
+        tipoVaga: "PCD",
+      },
+    ],
+  },
+  {
+    id: 3,
+    titulo: "Concurso SEFAZ 2026",
+    tipo: "Concurso",
+    orgao: "SEFAZ",
+    edital: "Edital 003/2026",
+    candidatos: [
+      {
+        id: 4,
+        nome: "Ana Costa",
+        classificacao: "1º",
+        cargo: "Gestor Governamental",
+        tipoVaga: "Ampla Concorrência",
+      },
+      {
+        id: 7,
+        nome: "Bruno Almeida",
+        classificacao: "4º",
+        cargo: "Gestor Governamental",
+        tipoVaga: "Ampla Concorrência",
+      },
+    ],
+  },
+  {
+    id: 4,
+    titulo: "Processo Seletivo SES 2026",
+    tipo: "Processo Seletivo",
+    orgao: "SES",
+    edital: "Edital 004/2026",
+    candidatos: [
+      {
+        id: 10,
+        nome: "Patrícia Nunes",
+        classificacao: "1º",
+        cargo: "Enfermeiro",
+        tipoVaga: "Ampla Concorrência",
+      },
+      {
+        id: 11,
+        nome: "Diego Campos",
+        classificacao: "5º",
+        cargo: "Técnico de Enfermagem",
+        tipoVaga: "PCD",
+      },
+    ],
+  },
+  {
+    id: 5,
+    titulo: "Processo Seletivo SEDUC 2026",
+    tipo: "Processo Seletivo",
+    orgao: "SEDUC",
+    edital: "Edital 005/2026",
+    candidatos: [
+      {
+        id: 2,
+        nome: "Maria Souza",
+        classificacao: "1º",
+        cargo: "Professor",
+        tipoVaga: "Ampla Concorrência",
+      },
+      {
+        id: 6,
+        nome: "Rafael Martins",
+        classificacao: "3º",
+        cargo: "Professor",
+        tipoVaga: "PCD",
+      },
+    ],
+  },
+  {
+    id: 6,
+    titulo: "Processo Seletivo SEFAZ 2026",
+    tipo: "Processo Seletivo",
+    orgao: "SEFAZ",
+    edital: "Edital 006/2026",
+    candidatos: [
+      {
+        id: 12,
+        nome: "Camila Teixeira",
+        classificacao: "2º",
+        cargo: "Analista Fazendário",
+        tipoVaga: "Ampla Concorrência",
+      },
+      {
+        id: 13,
+        nome: "Henrique Lopes",
+        classificacao: "6º",
+        cargo: "Analista Fazendário",
+        tipoVaga: "PCD",
+      },
+    ],
+  },
+];
+
+const ingressoTipoVinculoMap: Record<IngressoTipo, string> = {
+  Concurso: "Efetivo",
+  "Processo Seletivo": "Temporário",
+  "Exclusivo Comissionado": "Comissionado",
+  "Residente Técnico": "Residente",
+  Estagiário: "Estagiário",
+};
+
+const ingressoTipoRadioOptions = Object.keys(ingressoTipoVinculoMap).map(
+  (tipo) => ({
+    label: tipo,
+    value: tipo as IngressoTipo,
+  }),
+);
+
+const ingressoImportacaoPreview = [
+  {
+    id: 1,
+    nome: "João Silva",
+    cpf: "000.000.000-00",
+    classificacao: "1º",
+    tipoVaga: "Ampla",
+    email: "joao@email.com",
+    situacao: "Válido",
+  },
+  {
+    id: 2,
+    nome: "Ana Lima",
+    cpf: "111.111.111-11",
+    classificacao: "2º",
+    tipoVaga: "PCD",
+    email: "ana@email.com",
+    situacao: "Válido",
+  },
+];
+
+const pessoasFisicasIngressoMock = [
+  {
+    cpf: "000.000.000-00",
+    nome: "João Silva",
+    dataNascimento: "10/02/1990",
+  },
+  {
+    cpf: "111.111.111-11",
+    nome: "Ana Lima",
+    dataNascimento: "18/06/1992",
+  },
+];
+
+const ingressoDocumentosMock = [
+  {
+    documento: "RG",
+    obrigatorio: "Sim",
+    situacao: "Enviado",
+    arquivo: "rg_joao_silva.pdf",
+    observacao: "-",
+    acao: "Analisar",
+  },
+  {
+    documento: "CPF",
+    obrigatorio: "Sim",
+    situacao: "Aprovado",
+    arquivo: "cpf_joao_silva.pdf",
+    observacao: "-",
+    acao: "Ver",
+  },
+  {
+    documento: "Diploma",
+    obrigatorio: "Sim",
+    situacao: "Pendente",
+    arquivo: "-",
+    observacao: "-",
+    acao: "Solicitar",
+  },
+  {
+    documento: "Certidão",
+    obrigatorio: "Sim",
+    situacao: "Correção Solicitada",
+    arquivo: "certidao_joao_silva.pdf",
+    observacao: "Ilegível",
+    acao: "Reanalisar",
+  },
+];
+
+const ingressoDocumentacaoObrigatoriaMock = [
+  {
+    documento: "Formulário de Ingresso",
+    obrigatorio: "Sim",
+    situacao: "Enviado",
+    arquivo: "formulario_ingresso.pdf",
+  },
+  {
+    documento: "RG / CPF",
+    obrigatorio: "Sim",
+    situacao: "Validado",
+    arquivo: "rg_cpf.pdf",
+  },
+  {
+    documento: "PIS / PASEP",
+    obrigatorio: "Sim",
+    situacao: "Pendente",
+    arquivo: "-",
+  },
+  {
+    documento: "Título de Eleitor",
+    obrigatorio: "Sim",
+    situacao: "Validado",
+    arquivo: "titulo_eleitor.pdf",
+  },
+  {
+    documento: "Comprovante de Endereço",
+    obrigatorio: "Sim",
+    situacao: "Enviado",
+    arquivo: "comprovante_endereco.pdf",
+  },
+  {
+    documento: "Conta Corrente Banco do Brasil",
+    obrigatorio: "Sim",
+    situacao: "Pendente",
+    arquivo: "-",
+  },
+  {
+    documento: "Diploma e Histórico Escolar",
+    obrigatorio: "Sim",
+    situacao: "Enviado",
+    arquivo: "diploma_historico.pdf",
+  },
+  {
+    documento: "Certidão de Quitação Eleitoral",
+    obrigatorio: "Sim",
+    situacao: "Validado",
+    arquivo: "certidao_quitacao_eleitoral.pdf",
+  },
+  {
+    documento: "Certidões Negativas",
+    obrigatorio: "Sim",
+    situacao: "Pendente",
+    arquivo: "-",
+  },
+  {
+    documento: "Laudo da Perícia Médica / MTPREV",
+    obrigatorio: "Sim",
+    situacao: "Pendente",
+    arquivo: "-",
+  },
+  {
+    documento: "Declarações Obrigatórias",
+    obrigatorio: "Sim",
+    situacao: "Pendente",
+    arquivo: "-",
+  },
+  {
+    documento: "Foto 3x4",
+    obrigatorio: "Sim",
+    situacao: "Enviado",
+    arquivo: "foto_3x4.jpg",
+  },
+  {
+    documento: "Termo de Compromisso Solene",
+    obrigatorio: "Sim",
+    situacao: "Pendente",
+    arquivo: "-",
+  },
+];
+
+const getIngressoDocumentoStatusClass = (situacao: string) => {
+  if (situacao === "Validado") return "prototype-ingresso-doc-status--validado";
+  if (situacao === "Enviado") return "prototype-ingresso-doc-status--enviado";
+  return "prototype-ingresso-doc-status--pendente";
+};
+
+const ingressoDetalheTabs: TabItemSeplag<IngressoDetalheTab>[] = [
+  { label: "Dados Básicos", value: "dados-basicos", col: "lg:col-3" },
+  { label: "Documentação", value: "documentacao", col: "lg:col-3" },
+  { label: "Validações", value: "validacoes", col: "lg:col-3" },
+  { label: "Formalização", value: "formalizacao", col: "lg:col-3" },
+  { label: "Exercício/Início", value: "exercicio", col: "lg:col-3" },
+  { label: "Vínculo", value: "vinculo", col: "lg:col-3" },
+  { label: "Prestação de Contas", value: "prestacao-contas", col: "lg:col-3" },
+  { label: "Histórico", value: "historico", col: "lg:col-3" },
+];
+
+const novoIngressoTabs: TabItemSeplag<NovoIngressoTab>[] = [
+  { label: "Tipo de Ingresso", value: "tipo-ingresso", col: "lg:col-6" },
+  { label: "Documentação", value: "documentacao", col: "lg:col-6" },
+];
+
+const novoIngressoConcursoSteps: TabItemSeplag<NovoIngressoTab>[] = [
+  { label: "Tipo de Ingresso", value: "tipo-ingresso", col: "lg:col-3" },
+  { label: "Documentação", value: "documentacao", col: "lg:col-3" },
+  { label: "Análise do Provimento", value: "analise-provimento", col: "lg:col-3" },
+  { label: "Efetivo Exercício", value: "efetivo-exercicio", col: "lg:col-3" },
 ];
 
 const matrizValidacaoTesteMock: MatrizValidacaoTesteRow[] = [
@@ -2940,9 +3499,13 @@ const solicitacaoAjusteFolhaSituacaoOptions: {
   value: SolicitacaoAjusteFolhaSituacao;
 }[] = [
   { label: "NOVA", value: "NOVA" },
+  { label: "AGUARDANDO ANALISE", value: "AGUARDANDO_ANALISE" },
+  { label: "AGUARDANDO AJUSTE", value: "AGUARDANDO_AJUSTE" },
+  { label: "AGUARDANDO CORREÇÃO", value: "AGUARDANDO_CORRECAO" },
   { label: "EM CORREÇÃO", value: "EM_CORRECAO" },
   { label: "CORRIGIDO", value: "CORRIGIDO" },
   { label: "DEVOLVIDO", value: "DEVOLVIDO" },
+  { label: "REJEITADA", value: "REJEITADA_CONFORMIDADE" },
   { label: "CONCLUÍDO", value: "CONCLUIDO" },
 ];
 
@@ -2977,15 +3540,56 @@ const solicitacaoAjusteFolhaExtensoesPermitidas = [
 
 type SolicitacaoAjusteFolhaModoFormulario = "novo" | "editar" | "visualizar";
 
+const documentosSolicitacaoAjusteFolhaMock: Record<number, ArquivoAnexadoSeplag[]> = {
+  1: [
+    {
+      nome: "evidencia-adicional-noturno.pdf",
+      extensao: "pdf",
+      contentType: "application/pdf",
+      conteudoEmBase64: "",
+      tamanho: "245 KB",
+    },
+  ],
+  3: [
+    {
+      nome: "planilha-conferencia-rubricas.xlsx",
+      extensao: "xlsx",
+      contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      conteudoEmBase64: "",
+      tamanho: "182 KB",
+    },
+  ],
+  6: [
+    {
+      nome: "validacao-gratificacao.pdf",
+      extensao: "pdf",
+      contentType: "application/pdf",
+      conteudoEmBase64: "",
+      tamanho: "318 KB",
+    },
+    {
+      nome: "memoria-calculo.xlsx",
+      extensao: "xlsx",
+      contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      conteudoEmBase64: "",
+      tamanho: "96 KB",
+    },
+  ],
+};
+
 const solicitacaoAjusteFolhaSituacaoMeta: Record<
   SolicitacaoAjusteFolhaSituacao,
   { label: string; color: string; bg: string; border: string }
 > = {
-  NOVA: { label: "NOVA", color: "#005494", bg: "#e6f0f8", border: "#e6f0f8" },
-  EM_CORRECAO: { label: "EM CORREÇÃO", color: "#8a5a00", bg: "#fff4d6", border: "#fff4d6" },
-  CORRIGIDO: { label: "CORRIGIDO", color: "#334e9f", bg: "#e8edff", border: "#e8edff" },
-  DEVOLVIDO: { label: "DEVOLVIDO", color: "#b42318", bg: "#fee4e2", border: "#fee4e2" },
-  CONCLUIDO: { label: "CONCLUÍDO", color: "#00843d", bg: "#e2f3e8", border: "#e2f3e8" },
+  NOVA: { label: "Nova", color: "#005494", bg: "#e6f0f8", border: "#e6f0f8" },
+  AGUARDANDO_ANALISE: { label: "Aguardando Analise", color: "#8a5a00", bg: "#fff4d6", border: "#fff4d6" },
+  AGUARDANDO_AJUSTE: { label: "Aguardando Ajuste", color: "#6f4e00", bg: "#fff0b8", border: "#fff0b8" },
+  AGUARDANDO_CORRECAO: { label: "Aguardando Correção", color: "#334e9f", bg: "#e8edff", border: "#e8edff" },
+  EM_CORRECAO: { label: "Em Correção", color: "#9a4d00", bg: "#ffe8cc", border: "#ffe8cc" },
+  CORRIGIDO: { label: "Corrigido", color: "#3b3fb8", bg: "#ecebff", border: "#ecebff" },
+  DEVOLVIDO: { label: "Devolvido", color: "#b42318", bg: "#fee4e2", border: "#fee4e2" },
+  REJEITADA_CONFORMIDADE: { label: "Rejeitada", color: "#8f1d1d", bg: "#fdd7d7", border: "#fdd7d7" },
+  CONCLUIDO: { label: "Concluído", color: "#00843d", bg: "#e2f3e8", border: "#e2f3e8" },
 };
 
 function formatarCompetenciaFolha(valor?: string) {
@@ -5470,6 +6074,18 @@ function formatDatePtBr(date: Date) {
   });
 }
 
+function parseIsoDateOnly(date: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function parsePtBrDateOnly(date?: string) {
+  if (!date) return null;
+  const [day, month, year] = date.split("/").map(Number);
+  if (!day || !month || !year) return null;
+  return new Date(year, month - 1, day);
+}
+
 function getRubricasGrupoCalculoPorAbrangencia({
   regimeJuridico,
   tipoVinculo,
@@ -5554,6 +6170,26 @@ const situacaoOptions = [
   { label: "Ativo", value: "ATIVO" },
   { label: "Encerrado", value: "ENCERRADO" },
 ];
+
+const ingressoTipoOptions = Array.from(
+  new Set(ingressosMock.map((ingresso) => ingresso.tipoIngresso)),
+).map((tipoIngresso) => ({ label: tipoIngresso, value: tipoIngresso }));
+
+const ingressoTipoVinculoOptions = Array.from(
+  new Set(ingressosMock.map((ingresso) => ingresso.tipoVinculo)),
+).map((tipoVinculo) => ({ label: tipoVinculo, value: tipoVinculo }));
+
+const ingressoOrgaoOptions = Array.from(
+  new Set(ingressosMock.map((ingresso) => ingresso.orgao)),
+).map((orgao) => ({ label: orgao, value: orgao }));
+
+const ingressoCargoOptions = Array.from(
+  new Set(ingressosMock.map((ingresso) => ingresso.cargo)),
+).map((cargo) => ({ label: cargo, value: cargo }));
+
+const ingressoSituacaoOptions = Array.from(
+  new Set(ingressosMock.map((ingresso) => ingresso.situacao)),
+).map((situacao) => ({ label: situacao, value: situacao }));
 
 const cargoCategoriaOptions = Array.from(
   new Set(cargosMock.map((cargo) => cargo.categoria)),
@@ -10731,6 +11367,1784 @@ export function PrototiposTipoVinculoTesteFormPage() {
           </CardSeplag>
         </div>
       </form>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposIngressosPage() {
+  const navigate = useNavigate();
+  const { control, reset, watch } = useForm<IngressoFiltroForm>({
+    defaultValues: {
+      concursoProcessoSeletivo: "",
+    },
+  });
+  const filtros = watch();
+  const concursoProcessoSeletivoBusca = filtros.concursoProcessoSeletivo?.trim().toLowerCase();
+
+  const concursosProcessosFiltrados = ingressoConcursosProcessosMock.filter((concursoProcesso) => {
+    const atendeConcursoProcessoSeletivo =
+      !concursoProcessoSeletivoBusca ||
+      concursoProcesso.titulo.toLowerCase().includes(concursoProcessoSeletivoBusca) ||
+      concursoProcesso.tipo.toLowerCase().includes(concursoProcessoSeletivoBusca) ||
+      concursoProcesso.orgao.toLowerCase().includes(concursoProcessoSeletivoBusca) ||
+      concursoProcesso.edital.toLowerCase().includes(concursoProcessoSeletivoBusca);
+
+    return atendeConcursoProcessoSeletivo;
+  });
+
+  const limparFiltros = () =>
+    reset({
+      concursoProcessoSeletivo: "",
+    });
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Ingressos" cols="12" cardHeaderClassNames="prototype-ingressos-card">
+          <div className="prototype-category-filters prototype-ingressos-filters grid">
+            <TextFieldSeplag
+              name="concursoProcessoSeletivo"
+              control={control}
+              label="Concurso/Processo Seletivo"
+              cols="12 12 3"
+              getFormErrorMessage={() => null}
+            />
+            <div className="prototype-category-clear col-12 md:col-6 lg:col-3">
+              <BotaoLimparFiltroSeplag
+                type="button"
+                label="Limpar"
+                icon="pi pi-refresh"
+                onClick={limparFiltros}
+              />
+            </div>
+          </div>
+
+          <div className="prototype-ingressos-accordion-list">
+            <div className="prototype-ingressos-list-header">
+              <span>{concursosProcessosFiltrados.length} registros encontrados</span>
+              <BotaoSeplag
+                type="button"
+                label="Novo Ingresso"
+                icon="pi pi-plus"
+                onClick={() => navigate("/prototipos/sigep/ingressos/novo")}
+              />
+            </div>
+
+            {concursosProcessosFiltrados.map((concursoProcesso, index) => (
+              <details
+                key={concursoProcesso.id}
+                className="prototype-ingresso-accordion"
+                open={index === 0}
+              >
+                <summary className="prototype-ingresso-accordion-summary">
+                  <div>
+                    <strong>{concursoProcesso.titulo}</strong>
+                    <span>
+                      {concursoProcesso.tipo} • {concursoProcesso.orgao} • {concursoProcesso.edital}
+                    </span>
+                  </div>
+                  <BadgeSeplag
+                    label={`${concursoProcesso.candidatos.length} candidatos`}
+                    color="#005494"
+                    bg="#e6f0f8"
+                    border="transparent"
+                    size="md"
+                  />
+                </summary>
+
+                <div className="prototype-ingresso-accordion-content">
+                  <table className="prototype-simple-table prototype-ingresso-candidatos-table">
+                    <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Classificação</th>
+                        <th>Cargo</th>
+                        <th>Tipo da Vaga</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {concursoProcesso.candidatos.map((candidato) => (
+                        <tr key={candidato.id}>
+                          <td>{candidato.nome}</td>
+                          <td>{candidato.classificacao}</td>
+                          <td>{candidato.cargo}</td>
+                          <td>
+                            <BadgeSeplag
+                              label={candidato.tipoVaga}
+                              color={candidato.tipoVaga === "PCD" ? "#334e9f" : "#52616b"}
+                              bg={candidato.tipoVaga === "PCD" ? "#e8edff" : "#eef2f6"}
+                              border="transparent"
+                              size="md"
+                            />
+                          </td>
+                          <td>
+                            <div className="prototype-ingresso-candidato-actions">
+                              <BotaoSeplag
+                                type="button"
+                                icon="pi pi-eye"
+                                tooltip="Visualizar"
+                                onClick={() => navigate(`/prototipos/sigep/ingressos/${candidato.id}`)}
+                              />
+                              <BotaoSeplag
+                                type="button"
+                                label="Ingressar"
+                                icon="pi pi-sign-in"
+                                onClick={() => navigate("/prototipos/sigep/ingressos/novo")}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            ))}
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposNovoIngressoPage() {
+  const navigate = useNavigate();
+  const [tipoIngresso, setTipoIngresso] = useState<IngressoTipo>("Concurso");
+  const [activeTab, setActiveTab] = useState<NovoIngressoTab>("tipo-ingresso");
+  const [candidatoCpf, setCandidatoCpf] = useState("");
+  const [candidatoNome, setCandidatoNome] = useState("");
+  const [candidatoNascimento, setCandidatoNascimento] = useState("");
+  const [concursoSelecionado, setConcursoSelecionado] = useState("");
+  const [cargoSelecionado, setCargoSelecionado] = useState("");
+  const [decisaoJudicial, setDecisaoJudicial] = useState<"Não" | "Sim">("Não");
+  const [documentacaoEtapa, setDocumentacaoEtapa] = useState<"analise" | "termos" | "setorial">("analise");
+  const [situacaoIngresso, setSituacaoIngresso] = useState("Aguardando Confirmação");
+  const [documentosAnaliseValidados, setDocumentosAnaliseValidados] = useState<Record<string, boolean>>({});
+  const [documentosAnaliseObservacoes, setDocumentosAnaliseObservacoes] = useState<Record<string, string>>({});
+  const [parecerProvimento, setParecerProvimento] = useState<"aprovar" | "suspender" | "negar">("aprovar");
+  const [analiseProvimentoAberta, setAnaliseProvimentoAberta] = useState(true);
+  const [parecerProvimentoAberto, setParecerProvimentoAberto] = useState(true);
+  const [documentosSuspensaoSelecionados, setDocumentosSuspensaoSelecionados] = useState<string[]>([]);
+  const [documentosSuspensaoDropdownAberto, setDocumentosSuspensaoDropdownAberto] = useState(false);
+  const [prazoPosseSuspenso, setPrazoPosseSuspenso] = useState(false);
+  const [termoSuspensaoGerado, setTermoSuspensaoGerado] = useState(false);
+  const [documentosAprovacaoGerados, setDocumentosAprovacaoGerados] = useState(false);
+  const [termoNegativaGerado, setTermoNegativaGerado] = useState(false);
+  const [dataPosse, setDataPosse] = useState("");
+  const [modalConfirmacaoAberto, setModalConfirmacaoAberto] = useState(false);
+  const [modalComplementacaoAberto, setModalComplementacaoAberto] = useState(false);
+  const [modalNegarPosseAberto, setModalNegarPosseAberto] = useState(false);
+  const tipoVinculo = ingressoTipoVinculoMap[tipoIngresso];
+  const fluxoNovoIngressoTabs =
+    tipoIngresso === "Concurso" ? novoIngressoConcursoSteps : novoIngressoTabs;
+  const cpfNormalizado = candidatoCpf.replace(/\D/g, "");
+  const pessoaFisicaEncontrada = pessoasFisicasIngressoMock.find(
+    (pessoa) => pessoa.cpf.replace(/\D/g, "") === cpfNormalizado,
+  );
+  const activeTabIndex = fluxoNovoIngressoTabs.findIndex((tab) => tab.value === activeTab);
+  const isFirstTab = activeTabIndex <= 0;
+  const isLastTab = activeTabIndex === fluxoNovoIngressoTabs.length - 1;
+  const exibirResumoIngresso = activeTabIndex > 0;
+  const resumoIngressoNome = candidatoNome || pessoaFisicaEncontrada?.nome || "João Silva";
+  const resumoIngressoCpf = candidatoCpf || pessoaFisicaEncontrada?.cpf || "000.000.000-00";
+  const documentosObrigatoriosIngresso = ingressoDocumentacaoObrigatoriaMock;
+  const documentosAnexadosAnalise = documentosObrigatoriosIngresso.filter(
+    (documento) => documento.arquivo !== "-",
+  );
+  const todosDocumentosValidados =
+    documentosObrigatoriosIngresso.length > 0 &&
+    documentosObrigatoriosIngresso.every((documento) => documento.situacao === "Validado");
+  const confirmarActionLabel =
+    activeTab === "documentacao" && documentacaoEtapa === "analise"
+      ? "Enviar para Análise"
+      : activeTab === "analise-provimento"
+        ? "Finalizar Análise"
+      : "Confirmar";
+  const confirmarActionIcon =
+    (activeTab === "documentacao" && documentacaoEtapa === "analise") ||
+    activeTab === "analise-provimento"
+      ? "pi pi-send"
+      : undefined;
+  const processoOrigemLabel =
+    tipoIngresso === "Processo Seletivo" ? "Processo Seletivo" : "Concurso";
+  const processoOrigemOptions =
+    tipoIngresso === "Processo Seletivo"
+      ? ["Processo Seletivo SES 2026", "Processo Seletivo SEDUC 2026", "Processo Seletivo SEFAZ 2026"]
+      : ["Concurso SES 2026", "Concurso SEDUC 2026", "Concurso SEFAZ 2026"];
+  const quantidadeVagas =
+    concursoSelecionado && cargoSelecionado
+      ? cargoSelecionado === "Professor"
+        ? "40"
+        : cargoSelecionado === "Gestor Governamental"
+          ? "12"
+          : "25"
+      : "";
+  const isDocumentoAnaliseValidado = (documento: string) =>
+    documentosAnaliseValidados[documento] ?? true;
+  const getDocumentoAnaliseObservacao = (documento: string) =>
+    documentosAnaliseObservacoes[documento] ?? "Documento legível e dentro da validade.";
+  const todosDocumentosAnaliseMarcados =
+    documentosAnexadosAnalise.length > 0 &&
+    documentosAnexadosAnalise.every((documento) =>
+      isDocumentoAnaliseValidado(documento.documento),
+    );
+  const marcarTodosDocumentosAnalise = (checked: boolean) => {
+    setDocumentosAnaliseValidados(
+      Object.fromEntries(
+        documentosAnexadosAnalise.map((documento) => [documento.documento, checked]),
+      ),
+    );
+  };
+  const toggleDocumentoSuspensao = (documento: string) => {
+    setDocumentosSuspensaoSelecionados((documentosAtuais) =>
+      documentosAtuais.includes(documento)
+        ? documentosAtuais.filter((item) => item !== documento)
+        : [...documentosAtuais, documento],
+    );
+  };
+  const documentosSuspensaoResumo =
+    documentosSuspensaoSelecionados.length === 0
+      ? "Selecione..."
+      : documentosSuspensaoSelecionados.length === 1
+        ? documentosSuspensaoSelecionados[0]
+        : `${documentosSuspensaoSelecionados.length} documentos selecionados`;
+  const parecerProvimentoSalvo =
+    (parecerProvimento === "aprovar" && documentosAprovacaoGerados) ||
+    (parecerProvimento === "suspender" && termoSuspensaoGerado) ||
+    (parecerProvimento === "negar" && termoNegativaGerado);
+  const confirmarActionDisabled =
+    activeTab === "analise-provimento" && !parecerProvimentoSalvo;
+  const salvarParecerProvimento = () => {
+    setPrazoPosseSuspenso(parecerProvimento === "suspender");
+    setTermoSuspensaoGerado(parecerProvimento === "suspender");
+    setDocumentosAprovacaoGerados(parecerProvimento === "aprovar");
+    setTermoNegativaGerado(parecerProvimento === "negar");
+    if (parecerProvimento === "negar") {
+      setSituacaoIngresso("Posse negada");
+    }
+  };
+
+  const goBack = () => {
+    if (isFirstTab) {
+      navigate("/prototipos/sigep/ingressos");
+      return;
+    }
+
+    setActiveTab(fluxoNovoIngressoTabs[activeTabIndex - 1].value!);
+  };
+
+  const goNext = () => {
+    if (isLastTab) {
+      navigate(
+        `/prototipos/sigep/ingressos/importar?tipo=${encodeURIComponent(tipoIngresso)}`,
+      );
+      return;
+    }
+
+    setActiveTab(fluxoNovoIngressoTabs[activeTabIndex + 1].value!);
+  };
+
+  const confirmarNovoIngresso = () => {
+    setModalConfirmacaoAberto(false);
+    setSituacaoIngresso("Aguardando Documentação");
+    goNext();
+  };
+
+  const handleConfirmarNovoIngresso = () => {
+    if (activeTab !== "documentacao") {
+      setModalConfirmacaoAberto(true);
+      return;
+    }
+
+    if (documentacaoEtapa === "analise") {
+      setSituacaoIngresso("Análise pelo Provimento");
+      goNext();
+      return;
+    }
+
+    if (documentacaoEtapa === "termos") {
+      setDocumentacaoEtapa("setorial");
+      return;
+    }
+
+    goNext();
+  };
+
+  const handleCpfCandidatoChange = (value: string) => {
+    setCandidatoCpf(value);
+    const cpfBusca = value.replace(/\D/g, "");
+    const pessoa = pessoasFisicasIngressoMock.find(
+      (item) => item.cpf.replace(/\D/g, "") === cpfBusca,
+    );
+
+    if (pessoa) {
+      setCandidatoNome(pessoa.nome);
+      setCandidatoNascimento(pessoa.dataNascimento);
+      return;
+    }
+
+    setCandidatoNome("");
+    setCandidatoNascimento("");
+  };
+
+  const renderDadosBasicosIngresso = () => (
+    <div className="prototype-novo-ingresso-dados-grid">
+      <section className="prototype-ingresso-section prototype-novo-ingresso-candidato-section">
+        <h3>Dados do Candidato</h3>
+        <div className="prototype-novo-ingresso-candidato-grid">
+          <label className="prototype-ingresso-field">
+            <span>CPF<em>*</em></span>
+            <input
+              value={candidatoCpf}
+              placeholder="Digite o CPF ou Nome"
+              onChange={(event) => handleCpfCandidatoChange(event.target.value)}
+            />
+            <button
+              type="button"
+              className="prototype-cadastrar-pessoa-link"
+              onClick={() =>
+                navigate(
+                  `/prototipos/sigep/pessoa-fisica/novo?cpf=${encodeURIComponent(candidatoCpf)}`,
+                )
+              }
+            >
+              Cadastrar Pessoa Física
+            </button>
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Nome Completo<em>*</em></span>
+            <input
+              value={candidatoNome}
+              onChange={(event) => setCandidatoNome(event.target.value)}
+            />
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Data de Nascimento<em>*</em></span>
+            <input
+              type="date"
+              value={candidatoNascimento}
+              onChange={(event) => setCandidatoNascimento(event.target.value)}
+            />
+          </label>
+        </div>
+      </section>
+      <section className="prototype-ingresso-section prototype-novo-ingresso-dados-ingresso">
+        <h3>Dados do Ingresso</h3>
+        <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+          <label className="prototype-ingresso-field">
+            <span>Tipo de Vínculo<em>*</em></span>
+            <select value={tipoVinculo} disabled>
+              <option value={tipoVinculo}>{tipoVinculo}</option>
+            </select>
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>{processoOrigemLabel}<em>*</em></span>
+            <select
+              value={concursoSelecionado}
+              onChange={(event) => setConcursoSelecionado(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              {processoOrigemOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Cargo<em>*</em></span>
+            <select
+              value={cargoSelecionado}
+              onChange={(event) => setCargoSelecionado(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              <option value="Analista Administrativo">Analista Administrativo</option>
+              <option value="Professor">Professor</option>
+              <option value="Gestor Governamental">Gestor Governamental</option>
+            </select>
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Quantidade de Vagas</span>
+            <input type="text" value={quantidadeVagas} readOnly />
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Tipo de vaga<em>*</em></span>
+            <select defaultValue="">
+              <option value="">Selecione...</option>
+              <option value="Ampla">Ampla</option>
+              <option value="PCD">PCD</option>
+              <option value="Cota">Cota</option>
+            </select>
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Data da publicação<em>*</em></span>
+            <input type="date" />
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Prazo final<em>*</em></span>
+            <input type="date" />
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Decisão Judicial<em>*</em></span>
+            <select
+              value={decisaoJudicial}
+              onChange={(event) =>
+                setDecisaoJudicial(event.target.value as "Não" | "Sim")
+              }
+            >
+              <option value="Não">Não</option>
+              <option value="Sim">Sim</option>
+            </select>
+          </label>
+          {decisaoJudicial === "Sim" ? (
+            <label className="prototype-ingresso-field">
+              <span>Documento da Decisão Judicial<em>*</em></span>
+              <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+            </label>
+          ) : null}
+        </div>
+      </section>
+    </div>
+  );
+
+  const renderResumoIngressoBloqueado = () => (
+    <section className="prototype-ingresso-readonly-block">
+      <h3>Ingresso nº 2026/0001</h3>
+      <div className="prototype-ingresso-readonly-grid">
+        <p>
+          <strong>Nome:</strong> {resumoIngressoNome}
+        </p>
+        <p>
+          <strong>CPF:</strong> {resumoIngressoCpf}
+        </p>
+        <p>
+          <strong>Tipo de Ingresso:</strong> {tipoIngresso}
+        </p>
+        <p>
+          <strong>Tipo de Vínculo:</strong> {tipoVinculo}
+        </p>
+        <p>
+          <strong>Prazo para Posse:</strong> 30/07/2026
+        </p>
+        <p>
+          <strong>Situação:</strong> {situacaoIngresso}
+        </p>
+      </div>
+    </section>
+  );
+
+  const renderNovoIngressoStepper = () => (
+    <div className="prototype-novo-ingresso-stepper" aria-label="Etapas do novo ingresso">
+      {novoIngressoConcursoSteps.map((step, index) => {
+        const isActive = step.value === activeTab;
+        const isCompleted = index < activeTabIndex;
+
+        return (
+          <button
+            key={step.value}
+            type="button"
+            className={`prototype-novo-ingresso-step ${
+              isActive ? "is-active" : ""
+            } ${isCompleted ? "is-completed" : ""}`}
+            onClick={() => setActiveTab(step.value!)}
+          >
+            <span className="prototype-novo-ingresso-step-line" />
+            <span className="prototype-novo-ingresso-step-marker">
+              {isCompleted ? <i className="pi pi-check" /> : index + 1}
+            </span>
+            <span className="prototype-novo-ingresso-step-label">{step.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const renderNovoIngressoTab = () => {
+    if (activeTab === "tipo-ingresso") {
+      return (
+        <section className="prototype-ingresso-section prototype-novo-ingresso-section">
+          <h3>Tipo de Ingresso <span className="prototype-required-mark">*</span></h3>
+          <div className="prototype-ingresso-type-grid">
+            {ingressoTipoRadioOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`prototype-ingresso-type-card ${
+                  tipoIngresso === option.value ? "is-selected" : ""
+                }`}
+                onClick={() => {
+                  setTipoIngresso(option.value);
+                  setConcursoSelecionado("");
+                  setActiveTab("tipo-ingresso");
+                  setDocumentacaoEtapa("analise");
+                }}
+              >
+                <span className="prototype-ingresso-radio-dot" />
+                <strong>{option.label}</strong>
+                <small>Gera vínculo {ingressoTipoVinculoMap[option.value]}</small>
+              </button>
+            ))}
+          </div>
+          {renderDadosBasicosIngresso()}
+        </section>
+      );
+    }
+
+    if (activeTab === "documentacao") {
+      if (documentacaoEtapa === "termos") {
+        return (
+          <section className="prototype-ingresso-section">
+            <h3>Formalização da Posse</h3>
+            <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+              <label className="prototype-ingresso-field">
+                <span>Data para Posse<em>*</em></span>
+                <input
+                  type="date"
+                  value={dataPosse}
+                  onChange={(event) => setDataPosse(event.target.value)}
+                />
+              </label>
+              <label className="prototype-ingresso-field">
+                <span>Termo de Posse</span>
+                <input type="text" value="termo_posse_2026_0001.pdf" readOnly />
+              </label>
+              <label className="prototype-ingresso-field">
+                <span>Termo de Encaminhamento</span>
+                <input type="text" value="termo_encaminhamento_2026_0001.pdf" readOnly />
+              </label>
+            </div>
+            <div className="prototype-ingresso-generated-docs">
+              <div>
+                <strong>Termo de Posse gerado</strong>
+                <span>Documento disponível para assinatura e conferência.</span>
+                <BotaoIconSeplag type="button" icon="pi pi-download" tooltip="Baixar termo de posse" />
+              </div>
+              <div>
+                <strong>Termo de Encaminhamento gerado</strong>
+                <span>Encaminhar para atuação da setorial.</span>
+                <BotaoIconSeplag type="button" icon="pi pi-download" tooltip="Baixar termo de encaminhamento" />
+              </div>
+            </div>
+            <div className="prototype-form-actions prototype-form-actions--left">
+              <BotaoSeplag
+                type="button"
+                label="Negar Posse"
+                icon="pi pi-times"
+                severity="danger"
+                onClick={() => setModalNegarPosseAberto(true)}
+              />
+            </div>
+          </section>
+        );
+      }
+
+      if (documentacaoEtapa === "setorial") {
+        return (
+          <section className="prototype-ingresso-section">
+            <h3>Termo de Encaminhamento - Atuação Setorial</h3>
+            <div className="prototype-validation-panel prototype-validation-panel--info">
+              O ingresso deve ser atuado pela setorial antes do registro de exercício.
+            </div>
+            <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+              <label className="prototype-ingresso-field">
+                <span>Órgão<em>*</em></span>
+                <select defaultValue="">
+                  <option value="">Selecione...</option>
+                  <option value="SES">SES</option>
+                  <option value="SEDUC">SEDUC</option>
+                  <option value="SEFAZ">SEFAZ</option>
+                </select>
+              </label>
+              <label className="prototype-ingresso-field">
+                <span>Setor/Lotação<em>*</em></span>
+                <select defaultValue="">
+                  <option value="">Selecione...</option>
+                  <option value="Unidade Central">Unidade Central</option>
+                  <option value="Coordenadoria de Pessoas">Coordenadoria de Pessoas</option>
+                  <option value="Núcleo Administrativo">Núcleo Administrativo</option>
+                </select>
+              </label>
+              <label className="prototype-ingresso-field">
+                <span>Data da Atuação<em>*</em></span>
+                <input type="date" />
+              </label>
+              <label className="prototype-ingresso-field">
+                <span>Responsável Setorial</span>
+                <input type="text" placeholder="Informe o responsável" />
+              </label>
+            </div>
+          </section>
+        );
+      }
+
+      return (
+        <section className="prototype-ingresso-section">
+          <h3>Documentação Obrigatória</h3>
+          <table className="prototype-simple-table prototype-ingresso-doc-table prototype-ingresso-doc-table--obrigatoria">
+            <thead>
+              <tr>
+                <th className="prototype-ingresso-doc-index-col"></th>
+                <th>Documento</th>
+                <th>Obrigatório</th>
+                <th>Situação</th>
+                <th>Arquivo</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {documentosObrigatoriosIngresso.map((documento, index) => (
+                <tr key={documento.documento}>
+                  <td className="prototype-ingresso-doc-index-col">{index + 1}</td>
+                  <td>{documento.documento}</td>
+                  <td>
+                    <span className="prototype-ingresso-doc-required">
+                      {documento.obrigatorio}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      className={`prototype-ingresso-doc-status ${getIngressoDocumentoStatusClass(
+                        documento.situacao,
+                      )}`}
+                    >
+                      {documento.situacao}
+                    </span>
+                  </td>
+                  <td>{documento.arquivo}</td>
+                  <td className="prototype-ingresso-doc-action-cell">
+                    <div className="prototype-ingresso-doc-actions">
+                      <BotaoIconSeplag
+                        type="button"
+                        className="prototype-ingresso-doc-action-button"
+                        icon={documento.arquivo === "-" ? "pi pi-cloud-upload" : "pi pi-eye"}
+                        tooltip={
+                          documento.arquivo === "-"
+                            ? `Enviar ${documento.documento}`
+                            : `Visualizar ${documento.arquivo}`
+                        }
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      );
+    }
+
+    if (activeTab === "analise-provimento") {
+      return (
+        <section className="prototype-ingresso-section">
+          <div className="prototype-analise-provimento-layout">
+            <div className="prototype-analise-provimento-main">
+              <div className="prototype-analise-provimento-panel">
+                <button
+                  type="button"
+                  className="prototype-recuar-section-header"
+                  onClick={() => setAnaliseProvimentoAberta((aberta) => !aberta)}
+                  aria-expanded={analiseProvimentoAberta}
+                >
+                  <span>Análise de Documentos</span>
+                  <i className={`pi ${analiseProvimentoAberta ? "pi-chevron-up" : "pi-chevron-down"}`} />
+                </button>
+                {analiseProvimentoAberta ? (
+                <table className="prototype-simple-table prototype-analise-provimento-table">
+                  <thead>
+                    <tr>
+                      <th>Documento</th>
+                      <th>
+                        <label className="prototype-analise-validacao-check prototype-analise-validacao-check--header">
+                          <input
+                            type="checkbox"
+                            aria-label="Marcar todos os documentos como validados"
+                            checked={todosDocumentosAnaliseMarcados}
+                            onChange={(event) => marcarTodosDocumentosAnalise(event.target.checked)}
+                          />
+                          <span>Situação</span>
+                        </label>
+                      </th>
+                      <th>Validação</th>
+                      <th>Observação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {documentosAnexadosAnalise.map((documento) => {
+                      const documentoValidado = isDocumentoAnaliseValidado(documento.documento);
+
+                      return (
+                        <tr key={documento.documento}>
+                          <td>
+                            <span className="prototype-analise-documento-name">
+                              {documento.documento}
+                            </span>
+                          </td>
+                          <td>
+                            <label className="prototype-analise-validacao-check">
+                              <input
+                                type="checkbox"
+                                aria-label={`Marcar ${documento.documento} como validado`}
+                                checked={documentoValidado}
+                                onChange={(event) =>
+                                  setDocumentosAnaliseValidados((atual) => ({
+                                    ...atual,
+                                    [documento.documento]: event.target.checked,
+                                  }))
+                                }
+                              />
+                              <span
+                                className={`prototype-ingresso-doc-status ${
+                                  documentoValidado
+                                    ? "prototype-ingresso-doc-status--validado"
+                                    : "prototype-ingresso-doc-status--pendente"
+                                }`}
+                              >
+                                {documentoValidado ? "Validado" : "Pendente"}
+                              </span>
+                            </label>
+                          </td>
+                          <td>
+                            {documentoValidado ? (
+                              <>
+                                <strong>10/07/2026</strong>
+                                <span>Provimento</span>
+                              </>
+                            ) : (
+                              <span>-</span>
+                            )}
+                          </td>
+                          <td>
+                            <input
+                              className="prototype-analise-observacao-input"
+                              aria-label={`Observação do documento ${documento.documento}`}
+                              value={getDocumentoAnaliseObservacao(documento.documento)}
+                              placeholder="Adicionar observação, se necessário"
+                              onChange={(event) =>
+                                setDocumentosAnaliseObservacoes((atual) => ({
+                                  ...atual,
+                                  [documento.documento]: event.target.value,
+                                }))
+                              }
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                ) : null}
+              </div>
+
+              <div className="prototype-analise-provimento-panel prototype-parecer-provimento">
+                <button
+                  type="button"
+                  className="prototype-recuar-section-header"
+                  onClick={() => setParecerProvimentoAberto((aberto) => !aberto)}
+                  aria-expanded={parecerProvimentoAberto}
+                >
+                  <span>Parecer do Provimento</span>
+                  <i className={`pi ${parecerProvimentoAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
+                </button>
+                {parecerProvimentoAberto ? (
+                <>
+                <div className="prototype-parecer-radio-group">
+                  <label>
+                    <input
+                      type="radio"
+                      name="parecer-provimento"
+                      checked={parecerProvimento === "aprovar"}
+                      onChange={() => {
+                        setParecerProvimento("aprovar");
+                        setTermoSuspensaoGerado(false);
+                        setDocumentosAprovacaoGerados(false);
+                        setTermoNegativaGerado(false);
+                      }}
+                    />
+                    <span>Aprovar Documentação</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="parecer-provimento"
+                      checked={parecerProvimento === "suspender"}
+                      onChange={() => {
+                        setParecerProvimento("suspender");
+                        setTermoSuspensaoGerado(false);
+                        setDocumentosAprovacaoGerados(false);
+                        setTermoNegativaGerado(false);
+                      }}
+                    />
+                    <span>Suspender Posse</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="parecer-provimento"
+                      checked={parecerProvimento === "negar"}
+                      onChange={() => {
+                        setParecerProvimento("negar");
+                        setTermoSuspensaoGerado(false);
+                        setDocumentosAprovacaoGerados(false);
+                        setTermoNegativaGerado(false);
+                      }}
+                    />
+                    <span>Negar Posse</span>
+                  </label>
+                </div>
+
+                {parecerProvimento === "aprovar" && !todosDocumentosAnaliseMarcados ? (
+                  <div className="prototype-parecer-alerta" role="alert">
+                    <i className="pi pi-exclamation-triangle" />
+                    Todos os documentos devem ser validados para aprovar documentação.
+                  </div>
+                ) : null}
+
+                {parecerProvimento === "aprovar" ? (
+                  <div className="prototype-parecer-aprovacao">
+                    <label className="prototype-ingresso-field">
+                      <span>Observação</span>
+                      <textarea placeholder="Informe uma observação sobre a aprovação, se necessário." />
+                    </label>
+                  </div>
+                ) : null}
+
+                {parecerProvimento === "suspender" ? (
+                  <div className="prototype-parecer-suspensao">
+                    <p>
+                      Informe o motivo da suspensão. O prazo de posse ficará pausado até a conclusão
+                      da análise ou apresentação da documentação solicitada.
+                    </p>
+                    <div className="prototype-suspensao-prazo-grid">
+                      <label className="prototype-ingresso-field">
+                        <span>Motivo da suspensão<em>*</em></span>
+                        <select defaultValue="">
+                          <option value="">Selecione...</option>
+                          <option value="autenticidade">Verificação de autenticidade de documento</option>
+                          <option value="certidao-positiva">Certidão positiva apresentada</option>
+                          <option value="documento-ilegivel">Documento ilegível</option>
+                          <option value="incompativel-edital">Documento incompatível com o requisito do edital</option>
+                          <option value="analise-juridica">Necessidade de análise jurídica</option>
+                          <option value="documento-complementar">Solicitação de documento complementar</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </label>
+                      <div className="prototype-ingresso-field prototype-multiselect-field">
+                        <span>Documento relacionado<em>*</em></span>
+                        <div className="prototype-multiselect">
+                          <button
+                            type="button"
+                            className="prototype-multiselect-trigger"
+                            onClick={() =>
+                              setDocumentosSuspensaoDropdownAberto((dropdownAberto) => !dropdownAberto)
+                            }
+                            aria-expanded={documentosSuspensaoDropdownAberto}
+                          >
+                            <span>{documentosSuspensaoResumo}</span>
+                            <i className={`pi ${documentosSuspensaoDropdownAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
+                          </button>
+                          {documentosSuspensaoDropdownAberto ? (
+                            <div className="prototype-multiselect-panel">
+                              {documentosObrigatoriosIngresso.map((documento) => (
+                                <label key={documento.documento} className="prototype-multiselect-option">
+                                  <input
+                                    type="checkbox"
+                                    checked={documentosSuspensaoSelecionados.includes(documento.documento)}
+                                    onChange={() => toggleDocumentoSuspensao(documento.documento)}
+                                  />
+                                  <span>{documento.documento}</span>
+                                </label>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                      <label className="prototype-ingresso-field">
+                        <span>Data de início da suspensão<em>*</em></span>
+                        <input type="date" />
+                      </label>
+                      <label className="prototype-ingresso-field">
+                        <span>Prazo para resposta/complementação<em>*</em></span>
+                        <input type="date" />
+                      </label>
+                      <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
+                        <span>Justificativa<em>*</em></span>
+                        <textarea placeholder="Descreva a justificativa para suspensão do prazo." />
+                      </label>
+                    </div>
+                  </div>
+                ) : null}
+
+                {parecerProvimento === "negar" ? (
+                  <div className="prototype-parecer-negativa">
+                    <p>
+                      A negativa de posse impedirá a continuidade do ingresso deste candidato.
+                      Após a confirmação, o Termo de Negativa de Posse será gerado e o processo
+                      poderá seguir para tornar a nomeação sem efeito.
+                    </p>
+                    <div className="prototype-suspensao-prazo-grid">
+                      <label className="prototype-ingresso-field">
+                        <span>Motivo da negativa<em>*</em></span>
+                        <select defaultValue="">
+                          <option value="">Selecione...</option>
+                          <option value="documento-obrigatorio">Não apresentou documento obrigatório</option>
+                          <option value="documento-edital">Documento apresentado não atende ao edital</option>
+                          <option value="laudo-inapto">Laudo médico inapto</option>
+                          <option value="diploma-incompativel">Diploma incompatível com o cargo</option>
+                          <option value="certidao-impeditiva">Certidão impeditiva</option>
+                          <option value="acumulo-nao-permitido">Acúmulo de cargo não permitido</option>
+                          <option value="nao-comparecimento">Não comparecimento para posse</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </label>
+                      <label className="prototype-ingresso-field">
+                        <span>Documento/requisito relacionado<em>*</em></span>
+                        <select defaultValue="">
+                          <option value="">Selecione...</option>
+                          {documentosObrigatoriosIngresso.map((documento) => (
+                            <option key={documento.documento} value={documento.documento}>
+                              {documento.documento}
+                            </option>
+                          ))}
+                          <option value="requisito-edital">Requisito do edital</option>
+                          <option value="comparecimento">Comparecimento para posse</option>
+                        </select>
+                      </label>
+                      <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
+                        <span>Justificativa detalhada<em>*</em></span>
+                        <textarea placeholder="Descreva a justificativa detalhada da negativa de posse." />
+                      </label>
+                    </div>
+                    <label className="prototype-parecer-ciencia">
+                      <input type="checkbox" required />
+                      <span>
+                        Confirmo que a documentação foi analisada e que o candidato não atende
+                        aos requisitos para posse.
+                      </span>
+                    </label>
+                    <div className="prototype-parecer-save-row">
+                      <BotaoSeplag
+                        type="button"
+                        label="Salvar"
+                        icon="pi pi-save"
+                        onClick={salvarParecerProvimento}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+
+                {parecerProvimento !== "negar" ? (
+                <div className="prototype-parecer-save-row">
+                  <BotaoSeplag
+                    type="button"
+                    label="Salvar"
+                    icon="pi pi-save"
+                    onClick={salvarParecerProvimento}
+                  />
+                </div>
+                ) : null}
+                </>
+                ) : null}
+              </div>
+              {parecerProvimento === "aprovar" && documentosAprovacaoGerados ? (
+                <div className="prototype-documentos-gerados">
+                  <h4>Documentos Gerados</h4>
+                  <div className="prototype-documentos-gerados-grid">
+                    <div>
+                      <i className="pi pi-file-check" />
+                      <div>
+                        <strong>Checklist de documentos recebidos</strong>
+                      </div>
+                      <BotaoSeplag type="button" label="Visualizar" icon="pi pi-eye" outlined />
+                    </div>
+                    <div>
+                      <i className="pi pi-file-edit" />
+                      <div>
+                        <strong>Termo de Posse</strong>
+                      </div>
+                      <BotaoSeplag type="button" label="Gerar" icon="pi pi-download" outlined />
+                    </div>
+                    <div>
+                      <i className="pi pi-send" />
+                      <div>
+                        <strong>Termo de Encaminhamento</strong>
+                      </div>
+                      <BotaoSeplag type="button" label="Gerar" icon="pi pi-download" outlined />
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+              {parecerProvimento === "suspender" && termoSuspensaoGerado ? (
+                <div className="prototype-documentos-gerados prototype-documentos-gerados--suspensao">
+                  <h4>Documentos Gerados</h4>
+                  <div className="prototype-documentos-gerados-grid prototype-documentos-gerados-grid--single">
+                    <div>
+                      <i className="pi pi-file-check" />
+                      <div>
+                        <strong>Termo de Suspensão</strong>
+                      </div>
+                      <BotaoSeplag type="button" label="Visualizar" icon="pi pi-eye" outlined />
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+              {parecerProvimento === "negar" && termoNegativaGerado ? (
+                <div className="prototype-documentos-gerados prototype-documentos-gerados--suspensao">
+                  <h4>Documentos Gerados</h4>
+                  <div className="prototype-documentos-gerados-grid prototype-documentos-gerados-grid--single">
+                    <div>
+                      <i className="pi pi-file-check" />
+                      <div>
+                        <strong>Termo de Negativa de Posse</strong>
+                      </div>
+                      <BotaoSeplag type="button" label="Visualizar" icon="pi pi-eye" outlined />
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <aside className="prototype-analise-provimento-side">
+              <div className="prototype-analise-provimento-panel">
+                <h4>Prazo da Posse</h4>
+                <dl className="prototype-prazo-posse-list">
+                  <div>
+                    <dt>Data da publicação</dt>
+                    <dd>13/07/2026 <i className="pi pi-calendar" /></dd>
+                  </div>
+                  {prazoPosseSuspenso ? (
+                    <>
+                      <div>
+                        <dt>Prazo original</dt>
+                        <dd>12/08/2026 <i className="pi pi-calendar" /></dd>
+                      </div>
+                      <div>
+                        <dt>Data da suspensão</dt>
+                        <dd>25/07/2026 <i className="pi pi-calendar" /></dd>
+                      </div>
+                      <div>
+                        <dt>Dias consumidos</dt>
+                        <dd>12 dias</dd>
+                      </div>
+                      <div>
+                        <dt>Dias restantes congelados</dt>
+                        <dd className="prototype-prazo-posse-days">18 dias</dd>
+                      </div>
+                      <div>
+                        <dt>Status</dt>
+                        <dd>
+                          <span className="prototype-prazo-posse-status prototype-prazo-posse-status--suspenso">
+                            Prazo suspenso
+                          </span>
+                        </dd>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <dt>Prazo final</dt>
+                        <dd>{dataPosse || "12/08/2026"} <i className="pi pi-calendar" /></dd>
+                      </div>
+                      <div>
+                        <dt>Dias restantes</dt>
+                        <dd className="prototype-prazo-posse-days">23 dias</dd>
+                      </div>
+                      <div>
+                        <dt>Status</dt>
+                        <dd>
+                          <span className="prototype-prazo-posse-status">Dentro do prazo</span>
+                        </dd>
+                      </div>
+                    </>
+                  )}
+                </dl>
+              </div>
+            </aside>
+          </div>
+
+        </section>
+      );
+    }
+
+    if (activeTab === "efetivo-exercicio") {
+      return (
+        <section className="prototype-ingresso-section">
+          <h3>Efetivo Exercício</h3>
+          <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+            <label className="prototype-ingresso-field">
+              <span>Órgão<em>*</em></span>
+              <select defaultValue="">
+                <option value="">Selecione...</option>
+                <option value="SES">SES</option>
+                <option value="SEDUC">SEDUC</option>
+                <option value="SEFAZ">SEFAZ</option>
+              </select>
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Setor/Lotação<em>*</em></span>
+              <select defaultValue="">
+                <option value="">Selecione...</option>
+                <option value="Unidade Central">Unidade Central</option>
+                <option value="Coordenadoria de Pessoas">Coordenadoria de Pessoas</option>
+                <option value="Núcleo Administrativo">Núcleo Administrativo</option>
+              </select>
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Data do Efetivo Exercício<em>*</em></span>
+              <input type="date" />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Documento comprobatório</span>
+              <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+            </label>
+          </div>
+        </section>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag
+          title="Novo Ingresso"
+          cols="12"
+          cardHeaderClassNames="prototype-novo-ingresso-card"
+        >
+          <div className="prototype-ingresso-flow">
+            {tipoIngresso === "Concurso" ? (
+              renderNovoIngressoStepper()
+            ) : (
+              <TabsSeplag
+                items={novoIngressoTabs}
+                activeValue={activeTab}
+                onChange={setActiveTab}
+                equalWidth={false}
+              />
+            )}
+
+            {exibirResumoIngresso ? renderResumoIngressoBloqueado() : null}
+
+            {renderNovoIngressoTab()}
+
+            <div className="prototype-novo-ingresso-footer">
+              <div className="prototype-form-actions prototype-novo-ingresso-actions">
+                <BotaoVoltarSeplag
+                  type="button"
+                  label="Voltar"
+                  onClick={goBack}
+                />
+                <BotaoSeplag
+                  type="button"
+                  label={confirmarActionLabel}
+                  icon={confirmarActionIcon}
+                  disabled={confirmarActionDisabled}
+                  onClick={handleConfirmarNovoIngresso}
+                />
+              </div>
+            </div>
+          </div>
+        </CardSeplag>
+      </div>
+
+      <ModalSeplag
+        visible={modalConfirmacaoAberto}
+        titulo="Confirmar novo ingresso"
+        fechar={() => setModalConfirmacaoAberto(false)}
+        labelFechar="Não"
+        labelAcao="Sim"
+        funcAcao={confirmarNovoIngresso}
+        tamanho="560px"
+      >
+        <p className="col-12">
+          Ao confirmar, dará prosseguimento ao ingresso de um novo servidor.
+          Deseja continuar?
+        </p>
+      </ModalSeplag>
+
+      <ModalSeplag
+        visible={modalComplementacaoAberto}
+        titulo="Solicitar complementação"
+        fechar={() => setModalComplementacaoAberto(false)}
+        labelFechar="Cancelar"
+        labelAcao="Confirmar"
+        funcAcao={() => setModalComplementacaoAberto(false)}
+        tamanho="620px"
+      >
+        <div className="prototype-ingresso-modal-content">
+          <p>
+            Existe documentação pendente ou não validada. Ao solicitar complementação,
+            o prazo para posse será suspenso até o envio e validação dos documentos.
+          </p>
+          <label className="prototype-ingresso-field">
+            <span>Documento faltante / pendência<em>*</em></span>
+            <textarea placeholder="Informe quais documentos ou correções devem ser solicitados." />
+          </label>
+        </div>
+      </ModalSeplag>
+
+      <ModalSeplag
+        visible={modalNegarPosseAberto}
+        titulo="Negar posse"
+        fechar={() => setModalNegarPosseAberto(false)}
+        labelFechar="Cancelar"
+        labelAcao="Confirmar"
+        iconAcao="pi pi-times"
+        funcAcao={() => setModalNegarPosseAberto(false)}
+        tamanho="620px"
+      >
+        <div className="prototype-ingresso-modal-content">
+          <p>
+            Confirme a negativa de posse para este ingresso. Esta ação deve registrar
+            o motivo da negativa no histórico do processo.
+          </p>
+          <label className="prototype-ingresso-field">
+            <span>Motivo da negativa<em>*</em></span>
+            <textarea placeholder="Descreva o motivo da negativa de posse." />
+          </label>
+        </div>
+      </ModalSeplag>
+
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposPessoaFisicaFormPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const cpf = searchParams.get("cpf") ?? "";
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Cadastrar Pessoa Física" cols="12">
+          <div className="prototype-ingresso-import-grid">
+            <label className="prototype-ingresso-field">
+              <span>CPF<em>*</em></span>
+              <input defaultValue={cpf} />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Nome Completo<em>*</em></span>
+              <input />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Data de Nascimento</span>
+              <input placeholder="dd/mm/aaaa" />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>E-mail</span>
+              <input />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Telefone</span>
+              <input />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Endereço</span>
+              <input />
+            </label>
+          </div>
+          <div className="prototype-form-actions prototype-ingresso-step-actions">
+            <BotaoVoltarSeplag
+              type="button"
+              label="Voltar"
+              onClick={() => navigate("/prototipos/sigep/ingressos/novo")}
+            />
+            <BotaoSalvarSeplag type="button" />
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposImportarIngressoPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tipoParam = searchParams.get("tipo") as IngressoTipo | null;
+  const tipoIngresso =
+    tipoParam && tipoParam in ingressoTipoVinculoMap ? tipoParam : "Concurso";
+  const tipoVinculo = ingressoTipoVinculoMap[tipoIngresso];
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Importar Dados do Ingresso" cols="12">
+          <div className="prototype-ingresso-import-layout">
+            <div className="prototype-ingresso-summary">
+              <div>
+                <span>Tipo de Ingresso</span>
+                <strong>{tipoIngresso}</strong>
+              </div>
+              <div>
+                <span>Tipo de Vínculo Gerado</span>
+                <strong>{tipoVinculo}</strong>
+              </div>
+            </div>
+
+            <div className="prototype-ingresso-import-main">
+              <div className="prototype-ingresso-import-grid">
+                {["Concurso", "Edital", "Órgão", "Cargo", "Data da Publicação", "Arquivo Excel da banca"].map((label) => (
+                  <label key={label} className="prototype-ingresso-field">
+                    <span>{label}<em>*</em></span>
+                    <input
+                      type="text"
+                      placeholder={label.includes("Arquivo") ? "Selecionar arquivo..." : ""}
+                      readOnly
+                    />
+                  </label>
+                ))}
+              </div>
+
+              <div className="prototype-form-actions prototype-form-actions--left prototype-ingresso-import-actions">
+                <BotaoSeplag type="button" label="Validar Arquivo" icon="pi pi-check-circle" />
+                <BotaoSeplag
+                  type="button"
+                  label="Importar"
+                  icon="pi pi-upload"
+                  onClick={() => navigate("/prototipos/sigep/ingressos/1")}
+                />
+              </div>
+            </div>
+          </div>
+
+          <section className="prototype-ingresso-section">
+            <h3>Prévia da importação</h3>
+            <div className="prototype-ingresso-preview-wrap">
+              <table className="prototype-simple-table prototype-ingresso-preview-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Classificação</th>
+                    <th>Tipo de Vaga</th>
+                    <th>E-mail</th>
+                    <th>Situação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ingressoImportacaoPreview.map((row) => (
+                    <tr key={row.id}>
+                      <td>{row.nome}</td>
+                      <td>{row.cpf}</td>
+                      <td>{row.classificacao}</td>
+                      <td>{row.tipoVaga}</td>
+                      <td>{row.email}</td>
+                      <td>{row.situacao}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <div className="prototype-form-actions prototype-ingresso-step-actions">
+            <BotaoVoltarSeplag
+              type="button"
+              label="Voltar"
+              onClick={() => navigate("/prototipos/sigep/ingressos/novo")}
+            />
+            <BotaoSeplag
+              type="button"
+              label="Avançar"
+              icon="pi pi-arrow-right"
+              onClick={() => navigate("/prototipos/sigep/ingressos/1")}
+            />
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+function IngressoInfoGrid({
+  className = "",
+  items,
+}: {
+  className?: string;
+  items: Array<{ label: string; value: ReactNode }>;
+}) {
+  return (
+    <div className={`prototype-ingresso-info-grid ${className}`}>
+      {items.map((item) => (
+        <div key={item.label}>
+          <span>{item.label}</span>
+          <strong>{item.value}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function PrototiposIngressoDetalhePage() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get("aba") as IngressoDetalheTab | null;
+  const [activeTab, setActiveTab] = useState<IngressoDetalheTab>(
+    requestedTab ?? "dados-basicos",
+  );
+  const ingresso = ingressosMock.find((item) => String(item.id) === id) ?? ingressosMock[0];
+
+  const renderTabContent = () => {
+    if (activeTab === "dados-basicos") {
+      return (
+        <div className="prototype-ingresso-two-columns">
+          <section className="prototype-ingresso-section">
+            <h3>Dados da Pessoa</h3>
+            <IngressoInfoGrid
+              items={[
+                { label: "Nome", value: ingresso.nome },
+                { label: "CPF", value: ingresso.cpf },
+                { label: "Data de nascimento", value: "10/02/1990" },
+                { label: "E-mail", value: "joao@email.com" },
+                { label: "Telefone", value: "(65) 99999-0000" },
+                { label: "Endereço", value: "Rua Central, 100 - Cuiabá/MT" },
+              ]}
+            />
+          </section>
+          <section className="prototype-ingresso-section">
+            <h3>Dados do Ingresso</h3>
+            <IngressoInfoGrid
+              items={[
+                { label: "Tipo de Ingresso", value: ingresso.tipoIngresso },
+                { label: "Tipo de Vínculo", value: ingresso.tipoVinculo },
+                { label: "Órgão", value: ingresso.orgao },
+                { label: "Cargo", value: ingresso.cargo },
+                { label: "Classificação", value: "1º" },
+                { label: "Tipo de vaga", value: "Ampla" },
+                { label: "Data da publicação", value: "30/06/2026" },
+                { label: "Prazo final", value: "30/07/2026" },
+              ]}
+            />
+            <div className="prototype-validation-panel prototype-validation-panel--info">
+              Dados importados ficam bloqueados para edição.
+            </div>
+          </section>
+        </div>
+      );
+    }
+
+    if (activeTab === "documentacao") {
+      return (
+        <section className="prototype-ingresso-section">
+          <h3>Documentação</h3>
+          <table className="prototype-simple-table prototype-ingresso-doc-table">
+            <thead>
+              <tr>
+                <th>Documento</th>
+                <th>Obrigatório</th>
+                <th>Situação</th>
+                <th>Arquivo</th>
+                <th>Observação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ingressoDocumentosMock
+                .filter((documento) => documento.arquivo !== "-")
+                .map((documento) => (
+                <tr key={documento.documento}>
+                  <td>{documento.documento}</td>
+                  <td>{documento.obrigatorio}</td>
+                  <td>{documento.situacao}</td>
+                  <td>{documento.arquivo}</td>
+                  <td>{documento.observacao}</td>
+                  <td>
+                    <div className="prototype-ingresso-doc-actions">
+                      <BotaoIconSeplag
+                        type="button"
+                        icon="pi pi-download"
+                        tooltip={`Baixar ${documento.arquivo}`}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="prototype-form-actions prototype-form-actions--left">
+            <BotaoSeplag type="button" label="Aprovar Documentação" icon="pi pi-check" />
+            <BotaoSeplag type="button" label="Solicitar Complementação" icon="pi pi-file-edit" severity="warning" />
+            <BotaoSeplag type="button" label="Reprovar" icon="pi pi-times" severity="danger" />
+          </div>
+        </section>
+      );
+    }
+
+    if (activeTab === "validacoes") {
+      return (
+        <section className="prototype-ingresso-section">
+          <h3>Validações</h3>
+          <IngressoInfoGrid
+            items={[
+              { label: "Documentação completa", value: "Sim" },
+              { label: "Prazo válido", value: "Sim" },
+              { label: "Perícia médica", value: "Apto" },
+              { label: "Acúmulo de cargo", value: "Regular" },
+              { label: "Pendência jurídica", value: "Não" },
+              { label: "Status", value: "Apto para Posse" },
+            ]}
+          />
+          <div className="prototype-form-actions prototype-form-actions--left">
+            <BotaoSeplag type="button" label="Registrar Perícia" icon="pi pi-heart" />
+            <BotaoSeplag type="button" label="Registrar Análise de Acúmulo" icon="pi pi-briefcase" />
+            <BotaoSeplag
+              type="button"
+              label="Liberar Formalização"
+              icon="pi pi-send"
+              onClick={() => setActiveTab("formalizacao")}
+            />
+          </div>
+        </section>
+      );
+    }
+
+    if (activeTab === "formalizacao") {
+      return (
+        <section className="prototype-ingresso-section">
+          <h3>Formalização - Posse</h3>
+          <div className="prototype-ingresso-import-grid">
+            {["Data da Posse", "Termo de Posse", "Termo de Encaminhamento", "Responsável pela Posse", "Observação"].map((label) => (
+              <label key={label} className="prototype-ingresso-field">
+                <span>{label}{label === "Data da Posse" ? <em>*</em> : null}</span>
+                <input readOnly />
+              </label>
+            ))}
+          </div>
+          <div className="prototype-form-actions prototype-form-actions--left">
+            <BotaoSeplag type="button" label="Gerar Termo de Posse" icon="pi pi-file" />
+            <BotaoSeplag type="button" label="Gerar Termo de Encaminhamento" icon="pi pi-file-export" />
+            <BotaoSeplag type="button" label="Confirmar Posse" icon="pi pi-check" />
+            <BotaoSeplag type="button" label="Negar Posse" icon="pi pi-times" severity="danger" />
+          </div>
+        </section>
+      );
+    }
+
+    if (activeTab === "exercicio") {
+      return (
+        <section className="prototype-ingresso-section">
+          <h3>Exercício / Início</h3>
+          <div className="prototype-ingresso-import-grid">
+            {["Órgão", "Lotação", "Data limite para início", "Data efetiva de início", "Documento comprobatório", "Termo de Efetivo Exercício"].map((label) => (
+              <label key={label} className="prototype-ingresso-field">
+                <span>{label}{["Órgão", "Lotação", "Data efetiva de início"].includes(label) ? <em>*</em> : null}</span>
+                <input readOnly />
+              </label>
+            ))}
+          </div>
+          <div className="prototype-validation-panel prototype-validation-panel--info">
+            Somente após registrar o início o sistema pode gerar vínculo.
+          </div>
+          <div className="prototype-form-actions prototype-form-actions--left">
+            <BotaoSeplag type="button" label="Registrar Início" icon="pi pi-calendar-plus" />
+          </div>
+        </section>
+      );
+    }
+
+    if (activeTab === "vinculo") {
+      return (
+        <section className="prototype-ingresso-section">
+          <h3>Gerar Vínculo</h3>
+          <IngressoInfoGrid
+            items={[
+              { label: "Matrícula", value: "327305" },
+              { label: "Nº do Vínculo", value: "1" },
+              { label: "Tipo de Vínculo", value: ingresso.tipoVinculo },
+              { label: "Natureza", value: "Funcional" },
+              { label: "Cargo", value: ingresso.cargo },
+              { label: "Órgão", value: ingresso.orgao },
+              { label: "Lotação", value: "Unidade Central" },
+              { label: "Data de Exercício", value: "15/07/2026" },
+              { label: "Situação Inicial", value: "Ativo" },
+            ]}
+          />
+          <div className="prototype-validation-panel">
+            Vínculo criado com sucesso. Ingresso concluído. Servidor disponível para Vida Funcional e Folha.
+          </div>
+          <div className="prototype-form-actions prototype-form-actions--left">
+            <BotaoSeplag
+              type="button"
+              label="Gerar Vínculo"
+              icon="pi pi-link"
+              onClick={() => navigate("/prototipos/sigep/pessoas/327305/vinculos")}
+            />
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <section className="prototype-ingresso-section">
+        <h3>{activeTab === "historico" ? "Histórico" : "Prestação de Contas"}</h3>
+        <table className="prototype-simple-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Evento</th>
+              <th>Responsável</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>03/07/2026</td>
+              <td>Ingresso em análise</td>
+              <td>Roberto Junior</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    );
+  };
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Ingresso nº 2026/0001" cols="12">
+          <IngressoInfoGrid
+            className="prototype-ingresso-header-grid"
+            items={[
+              { label: "Nome", value: ingresso.nome },
+              { label: "CPF", value: ingresso.cpf },
+              { label: "Tipo de Ingresso", value: ingresso.tipoIngresso },
+              { label: "Tipo de Vínculo", value: ingresso.tipoVinculo },
+              { label: "Situação", value: ingresso.situacao },
+              { label: "Prazo para Posse", value: "30/07/2026" },
+            ]}
+          />
+          <TabsSeplag
+            items={ingressoDetalheTabs}
+            activeValue={activeTab}
+            onChange={setActiveTab}
+            equalWidth={false}
+          />
+          {renderTabContent()}
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposPessoaVinculosPage() {
+  const navigate = useNavigate();
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Pessoa" cols="12">
+          <IngressoInfoGrid
+            items={[
+              { label: "Nome", value: "João Silva" },
+              { label: "CPF", value: "000.000.000-00" },
+              { label: "Matrícula", value: "327305" },
+            ]}
+          />
+          <div className="prototype-ingresso-static-tabs">
+            {["Dados Pessoais", "Ingressos", "Vínculos", "Vida Funcional", "Documentos"].map((tab) => (
+              <span key={tab} className={tab === "Vínculos" ? "is-active" : ""}>{tab}</span>
+            ))}
+          </div>
+          <table className="prototype-simple-table">
+            <thead>
+              <tr>
+                <th>Nº</th>
+                <th>Tipo</th>
+                <th>Natureza</th>
+                <th>Cargo/Função</th>
+                <th>Data Início</th>
+                <th>Data Vacância</th>
+                <th>Situação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ["1", "Efetivo", "Funcional", "Analista", "15/07/2026", "-", "Ativo"],
+                ["2", "Comissionado", "Funcional", "DGA-4", "01/08/2026", "-", "Ativo"],
+              ].map((row) => (
+                <tr key={row[0]}>
+                  {row.map((cell) => <td key={cell}>{cell}</td>)}
+                  <td>
+                    <div className="prototype-ingresso-action-row">
+                      <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar" onClick={() => navigate(`/prototipos/sigep/vinculos/${row[0]}`)} />
+                      <BotaoIconSeplag type="button" icon="pi pi-history" tooltip="Histórico" />
+                      <BotaoIconSeplag type="button" icon="pi pi-times" tooltip="Encerrar vínculo" severity="danger" />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposVinculoDetalhePage() {
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Vínculo nº 1" cols="12">
+          <IngressoInfoGrid
+            items={[
+              { label: "Matrícula", value: "327305" },
+              { label: "Tipo de Vínculo", value: "Efetivo" },
+              { label: "Natureza", value: "Funcional" },
+              { label: "Origem", value: "Ingresso nº 2026/0001" },
+              { label: "Situação", value: "Ativo" },
+              { label: "Cargo", value: "Analista Administrativo" },
+              { label: "Categoria", value: "Profissional Técnico" },
+              { label: "Regime Jurídico", value: "Estatutário" },
+              { label: "Órgão", value: "SES" },
+              { label: "Lotação", value: "Unidade Central" },
+              { label: "Data de Exercício", value: "15/07/2026" },
+              { label: "Data de Vacância", value: "-" },
+              { label: "Forma de Vacância", value: "-" },
+            ]}
+          />
+          <div className="prototype-ingresso-static-tabs">
+            {["Histórico", "Documentos", "Movimentações"].map((tab, index) => (
+              <span key={tab} className={index === 0 ? "is-active" : ""}>{tab}</span>
+            ))}
+          </div>
+          <div className="prototype-validation-panel prototype-validation-panel--info">
+            O vínculo funcional é resultado automático da conclusão do ingresso, sem cadastro manual.
+          </div>
+        </CardSeplag>
+      </div>
     </PrototypeSystemPage>
   );
 }
@@ -16611,17 +19025,13 @@ export function PrototiposFolhaPagamentoPage({
   ];
   const competenciaProcessamentoFiltro = normalizeMesAno(filtros.competencia);
   const dataProcessamentoFiltro = filtros.dataProcessamento?.trim() ?? "";
-  const numeroFolhaFiltro = filtros.numeroFolha?.trim().toLowerCase() ?? "";
-  const nomeFolhaFiltro = filtros.nomeFolha?.trim().toLowerCase() ?? "";
+  const folhaPagamentoFiltro = filtros.termo?.trim().toLowerCase() ?? "";
   const numeroExecucaoFiltro = filtros.numeroExecucao?.trim().toLowerCase() ?? "";
-  const responsavelFiltro = filtros.responsavel?.trim().toLowerCase() ?? "";
   const processamentosFiltrados = processamentosBase.filter((processamento) => {
-    const atendeNumeroFolha =
-      !numeroFolhaFiltro ||
-      processamento.numeroFolha.toLowerCase().includes(numeroFolhaFiltro);
-    const atendeNomeFolha =
-      !nomeFolhaFiltro ||
-      processamento.nomeFolha.toLowerCase().includes(nomeFolhaFiltro);
+    const atendeFolhaPagamento =
+      !folhaPagamentoFiltro ||
+      processamento.numeroFolha.toLowerCase().includes(folhaPagamentoFiltro) ||
+      processamento.nomeFolha.toLowerCase().includes(folhaPagamentoFiltro);
     const atendeSituacao =
       !filtros.situacao || processamento.situacao === filtros.situacao;
     const atendeCompetencia =
@@ -16636,19 +19046,14 @@ export function PrototiposFolhaPagamentoPage({
     const atendeNumeroExecucao =
       !numeroExecucaoFiltro ||
       processamento.numeroExecucao.toLowerCase().includes(numeroExecucaoFiltro);
-    const atendeResponsavel =
-      !responsavelFiltro ||
-      processamento.responsavel.toLowerCase().includes(responsavelFiltro);
 
     return (
-      atendeNumeroFolha &&
-      atendeNomeFolha &&
+      atendeFolhaPagamento &&
       atendeSituacao &&
       atendeCompetencia &&
       atendeTipo &&
       atendeDataProcessamento &&
-      atendeNumeroExecucao &&
-      atendeResponsavel
+      atendeNumeroExecucao
     );
   });
   const processamentoResults = {
@@ -17712,19 +20117,19 @@ export function PrototiposFolhaPagamentoPage({
 
           {isTelaProcessamentoFolha ? (
             <div className="col-12 prototype-processamento-resumo">
-              <div>
+              <div className="prototype-processamento-resumo-card prototype-processamento-resumo-card--fila">
                 <span>Em Fila</span>
                 <strong>{processamentoResumo.emFila}</strong>
               </div>
-              <div>
+              <div className="prototype-processamento-resumo-card prototype-processamento-resumo-card--processamento">
                 <span>Em Processamento</span>
                 <strong>{processamentoResumo.emProcessamento}</strong>
               </div>
-              <div>
+              <div className="prototype-processamento-resumo-card prototype-processamento-resumo-card--erro">
                 <span>Processado com Erro</span>
                 <strong>{processamentoResumo.processadoErro}</strong>
               </div>
-              <div>
+              <div className="prototype-processamento-resumo-card prototype-processamento-resumo-card--sucesso">
                 <span>Processado com Sucesso</span>
                 <strong>{processamentoResumo.processadoSucesso}</strong>
               </div>
@@ -17741,17 +20146,10 @@ export function PrototiposFolhaPagamentoPage({
             {isTelaProcessamentoFolha ? (
               <>
                 <TextFieldSeplag
-                  name="numeroFolha"
+                  name="termo"
                   control={control}
-                  label="Número da folha"
-                  cols="12 6 2"
-                  getFormErrorMessage={() => null}
-                />
-                <TextFieldSeplag
-                  name="nomeFolha"
-                  control={control}
-                  label="Nome da folha"
-                  cols="12 6 2"
+                  label="Folha de pagamento"
+                  cols="12 6 3"
                   getFormErrorMessage={() => null}
                 />
                 <TextFieldSeplag
@@ -17773,7 +20171,7 @@ export function PrototiposFolhaPagamentoPage({
                 <TextFieldSeplag
                   name="numeroExecucao"
                   control={control}
-                  label="Número da execução do processamento"
+                  label="Nº da Execução"
                   cols="12 6 2"
                   getFormErrorMessage={() => null}
                 />
@@ -17785,13 +20183,6 @@ export function PrototiposFolhaPagamentoPage({
                   options={processamentoFolhaSituacaoOptions}
                   optionLabel="label"
                   optionValue="value"
-                  getFormErrorMessage={() => null}
-                />
-                <TextFieldSeplag
-                  name="responsavel"
-                  control={control}
-                  label="Responsável"
-                  cols="12 6 2"
                   getFormErrorMessage={() => null}
                 />
               </>
@@ -19007,7 +21398,7 @@ export function PrototiposFolhaProcessamentoFormPage() {
 export function PrototiposFolhaSolicitacoesAjustesPage() {
   const navigate = useNavigate();
   const [perfil, setPerfil] =
-    useState<SolicitacaoAjusteFolhaPerfil>("CONFORMIDADE");
+    useState<SolicitacaoAjusteFolhaPerfil>("SETORIAL");
   const [solicitacoes, setSolicitacoes] = useState<
     SolicitacaoAjusteFolhaRow[]
   >(() => folhaPagamentoService.listarSolicitacoesAjusteFolha());
@@ -19020,6 +21411,24 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
   const [modalConcluirAberto, setModalConcluirAberto] = useState(false);
   const [modalIniciarAberto, setModalIniciarAberto] = useState(false);
   const [modalFinalizarAberto, setModalFinalizarAberto] = useState(false);
+  const [modalAnaliseConformidadeAberto, setModalAnaliseConformidadeAberto] =
+    useState(false);
+  const [analisandoConformidade, setAnalisandoConformidade] = useState(false);
+  const [analisandoSetorial, setAnalisandoSetorial] = useState(false);
+  const [acaoAnaliseConformidade, setAcaoAnaliseConformidade] = useState<
+    "APROVAR" | "REJEITAR" | "LIBERAR_SETORIAL"
+  >("APROVAR");
+  const [complementoConformidade, setComplementoConformidade] = useState("");
+  const [parecerSetorial, setParecerSetorial] = useState("");
+  const [documentosParecerSetorial, setDocumentosParecerSetorial] = useState<
+    ArquivoAnexadoSeplag[]
+  >([]);
+  const [
+    documentosParecerSetorialPorSolicitacao,
+    setDocumentosParecerSetorialPorSolicitacao,
+  ] = useState<Record<number, ArquivoAnexadoSeplag[]>>({});
+  const [motivoRejeicaoConformidade, setMotivoRejeicaoConformidade] =
+    useState("");
   const [motivoDevolucao, setMotivoDevolucao] = useState("");
   const [numeroExecucaoFinalizacao, setNumeroExecucaoFinalizacao] =
     useState("");
@@ -19110,7 +21519,9 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
       value: `${pessoa.matricula} / ${pessoa.cpf}`,
     }));
   const usuarioAtual =
-    perfil === "CONFORMIDADE"
+    perfil === "SETORIAL"
+      ? "Patrícia Lima - Setorial"
+      : perfil === "CONFORMIDADE"
       ? "Maria de Souza - Conformidade"
       : "João Silva - Folha de Pagamento";
 
@@ -19123,7 +21534,21 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
       ? filtros.matriculaCpf?.trim().toLowerCase() ?? ""
       : "";
 
-  const solicitacoesFiltradas = solicitacoes
+  const solicitacoesVisiveisPorPerfil = solicitacoes.filter((solicitacao) => {
+    const abertaPelaSetorial = solicitacao.solicitante === "Patrícia Lima";
+    return perfil !== "SETORIAL" || abertaPelaSetorial;
+  });
+  const resumoSolicitacoesPorSituacao = solicitacaoAjusteFolhaSituacaoOptions
+    .map((situacao) => ({
+      ...situacao,
+      total: solicitacoesVisiveisPorPerfil.filter(
+        (solicitacao) => solicitacao.situacao === situacao.value,
+      ).length,
+      meta: solicitacaoAjusteFolhaSituacaoMeta[situacao.value],
+    }))
+    .filter((situacao) => situacao.total > 0);
+
+  const solicitacoesFiltradas = solicitacoesVisiveisPorPerfil
     .filter((solicitacao) => {
       const atendeFolha =
         !termoFolha ||
@@ -19174,7 +21599,7 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
           {
             id: solicitacaoSelecionada.id * 100,
             solicitacaoId: solicitacaoSelecionada.id,
-            situacaoDestino: "NOVA" as SolicitacaoAjusteFolhaSituacao,
+            situacaoDestino: solicitacaoSelecionada.situacao,
             dataHora: solicitacaoSelecionada.dataCriacao,
             operador: solicitacaoSelecionada.solicitante,
             descricao: solicitacaoSelecionada.motivoAbertura,
@@ -19252,7 +21677,9 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
       motivoAbertura: solicitacao?.motivoAbertura ?? "",
       dataCriacao: solicitacao?.dataCriacao ?? formatarDataPtBr(),
     });
-    setDocumentosFormularioSolicitacao([]);
+    setDocumentosFormularioSolicitacao(
+      solicitacao ? documentosSolicitacaoAjusteFolhaMock[solicitacao.id] ?? [] : [],
+    );
   };
 
   const abrirFormularioSolicitacao = (
@@ -19261,6 +21688,15 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
   ) => {
     setSolicitacaoSelecionada(solicitacao ?? null);
     preencherFormularioSolicitacao(solicitacao);
+    setComplementoConformidade(solicitacao?.complementoConformidade ?? "");
+    setAnalisandoConformidade(false);
+    setAnalisandoSetorial(false);
+    setParecerSetorial(solicitacao?.parecerSetorial ?? "");
+    setDocumentosParecerSetorial(
+      solicitacao
+        ? documentosParecerSetorialPorSolicitacao[solicitacao.id] ?? []
+        : [],
+    );
     setModoFormularioSolicitacao(modo);
     setFeedback("");
   };
@@ -19341,10 +21777,59 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
     );
   };
 
+  const anexarDocumentosParecerSetorial = (event: { files?: File[] }) => {
+    const files = Array.from(event.files ?? []);
+    if (!files.length) return;
+
+    if (documentosParecerSetorial.length + files.length > 10) {
+      setFeedback("É permitido anexar no máximo 10 arquivos por solicitação.");
+      return;
+    }
+
+    const arquivoInvalido = files.find((file) => {
+      const extensao = file.name.split(".").pop()?.toLowerCase() ?? "";
+      return (
+        !solicitacaoAjusteFolhaExtensoesPermitidas.includes(extensao) ||
+        file.size > 2 * 1024 * 1024
+      );
+    });
+
+    if (arquivoInvalido) {
+      setFeedback(
+        "Documentos permitidos: PDF, DOC, CSV, XLSX, XLS e DOCX, com até 2MB cada.",
+      );
+      return;
+    }
+
+    setDocumentosParecerSetorial((current) => [
+      ...current,
+      ...files.map((file) => ({
+        nome: file.name,
+        extensao: file.name.split(".").pop()?.toLowerCase() ?? "",
+        contentType: file.type || "application/octet-stream",
+        conteudoEmBase64: "",
+        tamanho: file.size,
+      })),
+    ]);
+  };
+
+  const removerDocumentoParecerSetorial = (
+    _arquivo?: ArquivoAnexadoSeplag,
+    index = -1,
+  ) => {
+    setDocumentosParecerSetorial((current) =>
+      current.filter((__, itemIndex) => itemIndex !== index),
+    );
+  };
+
   const voltarParaListagemSolicitacoes = () => {
     setModoFormularioSolicitacao(null);
     setSolicitacaoSelecionada(null);
     setDocumentosFormularioSolicitacao([]);
+    setDocumentosParecerSetorial([]);
+    setAnalisandoConformidade(false);
+    setAnalisandoSetorial(false);
+    setParecerSetorial("");
   };
 
   const solicitarSaidaFormularioSolicitacao = () => {
@@ -19386,7 +21871,11 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
       setFeedback("Registro atualizado com sucesso!");
     } else {
       const novaSolicitacao =
-        folhaPagamentoService.criarSolicitacaoAjusteFolha(form);
+        folhaPagamentoService.criarSolicitacaoAjusteFolha(
+          form,
+          perfil === "CONFORMIDADE" ? "Maria de Souza" : "Patrícia Lima",
+          perfil === "CONFORMIDADE" ? "NOVA" : "AGUARDANDO_ANALISE",
+        );
       setSolicitacoes((current) => [novaSolicitacao, ...current]);
       setFeedback("Registro cadastrado com sucesso!");
     }
@@ -19396,6 +21885,16 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
 
   const abrirVisualizar = (solicitacao: SolicitacaoAjusteFolhaRow) => {
     abrirFormularioSolicitacao("visualizar", solicitacao);
+  };
+
+  const abrirAnalisarConformidade = (solicitacao: SolicitacaoAjusteFolhaRow) => {
+    abrirFormularioSolicitacao("visualizar", solicitacao);
+    setAnalisandoConformidade(true);
+  };
+
+  const abrirParecerSetorial = (solicitacao: SolicitacaoAjusteFolhaRow) => {
+    abrirFormularioSolicitacao("visualizar", solicitacao);
+    setAnalisandoSetorial(true);
   };
 
   const abrirHistorico = (solicitacao: SolicitacaoAjusteFolhaRow) => {
@@ -19419,9 +21918,15 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
 
   const confirmarExclusaoSolicitacao = () => {
     if (!solicitacaoSelecionada) return;
-    if (perfil !== "CONFORMIDADE") {
+    if (
+      !(
+        (perfil === "SETORIAL" &&
+          solicitacaoSelecionada.situacao === "AGUARDANDO_ANALISE") ||
+        (perfil === "CONFORMIDADE" && solicitacaoSelecionada.situacao === "NOVA")
+      )
+    ) {
       setModalExcluirAberto(false);
-      setFeedback("Ação indisponível para o perfil Folha de Pagamento.");
+      setFeedback("Ação indisponível após atuação da Conformidade.");
       return;
     }
 
@@ -19448,6 +21953,120 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
     );
     setModalIniciarAberto(false);
     setMotivoReinicioCorrecao("");
+  };
+
+  const abrirAnaliseConformidade = (
+    solicitacao: SolicitacaoAjusteFolhaRow,
+    acao: "APROVAR" | "REJEITAR",
+  ) => {
+    setSolicitacaoSelecionada(solicitacao);
+    setAcaoAnaliseConformidade(acao);
+    setComplementoConformidade("");
+    setFeedback("");
+  };
+
+  const confirmarAnaliseConformidade = (
+    acao = acaoAnaliseConformidade,
+    parecerInformado?: string,
+  ) => {
+    if (!solicitacaoSelecionada) return;
+
+    const complemento = (parecerInformado ?? complementoConformidade).trim();
+    const situacaoDestino: SolicitacaoAjusteFolhaSituacao =
+      acao === "APROVAR"
+        ? "AGUARDANDO_CORRECAO"
+        : acao === "LIBERAR_SETORIAL"
+          ? "AGUARDANDO_AJUSTE"
+          : "REJEITADA_CONFORMIDADE";
+
+    atualizarSolicitacao(
+      {
+        ...solicitacaoSelecionada,
+        situacao: situacaoDestino,
+        complementoConformidade: complemento,
+        motivoDevolucao:
+          acao === "REJEITAR"
+            ? complemento
+            : solicitacaoSelecionada.motivoDevolucao,
+      },
+      "Registro atualizado com sucesso!",
+    );
+    folhaPagamentoService.registrarHistoricoSolicitacaoAjusteFolha(
+      solicitacaoSelecionada.id,
+      situacaoDestino,
+      usuarioAtual,
+      `${
+        acao === "APROVAR"
+          ? "Solicitação enviada para a Folha"
+          : acao === "LIBERAR_SETORIAL"
+            ? "Ajuste liberado para a Setorial"
+            : "Solicitação rejeitada"
+      } pela Conformidade.${
+        complemento
+          ? ` ${acao === "REJEITAR" ? "Motivo da rejeição" : "Complemento"}: ${complemento}`
+          : ""
+      }`,
+    );
+    setComplementoConformidade("");
+    setMotivoRejeicaoConformidade("");
+    setModalAnaliseConformidadeAberto(false);
+    voltarParaListagemSolicitacoes();
+  };
+
+  const confirmarParecerSetorial = () => {
+    if (!solicitacaoSelecionada) return;
+
+    const parecer = parecerSetorial.trim();
+    if (!parecer) {
+      setFeedback("Informe o parecer da setorial.");
+      return;
+    }
+
+    const solicitacaoAtualizada: SolicitacaoAjusteFolhaRow = {
+      ...solicitacaoSelecionada,
+      situacao: "AGUARDANDO_ANALISE",
+      parecerSetorial: parecer,
+    };
+
+    atualizarSolicitacao(
+      solicitacaoAtualizada,
+      "Parecer do ajuste enviado com sucesso!",
+    );
+    setDocumentosParecerSetorialPorSolicitacao((current) => ({
+      ...current,
+      [solicitacaoSelecionada.id]: documentosParecerSetorial,
+    }));
+    folhaPagamentoService.registrarHistoricoSolicitacaoAjusteFolha(
+      solicitacaoSelecionada.id,
+      "AGUARDANDO_ANALISE",
+      usuarioAtual,
+      `Parecer do ajuste enviado pela Setorial. Parecer: ${parecer}${
+        documentosParecerSetorial.length
+          ? ` Anexos: ${documentosParecerSetorial
+              .map((documento) => documento.nome)
+              .join(", ")}`
+          : ""
+      }`,
+    );
+    voltarParaListagemSolicitacoes();
+  };
+
+  const abrirModalRejeicaoConformidade = () => {
+    setAcaoAnaliseConformidade("REJEITAR");
+    setMotivoRejeicaoConformidade("");
+    setFeedback("");
+    setModalAnaliseConformidadeAberto(true);
+  };
+
+  const confirmarRejeicaoConformidade = () => {
+    const motivo = motivoRejeicaoConformidade.trim();
+
+    if (!motivo) {
+      setFeedback("Informe o motivo da rejeição.");
+      return;
+    }
+
+    confirmarAnaliseConformidade("REJEITAR", motivo);
   };
 
   const confirmarFinalizacaoCorrecao = () => {
@@ -19513,9 +22132,11 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
   const renderAcoesSolicitacao = (solicitacao: SolicitacaoAjusteFolhaRow) => {
     const isConformidade = perfil === "CONFORMIDADE";
     const isFolhaPagamento = perfil === "FOLHA";
+    const isSetorial = perfil === "SETORIAL";
     const podeIniciar =
       isFolhaPagamento &&
       (solicitacao.situacao === "NOVA" ||
+        solicitacao.situacao === "AGUARDANDO_CORRECAO" ||
         solicitacao.situacao === "DEVOLVIDO");
     const podeFinalizar =
       isFolhaPagamento && solicitacao.situacao === "EM_CORRECAO";
@@ -19569,8 +22190,63 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
       );
     }
 
+    if (isSetorial) {
+      const podeEditarExcluir = solicitacao.situacao === "AGUARDANDO_ANALISE";
+      const podeParecerAjuste = solicitacao.situacao === "AGUARDANDO_AJUSTE";
+
+      return (
+        <>
+          <BotaoIconSeplag
+            type="button"
+            tooltip="Visualizar"
+            icon="pi pi-eye"
+            onClick={() => abrirVisualizar(solicitacao)}
+          />
+          {podeEditarExcluir ? (
+            <BotaoIconSeplag
+              type="button"
+              tooltip="Editar"
+              icon="pi pi-pencil"
+              style={{ backgroundColor: "#ffb300", border: "1px solid #0d6efd", color: "#ffffff" }}
+              onClick={() => abrirFormularioSolicitacao("editar", solicitacao)}
+            />
+          ) : null}
+          {podeParecerAjuste ? (
+            <BotaoIconSeplag
+              severity="warning"
+              type="button"
+              tooltip="Parecer do Ajuste"
+              icon="pi pi-file-edit"
+              onClick={() => abrirParecerSetorial(solicitacao)}
+            />
+          ) : null}
+          {podeEditarExcluir ? (
+            <BotaoIconSeplag
+              severity="danger"
+              type="button"
+              tooltip="Excluir"
+              icon="pi pi-trash"
+              onClick={() => {
+                setSolicitacaoSelecionada(solicitacao);
+                setModalExcluirAberto(true);
+              }}
+            />
+          ) : null}
+          <BotaoIconSeplag
+            severity="secondary"
+            type="button"
+            tooltip="Histórico"
+            icon="pi pi-history"
+            onClick={() => abrirHistorico(solicitacao)}
+          />
+        </>
+      );
+    }
+
     const podeEditarExcluir =
       isConformidade && solicitacao.situacao === "NOVA";
+    const podeAnalisar =
+      isConformidade && solicitacao.situacao === "AGUARDANDO_ANALISE";
     const podeDevolverConcluir =
       isConformidade && solicitacao.situacao === "CORRIGIDO";
 
@@ -19582,12 +22258,21 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
           icon="pi pi-eye"
           onClick={() => abrirVisualizar(solicitacao)}
         />
-        {podeEditarExcluir ? (
+        {podeAnalisar ? (
           <BotaoIconSeplag
             severity="warning"
             type="button"
+            tooltip="Analisar Solicitação"
+            icon="pi pi-clipboard"
+            onClick={() => abrirAnalisarConformidade(solicitacao)}
+          />
+        ) : null}
+        {podeEditarExcluir ? (
+          <BotaoIconSeplag
+            type="button"
             tooltip="Editar"
             icon="pi pi-pencil"
+            style={{ backgroundColor: "#ffb300", border: "1px solid #0d6efd", color: "#ffffff" }}
             onClick={() => abrirFormularioSolicitacao("editar", solicitacao)}
           />
         ) : null}
@@ -19724,13 +22409,19 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
             ) : null}
 
             <CardSeplag
-              title={tituloFormulario}
+              title={
+                analisandoConformidade
+                  ? "Analisar Solicitação de Ajuste da Folha"
+                  : analisandoSetorial
+                    ? "Parecer do Ajuste"
+                  : tituloFormulario
+              }
               cols="12"
               cardHeaderClassNames="prototype-regime-card"
               actions={
                 <div className="prototype-solicitacao-ajuste-competencia">
-                  <span>Competência vigente</span>
-                  <strong>{competenciaVigente}</strong>
+                  <span>Competência vigente:</span>
+                  <strong>{formatarCompetenciaFolha(competenciaVigente)}</strong>
                 </div>
               }
             >
@@ -19888,6 +22579,118 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
                   </div>
                 </section>
 
+                {isFormularioSolicitacaoReadonly &&
+                ((analisandoConformidade &&
+                  perfil === "CONFORMIDADE" &&
+                  solicitacaoSelecionada?.situacao === "AGUARDANDO_ANALISE") ||
+                  (analisandoSetorial &&
+                    perfil === "SETORIAL" &&
+                    solicitacaoSelecionada?.situacao === "AGUARDANDO_AJUSTE")) ? (
+                  <section className="prototype-folha-form-section">
+                    <h3>Parecer da Conformidade</h3>
+                    <div className="grid prototype-category-form-fields">
+                      <div className="col-12">
+                        <textarea
+                          className="prototype-solicitacoes-ajustes-textarea"
+                          value={complementoConformidade}
+                          placeholder="Descreva o complemento da análise, se necessário."
+                          disabled={analisandoSetorial}
+                          onChange={(event) =>
+                            setComplementoConformidade(event.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                  </section>
+                ) : null}
+
+                {isFormularioSolicitacaoReadonly &&
+                analisandoConformidade &&
+                perfil === "CONFORMIDADE" &&
+                solicitacaoSelecionada?.situacao === "AGUARDANDO_ANALISE" &&
+                solicitacaoSelecionada?.parecerSetorial ? (
+                  <section className="prototype-folha-form-section">
+                    <h3>Parecer da Setorial</h3>
+                    <div className="grid prototype-category-form-fields">
+                      <div className="col-12">
+                        <textarea
+                          className="prototype-solicitacoes-ajustes-textarea"
+                          value={solicitacaoSelecionada.parecerSetorial}
+                          disabled
+                        />
+                      </div>
+                      {documentosParecerSetorial.length ? (
+                        <AnexarDocumentoSeplag
+                          label="Documento"
+                          cols="12"
+                          style={{ maxWidth: "760px" }}
+                          multiple={false}
+                          arquivosBase64={documentosParecerSetorial}
+                          onDownloadArquivo={(arquivo) =>
+                            setFeedback(
+                              `Documento ${arquivo.nome} selecionado para download.`,
+                            )
+                          }
+                          handleViewArquivo={(arquivo) =>
+                            setFeedback(
+                              arquivo
+                                ? `Documento ${arquivo.nome} selecionado para visualização.`
+                                : "Documento selecionado para visualização.",
+                            )
+                          }
+                        />
+                      ) : null}
+                    </div>
+                  </section>
+                ) : null}
+
+                {isFormularioSolicitacaoReadonly &&
+                analisandoSetorial &&
+                perfil === "SETORIAL" &&
+                solicitacaoSelecionada?.situacao === "AGUARDANDO_AJUSTE" ? (
+                  <section className="prototype-folha-form-section">
+                    <h3>
+                      Parecer da Setorial <span className="prototype-required-mark">*</span>
+                    </h3>
+                    <div className="grid prototype-category-form-fields">
+                      <div className="col-12">
+                        <textarea
+                          className="prototype-solicitacoes-ajustes-textarea"
+                          value={parecerSetorial}
+                          placeholder="Descreva o parecer da setorial."
+                          onChange={(event) =>
+                            setParecerSetorial(event.target.value)
+                          }
+                        />
+                      </div>
+                      <AnexarDocumentoSeplag
+                        label="Documento"
+                        cols="12"
+                        style={{ maxWidth: "760px" }}
+                        multiple
+                        accept=".pdf,.doc,.csv,.xlsx,.xls,.docx"
+                        maxFileSize={2 * 1024 * 1024}
+                        helpText="Formatos aceitos: .pdf, .doc, .csv, .xlsx, .xls e .docx | Tamanho máximo: 2MB por arquivo"
+                        arquivosBase64={documentosParecerSetorial}
+                        onUploadDocument={anexarDocumentosParecerSetorial}
+                        onRemoveArquivo={removerDocumentoParecerSetorial}
+                        onDownloadArquivo={(arquivo) =>
+                          setFeedback(
+                            `Documento ${arquivo.nome} selecionado para download.`,
+                          )
+                        }
+                        handleViewArquivo={(arquivo) =>
+                          setFeedback(
+                            arquivo
+                              ? `Documento ${arquivo.nome} selecionado para visualização.`
+                              : "Documento selecionado para visualização.",
+                          )
+                        }
+                      />
+                    </div>
+                  </section>
+                ) : null}
+
                 <div className="prototype-category-form-footer">
                   <BotaoVoltarSeplag
                     type="button"
@@ -19896,14 +22699,52 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
                     onClick={solicitarSaidaFormularioSolicitacao}
                   />
                   {isFormularioSolicitacaoReadonly &&
-                  perfil === "CONFORMIDADE" &&
-                  solicitacaoSelecionada?.situacao === "NOVA" ? (
+                  ((perfil === "SETORIAL" &&
+                    solicitacaoSelecionada?.situacao === "AGUARDANDO_ANALISE") ||
+                    (perfil === "CONFORMIDADE" &&
+                      solicitacaoSelecionada?.situacao === "NOVA")) ? (
                     <BotaoSeplag
                       type="button"
                       label="Editar"
                       icon="pi pi-pencil"
                       tooltip="Alterar"
                       onClick={() => setModoFormularioSolicitacao("editar")}
+                    />
+                  ) : null}
+                  {isFormularioSolicitacaoReadonly &&
+                  analisandoConformidade &&
+                  perfil === "CONFORMIDADE" &&
+                  solicitacaoSelecionada?.situacao === "AGUARDANDO_ANALISE" ? (
+                    <>
+                      <BotaoSeplag
+                        type="button"
+                        label="Liberar Ajuste para Setorial"
+                        icon="pi pi-send"
+                        severity="warning"
+                        style={{ color: "#ffffff", minWidth: 190 }}
+                        onClick={() =>
+                          confirmarAnaliseConformidade("LIBERAR_SETORIAL")
+                        }
+                      />
+                      <BotaoSeplag
+                        type="button"
+                        label="Enviar Ajuste para Folha"
+                        icon="pi pi-check"
+                        style={{ color: "#ffffff", minWidth: 180 }}
+                        onClick={() => confirmarAnaliseConformidade("APROVAR")}
+                      />
+                    </>
+                  ) : null}
+                  {isFormularioSolicitacaoReadonly &&
+                  analisandoSetorial &&
+                  perfil === "SETORIAL" &&
+                  solicitacaoSelecionada?.situacao === "AGUARDANDO_AJUSTE" ? (
+                    <BotaoSeplag
+                      type="button"
+                      label="Enviar Parecer"
+                      icon="pi pi-send"
+                      style={{ color: "#ffffff", minWidth: 150 }}
+                      onClick={confirmarParecerSetorial}
                     />
                   ) : null}
                   {!isFormularioSolicitacaoReadonly ? (
@@ -19931,6 +22772,36 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
                 perdidos. Deseja continuar?
               </p>
             </ModalSeplag>
+            <ModalSeplag
+              visible={modalAnaliseConformidadeAberto}
+              titulo="Rejeitar Solicitação"
+              fechar={() => {
+                setModalAnaliseConformidadeAberto(false);
+                setMotivoRejeicaoConformidade("");
+              }}
+              labelFechar="Cancelar"
+              labelAcao="Confirmar Rejeição"
+              iconAcao="pi pi-times"
+              funcAcao={confirmarRejeicaoConformidade}
+              tamanho="720px"
+            >
+              <div className="col-12 prototype-solicitacoes-ajustes-modal-text">
+                Confirme a rejeição da solicitação e informe o motivo.
+              </div>
+              <div className="col-12">
+                <label className="prototype-solicitacoes-ajustes-textarea-label">
+                  Motivo da rejeição <span>*</span>
+                </label>
+                <textarea
+                  className="prototype-solicitacoes-ajustes-textarea"
+                  value={motivoRejeicaoConformidade}
+                  placeholder="Descreva o motivo da rejeição."
+                  onChange={(event) =>
+                    setMotivoRejeicaoConformidade(event.target.value)
+                  }
+                />
+              </div>
+            </ModalSeplag>
           </div>
         </form>
       </PrototypeSystemPage>
@@ -19957,6 +22828,9 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
                   setPerfil(event.target.value as SolicitacaoAjusteFolhaPerfil)
                 }
               >
+                <option value="SETORIAL">
+                  Patrícia Lima - Setorial
+                </option>
                 <option value="CONFORMIDADE">
                   Maria de Souza - Conformidade
                 </option>
@@ -19972,6 +22846,23 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
         {feedback ? (
           <div className="prototype-validation-panel">{feedback}</div>
         ) : null}
+
+        <div className="prototype-solicitacoes-ajustes-dashboard">
+          {resumoSolicitacoesPorSituacao.map((situacao) => (
+            <div
+              key={situacao.value}
+              style={{
+                backgroundColor: situacao.meta.bg,
+                borderColor: situacao.meta.color,
+              }}
+            >
+              <span style={{ color: situacao.meta.color }}>
+                {situacao.meta.label}
+              </span>
+              <strong>{situacao.total}</strong>
+            </div>
+          ))}
+        </div>
 
         <CardSeplag cols="12" cardHeaderClassNames="prototype-regime-card">
           <div className="col-12 prototype-category-filters prototype-folha-pagamento-filters prototype-solicitacoes-ajustes-filters">
@@ -20047,23 +22938,19 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
         </CardSeplag>
 
         <CardSeplag
-          title="Solicitações Registradas"
           cols="12"
           cardHeaderClassNames="prototype-regime-card"
-          actions={
-            <div className="prototype-solicitacoes-ajustes-card-actions">
-              <span>{solicitacoesFiltradas.length} registros encontrados</span>
+        >
+          <div className="col-12 prototype-solicitacoes-ajustes-card-actions">
               <BotaoSeplag
                 type="button"
                 label="Nova Solicitação"
                 icon="pi pi-plus"
                 style={{ color: "#ffffff" }}
-                hasPermission={perfil === "CONFORMIDADE"}
+                hasPermission={perfil === "SETORIAL" || perfil === "CONFORMIDADE"}
                 onClick={() => abrirFormularioSolicitacao("novo")}
               />
             </div>
-          }
-        >
           <div className="col-12 prototype-folha-pagamento-table prototype-solicitacoes-ajustes-table">
             <TablePaginadoSeplag
               key={`solicitacoes-ajustes-${perfil}`}
@@ -20081,15 +22968,6 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
             />
           </div>
         </CardSeplag>
-
-        <div className="prototype-form-actions">
-          <BotaoVoltarSeplag
-            type="button"
-            label="Voltar"
-            icon="pi pi-arrow-left"
-            onClick={() => navigate("/prototipos/folha")}
-          />
-        </div>
 
         <ModalSeplag
           visible={modalVisualizarAberto}
@@ -20110,6 +22988,7 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
               <p><strong>Situação:</strong> {renderSolicitacaoSituacaoBadge(solicitacaoSelecionada.situacao)}</p>
               <p><strong>Motivo da abertura:</strong> {solicitacaoSelecionada.motivoAbertura}</p>
               <p><strong>Motivo da devolução:</strong> {solicitacaoSelecionada.motivoDevolucao ?? "-"}</p>
+              <p><strong>Complemento da Conformidade:</strong> {solicitacaoSelecionada.complementoConformidade ?? "-"}</p>
             </div>
           ) : null}
         </ModalSeplag>
@@ -20125,6 +23004,45 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
           tamanho="520px"
         >
           <p className="col-12">Deseja realmente excluir o registro selecionado?</p>
+        </ModalSeplag>
+
+        <ModalSeplag
+          visible={modalAnaliseConformidadeAberto}
+          titulo={
+            acaoAnaliseConformidade === "APROVAR"
+              ? "Aprovar Solicitação"
+              : "Rejeitar Solicitação"
+          }
+          fechar={() => {
+            setModalAnaliseConformidadeAberto(false);
+            setMotivoRejeicaoConformidade("");
+          }}
+          labelFechar="Cancelar"
+          labelAcao={
+            acaoAnaliseConformidade === "APROVAR"
+              ? "Confirmar Aprovação"
+              : "Confirmar Rejeição"
+          }
+          iconAcao={
+            acaoAnaliseConformidade === "APROVAR" ? "pi pi-check" : "pi pi-times"
+          }
+          funcAcao={confirmarRejeicaoConformidade}
+          tamanho="720px"
+        >
+          <div className="col-12 prototype-solicitacoes-ajustes-modal-text">
+            Confirme a rejeição da solicitação e informe o motivo.
+          </div>
+          <div className="col-12">
+            <label className="prototype-solicitacoes-ajustes-textarea-label">
+              Motivo da rejeição <span>*</span>
+            </label>
+            <textarea
+              className="prototype-solicitacoes-ajustes-textarea"
+              value={motivoRejeicaoConformidade}
+              placeholder="Descreva o motivo da rejeição."
+              onChange={(event) => setMotivoRejeicaoConformidade(event.target.value)}
+            />
+          </div>
         </ModalSeplag>
 
         <ModalSeplag

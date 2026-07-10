@@ -716,11 +716,11 @@ const solicitacoesAjusteFolhaMock: SolicitacaoAjusteFolhaRow[] = [
     numeroExecucaoProcessamento: "1002",
     matriculaCpf: "-",
     grupoEleitos: "SERVIDORES COMISSIONADOS",
-    solicitante: "Carla Mendes",
-    responsavelCorrecao: "João Silva",
+    solicitante: "Patrícia Lima",
+    responsavelCorrecao: "-",
     dataCriacao: "18/05/2026",
     dataFechamento: "-",
-    situacao: "EM_CORRECAO",
+    situacao: "AGUARDANDO_ANALISE",
     motivoAbertura: "Revisar parametrização de rubrica para servidores comissionados.",
   },
   {
@@ -731,12 +731,13 @@ const solicitacoesAjusteFolhaMock: SolicitacaoAjusteFolhaRow[] = [
     numeroExecucaoProcessamento: "1003",
     matriculaCpf: "254896",
     grupoEleitos: "-",
-    solicitante: "Ana Paula Ribeiro",
-    responsavelCorrecao: "Roberto Alves",
+    solicitante: "Patrícia Lima",
+    responsavelCorrecao: "-",
     dataCriacao: "17/05/2026",
     dataFechamento: "-",
-    situacao: "CORRIGIDO",
+    situacao: "AGUARDANDO_AJUSTE",
     motivoAbertura: "Diferença identificada no cálculo de adicional noturno do servidor.",
+    complementoConformidade: "Necessário complementar as informações antes do envio para a folha.",
   },
   {
     id: 4,
@@ -746,7 +747,7 @@ const solicitacoesAjusteFolhaMock: SolicitacaoAjusteFolhaRow[] = [
     numeroExecucaoProcessamento: "1004",
     matriculaCpf: "-",
     grupoEleitos: "SERVIDORES CONTRATADOS",
-    solicitante: "Marcos Lima",
+    solicitante: "Patrícia Lima",
     responsavelCorrecao: "Júlia Costa",
     dataCriacao: "10/05/2026",
     dataFechamento: "-",
@@ -762,7 +763,7 @@ const solicitacoesAjusteFolhaMock: SolicitacaoAjusteFolhaRow[] = [
     numeroExecucaoProcessamento: "1005",
     matriculaCpf: "369741",
     grupoEleitos: "-",
-    solicitante: "Carla Mendes",
+    solicitante: "Patrícia Lima",
     responsavelCorrecao: "João Silva",
     dataCriacao: "05/05/2026",
     dataFechamento: "08/05/2026",
@@ -777,11 +778,11 @@ const solicitacoesAjusteFolhaMock: SolicitacaoAjusteFolhaRow[] = [
     numeroExecucaoProcessamento: "1006",
     matriculaCpf: "778899",
     grupoEleitos: "-",
-    solicitante: "Marcos Lima",
-    responsavelCorrecao: "-",
+    solicitante: "Patrícia Lima",
+    responsavelCorrecao: "João Silva",
     dataCriacao: "19/05/2026",
     dataFechamento: "-",
-    situacao: "NOVA",
+    situacao: "EM_CORRECAO",
     motivoAbertura: "Validar reflexo de gratificação funcional na competência vigente.",
   },
   {
@@ -792,11 +793,11 @@ const solicitacoesAjusteFolhaMock: SolicitacaoAjusteFolhaRow[] = [
     numeroExecucaoProcessamento: "1007",
     matriculaCpf: "445566",
     grupoEleitos: "-",
-    solicitante: "Ana Paula Ribeiro",
+    solicitante: "Patrícia Lima",
     responsavelCorrecao: "João Silva",
     dataCriacao: "12/03/2026",
     dataFechamento: "15/03/2026",
-    situacao: "CONCLUIDO",
+    situacao: "CORRIGIDO",
     motivoAbertura: "Revisão de jornada docente apontada na conformidade.",
   },
   {
@@ -807,11 +808,11 @@ const solicitacoesAjusteFolhaMock: SolicitacaoAjusteFolhaRow[] = [
     numeroExecucaoProcessamento: "1008",
     matriculaCpf: "-",
     grupoEleitos: "PESSOA FÍSICA",
-    solicitante: "Carla Mendes",
-    responsavelCorrecao: "Roberto Alves",
+    solicitante: "Patrícia Lima",
+    responsavelCorrecao: "-",
     dataCriacao: "28/04/2026",
     dataFechamento: "-",
-    situacao: "CORRIGIDO",
+    situacao: "AGUARDANDO_CORRECAO",
     motivoAbertura: "Ajuste complementar pendente de aceite final.",
   },
   {
@@ -1209,6 +1210,8 @@ export const folhaPagamentoMockRepository = {
     structuredClone(solicitacoesAjusteFolhaMock),
   criarSolicitacaoAjusteFolha: (
     request: CreateSolicitacaoAjusteFolhaRequest,
+    solicitante = "Maria de Souza",
+    situacaoInicial: SolicitacaoAjusteFolhaRow["situacao"] = "AGUARDANDO_ANALISE",
   ): SolicitacaoAjusteFolhaRow => {
     const novaSolicitacao: SolicitacaoAjusteFolhaRow = {
       id:
@@ -1222,11 +1225,11 @@ export const folhaPagamentoMockRepository = {
           : "-",
       grupoEleitos:
         request.escopo === "GRUPO_ELEITOS" ? request.grupoEleitos ?? "" : "-",
-      solicitante: "Maria de Souza",
+      solicitante,
       responsavelCorrecao: "-",
       dataCriacao: request.dataCriacao ?? "",
       dataFechamento: "-",
-      situacao: "NOVA",
+      situacao: situacaoInicial,
       motivoAbertura: request.motivoAbertura ?? "",
     };
 
@@ -1238,10 +1241,10 @@ export const folhaPagamentoMockRepository = {
           0,
         ) + 1,
       solicitacaoId: novaSolicitacao.id,
-      situacaoDestino: "NOVA",
+      situacaoDestino: situacaoInicial,
       dataHora: `${novaSolicitacao.dataCriacao} 09:00`,
       operador: novaSolicitacao.solicitante,
-      descricao: `Solicitação aberta pela Conformidade para ${novaSolicitacao.nomeFolha}.`,
+      descricao: `Solicitação aberta pela Setorial para ${novaSolicitacao.nomeFolha}.`,
     });
 
     return structuredClone(novaSolicitacao);
@@ -1274,7 +1277,7 @@ export const folhaPagamentoMockRepository = {
         solicitacoesAjusteFolhaMock[index].motivoAbertura,
       dataCriacao:
         request.dataCriacao ?? solicitacoesAjusteFolhaMock[index].dataCriacao,
-      situacao: "NOVA",
+      situacao: "AGUARDANDO_ANALISE",
     };
 
     return structuredClone(solicitacoesAjusteFolhaMock[index]);
@@ -1289,6 +1292,30 @@ export const folhaPagamentoMockRepository = {
 
     solicitacoesAjusteFolhaMock[index] = { ...solicitacao };
     return structuredClone(solicitacoesAjusteFolhaMock[index]);
+  },
+  registrarHistoricoSolicitacaoAjusteFolha: (
+    solicitacaoId: number,
+    situacaoDestino: SolicitacaoAjusteFolhaRow["situacao"],
+    operador: string,
+    descricao: string,
+  ) => {
+    const agora = new Date();
+
+    solicitacoesAjusteFolhaHistoricoMock.unshift({
+      id:
+        Math.max(
+          ...solicitacoesAjusteFolhaHistoricoMock.map((item) => item.id),
+          0,
+        ) + 1,
+      solicitacaoId,
+      situacaoDestino,
+      dataHora: `${agora.toLocaleDateString("pt-BR")} ${agora.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`,
+      operador,
+      descricao,
+    });
   },
   excluirSolicitacaoAjusteFolha: (id: number) => {
     const index = solicitacoesAjusteFolhaMock.findIndex((item) => item.id === id);
@@ -1361,6 +1388,8 @@ export const folhaPagamentoService = {
   // TODO backend: PUT /solicitacoes-ajustes-folha/{id}
   atualizarSolicitacaoAjusteFolha:
     folhaPagamentoMockRepository.atualizarSolicitacaoAjusteFolha,
+  registrarHistoricoSolicitacaoAjusteFolha:
+    folhaPagamentoMockRepository.registrarHistoricoSolicitacaoAjusteFolha,
   // TODO backend: DELETE /solicitacoes-ajustes-folha/{id}
   excluirSolicitacaoAjusteFolha:
     folhaPagamentoMockRepository.excluirSolicitacaoAjusteFolha,
