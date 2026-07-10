@@ -114,11 +114,11 @@ const menuSicad: IMenuSeplag[] = [
     visibleOnMenu: sicadTemAlgumaPermissao(sicadCentralOccurrenceAccessPermissions),
     visibleOnRouter: true,
     items: [
+      { label: "Base de Conhecimento", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/base-conhecimento"), visibleOnMenu: sicadTemPermissao("acessarBaseConhecimento"), visibleOnRouter: true },
       { label: "Minhas Ocorrências", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/minhas"), visibleOnMenu: sicadTemPermissao("acessarMinhasOcorrencias"), visibleOnRouter: true },
       { label: "Fila de Ocorrências", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/fila"), visibleOnMenu: sicadTemPermissao("acessarFilaOcorrencias"), visibleOnRouter: true },
       { label: "Dashboard", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/dashboard"), visibleOnMenu: sicadTemPermissao("acessarDashboard"), visibleOnRouter: true },
       { label: "Relatórios", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/relatorios"), visibleOnMenu: sicadTemPermissao("acessarRelatorios"), visibleOnRouter: true },
-      { label: "Base de Conhecimento", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/base-conhecimento"), visibleOnMenu: sicadTemPermissao("acessarBaseConhecimento"), visibleOnRouter: true },
     ],
   },
   {
@@ -2960,15 +2960,212 @@ export function PrototiposSicadOcorrenciasRelatoriosPage() {
     </SicadShell>
   );
 }
+type SicadBaseConhecimentoCategoria = {
+  id: string;
+  titulo: string;
+  descricao: string;
+  artigos: number;
+  icon: string;
+  tone: "blue" | "green" | "orange" | "purple" | "teal";
+};
+
+type SicadBaseConhecimentoArtigo = {
+  id: string;
+  titulo: string;
+  descricao: string;
+  categoriaId: string;
+  categoria: string;
+  data: string;
+  icon: string;
+  tone: "blue" | "green" | "orange" | "purple" | "teal";
+  acessos: number;
+};
+
+const sicadBaseConhecimentoCategorias: SicadBaseConhecimentoCategoria[] = [
+  { id: "guia", titulo: "Guias e Tutoriais", descricao: "Passo a passo para utilizar o sistema", artigos: 24, icon: "pi pi-book", tone: "blue" },
+  { id: "faq", titulo: "Perguntas Frequentes", descricao: "Tire suas dúvidas sobre o SICAD", artigos: 18, icon: "pi pi-question-circle", tone: "green" },
+  { id: "solucao", titulo: "Soluções para Erros", descricao: "Veja causas e soluções de problemas comuns", artigos: 32, icon: "pi pi-exclamation-triangle", tone: "orange" },
+  { id: "parametrizacao", titulo: "Parametrizações", descricao: "Configurações e cadastros do sistema", artigos: 16, icon: "pi pi-cog", tone: "purple" },
+  { id: "base-legal", titulo: "Base Legal", descricao: "Leis, decretos e normativas", artigos: 12, icon: "pi pi-balance-scale", tone: "teal" },
+];
+
+const sicadBaseConhecimentoArtigos: SicadBaseConhecimentoArtigo[] = [
+  { id: "art-1", titulo: "Como solicitar um Cartão de Pagamento (CPGMT)", descricao: "Aprenda o passo a passo para solicitar seu cartão de pagamento no SICAD.", categoriaId: "guia", categoria: "Guia", data: "06/05/2024", icon: "pi pi-book", tone: "blue", acessos: 245 },
+  { id: "art-2", titulo: "Qual a diferença entre Cartão de Pagamento e Depósito em Conta?", descricao: "Entenda quando usar cada forma de recebimento no suprimento de fundos.", categoriaId: "faq", categoria: "FAQ", data: "02/05/2024", icon: "pi pi-question-circle", tone: "green", acessos: 218 },
+  { id: "art-3", titulo: "Área de Gestão não aparece na solicitação", descricao: "Saiba como habilitar a área de gestão através da parametrização da Forma de Recebimento.", categoriaId: "solucao", categoria: "Solução", data: "28/04/2024", icon: "pi pi-exclamation-triangle", tone: "orange", acessos: 201 },
+  { id: "art-4", titulo: "Como parametrizar Forma de Recebimento - Tipo II-C", descricao: "Passo a passo para habilitar o Tipo II-C (Cartão Convênio) no sistema.", categoriaId: "parametrizacao", categoria: "Parametrização", data: "25/04/2024", icon: "pi pi-cog", tone: "purple", acessos: 176 },
+  { id: "art-5", titulo: "Decreto 1.487/2022 - Suprimento de Fundos", descricao: "Acesse o decreto que regulamenta o suprimento de fundos no Estado de Mato Grosso.", categoriaId: "base-legal", categoria: "Base Legal", data: "21/04/2024", icon: "pi pi-balance-scale", tone: "teal", acessos: 154 },
+  { id: "art-6", titulo: "Erro ORA-06502: valor numérico ou erro de valor", descricao: "Causas mais comuns do erro ORA-06502 e como orientar o atendimento.", categoriaId: "solucao", categoria: "Solução", data: "18/04/2024", icon: "pi pi-exclamation-triangle", tone: "orange", acessos: 149 },
+];
+
 export function PrototiposSicadBaseConhecimentoPage() {
+  const navigate = useNavigate();
+  const [busca, setBusca] = useState("");
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
+
+  if (!sicadTemPermissao("acessarBaseConhecimento")) {
+    return (
+      <SicadAccessDeniedPage
+        title="Base de Conhecimento"
+        requiredPermissions={["acessarBaseConhecimento"]}
+      />
+    );
+  }
+
+  const normalizar = (value: string) => value.trim().toLocaleLowerCase("pt-BR");
+  const artigosFiltrados = sicadBaseConhecimentoArtigos.filter((artigo) => {
+    const termo = normalizar(busca);
+    const categoriaMatch = !categoriaSelecionada || artigo.categoriaId === categoriaSelecionada;
+    const buscaMatch =
+      !termo ||
+      normalizar(artigo.titulo).includes(termo) ||
+      normalizar(artigo.descricao).includes(termo) ||
+      normalizar(artigo.categoria).includes(termo);
+
+    return categoriaMatch && buscaMatch;
+  });
+  const artigosMaisAcessados = [...sicadBaseConhecimentoArtigos]
+    .sort((first, second) => second.acessos - first.acessos)
+    .slice(0, 5);
+
+  const handlePesquisar = () => {
+    setBusca(busca.trim());
+  };
+
+  const handleSelecionarCategoria = (categoriaId: string) => {
+    setCategoriaSelecionada((current) => (current === categoriaId ? "" : categoriaId));
+  };
+
   return (
-    <SicadPlaceholderPage
-      title="Base de Conhecimento"
-      requiredPermissions={["acessarBaseConhecimento"]}
-    />
+    <SicadShell>
+      <main className="prototype-sicad-page prototype-sicad-knowledge-page">
+        <header className="prototype-sicad-knowledge-header">
+          <div>
+            <h1>Base de Conhecimento</h1>
+            <p>Encontre respostas para suas dúvidas sobre o SICAD</p>
+          </div>
+        </header>
+
+        <section className="prototype-sicad-knowledge-search" aria-label="Pesquisa na base de conhecimento">
+          <label>
+            <i className="pi pi-search" aria-hidden="true" />
+            <input
+              type="search"
+              value={busca}
+              onChange={(event) => setBusca(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") handlePesquisar();
+              }}
+              placeholder="Digite sua dúvida (ex.: cartão de pagamento, prestação de contas, erro ORA...)"
+            />
+          </label>
+          <BotaoConsultarSeplag type="button" label="Pesquisar" icon="pi pi-search" onClick={handlePesquisar} />
+          <BotaoSeplag
+            type="button"
+            label="Perguntas Frequentes"
+            icon="pi pi-question-circle"
+            variant="back"
+            onClick={() => setCategoriaSelecionada("faq")}
+          />
+        </section>
+
+        <section className="prototype-sicad-knowledge-layout">
+          <div className="prototype-sicad-knowledge-main">
+            <section aria-labelledby="sicad-knowledge-categories-title">
+              <h2 id="sicad-knowledge-categories-title" className="prototype-sicad-section-title">Categorias</h2>
+              <div className="prototype-sicad-knowledge-categories">
+                {sicadBaseConhecimentoCategorias.map((categoria) => (
+                  <button
+                    type="button"
+                    key={categoria.id}
+                    className={
+                      "prototype-sicad-knowledge-category prototype-sicad-knowledge-tone-" +
+                      categoria.tone +
+                      (categoriaSelecionada === categoria.id ? " is-active" : "")
+                    }
+                    onClick={() => handleSelecionarCategoria(categoria.id)}
+                  >
+                    <span className="prototype-sicad-knowledge-icon"><i className={categoria.icon} /></span>
+                    <span>
+                      <strong>{categoria.titulo}</strong>
+                      <small>{categoria.descricao}</small>
+                    </span>
+                    <em>{categoria.artigos} artigos</em>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section aria-labelledby="sicad-knowledge-featured-title">
+              <h2 id="sicad-knowledge-featured-title" className="prototype-sicad-section-title">Artigos em Destaque</h2>
+              <div className="prototype-sicad-knowledge-articles">
+                {artigosFiltrados.map((artigo) => (
+                  <button
+                    type="button"
+                    key={artigo.id}
+                    className="prototype-sicad-knowledge-article"
+                    onClick={() => setBusca(artigo.titulo)}
+                  >
+                    <span className={"prototype-sicad-knowledge-article-icon prototype-sicad-knowledge-tone-" + artigo.tone}>
+                      <i className={artigo.icon} />
+                    </span>
+                    <span className="prototype-sicad-knowledge-article-copy">
+                      <strong>{artigo.titulo}</strong>
+                      <small>{artigo.descricao}</small>
+                    </span>
+                    <span className={"prototype-sicad-knowledge-tag prototype-sicad-knowledge-tone-" + artigo.tone}>{artigo.categoria}</span>
+                    <time>{artigo.data}</time>
+                    <i className="pi pi-chevron-right" aria-hidden="true" />
+                  </button>
+                ))}
+                {artigosFiltrados.length === 0 ? (
+                  <div className="prototype-sicad-knowledge-empty">
+                    <i className="pi pi-info-circle" />
+                    <span>Nenhum artigo encontrado para a pesquisa informada.</span>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          </div>
+
+          <aside className="prototype-sicad-knowledge-sidebar" aria-label="Artigos e ajuda">
+            <section className="prototype-sicad-knowledge-sidebar-group" aria-labelledby="sicad-knowledge-ranking-title">
+              <h2 id="sicad-knowledge-ranking-title" className="prototype-sicad-section-title">Artigos Mais Acessados</h2>
+              <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-knowledge-side-card prototype-sicad-knowledge-ranking-card">
+                <section>
+                  <ol className="prototype-sicad-knowledge-ranking">
+                    {artigosMaisAcessados.map((artigo, index) => (
+                      <li key={artigo.id}>
+                        <span>{index + 1}</span>
+                        <button type="button" onClick={() => setBusca(artigo.titulo)}>{artigo.titulo}</button>
+                      </li>
+                    ))}
+                  </ol>
+                  <button type="button" className="prototype-sicad-knowledge-link" onClick={() => setCategoriaSelecionada("")}>Ver todos os artigos <i className="pi pi-arrow-right" /></button>
+                </section>
+              </CardSeplag>
+            </section>
+
+            <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-knowledge-side-card prototype-sicad-knowledge-help-card">
+              <section>
+                <h2>Não encontrou o que precisava?</h2>
+                <p>Abra uma ocorrência e nossa equipe irá te ajudar.</p>
+                <BotaoSeplag
+                  type="button"
+                  label="Abrir Ocorrência"
+                  icon="pi pi-plus-circle"
+                  variant="back"
+                  onClick={() => navigate(getSicadPath("/ocorrencias/nova"))}
+                  hasPermission={sicadTemPermissao("acessarNovaOcorrencia")}
+                />
+              </section>
+            </CardSeplag>
+          </aside>
+        </section>
+      </main>
+    </SicadShell>
   );
 }
-
 export const sicadOccurrenceRoutes = {
   nova: getSicadHashPath("/ocorrencias/nova"),
   minhas: getSicadHashPath("/ocorrencias/minhas"),
@@ -2978,6 +3175,10 @@ export const sicadOccurrenceRoutes = {
   relatorios: getSicadHashPath("/ocorrencias/relatorios"),
   baseConhecimento: getSicadHashPath("/ocorrencias/base-conhecimento"),
 };
+
+
+
+
 
 
 

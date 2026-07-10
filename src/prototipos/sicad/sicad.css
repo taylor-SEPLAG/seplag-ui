@@ -1931,3 +1931,457 @@
   font-size: 0.64rem;
   line-height: 1.15;
 }
+
+.prototype-sicad-knowledge-page {
+  gap: 20px;
+  padding-top: 28px;
+}
+
+.prototype-sicad-knowledge-header h1 {
+  margin: 0 0 8px;
+  color: #082f57;
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-knowledge-header p {
+  margin: 0;
+  color: #344767;
+  font-size: 0.94rem;
+}
+
+.prototype-sicad-knowledge-search {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 120px 210px;
+  gap: 14px;
+  align-items: center;
+}
+
+.prototype-sicad-knowledge-search label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 46px;
+  padding: 0 16px;
+  border: 1px solid #cbd8e6;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0b63b6;
+}
+
+.prototype-sicad-knowledge-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #17324d;
+  font-size: 0.9rem;
+}
+
+.prototype-sicad-knowledge-search .p-button {
+  width: 100%;
+}
+
+.prototype-sicad-knowledge-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 305px;
+  gap: 24px;
+  align-items: start;
+}
+
+.prototype-sicad-knowledge-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.prototype-sicad-section-title {
+  margin: 0 0 14px;
+  color: #102a43;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-knowledge-categories {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.prototype-sicad-knowledge-category {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 132px;
+  padding: 18px 14px 14px;
+  border: 1px solid #d6e0eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17324d;
+  text-align: left;
+  box-shadow: 0 8px 18px rgba(15, 46, 76, 0.05);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.prototype-sicad-knowledge-category:hover,
+.prototype-sicad-knowledge-category:focus-visible,
+.prototype-sicad-knowledge-category.is-active {
+  border-color: #0b63b6;
+  box-shadow: 0 12px 26px rgba(11, 99, 182, 0.14);
+  transform: translateY(-1px);
+}
+
+.prototype-sicad-knowledge-category strong,
+.prototype-sicad-knowledge-article-copy strong {
+  display: block;
+  overflow: hidden;
+  color: #00325d;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prototype-sicad-knowledge-category small,
+.prototype-sicad-knowledge-article-copy small {
+  display: block;
+  margin-top: 6px;
+  color: #43556d;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.prototype-sicad-knowledge-category em {
+  grid-column: 2;
+  justify-self: end;
+  align-self: end;
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: #edf2f7;
+  color: #25364d;
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.prototype-sicad-knowledge-icon,
+.prototype-sicad-knowledge-article-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 7px;
+  font-size: 1.75rem;
+}
+
+.prototype-sicad-knowledge-tone-blue { color: #0b63b6; }
+.prototype-sicad-knowledge-tone-green { color: #189d5b; }
+.prototype-sicad-knowledge-tone-orange { color: #e58a00; }
+.prototype-sicad-knowledge-tone-purple { color: #6b3fc6; }
+.prototype-sicad-knowledge-tone-teal { color: #1599a5; }
+.prototype-sicad-knowledge-article-icon.prototype-sicad-knowledge-tone-blue,
+.prototype-sicad-knowledge-icon:has(.pi-book) { background: #e7f2ff; }
+.prototype-sicad-knowledge-article-icon.prototype-sicad-knowledge-tone-green,
+.prototype-sicad-knowledge-icon:has(.pi-question-circle) { background: #e4f6ed; }
+.prototype-sicad-knowledge-article-icon.prototype-sicad-knowledge-tone-orange,
+.prototype-sicad-knowledge-icon:has(.pi-exclamation-triangle) { background: #fff1d9; }
+.prototype-sicad-knowledge-article-icon.prototype-sicad-knowledge-tone-purple,
+.prototype-sicad-knowledge-icon:has(.pi-cog) { background: #eee8ff; }
+.prototype-sicad-knowledge-article-icon.prototype-sicad-knowledge-tone-teal,
+.prototype-sicad-knowledge-icon:has(.pi-balance-scale) { background: #def6f8; }
+
+.prototype-sicad-knowledge-articles {
+  overflow: hidden;
+  border: 1px solid #d6e0eb;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(15, 46, 76, 0.05);
+}
+
+.prototype-sicad-knowledge-article {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 118px 92px 22px;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  min-height: 72px;
+  padding: 12px 16px;
+  border: 0;
+  border-bottom: 1px solid #e0e7ef;
+  background: #ffffff;
+  color: #17324d;
+  text-align: left;
+  cursor: pointer;
+}
+
+.prototype-sicad-knowledge-article:last-child {
+  border-bottom: 0;
+}
+
+.prototype-sicad-knowledge-article:hover,
+.prototype-sicad-knowledge-article:focus-visible {
+  background: #f7fbff;
+}
+
+.prototype-sicad-knowledge-tag {
+  justify-self: start;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-knowledge-tag.prototype-sicad-knowledge-tone-blue { background: #e7f2ff; }
+.prototype-sicad-knowledge-tag.prototype-sicad-knowledge-tone-green { background: #e4f6ed; }
+.prototype-sicad-knowledge-tag.prototype-sicad-knowledge-tone-orange { background: #fff1d9; }
+.prototype-sicad-knowledge-tag.prototype-sicad-knowledge-tone-purple { background: #eee8ff; }
+.prototype-sicad-knowledge-tag.prototype-sicad-knowledge-tone-teal { background: #def6f8; }
+
+.prototype-sicad-knowledge-article time {
+  color: #51627a;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.prototype-sicad-knowledge-article > .pi-chevron-right {
+  color: #0b63b6;
+}
+
+.prototype-sicad-knowledge-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px;
+  color: #51627a;
+}
+
+.prototype-sicad-knowledge-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.prototype-sicad-knowledge-side-card .p-card-body,
+.prototype-sicad-knowledge-side-card .p-card-content {
+  padding: 0;
+}
+
+.prototype-sicad-knowledge-side-card section {
+  padding: 22px;
+}
+
+.prototype-sicad-knowledge-side-card h2 {
+  margin: 0 0 18px;
+  color: #102a43;
+  font-size: 0.96rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-knowledge-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prototype-sicad-knowledge-ranking li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.prototype-sicad-knowledge-ranking span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0b74d1;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-knowledge-ranking button,
+.prototype-sicad-knowledge-link {
+  border: 0;
+  background: transparent;
+  color: #003f7d;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.prototype-sicad-knowledge-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  color: #0b63b6;
+  font-weight: 800;
+}
+
+.prototype-sicad-knowledge-help-card p {
+  margin: -4px 0 18px;
+  color: #51627a;
+  line-height: 1.45;
+}
+
+.prototype-sicad-knowledge-help-card .p-button {
+  width: 100%;
+}
+
+@media (max-width: 1280px) {
+  .prototype-sicad-knowledge-categories {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .prototype-sicad-knowledge-search,
+  .prototype-sicad-knowledge-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .prototype-sicad-knowledge-categories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .prototype-sicad-knowledge-categories,
+  .prototype-sicad-knowledge-article {
+    grid-template-columns: 1fr;
+  }
+
+  .prototype-sicad-knowledge-category {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .prototype-sicad-knowledge-article time,
+  .prototype-sicad-knowledge-tag {
+    justify-self: start;
+  }
+}
+
+/* Ajuste dos botoes da busca da Base de Conhecimento. */
+.prototype-sicad-knowledge-search {
+  grid-template-columns: minmax(420px, 1fr) 146px 230px;
+  gap: 14px;
+}
+
+.prototype-sicad-knowledge-search .p-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 46px;
+  min-width: 0;
+  padding-right: 14px;
+  padding-left: 14px;
+  white-space: nowrap;
+}
+
+.prototype-sicad-knowledge-search .p-button .p-button-label {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.prototype-sicad-knowledge-search .p-button .p-button-icon {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1180px) {
+  .prototype-sicad-knowledge-search {
+    grid-template-columns: minmax(320px, 1fr) 146px;
+  }
+
+  .prototype-sicad-knowledge-search .p-button:last-child {
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: 230px;
+  }
+}
+
+.prototype-sicad-knowledge-sidebar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.prototype-sicad-knowledge-sidebar-group > .prototype-sicad-section-title {
+  margin: 0;
+  padding: 0;
+}
+
+.prototype-sicad-knowledge-sidebar-group > .col-12 {
+  padding: 0;
+}
+
+.prototype-sicad-knowledge-ranking-card section {
+  padding-top: 22px;
+}
+
+
+
+/* Refinos de alinhamento da Base de Conhecimento. */
+.prototype-sicad-knowledge-layout {
+  align-items: stretch;
+  margin-top: 18px;
+}
+
+.prototype-sicad-knowledge-search .p-button:last-child {
+  border: 1px solid #c7d8ea;
+  background: #ffffff;
+  color: #0b63b6;
+  box-shadow: 0 1px 2px rgba(15, 46, 76, 0.04);
+}
+
+.prototype-sicad-knowledge-search .p-button:last-child:hover,
+.prototype-sicad-knowledge-search .p-button:last-child:focus-visible {
+  border-color: #0b63b6;
+  background: #f4f9ff;
+  color: #005ea8;
+}
+
+.prototype-sicad-knowledge-sidebar {
+  height: 100%;
+}
+
+.prototype-sicad-knowledge-sidebar > .col-12 {
+  padding: 0;
+}
+
+.prototype-sicad-knowledge-sidebar > .col-12:last-child {
+  margin-top: auto;
+}
+
+/* Ajuste fino da coluna lateral da Base de Conhecimento. */
+.prototype-sicad-knowledge-sidebar-group {
+  padding-top: 10px;
+}
+
+.prototype-sicad-knowledge-ranking-card section {
+  min-height: 326px;
+}
+
+.prototype-sicad-knowledge-search .p-button:last-child {
+  border-color: #0b63b6;
+  border-width: 1.5px;
+  background: #f8fbff;
+  color: #005ea8;
+}
+
+.prototype-sicad-knowledge-search .p-button:last-child:hover,
+.prototype-sicad-knowledge-search .p-button:last-child:focus-visible {
+  border-color: #004f93;
+  background: #eaf4ff;
+}
