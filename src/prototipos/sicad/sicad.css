@@ -21,15 +21,15 @@
 }
 
 .prototype-sicad-shell .layout-sidebar {
-  width: 285px;
+  width: 320px;
 }
 
 .prototype-sicad-shell .layout-main {
-  margin-left: 285px;
+  margin-left: 320px;
 }
 
 .prototype-sicad-shell .layout-static-sidebar-inactive .layout-sidebar {
-  transform: translateX(-285px);
+  transform: translateX(-320px);
 }
 
 .prototype-sicad-shell .layout-static-sidebar-inactive .layout-main,
@@ -38,7 +38,7 @@
 }
 
 .prototype-sicad-shell .layout-overlay .layout-sidebar {
-  transform: translateX(-285px);
+  transform: translateX(-320px);
 }
 
 .prototype-sicad-home-page {
@@ -217,7 +217,7 @@
   }
 
   .prototype-sicad-shell .layout-sidebar {
-    transform: translateX(-285px);
+    transform: translateX(-320px);
   }
 
   .prototype-sicad-shell .layout-mobile-sidebar-active .layout-sidebar {
@@ -2385,3 +2385,4 @@
   border-color: #004f93;
   background: #eaf4ff;
 }
+
