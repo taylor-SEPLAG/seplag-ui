@@ -17,43 +17,43 @@ import {
   sicadTemPermissao,
   sicadUsuarioMockado,
   sicadUsuariosMockados,
-  type SicadPermissaoOcorrencia,
+  type SicadPermissaoChamado,
 } from "./sicadAccessMock";
 import "../../componentes/layout/layout/Layout.css";
 import "./sicad.css";
 import {
-  adicionarComentarioSicadOcorrenciaMock,
-  alterarStatusSicadOcorrenciaMock,
-  assumirSicadOcorrenciaMock,
-  atualizarSicadOcorrenciaMock,
-  buscarSicadOcorrenciaPorIdMock,
-  criarSicadOcorrenciaMock,
-  listarSicadFilaOcorrenciasMock as listarSicadFilaCentralMock,
-  listarSicadMinhasOcorrenciasMock as listarSicadMinhasCentralMock,
-  registrarHistoricoSicadOcorrenciaMock,
+  adicionarComentarioSicadChamadoMock,
+  alterarStatusSicadChamadoMock,
+  assumirSicadChamadoMock,
+  atualizarSicadChamadoMock,
+  buscarSicadChamadoPorIdMock,
+  criarSicadChamadoMock,
+  listarSicadFilaChamadosMock as listarSicadFilaCentralMock,
+  listarSicadMeusChamadosMock as listarSicadMinhasCentralMock,
+  registrarHistoricoSicadChamadoMock,
   reordenarSicadFilaMock,
-  responderInformacoesSicadOcorrenciaMock,
-  salvarRedmineSicadOcorrenciaMock,
-  solicitarInformacoesSicadOcorrenciaMock,
-  type SicadOcorrenciaService,
-} from "./sicadOcorrenciasMockService";
+  responderInformacoesSicadChamadoMock,
+  salvarRedmineSicadChamadoMock,
+  solicitarInformacoesSicadChamadoMock,
+  type SicadChamadoService,
+} from "./sicadChamadosMockService";
 
 const SICAD_BASE_PATH = "/prototipos/sicad";
-const SICAD_OCORRENCIAS_BASE_PATH = `${SICAD_BASE_PATH}/ocorrencias`;
+const SICAD_CHAMADOS_BASE_PATH = `${SICAD_BASE_PATH}/chamados`;
 
 const getSicadPath = (path: string) => `${SICAD_BASE_PATH}${path}`;
 const getSicadHashPath = (path: string) => `#${getSicadPath(path)}`;
 
-const sicadCentralOccurrenceAccessPermissions: SicadPermissaoOcorrencia[] = [
-  "acessarNovaOcorrencia",
-  "acessarMinhasOcorrencias",
-  "acessarFilaOcorrencias",
+const sicadCentralOccurrenceAccessPermissions: SicadPermissaoChamado[] = [
+  "acessarNovoChamado",
+  "acessarMeusChamados",
+  "acessarFilaChamados",
   "acessarDashboard",
   "acessarRelatorios",
   "acessarBaseConhecimento",
-  "visualizarOcorrenciasAbertas",
-  "visualizarTodasOcorrencias",
-  "visualizarOcorrenciasValidacao",
+  "visualizarChamadosAbertas",
+  "visualizarTodasChamados",
+  "visualizarChamadosValidacao",
 ];
 
 const menuSicad: IMenuSeplag[] = [
@@ -108,17 +108,17 @@ const menuSicad: IMenuSeplag[] = [
     ],
   },
   {
-    label: "Central de Ocorrências",
+    label: "Central de Chamados",
     icon: "pi pi-headphones",
     url: "#",
     visibleOnMenu: sicadTemAlgumaPermissao(sicadCentralOccurrenceAccessPermissions),
     visibleOnRouter: true,
     items: [
-      { label: "Base de Conhecimento", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/base-conhecimento"), visibleOnMenu: sicadTemPermissao("acessarBaseConhecimento"), visibleOnRouter: true },
-      { label: "Minhas Ocorrências", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/minhas"), visibleOnMenu: sicadTemPermissao("acessarMinhasOcorrencias"), visibleOnRouter: true },
-      { label: "Fila de Ocorrências", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/fila"), visibleOnMenu: sicadTemPermissao("acessarFilaOcorrencias"), visibleOnRouter: true },
-      { label: "Dashboard", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/dashboard"), visibleOnMenu: sicadTemPermissao("acessarDashboard"), visibleOnRouter: true },
-      { label: "Relatórios", icon: "pi pi-circle-on", to: getSicadPath("/ocorrencias/relatorios"), visibleOnMenu: sicadTemPermissao("acessarRelatorios"), visibleOnRouter: true },
+      { label: "Base de Conhecimento", icon: "pi pi-circle-on", to: getSicadPath("/chamados/base-conhecimento"), visibleOnMenu: sicadTemPermissao("acessarBaseConhecimento"), visibleOnRouter: true },
+      { label: "Meus Chamados", icon: "pi pi-circle-on", to: getSicadPath("/chamados/minhas"), visibleOnMenu: sicadTemPermissao("acessarMeusChamados"), visibleOnRouter: true },
+      { label: "Fila de Chamados", icon: "pi pi-circle-on", to: getSicadPath("/chamados/fila"), visibleOnMenu: sicadTemPermissao("acessarFilaChamados"), visibleOnRouter: true },
+      { label: "Dashboard", icon: "pi pi-circle-on", to: getSicadPath("/chamados/dashboard"), visibleOnMenu: sicadTemPermissao("acessarDashboard"), visibleOnRouter: true },
+      { label: "Relatórios", icon: "pi pi-circle-on", to: getSicadPath("/chamados/relatorios"), visibleOnMenu: sicadTemPermissao("acessarRelatorios"), visibleOnRouter: true },
     ],
   },
   {
@@ -171,7 +171,7 @@ const sicadOrgaoOptions = [
   { label: "SES", value: "SES" },
 ];
 
-type SicadNovaOcorrenciaForm = {
+type SicadNovoChamadoForm = {
   tipo: string;
   sistema: "SICAD";
   ambiente: string;
@@ -185,7 +185,7 @@ type SicadNovaOcorrenciaForm = {
   descricao: string;
   mensagemErro: string;
 };
-type SicadOcorrenciaStatus =
+type SicadChamadoStatus =
   | "Novo"
   | "Em análise"
   | "Aguardando Informações"
@@ -193,7 +193,7 @@ type SicadOcorrenciaStatus =
   | "Em validação"
   | "Concluída";
 
-type SicadOcorrenciaMock = {
+type SicadChamadoMock = {
   id: string;
   numero: string;
   dataAbertura: string;
@@ -201,12 +201,12 @@ type SicadOcorrenciaMock = {
   titulo: string;
   ambiente: string;
   prioridade: string;
-  status: SicadOcorrenciaStatus;
+  status: SicadChamadoStatus;
   orgao: string;
   numeroSolicitacaoPrestacao: string;
 };
 
-type SicadMinhasOcorrenciasFiltroForm = {
+type SicadMeusChamadosFiltroForm = {
   numero: string;
   titulo: string;
   tipo: string;
@@ -227,7 +227,7 @@ const sicadStatusOptions = [
   { label: "Em validação", value: "Em validação" },
   { label: "Concluída", value: "Concluída" },
 ];
-type SicadFilaOcorrenciaStatus =
+type SicadFilaChamadoStatus =
   | "Novo"
   | "Em Análise"
   | "Aguardando Informações"
@@ -236,7 +236,7 @@ type SicadFilaOcorrenciaStatus =
   | "Concluído"
   | "Cancelado";
 
-type SicadFilaOcorrenciaMock = {
+type SicadFilaChamadoMock = {
   id: string;
   ordem: number;
   numero: string;
@@ -245,13 +245,13 @@ type SicadFilaOcorrenciaMock = {
   titulo: string;
   ambiente: string;
   prioridade: string;
-  status: SicadFilaOcorrenciaStatus;
+  status: SicadFilaChamadoStatus;
   responsavel: string;
   orgao: string;
   numeroSolicitacaoPrestacao: string;
 };
 
-type SicadFilaOcorrenciasFiltroForm = {
+type SicadFilaChamadosFiltroForm = {
   status: string;
   tipo: string;
   ambiente: string;
@@ -277,7 +277,7 @@ type SicadRelatoriosFiltroForm = {
   numeroRedmine: string;
 };
 
-type SicadRelatorioOcorrenciaMock = {
+type SicadRelatorioChamadoMock = {
   id: string;
   numero: string;
   dataAbertura: string;
@@ -286,7 +286,7 @@ type SicadRelatorioOcorrenciaMock = {
   titulo: string;
   ambiente: string;
   prioridade: string;
-  status: SicadFilaOcorrenciaStatus;
+  status: SicadFilaChamadoStatus;
   responsavel: string;
   orgao: string;
   usuario: string;
@@ -296,16 +296,16 @@ type SicadRelatorioOcorrenciaMock = {
   tempoAtendimento: string;
 };
 
-type SicadOcorrenciaAnexoMock = {
+type SicadChamadoAnexoMock = {
   nome: string;
   tamanho: string;
   dataHora: string;
 };
 
-type SicadOcorrenciaDetalheMock = {
+type SicadChamadoDetalheMock = {
   id: string;
   numero: string;
-  status: SicadFilaOcorrenciaStatus;
+  status: SicadFilaChamadoStatus;
   tipo: string;
   ambiente: string;
   prioridade: string;
@@ -317,10 +317,10 @@ type SicadOcorrenciaDetalheMock = {
   numeroSolicitacaoPrestacao: string;
   descricao: string;
   mensagemErro: string;
-  anexos: SicadOcorrenciaAnexoMock[];
+  anexos: SicadChamadoAnexoMock[];
 };
 
-type SicadOcorrenciaHistoricoMock = {
+type SicadChamadoHistoricoMock = {
   id: string;
   dataHora: string;
   usuario: string;
@@ -328,7 +328,7 @@ type SicadOcorrenciaHistoricoMock = {
   observacao: string;
 };
 
-type SicadOcorrenciaComentarioMock = {
+type SicadChamadoComentarioMock = {
   id: string;
   usuario: string;
   perfil: string;
@@ -336,10 +336,10 @@ type SicadOcorrenciaComentarioMock = {
   texto: string;
 };
 
-type SicadOcorrenciaDetalheStorage = {
-  ocorrencia: SicadOcorrenciaDetalheMock;
-  historico: SicadOcorrenciaHistoricoMock[];
-  comentarios: SicadOcorrenciaComentarioMock[];
+type SicadChamadoDetalheStorage = {
+  chamado: SicadChamadoDetalheMock;
+  historico: SicadChamadoHistoricoMock[];
+  comentarios: SicadChamadoComentarioMock[];
 };
 
 type SicadDashboardMetric = {
@@ -366,7 +366,7 @@ type SicadAnaliseTecnicaForm = {
   observacoesTecnicas: string;
   responsavel: string;
   numeroRedmine: string;
-  status: SicadFilaOcorrenciaStatus;
+  status: SicadFilaChamadoStatus;
   prioridade: string;
 };
 
@@ -441,7 +441,7 @@ const sicadDashboardOrgaoMock: SicadDashboardBarItem[] = [
   { label: "Outros", value: 10, color: "#2f80df" },
 ];
 
-const sicadRelatoriosOcorrenciasMock: SicadRelatorioOcorrenciaMock[] = [
+const sicadRelatoriosChamadosMock: SicadRelatorioChamadoMock[] = [
   { id: "000012-2024", numero: "000012/2024", dataAbertura: "31/05/2024 10:43", dataConclusao: "02/06/2024 14:21", tipo: "Bug", titulo: "Erro ao gerar relatório financeiro", ambiente: "Produção", prioridade: "Alta", status: "Concluído", responsavel: "Mariana Costa", orgao: "SEPLAG", usuario: "Taylor Santos", cpf: "123.456.789-00", numeroSolicitacaoPrestacao: "12345/2024", numeroRedmine: "RED-24567", tempoAtendimento: "1d 3h 38m" },
   { id: "000011-2024", numero: "000011/2024", dataAbertura: "30/05/2024 16:15", dataConclusao: "-", tipo: "Melhoria", titulo: "Inclusão de filtro por data", ambiente: "Homologação", prioridade: "Média", status: "Em Análise", responsavel: "João Pereira", orgao: "SEFAZ", usuario: "Roberto Junior", cpf: "987.654.321-00", numeroSolicitacaoPrestacao: "12344/2024", numeroRedmine: "RED-24566", tempoAtendimento: "10h 22m" },
   { id: "000010-2024", numero: "000010/2024", dataAbertura: "30/05/2024 09:22", dataConclusao: "31/05/2024 11:05", tipo: "Bug", titulo: "Sistema não permite excluir anexo", ambiente: "Produção", prioridade: "Alta", status: "Concluído", responsavel: "Ana Carolina", orgao: "CGE", usuario: "Marcos Lima", cpf: "456.789.123-00", numeroSolicitacaoPrestacao: "12343/2024", numeroRedmine: "RED-24565", tempoAtendimento: "1d 1h 43m" },
@@ -455,7 +455,7 @@ const sicadRelatoriosOcorrenciasMock: SicadRelatorioOcorrenciaMock[] = [
   { id: "000002-2024", numero: "000002/2024", dataAbertura: "24/05/2024 13:27", dataConclusao: "-", tipo: "Integração", titulo: "Falha na integração com FIPLAN", ambiente: "Homologação", prioridade: "Alta", status: "Em Análise", responsavel: "Mariana Costa", orgao: "SEFAZ", usuario: "Eduardo Neves", cpf: "753.951.852-00", numeroSolicitacaoPrestacao: "12335/2024", numeroRedmine: "RED-24559", tempoAtendimento: "2d 8h 10m" },
   { id: "000001-2024", numero: "000001/2024", dataAbertura: "23/05/2024 11:12", dataConclusao: "24/05/2024 10:30", tipo: "Melhoria", titulo: "Campo observação no formulário", ambiente: "Produção", prioridade: "Média", status: "Concluído", responsavel: "Rafael Lima", orgao: "SEPLAG", usuario: "Larissa Nunes", cpf: "852.741.963-00", numeroSolicitacaoPrestacao: "12334/2024", numeroRedmine: "RED-24558", tempoAtendimento: "23h 18m" },
 ];
-const sicadDetalheOcorrenciaMock: SicadOcorrenciaDetalheMock = {
+const sicadDetalheChamadoMock: SicadChamadoDetalheMock = {
   id: "000123-2024",
   numero: "2025-000123",
   status: "Em Análise",
@@ -478,13 +478,13 @@ const sicadDetalheOcorrenciaMock: SicadOcorrenciaDetalheMock = {
   ],
 };
 
-const sicadDetalheHistoricoMock: SicadOcorrenciaHistoricoMock[] = [
+const sicadDetalheHistoricoMock: SicadChamadoHistoricoMock[] = [
   {
     id: "hist-1",
     dataHora: "10/05/2025 14:32",
     usuario: "Taylor Santos (Suporte)",
-    acao: "Ocorrência criada",
-    observacao: "Ocorrência registrada pelo usuário.",
+    acao: "Chamado criado",
+    observacao: "Chamado registrado pelo usuário.",
   },
   {
     id: "hist-2",
@@ -504,12 +504,12 @@ const sicadDetalheHistoricoMock: SicadOcorrenciaHistoricoMock[] = [
     id: "hist-4",
     dataHora: "11/05/2025 09:20",
     usuario: "João Silva (Analista)",
-    acao: "Assumiu a ocorrência",
-    observacao: "Ocorrência assumida para análise.",
+    acao: "Assumiu o chamado",
+    observacao: "Chamado assumido para análise.",
   },
 ];
 
-const sicadDetalheComentariosMock: SicadOcorrenciaComentarioMock[] = [
+const sicadDetalheComentariosMock: SicadChamadoComentarioMock[] = [
   {
     id: "coment-1",
     usuario: "Ana Paula",
@@ -533,11 +533,11 @@ const sicadDetalheComentariosMock: SicadOcorrenciaComentarioMock[] = [
   },
 ];
 
-const SICAD_DETALHE_OCORRENCIA_STORAGE_KEY = "sicad.ocorrenciaDetalheMock";
+const SICAD_DETALHE_CHAMADO_STORAGE_KEY = "sicad.chamadoDetalheMock";
 
-function getSicadDetalheOcorrenciaInicial(id: string): SicadOcorrenciaDetalheStorage {
-  const fallback: SicadOcorrenciaDetalheStorage = {
-    ocorrencia: { ...sicadDetalheOcorrenciaMock, id },
+function getSicadDetalheChamadoInicial(id: string): SicadChamadoDetalheStorage {
+  const fallback: SicadChamadoDetalheStorage = {
+    chamado: { ...sicadDetalheChamadoMock, id },
     historico: sicadDetalheHistoricoMock,
     comentarios: sicadDetalheComentariosMock,
   };
@@ -545,13 +545,13 @@ function getSicadDetalheOcorrenciaInicial(id: string): SicadOcorrenciaDetalheSto
   if (typeof window === "undefined") return fallback;
 
   try {
-    const stored = window.localStorage.getItem(SICAD_DETALHE_OCORRENCIA_STORAGE_KEY);
+    const stored = window.localStorage.getItem(SICAD_DETALHE_CHAMADO_STORAGE_KEY);
     if (!stored) return fallback;
 
-    const parsed = JSON.parse(stored) as SicadOcorrenciaDetalheStorage;
+    const parsed = JSON.parse(stored) as SicadChamadoDetalheStorage;
 
     return {
-      ocorrencia: { ...fallback.ocorrencia, ...parsed.ocorrencia, id },
+      chamado: { ...fallback.chamado, ...parsed.chamado, id },
       historico: parsed.historico?.length ? parsed.historico : fallback.historico,
       comentarios: parsed.comentarios?.length ? parsed.comentarios : fallback.comentarios,
     };
@@ -560,17 +560,17 @@ function getSicadDetalheOcorrenciaInicial(id: string): SicadOcorrenciaDetalheSto
   }
 }
 
-function salvarSicadDetalheOcorrenciaMock(storage: SicadOcorrenciaDetalheStorage) {
+function salvarSicadDetalheChamadoMock(storage: SicadChamadoDetalheStorage) {
   if (typeof window === "undefined") return;
 
   window.localStorage.setItem(
-    SICAD_DETALHE_OCORRENCIA_STORAGE_KEY,
+    SICAD_DETALHE_CHAMADO_STORAGE_KEY,
     JSON.stringify(storage),
   );
 }
 
-function mapSicadFilaStatusToMinhasStatus(status: SicadFilaOcorrenciaStatus): SicadOcorrenciaStatus {
-  const statusMap: Record<SicadFilaOcorrenciaStatus, SicadOcorrenciaStatus> = {
+function mapSicadFilaStatusToMinhasStatus(status: SicadFilaChamadoStatus): SicadChamadoStatus {
+  const statusMap: Record<SicadFilaChamadoStatus, SicadChamadoStatus> = {
     Novo: "Novo",
     "Em Análise": "Em análise",
     "Aguardando Informações": "Aguardando Informações",
@@ -587,16 +587,16 @@ function getSicadDetalheStatusPersistido() {
   if (typeof window === "undefined") return null;
 
   try {
-    const stored = window.localStorage.getItem(SICAD_DETALHE_OCORRENCIA_STORAGE_KEY);
+    const stored = window.localStorage.getItem(SICAD_DETALHE_CHAMADO_STORAGE_KEY);
     if (!stored) return null;
 
-    return (JSON.parse(stored) as SicadOcorrenciaDetalheStorage).ocorrencia?.status ?? null;
+    return (JSON.parse(stored) as SicadChamadoDetalheStorage).chamado?.status ?? null;
   } catch {
     return null;
   }
 }
 
-const sicadFilaOcorrenciasMock: SicadFilaOcorrenciaMock[] = [
+const sicadFilaChamadosMock: SicadFilaChamadoMock[] = [
   {
     id: "000123-2024",
     ordem: 1,
@@ -711,7 +711,7 @@ const sicadFilaOcorrenciasMock: SicadFilaOcorrenciaMock[] = [
   },
 ];
 
-const sicadMinhasOcorrenciasMock: SicadOcorrenciaMock[] = [
+const sicadMeusChamadosMock: SicadChamadoMock[] = [
   {
     id: "000123-2024",
     numero: "000123/2024",
@@ -825,10 +825,10 @@ const sicadMinhasOcorrenciasMock: SicadOcorrenciaMock[] = [
 const requiredFieldMessage = "Campo obrigatório";
 
 function getSicadFormErrorMessage(
-  errors: FieldErrors<SicadNovaOcorrenciaForm>,
+  errors: FieldErrors<SicadNovoChamadoForm>,
   name: string,
 ) {
-  const message = errors[name as keyof SicadNovaOcorrenciaForm]?.message;
+  const message = errors[name as keyof SicadNovoChamadoForm]?.message;
 
   if (!message) return null;
 
@@ -860,12 +860,12 @@ const sicadHomeActions = [
     path: "/prestacao-contas",
   },
   {
-    id: "ocorrencias",
-    title: "Central de Ocorrências",
-    description: "Registrar, acompanhar e gerenciar ocorrências do sistema.",
+    id: "chamados",
+    title: "Central de Chamados",
+    description: "Registrar, acompanhar e gerenciar chamados do sistema.",
     icon: "pi pi-headphones",
     tone: "purple",
-    path: "/ocorrencias/minhas",
+    path: "/chamados/minhas",
   },
 ];
 
@@ -918,14 +918,14 @@ function SicadAccessDeniedPage({
   requiredPermissions,
 }: Readonly<{
   title: string;
-  requiredPermissions: SicadPermissaoOcorrencia[];
+  requiredPermissions: SicadPermissaoChamado[];
 }>) {
   return (
     <SicadShell>
       <main className="prototype-sicad-page">
         <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-placeholder-card">
           <section className="prototype-sicad-placeholder-content prototype-sicad-access-denied">
-            <span>Central de Ocorrências</span>
+            <span>Central de Chamados</span>
             <h1>Acesso restrito</h1>
             <p>
               O perfil mockado <strong>{sicadUsuarioMockado.perfil}</strong> não possui acesso a {title}.
@@ -943,7 +943,7 @@ function SicadPlaceholderPage({
   requiredPermissions,
 }: Readonly<{
   title: string;
-  requiredPermissions?: SicadPermissaoOcorrencia[];
+  requiredPermissions?: SicadPermissaoChamado[];
 }>) {
   if (requiredPermissions && !sicadTemAlgumaPermissao(requiredPermissions)) {
     return (
@@ -959,7 +959,7 @@ function SicadPlaceholderPage({
       <main className="prototype-sicad-page">
         <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-placeholder-card">
           <section className="prototype-sicad-placeholder-content">
-            <span>Central de Ocorrências</span>
+            <span>Central de Chamados</span>
             <h1>{title}</h1>
           </section>
         </CardSeplag>
@@ -1005,14 +1005,14 @@ export function PrototiposSicadPage() {
   );
 }
 
-export function PrototiposSicadNovaOcorrenciaPage() {
+export function PrototiposSicadNovoChamadoPage() {
   const navigate = useNavigate();
   const [anexos, setAnexos] = useState<ArquivoAnexadoSeplag[]>([]);
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<SicadNovaOcorrenciaForm>({
+  } = useForm<SicadNovoChamadoForm>({
     defaultValues: {
       tipo: "",
       sistema: "SICAD",
@@ -1047,8 +1047,8 @@ export function PrototiposSicadNovaOcorrenciaPage() {
     ]);
   };
 
-  const handleCriarOcorrencia = (values: SicadNovaOcorrenciaForm) => {
-    criarSicadOcorrenciaMock(
+  const handleCriarChamado = (values: SicadNovoChamadoForm) => {
+    criarSicadChamadoMock(
       {
         ...values,
         anexos: anexos.map((anexo) => ({
@@ -1065,14 +1065,14 @@ export function PrototiposSicadNovaOcorrenciaPage() {
       },
       sicadUsuarioMockado,
     );
-    navigate("/ocorrencias/minhas");
+    navigate("/chamados/minhas");
   };
 
-  if (!sicadTemPermissao("acessarNovaOcorrencia")) {
+  if (!sicadTemPermissao("acessarNovoChamado")) {
     return (
       <SicadAccessDeniedPage
-        title="Nova Ocorrência"
-        requiredPermissions={["acessarNovaOcorrencia"]}
+        title="Novo Chamado"
+        requiredPermissions={["acessarNovoChamado"]}
       />
     );
   }
@@ -1081,21 +1081,21 @@ export function PrototiposSicadNovaOcorrenciaPage() {
     <SicadShell>
       <main className="prototype-sicad-page prototype-sicad-form-page">
         <nav className="prototype-sicad-breadcrumb" aria-label="Breadcrumb">
-          <Link to={getSicadPath("/ocorrencias/minhas")}>Central de Ocorrências</Link>
+          <Link to={getSicadPath("/chamados/minhas")}>Central de Chamados</Link>
           <i className="pi pi-chevron-right" aria-hidden="true" />
-          <span>Nova Ocorrência</span>
+          <span>Novo Chamado</span>
         </nav>
 
         <header className="prototype-sicad-page-title">
-          <h1>Nova Ocorrência</h1>
-          <p>Preencha os dados abaixo para registrar uma nova ocorrência.</p>
+          <h1>Novo Chamado</h1>
+          <p>Preencha os dados abaixo para registrar um novo chamado.</p>
         </header>
 
-        <form onSubmit={handleSubmit(handleCriarOcorrencia)} noValidate>
+        <form onSubmit={handleSubmit(handleCriarChamado)} noValidate>
           <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-occurrence-card">
-            <DropdownFieldSeplag<SicadNovaOcorrenciaForm>
+            <DropdownFieldSeplag<SicadNovoChamadoForm>
               name="tipo"
-              label="Tipo da ocorrência"
+              label="Tipo do chamado"
               control={control}
               cols="12 12 4"
               required
@@ -1106,7 +1106,7 @@ export function PrototiposSicadNovaOcorrenciaPage() {
               getFormErrorMessage={getFormErrorMessage}
               showClear={false}
             />
-            <DropdownFieldSeplag<SicadNovaOcorrenciaForm>
+            <DropdownFieldSeplag<SicadNovoChamadoForm>
               name="ambiente"
               label="Ambiente"
               control={control}
@@ -1120,7 +1120,7 @@ export function PrototiposSicadNovaOcorrenciaPage() {
               showClear={false}
             />
             <div className="prototype-sicad-priority-field col-12 md:col-12 lg:col-4">
-              <RadioButtonFieldSeplag<SicadNovaOcorrenciaForm>
+              <RadioButtonFieldSeplag<SicadNovoChamadoForm>
                 name="prioridade"
                 label="Prioridade sugerida"
                 control={control}
@@ -1131,17 +1131,17 @@ export function PrototiposSicadNovaOcorrenciaPage() {
               />
             </div>
 
-            <TextFieldSeplag<SicadNovaOcorrenciaForm>
+            <TextFieldSeplag<SicadNovoChamadoForm>
               name="titulo"
               label="Título"
               control={control}
               cols="12"
               required
-              placeholder="Informe um título resumido para a ocorrência"
+              placeholder="Informe um título resumido para o chamado"
               rules={{ required: requiredFieldMessage }}
             />
 
-            <DropdownFieldSeplag<SicadNovaOcorrenciaForm>
+            <DropdownFieldSeplag<SicadNovoChamadoForm>
               name="orgao"
               label="Órgão"
               control={control}
@@ -1152,14 +1152,14 @@ export function PrototiposSicadNovaOcorrenciaPage() {
               placeholder="Selecione o órgão"
               getFormErrorMessage={getFormErrorMessage}
             />
-            <TextFieldSeplag<SicadNovaOcorrenciaForm>
+            <TextFieldSeplag<SicadNovoChamadoForm>
               name="usuarioAfetado"
               label="Usuário afetado"
               control={control}
               cols="12 12 4"
               placeholder="Nome do usuário afetado"
             />
-            <TextFieldSeplag<SicadNovaOcorrenciaForm>
+            <TextFieldSeplag<SicadNovoChamadoForm>
               name="cpf"
               label="CPF"
               control={control}
@@ -1168,14 +1168,14 @@ export function PrototiposSicadNovaOcorrenciaPage() {
               placeholder="000.000.000-00"
             />
 
-            <TextFieldSeplag<SicadNovaOcorrenciaForm>
+            <TextFieldSeplag<SicadNovoChamadoForm>
               name="matricula"
               label="Matrícula"
               control={control}
               cols="12 12 4"
               placeholder="Informe a matrícula"
             />
-            <TextFieldSeplag<SicadNovaOcorrenciaForm>
+            <TextFieldSeplag<SicadNovoChamadoForm>
               name="numeroSolicitacaoPrestacao"
               label="Número da solicitação/prestação"
               control={control}
@@ -1183,7 +1183,7 @@ export function PrototiposSicadNovaOcorrenciaPage() {
               placeholder="Informe o número da solicitação ou prestação (opcional)"
             />
 
-            <TextAreaFieldSeplag<SicadNovaOcorrenciaForm>
+            <TextAreaFieldSeplag<SicadNovoChamadoForm>
               name="descricao"
               label="Descrição do problema"
               control={control}
@@ -1194,7 +1194,7 @@ export function PrototiposSicadNovaOcorrenciaPage() {
               placeholder="Descreva detalhadamente o problema encontrado"
               rules={{ required: requiredFieldMessage }}
             />
-            <TextAreaFieldSeplag<SicadNovaOcorrenciaForm>
+            <TextAreaFieldSeplag<SicadNovoChamadoForm>
               name="mensagemErro"
               label="Mensagem de erro (se aplicável)"
               control={control}
@@ -1229,7 +1229,7 @@ export function PrototiposSicadNovaOcorrenciaPage() {
               />
               <BotaoSalvarSeplag
                 type="submit"
-                label="Criar Ocorrência"
+                label="Criar Chamado"
               />
             </div>
           </CardSeplag>
@@ -1296,8 +1296,8 @@ function getSicadPriorityTone(prioridade: string) {
   return toneByPriority[prioridade] ?? "gray";
 }
 
-function getSicadStatusTone(status: SicadOcorrenciaStatus) {
-  const toneByStatus: Record<SicadOcorrenciaStatus, string> = {
+function getSicadStatusTone(status: SicadChamadoStatus) {
+  const toneByStatus: Record<SicadChamadoStatus, string> = {
     Novo: "gray",
     "Em análise": "blue",
     "Aguardando Informações": "orange",
@@ -1309,8 +1309,8 @@ function getSicadStatusTone(status: SicadOcorrenciaStatus) {
   return toneByStatus[status];
 }
 
-function getSicadFilaStatusTone(status: SicadFilaOcorrenciaStatus) {
-  const toneByStatus: Record<SicadFilaOcorrenciaStatus, string> = {
+function getSicadFilaStatusTone(status: SicadFilaChamadoStatus) {
+  const toneByStatus: Record<SicadFilaChamadoStatus, string> = {
     Novo: "teal",
     "Em Análise": "blue",
     "Aguardando Informações": "orange",
@@ -1323,7 +1323,7 @@ function getSicadFilaStatusTone(status: SicadFilaOcorrenciaStatus) {
   return toneByStatus[status];
 }
 
-function renderSicadFilaStatus(status: SicadFilaOcorrenciaStatus) {
+function renderSicadFilaStatus(status: SicadFilaChamadoStatus) {
   const isMultiline =
     status === "Aguardando Informações" || status === "Em Desenvolvimento";
 
@@ -1359,61 +1359,61 @@ function SicadTableBadge({
     </span>
   );
 }
-function mapSicadServiceToMinhas(ocorrencia: SicadOcorrenciaService): SicadOcorrenciaMock {
+function mapSicadServiceToMinhas(chamado: SicadChamadoService): SicadChamadoMock {
   return {
-    id: ocorrencia.id,
-    numero: ocorrencia.numero,
-    dataAbertura: ocorrencia.dataAbertura,
-    tipo: ocorrencia.tipo,
-    titulo: ocorrencia.titulo,
-    ambiente: ocorrencia.ambiente,
-    prioridade: ocorrencia.prioridade,
-    status: mapSicadFilaStatusToMinhasStatus(ocorrencia.status as SicadFilaOcorrenciaStatus),
-    orgao: ocorrencia.orgao,
-    numeroSolicitacaoPrestacao: ocorrencia.numeroSolicitacaoPrestacao,
+    id: chamado.id,
+    numero: chamado.numero,
+    dataAbertura: chamado.dataAbertura,
+    tipo: chamado.tipo,
+    titulo: chamado.titulo,
+    ambiente: chamado.ambiente,
+    prioridade: chamado.prioridade,
+    status: mapSicadFilaStatusToMinhasStatus(chamado.status as SicadFilaChamadoStatus),
+    orgao: chamado.orgao,
+    numeroSolicitacaoPrestacao: chamado.numeroSolicitacaoPrestacao,
   };
 }
 
-function mapSicadServiceToFila(ocorrencia: SicadOcorrenciaService, index: number): SicadFilaOcorrenciaMock {
+function mapSicadServiceToFila(chamado: SicadChamadoService, index: number): SicadFilaChamadoMock {
   return {
-    id: ocorrencia.id,
+    id: chamado.id,
     ordem: index + 1,
-    numero: ocorrencia.numero,
-    data: ocorrencia.dataAbertura,
-    tipo: ocorrencia.tipo,
-    titulo: ocorrencia.titulo,
-    ambiente: ocorrencia.ambiente,
-    prioridade: ocorrencia.prioridade,
-    status: ocorrencia.status as SicadFilaOcorrenciaStatus,
-    responsavel: ocorrencia.responsavel,
-    orgao: ocorrencia.orgao,
-    numeroSolicitacaoPrestacao: ocorrencia.numeroSolicitacaoPrestacao,
+    numero: chamado.numero,
+    data: chamado.dataAbertura,
+    tipo: chamado.tipo,
+    titulo: chamado.titulo,
+    ambiente: chamado.ambiente,
+    prioridade: chamado.prioridade,
+    status: chamado.status as SicadFilaChamadoStatus,
+    responsavel: chamado.responsavel,
+    orgao: chamado.orgao,
+    numeroSolicitacaoPrestacao: chamado.numeroSolicitacaoPrestacao,
   };
 }
 
-function mapSicadServiceToDetalhe(ocorrencia: SicadOcorrenciaService): SicadOcorrenciaDetalheMock {
+function mapSicadServiceToDetalhe(chamado: SicadChamadoService): SicadChamadoDetalheMock {
   return {
-    id: ocorrencia.id,
-    numero: ocorrencia.numero,
-    status: ocorrencia.status as SicadFilaOcorrenciaStatus,
-    tipo: ocorrencia.tipo,
-    ambiente: ocorrencia.ambiente,
-    prioridade: ocorrencia.prioridade,
-    titulo: ocorrencia.titulo,
-    orgao: ocorrencia.orgao,
-    usuario: ocorrencia.usuario,
-    cpf: ocorrencia.cpf,
-    matricula: ocorrencia.matricula,
-    numeroSolicitacaoPrestacao: ocorrencia.numeroSolicitacaoPrestacao,
-    descricao: ocorrencia.descricao,
-    mensagemErro: ocorrencia.mensagemErro,
-    anexos: ocorrencia.anexos,
+    id: chamado.id,
+    numero: chamado.numero,
+    status: chamado.status as SicadFilaChamadoStatus,
+    tipo: chamado.tipo,
+    ambiente: chamado.ambiente,
+    prioridade: chamado.prioridade,
+    titulo: chamado.titulo,
+    orgao: chamado.orgao,
+    usuario: chamado.usuario,
+    cpf: chamado.cpf,
+    matricula: chamado.matricula,
+    numeroSolicitacaoPrestacao: chamado.numeroSolicitacaoPrestacao,
+    descricao: chamado.descricao,
+    mensagemErro: chamado.mensagemErro,
+    anexos: chamado.anexos,
   };
 }
-export function PrototiposSicadMinhasOcorrenciasPage() {
+export function PrototiposSicadMeusChamadosPage() {
   const navigate = useNavigate();
   const [filtrosAplicados, setFiltrosAplicados] =
-    useState<SicadMinhasOcorrenciasFiltroForm>({
+    useState<SicadMeusChamadosFiltroForm>({
       numero: "",
       titulo: "",
       tipo: "",
@@ -1426,25 +1426,25 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
       periodoFinal: "",
     });
   const { control, handleSubmit, reset } =
-    useForm<SicadMinhasOcorrenciasFiltroForm>({
+    useForm<SicadMeusChamadosFiltroForm>({
       defaultValues: filtrosAplicados,
     });
 
   const getFormErrorMessage = () => null;
 
-  const ocorrenciasFiltradas = useMemo(() => {
+  const chamadosFiltradas = useMemo(() => {
     const normalized = (value: string) => value.trim().toLocaleLowerCase("pt-BR");
-    const ocorrenciasMock = listarSicadMinhasCentralMock(sicadUsuarioMockado).map(mapSicadServiceToMinhas);
+    const chamadosMock = listarSicadMinhasCentralMock(sicadUsuarioMockado).map(mapSicadServiceToMinhas);
 
-    return ocorrenciasMock.filter((ocorrencia) => {
-      const numeroMatch = normalized(ocorrencia.numero).includes(normalized(filtrosAplicados.numero));
-      const tituloMatch = normalized(ocorrencia.titulo).includes(normalized(filtrosAplicados.titulo));
-      const tipoMatch = !filtrosAplicados.tipo || ocorrencia.tipo === filtrosAplicados.tipo;
-      const ambienteMatch = !filtrosAplicados.ambiente || ocorrencia.ambiente === filtrosAplicados.ambiente;
-      const prioridadeMatch = !filtrosAplicados.prioridade || ocorrencia.prioridade === filtrosAplicados.prioridade;
-      const statusMatch = !filtrosAplicados.status || ocorrencia.status === filtrosAplicados.status;
-      const orgaoMatch = !filtrosAplicados.orgao || ocorrencia.orgao === filtrosAplicados.orgao;
-      const solicitacaoMatch = normalized(ocorrencia.numeroSolicitacaoPrestacao).includes(
+    return chamadosMock.filter((chamado) => {
+      const numeroMatch = normalized(chamado.numero).includes(normalized(filtrosAplicados.numero));
+      const tituloMatch = normalized(chamado.titulo).includes(normalized(filtrosAplicados.titulo));
+      const tipoMatch = !filtrosAplicados.tipo || chamado.tipo === filtrosAplicados.tipo;
+      const ambienteMatch = !filtrosAplicados.ambiente || chamado.ambiente === filtrosAplicados.ambiente;
+      const prioridadeMatch = !filtrosAplicados.prioridade || chamado.prioridade === filtrosAplicados.prioridade;
+      const statusMatch = !filtrosAplicados.status || chamado.status === filtrosAplicados.status;
+      const orgaoMatch = !filtrosAplicados.orgao || chamado.orgao === filtrosAplicados.orgao;
+      const solicitacaoMatch = normalized(chamado.numeroSolicitacaoPrestacao).includes(
         normalized(filtrosAplicados.numeroSolicitacaoPrestacao),
       );
 
@@ -1461,7 +1461,7 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
     });
   }, [filtrosAplicados]);
 
-  const columns: ColumnMetaSeplag<SicadOcorrenciaMock>[] = [
+  const columns: ColumnMetaSeplag<SicadChamadoMock>[] = [
     {
       field: "numero",
       header: "Nº",
@@ -1556,11 +1556,11 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
     setFiltrosAplicados(emptyFilters);
   };
 
-  if (!sicadTemAlgumaPermissao(["acessarMinhasOcorrencias", "visualizarTodasOcorrencias"])) {
+  if (!sicadTemAlgumaPermissao(["acessarMeusChamados", "visualizarTodasChamados"])) {
     return (
       <SicadAccessDeniedPage
-        title="Minhas Ocorrências"
-        requiredPermissions={["acessarMinhasOcorrencias", "visualizarTodasOcorrencias"]}
+        title="Meus Chamados"
+        requiredPermissions={["acessarMeusChamados", "visualizarTodasChamados"]}
       />
     );
   }
@@ -1569,13 +1569,13 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
     <SicadShell>
       <main className="prototype-sicad-page prototype-sicad-list-page">
         <header className="prototype-sicad-list-header">
-          <h1>Minhas Ocorrências</h1>
+          <h1>Meus Chamados</h1>
           <nav className="prototype-sicad-breadcrumb" aria-label="Breadcrumb">
             <Link to={SICAD_BASE_PATH}>Página Inicial</Link>
             <i className="pi pi-chevron-right" aria-hidden="true" />
-            <Link to={getSicadPath("/ocorrencias/minhas")}>Central de Ocorrências</Link>
+            <Link to={getSicadPath("/chamados/minhas")}>Central de Chamados</Link>
             <i className="pi pi-chevron-right" aria-hidden="true" />
-            <span>Minhas Ocorrências</span>
+            <span>Meus Chamados</span>
           </nav>
         </header>
 
@@ -1589,21 +1589,21 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
               cols="12"
               cardHeaderClassNames="prototype-sicad-filter-card"
             >
-            <TextFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <TextFieldSeplag<SicadMeusChamadosFiltroForm>
               name="numero"
-              label="Número da ocorrência"
+              label="Número do chamado"
               control={control}
               cols="12 12 3"
               placeholder="Digite o número"
             />
-            <TextFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <TextFieldSeplag<SicadMeusChamadosFiltroForm>
               name="titulo"
               label="Título"
               control={control}
               cols="12 12 3"
               placeholder="Digite o título"
             />
-            <DropdownFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <DropdownFieldSeplag<SicadMeusChamadosFiltroForm>
               name="tipo"
               label="Tipo"
               control={control}
@@ -1614,7 +1614,7 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
               placeholder="Selecione"
               getFormErrorMessage={getFormErrorMessage}
             />
-            <DropdownFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <DropdownFieldSeplag<SicadMeusChamadosFiltroForm>
               name="ambiente"
               label="Ambiente"
               control={control}
@@ -1625,7 +1625,7 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
               placeholder="Selecione"
               getFormErrorMessage={getFormErrorMessage}
             />
-            <DropdownFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <DropdownFieldSeplag<SicadMeusChamadosFiltroForm>
               name="prioridade"
               label="Prioridade"
               control={control}
@@ -1636,7 +1636,7 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
               placeholder="Selecione"
               getFormErrorMessage={getFormErrorMessage}
             />
-            <DropdownFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <DropdownFieldSeplag<SicadMeusChamadosFiltroForm>
               name="status"
               label="Status"
               control={control}
@@ -1647,7 +1647,7 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
               placeholder="Selecione"
               getFormErrorMessage={getFormErrorMessage}
             />
-            <DropdownFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <DropdownFieldSeplag<SicadMeusChamadosFiltroForm>
               name="orgao"
               label="Órgão"
               control={control}
@@ -1658,21 +1658,21 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
               placeholder="Selecione"
               getFormErrorMessage={getFormErrorMessage}
             />
-            <TextFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <TextFieldSeplag<SicadMeusChamadosFiltroForm>
               name="numeroSolicitacaoPrestacao"
               label="Número da solicitação/prestação"
               control={control}
               cols="12 12 3"
               placeholder="Digite o número"
             />
-            <TextFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <TextFieldSeplag<SicadMeusChamadosFiltroForm>
               name="periodoInicial"
               label="Período inicial"
               control={control}
               cols="12 12 3"
               placeholder="dd/mm/aaaa"
             />
-            <TextFieldSeplag<SicadMinhasOcorrenciasFiltroForm>
+            <TextFieldSeplag<SicadMeusChamadosFiltroForm>
               name="periodoFinal"
               label="Período final"
               control={control}
@@ -1694,24 +1694,24 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
 
         <CardSeplag
           cols="12"
-          title="Lista de Ocorrências"
-          actions={<span className="prototype-sicad-table-total">Total de registros: {ocorrenciasFiltradas.length}</span>}
+          title="Lista de Chamados"
+          actions={<span className="prototype-sicad-table-total">Total de registros: {chamadosFiltradas.length}</span>}
           cardHeaderClassNames="prototype-sicad-table-card"
         >
                     <div className="prototype-sicad-list-toolbar col-12">
             <BotaoSeplag
               type="button"
-              label="Nova Ocorrência"
+              label="Novo Chamado"
               icon="pi pi-plus"
-              onClick={() => navigate(getSicadPath("/ocorrencias/nova"))}
-              hasPermission={sicadTemPermissao("acessarNovaOcorrencia")}
+              onClick={() => navigate(getSicadPath("/chamados/nova"))}
+              hasPermission={sicadTemPermissao("acessarNovoChamado")}
             />
           </div>
           <div className="prototype-sicad-table-wrapper col-12">
-            <TablePaginadoSeplag<SicadOcorrenciaMock>
+            <TablePaginadoSeplag<SicadChamadoMock>
               data={{
-                content: ocorrenciasFiltradas,
-                totalRecords: ocorrenciasFiltradas.length,
+                content: chamadosFiltradas,
+                totalRecords: chamadosFiltradas.length,
                 pageActual: 0,
                 totalPages: 1,
               }}
@@ -1722,10 +1722,10 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
               paginator={false}
               selectionMode={null}
               handleOnPageChange={() => {}}
-              handleView={(rowData) => navigate(`/ocorrencias/${rowData.id}`)}
+              handleView={(rowData) => navigate(`/chamados/${rowData.id}`)}
             />
             <div className="prototype-sicad-table-footer">
-              Mostrando {ocorrenciasFiltradas.length ? 1 : 0} até {ocorrenciasFiltradas.length} de {ocorrenciasFiltradas.length} registros
+              Mostrando {chamadosFiltradas.length ? 1 : 0} até {chamadosFiltradas.length} de {chamadosFiltradas.length} registros
             </div>
           </div>
         </CardSeplag>
@@ -1734,11 +1734,11 @@ export function PrototiposSicadMinhasOcorrenciasPage() {
   );
 }
 
-export function PrototiposSicadFilaOcorrenciasPage() {
+export function PrototiposSicadFilaChamadosPage() {
   const navigate = useNavigate();
-  const [fila, setFila] = useState<SicadFilaOcorrenciaMock[]>(() => listarSicadFilaCentralMock().map(mapSicadServiceToFila));
+  const [fila, setFila] = useState<SicadFilaChamadoMock[]>(() => listarSicadFilaCentralMock().map(mapSicadServiceToFila));
   const [filtrosAplicados, setFiltrosAplicados] =
-    useState<SicadFilaOcorrenciasFiltroForm>({
+    useState<SicadFilaChamadosFiltroForm>({
       status: "",
       tipo: "",
       ambiente: "",
@@ -1749,7 +1749,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
       data: "",
     });
   const { control, handleSubmit, reset } =
-    useForm<SicadFilaOcorrenciasFiltroForm>({
+    useForm<SicadFilaChamadosFiltroForm>({
       defaultValues: filtrosAplicados,
     });
 
@@ -1758,17 +1758,17 @@ export function PrototiposSicadFilaOcorrenciasPage() {
   const filaFiltrada = useMemo(() => {
     const normalized = (value: string) => value.trim().toLocaleLowerCase("pt-BR");
 
-    return fila.filter((ocorrencia) => {
-      const statusMatch = !filtrosAplicados.status || ocorrencia.status === filtrosAplicados.status;
-      const tipoMatch = !filtrosAplicados.tipo || ocorrencia.tipo === filtrosAplicados.tipo;
-      const ambienteMatch = !filtrosAplicados.ambiente || ocorrencia.ambiente === filtrosAplicados.ambiente;
-      const prioridadeMatch = !filtrosAplicados.prioridade || ocorrencia.prioridade === filtrosAplicados.prioridade;
-      const orgaoMatch = !filtrosAplicados.orgao || ocorrencia.orgao === filtrosAplicados.orgao;
-      const responsavelMatch = !filtrosAplicados.responsavel || ocorrencia.responsavel === filtrosAplicados.responsavel;
-      const solicitacaoMatch = normalized(ocorrencia.numeroSolicitacaoPrestacao).includes(
+    return fila.filter((chamado) => {
+      const statusMatch = !filtrosAplicados.status || chamado.status === filtrosAplicados.status;
+      const tipoMatch = !filtrosAplicados.tipo || chamado.tipo === filtrosAplicados.tipo;
+      const ambienteMatch = !filtrosAplicados.ambiente || chamado.ambiente === filtrosAplicados.ambiente;
+      const prioridadeMatch = !filtrosAplicados.prioridade || chamado.prioridade === filtrosAplicados.prioridade;
+      const orgaoMatch = !filtrosAplicados.orgao || chamado.orgao === filtrosAplicados.orgao;
+      const responsavelMatch = !filtrosAplicados.responsavel || chamado.responsavel === filtrosAplicados.responsavel;
+      const solicitacaoMatch = normalized(chamado.numeroSolicitacaoPrestacao).includes(
         normalized(filtrosAplicados.numeroSolicitacaoPrestacao),
       );
-      const dataMatch = normalized(ocorrencia.data).includes(normalized(filtrosAplicados.data));
+      const dataMatch = normalized(chamado.data).includes(normalized(filtrosAplicados.data));
 
       return (
         statusMatch &&
@@ -1788,7 +1788,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
   };
 
   const handleAssumir = (id: string) => {
-    assumirSicadOcorrenciaMock(id, sicadUsuarioMockado);
+    assumirSicadChamadoMock(id, sicadUsuarioMockado);
     setFila(listarSicadFilaCentralMock().map(mapSicadServiceToFila));
   };
 
@@ -1808,7 +1808,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
     setFiltrosAplicados(emptyFilters);
   };
 
-  const columns: ColumnMetaSeplag<SicadFilaOcorrenciaMock>[] = [
+  const columns: ColumnMetaSeplag<SicadFilaChamadoMock>[] = [
     {
       field: "ordem",
       header: "Ordem",
@@ -1891,11 +1891,11 @@ export function PrototiposSicadFilaOcorrenciasPage() {
     },
   ];
 
-  if (!sicadTemPermissao("acessarFilaOcorrencias")) {
+  if (!sicadTemPermissao("acessarFilaChamados")) {
     return (
       <SicadAccessDeniedPage
-        title="Fila de Ocorrências"
-        requiredPermissions={["acessarFilaOcorrencias"]}
+        title="Fila de Chamados"
+        requiredPermissions={["acessarFilaChamados"]}
       />
     );
   }
@@ -1904,8 +1904,8 @@ export function PrototiposSicadFilaOcorrenciasPage() {
     <SicadShell>
       <main className="prototype-sicad-page prototype-sicad-list-page prototype-sicad-queue-page">
         <header className="prototype-sicad-list-header">
-          <h1>Fila de Ocorrências</h1>
-          <p>Lista de ocorrências pendentes de atendimento. Reorganize a prioridade da fila conforme necessário.</p>
+          <h1>Fila de Chamados</h1>
+          <p>Lista de chamados pendentes de atendimento. Reorganize a prioridade da fila conforme necessário.</p>
         </header>
 
         <details className="prototype-sicad-filter-accordion">
@@ -1915,7 +1915,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
           </summary>
           <form onSubmit={handleSubmit(setFiltrosAplicados)} noValidate>
             <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-filter-card">
-              <DropdownFieldSeplag<SicadFilaOcorrenciasFiltroForm>
+              <DropdownFieldSeplag<SicadFilaChamadosFiltroForm>
                 name="status"
                 label="Status"
                 control={control}
@@ -1926,7 +1926,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
                 placeholder="Selecione"
                 getFormErrorMessage={getFormErrorMessage}
               />
-              <DropdownFieldSeplag<SicadFilaOcorrenciasFiltroForm>
+              <DropdownFieldSeplag<SicadFilaChamadosFiltroForm>
                 name="tipo"
                 label="Tipo"
                 control={control}
@@ -1937,7 +1937,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
                 placeholder="Selecione"
                 getFormErrorMessage={getFormErrorMessage}
               />
-              <DropdownFieldSeplag<SicadFilaOcorrenciasFiltroForm>
+              <DropdownFieldSeplag<SicadFilaChamadosFiltroForm>
                 name="ambiente"
                 label="Ambiente"
                 control={control}
@@ -1948,7 +1948,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
                 placeholder="Selecione"
                 getFormErrorMessage={getFormErrorMessage}
               />
-              <DropdownFieldSeplag<SicadFilaOcorrenciasFiltroForm>
+              <DropdownFieldSeplag<SicadFilaChamadosFiltroForm>
                 name="prioridade"
                 label="Prioridade"
                 control={control}
@@ -1959,7 +1959,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
                 placeholder="Selecione"
                 getFormErrorMessage={getFormErrorMessage}
               />
-              <DropdownFieldSeplag<SicadFilaOcorrenciasFiltroForm>
+              <DropdownFieldSeplag<SicadFilaChamadosFiltroForm>
                 name="orgao"
                 label="Órgão"
                 control={control}
@@ -1970,7 +1970,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
                 placeholder="Selecione"
                 getFormErrorMessage={getFormErrorMessage}
               />
-              <DropdownFieldSeplag<SicadFilaOcorrenciasFiltroForm>
+              <DropdownFieldSeplag<SicadFilaChamadosFiltroForm>
                 name="responsavel"
                 label="Responsável"
                 control={control}
@@ -1981,14 +1981,14 @@ export function PrototiposSicadFilaOcorrenciasPage() {
                 placeholder="Selecione"
                 getFormErrorMessage={getFormErrorMessage}
               />
-              <TextFieldSeplag<SicadFilaOcorrenciasFiltroForm>
+              <TextFieldSeplag<SicadFilaChamadosFiltroForm>
                 name="numeroSolicitacaoPrestacao"
                 label="Número da solicitação/prestação"
                 control={control}
                 cols="12 12 3"
                 placeholder="Digite o número"
               />
-              <TextFieldSeplag<SicadFilaOcorrenciasFiltroForm>
+              <TextFieldSeplag<SicadFilaChamadosFiltroForm>
                 name="data"
                 label="Data"
                 control={control}
@@ -2010,12 +2010,12 @@ export function PrototiposSicadFilaOcorrenciasPage() {
 
         <CardSeplag
           cols="12"
-          title="Ocorrências na fila"
+          title="Chamados na fila"
           actions={<span className="prototype-sicad-table-total">Total de registros: {filaFiltrada.length}</span>}
           cardHeaderClassNames="prototype-sicad-table-card"
         >
           <div className="prototype-sicad-table-wrapper prototype-sicad-queue-table-wrapper col-12">
-            <TablePaginadoSeplag<SicadFilaOcorrenciaMock>
+            <TablePaginadoSeplag<SicadFilaChamadoMock>
               data={{
                 content: filaFiltrada,
                 totalRecords: filaFiltrada.length,
@@ -2029,7 +2029,7 @@ export function PrototiposSicadFilaOcorrenciasPage() {
               paginator={false}
               selectionMode={null}
               handleOnPageChange={() => {}}
-              handleView={(rowData) => navigate(`/ocorrencias/${rowData.id}`)}
+              handleView={(rowData) => navigate(`/chamados/${rowData.id}`)}
               renderBotoes={(rowData) => (
                 <BotaoIconSeplag
                   icon="pi pi-user"
@@ -2049,17 +2049,17 @@ export function PrototiposSicadFilaOcorrenciasPage() {
   );
 }
 
-export function PrototiposSicadOcorrenciaDetalhePage() {
+export function PrototiposSicadChamadoDetalhePage() {
   const navigate = useNavigate();
-  const { id = sicadDetalheOcorrenciaMock.id } = useParams();
-  const detalheInicial = useMemo(() => buscarSicadOcorrenciaPorIdMock(id), [id]);
-  const [ocorrencia, setOcorrencia] = useState<SicadOcorrenciaDetalheMock>(
+  const { id = sicadDetalheChamadoMock.id } = useParams();
+  const detalheInicial = useMemo(() => buscarSicadChamadoPorIdMock(id), [id]);
+  const [chamado, setChamado] = useState<SicadChamadoDetalheMock>(
     () => mapSicadServiceToDetalhe(detalheInicial),
   );
-  const [historico, setHistorico] = useState<SicadOcorrenciaHistoricoMock[]>(
+  const [historico, setHistorico] = useState<SicadChamadoHistoricoMock[]>(
     () => detalheInicial.historico,
   );
-  const [comentarios, setComentarios] = useState<SicadOcorrenciaComentarioMock[]>(
+  const [comentarios, setComentarios] = useState<SicadChamadoComentarioMock[]>(
     () => detalheInicial.comentarios,
   );
   const [novoComentario, setNovoComentario] = useState("");
@@ -2079,21 +2079,21 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
         "Ao consultar os logs, identificamos timeout na conexão com o serviço de relatórios. Verificar configuração do endpoint.",
       responsavel: "João Silva",
       numeroRedmine: "REDMINE-98765",
-      status: ocorrencia.status,
-      prioridade: ocorrencia.prioridade,
+      status: chamado.status,
+      prioridade: chamado.prioridade,
     },
   });
 
-  const requiredPermissions: SicadPermissaoOcorrencia[] = [
-    "visualizarOcorrenciasAbertas",
-    "visualizarTodasOcorrencias",
-    "visualizarOcorrenciasValidacao",
+  const requiredPermissions: SicadPermissaoChamado[] = [
+    "visualizarChamadosAbertas",
+    "visualizarTodasChamados",
+    "visualizarChamadosValidacao",
   ];
 
   if (!sicadTemAlgumaPermissao(requiredPermissions)) {
     return (
       <SicadAccessDeniedPage
-        title="Detalhe da Ocorrência"
+        title="Detalhe do Chamado"
         requiredPermissions={requiredPermissions}
       />
     );
@@ -2108,22 +2108,22 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
       minute: "2-digit",
     }).format(new Date());
 
-  const sincronizarOcorrenciaService = (nextOcorrencia: SicadOcorrenciaService) => {
-    setOcorrencia(mapSicadServiceToDetalhe(nextOcorrencia));
-    setHistorico(nextOcorrencia.historico);
-    setComentarios(nextOcorrencia.comentarios);
-    setValue("status", nextOcorrencia.status as SicadFilaOcorrenciaStatus);
-    setValue("prioridade", nextOcorrencia.prioridade);
-    setValue("responsavel", nextOcorrencia.responsavel || sicadUsuarioMockado.nome);
-    setValue("numeroRedmine", nextOcorrencia.numeroRedmine);
+  const sincronizarChamadoService = (nextChamado: SicadChamadoService) => {
+    setChamado(mapSicadServiceToDetalhe(nextChamado));
+    setHistorico(nextChamado.historico);
+    setComentarios(nextChamado.comentarios);
+    setValue("status", nextChamado.status as SicadFilaChamadoStatus);
+    setValue("prioridade", nextChamado.prioridade);
+    setValue("responsavel", nextChamado.responsavel || sicadUsuarioMockado.nome);
+    setValue("numeroRedmine", nextChamado.numeroRedmine);
   };
 
   const addHistorico = (acao: string, observacao: string) => {
-    sincronizarOcorrenciaService(registrarHistoricoSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, acao, observacao));
+    sincronizarChamadoService(registrarHistoricoSicadChamadoMock(chamado.id, sicadUsuarioMockado, acao, observacao));
   };
 
-  const alterarStatus = (status: SicadFilaOcorrenciaStatus, observacao: string) => {
-    sincronizarOcorrenciaService(alterarStatusSicadOcorrenciaMock(ocorrencia.id, status, sicadUsuarioMockado, observacao));
+  const alterarStatus = (status: SicadFilaChamadoStatus, observacao: string) => {
+    sincronizarChamadoService(alterarStatusSicadChamadoMock(chamado.id, status, sicadUsuarioMockado, observacao));
   };
 
   const handleEnviarComentario = () => {
@@ -2132,7 +2132,7 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
     if (!texto) return;
 
     setNovoComentario("");
-    sincronizarOcorrenciaService(adicionarComentarioSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, texto));
+    sincronizarChamadoService(adicionarComentarioSicadChamadoMock(chamado.id, sicadUsuarioMockado, texto));
   };
 
   const handleSolicitarInformacoes = () => {
@@ -2142,7 +2142,7 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
 
     setInformacoesSolicitadas("");
     setModalSolicitarInformacoesAberto(false);
-    sincronizarOcorrenciaService(solicitarInformacoesSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, texto));
+    sincronizarChamadoService(solicitarInformacoesSicadChamadoMock(chamado.id, sicadUsuarioMockado, texto));
   };
 
   const handleUploadAnexosResposta = (event: { arquivos: ArquivoAnexadoSeplag[] }) => {
@@ -2154,7 +2154,7 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
 
     if (!texto) return;
 
-    const anexosConvertidos: SicadOcorrenciaAnexoMock[] = anexosResposta.map((anexo) => ({
+    const anexosConvertidos: SicadChamadoAnexoMock[] = anexosResposta.map((anexo) => ({
       nome: anexo.nome,
       tamanho: String(anexo.tamanho ?? "-"),
       dataHora: formatNow(),
@@ -2162,11 +2162,11 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
 
     setRespostaSuporte("");
     setAnexosResposta([]);
-    sincronizarOcorrenciaService(responderInformacoesSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, texto, anexosConvertidos));
+    sincronizarChamadoService(responderInformacoesSicadChamadoMock(chamado.id, sicadUsuarioMockado, texto, anexosConvertidos));
   };
 
   const handleAssumir = () => {
-    sincronizarOcorrenciaService(assumirSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado));
+    sincronizarChamadoService(assumirSicadChamadoMock(chamado.id, sicadUsuarioMockado));
   };
 
   const handleAlterarStatus = () => {
@@ -2174,26 +2174,26 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
   };
 
   const gerarTextoModeloRedmine = (tipoModelo: SicadModeloRedmineTipo) => {
-    const evidencias = ocorrencia.anexos.length
-      ? ocorrencia.anexos.map((anexo) => `- ${anexo.nome} (${anexo.tamanho})`).join("\n")
+    const evidencias = chamado.anexos.length
+      ? chamado.anexos.map((anexo) => `- ${anexo.nome} (${anexo.tamanho})`).join("\n")
       : "- Sem evidências anexadas.";
     const analiseTecnica = getValues("observacoesTecnicas") || "Análise técnica pendente.";
 
     if (tipoModelo === "Banco de Dados") {
       return [
-        `Título: ${ocorrencia.titulo}`,
-        `Ambiente: ${ocorrencia.ambiente}`,
-        `Órgão: ${ocorrencia.orgao}`,
-        `Usuário: ${ocorrencia.usuario}`,
-        `CPF: ${ocorrencia.cpf}`,
-        `Matrícula: ${ocorrencia.matricula}`,
-        `Nº Solicitação/Prestação: ${ocorrencia.numeroSolicitacaoPrestacao}`,
+        `Título: ${chamado.titulo}`,
+        `Ambiente: ${chamado.ambiente}`,
+        `Órgão: ${chamado.orgao}`,
+        `Usuário: ${chamado.usuario}`,
+        `CPF: ${chamado.cpf}`,
+        `Matrícula: ${chamado.matricula}`,
+        `Nº Solicitação/Prestação: ${chamado.numeroSolicitacaoPrestacao}`,
         "",
         "Problema:",
-        ocorrencia.descricao,
+        chamado.descricao,
         "",
         "Mensagem de erro:",
-        ocorrencia.mensagemErro || "Não informado.",
+        chamado.mensagemErro || "Não informado.",
         "",
         "Ajuste solicitado:",
         analiseTecnica,
@@ -2204,21 +2204,21 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
     }
 
     return [
-      `Título: ${ocorrencia.titulo}`,
-      `Tipo: ${ocorrencia.tipo}`,
-      `Prioridade: ${ocorrencia.prioridade}`,
-      `Ambiente: ${ocorrencia.ambiente}`,
-      `Órgão: ${ocorrencia.orgao}`,
-      `Usuário: ${ocorrencia.usuario}`,
-      `CPF: ${ocorrencia.cpf}`,
-      `Matrícula: ${ocorrencia.matricula}`,
-      `Nº Solicitação/Prestação: ${ocorrencia.numeroSolicitacaoPrestacao}`,
+      `Título: ${chamado.titulo}`,
+      `Tipo: ${chamado.tipo}`,
+      `Prioridade: ${chamado.prioridade}`,
+      `Ambiente: ${chamado.ambiente}`,
+      `Órgão: ${chamado.orgao}`,
+      `Usuário: ${chamado.usuario}`,
+      `CPF: ${chamado.cpf}`,
+      `Matrícula: ${chamado.matricula}`,
+      `Nº Solicitação/Prestação: ${chamado.numeroSolicitacaoPrestacao}`,
       "",
       "Descrição:",
-      ocorrencia.descricao,
+      chamado.descricao,
       "",
       "Mensagem de erro:",
-      ocorrencia.mensagemErro || "Não informado.",
+      chamado.mensagemErro || "Não informado.",
       "",
       "Análise Técnica:",
       analiseTecnica,
@@ -2257,19 +2257,19 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
     setValue("numeroRedmine", numeroRedmine);
     setValue("status", "Em Desenvolvimento");
     setModalRedmineAberto(false);
-    sincronizarOcorrenciaService(salvarRedmineSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, numeroRedmine, tipoModeloRedmine));
+    sincronizarChamadoService(salvarRedmineSicadChamadoMock(chamado.id, sicadUsuarioMockado, numeroRedmine, tipoModeloRedmine));
   };
 
   const handleAlterarPrioridade = () => {
     const prioridade = getValues("prioridade");
-    atualizarSicadOcorrenciaMock(ocorrencia.id, (current) => ({ ...current, prioridade }));
-    sincronizarOcorrenciaService(registrarHistoricoSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, "Prioridade alterada", "Prioridade atualizada para " + prioridade + "."));
+    atualizarSicadChamadoMock(chamado.id, (current) => ({ ...current, prioridade }));
+    sincronizarChamadoService(registrarHistoricoSicadChamadoMock(chamado.id, sicadUsuarioMockado, "Prioridade alterada", "Prioridade atualizada para " + prioridade + "."));
   };
 
   const handleAlterarResponsavel = () => {
     const responsavel = getValues("responsavel");
-    atualizarSicadOcorrenciaMock(ocorrencia.id, (current) => ({ ...current, responsavel }));
-    sincronizarOcorrenciaService(registrarHistoricoSicadOcorrenciaMock(ocorrencia.id, sicadUsuarioMockado, "Responsável alterado", "Responsável atualizado para " + responsavel + "."));
+    atualizarSicadChamadoMock(chamado.id, (current) => ({ ...current, responsavel }));
+    sincronizarChamadoService(registrarHistoricoSicadChamadoMock(chamado.id, sicadUsuarioMockado, "Responsável alterado", "Responsável atualizado para " + responsavel + "."));
   };
 
   const showTechnicalAnalysis = sicadTemAlgumaPermissao([
@@ -2279,7 +2279,7 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
   ]);
   const showSupportAnswer =
     sicadTemPermissao("responderSolicitacaoInformacoes") &&
-    ocorrencia.status === "Aguardando Informações";
+    chamado.status === "Aguardando Informações";
   const getFormErrorMessage = () => null;
 
   return (
@@ -2287,24 +2287,24 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
       <main className="prototype-sicad-page prototype-sicad-detail-page">
         <header className="prototype-sicad-detail-header">
           <div>
-            <nav className="prototype-sicad-breadcrumb" aria-label="Caminho da ocorrência">
-              <Link to={getSicadPath("/ocorrencias/minhas")}>Ocorrências</Link>
+            <nav className="prototype-sicad-breadcrumb" aria-label="Caminho do chamado">
+              <Link to={getSicadPath("/chamados/minhas")}>Chamados</Link>
               <i className="pi pi-angle-right" aria-hidden="true" />
-              <span>Detalhes da Ocorrência</span>
+              <span>Detalhes do Chamado</span>
             </nav>
-            <h1>Ocorrência #{ocorrencia.numero}</h1>
+            <h1>Chamado #{chamado.numero}</h1>
           </div>
           <div className="prototype-sicad-detail-top-actions">
             <BotaoVoltarSeplag
               label="Voltar"
-              onClick={() => navigate(getSicadPath("/ocorrencias/minhas"))}
+              onClick={() => navigate(getSicadPath("/chamados/minhas"))}
             />
             <BotaoSeplag
               type="button"
               label="Imprimir"
               icon="pi pi-print"
               variant="back"
-              onClick={() => addHistorico("Impressão solicitada", "Usuário acionou a impressão da ocorrência.")}
+              onClick={() => addHistorico("Impressão solicitada", "Usuário acionou a impressão do chamado.")}
             />
           </div>
         </header>
@@ -2313,17 +2313,17 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
           <section className="prototype-sicad-detail-card-content">
             <h2><i className="pi pi-file-edit" /> Dados Gerais</h2>
             <div className="prototype-sicad-detail-general-grid">
-              <div><span>Número</span><strong>{ocorrencia.numero}</strong></div>
-              <div><span>Status</span>{renderSicadFilaStatus(ocorrencia.status)}</div>
-              <div><span>Usuário</span><strong>{ocorrencia.usuario}</strong></div>
-              <div><span>Tipo</span><SicadTableBadge tone="purple">{ocorrencia.tipo}</SicadTableBadge></div>
-              <div><span>Ambiente</span><SicadTableBadge tone="blue">{ocorrencia.ambiente}</SicadTableBadge></div>
-              <div><span>CPF</span><strong>{ocorrencia.cpf}</strong></div>
-              <div><span>Prioridade</span><SicadTableBadge tone={getSicadPriorityTone(ocorrencia.prioridade)}>{ocorrencia.prioridade}</SicadTableBadge></div>
-              <div><span>Matrícula</span><strong>{ocorrencia.matricula}</strong></div>
-              <div><span>Título</span><strong>{ocorrencia.titulo}</strong></div>
-              <div><span>Nº Solicitação/Prestação</span><strong>{ocorrencia.numeroSolicitacaoPrestacao}</strong></div>
-              <div className="prototype-sicad-detail-wide"><span>Órgão</span><strong>{ocorrencia.orgao}</strong></div>
+              <div><span>Número</span><strong>{chamado.numero}</strong></div>
+              <div><span>Status</span>{renderSicadFilaStatus(chamado.status)}</div>
+              <div><span>Usuário</span><strong>{chamado.usuario}</strong></div>
+              <div><span>Tipo</span><SicadTableBadge tone="purple">{chamado.tipo}</SicadTableBadge></div>
+              <div><span>Ambiente</span><SicadTableBadge tone="blue">{chamado.ambiente}</SicadTableBadge></div>
+              <div><span>CPF</span><strong>{chamado.cpf}</strong></div>
+              <div><span>Prioridade</span><SicadTableBadge tone={getSicadPriorityTone(chamado.prioridade)}>{chamado.prioridade}</SicadTableBadge></div>
+              <div><span>Matrícula</span><strong>{chamado.matricula}</strong></div>
+              <div><span>Título</span><strong>{chamado.titulo}</strong></div>
+              <div><span>Nº Solicitação/Prestação</span><strong>{chamado.numeroSolicitacaoPrestacao}</strong></div>
+              <div className="prototype-sicad-detail-wide"><span>Órgão</span><strong>{chamado.orgao}</strong></div>
             </div>
           </section>
         </CardSeplag>
@@ -2332,20 +2332,20 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
           <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-detail-card">
             <section className="prototype-sicad-detail-card-content">
               <h2><i className="pi pi-clipboard" /> Descrição</h2>
-              <p>{ocorrencia.descricao}</p>
+              <p>{chamado.descricao}</p>
             </section>
           </CardSeplag>
           <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-detail-card">
             <section className="prototype-sicad-detail-card-content">
               <h2><i className="pi pi-exclamation-triangle" /> Mensagem de erro</h2>
-              <p>{ocorrencia.mensagemErro}</p>
+              <p>{chamado.mensagemErro}</p>
             </section>
           </CardSeplag>
           <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-detail-card">
             <section className="prototype-sicad-detail-card-content">
-              <h2><i className="pi pi-paperclip" /> Arquivos anexados ({ocorrencia.anexos.length})</h2>
+              <h2><i className="pi pi-paperclip" /> Arquivos anexados ({chamado.anexos.length})</h2>
               <ul className="prototype-sicad-attachment-list">
-                {ocorrencia.anexos.map((anexo) => (
+                {chamado.anexos.map((anexo) => (
                   <li key={anexo.nome}>
                     <span>{anexo.nome}</span>
                     <small>{anexo.tamanho}</small>
@@ -2390,15 +2390,15 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
 
         <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-detail-card prototype-sicad-actions-card">
           <section className="prototype-sicad-detail-card-content">
-            <h2><i className="pi pi-bolt" /> Ações da Ocorrência</h2>
+            <h2><i className="pi pi-bolt" /> Ações do Chamado</h2>
             <div className="prototype-sicad-detail-actions">
-              <BotaoSeplag type="button" label="Complementar Informações" icon="pi pi-paperclip" variant="back" onClick={() => addHistorico("Informações complementadas", "Usuário complementou as informações solicitadas.")} hasPermission={sicadTemPermissao("responderSolicitacaoInformacoes") && ocorrencia.status === "Aguardando Informações"} />
-              <BotaoSeplag type="button" label="Assumir" icon="pi pi-user" variant="back" onClick={handleAssumir} hasPermission={sicadTemPermissao("assumirOcorrencia")} />
+              <BotaoSeplag type="button" label="Complementar Informações" icon="pi pi-paperclip" variant="back" onClick={() => addHistorico("Informações complementadas", "Usuário complementou as informações solicitadas.")} hasPermission={sicadTemPermissao("responderSolicitacaoInformacoes") && chamado.status === "Aguardando Informações"} />
+              <BotaoSeplag type="button" label="Assumir" icon="pi pi-user" variant="back" onClick={handleAssumir} hasPermission={sicadTemPermissao("assumirChamado")} />
               <BotaoSeplag type="button" label="Solicitar Informações" icon="pi pi-question-circle" variant="back" onClick={() => setModalSolicitarInformacoesAberto(true)} hasPermission={sicadUsuarioMockado.perfil === "ANALISTA" && sicadTemPermissao("solicitarInformacoesSuporte")} />
               <BotaoSeplag type="button" label="Alterar Status" icon="pi pi-sync" variant="back" onClick={handleAlterarStatus} hasPermission={sicadTemPermissao("alterarStatus")} />
               <BotaoSeplag type="button" label="Gerar Modelo Redmine" icon="pi pi-file" variant="back" onClick={handleGerarModeloRedmine} hasPermission={sicadTemPermissao("gerarModeloRedmine")} />
-              <BotaoSeplag type="button" label="Enviar para Validação" icon="pi pi-shield" variant="back" onClick={() => alterarStatus("Em Validação", "Ocorrência enviada para validação da solução.")} hasPermission={sicadTemPermissao("alterarStatus")} />
-              <BotaoSeplag type="button" label="Concluir" icon="pi pi-check" severity="success" onClick={() => alterarStatus("Concluído", "Ocorrência concluída tecnicamente.")} hasPermission={sicadTemPermissao("concluirTecnicamente")} />
+              <BotaoSeplag type="button" label="Enviar para Validação" icon="pi pi-shield" variant="back" onClick={() => alterarStatus("Em Validação", "Chamado enviado para validação da solução.")} hasPermission={sicadTemPermissao("alterarStatus")} />
+              <BotaoSeplag type="button" label="Concluir" icon="pi pi-check" severity="success" onClick={() => alterarStatus("Concluído", "Chamado concluído tecnicamente.")} hasPermission={sicadTemPermissao("concluirTecnicamente")} />
               <BotaoSeplag type="button" label="Alterar Prioridade" icon="pi pi-sort-amount-up" variant="back" onClick={handleAlterarPrioridade} hasPermission={sicadTemPermissao("alterarPrioridade")} />
               <BotaoSeplag type="button" label="Alterar Responsável" icon="pi pi-user-edit" variant="back" onClick={handleAlterarResponsavel} hasPermission={sicadTemPermissao("alterarResponsavel")} />
               <BotaoSeplag type="button" label="Aprovar Correção" icon="pi pi-check-circle" severity="success" onClick={() => alterarStatus("Concluído", "Correção aprovada pelo homologador.")} hasPermission={sicadTemPermissao("aprovarSolucao")} />
@@ -2485,7 +2485,7 @@ export function PrototiposSicadOcorrenciaDetalhePage() {
                   label="Enviar"
                   icon="pi pi-send"
                   onClick={handleEnviarComentario}
-                  hasPermission={sicadTemPermissao("comentarOcorrencia") || sicadTemPermissao("visualizarOcorrenciasAbertas")}
+                  hasPermission={sicadTemPermissao("comentarChamado") || sicadTemPermissao("visualizarChamadosAbertas")}
                 />
               </div>
             </section>
@@ -2774,7 +2774,7 @@ function SicadDashboardBarChart({
     </CardSeplag>
   );
 }
-export function PrototiposSicadOcorrenciasDashboardPage() {
+export function PrototiposSicadChamadosDashboardPage() {
   if (!sicadTemPermissao("acessarDashboard")) {
     return (
       <SicadAccessDeniedPage
@@ -2789,7 +2789,7 @@ export function PrototiposSicadOcorrenciasDashboardPage() {
       <main className="prototype-sicad-page prototype-sicad-dashboard-page">
         <header className="prototype-sicad-dashboard-header">
           <div>
-            <h1>Dashboard de Ocorrências</h1>
+            <h1>Dashboard de Chamados</h1>
             <span className="prototype-sicad-dashboard-title-spacer" aria-hidden="true" />
           </div>
           <div className="prototype-sicad-dashboard-filter" aria-label="Filtro de período">
@@ -2804,24 +2804,24 @@ export function PrototiposSicadOcorrenciasDashboardPage() {
           </div>
         </header>
 
-        <section className="prototype-sicad-dashboard-metrics" aria-label="Indicadores de ocorrências">
+        <section className="prototype-sicad-dashboard-metrics" aria-label="Indicadores de chamados">
           {sicadDashboardMetricsMock.map((metric) => (
             <SicadDashboardMetricCard key={metric.id} metric={metric} />
           ))}
         </section>
 
-        <section className="prototype-sicad-dashboard-charts" aria-label="Gráficos de ocorrências">
-          <SicadDashboardDonutChart title="Ocorrências por Tipo" items={sicadDashboardTipoMock} />
-          <SicadDashboardDonutChart title="Ocorrências por Prioridade" items={sicadDashboardPrioridadeMock} />
-          <SicadDashboardDonutChart title="Ocorrências por Status" items={sicadDashboardStatusMock} />
-          <SicadDashboardBarChart title="Ocorrências por Órgão" items={sicadDashboardOrgaoMock} />
+        <section className="prototype-sicad-dashboard-charts" aria-label="Gráficos de chamados">
+          <SicadDashboardDonutChart title="Chamados por Tipo" items={sicadDashboardTipoMock} />
+          <SicadDashboardDonutChart title="Chamados por Prioridade" items={sicadDashboardPrioridadeMock} />
+          <SicadDashboardDonutChart title="Chamados por Status" items={sicadDashboardStatusMock} />
+          <SicadDashboardBarChart title="Chamados por Órgão" items={sicadDashboardOrgaoMock} />
         </section>
       </main>
     </SicadShell>
   );
 }
 
-export function PrototiposSicadOcorrenciasRelatoriosPage() {
+export function PrototiposSicadChamadosRelatoriosPage() {
   const emptyFilters: SicadRelatoriosFiltroForm = {
     periodoInicial: "",
     periodoFinal: "",
@@ -2844,23 +2844,23 @@ export function PrototiposSicadOcorrenciasRelatoriosPage() {
   const relatoriosFiltrados = useMemo(() => {
     const normalized = (value: string) => value.trim().toLocaleLowerCase("pt-BR");
 
-    return sicadRelatoriosOcorrenciasMock.filter((ocorrencia) => {
-      const periodoInicialMatch = normalized(ocorrencia.dataAbertura).includes(normalized(filtrosAplicados.periodoInicial));
-      const periodoFinalMatch = !filtrosAplicados.periodoFinal || normalized(ocorrencia.dataConclusao).includes(normalized(filtrosAplicados.periodoFinal));
+    return sicadRelatoriosChamadosMock.filter((chamado) => {
+      const periodoInicialMatch = normalized(chamado.dataAbertura).includes(normalized(filtrosAplicados.periodoInicial));
+      const periodoFinalMatch = !filtrosAplicados.periodoFinal || normalized(chamado.dataConclusao).includes(normalized(filtrosAplicados.periodoFinal));
 
       return (
         periodoInicialMatch &&
         periodoFinalMatch &&
-        (!filtrosAplicados.tipo || ocorrencia.tipo === filtrosAplicados.tipo) &&
-        (!filtrosAplicados.ambiente || ocorrencia.ambiente === filtrosAplicados.ambiente) &&
-        (!filtrosAplicados.prioridade || ocorrencia.prioridade === filtrosAplicados.prioridade) &&
-        (!filtrosAplicados.status || ocorrencia.status === filtrosAplicados.status) &&
-        (!filtrosAplicados.orgao || ocorrencia.orgao === filtrosAplicados.orgao) &&
-        (!filtrosAplicados.responsavel || ocorrencia.responsavel === filtrosAplicados.responsavel) &&
-        normalized(ocorrencia.usuario).includes(normalized(filtrosAplicados.usuario)) &&
-        normalized(ocorrencia.cpf).includes(normalized(filtrosAplicados.cpf)) &&
-        normalized(ocorrencia.numeroSolicitacaoPrestacao).includes(normalized(filtrosAplicados.numeroSolicitacaoPrestacao)) &&
-        normalized(ocorrencia.numeroRedmine).includes(normalized(filtrosAplicados.numeroRedmine))
+        (!filtrosAplicados.tipo || chamado.tipo === filtrosAplicados.tipo) &&
+        (!filtrosAplicados.ambiente || chamado.ambiente === filtrosAplicados.ambiente) &&
+        (!filtrosAplicados.prioridade || chamado.prioridade === filtrosAplicados.prioridade) &&
+        (!filtrosAplicados.status || chamado.status === filtrosAplicados.status) &&
+        (!filtrosAplicados.orgao || chamado.orgao === filtrosAplicados.orgao) &&
+        (!filtrosAplicados.responsavel || chamado.responsavel === filtrosAplicados.responsavel) &&
+        normalized(chamado.usuario).includes(normalized(filtrosAplicados.usuario)) &&
+        normalized(chamado.cpf).includes(normalized(filtrosAplicados.cpf)) &&
+        normalized(chamado.numeroSolicitacaoPrestacao).includes(normalized(filtrosAplicados.numeroSolicitacaoPrestacao)) &&
+        normalized(chamado.numeroRedmine).includes(normalized(filtrosAplicados.numeroRedmine))
       );
     });
   }, [filtrosAplicados]);
@@ -2874,7 +2874,7 @@ export function PrototiposSicadOcorrenciasRelatoriosPage() {
     window.alert("Exportação " + tipo + " simulada com " + relatoriosFiltrados.length + " registro(s).");
   };
 
-  const columns: ColumnMetaSeplag<SicadRelatorioOcorrenciaMock>[] = [
+  const columns: ColumnMetaSeplag<SicadRelatorioChamadoMock>[] = [
     { field: "numero", header: "Nº", body: (rowData) => renderSicadOccurrenceNumber(rowData.numero) },
     { field: "dataAbertura", header: "Data abertura", body: (rowData) => renderSicadOccurrenceDate(rowData.dataAbertura) },
     {
@@ -2903,14 +2903,14 @@ export function PrototiposSicadOcorrenciasRelatoriosPage() {
   ];
 
   if (!sicadTemPermissao("acessarRelatorios")) {
-    return <SicadAccessDeniedPage title="Relatórios de Ocorrências" requiredPermissions={["acessarRelatorios"]} />;
+    return <SicadAccessDeniedPage title="Relatórios de Chamados" requiredPermissions={["acessarRelatorios"]} />;
   }
 
   return (
     <SicadShell>
       <main className="prototype-sicad-page prototype-sicad-list-page prototype-sicad-reports-page">
         <header className="prototype-sicad-list-header">
-          <h1>Relatórios de Ocorrências</h1>
+          <h1>Relatórios de Chamados</h1>
         </header>
 
         <form onSubmit={handleSubmit(setFiltrosAplicados)} noValidate>
@@ -2942,7 +2942,7 @@ export function PrototiposSicadOcorrenciasRelatoriosPage() {
 
         <CardSeplag cols="12" title={"Resultados (" + relatoriosFiltrados.length + ")"} cardHeaderClassNames="prototype-sicad-table-card prototype-sicad-reports-table-card">
           <div className="prototype-sicad-table-wrapper prototype-sicad-reports-table-wrapper col-12">
-            <TablePaginadoSeplag<SicadRelatorioOcorrenciaMock>
+            <TablePaginadoSeplag<SicadRelatorioChamadoMock>
               data={{ content: relatoriosFiltrados, totalRecords: relatoriosFiltrados.length, pageActual: 0, totalPages: 1 }}
               rows={12}
               columns={columns}
@@ -3149,14 +3149,14 @@ export function PrototiposSicadBaseConhecimentoPage() {
             <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-knowledge-side-card prototype-sicad-knowledge-help-card">
               <section>
                 <h2>Não encontrou o que precisava?</h2>
-                <p>Abra uma ocorrência e nossa equipe irá te ajudar.</p>
+                <p>Abra uma chamado e nossa equipe irá te ajudar.</p>
                 <BotaoSeplag
                   type="button"
-                  label="Abrir Ocorrência"
+                  label="Abrir Chamado"
                   icon="pi pi-plus-circle"
                   variant="back"
-                  onClick={() => navigate(getSicadPath("/ocorrencias/nova"))}
-                  hasPermission={sicadTemPermissao("acessarNovaOcorrencia")}
+                  onClick={() => navigate(getSicadPath("/chamados/nova"))}
+                  hasPermission={sicadTemPermissao("acessarNovoChamado")}
                 />
               </section>
             </CardSeplag>
@@ -3167,14 +3167,18 @@ export function PrototiposSicadBaseConhecimentoPage() {
   );
 }
 export const sicadOccurrenceRoutes = {
-  nova: getSicadHashPath("/ocorrencias/nova"),
-  minhas: getSicadHashPath("/ocorrencias/minhas"),
-  fila: getSicadHashPath("/ocorrencias/fila"),
-  detalhe: `${SICAD_OCORRENCIAS_BASE_PATH}/:id`,
-  dashboard: getSicadHashPath("/ocorrencias/dashboard"),
-  relatorios: getSicadHashPath("/ocorrencias/relatorios"),
-  baseConhecimento: getSicadHashPath("/ocorrencias/base-conhecimento"),
+  nova: getSicadHashPath("/chamados/nova"),
+  minhas: getSicadHashPath("/chamados/minhas"),
+  fila: getSicadHashPath("/chamados/fila"),
+  detalhe: `${SICAD_CHAMADOS_BASE_PATH}/:id`,
+  dashboard: getSicadHashPath("/chamados/dashboard"),
+  relatorios: getSicadHashPath("/chamados/relatorios"),
+  baseConhecimento: getSicadHashPath("/chamados/base-conhecimento"),
 };
+
+
+
+
 
 
 

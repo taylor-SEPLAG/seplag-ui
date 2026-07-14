@@ -1,6 +1,6 @@
 import type { SicadUsuarioMockado } from "./sicadAccessMock";
 
-export type SicadOcorrenciaFluxoStatus =
+export type SicadChamadoFluxoStatus =
   | "Novo"
   | "Em Análise"
   | "Aguardando Informações"
@@ -9,13 +9,13 @@ export type SicadOcorrenciaFluxoStatus =
   | "Concluído"
   | "Cancelado";
 
-export type SicadOcorrenciaAnexoService = {
+export type SicadChamadoAnexoService = {
   nome: string;
   tamanho: string;
   dataHora: string;
 };
 
-export type SicadOcorrenciaHistoricoService = {
+export type SicadChamadoHistoricoService = {
   id: string;
   dataHora: string;
   usuario: string;
@@ -23,7 +23,7 @@ export type SicadOcorrenciaHistoricoService = {
   observacao: string;
 };
 
-export type SicadOcorrenciaComentarioService = {
+export type SicadChamadoComentarioService = {
   id: string;
   usuario: string;
   perfil: string;
@@ -31,7 +31,7 @@ export type SicadOcorrenciaComentarioService = {
   texto: string;
 };
 
-export type SicadOcorrenciaService = {
+export type SicadChamadoService = {
   id: string;
   ordem: number;
   numero: string;
@@ -41,7 +41,7 @@ export type SicadOcorrenciaService = {
   titulo: string;
   ambiente: string;
   prioridade: string;
-  status: SicadOcorrenciaFluxoStatus;
+  status: SicadChamadoFluxoStatus;
   orgao: string;
   responsavel: string;
   usuario: string;
@@ -52,13 +52,13 @@ export type SicadOcorrenciaService = {
   tempoAtendimento: string;
   descricao: string;
   mensagemErro: string;
-  anexos: SicadOcorrenciaAnexoService[];
-  historico: SicadOcorrenciaHistoricoService[];
-  comentarios: SicadOcorrenciaComentarioService[];
+  anexos: SicadChamadoAnexoService[];
+  historico: SicadChamadoHistoricoService[];
+  comentarios: SicadChamadoComentarioService[];
   criadoPorUsuarioId: string;
 };
 
-export type SicadNovaOcorrenciaPayload = {
+export type SicadNovoChamadoPayload = {
   tipo: string;
   ambiente: string;
   prioridade: string;
@@ -70,12 +70,12 @@ export type SicadNovaOcorrenciaPayload = {
   numeroSolicitacaoPrestacao: string;
   descricao: string;
   mensagemErro: string;
-  anexos: SicadOcorrenciaAnexoService[];
+  anexos: SicadChamadoAnexoService[];
 };
 
-const SICAD_OCORRENCIAS_STORAGE_KEY = "sicad.ocorrenciasMock.v1";
+const SICAD_CHAMADOS_STORAGE_KEY = "sicad.chamadosMock.v1";
 
-const statusPermitidos: Record<SicadOcorrenciaFluxoStatus, SicadOcorrenciaFluxoStatus[]> = {
+const statusPermitidos: Record<SicadChamadoFluxoStatus, SicadChamadoFluxoStatus[]> = {
   Novo: ["Em Análise", "Cancelado"],
   "Em Análise": ["Aguardando Informações", "Em Desenvolvimento", "Em Validação", "Concluído", "Cancelado"],
   "Aguardando Informações": ["Em Análise", "Cancelado"],
@@ -99,7 +99,7 @@ function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-function criarHistorico(usuario: SicadUsuarioMockado, acao: string, observacao: string): SicadOcorrenciaHistoricoService {
+function criarHistorico(usuario: SicadUsuarioMockado, acao: string, observacao: string): SicadChamadoHistoricoService {
   return {
     id: createId("hist"),
     dataHora: formatNow(),
@@ -109,7 +109,7 @@ function criarHistorico(usuario: SicadUsuarioMockado, acao: string, observacao: 
   };
 }
 
-function criarComentario(usuario: SicadUsuarioMockado, texto: string): SicadOcorrenciaComentarioService {
+function criarComentario(usuario: SicadUsuarioMockado, texto: string): SicadChamadoComentarioService {
   return {
     id: createId("coment"),
     usuario: usuario.nome,
@@ -119,7 +119,7 @@ function criarComentario(usuario: SicadUsuarioMockado, texto: string): SicadOcor
   };
 }
 
-function seedOcorrencias(): SicadOcorrenciaService[] {
+function seedChamados(): SicadChamadoService[] {
   return [
     {
       id: "000123-2024",
@@ -147,10 +147,10 @@ function seedOcorrencias(): SicadOcorrenciaService[] {
         { nome: "log_erro_relatorio.txt", tamanho: "18 KB", dataHora: "10/05/2025 14:32" },
       ],
       historico: [
-        { id: "hist-seed-1", dataHora: "10/05/2025 14:32", usuario: "Taylor Santos (SUPORTE)", acao: "Ocorrência criada", observacao: "Ocorrência registrada pelo usuário." },
+        { id: "hist-seed-1", dataHora: "10/05/2025 14:32", usuario: "Taylor Santos (SUPORTE)", acao: "Chamado criado", observacao: "Chamado registrado pelo usuário." },
       ],
       comentarios: [
-        { id: "coment-seed-1", usuario: "Taylor Santos", perfil: "SUPORTE", dataHora: "10/05/2025 14:32", texto: "Ocorrência aberta para análise da equipe técnica." },
+        { id: "coment-seed-1", usuario: "Taylor Santos", perfil: "SUPORTE", dataHora: "10/05/2025 14:32", texto: "Chamado aberto para análise da equipe técnica." },
       ],
       criadoPorUsuarioId: "suporte",
     },
@@ -176,7 +176,7 @@ function seedOcorrencias(): SicadOcorrenciaService[] {
       descricao: "Usuário não localizou a opção para gerar relatório de despesas.",
       mensagemErro: "",
       anexos: [],
-      historico: [{ id: "hist-seed-2", dataHora: "10/05/2024 10:32", usuario: "João Silva (SUPORTE)", acao: "Ocorrência criada", observacao: "Ocorrência registrada pelo suporte." }],
+      historico: [{ id: "hist-seed-2", dataHora: "10/05/2024 10:32", usuario: "João Silva (SUPORTE)", acao: "Chamado criado", observacao: "Chamado registrado pelo suporte." }],
       comentarios: [],
       criadoPorUsuarioId: "suporte",
     },
@@ -202,7 +202,7 @@ function seedOcorrencias(): SicadOcorrenciaService[] {
       descricao: "Cadastro apresenta CPF duplicado para servidores distintos.",
       mensagemErro: "CPF já cadastrado para outro vínculo.",
       anexos: [],
-      historico: [{ id: "hist-seed-3", dataHora: "09/05/2024 16:48", usuario: "Ana Oliveira (ANALISTA)", acao: "Status alterado", observacao: "Ocorrência assumida para análise." }],
+      historico: [{ id: "hist-seed-3", dataHora: "09/05/2024 16:48", usuario: "Ana Oliveira (ANALISTA)", acao: "Status alterado", observacao: "Chamado assumido para análise." }],
       comentarios: [],
       criadoPorUsuarioId: "suporte",
     },
@@ -235,67 +235,67 @@ function seedOcorrencias(): SicadOcorrenciaService[] {
   ];
 }
 
-function normalizeOcorrencias(raw: unknown): SicadOcorrenciaService[] {
-  if (!Array.isArray(raw)) return seedOcorrencias();
-  return raw.map((ocorrencia, index) => ({
-    ...seedOcorrencias()[0],
-    ...(ocorrencia as Partial<SicadOcorrenciaService>),
-    ordem: (ocorrencia as SicadOcorrenciaService).ordem ?? index + 1,
-    historico: (ocorrencia as SicadOcorrenciaService).historico ?? [],
-    comentarios: (ocorrencia as SicadOcorrenciaService).comentarios ?? [],
-    anexos: (ocorrencia as SicadOcorrenciaService).anexos ?? [],
+function normalizeChamados(raw: unknown): SicadChamadoService[] {
+  if (!Array.isArray(raw)) return seedChamados();
+  return raw.map((chamado, index) => ({
+    ...seedChamados()[0],
+    ...(chamado as Partial<SicadChamadoService>),
+    ordem: (chamado as SicadChamadoService).ordem ?? index + 1,
+    historico: (chamado as SicadChamadoService).historico ?? [],
+    comentarios: (chamado as SicadChamadoService).comentarios ?? [],
+    anexos: (chamado as SicadChamadoService).anexos ?? [],
   }));
 }
 
-export function listarSicadOcorrenciasMock(): SicadOcorrenciaService[] {
-  if (typeof window === "undefined") return seedOcorrencias();
+export function listarSicadChamadosMock(): SicadChamadoService[] {
+  if (typeof window === "undefined") return seedChamados();
 
-  const stored = window.localStorage.getItem(SICAD_OCORRENCIAS_STORAGE_KEY);
+  const stored = window.localStorage.getItem(SICAD_CHAMADOS_STORAGE_KEY);
   if (!stored) {
-    const seed = seedOcorrencias();
-    salvarSicadOcorrenciasMock(seed);
+    const seed = seedChamados();
+    salvarSicadChamadosMock(seed);
     return seed;
   }
 
   try {
-    return normalizeOcorrencias(JSON.parse(stored));
+    return normalizeChamados(JSON.parse(stored));
   } catch {
-    const seed = seedOcorrencias();
-    salvarSicadOcorrenciasMock(seed);
+    const seed = seedChamados();
+    salvarSicadChamadosMock(seed);
     return seed;
   }
 }
 
-export function salvarSicadOcorrenciasMock(ocorrencias: SicadOcorrenciaService[]) {
+export function salvarSicadChamadosMock(chamados: SicadChamadoService[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(SICAD_OCORRENCIAS_STORAGE_KEY, JSON.stringify(ocorrencias));
+  window.localStorage.setItem(SICAD_CHAMADOS_STORAGE_KEY, JSON.stringify(chamados));
 }
 
-export function buscarSicadOcorrenciaPorIdMock(id: string) {
-  return listarSicadOcorrenciasMock().find((ocorrencia) => ocorrencia.id === id) ?? listarSicadOcorrenciasMock()[0];
+export function buscarSicadChamadoPorIdMock(id: string) {
+  return listarSicadChamadosMock().find((chamado) => chamado.id === id) ?? listarSicadChamadosMock()[0];
 }
 
-export function listarSicadMinhasOcorrenciasMock(usuario: SicadUsuarioMockado) {
-  const ocorrencias = listarSicadOcorrenciasMock();
-  if (usuario.perfil === "ADMINISTRADOR" || usuario.perfil === "GESTAO") return ocorrencias;
-  if (usuario.perfil === "SUPORTE") return ocorrencias.filter((ocorrencia) => ocorrencia.criadoPorUsuarioId === usuario.id || ocorrencia.usuario.toLocaleUpperCase("pt-BR") === usuario.nome);
-  return ocorrencias;
+export function listarSicadMeusChamadosMock(usuario: SicadUsuarioMockado) {
+  const chamados = listarSicadChamadosMock();
+  if (usuario.perfil === "ADMINISTRADOR" || usuario.perfil === "GESTAO") return chamados;
+  if (usuario.perfil === "SUPORTE") return chamados.filter((chamado) => chamado.criadoPorUsuarioId === usuario.id || chamado.usuario.toLocaleUpperCase("pt-BR") === usuario.nome);
+  return chamados;
 }
 
-export function listarSicadFilaOcorrenciasMock() {
-  return listarSicadOcorrenciasMock()
-    .filter((ocorrencia) => ocorrencia.status !== "Concluído" && ocorrencia.status !== "Cancelado")
+export function listarSicadFilaChamadosMock() {
+  return listarSicadChamadosMock()
+    .filter((chamado) => chamado.status !== "Concluído" && chamado.status !== "Cancelado")
     .sort((a, b) => a.ordem - b.ordem);
 }
 
-export function criarSicadOcorrenciaMock(payload: SicadNovaOcorrenciaPayload, usuario: SicadUsuarioMockado) {
-  const ocorrencias = listarSicadOcorrenciasMock();
+export function criarSicadChamadoMock(payload: SicadNovoChamadoPayload, usuario: SicadUsuarioMockado) {
+  const chamados = listarSicadChamadosMock();
   const year = new Date().getFullYear();
-  const nextSequence = ocorrencias.length + 1;
+  const nextSequence = chamados.length + 1;
   const numero = `${String(nextSequence).padStart(6, "0")}/${year}`;
-  const ocorrencia: SicadOcorrenciaService = {
+  const chamado: SicadChamadoService = {
     id: numero.replace("/", "-"),
-    ordem: ocorrencias.length + 1,
+    ordem: chamados.length + 1,
     numero,
     dataAbertura: formatNow(),
     dataConclusao: "-",
@@ -315,109 +315,109 @@ export function criarSicadOcorrenciaMock(payload: SicadNovaOcorrenciaPayload, us
     descricao: payload.descricao,
     mensagemErro: payload.mensagemErro,
     anexos: payload.anexos,
-    historico: [criarHistorico(usuario, "Ocorrência criada", "Ocorrência registrada pelo usuário.")],
+    historico: [criarHistorico(usuario, "Chamado criado", "Chamado registrado pelo usuário.")],
     comentarios: [],
     criadoPorUsuarioId: usuario.id,
   };
 
-  salvarSicadOcorrenciasMock([ocorrencia, ...ocorrencias.map((item, index) => ({ ...item, ordem: index + 2 }))]);
-  return ocorrencia;
+  salvarSicadChamadosMock([chamado, ...chamados.map((item, index) => ({ ...item, ordem: index + 2 }))]);
+  return chamado;
 }
 
-export function atualizarSicadOcorrenciaMock(id: string, updater: (ocorrencia: SicadOcorrenciaService) => SicadOcorrenciaService) {
-  const ocorrencias = listarSicadOcorrenciasMock();
-  const next = ocorrencias.map((ocorrencia) => (ocorrencia.id === id ? updater(ocorrencia) : ocorrencia));
-  salvarSicadOcorrenciasMock(next);
-  return next.find((ocorrencia) => ocorrencia.id === id) ?? next[0];
+export function atualizarSicadChamadoMock(id: string, updater: (chamado: SicadChamadoService) => SicadChamadoService) {
+  const chamados = listarSicadChamadosMock();
+  const next = chamados.map((chamado) => (chamado.id === id ? updater(chamado) : chamado));
+  salvarSicadChamadosMock(next);
+  return next.find((chamado) => chamado.id === id) ?? next[0];
 }
 
-export function alterarStatusSicadOcorrenciaMock(id: string, status: SicadOcorrenciaFluxoStatus, usuario: SicadUsuarioMockado, observacao: string) {
-  return atualizarSicadOcorrenciaMock(id, (ocorrencia) => {
-    const permitido = status === "Cancelado" || ocorrencia.status === status || statusPermitidos[ocorrencia.status]?.includes(status);
+export function alterarStatusSicadChamadoMock(id: string, status: SicadChamadoFluxoStatus, usuario: SicadUsuarioMockado, observacao: string) {
+  return atualizarSicadChamadoMock(id, (chamado) => {
+    const permitido = status === "Cancelado" || chamado.status === status || statusPermitidos[chamado.status]?.includes(status);
     const observacaoFinal = permitido
-      ? `${observacao} Status anterior: ${ocorrencia.status}.`
-      : `${observacao} Transição fora do fluxo mockado aceita para prototipação. Status anterior: ${ocorrencia.status}.`;
+      ? `${observacao} Status anterior: ${chamado.status}.`
+      : `${observacao} Transição fora do fluxo mockado aceita para prototipação. Status anterior: ${chamado.status}.`;
 
     return {
-      ...ocorrencia,
+      ...chamado,
       status,
-      dataConclusao: status === "Concluído" ? formatNow() : ocorrencia.dataConclusao,
-      historico: [...ocorrencia.historico, criarHistorico(usuario, "Status alterado", observacaoFinal)],
+      dataConclusao: status === "Concluído" ? formatNow() : chamado.dataConclusao,
+      historico: [...chamado.historico, criarHistorico(usuario, "Status alterado", observacaoFinal)],
     };
   });
 }
 
-export function adicionarComentarioSicadOcorrenciaMock(id: string, usuario: SicadUsuarioMockado, texto: string) {
-  return atualizarSicadOcorrenciaMock(id, (ocorrencia) => ({
-    ...ocorrencia,
-    comentarios: [...ocorrencia.comentarios, criarComentario(usuario, texto)],
-    historico: [...ocorrencia.historico, criarHistorico(usuario, "Comentário adicionado", "Novo comentário registrado na ocorrência.")],
+export function adicionarComentarioSicadChamadoMock(id: string, usuario: SicadUsuarioMockado, texto: string) {
+  return atualizarSicadChamadoMock(id, (chamado) => ({
+    ...chamado,
+    comentarios: [...chamado.comentarios, criarComentario(usuario, texto)],
+    historico: [...chamado.historico, criarHistorico(usuario, "Comentário adicionado", "Novo comentário registrado no chamado.")],
   }));
 }
 
-export function registrarHistoricoSicadOcorrenciaMock(id: string, usuario: SicadUsuarioMockado, acao: string, observacao: string) {
-  return atualizarSicadOcorrenciaMock(id, (ocorrencia) => ({
-    ...ocorrencia,
-    historico: [...ocorrencia.historico, criarHistorico(usuario, acao, observacao)],
+export function registrarHistoricoSicadChamadoMock(id: string, usuario: SicadUsuarioMockado, acao: string, observacao: string) {
+  return atualizarSicadChamadoMock(id, (chamado) => ({
+    ...chamado,
+    historico: [...chamado.historico, criarHistorico(usuario, acao, observacao)],
   }));
 }
 
-export function assumirSicadOcorrenciaMock(id: string, usuario: SicadUsuarioMockado) {
-  return atualizarSicadOcorrenciaMock(id, (ocorrencia) => ({
-    ...ocorrencia,
+export function assumirSicadChamadoMock(id: string, usuario: SicadUsuarioMockado) {
+  return atualizarSicadChamadoMock(id, (chamado) => ({
+    ...chamado,
     responsavel: usuario.nome,
     status: "Em Análise",
     historico: [
-      ...ocorrencia.historico,
-      criarHistorico(usuario, "Assumiu a ocorrência", "Responsável alterado para " + usuario.nome + "."),
-      criarHistorico(usuario, "Status alterado", `Status alterado para Em Análise. Status anterior: ${ocorrencia.status}.`),
+      ...chamado.historico,
+      criarHistorico(usuario, "Assumiu o chamado", "Responsável alterado para " + usuario.nome + "."),
+      criarHistorico(usuario, "Status alterado", `Status alterado para Em Análise. Status anterior: ${chamado.status}.`),
     ],
   }));
 }
 
-export function solicitarInformacoesSicadOcorrenciaMock(id: string, usuario: SicadUsuarioMockado, texto: string) {
-  return atualizarSicadOcorrenciaMock(id, (ocorrencia) => ({
-    ...ocorrencia,
+export function solicitarInformacoesSicadChamadoMock(id: string, usuario: SicadUsuarioMockado, texto: string) {
+  return atualizarSicadChamadoMock(id, (chamado) => ({
+    ...chamado,
     status: "Aguardando Informações",
-    comentarios: [...ocorrencia.comentarios, criarComentario(usuario, "Solicitação de informações: " + texto)],
+    comentarios: [...chamado.comentarios, criarComentario(usuario, "Solicitação de informações: " + texto)],
     historico: [
-      ...ocorrencia.historico,
+      ...chamado.historico,
       criarHistorico(usuario, "Solicitação de informações", "Analista solicitou informações complementares ao suporte."),
-      criarHistorico(usuario, "Status alterado", `Status alterado para Aguardando Informações. Status anterior: ${ocorrencia.status}.`),
+      criarHistorico(usuario, "Status alterado", `Status alterado para Aguardando Informações. Status anterior: ${chamado.status}.`),
     ],
   }));
 }
 
-export function responderInformacoesSicadOcorrenciaMock(id: string, usuario: SicadUsuarioMockado, texto: string, anexos: SicadOcorrenciaAnexoService[]) {
-  return atualizarSicadOcorrenciaMock(id, (ocorrencia) => ({
-    ...ocorrencia,
+export function responderInformacoesSicadChamadoMock(id: string, usuario: SicadUsuarioMockado, texto: string, anexos: SicadChamadoAnexoService[]) {
+  return atualizarSicadChamadoMock(id, (chamado) => ({
+    ...chamado,
     status: "Em Análise",
-    anexos: [...ocorrencia.anexos, ...anexos],
-    comentarios: [...ocorrencia.comentarios, criarComentario(usuario, "Resposta do suporte: " + texto)],
+    anexos: [...chamado.anexos, ...anexos],
+    comentarios: [...chamado.comentarios, criarComentario(usuario, "Resposta do suporte: " + texto)],
     historico: [
-      ...ocorrencia.historico,
+      ...chamado.historico,
       criarHistorico(usuario, "Informações complementadas", anexos.length ? "Suporte respondeu e anexou " + anexos.length + " arquivo(s)." : "Suporte respondeu a solicitação."),
-      criarHistorico(usuario, "Status alterado", `Status alterado para Em Análise. Status anterior: ${ocorrencia.status}.`),
+      criarHistorico(usuario, "Status alterado", `Status alterado para Em Análise. Status anterior: ${chamado.status}.`),
     ],
   }));
 }
 
-export function salvarRedmineSicadOcorrenciaMock(id: string, usuario: SicadUsuarioMockado, numeroRedmine: string, tipoModelo: string) {
-  return atualizarSicadOcorrenciaMock(id, (ocorrencia) => ({
-    ...ocorrencia,
+export function salvarRedmineSicadChamadoMock(id: string, usuario: SicadUsuarioMockado, numeroRedmine: string, tipoModelo: string) {
+  return atualizarSicadChamadoMock(id, (chamado) => ({
+    ...chamado,
     numeroRedmine,
     status: "Em Desenvolvimento",
     historico: [
-      ...ocorrencia.historico,
+      ...chamado.historico,
       criarHistorico(usuario, "Número Redmine registrado", "Número Redmine informado: " + numeroRedmine + "."),
-      criarHistorico(usuario, "Status alterado", `Status alterado para Em Desenvolvimento após geração do modelo ${tipoModelo}. Status anterior: ${ocorrencia.status}.`),
+      criarHistorico(usuario, "Status alterado", `Status alterado para Em Desenvolvimento após geração do modelo ${tipoModelo}. Status anterior: ${chamado.status}.`),
     ],
   }));
 }
 
 export function reordenarSicadFilaMock(id: string, direction: "up" | "down") {
-  const ocorrencias = listarSicadOcorrenciasMock();
-  const fila = listarSicadFilaOcorrenciasMock();
+  const chamados = listarSicadChamadosMock();
+  const fila = listarSicadFilaChamadosMock();
   const index = fila.findIndex((item) => item.id === id);
   const targetIndex = direction === "up" ? index - 1 : index + 1;
   if (index < 0 || targetIndex < 0 || targetIndex >= fila.length) return fila;
@@ -425,9 +425,13 @@ export function reordenarSicadFilaMock(id: string, direction: "up" | "down") {
   const nextFila = [...fila];
   [nextFila[index], nextFila[targetIndex]] = [nextFila[targetIndex], nextFila[index]];
   const ordemPorId = new Map(nextFila.map((item, itemIndex) => [item.id, itemIndex + 1]));
-  const nextOcorrencias = ocorrencias.map((ocorrencia) => ({ ...ocorrencia, ordem: ordemPorId.get(ocorrencia.id) ?? ocorrencia.ordem }));
-  salvarSicadOcorrenciasMock(nextOcorrencias);
-  return listarSicadFilaOcorrenciasMock();
+  const nextChamados = chamados.map((chamado) => ({ ...chamado, ordem: ordemPorId.get(chamado.id) ?? chamado.ordem }));
+  salvarSicadChamadosMock(nextChamados);
+  return listarSicadFilaChamadosMock();
 }
+
+
+
+
 
 

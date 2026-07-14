@@ -5,19 +5,19 @@ export type SicadPerfilAcesso =
   | "ADMINISTRADOR"
   | "HOMOLOGADOR";
 
-export type SicadPermissaoOcorrencia =
-  | "acessarNovaOcorrencia"
-  | "acessarMinhasOcorrencias"
-  | "acessarFilaOcorrencias"
+export type SicadPermissaoChamado =
+  | "acessarNovoChamado"
+  | "acessarMeusChamados"
+  | "acessarFilaChamados"
   | "acessarDashboard"
   | "acessarRelatorios"
   | "acessarBaseConhecimento"
-  | "visualizarOcorrenciasAbertas"
-  | "visualizarTodasOcorrencias"
-  | "visualizarOcorrenciasValidacao"
+  | "visualizarChamadosAbertas"
+  | "visualizarTodasChamados"
+  | "visualizarChamadosValidacao"
   | "responderSolicitacaoInformacoes"
   | "anexarArquivosAguardandoInformacoes"
-  | "assumirOcorrencia"
+  | "assumirChamado"
   | "alterarStatus"
   | "solicitarInformacoesSuporte"
   | "registrarAnaliseInterna"
@@ -26,12 +26,12 @@ export type SicadPermissaoOcorrencia =
   | "concluirTecnicamente"
   | "alterarPrioridade"
   | "alterarResponsavel"
-  | "reabrirOcorrencia"
+  | "reabrirChamado"
   | "exportarRelatorios"
   | "configurarCadastros"
   | "aprovarSolucao"
   | "reprovarSolucao"
-  | "comentarOcorrencia"
+  | "comentarChamado"
   | "acessarTudo";
 
 export interface SicadUsuarioMockado {
@@ -58,20 +58,20 @@ export const sicadUsuariosMockados: SicadUsuarioMockado[] = [
 
 export const sicadPermissoesPorPerfil: Record<
   SicadPerfilAcesso,
-  SicadPermissaoOcorrencia[]
+  SicadPermissaoChamado[]
 > = {
   SUPORTE: [
-    "acessarNovaOcorrencia",
-    "acessarMinhasOcorrencias",
-    "visualizarOcorrenciasAbertas",
+    "acessarNovoChamado",
+    "acessarMeusChamados",
+    "visualizarChamadosAbertas",
     "responderSolicitacaoInformacoes",
     "anexarArquivosAguardandoInformacoes",
     "acessarBaseConhecimento",
   ],
   ANALISTA: [
-    "acessarFilaOcorrencias",
-    "visualizarTodasOcorrencias",
-    "assumirOcorrencia",
+    "acessarFilaChamados",
+    "visualizarTodasChamados",
+    "assumirChamado",
     "alterarStatus",
     "solicitarInformacoesSuporte",
     "registrarAnaliseInterna",
@@ -81,21 +81,21 @@ export const sicadPermissoesPorPerfil: Record<
     "acessarBaseConhecimento",
   ],
   GESTAO: [
-    "visualizarTodasOcorrencias",
+    "visualizarTodasChamados",
     "acessarDashboard",
     "acessarRelatorios",
     "alterarPrioridade",
     "alterarResponsavel",
-    "reabrirOcorrencia",
+    "reabrirChamado",
     "exportarRelatorios",
     "acessarBaseConhecimento",
   ],
   ADMINISTRADOR: ["acessarTudo"],
   HOMOLOGADOR: [
-    "visualizarOcorrenciasValidacao",
+    "visualizarChamadosValidacao",
     "aprovarSolucao",
     "reprovarSolucao",
-    "comentarOcorrencia",
+    "comentarChamado",
     "acessarBaseConhecimento",
   ],
 };
@@ -124,7 +124,7 @@ export function sicadSelecionarUsuarioMockado(usuarioId: string) {
 }
 
 export function sicadTemPermissao(
-  permissao: SicadPermissaoOcorrencia,
+  permissao: SicadPermissaoChamado,
   usuario: SicadUsuarioMockado = sicadUsuarioMockado,
 ) {
   const permissoes = sicadPermissoesPorPerfil[usuario.perfil] ?? [];
@@ -133,9 +133,10 @@ export function sicadTemPermissao(
 }
 
 export function sicadTemAlgumaPermissao(
-  permissoes: SicadPermissaoOcorrencia[],
+  permissoes: SicadPermissaoChamado[],
   usuario: SicadUsuarioMockado = sicadUsuarioMockado,
 ) {
   return permissoes.some((permissao) => sicadTemPermissao(permissao, usuario));
 }
+
 

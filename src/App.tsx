@@ -90,12 +90,12 @@ import {
 } from "./prototipos/PrototiposPage";
 import {
   PrototiposSicadBaseConhecimentoPage,
-  PrototiposSicadFilaOcorrenciasPage,
-  PrototiposSicadMinhasOcorrenciasPage,
-  PrototiposSicadNovaOcorrenciaPage,
-  PrototiposSicadOcorrenciaDetalhePage,
-  PrototiposSicadOcorrenciasDashboardPage,
-  PrototiposSicadOcorrenciasRelatoriosPage,
+  PrototiposSicadFilaChamadosPage,
+  PrototiposSicadMeusChamadosPage,
+  PrototiposSicadNovoChamadoPage,
+  PrototiposSicadChamadoDetalhePage,
+  PrototiposSicadChamadosDashboardPage,
+  PrototiposSicadChamadosRelatoriosPage,
   PrototiposSicadPage,
 } from "./prototipos/sicad/PrototiposSicadPage";
 
@@ -1239,60 +1239,60 @@ function App() {
       <Route path="/prototipos" element={<PrototiposPage />} />
       <Route path="/prototipos/sicad" element={<PrototiposSicadPage />} />
       <Route
-        path="/prototipos/sicad/ocorrencias/nova"
-        element={<PrototiposSicadNovaOcorrenciaPage />}
+        path="/prototipos/sicad/chamados/nova"
+        element={<PrototiposSicadNovoChamadoPage />}
       />
       <Route
-        path="/prototipos/sicad/ocorrencias/minhas"
-        element={<PrototiposSicadMinhasOcorrenciasPage />}
+        path="/prototipos/sicad/chamados/minhas"
+        element={<PrototiposSicadMeusChamadosPage />}
       />
       <Route
-        path="/prototipos/sicad/ocorrencias/fila"
-        element={<PrototiposSicadFilaOcorrenciasPage />}
+        path="/prototipos/sicad/chamados/fila"
+        element={<PrototiposSicadFilaChamadosPage />}
       />
       <Route
-        path="/prototipos/sicad/ocorrencias/dashboard"
-        element={<PrototiposSicadOcorrenciasDashboardPage />}
+        path="/prototipos/sicad/chamados/dashboard"
+        element={<PrototiposSicadChamadosDashboardPage />}
       />
       <Route
-        path="/prototipos/sicad/ocorrencias/relatorios"
-        element={<PrototiposSicadOcorrenciasRelatoriosPage />}
+        path="/prototipos/sicad/chamados/relatorios"
+        element={<PrototiposSicadChamadosRelatoriosPage />}
       />
       <Route
-        path="/prototipos/sicad/ocorrencias/base-conhecimento"
+        path="/prototipos/sicad/chamados/base-conhecimento"
         element={<PrototiposSicadBaseConhecimentoPage />}
       />
       <Route
-        path="/prototipos/sicad/ocorrencias/:id"
-        element={<PrototiposSicadOcorrenciaDetalhePage />}
+        path="/prototipos/sicad/chamados/:id"
+        element={<PrototiposSicadChamadoDetalhePage />}
       />
       <Route
-        path="/ocorrencias/nova"
-        element={<PrototiposSicadNovaOcorrenciaPage />}
+        path="/chamados/nova"
+        element={<PrototiposSicadNovoChamadoPage />}
       />
       <Route
-        path="/ocorrencias/minhas"
-        element={<PrototiposSicadMinhasOcorrenciasPage />}
+        path="/chamados/minhas"
+        element={<PrototiposSicadMeusChamadosPage />}
       />
       <Route
-        path="/ocorrencias/fila"
-        element={<PrototiposSicadFilaOcorrenciasPage />}
+        path="/chamados/fila"
+        element={<PrototiposSicadFilaChamadosPage />}
       />
       <Route
-        path="/ocorrencias/dashboard"
-        element={<PrototiposSicadOcorrenciasDashboardPage />}
+        path="/chamados/dashboard"
+        element={<PrototiposSicadChamadosDashboardPage />}
       />
       <Route
-        path="/ocorrencias/relatorios"
-        element={<PrototiposSicadOcorrenciasRelatoriosPage />}
+        path="/chamados/relatorios"
+        element={<PrototiposSicadChamadosRelatoriosPage />}
       />
       <Route
-        path="/ocorrencias/base-conhecimento"
+        path="/chamados/base-conhecimento"
         element={<PrototiposSicadBaseConhecimentoPage />}
       />
       <Route
-        path="/ocorrencias/:id"
-        element={<PrototiposSicadOcorrenciaDetalhePage />}
+        path="/chamados/:id"
+        element={<PrototiposSicadChamadoDetalhePage />}
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
       <Route
@@ -1648,3 +1648,6 @@ function App() {
 }
 
 export default App;
+
+
+
