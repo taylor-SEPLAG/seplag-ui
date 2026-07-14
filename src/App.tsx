@@ -75,6 +75,7 @@ import {
   PrototiposMatrizValidacaoTesteFormPage,
   PrototiposMatrizValidacaoTestePage,
   PrototiposNovoIngressoPage,
+  PrototiposPastaFuncionalServidorPage,
   PrototiposPage,
   PrototiposPessoaFisicaFormPage,
   PrototiposPessoaVinculosPage,
@@ -1305,6 +1306,10 @@ function App() {
       <Route
         path="/prototipos/sigep/ingressos/importar"
         element={<PrototiposImportarIngressoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos/:id/pasta-funcional"
+        element={<PrototiposPastaFuncionalServidorPage />}
       />
       <Route
         path="/prototipos/sigep/ingressos/:id"

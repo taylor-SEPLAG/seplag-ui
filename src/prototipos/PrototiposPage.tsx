@@ -1,4 +1,4 @@
-import {
+﻿import {
   Link,
   useLocation,
   useNavigate,
@@ -1293,10 +1293,13 @@ interface TipoVinculoTesteRow {
 }
 
 type IngressoSituacao =
-  | "Aguardando Documentação"
-  | "Em Análise"
-  | "Aprovado"
-  | "Concluído";
+  | "Aguardando Analise"
+  | "Em analise"
+  | "Posse Suspensa"
+  | "Aguardando Efetivo Exercicio"
+  | "Tornado sem efeito"
+  | "Posse Negada"
+  | "Ingresso Concluído";
 
 type IngressoTipo =
   | "Concurso"
@@ -1322,6 +1325,8 @@ type NovoIngressoTab =
   | "analise-provimento"
   | "efetivo-exercicio";
 
+type IngressoPerfil = "PROVIMENTO" | "SETORIAL";
+
 interface IngressoRow {
   id: number;
   nome: string;
@@ -1340,7 +1345,10 @@ interface IngressoCandidatoRow {
   nome: string;
   classificacao: string;
   cargo: string;
-  tipoVaga: "PCD" | "Ampla Concorrência";
+  tipoVaga: "AC" | "PCD" | "PPP";
+  dataNomeacao: string;
+  dataPosse: string;
+  dataEfetivoExercicio: string;
 }
 
 interface IngressoConcursoProcessoRow {
@@ -1352,6 +1360,25 @@ interface IngressoConcursoProcessoRow {
   candidatos: IngressoCandidatoRow[];
 }
 
+interface IngressoCandidatoGrupoRow {
+  id: string;
+  vagaEspecialidade: string;
+  perfilEspecialidade: string;
+  polo: string;
+  classificacao: IngressoCandidatoRow["tipoVaga"];
+  candidatos: IngressoCandidatoRow[];
+}
+
+interface IngressoHistoricoEtapaRow {
+  id: number;
+  ingressoId: number;
+  etapa: string;
+  dataHora: string;
+  operador: string;
+  resultado: "Apto" | "Negado" | "Pendente" | "Suspenso" | "Tornado sem efeito";
+  parecer?: string;
+  observacao?: string;
+}
 interface IngressoFiltroForm {
   concursoProcessoSeletivo: string;
 }
@@ -1863,7 +1890,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Efetivo",
     orgao: "SES",
     cargo: "Analista Administrativo",
-    situacao: "Aguardando Documentação",
+    situacao: "Aguardando Analise",
     dataIngresso: "2026-01-15",
   },
   {
@@ -1875,7 +1902,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Temporário",
     orgao: "SEDUC",
     cargo: "Professor",
-    situacao: "Em Análise",
+    situacao: "Aguardando Analise",
     dataIngresso: "2026-02-03",
   },
   {
@@ -1887,7 +1914,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Comissionado",
     orgao: "SEPLAG",
     cargo: "Assessor Técnico",
-    situacao: "Aprovado",
+    situacao: "Em analise",
     dataIngresso: "2026-03-20",
   },
   {
@@ -1899,7 +1926,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Efetivo",
     orgao: "SEFAZ",
     cargo: "Gestor Governamental",
-    situacao: "Concluído",
+    situacao: "Posse Suspensa",
     dataIngresso: "2026-04-08",
   },
   {
@@ -1911,7 +1938,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Efetivo",
     orgao: "SES",
     cargo: "Analista Administrativo",
-    situacao: "Aguardando Documentação",
+    situacao: "Aguardando Efetivo Exercicio",
     dataIngresso: "2026-01-18",
   },
   {
@@ -1923,7 +1950,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Temporário",
     orgao: "SEDUC",
     cargo: "Professor",
-    situacao: "Em Análise",
+    situacao: "Tornado sem efeito",
     dataIngresso: "2026-02-05",
   },
   {
@@ -1935,7 +1962,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Efetivo",
     orgao: "SEFAZ",
     cargo: "Gestor Governamental",
-    situacao: "Aprovado",
+    situacao: "Posse Negada",
     dataIngresso: "2026-04-10",
   },
   {
@@ -1947,7 +1974,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Efetivo",
     orgao: "SEDUC",
     cargo: "Professor",
-    situacao: "Aguardando Documentação",
+    situacao: "Ingresso Concluído",
     dataIngresso: "2026-01-22",
   },
   {
@@ -1959,7 +1986,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Efetivo",
     orgao: "SEDUC",
     cargo: "Técnico Administrativo Educacional",
-    situacao: "Em Análise",
+    situacao: "Em analise",
     dataIngresso: "2026-01-25",
   },
   {
@@ -1971,7 +1998,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Temporário",
     orgao: "SES",
     cargo: "Enfermeiro",
-    situacao: "Aguardando Documentação",
+    situacao: "Aguardando Analise",
     dataIngresso: "2026-02-08",
   },
   {
@@ -1983,7 +2010,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Temporário",
     orgao: "SES",
     cargo: "Técnico de Enfermagem",
-    situacao: "Em Análise",
+    situacao: "Em analise",
     dataIngresso: "2026-02-10",
   },
   {
@@ -1995,7 +2022,7 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Temporário",
     orgao: "SEFAZ",
     cargo: "Analista Fazendário",
-    situacao: "Aprovado",
+    situacao: "Aguardando Analise",
     dataIngresso: "2026-02-14",
   },
   {
@@ -2007,11 +2034,136 @@ const ingressosMock: IngressoRow[] = [
     tipoVinculo: "Temporário",
     orgao: "SEFAZ",
     cargo: "Analista Fazendário",
-    situacao: "Aguardando Documentação",
+    situacao: "Aguardando Analise",
     dataIngresso: "2026-02-16",
+  },
+
+  {
+    id: 14,
+    nome: "Renata Lima",
+    cpf: "456.456.456-45",
+    matricula: "456012",
+    tipoIngresso: "Concurso",
+    tipoVinculo: "Efetivo",
+    orgao: "SES",
+    cargo: "Analista Administrativo",
+    situacao: "Aguardando Analise",
+    dataIngresso: "2026-02-18",
   },
 ];
 
+const getNumeroIngresso = (ingressoId: number) => `Ingresso nº 2026/${String(ingressoId).padStart(4, "0")}`;
+
+const formatarDataHoraHistoricoIngresso = (dataIso: string, hora: string) => {
+  const [ano, mes, dia] = dataIso.split("-");
+  return `${dia}/${mes}/${ano} ${hora}`;
+};
+
+const criarHistoricoEtapaIngresso = (
+  id: number,
+  ingresso: IngressoRow,
+  etapa: string,
+  hora: string,
+  operador: string,
+  resultado: IngressoHistoricoEtapaRow["resultado"],
+  detalhes?: Pick<IngressoHistoricoEtapaRow, "parecer" | "observacao">,
+): IngressoHistoricoEtapaRow => ({
+  id,
+  ingressoId: ingresso.id,
+  etapa,
+  dataHora: formatarDataHoraHistoricoIngresso(ingresso.dataIngresso, hora),
+  operador,
+  resultado,
+  ...detalhes,
+});
+
+const getAnaliseProvimentoHistoricoDetalhes = (
+  situacaoAtual: IngressoSituacao,
+): Pick<IngressoHistoricoEtapaRow, "parecer" | "observacao"> => {
+  if (situacaoAtual === "Posse Negada") {
+    return {
+      parecer: "Posse reprovada",
+      observacao: "Candidato não atendeu aos requisitos obrigatórios para posse.",
+    };
+  }
+
+  if (situacaoAtual === "Posse Suspensa") {
+    return {
+      parecer: "Posse suspensa",
+      observacao: "Prazo de posse suspenso para complementação e nova conferência documental.",
+    };
+  }
+
+  if (situacaoAtual === "Tornado sem efeito") {
+    return {
+      parecer: "Tornado sem efeito",
+      observacao: "Ingresso tornado sem efeito após análise administrativa.",
+    };
+  }
+
+  if (situacaoAtual === "Aguardando Analise") {
+    return { parecer: "Pendente de análise" };
+  }
+
+  if (situacaoAtual === "Em analise") {
+    return { parecer: "Em análise" };
+  }
+
+  return {
+    parecer: "Posse aprovada",
+    observacao: "Documentação conferida e requisitos validados pelo provimento.",
+  };
+};
+
+const getHistoricoIngressoMock = (
+  ingresso: IngressoRow,
+  situacaoAtual: IngressoSituacao,
+): IngressoHistoricoEtapaRow[] => {
+  const resultadoSolicitacao: IngressoHistoricoEtapaRow["resultado"] =
+    situacaoAtual === "Aguardando Analise" ? "Pendente" : "Apto";
+  const resultadoAnalise: IngressoHistoricoEtapaRow["resultado"] =
+    situacaoAtual === "Aguardando Analise" || situacaoAtual === "Em analise"
+      ? "Pendente"
+      : situacaoAtual === "Posse Negada"
+        ? "Negado"
+        : situacaoAtual === "Tornado sem efeito"
+          ? "Tornado sem efeito"
+          : situacaoAtual === "Posse Suspensa"
+            ? "Suspenso"
+            : "Apto";
+  const resultadoPosse: IngressoHistoricoEtapaRow["resultado"] =
+    ["Aguardando Efetivo Exercicio", "Ingresso Concluído"].includes(situacaoAtual)
+      ? "Apto"
+      : situacaoAtual === "Posse Negada"
+        ? "Negado"
+        : "Pendente";
+  const resultadoEfetivoExercicio: IngressoHistoricoEtapaRow["resultado"] =
+    situacaoAtual === "Ingresso Concluído" ? "Apto" : "Pendente";
+  const analiseProvimentoDetalhes = getAnaliseProvimentoHistoricoDetalhes(situacaoAtual);
+
+  const etapas = [
+    criarHistoricoEtapaIngresso(1, ingresso, "Ingresso", "08:15", "Roberto Junior - Provimento", resultadoSolicitacao),
+    criarHistoricoEtapaIngresso(2, ingresso, "Documentação", "09:20", "Roberto Junior - Provimento", resultadoAnalise),
+    criarHistoricoEtapaIngresso(3, ingresso, "Análise do Provimento", "10:40", "Roberto Junior - Provimento", resultadoAnalise, analiseProvimentoDetalhes),
+  ];
+
+  if (situacaoAtual === "Ingresso Concluído") {
+    etapas.push(
+      criarHistoricoEtapaIngresso(4, ingresso, "Efetivo Exercicio", "16:05", "Patrícia Lima - Setorial", resultadoEfetivoExercicio),
+    );
+  }
+
+  return etapas;
+};
+
+const getResultadoHistoricoIngressoBadge = (resultado: IngressoHistoricoEtapaRow["resultado"]) => {
+  if (resultado === "Apto") return { color: "#00843d", bg: "#e2f3e8" };
+  if (resultado === "Negado") return { color: "#b42318", bg: "#fee4e2" };
+  if (resultado === "Suspenso") return { color: "#9a5a00", bg: "#fff0c7" };
+  if (resultado === "Tornado sem efeito") return { color: "#6b7280", bg: "#f3f4f6" };
+
+  return { color: "#8a5a00", bg: "#fff4d6" };
+};
 const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   {
     id: 1,
@@ -2025,14 +2177,91 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         nome: "João Silva",
         classificacao: "1º",
         cargo: "Analista Administrativo",
-        tipoVaga: "Ampla Concorrência",
+        tipoVaga: "AC",
+        dataNomeacao: "13/07/2026",
+        dataPosse: "30/07/2026",
+        dataEfetivoExercicio: "15/08/2026",
+      },
+      {
+        id: 2,
+        nome: "Maria Souza",
+        classificacao: "2º",
+        cargo: "Professor",
+        tipoVaga: "AC",
+        dataNomeacao: "13/07/2026",
+        dataPosse: "18/07/2026",
+        dataEfetivoExercicio: "01/08/2026",
+      },
+      {
+        id: 3,
+        nome: "Carlos Pereira",
+        classificacao: "3º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "AC",
+        dataNomeacao: "01/06/2026",
+        dataPosse: "20/06/2026",
+        dataEfetivoExercicio: "-",
+      },
+      {
+        id: 4,
+        nome: "Ana Costa",
+        classificacao: "4º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "AC",
+        dataNomeacao: "14/07/2026",
+        dataPosse: "22/07/2026",
+        dataEfetivoExercicio: "01/08/2026",
       },
       {
         id: 5,
         nome: "Fernanda Rocha",
         classificacao: "2º",
         cargo: "Analista Administrativo",
-        tipoVaga: "PCD",
+        tipoVaga: "AC",
+        dataNomeacao: "15/07/2026",
+        dataPosse: "01/08/2026",
+        dataEfetivoExercicio: "-",
+      },
+      {
+        id: 6,
+        nome: "Rafael Martins",
+        classificacao: "6º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "AC",
+        dataNomeacao: "01/06/2026",
+        dataPosse: "05/07/2026",
+        dataEfetivoExercicio: "-",
+      },
+      {
+        id: 7,
+        nome: "Bruno Almeida",
+        classificacao: "7º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "AC",
+        dataNomeacao: "16/07/2026",
+        dataPosse: "05/08/2026",
+        dataEfetivoExercicio: "-",
+      },
+      {
+        id: 8,
+        nome: "Luciana Freitas",
+        classificacao: "8º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "AC",
+        dataNomeacao: "16/07/2026",
+        dataPosse: "05/08/2026",
+        dataEfetivoExercicio: "-",
+      },
+
+      {
+        id: 14,
+        nome: "Renata Lima",
+        classificacao: "9º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "AC",
+        dataNomeacao: "17/07/2026",
+        dataPosse: "06/08/2026",
+        dataEfetivoExercicio: "-",
       },
     ],
   },
@@ -2048,7 +2277,10 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         nome: "Luciana Freitas",
         classificacao: "1º",
         cargo: "Professor",
-        tipoVaga: "Ampla Concorrência",
+        tipoVaga: "AC",
+        dataNomeacao: "16/07/2026",
+        dataPosse: "05/08/2026",
+        dataEfetivoExercicio: "-",
       },
       {
         id: 9,
@@ -2056,6 +2288,9 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         classificacao: "2º",
         cargo: "Técnico Administrativo Educacional",
         tipoVaga: "PCD",
+        dataNomeacao: "17/07/2026",
+        dataPosse: "06/08/2026",
+        dataEfetivoExercicio: "-",
       },
     ],
   },
@@ -2071,14 +2306,20 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         nome: "Ana Costa",
         classificacao: "1º",
         cargo: "Gestor Governamental",
-        tipoVaga: "Ampla Concorrência",
+        tipoVaga: "AC",
+        dataNomeacao: "14/07/2026",
+        dataPosse: "22/07/2026",
+        dataEfetivoExercicio: "01/08/2026",
       },
       {
         id: 7,
         nome: "Bruno Almeida",
         classificacao: "4º",
         cargo: "Gestor Governamental",
-        tipoVaga: "Ampla Concorrência",
+        tipoVaga: "AC",
+        dataNomeacao: "16/07/2026",
+        dataPosse: "05/08/2026",
+        dataEfetivoExercicio: "-",
       },
     ],
   },
@@ -2094,7 +2335,10 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         nome: "Patrícia Nunes",
         classificacao: "1º",
         cargo: "Enfermeiro",
-        tipoVaga: "Ampla Concorrência",
+        tipoVaga: "AC",
+        dataNomeacao: "18/07/2026",
+        dataPosse: "10/08/2026",
+        dataEfetivoExercicio: "-",
       },
       {
         id: 11,
@@ -2102,6 +2346,9 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         classificacao: "5º",
         cargo: "Técnico de Enfermagem",
         tipoVaga: "PCD",
+        dataNomeacao: "18/07/2026",
+        dataPosse: "07/08/2026",
+        dataEfetivoExercicio: "-",
       },
     ],
   },
@@ -2117,7 +2364,10 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         nome: "Maria Souza",
         classificacao: "1º",
         cargo: "Professor",
-        tipoVaga: "Ampla Concorrência",
+        tipoVaga: "AC",
+        dataNomeacao: "13/07/2026",
+        dataPosse: "18/07/2026",
+        dataEfetivoExercicio: "01/08/2026",
       },
       {
         id: 6,
@@ -2125,6 +2375,9 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         classificacao: "3º",
         cargo: "Professor",
         tipoVaga: "PCD",
+        dataNomeacao: "15/07/2026",
+        dataPosse: "04/08/2026",
+        dataEfetivoExercicio: "-",
       },
     ],
   },
@@ -2140,7 +2393,10 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         nome: "Camila Teixeira",
         classificacao: "2º",
         cargo: "Analista Fazendário",
-        tipoVaga: "Ampla Concorrência",
+        tipoVaga: "PPP",
+        dataNomeacao: "19/07/2026",
+        dataPosse: "12/08/2026",
+        dataEfetivoExercicio: "-",
       },
       {
         id: 13,
@@ -2148,11 +2404,87 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         classificacao: "6º",
         cargo: "Analista Fazendário",
         tipoVaga: "PCD",
+        dataNomeacao: "19/07/2026",
+        dataPosse: "08/08/2026",
+        dataEfetivoExercicio: "-",
       },
     ],
   },
 ];
 
+const ingressoPoloCandidatoMap: Record<number, string> = {
+  1: "Cuiabá",
+  2: "Cuiabá",
+  3: "Cuiabá",
+  4: "Cuiabá",
+  5: "Cuiabá",
+  6: "Cuiabá",
+  7: "Cuiabá",
+  8: "Cuiabá",
+  9: "Sinop",
+  10: "Cuiabá",
+  11: "Várzea Grande",
+  12: "Cuiabá",
+  13: "Rondonópolis",
+};
+
+const getPoloCandidatoIngresso = (candidatoId: number) =>
+  ingressoPoloCandidatoMap[candidatoId] ?? "Cuiabá";
+
+const getPerfilEspecialidadeIngresso = (cargo: string) => {
+  const especialidades: Record<string, string> = {
+    "Analista Administrativo": "Gestão de Pessoas",
+    Professor: "Educação Básica",
+    "Assessor Técnico": "Assessoramento Técnico",
+    "Gestor Governamental": "Gestão Pública",
+    "Técnico Administrativo Educacional": "Administração Escolar",
+    Enfermeiro: "Saúde Assistencial",
+    "Técnico de Enfermagem": "Saúde Assistencial",
+    "Analista Fazendário": "Administração Tributária",
+  };
+
+  return especialidades[cargo] ?? "Área administrativa";
+};
+
+const getTipoVagaIngressoBadge = (tipoVaga: IngressoCandidatoRow["tipoVaga"]) => {
+  if (tipoVaga === "PCD") {
+    return { color: "#334e9f", bg: "#e8edff" };
+  }
+
+  if (tipoVaga === "PPP") {
+    return { color: "#7c2d12", bg: "#ffedd5" };
+  }
+
+  return { color: "#52616b", bg: "#eef2f6" };
+};
+
+const agruparCandidatosIngressoPorVaga = (
+  candidatos: IngressoCandidatoRow[],
+): IngressoCandidatoGrupoRow[] => {
+  const grupos = new Map<string, IngressoCandidatoGrupoRow>();
+
+  candidatos.forEach((candidato) => {
+    const polo = getPoloCandidatoIngresso(candidato.id);
+    const id = `${candidato.cargo}|${polo}|${candidato.tipoVaga}`;
+    const grupoExistente = grupos.get(id);
+
+    if (grupoExistente) {
+      grupoExistente.candidatos.push(candidato);
+      return;
+    }
+
+    grupos.set(id, {
+      id,
+      vagaEspecialidade: candidato.cargo,
+      perfilEspecialidade: getPerfilEspecialidadeIngresso(candidato.cargo),
+      polo,
+      classificacao: candidato.tipoVaga,
+      candidatos: [candidato],
+    });
+  });
+
+  return Array.from(grupos.values());
+};
 const ingressoTipoVinculoMap: Record<IngressoTipo, string> = {
   Concurso: "Efetivo",
   "Processo Seletivo": "Temporário",
@@ -2197,9 +2529,19 @@ const pessoasFisicasIngressoMock = [
   },
   {
     cpf: "111.111.111-11",
-    nome: "Ana Lima",
+    nome: "Maria Souza",
     dataNascimento: "18/06/1992",
   },
+  { cpf: "333.333.333-33", nome: "Ana Costa", dataNascimento: "22/09/1988" },
+  { cpf: "444.444.444-44", nome: "Fernanda Rocha", dataNascimento: "05/03/1991" },
+  { cpf: "555.555.555-55", nome: "Rafael Martins", dataNascimento: "14/11/1989" },
+  { cpf: "666.666.666-66", nome: "Bruno Almeida", dataNascimento: "27/07/1990" },
+  { cpf: "777.777.777-77", nome: "Luciana Freitas", dataNascimento: "09/01/1993" },
+  { cpf: "888.888.888-88", nome: "Marcos Vinícius", dataNascimento: "30/05/1987" },
+  { cpf: "999.999.999-99", nome: "Patrícia Nunes", dataNascimento: "16/08/1994" },
+  { cpf: "123.123.123-12", nome: "Diego Campos", dataNascimento: "11/12/1990" },
+  { cpf: "234.234.234-23", nome: "Camila Teixeira", dataNascimento: "24/04/1992" },
+  { cpf: "345.345.345-34", nome: "Henrique Lopes", dataNascimento: "02/10/1986" },
 ];
 
 const ingressoDocumentosMock = [
@@ -2237,84 +2579,174 @@ const ingressoDocumentosMock = [
   },
 ];
 
+const criarDocumentoObrigatorioIngresso = (
+  documento: string,
+  obrigatorio = "Sim",
+  situacao = "Pendente",
+  arquivo = "-",
+) => ({
+  documento,
+  obrigatorio,
+  situacao,
+  arquivo,
+});
+
 const ingressoDocumentacaoObrigatoriaMock = [
+  criarDocumentoObrigatorioIngresso(
+    "1.1 - RG (Registro Geral) ou carteira de identidade nacional (CIN)",
+    "Sim",
+    "Enviado",
+    "rg_cin.pdf",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.2 - CPF (Cadastro de Pessoa Física)",
+    "Sim",
+    "Enviado",
+    "cpf.pdf",
+  ),
+  criarDocumentoObrigatorioIngresso("1.3 - PIS ou PASEP, com data e ano de emissão"),
+  criarDocumentoObrigatorioIngresso(
+    "1.4 - Carteira de Trabalho e Previdência Social - CTPS ou Carteira de Trabalho Digital",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.5 - Título Eleitoral",
+    "Sim",
+    "Enviado",
+    "titulo_eleitoral.pdf",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.6 - Certidão de Nascimento ou de Casamento ou Sentença Declaratória de União Estável ou Escritura Pública de União Estável",
+  ),
+  criarDocumentoObrigatorioIngresso("1.7 - Certidão de Nascimento dos dependentes", "Condicional"),
+  criarDocumentoObrigatorioIngresso(
+    "1.8 - Documento de quitação com o serviço militar, certificado de desobrigação militar expedido pelo exército para homens com mais de 45 anos, informando o número do certificado de reservista ou documento previsto na Lei nº 4.375/1964",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.9 - Comprovante de endereço atual, com data de emissão nos últimos 3 meses",
+    "Sim",
+    "Enviado",
+    "comprovante_endereco.pdf",
+  ),
+  criarDocumentoObrigatorioIngresso("1.10 - Comprovante de conta ativa no Banco do Brasil"),
+  criarDocumentoObrigatorioIngresso("1.11 - Laudo Médico Pericial - LPM expedido pelo Mato Grosso Previdência - MTPrev"),
+  criarDocumentoObrigatorioIngresso(
+    "1.12 - Certidão de Quitação Eleitoral, expedida nos últimos 30 dias pela Justiça Eleitoral, emitida pela internet no site do TSE",
+    "Sim",
+    "Enviado",
+    "certidao_quitacao_eleitoral.pdf",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.13 - Certidão Criminal da Justiça Federal dos lugares onde tenha residido nos últimos 5 anos, alcançando 1º e 2º graus",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.14 - Certidão Criminal da Justiça Estadual dos lugares onde tenha residido nos últimos 5 anos, alcançando 1º e 2º graus",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.15 - Certidão de Vínculo Funcional Municipal do domicílio do candidato, com descrição da jornada de trabalho e carga horária caso possua vínculo",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.16 - Certidão Específica da Junta Comercial dos estados de domicílio onde tenha residido nos últimos 5 anos, de não participação em gerência/administração de empresa privada ou sociedade civil, ou exercício de comércio com transação com o Estado",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.17 - Diploma na área de atuação exigida no Edital, reconhecido pelo MEC ou emitido por instituição credenciada, acompanhado de histórico escolar",
+    "Sim",
+    "Enviado",
+    "diploma_historico.pdf",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.18 - Comprovante de Regularidade da Qualificação Cadastral, sem divergência, emitido no portal do eSocial",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.19 - 01 (uma) foto recente 3x4",
+    "Sim",
+    "Enviado",
+    "foto_3x4.jpg",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.20 - Comprovante do pedido de vacância ou exoneração devidamente protocolado, caso seja servidor público em cargo inacumulável",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.21 - Declaração de Tempo de Serviço no Poder Executivo Estadual de Mato Grosso, para complementação de período aquisitivo no novo cargo efetivo ou usufruto de licença-prêmio e férias, se for o caso",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.22 - Ficha de inscrição no Plano de Benefícios do Regime de Previdência Complementar ou Declaração Própria de manutenção no regime atual",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.23 - Formulário de Adesão ao Instituto de Assistência à Saúde dos Servidores do Estado de Mato Grosso - Mato Grosso Saúde",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.24 - Declaração de não ocupar ou receber proventos de aposentadoria de cargo, emprego ou função pública, ressalvados os cargos acumuláveis previstos na CF/88",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.25 - Declaração de não ter sofrido penalidade incompatível com a nova investidura em cargo público",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.26 - Última declaração de bens apresentada à Receita Federal ou formulário padronizado disponibilizado",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.27 - Termo de Compromisso de acatamento e observância das regras estabelecidas no Código de Ética Funcional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "1.28 - Declaração de não participação em gerência ou administração de empresa privada, sociedade civil ou exercício de comércio com transação com o Estado",
+  ),
+  criarDocumentoObrigatorioIngresso("1.29 - Formulário de ingresso no Sistema SEAP"),
+  criarDocumentoObrigatorioIngresso("1.30 - Outros formulários ou declarações a serem preenchidos pelo candidato", "Condicional"),
+  criarDocumentoObrigatorioIngresso("2.2 - Certidão comprobatória de registro no respectivo Conselho de Classe, se for o caso", "Condicional"),
+  criarDocumentoObrigatorioIngresso(
+    "2.3 - Declaração do Conselho de Classe Profissional de não estar cumprindo penalidade que impeça, ainda que temporariamente, o exercício da profissão",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "2.4 - Certidão de quitação com as demais exigências legais do órgão fiscalizador do exercício profissional",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "2.5 - Diploma de ensino superior reconhecido pelo MEC, na área exigida no Edital, com registro no e-MEC, acompanhado de histórico escolar",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "2.6 - Certificado ou diploma de pós-graduação reconhecido pelo MEC, se exigido no Edital, com registro no e-MEC ou na CAPES/Sucupira, acompanhado de histórico escolar",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso("3.2 - Carteira Nacional de Habilitação - CNH, categorias B, C ou D", "Condicional"),
+  criarDocumentoObrigatorioIngresso("4.2 - Carteira Nacional de Habilitação - CNH, categoria D", "Condicional"),
+];
+
+const ingressoDocumentosGeradosMock = [
   {
-    documento: "Formulário de Ingresso",
-    obrigatorio: "Sim",
-    situacao: "Enviado",
-    arquivo: "formulario_ingresso.pdf",
+    documento: "Checklist de documentos recebidos",
+    origem: "Análise do Provimento",
+    situacao: "Gerado",
+    arquivo: "checklist_documentos_recebidos.pdf",
   },
   {
-    documento: "RG / CPF",
-    obrigatorio: "Sim",
-    situacao: "Validado",
-    arquivo: "rg_cpf.pdf",
+    documento: "Termo de Posse",
+    origem: "Formalização",
+    situacao: "Gerado",
+    arquivo: "termo_posse.pdf",
   },
   {
-    documento: "PIS / PASEP",
-    obrigatorio: "Sim",
-    situacao: "Pendente",
-    arquivo: "-",
+    documento: "Termo de Encaminhamento",
+    origem: "Formalização",
+    situacao: "Gerado",
+    arquivo: "termo_encaminhamento.pdf",
   },
   {
-    documento: "Título de Eleitor",
-    obrigatorio: "Sim",
-    situacao: "Validado",
-    arquivo: "titulo_eleitor.pdf",
+    documento: "Termo de Suspensão",
+    origem: "Parecer do Provimento",
+    situacao: "Gerado quando houver suspensão",
+    arquivo: "termo_suspensao.pdf",
   },
   {
-    documento: "Comprovante de Endereço",
-    obrigatorio: "Sim",
-    situacao: "Enviado",
-    arquivo: "comprovante_endereco.pdf",
-  },
-  {
-    documento: "Conta Corrente Banco do Brasil",
-    obrigatorio: "Sim",
-    situacao: "Pendente",
-    arquivo: "-",
-  },
-  {
-    documento: "Diploma e Histórico Escolar",
-    obrigatorio: "Sim",
-    situacao: "Enviado",
-    arquivo: "diploma_historico.pdf",
-  },
-  {
-    documento: "Certidão de Quitação Eleitoral",
-    obrigatorio: "Sim",
-    situacao: "Validado",
-    arquivo: "certidao_quitacao_eleitoral.pdf",
-  },
-  {
-    documento: "Certidões Negativas",
-    obrigatorio: "Sim",
-    situacao: "Pendente",
-    arquivo: "-",
-  },
-  {
-    documento: "Laudo da Perícia Médica / MTPREV",
-    obrigatorio: "Sim",
-    situacao: "Pendente",
-    arquivo: "-",
-  },
-  {
-    documento: "Declarações Obrigatórias",
-    obrigatorio: "Sim",
-    situacao: "Pendente",
-    arquivo: "-",
-  },
-  {
-    documento: "Foto 3x4",
-    obrigatorio: "Sim",
-    situacao: "Enviado",
-    arquivo: "foto_3x4.jpg",
-  },
-  {
-    documento: "Termo de Compromisso Solene",
-    obrigatorio: "Sim",
-    situacao: "Pendente",
-    arquivo: "-",
+    documento: "Termo de Negativa de Posse",
+    origem: "Parecer do Provimento",
+    situacao: "Gerado quando houver negativa",
+    arquivo: "termo_negativa_posse.pdf",
   },
 ];
 
@@ -2336,12 +2768,12 @@ const ingressoDetalheTabs: TabItemSeplag<IngressoDetalheTab>[] = [
 ];
 
 const novoIngressoTabs: TabItemSeplag<NovoIngressoTab>[] = [
-  { label: "Tipo de Ingresso", value: "tipo-ingresso", col: "lg:col-6" },
+  { label: "Ingresso", value: "tipo-ingresso", col: "lg:col-6" },
   { label: "Documentação", value: "documentacao", col: "lg:col-6" },
 ];
 
 const novoIngressoConcursoSteps: TabItemSeplag<NovoIngressoTab>[] = [
-  { label: "Tipo de Ingresso", value: "tipo-ingresso", col: "lg:col-3" },
+  { label: "Ingresso", value: "tipo-ingresso", col: "lg:col-3" },
   { label: "Documentação", value: "documentacao", col: "lg:col-3" },
   { label: "Análise do Provimento", value: "analise-provimento", col: "lg:col-3" },
   { label: "Efetivo Exercício", value: "efetivo-exercicio", col: "lg:col-3" },
@@ -7014,6 +7446,7 @@ export function PrototiposControleVagasConfiguracaoPage() {
         situacao: "",
       },
     });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const termoBusca = filtros.cargoFuncao?.trim().toLowerCase();
   const configuracoesFiltradas = controleVagasConfiguracoesMock.filter(
@@ -7193,6 +7626,7 @@ export function PrototiposControleVagasQuadroAutorizadoPage() {
         situacao: "",
       },
     });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const termoBusca = filtros.cargoFuncao?.trim().toLowerCase();
   const quadroFiltrado = controleVagasQuadroAutorizadoMock.filter((quadro) => {
@@ -8110,6 +8544,7 @@ export function PrototiposControleVagasConsultaSaldoPage() {
       situacao: "",
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const dataReferenciaSelecionada = filtros.dataReferencia ?? dataReferencia;
 
@@ -8773,6 +9208,7 @@ export function PrototiposCategoriaPage({
       situacao: undefined,
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const categoriaBusca = filtros.categoria?.trim().toLowerCase();
   const categoriasFiltradas = categoriasTesteMock.filter((categoria) => {
@@ -8920,6 +9356,7 @@ export function PrototiposCargoPage({
       situacao: undefined,
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const cargoBusca = filtros.cargo?.trim().toLowerCase();
   const cargosFiltrados = cargosTesteMock.filter((cargo) => {
@@ -9885,6 +10322,7 @@ export function PrototiposCategoriaTestePage() {
       situacao: undefined,
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const categoriaBusca = filtros.categoria?.trim().toLowerCase();
   const categoriasFiltradas = categoriasMock.filter((categoria) => {
@@ -10209,6 +10647,7 @@ export function PrototiposCargoTestePage() {
       situacao: undefined,
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const cargoBusca = filtros.cargo?.trim().toLowerCase();
   const cargosFiltrados = cargosMock.filter((cargo) => {
@@ -10665,6 +11104,7 @@ export function PrototiposSigepRegimeJuridicoTestePage() {
       situacao: undefined,
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const regimeBusca = filtros.nome?.trim().toLowerCase();
   const regimesFiltrados = regimesJuridicosTesteMock.filter((regime) => {
@@ -10952,6 +11392,7 @@ export function PrototiposTipoVinculoTestePage() {
       situacao: undefined,
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const termoBusca = filtros.termo?.trim().toLowerCase();
   const tiposFiltrados = tiposVinculoTesteMock.filter((tipo) => {
@@ -11374,6 +11815,9 @@ export function PrototiposIngressosPage() {
       concursoProcessoSeletivo: "",
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
+  const [historicoIngressoSelecionadoId, setHistoricoIngressoSelecionadoId] = useState<number | null>(null);
+  const [acoesIngressoMenuAbertoId, setAcoesIngressoMenuAbertoId] = useState<number | null>(null);
   const filtros = watch();
   const concursoProcessoSeletivoBusca = filtros.concursoProcessoSeletivo?.trim().toLowerCase();
 
@@ -11387,6 +11831,189 @@ export function PrototiposIngressosPage() {
 
     return atendeConcursoProcessoSeletivo;
   });
+  const situacoesIngressosSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
+  ) as Partial<Record<string, IngressoSituacao>>;
+  const datasEfetivoExercicioSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-datas-efetivo-exercicio") ?? "{}",
+  ) as Partial<Record<string, string>>;
+  const getSituacaoCandidatoIngresso = (candidatoId: number) =>
+    situacoesIngressosSalvas[String(candidatoId)] ??
+    ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
+    "Aguardando Analise";
+  const getDataEfetivoExercicioCandidato = (candidato: IngressoCandidatoRow) =>
+    datasEfetivoExercicioSalvas[String(candidato.id)] ?? candidato.dataEfetivoExercicio;
+  const getHistoricoCandidatoIngresso = (candidatoId: number) => {
+    const ingresso = ingressosMock.find((item) => item.id === candidatoId);
+
+    return ingresso ? getHistoricoIngressoMock(ingresso, getSituacaoCandidatoIngresso(candidatoId)) : [];
+  };
+  const getResumoCandidatosConcursoProcesso = (candidatos: IngressoCandidatoRow[]) => {
+    const totalIngressados = candidatos.filter(
+      (candidato) => getSituacaoCandidatoIngresso(candidato.id) === "Ingresso Concluído",
+    ).length;
+
+    return `${candidatos.length} nomeado(s) • ${totalIngressados} ingressado(s)`;
+  };
+  const getSituacaoIngressoBadge = (situacao: IngressoSituacao) => {
+    const badgeMap: Record<IngressoSituacao, { color: string; bg: string; descricao: string }> = {
+      "Aguardando Analise": {
+        color: "#8a5a00",
+        bg: "#fff4d6",
+        descricao: "Ingresso aguardando análise do provimento.",
+      },
+"Em analise": {
+        color: "#334e9f",
+        bg: "#e8edff",
+        descricao: "Provimento iniciou a conferência da documentação, requisitos e laudo.",
+      },
+      "Posse Suspensa": {
+        color: "#9a5a00",
+        bg: "#fff0c7",
+        descricao: "Provimento suspendeu temporariamente a contagem do prazo para análise mais profunda.",
+      },
+      "Aguardando Efetivo Exercicio": {
+        color: "#6b4b00",
+        bg: "#fff8d8",
+        descricao: "Ingresso aguardando registro do efetivo exercício.",
+      },
+      "Tornado sem efeito": {
+        color: "#6b7280",
+        bg: "#f3f4f6",
+        descricao: "Ingresso tornado sem efeito.",
+      },
+      "Posse Negada": {
+        color: "#b42318",
+        bg: "#fee4e2",
+        descricao: "Candidato não atende aos requisitos para posse.",
+      },
+      "Ingresso Concluído": {
+        color: "#00843d",
+        bg: "#e2f3e8",
+        descricao: "Fluxo finalizado com matrícula e vínculo ativos.",
+      },
+    };
+
+    return badgeMap[situacao];
+  };
+  const situacoesDashboard: IngressoSituacao[] = [
+    "Aguardando Analise",
+    "Em analise",
+    "Posse Suspensa",
+    "Aguardando Efetivo Exercicio",
+    "Tornado sem efeito",
+    "Posse Negada",
+    "Ingresso Concluído",
+  ];
+  const candidatosDashboard = ingressoConcursosProcessosMock.flatMap(
+    (concursoProcesso) => concursoProcesso.candidatos,
+  );
+  const totalIngressosPorSituacao = situacoesDashboard.reduce(
+    (acc, situacao) => ({
+      ...acc,
+      [situacao]: candidatosDashboard.filter(
+        (candidato) => getSituacaoCandidatoIngresso(candidato.id) === situacao,
+      ).length,
+    }),
+    {} as Record<IngressoSituacao, number>,
+  );
+  const isPerfilIngressosProvimento = perfilIngressos === "PROVIMENTO";
+  const isPerfilIngressosSetorial = perfilIngressos === "SETORIAL";
+  const podeIngressarCandidato = (situacao: IngressoSituacao) =>
+    isPerfilIngressosProvimento &&
+    ![
+      "Aguardando Efetivo Exercicio",
+      "Tornado sem efeito",
+      "Posse Negada",
+      "Ingresso Concluído",
+    ].includes(situacao);
+  const podeAtuarEfetivoExercicioSetorial = (situacao: IngressoSituacao) =>
+    isPerfilIngressosSetorial && situacao === "Aguardando Efetivo Exercicio";
+  const getEtapaInicialProvimento = (situacao: IngressoSituacao): NovoIngressoTab =>
+    situacao === "Em analise" || situacao === "Posse Suspensa"
+      ? "analise-provimento"
+      : "tipo-ingresso";
+  const parseDataGridIngresso = (data: string) => {
+    if (!data || data === "-") return null;
+    const [dia, mes, ano] = data.split("/").map(Number);
+
+    if (!dia || !mes || !ano) return null;
+
+    return new Date(ano, mes - 1, dia);
+  };
+  const addDiasIngresso = (data: Date, dias: number) => {
+    const novaData = new Date(data);
+    novaData.setDate(novaData.getDate() + dias);
+
+    return novaData;
+  };
+  const formatarDataGridIngresso = (data: Date) =>
+    data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const getLimitePosse = (candidato: IngressoCandidatoRow) => {
+    const dataNomeacao = parseDataGridIngresso(candidato.dataNomeacao);
+
+    return dataNomeacao ? formatarDataGridIngresso(addDiasIngresso(dataNomeacao, 30)) : "-";
+  };
+  const getLimiteEfetivoExercicio = (candidato: IngressoCandidatoRow) => {
+    const dataPosse = parseDataGridIngresso(candidato.dataPosse);
+
+    return dataPosse ? formatarDataGridIngresso(addDiasIngresso(dataPosse, 15)) : "-";
+  };
+  const getAlertaPrazoPosse = (candidato: IngressoCandidatoRow) => {
+    const dataNomeacao = parseDataGridIngresso(candidato.dataNomeacao);
+
+    if (!dataNomeacao) return null;
+
+    const limitePosse = addDiasIngresso(dataNomeacao, 30);
+    const dataPosse = parseDataGridIngresso(candidato.dataPosse);
+    const prazoExcedido = dataPosse ? dataPosse > limitePosse : new Date() > limitePosse;
+
+    return prazoExcedido
+      ? `Prazo de posse ultrapassado. Limite permitido: ${formatarDataGridIngresso(limitePosse)}.`
+      : null;
+  };
+  const getAlertaPrazoEfetivoExercicio = (candidato: IngressoCandidatoRow) => {
+    const dataPosse = parseDataGridIngresso(candidato.dataPosse);
+
+    if (!dataPosse) return null;
+
+    const limiteExercicio = addDiasIngresso(dataPosse, 15);
+    const dataExercicio = parseDataGridIngresso(candidato.dataEfetivoExercicio);
+    const prazoExcedido = dataExercicio ? dataExercicio > limiteExercicio : new Date() > limiteExercicio;
+
+    return prazoExcedido
+      ? `Prazo de efetivo exercício ultrapassado. Limite permitido: ${formatarDataGridIngresso(limiteExercicio)}.`
+      : null;
+  };
+  const renderDataComIndicadorPrazo = (data: string, alerta: string | null) => (
+    <span className="prototype-ingresso-prazo-cell">
+      <span>{data}</span>
+      {alerta ? (
+        <i className="pi pi-exclamation-triangle prototype-ingresso-prazo-alert" title={alerta} aria-label={alerta} />
+      ) : null}
+    </span>
+  );
+  const exibirPastaFuncionalServidor = (situacao: IngressoSituacao) =>
+    ["Posse Suspensa", "Ingresso Concluído", "Aguardando Efetivo Exercicio"].includes(situacao);
+  const ingressoHistoricoSelecionado = historicoIngressoSelecionadoId
+    ? ingressosMock.find((ingresso) => ingresso.id === historicoIngressoSelecionadoId)
+    : undefined;
+  const candidatoHistoricoSelecionado = historicoIngressoSelecionadoId
+    ? ingressoConcursosProcessosMock
+        .flatMap((concursoProcesso) =>
+          concursoProcesso.candidatos.map((candidato) => ({ candidato, concursoProcesso })),
+        )
+        .find(({ candidato }) => candidato.id === historicoIngressoSelecionadoId)
+    : undefined;
+  const situacaoHistoricoSelecionado = historicoIngressoSelecionadoId
+    ? getSituacaoCandidatoIngresso(historicoIngressoSelecionadoId)
+    : undefined;
+  const situacaoHistoricoBadge = situacaoHistoricoSelecionado
+    ? getSituacaoIngressoBadge(situacaoHistoricoSelecionado)
+    : undefined;
+  const historicoEtapasSelecionadas = historicoIngressoSelecionadoId
+    ? getHistoricoCandidatoIngresso(historicoIngressoSelecionadoId)
+    : [];
 
   const limparFiltros = () =>
     reset({
@@ -11400,7 +12027,44 @@ export function PrototiposIngressosPage() {
       menuItems={menuGestaoPessoas}
     >
       <div className="prototype-page-content prototype-page-content--white">
-        <CardSeplag title="Ingressos" cols="12" cardHeaderClassNames="prototype-ingressos-card">
+        <CardSeplag title="Gestão de Ingresso" cols="12" cardHeaderClassNames="prototype-ingressos-card">
+          <section className="prototype-ingressos-dashboard">
+            <div className="prototype-ingressos-dashboard-grid">
+              {situacoesDashboard.map((situacao) => {
+                const badge = getSituacaoIngressoBadge(situacao);
+
+                return (
+                  <div
+                    key={situacao}
+                    className="prototype-ingressos-dashboard-card"
+                    title={badge.descricao}
+                  >
+                    <span>{situacao}</span>
+                    <strong>{totalIngressosPorSituacao[situacao]}</strong>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="prototype-ingressos-perfil-card" aria-label="Perfil da variação">
+            <label>
+              <span>Perfil da variação</span>
+              <select
+                value={perfilIngressos}
+                onChange={(event) => setPerfilIngressos(event.target.value as IngressoPerfil)}
+              >
+                <option value="PROVIMENTO">Roberto Junior - Provimento</option>
+                <option value="SETORIAL">Patrícia Lima - Setorial</option>
+              </select>
+            </label>
+            <strong>
+              {perfilIngressos === "SETORIAL"
+                ? "Patrícia Lima - Setorial"
+                : "Roberto Junior - Provimento"}
+            </strong>
+          </section>
+
           <div className="prototype-category-filters prototype-ingressos-filters grid">
             <TextFieldSeplag
               name="concursoProcessoSeletivo"
@@ -11420,15 +12084,17 @@ export function PrototiposIngressosPage() {
           </div>
 
           <div className="prototype-ingressos-accordion-list">
-            <div className="prototype-ingressos-list-header">
-              <span>{concursosProcessosFiltrados.length} registros encontrados</span>
-              <BotaoSeplag
-                type="button"
-                label="Novo Ingresso"
-                icon="pi pi-plus"
-                onClick={() => navigate("/prototipos/sigep/ingressos/novo")}
-              />
-            </div>
+            {isPerfilIngressosProvimento ? (
+              <div className="prototype-ingressos-list-header">
+                <BotaoSeplag
+                  type="button"
+                  label="Novo Ingresso"
+                  icon="pi pi-plus"
+                  tooltip="Novo Ingresso"
+                  onClick={() => navigate("/prototipos/sigep/ingressos/novo")}
+                />
+              </div>
+            ) : null}
 
             {concursosProcessosFiltrados.map((concursoProcesso, index) => (
               <details
@@ -11444,64 +12110,312 @@ export function PrototiposIngressosPage() {
                     </span>
                   </div>
                   <BadgeSeplag
-                    label={`${concursoProcesso.candidatos.length} candidatos`}
+                    label={getResumoCandidatosConcursoProcesso(concursoProcesso.candidatos)}
                     color="#005494"
                     bg="#e6f0f8"
                     border="transparent"
                     size="md"
                   />
+                  <i className="pi pi-chevron-right prototype-ingresso-accordion-chevron" aria-hidden="true" />
                 </summary>
 
                 <div className="prototype-ingresso-accordion-content">
-                  <table className="prototype-simple-table prototype-ingresso-candidatos-table">
-                    <thead>
-                      <tr>
-                        <th>Nome</th>
-                        <th>Classificação</th>
-                        <th>Cargo</th>
-                        <th>Tipo da Vaga</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {concursoProcesso.candidatos.map((candidato) => (
-                        <tr key={candidato.id}>
-                          <td>{candidato.nome}</td>
-                          <td>{candidato.classificacao}</td>
-                          <td>{candidato.cargo}</td>
-                          <td>
-                            <BadgeSeplag
-                              label={candidato.tipoVaga}
-                              color={candidato.tipoVaga === "PCD" ? "#334e9f" : "#52616b"}
-                              bg={candidato.tipoVaga === "PCD" ? "#e8edff" : "#eef2f6"}
-                              border="transparent"
-                              size="md"
-                            />
-                          </td>
-                          <td>
-                            <div className="prototype-ingresso-candidato-actions">
-                              <BotaoSeplag
-                                type="button"
-                                icon="pi pi-eye"
-                                tooltip="Visualizar"
-                                onClick={() => navigate(`/prototipos/sigep/ingressos/${candidato.id}`)}
-                              />
-                              <BotaoSeplag
-                                type="button"
-                                label="Ingressar"
-                                icon="pi pi-sign-in"
-                                onClick={() => navigate("/prototipos/sigep/ingressos/novo")}
-                              />
+                  <div className="prototype-ingresso-vaga-accordion-list">
+                    {agruparCandidatosIngressoPorVaga(concursoProcesso.candidatos).map((grupo, grupoIndex) => {
+                      const classificacaoBadge = getTipoVagaIngressoBadge(grupo.classificacao);
+
+                      return (
+                        <details
+                          key={grupo.id}
+                          className="prototype-ingresso-vaga-accordion"
+                          open={grupoIndex === 0}
+                        >
+                          <summary className="prototype-ingresso-vaga-accordion-summary">
+                            <div>
+                              <strong>{grupo.vagaEspecialidade}</strong>
+                              <span>Perfil/Especialidade: {grupo.perfilEspecialidade}</span>
+                              <span>Polo: {grupo.polo}</span>
                             </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            <div className="prototype-ingresso-vaga-summary-meta">
+                              <BadgeSeplag
+                                label={`Classificação: ${grupo.classificacao}`}
+                                color={classificacaoBadge.color}
+                                bg={classificacaoBadge.bg}
+                                border="transparent"
+                                size="md"
+                              />
+                              <BadgeSeplag
+                                label={`${grupo.candidatos.length} nomeado(s)`}
+                                color="#005494"
+                                bg="#e6f0f8"
+                                border="transparent"
+                                size="md"
+                              />
+                              <i className="pi pi-chevron-right prototype-ingresso-accordion-chevron" aria-hidden="true" />
+                            </div>
+                          </summary>
+
+                          <div className="prototype-ingresso-vaga-accordion-content">
+                            <table className="prototype-simple-table prototype-ingresso-candidatos-table">
+                              <thead>
+                                <tr>
+                                  <th>Classificação</th>
+                                  <th>Nome</th>
+                                  <th>Cargo</th>
+                                  <th>Órgão</th>
+                                  <th>Tipo da Vaga</th>
+                                  <th>Posse Agendada</th>
+                                  <th>Limite da Posse</th>
+                                  <th>Limite Efetivo Exercício</th>
+                                  <th>Data do Efetivo Exercício</th>
+                                  <th>Situação</th>
+                                  <th>Ações</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {grupo.candidatos.map((candidato) => {
+                                  const tipoVagaBadge = getTipoVagaIngressoBadge(candidato.tipoVaga);
+                                  const situacaoCandidato = getSituacaoCandidatoIngresso(candidato.id);
+                                  const podeIngressar = podeIngressarCandidato(situacaoCandidato);
+                                  const podeAtuarEfetivoExercicio =
+                                    podeAtuarEfetivoExercicioSetorial(situacaoCandidato);
+                                  const parametrosAtuacaoIngresso = `candidato=${candidato.id}&tipo=${encodeURIComponent(
+                                    concursoProcesso.tipo,
+                                  )}&concurso=${encodeURIComponent(
+                                    concursoProcesso.titulo,
+                                  )}&orgao=${encodeURIComponent(
+                                    concursoProcesso.orgao,
+                                  )}&cargo=${encodeURIComponent(
+                                    candidato.cargo,
+                                  )}&classificacao=${encodeURIComponent(
+                                    candidato.classificacao,
+                                  )}&tipoVaga=${encodeURIComponent(candidato.tipoVaga)}`;
+
+                                  return (
+                                    <tr key={candidato.id}>
+                                      <td>{candidato.classificacao}</td>
+                                      <td>{candidato.nome}</td>
+                                      <td>{candidato.cargo}</td>
+                                      <td>{concursoProcesso.orgao}</td>
+                                      <td>
+                                        <BadgeSeplag
+                                          label={candidato.tipoVaga}
+                                          color={tipoVagaBadge.color}
+                                          bg={tipoVagaBadge.bg}
+                                          border="transparent"
+                                          size="md"
+                                        />
+                                      </td>
+                                      <td>{renderDataComIndicadorPrazo(candidato.dataPosse, situacaoCandidato !== "Ingresso Concluído" ? getAlertaPrazoPosse(candidato) : null)}</td>
+                                      <td>{getLimitePosse(candidato)}</td>
+                                      <td>{renderDataComIndicadorPrazo(getLimiteEfetivoExercicio(candidato), situacaoCandidato !== "Ingresso Concluído" ? getAlertaPrazoEfetivoExercicio(candidato) : null)}</td>
+                                      <td>{situacaoCandidato === "Ingresso Concluído" ? getDataEfetivoExercicioCandidato(candidato) : "-"}</td>
+                                      <td>
+                                        {(() => {
+                                          const situacao = situacaoCandidato;
+                                          const badge = getSituacaoIngressoBadge(situacao);
+
+                                          return (
+                                            <span title={badge.descricao}>
+                                              <BadgeSeplag
+                                                label={situacao}
+                                                color={badge.color}
+                                                bg={badge.bg}
+                                                border="transparent"
+                                                size="md"
+                                              />
+                                            </span>
+                                          );
+                                        })()}
+                                      </td>
+                                      <td>
+                                        <div className="prototype-ingresso-candidato-actions">
+                                          <div className="prototype-ingresso-actions-dropdown">
+                                            <div className="prototype-ingresso-actions-trigger" role="group" aria-label="Ações do ingresso">
+                                              <button
+                                                type="button"
+                                                className="prototype-ingresso-actions-eye"
+                                                title="Visualizar"
+                                                aria-label="Visualizar"
+                                                onClick={() => navigate(`/prototipos/sigep/ingressos/${candidato.id}`)}
+                                              >
+                                                <i className="pi pi-eye" aria-hidden="true" />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                className="prototype-ingresso-actions-arrow"
+                                                title="Mais ações"
+                                                aria-label="Mais ações"
+                                                aria-expanded={acoesIngressoMenuAbertoId === candidato.id}
+                                                onClick={() =>
+                                                  setAcoesIngressoMenuAbertoId((current) =>
+                                                    current === candidato.id ? null : candidato.id,
+                                                  )
+                                                }
+                                              >
+                                                <i className="pi pi-chevron-down" aria-hidden="true" />
+                                              </button>
+                                            </div>
+
+                                            {acoesIngressoMenuAbertoId === candidato.id ? (
+                                              <div className="prototype-ingresso-actions-menu" role="menu">
+                                                {podeIngressar ? (
+                                                  <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    onClick={() => {
+                                                      setAcoesIngressoMenuAbertoId(null);
+                                                      navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacaoIngresso}&etapa=${getEtapaInicialProvimento(situacaoCandidato)}`);
+                                                    }}
+                                                  >
+                                                    <i className="pi pi-sign-in" aria-hidden="true" />
+                                                    <span>Ingressar</span>
+                                                  </button>
+                                                ) : null}
+                                                {podeAtuarEfetivoExercicio ? (
+                                                  <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    onClick={() => {
+                                                      setAcoesIngressoMenuAbertoId(null);
+                                                      navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacaoIngresso}&perfil=setorial`);
+                                                    }}
+                                                  >
+                                                    <i className="pi pi-briefcase" aria-hidden="true" />
+                                                    <span>Atuar efetivo exercício</span>
+                                                  </button>
+                                                ) : null}
+                                                <button
+                                                  type="button"
+                                                  role="menuitem"
+                                                  onClick={() => {
+                                                    setAcoesIngressoMenuAbertoId(null);
+                                                    setHistoricoIngressoSelecionadoId(candidato.id);
+                                                  }}
+                                                >
+                                                  <i className="pi pi-history" aria-hidden="true" />
+                                                  <span>Histórico</span>
+                                                </button>
+                                                {exibirPastaFuncionalServidor(situacaoCandidato) ? (
+                                                  <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    onClick={() => {
+                                                      setAcoesIngressoMenuAbertoId(null);
+                                                      navigate(`/prototipos/sigep/ingressos/${candidato.id}/pasta-funcional`);
+                                                    }}
+                                                  >
+                                                    <i className="pi pi-folder" aria-hidden="true" />
+                                                    <span>Pasta funcional do servidor</span>
+                                                  </button>
+                                                ) : null}
+                                              </div>
+                                            ) : null}
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </details>
+                      );
+                    })}
+                  </div>
                 </div>
               </details>
             ))}
           </div>
+
+          <ModalSeplag
+            visible={Boolean(historicoIngressoSelecionadoId)}
+            titulo="Histórico do Ingresso"
+            fechar={() => setHistoricoIngressoSelecionadoId(null)}
+            tamanho="920px"
+            hideFooter
+          >
+            {ingressoHistoricoSelecionado &&
+            candidatoHistoricoSelecionado &&
+            situacaoHistoricoSelecionado &&
+            situacaoHistoricoBadge ? (
+              <div className="col-12 prototype-ingresso-historico-modal">
+                <div className="prototype-ingresso-historico-panel">
+                  <div className="prototype-ingresso-historico-header">
+                    <div>
+                      <strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong>
+                    </div>
+                    <BadgeSeplag
+                      label={situacaoHistoricoSelecionado}
+                      color={situacaoHistoricoBadge.color}
+                      bg={situacaoHistoricoBadge.bg}
+                      border="transparent"
+                      size="md"
+                    />
+                  </div>
+
+                  <div className="prototype-ingresso-historico-context">
+                    <div>
+                      <span>Candidato</span>
+                      <strong>{candidatoHistoricoSelecionado.candidato.nome}</strong>
+                    </div>
+                    <div>
+                      <span>Concurso/Processo</span>
+                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.titulo}</strong>
+                    </div>
+                    <div>
+                      <span>Órgão</span>
+                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</strong>
+                    </div>
+                    <div>
+                      <span>Cargo</span>
+                      <strong>{candidatoHistoricoSelecionado.candidato.cargo}</strong>
+                    </div>
+                  </div>
+
+                  <ol className="prototype-ingresso-historico-timeline">
+                    {historicoEtapasSelecionadas.map((historico) => {
+
+                      return (
+                        <li key={historico.id} className="prototype-ingresso-historico-timeline-item">
+                          <span className="prototype-ingresso-historico-timeline-marker" aria-hidden="true" />
+                          <div className="prototype-ingresso-historico-timeline-card">
+                            <div className="prototype-ingresso-historico-timeline-title">
+                              <strong>{historico.etapa}</strong>
+
+                            </div>
+                            <dl className="prototype-ingresso-historico-timeline-meta">
+                              <div>
+                                <dt>Data/Hora</dt>
+                                <dd>{historico.dataHora}</dd>
+                              </div>
+                              <div>
+                                <dt>Operador</dt>
+                                <dd>{historico.operador}</dd>
+                              </div>
+                              {historico.parecer ? (
+                                <div>
+                                  <dt>Parecer</dt>
+                                  <dd>{historico.parecer}</dd>
+                                </div>
+                              ) : null}
+                              {historico.observacao ? (
+                                <div className="prototype-ingresso-historico-timeline-note">
+                                  <dt>Observação</dt>
+                                  <dd>{historico.observacao}</dd>
+                                </div>
+                              ) : null}
+                            </dl>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </div>
+              </div>
+            ) : null}
+          </ModalSeplag>
         </CardSeplag>
       </div>
     </PrototypeSystemPage>
@@ -11510,19 +12424,67 @@ export function PrototiposIngressosPage() {
 
 export function PrototiposNovoIngressoPage() {
   const navigate = useNavigate();
-  const [tipoIngresso, setTipoIngresso] = useState<IngressoTipo>("Concurso");
-  const [activeTab, setActiveTab] = useState<NovoIngressoTab>("tipo-ingresso");
-  const [candidatoCpf, setCandidatoCpf] = useState("");
-  const [candidatoNome, setCandidatoNome] = useState("");
-  const [candidatoNascimento, setCandidatoNascimento] = useState("");
-  const [concursoSelecionado, setConcursoSelecionado] = useState("");
-  const [cargoSelecionado, setCargoSelecionado] = useState("");
+  const [searchParams] = useSearchParams();
+  const candidatoParam = searchParams.get("candidato");
+  const ingressoOrigemLista = Boolean(candidatoParam);
+  const ingressoOrigemDados = candidatoParam
+    ? ingressosMock.find((ingresso) => String(ingresso.id) === candidatoParam)
+    : undefined;
+  const tipoParam = searchParams.get("tipo");
+  const tipoInicial: IngressoTipo =
+    tipoParam === "Processo Seletivo" ? "Processo Seletivo" : "Concurso";
+  const concursoInicial = searchParams.get("concurso") ?? "";
+  const orgaoInicial = searchParams.get("orgao") ?? ingressoOrigemDados?.orgao ?? "";
+  const cargoInicial = searchParams.get("cargo") ?? ingressoOrigemDados?.cargo ?? "";
+  const classificacaoInicial = searchParams.get("classificacao") ?? "";
+  const tipoVagaInicial = searchParams.get("tipoVaga") ?? "AC";
+  const perfilParam = searchParams.get("perfil");
+  const perfilNovoIngresso: IngressoPerfil = perfilParam === "setorial" ? "SETORIAL" : "PROVIMENTO";
+  const situacoesIngressosSalvasNovo = JSON.parse(
+    localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
+  ) as Partial<Record<string, IngressoSituacao>>;
+  const situacaoInicialIngresso: IngressoSituacao = candidatoParam
+    ? situacoesIngressosSalvasNovo[candidatoParam] ?? ingressoOrigemDados?.situacao ?? "Aguardando Analise"
+    : "Aguardando Analise";
+  const etapaParam = searchParams.get("etapa");
+  const etapaInicialParam: NovoIngressoTab | null =
+    etapaParam === "tipo-ingresso" ||
+    etapaParam === "documentacao" ||
+    etapaParam === "analise-provimento" ||
+    etapaParam === "efetivo-exercicio"
+      ? etapaParam
+      : null;
+  const nascimentoInicial =
+    pessoasFisicasIngressoMock.find((pessoa) => pessoa.cpf === ingressoOrigemDados?.cpf)
+      ?.dataNascimento ?? "";
+  const [tipoIngresso, setTipoIngresso] = useState<IngressoTipo>(tipoInicial);
+  const [activeTab, setActiveTab] = useState<NovoIngressoTab>(
+    perfilNovoIngresso === "SETORIAL"
+      ? "efetivo-exercicio"
+      : etapaInicialParam ?? "tipo-ingresso",
+  );
+  const [candidatoCpf, setCandidatoCpf] = useState(ingressoOrigemDados?.cpf ?? "");
+  const [candidatoNome, setCandidatoNome] = useState(ingressoOrigemDados?.nome ?? "");
+  const [candidatoNascimento, setCandidatoNascimento] = useState(nascimentoInicial);
+  const [concursoSelecionado, setConcursoSelecionado] = useState(concursoInicial);
+  const [orgaoSelecionado, setOrgaoSelecionado] = useState(orgaoInicial);
+  const [orgaosEfetivoSelecionados, setOrgaosEfetivoSelecionados] = useState<string[]>(orgaoInicial ? [orgaoInicial] : ["SEPLAG"]);
+  const [orgaosEfetivoDropdownAberto, setOrgaosEfetivoDropdownAberto] = useState(false);
+  const [cargoSelecionado, setCargoSelecionado] = useState(cargoInicial);
+  const [classificacaoSelecionada, setClassificacaoSelecionada] = useState(classificacaoInicial);
+  const [tipoVagaSelecionada, setTipoVagaSelecionada] = useState(tipoVagaInicial);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("Servidor Público");
+  const [regimeJuridicoSelecionado, setRegimeJuridicoSelecionado] = useState("Estatutário");
+  const [perfilEspecialidade, setPerfilEspecialidade] = useState("Perfil geral");
+  const [dataNomeacao, setDataNomeacao] = useState("2026-07-10");
+  const [dataPosseIngresso, setDataPosseIngresso] = useState("");
   const [decisaoJudicial, setDecisaoJudicial] = useState<"Não" | "Sim">("Não");
+  const [tipoAcaoJudicial, setTipoAcaoJudicial] = useState("");
+  const [numeroProcessoJudicial, setNumeroProcessoJudicial] = useState("");
   const [documentacaoEtapa, setDocumentacaoEtapa] = useState<"analise" | "termos" | "setorial">("analise");
-  const [situacaoIngresso, setSituacaoIngresso] = useState("Aguardando Confirmação");
+  const [situacaoIngresso, setSituacaoIngresso] = useState<IngressoSituacao>(situacaoInicialIngresso);
   const [documentosAnaliseValidados, setDocumentosAnaliseValidados] = useState<Record<string, boolean>>({});
-  const [documentosAnaliseObservacoes, setDocumentosAnaliseObservacoes] = useState<Record<string, string>>({});
-  const [parecerProvimento, setParecerProvimento] = useState<"aprovar" | "suspender" | "negar">("aprovar");
+  const [parecerProvimento, setParecerProvimento] = useState<"aprovar" | "suspender" | "negar" | "sem-efeito">("aprovar");
   const [analiseProvimentoAberta, setAnaliseProvimentoAberta] = useState(true);
   const [parecerProvimentoAberto, setParecerProvimentoAberto] = useState(true);
   const [documentosSuspensaoSelecionados, setDocumentosSuspensaoSelecionados] = useState<string[]>([]);
@@ -11531,13 +12493,53 @@ export function PrototiposNovoIngressoPage() {
   const [termoSuspensaoGerado, setTermoSuspensaoGerado] = useState(false);
   const [documentosAprovacaoGerados, setDocumentosAprovacaoGerados] = useState(false);
   const [termoNegativaGerado, setTermoNegativaGerado] = useState(false);
+  const [termoSemEfeitoGerado, setTermoSemEfeitoGerado] = useState(false);
+  const [motivoSemEfeito, setMotivoSemEfeito] = useState("nao-comparecimento");
+  const [justificativaSemEfeito, setJustificativaSemEfeito] = useState("");
   const [dataPosse, setDataPosse] = useState("");
+  const [dataEfetivoExercicio, setDataEfetivoExercicio] = useState("");
+  const [servidorCompareceu, setServidorCompareceu] = useState<"Sim" | "Não">("Sim");
   const [modalConfirmacaoAberto, setModalConfirmacaoAberto] = useState(false);
   const [modalComplementacaoAberto, setModalComplementacaoAberto] = useState(false);
   const [modalNegarPosseAberto, setModalNegarPosseAberto] = useState(false);
+  const parseDataIsoLocal = (value: string) => {
+    const [year, month, day] = value.split("-").map(Number);
+    if (!year || !month || !day) return null;
+    return new Date(year, month - 1, day);
+  };
+  const adicionarDias = (date: Date, days: number) => {
+    const nextDate = new Date(date);
+    nextDate.setDate(nextDate.getDate() + days);
+    return nextDate;
+  };
+  const dataPosseEfetivoIso = dataPosse || "2026-07-13";
+  const dataPosseEfetivo = parseDataIsoLocal(dataPosseEfetivoIso);
+  const prazoFinalEfetivo = dataPosseEfetivo ? adicionarDias(dataPosseEfetivo, 15) : null;
+  const hojeEfetivo = new Date();
+  hojeEfetivo.setHours(0, 0, 0, 0);
+  const diasRestantesEfetivo = prazoFinalEfetivo
+    ? Math.ceil((prazoFinalEfetivo.getTime() - hojeEfetivo.getTime()) / 86400000)
+    : null;
+  const statusEfetivoExercicio =
+    diasRestantesEfetivo === null
+      ? "Aguardando posse"
+      : diasRestantesEfetivo < 0
+        ? "Prazo vencido"
+        : diasRestantesEfetivo === 0
+          ? "Vence hoje"
+          : "Dentro do prazo";
+  const statusEfetivoExercicioClassName =
+    diasRestantesEfetivo !== null && diasRestantesEfetivo < 0
+      ? "prototype-prazo-posse-status prototype-prazo-posse-status--vencido"
+      : diasRestantesEfetivo === 0
+        ? "prototype-prazo-posse-status prototype-prazo-posse-status--atencao"
+        : "prototype-prazo-posse-status";
   const tipoVinculo = ingressoTipoVinculoMap[tipoIngresso];
   const fluxoNovoIngressoTabs =
     tipoIngresso === "Concurso" ? novoIngressoConcursoSteps : novoIngressoTabs;
+  const isPerfilSetorial = perfilNovoIngresso === "SETORIAL";
+  const isEtapaEfetivoExercicio = activeTab === "efetivo-exercicio";
+  const isEtapaSomenteLeituraSetorial = isPerfilSetorial && !isEtapaEfetivoExercicio;
   const cpfNormalizado = candidatoCpf.replace(/\D/g, "");
   const pessoaFisicaEncontrada = pessoasFisicasIngressoMock.find(
     (pessoa) => pessoa.cpf.replace(/\D/g, "") === cpfNormalizado,
@@ -11549,18 +12551,18 @@ export function PrototiposNovoIngressoPage() {
   const resumoIngressoNome = candidatoNome || pessoaFisicaEncontrada?.nome || "João Silva";
   const resumoIngressoCpf = candidatoCpf || pessoaFisicaEncontrada?.cpf || "000.000.000-00";
   const documentosObrigatoriosIngresso = ingressoDocumentacaoObrigatoriaMock;
-  const documentosAnexadosAnalise = documentosObrigatoriosIngresso.filter(
-    (documento) => documento.arquivo !== "-",
-  );
+  const documentosAnexadosAnalise = documentosObrigatoriosIngresso;
   const todosDocumentosValidados =
     documentosObrigatoriosIngresso.length > 0 &&
     documentosObrigatoriosIngresso.every((documento) => documento.situacao === "Validado");
   const confirmarActionLabel =
-    activeTab === "documentacao" && documentacaoEtapa === "analise"
-      ? "Enviar para Análise"
-      : activeTab === "analise-provimento"
-        ? "Finalizar Análise"
-      : "Confirmar";
+    isPerfilSetorial && isEtapaEfetivoExercicio
+      ? "Concluir"
+      : activeTab === "documentacao" && documentacaoEtapa === "analise"
+        ? "Enviar para Análise"
+        : activeTab === "analise-provimento"
+          ? "Finalizar Análise"
+        : "Confirmar";
   const confirmarActionIcon =
     (activeTab === "documentacao" && documentacaoEtapa === "analise") ||
     activeTab === "analise-provimento"
@@ -11582,8 +12584,6 @@ export function PrototiposNovoIngressoPage() {
       : "";
   const isDocumentoAnaliseValidado = (documento: string) =>
     documentosAnaliseValidados[documento] ?? true;
-  const getDocumentoAnaliseObservacao = (documento: string) =>
-    documentosAnaliseObservacoes[documento] ?? "Documento legível e dentro da validade.";
   const todosDocumentosAnaliseMarcados =
     documentosAnexadosAnalise.length > 0 &&
     documentosAnexadosAnalise.every((documento) =>
@@ -11603,6 +12603,20 @@ export function PrototiposNovoIngressoPage() {
         : [...documentosAtuais, documento],
     );
   };
+  const orgaosEfetivoOptions = ["SEPLAG", "SES", "SEDUC", "SEFAZ"];
+  const orgaosEfetivoResumo =
+    orgaosEfetivoSelecionados.length === 0
+      ? "Selecione..."
+      : orgaosEfetivoSelecionados.length <= 2
+        ? orgaosEfetivoSelecionados.join(", ")
+        : `${orgaosEfetivoSelecionados.length} órgãos selecionados`;
+  const toggleOrgaoEfetivo = (orgao: string) => {
+    setOrgaosEfetivoSelecionados((orgaosAtuais) =>
+      orgaosAtuais.includes(orgao)
+        ? orgaosAtuais.filter((item) => item !== orgao)
+        : [...orgaosAtuais, orgao],
+    );
+  };
   const documentosSuspensaoResumo =
     documentosSuspensaoSelecionados.length === 0
       ? "Selecione..."
@@ -11612,21 +12626,150 @@ export function PrototiposNovoIngressoPage() {
   const parecerProvimentoSalvo =
     (parecerProvimento === "aprovar" && documentosAprovacaoGerados) ||
     (parecerProvimento === "suspender" && termoSuspensaoGerado) ||
-    (parecerProvimento === "negar" && termoNegativaGerado);
+    (parecerProvimento === "negar" && termoNegativaGerado) ||
+    (parecerProvimento === "sem-efeito" && termoSemEfeitoGerado);
   const confirmarActionDisabled =
-    activeTab === "analise-provimento" && !parecerProvimentoSalvo;
+    isEtapaSomenteLeituraSetorial ||
+    (activeTab === "analise-provimento" && !parecerProvimentoSalvo);
+  const justificativaSemEfeitoObrigatoria =
+    parecerProvimento === "sem-efeito" &&
+    motivoSemEfeito === "outros" &&
+    !justificativaSemEfeito.trim();
+  const getSituacaoFinalAnaliseProvimento = (): IngressoSituacao => {
+    if (parecerProvimento === "aprovar") return "Aguardando Efetivo Exercicio";
+    if (parecerProvimento === "suspender") return "Posse Suspensa";
+    if (parecerProvimento === "negar") return "Posse Negada";
+    return "Tornado sem efeito";
+  };
+  const persistirSituacaoIngressoAtual = (situacao: IngressoSituacao) => {
+    if (!candidatoParam) return;
+
+    const situacoesSalvas = JSON.parse(
+      localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
+    ) as Record<string, IngressoSituacao>;
+    localStorage.setItem(
+      "prototype-ingresso-situacoes",
+      JSON.stringify({
+        ...situacoesSalvas,
+        [candidatoParam]: situacao,
+      }),
+    );
+  };
+  const getDataAtualIso = () => {
+    const hoje = new Date();
+    const year = hoje.getFullYear();
+    const month = String(hoje.getMonth() + 1).padStart(2, "0");
+    const day = String(hoje.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  const formatarDataIsoParaPtBr = (value: string) => {
+    const data = parseDataIsoLocal(value);
+    return data ? formatarDataPtBr(data) : value;
+  };
+  const persistirDataEfetivoExercicioAtual = (dataIso: string) => {
+    if (!candidatoParam) return;
+
+    const datasSalvas = JSON.parse(
+      localStorage.getItem("prototype-ingresso-datas-efetivo-exercicio") ?? "{}",
+    ) as Record<string, string>;
+    localStorage.setItem(
+      "prototype-ingresso-datas-efetivo-exercicio",
+      JSON.stringify({
+        ...datasSalvas,
+        [candidatoParam]: formatarDataIsoParaPtBr(dataIso),
+      }),
+    );
+  };
   const salvarParecerProvimento = () => {
+    if (justificativaSemEfeitoObrigatoria) {
+      return;
+    }
+
     setPrazoPosseSuspenso(parecerProvimento === "suspender");
     setTermoSuspensaoGerado(parecerProvimento === "suspender");
     setDocumentosAprovacaoGerados(parecerProvimento === "aprovar");
     setTermoNegativaGerado(parecerProvimento === "negar");
+    setTermoSemEfeitoGerado(parecerProvimento === "sem-efeito");
+    if (parecerProvimento === "aprovar") {
+      setSituacaoIngresso("Aguardando Efetivo Exercicio");
+    }
+    if (parecerProvimento === "suspender") {
+      setSituacaoIngresso("Posse Suspensa");
+    }
     if (parecerProvimento === "negar") {
-      setSituacaoIngresso("Posse negada");
+      setSituacaoIngresso("Posse Negada");
+    }
+    if (parecerProvimento === "sem-efeito") {
+      setSituacaoIngresso("Tornado sem efeito");
     }
   };
+  const renderDocumentosGerados = (
+    documentos: {
+      nomeArquivo: string;
+      modeloArquivo: string;
+      arquivoEnviado?: string;
+      tamanhoEnviado?: string;
+    }[],
+  ) => (
+    <div className="prototype-documentos-gerados">
+      <h4>Documentos Gerados</h4>
+      <table className="prototype-simple-table prototype-documentos-gerados-table">
+        <thead>
+          <tr>
+            <th>Nome do Arquivo</th>
+            <th>Nome do arquivo enviado</th>
+            <th>Tamanho enviado</th>
+            <th>Modelo do arquivo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {documentos.map((documento) => (
+            <tr key={documento.nomeArquivo}>
+              <td>{documento.nomeArquivo}</td>
+              <td>{documento.arquivoEnviado ?? "-"}</td>
+              <td>{documento.tamanhoEnviado ?? "-"}</td>
+              <td>
+                <div className="prototype-documentos-gerados-actions">
+                  <BotaoIconSeplag
+                    type="button"
+                    icon="pi pi-download"
+                    tooltip={`Baixar modelo ${documento.modeloArquivo}`}
+                  />
+                </div>
+              </td>
+              <td>
+                <div className="prototype-documentos-gerados-actions">
+                  <BotaoIconSeplag
+                    type="button"
+                    icon="pi pi-cloud-upload"
+                    tooltip={`Enviar ${documento.nomeArquivo}`}
+                  />
+                  <BotaoIconSeplag
+                    type="button"
+                    icon="pi pi-eye"
+                    tooltip={`Visualizar ${documento.nomeArquivo}`}
+                  />
+                  <BotaoIconSeplag
+                    type="button"
+                    icon="pi pi-times"
+                    tooltip={`Excluir ${documento.nomeArquivo}`}
+                    severity="danger"
+                  />
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="prototype-documentos-gerados-hint">
+        Formato aceito: <strong>.PDF, .DOC, .DOCX</strong> | Tamanho máximo: <strong>2 MB</strong> por arquivo | Máx. <strong>10 arquivos</strong>
+      </p>
+    </div>
+  );
 
   const goBack = () => {
-    if (isFirstTab) {
+    if (isFirstTab || activeTab === "efetivo-exercicio") {
       navigate("/prototipos/sigep/ingressos");
       return;
     }
@@ -11647,18 +12790,37 @@ export function PrototiposNovoIngressoPage() {
 
   const confirmarNovoIngresso = () => {
     setModalConfirmacaoAberto(false);
-    setSituacaoIngresso("Aguardando Documentação");
+    setSituacaoIngresso("Em analise");
+    persistirSituacaoIngressoAtual("Em analise");
     goNext();
   };
 
   const handleConfirmarNovoIngresso = () => {
+    if (isPerfilSetorial && activeTab === "efetivo-exercicio") {
+      const dataConclusaoEfetivo = dataEfetivoExercicio || getDataAtualIso();
+      setDataEfetivoExercicio(dataConclusaoEfetivo);
+      setSituacaoIngresso("Ingresso Concluído");
+      persistirSituacaoIngressoAtual("Ingresso Concluído");
+      persistirDataEfetivoExercicioAtual(dataConclusaoEfetivo);
+      navigate("/prototipos/sigep/ingressos");
+      return;
+    }
+
+    if (activeTab === "analise-provimento") {
+      const situacaoFinalAnalise = getSituacaoFinalAnaliseProvimento();
+      setSituacaoIngresso(situacaoFinalAnalise);
+      persistirSituacaoIngressoAtual(situacaoFinalAnalise);
+      navigate("/prototipos/sigep/ingressos");
+      return;
+    }
+
     if (activeTab !== "documentacao") {
       setModalConfirmacaoAberto(true);
       return;
     }
 
     if (documentacaoEtapa === "analise") {
-      setSituacaoIngresso("Análise pelo Provimento");
+      setSituacaoIngresso("Em analise");
       goNext();
       return;
     }
@@ -11698,32 +12860,37 @@ export function PrototiposNovoIngressoPage() {
             <input
               value={candidatoCpf}
               placeholder="Digite o CPF ou Nome"
+              readOnly={ingressoOrigemLista}
               onChange={(event) => handleCpfCandidatoChange(event.target.value)}
             />
-            <button
-              type="button"
-              className="prototype-cadastrar-pessoa-link"
-              onClick={() =>
-                navigate(
-                  `/prototipos/sigep/pessoa-fisica/novo?cpf=${encodeURIComponent(candidatoCpf)}`,
-                )
-              }
-            >
-              Cadastrar Pessoa Física
-            </button>
+            {!ingressoOrigemLista ? (
+              <button
+                type="button"
+                className="prototype-cadastrar-pessoa-link"
+                onClick={() =>
+                  navigate(
+                    `/prototipos/sigep/pessoa-fisica/novo?cpf=${encodeURIComponent(candidatoCpf)}`,
+                  )
+                }
+              >
+                Cadastrar Pessoa Física
+              </button>
+            ) : null}
           </label>
           <label className="prototype-ingresso-field">
             <span>Nome Completo<em>*</em></span>
             <input
               value={candidatoNome}
+              readOnly={ingressoOrigemLista}
               onChange={(event) => setCandidatoNome(event.target.value)}
             />
           </label>
           <label className="prototype-ingresso-field">
             <span>Data de Nascimento<em>*</em></span>
             <input
-              type="date"
+              type="text"
               value={candidatoNascimento}
+              readOnly={ingressoOrigemLista}
               onChange={(event) => setCandidatoNascimento(event.target.value)}
             />
           </label>
@@ -11734,14 +12901,26 @@ export function PrototiposNovoIngressoPage() {
         <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
           <label className="prototype-ingresso-field">
             <span>Tipo de Vínculo<em>*</em></span>
-            <select value={tipoVinculo} disabled>
-              <option value={tipoVinculo}>{tipoVinculo}</option>
+            <input type="text" value={tipoVinculo} readOnly />
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Órgão<em>*</em></span>
+            <select
+              value={orgaoSelecionado}
+              onChange={(event) => setOrgaoSelecionado(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              <option value="SES">SES</option>
+              <option value="SEDUC">SEDUC</option>
+              <option value="SEFAZ">SEFAZ</option>
+              <option value="SEPLAG">SEPLAG</option>
             </select>
           </label>
           <label className="prototype-ingresso-field">
             <span>{processoOrigemLabel}<em>*</em></span>
             <select
               value={concursoSelecionado}
+              disabled={ingressoOrigemLista}
               onChange={(event) => setConcursoSelecionado(event.target.value)}
             >
               <option value="">Selecione...</option>
@@ -11753,37 +12932,88 @@ export function PrototiposNovoIngressoPage() {
             </select>
           </label>
           <label className="prototype-ingresso-field">
+            <span>Categoria<em>*</em></span>
+            <select
+              value={categoriaSelecionada}
+              onChange={(event) => setCategoriaSelecionada(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              <option value="Servidor Público">Servidor Público</option>
+              <option value="Profissional da Educação">Profissional da Educação</option>
+              <option value="Profissional da Saúde">Profissional da Saúde</option>
+              <option value="Gestor Governamental">Gestor Governamental</option>
+              <option value="Temporário">Temporário</option>
+            </select>
+          </label>
+          <label className="prototype-ingresso-field">
             <span>Cargo<em>*</em></span>
             <select
               value={cargoSelecionado}
+              disabled={ingressoOrigemLista}
               onChange={(event) => setCargoSelecionado(event.target.value)}
             >
               <option value="">Selecione...</option>
               <option value="Analista Administrativo">Analista Administrativo</option>
               <option value="Professor">Professor</option>
               <option value="Gestor Governamental">Gestor Governamental</option>
+              <option value="Técnico Administrativo Educacional">Técnico Administrativo Educacional</option>
+              <option value="Enfermeiro">Enfermeiro</option>
+              <option value="Técnico de Enfermagem">Técnico de Enfermagem</option>
+              <option value="Analista Fazendário">Analista Fazendário</option>
             </select>
           </label>
           <label className="prototype-ingresso-field">
-            <span>Quantidade de Vagas</span>
-            <input type="text" value={quantidadeVagas} readOnly />
+            <span>Regime Jurídico<em>*</em></span>
+            <input
+              type="text"
+              value={regimeJuridicoSelecionado}
+              onChange={(event) => setRegimeJuridicoSelecionado(event.target.value)}
+            />
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Classificação<em>*</em></span>
+            <input
+              type="text"
+              value={classificacaoSelecionada}
+              readOnly={ingressoOrigemLista}
+              onChange={(event) => setClassificacaoSelecionada(event.target.value)}
+            />
           </label>
           <label className="prototype-ingresso-field">
             <span>Tipo de vaga<em>*</em></span>
-            <select defaultValue="">
-              <option value="">Selecione...</option>
-              <option value="Ampla">Ampla</option>
+            <select
+              value={tipoVagaSelecionada}
+              disabled={ingressoOrigemLista}
+              onChange={(event) => setTipoVagaSelecionada(event.target.value)}
+            >
+              <option value="AC">AC</option>
               <option value="PCD">PCD</option>
-              <option value="Cota">Cota</option>
+              <option value="PPP">PPP</option>
             </select>
           </label>
           <label className="prototype-ingresso-field">
-            <span>Data da publicação<em>*</em></span>
-            <input type="date" />
+            <span>Perfil/Especialidade<em>*</em></span>
+            <input
+              type="text"
+              value={perfilEspecialidade}
+              onChange={(event) => setPerfilEspecialidade(event.target.value)}
+            />
           </label>
           <label className="prototype-ingresso-field">
-            <span>Prazo final<em>*</em></span>
-            <input type="date" />
+            <span>Data da Nomeação<em>*</em></span>
+            <input
+              type="date"
+              value={dataNomeacao}
+              onChange={(event) => setDataNomeacao(event.target.value)}
+            />
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Data da Posse<em>*</em></span>
+            <input
+              type="date"
+              value={dataPosseIngresso}
+              onChange={(event) => setDataPosseIngresso(event.target.value)}
+            />
           </label>
           <label className="prototype-ingresso-field">
             <span>Decisão Judicial<em>*</em></span>
@@ -11798,10 +13028,27 @@ export function PrototiposNovoIngressoPage() {
             </select>
           </label>
           {decisaoJudicial === "Sim" ? (
-            <label className="prototype-ingresso-field">
-              <span>Documento da Decisão Judicial<em>*</em></span>
-              <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
-            </label>
+            <>
+              <label className="prototype-ingresso-field">
+                <span>Tipo de Ação Judicial<em>*</em></span>
+                <select
+                  value={tipoAcaoJudicial}
+                  onChange={(event) => setTipoAcaoJudicial(event.target.value)}
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Coletivo">Coletivo</option>
+                  <option value="Individual">Individual</option>
+                </select>
+              </label>
+              <label className="prototype-ingresso-field">
+                <span>N° Processo<em>*</em></span>
+                <input
+                  type="text"
+                  value={numeroProcessoJudicial}
+                  onChange={(event) => setNumeroProcessoJudicial(event.target.value)}
+                />
+              </label>
+            </>
           ) : null}
         </div>
       </section>
@@ -11819,10 +13066,25 @@ export function PrototiposNovoIngressoPage() {
           <strong>CPF:</strong> {resumoIngressoCpf}
         </p>
         <p>
-          <strong>Tipo de Ingresso:</strong> {tipoIngresso}
+          <strong>Ingresso:</strong> {tipoIngresso}
         </p>
         <p>
           <strong>Tipo de Vínculo:</strong> {tipoVinculo}
+        </p>
+        <p>
+          <strong>Concurso:</strong> {concursoSelecionado || "-"}
+        </p>
+        <p>
+          <strong>Categoria:</strong> {categoriaSelecionada || "-"}
+        </p>
+        <p>
+          <strong>Cargo:</strong> {cargoSelecionado || "-"}
+        </p>
+        <p>
+          <strong>Regime:</strong> {regimeJuridicoSelecionado || "-"}
+        </p>
+        <p>
+          <strong>Decisão Judicial:</strong> {decisaoJudicial}
         </p>
         <p>
           <strong>Prazo para Posse:</strong> 30/07/2026
@@ -11834,48 +13096,66 @@ export function PrototiposNovoIngressoPage() {
     </section>
   );
 
-  const renderNovoIngressoStepper = () => (
-    <div className="prototype-novo-ingresso-stepper" aria-label="Etapas do novo ingresso">
-      {novoIngressoConcursoSteps.map((step, index) => {
-        const isActive = step.value === activeTab;
-        const isCompleted = index < activeTabIndex;
+  const renderNovoIngressoStepper = () => {
+    const etapaAtualLabel =
+      fluxoNovoIngressoTabs[activeTabIndex]?.label ?? fluxoNovoIngressoTabs[0]?.label ?? "Ingresso";
 
-        return (
-          <button
-            key={step.value}
-            type="button"
-            className={`prototype-novo-ingresso-step ${
-              isActive ? "is-active" : ""
-            } ${isCompleted ? "is-completed" : ""}`}
-            onClick={() => setActiveTab(step.value!)}
-          >
-            <span className="prototype-novo-ingresso-step-line" />
-            <span className="prototype-novo-ingresso-step-marker">
-              {isCompleted ? <i className="pi pi-check" /> : index + 1}
-            </span>
-            <span className="prototype-novo-ingresso-step-label">{step.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+    return (
+      <div className="prototype-novo-ingresso-stepper-wrap">
+        <div className="prototype-novo-ingresso-stepper" aria-label="Etapas do novo ingresso">
+          {fluxoNovoIngressoTabs.map((step, index) => {
+            const isActive = step.value === activeTab;
+            const isCompleted = index < activeTabIndex;
 
+            return (
+              <button
+                key={step.value}
+                type="button"
+                className={`prototype-novo-ingresso-step ${
+                  isActive ? "is-active" : ""
+                } ${isCompleted ? "is-completed" : ""}`}
+                aria-current={isActive ? "step" : undefined}
+                onClick={() => setActiveTab(step.value!)}
+              >
+                <span className="prototype-novo-ingresso-step-marker">
+                  {isCompleted ? <i className="pi pi-check" aria-hidden="true" /> : index + 1}
+                </span>
+                <span className="prototype-novo-ingresso-step-label">{step.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="prototype-novo-ingresso-step-current" aria-live="polite">
+          <strong>{Math.max(activeTabIndex + 1, 1)} de {fluxoNovoIngressoTabs.length}</strong>
+          <span>
+            Etapa Atual: <b>{etapaAtualLabel}</b>
+          </span>
+        </div>
+      </div>
+    );
+  };
   const renderNovoIngressoTab = () => {
     if (activeTab === "tipo-ingresso") {
       return (
         <section className="prototype-ingresso-section prototype-novo-ingresso-section">
-          <h3>Tipo de Ingresso <span className="prototype-required-mark">*</span></h3>
+          <h3>Ingresso <span className="prototype-required-mark">*</span></h3>
           <div className="prototype-ingresso-type-grid">
             {ingressoTipoRadioOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
+                disabled={ingressoOrigemLista}
                 className={`prototype-ingresso-type-card ${
                   tipoIngresso === option.value ? "is-selected" : ""
-                }`}
+                } ${ingressoOrigemLista ? "is-locked" : ""}`}
                 onClick={() => {
+                  if (ingressoOrigemLista) return;
                   setTipoIngresso(option.value);
                   setConcursoSelecionado("");
+                  setOrgaoSelecionado("");
+                  setCargoSelecionado("");
+                  setClassificacaoSelecionada("");
+                  setTipoVagaSelecionada("AC");
                   setActiveTab("tipo-ingresso");
                   setDocumentacaoEtapa("analise");
                 }}
@@ -11989,7 +13269,7 @@ export function PrototiposNovoIngressoPage() {
                 <th>Obrigatório</th>
                 <th>Situação</th>
                 <th>Arquivo</th>
-                <th>Ação</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -12017,12 +13297,19 @@ export function PrototiposNovoIngressoPage() {
                       <BotaoIconSeplag
                         type="button"
                         className="prototype-ingresso-doc-action-button"
-                        icon={documento.arquivo === "-" ? "pi pi-cloud-upload" : "pi pi-eye"}
+                        icon="pi pi-cloud-upload"
+                        tooltip={`Enviar ${documento.documento}`}
+                      />
+                      <BotaoIconSeplag
+                        type="button"
+                        className="prototype-ingresso-doc-action-button"
+                        icon="pi pi-download"
                         tooltip={
                           documento.arquivo === "-"
-                            ? `Enviar ${documento.documento}`
-                            : `Visualizar ${documento.arquivo}`
+                            ? "Nenhum arquivo disponível para download"
+                            : `Baixar ${documento.arquivo}`
                         }
+                        disabled={documento.arquivo === "-"}
                       />
                     </div>
                   </td>
@@ -12066,7 +13353,7 @@ export function PrototiposNovoIngressoPage() {
                         </label>
                       </th>
                       <th>Validação</th>
-                      <th>Observação</th>
+                      <th>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -12114,18 +13401,12 @@ export function PrototiposNovoIngressoPage() {
                               <span>-</span>
                             )}
                           </td>
-                          <td>
-                            <input
-                              className="prototype-analise-observacao-input"
-                              aria-label={`Observação do documento ${documento.documento}`}
-                              value={getDocumentoAnaliseObservacao(documento.documento)}
-                              placeholder="Adicionar observação, se necessário"
-                              onChange={(event) =>
-                                setDocumentosAnaliseObservacoes((atual) => ({
-                                  ...atual,
-                                  [documento.documento]: event.target.value,
-                                }))
-                              }
+                          <td className="prototype-analise-documento-actions">
+                            <BotaoIconSeplag
+                              type="button"
+                              className="prototype-analise-documento-view-button"
+                              icon="pi pi-eye"
+                              tooltip={`Visualizar ${documento.documento}`}
                             />
                           </td>
                         </tr>
@@ -12159,9 +13440,12 @@ export function PrototiposNovoIngressoPage() {
                         setTermoSuspensaoGerado(false);
                         setDocumentosAprovacaoGerados(false);
                         setTermoNegativaGerado(false);
+                        setTermoSemEfeitoGerado(false);
+                        setMotivoSemEfeito("nao-comparecimento");
+                        setJustificativaSemEfeito("");
                       }}
                     />
-                    <span>Aprovar Documentação</span>
+                    <span>Aprovar Posse</span>
                   </label>
                   <label>
                     <input
@@ -12173,6 +13457,9 @@ export function PrototiposNovoIngressoPage() {
                         setTermoSuspensaoGerado(false);
                         setDocumentosAprovacaoGerados(false);
                         setTermoNegativaGerado(false);
+                        setTermoSemEfeitoGerado(false);
+                        setMotivoSemEfeito("nao-comparecimento");
+                        setJustificativaSemEfeito("");
                       }}
                     />
                     <span>Suspender Posse</span>
@@ -12187,9 +13474,29 @@ export function PrototiposNovoIngressoPage() {
                         setTermoSuspensaoGerado(false);
                         setDocumentosAprovacaoGerados(false);
                         setTermoNegativaGerado(false);
+                        setTermoSemEfeitoGerado(false);
+                        setMotivoSemEfeito("nao-comparecimento");
+                        setJustificativaSemEfeito("");
                       }}
                     />
                     <span>Negar Posse</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="parecer-provimento"
+                      checked={parecerProvimento === "sem-efeito"}
+                      onChange={() => {
+                        setParecerProvimento("sem-efeito");
+                        setTermoSuspensaoGerado(false);
+                        setDocumentosAprovacaoGerados(false);
+                        setTermoNegativaGerado(false);
+                        setTermoSemEfeitoGerado(false);
+                        setMotivoSemEfeito("nao-comparecimento");
+                        setJustificativaSemEfeito("");
+                      }}
+                    />
+                    <span>Tornar sem efeito</span>
                   </label>
                 </div>
 
@@ -12333,12 +13640,53 @@ export function PrototiposNovoIngressoPage() {
                   </div>
                 ) : null}
 
+                {parecerProvimento === "sem-efeito" ? (
+                  <div className="prototype-parecer-sem-efeito">
+                    <p>
+                      Informe o motivo para tornar a nomeação sem efeito. A justificativa pode
+                      ser preenchida quando houver complemento para registrar.
+                    </p>
+                    <div className="prototype-suspensao-prazo-grid">
+                      <label className="prototype-ingresso-field">
+                        <span>Motivo<em>*</em></span>
+                        <select
+                          value={motivoSemEfeito}
+                          onChange={(event) => {
+                            setMotivoSemEfeito(event.target.value);
+                            setTermoSemEfeitoGerado(false);
+                          }}
+                        >
+                          <option value="nao-comparecimento">Não comparecimento</option>
+                          <option value="outros">Outros</option>
+                        </select>
+                      </label>
+                      <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
+                        <span>Justificativa{motivoSemEfeito === "outros" ? <em>*</em> : null}</span>
+                        <textarea
+                          value={justificativaSemEfeito}
+                          required={motivoSemEfeito === "outros"}
+                          placeholder={
+                            motivoSemEfeito === "outros"
+                              ? "Descreva a justificativa para outros motivos."
+                              : "Descreva a justificativa, se necessário."
+                          }
+                          onChange={(event) => {
+                            setJustificativaSemEfeito(event.target.value);
+                            setTermoSemEfeitoGerado(false);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ) : null}
+
                 {parecerProvimento !== "negar" ? (
                 <div className="prototype-parecer-save-row">
                   <BotaoSeplag
                     type="button"
                     label="Salvar"
                     icon="pi pi-save"
+                    disabled={justificativaSemEfeitoObrigatoria}
                     onClick={salvarParecerProvimento}
                   />
                 </div>
@@ -12346,62 +13694,58 @@ export function PrototiposNovoIngressoPage() {
                 </>
                 ) : null}
               </div>
-              {parecerProvimento === "aprovar" && documentosAprovacaoGerados ? (
-                <div className="prototype-documentos-gerados">
-                  <h4>Documentos Gerados</h4>
-                  <div className="prototype-documentos-gerados-grid">
-                    <div>
-                      <i className="pi pi-file-check" />
-                      <div>
-                        <strong>Checklist de documentos recebidos</strong>
-                      </div>
-                      <BotaoSeplag type="button" label="Visualizar" icon="pi pi-eye" outlined />
-                    </div>
-                    <div>
-                      <i className="pi pi-file-edit" />
-                      <div>
-                        <strong>Termo de Posse</strong>
-                      </div>
-                      <BotaoSeplag type="button" label="Gerar" icon="pi pi-download" outlined />
-                    </div>
-                    <div>
-                      <i className="pi pi-send" />
-                      <div>
-                        <strong>Termo de Encaminhamento</strong>
-                      </div>
-                      <BotaoSeplag type="button" label="Gerar" icon="pi pi-download" outlined />
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-              {parecerProvimento === "suspender" && termoSuspensaoGerado ? (
-                <div className="prototype-documentos-gerados prototype-documentos-gerados--suspensao">
-                  <h4>Documentos Gerados</h4>
-                  <div className="prototype-documentos-gerados-grid prototype-documentos-gerados-grid--single">
-                    <div>
-                      <i className="pi pi-file-check" />
-                      <div>
-                        <strong>Termo de Suspensão</strong>
-                      </div>
-                      <BotaoSeplag type="button" label="Visualizar" icon="pi pi-eye" outlined />
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-              {parecerProvimento === "negar" && termoNegativaGerado ? (
-                <div className="prototype-documentos-gerados prototype-documentos-gerados--suspensao">
-                  <h4>Documentos Gerados</h4>
-                  <div className="prototype-documentos-gerados-grid prototype-documentos-gerados-grid--single">
-                    <div>
-                      <i className="pi pi-file-check" />
-                      <div>
-                        <strong>Termo de Negativa de Posse</strong>
-                      </div>
-                      <BotaoSeplag type="button" label="Visualizar" icon="pi pi-eye" outlined />
-                    </div>
-                  </div>
-                </div>
-              ) : null}
+              {parecerProvimento === "aprovar" && documentosAprovacaoGerados
+                ? renderDocumentosGerados([
+                    {
+                      nomeArquivo: "Checklist de documentos recebidos",
+                      modeloArquivo: "modelo_checklist_documentos_recebidos.pdf",
+                      arquivoEnviado: "checklist_documentos_recebidos_assinado.pdf",
+                      tamanhoEnviado: "720 KB",
+                    },
+                    {
+                      nomeArquivo: "Termo de Posse",
+                      modeloArquivo: "modelo_termo_posse.pdf",
+                      arquivoEnviado: "termo_posse_assinado.pdf",
+                      tamanhoEnviado: "1.1 MB",
+                    },
+                    {
+                      nomeArquivo: "Termo de Efetivo Exercício",
+                      modeloArquivo: "modelo_termo_encaminhamento.pdf",
+                      arquivoEnviado: "termo_encaminhamento_assinado.pdf",
+                      tamanhoEnviado: "640 KB",
+                    },
+                  ])
+                : null}
+              {parecerProvimento === "suspender" && termoSuspensaoGerado
+                ? renderDocumentosGerados([
+                    {
+                      nomeArquivo: "Termo de Suspensão",
+                      modeloArquivo: "modelo_termo_suspensao.pdf",
+                      arquivoEnviado: "termo_suspensao_assinado.pdf",
+                      tamanhoEnviado: "580 KB",
+                    },
+                  ])
+                : null}
+              {parecerProvimento === "negar" && termoNegativaGerado
+                ? renderDocumentosGerados([
+                    {
+                      nomeArquivo: "Termo de Negativa de Posse",
+                      modeloArquivo: "modelo_termo_negativa_posse.pdf",
+                      arquivoEnviado: "termo_negativa_posse_assinado.pdf",
+                      tamanhoEnviado: "610 KB",
+                    },
+                  ])
+                : null}
+              {parecerProvimento === "sem-efeito" && termoSemEfeitoGerado
+                ? renderDocumentosGerados([
+                    {
+                      nomeArquivo: "Termo para Tornar Sem Efeito",
+                      modeloArquivo: "modelo_termo_tornar_sem_efeito.pdf",
+                      arquivoEnviado: "termo_tornar_sem_efeito_assinado.pdf",
+                      tamanhoEnviado: "590 KB",
+                    },
+                  ])
+                : null}
             </div>
 
             <aside className="prototype-analise-provimento-side">
@@ -12469,39 +13813,134 @@ export function PrototiposNovoIngressoPage() {
     if (activeTab === "efetivo-exercicio") {
       return (
         <section className="prototype-ingresso-section">
-          <h3>Efetivo Exercício</h3>
-          <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
-            <label className="prototype-ingresso-field">
-              <span>Órgão<em>*</em></span>
-              <select defaultValue="">
-                <option value="">Selecione...</option>
-                <option value="SES">SES</option>
-                <option value="SEDUC">SEDUC</option>
-                <option value="SEFAZ">SEFAZ</option>
-              </select>
-            </label>
-            <label className="prototype-ingresso-field">
-              <span>Setor/Lotação<em>*</em></span>
-              <select defaultValue="">
-                <option value="">Selecione...</option>
-                <option value="Unidade Central">Unidade Central</option>
-                <option value="Coordenadoria de Pessoas">Coordenadoria de Pessoas</option>
-                <option value="Núcleo Administrativo">Núcleo Administrativo</option>
-              </select>
-            </label>
-            <label className="prototype-ingresso-field">
-              <span>Data do Efetivo Exercício<em>*</em></span>
-              <input type="date" />
-            </label>
-            <label className="prototype-ingresso-field">
-              <span>Documento comprobatório</span>
-              <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
-            </label>
+          <div className="prototype-analise-provimento-layout prototype-efetivo-exercicio-layout">
+            <div className="prototype-analise-provimento-main">
+              <div className="prototype-efetivo-exercicio-card">
+                <h3>Efetivo Exercício</h3>
+                <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+                  <label className="prototype-ingresso-field">
+                    <span>Servidor compareceu?<em>*</em></span>
+                    <select
+                      value={servidorCompareceu}
+                      onChange={(event) => setServidorCompareceu(event.target.value as "Sim" | "Não")}
+                    >
+                      <option value="Sim">Sim</option>
+                      <option value="Não">Não</option>
+                    </select>
+                  </label>
+
+                  {servidorCompareceu === "Sim" ? (
+                    <>
+
+                      <div className="prototype-ingresso-field prototype-multiselect-field">
+                        <span>Órgão<em>*</em></span>
+                        <div className="prototype-multiselect">
+                          <button
+                            type="button"
+                            className="prototype-multiselect-trigger"
+                            onClick={() => setOrgaosEfetivoDropdownAberto((dropdownAberto) => !dropdownAberto)}
+                            aria-expanded={orgaosEfetivoDropdownAberto}
+                          >
+                            <span>{orgaosEfetivoResumo}</span>
+                            <i className={`pi ${orgaosEfetivoDropdownAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
+                          </button>
+                          {orgaosEfetivoDropdownAberto ? (
+                            <div className="prototype-multiselect-panel">
+                              {orgaosEfetivoOptions.map((orgao) => (
+                                <label key={orgao} className="prototype-multiselect-option">
+                                  <input
+                                    type="checkbox"
+                                    checked={orgaosEfetivoSelecionados.includes(orgao)}
+                                    onChange={() => toggleOrgaoEfetivo(orgao)}
+                                  />
+                                  <span>{orgao}</span>
+                                </label>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                      <label className="prototype-ingresso-field">
+                        <span>Setor/Lotação<em>*</em></span>
+                        <select defaultValue="">
+                          <option value="">Selecione...</option>
+                          <option value="Unidade Central">Unidade Central</option>
+                          <option value="Coordenadoria de Pessoas">Coordenadoria de Pessoas</option>
+                          <option value="Núcleo Administrativo">Núcleo Administrativo</option>
+                        </select>
+                      </label>
+
+                      <label className="prototype-ingresso-field prototype-efetivo-exercicio-matricula-field">
+                        <span>Matrícula</span>
+                        <input type="text" value="327305" readOnly />
+                      </label>
+                      <label className="prototype-ingresso-field prototype-efetivo-exercicio-data-field">
+                        <span>Data do Efetivo Exercício<em>*</em></span>
+                        <input
+                          type="date"
+                          value={dataEfetivoExercicio}
+                          onChange={(event) => setDataEfetivoExercicio(event.target.value)}
+                        />
+                      </label>
+
+                      <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
+                        <span>Observação</span>
+                        <textarea placeholder="Registre uma observação, se necessário." />
+                      </label>
+                    </>
+                  ) : (
+                    <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
+                      <span>Observação</span>
+                      <textarea placeholder="Registre uma observação, se necessário." />
+                    </label>
+                  )}
+                </div>
+                {servidorCompareceu === "Sim"
+                  ? renderDocumentosGerados([
+                      {
+                        nomeArquivo: "Termo de Efetivo Exercício",
+                        modeloArquivo: "modelo_termo_encaminhamento.pdf",
+                        arquivoEnviado: "termo_encaminhamento_assinado.pdf",
+                        tamanhoEnviado: "620 KB",
+                      },
+                    ])
+                  : null}
+              </div>
+            </div>
+
+            <aside className="prototype-analise-provimento-side">
+              <div className="prototype-analise-provimento-panel">
+                <h4>Prazo do Efetivo Exercício</h4>
+                <dl className="prototype-prazo-posse-list">
+                  <div>
+                    <dt>Data da posse</dt>
+                    <dd>{dataPosseEfetivo ? formatarDataPtBr(dataPosseEfetivo) : "Não informada"} <i className="pi pi-calendar" /></dd>
+                  </div>
+                  <div>
+                    <dt>Prazo final</dt>
+                    <dd>{prazoFinalEfetivo ? formatarDataPtBr(prazoFinalEfetivo) : "Não informado"} <i className="pi pi-calendar" /></dd>
+                  </div>
+                  <div>
+                    <dt>Dias restantes</dt>
+                    <dd className={diasRestantesEfetivo !== null && diasRestantesEfetivo < 0 ? "prototype-prazo-posse-days prototype-prazo-posse-days--vencido" : "prototype-prazo-posse-days"}>
+                      {diasRestantesEfetivo === null
+                        ? "-"
+                        : `${Math.max(diasRestantesEfetivo, 0)} ${Math.max(diasRestantesEfetivo, 0) === 1 ? "dia" : "dias"}`}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>
+                      <span className={statusEfetivoExercicioClassName}>{statusEfetivoExercicio}</span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </aside>
           </div>
         </section>
       );
     }
-
     return null;
   };
 
@@ -12531,7 +13970,13 @@ export function PrototiposNovoIngressoPage() {
 
             {exibirResumoIngresso ? renderResumoIngressoBloqueado() : null}
 
-            {renderNovoIngressoTab()}
+            {isEtapaSomenteLeituraSetorial ? (
+              <fieldset className="prototype-novo-ingresso-readonly" disabled>
+                {renderNovoIngressoTab()}
+              </fieldset>
+            ) : (
+              renderNovoIngressoTab()
+            )}
 
             <div className="prototype-novo-ingresso-footer">
               <div className="prototype-form-actions prototype-novo-ingresso-actions">
@@ -12687,7 +14132,7 @@ export function PrototiposImportarIngressoPage() {
           <div className="prototype-ingresso-import-layout">
             <div className="prototype-ingresso-summary">
               <div>
-                <span>Tipo de Ingresso</span>
+                <span>Ingresso</span>
                 <strong>{tipoIngresso}</strong>
               </div>
               <div>
@@ -12821,12 +14266,12 @@ export function PrototiposIngressoDetalhePage() {
             <h3>Dados do Ingresso</h3>
             <IngressoInfoGrid
               items={[
-                { label: "Tipo de Ingresso", value: ingresso.tipoIngresso },
+                { label: "Ingresso", value: ingresso.tipoIngresso },
                 { label: "Tipo de Vínculo", value: ingresso.tipoVinculo },
                 { label: "Órgão", value: ingresso.orgao },
                 { label: "Cargo", value: ingresso.cargo },
                 { label: "Classificação", value: "1º" },
-                { label: "Tipo de vaga", value: "Ampla" },
+                { label: "Tipo de vaga", value: "AC" },
                 { label: "Data da publicação", value: "30/06/2026" },
                 { label: "Prazo final", value: "30/07/2026" },
               ]}
@@ -13026,7 +14471,7 @@ export function PrototiposIngressoDetalhePage() {
             items={[
               { label: "Nome", value: ingresso.nome },
               { label: "CPF", value: ingresso.cpf },
-              { label: "Tipo de Ingresso", value: ingresso.tipoIngresso },
+              { label: "Ingresso", value: ingresso.tipoIngresso },
               { label: "Tipo de Vínculo", value: ingresso.tipoVinculo },
               { label: "Situação", value: ingresso.situacao },
               { label: "Prazo para Posse", value: "30/07/2026" },
@@ -13039,6 +14484,134 @@ export function PrototiposIngressoDetalhePage() {
             equalWidth={false}
           />
           {renderTabContent()}
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposPastaFuncionalServidorPage() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const ingresso = ingressosMock.find((item) => String(item.id) === id) ?? ingressosMock[0];
+  const numeroIngresso = "2026/0001";
+  const concursoIngresso = ingresso.tipoIngresso === "Concurso" ? `${ingresso.tipoIngresso} ${ingresso.orgao} 2026` : "-";
+  const prazoParaPosse = "30/07/2026";
+  const regimeJuridico = ingresso.tipoVinculo === "Efetivo" ? "Estatutário" : ingresso.tipoVinculo;
+  const categoriaServidor = "Servidor Público";
+  const decisaoJudicial = "Não";
+  const situacoesIngressosSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
+  ) as Partial<Record<string, IngressoSituacao>>;
+  const situacaoIngresso = situacoesIngressosSalvas[String(ingresso.id)] ?? ingresso.situacao;
+  const documentosAnexados = ingressoDocumentacaoObrigatoriaMock;
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Pasta Funcional do Servidor" cols="12">
+          <div className="prototype-pasta-funcional-header">
+            <strong className="prototype-pasta-funcional-header-title">
+              Ingresso nº {numeroIngresso}
+            </strong>
+            <div className="prototype-pasta-funcional-header-grid">
+              <div>
+                <p><strong>Nome:</strong> {ingresso.nome}</p>
+                <p><strong>Tipo de Vínculo:</strong> {ingresso.tipoVinculo}</p>
+                <p><strong>Cargo:</strong> {ingresso.cargo}</p>
+                <p><strong>Prazo para Posse:</strong> {prazoParaPosse}</p>
+              </div>
+              <div>
+                <p><strong>CPF:</strong> {ingresso.cpf}</p>
+                <p><strong>Concurso:</strong> {concursoIngresso}</p>
+                <p><strong>Regime:</strong> {regimeJuridico}</p>
+                <p><strong>Situação:</strong> {situacaoIngresso}</p>
+              </div>
+              <div>
+                <p><strong>Ingresso:</strong> {ingresso.tipoIngresso}</p>
+                <p><strong>Categoria:</strong> {categoriaServidor}</p>
+                <p><strong>Decisão Judicial:</strong> {decisaoJudicial}</p>
+              </div>
+            </div>
+          </div>
+
+          <section className="prototype-ingresso-section">
+            <h3>Documentos Anexados no Ingresso</h3>
+            <table className="prototype-simple-table prototype-pasta-funcional-table">
+              <thead>
+                <tr>
+                  <th>Documento</th>
+                  <th>Obrigatório</th>
+                  <th>Arquivo</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {documentosAnexados.map((documento) => (
+                  <tr key={documento.documento}>
+                    <td>{documento.documento}</td>
+                    <td>{documento.obrigatorio}</td>
+                    <td>{documento.arquivo}</td>
+                    <td className="prototype-ingresso-doc-action-cell">
+                      {documento.arquivo !== "-" ? (
+                        <div className="prototype-ingresso-doc-actions">
+                          <BotaoIconSeplag
+                            type="button"
+                            icon="pi pi-download"
+                            tooltip={`Baixar ${documento.arquivo}`}
+                          />
+                        </div>
+                      ) : (
+                        <span>-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+
+          <section className="prototype-ingresso-section">
+            <h3>Documentos Gerados no Ingresso</h3>
+            <table className="prototype-simple-table prototype-pasta-funcional-table">
+              <thead>
+                <tr>
+                  <th>Documento</th>
+                  <th>Arquivo</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ingressoDocumentosGeradosMock.map((documento) => (
+                  <tr key={documento.documento}>
+                    <td>{documento.documento}</td>
+                    <td>{documento.arquivo}</td>
+                    <td className="prototype-ingresso-doc-action-cell">
+                      <div className="prototype-ingresso-doc-actions">
+                        <BotaoIconSeplag
+                          type="button"
+                          icon="pi pi-eye"
+                          tooltip={`Visualizar ${documento.arquivo}`}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+
+          <div className="prototype-form-actions prototype-pasta-funcional-actions">
+            <BotaoVoltarSeplag
+              type="button"
+              label="Voltar"
+              onClick={() => navigate("/prototipos/sigep/ingressos")}
+            />
+          </div>
         </CardSeplag>
       </div>
     </PrototypeSystemPage>
@@ -13159,6 +14732,7 @@ export function PrototiposMatrizValidacaoTestePage() {
       situacao: undefined,
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const cargoBusca = filtros.cargo?.trim().toLowerCase();
   const regrasFiltradas = matrizValidacaoTesteMock.filter((regra) => {
@@ -14979,6 +16553,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
   const [tabelasReferencia, setTabelasReferencia] = useState<
     FolhaTabelaReferenciaRow[]
   >(() => getFolhaTabelasReferenciaPersistidas());
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const termoTabela = filtros.tabela?.trim().toLowerCase() ?? "";
 
@@ -16477,6 +18052,7 @@ export function PrototiposFolhaGruposFolhaPage() {
       situacao: "",
     },
   });
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const termo = filtros.termo?.trim().toLowerCase() ?? "";
   const gruposFiltrados = grupos.filter((grupo) => {
@@ -17161,6 +18737,7 @@ export function PrototiposFolhaCompetenciasPage() {
     return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
   };
 
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const competenciaFiltro = normalizeMesAno(filtros.competencia);
   const competenciasFiltradas = competencias.filter((competencia) => {
@@ -18698,6 +20275,7 @@ export function PrototiposFolhaPagamentoPage({
     },
   });
 
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const normalizeMesAno = (value?: string) => {
     const cleanValue = value?.trim() ?? "";
@@ -21346,6 +22924,7 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
     },
   });
 
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const formularioSolicitacao = watchSolicitacao();
   const escopoSolicitacao = formularioSolicitacao.escopo;
@@ -23452,6 +25031,7 @@ export function PrototiposFolhaGruposCalculoPage() {
     },
   });
 
+  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const termoBusca = filtros.nomeGrupo?.trim().toLowerCase() ?? "";
   const gruposFiltrados = gruposCalculoMock.filter((grupo) => {
