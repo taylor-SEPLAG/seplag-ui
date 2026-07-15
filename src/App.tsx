@@ -89,6 +89,16 @@ import {
   PrototiposTipoVinculoTestePage,
   PrototiposVinculoDetalhePage,
 } from "./prototipos/PrototiposPage";
+import {
+  PrototiposSicadBaseConhecimentoPage,
+  PrototiposSicadFilaChamadosPage,
+  PrototiposSicadMeusChamadosPage,
+  PrototiposSicadNovoChamadoPage,
+  PrototiposSicadChamadoDetalhePage,
+  PrototiposSicadChamadosDashboardPage,
+  PrototiposSicadChamadosRelatoriosPage,
+  PrototiposSicadPage,
+} from "./prototipos/sicad/PrototiposSicadPage";
 
 function HomePage() {
   const sistemas = [
@@ -107,11 +117,21 @@ function HomePage() {
       ],
     },
     {
+      sigla: "SICAD",
+      titulo: "Sistema de Concessão de Adiantamento",
+      descricao: "Protótipos do SICAD separados do SIGEP, usando a biblioteca de componentes da SEPLAG.",
+      status: "Em prototipação",
+      to: "/prototipos/sicad",
+      links: [
+        { label: "Tela inicial", to: "/prototipos/sicad" },
+      ],
+    },
+    {
       sigla: "FOLHA",
       titulo: "Folha de Pagamento",
       descricao: "Protótipos para grupos de cálculo, folhas por competência, rubricas e cálculos.",
       status: "Em evolução",
-      to: "/prototipos/folha",
+      to: "/prototipos/sigep/folha/painel-informativo",
       links: [
         { label: "Competências da Folha", to: "/prototipos/folha/processamento/competencias" },
         { label: "Processamento da Folha", to: "/prototipos/folha/processamento/processamento-folha" },
@@ -1218,7 +1238,72 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/calendario/*" element={<CalendarioPage />} />
       <Route path="/prototipos" element={<PrototiposPage />} />
+      <Route path="/prototipos/sicad" element={<PrototiposSicadPage />} />
+      <Route
+        path="/prototipos/sicad/chamados/nova"
+        element={<PrototiposSicadNovoChamadoPage />}
+      />
+      <Route
+        path="/prototipos/sicad/chamados/minhas"
+        element={<PrototiposSicadMeusChamadosPage />}
+      />
+      <Route
+        path="/prototipos/sicad/chamados/fila"
+        element={<PrototiposSicadFilaChamadosPage />}
+      />
+      <Route
+        path="/prototipos/sicad/chamados/dashboard"
+        element={<PrototiposSicadChamadosDashboardPage />}
+      />
+      <Route
+        path="/prototipos/sicad/chamados/relatorios"
+        element={<PrototiposSicadChamadosRelatoriosPage />}
+      />
+      <Route
+        path="/prototipos/sicad/chamados/base-conhecimento"
+        element={<PrototiposSicadBaseConhecimentoPage />}
+      />
+      <Route
+        path="/prototipos/sicad/chamados/:id"
+        element={<PrototiposSicadChamadoDetalhePage />}
+      />
+      <Route
+        path="/chamados/nova"
+        element={<PrototiposSicadNovoChamadoPage />}
+      />
+      <Route
+        path="/chamados/minhas"
+        element={<PrototiposSicadMeusChamadosPage />}
+      />
+      <Route
+        path="/chamados/fila"
+        element={<PrototiposSicadFilaChamadosPage />}
+      />
+      <Route
+        path="/chamados/dashboard"
+        element={<PrototiposSicadChamadosDashboardPage />}
+      />
+      <Route
+        path="/chamados/relatorios"
+        element={<PrototiposSicadChamadosRelatoriosPage />}
+      />
+      <Route
+        path="/chamados/base-conhecimento"
+        element={<PrototiposSicadBaseConhecimentoPage />}
+      />
+      <Route
+        path="/chamados/:id"
+        element={<PrototiposSicadChamadoDetalhePage />}
+      />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
+      <Route
+        path="/prototipos/sigep/gestao/painel-informativo"
+        element={<PrototiposFolhaPage modulo="gestao-pessoas" />}
+      />
+      <Route
+        path="/prototipos/sigep/painel-informativo"
+        element={<Navigate to="/prototipos/sigep/gestao/painel-informativo" replace />}
+      />
       <Route
         path="/prototipos/sigep/componentes"
         element={<PrototiposComponentesPage />}
@@ -1411,7 +1496,18 @@ function App() {
         path="/prototipos/sigep/cargo-concurso-teste/matriz-validacao/:id/editar"
         element={<PrototiposMatrizValidacaoTesteFormPage />}
       />
-      <Route path="/prototipos/folha" element={<PrototiposFolhaPage />} />
+      <Route
+        path="/prototipos/folha"
+        element={<Navigate to="/prototipos/sigep/folha/painel-informativo" replace />}
+      />
+      <Route
+        path="/prototipos/folha/painel-informativo"
+        element={<Navigate to="/prototipos/sigep/folha/painel-informativo" replace />}
+      />
+      <Route
+        path="/prototipos/sigep/folha/painel-informativo"
+        element={<PrototiposFolhaPage />}
+      />
       <Route
         path="/prototipos/folha/cronograma"
         element={<PrototiposFolhaCronogramaPage />}
@@ -1557,3 +1653,6 @@ function App() {
 }
 
 export default App;
+
+
+

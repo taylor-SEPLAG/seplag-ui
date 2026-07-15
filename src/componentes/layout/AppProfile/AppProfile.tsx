@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, type ReactNode } from "react";
 import { CSSTransition } from "primereact/csstransition";
 import { Password } from "primereact/password";
 import { Column } from "primereact/column";
@@ -20,6 +20,7 @@ export interface AppProfileSeplagProps {
     confirmarSenha: string,
   ) => void;
   onSelecionarVinculo: (vinculo: IVinculoSeplag) => void;
+  extraActions?: ReactNode;
 }
 
 export function AppProfileSeplag({
@@ -30,6 +31,7 @@ export function AppProfileSeplag({
   onLogout,
   onAlterarSenha,
   onSelecionarVinculo,
+  extraActions,
 }: Readonly<AppProfileSeplagProps>) {
   const nodeRef = React.useRef(null);
 
@@ -98,6 +100,7 @@ export function AppProfileSeplag({
               <span>Perfil</span>
             </button>
           </li>
+          {extraActions}
           <li>
             <button
               type="button"
@@ -192,3 +195,5 @@ export function AppProfileSeplag({
     </div>
   );
 }
+
+

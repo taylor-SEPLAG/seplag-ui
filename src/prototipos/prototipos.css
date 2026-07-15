@@ -36,17 +36,23 @@
 
 .prototype-system-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 420px));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(390px, 480px));
+  gap: 20px;
 }
 
 .prototype-system-link {
   display: block;
+  height: 190px;
   color: inherit;
   text-decoration: none;
 }
 
+.prototype-system-link > .col-12 {
+  height: 100%;
+}
+
 .prototype-system-card {
+  height: 100%;
   border: 1px solid #d9e2ec;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(16, 42, 67, 0.08);
@@ -68,11 +74,19 @@
   outline-offset: 4px;
 }
 
+.prototype-system-card .p-card-body,
+.prototype-system-card .p-card-content,
+.prototype-system-card .grid {
+  box-sizing: border-box;
+  height: 100%;
+}
+
 .prototype-system-card-content {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  height: 100%;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
 }
 
 .prototype-system-icon {
@@ -103,6 +117,7 @@
 }
 
 .prototype-system-info p {
+  max-width: 260px;
   margin: 0;
   color: #52616b;
   line-height: 1.45;
@@ -113,9 +128,9 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-width: 7%;
+min-width: 112px;
   height: 40px;
-  padding: 0 16px;
+  padding: 0 14px;
   border-radius: 4px;
   background: #005494;
   color: #ffffff;
@@ -4390,6 +4405,12 @@
   border-top: 0;
 }
 
+.prototype-folha-referencia-pagination--below-table {
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+}
+
 .prototype-folha-referencia-form-page {
   display: flex;
   flex-direction: column;
@@ -4471,6 +4492,10 @@
   margin-bottom: 16px;
 }
 
+.prototype-folha-referencia-calculo-summary--quatro {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .prototype-folha-referencia-calculo-summary > div {
   min-height: 76px;
   padding: 14px;
@@ -4505,12 +4530,9 @@
   color: #ffffff;
 }
 
-.prototype-folha-referencia-faixa-table {
-  border: 1px solid #d6e4f0;
-}
-
 .prototype-folha-referencia-faixa-table table {
   width: 100%;
+  border: 1px solid #d6e4f0;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -11339,6 +11361,10 @@
 
   .prototype-system-grid {
     grid-template-columns: 1fr;
+  }
+
+  .prototype-system-link {
+    height: 260px;
   }
 
   .prototype-system-card-content {
