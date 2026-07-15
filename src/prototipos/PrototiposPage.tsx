@@ -218,6 +218,7 @@ const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Tipo de Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Efetivo Exercício", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/efetivo-exercicio", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vacância", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -8246,7 +8247,7 @@ export function PrototiposControleVagasQuadroAutorizadoFormPage() {
                         })
                       ) : (
                         <tr>
-                          <td colSpan={7} className="prototype-empty-table-cell">
+                          <td colSpan={9} className="prototype-empty-table-cell">
                             Nenhuma distribuição cadastrada.
                           </td>
                         </tr>
@@ -11772,6 +11773,427 @@ export function PrototiposTipoVinculoTesteFormPage() {
   );
 }
 
+export function PrototiposEfetivoExercicioPage() {
+  const navigate = useNavigate();
+  const { control, reset, watch } = useForm<IngressoEfetivoExercicioFiltroForm>({
+    defaultValues: {
+      termo: "",
+    },
+  });
+  const [situacaoFiltro, setSituacaoFiltro] = useState<IngressoSituacao | "">("");
+  const [acoesIngressoMenuAbertoId, setAcoesIngressoMenuAbertoId] = useState<number | null>(null);
+  const [historicoIngressoSelecionadoId, setHistoricoIngressoSelecionadoId] = useState<number | null>(null);
+  const termoBusca = watch("termo")?.trim().toLowerCase() ?? "";
+  const situacoesEfetivoExercicio: IngressoSituacao[] = [
+    "Aguardando Efetivo Exercicio",
+    "Ingresso Concluído",
+    "Tornado sem efeito",
+  ];
+  const situacoesIngressosSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
+  ) as Partial<Record<string, IngressoSituacao>>;
+  const datasEfetivoExercicioSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-datas-efetivo-exercicio") ?? "{}",
+  ) as Partial<Record<string, string>>;
+  const getSituacaoEfetivoExercicio = (candidatoId: number) =>
+    situacoesIngressosSalvas[String(candidatoId)] ??
+    ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
+    "Aguardando Analise";
+  const parseDataEfetivoExercicio = (data: string) => {
+    if (!data || data === "-") return null;
+    const [dia, mes, ano] = data.split("/").map(Number);
+
+    if (!dia || !mes || !ano) return null;
+
+    return new Date(ano, mes - 1, dia);
+  };
+  const formatarDataEfetivoExercicio = (data: Date) =>
+    data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const getLimiteEfetivoExercicio = (candidato: IngressoCandidatoRow) => {
+    const dataPosse = parseDataEfetivoExercicio(candidato.dataPosse);
+
+    if (!dataPosse) return "-";
+
+    const limite = new Date(dataPosse);
+    limite.setDate(limite.getDate() + 15);
+
+    return formatarDataEfetivoExercicio(limite);
+  };
+  const todosRegistrosEfetivoExercicio = ingressoConcursosProcessosMock
+    .flatMap((concursoProcesso) =>
+      concursoProcesso.candidatos.map((candidato) => {
+        const ingresso = ingressosMock.find((item) => item.id === candidato.id);
+        const situacao = getSituacaoEfetivoExercicio(candidato.id);
+
+        return {
+          id: candidato.id,
+          nome: candidato.nome,
+          cpf: ingresso?.cpf ?? "-",
+          nomeConcurso: concursoProcesso.titulo,
+          edital: concursoProcesso.edital,
+          cargo: candidato.cargo,
+          tipo: concursoProcesso.tipo,
+          orgao: concursoProcesso.orgao,
+          classificacao: candidato.classificacao,
+          tipoVaga: candidato.tipoVaga,
+          limiteEfetivoExercicio: getLimiteEfetivoExercicio(candidato),
+          dataEfetivoExercicio:
+            situacao === "Ingresso Concluído"
+              ? datasEfetivoExercicioSalvas[String(candidato.id)] ?? candidato.dataEfetivoExercicio
+              : "-",
+          situacao,
+        };
+      }),
+    )
+    .filter((registro) => situacoesEfetivoExercicio.includes(registro.situacao));
+  const totalEfetivoExercicioPorSituacao = situacoesEfetivoExercicio.reduce(
+    (acc, situacao) => ({
+      ...acc,
+      [situacao]: todosRegistrosEfetivoExercicio.filter((registro) => registro.situacao === situacao).length,
+    }),
+    {} as Record<IngressoSituacao, number>,
+  );
+  const registrosEfetivoExercicio = todosRegistrosEfetivoExercicio.filter((registro) => {
+      const atendeTermo =
+        !termoBusca ||
+        registro.nome.toLowerCase().includes(termoBusca) ||
+        registro.cpf.replace(/\D/g, "").includes(termoBusca.replace(/\D/g, ""));
+      const atendeSituacao = !situacaoFiltro || registro.situacao === situacaoFiltro;
+
+      return atendeTermo && atendeSituacao;
+    });
+  const limparFiltros = () => {
+    reset({ termo: "" });
+    setSituacaoFiltro("");
+  };
+  const getSituacaoIngressoBadge = (situacao: IngressoSituacao) => {
+    const badgeMap: Partial<Record<IngressoSituacao, { color: string; bg: string; descricao: string }>> = {
+      "Aguardando Efetivo Exercicio": {
+        color: "#be185d",
+        bg: "#fce7f3",
+        descricao: "Ingresso aguardando registro do efetivo exercício.",
+      },
+      "Tornado sem efeito": {
+        color: "#6b7280",
+        bg: "#f3f4f6",
+        descricao: "Ingresso tornado sem efeito por n?o comparecimento ao efetivo exerc?cio.",
+      },
+      "Ingresso Concluído": {
+        color: "#00843d",
+        bg: "#e2f3e8",
+        descricao: "Fluxo finalizado com matrícula e vínculo ativos.",
+      },
+    };
+
+    return badgeMap[situacao] ?? {
+      color: "#344054",
+      bg: "#f2f4f7",
+      descricao: situacao,
+    };
+  };
+  const candidatoHistoricoSelecionado = historicoIngressoSelecionadoId
+    ? ingressoConcursosProcessosMock
+        .flatMap((concursoProcesso) =>
+          concursoProcesso.candidatos.map((candidato) => ({ candidato, concursoProcesso })),
+        )
+        .find(({ candidato }) => candidato.id === historicoIngressoSelecionadoId)
+    : undefined;
+  const ingressoHistoricoSelecionado = historicoIngressoSelecionadoId
+    ? ingressosMock.find((ingresso) => ingresso.id === historicoIngressoSelecionadoId)
+    : undefined;
+  const situacaoHistoricoSelecionado = historicoIngressoSelecionadoId
+    ? getSituacaoEfetivoExercicio(historicoIngressoSelecionadoId)
+    : undefined;
+  const situacaoHistoricoBadge = situacaoHistoricoSelecionado
+    ? getSituacaoIngressoBadge(situacaoHistoricoSelecionado)
+    : undefined;
+  const historicoEtapasSelecionadas = ingressoHistoricoSelecionado && situacaoHistoricoSelecionado
+    ? getHistoricoIngressoMock(ingressoHistoricoSelecionado, situacaoHistoricoSelecionado)
+    : [];
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Efetivo Exercício" cols="12" cardHeaderClassNames="prototype-ingressos-card">
+          <section className="prototype-ingressos-dashboard prototype-efetivo-exercicio-dashboard">
+            <div className="prototype-ingressos-dashboard-grid prototype-efetivo-exercicio-dashboard-grid">
+              {situacoesEfetivoExercicio.map((situacao) => {
+                const badge = getSituacaoIngressoBadge(situacao);
+
+                return (
+                  <div
+                    key={situacao}
+                    className="prototype-ingressos-dashboard-card prototype-efetivo-exercicio-dashboard-card"
+                    style={{
+                      "--dashboard-card-bg": badge.bg,
+                      "--dashboard-card-color": badge.color,
+                    } as React.CSSProperties}
+                    title={badge.descricao}
+                  >
+                    <span style={{ color: badge.color }}>{situacao}</span>
+                    <strong>{totalEfetivoExercicioPorSituacao[situacao]}</strong>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <div className="prototype-category-filters prototype-ingressos-filters grid">
+            <TextFieldSeplag
+              name="termo"
+              control={control}
+              label="Nome ou CPF"
+              cols="12 12 4"
+              getFormErrorMessage={() => null}
+            />
+            <label className="col-12 md:col-6 lg:col-3 prototype-native-field">
+              <span>Situação</span>
+              <select value={situacaoFiltro} onChange={(event) => setSituacaoFiltro(event.target.value as IngressoSituacao | "")}>
+                <option value="">Todas</option>
+                {situacoesEfetivoExercicio.map((situacao) => (
+                  <option key={situacao} value={situacao}>
+                    {situacao}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="prototype-category-clear col-12 md:col-6 lg:col-3">
+              <BotaoLimparFiltroSeplag
+                type="button"
+                label="Limpar"
+                icon="pi pi-refresh"
+                onClick={limparFiltros}
+              />
+            </div>
+          </div>
+
+          <div className="prototype-efetivo-exercicio-table-wrap">
+            <table className="prototype-simple-table prototype-ingresso-candidatos-table prototype-efetivo-exercicio-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Concurso</th>
+                <th>Edital</th>
+                <th>Cargo</th>
+                <th>Limite Efetivo Exercício</th>
+                <th>Data do Efetivo Exercício</th>
+                <th>Situação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {registrosEfetivoExercicio.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="prototype-empty-table-cell">
+                    Nenhum registro encontrado para os filtros informados.
+                  </td>
+                </tr>
+              ) : (
+                registrosEfetivoExercicio.map((registro) => {
+                  const badge = getSituacaoIngressoBadge(registro.situacao);
+                  const podeAtuarEfetivoExercicio = registro.situacao === "Aguardando Efetivo Exercicio";
+                  const parametrosAtuacaoIngresso = `candidato=${registro.id}&tipo=${encodeURIComponent(
+                    registro.tipo,
+                  )}&concurso=${encodeURIComponent(
+                    registro.nomeConcurso,
+                  )}&orgao=${encodeURIComponent(
+                    registro.orgao,
+                  )}&cargo=${encodeURIComponent(
+                    registro.cargo,
+                  )}&classificacao=${encodeURIComponent(
+                    registro.classificacao,
+                  )}&tipoVaga=${encodeURIComponent(registro.tipoVaga)}`;
+
+                  return (
+                    <tr key={registro.id}>
+                      <td>{registro.nome}</td>
+                      <td>{registro.cpf}</td>
+                      <td>{registro.nomeConcurso}</td>
+                      <td>{registro.edital}</td>
+                      <td>{registro.cargo}</td>
+                      <td>{registro.limiteEfetivoExercicio}</td>
+                      <td>{registro.dataEfetivoExercicio}</td>
+                      <td>
+                        <span title={badge.descricao}>
+                          <BadgeSeplag
+                            label={registro.situacao}
+                            color={badge.color}
+                            bg={badge.bg}
+                            border="transparent"
+                            size="md"
+                          />
+                        </span>
+                      </td>
+                      <td>
+                        <div className="prototype-ingresso-candidato-actions">
+                          <div className="prototype-ingresso-actions-dropdown">
+                            <div className="prototype-ingresso-actions-trigger" role="group" aria-label="Ações do efetivo exercício">
+                              <button
+                                type="button"
+                                className="prototype-ingresso-actions-eye"
+                                title="Visualizar"
+                                aria-label="Visualizar"
+                                onClick={() => navigate(`/prototipos/sigep/ingressos/${registro.id}`)}
+                              >
+                                <i className="pi pi-eye" aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                className="prototype-ingresso-actions-arrow"
+                                title="Mais ações"
+                                aria-label="Mais ações"
+                                aria-expanded={acoesIngressoMenuAbertoId === registro.id}
+                                onClick={() =>
+                                  setAcoesIngressoMenuAbertoId((current) =>
+                                    current === registro.id ? null : registro.id,
+                                  )
+                                }
+                              >
+                                <i className="pi pi-chevron-down" aria-hidden="true" />
+                              </button>
+                            </div>
+
+                            {acoesIngressoMenuAbertoId === registro.id ? (
+                              <div className="prototype-ingresso-actions-menu" role="menu">
+                                {podeAtuarEfetivoExercicio ? (
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setAcoesIngressoMenuAbertoId(null);
+                                      navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacaoIngresso}&perfil=setorial`);
+                                    }}
+                                  >
+                                    <i className="pi pi-briefcase" aria-hidden="true" />
+                                    <span>Atuar efetivo exercício</span>
+                                  </button>
+                                ) : null}
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  onClick={() => {
+                                    setAcoesIngressoMenuAbertoId(null);
+                                    setHistoricoIngressoSelecionadoId(registro.id);
+                                  }}
+                                >
+                                  <i className="pi pi-history" aria-hidden="true" />
+                                  <span>Histórico</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  onClick={() => {
+                                    setAcoesIngressoMenuAbertoId(null);
+                                    navigate(`/prototipos/sigep/ingressos/${registro.id}/pasta-funcional`);
+                                  }}
+                                >
+                                  <i className="pi pi-folder" aria-hidden="true" />
+                                  <span>Pasta funcional do servidor</span>
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+            </table>
+          </div>
+
+          <ModalSeplag
+            visible={Boolean(historicoIngressoSelecionadoId)}
+            titulo="Histórico do Ingresso"
+            fechar={() => setHistoricoIngressoSelecionadoId(null)}
+            tamanho="920px"
+            hideFooter
+          >
+            {ingressoHistoricoSelecionado &&
+            candidatoHistoricoSelecionado &&
+            situacaoHistoricoSelecionado &&
+            situacaoHistoricoBadge ? (
+              <div className="col-12 prototype-ingresso-historico-modal">
+                <div className="prototype-ingresso-historico-panel">
+                  <div className="prototype-ingresso-historico-header">
+                    <div>
+                      <strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong>
+                    </div>
+                    <BadgeSeplag
+                      label={situacaoHistoricoSelecionado}
+                      color={situacaoHistoricoBadge.color}
+                      bg={situacaoHistoricoBadge.bg}
+                      border="transparent"
+                      size="md"
+                    />
+                  </div>
+
+                  <div className="prototype-ingresso-historico-context">
+                    <div>
+                      <span>Candidato</span>
+                      <strong>{candidatoHistoricoSelecionado.candidato.nome}</strong>
+                    </div>
+                    <div>
+                      <span>Concurso/Processo</span>
+                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.titulo}</strong>
+                    </div>
+                    <div>
+                      <span>?rg?o</span>
+                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</strong>
+                    </div>
+                    <div>
+                      <span>Cargo</span>
+                      <strong>{candidatoHistoricoSelecionado.candidato.cargo}</strong>
+                    </div>
+                  </div>
+
+                  <ol className="prototype-ingresso-historico-timeline">
+                    {historicoEtapasSelecionadas.map((historico) => (
+                      <li key={historico.id} className="prototype-ingresso-historico-timeline-item">
+                        <span className="prototype-ingresso-historico-timeline-marker" aria-hidden="true" />
+                        <div className="prototype-ingresso-historico-timeline-card">
+                          <div className="prototype-ingresso-historico-timeline-title">
+                            <strong>{historico.etapa}</strong>
+                          </div>
+                          <dl className="prototype-ingresso-historico-timeline-meta">
+                            <div>
+                              <dt>Data/Hora</dt>
+                              <dd>{historico.dataHora}</dd>
+                            </div>
+                            <div>
+                              <dt>Respons?vel</dt>
+                              <dd>{historico.responsavel}</dd>
+                            </div>
+                            <div>
+                              <dt>Resultado</dt>
+                              <dd>{historico.resultado}</dd>
+                            </div>
+                          </dl>
+                          <p>{historico.observacao}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            ) : null}
+          </ModalSeplag>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+interface IngressoEfetivoExercicioFiltroForm {
+  termo: string;
+}
+
 export function PrototiposIngressosPage() {
   const navigate = useNavigate();
   const { control, reset, watch } = useForm<IngressoFiltroForm>({
@@ -11830,18 +12252,18 @@ export function PrototiposIngressosPage() {
         descricao: "Ingresso aguardando análise do provimento.",
       },
 "Em analise": {
-        color: "#334e9f",
-        bg: "#e8edff",
+        color: "#0057d9",
+        bg: "#e7f1ff",
         descricao: "Provimento iniciou a conferência da documentação, requisitos e laudo.",
       },
       "Posse Suspensa": {
-        color: "#9a5a00",
-        bg: "#fff0c7",
+        color: "#6d28d9",
+        bg: "#f1e8ff",
         descricao: "Provimento suspendeu temporariamente a contagem do prazo para análise mais profunda.",
       },
       "Aguardando Efetivo Exercicio": {
-        color: "#6b4b00",
-        bg: "#fff8d8",
+        color: "#be185d",
+        bg: "#fce7f3",
         descricao: "Ingresso aguardando registro do efetivo exercício.",
       },
       "Tornado sem efeito": {
@@ -11866,11 +12288,11 @@ export function PrototiposIngressosPage() {
   const situacoesDashboard: IngressoSituacao[] = [
     "Aguardando Analise",
     "Em analise",
-    "Posse Suspensa",
     "Aguardando Efetivo Exercicio",
-    "Tornado sem efeito",
-    "Posse Negada",
     "Ingresso Concluído",
+    "Posse Suspensa",
+    "Posse Negada",
+    "Tornado sem efeito",
   ];
   const candidatosDashboard = ingressoConcursosProcessosMock.flatMap(
     (concursoProcesso) => concursoProcesso.candidatos,
@@ -12034,6 +12456,10 @@ export function PrototiposIngressosPage() {
                   <div
                     key={situacao}
                     className="prototype-ingressos-dashboard-card"
+                    style={{
+                      "--dashboard-card-bg": badge.bg,
+                      "--dashboard-card-color": badge.color,
+                    } as React.CSSProperties}
                     title={badge.descricao}
                   >
                     <span>{situacao}</span>
@@ -12044,23 +12470,6 @@ export function PrototiposIngressosPage() {
             </div>
           </section>
 
-          <section className="prototype-ingressos-perfil-card" aria-label="Perfil da variação">
-            <label>
-              <span>Perfil da variação</span>
-              <select
-                value={perfilIngressos}
-                onChange={(event) => setPerfilIngressos(event.target.value as IngressoPerfil)}
-              >
-                <option value="PROVIMENTO">Roberto Junior - Provimento</option>
-                <option value="SETORIAL">Patrícia Lima - Setorial</option>
-              </select>
-            </label>
-            <strong>
-              {perfilIngressos === "SETORIAL"
-                ? "Patrícia Lima - Setorial"
-                : "Roberto Junior - Provimento"}
-            </strong>
-          </section>
 
           <div className="prototype-category-filters prototype-ingressos-filters grid">
             <TextFieldSeplag
@@ -12842,11 +13251,15 @@ export function PrototiposNovoIngressoPage() {
   const handleConfirmarNovoIngresso = () => {
     if (isPerfilSetorial && activeTab === "efetivo-exercicio") {
       const dataConclusaoEfetivo = dataEfetivoExercicio || getDataAtualIso();
+      const situacaoConclusaoEfetivo: IngressoSituacao =
+        servidorCompareceu === "Não" ? "Tornado sem efeito" : "Ingresso Concluído";
       setDataEfetivoExercicio(dataConclusaoEfetivo);
-      setSituacaoIngresso("Ingresso Concluído");
-      persistirSituacaoIngressoAtual("Ingresso Concluído");
-      persistirDataEfetivoExercicioAtual(dataConclusaoEfetivo);
-      navigate("/prototipos/sigep/ingressos");
+      setSituacaoIngresso(situacaoConclusaoEfetivo);
+      persistirSituacaoIngressoAtual(situacaoConclusaoEfetivo);
+      if (situacaoConclusaoEfetivo === "Ingresso Concluído") {
+        persistirDataEfetivoExercicioAtual(dataConclusaoEfetivo);
+      }
+      navigate("/prototipos/sigep/ingressos/efetivo-exercicio");
       return;
     }
 
@@ -29162,6 +29575,14 @@ export function PrototiposControleVagasHistoricoPage() {
     </PrototypeSystemPage>
   );
 }
+
+
+
+
+
+
+
+
 
 
 

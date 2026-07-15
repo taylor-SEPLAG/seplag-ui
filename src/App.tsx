@@ -37,6 +37,7 @@ import {
   PrototiposControleVagasConfiguracaoPage,
   PrototiposControleVagasQuadroAutorizadoFormPage,
   PrototiposControleVagasQuadroAutorizadoPage,
+  PrototiposEfetivoExercicioPage,
   PrototiposControleVagasConsultaSaldoPage,
   PrototiposControleVagasVagasNumeradasPage,
   PrototiposControleVagasVagasNumeradasFormPage,
@@ -1383,6 +1384,10 @@ function App() {
       <Route
         path="/prototipos/sigep/ingressos"
         element={<PrototiposIngressosPage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos/efetivo-exercicio"
+        element={<PrototiposEfetivoExercicioPage />}
       />
       <Route
         path="/prototipos/sigep/ingressos/novo"

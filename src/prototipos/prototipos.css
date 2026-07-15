@@ -478,6 +478,36 @@ min-width: 112px;
   margin-right: 0 !important;
 }
 
+
+.prototype-native-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.prototype-native-field span {
+  color: #344054;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.prototype-native-field select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1d2939;
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+}
+
+.prototype-native-field select:focus {
+  border-color: #005494;
+  box-shadow: 0 0 0 2px rgba(0, 84, 148, 0.12);
+  outline: none;
+}
+
 .prototype-page-content--white .prototype-ingressos-card .p-card-body {
   position: relative;
   padding: 1.5rem 1rem 1rem;
@@ -507,6 +537,35 @@ min-width: 112px;
   gap: 7px;
   width: 100%;
   align-items: stretch;
+}
+
+.prototype-efetivo-exercicio-dashboard {
+  margin-top: 4px;
+  margin-bottom: 18px;
+}
+
+.prototype-efetivo-exercicio-dashboard-grid {
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 12px;
+  max-width: none;
+}
+
+.prototype-efetivo-exercicio-dashboard .prototype-ingressos-dashboard-card {
+  min-height: 86px;
+  padding: 14px 16px;
+}
+
+.prototype-efetivo-exercicio-dashboard-card {
+  background: var(--dashboard-card-bg) !important;
+  border-color: var(--dashboard-card-bg) !important;
+  border-left-color: var(--dashboard-card-color) !important;
+}
+
+@media (max-width: 700px) {
+  .prototype-efetivo-exercicio-dashboard-grid {
+    grid-template-columns: 1fr;
+    max-width: none;
+  }
 }
 
 .prototype-ingressos-dashboard-card {
@@ -918,6 +977,47 @@ min-width: 112px;
 .prototype-ingresso-candidatos-table td {
   vertical-align: middle;
 }
+
+.prototype-efetivo-exercicio-table {
+  table-layout: auto;
+  min-width: 1240px;
+}
+
+.prototype-efetivo-exercicio-table th,
+.prototype-efetivo-exercicio-table td {
+  white-space: nowrap;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(3),
+.prototype-efetivo-exercicio-table td:nth-child(3),
+.prototype-efetivo-exercicio-table th:nth-child(5),
+.prototype-efetivo-exercicio-table td:nth-child(5) {
+  min-width: 190px;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(4),
+.prototype-efetivo-exercicio-table td:nth-child(4) {
+  min-width: 150px;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(6),
+.prototype-efetivo-exercicio-table td:nth-child(6),
+.prototype-efetivo-exercicio-table th:nth-child(7),
+.prototype-efetivo-exercicio-table td:nth-child(7) {
+  min-width: 160px;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(8),
+.prototype-efetivo-exercicio-table td:nth-child(8) {
+  min-width: 240px;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(9),
+.prototype-efetivo-exercicio-table td:nth-child(9) {
+  min-width: 140px;
+  text-align: left;
+}
+
 .prototype-ingresso-candidatos-table th:nth-child(1),
 .prototype-ingresso-candidatos-table td:nth-child(1) {
   width: 7%;
@@ -12656,18 +12756,8 @@ min-width: 112px;
   }
 }
 
-.prototype-page-content--white .prototype-ingressos-card h5,
-.prototype-page-content--white .prototype-ingressos-card .p-card-title {
-  padding-right: 320px;
-}
-
-.prototype-page-content--white .prototype-ingressos-card h5 + hr,
-.prototype-page-content--white .prototype-ingressos-card .p-card-title + hr {
-  margin-right: 320px;
-}
-
 .prototype-page-content--white .prototype-ingressos-card .prototype-ingressos-dashboard {
-  margin-top: 46px;
+  margin-top: 16px;
 }
 
 @media (max-width: 1100px) {
@@ -12898,6 +12988,170 @@ min-width: 112px;
   }
 }
 
+/* Efetivo Exerc?cio table layout override */
+.prototype-efetivo-exercicio-table {
+  table-layout: fixed;
+  min-width: 0;
+  width: 100%;
+}
 
+.prototype-efetivo-exercicio-table th,
+.prototype-efetivo-exercicio-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
+.prototype-efetivo-exercicio-table th:nth-child(1),
+.prototype-efetivo-exercicio-table td:nth-child(1) {
+  width: 9% !important;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(2),
+.prototype-efetivo-exercicio-table td:nth-child(2) {
+  width: 10% !important;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(3),
+.prototype-efetivo-exercicio-table td:nth-child(3) {
+  width: 15% !important;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(4),
+.prototype-efetivo-exercicio-table td:nth-child(4) {
+  width: 10% !important;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(5),
+.prototype-efetivo-exercicio-table td:nth-child(5) {
+  width: 13% !important;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(6),
+.prototype-efetivo-exercicio-table td:nth-child(6),
+.prototype-efetivo-exercicio-table th:nth-child(7),
+.prototype-efetivo-exercicio-table td:nth-child(7) {
+  width: 13% !important;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(8),
+.prototype-efetivo-exercicio-table td:nth-child(8) {
+  width: 12% !important;
+}
+
+.prototype-efetivo-exercicio-table th:nth-child(9),
+.prototype-efetivo-exercicio-table td:nth-child(9) {
+  width: 92px !important;
+  min-width: 92px;
+  text-align: left;
+}
+
+/* efetivo-exercicio-table-final-fix */
+.prototype-efetivo-exercicio-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 4px;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table {
+  table-layout: fixed !important;
+  width: 100% !important;
+  min-width: 1580px !important;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th,
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th:nth-child(1),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td:nth-child(1) {
+  width: 170px !important;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th:nth-child(2),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td:nth-child(2) {
+  width: 150px !important;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th:nth-child(3),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td:nth-child(3) {
+  width: 200px !important;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th:nth-child(4),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td:nth-child(4) {
+  width: 150px !important;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th:nth-child(5),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td:nth-child(5) {
+  width: 240px !important;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th:nth-child(6),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td:nth-child(6),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th:nth-child(7),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td:nth-child(7) {
+  width: 180px !important;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th:nth-child(8),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td:nth-child(8) {
+  width: 240px !important;
+  overflow: visible !important;
+  text-overflow: clip;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th:nth-child(9),
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table td:nth-child(9) {
+  width: 120px !important;
+  min-width: 120px !important;
+  overflow: visible !important;
+  text-align: left;
+}
+
+.prototype-efetivo-exercicio-table-wrap .prototype-ingresso-actions-dropdown,
+.prototype-efetivo-exercicio-table-wrap .prototype-ingresso-candidato-actions {
+  overflow: visible !important;
+}
+
+/* efetivo-exercicio-table-header-wrap-fix */
+.prototype-efetivo-exercicio-table-wrap .prototype-efetivo-exercicio-table th {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  line-height: 1.2;
+  vertical-align: middle;
+}
+
+/* efetivo-exercicio-dashboard-position-final-fix */
+.prototype-page-content--white .prototype-ingressos-card .prototype-efetivo-exercicio-dashboard {
+  margin-top: 4px !important;
+  margin-bottom: 18px !important;
+}
+
+/* efetivo-exercicio-dashboard-color-final-fix */
+.prototype-page-content--white .prototype-ingressos-card .prototype-efetivo-exercicio-dashboard .prototype-efetivo-exercicio-dashboard-card {
+  background: var(--dashboard-card-bg) !important;
+  border-color: var(--dashboard-card-bg) !important;
+  border-left-color: var(--dashboard-card-color) !important;
+}
+
+.prototype-page-content--white .prototype-ingressos-card .prototype-efetivo-exercicio-dashboard .prototype-efetivo-exercicio-dashboard-card > span {
+  color: var(--dashboard-card-color) !important;
+}
+/* ingresso-dashboard-color-sync */
+.prototype-page-content--white .prototype-ingressos-card .prototype-ingressos-dashboard:not(.prototype-efetivo-exercicio-dashboard) .prototype-ingressos-dashboard-card {
+  background: var(--dashboard-card-bg) !important;
+  border-color: var(--dashboard-card-bg) !important;
+  border-left-color: var(--dashboard-card-color) !important;
+}
+
+.prototype-page-content--white .prototype-ingressos-card .prototype-ingressos-dashboard:not(.prototype-efetivo-exercicio-dashboard) .prototype-ingressos-dashboard-card > span {
+  color: var(--dashboard-card-color) !important;
+}
 
