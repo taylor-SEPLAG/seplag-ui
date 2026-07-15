@@ -11826,6 +11826,9 @@ export function PrototiposIngressosPage() {
   const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const [historicoIngressoSelecionadoId, setHistoricoIngressoSelecionadoId] = useState<number | null>(null);
   const [acoesIngressoMenuAbertoId, setAcoesIngressoMenuAbertoId] = useState<number | null>(null);
+  const [filtrosAccordionIngresso, setFiltrosAccordionIngresso] = useState<
+    Record<string, { nome: string; situacao: IngressoSituacao | "" }>
+  >({});
   const filtros = watch();
   const concursoProcessoSeletivoBusca = filtros.concursoProcessoSeletivo?.trim().toLowerCase();
 
@@ -12027,6 +12030,36 @@ export function PrototiposIngressosPage() {
     reset({
       concursoProcessoSeletivo: "",
     });
+  const getFiltroAccordionIngresso = (accordionId: string) =>
+    filtrosAccordionIngresso[accordionId] ?? { nome: "", situacao: "" };
+  const atualizarFiltroAccordionIngresso = (
+    accordionId: string,
+    campo: "nome" | "situacao",
+    valor: string,
+  ) =>
+    setFiltrosAccordionIngresso((current) => ({
+      ...current,
+      [accordionId]: {
+        ...getFiltroAccordionIngresso(accordionId),
+        [campo]: valor,
+      } as { nome: string; situacao: IngressoSituacao | "" },
+    }));
+  const limparFiltroAccordionIngresso = (accordionId: string) =>
+    setFiltrosAccordionIngresso((current) => ({
+      ...current,
+      [accordionId]: { nome: "", situacao: "" },
+    }));
+  const getCandidatosFiltradosAccordion = (accordionId: string, candidatos: IngressoCandidatoRow[]) => {
+    const filtro = getFiltroAccordionIngresso(accordionId);
+    const nomeBusca = filtro.nome.trim().toLowerCase();
+
+    return candidatos.filter((candidato) => {
+      const atendeNome = !nomeBusca || candidato.nome.toLowerCase().includes(nomeBusca);
+      const atendeSituacao = !filtro.situacao || getSituacaoCandidatoIngresso(candidato.id) === filtro.situacao;
+
+      return atendeNome && atendeSituacao;
+    });
+  };
 
   return (
     <PrototypeSystemPage
@@ -12128,8 +12161,10 @@ export function PrototiposIngressosPage() {
                 </summary>
 
                 <div className="prototype-ingresso-accordion-content">
+
                   <div className="prototype-ingresso-vaga-accordion-list">
                     {agruparCandidatosIngressoPorVaga(concursoProcesso.candidatos).map((grupo, grupoIndex) => {
+                      const candidatosFiltradosGrupo = getCandidatosFiltradosAccordion(grupo.id, grupo.candidatos);
                       const classificacaoBadge = getTipoVagaIngressoBadge(grupo.classificacao);
 
                       return (
@@ -12153,7 +12188,7 @@ export function PrototiposIngressosPage() {
                                 size="md"
                               />
                               <BadgeSeplag
-                                label={`${grupo.candidatos.length} nomeado(s)`}
+                                label={`${candidatosFiltradosGrupo.length} nomeado(s)`}
                                 color="#005494"
                                 bg="#e6f0f8"
                                 border="transparent"
@@ -12164,6 +12199,43 @@ export function PrototiposIngressosPage() {
                           </summary>
 
                           <div className="prototype-ingresso-vaga-accordion-content">
+                            <div className="prototype-ingresso-accordion-filters prototype-ingresso-vaga-filters">
+                              <label>
+                                <span>Nome</span>
+                                <input
+                                  type="text"
+                                  value={getFiltroAccordionIngresso(grupo.id).nome}
+                                  onChange={(event) =>
+                                    atualizarFiltroAccordionIngresso(grupo.id, "nome", event.target.value)
+                                  }
+                                  placeholder="Buscar por nome"
+                                />
+                              </label>
+                              <label>
+                                <span>Situação</span>
+                                <select
+                                  value={getFiltroAccordionIngresso(grupo.id).situacao}
+                                  onChange={(event) =>
+                                    atualizarFiltroAccordionIngresso(grupo.id, "situacao", event.target.value)
+                                  }
+                                >
+                                  <option value="">Todas</option>
+                                  {situacoesDashboard.map((situacao) => (
+                                    <option key={situacao} value={situacao}>
+                                      {situacao}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <button
+                                type="button"
+                                className="prototype-ingresso-accordion-clear"
+                                onClick={() => limparFiltroAccordionIngresso(grupo.id)}
+                              >
+                                <i className="pi pi-refresh" aria-hidden="true" />
+                                Limpar
+                              </button>
+                            </div>
                             <table className="prototype-simple-table prototype-ingresso-candidatos-table">
                               <thead>
                                 <tr>
@@ -12181,7 +12253,14 @@ export function PrototiposIngressosPage() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {grupo.candidatos.map((candidato) => {
+                                {candidatosFiltradosGrupo.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={11} className="prototype-empty-table-cell">
+                                      Nenhum registro encontrado para os filtros informados.
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  candidatosFiltradosGrupo.map((candidato) => {
                                   const tipoVagaBadge = getTipoVagaIngressoBadge(candidato.tipoVaga);
                                   const situacaoCandidato = getSituacaoCandidatoIngresso(candidato.id);
                                   const podeIngressar = podeIngressarCandidato(situacaoCandidato);
@@ -12324,7 +12403,8 @@ export function PrototiposIngressosPage() {
                                       </td>
                                     </tr>
                                   );
-                                })}
+                                  })
+                                )}
                               </tbody>
                             </table>
                           </div>
@@ -29126,3 +29206,8 @@ export function PrototiposControleVagasHistoricoPage() {
     </PrototypeSystemPage>
   );
 }
+
+
+
+
+

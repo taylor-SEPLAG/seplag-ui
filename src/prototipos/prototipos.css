@@ -781,6 +781,69 @@ min-width: 112px;
   overflow-x: visible;
 }
 
+
+.prototype-ingresso-accordion-filters {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, 280px) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid #dbe5ef;
+  border-radius: 4px;
+  background: #f8fafc;
+}
+
+.prototype-ingresso-accordion-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #1f2937;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.prototype-ingresso-accordion-filters input,
+.prototype-ingresso-accordion-filters select {
+  height: 38px;
+  border: 1px solid #cbd7e3;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #0f2f4a;
+  padding: 0 10px;
+  font-size: 0.9rem;
+}
+
+.prototype-ingresso-accordion-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 38px;
+  min-width: 112px;
+  border: 0;
+  border-radius: 4px;
+  background: #3b82f6;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.prototype-ingresso-accordion-clear:hover,
+.prototype-ingresso-accordion-clear:focus-visible {
+  background: #2563eb;
+  outline: none;
+}
+
+@media (max-width: 900px) {
+  .prototype-ingresso-accordion-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .prototype-ingresso-accordion-clear {
+    width: 100%;
+  }
+}
 .prototype-ingresso-vaga-accordion-list {
   display: flex;
   flex-direction: column;
@@ -1145,9 +1208,9 @@ min-width: 112px;
 .prototype-novo-ingresso-stepper {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   align-items: start;
-  gap: 0;
+  gap: 8px;
   width: 100%;
   padding: 0 10px 8px;
 }
@@ -1210,13 +1273,14 @@ min-width: 112px;
 .prototype-novo-ingresso-step-label {
   display: block;
   width: 100%;
-  max-width: 9%;
+  min-width: 0;
   color: #475569;
   font-size: 0.82rem;
-  line-height: 1.15;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .prototype-novo-ingresso-step.is-active .prototype-novo-ingresso-step-label,
@@ -12833,3 +12897,7 @@ min-width: 112px;
     white-space: normal;
   }
 }
+
+
+
+
