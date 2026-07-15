@@ -12756,18 +12756,8 @@ min-width: 112px;
   }
 }
 
-.prototype-page-content--white .prototype-ingressos-card h5,
-.prototype-page-content--white .prototype-ingressos-card .p-card-title {
-  padding-right: 320px;
-}
-
-.prototype-page-content--white .prototype-ingressos-card h5 + hr,
-.prototype-page-content--white .prototype-ingressos-card .p-card-title + hr {
-  margin-right: 320px;
-}
-
 .prototype-page-content--white .prototype-ingressos-card .prototype-ingressos-dashboard {
-  margin-top: 46px;
+  margin-top: 16px;
 }
 
 @media (max-width: 1100px) {
@@ -13164,3 +13154,4 @@ min-width: 112px;
 .prototype-page-content--white .prototype-ingressos-card .prototype-ingressos-dashboard:not(.prototype-efetivo-exercicio-dashboard) .prototype-ingressos-dashboard-card > span {
   color: var(--dashboard-card-color) !important;
 }
+

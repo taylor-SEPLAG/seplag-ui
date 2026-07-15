@@ -12514,23 +12514,6 @@ export function PrototiposIngressosPage() {
             </div>
           </section>
 
-          <section className="prototype-ingressos-perfil-card" aria-label="Perfil da variação">
-            <label>
-              <span>Perfil da variação</span>
-              <select
-                value={perfilIngressos}
-                onChange={(event) => setPerfilIngressos(event.target.value as IngressoPerfil)}
-              >
-                <option value="PROVIMENTO">Roberto Junior - Provimento</option>
-                <option value="SETORIAL">Patrícia Lima - Setorial</option>
-              </select>
-            </label>
-            <strong>
-              {perfilIngressos === "SETORIAL"
-                ? "Patrícia Lima - Setorial"
-                : "Roberto Junior - Provimento"}
-            </strong>
-          </section>
 
           <div className="prototype-category-filters prototype-ingressos-filters grid">
             <TextFieldSeplag
@@ -29636,6 +29619,7 @@ export function PrototiposControleVagasHistoricoPage() {
     </PrototypeSystemPage>
   );
 }
+
 
 
 
