@@ -265,6 +265,7 @@ const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Tipo de Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Efetivo Exercício", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/efetivo-exercicio", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vacância", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -8857,6 +8858,427 @@ export function PrototiposTipoVinculoTesteFormPage() {
   );
 }
 
+export function PrototiposEfetivoExercicioPage() {
+  const navigate = useNavigate();
+  const { control, reset, watch } = useForm<IngressoEfetivoExercicioFiltroForm>({
+    defaultValues: {
+      termo: "",
+    },
+  });
+  const [situacaoFiltro, setSituacaoFiltro] = useState<IngressoSituacao | "">("");
+  const [acoesIngressoMenuAbertoId, setAcoesIngressoMenuAbertoId] = useState<number | null>(null);
+  const [historicoIngressoSelecionadoId, setHistoricoIngressoSelecionadoId] = useState<number | null>(null);
+  const termoBusca = watch("termo")?.trim().toLowerCase() ?? "";
+  const situacoesEfetivoExercicio: IngressoSituacao[] = [
+    "Aguardando Efetivo Exercicio",
+    "Ingresso Concluído",
+    "Tornado sem efeito",
+  ];
+  const situacoesIngressosSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
+  ) as Partial<Record<string, IngressoSituacao>>;
+  const datasEfetivoExercicioSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-datas-efetivo-exercicio") ?? "{}",
+  ) as Partial<Record<string, string>>;
+  const getSituacaoEfetivoExercicio = (candidatoId: number) =>
+    situacoesIngressosSalvas[String(candidatoId)] ??
+    ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
+    "Aguardando Analise";
+  const parseDataEfetivoExercicio = (data: string) => {
+    if (!data || data === "-") return null;
+    const [dia, mes, ano] = data.split("/").map(Number);
+
+    if (!dia || !mes || !ano) return null;
+
+    return new Date(ano, mes - 1, dia);
+  };
+  const formatarDataEfetivoExercicio = (data: Date) =>
+    data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const getLimiteEfetivoExercicio = (candidato: IngressoCandidatoRow) => {
+    const dataPosse = parseDataEfetivoExercicio(candidato.dataPosse);
+
+    if (!dataPosse) return "-";
+
+    const limite = new Date(dataPosse);
+    limite.setDate(limite.getDate() + 15);
+
+    return formatarDataEfetivoExercicio(limite);
+  };
+  const todosRegistrosEfetivoExercicio = ingressoConcursosProcessosMock
+    .flatMap((concursoProcesso) =>
+      concursoProcesso.candidatos.map((candidato) => {
+        const ingresso = ingressosMock.find((item) => item.id === candidato.id);
+        const situacao = getSituacaoEfetivoExercicio(candidato.id);
+
+        return {
+          id: candidato.id,
+          nome: candidato.nome,
+          cpf: ingresso?.cpf ?? "-",
+          nomeConcurso: concursoProcesso.titulo,
+          edital: concursoProcesso.edital,
+          cargo: candidato.cargo,
+          tipo: concursoProcesso.tipo,
+          orgao: concursoProcesso.orgao,
+          classificacao: candidato.classificacao,
+          tipoVaga: candidato.tipoVaga,
+          limiteEfetivoExercicio: getLimiteEfetivoExercicio(candidato),
+          dataEfetivoExercicio:
+            situacao === "Ingresso Concluído"
+              ? datasEfetivoExercicioSalvas[String(candidato.id)] ?? candidato.dataEfetivoExercicio
+              : "-",
+          situacao,
+        };
+      }),
+    )
+    .filter((registro) => situacoesEfetivoExercicio.includes(registro.situacao));
+  const totalEfetivoExercicioPorSituacao = situacoesEfetivoExercicio.reduce(
+    (acc, situacao) => ({
+      ...acc,
+      [situacao]: todosRegistrosEfetivoExercicio.filter((registro) => registro.situacao === situacao).length,
+    }),
+    {} as Record<IngressoSituacao, number>,
+  );
+  const registrosEfetivoExercicio = todosRegistrosEfetivoExercicio.filter((registro) => {
+      const atendeTermo =
+        !termoBusca ||
+        registro.nome.toLowerCase().includes(termoBusca) ||
+        registro.cpf.replace(/\D/g, "").includes(termoBusca.replace(/\D/g, ""));
+      const atendeSituacao = !situacaoFiltro || registro.situacao === situacaoFiltro;
+
+      return atendeTermo && atendeSituacao;
+    });
+  const limparFiltros = () => {
+    reset({ termo: "" });
+    setSituacaoFiltro("");
+  };
+  const getSituacaoIngressoBadge = (situacao: IngressoSituacao) => {
+    const badgeMap: Partial<Record<IngressoSituacao, { color: string; bg: string; descricao: string }>> = {
+      "Aguardando Efetivo Exercicio": {
+        color: "#be185d",
+        bg: "#fce7f3",
+        descricao: "Ingresso aguardando registro do efetivo exercício.",
+      },
+      "Tornado sem efeito": {
+        color: "#6b7280",
+        bg: "#f3f4f6",
+        descricao: "Ingresso tornado sem efeito por n?o comparecimento ao efetivo exerc?cio.",
+      },
+      "Ingresso Concluído": {
+        color: "#00843d",
+        bg: "#e2f3e8",
+        descricao: "Fluxo finalizado com matrícula e vínculo ativos.",
+      },
+    };
+
+    return badgeMap[situacao] ?? {
+      color: "#344054",
+      bg: "#f2f4f7",
+      descricao: situacao,
+    };
+  };
+  const candidatoHistoricoSelecionado = historicoIngressoSelecionadoId
+    ? ingressoConcursosProcessosMock
+        .flatMap((concursoProcesso) =>
+          concursoProcesso.candidatos.map((candidato) => ({ candidato, concursoProcesso })),
+        )
+        .find(({ candidato }) => candidato.id === historicoIngressoSelecionadoId)
+    : undefined;
+  const ingressoHistoricoSelecionado = historicoIngressoSelecionadoId
+    ? ingressosMock.find((ingresso) => ingresso.id === historicoIngressoSelecionadoId)
+    : undefined;
+  const situacaoHistoricoSelecionado = historicoIngressoSelecionadoId
+    ? getSituacaoEfetivoExercicio(historicoIngressoSelecionadoId)
+    : undefined;
+  const situacaoHistoricoBadge = situacaoHistoricoSelecionado
+    ? getSituacaoIngressoBadge(situacaoHistoricoSelecionado)
+    : undefined;
+  const historicoEtapasSelecionadas = ingressoHistoricoSelecionado && situacaoHistoricoSelecionado
+    ? getHistoricoIngressoMock(ingressoHistoricoSelecionado, situacaoHistoricoSelecionado)
+    : [];
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Efetivo Exercício" cols="12" cardHeaderClassNames="prototype-ingressos-card">
+          <section className="prototype-ingressos-dashboard prototype-efetivo-exercicio-dashboard">
+            <div className="prototype-ingressos-dashboard-grid prototype-efetivo-exercicio-dashboard-grid">
+              {situacoesEfetivoExercicio.map((situacao) => {
+                const badge = getSituacaoIngressoBadge(situacao);
+
+                return (
+                  <div
+                    key={situacao}
+                    className="prototype-ingressos-dashboard-card prototype-efetivo-exercicio-dashboard-card"
+                    style={{
+                      "--dashboard-card-bg": badge.bg,
+                      "--dashboard-card-color": badge.color,
+                    } as React.CSSProperties}
+                    title={badge.descricao}
+                  >
+                    <span style={{ color: badge.color }}>{situacao}</span>
+                    <strong>{totalEfetivoExercicioPorSituacao[situacao]}</strong>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <div className="prototype-category-filters prototype-ingressos-filters grid">
+            <TextFieldSeplag
+              name="termo"
+              control={control}
+              label="Nome ou CPF"
+              cols="12 12 4"
+              getFormErrorMessage={() => null}
+            />
+            <label className="col-12 md:col-6 lg:col-3 prototype-native-field">
+              <span>Situação</span>
+              <select value={situacaoFiltro} onChange={(event) => setSituacaoFiltro(event.target.value as IngressoSituacao | "")}>
+                <option value="">Todas</option>
+                {situacoesEfetivoExercicio.map((situacao) => (
+                  <option key={situacao} value={situacao}>
+                    {situacao}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="prototype-category-clear col-12 md:col-6 lg:col-3">
+              <BotaoLimparFiltroSeplag
+                type="button"
+                label="Limpar"
+                icon="pi pi-refresh"
+                onClick={limparFiltros}
+              />
+            </div>
+          </div>
+
+          <div className="prototype-efetivo-exercicio-table-wrap">
+            <table className="prototype-simple-table prototype-ingresso-candidatos-table prototype-efetivo-exercicio-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Concurso</th>
+                <th>Edital</th>
+                <th>Cargo</th>
+                <th>Limite Efetivo Exercício</th>
+                <th>Data do Efetivo Exercício</th>
+                <th>Situação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {registrosEfetivoExercicio.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="prototype-empty-table-cell">
+                    Nenhum registro encontrado para os filtros informados.
+                  </td>
+                </tr>
+              ) : (
+                registrosEfetivoExercicio.map((registro) => {
+                  const badge = getSituacaoIngressoBadge(registro.situacao);
+                  const podeAtuarEfetivoExercicio = registro.situacao === "Aguardando Efetivo Exercicio";
+                  const parametrosAtuacaoIngresso = `candidato=${registro.id}&tipo=${encodeURIComponent(
+                    registro.tipo,
+                  )}&concurso=${encodeURIComponent(
+                    registro.nomeConcurso,
+                  )}&orgao=${encodeURIComponent(
+                    registro.orgao,
+                  )}&cargo=${encodeURIComponent(
+                    registro.cargo,
+                  )}&classificacao=${encodeURIComponent(
+                    registro.classificacao,
+                  )}&tipoVaga=${encodeURIComponent(registro.tipoVaga)}`;
+
+                  return (
+                    <tr key={registro.id}>
+                      <td>{registro.nome}</td>
+                      <td>{registro.cpf}</td>
+                      <td>{registro.nomeConcurso}</td>
+                      <td>{registro.edital}</td>
+                      <td>{registro.cargo}</td>
+                      <td>{registro.limiteEfetivoExercicio}</td>
+                      <td>{registro.dataEfetivoExercicio}</td>
+                      <td>
+                        <span title={badge.descricao}>
+                          <BadgeSeplag
+                            label={registro.situacao}
+                            color={badge.color}
+                            bg={badge.bg}
+                            border="transparent"
+                            size="md"
+                          />
+                        </span>
+                      </td>
+                      <td>
+                        <div className="prototype-ingresso-candidato-actions">
+                          <div className="prototype-ingresso-actions-dropdown">
+                            <div className="prototype-ingresso-actions-trigger" role="group" aria-label="Ações do efetivo exercício">
+                              <button
+                                type="button"
+                                className="prototype-ingresso-actions-eye"
+                                title="Visualizar"
+                                aria-label="Visualizar"
+                                onClick={() => navigate(`/prototipos/sigep/ingressos/${registro.id}`)}
+                              >
+                                <i className="pi pi-eye" aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                className="prototype-ingresso-actions-arrow"
+                                title="Mais ações"
+                                aria-label="Mais ações"
+                                aria-expanded={acoesIngressoMenuAbertoId === registro.id}
+                                onClick={() =>
+                                  setAcoesIngressoMenuAbertoId((current) =>
+                                    current === registro.id ? null : registro.id,
+                                  )
+                                }
+                              >
+                                <i className="pi pi-chevron-down" aria-hidden="true" />
+                              </button>
+                            </div>
+
+                            {acoesIngressoMenuAbertoId === registro.id ? (
+                              <div className="prototype-ingresso-actions-menu" role="menu">
+                                {podeAtuarEfetivoExercicio ? (
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setAcoesIngressoMenuAbertoId(null);
+                                      navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacaoIngresso}&perfil=setorial`);
+                                    }}
+                                  >
+                                    <i className="pi pi-briefcase" aria-hidden="true" />
+                                    <span>Atuar efetivo exercício</span>
+                                  </button>
+                                ) : null}
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  onClick={() => {
+                                    setAcoesIngressoMenuAbertoId(null);
+                                    setHistoricoIngressoSelecionadoId(registro.id);
+                                  }}
+                                >
+                                  <i className="pi pi-history" aria-hidden="true" />
+                                  <span>Histórico</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  onClick={() => {
+                                    setAcoesIngressoMenuAbertoId(null);
+                                    navigate(`/prototipos/sigep/ingressos/${registro.id}/pasta-funcional`);
+                                  }}
+                                >
+                                  <i className="pi pi-folder" aria-hidden="true" />
+                                  <span>Pasta funcional do servidor</span>
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+            </table>
+          </div>
+
+          <ModalSeplag
+            visible={Boolean(historicoIngressoSelecionadoId)}
+            titulo="Histórico do Ingresso"
+            fechar={() => setHistoricoIngressoSelecionadoId(null)}
+            tamanho="920px"
+            hideFooter
+          >
+            {ingressoHistoricoSelecionado &&
+            candidatoHistoricoSelecionado &&
+            situacaoHistoricoSelecionado &&
+            situacaoHistoricoBadge ? (
+              <div className="col-12 prototype-ingresso-historico-modal">
+                <div className="prototype-ingresso-historico-panel">
+                  <div className="prototype-ingresso-historico-header">
+                    <div>
+                      <strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong>
+                    </div>
+                    <BadgeSeplag
+                      label={situacaoHistoricoSelecionado}
+                      color={situacaoHistoricoBadge.color}
+                      bg={situacaoHistoricoBadge.bg}
+                      border="transparent"
+                      size="md"
+                    />
+                  </div>
+
+                  <div className="prototype-ingresso-historico-context">
+                    <div>
+                      <span>Candidato</span>
+                      <strong>{candidatoHistoricoSelecionado.candidato.nome}</strong>
+                    </div>
+                    <div>
+                      <span>Concurso/Processo</span>
+                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.titulo}</strong>
+                    </div>
+                    <div>
+                      <span>?rg?o</span>
+                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</strong>
+                    </div>
+                    <div>
+                      <span>Cargo</span>
+                      <strong>{candidatoHistoricoSelecionado.candidato.cargo}</strong>
+                    </div>
+                  </div>
+
+                  <ol className="prototype-ingresso-historico-timeline">
+                    {historicoEtapasSelecionadas.map((historico) => (
+                      <li key={historico.id} className="prototype-ingresso-historico-timeline-item">
+                        <span className="prototype-ingresso-historico-timeline-marker" aria-hidden="true" />
+                        <div className="prototype-ingresso-historico-timeline-card">
+                          <div className="prototype-ingresso-historico-timeline-title">
+                            <strong>{historico.etapa}</strong>
+                          </div>
+                          <dl className="prototype-ingresso-historico-timeline-meta">
+                            <div>
+                              <dt>Data/Hora</dt>
+                              <dd>{historico.dataHora}</dd>
+                            </div>
+                            <div>
+                              <dt>Respons?vel</dt>
+                              <dd>{historico.responsavel}</dd>
+                            </div>
+                            <div>
+                              <dt>Resultado</dt>
+                              <dd>{historico.resultado}</dd>
+                            </div>
+                          </dl>
+                          <p>{historico.observacao}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            ) : null}
+          </ModalSeplag>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+interface IngressoEfetivoExercicioFiltroForm {
+  termo: string;
+}
+
 export function PrototiposIngressosPage() {
   const navigate = useNavigate();
   const { control, reset, watch } = useForm<IngressoFiltroForm>({
@@ -8867,6 +9289,9 @@ export function PrototiposIngressosPage() {
   const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const [historicoIngressoSelecionadoId, setHistoricoIngressoSelecionadoId] = useState<number | null>(null);
   const [acoesIngressoMenuAbertoId, setAcoesIngressoMenuAbertoId] = useState<number | null>(null);
+  const [filtrosAccordionIngresso, setFiltrosAccordionIngresso] = useState<
+    Record<string, { nome: string; situacao: IngressoSituacao | "" }>
+  >({});
   const filtros = watch();
   const concursoProcessoSeletivoBusca = filtros.concursoProcessoSeletivo?.trim().toLowerCase();
 
@@ -8912,18 +9337,18 @@ export function PrototiposIngressosPage() {
         descricao: "Ingresso aguardando análise do provimento.",
       },
 "Em analise": {
-        color: "#334e9f",
-        bg: "#e8edff",
+        color: "#0057d9",
+        bg: "#e7f1ff",
         descricao: "Provimento iniciou a conferência da documentação, requisitos e laudo.",
       },
       "Posse Suspensa": {
-        color: "#9a5a00",
-        bg: "#fff0c7",
+        color: "#6d28d9",
+        bg: "#f1e8ff",
         descricao: "Provimento suspendeu temporariamente a contagem do prazo para análise mais profunda.",
       },
       "Aguardando Efetivo Exercicio": {
-        color: "#6b4b00",
-        bg: "#fff8d8",
+        color: "#be185d",
+        bg: "#fce7f3",
         descricao: "Ingresso aguardando registro do efetivo exercício.",
       },
       "Tornado sem efeito": {
@@ -8948,11 +9373,11 @@ export function PrototiposIngressosPage() {
   const situacoesDashboard: IngressoSituacao[] = [
     "Aguardando Analise",
     "Em analise",
-    "Posse Suspensa",
     "Aguardando Efetivo Exercicio",
-    "Tornado sem efeito",
-    "Posse Negada",
     "Ingresso Concluído",
+    "Posse Suspensa",
+    "Posse Negada",
+    "Tornado sem efeito",
   ];
   const candidatosDashboard = ingressoConcursosProcessosMock.flatMap(
     (concursoProcesso) => concursoProcesso.candidatos,
@@ -9068,6 +9493,36 @@ export function PrototiposIngressosPage() {
     reset({
       concursoProcessoSeletivo: "",
     });
+  const getFiltroAccordionIngresso = (accordionId: string) =>
+    filtrosAccordionIngresso[accordionId] ?? { nome: "", situacao: "" };
+  const atualizarFiltroAccordionIngresso = (
+    accordionId: string,
+    campo: "nome" | "situacao",
+    valor: string,
+  ) =>
+    setFiltrosAccordionIngresso((current) => ({
+      ...current,
+      [accordionId]: {
+        ...getFiltroAccordionIngresso(accordionId),
+        [campo]: valor,
+      } as { nome: string; situacao: IngressoSituacao | "" },
+    }));
+  const limparFiltroAccordionIngresso = (accordionId: string) =>
+    setFiltrosAccordionIngresso((current) => ({
+      ...current,
+      [accordionId]: { nome: "", situacao: "" },
+    }));
+  const getCandidatosFiltradosAccordion = (accordionId: string, candidatos: IngressoCandidatoRow[]) => {
+    const filtro = getFiltroAccordionIngresso(accordionId);
+    const nomeBusca = filtro.nome.trim().toLowerCase();
+
+    return candidatos.filter((candidato) => {
+      const atendeNome = !nomeBusca || candidato.nome.toLowerCase().includes(nomeBusca);
+      const atendeSituacao = !filtro.situacao || getSituacaoCandidatoIngresso(candidato.id) === filtro.situacao;
+
+      return atendeNome && atendeSituacao;
+    });
+  };
 
   return (
     <PrototypeSystemPage
@@ -9086,6 +9541,10 @@ export function PrototiposIngressosPage() {
                   <div
                     key={situacao}
                     className="prototype-ingressos-dashboard-card"
+                    style={{
+                      "--dashboard-card-bg": badge.bg,
+                      "--dashboard-card-color": badge.color,
+                    } as React.CSSProperties}
                     title={badge.descricao}
                   >
                     <span>{situacao}</span>
@@ -9096,23 +9555,6 @@ export function PrototiposIngressosPage() {
             </div>
           </section>
 
-          <section className="prototype-ingressos-perfil-card" aria-label="Perfil da variação">
-            <label>
-              <span>Perfil da variação</span>
-              <select
-                value={perfilIngressos}
-                onChange={(event) => setPerfilIngressos(event.target.value as IngressoPerfil)}
-              >
-                <option value="PROVIMENTO">Roberto Junior - Provimento</option>
-                <option value="SETORIAL">Patrícia Lima - Setorial</option>
-              </select>
-            </label>
-            <strong>
-              {perfilIngressos === "SETORIAL"
-                ? "Patrícia Lima - Setorial"
-                : "Roberto Junior - Provimento"}
-            </strong>
-          </section>
 
           <div className="prototype-category-filters prototype-ingressos-filters grid">
             <TextFieldSeplag
@@ -9169,8 +9611,10 @@ export function PrototiposIngressosPage() {
                 </summary>
 
                 <div className="prototype-ingresso-accordion-content">
+
                   <div className="prototype-ingresso-vaga-accordion-list">
                     {agruparCandidatosIngressoPorVaga(concursoProcesso.candidatos).map((grupo, grupoIndex) => {
+                      const candidatosFiltradosGrupo = getCandidatosFiltradosAccordion(grupo.id, grupo.candidatos);
                       const classificacaoBadge = getTipoVagaIngressoBadge(grupo.classificacao);
 
                       return (
@@ -9194,7 +9638,7 @@ export function PrototiposIngressosPage() {
                                 size="md"
                               />
                               <BadgeSeplag
-                                label={`${grupo.candidatos.length} nomeado(s)`}
+                                label={`${candidatosFiltradosGrupo.length} nomeado(s)`}
                                 color="#005494"
                                 bg="#e6f0f8"
                                 border="transparent"
@@ -9205,6 +9649,43 @@ export function PrototiposIngressosPage() {
                           </summary>
 
                           <div className="prototype-ingresso-vaga-accordion-content">
+                            <div className="prototype-ingresso-accordion-filters prototype-ingresso-vaga-filters">
+                              <label>
+                                <span>Nome</span>
+                                <input
+                                  type="text"
+                                  value={getFiltroAccordionIngresso(grupo.id).nome}
+                                  onChange={(event) =>
+                                    atualizarFiltroAccordionIngresso(grupo.id, "nome", event.target.value)
+                                  }
+                                  placeholder="Buscar por nome"
+                                />
+                              </label>
+                              <label>
+                                <span>Situação</span>
+                                <select
+                                  value={getFiltroAccordionIngresso(grupo.id).situacao}
+                                  onChange={(event) =>
+                                    atualizarFiltroAccordionIngresso(grupo.id, "situacao", event.target.value)
+                                  }
+                                >
+                                  <option value="">Todas</option>
+                                  {situacoesDashboard.map((situacao) => (
+                                    <option key={situacao} value={situacao}>
+                                      {situacao}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <button
+                                type="button"
+                                className="prototype-ingresso-accordion-clear"
+                                onClick={() => limparFiltroAccordionIngresso(grupo.id)}
+                              >
+                                <i className="pi pi-refresh" aria-hidden="true" />
+                                Limpar
+                              </button>
+                            </div>
                             <table className="prototype-simple-table prototype-ingresso-candidatos-table">
                               <thead>
                                 <tr>
@@ -9222,7 +9703,14 @@ export function PrototiposIngressosPage() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {grupo.candidatos.map((candidato) => {
+                                {candidatosFiltradosGrupo.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={11} className="prototype-empty-table-cell">
+                                      Nenhum registro encontrado para os filtros informados.
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  candidatosFiltradosGrupo.map((candidato) => {
                                   const tipoVagaBadge = getTipoVagaIngressoBadge(candidato.tipoVaga);
                                   const situacaoCandidato = getSituacaoCandidatoIngresso(candidato.id);
                                   const podeIngressar = podeIngressarCandidato(situacaoCandidato);
@@ -9365,7 +9853,8 @@ export function PrototiposIngressosPage() {
                                       </td>
                                     </tr>
                                   );
-                                })}
+                                  })
+                                )}
                               </tbody>
                             </table>
                           </div>
@@ -9847,11 +10336,15 @@ export function PrototiposNovoIngressoPage() {
   const handleConfirmarNovoIngresso = () => {
     if (isPerfilSetorial && activeTab === "efetivo-exercicio") {
       const dataConclusaoEfetivo = dataEfetivoExercicio || getDataAtualIso();
+      const situacaoConclusaoEfetivo: IngressoSituacao =
+        servidorCompareceu === "Não" ? "Tornado sem efeito" : "Ingresso Concluído";
       setDataEfetivoExercicio(dataConclusaoEfetivo);
-      setSituacaoIngresso("Ingresso Concluído");
-      persistirSituacaoIngressoAtual("Ingresso Concluído");
-      persistirDataEfetivoExercicioAtual(dataConclusaoEfetivo);
-      navigate("/prototipos/sigep/ingressos");
+      setSituacaoIngresso(situacaoConclusaoEfetivo);
+      persistirSituacaoIngressoAtual(situacaoConclusaoEfetivo);
+      if (situacaoConclusaoEfetivo === "Ingresso Concluído") {
+        persistirDataEfetivoExercicioAtual(dataConclusaoEfetivo);
+      }
+      navigate("/prototipos/sigep/ingressos/efetivo-exercicio");
       return;
     }
 
@@ -25269,4 +25762,914 @@ export function PrototiposConformidadePage() {
 export function PrototiposAuditoriaPage() {
   return <EmDesenvolvimentoPage nomeSistema="AUDITORIA" />;
 }
+
+export function PrototiposControleVagasVagasNumeradasPage() {
+  const navigate = useNavigate();
+
+  const handleEditar = (vaga: ControleVagasVagaNumeradaRow) => {
+    navigate(`/prototipos/sigep/controle-vagas/vagas-numeradas/${vaga.id}/editar`);
+  };
+
+  const totalVagasNumeradas = controleVagasVagaNumeradaMock.length;
+  const totalDisponiveis = controleVagasVagaNumeradaMock.filter(
+    (vaga) => vaga.situacao === "Disponível",
+  ).length;
+  const totalOcupadas = controleVagasVagaNumeradaMock.filter(
+    (vaga) => vaga.situacao === "Ocupada",
+  ).length;
+  const totalRestritas = controleVagasVagaNumeradaMock.filter((vaga) =>
+    ["Reservada", "Bloqueada"].includes(vaga.situacao),
+  ).length;
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag
+          title="Vagas Numeradas"
+          cols="12"
+          cardHeaderClassNames="prototype-regime-card"
+        >
+          <div className="prototype-controle-vagas-list">
+            <div className="prototype-controle-vagas-section-title prototype-controle-vagas-section-title--split">
+              <div>
+                <h3>Consulta de Vagas Numeradas</h3>
+                <p>
+                  Acompanhe vagas individualizadas por número, ocupação atual e situação.
+                </p>
+              </div>
+              <BotaoSeplag
+                type="button"
+                label="Adicionar Vaga Numerada"
+                icon="pi pi-plus"
+                onClick={() =>
+                  navigate("/prototipos/sigep/controle-vagas/vagas-numeradas/novo")
+                }
+              />
+            </div>
+
+            <div className="prototype-controle-vagas-quadro-summary prototype-controle-vagas-quadro-summary--compact">
+              <div>
+                <span>Total</span>
+                <strong>{totalVagasNumeradas}</strong>
+              </div>
+              <div className="is-success">
+                <span>Disponíveis</span>
+                <strong>{totalDisponiveis}</strong>
+              </div>
+              <div className="is-info">
+                <span>Ocupadas</span>
+                <strong>{totalOcupadas}</strong>
+              </div>
+              <div className="is-warning">
+                <span>Reservadas/Bloqueadas</span>
+                <strong>{totalRestritas}</strong>
+              </div>
+            </div>
+
+            <div className="prototype-table-wrapper prototype-controle-vagas-vagas-table">
+              <table className="prototype-simple-table">
+                <thead>
+                  <tr>
+                    <th>Código da Vaga</th>
+                    <th>Cargo/Função</th>
+                    <th>Órgão/Setor</th>
+                    <th>Ocupante Atual</th>
+                    <th>Ativação</th>
+                    <th>Situação</th>
+                    <th>Controle</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {controleVagasVagaNumeradaMock.map((vaga) => {
+                    const validacao = getControleVagasValidacaoVagaNumerada(vaga);
+
+                    return (
+                      <tr key={vaga.id}>
+                        <td>
+                          <strong>{vaga.numero}</strong>
+                        </td>
+                        <td>
+                          {vaga.cargoFuncao}
+                          <small>
+                            {
+                              controleVagasQuadroAutorizadoMock.find(
+                                (quadro) => quadro.id === vaga.quadroId,
+                              )?.codigo
+                            }
+                          </small>
+                        </td>
+                        <td>{vaga.orgaoSetor}</td>
+                        <td>
+                          {vaga.ocupacao?.pessoa ?? "-"}
+                          {vaga.ocupacao?.tipoVinculo && (
+                            <small>{vaga.ocupacao.tipoVinculo}</small>
+                          )}
+                        </td>
+                        <td>{vaga.dataAtivacao}</td>
+                        <td>{renderVagaNumeradaStatusBadge(vaga.situacao)}</td>
+                        <td>
+                          <span className={validacao.className}>
+                            {validacao.label}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="prototype-controle-vagas-row-actions">
+                            <BotaoIconSeplag
+                              type="button"
+                              icon="pi pi-eye"
+                              title="Visualizar vaga"
+                              onClick={() => handleEditar(vaga)}
+                            />
+                            <BotaoIconSeplag
+                              type="button"
+                              icon="pi pi-pencil"
+                              title="Editar vaga"
+                              onClick={() => handleEditar(vaga)}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="prototype-form-actions">
+              <BotaoVoltarSeplag
+                type="button"
+                label="Voltar"
+                icon="pi pi-arrow-left"
+                onClick={() => navigate("/prototipos/sigep/controle-vagas")}
+              />
+            </div>
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposControleVagasVagasNumeradasFormPage() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const vaga = controleVagasVagaNumeradaMock.find(
+    (item) => String(item.id) === id,
+  );
+  const isEditing = Boolean(id);
+  const [activeTab, setActiveTab] = useState("detalhes");
+
+  const { control } = useForm<ControleVagasVagaNumeradaForm>({
+    defaultValues: {
+      numero: vaga?.numero ?? "",
+      quadroId: vaga?.quadroId,
+      cargoFuncao: vaga?.cargoFuncao ?? "",
+      orgaoSetor: vaga?.orgaoSetor ?? "",
+      situacao: vaga?.situacao ?? "Disponível",
+      dataAtivacao: vaga?.dataAtivacao ?? "01/06/2026",
+      dataDesativacao: vaga?.dataDesativacao ?? "",
+      motivo: vaga?.motivo ?? "",
+      observacao: vaga?.observacao ?? "",
+    },
+  });
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag
+          title={`${isEditing ? "Visualizar/Alterar" : "Cadastrar"} - Vaga Numerada`}
+          cols="12"
+          cardHeaderClassNames="prototype-regime-card"
+        >
+          <div className="prototype-controle-vagas-form">
+            <TabsSeplag
+              items={controleVagasVagaNumeradaTabs}
+              activeValue={activeTab}
+              onChange={setActiveTab}
+              equalWidth
+            />
+
+            {activeTab === "detalhes" && (
+              <div className="grid prototype-controle-vagas-form-section">
+                <TextFieldSeplag
+                  name="numero"
+                  control={control}
+                  label="Código da Vaga"
+                  cols="12 12 3"
+                  placeholder="Ex.: VA-001"
+                  required
+                  getFormErrorMessage={() => null}
+                />
+                <DropdownFieldSeplag
+                  name="quadroId"
+                  control={control}
+                  label="Quadro Autorizado"
+                  cols="12 12 3"
+                  options={controleVagasQuadroAutorizadoMock.map((quadro) => ({
+                    label: `${quadro.codigo} - ${quadro.cargoFuncao}`,
+                    value: quadro.id,
+                  }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  required
+                  getFormErrorMessage={() => null}
+                />
+                <DropdownFieldSeplag
+                  name="cargoFuncao"
+                  control={control}
+                  label="Cargo/Função"
+                  cols="12 12 3"
+                  options={controleVagasCargoFuncaoOptions}
+                  optionLabel="label"
+                  optionValue="value"
+                  required
+                  getFormErrorMessage={() => null}
+                />
+                <DropdownFieldSeplag
+                  name="orgaoSetor"
+                  control={control}
+                  label="Órgão/Setor"
+                  cols="12 12 3"
+                  options={controleVagasOrgaoSetorOptions}
+                  optionLabel="label"
+                  optionValue="value"
+                  required
+                  getFormErrorMessage={() => null}
+                />
+                <DropdownFieldSeplag
+                  name="situacao"
+                  control={control}
+                  label="Situação"
+                  cols="12 12 4"
+                  options={controleVagasVagaNumeradaSituacaoOptions}
+                  optionLabel="label"
+                  optionValue="value"
+                  required
+                  getFormErrorMessage={() => null}
+                />
+                <DateFieldSeplag
+                  name="dataAtivacao"
+                  control={control}
+                  label="Data de Ativação"
+                  cols="12 12 4"
+                  required
+                  getFormErrorMessage={() => null}
+                />
+                <DateFieldSeplag
+                  name="dataDesativacao"
+                  control={control}
+                  label="Data de Desativação"
+                  cols="12 12 4"
+                  getFormErrorMessage={() => null}
+                />
+                <TextFieldSeplag
+                  name="motivo"
+                  control={control}
+                  label="Motivo"
+                  cols="12"
+                  placeholder="Motivo de bloqueio, reserva, desativação ou extinção"
+                  getFormErrorMessage={() => null}
+                />
+                <TextAreaFieldSeplag
+                  name="observacao"
+                  control={control}
+                  label="Observação"
+                  cols="12"
+                  rows={3}
+                  getFormErrorMessage={() => null}
+                />
+              </div>
+            )}
+
+            {activeTab === "ocupacao-atual" && (
+              <div className="prototype-controle-vagas-historico">
+                <div className="prototype-controle-vagas-section-title">
+                  <h3>Ocupação Atual</h3>
+                  <p>Dados do servidor que está ocupando esta vaga atualmente.</p>
+                </div>
+                {vaga?.situacao === "Ocupada" ? (
+                  <div className="prototype-controle-vagas-ocupacao-card">
+                    <div>
+                      <span>Servidor</span>
+                      <strong>{vaga.ocupacao?.pessoa}</strong>
+                    </div>
+                    <div>
+                      <span>CPF</span>
+                      <strong>{vaga.ocupacao?.cpf}</strong>
+                    </div>
+                    <div>
+                      <span>Tipo de vínculo</span>
+                      <strong>{vaga.ocupacao?.tipoVinculo}</strong>
+                    </div>
+                    <div>
+                      <span>Data de ocupação</span>
+                      <strong>{vaga.ocupacao?.dataOcupacao}</strong>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="prototype-empty-state">
+                    <p>A vaga não está ocupada no momento.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "historico" && (
+              <div className="prototype-controle-vagas-historico">
+                <div className="prototype-controle-vagas-section-title">
+                  <h3>Histórico da Vaga</h3>
+                  <p>Registro somente leitura das alterações simuladas para esta vaga.</p>
+                </div>
+                <div className="prototype-table-wrapper">
+                  <table className="prototype-simple-table">
+                    <thead>
+                      <tr>
+                        <th>Data/Hora</th>
+                        <th>Evento</th>
+                        <th>Usuário</th>
+                        <th>Detalhe</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {controleVagasVagaNumeradaHistoricoMock.filter(h => h.vagaNumero === vaga?.numero).map((item) => (
+                        <tr key={item.id}>
+                          <td>{item.dataHora}</td>
+                          <td>{item.evento}</td>
+                          <td>{item.usuario}</td>
+                          <td>{item.detalhe}</td>
+                        </tr>
+                      ))}
+                      {controleVagasVagaNumeradaHistoricoMock.filter(h => h.vagaNumero === vaga?.numero).length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="prototype-empty-table-cell">Nenhum histórico encontrado.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="prototype-form-actions">
+              <BotaoVoltarSeplag
+                type="button"
+                label="Voltar"
+                icon="pi pi-arrow-left"
+                onClick={() =>
+                  navigate("/prototipos/sigep/controle-vagas/vagas-numeradas")
+                }
+              />
+              <BotaoSalvarSeplag type="button" label="Salvar" />
+            </div>
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposControleVagasIntegracaoPage() {
+  const navigate = useNavigate();
+  const { control, watch } = useForm<ControleVagasIntegracaoForm>({
+    defaultValues: {
+      vagaNumero: "VA-002",
+      pessoa: "ANA PAULA COSTA",
+      cpf: "456.789.123-00",
+      tipoVinculo: "Efetivo",
+    },
+  });
+  const [vagasSimuladas, setVagasSimuladas] = useState<
+    ControleVagasVagaNumeradaRow[]
+  >(controleVagasVagaNumeradaMock);
+  const [eventosIntegracao, setEventosIntegracao] = useState<
+    ControleVagasIntegracaoEventoRow[]
+  >([]);
+  const [resultadoIntegracao, setResultadoIntegracao] = useState<{
+    tipo: ControleVagasIntegracaoEventoRow["resultado"];
+    texto: string;
+  }>({
+    tipo: "Alerta",
+    texto: "Selecione uma vaga e execute uma ação para simular a integração.",
+  });
+
+  const valores = watch();
+  const vagaSelecionada = vagasSimuladas.find(
+    (vaga) => vaga.numero === valores.vagaNumero,
+  );
+  const quadroSelecionado = controleVagasQuadroAutorizadoMock.find(
+    (quadro) => quadro.id === vagaSelecionada?.quadroId,
+  );
+  const distribuicaoSelecionada =
+    getControleVagasDistribuicaoDaVaga(vagaSelecionada);
+  const saldoSelecionado = getControleVagasSaldoDistribuicaoSimulado(
+    distribuicaoSelecionada,
+    vagasSimuladas,
+  );
+
+  const registrarEventoIntegracao = (
+    evento: string,
+    resultado: ControleVagasIntegracaoEventoRow["resultado"],
+    detalhe: string,
+  ) => {
+    const dataHora = new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Cuiaba",
+    }).format(new Date());
+
+    setEventosIntegracao((eventos) => [
+      {
+        id: Date.now(),
+        dataHora,
+        evento,
+        vagaNumero: vagaSelecionada?.numero ?? "-",
+        resultado,
+        detalhe,
+      },
+      ...eventos,
+    ]);
+    setResultadoIntegracao({ tipo: resultado, texto: detalhe });
+  };
+
+  const validarOcupacao = () => {
+    if (!vagaSelecionada) {
+      return "Selecione uma vaga numerada para validar a operação.";
+    }
+
+    if (!quadroSelecionado) {
+      return "Operação bloqueada: a vaga selecionada não possui quadro autorizado vinculado.";
+    }
+
+    if (!distribuicaoSelecionada) {
+      return "Operação bloqueada: a vaga não possui distribuição compatível.";
+    }
+
+    if (saldoSelecionado.disponivel <= 0) {
+      return "Operação bloqueada: não há saldo disponível para a distribuição da vaga.";
+    }
+
+    if (quadroSelecionado.situacao !== STATUS_OPERACIONAL_VIGENCIA.ATIVO) {
+      return "Operação bloqueada: o quadro autorizado não está ativo.";
+    }
+
+    if (["Bloqueada", "Extinta", "Agendada"].includes(vagaSelecionada.situacao)) {
+      return `Operação bloqueada: a vaga está ${vagaSelecionada.situacao.toLowerCase()}.`;
+    }
+
+    if (vagaSelecionada.situacao === "Ocupada") {
+      return "Operação bloqueada: a vaga já está ocupada.";
+    }
+
+    if (
+      vagaSelecionada.situacao === "Reservada" &&
+      getControleVagasReservasAtivas(
+        vagaSelecionada.quadroId,
+        vagaSelecionada.orgaoSetor,
+      ).length === 0
+    ) {
+      return "Operação bloqueada: a vaga reservada não possui reserva ativa.";
+    }
+
+    return "";
+  };
+
+  const handleValidarSaldo = () => {
+    if (!vagaSelecionada || !distribuicaoSelecionada) {
+      registrarEventoIntegracao(
+        "Validação de saldo",
+        "Bloqueado",
+        "Não foi possível validar o saldo porque a vaga não possui distribuição compatível.",
+      );
+      return;
+    }
+
+    const mensagemBloqueio = validarOcupacao();
+    registrarEventoIntegracao(
+      "Validação de saldo",
+      mensagemBloqueio ? "Bloqueado" : "Sucesso",
+      mensagemBloqueio ||
+        `Saldo validado: ${saldoSelecionado.disponivel} vaga(s) disponível(is) para ${distribuicaoSelecionada.orgaoSetor}.`,
+    );
+  };
+
+  const handleOcuparVaga = () => {
+    const mensagemBloqueio = validarOcupacao();
+
+    if (mensagemBloqueio || !vagaSelecionada) {
+      registrarEventoIntegracao(
+        "Ocupação bloqueada",
+        "Bloqueado",
+        mensagemBloqueio || "Operação bloqueada por inconsistência da vaga.",
+      );
+      return;
+    }
+
+    setVagasSimuladas((vagas) =>
+      vagas.map((vaga) =>
+        vaga.numero === vagaSelecionada.numero
+          ? {
+              ...vaga,
+              situacao: "Ocupada",
+              ocupacao: {
+                id: Date.now(),
+                pessoa: valores.pessoa || "Pessoa não informada",
+                cpf: valores.cpf || "-",
+                cargoFuncao: vaga.cargoFuncao,
+                dataOcupacao: "03/06/2026",
+                tipoVinculo: valores.tipoVinculo || "Não informado",
+                nomeVinculo: "Ingresso funcional simulado",
+                observacao: "Ocupação gerada pela integração mockada.",
+              },
+              observacao: "Vaga ocupada pela integração com ingresso funcional.",
+            }
+          : vaga,
+      ),
+    );
+    registrarEventoIntegracao(
+      "Ocupação de vaga",
+      "Sucesso",
+      `Vaga ${vagaSelecionada.numero} ocupada por ${valores.pessoa || "pessoa não informada"}. Evento funcional registrado no histórico simulado.`,
+    );
+  };
+
+  const handleLiberarVaga = () => {
+    if (!vagaSelecionada) {
+      registrarEventoIntegracao(
+        "Liberação bloqueada",
+        "Bloqueado",
+        "Selecione uma vaga numerada para liberar.",
+      );
+      return;
+    }
+
+    if (vagaSelecionada.situacao !== "Ocupada") {
+      registrarEventoIntegracao(
+        "Liberação bloqueada",
+        "Bloqueado",
+        "Operação bloqueada: somente vagas ocupadas podem ser liberadas.",
+      );
+      return;
+    }
+
+    setVagasSimuladas((vagas) =>
+      vagas.map((vaga) =>
+        vaga.numero === vagaSelecionada.numero
+          ? {
+              ...vaga,
+              situacao: "Disponível",
+              ocupacao: undefined,
+              observacao: "Vaga liberada pela integração com evento funcional.",
+            }
+          : vaga,
+      ),
+    );
+    registrarEventoIntegracao(
+      "Liberação de vaga",
+      "Sucesso",
+      `Vaga ${vagaSelecionada.numero} liberada. Saldo da distribuição foi recomposto no mock.`,
+    );
+  };
+
+  const resultadoClassName =
+    resultadoIntegracao.tipo === "Sucesso"
+      ? "is-success"
+      : resultadoIntegracao.tipo === "Bloqueado"
+        ? "is-danger"
+        : "is-warning";
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag
+          title="Integração com Ingresso e Eventos Funcionais"
+          cols="12"
+          cardHeaderClassNames="prototype-regime-card"
+        >
+          <div className="prototype-controle-vagas-integracao-page">
+            <div className="prototype-controle-vagas-section-title">
+              <h3>Simulação de Integração</h3>
+              <p>
+                Valide saldo, ocupe ou libere vagas e registre eventos funcionais em memória.
+              </p>
+            </div>
+
+            <div className="grid prototype-controle-vagas-filtros prototype-controle-vagas-filtros-card">
+              <DropdownFieldSeplag
+                name="vagaNumero"
+                control={control}
+                label="Vaga Numerada"
+                cols="12 12 3"
+                options={vagasSimuladas.map((vaga) => ({
+                  label: `${vaga.numero} - ${vaga.cargoFuncao}`,
+                  value: vaga.numero,
+                }))}
+                getFormErrorMessage={() => null}
+              />
+              <TextFieldSeplag
+                name="pessoa"
+                control={control}
+                label="Pessoa"
+                cols="12 12 3"
+                placeholder="Nome da pessoa"
+                getFormErrorMessage={() => null}
+              />
+              <TextFieldSeplag
+                name="cpf"
+                control={control}
+                label="CPF"
+                cols="12 12 3"
+                placeholder="000.000.000-00"
+                getFormErrorMessage={() => null}
+              />
+              <DropdownFieldSeplag
+                name="tipoVinculo"
+                control={control}
+                label="Tipo de Vínculo"
+                cols="12 12 3"
+                options={[
+                  { label: "Efetivo", value: "Efetivo" },
+                  { label: "Designado", value: "Designado" },
+                  { label: "Comissionado", value: "Comissionado" },
+                  { label: "Contrato Temporário", value: "Contrato Temporário" },
+                ]}
+                getFormErrorMessage={() => null}
+              />
+            </div>
+
+            <div className="prototype-controle-vagas-quadro-summary prototype-controle-vagas-quadro-summary--compact">
+              <div>
+                <span>Vaga selecionada</span>
+                <strong>{vagaSelecionada?.numero ?? "-"}</strong>
+              </div>
+              <div className="is-info">
+                <span>Situação atual</span>
+                <strong>{vagaSelecionada?.situacao ?? "-"}</strong>
+              </div>
+              <div className="is-warning">
+                <span>Saldo disponível</span>
+                <strong>{saldoSelecionado.disponivel}</strong>
+              </div>
+              <div className="is-success">
+                <span>Ocupadas na distribuição</span>
+                <strong>{saldoSelecionado.ocupado}</strong>
+              </div>
+            </div>
+
+            <div className={`prototype-controle-vagas-integracao-result ${resultadoClassName}`}>
+              {resultadoIntegracao.texto}
+            </div>
+
+            <div className="prototype-controle-vagas-integracao-actions">
+              <BotaoSeplag
+                type="button"
+                label="Validar Saldo"
+                icon="pi pi-check-circle"
+                onClick={handleValidarSaldo}
+              />
+              <BotaoSeplag
+                type="button"
+                label="Ocupar Vaga"
+                icon="pi pi-user-plus"
+                onClick={handleOcuparVaga}
+              />
+              <BotaoSeplag
+                type="button"
+                label="Liberar Vaga"
+                icon="pi pi-user-minus"
+                onClick={handleLiberarVaga}
+              />
+            </div>
+
+            <div className="prototype-table-wrapper prototype-controle-vagas-integracao-table">
+              <table className="prototype-simple-table">
+                <thead>
+                  <tr>
+                    <th>Data/Hora</th>
+                    <th>Evento</th>
+                    <th>Vaga</th>
+                    <th>Resultado</th>
+                    <th>Detalhe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {eventosIntegracao.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="prototype-empty-table-cell">
+                        Nenhum evento simulado.
+                      </td>
+                    </tr>
+                  ) : (
+                    eventosIntegracao.map((evento) => (
+                      <tr key={evento.id}>
+                        <td>{evento.dataHora}</td>
+                        <td>{evento.evento}</td>
+                        <td>{evento.vagaNumero}</td>
+                        <td>
+                          <span
+                            className={`prototype-badge ${
+                              evento.resultado === "Sucesso"
+                                ? "prototype-badge--success"
+                                : evento.resultado === "Bloqueado"
+                                  ? "prototype-badge--danger"
+                                  : "prototype-badge--warning"
+                            }`}
+                          >
+                            {evento.resultado}
+                          </span>
+                        </td>
+                        <td>{evento.detalhe}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="prototype-form-actions">
+              <BotaoVoltarSeplag
+                type="button"
+                label="Voltar"
+                icon="pi pi-arrow-left"
+                onClick={() => navigate("/prototipos/sigep/controle-vagas")}
+              />
+            </div>
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposControleVagasHistoricoPage() {
+  const navigate = useNavigate();
+  const { control } = useForm();
+  const totalEventosHistorico = controleVagasVagaNumeradaHistoricoMock.length;
+  const totalOcupacoesHistorico = controleVagasVagaNumeradaHistoricoMock.filter(
+    (item) => ["Ocupação", "Designação"].includes(item.evento),
+  ).length;
+  const totalEventosRestritivos = controleVagasVagaNumeradaHistoricoMock.filter(
+    (item) => ["Bloqueio", "Extinção"].includes(item.evento),
+  ).length;
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag
+          title="Histórico/Ocupação de Vagas"
+          cols="12"
+          cardHeaderClassNames="prototype-regime-card"
+        >
+          <div className="prototype-controle-vagas-historico-page">
+            <div className="prototype-controle-vagas-section-title">
+              <h3>Filtros de Histórico</h3>
+              <p>
+                Consulte eventos de ocupação, liberação, bloqueio e alterações de vagas.
+              </p>
+            </div>
+
+            <div className="grid prototype-controle-vagas-filtros prototype-controle-vagas-filtros-card">
+              <DropdownFieldSeplag
+                name="periodo"
+                control={control}
+                label="Período"
+                cols="12 12 3"
+                options={[{ label: 'Últimos 30 dias', value: '30d' }]}
+                getFormErrorMessage={() => null}
+              />
+              <DropdownFieldSeplag
+                name="cargoFuncao"
+                control={control}
+                label="Cargo/Função"
+                cols="12 12 3"
+                options={controleVagasCargoFuncaoOptions}
+                getFormErrorMessage={() => null}
+              />
+              <DropdownFieldSeplag
+                name="vaga"
+                control={control}
+                label="Vaga Numerada"
+                cols="12 12 3"
+                options={[{ label: 'Todas', value: '' }, { label: 'VA-001', value: 'VA-001' }, { label: 'VA-002', value: 'VA-002' }]}
+                getFormErrorMessage={() => null}
+              />
+              <DropdownFieldSeplag
+                name="evento"
+                control={control}
+                label="Evento"
+                cols="12 12 3"
+                options={[{ label: 'Todos', value: '' }, { label: 'Ocupação', value: 'ocupacao' }, { label: 'Reserva', value: 'reserva' }]}
+                getFormErrorMessage={() => null}
+              />
+              <TextFieldSeplag
+                name="pessoa"
+                control={control}
+                label="Pessoa/Vínculo"
+                cols="12 12 3"
+                placeholder="Nome, CPF ou vínculo"
+                getFormErrorMessage={() => null}
+              />
+              <TextFieldSeplag
+                name="usuario"
+                control={control}
+                label="Usuário"
+                cols="12 12 3"
+                placeholder="Responsável pelo evento"
+                getFormErrorMessage={() => null}
+              />
+            </div>
+            <div className="prototype-controle-vagas-filter-actions">
+              <BotaoSeplag type="button" label="Filtrar" icon="pi pi-filter" />
+              <BotaoLimparFiltroSeplag onClick={() => {}} />
+            </div>
+
+            <div className="prototype-controle-vagas-quadro-summary prototype-controle-vagas-quadro-summary--compact">
+              <div>
+                <span>Eventos</span>
+                <strong>{totalEventosHistorico}</strong>
+              </div>
+              <div className="is-info">
+                <span>Ocupações</span>
+                <strong>{totalOcupacoesHistorico}</strong>
+              </div>
+              <div className="is-warning">
+                <span>Restritivos</span>
+                <strong>{totalEventosRestritivos}</strong>
+              </div>
+            </div>
+
+            <div className="prototype-table-wrapper prototype-controle-vagas-historico-table">
+              <table className="prototype-simple-table">
+                <thead>
+                  <tr>
+                    <th>Data/Hora</th>
+                    <th>Vaga</th>
+                    <th>Evento</th>
+                    <th>Usuário</th>
+                    <th>Detalhe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {controleVagasVagaNumeradaHistoricoMock.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.dataHora}</td>
+                      <td>{item.vagaNumero || '-'}</td>
+                      <td>
+                        <span className="prototype-controle-vagas-event-badge">
+                          {item.evento}
+                        </span>
+                      </td>
+                      <td>{item.usuario}</td>
+                      <td>{item.detalhe}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="prototype-form-actions">
+              <BotaoVoltarSeplag
+                type="button"
+                label="Voltar"
+                icon="pi pi-arrow-left"
+                onClick={() => navigate('/prototipos/sigep/controle-vagas')}
+              />
+            </div>
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
