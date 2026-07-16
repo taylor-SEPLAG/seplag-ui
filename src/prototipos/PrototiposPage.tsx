@@ -102,6 +102,9 @@ import { DistribuicaoSaldoContent } from "./controleVagas/DistribuicaoSaldoConte
 import { MovimentacoesVagasContent } from "./controleVagas/MovimentacoesVagasContent";
 import { DashboardControleVagasContent } from "./controleVagas/DashboardControleVagasContent";
 import { VagasIndividualizadasContent } from "./controleVagas/VagasIndividualizadasContent";
+import { ComprometimentosVagasContent } from "./controleVagas/ComprometimentosVagasContent";
+import { OcupacoesNominaisContent } from "./controleVagas/OcupacoesNominaisContent";
+import { TitularidadeCessoesContent } from "./controleVagas/TitularidadeCessoesContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
 const SIGEP_PAINEL_INFORMATIVO_PATH =
@@ -238,6 +241,24 @@ const menuGestaoPessoas: IMenuSeplag[] = [
             label: "Vagas Individualizadas",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/vagas`,
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+          },          {
+            label: "Comprometimentos",
+            icon: "pi pi-circle-on",
+            to: `${CONTROLE_VAGAS_BASE_PATH}/comprometimentos`,
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+          },          {
+            label: "Ocupações Nominais",
+            icon: "pi pi-circle-on",
+            to: `${CONTROLE_VAGAS_BASE_PATH}/ocupacoes`,
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+          },          {
+            label: "Exercício e Cessões",
+            icon: "pi pi-circle-on",
+            to: `${CONTROLE_VAGAS_BASE_PATH}/cessoes`,
             visibleOnMenu: true,
             visibleOnRouter: true,
           },          {
@@ -6251,6 +6272,27 @@ export function PrototiposControleVagasDashboardPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
       <DashboardControleVagasContent />
+    </PrototypeSystemPage>
+  );
+}
+export function PrototiposControleVagasCessoesPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <TitularidadeCessoesContent />
+    </PrototypeSystemPage>
+  );
+}
+export function PrototiposControleVagasOcupacoesPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <OcupacoesNominaisContent />
+    </PrototypeSystemPage>
+  );
+}
+export function PrototiposControleVagasComprometimentosPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <ComprometimentosVagasContent />
     </PrototypeSystemPage>
   );
 }
