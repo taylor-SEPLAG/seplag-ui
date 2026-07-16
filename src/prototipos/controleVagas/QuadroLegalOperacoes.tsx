@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { vagasIndividualizadasMock } from "./mockData";
+import { useControleVagasStore } from "./controleVagasStore";
 import type { QuadroAutorizadoRow } from "./types";
 import { aplicarAlteracaoQuadroLegal, type TipoAlteracaoQuadroLegal } from "./quadroLegalUtils";
 import "./quadroLegalOperacoes.css";
@@ -13,7 +13,7 @@ const descricoes: Record<TipoAlteracaoQuadroLegal, string> = {
 };
 
 export function QuadroLegalOperacoes({ registro }: { registro: QuadroAutorizadoRow }) {
-  const vagasOriginais = useMemo(() => vagasIndividualizadasMock.filter((vaga) => vaga.quadroAutorizadoId === registro.id), [registro.id]);
+  const vagasOriginais = useMemo(() => vagas.filter((vaga) => vaga.quadroAutorizadoId === registro.id), [registro.id]);
   const [tipo, setTipo] = useState<TipoAlteracaoQuadroLegal>("AMPLIACAO");
   const [quantidade, setQuantidade] = useState(1);
   const [lei, setLei] = useState("");

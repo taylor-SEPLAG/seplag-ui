@@ -1,6 +1,6 @@
 import type { MovimentoVagaIndividual, PosicaoDistribuicaoVaga, SituacaoLegalVaga, TipoMovimentoVagaIndividual, Vaga } from "./types";
 
-const legalPorTipo:Partial<Record<TipoMovimentoVagaIndividual,SituacaoLegalVaga>>={EXTINCAO:"EXTINTA",TRANSFORMACAO:"EM_TRANSFORMACAO",DECISAO_JUDICIAL:"DECISAO_JUDICIAL"};
+const legalPorTipo:Partial<Record<TipoMovimentoVagaIndividual,SituacaoLegalVaga>>={EXTINCAO:"EXTINTA",TRANSFORMACAO:"EM_TRANSFORMACAO"};
 export function calcularPosicaoVaga(vaga:Vaga,movimentos:readonly MovimentoVagaIndividual[],dataReferencia:string):PosicaoDistribuicaoVaga{
  let orgao:string|undefined;let unidade:string|undefined;let legal=vaga.situacaoLegal;let cargo=vaga.cargo;let ultimo:string|undefined;
  movimentos.filter((m)=>m.vagaId===vaga.id&&m.dataEfeito<=dataReferencia).sort((a,b)=>a.dataEfeito.localeCompare(b.dataEfeito)||a.registradoEm.localeCompare(b.registradoEm)).forEach((m)=>{if(m.tipo==="DISTRIBUICAO"||m.tipo==="TRANSFERENCIA"||m.tipo==="DECRETO"){orgao=m.orgaoPosterior??orgao;unidade=m.unidadePosterior??unidade}if(m.tipo==="RECOLHIMENTO"){orgao=undefined;unidade=undefined}if(m.situacaoLegalPosterior)legal=m.situacaoLegalPosterior;if(m.tipo==="TRANSFORMACAO"&&m.cargoDestino)cargo=m.cargoDestino;ultimo=m.id});

@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./quadroAutorizado.css";
 
 import type { QuadroAutorizadoRow, SituacaoQuadro } from "./types";
-import { quadrosAutorizadosMock } from "./mockData";
+import { useControleVagasStore } from "./controleVagasStore";
 import { CONTROLE_VAGAS_BASE_PATH } from "./constants";
 import { QuadroLegalOperacoes } from "./QuadroLegalOperacoes";
 
@@ -25,12 +25,12 @@ export function QuadroAutorizadoContent() {
   const isDetalhe = Boolean(id) && !isEditar && !isNovaVersao;
 
   if (isNovo || isEditar || isNovaVersao) {
-    const registro = id ? quadrosAutorizadosMock.find((item) => item.id === Number(id)) : undefined;
+    const registro = id ? quadros.find((item) => item.id === Number(id)) : undefined;
     return <QuadroAutorizadoForm registro={registro} novaVersao={isNovaVersao} onBack={() => navigate(BASE_PATH)} />;
   }
 
   if (isDetalhe) {
-    const registro = quadrosAutorizadosMock.find((item) => item.id === Number(id)) ?? quadrosAutorizadosMock[0];
+    const registro = quadros.find((item) => item.id === Number(id)) ?? quadros[0];
     return <QuadroAutorizadoDetalhe registro={registro} onBack={() => navigate(BASE_PATH)} />;
   }
 
@@ -47,7 +47,7 @@ function QuadroAutorizadoLista() {
 
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
-    return quadrosAutorizadosMock.filter((item) => (!termo || `${item.codigo} ${item.cargo} ${item.carreira} ${item.especialidade}`.toLocaleLowerCase("pt-BR").includes(termo)) && (!orgao || item.orgao === orgao) && (!tipo || item.tipoQuadro === tipo) && (!situacao || item.situacao === situacao));
+    return quadros.filter((item) => (!termo || `${item.codigo} ${item.cargo} ${item.carreira} ${item.especialidade}`.toLocaleLowerCase("pt-BR").includes(termo)) && (!orgao || item.orgao === orgao) && (!tipo || item.tipoQuadro === tipo) && (!situacao || item.situacao === situacao));
   }, [busca, orgao, tipo, situacao]);
 
   const totais = filtrados.reduce((acc, item) => ({ autorizadas: acc.autorizadas + item.autorizadas, ocupadas: acc.ocupadas + item.ocupadas, comprometidas: acc.comprometidas + item.comprometidas, disponiveis: acc.disponiveis + Math.max(0, saldo(item)) }), { autorizadas: 0, ocupadas: 0, comprometidas: 0, disponiveis: 0 });
@@ -59,7 +59,7 @@ function QuadroAutorizadoLista() {
     <div className="prototype-quadro-info"><i className="pi pi-info-circle" /><span>As quantidades de ocupação e comprometimento são <strong>simuladas nesta etapa</strong>. Elas serão integradas às movimentações funcionais posteriormente.</span></div>
     <section className="prototype-quadro-kpis"><article><i className="pi pi-file-check" /><div><span>Autorizadas</span><strong>{totais.autorizadas.toLocaleString("pt-BR")}</strong></div></article><article><i className="pi pi-users" /><div><span>Ocupadas</span><strong>{totais.ocupadas.toLocaleString("pt-BR")}</strong></div></article><article><i className="pi pi-clock" /><div><span>Comprometidas</span><strong>{totais.comprometidas.toLocaleString("pt-BR")}</strong></div></article><article className="is-available"><i className="pi pi-check-circle" /><div><span>Disponíveis</span><strong>{totais.disponiveis.toLocaleString("pt-BR")}</strong></div></article></section>
     <section className="prototype-quadro-card"><div className="prototype-quadro-card-title"><div><h2>Consulta do quadro</h2><p>Posição calculada para a data de referência informada.</p></div></div>
-      <div className="prototype-quadro-filters"><label className="is-wide"><span>Código, cargo ou carreira</span><div><i className="pi pi-search" /><input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Pesquisar no quadro" /></div></label><label><span>Órgão</span><select value={orgao} onChange={(e) => setOrgao(e.target.value)}><option value="">Todos</option>{[...new Set(quadrosAutorizadosMock.map((i) => i.orgao))].map((i) => <option key={i}>{i}</option>)}</select></label><label><span>Tipo de quadro</span><select value={tipo} onChange={(e) => setTipo(e.target.value)}><option value="">Todos</option>{[...new Set(quadrosAutorizadosMock.map((i) => i.tipoQuadro))].map((i) => <option key={i}>{i}</option>)}</select></label><label><span>Situação</span><select value={situacao} onChange={(e) => setSituacao(e.target.value)}><option value="">Todas</option>{[...new Set(quadrosAutorizadosMock.map((i) => i.situacao))].map((i) => <option key={i}>{i}</option>)}</select></label><label><span>Data de referência</span><input type="date" value={dataReferencia} onChange={(e) => setDataReferencia(e.target.value)} /></label><button onClick={limpar}><i className="pi pi-filter-slash" /> Limpar</button></div>
+      <div className="prototype-quadro-filters"><label className="is-wide"><span>Código, cargo ou carreira</span><div><i className="pi pi-search" /><input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Pesquisar no quadro" /></div></label><label><span>Órgão</span><select value={orgao} onChange={(e) => setOrgao(e.target.value)}><option value="">Todos</option>{[...new Set(quadros.map((i) => i.orgao))].map((i) => <option key={i}>{i}</option>)}</select></label><label><span>Tipo de quadro</span><select value={tipo} onChange={(e) => setTipo(e.target.value)}><option value="">Todos</option>{[...new Set(quadros.map((i) => i.tipoQuadro))].map((i) => <option key={i}>{i}</option>)}</select></label><label><span>Situação</span><select value={situacao} onChange={(e) => setSituacao(e.target.value)}><option value="">Todas</option>{[...new Set(quadros.map((i) => i.situacao))].map((i) => <option key={i}>{i}</option>)}</select></label><label><span>Data de referência</span><input type="date" value={dataReferencia} onChange={(e) => setDataReferencia(e.target.value)} /></label><button onClick={limpar}><i className="pi pi-filter-slash" /> Limpar</button></div>
       <div className="prototype-quadro-table"><table><thead><tr><th>Quadro</th><th>Cargo/Função</th><th>Órgão</th><th className="is-number">Autorizadas</th><th className="is-number">Ocupadas</th><th className="is-number">Disponíveis</th><th>Vigência</th><th>Situação</th><th /></tr></thead><tbody>{filtrados.map((item) => <tr key={item.id}><td><button className="prototype-quadro-link" onClick={() => navigate(`${BASE_PATH}/${item.id}`)}>{item.codigo}</button><small>Versão {item.versao}</small></td><td><strong>{item.cargo}</strong><small>{item.especialidade || item.vinculo}</small></td><td>{item.orgao}</td><td className="is-number">{item.autorizadas}</td><td className="is-number">{item.ocupadas}</td><td className={`is-number ${saldo(item) <= 0 ? "is-danger" : "is-positive"}`}><strong>{Math.max(0, saldo(item))}</strong></td><td>{item.inicioVigencia || "Não informada"}<small>{item.fimVigencia ? `até ${item.fimVigencia}` : "sem término"}</small></td><td><span className={`prototype-quadro-status ${situacaoClass[item.situacao]}`}>{item.situacao}</span></td><td><div className="prototype-quadro-actions"><button title="Visualizar" onClick={() => navigate(`${BASE_PATH}/${item.id}`)}><i className="pi pi-eye" /></button>{item.situacao === "Rascunho" && <button title="Editar" onClick={() => navigate(`${BASE_PATH}/${item.id}/editar`)}><i className="pi pi-pencil" /></button>}{item.situacao === "Vigente" && <button title="Criar nova versão" onClick={() => navigate(`${BASE_PATH}/${item.id}/nova-versao`)}><i className="pi pi-copy" /></button>}</div></td></tr>)}</tbody></table></div>
       <footer className="prototype-quadro-table-footer"><span>{filtrados.length} registros encontrados</span><span>Data de referência: {dataReferencia.split("-").reverse().join("/")}</span></footer>
     </section>

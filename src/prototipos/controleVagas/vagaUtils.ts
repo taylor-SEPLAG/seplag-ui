@@ -7,7 +7,6 @@ export const gerarVagasDoQuadro=(quadro:QuadroAutorizadoRow):Vaga[]=>{
  const tipo:TipoVagaLegal=quadro.tipoQuadro==="Comissionado"?"COMISSIONADO":"EFETIVO";
  return Array.from({length:quadro.autorizadas},(_,index)=>{
   const sequencial=index+1;const id=gerarIdentificadorVaga(quadro.orgao,quadro.cargo,sequencial);let estado:EstadoVaga=sequencial<=quadro.ocupadas?"OCUPADA":"DISPONIVEL";let situacaoLegal:SituacaoLegalVaga="REGULAR";
-  if(quadro.codigo==="QA-0002"&&sequencial===quadro.autorizadas){situacaoLegal="DECISAO_JUDICIAL";estado="OCUPADA";}
   if(quadro.codigo==="QA-0002"&&sequencial===quadro.autorizadas-1)situacaoLegal="DIVERGENTE";
   if(quadro.codigo==="QA-0001"&&sequencial>quadro.ocupadas-3&&sequencial<=quadro.ocupadas)situacaoLegal="EM_EXTINCAO";
   const historico:HistoricoVaga[]=[{id:`HIS-${id}-001`,vagaId:id,ocorridoEm:"15/07/2026 08:00",dataEfeito:quadro.inicioVigencia||"15/07/2026",tipo:"CRIACAO",titulo:"Vaga criada a partir do quadro legal",descricao:`${quadro.codigo} • ${quadro.ato}`,origem:"Quadro Autorizado",usuario:"Sistema",processo:quadro.processo}];

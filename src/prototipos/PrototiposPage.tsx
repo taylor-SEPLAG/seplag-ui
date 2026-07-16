@@ -268,7 +268,7 @@ const menuGestaoPessoas: IMenuSeplag[] = [
             visibleOnMenu: true,
             visibleOnRouter: true,
           },          {
-            label: "Distribuição e Movimentações",
+            label: "Distribuição",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/distribuicao`,
             visibleOnMenu: true,
