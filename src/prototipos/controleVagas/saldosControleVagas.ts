@@ -1,0 +1,11 @@
+import type { ComprometimentoVaga, OcupacaoVaga, SaldoControleVagas, SaldoControleVagasGrupo, Vaga } from "./types";
+
+const vazio=():SaldoControleVagas=>({vagasLegais:0,disponiveis:0,disponiveisLivres:0,disponiveisComprometidas:0,ocupadas:0,ocupadasEmDisponibilizacao:0,emExtincao:0,excedentesJudiciais:0,divergentes:0});
+export function calcularSaldo(vagas:readonly Vaga[],comprometimentos:readonly ComprometimentoVaga[],ocupacoes:readonly OcupacaoVaga[]):SaldoControleVagas{
+ const saldo=vazio();const ativos=new Map(comprometimentos.filter((c)=>c.situacao==="ATIVO").map((c)=>[c.vagaId,c]));const ocupacoesAtivas=new Set(ocupacoes.filter((o)=>o.situacao==="ATIVA").map((o)=>o.vagaId));const vagasComRegistro=new Set(ocupacoes.map((o)=>o.vagaId));
+ vagas.forEach((vaga)=>{const compromisso=ativos.get(vaga.id);const extinta=vaga.situacaoLegal==="EXTINTA";const judicial=vaga.situacaoLegal==="DECISAO_JUDICIAL";
+  if(!extinta&&!judicial)saldo.vagasLegais+=1;if(vaga.estado==="DISPONIVEL"&&!extinta){saldo.disponiveis+=1;if(compromisso?.natureza==="OCUPACAO")saldo.disponiveisComprometidas+=1;else saldo.disponiveisLivres+=1}if(vaga.estado==="OCUPADA"){saldo.ocupadas+=1;if(compromisso?.natureza==="DISPONIBILIZACAO")saldo.ocupadasEmDisponibilizacao+=1}if(vaga.situacaoLegal==="EM_EXTINCAO")saldo.emExtincao+=1;if(judicial)saldo.excedentesJudiciais+=1;if(vaga.situacaoLegal==="DIVERGENTE"||(vagasComRegistro.has(vaga.id)&&(vaga.estado==="OCUPADA")!==ocupacoesAtivas.has(vaga.id)))saldo.divergentes+=1;
+ });return saldo;
+}
+export function agruparSaldos(vagas:readonly Vaga[],comprometimentos:readonly ComprometimentoVaga[],ocupacoes:readonly OcupacaoVaga[]):SaldoControleVagasGrupo[]{const grupos=new Map<string,Vaga[]>();vagas.forEach((vaga)=>{const chave=`${vaga.orgaoTitular}|${vaga.cargo}|${vaga.tipo}`;grupos.set(chave,[...(grupos.get(chave)??[]),vaga])});return [...grupos.entries()].map(([chave,itens])=>({chave,cargo:itens[0].cargo,orgaoTitular:itens[0].orgaoTitular,tipo:itens[0].tipo,totalFisico:itens.length,...calcularSaldo(itens,comprometimentos,ocupacoes)}))}
+export const verificarIdentidadeSaldo=(saldo:SaldoControleVagas)=>({disponiveisConfere:saldo.disponiveis===saldo.disponiveisLivres+saldo.disponiveisComprometidas,ocupadasEmDisponibilizacaoContidas:saldo.ocupadasEmDisponibilizacao<=saldo.ocupadas});

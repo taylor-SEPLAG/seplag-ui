@@ -99,12 +99,12 @@ import type {
 import { ControleVagasRegrasContent } from "./controleVagas/ControleVagasRegrasContent";
 import { QuadroAutorizadoContent } from "./controleVagas/QuadroAutorizadoContent";
 import { DistribuicaoSaldoContent } from "./controleVagas/DistribuicaoSaldoContent";
-import { MovimentacoesVagasContent } from "./controleVagas/MovimentacoesVagasContent";
 import { DashboardControleVagasContent } from "./controleVagas/DashboardControleVagasContent";
 import { VagasIndividualizadasContent } from "./controleVagas/VagasIndividualizadasContent";
 import { ComprometimentosVagasContent } from "./controleVagas/ComprometimentosVagasContent";
 import { OcupacoesNominaisContent } from "./controleVagas/OcupacoesNominaisContent";
 import { TitularidadeCessoesContent } from "./controleVagas/TitularidadeCessoesContent";
+import { ProjecoesVagasContent } from "./controleVagas/ProjecoesVagasContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
 const SIGEP_PAINEL_INFORMATIVO_PATH =
@@ -262,22 +262,22 @@ const menuGestaoPessoas: IMenuSeplag[] = [
             visibleOnMenu: true,
             visibleOnRouter: true,
           },          {
-            label: "Distribuição de Vagas",
+            label: "Projeções",
+            icon: "pi pi-circle-on",
+            to: `${CONTROLE_VAGAS_BASE_PATH}/projecoes`,
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+          },          {
+            label: "Distribuição e Movimentações",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/distribuicao`,
             visibleOnMenu: true,
             visibleOnRouter: true,
           },
           {
-            label: "Consulta de Saldo",
+            label: "Saldos",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/consulta-saldo`,
-            visibleOnMenu: true,
-            visibleOnRouter: true,
-          },          {
-            label: "Movimentações",
-            icon: "pi pi-circle-on",
-            to: `${CONTROLE_VAGAS_BASE_PATH}/movimentacoes`,
             visibleOnMenu: true,
             visibleOnRouter: true,
           },
@@ -6261,17 +6261,17 @@ export function PrototiposControleVagasDistribuicaoSaldoPage() {
     </PrototypeSystemPage>
   );
 }
-export function PrototiposControleVagasMovimentacoesPage() {
-  return (
-    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
-      <MovimentacoesVagasContent />
-    </PrototypeSystemPage>
-  );
-}
 export function PrototiposControleVagasDashboardPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
       <DashboardControleVagasContent />
+    </PrototypeSystemPage>
+  );
+}
+export function PrototiposControleVagasProjecoesPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <ProjecoesVagasContent />
     </PrototypeSystemPage>
   );
 }
