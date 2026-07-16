@@ -2,21 +2,9 @@ import { useMemo, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./distribuicaoSaldo.css";
 
-interface DistribuicaoRow {
-  id: number; quadro: string; cargo: string; especialidade: string; vinculo: string; orgao: string; unidade: string;
-  autorizado: number; distribuido: number; ocupado: number; comprometido: number; bloqueado: number; vigencia: string; situacao: "Regular" | "Atenção" | "Crítica" | "Sem saldo" | "Excedente";
-}
-
-const BASE = "/prototipos/sigep/controle-vagas";
-const dadosIniciais: DistribuicaoRow[] = [
-  { id: 1, quadro: "QA-0001", cargo: "Analista Administrativo", especialidade: "Administração", vinculo: "Efetivo", orgao: "SEPLAG", unidade: "Administração Sistêmica", autorizado: 120, distribuido: 52, ocupado: 46, comprometido: 2, bloqueado: 0, vigencia: "01/01/2025", situacao: "Atenção" },
-  { id: 2, quadro: "QA-0001", cargo: "Analista Administrativo", especialidade: "Administração", vinculo: "Efetivo", orgao: "SEPLAG", unidade: "Gestão de Pessoas", autorizado: 120, distribuido: 38, ocupado: 36, comprometido: 1, bloqueado: 0, vigencia: "01/01/2025", situacao: "Crítica" },
-  { id: 3, quadro: "QA-0001", cargo: "Analista Administrativo", especialidade: "Administração", vinculo: "Efetivo", orgao: "SEPLAG", unidade: "Tecnologia da Informação", autorizado: 120, distribuido: 20, ocupado: 18, comprometido: 1, bloqueado: 0, vigencia: "01/01/2025", situacao: "Crítica" },
-  { id: 4, quadro: "QA-0002", cargo: "Técnico em Enfermagem", especialidade: "", vinculo: "Efetivo", orgao: "SES", unidade: "Hospital Metropolitano", autorizado: 500, distribuido: 210, ocupado: 202, comprometido: 5, bloqueado: 2, vigencia: "01/03/2025", situacao: "Crítica" },
-  { id: 5, quadro: "QA-0002", cargo: "Técnico em Enfermagem", especialidade: "", vinculo: "Efetivo", orgao: "SES", unidade: "Hospital Regional de Rondonópolis", autorizado: 500, distribuido: 160, ocupado: 158, comprometido: 3, bloqueado: 0, vigencia: "01/03/2025", situacao: "Excedente" },
-  { id: 6, quadro: "QA-0003", cargo: "DGA-6", especialidade: "", vinculo: "Comissionado", orgao: "SEFAZ", unidade: "Gabinete", autorizado: 42, distribuido: 18, ocupado: 17, comprometido: 1, bloqueado: 0, vigencia: "01/01/2026", situacao: "Sem saldo" },
-  { id: 7, quadro: "QA-0004", cargo: "Professor da Educação Básica", especialidade: "Matemática", vinculo: "Temporário", orgao: "SEDUC", unidade: "Diretoria Regional Metropolitana", autorizado: 300, distribuido: 185, ocupado: 162, comprometido: 8, bloqueado: 0, vigencia: "01/08/2026", situacao: "Regular" },
-];
+import type { DistribuicaoRow } from "./types";
+import { distribuicoesVagasMock } from "./mockData";
+import { CONTROLE_VAGAS_BASE_PATH as BASE } from "./constants";
 
 const disponivel = (r: DistribuicaoRow) => r.distribuido - r.ocupado - r.comprometido - r.bloqueado;
 const statusClass: Record<DistribuicaoRow["situacao"], string> = { Regular: "is-regular", Atenção: "is-attention", Crítica: "is-critical", "Sem saldo": "is-full", Excedente: "is-excess" };
@@ -28,7 +16,7 @@ export function DistribuicaoSaldoContent() {
 
 function DistribuicaoVagas() {
   const navigate = useNavigate();
-  const [dados, setDados] = useState(dadosIniciais);
+  const [dados, setDados] = useState(distribuicoesVagasMock);
   const [busca, setBusca] = useState(""); const [orgao, setOrgao] = useState(""); const [quadro, setQuadro] = useState("");
   const [modal, setModal] = useState<{ tipo: "distribuir" | "transferir" | "recolher"; item?: DistribuicaoRow } | null>(null);
   const filtrados = useMemo(() => { const t = busca.trim().toLowerCase(); return dados.filter(r => (!t || `${r.cargo} ${r.unidade} ${r.especialidade}`.toLowerCase().includes(t)) && (!orgao || r.orgao === orgao) && (!quadro || r.quadro === quadro)); }, [busca, orgao, quadro, dados]);
@@ -46,14 +34,14 @@ function DistribuicaoVagas() {
 
 function ConsultaSaldo() {
   const navigate = useNavigate(); const [busca,setBusca]=useState(""); const [orgao,setOrgao]=useState(""); const [situacao,setSituacao]=useState(""); const [detalhe,setDetalhe]=useState<DistribuicaoRow|null>(null);
-  const filtrados=useMemo(()=>{const t=busca.trim().toLowerCase();return dadosIniciais.filter(r=>(!t||`${r.cargo} ${r.unidade} ${r.quadro}`.toLowerCase().includes(t))&&(!orgao||r.orgao===orgao)&&(!situacao||r.situacao===situacao))},[busca,orgao,situacao]);
+  const filtrados=useMemo(()=>{const t=busca.trim().toLowerCase();return distribuicoesVagasMock.filter(r=>(!t||`${r.cargo} ${r.unidade} ${r.quadro}`.toLowerCase().includes(t))&&(!orgao||r.orgao===orgao)&&(!situacao||r.situacao===situacao))},[busca,orgao,situacao]);
   const totaisOperacionais=filtrados.reduce((a,r)=>({dist:a.dist+r.distribuido,ocup:a.ocup+r.ocupado,comp:a.comp+r.comprometido,bloq:a.bloq+r.bloqueado,disp:a.disp+Math.max(0,disponivel(r)),exc:a.exc+Math.max(0,-disponivel(r))}),{dist:0,ocup:0,comp:0,bloq:0,disp:0,exc:0});
   const autorizadoUnico=[...new Set(filtrados.map(r=>r.quadro))].reduce((total,codigo)=>total+(filtrados.find(r=>r.quadro===codigo)?.autorizado??0),0);
   const totais={aut:autorizadoUnico,...totaisOperacionais};
   return <div className="prototype-distrib-page"><PageHeader title="Consulta de Saldo" description="Posição consolidada das vagas por data de referência."><button className="prototype-distrib-secondary" onClick={()=>navigate(`${BASE}/distribuicao`)}><i className="pi pi-sitemap"/> Ver distribuições</button></PageHeader>
     <div className="prototype-distrib-notice is-warning"><i className="pi pi-database"/><span>Ocupações e comprometimentos são simulados nesta etapa. A composição já segue a fórmula definida em Regras e Parâmetros.</span></div>
     <section className="prototype-saldo-kpis"><Kpi label="Autorizado" value={totais.aut} icon="pi pi-file-check"/><Kpi label="Distribuído" value={totais.dist} icon="pi pi-sitemap"/><Kpi label="Ocupado" value={totais.ocup} icon="pi pi-users"/><Kpi label="Comprometido" value={totais.comp} icon="pi pi-clock"/><Kpi label="Bloqueado" value={totais.bloq} icon="pi pi-lock"/><Kpi label="Disponível" value={totais.disp} icon="pi pi-check-circle" kind="available"/><Kpi label="Excedente" value={totais.exc} icon="pi pi-exclamation-triangle" kind="danger"/></section>
-    <section className="prototype-distrib-card"><header><div><h2>Composição do saldo</h2><p>Clique em um registro para visualizar a memória do cálculo.</p></div><button><i className="pi pi-download"/> Exportar</button></header><div className="prototype-distrib-filters saldo"><label className="is-wide"><span>Cargo, quadro ou unidade</span><div><i className="pi pi-search"/><input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar no saldo"/></div></label><label><span>Órgão</span><select value={orgao} onChange={e=>setOrgao(e.target.value)}><option value="">Todos</option>{[...new Set(dadosIniciais.map(r=>r.orgao))].map(v=><option key={v}>{v}</option>)}</select></label><label><span>Situação</span><select value={situacao} onChange={e=>setSituacao(e.target.value)}><option value="">Todas</option>{Object.keys(statusClass).map(v=><option key={v}>{v}</option>)}</select></label><label><span>Data de referência</span><input type="date" defaultValue="2026-07-15"/></label><button onClick={()=>{setBusca("");setOrgao("");setSituacao("")}}><i className="pi pi-filter-slash"/> Limpar</button></div>
+    <section className="prototype-distrib-card"><header><div><h2>Composição do saldo</h2><p>Clique em um registro para visualizar a memória do cálculo.</p></div><button><i className="pi pi-download"/> Exportar</button></header><div className="prototype-distrib-filters saldo"><label className="is-wide"><span>Cargo, quadro ou unidade</span><div><i className="pi pi-search"/><input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar no saldo"/></div></label><label><span>Órgão</span><select value={orgao} onChange={e=>setOrgao(e.target.value)}><option value="">Todos</option>{[...new Set(distribuicoesVagasMock.map(r=>r.orgao))].map(v=><option key={v}>{v}</option>)}</select></label><label><span>Situação</span><select value={situacao} onChange={e=>setSituacao(e.target.value)}><option value="">Todas</option>{Object.keys(statusClass).map(v=><option key={v}>{v}</option>)}</select></label><label><span>Data de referência</span><input type="date" defaultValue="2026-07-15"/></label><button onClick={()=>{setBusca("");setOrgao("");setSituacao("")}}><i className="pi pi-filter-slash"/> Limpar</button></div>
       <div className="prototype-distrib-table saldo"><table><thead><tr><th>Cargo e destino</th><th className="num">Autorizado</th><th className="num">Distribuído</th><th className="num">Ocupado</th><th className="num">Comprometido</th><th className="num">Bloqueado</th><th className="num">Disponível</th><th className="num">Excedente</th><th>Situação</th></tr></thead><tbody>{filtrados.map(r=><tr key={r.id} onClick={()=>setDetalhe(r)} tabIndex={0}><td><strong>{r.cargo}</strong><small>{r.orgao} • {r.unidade}</small></td><td className="num">{r.autorizado}</td><td className="num">{r.distribuido}</td><td className="num">{r.ocupado}</td><td className="num">{r.comprometido}</td><td className="num">{r.bloqueado}</td><td className="num positive"><strong>{Math.max(0,disponivel(r))}</strong></td><td className="num danger"><strong>{Math.max(0,-disponivel(r))||"—"}</strong></td><td><span className={`prototype-distrib-status ${statusClass[r.situacao]}`}>{r.situacao}</span></td></tr>)}</tbody></table></div><footer><span>{filtrados.length} saldos encontrados</span><span>Posição em 15/07/2026</span></footer></section>{detalhe&&<MemoriaSaldo item={detalhe} onClose={()=>setDetalhe(null)}/>}</div>;
 }
 

@@ -1,0 +1,19 @@
+export type ImpactoRegra = "Autorização" | "Comprometimento" | "Ocupação" | "Liberação" | "Bloqueio" | "Exceção";
+export interface RegraEvento { id:number; evento:string; origem:string; impacto:ImpactoRegra; comportamento:string; validacao:"Provisória"|"Confirmada"; }
+export type TipoQuadroLegal = "Efetivo" | "Comissionado";
+export type SituacaoQuadro = "Vigente"|"Rascunho"|"Aguardando aprovação"|"Vigência futura"|"Encerrada";
+export interface QuadroAutorizadoRow { id:number; codigo:string; tipoQuadro:TipoQuadroLegal; vinculo:string; regime:string; carreira:string; cargo:string; especialidade:string; orgao:string; abrangencia:string; autorizadas:number; ocupadas:number; comprometidas:number; bloqueadas:number; inicioVigencia:string; fimVigencia:string; ato:string; processo:string; situacao:SituacaoQuadro; versao:number; atualizadoEm:string; }
+export interface DistribuicaoRow { id:number; quadro:string; cargo:string; especialidade:string; vinculo:string; orgao:string; unidade:string; autorizado:number; distribuido:number; ocupado:number; comprometido:number; bloqueado:number; vigencia:string; situacao:"Regular"|"Atenção"|"Crítica"|"Sem saldo"|"Excedente"; }
+export type TipoMovimento = "Autorização"|"Distribuição"|"Comprometimento"|"Ocupação"|"Liberação"|"Bloqueio"|"Transferência"|"Ajuste"|"Exceção"|"Estorno";
+export type SituacaoMovimento = "Processada"|"Pendente"|"Estornada"|"Aguardando aprovação";
+export interface MovimentoRow { id:number; codigo:string; dataEfeito:string; dataRegistro:string; evento:string; tipo:TipoMovimento; quadro:string; cargo:string; orgao:string; unidade:string; quantidade:number; impacto:"+"|"-"|"↔"; parcela:string; saldoAnterior:number; saldoPosterior:number; origem:string; referencia:string; processo:string; responsavel:string; situacao:SituacaoMovimento; retroativa:boolean; movimentoOrigem?:string; }
+export interface PendenciaRow { id:number; recebidaEm:string; evento:string; origem:string; cargo:string; orgao:string; motivo:string; criticidade:"Alta"|"Média"|"Baixa"; tentativas:number; }
+export type SituacaoDashboard = "Regular"|"Atenção"|"Crítica"|"Sem saldo"|"Excedente"|"Divergente";
+export interface DashboardRow { id:number; cargo:string; orgao:string; unidade:string; vinculo:string; autorizado:number; distribuido:number; ocupado:number; comprometido:number; bloqueado:number; saidas:number; processos:number; situacao:SituacaoDashboard; }
+
+export type TipoVagaLegal = "EFETIVO" | "COMISSIONADO";
+export type EstadoVaga = "DISPONIVEL" | "OCUPADA";
+export type SituacaoLegalVaga = "REGULAR" | "DECISAO_JUDICIAL" | "EM_EXTINCAO" | "EXTINTA" | "EM_TRANSFORMACAO" | "DIVERGENTE";
+export type TipoEventoHistoricoVaga = "CRIACAO" | "ALTERACAO_ESTADO" | "ALTERACAO_LEGAL" | "DISTRIBUICAO" | "CORRECAO";
+export interface HistoricoVaga { readonly id:string; readonly vagaId:string; readonly ocorridoEm:string; readonly dataEfeito:string; readonly tipo:TipoEventoHistoricoVaga; readonly titulo:string; readonly descricao:string; readonly estadoAnterior?:EstadoVaga; readonly estadoPosterior?:EstadoVaga; readonly situacaoLegalAnterior?:SituacaoLegalVaga; readonly situacaoLegalPosterior?:SituacaoLegalVaga; readonly origem:string; readonly usuario:string; readonly processo?:string; }
+export interface Vaga { readonly id:string; readonly sequencial:number; readonly quadroAutorizadoId:number; readonly quadroCodigo:string; readonly tipo:TipoVagaLegal; readonly lei:string; readonly carreira:string; readonly cargo:string; readonly orgaoTitular:string; readonly criadaEm:string; readonly inicioVigencia:string; estado:EstadoVaga; situacaoLegal:SituacaoLegalVaga; readonly historico:readonly HistoricoVaga[]; }
