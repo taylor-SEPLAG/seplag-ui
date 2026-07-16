@@ -98,6 +98,8 @@ import {
   PrototiposSicadChamadosDashboardPage,
   PrototiposSicadChamadosRelatoriosPage,
   PrototiposSicadPage,
+  PrototiposSicadUsuariosPage,
+  PrototiposSicadUsuarioPerfilPage,
 } from "./prototipos/sicad/PrototiposSicadPage";
 
 function HomePage() {
@@ -1239,6 +1241,14 @@ function App() {
       <Route path="/prototipos" element={<PrototiposPage />} />
       <Route path="/prototipos/sicad" element={<PrototiposSicadPage />} />
       <Route
+        path="/prototipos/sicad/administrador/usuarios"
+        element={<PrototiposSicadUsuariosPage />}
+      />
+      <Route
+        path="/prototipos/sicad/administrador/usuarios/:id"
+        element={<PrototiposSicadUsuarioPerfilPage />}
+      />
+      <Route
         path="/prototipos/sicad/chamados/nova"
         element={<PrototiposSicadNovoChamadoPage />}
       />
@@ -1366,17 +1376,20 @@ function App() {
       <Route
         path="/prototipos/sigep/controle-vagas/configuracoes"
         element={<PrototiposControleVagasRegrasPage />}
-      />      <Route
+      />
+      <Route
         path="/prototipos/sigep/controle-vagas/dashboard"
         element={<PrototiposControleVagasDashboardPage />}
-      />      <Route
+      />
+      <Route
         path="/prototipos/sigep/controle-vagas/distribuicao"
         element={<PrototiposControleVagasDistribuicaoSaldoPage />}
       />
       <Route
         path="/prototipos/sigep/controle-vagas/consulta-saldo"
         element={<PrototiposControleVagasDistribuicaoSaldoPage />}
-      />      <Route
+      />
+      <Route
         path="/prototipos/sigep/controle-vagas/projecoes"
         element={<PrototiposControleVagasProjecoesPage />}
       />
@@ -1657,6 +1670,9 @@ function App() {
 }
 
 export default App;
+
+
+
 
 
 

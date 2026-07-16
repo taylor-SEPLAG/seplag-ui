@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from "react";
+import { type FormEvent, type ReactNode, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { AnexarDocumentoSeplag, type ArquivoAnexadoSeplag } from "../../componentes/AnexarDocumento";
@@ -104,6 +104,7 @@ const menuSicad: IMenuSeplag[] = [
     visibleOnRouter: true,
     items: [
       { label: "Parâmetros", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Usuários", icon: "pi pi-circle-on", to: getSicadPath("/administrador/usuarios"), visibleOnMenu: true, visibleOnRouter: true },
       { label: "Perfis de Acesso", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
     ],
   },
@@ -2960,6 +2961,241 @@ export function PrototiposSicadChamadosRelatoriosPage() {
     </SicadShell>
   );
 }
+type SicadUsuarioCadastroMock = {
+  id: string;
+  nome: string;
+  cpf: string;
+  matricula: string;
+  email: string;
+  perfil: string;
+  situacao: "Ativo" | "Inativo";
+};
+
+const sicadUsuariosCadastroMock: SicadUsuarioCadastroMock[] = [
+  { id: "usr-1", nome: "USUARIO TESTE 01", cpf: "000.000.000-00", matricula: "11111", email: "usuario.teste01@exemplo.local", perfil: "SUPORTE", situacao: "Ativo" },
+  { id: "usr-2", nome: "USUARIO TESTE 02", cpf: "111.111.111-11", matricula: "22222", email: "usuario.teste02@exemplo.local", perfil: "ANALISTA", situacao: "Ativo" },
+  { id: "usr-3", nome: "USUARIO TESTE 03", cpf: "222.222.222-22", matricula: "33333", email: "usuario.teste03@exemplo.local", perfil: "GESTAO", situacao: "Ativo" },
+  { id: "usr-4", nome: "USUARIO TESTE 04", cpf: "333.333.333-33", matricula: "44444", email: "usuario.teste04@exemplo.local", perfil: "ADMINISTRADOR", situacao: "Ativo" },
+  { id: "usr-5", nome: "USUARIO TESTE 05", cpf: "444.444.444-44", matricula: "55555", email: "usuario.teste05@exemplo.local", perfil: "HOMOLOGADOR", situacao: "Ativo" },
+  { id: "usr-6", nome: "USUARIO TESTE 06", cpf: "555.555.555-55", matricula: "66666", email: "usuario.teste06@exemplo.local", perfil: "ANALISTA", situacao: "Ativo" },
+  { id: "usr-7", nome: "USUARIO TESTE 07", cpf: "666.666.666-66", matricula: "77777", email: "usuario.teste07@exemplo.local", perfil: "SUPORTE", situacao: "Ativo" },
+  { id: "usr-8", nome: "USUARIO TESTE 08", cpf: "777.777.777-77", matricula: "88888", email: "usuario.teste08@exemplo.local", perfil: "GESTAO", situacao: "Inativo" },
+  { id: "usr-9", nome: "USUARIO TESTE 09", cpf: "888.888.888-88", matricula: "99999", email: "usuario.teste09@exemplo.local", perfil: "SUPORTE", situacao: "Ativo" },
+  { id: "usr-10", nome: "USUARIO TESTE 10", cpf: "999.999.999-99", matricula: "00000", email: "usuario.teste10@exemplo.local", perfil: "ADMINISTRADOR", situacao: "Ativo" },
+];
+
+export function PrototiposSicadUsuariosPage() {
+  const [busca, setBusca] = useState("");
+  const termo = busca.trim().toLocaleLowerCase("pt-BR");
+  const usuariosFiltrados = sicadUsuariosCadastroMock.filter((usuario) => {
+    if (!termo) return true;
+    return (
+      usuario.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
+      usuario.cpf.includes(termo) ||
+      usuario.matricula.includes(termo)
+    );
+  });
+
+  return (
+    <SicadShell title="Usuários">
+      <main className="prototype-sicad-page prototype-sicad-users-page">
+        <header className="prototype-sicad-list-header">
+          <h1>Cadastro de Usuários</h1>
+        </header>
+
+        <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-users-card">
+          <section className="prototype-sicad-users-content col-12">
+            <div className="prototype-sicad-users-filter" role="search">
+              <label htmlFor="sicad-user-search">Filtro de usuários</label>
+              <div>
+                <i className="pi pi-search" aria-hidden="true" />
+                <input
+                  id="sicad-user-search"
+                  type="search"
+                  value={busca}
+                  onChange={(event) => setBusca(event.target.value)}
+                  placeholder="Digite nome, CPF ou matrícula"
+                />
+              </div>
+            </div>
+
+            <div className="prototype-sicad-users-table-wrapper">
+              <table className="prototype-sicad-users-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Matrícula</th>
+                    <th>Email</th>
+                    <th>Perfil</th>
+                    <th>Situação</th>
+                    <th>Ação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usuariosFiltrados.map((usuario) => (
+                    <tr key={usuario.id}>
+                      <td>{usuario.nome}</td>
+                      <td>{usuario.cpf}</td>
+                      <td>{usuario.matricula}</td>
+                      <td>{usuario.email}</td>
+                      <td>{usuario.perfil}</td>
+                      <td><span className={"prototype-sicad-users-status prototype-sicad-users-status--" + usuario.situacao.toLocaleLowerCase("pt-BR")}>{usuario.situacao}</span></td>
+                      <td>
+                        <a className="prototype-sicad-users-edit" aria-label={"Editar " + usuario.nome} href={getSicadHashPath("/administrador/usuarios/" + usuario.id)}>
+                          <i className="pi pi-pencil" />
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="prototype-sicad-table-footer">
+                Exibindo {usuariosFiltrados.length ? 1 : 0} a {usuariosFiltrados.length} de {usuariosFiltrados.length} usuários
+              </div>
+            </div>
+          </section>
+        </CardSeplag>
+      </main>
+    </SicadShell>
+  );
+}
+type SicadUsuarioVinculoMock = {
+  id: string;
+  numero: string;
+  orgao: string;
+  unidade: string;
+  tipo: string;
+  status: string;
+  nome: string;
+  descricaoPerfil: string;
+};
+
+const sicadPerfilAcessoOptions = [
+  { label: "ANALISTA - CADI", value: "ANALISTA - CADI" },
+  { label: "ADMINISTRADOR - CADI", value: "ADMINISTRADOR - CADI" },
+  { label: "CONTABILIDADE - CADI", value: "CONTABILIDADE - CADI" },
+  { label: "FINANCEIRO - CADI", value: "FINANCEIRO - CADI" },
+  { label: "GERAL - CADI", value: "GERAL - CADI" },
+  { label: "ORCAMENTO - CADI", value: "ORCAMENTO - CADI" },
+  { label: "ORDENADOR - CADI", value: "ORDENADOR - CADI" },
+  { label: "CHEFIA_REGIONAL - CADI", value: "CHEFIA_REGIONAL - CADI" },
+];
+
+const sicadUsuarioVinculosMock: SicadUsuarioVinculoMock[] = [
+  {
+    id: "vinculo-1",
+    numero: "2",
+    orgao: "SECRETARIA DE ESTADO DE PLANEJAMENTO E GESTAO MT",
+    unidade: "COORDENADORIA DE PLANEJAMENTO E PROJETOS DE TI",
+    tipo: "Contrato Temporário",
+    status: "ATIVO",
+    nome: "SERVIDOR - TESTE CADI",
+    descricaoPerfil: "Acesso geral de teste ao sistema CADI",
+  },
+  {
+    id: "vinculo-2",
+    numero: "1",
+    orgao: "SECRETARIA DE ESTADO DE PLANEJAMENTO E GESTAO MT",
+    unidade: "UNIDADE FICTICIA DE HOMOLOGACAO",
+    tipo: "Contrato Temporário",
+    status: "DESLIGADO",
+    nome: "",
+    descricaoPerfil: "",
+  },
+];
+
+export function PrototiposSicadUsuarioPerfilPage() {
+  const navigate = useNavigate();
+  const { id = "usr-1" } = useParams();
+  const usuario = sicadUsuariosCadastroMock.find((item) => item.id === id) ?? sicadUsuariosCadastroMock[0];
+  const [perfilAcesso, setPerfilAcesso] = useState(sicadPerfilAcessoOptions[0].value);
+
+  const handleAplicarPerfil = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    window.alert("Perfil " + perfilAcesso + " aplicado para " + usuario.nome + ".");
+  };
+
+  const handleRemoverPerfil = () => {
+    window.alert("Perfil removido de " + usuario.nome + ".");
+  };
+
+  return (
+    <SicadShell title="Perfil de acesso">
+      <main className="prototype-sicad-page prototype-sicad-user-profile-page">
+        <CardSeplag cols="12" cardHeaderClassNames="prototype-sicad-user-profile-card">
+          <form className="prototype-sicad-user-profile-content col-12" onSubmit={handleAplicarPerfil}>
+            <header className="prototype-sicad-user-profile-header">
+              <h1>Perfil de acesso</h1>
+              <p>{usuario.nome} · CPF {usuario.cpf} · Matrícula {usuario.matricula}</p>
+            </header>
+
+            <section className="prototype-sicad-user-profile-section" aria-labelledby="sicad-profile-access-title">
+              <h2 id="sicad-profile-access-title">Perfis de Acesso</h2>
+              <div className="col-12">
+                <select
+                  className="prototype-sicad-user-profile-select"
+                  value={perfilAcesso}
+                  aria-label="Perfil de acesso"
+                  onChange={(event) => setPerfilAcesso(event.target.value)}
+                >
+                  {sicadPerfilAcessoOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </section>
+
+            <section className="prototype-sicad-user-profile-section" aria-labelledby="sicad-user-bonds-title">
+              <h2 id="sicad-user-bonds-title">Vínculos do usuário</h2>
+              <div className="prototype-sicad-user-profile-table-wrap">
+                <table className="prototype-sicad-user-profile-table">
+                  <thead>
+                    <tr>
+                      <th><input type="checkbox" aria-label="Selecionar todos os vínculos" /></th>
+                      <th>Nº</th>
+                      <th>Órgão</th>
+                      <th>Unidade</th>
+                      <th>Tipo</th>
+                      <th>Status</th>
+                      <th>Nome</th>
+                      <th>Descrição do Perfil</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sicadUsuarioVinculosMock.map((vinculo) => (
+                      <tr key={vinculo.id}>
+                        <td><input type="checkbox" aria-label={"Selecionar vínculo " + vinculo.numero} /></td>
+                        <td>{vinculo.numero}</td>
+                        <td>{vinculo.orgao}</td>
+                        <td>{vinculo.unidade}</td>
+                        <td>{vinculo.tipo}</td>
+                        <td>{vinculo.status}</td>
+                        <td>{vinculo.nome || "-"}</td>
+                        <td>{vinculo.descricaoPerfil || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <div className="prototype-sicad-user-profile-actions">
+              <BotaoSeplag type="submit" label="Aplicar" icon="pi pi-check" severity="success" />
+              <BotaoSeplag type="button" label="Remover" icon="pi pi-check" severity="danger" onClick={handleRemoverPerfil} />
+            </div>
+          </form>
+        </CardSeplag>
+
+        <div className="prototype-sicad-user-profile-back">
+          <BotaoSeplag type="button" label="Voltar" icon="pi pi-chevron-left" variant="back" onClick={() => navigate(getSicadPath("/administrador/usuarios"))} />
+        </div>
+      </main>
+    </SicadShell>
+  );
+}
 type SicadBaseConhecimentoCategoria = {
   id: string;
   titulo: string;
@@ -3175,6 +3411,13 @@ export const sicadOccurrenceRoutes = {
   relatorios: getSicadHashPath("/chamados/relatorios"),
   baseConhecimento: getSicadHashPath("/chamados/base-conhecimento"),
 };
+
+
+
+
+
+
+
 
 
 
