@@ -16,6 +16,7 @@ const situacaoClass: Record<SituacaoQuadro, string> = {
 const saldo = (item: QuadroAutorizadoRow) => item.autorizadas - item.ocupadas - item.comprometidas - item.bloqueadas;
 
 export function QuadroAutorizadoContent() {
+  const { quadros } = useControleVagasStore();
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
@@ -38,6 +39,7 @@ export function QuadroAutorizadoContent() {
 }
 
 function QuadroAutorizadoLista() {
+  const { quadros } = useControleVagasStore();
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const [orgao, setOrgao] = useState("");
@@ -48,7 +50,7 @@ function QuadroAutorizadoLista() {
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
     return quadros.filter((item) => (!termo || `${item.codigo} ${item.cargo} ${item.carreira} ${item.especialidade}`.toLocaleLowerCase("pt-BR").includes(termo)) && (!orgao || item.orgao === orgao) && (!tipo || item.tipoQuadro === tipo) && (!situacao || item.situacao === situacao));
-  }, [busca, orgao, tipo, situacao]);
+  }, [busca, orgao, tipo, situacao, quadros]);
 
   const totais = filtrados.reduce((acc, item) => ({ autorizadas: acc.autorizadas + item.autorizadas, ocupadas: acc.ocupadas + item.ocupadas, comprometidas: acc.comprometidas + item.comprometidas, disponiveis: acc.disponiveis + Math.max(0, saldo(item)) }), { autorizadas: 0, ocupadas: 0, comprometidas: 0, disponiveis: 0 });
 

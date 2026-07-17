@@ -99,7 +99,7 @@ import type {
 import { ControleVagasRegrasContent } from "./controleVagas/ControleVagasRegrasContent";
 import { QuadroAutorizadoContent } from "./controleVagas/QuadroAutorizadoContent";
 import { DistribuicaoSaldoContent } from "./controleVagas/DistribuicaoSaldoContent";
-import { DashboardControleVagasContent } from "./controleVagas/DashboardControleVagasContent";
+import { DashboardGerencialContent } from "./controleVagas/DashboardGerencialContent";
 import { VagasIndividualizadasContent } from "./controleVagas/VagasIndividualizadasContent";
 import { ComprometimentosVagasContent } from "./controleVagas/ComprometimentosVagasContent";
 import { OcupacoesNominaisContent } from "./controleVagas/OcupacoesNominaisContent";
@@ -6264,7 +6264,7 @@ export function PrototiposControleVagasDistribuicaoSaldoPage() {
 export function PrototiposControleVagasDashboardPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
-      <DashboardControleVagasContent />
+      <DashboardGerencialContent />
     </PrototypeSystemPage>
   );
 }

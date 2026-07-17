@@ -3,8 +3,6 @@ export interface RegraEvento { id:number; evento:string; origem:string; impacto:
 export type TipoQuadroLegal = "Efetivo" | "Comissionado";
 export type SituacaoQuadro = "Vigente"|"Rascunho"|"Aguardando aprovação"|"Vigência futura"|"Encerrada";
 export interface QuadroAutorizadoRow { id:number; codigo:string; tipoQuadro:TipoQuadroLegal; vinculo:string; regime:string; carreira:string; cargo:string; especialidade:string; orgao:string; abrangencia:string; autorizadas:number; ocupadas:number; comprometidas:number; bloqueadas:number; inicioVigencia:string; fimVigencia:string; ato:string; processo:string; situacao:SituacaoQuadro; versao:number; atualizadoEm:string; }
-export type SituacaoDashboard = "Regular"|"Atenção"|"Crítica"|"Sem saldo"|"Excedente"|"Divergente";
-export interface DashboardRow { id:number; cargo:string; orgao:string; unidade:string; vinculo:string; autorizado:number; distribuido:number; ocupado:number; comprometido:number; bloqueado:number; saidas:number; processos:number; situacao:SituacaoDashboard; }
 
 export type TipoVagaLegal = "EFETIVO" | "COMISSIONADO";
 export type EstadoVaga = "DISPONIVEL" | "OCUPADA";

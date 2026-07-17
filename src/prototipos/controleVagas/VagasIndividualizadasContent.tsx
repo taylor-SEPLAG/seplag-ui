@@ -8,6 +8,8 @@ const legalLabel:Record<SituacaoLegalVaga,string>={REGULAR:"Regular",DECISAO_JUD
 const legalClass:Record<SituacaoLegalVaga,string>={REGULAR:"regular",DECISAO_JUDICIAL:"judicial",EM_EXTINCAO:"extincao",EXTINTA:"extinta",EM_TRANSFORMACAO:"transformacao",DIVERGENTE:"divergente"};
 
 export function VagasIndividualizadasContent(){
+ const {vagas,comprometimentos}=useControleVagasStore();
+ const getComprometimento=(vagaId:string)=>comprometimentos.find((item)=>item.vagaId===vagaId&&item.situacao==="ATIVO");
  const [busca,setBusca]=useState("");const [orgao,setOrgao]=useState("");const [cargo,setCargo]=useState("");const [tipo,setTipo]=useState("");const [estado,setEstado]=useState("");const [legal,setLegal]=useState("");const [vaga,setVaga]=useState<Vaga|null>(null);const [explicacao,setExplicacao]=useState(false);const [pagina,setPagina]=useState(1);const porPagina=20;
  const filtradas=useMemo(()=>{const t=busca.trim().toLowerCase();return vagas.filter(v=>(!t||`${v.id} ${v.cargo} ${v.carreira} ${v.lei}`.toLowerCase().includes(t))&&(!orgao||v.orgaoTitular===orgao)&&(!cargo||v.cargo===cargo)&&(!tipo||v.tipo===tipo)&&(!estado||v.estado===estado)&&(!legal||v.situacaoLegal===legal))},[busca,orgao,cargo,tipo,estado,legal,vagas]);
  const paginas=Math.max(1,Math.ceil(filtradas.length/porPagina));const exibidas=filtradas.slice((Math.min(pagina,paginas)-1)*porPagina,Math.min(pagina,paginas)*porPagina);
