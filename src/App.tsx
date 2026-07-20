@@ -37,8 +37,6 @@ import {
   PrototiposControleVagasDistribuicaoSaldoPage,
   PrototiposControleVagasDashboardPage,
   PrototiposControleVagasVagasPage,
-  PrototiposControleVagasComprometimentosPage,
-  PrototiposControleVagasOcupacoesPage,
   PrototiposControleVagasCessoesPage,
   PrototiposControleVagasProjecoesPage,
   PrototiposEfetivoExercicioPage,
@@ -1396,14 +1394,6 @@ function App() {
       <Route
         path="/prototipos/sigep/controle-vagas/cessoes"
         element={<PrototiposControleVagasCessoesPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/ocupacoes"
-        element={<PrototiposControleVagasOcupacoesPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/comprometimentos"
-        element={<PrototiposControleVagasComprometimentosPage />}
       />
       <Route
         path="/prototipos/sigep/controle-vagas/vagas"

@@ -101,8 +101,6 @@ import { QuadroAutorizadoContent } from "./controleVagas/QuadroAutorizadoContent
 import { DistribuicaoSaldoContent } from "./controleVagas/DistribuicaoSaldoContent";
 import { DashboardGerencialContent } from "./controleVagas/DashboardGerencialContent";
 import { VagasIndividualizadasContent } from "./controleVagas/VagasIndividualizadasContent";
-import { ComprometimentosVagasContent } from "./controleVagas/ComprometimentosVagasContent";
-import { OcupacoesNominaisContent } from "./controleVagas/OcupacoesNominaisContent";
 import { TitularidadeCessoesContent } from "./controleVagas/TitularidadeCessoesContent";
 import { ProjecoesVagasContent } from "./controleVagas/ProjecoesVagasContent";
 
@@ -242,21 +240,8 @@ const menuGestaoPessoas: IMenuSeplag[] = [
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/vagas`,
             visibleOnMenu: true,
-            visibleOnRouter: true,
-          },          {
-            label: "Comprometimentos",
-            icon: "pi pi-circle-on",
-            to: `${CONTROLE_VAGAS_BASE_PATH}/comprometimentos`,
-            visibleOnMenu: true,
-            visibleOnRouter: true,
-          },          {
-            label: "Ocupações Nominais",
-            icon: "pi pi-circle-on",
-            to: `${CONTROLE_VAGAS_BASE_PATH}/ocupacoes`,
-            visibleOnMenu: true,
-            visibleOnRouter: true,
-          },          {
-            label: "Exercício e Cessões",
+            visibleOnRouter: true,          },          {
+            label: "Cessões",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/cessoes`,
             visibleOnMenu: true,
@@ -6279,20 +6264,6 @@ export function PrototiposControleVagasCessoesPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
       <TitularidadeCessoesContent />
-    </PrototypeSystemPage>
-  );
-}
-export function PrototiposControleVagasOcupacoesPage() {
-  return (
-    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
-      <OcupacoesNominaisContent />
-    </PrototypeSystemPage>
-  );
-}
-export function PrototiposControleVagasComprometimentosPage() {
-  return (
-    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
-      <ComprometimentosVagasContent />
     </PrototypeSystemPage>
   );
 }

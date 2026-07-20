@@ -130,6 +130,10 @@
   overflow: hidden;
 }
 
+.dropdownInline {
+  position: relative;
+}
+
 .filterWrap {
   padding: 10px;
   border-bottom: 1px solid #e5ebf2;

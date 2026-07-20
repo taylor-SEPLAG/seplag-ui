@@ -62,4 +62,4 @@ export function construirDashboard(state:ControleVagasState,filtros:DashboardFil
   return{grupos,vagas,ocupacoes,cessoes,excecoes,resumo:{cargos:grupos.length,vagasLegais:total("vagasLegais"),ocupadas:total("ocupadas"),disponiveis:total("disponiveis"),livres:total("disponiveisLivres"),comprometidas:total("disponiveisComprometidas"),emDisponibilizacao:total("ocupadasEmDisponibilizacao"),emExtincao:total("emExtincao"),judiciais:total("judiciais"),divergentes:total("divergentes"),cessoes:total("cessoes"),aposentadorias:total("aposentadorias"),potencial:total("potencial")}};
 }
 
-export const situacoesLegais:SituacaoLegalVaga[]=["REGULAR","EM_EXTINCAO","EXTINTA","EM_TRANSFORMACAO","DIVERGENTE"];
+export const situacoesLegais:SituacaoLegalVaga[]=["REGULAR","EM_EXTINCAO","EXTINTA","EM_TRANSFORMACAO"];

@@ -8,8 +8,8 @@ import "./dashboardControleVagas.css";
 import "./dashboardGerencial.css";
 
 const hoje="2026-07-17";
-const prioridadeLabel={REGULAR:"Regular",ATENCAO:"Atenção",CRITICA:"Crítica",DIVERGENTE:"Divergente"} as const;
-const legalLabel={REGULAR:"Regular",EM_EXTINCAO:"Em extinção",EXTINTA:"Extinta",EM_TRANSFORMACAO:"Em transformação",DIVERGENTE:"Divergente"} as const;
+const prioridadeLabel={REGULAR:"Regular",ATENCAO:"Atenção",CRITICA:"Crítica",DIVERGENTE:"Divergência de conciliação"} as const;
+const legalLabel={REGULAR:"Regular",EM_EXTINCAO:"Em extinção",EXTINTA:"Extinta",EM_TRANSFORMACAO:"Em transformação"} as const;
 const cenarioLabel={CONSERVADOR:"Conservador",PROVAVEL:"Provável",AMPLIADO:"Ampliado"} as const;
 const filtrosIniciais:DashboardFiltros={dataReferencia:hoje,orgaoTitular:"",orgaoExercicio:"",tipo:"",carreira:"",cargo:"",situacaoLegal:"",somenteCessoes:false};
 
@@ -41,10 +41,10 @@ export function DashboardGerencialContent(){
   <section className="prototype-dash-kpis management">
    <Kpi label="Cargos legais" valor={dados.resumo.cargos} hint="Cargo e órgão" icon="pi pi-briefcase" cor="blue" onClick={()=>navigate(`${BASE}/quadro-autorizado`)}/>
    <Kpi label="Vagas legais" valor={dados.resumo.vagasLegais} hint="Limite vigente" icon="pi pi-balance-scale" cor="blue" onClick={()=>navigate(`${BASE}/vagas`)}/>
-   <Kpi label="Ocupadas" valor={dados.resumo.ocupadas} hint={`${dados.resumo.vagasLegais?Math.round(dados.resumo.ocupadas/dados.resumo.vagasLegais*100):0}% do quadro`} icon="pi pi-users" cor="green" onClick={()=>navigate(`${BASE}/ocupacoes`)}/>
+   <Kpi label="Ocupadas" valor={dados.resumo.ocupadas} hint={`${dados.resumo.vagasLegais?Math.round(dados.resumo.ocupadas/dados.resumo.vagasLegais*100):0}% do quadro`} icon="pi pi-users" cor="green" onClick={()=>navigate(`${BASE}/vagas`)}/>
    <Kpi label="Disponíveis" valor={dados.resumo.disponiveis} hint={`${dados.resumo.livres} livres`} icon="pi pi-check-circle" cor="cyan" onClick={()=>navigate(`${BASE}/consulta-saldo`)}/>
-   <Kpi label="Comprometidas" valor={dados.resumo.comprometidas} hint="Para ocupação" icon="pi pi-flag" cor="purple" onClick={()=>navigate(`${BASE}/comprometimentos`)}/>
-   <Kpi label="Em disponibilização" valor={dados.resumo.emDisponibilizacao} hint="Ainda ocupadas" icon="pi pi-sign-out" cor="orange" onClick={()=>navigate(`${BASE}/comprometimentos`)}/>
+   <Kpi label="Comprometidas" valor={dados.resumo.comprometidas} hint="Para ocupação" icon="pi pi-flag" cor="purple" onClick={()=>navigate(`${BASE}/vagas`)}/>
+   <Kpi label="Em disponibilização" valor={dados.resumo.emDisponibilizacao} hint="Ainda ocupadas" icon="pi pi-sign-out" cor="orange" onClick={()=>navigate(`${BASE}/vagas`)}/>
    <Kpi label="Situações especiais" valor={dados.resumo.emExtincao+dados.resumo.judiciais+dados.resumo.divergentes} hint="Legal e conciliação" icon="pi pi-exclamation-triangle" cor="red" onClick={()=>navigate(`${BASE}/consulta-saldo`)}/>
   </section>
   <div className="prototype-dash-grid management-top">

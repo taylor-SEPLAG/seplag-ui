@@ -19,6 +19,8 @@ export interface DocumentosLegaisAssociadosSeplagProps {
   onVisualizar?: (documento: DocumentoLegalAssociadoSeplag) => void;
   placeholder?: string;
   filtroPlaceholder?: string;
+  exibirNovoCadastro?: boolean;
+  expandirAoAbrir?: boolean;
 }
 
 const MAX_VISIBLE_SELECTED_ITEMS = 3;
@@ -58,6 +60,8 @@ export function DocumentosLegaisAssociadosSeplag({
   onVisualizar,
   placeholder = "Buscar documentos legais...",
   filtroPlaceholder = "Filtrar por número ou descrição...",
+  exibirNovoCadastro = true,
+  expandirAoAbrir = false,
 }: Readonly<DocumentosLegaisAssociadosSeplagProps>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const selectedListRef = useRef<HTMLDivElement>(null);
@@ -137,14 +141,16 @@ export function DocumentosLegaisAssociadosSeplag({
           {label}
           {required && <span className={styles.required}>*</span>}
         </label>
-        <button
-          className={styles.novoCadastro}
-          type="button"
-          onClick={onNovoCadastro}
-        >
-          <i className="pi pi-plus-circle" aria-hidden="true" />
-          Novo Cadastro
-        </button>
+        {exibirNovoCadastro && (
+          <button
+            className={styles.novoCadastro}
+            type="button"
+            onClick={onNovoCadastro}
+          >
+            <i className="pi pi-plus-circle" aria-hidden="true" />
+            Novo Cadastro
+          </button>
+        )}
       </div>
 
       <div
@@ -190,7 +196,11 @@ export function DocumentosLegaisAssociadosSeplag({
       </div>
 
       {isOpen && (
-        <div className={styles.dropdown}>
+        <div
+          className={`${styles.dropdown} ${
+            expandirAoAbrir ? styles.dropdownInline : ""
+          }`}
+        >
           <div className={styles.filterWrap}>
             <input
               className={styles.filterInput}

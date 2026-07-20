@@ -1,4 +1,5 @@
 import { Calendar } from "primereact/calendar";
+import "./primeLocalePt";
 import { classNames } from "primereact/utils";
 import { Controller, type FieldValues } from "react-hook-form";
 import RotuloSeplag from "../Rotulo";

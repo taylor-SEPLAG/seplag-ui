@@ -1,13 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ControleVagasRegrasContent } from "./ControleVagasRegrasContent";
 import { QuadroAutorizadoContent } from "./QuadroAutorizadoContent";
 import { DashboardGerencialContent } from "./DashboardGerencialContent";
 import { VagasIndividualizadasContent } from "./VagasIndividualizadasContent";
-import { ComprometimentosVagasContent } from "./ComprometimentosVagasContent";
-import { OcupacoesNominaisContent } from "./OcupacoesNominaisContent";
 import { TitularidadeCessoesContent } from "./TitularidadeCessoesContent";
 import { ProjecoesVagasContent } from "./ProjecoesVagasContent";
 import { DistribuicaoIndividualContent } from "./DistribuicaoIndividualContent";
@@ -20,8 +18,6 @@ const cases = [
   ["Regras e Parâmetros", ControleVagasRegrasContent],
   ["Quadro Autorizado", QuadroAutorizadoContent],
   ["Vagas Individualizadas", VagasIndividualizadasContent],
-  ["Comprometimentos", ComprometimentosVagasContent],
-  ["Ocupações Nominais", OcupacoesNominaisContent],
   ["Exercício e Cessões", TitularidadeCessoesContent],
   ["Projeções", ProjecoesVagasContent],
   ["Distribuição", DistribuicaoIndividualContent],
@@ -34,6 +30,42 @@ describe("menus do Controle de Vagas", () => {
     expect(result.container.firstElementChild).not.toBeNull();
   });
 
+  it("separa edição pré-vigência de nova versão", () => {
+    const result = render(<MemoryRouter><QuadroAutorizadoContent /></MemoryRouter>);
+    expect(result.getAllByTitle("Edição indisponível após a vigência")[0].hasAttribute("disabled")).toBe(true);
+    expect(result.getByTitle("Editar antes da vigência").hasAttribute("disabled")).toBe(false);
+    expect(result.getAllByTitle("Criar nova versão")[0].querySelector(".pi-plus")).toBeTruthy();
+  });
+  it("abre os dados do quadro em modal e diferencia a criação de nova versão", () => {
+    const result = render(<MemoryRouter><QuadroAutorizadoContent /></MemoryRouter>);
+    fireEvent.click(result.getAllByTitle("Visualizar")[0]);
+    const dialog = result.getByRole("dialog");
+    expect(dialog).toBeTruthy();
+    expect(dialog.querySelector("button.is-primary .pi-plus")).toBeTruthy();
+  });
+  it("usa a evolução legal existente na rota de nova versão", () => {
+    const result = render(<MemoryRouter initialEntries={["/prototipos/sigep/controle-vagas/quadro-autorizado/1/nova-versao"]}><Routes><Route path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/nova-versao" element={<QuadroAutorizadoContent />} /></Routes></MemoryRouter>);
+    expect(result.getByText("Evolução do quadro legal")).toBeTruthy();
+    expect(result.getByText("Ampliação legal")).toBeTruthy();
+    expect(result.getByText("Redução legal")).toBeTruthy();
+    expect(result.getByText("Transformação")).toBeTruthy();
+    expect(result.getByText("Extinção progressiva")).toBeTruthy();
+    const buscaLegal = result.getByLabelText("Buscar documentos legais associados");
+    fireEvent.focus(buscaLegal);
+    const primeiraNorma = result.container.querySelector('input[type="checkbox"]');
+    expect(primeiraNorma).toBeTruthy();
+    fireEvent.click(primeiraNorma!);
+    fireEvent.click(result.getByText("Simular impacto legal"));
+    expect(result.getByText("Resultado da simulação")).toBeTruthy();
+    fireEvent.click(result.getByText("Registrar nova versão"));
+    expect(result.getByRole("dialog", { name: "Registrar nova versão?" })).toBeTruthy();
+    expect(result.getByText("Confirmar e registrar")).toBeTruthy();
+  });
+  it("renderiza a rota de nova autorização", () => {
+    const result = render(<MemoryRouter initialEntries={["/prototipos/sigep/controle-vagas/quadro-autorizado/novo"]}><QuadroAutorizadoContent /></MemoryRouter>);
+    expect(result.getAllByText("Nova autorização").length).toBeGreaterThan(0);
+    expect(result.getByText("Como a lei definiu a alocação das vagas? *")).toBeTruthy();
+  });
   it("possui as fontes necessárias para a Fase 10", () => {
     const state = controleVagasStore.getState();
     const ocupacoesAtivas = state.ocupacoes.filter((item) => item.situacao === "ATIVA");
