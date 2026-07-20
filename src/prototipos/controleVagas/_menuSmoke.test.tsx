@@ -9,7 +9,6 @@ import { VagasIndividualizadasContent } from "./VagasIndividualizadasContent";
 import { TitularidadeCessoesContent } from "./TitularidadeCessoesContent";
 import { ProjecoesVagasContent } from "./ProjecoesVagasContent";
 import { DistribuicaoIndividualContent } from "./DistribuicaoIndividualContent";
-import { SaldosControleVagasContent } from "./SaldosControleVagasContent";
 import { controleVagasStore } from "./controleVagasStore";
 
 afterEach(cleanup);
@@ -21,7 +20,6 @@ const cases = [
   ["Exercício e Cessões", TitularidadeCessoesContent],
   ["Projeções", ProjecoesVagasContent],
   ["Distribuição", DistribuicaoIndividualContent],
-  ["Saldos", SaldosControleVagasContent],
 ] as const;
 
 describe("menus do Controle de Vagas", () => {

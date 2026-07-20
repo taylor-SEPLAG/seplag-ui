@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import "./controleVagasRegras.css";
 
 import type { ImpactoRegra, RegraEvento } from "./types";
 import { controleVagasStore, useControleVagasStore } from "./controleVagasStore";
+import { calcularSaldo, verificarIdentidadeSaldo } from "./saldosControleVagas";
 
 const impactoMeta: Record<ImpactoRegra, { icon: string; className: string }> = {
   Autorização: { icon: "pi pi-file-edit", className: "is-blue" },
@@ -14,11 +16,16 @@ const impactoMeta: Record<ImpactoRegra, { icon: string; className: string }> = {
 };
 
 export function ControleVagasRegrasContent() {
-  const [aba, setAba] = useState<"eventos" | "dimensoes" | "parametros" | "pendencias">("eventos");
+  const [searchParams] = useSearchParams();
+  const abaInicial = searchParams.get("aba") === "integridade" ? "integridade" : "eventos";
+  const [aba, setAba] = useState<"eventos" | "dimensoes" | "parametros" | "integridade" | "pendencias">(abaInicial);
   const [busca, setBusca] = useState("");
   const [impacto, setImpacto] = useState("");
   const [regraSelecionada, setRegraSelecionada] = useState<RegraEvento | null>(null);
-  const { regras, pendenciasRegras: pendenciasRegrasMock } = useControleVagasStore();
+  const { regras, pendenciasRegras: pendenciasRegrasMock, vagas, comprometimentos, ocupacoes, excecoesJudiciais } = useControleVagasStore();
+  const saldo = useMemo(() => calcularSaldo(vagas, comprometimentos, ocupacoes, excecoesJudiciais), [vagas, comprometimentos, ocupacoes, excecoesJudiciais]);
+  const identidade = verificarIdentidadeSaldo(saldo);
+  const conciliado = identidade.disponiveisConfere && identidade.ocupadasEmDisponibilizacaoContidas;
 
   const regrasFiltradas = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
@@ -65,6 +72,7 @@ export function ControleVagasRegrasContent() {
         <button className={aba === "eventos" ? "is-active" : ""} onClick={() => setAba("eventos")}>Matriz de eventos <span>12</span></button>
         <button className={aba === "dimensoes" ? "is-active" : ""} onClick={() => setAba("dimensoes")}>Dimensões do controle</button>
         <button className={aba === "parametros" ? "is-active" : ""} onClick={() => setAba("parametros")}>Parâmetros gerenciais</button>
+        <button className={aba === "integridade" ? "is-active" : ""} onClick={() => setAba("integridade")}>Integridade dos dados <span>{saldo.divergentes}</span></button>
         <button className={aba === "pendencias" ? "is-active" : ""} onClick={() => setAba("pendencias")}>Pendências <span>{pendenciasRegrasMock.length}</span></button>
       </nav>
 
@@ -91,6 +99,7 @@ export function ControleVagasRegrasContent() {
 
       {aba === "parametros" && <section className="prototype-vagas-panel"><div className="prototype-vagas-panel-heading"><div><h2>Faixas de atenção do dashboard</h2><p>Indicadores visuais para priorização gerencial. Não produzem decisões automáticas.</p></div></div><div className="prototype-vagas-thresholds"><article className="is-regular"><span>Regular</span><strong>até 79,99%</strong><p>Ocupação dentro da faixa esperada.</p></article><article className="is-attention"><span>Atenção</span><strong>80% a 94,99%</strong><p>Saldo reduzido; acompanhar evolução.</p></article><article className="is-critical"><span>Crítica</span><strong>95% a 99,99%</strong><p>Capacidade próxima do limite.</p></article><article className="is-full"><span>Sem saldo</span><strong>100%</strong><p>Não há quantidade disponível.</p></article><article className="is-excess"><span>Excedente</span><strong>acima de 100%</strong><p>Ocupação superior ao autorizado.</p></article></div></section>}
 
+      {aba === "integridade" && <section className="prototype-vagas-panel"><div className="prototype-vagas-panel-heading"><div><h2>Conciliação e integridade dos dados</h2><p>Verificações técnicas executadas sobre vagas, ocupações e comprometimentos.</p></div><span className={`prototype-vagas-status ${conciliado ? "is-confirmed" : ""}`}><i className={conciliado ? "pi pi-check-circle" : "pi pi-exclamation-circle"}/>{conciliado ? "Saldos conciliados" : "Requer análise"}</span></div><div className="prototype-vagas-integrity-grid"><article><span>Disponíveis livres</span><strong>{saldo.disponiveisLivres}</strong></article><article><span>Disponíveis comprometidas</span><strong>{saldo.disponiveisComprometidas}</strong></article><article><span>Total disponível</span><strong>{saldo.disponiveis}</strong><small>{identidade.disponiveisConfere ? "Identidade conferida" : "Soma divergente"}</small></article><article><span>Ocupadas</span><strong>{saldo.ocupadas}</strong></article><article><span>Em disponibilização</span><strong>{saldo.ocupadasEmDisponibilizacao}</strong><small>{identidade.ocupadasEmDisponibilizacaoContidas ? "Contidas nas ocupadas" : "Quantidade incompatível"}</small></article><article className={saldo.divergentes ? "is-error" : "is-ok"}><span>Divergências técnicas</span><strong>{saldo.divergentes}</strong><small>Inconsistências de integração ou legado</small></article></div><div className="prototype-vagas-modal-warning"><i className="pi pi-info-circle"/><span>Divergência é um diagnóstico técnico, não uma situação legal da vaga. A correção deve ocorrer na fonte responsável ou por evento de ajuste rastreável.</span></div></section>}
       {aba === "pendencias" && <section className="prototype-vagas-panel"><div className="prototype-vagas-panel-heading"><div><h2>Pontos para validação com a área de negócio</h2><p>O protótipo utiliza premissas provisórias enquanto estas definições estiverem pendentes.</p></div></div><ol className="prototype-vagas-pending-list">{pendenciasRegrasMock.map((item, index) => <li key={item}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{item}</strong><small>Aguardando validação</small></div><i className="pi pi-chevron-right" /></li>)}</ol></section>}
 
       {regraSelecionada && <div className="prototype-vagas-modal-backdrop" role="presentation" onMouseDown={() => setRegraSelecionada(null)}><section className="prototype-vagas-modal" role="dialog" aria-modal="true" aria-labelledby="regra-titulo" onMouseDown={(e) => e.stopPropagation()}><header><div><span>Análise da regra</span><h2 id="regra-titulo">{regraSelecionada.evento}</h2></div><button onClick={() => setRegraSelecionada(null)} aria-label="Fechar"><i className="pi pi-times" /></button></header><div className="prototype-vagas-modal-body"><label>Origem<input value={regraSelecionada.origem} readOnly /></label><label>Impacto<input value={regraSelecionada.impacto} readOnly /></label><label className="is-wide">Comportamento<textarea value={regraSelecionada.comportamento} readOnly rows={3} /></label><div className="prototype-vagas-modal-warning"><i className="pi pi-exclamation-circle" /><span>Confirmar no protótipo sinaliza que a regra foi revisada. A operação não altera dados externos.</span></div></div><footer><button className="is-secondary" onClick={() => setRegraSelecionada(null)}>Cancelar</button><button className="is-primary" onClick={() => confirmarRegra(regraSelecionada.id)}><i className="pi pi-check" /> Marcar como confirmada</button></footer></section></div>}

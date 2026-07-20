@@ -227,7 +227,7 @@ const menuGestaoPessoas: IMenuSeplag[] = [
             label: "Regras e Parâmetros",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/configuracoes`,
-            visibleOnMenu: true,
+            visibleOnMenu: false,
             visibleOnRouter: true,
           },          {
             label: "Quadro Autorizado",
@@ -247,22 +247,15 @@ const menuGestaoPessoas: IMenuSeplag[] = [
             visibleOnMenu: true,
             visibleOnRouter: true,
           },          {
-            label: "Projeções",
-            icon: "pi pi-circle-on",
-            to: `${CONTROLE_VAGAS_BASE_PATH}/projecoes`,
-            visibleOnMenu: true,
-            visibleOnRouter: true,
-          },          {
             label: "Distribuição",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/distribuicao`,
             visibleOnMenu: true,
             visibleOnRouter: true,
-          },
-          {
-            label: "Saldos",
+          },          {
+            label: "Projeções",
             icon: "pi pi-circle-on",
-            to: `${CONTROLE_VAGAS_BASE_PATH}/consulta-saldo`,
+            to: `${CONTROLE_VAGAS_BASE_PATH}/projecoes`,
             visibleOnMenu: true,
             visibleOnRouter: true,
           },

@@ -1384,10 +1384,6 @@ function App() {
         element={<PrototiposControleVagasDistribuicaoSaldoPage />}
       />
       <Route
-        path="/prototipos/sigep/controle-vagas/consulta-saldo"
-        element={<PrototiposControleVagasDistribuicaoSaldoPage />}
-      />
-      <Route
         path="/prototipos/sigep/controle-vagas/projecoes"
         element={<PrototiposControleVagasProjecoesPage />}
       />
