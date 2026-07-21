@@ -3217,6 +3217,7 @@ interface FolhaTabelaReferenciaFaixaRow {
   faixaFinal: string;
   percentual: string;
   contribuicaoFaixa: string;
+  parcelaDeduzir?: string;
 }
 
 interface FolhaTabelaReferenciaNovaFaixaForm {
@@ -3376,8 +3377,8 @@ const calcularSituacaoVigenciaReferencia = (
 const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
   {
     id: 1,
-    sigla: "INSS",
-    nome: "INSTITUTO NACIONAL DO SEGURO SOCIAL",
+    sigla: "RGPS",
+    nome: "REGIME GERAL DE PREVIDÊNCIA SOCIAL",
     vigencias: [
       {
         id: 101,
@@ -3978,6 +3979,7 @@ const folhaTabelaReferenciaFaixasMock: FolhaTabelaReferenciaFaixaRow[] = [
     faixaFinal: "R$ 1.621,00",
     percentual: "7,5",
     contribuicaoFaixa: "R$ 121,58",
+    parcelaDeduzir: "R$ 0,00",
   },
   {
     id: 2,
@@ -3986,6 +3988,7 @@ const folhaTabelaReferenciaFaixasMock: FolhaTabelaReferenciaFaixaRow[] = [
     faixaFinal: "R$ 2.902,84",
     percentual: "9",
     contribuicaoFaixa: "R$ 115,37",
+    parcelaDeduzir: "R$ 24,32",
   },
   {
     id: 3,
@@ -3994,6 +3997,7 @@ const folhaTabelaReferenciaFaixasMock: FolhaTabelaReferenciaFaixaRow[] = [
     faixaFinal: "R$ 4.354,27",
     percentual: "12",
     contribuicaoFaixa: "R$ 174,17",
+    parcelaDeduzir: "R$ 111,40",
   },
   {
     id: 4,
@@ -4002,9 +4006,24 @@ const folhaTabelaReferenciaFaixasMock: FolhaTabelaReferenciaFaixaRow[] = [
     faixaFinal: "R$ 8.475,55",
     percentual: "14",
     contribuicaoFaixa: "R$ 576,98",
+    parcelaDeduzir: "R$ 198,49",
   },
 ];
 
+const folhaTabelaReferenciaFaixasIrrfMock: FolhaTabelaReferenciaFaixaRow[] = [
+  { id: 1, ordem: 1, faixaInicial: "R$ 0,00", faixaFinal: "R$ 2.428,80", percentual: "Isento", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 0,00" },
+  { id: 2, ordem: 2, faixaInicial: "R$ 2.428,81", faixaFinal: "R$ 2.826,65", percentual: "7,5", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 182,16" },
+  { id: 3, ordem: 3, faixaInicial: "R$ 2.826,66", faixaFinal: "R$ 3.751,05", percentual: "15", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 394,16" },
+  { id: 4, ordem: 4, faixaInicial: "R$ 3.751,06", faixaFinal: "R$ 4.664,68", percentual: "22,5", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 675,49" },
+  { id: 5, ordem: 5, faixaInicial: "R$ 4.664,69", faixaFinal: "Em aberto", percentual: "27,5", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 908,73" },
+];
+
+const folhaTabelaReferenciaIrrfTabs: TabItemSeplag[] = [
+  { label: "Dados Gerais", value: "dados-gerais" },
+  { label: "Tabela Progressiva", value: "tabela-progressiva" },
+  { label: "Redução Mensal", value: "reducao-mensal" },
+  { label: "Deduções", value: "deducoes" },
+];
 const folhaTabelaReferenciaVigenciaTabs: TabItemSeplag[] = [
   { label: "Dados Gerais", value: "dados-gerais" },
   { label: "Faixas de Contribuição", value: "faixa-contribuicao" },
@@ -4048,6 +4067,23 @@ const calcularContribuicaoFaixaReferencia = (
   return formatMoedaReferencia(contribuicao);
 };
 
+const calcularParcelaDeduzirIrrf = (
+  faixasAnteriores: FolhaTabelaReferenciaFaixaRow[],
+  faixaInicial: string,
+  percentual: string,
+) => {
+  const limiteAnterior = Math.max(parseMoedaReferencia(faixaInicial) - 0.01, 0);
+  const aliquota = Number(percentual.replace(",", "."));
+  const impostoFaixasAnteriores = faixasAnteriores.reduce((total, faixa) => {
+    const inicio = parseMoedaReferencia(faixa.faixaInicial);
+    const fim = parseMoedaReferencia(faixa.faixaFinal);
+    const aliquotaFaixa = Number(faixa.percentual.replace(",", "."));
+    const baseFaixa = Math.max(fim - Math.max(inicio - 0.01, 0), 0);
+    return total + baseFaixa * (Number.isFinite(aliquotaFaixa) ? aliquotaFaixa / 100 : 0);
+  }, 0);
+  const parcela = limiteAnterior * (Number.isFinite(aliquota) ? aliquota / 100 : 0) - impostoFaixasAnteriores;
+  return formatMoedaReferencia(Math.max(parcela, 0));
+};
 
 const getFaixasAutomaticasRppsPorRegra = (
   regraIncidencia?: string,
@@ -14594,6 +14630,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const modeloRppsIdRota = Number(tabelaId);
   const isRotaModeloRpps = isFolhaTabelaReferenciaRppsModeloId(modeloRppsIdRota);
   const isTabelaRpps = tabela.sigla === "RPPS" || isRotaModeloRpps;
+  const isTabelaIrrf = tabela.id === 2 && tabela.sigla === "IRRF";
   const isTabelaPrevcom = tabela.sigla === "RPC";
   const isEditing = Boolean(vigenciaId);
   const vigenciaAtual = isTabelaRpps
@@ -14621,6 +14658,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
           : getFaixasAutomaticasRppsPorRegra(vigenciaFormularioBase?.regraIncidencia);
       }
 
+      if (isTabelaIrrf) return folhaTabelaReferenciaFaixasIrrfMock;
       return isEditing ? folhaTabelaReferenciaFaixasMock : [];
     });
   const [novaFaixaForm, setNovaFaixaForm] =
@@ -14631,8 +14669,8 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const [modalNovaFaixaAberto, setModalNovaFaixaAberto] = useState(false);
   const { control, handleSubmit, watch, setValue } = useForm<FolhaTabelaReferenciaVigenciaForm>({
     defaultValues: {
-      descricao: vigenciaFormularioBase?.nome ?? (isTabelaRpps ? "Nova regra RPPS" : isTabelaPrevcom ? "RPC 2026" : isEditing ? "testeddd" : ""),
-      anoBase: vigenciaFormularioBase?.ano ?? (isEditing || isTabelaRpps ? "2026" : ""),
+      descricao: vigenciaFormularioBase?.nome ?? (isTabelaRpps ? "Nova regra RPPS" : isTabelaIrrf ? "Tabela mensal do IRRF" : isTabelaPrevcom ? "RPC 2026" : isEditing ? "testeddd" : ""),
+      anoBase: vigenciaFormularioBase?.ano ?? (isEditing || isTabelaRpps || isTabelaIrrf ? "2026" : ""),
       aplicavelPara: isTabelaRpps
         ? folhaTabelaReferenciaValuesFromLabels(
             folhaTabelaReferenciaAplicavelParaOptions,
@@ -14670,8 +14708,8 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       proventosAte: vigenciaFormularioBase?.proventosAte ?? "",
       tetoPrevidenciario: vigenciaFormularioBase?.tetoPrevidenciario ?? (isTabelaRpps ? "" : isEditing ? "R$ 8.475,55" : ""),
       percentualContribuicao: vigenciaFormularioBase?.percentualContribuicao ?? (isTabelaRpps ? "14" : ""),
-      inicioVigencia: vigenciaFormularioBase?.inicioVigencia ?? (isTabelaRpps ? "02/01/2026" : isEditing ? "02/06/2026" : ""),
-      fimVigencia: vigenciaFormularioBase?.fimVigencia ?? (isTabelaRpps ? "31/12/2026" : ""),
+      inicioVigencia: vigenciaFormularioBase?.inicioVigencia ?? (isTabelaRpps ? "02/01/2026" : isTabelaIrrf ? "01/01/2026" : isEditing ? "02/06/2026" : ""),
+      fimVigencia: vigenciaFormularioBase?.fimVigencia ?? (isTabelaRpps || isTabelaIrrf ? "31/12/2026" : ""),
       baseLegal: vigenciaFormularioBase?.baseLegal ?? [],
       observacoes: "",
     },
@@ -14711,7 +14749,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     isTabelaRpps &&
     (isModeloRppsLc700 || (!isRegraFaixasProgressivas && !isRegraIsentoValorReferencia));
   const exibirEnquadramentoProventosRpps = false;
-  const exibirTetoPrevidenciario = !isTabelaRpps;
+  const exibirTetoPrevidenciario = !isTabelaRpps && !isTabelaIrrf;
 
   useEffect(() => {
     if (!isTabelaRpps) return;
@@ -14786,8 +14824,11 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     setValue,
     valorReferenciaSelecionado,
   ]);
-  const tabsVigencia = folhaTabelaReferenciaVigenciaTabs.map((tab) =>
-    tab.value === "faixa-contribuicao"
+  const tabsVigencia = (isTabelaIrrf
+    ? folhaTabelaReferenciaIrrfTabs
+    : folhaTabelaReferenciaVigenciaTabs
+  ).map((tab) =>
+    (isTabelaIrrf && tab.value !== "dados-gerais") || tab.value === "faixa-contribuicao"
       ? { ...tab, disabled: isTabelaPrevcom || !dadosGeraisSalvos }
       : tab,
   );
@@ -15014,9 +15055,11 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
 
     if (activeTab === "dados-gerais" && !dadosGeraisSalvos) {
       setDadosGeraisSalvos(true);
-      setActiveTab("faixa-contribuicao");
+      setActiveTab(isTabelaIrrf ? "tabela-progressiva" : "faixa-contribuicao");
       setFeedback(
-        "Dados gerais salvos com sucesso. A aba Faixas de Contribuição foi habilitada.",
+        isTabelaIrrf
+          ? "Dados gerais salvos com sucesso. As configurações próprias do IRRF foram habilitadas."
+          : "Dados gerais salvos com sucesso. A aba Faixas de Contribuição foi habilitada.",
       );
       return;
     }
@@ -15067,6 +15110,9 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         contribuicaoFaixa: faixaAberta
           ? "Calculada pelo motor"
           : calcularContribuicaoFaixaReferencia(faixaInicial, faixaFinal, percentual),
+        parcelaDeduzir: isTabelaIrrf
+          ? calcularParcelaDeduzirIrrf(current, faixaInicial, percentual)
+          : undefined,
       },
     ]);
     setModalNovaFaixaAberto(false);
@@ -15345,10 +15391,52 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                       />
                     </div>
                   </>
+                ) : isTabelaIrrf && activeTab === "reducao-mensal" ? (
+                  <>
+                    <div className="prototype-folha-referencia-vigencia-panel-title">
+                      <h3>Redução Mensal do IRRF</h3>
+                    </div>
+                    <div className="prototype-folha-referencia-calculo-summary">
+                      <div><span>Isenção total até</span><strong>R$ 5.000,00</strong></div>
+                      <div><span>Redução decrescente até</span><strong>R$ 7.350,00</strong></div>
+                      <div><span>Vigência</span><strong>Janeiro de 2026</strong></div>
+                    </div>
+                    <div className="prototype-folha-referencia-irrf-table">
+                      <table>
+                        <thead><tr><th>Rendimento Inicial</th><th>Rendimento Final</th><th>Regra da Redução</th><th>Ações</th></tr></thead>
+                        <tbody>
+                          <tr><td>R$ 0,00</td><td>R$ 5.000,00</td><td>Redução limitada ao imposto devido, resultando em IRRF igual a zero</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar redução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
+                          <tr><td>R$ 5.000,01</td><td>R$ 7.350,00</td><td>R$ 978,62 − (0,133145 × rendimentos tributáveis)</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar redução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
+                          <tr><td>R$ 7.350,01</td><td>Em aberto</td><td>Sem redução mensal</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar redução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                ) : isTabelaIrrf && activeTab === "deducoes" ? (
+                  <>
+                    <div className="prototype-folha-referencia-vigencia-panel-title">
+                      <h3>Deduções Mensais</h3>
+                    </div>
+                    <div className="prototype-folha-referencia-calculo-summary">
+                      <div><span>Dedução por dependente</span><strong>R$ 189,59</strong></div>
+                      <div><span>Desconto simplificado</span><strong>R$ 607,20</strong></div>
+                      <div><span>Parcela isenta 65 anos ou mais</span><strong>R$ 1.903,98</strong></div>
+                    </div>
+                    <div className="prototype-folha-referencia-irrf-table">
+                      <table>
+                        <thead><tr><th>Parâmetro</th><th>Valor Mensal</th><th>Aplicação</th><th>Ações</th></tr></thead>
+                        <tbody>
+                          <tr><td>Dedução por dependente</td><td>R$ 189,59</td><td>Por dependente elegível</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar dedução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
+                          <tr><td>Desconto simplificado mensal</td><td>R$ 607,20</td><td>Substitui as deduções legais quando mais vantajoso</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar dedução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
+                          <tr><td>Parcela isenta para 65 anos ou mais</td><td>R$ 1.903,98</td><td>Aposentadoria e pensão, observados os requisitos</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar dedução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <div className="prototype-folha-referencia-vigencia-panel-title">
-                      <h3>Faixas de Contribuição</h3>
+                      <h3>{isTabelaIrrf ? "Tabela Progressiva Mensal" : "Faixas de Contribuição"}</h3>
                     </div>
                     <div
                       className={`prototype-folha-referencia-calculo-summary${
@@ -15357,7 +15445,13 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                           : ""
                       }`}
                     >
-                      {isModeloRppsLc700 ? (
+                      {isTabelaIrrf ? (
+                        <>
+                          <div><span>Limite da Faixa Isenta</span><strong>R$ 2.428,80</strong></div>
+                          <div><span>Total de Faixas</span><strong>{faixasVigencia.length}</strong></div>
+                          <div><span>Alíquota Máxima</span><strong>27,5%</strong></div>
+                        </>
+                      ) : isModeloRppsLc700 ? (
                         <>
                           <div>
                             <span>Faixa de Isenção</span>
@@ -15400,16 +15494,18 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                           <strong>{referenciaRegraResumo}</strong>
                         </div>
                       )}
-                      {!isModeloRppsSalarioMinimo ? (
+                      {!isTabelaIrrf && !isModeloRppsSalarioMinimo ? (
                         <div>
                           <span>Total de Faixas</span>
                           <strong>{faixasVigencia.length}</strong>
                         </div>
                       ) : null}
-                      <div>
-                        <span>{isTabelaRpps ? "Cálculo" : "Desconto Máximo CLT"}</span>
-                        <strong>{isTabelaRpps ? "Calculado na folha" : formatMoedaReferencia(descontoMaximo)}</strong>
-                      </div>
+                      {!isTabelaIrrf ? (
+                        <div>
+                          <span>{isTabelaRpps ? "Cálculo" : "Desconto Máximo CLT"}</span>
+                          <strong>{isTabelaRpps ? "Calculado na folha" : formatMoedaReferencia(descontoMaximo)}</strong>
+                        </div>
+                      ) : null}
                     </div>
                     {!isModeloRppsMilitar && (!isTabelaRpps || isRegraFaixasProgressivas) ? (
                       <div className="prototype-folha-referencia-faixa-toolbar">
@@ -15421,15 +15517,16 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                         />
                       </div>
                     ) : null}
-                    <div className="prototype-folha-referencia-faixa-table">
+                    <div className={`prototype-folha-referencia-faixa-table${isTabelaIrrf ? " prototype-folha-referencia-faixa-table--irrf" : ""}`}>
                       <table>
                         <thead>
                           <tr>
                             <th>Ordem</th>
-                            <th>Faixa Inicial</th>
-                            <th>Faixa Final</th>
+                            <th>{isTabelaIrrf ? "Base Inicial" : "Faixa Inicial"}</th>
+                            <th>{isTabelaIrrf ? "Base Final" : "Faixa Final"}</th>
                             <th>Percentual (%)</th>
-                            <th>Contribuição da Faixa</th>
+                            {!isTabelaIrrf ? <th>Contribuição Máxima da Faixa</th> : null}
+                            <th>Parcela a Deduzir</th>
                             <th>Ações</th>
                           </tr>
                         </thead>
@@ -15440,7 +15537,8 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                               <td>{faixa.faixaInicial}</td>
                               <td>{faixa.faixaFinal}</td>
                               <td>{faixa.percentual}</td>
-                              <td>{faixa.contribuicaoFaixa}</td>
+                              {!isTabelaIrrf ? <td>{faixa.contribuicaoFaixa}</td> : null}
+                              <td>{faixa.parcelaDeduzir ?? "Não se aplica"}</td>
                               <td>
                                 <div className="prototype-folha-referencia-faixa-actions">
                                   <button
@@ -15469,7 +15567,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                           ))}
                           {!faixasVigencia.length ? (
                             <tr>
-                              <td colSpan={6} className="prototype-empty-table-cell">
+                              <td colSpan={isTabelaIrrf ? 6 : 7} className="prototype-empty-table-cell">
                                 Nenhuma faixa cadastrada.
                               </td>
                             </tr>

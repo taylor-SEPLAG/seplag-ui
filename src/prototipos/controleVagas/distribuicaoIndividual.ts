@@ -2,9 +2,9 @@ import type { MovimentoVagaIndividual, PosicaoDistribuicaoVaga, SituacaoLegalVag
 
 const legalPorTipo:Partial<Record<TipoMovimentoVagaIndividual,SituacaoLegalVaga>>={EXTINCAO:"EXTINTA",TRANSFORMACAO:"EM_TRANSFORMACAO"};
 export function calcularPosicaoVaga(vaga:Vaga,movimentos:readonly MovimentoVagaIndividual[],dataReferencia:string):PosicaoDistribuicaoVaga{
- let orgao:string|undefined;let unidade:string|undefined;let legal=vaga.situacaoLegal;let cargo=vaga.cargo;let ultimo:string|undefined;
+ let orgao:string|undefined=vaga.orgaoTitular!=="NÃO DISTRIBUÍDA"?vaga.orgaoTitular:undefined;let unidade:string|undefined;let legal=vaga.situacaoLegal;let cargo=vaga.cargo;let ultimo:string|undefined;
  movimentos.filter((m)=>m.vagaId===vaga.id&&m.dataEfeito<=dataReferencia).sort((a,b)=>a.dataEfeito.localeCompare(b.dataEfeito)||a.registradoEm.localeCompare(b.registradoEm)).forEach((m)=>{if(m.tipo==="DISTRIBUICAO"||m.tipo==="TRANSFERENCIA"||m.tipo==="DECRETO"){orgao=m.orgaoPosterior??orgao;unidade=m.unidadePosterior??unidade}if(m.tipo==="RECOLHIMENTO"){orgao=undefined;unidade=undefined}if(m.situacaoLegalPosterior)legal=m.situacaoLegalPosterior;if(m.tipo==="TRANSFORMACAO"&&m.cargoDestino)cargo=m.cargoDestino;ultimo=m.id});
- return{vagaId:vaga.id,dataReferencia,orgaoTitular:vaga.orgaoTitular,orgaoDistribuicao:orgao,unidadeDistribuicao:unidade,cargo,situacaoLegal:legal,ultimoMovimento:ultimo};
+ return{vagaId:vaga.id,quadroAutorizadoId:vaga.quadroAutorizadoId,quadroCodigo:vaga.quadroCodigo,dataReferencia,orgaoTitular:vaga.orgaoTitular,orgaoDistribuicao:orgao,unidadeDistribuicao:unidade,cargo,situacaoLegal:legal,ultimoMovimento:ultimo};
 }
 export function registrarMovimentoVaga(vaga:Vaga,posicao:PosicaoDistribuicaoVaga,dados:{tipo:TipoMovimentoVagaIndividual;dataEfeito:string;orgao?:string;unidade?:string;ato:string;processo:string;justificativa:string;cargoDestino?:string}):{movimento?:MovimentoVagaIndividual;erro?:string}{
  if(!dados.dataEfeito||!dados.ato||!dados.processo||!dados.justificativa)return{erro:"Preencha data de efeito, ato, processo e justificativa."};
