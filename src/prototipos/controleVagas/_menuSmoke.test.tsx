@@ -66,12 +66,23 @@ describe("menus do Controle de Vagas", () => {
   });
   it("ativa, recolhe e expande o painel de especificação", () => {
     const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
-    fireEvent.click(result.getByTitle("Ativar modo de especificação"));
+    fireEvent.click(result.getByTitle("Visualização do desenvolvedor"));
     expect(result.getByLabelText("Especificação do componente")).toBeTruthy();
-    fireEvent.click(result.getByTitle("Recolher painel de especificação"));
-    expect(result.getByLabelText("Painel de especificação recolhido")).toBeTruthy();
-    fireEvent.click(result.getByTitle("Expandir painel de especificação"));
+    fireEvent.click(result.getByTitle("Recolher painel"));
+    expect(result.getByLabelText("Painel de visualização recolhido")).toBeTruthy();
+    fireEvent.click(result.getByTitle("Expandir painel"));
     expect(result.getByLabelText("Especificação do componente")).toBeTruthy();
+  });
+  it("abre a validação visual da área de negócio", () => {
+    const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
+    fireEvent.click(result.getByTitle("Validação da área de negócio"));
+    expect(result.container.querySelector("aside.prototype-business-panel")).toBeTruthy();
+    expect(result.getByText("Simulação visual — decisões não são persistidas.")).toBeTruthy();
+    const indicador = result.getByTitle("Validar: Cargos legais");
+    fireEvent.click(indicador);
+    expect(result.getByText("O que este item representa")).toBeTruthy();
+    fireEvent.click(result.getByText("Aprovar"));
+    expect(result.getByText("Aprovado")).toBeTruthy();
   });
   it("possui as fontes necessárias para a Fase 10", () => {
     const state = controleVagasStore.getState();

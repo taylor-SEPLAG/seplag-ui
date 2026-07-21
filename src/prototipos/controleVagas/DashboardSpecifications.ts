@@ -26,3 +26,4 @@ export const dashboardKpiSpecifications:Record<string,SpecificationMetadata>={
  "Não distribuídas":spec("CV-DASH-KPI-008","Vagas não distribuídas","Vagas mantidas no saldo central do quadro.","Ausência de distribuição não altera titularidade nem estado da vaga.","Quadro Autorizado e histórico de Distribuição.","integer","KPI","Distribuição"),
  "Situações legais especiais":spec("CV-DASH-KPI-009","Situações legais especiais","Vagas com situação legal diferente de Regular.","Contar extinção e transformação; decisões judiciais extraquadro são separadas.","Situação legal da Vaga Individualizada.","integer","KPI","Vagas com situação especial"),
 };
+export const dashboardBusinessItems=[...Object.values(dashboardBlockSpecifications),...Object.values(dashboardKpiSpecifications)];

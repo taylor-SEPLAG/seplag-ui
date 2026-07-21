@@ -6,7 +6,7 @@ import { construirDashboard, situacoesLegais, type DashboardFiltros, type Dashbo
 import type { CenarioProjecao, HorizonteProjecao } from "./types";
 import { recalcularPosicoes } from "./distribuicaoIndividual";
 import { SpecArea, SpecificationMode } from "./SpecificationMode";
-import { dashboardBlockSpecifications, dashboardKpiSpecifications, dashboardScreenSpecification } from "./DashboardSpecifications";
+import { dashboardBlockSpecifications, dashboardBusinessItems, dashboardKpiSpecifications, dashboardScreenSpecification } from "./DashboardSpecifications";
 import "./dashboardControleVagas.css";
 import "./dashboardGerencial.css";
 
@@ -29,7 +29,7 @@ export function DashboardGerencialContent(){
   {icon:"pi pi-ban",kind:"warning",titulo:"Vagas em extinção",valor:dados.resumo.emExtincao,rota:"vagas?legal=EM_EXTINCAO"},
   {icon:"pi pi-send",kind:"info",titulo:"Cessões ativas",valor:dados.resumo.cessoes,rota:"cessoes"},
  ];
- return <SpecificationMode screen={dashboardScreenSpecification}><div className="prototype-dash-page prototype-management-dashboard">
+ return <SpecificationMode screen={dashboardScreenSpecification} businessItems={dashboardBusinessItems}><div className="prototype-dash-page prototype-management-dashboard">
   <header className="prototype-dash-header"><div><h1>Dashboard Gerencial</h1></div><div className="prototype-dash-header-actions"><small>Dados consolidados em<br/><strong>21/07/2026 08:15</strong></small><button onClick={()=>window.print()}><i className="pi pi-download"/> Exportar visão</button></div></header>
   <SpecArea metadata={dashboardBlockSpecifications.filters}><section className="prototype-management-filter-accordion"><button className="prototype-management-filter-trigger" onClick={()=>setFiltrosAbertos((aberto)=>!aberto)} aria-expanded={filtrosAbertos}><span><i className="pi pi-filter"/><strong>Filtros da consulta</strong><small>Data, órgãos, carreira, cargo e situação legal</small></span><i className={`pi ${filtrosAbertos?"pi-chevron-up":"pi-chevron-down"}`}/></button>{filtrosAbertos&&<div className="prototype-dash-filters management">
    <Filtro label="Data de referência"><input type="date" value={filtros.dataReferencia} onChange={(e)=>setFiltros({...filtros,dataReferencia:e.target.value})}/></Filtro>
