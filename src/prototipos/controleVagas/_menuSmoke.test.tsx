@@ -64,6 +64,15 @@ describe("menus do Controle de Vagas", () => {
     expect(result.getAllByText("Nova autorização").length).toBeGreaterThan(0);
     expect(result.getByText("Como a lei definiu a alocação das vagas? *")).toBeTruthy();
   });
+  it("ativa, recolhe e expande o painel de especificação", () => {
+    const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
+    fireEvent.click(result.getByTitle("Ativar modo de especificação"));
+    expect(result.getByLabelText("Especificação do componente")).toBeTruthy();
+    fireEvent.click(result.getByTitle("Recolher painel de especificação"));
+    expect(result.getByLabelText("Painel de especificação recolhido")).toBeTruthy();
+    fireEvent.click(result.getByTitle("Expandir painel de especificação"));
+    expect(result.getByLabelText("Especificação do componente")).toBeTruthy();
+  });
   it("possui as fontes necessárias para a Fase 10", () => {
     const state = controleVagasStore.getState();
     const ocupacoesAtivas = state.ocupacoes.filter((item) => item.situacao === "ATIVA");
