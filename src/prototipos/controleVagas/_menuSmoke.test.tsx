@@ -11,7 +11,7 @@ import { ProjecoesVagasContent } from "./ProjecoesVagasContent";
 import { DistribuicaoIndividualContent } from "./DistribuicaoIndividualContent";
 import { controleVagasStore } from "./controleVagasStore";
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); localStorage.clear(); });
 const cases = [
   ["Dashboard gerencial", DashboardGerencialContent],
   ["Regras e Parâmetros", ControleVagasRegrasContent],
@@ -87,6 +87,16 @@ describe("menus do Controle de Vagas", () => {
     expect(result.getByText("O que este item representa")).toBeTruthy();
     fireEvent.click(result.getByText("Aprovar"));
     expect(result.getByText("Aprovado")).toBeTruthy();
+  });
+  it("consolida avaliações por avaliador para o administrador", async () => {
+    localStorage.setItem("prototype-review-user", JSON.stringify({ id: "admin-1", email: "admin@seplag.mt.gov.br", name: "Administrador", role: "ADMIN" }));
+    localStorage.setItem("prototype-reviews", JSON.stringify([{ id: "review-1", prototypeId: "SIGEP", prototypeVersion: "controle-vagas-prototipo-atual", screenId: "CV-DASH", componentId: "CV-DASH-KPI-001", componentTitle: "Cargos legais", reviewerId: "reviewer-1", reviewerName: "Danielle Cruz", reviewerEmail: "danielle@seplag.mt.gov.br", status: "APROVADO", comment: "Validado", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]));
+    const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
+    fireEvent.click(result.getByTitle("Validação da área de negócio"));
+    expect(await result.findByText("Acompanhamento da validação")).toBeTruthy();
+    expect(result.getByText("Danielle Cruz")).toBeTruthy();
+    expect(result.getByText("Por componente")).toBeTruthy();
+    expect(result.getAllByText("Pendências").length).toBeGreaterThan(0);
   });
   it("possui as fontes necessárias para a Fase 10", () => {
     const state = controleVagasStore.getState();

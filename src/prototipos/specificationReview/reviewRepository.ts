@@ -42,10 +42,20 @@ export const reviewRepository = {
     if (!client) { localStorage.removeItem(LOCAL_USER); return; }
     const { error } = await client.auth.signOut(); if (error) throw error;
   },
-  async list(screenId: string, user: ReviewUser): Promise<PrototypeReview[]> {
+  async list(screenId: string, user: ReviewUser, prototypeVersion?: string): Promise<PrototypeReview[]> {
     if (!client) return localReviews().filter((item) => item.screenId === screenId && (user.role === "ADMIN" || item.reviewerId === user.id));
     const { data, error } = await client.from("prototype_reviews").select("*").eq("screen_id", screenId).order("updated_at", { ascending: false });
     if (error) throw error; return (data ?? []).map(rowToReview);
+  },
+  async listReviewers(): Promise<ReviewUser[]> {
+    if (!client) {
+      const unique = new Map<string, ReviewUser>();
+      localReviews().forEach((item) => unique.set(item.reviewerId, { id: item.reviewerId, email: item.reviewerEmail, name: item.reviewerName, role: "REVIEWER" }));
+      return [...unique.values()];
+    }
+    const { data, error } = await client.from("prototype_review_profiles").select("id,display_name,role").eq("role", "REVIEWER").order("display_name");
+    if (error) throw error;
+    return (data ?? []).map((row) => ({ id: String(row.id), email: "", name: String(row.display_name || "Avaliador"), role: "REVIEWER" as const }));
   },
   async save(input: ReviewInput, user: ReviewUser): Promise<PrototypeReview> {
     const now = new Date().toISOString();

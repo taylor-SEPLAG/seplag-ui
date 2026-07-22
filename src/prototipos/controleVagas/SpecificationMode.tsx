@@ -92,7 +92,7 @@ function BusinessPanel(props: PanelProps) {
   const counts=(status:BusinessStatus)=>props.items.filter((item)=>(props.statuses[item.id]??"PENDENTE")===status).length;
   return <aside className="prototype-spec-panel prototype-business-panel" aria-label="Validação da área de negócio">
     <PanelHeader eyebrow={props.screenSelected ? "VALIDAÇÃO DO PROTÓTIPO" : "COMPONENTE SELECIONADO"} title={props.metadata.title} onToggle={props.onToggle}/>
-    <ReviewPersistencePanel screenId={props.screenId} metadata={props.metadata} status={props.status} comment={props.comments.at(-1) ?? ""} onRestore={props.onRestore}/>
+    <ReviewPersistencePanel screenId={props.screenId} metadata={props.metadata} status={props.status} comment={props.comments.at(-1) ?? ""} onRestore={props.onRestore} items={props.items}/>
     {props.screenSelected ? <>
       <section><h3>Resumo da validação</h3><p className="prototype-business-intro">Selecione um indicador ou bloco destacado para avaliar seu significado e comportamento.</p><div className="prototype-business-summary"><article><strong>{counts("PENDENTE")}</strong><span>Pendentes</span></article><article className="approved"><strong>{counts("APROVADO")}</strong><span>Aprovados</span></article><article className="adjust"><strong>{counts("AJUSTE")}</strong><span>Ajustes</span></article><article className="question"><strong>{counts("DUVIDA")}</strong><span>Dúvidas</span></article></div></section>
       <section><h3>Objetivo da tela</h3><p className="prototype-business-intro">{props.metadata.description}</p></section>
