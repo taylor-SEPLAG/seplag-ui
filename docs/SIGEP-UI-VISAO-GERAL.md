@@ -107,6 +107,8 @@ A regra de evolução indicada no contexto do projeto é: novas telas e funciona
 
 ## 6. Documentação interativa
 
+Para aplicar os modos auxiliares de **Desenvolvimento** e **Gestão** às telas de protótipo, consulte [Modos de visualização para protótipos](./MODOS-VISUALIZACAO-PROTOTIPOS.md). O guia contém contrato de metadados, integração, testes, critérios de aceite e prompt para agentes de IA.
+
 A documentação dos componentes fica em `/docs` e é configurada principalmente em:
 
 ```text

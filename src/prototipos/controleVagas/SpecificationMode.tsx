@@ -1,5 +1,6 @@
 import { createContext, cloneElement, isValidElement, useContext, useState, type MouseEvent, type ReactElement, type ReactNode } from "react";
 import "./specificationMode.css";
+import { ReviewPersistencePanel } from "../specificationReview/ReviewPersistencePanel";
 
 export interface SpecificationMetadata {
   id: string;
@@ -41,6 +42,7 @@ export function SpecificationMode({ children, screen, businessItems = [] }: { ch
   const select = (metadata: SpecificationMetadata) => { setSelected(metadata); setPanelCollapsed(false); setDraft(""); };
   const changeStatus = (status: BusinessStatus) => selected && setStatuses((current) => ({ ...current, [selected.id]: status }));
   const addComment = () => { if (!selected || !draft.trim()) return; setComments((current) => ({ ...current, [selected.id]: [...(current[selected.id] ?? []), draft.trim()] })); setDraft(""); };
+  const restoreReview = (componentId: string, status: BusinessStatus, comment: string) => { setStatuses((current) => current[componentId] === status ? current : ({ ...current, [componentId]: status })); if (comment) setComments((current) => current[componentId]?.at(-1) === comment ? current : ({ ...current, [componentId]: [comment] })); };
   return <SpecificationContext.Provider value={{ active, mode, statuses, select }}>
     <div className={`${active ? "prototype-spec-root is-active" : "prototype-spec-root"}${panelCollapsed ? " is-panel-collapsed" : ""}`}>
       {children}
@@ -48,7 +50,7 @@ export function SpecificationMode({ children, screen, businessItems = [] }: { ch
         <button className={mode === "DEVELOPER" ? "prototype-view-toggle developer is-active" : "prototype-view-toggle developer"} type="button" onClick={() => toggleMode("DEVELOPER")} title={mode === "DEVELOPER" ? "Fechar visualização do desenvolvedor" : "Visualização do desenvolvedor"} aria-label="Visualização do desenvolvedor" aria-pressed={mode === "DEVELOPER"}><i className="pi pi-code"/></button>
         <button className={mode === "BUSINESS" ? "prototype-view-toggle business is-active" : "prototype-view-toggle business"} type="button" onClick={() => toggleMode("BUSINESS")} title={mode === "BUSINESS" ? "Fechar validação da área de negócio" : "Validação da área de negócio"} aria-label="Validação da área de negócio" aria-pressed={mode === "BUSINESS"}><i className="pi pi-check-square"/></button>
       </div>
-      {active && <><div className="prototype-spec-mask"/><PrototypePanel mode={mode!} metadata={selected ?? screen} screenSelected={!selected} collapsed={panelCollapsed} onToggle={() => setPanelCollapsed((value) => !value)} status={selected ? statuses[selected.id] ?? "PENDENTE" : "PENDENTE"} statuses={statuses} items={businessItems} comments={selected ? comments[selected.id] ?? [] : []} draft={draft} onDraft={setDraft} onComment={addComment} onStatus={changeStatus}/></>}
+      {active && <><div className="prototype-spec-mask"/><PrototypePanel mode={mode!} metadata={selected ?? screen} screenSelected={!selected} collapsed={panelCollapsed} onToggle={() => setPanelCollapsed((value) => !value)} status={selected ? statuses[selected.id] ?? "PENDENTE" : "PENDENTE"} statuses={statuses} items={businessItems} comments={selected ? comments[selected.id] ?? [] : []} draft={draft} onDraft={setDraft} onComment={addComment} onStatus={changeStatus} screenId={screen.id} onRestore={restoreReview}/></>}
     </div>
   </SpecificationContext.Provider>;
 }
@@ -69,7 +71,7 @@ export function SpecArea({ metadata, children }: { metadata: SpecificationMetada
 interface PanelProps {
   mode: ViewMode; metadata: SpecificationMetadata; screenSelected: boolean; collapsed: boolean; onToggle: () => void;
   status: BusinessStatus; statuses: Record<string,BusinessStatus>; items: SpecificationMetadata[]; comments: string[];
-  draft: string; onDraft: (value:string)=>void; onComment:()=>void; onStatus:(status:BusinessStatus)=>void;
+  draft: string; onDraft: (value:string)=>void; onComment:()=>void; onStatus:(status:BusinessStatus)=>void; screenId:string; onRestore:(componentId:string,status:BusinessStatus,comment:string)=>void;
 }
 
 function PrototypePanel(props: PanelProps) {
@@ -90,7 +92,7 @@ function BusinessPanel(props: PanelProps) {
   const counts=(status:BusinessStatus)=>props.items.filter((item)=>(props.statuses[item.id]??"PENDENTE")===status).length;
   return <aside className="prototype-spec-panel prototype-business-panel" aria-label="Validação da área de negócio">
     <PanelHeader eyebrow={props.screenSelected ? "VALIDAÇÃO DO PROTÓTIPO" : "COMPONENTE SELECIONADO"} title={props.metadata.title} onToggle={props.onToggle}/>
-    <div className="prototype-business-simulation"><i className="pi pi-info-circle"/>Simulação visual — decisões não são persistidas.</div>
+    <ReviewPersistencePanel screenId={props.screenId} metadata={props.metadata} status={props.status} comment={props.comments.at(-1) ?? ""} onRestore={props.onRestore}/>
     {props.screenSelected ? <>
       <section><h3>Resumo da validação</h3><p className="prototype-business-intro">Selecione um indicador ou bloco destacado para avaliar seu significado e comportamento.</p><div className="prototype-business-summary"><article><strong>{counts("PENDENTE")}</strong><span>Pendentes</span></article><article className="approved"><strong>{counts("APROVADO")}</strong><span>Aprovados</span></article><article className="adjust"><strong>{counts("AJUSTE")}</strong><span>Ajustes</span></article><article className="question"><strong>{counts("DUVIDA")}</strong><span>Dúvidas</span></article></div></section>
       <section><h3>Objetivo da tela</h3><p className="prototype-business-intro">{props.metadata.description}</p></section>

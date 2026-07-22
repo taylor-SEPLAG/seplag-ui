@@ -73,11 +73,15 @@ describe("menus do Controle de Vagas", () => {
     fireEvent.click(result.getByTitle("Expandir painel"));
     expect(result.getByLabelText("Especificação do componente")).toBeTruthy();
   });
-  it("abre a validação visual da área de negócio", () => {
+  it("abre a validação visual da área de negócio", async () => {
     const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
     fireEvent.click(result.getByTitle("Validação da área de negócio"));
     expect(result.container.querySelector("aside.prototype-business-panel")).toBeTruthy();
-    expect(result.getByText("Simulação visual — decisões não são persistidas.")).toBeTruthy();
+    expect(result.getByText("Identificação do avaliador")).toBeTruthy();
+    fireEvent.change(result.getByLabelText("E-mail"), { target: { value: "avaliador@seplag.mt.gov.br" } });
+    fireEvent.change(result.getByLabelText("Senha"), { target: { value: "teste-local" } });
+    fireEvent.click(result.getByText("Entrar para avaliar"));
+    expect(await result.findByText("avaliador")).toBeTruthy();
     const indicador = result.getByTitle("Validar: Cargos legais");
     fireEvent.click(indicador);
     expect(result.getByText("O que este item representa")).toBeTruthy();
