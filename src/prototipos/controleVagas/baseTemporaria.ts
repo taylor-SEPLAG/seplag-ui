@@ -26,4 +26,12 @@ export const cargosBaseTemporaria = criarCatalogo("CGO", nomesCargos, cargosOrig
 
 const nomesOrgaos = ["AGER","CASA CIVIL","CASA MILITAR","CBM","CGE","DETRAN","FAPEMAT","FUNAC","GCOM","GOVERNADORIA","INDEA","INTERMAT","IPEM","JUCEMAT","MT SAÚDE","MTPREV","PGE","PJC","PM","POLITEC","SEAF","SECEL","SECID","SECITECI","SECOM","SEDEC","SEDUC","SEFAZ","SEJUDH","SEJUS","SEMA","SEPLAG","SEPLAN","SES","SESP","SETASC","SINFRA","UNEMAT","VICE-GOVERNADORIA"];
 export const orgaosBaseTemporaria = criarCatalogo("ORG", nomesOrgaos);
-export const especialidadesBaseTemporaria: ItemBaseTemporaria[] = [];
+export interface PerfilProfissionalTemporario { readonly id:string; readonly nome:string; readonly cboEsocial:string; readonly origem:"MOCK_REFERENCIA_EXTERNA"; readonly situacao:"ATIVO"; }
+export const perfisProfissionaisBaseTemporaria: PerfilProfissionalTemporario[] = [
+  { id:"PER-001", nome:"Administração", cboEsocial:"252105", origem:"MOCK_REFERENCIA_EXTERNA", situacao:"ATIVO" },
+  { id:"PER-002", nome:"Contabilidade", cboEsocial:"252210", origem:"MOCK_REFERENCIA_EXTERNA", situacao:"ATIVO" },
+  { id:"PER-003", nome:"Enfermagem", cboEsocial:"223505", origem:"MOCK_REFERENCIA_EXTERNA", situacao:"ATIVO" },
+  { id:"PER-004", nome:"Engenharia Civil", cboEsocial:"214205", origem:"MOCK_REFERENCIA_EXTERNA", situacao:"ATIVO" },
+  { id:"PER-005", nome:"Medicina", cboEsocial:"225125", origem:"MOCK_REFERENCIA_EXTERNA", situacao:"ATIVO" },
+  { id:"PER-006", nome:"Tecnologia da Informação", cboEsocial:"212405", origem:"MOCK_REFERENCIA_EXTERNA", situacao:"ATIVO" },
+];

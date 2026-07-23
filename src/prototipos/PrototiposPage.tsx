@@ -101,7 +101,7 @@ import { QuadroAutorizadoContent } from "./controleVagas/QuadroAutorizadoContent
 import { DistribuicaoSaldoContent } from "./controleVagas/DistribuicaoSaldoContent";
 import { DashboardGerencialContent } from "./controleVagas/DashboardGerencialContent";
 import { VagasIndividualizadasContent } from "./controleVagas/VagasIndividualizadasContent";
-import { TitularidadeCessoesContent } from "./controleVagas/TitularidadeCessoesContent";
+import { MovimentacoesContent } from "./controleVagas/MovimentacoesContent";
 import { ProjecoesVagasContent } from "./controleVagas/ProjecoesVagasContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
@@ -241,9 +241,9 @@ const menuGestaoPessoas: IMenuSeplag[] = [
             to: `${CONTROLE_VAGAS_BASE_PATH}/vagas`,
             visibleOnMenu: true,
             visibleOnRouter: true,          },          {
-            label: "Cessões",
+            label: "Movimentações",
             icon: "pi pi-circle-on",
-            to: `${CONTROLE_VAGAS_BASE_PATH}/cessoes`,
+            to: `${CONTROLE_VAGAS_BASE_PATH}/movimentacoes`,
             visibleOnMenu: true,
             visibleOnRouter: true,
           },          {
@@ -6292,7 +6292,7 @@ export function PrototiposControleVagasProjecoesPage() {
 export function PrototiposControleVagasCessoesPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
-      <TitularidadeCessoesContent />
+      <MovimentacoesContent />
     </PrototypeSystemPage>
   );
 }

@@ -1,0 +1,1483 @@
+📝 Observações
+
+-- 1 of 53 --
+
+jul. 15, 2026
+Levantamento Controle e
+Quadro de Vagas
+convidado Renan dos Santos Araujo Carlos Vitor Vieira Mattos
+Isabeli Rodrigues de Oliveira Reunião TI - SEPLAG
+Adriane Fernanda Echeverria Fernandez Débora Cristina Cunha
+Taylor Augusto Dos Santos Marcela Souza de Oliveira Marcos Roberto Juliao
+Danielle Cristina Silva Cruz
+Anexos Levantamento Controle e Quadro de Vagas
+Registros da reunião Transcrição 	Gravação
+Resumo
+Discussão sobre controle de vagas, implementação de bloqueios no sistema e
+definição de parâmetros funcionais.
+Controle de vagas efetivas
+Sistemas de controle atuais dependem de planilhas manuais. A prioridade reside no
+rigor fiscal exigido pelo controle de cargos efetivos.
+Parametrização e regras legais
+Implementado bloqueio automático para vagas de cargos em comissão no sistema.
+Ordens judiciais constituem a única exceção permitida para exceder limites legais.
+Funcionalidades de monitoramento
+Vagas devem possuir status de disponibilidade e etiquetas informativas. A automação
+futura de relatórios permanece limitada pela necessidade de integridade de dados
+históricos.
+
+-- 2 of 53 --
+
+Próximas etapas
+[Débora Cristina Cunha] Enviar Lei Carreira: Encaminhar um exemplo de lei de
+carreira para a equipe de tecnologia. Auxiliar no entendimento sobre a
+estruturação das vagas efetivas.
+[A equipe de TI] Criar alerta aposentadoria: Implementar funcionalidade de
+aviso para servidores próximos da compulsória.
+[A equipe de TI] Projetar relatórios vacância: Desenvolver documentos de
+previsão de ocupações futuras considerando desligamentos.
+[A equipe de TI] Estruturar banco dados: Desenvolver base segregada entre
+ocupações e perfis técnicos.
+[A equipe de TI] Integrar códigos CBO: Vincular obrigatoriamente o código
+brasileiro de ocupação a cada especialidade cadastrada no sistema.
+Detalhes
+● Introdução e Objetivo do Controle de Vagas: Os participantes discutiram a
+necessidade de implementar um sistema de controle de vagas para efetivos,
+começando pelo entendimento de que cada vaga deriva de uma lei de carreira
+específica que define cargos e quantitativos (00:04:08). Atualmente, esse
+controle é realizado manualmente por meio de planilhas de Excel gerenciadas
+pelo setor competente (00:05:30).
+● Escopo do Controle - Efetivos vs. Temporários: Débora Cristina Cunha
+esclareceu que o controle rigoroso por meio de lei aplica-se exclusivamente aos
+cargos efetivos (00:06:33). Não existe legislação que estabeleça quantitativos
+para contratos temporários, sendo estes controlados apenas por
+lotacionogramas para fins informativos, sem a possibilidade de bloqueio de
+contratações pelo sistema (00:07:28).
+● Necessidade de Gestão de Despesas: Foi enfatizado que o controle de vagas
+para servidores efetivos é fundamental para a gestão fiscal do Estado, dado
+
+-- 3 of 53 --
+
+que esses servidores permanecem no quadro por longos períodos (00:09:29).
+Diferente dos temporários, que podem ter contratos encerrados conforme a
+necessidade, o servidor efetivo gera despesas permanentes, exigindo maior
+rigor no controle de nomeações (00:10:30).
+● Controle de Cargos em Comissão (DGAs): O setor de SMO está trabalhando
+na parametrização do sistema para controlar vagas de cargos em comissão
+(DGAs) (00:10:30). O objetivo é implementar um bloqueio automático no
+sistema de gestão de pessoas (CAP) para impedir nomeações que excedam o
+limite estabelecido por lei, algo que atualmente não é barrado (00:11:49).
+● Alterações Legislativas e Exceções: A legislação determina os limites de
+vagas, e qualquer alteração no quantitativo deve ocorrer obrigatoriamente por
+meio de lei (00:12:58). Foi esclarecido que ordens judiciais constituem uma
+exceção ao controle de vagas, permitindo nomeações que excedam o limite,
+desde que devidamente registradas no sistema com o número do processo
+judicial para justificar o excesso (00:15:10).
+● Extinção e Transformação de Cargos: Quando a legislação determina a
+redução de um cargo, os ocupantes atuais não são desligados; as vagas são
+extintas à medida que ocorrem vacâncias (aposentadoria, exoneração, etc.)
+(00:17:01) (00:22:06). Bruno da Silva Nogueira explicou que é possível
+transformar cargos ocupados ou vagos, desde que previsto em lei, como
+ocorreu com os advogados do Detran, cujo caso resultou em enquadramento e
+atualização no sistema (00:18:13) (00:23:05).
+● Enquadramento no Sistema: Mudanças de carreira, como a transformação de
+cargos de técnico para analista, exigem um processo de enquadramento
+funcional no sistema de gestão (CAP) e publicação em Diário Oficial,
+mantendo-se o histórico do servidor, como datas de início e fim de cada função
+(00:19:09).
+● Redistribuição de Vagas: Bruno da Silva Nogueira pontuou que decretos de
+redistribuição permitem mover vagas entre órgãos sem, contudo, aumentar o
+quantitativo total autorizado por lei (00:25:40). As carreiras geralmente estão
+vinculadas a órgãos específicos, restringindo a lotação dos servidores a essas
+entidades (00:24:52) (00:45:08).
+● Definição de Vacância: A movimentação definitiva de um servidor para outro
+órgão, como uma remoção, exige a existência de uma vaga livre no órgão de
+
+-- 4 of 53 --
+
+destino (00:27:15). Uma vaga só é considerada ocupada quando o servidor
+entra em efetivo exercício, e ela só é liberada para nova nomeação após a
+publicação oficial do ato de vacância (exoneração, aposentadoria, etc.)
+(00:28:17) (00:36:30).
+● Status e Flags para Vagas: Os participantes concordaram que a vaga deve
+possuir dois status principais: disponível e indisponível (00:30:07). Taylor
+Augusto Dos Santos propôs a criação de "flags" (etiquetas) no sistema para
+fornecer informações adicionais — como vagas autorizadas para nomeação,
+processos em andamento ou vinculadas a concursos — sem necessariamente
+bloquear o sistema (00:31:06).
+● Gestão de Aposentadorias e Compulsória: A implementação de alertas no
+sistema para aposentadorias (incluindo a compulsória) foi identificada como
+uma ferramenta valiosa para planejamento e geração de relatórios de vacância
+futura (00:37:19). Débora Cristina Cunha destacou que o sistema deve
+considerar, inclusive, a necessidade de priorizar servidores com acúmulo de
+férias e licença-prêmio que estejam próximos da aposentadoria (00:38:23).
+● Natureza dos Perfis e Especialidades: Foi esclarecido que as vagas não são
+numeradas individualmente (00:39:29). Os perfis profissionais (como arquiteto)
+não são fixos e podem variar conforme a necessidade estratégica do Estado
+(00:40:32). O sistema deve permitir a consulta informativa desses perfis sem
+restringir quantitativos de forma rígida (00:41:08).
+● Vinculação de Perfis e CBO: Perfis e especialidades podem ser
+compartilhados entre diferentes cargos e órgãos, sendo necessários bancos de
+dados distintos para cargos e perfis (00:42:11). O Código Brasileiro de
+Ocupação (CBO) é vinculado ao perfil profissional, e não ao cargo em si
+(00:43:38).
+● Exceções de Acúmulo de Cargos: Casos específicos permitidos pela
+Constituição, como professores e profissionais da saúde, permitem que um
+servidor ocupe dois vínculos, totalizando duas vagas distintas (00:48:56).
+● Limitações dos Relatórios Atuais: Bruno da Silva Nogueira explicou que o
+sistema atual (CAP) gera relatórios com base em dados do dia anterior
+(data-base defasada) para garantir a integridade das informações, pois
+lançamentos retroativos podem alterar o quadro de vagas (00:54:41). Relatórios
+
+-- 5 of 53 --
+
+futuros são inviáveis no sistema atual, limitando a capacidade de projeção
+automática sem novas ferramentas de cálculo (00:53:46).
+Revise as anotações do Gemini para checar se estão corretas. Confira dicas e saiba
+como o Gemini faz anotações
+Como está a qualidade de destas observações? Responda a uma breve pesquisa
+para nos dar seu feedback, incluindo o quanto as observações foram úteis para o que
+você precisa.
+
+-- 6 of 53 --
+
+📖 Transcrição
+
+-- 7 of 53 --
+
+jul. 15, 2026
+Levantamento Controle e
+Quadro de Vagas -
+Transcrição
+00:04:08
+Reunião TI - SEPLAG: Boa
+Débora Cristina Cunha: Boa tarde.
+Reunião TI - SEPLAG: tarde.
+Taylor Augusto Dos Santos: Boa tarde,
+Marcos Roberto Juliao: Tard tardi.
+Reunião TI - SEPLAG: Iniciar então, Débora, queremos buscar para você mais
+informações ainda sobre o controle de vagas, os efetivos. para que a gente possa
+entender melhor aí, fazer oração, essa implementação de controle. Você poderia
+começar pra gente assim desde o início, tipo assim, comoace para que a gente possa
+ir assinando e direcionando as perguntas para você?
+Taylor Augusto Dos Santos: É tipo o que a gente viu aqui, tipo, uma vaga ela meio
+que vem de uma lei de carreira, né? Seria tipo o pai primordial dela. Aí ela vai
+destrinchando uma lei de carreira, ela vai para um para um cargo, por exemplo, né? E aí
+do cargo a gente tem si as vagas. Seria isso ou tem algum outro, alguma coisa no
+meio?
+Débora Cristina Cunha: É isso mesmo. Todas as vagas de carga efetiva,
+Taylor Augusto Dos Santos: Eu vi esse espaço,
+Débora Cristina Cunha: elas são eh criadas por meio de lei e qualquer
+Taylor Augusto Dos Santos: né?
+Débora Cristina Cunha: alteração também ocorre por meio de lei.
+
+-- 8 of 53 --
+
+00:05:30
+Débora Cristina Cunha: E na lei de carreira já aparece lá quantas vagas que cada
+carreira tem. E a gente faz esse controle hoje manual.
+Taylor Augusto Dos Santos: Então, tá? Então aí se você puder mandar um exemplo
+pra gente também de uma lei dessa, só para ter uma ideia, então teria uma lei, certo,
+de carreira dentro dela, ela define as cargas já também e a quantidade de cada cargo
+ou não é algo mais geral certinho,
+Débora Cristina Cunha: Define o cargo e a quantidade de cada carga.
+Taylor Augusto Dos Santos: né? Ah, tá. Então a lei já vai especificando tudo.
+Débora Cristina Cunha: Eu pedi pro Bruno entrar aqui porque ele é desse setor
+Taylor Augusto Dos Santos: Beleza. Deixa eu ver.
+Débora Cristina Cunha: que faz o controle da
+Taylor Augusto Dos Santos: Aham. A gente viu lá a planilha do Excel dele.
+Débora Cristina Cunha: Então ele que é desse setor aí que faz a gestão, né, desse
+controle de vagas que é manual.
+Reunião TI - SEPLAG: Ele até mandou pra gente essa planilha, Débora.
+Taylor Augusto Dos Santos: Uhum.
+Reunião TI - SEPLAG: Eu até a gente ia comentar aqui que lá e também na planilha fala
+tempor efetivos e temporários. Aí até aí depois chamar você, se fosse o caso, pra
+gente poder perguntar se tem alguma coisa que ele vai fazer também lá de efetivo.
+00:06:33
+Reunião TI - SEPLAG: Então agora você já tá respondendo aí que que tá ele trata
+todos esses dois nessa planilha, então,
+
+-- 9 of 53 --
+
+Débora Cristina Cunha: Não,
+Reunião TI - SEPLAG: né?
+Débora Cristina Cunha: ele só controla de efetivo, porque hoje eh não existe lei que
+controla, por exemplo, contrato temporário, porque pela própria dinâmica Да. lei. A lei
+ela fala que é para uma contratação emergencial, temporária,
+Marcos Roberto Juliao: M.
+Débora Cristina Cunha: uma situação que não foi prevista, né, e que eu vou precisar
+daquela equipe ali só para um determinado período para atender um projeto e depois
+disso eu encerro o contrato. Então,
+Taylor Augusto Dos Santos: Aí seria minha minha outra pergunta
+Débora Cristina Cunha: por conta da dinâmica do contrato temporário,
+Taylor Augusto Dos Santos: Oh.
+Débora Cristina Cunha: não existe um quantitativo de lei. Não sei se futuramente o
+estado pretende fazer isso,
+Reunião TI - SEPLAG: Assim,
+Débora Cristina Cunha: mas não existe essa esse controle de vagas com relação ao
+contrato temporário.
+Reunião TI - SEPLAG: entendi sobre a questão da lei pro contrato temporário,
+Débora Cristina Cunha: O caso de
+Reunião TI - SEPLAG: mas no caso ele controla algo do contrato temporário lá para
+ele só para saber as vagas que
+00:07:28
+Débora Cristina Cunha: Mas
+Reunião TI - SEPLAG: tem. É isso, né?
+Débora Cristina Cunha: não não ele não,
+Reunião TI - SEPLAG: que lá.
+Débora Cristina Cunha: ele a única coisa que ele controla é porque o o os órgãos ele
+tem que publicar todo, não sei de quanto, quanto tempo, mas ele tem de publicar um,
+
+-- 10 of 53 --
+
+eu esqueci o nome agora, mas é uma um quadro de servidores que ele tem, um
+lotacionograma que chama Ele precisa publicar o lotacionograma. Com base nesse
+lotacionograma que é publicado, o Bruno consegue saber quantas pessoas que tem lá,
+mas não o quadro de vagas no sentido que eu falo de controle, como acontece no
+caso de efetivo, onde se eu quiser nomear alguém e eu mando lá para pro setor dele
+um processo, ó, veio um pedido de nomeação lá da PJC para cá, eu quero nomear 10
+investigadores, aí eu mando pro setor dele, ele fala:
+Taylor Augusto Dos Santos: Так.
+Débora Cristina Cunha: "Não tem 10 investigadores na na previsto na lei de carreira
+dele". Ele só tem um, então eu só posso nomear uma pessoa. Isso que a gente chama
+de controle, entendeu? Porque ele vai controlar o que pode que não pode.
+00:08:34
+Débora Cristina Cunha: No caso de contrato temporário, ele não tem como controlar
+isso porque não tem o pode contratar no máximo 1000 contrato temporário. Não tem
+essa informação. Você
+Taylor Augusto Dos Santos: Então,
+Reunião TI - SEPLAG: Ah,
+Débora Cristina Cunha: entendeu?
+Reunião TI - SEPLAG: entendi. Entendi.
+Taylor Augusto Dos Santos: o controle mesmo de vagas é só para efetivo.
+Reunião TI - SEPLAG: OK.
+Taylor Augusto Dos Santos: Se a gente fosse ter alguma coisa para temporário, seria
+algo mais só administrativo mesmo, informativo, digamos assim.
+Débora Cristina Cunha: Então, eu nem sabia te dizer como que faria esse controle,
+porque precisaria realmente criar uma legislação que delimitasse um limite de
+contratações. Bruno, a gente tá aqui falando sobre esse controle de vagas. Tô
+explicando para eles que atualmente a gente só faz o controle de vagas de de efetivo,
+que a informação que você tem na planilha, que você disponibilizou para eles com
+
+-- 11 of 53 --
+
+relação aos ao quantitativo de contratos temporários que temos hoje, é por conta do
+lotacionograma que as pessoas publicam, você só controla o quanto que tem. É
+Reunião TI - SEPLAG: M.
+Bruno da Silva Nogueira: É justamente porque assim hoje a gente não tem nenhuma
+parametrização para estipular limites de
+00:09:29
+Débora Cristina Cunha: isso.
+Bruno da Silva Nogueira: de temporários.
+Taylor Augusto Dos Santos: Так.
+Bruno da Silva Nogueira: Então, como um próprio exemplo, nós temos o quadro hoje
+de servidores efetivos de desenvolvimento econômico social analista. Nós temos
+nesse quadro cerca de 900 servidores efetivos previstos por lei, mas os contratos
+temporário passa de 2000. É a mesma coisa em em outras carreiras. Então assim, a
+gente não tem, de acordo com a necessidade estratégica, necessidade do do Estado,
+né, em processos seletivos, né, que são feitos, a gente não tem um quantitativo, ou
+seja, eh é um cargo que pode ser criado pra gente ter esse controle, né, de
+quantitativos, né, de de bloqueios em si, não, né, não teriam aquele bloqueio
+Débora Cristina Cunha: único, isso, o único que a gente bloqueia o limite de
+nomeação vai ser o do efetivo por conta disso, porque quando a gente nomea o
+efetivo,
+Taylor Augusto Dos Santos: tenha
+Débora Cristina Cunha: ele ele vai ficar aqui até morrer,
+Taylor Augusto Dos Santos: leito.
+Débora Cristina Cunha: se tudo der certo na vida dele, entendeu? Senão ele não
+passa um est probatório e vai sair ou até aposentar ou até ele morrer. Mal de falar,
+entendeu?
+
+-- 12 of 53 --
+
+00:10:30
+Débora Cristina Cunha: Mas assim,
+Reunião TI - SEPLAG: Gente, Yeah.
+Débora Cristina Cunha: ele vai ficar para sempre.
+Taylor Augusto Dos Santos: Uhum.
+Débora Cristina Cunha: Por isso que eu preciso controlar para con saber qual que é o
+limite da despesa que eu vou ter com gasto de pessoal, que no caso de contrato
+temporário, se por exemplo o estado ele entrar numa situação fiscal em que ele não
+vai ter condições de manter aquele contrato eh de pagar, né, o manter o salário dessas
+pessoas, ele pode destratar a qualquer momento e o servidor efetivo não,
+Reunião TI - SEPLAG: เ
+Débora Cristina Cunha: ele vai ter que ficar com essa despesa sempre, entendeu?
+Taylor Augusto Dos Santos: Uhum.
+Débora Cristina Cunha: E a gente tem o controle de vagas que tá sendo implantado
+por meio de um por meio do do setor do da SMO. eles que estão com esse trabalho de
+de de controle de vagas para cargos de comissão. Então, no estado também existe
+uma a legislação que determina a quantidade de DGA que tem e quantidade de quais
+são as DGAs e a quantidade de DGAs. E aí eles que fazem esse controle. Hoje eles
+estão trabalhando, assim como o Bruno também tá trabalhando para ter uma tela no
+CAP, algum esse controle de vagas dentro do próprio CAP, para que quando alguém
+fosse tentar registrar uma pessoa lá, uma nomeação, por exemplo, tem 10 vagas de
+DGA5, aí já todas essas vagas são preenchidas.
+00:11:49
+Débora Cristina Cunha: Se alguém tentar registrar hoje no CAP um DGA5 e já tá o
+limite preenchido, o sistema vai permitir eh nomear, porque não tem esse controle de
+vaga implantado lá ainda. Então a gente tá trabalhando para poder implantar esse
+controle de vagas do cargo em comissão, porque o cargo em comissão ele tem um
+
+-- 13 of 53 --
+
+limite que pode ser contratado também. Existe uma lei já que fala, ó, é tantas vagas. Aí
+a gente tá, a gente tá fazendo isso para fazer no sistema, porque como a o a
+nomeação, o órgão central controla que a quantidade que vai ser nomeada, no cargo
+em comissão, por exemplo, cada órgão faz a sua a nomeação do seu. Então, se a gente
+não parametrizar o sistema para fazer esse bloqueio, ele vai permitir que os órgãos
+façam essa nomeação, entendeu?
+Taylor Augusto Dos Santos: separada.
+Débora Cristina Cunha: não tem essa análise de quantitativo de cargo para alguém
+validar e e gerar esse registro lá, como acontece no cargo de efetivo. Então,
+Marcos Roberto Juliao: M. M.
+Débora Cristina Cunha: é um trabalho que a gente tá fazendo para parametrizar o
+sistema para que ele bloqueie com base nessas informações da lei do quantitativo de
+vagas que
+Marcos Roberto Juliao: Tá uma dúvida, Débora.
+Débora Cristina Cunha: tem.
+00:12:58
+Marcos Roberto Juliao: Se nesse caso do quantitativo, igual você tá falando, que tá
+sendo implementado o controle de vagas, vamos colocar aí igual você citou, questão
+do DGA por questão de órgão, pode acontecer de mesmo você colocando, vou vou
+perguntar no caso real, tá? mesmo você colocando essa configuração, vamos colocar
+assim esse limite, esse teto de de nomeação. pode acontecer de vir alguma, não sei,
+alguma instrução normativa, algum decreto,
+Taylor Augusto Dos Santos: todas
+Marcos Roberto Juliao: alguma coisa do tipo, uma legislação interna, fazendo assim,
+fazendo uma força para que seja extrapolado esse limite.
+Débora Cristina Cunha: Não, porque toda essa alteração só pode ser feito por lei
+também de quantitativo de vagas no de DGA, né? É, é feita por lei. E aí toda a lei ela
+não pode, não vai ser um regulamento interno que vai fazer essa esse aumento,
+Marcos Roberto Juliao: Isso. Eu digo,
+
+-- 14 of 53 --
+
+Débora Cristina Cunha: entendeu?
+Marcos Roberto Juliao: esse regulamento interno é é uma uma por não achar o
+nome certinho da lei para que faça essa alteração, mas se eu tiver alguma alteração
+posterior, então isso pode ser reconfigurado, digamos assim.
+Débora Cristina Cunha: Sim, pode ser reconfigurado,
+Marcos Roberto Juliao: Ah,
+00:14:08
+Débora Cristina Cunha: mas somente por lei complementar.
+Marcos Roberto Juliao: ok.
+Débora Cristina Cunha: Mas a lei então ela ela é externa, ela não é interna. É interna
+que a gente fala uma portaria que só dentro daquele órgão que que vale, entendeu?
+Aí, por exemplo, uma instrução normativa, um decreto, já é uma lei externa porque vale
+para todos os órgãos do poder executivo. Mas assim, o quantitativo de vagas vai ser
+sempre por
+Marcos Roberto Juliao: Ah, entendi.
+Débora Cristina Cunha: lei.
+Taylor Augusto Dos Santos: controle. Então, só é só por lei mesmo, só efetivo. Um
+exemplo seria acho que esse concurso da Cfaz, né? Eu vi uma notícia que eles vão ter
+que chamar tantas pessoas.
+Débora Cristina Cunha: Isso.
+Taylor Augusto Dos Santos: Então, por exemplo, se ele tivesse preenchido no limite,
+como foi uma ordem judicial e tal, aí extrapularia esse limite, teria que alterar, mas só
+porque teve aquela lei lá que obrigou,
+Débora Cristina Cunha: Não. Aí a lei de carreira deles é uma coisa.
+Taylor Augusto Dos Santos: basicamente.
+Débora Cristina Cunha: Na lei de carreira deles fala que existe X vagas. A decisão
+judicial, toda vez que a gente nomeia alguém por decisão judicial, a gente não entra
+nesse mérito de quantitativo de vaga.
+
+-- 15 of 53 --
+
+00:15:10
+Débora Cristina Cunha: Então, se a gente for parametrizar um sistema para poder
+colocar o quantitativo de vagas, vai precisar haver essas exceções. Quando for um
+judicial, eu vou nomear, mesmo que o quadro já esteja preenchido, ele vai ficar extra
+quadro. Aí, se o Bruno quiser complementar aí, pode falar.
+Reunião TI - SEPLAG: Nesse caso, só um parênteses antes falar. Aí entra aquela casa
+dos excedentes, néra?
+Débora Cristina Cunha: Isso. S.
+Reunião TI - SEPLAG: Beleza. Pronto. Beleza.
+Bruno da Silva Nogueira: é isso.
+Reunião TI - SEPLAG: Podear.
+Bruno da Silva Nogueira: É justamente do que a gente tinha falado quando a gente
+conversou aqui com o Félix também sobre essa situação do extra.
+Reunião TI - SEPLAG: Ah.
+Bruno da Silva Nogueira: Acho que a gente até apontou no Detran, né, que tá nessa
+situação que eu não viado para vocês, né? é justamente sobre esse estratuamento,
+mas é em consequência dessa situação judicial,
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: entendeu? Então assim, a gente tem o quantitativo de
+cargos criados, um exemplo, vamos criar o perito oficial criminal, o o quantitativo dele
+possível hoje é 300 por lei, né?
+00:16:05
+Bruno da Silva Nogueira: Foi uma autoração que teve recente e tem esses 300
+cargos criados por lei. Eh, hoje tá, vamos supor que tá preenchido os 300. Se tiver uma
+
+-- 16 of 53 --
+
+determinação judicial, a gente vai exceder esse número, mas em virtude da da
+situação judicial. Então assim, a gente tem que ter um cargo criado eh o quadro de
+vagas, né? Mas ele não pode ter uma eh como eu já até tinha apontado, tem que ter
+um alerta, né? Uma uma informação de trava, né? Tipo, a gente tá excedendo por quê?
+Excendo por causa da ação judicial, número tal, processo tal, né? A partir disso, a
+gente consegue extrapolar esse número.
+Taylor Augusto Dos Santos: Uma lei de
+Débora Cristina Cunha: pensando no sistema, como a gente vai fazer o registro no
+sistema de um servidor,
+Taylor Augusto Dos Santos: carreira.
+Débora Cristina Cunha: Quando eu fosse tentar é o cadastro do servidor tudo
+certinho, quando eu vou colocar aquele cargo lá, o sistema vai dizer assim: "Não, você
+não pode nomear essa pessoa porque o a carga a vaga tá tá excedida". Aí a pessoa
+obrigatoriamente vai ter que colocar o o motivo do que ela porque que ela tá
+nomeando.
+00:17:01
+Débora Cristina Cunha: Aí se o motivo é judicial, ela vai ter que marcar lá uma opção
+que é o judicial, colocar obrigatoriamente o número do processo judicial e aí sim o
+sistema permitiria que ela registrasse aquela vaga.
+Taylor Augusto Dos Santos: Isso mesmo.
+Reunião TI - SEPLAG: embasamento.
+Marcos Roberto Juliao: Uma uma dúvida. Quando for o caso contrário, vamos dizer
+assim, ó, vamos colocar no caso da CPLG um genérico assim, só como exemplo. CLAG
+eu tenho hoje 10, que já foi determinado em lei, tem 10 vagas um cargo X específico. E
+de repente eu tenho por algum motivo, foi fal foi determinado que essa quantidade,
+esse quantitativo seja reduzido. O que é feito com esses que já existem, já estão no
+cargo anteriormente a essa decisão de
+Débora Cristina Cunha: Não existe a possibilidade de eh excluir o cargo se tem
+Marcos Roberto Juliao: redução?
+
+-- 17 of 53 --
+
+Débora Cristina Cunha: gente na vaga. Ele vai sair uma lei falando que conforme
+forem vagando os cargos, eles serão extintos. Então, tipo assim, na hora que alguém
+aposentar aquele cargo lá, não vou poder fazer nomear uma outra pessoa no lugar,
+porque ele foi extinto. Então, assim,
+Marcos Roberto Juliao: Ah.
+Débora Cristina Cunha: se a pessoa tá lá, eu não vou tipo tirar ela, entendeu?
+00:18:13
+Débora Cristina Cunha: Ela vai continuar lá. Só que conforme vai vagando o cargo, eu
+vou eu vou eliminando aquele cargo lá, se tiver isso escrito numa
+Bruno da Silva Nogueira: É,
+Marcos Roberto Juliao: Ah,
+Bruno da Silva Nogueira: nessa mesma situação, ele pode,
+Marcos Roberto Juliao: entendi.
+Débora Cristina Cunha: letra.
+Bruno da Silva Nogueira: você pode excluir somente cargos vagos, né, como a a
+chefe falou, a Débora falou, somente cargos vagos e cargos ocupados somente em
+extinção.
+Marcos Roberto Juliao: OK.
+Bruno da Silva Nogueira: o máximo previsto, que também depende muito da
+situação, é é uma transformação, como ocorreu agora recentemente nos advogados
+do Detran, que foram transformados em cargos de analista de do serviço de trânsito.
+Então assim, a são as possibilidades que a gente tem, mas se extinguir, como a Débora
+falou, um cargo ocupado não tem essa possibilidade.
+Marcos Roberto Juliao: Tá. Okay. Eh, eh, assim, só para vocês entenderem. De
+repente eu tô fazendo algumas
+Débora Cristina Cunha: E quando esse cargo é transformado, a vaga existe também,
+Marcos Roberto Juliao: perguntas.
+
+-- 18 of 53 --
+
+Débora Cristina Cunha: vai continuar existindo aquele quantitativo. Só que quando
+carga transformada, a gente vai fazer um registro no sistema também de gestão de
+pessoas, eh, de uma eh um um enquadramento para esse servidor.
+00:19:09
+Débora Cristina Cunha: Então, ele estava eh quando a pessoa toma posse, ele tem
+um enquadramento inicial. Esse enquadramento inicial, por exemplo, eu sou técnico
+administrativo da área email, então eu passei nesse concurso e eu sou tomo posse, aí
+eu entro efetivo exercício e aí a aplicação vai fazer uma um enquadramento na minha
+na minha carreira, vai sair uma aplicação diário oficial e um registro no CAP. Esse
+enquadramento na carreira vai só dizer assim: "Olha, Débora é desse cargo aqui de
+técnico de da área meio". Aí por uma situação e existe uma transformação desse
+cargo, o técnico da área mail passa a ser outro cargo, tipo analista da área mail, né?
+Marcos Roberto Juliao: ia perguntar
+Débora Cristina Cunha: Então aí vai ter uma lei de carreira que vai falar isso e aí vai
+existir um enquadramento, um outro enquadramento onde eu vou sair desse
+enquadramento de técnica, vou passar pro enquadramento em eh para analista. E
+tudo isso hoje a gente faz, por exemplo, no SEAP, na transação 56, que é tela de
+eventos de cargo. Então esse período que a pessoa ficou trabalhando enquanto
+quanto técnico, tem lá data de início, vai ter data de fim, todas as movimentações que
+ela teve de setores durante aquele período.
+00:20:15
+Débora Cristina Cunha: E aí da daquela data que saiu a lei falando que aquele cargo
+não é mais técnico, é analista, aí vai ter também um registro que a partir daquela data,
+aquela pessoa lá é analista da área meia. Então, existe um registro do funcional do
+servidor no sistema de gestão de pessoas e uma publicação do Diário Oficial com
+relação a isso, mas ele foi desencadeado por conta de uma lei que foi alterada fazendo
+
+-- 19 of 53 --
+
+essa transformação desse cargo, que é esse exemplo que o Bruno falou aí, que é do
+advogado do
+Marcos Roberto Juliao: Ah, sim, sim.
+Débora Cristina Cunha: Detran.
+Marcos Roberto Juliao: É, eu ia citar um exemplo bem antigo que eu lembro que
+aconteceu no estado, que foi referente a quem era de cargo, nível fundamental, que
+passou a ser eh nível médio, uma coisa assim do tipo.
+Taylor Augusto Dos Santos: Professores,
+Marcos Roberto Juliao: Aí não eh foi é um não foi dos professores,
+Taylor Augusto Dos Santos: acho que eu já vi esse exemplo aqui.
+Marcos Roberto Juliao: foi pessoal do do do próprio estado, parte administrativa, tá?
+Débora Cristina Cunha: Então,
+Marcos Roberto Juliao: Lev cara de cabeça,
+Débora Cristina Cunha: normalmente esse tipo de coisa nem nem acho que nem
+pode fazer.
+Marcos Roberto Juliao: velho.
+Débora Cristina Cunha: Acho que é inconstitucional, né, Bruno?
+Bruno da Silva Nogueira: É transpos.
+00:21:13
+Débora Cristina Cunha: A pessoa faz
+Bruno da Silva Nogueira: Isso aquela transformação de de cargo assim,
+Débora Cristina Cunha: é isso.
+Bruno da Silva Nogueira: nesse nesse previsto, você pode mudar a carreira, por
+exemplo, você pode mudar que no nível dois vai ser fundamental, vai ser médio,
+superior, coisas do tipo, mas ingresso inicial nessa situação você não pode alterar, é
+inconstitucional, é uma aí é eh, por exemplo, eu vou falar isso porque a gente teve isso
+na minha carreira, técnico administrativo, foi feita uma legislação onde mudou ele de
+
+-- 20 of 53 --
+
+nível médio para entrada, né, para nível superior. Aí foi considerado inconstitucional
+porque aqui é uma transposição, né?
+Débora Cristina Cunha: Ja.
+Bruno da Silva Nogueira: Isso é possibilitado pela lei e é bloqueado.
+Marcos Roberto Juliao: Ah, eu lembro que teve alguns casos no passado que tiveram
+muitos mandados, né, por causa disso. Co? Eh, outra coisa, eh, tá, então, nesse caso,
+quando há, digamos assim, um enquadramento do servidor, aqueles, aquele cargo
+antigo,
+Débora Cristina Cunha: Oh.
+Marcos Roberto Juliao: eh, entra no caso que a gente citou agora a pouco, né?
+Conforme eu for tendo vacância,
+Taylor Augusto Dos Santos: Ord.
+Marcos Roberto Juliao: ele vai sendo extinto.
+00:22:06
+Marcos Roberto Juliao: É isso.
+Débora Cristina Cunha: Ah.
+Bruno da Silva Nogueira: É como depende. É como eu disse, é o o normal. Vamos
+pegar, vou pegar casos concretos, fica mais fácil pra gente entender. Por exemplo,
+Marcos Roberto Juliao: OK.
+Bruno da Silva Nogueira: a gente tem o cargo do Indeia, tem um cargo lá de auxiliar
+do auxiliar auxiliar do do Indeia, esqueci o nome certinho, mas auxiliar do Ideia, né? E
+ele tá extinto a medida que vagar, ele não tá sendo remanejado para lugar nenhum.
+Então ele tem 10 eh cargos criados, tem 10 ocupados. Se amanhã alguém aposenta,
+então ele vai, ele cai, né? Fica para nove ocupados e nove nove cargos criados. Então
+sempre vai acompanhando a medida que tá sendo vago, né? independente do motivo,
+se é uma vacância por posse inacolável, uma vacância por demissão, independente do
+motivo, ele sempre vai ficar pagando ali. Eh, essa situação do do cargo do Detran, ele
+foi colocado na na lei o seguinte: eh esse cargo se torna extinto, né, sendo
+
+-- 21 of 53 --
+
+transformado no cargo de de analista de do serviço de trânsito, ou seja, ele pegou
+eram 12 vagas criadas, tá?
+00:23:05
+Bruno da Silva Nogueira: E se eu não me engano eram nove ocupados, então ele
+tinha um saldo ali ainda, né, de três. E ele mandou o quê? Ele mandou transformar
+esses cargos todos em analista do serviço de trânsito. Então eu vou não vou mudar
+somente os nove cargos que estão ocupados, vou mudar os nove cargos ocupados
+mais os três que eu tinha de saldo. Então o total ali, os 12 cargos. Então houve como se
+fosse uma transformação.
+Marcos Roberto Juliao: Ok,
+Bruno da Silva Nogueira: Eu mudei desse cargo para outro. Então a gente no sistema
+ele seria fechado, né? eh encerrado no sistema, colocando o motivo, né, desse
+encerramento desse cargo e e aumentado o quadro do outro do outro que a gente
+adicionou, né? Então, na serviço de trânsito, a gente aumentaria 12 informando essa
+situação da autorização da
+Marcos Roberto Juliao: entendido.
+Bruno da Silva Nogueira: lei.
+Taylor Augusto Dos Santos: E aquelas pessoas daí passariam a ter aquela ocupar
+aquela nova vaga. No caso tem
+Bruno da Silva Nogueira: Isso aí. Aí, geralmente ele coloca na legislação, eh,
+Taylor Augusto Dos Santos: carga.
+00:23:53
+Bruno da Silva Nogueira: porque assim, geralmente tem uma diferença de de tabela
+financeira, né, de remuneração, de enquadramentos, né, então ele coloca também
+
+-- 22 of 53 --
+
+isso na legislação sobre em qual enquadramento o servidor vai ter, mas já na parte
+financeira dentro do vínculo dele, né? Então, o o financeiro dele é modificado pro
+financeiro que tá estipulado na legislação.
+Reunião TI - SEPLAG: Mas essa vaga, ela que foi remanejada para essa nova, fica
+como extinta aí.
+Taylor Augusto Dos Santos: Isso. antiga é que tá bem baixinho,
+Reunião TI - SEPLAG: Melhorou.
+Taylor Augusto Dos Santos: Marcela
+Bruno da Silva Nogueira: Sim, sim.
+Reunião TI - SEPLAG: Beleza.
+Bruno da Silva Nogueira: Ela foi que
+Reunião TI - SEPLAG: com extin.
+Taylor Augusto Dos Santos: uma vaga em si, ela ela pertence,
+Débora Cristina Cunha: Ja.
+Taylor Augusto Dos Santos: por exemplo, ao estado como um todo ou ela pode ser
+meio que distribuída para um órgão,
+Débora Cristina Cunha: Ja.
+Taylor Augusto Dos Santos: um setor específico para alguma coisa assim ou ela é
+algo meio geral?
+Bruno da Silva Nogueira: Então, as vagas as vagas ela Ah. Elas são dependidas, como
+a gente falou, por lei de carreira, né?
+00:24:52
+Bruno da Silva Nogueira: E essa lei de carreira depende do que que ela tá citando.
+Então, um profissional do sistema de trânsito, por lei de carreira já tá dizendo que ela
+faz, ela só compõe o Detran, então ela vai estar vinculada ao estado, né? Mas dentro
+desse órgão, somente nesse órgão Detrã.
+Taylor Augusto Dos Santos: Então a lei vai definir isso aí
+Bruno da Silva Nogueira: Mais uma car isso. Então, por exemplo,
+
+-- 23 of 53 --
+
+Taylor Augusto Dos Santos: também.
+Bruno da Silva Nogueira: a lei do analista administrativo ou técnico administrativo, no
+caso no cargo que ocupa, ele é um cargo pertencente ao estado e na lei tá
+determinando quais são os órgãos que ele tem a previsão de cargos. Então sempre vai
+tá ali vinculado.
+Taylor Augusto Dos Santos: É porque minha pergunta,
+Reunião TI - SEPLAG: Verdade.
+Taylor Augusto Dos Santos: no caso,
+Reunião TI - SEPLAG: Car
+Bruno da Silva Nogueira: Ficou ficou
+Taylor Augusto Dos Santos: aí cada um teria o quantitativo.
+Bruno da Silva Nogueira: mudo.
+Taylor Augusto Dos Santos: Ah, mas a digamos que a Cfas tá precisando demais.
+Você poderia ouvir essa transferência? Aí eu pego 10 da Ceduc e coloco na Cfas,
+alguma coisa assim.
+00:25:40
+Bruno da Silva Nogueira: Sim, a gente tem um outro uma outra legislação é chamado
+decreto de redistribuição, inclusive eu tô fazendo um aqui agora, é justamente isso, é
+remanejamento de vagos. Eh, você remaneja cargos, por exemplo, você tá tirando
+cargos livres, né, do da SEPLAG tem 20 cargos livres de técnico. Ah, não, mas Cfaz tá
+precisando, então vou tirar cinco e mandar para lá. Mas é feito talvez dentro do
+decreto. Ou seja, sempre vai ter uma normativa, né, um ato eh determinando essa
+essas essas vinculações de cargos.
+Débora Cristina Cunha: Só não vai ter aumento da vaga, entendeu? Ele não vai
+conseguir aumentar por meio de decreto.
+Bruno da Silva Nogueira: Isto
+Débora Cristina Cunha: Ele só vai conseguir movimentar.
+Taylor Augusto Dos Santos: Só tá redistribuindo.
+
+-- 24 of 53 --
+
+Débora Cristina Cunha: Sai daqui, sai, vai para lá.
+Bruno da Silva Nogueira: como eu citei,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: o analista de desenvolvimento econômico social no estado
+são 936 vagas. Essas 936 953 vagas,
+Débora Cristina Cunha: Isso.
+Reunião TI - SEPLAG: para vocês. Bom, prosegui.
+00:26:25
+Bruno da Silva Nogueira: essas 953 vagas ficam remanejadas em todos os órgãos. Aí
+então assim, você pode ter um remanejamento com essa redistribuição, mas se você
+nunca vai aumentar ela, a não ser que seja uma lei propondo a criação de cargos.
+Taylor Augusto Dos Santos: E no caso, se o servidor ele é cedido, por exemplo, ele
+tava um, foi pro outro lá, ele leva a vaga dele ou ele passa a desocupar uma aqui e
+ocupa uma
+Bruno da Silva Nogueira: Não, não.
+Taylor Augusto Dos Santos: lá.
+Bruno da Silva Nogueira: A vaga continua no órgão de originário dele, porque a
+sessão é uma situação de movimentação temporária. Então, se eu sou hoje sou aqui,
+tô técnico administrativo aqui na SEPLAG, tem 150. Se eu for para CFA trabalhar lá
+cedido, a vaga minha continua aqui efetivamente. Só tô lá temporariamente. E quando
+a gente faz uma remoção definitiva, que aqui também tem uma uma possibilidade de
+movimentação,
+Taylor Augusto Dos Santos: É isso que eu
+Bruno da Silva Nogueira: o Bruno tá saindo isso, essa remoção definitiva,
+Taylor Augusto Dos Santos: perguntava.
+Bruno da Silva Nogueira: o Bruno sair daqui para trabalhar definitivamente na Cfaz.
+Eu só posso trabalhar onde tem cargos vagos.
+
+-- 25 of 53 --
+
+00:27:15
+Bruno da Silva Nogueira: Se a Cfaz tiver um cargo vago de técnico administrativa, eu
+posso sair daqui para lá, mas eu vou para um cargo que tá vago, entendeu? E aqui abre
+o abre um cargo pago porque eu tô estou saindo.
+Débora Cristina Cunha: É tipo, na CFA tem 10 cargos de técnico administrativo e na
+SEPLAG tem 10 cargos de de técnico administrativo. Pro Bruno ir para lá, lá tem que ter
+uma vaga. Aí ele vai para lá.
+Taylor Augusto Dos Santos: V
+Débora Cristina Cunha: Aí se lá tinha eh 10 cargos e tinha nove ocupados e um só
+sobrando, aí ele fechou o cargo dele lá. Agora tem 10. Aí aqui na SEPLAG tinha 10.
+Como o Bruno saiu,
+Taylor Augusto Dos Santos: О.
+Débora Cristina Cunha: ficou nove. Então tem uma vaga sobrando.
+Bruno da Silva Nogueira: A gente só acaba Só com as situações de cargos vagos
+mesmo, porque a gente fica trabalhando.
+Taylor Augusto Dos Santos: Beleza. Pensando agora no, se eu fosse atribuir, por
+exemplo, status numa vaga, certo? Digamos que aquela vaga lá, então ela não teria só,
+por exemplo, eh, digamos assim, eh, disponível ou indisponível, ela poderia ter outro
+status.
+00:28:17
+Taylor Augusto Dos Santos: Eh, a minha dúvida em si seria de quando que uma vaga
+passa a ser disponível para indisponível? É quando a pessoa passa no concurso,
+quando ela entra em exercício, quando toma posse ou então o ideal seria que, por
+exemplo, aquela vaga tivesse estátuas diferentes pra gente poder consultar isso
+também.
+Reunião TI - SEPLAG: Ja. M.
+
+-- 26 of 53 --
+
+Débora Cristina Cunha: Essa parte do status eu vou deixar pro Bruno, que daí para
+ele é muito mais fácil imaginar o que que seria bom para ele, mas para efetivar o tipo a
+o fechamento daquela vaga, eu tinha 10 vagas. Eu nomei e eu eu 10 vagas, eu nomei 10
+pessoas para preencher essas vagas aqui. Essa pessoa, esse cargo só vai ser
+preenchido se a pessoa entrar em efetivo exercício. Depois que ela entrou em efetivo
+exercício, aí essa vaca realmente
+Bruno da Silva Nogueira: Eh,
+Débora Cristina Cunha: fechou.
+Bruno da Silva Nogueira: tá pegando esse mesmo fundamento do que a Débora tava
+falando,
+Reunião TI - SEPLAG: Ah. Yeah.
+Bruno da Silva Nogueira: né? Justamente tanto paraa entrada quanto paraa saída,
+vamos dizer assim, do do da vaga, ela tem requisitos a ser cumprida.
+00:29:16
+Bruno da Silva Nogueira: Então, embora você tenha, né, sendo chamado no
+concurso, você tenha tomado posse, você tem um prazo para entrar em repetido
+exercício. Eh, então, se você não entra em esse efetivo exercício, essa vaga sua ainda
+não tá ocupada. Então assim, até quando a gente tem que passar informações aqui, a
+gente passa informações nesse sentido, né? A gente só passa informações de cargos
+que estão ocupados, né? Servidores que estragam efetivo exercício.
+Débora Cristina Cunha: Sì.
+Bruno da Silva Nogueira: Quem tiver ainda em andamento não tá contabilizado
+porque eh efetivamente, né, ele não tá ainda eh eh efetivado dentro do serviço
+público, né? Igualzinho para sair, eu posso estar pedindo minha vacância a partir de
+amanhã, né? Só que até o o ato de vacância ser publicado, a exoneração ou qualquer
+outro tipo de vacância, né? for publicada, eu ainda estou ocupando esse cargo,
+mesmo que eu não tenha mais vindo a trabalhar, tá? Então, ela tem alguns requisitos
+paraa gente fechar ou abrir um cargo, tá? eh a ocupação, né, na verdade, do cargo eh
+sobre
+
+-- 27 of 53 --
+
+Débora Cristina Cunha: Inclusive, nem posso nome uma outra pessoa enquanto o
+processo dela de vacância não tá efetivado,
+00:30:07
+Bruno da Silva Nogueira: o
+Débora Cristina Cunha: porque vai que a pessoa muda de ideia antes de publicar, aí
+eu não posso contar que tem um processo em andamento para publicar, você
+Taylor Augusto Dos Santos: Então,
+Bruno da Silva Nogueira: eh aí a
+Taylor Augusto Dos Santos: vaga mesmo,
+Débora Cristina Cunha: entendeu?
+Taylor Augusto Dos Santos: ela pode estar só ou disponível ou disponível.
+Bruno da Silva Nogueira: gente
+Taylor Augusto Dos Santos: Não teria talvez um sigo disponível, reservada,
+comprometida, alguma coisa assim, para daí ela tá entrando lá.
+Bruno da Silva Nogueira: não, não, eu entendo que não, porque assim, mesmo se
+você inventarse vão vão Vamos pensar nessas hipóteses de das hipóteses que você
+colocou de status, né? A gente colocar reservado, essa vaga está reservada para um
+servidor que tomou posse, mas esse servidor não tomar não entrar em repetir
+exercício, né? Então eu perco a a a possibilidade de uma eventual nomeação,
+Taylor Augusto Dos Santos: Yes.
+Bruno da Silva Nogueira: né? Yeah. Então assim, eu ou fica lá eh porque a gente tem
+que ter um ciclo, né, para publicar essa essa nomeação pro servidor vim para efetivo
+exercício. Então esses processos todos têm que tem essa vaga livre em aberto. Então
+assim, eu concordo que seja mesmo, como você disse, disponível ou indisponível.
+
+-- 28 of 53 --
+
+00:31:06
+Débora Cristina Cunha: Mas aí pensando por outro lado, Bruno, se a gente tiver um
+sistema que ele nos auxilia nisso, não seria interessante quando, por exemplo, o
+Douglas vai lá nome alguém, aquela, se, por exemplo, a nomeação também fosse por
+dentro de um sistema de gestão de pessoas,
+Taylor Augusto Dos Santos: pegar
+Débora Cristina Cunha: aí aquela vaga estaria préocupada. E aí na hora que você
+fosse fazer uma uma informação,
+Bruno da Silva Nogueira: Nossa!
+Débora Cristina Cunha: ele essa informação da préocupação da vaga, ela seria uma
+uma informação para você colocar no seu relatório. Falou assim, ó, existem 10 vagas,
+porém uma está eh pré-preenchida devido à nomeação número tal, entendeu?
+Bruno da Silva Nogueira: Não é é interessante.
+Débora Cristina Cunha: Não seria interessante isso?
+Bruno da Silva Nogueira: É interessante. Só não pode gerar bloqueio nesse sentido,
+Débora Cristina Cunha: Isso.
+Bruno da Silva Nogueira: porque como a gente sabe que nome é
+Taylor Augusto Dos Santos: seria algo mais informativo, né? Eh, digamos assim, a
+vaga poderia ter dois status principais,
+Reunião TI - SEPLAG: Estados Unidos,
+Taylor Augusto Dos Santos: se ela tá disponível ou indisponível,
+Bruno da Silva Nogueira: isto,
+Taylor Augusto Dos Santos: só que ela poderia talvez ter algumas flags,
+00:31:58
+Reunião TI - SEPLAG: só que não colegas ação
+
+-- 29 of 53 --
+
+Taylor Augusto Dos Santos: eh, eh, alguns exemplos aqui, autorizado para
+nomeação, se ela tá vinculada a um concurso,
+Reunião TI - SEPLAG: também fez parte da publicada Okay.
+Taylor Augusto Dos Santos: se ela fez parte de alguma convocação, se tem uma
+nomeação picada,
+Bruno da Silva Nogueira: sim. Nesse sentido, nesse
+Taylor Augusto Dos Santos: algumas flags para orientar, sei lá,
+Bruno da Silva Nogueira: sentido,
+Taylor Augusto Dos Santos: a pessoa vai olhar lá para fazer uma possível uma
+nomeação. Ah, vou nomear. Ah, mas essa daqui já tá nomeada. Porque até a pessoa
+ser nomeada e o efetivo exercício tem o tempo, né?
+Débora Cristina Cunha: Tem
+Bruno da Silva Nogueira: é até nesse nesse eu citei agora a pouco sobre o o perito
+oficial criminal,
+Débora Cristina Cunha: M.
+Bruno da Silva Nogueira: como eu disse, né? Então são 300 vagas criadas, né?
+Cargos criados. Hoje tem 296 cargos 296 294 cargos ocupados. Sobram seis vagas,
+né? Então, no caso, teria um processo rodando para nomeação de seis espitos oficiais
+criminais.
+00:32:44
+Bruno da Silva Nogueira: Então, essas vagas estariam com essas flags apontadas do
+processo número XX da SEPLAG para nomeação de servidor. Então,
+Taylor Augusto Dos Santos: É isso.
+Bruno da Silva Nogueira: ele estaria ali vinculado a ele, mas não estaria bloqueado
+nem nada do tipo, né?
+Débora Cristina Cunha: Isso.
+Bruno da Silva Nogueira: É, aí é interessante.
+Taylor Augusto Dos Santos: Угу.
+
+-- 30 of 53 --
+
+Débora Cristina Cunha: E aí seria uma ferramenta, porque, por exemplo, quando eu
+vou nomear,
+Bruno da Silva Nogueira: Sim.
+Débora Cristina Cunha: eu mando um processo lá pro setor do da gerência de
+quadro para ele me informar se tem vaga. Daí ele vai falar assim, ó, tem, mas tem essas
+daqui estão pré-preenchidas por conta de uma outra nomeação. Aí pra pessoa que tá
+fazendo nomeação, falou assim: "Ah, então eu tenho que esperar sair aquele ato lá,
+esperar passar os 45 dias para ver se eu posso nomear essa pessoa ou não". Aí ele tem
+essa informação para dar também pro órgão que tá pedindo a vaga. falou assim:
+"Olha, você vai ter que aguardar por conta dessa dessa nomeação que tá em
+andamento já, né? seria mais o seria interessante para essa finalidade.
+Taylor Augusto Dos Santos: e consequentemente
+00:33:37
+Débora Cristina Cunha: Agora, com relação a outras coisas,
+Taylor Augusto Dos Santos: M.
+Débora Cristina Cunha: por exemplo, um uma outra um outro status, por exemplo, de
+nesse caso, Bruno, você que validaria, eh, se eu tenho, por exemplo, uma lei Yeah. que
+saiu falando que a partir da conforme for vagando aquele cargo, ele vai ser extinto. Um
+exemplo, eu teria como colocar essa flagzinha, essa esse status ali na
+Bruno da Silva Nogueira: É, então eu pensei justamente nesse nesse flag,
+Débora Cristina Cunha: vaga?
+Bruno da Silva Nogueira: eu tava pensando também no procedimento até da
+vacância, porque se existe um procedimento de vacância em aberto para uma vaga
+que já tá ocupada, também poderia ser possível ter colocado essa essa flag, né? Então
+o cargo do Bruno aqui tá ocupado hoje, mas o Bruno pediu vacância, o processo tá
+rodando, mas já já aparece uma flag que é um cargo de de técnico administrativo, né,
+que está em vacância no processo XX. Eh, isso é um exemplo que acho que bate
+justamente como que você tá falando também, né?
+Débora Cristina Cunha: que também não poderia bloquear,
+
+-- 31 of 53 --
+
+Reunião TI - SEPLAG: Acho isso poderia
+Bruno da Silva Nogueira: Sim, mas apareceria
+Débora Cristina Cunha: tipo assim, no caso,
+Reunião TI - SEPLAG: ser.
+00:34:34
+Débora Cristina Cunha: não poderia liberar automaticamente a vaga,
+Bruno da Silva Nogueira: essa
+Débora Cristina Cunha: precisaria precisaria esperar efetivar a publicação pensando
+numa num fluxo
+Bruno da Silva Nogueira: isto.
+Débora Cristina Cunha: assim tipo de PAEP, igual a gente faz hoje, a o setor lá que faz
+a exoneração ou a vacância, ela ia receber o processo. Quando ela recebesse o
+processo, ela mudava o status, né? Ela fez lá até sair a publicação no Diário Oficial,
+Taylor Augusto Dos Santos: aqui, ó. Pera
+Débora Cristina Cunha: aí essa eh esse esse evento lá ficava com esse status.
+Taylor Augusto Dos Santos: aí.
+Débora Cristina Cunha: Aí quando sai a publicação do Diário Oficial, talvez mudasse
+automaticamente para eh vaga aberta. Eu esqueci o nome da vaga que ele falou lá do
+do status disponível.
+Taylor Augusto Dos Santos: disponível. É,
+Reunião TI - SEPLAG: É
+Taylor Augusto Dos Santos: a a outra seria é justamente, né?
+Débora Cristina Cunha: Isso.
+Taylor Augusto Dos Santos: A gente tem a vaga indisponível agora, então ela teria
+normal continua com esses dois status principais, indisponível, disponível no caso, né?
+E daí só conforme ela vai a pessoa a tá previsto para aposentar mês que vem,
+Débora Cristina Cunha: Uhum.
+
+-- 32 of 53 --
+
+00:35:29
+Bruno da Silva Nogueira: f***.
+Taylor Augusto Dos Santos: então já receberia uma flag lá, por exemplo, eh, em
+aposentadoria, alguma coisa assim, para poder Isso.
+Débora Cristina Cunha: Aposentadoria agendada.
+Taylor Augusto Dos Santos: aposentadia
+Bruno da Silva Nogueira: É justamente a posadoria agendada ou a como a gente
+falou, a vacância por posse inacumulável.
+Taylor Augusto Dos Santos: indisponível,
+Reunião TI - SEPLAG: Isso você tiverem disponível conversando P.
+Taylor Augusto Dos Santos: a vaga passa a ser e indisponível quando começa o
+efetivo exercício, certo? E ela volta a ser disponível, então, quando a aposentadoria da
+pessoa é publicada ou tem algum outro
+Débora Cristina Cunha: Aposentadoria,
+Taylor Augusto Dos Santos: evento?
+Débora Cristina Cunha: vacância, exoneração.
+Bruno da Silva Nogueira: อือ
+Taylor Augusto Dos Santos: Ah, são vários mesmo. Aposentadão.
+Débora Cristina Cunha: É isso.
+Taylor Augusto Dos Santos: com vários, não é só um, no caso.
+Débora Cristina Cunha: Mas aí na lei, na lei eh 04 de 90, ele já coloca quais são os
+tipos de vacância do servidor. Aí tá lá demissão, exoneração, eh vacância,
+aposentadoria. Então ele tem um limite de nomenclaturas para essa possibilidade de
+quando a vaga vai ser encerrada.
+
+-- 33 of 53 --
+
+00:36:30
+Débora Cristina Cunha: Mas aí só efetivasse esses registros que valeria,
+Reunião TI - SEPLAG: Па.
+Débora Cristina Cunha: porque até com a aposentadoria,
+Reunião TI - SEPLAG: Boa noite.
+Débora Cristina Cunha: quando a pessoa chega lá para aposentar, às vezes tá
+faltando alguma coisa, faltou um tempo, faltou contar alguma coisa, daí não aposenta.
+Então só aquele adiamento não garante que ela vai aposentar.
+Bruno da Silva Nogueira: Так.
+Débora Cristina Cunha: uma expectativa de aposentadoria, com exceção da
+aposentadoria compulsória.
+Taylor Augusto Dos Santos: M.
+Débora Cristina Cunha: que é um processo
+Taylor Augusto Dos Santos: Novamente seria algo para para gerar relatório,
+Débora Cristina Cunha: que
+Taylor Augusto Dos Santos: dashboard e tal, não para bloquear o
+Débora Cristina Cunha: isso e com para relatório,
+Bruno da Silva Nogueira: Isso.
+Taylor Augusto Dos Santos: sistema.
+Débora Cristina Cunha: para nós é de grande interesse.
+Bruno da Silva Nogueira: Acho que seria interessante também só pegando que você
+acabou de acabou de falar também, que hoje a gente a única a única limitação que a
+gente tem hoje, né, eh, vamos dizer assim, física com relação ao cargo é é a após
+compulsória, né? a gente é expulsório, vamos dizer, no sentido, né? Então,
+00:37:19
+
+-- 34 of 53 --
+
+Taylor Augusto Dos Santos: É quando ele é obrigado.
+Bruno da Silva Nogueira: tem delimitação, é que quando ele é obrigado. Então, aí dá
+para criar sim uma um, desculpa, um alerta, né, um negócio de informativo, né, para
+apresentar uma flag automática quando o servidor já se enquadra ou tiver perto da
+gente se enquadrar nessa nesses requisitos de de de compulsório. Esse seria também
+interessante pra gente ter uma noção de como você disse, né, da da possibilidade de
+aposentadoria, né?
+Débora Cristina Cunha: Sim, igual, por exemplo, pro próprio MT PreVEV, que quando
+eles vão aposentar, eles também usam o nosso sistema para poder encerrar o vínculo
+ali. E aí quando eles forem iniciar o processo da pessoa lá que ele coloca o processo de
+de aposentadoria compulsória,
+Taylor Augusto Dos Santos: alguma
+Débora Cristina Cunha: não é inicia pelo servidor nem pelo OR inicia pelo MT prévio.
+Quando ele for iniciar esse processo,
+Taylor Augusto Dos Santos: parte
+Débora Cristina Cunha: ele já coloca lá que aquela pessoa tá com andamento de
+aposentadoria compulsória e aí na hora que efetivar a liberar a vaga.
+Taylor Augusto Dos Santos: isso foi até uma ideia lá na futuras aposentadorias. Acho
+que foi o Félix que citou isso aí. a gente já ter um alertazinho no sistema falando, tantas
+vagas vão ficar disponíveis aí e
+00:38:23
+Bruno da Silva Nogueira: Eh, sim. É porque eu já fui também de um setor aqui que
+era,
+Taylor Augusto Dos Santos: tal.
+Bruno da Silva Nogueira: não existe mais o setor de chamado planejamento de
+pessoal e a gente tinha uma nota técnica que foi criada por lá que era justamente esse
+estudo. Então era bem difícil, complexo esse esse estudo dessas informações. Então,
+tendo essa informação dentro do CAP de previsão de aposentadoria, né, eh já facilita
+até para eventuais estudos de concurso, estudos de nomeação, estudos de seletivo,
+
+-- 35 of 53 --
+
+né, porque a gente tem uma uma demanda sabendo, olha, na área da saúde, os
+profissionais de nível superior tm uma previsão de 200 aposentadorias no ano de
+2032. Então, a gente já consegue trabalhar isso,
+Taylor Augusto Dos Santos: agora
+Bruno da Silva Nogueira: né, gerar relatórios mais efetivos para pensar em eventuais
+concursos.
+Débora Cristina Cunha: inclusive para os relatórios que a gente faz aqui de férias de
+licença prêmio,
+Taylor Augusto Dos Santos: Sim.
+Débora Cristina Cunha: por exemplo, o servidor não pode aposentar com saldos de
+férias, nem com saldo de licença premmium. Então, eh, haveria um uma alguma
+tagzinha para esse servidor quando a gestão de pessoas analisasse aquela matrícula
+dele ou quando a gente puxasse relatório de acúmulo de férias de licença prêmio, eu
+conseguiria ver que esse, olha, esse daqui, esse servidor aqui eu tenho que dar
+prioridade para ele sair logo.
+00:39:29
+Débora Cristina Cunha: A aposentadoria dele aqui já tá próxima.
+Taylor Augusto Dos Santos: Beleza. Teve uma mudando um pouquinho, né? Mas não
+mudando, teve um umas reuniões que foi falado sobre vaga numerada.
+Reunião TI - SEPLAG: Far
+Débora Cristina Cunha: Eu
+Taylor Augusto Dos Santos: Eu queria saber se isso é algo específico, tipo se tem
+alguns casos que acontece isso ou se, tipo, toda a vaga de efetivo ela é numerada.
+Porque tem vaga numerada e quantitativo, né? Aí minha dúvida ficou se quantitativo
+étivo, conseguiria isso.
+Débora Cristina Cunha: nunca vi falar de vaga numerada.
+Bruno da Silva Nogueira: Eu também desconheço nesse sentido.
+
+-- 36 of 53 --
+
+Taylor Augusto Dos Santos: Então foi, acho que foi só algo que foi citado lá de ter
+confido. Então em teoria toda a vaga, né, como ela vem por lei lá ocupada, ela vai tá
+sendo numerada é algo delícia.
+Débora Cristina Cunha: É. E aí, para vocês também pensarem com relação a essa, eh,
+a quadro de vagas, quadro de vagas é o cargo, a especialidade ele não contabiliza, né?
+Então,
+Bruno da Silva Nogueira: Eh,
+Taylor Augusto Dos Santos: Isso,
+Débora Cristina Cunha: por exemplo,
+Taylor Augusto Dos Santos: isso era uma pergunta que eu tinha lá em cima,
+00:40:32
+Bruno da Silva Nogueira: foi inclusive acho que a gente,
+Taylor Augusto Dos Santos: acabei pulando ela, mas
+Bruno da Silva Nogueira: eu citei que é interessante a gente ter essa informação,
+Taylor Augusto Dos Santos: é
+Bruno da Silva Nogueira: mas ela não é não é fixada.
+Débora Cristina Cunha: isso
+Bruno da Silva Nogueira: Eh, então a gente tem o cargo de anal,
+Taylor Augusto Dos Santos: isso.
+Bruno da Silva Nogueira: como eu citei, toma de exemplo, o analista de
+desenvolvimento econômico social, 953 cargos que existem para ser analista
+desenvolvimento econômico social, mas os perfis os perfis eles não são eh
+quantificados,
+Débora Cristina Cunha: fixos, né?
+Bruno da Silva Nogueira: né?
+Débora Cristina Cunha: e nem quantificado.
+Bruno da Silva Nogueira: Então a gente não tem isso,
+
+-- 37 of 53 --
+
+Taylor Augusto Dos Santos: Mas se mas se conseguisse filtrar seria ótimo também,
+Bruno da Silva Nogueira: a gente não tem isso.
+Débora Cristina Cunha: M.
+Taylor Augusto Dos Santos: né?
+Bruno da Silva Nogueira: Então por falei,
+Taylor Augusto Dos Santos: Eu não ia
+Bruno da Silva Nogueira: ele é bom para informativo, né? para informação pra gente,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: que a gente não tem todos os cargos. Isso é bom ter essa
+informação, porque hoje, por exemplo, eu precisa saber quantos eh anes de
+desenvolvimento econômico, sociais com o perfil de arquiteto tem no estado.
+00:41:08
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: Isso aí é uma é uma situação bem complexa pra gente
+conseguir. A gente não consegue ter isso hoje no no relatório que C me gera, né? Ele
+me gera só uma informação do cargo. Então assim, é interessante eu ter informação
+dos perfis, né? Mas esses perfis eles não são bloqueados sobre quantitativo porque
+ele varia com a necessidade do estado. O estado hoje pode estar precisando de vários
+engenheiros civis porque tá em parte de obras, mas daqui a 20 anos o estado pode
+estar querendo somente eh análise de sistemas porque é a toada que ele tá
+precisando agora. Então assim, a gente precisa ter a informação, mas ela não pode ser
+limitada.
+Taylor Augusto Dos Santos: perfil ele vai ser informativo e não para bloquear.
+Débora Cristina Cunha: Isso.
+Bruno da Silva Nogueira: Isto.
+Taylor Augusto Dos Santos: Beleza?
+
+-- 38 of 53 --
+
+Reunião TI - SEPLAG: Fiquei numa dúvida aí que você levantou essa bola aí do perfil,
+Bruno. O exemplo que você deu, o arquiteto, ele então ele é o perfil para
+especialidade, o arquiteto daquele cargo?
+Bruno da Silva Nogueira: É o isso.
+Reunião TI - SEPLAG: é analista de desenvolvimento, eu acho que você comentou,
+00:42:11
+Bruno da Silva Nogueira: Isso.
+Débora Cristina Cunha: 11
+Reunião TI - SEPLAG: né?
+Bruno da Silva Nogueira: Então é porque tem vários cargos que às vezes tem o
+mesmo perfil,
+Taylor Augusto Dos Santos: Ja.
+Reunião TI - SEPLAG: É isso.
+Bruno da Silva Nogueira: tá? Tá até para dizer. Nem sempre vai ser, por exemplo,
+Reunião TI - SEPLAG: Hum.
+Bruno da Silva Nogueira: o o perfil arquiteto não vai existir somente para analista de
+desenvolvimento econômico social, pode ter outro outro outra carreira que tem esse
+perfil, tá?
+Reunião TI - SEPLAG: Ah, então ele é independente,
+Bruno da Silva Nogueira: Eh,
+Reunião TI - SEPLAG: ele pode estar vinculado a outros cargos,
+Bruno da Silva Nogueira: é isso.
+Reunião TI - SEPLAG: mas o perfil arquiteto ele pode ser de um ou mais. Então,
+Bruno da Silva Nogueira: Isso,
+Reunião TI - SEPLAG: tá
+Bruno da Silva Nogueira: justamente.
+
+-- 39 of 53 --
+
+Débora Cristina Cunha: Isso. Igual, por exemplo, na SEMA, o cargo da SEMA é
+analista de meio ambiente e lá vai ter médico veterinário, é perfil, né? Especialidade
+médico veterinário, médico eh médico não, médico veterinário.
+Bruno da Silva Nogueira: He.
+00:42:49
+Bruno da Silva Nogueira: M.
+Taylor Augusto Dos Santos: Yeah.
+Débora Cristina Cunha: engenheiro florestal, vai ter essas daí. No ideia,
+Taylor Augusto Dos Santos: Ча.
+Débora Cristina Cunha: ele também pode ter esse mesmo perfil que o cargo lá vai
+ser fiscal, estadual de de agropecuária,
+Bruno da Silva Nogueira: Defesa é defesa
+Débora Cristina Cunha: uma coisa assim, defesa agropecuária. E aí o perfil vai ser eh
+médico veterinário e engenheiro
+Bruno da Silva Nogueira: propria.
+Reunião TI - SEPLAG: igual,
+Débora Cristina Cunha: agrônomo, vai ter outros.
+Reunião TI - SEPLAG: o cargo ele pode ser distinto para cada óculo, porém ele pode
+ter a mesma o mesmo perfil especialidade. É isso, né?
+Bruno da Silva Nogueira: Isso, isso. Perfeito.
+Débora Cristina Cunha: Isso a gente precisa ter um um no sistema,
+Reunião TI - SEPLAG: Ah,
+Débora Cristina Cunha: eu preciso ter um banco de dados com com os nomes dos
+cargos que existem e um banco de dados com os
+Reunião TI - SEPLAG: entendi.
+Débora Cristina Cunha: perfis que existem. E para todos esses perfis eu preciso
+obrigatoriamente ter o código de o CBO, Código Brasileiro de esqueci o ocupação.
+
+-- 40 of 53 --
+
+00:43:38
+Reunião TI - SEPLAG: É CBO.
+Taylor Augusto Dos Santos: Ocupação.
+Reunião TI - SEPLAG: Ocupação. É o CBO,
+Débora Cristina Cunha: Isso ele
+Taylor Augusto Dos Santos: O CBO, ele é do cargo,
+Reunião TI - SEPLAG: mas eh não,
+Taylor Augusto Dos Santos: né? Ele não é do perfil.
+Reunião TI - SEPLAG: ele é do perfil, né?
+Débora Cristina Cunha: eu acho que é do perfil,
+Reunião TI - SEPLAG: É do perfil. É isso que eu perguntar. Então o cargo ele tá
+vinculado ao
+Taylor Augusto Dos Santos: Perfil.
+Débora Cristina Cunha: mas quem vai saber me falar melhor sobre CBO vai ser a
+Ângela, aquela que tá à frente desse eh do CBO,
+Reunião TI - SEPLAG: órgão.
+Débora Cristina Cunha: né? Mas aí acaba que, tipo assim, o que a gente define aqui
+vincula lá. Então, por isso que normalmente quando a gente faz alguma coisa assim, a
+gente faz
+Taylor Augusto Dos Santos: Sì.
+Reunião TI - SEPLAG: Tá?
+Débora Cristina Cunha: juntas.
+Reunião TI - SEPLAG: Então o cargo ele tá vinculado diretamente ao órgão,
+
+-- 41 of 53 --
+
+00:44:09
+Bruno da Silva Nogueira: Опа.
+Reunião TI - SEPLAG: mas esse cargo ele pode ter a mesma especialidade tanto para
+esse órgão ou para qualquer outro órgão. Ela pode ser um perfil barra especialidade
+igual, porém cada órgão vai ter um cargo de X. É isso. Isso. Eu
+Débora Cristina Cunha: Isso. Mas assim,
+Reunião TI - SEPLAG: entendi.
+Débora Cristina Cunha: eh, cada órgão vai ter uma carreira. Essa carreira tem cargos
+e existem e existe eh carreiras que
+Reunião TI - SEPLAG: Hum.
+Débora Cristina Cunha: elas elas atuam em todos os órgãos ou em vários órgãos.
+Igual, por exemplo, a carreira da da do da SEMA, que é analista de meio ambiente, ela
+só pode ter lotações na SEMA. Eu não posso nomear uma pessoa lá na eh fazer um
+concurso da SEMA para de analista da SEMA e e lotar ela na CLG, entendeu? Ela no
+máximo pode ser cedida para SEPLAG,
+Reunião TI - SEPLAG: ingressa na origem,
+Débora Cristina Cunha: ela não pode ser lotada na CL.
+Reunião TI - SEPLAG: mas ela pode ser cedida no outro órgão.
+00:45:08
+Débora Cristina Cunha: Isso. Então, por exemplo, se a lei se a vaga é da lei de carreira
+da SEMA, essas vagas só podem ser ocupadas naquele órgão SEMA.
+Taylor Augusto Dos Santos: Deixa eu
+Reunião TI - SEPLAG: Ah, isso também vem na determinação da lei de carreira,
+Taylor Augusto Dos Santos: só
+Débora Cristina Cunha: É porque é uma lei,
+
+-- 42 of 53 --
+
+Reunião TI - SEPLAG: né?
+Débora Cristina Cunha: uma lei de eh essas carreiras elas são perfis técnicos
+finalísticos que tá vinculado diretamente à existência daquele órgão,
+Taylor Augusto Dos Santos: nesse caso.
+Débora Cristina Cunha: né?
+Taylor Augusto Dos Santos: Então que ela,
+Reunião TI - SEPLAG: Es
+Taylor Augusto Dos Santos: o cargo é só da sema, ela ela ainda assim poderia ser
+cedida por um outro órgão.
+Débora Cristina Cunha: poderia por conta do perfil, igual, por exemplo, ela é analista
+da de meio ambiente e perfil advogado. advogado é uma pessoa que pode trabalhar
+em todos os órgãos, mas eu não tenho por trazer o mé É tipo veterinário para
+trabalhar na CLAG. Se aqui a gente só trabalha com coisas administrativas, por
+exemplo. Aí não fazia
+Bruno da Silva Nogueira: A única a única a única excepcionalidade idade que cabe
+nesse sentido que a Débora falou de
+Débora Cristina Cunha: sentido. Uhum.
+00:46:03
+Bruno da Silva Nogueira: médico veterinário vir para cá era se for um exercício um
+cargo em comissão, porque um exercício cargo em comissão aí passaria por cima
+disso,
+Débora Cristina Cunha: Exatamente
+Bruno da Silva Nogueira: porque ele não vai estar exercendo a função do cargo dele.
+Sim, a função do cargo ele tá sendo
+Débora Cristina Cunha: isso. E aí, por conta dessa nomeação do cargo em comissão,
+Bruno da Silva Nogueira: nomeado.
+Débora Cristina Cunha: obrigatoriamente ele precisa estar cedido para esse órgão,
+mas a lotação dele, a remoção para cá nunca pode acontecer. Só por sessão. Ja.
+
+-- 43 of 53 --
+
+Bruno da Silva Nogueira: É, e assim, independente, por exemplo, tem muita gente
+pode estar pensando assim, até pensar por hipótese. Aqui na SEPLAG a gente tem a
+perícia médica, né? Eh, tem médicos trabalhando lá, mas os médicos de carreira da CIS
+eles não podem ser lotados aqui, eles podem ser cedidos para desempenhar esse
+trabalho aqui, porque é uma função semelhante ao cargo dele, né? Mas eles não
+podem ser lotados eh definitivamente aqui nesse órgão, mesmo tendo numa perícia,
+porque é um cargo inerente à criação da carreira da da saúde.
+Débora Cristina Cunha: Isso aí.
+Taylor Augusto Dos Santos: O, você falou lá que teve aquela lei que ela reduziu os
+cargos que estavam vagos, né?
+00:47:06
+Taylor Augusto Dos Santos: Então, por exemplo, na verdade, ela extinguiu um cargo,
+né? Aí as pessoas continuaram lá, só que daí conforme vai saindo, vai reduzindo lá. Tem
+casos também onde uma lei, por exemplo, só ela não vai extinguir o cargo, ela só
+reduziu a quantidade de vagas que ele tem. Pode acontecer
+Bruno da Silva Nogueira: Sim. É, é justamente que eu falei que eu tava mexendo com
+decreto aqui,
+Taylor Augusto Dos Santos: também.
+Bruno da Silva Nogueira: é justamente por isso. Recentemente, agora no dia 3 de
+julho, o governador extinguiu 54 cargos de técnico de desenvolvimento econômico e
+social. Então o que que eu vou ter que fazer? Eu tenho que redistribuir as vagas. Eu
+tenho que extinguir, né, retirar 54 cargos, né, de ter de acordo com os órgãos que a
+gente tem. Então, por exemplo, a gente tem cinco vagas na cargos vagos na Cfaz, aí
+eu vou lá e tiro dois. Então, ah, no Detran tem sete cargos váos. Eu vou extinguindo, né,
+esses cargos, retirando da contagem, né, esses cargos que ele colocou meia veia a lei,
+né, essa extinção, extinção, não, essa exclusão, né, eu vou apagando do do da dos
+formulários.
+
+-- 44 of 53 --
+
+00:48:02
+Bruno da Silva Nogueira: Então
+Taylor Augusto Dos Santos: Então ele ele reduziu só a quantidade, ele não reduziu,
+Bruno da Silva Nogueira: só isso,
+Taylor Augusto Dos Santos: não extinguiu o cargo como um todo, então, né?
+Bruno da Silva Nogueira: eu só ele só extinguiu vagas, só as vagas
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: livres.
+Taylor Augusto Dos Santos: Esse daqui acho que a gente já falou, né? Quando não
+tem o saldo, quando não tem o saldo, ele bloqueia, a não ser que tiver alguma ordem
+judicial e tal que vai permitir ocupar lá,
+Bruno da Silva Nogueira: É isso que isso que eu eu Uhum.
+Taylor Augusto Dos Santos: né?
+Bruno da Silva Nogueira: Eu acho interessante, né, na forma que a gente tinha
+conversado justamente nesse sentido, ter um bloqueio, né, um bloqueio acho que
+pode ser um bloqueio parcial, né, e que se liberaria somente sobre essas situações, né,
+de cria em virtude de uma ação judicial, né, coisa do tipo, o setor de que é responsável
+por posse, né, eles estarem ainda vinculando, né, colocando essa informação no cargo
+que eles estão querendo ocupar, né, Yeah. Então vai lá, tá o preenchimento aquela
+vaga preenchendo com o Bruno que tá entrando naquele cargo. Ó, mas tá excedendo,
+mas tem uma determinação judicial.
+00:48:56
+Bruno da Silva Nogueira: Ele juntar essas informações para motivar, né, eh, qualquer
+tipo de resposta, né, da gente quanto ao porquê da exceção excedência ali.
+Reunião TI - SEPLAG: Somente com essa exceção distribuição a gente também falou,
+Bruno da Silva Nogueira: Uhum.
+
+-- 45 of 53 --
+
+Taylor Augusto Dos Santos: Essa aqui foi foi
+Reunião TI - SEPLAG: né?
+Taylor Augusto Dos Santos: uma
+Reunião TI - SEPLAG: Redistribuição de paradas. ส
+Taylor Augusto Dos Santos: tem uma outra aqui que eu tava conversando com a IA,
+ela que fez meio que essa pergunta que tipo uma pessoa ela ocupa uma vaga só,
+certo? Mas se ela tiver, por exemplo, dois vínculos, que é no caso do professor, ela
+continua ocupando uma vaga só, ela passa a ocupar meio que duas.
+Bruno da Silva Nogueira: Não. Aí quando, nesse caso do professor ele tá ocupando
+dois dois vínculos, ele tem dois vínculos ali estado, então são duas vagas. Então ele
+tem uma vaga de 20 horas e para duas vagas mesmo,
+Taylor Augusto Dos Santos: Ele ocupa duas vagas mesmo.
+Bruno da Silva Nogueira: não só como de professor, mas por exemplo na área da
+saúde também tem essa permissão e também com as as mudanças que tiveram na na
+lei federal, umas umas jurisprudências que saíram, né, professores pode ocupar alguns
+outros cargos, né?
+00:49:53
+Bruno da Silva Nogueira: Então pode ser que esteja um professor aqui eh como a
+gente tem hoje, por exemplo, a gente tem uma professora da Unemate, ela tem um
+vínculo lá emat e tem um vínculo aqui no na SEPLAG como gestora. Então assim, tem
+essas possibilidades de acordo com a lei mesmo. A lei é permitida.
+Taylor Augusto Dos Santos: Então ela Pode ocupar duas.
+Bruno da Silva Nogueira: Uhum.
+Reunião TI - SEPLAG: Tem alguma outra exceção que a gente possa contemplar, né,
+com essa questão de mais de uma vaga?
+Bruno da Silva Nogueira: Eh, área da saúde, eh, e professores, acho que é só esses,
+né, Débora? Só tem mais algum?
+Reunião TI - SEPLAG: essas duas situações.
+
+-- 46 of 53 --
+
+Débora Cristina Cunha: Só essas situações de acúmulo de cargo que é permitido
+pela Constituição. Acho que é artigo 37, inciso 16 lá da Constituição que fala isso.
+Reunião TI - SEPLAG: Só
+Débora Cristina Cunha: Ah, eles pediram também uma lei de carreira, Bruno, para
+eles poderem ver o quantitativo de vagas que é aberto lá. Se você que puder falar o
+número de uma lei aí que você saiba.
+Bruno da Silva Nogueira: Vou pegar aqui.
+Débora Cristina Cunha: Так.
+00:50:53
+Bruno da Silva Nogueira: Já já passa aqui. É, na verdade eu tô com uma na uma que t
+uma aberta que eu tava lendo ela justamente é porque eu tava mexendo a cor do
+perito. É a lei 8321 de 2005. Eu vou copiar ela aqui e vou mandar no chat para ficar mais
+fácil para vocês.
+Taylor Augusto Dos Santos: Beleza, filho.
+Reunião TI - SEPLAG: Beleza.
+Bruno da Silva Nogueira: Essa aí é a lei da dos profissionais de da perícia
+identificação técnica. Então, como a gente falou, como a Débora citou também, os
+cargos estão vinculados a um a um órgão,
+Reunião TI - SEPLAG: M.
+Bruno da Silva Nogueira: né? Então, é criação das carreiras dos profissionais da
+perícia. Então ele tá vinculado a essa perícia oficial e identificação técnica. Ho cargos
+da saúde tá vinculado a CES, os cargos do dos profissionais do meio ambiente tá
+vinculado com a com a com a com a SEMA, né? Então assim, pode ser que altere o
+nome da SEMA, como já foi outros nomes anteriormente, né? foi fema coisa do tipo.
+Mas assim, ela ela tá sempre vinculada a um órgão que foi criado, com exceção, né,
+dos cargos que a gente tem genéricos, que a gente colocar assim, né, que não são
+finalísticos, né, que é o cargo dos dos profissionais de desenvolvimento econômico
+social,
+
+-- 47 of 53 --
+
+00:51:55
+Bruno da Silva Nogueira: que é o analista, o técnico e o apoio, eh, da área meio, né,
+que é os profissionais da área meio que também compõe a, como a gente tá o próprio
+nome, né, parte meio da do estrutura de governo, né, então eles são mais genéticos,
+mas isso tá tudo previsto na própria lei, então sempre vai tá descrito na legislação.
+Onde que ele pode estar ocupando.
+Taylor Augusto Dos Santos: que mais uma dúvida se é útil, por exemplo, Eu, a
+informação que você geralmente vocês olham é: "Ah, eu preciso saber como tá o
+quadro de vagas hoje no estado". ou se, por exemplo, ah, eu preciso consultar como
+tava o quadro de vagas há um ano atrás, por exemplo, ou isso
+Bruno da Silva Nogueira: Então eu eu vou fazer os relatórios,
+Taylor Augusto Dos Santos: não
+Bruno da Silva Nogueira: como eu falei para você, o relatório que tá no CEAP, né?
+Então assim, eu consigo gerar relatórios retroativos sem problema algum, mas é ele vai
+estar o relatório vinculado àquela data naquele momento, né? Então,
+Taylor Augusto Dos Santos: com aquela informação,
+Bruno da Silva Nogueira: se por alguém isso
+Taylor Augusto Dos Santos: com aquela informação no dia,
+Débora Cristina Cunha: Dá para isso,
+Taylor Augusto Dos Santos: né, naquele momento, no caso.
+00:52:55
+Bruno da Silva Nogueira: daquele momento.
+Débora Cristina Cunha: mas dá pra gente saber, por exemplo, se eu pegar todos os
+servidores que que tão registrado no sistema e aí eu colocar a data de de vacância
+dele, aí eu consigo porque sempre vai ter dado de início e fim. Quando tem data de
+
+-- 48 of 53 --
+
+início e fim, eu consigo colocar lá, os servidores já estão inativo, então eu consigo ver
+naquela data, porque pela data em que ele saiu, foi a vacância dele, até aquela data
+tinha tantos. A gente consegue,
+Taylor Augusto Dos Santos: Так.
+Débora Cristina Cunha: com base nessa informação produzir outras informações
+também, né? Um relatório técnico com relação a
+Taylor Augusto Dos Santos: Então, não só pro passado, pro questão do futuro
+também.
+Débora Cristina Cunha: isso.
+Taylor Augusto Dos Santos: Ah, eu quero saber como que pode estar o quadro de
+vagas no final do ano que
+Bruno da Silva Nogueira: Não.
+Débora Cristina Cunha: Se vocês conseguirem fazer isso,
+Taylor Augusto Dos Santos: vem.
+Débora Cristina Cunha: vai ser bom, porque é o que o Bruno falou.
+Bruno da Silva Nogueira: Eh,
+Débora Cristina Cunha: você, a gente com com aquela informação de que aquela
+aquela pessoa tem a a possibilidade de aposentar em 2030,
+Taylor Augusto Dos Santos: Uhum. É,
+Débora Cristina Cunha: por exemplo,
+Taylor Augusto Dos Santos: isso seria a
+00:53:46
+Débora Cristina Cunha: eu consigo fazer essa prospecção, que é o que o Bruno
+pediu, né, Bruno, quando você tava explicando isso.
+Bruno da Silva Nogueira: é era justamente nesse sentido, porque assim, se a gente
+tem uma uma ferramenta que aponta as vacâncias, né, por causa de ou de
+aposentadoria, se a gente tivesse essa ferramenta de cálculo, né, automático, né, ou
+sobre a questão da da compulsória, fica fácil, a gente consegue gerar um relatório
+
+-- 49 of 53 --
+
+paraa frente, né? Aí com base nesse nessas informações que tem de compulsório e de
+aposentadoria, ele subtrai da da nossa informação. Mas hoje na nossa informação a
+gente não consegue.
+Débora Cristina Cunha: Hoje a gente não
+Bruno da Silva Nogueira: Hoje não consegue. Se eu gerar um relatório apontando
+aqui 1eo de janeiro de 2030, o relatório vai ser em branco porque não tem, a gente não
+chegou nessa data pro sistema. O sistema só entende a data que já tá, já chegou.
+Taylor Augusto Dos Santos: Hum.
+Bruno da Silva Nogueira: Tanto que isso, tanto que quando eu vou gerar relatórios,
+até para para vocês entenderem, quando eu vou gerar relatório, por exemplo, Bruno,
+eu preciso de um relatório do quadro da Politec, como acabaram de me pedir aqui.
+00:54:41
+Bruno da Silva Nogueira: Eh, esse relatório eu vou gerar com a data de ontem,
+porque hoje a gente fala que hoje é sempre hoje pro SEAP é um dia instável, né? Uhum.
+Po. fazendo uma um fechamento de um cargo ali para poder lançar algum evento, né,
+lançar algum pagamento ou alguma coisa do tipo, às vezes pode estar tendo alguma
+manutenção num cargo e acaba ele saindo da contagem. Então a gente sempre gera
+com dia menos. Então se você pedir um relatório hoje do quadro da SEPLAG, eu vou
+fazer com relatório do dia 14, porque o dia 14 já passou. Mesmo assim o dia 14 ainda
+daqui a um mês pode ser alterado, né? Porque se alguém chegar e lançar uma uma
+vacância retroativa dia 13, então ele já vai já vai tirar. Então, cada relatório a gente
+sempre tem como único, né? Eh, e os relatórios no CAP, eles saem até com a
+informação do dia que você gerou o relatório, né? E de qual data. Por exemplo, aqui a
+emissão 15/07/2026, né?
+00:55:30
+
+-- 50 of 53 --
+
+Bruno da Silva Nogueira: Às 14:01 com data base de dia 14/07/2026. Se eu gerar esse
+relatório amanhã, ele pode estar diferente, porque alguém pode ter fechado algum
+vínculo, aberto, algum vínculo retroativo.
+Taylor Augusto Dos Santos: Acho que de mim por enquanto é só tem bastante coisa
+aqui agora para dar uma pesquisadinha. Marcela, mais alguma perguntinha?
+Reunião TI - SEPLAG: Não, acredito que já é bem insuficiente do que a gente já
+colocou aqui.
+Taylor Augusto Dos Santos: Já dá para esquentar um pouco a
+Reunião TI - SEPLAG: A gente tem uma ideia maior, é,
+Taylor Augusto Dos Santos: cabeça.
+Reunião TI - SEPLAG: vai surgir umas ideias novas aí,
+Taylor Augusto Dos Santos: Vai,
+Reunião TI - SEPLAG: mas aí a gente vai a gente vai nivelando com vocês aí mais
+paraa
+Taylor Augusto Dos Santos: vai.
+Reunião TI - SEPLAG: frente.
+Bruno da Silva Nogueira: sem problema disposição.
+Reunião TI - SEPLAG: F primeiro, acho que já é o
+Débora Cristina Cunha: Beleza. Então,
+Reunião TI - SEPLAG: suficiente.
+Débora Cristina Cunha: eh, o Bruno mandou aí no chat,
+Taylor Augusto Dos Santos: Beleza.
+Débora Cristina Cunha: no a lei,
+00:56:26
+Taylor Augusto Dos Santos: A lei, né? E o deixa eu ver o link.
+Débora Cristina Cunha: né, o link da lei para vocês no chat. E é
+Reunião TI - SEPLAG: Vamos contextualizar isso aqui.
+
+-- 51 of 53 --
+
+Taylor Augusto Dos Santos: Beleza.
+Reunião TI - SEPLAG: Vamos ter bolar algumas ideias aqui para depois a gente
+mostrar para vocês algo pra gente ver se a gente
+Débora Cristina Cunha: isso.
+Reunião TI - SEPLAG: tá no correto aí que a gente conseguiu obter. Tá a
+Taylor Augusto Dos Santos: Beleza. Então, muito
+Reunião TI - SEPLAG: gente obrigado
+Taylor Augusto Dos Santos: obrigado.
+Marcos Roberto Juliao: Obrigado.
+Reunião TI - SEPLAG: obrigado pelas informações.
+Bruno da Silva Nogueira: É isso. Que que agradeço a vocês disposição aqui.
+Débora Cristina Cunha: Valeu. Obrigada.
+Reunião TI - SEPLAG: Tchau,
+Bruno da Silva Nogueira: Tchau.
+Débora Cristina Cunha: Até mais.
+Reunião TI - SEPLAG: tchau.
+Taylor Augusto Dos Santos: Já já a gente incomoda mais.
+Bruno da Silva Nogueira: Tchau.
+Débora Cristina Cunha: Tá bom.
+Taylor Augusto Dos Santos: Até mais.
+Reunião TI - SEPLAG: Tchau.
+Taylor Augusto Dos Santos: Yeah.
+Bruno da Silva Nogueira: tirar essa dúvida.
+Débora Cristina Cunha: ช
+A transcrição foi encerrada após 00:57:25
+
+-- 52 of 53 --
+
+Esta transcrição editável foi gerada por computador e pode conter erros. As pessoas
+também podem alterar o texto depois que ele for criado.
+
+-- 53 of 53 --
+

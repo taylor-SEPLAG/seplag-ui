@@ -1,4 +1,4 @@
-import type { SpecificationMetadata } from "./SpecificationMode";
+import type { SpecificationMetadata } from "../shared/visualizationModes";
 
 const filters="Data de referência, órgão titular, órgão de distribuição, órgão de exercício, tipo, carreira, cargo, situação legal e somente cessões.";
 const spec=(id:string,title:string,description:string,businessRule:string,source:string,dataType:string,component:string,route?:string):SpecificationMetadata=>({id,title,description,businessRule,source,dataType,component,filters,status:"CONFIRMADO",route,userStory:"US Controle de Vagas — Dashboard Gerencial"});
@@ -12,7 +12,7 @@ export const dashboardBlockSpecifications={
  projection:spec("CV-DASH-BLC-003","Projeção estratégica","Apresentar o potencial de vagas por horizonte e cenário.","Somar vagas livres às saídas previstas segundo a metodologia vigente; não representa autorização automática de concurso.","Fatores por vínculo, taxas históricas, metodologia e saldo atual.","ResultadoProjetado","Controles + resumo calculado","/prototipos/sigep/controle-vagas/projecoes"),
  table:spec("CV-DASH-TBL-001","Quadro estratégico","Detalhar a posição por Quadro Autorizado, cargo e órgão titular.","Quadros diferentes do mesmo cargo não podem ser combinados; distribuição, titularidade e exercício são conceitos distintos.","Quadro Autorizado, vagas, ocupações, comprometimentos, cessões, distribuição e projeções.","DashboardGrupo[]","Tabela gerencial"),
  potential:spec("CV-DASH-BLC-004","Necessidade potencial","Comparar os grupos com maior potencial de vagas no cenário selecionado.","Ordenar os grupos pelo potencial projetado no horizonte atual.","Motor de Projeções e saldo disponível atual.","Série numérica ordenada","Gráfico de barras"),
- recent:spec("CV-DASH-BLC-005","Distribuições recentes","Exibir as últimas distribuições, redistribuições e recolhimentos de vagas.","Não misturar evoluções legais do quadro com movimentos administrativos de distribuição.","Histórico individual de movimentos das vagas.","MovimentoVagaIndividual[]","Lista temporal","/prototipos/sigep/controle-vagas/distribuicao"),
+ recent:spec("CV-DASH-BLC-005","Distribuições recentes","Exibir as últimas distribuições iniciais e redistribuições de vagas.","Não misturar evoluções legais do quadro com movimentos administrativos de distribuição.","Histórico individual de movimentos das vagas.","MovimentoVagaIndividual[]","Lista temporal","/prototipos/sigep/controle-vagas/distribuicao"),
 } satisfies Record<string,SpecificationMetadata>;
 
 export const dashboardKpiSpecifications:Record<string,SpecificationMetadata>={
@@ -23,7 +23,7 @@ export const dashboardKpiSpecifications:Record<string,SpecificationMetadata>={
  "Disponíveis":spec("CV-DASH-KPI-005","Vagas disponíveis","Total de vagas com estado definitivo Disponível.","Inclui vagas livres e comprometidas para ocupação, exceto vagas extintas.","Vagas Individualizadas e comprometimentos.","integer","KPI","Vagas disponíveis"),
  "Comprometidas":spec("CV-DASH-KPI-006","Disponíveis comprometidas","Vagas disponíveis vinculadas a processo de ocupação.","O comprometimento não altera o estado antes da conclusão do ingresso.","Eventos automáticos de Ingresso do Servidor.","integer","KPI","Vagas comprometidas"),
  "Em disponibilização":spec("CV-DASH-KPI-007","Ocupadas em disponibilização","Vagas ocupadas em processo de liberação.","A vaga permanece ocupada até o encerramento definitivo do vínculo.","Eventos automáticos de Vida Funcional.","integer","KPI","Vagas em disponibilização"),
- "Não distribuídas":spec("CV-DASH-KPI-008","Vagas não distribuídas","Vagas mantidas no saldo central do quadro.","Ausência de distribuição não altera titularidade nem estado da vaga.","Quadro Autorizado e histórico de Distribuição.","integer","KPI","Distribuição"),
+ "Pendente de ato de distribuição":spec("CV-DASH-KPI-008","Vagas pendentes de ato","Vagas cuja lei exige ato posterior para definir a destinação.","Ausência de distribuição não altera titularidade nem estado da vaga.","Quadro Autorizado e histórico de Distribuição.","integer","KPI","Distribuição"),
  "Situações legais especiais":spec("CV-DASH-KPI-009","Situações legais especiais","Vagas com situação legal diferente de Regular.","Contar extinção e transformação; decisões judiciais extraquadro são separadas.","Situação legal da Vaga Individualizada.","integer","KPI","Vagas com situação especial"),
 };
 export const dashboardBusinessItems=[...Object.values(dashboardBlockSpecifications),...Object.values(dashboardKpiSpecifications)];

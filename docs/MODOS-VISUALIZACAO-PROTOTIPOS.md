@@ -23,8 +23,11 @@ Na implementação atual, avaliações e comentários são **simulados localment
 
 ## 3. Referência no projeto
 
-    src/prototipos/controleVagas/SpecificationMode.tsx
-    src/prototipos/controleVagas/specificationMode.css
+    src/prototipos/shared/visualizationModes/SpecificationMode.tsx
+    src/prototipos/shared/visualizationModes/specificationMode.css
+    src/prototipos/shared/visualizationModes/ReviewPersistencePanel.tsx
+    src/prototipos/shared/visualizationModes/reviewRepository.ts
+    src/prototipos/shared/visualizationModes/types.ts
     src/prototipos/controleVagas/DashboardSpecifications.ts
     src/prototipos/controleVagas/DashboardGerencialContent.tsx
 
@@ -33,7 +36,7 @@ Na implementação atual, avaliações e comentários são **simulados localment
 - DashboardSpecifications.ts: catálogo de metadados.
 - DashboardGerencialContent.tsx: integração completa.
 
-Se vários módulos adotarem o recurso, mova apenas o motor e CSS para src/prototipos/shared/specificationMode/. Mantenha cada arquivo de especificações próximo da tela.
+O motor já está compartilhado em src/prototipos/shared/visualizationModes/. Todas as telas devem importar desse ponto público. Mantenha cada arquivo de especificações próximo da respectiva tela.
 
 ## 4. Contrato de metadados
 
@@ -81,7 +84,7 @@ Exemplos: CV-DASH-SCR-001, CV-DASH-KPI-001 e CV-DASH-TBL-001. Renomear ou reposi
 
 Crie NomeDaTelaSpecifications.ts separado do JSX:
 
-    import type { SpecificationMetadata } from "./SpecificationMode";
+    import type { SpecificationMetadata } from "../shared/visualizationModes";
 
     export const telaSpecification: SpecificationMetadata = {
       id: "MOD-TELA-SCR-001",

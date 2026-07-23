@@ -33,7 +33,7 @@ function vagaNaData(vaga:Vaga,data:string):Vaga|null{
 }
 
 export function construirDashboard(state:ControleVagasState,filtros:DashboardFiltros,cenario:CenarioProjecao,horizonte:HorizonteProjecao){
-  const distribuicoes=new Map(recalcularPosicoes(state.vagas,state.movimentos,filtros.dataReferencia).map((item)=>[item.vagaId,item.orgaoDistribuicao??"NÃO DISTRIBUÍDA"]));
+  const distribuicoes=new Map(recalcularPosicoes(state.vagas,state.movimentos,filtros.dataReferencia).map((item)=>[item.vagaId,item.orgaoDistribuicao??"Pendente de ato de distribuição"]));
   const ocupacoes=state.ocupacoes.filter((item)=>iso(item.efetivoExercicioEm)<=filtros.dataReferencia&&(!item.encerradaEm||iso(item.encerradaEm)>filtros.dataReferencia)).map((item)=>({...item,situacao:"ATIVA" as const}));
   const cessoes=state.cessoes.filter((item)=>iso(item.inicio)<=filtros.dataReferencia&&(!item.encerradaEm||iso(item.encerradaEm)>filtros.dataReferencia));
   const comprometimentos=state.comprometimentos.filter((item)=>iso(item.criadoEm)<=filtros.dataReferencia&&(!item.concluidoEm||iso(item.concluidoEm)>filtros.dataReferencia)&&item.situacao!=="CANCELADO").map((item)=>({...item,situacao:"ATIVO" as const}));
@@ -58,7 +58,7 @@ export function construirDashboard(state:ControleVagasState,filtros:DashboardFil
     const outrasSaidas=projecao.exoneracoesConhecidas;
     const percentualOcupacao=saldo.vagasLegais?Math.round(saldo.ocupadas/saldo.vagasLegais*100):0;
     const prioridade:DashboardGrupo["prioridade"]=saldo.divergentes?"DIVERGENTE":saldo.excedentesJudiciais?"ATENCAO":saldo.disponiveisLivres===0||percentualOcupacao>=98?"CRITICA":percentualOcupacao>=90||aposentadorias>0?"ATENCAO":"REGULAR";
-    const destinos=[...new Set(itens.map((vaga)=>distribuicoes.get(vaga.id)??"NÃO DISTRIBUÍDA"))];
+    const destinos=[...new Set(itens.map((vaga)=>distribuicoes.get(vaga.id)??"Pendente de ato de distribuição"))];
     const distribuicao=destinos.length<=2?destinos.join(" • "):`${destinos.length} destinos`;
     return{chave:saldo.chave,quadroCodigo:itens[0]?.quadroCodigo??"—",carreira:itens[0]?.carreira??quadro?.carreira??"—",cargo:saldo.cargo,orgao:saldo.orgaoTitular,distribuicao,tipo:saldo.tipo,lei:itens[0]?.lei??quadro?.ato??"—",vagasLegais:saldo.vagasLegais,ocupadas:saldo.ocupadas,disponiveis:saldo.disponiveis,disponiveisLivres:saldo.disponiveisLivres,disponiveisComprometidas:saldo.disponiveisComprometidas,ocupadasEmDisponibilizacao:saldo.ocupadasEmDisponibilizacao,emExtincao:saldo.emExtincao,judiciais:saldo.excedentesJudiciais,divergentes:saldo.divergentes,cessoes:cessoesGrupo,aposentadorias,outrasSaidas,evasao:projecao.evasaoEstimada,potencial:projecao.necessidadeProjetada,percentualOcupacao,prioridade,ocupacoes:ocupacoesGrupo};
   });
@@ -66,7 +66,7 @@ export function construirDashboard(state:ControleVagasState,filtros:DashboardFil
   grupos.sort((a,b)=>ordem[a.prioridade]-ordem[b.prioridade]||b.percentualOcupacao-a.percentualOcupacao);
   const total=(campo:keyof DashboardGrupo)=>grupos.reduce((s,item)=>s+(typeof item[campo]==="number"?item[campo] as number:0),0);
   const vagasLegais=vagas.filter((vaga)=>vaga.situacaoLegal!=="EXTINTA");
-  const vagasNaoDistribuidas=vagas.filter((vaga)=>(distribuicoes.get(vaga.id)??"NÃO DISTRIBUÍDA")==="NÃO DISTRIBUÍDA");
+  const vagasNaoDistribuidas=vagas.filter((vaga)=>(distribuicoes.get(vaga.id)??"Pendente de ato de distribuição")==="Pendente de ato de distribuição");
   return{grupos,vagas,ocupacoes,cessoes,excecoes,resumo:{cargos:new Set(vagasLegais.map((vaga)=>vaga.cargo)).size,quadros:new Set(vagasLegais.map((vaga)=>vaga.quadroCodigo)).size,distribuidas:vagas.length-vagasNaoDistribuidas.length,naoDistribuidas:vagasNaoDistribuidas.length,disponiveisNaoDistribuidas:vagasNaoDistribuidas.filter((vaga)=>vaga.estado==="DISPONIVEL").length,situacoesLegaisEspeciais:vagas.filter((vaga)=>vaga.situacaoLegal!=="REGULAR").length,vagasLegais:total("vagasLegais"),ocupadas:total("ocupadas"),disponiveis:total("disponiveis"),livres:total("disponiveisLivres"),comprometidas:total("disponiveisComprometidas"),emDisponibilizacao:total("ocupadasEmDisponibilizacao"),emExtincao:total("emExtincao"),judiciais:total("judiciais"),divergentes:total("divergentes"),cessoes:total("cessoes"),aposentadorias:total("aposentadorias"),potencial:total("potencial")}};
 }
 

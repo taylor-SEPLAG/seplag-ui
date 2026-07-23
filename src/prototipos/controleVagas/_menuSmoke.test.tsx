@@ -6,7 +6,7 @@ import { ControleVagasRegrasContent } from "./ControleVagasRegrasContent";
 import { QuadroAutorizadoContent } from "./QuadroAutorizadoContent";
 import { DashboardGerencialContent } from "./DashboardGerencialContent";
 import { VagasIndividualizadasContent } from "./VagasIndividualizadasContent";
-import { TitularidadeCessoesContent } from "./TitularidadeCessoesContent";
+import { MovimentacoesContent } from "./MovimentacoesContent";
 import { ProjecoesVagasContent } from "./ProjecoesVagasContent";
 import { DistribuicaoIndividualContent } from "./DistribuicaoIndividualContent";
 import { controleVagasStore } from "./controleVagasStore";
@@ -17,7 +17,7 @@ const cases = [
   ["Regras e Parâmetros", ControleVagasRegrasContent],
   ["Quadro Autorizado", QuadroAutorizadoContent],
   ["Vagas Individualizadas", VagasIndividualizadasContent],
-  ["Exercício e Cessões", TitularidadeCessoesContent],
+  ["Movimentações", MovimentacoesContent],
   ["Projeções", ProjecoesVagasContent],
   ["Distribuição", DistribuicaoIndividualContent],
 ] as const;

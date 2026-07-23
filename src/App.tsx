@@ -1392,6 +1392,10 @@ function App() {
         element={<PrototiposControleVagasCessoesPage />}
       />
       <Route
+        path="/prototipos/sigep/controle-vagas/movimentacoes"
+        element={<PrototiposControleVagasCessoesPage />}
+      />
+      <Route
         path="/prototipos/sigep/controle-vagas/vagas"
         element={<PrototiposControleVagasVagasPage />}
       />

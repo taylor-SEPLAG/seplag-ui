@@ -1,0 +1,2423 @@
+📝 Observações
+
+-- 1 of 83 --
+
+jul. 23, 2026
+Levantamento Controle de
+Vagas - Movimentações
+convidado Bruno da Silva Nogueira Carlos Vitor Vieira Mattos Reunião TI - SEPLAG
+Taylor Augusto Dos Santos Marcela Souza de Oliveira
+Anexos Levantamento Controle de Vagas - Movimentações
+Registros da reunião Transcrição 	Gravação
+Resumo
+A reunião revisou conceitos de movimentação de pessoal e desafios do sistema com
+proposta de fluxo descentralizado.
+Definições e tipos movimentação
+A reunião definiu remoções internas e externas, além de detalhar cessões com ônus
+financeiro. As regras variam conforme o órgão e a necessidade de ressarcimento.
+Sistema e controles específicos
+O sistema de administração de pessoal apresenta restrições de visibilidade e exige
+controles manuais para pagamentos. Casos como a Designação de Atividade
+Voluntária de Natureza Militar possuem fluxos próprios.
+Otimização do fluxo operacional
+Foi decidido propor a descentralização do registro de movimentações para órgãos de
+origem, permitindo gestão central apenas como validadora. A medida visa eliminar
+retrabalho causado pela ausência de edição.
+
+-- 2 of 83 --
+
+Próximas etapas
+[O grupo] Consultar Marcos Vinicius: Verificar com Marcos Vinicius se a
+restrição de acesso ao histórico de servidores cedidos no sistema CEAP é
+decorrente de dados sensíveis ou uma limitação técnica. Obter
+esclarecimentos sobre a viabilidade de liberação desse acesso para o órgão de
+origem.
+[O grupo] Otimizar fluxo de registros: Implementar a funcionalidade de
+alteração de registros no sistema para evitar o retrabalho de rejeição e novo
+lançamento, garantindo a manutenção do histórico original.
+[Bruno da Silva Nogueira] Desenvolver movimentação gestor: Desenvolver a
+nova movimentação para gestores garantindo a integração automática dos
+sistemas Sigpass, Sigadoc e sistema de atividades.
+[The group] Otimizar registro de datas: Analisar alternativas técnicas para
+permitir que o sistema processe o início de vigência de atos automaticamente a
+partir da publicação em Diário Oficial.
+[Marcela Souza de Oliveira] Consultar Bruno: Buscar informacoes adicionais
+com o Bruno sobre a parte de sessao. Realizar este contato durante a proxima
+semana.
+[O grupo] Conciliar legislacao: Harmonizar a legislacao vigente com o novo
+fluxo de movimentacao de servidores proposto. Analisar as normas para
+garantir a conformidade do processo.
+Detalhes
+● Definição de Movimentação: Taylor Augusto Dos Santos e Marcela Souza de
+Oliveira iniciaram uma discussão sobre os tipos de movimentação de pessoal,
+levando Bruno da Silva Nogueira a esclarecer que os dois eventos principais são
+a remoção e a cessão.
+● Remoção Interna: Bruno da Silva Nogueira explicou que a remoção interna
+ocorre dentro do mesmo órgão (como a Secretaria de Planejamento e Gestão)
+e não altera o quadro financeiro ou as vagas. Situações como decretos de
+
+-- 3 of 83 --
+
+reestruturação, necessidade de serviço, decisões judiciais ou readequações
+médicas motivam esse tipo de movimentação (00:01:13).
+● Remoção Externa: Bruno da Silva Nogueira definiu a remoção externa como a
+mudança de um servidor entre diferentes órgãos do Poder Executivo. Este
+processo requer a existência de um cargo vago no órgão de destino, uma vez
+que o servidor deixa definitivamente a vaga no órgão de origem (00:03:17).
+● Conceito e Legislação de Cessão: Bruno da Silva Nogueira apresentou a
+cessão como uma movimentação temporária regida pelo Decreto 691 de 2020.
+Os atos podem ter validade de até 5 anos, sendo passíveis de prorrogação, o
+que pode permitir que o servidor permaneça cedido por longos períodos
+(00:07:45).
+● ônus Financeiro e Acesso ao Sistema: O ônus financeiro deve acompanhar o
+servidor para o órgão de destino. Bruno da Silva Nogueira pontuou que, no
+Sistema Estadual de Administração de Pessoal, o órgão de origem perde a
+visibilidade do histórico funcional do servidor assim que o ônus é transferido, a
+menos que o usuário tenha um perfil "master" (00:09:42).
+● Restrições de Perfil e Dados Sensíveis: Marcela Souza de Oliveira ponderou
+que a falta de visibilidade do histórico pode ser uma medida de proteção de
+dados sensíveis e uma limitação de perfil no sistema. Bruno da Silva Nogueira
+confirmou que a restrição de acesso segue o local onde o ônus está alocado
+(00:11:41).
+● Necessidade de Acompanhamento pela Origem: Bruno da Silva Nogueira
+argumentou que, embora o sistema restrinja o acesso, seria ideal que o órgão
+de origem mantivesse a visualização do histórico do servidor, visto que a
+legislação exige a verificação conjunta de eventos funcionais como férias e
+licenças-prêmio (00:14:06).
+● Sessões Internas: Representando cerca de 70% das cessões, as internas são
+as mais comuns. Bruno da Silva Nogueira explicou que, nesse caso, o órgão de
+destino assume integralmente a remuneração, encargos e benefícios do
+servidor (00:15:48).
+● Sessões Externas e Ressarcimento: Nas cessões externas (para fora do
+Poder Executivo), Bruno da Silva Nogueira esclareceu que o órgão de origem
+frequentemente mantém o pagamento para evitar interrupções, exigindo um
+
+-- 4 of 83 --
+
+posterior ressarcimento pelo órgão cessionário, dado que o orçamento não
+pode ser facilmente desmembrado (00:17:35).
+● Desafios na Gestão de Ressarcimento: Bruno da Silva Nogueira destacou que
+o atraso nos reembolsos é uma demanda recorrente. A legislação prevê a
+interrupção da cessão após três meses de inadimplência, levando os órgãos a
+realizar pagamentos esporádicos para evitar atingir esse limite antes das
+renovações (00:19:42).
+● Benefícios do Servidor Cedido: Ocasionalmente, surgem conflitos quando
+servidores cedidos possuem direitos a benefícios, como licença-prêmio, que
+não existem no órgão de destino. Bruno da Silva Nogueira mencionou que a
+gestão deve assegurar os direitos previstos em lei sem gerar acúmulos
+indevidos (00:22:31).
+● Sessões sem Ressarcimento: Bruno da Silva Nogueira explicou que cessões
+para entidades como a MTI ou EMPAER não exigem reembolso por utilizarem a
+mesma fonte de recursos do Tesouro, sendo tratadas como "externas" apenas
+devido a limitações técnicas do sistema, apesar de funcionarem como internas
+(00:23:22).
+● Cessões para Assembleia Legislativa: Bruno da Silva Nogueira detalhou que
+as cessões para a Assembleia Legislativa seguem três normas distintas: a regra
+geral com ressarcimento, o artigo 1B para funções essenciais sem
+ressarcimento, e a "Lei Malheiros", que permite a cessão sem exigência de
+demonstração de serviço relevante e sem travas de cargos, respeitando limites
+quantitativos (00:28:25).
+● Carreiras Específicas (Polícia Penal e Saúde): Profissionais da Polícia Penal e
+da Saúde (SUS) podem ser cedidos sem ressarcimento caso desempenhem
+funções inerentes às suas carreiras. Se a função exercida no órgão cessionário
+não estiver relacionada à atividade-fim (penal ou saúde), o ressarcimento
+torna-se obrigatório (00:34:02).
+● Fluxo de Processos de Cessão: Bruno da Silva Nogueira descreveu o fluxo de
+trabalho: a solicitação via ofício pelo órgão cessionário, a instrução do processo
+pelo órgão de origem (como a CCTEC), e a posterior homologação no sistema
+pela Gerência de Quadro, que realiza os operadores 1 a 3 (00:38:54).
+● Demonstração do Sistema SEAP: Durante a demonstração, Bruno da Silva
+Nogueira mostrou que o cadastro de cessões no sistema vincula o servidor a
+
+-- 5 of 83 --
+
+um setor específico. Ele explicou que as cessões costumam ser publicadas de
+forma aberta ao órgão para permitir flexibilidade interna de alocação
+(00:42:38).
+● Agregação Militar: Bruno da Silva Nogueira distinguiu a "agregação" militar da
+cessão comum. A agregação utiliza uma nomenclatura prevista no estatuto
+militar para evitar prejuízos em progressões de carreira e promoções, embora a
+operação na prática seja similar à cessão (00:45:42).
+● Integração com Diário Oficial: O sistema possui integração para a publicação
+de atos no Diário Oficial. Bruno da Silva Nogueira informou que o motivo da
+cessão define o layout do texto, e a efetivação final é realizada pela equipe da
+folha de pagamento (Operador 4) (00:47:42).
+● Proposta de Otimização do Fluxo: Bruno da Silva Nogueira expressou que o
+desejo da gerência é que o órgão de origem fosse responsável pelo registro
+inicial, permitindo que a Gerência de Quadro atuasse apenas como conferente,
+agilizando o processo (00:50:31) (00:53:28).
+● Limitações de Edição e Correção: Atualmente, o sistema não permite a
+edição de registros de cessão, exigindo que o operador rejeite o processo para
+que seja reiniciado, o que gera retrabalho. Marcela Souza de Oliveira e Bruno da
+Silva Nogueira concordaram que a implementação de uma funcionalidade de
+edição com registro histórico de alterações seria mais eficiente (00:54:22).
+● Nomenclatura e Tipos de Movimentação: Bruno da Silva Nogueira esclareceu
+a necessidade de alterar a nomenclatura de "sessões internas" para
+"movimentações internas", pois o termo abrange diversas ações, incluindo
+agregações que não passam pela SEPLAG, sendo geridas diretamente pela
+Polícia Militar ou Corpo de Bombeiros (00:58:51).
+● Policiais da Reserva e AVNM: Foi discutido o conceito de Reserva
+Remunerada (RR), onde o militar, estando em uma fase de pré-aposentadoria,
+pode atuar via "Designação de Atividade Voluntária de Natureza Militar" (AVNM),
+permitindo que trabalhem voluntariamente em outros órgãos (01:00:37).
+● Impactos Financeiros da AVNM: Bruno da Silva Nogueira explicou que a
+AVNM acarreta um adicional financeiro, variando entre 30% a 50% do salário,
+dependendo da patente do militar, o que torna necessário um controle
+específico no sistema para garantir o pagamento correto (01:03:22).
+
+-- 6 of 83 --
+
+● Processo de Publicação e Registro da AVNM: O registro da AVNM depende
+de um ato publicado pelo governador, mediante solicitação do órgão
+interessado. Após a publicação, a Polícia Militar ou o Corpo de Bombeiros
+realiza a alimentação do sistema para que o setor financeiro processe os
+valores adicionais (01:04:51).
+● Cooperação Técnica e Designação PIB: A "cooperação técnica" é
+descentralizada e gerida pelos órgãos. A "Designação PIB" para professores foi
+detalhada como um mecanismo para compensar a perda da "hora atividade"
+quando o docente assume funções administrativas fora da sala de aula
+(01:06:41).
+● Regras de Registro da Designação PIB: Professores designados para funções
+administrativas mantêm seu vínculo na escola original para permitir a
+contratação de substitutos, enquanto recebem o adicional de 33,33% referente
+ao PIB, conforme normas da SEDUC (01:09:18).
+● Gestão de Vínculos no Sistema: Taylor Augusto Dos Santos e Bruno da Silva
+Nogueira discutiram os desafios de gerenciar múltiplos vínculos (exemplo de 17
+vínculos) e a necessidade de encerrar e abrir novos registros devido a
+progressões, mudanças de CNPJ ou transferências de unidade escolar
+(01:12:26).
+● Designação de Gestor e Integração de Sistemas: Está em desenvolvimento
+a "Designação de Gestor", que permite a atuação em outro órgão mantendo o
+ônus no órgão de origem. Bruno da Silva Nogueira destacou a dificuldade atual
+em integrar automaticamente sistemas como Sigpass, Sigadoc e SGPAS,
+exigindo, por vezes, soluções manuais (01:15:11).
+● Sessões Históricas e Permuta: Foi esclarecido que o regime "Integral" é
+legado e não deve mais ser utilizado. A "Remoção por Permuta" é aplicada em
+setores como educação, saúde e polícia civil, exigindo legislação específica e
+compatibilidade de perfis profissionais, conforme explicado por Bruno da Silva
+Nogueira (01:17:12).
+● Regime de Colaboração e Movimentações Temporárias: O "Regime de
+Colaboração" é utilizado pela SEDUC para atender escolas municipais. Bruno da
+Silva Nogueira informou que a opção "temporária" de sessão é considerada
+obsoleta e nunca foi utilizada em seus 11 anos e meio de gestão (01:21:58).
+
+-- 7 of 83 --
+
+● Consenso sobre Impacto Financeiro: Marcela Souza de Oliveira confirmou,
+após revisão, que apenas a AVNM e a Designação PIB geram impactos
+financeiros diretos no cálculo da folha de pagamento do servidor (01:23:51).
+● Estrutura da Tela de Sessão Externa: A tela de sessões externas opera com
+lógica similar à interna, permitindo filtrar por esfera (Federal, Estadual,
+Municipal). Bruno da Silva Nogueira pontuou que a base de dados histórica
+contém imprecisões devido à alimentação equivocada realizada anteriormente
+(01:24:38).
+● Restrições Técnicas entre Telas: A principal diferença operacional entre a
+sessão interna e externa é o mecanismo de bloqueio: a interna bloqueia o
+acesso do servidor, enquanto a externa não, além de possuir campos
+específicos de preenchimento (01:28:51).
+● Autorização Estratégica para Sessões Externas: Diferente da operação
+técnica, a autorização para sessões externas passa por uma decisão
+administrativa do gabinete do secretário. Bruno da Silva Nogueira realiza a
+alimentação manual no sistema após a publicação do ato oficial (01:33:11).
+● Limitações do Sistema SEAP com Datas: Bruno da Silva Nogueira relatou que
+o sistema SEAP não processa automaticamente "datas a partir da publicação",
+exigindo que a equipe estipule datas fixas (geralmente uma semana à frente)
+para contornar a limitação de registro (01:37:41).
+● Proposta de Melhoria de Fluxo: Bruno da Silva Nogueira propôs descentralizar
+o registro das movimentações, permitindo que os órgãos de origem realizem a
+pré-movimentação e que a SEPLAG atue apenas como validadora e auditora,
+visando maior fluidez e eficiência operacional (01:40:45).
+Revise as anotações do Gemini para checar se estão corretas. Confira dicas e saiba
+como o Gemini faz anotações
+Como está a qualidade de destas observações? Responda a uma breve pesquisa
+para nos dar seu feedback, incluindo o quanto as observações foram úteis para o que
+você precisa.
+
+-- 8 of 83 --
+
+📖 Transcrição
+
+-- 9 of 83 --
+
+jul. 23, 2026
+Levantamento Controle de
+Vagas - Movimentações -
+Transcrição
+00:00:05
+Marcela Souza de Oliveira: Podemos iniciar, né?
+Taylor Augusto Dos Santos: Acho sim.
+Marcela Souza de Oliveira: F.
+Taylor Augusto Dos Santos: Tá, Bruno. Eh, basicamente a gente viu lá como que tá
+ficando e tal, né? Aí surgiu aquela dúvida que a gente pensou que sessão era só um
+tipo que existia. Aí a gente viu que, na verdade, ela faz parte, né, de um conjunto de
+movimentação, que são vários eh tipos diferentes de movimentação. Aí, basicamente,
+hoje a gente queria ver sobre isso, quais são esses tipos e tal, né? Como que ele
+funciona, eh, sessão, remoção, ou seja, quando você pega uma pessoa, uma vaga e tal,
+muda de um de um lugar para outro.
+Bruno da Silva Nogueira: Eh, então, eh, tão me escutando bem? É porque hoje eu tô
+em casa, então tô testando o microfone daqui. Não sei se tá tudo tão tranquilo,
+Marcela Souza de Oliveira: Tranquilo.
+Taylor Augusto Dos Santos: Tá sim, tranquilo.
+Bruno da Silva Nogueira: tá beleza? Eh, então assim, a gente tem duas
+diferenciações nesses principais eventos, né, que a gente tem a remoção e a a sessão.
+
+-- 10 of 83 --
+
+00:01:13
+Bruno da Silva Nogueira: A remoção em si, ela se diferencia de duas formas, porque
+a gente tem uma remoção dentro do próprio órgão, que a gente trata ela como uma
+remoção interna, e tem a remoção externa quando a gente trata de movimentação
+entre órgãos, né? Então assim, resumindo, quando você tá trabalhando dentro da
+Cplag e você sai de uma unidade dentro da Cplag para outra, então você tá aí na
+coordenadoria de desenvolvimento e você foi movimentado agora para uma outra
+coordenadoria relacionada a a infra, né? Aí então você tá fazendo uma movimentação
+interna, né? Então é uma remoção interna. Isso acontece dentro do órgão. Não tem
+troca de vagas, nada do tipo, mas ela é sempre feita pelo pelo próprio órgão, né?
+repente a vida funcional do servidor. Eh, eu não tenho nem como mostrar a minha.
+Deixa eu, deixa eu ver se eu consigo mostrar a minha. Ao, acho que não vai fazer muita
+diferença, porque eu só tive uma remoção interna na minha vida, né? Eu saí de uma
+unidade quando eu entrei aqui, que era a gerência de planejamento de pessoal e foi
+movimentado para essa gerência que eu sou hoje, né?
+00:02:13
+Bruno da Silva Nogueira: Estou hoje, que é a gerência de quadro movimentação, mas
+tudo dentro da própria supply. Então, isso é uma remoção interna. Esse é o primeiro
+tipo de movimentação que a gente tem dentro do sistema. ela não altera nada com
+relação a financeiro. O financeiro continua andando o mesmo órgão, né? Porque tá
+sendo só movimentado só as unidades. Eh, essa remoção interna, ela ocorre em tipo
+diversos tipos de situações. Pode ser que a se é uma um decreto de estrutura e
+extinguiu a unidade onde você estava, né, e criou uma nova. Pode ser por necessidade
+mesmo da de serviço. Você tá saindo de uma unidade para trabalhar mesmo em outro.
+Eh, pode ser para uma decisão judicial, por exemplo, judicialmente eu consegui o
+direito de ser removido para uma outra unidade dentro da CPI, né, por n fatores, né, já
+vai vai mais para aspecto jurídico, né? Eh, e também tem a remoção por readequação,
+a remoção interna, né? Eh, quando o servidor, em virtude de uma de situações
+médicas, né, ele não pode mais desempenhar suas funções nessa unidade, então ele
+
+-- 11 of 83 --
+
+vai desempenhar funções em outra, né, mas dentro da própria próprio órgão dele de
+origem.
+00:03:17
+Bruno da Silva Nogueira: Então, a gente não tem uma mudança de lotação, né, é só
+eh eh de órgãos entre si, né, só mesmo entre unidades já dentro desse órgão. Se vocês
+conseguiram entender
+Taylor Augusto Dos Santos: É sim. Então isso é só setor, né? No caso.
+Bruno da Silva Nogueira: isso, isso é porque a gente sempre trata com o mesmo
+nome por causa do que tá previsto na legislação,
+Taylor Augusto Dos Santos: Um
+Bruno da Silva Nogueira: né? Então a gente só diferenciar se interna e externa.
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: A remoção externa é uma mudança de servidor entre
+órgãos. A vaga não acompanha. Então assim, vamos lá naquele quadro de vagas. Você
+criou 10 vagas para analista administrativas na CPLAG, né?
+Taylor Augusto Dos Santos: Isso.
+Bruno da Silva Nogueira: Só que só que eu estou sendo sendo removido
+externamente agora para Cfaz. Então tô saindo da CLAG e indo para Cfaz. Essa vaga
+que tá ali, as 10 continua as 10. A diferença é que vai aumentar uma um cargo vago, né?
+Se tinha 10 ocupados agora vai ficar nove ocupados.
+00:04:11
+Bruno da Silva Nogueira: Ainda tem os 10 cargos criados. Só vai ter nove ocupados
+porque alguém tá saindo, né, restando um saldo. E eu vou preencher uma vaga que
+esteja aberto lá na Cfaz. Então assim, para mim sair da Cplug para ir paraa CFIS, tem
+
+-- 12 of 83 --
+
+que ter um cargo vago na Cfaz pro mesmo cargo que eu estou ocupando aqui. E eu só
+faço essa movimentação, troco de de lotação originária, sair dali dessa plaga e para
+Cfaz. Essa é a remoção externa. é sempre entre órgãos dentro do poder executivo,
+desde que esses órgãos tenha cargos vagos eh pro cargo que eu que eu estou
+ocupando no momento. Essa que é a remoção externa.
+Taylor Augusto Dos Santos: Beleza? Então, remoção interna, eu só mudo o setor. A
+vaga mantém a mesma, o financeiro mantém a mesma. Não muda nada, né? Só mudou
+o setor ali mesmo a externa aí não.
+Bruno da Silva Nogueira: Isto.
+Taylor Augusto Dos Santos: Não, aí eu vou literalmente mudar minha
+Bruno da Silva Nogueira: Isso, isso mesmo.
+Taylor Augusto Dos Santos: vaga.
+Bruno da Silva Nogueira: Eu tô mudando a minha vaga da Cplag para Cfaz.
+00:05:05
+Bruno da Silva Nogueira: Então você tá aqui hoje, né? Eh, e você vai trabalhar
+definitivamente lá na CFI, você vai deixar de servidor ser servidor dessa plaga,
+entendeu? Definitivamente você não retorna para ele. Você vai para esse novo órgão,
+a Cfaz desde que tem um cargo vago lá. Então assim, se lá tiver, por exemplo, 10
+cargos criados e 10 cargos ocupados, né, na minha carreira, no meu cargo, né, eu não
+consigo ser movimentado definitivamente. Então, eu não posso fazer essa remoção
+externa. Então, um um fator principal, né, bloqueador quanto essa remoção externa é
+ter a disponibilidade de cargo vago na minha carreira, no meu
+Taylor Augusto Dos Santos: Beleza? Então, a remoção só vai ter esses dois tipos, né?
+Bruno da Silva Nogueira: cargo.
+Taylor Augusto Dos Santos: Tem alguma remoção que é para alguma coisa fora de
+órgão, por exemplo? Se eu, sei lá, tô indo para alguma coisa, tô sendo removido de
+uma vaga aqui, por exemplo, e tô indo, sei lá, paraa Brasília, trabalhar em alguma coisa
+externa
+Bruno da Silva Nogueira: Não, não.
+
+-- 13 of 83 --
+
+Taylor Augusto Dos Santos: assim.
+Bruno da Silva Nogueira: caso a gente aí a gente já entra no nos casos das sessões.
+00:06:00
+Taylor Augusto Dos Santos: Ah, então isso seria exceção, não é uma remoção, né?
+Algo. Então, a remoção que seria os permanentes teria esses dois.
+Bruno da Silva Nogueira: Isso,
+Taylor Augusto Dos Santos: Um só muda eh a unidade lá da pessoa, né, o setor e o
+outro aí sim é para mudar de ordem.
+Bruno da Silva Nogueira: isso,
+Taylor Augusto Dos Santos: Beleza? E o as movimentações
+Bruno da Silva Nogueira: tá?
+Taylor Augusto Dos Santos: daí eu
+Bruno da Silva Nogueira: Aí a gente vai cair no mundo agora, no mundo das sessões,
+eh, em si.
+Taylor Augusto Dos Santos: deixei falar
+Bruno da Silva Nogueira: Pode falar, Marcelo.
+Marcela Souza de Oliveira: se pular para pro mundo das sessões. Deixa eu tirar uma
+dúvida da remoção. Então, nesse caso aí, já que eu vou para uma vaga num outro ó,
+vago aqui e eu fico por lá, a remoção, ela é por, vamos dizer assim, que é o
+desligamento definitivo, como você falou, ela não fica, não fica vinculada aqui para
+voltar. Ela é exonerada aqui e admitida lá. É, é essa
+Bruno da Silva Nogueira: Não. Não, só não tem essa questão da desligamento.
+00:06:49
+
+-- 14 of 83 --
+
+Marcela Souza de Oliveira: visão.
+Bruno da Silva Nogueira: É só fechada a sua cargo aqui ocupado aqui neste órgão,
+Cplug e movimentado lá para aquele cargo na na Cfaz. Tipo, você não tem uma eh é só
+é só fechado,
+Marcela Souza de Oliveira: Só apagar para ele se tornar vago para uma outra
+Bruno da Silva Nogueira: é porque vocês vão Isso,
+Marcela Souza de Oliveira: pessoa aqui na na
+Bruno da Silva Nogueira: isso isso mesmo.
+Marcela Souza de Oliveira: origem.
+Bruno da Silva Nogueira: Então, pensando naquela questão da vaga e do histórico,
+né? Ele é fechado o cargo aqui de analista administrativo na CPLAG, ele fica aberto
+para uma outra pessoa ou vindo por concurso, né, ou vindo de outro órgão também,
+né, para fazer remoção e entrar nesse cargo e você vai para um cargo vago que tá
+nesse novo órgão, né, né? Você faz, ele fica fechado, né? Ele fica fechado abrindo uma
+uma vaga,
+Marcela Souza de Oliveira: Entendi.
+Bruno da Silva Nogueira: né, possibilitando uma remoção de outro servidor ou um
+eventual concurso, nomeação ali,
+Marcela Souza de Oliveira: Não entendi. Beleza. Segundo. Yeah.
+Bruno da Silva Nogueira: tá?
+00:07:45
+Bruno da Silva Nogueira: Eh, sobre as sessões, a gente tem um um decreto, né, que
+resume sobre as situações tanto de remoção quanto a sessão, tá? Eu vou deixar no
+chat ali para vocês. Eh, mas a um decreto decreto 691, a gente fez em 2020 esse
+decreto e cita sobre essas questões de normas, né, até parametrizações, o que que é
+cada um, o que que é cada coisa, o que que é uma sessão interna, o que que é uma
+sessão externa, ele discrimina bem. E a gente tem algumas regras relativas à sessão. A
+a visão geral da sessão é uma movimentação temporária para um outro órgão. Então,
+pega no mesmo caso aí, o Bruno tá saindo da Cplag para ser cedido para Cfaz. o cargo
+
+-- 15 of 83 --
+
+dele originário, o cargo dele de técnico administrativo vai se manter lá na origem, vai
+se manter na CPL, o que vai estar sendo movimentado é como se fosse o serviço dele,
+né? A prestação de serviço dele vai estar ligada, esse novo órgão você faz por um
+período, um prazo, por um período de tempo. Eh, esse período de tempo, ele tem
+limitações de ato.
+00:08:47
+Bruno da Silva Nogueira: O que que quer dizer isso? Eu posso publicar um ato
+valendo até por 5 anos, mas ele não é restritivo. Então eu posso prorrogar ele por mais
+cinco, por mais três, por mais dois, mas sempre tendo um limite de 5 anos em cada
+ato. Então assim, eu posso passar a vida inteira cedido para ser faz, posso passar a
+vida inteira cedido para ser duque, né? eh ou outro órgão que tenha feito essa
+movimentação. Eh, essa movimentação prevista por uma outra legislação, eu vou
+pegar ela aqui também, vou mandar para vocês, que é uma legislação que trata sobre
+tá? E a gente entra nessa nesse aspecto. Eh, toda vez que o servidor é cedido, o ônus
+não pode ficar com a origem. Para isso tá escrito, descrito nessa legislação, tá? Uma é
+uma lei complementar. Então aí eu caio naquele aquela situação que a gente tinha
+tinha comentado com vocês. Então eu tô saindo, eu cedido da CLAG para Cfaz. Em
+virtude dessa lei, eu não posso deixar meu ônus com a CLAG, né?
+00:09:42
+Bruno da Silva Nogueira: Então esse meu ônus me acompanha pro órgão quando
+que eu estiver sendo cedido. Então no aspecto da sessão interna, toda sessão interna
+o ônus vai ser sempre do órgão para onde eu estou indo desempenhar as funções,
+certo? Eu tô saindo da CPLG para ser cedido para Cfaz. Então quem vai pagar meu
+salário vai ser a Cfaz. Eu estou saindo da CPLG para trabalhar na CEDEC. Quem vai
+pagar o meu ônus, né, minha remuneração vai ser a CEDEC e assim vai sempre indo.
+Então, hoje hoje eh ele sempre acompanha e até por um dos motivos que a gente tem
+
+-- 16 of 83 --
+
+esse acompanhamento é até a visão do servidor dentro do CAP, tá? É uma é um
+limitante que a gente tem quando o servidor é cedido e a gente lançar lança isso no
+sistema CAP, né? eh o órgão dele de origem perde todo o acesso a ele. Então, a partir
+do momento que o Bruno foi cerdido para Cfaz, a Cfaz tem acesso ao CAP, ao Bruno,
+né? consegue ver férias, licença premmium, consegue ver todo o histórico dele de
+funcional, né, dentro do sistema CAP e o órgão dele de origem, que é CPLAG hoje, não
+consegue mais ver ele, visualizar ele de de forma nenhuma, a não ser que ela tenha um
+acesso mais
+00:10:47
+Taylor Augusto Dos Santos: Nem o nem o tipo nem o período de quando ele
+pertencia.
+Bruno da Silva Nogueira: eh
+Taylor Augusto Dos Santos: Você plaga e não consegue ver mais.
+Bruno da Silva Nogueira: não consegue porque o CAP Yeah.
+Taylor Augusto Dos Santos: Так.
+Bruno da Silva Nogueira: ele tem um limitador de onde tá o ônus, tá? Eh, acho que
+quase. Então assim, se o ônus dele hoje tá na Cfiz,
+Taylor Augusto Dos Santos: M.
+Bruno da Silva Nogueira: então quem vai tá ter acesso a ele é são os usuários
+permitidos para ver os servidores da Cfaz. Então, como o a Cplug não tem esse
+acesso para ver os servidores da Cfaz, então ela não consegue visualizar porque a
+gente tem essa questão de de usuários, né, no CAP. Então assim, quem tiver um
+usuário master,
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: por exemplo, o meu meu usuário, eu consigo ver servidor
+de qualquer órgão, mas assim você faz não consegue ter essa essa mesma
+visualização que eu, né? Então ela não consegue visualizar servidores de outros
+órgãos. Esse é um limitante que tem dentro do CAP hoje, tá? Aí já não sei te dizer o
+
+-- 17 of 83 --
+
+quais são as ferramentas, porque eu não trabalho com essa parte de SEAP, né, de de
+acessos e coisas do tipo, mas é nesse sentido.
+00:11:41
+Marcela Souza de Oliveira: Ele perde esse histórico,
+Bruno da Silva Nogueira: Então assim,
+Marcela Souza de Oliveira: ele perde essa visão do histórico dele.
+Bruno da Silva Nogueira: isso pede perde ela todinha.
+Taylor Augusto Dos Santos: A não ser quando voltar, né? Se ele voltava para aí, aí no
+caso
+Bruno da Silva Nogueira: Isso. Por exemplo, eu vou colocar um exemplo agora de um
+outro servidor.
+Taylor Augusto Dos Santos: reguém.
+Bruno da Silva Nogueira: Eu tenho um servidor que está sendo cedido para Cedec.
+Ele é um servidor, se não me engano, era se faz. Eh, ele tá indo para Cedec a partir do
+dia 3 de agosto. A Cedec precisa fazer o lançamento de nomeação em cargo
+comissão para ele, né? A CDEC só vai conseguir visualizar ele para poder fazer esses
+registros no CEAP a partir do dia 3 de agosto. Então, dia primeiro, dia 2, ela não tem
+acesso nenhum ao servidor para poder fazer essa nomeação. Ah, se ela quiser, eu
+tenho que eu quero adiantar, né? Essa nomeação ela não consegue, a não ser que eu
+vou lá no sistema CAP e movimente o servidor para eles, né, com uma data anterior ao
+dia 3, só para eles poderem ter acesso.
+00:12:30
+Bruno da Silva Nogueira: Mas você vê como que é meio bem limitante essas
+Marcela Souza de Oliveira: É,
+
+-- 18 of 83 --
+
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: ações?
+Marcela Souza de Oliveira: deve ser uma restrição aí de perfil e também de dados
+sensíveis, né? A partir do momento que ele se torna de outro órgão, somente o órgão
+tem o poder de visualizar, de acompanhar e o anterior fica ocultado, né? E caso volte,
+faça da mesma forma. Mas isso deve ser delimitador do próprio teatro mesmo.
+Bruno da Silva Nogueira: Sim, sim, sim. Até porque justamente nesse sentido de
+dados dados dos servidores, né? Eh,
+Marcela Souza de Oliveira: Entendi.
+Bruno da Silva Nogueira: eu não sei como tá hoje a liberação, mas antigamente
+liberava-se até um perfil de visualização, né, para para alguns órgãos de acordo com o
+pedido, né, mas esse é o setor lá do do setor técnico lá do do Marcos Vinícius que tem
+esses tipos de liberação. Não sei muito bem como tá tô fazendo
+Marcela Souza de Oliveira: Mas também tem a questão do R compli. Então assim,
+Bruno da Silva Nogueira: hoje.
+Marcela Souza de Oliveira: por esse motivo provavelmente deve ser essas limitações
+aí que que são dados sensíveis que eles vão acessar, né?
+00:13:27
+Marcela Souza de Oliveira: Então quando ele se perde de um órgão para o outro é
+cedido para outro, né? Eu acredito, não estou ide,
+Taylor Augusto Dos Santos: Mas,
+Marcela Souza de Oliveira: mas eu seja
+Taylor Augusto Dos Santos: mas é estranho, né?
+Bruno da Silva Nogueira: É,
+Taylor Augusto Dos Santos: Porque em teoria a Cplag teria conseguido ver o
+período que é dela,
+Marcela Souza de Oliveira: isso.
+Bruno da Silva Nogueira: então é, esse é o ponto que eu esse ponto que eu iria falar.
+
+-- 19 of 83 --
+
+Taylor Augusto Dos Santos: né? O período que foi dela, ela teria que ver. Beleza,
+Marcela Souza de Oliveira: Mas da gestão,
+Taylor Augusto Dos Santos: a Cplag não vai ver o período que ele foi da Cfase.
+Marcela Souza de Oliveira: né?
+Bruno da Silva Nogueira: Eu
+Taylor Augusto Dos Santos: OK. Inclusive quando ele voltar para CL, a CLAG não
+deveria ver o período dele da Cfase, mas eu acho que consegue daí, né?
+Marcela Souza de Oliveira: pelo menos o histórico que ficou sobre o domínio dela,
+Taylor Augusto Dos Santos: Так.
+Marcela Souza de Oliveira: né?
+Bruno da Silva Nogueira: É, é sempre sobre quem tá o domínio do servidor no
+momento. Então assim, Taylor, na hora que ele voltar para C Plug, a Cplug vai ver tudo
+que você faz face,
+00:14:06
+Taylor Augusto Dos Santos: É isso, é isso aí.
+Bruno da Silva Nogueira: né?
+Taylor Augusto Dos Santos: Tá,
+Bruno da Silva Nogueira: Só que assim, eu acho, na minha visão,
+Taylor Augusto Dos Santos: tá.
+Bruno da Silva Nogueira: eu entendo que que era necessário a origem ter ter sempre
+acesso da visualização, pode ser que não tenha acesso de alterações, né, tipo de
+editar em um evento dele funcional,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: mas eu eu entendo que a a origem deveria ter acesso ainda
+ao servidor. Por quê?
+Marcela Souza de Oliveira: É porque se uma sessão,
+Bruno da Silva Nogueira: Porque dentro Sim,
+
+-- 20 of 83 --
+
+Marcela Souza de Oliveira: né? Ele vai voltar provavelmente em abrir
+Bruno da Silva Nogueira: sim. E a responsabilidade da origem conjuntamente com o
+órgão onde ele está cedido, né? Eh, verificar eventos funcionais do servidor. Então, por
+exemplo, assim, eh, o Bruno tá cedido para para Cfaz, ele já tá lá 7 anos cedido para
+Cfaz. Eu, como origem dele, eu não tenho acesso a nada. Aí eu não sei se ele tá com
+acúmulo de férias, eu não sei se ele tá com acúmulo de licença prêmio, eu não sei se
+tem algum evento irregular na vida funcional dele, sendo que na própria legislação fala
+que tem que ser analisado sempre conjuntamente qualquer tipo de de evento
+00:14:52
+Taylor Augusto Dos Santos: Угуm.
+Bruno da Silva Nogueira: funcional. Então assim, como que a origem vai verificar
+conjuntamente como forma como tá fal escrito no decreto, né, se ela não tem acesso,
+né, a não ser que ela tenha um acesso especial, né, que eu acabei de falar, né, um
+usuário especial para poder visualizar, ela não tem. Eu eu não sei se todas setoriais têm
+isso. Então assim, eu eu acho interessante a a origem ter sempre acesso ao servidor
+dele enquanto for servidor dele, né? Não sei
+Marcela Souza de Oliveira: Eh, que quem que poderia nos nos dar essa informação
+para que você temessem assim que possa nos informar,
+Bruno da Silva Nogueira: se
+Marcela Souza de Oliveira: tipo, se é uma questão de dados sensíveis, se é uma
+limitação ou se a gente pode ou não abrir.
+Bruno da Silva Nogueira: o Marc,
+Marcela Souza de Oliveira: Qu que você acha?
+Bruno da Silva Nogueira: o Marcos Vinícius.
+Marcela Souza de Oliveira: Marco Ah,
+Bruno da Silva Nogueira: Aham.
+Marcela Souza de Oliveira: beleza.
+
+-- 21 of 83 --
+
+Bruno da Silva Nogueira: Coordenador lá. Mas assim, então como falando assim,
+hoje o delimitador é da onde tá o servidor, então se o servidor está na CFA, só a Cfaz
+tem acesso.
+00:15:48
+Bruno da Silva Nogueira: Se a Cplag tiver um usuário master,
+Marcela Souza de Oliveira: Beleza.
+Bruno da Silva Nogueira: ela acessa, se não tiver, não tem como visualizar. Eu acho
+prudente sempre ter o acesso por para essas questões que eu acabei de te dizer, né?
+Porque se você vê na no decreto de licença premmium, no decreto de férias, ele cita
+quando o servidor tiver cedido, né? eh, função das setoriais, n sistêmicas, tá
+acompanhando a vida funcional do servidor. Eh, então assim, eu acho que é uma falha
+que tem dentro do da nossa conce do nosso sistema, né, já que é uma questão
+prevista no próprio decreto, né?
+Marcela Souza de Oliveira: Entendi.
+Bruno da Silva Nogueira: Tá? Então, assim, eh, voltando à situação, né? Então, assim,
+essa a movimentação interna eh que é é a mais que a gente mais tem hoje usual,
+Marcela Souza de Oliveira: que
+Bruno da Silva Nogueira: né? Que a gente mais no universo de sessões, é o que a
+gente tem a maior quantidade, né? né? Acho que deve ser cerca de 70% das sessões
+que a gente publica.
+00:16:37
+Bruno da Silva Nogueira: É, são sessões internas, né? Que a movimentação interna é
+bem bem bem fluida, né? Bem bem necessária até para para atendimentos. Então, eh
+esse é o principal função dela. Ela vai ela o servidor vai temporariamente por 5 anos,
+podendo ser prorrogado por n vezes, né? E o sempre acompanha o servidor. Então o
+
+-- 22 of 83 --
+
+servidor receber cargo em comissão, quem paga é sempre onde que é o o dono do
+cargo em comissão, né? A remuneração vai ser paga o servidor, ó, o servidor vai ter
+uma verba indenizatória, que servidor vai ter férias, né? Servidor vai ter 13º. Tudo isso é
+pago pelo órgão onde ele está desempenhando as funções, né? Relativo à sessão.
+Então assim, a visão da sessão interna é essa, é é a visão mais tranquila que temos. Eh,
+a gente aumenta esse universo na hora que a gente vai tratar sobre sessões externas,
+tá? A sessão externa hoje é é para para órgãos, né, ou entidades fora do poder
+executivo estadual. Em regra, já coloca em regra, é porque vocês não estão fazendo,
+eu tô fazendo aspa, tá?
+00:17:35
+Bruno da Silva Nogueira: Eh, em regra é isso. Então, assim, o que seria a sessão
+externa? é o servidor, ele desempenha suas funções, como acabei de falar, de sessão
+interna, em um outro órgão, né, um outro ente do pode ser do governo federal, pode
+ser de outro governo estadual, pode ser do poder executivo em geral, né, Tribunal de
+Contas também, né, TJ e assim vai. Toda vez que o servidor, em regra, está cedido para
+um órgão desse, eh, por base dessa dessa dessa legislação que eu tava citando para
+vocês de de ônus, vou colocar ela para vocês também no chat. Is, que é sobre o ônus.
+Ela cita que em geral o servidor vai e tem que ser reembolsado o órgão de origem. Por
+quê? Lembra que eu citei que é vedado servidor receber quando cedido receber pela
+origem e paraa sessão externa também vai da mesma forma. Então assim, essa
+vedação ainda continua. Então o servidor está sendo cedido pra prefeitura de Cuiabá
+e no caso Cuiabá tem que ressarcir o estado do seu do financeiro. Por que que ela tem
+que ressarcir?
+00:18:44
+Bruno da Silva Nogueira: Porque a gente não consegue hoje desmembrar o nosso
+financeiro. Então eu não consigo pegar o meu ônus hoje é pago pela SEPLAG, né, parar
+
+-- 23 of 83 --
+
+e repassar essa carga de ônus, né, paraa prefeitura de Cuiabá, começar a pagar
+durante a sessão e depois quando o prefeitura de Cuiabá encerrar, né, a sessão do
+Bruno e voltar para Cplag, voltar esse financeiro, né, liberar. Então fica aquele buraco,
+né, fica um buraco porque o ônus tá num órgão, outro ônus tá no outro. Então o que
+que é feito? não há quebra de pagamento, a CPLAG continuaria pagando o salário do
+Bruno e para não ter eh uma desobediência, né, do que tá previsto na lei, é feito esse
+ressarcimento, né? Então é como se fosse um saldo negativo que é que é que é pago,
+né? Então com isso a gente não fica entendendo que é um que é um ônus pago pela
+origem. Ele eventualmente, tecnicamente ele é pago pela origem e ressarcido pelo
+pelo órgão tá? Vocês conseguiram entender essa parte do ônus?
+Taylor Augusto Dos Santos: Acho que sim. Vamos lá então.
+00:19:42
+Taylor Augusto Dos Santos: Beleza. Sessão externa, certo? Eu tava aqui, fui para um
+outro lugar lá fora do estado, né? E daí nesse caso, o estado continua me pagando,
+porque Mas daí seria uma questão eh eh de sistema também como o outro True. não
+consegue começar a pagar, por isso que o estado continua pagando, né? Mas o ideal
+seria o quem tá recebendo pagar, no caso, né? E daí isso acontece depois por causa
+do do
+Bruno da Silva Nogueira: Sim, sim. Eh, o ideal seria isso,
+Taylor Augusto Dos Santos: ressarcimento.
+Bruno da Silva Nogueira: só que a gente tem várias entraves, não só entraves de
+técnicos, né, de de permitir o o a folha do servidor você paga lá pelo outro órgão, mas
+também tem entraves com relação a isso, o órgão não pagar. Eh,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: então assim, hoje a gente tem ainda uma demanda grande
+com esse ressarcimento, demanda grande no sentido que nem sempre os órgãos
+pagam pagam e nem sempre os órgãos que pagam pagam em dias. Eh, a gente a
+gente tem na legislação uma previsão que se atrasar 3s meses, né, a sessão tem que
+ser interrompida.
+
+-- 24 of 83 --
+
+00:20:44
+Bruno da Silva Nogueira: Aí o que que os órgãos geralmente fazem? Eles pagam dois
+mes, paga um mês, aí espera dois meses ficarem atrás, aí paga de novo, aí paga de
+novo e assim vai indo. Aí a obrigação de tá ressarcimento em dias é na renovação.
+Então assim, Bruno tá cedido por um ano pra prefeitura de Cuiabá. A prefeitura de
+Cuiabá vai pagando pendurado assim, né? Paga um mês, atrasa dois. Aí paga um mês,
+atrasa dois. No momento da renovação, se não tiver pago esse reembolso, né? não
+esteja nesse limite de 3 meses, ele não pode ser prorrogado. Então aí quando chega lá
+perto do final do prazo do do prazo final da sessão, aí o órgão tenta deixar o mais
+alinhado possível, né, de ressarcimento pago para poder renovar.
+Taylor Augusto Dos Santos: para poder renovar.
+Bruno da Silva Nogueira: Então assim, hoje que é isso que vem acontecendo aí
+quando esse órgão pode
+Taylor Augusto Dos Santos: Mas o servidor em si não é impactado,
+Bruno da Silva Nogueira: falar.
+Taylor Augusto Dos Santos: né? Porque o estado vai sempre tá pagando ele.
+00:21:32
+Taylor Augusto Dos Santos: Essa transação acontece entre a prefeitura e o estado,
+Bruno da Silva Nogueira: Sim. Eh, são emitidas dar,
+Taylor Augusto Dos Santos: né?
+Bruno da Silva Nogueira: né, documento de arrecadação, né, para prefeito, paraas
+prefeituras, governos federais, o órgão onde estiver eh cedido, né,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: para para ficar ficar pagando e mandando enviando
+informações de comprovante, né, que tá sendo pago esses esses reembolsos, porque
+
+-- 25 of 83 --
+
+até para ter o controle desse reembolso, ele não entra diretamente pro pro órgão, sim,
+né? Eh, aí já entra uma questão da Cfaz, né, da que prevê que parte desse dinheiro vai
+para um fundo, outra parte vai para para pro caixa do tesouro, né? Então tem toda uma
+composição dentro desse fundo. Aí é o que que é feito é sempre é isso. Ah, procedo
+para prefeitá, prefeitura, cabá paga o dar que é emitido pela gente, né? Geralmente o
+órgão de origem emite esses darks quando porque eh tem um procedimento para
+emitir ele, né, junto ao a Cfaz. Então assim, a forma mais fácil que hoje os órgãos eh
+encontram, né, é emitir o dar, envio o dar pro órgão onde ele está cedido, eles pagam
+e informam o comprovante de pagamento.
+00:22:31
+Bruno da Silva Nogueira: Assim vai seguindo a a o financeiro do servidor. Mas assim,
+enquanto ele está cedido, todos os benefícios que o servidor tem direito aqui, ele tem
+que estar direito quando ele está cedido. Esse até um às vezes a causa umas umas
+picuinhas, né? Umas tretas,
+Taylor Augusto Dos Santos: É, eu vou
+Bruno da Silva Nogueira: porque assim eh aqui a gente tem a previsão de de licença
+premium, por exemplo,
+Taylor Augusto Dos Santos: O negócio
+Bruno da Silva Nogueira: só que a maioria dos órgãos externos não tem mais licença
+prêmium. Governo federal não tem necessão. prêmium, TJ não tem licença premium,
+né? TRF não tem licença premium e acaba que o esses órgãos ficam meio ressabiado
+de querer pagar o servidor enquanto tá em uso fruto de licença premium, né? Porque
+ele está cedido lá pro TJ, não tá trabalhando, ele tá de licença prêmium, mas tem que
+ser ressarcido o dinheiro do financeiro do salário dele, né? Porque ele ainda se
+encontra cedido. E é uma obrigação que a gente tem na lei, né? Legal, que a gente não
+pode ter acúmulo, né?
+
+-- 26 of 83 --
+
+00:23:22
+Bruno da Silva Nogueira: Então a gente tem que estar sempre agendando e
+usufruindo e às vezes dá um dá uns perrenguinhos nesse sentido de de pagar. Mas no
+geral a sessão externa, tá? A visão completa da sessão externa em regra é essa que eu
+passei para vocês. Vocês conseguiram compreender ela assim? Esse essa
+movimentação,
+Taylor Augusto Dos Santos: Uhum. Minha parte
+Bruno da Silva Nogueira: tá? Eh, aí a gente vem para as diferenciações dentro da
+sessão externa. Eh,
+Taylor Augusto Dos Santos: tr
+Bruno da Silva Nogueira: a sessão externa a gente tem dentro dessa 265 aí que eu
+mandei para vocês, ela tem algumas opções de ônus, tá? No artigo primeiro B tem um,
+no artigo primeiro A tem outro. Eu vou destrinchar ela para vocês, começar pelo pelo
+início, né? Ah, no artigo primeiro A, ele fala que não há reembolso de assessões de
+servidores e empregados públicos entre órgãos integrantes do poder executivo de
+autarquias. Por que que acontece isso daí? Hoje no sistema CEAP a gente tem eh um
+bloqueio com relação a órgãos de autarquia, de algumas autarquias, tá?
+00:24:24
+Bruno da Silva Nogueira: Não são todas. Então, por exemplo, a MTI, a MTI ela não
+está englobada na mesma página, vamos dizer assim, do CAP que a gente trabalha
+normalmente, né? Então, a gente não consegue transferir, mesmo sendo dentro do
+poder executivo, né? A gente não consegue transferir dentro do sistema o ônus, como
+eu falei para vocês na sessão externa, né? Então eu não consigo, quando o servidor
+está cedido para MTI, eu não consigo movimentar o ônus igualzinho eu movimento ele
+para Cfaz. Bruno tá saindo da SEPLAG para Cface. Eu eu consigo lançar o ônus para
+eles, né, como disse anteriormente. Mas eu não consigo fazer isso se o servidor for
+para uma MTI, se o servidor foi para uma Empire, né? Não consigo fazer. Tem alguns
+alguns órgãos que tm essa situação. Então o que que é o que que era feito
+
+-- 27 of 83 --
+
+anteriormente? Anteriormente a gente tinha reembolso com eles normalmente, só
+que houve uma legislação, uma alteração da legislação, acho que junto com acho que
+bem junto com o decreto, eh, esse decreto de de sessão que a gente possibilitou que
+quando o servidor for para uma dessas autarquias que não são eh não tem o
+financeiro lastreado pelo tesouro, né?
+00:25:26
+Bruno da Silva Nogueira: Ô, desculpa, quando eu tenho o financeiro lasteado pelo
+tesouro, que é a mesma fonte que paga o nosso salário aqui, paga o salário da galera
+lá na no MTI, na Empire, a gente não haveria reembolso. Então, a gente faz a sessão
+externa, cita essa legislação, a gente continua pagando o ônus aqui na origem, né? só
+não tem mais a necessidade de reembolso porque eh foi entendido, né, junto a Cfaz
+que mesmo servidor está trabalhando lá na Empire, a fonte de tesouro que paga o
+salário dele aqui seria a mesma que a MTI devolveria, né, pro estado, pro órgão de
+origem. Então, não é necessidade de fazer Ra bolsa nesses casos, mas a partir do
+momento que a gente estiver num sistema só a Empire junto com os outros órgãos do
+poder executivo, né, e a MPR, a MTI, né, a gente vai ter essa possibilidade de
+movimentar o o 11. Então, hoje ela é tratada como uma externa, né, por força da da
+legislação e do da e da do bloqueio do sistema, mas a gente espera que, né, sistema
+no ela seja tratada eh dentro do próprio sistema. Então a gente não precisaria mais
+tratar ela dessa forma como externo.
+00:26:28
+Bruno da Silva Nogueira: Conseguiram pegar sobre essa situação?
+Taylor Augusto Dos Santos: Acho que
+Bruno da Silva Nogueira: Em suma, em suma,
+Taylor Augusto Dos Santos: sim.
+
+-- 28 of 83 --
+
+Bruno da Silva Nogueira: assim, o servidor tá cedido para um outro órgão. A, a
+princípio é um órgão do poder executivo, só que por delimitações de de transferência
+de recurso, a gente trata ele como externo e é feito e não é feito reembolso. É só isso.
+Taylor Augusto Dos Santos: Então da CFA, vamos lá. Então da SEPLAG foi para MTI.
+Bruno da Silva Nogueira: Isso.
+Taylor Augusto Dos Santos: Ah, só que a SEPLAG vai continuar pagando ele e não a
+MTI, certo? E não e no final de tudo ainda não vai precisar do reembolso porque o
+quem tá pag ele meio que devolveria para ele mesmo, entre aspas,
+Bruno da Silva Nogueira: justamente porque quando a gente faz,
+Taylor Augusto Dos Santos: né?
+Bruno da Silva Nogueira: como tá falando para você, do reembolso de fonte, onde
+que vai cair reembolso, uma parte cai para fundo e coisas do tipo. Em resumo, o resto
+que cai cai pro tesouro, certo? não cai diretamente pro órgão.
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: Então, se ele cai pro tesouro e o tesouro é usado para
+pagar o próprio salário dele, então não é necessidade.
+00:27:34
+Bruno da Silva Nogueira: Tô reembolsando que não uma coisa que eu já tô tô
+pagando normalmente.
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: É nisso que é o artigo primeiro B que tem nessa na
+legislação de sessões, tá?
+Taylor Augusto Dos Santos: Mas o cenário ideal seria, né,
+Bruno da Silva Nogueira: Vai.
+Taylor Augusto Dos Santos: você a quando ele for para MTI, a MTI em teoria começa
+a pagar com a verba que seria dela, que na verdade é a mesma também.
+Bruno da Silva Nogueira: Isso mesmo. Isso mesmo. Mas é como eu te disse, como a
+gente tem uma limitação dentro do CAP, porque essas empresas não estão lá dentro.
+
+-- 29 of 83 --
+
+Hoje tem no CEAP, né? Mas é é são telas próprias, né? Tem a empresa um, que é o
+governo, aí tem a empresa dois, acho que é da Empire, e assim vai indo. O ideal seria
+todos est dentro da mesma dentro do mesmo sistema, né? e a gente conseguiria ele
+movimentar ele direto. Aí a gente não teria mais necessidade dessa legislação, né? A
+gente fazer uma sessão como a gente faz uma sessão interna normalmente, porque
+na visão assim do dia a dia é uma visão, é uma sessão interna, né?
+00:28:25
+Bruno da Silva Nogueira: Porque tá dentro do poder executivo, mas a gente trata
+como externa justamente por causa dessas limitações de de ônus, tá?
+Taylor Augusto Dos Santos: entendeu?
+Bruno da Silva Nogueira: Aí, a partir disso, a gente tem duas legislações relativas a
+sessões paraa assembleia, tá? Eh, que é o quê? Quando o servidor três, tava
+resumindo, três, três situações onde o servidor é cedido pra Assembleia Legislativa de
+Mato Grosso. A situação um é a que eu já passei para vocês, que é sessão externa
+normalmente, né? O Bruno vai trabalhar na assembleia. Aí a assembleia ressarce o
+salário do Bruno, certo? Essa é a regra geral. E a gente tem duas regras específicas. O
+artigo primeiro B, dentro dessa legislação que eu passei para vocês de financeiro, que
+determina que o CONUS pode ser do do órgão de origem sem necessidade de
+reembolso, né, se o servidor for desempenhar funções eh de caráter bem essenciais e
+específicas, né, na assembleia. Então, essa assembleia foi lá e menciona que o Bruno
+vai fazer uma função específica ali dentro da assembleia, uma função de interesse eh
+excepcional.
+00:29:33
+Bruno da Silva Nogueira: Aí, nesse caso, o governo pode autorizar a sessão do Bruno
+para lá sem o reembolso, coisinho da dessas autarquias, tá, que eu citei antes. Então, o
+Bruno continua trabalhando lá na Assembleia cedido, só não tem necessidade de de
+
+-- 30 of 83 --
+
+assembleia ressarcer. Eh, só que ela tem limitantes, né? Principal limitante é algumas
+carreiras que não podem ser cedidas dessa forma. Então ela tem teria que ter um
+bloqueio para esse tipo de sessão, né? Quando utilizar esse essa esse artigo, né? Eh,
+não pode grupo TAF, que é o pessoal do da Cfaz, né? Tributação e arrecadação e
+fiscalização, policiais militares, policiais civis, eh professor de educação básica, gestor
+governamental, auditor, né? e procurador do Estado. Esses esses cargos em si, eles
+não poderiam ser cedidos para essa por base dessa legislação. Assim ia até dia 31 de
+dezembro, último dia de mandato do governador lá em 2014. Aí no último dia de
+mandato do governador em 2014 foi feita uma legislação eh como a gente fala assim,
+abrindo as pernas, né?
+00:30:35
+Bruno da Silva Nogueira: permitindo que qualquer um vá cedido para lá, eh,
+Taylor Augusto Dos Santos: Ja.
+Bruno da Silva Nogueira: sem ter essas limitações, né, independente do cargo.
+Então, por isso que eu falo que a gente tem duas legislações para ceder o servidor pra
+assembleia com ônibus paraa origem, que é essa esse que eu citei, né? O primeiro A
+com o primeiro B com o terceiro B. E essa outra legislação que é, vou pegar ela aqui
+para vocês, o número porque ela é bem difícil de de localizar. Eh, a gente chama ela de
+Lei Malheiros, porque foi um deputado chamado José Malheiros que fez ela, tá?
+Marcela Souza de Oliveira: Ganhou até o novo meu
+Bruno da Silva Nogueira: Ah, é porque muito por muito tempo,
+Marcela Souza de Oliveira: pai.
+Bruno da Silva Nogueira: desde 2014 até 2000 e deixa eu pensar aqui, até 2023 para
+24, acho que por ali 24 por 10 anos, ela foi uma lei morta morta. a gente tinha sempre
+orientações do do do estratégico, né, a não se utilizar ela, né, tanto que não, porque
+como é discricionário autorização, né, então eles usavam essa discricionário
+discricionaridade para evetar a sessão desse grupo, né, desse pessoal que não
+poderia ir e e jogava todo mundo para terceiro B, né, que é a lei normal de ceder pra
+assembleia com sem ressarcimento e empurrando para lá.
+
+-- 31 of 83 --
+
+00:31:40
+Taylor Augusto Dos Santos: M.
+Bruno da Silva Nogueira: Só que aí quando teve algumas decisões estratégicas,
+acabou liberando pro pessoal ser cedido utilizando ela, porque ela é uma lei sem
+travas, né? Então é mais difícil pra gente sempre estratégico, né? controlar esses
+servidores, até porque o valor do salário dessa dessa dessa essa essa turma, né, dessa
+dessas carreiras é um valor bem bem discrepante do resto, né? Então assim, vamos
+pegar o grupo TAF, você pegar um um fiscal tributário, né, fiscal fazendário, na
+verdade, eh o valor que ele recebe mais as verbes indenizatórias que ele tem que
+receber é um valor bem bem bem alto, né, para uma função bem específica que ele
+tem que agir dentro do estado. Então ele vai pra assembleia, trabalho da assembleia e
+a gente teria que pagar ainda esse salário. Então assim, é uma era uma questão bem
+bem sensível, né? Mas aí é questão estratégicas, né? colocar aqui no no chat. Ah, então
+hoje para ir pra assembleia a gente tem a regra geral que é com ressarcimento, esse o
+terceiro B que tem essas vedações de carreiras, né? E e também diz que tem que ter
+uma uma declaração, né, uma demonstração da assembleia de que serviço relevante
+que ele vai ter que fazer lá.
+00:32:52
+Bruno da Silva Nogueira: E esse terceiro o tipo de de legislação que eu citei ali, a lei
+malheiros, que não tem essa esse requisito de demonstrar que serviço que ele vai
+fazer. e não tem travas contra a cargos. O que a gente tem travas nessas duas
+legislações é quantitativos. Então, por exemplo, esse terceiro B, que tem carreiras que
+não podem ir, ele é limitado a à quantidade de deputados. Então, hoje a gente tem 24
+deputados, então só pode ir para esse terceiro B 24 servidores cedidos dessa forma.
+Já pela lei Malheiros, ele fala dois servidores para cada deputado. Então você tem 24 a
+48. Então para uma legislação pode 24 servidores e pela outra legislação pode 48
+servidores dessa forma de ôn. Então o único limitante mais mais que a gente mais
+
+-- 32 of 83 --
+
+utiliza é essa questão do do quantitativo, tá? De possibilidade. Hoje são poucos. Hoje
+se tiver acho que uns 13, 14 pela esse terceiro B, que é o mais simples, né? E pela pela
+Malheiros, eu acho que deve ter três ou quatro por aí, no máximo, mas são
+possibilidades de sessões externas, tá?
+00:34:02
+Bruno da Silva Nogueira: Por isso que eu elenquei para vocês,
+Taylor Augusto Dos Santos: Beleza. Да.
+Bruno da Silva Nogueira: tá? Eh, aí, continuando sobre sessões externas, a algumas
+eh leis de carreira tem a possibilidade de ceder o servidor externamente sem seguir a
+regra geral, ser com ônus para origem, conforme essa igualzinho essas daí que eu citei
+da da assembleia, tá? Eh, quais são essas carreiras? Hoje são as carreiras dos policiais
+penais, tá? caso a carreira do penitenciário, porque na lei deles fala que quando o
+servidor vai desempenhar funções inerentes ao sistema penal, né, eh vai fazer o
+serviço penal mesmo em outro órgão, ele pode ser cedido com ônos para origem. Isso
+tá na lei lei de carreira deles, tá? E nesse próprio nesse próprio decreto de sessão fala
+sobre essa questão de ônus,
+Marcela Souza de Oliveira: О.
+Bruno da Silva Nogueira: né? Ele fala em leis específicas. as leis específicas nada
+mais é do que leis de carreira ou essas leis específicas,
+Marcela Souza de Oliveira: Ah.
+Bruno da Silva Nogueira: tipo assembleia, Como eu te disse, então assim, o o policial
+penal em cima, ele pode ser cedido lá pro TJ, porque lá no TJ tem cadeia também, né,
+para lidar com os os prisioneiros que vão que vão participar de audiências, né, eles
+têm que ficar presos lá.
+00:35:11
+
+-- 33 of 83 --
+
+Bruno da Silva Nogueira: Então tem umas células disponíveis para eles lá dentro do
+TJ e eles geralmente eles chamam policiais penais para ser cedido para lá para fazer
+essa função, né, de cuidar da cadeia ali dentro do do do TJ. Então, a possibilidade hoje
+eh em não vou dizer em regra, mas é o que acontece no dia a dia, é pro TJ, né? Mas é a
+lei fala em qualquer entidade que ele vai fazer função penal, tá? Então essa é uma
+possibilidade de algumas leis de carreira. Outra lei de carreira que tem uma
+possibilidade de ceder sem ter o ressarcimento, eh, são os servidores da saúde, o
+profissional técnico de nível superior, serviço de saúde do SUS, até o nome já diz, né?
+Serviços de saúde do SUS. Então, quando esse servidor vai desempenhar uma função
+que é inerente ao Sistema Único de Saúde, ele pode ser cedido sem o ressarcimento,
+porque entende-se que ele vai estar fazendo a função primária dele, né, que é
+atendimento aos serviços do SUS. Então, o Bruno é um médico aqui em Cuiabá, né,
+sou da SES, né, a carreira da do Sul está toda vinculada a CES por criação, né, então lá
+eu sou médico, mas aí lá no município de Tabiporã tá precisando de um médico, o que
+que eles fazem?
+00:36:21
+Bruno da Silva Nogueira: Eles p solicitam a sessão do servidor. Lógico que o servidor
+também tem esse interesse de ir para lá, né? E é feito toda discricionaridade,
+autorizos, né? E o servidor vai ser cedido para trabalhar lá em Tabaporã, mas ele vai
+fazer a mesma função que ele exercia aqui, a função de médico. Então, se ele vai fazer
+essa mesma função de médico lá, então ele pode ser cedido sem eh necessidade de
+ressarcimento. Ah, o Bruno vai ser cedido para Itabaporã, ele é médico, mas ele não vai
+fazer funções de médico, ele vai trabalhar administrativamente, se for o caso, né? um
+cargo em comissão lá que não tem nada a ver com a saúde. Então aí sim a gente vai
+ter que só só tem a possibilidade de fazer a sessão só com reembolso, porque ele já
+não tá nessa regra da legislação de carreira deles, né? Eh, é igualzinho o que eu falei do
+do policial penal. Se ele tiver fazendo uma função do sistema penal, beleza, ele não
+precisa ter ressarcimento, mas ele tá sendo cedido pro TJ, mas para fazer uma outra
+função que não é penal, aí tem que ter o ressarcimento.
+
+-- 34 of 83 --
+
+00:37:12
+Bruno da Silva Nogueira: Então, toda vez que tem uma solicitação de sessão
+baseada na lei de carreira, assim, né, para ter o ônus paraa origem, é feita essa
+informação de quais atribuições que ele vai fazer. Se for da área da saúde ou da área
+do penal, beleza, sem ressarcimento. Se não for, aí tem que ter. conseguiram pegar
+essa situação do do ônus assim nas regras
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: gerais?
+Taylor Augusto Dos Santos: Aí já vai entrar nas as regrinhas mais específicas, né?
+Bruno da Silva Nogueira: Uhum. É por isso que quando você me mostrou lá eh
+quando você me mostrou lá da movimentação,
+Taylor Augusto Dos Santos: As exceções.
+Bruno da Silva Nogueira: né? Eu falei assim: "Se for pensar em sessão, tem que ter as
+informações de ônus, né?" né? Então assim,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: então é por isso que hoje no CAP ele tem informação com
+ônus ou sem ônus e com ressarcimento e sem rear ccimento, porque cada caso é um
+caso, né?
+Marcela Souza de Oliveira: Tem alguns enquadramentos, né,
+Taylor Augusto Dos Santos: Sim.
+Marcela Souza de Oliveira: que dá para perceber aqui, existe alguns
+enquadramentos no no tipo de sessão com os
+00:38:02
+Bruno da Silva Nogueira: Isso,
+Marcela Souza de Oliveira: semi também que enquadra, que entra nesses
+enquadramentos. É isso,
+
+-- 35 of 83 --
+
+Bruno da Silva Nogueira: tá? Isso.
+Marcela Souza de Oliveira: né?
+Bruno da Silva Nogueira: Eu mandei para vocês o link do manual que a gente sempre
+faz aqui, que é o manual de sessão e remoção. Eh, conforme essas legislações vai
+saindo, a gente vai fazendo essa atualização nela, porque fica mais fácil de visualizar
+do que você pega esse compilado de legislações, né? porque são leis aqui, lei daqui, lei
+daqui, lei daqui. Então a gente sempre faz esse manual de sessão e remoção, onde a
+gente trata resumidamente todas as legislações que a gente utiliza. Eh,
+Taylor Augusto Dos Santos: Dá bastante.
+Bruno da Silva Nogueira: a gente tá a gente tá fazendo uma uma nova edição que é a
+quinta, tá? Porque teve alterações do ano passado na legislação, algumas alterizações
+esse ano também. Então, a gente tá fazendo uma atualização, mas a base dele é essa
+que tá aqui na que eu te mandei, eu mandei para vocês.
+Marcela Souza de Oliveira: Essa última,
+Taylor Augusto Dos Santos: Eh,
+Marcela Souza de Oliveira: essa última que você mandou,
+00:38:54
+Bruno da Silva Nogueira: Aham. Essa é que tá, vamos dizer assim, vigente,
+Marcela Souza de Oliveira: né?
+Bruno da Silva Nogueira: né? com algumas alterações que a gente sempre fala para
+paraas entidades de, né, que estão lidando com as sessões, tá? Eh, mas a sessão o
+mundo ideal que a gente desejaria da sessão eh em
+Marcela Souza de Oliveira: What?
+Bruno da Silva Nogueira: sistema, eh, pensando nessas movimentações, o que que é
+feito hoje? Eu vou explicar o hoje e o nosso desejo, tá? O hoje, hoje é assim, a Cfaz, que
+é o o João, então a Cfaz faz um faz um ofício, a gente já criou todo isso dentro do
+Segado, tá? Tem tem um ofício lá, você faz, preenche esse ofício solicitando o João. O
+João é da onde? O João lá da CITEC. A CTEC vai receber esse ofício, né? Vai instruir o
+
+-- 36 of 83 --
+
+processo, verificar a vida funcional do João, se ele tem férias, se ele tem licença
+premium,
+Marcela Souza de Oliveira: OK.
+Bruno da Silva Nogueira: vai pegar o OK da da da unidade onde ele trabalha, né? Lá
+dentro da CCTEC, se tá tudo bem, se não tá tudo bem.
+00:39:46
+Marcela Souza de Oliveira: О.
+Bruno da Silva Nogueira: Só que em nenhum momento isso aí é é é barra a sessão,
+tá? Então vai fazer toda essa instrução. Depois que ela fizer toda essa instrução de
+informações da vida funcional do servidor, ela encaminha isso pro pro dirigente
+máximo do órgão da CSTS, né, onde ele vai falar: "Não concordo com a sessão do
+Bruno do do João, né, para esse novo órgão." Ele autorizando isso, esse processo
+totalmente destruído por um pedido da do órgão eh né, com autoriza e vida funcional
+do órgão cedente. Vem aqui pra gente na gerência de quadro. a gente olha o processo
+para ver se realmente tá devidamente destruído, conforme a legislação prevê. E a
+partir disso a gente faz os operadores, né? Eh, o pessoal faz operador um dentro do
+sistema CEAP, né? Que é para gerar o quê? A data de início, a data de término da
+sessão, né? A informação do ônus é colocado aquele setorzinho que eu falei para
+vocês, né? Onde que ele vai trabalhar lá nesse novo órgão, né?
+00:40:46
+Bruno da Silva Nogueira: é o código, é o código, ele vai trabalhar no setor de
+protocolo. Então tem o código exatamente do setor de protocolo desse órgão para
+onde ele está sendo cedido. Então assim, o protocolo a gente tem todos os órgãos do
+estado Certo? Tem na CLG, tem na CFI, tem na CEL, mas cada um tem numa
+numeração de setor vinculado ao órgão dele de origem. Então, o protocolo da CPL
+
+-- 37 of 83 --
+
+tem um código, o protocolo da Cface tem outro código e assim a gente vai fazendo
+essa essa informação dentro da sessão dele. Eu vou abrir aqui enquanto eu tô abrindo
+aqui, vou vou citando para vocês, continuar citando. Aí é feito esse operador um que
+gera uma pré um pré-registro, né, para quando tiver todos os operadores feitos, ele
+rodar uma publicação, que a gente chama de publicação de PAEP, né, de portaria de
+ato de pessoal dentro do do dentro do Diário Oficial. Eh, então é feito esse operador
+um, por exemplo, eu vou citar nosso dia a dia aqui da gerência. Eh, a Daniele faz esse
+operador um com todas essas informações, a data de início, data de término,
+informação do ônus, né? Eh, e faz esse pré-registro.
+00:41:48
+Bruno da Silva Nogueira: Aí esse vem esse operador dois para mim, que eu sou o o
+conferidor, né? E eu faço toda essa verificação. Eu verifico se o processo tá
+devidamente instruído, eu verifico se o registro lançado em sistema tá tudo OK. Se
+tiver OK, eu faço dois, né? Aí vai pro operador três, que é o pro pro SEC teoricamente
+seria o secretário de estado, né? Mas ele delegou isso paraa nossa secretária adjunta.
+Então ela vai lá dentro do sistema também SEEAP e faz a a a homologação dela, né,
+que é o operador três, eh fechando todo o lançamento. Aí é feito um pré-lançamento
+lá na na Folha, que a gente chama de operador 4, né, que eles efetivam para publicar
+isso no Diário Oficial. Aí eles efetivam isso e saem no próximo Diário Oficial a ser
+publicado a informação. Aí sim efetivamente o servidor está cedido. Eu pode falar
+enquanto eu estou abrindo aqui o CAP.
+Taylor Augusto Dos Santos: Ah, não. Eu queria ver se tá se você tava compartilhando
+a tela ou não.
+00:42:38
+Bruno da Silva Nogueira: Ah, não,
+Taylor Augusto Dos Santos: Ah,
+
+-- 38 of 83 --
+
+Bruno da Silva Nogueira: tô abrindo aqui.
+Taylor Augusto Dos Santos: tá. Porque a impressão dele é que você tava
+compartilhando, só que a gente não tava vendo.
+Bruno da Silva Nogueira: Não, não, eu tava abrindo aqui
+Taylor Augusto Dos Santos: Beleza.
+Bruno da Silva Nogueira: ainda.
+Taylor Augusto Dos Santos: Beleza.
+Bruno da Silva Nogueira: Tá, tá visível para vocês, né?
+Taylor Augusto Dos Santos: Isso. Agora sim. Yeah.
+Bruno da Silva Nogueira: Então aqui a gente tem uma tela de sessão interna que eu
+tô abrindo para vocês aqui. E nessa tela de sessões externas deos internos, tem algum
+número histórico aqui. Maioria aqui é externa. Tá Alessandra tá aqui é a tela nossa de
+sessão, né? Tá tá bem. Você quer dar um zoom ou tá bom assim?
+Taylor Augusto Dos Santos: Tá tranquilo.
+Marcela Souza de Oliveira: Beleza. Amo.
+Bruno da Silva Nogueira: Então, o que que é feito normalmente? O servidor entra,
+coloca a matrícula do servidor a ser movimentado e a gente faz inserção aqui através
+do novo, né? Aí a gente insere a data de início, a data de término, se tiver uma data de
+término, não se tiver nada vinculado.
+00:43:37
+Bruno da Silva Nogueira: Ah, a empresa, ela vai tá vinculada esse setor que a gente
+preenche. Por isso que eu falei para vocês que tem que ter uma informação do setor,
+porque a gente precisa, ele é vinculado automaticamente. Essa unidade aqui, se eu
+jogar ela na na busca de setores, ela vai apontar que essa é uma unidade que é o
+núcleo de gestões estratégicas, ela tá presente dentro da Casa Civil. Então, cada setor
+tem um código único, né? E esse Código único tá vinculado ao órgão deles de de
+quando sai publicado isso aqui no Diário Oficial, a informação que sai não sai esse
+setor. Lá no Diário Oficial já tá parametrizado para identificar qual é o setor de qual
+órgão que é. ele publica só o órgão. Então hoje se a gente for publicar, ele vai est
+
+-- 39 of 83 --
+
+publicando somente que ela tá na Casa Civil, não que ela tá lá nessa unidade, porque
+se a gente publicar eh vinculado somente a unidade, o servidor fica restrito, fechado
+só essa unidade. Aí o servidor precisa ser movimentado, né, dentro da própria Casa
+Civil. Aí teria que fazer um outro ato para alterar o o a unidade dele, né? Então, a gente
+faz a sessão aberta ao órgão, porque aí o servidor pode desempenhar funções em
+qualquer unidade dentro daquele órgão.
+00:44:39
+Bruno da Silva Nogueira: A gente tem isso aqui para dar acesso, né, à publicação,
+mas para fins de de trabalho, né, o servidor sai publicado certinho dentro do do do
+órgão digital. Vou pegar o de baixo, porque o de baixo é uma sessão interna, que aí eu
+procuro o diário só, só para vocês terem uma uma ideia certinho do do servidor. Então,
+o que que é feito? a a a pessoa, né, da unidade onde eu trabalho aqui de quadra
+informa a data de início, a data de fim, o setor, ela informa o tipo da sessão, né, eh, que
+é uma sessão interna. E como eu disse para vocês, sempre vai ser sem ressarcimento,
+não tem ressarcimento ao órgão de origem e sem ô, sem ô para o órgão de origem.
+Então, todas essa informação tá sempre vinculada a uma sessão interna. Então, a
+sessão interna por padrão é isso aqui. Hoje a gente não tem uma legislação diferente,
+só que como eu disse para vocês, na tela de sessão interna, nem sempre o que tá
+alimentado aqui é uma sessão, né? Então, assim, por exemplo, pode se alimentar eh
+uma agregação interna. Que que é uma agregação interna?
+00:45:42
+Bruno da Silva Nogueira: Para vocês entenderem, eh, na legislação da PM e do
+Corpo de Bombeiros, eh, cita que quando o servidor militar está indo para um outro
+órgão trabalhar, mas nesse órgão ele vai fazer circuções militares, ele não é cedido, ele
+é agregado. Em suuma é a mesma coisa, tá gente? Mas assim, os termos são outros,
+né? Porque essa agregação, ela não desconta tempo de serviço do servidor militar.
+
+-- 40 of 83 --
+
+com isso ele não não atrapalha com efetivas progressões de de cargo dele, né? sair de
+cabo para para sargento, terceiro sargento, coisas do tipo. Então, por isso que eles
+têm que ser feito agregados, porque a nomenclatura é a prevista na legislação deles
+para não atrapalhar essas questões de promoções dele. Eh, conseguiram pegar essa
+parte do do que é uma agregação.
+Taylor Augusto Dos Santos: Sim, sim. É a mesma coisa,
+Bruno da Silva Nogueira: A gente até a gente até é isso aí,
+Taylor Augusto Dos Santos: só que diferente.
+Bruno da Silva Nogueira: a gente até colocou dentro do do termo do que que é
+agregação até o artigo dele, o artigo 171 da lei complementar 555/214.
+00:46:41
+Bruno da Silva Nogueira: Essa é a lei dos dos militares, tá? Estatuto militar. Tem hoje
+duas, CBM e uma normal. Por quê? Porque simplesmente que nessa aqui sai publicada
+que é um policial, é um oficial, é um um militar do corpo de bombeiro e que sai a
+informação que é um militar do do da Polícia Militar, né? É, só para ter essa
+diferenciação dentro do da da hora de publicarem agregação. O texto que vem de
+layout, né, lá do do sistema de publicações, tem um texto padrão para bombeiro e tem
+um texto padrão para policial militar, porque é mais fácil eu procurar aqui para mostrar
+uma sessão, só para vocês verem que ela tem um texto padrão aqui. Deixa eu pegar o
+Alessandro aqui só um instante. Aí se vocês quiserem perguntando, pode perguntar
+enquanto tô pesquisando aqui.
+Taylor Augusto Dos Santos: Essa publicação é uma integraç é um outro sistema que
+tá integrado com CAP ou ele é
+Bruno da Silva Nogueira: Eh, aí eu eu não sei dizer muito bem qual o sistema,
+Taylor Augusto Dos Santos: dentro?
+Bruno da Silva Nogueira: mas tem uma integração de publicação do que a gente
+alimenta aqui, né? A gente, eu vou mostrar,
+
+-- 41 of 83 --
+
+00:47:42
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: vou fazer uma como se eu tivesse fazendo uma uma
+publicação, só para vocês entenderem. A gente faz essa informação, né? Aí a gente vai
+aqui cadastrar e alterar nova publicação. Ele abre uma nova janelinha onde eu vou
+informar que tipo de ato que eu tô publicando. No caso aqui nosso é um ato
+administrativo, né? Qual é a autoridade que tem autorização desse ato administrativo?
+no caso é o secretário. O número do processo, a gente vai alimentar certinho o
+número do processo aqui, o motivo dessa publicação, porque que base nesse motivo
+tem um layout pronto, tem um layout para autorizar sessão,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: tem um out para autorizar sessão com DGA de texto, né,
+que sai publicado, tem um um layout quando eu quero só fazer umaess acessári efeito
+de sessão ou de agregação. Então tem um layout para cada tipo desses desse desse
+ato de acordo com motivação desse ato de sessão. Então, suposo, se fosse um
+autorizar, eu ia colocar aqui a autorização, eh, e o tipo do DO que ele vai publicar, né?
+Boletim militar, boletim institucional.
+00:48:35
+Bruno da Silva Nogueira: Que no caso a gente sempre publica no Diário Oficial.
+Então, assim, essa aqui é a função do operador um, ele vai lá e vai clicar em salvar. Aí
+vai aparecer a pendência para mim. Eu vou mostrar a tela para vocês de pendência. Aí
+eu faço toda a conferência que eu tava dizendo para vocês, se o processo tá correto, a
+instrução tá corretamente, se o lançamento tá correto. Aí eu faço operador dois. Aí vai
+aparecer para pr para pra chefe, né, para ela fazer essa homologação no operador três
+e lá no pessoal da da Folha, que é o faz o final publicador, né, eles fazem uma última
+validação para gerar a publicação. Aí tem todo um layout de acordo com o que a gente
+estabeleceu aqui, né, que vai publicar esse ato. Aí esse há uma integração desse
+sistema SEAP com o Diário Oficial que publica o texto da da sessão, tá? Eu acho que eu
+
+-- 42 of 83 --
+
+já achei aqui o texto da o da Alessandra aqui. Acessar efeitos. Pera aí. Aqui tem um
+histórico na parte de trás, tá? De publicações aqui na sabinha que fala quais são os
+atos publicados por essa chave.
+00:49:39
+Bruno da Silva Nogueira: Nessa chave quais são as publicações que tem aí? Teve
+essa de autorizar a sessão. Autorizar a sessão DGA. Por quê? porque o servidor foi
+autorizado a ser cedido para trabalhar com cargo em comissão e depois teve um ato
+de cessar efeitos que encerrou a sessão dela lá para onde que ela estava cedida.
+Então, tá vendo como eu disse para vocês, tem um texto, certo? o motivo. Está aqui
+certinho. eh essas informações de número de ato e data de diário, ele só efetiva
+quando vai gerar uma publicação. Então esse essa função do operador quatro que eu
+falei lá da folha é justamente gerar essa data, né, de publicação e o número dele. Eles
+que fazem essa efetivação. Então é um fluxo todo de de alimentações. E a gente
+gostaria que esse fluxo fosse mais ágil, né? Então esse aqui é o principal desejo da
+gerência de quadro quanto a movimentação do servidor. A gente a gente tivesse
+mesmo a função hoje do que é necessário e do conferidor, né? E aqui aqui a gente faz
+o registro e a conferência, né?
+00:50:31
+Bruno da Silva Nogueira: Como disse para vocês, operador um e dois. A gente
+gostaria que aqui fosse só da conferência, que ah, o servidor tá saindo da Cfaz para ir
+paraa CEL. Eh, a Cfaz que é o dono do servidor. Então, depois que o processo
+estivesse instruído, pedido tudo certinho e autorizado, a Cfaz mesmo fizesse esse
+registro, né? Aí aqui na na na agência de quadro a gente só fazesse, fizesse a a questão
+de conferir, olhasse o sigado verificasse que tá tudo mesmo corretamente. Estando
+OK, a gente fazia conferência, né? oador dois, só essa conferência e oador três ficasse
+vinculada ao secretário porque o ato final, né, o autorismo, embora tenha o a origem e
+
+-- 43 of 83 --
+
+esse cedente solicitando e autorizando, né, mas quem decide é o secretário de
+planejamento e gestão. Eh, por força de legislação, ele quer a competência final do
+ato, como se fosse o governador, se ele delibera finalmente se sim ou não. pode ter os
+outros dois OKs. Se o secretário entender que isso é seria lacível ou seria poderia ter
+algum prejuízo paraa administração pública, ele pode falar: "Não, não vou ceder", né?
+00:51:31
+Bruno da Silva Nogueira: Eh, no dia a dia a gente não tem isso, tá? É, é a
+possibilidade, né? Mas a gente não tem tido isso de negativas aqui da CPL e sim entre
+os órgãos que estão tratando. Deixa eu pegar aqui. Aí quando eu quero saber que dia
+que publicou o ato ou ou procura o nome da servidora e vou olhando diário por diário,
+eu venho aqui e olha que dia que publicou. Então, por exemplo, eu sei que o ato de
+sessão dela publicou no dia 3 de setembro, então eu vou aqui no diário só procurar ele.
+OK. Quando a gente faz a publicação, dependendo do motivo que a gente escolheu lá
+no final, por exemplo, escolhi autorizar sessão DGA, né? Vem um texto pré-definido,
+né? Que vem o número do processo que eu alimentei, o número da sede do servidora,
+para sua matrícula, né? de vínculo, o cargo que ela ocupa hoje no estado, o órgão
+cedente, que é o órgão de origem dela, o órgão para onde que ela está indo, que é o
+aliment que busca de acordo com aquele setor que eu coloquei, né?
+00:52:26
+Bruno da Silva Nogueira: Ele não passa o setor da AGER, mas ele passa o órgão que
+tá presente naquele setor e o período que eu coloquei da sessão. Como é um cargo
+em comissão, ele vem já com esse texto pré-definido aqui de layout, ó. Enquanto
+pedorar o exercício do cargo em comissão ou função de confiança. Ele só busca só a
+data de início. Vou voltar aqui na tela. Cadê? ele só vai buscar essa data de início que
+eu preenchi. ele estaria igualzinho esse registro aqui de cima, sem data término e
+buscaria já pré preenchido, né, do layout da da sessão DGA, essa informação de opa
+
+-- 44 of 83 --
+
+essa informação de enquanto pedal ex do cargo, se fosse uma sessão normal ele não
+tinha esse pré-preenchimento aqui, ele viria buscando a data fim, como tá aqui, teria
+uma data de início e uma data fim. Não sei se eu consegui lucidar para vocês com
+relação a esse registro dentro do CAP. Se conseguiram entender ele? Para cada tipo
+de movimentação dentro da sessão, a gente tem um layout diferente que é definido lá
+por aquele motivo, definido por esse motivo aqui.
+Taylor Augusto Dos Santos: Uhum.
+00:53:28
+Bruno da Silva Nogueira: Aí quando a gente faz essa sessão, a partir do dia 25 de
+junho, esse órgão, onde que ela está sendo cedida, né, tem acesso a ela. Se fosse,
+como eu falei para vocês, se fosse dia 3 de agosto aqui, o órgão para onde que ela tá
+indo, a Gerner não teria acesso a ela até chegar no dato do dia 3 de
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: agosto. O meu mundo ideal, Taylor, pensando naquele
+sisteminha que você tava mostrando de sessão lá, seria da mesma forma que você fez,
+mas quem fiz, quem faria isso seria o órgão de origem, né? O órgão de origem veio o
+pedido para eles, o secretário autorizou para eles, volta pra sistêmica, né? a sistêmica
+faz essa esse registro de de sessão. Aí eu aí viria pra gente fazer essa conferência. Vou
+mostrar aqui a conferência para vocês. Eu gravo por número, tá? As telas tá aí.
+Marcela Souza de Oliveira: Só
+Bruno da Silva Nogueira: Eh, aí tem a mudança de situação de publicação. Aí eu eu
+escolho eu escolho qual situação que eu quero filtrar, né?
+00:54:22
+Bruno da Silva Nogueira: Que é no caso são registros, né? São atos registrados.
+Marcela Souza de Oliveira: tá
+
+-- 45 of 83 --
+
+Bruno da Silva Nogueira: Qual é o tipo do ato que eu quero? É o ato administrativo. Aí
+eu faço pesquisa. Então, por exemplo, aqui, ó, aqui são os atos que foram já lançados
+no meu setor, tá lançado, tá pendente para mim verificar.
+Taylor Augusto Dos Santos: Fala
+Bruno da Silva Nogueira: Aí, como que eu faço isso? Eu pego aqui o Evanilson, tá?
+Que é o número do processo, eu vou abrir esse processo, ver todo a instrução do
+processo para ver se tá correto. Aí a partir disso, se estiver correto, né, aqui tá a
+informação da data de início que era sessão, a data de finalização que eles estão
+querendo acessar, né, aquele textinho da observação que a gente coloca para ajudar a
+orientar quem tá olhando aqui essa tela, né? Aí tem algumas informações do ato que é
+sem ONU, sem ressarcimento. Ah, tem um campo de quando foi registrado isso, por
+exemplo, isso aqui foi registrado dia hoje, né, às 9:17 da manhã, né?
+00:55:08
+Bruno da Silva Nogueira: Tem a formação de quem tava fazendo esse essa essa
+inserção, né? Eh, o tipo da operação, como é um cessário efeito, já é numa chavinha
+dessas aqui pronta, né? A gente eh eh entende-se como uma alteração de registro,
+né? já tem uma chave lá lançada, então não é um registro novo, é uma uma alteração
+eh uma uma alteração ao registro existente. Aí a partir disso eu defino se eu vou
+conferir e vou mudar, né, falando que tá aprovado, tá conferido, né, ou se tiver algum
+erro, eu clico em rejeitado, aparece a mensagensinha de que você tá rejeitando, né? E
+aqui você tem que escrever qual o motivo da sua rejeição. A data fim tá incorreta, a
+data ní tá correta. Foi uma decisão administrativa, por exemplo, eu vi que tá lançado
+errado. Então, é uma decisão administrativa, é uma discricionaridade, a motivação,
+que é esse motivo aqui, tá incorreto, né? Eh, o processo tá incompatível, quer dizer, o
+número do processo tá errado. É um registro duplo, quer dizer, que já foi feito antes,
+um registro inconsistente, tem algum outro tipo de erro que não tá aparecendo aqui.
+
+-- 46 of 83 --
+
+00:56:12
+Bruno da Silva Nogueira: Aí a partir disso, eu decido e clico para mudar, ele rejeita
+isso. Aí a pessoa tem que fazer o operador novamente.
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: Eu não tenho a possibilidade de editar um registro que tá
+feito. Então vamos supor que não era dia 30, era dia primeiro. Eu não consigo vir aqui e
+editar para colocar como dia primeiro, né? eu tenho que rejeitar e a pessoa tem que
+fazer novamente. Por quê?
+Marcela Souza de Oliveira: Yeah.
+Bruno da Silva Nogueira: Eh, eu entendo que é uma delimitação também do sistema,
+mas também tem uma situação que se se quando quando gera publicação final, né,
+quando passar para 1 2 3 e e efetivação, o registro que fica lá na botar lá naquela na
+tela de sessão interna, op,
+Taylor Augusto Dos Santos: o serviço
+Bruno da Silva Nogueira: o registro que fica daqui do publicado é de quem quem fez
+a a o registro. Então, por exemplo, quem fez esse registro na época foi esse usuário. Se
+eu editar vai sair ainda publicado que quem registrou, então não fica só se abrir uma
+auditoria para ver certinho quem editou. Então assim, dá um trabalho maior, né?
+00:57:10
+Bruno da Silva Nogueira: Então a gente sempre deixou, sempre foi deixado dessa
+forma porque o que o que foi lançado pela Regina é o que foi publicado. Se tinha
+alguma coisa de errado, a gente eu tinha que ter eh rejeitado para lançar novamente,
+entendeu? fica
+Marcela Souza de Oliveira: Mas a gente não pode tratar como um tipo de estatua
+mais tipo uma alteração até para manter um histórico que
+Bruno da Silva Nogueira: sempre.
+Marcela Souza de Oliveira: houve uma alteração sem ter que rejeitar nessa
+
+-- 47 of 83 --
+
+Bruno da Silva Nogueira: Eu acho, eu acho, acharia interessante se tivesse essa
+informação,
+Marcela Souza de Oliveira: situação.
+Bruno da Silva Nogueira: como você disse. Então, por exemplo, a Regina lançou
+alterado por Bruno.
+Marcela Souza de Oliveira: Exato. que aí a gente mantém mais esse histórico e é
+caso no caso status,
+Bruno da Silva Nogueira: Aí,
+Marcela Souza de Oliveira: né,
+Bruno da Silva Nogueira: sim.
+Marcela Souza de Oliveira: um status de alteração, mas continua que a origem foi
+pela Regina,
+Bruno da Silva Nogueira: E
+Marcela Souza de Oliveira: porém houve uma tramitação nesse decorrer aí até a
+publicação final.
+Bruno da Silva Nogueira: sim, para mim,
+Marcela Souza de Oliveira: poderia ser.
+Bruno da Silva Nogueira: para mim, para mim é excelente ser dessa forma porque
+evita o retrabalho, porque assim, como eu disse,
+00:57:55
+Marcela Souza de Oliveira: Ah.
+Bruno da Silva Nogueira: se a Regina errou o relançamento, aí eu vou ter que entrar,
+rejeitar pra Regina lançar tudo isso aqui que ela que eu falei para vocês, ela vai ter que
+lançar tudo novamente. Então assim, é um retrabalho. E aí a Regina lança, aí sim eu vou
+validar para ir paraa frente. Então assim, é perca de tempo, né? É, deixa deixo de ter
+uma otimização do serviço. Aí se eu tivesse essa essa possibilidade de eu alterar e
+ficar registrada a informação que eu alterei,
+Taylor Augusto Dos Santos: Ja.
+
+-- 48 of 83 --
+
+Bruno da Silva Nogueira: né, ficaria excelente, porque eu não precisaria voltar lá
+atrás, né, para reiniciar todo o procedimento. Eu só faria a alteração que precisava
+alterar, validava, né, conferia esse lançamento e já ia paraa secretária validar eh a
+publicação. Então, a gente tem um ganho de tempo muito grande,
+Marcela Souza de Oliveira: É,
+Bruno da Silva Nogueira: né?
+Marcela Souza de Oliveira: e também é pra gente também entender aquilo que é é
+uma uma um ou se a gente pode estar fazendo isso com uma melhoria, mas beleza, dá
+pra gente essa possibilidade. Tá.
+00:58:51
+Marcela Souza de Oliveira: Yeah.
+Bruno da Silva Nogueira: Tá aí. Isso é uma sessão interna normalmente do que a
+gente lança, tá? Aí voltando que a gente estava citando, dentro da desse tipo de
+sessões,
+Taylor Augusto Dos Santos: ค.
+Bruno da Silva Nogueira: tem outras movimentações que não são sessões. Por
+exemplo, como eu disse para vocês, agregação não é uma sessão, né? É, é, enfim, no
+na prática é uma mesma coisa, né? Mas só que ela tem uma legislação diferente, uma
+informação diferente e tem uma toda uma atribuição diferente. Então, tanto que nem
+passa por aqui pela SEPLAG. quem faz essa essas agregações, se for PM, é a própria
+PM, se for corpo de bombeiro, né, o próprio corpo de bombeiro. Então, o ideal seria ter
+para mim uma tela de movimentações e dentro dessas movimentações ter essas e
+todas esses tipos, né? Para mim, o ideal seria essa tela não se chamar sessão interna e
+sim chamar movimentações internas, né?
+Marcela Souza de Oliveira: Já já pensamos nisso,
+Bruno da Silva Nogueira: Não. Sim, é justamente nesse
+Marcela Souza de Oliveira: já mudou para movimentações, já pensamos que você
+falou no outro dia aí sobre esse monte de tipo de de
+
+-- 49 of 83 --
+
+00:59:40
+Bruno da Silva Nogueira: sentido.
+Marcela Souza de Oliveira: sessão, mas aí já aproveitando tá na tela, a gente falou de
+agregação e tal, mas as outras aí que você tem mais abaixo, certo? Dá umas 10, 12,
+Bruno da Silva Nogueira: Uhum.
+Marcela Souza de Oliveira: né? Tô vendo que os nomes são muito parecidos, né?
+Desações também deles específicos, todas elas são usadas. Você vai passar pra gente
+over que é essas demais aí, tirando asão externa externa que você já citou ou Vamos
+Bruno da Silva Nogueira: Tá, deixa eu ver. Tá, vamos lá.
+Marcela Souza de Oliveira: lá.
+Bruno da Silva Nogueira: As agregações todas são usadas, tá? Mas você pode
+visualizar que aqui ele aparece até a externa. essa externa é a agregação externa, ou
+seja, a mesma situação que eu falei da sessão interna tem para agregação. Então
+assim, o militar tem alguns órgãos na lei de carreira dele que ele fala que pode que
+pode ser agregado externamente. O militar pode ir pra Assembleia Legislativa
+trabalhar como militar. Então é uma agregação externa a agregação externa aqui, né,
+de policial militar, ele pode ir pro Tribunal de Contas.
+01:00:37
+Marcela Souza de Oliveira: Deixa fazer uma pergunta. Deixa fazer. Achei tem um
+fazer uma pergunta. Tem, você deu o exemplo lá do TJ que lá tem que ter aí castal
+penal
+Bruno da Silva Nogueira: Oi,
+Marcela Souza de Oliveira: outros policiais que essas coisas. Mas assim, eu vejo que
+nos órgãos tem eh alguns órgãos, né, mesmo a gente tem os policiais que ficam ou
+internamente dentro do óculos ou no caso do palácio ali também externo ali da
+estacionamento e outros órgãos que tem cada órgão tem um um policial. Nesse caso,
+
+-- 50 of 83 --
+
+ele não tem uma, ele tá exercendo a função dele de de pericial do mesmo jeito. Mas
+esses casos é o quê? É uma sessão, é uma agregação. O que que ele ele enquadraria
+nesses
+Bruno da Silva Nogueira: Eh, a gente tem hoje a agregação,
+Marcela Souza de Oliveira: casos?
+Bruno da Silva Nogueira: que é para fazer função de militar. Eh, quando ele tá nativa,
+é por aqui, como eu tô te dizendo. Agora, a partir do momento que ele tá na reserva,
+que a gente chama reserva remunerada, né? Ele tem outro tipo de movimentação que
+tá bem aqui embaixo, que é essa aqui.
+01:01:37
+Bruno da Silva Nogueira: Designação AVN militar. É designação de atividade de
+voluntária de natureza militar.
+Marcela Souza de Oliveira: Ele tá na reserva, mas ele tá na ativo.
+Bruno da Silva Nogueira: Isto é mais ou menos.
+Marcela Souza de Oliveira: Reserva.
+Bruno da Silva Nogueira: É isso. Uma reserva remunerada. Então, reserva
+remunerada é o quê? É como se fosse uma pré-aposentadoria do militar, tá? Ele fica ali
+esperando para ser aposentado,
+Marcela Souza de Oliveira: Sì.
+Bruno da Silva Nogueira: né? Para ser para ser fechado, né? Aí durante esse tipo de
+de situação funcional dele, ele tem essa possibilidade de ser designado para uma
+atividade voluntária de natureza militar. Então ele vai trabalhar em um outro órgão
+voluntariamente. Aí tem umas questões financeiras atreladas aqui, tá? Como dis, como
+não é uma um ato que passa por aqui pela gente, eu sei por por saber, né? Porque
+quando precisaram criar o regime aqui dentro, quem teve que alimentar os 600
+primeiros militares foi eu, porque o pessoal não sabia mexer com as telas. Aí a gente
+teve que parar tudo aqui para ajudar eles nesse sentido.
+
+-- 51 of 83 --
+
+01:02:28
+Bruno da Silva Nogueira: Mas seria isso. Tem uma lei complementar, essa lei
+complementar setada aqui de 2022 que criou esse tipo de movimentação que é
+exclusivamente para policiais militares. Então esse policial militar que tá ali na frente,
+quando você chega na seplag na portaria,
+Marcela Souza de Oliveira: Aham.
+Bruno da Silva Nogueira: ele você vai olhar na, se você olhar parar na farda dele, vai
+ter um RR que é da reserva remunerada. Todo militar que entra na reserva remunerada
+tem que usar essa identificação, tá? Então ele vai tá designado. Então assim, são
+movimentações para servidores militares em determinadas fases funcionais, quando
+ele tiver nativa e quando ele tiver já na parte da pré-aposentadoria, vamos dizer assim,
+que é essa parte de reserva
+Marcela Souza de Oliveira: É,
+Bruno da Silva Nogueira: remunerada.
+Marcela Souza de Oliveira: é reserva remunerada esse esse voluntário aí, eh, porque
+ele tá sendo, vamos dizer assim, é um degal para aposentadoria, mas não é que ele tá
+falando de graça,
+Bruno da Silva Nogueira: Uhum.
+Marcela Souza de Oliveira: né, que você falou.
+Bruno da Silva Nogueira: Não. Sim, sim, sim. É, quando ele tá na reserva, ele reser ele
+recebe o soldo dele, o salário dele normalmente.
+01:03:22
+Bruno da Silva Nogueira: Ele recebe, ele tem o mesmo benefício de salário do que
+uma agregação interna, né? Tipo assim, se ele tivesse trabalhando normalmente, mas a
+partir do momento que ele tá designado nessa AVN, VNM, né? até por causa de
+questão financeira, a partir do momento que você lançar ela aqui, esse servidor vai
+
+-- 52 of 83 --
+
+receber um extra, vamos dizer assim, ele recebe, ele tem uma questão financeira
+também atrelada aqui.
+Marcela Souza de Oliveira: Ah,
+Bruno da Silva Nogueira: O servidor da reserva isso. Eh, eu não lembro corretamente
+cada atribuição, mas em regra geral o seguinte, eh, em regra geral é tipo 30, 40, 50%
+do do salário dele a mais que ele recebe quando tiver fazendo funções da designação.
+Marcela Souza de Oliveira: Ah, tá. Agora eu entendi.
+Bruno da Silva Nogueira: Não é você entendeu? É mais questão de que foi criado, né,
+essa essa situação para movimentar.
+Marcela Souza de Oliveira: Eu tenho uma galera que eu conheço que quer fazer isso
+aí.
+Bruno da Silva Nogueira: É,
+Marcela Souza de Oliveira: Ah, tem se a mais,
+Bruno da Silva Nogueira: é,
+Taylor Augusto Dos Santos: O o meu pai acho que entrou nisso aí porque ele voltou a
+trabalhar.
+01:04:11
+Marcela Souza de Oliveira: né?
+Bruno da Silva Nogueira: tem
+Taylor Augusto Dos Santos: Aí ele eh é aposentado, né?
+Bruno da Silva Nogueira: sim.
+Taylor Augusto Dos Santos: Ele vol militar aposentado, ele voltou a trabalhar, ficou
+um ano lá e tal e agora aposentou de novo, no caso.
+Marcela Souza de Oliveira: E aí ele vem na aposentadoria.
+Taylor Augusto Dos Santos: E daí a aposentadoria dele recebia normal,
+Marcela Souza de Oliveira: Isso aí,
+Taylor Augusto Dos Santos: ele começou a receber aí como se fosse um novo salário
+mesmo. Aposentadoria.
+
+-- 53 of 83 --
+
+Marcela Souza de Oliveira: mas ele agregou naoria dele esses 30%. Ah,
+Bruno da Silva Nogueira: É,
+Marcela Souza de Oliveira: então
+Taylor Augusto Dos Santos: Aham.
+Bruno da Silva Nogueira: depende, depende muito de qual car,
+Marcela Souza de Oliveira: já
+Bruno da Silva Nogueira: qual patente que você tem, porque de acordo com a
+patente tem um, é tipo se fosse uma tabela, entendeu? Então assim,
+Marcela Souza de Oliveira: tá então percentual
+Bruno da Silva Nogueira: se você Uhum. Então se for um oficial,
+Marcela Souza de Oliveira: de
+Bruno da Silva Nogueira: por exemplo, ele já recebe um valor bem a mais, né? Então
+assim, vai, depende muito da patente do do militar que ele tinha que ele tem, né?
+01:04:51
+Bruno da Silva Nogueira: A partir do momento que ele entrou pra reserva.
+Marcela Souza de Oliveira: voltando nesse gancho também, você falou: "Ah, mas aí
+quando foi fazer preciso ajudar o pessoal que eram as recentes pessoas. Mas assim, ó,
+a gente faz todo esse processo aqui de sessão dele hoje no sistema. Na época era por
+falta de conhecimento, mas assim hoje quando essa exção, a gente vem aqui, faz a
+designação voluntária da A V A V NM, né? Seja ele externo ou interno, de acordo com
+essa lei, faz todo pelo externo.
+Taylor Augusto Dos Santos: Eh,
+Bruno da Silva Nogueira: É,
+Marcela Souza de Oliveira: É isso mesmo?
+Bruno da Silva Nogueira: hoje a designação ela é um ato publicado pelo governador.
+Esse trâmite de publicação, pelo que eu sei,
+Taylor Augusto Dos Santos: Você
+Marcela Souza de Oliveira: Hum.
+
+-- 54 of 83 --
+
+Bruno da Silva Nogueira: há um pedido do órgão que quer ter esse militar
+designado. A PM ou Corpo de Bombeiro coloca o servidor, né, autoriza e vai pro
+governador onde é publicado um ato. Tem um ato de designação do do governador,
+porque só o governador pode designar o militar da reserva para reserva,
+Marcela Souza de Oliveira: Ah.
+Bruno da Silva Nogueira: né, da aposadoria para poder estar atrapalhando.
+01:05:45
+Taylor Augusto Dos Santos: é
+Bruno da Silva Nogueira: E aí a partir do momento que é publicado, aí a PM lá na
+gestão de da de pessoas da PM vem e faz eh só alimenta o registro porque já tem uma
+publicação. Então eles só vê aqui e alimentam sem gerar uma publicação, só vai
+alimentar essa informação aqui dentro. Por quê? Porque precisa ter essa essa
+informação alimentada aqui dentro, né? Até pela questão do que a gente acabou de
+falar do financeiro. A partir do momento que tá alimentado isso,
+Marcela Souza de Oliveira: Eh,
+Bruno da Silva Nogueira: com a data de início aqui, o financeiro puxa, né, para poder
+pagar esse essa essa forma a mais.
+Marcela Souza de Oliveira: a placa os lançamentos financeiros do do servidor é o
+impacto nos lanç orçamentos financeiros
+Bruno da Silva Nogueira: Oi, não consegui entender isso.
+Marcela Souza de Oliveira: do servidor,
+Bruno da Silva Nogueira: J.
+Marcela Souza de Oliveira: tem que ter todo esse tr para agregar esse esse
+percentual que é agregado ali a mais
+Bruno da Silva Nogueira: Uhum. justamente isso
+Marcela Souza de Oliveira: fora o salário
+Bruno da Silva Nogueira: aí. Aí, voltando aqui na na parte aqui do do das
+informações, eh a cooperação técnica ainda existe, existe a cooperação técnica, ela é
+funcional, mas ela hoje é lançada de acordo por próprio órgão, né?
+
+-- 55 of 83 --
+
+01:06:41
+Bruno da Silva Nogueira: Porque a cooperação técnica não precisa passar aqui pela
+SEPLAG, ela é descentralizada,
+Taylor Augusto Dos Santos: Aí informação
+Bruno da Silva Nogueira: como a gente chama, né? Então, cada órgão pode lançar
+sua cooperação técnica. Eh, hoje, pelo que eu tenho conhecimento, essa cooperação
+técnica, ela é lançada bastante pela CEDUC, tá? E geralmente ela é lançada na tela de
+sessão externa. É, como eu disse para vocês, aqui aparece a tabela geral. Então, a
+tabela que aparece lá na tela de sessão externa é a mesma tabela que tá aparecendo
+aqui para mim nessa nessa nessa aba, tá? Ah, então ela existe ainda, tá? Tem
+servidores nessa aqui, mas é bem pouquíssimos mesmo, é contados. Eh, a designação
+PB, isso aqui é uma questão da CEDUC, tá? E é lançada também diretamente por eles.
+O que que é uma designação PIB? Vamos pegar o professor. O professor quando ele
+trabalha no dia a dia, ele tem sua hora de trabalho e sua hora de atividade. Vocês
+sabem, eu acho que você sabem sobre isso, sobre a hora atividade?
+01:07:39
+Marcela Souza de Oliveira: repete a
+Taylor Augusto Dos Santos: Mais ou menos.
+Marcela Souza de Oliveira: pergunta a
+Bruno da Silva Nogueira: Então assim, eh,
+Taylor Augusto Dos Santos: Ne.
+Bruno da Silva Nogueira: vamos pegar o professor. O professor da educação básica,
+ele tem uma jornada de trabalho,
+Marcela Souza de Oliveira: oratividade eu conheço. S.
+
+-- 56 of 83 --
+
+Bruno da Silva Nogueira: ele tem uma hora de trabalho, né? Ele trabalha de manhã,
+vamos supor, dali da da das 7, das 8 às 11. Ele tem uma jornada. ali de trabalho. Fora
+essa jornada de trabalho dali que ele tá em sala de aula, ele tem que planejar
+atividades, tem que planejar exercícios, planejar a forma de trabalho, né? Todo no
+planejamento de trabalho, que é chamado de hora atividade. Essa hora atividade ele
+não está em sala, mas ele recebe por ela. Então isso que a gente chama de hora
+atividade na na para os professores, né? Tanto da da da ensino básico como docente
+também tem isso da da unemátic, coisas do tipo.
+Marcela Souza de Oliveira: E tem uma quantidade de hora definida,
+Bruno da Silva Nogueira: Do governo federal também tem.
+Marcela Souza de Oliveira: por exemplo, ele tem uma jornada, a gente tem uma
+jornada de 8 horas, né?
+01:08:29
+Marcela Souza de Oliveira: Por exemplo, ele tem quatro em sala e ele tem mais
+quatro em oraidade ou é uma quantidade
+Bruno da Silva Nogueira: Isso, isso, isso. Não é uma,
+Marcela Souza de Oliveira: menor pré-definida?
+Bruno da Silva Nogueira: é uma quantidade pré-definida de acordo com a carga
+horária de trabalho. Então, se o professor é 30 horas, ele tem delimitado quanto que a
+sua hora de a atividade. Se ele é 20 horas, ele também tem a mesma tem uma
+delibidação específica. O professor da Onemat, ele tem uma uma a gente não chama
+de orividade, eles chamam de extracurricular, extraclasse, é um nome diferente, mas é
+a mesma coisa. Eh, mas é é determinado de acordo com a carreira, né, o cargo dele, se
+é de superior, se é tecnológico ou se de educação básica e e quantitativo de hora aula
+que ele tem. Eh, eu não vou saber te dizer, tá? Cada um, mas eles tm uma tem uma
+tabelação dentro da lei de da legislação deles, tá?
+Marcela Souza de Oliveira: Beleza.
+Bruno da Silva Nogueira: Aí, o que que ser designação PB? Por que que ela foi
+criada?
+
+-- 57 of 83 --
+
+01:09:18
+Bruno da Silva Nogueira: lá na CEDUC, eh, há uma necessidade de professores estar
+trabalhando na sede, que a gente chama, né, na parte administrativa, seja DRE, seja
+núcleos de educacionais, seja na própria sede da CEDUC. E o que que acontecia?
+Esses professores iam trabalhar na sede, né, e deixavam de receber essa hora
+atividade. Por quê? Porque eles não estão dando aula, certo? Então não tem para que
+receber essa atividade. Então foi criada uma norma na CEDUC, uma legislação num
+que criou essa designação PB aqui. É profissional extra de educação. Ah, eu não
+lembro a sigla, tá gente? Mas eu acho que profissional de educação e alguma coisa.
+Marcela Souza de Oliveira: Ali, ó,
+Bruno da Silva Nogueira: Eh,
+Marcela Souza de Oliveira: profissional básica na frente.
+Bruno da Silva Nogueira: é para outra função. Aham.
+Marcela Souza de Oliveira: Так.
+Bruno da Silva Nogueira: Para outra função. Eh, para justamente porque ele tá
+desempenhando outra função e não perder. Então tem uma, toda vez que lançar esse
+aqui para um servidor de educação, né, eles colocam qual a unidade da que ele tá
+trabalhando que é administrativa, né?
+01:10:12
+Bruno da Silva Nogueira: Então vamos colocar uma gerência de de conformidade lá
+dentro da CEDUC, um código deles mesmo, do setor deles da Ceduc, coloca essa
+designação que vai gerar um financeiro pro professor justamente compatível com o
+percentual que ele tá perdendo da hora atividade. Eh, eles criaram uma regra nessa
+legislação que é 33%, é 33,33333. Então assim, eh, todo professor professor que
+estiver fora da sala trabalhando por essa designação PIB, recebe um adicional salário
+
+-- 58 of 83 --
+
+dele de 33%. Eu não sei se é a média dessas horas atividades, tá? Mas é eh eh essa
+essa é a norma que eles têm lá. Então, todo professor professor que tá fora da sala de
+aula vai ser lançado isso. Por que eles lançam assim? Porque o professor ele tem
+umação. Deixa eu voltar aqui para normal porque vai que salva. Fácil cancelar todo
+professor lá na tela de vou duplicar aqui lá na tela de eventos de cargo, que é onde que
+tá nossa toda nossa anotação, né, originária, todo professor quando tá nesse regime
+de designação, ele vai continuar aqui na lotação dele na escola. Por quê?
+01:11:22
+Bruno da Silva Nogueira: porque eles precisam lançar uma substituição justamente
+nessa vaga que ele vai est ocupando. Eu acho que eu tenho uma professora aqui, eh,
+que eu sei
+Taylor Augusto Dos Santos: Com a minha mãe aconteceu isso. Ela tava na escola, foi
+paraa DRE, mas eu não lembro o ano que aconteceu.
+Bruno da Silva Nogueira: aqui tem uma, por exemplo, aqui, eh, hoje ela tá aqui na
+unidade especial, mas por muito tempo ela estava na na na escola aqui de de
+educação básica Maria Hermínia, ela estava aqui, então o pessoal precisava de
+designação. Tá vendo que tinha designação aqui, ó? Ela ficava aqui dentro. Aí tiraram
+daqui e lançaram pra tela de sessão interna. Não, não sei te dizer o motivo, tá? Mas
+eles alteraram a onde registravam essa designação. Aí o professor ficava recebendo o
+PIB lá na tela dela de de sessão interna enquanto estava eh eh eventualmente lotada
+numa escola para poder gerar uma substituição. E quando acabava essa designação, o
+servidor voltava diretamente pra escola onde ele estava lotado anteriormente. Então
+essa que é a forma do PIB que eles fazem o registro.
+01:12:26
+Bruno da Silva Nogueira: Eh, se você quiser ter o óleo da sua mãe, a gente pode ter
+uma noção também. Se você quiser olhar.
+
+-- 59 of 83 --
+
+Taylor Augusto Dos Santos: É Simone José. Aham.
+Bruno da Silva Nogueira: Simone, aqui tá e acho que não sei se já chegaram para
+vocês também tem uma, tão estão lutando por tal do vínculo único, né, para ter um
+vínculo só.
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: Aqui é um exemplo de de questões de vínculos, né? Cada
+contrato, cada sala que pega é um vínculo novo que é
+Taylor Augusto Dos Santos: Ela tem acho que 17 vínculos diferentes atualmente.
+Bruno da Silva Nogueira: atribuído. Ah, eu já peguei sessão de professor com 90
+vínculos aqui. Aí, tá vendo aqui? Tá o dela. Eh, eh, hoje, por exemplo, hoje ela tá lotada
+nessa escola estadual, né, do Pedro II. Tá? Aqui é onde que a escola ela tá lotada, tá
+início, quer dizer que ela tá lá nesse momento, né? Não tem um fechamento. Quando
+tem um fechamento, quer dizer que ela fechou o vínculo dela lá por algum motivo, né?
+01:13:20
+Bruno da Silva Nogueira: Mas foi aberto outro, por exemplo, aqui fechou porque foi
+teve uma alteração de de órgão. Isso aqui foi quando a gente teve alterações de CNPJ.
+Então a gente teve que encerrar as movimentações. Aqui por exemplo, encerrou
+porque ela teve uma progressão, então criou um novo vínculo com uma progressão
+diferente, assim vai indo, tá gente? Para vocês entenderem o que cada fechamento
+desse ocorre. Então pode correr por nome. Tá vendo aqui? Ela tava numa escola, só
+que depois ela foi removida para uma outra escola diferente, né? Ou pode ser que
+essa escola Manuel Bandeira mudou de nome, virou militar, né? qualquer alteração vai
+sendo feita dessa forma. Então, antes do Manuel Bandeira, ela estava no no Jaime
+Veríssimo, né? E ela foi fechada, teve movimentações lá dentro, né? Teve uma uma
+progressão progressão horizontal quando ela tava em alta floresta e assim vai indo. E
+então quando o servidor tem esse PIB lançado, ele aparece lá na tela. Eh, vamos ver se
+ela teve algum PB de problema, ó.
+
+-- 60 of 83 --
+
+01:14:13
+Bruno da Silva Nogueira: Então, ela não teve um PB lançado. Ô, ô, Taylor, ela teve
+somente a movimentação para Cfapros. Ela ficou na coordenadoria, né? Cfappros
+aqui, Cfap aqui, Cfapro aqui também.
+Taylor Augusto Dos Santos: Isso.
+Bruno da Silva Nogueira: Mas ela não teve esse PIB lançado porque dentro do CA, do
+CFA próprio já tem esse algum adicional já registrado. Mas em geral quando não tem e
+é numa escola é feito daquela forma que eu falei para vocês. Deixa eu ver se a dona
+Vilma tem. Aí ó, a dona Vilma teve, ó. Ela tava na folha de pagamento, ela tava no
+especial e foram sempre lançando designações porque ela tava fora da sala dela. Se
+olhar na sessão na no eventos de cargo, vamos pegar um ano aqui. Aqui foi durante o
+21 inteiro. Durante o 21 inteiro ela tava aqui, ó, na Maria Hermínia, como eu disse para
+vocês. Então o cargo dela estava na Maria Hermínia, mas ela não estava trabalhando lá.
+Estava trabalhando na unidade especial de controle e movimentação, né?
+01:15:11
+Bruno da Silva Nogueira: Recebendo esse PIB. Então é assim, teoricamente para
+mim, aí já eu teria que verificar com a folha, mas eu entendo que essa criteria ser uma
+forma de atributo e não uma forma de lançamento aqui dentro, mas eles precisam
+vincular o servidor a uma unidade. Por quê? Porque todos os acessos estão vinculados
+onde o servidor tá trabalhando, né? Eh, então assim, se eu sigue passo tá determinado
+por lá, se eu sigue a DOC tá determinado por lá, então eles começaram a lançar aqui,
+eu imagino que seja por isso, para poder vincular o servidor à humanidade, para poder
+ter acesso ao Sigadoc, a SGPAS e assim sucessivamente, porque os sistemas estão
+todos vinculados à sua unidade, né, de atuação. Inclusive aquilo que eu tava
+mostrando para vocês da Alessandra, é uma coisa que a gente tá trabalhando aqui
+junto com o setor de segpaz, com o setor de de folha, tá explicando para vocês que é
+uma das movimentações que tá aqui, esse designa gestor. Eh, o gestor pela lei de
+carreira eh estipula que por por portaria ele pode desempenhar suas funções em
+
+-- 61 of 83 --
+
+outro órgão, mas ele não tá cedido. Então, assim, o ônus continua pro órgão de
+origem, tá vendo aqui, ó?
+01:16:16
+Bruno da Silva Nogueira: Diferente de uma sessão que é sem ônus, né? Aqui ele tá
+com o ônus para o órgão de origem. Eh, só que a gente tá tendo trabalho do quê? De
+como puxar o Sigpass dele, né? O Sigadoc dá para fazer as suas emendas dentro do
+Segado, né? E mudar a lotação lá dentro, né, do seu próprio sistema. Segado é um é
+um é uma, como chama? Ia falar artimanha, né? é um jeitinho brasileiro que dá lá
+dentro doc, mas o que seria interessante seria ter já puxar automaticamente de de
+acordo a onde já tá trabalhando. Então hoje a gente tá desenvolvendo esse esse tipo
+de movimentação para gestor, justamente para poder puxar tanto o SIGP, para puxar o
+sistema de atividades, para poder puxar o Sigadocretamente do CAP. It's precisar
+poder fazer esses chaveamentos lá dentro de cada sistema. Então, hoje no SIGPs, por
+exemplo, essa servidora, ela não tá batendo ponto, porque enquanto a gente não
+conseguir resolver essa situação aqui, essa gestora não consegue bater ponto na
+Casa Civil e ela tá reclamando bastante, tá?
+01:17:12
+Bruno da Silva Nogueira: Porque ela não tá batendo ponto. Então, aí a gente tenta, tá
+tentando criar esse tipo de de movimentação para poder fazer esses interlaces. Então
+tá, então já citando,
+Taylor Augusto Dos Santos: Entendeu?
+Bruno da Silva Nogueira: eu já um já antecipando um deles, né, que é o designação
+gestor, é esse daí que a gente tá fazendo. O PIB é isso que eu falei para vocês, né?
+Quando o servidor está fora da sala de aula, desempena uma função em alguma
+unidade. O integral não existe mais, tá? Eh, ele tá aqui porque existem histórico, né,
+servidores antigos que estão cedidos, que todo mundo cedido anteriormente era era
+
+-- 62 of 83 --
+
+com esse regime, tá? era integral, entendia que ele receberia toda a remuneração dele
+integral. Mas a gente pediu para retirar isso aqui. Tem, acho que tem um, se parar de
+fazer isso, né? Acho que tem uns 8 anos, mais ou menos, 7 anos. Então, todas as
+sessões começaram a ficar quando criou a sessão externa e externa. Não tinha isso
+aqui dentro do CAP antes, só tinha um integral.
+01:18:05
+Bruno da Silva Nogueira: A gente pediu para tirar esse e criar o interno e externo. Aí
+foi, né, desenrolar dos anos foi criando esses outros. É, então essa integral hoje não
+existe mais, não é utilizado, mas se você for fazer uma busca de servidores, cedidos,
+vai ter alguém com essa remuneração, né? Porque nos históricos passados tinha essa
+remuneração. A remoção pro permuto, ela tá aqui, mas ela não fica nessa tela, tá? Eh,
+ela é da sessão externa. Eu vou mostrar a tela da sessão externa agorinha. A remoção,
+a remoção por permuta é quando ocorre hoje hoje basicamente com professores, tá?
+O professor Bruno daqui de Mato Grosso vai trabalhar em Mato Grosso do Sul e um
+professor de Mato Grosso do Sul vai vir recompor a vaga do do professor Bruno. Então
+é feita a remoção por permuta, né, indicando qual o permutante. Aqui a gente indica
+qual é esse professor. Eh, justificando que o Brunos está indo para Mato Grosso do Sul
+permutado com o servidor Taylor, né? Só que aqui na questão do do do ônus
+ressarcimento continua da mesma forma, sem o ressarcimento, só com o ônus paraa
+origem, né?
+01:19:07
+Bruno da Silva Nogueira: lá na telações eu mostro isso. Por quê? Porque o Bruno vai
+estar trabalhando lá no Mato Grosso do Sul, recebendo o salário dele aqui, mas como
+houve uma troca de servidores, não é necessário ressarcir, porque o estado de Mato
+Gross tá recebendo um servidor para recompor o quadro dele. Então não tem
+necessidade de ressarcimento. Isso é previsto na lei de carreira dos profissionais de
+
+-- 63 of 83 --
+
+educação, tá? Eh, também está previsto no profissionais da saúde e agora
+recentemente foi previsto também na da Polícia Civil. Acho que foi foi nesse ano, foi
+no ano passado foi prevista essa legislação, essa essa possibilidade também. Mas só
+que o que que acontece eh da Polícia Civil para ter essa permulta, os outros órgãos
+também têm que ter essa opção de ônus, né? Porque como eles vão mandar um
+servidor para cá e vai ter que fazer a essa questão de tem que ter na legislação deles.
+E hoje, eh, que eu saibo, acho que só o Distrito Federal tem isso na legislação. O resto
+dos outros estados não tem. Até recentemente a gente tentou fazer um para Santa
+Catarina, só que Santa Catarina falou assim: "Não, eu prefiro pagar o ressarcimento
+porque a gente não tem isso na legislação ainda".
+01:20:08
+Bruno da Silva Nogueira: Então, a gente até abriu a possibilidade, mas como Santa
+Catarina não tinha, então a gente teve que fazer pela regra geral de sessão, né? Não,
+uma permuta sendo pago o reembolso de cada um.
+Taylor Augusto Dos Santos: Aí no caso porque não tem a lei lá, né? que tem, mas lá
+Bruno da Silva Nogueira: Uhum. No caso do da permuta de professores, tem na
+legislação de lá. Então, a gente tem essa possibilidade da saúde. Alguns órgãos têm,
+Taylor Augusto Dos Santos: não.
+Bruno da Silva Nogueira: algum alguns alguns eh unidades federativas, federativos
+têm, outros não têm. Mas assim, há uma há uma uma situação na lei da saúde que é o
+quê? Que é mais fácil fal defit, né? Então é mais fácil você solicitar o servidor para vir
+sem ressarcimento, trabalhar na área da saúde, né? Com ônus paraa origem do que
+você fazer uma permuta. Então isso que tem acontecido, né? É a falta de de
+profissionais para fazer essa troca. Mas quando ocorre e ocorreu também tem uma
+outra necessidade. Os perfis têm que ser iguais.
+
+-- 64 of 83 --
+
+01:20:58
+Bruno da Silva Nogueira: Então, se eu tô mandando um médico para lá, tem que vir
+um médico para cá. Se eu tô mandando um enfermeiro para lá, tem que vir um
+enfermeiro para cá. Eh, não tem como mandar um enfermeiro e receber um médico.
+Tem isso na legislação deles,
+Marcela Souza de Oliveira: perfil, mas especialidade não é requerido,
+Bruno da Silva Nogueira: não é isto?
+Marcela Souza de Oliveira: só
+Bruno da Silva Nogueira: Eh, é igualz diferente do da CEDUC.
+Marcela Souza de Oliveira: perfil.
+Bruno da Silva Nogueira: Por exemplo, eu posso mandar um professor de letras para
+lá e receber um professor de matemática. Não tem essa necessidade. Então, por isso
+que os professores ocorrem mais. Acho que deve se tiver uns 30 professores nessa
+situação aí, por aí, deve ter na situação de permuta. Aí elas são renovadas anualmente,
+mas não tiram nenhuma obrigação. Então, todo servidor cedido externo, cedido
+internamente ou em permuta tem ainda as obrigações de de férias, de licença
+prêmium, tudo tá obrigado a se fazer, tá gente? Continuando aqui, aí é regime de
+colaboração também hoje é é com é uma troca de de servidor bem parecida com a
+cooperação técnica, tá?
+01:21:58
+Bruno da Silva Nogueira: A esse regime de colaboração. Então assim, um servidor
+fica colaborando temporariamente no outro órgão. Hoje quem utiliza bastante isso aí
+também é SEDUC. Eh, a CEDUC faz termos de colaboração com o município, no
+entanto, no sentido do quê? Eu tenho professor e o município tem escola, só que na no
+município não tem um professor para trabalhar nessa escola.
+Marcela Souza de Oliveira: Ja.
+
+-- 65 of 83 --
+
+Bruno da Silva Nogueira: Então eles fazem uma um regime de colaboração onde o
+professor desempenha as funções dele nessa escola municipal, né, colaborando com
+a escola e a troca é essa situação mesmo educacional, né? Então, o regime de
+colaboração, o servidor também continua continua recebendo pelo órgão da lei de
+origem sem ressarcimento. Essa forma que tá aqui. E a última que não eu não não vejo
+não não conheço nenhuma, tá? Se necessário, eu nunca vi, não sei porque ainda existe,
+mas tá aí essa temporária, né? Porque a gente literalmente de entender temporário é
+uma movimentação temporária, né, do servidor. Só que essa movimentação
+temporária nada mais é do que uma sessão, né? Então, não tem, não vejo o uso dela.
+01:22:59
+Bruno da Silva Nogueira: Eu nunca vi, sou bem sincero, nunca vi. Eu tô na gerência de
+quadro sem 12 anos. É 12, não, 11 anos e meio. E 11 anos e meio, eu nunca vi esse regime
+de movimentação em espaço nenhum. A gente gera relatórios aqui, né, de
+movimentações para ver. E eu nunca vi isso aqui alimentado nenhuma nenhuma vez na
+minha vida, tá?
+Marcela Souza de Oliveira: Podemos ignorar então esse tipo de sessão,
+Bruno da Silva Nogueira: É, tanto ela quanto integral,
+Marcela Souza de Oliveira: né?
+Bruno da Silva Nogueira: como a Integral tem um histórico legado, né? Mas assim, de
+efetivamente de novas não tem essa possibilidade aqui.
+Marcela Souza de Oliveira: Aí a gente pode
+Bruno da Silva Nogueira: Aí,
+Marcela Souza de Oliveira: usar.
+Bruno da Silva Nogueira: aí a gente tem a tela sessão interna, como a gente fez, né?
+E tem a externa que é bem
+Marcela Souza de Oliveira: Deixa eu deixa eu só te fazer uma pergunta lá na sessão
+interna,
+Bruno da Silva Nogueira: similar.
+
+-- 66 of 83 --
+
+Marcela Souza de Oliveira: só para ver se o senhor entendi corretamente. Listei aqui
+os que a gente tem um impacto financeiro que você comentou foi a designação
+ADMN.
+01:23:51
+Marcela Souza de Oliveira: a designação PIB. Eh, as de cima, alguma citou, eu posso
+até prestar atenção, por isso que eu fiquei na que tem impactos financeiros quando
+você tem tipo de sessão dessa desses dois tipos ou
+Bruno da Silva Nogueira: Não,
+Marcela Souza de Oliveira: outros.
+Bruno da Silva Nogueira: não é o impacto mesmo só de definir de quem é o ônus,
+mas assim, uma agregação de valor, né, adicionar valores assim somente nessas que
+eu tenho conhecimento.
+Marcela Souza de Oliveira: É,
+Bruno da Silva Nogueira: no PB e na VN. O resto não tem
+Marcela Souza de Oliveira: é para fins financeiros para gerar folha. Eu pergunto,
+Bruno da Silva Nogueira: nenhuma.
+Marcela Souza de Oliveira: né, que você disse que quando você eh faz a a esses dois
+tipos aí, que foi os dois últimos,
+Bruno da Silva Nogueira: Uhum.
+Marcela Souza de Oliveira: ele gera para calcular a folha que ele acresce, né,
+Bruno da Silva Nogueira: Isso, isso,
+Marcela Souza de Oliveira: aquele adicional,
+Bruno da Silva Nogueira: isso. Justamente.
+Marcela Souza de Oliveira: vamos dizer assim. Então,
+Bruno da Silva Nogueira: Uhum.
+Marcela Souza de Oliveira: somente esses dois mesmo, né?
+Bruno da Silva Nogueira: Isto
+
+-- 67 of 83 --
+
+Marcela Souza de Oliveira: Não, beleza, pode passar para outro lá.
+01:24:38
+Bruno da Silva Nogueira: tá aí a sessão
+Marcela Souza de Oliveira: Já anotei aqui na no chat pra gente ter essas
+informações.
+Bruno da Silva Nogueira: externa e a alimentação dela não difere muito, tá? Eh, deixa
+eu ver se eu tenho algum algum aqui. Acho que eu tenho sim. Catarina Peron. OK.
+Catarina Peron, ela tá cedida desde 2024, né? Pro Tribunal de Contas. que a gente tem
+de inserção é a mesma coisa. Início, término, a gente faz uma uma edição por por lista,
+né, indicação de tabelas, né? Então aqui eu tenho Distrito Federal, estadual, Federal,
+Municipal, ONU, né? A gente só teve uma vez isso aqui na na de movimentação. Eh,
+outras entidades que a gente basicamente não não tem tido, né? Mas é eh são
+entidades conveniadas, aquelas que eu falei para vocês eh associações filantrópicas,
+no caso. Então assim, tem algumas que estão vinculad nesses outros aqui, tá? Eh,
+então de acordo com essa tabela que eu escolho aqui, por exemplo,
+01:25:30
+Marcela Souza de Oliveira: Ja.
+Bruno da Silva Nogueira: se eu escolher estadual, então ele vai aparecer tanto
+órgãos estaduais, né, quanto outros governos que tiver tudo que tiver alimentado de
+órgãos estaduais vai est aqui dentro. até órgãos que não deveriam estar aqui tem aqui,
+porque quem foi criando isso aqui foi há muito tempo atrás, então as pessoas foram
+alimentando qualquer coisa aqui dentro, tá gente? Mas o que seria estadual? Seria
+todo órgão que tem essa essa essa responsabilidade. Por exemplo, o Tribunal de
+Contas é estadual, né? o, terminal de Justiça estadual. Então, por exemplo, se tivesse
+um TJ, a pessoa TJ do Rio de Janeiro, então teria que ter Tribunal de Justiça do Estado
+
+-- 68 of 83 --
+
+do Rio de Janeiro. Ah, não tem. Aí eu vou lá e peço pro pessoal lá da do do Marcos
+Vinícius, né? E peço para ele criar dentro da tabela de sessão externa, né, um novo
+Tribunal de Contos e assim vai indo, tá? Eh, então dependendo do que eu escolho aqui,
+por exemplo, vou colocar municipal, vai aparecer só municípios, ó, prefeitura de
+Araguaína, Araguaína, Araguainha, Araputanga e assim vai indo.
+01:26:27
+Bruno da Silva Nogueira: Toda a criação aqui de município ou de estado, eu informo
+para ele qual é o órgão e qual é o CNPJ desse órgão por causa do social, né? E assim
+vai indo. Tem órgãos que possivelmente não são municipais aqui no meio dessa desse
+desse bolo, no mesmo sentido que eu disse para vocês. Anteriormente essa
+alimentação era bem equivocada. Vamos dizer outra coisa e o pessoal é alimentando
+qualquer coisa aqui dentro. Por exemplo, Santa Casa. Santa Casa é é municipal ou
+estadual? Então tem toda essa situação, tá?
+Marcela Souza de Oliveira: Mas aí também agregaria os municipais de outro estado,
+Bruno da Silva Nogueira: Eu acho que tem outra isso.
+Marcela Souza de Oliveira: se caso tivesse também.
+Bruno da Silva Nogueira: Vamos supor que tá sendo cedido para Uberlândia.
+Uberlândia é o município do estado do de de Minas Gerais, né? Então se fosse cedido
+para PR para pr pra Uberlândia,
+Marcela Souza de Oliveira: Ah.
+Bruno da Silva Nogueira: teria que ser municipal e aqui Uberlândia. Ah, não, ele tá
+cedido pro governo do estado e vai trabalhar em Uberlândia. Aí já é outra coisa.
+01:27:15
+
+-- 69 of 83 --
+
+Bruno da Silva Nogueira: Entãoia ele estadual, né? Uhum. E colocaria o governo do
+estádio de de Minas Gerais. Aí dentro daqui da do município que eu colocaria que ele
+estaria em Uberlândia,
+Marcela Souza de Oliveira: Ah, sim.
+Bruno da Silva Nogueira: tá?
+Marcela Souza de Oliveira: Não.
+Bruno da Silva Nogueira: Então continuando aqui. Aí então eu tenho essa esse filtro,
+o est o o o órgão, né, para definir qual esfera que ele tá, né? E a partir disso abrem
+outro campo que é do órgão externo. É órgão externo dentro desse parte estadual,
+como eu falei para vocês, dentro do federal também vai ter outro tipo. Federal vai
+aparecer só os que são teoricamente federais, ó. Senp, Senado, aí tá com os tribunais
+regionais, eh eleitorais que são federais, né? E assim vai indo, ó, TRT, TRF, a
+Universidade Federal do Acre, que é querendo nomea federal, né? E a gente assim vai
+indo, de acordo que vai aparecendo, a gente vai pedindo para criar, mas aparece
+alguns filhos de Deus que não são, né?
+01:28:02
+Bruno da Silva Nogueira: Às vezes ainda acaba aparecendo por aqui que são
+antigamente, antigamente foi feito. Eh, deixa eu ver se tem algum aqui. Militar,
+Antaque. Acho que por aqui não vai ter nenhum. Ministério do Trabalho, Redovor
+Federal, acho que não tem nenhum. Essa aqui é da do Juiz de Fora, mas é a
+Procuradoria da Fazenda Nacional. Então é nacional, acho que aqui não tem nenhum,
+mas lá no municipal estadual tem bastante coisa errada, tá? Nomes errados ali. Aí o
+tipo da sessão eu escolho, né? Geralmente a gente utiliza a sessão externa só quando
+for uma permuta que a gente falou a remoção, a remoção externa, né? E aqui a gente
+já modificou ela para aparecer como permutinha certinha. É aquela troca que eu falei
+para vocês, quando tem essa permuta externa entre órgãos, entre estados, né? A
+gente alimenta aqui nessa tela de sessões externas, tá? Porque a gente entende que
+ela é externa ao poder executivo, então por isso que ela tem que ficar aqui dentro.
+
+-- 70 of 83 --
+
+01:28:51
+Bruno da Silva Nogueira: externa.
+Marcela Souza de Oliveira: Então esse esse cadastro aí do tipo de sessão, ele não é
+parecido com o tipo da sessão interna, né? Mas sem bem
+Bruno da Silva Nogueira: É, é como eu disse, basicamente ele puxa a mesma tabela
+que tá lá.
+Marcela Souza de Oliveira: similares
+Bruno da Silva Nogueira: O único valor que a gente conseguiu pedir para alterar era
+aquela remoção externa que tinha lá para pr pra permuta. Uhum. A única que a gente
+conseguiu já pedir para alterar é que eles movimentar, mudaram aqui, mas ela é uma
+contr C, conttrl V daquela planilha.
+Marcela Souza de Oliveira: é,
+Bruno da Silva Nogueira: Eles pegaram.
+Marcela Souza de Oliveira: eu vi que tá parecidinho as nomenclaturas,
+Bruno da Silva Nogueira: Uhum.
+Marcela Souza de Oliveira: mas tem por as leias ali na pregação,
+Bruno da Silva Nogueira: É isso. Uhum.
+Marcela Souza de Oliveira: aquelas especificações,
+Bruno da Silva Nogueira: Mas se por acaso eles publicarem a externa aqui,
+Marcela Souza de Oliveira: né?
+Bruno da Silva Nogueira: externa CBM, ele vai puxar aquela legislação que tava
+citada na outra.
+Marcela Souza de Oliveira: Ah,
+Bruno da Silva Nogueira: Eles só atualizaram,
+01:29:30
+
+-- 71 of 83 --
+
+Marcela Souza de Oliveira: tá.
+Bruno da Silva Nogueira: só atualizaram ela.
+Marcela Souza de Oliveira: Sendo externa vai agregar aqui aqui que vai fazer essa
+movimentação,
+Bruno da Silva Nogueira: Só
+Marcela Souza de Oliveira: mas tanto para para militares bombeiro ou militar e assim
+vai ali nas outros itens, né?
+Bruno da Silva Nogueira: isso, isso,
+Marcela Souza de Oliveira: Todos
+Bruno da Silva Nogueira: isso. Uhum. Então, por exemplo, uma agregação que o
+servidor sai da PM para trabalhar na na CESP,
+Marcela Souza de Oliveira: como
+Bruno da Silva Nogueira: vai ser lançada na tela de sessão interna, né, que é uma é
+uma movimentação interna, vai ser feito para lá. Agora, um PM indo para trabalhar no
+TJ, por exemplo, vai ser uma sessão, uma agregação externa que vai ser alimentada
+aqui na tela de sessões externas.
+Marcela Souza de Oliveira: algum tipo de necessidade de serem teras distintas?
+Hoje vocês utilizando o saco foi foi pensado, foi criado dessa maneira por algo
+Bruno da Silva Nogueira: Eh,
+Marcela Souza de Oliveira: específico?
+Bruno da Silva Nogueira: chavamento de informações mesmo, porque assim, lá na
+sessão interna, como eu disse para vocês, ele bloqueia, né? Então assim, a partir do
+momento que eu lanço lá, ele bloqueia, aqui nessa tela, ele não bloqueia.
+01:30:27
+Bruno da Silva Nogueira: Então assim, eh, o órgão da da Cati Peron, deixa eu ver o
+órgão que ela é, ela é da saúde. Eh, a Cés continua tendo acesso à vida funcional dela
+normalmente. Ela não perde acesso porque ela tá alimentada dentro das sessões
+externas, né, para um órgão externo.
+
+-- 72 of 83 --
+
+Marcela Souza de Oliveira: porque é um externo. Então esse seria basicamente a a
+restrição de ter ser tratado em telas
+Bruno da Silva Nogueira: Uhum.
+Marcela Souza de Oliveira: distintas.
+Bruno da Silva Nogueira: Ah, também tem as informações de campo aqui. Eh, mas
+paraa publicação em si não tem nenhuma. é questão mesmo de informações para
+alimentação, de alimentar, porque, por exemplo, na tela de sessão interna, eu não
+tenho isso aqui de tipo de órgão e órgão externo, não tem essas duas informações. Eh,
+lá tem permutante ainda, beleza? O tipo do ressarcimento, a gente tem as opções aqui
+também, ó, mesma coisa, né? Porque a gente, como eu falei para vocês, tem essas
+formas de ônus, né? Essa aqui não nunca vi, é que tá aqui, né? Sempre esteve, mas eu
+nunca nunca trabalhamos com ela.
+01:31:18
+Bruno da Silva Nogueira: Nunca vi nenhum tipo de publicação usando elas, tá? É
+sempre com ou sem. Eh, aqui também tem essa informação de de da UEF, que qual é o
+estado que a gente tá movimentando ela, né? Aqui tem até as cidades internacionais.
+Não sei, esse teste nem deveria estar aparecendo aqui, era só para homologa tá
+aparecendo. Eh, mas de acordo com o estado que a gente tá cedendo, ele abre uma
+outra lista, como eu falei para vocês, para Mato Grosso. Então, aparece todos os
+municípios de Mato Grosso aqui. Se se eu colocar aqui, vai aparecendo todos os
+municípios de Mato Grosso. Se eu colocar eh federal vai ou Rio de Janeiro. Rio de
+Janeiro.
+Marcela Souza de Oliveira: St.
+Bruno da Silva Nogueira: também aqui vai aparecer todos os municípios da tabela do
+Rio de Janeiro. Então tá atrelado com com F. Então são os diferenciais que tem hoje é
+esse dentro do da parte de
+Marcela Souza de Oliveira: Gente,
+Bruno da Silva Nogueira: alimentação.
+Marcela Souza de Oliveira: tipo de olhos ali também é
+
+-- 73 of 83 --
+
+Bruno da Silva Nogueira: Uhum. O tipo do ônus,
+Marcela Souza de Oliveira: igual.
+01:32:13
+Bruno da Silva Nogueira: o tipo de ressarcimento é igual. O tipo da sessão você viu
+que aparece basicamente a mesma tabela, só tá atualizada, né? O início e o
+Marcela Souza de Oliveira: Tem tem algumas especificações da tela de sessão
+externa que tem similar ao que tem
+Bruno da Silva Nogueira: fim.
+Marcela Souza de Oliveira: na interna,
+Bruno da Silva Nogueira: Intern.
+Marcela Souza de Oliveira: né?
+Bruno da Silva Nogueira: Uhum.
+Marcela Souza de Oliveira: Mas a questão principal é a questão do bloqueio.
+Quando é externo é interna também essas questões de campos específicos, mas a
+publicação em si é igual.
+Bruno da Silva Nogueira: Uhum. Eh, pensando em publicação, agora vou vou em
+outra parte. Eh, na sessão interna, eu falei que tem operador 1, 2, 3, certo? E quatro.
+Marcela Souza de Oliveira: M.
+Bruno da Silva Nogueira: Na sessão externa também tem isso, só que é uma decisão
+administrativa. Hoje qualquer sessão externa que a gente faz, por exemplo, essa aqui
+da Ktin Peron, eu não faço operador aqui dentro, eu faço um ato administrativo, né?
+Igualzinho textinho manual e sai publicado em diário. Eu mando pro pro gabinete do
+secretário porque o secretário quer ter uma uma ele essa essa função não tá
+delegada, entendeu?
+
+-- 74 of 83 --
+
+01:33:11
+Bruno da Silva Nogueira: essa função de autorizar de sessão externa, tá? Ainda com
+o secretário e ele não faz essa operação via PAEC. É uma questão administrativa, tá
+gente? Eh, uma decisão do estratégica. O nível estratégico, ele pega caso a caso
+sessão externa para autorizar ou não a sessão. Então, eu faço um ato manual disso,
+vou pegar o ato dela quando que foi para poder mostrar para vocês como que é
+diferente. Ele ele tem um modelo de layout para publicar igualzinho de sessão interna,
+tá? Só que ele acaba publicando, a gente acaba fazendo ela da forma que o aberto. Ah,
+tá. E aqui hoje a gente ainda faz um ato para eles que passa pro secretário, né? A gente
+faz um ato desse dessa mesma forma que tá aqui. A gente redige ele todo. A gente
+tem vários formatos de atos, né, administrativos ainda. A gente preenche com as
+informações do servidor, manda o processo todo Sigadocidado pela secretária que lá
+pro pro gabinete de secretário Vasílio, né, onde ele faz toda a análise da autorização
+ou não, né, porque tem toda uma situação discricionária de autorização, como eu
+disse para vocês, né, mesmo os dois órgãos autorizando, pedindo e autorizando, ainda
+tem a decisão administrativa.
+01:34:34
+Bruno da Silva Nogueira: Então, por exemplo, pode chegar que chega lá lá no, pode
+ser que aconteça de chegar lá no no gabinete do secretário, o secretário decidindo,
+não, o TCE tá tendo eh não tá pagando ressarcimento devidamente, né? Tá
+demorando muito para pagar, não quero mais ceder para lá. Aí é uma decisão
+administrativa, né, deles e eles acabam podendo vetar ou não. Hoje é muito difícil
+acontecer isso, mas ainda passa para esse nesse feeling lá do do da parte mais
+estratégica do órgão aí Que que acontece? É publicado isso. Publicou isso no diário
+oficial no dia 20, no dia 24 de março. O que que acontece? O Bruno, o Bruno, porque
+meu usuário é diferenciado, o Bruno vai pegar esse diário crucial e vai alimentar essa
+informação aqui. Por quê? Porque eu tenho a possibilidade pelo meu usuário de
+alimentar informações aqui sem gerar publicações. Qualquer um outro usuário que
+alimentar alguma informação aqui vai gerar uma uma pendência para publicar. O meu
+
+-- 75 of 83 --
+
+usuário, como ele já tá desabilitado para isso, eu não não gero publicações, então eu
+consigo vir aqui e alimentar.
+01:35:29
+Bruno da Silva Nogueira: Então eu venho manualmente, como você manualmente
+alimentar a que da lição alimentar essas informações de publicação. Cadê? Cadê aqui?
+Eu venho alimentar essas informações, tá? Tá sempre vai táar meu nome, ó. Bruno,
+Bruno, porque é eu que fico alimentando. A única possibilidade de gerar pendências
+na na sessão externa hoje pela nossa unidade é se tiver que fazer uma retificação, se
+tiver que fazer um necessário efeitos. Aí sim a gente tem a a possibilidade de fazer por
+aqui mesmo aí naquele mesmo esquema, operador 1, 2, 3 e gerar a publicação. Aí
+como eu disse para você de sessões, cada motivo tem uma coisa diferente. Aquela da
+Alessandra, ó, por exemplo, você tem um acessário efeitos aí, tá? Cessar efeitos,
+excessão interna do ato, ele puxa já a informação do ato anterior,
+Marcela Souza de Oliveira: você
+Bruno da Silva Nogueira: né? Aí ele informa certinho a estrutura dele já tá pronta, né?
+é o órgão de origem, o órgão para onde que estava cedido e a data que ele tá
+encerrando.
+01:36:27
+Bruno da Silva Nogueira: Então tem um layout paraa sessão interna, aí tem um layout
+para outro tipo de prorrogação. Cada um cada layout desse tá pré-definido já junto
+com o setor do Marcos. Marcos que faz essa essa alteração de layouts. Conseguiram
+entender essas essas movimentações aqui no caso de internes externas.
+Marcela Souza de Oliveira: grande.
+Bruno da Silva Nogueira: É por isso que eu falei para vocês, é bem e sempre vai
+aparecendo um caso novo do dia a dia.
+
+-- 76 of 83 --
+
+Marcela Souza de Oliveira: É, vamos, vamos. Vamos fazer uma nosso tempo aqui já
+até passou um pouquinho, mas vamos Tem mais alguma coisa aqui que você queira
+nos passar ali da parte de tipos de sessão que você buscou trouxe para essas duas
+telas mais aqui sanções interna e
+Bruno da Silva Nogueira: Não, não.
+Marcela Souza de Oliveira: externa.
+Bruno da Silva Nogueira: Com relação a elas é isso. É uma outra coisa que a gente
+tem de de problema, tá dizendo para vocês. É o seguinte, vou até mostrar esse próprio
+aqui, o texto que a gente colocou embaixo, ó. Resolve autorizar a sessão da SIS. Pera
+aí, tá passando um carro de som aqui. Pronto.
+01:37:41
+Bruno da Silva Nogueira: Eh, resolve autorizar autorizar a sessão da SES para o
+Tribunal de Contas, né, pelo período de um ano a partir do primeiro dia da publicação.
+só em sessões eh de deixa eu aqui aberto cadê o ato que eu mostrei para vocês aqui.
+Eh, só em atos assim manuais que a gente chama, eu consigo inserir essa informação
+de primeiro dia útil após a data da publicação. Dentro do CEAP hoje eu sou limitado
+porque aqui só pode datas, dias. Então, quando chega pra gente um pedido que fala
+assim: "Eu autorizo o Bruno a partir do primeiro dia hoje após a publicação por um ano,
+eu não tenho como inserir essa informação quando o ato é PAIEP. Essa é uma restrição
+que eu tenho também. eh, eu tenho que inserir essa informação via calendário. Então,
+que a gente acertou com todas as setoriais, a gente tem capacitações, né? E a gente
+acertou o seguinte, que toda vez que tiver um pedido assim, a partir da primeiro dia
+útil da publicação, a gente sempre vai lançar com uma semana paraa frente. Então,
+supondo que eu esteja analisando hoje, dia 23 de julho. Então, na hora que eu for
+lançar, eu lançaria como dia 30 de julho, uma semana para frente.
+01:38:47
+
+-- 77 of 83 --
+
+Bruno da Silva Nogueira: A gente coloca toda essa informação no processo para
+setorial ter acesso também, né? Mas ela sabe por padrão que a gente faz dessa forma,
+tá? Então assim, a gente não consegue fazer hoje uma publicação a partir da
+publicação, a gente só consegue fazer uma publicação com data definida. Essa é uma
+restrição que a gente tem hoje dentro do SEAP. Seria interessante, né, alguma forma
+de a gente poder publicar, que o CEAP, eh, que o sistema, né, de publicações entenda
+isso.
+Taylor Augusto Dos Santos: é a parte de publicação. Outra coisa que a gente vai ver
+também como que o se vai lidar
+Bruno da Silva Nogueira: Eh, porque assim, eu eh eu gostaria de ter, a gente
+precisaria ter, né, eh tá aqui o ato a partir da publicação. Então vou fazer a partir da
+publicação,
+Taylor Augusto Dos Santos: Nossa,
+Bruno da Silva Nogueira: vou colocar aqui a partir da publicação, né? Tem essa
+informação de publicar, mas aí de como isso geraria uma publicação e de como isso
+retornaria pro sistema para contabilizar a data, né? Isso aí já não sei como como
+pensar, né? N nessa nessa situação de execução, né?
+01:39:50
+Bruno da Silva Nogueira: Vamos dizer assim. Teria que ser alguma forma de eh como
+de puxar daqui, por exemplo,
+Taylor Augusto Dos Santos: Да.
+Bruno da Silva Nogueira: a gente marcar que seja a partir da publicação por um ano,
+né? Aí conforme a publicação puxou, né, que é a data do DO, ele não sei migrar isso
+para data de de de registro, né, e contabilizar um ano, algo nesse sentido que eu que
+eu o máximo que eu consegui imaginar, né? É porque a gente fica, tipo, acho que até
+interessante,
+Taylor Augusto Dos Santos: Так.
+Bruno da Silva Nogueira: muito interessante vocês, porque a gente fica aqui nessa
+caixinha, né, do SEAP de a vida inteira, então a gente fica meio sempre refém do que
+tem previsto aqui. Aí a gente tenta até pensar um pouquinho fora, mas como não a
+
+-- 78 of 83 --
+
+gente não trata em outros sistemas, a gente acaba ficando um pouquinho limitado. Aí
+eu sempre, é por isso que eu peço ajuda até para vocês nessa forma de pensar de
+como registrar
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: isso.
+Taylor Augusto Dos Santos: A gente também né, às vezes fica preso.
+Bruno da Silva Nogueira: Mas assim, hoje hoje seria eh isso que a gente tem no
+CEAP.
+01:40:45
+Bruno da Silva Nogueira: E o e é o interessante é aquilo que eu falei para vocês, né?
+Eh, essa forma de registro mais usual, né? gera uma publicação com essas
+possibilidades de de operadores. Se a gente conseguir descentralizar o registro e
+deixar a conferência pra gente, é o mundo ideal para cá, porque pouparia trabalho, né?
+Tempo e trabalho, porque a gente só precisaria conferir a a o processo em si, né, e
+validar o que já tá registrado hoje. Tá tudo centralizado, tá?
+Taylor Augusto Dos Santos: Então, então, por exemplo,
+Bruno da Silva Nogueira: paraš
+Taylor Augusto Dos Santos: vai, digamos assim, vai haver uma movimentação Są.
+Bruno da Silva Nogueira: ficou ficou
+Marcela Souza de Oliveira: É, voltou, voltou.
+Bruno da Silva Nogueira: mudo.
+Marcela Souza de Oliveira: novamente.
+Bruno da Silva Nogueira: Acho que deve ficar
+Marcela Souza de Oliveira: Opa. Ah, não, ele caiu.
+Bruno da Silva Nogueira: travado.
+Taylor Augusto Dos Santos: Voltei, voltei.
+Bruno da Silva Nogueira: Não,
+Taylor Augusto Dos Santos: Deu para pegar o que eu falei ou cortou?
+
+-- 79 of 83 --
+
+Bruno da Silva Nogueira: não cortou geral.
+Marcela Souza de Oliveira: início.
+Taylor Augusto Dos Santos: Ah, tá.
+01:42:01
+Taylor Augusto Dos Santos: Tá. Então vamos lá. digamos que vai haver uma
+movimentação, certo? Seja ele qual for lá. O ideal então seria que o a pessoa que vai
+receber esse esse funcionário lá que iniciaria é que vai depender também do tipo,
+Bruno da Silva Nogueira: Não,
+Taylor Augusto Dos Santos: né, da da movimentação.
+Bruno da Silva Nogueira: no caso seria seria interessante para mim partir da da
+origem da origem do servidor, porque quem pede Não, deixa eu pensar aqui. É, é
+porque como eu falei, tá muito fechado nessa caixa, mas assim, é porque por força do
+do que eu do que prevê a legislação fala o seguinte, que tem que ter autorização do
+órgão de origem, né? Então assim, teria que pedir e o órgão de origem a partir do
+momento que o secretário validar, aí sim o órgão de origem validasse essa
+movimentação, até porque da questão do acesso que a gente estava falando, né? Só o
+órgão de origem tem acesso à aquele servidor. Então seria interessante que o que a
+origem fizesse essa pré-movimentação,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: né? vai ser operador um que a gente teria pensando no no
+de hoje, né?
+01:42:57
+Taylor Augusto Dos Santos: Por exemplo, não poderia partir da prefeitura, né? Isso aí
+ela não tem acesso ao sistema em teoria,
+
+-- 80 of 83 --
+
+Bruno da Silva Nogueira: Uhum. E até interna e até e até internamente,
+Taylor Augusto Dos Santos: então ela não conseguiria ir lá e solicitar o
+Bruno da Silva Nogueira: né? A Cfaz criar um servidor da da CGE,
+Taylor Augusto Dos Santos: servidor.
+Bruno da Silva Nogueira: a Cfaz pede esse servidor. Aí a CGE depois de autorizado
+pelo controlador geral, né? Aí sim o setor da CGE faria essa pré movimentação para
+para lá,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: né? e mandando eh o processo pra gente fazer a
+conferência aqui. A gente conferiria se tivesse tá tudo OK e validaria essa
+movimentação se tivesse OK, né? Passando pro último operador que seria o operador
+do secretário,
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: seria mais interessante assim da da fluidez do processo,
+né? Porque eh pensando em unidade de trabalho, né? A a Cplag e os nossos setores,
+eles teriam que ser mais setores de desenvolvimento, setores mais estratégicos do
+que setores de execução,
+01:43:41
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: né? Essa execução teria que estar vinculada aos órgãos
+mesmo e a gente ser mais operador de validação, orientação, né? É mais mais nesse
+sentido. Aí isso, gente. Se vocês quiserem mais alguma pontuação, você pode falar
+que a gente tá à
+Taylor Augusto Dos Santos: É, a gente vai,
+Marcela Souza de Oliveira: Acho que foi o suficiente,
+Bruno da Silva Nogueira: disposição.
+Taylor Augusto Dos Santos: vamos matutar agora aqui,
+Marcela Souza de Oliveira: né?
+
+-- 81 of 83 --
+
+Taylor Augusto Dos Santos: almoçar, né?
+Marcela Souza de Oliveira: Temos muitas leis para conciliar aquilo que você disse aí.
+Taylor Augusto Dos Santos: Depois a gente é, pode ter certeza que a gente vai te
+incomodar
+Bruno da Silva Nogueira: Não, tranquilo. Eu falo porque, tipo assim,
+Taylor Augusto Dos Santos: ainda.
+Bruno da Silva Nogueira: a gente tem capacitações anuais, né? E tem unidades, né,
+sistêmicas que estão ali há anos com a gente, né, tipo tr 4, 5, 6 anos. E ainda tem tem
+dúvidas, né? A gente mesmo aqui no dia a dia,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: a gente nós mesmos ficamos com algum dúvidas que
+sempre aparece uma coisa, uma questão nova, uma legislação nova e assim a gente
+vai alimentando,
+Marcela Souza de Oliveira: Beleza, então, Bruno, olha,
+Bruno da Silva Nogueira: tá bom?
+Marcela Souza de Oliveira: obrigadão pelas informações. logo logo em breve, na
+próxima semana de presência,
+Taylor Augusto Dos Santos: Beleza.
+Marcela Souza de Oliveira: porque a gente vai meio corrida agora, mas a gente vai te
+te procuro,
+Bruno da Silva Nogueira: Não,
+Marcela Souza de Oliveira: tá?
+Bruno da Silva Nogueira: pode, pode chamar, fica
+Marcela Souza de Oliveira: Tentar puxar mais essa parte aqui da parte da sessão,
+Bruno da Silva Nogueira: vontade.
+Marcela Souza de Oliveira: mas temos mais umas informações aí que a gente vai
+precisar buscar contigo,
+Bruno da Silva Nogueira: Tudo bem?
+Taylor Augusto Dos Santos: Beleza.
+Bruno da Silva Nogueira: Tô à disposição,
+Marcela Souza de Oliveira: beleza?
+Taylor Augusto Dos Santos: Então, fechou.
+
+-- 82 of 83 --
+
+Bruno da Silva Nogueira: gente.
+Taylor Augusto Dos Santos: Obrigado,
+Marcela Souza de Oliveira: Obrigada.
+Taylor Augusto Dos Santos: Bruno. Até mais.
+Bruno da Silva Nogueira: Tchau, tchau,
+Marcela Souza de Oliveira: Até mais.
+Bruno da Silva Nogueira: gente. Bom trabalho aí.
+Marcela Souza de Oliveira: Já
+A transcrição foi encerrada após 01:45:32
+Esta transcrição editável foi gerada por computador e pode conter erros. As pessoas
+também podem alterar o texto depois que ele for criado.
+
+-- 83 of 83 --
+

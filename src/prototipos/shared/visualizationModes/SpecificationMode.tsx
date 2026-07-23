@@ -1,6 +1,6 @@
 import { createContext, cloneElement, isValidElement, useContext, useState, type MouseEvent, type ReactElement, type ReactNode } from "react";
 import "./specificationMode.css";
-import { ReviewPersistencePanel } from "../specificationReview/ReviewPersistencePanel";
+import { ReviewPersistencePanel } from "./ReviewPersistencePanel";
 
 export interface SpecificationMetadata {
   id: string;
