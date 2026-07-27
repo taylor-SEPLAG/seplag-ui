@@ -24,6 +24,7 @@ import {
   DocumentosLegaisAssociadosSeplag,
   type DocumentoLegalAssociadoSeplag,
 } from "@componentes/DocumentosLegaisAssociados";
+import { useDocumentosLegaisAssociaveis } from "./documentosLegais/documentosLegaisStore";
 import {
   DateFieldSeplag,
   CheckboxFieldSeplag,
@@ -149,7 +150,7 @@ interface CargoConcursoRouteProps {
   routePrefix?: string;
 }
 
-const menuGestaoPessoas: IMenuSeplag[] = [
+export const menuGestaoPessoas: IMenuSeplag[] = [
   {
     label: "Painel Informativo",
     icon: "pi pi-home",
@@ -236,6 +237,12 @@ const menuGestaoPessoas: IMenuSeplag[] = [
             visibleOnMenu: true,
             visibleOnRouter: true,
           },          {
+            label: "Distribuição",
+            icon: "pi pi-circle-on",
+            to: `${CONTROLE_VAGAS_BASE_PATH}/distribuicao`,
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+          },          {
             label: "Vagas Individualizadas",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/vagas`,
@@ -244,12 +251,6 @@ const menuGestaoPessoas: IMenuSeplag[] = [
             label: "Movimentações",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/movimentacoes`,
-            visibleOnMenu: true,
-            visibleOnRouter: true,
-          },          {
-            label: "Distribuição",
-            icon: "pi pi-circle-on",
-            to: `${CONTROLE_VAGAS_BASE_PATH}/distribuicao`,
             visibleOnMenu: true,
             visibleOnRouter: true,
           },          {
@@ -281,7 +282,7 @@ const menuGestaoPessoas: IMenuSeplag[] = [
         url: "#",
         visibleOnMenu: true,
         visibleOnRouter: true,
-        items: [{ label: "Documentos Legais", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true }],
+        items: [{ label: "Documentos Legais", icon: "pi pi-circle-on", to: "/prototipos/sigep/documentos-legais", visibleOnMenu: true, visibleOnRouter: true }],
       },
       {
         label: "Aposentadoria e Benefícios",
@@ -762,7 +763,7 @@ interface PrototypeSystemPageProps {
   children?: ReactNode;
 }
 
-function PrototypeSystemPage({
+export function PrototypeSystemPage({
   nomeSistema,
   ambienteSistema,
   menuItems,
@@ -6050,9 +6051,22 @@ export function PrototiposSituacaoVigenciaPage() {
 }
 
 export function PrototiposDocumentosVinculadosPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const documentosLegais = useDocumentosLegaisAssociaveis();
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>(
-    ["lei-12345-2023", "decreto-456-2024"],
+    ["lc-4-1990", "decreto-1447-2022"],
   );
+  const documentoCriadoId = searchParams.get("documentoLegalId");
+
+  useEffect(() => {
+    if (!documentoCriadoId) return;
+    setDocumentosSelecionados((current) => current.includes(documentoCriadoId) ? current : [...current, documentoCriadoId]);
+    navigate(location.pathname, { replace: true });
+  }, [documentoCriadoId, location.pathname, navigate]);
+
+  const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
 
   return (
     <PrototypeSystemPage
@@ -6073,11 +6087,11 @@ export function PrototiposDocumentosVinculadosPage() {
         >
           <DocumentosLegaisAssociadosSeplag
             required
-            options={documentosLegaisMock}
+            options={documentosLegais}
             value={documentosSelecionados}
             onChange={setDocumentosSelecionados}
-            onNovoCadastro={() => {}}
-            onVisualizar={() => {}}
+            onNovoCadastro={() => navigate(novoDocumentoUrl)}
+            onVisualizar={(documento) => navigate(`/prototipos/sigep/documentos-legais/${documento.id}`)}
           />
         </CardSeplag>
       </div>

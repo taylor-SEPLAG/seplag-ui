@@ -87,6 +87,10 @@ import {
   PrototiposTipoVinculoTestePage,
   PrototiposVinculoDetalhePage,
 } from "./prototipos/PrototiposPage";
+import {
+  PrototiposDocumentoLegalFormPage,
+  PrototiposDocumentosLegaisPage,
+} from "./prototipos/documentosLegais/DocumentosLegaisPages";
 import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
 import {
   PrototiposSicadBaseConhecimentoPage,
@@ -1305,6 +1309,22 @@ function App() {
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
       <Route
+        path="/prototipos/sigep/documentos-legais"
+        element={<PrototiposDocumentosLegaisPage />}
+      />
+      <Route
+        path="/prototipos/sigep/documentos-legais/novo"
+        element={<PrototiposDocumentoLegalFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/documentos-legais/:id/editar"
+        element={<PrototiposDocumentoLegalFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/documentos-legais/:id"
+        element={<PrototiposDocumentoLegalFormPage />}
+      />
+      <Route
         path="/prototipos/sigep/visao-sistema"
         element={<SigepVisaoSistemaPage />}
       />
@@ -1386,6 +1406,10 @@ function App() {
       />
       <Route
         path="/prototipos/sigep/controle-vagas/distribuicao"
+        element={<PrototiposControleVagasDistribuicaoSaldoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/distribuicao/nova"
         element={<PrototiposControleVagasDistribuicaoSaldoPage />}
       />
       <Route

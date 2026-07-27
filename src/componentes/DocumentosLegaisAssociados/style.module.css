@@ -12,7 +12,8 @@
   margin-bottom: 8px;
 }
 
-.label {
+.header .label {
+  display: inline-block !important;
   color: #334e68;
   font-size: 1rem;
   font-weight: 700;
@@ -21,6 +22,7 @@
 }
 
 .required {
+  margin-left: 3px;
   color: #dc2626;
 }
 
@@ -160,7 +162,7 @@
   overflow: auto;
 }
 
-.option {
+.options .option {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 14px;
@@ -169,15 +171,15 @@
   cursor: pointer;
 }
 
-.option:hover {
+.options .option:hover {
   background: #f6faff;
 }
 
-.optionSelected {
+.options .optionSelected {
   background: #e8f4ff;
 }
 
-.checkbox {
+.options .checkbox {
   width: 22px;
   height: 22px;
   margin-top: 2px;
@@ -299,3 +301,8 @@
   background: #eef5ff;
   color: #0072ce;
 }
+
+
+
+
+
