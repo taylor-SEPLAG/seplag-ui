@@ -42,7 +42,7 @@
 
 .prototype-system-link {
   display: block;
-  height: 190px;
+  height: 210px;
   color: inherit;
   text-decoration: none;
 }
@@ -63,16 +63,12 @@
 }
 
 .prototype-system-link:hover .prototype-system-card,
-.prototype-system-link:focus-visible .prototype-system-card {
+.prototype-system-link:focus-within .prototype-system-card {
   border-color: #005494;
   box-shadow: 0 14px 32px rgba(16, 42, 67, 0.14);
   transform: translateY(-2px);
 }
 
-.prototype-system-link:focus-visible {
-  outline: 3px solid rgba(0, 84, 148, 0.28);
-  outline-offset: 4px;
-}
 
 .prototype-system-card .p-card-body,
 .prototype-system-card .p-card-content,
@@ -128,13 +124,40 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-min-width: 112px;
+  min-width: 112px;
   height: 40px;
   padding: 0 14px;
   border-radius: 4px;
   background: #005494;
   color: #ffffff;
   font-weight: 700;
+  text-decoration: none;
+}
+
+.prototype-system-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prototype-system-vision-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  border: 1px solid #005494;
+  border-radius: 4px;
+  color: #005494;
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.prototype-system-action:focus-visible,
+.prototype-system-vision-action:focus-visible {
+  outline: 3px solid rgba(0, 84, 148, 0.28);
+  outline-offset: 2px;
 }
 
 .prototype-shell {

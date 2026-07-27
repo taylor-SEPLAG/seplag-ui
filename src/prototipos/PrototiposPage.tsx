@@ -811,11 +811,9 @@ export function PrototiposPage() {
 
       <section className="prototype-system-grid" aria-label="Sistemas disponíveis">
         {prototypeSystems.map((system) => (
-          <Link
+          <article
             className="prototype-system-link"
             key={system.id}
-            to={system.path}
-            aria-label={`Abrir protótipo ${system.title}`}
           >
             <CardSeplag cols="12" cardHeaderClassNames="prototype-system-card">
               <div className="prototype-system-card-content">
@@ -827,13 +825,19 @@ export function PrototiposPage() {
                   <h2>{system.title}</h2>
                   <p>{system.description}</p>
                 </div>
-                <span className="prototype-system-action">
-                  Acessar
-                  <i className="pi pi-arrow-right" aria-hidden="true" />
-                </span>
+                <div className="prototype-system-actions">
+                  <Link className="prototype-system-action" to={system.path} aria-label={`Abrir protótipo ${system.title}`}>
+                    Acessar <i className="pi pi-arrow-right" aria-hidden="true" />
+                  </Link>
+                  {system.id === "sigep" ? (
+                    <Link className="prototype-system-vision-action" to="/prototipos/sigep/visao-sistema">
+                      <i className="pi pi-sitemap" aria-hidden="true" /> Visão do sistema
+                    </Link>
+                  ) : null}
+                </div>
               </div>
             </CardSeplag>
-          </Link>
+          </article>
         ))}
       </section>
     </main>

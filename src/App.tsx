@@ -87,6 +87,7 @@ import {
   PrototiposTipoVinculoTestePage,
   PrototiposVinculoDetalhePage,
 } from "./prototipos/PrototiposPage";
+import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
 import {
   PrototiposSicadBaseConhecimentoPage,
   PrototiposSicadFilaChamadosPage,
@@ -1303,6 +1304,10 @@ function App() {
         element={<PrototiposSicadChamadoDetalhePage />}
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
+      <Route
+        path="/prototipos/sigep/visao-sistema"
+        element={<SigepVisaoSistemaPage />}
+      />
       <Route
         path="/prototipos/sigep/gestao/painel-informativo"
         element={<PrototiposFolhaPage modulo="gestao-pessoas" />}

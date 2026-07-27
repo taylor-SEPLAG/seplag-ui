@@ -1,0 +1,1 @@
+var e=`/seplag-ui/assets/default-avatar-B_zy20_j.jpg`;export{e as t};

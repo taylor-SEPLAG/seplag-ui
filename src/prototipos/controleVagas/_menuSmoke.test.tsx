@@ -98,7 +98,18 @@ describe("menus do Controle de Vagas", () => {
     expect(result.getByText("Por componente")).toBeTruthy();
     expect(result.getAllByText("Pendências").length).toBeGreaterThan(0);
   });
-  it("possui as fontes necessárias para a Fase 10", () => {
+  it("controla individualmente os indicadores do Dashboard", () => {
+    const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
+    const possuiCartao = (nome:string) => [...result.container.querySelectorAll("button.prototype-dash-kpi")].some((item) => item.textContent?.includes(nome));
+    expect(result.container.querySelector(".prototype-dash-kpis.management.unified")).toBeTruthy();
+    expect(possuiCartao("Cargos legais")).toBe(true);
+    fireEvent.click(result.getByText("Filtros da consulta"));
+    const controle = result.getByLabelText("Cargos legais");
+    expect((controle as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(controle);
+    expect((controle as HTMLInputElement).checked).toBe(false);
+    expect(possuiCartao("Cargos legais")).toBe(false);
+  });  it("possui as fontes necessárias para a Fase 10", () => {
     const state = controleVagasStore.getState();
     const ocupacoesAtivas = state.ocupacoes.filter((item) => item.situacao === "ATIVA");
     expect(new Set(state.vagas.map((vaga) => `${vaga.quadroCodigo}|${vaga.cargo}`)).size).toBeGreaterThan(0);

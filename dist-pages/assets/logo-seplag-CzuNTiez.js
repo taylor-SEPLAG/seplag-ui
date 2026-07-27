@@ -1,0 +1,1 @@
+var e=`/seplag-ui/assets/logo-seplag-BYOKdv6-.png`;export{e as t};

@@ -1,0 +1,26 @@
+import{a as e,n as t}from"./jsx-runtime--AOyvnT1.js";import{A as n,M as r,P as i,c as a,j as o,s,x as c}from"./hooks.esm-DR260yFp.js";import{n as l,t as u}from"./componentbase.esm-Bg3bXvUu.js";import{t as d}from"./index.esm-C2MySAtr.js";var f=e(t());function p(e){"@babel/helpers - typeof";return p=typeof Symbol==`function`&&typeof Symbol.iterator==`symbol`?function(e){return typeof e}:function(e){return e&&typeof Symbol==`function`&&e.constructor===Symbol&&e!==Symbol.prototype?`symbol`:typeof e},p(e)}function m(e,t){if(p(e)!=`object`||!e)return e;var n=e[Symbol.toPrimitive];if(n!==void 0){var r=n.call(e,t||`default`);if(p(r)!=`object`)return r;throw TypeError(`@@toPrimitive must return a primitive value.`)}return(t===`string`?String:Number)(e)}function h(e){var t=m(e,`string`);return p(t)==`symbol`?t:t+``}function g(e,t,n){return(t=h(t))in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}function _(){return _=Object.assign?Object.assign.bind():function(e){for(var t=1;t<arguments.length;t++){var n=arguments[t];for(var r in n)({}).hasOwnProperty.call(n,r)&&(e[r]=n[r])}return e},_.apply(null,arguments)}function v(e){if(Array.isArray(e))return e}function y(e,t){var n=e==null?null:typeof Symbol<`u`&&e[Symbol.iterator]||e[`@@iterator`];if(n!=null){var r,i,a,o,s=[],c=!0,l=!1;try{if(a=(n=n.call(e)).next,t===0){if(Object(n)!==n)return;c=!1}else for(;!(c=(r=a.call(n)).done)&&(s.push(r.value),s.length!==t);c=!0);}catch(e){l=!0,i=e}finally{try{if(!c&&n.return!=null&&(o=n.return(),Object(o)!==o))return}finally{if(l)throw i}}return s}}function b(e,t){(t==null||t>e.length)&&(t=e.length);for(var n=0,r=Array(t);n<t;n++)r[n]=e[n];return r}function x(e,t){if(e){if(typeof e==`string`)return b(e,t);var n={}.toString.call(e).slice(8,-1);return n===`Object`&&e.constructor&&(n=e.constructor.name),n===`Map`||n===`Set`?Array.from(e):n===`Arguments`||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)?b(e,t):void 0}}function S(){throw TypeError(`Invalid attempt to destructure non-iterable instance.
+In order to be iterable, non-array objects must have a [Symbol.iterator]() method.`)}function C(e,t){return v(e)||y(e,t)||x(e,t)||S()}var w=u.extend({defaultProps:{__TYPE:`Chip`,label:null,icon:null,image:null,removable:!1,removeIcon:null,className:null,style:null,template:null,imageAlt:`chip`,onImageError:null,onRemove:null,children:void 0},css:{classes:{root:function(e){var t=e.props;return i(`p-chip p-component`,{"p-chip-image":t.image!=null})},removeIcon:`p-chip-remove-icon`,icon:`p-chip-icon`,label:`p-chip-text`},styles:`
+@layer primereact {
+    .p-chip {
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .p-chip-text {
+        line-height: 1.5;
+    }
+    
+    .p-chip-icon.pi {
+        line-height: 1.5;
+    }
+    
+    .p-chip .p-chip-remove-icon {
+        line-height: 1.5;
+        cursor: pointer;
+    }
+    
+    .p-chip img {
+        border-radius: 50%;
+    }
+}
+`}});function T(e,t){var n=Object.keys(e);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(e);t&&(r=r.filter(function(t){return Object.getOwnPropertyDescriptor(e,t).enumerable})),n.push.apply(n,r)}return n}function E(e){for(var t=1;t<arguments.length;t++){var n=arguments[t]==null?{}:arguments[t];t%2?T(Object(n),!0).forEach(function(t){g(e,t,n[t])}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(n)):T(Object(n)).forEach(function(t){Object.defineProperty(e,t,Object.getOwnPropertyDescriptor(n,t))})}return e}var D=f.memo(f.forwardRef(function(e,t){var u=s(),p=f.useContext(c),m=w.getProps(e,p),h=f.useRef(null),g=C(f.useState(!0),2),v=g[0],y=g[1],b=C(f.useState(m.id),2),x=b[0],S=b[1],T=w.setMetaData({props:m}),D=T.ptm,O=T.cx,k=T.isUnstyled;l(w.css.styles,k,{name:`chip`});var A=function(e){(e.code===`Enter`||e.code===`NumpadEnter`||e.code===`Backspace`)&&j(e)},j=function(e){var t=!0;m.onRemove&&(e.stopPropagation(),t=m.onRemove({originalEvent:e,value:m.label||m.image||m.icon})),t!==!1&&y(!1)},M=function(){var e=[],t=u({role:`button`,tabIndex:0,className:O(`removeIcon`),onClick:j,onKeyDown:A},D(`removeIcon`)),i=m.removeIcon||f.createElement(d,_({},t,{key:`${x}-removeIcon`}));if(m.image){var a=u({src:m.image,onError:m.onImageError},D(`image`));e.push(f.createElement(`img`,_({alt:m.imageAlt},a,{key:`${x}-image`})))}else if(m.icon){var o=u({className:O(`icon`)},D(`icon`));e.push(n.getJSXIcon(m.icon,E({},o),{props:m}))}if(m.label){var s=u({className:O(`label`)},D(`label`));e.push(f.createElement(`span`,_({},s,{key:r(`label`)}),m.label))}return m.removable&&e.push(n.getJSXIcon(i,E({},t),{props:m})),e};return f.useImperativeHandle(t,function(){return{props:m,getVisible:function(){return v},setVisible:function(e){return y(e)},getElement:function(){return h.current}}}),a(function(){x||S(r())}),x?v&&function(){var e=m.template?o.getJSXElement(m.template,m):M(),t=u({ref:h,style:m.style,className:i(m.className,O(`root`)),"aria-label":m.label},w.getOtherProps(m),D(`root`));return f.createElement(`div`,_({},t,{key:r(`chip`)}),e)}():null}));D.displayName=`Chip`;var O={ATIVO:`ATIVO`,INATIVO:`INATIVO`,EXTINTO:`EXTINTO`,PENDENTE:`PENDENTE`},k={[O.ATIVO]:`Ativo`,[O.INATIVO]:`Inativo`,[O.EXTINTO]:`Extinto`,[O.PENDENTE]:`Pendente`};export{k as n,D as r,O as t};
