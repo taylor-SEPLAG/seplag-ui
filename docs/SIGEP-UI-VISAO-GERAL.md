@@ -72,7 +72,6 @@ src/
 
 docs/
   CONTEXTO_PROJETO.md             Contexto evolutivo e decisões do projeto
-  controle-vagas-status-implementacao.md
   folha-pagamento-status-implementacao.md
 
 bibliotecas-seplag/
@@ -107,6 +106,8 @@ Entre os componentes disponíveis estão:
 A regra de evolução indicada no contexto do projeto é: novas telas e funcionalidades devem usar componentes existentes em `src/componentes` sempre que possível. Quando não houver componente adequado, a decisão deve ser explícita entre criar um componente reutilizável na biblioteca ou resolver localmente no protótipo.
 
 ## 6. Documentação interativa
+
+Para aplicar os modos auxiliares de **Desenvolvimento** e **Gestão** às telas de protótipo, consulte [Modos de visualização para protótipos](./MODOS-VISUALIZACAO-PROTOTIPOS.md). O guia contém contrato de metadados, integração, testes, critérios de aceite e prompt para agentes de IA.
 
 A documentação dos componentes fica em `/docs` e é configurada principalmente em:
 
@@ -175,17 +176,6 @@ Principais áreas implementadas ou representadas:
   - Cargo.
   - Tipo de Vínculo.
   - Matriz de Validação.
-- Controle de Vagas:
-  - Hub de Controle de Vagas.
-  - Configuração.
-  - Quadro autorizado.
-  - Consulta de saldo.
-  - Vagas numeradas.
-  - Integração funcional.
-  - Histórico e ocupação.
-
-O Controle de Vagas é uma das partes mais documentadas do SIGEP no repositório. Segundo `docs/controle-vagas-status-implementacao.md`, essa funcionalidade busca controlar, validar e acompanhar vagas autorizadas para cargos e funções, dando rastreabilidade e consistência ao processo de provimento, movimentação e ocupação.
-
 Rotas principais do SIGEP:
 
 ```text
@@ -199,13 +189,6 @@ Rotas principais do SIGEP:
 /#/prototipos/sigep/cargo-concurso-teste/cargo
 /#/prototipos/sigep/cargo-concurso-teste/tipo-vinculo
 /#/prototipos/sigep/cargo-concurso-teste/matriz-validacao
-/#/prototipos/sigep/controle-vagas
-/#/prototipos/sigep/controle-vagas/configuracao
-/#/prototipos/sigep/controle-vagas/quadro-autorizado
-/#/prototipos/sigep/controle-vagas/consulta-saldo
-/#/prototipos/sigep/controle-vagas/vagas-numeradas
-/#/prototipos/sigep/controle-vagas/integracao
-/#/prototipos/sigep/controle-vagas/historico
 ```
 
 ## 9. Protótipo Folha de Pagamento
@@ -335,7 +318,7 @@ Para uma visão geral técnica:
 4. Abra `src/componentes/index.ts` para ver os componentes disponíveis.
 5. Abra `src/App.tsx` para entender as rotas.
 6. Abra `src/prototipos/PrototiposPage.tsx` para entender os protótipos.
-7. Consulte os documentos específicos em `docs/controle-vagas-status-implementacao.md` e `docs/folha-pagamento-status-implementacao.md`.
+7. Consulte `docs/folha-pagamento-status-implementacao.md` para o status do protótipo da Folha de Pagamento.
 
 ## 15. Resumo executivo
 

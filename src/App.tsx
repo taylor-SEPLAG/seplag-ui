@@ -32,17 +32,21 @@ import {
   PrototiposCategoriaTesteFormPage,
   PrototiposCategoriaTestePage,
   PrototiposComponentesPage,
-  PrototiposControleVagasConfiguracaoFormPage,
-  PrototiposControleVagasPage,
-  PrototiposControleVagasConfiguracaoPage,
-  PrototiposControleVagasQuadroAutorizadoFormPage,
+  PrototiposControleVagasRegrasPage,
   PrototiposControleVagasQuadroAutorizadoPage,
+  PrototiposControleVagasDistribuicaoSaldoPage,
+  PrototiposControleVagasDashboardPage,
+  PrototiposControleVagasVagasPage,
+  PrototiposControleVagasCessoesPage,
+  PrototiposControleVagasProjecoesPage,
+  PrototiposQuadroPessoalRegrasPage,
+  PrototiposQuadroPessoalQuadroAutorizadoPage,
+  PrototiposQuadroPessoalDistribuicaoPage,
+  PrototiposQuadroPessoalDashboardPage,
+  PrototiposQuadroPessoalVagasPage,
+  PrototiposQuadroPessoalMovimentacoesPage,
+  PrototiposQuadroPessoalProjecoesPage,
   PrototiposEfetivoExercicioPage,
-  PrototiposControleVagasConsultaSaldoPage,
-  PrototiposControleVagasVagasNumeradasPage,
-  PrototiposControleVagasVagasNumeradasFormPage,
-  PrototiposControleVagasHistoricoPage,
-  PrototiposControleVagasIntegracaoPage,
   PrototiposDocumentosVinculadosPage,
   PrototiposEstruturaOrganizacionalPage,
   PrototiposSituacaoVigenciaPage,
@@ -93,6 +97,11 @@ import {
   PrototiposVinculoDetalhePage,
 } from "./prototipos/PrototiposPage";
 import {
+  PrototiposDocumentoLegalFormPage,
+  PrototiposDocumentosLegaisPage,
+} from "./prototipos/documentosLegais/DocumentosLegaisPages";
+import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
+import {
   PrototiposSicadBaseConhecimentoPage,
   PrototiposSicadFilaChamadosPage,
   PrototiposSicadMeusChamadosPage,
@@ -101,6 +110,8 @@ import {
   PrototiposSicadChamadosDashboardPage,
   PrototiposSicadChamadosRelatoriosPage,
   PrototiposSicadPage,
+  PrototiposSicadUsuariosPage,
+  PrototiposSicadUsuarioPerfilPage,
 } from "./prototipos/sicad/PrototiposSicadPage";
 
 function HomePage() {
@@ -115,7 +126,6 @@ function HomePage() {
         { label: "Categoria", to: "/prototipos/sigep/categoria" },
         { label: "Cargo", to: "/prototipos/sigep/cargo" },
         { label: "Regime Jurídico", to: "/prototipos/sigep/regime-juridico" },
-        { label: "Controle de Vagas", to: "/prototipos/sigep/controle-vagas" },
         { label: "Componentes", to: "/prototipos/sigep/componentes" },
       ],
     },
@@ -1243,6 +1253,14 @@ function App() {
       <Route path="/prototipos" element={<PrototiposPage />} />
       <Route path="/prototipos/sicad" element={<PrototiposSicadPage />} />
       <Route
+        path="/prototipos/sicad/administrador/usuarios"
+        element={<PrototiposSicadUsuariosPage />}
+      />
+      <Route
+        path="/prototipos/sicad/administrador/usuarios/:id"
+        element={<PrototiposSicadUsuarioPerfilPage />}
+      />
+      <Route
         path="/prototipos/sicad/chamados/nova"
         element={<PrototiposSicadNovoChamadoPage />}
       />
@@ -1300,6 +1318,26 @@ function App() {
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
       <Route
+        path="/prototipos/sigep/documentos-legais"
+        element={<PrototiposDocumentosLegaisPage />}
+      />
+      <Route
+        path="/prototipos/sigep/documentos-legais/novo"
+        element={<PrototiposDocumentoLegalFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/documentos-legais/:id/editar"
+        element={<PrototiposDocumentoLegalFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/documentos-legais/:id"
+        element={<PrototiposDocumentoLegalFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/visao-sistema"
+        element={<SigepVisaoSistemaPage />}
+      />
+      <Route
         path="/prototipos/sigep/gestao/painel-informativo"
         element={<PrototiposFolhaPage modulo="gestao-pessoas" />}
       />
@@ -1330,58 +1368,6 @@ function App() {
       <Route
         path="/prototipos/sigep/regime-juridico"
         element={<PrototiposSigepRegimeJuridicoPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas"
-        element={<PrototiposControleVagasPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/configuracao"
-        element={<PrototiposControleVagasConfiguracaoPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/configuracao/novo"
-        element={<PrototiposControleVagasConfiguracaoFormPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/configuracao/:id/editar"
-        element={<PrototiposControleVagasConfiguracaoFormPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/quadro-autorizado"
-        element={<PrototiposControleVagasQuadroAutorizadoPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/quadro-autorizado/novo"
-        element={<PrototiposControleVagasQuadroAutorizadoFormPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/editar"
-        element={<PrototiposControleVagasQuadroAutorizadoFormPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/consulta-saldo"
-        element={<PrototiposControleVagasConsultaSaldoPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/vagas-numeradas"
-        element={<PrototiposControleVagasVagasNumeradasPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/vagas-numeradas/novo"
-        element={<PrototiposControleVagasVagasNumeradasFormPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/vagas-numeradas/:id/editar"
-        element={<PrototiposControleVagasVagasNumeradasFormPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/historico"
-        element={<PrototiposControleVagasHistoricoPage />}
-      />
-      <Route
-        path="/prototipos/sigep/controle-vagas/integracao"
-        element={<PrototiposControleVagasIntegracaoPage />}
       />
       <Route
         path="/prototipos/sigep/ingressos"
@@ -1428,6 +1414,85 @@ function App() {
         element={<PrototiposVinculoDetalhePage />}
       />
       <Route
+        path="/prototipos/sigep/controle-vagas/configuracoes"
+        element={<PrototiposControleVagasRegrasPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/dashboard"
+        element={<PrototiposControleVagasDashboardPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/distribuicao"
+        element={<PrototiposControleVagasDistribuicaoSaldoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/distribuicao/nova"
+        element={<PrototiposControleVagasDistribuicaoSaldoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/projecoes"
+        element={<PrototiposControleVagasProjecoesPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/cessoes"
+        element={<PrototiposControleVagasCessoesPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/movimentacoes/nova-remocao"
+        element={<PrototiposControleVagasCessoesPage />}
+      />
+
+      <Route
+        path="/prototipos/sigep/controle-vagas/movimentacoes/nova-cessao"
+        element={<PrototiposControleVagasCessoesPage />}
+      />
+
+      <Route
+        path="/prototipos/sigep/controle-vagas/movimentacoes"
+        element={<PrototiposControleVagasCessoesPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/vagas"
+        element={<PrototiposControleVagasVagasPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/quadro-autorizado"
+        element={<PrototiposControleVagasQuadroAutorizadoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/quadro-autorizado/novo"
+        element={<PrototiposControleVagasQuadroAutorizadoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id"
+        element={<PrototiposControleVagasQuadroAutorizadoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/editar"
+        element={<PrototiposControleVagasQuadroAutorizadoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/nova-versao"
+        element={<PrototiposControleVagasQuadroAutorizadoPage />}
+      />
+      <Route path="/prototipos/sigep/quadro-pessoal/configuracoes" element={<PrototiposQuadroPessoalRegrasPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/dashboard" element={<PrototiposQuadroPessoalDashboardPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/distribuicao" element={<PrototiposQuadroPessoalDistribuicaoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/distribuicao/nova" element={<PrototiposQuadroPessoalDistribuicaoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/projecoes" element={<PrototiposQuadroPessoalProjecoesPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/cessoes" element={<PrototiposQuadroPessoalMovimentacoesPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/movimentacoes" element={<PrototiposQuadroPessoalMovimentacoesPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/vagas" element={<PrototiposQuadroPessoalVagasPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes/novo" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes/:id" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes/:id/editar" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes/:id/nova-versao" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/posicoes" element={<PrototiposQuadroPessoalVagasPage />} />      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/novo" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id/editar" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id/nova-versao" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />      <Route
         path="/prototipos/sigep/categoria"
         element={<PrototiposCategoriaPage />}
       />

@@ -1,0 +1,14 @@
+.prototype-documentos-legais-filters { align-items: end; margin-bottom: 1rem; }
+.prototype-documentos-legais-clear { display: flex; align-items: flex-end; padding-bottom: .5rem; }
+.prototype-documentos-legais-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.prototype-documentos-legais-actions { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #dfe5eb; }
+.prototype-documentos-legais-error { margin-bottom: 1rem; padding: .75rem 1rem; border: 1px solid #ef9a9a; border-radius: 4px; background: #fdecec; color: #a61b1b; }
+.prototype-documentos-legais-table,
+.prototype-documentos-legais-table > div,
+.prototype-documentos-legais-table .p-datatable { width: 100%; min-width: 0; }
+.prototype-documentos-legais-table .p-datatable-table { width: 100%; table-layout: fixed; }
+.prototype-documentos-legais-table th:nth-child(1) { width: 14%; }
+.prototype-documentos-legais-table th:nth-child(2) { width: 9%; }
+.prototype-documentos-legais-table th:nth-child(3) { width: 7%; }
+.prototype-documentos-legais-table th:nth-last-child(2) { width: 10%; }
+.prototype-documentos-legais-table th:last-child { width: 8rem; }

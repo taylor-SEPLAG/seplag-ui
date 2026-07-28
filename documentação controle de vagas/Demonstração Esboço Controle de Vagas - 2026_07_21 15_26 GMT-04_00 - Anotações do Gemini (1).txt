@@ -1,0 +1,1425 @@
+📝 Observações
+
+-- 1 of 50 --
+
+jul. 21, 2026
+Demonstração Esboço
+Controle de Vagas
+convidado Bruno da Silva Nogueira Reunião TI - SEPLAG Taylor Augusto Dos Santos
+Marcela Souza de Oliveira
+Anexos Demonstração Esboço Controle de Vagas
+Registros da reunião Transcrição 	Gravação
+Resumo
+Reunião definiu estrutura do dashboard de controle de vagas, regras de
+movimentação e gestão de pessoal.
+Estrutura do Dashboard
+O sistema centralizará o controle de cargos e vagas, permitindo edições apenas em
+vigências futuras e bloqueios após início. Decidiu-se utilizar o termo perfil para
+especificar especializações profissionais.
+Regras de Movimentação
+Movimentações serão categorizadas em sessões e remoções com campos distintos
+para unidades de destino e ônus. O sistema manterá o histórico íntegro de
+transformações judiciais e redistribuições de cargos.
+Gestão e Projeções
+Funcionalidades futuras incluirão projeções de vacâncias baseadas em
+aposentadorias e controle de acesso por níveis de usuário. Módulos separados
+tratarão temporários e comissionados para respeitar regras específicas.
+
+-- 2 of 50 --
+
+Próximas etapas
+[Bruno da Silva Nogueira] Verificar perfis: Verificar a lista de perfis e
+especialidades com os setores de monitoramento e aplicação para realizar o
+vínculo no sistema.
+[The group] Mapear fluxo: Mapear o fluxo e as necessidades funcionais da tela
+de sessões, considerando os diferentes tipos de movimentação e unidades de
+destino.
+[Taylor Augusto Dos Santos] Alterar Movimentação: Alterar a estrutura de
+movimentação de servidores para contemplar as distinções entre
+movimentações definitivas e temporárias. Incorporar os tipos de eventos de
+movimentação e remoção discutidos.
+Detalhes
+● Visão Geral do Dashboard de Controle de Vagas: Taylor Augusto Dos Santos
+apresentou a estrutura inicial do dashboard, que começa no quadro autorizado
+onde o usuário seleciona o tipo de vínculo, regime e base legal, além de definir a
+quantidade de vagas e, se aplicável, os órgãos aos quais elas pertencem
+(00:01:43). O sistema permite a entrada de dados sobre carreiras e cargos, com
+uma funcionalidade para registrar a vigência, sendo que o sistema atualmente
+exibe todos os cargos mas será filtrado conforme o desenvolvimento
+(00:06:21).
+● Gerenciamento de Versões de Quadros: Taylor Augusto Dos Santos explicou
+que, enquanto um quadro estiver com vigência futura, é possível editá-lo
+diretamente, mas após o início da vigência, as edições são bloqueadas para
+garantir a integridade dos dados. Para alterações, como o aumento de vagas
+via nova lei, o sistema permitirá criar uma nova versão, que manterá o histórico
+e processará a nova quantidade de vagas (00:07:36).
+● Redistribuição de Vagas: Bruno da Silva Nogueira e Taylor Augusto Dos Santos
+discutiram a redistribuição de vagas, confirmando que é possível redistribuir as
+
+-- 3 of 50 --
+
+vagas existentes entre os órgãos quando ocorrem mudanças, seja no momento
+da criação ou em versões subsequentes com vigência futura (00:08:40). O
+sistema possui atalhos para facilitar essa redistribuição e a alteração dos
+quantitativos (00:09:34).
+● Transformação e Extinção de Cargos: Taylor Augusto Dos Santos e Bruno da
+Silva Nogueira abordaram a transformação de cargos, onde o sistema permite
+mudar todas as vagas de um cargo para outro, mantendo o histórico (00:10:39)
+(00:17:05). Foi esclarecido que a transformação pode envolver tanto cargos já
+existentes quanto a criação de novos, e que a extinção de cargos ocorrerá
+conforme os ocupantes atuais deixarem suas funções, tornando as vagas
+inativas (00:11:28) (00:17:05).
+● Reversão de Transformações Judiciais: Bruno da Silva Nogueira relatou
+casos em que decisões judiciais determinaram a reversão de transformações
+de cargos ocorridas no passado (00:17:53). Taylor Augusto Dos Santos e Bruno
+da Silva Nogueira concordaram que a melhor forma de tratar essas situações no
+sistema será realizar uma nova transformação para o cargo anterior, garantindo
+a manutenção do histórico (00:18:46).
+● Consulta de Vagas Individualizadas: Taylor Augusto Dos Santos apresentou a
+tela de vagas individualizadas, desenhada para consulta e visualização do
+histórico de cada vaga, incluindo quem a ocupou e seu status atual, que será
+alimentado por dados do módulo de ingresso. O sistema permitirá filtros para
+facilitar a visualização das informações conforme a necessidade do usuário
+(00:12:30).
+● Filtros de Perfil e Especialidade: Bruno da Silva Nogueira e Reunião TI -
+SEPLAG discutiram a nomenclatura para definir especializações dos servidores
+(00:13:31). Ficou definido que o sistema utilizará o campo "perfil" em vez de
+"especialidade", visto que o perfil está mais alinhado à formação profissional
+(como engenheiro civil ou médico anestesista) e engloba as necessidades de
+monitoramento e aplicação (00:14:24).
+● Regras para Sessão de Servidores: Taylor Augusto Dos Santos e Bruno da
+Silva Nogueira debateram as sessões, onde o servidor é movimentado para
+outro órgão. O sistema deve registrar o ônus (quem paga), o órgão de destino e
+a unidade de destino, visto que a sessão não altera a remuneração ou o cargo
+original do servidor, mas muda o local de exercício (00:19:32) (00:21:13).
+
+-- 4 of 50 --
+
+● Importância da Unidade de Destino: Bruno da Silva Nogueira enfatizou que,
+além do órgão, é essencial registrar a unidade de destino específica, pois o
+acesso a sistemas de ponto, férias e chefia imediata depende da unidade onde
+o servidor está fisicamente lotado (00:26:45). Taylor Augusto Dos Santos
+confirmou que o sistema incluirá esses campos e as datas de início e fim da
+sessão (00:27:42).
+● Escopo Abrangente das Sessões: Bruno da Silva Nogueira detalhou que as
+sessões podem envolver entes federativos, assembleias legislativas, prefeituras
+e até organizações filantrópicas, como no caso da carreira de saúde no SUS
+(00:29:24). O sistema precisa estar preparado para gerenciar diferentes regras
+de reembolso de salários que variam conforme a legislação de cada carreira e o
+tipo de entidade receptora (00:30:04).
+● Distribuição de Vagas e Inexistência de Banco Central: Bruno da Silva
+Nogueira esclareceu que não existe um "banco de vagas do estado" genérico.
+Todas as vagas, mesmo as da "área meio", estão vinculadas a órgãos
+específicos conforme a legislação inicial ou decretos subsequentes de
+redistribuição, e o sistema deve refletir essa realidade sem criar um
+recolhimento centralizado (00:32:42).
+● Dashboard e Indicadores: Taylor Augusto Dos Santos revisou as
+funcionalidades do dashboard, que exibirá o status das vagas (ocupadas,
+disponíveis, comprometidas ou em extinção). O dashboard servirá como uma
+digitalização da planilha de controle atual, permitindo uma visualização clara
+dos potenciais de preenchimento e históricos de distribuição (00:37:15).
+● Projeções Futuras de Vagas: Taylor Augusto Dos Santos introduziu o conceito
+de projeções, uma funcionalidade em desenvolvimento para estimar futuras
+vacâncias com base em dados de aposentadoria, oferecendo uma visão
+preditiva do quadro de pessoal (00:36:17).
+● Controle de Acesso: Taylor Augusto Dos Santos e Bruno da Silva Nogueira
+confirmaram que o sistema contará com controle de acesso por níveis de
+usuário, similar ao sistema SICAD, impedindo que usuários não autorizados
+criem ou modifiquem cargos e vagas (00:38:30).
+● Gestão de Temporários e Comissionados: A equipe discutiu a separação
+entre efetivos, temporários e comissionados (00:40:21). Taylor Augusto Dos
+Santos propôs um módulo ou menu separado para o quadro de pessoal
+
+-- 5 of 50 --
+
+temporário (estagiários, bolsistas, terceirizados), dado que eles não possuem as
+mesmas regras de controle de vagas que os servidores efetivos, embora o
+dashboard possa unificar indicadores para uma visão geral (00:42:09).
+● Movimentação: Sessão vs. Remoção: Em uma análise profunda, Bruno da
+Silva Nogueira diferenciou "sessão" de "remoção" (00:46:28) (00:48:54). A
+sessão é uma movimentação temporária (para outro órgão), enquanto a
+remoção é uma movimentação definitiva que altera a unidade ou órgão de
+lotação do cargo efetivo (00:49:36) (00:51:47). Ficou acordado que o sistema
+tratará ambos como tipos de "movimentação", mas com telas ou campos
+específicos para cada caso, dada a complexidade das regras que envolvem
+cada processo (00:48:54) (00:51:20).
+Revise as anotações do Gemini para checar se estão corretas. Confira dicas e saiba
+como o Gemini faz anotações
+Como está a qualidade de destas observações? Responda a uma breve pesquisa
+para nos dar seu feedback, incluindo o quanto as observações foram úteis para o que
+você precisa.
+
+-- 6 of 50 --
+
+📖 Transcrição
+
+-- 7 of 50 --
+
+jul. 21, 2026
+Demonstração Esboço
+Controle de Vagas -
+Transcrição
+00:01:43
+Reunião TI - SEPLAG: Boa tarde, Bruno.
+Bruno da Silva Nogueira: Boa tarde. Boa tarde,
+Reunião TI - SEPLAG: Vamos esperar só um minutinho só. Enquanto o Taylor volta, a
+gente já inicia, tá?
+Taylor Augusto Dos Santos: Voltei. Ele saiu tudo. Acho que não sai de machucada.
+Bruno tá aí.
+Reunião TI - SEPLAG: Então, já já tá aqui. Vamos
+Bruno da Silva Nogueira: Tô assim, tô aqui. M.
+Reunião TI - SEPLAG: lá.
+Taylor Augusto Dos Santos: Ah, beleza. Mas saiu correndo ver o negócio que caiu
+aqui. Beleza. Tá, tá conseguindo ver, Bruno? Beleza, eu vou fazer um overview aqui mais
+ou menos de como que tá ficando aí. O a ideia é mais para ver se tá no no caminho
+certo e para ir já tirando algumas dúvidas também, beleza? Aí o dashboard seria a
+última coisa, a gente vai mostrar os dados lá e tal. Eh, então, basicamente tudo
+começa no quadro autorizado, é que onde a pessoa vai vir lá fazer uma no autorização,
+vai selecionar qual tipo de quadro se aplicativa condicionado, qual tipo de vínculo e tal,
+regime, aí essas informações, eu vou mandar o link para você depois ver se realmente
+precisa dessas informações, se não tem comissionário, se é só repetível e tal.
+
+-- 8 of 50 --
+
+00:05:14
+Taylor Augusto Dos Santos: Aqui ele vai selecionar a carreira e o cargo daí no caso,
+né, é meio que só um aqui. E daí aqui no quantitativa abrangente, então ele vai colocar
+a quantidade, né, de vagas, por exemplo, a ser 500 vagas e tal. E aqui seriam as
+possibilidades. Então, por exemplo, se aquela lei lá não indicou se essas eh eh se essas
+vagas são para um órgão específico, ou seja, se ela meio que vai pro só pro banco de
+dados do estado lá e tal, eh, aí basicamente ficaria essas 500 vagas e depois elas
+seriam distribuídas, né? Aí, depois quando lei indica quais órgãos essas vagas pertenc.
+Então aí apareceria a opçãozinha aqui embaixo, você seleciona qual órgão que tem e
+tal. Só que nesse caso aqui você não faria essa eh você não distribuiria essas vagas
+ainda, certo? Você só tá falando, ó, essas 500 vagas só pertencem à aqueles órgãos
+ali, certo? Depois a gente faz a distribuição lá. ou quando a lei já é mais específica e tal,
+aí sim ela já indica os órgãos e também a quantidade. Aí já teria que aqui vir e falar, ó,
+essas vagas a gente tem 200 aqui e tal, 100 aqui e mais 200 aqui, por exemplo.
+00:06:21
+Taylor Augusto Dos Santos: Opa, 101, né? Então já estaria meio que pré-distribuído
+aqui. Aí aqui vem no caso a lei que fundamentou isso e tudo isso, né? Depois eu vou
+mudar isso aqui pra base legal. Se é a primeira coisa que a gente informa lá, certo? Eh,
+e daí aqui ele põe a vigência. Então, esse é o componente que a gente vai ter no
+sistema, que ele vai basicamente dizer, né, de quando começa aquilo ali e tal. Eh, deixa
+eu colocar uma data futura aqui só para exemplificar, tá? Isso aqui foi a parte valer, por
+exemplo, de amanhã, alguma coisa assim. E daí a gente salva. Eu acho que ele não tá,
+eu tô no online, né? Ah, não, não preenchi. Beleza. Por enquanto ele não tá filtrando,
+tipo, a carreira ele tá aparecendo todos os cards, tá? Por isso que ele tá desse jeito
+aqui. Foi só um. Vou colocar aqui aluno aluno oficial, seá. Mas aí não faz sentido
+aqueles or colocar qualquer um aqui só para ficar de exemplo mesmo.
+
+-- 9 of 50 --
+
+00:07:36
+Taylor Augusto Dos Santos: Aqui pode ser esse vagas. Beleza. É o que eu salvei, ele
+ficou ali com analista socioeducativo ali, desses órgãos, essas áreas e tal. E aqui no
+caso ele tá como vigência futura, então não começou ainda. Quando ele tá com
+vigência futura ainda, eu ainda consigo vir aqui e editar ele. Então se eu ah, faltou
+algum outro órgão, alguma coisa assim e tal, mas a partir do momento que ele
+começou, que ele tá ativo, no caso, eu não consigo mais editar. O que eu conseguiria
+fazer, no caso, é criar uma nova versão daquilo lá. Então, por exemplo, eu posso vir
+aqui, criar uma nova versão e daí eu posso dizer, ó, teve essa outra lei aqui, ela veio e
+ampliou. Eh, esse processo administrativo seria um número do cigado alguma coisa
+assim. Esses campos a gente vai refinando depois se precisa ou não. Então, e o, por
+exemplo, essa lei aqui aumentou em 100 essa quantidade de vagas. Então eu faço uma
+simulação aqui de como que ia ficar quadrão anterior, o resultante. Então tem essas
+novas vagas, vai falar que tá disponível e tal.
+00:08:40
+Taylor Augusto Dos Santos: Esse número identificador aqui ele gera automático lá
+porque a questão das vagas numeradas, a gente vai trabalhar com isso, né? para
+poder manter o histórico da vag e daí ele vai registrar essa nova versão, mostra que foi
+mudado ali, confirmou, ele atualizou lá, agora tem 600 vagas, certo? Novamente,
+como a vigência tá futura, ele ainda conseguiria editar, né? Mas daí a gente vai colocar
+para
+Bruno da Silva Nogueira: Só uma dúvida nesse sentido que você tá explicando ali da
+ampliação de vagas. Você ampliou a vagas, aumentou 100.
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: E ali tinha um campo de de determinar que órgãos na hora
+que você quisesse ampliar.
+Taylor Augusto Dos Santos: Eu eu poderia já redistribuir ela aqui também,
+Bruno da Silva Nogueira: Ah,
+
+-- 10 of 50 --
+
+Taylor Augusto Dos Santos: certo?
+Bruno da Silva Nogueira: tá.
+Taylor Augusto Dos Santos: Mas o para a questão de distribuição, tem um outro
+lugarzinho que a gente faz isso, é que quando a gente criou, a gente já definiu o que
+são esses órgãos lá, né? Nesse caso aqui, senão você consegue criar só e tal. Você
+poderia já redistribuir aqui ou então só colocar lá paraa frente.
+Bruno da Silva Nogueira: Tá,
+00:09:34
+Taylor Augusto Dos Santos: Deixa eu
+Bruno da Silva Nogueira: no caso, eu faria essa alteração,
+Taylor Augusto Dos Santos: colocar
+Bruno da Silva Nogueira: como você citou e aí eu já poderia entrar novamente, já
+que é uma mandata tutura, né? Entrar novamente, fazer redistribuição dela, né? M.
+Taylor Augusto Dos Santos: isso. Ah, tá. Ele já não deixou. Tem outro número eh 600
+aqui, 600 vagas de 600 já tá distribuído porque é nesse indicativo aqui. Salvou. Beleza,
+tá vigente. Aí aqui eu já tenho um atalhozinho, né, pra parte de distribuir. Nesse caso
+aqui ele já tá distribuído. E daí novamente se teve alguma outra lei mudando, se teve
+redução dessas vagas, se tiver uma possível transformação, extinção progressiva,
+tudo seria nesse novo versionamento. Então eu cadastrei o o quadro lá que ela veio da
+lei e tal, então eu só vou modificando ele lá. Eu não posso editar, ele teria que xingir,
+transformar todos aqueles casos que você foi passando pra gente lá, certo? Eh, se
+tiver alguma coisa errada, alguma coisinha, você pode falando, certo?
+00:10:39
+Bruno da Silva Nogueira: Não,
+
+-- 11 of 50 --
+
+Taylor Augusto Dos Santos: se a gente entender alguma
+Bruno da Silva Nogueira: não tô tanto que eu perguntei e quando,
+Taylor Augusto Dos Santos: coisinha
+Bruno da Silva Nogueira: quando tiver dúvida, pode deixar que eu vou perguntar.
+Fica
+Taylor Augusto Dos Santos: que daí aí nessa parte seria basicamente isso.
+Bruno da Silva Nogueira: tranquilo.
+Taylor Augusto Dos Santos: Redução seria a mesma coisa, eu teria que diminuir e tal,
+eh, quantidade de vagas, igual aconteceu lá,
+Bruno da Silva Nogueira: Eu já tô,
+Taylor Augusto Dos Santos: no caso,
+Bruno da Silva Nogueira: eu já tô curioso no,
+Taylor Augusto Dos Santos: as vagas que estão na transformação.
+Bruno da Silva Nogueira: no transformação já
+Taylor Augusto Dos Santos: Isso a gente tem que ver certinho,
+Bruno da Silva Nogueira: ali,
+Taylor Augusto Dos Santos: né? ele vai aqui no caso, ele selecionaria qual seria o
+novo cargo que ele iria eh tomar, porque é isso que ele muda, né? Quando eu
+transformo uma vaga na outra,
+Bruno da Silva Nogueira: tá? Eu tenho porque a gente tem um caso prático,
+Taylor Augusto Dos Santos: ele deixa Uhum.
+Bruno da Silva Nogueira: né, que é o que a gente tem agora. a gente tem o
+advogado do Detran, ele foi transformado num cargo, que é o analista de serviço de
+trânsito.
+00:11:28
+Taylor Augusto Dos Santos: Isso aí ele basicamente pegaria todas as vagas e
+mudaria o literalmente o cargo dele. Aí quando nesse exemplo aí ele chegou a mudar a
+carreira também da pessoa ou só mudou o cargo mesmo?
+
+-- 12 of 50 --
+
+Bruno da Silva Nogueira: Tô falando no mudo aqui, só mudou o cargo só.
+Taylor Augusto Dos Santos: Só o cargo, né? né? Daí se, por exemplo, da carreira, a
+gente teria que adicionar esse campo aqui. Mas resumido, ele faz isso. Ele vai pegar
+todas essas vagas que estão aqui e agora vai participar desse, vai ser esse novo cargo
+aqui, só que ele não mantém o estómago. E extinção é aquele caso lá, ele deixa de
+aceitar novas pessoas, né? Quem for saindo lá no caso vai eliminando essas vagas,
+digamos assim, vai ficar ficar inativo.
+Bruno da Silva Nogueira: Entendi.
+Taylor Augusto Dos Santos: Essa parte seria mais ou menos isso aí que ele já tem
+botãozinho para visualizar e tal, se quiser ver como é que tá. E esse outro aqui seria a
+parte de distribuição.
+Bruno da Silva Nogueira: M.
+Taylor Augusto Dos Santos: Ela tá lá no, se eu fosse distribuir no caso, né? Só que
+aqui, ó, deixa eu ver. É porque aqui ele já tá distribuído nos órgãos, né?
+00:12:30
+Taylor Augusto Dos Santos: Deixa eu puxar um aqui. Ah, tá. na distribuição. Isso. Eh,
+eu poderia, eu tenho esse atalho também aqui, mas na verdade que ele tem a tela aqui
+só. Então eu posso vir do quadro para esse atalho ou depois paraa distribuição. Já nós
+chega lá no vagas individualizadas. Aqui é onde eu tô visualizando vaga por vaga.
+Então, por exemplo, eu não tô vendo como um todo lá.
+Bruno da Silva Nogueira: Угу.
+Taylor Augusto Dos Santos: Eu estou é aqui é como se eu fosse ver o histórico da da
+dessa vaga mesmo. Então quem que ocupou ela, eh, como que ela tá agora, se aí
+como a gente vai ter as flags, eu consigo ver, beleza, essa essa vaga tá disponível, mas
+tá sendo ocupada, então teria as etapas aqui. Isso aqui a gente ainda vai alimentar, né,
+porque vai vir lá do ingresso. Então, o ingresso vai gerar essas flags que
+consequentemente vai atualizar essas vagas aqui.
+Bruno da Silva Nogueira: Угуm.
+
+-- 13 of 50 --
+
+Taylor Augusto Dos Santos: Então, por exemplo, essa daqui, no caso, essa vaga é da
+Mariana e tal. Se tivesse outras pessoas, ele iria tá mostrando aqui também.
+00:13:31
+Taylor Augusto Dos Santos: Deixa eu ver se tem algum exemplo aqui. Aqui essa vaga
+da Renata, mas já foi do João também. Então, nesse exercício ali, então eu como essa
+vaga agora ela é numerada, né, eu consigo salvar esse histórico dela aqui. Essa tela
+seria mais para visualizar mesmo. De qual forma? Aí eu você consegue até meio que
+filtrar algumas coisas aqui. Ah, não quero, não quero que apareça o tipo. Então você
+vai meio que limpando a tabela aqui para ficar só a informação que você quer ver
+mesmo, certo?
+Bruno da Silva Nogueira: Sim, sim.
+Taylor Augusto Dos Santos: Eventualmente poderia gerar um relatóiozinho aqui,
+você consegue estruturar também.
+Bruno da Silva Nogueira: Você consegue nessa tela tem a o filtro
+Taylor Augusto Dos Santos: Quero ver só da hard e tal.
+Bruno da Silva Nogueira: por por perfil de carreira cargo. Esse perfil
+Taylor Augusto Dos Santos: Então o perfil não tem ainda porque eu ele tá tanto que
+quando a gente gera aqui,
+Bruno da Silva Nogueira: tem
+Taylor Augusto Dos Santos: né, ele tá a especialidade tá tá em branco aqui porque
+eu não é simplesmente porque eu não tinha essa lista ainda, então eu preciso dessa
+lista de perfil especialidade e a gente seria iria vincular.
+Bruno da Silva Nogueira: tá aí.
+00:14:24
+
+-- 14 of 50 --
+
+Bruno da Silva Nogueira: Eu acho que quem vai ter essa lista de perfis geral, acho
+que talvez seja ou monitoramento ou aplicação. Vou conversar com eles para ver
+certinho com os dois setores e o que tiver me eu pego e repasso para vocês.
+Taylor Augusto Dos Santos: Beleza? E daí a gente teria que ver também como que
+funcionaria aqui. Por exemplo, eu defino a carreira, o cargo e o perfil. Então, todas
+essas águas que eu tô criando aqui seriam só para esse perfil. Ou então teria um
+multiselect, onde eu seleciono todos lá e depois a gente teria que ver como que vai ser
+a distribuição daí.
+Bruno da Silva Nogueira: É porque essa a distribuição de perfil ela é meio aleatória,
+né? Como a gente falou naquela aquele dia da reunião, ela é hoje a gente precisa de 10
+analistas,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: mas amanhã eu não posso precisar de analista, eu quero
+precisar de engenheiro civil. Então ela não tem uma definição fixa,
+Taylor Augusto Dos Santos: Então acho que aqui teria que ser um multielect. Então
+eu seleciono todos os perfis que pode ser desse.
+Bruno da Silva Nogueira: né?
+Taylor Augusto Dos Santos: Então eu criei esse quadro.
+00:15:12
+Taylor Augusto Dos Santos: Esse quadro tem uma carreira, tem um cargo e ele pode
+ser essas especialidades, por exemplo. Aí na hora da distribuição aí a gente coloca
+certinho que seria cada um. É meio que aperto,
+Bruno da Silva Nogueira: Uhum.
+Taylor Augusto Dos Santos: mas tá. E daí tem que ver se vai ser só especialidade, vai
+ser só perfil. Você tem os dois também, né?
+Bruno da Silva Nogueira: Não, acho que é só, eu acho que é perfil, certo? Eu vou dar
+uma Uhum.
+Taylor Augusto Dos Santos: Só o perfil.
+
+-- 15 of 50 --
+
+Bruno da Silva Nogueira: Só para mim confirmar nas carreiras, porque eu vou ter que
+olhar carreira por carreira para saber se tem alguma diferenciação de nomenclatura,
+mas para mim é perfil.
+Taylor Augusto Dos Santos: Beleza.
+Bruno da Silva Nogueira: Especialidade era o termo que colocava antes no no CAP,
+mas não tinha um porque não tinha uma base.
+Reunião TI - SEPLAG: É o Cap ele usa o fio barra especialidade lá. confere pra gente
+que aí a gente coloca já
+Bruno da Silva Nogueira: É porque é porque desculpa até atrapalhar porque a
+especialidade ele veio da parte médica, entendeu? Então assim, quando você tinha
+médico, antigamente não tinham especialidade, depois eles começaram, né, colocar
+médico já como uma parte e especializada.
+00:16:03
+Taylor Augusto Dos Santos: ser
+Bruno da Silva Nogueira: Então, por exemplo, antigamente era profissional técnico
+de nível superior, serviço de saúde, aí o perfil, né, médico, aí começaram a colocar
+especialidade, não, médico endocrinologista, médico e assim
+Reunião TI - SEPLAG: a puder englobar os dois no
+Bruno da Silva Nogueira: venda.
+Reunião TI - SEPLAG: perfil, né? Se não tiver nenhum impedimento, aí você vê pra
+gente, pra gente poder atualizar
+Bruno da Silva Nogueira: Eh, mas seria isso mesmo,
+Reunião TI - SEPLAG: aqui.
+Bruno da Silva Nogueira: porque o o perfil não a especialidade é de acordo com a
+formação mesmo, né? Então é, como a gente falou que é engenheiro civil,
+Reunião TI - SEPLAG: Aí
+Bruno da Silva Nogueira: engenheiro elétrico, o médico anestesi anestesionista. Ah,
+quase não saestesista.
+
+-- 16 of 50 --
+
+Reunião TI - SEPLAG: anestesia. Isso é verdade.
+Bruno da Silva Nogueira: Isso.
+Reunião TI - SEPLAG: Tem um campinho de formação também que que aí
+poderíamos usar ele aqui também, né? se fosse o caso para identificar a especialidade
+Taylor Augusto Dos Santos: Beleza. E só voltar aqui lá naquela parte de transformar
+que surgiu uma dúvida aqui.
+00:17:05
+Taylor Augusto Dos Santos: No caso, quando eu se eu transformo esse quadro aqui,
+no caso, certo? Ele era de um cargo lá. Esse novo cargo que ele vai pertencer, eu posso
+usar um cargo que já existe ou nunca aconteceu isso? Tal. Ele precisa ser um cargo
+Bruno da Silva Nogueira: Não, não.
+Taylor Augusto Dos Santos: novo.
+Bruno da Silva Nogueira: As transformações que a gente teve até hoje, na verdade,
+foram duas, né? E foram cargos que já existiam.
+Taylor Augusto Dos Santos: Ah, já existia. Então era um cargo
+Bruno da Silva Nogueira: Mas mas assim, pode ter de cargos novos. Vou pegar um
+exemplo. Acabei de pegar um exemplo aqui,
+Taylor Augusto Dos Santos: antigo.
+Bruno da Silva Nogueira: quer dizer que já aconteceu, né? já teve o de profissional de
+nível superior do sistema penitenciário. Eh, ele foi transform chamado em policial
+penal, então um cargo novo. Então ele pode ser tanto um cargo já existente quanto um
+cargo novo.
+Taylor Augusto Dos Santos: Ah, mas mesmo acho que o tratamento vai ser o mesmo,
+porque eu eu simplesmente vou ter que ter a lista de cargos aqui. A pessoa vem e
+seleciona.
+
+-- 17 of 50 --
+
+00:17:53
+Taylor Augusto Dos Santos: Então,
+Bruno da Silva Nogueira: É, no caso,
+Taylor Augusto Dos Santos: mesmo se for um cargo novo, ele não vai criar esse
+cargo aqui agora,
+Bruno da Silva Nogueira: é no caso do Não.
+Taylor Augusto Dos Santos: né? Esse cargo ele foi criado em outro momento, mas
+ele vai ser listado aqui.
+Bruno da Silva Nogueira: Sim, sim.
+Taylor Augusto Dos Santos: Então
+Bruno da Silva Nogueira: Então, na base na base do que aconteceu, por exemplo, do
+penitenciário, tinha um cargo de penitenciário,
+Taylor Augusto Dos Santos: é
+Bruno da Silva Nogueira: foi criado um cargo novo de policial penal, né? E depois foi
+migrada essa galera de do nível superior para o de policial penal. Então assim, foi
+criado um cargo para depois a gente colocar ele.
+Taylor Augusto Dos Santos: algum caso onde eles destransformaram? Tipo, eles
+fizeram a transformação, mas eventualmente, ah, não, tá errado, vamos voltar.
+Bruno da Silva Nogueira: Eh, tem um tem uma situação que ainda tá judicializada, tá?
+Essa desdobra já tem mais de 20 anos. A situação é na na Cfaz. Na CFA foram criados
+alguns cargos em 2006, se eu não me engano, foializado, por exemplo, ano ano
+passado saiu uma decisão que repistinou os efeitos dessa dessa legislação, ou seja,
+voltou os termos antigos, né?
+00:18:46
+Bruno da Silva Nogueira: Então, a galera que era agente tributário, um exemplo, não
+é esse exatamente o cargo, tá? Aí ele foi reprinou o nome anteriormente existente que
+
+-- 18 of 50 --
+
+é a FAT, agente de fiscalização e arrecadação tributária, estadual. Então eu tenho sim
+essa possibilidade
+Taylor Augusto Dos Santos: Então vou ter que ver como que a gente vai lidar com
+isso,
+Bruno da Silva Nogueira: também.
+Taylor Augusto Dos Santos: se a gente reverte a situação ou se na verdade a gente a
+pessoa teria que transformar de novo no caso, né? Ela vem aqui transforma,
+Bruno da Silva Nogueira: Acho que seria mais fácil só transformar de novo, porque a
+gente não teria esse Uhum.
+Taylor Augusto Dos Santos: que daí mantém o histórico, né?
+Bruno da Silva Nogueira: que a gente sabe que aquele cargo era o AFAT,
+Taylor Augusto Dos Santos: Faz mais sentido até.
+Bruno da Silva Nogueira: virou o AT e voltou novamente esse afate.
+Taylor Augusto Dos Santos: E voltou. Uhum. Beleza. Vaga individualizadas. Então é
+basicamente para eu ver a vaga, né, o histórico dela, mas é só consultativo mesmo. E
+daí vem pras sessões. Então aqui na sessão é onde eu vou jogar pessoa lá para outro
+canto, no caso, né?
+00:19:32
+Taylor Augusto Dos Santos: Então, por exemplo, tem a Mariana aqui, ela é da Cfase e
+tal, só que eu vou, ela vai para outro canto, né? Então, basicamente eu seleciono qual
+órgão que ela vai ir. E daí aqui vem a questão do ônus nessa aqui, ó. Não pode, acho
+que é da saúde. Pressão que Ah, tá. Acho que não tá cadastrado essas regras. Eu
+preciso. É porque ele colocou aqui é aquela questão de não poder ir para um órgão
+específico lá.
+Reunião TI - SEPLAG: pega para PCGE, eh,
+Taylor Augusto Dos Santos: É, não,
+Reunião TI - SEPLAG: Taylor,
+Taylor Augusto Dos Santos: sei que foi.
+
+-- 19 of 50 --
+
+Reunião TI - SEPLAG: para como exemplo, só
+Taylor Augusto Dos Santos: Ela tá, esse daqui é da
+Reunião TI - SEPLAG: Tá.
+Taylor Augusto Dos Santos: SEPLAG para esses outros ela tá. Ah, tá. Esse aqui é
+outras regras que a gente tem que adastrar ela,
+Bruno da Silva Nogueira: É,
+Taylor Augusto Dos Santos: mas é b para bloquear.
+Bruno da Silva Nogueira: pelo que eu tô vendo é que na parte de baixo ali, é de
+acordo com a legislação que foi vinculado o cargo dela de alguma
+00:20:30
+Taylor Augusto Dos Santos: Uhum. Daí ele é basicamente aquilo lá que ela tá aqui,
+Bruno da Silva Nogueira: restrição.
+Taylor Augusto Dos Santos: ela não pode ir pro outro porque não tem o dela lá. A
+questão do ônibus, ou seja,
+Bruno da Silva Nogueira: Não,
+Taylor Augusto Dos Santos: quem vai pagar ela?
+Bruno da Silva Nogueira: mas mas assim pode sim. Eh, a gente não pode movimentar
+definitivamente, mas A sessão que é temporária, ela pode, é que existe a sessão e a
+remoção. A remoção é isso que você tá falando
+Taylor Augusto Dos Santos: Isso, isso, isso, isso. E daí ele vai, é,
+Bruno da Silva Nogueira: definitivamente.
+Taylor Augusto Dos Santos: essa parte eu não é que tá faltando no caso, que quando
+você ele vai ter que verificar se tem a vaga disponível lá para poder mandar a pessoa
+para lá e desocupar que ela tem aqui agora. Então,
+Bruno da Silva Nogueira: Isso, isso no caso,
+Taylor Augusto Dos Santos: ela ela vai movê-la.
+Bruno da Silva Nogueira: isso no caso seria a remoção mesmo aí, mas no caso da
+sessão aí não tem essa essa trava não.
+
+-- 20 of 50 --
+
+Taylor Augusto Dos Santos: Uhum. Então ele pode ir para qualquer campo. Beleza?
+00:21:13
+Bruno da Silva Nogueira: Uhum.
+Taylor Augusto Dos Santos: Acho ele misturou dois quando é sessão.
+Bruno da Silva Nogueira: Justamente.
+Taylor Augusto Dos Santos: Então eles o quem vai continuar pagando essa pessoa é
+sempre o órgão de ela veio, certo? Não tem um caso onde o órgão que ela foi que
+começou a pagar
+Bruno da Silva Nogueira: Uhum. Não, não. To a a legislação ela fala que o servidor
+cedido ele vai receber onde que ele tá indo,
+Taylor Augusto Dos Santos: ela.
+Bruno da Silva Nogueira: no cedido interno interno, tá? dentro do aspecto do poder
+executivo. Então, se você tá mandando ela quando você tá fazendo aí da da CGE, né,
+ou para para Cplag ou da Cfaz para Cplag, quem vai pagar ela vai ser o órgão onde
+que tá recebendo ela, seja ou seja o órgão de
+Taylor Augusto Dos Santos: Então vai ser sempre assim.
+Bruno da Silva Nogueira: destino.
+Taylor Augusto Dos Santos: Então eu posso tirar essa regrinha daqui porque ela vai
+ser sempre a mesma no caso.
+Bruno da Silva Nogueira: Eh, eh, eu não sei como que vai ser, porque assim, já
+pensando em movimentações, tá? Nós temos algum alguns eventos que não são
+sessões, né? Eu não falo o meu, mas eu faço no poder executivo que o servidor, por
+exemplo, vou pegar gestor governamental, é um cargo que é previsto dentro da
+Secretaria de de Planeamento de Gestão, né, na CPLAG, é um cargo daqui,
+
+-- 21 of 50 --
+
+00:22:13
+Bruno da Silva Nogueira: só que ele trabalha em outros órgãos eh quando ele tá
+designado, tem uma uma chamada uma uma informação de designação de gestores.
+Então ele fica aqui, pegar um exemplo, a gente tem uma servidora, Alessandro, uma
+gestora, ela está vinculada aqui a CPLG, está trabalhando aqui na está recebendo pela
+Cplag, né, da fonte de salário daqui, mas ela está trabalhando eh o sistema todo de
+ponto dela está vinculado à Casa Civil. Então assim, tem algumas movimentações e
+que não seja sessão, né, que pode acontecer dessa forma.
+Taylor Augusto Dos Santos: É, mas essa parte aqui seria mais só para informar
+também, ela não chegaria a mexer com o financeiro e tal,
+Bruno da Silva Nogueira: Não, não,
+Taylor Augusto Dos Santos: seria mais para Mas aí aqui no caso a mesma coisa lá.
+Bruno da Silva Nogueira: tranquilo.
+Taylor Augusto Dos Santos: Se fosse para eu colocar a questão do processo, né?
+Esse aqui seria cigadoc, esse aqui seria alguma outra informação extra que precisaria
+nessa tela, né? Daí a gente tem que teria que refinar isso aqui certinho. Se precisa pôr
+uma lei, acho que não entra caso de ter lei, né? Quando eu tô tendo uma sessão é só
+Bruno da Silva Nogueira: Tá, deixa eu te fazer uma pergunta agora.
+00:23:19
+Bruno da Silva Nogueira: Eh, esse sistema com relação à movimentação,
+Taylor Augusto Dos Santos: um.
+Bruno da Silva Nogueira: tá? Esse sistema que você tá pensando na questão da
+movimentação, ela só para registro da informação ou é como a gente faz hoje no
+nosso no próprio sistema CAP? No próprio sistema CAP a gente insere uma
+informação que vai ser publicada, né, via PAEP, né, e que efetiva uma movimentação.
+Isso. Eu queria te tirar dúvida em relação à sessão.
+
+-- 22 of 50 --
+
+Taylor Augusto Dos Santos: Ah, então isso a gente vai ter que ver como fotar a parte
+do ingresso aqui.
+Bruno da Silva Nogueira: Não tá.
+Taylor Augusto Dos Santos: que se isso se isso aqui vai alimentar e tal,
+Bruno da Silva Nogueira: Não é etapas, né? É porque eu já é porque eu vi a tela
+sessão.
+Taylor Augusto Dos Santos: é se um vai alimentar o
+Bruno da Silva Nogueira: Eu já vi,
+Taylor Augusto Dos Santos: outro.
+Bruno da Silva Nogueira: é que eu já vi a tela sessão e já pensei em todas as
+situações que estão entrevadas aqui, entendeu? Mas tudo bem. Vamos por
+Taylor Augusto Dos Santos: E daí então teria isso,
+Bruno da Silva Nogueira: etapas.
+Taylor Augusto Dos Santos: né? Quando eu registro essa sessão aqui, ele teria todo
+o tramite lá também.
+00:24:05
+Taylor Augusto Dos Santos: É, aí vai ter que ver, a gente vai ter que mapear essa
+parte de sessão, então, certinho se vai
+Bruno da Silva Nogueira: Isso é porque ela tem ela tem bastante
+Reunião TI - SEPLAG: Eu ainda fiquei numa dúvidazinha sobre essa questão de quem
+vai pagar na
+Bruno da Silva Nogueira: ganchos.
+Reunião TI - SEPLAG: no caso da sessão, Bruno. Então, se eu se eu tô mandando o os
+servidores uma origem para um destino, quem vai pagar ele vai ser sempre o destino
+dentro do
+Bruno da Silva Nogueira: Isso se for uma movimentação interna, como a gente falou
+aqui dentro do poder executivo. Então se eu tô isso, se for uma movimentação saindo
+da CLAG para Cfaz,
+
+-- 23 of 50 --
+
+Reunião TI - SEPLAG: executivo.
+Bruno da Silva Nogueira: quem vai pagar vai ser Cfaz. Saiu da CLA para ir para Ccel,
+quem vai pagar vai ser CCEL. Sempre o órgão que está recepcionando o que vai pagar.
+Reunião TI - SEPLAG: destino do servidor que vai ser o pagante dele. Mas e aí,
+Bruno da Silva Nogueira: List.
+Reunião TI - SEPLAG: como é que a gente controla isso na folha?
+Bruno da Silva Nogueira: É porque a folha é a folha retransmitida pelo de acordo com
+quem tá trabalhando lá, né?
+00:24:58
+Reunião TI - SEPLAG: Eu
+Bruno da Silva Nogueira: Então na folha apresenta para eles a informação que o
+servidor está desempenando funções lá. Então existe
+Reunião TI - SEPLAG: falo, eu falo no sentido do como ele não vai, ele vai ocupar uma
+cadeira,
+Bruno da Silva Nogueira: uma
+Reunião TI - SEPLAG: mas ele não vai ocupar uma vaga lá na no destino dele, ele vai tá
+recebendo essa essa eh ele vai est exercendo a mesma função, né? Ele não vai ter
+mudança disso, ele só tá mudando de de local. Seria isso na sessão.
+Bruno da Silva Nogueira: X
+Reunião TI - SEPLAG: Beleza? Então ele vai tá com o mesmo,
+Bruno da Silva Nogueira: isso
+Reunião TI - SEPLAG: com a mesma remuneração, com o mesmo cargo,
+Bruno da Silva Nogueira: pagamento de férias,
+Reunião TI - SEPLAG: porém
+Bruno da Silva Nogueira: qualquer coisa vai est todo recebendo.
+Reunião TI - SEPLAG: eh aí é aí a vaga que ele ocupa é a vaga
+Taylor Augusto Dos Santos: Só que a vaga que ele ocupa é a vaga do órgão.
+
+-- 24 of 50 --
+
+Reunião TI - SEPLAG: da origem dele, vai continuar mesmo. É isso mesmo.
+00:25:44
+Bruno da Silva Nogueira: Isso, isso mesmo.
+Reunião TI - SEPLAG: Hum. Tá. Tá. Então aquilo entendi. Entendi. Pode pode seguir aí.
+Taylor Augusto Dos Santos: Beleza.
+Reunião TI - SEPLAG: Tem
+Taylor Augusto Dos Santos: Essa aqui a gente vai ter que mapear certinho, então,
+para ver o que que precisa dela e se ela já vai trazer algum impacto financeiro também
+já na folha ou
+Reunião TI - SEPLAG: detalhar mais ele.
+Taylor Augusto Dos Santos: se vai ser só para controle mesmo, mas provavelmente
+já vai vai partir daqui mesmo.
+Bruno da Silva Nogueira: É porque eu imagino que tem que ser a partir daí
+justamente porque todo o impacto tá dentro do próprio sistema, né? Então, se a gente
+tá lançando ele para uma outra atividade,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: um outro órgão, tem que tá ali já gerando as informações
+de impacto da questão do financeiro, né? E toda a locação do servidor. E ali a gente vai
+até mais a fundo pensando nisso. Por quê? Porque cada servidor ele tem uma unidade
+de trabalho, certo? Então, eh, não é só, por exemplo, quando movimento um servidor
+da CLAG para Cfaz, como você tá colocando um exemplo, tem uma unidade
+específica dentro da Cfaz criada pela superendência de desenvolvimento
+organização.
+00:26:45
+
+-- 25 of 50 --
+
+Bruno da Silva Nogueira: acional, né, que dita onde ele vai trabalhar. Então, ela tá
+toda locada ali. Então, eu tô com um exemplo aqui na minha aqui que eu tava com ele
+agora a pouco aberto. Eu tô tem a sessão da Veviane Oliveira de Campos. Ela é uma
+servidora da Politec, né, e foi cedida paraa CESP. Dentro da CESPRA foi cedida dentro
+de uma unidade específica que é coordenadoria de patrimônio fala,
+Taylor Augusto Dos Santos: Será que
+Bruno da Silva Nogueira: porque todos os acessos dela estão vinculados a essa
+unidade, né? Então assim, por ela estar trabalhando nessa coordenadoria de
+patrimônio, ela tem um acesso específico para isso. Ela tem o acesso a ao ponto dela,
+né? Seg vinculada essa unidade onde ela trabalha justamente para buscar xifi imediata,
+né? eh eventuais aprovações de férias, eventuais aprovações de licença prémium, tá
+tudo vinculado a essa unidade onde ela está desempenhando funções nesse outro
+órgão. Então quando a gente fizer uma sessão, não adianta só o órgão destino, tem
+que ter um órgão e a unidade destino.
+Taylor Augusto Dos Santos: Vai a unidade também.
+00:27:42
+Taylor Augusto Dos Santos: Beleza.
+Bruno da Silva Nogueira: Uhum.
+Taylor Augusto Dos Santos: A partir do ônibus não vai precisar, né? Aqui seria então
+em vez do ônibus aqui a gente teria que ter o a unidade que essa pessoa vai a data
+início, data fim. Data fim, ela é obrigatória ou não
+Bruno da Silva Nogueira: Não necessariamente,
+Taylor Augusto Dos Santos: necessariamente?
+Bruno da Silva Nogueira: depende do tipo da movimentação. Quando você tá
+movimentado vinculado a um cargo em comissão, né? Então, por exemplo, no meu
+superintendente aqui, o Marcos, né? Marcos Júnior, ele é um servidor do Politec, está
+cedido aqui para CLAG, mas como ele está vinculado ao cargo, então como a gente
+não tem uma previsão de quando encerra o cargo em comissão, né? Então ele fica
+vinculado enquanto o cargo perdurar. Então só tem uma data de início que é quando
+
+-- 26 of 50 --
+
+ele veio e não tem uma data fim. Essa data fim só vai ter quando ele foi exonerado do
+car comissão.
+Taylor Augusto Dos Santos: Aí daí em teoria quando ponho a data fim eu reverto o
+processo, né?
+Bruno da Silva Nogueira: Isso.
+Taylor Augusto Dos Santos: Devolveu.
+Bruno da Silva Nogueira: Isso mesmo.
+00:28:34
+Taylor Augusto Dos Santos: Beleza. É você que faz a parte de sessão aí que controla
+e tal. Faz isso aí,
+Bruno da Silva Nogueira: Sim.
+Taylor Augusto Dos Santos: tá?
+Bruno da Silva Nogueira: Sessão a remoção entre órgãos,
+Taylor Augusto Dos Santos: Então,
+Bruno da Silva Nogueira: né, que a gente chama de remoção externa.
+Taylor Augusto Dos Santos: quando você for fazer um aí um dia aí,
+Bruno da Silva Nogueira: Eh,
+Taylor Augusto Dos Santos: pode chamar nós então para nós assistir.
+Bruno da Silva Nogueira: todo dia, todo dia, todo dia fazendo,
+Taylor Augusto Dos Santos: Não, fechou.
+Bruno da Silva Nogueira: porque assim aqui eu não, eu não sei se vocês chegaram a
+ver o regimento, mas aqui a gente faz a sessão interna, a sessão externa quando é
+para outro órgão,
+Taylor Augusto Dos Santos: Tomor
+Bruno da Silva Nogueira: né, outra entidade, na verdade, a gente faz a licença para
+qualificação profissional na fazemos a licença para chamidade política, licença para
+mandato classista, licença para mandato eletivo, recondução, Então reintegração.
+Então assim, ah, tu não falta para cá direito.
+
+-- 27 of 50 --
+
+Reunião TI - SEPLAG: Deixa, te deixa eu pegar o gancho aqui e fazer outra pergunta.
+Bruno da Silva Nogueira: Vai
+Reunião TI - SEPLAG: Você falou de várias sessões,
+00:29:24
+Bruno da Silva Nogueira: fazer.
+Reunião TI - SEPLAG: aí eu fiquei uma dúvida. Existe uma sessão para outro que não
+seja do executivo, por exemplo, eh, do executivo pro, como é que a gente pode
+chamar, pro município? Existe sessões assim em autarquias diferentes?
+Bruno da Silva Nogueira: A gente pode ceder servidores para qualquer ente
+federativo. Então a gente pode ceder desde município,
+Reunião TI - SEPLAG: Ah.
+Bruno da Silva Nogueira: um poder executivo, né? Yeah. Eh, o poder legislativo.
+Reunião TI - SEPLAG: legislativo
+Bruno da Silva Nogueira: Uhum. Tudo. Governo federal.
+Taylor Augusto Dos Santos: Que louco.
+Bruno da Silva Nogueira: No caso da da carreira da saúde, por exemplo,
+Reunião TI - SEPLAG: e
+Bruno da Silva Nogueira: a gente pode ceder até para eh organizações, vamos
+esqueci o nome da palavra. Não, não. Organização internacional também.
+Taylor Augusto Dos Santos: Internacional.
+Reunião TI - SEPLAG: não não governal organização não
+Bruno da Silva Nogueira: Já fiz sessão. Sim. Oi. Cortou isso.
+00:30:04
+
+-- 28 of 50 --
+
+Reunião TI - SEPLAG: governamental
+Bruno da Silva Nogueira: Por exemplo, associação raios de luz,
+Reunião TI - SEPLAG: Não.
+Bruno da Silva Nogueira: que é uma associação que beneficiente, né? E a gente
+pode ceder essas, lembrei, associações pelantrópicas. A carreira da SIS pode ser
+ceder para
+Reunião TI - SEPLAG: Ah, tá.
+Bruno da Silva Nogueira: lá.
+Taylor Augusto Dos Santos: Ou seja, seão
+Reunião TI - SEPLAG: E o comportamento é
+Bruno da Silva Nogueira: Sim, tem as peculiaridades da lei de carreira,
+Reunião TI - SEPLAG: igual.
+Bruno da Silva Nogueira: né? Então assim, por exemplo, o único que pode ser esse
+tipo de sessão eh servidores da saúde, mas desde que seja para trabalhar na área da
+saúde. Ou seja, eu tô cedendo o Bruno, que é enfermeiro, para trabalhar nessa
+associação filantrópica como enfermeiro. Então assim, ele vai est prestando um
+serviço do SUS,
+Reunião TI - SEPLAG: Mir
+Bruno da Silva Nogueira: né? Então ele pode assim trabalhando para lá. Aí no, em
+regra geral quando a gente cede para um município, né, um estado, governo federal,
+em regra geral, a gente tem um reembolso, a gente continua pagando o salário, né, a
+Cés continua pagando salário e o município de Cuiabá ressarce a SES, né, de todo o
+salário que tá sendo pago.
+00:31:00
+Bruno da Silva Nogueira: Mas quando pela lei de carreira do SUS, né, da CES, aí,
+então quando a gente cede o servidor para trabalhar na área mesmo de atuação do
+SUS, a gente não tem esse reembolso. Então a SES continua pagando, ele vai est
+trabalhando lá no SUS. Porque eles entendem que o servidor ele tá ele tá fazendo o
+mesmo fim previsto pela pela pelo SUS,
+
+-- 29 of 50 --
+
+Reunião TI - SEPLAG: Entendi.
+Bruno da Silva Nogueira: né? Ele trabalhando aqui no estado como enfermeiro, ele
+vai est atendendo eh toda a atribuição do SUS e ele indo para uma associação
+filantrópica ou outra município trabalhando pro SUS, ele vai est fazendo a mesma
+situação.
+Reunião TI - SEPLAG: Atendendo o mesmo público, né?
+Bruno da Silva Nogueira: Uhum.
+Taylor Augusto Dos Santos: Que loucura. Você só que parecia algo tranquilo,
+Reunião TI - SEPLAG: Beleza.
+Taylor Augusto Dos Santos: explodiu pro universo
+Bruno da Silva Nogueira: Ainda tem mais,
+Taylor Augusto Dos Santos: agora.
+Bruno da Silva Nogueira: relaxa.
+Reunião TI - SEPLAG: Eu tinha essa dúvida sempre pensando que não podia, não tinha
+essa essas essa possibilidade. Mas, ó, é bem amplo,
+Bruno da Silva Nogueira: Sim, é que recentemente uma colega minha que trabalha
+aqui na unidade,
+00:31:51
+Reunião TI - SEPLAG: hein?
+Bruno da Silva Nogueira: né, ela saiu daqui e agora ela tá trabalhando na assembleia.
+Então assim, tem solidade. Aí, por exemplo, na assembleia ela pode ir com
+ressarcimento, como eu falei para vocês, né? ou pode ir sem refarcimento, depende
+de qual legislação tá cedendo.
+Taylor Augusto Dos Santos: Não, mas dá, acho que dá para tratar.
+Reunião TI - SEPLAG: Tá,
+Taylor Augusto Dos Santos: Só, só ajustar certinho.
+Bruno da Silva Nogueira: Não, eu eu espero que sim.
+Taylor Augusto Dos Santos: É, vai,
+
+-- 30 of 50 --
+
+Reunião TI - SEPLAG: temos que ampliar um pouco mais. Vamos, vamos pensar um
+pouco como que a gente vai tratar essas particularidades.
+Taylor Augusto Dos Santos: é órgão de X. Então não vai ser só órgão, vai ser vai ter
+mais coisinhas. Beleza?
+Bruno da Silva Nogueira: Угу.
+Taylor Augusto Dos Santos: Seguindo, a gente tem a distribuição. Então, eh, por
+exemplo, foi lá, criou um quadro, né? Mas ele só definiu que aquelas vagas lá não foi
+para órgão nenhuma. nessa parte aqui que ele ia fazer essa parte de distribuição aí no
+caso.
+00:32:42
+Taylor Augusto Dos Santos: Então ele poderia fazer uma distribuição, né?
+Bruno da Silva Nogueira: M.
+Taylor Augusto Dos Santos: Isso que eu queria ver contigo também. digamos assim,
+cadastre 500 vagas, só que não necessariamente. Então, em teoria, essas vagas estão
+ali num banco de vagas do
+Bruno da Silva Nogueira: Ô Taylor, Tayor,
+Taylor Augusto Dos Santos: estado.
+Bruno da Silva Nogueira: cortou para mim na hora que você falou assim, eu cadastrei
+500 vagas, aí cortou para mim, aí só voltou no estado.
+Taylor Augusto Dos Santos: Ah, tá. Então, o, digamos assim, essas 500 vagas, se eu
+não definir os órgãos para ela, ela meio que tá num banco de vagas do estado. Seria
+isso. Eu teria que definir o cargo dela, a carreira no caso, né? Mas não
+necessariamente o
+Bruno da Silva Nogueira: Eh,
+Taylor Augusto Dos Santos: órgão.
+Bruno da Silva Nogueira: hoje, só no hoje, no hoje todos os cargos que são criados e
+são definidos para qual órgão ele tá.
+Taylor Augusto Dos Santos: Ah, então não tem um um banco de um banco de vagas
+do estado,
+
+-- 31 of 50 --
+
+Bruno da Silva Nogueira: É o não,
+Taylor Augusto Dos Santos: digamos
+Bruno da Silva Nogueira: não. Vamos supor, tem a lista de desenvolvimento
+econômico social solto.
+00:33:29
+Taylor Augusto Dos Santos: assim.
+Bruno da Silva Nogueira: Não tá nenhum quarto, não, nenhum órgão, não, não tem
+como. Todos estão vinculados. A, a lei inicial, por exemplo, a lei de carreira do
+desenvolvimento econômico social prevê que ele vai área meio, a desenvolvimento
+econômico, a área da criação do cargo da área meio, né? ele prevê que ele vai estar
+trabalhando na área meio de todo o estado, ele não tá vinculado lá no ato de criação,
+mas depois houve subsequente, né, um decreto de redistribuição, colocando cada
+vaga em cada órgão. Então assim, mesmo que quando crie não tenha uma definição,
+seja genérico, né, como área meio, mas a a sua atribuição logo em seguida já vai ter
+um decreto regulamentando para onde vai cada vaga.
+Taylor Augusto Dos Santos: Hum. Não, então aqui vai ficar mais tranquilo, porque
+nem que eu tinha pensado é que teria o banco de vagas do do estado, né? E eu
+poderia, por exemplo, recolher essas vagas, redistribuir e tal. Aqui nesse nesse caso
+ele ficou mais simples. Ele só vai ter a distribuição mesmo, onde eu coloco essas vagas
+lá ou na verdade a redistribuição, né? Quando eu vou mudar uma vaga de um órgão
+pro outro,
+00:34:31
+Bruno da Silva Nogueira: Isso eu entendo que vai ter isso aí a
+Taylor Augusto Dos Santos: no caso, tirar de um órgão para colocar no outro.
+
+-- 32 of 50 --
+
+Bruno da Silva Nogueira: distribuição que quando publica, né, quando cria e a
+redistribuição quando tem a alteração dessas dessas desses cargos.
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: Porque assim, você, como você diz, você criou 500 cargos,
+né? Porque ainda não teve um decreto de de redistribuição desses cargos, né? Aí vai
+ser feito esse decreto pra gente remanejar as vagas para cada unidade.
+Taylor Augusto Dos Santos: Uhum. Aí eu venho aqui, distribuo ele. Beleza?
+Eventualmente, se eu precisar, eu redistribuo, né? Eu tiro de um órgão, ponho no outro.
+Mas o recolhimento então não vai ter. É quando eu tiro essa vaga de um órgão e,
+digamos assim, devolvo pro estado, no caso, isso não tem. Beleza? Aqui, então ele
+basicamente selecionaria, né? Ah, é desse quadro aqui, vai para esse órgão aqui agora.
+Aí teria que ter unidade, né?
+00:35:19
+Taylor Augusto Dos Santos: A quantidade de vagas que eu tô mandando, qual o ato?
+Esse aqui eu vou usar o componentezinho lá. Esse aqui seria o processo Gadoc. E se
+alguma outra informação precisar que a gente iria adicionando também. E a
+justificativa disso aí no caso, porque seria um um campo livre, digamos assim, só para
+me explicar o que acontecia. Aqui no caso a gente selecionaria qual a lei que foi
+processo Teria mais alguma coisinha talvez nessa tela? Só acho que só isso, né? O
+órgão de
+Bruno da Silva Nogueira: É porque tá o órgão, tá? A unidade, por exemplo,
+Taylor Augusto Dos Santos: estino.
+Bruno da Silva Nogueira: a gente tem 100 unidades aqui dentro da da da secretaria.
+Então vai subir de cada unidade tem sua quantitativa específica, né? dato de feito, ata
+decreto, eh, processo. É só isso mesmo. Não vejo nenhuma
+Taylor Augusto Dos Santos: Beleza? E daí não teria a distribuição,
+Bruno da Silva Nogueira: outra.
+Taylor Augusto Dos Santos: basicamente a mesma coisa, só o recolhimento que não
+vai ter no próximo. Beleza?
+
+-- 33 of 50 --
+
+00:36:17
+Taylor Augusto Dos Santos: E daí por fim a gente teria essas projeção, que isso aqui
+é mais quando tá ligado à questão de aposentadoria, né? Então estaria meio esse aqui
+eu tô trabalhando ainda, mas é aquela é é uma meio que projeção, né? Não é algo fixo.
+Então ah, daqui uns 12 meses, quantas vagas vão estar liberadas? Daqui de quadro e
+assim por diante, que daí a gente teria uma previsão, né, com base na data de
+aposentadoria da pessoa lá e tal. Bom, essa parte aqui tô tô mexendo nela ainda, mas
+seria naquela ideia lá. Eu acho que o Félix passou pra gente ter uma previsãozinha do
+que vai ter.
+Bruno da Silva Nogueira: Угуm.
+Taylor Augusto Dos Santos: E daí para isso aí aí no final de tudo, né, ou também o
+começo aí sim o dashboard lá que eu quais cargos que tem, ó, até atualizou aqui quais
+são cargas que eu criei lá, quais cargos legais que a gente tem cadastrado, quais estão
+vigente, as vagas que a gente tem, o que que tá ocupado, o que que tá disponível, né?
+O que tão comprometida? Comprometida seria aquele a flagzinha, né, que ela tem.
+00:37:15
+Taylor Augusto Dos Santos: Então, comprometida significa que ou ela tá indo de
+ocupada para disponível ou de disponível para ocupado. Então, no caso lá em
+distribuição, esse aqui é no caso que não não tem um órgão específico ainda, né? Ô,
+desculpa, eh, disponibilização quer dizer que ela tá ficando livre, né? A pessoa tá
+aposentando e tal, mas ainda tá nesse processo lá. Não distribuídas. Aí, sim, quer dizer
+que ela não tem o órgão específico ainda, né? E esse outro aqui seria mais questão de
+se tá instinção, alguma outra coisa, alguma regrinha específica lá e tal, seria algum
+caso especial aqui. Aí a projeção, né, que seria a questão de potencial de vagas que
+podem ficar livre. E dá aqui um resuminho lá para mim do desse mesmo do do quadro
+e tal, que que tem preenchido, o que que tá livre e tal, seria mais ou menos aquela sua
+
+-- 34 of 50 --
+
+planilha lá, só que digitalizada lá. Necessidade potencial ser um exemplo, um possível
+concurso, alguma coisa assim que ele pode ter lá. E aqui um históricozinho também
+das distribuições que também aconteceu. Aqui ele tem uns filtros também pode ter.
+Ainda vou adicionar um assim para remover lá que tá com filtro.
+00:38:30
+Taylor Augusto Dos Santos: Basicamente seria isso que a gente bolou até agora. A
+ficou faltando alguma coisa? Tem alguma coisa que a gente não entendeu correto?
+Bruno da Silva Nogueira: Não, não. Tá bem, tá bem bem isso mesmo que a gente tem
+de ideia mesmo. eh, principalmente dessas flags, dessa vinculação do do cargo, da
+onde ele vem, né, de informação de de saldos, de aporação. Eu só queria tirar uma
+dúvida quanto a a possibilidade de de alteração e criação de Carlos, ela ficaria
+vinculada exclusivamente para cá, né? ela não ficaria aberta, no caso, teria só teria
+usuários permitidos só para mim saber quem que poderia tá criando, mexendo nisso.
+Taylor Augusto Dos Santos: Isso é Outra parte do sistema, no caso, né,
+Bruno da Silva Nogueira: Ja.
+Taylor Augusto Dos Santos: a gente teria a parte de carga e concurso aqui, onde ele
+cria regime, categoria, cargo e tal. E daí essa parte de controle de vagas basicamente
+seria alimentada com isso. Então, nessa parte do dashboard aqui do no controle de
+vagas a gente não cria cargo, né? Ele só pega o que já foi feito lá no sistema aí. E daí,
+por exemplo, isso tudo vai depender do acesso da pessoa.
+00:39:36
+Bruno da Silva Nogueira: Tranquilo.
+Taylor Augusto Dos Santos: Então, por exemplo, o Roberto aqui ele é administrador,
+mas daí, por exemplo, se fosse uma outra pessoa, às vezes, por exemplo, ela nem esse
+menu nem aparece para
+
+-- 35 of 50 --
+
+Bruno da Silva Nogueira: Ah, não é mesmo mesmo estilo do Sigp,
+Taylor Augusto Dos Santos: ela.
+Bruno da Silva Nogueira: né, que a gente tem menu de acesso de Chef e de outros,
+Taylor Augusto Dos Santos: Isso,
+Bruno da Silva Nogueira: né?
+Taylor Augusto Dos Santos: exatamente. O o SICAD também é assim.
+Bruno da Silva Nogueira: Tranquilo.
+Taylor Augusto Dos Santos: Então, dependendo do acesso da pessoa, o menu nem
+aparece, então não teria esse
+Bruno da Silva Nogueira: Não, não,
+Taylor Augusto Dos Santos: acesso.
+Bruno da Silva Nogueira: mas é é nesse caminho que vocês estão fazendo mesmo
+que você que tá que a gente tá precisando
+Taylor Augusto Dos Santos: Beleza,
+Bruno da Silva Nogueira: mesmo.
+Taylor Augusto Dos Santos: só sessão então que vai explodir para bastante coisa
+ainda. Beleza, acho que é isso. Marcela, alguma dúvida?
+Reunião TI - SEPLAG: Não, não. Acho que é só.
+Taylor Augusto Dos Santos: Tá b fechou
+Reunião TI - SEPLAG: Tem alguma dúvida, alguma colocação que você queira colocar,
+Bruno, que a gente
+00:40:21
+Taylor Augusto Dos Santos: então.
+Bruno da Silva Nogueira: Não, só a situação mesmo que eu falei do do do perfil, né,
+que é interessante pra gente ter essa informação de perfil.
+Reunião TI - SEPLAG: não
+
+-- 36 of 50 --
+
+Bruno da Silva Nogueira: O de resto que me apresentou é é justamente o que a
+gente precisa mesmo, é é a informação mesmo de de do quadro ali dos vimpos, a
+possibilidade de redistribuição, né? se ele vai ter um órgão específico ou não. Essas
+informações é o que a gente precisa mesmo.
+Reunião TI - SEPLAG: atende, né? Eh, o Taylor caiu. Mas assim, só Ah,
+Taylor Augusto Dos Santos: Voltei.
+Reunião TI - SEPLAG: voltou. Taylor, volta ali só na na telinha do dash. Só lembrei de
+uma de uma perguntinha aqui. Aí nos filtros. Bruno, pode abrir pra gente? A gente tá
+deixou os dois,
+Bruno da Silva Nogueira: M.
+Reunião TI - SEPLAG: né? efetivo e o comissionado.
+00:41:10
+Reunião TI - SEPLAG: Eh, não me recordo se foi contigo ou se foi a própria Débora
+que comentou que ainda tava sendo eh definida alguns
+Bruno da Silva Nogueira: Olha,
+Reunião TI - SEPLAG: parâmetros pro comissionado. A gente pode dar continuidade
+assim, já tem algo adiantado pra gente poder constituir aí junto aqui ou só mesmo os
+efetivos?
+Bruno da Silva Nogueira: comigo, eh, vou ter vou ter que te deixar só mesmo na
+resposta dos efetivos, porque dos comissionados, como eu não lido com eles, né,
+exclusivamente, tá, tá ali vinculado a eles, eu não sei dizer como que tá o andamento,
+mas assim, o comissionado é isso mesmo. Ele tá.
+Reunião TI - SEPLAG: Ja.
+Bruno da Silva Nogueira: Hoje a gente tem um tem tem legislações que proveu
+encontros que vão ser comissionado, né? Então a gente tem uma uma normativa que
+fala, por exemplo, na Casa Civil tem tantos comissionários, aí tem cada cargo, cada
+função, né? Quem se diferencia em comissão e função, tem a quantitativa prevista na
+legislação deles, mas essa aí é sempre mudado, né? Eh, eu acho que o problema seria
+
+-- 37 of 50 --
+
+o temporários, não era, acho que era o temporário que ele tinha falado, porque os
+temporários que a gente não tem hoje uma
+00:42:09
+Reunião TI - SEPLAG: Bom, temporários não teria o controle, né, das vagas, né,
+Bruno da Silva Nogueira: definição.
+Reunião TI - SEPLAG: a A gente poderia até trazê-los, mas assim não não junto com
+os efetivos, porque eles não têm um controle de vagas.
+Bruno da Silva Nogueira: Uhum. É mesmo, mas é mesmo.
+Reunião TI - SEPLAG: A gente não a gente até não contemplou ele na mesma tela,
+Taylor Augusto Dos Santos: É, a a minha ideia é justamente separar.
+Reunião TI - SEPLAG: né?
+Bruno da Silva Nogueira: Sì.
+Taylor Augusto Dos Santos: A gente tem a telinha aqui, controle de vagas com tudo
+isso aqui dentro. Daí teria uma outra parte. Cadê? Ver se eu acho que eu tive perí ali.
+Ah, tá. era quadro de pessoal, no caso,
+Bruno da Silva Nogueira: Kom.
+Taylor Augusto Dos Santos: e daí ele ia ter todas as informações, né? Daí vai puxar eh
+servidor eh ô meu Deus, estagiário,
+Reunião TI - SEPLAG: temporários enquadraria os três,
+Taylor Augusto Dos Santos: eh, contrato,
+Reunião TI - SEPLAG: né?
+Taylor Augusto Dos Santos: empregado,
+Reunião TI - SEPLAG: caso os contratos
+
+-- 38 of 50 --
+
+00:43:22
+Taylor Augusto Dos Santos: estagiário, residente, bolsista, terciarizado, todos esses
+outros, tudo que é temporário, né?
+Bruno da Silva Nogueira: Ah,
+Taylor Augusto Dos Santos: lá de por ele não,
+Bruno da Silva Nogueira: mas ele tem uma tela, ela tem uma tela também específica
+para isso, né?
+Taylor Augusto Dos Santos: isso vai ser separado aqui. A gente teria controle de
+vagas estaria aqui. Opa, cadê? Controle de vagas está aqui. E daí aqui embaixo a gente
+teria outro menu que seria esse quadro de pessoal aí, que seria mais pro pro pros
+temporários mesmo. Ele nem não estaria nem na mesma mesmo menu e tal.
+Bruno da Silva Nogueira: Ah, tá,
+Reunião TI - SEPLAG: parada,
+Bruno da Silva Nogueira: entendi. É porque assim,
+Reunião TI - SEPLAG: né?
+Bruno da Silva Nogueira: eh, e a gerência de quadro ela tem que ficar sempre
+monitorando o quadro de pessoal. ela não tem eh uma, vamos dizer assim, uma
+separação. Então, hoje a gente tem eh não tem, vamos dizer assim, não tem um pai
+específico, mas como sempre é o quadro de movimentação responsável pelo quadro
+do do serviço servidor público, né, quadro do estado em si, então a gente acaba
+sempre tendo que ter essas informações.
+00:44:23
+Bruno da Silva Nogueira: Então assim, é uma formação que hoje eu não tenho. Então,
+se, por exemplo, se chega uma pergunta de questionamento, seja de assembleia, seja
+de questionamento administrativo, eh, eu não tenho como atender isso,
+Taylor Augusto Dos Santos: Tá.
+
+-- 39 of 50 --
+
+Bruno da Silva Nogueira: eu tenho que mandar monitoramento de pessoal, né,
+solicitar alguma outra informação, outra outros setores que façam essa busca, porque
+assim,
+Taylor Augusto Dos Santos: Угуm.
+Bruno da Silva Nogueira: hoje a gente não tem essa ferramenta, então assim, eu
+também é uma ferramenta que é interessante para cá, pro quadro, já que a gente sem
+controlar o quadro pessoal de todo o poder executivo, né?
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: Por isso que eu te perguntei sobre os temporários e o
+resto,
+Taylor Augusto Dos Santos: Não,
+Bruno da Silva Nogueira: porque a gente não tem hoje uma
+Taylor Augusto Dos Santos: não dá, dá para fazer mesmo. Ele só não teria esse,
+Bruno da Silva Nogueira: ferramenta
+Taylor Augusto Dos Santos: por exemplo, não teria aquela lei lá da, por exemplo, um,
+eu poderia controlar eles meio que por seletivo, alguma coisa assim.
+Bruno da Silva Nogueira: não
+Taylor Augusto Dos Santos: Então eu tenho um seletivo lá,
+Bruno da Silva Nogueira: se
+Taylor Augusto Dos Santos: aí sim eu coloco nesse seletivo quais vagas são, qual que
+vai ter,
+00:45:09
+Bruno da Silva Nogueira: não, não. Tranquilo.
+Taylor Augusto Dos Santos: seria o tratamento seria um pouco diferente,
+Bruno da Silva Nogueira: É, é.
+Taylor Augusto Dos Santos: não tem aquela lei que define,
+Bruno da Silva Nogueira: Uhum.
+
+-- 40 of 50 --
+
+Taylor Augusto Dos Santos: né, o
+Bruno da Silva Nogueira: Não, não. Sim, eu entendi na parte da criação,
+Taylor Augusto Dos Santos: fado.
+Bruno da Silva Nogueira: essas coisas do tipo, né? Mas assim, teria a ferramenta de
+apuração dele, né? Então, tá para mim tá
+Taylor Augusto Dos Santos: Mas até a parte do dashboard poderia ter um que
+mistura junto os dois também,
+Bruno da Silva Nogueira: ótimo.
+Taylor Augusto Dos Santos: né? Porque às vezes eh eh quer ver informação dele
+juntos e tal.
+Bruno da Silva Nogueira: Seria seria mais fácil pra gente visualizar no geral, né?
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: Porque senão vou ter que ter dois dashboard. Um
+dashboard para cada caso. Aí ficaria mais,
+Taylor Augusto Dos Santos: É, não, o o dashboard dá para deixar meio que junto,
+Bruno da Silva Nogueira: né?
+Taylor Augusto Dos Santos: só que daí você consegue separar eles também caso
+precisa.
+Bruno da Silva Nogueira: Uhum.
+Reunião TI - SEPLAG: pode usar pelos filtros também,
+00:45:42
+Bruno da Silva Nogueira: Não,
+Reunião TI - SEPLAG: né, para trazer essa refinamento.
+Taylor Augusto Dos Santos: Isso no próprio
+Bruno da Silva Nogueira: isso, isso,
+Taylor Augusto Dos Santos: f
+Reunião TI - SEPLAG: tratativa, né? Tratar ele em telas separadas,
+
+-- 41 of 50 --
+
+Bruno da Silva Nogueira: isso.
+Reunião TI - SEPLAG: mas poder unificar os dois no mesmo das.
+Taylor Augusto Dos Santos: para visualizar.
+Reunião TI - SEPLAG: Isso são indicadores, né?
+Bruno da Silva Nogueira: É isso mesmo.
+Taylor Augusto Dos Santos: Beleza,
+Reunião TI - SEPLAG: Então beleza. Acho que é só
+Taylor Augusto Dos Santos: já vamos já vamos saindo,
+Reunião TI - SEPLAG: então
+Taylor Augusto Dos Santos: se preparando pra próxima reunião que acho que vamos
+falar só de sessão daí,
+Bruno da Silva Nogueira: Tranquilo.
+Taylor Augusto Dos Santos: no caso. vai expandir bastante isso
+Reunião TI - SEPLAG: atenção que era uma ideia que nem iria ter, né? Olha só como
+as coisas
+Taylor Augusto Dos Santos: aqui.
+Bruno da Silva Nogueira: Não, não. Sim,
+Reunião TI - SEPLAG: mudam.
+Bruno da Silva Nogueira: eu preciso só de preciso de orientações, porque assim, se o
+se o sistema para rodar, né, não com espelho, né, mas uma evolução do que a gente
+tem no nosso sistema hoje, né, eh tem movimentações que a gente tem que de várias
+formas,
+00:46:28
+Taylor Augusto Dos Santos: Mhm.
+Bruno da Silva Nogueira: né, tem a sessão, como a gente acabou de falar que é
+temporária, tem a sessão que é para um órgão externo, tem a remoção direta, como a
+gente falou, que é mudar o servidor de um órgão pro outro. Tudo isso a gente faz hoje
+dentro do sistema CAP, né? E ele gera uma publicação efetiva essa movimentação.
+
+-- 42 of 50 --
+
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: Então tem toda
+Taylor Augusto Dos Santos: É, não daria.
+Reunião TI - SEPLAG: M.
+Taylor Augusto Dos Santos: Acho que vai ser basicamente isso aqui,
+Bruno da Silva Nogueira: essa
+Taylor Augusto Dos Santos: só que daí só para com os outros campos a mais, né?
+Daria para, por exemplo, selecionar aqui, no caso,
+Bruno da Silva Nogueira: Uhum.
+Taylor Augusto Dos Santos: o que que é? se é uma sessão. A primeira coisa, eu acho
+a pessoa, clico nela aqui, daí eu vou dizer: "Beleza, ó, isso aqui vai ser uma sessão,
+Bruno da Silva Nogueira: Eu
+Taylor Augusto Dos Santos: então para uma sessão eu vou ter um órgão, vou ter
+isso, ah, não, vai ser uma remoção, mas dá para dar para tratar tudo aqui mesmo,
+Bruno da Silva Nogueira: vou eu vou mostrar aqui para você,
+00:47:14
+Taylor Augusto Dos Santos: só.
+Bruno da Silva Nogueira: só para você ter uma ideia de como que é a nossa tela, só
+para você, não sei que é prévio, né, mas só para você ter uma uma ideia do que que é a
+nossa tela
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: hoje.
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: Essa aqui é a nossa tela de sessão. O alimento, né, do
+servidor que eu tô querendo movimentar e a gente faz a inserção de início, como você
+disse, né, início, fim, empresa, porque hoje dentro do Cap tem, não só tem a empresa
+do governo do estado, mas tem a MPA e outras empresas vinculadas aqui.
+Taylor Augusto Dos Santos: Угу.
+
+-- 43 of 50 --
+
+Bruno da Silva Nogueira: do setor. que esse setor aqui, que é um código dele de
+criação, né, ele tá vinculado ao ao próprio órgão. Então, esse código só existe essa
+secretaria, essa essa unidade, né, dentro do órgão específico. Eh, esse aqui é uma
+unidade da CESP, como a gente colocou aqui na observação. Aí, como disse para
+vocês, a gente tem nções, tá vendo? Isso aqui é tudo tipo de movimentação.
+Agregação externa de bombeiro,
+00:48:09
+Taylor Augusto Dos Santos: Ah.
+Bruno da Silva Nogueira: agregação externa de policial militar, sessão interna,
+cooperação técnica.
+Taylor Augusto Dos Santos: Eu
+Bruno da Silva Nogueira: designação a VNM. São tipos de movimentações diferentes
+que existem dentro do estado.
+Reunião TI - SEPLAG: Eu
+Bruno da Silva Nogueira: Essa sessão, a sessão que a gente fala em si, é uma só. É
+que como não tem várias e como
+Taylor Augusto Dos Santos: pensei que era a única que existia. Muito bom.
+Reunião TI - SEPLAG: já ia falar aqui tipo de sessão,
+Bruno da Silva Nogueira: assim e assim como o nosso sistema
+Taylor Augusto Dos Santos: Muito bom.
+Reunião TI - SEPLAG: ele abrange muita coisa,
+Bruno da Silva Nogueira: eh Aham.
+Reunião TI - SEPLAG: então, né?
+Bruno da Silva Nogueira: É porque assim como hoje nossa nosso sistema é meio eh
+meioessado,
+Reunião TI - SEPLAG: É.
+Taylor Augusto Dos Santos: Só
+
+-- 44 of 50 --
+
+Bruno da Silva Nogueira: né? SEAP em si, eh, são movimentações distintas. Então,
+por exemplo, aqui tá com sessão interna tela, né? Mas isso aqui não é uma sessão
+interna, tipo, uma agregação, não é uma sessão interna, é uma agregação, só que a
+gente não tem tela para cada coisa.
+00:48:54
+Bruno da Silva Nogueira: Então, assim, como são coisas parecidas, jogaram tudo
+aqui, jogaram tudo nessa tela, mas são coisas totalmente de distintas. Por exemplo,
+regime de colaboração é diferente numa sessão, é parecida, mas não é. Eh,
+designação AVNM é a mesma coisa, a cooperação técnica. Então assim, são
+movimentações. Isso aqui são movimentações de servidores. Lógico, mais correto
+seria ter uma tela de movimentações, né? Aí dentro dessa tela tem vários tipos,
+Taylor Augusto Dos Santos: Uhum.
+Bruno da Silva Nogueira: mas hoje
+Taylor Augusto Dos Santos: selecionar qual que você vai
+Reunião TI - SEPLAG: Mas a remoção entraria com algum tipo a remoção entraria
+como um tipo de
+Bruno da Silva Nogueira: oi não,
+Taylor Augusto Dos Santos: fazer.
+Reunião TI - SEPLAG: sessão?
+Bruno da Silva Nogueira: a remoção ela é uma movimentação também, é uma é um
+tipo de movimentação,
+Reunião TI - SEPLAG: Então movimentação acho que seria mais
+Bruno da Silva Nogueira: é uma movimentação definitiva.
+Reunião TI - SEPLAG: adequada.
+Bruno da Silva Nogueira: Isso é uma movimentação definitiva. Aí a remoção, a gente
+tem uma tela específica para pra remoção.
+
+-- 45 of 50 --
+
+00:49:36
+Bruno da Silva Nogueira: Acho que é ferventas de remoção. Aqui que a gente faz a
+remoção de servidores. Só
+Taylor Augusto Dos Santos: Já vou mudar aqui. Então,
+Bruno da Silva Nogueira: um
+Taylor Augusto Dos Santos: vai ser movimentação vai ser sessão. A sessão vai ser
+uma das
+Reunião TI - SEPLAG: é um tipo, remoçar é um tipo, é outro tipo e assim
+Bruno da Silva Nogueira: é aqui, aqui, por exemplo,
+Reunião TI - SEPLAG: vai.
+Bruno da Silva Nogueira: Veviana, eu quero fazer a removimentação dela,
+Taylor Augusto Dos Santos: coisas.
+Bruno da Silva Nogueira: defina a data que eu quero movimentar 2207 2026 aparece
+o cargo dela, né? Aí aqui se eu quiser movimentar, eu faço o tipo de evento que eu
+quero movimentar ela, né? Aí tem vários tipos de remoção também. Tem remoção
+devido da estrutura. Tipo, por, por exemplo, você tá hoje vinculado ao setor de
+desenvolvimento de sistemas, só que aí amanhã sai uma nova estrutura e você não vai
+ficar mais essa unidade. Essa unidade foi extinta, foi criada outra, né, onde você vai
+aumentar.
+00:50:27
+Bruno da Silva Nogueira: Então vai ser feita a remoção, né? Eh, cadê ela? T
+aparecendo aqui, ó. Remoção interna por estrutura. Então, deve tem eh várias formas
+até dentro da remoção de você ser movimentado. uma remoção interna de ofício
+quando determinada a sua movimentação, uma remoção interna por readequação
+funcional,
+Taylor Augusto Dos Santos: M.
+
+-- 46 of 50 --
+
+Bruno da Silva Nogueira: isso que tem a ver com perícia médica,
+Taylor Augusto Dos Santos: ouv
+Bruno da Silva Nogueira: uma uma remoção judicial que tem uma ordem judicial que
+você consiga ser movimentado para um outro órgão, entendidade e assim vai indo.
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: Então são esses tipos aqui são espécies de remoção.
+Assim, pesso falar assim, eh, quando a gente for tratar sobre movimentação de
+servidor, assim, prepare,
+Reunião TI - SEPLAG: Então a gente pode a gente pode generalizar no sentido assim,
+Bruno da Silva Nogueira: vem.
+Reunião TI - SEPLAG: movimentação, a gente vai ter exceção, remoção, Então e
+outros mais que você levantou aí,
+Taylor Augusto Dos Santos: Угу.
+Reunião TI - SEPLAG: assim, a gente vai explorar isso em outro momento, tá?
+00:51:20
+Reunião TI - SEPLAG: Só para mim,
+Bruno da Silva Nogueira: Uhum.
+Reunião TI - SEPLAG: pra gente ter um uma ideia meio meio formada.
+Taylor Augusto Dos Santos: E aí a
+Reunião TI - SEPLAG: E aí a gente vai ter outras mais para essas duas que a gente
+citou,
+Taylor Augusto Dos Santos: gente
+Reunião TI - SEPLAG: mas tudo pode englobar dentro de movimentação do servidor.
+Podemos colocar assim?
+Bruno da Silva Nogueira: Isso, isso,
+Reunião TI - SEPLAG: Ah,
+
+-- 47 of 50 --
+
+Taylor Augusto Dos Santos: acho que na verdade dá para até separar movimentação
+de
+Bruno da Silva Nogueira: isso mesmo.
+Reunião TI - SEPLAG: beleza.
+Bruno da Silva Nogueira: Mas assim,
+Taylor Augusto Dos Santos: remoção.
+Reunião TI - SEPLAG: Mas são tipos é,
+Bruno da Silva Nogueira: a remoção é um tipo de movimentação.
+Reunião TI - SEPLAG: desculpa, Bruno, pode continuar.
+Bruno da Silva Nogueira: Não, não. Eu só falei que mov a remoção é um tipo de
+Reunião TI - SEPLAG: É,
+Taylor Augusto Dos Santos: É um
+Reunião TI - SEPLAG: é isso que eu ia falar. É, ele abriu ali a a caixinha ali,
+Bruno da Silva Nogueira: movimentação.
+00:51:47
+Taylor Augusto Dos Santos: tipo
+Reunião TI - SEPLAG: como eu mostrou ali, tipos de sessão, aquelas lá, e depois você
+falou que, ah, eu tenho outra tela para remoção, mas pode ser junto. Por isso que eu já
+pensei que a gente pode colocar tudo como movimentação,
+Taylor Augusto Dos Santos: ordem.
+Bruno da Silva Nogueira: É,
+Reunião TI - SEPLAG: como tipos,
+Bruno da Silva Nogueira: é porque assim, eh, só para vocês entenderem,
+Taylor Augusto Dos Santos: Uhum.
+Reunião TI - SEPLAG: né?
+Bruno da Silva Nogueira: tem duas telas distintas. Por quê? Porque quando eu mexo
+aqui nessa tela de eventos de remoção, eu tô movimentando o cargo dele efetivo, tá?
+
+-- 48 of 50 --
+
+essa tela que eu tô aqui agora para movimentar o cargo dele. Efetivamente eu vou
+estar transferindo o cargo dele de uma unidade para outra dentro do da própria
+unidade,
+Taylor Augusto Dos Santos: Угу.
+Bruno da Silva Nogueira: dentro do próprio órgão, né? Eu tô saindo da gerência de
+quadro, indo para recrutamento de seleção. Isso é uma movimentação do cargo
+efetivo, uma remoção. E aquela outra tela que a gente tava é quando a gente só
+movimenta temporariamente aquela situação de ir para um outro órgão, ir para uma
+outra unidade, mas sem mudar sua unidade de lotação inicial.
+00:52:38
+Reunião TI - SEPLAG: Então, Elas foram criadas separadamente, mas por conta dessa
+dessa finalidade delas.
+Taylor Augusto Dos Santos: Угу.
+Reunião TI - SEPLAG: Uma movimenta o cargo e a outra só é um não movimenta
+cargo, mas é temporário.
+Bruno da Silva Nogueira: Isso.
+Reunião TI - SEPLAG: Seria isso.
+Bruno da Silva Nogueira: Justamente.
+Reunião TI - SEPLAG: Ah, então aí a gente tem que pensar aí, Taylor?
+Bruno da Silva Nogueira: Eu
+Reunião TI - SEPLAG: Como que a gente pode talvez aí trazer um sol de forma que
+não precise, né, unificar elas duas com movimentação e as outras que a gente vai ter
+que levantar.
+Bruno da Silva Nogueira: até eu até citei assim, até citei sobre a movimentação,
+porque como a gente tá pensando no quadro efetivo, né, do servidor e a gente tem
+essa movimentação de quadro efetivo, né, caso da remoção, então isso afeta também
+o que vocês estão desenvolvendo, né? Então achar melhor para até falar
+Taylor Augusto Dos Santos: Uhum.
+Reunião TI - SEPLAG: É,
+
+-- 49 of 50 --
+
+Taylor Augusto Dos Santos: Bom demais. Bom demais.
+Reunião TI - SEPLAG: vamos explorar mais. Não vou fazer perguntas mais não, porque
+senão eu vou entrar nessa nessa vertente e aí a gente vai ter que ter uma outra reunião
+só para isso. Eu já tô pensando num outra pergunta que não vou ficar quieta pra gente
+poder guardar pra próxima. Vamos fechar aqui o nosso controle porque esse aqui já foi
+bem bem grandinho, vamos dizer, né? Mas então, Taylor, Bruno, é isso.
+Taylor Augusto Dos Santos: Beleza, muito obrigado.
+Bruno da Silva Nogueira: T bem.
+Taylor Augusto Dos Santos: Yeah.
+Bruno da Silva Nogueira: tua disposição,
+Reunião TI - SEPLAG: Belezinha aí.
+Bruno da Silva Nogueira: só me chamar.
+Taylor Augusto Dos Santos: Até a próxima.
+Bruno da Silva Nogueira: Até a próxima.
+Reunião TI - SEPLAG: Até a próxima breve.
+Bruno da Silva Nogueira: Tchau.
+Reunião TI - SEPLAG: Já já a gente volta.
+Bruno da Silva Nogueira: Aí muito obrigada. Já.
+Reunião TI - SEPLAG: Nada. Que é isso? Obrigadão. Tchau, tchau.
+A transcrição foi encerrada após 00:54:20
+Esta transcrição editável foi gerada por computador e pode conter erros. As pessoas
+também podem alterar o texto depois que ele for criado.
+
+-- 50 of 50 --
+

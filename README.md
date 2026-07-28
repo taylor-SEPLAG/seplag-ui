@@ -537,7 +537,6 @@ O repositório também mantém documentos de contexto e status para continuidade
 | --------- | -------- |
 | `docs/CONTEXTO_PROJETO.md` | Visão geral do projeto, decisões já tomadas, rotas e orientações para continuar o trabalho. |
 | `docs/folha-pagamento-status-implementacao.md` | Status do módulo Folha de Pagamento, incluindo Solicitações de Ajustes da Folha, Competência e Tabelas de Referência. |
-| `docs/controle-vagas-status-implementacao.md` | Status do protótipo de Controle de Vagas em Gestão de Pessoas. |
 
 ---
 

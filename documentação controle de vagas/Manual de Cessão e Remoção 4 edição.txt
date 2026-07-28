@@ -1,0 +1,876 @@
+MANUAL DE
+CESSÃO E REMOÇÃO
+DOS SERVIDORES PÚBLICOS EFETIVOS
+DO PODER EXECUTIVO DO ESTADO DE MATO GROSSO
+4ª EDIÇÃO
+SETEMBRO | 2023
+
+-- 1 of 33 --
+
+2
+Governador do Estado de Mato Grosso
+Mauro Mendes
+Secretário de Estado de Planejamento e Gestão
+Basílio Bezerra Guimarães dos Santos
+Secretária Adjunta de Gestão
+Pessoas, Desenvolvimento e Relações de Trabalho
+Lidiane Patrícia Ferreira e Silva Leite
+Superintendente de Provimento, Aplicação e Monitoramento
+Cristiane Santos do Nascimento
+Coordenadora de Provimento
+Débora Cristina Cunha
+Gerente de Quadro e Movimentação de Pessoal
+Bruno da Silva Nogueira
+Equipe Técnica de Elaboração e Revisão do Manual
+Bruno da Silva Nogueira
+Danielli Auxiliadora da Silva
+Fabio de Oliveira Gomes Mota
+Nubia Mara Batista Riva
+Maria Gabriela Almeida Garcia
+Regina Celia Ormond Loureiro Higa
+
+-- 2 of 33 --
+
+3
+SUMÁRIO
+1. APRESENTAÇÃO ________________________________________________________ 4
+2. DOS INSTITUTOS ________________________________________________________ 4
+2.1. CESSÃO __________________________________________________________________ 4
+2.1.1. COMPETÊNCIAS INERENTES À CESSÃO _____________________________________________ 7
+2.1.2. O ÔNUS FINANCEIRO ___________________________________________________________ 7
+2.1.2.1. Cessão de Servidores Públicos Estaduais entre Órgãos ou Entidades Integrantes do Poder
+Executivo Estadual (cessão interna): ______________________________________________________ 7
+2.1.2.2. Cessão de Servidores Públicos Estaduais a Órgãos ou Entidades NÃO Integrantes do Poder
+Executivo Estadual (cessão externa): ______________________________________________________ 7
+2.1.3. REGRAS ESPECÍFICAS QUANTO AO ÔNUS __________________________________________ 11
+2.1.4. REGRAS ESPECÍFICAS QUANTO AO REEMBOLSO ____________________________________ 13
+2.1.5. DOCUMENTAÇÕES OBRIGATÓRIAS DE INSTRUÇÃO DOS AUTOS ________________________ 14
+2.1.6. PROCEDIMENTOS E TRÂMITES DA CESSÃO _________________________________________ 15
+2.1.7. FLUXOGRAMA VERTICAL DE CESSÃO _________________________________________ 17
+2.1.8. OBSERVAÇÕES GERAIS ATINENTES À CESSÃO _______________________________________ 17
+2.1.9. REEMBOLSOS DAS CESSÕES EXTERNAS ___________________________________________ 21
+2.1.10. PRORROGAÇÃO DA CESSÃO ____________________________________________________ 22
+2.1.11. ENCERRAMENTO / CESSAR EFEITOS / REVOGAÇÃO DA CESSÃO________________________ 23
+2.1.12. PREVISÕES LEGAIS GERAIS SOBRE CESSÃO ___________________________________________ 25
+2.2. REMOÇÃO ______________________________________________________________ 26
+2.2.1. COMPETÊNCIAS INERENTES À REMOÇÃO _________________________________________ 27
+2.2.2. DOCUMENTAÇÕES OBRIGATÓRIAS DE INSTRUÇÃO DOS AUTOS ________________________ 28
+2.2.2.1. Remoção interna ___________________________________________________________ 28
+2.2.2.2. Remoção externa ___________________________________________________________ 28
+2.2.3. FLUXOGRAMA DA REMOÇÃO EXTERNA ___________________________________________ 30
+2.2.4. OBSERVAÇÕES GERAIS ATINENTES À REMOÇÃO _____________________________________ 30
+2.2.5. PREVISÕES LEGAIS GERAIS SOBRE REMOÇÃO _______________________________________ 32
+3. OUTROS CONTEÚDOS RELEVANTES_________________________________________________ 32
+
+-- 3 of 33 --
+
+4
+1. APRESENTAÇÃO
+Este manual trata de instruções pertinentes a cessão e remoção de servidores
+públicos efetivos regidos pelo Estatuto dos Servidores Públicos da Administração Direta, das
+Autarquias e das Fundações Públicas Estaduais (LC nº 04 de 15/10/1990) do Poder Executivo
+do Estado de Mato Grosso, por meio da compilação da legislação pertinente e é direcionado
+aos órgãos e entidades estatais, visando facilitar seu acesso às informações sobre a
+regulamentação do instituto da cessão, disseminando o conhecimento pertinente ao assunto,
+evitando, assim, erros e agilizando os processos.
+Insta salientar que as orientações trazidas por este instrumento, são aplicáveis aos
+servidores efetivos do Poder Executivo Estadual de Mato Grosso, sendo que servidores de
+outros órgãos/entidades ou Poderes são regidos por regramentos e tramitações próprios, em
+razão de sua autonomia.
+Registra-se que o presente manual não tem a pretensão de esgotar os assuntos
+relacionados ao tema, mas sim o objetivo de condensar informações para trazer a
+conhecimento num único documento os conceitos, os fundamentos legais, as regras gerais e
+as principais observações relativas aos institutos em questão.
+2. DOS INSTITUTOS
+2.1. CESSÃO
+A cessão, também chamada de cedência, é ato discricionário, autorizativo e
+temporário que permite ao servidor o exercício de suas funções em órgão diverso da sua
+unidade de lotação.
+
+-- 4 of 33 --
+
+5
+A cessão de servidores estaduais da Administração Direta, Autárquica e
+Fundacional deverá ocorrer conforme o que regulamenta o Decreto Nº 691, de 15 de outubro
+de 2020, a seguir transcrito:
+Art. 1º A movimentação dos servidores públicos do Poder Executivo do
+Estado de Mato Grosso, referente à cessão e à remoção, deverá
+observar as diretrizes e procedimentos estabelecidos neste Decreto.
+Parágrafo único. Os servidores públicos mencionados no caput deste
+artigo, incluem os ocupantes de cargos públicos efetivos civis e os
+militares.
+(...)
+Art. 3º O servidor público poderá ser cedido para ter exercício em outro
+órgão ou entidade do Poder Executivo Estadual ou dos Poderes da
+União, dos Estados, do Distrito Federal e dos Municípios, nas seguintes
+hipóteses:
+I - para exercício de cargo em comissão ou função de confiança;
+II - em situações de comprovado interesse público;
+III - em casos previstos em leis específicas.
+§ 1º Caso haja previsão legal da carreira e disponibilidade de cargos
+vagos no órgão solicitante do Poder Executivo Estadual, poderá ser
+requerida a remoção externa ao invés da cessão. (Renumerado de
+parágrafo único para § 1º, pelo Decreto 804/2021)
+§ 2º Aplica-se o disposto nos incisos do caput deste artigo aos
+empregados públicos da Administração Pública Indireta Estadual na
+hipótese de cessão interna para outros órgãos ou entidades
+integrantes deste Poder Executivo. (Acrescentado o pelo
+Decreto 804/2021)
+O servidor público em estágio probatório poderá ser cedido, inclusive para o
+exercício de cargos de provimento em comissão ou função de confiança, somente no âmbito
+do Poder Executivo Estadual e desde que as atribuições sejam compatíveis com as do cargo
+para o qual foi investido em razão do concurso público. (Art. 4º do Decreto 691, de
+15/10/2020)
+Instrumento utilizado para formalização da cessão: Ato Administrativo.
+
+-- 5 of 33 --
+
+6
+Conceitos Importantes: (Art. 2º do Decreto 691/2020)
+Agregação: situação temporária durante a qual o militar da ativa fica afastado da atividade
+profissional, não acarretando em qualquer hipótese abertura de vagas para efeito de
+promoção;
+Cedente: órgão ou entidade de origem e lotação do servidor cedido;
+Cedido: servidor público afastado temporariamente do seu órgão de origem para exercer
+atividades em outro órgão ou entidade;
+Cessão: ato autorizativo, de caráter discricionário, para o exercício de cargo em comissão ou
+função de confiança, em situações de comprovado interesse público ou em casos previstos
+em leis específicas, em caráter temporário, em outro órgão ou entidade dos Poderes da União,
+dos Estados, do Distrito Federal e dos Municípios, sem suspensão ou interrupção do vínculo
+funcional com o órgão de origem;
+Cessão Interna: ato que formaliza a movimentação de servidor público estadual efetivo entre
+órgãos ou entidades integrantes da Administração Direta, Autárquica e Fundacional do Poder
+Executivo Estadual;
+Cessão Externa: ato que formaliza a movimentação de servidor público estadual efetivo a
+órgão ou entidade não integrante do Poder Executivo Estadual;
+Cessionário: órgão ou entidade onde o servidor exercerá suas atividades;
+Ônus: é o pagamento da remuneração, encargos sociais e patronais do servidor cedido ou
+requisitado;
+Reembolso: procedimento utilizado quando o servidor permanece na folha de pagamento do
+cedente, e o cessionário restitui mensalmente a remuneração percebida pelo mesmo, bem
+como dos encargos sociais e patronais, respeitadas as limitações deste Decreto e de normas
+
+-- 6 of 33 --
+
+7
+específicas, inclusive quanto ao disposto no inciso XI do caput do artigo 37 da Constituição
+Federal;
+Requisição: ato irrecusável, previsto em lei, que implica a modificação do exercício do servidor
+ou empregado, sem alteração da lotação no órgão de origem e sem prejuízo da remuneração,
+encargos sociais e patronais ou direitos decorrentes de legislação específica e/ou resultantes
+do vínculo com a Administração Pública
+2.1.1. COMPETÊNCIAS INERENTES À CESSÃO
+A autorização inicial da cessão do servidor é feita pelo dirigente máximo do órgão
+ou entidade cedente, Secretário de Estado, Diretor, Presidente, ou outro com delegação
+publicada, como referendo dos atos administrativos a serem assinados pelo Secretário de
+Estado de Planejamento e Gestão.
+Compete às Unidades Sistêmicas de Gestão de Pessoas dos órgãos e entidades
+realizar a completa instrução dos autos com toda a documentação pertinente e necessária
+para análise e deliberações, bem como orientar diretamente os servidores a respeito de todas
+as tramitações e informações relativas a cada caso.
+Ademais, a competência de decisão final acerca da cessão, é do Secretário de
+Estado de Planejamento e Gestão, e efetivada por meio de Ato Administrativo publicado no
+Diário Oficial do Estado (DOE/MT) conforme disciplina a Lei Complementar nº 239, de
+28/12/200.
+“Art. 3º Fica definida a seguinte classificação dos atos administrativos
+referentes a Recursos Humanos do Poder Executivo:
+(...)
+II - Ato Administrativo: é ato emanado da autoridade administrativa,
+no exercício de sua competência, caracterizado pelos seguintes
+comandos:
+a) de exclusiva deliberação e concessão da Secretaria de Estado de
+Planejamento e Gestão: (Alterado pela LC 627/2019)
+(...)
+
+-- 7 of 33 --
+
+8
+20) cessão ou disposição de servidor a outros Entes da Federação,
+Poderes, Órgãos ou Entidades. (Acrescentado pela LC 627/2019)
+(destaques nossos)
+A respeito da duração da cessão, não é estabelecido um prazo mínimo, mas sim
+o período máximo de duração da movimentação de 05 (cinco) anos, podendo ser prorrogada
+sucessivamente de acordo com a necessidade dos órgãos/entidades envolvidos, destacando-
+se que em casos de cessão atreladas ao cargo em comissão ou função de confiança, que o
+servidor terá sua prorrogação vinculada ao período em que estiver nomeado, vide o
+estabelecido no Art. 12º do Decreto 691, de 15/10/2020 00.
+Art. 12 A cessão será concedida por prazo determinado de até 05
+(cinco) anos, podendo ser prorrogada se houver interesse público
+manifestado pelos órgãos e entidades cedentes e cessionárias,
+mediante ato administrativo publicado no Diário Oficial do Estado,
+ressalvados os casos previstos em lei específica.
+§ 1º Em caso de divergência quanto à prorrogação do prazo caberá à
+Secretaria de Estado de Planejamento e Gestão decidir quanto ao
+pleito, conforme disposto no item 20, alínea "a", inciso II, do artigo 3º
+da Lei Complementar nº 239, de 28 de dezembro de 2005.
+§ 2º A cessão interna será prorrogada automaticamente enquanto
+perdurar o exercício do cargo comissionado ou função de
+confiança. (Nova redação dada pelo Decreto 804/2021)
+Redação original.
+§ 2º A cessão será prorrogada automaticamente enquanto perdurar o
+exercício do cargo em comissão ou função de confiança.
+§ 3º A cessão externa com ônus para o cessionário mediante
+reembolso, somente será prorrogada mediante comprovação da
+quitação ao Poder Executivo Estadual da remuneração e dos encargos
+sociais do servidor cedido, conforme disposto na Lei Complementar nº
+265, de 28 de dezembro de 2006. (Acrescentado pelo
+Decreto 804/2021)
+
+-- 8 of 33 --
+
+9
+2.1.2. O ÔNUS FINANCEIRO
+2.1.3. COMPETÊNCIAS INERENTES À CESSÃO
+2.1.2.1 Cessão de Servidores Públicos Estaduais entre Órgãos ou Entidades
+Integrantes do Poder Executivo Estadual (cessão interna):
+Na cessão de servidores públicos estaduais efetivos entre órgãos ou entidades
+integrantes do Poder Executivo Estadual, o ônus será do órgão cessionário, ou seja, a
+obrigação do pagamento da remuneração ao agente público, bem como do recolhimento do
+percentual determinado por lei para a previdência e dos demais encargos, passa a ser do órgão
+cessionário.
+2.1.2.2 Cessão de Servidores Públicos Estaduais a Órgãos ou Entidades NÃO
+Integrantes do Poder Executivo Estadual (cessão externa):
+Na cessão de servidores públicos estaduais efetivos a órgãos ou entidades não
+integrantes do Poder Executivo Estadual, a cessão será, em regra, realizada com ônus para o
+órgão de cessionário mediante reembolso do subsídio, encargos sociais e patronais, férias e
+seu adicional, gratificação natalina e parcelas ou direitos decorrentes de legislação específica
+e/ou resultantes do vínculo com a Administração Pública.
+
+-- 9 of 33 --
+
+10
+IMPORTANTE!! Na hipótese do não reembolso pelo
+cessionário, ou seja, não ocorrendo o pagamento do ressarcimento por 03 (três) meses
+consecutivos, ficará sem efeito o ato de cessão, devendo o servidor cedido se apresentar
+imediatamente ao órgão cedente.
+2.1.2.3 Cessão de servidor com 02 vínculos que ocupará cargo em comissão
+no órgão cessionário;
+Nos casos em que o servidor possuir dois vínculos e for exercer cargo em comissão
+no órgão cessionário, a instrução dos autos deverá ser baseada nos termos do Parecer n.
+925/SGACI/2019 emitida em 23/10/2019 e a Manifestação nº 17/SGACI/2020 emitida
+03/02/2021, ambas proferidas pela Procuradoria Geral do Estado - PGE, que em suma
+asseveram os seguintes pontos:
+(...)
+a)“Impossibilidade de a servidora ser cedida "cumulativamente" dos dois
+cargos de professor, mediante renúncia formal do cargo em comissão,
+ainda perfaça carga horária total de 40 horas, na medida em que, a exceção
+da cessão para cargo em comissão, deve haver similaridade nas atribuições
+exercidas no órgão cessionário, o que não se verifica no caso posto a análise.
+
+-- 10 of 33 --
+
+11
+b) Possibilidade de cessão dos dois vínculos efetivos com afastamento em
+ambos para desempenho de cargo em comissão junto ao órgão cessionário,
+desde que, sob o viés remuneratório seja realizada a opção por uma das
+seguintes hipóteses: b.1) perceber a remuneração integral correspondente ao
+cargo em comissão. b.2) receber a retribuição pertinente a um dos cargos
+efetivos, acrescido do percentual de comissionamento sobre o mesmo. c)
+Inviabilidade jurídica de percepção dos valores atinentes aos cargos efetivos
+em função da cessão proposta. (...)”.
+Desse modo, caso a cessão seja autorizada pelo dirigente máximo da pasta, deverá
+haver nos autos a manifestação do servidor interessado quanto a opção remuneratória
+escolhida.
+2.1.4. REGRAS ESPECÍFICAS QUANTO AO ÔNUS
+Situação Regra Especial Base Legal
+Grupo TAF –
+Tributação
+Arrecadação e
+Fiscalização (SEFAZ)
+Poderá ser com ônus para o órgão de origem quando
+a cessão estiver relacionada a contribuição com a
+melhoria nos controles inerentes à Administração
+Tributária, eficácia tributária, relacionamento com o
+contribuinte e gestão dos gastos, justificando o
+interesse comum das partes envolvidas.
+Art. 12 da LC nº 79,
+de 13 de dezembro
+de 2000.
+Cessões específicas
+de servidores de
+Profissionais do
+Sistema Único de
+Saúde (SES)
+É permitida a cessão com ônus para o órgão de
+origem, exclusivamente para exercício de atividades
+inerentes ao SUS, para a gestão municipal, estadual,
+interestadual, federal ou filantrópica.
+Art. 72 da LC nº
+441, de 24 de
+outubro de 2011.
+Cessões específicas
+para a Assembleia
+Legislativa de Mato
+Grosso – ALMT
+Poderão ser cedidos servidores do Poder Executivo
+Estadual à ALMT com ônus para o órgão de origem,
+mediante prévia solicitação e demonstração da
+necessidade do serviço. O quantitativo de servidores
+cedidos nessa situação não poderá exceder o número
+de 24 (vinte e quatro) deputados estaduais
+atualmente eleitos.
+*Atentar a legislação de carreira com respeito aos
+impeditivos da cessão acima.
+Art. 3º-B da LC nº
+265, de 28 de
+dezembro de 2006.
+E art. 1º -B da LC
+662/2020.
+
+-- 11 of 33 --
+
+12
+Cessões por
+Requisição da Justiça
+Eleitoral
+Em caso de Requisição da Justiça Eleitoral, a cessão é
+feita, em regra, com ônus para o órgão de origem,
+pelo período de 1 ano, prorrogável por até + 4 anos.
+Porém, caso o servidor seja cedido para exercício de
+cargo comissionado, o ônus da cessão será do
+cessionário.
+Art. 365 da Lei
+Federal nº
+4.737/1965, Lei
+Federal nº
+6.999/1982, Lei nº
+9.096/1995, Lei nº
+9.504/1997 e
+demais Resoluções
+específicas
+vigentes.
+Cessões de Militares
+(PM) (CBM)
+O ônus da remuneração será do órgão ou entidade
+cedente nas cessões para os órgãos discriminados nos art.
+28 e 29 da LC nº 555/2014, e demais situações previstas
+em Lei. Os militares deverão ser agregados quando à
+disposição dos órgãos/entidades referidos nos artigos
+supramencionados.
+Art. 28 e 29 da LC
+555/2014.
+Art. 1º -B da LC
+662, de 14 de maio
+de 2020.
+Cessões específicas
+dos servidores da
+Carreira do Sistema
+Penitenciário e
+Socioeducativo
+(SESP)
+O ônus da cessão dos servidores que pertencentes a
+carreira do Sistema Penitenciário, poderá ser para origem,
+desde que para exercício das funções inerentes ao Sistema
+Penitenciário.
+O ônus da cessão do servidor de que trata o caput deste
+artigo será da entidade cessionária, salvo se para exercício
+de funções inerentes ao Sistema Socioeducativo.
+Nesses casos específicos, solicitamos manifestação de
+ambos órgãos interessados, tanto com a discriminação das
+atividades que serão exercidas pelo servidor no órgão
+cessionário, como a confirmação do órgão de origem
+Art. 44º da Lei nº
+389, de 31 de
+março de 2010 e
+Art. 43º, item I da
+Lei nº 9.688 de
+dezembro de 2021.
+
+-- 12 of 33 --
+
+13
+2.1.5. REGRAS ESPECÍFICAS QUANTO AO REEMBOLSO
+O Decreto 691/2020, a respeito do reembolso de cessões, consta a seguinte
+redação:
+Art. 15 É de responsabilidade do cessionário o ônus pela remuneração
+do servidor público cedido, acrescido dos respectivos encargos sociais
+e patronais, previstos em lei, ressalvados os casos previstos em leis
+específicas.
+Parágrafo único No caso de cessão externa mediante reembolso, o
+cessionário reembolsará ao cedente as parcelas decorrentes de
+legislação específica ou de acordo coletivo de trabalho, exceto
+retribuições pelo exercício de cargo em comissão ou função de
+confiança, devendo sempre ser observado o teto constitucional.
+Art. 16 Não haverá reembolso das cessões internas, e das cessões
+externas que também envolvam empresas públicas ou sociedades de
+economia mistas integrantes do Poder Executivo Estadual,
+dependentes de recursos financeiros do tesouro, inclusive nos casos em
+que o servidor esteja cedido para exercício de cargo comissionado,
+conforme art. 1°-A da Lei Complementar n° 265, de 28 de dezembro de
+2006, alterado pela Lei Complementar n° 662, de 14 de maio de 2020.
+Parágrafo único O disposto no caput do artigo não se aplica nos casos
+em que a folha de pagamento seja lastreada com recursos
+constitucionalmente vinculados ou fontes com finalidades de aplicação
+específicas, devendo haver reembolso pelos órgãos ou entidades
+cessionárias.
+Desse modo não há mais a necessidade de reembolso nas cessões dos
+empregados públicos, nem de servidores para as empresas estatais dependentes de recursos
+financeiros do Tesouro, salvo nas situações especificadas em lei.
+
+-- 13 of 33 --
+
+14
+2.1.6. DOCUMENTAÇÕES OBRIGATÓRIAS DE INSTRUÇÃO DOS AUTOS
+O processo deverá ser encaminhado à Secretaria de Estado de Planejamento e
+Gestão devidamente instruído no SIGADOC com as seguintes documentações:
+1. Ofício de Solicitação de Cessão Interna do Servidor - Ofício de Solicitação de Cessão
+Interna do Servidor;
+2. Despacho de Solicitação de Manifestação da Unidade de Lotação – Solicitar
+Manifestação da Unidade de Lotação do Servidor quanto a cessão Interna; (Não
+obrigatório)
+3. Despacho de Manifestação da Unidade de Lotação do Servidor – Manifestação da
+Unidade de Lotação do Servidor Quanto a Cessão Interna;
+4. Manifestação Técnica de Decisão da Cessão Interna de Servidor Área Setorial –
+Manifestação Técnica de Decisão da Cessão Interna de Servidor;
+5. Despacho de Autorização ou Indeferimento da Cessão Interna pelo Secretário do
+Órgão Cedente – Autorização ou Indeferimento da Cessão Interna do Servidor;
+6. Manifestação Técnica de Cessão Interna do Órgão Central de Gestão de Pessoas –
+Manifestação Técnica de decisão da cessão interna do servidor;
+7. Cópia dos atos anteriores, caso tratar-se de prorrogação; no caso de prorrogação do
+TRE, juntar todos os Atos anteriores, para fim de melhor instrução dos autos.
+Os processos de cessão (1ª autorização), deverão ser instruídos via Sistema Integrado da Gestão
+Administrativa Documental - SIGADOC, adotado pelo Poder Executivo de Mato Grosso, conforme
+documentos criados já dentro do sistema.
+
+-- 14 of 33 --
+
+15
+2.1.7. PROCEDIMENTOS E TRÂMITES DA CESSÃO
+O órgão cessionário deve protocolar pedido de cessão junto ao órgão de origem
+do servidor, apresentando a motivação do pedido; o período da cessão; indicando o código da
+unidade SEAP onde o servidor irá trabalhar; informação quanto à assunção do ônus e outras
+que entender pertinentes, com a antecedência mínima de pelo menos 60 (sessenta) dias, uma
+vez que, é vedado ao servidor público ausentar-se da unidade de sua lotação de origem antes
+da publicação do ato de cessão ou remoção no Diário Oficial do Estado, sob pena de
+responsabilidade funcional, conforme art. 9º do Decreto n. 691/2020.
+Se o servidor solicitado estiver em período de estágio probatório, o processo
+deverá conter a informação que as atribuições do cargo são compatíveis com as do cargo para
+o qual foi investido em razão do concurso público, conforme alteração da LC 662/2020 e
+conforme art. 4º do Decreto n. 691/2020, que diz: O servidor público em estágio probatório
+poderá ser cedido, inclusive para o exercício de cargos de provimento em comissão ou função
+de confiança, somente no âmbito do Poder Executivo Estadual e desde que as atribuições
+sejam compatíveis com as do cargo para o qual foi investido em razão do concurso público.
+O órgão cedente analisará o pedido e fará a instrução dos autos com as
+informações e documentos necessários, previstos no SIGADOC, por meio da Unidade
+Sistêmica de Gestão de Pessoas, e com a deliberação do dirigente máximo do órgão/entidade,
+pela autorização ou não da cessão do servidor.
+Caso seja autorizado, o processo deverá encaminhado à Secretaria de Estado de
+Planejamento e Gestão – SEPLAG, para proceder à análise do processo e, presente toda a
+documentação e autorizações, publicar o Ato Administrativo via Diário Oficial do Estado.
+Após a publicação do ato, o servidor poderá se afastar do órgão de origem e
+deverá exercer suas atividades junto ao órgão cessionário durante o período em que perdurar
+a vigência da cessão.
+
+-- 15 of 33 --
+
+16
+Cabe salientar que essa movimentação é lançada no Sistema Estadual de
+Administração de Pessoas – SEAP, a depender do tipo da cessão, será registrado em ‘Cessão
+Interna’ ou em ‘Cessão Externa’. Após publicação, os autos serão restituídos ao órgão de
+origem para demais providências que julgarem necessárias, devendo fazer a juntada do ato
+na pasta funcional virtual do servidor.
+ATENÇÃO! As cessões internas são realizadas diretamente via SEAP e
+publicadas automaticamente no DOE/MT via PAEP - Publicações Automáticas de Eventos de
+Pessoal, em prazo de até 5 dias úteis após lançamento em SEAP.
+Já os atos de cessão externa, passam pela análise direta do Gabinete do Secretário
+de Estado de Planejamento e Gestão, e após assinatura, são publicados diretamente no
+DOE/MT, na parte das “Secretarias”, especificamente da Secretaria de Estado de
+Planejamento e Gestão.
+
+-- 16 of 33 --
+
+17
+2.1.8. FLUXOGRAMA VERTICAL DE CESSÃO
+2.1.9. OBSERVAÇÕES GERAIS ATINENTES À CESSÃO
+ Mesmo nomeado para cargo em comissão ou função de confiança em órgão ou
+entidade diversa de sua lotação original, o servidor efetivo deve ser cedido;
+ Não há cessão de servidor exclusivamente comissionado e temporários;
+SERVIDOR EM ESTÁGIO PROBATÓRIO
+ O servidor público em estágio probatório poderá ser cedido, inclusive para o exercício
+de cargos de provimento em comissão ou função de confiança, somente no âmbito do
+Poder Executivo Estadual e desde que as atribuições sejam compatíveis com as do
+cargo para o qual foi investido em razão do concurso público.
+
+-- 17 of 33 --
+
+18
+OUTROS EVENTOS CONCOMITANTES AO PERÍODO DE CESSÃO
+ Fica obstada a cessão se houver outro evento concomitante e impeditivo relativo ao
+mesmo período (ex.: outra cessão vigente, licença para qualificação profissional,
+licença para tratamento de interesses particulares, atributos como insalubridade, etc.);
+PRAZO MÁXIMO PARA A CESSÃO
+ O período da cessão poderá ser por até 05 (cinco) anos, podendo ser prorrogado caso
+haja interesse da administração pública;
+ A cessão interna será prorrogada automaticamente enquanto perdurar o exercício do
+cargo comissionado ou função de confiança, ou seja, todas as cessões internas
+independentemente de o servidor ocupar cargo ou não, será publicada inicialmente
+com o motivo “Autorizar” e se após o período da autorização o servidor continuar
+exercendo o cargo no órgão cessionário, a cessão será publicada com o motivo
+“Prorrogar DGA”.
+MOMENTO PARA AFASTAMENTO DO SERVIDOR DE SEU ÓRGÃO/ENTIDADE DE ORIGEM
+ O servidor deve aguardar a publicação do ato autorizativo da cessão em Diário Oficial
+para fins de apresentação ao órgão cessionário, de modo que, “É vedado ao servidor
+público ausentar-se da unidade de sua lotação de origem antes da publicação do ato
+de cessão ou remoção no Diário Oficial do Estado, sob pena de responsabilidade
+funcional”.
+DEVERES DO SERVIDOR CEDIDO
+ O servidor cedido deve se atentar para o período de sua cessão, devendo retornar
+imediatamente para o cedente ao final da vigência do ato autorizativo. Caso haja
+dúvidas, deve procurar a Gestão de Pessoas de seu órgão ou entidade de origem;
+ Ele deverá também fazer o Recadastramento do Poder Executivo Estadual anualmente
+juntamente com todos os servidores ativos, conforme dispõe o § 3º do art. 5º, do
+Decreto nº 614, de 30 de junho de 2016;
+
+-- 18 of 33 --
+
+19
+ O servidor deverá atentar para o usufruto de férias e licença prêmio nos termos dos
+decretos vigentes, para não ocorrer acúmulo.
+SERVIDOR QUE USUFRUIU DE LICENÇA PARA QUALIFICAÇÃO PROFISSIONAL
+ Servidor que tenha retornado de um período de licença para qualificação profissional
+deverá observar, em regra, a sua permanência em seu órgão/entidade de lotação por
+igual período a que gozou da licença, conforme legislação própria (Decretos nº
+2.347/2014, nº 6841/2005 – SEDUC e Resoluções do CONEPE – UNEMAT);
+SERVIDOR QUE RESPONDA A PROCESSO ADMINISTRATIVO
+ Há algumas carreiras que proíbem expressamente que o servidor que responde a
+Processo Administrativo Disciplinar (PAD) seja cedido. Assim, para esses casos, no
+processo de cessão deve vir uma declaração de que o servidor envolvido na cessão não
+responde a PAD no momento da cessão.
+ Se o cedido passar a responder a PAD no cessionário, esse deverá comunicar
+imediatamente ao órgão de origem, para tomada de providências, em conjunto com a
+SEPLAG;
+REMOÇÃO INTERNA ENTRE SETORES NO CESSIONÁRIO
+ O órgão cessionário não pode remover internamente o servidor cedido no sistema
+SEAP, uma vez que essa alteração poderá modificar o quadro de vagas dos órgãos
+envolvidos, devendo as alterações de departamento serem solicitadas pelo e-mail
+gqmp@seplag.mt.gov.br, à Gerência de Quadro e Movimentação de Pessoal da
+SEPLAG, contendo:
+Nome, matrícula funcional, data da movimentação, código e nome da unidade a ser
+movimentado.
+
+-- 19 of 33 --
+
+20
+CESSÃO DE MILITARES
+ Se postos à disposição dos órgãos e entidades elencados no rol do art. 29 da LC 555/2014,
+os militares deverão ser somente agregados pela instituição a que pertencem, por ato do
+respectivo Comandante-Geral, cabendo à própria Instituição militar tomar as providências
+quanto a implementação, controle e publicação do evento. Se postos à disposição de
+outros órgãos/entidades deverão ser cedidos normalmente, seguindo as regras deste
+Manual.
+VIDA FUNCIONAL DO CEDIDO
+ As informações da vida funcional do servidor devem estar sempre atualizadas em
+Sistema SEAP. Sempre atentar-se para o servidor cedido não acumular indevidamente
+férias e licenças prêmio, por exemplo. Essas informações devem ser apresentadas
+desde o processo de cessão, seja a primeira, ou seja prorrogação.
+ALTERAÇÃO DO EVENTO DO SERVIDOR CEDIDO NO SEAP
+ Assim que o processo de cessão for recebido por esta Gerência, a Unidade Sistêmica
+do órgão/entidade de origem, deverá movimentar o servidor para a “Unidade Especial
+de Controle de Movimentação de Pessoal” nos termos do Decreto Estadual nº 7.219,
+de 14/03/2006.
+Em caso de dúvida com o lançamento,
+deverá ser solicitado o auxílio junto à
+Coordenadoria Técnica de Suporte ao
+Sistema SEAP.
+
+-- 20 of 33 --
+
+21
+2.1.10. REEMBOLSOS DAS CESSÕES EXTERNAS
+Conforme já explanado acima, o reembolso das cessões de servidores do Poder
+Executivo estadual de MT deverá ser realizado por meio de emissão do Documento de
+Arrecadação Estadual – DAR, de acordo com as orientações da Secretaria de Estado de
+Fazenda, constante no endereço eletrônico www.sefaz.mt.gov.br, atualmente no Menu:
+Finanças Públicas → Contabilidade Pública → Orientações Contábeis → Instrução de Serviço:
+002-2016 – Procedimentos reembolso cessão externa e cessão pessoal da Administração
+Indireta
+
+-- 21 of 33 --
+
+22
+2.1.11. PRORROGAÇÃO DA CESSÃO
+Cessões, em regra, para exercício de cargo em comissão ou função de confiança são
+prorrogadas automaticamente, devendo o órgão cessionário comunicar ao cedente e a
+Gerência de Quadro e Movimentação de Pessoal, em casos de nomeação de servidores já
+cedidos.
+As demais cessões não são prorrogadas automaticamente, devendo ser instruído
+processo para prorrogação ou renovação da cessão ainda durante o seu prazo de vigência,
+com antecedência mínima de pelo menos 90 dias, devendo o cessionário iniciar o processo de
+solicitação.
+Os documentos e informações constantes dos autos devem ser os mesmos da primeira
+solicitação, inclusive a motivação da continuidade dos trabalhos; além disso, devem ser
+inseridos também os eventuais atos anteriores de cessão do mesmo servidor.
+Em caso de prorrogação de cessão externa, deve ser necessariamente juntada a
+comprovação dos reembolsos da cessão vigente, por meio da quitação dos DAR’s ou por meio
+de declaração do órgão de origem acerca da regularidade dos pagamentos, exceto se a cessão
+foi efetivada com ônus para a origem, nos termos do art. 3º do Decreto nº 804/2021 de
+22/01/2021.
+Além disso, o cedente deve manter um rigoroso controle sobre os registros funcionais
+do servidor cedido, devendo cobrar do cessionário tais informações e documentos, caso não
+seja enviado mensalmente ou ao final da cessão, para que seja mantida atualizada a vida
+funcional do servidor e para certificar-se do usufruto de direitos como férias e licença prêmio,
+bem como não permitir acúmulos indevidos ou irregulares.
+
+-- 22 of 33 --
+
+23
+2.1.12. ENCERRAMENTO / CESSAR EFEITOS / REVOGAÇÃO DA CESSÃO
+O término da cessão pode se dar de várias maneiras, tais como as citadas no Art. 13 e
+14, do Decreto 691/2020:
+Art. 13 A cessão será encerrada:
+I - pelo fim do prazo estabelecido no ato de cessão, caso não haja
+pedido de prorrogação deferido e publicado nos termos deste Decreto;
+II - pelo deferimento de requerimento do cedente, do cessionário ou do
+servidor público, de forma fundamentada; ou
+III - em caso de não pagamento do reembolso pelo cessionário.
+§ 1º Ao término da cessão no caso previsto no inciso I deste artigo, o
+servidor público deverá se apresentar à unidade setorial de gestão de
+pessoas do cedente no primeiro dia útil subsequente, que designará a
+sua lotação de acordo com as necessidades do órgão ou entidade.
+§ 2º Devidamente instruído o requerimento, o encerramento da cessão
+no caso previsto no inciso II deste artigo, será homologado pela
+Secretaria de Estado de Planejamento e Gestão, que publicará ato
+especificando a data de retorno do servidor ao órgão de origem.
+§ 3º Caso o cedente solicite o retorno do servidor público antes do fim
+do prazo estabelecido no ato de cessão e o cessionário não concorde
+justificando expressamente os motivos, caberá à Secretaria de Estado
+de Planejamento e Gestão decidir quanto ao pleito, conforme disposto
+no item 20, alínea "a", inciso II, do artigo 3º da Lei Complementar nº
+239, de 28 de dezembro de 2005.
+§ 4º Na hipótese do não reembolso pela cessionária, pelo prazo de 03
+(três) meses consecutivos, o cedente deverá notificar a cessionária
+para regularização dos reembolsos devidos no prazo de 30 (trinta) dias,
+sob pena de tornar sem efeito o ato de cessão, devendo o servidor
+cedido se reapresentar imediatamente ao órgão cedente, conforme
+determinado em notificação realizada pelo cedente.
+
+-- 23 of 33 --
+
+24
+Art. 14 Na hipótese de não retorno do servidor público no prazo
+estabelecido nos §§ 1º, 2º e 4º do art. 13 deste Decreto, o cedente do
+Poder Executivo Estadual deverá:
+I - descontar os dias faltados injustificadamente;
+II - suspender a remuneração, a partir do mês subsequente, do servidor
+público; e
+III - adotar os procedimentos previstos na Lei Complementar nº 04, de
+15 de outubro de 1990, Lei Complementar nº 555, de 29 de dezembro
+de 2014, normas militares específicas ou na Consolidação das Leis do
+Trabalho, com fundamento em eventual abandono de cargo ou
+emprego, se for o caso.
+Observação: O servidor deverá aguardar a publicação do Ato Administrativo no órgão
+cessionário, uma vez que, o mesmo somente terá os acessos restabelecidos no órgão de
+origem, após a publicação do ato de cessar efeitos no Diário Oficial do Estado. Caso o servidor
+esteja exercendo cargo comissionado no órgão cessionário e pretende retornar ao órgão de
+origem, a sistêmica do órgão cessionário deverá providenciar antecipadamente a publicação
+do ato de exoneração do cargo em comissão antes de encaminhar o processo de
+encerramento da cessão a esta Gerência.
+Desse modo, caso ocorra alguma hipótese de encerramento antecipado da cessão,
+deve ser aberto processo administrativo, no qual deverá ter manifestação de ambos os
+órgãos/entidades envolvidos(as), e ter a data estabelecida antes de ser enviado para a
+SEPLAG, para elaboração de ato para cessar os efeitos.
+Os atos de cessar efeitos, retificações e tornar sem efeito, são realizados diretamente
+via SEAP e publicadas via “PAEP”: Publicação Automática de Eventos de Pessoal,
+automaticamente no DOE/MT na parte de “Eventos de Pessoal” da SEPLAG,
+independentemente do tipo de movimentação.
+
+-- 24 of 33 --
+
+25
+2.1.13. PREVISÕES LEGAIS GERAIS SOBRE CESSÃO
+Lei Complementar nº 04, de 15 de outubro de 1990 – Estatuto servidores públicos de MT;
+Lei Complementar nº 80, de 14 de dezembro de 2000 – Estágio probatório;
+Lei Complementar nº 239, de 28 de dezembro de 2005 – Normas padronização de atos;
+Lei Complementar nº 265, de 28 de dezembro de 2006 – Dispõe sobre ônus da cessão;
+Lei Complementar nº 555, de 29 de dezembro de 2014 – Estatuto dos militares de MT;
+Lei Complementar nº 662, de 14 de maio de 2020 – Alteração de legislações;
+Decreto Estadual nº 7.219, de 13 de março de 2006 – Unid. Esp. de Controle e Movimentação;
+Decreto Estadual nº 90, de 16 de abril de 2019 – Regulamenta concessão e o gozo de licença-
+prêmio por assiduidade dos servidores públicos efetivos civis e militares no âmbito Estadual;
+Decreto Estadual nº 656, de 28 de setembro de 2020 - Regulamenta a concessão e o usufruto
+de férias dos servidores públicos civis e militares no âmbito Estadual;
+Decreto Estadual nº 691, de 15 de outubro de 2020 – Regulamenta Cessão e Remoção de
+servidores públicos civis e militares no âmbito Estadual;
+Decreto Estadual nº 1.447 de 12 de agosto de 2022 - Redistribuição Profissionais da Área Meio
+e dos Profissionais de Desenvolvimento Econômico e Social;
+Normas de organização interna sobre cessão (ex: Leis específicas de Carreira, Decretos,
+Portarias internas, etc.).
+
+-- 25 of 33 --
+
+26
+2.2. REMOÇÃO
+A remoção é deslocamento do servidor público em caráter definitivo, a pedido ou
+de ofício, no âmbito do mesmo quadro do Poder Executivo Estadual, com ou sem mudança de
+sede.
+Em outras palavras, é a lotação definitiva do servidor em outro órgão ou entidade
+do Poder Executivo estadual, podendo se dar das seguintes formas:
+I – por permuta: quando há troca do local de exercício laboral entre dois servidores que se
+comprometam, reciprocamente, a assumir as suas atividades desempenhadas nos casos em
+que os servidores sejam titulares do mesmo cargo e tenham perfil profissional equivalente;
+II – de ofício: quando a mudança do local de exercício laboral se dá por iniciativa da
+Administração Pública, por necessidade e interesse público, devendo ser fundamentada pelo
+dirigente do órgão ou entidade;
+III – a pedido: quando a mudança do local de exercício laboral se dá mediante pedido
+fundamentado do próprio servidor ao dirigente do órgão ou entidade, observado o interesse
+da Administração e a existência de vaga;
+IV – mediante processo seletivo interno: quando houver mais servidores interessados na
+remoção do que vagas disponíveis na localidade interessada, situação em que será realizado
+processo seletivo interno para a remoção a pedido, observada a ordem de preferência
+estabelecida no art. 10 da Lei nº 8.275, de 29/12/2004.
+Conceitos importantes:
+Remoção: deslocamento do servidor público em caráter definitivo, a pedido ou de ofício, no
+âmbito do mesmo quadro do Poder Executivo Estadual, com ou sem mudança de sede;
+Remoção Externa: ato que formaliza a movimentação do servidor público para ser lotado em
+definitivo em outro órgão ou entidade do Poder Executivo Estadual;
+Remoção Interna: ato que formaliza a movimentação do servidor público para ser lotado em
+definitivo em unidade diversa dentro dos quadros do mesmo órgão ou entidade;
+
+-- 26 of 33 --
+
+27
+2.2.1. COMPETÊNCIA INERENTE À REMOÇÃO
+A autorização da remoção do servidor é de competência do dirigente máximo do
+órgão de origem.
+Em relação a competência e efetivação da publicação de remoção segue o que diz
+o Art. 21 do Decreto 691/2020:
+Art. 21 Compete à unidade de administração sistêmica do órgão ou
+entidade de origem do servidor público:
+I - a efetivação da remoção interna, que deve conter o requerimento
+motivado de superior hierárquico envolvido, no caso de remoção de
+ofício, ou do próprio servidor público, no caso de remoção a pedido;
+II - a instrução do processo de remoção externa, ficando a cargo da
+Secretaria de Estado de Planejamento e Gestão a manifestação técnica
+acerca da concessão e a publicação do ato administrativo.
+A efetivação de seu lançamento, no caso de remoção interna é da gestão de
+pessoas do órgão de origem do servidor, e se dará por meio de Portaria publicada no Diário
+Oficial do Estado na parte específica da secretaria ou entidade respectiva.
+
+-- 27 of 33 --
+
+28
+Já as remoções externas são efetivadas pela SEPLAG por meio de Ato
+administrativo eletrônico, lançada diretamente no SEAP (via “PAEP”: Publicação Automática
+de Eventos de Pessoal) e publicada em Diário Oficial.
+2.2.2. DOCUMENTAÇÕES OBRIGATÓRIAS DE INSTRUÇÃO DOS AUTOS
+2.2.2.1. Remoção interna
+O processo deverá ser encaminhado à unidade de Administração Sistêmica do
+órgão/entidade devidamente instruído via SIGADOC com a seguinte documentação:
+ Requerimento motivado de superior hierárquico das unidades envolvidas, no caso
+de remoção de ofício, ou do próprio servidor, no caso de remoção a pedido,
+devendo ser indicada a unidade em que será lotado, bem como a data de início da
+remoção;
+ Anuência do superior imediato da unidade de lotação de origem do servidor;
+ Anuência do superior imediato da unidade de lotação de destino do servidor.
+2.2.2.2. Remoção externa
+O processo deverá ser encaminhado à Secretaria de Estado de Planejamento e
+Gestão devidamente instruído com a seguinte documentação:
+ Solicitação do dirigente máximo do órgão/entidade e/ou requerimento com a
+motivação do pedido de remoção;
+ Possibilidade na lei de carreira do servidor de lotação naquela unidade;
+ Existência de vagas no órgão/entidade em que o servidor será lotado;
+ Ciência e concordância das unidades envolvidas;
+ Autorização do dirigente máximo do órgão/entidade de origem do servidor;
+
+-- 28 of 33 --
+
+29
+ Manifestação da Administração Sistêmica do órgão de origem com dados
+funcionais do servidor público a ser removido;
+ Data exata da remoção (dia, mês e ano);
+ Checklist de movimentação, conforme modelo disponibilizado no site da SEPLAG
+conforme modelo atualizado no site da SEPLAG, no endereço eletrônico:
+http://seplag.mt.gov.br/index.php?pg=gestao-de-pessoas, em “Sistemas Centrais” –
+Gestão de Pessoas – Documentos – Cessão e Remoção;
+ Nome e número da Unidade Administrativa no SEAP de onde o servidor será
+lotado;
+ Declaração do órgão de origem que o servidor não responde a Processo
+Administrativo Disciplinar emitida pelo setor competente;
+A Secretaria de Estado de Planejamento e Gestão procederá à análise do pedido
+e, se estiver de acordo com as normas vigentes, procederá à publicação do Ato Administrativo
+de remoção.
+
+-- 29 of 33 --
+
+30
+2.2.3. FLUXOGRAMA VERTICAL DA REMOÇÃO EXTERNA
+2.2.4. OBSERVAÇÕES GERAIS ATINENTES À REMOÇÃO
+ É vedada a remoção de ofício do servidor que tiver a si próprio, dependente ou cônjuge
+sob tratamento médico ou psicológico, conforme art. 5º, § 2º da Lei nº 8.275, de
+29/12/2004;
+ É vedada a remoção a título de punição do servidor, conforme art. 23 da Lei nº 8.275,
+de 29/12/2004;
+ Servidor que tenha retornado de um período de licença para qualificação profissional,
+em regra, deverá ser observada a sua permanência em seu órgão/entidade de lotação
+por igual período a que gozou da licença, conforme legislação própria (Decretos nº
+6841/2005 – SEDUC e nº 2.347/2014 e Resoluções do CONEPE – UNEMAT);
+
+-- 30 of 33 --
+
+31
+ O cumprimento de mandato classista impede a remoção do servidor, durante sua
+duração, bem como após o retorno do servidor, por período correspondente, no caso
+de Presidente de Sindicato, ou correspondente a metade do período, no caso de
+Diretor de Sindicato, nos termos do art. 9º da Lei nº 8.275, de 29/12/2004;
+ O servidor que estiver respondendo processo administrativo disciplinar somente será
+removido após a conclusão deste, conforme art. 25 da Lei nº 8.275, de 29/12/2004;
+ Nos três meses que antecedem o pleito eleitoral até a posse dos eleitos, é vedada a
+remoção de ofício de servidor público, com exceção dos agentes penitenciários, nos
+termos do inc. V, alínea e, do art. 73 da Lei Federal nº 9.504, e 30/09/1997;
+ A remoção por permuta se dará, em regra, dentro do próprio Poder Executivo
+Estadual, uma vez que há a exigência de que os servidores sejam titulares do mesmo
+cargo, contudo é legalmente permitida também para servidores da Carreira dos
+Professores da Educação Básica, que podem ser permutados entre entes da federação,
+nos termos do artigo 43 da Lei Complementar nº 50, de 1º de outubro de 1998 e para
+Profissionais do Sistema Único de Saúde, nos moldes da LC 441, de 24 de outubro de
+2011, art. 72, § 2º.
+ Cabe lembrar que há outras duas hipóteses de remoção interna a serem efetuadas no
+SEAP pela Administração Sistêmica dos órgãos e entidades:
+1) Quando houver extinção de unidades administrativas na estrutura do
+órgão/entidade, conforme Decreto nº 1.200/2008;
+2) Quando houver servidor cedido, ou afastado, licenciado ou permutados por mais
+de 90 (noventa) dias, para a Unidade Especial de Controle e Movimentação de
+Pessoal (UECMP);
+
+-- 31 of 33 --
+
+32
+ Caso o cedido não tenha sido removido para a UECMP e a cessão já tiver sido
+publicada, o órgão de origem deverá solicitar adequação no sistema junto a
+Coordenadoria de Suporte aos Usuários do SEAP;
+2.2.5. PREVISÕES LEGAIS GERAIS SOBRE REMOÇÃO
+Lei Complementar nº 04, de 15 de outubro de 1990 - Estatuto Servidores de MT (art. 51);
+Lei nº 8.275, de 29 de dezembro de 2004 - critérios para remoção e redistribuição de servidores
+públicos do Poder Executivo Estadual;
+Lei Complementar nº 239, de 28 de dezembro de 2005 – Normas padronização de atos;
+Decreto nº 7.219, de 14 de março de 2006 - Unidade Especial de Controle e Movimentação;
+Decreto nº 1.200, de 05 de março de 2008 - Remoção de servidores de unidades extintas;
+Decreto Estadual nº 691, de 15 de outubro de 2020 – Regulamenta Cessão e Remoção de
+servidores públicos civis e militares no âmbito Estadual;
+Portarias e Instruções Normativas internas de cada órgão ou entidade.
+3. OUTROS CONTEÚDOS RELEVANTES
+Além do presente Manual, também indicamos a leitura completa da Cartilha
+Políticas de Gestão de Pessoas – Perguntas Frequentes, também disponível no site da
+SEPLAG, além dos vários outros arquivos orientativos, no menu Sistemas Centrais -> Gestão
+de Pessoas -> Documentos, por meio da qual são tratados diversos assuntos sobre Gestão de
+Pessoas em geral como cessão e remoção, abono de permanência, férias, licença prêmio,
+nomeações, posse, progressão funcional, etc.
+Os processos de Movimentação por Cessão Interna e Movimentação por Cessão
+Externa se encontram em formato de fluxograma horizontal mais detalhado no sítio eletrônico
+da SEPLAG por meio dos links: Institucional -> Gestão por Processos -> Sistemas -> Gestão de
+Pessoas -> Diagrama -> Gestão da Movimentação de Pessoas, no link a seguir:
+
+-- 32 of 33 --
+
+33
+http://egprocessos.seplag.mt.gov.br/homepage/lista/sistema/1/macro-processo/, assim
+como a Cadeia de Valor do Sistema de Gestão de Pessoas, que está no link
+http://egprocessos.seplag.mt.gov.br/homepage/sistema/1.
+A observância deste Manual e outros
+materiais orientativos não exclui o
+disposto em Pareceres da PGE, em leis
+específicas e/ou em leis de carreira, no
+que couber.
+
+-- 33 of 33 --
+

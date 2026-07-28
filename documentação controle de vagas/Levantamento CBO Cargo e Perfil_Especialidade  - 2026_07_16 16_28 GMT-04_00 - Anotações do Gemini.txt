@@ -1,0 +1,857 @@
+📝 Observações
+
+-- 1 of 32 --
+
+jul. 16, 2026
+Levantamento CBO Cargo e
+Perfil/Especialidade
+convidado Reunião TI - SEPLAG Marcos Vinicios Taylor Augusto Dos Santos
+Marcela Souza de Oliveira
+Anexos Levantamento CBO Cargo e Perfil/Especialidade
+Registros da reunião Transcrição 	Gravação
+Resumo
+A reunião alinhou as configurações da Classificação Brasileira de Ocupações com o
+eSocial e definiu protocolos de vagas.
+Ajustes de CBO eSocial
+O sistema adotou campos específicos de Classificação Brasileira de Ocupações para
+conformidade com o eSocial. Registros de especialidades devem ser inativados e
+nunca excluídos para preservar o histórico.
+Definição de perfis funcionais
+Perfis e especialidades funcionais são registros distintos obrigatórios para cargos
+comissionados e contratos. A distinção entre formação profissional e função exercida
+assegura o envio correto de informações.
+Gestão de vagas numeradas
+O controle de vagas utiliza a tela 202 para gerenciar residentes e bolsistas,
+expandindo-se gradualmente para cargos comissionados. Restrições eleitorais
+vigentes até 31 de dezembro de 2026 limitam desligamentos.
+
+-- 2 of 32 --
+
+Próximas etapas
+[A equipe de Gestão de Pessoas] Realizar levantamento de cargos: Realizar o
+levantamento das especialidades vinculadas aos cargos para identificar
+registros que necessitam de atualização ou inativação no sistema.
+Detalhes
+● Configuração de CBO no sistema Cap: Marcos Vinicios explica que o
+cadastro de CBO (Classificação Brasileira de Ocupações) no sistema Cap
+passou por adaptações devido às exigências do eSocial, levando à criação do
+campo específico "CBO eSocial" para garantir a conformidade dos dados
+(00:03:08).
+● Uso de Especialidades do Cargo: Marcos Vinicios detalha que, para além do
+cargo principal, o sistema utiliza uma tela de "especialidades do cargo" para
+definir funções específicas, como assessor ou chefe de equipe, que são
+vinculadas aos eventos de cargo para identificar a atuação do servidor
+(00:05:51).
+● CBO Genérico e campo de integração: Marcos Vinicios explica o uso de um
+código CBO genérico, referente a dirigentes do serviço público estadual, para
+cargos que não possuem códigos federais específicos, e menciona o campo
+"dechequia", criado recentemente para integrar informações com sistemas
+como o "Portal do Servidor" e o "Sigue Paz" (00:07:43).
+● Manutenção de registros inativos: Marcos Vinicios destaca que registros de
+especialidades nunca devem ser excluídos do sistema para preservar o
+histórico dos servidores; a prática correta é inativar a opção para novos usos,
+mantendo o histórico intacto para consultas de auditoria (00:08:43).
+● Preenchimento do CBO eSocial: Marcos Vinicios esclarece que o campo de
+CBO original tornou-se desnecessário para integrações, priorizando-se o
+preenchimento do campo "CBO eSocial", embora ambos sejam mantidos
+preenchidos da mesma forma para evitar retrabalho futuro (00:10:16).
+
+-- 3 of 32 --
+
+● Diferenciação entre Perfil e Especialidade: Marcos Vinicios define que
+"Perfil" refere-se à formação ou enquadramento profissional (como contador),
+enquanto "Especialidade" diz respeito à função específica exercida no
+momento (como superintendente), sendo ambos os registros necessários no
+sistema para cargos comissionados e efetivos (00:10:58).
+● Obrigatoriedade de CBO e Especialidade: Marcos Vinicios esclarece que o
+preenchimento desses campos é obrigatório para cargos exclusivamente
+comissionados e, provavelmente, para contratos, sendo fundamental para o
+envio correto das informações ao eSocial, ainda que não seja estritamente
+obrigatório para todos os servidores efetivos (00:14:47).
+● Funcionalidade de Vagas Numeradas: Marcos Vinicios apresenta a tela de
+"Vagas Numeradas de Cargo" (tela 202), atualmente utilizada para controlar
+vagas de residentes e bolsistas, permitindo gerenciar o histórico de ocupação e
+validar as datas a partir das quais os eventos podem ser lançados (00:16:28).
+● Consulta e liberação de vagas: Marcos Vinicios demonstra a tela de consulta
+(tela 192), utilizada para verificar os ocupantes atuais de uma vaga, datas de
+início e saída, explicando que, quando um ocupante deixa a função, a vaga é
+liberada automaticamente para um novo histórico sem necessidade de
+recriação (00:19:53).
+● Estratégia para controle de vagas: Marcos Vinicios aconselha a equipe a não
+iniciar o controle de vagas pelos servidores efetivos, pois a demanda é
+complexa e exige regularização de um grande quadro funcional; recomenda
+seguir o modelo atual de residentes e bolsistas, evoluindo para os cargos
+comissionados antes de lidar com efetivos (00:22:46).
+● Restrições no período eleitoral: Marcos Vinicios informa que, devido ao
+período eleitoral, existem restrições legais até 31 de dezembro de 2026 que
+impedem o desligamento de servidores de ofício, permitindo apenas
+desligamentos a pedido, o que impacta a gestão de vagas (00:24:31).
+● Dashboards e status de vagas: A equipe discute os status das vagas,
+incluindo ocupado, disponível e bloqueado/extinto, abordando a complexidade
+de gerenciar categorias específicas, como aposentados ou forças militares, que
+possuem regras próprias e precisam ser tratadas separadamente (00:25:23).
+
+-- 4 of 32 --
+
+Revise as anotações do Gemini para checar se estão corretas. Confira dicas e saiba
+como o Gemini faz anotações
+Como está a qualidade de destas observações? Responda a uma breve pesquisa
+para nos dar seu feedback, incluindo o quanto as observações foram úteis para o que
+você precisa.
+
+-- 5 of 32 --
+
+📖 Transcrição
+
+-- 6 of 32 --
+
+jul. 16, 2026
+Levantamento CBO Cargo e
+Perfil/Especialidade -
+Transcrição
+00:03:08
+Marcos Vinicios: Oi, pessoal. Boa tarde.
+Taylor Augusto Dos Santos: Boa tarde.
+Marcos Vinicios: E aí, beleza?
+Taylor Augusto Dos Santos: Bom demais.
+Marcos Vinicios: Demais. E aí, que que nós temos aí para hoje? Estão de pauta?
+Reunião TI - SEPLAG: Paula.
+Taylor Augusto Dos Santos: CBO.
+Reunião TI - SEPLAG: Vamos lá. Isso
+Marcos Vinicios: Hum.
+Reunião TI - SEPLAG: aí.
+Marcos Vinicios: Vocês querem entender mais sobre o CBO?
+Taylor Augusto Dos Santos: Isso.
+Marcos Vinicios: Tá. Vamos. Deixa só aqui.
+Reunião TI - SEPLAG: Quer saber onde é que ele vai?
+Marcos Vinicios: Vamos lá.
+Taylor Augusto Dos Santos: Угу.
+Reunião TI - SEPLAG: Porque ontem a gente ficou na dúvida com
+Marcos Vinicios: Uhum.
+
+-- 7 of 32 --
+
+Reunião TI - SEPLAG: informação.
+Marcos Vinicios: transmitir aqui. Aí a gente sim,
+Reunião TI - SEPLAG: Mostrar alguma coisa mais cedo, né?
+Marcos Vinicios: eu prefiro mostrar para vocês direto no Cap que fica mais didático,
+fica mais fácil para compreender. Daí a lógica vai ser a mesma, né? Deixa eu pegar
+aqui. Vocês estão conseguindo ver o CBO aí?
+00:03:58
+Reunião TI - SEPLAG: Já
+Marcos Vinicios: Mentira, tá? Então tá. Vamos lá.
+Taylor Augusto Dos Santos: S.
+Marcos Vinicios: Primeiro de tudo, a gente tem aqui a tela de Carlos. Pegar aqui um
+exemplo aqui dejass,
+Taylor Augusto Dos Santos: acabou de responder sua dúvida, Marcelo. G é um
+Reunião TI - SEPLAG: Aham. Acabei de ver aqui, já pensei na hora. Ó, se já também é
+um cargo
+Marcos Vinicios: tá?
+Taylor Augusto Dos Santos: cargo.
+Marcos Vinicios: Vamos lá, então. Então, aqui a gente começa fazendo a criação do
+cargo, né, nessa tela que a gente cadastra, que a gente vincula categoria,
+subcategoria, legislação, né, toda a parte aqui da parametrização. E aí aqui embaixo a
+gente tem esse campinho aqui de informações adicionais, né? Antigamente na
+essência do CP a gente usava só esse aqui que era o código do CBO da aplicação,
+porque a gente não tinha nada de social, não tinha nenhum impacto, né? Aí com o
+advin do exocial, a gente teve que se adaptar ao fluxo, né? E aí a gente criou um outro
+campo que é esse aqui que é o CBO eocial.
+
+-- 8 of 32 --
+
+00:04:56
+Marcos Vinicios: Aqui a gente tem uma lista, uma tabela geral com todos os CBOs
+cadastrados, né? Antigamente a gente cadastrava assim, ó, o número ponto e aí o a o
+número final aqui, né? Aí com o CBO atual, deixa eu ver se eu acho um aqui bastante
+coisa. Bom, o CBO atual é o seguinte, vou pegar esse aqui, ó. Ele é cadastrado dessa
+forma. Ele não tem ponto, não tem ifen, né? é o numeral já direto. Essa lista aqui, isso,
+sem dígito,
+Reunião TI - SEPLAG: Semista.
+Marcos Vinicios: essa lista aqui é fornecida pelo governo federal, eles têm alguns
+anexos, né? E aí pra gente vem esses códigos aqui. Aí como que a gente sabe que tá
+com problema hoje em dia, né? O pessoal da Ana Fravia vai fazer a transmissão do
+social e alguns servidores têm informação lá que não é recebida por algum motivo, né?
+eles apontam um erro.
+Reunião TI - SEPLAG: Não,
+Marcos Vinicios: E aí a gente investiga e a gente olha para ver se o cargo tá sem o
+número CBO, né? Se a especialidade do cargo tá sem o Só um pouquinho.
+00:05:51
+Marcos Vinicios: Pera aí. Oi. Ah, tranquilo. Se o se a especialidade do cargo tá sem
+CBO e a gente atualiza, né? Beleza. Então aqui é onde a gente começa com a etapa
+principal quando a gente tá criando o cargo. Uma outra tela que a gente tem também
+que a gente usa bastante, o CBO chama especialidades do cargo. O que que é essa
+tela aqui, ó? Deixa eu pegar o código desse aqui. 11 495. Essa tela aqui é o seguinte, eu
+tenho o cargo lá, que é o DGA5, que é o principal, né? Só que dentro dele eu tenho as
+especialidades. Então eu tenho ali função de assessor, função de chefe de equipe, de
+chefe de unidade, chefe de gabinete, né? Então a gente cadastra aqui.
+Reunião TI - SEPLAG: Sua mãe.
+
+-- 9 of 32 --
+
+Marcos Vinicios: Qual que é a diferença? Cada especialidade dessa, ela vai ser usada
+lá na tela de evento de cargo. Então eu tenho lá o evento principal,
+Reunião TI - SEPLAG: Não.
+Marcos Vinicios: que é o cargo da pessoa. E aí um pouco abaixo ali na na descrição
+do evento, tem o campinho chamado especialidade.
+00:06:43
+Marcos Vinicios: É lá que eu vou falar o que que essa pessoa é, né? Então, por
+exemplo, se o cara é um assessor técnico dois, eu vou colocar lá nesse campo. Vou
+mostrar para vocês aqui, só para conectar as ideias aqui. Pegar o Sim,
+Reunião TI - SEPLAG: vai volar lá de novo que eu ia que tem uma
+Marcos Vinicios: vou voltar lá. Então aqui, por exemplo, tá beleza? Então aqui é um
+exemplo.
+Reunião TI - SEPLAG: dúvidazinha.
+Marcos Vinicios: Eu tenho este meu vínculo aqui, né? E aí é aqui que eu coloco a
+especialidade da pessoa. Esse aqui eu posso ter para quem é exclusivamente
+comissionado, para quem é contratado, para quem servidor efetivo também eu posso
+ter, né? Só que via de regra a gente não pede no obrigatório, né? Contrato a gente tem
+também. Então contador, matemático, tem n advogado, tem n especialidades, né?
+Beleza? Aí voltando aqui, então cada cargo, eu tenho as especialidades específicas.
+Isso aqui não é a gente que cadastra assim de ofício,
+Taylor Augusto Dos Santos: Да.
+Marcos Vinicios: não, tá? a gente tem uma normativa, vem a parte da legislação
+falando qual que são as especialidades que vão ser atribuídas àquele cargo, né?
+00:07:43
+
+-- 10 of 32 --
+
+Marcos Vinicios: E aí a gente cadastra aqui. Detalhe, a gente só cadastra depois que
+a gente tem a confirmação do nosso provimento acerca do código CBO aqui. Então,
+antigamente, né, a grande maioria dos cargos era cadastrada com esse código aqui, ó,
+dirigente do serviço público estadual. Por quê? dentro dessa lista do CBO, como é
+federal, lá eu não tenho, sei lá, uma função específica de chefe de unidade. Então, a
+gente coloca aqui no âmbito geral, né, que é esse dirigente do serviço público
+estadual e distrital. É como se fosse ali um CBO genérico, entendeu? Quando eu não
+tenho um específico ali para aquela aquele cargo, para aquela especialidade, a gente
+coloca esse aqui que é aceito por eles lá quando a gente faz o envio da informação. Aí
+um último detalhe que a gente tem aqui, por exemplo, é esse campinho aqui, ó,
+dechequia. Isso aqui a gente criou recente, salvo enganos acho que foi em fevereiro
+desse ano. Ele serve para quê? Sistemas que têm integração, por exemplo, portal do
+servidor, sigue paz, né? a galera que tem que validar alguma coisa, validar férias,
+validar ponto, a gente tem uma integração com esse campinho aqui.
+00:08:43
+Marcos Vinicios: Então assim,
+Reunião TI - SEPLAG: с
+Marcos Vinicios: a gente sabe que um chefe de unidade ele exerce a função de
+chefia, né? Então a gente vai lá, marca ele porque ele tem impacto direto nesses
+sistemas que são integrados.
+Reunião TI - SEPLAG: M.
+Marcos Vinicios: Aí só para finalizar, esse inativo aqui, vamos supor que veio uma lei
+nova e essa especialidade aqui, esse chefe de unidade, não é mais para ser usado. Eu
+não posso vir aqui e apagar ele.
+Reunião TI - SEPLAG: Сторика.
+Marcos Vinicios: Por quê? Porque eu tenho um registro aqui. Eu tenho servidores que
+ainda estão com essa especialidade aqui. E isso eu tenho esse histórico, né? Se eu vi
+aqui e apagar, o sistema vai deixar, só que ele vai ficar com problema aqui em conflito,
+né? Então aí o que que a gente faz? A gente inativa isso pra galera que tá entrando
+agora não conseguir mais usar e aí depois a setorial vai, né, gestão de pessoas, faz um
+
+-- 11 of 32 --
+
+levantamento dessa galera que tá com essa especialidade aqui e atualiza, coloca nova,
+né, muda e aí o registro fica atualizado. Beleza?
+Reunião TI - SEPLAG: Mas nunca vai ser excluída,
+00:09:32
+Marcos Vinicios: E aí não excluído não.
+Reunião TI - SEPLAG: né? Porque no passado já foi usado,
+Marcos Vinicios: Isso no passado a gente excluía e aí a gente começou a ver que tava
+esse problema aí,
+Reunião TI - SEPLAG: tá?
+Marcos Vinicios: né? Que daí subia o histórico, a gente tinha que atrás do servidor
+para ver o que que era, fazer o levantamento, né? Então aí a gente achou por bem criar
+esse campinho e aí a gente usa ele até hoje, né? Quando tem essas alterações. E aí
+copiar a dúvida?
+Reunião TI - SEPLAG: pergunta a na especialidade aqui você cadastra o nome ali,
+Marcos Vinicios: Você
+Reunião TI - SEPLAG: a descrição dela e tal e aí você é aí você informa
+Marcos Vinicios: fala? Uhum.
+Taylor Augusto Dos Santos: Yes.
+Reunião TI - SEPLAG: então novamente aqui o CBO no e social,
+Marcos Vinicios: Isso
+Reunião TI - SEPLAG: então ele não vem do cargo que você já intitulou lá atrás, você
+tem que informar aqui novamente e são os dois campos,
+Marcos Vinicios: não.
+Reunião TI - SEPLAG: né? O CBO e o CBO e social,
+
+-- 12 of 32 --
+
+00:10:16
+Marcos Vinicios: Isso.
+Reunião TI - SEPLAG: mas precisa necessariamente o anterior,
+Marcos Vinicios: Isso é porque é assim,
+Reunião TI - SEPLAG: porque o que vale mesmo a só o exento da
+Marcos Vinicios: ó. Hoje em dia,
+Reunião TI - SEPLAG: integração.
+Marcos Vinicios: esse aqui a gente não precisa mais, tá?
+Reunião TI - SEPLAG: Ah,
+Marcos Vinicios: Porque hoje em dia a gente parametrizou tudo pro CBO e social.
+Esse campo aqui,
+Reunião TI - SEPLAG: tá.
+Marcos Vinicios: eh, se vocês depois fizer um levantamento dos cargos, aí vocês vão
+ter que vai ver que tem uma boa parte que não tá preenchido. Ele vai tá aqui como não
+informado, porque não é necessário,
+Reunião TI - SEPLAG: Hum.
+Marcos Vinicios: tá? Aí o que que a gente faz? Como a gente já tava atualizando,
+fazendo esse processo, a gente igualou os dois campos aqui para não ter um
+retrabalho depois, no futuro, a gente já deixava os dois igual. Mas para nós, o que tá
+sendo usado aqui importa esse CBO social. Essa tabelinha aqui de nome, como é que
+funciona?
+Reunião TI - SEPLAG: OK.
+Marcos Vinicios: uma tabela geral que a gente tem dentro do CAP, né?
+00:10:58
+
+-- 13 of 32 --
+
+Marcos Vinicios: E aí a gente cadastra. Então tudo que eu cadastrei lá na tabela geral,
+ele vai aparecer aqui. ADM de banco de dados, né? ADM hospitalar. Então é uma
+tabelinha geral que a gente tem. E aqui tá a lista completa de tudo que já foi
+cadastrado no Cap, né? Então eu venho, eh coloco ela aqui e aí eu vinculo o CBO, né,
+específico para ela aqui. Se tiver, por exemplo, diretor financeiro, né? Tem esse no
+geralzão aqui. Então a gente tem uns específicos, né? professor, por exemplo, aqui, ó,
+de administração, eh, proir, tem várias coisas aqui que nem é utilizada mais hoje, né?
+Mas por algum motivo aí tava cadastrado, não sei se foi uma lista de importação, né? E
+aí a gente tem esses
+Reunião TI - SEPLAG: Então,
+Marcos Vinicios: detalhes,
+Reunião TI - SEPLAG: o perfil barra especialidade é, vamos dizer, é a função que a
+pessoa, o servidor vai exercer. M.
+Marcos Vinicios: O perfil seria tipo assim, você passou no seu concurso ali, por
+exemplo, e o seu perfil seria de contador,
+Reunião TI - SEPLAG: Угу.
+00:11:48
+Marcos Vinicios: entendeu? Esse é o perfil. A sua especialidade você pode ser hoje,
+sei lá, tá num cargo ali de chefia, você é coordenador, isso é sua especialidade. Então a
+gente tem essas diferenças, tá? Pelo menos assim, do que eu conheço hoje em dia de
+âmbito assim de especialidade, seria nesses dois cenários.
+Reunião TI - SEPLAG: Mas é um cadastro só,
+Marcos Vinicios: Os dois,
+Reunião TI - SEPLAG: né? Perfil barra especialidade.
+Taylor Augusto Dos Santos: Так.
+Marcos Vinicios: é,
+Reunião TI - SEPLAG: Aqui cadastra.
+Marcos Vinicios: quer ver, ó? Vamos pegar aqui, por exemplo,
+Reunião TI - SEPLAG: Ah.
+
+-- 14 of 32 --
+
+Marcos Vinicios: da Marcela lá. Vamos lá. Ela tem hoje a função de de
+superintendente, né? Então aqui eu dei já dela aqui, ó. Ela tem essa função porque ela
+tem aqui o cargo efetivo e ela tem a nomeação de função aqui como DGA3. O DGA3
+dela, se vocês olhar, é superintendente, beleza? Então a gente tá falando da do cargo
+dela de DG servidor no enquadramento inicial dela aqui. Se vocês olhar quando ela
+entrou no estado aqui em 2009, ó, qual que era o perfil dela?
+00:12:36
+Marcos Vinicios: Por mais que ele tá com especialidade, mas a gente sabe que isso
+aqui é um perfil, perfil de contador, né? quando ela passou no concurso. Então assim,
+as duas informações são usadas nessa situação aqui, quando a pessoa tem cargo,
+entendeu? Então a gente tem esses dois detalhes aqui. Aí essa especialidade ela é
+cadastrada, esse perfil, né? Ele é cadastrado na tela de acho que ingresso e ele
+também tem na tela de vínculos funcionais. Deixa eu já abrir aqui também. Ele tem
+essas duas informações. Deixa eu pegar o matrícula dela. Eu lembro que eu já viador.
+Eu lembro que também tem uma aqui, ó. Por exemplo, aqui a gente tem a formação
+que a gente poderia também cadastrar. Então, se o cara é um administrador,
+advogado, né, contador, na minha visão, na minha ótica que que eu olho assim, eu
+acho que o correto deveria ser a formação dela, contador, né? E aí especialidade, se
+tivesse alguma outra, até beleza, né? Eu não sei qual que é a diferença assim na base
+ali quando foi criada essa tela, né? Qual que era a diferença desses dois aqui? Não sei
+se já veio por padrão de produto ou se é um campinho customizado, né?
+00:13:47
+Marcos Vinicios: Mas na minha visão, a formação da Marcela é contadora e aí a
+especialidade no cargo que ela tá hoje, atualmente, cadê aqui, atualmente a
+especialidade dela é de superintendente. Então, na minha visão, a o perfil é diferente
+de especialidade. Quando a gente fala de perfil, a gente tá falando da formação, né?
+
+-- 15 of 32 --
+
+Arquiteto, analista de sistemas, assistente social, contador, né? Então, na na minha
+visão, seria essa
+Reunião TI - SEPLAG: Uhum.
+Marcos Vinicios: diferença.
+Reunião TI - SEPLAG: Sente. A gente vai ser nesses dois nesses dois registros, tanto
+cargo quanto perfil/cialidade.
+Marcos Vinicios: Uhum.
+Reunião TI - SEPLAG: É obrigatório nos dois, né?
+Marcos Vinicios: Isso.
+Reunião TI - SEPLAG: Tem alguma dúvida, uma pergunta?
+Taylor Augusto Dos Santos: Não, não, por enquanto não.
+Marcos Vinicios: Porque assim, ó, hoje para efetivo, eh, a gente só tem
+obrigatoriedade quando a gente tá falando aqui de cargo, né? Nesse caso aqui, por
+exemplo, uma função,
+Taylor Augusto Dos Santos: Так.
+Marcos Vinicios: mas o servidores que estão entrando hoje no estado, não é
+obrigatório você preencher essa especialidade aqui, tá?
+00:14:47
+Marcos Vinicios: Eu já vi vários que não não tá como obrigatório porque a gente não
+tem ainda um controle de vagas, né? Não tem nada que empeça. Ele é obrigatório
+quando o servidor é exclusivamente comissionado. Isso eu garanto para vocês.
+Contrato eu acredito que também seja, porque daí a gente tem os perfis, né?
+desenvolvedor de e tem uns em branco também,
+Reunião TI - SEPLAG: Tem uns em branco Já, já, já deu uma pesquisada,
+Marcos Vinicios: então tá como obrigatório.
+Reunião TI - SEPLAG: tem um zoom em branco,
+Marcos Vinicios: Então,
+Reunião TI - SEPLAG: então,
+
+-- 16 of 32 --
+
+Marcos Vinicios: então provavelmente acho que só para comissionado, para
+comissionado ele tá como obrigatório.
+Reunião TI - SEPLAG: nem efetivo, talvez seja obrigatório 100%, né? Eh,
+Marcos Vinicios: Aham.
+Reunião TI - SEPLAG: mais o o comissionado que tem que ter a especialidade
+preencher, mas de qualquer maneira o CBO vai ser implato nos dois cadastros porque
+até te finge informação
+Marcos Vinicios: Isso, isso, exatamente. Ele tem que tá lá porque se eu pegar aqui é
+porque o e social pra gente atualmente ele pega os últimos eventos que estão em
+aberto, né?
+00:15:37
+Marcos Vinicios: Então, por exemplo, aqui, ó, todo mês lá o pessoal da social envia
+essa informação. Então, a Angela, nesse momento aqui tá nesse cargo, né? cargo em
+aberto, ela tá com esse DGA aqui também em aberto. Então aí quando fecha o evento,
+aí não tem mais o por mandar pro pro e social, né? Tem esse detalhe aí ele vai
+atualizando aí mês a mês.
+Reunião TI - SEPLAG: Só pega o último ativo,
+Marcos Vinicios: Isso no caso aqui ela tem dois porque um é do cargo dela e o outro
+é do efetivo,
+Reunião TI - SEPLAG: né?
+Marcos Vinicios: né? Então no caso dela aqui é mandado duas informações para
+social.
+Taylor Augusto Dos Santos: Seja
+Reunião TI - SEPLAG: Então é isso, Marcos. É,
+Marcos Vinicios: Show.
+Reunião TI - SEPLAG: a nossa d era essa que a gente ia
+Marcos Vinicios: Beleza.
+Taylor Augusto Dos Santos: É justamente isso.
+
+-- 17 of 32 --
+
+Marcos Vinicios: Uhum.
+Taylor Augusto Dos Santos: É justamente isso que a gente tá levantando fazer,
+Reunião TI - SEPLAG: fazer,
+Taylor Augusto Dos Santos: o controle de
+Marcos Vinicios: Ah, entendi.
+Taylor Augusto Dos Santos: vagas.
+Marcos Vinicios: Ó, dentro do CP a gente tem uma telinha também para isso, tá?
+00:16:28
+Marcos Vinicios: Ela não tá implementada, ela tá ainda em desenvolvimento, mas
+talvez para auxiliar vocês aí nas ideias seja bem legal. Acho que é nada,
+Reunião TI - SEPLAG: mas tá carregando porque eu acho que ela tava dando um erro
+aí.
+Marcos Vinicios: cara. Acho que no ambiente de homologação ela deve dar erro.
+Agora no produção ela funciona. É vagas acho que é 302. Deixa eu ver. 202 aqui. Vagas
+numeradas de Carlos. Ela aqui, ó, a gente poderia fazer todo, a gente tem essa ideia,
+né? Vamos pegar aqui, sei lá, de cinco. Tá com vagas numeradas de cargo.
+Taylor Augusto Dos Santos: É, vagas numeradas o nome. Aí,
+Marcos Vinicios: Aham.
+Taylor Augusto Dos Santos: Marcelo, eu falei que
+Reunião TI - SEPLAG: Tem tem uma numerada no meio, não tem? É,
+Taylor Augusto Dos Santos: eh
+Reunião TI - SEPLAG: mas
+Marcos Vinicios: É, mas é, mas seria assim,
+Reunião TI - SEPLAG: comum
+Marcos Vinicios: acho correto, né? A gente tem uma numeração ali de de vagas,
+Taylor Augusto Dos Santos: Uhum.
+
+-- 18 of 32 --
+
+00:17:16
+Marcos Vinicios: né?
+Taylor Augusto Dos Santos: É porque daí quando você tem uma vaga numerada,
+Marcos Vinicios: Mais ou menos assim.
+Taylor Augusto Dos Santos: você consegue puxar o histórico dela.
+Reunião TI - SEPLAG: ter uma vaga história aquela
+Taylor Augusto Dos Santos: Então, tipo, você naquela vaga lá eu consigo dizer,
+Marcos Vinicios: Sim.
+Taylor Augusto Dos Santos: ó, tal pessoa já passou, essa pessoa já passou,
+Reunião TI - SEPLAG: pessoa.
+Taylor Augusto Dos Santos: essa daqui já passou e assim por diante.
+Marcos Vinicios: Deixa eu pegar aqui o meu o meu cargo.
+Reunião TI - SEPLAG: Não é só
+Taylor Augusto Dos Santos: Não é só um quantitativo igual a gente tem no seletivo.
+Reunião TI - SEPLAG: efetiva
+Marcos Vinicios: Hum. É, não.
+Taylor Augusto Dos Santos: M.
+Marcos Vinicios: Daí fica o histórico. Aqui, por exemplo, a gente consegue ver
+também aqui 11495.
+Reunião TI - SEPLAG: também.
+Marcos Vinicios: Vamos pegar esse aqui. as numeradas de cargo agora estranho não
+informado SEPLAG que ele não tá carregando normalmente ele carrega aqui. Vamos
+ver o que que tá aparecendo aqui de frente. Ã ah, tá. É porque é o seguinte,
+atualmente o que que a gente tem de controle de vaga aqui funcionando, né?
+
+-- 19 of 32 --
+
+00:18:07
+Marcos Vinicios: A gente tem bastante as questões de bolsa. Então isso aqui
+basicamente a galera da Ceduc, tá? Vou pegar esse aqui como exemplo que serve
+para mostrar para vocês
+Taylor Augusto Dos Santos: Será que minha mãe tá aí?
+Marcos Vinicios: também.
+Taylor Augusto Dos Santos: Ela tá recebendo uma bolsa, eu acho.
+Marcos Vinicios: Se for desse programa alfabetiza, provavelmente ela tá aqui no
+meio,
+Taylor Augusto Dos Santos: Não, não.
+Marcos Vinicios: tá?
+Taylor Augusto Dos Santos: Acho que é uma outra
+Marcos Vinicios: Específica deve ter também ali.
+Taylor Augusto Dos Santos: coisa.
+Marcos Vinicios: Qual que é a diferença disso aqui? Deixa eu mostrar para vocês
+aqui. Estadual.
+Taylor Augusto Dos Santos: Foi de algum É de algum negócio que ela participou lá e
+ganhou.
+Marcos Vinicios: Ah, o prêmio da eficiência, provavelmente não. Eficiência, inovação.
+Sim,
+Taylor Augusto Dos Santos: É isso mesmo.
+Marcos Vinicios: é diferente.
+Taylor Augusto Dos Santos: Sim,
+Marcos Vinicios: Isso é um atributo. Então, aqui, por exemplo, a gente coloca aqui o
+número do cargo, eu tenho a origem, se for um residente,
+Taylor Augusto Dos Santos: esse
+Marcos Vinicios: se for um estagiário, ou eu posso deixar nome informado e já
+colocar o número direto aqui. Neste caso aqui, eu tô pegando a galera da CEDUC, que
+eu sei que a gente controla, então entra mais ou menos a mesma ideia dos residentes
+técnicos lá, né?
+
+-- 20 of 32 --
+
+00:18:58
+Marcos Vinicios: Então a gente coloca a especialidade e aqui eu tenho a situação
+aqui da bolsa, né? Então eu tenho o número da vaga. Então, por exemplo, aqui eu
+tenho desde a vaga um, no caso aqui seria um. É porque assim aqui ele vai seguir um
+histórico ali de número de vaga, tá? Então eu tenho uma vaga um que já foi usada para
+algum cargo, alguma especialidade ali, certinha. Neste caso aqui, a primeira vaga que
+foi criada já era 46, porque ele vai seguir aquela ordem, né? Então aqui eu tenho um
+histórico desde quando a gente cadastrou essa vaga. Ou seja, o início dela é a partir
+de 1/11, não é necessariamente quando eu fiz esse cadastro, né? Posso ter feito isso
+em 2025, em 2024 mesmo, mas é no período quando eu tô falando assim que a galera
+pode começar a lançar os eventos lá no evento de cargo a partir dessa data aqui.
+Então se eu for tentar lançar um evento com data anterior a isso aqui, ele não vai
+deixar, ele vai dar uma validação falando que não pode, né? Só vai aceitar a partir
+dessa data ou ali paraa frente. Aí, beleza. O que mais que a gente tem aqui?
+00:19:53
+Marcos Vinicios: A gente consegue inclusive ver quem tá dentro dessa vaga que ela
+tá aqui, ó. A situação tá ocupada, ou seja, tem alguém que tá desde o início dessa vaga
+e tá até hoje lá. Eu consigo ver esse histórico, né? Aí uma outra telinha aqui. Acho que a
+consulta vaga. Deixa eu ver como é que é. Não lembro o nome dessa outra tela, mas
+eu vou achar aqui. Vamos ver agora.
+Reunião TI - SEPLAG: Consulta os ocupantes das vagasadas numeradas.
+Marcos Vinicios: Isso, isso.
+Reunião TI - SEPLAG: Quer dizer,
+Marcos Vinicios: Qual que é essa tela?
+Reunião TI - SEPLAG: 192 192 aqui, tá no meio.
+
+-- 21 of 32 --
+
+Marcos Vinicios: Isso.
+Reunião TI - SEPLAG: Não é
+Marcos Vinicios: Achar aqui. Aqui.
+Reunião TI - SEPLAG: dois.
+Marcos Vinicios: Daí a gente vai conseguir achar o histórico dela. Mipal. Aí aqui, qual
+que é a diferença? Eu tenho que colocar o número da vaga que eu quero ver. Então
+aqui é 46. Setoren Mais uma, pera, vamos ver aqui ocupada. É o início 1 do 11 do 24. Aí
+agora sim.
+00:21:02
+Marcos Vinicios: Então que ele me aparece quem que tá, né, nessa vaga. Então, seja,
+a vaga 46 com o início daquele lá que a gente viu. Aqui eu tenho informação da
+pessoa, ele é um bolsista. Aqui eu tenho a matrícula da pessoa, o nome dela completo,
+o cargo que ela tá, o setor que ela tá lotado no lugar, que é uma escola, né, escola
+estadual Osvaldo Cândido Ferreira, a data de início, ou seja, quando que ela começou
+nessa nessa vaga e a data que ela vai vai sair, né? Então seria 31/12/2026. Então essa
+telinha aqui a gente usa para constar isso. Então se eu for, por exemplo, ali, eh, sei lá,
+essa pessoa aqui saiu do estado, essa vaga ela vai ser liberada novamente. Vamos
+colocar assim que a pessoa tá saindo a partir de hoje, de 16/07/2026. Então essa vaga
+ela vai estar disponível de novo, só que a partir deste período novo, entendeu? Eu não
+tenho que criar uma nova vaga ali a partir dessa data não. Ele vai criar um novo
+histórico ali. Ou seja, eu vou conseguir usar essa vaga a partir dessa, sei lá, dia 17/7 aí
+de 2026 até quando eu quiser.
+00:22:01
+Marcos Vinicios: Beleza?
+Taylor Augusto Dos Santos: Fechou.
+
+-- 22 of 32 --
+
+Reunião TI - SEPLAG: Beleza.
+Marcos Vinicios: Essas telinhas aí,
+Reunião TI - SEPLAG: É, vamos lá.
+Marcos Vinicios: bastante coisa, bastante coisa para fazer normal.
+Reunião TI - SEPLAG: É essa da numerada aí. O entendimento foi que não tinha nada
+de numerada,
+Marcos Vinicios: Ela tem,
+Reunião TI - SEPLAG: né? Mas já que você falou aí, mostrou que tem algumas
+Marcos Vinicios: ela tem sim. É a assim, é paraa questão de residência técnica a
+gente tem esse controle.
+Reunião TI - SEPLAG: coisinas,
+Marcos Vinicios: Ah, para essa galera de bolsa também. Esta eu não tenho certeza,
+não posso te confirmar. Eu tenho certeza desses dois aí. dois certeza absoluta, mas eh
+para cargo de comissão, a gente não tem esse controle ainda, tava na fase de
+implementação e de testes, né?
+Reunião TI - SEPLAG: foi comentado mesmo,
+Marcos Vinicios: Para efetivo,
+Reunião TI - SEPLAG: tá indo em andamento, né? Mais um
+Marcos Vinicios: para efetivo, então nem pensar também. Para efetivo a gente não
+tem,
+00:22:46
+Reunião TI - SEPLAG: dia.
+Marcos Vinicios: porque assim, qual que é o problema? A gente tem alguns contratos
+que estão usando o cargo de servidor efetivo, né? Então, a partir do momento que eu
+tenho ali um quadro, um quadro funcional da galera de um cargo efetivo X, vamos
+colocar aí profissional do desenvolvimento econômico social,
+Taylor Augusto Dos Santos: Ah.
+
+-- 23 of 32 --
+
+Marcos Vinicios: um exemplo. Eu tenho esse cargo para servidor efetivo, mas eu
+tenho também alguns contratos que estão usando esse cargo. Então, se eu falar ali
+que eu tenho, sei lá, 500 vagas para esse cargo aí, a hora que eu ligar lá o quadro de
+vagas, ele vai pegar exatamente essas 500 aí. Então eu teria que regularizar todo
+mundo, né, passar essa demanda para setorial, fazer isso daí. Então, para efetivo, é
+uma demanda muito maior que a gente tem aí para fazer esse controle de vagas.
+Reunião TI - SEPLAG: E é por ele que a gente tá começando.
+Marcos Vinicios: E é isso aí.
+Reunião TI - SEPLAG: Então esse que você mostrou, inclusive ele tem mais voltado
+para para bolsistas ali, mas o que realmente tá em andamento de construção é do
+comissionado. Agora pro efetivo não tem nada.
+00:23:43
+Marcos Vinicios: Isso não.
+Reunião TI - SEPLAG: E é a ideia que a gente tá querendo.
+Taylor Augusto Dos Santos: Ah. Yeah.
+Marcos Vinicios: A minha sugestão,
+Taylor Augusto Dos Santos: Ah.
+Marcos Vinicios: minha sugestão para vocês aí começa dessa forma que a gente
+começou por aqui,
+Reunião TI - SEPLAG: implementad.
+Marcos Vinicios: tipo assim, pega ali o que já tem, né, residente, bolsista, aí aprimora,
+né, melhora aí depois vai para comissionado que a gente tem um controle maior e por
+último mexe com efetivo. E se você for começar com efetivo, você vai começar com o
+maior problema, problema bem maior e muito mais trabalhoso, entendeu? Eu acho
+que mais fácil começar no que já tem ali e aí vai aprimorando, vai resolvendo os
+problemas que vai aparecendo do que já mexer com o problema maior ali. Seria esse
+essa meu meu conselho, né? Se for dar um conselho para vocês aí,
+Taylor Augusto Dos Santos: M.
+Reunião TI - SEPLAG: Oh.
+
+-- 24 of 32 --
+
+Marcos Vinicios: porque o o efetivo ele vai dar trabalho, porque daí a gente vai ter
+queorizar toda essa galera. E, por exemplo, esse ano agora a gente já não pode fazer,
+por quê? Eu não posso rescindir contratos porque a gente tá no período eleitoral,
+00:24:31
+Taylor Augusto Dos Santos: A
+Marcos Vinicios: né? Eu só posso ali, por exemplo, desligar alguém se forar pedido. Se
+a pessoa tá vai assumir outro lugar, vai sair mesmo, né? Aí eu posso desligar ela de
+ofício. O estado não pode fazer.
+Reunião TI - SEPLAG: Mas isso isso por um período,
+Marcos Vinicios: Então até isso,
+Reunião TI - SEPLAG: né? Só enquanto termina, né?
+Marcos Vinicios: até 31 de dezembro de 2026,
+Reunião TI - SEPLAG: Ah, tá.
+Marcos Vinicios: a partir de 27 aí já poderia mexer normal.
+Reunião TI - SEPLAG: Achei que é só depois até terminar as lições. Então não vai até
+31 de dezembro.
+Marcos Vinicios: Não é 31 de dezembro.
+Reunião TI - SEPLAG: Você quer falar algo aí da tela que você carregou?
+Taylor Augusto Dos Santos: Não,
+Reunião TI - SEPLAG: Não,
+Taylor Augusto Dos Santos: é só para dar um spoilerzinho de
+Reunião TI - SEPLAG: só é porque já já temos isso aí
+Taylor Augusto Dos Santos: contar.
+Marcos Vinicios: Hum.
+Reunião TI - SEPLAG: criado,
+Marcos Vinicios: Ocupação por órgão, ou seja, ali, por exemplo, já tá com 1% a mais,
+né?
+
+-- 25 of 32 --
+
+00:25:23
+Reunião TI - SEPLAG: tá?
+Taylor Augusto Dos Santos: Aham.
+Marcos Vinicios: 101.
+Taylor Augusto Dos Santos: que no caso seria aquela questão de lei,
+Marcos Vinicios: Entendi.
+Reunião TI - SEPLAG: É excedente.
+Taylor Augusto Dos Santos: provavelmente, é,
+Marcos Vinicios: Hum.
+Taylor Augusto Dos Santos: tipo,
+Reunião TI - SEPLAG: É porque aqui em cima tem um excedente.
+Taylor Augusto Dos Santos: teve que aumentar foi
+Marcos Vinicios: Certo,
+Reunião TI - SEPLAG: Ó lá, olha a caixinha do dash ali.
+Marcos Vinicios: certo,
+Reunião TI - SEPLAG: Tá como excedente. Então ele já ele já
+Marcos Vinicios: entendi.
+Taylor Augusto Dos Santos: obrigado.
+Marcos Vinicios: Ou seja, uma pessoa com excedente, o que que seria esses
+bloqueados aí?
+Reunião TI - SEPLAG: populou.
+Marcos Vinicios: Uso é cargo que não pode usar mais na direita ali, o amarelinho do
+lado disponíveis.
+Taylor Augusto Dos Santos: Não necessariamente. E em teoria ela só vai ter dois
+estados, ocupado e disponível. O resto seria meio que flex. Então,
+Marcos Vinicios: Ah,
+Taylor Augusto Dos Santos: por exemplo,
+
+-- 26 of 32 --
+
+Marcos Vinicios: certo,
+Taylor Augusto Dos Santos: tá passando por algum processo e tal,
+00:25:53
+Marcos Vinicios: entendi.
+Taylor Augusto Dos Santos: ou esse bloqueado aqui, ou ela vai estar
+Reunião TI - SEPLAG: Sei lá,
+Marcos Vinicios: Denin será que talvez não seria também a questão de,
+Taylor Augusto Dos Santos: disponível.
+Marcos Vinicios: por exemplo, assim, um cargo histórico,
+Reunião TI - SEPLAG: pode
+Marcos Vinicios: vamos supor que o cara, o cara entrou no concurso de 2000, só que
+ele não teve progressão, não teve novo enquadramento ali, ele tá usando aquele cargo
+da época. Será que talvez não poderia ser aplicado isso? Que é uma categoria que tá
+bloqueada,
+Reunião TI - SEPLAG: ser.
+Marcos Vinicios: que ninguém mais entra, né? Pega exemplo aí,
+Taylor Augusto Dos Santos: Hum.
+Marcos Vinicios: gestor governamental, por exemplo, aí, que é a mais atual que a
+gente tem,
+Taylor Augusto Dos Santos: Não,
+Reunião TI - SEPLAG: Só a é os
+Taylor Augusto Dos Santos: acho que nesse caso aí seria um extinto,
+Marcos Vinicios: né?
+Taylor Augusto Dos Santos: né?
+Marcos Vinicios: Isso.
+Reunião TI - SEPLAG: instintos,
+Marcos Vinicios: Tá beleza.
+
+-- 27 of 32 --
+
+Taylor Augusto Dos Santos: É,
+Marcos Vinicios: Também pode ser.
+Taylor Augusto Dos Santos: porque daí não entra mais
+Marcos Vinicios: Ele faz mais
+Reunião TI - SEPLAG: mas aí fica até enquanto tiver servidores,
+00:26:28
+Marcos Vinicios: Aham.
+Taylor Augusto Dos Santos: ninguém.
+Reunião TI - SEPLAG: até eles seriam desligados, herados oucidos,
+Marcos Vinicios: Falecer.
+Reunião TI - SEPLAG: gente,
+Marcos Vinicios: Aham.
+Reunião TI - SEPLAG: com aposentados.
+Marcos Vinicios: Entendo.
+Reunião TI - SEPLAG: Aí essa progressão, essa projeção, na verdade,
+Marcos Vinicios: Hum.
+Reunião TI - SEPLAG: ela poderia entrar aí nesses outros que são as colegas que o
+que eu comentou aí.
+Marcos Vinicios: Só que eu acho que o aposentado ainda assim ele continua na
+categoria, né? o que mudaria o status dele de servidor ativo para inativo, né? Porque se
+a gente for olhar atualmente, vamos pegar, por exemplo, aí policial militar,
+Taylor Augusto Dos Santos: Mas daí ele libera a vaga,
+Marcos Vinicios: eh, não, mas pega, por exemplo,
+Taylor Augusto Dos Santos: né?
+Marcos Vinicios: nesses cargos que não é mais para ser usado, que tá extinto ali.
+Então, aí mesmo que o cara aposentando, ele ainda é daquela categoria, né? até
+morrer,
+
+-- 28 of 32 --
+
+Taylor Augusto Dos Santos: Isso.
+Marcos Vinicios: que daí é quando quando
+Taylor Augusto Dos Santos: Sim, sim, sim.
+Reunião TI - SEPLAG: Mas aí ele não vai ter um substituto para que aí vagaria a a
+cadeira dele,
+00:27:07
+Marcos Vinicios: se
+Taylor Augusto Dos Santos: Não,
+Reunião TI - SEPLAG: vamos dizer.
+Taylor Augusto Dos Santos: porque tá extinto, né?
+Marcos Vinicios: porque o gestor ninguém
+Taylor Augusto Dos Santos: Quando tá extinto não
+Reunião TI - SEPLAG: Ah, tá. Ah, tá num cargo extinto,
+Taylor Augusto Dos Santos: entra.
+Reunião TI - SEPLAG: mas quando não for extinto,
+Marcos Vinicios: isso sim,
+Reunião TI - SEPLAG: ele assim que aposenta já gera uma vaga nova, né?
+Marcos Vinicios: já geraria uma vaga nova,
+Reunião TI - SEPLAG: Ah, sim,
+Marcos Vinicios: só que aquele cara que aposentou, ele ainda não não ele pertence a
+à categoria,
+Reunião TI - SEPLAG: entendi.
+Marcos Vinicios: né? ele não deixa de pertencer, ele tá inativo, só que ele continua
+sendo, por exemplo, pega polícia, polícia militar, aí o cara que é coronel, por mais que
+ele aposenta, ele ainda continua sendo coronel, né? Então tem esse detalhezinho aí,
+vai liberar a vaga,
+Reunião TI - SEPLAG: É.
+
+-- 29 of 32 --
+
+Taylor Augusto Dos Santos: Uhum.
+Marcos Vinicios: OK? Que ele vai estar vinculado ali, por exemplo, ao MT Preve, só
+que a categoria dele ainda continua sendo ali policial militar, né?
+00:27:47
+Marcos Vinicios: Então ter que ter esse detalhe,
+Taylor Augusto Dos Santos: Isso.
+Reunião TI - SEPLAG: É,
+Marcos Vinicios: mas é legal isso.
+Reunião TI - SEPLAG: o militar é o mundo da parte que a gente deixou inclusive fora
+pra gente poder trabalhar
+Marcos Vinicios: Uhum.
+Reunião TI - SEPLAG: ele apartado mesmo.
+Taylor Augusto Dos Santos: Vai ser louco isso aí. militar vai ser louco.
+Reunião TI - SEPLAG: Mas é nesse caso aqui,
+Marcos Vinicios: você vai ver tantas coisas à parte que você vai ter que trabalhar.
+Reunião TI - SEPLAG: se já tá sendo complexo sem ter o militar, imagine com ele, né?
+Marcos Vinicios: Temos,
+Reunião TI - SEPLAG: Mas nesse caso a
+Marcos Vinicios: por exemplo, aí, ó, a galera que é gestor governamental, temos
+aquela galera que é PCCS 92,
+Reunião TI - SEPLAG: gente
+Marcos Vinicios: tem um monte de carreiras aí que foram extintas, né? Só que tem
+gente até hoje aí tem uma galera também que acho que é vigia, tem ainda também
+algumas galeras assim no SEAP, se eu não me engano, acho que Copeta também tem
+algumas coisas assim. Então tem um tem uns bichos aí de sete cabeça, entendeu?
+Reunião TI - SEPLAG: é essa da copira eu vi como cargo aí
+
+-- 30 of 32 --
+
+00:28:31
+Marcos Vinicios: É, tem alguns aí que é bem bem específico aí.
+Reunião TI - SEPLAG: já
+Marcos Vinicios: Aí a galera tá usando até hoje.
+Reunião TI - SEPLAG: então ao vivo, né?
+Marcos Vinicios: É,
+Reunião TI - SEPLAG: Tem que continuar,
+Marcos Vinicios: então vivo tem direito.
+Reunião TI - SEPLAG: né?
+Marcos Vinicios: É exato. Você tão tem direito aí receber. E aí,
+Reunião TI - SEPLAG: É.
+Marcos Vinicios: se não for entrar aí depois um pensionista, né, sei lá, às vezes um um
+marido, alguma esposa, um filho aí, né? Tem mais essa ainda.
+Reunião TI - SEPLAG: Ah, não tem essa possibilidade,
+Marcos Vinicios: É,
+Reunião TI - SEPLAG: né?
+Marcos Vinicios: tem tem essa possibilidade de pensionista.
+Reunião TI - SEPLAG: Então,
+Taylor Augusto Dos Santos: Beleza,
+Reunião TI - SEPLAG: beleza.
+Marcos Vinicios: Fechou?
+Reunião TI - SEPLAG: Então, fechou,
+Marcos Vinicios: Beleza.
+Taylor Augusto Dos Santos: valeu.
+Reunião TI - SEPLAG: Marcos. Obrigadão pelos esclarecimentos,
+Taylor Augusto Dos Santos: Obrigado.
+Marcos Vinicios: De nada.
+
+-- 31 of 32 --
+
+Reunião TI - SEPLAG: hein?
+Marcos Vinicios: Valeu.
+Taylor Augusto Dos Santos: Até mais.
+Marcos Vinicios: Tchau. Abraço.
+Reunião TI - SEPLAG: Té.
+Marcos Vinicios: Até mais.
+Reunião TI - SEPLAG: Tchau. Ainda não partiu da tela. Parar primeiro, ó. Não prestei
+atenção da outra. Você tem que parar.
+A transcrição foi encerrada após 00:29:29
+Esta transcrição editável foi gerada por computador e pode conter erros. As pessoas
+também podem alterar o texto depois que ele for criado.
+
+-- 32 of 32 --
+

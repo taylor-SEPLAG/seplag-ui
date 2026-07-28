@@ -2386,3 +2386,274 @@
   background: #eaf4ff;
 }
 
+
+.prototype-sicad-users-page {
+  gap: 16px;
+}
+
+.prototype-sicad-users-card .p-card-body,
+.prototype-sicad-users-card .p-card-content {
+  padding: 0;
+}
+
+.prototype-sicad-users-card .grid {
+  margin: 0;
+}
+
+.prototype-sicad-users-content {
+  padding: 0;
+}
+
+.prototype-sicad-users-filter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid #d8e1ec;
+  background: #ffffff;
+}
+
+.prototype-sicad-users-filter label {
+  color: #17324d;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.prototype-sicad-users-filter > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: min(460px, 100%);
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #cbd8e6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #0b63b6;
+}
+
+.prototype-sicad-users-filter input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #17324d;
+  font-size: 0.9rem;
+}
+
+.prototype-sicad-users-table-wrapper {
+  overflow-x: auto;
+  padding: 0 18px 14px;
+}
+
+.prototype-sicad-users-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+  color: #17324d;
+  font-size: 0.88rem;
+}
+
+.prototype-sicad-users-table th {
+  padding: 16px 14px;
+  border-bottom: 1px solid #d8e1ec;
+  background: #f7f9fb;
+  color: #1f2f46;
+  font-weight: 800;
+  text-align: left;
+}
+
+.prototype-sicad-users-table td {
+  padding: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.prototype-sicad-users-table tbody tr:nth-child(even) {
+  background: #f4f4f5;
+}
+
+.prototype-sicad-users-table tbody tr:hover {
+  background: #edf6ff;
+}
+
+.prototype-sicad-users-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.prototype-sicad-users-status--ativo {
+  border: 1px solid #62d28f;
+  background: #e6f8ee;
+  color: #067a3d;
+}
+
+.prototype-sicad-users-status--inativo {
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.prototype-sicad-users-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 4px;
+  background: #2f9e44;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.prototype-sicad-users-edit:hover,
+.prototype-sicad-users-edit:focus-visible {
+  background: #237a35;
+}
+
+.prototype-sicad-user-profile-page {
+  gap: 22px;
+}
+
+.prototype-sicad-user-profile-card .p-card-body,
+.prototype-sicad-user-profile-card .p-card-content {
+  padding: 0;
+}
+
+.prototype-sicad-user-profile-card .grid {
+  margin: 0;
+}
+
+.prototype-sicad-user-profile-content {
+  padding: 0 16px 28px;
+}
+
+.prototype-sicad-user-profile-header {
+  padding: 16px 0 8px;
+  border-bottom: 1px solid #cfd8e3;
+}
+
+.prototype-sicad-user-profile-header h1 {
+  margin: 0;
+  color: #102a43;
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+
+.prototype-sicad-user-profile-header p {
+  margin: 6px 0 0;
+  color: #51627a;
+  font-size: 0.86rem;
+}
+
+.prototype-sicad-user-profile-section {
+  margin-top: 14px;
+  border: 1px solid #d5dde8;
+  background: #ffffff;
+}
+
+.prototype-sicad-user-profile-section h2 {
+  margin: 0;
+  padding: 14px 16px;
+  border-bottom: 1px solid #d5dde8;
+  background: #f8fafc;
+  color: #17324d;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.prototype-sicad-user-profile-section > .col-12 {
+  padding: 16px;
+}
+
+.prototype-sicad-user-profile-section .p-dropdown,
+.prototype-sicad-user-profile-section .p-inputtext {
+  min-height: 40px;
+}
+
+.prototype-sicad-user-profile-table-wrap {
+  overflow-x: auto;
+  padding: 22px;
+}
+
+.prototype-sicad-user-profile-table {
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: collapse;
+  color: #17324d;
+  font-size: 0.88rem;
+}
+
+.prototype-sicad-user-profile-table th {
+  padding: 14px 12px;
+  background: #f7f9fb;
+  color: #1f2f46;
+  font-weight: 800;
+  text-align: left;
+}
+
+.prototype-sicad-user-profile-table td {
+  padding: 16px 12px;
+  border-top: 1px solid #e2e8f0;
+  vertical-align: middle;
+  line-height: 1.35;
+}
+
+.prototype-sicad-user-profile-table tbody tr:nth-child(even) {
+  background: #f4f4f5;
+}
+
+.prototype-sicad-user-profile-table th:first-child,
+.prototype-sicad-user-profile-table td:first-child {
+  width: 48px;
+  text-align: center;
+}
+
+.prototype-sicad-user-profile-table input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #0b63b6;
+}
+
+.prototype-sicad-user-profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 28px 24px 6px;
+}
+
+.prototype-sicad-user-profile-actions .p-button,
+.prototype-sicad-user-profile-back .p-button {
+  min-width: 245px;
+  justify-content: center;
+}
+
+.prototype-sicad-user-profile-back {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.prototype-sicad-user-profile-select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #cbd8e6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #17324d;
+  font-size: 0.9rem;
+  outline: 0;
+}
+
+.prototype-sicad-user-profile-select:focus {
+  border-color: #0b63b6;
+  box-shadow: 0 0 0 2px rgba(11, 99, 182, 0.12);
+}
