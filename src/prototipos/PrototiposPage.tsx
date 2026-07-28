@@ -104,6 +104,13 @@ import { DashboardGerencialContent } from "./controleVagas/DashboardGerencialCon
 import { VagasIndividualizadasContent } from "./controleVagas/VagasIndividualizadasContent";
 import { MovimentacoesContent } from "./controleVagas/MovimentacoesContent";
 import { ProjecoesVagasContent } from "./controleVagas/ProjecoesVagasContent";
+import { ControleVagasRegrasContent as QuadroPessoalRegrasContent } from "./quadroPessoal/ControleVagasRegrasContent";
+import { QuadroAutorizadoContent as QuadroPessoalQuadroAutorizadoContent } from "./quadroPessoal/QuadroAutorizadoContent";
+import { DistribuicaoSaldoContent as QuadroPessoalDistribuicaoContent } from "./quadroPessoal/DistribuicaoSaldoContent";
+import { DashboardGerencialContent as QuadroPessoalDashboardContent } from "./quadroPessoal/DashboardGerencialContent";
+import { PosicoesPessoalContent as QuadroPessoalVagasContent } from "./quadroPessoal/PosicoesPessoalContent";
+import { MovimentacoesContent as QuadroPessoalMovimentacoesContent } from "./quadroPessoal/MovimentacoesContent";
+import { ProjecoesVagasContent as QuadroPessoalProjecoesContent } from "./quadroPessoal/ProjecoesVagasContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
 const SIGEP_PAINEL_INFORMATIVO_PATH =
@@ -111,6 +118,7 @@ const SIGEP_PAINEL_INFORMATIVO_PATH =
 const SIGEP_CARGO_CONCURSO_TESTE_BASE_PATH =
   "/prototipos/sigep/cargo-concurso-teste";
 const CONTROLE_VAGAS_BASE_PATH = "/prototipos/sigep/controle-vagas";
+const QUADRO_PESSOAL_BASE_PATH = "/prototipos/sigep/quadro-pessoal";
 const FOLHA_PAGAMENTO_BASE_PATH =
   "/prototipos/folha/processamento/folha-pagamento";
 const FOLHA_PAINEL_INFORMATIVO_PATH =
@@ -263,6 +271,21 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         ],
       },
       {
+        label: "Quadro de Pessoal",
+        icon: "pi pi-users",
+        url: "#",
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+        items: [
+          { label: "Dashboard", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/dashboard`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Regras e Parâmetros", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/configuracoes`, visibleOnMenu: false, visibleOnRouter: true },
+          { label: "Autorizações de Pessoal", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/autorizacoes`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Distribuição", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/distribuicao`, visibleOnMenu: true, visibleOnRouter: false, disabled: true },
+          { label: "Posições Individualizadas", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/posicoes`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Movimentações", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/movimentacoes`, visibleOnMenu: true, visibleOnRouter: false, disabled: true },
+          { label: "Projeções", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/projecoes`, visibleOnMenu: true, visibleOnRouter: false, disabled: true },
+        ],
+      },      {
         label: "Vínculos Funcionais",
         icon: "pi pi-link",
         url: "#",
@@ -6320,6 +6343,27 @@ export function PrototiposControleVagasVagasPage() {
       <VagasIndividualizadasContent />
     </PrototypeSystemPage>
   );
+}
+export function PrototiposQuadroPessoalRegrasPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><QuadroPessoalRegrasContent /></PrototypeSystemPage>;
+}
+export function PrototiposQuadroPessoalQuadroAutorizadoPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><QuadroPessoalQuadroAutorizadoContent /></PrototypeSystemPage>;
+}
+export function PrototiposQuadroPessoalDistribuicaoPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><QuadroPessoalDistribuicaoContent /></PrototypeSystemPage>;
+}
+export function PrototiposQuadroPessoalDashboardPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><QuadroPessoalDashboardContent /></PrototypeSystemPage>;
+}
+export function PrototiposQuadroPessoalProjecoesPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><QuadroPessoalProjecoesContent /></PrototypeSystemPage>;
+}
+export function PrototiposQuadroPessoalMovimentacoesPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><QuadroPessoalMovimentacoesContent /></PrototypeSystemPage>;
+}
+export function PrototiposQuadroPessoalVagasPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><QuadroPessoalVagasContent /></PrototypeSystemPage>;
 }
 export function PrototiposCategoriaPage({
   routePrefix = SIGEP_BASE_PATH,
@@ -25898,4 +25942,10 @@ export function PrototiposConformidadePage() {
 export function PrototiposAuditoriaPage() {
   return <EmDesenvolvimentoPage nomeSistema="AUDITORIA" />;
 }
+
+
+
+
+
+
 

@@ -88,7 +88,7 @@ const AppSubmenuItemSeplag = ({
             style={{ fontSize: "6px", color: "#7EA9C9" }}
             className={item.icon}
           ></i>
-          <span>{item.label}</span>
+          <span style={item.disabled ? { textDecoration: "line-through", opacity: 0.65 } : undefined}>{item.label}</span>
           {submenuIcon}
         </>
       );
@@ -97,7 +97,7 @@ const AppSubmenuItemSeplag = ({
     return (
       <>
         <i className={item.icon}></i>
-        <span>{item.label}</span>
+        <span style={item.disabled ? { textDecoration: "line-through", opacity: 0.65 } : undefined}>{item.label}</span>
         {submenuIcon}
       </>
     );
@@ -113,6 +113,18 @@ const AppSubmenuItemSeplag = ({
       .filter(Boolean)
       .join(" ");
 
+    if (item.disabled) {
+      return (
+        <a
+          href="#"
+          aria-disabled="true"
+          style={{ cursor: "not-allowed" }}
+          onClick={(event) => event.preventDefault()}
+        >
+          {content}
+        </a>
+      );
+    }
     if (!item.to) {
       const href = item.url && item.url !== "#" ? item.url : "#";
       return (
@@ -169,3 +181,4 @@ const AppSubmenuItemSeplag = ({
 };
 
 export { AppSubmenuItemSeplag };
+

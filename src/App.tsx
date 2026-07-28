@@ -39,6 +39,13 @@ import {
   PrototiposControleVagasVagasPage,
   PrototiposControleVagasCessoesPage,
   PrototiposControleVagasProjecoesPage,
+  PrototiposQuadroPessoalRegrasPage,
+  PrototiposQuadroPessoalQuadroAutorizadoPage,
+  PrototiposQuadroPessoalDistribuicaoPage,
+  PrototiposQuadroPessoalDashboardPage,
+  PrototiposQuadroPessoalVagasPage,
+  PrototiposQuadroPessoalMovimentacoesPage,
+  PrototiposQuadroPessoalProjecoesPage,
   PrototiposEfetivoExercicioPage,
   PrototiposDocumentosVinculadosPage,
   PrototiposEstruturaOrganizacionalPage,
@@ -1421,6 +1428,16 @@ function App() {
         element={<PrototiposControleVagasCessoesPage />}
       />
       <Route
+        path="/prototipos/sigep/controle-vagas/movimentacoes/nova-remocao"
+        element={<PrototiposControleVagasCessoesPage />}
+      />
+
+      <Route
+        path="/prototipos/sigep/controle-vagas/movimentacoes/nova-cessao"
+        element={<PrototiposControleVagasCessoesPage />}
+      />
+
+      <Route
         path="/prototipos/sigep/controle-vagas/movimentacoes"
         element={<PrototiposControleVagasCessoesPage />}
       />
@@ -1448,7 +1465,24 @@ function App() {
         path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/nova-versao"
         element={<PrototiposControleVagasQuadroAutorizadoPage />}
       />
-      <Route
+      <Route path="/prototipos/sigep/quadro-pessoal/configuracoes" element={<PrototiposQuadroPessoalRegrasPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/dashboard" element={<PrototiposQuadroPessoalDashboardPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/distribuicao" element={<PrototiposQuadroPessoalDistribuicaoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/distribuicao/nova" element={<PrototiposQuadroPessoalDistribuicaoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/projecoes" element={<PrototiposQuadroPessoalProjecoesPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/cessoes" element={<PrototiposQuadroPessoalMovimentacoesPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/movimentacoes" element={<PrototiposQuadroPessoalMovimentacoesPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/vagas" element={<PrototiposQuadroPessoalVagasPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes/novo" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes/:id" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes/:id/editar" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/autorizacoes/:id/nova-versao" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/posicoes" element={<PrototiposQuadroPessoalVagasPage />} />      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/novo" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id/editar" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id/nova-versao" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />      <Route
         path="/prototipos/sigep/categoria"
         element={<PrototiposCategoriaPage />}
       />
@@ -1689,9 +1723,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-

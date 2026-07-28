@@ -2,3 +2,15 @@
 .prototype-special-options{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem}.prototype-special-options button{padding:.65rem;border:1px solid #b9c9d8;border-radius:.35rem;background:#fff;color:#344a60;font-weight:700;cursor:pointer}.prototype-special-options button.active{border-color:#0870b6;background:#e8f3ff;color:#086cae}.prototype-mov-modal textarea{min-height:5rem;resize:vertical}@media(max-width:700px){.prototype-special-options{grid-template-columns:1fr}}.prototype-cession-combobox{position:relative}.prototype-cession-combobox>i{position:absolute;left:12px;top:12px;color:#6b7a8e;z-index:1}.prototype-cession-combobox>input{padding-left:35px}.prototype-cession-combobox-options{position:absolute;z-index:30;top:42px;left:0;right:0;max-height:245px;overflow:auto;padding:6px;background:#fff;border:1px solid #b9c8d6;border-radius:6px;box-shadow:0 8px 20px rgba(20,45,70,.18)}.prototype-cession-combobox-options button{display:flex;flex-direction:column;width:100%;padding:9px 10px;border:0;border-bottom:1px solid #edf1f5;background:#fff;text-align:left;cursor:pointer}.prototype-cession-combobox-options button:hover{background:#eaf4fc}.prototype-cession-combobox-options button span{margin-top:3px;color:#6b788b;font-size:.68rem}.prototype-cession-combobox-options small{display:block;padding:14px;color:#6b788b}.prototype-cession-legal-document{min-width:0}
 
 
+.prototype-cession-page{min-height:100%;padding:24px;background:#f5f7fb}
+.prototype-mov-modal.cession-form.is-page{width:100%;max-width:none;max-height:none;overflow:visible;border:1px solid #dce4ed;border-radius:8px;box-shadow:none}
+.prototype-mov-modal.cession-form.is-page>header{padding:0 0 18px;margin:0 22px;border-bottom:1px solid #dce4ed}
+.prototype-mov-modal.cession-form.is-page>header h2{font-size:1.7rem;color:#17243a}
+.prototype-mov-modal.cession-form.is-page>header .prototype-cession-page-back{display:flex;align-items:center;gap:6px;width:auto;height:auto;margin:0 0 12px;padding:0;border:0;border-radius:0;background:transparent;color:#086db8;font-weight:700}
+.prototype-mov-modal.cession-form.is-page>footer{position:sticky;bottom:0;background:#fff}
+.prototype-removal-page{min-height:100%;padding:24px;background:#f5f7fb}
+.prototype-mov-modal.removal-form.is-page{width:100%;max-width:none;max-height:none;overflow:visible;border:1px solid #dce4ed;border-radius:8px;box-shadow:none}
+.prototype-mov-modal.removal-form.is-page>header{padding:0 0 18px;margin:0 22px;border-bottom:1px solid #dce4ed}
+.prototype-mov-modal.removal-form.is-page>header h2{font-size:1.7rem;color:#17243a}
+.prototype-mov-modal.removal-form.is-page>header .prototype-removal-page-back{display:flex;align-items:center;gap:6px;width:auto;height:auto;margin:0 0 12px;padding:0;border:0;border-radius:0;background:transparent;color:#086db8;font-weight:700}
+.prototype-mov-modal.removal-form.is-page>footer{position:sticky;bottom:0;background:#fff}
