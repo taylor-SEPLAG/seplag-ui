@@ -21,3 +21,63 @@
 @media(max-width:1200px){.prototype-dash-kpis.management.unified,.prototype-dashboard-indicator-controls>div{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:850px){.prototype-dash-kpis.management.unified,.prototype-dashboard-indicator-controls>div{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:550px){.prototype-dash-kpis.management.unified,.prototype-dashboard-indicator-controls>div{grid-template-columns:1fr}}
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .prototype-spec-panel,
+  .prototype-spec-mask,
+  .prototype-spec-screen,
+  .prototype-spec-toggle,
+  .prototype-view-toggles,
+  .layout-sidebar,
+  .layout-sidebar-backdrop,
+  .layout-topbar,
+  .layout-footer,
+  .prototype-dash-header-actions button {
+    display: none !important;
+  }
+
+  .prototype-spec-target,
+  .prototype-spec-target:hover {
+    position: static !important;
+    z-index: auto !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    cursor: default !important;
+  }
+
+  .prototype-spec-target::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .layout-wrapper,
+  .layout-main,
+  .layout-scroll,
+  .prototype-shell .layout-main,
+  .prototype-management-dashboard {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .prototype-management-dashboard {
+    zoom: .72;
+  }
+}
