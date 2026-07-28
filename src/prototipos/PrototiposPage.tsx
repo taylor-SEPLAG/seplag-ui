@@ -262,6 +262,7 @@ const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Tipo de Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Ingressos teste", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Efetivo Exercício", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/efetivo-exercicio", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vacância", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
@@ -1396,6 +1397,17 @@ interface IngressoFiltroForm {
   concursoProcessoSeletivo: string;
 }
 
+interface IngressosTesteGridRow {
+  id: string;
+  titulo: string;
+  tipo: "Concurso" | "Processo Seletivo" | "Nomeação";
+  orgao: string;
+  edital: string;
+  nomeados: number;
+  ingressados: number;
+  rotaIngresso: string;
+}
+
 interface MatrizValidacaoTesteRow {
   id: number;
   instituicao: string;
@@ -2501,17 +2513,17 @@ const agruparCandidatosIngressoPorVaga = (
 const ingressoTipoVinculoMap: Record<IngressoTipo, string> = {
   Concurso: "Efetivo",
   "Processo Seletivo": "Temporário",
+  Nomeação: "Comissionado",
   "Exclusivo Comissionado": "Comissionado",
   "Residente Técnico": "Residente",
   Estagiário: "Estagiário",
 };
 
-const ingressoTipoRadioOptions = Object.keys(ingressoTipoVinculoMap).map(
-  (tipo) => ({
-    label: tipo,
-    value: tipo as IngressoTipo,
-  }),
-);
+const ingressoTipoRadioOptions: { label: string; value: IngressoTipo }[] = [
+  { label: "Concurso", value: "Concurso" },
+  { label: "Processo Seletivo", value: "Processo Seletivo" },
+  { label: "Nomeação", value: "Nomeação" },
+];
 
 const ingressoImportacaoPreview = [
   {
@@ -12238,6 +12250,469 @@ interface IngressoEfetivoExercicioFiltroForm {
   termo: string;
 }
 
+export function PrototiposIngressosTestePage() {
+  const navigate = useNavigate();
+  const { control, reset, watch } = useForm<IngressoFiltroForm>({
+    defaultValues: {
+      concursoProcessoSeletivo: "",
+    },
+  });
+  const filtros = watch();
+  const concursoProcessoSeletivoBusca = filtros.concursoProcessoSeletivo?.trim().toLowerCase();
+
+  const registrosIngressoTeste: IngressosTesteGridRow[] = useMemo(() => {
+    const situacoesIngressosSalvas = JSON.parse(
+      localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
+    ) as Partial<Record<string, IngressoSituacao>>;
+    const concursosProcessos = ingressoConcursosProcessosMock.map((concursoProcesso) => {
+      const ingressados = concursoProcesso.candidatos.filter(
+        (candidato) =>
+          (situacoesIngressosSalvas[String(candidato.id)] ??
+            ingressosMock.find((ingresso) => ingresso.id === candidato.id)?.situacao) === "Ingresso Concluído",
+      ).length;
+
+      return {
+        id: `${concursoProcesso.tipo}-${concursoProcesso.id}`,
+        titulo: concursoProcesso.titulo,
+        tipo: concursoProcesso.tipo,
+        orgao: concursoProcesso.orgao,
+        edital: concursoProcesso.edital,
+        nomeados: concursoProcesso.candidatos.length,
+        ingressados,
+        rotaIngresso: `/prototipos/sigep/ingressos-teste/${concursoProcesso.id}`,
+      };
+    });
+    const nomeacoes = ingressosMock
+      .filter((ingresso) => ingresso.tipoIngresso === "Nomeação")
+      .map((ingresso) => ({
+        id: `Nomeação-${ingresso.id}`,
+        titulo: `Nomeação ${ingresso.nome}`,
+        tipo: "Nomeação" as const,
+        orgao: ingresso.orgao,
+        edital: ingresso.cargo,
+        nomeados: 1,
+        ingressados: ingresso.situacao === "Ingresso Concluído" ? 1 : 0,
+        rotaIngresso: `/prototipos/sigep/ingressos/novo?nomeacao=${ingresso.id}`,
+      }));
+
+    return [...concursosProcessos, ...nomeacoes];
+  }, []);
+
+  const registrosFiltrados = registrosIngressoTeste.filter((registro) => {
+    if (!concursoProcessoSeletivoBusca) return true;
+
+    return [registro.titulo, registro.tipo, registro.orgao, registro.edital]
+      .join(" ")
+      .toLowerCase()
+      .includes(concursoProcessoSeletivoBusca);
+  });
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag
+          title="Gestão de Ingresso"
+          cols="12"
+          cardHeaderClassNames="prototype-regime-card prototype-ingressos-card"
+        >
+          <div className="prototype-ingressos-teste-filters grid">
+            <TextFieldSeplag
+              name="concursoProcessoSeletivo"
+              control={control}
+              label="Concurso/Processo Seletivo"
+              placeholder="Buscar por concurso, seletivo, nomeação, órgão ou edital"
+              col="12"
+            />
+            <div className="prototype-category-clear">
+              <BotaoLimparFiltroSeplag
+                type="button"
+                onClick={() => reset({ concursoProcessoSeletivo: "" })}
+              />
+            </div>
+          </div>
+
+          <div className="prototype-ingressos-teste-grid" role="grid" aria-label="Concursos, seletivos e nomeações">
+            {registrosFiltrados.map((registro) => (
+              <div className="prototype-ingressos-teste-row" role="row" key={registro.id}>
+                <div className="prototype-ingressos-teste-row-main">
+                  <strong>{registro.titulo}</strong>
+                  <span>{registro.tipo} • {registro.orgao} • {registro.edital}</span>
+                </div>
+                <div className="prototype-ingressos-teste-row-actions">
+                  <span className="prototype-ingressos-teste-counter">
+                    {registro.nomeados} nomeado(s) • {registro.ingressados} ingressado(s)
+                  </span>
+                  <BotaoSeplag
+                    type="button"
+                    label="Ingressar"
+                    icon="pi pi-sign-in"
+                    tooltip={`Ingressar em ${registro.titulo}`}
+                    onClick={() => navigate(registro.rotaIngresso)}
+                  />
+
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+export function PrototiposIngressosTesteDetalhePage() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const concursoProcesso = ingressoConcursosProcessosMock.find(
+    (item) => item.id === Number(id),
+  );
+  const [filtrosGrupo, setFiltrosGrupo] = useState<
+    Record<string, { nome: string; situacao: IngressoSituacao | "" }>
+  >({});
+
+  const situacoesIngressosSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
+  ) as Partial<Record<string, IngressoSituacao>>;
+  const datasEfetivoExercicioSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-datas-efetivo-exercicio") ?? "{}",
+  ) as Partial<Record<string, string>>;
+  const situacoesDisponiveis: IngressoSituacao[] = [
+    "Aguardando Analise",
+    "Em analise",
+    "Aguardando Efetivo Exercicio",
+    "Ingresso Concluído",
+    "Posse Suspensa",
+    "Posse Negada",
+    "Tornado sem efeito",
+  ];
+  const getFiltroGrupo = (grupoId: string) =>
+    filtrosGrupo[grupoId] ?? { nome: "", situacao: "" };
+  const atualizarFiltroGrupo = (
+    grupoId: string,
+    campo: "nome" | "situacao",
+    valor: string,
+  ) => {
+    setFiltrosGrupo((current) => ({
+      ...current,
+      [grupoId]: {
+        ...getFiltroGrupo(grupoId),
+        [campo]: valor,
+      },
+    }));
+  };
+  const limparFiltroGrupo = (grupoId: string) => {
+    setFiltrosGrupo((current) => ({
+      ...current,
+      [grupoId]: { nome: "", situacao: "" },
+    }));
+  };
+  const getSituacaoCandidato = (candidatoId: number) =>
+    situacoesIngressosSalvas[String(candidatoId)] ??
+    ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
+    "Aguardando Analise";
+  const getDataEfetivoExercicio = (candidato: IngressoCandidatoRow) =>
+    datasEfetivoExercicioSalvas[String(candidato.id)] ?? candidato.dataEfetivoExercicio;
+  const getSituacaoBadge = (situacao: IngressoSituacao) => {
+    const badgeMap: Record<IngressoSituacao, { color: string; bg: string }> = {
+      "Aguardando Analise": { color: "#8a5a00", bg: "#fff4d6" },
+      "Em analise": { color: "#0057d9", bg: "#e7f1ff" },
+      "Posse Suspensa": { color: "#6d28d9", bg: "#f1e8ff" },
+      "Aguardando Efetivo Exercicio": { color: "#be185d", bg: "#fce7f3" },
+      "Tornado sem efeito": { color: "#6b7280", bg: "#f3f4f6" },
+      "Posse Negada": { color: "#b42318", bg: "#fee4e2" },
+      "Ingresso Concluído": { color: "#00843d", bg: "#e2f3e8" },
+    };
+
+    return badgeMap[situacao];
+  };
+  const parseData = (data: string) => {
+    if (!data || data === "-") return null;
+    const [dia, mes, ano] = data.split("/").map(Number);
+
+    return dia && mes && ano ? new Date(ano, mes - 1, dia) : null;
+  };
+  const formatarData = (data: Date) =>
+    data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const somarDias = (data: Date, dias: number) => {
+    const novaData = new Date(data);
+    novaData.setDate(novaData.getDate() + dias);
+
+    return novaData;
+  };
+  const getLimitePosse = (candidato: IngressoCandidatoRow) => {
+    const dataNomeacao = parseData(candidato.dataNomeacao);
+
+    return dataNomeacao ? formatarData(somarDias(dataNomeacao, 30)) : "-";
+  };
+  const getLimiteEfetivoExercicio = (candidato: IngressoCandidatoRow) => {
+    const dataPosse = parseData(candidato.dataPosse);
+
+    return dataPosse ? formatarData(somarDias(dataPosse, 15)) : "-";
+  };
+  const getCandidatosFiltrados = (grupo: IngressoCandidatoGrupoRow) => {
+    const filtro = getFiltroGrupo(grupo.id);
+    const nomeBusca = filtro.nome.trim().toLowerCase();
+
+    return grupo.candidatos.filter((candidato) => {
+      const atendeNome = !nomeBusca || candidato.nome.toLowerCase().includes(nomeBusca);
+      const atendeSituacao = !filtro.situacao || getSituacaoCandidato(candidato.id) === filtro.situacao;
+
+      return atendeNome && atendeSituacao;
+    });
+  };
+
+  if (!concursoProcesso) {
+    return (
+      <PrototypeSystemPage
+        nomeSistema="GESTÃO DE PESSOAS"
+        ambienteSistema="Teste"
+        menuItems={menuGestaoPessoas}
+      >
+        <div className="prototype-page-content prototype-page-content--white">
+          <CardSeplag title="Gestão de Ingresso" cols="12" cardHeaderClassNames="prototype-regime-card">
+            <div className="prototype-empty-table-cell">Concurso ou processo seletivo não encontrado.</div>
+          </CardSeplag>
+        </div>
+      </PrototypeSystemPage>
+    );
+  }
+
+  const grupos = agruparCandidatosIngressoPorVaga(concursoProcesso.candidatos);
+  const totalIngressadosConcurso = concursoProcesso.candidatos.filter(
+    (candidato) => getSituacaoCandidato(candidato.id) === "Ingresso Concluído",
+  ).length;
+  const dashboardSituacoesConcurso: {
+    situacao: IngressoSituacao;
+    label: string;
+    color: string;
+    bg: string;
+  }[] = [
+    { situacao: "Aguardando Analise", label: "Aguardando Analise", color: "#8a5a00", bg: "#fff4d6" },
+    { situacao: "Em analise", label: "Em analise", color: "#0057d9", bg: "#e7f1ff" },
+    { situacao: "Aguardando Efetivo Exercicio", label: "Aguardando Efetivo Exercicio", color: "#be185d", bg: "#fce7f3" },
+    { situacao: "Ingresso Concluído", label: "Ingresso Concluído", color: "#00843d", bg: "#e2f3e8" },
+    { situacao: "Posse Suspensa", label: "Posse Suspensa", color: "#6d28d9", bg: "#f1e8ff" },
+    { situacao: "Posse Negada", label: "Posse Negada", color: "#b42318", bg: "#fee4e2" },
+    { situacao: "Tornado sem efeito", label: "Tornado sem efeito", color: "#6b7280", bg: "#f3f4f6" },
+  ];
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag
+          title={concursoProcesso.titulo}
+          cols="12"
+          cardHeaderClassNames="prototype-regime-card prototype-ingressos-card"
+        >
+          <div className="prototype-ingressos-teste-info-card">
+            <strong className="prototype-ingressos-teste-info-title">Informações do Concurso</strong>
+            <div className="prototype-ingressos-teste-info-grid">
+              <p><strong>Tipo:</strong> {concursoProcesso.tipo}</p>
+              <p><strong>Edital:</strong> {concursoProcesso.edital}</p>
+              <p><strong>Órgão:</strong> {concursoProcesso.orgao}</p>
+              <p><strong>Total de vagas:</strong> {concursoProcesso.candidatos.length}</p>
+              <p><strong>Total de nomeados:</strong> {concursoProcesso.candidatos.length}</p>
+              <p><strong>Total de ingressados:</strong> {totalIngressadosConcurso}</p>
+            </div>
+          </div>
+
+          <div className="prototype-ingressos-teste-dashboard" aria-label="Resumo por situação do concurso">
+            {dashboardSituacoesConcurso.map((item) => (
+              <div
+                key={item.situacao}
+                className="prototype-ingressos-teste-dashboard-card"
+                style={{
+                  "--dashboard-card-color": item.color,
+                  "--dashboard-card-bg": item.bg,
+                } as React.CSSProperties}
+              >
+                <span>{item.label}</span>
+                <strong>
+                  {concursoProcesso.candidatos.filter(
+                    (candidato) => getSituacaoCandidato(candidato.id) === item.situacao,
+                  ).length}
+                </strong>
+              </div>
+            ))}
+          </div>
+
+          <div className="prototype-ingresso-vaga-accordion-list prototype-ingressos-teste-detail-grid">
+            {grupos.map((grupo, grupoIndex) => {
+              const candidatosFiltrados = getCandidatosFiltrados(grupo);
+              const classificacaoBadge = getTipoVagaIngressoBadge(grupo.classificacao);
+
+              return (
+                <details
+                  key={grupo.id}
+                  className="prototype-ingresso-vaga-accordion"
+                  open={grupoIndex === 0}
+                >
+                  <summary className="prototype-ingresso-vaga-accordion-summary">
+                    <div>
+                      <strong>{grupo.vagaEspecialidade}</strong>
+                      <span>Perfil/Especialidade: {grupo.perfilEspecialidade}</span>
+                      <span>Polo: {grupo.polo}</span>
+                    </div>
+                    <div className="prototype-ingresso-vaga-summary-meta">
+                      <BadgeSeplag
+                        label={`Classificação: ${grupo.classificacao}`}
+                        color={classificacaoBadge.color}
+                        bg={classificacaoBadge.bg}
+                        border="transparent"
+                        size="md"
+                      />
+                      <BadgeSeplag
+                        label={`${grupo.candidatos.length} nomeado(s)`}
+                        color="#005494"
+                        bg="#e6f0f8"
+                        border="transparent"
+                        size="md"
+                      />
+                      <i className="pi pi-chevron-right prototype-ingresso-accordion-chevron" aria-hidden="true" />
+                    </div>
+                  </summary>
+
+                  <div className="prototype-ingresso-vaga-accordion-content">
+                    <div className="prototype-ingresso-accordion-filters prototype-ingresso-vaga-filters">
+                      <label>
+                        <span>Nome</span>
+                        <input
+                          type="text"
+                          value={getFiltroGrupo(grupo.id).nome}
+                          onChange={(event) => atualizarFiltroGrupo(grupo.id, "nome", event.target.value)}
+                          placeholder="Buscar por nome"
+                        />
+                      </label>
+                      <label>
+                        <span>Situação</span>
+                        <select
+                          value={getFiltroGrupo(grupo.id).situacao}
+                          onChange={(event) => atualizarFiltroGrupo(grupo.id, "situacao", event.target.value)}
+                        >
+                          <option value="">Todas</option>
+                          {situacoesDisponiveis.map((situacao) => (
+                            <option key={situacao} value={situacao}>
+                              {situacao}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <button
+                        type="button"
+                        className="prototype-ingresso-accordion-clear"
+                        onClick={() => limparFiltroGrupo(grupo.id)}
+                      >
+                        <i className="pi pi-refresh" aria-hidden="true" />
+                        Limpar
+                      </button>
+                    </div>
+                    <table className="prototype-simple-table prototype-ingresso-candidatos-table">
+                      <thead>
+                        <tr>
+                          <th>Classificação</th>
+                          <th>Nome</th>
+                          <th>Cargo</th>
+                          <th>Órgão</th>
+                          <th>Tipo da Vaga</th>
+                          <th>Posse Agendada</th>
+                          <th>Limite da Posse</th>
+                          <th>Limite Efetivo Exercício</th>
+                          <th>Data do Efetivo Exercício</th>
+                          <th>Situação</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {candidatosFiltrados.length === 0 ? (
+                          <tr>
+                            <td colSpan={11} className="prototype-empty-table-cell">
+                              Nenhum registro encontrado para os filtros informados.
+                            </td>
+                          </tr>
+                        ) : (
+                          candidatosFiltrados.map((candidato) => {
+                            const tipoVagaBadge = getTipoVagaIngressoBadge(candidato.tipoVaga);
+                            const situacao = getSituacaoCandidato(candidato.id);
+                            const situacaoBadge = getSituacaoBadge(situacao);
+                            const parametrosAtuacao = `candidato=${candidato.id}&tipo=${encodeURIComponent(
+                              concursoProcesso.tipo,
+                            )}&concurso=${encodeURIComponent(concursoProcesso.titulo)}&orgao=${encodeURIComponent(
+                              concursoProcesso.orgao,
+                            )}&cargo=${encodeURIComponent(candidato.cargo)}&classificacao=${encodeURIComponent(
+                              candidato.classificacao,
+                            )}&tipoVaga=${encodeURIComponent(candidato.tipoVaga)}`;
+
+                            return (
+                              <tr key={candidato.id}>
+                                <td>{candidato.classificacao}</td>
+                                <td>{candidato.nome}</td>
+                                <td>{candidato.cargo}</td>
+                                <td>{concursoProcesso.orgao}</td>
+                                <td>
+                                  <BadgeSeplag
+                                    label={candidato.tipoVaga}
+                                    color={tipoVagaBadge.color}
+                                    bg={tipoVagaBadge.bg}
+                                    border="transparent"
+                                    size="md"
+                                  />
+                                </td>
+                                <td>{candidato.dataPosse}</td>
+                                <td>{getLimitePosse(candidato)}</td>
+                                <td>{getLimiteEfetivoExercicio(candidato)}</td>
+                                <td>{situacao === "Ingresso Concluído" ? getDataEfetivoExercicio(candidato) : "-"}</td>
+                                <td>
+                                  <BadgeSeplag
+                                    label={situacao}
+                                    color={situacaoBadge.color}
+                                    bg={situacaoBadge.bg}
+                                    border="transparent"
+                                    size="md"
+                                  />
+                                </td>
+                                <td>
+                                  <div className="prototype-ingressos-teste-person-actions">
+                                    <BotaoIconSeplag
+                                      type="button"
+                                      icon="pi pi-eye"
+                                      tooltip="Visualizar ingresso"
+                                      onClick={() => navigate(`/prototipos/sigep/ingressos/${candidato.id}`)}
+                                    />
+                                    <BotaoIconSeplag
+                                      type="button"
+                                      icon="pi pi-sign-in"
+                                      tooltip="Ingressar candidato"
+                                      onClick={() => navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacao}`)}
+                                    />
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              );
+            })}
+          </div>
+
+          <div className="prototype-ingressos-teste-detail-actions prototype-ingressos-teste-detail-actions--bottom">
+            <BotaoVoltarSeplag type="button" onClick={() => navigate("/prototipos/sigep/ingressos-teste")} />
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
 export function PrototiposIngressosPage() {
   const navigate = useNavigate();
   const { control, reset, watch } = useForm<IngressoFiltroForm>({
@@ -12928,8 +13403,10 @@ export function PrototiposNovoIngressoPage() {
     ? ingressosMock.find((ingresso) => String(ingresso.id) === candidatoParam)
     : undefined;
   const tipoParam = searchParams.get("tipo");
-  const tipoInicial: IngressoTipo =
-    tipoParam === "Processo Seletivo" ? "Processo Seletivo" : "Concurso";
+  const tipoInicial: IngressoTipo | "" =
+    tipoParam && tipoParam in ingressoTipoVinculoMap
+      ? (tipoParam as IngressoTipo)
+      : ingressoOrigemDados?.tipoIngresso ?? "";
   const concursoInicial = searchParams.get("concurso") ?? "";
   const orgaoInicial = searchParams.get("orgao") ?? ingressoOrigemDados?.orgao ?? "";
   const cargoInicial = searchParams.get("cargo") ?? ingressoOrigemDados?.cargo ?? "";
@@ -12954,7 +13431,7 @@ export function PrototiposNovoIngressoPage() {
   const nascimentoInicial =
     pessoasFisicasIngressoMock.find((pessoa) => pessoa.cpf === ingressoOrigemDados?.cpf)
       ?.dataNascimento ?? "";
-  const [tipoIngresso, setTipoIngresso] = useState<IngressoTipo>(tipoInicial);
+  const [tipoIngresso, setTipoIngresso] = useState<IngressoTipo | "">(tipoInicial);
   const [activeTab, setActiveTab] = useState<NovoIngressoTab>(
     perfilNovoIngresso === "SETORIAL"
       ? "efetivo-exercicio"
@@ -12965,6 +13442,8 @@ export function PrototiposNovoIngressoPage() {
   const [candidatoNascimento, setCandidatoNascimento] = useState(nascimentoInicial);
   const [concursoSelecionado, setConcursoSelecionado] = useState(concursoInicial);
   const [orgaoSelecionado, setOrgaoSelecionado] = useState(orgaoInicial);
+  const [orgaosIngressoSelecionados, setOrgaosIngressoSelecionados] = useState<string[]>(orgaoInicial ? [orgaoInicial] : []);
+  const [orgaosIngressoDropdownAberto, setOrgaosIngressoDropdownAberto] = useState(false);
   const [orgaosEfetivoSelecionados, setOrgaosEfetivoSelecionados] = useState<string[]>(orgaoInicial ? [orgaoInicial] : ["SEPLAG"]);
   const [orgaosEfetivoDropdownAberto, setOrgaosEfetivoDropdownAberto] = useState(false);
   const [cargoSelecionado, setCargoSelecionado] = useState(cargoInicial);
@@ -12995,6 +13474,7 @@ export function PrototiposNovoIngressoPage() {
   const [justificativaSemEfeito, setJustificativaSemEfeito] = useState("");
   const [dataPosse, setDataPosse] = useState("");
   const [dataEfetivoExercicio, setDataEfetivoExercicio] = useState("");
+  const [dataFimEfetivoExercicio, setDataFimEfetivoExercicio] = useState("");
   const [servidorCompareceu, setServidorCompareceu] = useState<"Sim" | "Não">("Sim");
   const [modalConfirmacaoAberto, setModalConfirmacaoAberto] = useState(false);
   const [modalComplementacaoAberto, setModalComplementacaoAberto] = useState(false);
@@ -13031,7 +13511,7 @@ export function PrototiposNovoIngressoPage() {
       : diasRestantesEfetivo === 0
         ? "prototype-prazo-posse-status prototype-prazo-posse-status--atencao"
         : "prototype-prazo-posse-status";
-  const tipoVinculo = ingressoTipoVinculoMap[tipoIngresso];
+  const tipoVinculo = tipoIngresso ? ingressoTipoVinculoMap[tipoIngresso] : "";
   const fluxoNovoIngressoTabs =
     tipoIngresso === "Concurso" ? novoIngressoConcursoSteps : novoIngressoTabs;
   const isPerfilSetorial = perfilNovoIngresso === "SETORIAL";
@@ -13100,6 +13580,23 @@ export function PrototiposNovoIngressoPage() {
         : [...documentosAtuais, documento],
     );
   };
+  const orgaosEstadoOptions = estruturaOrganizacionalNiveis
+    .find((nivel) => nivel.id === "orgaos")
+    ?.itens.map((orgao) => ({ label: orgao.nome, value: orgao.id })) ?? [];
+  const orgaosIngressoOptions = ["SEPLAG", "SES", "SEDUC", "SEFAZ"];
+  const orgaosIngressoResumo =
+    orgaosIngressoSelecionados.length === 0
+      ? "Selecione..."
+      : orgaosIngressoSelecionados.length <= 2
+        ? orgaosIngressoSelecionados.join(", ")
+        : `${orgaosIngressoSelecionados.length} órgãos selecionados`;
+  const toggleOrgaoIngresso = (orgao: string) => {
+    setOrgaosIngressoSelecionados((orgaosAtuais) =>
+      orgaosAtuais.includes(orgao)
+        ? orgaosAtuais.filter((item) => item !== orgao)
+        : [...orgaosAtuais, orgao],
+    );
+  };
   const orgaosEfetivoOptions = ["SEPLAG", "SES", "SEDUC", "SEFAZ"];
   const orgaosEfetivoResumo =
     orgaosEfetivoSelecionados.length === 0
@@ -13127,6 +13624,7 @@ export function PrototiposNovoIngressoPage() {
     (parecerProvimento === "sem-efeito" && termoSemEfeitoGerado);
   const confirmarActionDisabled =
     isEtapaSomenteLeituraSetorial ||
+    (activeTab === "tipo-ingresso" && !tipoIngresso) ||
     (activeTab === "analise-provimento" && !parecerProvimentoSalvo);
   const justificativaSemEfeitoObrigatoria =
     parecerProvimento === "sem-efeito" &&
@@ -13209,7 +13707,7 @@ export function PrototiposNovoIngressoPage() {
     }[],
   ) => (
     <div className="prototype-documentos-gerados">
-      <h4>Documentos Gerados</h4>
+      <h4 className="prototype-documentos-gerados-title"><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-file" aria-hidden="true" /></span><span>Documentos Gerados</span></h4>
       <table className="prototype-simple-table prototype-documentos-gerados-table">
         <thead>
           <tr>
@@ -13351,10 +13849,10 @@ export function PrototiposNovoIngressoPage() {
     setCandidatoNascimento("");
   };
 
-  const renderDadosBasicosIngresso = () => (
+  const renderDadosServidorIngresso = () => (
     <div className="prototype-novo-ingresso-dados-grid">
-      <section className="prototype-ingresso-section prototype-novo-ingresso-candidato-section">
-        <h3>Dados do Candidato</h3>
+      <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-candidato-section">
+        <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-user" aria-hidden="true" /></span><span>Dados do Servidor</span></h3>
         <div className="prototype-novo-ingresso-candidato-grid">
           <label className="prototype-ingresso-field">
             <span>CPF<em>*</em></span>
@@ -13397,26 +13895,58 @@ export function PrototiposNovoIngressoPage() {
           </label>
         </div>
       </section>
-      <section className="prototype-ingresso-section prototype-novo-ingresso-dados-ingresso">
-        <h3>Dados do Ingresso</h3>
+    </div>
+  );
+
+  const renderDadosIngresso = () => (
+    <div className="prototype-novo-ingresso-dados-grid">
+      <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-dados-ingresso">
+        <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-id-card" aria-hidden="true" /></span><span>Dados do Ingresso</span></h3>
         <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+          <label className="prototype-ingresso-field">
+            <span>Regime Jurídico<em>*</em></span>
+            <select
+              value={regimeJuridicoSelecionado}
+              onChange={(event) => setRegimeJuridicoSelecionado(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              <option value="Estatutário">Estatutário</option>
+              <option value="Celetista">Celetista</option>
+              <option value="Regime Especial">Regime Especial</option>
+            </select>
+          </label>
           <label className="prototype-ingresso-field">
             <span>Tipo de Vínculo<em>*</em></span>
             <input type="text" value={tipoVinculo} readOnly />
           </label>
-          <label className="prototype-ingresso-field">
+          <div className="prototype-ingresso-field prototype-multiselect-field">
             <span>Órgão<em>*</em></span>
-            <select
-              value={orgaoSelecionado}
-              onChange={(event) => setOrgaoSelecionado(event.target.value)}
-            >
-              <option value="">Selecione...</option>
-              <option value="SES">SES</option>
-              <option value="SEDUC">SEDUC</option>
-              <option value="SEFAZ">SEFAZ</option>
-              <option value="SEPLAG">SEPLAG</option>
-            </select>
-          </label>
+            <div className="prototype-multiselect">
+              <button
+                type="button"
+                className="prototype-multiselect-trigger"
+                onClick={() => setOrgaosIngressoDropdownAberto((dropdownAberto) => !dropdownAberto)}
+                aria-expanded={orgaosIngressoDropdownAberto}
+              >
+                <span>{orgaosIngressoResumo}</span>
+                <i className={`pi ${orgaosIngressoDropdownAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
+              </button>
+              {orgaosIngressoDropdownAberto ? (
+                <div className="prototype-multiselect-panel">
+                  {orgaosIngressoOptions.map((orgao) => (
+                    <label key={orgao} className="prototype-multiselect-option">
+                      <input
+                        type="checkbox"
+                        checked={orgaosIngressoSelecionados.includes(orgao)}
+                        onChange={() => toggleOrgaoIngresso(orgao)}
+                      />
+                      <span>{orgao}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
           <label className="prototype-ingresso-field">
             <span>{processoOrigemLabel}<em>*</em></span>
             <select
@@ -13433,7 +13963,7 @@ export function PrototiposNovoIngressoPage() {
             </select>
           </label>
           <label className="prototype-ingresso-field">
-            <span>Categoria<em>*</em></span>
+            <span>Categoria</span>
             <select
               value={categoriaSelecionada}
               onChange={(event) => setCategoriaSelecionada(event.target.value)}
@@ -13464,11 +13994,11 @@ export function PrototiposNovoIngressoPage() {
             </select>
           </label>
           <label className="prototype-ingresso-field">
-            <span>Regime Jurídico<em>*</em></span>
+            <span>Perfil/Especialidade</span>
             <input
               type="text"
-              value={regimeJuridicoSelecionado}
-              onChange={(event) => setRegimeJuridicoSelecionado(event.target.value)}
+              value={perfilEspecialidade}
+              onChange={(event) => setPerfilEspecialidade(event.target.value)}
             />
           </label>
           <label className="prototype-ingresso-field">
@@ -13493,14 +14023,6 @@ export function PrototiposNovoIngressoPage() {
             </select>
           </label>
           <label className="prototype-ingresso-field">
-            <span>Perfil/Especialidade<em>*</em></span>
-            <input
-              type="text"
-              value={perfilEspecialidade}
-              onChange={(event) => setPerfilEspecialidade(event.target.value)}
-            />
-          </label>
-          <label className="prototype-ingresso-field">
             <span>Data da Nomeação<em>*</em></span>
             <input
               type="date"
@@ -13509,12 +14031,16 @@ export function PrototiposNovoIngressoPage() {
             />
           </label>
           <label className="prototype-ingresso-field">
-            <span>Data da Posse<em>*</em></span>
+            <span>Data Agendada da Posse<em>*</em></span>
             <input
               type="date"
               value={dataPosseIngresso}
               onChange={(event) => setDataPosseIngresso(event.target.value)}
             />
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Data Limite para Posse<em>*</em></span>
+            <input type="text" value="30/07/2026" readOnly />
           </label>
           <label className="prototype-ingresso-field">
             <span>Decisão Judicial<em>*</em></span>
@@ -13639,8 +14165,10 @@ export function PrototiposNovoIngressoPage() {
     if (activeTab === "tipo-ingresso") {
       return (
         <section className="prototype-ingresso-section prototype-novo-ingresso-section">
-          <h3>Ingresso <span className="prototype-required-mark">*</span></h3>
-          <div className="prototype-ingresso-type-grid">
+          {renderDadosServidorIngresso()}
+          <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-origem-section">
+            <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-share-alt" aria-hidden="true" /></span><span>Origem do Ingresso <span className="prototype-required-mark">*</span></span></h3>
+            <div className="prototype-ingresso-type-grid">
             {ingressoTipoRadioOptions.map((option) => (
               <button
                 key={option.value}
@@ -13651,9 +14179,10 @@ export function PrototiposNovoIngressoPage() {
                 } ${ingressoOrigemLista ? "is-locked" : ""}`}
                 onClick={() => {
                   if (ingressoOrigemLista) return;
-                  setTipoIngresso(option.value);
+                  setTipoIngresso(tipoIngresso === option.value ? "" : option.value);
                   setConcursoSelecionado("");
                   setOrgaoSelecionado("");
+                  setOrgaosIngressoSelecionados([]);
                   setCargoSelecionado("");
                   setClassificacaoSelecionada("");
                   setTipoVagaSelecionada("AC");
@@ -13661,13 +14190,12 @@ export function PrototiposNovoIngressoPage() {
                   setDocumentacaoEtapa("analise");
                 }}
               >
-                <span className="prototype-ingresso-radio-dot" />
                 <strong>{option.label}</strong>
-                <small>Gera vínculo {ingressoTipoVinculoMap[option.value]}</small>
               </button>
             ))}
-          </div>
-          {renderDadosBasicosIngresso()}
+            </div>
+          </section>
+          {tipoIngresso ? renderDadosIngresso() : null}
         </section>
       );
     }
@@ -13827,14 +14355,14 @@ export function PrototiposNovoIngressoPage() {
         <section className="prototype-ingresso-section">
           <div className="prototype-analise-provimento-layout">
             <div className="prototype-analise-provimento-main">
-              <div className="prototype-analise-provimento-panel">
+              <div className="prototype-analise-provimento-panel prototype-analise-provimento-panel--header-icon">
                 <button
                   type="button"
-                  className="prototype-recuar-section-header"
+                  className="prototype-recuar-section-header prototype-recuar-section-header--icon"
                   onClick={() => setAnaliseProvimentoAberta((aberta) => !aberta)}
                   aria-expanded={analiseProvimentoAberta}
                 >
-                  <span>Análise de Documentos</span>
+                  <span className="prototype-recuar-section-title"><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-file-check" aria-hidden="true" /></span><span>Análise de Documentos</span></span>
                   <i className={`pi ${analiseProvimentoAberta ? "pi-chevron-up" : "pi-chevron-down"}`} />
                 </button>
                 {analiseProvimentoAberta ? (
@@ -13918,14 +14446,14 @@ export function PrototiposNovoIngressoPage() {
                 ) : null}
               </div>
 
-              <div className="prototype-analise-provimento-panel prototype-parecer-provimento">
+              <div className="prototype-analise-provimento-panel prototype-parecer-provimento prototype-analise-provimento-panel--header-icon">
                 <button
                   type="button"
-                  className="prototype-recuar-section-header"
+                  className="prototype-recuar-section-header prototype-recuar-section-header--icon"
                   onClick={() => setParecerProvimentoAberto((aberto) => !aberto)}
                   aria-expanded={parecerProvimentoAberto}
                 >
-                  <span>Parecer do Provimento</span>
+                  <span className="prototype-recuar-section-title"><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-clipboard" aria-hidden="true" /></span><span>Parecer do Provimento</span></span>
                   <i className={`pi ${parecerProvimentoAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
                 </button>
                 {parecerProvimentoAberto ? (
@@ -14010,6 +14538,15 @@ export function PrototiposNovoIngressoPage() {
 
                 {parecerProvimento === "aprovar" ? (
                   <div className="prototype-parecer-aprovacao">
+                                        <label className="prototype-ingresso-field">
+                      <span>Encaminhar para<em>*</em></span>
+                      <select defaultValue="">
+                        <option value="">Selecione...</option>
+                        {orgaosEstadoOptions.map((orgao) => (
+                          <option key={orgao.value} value={orgao.value}>{orgao.label}</option>
+                        ))}
+                      </select>
+                    </label>
                     <label className="prototype-ingresso-field">
                       <span>Observação</span>
                       <textarea placeholder="Informe uma observação sobre a aprovação, se necessário." />
@@ -14101,12 +14638,11 @@ export function PrototiposNovoIngressoPage() {
                           <option value="diploma-incompativel">Diploma incompatível com o cargo</option>
                           <option value="certidao-impeditiva">Certidão impeditiva</option>
                           <option value="acumulo-nao-permitido">Acúmulo de cargo não permitido</option>
-                          <option value="nao-comparecimento">Não comparecimento para posse</option>
                           <option value="outro">Outro</option>
                         </select>
                       </label>
                       <label className="prototype-ingresso-field">
-                        <span>Documento/requisito relacionado<em>*</em></span>
+                        <span>Documento/requisito relacionado</span>
                         <select defaultValue="">
                           <option value="">Selecione...</option>
                           {documentosObrigatoriosIngresso.map((documento) => (
@@ -14316,73 +14852,95 @@ export function PrototiposNovoIngressoPage() {
         <section className="prototype-ingresso-section">
           <div className="prototype-analise-provimento-layout prototype-efetivo-exercicio-layout">
             <div className="prototype-analise-provimento-main">
-              <div className="prototype-efetivo-exercicio-card">
-                <h3>Efetivo Exercício</h3>
+              <div className="prototype-efetivo-exercicio-card prototype-novo-ingresso-panel">
+                <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-briefcase" aria-hidden="true" /></span><span>Dados do Efetivo Exercício</span></h3>
                 <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
-                  <label className="prototype-ingresso-field">
-                    <span>Servidor compareceu?<em>*</em></span>
-                    <select
-                      value={servidorCompareceu}
-                      onChange={(event) => setServidorCompareceu(event.target.value as "Sim" | "Não")}
-                    >
-                      <option value="Sim">Sim</option>
-                      <option value="Não">Não</option>
-                    </select>
-                  </label>
+                  <div className="prototype-efetivo-exercicio-top-row">
+                    <label className="prototype-ingresso-field">
+                      <span>Servidor compareceu?<em>*</em></span>
+                      <select
+                        value={servidorCompareceu}
+                        onChange={(event) => setServidorCompareceu(event.target.value as "Sim" | "Não")}
+                      >
+                        <option value="Sim">Sim</option>
+                        <option value="Não">Não</option>
+                      </select>
+                    </label>
+
+                    {servidorCompareceu === "Sim" ? (
+                      <>
+                        <label className="prototype-ingresso-field prototype-efetivo-exercicio-matricula-field">
+                          <span>Matrícula</span>
+                          <input type="text" value="327305" readOnly />
+                        </label>
+                        <label className="prototype-ingresso-field prototype-efetivo-exercicio-vinculo-field">
+                          <span>Vínculo</span>
+                          <input type="text" value="1" readOnly />
+                        </label>
+                      </>
+                    ) : null}
+                  </div>
 
                   {servidorCompareceu === "Sim" ? (
                     <>
-
-                      <div className="prototype-ingresso-field prototype-multiselect-field">
-                        <span>Órgão<em>*</em></span>
-                        <div className="prototype-multiselect">
-                          <button
-                            type="button"
-                            className="prototype-multiselect-trigger"
-                            onClick={() => setOrgaosEfetivoDropdownAberto((dropdownAberto) => !dropdownAberto)}
-                            aria-expanded={orgaosEfetivoDropdownAberto}
-                          >
-                            <span>{orgaosEfetivoResumo}</span>
-                            <i className={`pi ${orgaosEfetivoDropdownAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
-                          </button>
-                          {orgaosEfetivoDropdownAberto ? (
-                            <div className="prototype-multiselect-panel">
-                              {orgaosEfetivoOptions.map((orgao) => (
-                                <label key={orgao} className="prototype-multiselect-option">
-                                  <input
-                                    type="checkbox"
-                                    checked={orgaosEfetivoSelecionados.includes(orgao)}
-                                    onChange={() => toggleOrgaoEfetivo(orgao)}
-                                  />
-                                  <span>{orgao}</span>
-                                </label>
-                              ))}
-                            </div>
-                          ) : null}
+                      <div className="prototype-efetivo-exercicio-orgao-row">
+                        <div className="prototype-ingresso-field prototype-multiselect-field">
+                          <span>Órgão<em>*</em></span>
+                          <div className="prototype-multiselect">
+                            <button
+                              type="button"
+                              className="prototype-multiselect-trigger"
+                              onClick={() => setOrgaosEfetivoDropdownAberto((dropdownAberto) => !dropdownAberto)}
+                              aria-expanded={orgaosEfetivoDropdownAberto}
+                            >
+                              <span>{orgaosEfetivoResumo}</span>
+                              <i className={`pi ${orgaosEfetivoDropdownAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
+                            </button>
+                            {orgaosEfetivoDropdownAberto ? (
+                              <div className="prototype-multiselect-panel">
+                                {orgaosEfetivoOptions.map((orgao) => (
+                                  <label key={orgao} className="prototype-multiselect-option">
+                                    <input
+                                      type="checkbox"
+                                      checked={orgaosEfetivoSelecionados.includes(orgao)}
+                                      onChange={() => toggleOrgaoEfetivo(orgao)}
+                                    />
+                                    <span>{orgao}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
+                        <label className="prototype-ingresso-field">
+                          <span>Setor/Lotação<em>*</em></span>
+                          <select defaultValue="">
+                            <option value="">Selecione...</option>
+                            <option value="Unidade Central">Unidade Central</option>
+                            <option value="Coordenadoria de Pessoas">Coordenadoria de Pessoas</option>
+                            <option value="Núcleo Administrativo">Núcleo Administrativo</option>
+                          </select>
+                        </label>
                       </div>
-                      <label className="prototype-ingresso-field">
-                        <span>Setor/Lotação<em>*</em></span>
-                        <select defaultValue="">
-                          <option value="">Selecione...</option>
-                          <option value="Unidade Central">Unidade Central</option>
-                          <option value="Coordenadoria de Pessoas">Coordenadoria de Pessoas</option>
-                          <option value="Núcleo Administrativo">Núcleo Administrativo</option>
-                        </select>
-                      </label>
 
-                      <label className="prototype-ingresso-field prototype-efetivo-exercicio-matricula-field">
-                        <span>Matrícula</span>
-                        <input type="text" value="327305" readOnly />
-                      </label>
-                      <label className="prototype-ingresso-field prototype-efetivo-exercicio-data-field">
-                        <span>Data do Efetivo Exercício<em>*</em></span>
-                        <input
-                          type="date"
-                          value={dataEfetivoExercicio}
-                          onChange={(event) => setDataEfetivoExercicio(event.target.value)}
-                        />
-                      </label>
+                      <div className="prototype-efetivo-exercicio-datas-row">
+                        <label className="prototype-ingresso-field prototype-efetivo-exercicio-data-field">
+                          <span>Data do Efetivo Exercício<em>*</em></span>
+                          <input
+                            type="date"
+                            value={dataEfetivoExercicio}
+                            onChange={(event) => setDataEfetivoExercicio(event.target.value)}
+                          />
+                        </label>
+                        <label className="prototype-ingresso-field prototype-efetivo-exercicio-data-field">
+                          <span>Data Fim do Exercício</span>
+                          <input
+                            type="date"
+                            value={dataFimEfetivoExercicio}
+                            onChange={(event) => setDataFimEfetivoExercicio(event.target.value)}
+                          />
+                        </label>
+                      </div>
 
                       <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
                         <span>Observação</span>
@@ -14395,8 +14953,7 @@ export function PrototiposNovoIngressoPage() {
                       <textarea placeholder="Registre uma observação, se necessário." />
                     </label>
                   )}
-                </div>
-                {servidorCompareceu === "Sim"
+                </div>                {servidorCompareceu === "Sim"
                   ? renderDocumentosGerados([
                       {
                         nomeArquivo: "Termo de Efetivo Exercício",
@@ -14451,14 +15008,14 @@ export function PrototiposNovoIngressoPage() {
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <div className="prototype-page-content prototype-page-content--white">
+      <div className="prototype-page-content prototype-page-content--white prototype-novo-ingresso-page">
         <CardSeplag
           title="Novo Ingresso"
           cols="12"
           cardHeaderClassNames="prototype-novo-ingresso-card"
         >
-          <div className="prototype-ingresso-flow">
-            {tipoIngresso === "Concurso" ? (
+          <div className={`prototype-ingresso-flow ${activeTab === "tipo-ingresso" ? "" : "prototype-novo-ingresso-etapa-panel"}`}>
+            {activeTab === "tipo-ingresso" ? null : tipoIngresso === "Concurso" ? (
               renderNovoIngressoStepper()
             ) : (
               <TabsSeplag
@@ -14620,7 +15177,7 @@ export function PrototiposImportarIngressoPage() {
   const tipoParam = searchParams.get("tipo") as IngressoTipo | null;
   const tipoIngresso =
     tipoParam && tipoParam in ingressoTipoVinculoMap ? tipoParam : "Concurso";
-  const tipoVinculo = ingressoTipoVinculoMap[tipoIngresso];
+  const tipoVinculo = tipoIngresso ? ingressoTipoVinculoMap[tipoIngresso] : "";
 
   return (
     <PrototypeSystemPage
@@ -14828,6 +15385,7 @@ export function PrototiposIngressoDetalhePage() {
             <BotaoSeplag type="button" label="Solicitar Complementação" icon="pi pi-file-edit" severity="warning" />
             <BotaoSeplag type="button" label="Reprovar" icon="pi pi-times" severity="danger" />
           </div>
+          {tipoIngresso ? renderDadosIngresso() : null}
         </section>
       );
     }
@@ -14856,6 +15414,7 @@ export function PrototiposIngressoDetalhePage() {
               onClick={() => setActiveTab("formalizacao")}
             />
           </div>
+          {tipoIngresso ? renderDadosIngresso() : null}
         </section>
       );
     }
@@ -14878,6 +15437,7 @@ export function PrototiposIngressoDetalhePage() {
             <BotaoSeplag type="button" label="Confirmar Posse" icon="pi pi-check" />
             <BotaoSeplag type="button" label="Negar Posse" icon="pi pi-times" severity="danger" />
           </div>
+          {tipoIngresso ? renderDadosIngresso() : null}
         </section>
       );
     }
@@ -14900,6 +15460,7 @@ export function PrototiposIngressoDetalhePage() {
           <div className="prototype-form-actions prototype-form-actions--left">
             <BotaoSeplag type="button" label="Registrar Início" icon="pi pi-calendar-plus" />
           </div>
+          {tipoIngresso ? renderDadosIngresso() : null}
         </section>
       );
     }
@@ -14932,6 +15493,7 @@ export function PrototiposIngressoDetalhePage() {
               onClick={() => navigate("/prototipos/sigep/pessoas/327305/vinculos")}
             />
           </div>
+          {tipoIngresso ? renderDadosIngresso() : null}
         </section>
       );
     }
@@ -29619,10 +30181,6 @@ export function PrototiposControleVagasHistoricoPage() {
     </PrototypeSystemPage>
   );
 }
-
-
-
-
 
 
 

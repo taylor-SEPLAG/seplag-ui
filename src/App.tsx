@@ -73,6 +73,8 @@ import {
   PrototiposImportarIngressoPage,
   PrototiposIngressoDetalhePage,
   PrototiposIngressosPage,
+  PrototiposIngressosTesteDetalhePage,
+  PrototiposIngressosTestePage,
   PrototiposMatrizValidacaoTesteFormPage,
   PrototiposMatrizValidacaoTestePage,
   PrototiposNovoIngressoPage,
@@ -1386,6 +1388,14 @@ function App() {
         element={<PrototiposIngressosPage />}
       />
       <Route
+        path="/prototipos/sigep/ingressos-teste"
+        element={<PrototiposIngressosTestePage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos-teste/:id"
+        element={<PrototiposIngressosTesteDetalhePage />}
+      />
+      <Route
         path="/prototipos/sigep/ingressos/efetivo-exercicio"
         element={<PrototiposEfetivoExercicioPage />}
       />
@@ -1658,6 +1668,3 @@ function App() {
 }
 
 export default App;
-
-
-
