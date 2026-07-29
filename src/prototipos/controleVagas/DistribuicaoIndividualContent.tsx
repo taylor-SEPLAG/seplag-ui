@@ -1,82 +1,1219 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Paginator, type PaginatorPageChangeEvent } from "primereact/paginator";
-import { MultiSelect } from "primereact/multiselect";
+import { useForm } from "react-hook-form";
+import { Dropdown } from "primereact/dropdown";
+import { InputNumber } from "primereact/inputnumber";
+import {
+  BotaoAdicionarSeplag,
+  BotaoSalvarSeplag,
+  BotaoVoltarSeplag,
+  BotaoIconSeplag,
+  BotaoLimparFiltroSeplag,
+  DateFieldSeplag,
+  DropdownFieldSeplag,
+  MultiSelectFieldSeplag,
+  TabsSeplag,
+  TablePaginadoSeplag,
+  TextAreaFieldSeplag,
+  TextFieldSeplag,
+} from "../../componentes";
 import { DocumentosLegaisAssociadosSeplag } from "../../componentes/DocumentosLegaisAssociados";
 import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
-import { calcularPosicaoVaga, recalcularPosicoes, registrarMovimentoVaga } from "./distribuicaoIndividual";
-import { controleVagasStore, useControleVagasStore } from "./controleVagasStore";
-import type { ComprometimentoVaga, MovimentoVagaIndividual, PosicaoDistribuicaoVaga, QuadroAutorizadoRow, Vaga } from "./types";
+import {
+  calcularPosicaoVaga,
+  recalcularPosicoes,
+  registrarMovimentoVaga,
+} from "./distribuicaoIndividual";
+import {
+  controleVagasStore,
+  useControleVagasStore,
+} from "./controleVagasStore";
+import type {
+  ComprometimentoVaga,
+  MovimentoVagaIndividual,
+  PosicaoDistribuicaoVaga,
+  QuadroAutorizadoRow,
+  Vaga,
+} from "./types";
 import { SpecArea, SpecificationMode } from "../shared/visualizationModes";
-import { distribuicaoActionSpecifications, distribuicaoBlockSpecifications, distribuicaoBusinessItems, distribuicaoFilterSpecifications, distribuicaoKpiSpecifications, distribuicaoScreenSpecification, distribuicaoTabSpecifications } from "./DistribuicaoSpecifications";
+import {
+  distribuicaoActionSpecifications,
+  distribuicaoBlockSpecifications,
+  distribuicaoBusinessItems,
+  distribuicaoFilterSpecifications,
+  distribuicaoKpiSpecifications,
+  distribuicaoScreenSpecification,
+} from "./DistribuicaoSpecifications";
+import type { ResultsSeplag } from "../../interfaces/Results";
 import "./distribuicaoIndividual.css";
 
-type OperacaoDistribuicao="DISTRIBUICAO"|"REDISTRIBUICAO";
-const operacaoLabel:Record<OperacaoDistribuicao,string>={DISTRIBUICAO:"Distribuição",REDISTRIBUICAO:"Redistribuição"};
-const hoje="2026-07-23";
-const formatarData=(data:string)=>data?data.split("-").reverse().join("/"):"—";
-const movimentoDeDistribuicao=(movimento:MovimentoVagaIndividual):movimento is MovimentoVagaIndividual&{tipo:OperacaoDistribuicao}=>["DISTRIBUICAO","REDISTRIBUICAO"].includes(movimento.tipo);
+type OperacaoDistribuicao = "DISTRIBUICAO" | "REDISTRIBUICAO";
+const operacaoLabel: Record<OperacaoDistribuicao, string> = {
+  DISTRIBUICAO: "Distribuição",
+  REDISTRIBUICAO: "Redistribuição",
+};
+const agora = new Date();
+const hoje = [
+  agora.getFullYear(),
+  String(agora.getMonth() + 1).padStart(2, "0"),
+  String(agora.getDate()).padStart(2, "0"),
+].join("-");
+const normalizarDataIso = (data: string) =>
+  data.includes("/") ? data.split("/").reverse().join("-") : data;
 
-interface GrupoDistribuicao{chave:string;quadroId:number;quadroCodigo:string;versao:number;cargo:string;orgao:string;total:number;ocupadas:number;disponiveis:number;comprometidas:number;movimentaveis:number;pendentesAto:number}
-interface DestinacaoDistribuicao{ id:number; orgao:string; setor:string; quantidade:number }
-type ColunaDistribuicao="quadro"|"cargo"|"orgao"|"saldos"|"pendentes"|"movimento"|"data"|"vaga"|"operacao"|"origem"|"destino"|"ato"|"titular"|"unidade";
-type CampoOrdenacaoDistribuicao="quadroCodigo"|"cargo"|"orgao"|"total"|"ocupadas"|"disponiveis"|"comprometidas"|"movimentaveis"|"pendentesAto";
-type OrdenacaoDistribuicao={campo:CampoOrdenacaoDistribuicao;direcao:"asc"|"desc"}|null;
-function AlternarColuna({coluna,visivel,onToggle}:{coluna:string;visivel:boolean;onToggle:()=>void}){return <button type="button" className="prototype-distribution-column-visibility" onClick={onToggle} title={visivel?`Ocultar coluna ${coluna}`:`Exibir coluna ${coluna}`} aria-label={visivel?`Ocultar coluna ${coluna}`:`Exibir coluna ${coluna}`}><i className={visivel?"pi pi-eye":"pi pi-eye-slash"}/></button>}
-function CabecalhoOrdenavel({campo,rotulo,ordenacao,onOrdenar}:{campo:CampoOrdenacaoDistribuicao;rotulo:string;ordenacao:OrdenacaoDistribuicao;onOrdenar:(campo:CampoOrdenacaoDistribuicao)=>void}){return <th><button type="button" className="prototype-distribution-sort" onClick={()=>onOrdenar(campo)} aria-label={`Ordenar por ${rotulo}`}><span>{rotulo}</span><i className={`pi ${ordenacao?.campo===campo?ordenacao.direcao==="asc"?"pi-sort-up-fill":"pi-sort-down-fill":"pi-sort-alt"}`}/></button></th>}
-const setoresTemporariosPorOrgao:Record<string,string[]>={
- "AGER":["Diretoria de Regulação","Coordenadoria Administrativa"],"CASA CIVIL":["Gabinete","Coordenadoria Administrativa"],"CGE":["Superintendência de Auditoria","Coordenadoria de Corregedoria"],"PGE":["Procuradoria Administrativa","Coordenadoria de Apoio"],"PJC":["Diretoria Metropolitana","Diretoria do Interior"],"SEDUC":["Unidade Central","Diretoria Regional de Educação"],"SEFAZ":["Gabinete","Superintendência de Administração"],"SEMA":["Superintendência de Recursos Hídricos","Coordenadoria de Licenciamento"],"SEPLAG":["Coordenadoria de Desenvolvimento","Coordenadoria de Sistemas","Gerência de Planejamento de Pessoal"],"SES":["Unidade Central","Hospital Metropolitano"],"SINFRA":["Superintendência de Obras","Coordenadoria Administrativa"]
+interface GrupoDistribuicao {
+  chave: string;
+  quadroId: number;
+  quadroCodigo: string;
+  versao: number;
+  cargo: string;
+  orgao: string;
+  total: number;
+  ocupadas: number;
+  disponiveis: number;
+  comprometidas: number;
+  movimentaveis: number;
+  pendentesAto: number;
+}
+interface DestinacaoDistribuicao {
+  id: number;
+  orgao: string;
+  setor: string;
+  quantidade: number;
+}
+interface NovaDistribuicaoCampos {
+  quadroId: string;
+  origem: string;
+  destino: string;
+  setorDestino: string;
+  vagasSelecionadas: string[];
+  data: string;
+  processo: string;
+  justificativa: string;
+}
+interface DistribuicaoFiltros {
+  busca: string;
+  cargo: string;
+  orgao: string;
+}
+const filtrosDistribuicaoIniciais: DistribuicaoFiltros = {
+  busca: "",
+  cargo: "",
+  orgao: "",
+};
+const resultadosDistribuicao = (
+  content: GrupoDistribuicao[],
+  pageActual: number,
+  sizePage: number,
+): ResultsSeplag<GrupoDistribuicao> => ({
+  content,
+  last: pageActual >= Math.max(1, Math.ceil(content.length / sizePage)) - 1,
+  totalPages: Math.max(1, Math.ceil(content.length / sizePage)),
+  pageActual,
+  sizePage,
+  totalRecords: content.length,
+  size: content.length,
+  number: pageActual,
+  first: pageActual === 0,
+  numberOfElements: content.length,
+  empty: content.length === 0,
+});
+const setoresTemporariosPorOrgao: Record<string, string[]> = {
+  AGER: ["Diretoria de Regulação", "Coordenadoria Administrativa"],
+  "CASA CIVIL": ["Gabinete", "Coordenadoria Administrativa"],
+  CGE: ["Superintendência de Auditoria", "Coordenadoria de Corregedoria"],
+  PGE: ["Procuradoria Administrativa", "Coordenadoria de Apoio"],
+  PJC: ["Diretoria Metropolitana", "Diretoria do Interior"],
+  SEDUC: ["Unidade Central", "Diretoria Regional de Educação"],
+  SEFAZ: ["Gabinete", "Superintendência de Administração"],
+  SEMA: [
+    "Superintendência de Recursos Hídricos",
+    "Coordenadoria de Licenciamento",
+  ],
+  SEPLAG: [
+    "Coordenadoria de Desenvolvimento",
+    "Coordenadoria de Sistemas",
+    "Gerência de Planejamento de Pessoal",
+  ],
+  SES: ["Unidade Central", "Hospital Metropolitano"],
+  SINFRA: ["Superintendência de Obras", "Coordenadoria Administrativa"],
 };
 
-export function DistribuicaoIndividualContent(){
- const {movimentos,vagas,comprometimentos,quadros}=useControleVagasStore();
- const navigate=useNavigate();const location=useLocation();const isNovaDistribuicao=location.pathname.endsWith("/nova");
- const [searchParams]=useSearchParams();const quadroInicial=searchParams.get("quadro")??"";
- const [data,setData]=useState(hoje);const [aba,setAba]=useState<"POSICAO"|"HISTORICO"|"TEMPORAL">("POSICAO");const [busca,setBusca]=useState("");const [detalhe,setDetalhe]=useState<MovimentoVagaIndividual|null>(null);const [pagina,setPagina]=useState(1);const [porPagina,setPorPagina]=useState(10);
- const [filtroQuadro,setFiltroQuadro]=useState("");const [filtroCargo,setFiltroCargo]=useState("");const [filtroOrgao,setFiltroOrgao]=useState("");const [filtroSituacao,setFiltroSituacao]=useState("");const [filtroSaldo,setFiltroSaldo]=useState("");
- const [filtroOperacao,setFiltroOperacao]=useState("");const [filtroOrigem,setFiltroOrigem]=useState("");const [filtroDestino,setFiltroDestino]=useState("");const [filtroAto,setFiltroAto]=useState("");const [periodoInicio,setPeriodoInicio]=useState("");const [periodoFim,setPeriodoFim]=useState("");
- const [colunas,setColunas]=useState({quadro:true,cargo:true,orgao:true,saldos:true,pendentes:true,movimento:true,data:true,vaga:true,operacao:true,origem:true,destino:true,ato:true,titular:true,unidade:true});
- const [ordenacao,setOrdenacao]=useState<OrdenacaoDistribuicao>(null);
- const alternarColuna=(coluna:ColunaDistribuicao)=>setColunas((atuais)=>({...atuais,[coluna]:!atuais[coluna]}));
- const alternarOrdenacao=(campo:CampoOrdenacaoDistribuicao)=>setOrdenacao((atual)=>atual?.campo===campo?{campo,direcao:atual.direcao==="asc"?"desc":"asc"}:{campo,direcao:"asc"});
- const posicoes=useMemo(()=>recalcularPosicoes(vagas,movimentos,data),[vagas,movimentos,data]);
- const compromissosAtivos=useMemo(()=>new Set(comprometimentos.filter((item)=>item.situacao==="ATIVO").map((item)=>item.vagaId)),[comprometimentos]);
- const grupos=useMemo(()=>{const mapa=new Map<string,GrupoDistribuicao>();posicoes.forEach((posicao)=>{const vaga=vagas.find((item)=>item.id===posicao.vagaId);const quadro=quadros.find((item)=>item.id===posicao.quadroAutorizadoId);if(!vaga||!quadro)return;const orgao=posicao.orgaoDistribuicao??"Pendente de ato de distribuição";const chave=`${posicao.quadroAutorizadoId}|${orgao}`;const atual=mapa.get(chave)??{chave,quadroId:quadro.id,quadroCodigo:quadro.codigo,versao:quadro.versao,cargo:posicao.cargo,orgao,total:0,ocupadas:0,disponiveis:0,comprometidas:0,movimentaveis:0,pendentesAto:0};atual.total++;if(posicao.situacaoDistribuicao==="PENDENTE_ATO")atual.pendentesAto++;if(vaga.estado==="OCUPADA")atual.ocupadas++;else atual.disponiveis++;if(compromissosAtivos.has(vaga.id))atual.comprometidas++;if(vaga.estado==="DISPONIVEL"&&!compromissosAtivos.has(vaga.id)&&posicao.situacaoLegal==="REGULAR")atual.movimentaveis++;mapa.set(chave,atual)});return [...mapa.values()].sort((a,b)=>a.cargo.localeCompare(b.cargo)||a.orgao.localeCompare(b.orgao))},[posicoes,vagas,quadros,compromissosAtivos]);
- const opcoesQuadro=[...new Set(grupos.map((grupo)=>grupo.quadroCodigo))].sort();const opcoesCargo=[...new Set(grupos.map((grupo)=>grupo.cargo))].sort();const opcoesOrgao=[...new Set(grupos.map((grupo)=>grupo.orgao))].sort();
- const gruposFiltrados=grupos.filter((grupo)=>(!busca||`${grupo.quadroCodigo} ${grupo.cargo} ${grupo.orgao}`.toLowerCase().includes(busca.toLowerCase()))&&(!filtroQuadro||grupo.quadroCodigo===filtroQuadro)&&(!filtroCargo||grupo.cargo===filtroCargo)&&(!filtroOrgao||grupo.orgao===filtroOrgao)&&(!filtroSituacao||(filtroSituacao==="PENDENTE"?grupo.pendentesAto>0:grupo.pendentesAto===0))&&(!filtroSaldo||(filtroSaldo==="MOVIMENTAVEIS"?grupo.movimentaveis>0:filtroSaldo==="OCUPADAS"?grupo.ocupadas>0:filtroSaldo==="DISPONIVEIS"?grupo.disponiveis>0:grupo.comprometidas>0))).sort((a,b)=>{if(!ordenacao)return 0;const valorA=a[ordenacao.campo];const valorB=b[ordenacao.campo];const comparacao=typeof valorA==="number"&&typeof valorB==="number"?valorA-valorB:String(valorA).localeCompare(String(valorB),"pt-BR",{numeric:true,sensitivity:"base"});return ordenacao.direcao==="asc"?comparacao:-comparacao});
- const movimentosDistribuicao=movimentos.filter(movimentoDeDistribuicao).filter((movimento)=>(!busca||`${movimento.id} ${movimento.quadroCodigo??""} ${movimento.vagaId} ${movimento.ato} ${movimento.processo}`.toLowerCase().includes(busca.toLowerCase()))&&(!filtroQuadro||movimento.quadroCodigo===filtroQuadro)&&(!filtroOperacao||movimento.tipo===filtroOperacao)&&(!filtroOrigem||(movimento.orgaoAnterior??"Pendente de ato de distribuição")===filtroOrigem)&&(!filtroDestino||movimento.orgaoPosterior===filtroDestino)&&(!filtroAto||`${movimento.ato} ${movimento.processo}`.toLowerCase().includes(filtroAto.toLowerCase()))&&(!periodoInicio||movimento.dataEfeito>=periodoInicio)&&(!periodoFim||movimento.dataEfeito<=periodoFim)).sort((a,b)=>b.registradoEm.localeCompare(a.registradoEm));
- const paginas=Math.max(1,Math.ceil(gruposFiltrados.length/porPagina));const paginaAtual=Math.min(pagina,paginas);const gruposExibidos=gruposFiltrados.slice((paginaAtual-1)*porPagina,paginaAtual*porPagina);
- const distribuidas=posicoes.filter((item)=>item.situacaoDistribuicao==="DISTRIBUIDA").length;const pendentesAto=posicoes.length-distribuidas;const ocupadas=vagas.filter((item)=>item.estado==="OCUPADA").length;const movimentaveis=posicoes.filter((item)=>{const vaga=vagas.find((vaga)=>vaga.id===item.vagaId);return vaga?.estado==="DISPONIVEL"&&!compromissosAtivos.has(item.vagaId)&&item.situacaoLegal==="REGULAR"}).length;
- const limparFiltros=()=>{setBusca("");setFiltroQuadro("");setFiltroCargo("");setFiltroOrgao("");setFiltroSituacao("");setFiltroSaldo("");setFiltroOperacao("");setFiltroOrigem("");setFiltroDestino("");setFiltroAto("");setPeriodoInicio("");setPeriodoFim("");setData(hoje);setPagina(1)};
- const fecharNovo=()=>navigate("/prototipos/sigep/controle-vagas/distribuicao");
- const salvar=(lote:MovimentoVagaIndividual[])=>{controleVagasStore.set("movimentos",(itens)=>[...itens,...lote]);setAba("HISTORICO");setDetalhe(lote[0]??null);fecharNovo()};
- if(isNovaDistribuicao)return <NovaDistribuicao quadroInicial={quadroInicial} quadros={quadros} vagas={vagas} posicoes={posicoes} movimentos={movimentos} comprometimentos={comprometimentos} onClose={fecharNovo} onSave={salvar}/>;
- return <SpecificationMode screen={distribuicaoScreenSpecification} businessItems={distribuicaoBusinessItems}><div className="prototype-ind-page"><header className="prototype-ind-header"><SpecArea metadata={distribuicaoScreenSpecification}><div><h1>Distribuição</h1><p>Distribuição inicial e redistribuição formal de vagas entre órgãos, sempre vinculadas ao Quadro Autorizado.</p></div></SpecArea><SpecArea metadata={distribuicaoActionSpecifications["Nova distribuição"]}><button onClick={()=>navigate("/prototipos/sigep/controle-vagas/distribuicao/nova")}><i className="pi pi-plus"/> Nova distribuição</button></SpecArea></header>
- <section className="prototype-distribution-kpis"><SpecArea metadata={distribuicaoKpiSpecifications["Vagas individualizadas"]}><article><i className="pi pi-list"/><div><span>Vagas individualizadas</span><strong>{vagas.length}</strong></div></article></SpecArea><SpecArea metadata={distribuicaoKpiSpecifications["Pendentes de ato"]}><article><i className="pi pi-clock"/><div><span>Pendentes de ato</span><strong>{pendentesAto}</strong></div></article></SpecArea><SpecArea metadata={distribuicaoKpiSpecifications["Distribuídas"]}><article><i className="pi pi-sitemap"/><div><span>Distribuídas</span><strong>{distribuidas}</strong></div></article></SpecArea><SpecArea metadata={distribuicaoKpiSpecifications["Disponíveis para movimentação"]}><article className="available"><i className="pi pi-check-circle"/><div><span>Disponíveis para movimentação</span><strong>{movimentaveis}</strong></div></article></SpecArea><SpecArea metadata={distribuicaoKpiSpecifications["Ocupadas — não movimentáveis"]}><article className="occupied"><i className="pi pi-lock"/><div><span>Ocupadas — não movimentáveis</span><strong>{ocupadas}</strong></div></article></SpecArea></section>
- <nav className="prototype-ind-tabs"><SpecArea metadata={distribuicaoTabSpecifications["Distribuição por órgão"]}><button className={aba==="POSICAO"?"active":""} onClick={()=>setAba("POSICAO")}>Distribuição por órgão</button></SpecArea><SpecArea metadata={distribuicaoTabSpecifications["Histórico de distribuições"]}><button className={aba==="HISTORICO"?"active":""} onClick={()=>setAba("HISTORICO")}>Histórico de distribuições</button></SpecArea><SpecArea metadata={distribuicaoTabSpecifications["Consulta histórica"]}><button className={aba==="TEMPORAL"?"active":""} onClick={()=>setAba("TEMPORAL")}>Consulta histórica</button></SpecArea></nav>
- {aba==="POSICAO"&&<section className="prototype-ind-card"><div className="prototype-distribution-filters"><SpecArea metadata={distribuicaoFilterSpecifications["Pesquisa"]}><label className="search"><span>Quadro, cargo ou órgão</span><div><i className="pi pi-search"/><input value={busca} onChange={(e)=>{setBusca(e.target.value);setPagina(1)}} placeholder="Pesquisar na distribuição"/></div></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Quadro autorizado"]}><label><span>Quadro autorizado<AlternarColuna coluna="quadro" visivel={colunas.quadro} onToggle={()=>alternarColuna("quadro")}/></span><select value={filtroQuadro} onChange={(e)=>{setFiltroQuadro(e.target.value);setPagina(1)}}><option value="">Todos</option>{opcoesQuadro.map((item)=><option key={item}>{item}</option>)}</select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Cargo"]}><label><span>Cargo<AlternarColuna coluna="cargo" visivel={colunas.cargo} onToggle={()=>alternarColuna("cargo")}/></span><select value={filtroCargo} onChange={(e)=>{setFiltroCargo(e.target.value);setPagina(1)}}><option value="">Todos</option>{opcoesCargo.map((item)=><option key={item}>{item}</option>)}</select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Órgão de distribuição"]}><label><span>Órgão de distribuição<AlternarColuna coluna="órgão de distribuição" visivel={colunas.orgao} onToggle={()=>alternarColuna("orgao")}/></span><select value={filtroOrgao} onChange={(e)=>{setFiltroOrgao(e.target.value);setPagina(1)}}><option value="">Todos</option>{opcoesOrgao.map((item)=><option key={item}>{item}</option>)}</select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Situação"]}><label><span>Situação<AlternarColuna coluna="pendentes de ato" visivel={colunas.pendentes} onToggle={()=>alternarColuna("pendentes")}/></span><select value={filtroSituacao} onChange={(e)=>{setFiltroSituacao(e.target.value);setPagina(1)}}><option value="">Todas</option><option value="PENDENTE">Pendente de ato</option><option value="DISTRIBUIDA">Distribuída</option></select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Saldo"]}><label><span>Saldo<AlternarColuna coluna="saldos" visivel={colunas.saldos} onToggle={()=>alternarColuna("saldos")}/></span><select value={filtroSaldo} onChange={(e)=>{setFiltroSaldo(e.target.value);setPagina(1)}}><option value="">Todos</option><option value="MOVIMENTAVEIS">Com vagas movimentáveis</option><option value="DISPONIVEIS">Com vagas disponíveis</option><option value="OCUPADAS">Com vagas ocupadas</option><option value="COMPROMETIDAS">Com vagas comprometidas</option></select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Data de referência"]}><label><span>Data de referência</span><input type="date" value={data} onChange={(e)=>setData(e.target.value)}/></label></SpecArea><SpecArea metadata={distribuicaoActionSpecifications.Limpar}><button type="button" onClick={limparFiltros}><i className="pi pi-filter-slash"/> Limpar</button></SpecArea></div><SpecArea metadata={distribuicaoBlockSpecifications["Tabela da posição"]}><div className="prototype-ind-table distribution-summary"><table><thead><tr>{colunas.quadro&&<CabecalhoOrdenavel campo="quadroCodigo" rotulo="Quadro autorizado" ordenacao={ordenacao} onOrdenar={alternarOrdenacao}/>} {colunas.cargo&&<CabecalhoOrdenavel campo="cargo" rotulo="Cargo" ordenacao={ordenacao} onOrdenar={alternarOrdenacao}/>} {colunas.orgao&&<CabecalhoOrdenavel campo="orgao" rotulo="Órgão de distribuição" ordenacao={ordenacao} onOrdenar={alternarOrdenacao}/>} {colunas.saldos&&<><CabecalhoOrdenavel campo="total" rotulo="Total" ordenacao={ordenacao} onOrdenar={alternarOrdenacao}/><CabecalhoOrdenavel campo="ocupadas" rotulo="Ocupadas" ordenacao={ordenacao} onOrdenar={alternarOrdenacao}/><CabecalhoOrdenavel campo="disponiveis" rotulo="Disponíveis" ordenacao={ordenacao} onOrdenar={alternarOrdenacao}/><CabecalhoOrdenavel campo="comprometidas" rotulo="Comprometidas" ordenacao={ordenacao} onOrdenar={alternarOrdenacao}/><CabecalhoOrdenavel campo="movimentaveis" rotulo="Movimentáveis" ordenacao={ordenacao} onOrdenar={alternarOrdenacao}/></>} {colunas.pendentes&&<CabecalhoOrdenavel campo="pendentesAto" rotulo="Pendentes de ato" ordenacao={ordenacao} onOrdenar={alternarOrdenacao}/>}<th>Ações</th></tr></thead><tbody>{gruposExibidos.map((grupo)=><tr key={grupo.chave}>{colunas.quadro&&<td><strong>{grupo.quadroCodigo}</strong><small>Versão {grupo.versao}</small></td>}{colunas.cargo&&<td><strong>{grupo.cargo}</strong></td>}{colunas.orgao&&<td>{grupo.orgao}</td>}{colunas.saldos&&<><td>{grupo.total}</td><td>{grupo.ocupadas}</td><td>{grupo.disponiveis}</td><td>{grupo.comprometidas}</td><td className="movable"><strong>{grupo.movimentaveis}</strong></td></>}{colunas.pendentes&&<td>{grupo.pendentesAto}</td>}<td><button type="button" className="prototype-distribution-row-action" title={grupo.movimentaveis>0?`Distribuir vagas do ${grupo.quadroCodigo}`:"Não há vagas movimentáveis nesta linha"} disabled={grupo.movimentaveis===0} onClick={()=>navigate(`/prototipos/sigep/controle-vagas/distribuicao/nova?quadro=${grupo.quadroId}`)}><i className="pi pi-sitemap"/></button></td></tr>)}</tbody></table></div></SpecArea><SpecArea metadata={distribuicaoActionSpecifications.Paginação}><footer className="prototype-distribution-pagination"><Paginator first={(paginaAtual-1)*porPagina} rows={porPagina} totalRecords={gruposFiltrados.length} rowsPerPageOptions={[10,20,50]} onPageChange={(event:PaginatorPageChangeEvent)=>{setPagina(event.page+1);setPorPagina(event.rows)}} template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"/></footer></SpecArea></section>}
- {aba==="HISTORICO"&&<section className="prototype-ind-card"><div className="prototype-distribution-filters history"><SpecArea metadata={distribuicaoFilterSpecifications["Pesquisa"]}><label className="search"><span>Movimento, vaga, ato ou processo</span><div><i className="pi pi-search"/><input value={busca} onChange={(e)=>setBusca(e.target.value)} placeholder="Pesquisar no histórico"/></div></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Quadro autorizado"]}><label><span>Quadro autorizado<AlternarColuna coluna="quadro" visivel={colunas.quadro} onToggle={()=>alternarColuna("quadro")}/></span><select value={filtroQuadro} onChange={(e)=>setFiltroQuadro(e.target.value)}><option value="">Todos</option>{opcoesQuadro.map((item)=><option key={item}>{item}</option>)}</select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Operação"]}><label><span>Operação<AlternarColuna coluna="operação" visivel={colunas.operacao} onToggle={()=>alternarColuna("operacao")}/></span><select value={filtroOperacao} onChange={(e)=>setFiltroOperacao(e.target.value)}><option value="">Todas</option><option value="DISTRIBUICAO">Distribuição</option><option value="REDISTRIBUICAO">Redistribuição</option></select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Órgão de origem"]}><label><span>Órgão de origem<AlternarColuna coluna="origem" visivel={colunas.origem} onToggle={()=>alternarColuna("origem")}/></span><select value={filtroOrigem} onChange={(e)=>setFiltroOrigem(e.target.value)}><option value="">Todos</option>{[...new Set(movimentos.filter(movimentoDeDistribuicao).map((item)=>item.orgaoAnterior??"Pendente de ato de distribuição"))].sort().map((item)=><option key={item}>{item}</option>)}</select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Órgão de destino"]}><label><span>Órgão de destino<AlternarColuna coluna="destino" visivel={colunas.destino} onToggle={()=>alternarColuna("destino")}/></span><select value={filtroDestino} onChange={(e)=>setFiltroDestino(e.target.value)}><option value="">Todos</option>{[...new Set(movimentos.filter(movimentoDeDistribuicao).map((item)=>item.orgaoPosterior).filter(Boolean) as string[])].sort().map((item)=><option key={item}>{item}</option>)}</select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Ato ou processo"]}><label><span>Ato ou processo<AlternarColuna coluna="ato e processo" visivel={colunas.ato} onToggle={()=>alternarColuna("ato")}/></span><input value={filtroAto} onChange={(e)=>setFiltroAto(e.target.value)} placeholder="Pesquisar"/></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Início"]}><label><span>Início</span><input type="date" value={periodoInicio} onChange={(e)=>setPeriodoInicio(e.target.value)}/></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Fim"]}><label><span>Fim</span><input type="date" value={periodoFim} onChange={(e)=>setPeriodoFim(e.target.value)}/></label></SpecArea><SpecArea metadata={distribuicaoActionSpecifications.Limpar}><button type="button" onClick={limparFiltros}><i className="pi pi-filter-slash"/> Limpar</button></SpecArea></div><SpecArea metadata={distribuicaoBlockSpecifications["Tabela do histórico"]}><div className="prototype-ind-table distribution-history"><table><thead><tr>{colunas.movimento&&<th>Movimento</th>}{colunas.quadro&&<th>Quadro</th>}{colunas.data&&<th>Data de efeito</th>}{colunas.vaga&&<th>Vaga</th>}{colunas.operacao&&<th>Operação</th>}{colunas.origem&&<th>Origem</th>}{colunas.destino&&<th>Destino</th>}{colunas.ato&&<th>Ato e processo</th>}<th>Ações</th></tr></thead><tbody>{movimentosDistribuicao.map((movimento)=><tr key={movimento.id}>{colunas.movimento&&<td><strong>{movimento.id}</strong>{movimento.retroativo&&<span className="prototype-ind-retro"><i className="pi pi-history"/> Retroativo</span>}</td>}{colunas.quadro&&<td><strong>{movimento.quadroCodigo??vagas.find((item)=>item.id===movimento.vagaId)?.quadroCodigo??"—"}</strong><small>{movimento.quadroVersao?`Versão ${movimento.quadroVersao}`:""}</small></td>}{colunas.data&&<td>{formatarData(movimento.dataEfeito)}</td>}{colunas.vaga&&<td><strong className="code">{movimento.vagaId}</strong></td>}{colunas.operacao&&<td><span className={`prototype-ind-type ${movimento.tipo.toLowerCase()}`}>{operacaoLabel[movimento.tipo]}</span></td>}{colunas.origem&&<td>{movimento.orgaoAnterior??"Pendente de ato de distribuição"}<small>{movimento.unidadeAnterior}</small></td>}{colunas.destino&&<td>{movimento.orgaoPosterior??"—"}<small>{movimento.unidadePosterior}</small></td>}{colunas.ato&&<td><strong>{movimento.ato}</strong><small>{movimento.processo}</small></td>}<td><button className="prototype-ind-view" onClick={()=>setDetalhe(movimento)} title="Visualizar movimento"><i className="pi pi-eye"/></button></td></tr>)}</tbody></table></div></SpecArea></section>}
- {aba==="TEMPORAL"&&<section className="prototype-ind-card"><div className="prototype-distribution-filters temporal"><SpecArea metadata={distribuicaoFilterSpecifications["Pesquisa"]}><label className="search"><span>Vaga, cargo ou órgão</span><div><i className="pi pi-search"/><input value={busca} onChange={(e)=>setBusca(e.target.value)} placeholder="Pesquisar na posição histórica"/></div></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Quadro autorizado"]}><label><span>Quadro autorizado<AlternarColuna coluna="quadro" visivel={colunas.quadro} onToggle={()=>alternarColuna("quadro")}/></span><select value={filtroQuadro} onChange={(e)=>setFiltroQuadro(e.target.value)}><option value="">Todos</option>{opcoesQuadro.map((item)=><option key={item}>{item}</option>)}</select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Cargo"]}><label><span>Cargo<AlternarColuna coluna="cargo" visivel={colunas.cargo} onToggle={()=>alternarColuna("cargo")}/></span><select value={filtroCargo} onChange={(e)=>setFiltroCargo(e.target.value)}><option value="">Todos</option>{opcoesCargo.map((item)=><option key={item}>{item}</option>)}</select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Órgão de distribuição"]}><label><span>Órgão de distribuição<AlternarColuna coluna="órgão de distribuição" visivel={colunas.orgao} onToggle={()=>alternarColuna("orgao")}/></span><select value={filtroOrgao} onChange={(e)=>setFiltroOrgao(e.target.value)}><option value="">Todos</option>{opcoesOrgao.map((item)=><option key={item}>{item}</option>)}</select></label></SpecArea><SpecArea metadata={distribuicaoFilterSpecifications["Data de referência"]}><label><span>Data de referência</span><input type="date" value={data} onChange={(e)=>setData(e.target.value)}/></label></SpecArea><SpecArea metadata={distribuicaoActionSpecifications.Limpar}><button type="button" onClick={limparFiltros}><i className="pi pi-filter-slash"/> Limpar</button></SpecArea></div><SpecArea metadata={distribuicaoBlockSpecifications["Tabela temporal"]}><div className="prototype-ind-table"><table><thead><tr>{colunas.vaga&&<th>Vaga numerada</th>}{colunas.quadro&&<th>Quadro</th>}{colunas.cargo&&<th>Cargo na data</th>}{colunas.titular&&<th>Órgão titular</th>}{colunas.orgao&&<th>Órgão de distribuição</th>}{colunas.unidade&&<th>Unidade</th>}{colunas.movimento&&<th>Último movimento</th>}</tr></thead><tbody>{posicoes.filter((item)=>(!busca||`${item.vagaId} ${item.cargo} ${item.orgaoDistribuicao??""}`.toLowerCase().includes(busca.toLowerCase()))&&(!filtroQuadro||item.quadroCodigo===filtroQuadro)&&(!filtroCargo||item.cargo===filtroCargo)&&(!filtroOrgao||(item.orgaoDistribuicao??"Pendente de ato de distribuição")===filtroOrgao)).slice(0,100).map((item)=><tr key={item.vagaId}>{colunas.vaga&&<td><strong className="code">{item.vagaId}</strong></td>}{colunas.quadro&&<td><strong>{item.quadroCodigo}</strong></td>}{colunas.cargo&&<td>{item.cargo}</td>}{colunas.titular&&<td>{item.orgaoTitular}</td>}{colunas.orgao&&<td>{item.orgaoDistribuicao??"Pendente de ato de distribuição"}</td>}{colunas.unidade&&<td>{item.unidadeDistribuicao??"—"}</td>}{colunas.movimento&&<td>{item.ultimoMovimento??"Carga inicial"}</td>}</tr>)}</tbody></table></div></SpecArea></section>}
- {detalhe&&<Detalhe movimento={detalhe} onClose={()=>setDetalhe(null)}/>}</div></SpecificationMode>
+export function DistribuicaoIndividualContent() {
+  const { movimentos, vagas, comprometimentos, quadros } =
+    useControleVagasStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isNovaDistribuicao = location.pathname.endsWith("/nova");
+  const [searchParams] = useSearchParams();
+  const quadroInicial = searchParams.get("quadro") ?? "";
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
+  const { control, watch, reset } = useForm<DistribuicaoFiltros>({
+    defaultValues: filtrosDistribuicaoIniciais,
+  });
+  const { busca, cargo: filtroCargo, orgao: filtroOrgao } = watch();
+  const posicoes = useMemo(
+    () => recalcularPosicoes(vagas, movimentos, hoje),
+    [vagas, movimentos],
+  );
+  const compromissosAtivos = useMemo(
+    () =>
+      new Set(
+        comprometimentos
+          .filter((item) => item.situacao === "ATIVO")
+          .map((item) => item.vagaId),
+      ),
+    [comprometimentos],
+  );
+  const grupos = useMemo(() => {
+    const mapa = new Map<string, GrupoDistribuicao>();
+    posicoes.forEach((posicao) => {
+      const vaga = vagas.find((item) => item.id === posicao.vagaId);
+      const quadro = quadros.find(
+        (item) => item.id === posicao.quadroAutorizadoId,
+      );
+      if (!vaga || !quadro) return;
+      const orgao =
+        posicao.orgaoDistribuicao ?? "Pendente de ato de distribuição";
+      const chave = `${posicao.quadroAutorizadoId}|${orgao}`;
+      const atual = mapa.get(chave) ?? {
+        chave,
+        quadroId: quadro.id,
+        quadroCodigo: quadro.codigo,
+        versao: quadro.versao,
+        cargo: posicao.cargo,
+        orgao,
+        total: 0,
+        ocupadas: 0,
+        disponiveis: 0,
+        comprometidas: 0,
+        movimentaveis: 0,
+        pendentesAto: 0,
+      };
+      atual.total++;
+      if (posicao.situacaoDistribuicao === "PENDENTE_ATO") atual.pendentesAto++;
+      if (vaga.estado === "OCUPADA") atual.ocupadas++;
+      else atual.disponiveis++;
+      if (compromissosAtivos.has(vaga.id)) atual.comprometidas++;
+      if (
+        vaga.estado === "DISPONIVEL" &&
+        !compromissosAtivos.has(vaga.id) &&
+        posicao.situacaoLegal === "REGULAR"
+      )
+        atual.movimentaveis++;
+      mapa.set(chave, atual);
+    });
+    return [...mapa.values()].sort(
+      (a, b) =>
+        a.cargo.localeCompare(b.cargo) || a.orgao.localeCompare(b.orgao),
+    );
+  }, [posicoes, vagas, quadros, compromissosAtivos]);
+  const opcoesCargo = [...new Set(grupos.map((grupo) => grupo.cargo))].sort();
+  const opcoesOrgao = [...new Set(grupos.map((grupo) => grupo.orgao))].sort();
+  const gruposFiltrados = grupos.filter(
+    (grupo) =>
+      (!busca ||
+        grupo.quadroCodigo.toLowerCase().includes(busca.toLowerCase())) &&
+      (!filtroCargo || grupo.cargo === filtroCargo) &&
+      (!filtroOrgao || grupo.orgao === filtroOrgao),
+  );
+  const paginas = Math.max(1, Math.ceil(gruposFiltrados.length / porPagina));
+  const paginaAtual = Math.min(pagina, paginas);
+  const colunasTabela = [
+    {
+      field: "quadroCodigo",
+      header: "Quadro autorizado",
+      sortable: true,
+      body: (grupo: GrupoDistribuicao) => (
+        <>
+          <strong>{grupo.quadroCodigo}</strong>
+          <small>Versão {grupo.versao}</small>
+        </>
+      ),
+    },
+    {
+      field: "cargo",
+      header: "Cargo",
+      sortable: true,
+      body: (grupo: GrupoDistribuicao) => <strong>{grupo.cargo}</strong>,
+    },
+    { field: "orgao", header: "Órgão de distribuição", sortable: true },
+    { field: "total", header: "Total", sortable: true },
+    { field: "ocupadas", header: "Ocupadas", sortable: true },
+    { field: "disponiveis", header: "Disponíveis", sortable: true },
+    { field: "comprometidas", header: "Comprometidas", sortable: true },
+    {
+      field: "movimentaveis",
+      header: "Movimentáveis",
+      sortable: true,
+      body: (grupo: GrupoDistribuicao) => (
+        <strong className="movable">{grupo.movimentaveis}</strong>
+      ),
+    },
+    { field: "pendentesAto", header: "Pendentes de ato", sortable: true },
+  ];
+  const distribuidas = posicoes.filter(
+    (item) => item.situacaoDistribuicao === "DISTRIBUIDA",
+  ).length;
+  const pendentesAto = posicoes.length - distribuidas;
+  const ocupadas = vagas.filter((item) => item.estado === "OCUPADA").length;
+  const movimentaveis = posicoes.filter((item) => {
+    const vaga = vagas.find((vaga) => vaga.id === item.vagaId);
+    return (
+      vaga?.estado === "DISPONIVEL" &&
+      !compromissosAtivos.has(item.vagaId) &&
+      item.situacaoLegal === "REGULAR"
+    );
+  }).length;
+  const limparFiltros = () => {
+    reset(filtrosDistribuicaoIniciais);
+    setPagina(1);
+  };
+  const fecharNovo = () =>
+    navigate("/prototipos/sigep/controle-vagas/distribuicao");
+  const salvar = (lote: MovimentoVagaIndividual[]) => {
+    controleVagasStore.set("movimentos", (itens) => [...itens, ...lote]);
+    fecharNovo();
+  };
+  if (isNovaDistribuicao)
+    return (
+      <NovaDistribuicao
+        quadroInicial={quadroInicial}
+        quadros={quadros}
+        vagas={vagas}
+        posicoes={posicoes}
+        movimentos={movimentos}
+        comprometimentos={comprometimentos}
+        onClose={fecharNovo}
+        onSave={salvar}
+      />
+    );
+  return (
+    <SpecificationMode
+      screen={distribuicaoScreenSpecification}
+      businessItems={distribuicaoBusinessItems}
+    >
+      <div className="prototype-ind-page prototype-distribution-list-page">
+        <header className="prototype-ind-header">
+          <SpecArea metadata={distribuicaoScreenSpecification}>
+            <div>
+              <h1>Distribuição</h1>
+              <p>
+                Distribuição inicial e redistribuição formal de vagas entre
+                órgãos, sempre vinculadas ao Quadro Autorizado.
+              </p>
+            </div>
+          </SpecArea>
+        </header>
+        <section className="prototype-distribution-kpis">
+          <SpecArea
+            metadata={distribuicaoKpiSpecifications["Vagas individualizadas"]}
+          >
+            <article>
+              <i className="pi pi-list" />
+              <div>
+                <span>Vagas individualizadas</span>
+                <strong>{vagas.length}</strong>
+              </div>
+            </article>
+          </SpecArea>
+          <SpecArea
+            metadata={distribuicaoKpiSpecifications["Pendentes de ato"]}
+          >
+            <article>
+              <i className="pi pi-clock" />
+              <div>
+                <span>Pendentes de ato</span>
+                <strong>{pendentesAto}</strong>
+              </div>
+            </article>
+          </SpecArea>
+          <SpecArea metadata={distribuicaoKpiSpecifications["Distribuídas"]}>
+            <article>
+              <i className="pi pi-sitemap" />
+              <div>
+                <span>Distribuídas</span>
+                <strong>{distribuidas}</strong>
+              </div>
+            </article>
+          </SpecArea>
+          <SpecArea
+            metadata={
+              distribuicaoKpiSpecifications["Disponíveis para movimentação"]
+            }
+          >
+            <article className="available">
+              <i className="pi pi-check-circle" />
+              <div>
+                <span>Disponíveis para movimentação</span>
+                <strong>{movimentaveis}</strong>
+              </div>
+            </article>
+          </SpecArea>
+          <SpecArea
+            metadata={
+              distribuicaoKpiSpecifications["Ocupadas — não movimentáveis"]
+            }
+          >
+            <article className="occupied">
+              <i className="pi pi-lock" />
+              <div>
+                <span>Ocupadas — não movimentáveis</span>
+                <strong>{ocupadas}</strong>
+              </div>
+            </article>
+          </SpecArea>
+        </section>
+        <section className="prototype-quadro-card prototype-distribution-card">
+          <div className="prototype-quadro-filters prototype-quadro-library-filters prototype-distribution-library-filters">
+            <SpecArea metadata={distribuicaoFilterSpecifications["Pesquisa"]}>
+              <div className="prototype-quadro-spec-control">
+                <TextFieldSeplag
+                  name="busca"
+                  control={control}
+                  label="Quadro"
+                  cols="12"
+                  icon="pi pi-search"
+                  placeholder="Ex: QA-xxxx"
+                  onChange={() => setPagina(1)}
+                />
+              </div>
+            </SpecArea>
+            <SpecArea metadata={distribuicaoFilterSpecifications["Cargo"]}>
+              <div className="prototype-quadro-spec-control">
+                <DropdownFieldSeplag
+                  name="cargo"
+                  control={control}
+                  label="Cargo"
+                  cols="12"
+                  options={opcoesCargo.map((value) => ({
+                    label: value,
+                    value,
+                  }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Todos"
+                  getFormErrorMessage={() => null}
+                  onChange={() => setPagina(1)}
+                />
+              </div>
+            </SpecArea>
+            <SpecArea
+              metadata={
+                distribuicaoFilterSpecifications["Órgão de distribuição"]
+              }
+            >
+              <div className="prototype-quadro-spec-control">
+                <DropdownFieldSeplag
+                  name="orgao"
+                  control={control}
+                  label="Órgão de distribuição"
+                  cols="12"
+                  options={opcoesOrgao.map((value) => ({
+                    label: value,
+                    value,
+                  }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Todos"
+                  getFormErrorMessage={() => null}
+                  onChange={() => setPagina(1)}
+                />
+              </div>
+            </SpecArea>
+            <SpecArea metadata={distribuicaoActionSpecifications.Limpar}>
+              <div className="prototype-quadro-spec-control">
+                <BotaoLimparFiltroSeplag
+                  type="button"
+                  onClick={limparFiltros}
+                />
+              </div>
+            </SpecArea>
+          </div>
+          <div className="prototype-quadro-table-toolbar">
+            <SpecArea
+              metadata={distribuicaoActionSpecifications["Nova distribuição"]}
+            >
+              <BotaoAdicionarSeplag
+                label="Nova distribuição"
+                onClick={() =>
+                  navigate("/prototipos/sigep/controle-vagas/distribuicao/nova")
+                }
+              />
+            </SpecArea>
+          </div>
+          <SpecArea
+            metadata={distribuicaoBlockSpecifications["Tabela da posição"]}
+          >
+            <div className="prototype-quadro-table prototype-quadro-library-table prototype-distribution-library-table">
+              <TablePaginadoSeplag<GrupoDistribuicao>
+                dataKey="chave"
+                data={resultadosDistribuicao(
+                  gruposFiltrados,
+                  paginaAtual - 1,
+                  porPagina,
+                )}
+                rows={porPagina}
+                rowsPerPage={[10, 20, 50]}
+                lazy={false}
+                selectionMode={null}
+                columns={colunasTabela}
+                hasEventoAcao
+                renderBotoes={(grupo) => (
+                  <BotaoIconSeplag
+                    type="button"
+                    tooltip={
+                      grupo.movimentaveis > 0
+                        ? `Distribuir vagas do ${grupo.quadroCodigo}`
+                        : "Não há vagas movimentáveis nesta linha"
+                    }
+                    icon="pi pi-sitemap"
+                    disabled={grupo.movimentaveis === 0}
+                    onClick={() =>
+                      navigate(
+                        `/prototipos/sigep/controle-vagas/distribuicao/nova?quadro=${grupo.quadroId}`,
+                      )
+                    }
+                  />
+                )}
+                handleOnPageChange={(event) => {
+                  setPagina((event.page ?? 0) + 1);
+                  setPorPagina(event.rows);
+                }}
+              />
+            </div>
+          </SpecArea>
+        </section>
+      </div>
+    </SpecificationMode>
+  );
 }
 
-function NovaDistribuicao({quadroInicial,quadros,vagas,posicoes,movimentos,comprometimentos,onClose,onSave}:{quadroInicial?:string;quadros:QuadroAutorizadoRow[];vagas:Vaga[];posicoes:PosicaoDistribuicaoVaga[];movimentos:MovimentoVagaIndividual[];comprometimentos:ComprometimentoVaga[];onClose:()=>void;onSave:(lote:MovimentoVagaIndividual[])=>void}){
- const documentosLegaisDisponiveis=useDocumentosLegaisAssociaveis();
- const [operacao,setOperacao]=useState<OperacaoDistribuicao>("DISTRIBUICAO");
- const [vagasSelecionadas,setVagasSelecionadas]=useState<string[]>([]);const [quadroId,setQuadroId]=useState(quadroInicial??"");const [origem,setOrigem]=useState("");const [destino,setDestino]=useState("");const [setorDestino,setSetorDestino]=useState("");
- const [destinacoes,setDestinacoes]=useState<DestinacaoDistribuicao[]>([{id:1,orgao:"",setor:"",quantidade:1}]);
- const [data,setData]=useState(hoje);const [documentosLegaisIds,setDocumentosLegaisIds]=useState<string[]>([]);const [processo,setProcesso]=useState("");const [justificativa,setJustificativa]=useState("");const [simulado,setSimulado]=useState(false);const [erro,setErro]=useState("");const ato=documentosLegaisDisponiveis.filter((item)=>documentosLegaisIds.includes(item.id)).map((item)=>item.titulo).join("; ");
- const quadro=quadros.find((item)=>item.id===Number(quadroId));const posicoesQuadro=posicoes.filter((item)=>item.quadroAutorizadoId===quadro?.id);const compromissos=new Set(comprometimentos.filter((item)=>item.situacao==="ATIVO").map((item)=>item.vagaId));const orgaosOrigem=[...new Set(posicoesQuadro.map((item)=>item.orgaoDistribuicao).filter(Boolean) as string[])].sort();const temQuantitativoLegal=Boolean(quadro?.quantitativosLegaisPorOrgao?.length);const orgaosPermitidos=quadro?.orgaosDefinidosLei?.length?[...quadro.orgaosDefinidosLei]:["AGER","CASA CIVIL","CGE","PGE","PJC","SEDUC","SEFAZ","SEMA","SEPLAG","SES","SINFRA"];
- const bloqueioLegal="";const candidatas=posicoesQuadro.filter((posicao)=>{const vaga=vagas.find((item)=>item.id===posicao.vagaId);if(!vaga||vaga.estado!=="DISPONIVEL"||vaga.situacaoLegal!=="REGULAR"||compromissos.has(vaga.id))return false;if(operacao==="DISTRIBUICAO")return !posicao.orgaoDistribuicao;return posicao.orgaoDistribuicao===origem});
- const totalDestinacoes=destinacoes.reduce((total,item)=>total+Math.max(0,item.quantidade||0),0);const selecionadas=operacao==="REDISTRIBUICAO"?candidatas.filter((item)=>vagasSelecionadas.includes(item.vagaId)):candidatas.slice(0,totalDestinacoes);
- const atualizarDestinacao=(id:number,campo:"orgao"|"setor"|"quantidade",valor:string|number)=>{setDestinacoes((atuais)=>atuais.map((item)=>item.id===id?{...item,[campo]:valor,...(campo==="orgao"?{setor:""}:{})}:item));setSimulado(false)};
- const adicionarDestinacao=()=>setDestinacoes((atuais)=>[...atuais,{id:Math.max(0,...atuais.map((item)=>item.id))+1,orgao:"",setor:"",quantidade:1}]);
- const removerDestinacao=(id:number)=>{setDestinacoes((atuais)=>atuais.length===1?atuais:atuais.filter((item)=>item.id!==id));setSimulado(false)};
- const alterarOperacao=(valor:OperacaoDistribuicao)=>{setOperacao(valor);setOrigem("");setDestino("");setSetorDestino("");setDestinacoes([{id:1,orgao:"",setor:"",quantidade:1}]);setVagasSelecionadas([]);setSimulado(false);setErro("")};
- const simular=(e:FormEvent)=>{e.preventDefault();setErro("");if(!quadro){setErro("Selecione o Quadro Autorizado.");return}if(bloqueioLegal){setErro(bloqueioLegal);return}if(operacao==="DISTRIBUICAO"){if(destinacoes.some((item)=>!item.orgao||!item.quantidade||item.quantidade<1)){setErro("Informe órgão e quantidade maior que zero em todas as destinações.");return}if(destinacoes.some((item)=>!orgaosPermitidos.includes(item.orgao))){setErro("Há órgão de destino não permitido pela autorização legal do quadro.");return}const chaves=destinacoes.map((item)=>`${item.orgao}|${item.setor}`);if(new Set(chaves).size!==chaves.length){setErro("Não repita a mesma combinação de órgão e setor.");return}if(selecionadas.length<totalDestinacoes){setErro(`Existem apenas ${selecionadas.length} vagas livres elegíveis para ${totalDestinacoes} vagas informadas.`);return}}else{if(!origem){setErro("Selecione o órgão de origem.");return}if(!destino){setErro("Selecione o órgão de destino.");return}if(origem===destino){setErro("Origem e destino devem ser diferentes.");return}if(!orgaosPermitidos.includes(destino)){setErro("O órgão de destino não está permitido pela autorização legal deste quadro.");return}if(!vagasSelecionadas.length){setErro("Selecione ao menos uma vaga numerada para redistribuir.");return}}if(!data||!ato||!processo||!justificativa){setErro("Preencha data de efeito, documento legal, processo SIGADOC e justificativa.");return}setSimulado(true)};
- const confirmar=()=>{if(!quadro)return;const loteId=`DIST-${quadro.codigo}-${data.replaceAll("-","")}-${String(movimentos.length+1).padStart(5,"0")}`;const atribuicoes:{posicao:PosicaoDistribuicaoVaga;orgao:string;setor:string}[]=[];if(operacao==="DISTRIBUICAO"){let cursor=0;for(const item of destinacoes){for(const posicao of selecionadas.slice(cursor,cursor+item.quantidade))atribuicoes.push({posicao,orgao:item.orgao,setor:item.setor});cursor+=item.quantidade}}else{for(const posicao of selecionadas)atribuicoes.push({posicao,orgao:destino,setor:setorDestino})}const lote:MovimentoVagaIndividual[]=[];for(const [indice,atribuicao] of atribuicoes.entries()){const vaga=vagas.find((item)=>item.id===atribuicao.posicao.vagaId)!;const resultado=registrarMovimentoVaga(vaga,calcularPosicaoVaga(vaga,movimentos,hoje),{tipo:operacao,dataEfeito:data,orgao:atribuicao.orgao,unidade:atribuicao.setor||undefined,ato,processo,justificativa});if(resultado.erro){setErro(resultado.erro);setSimulado(false);return}lote.push({...resultado.movimento!,id:`${loteId}-${String(indice+1).padStart(3,"0")}`,loteId,quadroAutorizadoId:quadro.id,quadroCodigo:quadro.codigo,quadroVersao:quadro.versao})}onSave(lote)};
- return <div className="prototype-ind-page prototype-distribution-form-page"><header className="prototype-ind-header"><div><button type="button" className="prototype-distribution-back" onClick={onClose}><i className="pi pi-arrow-left"/> Distribuição</button><h1>Nova distribuição</h1><p>O Quadro Autorizado define a origem e o limite legal da operação.</p></div></header><form className="prototype-distribution-page-card" onSubmit={simular}>{erro&&<div className="prototype-ind-error"><i className="pi pi-exclamation-circle"/>{erro}</div>}<div className="prototype-distribution-operations">{(["DISTRIBUICAO","REDISTRIBUICAO"] as OperacaoDistribuicao[]).map((item)=><button type="button" key={item} className={operacao===item?"active":""} onClick={()=>alterarOperacao(item)}>{operacaoLabel[item]}</button>)}</div><div className="prototype-ind-form"><label className="full"><span>Quadro Autorizado vigente *</span><select value={quadroId} onChange={(e)=>{setQuadroId(e.target.value);setOrigem("");setDestino("");setDestinacoes([{id:1,orgao:"",setor:"",quantidade:1}]);setSimulado(false)}}><option value="">Selecione</option>{quadros.filter((item)=>item.situacao==="Vigente").map((item)=><option key={item.id} value={item.id}>{item.codigo} — {item.cargo} — versão {item.versao}</option>)}</select></label>{quadro&&<section className="prototype-distribution-board-summary"><div><span>Cargo</span><strong>{quadro.cargo}</strong></div><div><span>Carreira</span><strong>{quadro.carreira||"Não informada"}</strong></div><div><span>Tipo</span><strong>{quadro.tipoQuadro}</strong></div><div><span>Base legal</span><strong>{quadro.ato}</strong></div><div><span>Destinação</span><strong>{quadro.formaDestinacaoLegal==="DISTRIBUICAO_POSTERIOR"?"Distribuição posterior pelo Estado":temQuantitativoLegal?"Quantitativos definidos pela lei":"Órgãos permitidos pela lei"}</strong></div><div><span>Autorizadas</span><strong>{quadro.autorizadas}</strong></div></section>}
- {operacao==="DISTRIBUICAO"?<section className="prototype-distribution-destinations full"><header><div><h3>Destinações da distribuição</h3><p>Adicione os órgãos e, quando o ato definir, os respectivos setores.</p></div><button type="button" onClick={adicionarDestinacao}><i className="pi pi-plus"/> Adicionar destinação</button></header><div className="prototype-distribution-destination-head"><span>Órgão *</span><span>Setor vinculado ao órgão</span><span>Quantidade *</span><span>Ações</span></div>{destinacoes.map((item)=><div className="prototype-distribution-destination-row" key={item.id}><select value={item.orgao} onChange={(e)=>atualizarDestinacao(item.id,"orgao",e.target.value)}><option value="">Selecione</option>{orgaosPermitidos.map((orgao)=><option key={orgao}>{orgao}</option>)}</select><select value={item.setor} onChange={(e)=>atualizarDestinacao(item.id,"setor",e.target.value)} disabled={!item.orgao}><option value="">Sem setor definido</option>{(setoresTemporariosPorOrgao[item.orgao]??[]).map((setor)=><option key={setor}>{setor}</option>)}</select><input type="number" min={1} value={item.quantidade} onChange={(e)=>atualizarDestinacao(item.id,"quantidade",Number(e.target.value))}/><button type="button" title="Remover destinação" disabled={destinacoes.length===1} onClick={()=>removerDestinacao(item.id)}><i className="pi pi-trash"/></button></div>)}<footer><span>Total a distribuir</span><strong>{totalDestinacoes} vagas</strong></footer></section>:<><label><span>Órgão de origem *</span><select value={origem} onChange={(e)=>{setOrigem(e.target.value);setSimulado(false)}}><option value="">Selecione</option>{orgaosOrigem.map((item)=><option key={item}>{item}</option>)}</select></label><label><span>Órgão de destino *</span><select value={destino} onChange={(e)=>{setDestino(e.target.value);setSetorDestino("");setSimulado(false)}}><option value="">Selecione</option>{orgaosPermitidos.map((item)=><option key={item}>{item}</option>)}</select></label><label><span>Setor de destino</span><select value={setorDestino} onChange={(e)=>setSetorDestino(e.target.value)} disabled={!destino}><option value="">Sem setor definido</option>{(setoresTemporariosPorOrgao[destino]??[]).map((item)=><option key={item}>{item}</option>)}</select></label><label className="full"><span>Vagas numeradas *</span><MultiSelect value={vagasSelecionadas} options={candidatas.map((item)=>({label:item.vagaId,value:item.vagaId}))} onChange={(e)=>{setVagasSelecionadas(e.value??[]);setSimulado(false)}} optionLabel="label" optionValue="value" filter display="chip" placeholder="Selecione as vagas disponíveis" maxSelectedLabels={6}/></label></>}
- <label><span>Data de efeito *</span><input type="date" value={data} onChange={(e)=>setData(e.target.value)}/></label><label><span>Processo SIGADOC *</span><input value={processo} onChange={(e)=>setProcesso(e.target.value)}/></label><div className="full prototype-distribution-legal-document"><DocumentosLegaisAssociadosSeplag label="Documento legal vinculado" required options={documentosLegaisDisponiveis} value={documentosLegaisIds} onChange={(ids)=>{setDocumentosLegaisIds(ids);setSimulado(false)}} exibirNovoCadastro={false} expandirAoAbrir /></div><label className="full"><span>Justificativa *</span><textarea rows={3} value={justificativa} onChange={(e)=>setJustificativa(e.target.value)}/></label></div>{quadro&&<div className={`prototype-distribution-availability ${bloqueioLegal?"blocked":""}`}><div><span>{bloqueioLegal?"Movimentação administrativa bloqueada":"Vagas elegíveis"}</span><strong>{bloqueioLegal?0:candidatas.length}</strong></div><div><span>{operacao==="DISTRIBUICAO"?"Total informado":"Vagas selecionadas"}</span><strong>{operacao==="DISTRIBUICAO"?totalDestinacoes:vagasSelecionadas.length}</strong></div><div><span>Saldo restante</span><strong>{Math.max(0,candidatas.length-(operacao==="DISTRIBUICAO"?totalDestinacoes:vagasSelecionadas.length))}</strong></div><small>{bloqueioLegal||"Ocupadas, comprometidas ou com situação legal especial foram excluídas."}</small></div>}{simulado&&<section className="prototype-distribution-simulation"><header><div><h3>Simulação da operação</h3><p>{quadro?.codigo} • versão {quadro?.versao} • {selecionadas.length} vagas</p></div><strong>{operacaoLabel[operacao]}</strong></header>{operacao==="DISTRIBUICAO"?<div className="prototype-distribution-simulation-destinations">{destinacoes.map((item)=><article key={item.id}><span>{item.orgao}</span><small>{item.setor||"Sem setor definido"}</small><strong>{item.quantidade} vagas</strong></article>)}</div>:<div><span>{origem}</span><i className="pi pi-arrow-right"/><strong>{destino}{setorDestino?` • ${setorDestino}`:""}</strong></div>}<ul>{selecionadas.slice(0,10).map((item)=><li key={item.vagaId}>{item.vagaId}</li>)}</ul>{selecionadas.length>10&&<small>e mais {selecionadas.length-10} vagas numeradas.</small>}</section>}<footer><button type="button" onClick={onClose}>Cancelar</button>{!simulado?<button className="save">Simular distribuição</button>:<button type="button" className="save" onClick={confirmar}>Confirmar e registrar</button>}</footer></form></div>
+function NovaDistribuicao({
+  quadroInicial,
+  quadros,
+  vagas,
+  posicoes,
+  movimentos,
+  comprometimentos,
+  onClose,
+  onSave,
+}: {
+  quadroInicial?: string;
+  quadros: QuadroAutorizadoRow[];
+  vagas: Vaga[];
+  posicoes: PosicaoDistribuicaoVaga[];
+  movimentos: MovimentoVagaIndividual[];
+  comprometimentos: ComprometimentoVaga[];
+  onClose: () => void;
+  onSave: (lote: MovimentoVagaIndividual[]) => void;
+}) {
+  const documentosLegaisDisponiveis = useDocumentosLegaisAssociaveis();
+  const [operacao, setOperacao] =
+    useState<OperacaoDistribuicao>("DISTRIBUICAO");
+  const [destinacoes, setDestinacoes] = useState<DestinacaoDistribuicao[]>([
+    { id: 1, orgao: "", setor: "", quantidade: 1 },
+  ]);
+  const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>([]);
+  const [simulado, setSimulado] = useState(false);
+  const [erro, setErro] = useState("");
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<NovaDistribuicaoCampos>({
+    defaultValues: {
+      quadroId: quadroInicial ?? "",
+      origem: "",
+      destino: "",
+      setorDestino: "",
+      vagasSelecionadas: [],
+      data: hoje,
+      processo: "",
+      justificativa: "",
+    },
+  });
+  const {
+    quadroId,
+    origem,
+    destino,
+    setorDestino,
+    vagasSelecionadas,
+    data,
+    processo,
+    justificativa,
+  } = watch();
+  useEffect(() => {
+    const subscription = watch(() => setSimulado(false));
+    return () => subscription.unsubscribe();
+  }, [watch]);
+  const getFormErrorMessage = (name: string) => {
+    const error = errors[name as keyof NovaDistribuicaoCampos];
+    return error?.message ? (
+      <small className="p-error">{String(error.message)}</small>
+    ) : null;
+  };
+  const ato = documentosLegaisDisponiveis
+    .filter((item) => documentosLegaisIds.includes(item.id))
+    .map((item) => item.titulo)
+    .join("; ");
+  const quadro = quadros.find((item) => item.id === Number(quadroId));
+  const posicoesQuadro = posicoes.filter(
+    (item) => item.quadroAutorizadoId === quadro?.id,
+  );
+  const compromissos = new Set(
+    comprometimentos
+      .filter((item) => item.situacao === "ATIVO")
+      .map((item) => item.vagaId),
+  );
+  const orgaosOrigem = [
+    ...new Set(
+      posicoesQuadro
+        .map((item) => item.orgaoDistribuicao)
+        .filter(Boolean) as string[],
+    ),
+  ].sort();
+  const temQuantitativoLegal = Boolean(
+    quadro?.quantitativosLegaisPorOrgao?.length,
+  );
+  const orgaosPermitidos = quadro?.orgaosDefinidosLei?.length
+    ? [...quadro.orgaosDefinidosLei]
+    : [
+        "AGER",
+        "CASA CIVIL",
+        "CGE",
+        "PGE",
+        "PJC",
+        "SEDUC",
+        "SEFAZ",
+        "SEMA",
+        "SEPLAG",
+        "SES",
+        "SINFRA",
+      ];
+  const bloqueioLegal = "";
+  const candidatas = posicoesQuadro.filter((posicao) => {
+    const vaga = vagas.find((item) => item.id === posicao.vagaId);
+    if (
+      !vaga ||
+      vaga.estado !== "DISPONIVEL" ||
+      vaga.situacaoLegal !== "REGULAR" ||
+      compromissos.has(vaga.id)
+    )
+      return false;
+    if (operacao === "DISTRIBUICAO") return !posicao.orgaoDistribuicao;
+    return posicao.orgaoDistribuicao === origem;
+  });
+  const totalDestinacoes = destinacoes.reduce(
+    (total, item) =>
+      total + (item.orgao ? Math.max(0, item.quantidade || 0) : 0),
+    0,
+  );
+  const selecionadas =
+    operacao === "REDISTRIBUICAO"
+      ? candidatas.filter((item) => vagasSelecionadas.includes(item.vagaId))
+      : candidatas.slice(0, totalDestinacoes);
+  const atualizarDestinacao = (
+    id: number,
+    campo: "orgao" | "setor" | "quantidade",
+    valor: string | number,
+  ) => {
+    setDestinacoes((atuais) =>
+      atuais.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              [campo]: valor,
+              ...(campo === "orgao" ? { setor: "" } : {}),
+            }
+          : item,
+      ),
+    );
+    setSimulado(false);
+  };
+  const adicionarDestinacao = () => {
+    setDestinacoes((atuais) => [
+      ...atuais,
+      {
+        id: Math.max(0, ...atuais.map((item) => item.id)) + 1,
+        orgao: "",
+        setor: "",
+        quantidade: 1,
+      },
+    ]);
+    setSimulado(false);
+  };
+  const removerDestinacao = (id: number) => {
+    setDestinacoes((atuais) =>
+      atuais.length === 1 ? atuais : atuais.filter((item) => item.id !== id),
+    );
+    setSimulado(false);
+  };
+  const alterarOperacao = (valor: OperacaoDistribuicao) => {
+    if (valor === operacao) return;
+    setOperacao(valor);
+    setValue("origem", "");
+    setValue("destino", "");
+    setValue("setorDestino", "");
+    setValue("vagasSelecionadas", []);
+    setDestinacoes([{ id: 1, orgao: "", setor: "", quantidade: 1 }]);
+    setSimulado(false);
+    setErro("");
+  };
+  const simular = () => {
+    setErro("");
+    if (!quadro) {
+      setErro("Selecione o Quadro Autorizado.");
+      return;
+    }
+    if (bloqueioLegal) {
+      setErro(bloqueioLegal);
+      return;
+    }
+    if (operacao === "DISTRIBUICAO") {
+      if (
+        destinacoes.some(
+          (item) => !item.orgao || !item.quantidade || item.quantidade < 1,
+        )
+      ) {
+        setErro(
+          "Informe órgão e quantidade maior que zero em todas as destinações.",
+        );
+        return;
+      }
+      if (destinacoes.some((item) => !orgaosPermitidos.includes(item.orgao))) {
+        setErro(
+          "Há órgão de destino não permitido pela autorização legal do quadro.",
+        );
+        return;
+      }
+      const chaves = destinacoes.map((item) => `${item.orgao}|${item.setor}`);
+      if (new Set(chaves).size !== chaves.length) {
+        setErro("Não repita a mesma combinação de órgão e setor.");
+        return;
+      }
+      if (selecionadas.length < totalDestinacoes) {
+        setErro(
+          `Existem apenas ${selecionadas.length} vagas livres elegíveis para ${totalDestinacoes} vagas informadas.`,
+        );
+        return;
+      }
+    } else {
+      if (!origem) {
+        setErro("Selecione o órgão de origem.");
+        return;
+      }
+      if (!destino) {
+        setErro("Selecione o órgão de destino.");
+        return;
+      }
+      if (origem === destino) {
+        setErro("Origem e destino devem ser diferentes.");
+        return;
+      }
+      if (!orgaosPermitidos.includes(destino)) {
+        setErro(
+          "O órgão de destino não está permitido pela autorização legal deste quadro.",
+        );
+        return;
+      }
+      if (!vagasSelecionadas.length) {
+        setErro("Selecione ao menos uma vaga numerada para redistribuir.");
+        return;
+      }
+    }
+    if (!data || !ato || !processo || !justificativa) {
+      setErro(
+        "Preencha data de efeito, documento legal, processo SIGADOC e justificativa.",
+      );
+      return;
+    }
+    setSimulado(true);
+  };
+  const confirmar = () => {
+    if (!quadro) return;
+    const dataEfeitoIso = normalizarDataIso(data);
+    const loteId = `DIST-${quadro.codigo}-${dataEfeitoIso.replaceAll("-", "")}-${String(movimentos.length + 1).padStart(5, "0")}`;
+    const atribuicoes: {
+      posicao: PosicaoDistribuicaoVaga;
+      orgao: string;
+      setor: string;
+    }[] = [];
+    if (operacao === "DISTRIBUICAO") {
+      let cursor = 0;
+      for (const item of destinacoes) {
+        for (const posicao of selecionadas.slice(
+          cursor,
+          cursor + item.quantidade,
+        ))
+          atribuicoes.push({ posicao, orgao: item.orgao, setor: item.setor });
+        cursor += item.quantidade;
+      }
+    } else {
+      for (const posicao of selecionadas)
+        atribuicoes.push({ posicao, orgao: destino, setor: setorDestino });
+    }
+    const lote: MovimentoVagaIndividual[] = [];
+    for (const [indice, atribuicao] of atribuicoes.entries()) {
+      const vaga = vagas.find((item) => item.id === atribuicao.posicao.vagaId)!;
+      const resultado = registrarMovimentoVaga(
+        vaga,
+        calcularPosicaoVaga(vaga, movimentos, hoje),
+        {
+          tipo: operacao,
+          dataEfeito: dataEfeitoIso,
+          orgao: atribuicao.orgao,
+          unidade: atribuicao.setor || undefined,
+          ato,
+          processo,
+          justificativa,
+        },
+      );
+      if (resultado.erro) {
+        setErro(resultado.erro);
+        setSimulado(false);
+        return;
+      }
+      lote.push({
+        ...resultado.movimento!,
+        id: `${loteId}-${String(indice + 1).padStart(3, "0")}`,
+        loteId,
+        quadroAutorizadoId: quadro.id,
+        quadroCodigo: quadro.codigo,
+        quadroVersao: quadro.versao,
+      });
+    }
+    onSave(lote);
+  };
+  return (
+    <div className="prototype-ind-page prototype-distribution-form-page">
+      <header className="prototype-ind-header">
+        <div>
+          <h1>Nova distribuição</h1>
+          <p>
+            O Quadro Autorizado define a origem e o limite legal da operação.
+          </p>
+        </div>
+      </header>
+      <form
+        className="prototype-distribution-page-card"
+        onSubmit={handleSubmit(simular)}
+      >
+        {erro && (
+          <div className="prototype-ind-error">
+            <i className="pi pi-exclamation-circle" />
+            {erro}
+          </div>
+        )}
+        <TabsSeplag<OperacaoDistribuicao>
+          className="prototype-distribution-operation-tabs"
+          items={[
+            { label: "Distribuição", value: "DISTRIBUICAO" },
+            { label: "Redistribuição", value: "REDISTRIBUICAO" },
+          ]}
+          activeValue={operacao}
+          onChange={alterarOperacao}
+          equalWidth
+          maxWidth="680px"
+        />
+        <div className="prototype-ind-form">
+          <DropdownFieldSeplag<NovaDistribuicaoCampos>
+            name="quadroId"
+            control={control}
+            label="Quadro Autorizado vigente"
+            cols="12"
+            required
+            options={quadros
+              .filter((item) => item.situacao === "Vigente")
+              .map((item) => ({
+                label: `${item.codigo} — ${item.cargo} — versão ${item.versao}`,
+                value: String(item.id),
+              }))}
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecione"
+            getFormErrorMessage={getFormErrorMessage}
+            onChange={() => {
+              setValue("origem", "");
+              setValue("destino", "");
+              setValue("setorDestino", "");
+              setValue("vagasSelecionadas", []);
+              setDestinacoes([{ id: 1, orgao: "", setor: "", quantidade: 1 }]);
+            }}
+          />
+          {quadro && (
+            <section className="prototype-distribution-board-summary">
+              <div>
+                <span>Cargo</span>
+                <strong>{quadro.cargo}</strong>
+              </div>
+              <div>
+                <span>Carreira</span>
+                <strong>{quadro.carreira || "Não informada"}</strong>
+              </div>
+              <div>
+                <span>Tipo</span>
+                <strong>{quadro.tipoQuadro}</strong>
+              </div>
+              <div>
+                <span>Base legal</span>
+                <strong>{quadro.ato}</strong>
+              </div>
+              <div>
+                <span>Destinação</span>
+                <strong>
+                  {quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
+                    ? "Distribuição posterior pelo Estado"
+                    : temQuantitativoLegal
+                      ? "Quantitativos definidos pela lei"
+                      : "Órgãos permitidos pela lei"}
+                </strong>
+              </div>
+              <div>
+                <span>Autorizadas</span>
+                <strong>{quadro.autorizadas}</strong>
+              </div>
+            </section>
+          )}
+          {operacao === "DISTRIBUICAO" ? (
+            <section className="prototype-distribution-destinations full">
+              <header>
+                <div>
+                  <h3>Destinações da distribuição</h3>
+                  <p>
+                    Adicione os órgãos e, quando o ato definir, os respectivos
+                    setores.
+                  </p>
+                </div>
+                <BotaoAdicionarSeplag
+                  type="button"
+                  label="Adicionar destinação"
+                  onClick={adicionarDestinacao}
+                />
+              </header>
+              <div className="prototype-distribution-destination-head">
+                <span>Órgão *</span>
+                <span>Setor vinculado ao órgão</span>
+                <span>Quantidade *</span>
+                <span>Ações</span>
+              </div>
+              {destinacoes.map((item) => (
+                <div
+                  className="prototype-distribution-destination-row"
+                  key={item.id}
+                >
+                  <div className="prototype-distribution-destination-field">
+                    <span>Órgão *</span>
+                    <Dropdown
+                      aria-label="Órgão"
+                      value={item.orgao}
+                      options={orgaosPermitidos.map((orgao) => ({
+                        label: orgao,
+                        value: orgao,
+                      }))}
+                      optionLabel="label"
+                      optionValue="value"
+                      placeholder="Selecione"
+                      showClear
+                      filter
+                      className="w-full"
+                      onChange={(e) =>
+                        atualizarDestinacao(item.id, "orgao", e.value ?? "")
+                      }
+                    />
+                  </div>
+                  <div className="prototype-distribution-destination-field">
+                    <span>Setor vinculado ao órgão</span>
+                    <Dropdown
+                      aria-label="Setor vinculado ao órgão"
+                      value={item.setor}
+                      options={(
+                        setoresTemporariosPorOrgao[item.orgao] ?? []
+                      ).map((setor) => ({ label: setor, value: setor }))}
+                      optionLabel="label"
+                      optionValue="value"
+                      placeholder="Sem setor definido"
+                      showClear
+                      filter
+                      className="w-full"
+                      onChange={(e) =>
+                        atualizarDestinacao(item.id, "setor", e.value ?? "")
+                      }
+                      disabled={!item.orgao}
+                    />
+                  </div>
+                  <div className="prototype-distribution-destination-field">
+                    <span>Quantidade *</span>
+                    <InputNumber
+                      inputId={`quantidade-${item.id}`}
+                      aria-label="Quantidade"
+                      min={1}
+                      value={item.quantidade}
+                      onChange={(e) =>
+                        atualizarDestinacao(
+                          item.id,
+                          "quantidade",
+                          Number(e.value ?? 0),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="prototype-distribution-destination-field">
+                    <span>Ações</span>
+                    <BotaoIconSeplag
+                      type="button"
+                      tooltip="Remover destinação"
+                      aria-label="Remover destinação"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      disabled={destinacoes.length === 1}
+                      onClick={() => removerDestinacao(item.id)}
+                    />
+                  </div>
+                </div>
+              ))}
+              <footer>
+                <span>Total a distribuir</span>
+                <strong>
+                  {totalDestinacoes} {totalDestinacoes === 1 ? "vaga" : "vagas"}
+                </strong>
+              </footer>
+            </section>
+          ) : (
+            <>
+              <div className="prototype-distribution-seplag-field">
+                <DropdownFieldSeplag<NovaDistribuicaoCampos>
+                  name="origem"
+                  control={control}
+                  label="Órgão de origem"
+                  cols="12"
+                  required
+                  options={orgaosOrigem.map((value) => ({
+                    label: value,
+                    value,
+                  }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Selecione"
+                  getFormErrorMessage={getFormErrorMessage}
+                />
+              </div>
+              <div className="prototype-distribution-seplag-field">
+                <DropdownFieldSeplag<NovaDistribuicaoCampos>
+                  name="destino"
+                  control={control}
+                  label="Órgão de destino"
+                  cols="12"
+                  required
+                  options={orgaosPermitidos.map((value) => ({
+                    label: value,
+                    value,
+                  }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Selecione"
+                  getFormErrorMessage={getFormErrorMessage}
+                  onChange={() => setValue("setorDestino", "")}
+                />
+              </div>
+              <div className="prototype-distribution-seplag-field">
+                <DropdownFieldSeplag<NovaDistribuicaoCampos>
+                  name="setorDestino"
+                  control={control}
+                  label="Setor de destino"
+                  cols="12"
+                  options={(setoresTemporariosPorOrgao[destino] ?? []).map(
+                    (value) => ({ label: value, value }),
+                  )}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Sem setor definido"
+                  getFormErrorMessage={getFormErrorMessage}
+                  disabled={!destino}
+                />
+              </div>
+              <div className="full prototype-distribution-seplag-field">
+                <MultiSelectFieldSeplag<NovaDistribuicaoCampos>
+                  name="vagasSelecionadas"
+                  control={control}
+                  label="Vagas numeradas"
+                  cols="12"
+                  required
+                  options={candidatas.map((item) => ({
+                    label: item.vagaId,
+                    value: item.vagaId,
+                  }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  display="chip"
+                  placeholder="Selecione as vagas disponíveis"
+                  maxSelectedLabels={6}
+                  getFormErrorMessage={getFormErrorMessage}
+                />
+              </div>
+            </>
+          )}
+          <div className="prototype-distribution-seplag-field">
+            <DateFieldSeplag<NovaDistribuicaoCampos>
+              name="data"
+              control={control}
+              label="Data de efeito"
+              cols="12"
+              required
+              getFormErrorMessage={getFormErrorMessage}
+            />
+          </div>
+          <div className="prototype-distribution-seplag-field">
+            <TextFieldSeplag<NovaDistribuicaoCampos>
+              name="processo"
+              control={control}
+              label="Processo SIGADOC"
+              cols="12"
+              required
+              placeholder="Informe o número do processo"
+              getFormErrorMessage={getFormErrorMessage}
+            />
+          </div>
+          <div className="full prototype-distribution-legal-document">
+            <DocumentosLegaisAssociadosSeplag
+              label="Documento legal vinculado"
+              required
+              options={documentosLegaisDisponiveis}
+              value={documentosLegaisIds}
+              onChange={(ids) => {
+                setDocumentosLegaisIds(ids);
+                setSimulado(false);
+              }}
+              exibirNovoCadastro={false}
+              expandirAoAbrir
+            />
+          </div>
+          <TextAreaFieldSeplag<NovaDistribuicaoCampos>
+            name="justificativa"
+            control={control}
+            label="Justificativa"
+            cols="12"
+            required
+            rows={3}
+            maxLength={1000}
+            rules={{ required: "Justificativa é obrigatória" }}
+            placeholder="Informe a justificativa da operação"
+            getFormErrorMessage={getFormErrorMessage}
+          />
+        </div>
+        {quadro && (
+          <div
+            className={`prototype-distribution-availability ${bloqueioLegal ? "blocked" : ""}`}
+          >
+            <div>
+              <span>
+                {bloqueioLegal
+                  ? "Movimentação administrativa bloqueada"
+                  : "Vagas elegíveis"}
+              </span>
+              <strong>{bloqueioLegal ? 0 : candidatas.length}</strong>
+            </div>
+            <div>
+              <span>
+                {operacao === "DISTRIBUICAO"
+                  ? "Total informado"
+                  : "Vagas selecionadas"}
+              </span>
+              <strong>
+                {operacao === "DISTRIBUICAO"
+                  ? totalDestinacoes
+                  : vagasSelecionadas.length}
+              </strong>
+            </div>
+            <div>
+              <span>Saldo restante</span>
+              <strong>
+                {Math.max(
+                  0,
+                  candidatas.length -
+                    (operacao === "DISTRIBUICAO"
+                      ? totalDestinacoes
+                      : vagasSelecionadas.length),
+                )}
+              </strong>
+            </div>
+            <small>
+              {bloqueioLegal ||
+                "Ocupadas, comprometidas ou com situação legal especial foram excluídas."}
+            </small>
+          </div>
+        )}
+        {simulado && (
+          <section className="prototype-distribution-simulation">
+            <header>
+              <div>
+                <h3>Simulação da operação</h3>
+                <p>
+                  {quadro?.codigo} • versão {quadro?.versao} •{" "}
+                  {selecionadas.length} vagas
+                </p>
+              </div>
+              <strong>{operacaoLabel[operacao]}</strong>
+            </header>
+            {operacao === "DISTRIBUICAO" ? (
+              <div className="prototype-distribution-simulation-destinations">
+                {destinacoes.map((item) => (
+                  <article key={item.id}>
+                    <span>{item.orgao}</span>
+                    <small>{item.setor || "Sem setor definido"}</small>
+                    <strong>
+                      {item.quantidade}{" "}
+                      {item.quantidade === 1 ? "vaga" : "vagas"}
+                    </strong>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div>
+                <span>{origem}</span>
+                <i className="pi pi-arrow-right" />
+                <strong>
+                  {destino}
+                  {setorDestino ? ` • ${setorDestino}` : ""}
+                </strong>
+              </div>
+            )}
+            <ul>
+              {selecionadas.slice(0, 10).map((item) => (
+                <li key={item.vagaId}>{item.vagaId}</li>
+              ))}
+            </ul>
+            {selecionadas.length > 10 && (
+              <small>e mais {selecionadas.length - 10} vagas numeradas.</small>
+            )}
+          </section>
+        )}
+        <footer>
+          <BotaoVoltarSeplag
+            type="button"
+            label="Cancelar"
+            icon="pi pi-times"
+            onClick={onClose}
+          />
+          {!simulado ? (
+            <BotaoSalvarSeplag
+              type="submit"
+              label="Simular distribuição"
+              icon="pi pi-check"
+            />
+          ) : (
+            <BotaoSalvarSeplag
+              type="button"
+              label="Confirmar e registrar"
+              icon="pi pi-check-circle"
+              onClick={confirmar}
+            />
+          )}
+        </footer>
+      </form>
+    </div>
+  );
 }
-function Detalhe({movimento,onClose}:{movimento:MovimentoVagaIndividual;onClose:()=>void}){return <div className="prototype-ind-backdrop" onMouseDown={onClose}><section className="prototype-ind-modal detail" onMouseDown={(e)=>e.stopPropagation()}><header><div><span>Movimento individual</span><h2>{movimento.id}</h2><p>{movimentoDeDistribuicao(movimento)?operacaoLabel[movimento.tipo]:movimento.tipo} • {movimento.vagaId}</p></div><button onClick={onClose}><i className="pi pi-times"/></button></header>{movimento.retroativo&&<div className="prototype-ind-retro-warning"><i className="pi pi-history"/>Movimento registrado com efeito retroativo.</div>}<dl><div><dt>Quadro autorizado</dt><dd>{movimento.quadroCodigo??"Registro anterior sem vínculo explícito"}{movimento.quadroVersao?` • versão ${movimento.quadroVersao}`:""}</dd></div><div><dt>Data de efeito</dt><dd>{formatarData(movimento.dataEfeito)}</dd></div><div><dt>Registrado em</dt><dd>{movimento.registradoEm}</dd></div><div><dt>Ato</dt><dd>{movimento.ato}</dd></div><div><dt>Processo</dt><dd>{movimento.processo}</dd></div><div className="full"><dt>Justificativa</dt><dd>{movimento.justificativa}</dd></div><div><dt>Origem</dt><dd>{movimento.orgaoAnterior??"Pendente de ato de distribuição"} • {movimento.unidadeAnterior??"—"}</dd></div><div><dt>Destino</dt><dd>{`${movimento.orgaoPosterior??"—"} • ${movimento.unidadePosterior??"—"}`}</dd></div></dl><footer><button onClick={onClose}>Fechar</button></footer></section></div>}

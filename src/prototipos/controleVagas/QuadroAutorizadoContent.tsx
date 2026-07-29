@@ -368,6 +368,10 @@ function QuadroAutorizadoLista() {
     null,
   );
   const [exclusao, setExclusao] = useState<QuadroAutorizadoRow | null>(null);
+  const [versaoVisualizada, setVersaoVisualizada] = useState<{
+    quadro: QuadroListaRow;
+    versao: VersaoAnteriorQuadro;
+  } | null>(null);
   const [linhasExpandidas, setLinhasExpandidas] =
     useState<DataTableExpandedRows>({});
 
@@ -583,59 +587,67 @@ function QuadroAutorizadoLista() {
     return (
       <SpecArea metadata={quadroColumnSpecifications["Histórico de versões"]}>
         <section className="prototype-quadro-version-history">
-          <header>
-            <div>
-              <h3>Versões anteriores de {item.codigo}</h3>
-              <p>A versão atual {item.versao} permanece na linha principal.</p>
-            </div>
-            <span>
-              {versoes.length}{" "}
-              {versoes.length === 1 ? "versão anterior" : "versões anteriores"}
-            </span>
-          </header>
           {versoes.length ? (
-            <div className="prototype-quadro-version-list">
-              {versoes.map((versao) => (
-                <article key={`${item.codigo}-${versao.versao}`}>
-                  <div className="prototype-quadro-version-marker">
-                    v{versao.versao}
-                  </div>
-                  <div className="prototype-quadro-version-content">
-                    <div className="prototype-quadro-version-title">
-                      <strong>{versao.cargo}</strong>
-                      <BadgeSeplag
-                        label={versao.evolucao}
-                        color="#075f99"
-                        bg="#e8f5ff"
-                        size="xs"
-                        fontWeight
-                      />
-                    </div>
-                    <dl>
-                      <div>
-                        <dt>Órgão</dt>
-                        <dd>{versao.orgao}</dd>
-                      </div>
-                      <div>
-                        <dt>Autorizadas</dt>
-                        <dd>{versao.autorizadas.toLocaleString("pt-BR")}</dd>
-                      </div>
-                      <div>
-                        <dt>Vigência</dt>
-                        <dd>{versao.vigencia}</dd>
-                      </div>
-                      <div>
-                        <dt>Encerrada em</dt>
-                        <dd>{versao.encerradaEm}</dd>
-                      </div>
-                      <div className="is-wide">
-                        <dt>Ato legal</dt>
-                        <dd>{versao.ato}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                </article>
-              ))}
+            <div className="prototype-quadro-version-table-wrap">
+              <table className="prototype-quadro-version-table">
+                <thead>
+                  <tr>
+                    <th>Versão</th>
+                    <th>Cargo/Função</th>
+                    <th>Órgão</th>
+                    <th>Vigência</th>
+                    <th>Autorizadas</th>
+                    <th>Evolução</th>
+                    <th>Situação</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {versoes.map((versao) => (
+                    <tr key={`${item.codigo}-${versao.versao}`}>
+                      <td>
+                        <strong>Versão {versao.versao}</strong>
+                      </td>
+                      <td>{versao.cargo}</td>
+                      <td>{versao.orgao}</td>
+                      <td>
+                        <span>{versao.vigencia}</span>
+                        <small>Encerrada em {versao.encerradaEm}</small>
+                      </td>
+                      <td>{versao.autorizadas.toLocaleString("pt-BR")}</td>
+                      <td>
+                        <BadgeSeplag
+                          label={versao.evolucao}
+                          color="#075f99"
+                          bg="#e8f5ff"
+                          size="xs"
+                          fontWeight
+                        />
+                      </td>
+                      <td>
+                        <BadgeSeplag
+                          label="Encerrada"
+                          color="#66788a"
+                          bg="#edf1f4"
+                          size="xs"
+                          fontWeight
+                        />
+                      </td>
+                      <td>
+                        <BotaoIconSeplag
+                          type="button"
+                          tooltip={`Visualizar versão ${versao.versao}`}
+                          aria-label={`Visualizar versão ${versao.versao}`}
+                          icon="pi pi-eye"
+                          onClick={() =>
+                            setVersaoVisualizada({ quadro: item, versao })
+                          }
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : (
             <p className="prototype-quadro-version-empty">
@@ -941,10 +953,87 @@ function QuadroAutorizadoLista() {
             }
           />
         )}
+        {versaoVisualizada && (
+          <HistoricoVersaoModal
+            quadro={versaoVisualizada.quadro}
+            versao={versaoVisualizada.versao}
+            onClose={() => setVersaoVisualizada(null)}
+          />
+        )}
       </div>
     </SpecificationMode>
   );
 }
+
+function HistoricoVersaoModal({
+  quadro,
+  versao,
+  onClose,
+}: {
+  quadro: QuadroListaRow;
+  versao: VersaoAnteriorQuadro;
+  onClose: () => void;
+}) {
+  return (
+    <ModalSeplag
+      visible
+      titulo={`${quadro.codigo} • Versão ${versao.versao}`}
+      fechar={onClose}
+      tamanho="min(52rem, 94vw)"
+      ariaLabel={`Versão ${versao.versao} do quadro ${quadro.codigo}`}
+      customFooter={
+        <div className="prototype-quadro-modal-library-actions">
+          <BotaoVoltarSeplag
+            label="Fechar"
+            icon="pi pi-times"
+            onClick={onClose}
+          />
+        </div>
+      }
+    >
+      <div className="col-12 prototype-quadro-version-modal">
+        <div className="prototype-quadro-version-modal-status">
+          <BadgeSeplag
+            label="Encerrada"
+            color="#66788a"
+            bg="#edf1f4"
+            fontWeight
+          />
+          <strong>
+            {versao.autorizadas.toLocaleString("pt-BR")} vagas autorizadas
+          </strong>
+        </div>
+        <dl>
+          <div>
+            <dt>Cargo/Função</dt>
+            <dd>{versao.cargo}</dd>
+          </div>
+          <div>
+            <dt>Órgão</dt>
+            <dd>{versao.orgao}</dd>
+          </div>
+          <div>
+            <dt>Vigência</dt>
+            <dd>{versao.vigencia}</dd>
+          </div>
+          <div>
+            <dt>Encerrada em</dt>
+            <dd>{versao.encerradaEm}</dd>
+          </div>
+          <div>
+            <dt>Evolução</dt>
+            <dd>{versao.evolucao}</dd>
+          </div>
+          <div className="is-wide">
+            <dt>Ato legal</dt>
+            <dd>{versao.ato}</dd>
+          </div>
+        </dl>
+      </div>
+    </ModalSeplag>
+  );
+}
+
 function QuadroAutorizadoModal({
   registro,
   onClose,
