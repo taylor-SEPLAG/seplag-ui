@@ -1,0 +1,63 @@
+.seplag-radio-card-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.seplag-radio-card {
+  display: grid;
+  grid-template-columns: auto 2.25rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 4rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #c8d5e2;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #25344a;
+  cursor: pointer;
+}
+
+.seplag-radio-card:hover {
+  border-color: #1687c9;
+}
+
+.seplag-radio-card.is-selected {
+  border-color: #0870b6;
+  box-shadow: inset 0 0 0 1px #0870b6;
+  background: #eef8ff;
+}
+
+.seplag-radio-card.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.seplag-radio-card > i {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.35rem;
+  background: #e8f5ff;
+  color: #0870b6;
+  font-size: 1rem;
+}
+
+.seplag-radio-card > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.seplag-radio-card strong {
+  font-size: 0.85rem;
+}
+
+.seplag-radio-card small {
+  color: #68758a;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+}

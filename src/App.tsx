@@ -39,6 +39,13 @@ import {
   PrototiposControleVagasVagasPage,
   PrototiposControleVagasCessoesPage,
   PrototiposControleVagasProjecoesPage,
+  PrototiposBacklogRegrasPage,
+  PrototiposBacklogQuadroAutorizadoPage,
+  PrototiposBacklogDistribuicaoPage,
+  PrototiposBacklogDashboardPage,
+  PrototiposBacklogVagasPage,
+  PrototiposBacklogMovimentacoesPage,
+  PrototiposBacklogProjecoesPage,
   PrototiposQuadroPessoalRegrasPage,
   PrototiposQuadroPessoalQuadroAutorizadoPage,
   PrototiposQuadroPessoalDistribuicaoPage,
@@ -1475,6 +1482,21 @@ function App() {
         path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/nova-versao"
         element={<PrototiposControleVagasQuadroAutorizadoPage />}
       />
+      <Route path="/prototipos/sigep/backlog/configuracoes" element={<PrototiposBacklogRegrasPage />} />
+      <Route path="/prototipos/sigep/backlog/dashboard" element={<PrototiposBacklogDashboardPage />} />
+      <Route path="/prototipos/sigep/backlog/distribuicao" element={<PrototiposBacklogDistribuicaoPage />} />
+      <Route path="/prototipos/sigep/backlog/distribuicao/nova" element={<PrototiposBacklogDistribuicaoPage />} />
+      <Route path="/prototipos/sigep/backlog/projecoes" element={<PrototiposBacklogProjecoesPage />} />
+      <Route path="/prototipos/sigep/backlog/cessoes" element={<PrototiposBacklogMovimentacoesPage />} />
+      <Route path="/prototipos/sigep/backlog/movimentacoes" element={<PrototiposBacklogMovimentacoesPage />} />
+      <Route path="/prototipos/sigep/backlog/movimentacoes/nova-remocao" element={<PrototiposBacklogMovimentacoesPage />} />
+      <Route path="/prototipos/sigep/backlog/movimentacoes/nova-cessao" element={<PrototiposBacklogMovimentacoesPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas" element={<PrototiposBacklogVagasPage />} />
+      <Route path="/prototipos/sigep/backlog/quadro-autorizado" element={<PrototiposBacklogQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/backlog/quadro-autorizado/novo" element={<PrototiposBacklogQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/backlog/quadro-autorizado/:id" element={<PrototiposBacklogQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/backlog/quadro-autorizado/:id/editar" element={<PrototiposBacklogQuadroAutorizadoPage />} />
+      <Route path="/prototipos/sigep/backlog/quadro-autorizado/:id/nova-versao" element={<PrototiposBacklogQuadroAutorizadoPage />} />
       <Route path="/prototipos/sigep/quadro-pessoal/configuracoes" element={<PrototiposQuadroPessoalRegrasPage />} />
       <Route path="/prototipos/sigep/quadro-pessoal/dashboard" element={<PrototiposQuadroPessoalDashboardPage />} />
       <Route path="/prototipos/sigep/quadro-pessoal/distribuicao" element={<PrototiposQuadroPessoalDistribuicaoPage />} />

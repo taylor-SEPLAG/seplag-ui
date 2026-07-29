@@ -1,47 +1,106 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { controleVagasStore, useControleVagasStore } from "./controleVagasStore";
+import { useForm } from "react-hook-form";
+import {
+  controleVagasStore,
+  useControleVagasStore,
+} from "./controleVagasStore";
 import type { QuadroAutorizadoRow } from "./types";
-import { aplicarAlteracaoQuadroLegal, type TipoAlteracaoQuadroLegal } from "./quadroLegalUtils";
+import {
+  aplicarAlteracaoQuadroLegal,
+  type TipoAlteracaoQuadroLegal,
+} from "./quadroLegalUtils";
 import { DocumentosLegaisAssociadosSeplag } from "../../componentes/DocumentosLegaisAssociados";
 import { documentosLegaisDisponiveis } from "./documentosLegaisData";
+import { BotaoSalvarSeplag, BotaoSeplag } from "../../componentes/Botao";
+import {
+  DateFieldSeplag,
+  NumberFieldSeplag,
+  TextFieldSeplag,
+} from "../../componentes/Fields";
+import { MensagemSeplag } from "../../componentes/Mensagem";
 import "./quadroLegalOperacoes.css";
 
-const rotulos: Record<TipoAlteracaoQuadroLegal, string> = { AMPLIACAO: "Ampliação legal", REDUCAO: "Redução legal", TRANSFORMACAO: "Transformação", EXTINCAO_PROGRESSIVA: "Extinção progressiva" };
+const rotulos: Record<TipoAlteracaoQuadroLegal, string> = {
+  AMPLIACAO: "Ampliação legal",
+  REDUCAO: "Redução legal",
+  TRANSFORMACAO: "Transformação",
+  EXTINCAO_PROGRESSIVA: "Extinção progressiva",
+};
 const descricoes: Record<TipoAlteracaoQuadroLegal, string> = {
-  AMPLIACAO: "Cria novos identificadores após o último sequencial, sem reutilizar códigos.",
-  REDUCAO: "Extingue vagas disponíveis e mantém ocupadas em extinção até a vacância.",
-  TRANSFORMACAO: "Preserva a origem no histórico e gera vagas numeradas para o cargo de destino.",
-  EXTINCAO_PROGRESSIVA: "Bloqueia novas ocupações; vagas ocupadas desaparecem do limite somente após vagarem.",
+  AMPLIACAO:
+    "Cria novos identificadores após o último sequencial, sem reutilizar códigos.",
+  REDUCAO:
+    "Extingue vagas disponíveis e mantém ocupadas em extinção até a vacância.",
+  TRANSFORMACAO:
+    "Preserva a origem no histórico e gera vagas numeradas para o cargo de destino.",
+  EXTINCAO_PROGRESSIVA:
+    "Bloqueia novas ocupações; vagas ocupadas desaparecem do limite somente após vagarem.",
 };
 
-export function QuadroLegalOperacoes({ registro, onSaved }: { registro: QuadroAutorizadoRow; onSaved?: () => void }) {
+export function QuadroLegalOperacoes({
+  registro,
+  onSaved,
+}: {
+  registro: QuadroAutorizadoRow;
+  onSaved?: () => void;
+}) {
   const { vagas } = useControleVagasStore();
-  const vagasOriginais = useMemo(() => vagas.filter((vaga) => vaga.quadroAutorizadoId === registro.id), [registro.id, vagas]);
+  const vagasOriginais = useMemo(
+    () => vagas.filter((vaga) => vaga.quadroAutorizadoId === registro.id),
+    [registro.id, vagas],
+  );
   const [tipo, setTipo] = useState<TipoAlteracaoQuadroLegal>("AMPLIACAO");
-  const [quantidade, setQuantidade] = useState(1);
+  const { control: operacaoControl, watch: watchOperacao } = useForm<{
+    dataEfeito: string;
+    quantidade: number;
+  }>({ defaultValues: { dataEfeito: "2026-08-01", quantidade: 1 } });
+  const dataEfeito = watchOperacao("dataEfeito");
+  const quantidade = watchOperacao("quantidade");
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>([]);
-  const normasSelecionadas = documentosLegaisDisponiveis.filter((item) => documentosLegaisIds.includes(item.id));
+  const normasSelecionadas = documentosLegaisDisponiveis.filter((item) =>
+    documentosLegaisIds.includes(item.id),
+  );
   const lei = normasSelecionadas.map((item) => item.titulo).join("; ");
   const [processo, setProcesso] = useState(registro.processo);
-  const [dataEfeito, setDataEfeito] = useState("2026-08-01");
   const [novoCargo, setNovoCargo] = useState("");
-  const [resultado, setResultado] = useState<ReturnType<typeof aplicarAlteracaoQuadroLegal> | null>(null);
+  const [resultado, setResultado] = useState<ReturnType<
+    typeof aplicarAlteracaoQuadroLegal
+  > | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false);
 
   const simular = (event: FormEvent) => {
     event.preventDefault();
     setSalvo(false);
-    setResultado(aplicarAlteracaoQuadroLegal(vagasOriginais, { tipo, quantidade, lei, processo, dataEfeito, novoCargo }));
+    setResultado(
+      aplicarAlteracaoQuadroLegal(vagasOriginais, {
+        tipo,
+        quantidade,
+        lei,
+        processo,
+        dataEfeito,
+        novoCargo,
+      }),
+    );
   };
 
   const registrarNovaVersao = () => {
-    if (!resultado || resultado.criadas.length + resultado.alteradas.length === 0) return;
+    if (
+      !resultado ||
+      resultado.criadas.length + resultado.alteradas.length === 0
+    )
+      return;
     const atual = controleVagasStore.getState();
     const novoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
     const vigenciaFutura = dataEfeito > "2026-07-20";
-    const vagasDaNovaVersao = resultado.vagas.map((vaga) => ({ ...vaga, quadroAutorizadoId: novoId, quadroCodigo: registro.codigo }));
-    const ocupadas = vagasDaNovaVersao.filter((vaga) => vaga.estado === "OCUPADA" && vaga.situacaoLegal !== "EXTINTA").length;
+    const vagasDaNovaVersao = resultado.vagas.map((vaga) => ({
+      ...vaga,
+      quadroAutorizadoId: novoId,
+      quadroCodigo: registro.codigo,
+    }));
+    const ocupadas = vagasDaNovaVersao.filter(
+      (vaga) => vaga.estado === "OCUPADA" && vaga.situacaoLegal !== "EXTINTA",
+    ).length;
     const novaVersao: QuadroAutorizadoRow = {
       ...registro,
       id: novoId,
@@ -57,41 +116,317 @@ export function QuadroLegalOperacoes({ registro, onSaved }: { registro: QuadroAu
     };
     controleVagasStore.update((estado) => ({
       ...estado,
-      quadros: [...estado.quadros.map((item) => item.id === registro.id && !vigenciaFutura ? { ...item, situacao: "Encerrada" as const } : item), novaVersao],
-      vagas: vigenciaFutura ? estado.vagas : [...estado.vagas.filter((vaga) => vaga.quadroAutorizadoId !== registro.id), ...vagasDaNovaVersao],
+      quadros: [
+        ...estado.quadros.map((item) =>
+          item.id === registro.id && !vigenciaFutura
+            ? { ...item, situacao: "Encerrada" as const }
+            : item,
+        ),
+        novaVersao,
+      ],
+      vagas: vigenciaFutura
+        ? estado.vagas
+        : [
+            ...estado.vagas.filter(
+              (vaga) => vaga.quadroAutorizadoId !== registro.id,
+            ),
+            ...vagasDaNovaVersao,
+          ],
     }));
     setConfirmacaoAberta(false);
     setSalvo(true);
     window.setTimeout(() => onSaved?.(), 700);
   };
 
-  const quantidadeImpactada = (resultado?.criadas.length ?? 0) + (resultado?.alteradas.length ?? 0);
+  const quantidadeImpactada =
+    (resultado?.criadas.length ?? 0) + (resultado?.alteradas.length ?? 0);
 
-  return <section className="prototype-legal-card">
-    <header><div><h2>Evolução do quadro legal</h2><p>Simule o efeito de uma nova lei sobre as vagas individuais deste quadro.</p></div><span><i className="pi pi-lock" /> Operação rastreável</span></header>
-    <form onSubmit={simular}>
-      <div className="prototype-legal-types">{(Object.keys(rotulos) as TipoAlteracaoQuadroLegal[]).map((item) => <button key={item} type="button" className={tipo === item ? "active" : ""} onClick={() => { setTipo(item); setResultado(null); setSalvo(false); }}><i className={item === "AMPLIACAO" ? "pi pi-plus-circle" : item === "REDUCAO" ? "pi pi-minus-circle" : item === "TRANSFORMACAO" ? "pi pi-sync" : "pi pi-ban"} /><strong>{rotulos[item]}</strong><small>{descricoes[item]}</small></button>)}</div>
-      <div className="prototype-legal-documents"><DocumentosLegaisAssociadosSeplag label="Lei ou ato legal" required options={documentosLegaisDisponiveis} value={documentosLegaisIds} onChange={(ids) => { setDocumentosLegaisIds(ids); setResultado(null); setSalvo(false); }} onVisualizar={() => {}} exibirNovoCadastro={false} expandirAoAbrir /></div>
-      <div className="prototype-legal-fields"><label><span>Data de efeito *</span><input type="date" value={dataEfeito} onChange={(e) => { setDataEfeito(e.target.value); setResultado(null); }} /></label><label><span>Processo administrativo</span><input value={processo} onChange={(e) => { setProcesso(e.target.value); setResultado(null); }} /></label>{tipo !== "EXTINCAO_PROGRESSIVA" && <label><span>Quantidade *</span><input type="number" min="1" max={tipo === "AMPLIACAO" ? 9999 : vagasOriginais.length} value={quantidade} onChange={(e) => { setQuantidade(Number(e.target.value)); setResultado(null); }} /></label>}{tipo === "TRANSFORMACAO" && <label><span>Novo cargo *</span><input value={novoCargo} onChange={(e) => { setNovoCargo(e.target.value); setResultado(null); }} placeholder="Cargo de destino" /></label>}</div>
-      <div className="prototype-legal-simulate-action"><button type="submit"><i className="pi pi-calculator" /> Simular impacto legal</button></div>
-    </form>
-    {salvo && <div className="prototype-legal-saved"><i className="pi pi-check-circle" /> Nova versão registrada com sucesso.</div>}
-    {resultado && <div className="prototype-legal-result"><header><div><span>Resultado da simulação</span><h3>{rotulos[tipo]}</h3></div><span className={resultado.alertas.length ? "warning" : "ok"}>{resultado.alertas.length ? "Requer atenção" : "Consistente"}</span></header><div className="prototype-legal-result-kpis"><article><span>Quadro anterior</span><strong>{resultado.quantitativoAnterior}</strong></article><article><span>Quadro resultante</span><strong>{resultado.quantitativoPosterior}</strong></article><article><span>Vagas geradas</span><strong>{resultado.criadas.length}</strong></article><article><span>Vagas afetadas</span><strong>{resultado.alteradas.length}</strong></article></div>{resultado.alertas.map((alerta) => <p className="prototype-legal-alert" key={alerta}><i className="pi pi-exclamation-triangle" /> {alerta}</p>)}{quantidadeImpactada > 0 && <div className="prototype-legal-impact-list"><h4>Amostra das vagas impactadas</h4><table><thead><tr><th>Identificador</th><th>Efeito</th><th>Estado</th><th>Situação legal</th></tr></thead><tbody>{[...resultado.criadas, ...resultado.alteradas].slice(0, 8).map((vaga) => <tr key={vaga.id + "-" + vaga.situacaoLegal}><td><strong>{vaga.id}</strong></td><td>{resultado.criadas.some((item) => item.id === vaga.id) ? "Nova vaga numerada" : "Atualização preservando o código"}</td><td>{vaga.estado === "DISPONIVEL" ? "Disponível" : "Ocupada"}</td><td>{vaga.situacaoLegal.replaceAll("_", " ")}</td></tr>)}</tbody></table>{quantidadeImpactada > 8 && <small>Mais {quantidadeImpactada - 8} vaga(s) receberiam o mesmo tratamento.</small>}</div>}<footer><button type="button" disabled={salvo || quantidadeImpactada === 0} onClick={() => setConfirmacaoAberta(true)}><i className="pi pi-save" /> Registrar nova versão</button></footer></div>}
-    {confirmacaoAberta && resultado && <div className="prototype-legal-confirm-backdrop" role="presentation" onMouseDown={() => setConfirmacaoAberta(false)}><section className="prototype-legal-confirm" role="dialog" aria-modal="true" aria-labelledby="confirmar-nova-versao" onMouseDown={(event) => event.stopPropagation()}>
-      <header><div><span>Confirmação</span><h3 id="confirmar-nova-versao">Registrar nova versão?</h3></div><button type="button" aria-label="Fechar" onClick={() => setConfirmacaoAberta(false)}><i className="pi pi-times" /></button></header>
-      <p>Confira os dados da evolução legal antes de concluir. A versão vigente será preservada no histórico.</p>
-      <dl>
-        <div><dt>Nova versão</dt><dd>Versão {registro.versao + 1}</dd></div>
-        <div><dt>Operação</dt><dd>{rotulos[tipo]}</dd></div>
-        <div className="is-full"><dt>Base legal</dt><dd>{lei}</dd></div>
-        <div><dt>Data de efeito</dt><dd>{dataEfeito.split("-").reverse().join("/")}</dd></div>
-        <div><dt>Processo</dt><dd>{processo || "Não informado"}</dd></div>
-        <div><dt>Quadro anterior</dt><dd>{resultado.quantitativoAnterior}</dd></div>
-        <div><dt>Quadro resultante</dt><dd>{resultado.quantitativoPosterior}</dd></div>
-        <div><dt>Vagas geradas</dt><dd>{resultado.criadas.length}</dd></div>
-        <div><dt>Vagas afetadas</dt><dd>{resultado.alteradas.length}</dd></div>
-      </dl>
-      <footer><button type="button" onClick={() => setConfirmacaoAberta(false)}>Cancelar</button><button type="button" className="is-primary" onClick={registrarNovaVersao}><i className="pi pi-check" /> Confirmar e registrar</button></footer>
-    </section></div>}
-  </section>;
+  return (
+    <section className="prototype-legal-card">
+      <header>
+        <div>
+          <h2>Evolução do quadro legal</h2>
+          <p>
+            Simule o efeito de uma nova lei sobre as vagas individuais deste
+            quadro.
+          </p>
+        </div>
+        <span>
+          <i className="pi pi-lock" /> Operação rastreável
+        </span>
+      </header>
+      <form onSubmit={simular}>
+        <div className="prototype-legal-types">
+          {(Object.keys(rotulos) as TipoAlteracaoQuadroLegal[]).map((item) => (
+            <button
+              key={item}
+              type="button"
+              className={tipo === item ? "active" : ""}
+              onClick={() => {
+                setTipo(item);
+                setResultado(null);
+                setSalvo(false);
+              }}
+            >
+              <i
+                className={
+                  item === "AMPLIACAO"
+                    ? "pi pi-plus-circle"
+                    : item === "REDUCAO"
+                      ? "pi pi-minus-circle"
+                      : item === "TRANSFORMACAO"
+                        ? "pi pi-sync"
+                        : "pi pi-ban"
+                }
+              />
+              <strong>{rotulos[item]}</strong>
+              <small>{descricoes[item]}</small>
+            </button>
+          ))}
+        </div>
+        <div className="prototype-legal-documents">
+          <DocumentosLegaisAssociadosSeplag
+            label="Lei ou ato legal"
+            required
+            options={documentosLegaisDisponiveis}
+            value={documentosLegaisIds}
+            onChange={(ids) => {
+              setDocumentosLegaisIds(ids);
+              setResultado(null);
+              setSalvo(false);
+            }}
+            onVisualizar={() => {}}
+            exibirNovoCadastro={false}
+            expandirAoAbrir
+          />
+        </div>
+        <div className="prototype-legal-fields prototype-legal-library-fields">
+          <DateFieldSeplag
+            name="dataEfeito"
+            control={operacaoControl}
+            label="Data de efeito"
+            required
+            cols="12 12 3"
+            getFormErrorMessage={() => null}
+          />
+          <TextFieldSeplag
+            name="processo"
+            label="Processo SIGADOC"
+            value={processo}
+            onChange={(value) => {
+              setProcesso(value);
+              setResultado(null);
+            }}
+            cols="12 12 4"
+          />
+          {tipo !== "EXTINCAO_PROGRESSIVA" && (
+            <NumberFieldSeplag
+              name="quantidade"
+              control={operacaoControl}
+              label="Quantidade"
+              required
+              cols="12 12 2"
+              min={1}
+              max={tipo === "AMPLIACAO" ? 9999 : vagasOriginais.length}
+              getFormErrorMessage={() => null}
+            />
+          )}
+          {tipo === "TRANSFORMACAO" && (
+            <TextFieldSeplag
+              name="novoCargo"
+              label="Novo cargo"
+              required
+              value={novoCargo}
+              onChange={(value) => {
+                setNovoCargo(value);
+                setResultado(null);
+              }}
+              placeholder="Cargo de destino"
+              cols="12 12 3"
+            />
+          )}
+        </div>
+        <div className="prototype-legal-simulate-action">
+          <BotaoSeplag
+            type="submit"
+            label="Simular impacto legal"
+            icon="pi pi-calculator"
+          />
+        </div>
+      </form>
+      <MensagemSeplag
+        visible={salvo}
+        severity="success"
+        message="Nova versão registrada com sucesso."
+      />
+      {resultado && (
+        <div className="prototype-legal-result">
+          <header>
+            <div>
+              <span>Resultado da simulação</span>
+              <h3>{rotulos[tipo]}</h3>
+            </div>
+            <span className={resultado.alertas.length ? "warning" : "ok"}>
+              {resultado.alertas.length ? "Requer atenção" : "Consistente"}
+            </span>
+          </header>
+          <div className="prototype-legal-result-kpis">
+            <article>
+              <span>Quadro anterior</span>
+              <strong>{resultado.quantitativoAnterior}</strong>
+            </article>
+            <article>
+              <span>Quadro resultante</span>
+              <strong>{resultado.quantitativoPosterior}</strong>
+            </article>
+            <article>
+              <span>Vagas geradas</span>
+              <strong>{resultado.criadas.length}</strong>
+            </article>
+            <article>
+              <span>Vagas afetadas</span>
+              <strong>{resultado.alteradas.length}</strong>
+            </article>
+          </div>
+          {resultado.alertas.map((alerta) => (
+            <MensagemSeplag key={alerta} severity="warning" message={alerta} />
+          ))}
+          {quantidadeImpactada > 0 && (
+            <div className="prototype-legal-impact-list">
+              <h4>Amostra das vagas impactadas</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Identificador</th>
+                    <th>Efeito</th>
+                    <th>Estado</th>
+                    <th>Situação legal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...resultado.criadas, ...resultado.alteradas]
+                    .slice(0, 8)
+                    .map((vaga) => (
+                      <tr key={vaga.id + "-" + vaga.situacaoLegal}>
+                        <td>
+                          <strong>{vaga.id}</strong>
+                        </td>
+                        <td>
+                          {resultado.criadas.some((item) => item.id === vaga.id)
+                            ? "Nova vaga numerada"
+                            : "Atualização preservando o código"}
+                        </td>
+                        <td>
+                          {vaga.estado === "DISPONIVEL"
+                            ? "Disponível"
+                            : "Ocupada"}
+                        </td>
+                        <td>{vaga.situacaoLegal.replaceAll("_", " ")}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              {quantidadeImpactada > 8 && (
+                <small>
+                  Mais {quantidadeImpactada - 8} vaga(s) receberiam o mesmo
+                  tratamento.
+                </small>
+              )}
+            </div>
+          )}
+          <footer>
+            <BotaoSalvarSeplag
+              type="button"
+              label="Registrar nova versão"
+              disabled={salvo || quantidadeImpactada === 0}
+              onClick={() => setConfirmacaoAberta(true)}
+            />
+          </footer>
+        </div>
+      )}
+      {confirmacaoAberta && resultado && (
+        <div
+          className="prototype-legal-confirm-backdrop"
+          role="presentation"
+          onMouseDown={() => setConfirmacaoAberta(false)}
+        >
+          <section
+            className="prototype-legal-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirmar-nova-versao"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div>
+                <span>Confirmação</span>
+                <h3 id="confirmar-nova-versao">Registrar nova versão?</h3>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={() => setConfirmacaoAberta(false)}
+              >
+                <i className="pi pi-times" />
+              </button>
+            </header>
+            <p>
+              Confira os dados da evolução legal antes de concluir. A versão
+              vigente será preservada no histórico.
+            </p>
+            <dl>
+              <div>
+                <dt>Nova versão</dt>
+                <dd>Versão {registro.versao + 1}</dd>
+              </div>
+              <div>
+                <dt>Operação</dt>
+                <dd>{rotulos[tipo]}</dd>
+              </div>
+              <div className="is-full">
+                <dt>Base legal</dt>
+                <dd>{lei}</dd>
+              </div>
+              <div>
+                <dt>Data de efeito</dt>
+                <dd>{dataEfeito.split("-").reverse().join("/")}</dd>
+              </div>
+              <div>
+                <dt>Processo</dt>
+                <dd>{processo || "Não informado"}</dd>
+              </div>
+              <div>
+                <dt>Quadro anterior</dt>
+                <dd>{resultado.quantitativoAnterior}</dd>
+              </div>
+              <div>
+                <dt>Quadro resultante</dt>
+                <dd>{resultado.quantitativoPosterior}</dd>
+              </div>
+              <div>
+                <dt>Vagas geradas</dt>
+                <dd>{resultado.criadas.length}</dd>
+              </div>
+              <div>
+                <dt>Vagas afetadas</dt>
+                <dd>{resultado.alteradas.length}</dd>
+              </div>
+            </dl>
+            <footer>
+              <button type="button" onClick={() => setConfirmacaoAberta(false)}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="is-primary"
+                onClick={registrarNovaVersao}
+              >
+                <i className="pi pi-check" /> Confirmar e registrar
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+    </section>
+  );
 }

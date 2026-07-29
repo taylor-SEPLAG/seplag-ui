@@ -14,4 +14,5 @@ export interface MultiSelectFieldSeplagProps<
   readonly maxSelectedLabels?: number;
   readonly selectedItemsLabel?: string;
   readonly readOnly?: boolean;
+  readonly onChange?: (value: any[]) => void;
 }

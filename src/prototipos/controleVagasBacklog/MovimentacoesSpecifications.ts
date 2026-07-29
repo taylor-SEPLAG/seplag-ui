@@ -1,0 +1,46 @@
+import type { SpecificationMetadata } from "../shared/visualizationModes";
+
+const story = "Como gestor de pessoas, quero registrar e acompanhar cessões e remoções com rastreabilidade, para manter exercício, lotação e situação da vaga coerentes.";
+const filters = "Pessoa, CPF, matrícula, vínculo, vaga, modalidade, órgão, situação e período.";
+const spec = (id: string, title: string, description: string, businessRule: string, source: string, dataType: string, component: string, route?: string, behavior?: string): SpecificationMetadata => ({ id, title, description, businessRule, source, dataType, component, route, behavior, filters, userStory: story, status: "CONFIRMADO" });
+
+export const movimentacoesScreenSpecification = spec("CV-MOV", "Movimentações", "Registrar, analisar e acompanhar cessões e remoções funcionais.", "Cessão altera temporariamente o exercício sem liberar a vaga; remoção altera definitivamente a lotação dentro do mesmo quadro, conforme modalidade e validações aplicáveis.", "MovimentacaoFuncional, OcupacaoVaga, Vaga e documentos legais.", "MovimentacoesViewModel", "Página React conectada ao store", "/prototipos/sigep/backlog/movimentacoes", "Alterna cessões, remoções e histórico; atalhos gerenciais aplicam filtros sobre a mesma fonte.");
+
+export const movimentacoesKpiSpecifications: Record<string, SpecificationMetadata> = {
+  "Em análise": spec("CV-MOV-KPI-001", "Em análise", "Processos em análise administrativa.", "Contar movimentações em situação EM_ANALISE e abrir o histórico já filtrado.", "MovimentacaoFuncional.situacao.", "integer", "KPI acionável"),
+  "Aguardando validação": spec("CV-MOV-KPI-002", "Aguardando validação", "Processos que dependem de validação antes da continuidade.", "Contar situação AGUARDANDO_VALIDACAO.", "MovimentacaoFuncional.situacao.", "integer", "KPI acionável"),
+  "Vigentes / efetivadas": spec("CV-MOV-KPI-003", "Vigentes / efetivadas", "Movimentações que já produzem efeitos funcionais.", "Considerar somente movimentações efetivadas ou cessões operacionais ativas.", "Situação e detalhes operacionais da movimentação.", "integer", "KPI acionável"),
+  "Próximas do encerramento": spec("CV-MOV-KPI-004", "Próximas do encerramento", "Cessões ativas com término previsto próximo.", "Comparar o término previsto com a data de referência e não incluir cessões já encerradas.", "DetalhesCessao.fim e situação operacional.", "integer", "KPI acionável"),
+  Encerradas: spec("CV-MOV-KPI-005", "Encerradas", "Processos encerrados, cancelados ou rejeitados.", "Preservar o histórico mesmo após o encerramento.", "MovimentacaoFuncional.situacao.", "integer", "KPI acionável"),
+  "Pendentes de publicação": spec("CV-MOV-KPI-006", "Pendentes de publicação", "Movimentações autorizadas que ainda aguardam publicação.", "A movimentação não deve produzir o efeito definitivo antes da etapa exigida de publicação.", "Situação, fases e dados de publicação.", "integer", "KPI acionável"),
+};
+
+export const movimentacoesTabSpecifications: Record<string, SpecificationMetadata> = {
+  Cessões: spec("CV-MOV-TAB-001", "Cessões", "Consultar cessões e seus estados operacionais.", "A cessão mantém vínculo, ocupação e vaga de origem e altera temporariamente o exercício. Cessão interna ocorre entre órgãos ou entidades do Poder Executivo Estadual; cessão externa destina o servidor a órgão ou entidade que não integra esse Poder Executivo. Ônus, reembolso, prazo, prorrogação e encerramento são condições do processo, não modalidades de cessão.", "MovimentacaoFuncional tipo CESSAO.", "MovimentacaoFuncional[]", "aba"),
+  Remoções: spec("CV-MOV-TAB-002", "Remoções", "Consultar remoções internas e externas.", "A remoção produz mudança definitiva e deve respeitar quadro, carreira, vaga e autorizações. Quanto ao destino, pode ser interna, quando muda a unidade dentro do mesmo órgão ou entidade, ou externa, quando transfere a lotação para outro órgão ou entidade do Poder Executivo Estadual. Quanto à forma, pode ocorrer por permuta entre servidores do mesmo cargo e perfil equivalente; de ofício por necessidade e interesse público; a pedido do servidor, condicionado ao interesse administrativo e à existência de vaga; ou mediante processo seletivo interno quando houver mais interessados do que vagas.", "MovimentacaoFuncional tipo REMOCAO.", "MovimentacaoFuncional[]", "aba"),
+  Histórico: spec("CV-MOV-TAB-003", "Histórico", "Consultar conjuntamente todos os processos e eventos preservados.", "Nenhum processo publicado ou efetivado é apagado; correções geram eventos auditáveis.", "MovimentacaoFuncional e histórico.", "MovimentacaoFuncional[]", "aba"),
+};
+
+export const movimentacoesFilterSpecifications: Record<string, SpecificationMetadata> = {
+  Pesquisa: spec("CV-MOV-FLT-001", "Pesquisa da movimentação", "Localizar processo por pessoa, CPF, matrícula, vínculo ou vaga.", "Pesquisar dados da ocupação e da movimentação sem alterar os registros.", "MovimentacaoFuncional e OcupacaoVaga.", "string", "campo de busca"),
+  Modalidade: spec("CV-MOV-FLT-002", "Modalidade", "Restringir a consulta à modalidade selecionada.", "Exibir somente modalidades válidas para a aba atual.", "MovimentacaoFuncional.subtipo.", "enum | vazio", "select"),
+  Órgão: spec("CV-MOV-FLT-003", "Órgão", "Localizar movimentações pela origem ou pelo destino.", "O filtro deve considerar ambos os lados da movimentação.", "orgaoOrigem e orgaoDestino.", "string | vazio", "select"),
+  Situação: spec("CV-MOV-FLT-004", "Situação", "Restringir processos pelo estado atual do fluxo.", "Ao alterar manualmente, remover o atalho rápido anteriormente aplicado.", "MovimentacaoFuncional.situacao.", "enum | vazio", "select"),
+  "Período inicial": spec("CV-MOV-FLT-005", "Período inicial", "Definir o início do período de solicitação.", "Incluir solicitações na data inicial ou posteriores.", "dataSolicitacao.", "date ISO", "date input"),
+  "Período final": spec("CV-MOV-FLT-006", "Período final", "Definir o fim do período de solicitação.", "Incluir solicitações na data final ou anteriores.", "dataSolicitacao.", "date ISO", "date input"),
+};
+
+export const movimentacoesBlockSpecifications: Record<string, SpecificationMetadata> = {
+  Filtros: spec("CV-MOV-BLK-001", "Filtros das movimentações", "Aplicar um recorte único à listagem da aba selecionada.", "Filtros e atalhos rápidos devem conversar e produzir a mesma lista.", "Estado local e lista derivada.", "MovimentacoesFiltros", "formulário de filtros"),
+  Tabela: spec("CV-MOV-BLK-002", "Consulta de movimentações", "Exibir processo, pessoa, modalidade, origem, destino, situação, fase e ações.", "Cada linha representa um processo rastreável; ações disponíveis dependem da situação atual.", "MovimentacaoFuncional[] e OcupacaoVaga.", "table", "tabela de acompanhamento"),
+};
+
+export const movimentacoesActionSpecifications: Record<string, SpecificationMetadata> = {
+  "Nova cessão": spec("CV-MOV-ACT-001", "Nova cessão", "Iniciar um processo de cessão interna ou externa.", "Exigir ocupação ativa, fundamento legal, destino, modalidade, prazo e processo SIGADOC; a vaga permanece ocupada e no órgão titular. Cessão interna ocorre entre órgãos ou entidades do Poder Executivo Estadual; cessão externa ocorre para órgão ou entidade que não integra esse Poder Executivo. Ônus, reembolso, prazo, prorrogação e encerramento são condições do processo, não tipos distintos de cessão.", "Formulário NovaCessaoModal em modo página.", "navigation", "botão primário", "/prototipos/sigep/backlog/movimentacoes/nova-cessao"),
+  "Nova remoção": spec("CV-MOV-ACT-002", "Nova remoção", "Iniciar um processo de remoção interna ou externa.", "Exigir ocupação ativa, fundamento legal, modalidade, destino, motivação e processo SIGADOC. A remoção interna muda definitivamente a unidade dentro do mesmo órgão ou entidade; a externa muda a lotação para outro órgão ou entidade do Poder Executivo Estadual. Pode ocorrer por permuta, de ofício, a pedido ou mediante processo seletivo interno, sempre conforme os requisitos da modalidade escolhida.", "Formulário NovaRemocaoModal em modo página.", "navigation", "botão primário", "/prototipos/sigep/backlog/movimentacoes/nova-remocao"),
+  Limpar: spec("CV-MOV-ACT-003", "Limpar filtros", "Remover filtros e atalho rápido ativo.", "Retornar à consulta integral da aba sem alterar dados.", "Estado local dos filtros.", "void", "botão"),
+  Visualizar: spec("CV-MOV-ACT-004", "Visualizar movimentação", "Abrir dados completos, fases e histórico do processo.", "Exibir o detalhe correto para cessão ou remoção, sempre preservando a auditoria.", "MovimentacaoFuncional selecionada.", "dialog", "botão de ação"),
+  Avançar: spec("CV-MOV-ACT-005", "Avançar fluxo", "Executar a próxima ação permitida para o processo.", "A próxima fase depende da situação; publicação e efetivação devem respeitar validações e produzir histórico.", "Máquina de estados da movimentação.", "command", "botão de ação"),
+};
+
+export const movimentacoesBusinessItems = [...Object.values(movimentacoesKpiSpecifications), ...Object.values(movimentacoesTabSpecifications), ...Object.values(movimentacoesFilterSpecifications), ...Object.values(movimentacoesBlockSpecifications), ...Object.values(movimentacoesActionSpecifications)];

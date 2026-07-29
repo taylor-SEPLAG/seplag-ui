@@ -51,16 +51,21 @@ export interface TablePaginadoSeplagProps<T extends DataTableValue> {
   readonly handleView?: ((arg: T) => void) | null;
   readonly handleAdicionar?: (() => void) | null;
   readonly disableAdicionar?: boolean;
+  readonly expanderPosition?: "start" | "end";
+  readonly collapsedRowIcon?: string;
+  readonly expandedRowIcon?: string;
   readonly allowExpansion?:
     | boolean
     | ((data: T, options: ColumnBodyOptions) => boolean);
   readonly onRowToggle?: (event: DataTableRowToggleEvent) => void;
   readonly isDisabled?: boolean;
   readonly renderBotoes?: (data: T) => ReactNode;
+  readonly renderExpander?: (data: T) => ReactNode;
   readonly header?: DataTableHeaderTemplateType<T[]>;
 }
 export interface ColumnMetaSeplag<T> {
-  header: string;
+  header: ReactNode;
+  sortable?: boolean;
   field?: string;
   body?: (data: T, options: ColumnBodyOptions) => React.ReactNode;
   selectionMode?: string;
@@ -95,9 +100,13 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
   expandedRows,
   rowExpansionTemplate,
   allowExpansion,
+  expanderPosition = "start",
+  collapsedRowIcon,
+  expandedRowIcon,
   onRowToggle,
   isDisabled,
   renderBotoes,
+  renderExpander,
 }: Readonly<TablePaginadoSeplagProps<T>>) {
   const first = (data?.pageActual ?? 0) * rows;
 
@@ -249,6 +258,8 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
         onRowSelect={isDisabled ? undefined : onRowSelect}
         onRowUnselect={onRowUnselect}
         expandedRows={expandedRows}
+        collapsedRowIcon={collapsedRowIcon}
+        expandedRowIcon={expandedRowIcon}
         onSelectionChange={isDisabled ? undefined : handleSelectionChange}
         rowExpansionTemplate={rowExpansionTemplate}
         onRowToggle={onRowToggle}
@@ -262,24 +273,44 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
             headerStyle={{ width: "3rem" }}
           ></Column>
         )}
-        {allowExpansion && (
+        {allowExpansion && expanderPosition === "start" && (
           <Column
             key="col-expander"
             expander={allowExpansion}
-            style={{ width: "5rem" }}
+            style={{ width: "3rem" }}
           />
         )}
         {columns.map((col, i) => (
           <Column
-            key={col.field || col.header || i}
+            key={
+              col.field ||
+              (typeof col.header === "string" ? col.header : undefined) ||
+              i
+            }
             field={col.field}
             header={col.header}
             bodyStyle={{ wordBreak: "break-all" }}
             body={col.body}
+            sortable={col.sortable}
           />
         ))}
         {hasEventoAcao && (
           <Column key="col-acoes" header="Ações" body={actionBotoes} />
+        )}
+        {renderExpander && (
+          <Column
+            key="col-expander-custom"
+            header=""
+            body={renderExpander}
+            style={{ width: "3rem" }}
+          />
+        )}
+        {allowExpansion && expanderPosition === "end" && (
+          <Column
+            key="col-expander-end"
+            expander={allowExpansion}
+            style={{ width: "3rem" }}
+          />
         )}
       </DataTable>
 
