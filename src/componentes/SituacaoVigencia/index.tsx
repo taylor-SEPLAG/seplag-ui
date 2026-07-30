@@ -74,6 +74,7 @@ export interface SituacaoVigenciaSeplagProps<T extends FieldValues = any> {
   };
   possuiVinculosOuDependencias?: boolean;
   permitirExtincaoDireta?: boolean;
+  situacoesDisponiveis?: readonly SituacaoVigenciaSeplag[];
   ocultarRotuloSituacao?: boolean;
   rotuloDataAtivacao?: string;
   dataAtivacaoMinDate?: Date;
@@ -258,6 +259,11 @@ export function SituacaoVigenciaSeplag<T extends FieldValues = any>({
   cols,
   possuiVinculosOuDependencias = false,
   permitirExtincaoDireta = true,
+  situacoesDisponiveis = [
+    SITUACAO_VIGENCIA.ATIVO,
+    SITUACAO_VIGENCIA.ENCERRADO,
+    SITUACAO_VIGENCIA.EXTINTO,
+  ],
   ocultarRotuloSituacao = false,
   rotuloDataAtivacao = "Data de Ativação",
   dataAtivacaoMinDate,
@@ -300,6 +306,22 @@ export function SituacaoVigenciaSeplag<T extends FieldValues = any>({
   const podeExtinguir =
     permitirExtincaoDireta ||
     Boolean(dataEncerramento && String(motivoEncerramento ?? "").trim());
+  const opcoesSituacao: readonly {
+    label: string;
+    value: SituacaoVigenciaSeplag;
+    disabled?: boolean;
+  }[] = [
+    { label: "Ativo", value: SITUACAO_VIGENCIA.ATIVO },
+    {
+      label: "Encerrado",
+      value: SITUACAO_VIGENCIA.ENCERRADO,
+    },
+    {
+      label: "Extinto",
+      value: SITUACAO_VIGENCIA.EXTINTO,
+      disabled: !podeExtinguir,
+    },
+  ];
 
   useEffect(() => {
     if (
@@ -409,18 +431,11 @@ export function SituacaoVigenciaSeplag<T extends FieldValues = any>({
                 <div className="flex flex-column">
                   <div className="flex justify-content-start situacao-vigencia-radio-row">
                     <div className="flex align-items-center">
-                      {[
-                        { label: "Ativo", value: SITUACAO_VIGENCIA.ATIVO },
-                        {
-                          label: "Encerrado",
-                          value: SITUACAO_VIGENCIA.ENCERRADO,
-                        },
-                        {
-                          label: "Extinto",
-                          value: SITUACAO_VIGENCIA.EXTINTO,
-                          disabled: !podeExtinguir,
-                        },
-                      ].map((option, index) => (
+                      {opcoesSituacao
+                        .filter((option) =>
+                          situacoesDisponiveis.includes(option.value),
+                        )
+                        .map((option, index) => (
                         <span
                           className="situacao-vigencia-radio-option"
                           key={option.value}
@@ -441,7 +456,7 @@ export function SituacaoVigenciaSeplag<T extends FieldValues = any>({
                             {option.label}
                           </label>
                         </span>
-                      ))}
+                        ))}
                     </div>
                   </div>
                   {getFormErrorMessage(field.name)}
