@@ -1,4 +1,9 @@
-import type { HistoricoVaga, SituacaoLegalVaga, Vaga } from "./types";
+import type {
+  HistoricoVaga,
+  QuadroAutorizadoRow,
+  SituacaoLegalVaga,
+  Vaga,
+} from "./types";
 import { gerarIdentificadorVaga } from "./vagaUtils";
 
 export type TipoAlteracaoQuadroLegal = "AMPLIACAO" | "REDUCAO" | "TRANSFORMACAO" | "EXTINCAO_PROGRESSIVA";
@@ -90,5 +95,59 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
   const atualizadas = vagas.map((vaga) => alteradas.find((item) => item.id === vaga.id) ?? vaga);
   const emExtincao = alteradas.filter((vaga) => vaga.situacaoLegal === "EM_EXTINCAO").length;
   if (emExtincao) alertas.push(`${emExtincao} vaga(s) ocupada(s) permanecerão em extinção até a liberação.`);
-  return { vagas: atualizadas, criadas, alteradas, alertas, quantitativoAnterior: vagas.length, quantitativoPosterior: vagas.length - alteradas.length };
+  const quantitativoPosterior =
+    comando.tipo === "EXTINCAO_PROGRESSIVA"
+      ? atualizadas.filter((vaga) => vaga.situacaoLegal === "EM_EXTINCAO").length
+      : vagas.length - alteradas.length;
+  return {
+    vagas: atualizadas,
+    criadas,
+    alteradas,
+    alertas,
+    quantitativoAnterior: vagas.length,
+    quantitativoPosterior,
+  };
+}
+
+const dataBr = (data: string) => data.split("-").reverse().join("/");
+
+export function reconciliarQuadroAposVacanciaEmExtincao(
+  quadro: QuadroAutorizadoRow,
+  vagas: readonly Vaga[],
+  dataVacancia: string,
+): QuadroAutorizadoRow {
+  if (!quadro.extincaoProgressivaEmAndamento) return quadro;
+
+  const vagasRestantes = vagas.filter(
+    (vaga) =>
+      vaga.quadroAutorizadoId === quadro.id &&
+      vaga.situacaoLegal !== "EXTINTA",
+  );
+  const ocupadas = vagasRestantes.filter(
+    (vaga) => vaga.estado === "OCUPADA",
+  ).length;
+
+  if (vagasRestantes.length > 0) {
+    return {
+      ...quadro,
+      autorizadas: vagasRestantes.length,
+      ocupadas,
+    };
+  }
+
+  return {
+    ...quadro,
+    autorizadas: 0,
+    ocupadas: 0,
+    comprometidas: 0,
+    bloqueadas: 0,
+    situacaoVigencia: "EXTINTO",
+    dataExtincao: dataVacancia,
+    motivoExtincao:
+      "Extinção progressiva concluída após a vacância da última vaga ocupada.",
+    fimVigencia: dataBr(dataVacancia),
+    situacao: "Encerrada",
+    extincaoProgressivaEmAndamento: false,
+    atualizadoEm: dataBr(dataVacancia),
+  };
 }

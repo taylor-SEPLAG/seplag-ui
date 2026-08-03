@@ -611,6 +611,12 @@
   border-radius: 0.4rem;
   background: #fff;
 }
+.prototype-quadro-scope-summary > .col-12:first-child {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
 .prototype-quadro-scope-summary > .col-12 > .content-rotulo {
   width: 100%;
   justify-content: space-between;
@@ -1864,6 +1870,43 @@
   min-width: 7rem;
 }
 
+.prototype-quadro-library-filters > .prototype-quadro-spec-control:has(> .p-button),
+.prototype-quadro-library-filters > .prototype-quadro-spec-control:has(> button) {
+  align-self: end;
+  justify-self: stretch;
+}
+
+.prototype-quadro-library-filters .prototype-quadro-spec-control > .p-button,
+.prototype-quadro-library-filters .prototype-quadro-spec-control > button {
+  height: 2.5rem !important;
+}
+
+@media (min-width: 1101px) {
+  .prototype-quadro-library-filters
+    > .prototype-quadro-spec-control:has(> .p-button),
+  .prototype-quadro-library-filters
+    > .prototype-quadro-spec-control:has(> button) {
+    grid-column: 6 !important;
+    grid-row: 1 !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .prototype-quadro-library-filters
+    > .prototype-quadro-spec-control:has(> .p-button),
+  .prototype-quadro-library-filters
+    > .prototype-quadro-spec-control:has(> button) {
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+}
+
+@media (min-width: 751px) and (max-width: 1300px) {
+  .prototype-quadro-library-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
 .prototype-quadro-spec-cell {
   width: 100%;
   min-height: 2.25rem;
@@ -1896,5 +1939,147 @@
   outline: none;
 }
 
+.prototype-quadro-version-history {
+  padding: 1rem 1.1rem 1.2rem;
+  background: #fff;
+}
 
+.prototype-quadro-version-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dce3e9;
+}
+
+.prototype-quadro-version-table {
+  width: 100%;
+  min-width: 68rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.prototype-quadro-version-table th,
+.prototype-quadro-version-table td {
+  padding: 0.75rem 0.65rem;
+  border-right: 1px solid #e1e6eb;
+  border-bottom: 1px solid #e1e6eb;
+  color: #3f4e60;
+  font-size: 0.78rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.prototype-quadro-version-table th {
+  background: #f7f8f9;
+  color: #314257;
+  font-weight: 700;
+}
+
+.prototype-quadro-version-table tbody tr:nth-child(even) td {
+  background: #fbfbfb;
+}
+
+.prototype-quadro-version-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.prototype-quadro-version-table th:last-child,
+.prototype-quadro-version-table td:last-child {
+  width: 5rem;
+  border-right: 0;
+  text-align: center;
+}
+
+.prototype-quadro-version-table th:first-child,
+.prototype-quadro-version-table td:first-child {
+  width: 7rem;
+}
+
+.prototype-quadro-version-table th:nth-child(4),
+.prototype-quadro-version-table td:nth-child(4) {
+  width: 15rem;
+}
+
+.prototype-quadro-version-table th:nth-child(5),
+.prototype-quadro-version-table td:nth-child(5) {
+  width: 7rem;
+  text-align: center;
+}
+
+.prototype-quadro-version-table td small {
+  display: block;
+  margin-top: 0.2rem;
+  color: #788697;
+  font-size: 0.68rem;
+}
+
+.prototype-quadro-version-table .p-button.p-button-icon-only {
+  width: 2rem;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: 0.3rem;
+  background: #1689e5;
+  color: #fff;
+}
+
+.prototype-quadro-version-empty {
+  margin: 0;
+  padding: 1.2rem;
+  border: 1px dashed #cbd6df;
+  color: #68778a;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.prototype-quadro-version-modal {
+  padding: 0.5rem 0.75rem 1rem;
+}
+
+.prototype-quadro-version-modal-status {
+  display: flex;
+  padding: 0.8rem 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #e1e6eb;
+}
+
+.prototype-quadro-version-modal-status strong {
+  color: #26384d;
+  font-size: 0.9rem;
+}
+
+.prototype-quadro-version-modal dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 0;
+  padding: 1.1rem 0 0;
+}
+
+.prototype-quadro-version-modal dl > div.is-wide {
+  grid-column: 1 / -1;
+}
+
+.prototype-quadro-version-modal dt {
+  color: #68778a;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.prototype-quadro-version-modal dd {
+  margin: 0.25rem 0 0;
+  color: #26384d;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .prototype-quadro-version-modal dl {
+    grid-template-columns: 1fr;
+  }
+
+  .prototype-quadro-version-modal dl > div.is-wide {
+    grid-column: auto;
+  }
+}
 

@@ -101,6 +101,9 @@ export function QuadroLegalOperacoes({
     const ocupadas = vagasDaNovaVersao.filter(
       (vaga) => vaga.estado === "OCUPADA" && vaga.situacaoLegal !== "EXTINTA",
     ).length;
+    const extincaoProgressiva = tipo === "EXTINCAO_PROGRESSIVA";
+    const extincaoImediata =
+      extincaoProgressiva && resultado.quantitativoPosterior === 0;
     const novaVersao: QuadroAutorizadoRow = {
       ...registro,
       id: novoId,
@@ -110,7 +113,26 @@ export function QuadroLegalOperacoes({
       processo,
       inicioVigencia: dataEfeito.split("-").reverse().join("/"),
       dataAtivacao: dataEfeito,
-      situacao: vigenciaFutura ? "Vigência futura" : "Vigente",
+      dataEncerramento: undefined,
+      motivoEncerramento: undefined,
+      situacaoVigencia: extincaoImediata ? "EXTINTO" : "ATIVO",
+      dataExtincao: extincaoImediata ? dataEfeito : undefined,
+      motivoExtincao: extincaoImediata
+        ? "Extinção progressiva concluída sem vagas ocupadas."
+        : undefined,
+      extincaoProgressivaEmAndamento:
+        extincaoProgressiva && !extincaoImediata,
+      dataInicioExtincaoProgressiva: extincaoProgressiva
+        ? dataEfeito
+        : undefined,
+      fimVigencia: extincaoImediata
+        ? dataEfeito.split("-").reverse().join("/")
+        : "",
+      situacao: vigenciaFutura
+        ? "Vigência futura"
+        : extincaoImediata
+          ? "Encerrada"
+          : "Vigente",
       versao: registro.versao + 1,
       atualizadoEm: "20/07/2026",
     };

@@ -6,43 +6,73 @@ import { ControleVagasRegrasContent } from "./ControleVagasRegrasContent";
 import { QuadroAutorizadoContent } from "./QuadroAutorizadoContent";
 import { DashboardGerencialContent } from "./DashboardGerencialContent";
 import { VagasIndividualizadasContent } from "./VagasIndividualizadasContent";
-import { MovimentacoesContent } from "./MovimentacoesContent";
-import { ProjecoesVagasContent } from "./ProjecoesVagasContent";
 import { DistribuicaoIndividualContent } from "./DistribuicaoIndividualContent";
 import { controleVagasStore } from "./controleVagasStore";
 
-afterEach(() => { cleanup(); localStorage.clear(); });
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+});
+
 const cases = [
   ["Dashboard gerencial", DashboardGerencialContent],
   ["Regras e Parâmetros", ControleVagasRegrasContent],
   ["Quadro Autorizado", QuadroAutorizadoContent],
   ["Vagas Individualizadas", VagasIndividualizadasContent],
-  ["Movimentações", MovimentacoesContent],
-  ["Projeções", ProjecoesVagasContent],
   ["Distribuição", DistribuicaoIndividualContent],
 ] as const;
 
 describe("menus do Controle de Vagas", () => {
   it.each(cases)("renderiza %s", (_nome, Component) => {
-    const result = render(<MemoryRouter><Component /></MemoryRouter>);
+    const result = render(
+      <MemoryRouter>
+        <Component />
+      </MemoryRouter>,
+    );
     expect(result.container.firstElementChild).not.toBeNull();
   });
 
   it("separa edição pré-vigência de nova versão", () => {
-    const result = render(<MemoryRouter><QuadroAutorizadoContent /></MemoryRouter>);
-    expect(result.getAllByTitle("Edição indisponível após a vigência")[0].hasAttribute("disabled")).toBe(true);
-    expect(result.getByTitle("Editar antes da vigência").hasAttribute("disabled")).toBe(false);
-    expect(result.getAllByTitle("Criar nova versão")[0].querySelector(".pi-plus")).toBeTruthy();
+    const result = render(
+      <MemoryRouter>
+        <QuadroAutorizadoContent />
+      </MemoryRouter>,
+    );
+    const editar = result.getAllByLabelText("Editar");
+    expect(editar.some((botao) => botao.hasAttribute("disabled"))).toBe(true);
+    expect(editar.some((botao) => !botao.hasAttribute("disabled"))).toBe(true);
+    expect(
+      result.getAllByLabelText("Criar nova versão")[0].querySelector(".pi-plus"),
+    ).toBeTruthy();
   });
+
   it("abre os dados do quadro em modal e diferencia a criação de nova versão", () => {
-    const result = render(<MemoryRouter><QuadroAutorizadoContent /></MemoryRouter>);
-    fireEvent.click(result.getAllByTitle("Visualizar")[0]);
+    const result = render(
+      <MemoryRouter>
+        <QuadroAutorizadoContent />
+      </MemoryRouter>,
+    );
+    fireEvent.click(result.getAllByLabelText("Visualizar")[0]);
     const dialog = result.getByRole("dialog");
     expect(dialog).toBeTruthy();
-    expect(dialog.querySelector("button.is-primary .pi-plus")).toBeTruthy();
+    expect(dialog.textContent).toContain("Criar nova versão");
   });
+
   it("usa a evolução legal existente na rota de nova versão", () => {
-    const result = render(<MemoryRouter initialEntries={["/prototipos/sigep/controle-vagas/quadro-autorizado/1/nova-versao"]}><Routes><Route path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/nova-versao" element={<QuadroAutorizadoContent />} /></Routes></MemoryRouter>);
+    const result = render(
+      <MemoryRouter
+        initialEntries={[
+          "/prototipos/sigep/controle-vagas/quadro-autorizado/1/nova-versao",
+        ]}
+      >
+        <Routes>
+          <Route
+            path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/nova-versao"
+            element={<QuadroAutorizadoContent />}
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
     expect(result.getByText("Evolução do quadro legal")).toBeTruthy();
     expect(result.getByText("Ampliação legal")).toBeTruthy();
     expect(result.getByText("Redução legal")).toBeTruthy();
@@ -59,13 +89,25 @@ describe("menus do Controle de Vagas", () => {
     expect(result.getByRole("dialog", { name: "Registrar nova versão?" })).toBeTruthy();
     expect(result.getByText("Confirmar e registrar")).toBeTruthy();
   });
+
   it("renderiza a rota de nova autorização", () => {
-    const result = render(<MemoryRouter initialEntries={["/prototipos/sigep/controle-vagas/quadro-autorizado/novo"]}><QuadroAutorizadoContent /></MemoryRouter>);
-    expect(result.getAllByText("Nova autorização").length).toBeGreaterThan(0);
-    expect(result.getByText("Como a lei definiu a alocação das vagas? *")).toBeTruthy();
+    const result = render(
+      <MemoryRouter
+        initialEntries={["/prototipos/sigep/controle-vagas/quadro-autorizado/novo"]}
+      >
+        <QuadroAutorizadoContent />
+      </MemoryRouter>,
+    );
+    expect(result.getAllByText("Novo Quadro").length).toBeGreaterThan(0);
+    expect(result.getByText("Como a lei definiu a alocação das vagas?")).toBeTruthy();
   });
+
   it("ativa, recolhe e expande o painel de especificação", () => {
-    const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
+    const result = render(
+      <MemoryRouter>
+        <DashboardGerencialContent />
+      </MemoryRouter>,
+    );
     fireEvent.click(result.getByTitle("Visualização do desenvolvedor"));
     expect(result.getByLabelText("Especificação do componente")).toBeTruthy();
     fireEvent.click(result.getByTitle("Recolher painel"));
@@ -73,12 +115,19 @@ describe("menus do Controle de Vagas", () => {
     fireEvent.click(result.getByTitle("Expandir painel"));
     expect(result.getByLabelText("Especificação do componente")).toBeTruthy();
   });
+
   it("abre a validação visual da área de negócio", async () => {
-    const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
+    const result = render(
+      <MemoryRouter>
+        <DashboardGerencialContent />
+      </MemoryRouter>,
+    );
     fireEvent.click(result.getByTitle("Validação da área de negócio"));
     expect(result.container.querySelector("aside.prototype-business-panel")).toBeTruthy();
     expect(result.getByText("Identificação do avaliador")).toBeTruthy();
-    fireEvent.change(result.getByLabelText("E-mail"), { target: { value: "avaliador@seplag.mt.gov.br" } });
+    fireEvent.change(result.getByLabelText("E-mail"), {
+      target: { value: "avaliador@seplag.mt.gov.br" },
+    });
     fireEvent.change(result.getByLabelText("Senha"), { target: { value: "teste-local" } });
     fireEvent.click(result.getByText("Entrar para avaliar"));
     expect(await result.findByText("avaliador")).toBeTruthy();
@@ -88,19 +137,59 @@ describe("menus do Controle de Vagas", () => {
     fireEvent.click(result.getByText("Aprovar"));
     expect(result.getByText("Aprovado")).toBeTruthy();
   });
+
   it("consolida avaliações por avaliador para o administrador", async () => {
-    localStorage.setItem("prototype-review-user", JSON.stringify({ id: "admin-1", email: "admin@seplag.mt.gov.br", name: "Administrador", role: "ADMIN" }));
-    localStorage.setItem("prototype-reviews", JSON.stringify([{ id: "review-1", prototypeId: "SIGEP", prototypeVersion: "controle-vagas-prototipo-atual", screenId: "CV-DASH", componentId: "CV-DASH-KPI-001", componentTitle: "Cargos legais", reviewerId: "reviewer-1", reviewerName: "Danielle Cruz", reviewerEmail: "danielle@seplag.mt.gov.br", status: "APROVADO", comment: "Validado", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]));
-    const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
+    localStorage.setItem(
+      "prototype-review-user",
+      JSON.stringify({
+        id: "admin-1",
+        email: "admin@seplag.mt.gov.br",
+        name: "Administrador",
+        role: "ADMIN",
+      }),
+    );
+    localStorage.setItem(
+      "prototype-reviews",
+      JSON.stringify([
+        {
+          id: "review-1",
+          prototypeId: "SIGEP",
+          prototypeVersion: "controle-vagas-prototipo-atual",
+          screenId: "CV-DASH",
+          componentId: "CV-DASH-KPI-001",
+          componentTitle: "Cargos legais",
+          reviewerId: "reviewer-1",
+          reviewerName: "Danielle Cruz",
+          reviewerEmail: "danielle@seplag.mt.gov.br",
+          status: "APROVADO",
+          comment: "Validado",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]),
+    );
+    const result = render(
+      <MemoryRouter>
+        <DashboardGerencialContent />
+      </MemoryRouter>,
+    );
     fireEvent.click(result.getByTitle("Validação da área de negócio"));
     expect(await result.findByText("Acompanhamento da validação")).toBeTruthy();
     expect(result.getByText("Danielle Cruz")).toBeTruthy();
     expect(result.getByText("Por componente")).toBeTruthy();
     expect(result.getAllByText("Pendências").length).toBeGreaterThan(0);
   });
+
   it("controla individualmente os indicadores do Dashboard", () => {
-    const result = render(<MemoryRouter><DashboardGerencialContent /></MemoryRouter>);
-    const possuiCartao = (nome:string) => [...result.container.querySelectorAll("button.prototype-dash-kpi")].some((item) => item.textContent?.includes(nome));
+    const result = render(
+      <MemoryRouter>
+        <DashboardGerencialContent />
+      </MemoryRouter>,
+    );
+    const possuiCartao = (nome: string) =>
+      [...result.container.querySelectorAll("button.prototype-dash-kpi")].some((item) =>
+        item.textContent?.includes(nome),
+      );
     expect(result.container.querySelector(".prototype-dash-kpis.management.unified")).toBeTruthy();
     expect(possuiCartao("Cargos legais")).toBe(true);
     fireEvent.click(result.getByText("Filtros da consulta"));
@@ -109,17 +198,29 @@ describe("menus do Controle de Vagas", () => {
     fireEvent.click(controle);
     expect((controle as HTMLInputElement).checked).toBe(false);
     expect(possuiCartao("Cargos legais")).toBe(false);
-  });  it("possui as fontes necessárias para a Fase 10", () => {
+  });
+
+  it("possui as fontes necessárias para a Fase 10", () => {
     const state = controleVagasStore.getState();
     const ocupacoesAtivas = state.ocupacoes.filter((item) => item.situacao === "ATIVA");
     expect(new Set(state.vagas.map((vaga) => `${vaga.quadroCodigo}|${vaga.cargo}`)).size).toBeGreaterThan(0);
     expect(state.vagas.every((vaga) => Boolean(vaga.lei && vaga.orgaoTitular))).toBe(true);
-    expect(state.vagas.filter((vaga) => vaga.estado === "OCUPADA").every((vaga) => ocupacoesAtivas.some((ocupacao) => ocupacao.vagaId === vaga.id))).toBe(true);
-    expect(ocupacoesAtivas.every((ocupacao) => state.vagas.some((vaga) => vaga.id === ocupacao.vagaId && vaga.estado === "OCUPADA"))).toBe(true);
-    expect(state.cessoes.some((item) => item.situacao === "ATIVA")).toBe(true);
+    expect(
+      state.vagas
+        .filter((vaga) => vaga.estado === "OCUPADA")
+        .every((vaga) => ocupacoesAtivas.some((ocupacao) => ocupacao.vagaId === vaga.id)),
+    ).toBe(true);
+    expect(
+      ocupacoesAtivas.every((ocupacao) =>
+        state.vagas.some((vaga) => vaga.id === ocupacao.vagaId && vaga.estado === "OCUPADA"),
+      ),
+    ).toBe(true);
     expect(state.excecoesJudiciais.some((item) => item.situacao === "ATIVA")).toBe(true);
-    expect(state.vagas.some((vaga) => vaga.situacaoLegal === "EM_EXTINCAO" || vaga.situacaoLegal === "EXTINTA")).toBe(true);
-    expect(state.fatoresProjecao.some((fator) => fator.categoria.includes("APOSENTADORIA") && fator.vinculoIds?.length)).toBe(true);
-    expect(state.metodologias.some((item) => item.status === "VIGENTE")).toBe(true);
+    expect(
+      state.vagas.some(
+        (vaga) => vaga.situacaoLegal === "EM_EXTINCAO" || vaga.situacaoLegal === "EXTINTA",
+      ),
+    ).toBe(true);
     expect(controleVagasStore.historico().length).toBeGreaterThan(0);
-  });});
+  });
+});

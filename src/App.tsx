@@ -124,6 +124,7 @@ import {
   PrototiposSicadUsuariosPage,
   PrototiposSicadUsuarioPerfilPage,
 } from "./prototipos/sicad/PrototiposSicadPage";
+import { UsGeneratorPage } from "./usGenerator/UsGeneratorPage";
 
 function HomePage() {
   const sistemas = [
@@ -1774,6 +1775,7 @@ function App() {
         <Route path=":id" element={<DocsRenderer />} />
         <Route index element={<DocsRenderer />} />
       </Route>
+      <Route path="/ferramentas/gerador-us" element={<UsGeneratorPage />} />
     </Routes>
   );
 }
