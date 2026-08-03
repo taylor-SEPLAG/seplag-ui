@@ -39,6 +39,10 @@ import {
   PrototiposControleVagasVagasPage,
   PrototiposControleVagasCessoesPage,
   PrototiposControleVagasProjecoesPage,
+  PrototiposControlePssPainelPage,
+  PrototiposControlePssProcessosPage,
+  PrototiposControlePssVagasPage,
+  PrototiposControlePssIntegracaoSiesPage,
   PrototiposBacklogRegrasPage,
   PrototiposBacklogQuadroAutorizadoPage,
   PrototiposBacklogDistribuicaoPage,
@@ -1482,6 +1486,26 @@ function App() {
       <Route
         path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/nova-versao"
         element={<PrototiposControleVagasQuadroAutorizadoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/painel"
+        element={<PrototiposControlePssPainelPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/processos"
+        element={<PrototiposControlePssProcessosPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/processos/:id"
+        element={<PrototiposControlePssProcessosPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/vagas"
+        element={<PrototiposControlePssVagasPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/integracao-sies"
+        element={<PrototiposControlePssIntegracaoSiesPage />}
       />
       <Route path="/prototipos/sigep/backlog/configuracoes" element={<PrototiposBacklogRegrasPage />} />
       <Route path="/prototipos/sigep/backlog/dashboard" element={<PrototiposBacklogDashboardPage />} />

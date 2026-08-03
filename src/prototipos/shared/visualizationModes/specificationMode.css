@@ -236,13 +236,7 @@
 }
 
 .prototype-view-toggles {
-  position: fixed;
-  z-index: 1502;
-  top: 4.65rem;
-  right: 1rem;
-  display: flex;
-  gap: 0.35rem;
-  transition: right 0.18s ease;
+  display: none;
 }
 .prototype-spec-root.is-active:not(.is-panel-collapsed)
   .prototype-view-toggles {

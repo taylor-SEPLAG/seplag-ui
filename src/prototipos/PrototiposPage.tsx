@@ -118,6 +118,10 @@ import { DashboardGerencialContent as QuadroPessoalDashboardContent } from "./qu
 import { PosicoesPessoalContent as QuadroPessoalVagasContent } from "./quadroPessoal/PosicoesPessoalContent";
 import { MovimentacoesContent as QuadroPessoalMovimentacoesContent } from "./quadroPessoal/MovimentacoesContent";
 import { ProjecoesVagasContent as QuadroPessoalProjecoesContent } from "./quadroPessoal/ProjecoesVagasContent";
+import { PainelGeralPssContent as PssPainelGeralContent } from "./controlePss/PainelGeralPssContent";
+import { ProcessosSeletivosContent as PssProcessosSeletivosContent } from "./controlePss/ProcessosSeletivosContent";
+import { ControleVagasPssContent as PssControleVagasContent } from "./controlePss/ControleVagasPssContent";
+import { IntegracaoSiesContent as PssIntegracaoSiesContent } from "./controlePss/IntegracaoSiesContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
 const SIGEP_PAINEL_INFORMATIVO_PATH =
@@ -125,6 +129,7 @@ const SIGEP_PAINEL_INFORMATIVO_PATH =
 const SIGEP_CARGO_CONCURSO_TESTE_BASE_PATH =
   "/prototipos/sigep/cargo-concurso-teste";
 const CONTROLE_VAGAS_BASE_PATH = "/prototipos/sigep/controle-vagas";
+const CONTROLE_PSS_BASE_PATH = "/prototipos/sigep/controle-pss";
 const BACKLOG_BASE_PATH = "/prototipos/sigep/backlog";
 const QUADRO_PESSOAL_BASE_PATH = "/prototipos/sigep/quadro-pessoal";
 const FOLHA_PAGAMENTO_BASE_PATH =
@@ -276,6 +281,19 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
             visibleOnMenu: false,
             visibleOnRouter: true,
           },
+        ],
+      },
+      {
+        label: "Controle PSS",
+        icon: "pi pi-file-check",
+        url: "#",
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+        items: [
+          { label: "Painel Geral", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/painel`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Processos Seletivos", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/processos`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Controle de Vagas", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/vagas`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Integração SIES", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/integracao-sies`, visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -6387,6 +6405,18 @@ export function PrototiposControleVagasVagasPage() {
       <VagasIndividualizadasContent />
     </PrototypeSystemPage>
   );
+}
+export function PrototiposControlePssPainelPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssPainelGeralContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssProcessosPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssProcessosSeletivosContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssVagasPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssControleVagasContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssIntegracaoSiesPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssIntegracaoSiesContent /></PrototypeSystemPage>;
 }
 export function PrototiposBacklogRegrasPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogRegrasContent /></PrototypeSystemPage>;
