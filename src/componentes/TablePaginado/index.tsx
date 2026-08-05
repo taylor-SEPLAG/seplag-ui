@@ -239,7 +239,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
         dataKey={dataKey}
         value={data?.content}
         totalRecords={data?.totalRecords}
-        tableStyle={{ minWidth: "50rem" }}
+        tableStyle={{ minWidth: "50rem", width: "100%" }}
         rowsPerPageOptions={rowsPerPage}
         loading={isFetching}
         rows={rows}

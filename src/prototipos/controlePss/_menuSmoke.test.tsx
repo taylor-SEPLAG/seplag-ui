@@ -6,6 +6,8 @@ import { PainelGeralPssContent } from "./PainelGeralPssContent";
 import { ProcessosSeletivosContent } from "./ProcessosSeletivosContent";
 import { ControleVagasPssContent } from "./ControleVagasPssContent";
 import { IntegracaoSiesContent } from "./IntegracaoSiesContent";
+import { CertamesListContent } from "./certame/CertamesListContent";
+import { CertameFormContent } from "./certame/CertameFormContent";
 import { controlePssStore } from "./controlePssStore";
 import { definicoesEtapasPss, etapasBloqueadas, etapasManuais, gerarEtapasDoProcesso, progressoProcesso } from "./fluxoPssUtils";
 import { calcularDivergenciasSies } from "./divergenciaSiesUtils";
@@ -19,6 +21,8 @@ const cases = [
   ["Processos Seletivos", ProcessosSeletivosContent],
   ["Controle de Vagas", ControleVagasPssContent],
   ["Integração SIES", IntegracaoSiesContent],
+  ["Cadastro de Certames", CertamesListContent],
+  ["Formulário de Certame", CertameFormContent],
 ] as const;
 
 describe("menus do Controle PSS", () => {
@@ -77,12 +81,14 @@ describe("menus do Controle PSS", () => {
     expect(divergencias.some((item) => item.tipo === "CBO_DIVERGENTE")).toBe(true);
   });
 
-  it("apresenta o status geral como badge primário no Painel Geral", () => {
+  it("apresenta apenas os dados do Cadastro de Certames no Painel Geral", () => {
     const result = render(<MemoryRouter><PainelGeralPssContent /></MemoryRouter>);
-    expect(result.getByText("Processos em acompanhamento")).toBeTruthy();
-    expect(result.getAllByText("Em andamento").length).toBeGreaterThan(0);
-    expect(result.getAllByText("Fechado").length).toBeGreaterThan(0);
+    expect(result.getByText("Certames em acompanhamento")).toBeTruthy();
+    expect(result.getByText("Cargos ofertados")).toBeTruthy();
+    expect(result.getAllByText("Homologação").length).toBeGreaterThan(0);
     expect(result.container.querySelectorAll(".prototype-pss-kpi").length).toBe(6);
+    expect(result.queryByText("Vagas por cargo")).toBeNull();
+    expect(result.queryByText("Processos em acompanhamento")).toBeNull();
     expect(result.queryByText("Indicadores exibidos")).toBeNull();
   });
 

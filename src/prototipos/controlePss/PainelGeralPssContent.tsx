@@ -1,84 +1,95 @@
-import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA, CONTROLE_PSS_DATA_REFERENCIA_FORMATADA } from "./constants";
+import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA_FORMATADA } from "./constants";
 import { useControlePssStore } from "./controlePssStore";
-import { construirHistoricoTemporalPss } from "./historicoTemporalPss";
-import { construirDashboardPss, orgaosDosProcessos, situacaoProcessoLabel, situacoesProcessoPss, type DashboardPssFiltros } from "./dashboardPssSelectors";
-import { construirResumoPorSecretaria, registrosEmContingencia, statusGeralClasse, statusGeralDoProcesso, statusGeralLabel } from "./deParaIngressoUtils";
-import { faseLabel, faseLabelCurto, fasesPss } from "./fluxoPssUtils";
-import type { StatusGeralPss } from "./types";
-import { SpecArea, SpecificationMode, type SpecificationMetadata } from "../shared/visualizationModes";
-import { painelPssAlertSpecifications, painelPssBlockSpecifications, painelPssBusinessItems, painelPssFilterSpecifications, painelPssKpiSpecifications, painelPssScreenSpecification } from "./PainelGeralPssSpecifications";
+import { SITUACOES_CERTAME, TIPOS_CERTAME } from "./certame/dominios";
+import type { Certame, SituacaoCertame, TipoCertame } from "./certame/types";
+import { SpecArea, SpecificationMode } from "../shared/visualizationModes";
+import { painelPssBlockSpecifications, painelPssBusinessItems, painelPssKpiSpecifications, painelPssScreenSpecification } from "./PainelGeralPssSpecifications";
+import { CardSeplag } from "@componentes/Card";
+import { BadgeSeplag } from "@componentes/Badge";
+import { BotaoSeplag } from "@componentes/Botao";
+import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
+import type { ResultsSeplag } from "../../interfaces/Results";
 import "./controlePssBase.css";
-import "./painelGeralPss.css";
 
-const filtrosIniciais:DashboardPssFiltros={dataReferencia:CONTROLE_PSS_DATA_REFERENCIA,orgaoSolicitante:"",fase:"",tipo:"",modalidadeExecucao:"",situacao:"",somenteDivergencias:false,somentePendenciasManuais:false};
+const situacaoCertameLabel:Record<SituacaoCertame,string>=Object.fromEntries(SITUACOES_CERTAME.map((item)=>[item.value,item.label])) as Record<SituacaoCertame,string>;
+const situacaoCertameEstilo:Record<SituacaoCertame,{color:string;bg:string}>={
+ ABERTO:{color:"#0b6199",bg:"#e9f3fc"}, RETIFICACAO_EDITAL:{color:"#55637a",bg:"#eef1f5"}, HOMOLOGADO:{color:"#147441",bg:"#e2f5e8"},
+ RETIFICACAO_HOMOLOGACAO:{color:"#55637a",bg:"#eef1f5"}, PRORROGACAO_VALIDADE:{color:"#8a5c00",bg:"#fff1cf"}, CANCELADO_ANULADO:{color:"#ad3039",bg:"#ffe3e5"},
+ PARALISADO:{color:"#ad3039",bg:"#ffe3e5"}, HOMOLOGACAO_PARCIAL:{color:"#8a5c00",bg:"#fff1cf"}, RETIFICACAO_HOMOLOGACAO_PARCIAL:{color:"#8a5c00",bg:"#fff1cf"},
+};
+const tipoCertameLabel:Record<TipoCertame,string>=Object.fromEntries(TIPOS_CERTAME.map((item)=>[item.value,item.label])) as Record<TipoCertame,string>;
+
+interface CargoOfertado{id:string;cargoNome:string;vinculo:"EXISTENTE"|"NOVO";quantidadeVagas:number;vagaPcd:boolean;quantidadePcd?:number;certameId:string;certameEdital:string;certameOrgao:string}
+
+function resultadosSemPaginacao<T>(content:readonly T[]):ResultsSeplag<T>{
+ return {content:[...content],totalPages:1,totalRecords:content.length,size:Math.max(content.length,10),sizePage:Math.max(content.length,10),pageActual:0,first:true,last:true,numberOfElements:content.length,empty:content.length===0};
+}
 
 export function PainelGeralPssContent(){
  const state=useControlePssStore();const navigate=useNavigate();
- const [filtros,setFiltros]=useState(filtrosIniciais);
- const [filtrosAbertos,setFiltrosAbertos]=useState(false);
- const dados=useMemo(()=>construirDashboardPss(state,filtros),[state,filtros]);
- const eventos=useMemo(()=>construirHistoricoTemporalPss(state).slice(-5).reverse(),[state]);
- const secretarias=useMemo(()=>construirResumoPorSecretaria(state.vagas,state.ingressos,state.processos),[state.vagas,state.ingressos,state.processos]);
- const orgaos=orgaosDosProcessos(state.processos);
- const contarStatus=(status:StatusGeralPss)=>dados.grupos.filter((grupo)=>statusGeralDoProcesso(grupo.processo.situacao)===status).length;
- const vagasDisponiveis=secretarias.reduce((total,item)=>total+item.vagasDisponiveis,0);
- const contingencias=registrosEmContingencia(state.registrosDePara).length;
+ const certames=state.certames;
+ const certamesHomologados=certames.filter((certame)=>certame.situacaoAtual==="HOMOLOGADO").length;
+ const vagasCertames=certames.reduce((total,certame)=>total+certame.cargos.reduce((subtotal,cargo)=>subtotal+cargo.quantidadeVagas,0),0);
+ const cargosOfertados:CargoOfertado[]=certames.flatMap((certame)=>certame.cargos.map((cargo)=>({...cargo,certameId:certame.id,certameEdital:certame.numeroEditalOrgao,certameOrgao:certame.setor})));
+ const vagasPcd=cargosOfertados.reduce((total,cargo)=>total+(cargo.vagaPcd?cargo.quantidadePcd??0:0),0);
+
+ const cargoMaisVagas=(()=>{
+  const porCargo=new Map<string,number>();
+  cargosOfertados.forEach((cargo)=>porCargo.set(cargo.cargoNome,(porCargo.get(cargo.cargoNome)??0)+cargo.quantidadeVagas));
+  return Array.from(porCargo,([cargoNome,vagas])=>({cargoNome,vagas})).sort((a,b)=>b.vagas-a.vagas)[0];
+ })();
+
+ const indicadoresCargos=[
+  {label:"Cargos cadastrados",valor:cargosOfertados.length,hint:"Linhas de cargo/vaga nos certames",icon:"pi pi-list",cor:"blue",onClick:()=>navigate(`${BASE}/certames`)},
+  {label:"Vagas PCD ofertadas",valor:vagasPcd,hint:"Vagas reservadas para PCD/PNE",icon:"pi pi-heart",cor:"red",onClick:()=>navigate(`${BASE}/certames`)},
+  {label:"Cargo com mais vagas",valor:cargoMaisVagas?.vagas??0,hint:cargoMaisVagas?.cargoNome??"Nenhum cargo cadastrado",icon:"pi pi-star",cor:"cyan",onClick:()=>navigate(`${BASE}/certames`)},
+ ];
 
  const indicadores=[
-  {label:"Processos abertos",valor:contarStatus("ABERTO"),hint:"Recebidos do SIES, sem execução",icon:"pi pi-inbox",cor:"blue",onClick:()=>navigate(`${BASE}/processos`)},
-  {label:"Processos em andamento",valor:contarStatus("EM_ANDAMENTO"),hint:"Certame em execução",icon:"pi pi-spinner",cor:"cyan",onClick:()=>navigate(`${BASE}/processos`)},
-  {label:"Processos fechados",valor:contarStatus("FECHADO"),hint:"Homologados ou encerrados",icon:"pi pi-check-circle",cor:"green",onClick:()=>navigate(`${BASE}/processos`)},
-  {label:"Com pendência manual",valor:dados.resumo.comPendenciaManual,hint:"Trâmite fora do sistema",icon:"pi pi-exclamation-triangle",cor:"orange",onClick:()=>navigate(`${BASE}/processos`)},
-  {label:"Com divergência SIGEP × SIES",valor:dados.resumo.comDivergenciaSies,hint:`${dados.divergencias.length} ocorrências`,icon:"pi pi-flag",cor:"red",onClick:()=>navigate(`${BASE}/vagas?divergencia=SIM`)},
-  {label:"Vagas disponíveis",valor:vagasDisponiveis,hint:"Saldo por secretaria de destino",icon:"pi pi-users",cor:"purple",onClick:()=>navigate(`${BASE}/vagas`)},
+  {label:"Certames cadastrados",valor:certames.length,hint:"Concursos e PSS cadastrados no SIGEP",icon:"pi pi-id-card",cor:"blue",onClick:()=>navigate(`${BASE}/certames`)},
+  {label:"Certames homologados",valor:certamesHomologados,hint:"Situação atual Homologado",icon:"pi pi-check-circle",cor:"green",onClick:()=>navigate(`${BASE}/certames`)},
+  {label:"Vagas ofertadas nos certames",valor:vagasCertames,hint:"Somatório de vagas dos cargos cadastrados",icon:"pi pi-briefcase",cor:"purple",onClick:()=>navigate(`${BASE}/certames`)},
  ];
 
- const alertas=[
-  {icon:"pi pi-lock",kind:"critical",titulo:"Etapas bloqueadas",valor:dados.resumo.etapasBloqueadas,rota:"processos"},
-  {icon:"pi pi-flag",kind:"critical",titulo:"Divergências SIGEP × SIES",valor:dados.divergencias.length,rota:"vagas?divergencia=SIM"},
-  {icon:"pi pi-sync",kind:"warning",titulo:"Registros de-para em contingência",valor:contingencias,rota:"integracao-sies?aba=DEPARA"},
-  {icon:"pi pi-book",kind:"warning",titulo:"Publicações pendentes",valor:dados.resumo.publicacoesPendentes,rota:"integracao-sies"},
+ const colunasCertames:ColumnMetaSeplag<Certame>[]=[
+  {header:"Certame",body:(row)=><div><strong>{row.numeroEditalOrgao}</strong><div className="text-sm text-color-secondary">{row.nomeEdital}</div></div>},
+  {field:"setor",header:"Órgão mandante"},
+  {header:"Tipo",body:(row)=>tipoCertameLabel[row.tipoCertame]},
+  {header:"Situação",body:(row)=><BadgeSeplag label={situacaoCertameLabel[row.situacaoAtual]} color={situacaoCertameEstilo[row.situacaoAtual].color} bg={situacaoCertameEstilo[row.situacaoAtual].bg} border="transparent" size="sm" />},
+  {header:"Vagas",body:(row)=>row.cargos.reduce((total,cargo)=>total+cargo.quantidadeVagas,0).toLocaleString("pt-BR")},
  ];
 
- return <SpecificationMode screen={painelPssScreenSpecification} businessItems={painelPssBusinessItems}><div className="prototype-pss-page">
-  <header className="prototype-pss-header"><div><span>Controle PSS</span><h1>Painel Geral</h1><p>Posição consolidada dos processos seletivos controlados pelo SIGEP: status geral, pendências, divergências com o SIES e saldo de vagas.</p></div><div className="prototype-pss-header-actions"><small>Dados consolidados em<br/><strong>{CONTROLE_PSS_DATA_REFERENCIA_FORMATADA} 08:15</strong></small><button onClick={()=>window.print()}><i className="pi pi-download"/> Exportar visão</button></div></header>
+ const colunasCargos:ColumnMetaSeplag<CargoOfertado>[]=[
+  {field:"cargoNome",header:"Cargo"},
+  {header:"Certame",body:(row)=><div><strong>{row.certameEdital}</strong><div className="text-sm text-color-secondary">{row.certameOrgao}</div></div>},
+  {header:"Vínculo",body:(row)=>row.vinculo==="EXISTENTE"?"Vaga existente":"Vaga nova do certame"},
+  {field:"quantidadeVagas",header:"Vagas"},
+  {header:"PCD",body:(row)=>row.vagaPcd?`Sim (${row.quantidadePcd??0})`:"Não"},
+ ];
 
-  <SpecArea metadata={painelPssBlockSpecifications.aviso}><div className="prototype-pss-notice" role="status"><i className="pi pi-info-circle"/><div><strong>O SIGEP não cadastra processos seletivos.</strong><span>Os processos abaixo chegam do SIES pela integração de-para. O SIGEP controla o status do processo, as vagas por secretaria e o ingresso do servidor.</span></div></div></SpecArea>
+ return <SpecificationMode screen={painelPssScreenSpecification} businessItems={painelPssBusinessItems}>
+  <div className="prototype-page-content prototype-page-content--white"><div className="flex flex-column">
 
-  <section className="prototype-pss-filter-accordion"><SpecArea metadata={painelPssBlockSpecifications.filtros}><button className="prototype-pss-filter-trigger" onClick={()=>setFiltrosAbertos((aberto)=>!aberto)} aria-expanded={filtrosAbertos}><span><i className="pi pi-filter"/><strong>Filtros da consulta</strong><small>Data, órgão, fase e situação</small></span><i className={`pi ${filtrosAbertos?"pi-chevron-up":"pi-chevron-down"}`}/></button></SpecArea>{filtrosAbertos&&<div className="prototype-pss-filters">
-   <Filtro label="Data de referência" metadata={painelPssFilterSpecifications["Data de referência"]}><input type="date" value={filtros.dataReferencia} onChange={(e)=>setFiltros({...filtros,dataReferencia:e.target.value})}/></Filtro>
-   <Filtro label="Órgão solicitante" metadata={painelPssFilterSpecifications["Órgão solicitante"]}><select value={filtros.orgaoSolicitante} onChange={(e)=>setFiltros({...filtros,orgaoSolicitante:e.target.value})}><option value="">Todos</option>{orgaos.map((item)=><option key={item}>{item}</option>)}</select></Filtro>
-   <Filtro label="Fase do fluxo" metadata={painelPssFilterSpecifications["Fase do fluxo"]}><select value={filtros.fase} onChange={(e)=>setFiltros({...filtros,fase:e.target.value})}><option value="">Todas as fases</option>{fasesPss.map((fase)=><option key={fase} value={fase}>{faseLabel[fase]}</option>)}</select></Filtro>
-   <Filtro label="Situação" metadata={painelPssFilterSpecifications["Situação"]}><select value={filtros.situacao} onChange={(e)=>setFiltros({...filtros,situacao:e.target.value})}><option value="">Todas</option>{situacoesProcessoPss.map((item)=><option key={item} value={item}>{situacaoProcessoLabel[item]}</option>)}</select></Filtro>
-   <div className="prototype-pss-filter-actions">
-    <SpecArea metadata={painelPssFilterSpecifications["Somente divergências"]}><label className="prototype-pss-check" title="Exibe somente processos com divergência de cadastro entre SIGEP e SIES"><input type="checkbox" checked={filtros.somenteDivergencias} onChange={(e)=>setFiltros({...filtros,somenteDivergencias:e.target.checked})}/><span>Somente divergências SIGEP × SIES</span></label></SpecArea>
-    <SpecArea metadata={painelPssFilterSpecifications["Limpar"]}><button className="prototype-pss-clear-filter" onClick={()=>setFiltros(filtrosIniciais)}><i className="pi pi-filter-slash"/> Limpar</button></SpecArea>
-   </div>
-  </div>}</section>
+   <CardSeplag title="Painel Geral" subtitle="Controle PSS" actions={<BotaoSeplag type="button" label="Exportar visão" icon="pi pi-download" onClick={()=>window.print()} />}>
+    <p className="col-12 text-color-secondary" style={{margin:"0 0 .75rem"}}>Posição consolidada dos certames (Concursos Públicos e Processos Seletivos Simplificados) cadastrados no SIGEP. Dados consolidados em {CONTROLE_PSS_DATA_REFERENCIA_FORMATADA} 08:15.</p>
+    <div className="col-12"><div className="prototype-pss-kpis">{indicadores.map((item)=><SpecArea key={item.label} metadata={painelPssKpiSpecifications[item.label]}><button type="button" className={`prototype-pss-kpi ${item.cor}`} onClick={item.onClick}><i className={item.icon} /><div><span>{item.label}</span><strong>{item.valor.toLocaleString("pt-BR")}</strong><small>{item.hint}</small></div><i className="pi pi-arrow-right arrow" /></button></SpecArea>)}</div></div>
+   </CardSeplag>
 
-  <section className="prototype-pss-kpis">{indicadores.map((item)=><Kpi key={item.label} {...item}/>)}</section>
+   <SpecArea metadata={painelPssBlockSpecifications.tabelaCertames}><CardSeplag title="Certames em acompanhamento" subtitle={`${certames.length} certames`}>
+    <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(certames)} rows={10} rowsPerPage={[10, 20, 50]} paginator={certames.length > 10} lazy={false} selectionMode={null} columns={colunasCertames}
+     hasEventoAcao handleView={(row) => navigate(`${BASE}/certames/${row.id}`)} handleEdit={null} handleDelete={null} handleOnPageChange={() => {}} />
+    {certames.length===0 && <p className="col-12 text-center text-color-secondary">Nenhum certame cadastrado.</p>}
+   </CardSeplag></SpecArea>
 
-  <div className="prototype-pss-grid bottom">
-   <section className="prototype-pss-card"><header><div><h2>Alertas do Controle PSS</h2><p>Situações que travam o andamento dos certames</p></div></header><div className="prototype-pss-alert-list">{alertas.map((alerta)=><SpecArea key={alerta.titulo} metadata={painelPssAlertSpecifications[alerta.titulo]}><button className={alerta.kind} onClick={()=>navigate(`${BASE}/${alerta.rota}`)}><i className={alerta.icon}/><div><strong>{alerta.titulo}</strong><span>Abrir os registros de origem</span></div><b>{alerta.valor}</b><i className="pi pi-chevron-right"/></button></SpecArea>)}</div></section>
-   <SpecArea metadata={painelPssBlockSpecifications.recentes}><section className="prototype-pss-card"><header><div><h2>Eventos recentes</h2><p>Trilha de auditoria consolidada</p></div></header><div className="prototype-pss-dash-recent">{eventos.map((evento)=><article key={evento.id}><i className="pi pi-history"/><div><span>{evento.tipo.replaceAll("_"," ")}</span><strong>{evento.descricao}</strong><small>{evento.dataEfeito} • {evento.origem}</small></div></article>)}{eventos.length===0&&<p className="prototype-pss-empty">Nenhum evento registrado.</p>}</div></section></SpecArea>
-  </div>
+   <SpecArea metadata={painelPssBlockSpecifications.tabelaCargos}><CardSeplag title="Cargos ofertados" subtitle={`${cargosOfertados.length} cargos/vagas`}>
+    <div className="col-12"><div className="prototype-pss-kpis">{indicadoresCargos.map((item) => <SpecArea key={item.label} metadata={painelPssKpiSpecifications[item.label]}><button type="button" className={`prototype-pss-kpi ${item.cor}`} onClick={item.onClick}><i className={item.icon} /><div><span>{item.label}</span><strong>{item.valor.toLocaleString("pt-BR")}</strong><small>{item.hint}</small></div><i className="pi pi-arrow-right arrow" /></button></SpecArea>)}</div></div>
 
-  <SpecArea metadata={painelPssBlockSpecifications.tabela}><section className="prototype-pss-card"><header><div><h2>Processos em acompanhamento</h2><p>{dados.grupos.length} processos recebidos do SIES</p></div><button onClick={()=>navigate(`${BASE}/processos`)}>Abrir Processos Seletivos <i className="pi pi-arrow-right"/></button></header><div className="prototype-pss-table"><table>
-   <thead><tr><th>Processo</th><th>Órgão</th><th>Status geral</th><th>Fase</th><th className="num">Imediatas</th><th className="num">Reserva</th><th>Andamento</th></tr></thead>
-   <tbody>{dados.grupos.map((grupo)=><tr key={grupo.chave}>
-    <td><button className="prototype-pss-link" onClick={()=>navigate(`${BASE}/processos/${grupo.processo.id}`)}>{grupo.processo.numero}</button><small>{grupo.processo.edital}</small></td>
-    <td>{grupo.processo.orgaoSolicitante}</td>
-    <td><span className={`prototype-pss-badge ${statusGeralClasse[statusGeralDoProcesso(grupo.processo.situacao)]}`}>{statusGeralLabel[statusGeralDoProcesso(grupo.processo.situacao)]}</span>{grupo.divergencias>0&&<span className="prototype-pss-badge divergente">Divergência</span>}</td>
-    <td><span className={`prototype-pss-badge ${grupo.faseAtual.toLowerCase()}`}>{faseLabelCurto[grupo.faseAtual]}</span><small>{grupo.etapaAtualNome}</small></td>
-    <td className="num">{grupo.processo.vagasImediatas.toLocaleString("pt-BR")}</td>
-    <td className="num">{grupo.processo.vagasCadastroReserva.toLocaleString("pt-BR")}</td>
-    <td><div className="prototype-pss-dash-progress"><span><i style={{width:`${grupo.percentual}%`}}/></span><strong>{grupo.percentual}%</strong></div><small>{grupo.concluidas} de {grupo.totalEtapas} etapas</small></td>
-   </tr>)}</tbody>
-  </table></div>{dados.grupos.length===0&&<p className="prototype-pss-empty">Nenhum processo atende aos filtros aplicados.</p>}</section></SpecArea>
- </div></SpecificationMode>;
+    <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cargosOfertados)} rows={10} rowsPerPage={[10, 20, 50]} paginator={cargosOfertados.length > 10} lazy={false} selectionMode={null} columns={colunasCargos}
+     hasEventoAcao handleView={(row) => navigate(`${BASE}/certames/${row.certameId}`)} handleEdit={null} handleDelete={null} handleOnPageChange={() => {}} />
+    {cargosOfertados.length===0 && <p className="col-12 text-center text-color-secondary">Nenhum cargo/vaga cadastrado.</p>}
+   </CardSeplag></SpecArea>
+
+  </div></div>
+ </SpecificationMode>;
 }
-
-function Filtro({label,metadata,children}:{label:string;metadata:SpecificationMetadata;children:ReactNode}){return <SpecArea metadata={metadata}><label><span>{label}</span>{children}</label></SpecArea>}
-function Kpi({label,valor,hint,icon,cor,onClick}:{label:string;valor:number;hint:string;icon:string;cor:string;onClick:()=>void}){return <SpecArea metadata={painelPssKpiSpecifications[label]}><button className={`prototype-pss-kpi ${cor}`} onClick={onClick} type="button"><i className={icon}/><div><span>{label}</span><strong>{valor.toLocaleString("pt-BR")}</strong><small>{hint}</small></div><i className="pi pi-arrow-right arrow"/></button></SpecArea>}
