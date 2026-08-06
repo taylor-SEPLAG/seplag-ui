@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Dropdown } from "primereact/dropdown";
-import { InputNumber } from "primereact/inputnumber";
+import { MultiSelect } from "primereact/multiselect";
 import {
   BotaoAdicionarSeplag,
   BotaoSalvarSeplag,
@@ -78,7 +78,7 @@ interface GrupoDistribuicao {
 interface DestinacaoDistribuicao {
   id: number;
   orgao: string;
-  setor: string;
+  setor: string[];
   quantidade: number;
 }
 interface NovaDistribuicaoCampos {
@@ -513,7 +513,7 @@ function NovaDistribuicao({
   const [operacao, setOperacao] =
     useState<OperacaoDistribuicao>("DISTRIBUICAO");
   const [destinacoes, setDestinacoes] = useState<DestinacaoDistribuicao[]>([
-    { id: 1, orgao: "", setor: "", quantidade: 1 },
+    { id: 1, orgao: "", setor: [], quantidade: 1 },
   ]);
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>([]);
   const [simulado, setSimulado] = useState(false);
@@ -619,7 +619,7 @@ function NovaDistribuicao({
   const atualizarDestinacao = (
     id: number,
     campo: "orgao" | "setor" | "quantidade",
-    valor: string | number,
+    valor: string | string[] | number,
   ) => {
     setDestinacoes((atuais) =>
       atuais.map((item) =>
@@ -627,7 +627,7 @@ function NovaDistribuicao({
           ? {
               ...item,
               [campo]: valor,
-              ...(campo === "orgao" ? { setor: "" } : {}),
+              ...(campo === "orgao" ? { setor: [] } : {}),
             }
           : item,
       ),
@@ -640,7 +640,7 @@ function NovaDistribuicao({
       {
         id: Math.max(0, ...atuais.map((item) => item.id)) + 1,
         orgao: "",
-        setor: "",
+        setor: [],
         quantidade: 1,
       },
     ]);
@@ -659,7 +659,7 @@ function NovaDistribuicao({
     setValue("destino", "");
     setValue("setorDestino", "");
     setValue("vagasSelecionadas", []);
-    setDestinacoes([{ id: 1, orgao: "", setor: "", quantidade: 1 }]);
+    setDestinacoes([{ id: 1, orgao: "", setor: [], quantidade: 1 }]);
     setSimulado(false);
     setErro("");
   };
@@ -690,7 +690,9 @@ function NovaDistribuicao({
         );
         return;
       }
-      const chaves = destinacoes.map((item) => `${item.orgao}|${item.setor}`);
+      const chaves = destinacoes.map(
+        (item) => `${item.orgao}|${[...item.setor].sort().join(",")}`,
+      );
       if (new Set(chaves).size !== chaves.length) {
         setErro("Não repita a mesma combinação de órgão e setor.");
         return;
@@ -749,7 +751,11 @@ function NovaDistribuicao({
           cursor,
           cursor + item.quantidade,
         ))
-          atribuicoes.push({ posicao, orgao: item.orgao, setor: item.setor });
+          atribuicoes.push({
+            posicao,
+            orgao: item.orgao,
+            setor: item.setor.join(" • "),
+          });
         cursor += item.quantidade;
       }
     } else {
@@ -841,7 +847,7 @@ function NovaDistribuicao({
               setValue("destino", "");
               setValue("setorDestino", "");
               setValue("vagasSelecionadas", []);
-              setDestinacoes([{ id: 1, orgao: "", setor: "", quantidade: 1 }]);
+              setDestinacoes([{ id: 1, orgao: "", setor: [], quantidade: 1 }]);
             }}
           />
           {quadro && (
@@ -927,7 +933,7 @@ function NovaDistribuicao({
                   </div>
                   <div className="prototype-distribution-destination-field">
                     <span>Setor vinculado ao órgão</span>
-                    <Dropdown
+                    <MultiSelect
                       aria-label="Setor vinculado ao órgão"
                       value={item.setor}
                       options={(
@@ -936,29 +942,34 @@ function NovaDistribuicao({
                       optionLabel="label"
                       optionValue="value"
                       placeholder="Sem setor definido"
-                      showClear
                       filter
+                      display="chip"
+                      maxSelectedLabels={3}
                       className="w-full"
                       onChange={(e) =>
-                        atualizarDestinacao(item.id, "setor", e.value ?? "")
+                        atualizarDestinacao(item.id, "setor", e.value ?? [])
                       }
                       disabled={!item.orgao}
                     />
                   </div>
                   <div className="prototype-distribution-destination-field">
                     <span>Quantidade *</span>
-                    <InputNumber
-                      inputId={`quantidade-${item.id}`}
+                    <input
+                      id={`quantidade-${item.id}`}
+                      type="number"
                       aria-label="Quantidade"
                       min={1}
+                      step={1}
                       value={item.quantidade}
-                      onChange={(e) =>
+                      className="p-inputtext p-component prototype-distribution-quantity-input"
+                      onChange={(e) => {
+                        const value = Math.max(1, Number(e.target.value || 1));
                         atualizarDestinacao(
                           item.id,
                           "quantidade",
-                          Number(e.value ?? 0),
-                        )
-                      }
+                          Number.isFinite(value) ? value : 1,
+                        );
+                      }}
                     />
                   </div>
                   <div className="prototype-distribution-destination-field">
@@ -1163,7 +1174,11 @@ function NovaDistribuicao({
                 {destinacoes.map((item) => (
                   <article key={item.id}>
                     <span>{item.orgao}</span>
-                    <small>{item.setor || "Sem setor definido"}</small>
+                    <small>
+                      {item.setor.length
+                        ? item.setor.join(" • ")
+                        : "Sem setor definido"}
+                    </small>
                     <strong>
                       {item.quantidade}{" "}
                       {item.quantidade === 1 ? "vaga" : "vagas"}

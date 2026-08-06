@@ -884,7 +884,7 @@
 .prototype-distribution-destination-head,
 .prototype-distribution-destination-row {
   display: grid;
-  grid-template-columns: 1fr 1.35fr 130px 60px;
+  grid-template-columns: minmax(220px, 0.95fr) minmax(280px, 1.25fr) 150px 58px;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
@@ -988,7 +988,7 @@
 }
 .prototype-distribution-destination-head,
 .prototype-distribution-destination-row {
-  grid-template-columns: minmax(180px, 1fr) minmax(240px, 1.4fr) 130px 60px;
+  grid-template-columns: minmax(220px, 0.95fr) minmax(280px, 1.25fr) 150px 58px;
 }
 .prototype-distribution-availability {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1138,9 +1138,35 @@
 }
 
 .prototype-distribution-destination-field .p-dropdown,
+.prototype-distribution-destination-field .p-multiselect,
 .prototype-distribution-destination-field .p-inputnumber,
-.prototype-distribution-destination-field .p-inputnumber-input {
+.prototype-distribution-destination-field .p-inputnumber-input,
+.prototype-distribution-destination-field .prototype-distribution-quantity-input {
   width: 100%;
+}
+
+.prototype-distribution-destination-field .p-multiselect-label {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  gap: 0.25rem;
+}
+
+.prototype-distribution-destination-field .p-multiselect-token {
+  max-width: 16rem;
+}
+
+.prototype-distribution-destination-field .p-multiselect-token-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prototype-distribution-destination-field .prototype-distribution-quantity-input {
+  display: block;
+  min-width: 0;
+  height: 2.5rem;
+  text-align: right;
 }
 
 .prototype-distribution-destination-field .p-button.p-button-icon-only {
