@@ -85,7 +85,6 @@ interface NovaDistribuicaoCampos {
   quadroId: string;
   origem: string;
   destino: string;
-  setorDestino: string;
   vagasSelecionadas: string[];
   data: string;
   processo: string;
@@ -529,7 +528,6 @@ function NovaDistribuicao({
       quadroId: quadroInicial ?? "",
       origem: "",
       destino: "",
-      setorDestino: "",
       vagasSelecionadas: [],
       data: hoje,
       processo: "",
@@ -540,7 +538,6 @@ function NovaDistribuicao({
     quadroId,
     origem,
     destino,
-    setorDestino,
     vagasSelecionadas,
     data,
     processo,
@@ -657,7 +654,6 @@ function NovaDistribuicao({
     setOperacao(valor);
     setValue("origem", "");
     setValue("destino", "");
-    setValue("setorDestino", "");
     setValue("vagasSelecionadas", []);
     setDestinacoes([{ id: 1, orgao: "", setor: [], quantidade: 1 }]);
     setSimulado(false);
@@ -760,7 +756,7 @@ function NovaDistribuicao({
       }
     } else {
       for (const posicao of selecionadas)
-        atribuicoes.push({ posicao, orgao: destino, setor: setorDestino });
+        atribuicoes.push({ posicao, orgao: destino, setor: "" });
     }
     const lote: MovimentoVagaIndividual[] = [];
     for (const [indice, atribuicao] of atribuicoes.entries()) {
@@ -845,7 +841,6 @@ function NovaDistribuicao({
             onChange={() => {
               setValue("origem", "");
               setValue("destino", "");
-              setValue("setorDestino", "");
               setValue("vagasSelecionadas", []);
               setDestinacoes([{ id: 1, orgao: "", setor: [], quantidade: 1 }]);
             }}
@@ -995,57 +990,92 @@ function NovaDistribuicao({
             </section>
           ) : (
             <>
-              <div className="prototype-distribution-seplag-field">
-                <DropdownFieldSeplag<NovaDistribuicaoCampos>
-                  name="origem"
-                  control={control}
-                  label="Órgão de origem"
-                  cols="12"
-                  required
-                  options={orgaosOrigem.map((value) => ({
-                    label: value,
-                    value,
-                  }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Selecione"
-                  getFormErrorMessage={getFormErrorMessage}
-                />
-              </div>
-              <div className="prototype-distribution-seplag-field">
-                <DropdownFieldSeplag<NovaDistribuicaoCampos>
-                  name="destino"
-                  control={control}
-                  label="Órgão de destino"
-                  cols="12"
-                  required
-                  options={orgaosPermitidos.map((value) => ({
-                    label: value,
-                    value,
-                  }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Selecione"
-                  getFormErrorMessage={getFormErrorMessage}
-                  onChange={() => setValue("setorDestino", "")}
-                />
-              </div>
-              <div className="prototype-distribution-seplag-field">
-                <DropdownFieldSeplag<NovaDistribuicaoCampos>
-                  name="setorDestino"
-                  control={control}
-                  label="Setor de destino"
-                  cols="12"
-                  options={(setoresTemporariosPorOrgao[destino] ?? []).map(
-                    (value) => ({ label: value, value }),
+              <section
+                className="prototype-distribution-route"
+                aria-label="Fluxo da redistribuição"
+              >
+                <div className="prototype-distribution-route-side is-origin">
+                  <header>
+                    <span className="prototype-distribution-route-icon">
+                      <i className="pi pi-building" />
+                    </span>
+                    <div>
+                      <span>Origem</span>
+                      <strong>{origem || "Órgão atual das vagas"}</strong>
+                    </div>
+                  </header>
+                  <div className="prototype-distribution-seplag-field">
+                    <DropdownFieldSeplag<NovaDistribuicaoCampos>
+                      name="origem"
+                      control={control}
+                      label="Órgão de origem"
+                      cols="12"
+                      required
+                      options={orgaosOrigem.map((value) => ({
+                        label: value,
+                        value,
+                      }))}
+                      optionLabel="label"
+                      optionValue="value"
+                      placeholder="Selecione o órgão de origem"
+                      getFormErrorMessage={getFormErrorMessage}
+                      onChange={(value) => {
+                        setValue("vagasSelecionadas", []);
+                        if (value === destino) {
+                          setValue("destino", "");
+                        }
+                      }}
+                    />
+                  </div>
+                  {origem && (
+                    <small className="prototype-distribution-route-balance">
+                      <i className="pi pi-list" />
+                      {candidatas.length}{" "}
+                      {candidatas.length === 1
+                        ? "vaga disponível"
+                        : "vagas disponíveis"}
+                    </small>
                   )}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Sem setor definido"
-                  getFormErrorMessage={getFormErrorMessage}
-                  disabled={!destino}
-                />
-              </div>
+                </div>
+
+                <div
+                  className="prototype-distribution-route-direction"
+                  aria-hidden="true"
+                >
+                  <i className="pi pi-arrow-right" />
+                </div>
+
+                <div className="prototype-distribution-route-side is-destination">
+                  <header>
+                    <span className="prototype-distribution-route-icon">
+                      <i className="pi pi-map-marker" />
+                    </span>
+                    <div>
+                      <span>Destino</span>
+                      <strong>{destino || "Novo órgão das vagas"}</strong>
+                    </div>
+                  </header>
+                  <div className="prototype-distribution-seplag-field">
+                    <DropdownFieldSeplag<NovaDistribuicaoCampos>
+                      name="destino"
+                      control={control}
+                      label="Órgão de destino"
+                      cols="12"
+                      required
+                      options={orgaosPermitidos
+                        .filter((value) => value !== origem)
+                        .map((value) => ({
+                          label: value,
+                          value,
+                        }))}
+                      optionLabel="label"
+                      optionValue="value"
+                      placeholder="Selecione o órgão de destino"
+                      getFormErrorMessage={getFormErrorMessage}
+                    />
+                  </div>
+                </div>
+              </section>
               <div className="full prototype-distribution-seplag-field">
                 <MultiSelectFieldSeplag<NovaDistribuicaoCampos>
                   name="vagasSelecionadas"
@@ -1192,7 +1222,6 @@ function NovaDistribuicao({
                 <i className="pi pi-arrow-right" />
                 <strong>
                   {destino}
-                  {setorDestino ? ` • ${setorDestino}` : ""}
                 </strong>
               </div>
             )}
