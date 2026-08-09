@@ -184,3 +184,35 @@ Tela: Quadro Autorizado
 Antes de aplicar no arquivo do Drive, o conteúdo gerado no chat deve ser revisado pelo usuário.
 
 Somente editar o arquivo quando o usuário confirmar explicitamente.
+
+## Edição segura no Google Drive
+
+Ao editar o arquivo modelo no Google Docs, preservar a estrutura nativa do documento deve ser prioridade.
+
+Antes de editar:
+
+- Localizar o documento exato pelo nome.
+- Ler o texto do documento e as tabelas.
+- Confirmar se o modelo possui quantidade suficiente de itens, linhas e placeholders para a US gerada.
+- Se faltar premissa, critério, fluxo, passo, linha de tabela, mensagem, ação ou regra de negócio, parar e avisar o usuário para adaptar o modelo.
+- Não condensar conteúdo para caber no modelo sem autorização do usuário.
+
+Durante a edição:
+
+- Editar apenas o conteúdo dos placeholders ou campos previstos no modelo.
+- Não alterar os títulos numerados das seções.
+- Não alterar `Matriz de permissões` nem `Documentos/Legislação`, salvo pedido explícito.
+- Não inserir blocos grandes de texto dentro de listas ou tabelas.
+- Em listas, substituir um placeholder por um único item de lista.
+- Em fluxos funcionais, substituir cada título de fluxo e cada passo individualmente.
+- Em critérios de aceitação, substituir o título do critério e sua descrição individualmente.
+- Em tabelas, substituir cada célula individualmente, preservando linhas e colunas existentes.
+- Não apagar placeholders excedentes deixando linhas vazias; se houver sobra relevante, avisar o usuário.
+- Usar `requiredRevisionId` ao editar para evitar sobrescrever alterações feitas pelo usuário durante a operação.
+
+Depois de editar:
+
+- Verificar se os placeholders principais foram removidos.
+- Verificar se o nome da US, o último critério, a última regra e os grupos/tabelas principais estão presentes.
+- Verificar se `Matriz de permissões` e `Documentos/Legislação` continuam presentes.
+- Se houver sinal de desconfiguração de listas, negrito, tabelas ou numeração, informar a causa e não tentar corrigir automaticamente sem orientação do usuário.
