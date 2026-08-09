@@ -1,6 +1,6 @@
 export type TipoCertame = "CONCURSO_PUBLICO" | "PSS";
 export type RegimeJuridicoCertame = "ESTATUTARIO" | "CELETISTA" | "ESPECIAL";
-export type TipoVinculoCertame = "EFETIVO" | "CONTRATO_TEMPORARIO" | "BOLSISTA";
+export type TipoVinculoCertame = "EFETIVO" | "CONTRATO_TEMPORARIO" | "BOLSISTA" | "RESIDENTE" | "ESTAGIARIO";
 export type AbrangenciaCertame = "ESTADUAL" | "REGIONAL" | "MUNICIPAL";
 export type TipoContratacaoExecucaoCertame = "PROPRIA_UG" | "EMPRESA_CONTRATADA";
 export type VinculoCargoCertame = "EXISTENTE" | "NOVO";
@@ -10,16 +10,19 @@ export type SituacaoCertame = "ABERTO" | "RETIFICACAO_EDITAL" | "HOMOLOGADO" | "
 
 export type TipoDocumentoCertame = "JUSTIFICATIVA_ABERTURA" | "PUBLICACAO_CERTAME_LICITATORIO" | "LEI_ATO_AUTORIZACAO" | "DECLARACAO_RESPONSAVEL" | "DEMONSTRATIVO_LRF" | "OUTROS_COMISSAO";
 
-// RN-08: o sistema permite múltiplas cotas, mas o envio ao TCE-MT aceita apenas uma (ver Certame.cotaPrevalecenteId).
+// RN-08: o sistema permite múltiplas cotas por certame.
 // RN-10: a lei referencia diretamente o catálogo de leis já cadastradas no sistema (ver dominios.LEIS_CERTAME).
 export interface CotaCertame { readonly id:string; tipo:string; lei:string; }
 
 // RN-10: cargo cadastrado com código de referência fixo "001" para fins de prestação de contas.
 // RN-14: vaga pode ser vinculada a uma vaga existente do quadro de cargos do órgão ou criada especificamente para o certame.
-export interface CargoVagaCertame { readonly id:string; vinculo:VinculoCargoCertame; cargoExistenteId?:string; cargoNome:string; readonly codigoReferenciaTce:"001"; quantidadeVagas:number; vagaPcd:boolean; quantidadePcd?:number; }
+// quadroCodigo/quadroVersao: Quadro de Vagas (Controle de Vagas > Quadro Autorizado) vinculado automaticamente ao cargo,
+// somente leitura — rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso.
+export interface CargoVagaCertame { readonly id:string; vinculo:VinculoCargoCertame; cargoExistenteId?:string; cargoNome:string; readonly codigoReferenciaTce:"001"; quantidadeVagas:number; vagaPcd:boolean; quantidadePcd?:number; quadroCodigo?:string; quadroVersao?:number; }
 
-// RN-09: fases adicionais da SEPLAG começam na posição 13; as 12 primeiras são fixas (ver dominios.ts).
-export interface FaseAdicionalCertame { readonly ordem:number; nome:string; }
+// Fases do certame — lista editável (nome, ordem e quantidade livres) por certame; o catálogo em
+// dominios.FASES_TCE_FIXAS é usado apenas como sugestão inicial ao criar um novo certame.
+export interface FaseCertame { readonly ordem:number; nome:string; }
 
 export interface DocumentoCertame { readonly tipo:TipoDocumentoCertame; readonly nomeArquivo:string; readonly anexadoEm:string; }
 
@@ -84,10 +87,9 @@ export interface Certame {
  valorInscricao?:number;
  // 6. Cotas (1:N)
  cotas:readonly CotaCertame[];
- cotaPrevalecenteId?:string;
  // 7. Cargo/Vagas + Fases do Concurso
  cargos:readonly CargoVagaCertame[];
- fasesAdicionais:readonly FaseAdicionalCertame[];
+ fases:readonly FaseCertame[];
  // 8. Documentos
  documentos:readonly DocumentoCertame[];
  // Situações do Certame

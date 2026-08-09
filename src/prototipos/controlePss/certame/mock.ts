@@ -1,3 +1,4 @@
+import { FASES_TCE_FIXAS } from "./dominios";
 import type { Certame } from "./types";
 
 export const certamesMock: Certame[] = [
@@ -17,8 +18,8 @@ export const certamesMock: Certame[] = [
   diasPrazoExercicio:15, diasPrazoPosse:30,
   houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
   cotas:[{ id:"COTA-1", tipo:"PCD", lei:"LEI-6752-1995" }],
-  cargos:[{ id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", codigoReferenciaTce:"001", quantidadeVagas:20, vagaPcd:true, quantidadePcd:2 }],
-  fasesAdicionais:[],
+  cargos:[{ id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", codigoReferenciaTce:"001", quantidadeVagas:20, vagaPcd:true, quantidadePcd:2, quadroCodigo:"QA-0012", quadroVersao:1 }],
+  fases:[...FASES_TCE_FIXAS],
   documentos:[{ tipo:"JUSTIFICATIVA_ABERTURA", nomeArquivo:"justificativa-pss-seduc-2026.pdf", anexadoEm:"05/02/2026" }],
   situacaoAtual:"ABERTO",
   historicoSituacoes:[{ id:"SIT-1", certameId:"CERT-2026-001", tipo:"ABERTO", dataEfeito:"10/02/2026", registradoEm:"10/02/2026 09:15", usuario:"SUGP/SEPLAG", prazoPrestacaoContas:"12/02/2026" }],
@@ -49,9 +50,8 @@ export const certamesMock: Certame[] = [
    { id:"COTA-2", tipo:"PCD", lei:"LEI-6752-1995" },
    { id:"COTA-3", tipo:"PPI", lei:"LC-600-2017" },
   ],
-  cotaPrevalecenteId:"COTA-2",
-  cargos:[{ id:"CGV-2", vinculo:"EXISTENTE", cargoExistenteId:"CGO-AUDITOR-FISCAL", cargoNome:"Auditor Fiscal", codigoReferenciaTce:"001", quantidadeVagas:30, vagaPcd:true, quantidadePcd:3 }],
-  fasesAdicionais:[{ ordem:13, nome:"Curso de Formação (SEPLAG)" }],
+  cargos:[{ id:"CGV-2", vinculo:"EXISTENTE", cargoExistenteId:"CGO-AUDITOR-FISCAL", cargoNome:"Auditor Fiscal", codigoReferenciaTce:"001", quantidadeVagas:30, vagaPcd:true, quantidadePcd:3, quadroCodigo:"QA-0007", quadroVersao:1 }],
+  fases:[...FASES_TCE_FIXAS, { ordem:13, nome:"Curso de Formação (SEPLAG)" }],
   documentos:[
    { tipo:"JUSTIFICATIVA_ABERTURA", nomeArquivo:"justificativa-cp-sefaz-2026.pdf", anexadoEm:"20/12/2025" },
    { tipo:"LEI_ATO_AUTORIZACAO", nomeArquivo:"decreto-autorizacao-cp-sefaz.pdf", anexadoEm:"20/12/2025" },
@@ -78,8 +78,8 @@ export const certamesMock: Certame[] = [
   abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG",
   validadeConcursoDias:365, existePrevisaoRecursos:false,
   houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
-  cotas:[], cargos:[{ id:"CGV-3", vinculo:"NOVO", cargoNome:"Enfermeiro", codigoReferenciaTce:"001", quantidadeVagas:12, vagaPcd:false }],
-  fasesAdicionais:[],
+  cotas:[], cargos:[{ id:"CGV-3", vinculo:"NOVO", cargoNome:"Enfermeiro", codigoReferenciaTce:"001", quantidadeVagas:12, vagaPcd:false, quadroCodigo:"QA-0009", quadroVersao:1 }],
+  fases:[...FASES_TCE_FIXAS],
   documentos:[{ tipo:"JUSTIFICATIVA_ABERTURA", nomeArquivo:"justificativa-pss-ses-2025.pdf", anexadoEm:"25/08/2025" }],
   situacaoAtual:"PARALISADO",
   historicoSituacoes:[

@@ -3,11 +3,12 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA } from "../constants";
 import { controlePssStore, useControlePssStore } from "../controlePssStore";
+import { CONTROLE_VAGAS_BASE_PATH } from "../../controleVagas/constants";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
 import { proximoNumeroCertame, calcularPrazoPrestacaoContas } from "./validations";
 import { ABRANGENCIAS, CARGOS_CADASTRADOS, DOCUMENTOS_CERTAME, FASES_TCE_FIXAS, LEIS_CERTAME, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
-import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseAdicionalCertame, RegimeJuridicoCertame, SituacaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
+import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, SituacaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { MensagemSeplag } from "@componentes/Mensagem";
@@ -18,7 +19,6 @@ import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import RotuloSeplag from "@componentes/Rotulo";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "../../../interfaces/Results";
-import { Dropdown } from "primereact/dropdown";
 import "./certame.css";
 
 function resultadosSemPaginacao<T>(content:readonly T[]):ResultsSeplag<T> {
@@ -113,6 +113,13 @@ function formatarTamanhoArquivo(tamanho?:string | number):string {
  return `${(tamanho / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// Vínculo automático cargo → Quadro de Vagas (Controle de Vagas > Quadro Autorizado), por nome do cargo.
+function buscarQuadroPorCargo(nome:string) {
+ const alvo = nome.trim().toLocaleLowerCase("pt-BR");
+ if (!alvo) return undefined;
+ return CARGOS_CADASTRADOS.find((item) => item.nome.trim().toLocaleLowerCase("pt-BR") === alvo);
+}
+
 export function CertameFormContent() {
  const { certames } = useControlePssStore();
  const navigate = useNavigate();
@@ -140,14 +147,15 @@ export function CertameFormContent() {
  };
 
  const [cotas, setCotas] = useState<CotaCertame[]>(existente ? [...existente.cotas] : []);
- const [cotaPrevalecenteId, setCotaPrevalecenteId] = useState<string | undefined>(existente?.cotaPrevalecenteId);
  const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:TIPOS_COTA[0].value, lei:"" } });
 
  const [cargos, setCargos] = useState<CargoVagaCertame[]>(existente ? [...existente.cargos] : []);
  const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, vagaPcd:"N", quantidadePcd:0 } });
  const cargoValores = cargoForm.watch();
+ const cargoNomeAtual = cargoValores.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId)?.nome ?? "" : cargoValores.cargoNome;
+ const quadroVinculado = buscarQuadroPorCargo(cargoNomeAtual ?? "");
 
- const [fasesAdicionais, setFasesAdicionais] = useState<FaseAdicionalCertame[]>(existente ? [...existente.fasesAdicionais] : []);
+ const [fases, setFases] = useState<FaseCertame[]>(existente ? [...existente.fases] : [...FASES_TCE_FIXAS]);
  const faseForm = useForm<FaseFormValues>({ defaultValues: { nome:"" } });
 
  const [arquivos, setArquivos] = useState<Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>>(() =>
@@ -167,17 +175,28 @@ export function CertameFormContent() {
  const documentoObrigatorio = (tipo:string, obrigatorioSempre:boolean) => obrigatorioSempre || (tipo === "DEMONSTRATIVO_LRF" && valores.gerouDespesas === "S");
 
  const colunasCotas:ColumnMetaSeplag<CotaCertame>[] = [
-  { header:"Tipo de cota", body:(row) => <>{TIPOS_COTA.find((tipo) => tipo.value === row.tipo)?.label ?? row.tipo}{cotaPrevalecenteId === row.id && <BadgeSeplag label="Prevalece" color="#147441" bg="#e2f5e8" border="transparent" size="xs" />}</> },
+  { header:"Tipo de cota", body:(row) => TIPOS_COTA.find((tipo) => tipo.value === row.tipo)?.label ?? row.tipo },
   { header:"Lei", body:(row) => LEIS_CERTAME.find((lei) => lei.value === row.lei)?.label ?? row.lei },
  ];
 
  const colunasCargos:ColumnMetaSeplag<CargoVagaCertame>[] = [
   { field:"cargoNome", header:"Cargo" },
   { header:"Vínculo", body:(row) => row.vinculo === "EXISTENTE" ? "Vaga existente" : "Vaga nova do certame" },
+  { header:"Quadro de vagas", body:(row) => row.quadroCodigo
+   ? <button type="button" className="prototype-certame-link-btn" onClick={() => navigate(`${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`)}><strong>{row.quadroCodigo}</strong><small>Versão {row.quadroVersao}</small></button>
+   : <span className="text-color-secondary">—</span> },
   { field:"codigoReferenciaTce", header:"Cód. referência TCE" },
   { field:"quantidadeVagas", header:"Vagas" },
-  { header:"PCD", body:(row) => row.vagaPcd ? `Sim (${row.quantidadePcd ?? 0})` : "Não" },
+  { header:"PCD", body:(row) => row.vagaPcd ? row.quantidadePcd ?? 0 : 0 },
  ];
+
+ const colunasFases:ColumnMetaSeplag<FaseCertame>[] = [
+  { field:"ordem", header:"Ordem" },
+  { field:"nome", header:"Nome da fase" },
+ ];
+ const renderAcoesFase = (row:FaseCertame) => <div className="prototype-certame-fase-acoes">
+  <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover fase" onClick={() => removerFase(row.ordem)} />
+ </div>;
 
  const colunasDocumentos:ColumnMetaSeplag<typeof DOCUMENTOS_CERTAME[number]>[] = [
   { header:"Documento", body:(row) => <>{row.label}{documentoObrigatorio(row.tipo, row.obrigatorioSempre) && " *"}</> },
@@ -200,7 +219,6 @@ export function CertameFormContent() {
  const salvar = handleSubmit((dados) => {
   setErro(null);
   if (cargos.length === 0) { setErro("Informe ao menos um cargo/vaga para salvar o certame (RN-14, Cenário 1)."); setAba("CARGOS"); return; }
-  if (cotas.length > 1 && !cotaPrevalecenteId) { setErro("Há mais de uma cota cadastrada — selecione qual cota prevalece no envio ao TCE-MT (RN-08, Cenário 4)."); setAba("COTAS"); return; }
   const documentosFaltando = DOCUMENTOS_CERTAME.filter((doc) => documentoObrigatorio(doc.tipo, doc.obrigatorioSempre) && !arquivos[doc.tipo as TipoDocumentoCertame]);
   if (documentosFaltando.length > 0) { setErro(`Documento obrigatório pendente: ${documentosFaltando.map((doc) => doc.label).join(", ")}.`); setAba("DOCUMENTOS"); return; }
 
@@ -210,7 +228,7 @@ export function CertameFormContent() {
   if (existente) {
    controlePssStore.set("certames", (atuais) => atuais.map((item) => item.id === existente.id ? {
     ...item, ...dados, existePrevisaoRecursos:dados.existePrevisaoRecursos === "S", houveContratacaoBanca:dados.houveContratacaoBanca === "S", gerouDespesas:dados.gerouDespesas === "S", cobraTaxaInscricao:dados.cobraTaxaInscricao === "S",
-    cotas, cotaPrevalecenteId, cargos, fasesAdicionais, documentos, atualizadoEm:agora,
+    cotas, cargos, fases, documentos, atualizadoEm:agora,
    } : item));
    navigate(`${BASE}/certames/${existente.id}`);
    return;
@@ -218,7 +236,7 @@ export function CertameFormContent() {
   const novoId = `CERT-${dados.anoConcurso}-${dados.numeroConcurso.slice(-3)}`;
   const novo:Certame = {
    id:novoId, ...dados, existePrevisaoRecursos:dados.existePrevisaoRecursos === "S", houveContratacaoBanca:dados.houveContratacaoBanca === "S", gerouDespesas:dados.gerouDespesas === "S", cobraTaxaInscricao:dados.cobraTaxaInscricao === "S",
-   cotas, cotaPrevalecenteId, cargos, fasesAdicionais, documentos,
+   cotas, cargos, fases, documentos,
    situacaoAtual:"ABERTO",
    historicoSituacoes:[{ id:`SIT-${novoId}-1`, certameId:novoId, tipo:"ABERTO", dataEfeito:dados.dataPublicacaoEdital, registradoEm:`${agora} 09:00`, usuario:"SUGP/SEPLAG", prazoPrestacaoContas:calcularPrazoPrestacaoContas(dados.dataPublicacaoEdital) }],
    criadoEm:agora, atualizadoEm:agora, responsavel:"SUGP/SEPLAG",
@@ -233,25 +251,28 @@ export function CertameFormContent() {
   setCotas((atuais) => [...atuais, { id:`COTA-${Date.now()}`, tipo:dados.tipo, lei:dados.lei }]);
   cotaForm.reset({ tipo:TIPOS_COTA[0].value, lei:"" });
  };
- const removerCota = (idCota:string) => { setCotas((atuais) => atuais.filter((item) => item.id !== idCota)); if (cotaPrevalecenteId === idCota) setCotaPrevalecenteId(undefined); };
+ const removerCota = (idCota:string) => setCotas((atuais) => atuais.filter((item) => item.id !== idCota));
 
  const adicionarCargo = () => {
   const dados = cargoForm.getValues();
   const cargoExistente = dados.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === dados.cargoExistenteId) : undefined;
   const cargoNome = dados.vinculo === "EXISTENTE" ? cargoExistente?.nome ?? "" : dados.cargoNome;
   if (!cargoNome || dados.quantidadeVagas <= 0) return;
-  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, vagaPcd:dados.vagaPcd === "S", quantidadePcd:dados.vagaPcd === "S" ? dados.quantidadePcd : undefined }]);
+  const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
+  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, vagaPcd:dados.vagaPcd === "S", quantidadePcd:dados.vagaPcd === "S" ? dados.quantidadePcd : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
   cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, vagaPcd:"N", quantidadePcd:0 });
  };
  const removerCargo = (idCargo:string) => setCargos((atuais) => atuais.filter((item) => item.id !== idCargo));
 
+ const renumerarFases = (lista:FaseCertame[]) => lista.map((item, index) => ({ ordem:index + 1, nome:item.nome }));
  const adicionarFase = () => {
   const nome = faseForm.getValues("nome").trim();
   if (!nome) return;
-  setFasesAdicionais((atuais) => [...atuais, { ordem:13 + atuais.length, nome }]);
+  setFases((atuais) => [...atuais, { ordem:atuais.length + 1, nome }]);
   faseForm.reset({ nome:"" });
  };
- const removerFase = (ordem:number) => setFasesAdicionais((atuais) => atuais.filter((item) => item.ordem !== ordem).map((item, index) => ({ ordem:13 + index, nome:item.nome })));
+ const removerFase = (ordem:number) => setFases((atuais) => renumerarFases(atuais.filter((item) => item.ordem !== ordem)));
+ const reordenarFases = (novaOrdem:FaseCertame[]) => setFases(renumerarFases(novaOrdem));
 
  const registrarSituacao = () => {
   if (!existente) return;
@@ -385,12 +406,6 @@ export function CertameFormContent() {
      </div></div></SpecArea>}
 
      {aba === "COTAS" && <SpecArea metadata={certameFormTabSpecifications["Cotas"]}><div className="col-12">
-      {cotas.length > 1 && <SpecArea metadata={certameFormBlockSpecifications.avisoCotaUnica}><div className="grid align-items-center">
-       <MensagemSeplag severity="warning" cols="12" message="Mais de uma cota cadastrada — o envio ao TCE-MT aceita apenas uma cota por certame (RN-08). Selecione qual prevalece." />
-       <RotuloSeplag nome="Cota que prevalece no envio ao TCE" cols="12 6 4" obrigatorio>
-        <Dropdown value={cotaPrevalecenteId ?? null} onChange={(event) => setCotaPrevalecenteId(event.value ?? undefined)} options={cotas.map((item) => ({ label:TIPOS_COTA.find((tipo) => tipo.value === item.tipo)?.label ?? item.tipo, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Selecione" className="w-full" showClear />
-       </RotuloSeplag>
-      </div></SpecArea>}
       <div className="grid align-items-end prototype-certame-subform">
        <DropdownFieldSeplag name="tipo" control={cotaForm.control} label="Tipo de cota" cols="12 6 4" options={[...TIPOS_COTA]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
        <DropdownFieldSeplag name="lei" control={cotaForm.control} label="Lei cadastrada" cols="12 6 6" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada sobre cotas" getFormErrorMessage={() => null} />
@@ -401,23 +416,22 @@ export function CertameFormContent() {
 
      {aba === "CARGOS" && <SpecArea metadata={certameFormTabSpecifications["Cargos e Vagas"]}><div className="col-12">
       <div className="grid align-items-end prototype-certame-subform">
-       <DropdownFieldSeplag name="vinculo" control={cargoForm.control} label="Vínculo da vaga" cols="12 6 3" options={[{ label:"Vaga nova do certame", value:"NOVO" }, { label:"Vaga existente no quadro", value:"EXISTENTE" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+       <DropdownFieldSeplag name="vinculo" control={cargoForm.control} label="Vínculo da vaga" cols="12 6 2" options={[{ label:"Vaga nova do certame", value:"NOVO" }, { label:"Vaga existente no quadro", value:"EXISTENTE" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
        {cargoValores.vinculo === "EXISTENTE"
-        ? <DropdownFieldSeplag name="cargoExistenteId" control={cargoForm.control} label="Cargo/função" cols="12 6 3" options={CARGOS_CADASTRADOS.map((item) => ({ label:item.nome, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Buscar cargo cadastrado" getFormErrorMessage={() => null} />
-        : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" cols="12 6 3" placeholder="Nome do novo cargo" getFormErrorMessage={() => null} />}
+        ? <DropdownFieldSeplag name="cargoExistenteId" control={cargoForm.control} label="Cargo/função" cols="12 6 2" options={CARGOS_CADASTRADOS.map((item) => ({ label:item.nome, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Buscar cargo cadastrado" getFormErrorMessage={() => null} />
+        : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" cols="12 6 2" placeholder="Nome do novo cargo" getFormErrorMessage={() => null} />}
+       <SpecArea metadata={certameFormBlockSpecifications.quadroVagasVinculado}><RotuloSeplag nome="Quadro de vagas" cols="12 6 3"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado ? `${quadroVinculado.quadroCodigo} — Versão ${quadroVinculado.quadroVersao}` : "—"}</div></RotuloSeplag></SpecArea>
        <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Quantidade de vagas" cols="12 6 2" getFormErrorMessage={() => null} />
-       <CheckboxFieldSeplag name="vagaPcd" control={cargoForm.control} label=" " checkboxLabel="PCD/PNE" cols="12 6 2" getFormErrorMessage={() => null} />
+       <CheckboxFieldSeplag name="vagaPcd" control={cargoForm.control} label=" " checkboxLabel="PCD/PNE" cols="12 6 1" getFormErrorMessage={() => null} />
        {cargoValores.vagaPcd === "S" && <NumberFieldSeplag name="quantidadePcd" control={cargoForm.control} label="Qtd. PCD" cols="12 6 2" getFormErrorMessage={() => null} />}
-       <div className="col-12 md:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCargo} /></div>
+       <div className="col-12 md:col-3 lg:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCargo} /></div>
       </div>
       <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cargos)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasCargos} hasEventoAcao handleView={null} handleEdit={null} handleDelete={(row) => removerCargo(row.id)} handleOnPageChange={() => {}} />
       <SpecArea metadata={certameFormBlockSpecifications.fasesFixas}><div className="prototype-certame-fases">
        <h3>Fases do certame</h3>
-       <ol>{FASES_TCE_FIXAS.map((item) => <li key={item.ordem}><span>{item.ordem}</span>{item.nome}</li>)}
-        {fasesAdicionais.map((item) => <li key={item.ordem} className="is-adicional"><span>{item.ordem}</span>{item.nome}<small>SEPLAG</small><BotaoIconSeplag icon="pi pi-trash" tooltip="Remover fase" onClick={() => removerFase(item.ordem)} /></li>)}
-       </ol>
+       <TablePaginadoSeplag dataKey="ordem" data={resultadosSemPaginacao(fases)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasFases} hasEventoAcao renderBotoes={renderAcoesFase} reorderableRows onRowReorder={reordenarFases} handleOnPageChange={() => {}} />
        <div className="grid align-items-end prototype-certame-subform">
-        <TextFieldSeplag name="nome" control={faseForm.control} label="Nome da fase adicional (a partir da posição 13)" cols="12 6 8" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="nome" control={faseForm.control} label="Nome da nova fase" cols="12 6 8" getFormErrorMessage={() => null} />
         <div className="col-12 md:col-4"><BotaoAdicionarSeplag type="button" label="Adicionar fase" onClick={adicionarFase} /></div>
        </div>
       </div></SpecArea>

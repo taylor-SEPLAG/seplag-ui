@@ -11,6 +11,7 @@ import {
   type DataTableExpandedRows,
   type DataTableHeaderTemplateType,
   type DataTableRowExpansionTemplate,
+  type DataTableRowReorderEvent,
   type DataTableRowToggleEvent,
   type DataTableSelectEvent,
   type DataTableStateEvent,
@@ -62,6 +63,9 @@ export interface TablePaginadoSeplagProps<T extends DataTableValue> {
   readonly renderBotoes?: (data: T) => ReactNode;
   readonly renderExpander?: (data: T) => ReactNode;
   readonly header?: DataTableHeaderTemplateType<T[]>;
+  /** Exibe a alça de arrastar e habilita reordenar linhas com o mouse. */
+  readonly reorderableRows?: boolean;
+  readonly onRowReorder?: (novaOrdem: T[]) => void;
 }
 export interface ColumnMetaSeplag<T> {
   header: ReactNode;
@@ -107,6 +111,8 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
   isDisabled,
   renderBotoes,
   renderExpander,
+  reorderableRows = false,
+  onRowReorder,
 }: Readonly<TablePaginadoSeplagProps<T>>) {
   const first = (data?.pageActual ?? 0) * rows;
 
@@ -265,7 +271,12 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
         onRowToggle={onRowToggle}
         selectionMode={selectionMode as any}
         selection={selected as any}
+        reorderableRows={reorderableRows}
+        onRowReorder={(event: DataTableRowReorderEvent<any>) => onRowReorder?.(event.value as T[])}
       >
+        {reorderableRows && (
+          <Column key="col-reorder" rowReorder style={{ width: "3rem" }} />
+        )}
         {selectionMode === "multiple" && !isDisabled && (
           <Column
             key="col-selection"

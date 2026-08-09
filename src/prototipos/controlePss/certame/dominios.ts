@@ -21,10 +21,12 @@ export const REGIMES_JURIDICOS = [
  { label:"Especial", value:"ESPECIAL" },
 ] as const;
 
+// "Efetivo" não entra aqui: é exclusivo do Concurso Público, exibido como campo fixo "Nomeado Efetivo".
 export const TIPOS_VINCULO = [
- { label:"Efetivo", value:"EFETIVO" },
  { label:"Contrato Temporário", value:"CONTRATO_TEMPORARIO" },
  { label:"Bolsista", value:"BOLSISTA" },
+ { label:"Residente", value:"RESIDENTE" },
+ { label:"Estagiário", value:"ESTAGIARIO" },
 ] as const;
 
 export const ABRANGENCIAS = [
@@ -70,12 +72,14 @@ export const LEIS_CERTAME = [
 ] as const;
 
 // RN-11: cargos já cadastrados no sistema — consultados antes de permitir a criação de um novo (vaga existente).
+// quadroCodigo/quadroVersao: vínculo automático com o Quadro de Vagas (Controle de Vagas > Quadro Autorizado)
+// vigente para o cargo — rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso.
 export const CARGOS_CADASTRADOS = [
- { id:"CGO-AUDITOR-FISCAL", nome:"Auditor Fiscal" },
- { id:"CGO-ANALISTA-TI", nome:"Analista de TI" },
- { id:"CGO-PROFESSOR-PORTUGUES", nome:"Professor — Língua Portuguesa" },
- { id:"CGO-ENFERMEIRO", nome:"Enfermeiro" },
- { id:"CGO-MEDICO", nome:"Médico" },
+ { id:"CGO-AUDITOR-FISCAL", nome:"Auditor Fiscal", quadroCodigo:"QA-0007", quadroVersao:1 },
+ { id:"CGO-ANALISTA-TI", nome:"Analista de TI", quadroCodigo:"QA-0015", quadroVersao:2 },
+ { id:"CGO-PROFESSOR-PORTUGUES", nome:"Professor — Língua Portuguesa", quadroCodigo:"QA-0012", quadroVersao:1 },
+ { id:"CGO-ENFERMEIRO", nome:"Enfermeiro", quadroCodigo:"QA-0009", quadroVersao:1 },
+ { id:"CGO-MEDICO", nome:"Médico", quadroCodigo:"QA-0021", quadroVersao:3 },
 ] as const;
 
 export const ORGAOS_CERTAME = ["SEPLAG", "SEDUC", "SES", "SESP", "SEJUS", "SEFAZ", "SETASC", "SEMA", "PJC"] as const;
@@ -101,8 +105,8 @@ export const DOCUMENTOS_CERTAME: readonly { tipo:string; label:string; obrigator
  { tipo:"OUTROS_COMISSAO", label:"Outros documentos da comissão organizadora", obrigatorioSempre:false },
 ];
 
-// RN-09: as 12 primeiras fases são fixas e definidas pelo padrão do TCE-MT — não podem ser
-// renomeadas ou reordenadas. Fases adicionais da SEPLAG (Certame.fasesAdicionais) começam em 13.
+// Catálogo padrão do TCE-MT (RN-09), usado como sugestão inicial das fases de um novo certame.
+// A lista final (Certame.fases) é totalmente editável: renomear, reordenar, adicionar e remover.
 export const FASES_TCE_FIXAS: readonly { ordem:number; nome:string }[] = [
  { ordem:1, nome:"Publicação do Edital" },
  { ordem:2, nome:"Período de Inscrições" },
