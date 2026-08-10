@@ -7,7 +7,7 @@ import { CONTROLE_VAGAS_BASE_PATH } from "../../controleVagas/constants";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
 import { proximoNumeroCertame, calcularPrazoPrestacaoContas } from "./validations";
-import { ABRANGENCIAS, CARGOS_CADASTRADOS, DOCUMENTOS_CERTAME, FASES_TCE_FIXAS, LEIS_CERTAME, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
+import { ABRANGENCIAS, CARGOS_CADASTRADOS, DOCUMENTOS_CERTAME, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, LEIS_CERTAME, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
 import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, SituacaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
@@ -22,7 +22,7 @@ import type { ResultsSeplag } from "../../../interfaces/Results";
 import "./certame.css";
 
 function resultadosSemPaginacao<T>(content:readonly T[]):ResultsSeplag<T> {
- return { content:[...content], totalPages:1, totalRecords:content.length, size:Math.max(content.length, 1), sizePage:Math.max(content.length, 1), pageActual:0, first:true, last:true, numberOfElements:content.length, empty:content.length === 0 };
+ return { content:[...content], totalPages:1, totalRecords:content.length, size:Math.max(content.length, 1), sizePage:Math.max(content.length, 1), pageActual:0, number:0, first:true, last:true, numberOfElements:content.length, empty:content.length === 0 };
 }
 
 interface CertameFormValues {
@@ -172,7 +172,9 @@ export function CertameFormContent() {
  const [erro, setErro] = useState<string | null>(null);
  const situacaoForm = useForm<SituacaoFormValues>({ defaultValues: { tipo:"HOMOLOGADO" } });
 
- const documentoObrigatorio = (tipo:string, obrigatorioSempre:boolean) => obrigatorioSempre || (tipo === "DEMONSTRATIVO_LRF" && valores.gerouDespesas === "S");
+ const documentoObrigatorio = (tipo:string, obrigatorioSempre:boolean) => obrigatorioSempre
+  || (tipo === "DEMONSTRATIVO_LRF" && valores.gerouDespesas === "S")
+  || (tipo === "CONTRATO_SOCIAL_EMPRESA" && (valores.tipoContratacaoExecucao === "EMPRESA_CONTRATADA" || valores.houveContratacaoBanca === "S"));
 
  const colunasCotas:ColumnMetaSeplag<CotaCertame>[] = [
   { header:"Tipo de cota", body:(row) => TIPOS_COTA.find((tipo) => tipo.value === row.tipo)?.label ?? row.tipo },
@@ -284,9 +286,10 @@ export function CertameFormContent() {
   situacaoForm.reset({ tipo:"HOMOLOGADO", data:"" });
  };
 
- // RN-06, seção 3: Isenção, Recursos e Contratos e Prazos são dispensados por completo para Processo Seletivo.
+ // RN-06, seção 3: para Processo Seletivo, o campo de isenção segue o mesmo padrão do concurso,
+ // e a aba de Recursos e Contratos passou a ser exibida também para PSS; apenas o bloco de Prazos continua dispensado.
  const abas:TabItemSeplag<Aba>[] = useMemo(() => {
-  const visiveis = abasBase.filter((item) => !(dispensarParaProcessoSeletivo && (item.id === "ISENCAO" || item.id === "RECURSOS" || item.id === "PRAZOS")));
+  const visiveis = abasBase.filter((item) => !(dispensarParaProcessoSeletivo && item.id === "PRAZOS"));
   const comSituacoes = modoNovo ? visiveis : [...visiveis, { id:"SITUACOES" as Aba, label:"Situações" }];
   return comSituacoes.map((item) => ({ id:item.id, label:item.label, value:item.id }));
  }, [modoNovo, dispensarParaProcessoSeletivo]);
@@ -296,9 +299,9 @@ export function CertameFormContent() {
  const abasFluxo = abas.filter((item) => item.id !== "SITUACOES");
  const indiceAbaAtual = abasFluxo.findIndex((item) => item.id === aba);
  const ehUltimaAba = indiceAbaAtual === abasFluxo.length - 1;
- const avancar = () => { if (indiceAbaAtual >= 0 && indiceAbaAtual < abasFluxo.length - 1) setAba(abasFluxo[indiceAbaAtual + 1].id); };
+ const avancar = () => { if (indiceAbaAtual >= 0 && indiceAbaAtual < abasFluxo.length - 1) setAba(abasFluxo[indiceAbaAtual + 1].id as Aba); };
  // Volta uma etapa do fluxo (mantendo os dados já preenchidos); na primeira etapa, sai para a listagem.
- const voltar = () => { if (indiceAbaAtual > 0) { setAba(abasFluxo[indiceAbaAtual - 1].id); return; } navigate(`${BASE}/certames`); };
+ const voltar = () => { if (indiceAbaAtual > 0) { setAba(abasFluxo[indiceAbaAtual - 1].id as Aba); return; } navigate(`${BASE}/certames`); };
 
  if (!modoNovo && !existente) return <div className="prototype-page-content prototype-page-content--white"><CardSeplag title="Certame não encontrado"><p className="col-12">O certame solicitado não foi localizado.</p></CardSeplag></div>;
 
@@ -368,7 +371,7 @@ export function CertameFormContent() {
       {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataCancelamento" control={control} label="Data de cancelamento" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />}
       <DropdownFieldSeplag name="abrangencia" control={control} label="Abrangência" required cols="12 6 4" options={[...ABRANGENCIAS]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
       <DropdownFieldSeplag name="tipoContratacaoExecucao" control={control} label="Tipo de contratação (execução)" required cols="12 6 4" options={[...TIPOS_CONTRATACAO_EXECUCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-      {valores.tipoContratacaoExecucao === "EMPRESA_CONTRATADA" && <TextFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" required cols="12 6 4" placeholder="Ex.: FCC, FGV, SELECON" getFormErrorMessage={() => null} />}
+      {valores.tipoContratacaoExecucao === "EMPRESA_CONTRATADA" && <DropdownFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" required cols="12 6 4" options={[...EMPRESAS_CADASTRADAS]} optionLabel="label" optionValue="value" placeholder="Selecione a empresa cadastrada" getFormErrorMessage={() => null} />}
       <NumberFieldSeplag name="validadeConcursoDias" control={control} label={dispensarParaProcessoSeletivo ? "Validade do processo seletivo (dias)" : "Validade do concurso (dias)"} cols="12 6 4" getFormErrorMessage={() => null} />
       <NumberFieldSeplag name="previsaoProrrogacaoDias" control={control} label="Previsão para prorrogação (dias)" cols="12 6 4" getFormErrorMessage={() => null} />
       <NumberFieldSeplag name="prorrogacaoValidadeDias" control={control} label="Prorrogação da validade (dias)" cols="12 6 4" getFormErrorMessage={() => null} />

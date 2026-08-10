@@ -40,6 +40,17 @@ export const TIPOS_CONTRATACAO_EXECUCAO = [
  { label:"Empresa Contratada", value:"EMPRESA_CONTRATADA" },
 ] as const;
 
+export const EMPRESAS_CADASTRADAS = [
+ { label:"INSEL — Instituto Nacional de Seleções Públicas", value:"INSEL" },
+ { label:"FCC — Fundação Carlos Chagas", value:"FCC" },
+ { label:"FGV — Fundação Getulio Vargas", value:"FGV" },
+ { label:"SELECON — Seleções e Concursos", value:"SELECON" },
+ { label:"IAB — Instituto de Administração Brasileira", value:"IAB" },
+ { label:"Apex — Agência de Pesquisa e Execução", value:"APEX" },
+ { label:"MPE — MPE Consultoria", value:"MPE" },
+ { label:"CIEE — Centro de Integração Empresa-Escola", value:"CIEE" },
+] as const;
+
 // RN-12: obrigatório quando houveContratacaoBanca = true.
 export const TIPOS_CONTRATO_BANCA = [
  { label:"Banca Organizadora", value:"BANCA_ORGANIZADORA" },
@@ -96,12 +107,21 @@ export const SITUACOES_CERTAME = [
  { label:"Retificação de Homologação Parcial", value:"RETIFICACAO_HOMOLOGACAO_PARCIAL" },
 ] as const;
 
+// Catálogo alinhado à seção 1.1 (Concurso Público) e 3.1 (PSS) do Manual de Orientação para Remessa
+// de Documentos ao TCE/MT — exigências da fase de abertura do edital.
 export const DOCUMENTOS_CERTAME: readonly { tipo:string; label:string; obrigatorioSempre:boolean }[] = [
  { tipo:"JUSTIFICATIVA_ABERTURA", label:"Justificativa de abertura", obrigatorioSempre:true },
- { tipo:"PUBLICACAO_CERTAME_LICITATORIO", label:"Publicação do certame licitatório (se houver)", obrigatorioSempre:false },
+ { tipo:"EDITAL_INTEGRA", label:"Cópia integral do edital de abertura", obrigatorioSempre:true },
+ { tipo:"COMPROVANTE_PUBLICACAO_EDITAL", label:"Comprovante da publicação resumida do edital", obrigatorioSempre:true },
  { tipo:"LEI_ATO_AUTORIZACAO", label:"Lei/ato que autoriza o certame", obrigatorioSempre:true },
+ { tipo:"DECLARACAO_ORDENADOR_DESPESA", label:"Declaração do ordenador de despesa (adequação com LOA/PPA/LDO)", obrigatorioSempre:true },
+ { tipo:"DESIGNACAO_COMISSAO", label:"Comprovante de publicação do ato que designa a comissão", obrigatorioSempre:true },
+ { tipo:"LOTACIONOGRAMA_ANALITICO", label:"Demonstrativo analítico do lotacionograma atualizado", obrigatorioSempre:true },
+ { tipo:"PARECER_CONTROLE_INTERNO", label:"Parecer da unidade de controle interno", obrigatorioSempre:true },
  { tipo:"DECLARACAO_RESPONSAVEL", label:"Declaração do responsável", obrigatorioSempre:true },
  { tipo:"DEMONSTRATIVO_LRF", label:"Demonstrativo de Estimativa de Impacto (LRF)", obrigatorioSempre:false },
+ { tipo:"PUBLICACAO_CERTAME_LICITATORIO", label:"Publicação do certame licitatório (se houver)", obrigatorioSempre:false },
+ { tipo:"CONTRATO_SOCIAL_EMPRESA", label:"Contrato social da empresa/instituição contratada", obrigatorioSempre:false },
  { tipo:"OUTROS_COMISSAO", label:"Outros documentos da comissão organizadora", obrigatorioSempre:false },
 ];
 
