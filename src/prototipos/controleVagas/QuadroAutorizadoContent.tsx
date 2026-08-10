@@ -82,6 +82,7 @@ const BASE_PATH = `${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`;
 
 type VigenciaQuadroForm = SituacaoVigenciaValueSeplag;
 type ModoAbrangencia =
+  | ""
   | "SEM_ORGAOS"
   | "ORGAOS_SEM_QUANTITATIVO"
   | "ORGAOS_COM_QUANTITATIVO";
@@ -231,6 +232,17 @@ const statusVigenciaDoQuadro = (item: QuadroAutorizadoRow) =>
     dataExtincao: item.dataExtincao,
     motivoExtincao: item.motivoExtincao,
   });
+const statusVigenciaVisualDoQuadro = (item: QuadroAutorizadoRow) => {
+  const status = statusVigenciaDoQuadro(item);
+  if (item.extincaoProgressivaEmAndamento && status === "ATIVO") {
+    return {
+      label: "Em extinção progressiva",
+      color: "#9a6700",
+      bg: "#fff4ce",
+    };
+  }
+  return statusVigenciaMeta[status];
+};
 type VersaoAnteriorQuadro = {
   versao: number;
   cargo: string;
@@ -560,7 +572,7 @@ function QuadroAutorizadoLista() {
       ),
       sortable: true,
       body: (item) => {
-        const meta = statusVigenciaMeta[item.statusVigencia];
+        const meta = statusVigenciaVisualDoQuadro(item);
         const rotuloQuebrado = meta.label.startsWith("Agendado para ")
           ? meta.label.replace("Agendado para ", "Agendado para\n")
           : meta.label;
@@ -1048,8 +1060,7 @@ function QuadroAutorizadoModal({
     registro.documentosLegaisIds?.includes(documento.id),
   );
   const quantitativos = registro.quantitativosLegaisPorOrgao ?? [];
-  const statusOperacional = statusVigenciaDoQuadro(registro);
-  const status = statusVigenciaMeta[statusOperacional];
+  const status = statusVigenciaVisualDoQuadro(registro);
   const footer = (
     <div className="prototype-quadro-modal-library-actions">
       <SpecArea metadata={quadroActionSpecifications["Fechar visualização"]}>
@@ -1206,8 +1217,14 @@ function QuadroAutorizadoModal({
           <dl>
             <div>
               <dt>Situação da vigência</dt>
-              <dd>{registro.situacaoVigencia ?? registro.situacao}</dd>
+              <dd>{status.label}</dd>
             </div>
+            {registro.extincaoProgressivaEmAndamento && (
+              <div>
+                <dt>Início da extinção progressiva</dt>
+                <dd>{registro.dataInicioExtincaoProgressiva}</dd>
+              </div>
+            )}
             <div>
               <dt>Data de início</dt>
               <dd>
@@ -1287,6 +1304,13 @@ function QuadroAutorizadoForm({
       processo: registro?.processo ?? "",
       fundamentacao: "",
       motivoAlteracao: "",
+      modoAbrangencia: registro
+        ? registro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
+          ? "SEM_ORGAOS"
+          : registro.quantitativosLegaisPorOrgao?.length
+            ? "ORGAOS_COM_QUANTITATIVO"
+            : "ORGAOS_SEM_QUANTITATIVO"
+        : "",
       orgaosDefinidos: registro?.orgaosDefinidosLei
         ? [...registro.orgaosDefinidosLei]
         : registro?.orgao && registro.orgao !== "ESTADO DE MATO GROSSO"
@@ -1362,7 +1386,10 @@ function QuadroAutorizadoForm({
       !documentosLegaisIds.length &&
         "Vincule ao menos uma norma à autorização.",
       ...errosVigencia,
+      !modoAbrangencia &&
+        "Informe como a lei definiu a alocação das vagas.",
       formaDestinacao === "DEFINIDA_NA_LEI" &&
+        Boolean(modoAbrangencia) &&
         !orgaosDefinidos.length &&
         "Selecione ao menos um órgão definido pela lei.",
       (!form.quantidade || Number(form.quantidade) <= 0) &&
@@ -1746,7 +1773,8 @@ function QuadroAutorizadoForm({
                 />
               </div>
             )}
-            {modoAbrangencia !== "SEM_ORGAOS" && (
+            {(modoAbrangencia === "ORGAOS_SEM_QUANTITATIVO" ||
+              modoAbrangencia === "ORGAOS_COM_QUANTITATIVO") && (
               <div className="prototype-quadro-legal-allocation">
                 <h3>
                   {modoAbrangencia === "ORGAOS_COM_QUANTITATIVO"
@@ -1924,6 +1952,9 @@ function QuadroAutorizadoForm({
             <SituacaoVigenciaSeplag
               control={control}
               setValue={setValue}
+              situacoesDisponiveis={
+                !registro && !novaVersao ? ["ATIVO"] : undefined
+              }
               rotuloDataAtivacao="Data de início"
               cols={{
                 situacao: "12 12 3",
@@ -1998,14 +2029,12 @@ function QuadroAutorizadoNovaVersao({
     <div className="prototype-quadro-page">
       <header className="prototype-quadro-header">
         <div>
-          <BotaoVoltarSeplag label="Quadro Autorizado" onClick={onBack} />
           <h1>Nova versão do quadro</h1>
           <p>
             {registro.codigo} • {registro.cargo} • versão vigente{" "}
             {registro.versao}
           </p>
         </div>
-        <span className="prototype-quadro-form-state">Evolução legal</span>
       </header>
       <div className="prototype-quadro-info">
         <i className="pi pi-info-circle" />

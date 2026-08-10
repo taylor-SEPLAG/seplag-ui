@@ -39,6 +39,12 @@ import {
   PrototiposControleVagasVagasPage,
   PrototiposControleVagasCessoesPage,
   PrototiposControleVagasProjecoesPage,
+  PrototiposControlePssPainelPage,
+  PrototiposControlePssProcessosPage,
+  PrototiposControlePssVagasPage,
+  PrototiposControlePssIntegracaoSiesPage,
+  PrototiposControlePssCertamesPage,
+  PrototiposControlePssCertameFormPage,
   PrototiposBacklogRegrasPage,
   PrototiposBacklogQuadroAutorizadoPage,
   PrototiposBacklogDistribuicaoPage,
@@ -120,6 +126,7 @@ import {
   PrototiposSicadUsuariosPage,
   PrototiposSicadUsuarioPerfilPage,
 } from "./prototipos/sicad/PrototiposSicadPage";
+import { UsGeneratorPage } from "./usGenerator/UsGeneratorPage";
 
 function HomePage() {
   const sistemas = [
@@ -1482,6 +1489,38 @@ function App() {
         path="/prototipos/sigep/controle-vagas/quadro-autorizado/:id/nova-versao"
         element={<PrototiposControleVagasQuadroAutorizadoPage />}
       />
+      <Route
+        path="/prototipos/sigep/controle-pss/painel"
+        element={<PrototiposControlePssPainelPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/certames"
+        element={<PrototiposControlePssCertamesPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/certames/novo"
+        element={<PrototiposControlePssCertameFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/certames/:id"
+        element={<PrototiposControlePssCertameFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/processos"
+        element={<PrototiposControlePssProcessosPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/processos/:id"
+        element={<PrototiposControlePssProcessosPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/vagas"
+        element={<PrototiposControlePssVagasPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/integracao-sies"
+        element={<PrototiposControlePssIntegracaoSiesPage />}
+      />
       <Route path="/prototipos/sigep/backlog/configuracoes" element={<PrototiposBacklogRegrasPage />} />
       <Route path="/prototipos/sigep/backlog/dashboard" element={<PrototiposBacklogDashboardPage />} />
       <Route path="/prototipos/sigep/backlog/distribuicao" element={<PrototiposBacklogDistribuicaoPage />} />
@@ -1750,6 +1789,7 @@ function App() {
         <Route path=":id" element={<DocsRenderer />} />
         <Route index element={<DocsRenderer />} />
       </Route>
+      <Route path="/ferramentas/gerador-us" element={<UsGeneratorPage />} />
     </Routes>
   );
 }

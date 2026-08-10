@@ -1,0 +1,296 @@
+.us-generator-page {
+  min-height: 100vh;
+  padding: 24px;
+  background: #eef3f8;
+  color: #172335;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.us-generator-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: 1440px;
+  margin: 0 auto 18px;
+  padding: 22px 24px;
+  border: 1px solid #d3dee9;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.us-generator-header span,
+.us-generator-output-header span {
+  color: #086cac;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.us-generator-header h1,
+.us-generator-output-header h2 {
+  margin: 5px 0 0;
+  color: #10233a;
+  line-height: 1.15;
+}
+
+.us-generator-header h1 {
+  font-size: 28px;
+}
+
+.us-generator-header p {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: #516275;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.us-generator-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+  gap: 18px;
+  max-width: 1440px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.us-generator-form,
+.us-generator-output {
+  min-width: 0;
+  border: 1px solid #d3dee9;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.us-generator-form {
+  padding: 22px;
+}
+
+.us-generator-source {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid #cfdbe7;
+  border-radius: 8px;
+  background: #f8fbfe;
+}
+
+.us-generator-source label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.us-generator-source span {
+  color: #086cac;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.us-generator-source textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 12px;
+  border: 1px solid #bdcad8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1b2d44;
+  font: inherit;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.us-generator-source button {
+  justify-self: start;
+}
+
+.us-generator-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.us-generator-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.us-generator-grid .is-wide,
+.us-generator-grid .is-full {
+  grid-column: 1 / -1;
+}
+
+.us-generator-grid span {
+  color: #33475d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.us-generator-grid input,
+.us-generator-grid textarea,
+.us-generator-output textarea {
+  width: 100%;
+  border: 1px solid #bdcad8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1b2d44;
+  font: inherit;
+}
+
+.us-generator-grid input {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.us-generator-grid textarea {
+  min-height: 124px;
+  padding: 11px 12px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.us-generator-grid input:focus,
+.us-generator-grid textarea:focus,
+.us-generator-source textarea:focus,
+.us-generator-output textarea:focus {
+  border-color: #086cac;
+  outline: 3px solid #d7ebf8;
+}
+
+.us-generator-output {
+  position: sticky;
+  top: 18px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
+}
+
+.us-generator-output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid #dce5ee;
+}
+
+.us-generator-output-header h2 {
+  font-size: 20px;
+}
+
+.us-generator-output-header > div:last-child,
+.us-generator-output-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.us-generator-output textarea {
+  flex: 1;
+  min-height: 560px;
+  padding: 16px;
+  border: 0;
+  border-radius: 0;
+  background: #fbfcfe;
+  color: #21324a;
+  font-family: "Fira Code", Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  resize: none;
+}
+
+.us-generator-header button,
+.us-generator-source button,
+.us-generator-output button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid #aebdcb;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #26516f;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.us-generator-header button:hover,
+.us-generator-source button:hover:not(:disabled),
+.us-generator-output button:hover {
+  border-color: #086cac;
+  background: #eef7fd;
+  color: #075f99;
+}
+
+.us-generator-source button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.us-generator-output button:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+
+.us-generator-error {
+  margin: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f0c6c6;
+  background: #fff1f1;
+  color: #9b2c2c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.us-generator-output-actions {
+  padding: 14px 18px 18px;
+  border-top: 1px solid #dce5ee;
+  background: #ffffff;
+}
+
+@media (max-width: 1120px) {
+  .us-generator-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .us-generator-output {
+    position: static;
+    max-height: none;
+  }
+
+  .us-generator-output textarea {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 680px) {
+  .us-generator-page {
+    padding: 14px;
+  }
+
+  .us-generator-header,
+  .us-generator-output-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .us-generator-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -14,10 +14,12 @@ import { documentosLegaisDisponiveis } from "./documentosLegaisData";
 import { BotaoSalvarSeplag, BotaoSeplag } from "../../componentes/Botao";
 import {
   DateFieldSeplag,
+  DropdownFieldSeplag,
   NumberFieldSeplag,
   TextFieldSeplag,
 } from "../../componentes/Fields";
 import { MensagemSeplag } from "../../componentes/Mensagem";
+import { cargosBaseTemporaria } from "./baseTemporaria";
 import "./quadroLegalOperacoes.css";
 
 const rotulos: Record<TipoAlteracaoQuadroLegal, string> = {
@@ -49,20 +51,41 @@ export function QuadroLegalOperacoes({
     () => vagas.filter((vaga) => vaga.quadroAutorizadoId === registro.id),
     [registro.id, vagas],
   );
+  const cargosDisponiveisTransformacao = useMemo(
+    () =>
+      cargosBaseTemporaria
+        .filter(
+          (cargo) =>
+            cargo.situacaoLegal === "REGULAR" && cargo.nome !== registro.cargo,
+        )
+        .map((cargo) => ({ label: cargo.nome, value: cargo.nome })),
+    [registro.cargo],
+  );
   const [tipo, setTipo] = useState<TipoAlteracaoQuadroLegal>("AMPLIACAO");
-  const { control: operacaoControl, watch: watchOperacao } = useForm<{
+  const {
+    control: operacaoControl,
+    watch: watchOperacao,
+    setValue: setOperacaoValue,
+  } = useForm<{
     dataEfeito: string;
     quantidade: number;
-  }>({ defaultValues: { dataEfeito: "2026-08-01", quantidade: 1 } });
+    novoCargo: string;
+  }>({
+    defaultValues: {
+      dataEfeito: "2026-08-01",
+      quantidade: 1,
+      novoCargo: "",
+    },
+  });
   const dataEfeito = watchOperacao("dataEfeito");
   const quantidade = watchOperacao("quantidade");
+  const novoCargo = watchOperacao("novoCargo");
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>([]);
   const normasSelecionadas = documentosLegaisDisponiveis.filter((item) =>
     documentosLegaisIds.includes(item.id),
   );
   const lei = normasSelecionadas.map((item) => item.titulo).join("; ");
   const [processo, setProcesso] = useState(registro.processo);
-  const [novoCargo, setNovoCargo] = useState("");
   const [resultado, setResultado] = useState<ReturnType<
     typeof aplicarAlteracaoQuadroLegal
   > | null>(null);
@@ -101,6 +124,9 @@ export function QuadroLegalOperacoes({
     const ocupadas = vagasDaNovaVersao.filter(
       (vaga) => vaga.estado === "OCUPADA" && vaga.situacaoLegal !== "EXTINTA",
     ).length;
+    const extincaoProgressiva = tipo === "EXTINCAO_PROGRESSIVA";
+    const extincaoImediata =
+      extincaoProgressiva && resultado.quantitativoPosterior === 0;
     const novaVersao: QuadroAutorizadoRow = {
       ...registro,
       id: novoId,
@@ -110,7 +136,26 @@ export function QuadroLegalOperacoes({
       processo,
       inicioVigencia: dataEfeito.split("-").reverse().join("/"),
       dataAtivacao: dataEfeito,
-      situacao: vigenciaFutura ? "Vigência futura" : "Vigente",
+      dataEncerramento: undefined,
+      motivoEncerramento: undefined,
+      situacaoVigencia: extincaoImediata ? "EXTINTO" : "ATIVO",
+      dataExtincao: extincaoImediata ? dataEfeito : undefined,
+      motivoExtincao: extincaoImediata
+        ? "Extinção progressiva concluída sem vagas ocupadas."
+        : undefined,
+      extincaoProgressivaEmAndamento:
+        extincaoProgressiva && !extincaoImediata,
+      dataInicioExtincaoProgressiva: extincaoProgressiva
+        ? dataEfeito
+        : undefined,
+      fimVigencia: extincaoImediata
+        ? dataEfeito.split("-").reverse().join("/")
+        : "",
+      situacao: vigenciaFutura
+        ? "Vigência futura"
+        : extincaoImediata
+          ? "Encerrada"
+          : "Vigente",
       versao: registro.versao + 1,
       atualizadoEm: "20/07/2026",
     };
@@ -164,6 +209,9 @@ export function QuadroLegalOperacoes({
               className={tipo === item ? "active" : ""}
               onClick={() => {
                 setTipo(item);
+                if (item !== "TRANSFORMACAO") {
+                  setOperacaoValue("novoCargo", "");
+                }
                 setResultado(null);
                 setSalvo(false);
               }}
@@ -232,17 +280,21 @@ export function QuadroLegalOperacoes({
             />
           )}
           {tipo === "TRANSFORMACAO" && (
-            <TextFieldSeplag
+            <DropdownFieldSeplag
               name="novoCargo"
+              control={operacaoControl}
               label="Novo cargo"
               required
-              value={novoCargo}
-              onChange={(value) => {
-                setNovoCargo(value);
+              options={cargosDisponiveisTransformacao}
+              optionLabel="label"
+              optionValue="value"
+              onChange={() => {
                 setResultado(null);
+                setSalvo(false);
               }}
-              placeholder="Cargo de destino"
+              placeholder="Selecione o cargo de destino"
               cols="12 12 3"
+              getFormErrorMessage={() => null}
             />
           )}
         </div>
