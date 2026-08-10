@@ -17,6 +17,8 @@ export interface CardSeplagProps {
   /** Footer node rendered below the children */
   footer?: ReactNode;
   actions?: ReactNode | null;
+  /** Optional page-level navigation rendered above the card title. */
+  headerNavigation?: ReactNode;
   children: ReactNode;
 }
 
@@ -107,6 +109,7 @@ export const CardSeplag = (props: CardSeplagProps) => {
 
     return (
       <div className="col-12">
+        {props.headerNavigation}
         <div
           className={`flex justify-content-between ${
             isSubtitleBelow ? "align-items-start" : "align-items-center"
