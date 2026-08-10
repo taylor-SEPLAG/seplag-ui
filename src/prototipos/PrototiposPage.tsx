@@ -12165,6 +12165,24 @@ export function PrototiposIngressosPage() {
   );
 }
 
+type AnaliseProvimentoRascunho = {
+  parecer: "aprovar" | "suspender" | "negar" | "sem-efeito";
+  validacoes: Record<string, boolean>;
+  arquivosAnalise: Record<string, string | null>;
+  formaAssinatura: "fisica" | "sigadoc";
+  processosSigadoc: Record<string, string>;
+  arquivosGerados: Record<string, string>;
+  documentosRemovidos: Record<string, boolean>;
+  documentosSuspensao: string[];
+  motivoSemEfeito: string;
+  justificativaSemEfeito: string;
+  termoSuspensaoGerado: boolean;
+  documentosAprovacaoGerados: boolean;
+  termoNegativaGerado: boolean;
+  termoSemEfeitoGerado: boolean;
+  campos: Record<string, string | boolean>;
+  atualizadoEm: string;
+};
 export function PrototiposNovoIngressoPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -12183,6 +12201,9 @@ export function PrototiposNovoIngressoPage() {
   const processoOrigemDados = ingressoConcursosProcessosMock.find(
     (processo) => processo.titulo === concursoInicial,
   );
+  const caminhoRetornoNovoIngresso = processoOrigemDados
+    ? `/prototipos/sigep/ingressos-teste/${processoOrigemDados.id}`
+    : "/prototipos/sigep/ingressos";
   const nomeEditalProcessoSelecionado = processoOrigemDados?.titulo === "Processo Seletivo SES 2026"
     ? "PSS 004/2026/SES — Enfermagem"
     : processoOrigemDados?.edital ?? "Edital não informado";
@@ -12212,6 +12233,15 @@ export function PrototiposNovoIngressoPage() {
   const situacaoInicialIngresso: IngressoSituacao = candidatoParam
     ? situacoesIngressosSalvasNovo[candidatoParam] ?? ingressoOrigemDados?.situacao ?? "Aguardando Analise"
     : "Aguardando Analise";
+  const chaveRascunhoAnalise = `prototype-analise-provimento-rascunho-${candidatoParam ?? concursoInicial ?? "novo"}`;
+  const rascunhoAnaliseInicial = (() => {
+    try {
+      const salvo = localStorage.getItem(chaveRascunhoAnalise);
+      return salvo ? JSON.parse(salvo) as AnaliseProvimentoRascunho : null;
+    } catch {
+      return null;
+    }
+  })();
   const etapaParam = searchParams.get("etapa");
   const etapaInicialParam: NovoIngressoTab | null =
     etapaParam === "tipo-ingresso" ||
@@ -12269,7 +12299,7 @@ export function PrototiposNovoIngressoPage() {
   const [dataNomeacao, setDataNomeacao] = useState(
     candidatoProcessoOrigem?.dataNomeacao && candidatoProcessoOrigem.dataNomeacao !== "-"
       ? candidatoProcessoOrigem.dataNomeacao.split("/").reverse().join("-")
-      : "2026-07-10",
+      : "2026-07-13",
   );
   const [dataPosseIngresso, setDataPosseIngresso] = useState(
     candidatoProcessoOrigem?.dataPosse && candidatoProcessoOrigem.dataPosse !== "-"
@@ -12283,32 +12313,39 @@ export function PrototiposNovoIngressoPage() {
   const [numeroProcessoJudicial, setNumeroProcessoJudicial] = useState("");
   const [documentacaoEtapa, setDocumentacaoEtapa] = useState<"analise" | "termos" | "setorial">("analise");
   const [situacaoIngresso, setSituacaoIngresso] = useState<IngressoSituacao>(situacaoInicialIngresso);
-  const [documentosAnaliseValidados, setDocumentosAnaliseValidados] = useState<Record<string, boolean>>({});
-  const [arquivosDocumentosAnalise, setArquivosDocumentosAnalise] = useState<Record<string, File>>({});
-  const [formaAssinaturaDocumentos] = useState<"fisica" | "sigadoc">("sigadoc");
+  const [documentosAnaliseValidados, setDocumentosAnaliseValidados] = useState<Record<string, boolean>>(rascunhoAnaliseInicial?.validacoes ?? {});
+  const [arquivosDocumentosAnalise, setArquivosDocumentosAnalise] = useState<Record<string, File | null>>(() => Object.fromEntries(Object.entries(rascunhoAnaliseInicial?.arquivosAnalise ?? {}).map(([documento, nome]) => [documento, nome === null ? null : new File([""], nome)])));
+  const [formaAssinaturaDocumentos, setFormaAssinaturaDocumentos] = useState<"fisica" | "sigadoc">(rascunhoAnaliseInicial?.formaAssinatura ?? "sigadoc");
   const [processosSigadocDocumentos, setProcessosSigadocDocumentos] = useState<Record<string, string>>(
-    tipoInicial === "Processo Seletivo"
+    rascunhoAnaliseInicial?.processosSigadoc ?? (tipoInicial === "Processo Seletivo"
       ? { "Contrato Temporário": "SES-PRO-2026/004182" }
-      : {},
+      : {}),
   );
-  const [arquivosDocumentosGerados, setArquivosDocumentosGerados] = useState<Record<string, File>>({});
-  const [documentosGeradosRemovidos, setDocumentosGeradosRemovidos] = useState<Record<string, boolean>>({});
+  const [arquivosDocumentosGerados, setArquivosDocumentosGerados] = useState<Record<string, File>>(() => Object.fromEntries(Object.entries(rascunhoAnaliseInicial?.arquivosGerados ?? {}).map(([documento, nome]) => [documento, new File([""], nome)])));
+  const [documentosGeradosRemovidos, setDocumentosGeradosRemovidos] = useState<Record<string, boolean>>(rascunhoAnaliseInicial?.documentosRemovidos ?? {});
   const [documentoUploadSigadoc, setDocumentoUploadSigadoc] = useState<string | null>(null);
   const [processoUploadSigadoc, setProcessoUploadSigadoc] = useState("");
   const [arquivoUploadSigadoc, setArquivoUploadSigadoc] = useState<File | null>(null);
   const [erroUploadSigadoc, setErroUploadSigadoc] = useState(false);
-  const [parecerProvimento, setParecerProvimento] = useState<"aprovar" | "suspender" | "negar" | "sem-efeito">("aprovar");
+  const [parecerProvimento, setParecerProvimento] = useState<"aprovar" | "suspender" | "negar" | "sem-efeito">(rascunhoAnaliseInicial?.parecer ?? "aprovar");
   const [analiseProvimentoAberta, setAnaliseProvimentoAberta] = useState(true);
   const [parecerProvimentoAberto, setParecerProvimentoAberto] = useState(true);
-  const [documentosSuspensaoSelecionados, setDocumentosSuspensaoSelecionados] = useState<string[]>([]);
+  const [documentosSuspensaoSelecionados, setDocumentosSuspensaoSelecionados] = useState<string[]>(rascunhoAnaliseInicial?.documentosSuspensao ?? []);
   const [documentosSuspensaoDropdownAberto, setDocumentosSuspensaoDropdownAberto] = useState(false);
   const [prazoPosseSuspenso, setPrazoPosseSuspenso] = useState(false);
-  const [termoSuspensaoGerado, setTermoSuspensaoGerado] = useState(false);
-  const [documentosAprovacaoGerados, setDocumentosAprovacaoGerados] = useState(false);
-  const [termoNegativaGerado, setTermoNegativaGerado] = useState(false);
-  const [termoSemEfeitoGerado, setTermoSemEfeitoGerado] = useState(false);
-  const [motivoSemEfeito, setMotivoSemEfeito] = useState("nao-comparecimento");
-  const [justificativaSemEfeito, setJustificativaSemEfeito] = useState("");
+  const [termoSuspensaoGerado, setTermoSuspensaoGerado] = useState(rascunhoAnaliseInicial?.termoSuspensaoGerado ?? false);
+  const [documentosAprovacaoGerados, setDocumentosAprovacaoGerados] = useState(rascunhoAnaliseInicial?.documentosAprovacaoGerados ?? false);
+  const [termoNegativaGerado, setTermoNegativaGerado] = useState(rascunhoAnaliseInicial?.termoNegativaGerado ?? false);
+  const [termoSemEfeitoGerado, setTermoSemEfeitoGerado] = useState(rascunhoAnaliseInicial?.termoSemEfeitoGerado ?? false);
+  const [motivoSemEfeito, setMotivoSemEfeito] = useState(rascunhoAnaliseInicial?.motivoSemEfeito ?? "nao-comparecimento");
+  const [justificativaSemEfeito, setJustificativaSemEfeito] = useState(rascunhoAnaliseInicial?.justificativaSemEfeito ?? "");
+  const [alteracoesAnalisePendentes, setAlteracoesAnalisePendentes] = useState(false);
+  const [modalSaidaAnaliseAberto, setModalSaidaAnaliseAberto] = useState(false);
+  const [destinoSaidaAnalise, setDestinoSaidaAnalise] = useState<string | null>(null);
+  const [feedbackRascunhoAnalise, setFeedbackRascunhoAnalise] = useState<string | null>(
+    rascunhoAnaliseInicial?.atualizadoEm ? `Última atualização: ${rascunhoAnaliseInicial.atualizadoEm}` : null,
+  );
+  const [erroRascunhoAnalise, setErroRascunhoAnalise] = useState(false);
   const [dataPosse, setDataPosse] = useState("");
   const [dataEfetivoExercicio, setDataEfetivoExercicio] = useState(
     situacaoInicialIngresso === "Ingresso Concluído" &&
@@ -12359,6 +12396,19 @@ export function PrototiposNovoIngressoPage() {
       : diasRestantesEfetivo === 0
         ? "prototype-prazo-posse-status prototype-prazo-posse-status--atencao"
         : "prototype-prazo-posse-status";
+  const dataNomeacaoPrazoPosse = parseDataIsoLocal(dataNomeacao || "2026-07-13");
+  const prazoFinalPosse = parseDataIsoLocal("2026-07-30");
+  const hojePrazoPosse = new Date();
+  hojePrazoPosse.setHours(0, 0, 0, 0);
+  const diasPrazoPosse = prazoFinalPosse
+    ? Math.ceil((prazoFinalPosse.getTime() - hojePrazoPosse.getTime()) / 86400000)
+    : 0;
+  const prazoPosseVencido = diasPrazoPosse < 0;
+  const textoDiasPrazoPosse = prazoPosseVencido
+    ? `${Math.abs(diasPrazoPosse)} ${Math.abs(diasPrazoPosse) === 1 ? "dia" : "dias"} em atraso`
+    : `${diasPrazoPosse} ${diasPrazoPosse === 1 ? "dia" : "dias"}`;
+  const formatarDataPrazoPosse = (data: Date | null) =>
+    data?.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) ?? "-";
   const tipoVinculo = tipoIngresso === "Concurso"
     ? "Nomeado Efetivo"
     : tipoIngresso
@@ -12421,13 +12471,27 @@ export function PrototiposNovoIngressoPage() {
   const numeroIngressoAtual = `2026/${String(candidatoParam ?? 1).padStart(4, "0")}`;
   const documentosObrigatoriosIngresso = ingressoDocumentacaoObrigatoriaMock;
   const documentosAnexadosAnalise = documentosObrigatoriosIngresso;
-  const nomeArquivoDocumentoAnalise = (documento: (typeof documentosAnexadosAnalise)[number]) =>
-    arquivosDocumentosAnalise[documento.documento]?.name ?? documento.arquivo;
+  const nomeArquivoDocumentoAnalise = (documento: (typeof documentosAnexadosAnalise)[number]) => {
+    const arquivoAlterado = arquivosDocumentosAnalise[documento.documento];
+    return arquivoAlterado === null ? "-" : arquivoAlterado?.name ?? documento.arquivo;
+  };
   const anexarDocumentoAnalise = (documento: string, arquivo?: File) => {
     if (!arquivo) return;
     setArquivosDocumentosAnalise((arquivosAtuais) => ({
       ...arquivosAtuais,
       [documento]: arquivo,
+    }));
+    setDocumentosAnaliseValidados((validacoesAtuais) => ({
+      ...validacoesAtuais,
+      [documento]: false,
+    }));
+  };
+  const excluirDocumentoAnalise = (documento: string) => {
+    setAlteracoesAnalisePendentes(true);
+    setFeedbackRascunhoAnalise(null);
+    setArquivosDocumentosAnalise((arquivosAtuais) => ({
+      ...arquivosAtuais,
+      [documento]: null,
     }));
     setDocumentosAnaliseValidados((validacoesAtuais) => ({
       ...validacoesAtuais,
@@ -12642,23 +12706,12 @@ export function PrototiposNovoIngressoPage() {
       return;
     }
 
-    setPrazoPosseSuspenso(parecerProvimento === "suspender");
     setTermoSuspensaoGerado(parecerProvimento === "suspender");
     setDocumentosAprovacaoGerados(parecerProvimento === "aprovar");
     setTermoNegativaGerado(parecerProvimento === "negar");
     setTermoSemEfeitoGerado(parecerProvimento === "sem-efeito");
-    if (parecerProvimento === "aprovar") {
-      setSituacaoIngresso("Aguardando Efetivo Exercicio");
-    }
-    if (parecerProvimento === "suspender") {
-      setSituacaoIngresso("Posse Suspensa");
-    }
-    if (parecerProvimento === "negar") {
-      setSituacaoIngresso("Posse Negada");
-    }
-    if (parecerProvimento === "sem-efeito") {
-      setSituacaoIngresso("Tornado sem efeito");
-    }
+    setAlteracoesAnalisePendentes(true);
+    setFeedbackRascunhoAnalise(null);
   };
   const abrirUploadSigadoc = (documento: string) => {
     setDocumentoUploadSigadoc(documento);
@@ -12699,6 +12752,8 @@ export function PrototiposNovoIngressoPage() {
         }),
       );
     }
+    setAlteracoesAnalisePendentes(true);
+    setFeedbackRascunhoAnalise(null);
     setDocumentoUploadSigadoc(null);
   };
   const renderDocumentosGerados = (
@@ -12711,6 +12766,34 @@ export function PrototiposNovoIngressoPage() {
   ) => (
     <div className="prototype-documentos-gerados">
       <h4 className="prototype-documentos-gerados-title"><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-file" aria-hidden="true" /></span><span>Documentos</span></h4>
+      {tipoIngresso === "Concurso" ? (
+        <fieldset className="prototype-documentos-assinatura-selector">
+          <legend>Modo de assinatura do documento</legend>
+          <div className="prototype-documentos-assinatura-options">
+            <label>
+              <input
+                type="radio"
+                name="forma-assinatura-documentos"
+                value="fisica"
+                checked={formaAssinaturaDocumentos === "fisica"}
+                onChange={() => setFormaAssinaturaDocumentos("fisica")}
+              />
+              <span>Físico</span>
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="forma-assinatura-documentos"
+                value="digital"
+                checked={formaAssinaturaDocumentos === "sigadoc"}
+                onChange={() => setFormaAssinaturaDocumentos("sigadoc")}
+              />
+              <span>Digital</span>
+              <small>SIGADOC</small>
+            </label>
+          </div>
+        </fieldset>
+      ) : null}
       {documentos.length > 0 ? (
       <>
       <div className="prototype-documentos-gerados-table-wrap">
@@ -12806,6 +12889,8 @@ export function PrototiposNovoIngressoPage() {
                     tooltip={`Excluir ${documento.nomeArquivo}`}
                     severity="danger"
                     onClick={() => {
+                      setAlteracoesAnalisePendentes(true);
+                      setFeedbackRascunhoAnalise(null);
                       setArquivosDocumentosGerados((arquivos) => {
                         const atualizados = { ...arquivos };
                         delete atualizados[documento.nomeArquivo];
@@ -12879,14 +12964,88 @@ export function PrototiposNovoIngressoPage() {
     </div>
   );
 
-  const goBack = () => {
-    if (isFirstTab || activeTab === "efetivo-exercicio") {
-      navigate("/prototipos/sigep/ingressos");
+  const salvarRascunhoAnalise = () => {
+    try {
+      const campos = Object.fromEntries(
+        Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("[data-rascunho-campo]"))
+          .map((campo) => [
+            campo.dataset.rascunhoCampo!,
+            campo instanceof HTMLInputElement && campo.type === "checkbox" ? campo.checked : campo.value,
+          ]),
+      );
+      const atualizadoEm = new Date().toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).replace(",", " às");
+      const rascunho: AnaliseProvimentoRascunho = {
+        parecer: parecerProvimento,
+        validacoes: documentosAnaliseValidados,
+        arquivosAnalise: Object.fromEntries(Object.entries(arquivosDocumentosAnalise).map(([documento, arquivo]) => [documento, arquivo?.name ?? null])),
+        formaAssinatura: formaAssinaturaDocumentos,
+        processosSigadoc: processosSigadocDocumentos,
+        arquivosGerados: Object.fromEntries(Object.entries(arquivosDocumentosGerados).map(([documento, arquivo]) => [documento, arquivo.name])),
+        documentosRemovidos: documentosGeradosRemovidos,
+        documentosSuspensao: documentosSuspensaoSelecionados,
+        motivoSemEfeito,
+        justificativaSemEfeito,
+        termoSuspensaoGerado,
+        documentosAprovacaoGerados,
+        termoNegativaGerado,
+        termoSemEfeitoGerado,
+        campos,
+        atualizadoEm,
+      };
+      localStorage.setItem(chaveRascunhoAnalise, JSON.stringify(rascunho));
+      setAlteracoesAnalisePendentes(false);
+      setErroRascunhoAnalise(false);
+      setFeedbackRascunhoAnalise(`Última atualização: ${atualizadoEm}`);
+      return true;
+    } catch {
+      setErroRascunhoAnalise(true);
+      return false;
+    }
+  };
+
+  const solicitarSaidaAnalise = (destino: string) => {
+    if (activeTab === "analise-provimento" && alteracoesAnalisePendentes) {
+      setDestinoSaidaAnalise(destino);
+      setModalSaidaAnaliseAberto(true);
       return;
     }
-
-    setActiveTab(fluxoNovoIngressoTabs[activeTabIndex - 1].value!);
+    navigate(destino);
   };
+
+  const goBack = () => {
+    solicitarSaidaAnalise(caminhoRetornoNovoIngresso);
+  };
+
+  const salvarESairAnalise = () => {
+    if (!salvarRascunhoAnalise()) return;
+    const destino = destinoSaidaAnalise ?? caminhoRetornoNovoIngresso;
+    setModalSaidaAnaliseAberto(false);
+    setDestinoSaidaAnalise(null);
+    navigate(destino);
+  };
+
+  useEffect(() => {
+    if (activeTab !== "analise-provimento" || !alteracoesAnalisePendentes) return;
+    const interceptarLink = (event: MouseEvent) => {
+      const elemento = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
+      if (!elemento || elemento.target === "_blank") return;
+      const url = new URL(elemento.href, window.location.href);
+      if (url.href === window.location.href) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const destino = url.hash.startsWith("#/") ? url.hash.slice(1) : `${url.pathname}${url.search}${url.hash}`;
+      setDestinoSaidaAnalise(destino);
+      setModalSaidaAnaliseAberto(true);
+    };
+    document.addEventListener("click", interceptarLink, true);
+    return () => document.removeEventListener("click", interceptarLink, true);
+  }, [activeTab, alteracoesAnalisePendentes]);
 
   const goNext = () => {
     if (isLastTab) {
@@ -12915,10 +13074,21 @@ export function PrototiposNovoIngressoPage() {
     }
 
     if (activeTab === "analise-provimento") {
+      const campoInvalido = Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(".prototype-analise-provimento-layout [required]"))
+        .find((campo) => !campo.checkValidity());
+      if (campoInvalido) {
+        campoInvalido.reportValidity();
+        campoInvalido.focus();
+        return;
+      }
+      if (parecerProvimento === "suspender" && documentosSuspensaoSelecionados.length === 0) return;
       const situacaoFinalAnalise = getSituacaoFinalAnaliseProvimento();
+      setPrazoPosseSuspenso(parecerProvimento === "suspender");
       setSituacaoIngresso(situacaoFinalAnalise);
       persistirSituacaoIngressoAtual(situacaoFinalAnalise);
-      navigate("/prototipos/sigep/ingressos");
+      localStorage.removeItem(chaveRascunhoAnalise);
+      setAlteracoesAnalisePendentes(false);
+      navigate(caminhoRetornoNovoIngresso, { replace: true });
       return;
     }
 
@@ -12963,16 +13133,17 @@ export function PrototiposNovoIngressoPage() {
   const renderBadgeEqualizacao = (
     label: string,
     tone: "warning" | "success" | "info" | "neutral" | "danger",
+    withBorder = false,
   ) => {
     const styles = {
-      warning: { color: "#8a5700", bg: "#fff0c2" },
-      success: { color: "#08783e", bg: "#dcf5e8" },
-      info: { color: "#075f99", bg: "#e8f5ff" },
-      neutral: { color: "#53677a", bg: "#e9eef3" },
-      danger: { color: "#a61b1b", bg: "#fde8e8" },
+      warning: { color: "#8a5700", bg: "#fff0c2", border: "#e8b44f" },
+      success: { color: "#08783e", bg: "#dcf5e8", border: "#70c99a" },
+      info: { color: "#075f99", bg: "#e8f5ff", border: "#8cc8ed" },
+      neutral: { color: "#53677a", bg: "#e9eef3", border: "#b9c5d0" },
+      danger: { color: "#a61b1b", bg: "#fde8e8", border: "#ef9a9a" },
     }[tone];
 
-    return <BadgeSeplag label={label} color={styles.color} bg={styles.bg} border="transparent" size="sm" />;
+    return <BadgeSeplag label={label} color={styles.color} bg={styles.bg} border={withBorder ? styles.border : "transparent"} size="sm" />;
   };
 
   const renderDadosServidorIngresso = () => (
@@ -13365,6 +13536,7 @@ export function PrototiposNovoIngressoPage() {
                   : situacaoIngresso === "Posse Negada" || situacaoIngresso === "Encerrado por desistência"
                     ? "danger"
                     : "neutral",
+            true,
           )}
         </p>
       </div>
@@ -13618,9 +13790,53 @@ export function PrototiposNovoIngressoPage() {
 
     if (activeTab === "analise-provimento") {
       return (
-        <section className="prototype-ingresso-section">
-          <div className="prototype-analise-provimento-layout">
+        <section
+          className="prototype-ingresso-section"
+          onChangeCapture={() => {
+            setAlteracoesAnalisePendentes(true);
+            setFeedbackRascunhoAnalise(null);
+          }}
+        >
+          <div className="prototype-analise-provimento-layout prototype-analise-provimento-layout--prazo-horizontal">
             <div className="prototype-analise-provimento-main">
+              <div
+                className={`prototype-prazo-posse-alert ${prazoPosseVencido ? "is-overdue" : "is-on-time"}`}
+                role="status"
+                aria-label={`Prazo da posse: ${prazoPosseVencido ? "fora do prazo" : "dentro do prazo"}`}
+              >
+                <div className="prototype-prazo-posse-alert-title">
+                  <span className="prototype-prazo-posse-alert-icon">
+                    <i className={`pi ${prazoPosseVencido ? "pi-exclamation-triangle" : "pi-clock"}`} aria-hidden="true" />
+                  </span>
+                  <strong>Prazo da Posse</strong>
+                </div>
+                <dl className="prototype-prazo-posse-alert-fields">
+                  <div>
+                    <dt>Data da nomeação</dt>
+                    <dd>{formatarDataPrazoPosse(dataNomeacaoPrazoPosse)}</dd>
+                  </div>
+                  <div>
+                    <dt>Posse agendada</dt>
+                    <dd>{dataPosseIngresso ? formatarDataIsoParaPtBr(dataPosseIngresso) : "30/07/2026"}</dd>
+                  </div>
+                  <div>
+                    <dt>Prazo final</dt>
+                    <dd>{formatarDataPrazoPosse(prazoFinalPosse)}</dd>
+                  </div>
+                  <div>
+                    <dt>{prazoPosseVencido ? "Dias em atraso" : "Dias restantes"}</dt>
+                    <dd className="prototype-prazo-posse-alert-days">{textoDiasPrazoPosse}</dd>
+                  </div>
+                  <div className="prototype-prazo-posse-alert-status-field">
+                    <dt>Situação</dt>
+                    <dd>
+                      <span className="prototype-prazo-posse-alert-status">
+                        {prazoPosseVencido ? "Fora do prazo" : "Dentro do prazo"}
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
               <div className="prototype-analise-provimento-panel prototype-analise-provimento-panel--header-icon">
                 <button
                   type="button"
@@ -13631,12 +13847,14 @@ export function PrototiposNovoIngressoPage() {
                   <span className="prototype-recuar-section-title">
                     <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
                     <span>Análise de Documentos</span>
+                  </span>
+                  <span className="prototype-analise-accordion-actions">
                     <span className="prototype-document-analysis-summary" aria-label={`${quantidadeDocumentosAnexados} documentos anexados e ${quantidadeDocumentosAnalisados} documentos analisados`}>
                       <span className="is-attached">{quantidadeDocumentosAnexados} {quantidadeDocumentosAnexados === 1 ? "documento anexado" : "documentos anexados"}</span>
                       <span className="is-analyzed">{quantidadeDocumentosAnalisados} {quantidadeDocumentosAnalisados === 1 ? "documento analisado" : "documentos analisados"}</span>
                     </span>
+                    <i className={`pi ${analiseProvimentoAberta ? "pi-chevron-up" : "pi-chevron-down"}`} />
                   </span>
-                  <i className={`pi ${analiseProvimentoAberta ? "pi-chevron-up" : "pi-chevron-down"}`} />
                 </button>
                 {analiseProvimentoAberta ? (
                 <table className="prototype-simple-table prototype-analise-provimento-table">
@@ -13735,6 +13953,16 @@ export function PrototiposNovoIngressoPage() {
                               disabled={nomeArquivo === "-"}
                               onClick={() => baixarDocumentoAnalise(documento)}
                             />
+                            {nomeArquivo !== "-" ? (
+                              <BotaoIconSeplag
+                                type="button"
+                                className="prototype-analise-documento-view-button"
+                                icon="pi pi-trash"
+                                tooltip={`Excluir ${nomeArquivo}`}
+                                severity="danger"
+                                onClick={() => excluirDocumentoAnalise(documento.documento)}
+                              />
+                            ) : null}
                           </td>
                         </tr>
                       );
@@ -13846,7 +14074,7 @@ export function PrototiposNovoIngressoPage() {
                   <div className="prototype-parecer-aprovacao">
                                         <label className="prototype-ingresso-field">
                       <span>Encaminhar para<em>*</em></span>
-                      <select defaultValue="">
+                      <select required data-rascunho-campo="encaminhar-aprovacao" defaultValue={String(rascunhoAnaliseInicial?.campos["encaminhar-aprovacao"] ?? "")}>
                         <option value="">Selecione...</option>
                         {orgaosEstadoOptions.map((orgao) => (
                           <option key={orgao.value} value={orgao.value}>{orgao.label}</option>
@@ -13855,7 +14083,7 @@ export function PrototiposNovoIngressoPage() {
                     </label>
                     <label className="prototype-ingresso-field">
                       <span>Observação</span>
-                      <textarea placeholder="Informe uma observação sobre a aprovação, se necessário." />
+                      <textarea data-rascunho-campo="observacao-aprovacao" defaultValue={String(rascunhoAnaliseInicial?.campos["observacao-aprovacao"] ?? "")} placeholder="Informe uma observação sobre a aprovação, se necessário." />
                     </label>
                   </div>
                 ) : null}
@@ -13869,7 +14097,7 @@ export function PrototiposNovoIngressoPage() {
                     <div className="prototype-suspensao-prazo-grid">
                       <label className="prototype-ingresso-field">
                         <span>Motivo da suspensão<em>*</em></span>
-                        <select defaultValue="">
+                        <select required data-rascunho-campo="motivo-suspensao" defaultValue={String(rascunhoAnaliseInicial?.campos["motivo-suspensao"] ?? "")}>
                           <option value="">Selecione...</option>
                           <option value="autenticidade">Verificação de autenticidade de documento</option>
                           <option value="certidao-positiva">Certidão positiva apresentada</option>
@@ -13912,15 +14140,15 @@ export function PrototiposNovoIngressoPage() {
                       </div>
                       <label className="prototype-ingresso-field">
                         <span>Data de início da suspensão<em>*</em></span>
-                        <input type="date" />
+                        <input type="date" required data-rascunho-campo="inicio-suspensao" defaultValue={String(rascunhoAnaliseInicial?.campos["inicio-suspensao"] ?? "")} />
                       </label>
                       <label className="prototype-ingresso-field">
                         <span>Prazo para resposta/complementação<em>*</em></span>
-                        <input type="date" />
+                        <input type="date" required data-rascunho-campo="prazo-suspensao" defaultValue={String(rascunhoAnaliseInicial?.campos["prazo-suspensao"] ?? "")} />
                       </label>
                       <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
                         <span>Justificativa<em>*</em></span>
-                        <textarea placeholder="Descreva a justificativa para suspensão do prazo." />
+                        <textarea required data-rascunho-campo="justificativa-suspensao" defaultValue={String(rascunhoAnaliseInicial?.campos["justificativa-suspensao"] ?? "")} placeholder="Descreva a justificativa para suspensão do prazo." />
                       </label>
                     </div>
                   </div>
@@ -13936,7 +14164,7 @@ export function PrototiposNovoIngressoPage() {
                     <div className="prototype-suspensao-prazo-grid">
                       <label className="prototype-ingresso-field">
                         <span>Motivo da negativa<em>*</em></span>
-                        <select defaultValue="">
+                        <select required data-rascunho-campo="motivo-negativa" defaultValue={String(rascunhoAnaliseInicial?.campos["motivo-negativa"] ?? "")}>
                           <option value="">Selecione...</option>
                           <option value="documento-obrigatorio">Não apresentou documento obrigatório</option>
                           <option value="documento-edital">Documento apresentado não atende ao edital</option>
@@ -13949,7 +14177,7 @@ export function PrototiposNovoIngressoPage() {
                       </label>
                       <label className="prototype-ingresso-field">
                         <span>Documento/requisito relacionado</span>
-                        <select defaultValue="">
+                        <select data-rascunho-campo="documento-negativa" defaultValue={String(rascunhoAnaliseInicial?.campos["documento-negativa"] ?? "")}>
                           <option value="">Selecione...</option>
                           {documentosObrigatoriosIngresso.map((documento) => (
                             <option key={documento.documento} value={documento.documento}>
@@ -13962,11 +14190,11 @@ export function PrototiposNovoIngressoPage() {
                       </label>
                       <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
                         <span>Justificativa detalhada<em>*</em></span>
-                        <textarea placeholder="Descreva a justificativa detalhada da negativa de posse." />
+                        <textarea required data-rascunho-campo="justificativa-negativa" defaultValue={String(rascunhoAnaliseInicial?.campos["justificativa-negativa"] ?? "")} placeholder="Descreva a justificativa detalhada da negativa de posse." />
                       </label>
                     </div>
                     <label className="prototype-parecer-ciencia">
-                      <input type="checkbox" required />
+                      <input type="checkbox" required data-rascunho-campo="ciencia-negativa" defaultChecked={Boolean(rascunhoAnaliseInicial?.campos["ciencia-negativa"])} />
                       <span>
                         Confirmo que a documentação foi analisada e que o candidato não atende
                         aos requisitos para posse.
@@ -14091,66 +14319,7 @@ export function PrototiposNovoIngressoPage() {
                 : null}
             </div>
 
-            <aside className="prototype-analise-provimento-side">
-              <div className="prototype-analise-provimento-panel">
-                <h4>Prazo da Posse</h4>
-                <dl className="prototype-prazo-posse-list">
-                  <div>
-                    <dt>Data da publicação</dt>
-                    <dd>13/07/2026 <i className="pi pi-calendar" /></dd>
-                  </div>
-                  <div>
-                    <dt>Data da posse agendada</dt>
-                    <dd>{dataPosseIngresso ? formatarDataIsoParaPtBr(dataPosseIngresso) : "30/07/2026"} <i className="pi pi-calendar" /></dd>
-                  </div>
-                  {prazoPosseSuspenso ? (
-                    <>
-                      <div>
-                        <dt>Prazo original</dt>
-                        <dd>12/08/2026 <i className="pi pi-calendar" /></dd>
-                      </div>
-                      <div>
-                        <dt>Data da suspensão</dt>
-                        <dd>25/07/2026 <i className="pi pi-calendar" /></dd>
-                      </div>
-                      <div>
-                        <dt>Dias consumidos</dt>
-                        <dd>12 dias</dd>
-                      </div>
-                      <div>
-                        <dt>Dias restantes congelados</dt>
-                        <dd className="prototype-prazo-posse-days">18 dias</dd>
-                      </div>
-                      <div>
-                        <dt>Status</dt>
-                        <dd>
-                          <span className="prototype-prazo-posse-status prototype-prazo-posse-status--suspenso">
-                            Prazo suspenso
-                          </span>
-                        </dd>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <dt>Prazo final</dt>
-                        <dd>{dataPosse || "12/08/2026"} <i className="pi pi-calendar" /></dd>
-                      </div>
-                      <div>
-                        <dt>Dias restantes</dt>
-                        <dd className="prototype-prazo-posse-days">23 dias</dd>
-                      </div>
-                      <div>
-                        <dt>Status</dt>
-                        <dd>
-                          <span className="prototype-prazo-posse-status">Dentro do prazo</span>
-                        </dd>
-                      </div>
-                    </>
-                  )}
-                </dl>
-              </div>
-            </aside>
+
           </div>
 
         </section>
@@ -14348,12 +14517,18 @@ export function PrototiposNovoIngressoPage() {
             )}
 
             <div className="prototype-novo-ingresso-footer">
+              {activeTab === "analise-provimento" && feedbackRascunhoAnalise ? (
+                <div className="prototype-rascunho-feedback" role="status">
+                  <i className="pi pi-check-circle" aria-hidden="true" />
+                  <span>{feedbackRascunhoAnalise}</span>
+                </div>
+              ) : null}
               {modoVisualizacao ? (
                 <div className="prototype-form-actions prototype-novo-ingresso-actions">
                   <BotaoVoltarSeplag
                     type="button"
                     label="Voltar"
-                    onClick={() => navigate(`/prototipos/sigep/ingressos-teste/${processoOrigemDados?.id ?? 4}`)}
+                    onClick={goBack}
                   />
                 </div>
               ) : activeTab === "tipo-ingresso" && tipoIngresso === "Processo Seletivo" ? (
@@ -14375,12 +14550,23 @@ export function PrototiposNovoIngressoPage() {
                 <BotaoVoltarSeplag
                   type="button"
                   label="Voltar"
+                  className="prototype-footer-back-button"
                   onClick={goBack}
                 />
+                {activeTab === "analise-provimento" ? (
+                  <BotaoSeplag
+                    type="button"
+                    label="Salvar rascunho"
+                    icon="pi pi-save"
+                    className="p-button-outlined prototype-salvar-rascunho-button"
+                    onClick={salvarRascunhoAnalise}
+                  />
+                ) : null}
                 <BotaoSeplag
                   type="button"
                   label={confirmarActionLabel}
                   icon={confirmarActionIcon}
+                  className="prototype-footer-finish-button"
                   disabled={confirmarActionDisabled}
                   onClick={handleConfirmarNovoIngresso}
                 />
@@ -14391,6 +14577,46 @@ export function PrototiposNovoIngressoPage() {
         </CardSeplag>
       </div>
 
+      <ModalSeplag
+        visible={modalSaidaAnaliseAberto}
+        titulo="Deseja sair desta página?"
+        fechar={() => {
+          setModalSaidaAnaliseAberto(false);
+          setDestinoSaidaAnalise(null);
+          setErroRascunhoAnalise(false);
+        }}
+        closeOnEscape={false}
+        tamanho="620px"
+        customFooter={(
+          <div className="prototype-saida-rascunho-actions">
+            <BotaoVoltarSeplag
+              type="button"
+              label="Continuar editando"
+              icon="pi pi-pencil"
+              onClick={() => {
+                setModalSaidaAnaliseAberto(false);
+                setDestinoSaidaAnalise(null);
+                setErroRascunhoAnalise(false);
+              }}
+            />
+            <BotaoSalvarSeplag
+              type="button"
+              label="Salvar e sair"
+              icon="pi pi-save"
+              onClick={salvarESairAnalise}
+            />
+          </div>
+        )}
+      >
+        <div className="prototype-ingresso-modal-content">
+          <p>Existem alterações não salvas nesta etapa. Você pode salvar como rascunho e sair agora ou continuar editando.</p>
+          {erroRascunhoAnalise ? (
+            <div className="prototype-rascunho-error" role="alert">
+              Não foi possível salvar o rascunho. Tente novamente antes de sair.
+            </div>
+          ) : null}
+        </div>
+      </ModalSeplag>
       <ModalSeplag
         visible={modalComplementacaoAberto}
         titulo="Solicitar complementação"
