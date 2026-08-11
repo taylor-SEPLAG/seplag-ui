@@ -16,6 +16,8 @@ import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoSalvarSeplag, BotaoSeplag, 
 import { TabsSeplag, type TabItemSeplag } from "@componentes/Tabs";
 import { DateFieldSeplag, CheckboxFieldSeplag, CurrencyFieldSeplag, DropdownFieldSeplag, MaskFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
+import Base64FileModal from "@componentes/Base64FileModal";
+import { ModalSeplag } from "@componentes/Modal";
 import RotuloSeplag from "@componentes/Rotulo";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "../../../interfaces/Results";
@@ -105,6 +107,16 @@ function arquivoExistente(certame:Certame | undefined, tipo:TipoDocumentoCertame
  return doc ? { nome:doc.nomeArquivo, extensao:"pdf", contentType:"application/pdf", conteudoEmBase64:"" } : undefined;
 }
 
+// Mesmas regras de upload adotadas na plataforma para documentos do certame (formato e tamanho).
+const TAMANHO_MAXIMO_DOCUMENTO_CERTAME = 10 * 1024 * 1024;
+const EXTENSOES_DOCUMENTO_CERTAME = ["pdf"];
+const SIGADOC_URL = "https://www.sigadoc.apmt.mt.gov.br/siga/public/app/login";
+
+function arquivoDocumentoCertameValido(arquivo:File):boolean {
+ const extensao = arquivo.name.split(".").pop()?.toLowerCase() ?? "";
+ return EXTENSOES_DOCUMENTO_CERTAME.includes(extensao) && arquivo.size <= TAMANHO_MAXIMO_DOCUMENTO_CERTAME;
+}
+
 function formatarTamanhoArquivo(tamanho?:string | number):string {
  if (tamanho === undefined || tamanho === null || tamanho === "") return "—";
  if (typeof tamanho === "string") return tamanho;
@@ -161,12 +173,46 @@ export function CertameFormContent() {
  const [arquivos, setArquivos] = useState<Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>>(() =>
   Object.fromEntries(DOCUMENTOS_CERTAME.map((item) => [item.tipo, arquivoExistente(existente, item.tipo as TipoDocumentoCertame)]).filter(([, valor]) => valor)) as Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>,
  );
+ const [documentoVisualizando, setDocumentoVisualizando] = useState<TipoDocumentoCertame | null>(null);
+ // Força o remount da tabela: o DataTable do PrimeReact não repinta o body das colunas em re-render simples.
+ const [documentosVersao, setDocumentosVersao] = useState(0);
+ // Modo de assinatura dos documentos do certame — mesmo campo e funcionalidade do módulo de Ingresso.
+ const [formaAssinaturaDocumentos, setFormaAssinaturaDocumentos] = useState<"fisica" | "sigadoc">("sigadoc");
+ const [processosSigadocDocumentos, setProcessosSigadocDocumentos] = useState<Partial<Record<TipoDocumentoCertame, string>>>({});
+ const [documentoUploadSigadoc, setDocumentoUploadSigadoc] = useState<TipoDocumentoCertame | null>(null);
+ const [processoUploadSigadoc, setProcessoUploadSigadoc] = useState("");
+ const [arquivoUploadSigadoc, setArquivoUploadSigadoc] = useState<File | null>(null);
+ const [erroUploadSigadoc, setErroUploadSigadoc] = useState(false);
  const criarUploadHandler = (tipo:TipoDocumentoCertame) => (event:{ files?:File[] }) => {
   const selecionado = event.files?.[0];
   if (!selecionado) return;
+  if (!arquivoDocumentoCertameValido(selecionado)) {
+   setErro("Documento inválido: formato aceito .pdf, com até 10MB.");
+   return;
+  }
+  setErro(null);
   const reader = new FileReader();
-  reader.onload = () => setArquivos((atuais) => ({ ...atuais, [tipo]: { nome:selecionado.name, extensao:"pdf", contentType:selecionado.type, conteudoEmBase64:String(reader.result).split(",")[1] ?? "", tamanho:selecionado.size } }));
+  reader.onload = () => {
+   setArquivos((atuais) => ({ ...atuais, [tipo]: { nome:selecionado.name, extensao:"pdf", contentType:selecionado.type, conteudoEmBase64:String(reader.result).split(",")[1] ?? "", tamanho:selecionado.size } }));
+   setDocumentosVersao((versao) => versao + 1);
+  };
   reader.readAsDataURL(selecionado);
+ };
+ const abrirUploadSigadoc = (tipo:TipoDocumentoCertame) => {
+  setDocumentoUploadSigadoc(tipo);
+  setProcessoUploadSigadoc(processosSigadocDocumentos[tipo] ?? "");
+  setArquivoUploadSigadoc(null);
+  setErroUploadSigadoc(false);
+ };
+ const salvarUploadSigadoc = () => {
+  if (!documentoUploadSigadoc || !processoUploadSigadoc.trim() || !arquivoUploadSigadoc || !arquivoDocumentoCertameValido(arquivoUploadSigadoc)) {
+   setErroUploadSigadoc(true);
+   return;
+  }
+  setErroUploadSigadoc(false);
+  setProcessosSigadocDocumentos((atuais) => ({ ...atuais, [documentoUploadSigadoc]: processoUploadSigadoc.trim() }));
+  criarUploadHandler(documentoUploadSigadoc)({ files:[arquivoUploadSigadoc] });
+  setDocumentoUploadSigadoc(null);
  };
 
  const [erro, setErro] = useState<string | null>(null);
@@ -204,17 +250,20 @@ export function CertameFormContent() {
   { header:"Documento", body:(row) => <>{row.label}{documentoObrigatorio(row.tipo, row.obrigatorioSempre) && " *"}</> },
   { header:"Arquivo anexado", body:(row) => arquivos[row.tipo as TipoDocumentoCertame]?.nome ?? <span className="text-color-secondary">Nenhum arquivo anexado</span> },
   { header:"Tamanho", body:(row) => formatarTamanhoArquivo(arquivos[row.tipo as TipoDocumentoCertame]?.tamanho) },
+  ...(formaAssinaturaDocumentos === "sigadoc" ? [{ header:"Nº Processo SIGADOC", body:(row) => processosSigadocDocumentos[row.tipo as TipoDocumentoCertame] || <span className="text-color-secondary">—</span> } as ColumnMetaSeplag<typeof DOCUMENTOS_CERTAME[number]>] : []),
  ];
 
  const renderAcoesDocumento = (row:typeof DOCUMENTOS_CERTAME[number]) => {
   const tipo = row.tipo as TipoDocumentoCertame;
   const arquivo = arquivos[tipo];
+  const usaSigadoc = formaAssinaturaDocumentos === "sigadoc";
   const inputId = `certame-doc-upload-${row.tipo}`;
   return <>
-   <input id={inputId} type="file" accept="application/pdf" style={{ display:"none" }} onChange={(event) => { const arquivoSelecionado = event.target.files?.[0]; if (arquivoSelecionado) criarUploadHandler(tipo)({ files:[arquivoSelecionado] }); event.target.value = ""; }} />
-   <BotaoIconSeplag type="button" icon="pi pi-cloud-upload" tooltip={arquivo ? "Substituir documento" : "Anexar documento"} onClick={() => document.getElementById(inputId)?.click()} />
-   <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar documento" disabled={!arquivo} onClick={() => {}} />
-   <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover documento" disabled={!arquivo} onClick={() => setArquivos((atuais) => ({ ...atuais, [tipo]: undefined }))} />
+   {!usaSigadoc && <input id={inputId} type="file" accept="application/pdf" style={{ display:"none" }} onChange={(event) => { const arquivoSelecionado = event.target.files?.[0]; if (arquivoSelecionado) criarUploadHandler(tipo)({ files:[arquivoSelecionado] }); event.target.value = ""; }} />}
+   <BotaoIconSeplag type="button" icon="pi pi-cloud-upload" tooltip={arquivo ? (usaSigadoc ? "Documento já enviado" : "Substituir documento") : "Anexar documento"} disabled={usaSigadoc && Boolean(arquivo)} onClick={() => { if (usaSigadoc) abrirUploadSigadoc(tipo); else document.getElementById(inputId)?.click(); }} />
+   {usaSigadoc && <BotaoIconSeplag type="button" icon="pi pi-link" tooltip="Acessar SIGADOC" onClick={() => window.open(SIGADOC_URL, "_blank", "noopener,noreferrer")} />}
+   <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar documento" disabled={!arquivo} onClick={() => setDocumentoVisualizando(tipo)} />
+   <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover documento" disabled={!arquivo} onClick={() => { setArquivos((atuais) => ({ ...atuais, [tipo]: undefined })); setProcessosSigadocDocumentos((atuais) => ({ ...atuais, [tipo]: undefined })); setDocumentosVersao((versao) => versao + 1); }} />
   </>;
  };
 
@@ -441,8 +490,52 @@ export function CertameFormContent() {
      </div></SpecArea>}
 
      {aba === "DOCUMENTOS" && <SpecArea metadata={certameFormTabSpecifications["Documentos"]}><div className="col-12">
-      <TablePaginadoSeplag dataKey="tipo" data={resultadosSemPaginacao(DOCUMENTOS_CERTAME)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasDocumentos} hasEventoAcao renderBotoes={renderAcoesDocumento} handleOnPageChange={() => {}} />
+      <fieldset className="prototype-documentos-assinatura-selector">
+       <legend>Modo de assinatura do documento</legend>
+       <div className="prototype-documentos-assinatura-options">
+        <label>
+         <input type="radio" name="forma-assinatura-documentos-certame" value="fisica" checked={formaAssinaturaDocumentos === "fisica"} onChange={() => setFormaAssinaturaDocumentos("fisica")} />
+         <span>Físico</span>
+        </label>
+        <label>
+         <input type="radio" name="forma-assinatura-documentos-certame" value="digital" checked={formaAssinaturaDocumentos === "sigadoc"} onChange={() => setFormaAssinaturaDocumentos("sigadoc")} />
+         <span>Digital</span>
+         <small>SIGADOC</small>
+        </label>
+       </div>
+      </fieldset>
+      <TablePaginadoSeplag key={`${documentosVersao}-${formaAssinaturaDocumentos}`} dataKey="tipo" data={resultadosSemPaginacao(DOCUMENTOS_CERTAME)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasDocumentos} hasEventoAcao renderBotoes={renderAcoesDocumento} handleOnPageChange={() => {}} />
       <p className="text-sm text-color-secondary">Formato aceito: .pdf | Tamanho máximo: 10MB</p>
+      <Base64FileModal
+       visible={documentoVisualizando !== null}
+       onHide={() => setDocumentoVisualizando(null)}
+       base64={documentoVisualizando ? arquivos[documentoVisualizando]?.conteudoEmBase64 : null}
+       mimeType="application/pdf"
+       fileName={documentoVisualizando ? arquivos[documentoVisualizando]?.nome : undefined}
+       header={documentoVisualizando ? DOCUMENTOS_CERTAME.find((item) => item.tipo === documentoVisualizando)?.label : undefined}
+      />
+      <ModalSeplag
+       visible={documentoUploadSigadoc !== null}
+       titulo="Anexar documento assinado via SIGADOC"
+       fechar={() => setDocumentoUploadSigadoc(null)}
+       funcAcao={salvarUploadSigadoc}
+       labelAcao="Anexar"
+       iconAcao="pi pi-cloud-upload"
+       tamanho="560px"
+      >
+       <div className="prototype-upload-sigadoc-modal">
+        <p><strong>Documento:</strong> {documentoUploadSigadoc ? DOCUMENTOS_CERTAME.find((item) => item.tipo === documentoUploadSigadoc)?.label : ""}</p>
+        <label className="prototype-ingresso-field">
+         <span>Número do Processo SIGADOC<em>*</em></span>
+         <input type="text" value={processoUploadSigadoc} placeholder="Ex.: SEPLAG-PRO-2026/01234" aria-invalid={erroUploadSigadoc && !processoUploadSigadoc.trim()} onChange={(event) => setProcessoUploadSigadoc(event.target.value)} />
+        </label>
+        <label className="prototype-ingresso-field">
+         <span>PDF assinado extraído do SIGADOC<em>*</em></span>
+         <input type="file" accept="application/pdf,.pdf" aria-invalid={erroUploadSigadoc && !arquivoUploadSigadoc} onChange={(event) => setArquivoUploadSigadoc(event.target.files?.[0] ?? null)} />
+        </label>
+        {erroUploadSigadoc ? <small className="prototype-documentos-sigadoc-error">Informe o número do processo e selecione um arquivo .pdf de até 10MB.</small> : null}
+       </div>
+      </ModalSeplag>
      </div></SpecArea>}
 
      {aba === "SITUACOES" && existente && <SpecArea metadata={certameFormTabSpecifications["Situações"]}><div className="col-12">
