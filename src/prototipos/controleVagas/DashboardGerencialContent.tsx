@@ -7,7 +7,6 @@ import {
   construirDashboard,
   situacoesLegais,
   type DashboardFiltros,
-  type DashboardGrupo,
 } from "./dashboardSelectors";
 import { orgaosBaseTemporaria } from "./baseTemporaria";
 import { SpecArea, SpecificationMode } from "../shared/visualizationModes";
@@ -60,7 +59,6 @@ export function DashboardGerencialContent() {
   const navigate = useNavigate();
   const [filtros, setFiltros] = useState(filtrosIniciais);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
-  const [detalhe, setDetalhe] = useState<DashboardGrupo | null>(null);
   const [indicadoresVisiveis, setIndicadoresVisiveis] = useState<
     Record<IndicadorDashboardId, boolean>
   >(
@@ -478,7 +476,15 @@ export function DashboardGerencialContent() {
                       <td className="num">{grupo.disponiveisComprometidas}</td>
                       <td className="num">{grupo.judiciais}</td>
                       <td>
-                        <button onClick={() => setDetalhe(grupo)}>
+                        <button
+                          aria-label={`Ver vagas do quadro ${grupo.quadroCodigo}`}
+                          title="Ver vagas do quadro"
+                          onClick={() =>
+                            navigate(
+                              `${BASE}/vagas?quadro=${encodeURIComponent(grupo.quadroCodigo)}`,
+                            )
+                          }
+                        >
                           <i className="pi pi-chevron-right" />
                         </button>
                       </td>
@@ -517,14 +523,6 @@ export function DashboardGerencialContent() {
             </section>
           </SpecArea>
         </div>
-
-        {detalhe && (
-          <DetalheGrupo
-            grupo={detalhe}
-            onClose={() => setDetalhe(null)}
-            onNavigate={(rota) => navigate(`${BASE}/${rota}`)}
-          />
-        )}
       </div>
     </SpecificationMode>
   );
@@ -599,124 +597,3 @@ function CardHeader({
   );
 }
 
-function DetalheGrupo({
-  grupo,
-  onClose,
-  onNavigate,
-}: {
-  grupo: DashboardGrupo;
-  onClose: () => void;
-  onNavigate: (rota: string) => void;
-}) {
-  return (
-    <div className="prototype-dash-backdrop" onMouseDown={onClose}>
-      <section
-        className="prototype-dash-modal management-detail"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <header>
-          <div>
-            <span>Memoria gerencial</span>
-            <h2>{grupo.cargo}</h2>
-            <p>
-              {grupo.quadroCodigo} | {grupo.carreira} | {grupo.orgao} | {grupo.lei}
-            </p>
-          </div>
-          <button onClick={onClose}>
-            <i className="pi pi-times" />
-          </button>
-        </header>
-        <div className="prototype-dash-detail-status">
-          <span className={grupo.prioridade.toLowerCase()}>
-            {prioridadeLabel[grupo.prioridade]}
-          </span>
-          <div>
-            <strong>{grupo.percentualOcupacao}%</strong>
-            <small>ocupacao do quadro legal</small>
-          </div>
-        </div>
-        <div className="prototype-dash-detail-context">
-          <span>
-            Órgão atual da vaga: <strong>{grupo.orgao}</strong>
-          </span>
-        </div>
-        <div className="prototype-dash-detail-numbers">
-          <div>
-            <span>Vagas legais</span>
-            <strong>{grupo.vagasLegais}</strong>
-          </div>
-          <div>
-            <span>Ocupadas</span>
-            <strong>{grupo.ocupadas}</strong>
-          </div>
-          <div className="available">
-            <span>Disponiveis livres</span>
-            <strong>{grupo.disponiveisLivres}</strong>
-          </div>
-          <div>
-            <span>Em ocupação</span>
-            <strong>{grupo.disponiveisComprometidas}</strong>
-          </div>
-          <div>
-            <span>Em extincao</span>
-            <strong>{grupo.emExtincao}</strong>
-          </div>
-          <div>
-            <span>Excedentes judiciais</span>
-            <strong>{grupo.judiciais}</strong>
-          </div>
-        </div>
-        <section className="prototype-management-occupants">
-          <h3>Quem compoe as ocupacoes</h3>
-          <div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Pessoa</th>
-                  <th>Matricula / vinculo</th>
-                  <th>Vaga</th>
-                  <th>Orgao de exercicio</th>
-                  <th>Efetivo exercicio</th>
-                </tr>
-              </thead>
-              <tbody>
-                {grupo.ocupacoes.slice(0, 8).map((ocupacao) => (
-                  <tr key={ocupacao.id}>
-                    <td>{ocupacao.pessoaNome}</td>
-                    <td>
-                      {ocupacao.matricula}
-                      <small>{ocupacao.vinculoId}</small>
-                    </td>
-                    <td>{ocupacao.vagaId}</td>
-                    <td>{ocupacao.orgaoExercicio}</td>
-                    <td>{ocupacao.efetivoExercicioEm}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {grupo.ocupacoes.length > 8 && (
-            <small>Exibindo 8 de {grupo.ocupacoes.length} ocupacoes.</small>
-          )}
-        </section>
-        <div className="prototype-dash-detail-actions">
-          <button
-            onClick={() =>
-              onNavigate(
-                `vagas?cargo=${encodeURIComponent(grupo.cargo)}&orgao=${encodeURIComponent(grupo.orgao)}`,
-              )
-            }
-          >
-            <i className="pi pi-list" /> Vagas
-          </button>
-          <button onClick={() => onNavigate("distribuicao")}>
-            <i className="pi pi-sitemap" /> Distribuicao
-          </button>
-        </div>
-        <footer>
-          <button onClick={onClose}>Fechar</button>
-        </footer>
-      </section>
-    </div>
-  );
-}

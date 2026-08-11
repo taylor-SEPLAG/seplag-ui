@@ -110,8 +110,12 @@ const resultadoVagas = (
 export function VagasIndividualizadasContent() {
   const { vagas, quadros, comprometimentos, ocupacoes } =
     useControleVagasStore();
+  const [searchParams] = useSearchParams();
   const { control, reset } = useForm<VagasIndividualizadasFiltros>({
-    defaultValues: filtrosIniciais,
+    defaultValues: {
+      ...filtrosIniciais,
+      quadro: searchParams.get("quadro") ?? "",
+    },
   });
   const filtros = useWatch({ control });
   const [vagaSelecionada, setVagaSelecionada] = useState<Vaga | null>(null);
@@ -1645,3 +1649,4 @@ function OcupantesDaVaga({ vagaId }: { vagaId: string }) {
     </section>
   );
 }
+
