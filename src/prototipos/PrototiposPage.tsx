@@ -301,21 +301,6 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         ],
       },
       {
-        label: "Quadro de Pessoal",
-        icon: "pi pi-users",
-        url: "#",
-        visibleOnMenu: true,
-        visibleOnRouter: true,
-        items: [
-          { label: "Dashboard", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/dashboard`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Regras e Parâmetros", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/configuracoes`, visibleOnMenu: false, visibleOnRouter: true },
-          { label: "Autorizações de Pessoal", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/autorizacoes`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Distribuição", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/distribuicao`, visibleOnMenu: true, visibleOnRouter: false, disabled: true },
-          { label: "Posições Individualizadas", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/posicoes`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Movimentações", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/movimentacoes`, visibleOnMenu: true, visibleOnRouter: false, disabled: true },
-          { label: "Projeções", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/projecoes`, visibleOnMenu: true, visibleOnRouter: false, disabled: true },
-        ],
-      },      {
         label: "Vínculos Funcionais",
         icon: "pi pi-link",
         url: "#",
@@ -382,6 +367,22 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
               { label: "Vagas Individualizadas", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/vagas`, visibleOnMenu: true, visibleOnRouter: true },
               { label: "Movimentações", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/movimentacoes`, visibleOnMenu: true, visibleOnRouter: true },
               { label: "Projeções", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/projecoes`, visibleOnMenu: true, visibleOnRouter: true },
+            ],
+          },
+          {
+            label: "Quadro de Pessoal",
+            icon: "pi pi-users",
+            url: "#",
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+            items: [
+              { label: "Dashboard", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/dashboard`, visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Regras e Parâmetros", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/configuracoes`, visibleOnMenu: false, visibleOnRouter: true },
+              { label: "Autorizações de Pessoal", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/autorizacoes`, visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Distribuição", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/distribuicao`, visibleOnMenu: true, visibleOnRouter: false, disabled: true },
+              { label: "Posições Individualizadas", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/posicoes`, visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Movimentações", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/movimentacoes`, visibleOnMenu: true, visibleOnRouter: false, disabled: true },
+              { label: "Projeções", icon: "pi pi-circle-on", to: `${QUADRO_PESSOAL_BASE_PATH}/projecoes`, visibleOnMenu: true, visibleOnRouter: false, disabled: true },
             ],
           },
         ],
@@ -28711,6 +28712,9 @@ export function PrototiposConformidadePage() {
 export function PrototiposAuditoriaPage() {
   return <EmDesenvolvimentoPage nomeSistema="AUDITORIA" />;
 }
+
+
+
 
 
 
