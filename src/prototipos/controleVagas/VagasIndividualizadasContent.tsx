@@ -58,6 +58,16 @@ const legalClass: Record<SituacaoLegalVaga, string> = {
   EM_TRANSFORMACAO: "transformacao",
 };
 
+const fasesIngresso = [
+  "Aguardando análise",
+  "Em análise",
+  "Aguardando Efetivo Exercício",
+  "Posse Suspensa",
+] as const;
+
+const faseAtualDoComprometimento = (compromisso: import("./types").ComprometimentoVaga | undefined) =>
+  compromisso?.fases.find((fase) => fase.situacao === "EM_ANDAMENTO");
+
 interface VagasIndividualizadasFiltros {
   quadro: string;
   identificador: string;
@@ -100,8 +110,12 @@ const resultadoVagas = (
 export function VagasIndividualizadasContent() {
   const { vagas, quadros, comprometimentos, ocupacoes } =
     useControleVagasStore();
+  const [searchParams] = useSearchParams();
   const { control, reset } = useForm<VagasIndividualizadasFiltros>({
-    defaultValues: filtrosIniciais,
+    defaultValues: {
+      ...filtrosIniciais,
+      quadro: searchParams.get("quadro") ?? "",
+    },
   });
   const filtros = useWatch({ control });
   const [vagaSelecionada, setVagaSelecionada] = useState<Vaga | null>(null);
@@ -163,7 +177,7 @@ export function VagasIndividualizadasContent() {
     return vagasDoQuadro.filter((item) => {
       const compromisso = comprometimentos.find(
         (registro) =>
-          registro.vagaId === item.id && registro.situacao === "ATIVO",
+          registro.vagaId === item.id && registro.situacao === "ATIVO" && registro.natureza === "OCUPACAO",
       );
 
       return (
@@ -171,7 +185,9 @@ export function VagasIndividualizadasContent() {
         (!comprometimento ||
           (comprometimento === "LIVRE"
             ? !compromisso
-            : compromisso?.natureza === comprometimento)) &&
+            : comprometimento === "OCUPACAO"
+              ? Boolean(compromisso)
+              : faseAtualDoComprometimento(compromisso)?.nome === comprometimento)) &&
         (!situacaoLegal ||
           (situacaoLegal === "ESPECIAL"
             ? item.situacaoLegal !== "REGULAR"
@@ -194,17 +210,18 @@ export function VagasIndividualizadasContent() {
           disponiveis:
             acumulado.disponiveis + (item.estado === "DISPONIVEL" ? 1 : 0),
           ocupadas: acumulado.ocupadas + (item.estado === "OCUPADA" ? 1 : 0),
+          emOcupacao: acumulado.emOcupacao + (comprometimentos.some((registro) => registro.vagaId === item.id && registro.situacao === "ATIVO" && registro.natureza === "OCUPACAO") ? 1 : 0),
           excecoes:
             acumulado.excecoes + (item.situacaoLegal !== "REGULAR" ? 1 : 0),
         }),
-        { total: 0, disponiveis: 0, ocupadas: 0, excecoes: 0 },
+        { total: 0, disponiveis: 0, ocupadas: 0, emOcupacao: 0, excecoes: 0 },
       ),
-    [vagasDoQuadro],
+    [comprometimentos, vagasDoQuadro],
   );
 
   const getComprometimento = (vagaId: string) =>
     comprometimentos.find(
-      (item) => item.vagaId === vagaId && item.situacao === "ATIVO",
+      (item) => item.vagaId === vagaId && item.situacao === "ATIVO" && item.natureza === "OCUPACAO",
     );
 
   const colunas = useMemo<ColumnMetaSeplag<Vaga>[]>(
@@ -263,22 +280,20 @@ export function VagasIndividualizadasContent() {
         },
       },
       {
-        header: "Comprometimento",
+        header: "Ingresso/ocupação",
         body: (item) => {
           const compromisso = getComprometimento(item.id);
-          const faseAtual = compromisso?.fases.find(
-            (fase) => fase.situacao === "EM_ANDAMENTO",
-          );
+          const faseAtual = faseAtualDoComprometimento(compromisso);
 
           return compromisso ? (
             <span
               className={`prototype-vaga-commit ${compromisso.natureza.toLowerCase()}`}
             >
               <i className="pi pi-flag" />
-              {faseAtual?.nome ?? "Aguardando evento"}
+              {faseAtual?.nome ?? "Aguardando análise"}
             </span>
           ) : (
-            <span className="prototype-vaga-muted">Sem processo ativo</span>
+            <span className="prototype-vaga-muted">Sem ingresso ativo</span>
           );
         },
       },
@@ -337,6 +352,12 @@ export function VagasIndividualizadasContent() {
               kind="available"
             />
             <Kpi
+              label="Em ocupação"
+              value={totais.emOcupacao}
+              icon="pi pi-flag"
+              kind="warning"
+            />
+            <Kpi
               label="Ocupadas"
               value={totais.ocupadas}
               icon="pi pi-users"
@@ -384,15 +405,12 @@ export function VagasIndividualizadasContent() {
               <DropdownFieldSeplag<VagasIndividualizadasFiltros>
                 name="comprometimento"
                 control={control}
-                label="Comprometimento"
+                label="Ingresso/ocupação"
                 cols="12"
                 options={[
-                  { label: "Sem processo ativo", value: "LIVRE" },
-                  { label: "Para ocupação", value: "OCUPACAO" },
-                  {
-                    label: "Para disponibilização",
-                    value: "DISPONIBILIZACAO",
-                  },
+                  { label: "Sem ingresso ativo", value: "LIVRE" },
+                  { label: "Com ingresso ativo", value: "OCUPACAO" },
+                  ...fasesIngresso.map((fase) => ({ label: fase, value: fase })),
                 ]}
                 optionLabel="label"
                 optionValue="value"
@@ -477,7 +495,7 @@ function VagasIndividualizadasLegacy() {
   const [searchParams] = useSearchParams();
   const getComprometimento = (vagaId: string) =>
     comprometimentos.find(
-      (item) => item.vagaId === vagaId && item.situacao === "ATIVO",
+      (item) => item.vagaId === vagaId && item.situacao === "ATIVO" && item.natureza === "OCUPACAO",
     );
   const [busca, setBusca] = useState("");
   const [orgao, setOrgao] = useState(() => searchParams.get("orgao") ?? "");
@@ -549,7 +567,9 @@ function VagasIndividualizadasLegacy() {
         (!comprometimento ||
           (comprometimento === "LIVRE"
             ? !compromisso
-            : compromisso?.natureza === comprometimento)) &&
+            : comprometimento === "OCUPACAO"
+              ? Boolean(compromisso)
+              : faseAtualDoComprometimento(compromisso)?.nome === comprometimento)) &&
         atendeOcupacao &&
         (!legal ||
           (legal === "ESPECIAL"
@@ -586,7 +606,7 @@ function VagasIndividualizadasLegacy() {
       ocupadas: a.ocupadas + (v.estado === "OCUPADA" ? 1 : 0),
       excecoes: a.excecoes + (v.situacaoLegal !== "REGULAR" ? 1 : 0),
     }),
-    { total: 0, disponiveis: 0, ocupadas: 0, excecoes: 0 },
+    { total: 0, disponiveis: 0, ocupadas: 0, emOcupacao: 0, excecoes: 0 },
   );
   const limpar = () => {
     setBusca("");
@@ -780,7 +800,7 @@ function VagasIndividualizadasLegacy() {
               searchable={false}
             />
             <FiltroPesquisa
-              label="Comprometimento"
+              label="Ingresso/ocupação"
               value={comprometimento}
               options={[
                 { label: "Sem processo ativo", value: "LIVRE" },
@@ -1443,10 +1463,13 @@ function rotuloMovimentacao(tipo: string) {
 
 function ComprometimentoDaVaga({ vagaId }: { vagaId: string }) {
   const { comprometimentos } = useControleVagasStore();
-  const processo = comprometimentos.find(
-    (item) => item.vagaId === vagaId && item.situacao === "ATIVO",
+  const processos = comprometimentos.filter(
+    (item) => item.vagaId === vagaId && item.natureza === "OCUPACAO",
   );
+  const processo =
+    processos.find((item) => item.situacao === "ATIVO") ?? processos[0];
   if (!processo) return null;
+  const ativo = processo.situacao === "ATIVO";
   const faseAtual = processo.fases.find(
     (fase) => fase.situacao === "EM_ANDAMENTO",
   );
@@ -1457,16 +1480,20 @@ function ComprometimentoDaVaga({ vagaId }: { vagaId: string }) {
     <section className="prototype-vaga-commitment-detail">
       <header>
         <div>
-          <h3>Comprometimento ativo</h3>
-          <p>Informação recebida automaticamente do processo de origem.</p>
+          <h3>{ativo ? "Ingresso ativo" : "Último ingresso"}</h3>
+          <p>
+            {ativo
+              ? "Informação recebida automaticamente do processo de origem."
+              : "Resultado preservado no histórico da vaga."}
+          </p>
         </div>
         <span
           className={"prototype-vaga-commit " + processo.natureza.toLowerCase()}
         >
           <i className="pi pi-flag" />
-          {processo.natureza === "OCUPACAO"
-            ? "Para ocupação"
-            : "Para disponibilização"}
+          {ativo
+            ? "Em ocupação"
+            : processo.eventoDefinitivo ?? "Ingresso encerrado"}
         </span>
       </header>
       <dl>
@@ -1479,8 +1506,12 @@ function ComprometimentoDaVaga({ vagaId }: { vagaId: string }) {
           <dd>{processo.origem}</dd>
         </div>
         <div>
-          <dt>Fase atual</dt>
-          <dd>{faseAtual?.nome ?? "Aguardando evento definitivo"}</dd>
+          <dt>{ativo ? "Fase atual" : "Resultado"}</dt>
+          <dd>
+            {ativo
+              ? faseAtual?.nome ?? "Aguardando evento definitivo"
+              : processo.eventoDefinitivo ?? "Ingresso encerrado"}
+          </dd>
         </div>
         <div>
           <dt>Previsão</dt>

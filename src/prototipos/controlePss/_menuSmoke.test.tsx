@@ -8,6 +8,7 @@ import { ControleVagasPssContent } from "./ControleVagasPssContent";
 import { IntegracaoSiesContent } from "./IntegracaoSiesContent";
 import { CertamesListContent } from "./certame/CertamesListContent";
 import { CertameFormContent } from "./certame/CertameFormContent";
+import { EMPRESAS_CADASTRADAS } from "./certame/dominios";
 import { controlePssStore } from "./controlePssStore";
 import { definicoesEtapasPss, etapasBloqueadas, etapasManuais, gerarEtapasDoProcesso, progressoProcesso } from "./fluxoPssUtils";
 import { calcularDivergenciasSies } from "./divergenciaSiesUtils";
@@ -29,6 +30,14 @@ describe("menus do Controle PSS", () => {
   it.each(cases)("renderiza %s", (_nome, Component) => {
     const result = render(<MemoryRouter><Component /></MemoryRouter>);
     expect(result.container.firstElementChild).not.toBeNull();
+  });
+
+  it("mantém a aba de isenção para o PSS e usa a lista de empresas cadastradas", () => {
+    expect(EMPRESAS_CADASTRADAS.some((empresa) => empresa.value === "INSEL")).toBe(true);
+    const result = render(<MemoryRouter initialEntries={["/prototipos/sigep/controle-pss/certames/novo"]}><Routes><Route path="/prototipos/sigep/controle-pss/certames/:id" element={<CertameFormContent />} /></Routes></MemoryRouter>);
+    fireEvent.click(result.getByText("Processo Seletivo Simplificado (PSS)"));
+    expect(result.getByText("Isenção")).toBeTruthy();
+    expect(result.getByText("Dados Gerais")).toBeTruthy();
   });
 
   it("gera a esteira padrão de etapas para qualquer processo novo", () => {

@@ -113,6 +113,7 @@ import {
   PrototiposDocumentosLegaisPage,
 } from "./prototipos/documentosLegais/DocumentosLegaisPages";
 import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
+import { PrototiposOrganogramaPage } from "./prototipos/estruturaOrganizacional/OrganogramaPage";
 import {
   PrototiposSicadBaseConhecimentoPage,
   PrototiposSicadFilaChamadosPage,
@@ -1330,6 +1331,7 @@ function App() {
         element={<PrototiposSicadChamadoDetalhePage />}
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
+      <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma" element={<PrototiposOrganogramaPage />} />
       <Route
         path="/prototipos/sigep/documentos-legais"
         element={<PrototiposDocumentosLegaisPage />}

@@ -2030,20 +2030,9 @@ function QuadroAutorizadoNovaVersao({
       <header className="prototype-quadro-header">
         <div>
           <h1>Nova versão do quadro</h1>
-          <p>
-            {registro.codigo} • {registro.cargo} • versão vigente{" "}
-            {registro.versao}
-          </p>
-        </div>
+</div>
       </header>
-      <div className="prototype-quadro-info">
-        <i className="pi pi-info-circle" />
-        <span>
-          A versão vigente será preservada. Selecione a alteração legal e simule
-          seu impacto antes de registrar a nova versão.
-        </span>
-      </div>
-      <QuadroLegalOperacoes registro={registro} onSaved={onBack} />
+<QuadroLegalOperacoes registro={registro} onSaved={onBack} />
     </div>
   );
 }

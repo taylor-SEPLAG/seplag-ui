@@ -1,7 +1,7 @@
 import type { ComprometimentoVaga, EstadoVaga, FaseComprometimento, NaturezaComprometimento, Vaga } from "./types";
 
 export const fasesPadrao: Record<NaturezaComprometimento, string[]> = {
-  OCUPACAO: ["Autorização para nomeação", "Vinculação ao concurso", "Convocação", "Nomeação publicada", "Posse"],
+  OCUPACAO: ["Aguardando análise", "Em análise", "Aguardando Efetivo Exercício", "Posse Suspensa"],
   DISPONIBILIZACAO: ["Solicitação registrada", "Instrução do processo", "Análise e validação", "Publicação do ato"],
 };
 
@@ -36,6 +36,62 @@ export function concluirEventoDefinitivo(vaga: Vaga, comprometimento: Comprometi
   };
 }
 
+export type SituacaoIngressoVaga =
+  | "AGUARDANDO_ANALISE"
+  | "EM_ANALISE"
+  | "AGUARDANDO_EFETIVO_EXERCICIO"
+  | "INGRESSO_CONCLUIDO"
+  | "POSSE_SUSPENSA"
+  | "POSSE_NEGADA"
+  | "TORNADO_SEM_EFEITO";
+
+const rotuloSituacaoIngresso: Record<SituacaoIngressoVaga, string> = {
+  AGUARDANDO_ANALISE: "Aguardando análise",
+  EM_ANALISE: "Em análise",
+  AGUARDANDO_EFETIVO_EXERCICIO: "Aguardando Efetivo Exercício",
+  INGRESSO_CONCLUIDO: "Ingresso concluído",
+  POSSE_SUSPENSA: "Posse Suspensa",
+  POSSE_NEGADA: "Posse Negada",
+  TORNADO_SEM_EFEITO: "Tornado sem efeito",
+};
+
+export function aplicarSituacaoIngresso(
+  vaga: Vaga,
+  comprometimento: ComprometimentoVaga,
+  situacao: SituacaoIngressoVaga,
+): { vaga: Vaga; comprometimento: ComprometimentoVaga } {
+  if (comprometimento.natureza !== "OCUPACAO") return { vaga, comprometimento };
+  if (situacao === "INGRESSO_CONCLUIDO") {
+    return concluirEventoDefinitivo(vaga, comprometimento);
+  }
+  if (situacao === "POSSE_NEGADA" || situacao === "TORNADO_SEM_EFEITO") {
+    return {
+      vaga,
+      comprometimento: {
+        ...cancelarComprometimento(comprometimento),
+        eventoDefinitivo: rotuloSituacaoIngresso[situacao],
+        concluidoEm: "16/07/2026 11:00",
+      },
+    };
+  }
+
+  const nomeAtual = rotuloSituacaoIngresso[situacao];
+  const indiceAtual = comprometimento.fases.findIndex((fase) => fase.nome === nomeAtual);
+  const fases = comprometimento.fases.map((fase, indice) => ({
+    ...fase,
+    situacao:
+      indice < indiceAtual
+        ? ("CONCLUIDA" as const)
+        : indice === indiceAtual
+          ? ("EM_ANDAMENTO" as const)
+          : ("PENDENTE" as const),
+  }));
+
+  return {
+    vaga,
+    comprometimento: { ...comprometimento, situacao: "ATIVO", fases },
+  };
+}
 export function cancelarComprometimento(comprometimento: ComprometimentoVaga): ComprometimentoVaga {
   return { ...comprometimento, situacao: "CANCELADO", fases: comprometimento.fases.map((fase) => fase.situacao === "PENDENTE" || fase.situacao === "EM_ANDAMENTO" ? { ...fase, situacao: "CANCELADA" } : fase) };
 }
