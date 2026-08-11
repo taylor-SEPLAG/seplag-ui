@@ -1330,16 +1330,41 @@
 
 .prototype-novo-ingresso-footer {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px 32px;
+  width: 100%;
   margin-top: 2px;
-  padding-top: 8px;
+  padding: 12px 20px;
+  box-sizing: border-box;
 }
 
 .prototype-novo-ingresso-actions {
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 12px !important;
+  margin: 0 0 0 auto;
   border-top: 0 !important;
-  margin: 0;
   padding: 0 !important;
+}
+
+.prototype-novo-ingresso-actions button {
+  width: auto !important;
+  min-height: 42px;
+  padding-right: 18px !important;
+  padding-left: 18px !important;
+  white-space: nowrap !important;
+  flex: 0 0 auto;
+}
+
+.prototype-footer-back-button {
+  min-width: 110px;
+}
+
+.prototype-footer-finish-button {
+  min-width: 160px;
 }
 
 .prototype-novo-ingresso-stepper-wrap {
@@ -2033,6 +2058,10 @@
   gap: 14px;
 }
 
+.prototype-analise-provimento-layout--prazo-horizontal {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .prototype-analise-provimento-main,
 .prototype-analise-provimento-side {
   min-width: 0;
@@ -2044,6 +2073,106 @@
   gap: 14px;
 }
 
+.prototype-prazo-posse-alert {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin-bottom: 14px;
+  border: 1px solid;
+  border-radius: 6px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+}
+
+.prototype-prazo-posse-alert.is-on-time {
+  border-color: #a7dcb8;
+  background: #f2fbf5;
+  color: #145c2e;
+}
+
+.prototype-prazo-posse-alert.is-overdue {
+  border-color: #efb4b4;
+  background: #fff5f5;
+  color: #9f2424;
+}
+
+.prototype-prazo-posse-alert-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  padding-right: 20px;
+  color: #102a43;
+  white-space: nowrap;
+}
+
+.prototype-prazo-posse-alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.72);
+  color: inherit;
+}
+
+.prototype-prazo-posse-alert-fields {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.prototype-prazo-posse-alert-fields > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 0 18px;
+  border-left: 1px solid currentColor;
+  border-left-color: color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.prototype-prazo-posse-alert-fields dt,
+.prototype-prazo-posse-alert-fields dd {
+  margin: 0;
+}
+
+.prototype-prazo-posse-alert-fields dt {
+  color: #52616b;
+  font-size: 0.78rem;
+}
+
+.prototype-prazo-posse-alert-fields dd {
+  color: #102a43;
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.prototype-prazo-posse-alert-days {
+  color: inherit !important;
+}
+
+.prototype-prazo-posse-alert-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #dff4e6;
+  color: #137a3a;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.prototype-prazo-posse-alert.is-overdue .prototype-prazo-posse-alert-status {
+  background: #fde2e2;
+  color: #a32626;
+}
 .prototype-analise-provimento-panel,
 .prototype-documentos-gerados {
   border: 1px solid #d7e0ea;
@@ -2084,7 +2213,9 @@
 }
 
 .prototype-analise-provimento-table {
-  min-width: 960px;
+  width: 100%;
+  min-width: 1040px;
+  table-layout: fixed;
 }
 
 .prototype-efetivo-exercicio-layout--sem-prazo {
@@ -2093,9 +2224,24 @@
 
 .prototype-analise-provimento-table th:last-child,
 .prototype-analise-provimento-table td:last-child {
-  width: 128px;
-  min-width: 128px;
+  width: 184px;
+  min-width: 184px;
   text-align: center;
+}
+
+.prototype-analise-provimento-table th:nth-child(2),
+.prototype-analise-provimento-table td:nth-child(2) {
+  width: 17%;
+}
+
+.prototype-analise-provimento-table th:nth-child(3),
+.prototype-analise-provimento-table td:nth-child(3) {
+  width: 128px;
+}
+
+.prototype-analise-provimento-table th:nth-child(4),
+.prototype-analise-provimento-table td:nth-child(4) {
+  width: 112px;
 }
 
 .prototype-analise-documento-name {
@@ -2115,7 +2261,7 @@
 .prototype-analise-documento-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   width: 100%;
   white-space: nowrap;
@@ -2460,7 +2606,7 @@
 .prototype-parecer-radio-group .prototype-parecer-option > small {
   max-width: 190px;
   color: #66758a;
-  font-size: .69rem;
+  font-size: .8rem;
   font-weight: 400;
   line-height: 1.35;
 }
@@ -2728,7 +2874,7 @@
   }
 
   .prototype-novo-ingresso-footer {
-    justify-content: flex-end;
+    justify-content: space-between;
   }
 
   .prototype-novo-ingresso-actions {
@@ -4183,6 +4329,36 @@
   color: #ffffff !important;
 }
 
+@media (max-width: 1180px) {
+  .prototype-prazo-posse-alert {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .prototype-prazo-posse-alert-title {
+    padding-right: 0;
+  }
+
+  .prototype-prazo-posse-alert-fields {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .prototype-prazo-posse-alert-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prototype-prazo-posse-alert-fields > div {
+    padding: 10px 12px;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  }
+
+  .prototype-prazo-posse-alert-status-field {
+    grid-column: 1 / -1;
+  }
+}
 @media (max-width: 1180px) {
   .prototype-ficha-financeira-filters,
   .prototype-ficha-financeira-totalizador {
@@ -6650,6 +6826,36 @@
 }
 
 @media (max-width: 1180px) {
+  .prototype-prazo-posse-alert {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .prototype-prazo-posse-alert-title {
+    padding-right: 0;
+  }
+
+  .prototype-prazo-posse-alert-fields {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .prototype-prazo-posse-alert-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prototype-prazo-posse-alert-fields > div {
+    padding: 10px 12px;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  }
+
+  .prototype-prazo-posse-alert-status-field {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 1180px) {
   .prototype-folha-execucoes-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -6787,6 +6993,36 @@
   }
 }
 
+@media (max-width: 1180px) {
+  .prototype-prazo-posse-alert {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .prototype-prazo-posse-alert-title {
+    padding-right: 0;
+  }
+
+  .prototype-prazo-posse-alert-fields {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .prototype-prazo-posse-alert-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prototype-prazo-posse-alert-fields > div {
+    padding: 10px 12px;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  }
+
+  .prototype-prazo-posse-alert-status-field {
+    grid-column: 1 / -1;
+  }
+}
 @media (max-width: 1180px) {
   .prototype-folha-pagamento-filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -11563,6 +11799,36 @@
 }
 
 @media (max-width: 1180px) {
+  .prototype-prazo-posse-alert {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .prototype-prazo-posse-alert-title {
+    padding-right: 0;
+  }
+
+  .prototype-prazo-posse-alert-fields {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .prototype-prazo-posse-alert-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prototype-prazo-posse-alert-fields > div {
+    padding: 10px 12px;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  }
+
+  .prototype-prazo-posse-alert-status-field {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 1180px) {
   .prototype-folha-home-page {
     grid-template-columns: 1fr;
   }
@@ -13374,7 +13640,7 @@
 
 .prototype-ingressos-teste-record-kpi-copy > small {
   color: #687f96;
-  font-size: 0.6rem;
+  font-size: 0.78rem;
   line-height: 1.1;
 }
 
@@ -15405,7 +15671,7 @@
 .prototype-ingressos-teste-support {
   margin: -8px 0 16px;
   color: #60758a;
-  font-size: 0.86rem;
+  font-size: 1.1rem;
 }
 
 .prototype-ingressos-teste-indicator.is-clickable {
@@ -16407,6 +16673,15 @@
   min-width: 0;
 }
 
+.prototype-analise-accordion-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  min-width: 0;
+  margin-left: auto;
+}
+
 .prototype-document-analysis-summary {
   display: inline-flex;
   align-items: center;
@@ -16423,7 +16698,7 @@
   border: 1px solid;
   border-radius: 999px;
   box-sizing: border-box;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.15;
   white-space: nowrap;
@@ -16447,8 +16722,8 @@
   }
 
   .prototype-document-analysis-summary {
-    flex-basis: 100%;
-    margin-left: 48px;
+    flex-basis: auto;
+    margin-left: 0;
   }
 }
 
@@ -16509,4 +16784,70 @@
 .prototype-parecer-aprovacao {
   display: grid;
   gap: 14px;
+}
+
+.prototype-rascunho-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: auto;
+  margin: 0;
+  color: #52616b;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.prototype-rascunho-feedback i {
+  color: #137a3a;
+}
+
+.prototype-saida-rascunho-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
+.prototype-rascunho-error {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid #efb4b4;
+  border-radius: 4px;
+  background: #fff5f5;
+  color: #a32626;
+  padding: 10px 12px;
+}
+.prototype-salvar-rascunho-button {
+  min-width: 150px;
+  border: 1px solid #2f80ed !important;
+  background: #ffffff !important;
+  color: #2f80ed !important;
+}
+
+.prototype-salvar-rascunho-button:hover {
+  border-color: #1769cf !important;
+  background: #f2f7ff !important;
+  color: #1769cf !important;
+}
+@media (max-width: 900px) {
+  .prototype-novo-ingresso-footer {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .prototype-novo-ingresso-actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .prototype-novo-ingresso-footer {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .prototype-novo-ingresso-actions {
+    flex-wrap: wrap;
+  }
 }
