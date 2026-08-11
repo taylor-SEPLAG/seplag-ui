@@ -95,7 +95,6 @@ import {
   PrototiposMatrizValidacaoTesteFormPage,
   PrototiposMatrizValidacaoTestePage,
   PrototiposNovoIngressoPage,
-  PrototiposPastaFuncionalServidorPage,
   PrototiposPage,
   PrototiposPessoaFisicaFormPage,
   PrototiposPessoaVinculosPage,
@@ -1400,16 +1399,20 @@ function App() {
         element={<PrototiposEfetivoExercicioPage />}
       />
       <Route
+        path="/prototipos/sigep/ingressos/efetivo-exercicio/novo"
+        element={<PrototiposNovoIngressoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos/efetivo-exercicio/visualizar"
+        element={<PrototiposNovoIngressoPage />}
+      />
+      <Route
         path="/prototipos/sigep/ingressos/novo"
         element={<PrototiposNovoIngressoPage />}
       />
       <Route
         path="/prototipos/sigep/ingressos/importar"
         element={<PrototiposImportarIngressoPage />}
-      />
-      <Route
-        path="/prototipos/sigep/ingressos/:id/pasta-funcional"
-        element={<PrototiposPastaFuncionalServidorPage />}
       />
       <Route
         path="/prototipos/sigep/ingressos/:id"

@@ -324,8 +324,8 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Tipo de Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Gestão de Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: false, visibleOnRouter: true },
+          { label: "Gestão de Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", activeRoutes: ["/prototipos/sigep/ingressos/novo"], visibleOnMenu: true, visibleOnRouter: true },
           { label: "Efetivo Exercício", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/efetivo-exercicio", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vacância", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
@@ -1253,6 +1253,12 @@ interface IngressoConcursoProcessoRow {
   candidatos: IngressoCandidatoRow[];
 }
 
+const formatarSituacaoIngresso = (situacao: IngressoSituacao) =>
+  situacao === "Em analise" ? "Em análise" : situacao;
+const getDataEfetivoExercicioConcluido = (...datas: Array<string | undefined>) =>
+  datas.find((data) => data && data !== "-") ??
+  new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
 interface IngressoCandidatoGrupoRow {
   id: string;
   vagaEspecialidade: string;
@@ -1958,6 +1964,18 @@ const ingressosMock: IngressoRow[] = [
     dataIngresso: "2026-02-14",
   },
   {
+    id: 64,
+    nome: "Eduardo Santos",
+    cpf: "645.321.987-00",
+    matricula: "",
+    tipoIngresso: "Concurso",
+    tipoVinculo: "Efetivo",
+    orgao: "SES",
+    cargo: "Analista Administrativo",
+    situacao: "Aguardando Efetivo Exercicio",
+    dataIngresso: "2026-07-01",
+  },
+  {
     id: 13,
     nome: "Henrique Lopes",
     cpf: "345.345.345-34",
@@ -2234,6 +2252,17 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
 
       {
+        id: 64,
+        nome: "Eduardo Santos",
+        classificacao: "10º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "AC",
+        dataNomeacao: "01/06/2026",
+        dataPosse: "01/07/2026",
+        dataEfetivoExercicio: "-",
+      },
+
+      {
         id: 14,
         nome: "Renata Lima",
         classificacao: "9º",
@@ -2262,6 +2291,36 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
         dataNomeacao: "01/06/2026",
         dataPosse: "01/07/2026",
         dataEfetivoExercicio: "20/07/2026",
+      },
+      {
+        id: 17,
+        nome: "Gabriela Oliveira",
+        classificacao: "11º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "AC",
+        dataNomeacao: "05/08/2026",
+        dataPosse: "25/08/2026",
+        dataEfetivoExercicio: "-",
+      },
+      {
+        id: 18,
+        nome: "Eduardo Mendes",
+        classificacao: "12º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "AC",
+        dataNomeacao: "06/08/2026",
+        dataPosse: "26/08/2026",
+        dataEfetivoExercicio: "-",
+      },
+      {
+        id: 19,
+        nome: "Juliana Ferreira",
+        classificacao: "13º",
+        cargo: "Analista Administrativo",
+        tipoVaga: "PCD",
+        dataNomeacao: "07/08/2026",
+        dataPosse: "27/08/2026",
+        dataEfetivoExercicio: "-",
       },
     ],
   },
@@ -2980,11 +3039,10 @@ const ingressoDetalheTabs: TabItemSeplag<IngressoDetalheTab>[] = [
   { label: "Histórico", value: "historico", col: "lg:col-3" },
 ];
 
-const novoIngressoTabs: TabItemSeplag<NovoIngressoTab>[] = [
-  { label: "Ingresso", value: "tipo-ingresso", col: "lg:col-6" },
-  { label: "Documentação", value: "documentacao", col: "lg:col-6" },
-];
 
+const novoIngressoEtapaInicial: TabItemSeplag<NovoIngressoTab>[] = [
+  { label: "Ingresso", value: "tipo-ingresso", col: "lg:col-12" },
+];
 const novoIngressoConcursoSteps: TabItemSeplag<NovoIngressoTab>[] = [
   { label: "Ingresso", value: "tipo-ingresso", col: "lg:col-3" },
   { label: "Análise do Provimento", value: "analise-provimento", col: "lg:col-3" },
@@ -9420,8 +9478,13 @@ export function PrototiposEfetivoExercicioPage() {
     },
   });
   const [situacaoFiltro, setSituacaoFiltro] = useState<IngressoSituacao | "">("");
-  const [acoesIngressoMenuAbertoId, setAcoesIngressoMenuAbertoId] = useState<number | null>(null);
+  const [editalFiltro, setEditalFiltro] = useState("");
+  const [cargoPoloFiltro, setCargoPoloFiltro] = useState("");
+  const [paginaEfetivoExercicio, setPaginaEfetivoExercicio] = useState(1);
+  const [itensPorPaginaEfetivoExercicio, setItensPorPaginaEfetivoExercicio] = useState(10);
+  const [acoesIngressoMenuAbertoId, setAcoesIngressoMenuAbertoId] = useState<string | null>(null);
   const [historicoIngressoSelecionadoId, setHistoricoIngressoSelecionadoId] = useState<number | null>(null);
+  const [historicoConcursoSelecionado, setHistoricoConcursoSelecionado] = useState<string | null>(null);
   const termoBusca = watch("termo")?.trim().toLowerCase() ?? "";
   const situacoesEfetivoExercicio: IngressoSituacao[] = [
     "Aguardando Efetivo Exercicio",
@@ -9433,6 +9496,12 @@ export function PrototiposEfetivoExercicioPage() {
   ) as Partial<Record<string, IngressoSituacao>>;
   const datasEfetivoExercicioSalvas = JSON.parse(
     localStorage.getItem("prototype-ingresso-datas-efetivo-exercicio") ?? "{}",
+  ) as Partial<Record<string, string>>;
+  const setoresEfetivoExercicioSalvos = JSON.parse(
+    localStorage.getItem("prototype-ingresso-setores-lotacao") ?? "{}",
+  ) as Partial<Record<string, string>>;
+  const orgaosEfetivoExercicioSalvos = JSON.parse(
+    localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}",
   ) as Partial<Record<string, string>>;
   const getSituacaoEfetivoExercicio = (candidatoId: number) =>
     situacoesIngressosSalvas[String(candidatoId)] ??
@@ -9448,6 +9517,35 @@ export function PrototiposEfetivoExercicioPage() {
   };
   const formatarDataEfetivoExercicio = (data: Date) =>
     data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const getIndicadorDataEfetivoExercicio = (
+    situacao: IngressoSituacao,
+    dataEfetivoExercicio: string,
+    dataLimite: string,
+  ) => {
+    const limite = parseDataEfetivoExercicio(dataLimite);
+    if (!limite || situacao === "Tornado sem efeito") return null;
+
+    if (situacao === "Aguardando Efetivo Exercicio") {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      limite.setHours(0, 0, 0, 0);
+      const prazoVencido = hoje.getTime() >= limite.getTime();
+      const diasVencidos = Math.floor((hoje.getTime() - limite.getTime()) / 86_400_000);
+      const diasRestantes = Math.ceil((limite.getTime() - hoje.getTime()) / 86_400_000);
+
+      return prazoVencido
+        ? { tone: "danger" as const, icon: "pi pi-exclamation-triangle", tooltip: `Limite do efetivo exercício\n${dataLimite}\nPrazo vencido há ${diasVencidos} ${diasVencidos === 1 ? "dia" : "dias"}.` }
+        : { tone: "success" as const, icon: "pi pi-clock", tooltip: `Limite do efetivo exercício\n${dataLimite}\n${diasRestantes === 1 ? "Resta 1 dia." : `Restam ${diasRestantes} dias.`}` };
+    }
+
+    const dataRealizada = parseDataEfetivoExercicio(dataEfetivoExercicio);
+    if (!dataRealizada) return null;
+    const concluidoNoPrazo = dataRealizada.getTime() <= limite.getTime();
+
+    return concluidoNoPrazo
+      ? { tone: "success" as const, icon: "pi pi-clock", tooltip: `Limite do efetivo exercício\n${dataLimite}\nEtapa concluída em ${dataEfetivoExercicio}, dentro do prazo.` }
+      : { tone: "danger" as const, icon: "pi pi-exclamation-triangle", tooltip: `Limite do efetivo exercício\n${dataLimite}\nEtapa concluída em ${dataEfetivoExercicio}, após o prazo.` };
+  };
   const getLimiteEfetivoExercicio = (candidato: IngressoCandidatoRow) => {
     const dataPosse = parseDataEfetivoExercicio(candidato.dataPosse);
 
@@ -9471,20 +9569,46 @@ export function PrototiposEfetivoExercicioPage() {
           nomeConcurso: concursoProcesso.titulo,
           edital: concursoProcesso.edital,
           cargo: candidato.cargo,
+          polo: getPoloCandidatoIngresso(candidato.id),
           tipo: concursoProcesso.tipo,
           orgao: concursoProcesso.orgao,
+          orgaoEncaminhado:
+            orgaosEfetivoExercicioSalvos[String(candidato.id)] ?? concursoProcesso.orgao,
           classificacao: candidato.classificacao,
           tipoVaga: candidato.tipoVaga,
           limiteEfetivoExercicio: getLimiteEfetivoExercicio(candidato),
           dataEfetivoExercicio:
             situacao === "Ingresso Concluído"
-              ? datasEfetivoExercicioSalvas[String(candidato.id)] ?? candidato.dataEfetivoExercicio
+              ? getDataEfetivoExercicioConcluido(
+                datasEfetivoExercicioSalvas[String(candidato.id)],
+                candidato.dataEfetivoExercicio,
+              )
               : "-",
           situacao,
         };
       }),
     )
     .filter((registro) => situacoesEfetivoExercicio.includes(registro.situacao));
+  const opcoesEditalEfetivo = Array.from(
+    new Map(
+      todosRegistrosEfetivoExercicio.map((registro) => {
+        const codigoEdital = registro.edital.replace(/^Edital\s*/i, "");
+        const value = `${registro.edital}|${registro.orgao}`;
+        return [value, { value, label: `${codigoEdital}/${registro.orgao}` }];
+      }),
+    ).values(),
+  );
+  const registrosEditalSelecionado = editalFiltro
+    ? todosRegistrosEfetivoExercicio.filter((registro) => `${registro.edital}|${registro.orgao}` === editalFiltro)
+    : [];
+  const opcoesCargoPoloEfetivo = Array.from(
+    new Map(
+      registrosEditalSelecionado.map((registro) => {
+        const value = `${registro.cargo}|${registro.polo}`;
+        return [value, { value, label: `${registro.cargo} — ${registro.polo}` }];
+      }),
+    ).values(),
+  );
   const totalEfetivoExercicioPorSituacao = situacoesEfetivoExercicio.reduce(
     (acc, situacao) => ({
       ...acc,
@@ -9492,18 +9616,38 @@ export function PrototiposEfetivoExercicioPage() {
     }),
     {} as Record<IngressoSituacao, number>,
   );
+  const indicadoresEfetivoExercicio = [
+    { label: "Total de Registros", value: todosRegistrosEfetivoExercicio.length, icon: "pi pi-users", tone: "blue" },
+    { label: "Aguardando Efetivo Exercício", value: totalEfetivoExercicioPorSituacao["Aguardando Efetivo Exercicio"], icon: "pi pi-calendar-clock", tone: "amber" },
+    { label: "Ingressos Concluídos", value: totalEfetivoExercicioPorSituacao["Ingresso Concluído"], icon: "pi pi-check-circle", tone: "green" },
+    { label: "Tornados sem Efeito", value: totalEfetivoExercicioPorSituacao["Tornado sem efeito"], icon: "pi pi-minus-circle", tone: "red" },
+  ];
   const registrosEfetivoExercicio = todosRegistrosEfetivoExercicio.filter((registro) => {
       const atendeTermo =
         !termoBusca ||
         registro.nome.toLowerCase().includes(termoBusca) ||
         registro.cpf.replace(/\D/g, "").includes(termoBusca.replace(/\D/g, ""));
+      const atendeEdital = !editalFiltro || `${registro.edital}|${registro.orgao}` === editalFiltro;
+      const atendeCargoPolo = !cargoPoloFiltro || `${registro.cargo}|${registro.polo}` === cargoPoloFiltro;
       const atendeSituacao = !situacaoFiltro || registro.situacao === situacaoFiltro;
 
-      return atendeTermo && atendeSituacao;
+      return atendeTermo && atendeEdital && atendeCargoPolo && atendeSituacao;
     });
+  const totalPaginasEfetivoExercicio = Math.max(
+    1,
+    Math.ceil(registrosEfetivoExercicio.length / itensPorPaginaEfetivoExercicio),
+  );
+  const paginaAtualEfetivoExercicio = Math.min(paginaEfetivoExercicio, totalPaginasEfetivoExercicio);
+  const registrosPaginadosEfetivoExercicio = registrosEfetivoExercicio.slice(
+    (paginaAtualEfetivoExercicio - 1) * itensPorPaginaEfetivoExercicio,
+    paginaAtualEfetivoExercicio * itensPorPaginaEfetivoExercicio,
+  );
   const limparFiltros = () => {
     reset({ termo: "" });
+    setEditalFiltro("");
+    setCargoPoloFiltro("");
     setSituacaoFiltro("");
+    setPaginaEfetivoExercicio(1);
   };
   const getSituacaoIngressoBadge = (situacao: IngressoSituacao) => {
     const badgeMap: Partial<Record<IngressoSituacao, { color: string; bg: string; descricao: string }>> = {
@@ -9535,7 +9679,10 @@ export function PrototiposEfetivoExercicioPage() {
         .flatMap((concursoProcesso) =>
           concursoProcesso.candidatos.map((candidato) => ({ candidato, concursoProcesso })),
         )
-        .find(({ candidato }) => candidato.id === historicoIngressoSelecionadoId)
+        .find(({ candidato, concursoProcesso }) =>
+          candidato.id === historicoIngressoSelecionadoId &&
+          (!historicoConcursoSelecionado || concursoProcesso.titulo === historicoConcursoSelecionado),
+        )
     : undefined;
   const ingressoHistoricoSelecionado = historicoIngressoSelecionadoId
     ? ingressosMock.find((ingresso) => ingresso.id === historicoIngressoSelecionadoId)
@@ -9556,69 +9703,87 @@ export function PrototiposEfetivoExercicioPage() {
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <div className="prototype-page-content prototype-page-content--white">
-        <CardSeplag title="Efetivo Exercício" cols="12" cardHeaderClassNames="prototype-ingressos-card">
-          <section className="prototype-ingressos-dashboard prototype-efetivo-exercicio-dashboard">
-            <div className="prototype-ingressos-dashboard-grid prototype-efetivo-exercicio-dashboard-grid">
-              {situacoesEfetivoExercicio.map((situacao) => {
-                const badge = getSituacaoIngressoBadge(situacao);
-
-                return (
-                  <div
-                    key={situacao}
-                    className="prototype-ingressos-dashboard-card prototype-efetivo-exercicio-dashboard-card"
-                    style={{
-                      "--dashboard-card-bg": badge.bg,
-                      "--dashboard-card-color": badge.color,
-                    } as React.CSSProperties}
-                    title={badge.descricao}
-                  >
-                    <span style={{ color: badge.color }}>{situacao}</span>
-                    <strong>{totalEfetivoExercicioPorSituacao[situacao]}</strong>
+      <div className="prototype-page-content prototype-page-content--white prototype-ingressos-teste-list-page">
+        <CardSeplag
+          title="Efetivo Exercício"
+          cols="12"
+          cardHeaderClassNames="prototype-regime-card prototype-ingressos-card"
+        >
+          <div className="prototype-ingressos-teste-content prototype-efetivo-exercicio-content">
+            <p className="prototype-ingressos-teste-support">Acompanhe os candidatos que aguardam o registro do efetivo exercício.</p>
+            <hr className="prototype-ingressos-teste-header-divider" />
+            <section className="prototype-ingressos-teste-indicators" aria-label="Indicadores do efetivo exercício">
+              {indicadoresEfetivoExercicio.map((indicador) => (
+                <article
+                  key={indicador.label}
+                  className={`prototype-ingressos-teste-indicator prototype-ingressos-teste-indicator--${indicador.tone}`}
+                >
+                  <span className="prototype-ingressos-teste-indicator-icon" aria-hidden="true"><i className={indicador.icon} /></span>
+                  <div>
+                    <span>{indicador.label}</span>
+                    <strong>{indicador.value.toLocaleString("pt-BR")}</strong>
                   </div>
-                );
-              })}
-            </div>
-          </section>
+                </article>
+              ))}
+            </section>
 
-          <div className="prototype-category-filters prototype-ingressos-filters grid">
+          <div className="prototype-category-filters prototype-ingressos-filters prototype-efetivo-exercicio-filters grid">
             <TextFieldSeplag
               name="termo"
               control={control}
               label="Nome ou CPF"
-              cols="12 12 4"
+              cols="12"
               getFormErrorMessage={() => null}
             />
-            <label className="col-12 md:col-6 lg:col-3 prototype-native-field">
+            <label className="prototype-native-field">
+              <span>Nome do Edital</span>
+              <select
+                value={editalFiltro}
+                onChange={(event) => {
+                  setEditalFiltro(event.target.value);
+                  setCargoPoloFiltro("");
+                }}
+              >
+                <option value="">Todos</option>
+                {opcoesEditalEfetivo.map((opcao) => <option key={opcao.value} value={opcao.value}>{opcao.label}</option>)}
+              </select>
+            </label>
+            <label className="prototype-native-field">
+              <span>Cargo/Polo</span>
+              <select
+                value={cargoPoloFiltro}
+                disabled={!editalFiltro}
+                onChange={(event) => setCargoPoloFiltro(event.target.value)}
+              >
+                <option value="">{editalFiltro ? "Todos" : "Selecione um edital"}</option>
+                {opcoesCargoPoloEfetivo.map((opcao) => <option key={opcao.value} value={opcao.value}>{opcao.label}</option>)}
+              </select>
+            </label>
+            <label className="prototype-native-field">
               <span>Situação</span>
               <select value={situacaoFiltro} onChange={(event) => setSituacaoFiltro(event.target.value as IngressoSituacao | "")}>
                 <option value="">Todas</option>
-                {situacoesEfetivoExercicio.map((situacao) => (
-                  <option key={situacao} value={situacao}>
-                    {situacao}
-                  </option>
-                ))}
+                {situacoesEfetivoExercicio.map((situacao) => <option key={situacao} value={situacao}>{situacao}</option>)}
               </select>
             </label>
-            <div className="prototype-category-clear col-12 md:col-6 lg:col-3">
+            <div className="prototype-category-clear">
               <BotaoLimparFiltroSeplag
                 type="button"
-                label="Limpar"
+                label="Limpar filtro"
                 icon="pi pi-refresh"
                 onClick={limparFiltros}
               />
             </div>
           </div>
-
           <div className="prototype-efetivo-exercicio-table-wrap">
             <table className="prototype-simple-table prototype-ingresso-candidatos-table prototype-efetivo-exercicio-table">
             <thead>
               <tr>
+                <th>Nº do<br />Ingresso</th>
                 <th>Nome</th>
-                <th>CPF</th>
-                <th>Concurso</th>
-                <th>Edital</th>
-                <th>Cargo</th>
+                <th>Nome do Edital</th>
+                <th>Cargo/Polo</th>
+                <th>Órgão Encaminhado</th>
                 <th>Limite Efetivo Exercício</th>
                 <th>Data do Efetivo Exercício</th>
                 <th>Situação</th>
@@ -9633,15 +9798,21 @@ export function PrototiposEfetivoExercicioPage() {
                   </td>
                 </tr>
               ) : (
-                registrosEfetivoExercicio.map((registro) => {
+                registrosPaginadosEfetivoExercicio.map((registro) => {
                   const badge = getSituacaoIngressoBadge(registro.situacao);
+                  const indicadorDataEfetivo = getIndicadorDataEfetivoExercicio(
+                    registro.situacao,
+                    registro.dataEfetivoExercicio,
+                    registro.limiteEfetivoExercicio,
+                  );
+                  const registroMenuId = `${registro.nomeConcurso}-${registro.id}`;
                   const podeAtuarEfetivoExercicio = registro.situacao === "Aguardando Efetivo Exercicio";
                   const parametrosAtuacaoIngresso = `candidato=${registro.id}&tipo=${encodeURIComponent(
                     registro.tipo,
                   )}&concurso=${encodeURIComponent(
                     registro.nomeConcurso,
                   )}&orgao=${encodeURIComponent(
-                    registro.orgao,
+                    registro.orgaoEncaminhado,
                   )}&cargo=${encodeURIComponent(
                     registro.cargo,
                   )}&classificacao=${encodeURIComponent(
@@ -9649,21 +9820,35 @@ export function PrototiposEfetivoExercicioPage() {
                   )}&tipoVaga=${encodeURIComponent(registro.tipoVaga)}`;
 
                   return (
-                    <tr key={registro.id}>
+                    <tr key={registroMenuId}>
+                      <td>{`2026/${String(registro.id).padStart(4, "0")}`}</td>
                       <td>{registro.nome}</td>
-                      <td>{registro.cpf}</td>
-                      <td>{registro.nomeConcurso}</td>
-                      <td>{registro.edital}</td>
-                      <td>{registro.cargo}</td>
+                      <td className="prototype-efetivo-exercicio-stacked-cell">
+                        <strong>{registro.edital.replace(/^Edital\s*/i, "")}/{registro.orgao}</strong>
+                      </td>
+                      <td className="prototype-efetivo-exercicio-stacked-cell">
+                        <strong>{registro.cargo}</strong>
+                        <small>{registro.polo}</small>
+                      </td>
+                      <td>{registro.orgaoEncaminhado}</td>
                       <td>{registro.limiteEfetivoExercicio}</td>
-                      <td>{registro.dataEfetivoExercicio}</td>
                       <td>
-                        <span title={badge.descricao}>
+                        <span className={`prototype-ingressos-deadline-cell${indicadorDataEfetivo ? ` has-indicator is-${indicadorDataEfetivo.tone}` : ""}`}>
+                          <span>{registro.dataEfetivoExercicio}</span>
+                          {indicadorDataEfetivo ? (
+                            <span className={`prototype-ingressos-deadline-icon is-${indicadorDataEfetivo.tone}`} tabIndex={0} aria-label={indicadorDataEfetivo.tooltip} data-tooltip={indicadorDataEfetivo.tooltip}>
+                              <i className={indicadorDataEfetivo.icon} aria-hidden="true" />
+                            </span>
+                          ) : null}
+                        </span>
+                      </td>
+                      <td className="prototype-efetivo-exercicio-situacao-cell">
+                        <span className="prototype-efetivo-exercicio-situacao-badge" title={badge.descricao}>
                           <BadgeSeplag
                             label={registro.situacao}
                             color={badge.color}
                             bg={badge.bg}
-                            border="transparent"
+                            border={badge.border}
                             size="md"
                           />
                         </span>
@@ -9675,9 +9860,9 @@ export function PrototiposEfetivoExercicioPage() {
                               <button
                                 type="button"
                                 className="prototype-ingresso-actions-eye"
-                                title="Visualizar"
-                                aria-label="Visualizar"
-                                onClick={() => navigate(`/prototipos/sigep/ingressos/${registro.id}`)}
+                                title="Visualizar ingresso"
+                                aria-label="Visualizar ingresso"
+                                onClick={() => navigate(`/prototipos/sigep/ingressos/efetivo-exercicio/visualizar?${parametrosAtuacaoIngresso}&modo=visualizacao&perfil=setorial`)}
                               >
                                 <i className="pi pi-eye" aria-hidden="true" />
                               </button>
@@ -9686,10 +9871,10 @@ export function PrototiposEfetivoExercicioPage() {
                                 className="prototype-ingresso-actions-arrow"
                                 title="Mais ações"
                                 aria-label="Mais ações"
-                                aria-expanded={acoesIngressoMenuAbertoId === registro.id}
+                                aria-expanded={acoesIngressoMenuAbertoId === registroMenuId}
                                 onClick={() =>
                                   setAcoesIngressoMenuAbertoId((current) =>
-                                    current === registro.id ? null : registro.id,
+                                    current === registroMenuId ? null : registroMenuId,
                                   )
                                 }
                               >
@@ -9697,7 +9882,7 @@ export function PrototiposEfetivoExercicioPage() {
                               </button>
                             </div>
 
-                            {acoesIngressoMenuAbertoId === registro.id ? (
+                            {acoesIngressoMenuAbertoId === registroMenuId ? (
                               <div className="prototype-ingresso-actions-menu" role="menu">
                                 {podeAtuarEfetivoExercicio ? (
                                   <button
@@ -9705,7 +9890,7 @@ export function PrototiposEfetivoExercicioPage() {
                                     role="menuitem"
                                     onClick={() => {
                                       setAcoesIngressoMenuAbertoId(null);
-                                      navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacaoIngresso}&perfil=setorial`);
+                                      navigate(`/prototipos/sigep/ingressos/efetivo-exercicio/novo?${parametrosAtuacaoIngresso}&perfil=setorial`);
                                     }}
                                   >
                                     <i className="pi pi-briefcase" aria-hidden="true" />
@@ -9718,21 +9903,11 @@ export function PrototiposEfetivoExercicioPage() {
                                   onClick={() => {
                                     setAcoesIngressoMenuAbertoId(null);
                                     setHistoricoIngressoSelecionadoId(registro.id);
+                                    setHistoricoConcursoSelecionado(registro.nomeConcurso);
                                   }}
                                 >
                                   <i className="pi pi-history" aria-hidden="true" />
                                   <span>Histórico</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  role="menuitem"
-                                  onClick={() => {
-                                    setAcoesIngressoMenuAbertoId(null);
-                                    navigate(`/prototipos/sigep/ingressos/${registro.id}/pasta-funcional`);
-                                  }}
-                                >
-                                  <i className="pi pi-folder" aria-hidden="true" />
-                                  <span>Pasta funcional do servidor</span>
                                 </button>
                               </div>
                             ) : null}
@@ -9746,81 +9921,281 @@ export function PrototiposEfetivoExercicioPage() {
             </tbody>
             </table>
           </div>
+          <nav className="prototype-efetivo-exercicio-pagination" aria-label="Paginação do efetivo exercício">
+            <button type="button" aria-label="Primeira página" disabled={paginaAtualEfetivoExercicio === 1} onClick={() => setPaginaEfetivoExercicio(1)}><i className="pi pi-angle-double-left" aria-hidden="true" /></button>
+            <button type="button" aria-label="Página anterior" disabled={paginaAtualEfetivoExercicio === 1} onClick={() => setPaginaEfetivoExercicio((pagina) => Math.max(1, pagina - 1))}><i className="pi pi-angle-left" aria-hidden="true" /></button>
+            <span aria-current="page">{paginaAtualEfetivoExercicio}</span>
+            <button type="button" aria-label="Próxima página" disabled={paginaAtualEfetivoExercicio === totalPaginasEfetivoExercicio} onClick={() => setPaginaEfetivoExercicio((pagina) => Math.min(totalPaginasEfetivoExercicio, pagina + 1))}><i className="pi pi-angle-right" aria-hidden="true" /></button>
+            <button type="button" aria-label="Última página" disabled={paginaAtualEfetivoExercicio === totalPaginasEfetivoExercicio} onClick={() => setPaginaEfetivoExercicio(totalPaginasEfetivoExercicio)}><i className="pi pi-angle-double-right" aria-hidden="true" /></button>
+            <select aria-label="Itens por página" value={itensPorPaginaEfetivoExercicio} onChange={(event) => { setItensPorPaginaEfetivoExercicio(Number(event.target.value)); setPaginaEfetivoExercicio(1); }}>
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+            </select>
+          </nav>
+          </div>
 
           <ModalSeplag
             visible={Boolean(historicoIngressoSelecionadoId)}
             titulo="Histórico do Ingresso"
-            fechar={() => setHistoricoIngressoSelecionadoId(null)}
-            tamanho="920px"
+            fechar={() => {
+              setHistoricoIngressoSelecionadoId(null);
+              setHistoricoConcursoSelecionado(null);
+            }}
+            tamanho="820px"
             hideFooter
           >
             {ingressoHistoricoSelecionado &&
             candidatoHistoricoSelecionado &&
             situacaoHistoricoSelecionado &&
             situacaoHistoricoBadge ? (
-              <div className="col-12 prototype-ingresso-historico-modal">
-                <div className="prototype-ingresso-historico-panel">
-                  <div className="prototype-ingresso-historico-header">
-                    <div>
-                      <strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong>
+              situacaoHistoricoSelecionado === "Ingresso Concluído" ? (
+              <div className="prototype-ingressos-candidate-history">
+                <div className="prototype-ingressos-candidate-history-summary">
+                  <div><span>Nº do Ingresso</span><strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong></div>
+                  <div><span>Candidato</span><strong>{candidatoHistoricoSelecionado.candidato.nome}</strong></div>
+                  <div><span>Classificação</span><strong>{candidatoHistoricoSelecionado.candidato.classificacao}</strong></div>
+                  <div><span>Cargo</span><strong>{candidatoHistoricoSelecionado.candidato.cargo}</strong></div>
+                  <div><span>Polo</span><strong>{getPoloCandidatoIngresso(candidatoHistoricoSelecionado.candidato.id)}</strong></div>
+                  <div><span>Órgão responsável</span><strong>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</strong></div>
+                </div>
+                <ol className="prototype-ingressos-candidate-history-timeline">
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-database" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:42</small>
+                      <strong>Dados integrados do sistema de origem</strong>
+                      <p>Dados cadastrais, classificação, cargo, polo, tipo de vaga e documentação do candidato foram recebidos.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática → SIGEP</span>
                     </div>
-                    <BadgeSeplag
-                      label={situacaoHistoricoSelecionado}
-                      color={situacaoHistoricoBadge.color}
-                      bg={situacaoHistoricoBadge.bg}
-                      border="transparent"
-                      size="md"
-                    />
-                  </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:43</small>
+                      <strong>Candidato incluído na lista</strong>
+                      <p><b>{candidatoHistoricoSelecionado.candidato.nome}</b> foi vinculado ao {candidatoHistoricoSelecionado.concursoProcesso.edital}, com classificação {candidatoHistoricoSelecionado.candidato.classificacao}.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataPosse} às 09:45</small>
+                      <strong>Ingresso criado</strong>
+                      <p>Ingresso nº {getNumeroIngresso(ingressoHistoricoSelecionado.id)} criado.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataPosse} às 10:40</small>
+                      <strong>Análise do provimento</strong>
+                      <p>O provimento foi analisado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                      <dl className="prototype-ingressos-candidate-history-details">
+                        <div><dt>Parecer</dt><dd>Aprovado</dd></div>
+                        <div><dt>Órgão encaminhado</dt><dd>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
+                      </dl>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-building" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio} às 08:15</small>
+                      <strong>Efetivo exercício registrado</strong>
+                      <p>O início das atividades do candidato foi confirmado na unidade.</p>
+                      <dl className="prototype-ingressos-candidate-history-details">
+                        <div><dt>Data do efetivo exercício</dt><dd>{datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio}</dd></div>
+                        <div><dt>Órgão</dt><dd>{orgaosEfetivoExercicioSalvos[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
+                        <div><dt>Setor</dt><dd>{setoresEfetivoExercicioSalvos[String(candidatoHistoricoSelecionado.candidato.id)] ?? "Não informado"}</dd></div>
+                      </dl>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Maria Oliveira — Setorial {candidatoHistoricoSelecionado.concursoProcesso.orgao}</span>
+                    </div>
+                  </li>
+                  <li className="is-completed">
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-check-circle" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio} às 08:16</small>
+                      <strong>Ingresso concluído</strong>
+                      <p>Matrícula e vínculo funcional foram gerados com sucesso.</p>
+                      <div className="prototype-ingressos-candidate-history-result"><span><b>Matrícula:</b> {ingressoHistoricoSelecionado.matricula || "Não informada"}</span><span><b>Vínculo:</b> 01</span></div>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
+                    </div>
+                  </li>
+                </ol>
+                <p className="prototype-ingressos-candidate-history-notice"><i className="pi pi-info-circle" aria-hidden="true" /> O histórico registra automaticamente cada etapa do ingresso e não pode ser editado ou excluído.</p>
+              </div>
+              ) : situacaoHistoricoSelecionado === "Aguardando Efetivo Exercicio" ? (
+              <div className="prototype-ingressos-candidate-history">
+                <div className="prototype-ingressos-candidate-history-summary">
+                  <div><span>Nº do Ingresso</span><strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong></div>
+                  <div><span>Candidato</span><strong>{candidatoHistoricoSelecionado.candidato.nome}</strong></div>
+                  <div><span>Classificação</span><strong>{candidatoHistoricoSelecionado.candidato.classificacao}</strong></div>
+                  <div><span>Cargo</span><strong>{candidatoHistoricoSelecionado.candidato.cargo}</strong></div>
+                  <div><span>Polo</span><strong>{getPoloCandidatoIngresso(candidatoHistoricoSelecionado.candidato.id)}</strong></div>
+                  <div><span>Órgão responsável</span><strong>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</strong></div>
+                </div>
+                <ol className="prototype-ingressos-candidate-history-timeline">
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-database" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:42</small>
+                      <strong>Dados integrados do SIES</strong>
+                      <p>Dados cadastrais, classificação, cargo, polo, tipo de vaga e documentação do candidato foram recebidos.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática SIES → SIGEP</span>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:43</small>
+                      <strong>Candidato incluído na lista do seletivo</strong>
+                      <p><b>{candidatoHistoricoSelecionado.candidato.nome}</b> foi vinculado ao {candidatoHistoricoSelecionado.concursoProcesso.edital}, com classificação {candidatoHistoricoSelecionado.candidato.classificacao}.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataPosse} às 09:45</small>
+                      <strong>Ingresso criado</strong>
+                      <p>Ingresso nº {getNumeroIngresso(ingressoHistoricoSelecionado.id)} criado.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataPosse} às 10:40</small>
+                      <strong>Análise do provimento</strong>
+                      <p>O provimento foi aprovado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                      <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
+                        <div><dt>Parecer</dt><dd>Aprovado</dd></div>
+                        <div><dt>Órgão encaminhado</dt><dd>{orgaosEfetivoExercicioSalvos[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
+                      </dl>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                    </div>
+                  </li>
+                </ol>
+                <p className="prototype-ingressos-candidate-history-notice"><i className="pi pi-info-circle" aria-hidden="true" /> O histórico registra automaticamente cada etapa do ingresso e não pode ser editado ou excluído.</p>
+              </div>
+              ) : situacaoHistoricoSelecionado === "Tornado sem efeito" ? (
+              <div className="prototype-ingressos-candidate-history">
+                <div className="prototype-ingressos-candidate-history-summary">
+                  <div><span>Nº do Ingresso</span><strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong></div>
+                  <div><span>Candidato</span><strong>{candidatoHistoricoSelecionado.candidato.nome}</strong></div>
+                  <div><span>Classificação</span><strong>{candidatoHistoricoSelecionado.candidato.classificacao}</strong></div>
+                  <div><span>Cargo</span><strong>{candidatoHistoricoSelecionado.candidato.cargo}</strong></div>
+                  <div><span>Polo</span><strong>{getPoloCandidatoIngresso(candidatoHistoricoSelecionado.candidato.id)}</strong></div>
+                  <div><span>Órgão responsável</span><strong>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</strong></div>
+                </div>
+                <ol className="prototype-ingressos-candidate-history-timeline">
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-database" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:42</small>
+                      <strong>Dados integrados do sistema de origem</strong>
+                      <p>Dados cadastrais, classificação, cargo, polo, tipo de vaga e documentação do candidato foram recebidos.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática → SIGEP</span>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:43</small>
+                      <strong>Candidato incluído na lista</strong>
+                      <p><b>{candidatoHistoricoSelecionado.candidato.nome}</b> foi vinculado ao {candidatoHistoricoSelecionado.concursoProcesso.edital}, com classificação {candidatoHistoricoSelecionado.candidato.classificacao}.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataPosse} às 09:45</small>
+                      <strong>Ingresso criado</strong>
+                      <p>Ingresso nº {getNumeroIngresso(ingressoHistoricoSelecionado.id)} criado.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                    </div>
+                  </li>
+                  <li>
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{candidatoHistoricoSelecionado.candidato.dataPosse} às 10:40</small>
+                      <strong>Análise do provimento</strong>
+                      <p>O provimento foi analisado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                      <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
+                        <div><dt>Parecer</dt><dd>Aprovado</dd></div>
+                        <div><dt>Órgão encaminhado</dt><dd>{orgaosEfetivoExercicioSalvos[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
+                      </dl>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                    </div>
+                  </li>
+                  <li className="is-ended">
+                    <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-minus" aria-hidden="true" /></span>
+                    <div className="prototype-ingressos-candidate-history-card">
+                      <small>{getDataEfetivoExercicioConcluido(
+                        datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)],
+                        candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio,
+                      )} às 08:15</small>
+                      <strong>Efetivo exercício registrado</strong>
+                      <p className="prototype-ingressos-candidate-history-justification"><b>Servidor não compareceu.</b> O ingresso foi tornado sem efeito por ausência no início das atividades.</p>
+                      <dl className="prototype-ingressos-candidate-history-details">
+                        <div><dt>Data prevista</dt><dd>{getDataEfetivoExercicioConcluido(
+                        datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)],
+                        candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio,
+                      )}</dd></div>
+                        <div><dt>Órgão</dt><dd>{orgaosEfetivoExercicioSalvos[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
+                        <div><dt>Situação</dt><dd>Não compareceu</dd></div>
+                      </dl>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Maria Oliveira — Setorial {candidatoHistoricoSelecionado.concursoProcesso.orgao}</span>
+                    </div>
+                  </li>
+                </ol>
+                <p className="prototype-ingressos-candidate-history-notice"><i className="pi pi-info-circle" aria-hidden="true" /> O histórico registra automaticamente cada etapa do ingresso e não pode ser editado ou excluído.</p>
+              </div>
+              ) : (
+              <div className="prototype-ingressos-candidate-history">
+                <div className="prototype-ingressos-candidate-history-summary">
+                  <div><span>Nº do Ingresso</span><strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong></div>
+                  <div><span>Candidato</span><strong>{candidatoHistoricoSelecionado.candidato.nome}</strong></div>
+                  <div><span>Classificação</span><strong>{candidatoHistoricoSelecionado.candidato.classificacao}</strong></div>
+                  <div><span>Cargo</span><strong>{candidatoHistoricoSelecionado.candidato.cargo}</strong></div>
+                  <div><span>Polo</span><strong>{getPoloCandidatoIngresso(candidatoHistoricoSelecionado.candidato.id)}</strong></div>
+                  <div><span>Órgão responsável</span><strong>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</strong></div>
+                </div>
 
-                  <div className="prototype-ingresso-historico-context">
-                    <div>
-                      <span>Candidato</span>
-                      <strong>{candidatoHistoricoSelecionado.candidato.nome}</strong>
-                    </div>
-                    <div>
-                      <span>Concurso/Processo</span>
-                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.titulo}</strong>
-                    </div>
-                    <div>
-                      <span>?rg?o</span>
-                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</strong>
-                    </div>
-                    <div>
-                      <span>Cargo</span>
-                      <strong>{candidatoHistoricoSelecionado.candidato.cargo}</strong>
-                    </div>
-                  </div>
+                <ol className="prototype-ingressos-candidate-history-timeline">
+                  {historicoEtapasSelecionadas.map((historico, index) => {
+                    const ultimaEtapa = index === historicoEtapasSelecionadas.length - 1;
+                    const concluido = ultimaEtapa && situacaoHistoricoSelecionado === "Ingresso Concluído";
+                    const icones = ["pi-file-plus", "pi-folder-open", "pi-search", "pi-building"];
 
-                  <ol className="prototype-ingresso-historico-timeline">
-                    {historicoEtapasSelecionadas.map((historico) => (
-                      <li key={historico.id} className="prototype-ingresso-historico-timeline-item">
-                        <span className="prototype-ingresso-historico-timeline-marker" aria-hidden="true" />
-                        <div className="prototype-ingresso-historico-timeline-card">
-                          <div className="prototype-ingresso-historico-timeline-title">
-                            <strong>{historico.etapa}</strong>
-                          </div>
-                          <dl className="prototype-ingresso-historico-timeline-meta">
-                            <div>
-                              <dt>Data/Hora</dt>
-                              <dd>{historico.dataHora}</dd>
-                            </div>
-                            <div>
-                              <dt>Respons?vel</dt>
-                              <dd>{historico.responsavel}</dd>
-                            </div>
-                            <div>
-                              <dt>Resultado</dt>
-                              <dd>{historico.resultado}</dd>
-                            </div>
+                    return (
+                      <li key={historico.id} className={concluido ? "is-completed" : undefined}>
+                        <span className="prototype-ingressos-candidate-history-icon" aria-hidden="true">
+                          <i className={`pi ${icones[index] ?? "pi-history"}`} />
+                        </span>
+                        <div className="prototype-ingressos-candidate-history-card">
+                          <small>{historico.dataHora}</small>
+                          <strong>{historico.etapa}</strong>
+                          <dl className="prototype-ingressos-candidate-history-details prototype-efetivo-history-details">
+                            <div><dt>Operador</dt><dd>{historico.operador}</dd></div>
+                            {historico.parecer ? <div><dt>Parecer</dt><dd>{historico.parecer}</dd></div> : null}
+                            {historico.observacao ? <div><dt>Observação</dt><dd>{historico.observacao}</dd></div> : null}
                           </dl>
-                          <p>{historico.observacao}</p>
                         </div>
                       </li>
-                    ))}
-                  </ol>
-                </div>
+                    );
+                  })}
+                </ol>
+
+                <p className="prototype-ingressos-candidate-history-notice">
+                  <i className="pi pi-info-circle" aria-hidden="true" /> O histórico registra automaticamente cada etapa do ingresso e não pode ser editado ou excluído.
+                </p>
               </div>
+              )
             ) : null}
           </ModalSeplag>
         </CardSeplag>
@@ -9861,12 +10236,20 @@ export function PrototiposIngressosTestePage() {
         1: "Aguardando Analise", 2: "Em analise", 3: "Em analise", 4: "Posse Suspensa",
         5: "Aguardando Efetivo Exercicio", 6: "Tornado sem efeito", 7: "Posse Negada",
         8: "Ingresso Concluído", 14: "Em analise", 15: "Em analise", 16: "Ingresso Concluído",
+        17: "Aguardando Analise", 18: "Aguardando Analise", 19: "Aguardando Analise",
       };
-      const getSituacaoSalvaCandidato = (candidatoId: number) =>
-        (concursoProcesso.tipo === "Concurso" ? situacoesDemonstracaoConcurso[candidatoId] : undefined) ??
-        (candidatoId === 52 ? "Ingresso Cancelado" : situacoesIngressosSalvas[String(candidatoId)]) ??
-        ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
-        (candidatoId === 40 ? "Ingresso Concluído" : undefined);
+      const getSituacaoSalvaCandidato = (candidatoId: number): IngressoSituacao | undefined => {
+        const situacaoSalva = situacoesIngressosSalvas[String(candidatoId)] as string | undefined;
+        const situacaoNormalizada = situacaoSalva === "Ingresso cancelado"
+          ? "Ingresso Cancelado"
+          : situacaoSalva as IngressoSituacao | undefined;
+
+        return situacaoNormalizada ??
+          (candidatoId === 52 ? "Ingresso Cancelado" : undefined) ??
+          (concursoProcesso.tipo === "Concurso" ? situacoesDemonstracaoConcurso[candidatoId] : undefined) ??
+          ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
+          (candidatoId === 40 ? "Ingresso Concluído" : undefined);
+      };
       const contarSituacao = (situacao: IngressoSituacao) => concursoProcesso.candidatos.filter(
         (candidato) => getSituacaoSalvaCandidato(candidato.id) === situacao,
       ).length;
@@ -10022,7 +10405,6 @@ export function PrototiposIngressosTestePage() {
       header: "Ações",
       body: (row) => (
         <div className="prototype-ingressos-grid-actions">
-          <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar edital" aria-label="Visualizar edital" onClick={() => navigate(row.rotaIngresso)} />
           <BotaoIconSeplag type="button" icon="pi pi-users" tooltip="Gerenciar ingressos" aria-label="Gerenciar ingressos" onClick={() => navigate(row.rotaIngresso)} />
           <BotaoIconSeplag type="button" icon="pi pi-history" tooltip="Histórico de Integração" aria-label="Histórico de Integração" onClick={() => { setFiltrosIntegracao((atual) => ({ ...atual, edital: row.titulo })); setExecucaoSelecionada(null); setHistoricoIntegracaoAberto(true); }} />
         </div>
@@ -10331,6 +10713,9 @@ export function PrototiposIngressosTesteDetalhePage() {
   const setoresLotacaoEfetivoSalvos = JSON.parse(
     localStorage.getItem("prototype-ingresso-setores-lotacao") ?? "{}",
   ) as Partial<Record<string, string>>;
+  const orgaosEncaminhadosSalvos = JSON.parse(
+    localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}",
+  ) as Partial<Record<string, string>>;
   const situacoesDisponiveis: IngressoSituacao[] = [
     "Aguardando Analise",
     "Em analise",
@@ -10385,17 +10770,23 @@ export function PrototiposIngressosTesteDetalhePage() {
       14: "Em analise",
       15: "Em analise",
       16: "Ingresso Concluído",
+      17: "Aguardando Analise",
+      18: "Aguardando Analise",
+      19: "Aguardando Analise",
     };
 
-    return (concursoProcesso?.tipo === "Concurso" ? situacoesDemonstracaoConcurso[candidatoId] : undefined) ??
-      (candidatoId === 52 ? "Ingresso Cancelado" : situacaoNormalizada) ??
+    return situacaoNormalizada ??
+      (candidatoId === 52 ? "Ingresso Cancelado" : undefined) ??
+      (concursoProcesso?.tipo === "Concurso" ? situacoesDemonstracaoConcurso[candidatoId] : undefined) ??
       ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
       (candidatoId === 40 ? "Ingresso Concluído" : undefined) ??
       "Aguardando Analise";
   };
   const getDataEfetivoExercicio = (candidato: IngressoCandidatoRow) =>
-    datasEfetivoExercicioSalvas[String(candidato.id)] ??
-    (candidato.id === 40 ? "10/08/2026" : candidato.dataEfetivoExercicio);
+    getDataEfetivoExercicioConcluido(
+      datasEfetivoExercicioSalvas[String(candidato.id)],
+      candidato.id === 40 ? "10/08/2026" : candidato.dataEfetivoExercicio,
+    );
   const getSituacaoBadge = (situacao: IngressoSituacao) => {
     const badgeMap: Record<IngressoSituacao, { color: string; bg: string; border: string }> = {
       "Aguardando Analise": { color: "#8a5a00", bg: "#fff4d6", border: "#f3cf8c" },
@@ -10518,6 +10909,40 @@ export function PrototiposIngressosTesteDetalhePage() {
     return dentroDoPrazo
       ? { tone: "success", icon: "pi pi-clock", texto: "Concluído no prazo", tooltip: `${rotulo}\n${dataLimite}\nEtapa concluída em ${dataReal}, dentro do prazo.` }
       : { tone: "danger", icon: "pi pi-exclamation-triangle", texto: "Concluído fora do prazo", tooltip: `${rotulo}\n${dataLimite}\nEtapa concluída em ${dataReal}, após o prazo.` };
+  };
+  const getIndicadorPosseAgendada = (
+    candidato: IngressoCandidatoRow & { situacaoAtual: IngressoSituacao },
+  ): IndicadorPrazoIngresso | null => {
+    if (candidato.situacaoAtual === "Tornado sem efeito") return null;
+
+    const dataAgendada = parseData(candidato.dataPosse);
+    const limite = parseData(getLimitePosse(candidato));
+    if (!dataAgendada || !limite) return null;
+    const limiteFormatado = formatarData(limite);
+    const posseRealizada = ["Aguardando Efetivo Exercicio", "Ingresso Concluído"].includes(candidato.situacaoAtual);
+    if (posseRealizada) {
+      const cumprimento = dataAgendada.getTime() <= limite.getTime() ? "dentro do prazo" : "fora do prazo";
+      return { tone: "success", icon: "pi pi-check-circle", texto: "Posse concluída", tooltip: `Limite da posse\n${limiteFormatado}\nEtapa concluída em ${candidato.dataPosse}, ${cumprimento}.` };
+    }
+    if (dataAgendada.getTime() > limite.getTime()) {
+      return { tone: "danger", icon: "pi pi-exclamation-triangle", texto: "Posse agendada fora do prazo", tooltip: `Limite da posse\n${limiteFormatado}\nPosse agendada para ${candidato.dataPosse}, fora do prazo.` };
+    }
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    limite.setHours(0, 0, 0, 0);
+    const diferencaDias = Math.round((limite.getTime() - hoje.getTime()) / 86_400_000);
+    if (diferencaDias < 0) {
+      const diasUltrapassados = Math.abs(diferencaDias);
+      return { tone: "danger", icon: "pi pi-exclamation-triangle", texto: "Prazo ultrapassado", tooltip: `Limite da posse\n${limiteFormatado}\nPrazo ultrapassado há ${diasUltrapassados} ${diasUltrapassados === 1 ? "dia" : "dias"}.` };
+    }
+
+    const mensagemPrazo = diferencaDias === 0
+      ? "O prazo termina hoje."
+      : diferencaDias === 1
+        ? "Resta 1 dia."
+        : `Restam ${diferencaDias} dias.`;
+    return { tone: "success", icon: "pi pi-clock", texto: "Dentro do prazo", tooltip: `Limite da posse\n${limiteFormatado}\n${mensagemPrazo}` };
   };
   const getIndicadoresPrazoCandidato = (candidato: IngressoCandidatoRow & { situacaoAtual: IngressoSituacao }) => {
     const situacao = candidato.situacaoAtual;
@@ -10642,6 +11067,30 @@ export function PrototiposIngressosTesteDetalhePage() {
   const historicoIngressoCancelado = historicoCandidatoSelecionado
     ? getSituacaoCandidato(historicoCandidatoSelecionado.id) === "Ingresso Cancelado"
     : false;
+  const historicoIngressoEmAnalise = historicoCandidatoSelecionado
+    ? getSituacaoCandidato(historicoCandidatoSelecionado.id) === "Em analise"
+    : false;
+  const historicoIngressoAguardandoEfetivoExercicio = historicoCandidatoSelecionado
+    ? getSituacaoCandidato(historicoCandidatoSelecionado.id) === "Aguardando Efetivo Exercicio"
+    : false;
+  const historicoIngressoPosseNegada = historicoCandidatoSelecionado
+    ? getSituacaoCandidato(historicoCandidatoSelecionado.id) === "Posse Negada"
+    : false;
+  const historicoIngressoTornadoSemEfeito = historicoCandidatoSelecionado
+    ? getSituacaoCandidato(historicoCandidatoSelecionado.id) === "Tornado sem efeito"
+    : false;
+  const ingressosTornadosSemEfeitoSalvos = JSON.parse(
+    localStorage.getItem("prototype-ingresso-tornados-sem-efeito") ?? "{}",
+  ) as Partial<Record<string, { motivo: string; justificativa: string }>>;
+  const dadosTornadoSemEfeitoHistorico = historicoCandidatoSelecionado
+    ? ingressosTornadosSemEfeitoSalvos[String(historicoCandidatoSelecionado.id)]
+    : undefined;
+  const analisesNegadasIngressosSalvas = JSON.parse(
+    localStorage.getItem("prototype-ingresso-analises-negadas") ?? "{}",
+  ) as Partial<Record<string, { motivo: string; justificativa: string }>>;
+  const dadosAnaliseNegadaHistorico = historicoCandidatoSelecionado
+    ? analisesNegadasIngressosSalvas[String(historicoCandidatoSelecionado.id)]
+    : undefined;
   const cancelamentosIngressosSalvos = JSON.parse(
     localStorage.getItem("prototype-ingresso-cancelamentos") ?? "{}",
   ) as Record<string, { motivo: string; justificativa: string }>;
@@ -10742,13 +11191,15 @@ export function PrototiposIngressosTesteDetalhePage() {
   const renderTabelaPendentes = (candidatos: typeof candidatosPendentesIngresso) => (
     <div className="prototype-ingressos-operational-table-wrap">
       <table className={`prototype-simple-table prototype-ingressos-operational-table${concursoProcesso.tipo === "Concurso" ? " prototype-ingressos-operational-table--contest" : ""}`}>
-        <thead>{concursoProcesso.tipo === "Concurso" ? <tr><th>Classif.</th><th>Nome</th><th>Cargo/Polo</th><th>Tipo de vaga</th><th>Nº do Ingresso</th><th>Posse Agendada</th><th>Órgão de encaminhamento</th><th>Data do efetivo exercício</th><th>Situação</th><th>Ações</th></tr> : <tr><th>Classif.</th><th>Nome</th><th>Cargo/Polo</th><th>Tipo de vaga</th><th>Órgão</th><th>Nº do Ingresso</th><th>Data do efetivo exercício</th><th>Setor/Lotação</th><th>Situação</th><th>Ações</th></tr>}</thead>
+        <thead>{concursoProcesso.tipo === "Concurso" ? <tr><th>Classif.</th><th>Nome</th><th>Cargo/Polo</th><th>Tipo de vaga</th><th>Nº do<br />Ingresso</th><th>Posse Agendada</th><th>Orgão encaminhado</th><th>Data do efetivo exercício</th><th>Situação</th><th>Ações</th></tr> : <tr><th>Classif.</th><th>Nome</th><th>Cargo/Polo</th><th>Tipo de vaga</th><th>Órgão</th><th>Nº do<br />Ingresso</th><th>Data do efetivo exercício</th><th>Setor/Lotação</th><th>Situação</th><th>Ações</th></tr>}</thead>
         <tbody>
           {candidatos.length === 0 ? <tr><td colSpan={10} className="prototype-empty-table-cell">Nenhum registro encontrado.</td></tr> : candidatos.map((candidato) => {
             const tipoVagaBadge = getTipoVagaIngressoBadge(candidato.tipoVaga);
             const situacaoBadge = getSituacaoBadge(candidato.situacaoAtual);
             const ingressoIniciado = candidato.situacaoAtual !== "Aguardando Analise";
-            const podeIngressarCandidato = !["Ingresso Concluído", "Encerrado por desistência", "Ingresso Cancelado"].includes(candidato.situacaoAtual);
+            const podeIngressarCandidato =
+              !(concursoProcesso.tipo === "Concurso" && candidato.situacaoAtual === "Aguardando Efetivo Exercicio") &&
+              !["Posse Negada", "Tornado sem efeito", "Ingresso Concluído", "Encerrado por desistência", "Ingresso Cancelado"].includes(candidato.situacaoAtual);
             const podeCancelarIngresso = ingressoIniciado && podeIngressarCandidato;
             const parametrosIngresso = `candidato=${candidato.id}&tipo=${encodeURIComponent(concursoProcesso.tipo)}&concurso=${encodeURIComponent(concursoProcesso.titulo)}&orgao=${encodeURIComponent(concursoProcesso.orgao)}&cargo=${encodeURIComponent(candidato.cargo)}&classificacao=${encodeURIComponent(candidato.classificacao)}&tipoVaga=${encodeURIComponent(candidato.tipoVaga)}`;
             const concursoExpandido = concursoProcesso.tipo === "Concurso" && candidatoConcursoExpandidoId === candidato.id;
@@ -10758,24 +11209,25 @@ export function PrototiposIngressosTesteDetalhePage() {
               : "-";
             const setorLotacao = setoresLotacaoEfetivoSalvos[String(candidato.id)] ?? (candidato.id === 51 ? "Núcleo Administrativo" : "-");
             const indicadoresPrazo = concursoProcesso.tipo === "Concurso" ? getIndicadoresPrazoCandidato(candidato) : null;
-            const prazoPosseDetalhe = getEstadoPrazoDetalhe(getLimitePosse(candidato));
-            const prazoEfetivoAtivo = ["Aguardando Efetivo Exercicio", "Ingresso Concluído"].includes(candidato.situacaoAtual);
-            const prazoEfetivoDetalhe = prazoEfetivoAtivo ? getEstadoPrazoDetalhe(getLimiteEfetivoExercicio(candidato)) : null;
+            const posseConcluida = ["Aguardando Efetivo Exercicio", "Ingresso Concluído"].includes(candidato.situacaoAtual);
+            const prazoPosseDetalhe = posseConcluida
+              ? { tone: "success" as const, icon: "pi pi-check-circle", texto: `Etapa realizada em ${candidato.dataPosse}` }
+              : getEstadoPrazoDetalhe(getLimitePosse(candidato));
+            const prazoEfetivoAtivo = posseConcluida;
+            const prazoEfetivoDetalhe = candidato.situacaoAtual === "Ingresso Concluído"
+              ? {
+                  tone: "success" as const,
+                  icon: "pi pi-check-circle",
+                  texto: `Etapa realizada em ${dataEfetivoExercicio}`,
+                }
+              : prazoEfetivoAtivo
+                ? getEstadoPrazoDetalhe(getLimiteEfetivoExercicio(candidato))
+                : null;
             const posseSuspensa = candidato.situacaoAtual === "Posse Suspensa";
             const dadosSuspensao = posseSuspensa
               ? { inicio: candidato.id === 4 ? "25/07/2026" : "Não informado", prazoResposta: candidato.id === 4 ? "08/08/2026" : "Não informado" }
               : null;
-            const posseConcluida = ["Aguardando Efetivo Exercicio", "Ingresso Concluído"].includes(candidato.situacaoAtual);
-            const indicadorPosseCalculado = indicadoresPrazo && (["Aguardando Analise", "Em analise"] as IngressoSituacao[]).includes(candidato.situacaoAtual)
-              ? indicadoresPrazo.posse
-              : posseConcluida
-                ? getIndicadorPrazoConcluido("Limite da posse", candidato.dataPosse, getLimitePosse(candidato))
-                : null;
-            const indicadorPosseGrid = indicadorPosseCalculado && !["neutral", "paused"].includes(indicadorPosseCalculado.tone)
-              ? indicadorPosseCalculado.tone === "danger"
-                ? indicadorPosseCalculado
-                : { ...indicadorPosseCalculado, tone: "success" as const, icon: "pi pi-clock" }
-              : null;
+            const indicadorPosseGrid = getIndicadorPosseAgendada(candidato);
             const indicadorEfetivoCalculado = indicadoresPrazo && candidato.situacaoAtual === "Aguardando Efetivo Exercicio"
               ? indicadoresPrazo.efetivo
               : candidato.situacaoAtual === "Ingresso Concluído"
@@ -10786,9 +11238,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                 ? indicadorEfetivoCalculado
                 : { ...indicadorEfetivoCalculado, tone: "success" as const, icon: "pi pi-clock" }
               : null;
-            const dataEfetivoExercicioExibida = candidato.situacaoAtual === "Ingresso Concluído" && indicadorEfetivoGrid?.tone === "danger"
-              ? "-"
-              : dataEfetivoExercicio;
+            const dataEfetivoExercicioExibida = dataEfetivoExercicio;
             return (
               <Fragment key={candidato.id}>
               <tr className={concursoExpandido ? "is-expanded" : undefined}>
@@ -10797,9 +11247,9 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <td><span className="prototype-ingressos-cargo-polo"><span>{candidato.cargo}</span><small>{candidato.polo}</small></span></td>
                 <td><BadgeSeplag label={candidato.tipoVaga} color={tipoVagaBadge.color} bg={tipoVagaBadge.bg} border="transparent" size="sm" /></td>
                 {concursoProcesso.tipo === "Processo Seletivo" ? <td>{concursoProcesso.orgao}</td> : null}
-                {concursoProcesso.tipo === "Concurso" ? <><td>{numeroIngresso}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorPosseGrid ? ` has-indicator is-${indicadorPosseGrid.tone}` : ""}`}><span>{candidato.dataPosse || "-"}</span>{indicadorPosseGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorPosseGrid.tone}`} tabIndex={0} aria-label={indicadorPosseGrid.tooltip} data-tooltip={indicadorPosseGrid.tooltip}><i className={indicadorPosseGrid.icon} aria-hidden="true" /></span> : null}</span></td><td>{concursoProcesso.orgao || "-"}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorEfetivoGrid ? ` has-indicator is-${indicadorEfetivoGrid.tone}` : ""}`}><span>{dataEfetivoExercicioExibida}</span>{indicadorEfetivoGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorEfetivoGrid.tone}`} tabIndex={0} aria-label={indicadorEfetivoGrid.tooltip} data-tooltip={indicadorEfetivoGrid.tooltip}><i className={indicadorEfetivoGrid.icon} aria-hidden="true" /></span> : null}</span></td></> : null}
+                {concursoProcesso.tipo === "Concurso" ? <><td>{numeroIngresso}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorPosseGrid ? ` has-indicator is-${indicadorPosseGrid.tone}` : ""}`}><span>{candidato.dataPosse || "-"}</span>{indicadorPosseGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorPosseGrid.tone}`} tabIndex={0} aria-label={indicadorPosseGrid.tooltip} data-tooltip={indicadorPosseGrid.tooltip}><i className={indicadorPosseGrid.icon} aria-hidden="true" /></span> : null}</span></td><td>{orgaosEncaminhadosSalvos[String(candidato.id)] ?? "-"}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorEfetivoGrid ? ` has-indicator is-${indicadorEfetivoGrid.tone}` : ""}`}><span>{dataEfetivoExercicioExibida}</span>{indicadorEfetivoGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorEfetivoGrid.tone}`} tabIndex={0} aria-label={indicadorEfetivoGrid.tooltip} data-tooltip={indicadorEfetivoGrid.tooltip}><i className={indicadorEfetivoGrid.icon} aria-hidden="true" /></span> : null}</span></td></> : null}
                 {concursoProcesso.tipo === "Processo Seletivo" ? <><td>{numeroIngresso}</td><td>{dataEfetivoExercicio}</td><td>{setorLotacao}</td></> : null}
-                <td><BadgeSeplag label={candidato.situacaoAtual} color={situacaoBadge.color} bg={situacaoBadge.bg} border={situacaoBadge.border} size="sm" /></td>
+                <td><BadgeSeplag label={formatarSituacaoIngresso(candidato.situacaoAtual)} color={situacaoBadge.color} bg={situacaoBadge.bg} border={situacaoBadge.border} size="sm" /></td>
                 <td>
                   <div className="prototype-ingresso-candidato-actions">
                     <div className="prototype-ingresso-actions-dropdown" data-candidate-actions={candidato.id}>
@@ -10853,7 +11303,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                             role="menuitem"
                             className={!podeIngressarCandidato ? "is-disabled" : undefined}
                             aria-disabled={!podeIngressarCandidato}
-                            title={!podeIngressarCandidato ? candidato.situacaoAtual === "Ingresso Concluído" ? "Ingresso já concluído" : "Ingresso encerrado por desistência" : undefined}
+                            title={!podeIngressarCandidato ? candidato.situacaoAtual === "Aguardando Efetivo Exercicio" ? "Ingresso aguardando efetivo exercício" : candidato.situacaoAtual === "Ingresso Concluído" ? "Ingresso já concluído" : "Ingresso encerrado" : undefined}
                             onClick={() => {
                               if (!podeIngressarCandidato) return;
                               setMenuAcoesCandidatoAbertoId(null);
@@ -10997,7 +11447,7 @@ export function PrototiposIngressosTesteDetalhePage() {
               <label><span>Polo</span><select value={filtrosConsultaPendentes.polo} onChange={(event) => setFiltrosConsultaPendentes((atual) => ({ ...atual, polo: event.target.value }))}><option value="">Todos</option>{polosConsultaPendentes.map((polo) => <option key={polo}>{polo}</option>)}</select></label>
               <label><span>Tipo de vaga</span><select value={filtrosConsultaPendentes.tipoVaga} onChange={(event) => setFiltrosConsultaPendentes((atual) => ({ ...atual, tipoVaga: event.target.value }))}><option value="">Todos</option><option value="AC">AC</option><option value="PPP">PPP</option><option value="PCD">PCD</option></select></label>
               <label><span>Situação</span><select value={filtrosConsultaPendentes.situacao} onChange={(event) => { setFiltrosConsultaPendentes((atual) => ({ ...atual, situacao: event.target.value })); setFiltroSituacaoDashboard(event.target.value as IngressoSituacao | ""); }}><option value="">Todas</option>{situacoesDisponiveis.map((situacao) => <option key={situacao} value={situacao}>{situacao}</option>)}</select></label>
-              <button type="button" onClick={limparFiltrosConsultaPendentes}><i className="pi pi-refresh" aria-hidden="true" /> Limpar filtros</button>
+              <button type="button" onClick={limparFiltrosConsultaPendentes}><i className="pi pi-refresh" aria-hidden="true" /> Limpar filtro</button>
             </div>
             {visualizacaoPendentes === "lista" ? renderTabelaPendentes(candidatosPaginadosIngresso) : (
               <div className="prototype-ingressos-operational-groups">
@@ -11170,7 +11620,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                                 <td>{concursoProcesso.orgao}</td>
                                 <td><BadgeSeplag label={candidato.tipoVaga} color={tipoVagaBadge.color} bg={tipoVagaBadge.bg} border="transparent" size="sm" /></td>
                                 <td>{situacao === "Ingresso Concluído" ? getDataEfetivoExercicio(candidato) : "-"}</td>
-                                <td><BadgeSeplag label={situacao} color={situacaoBadge.color} bg={situacaoBadge.bg} border={situacaoBadge.border} size="sm" /></td>
+                                <td><BadgeSeplag label={formatarSituacaoIngresso(situacao)} color={situacaoBadge.color} bg={situacaoBadge.bg} border={situacaoBadge.border} size="sm" /></td>
                                 <td><div className="prototype-ingressos-pss-actions"><BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar candidato" aria-label="Visualizar candidato" onClick={() => navigate(`/prototipos/sigep/ingressos/${candidato.id}`)} /><BotaoSeplag type="button" label="Continuar" icon="pi pi-arrow-right" iconPos="right" onClick={() => navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacao}`)} /></div></td>
                               </tr>
                             ) : (
@@ -11194,7 +11644,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                                 <td>{situacao === "Ingresso Concluído" ? getDataEfetivoExercicio(candidato) : "-"}</td>
                                 <td>
                                   <BadgeSeplag
-                                    label={situacao}
+                                    label={formatarSituacaoIngresso(situacao)}
                                     color={situacaoBadge.color}
                                     bg={situacaoBadge.bg}
                                     border="transparent"
@@ -11327,7 +11777,7 @@ export function PrototiposIngressosTesteDetalhePage() {
       </Sidebar>
       <ModalSeplag
         visible={Boolean(historicoCandidatoSelecionado)}
-        titulo="Histórico do Ingresso — Processo Seletivo"
+        titulo="Histórico do Ingresso"
         fechar={() => setHistoricoCandidatoSelecionadoId(null)}
         tamanho="820px"
         hideFooter
@@ -11361,6 +11811,101 @@ export function PrototiposIngressosTesteDetalhePage() {
                   <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
                 </div>
               </li>
+              {historicoIngressoEmAnalise ? (
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 09:45</small>
+                  <strong>Ingresso criado</strong>
+                  <p>Ingresso nº {`2026/${String(historicoCandidatoSelecionado.id).padStart(4, "0")}`} criado.</p>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              ) : null}
+              {historicoIngressoAguardandoEfetivoExercicio ? (
+              <>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 09:45</small>
+                  <strong>Ingresso criado</strong>
+                  <p>Ingresso nº {`2026/${String(historicoCandidatoSelecionado.id).padStart(4, "0")}`} criado.</p>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 10:40</small>
+                  <strong>Análise do provimento</strong>
+                  <p>O provimento foi aprovado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                  <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
+                    <div><dt>Parecer</dt><dd>Aprovado</dd></div>
+                    <div><dt>Órgão encaminhado</dt><dd>{orgaosEncaminhadosSalvos[String(historicoCandidatoSelecionado.id)] ?? concursoProcesso.orgao}</dd></div>
+                  </dl>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              </>
+              ) : null}
+              {historicoIngressoTornadoSemEfeito ? (
+              <>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 09:45</small>
+                  <strong>Ingresso criado</strong>
+                  <p>Ingresso nº {`2026/${String(historicoCandidatoSelecionado.id).padStart(4, "0")}`} criado.</p>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              <li className="is-ended">
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-times-circle" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 10:40</small>
+                  <strong>Análise do provimento</strong>
+                  <p>A análise do provimento foi encerrada e a nomeação foi tornada sem efeito.</p>
+                  <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
+                    <div><dt>Parecer</dt><dd>Tornado sem efeito</dd></div>
+                    <div><dt>Motivo</dt><dd>{dadosTornadoSemEfeitoHistorico?.motivo ?? "Não comparecimento"}</dd></div>
+                  </dl>
+                  {dadosTornadoSemEfeitoHistorico?.justificativa ? (
+                    <p className="prototype-ingressos-candidate-history-justification"><b>Justificativa:</b> {dadosTornadoSemEfeitoHistorico.justificativa}</p>
+                  ) : null}
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              </>
+              ) : null}
+              {historicoIngressoPosseNegada ? (
+              <>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 09:45</small>
+                  <strong>Ingresso criado</strong>
+                  <p>Ingresso nº {`2026/${String(historicoCandidatoSelecionado.id).padStart(4, "0")}`} criado.</p>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              <li className="is-ended">
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-ban" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 10:40</small>
+                  <strong>Análise do provimento</strong>
+                  <p>A análise do provimento foi encerrada com negativa da posse.</p>
+                  <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
+                    <div><dt>Parecer</dt><dd>Posse Negada</dd></div>
+                    <div><dt>Motivo do encaminhamento</dt><dd>{dadosAnaliseNegadaHistorico?.motivo ?? "Candidato não atendeu aos requisitos obrigatórios para posse"}</dd></div>
+                  </dl>
+                  {dadosAnaliseNegadaHistorico?.justificativa ? (
+                    <p className="prototype-ingressos-candidate-history-justification"><b>Justificativa:</b> {dadosAnaliseNegadaHistorico.justificativa}</p>
+                  ) : null}
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              </>
+              ) : null}
               {historicoIngressoConcluido ? (
               <>
               <li>
@@ -11369,6 +11914,19 @@ export function PrototiposIngressosTesteDetalhePage() {
                   <small>05/08/2026 às 09:45</small>
                   <strong>Ingresso criado</strong>
                   <p>Ingresso nº {`2026/${String(historicoCandidatoSelecionado.id).padStart(4, "0")}`} criado.</p>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 10:40</small>
+                  <strong>Análise do provimento</strong>
+                  <p>O provimento foi analisado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                  <dl className="prototype-ingressos-candidate-history-details">
+                    <div><dt>Parecer</dt><dd>Aprovado</dd></div>
+                    <div><dt>Órgão encaminhado</dt><dd>{concursoProcesso.orgao}</dd></div>
+                  </dl>
                   <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
                 </div>
               </li>
@@ -11503,7 +12061,10 @@ export function PrototiposIngressosPage() {
       "Aguardando Analise";
   };
   const getDataEfetivoExercicioCandidato = (candidato: IngressoCandidatoRow) =>
-    datasEfetivoExercicioSalvas[String(candidato.id)] ?? candidato.dataEfetivoExercicio;
+    getDataEfetivoExercicioConcluido(
+      datasEfetivoExercicioSalvas[String(candidato.id)],
+      candidato.dataEfetivoExercicio,
+    );
   const getHistoricoCandidatoIngresso = (candidatoId: number) => {
     const ingresso = ingressosMock.find((item) => item.id === candidatoId);
 
@@ -11672,8 +12233,6 @@ export function PrototiposIngressosPage() {
       ) : null}
     </span>
   );
-  const exibirPastaFuncionalServidor = (situacao: IngressoSituacao) =>
-    ["Posse Suspensa", "Ingresso Concluído", "Aguardando Efetivo Exercicio"].includes(situacao);
   const ingressoHistoricoSelecionado = historicoIngressoSelecionadoId
     ? ingressosMock.find((ingresso) => ingresso.id === historicoIngressoSelecionadoId)
     : undefined;
@@ -11960,7 +12519,7 @@ export function PrototiposIngressosPage() {
                                           return (
                                             <span title={badge.descricao}>
                                               <BadgeSeplag
-                                                label={situacao}
+                                                label={formatarSituacaoIngresso(situacao)}
                                                 color={badge.color}
                                                 bg={badge.bg}
                                                 border="transparent"
@@ -12020,7 +12579,7 @@ export function PrototiposIngressosPage() {
                                                     role="menuitem"
                                                     onClick={() => {
                                                       setAcoesIngressoMenuAbertoId(null);
-                                                      navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacaoIngresso}&perfil=setorial`);
+                                                      navigate(`/prototipos/sigep/ingressos/efetivo-exercicio/novo?${parametrosAtuacaoIngresso}&perfil=setorial`);
                                                     }}
                                                   >
                                                     <i className="pi pi-briefcase" aria-hidden="true" />
@@ -12038,19 +12597,6 @@ export function PrototiposIngressosPage() {
                                                   <i className="pi pi-history" aria-hidden="true" />
                                                   <span>Histórico</span>
                                                 </button>
-                                                {exibirPastaFuncionalServidor(situacaoCandidato) ? (
-                                                  <button
-                                                    type="button"
-                                                    role="menuitem"
-                                                    onClick={() => {
-                                                      setAcoesIngressoMenuAbertoId(null);
-                                                      navigate(`/prototipos/sigep/ingressos/${candidato.id}/pasta-funcional`);
-                                                    }}
-                                                  >
-                                                    <i className="pi pi-folder" aria-hidden="true" />
-                                                    <span>Pasta funcional do servidor</span>
-                                                  </button>
-                                                ) : null}
                                               </div>
                                             ) : null}
                                           </div>
@@ -12090,7 +12636,7 @@ export function PrototiposIngressosPage() {
                       <strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong>
                     </div>
                     <BadgeSeplag
-                      label={situacaoHistoricoSelecionado}
+                      label={formatarSituacaoIngresso(situacaoHistoricoSelecionado)}
                       color={situacaoHistoricoBadge.color}
                       bg={situacaoHistoricoBadge.bg}
                       border="transparent"
@@ -12166,6 +12712,13 @@ export function PrototiposIngressosPage() {
 }
 
 type AnaliseProvimentoRascunho = {
+  documentacaoEtapa?: "analise" | "termos" | "setorial";
+  dataPosse?: string;
+  dataEfetivoExercicio?: string;
+  dataFimEfetivoExercicio?: string;
+  setorLotacaoEfetivo?: string;
+  servidorCompareceu?: "Sim" | "Não";
+  orgaosEfetivoSelecionados?: string[];
   parecer: "aprovar" | "suspender" | "negar" | "sem-efeito";
   validacoes: Record<string, boolean>;
   arquivosAnalise: Record<string, string | null>;
@@ -12201,9 +12754,11 @@ export function PrototiposNovoIngressoPage() {
   const processoOrigemDados = ingressoConcursosProcessosMock.find(
     (processo) => processo.titulo === concursoInicial,
   );
-  const caminhoRetornoNovoIngresso = processoOrigemDados
-    ? `/prototipos/sigep/ingressos-teste/${processoOrigemDados.id}`
-    : "/prototipos/sigep/ingressos";
+  const caminhoRetornoNovoIngresso = searchParams.get("perfil") === "setorial"
+    ? "/prototipos/sigep/ingressos/efetivo-exercicio"
+    : processoOrigemDados
+      ? `/prototipos/sigep/ingressos-teste/${processoOrigemDados.id}`
+      : "/prototipos/sigep/ingressos";
   const nomeEditalProcessoSelecionado = processoOrigemDados?.titulo === "Processo Seletivo SES 2026"
     ? "PSS 004/2026/SES — Enfermagem"
     : processoOrigemDados?.edital ?? "Edital não informado";
@@ -12272,7 +12827,9 @@ export function PrototiposNovoIngressoPage() {
   const [orgaoSelecionado, setOrgaoSelecionado] = useState(orgaoInicial);
   const [orgaosIngressoSelecionados, setOrgaosIngressoSelecionados] = useState<string[]>(orgaoInicial ? [orgaoInicial] : []);
   const [orgaosIngressoDropdownAberto, setOrgaosIngressoDropdownAberto] = useState(false);
-  const [orgaosEfetivoSelecionados, setOrgaosEfetivoSelecionados] = useState<string[]>(orgaoInicial ? [orgaoInicial] : ["SEPLAG"]);
+  const [orgaosEfetivoSelecionados, setOrgaosEfetivoSelecionados] = useState<string[]>(
+    rascunhoAnaliseInicial?.orgaosEfetivoSelecionados ?? (orgaoInicial ? [orgaoInicial] : ["SEPLAG"]),
+  );
   const [orgaosEfetivoDropdownAberto, setOrgaosEfetivoDropdownAberto] = useState(false);
   const cargoSigepInicial = modoVisualizacao && tipoInicial === "Processo Seletivo"
     ? "Analista Administrativo - SES"
@@ -12311,7 +12868,9 @@ export function PrototiposNovoIngressoPage() {
   const [decisaoJudicial, setDecisaoJudicial] = useState<"Não" | "Sim">("Não");
   const [tipoAcaoJudicial, setTipoAcaoJudicial] = useState("");
   const [numeroProcessoJudicial, setNumeroProcessoJudicial] = useState("");
-  const [documentacaoEtapa, setDocumentacaoEtapa] = useState<"analise" | "termos" | "setorial">("analise");
+  const [documentacaoEtapa, setDocumentacaoEtapa] = useState<"analise" | "termos" | "setorial">(
+    rascunhoAnaliseInicial?.documentacaoEtapa ?? "analise",
+  );
   const [situacaoIngresso, setSituacaoIngresso] = useState<IngressoSituacao>(situacaoInicialIngresso);
   const [documentosAnaliseValidados, setDocumentosAnaliseValidados] = useState<Record<string, boolean>>(rascunhoAnaliseInicial?.validacoes ?? {});
   const [arquivosDocumentosAnalise, setArquivosDocumentosAnalise] = useState<Record<string, File | null>>(() => Object.fromEntries(Object.entries(rascunhoAnaliseInicial?.arquivosAnalise ?? {}).map(([documento, nome]) => [documento, nome === null ? null : new File([""], nome)])));
@@ -12346,22 +12905,27 @@ export function PrototiposNovoIngressoPage() {
     rascunhoAnaliseInicial?.atualizadoEm ? `Última atualização: ${rascunhoAnaliseInicial.atualizadoEm}` : null,
   );
   const [erroRascunhoAnalise, setErroRascunhoAnalise] = useState(false);
-  const [dataPosse, setDataPosse] = useState("");
+  const [dataPosse, setDataPosse] = useState(rascunhoAnaliseInicial?.dataPosse ?? "");
   const [dataEfetivoExercicio, setDataEfetivoExercicio] = useState(
-    situacaoInicialIngresso === "Ingresso Concluído" &&
+    rascunhoAnaliseInicial?.dataEfetivoExercicio ?? (situacaoInicialIngresso === "Ingresso Concluído" &&
       candidatoProcessoOrigem?.dataEfetivoExercicio &&
       candidatoProcessoOrigem.dataEfetivoExercicio !== "-"
       ? candidatoProcessoOrigem.dataEfetivoExercicio.split("/").reverse().join("-")
-      : "",
+      : ""),
   );
-  const [dataFimEfetivoExercicio, setDataFimEfetivoExercicio] = useState("");
+  const [dataFimEfetivoExercicio, setDataFimEfetivoExercicio] = useState(
+    rascunhoAnaliseInicial?.dataFimEfetivoExercicio ?? "",
+  );
   const [setorLotacaoEfetivo, setSetorLotacaoEfetivo] = useState(() => {
     const setoresSalvos = JSON.parse(
       localStorage.getItem("prototype-ingresso-setores-lotacao") ?? "{}",
     ) as Partial<Record<string, string>>;
-    return candidatoParam ? setoresSalvos[candidatoParam] ?? (candidatoParam === "51" ? "Núcleo Administrativo" : "") : "";
+    return rascunhoAnaliseInicial?.setorLotacaoEfetivo
+      ?? (candidatoParam ? setoresSalvos[candidatoParam] ?? (candidatoParam === "51" ? "Núcleo Administrativo" : "") : "");
   });
-  const [servidorCompareceu, setServidorCompareceu] = useState<"Sim" | "Não">("Sim");
+  const [servidorCompareceu, setServidorCompareceu] = useState<"Sim" | "Não">(
+    rascunhoAnaliseInicial?.servidorCompareceu ?? "Sim",
+  );
   const [modalComplementacaoAberto, setModalComplementacaoAberto] = useState(false);
   const [modalNegarPosseAberto, setModalNegarPosseAberto] = useState(false);
   const parseDataIsoLocal = (value: string) => {
@@ -12374,7 +12938,7 @@ export function PrototiposNovoIngressoPage() {
     nextDate.setDate(nextDate.getDate() + days);
     return nextDate;
   };
-  const dataPosseEfetivoIso = dataPosse || "2026-07-13";
+  const dataPosseEfetivoIso = dataPosse || dataPosseIngresso || "2026-07-13";
   const dataPosseEfetivo = parseDataIsoLocal(dataPosseEfetivoIso);
   const prazoFinalEfetivo = dataPosseEfetivo ? adicionarDias(dataPosseEfetivo, 15) : null;
   const hojeEfetivo = new Date();
@@ -12382,31 +12946,30 @@ export function PrototiposNovoIngressoPage() {
   const diasRestantesEfetivo = prazoFinalEfetivo
     ? Math.ceil((prazoFinalEfetivo.getTime() - hojeEfetivo.getTime()) / 86400000)
     : null;
-  const statusEfetivoExercicio =
-    diasRestantesEfetivo === null
-      ? "Aguardando posse"
-      : diasRestantesEfetivo < 0
-        ? "Prazo vencido"
-        : diasRestantesEfetivo === 0
-          ? "Vence hoje"
-          : "Dentro do prazo";
-  const statusEfetivoExercicioClassName =
-    diasRestantesEfetivo !== null && diasRestantesEfetivo < 0
-      ? "prototype-prazo-posse-status prototype-prazo-posse-status--vencido"
-      : diasRestantesEfetivo === 0
-        ? "prototype-prazo-posse-status prototype-prazo-posse-status--atencao"
-        : "prototype-prazo-posse-status";
+  const prazoEfetivoVencido = diasRestantesEfetivo !== null && diasRestantesEfetivo < 0;
+  const quantidadeDiasEfetivo = Math.abs(diasRestantesEfetivo ?? 0);
+  const textoDiasPrazoEfetivo = prazoEfetivoVencido
+    ? `${quantidadeDiasEfetivo} ${quantidadeDiasEfetivo === 1 ? "dia" : "dias"} em atraso`
+    : `${quantidadeDiasEfetivo} ${quantidadeDiasEfetivo === 1 ? "dia" : "dias"}`;
   const dataNomeacaoPrazoPosse = parseDataIsoLocal(dataNomeacao || "2026-07-13");
-  const prazoFinalPosse = parseDataIsoLocal("2026-07-30");
+  const prazoFinalPosse = dataNomeacaoPrazoPosse ? adicionarDias(dataNomeacaoPrazoPosse, 30) : null;
+  const dataPosseAgendadaPrazo = parseDataIsoLocal(dataPosseIngresso);
   const hojePrazoPosse = new Date();
   hojePrazoPosse.setHours(0, 0, 0, 0);
-  const diasPrazoPosse = prazoFinalPosse
-    ? Math.ceil((prazoFinalPosse.getTime() - hojePrazoPosse.getTime()) / 86400000)
+  const diasAtrasoPelaDataAtual = prazoFinalPosse
+    ? Math.max(Math.ceil((hojePrazoPosse.getTime() - prazoFinalPosse.getTime()) / 86_400_000), 0)
     : 0;
-  const prazoPosseVencido = diasPrazoPosse < 0;
+  const diasAtrasoPeloAgendamento = prazoFinalPosse && dataPosseAgendadaPrazo
+    ? Math.max(Math.ceil((dataPosseAgendadaPrazo.getTime() - prazoFinalPosse.getTime()) / 86_400_000), 0)
+    : 0;
+  const diasPrazoPosse = Math.max(diasAtrasoPelaDataAtual, diasAtrasoPeloAgendamento);
+  const prazoPosseVencido = diasPrazoPosse > 0;
+  const diasFaltantesPosse = prazoFinalPosse
+    ? Math.max(Math.ceil((prazoFinalPosse.getTime() - hojePrazoPosse.getTime()) / 86_400_000), 0)
+    : 0;
   const textoDiasPrazoPosse = prazoPosseVencido
-    ? `${Math.abs(diasPrazoPosse)} ${Math.abs(diasPrazoPosse) === 1 ? "dia" : "dias"} em atraso`
-    : `${diasPrazoPosse} ${diasPrazoPosse === 1 ? "dia" : "dias"}`;
+    ? `${diasPrazoPosse} ${diasPrazoPosse === 1 ? "dia" : "dias"} em atraso`
+    : `${diasFaltantesPosse} ${diasFaltantesPosse === 1 ? "dia" : "dias"}`;
   const formatarDataPrazoPosse = (data: Date | null) =>
     data?.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) ?? "-";
   const tipoVinculo = tipoIngresso === "Concurso"
@@ -12454,7 +13017,7 @@ export function PrototiposNovoIngressoPage() {
       ? novoIngressoConcursoSteps
       : tipoIngresso === "Processo Seletivo"
         ? novoIngressoProcessoSeletivoSteps
-        : novoIngressoTabs;
+        : novoIngressoEtapaInicial;
   const isPerfilSetorial = perfilNovoIngresso === "SETORIAL";
   const isEtapaEfetivoExercicio = activeTab === "efetivo-exercicio";
   const isEtapaSomenteLeituraSetorial = isPerfilSetorial && !isEtapaEfetivoExercicio;
@@ -12672,6 +13235,37 @@ export function PrototiposNovoIngressoPage() {
       }),
     );
   };
+  const persistirTornadoSemEfeitoAtual = (motivo: string, justificativa: string) => {
+    if (!candidatoParam) return;
+
+    const registrosSalvos = JSON.parse(
+      localStorage.getItem("prototype-ingresso-tornados-sem-efeito") ?? "{}",
+    ) as Record<string, { motivo: string; justificativa: string }>;
+    registrosSalvos[candidatoParam] = { motivo, justificativa };
+    localStorage.setItem("prototype-ingresso-tornados-sem-efeito", JSON.stringify(registrosSalvos));
+  };
+  const persistirAnaliseNegadaAtual = (motivo: string, justificativa: string) => {
+    if (!candidatoParam) return;
+
+    const analisesSalvas = JSON.parse(
+      localStorage.getItem("prototype-ingresso-analises-negadas") ?? "{}",
+    ) as Record<string, { motivo: string; justificativa: string }>;
+    analisesSalvas[candidatoParam] = { motivo, justificativa };
+    localStorage.setItem("prototype-ingresso-analises-negadas", JSON.stringify(analisesSalvas));
+  };
+  const persistirOrgaoEncaminhadoAtual = (orgao: string) => {
+    if (!candidatoParam) return;
+
+    const orgaosSalvos = JSON.parse(
+      localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}",
+    ) as Record<string, string>;
+    if (orgao) {
+      orgaosSalvos[candidatoParam] = orgao;
+    } else {
+      delete orgaosSalvos[candidatoParam];
+    }
+    localStorage.setItem("prototype-ingresso-orgaos-encaminhados", JSON.stringify(orgaosSalvos));
+  };
   const formatarDataIsoParaPtBr = (value: string) => {
     const data = parseDataIsoLocal(value);
     return data ? formatarDataPtBr(data) : value;
@@ -12804,6 +13398,7 @@ export function PrototiposNovoIngressoPage() {
             <th>Nome do arquivo enviado</th>
             <th>Tamanho enviado</th>
             {formaAssinaturaDocumentos === "sigadoc" ? <th>Nº Processo SIGADOC</th> : null}
+            {formaAssinaturaDocumentos === "fisica" ? <th>Modelo do arquivo</th> : null}
             <th>Ações</th>
           </tr>
         </thead>
@@ -12821,6 +13416,24 @@ export function PrototiposNovoIngressoPage() {
               <td>{arquivoAtual ? `${(arquivoAtual.size / 1024).toFixed(0)} KB` : arquivoPreCarregado ? documento.tamanhoEnviado ?? "-" : "-"}</td>
               {formaAssinaturaDocumentos === "sigadoc" ? (
                 <td>{processosSigadocDocumentos[documento.nomeArquivo] || "-"}</td>
+              ) : null}
+              {formaAssinaturaDocumentos === "fisica" ? (
+                <td className="prototype-documentos-gerados-modelo-cell">
+                  <BotaoIconSeplag
+                    type="button"
+                    icon="pi pi-download"
+                    tooltip={`Baixar ${documento.modeloArquivo}`}
+                    onClick={() => {
+                      const modelo = new Blob([`Modelo: ${documento.nomeArquivo}`], { type: "application/pdf" });
+                      const url = URL.createObjectURL(modelo);
+                      const link = window.document.createElement("a");
+                      link.href = url;
+                      link.download = documento.modeloArquivo;
+                      link.click();
+                      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    }}
+                  />
+                </td>
               ) : null}
               <td>
                 <div className="prototype-documentos-gerados-actions">
@@ -12981,6 +13594,13 @@ export function PrototiposNovoIngressoPage() {
         minute: "2-digit",
       }).replace(",", " às");
       const rascunho: AnaliseProvimentoRascunho = {
+        documentacaoEtapa,
+        dataPosse,
+        dataEfetivoExercicio,
+        dataFimEfetivoExercicio,
+        setorLotacaoEfetivo,
+        servidorCompareceu,
+        orgaosEfetivoSelecionados,
         parecer: parecerProvimento,
         validacoes: documentosAnaliseValidados,
         arquivosAnalise: Object.fromEntries(Object.entries(arquivosDocumentosAnalise).map(([documento, arquivo]) => [documento, arquivo?.name ?? null])),
@@ -13010,7 +13630,9 @@ export function PrototiposNovoIngressoPage() {
   };
 
   const solicitarSaidaAnalise = (destino: string) => {
-    if (activeTab === "analise-provimento" && alteracoesAnalisePendentes) {
+    const confirmarSaidaEfetivo = activeTab === "efetivo-exercicio";
+    const confirmarSaidaAnalise = activeTab === "analise-provimento" && alteracoesAnalisePendentes;
+    if (confirmarSaidaEfetivo || confirmarSaidaAnalise) {
       setDestinoSaidaAnalise(destino);
       setModalSaidaAnaliseAberto(true);
       return;
@@ -13031,7 +13653,7 @@ export function PrototiposNovoIngressoPage() {
   };
 
   useEffect(() => {
-    if (activeTab !== "analise-provimento" || !alteracoesAnalisePendentes) return;
+    if (!["analise-provimento", "efetivo-exercicio"].includes(activeTab) || !alteracoesAnalisePendentes) return;
     const interceptarLink = (event: MouseEvent) => {
       const elemento = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
       if (!elemento || elemento.target === "_blank") return;
@@ -13055,18 +13677,31 @@ export function PrototiposNovoIngressoPage() {
       return;
     }
 
-    setActiveTab(fluxoNovoIngressoTabs[activeTabIndex + 1].value!);
+    const proximaEtapa = fluxoNovoIngressoTabs[activeTabIndex + 1].value!;
+    if (proximaEtapa === "analise-provimento" && situacaoIngresso === "Aguardando Analise") {
+      setSituacaoIngresso("Em analise");
+      persistirSituacaoIngressoAtual("Em analise");
+    }
+    setActiveTab(proximaEtapa);
   };
 
   const handleConfirmarNovoIngresso = () => {
     if (activeTab === "efetivo-exercicio") {
+      if (situacaoInicialIngresso !== "Aguardando Efetivo Exercicio") return;
       const situacaoConclusaoEfetivo: IngressoSituacao =
         servidorCompareceu === "Não" ? "Tornado sem efeito" : "Ingresso Concluído";
       if (situacaoConclusaoEfetivo === "Ingresso Concluído" && !dataEfetivoExercicio) return;
       setSituacaoIngresso(situacaoConclusaoEfetivo);
       persistirSituacaoIngressoAtual(situacaoConclusaoEfetivo);
       if (situacaoConclusaoEfetivo === "Ingresso Concluído") {
-        persistirDataEfetivoExercicioAtual(dataEfetivoExercicio);
+        const agora = new Date();
+        const dataConclusaoEtapa = [
+          agora.getFullYear(),
+          String(agora.getMonth() + 1).padStart(2, "0"),
+          String(agora.getDate()).padStart(2, "0"),
+        ].join("-");
+        setDataEfetivoExercicio(dataConclusaoEtapa);
+        persistirDataEfetivoExercicioAtual(dataConclusaoEtapa);
         persistirSetorLotacaoEfetivoAtual(setorLotacaoEfetivo);
       }
       navigate("/prototipos/sigep/ingressos/efetivo-exercicio");
@@ -13086,6 +13721,26 @@ export function PrototiposNovoIngressoPage() {
       setPrazoPosseSuspenso(parecerProvimento === "suspender");
       setSituacaoIngresso(situacaoFinalAnalise);
       persistirSituacaoIngressoAtual(situacaoFinalAnalise);
+      const campoEncaminhar = parecerProvimento === "aprovar"
+        ? document.querySelector<HTMLSelectElement>('[data-rascunho-campo="encaminhar-aprovacao"]')
+        : null;
+      persistirOrgaoEncaminhadoAtual(
+        campoEncaminhar?.selectedOptions[0]?.textContent?.trim() ?? campoEncaminhar?.value ?? "",
+      );
+      if (parecerProvimento === "negar") {
+        const campoMotivo = document.querySelector<HTMLSelectElement>('[data-rascunho-campo="motivo-negativa"]');
+        const campoJustificativa = document.querySelector<HTMLTextAreaElement>('[data-rascunho-campo="justificativa-negativa"]');
+        persistirAnaliseNegadaAtual(
+          campoMotivo?.selectedOptions[0]?.textContent?.trim() ?? "Motivo não informado",
+          campoJustificativa?.value.trim() ?? "",
+        );
+      }
+      if (parecerProvimento === "sem-efeito") {
+        persistirTornadoSemEfeitoAtual(
+          motivoSemEfeito === "nao-comparecimento" ? "Não comparecimento" : "Outros",
+          justificativaSemEfeito.trim(),
+        );
+      }
       localStorage.removeItem(chaveRascunhoAnalise);
       setAlteracoesAnalisePendentes(false);
       navigate(caminhoRetornoNovoIngresso, { replace: true });
@@ -13443,8 +14098,8 @@ export function PrototiposNovoIngressoPage() {
             />
           </label> : null}
           {tipoIngresso !== "Processo Seletivo" ? <label className="prototype-ingresso-field">
-            <span>Data Limite para Posse<em>*</em><small className="prototype-field-origin">Derivado do cargo</small></span>
-            <input type="text" value="30/07/2026" readOnly />
+            <span>Data Limite para Posse<small className="prototype-field-origin">Calculado pela Data da Nomeação + 30 dias</small></span>
+            <input type="text" value={formatarDataPrazoPosse(prazoFinalPosse)} readOnly />
           </label> : null}
           <label className="prototype-ingresso-field">
             <span>Decisão Judicial<em>*</em></span>
@@ -13562,7 +14217,13 @@ export function PrototiposNovoIngressoPage() {
                   isActive ? "is-active" : ""
                 } ${isCompleted ? "is-completed" : ""}`}
                 aria-current={isActive ? "step" : undefined}
-                onClick={() => setActiveTab(step.value!)}
+                onClick={() => {
+                  if (step.value === "analise-provimento" && situacaoIngresso === "Aguardando Analise") {
+                    setSituacaoIngresso("Em analise");
+                    persistirSituacaoIngressoAtual("Em analise");
+                  }
+                  setActiveTab(step.value!);
+                }}
               >
                 <span className="prototype-novo-ingresso-step-marker">
                   {isCompleted ? <i className="pi pi-check" aria-hidden="true" /> : index + 1}
@@ -13718,7 +14379,13 @@ export function PrototiposNovoIngressoPage() {
       }
 
       return (
-        <section className="prototype-ingresso-section">
+        <section
+          className="prototype-ingresso-section"
+          onChangeCapture={() => {
+            setAlteracoesAnalisePendentes(true);
+            setFeedbackRascunhoAnalise(null);
+          }}
+        >
           {tipoIngresso === "Processo Seletivo" ? (
             <div className="prototype-equalizacao-alert prototype-documentacao-integracao-alert" role="status">
               <i className="pi pi-info-circle" aria-hidden="true" />
@@ -13799,6 +14466,8 @@ export function PrototiposNovoIngressoPage() {
         >
           <div className="prototype-analise-provimento-layout prototype-analise-provimento-layout--prazo-horizontal">
             <div className="prototype-analise-provimento-main">
+
+
               <div
                 className={`prototype-prazo-posse-alert ${prazoPosseVencido ? "is-overdue" : "is-on-time"}`}
                 role="status"
@@ -13817,7 +14486,7 @@ export function PrototiposNovoIngressoPage() {
                   </div>
                   <div>
                     <dt>Posse agendada</dt>
-                    <dd>{dataPosseIngresso ? formatarDataIsoParaPtBr(dataPosseIngresso) : "30/07/2026"}</dd>
+                    <dd>{dataPosseIngresso ? formatarDataIsoParaPtBr(dataPosseIngresso) : "Não informada"}</dd>
                   </div>
                   <div>
                     <dt>Prazo final</dt>
@@ -14328,9 +14997,41 @@ export function PrototiposNovoIngressoPage() {
 
     if (activeTab === "efetivo-exercicio") {
       return (
-        <section className="prototype-ingresso-section">
-          <div className={`prototype-analise-provimento-layout prototype-efetivo-exercicio-layout ${tipoIngresso === "Processo Seletivo" ? "prototype-efetivo-exercicio-layout--sem-prazo" : ""}`}>
+        <section
+          className="prototype-ingresso-section"
+          onChangeCapture={() => {
+            setAlteracoesAnalisePendentes(true);
+            setFeedbackRascunhoAnalise(null);
+          }}
+        >
+          <div className="prototype-analise-provimento-layout prototype-analise-provimento-layout--prazo-horizontal prototype-efetivo-exercicio-layout">
             <div className="prototype-analise-provimento-main">
+              {tipoIngresso !== "Processo Seletivo" ? (
+                <div
+                  className={`prototype-prazo-posse-alert ${prazoEfetivoVencido ? "is-overdue" : "is-on-time"}`}
+                  role="status"
+                  aria-label={`Prazo do efetivo exercício: ${prazoEfetivoVencido ? "fora do prazo" : "dentro do prazo"}`}
+                >
+                  <div className="prototype-prazo-posse-alert-title">
+                    <span className="prototype-prazo-posse-alert-icon">
+                      <i className={`pi ${prazoEfetivoVencido ? "pi-exclamation-triangle" : "pi-calendar-clock"}`} aria-hidden="true" />
+                    </span>
+                    <strong>Prazo do Efetivo Exercício</strong>
+                  </div>
+                  <dl className="prototype-prazo-posse-alert-fields prototype-prazo-posse-alert-fields--efetivo">
+                    <div><dt>Data da posse</dt><dd>{dataPosseEfetivo ? formatarDataPtBr(dataPosseEfetivo) : "Não informada"}</dd></div>
+                    <div><dt>Prazo final</dt><dd>{prazoFinalEfetivo ? formatarDataPtBr(prazoFinalEfetivo) : "Não informado"}</dd></div>
+                    <div>
+                      <dt>{prazoEfetivoVencido ? "Dias em atraso" : "Dias restantes"}</dt>
+                      <dd className="prototype-prazo-posse-alert-days">{textoDiasPrazoEfetivo}</dd>
+                    </div>
+                    <div className="prototype-prazo-posse-alert-status-field">
+                      <dt>Situação</dt>
+                      <dd><span className="prototype-prazo-posse-alert-status">{prazoEfetivoVencido ? "Fora do prazo" : "Dentro do prazo"}</span></dd>
+                    </div>
+                  </dl>
+                </div>
+              ) : null}
               <div className="prototype-efetivo-exercicio-card prototype-novo-ingresso-panel">
                 <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-briefcase" aria-hidden="true" /></span><span>Dados do Efetivo Exercício</span></h3>
                 <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
@@ -14369,8 +15070,9 @@ export function PrototiposNovoIngressoPage() {
                             <button
                               type="button"
                               className="prototype-multiselect-trigger"
-                              onClick={() => setOrgaosEfetivoDropdownAberto((dropdownAberto) => !dropdownAberto)}
-                              aria-expanded={orgaosEfetivoDropdownAberto}
+                              disabled
+                              aria-disabled="true"
+                              aria-expanded="false"
                             >
                               <span>{orgaosEfetivoResumo}</span>
                               <i className={`pi ${orgaosEfetivoDropdownAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
@@ -14408,6 +15110,7 @@ export function PrototiposNovoIngressoPage() {
                           <input
                             type="date"
                             value={dataEfetivoExercicio}
+                            required={servidorCompareceu === "Sim"}
                             onChange={(event) => setDataEfetivoExercicio(event.target.value)}
                           />
                         </label>
@@ -14424,7 +15127,11 @@ export function PrototiposNovoIngressoPage() {
 
                       <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
                         <span>Observação</span>
-                        <textarea placeholder="Registre uma observação, se necessário." />
+                        <textarea
+                          data-rascunho-campo="observacao-efetivo-exercicio"
+                          defaultValue={String(rascunhoAnaliseInicial?.campos["observacao-efetivo-exercicio"] ?? "")}
+                          placeholder="Registre uma observação, se necessário."
+                        />
                       </label>
                     </>
                   ) : (
@@ -14446,35 +15153,7 @@ export function PrototiposNovoIngressoPage() {
               </div>
             </div>
 
-            {tipoIngresso !== "Processo Seletivo" ? <aside className="prototype-analise-provimento-side">
-              <div className="prototype-analise-provimento-panel">
-                <h4>Prazo do Efetivo Exercício</h4>
-                <dl className="prototype-prazo-posse-list">
-                  <div>
-                    <dt>Data da posse</dt>
-                    <dd>{dataPosseEfetivo ? formatarDataPtBr(dataPosseEfetivo) : "Não informada"} <i className="pi pi-calendar" /></dd>
-                  </div>
-                  <div>
-                    <dt>Prazo final</dt>
-                    <dd>{prazoFinalEfetivo ? formatarDataPtBr(prazoFinalEfetivo) : "Não informado"} <i className="pi pi-calendar" /></dd>
-                  </div>
-                  <div>
-                    <dt>Dias restantes</dt>
-                    <dd className={diasRestantesEfetivo !== null && diasRestantesEfetivo < 0 ? "prototype-prazo-posse-days prototype-prazo-posse-days--vencido" : "prototype-prazo-posse-days"}>
-                      {diasRestantesEfetivo === null
-                        ? "-"
-                        : `${Math.max(diasRestantesEfetivo, 0)} ${Math.max(diasRestantesEfetivo, 0) === 1 ? "dia" : "dias"}`}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Status</dt>
-                    <dd>
-                      <span className={statusEfetivoExercicioClassName}>{statusEfetivoExercicio}</span>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </aside> : null}
+
           </div>
         </section>
       );
@@ -14495,16 +15174,9 @@ export function PrototiposNovoIngressoPage() {
           cardHeaderClassNames="prototype-novo-ingresso-card"
         >
           <div className={`prototype-ingresso-flow ${activeTab === "tipo-ingresso" ? "" : "prototype-novo-ingresso-etapa-panel"}`}>
-            {tipoIngresso === "Concurso" || tipoIngresso === "Processo Seletivo" ? (
-              renderNovoIngressoStepper()
-            ) : (
-              <TabsSeplag
-                items={novoIngressoTabs}
-                activeValue={activeTab}
-                onChange={setActiveTab}
-                equalWidth={false}
-              />
-            )}
+            {tipoIngresso === "Concurso" || tipoIngresso === "Processo Seletivo"
+              ? renderNovoIngressoStepper()
+              : null}
 
             {exibirResumoIngresso ? renderResumoIngressoBloqueado() : null}
 
@@ -14517,7 +15189,7 @@ export function PrototiposNovoIngressoPage() {
             )}
 
             <div className="prototype-novo-ingresso-footer">
-              {activeTab === "analise-provimento" && feedbackRascunhoAnalise ? (
+              {["documentacao", "analise-provimento", "efetivo-exercicio"].includes(activeTab) && feedbackRascunhoAnalise ? (
                 <div className="prototype-rascunho-feedback" role="status">
                   <i className="pi pi-check-circle" aria-hidden="true" />
                   <span>{feedbackRascunhoAnalise}</span>
@@ -14553,7 +15225,7 @@ export function PrototiposNovoIngressoPage() {
                   className="prototype-footer-back-button"
                   onClick={goBack}
                 />
-                {activeTab === "analise-provimento" ? (
+                {["documentacao", "analise-provimento", "efetivo-exercicio"].includes(activeTab) ? (
                   <BotaoSeplag
                     type="button"
                     label="Salvar rascunho"
@@ -15139,134 +15811,6 @@ export function PrototiposIngressoDetalhePage() {
             equalWidth={false}
           />
           {renderTabContent()}
-        </CardSeplag>
-      </div>
-    </PrototypeSystemPage>
-  );
-}
-
-export function PrototiposPastaFuncionalServidorPage() {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const ingresso = ingressosMock.find((item) => String(item.id) === id) ?? ingressosMock[0];
-  const numeroIngresso = "2026/0001";
-  const concursoIngresso = ingresso.tipoIngresso === "Concurso" ? `${ingresso.tipoIngresso} ${ingresso.orgao} 2026` : "-";
-  const prazoParaPosse = "30/07/2026";
-  const regimeJuridico = ingresso.tipoVinculo === "Efetivo" ? "Estatutário" : ingresso.tipoVinculo;
-  const categoriaServidor = "Servidor Público";
-  const decisaoJudicial = "Não";
-  const situacoesIngressosSalvas = JSON.parse(
-    localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
-  ) as Partial<Record<string, IngressoSituacao>>;
-  const situacaoIngresso = situacoesIngressosSalvas[String(ingresso.id)] ?? ingresso.situacao;
-  const documentosAnexados = ingressoDocumentacaoObrigatoriaMock;
-
-  return (
-    <PrototypeSystemPage
-      nomeSistema="GESTÃO DE PESSOAS"
-      ambienteSistema="Teste"
-      menuItems={menuGestaoPessoas}
-    >
-      <div className="prototype-page-content prototype-page-content--white">
-        <CardSeplag title="Pasta Funcional do Servidor" cols="12">
-          <div className="prototype-pasta-funcional-header">
-            <strong className="prototype-pasta-funcional-header-title">
-              Ingresso nº {numeroIngresso}
-            </strong>
-            <div className="prototype-pasta-funcional-header-grid">
-              <div>
-                <p><strong>Nome:</strong> {ingresso.nome}</p>
-                <p><strong>Tipo de Vínculo:</strong> {ingresso.tipoVinculo}</p>
-                <p><strong>Cargo:</strong> {ingresso.cargo}</p>
-                <p><strong>Prazo para Posse:</strong> {prazoParaPosse}</p>
-              </div>
-              <div>
-                <p><strong>CPF:</strong> {ingresso.cpf}</p>
-                <p><strong>Concurso:</strong> {concursoIngresso}</p>
-                <p><strong>Regime:</strong> {regimeJuridico}</p>
-                <p><strong>Situação:</strong> {situacaoIngresso}</p>
-              </div>
-              <div>
-                <p><strong>Ingresso:</strong> {ingresso.tipoIngresso}</p>
-                <p><strong>Categoria:</strong> {categoriaServidor}</p>
-                <p><strong>Decisão Judicial:</strong> {decisaoJudicial}</p>
-              </div>
-            </div>
-          </div>
-
-          <section className="prototype-ingresso-section">
-            <h3>Documentos Anexados no Ingresso</h3>
-            <table className="prototype-simple-table prototype-pasta-funcional-table">
-              <thead>
-                <tr>
-                  <th>Documento</th>
-                  <th>Obrigatório</th>
-                  <th>Arquivo</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {documentosAnexados.map((documento) => (
-                  <tr key={documento.documento}>
-                    <td>{documento.documento}</td>
-                    <td>{documento.obrigatorio}</td>
-                    <td>{documento.arquivo}</td>
-                    <td className="prototype-ingresso-doc-action-cell">
-                      {documento.arquivo !== "-" ? (
-                        <div className="prototype-ingresso-doc-actions">
-                          <BotaoIconSeplag
-                            type="button"
-                            icon="pi pi-download"
-                            tooltip={`Baixar ${documento.arquivo}`}
-                          />
-                        </div>
-                      ) : (
-                        <span>-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-
-          <section className="prototype-ingresso-section">
-            <h3>Documentos Gerados no Ingresso</h3>
-            <table className="prototype-simple-table prototype-pasta-funcional-table">
-              <thead>
-                <tr>
-                  <th>Documento</th>
-                  <th>Arquivo</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ingressoDocumentosGeradosMock.map((documento) => (
-                  <tr key={documento.documento}>
-                    <td>{documento.documento}</td>
-                    <td>{documento.arquivo}</td>
-                    <td className="prototype-ingresso-doc-action-cell">
-                      <div className="prototype-ingresso-doc-actions">
-                        <BotaoIconSeplag
-                          type="button"
-                          icon="pi pi-eye"
-                          tooltip={`Visualizar ${documento.arquivo}`}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-
-          <div className="prototype-form-actions prototype-pasta-funcional-actions">
-            <BotaoVoltarSeplag
-              type="button"
-              label="Voltar"
-              onClick={() => navigate("/prototipos/sigep/ingressos")}
-            />
-          </div>
         </CardSeplag>
       </div>
     </PrototypeSystemPage>
@@ -28937,6 +29481,3 @@ export function PrototiposConformidadePage() {
 export function PrototiposAuditoriaPage() {
   return <EmDesenvolvimentoPage nomeSistema="AUDITORIA" />;
 }
-
-
-
