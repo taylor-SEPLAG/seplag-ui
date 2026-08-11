@@ -1,7 +1,7 @@
 import type { SpecificationMetadata } from "../shared/visualizationModes";
 
 const allFilters =
-  "Orgao titular, orgao de distribuicao, tipo de quadro, carreira, cargo e situacao legal.";
+  "Órgão, tipo de quadro, carreira, cargo e situação legal.";
 const story = "US Controle de Vagas - Dashboard Gerencial";
 const spec = (
   id: string,
@@ -42,32 +42,22 @@ export const dashboardScreenSpecification = spec(
 );
 
 export const dashboardFilterSpecifications: Record<string, SpecificationMetadata> = {
-  "Orgao titular": spec(
+  "Órgão": spec(
     "CV-DASH-FLT-003",
-    "Orgao titular",
-    "Exibir vagas cujo vinculo juridico de titularidade pertence ao orgao selecionado.",
-    "Titularidade nao e alterada pela distribuicao administrativa, salvo alteracao legal expressa.",
-    "Vaga.orgaoTitular.",
-    "string | vazio",
-    "select simples",
-  ),
-  "Orgao de distribuicao": spec(
-    "CV-DASH-FLT-004",
-    "Orgao de distribuicao",
-    "Restringir a visao as vagas administrativamente destinadas ao orgao selecionado.",
-    "A posicao deve ser reconstruida pelo ultimo movimento de distribuicao com efeito ate a data de referencia.",
-    "Movimentos de Distribuicao e posicao temporal da Vaga.",
-    "string | PENDENTE_ATO | vazio",
-    "select simples",
-  ),
-  Tipo: spec(
+    "Órgão",
+    "Exibir as vagas atualmente distribuídas ao órgão selecionado.",
+    "Considerar o último ato de distribuição ou redistribuição vigente; vagas pendentes de ato não pertencem a um órgão até sua distribuição formal.",
+    "Base temporária de órgãos e posição atual reconstruída pelos movimentos de distribuição da vaga.",
+    "string[]",
+    "MultiSelect pesquisável",
+  ),  Tipo: spec(
     "CV-DASH-FLT-006",
     "Tipo de quadro",
     "Separar cargos efetivos e comissionados.",
     "Temporarios e vinculos sem limite legal nao integram este Dashboard.",
     "Vaga.tipo e QuadroAutorizado.tipoQuadro.",
-    "'' | EFETIVO | COMISSIONADO",
-    "select simples",
+    "TipoVagaLegal[]",
+    "MultiSelect",
   ),
   Carreira: spec(
     "CV-DASH-FLT-007",
@@ -75,8 +65,8 @@ export const dashboardFilterSpecifications: Record<string, SpecificationMetadata
     "Restringir a posicao a uma carreira.",
     "Usar a carreira registrada na vaga e em sua origem legal.",
     "Vaga.carreira.",
-    "string | vazio",
-    "select simples",
+    "string[]",
+    "MultiSelect pesquisável",
   ),
   Cargo: spec(
     "CV-DASH-FLT-008",
@@ -84,8 +74,8 @@ export const dashboardFilterSpecifications: Record<string, SpecificationMetadata
     "Restringir indicadores e grupos ao cargo selecionado.",
     "Quadros diferentes do mesmo cargo permanecem separados no quadro estrategico.",
     "Vaga.cargo.",
-    "string | vazio",
-    "select simples",
+    "string[]",
+    "MultiSelect pesquisável",
   ),
   "Situacao legal": spec(
     "CV-DASH-FLT-009",
@@ -93,8 +83,8 @@ export const dashboardFilterSpecifications: Record<string, SpecificationMetadata
     "Consultar vagas segundo sua condicao juridica na data de referencia.",
     "Regular, em extincao, extinta e em transformacao sao situacoes da vaga.",
     "Vaga.situacaoLegal e historico legal.",
-    "'' | REGULAR | EM_EXTINCAO | EXTINTA | EM_TRANSFORMACAO",
-    "select simples",
+    "SituacaoLegalVaga[]",
+    "MultiSelect",
   ),
   "Indicadores exibidos": spec(
     "CV-DASH-FLT-011",
@@ -249,25 +239,15 @@ export const dashboardKpiSpecifications: Record<string, SpecificationMetadata> =
     "KPI navegavel",
     "/prototipos/sigep/controle-vagas/vagas?estado=DISPONIVEL",
   ),
-  Comprometidas: spec(
+  "Em ocupação": spec(
     "CV-DASH-KPI-006",
-    "Comprometidas para ocupacao",
-    "Vagas disponiveis reservadas por processo de ingresso ainda nao concluido.",
+    "Em ocupação",
+    "Vagas disponiveis vinculadas a processo de ingresso ainda nao concluido.",
     "Nao alterar o estado para ocupada ate posse/exercicio ou evento definitivo.",
-    "ComprometimentoVaga de natureza OCUPACAO.",
+    "ComprometimentoVaga ativo de natureza OCUPACAO, recebido do Ingresso do Servidor.",
     "integer",
     "KPI navegavel",
     "/prototipos/sigep/controle-vagas/vagas?comprometimento=OCUPACAO",
-  ),
-  "Em disponibilizacao": spec(
-    "CV-DASH-KPI-007",
-    "Em disponibilizacao",
-    "Vagas ainda ocupadas vinculadas a processo que podera libera-las.",
-    "Permanecem ocupadas ate evento definitivo; nao sao saldo disponivel atual.",
-    "ComprometimentoVaga de natureza DISPONIBILIZACAO.",
-    "integer",
-    "KPI navegavel",
-    "/prototipos/sigep/controle-vagas/vagas?comprometimento=DISPONIBILIZACAO",
   ),
   "Pendente de ato de distribuicao": spec(
     "CV-DASH-KPI-008",

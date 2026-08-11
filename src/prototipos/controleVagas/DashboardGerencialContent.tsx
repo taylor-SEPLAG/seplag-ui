@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MultiSelect } from "primereact/multiselect";
 import { CONTROLE_VAGAS_BASE_PATH as BASE } from "./constants";
 import { useControleVagasStore } from "./controleVagasStore";
 import {
@@ -8,7 +9,7 @@ import {
   type DashboardFiltros,
   type DashboardGrupo,
 } from "./dashboardSelectors";
-import { recalcularPosicoes } from "./distribuicaoIndividual";
+import { orgaosBaseTemporaria } from "./baseTemporaria";
 import { SpecArea, SpecificationMode } from "../shared/visualizationModes";
 import {
   dashboardAlertSpecifications,
@@ -36,12 +37,11 @@ const legalLabel = {
 } as const;
 const filtrosIniciais: DashboardFiltros = {
   dataReferencia: hoje,
-  orgaoTitular: "",
-  orgaoDistribuicao: "",
-  tipo: "",
-  carreira: "",
-  cargo: "",
-  situacaoLegal: "",
+  orgao: [],
+  tipo: [],
+  carreira: [],
+  cargo: [],
+  situacaoLegal: [],
 };
 const indicadoresDashboardIds = [
   "Cargos legais",
@@ -49,8 +49,7 @@ const indicadoresDashboardIds = [
   "Vagas legais",
   "Ocupadas",
   "Disponiveis",
-  "Comprometidas",
-  "Em disponibilizacao",
+  "Em ocupação",
   "Pendente de ato de distribuicao",
   "Situacoes legais especiais",
 ] as const;
@@ -73,14 +72,9 @@ export function DashboardGerencialContent() {
   );
 
   const dados = useMemo(() => construirDashboard(state, filtros), [state, filtros]);
-  const orgaos = [...new Set(state.vagas.map((vaga) => vaga.orgaoTitular))].sort();
-  const distribuicoes = [
-    ...new Set(
-      recalcularPosicoes(state.vagas, state.movimentos, filtros.dataReferencia).map(
-        (item) => item.orgaoDistribuicao ?? "Pendente de ato de distribuicao",
-      ),
-    ),
-  ].sort();
+  const orgaos = orgaosBaseTemporaria
+    .map((item) => item.nome)
+    .sort((a, b) => a.localeCompare(b, "pt-BR"));
   const carreiras = [...new Set(state.vagas.map((vaga) => vaga.carreira))].sort();
   const cargos = [...new Set(state.vagas.map((vaga) => vaga.cargo))].sort();
   const eventos = state.movimentos
@@ -130,22 +124,14 @@ export function DashboardGerencialContent() {
       onClick: () => navigate(`${BASE}/vagas?estado=DISPONIVEL`),
     },
     {
-      label: "Comprometidas",
+      label: "Em ocupação",
       valor: dados.resumo.comprometidas,
-      hint: "Para ocupacao",
+      hint: "Disponiveis vinculadas a ingressos ativos",
       icon: "pi pi-flag",
       cor: "purple",
       onClick: () => navigate(`${BASE}/vagas?comprometimento=OCUPACAO`),
     },
-    {
-      label: "Em disponibilizacao",
-      valor: dados.resumo.emDisponibilizacao,
-      hint: "Ainda ocupadas",
-      icon: "pi pi-sign-out",
-      cor: "orange",
-      onClick: () => navigate(`${BASE}/vagas?comprometimento=DISPONIBILIZACAO`),
-    },
-    {
+{
       label: "Pendente de ato de distribuicao",
       valor: dados.resumo.naoDistribuidas,
       hint: `${dados.resumo.disponiveisNaoDistribuidas} disponiveis`,
@@ -234,88 +220,81 @@ export function DashboardGerencialContent() {
           {filtrosAbertos && (
             <div className="prototype-dash-filters management">
               <Filtro
-                label="Orgao titular"
-                metadata={dashboardFilterSpecifications["Orgao titular"]}
+                label="Órgão"
+                metadata={dashboardFilterSpecifications["Órgão"]}
               >
-                <select
-                  value={filtros.orgaoTitular}
-                  onChange={(event) =>
-                    setFiltros({ ...filtros, orgaoTitular: event.target.value })
-                  }
-                >
-                  <option value="">Todos</option>
-                  {orgaos.map((valor) => (
-                    <option key={valor}>{valor}</option>
-                  ))}
-                </select>
-              </Filtro>
-              <Filtro
-                label="Orgao de distribuicao"
-                metadata={dashboardFilterSpecifications["Orgao de distribuicao"]}
-              >
-                <select
-                  value={filtros.orgaoDistribuicao}
-                  onChange={(event) =>
-                    setFiltros({ ...filtros, orgaoDistribuicao: event.target.value })
-                  }
-                >
-                  <option value="">Todos</option>
-                  {distribuicoes.map((valor) => (
-                    <option key={valor}>{valor}</option>
-                  ))}
-                </select>
+                <MultiSelect
+                  value={filtros.orgao}
+                  onChange={(event) => setFiltros({ ...filtros, orgao: event.value ?? [] })}
+                  options={orgaos.map((valor) => ({ label: valor, value: valor }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Todos"
+                  display="chip"
+                  filter
+                  showClear
+                  maxSelectedLabels={2}
+                  selectedItemsLabel="{0} órgãos selecionados"
+                />
               </Filtro>
               <Filtro label="Tipo" metadata={dashboardFilterSpecifications["Tipo"]}>
-                <select
+                <MultiSelect
                   value={filtros.tipo}
-                  onChange={(event) => setFiltros({ ...filtros, tipo: event.target.value })}
-                >
-                  <option value="">Efetivos e comissionados</option>
-                  <option value="EFETIVO">Efetivo</option>
-                  <option value="COMISSIONADO">Comissionado</option>
-                </select>
+                  onChange={(event) => setFiltros({ ...filtros, tipo: event.value ?? [] })}
+                  options={[{ label: "Efetivo", value: "EFETIVO" }, { label: "Comissionado", value: "COMISSIONADO" }]}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Efetivos e comissionados"
+                  display="chip"
+                  showClear
+                />
               </Filtro>
               <Filtro label="Carreira" metadata={dashboardFilterSpecifications["Carreira"]}>
-                <select
+                <MultiSelect
                   value={filtros.carreira}
-                  onChange={(event) =>
-                    setFiltros({ ...filtros, carreira: event.target.value })
-                  }
-                >
-                  <option value="">Todas</option>
-                  {carreiras.map((valor) => (
-                    <option key={valor}>{valor}</option>
-                  ))}
-                </select>
+                  onChange={(event) => setFiltros({ ...filtros, carreira: event.value ?? [] })}
+                  options={carreiras.map((valor) => ({ label: valor, value: valor }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Todas"
+                  display="chip"
+                  filter
+                  showClear
+                  maxSelectedLabels={2}
+                  selectedItemsLabel="{0} carreiras selecionadas"
+                />
               </Filtro>
               <Filtro label="Cargo" metadata={dashboardFilterSpecifications["Cargo"]}>
-                <select
+                <MultiSelect
                   value={filtros.cargo}
-                  onChange={(event) => setFiltros({ ...filtros, cargo: event.target.value })}
-                >
-                  <option value="">Todos</option>
-                  {cargos.map((valor) => (
-                    <option key={valor}>{valor}</option>
-                  ))}
-                </select>
+                  onChange={(event) => setFiltros({ ...filtros, cargo: event.value ?? [] })}
+                  options={cargos.map((valor) => ({ label: valor, value: valor }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Todos"
+                  display="chip"
+                  filter
+                  showClear
+                  maxSelectedLabels={2}
+                  selectedItemsLabel="{0} cargos selecionados"
+                />
               </Filtro>
               <Filtro
                 label="Situacao legal"
                 metadata={dashboardFilterSpecifications["Situacao legal"]}
               >
-                <select
+                <MultiSelect
                   value={filtros.situacaoLegal}
-                  onChange={(event) =>
-                    setFiltros({ ...filtros, situacaoLegal: event.target.value })
-                  }
-                >
-                  <option value="">Todas</option>
-                  {situacoesLegais.map((valor) => (
-                    <option key={valor} value={valor}>
-                      {legalLabel[valor]}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(event) => setFiltros({ ...filtros, situacaoLegal: event.value ?? [] })}
+                  options={situacoesLegais.map((valor) => ({ label: legalLabel[valor], value: valor }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Todas"
+                  display="chip"
+                  showClear
+                  maxSelectedLabels={2}
+                  selectedItemsLabel="{0} situações selecionadas"
+                />
               </Filtro>
               <SpecArea metadata={dashboardFilterSpecifications["Indicadores exibidos"]}>
                 <fieldset className="prototype-dashboard-indicator-controls">
@@ -401,13 +380,8 @@ export function DashboardGerencialContent() {
                   </li>
                   <li>
                     <i className="committed" />
-                    <span>Disponiveis comprometidas</span>
+                    <span>Em ocupação</span>
                     <strong>{dados.resumo.comprometidas}</strong>
-                  </li>
-                  <li>
-                    <i className="release" />
-                    <span>Em disponibilizacao</span>
-                    <strong>{dados.resumo.emDisponibilizacao}</strong>
                   </li>
                 </ul>
               </div>
@@ -459,13 +433,11 @@ export function DashboardGerencialContent() {
                     <th>Prioridade</th>
                     <th>Quadro autorizado</th>
                     <th>Cargo, carreira e lei</th>
-                    <th>Orgao titular</th>
-                    <th>Distribuicao atual</th>
+                    <th>Órgão</th>
                     <th className="num">Legais</th>
                     <th className="num">Ocupadas</th>
                     <th className="num">Livres</th>
-                    <th className="num">Comprometidas</th>
-                    <th className="num">Em saida</th>
+                    <th className="num">Em ocupação</th>
                     <th className="num">Judiciais</th>
                     <th />
                   </tr>
@@ -493,9 +465,6 @@ export function DashboardGerencialContent() {
                         <strong>{grupo.orgao}</strong>
                         <small>{grupo.tipo === "EFETIVO" ? "Efetivo" : "Comissionado"}</small>
                       </td>
-                      <td>
-                        <strong>{grupo.distribuicao}</strong>
-                      </td>
                       <td className="num">{grupo.vagasLegais}</td>
                       <td className="num">
                         {grupo.ocupadas}
@@ -507,7 +476,6 @@ export function DashboardGerencialContent() {
                         <strong>{grupo.disponiveisLivres}</strong>
                       </td>
                       <td className="num">{grupo.disponiveisComprometidas}</td>
-                      <td className="num">{grupo.ocupadasEmDisponibilizacao}</td>
                       <td className="num">{grupo.judiciais}</td>
                       <td>
                         <button onClick={() => setDetalhe(grupo)}>
@@ -669,10 +637,7 @@ function DetalheGrupo({
         </div>
         <div className="prototype-dash-detail-context">
           <span>
-            Orgao titular: <strong>{grupo.orgao}</strong>
-          </span>
-          <span>
-            Distribuicao atual: <strong>{grupo.distribuicao}</strong>
+            Órgão atual da vaga: <strong>{grupo.orgao}</strong>
           </span>
         </div>
         <div className="prototype-dash-detail-numbers">
@@ -689,12 +654,8 @@ function DetalheGrupo({
             <strong>{grupo.disponiveisLivres}</strong>
           </div>
           <div>
-            <span>Comprometidas</span>
+            <span>Em ocupação</span>
             <strong>{grupo.disponiveisComprometidas}</strong>
-          </div>
-          <div>
-            <span>Em saida</span>
-            <strong>{grupo.ocupadasEmDisponibilizacao}</strong>
           </div>
           <div>
             <span>Em extincao</span>
@@ -747,9 +708,6 @@ function DetalheGrupo({
             }
           >
             <i className="pi pi-list" /> Vagas
-          </button>
-          <button onClick={() => onNavigate("vagas?estado=OCUPADA")}>
-            <i className="pi pi-users" /> Ocupacoes
           </button>
           <button onClick={() => onNavigate("distribuicao")}>
             <i className="pi pi-sitemap" /> Distribuicao

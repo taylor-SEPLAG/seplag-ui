@@ -10,12 +10,11 @@ import type {
 
 export interface DashboardFiltros {
   dataReferencia: string;
-  orgaoTitular: string;
-  orgaoDistribuicao: string;
-  tipo: string;
-  carreira: string;
-  cargo: string;
-  situacaoLegal: string;
+  orgao: string[];
+  tipo: string[];
+  carreira: string[];
+  cargo: string[];
+  situacaoLegal: string[];
 }
 
 export interface DashboardGrupo {
@@ -103,25 +102,24 @@ export function construirDashboard(
     .filter((item): item is Vaga => Boolean(item))
     .filter(
       (vaga) =>
-        (!filtros.orgaoTitular || vaga.orgaoTitular === filtros.orgaoTitular) &&
-        (!filtros.orgaoDistribuicao ||
-          distribuicoes.get(vaga.id) === filtros.orgaoDistribuicao) &&
-        (!filtros.tipo || vaga.tipo === filtros.tipo) &&
-        (!filtros.carreira || vaga.carreira === filtros.carreira) &&
-        (!filtros.cargo || vaga.cargo === filtros.cargo) &&
-        (!filtros.situacaoLegal || vaga.situacaoLegal === filtros.situacaoLegal),
+        (!filtros.orgao.length || filtros.orgao.includes(distribuicoes.get(vaga.id) ?? "")) &&
+        (!filtros.tipo.length || filtros.tipo.includes(vaga.tipo)) &&
+        (!filtros.carreira.length || filtros.carreira.includes(vaga.carreira)) &&
+        (!filtros.cargo.length || filtros.cargo.includes(vaga.cargo)) &&
+        (!filtros.situacaoLegal.length || filtros.situacaoLegal.includes(vaga.situacaoLegal)),
     );
   const excecoes = state.excecoesJudiciais.filter(
     (item) =>
       item.situacao === "ATIVA" &&
       iso(item.inicio) <= filtros.dataReferencia &&
-      (!filtros.orgaoTitular || item.orgao === filtros.orgaoTitular) &&
-      (!filtros.cargo || item.cargo === filtros.cargo),
+      (!filtros.orgao.length || filtros.orgao.includes(item.orgao)) &&
+      (!filtros.cargo.length || filtros.cargo.includes(item.cargo)),
   );
 
   const vagasPorQuadro = new Map<string, Vaga[]>();
   vagas.forEach((vaga) => {
-    const chave = `${vaga.quadroCodigo}|${vaga.orgaoTitular}|${vaga.tipo}`;
+    const orgaoAtual = distribuicoes.get(vaga.id) ?? "Pendente de ato de distribuicao";
+    const chave = `${vaga.quadroCodigo}|${orgaoAtual}|${vaga.tipo}`;
     vagasPorQuadro.set(chave, [...(vagasPorQuadro.get(chave) ?? []), vaga]);
   });
 
@@ -129,7 +127,8 @@ export function construirDashboard(
     ([chave, itens]) => ({
       chave,
       cargo: itens[0].cargo,
-      orgaoTitular: itens[0].orgaoTitular,
+      orgaoTitular:
+        distribuicoes.get(itens[0].id) ?? "Pendente de ato de distribuicao",
       tipo: itens[0].tipo,
       totalFisico: itens.length,
       ...calcularSaldo(itens, comprometimentos, ocupacoes, excecoes),
