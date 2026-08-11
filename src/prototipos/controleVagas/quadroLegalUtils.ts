@@ -16,6 +16,7 @@ export interface ComandoAlteracaoQuadroLegal {
   dataEfeito: string;
   novoCargo?: string;
   novaCarreira?: string;
+  vagaIds?: readonly string[];
 }
 
 export interface ResultadoAlteracaoQuadroLegal {
@@ -87,7 +88,8 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
 
   const limite = Math.min(quantidade, vagas.filter((vaga) => vaga.situacaoLegal !== "EXTINTA").length);
   if (quantidade > limite) alertas.push(`A operação foi limitada a ${limite} vaga(s) existentes.`);
-  const candidatas = vagas.filter((vaga) => vaga.situacaoLegal !== "EXTINTA").sort((a, b) => Number(a.estado === "OCUPADA") - Number(b.estado === "OCUPADA")).slice(0, limite);
+  const idsSelecionados = comando.vagaIds ? new Set(comando.vagaIds) : null;
+  const candidatas = vagas.filter((vaga) => vaga.situacaoLegal !== "EXTINTA" && (!idsSelecionados || idsSelecionados.has(vaga.id))).sort((a, b) => idsSelecionados ? (comando.vagaIds?.indexOf(a.id) ?? 0) - (comando.vagaIds?.indexOf(b.id) ?? 0) : Number(a.estado === "OCUPADA") - Number(b.estado === "OCUPADA")).slice(0, limite);
   candidatas.forEach((vaga) => {
     const situacao: SituacaoLegalVaga = vaga.estado === "OCUPADA" ? "EM_EXTINCAO" : "EXTINTA";
     alteradas.push(alterarSituacao(vaga, situacao, comando, `${comando.lei}: vaga ${vaga.estado === "OCUPADA" ? "mantida até a vacância" : "extinta imediatamente"}.`));
