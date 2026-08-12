@@ -6,7 +6,7 @@ import { controlePssStore, useControlePssStore } from "../controlePssStore";
 import { CONTROLE_VAGAS_BASE_PATH } from "../../controleVagas/constants";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
-import { proximoNumeroCertame, calcularPrazoPrestacaoContas } from "./validations";
+import { proximoNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, podeRegistrarRetificacaoEdital, homologacaoVigenteSemCancelamento, podeRegistrarRetificacaoHomologacao } from "./validations";
 import { ABRANGENCIAS, CARGOS_CADASTRADOS, DOCUMENTOS_CERTAME, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, LEIS_CERTAME, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
 import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, SituacaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
 import { CardSeplag } from "@componentes/Card";
@@ -41,25 +41,22 @@ interface CertameFormValues {
  existePrevisaoRecursos:string;
  diasPrazoExercicio?:number; diasPrazoPosse?:number; diasPrazoProrrogacaoExercicio?:number; diasPrazoProrrogacaoPosse?:number;
  dataInicioInscricaoIsencao?:string; dataFimInscricaoIsencao?:string; leiIsencao?:string; tipoIsencao?:string;
- houveContratacaoBanca:string; gerouDespesas:string;
+ gerouDespesas:string;
  numeroEmpenho?:string; anoEmpenho?:number; tipoContrato?:string; numeroContrato?:string; anoContrato?:number;
  codigoUo?:string; codigoUg?:string; numeroAditivo?:string; anoAditivo?:number;
  cobraTaxaInscricao:string; valorInscricao?:number;
 }
 interface CotaFormValues { tipo:string; lei:string }
 interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; quantidadeVagas:number; vagaPcd:string; quantidadePcd?:number }
-interface FaseFormValues { nome:string }
 interface SituacaoFormValues { tipo:SituacaoCertame; data?:string }
 
-type Aba = "DADOS_GERAIS" | "DATAS" | "PRAZOS" | "ISENCAO" | "RECURSOS" | "COTAS" | "CARGOS" | "DOCUMENTOS" | "SITUACOES";
+// Consolidação de 8 para 4 abas fixas (+ Situações, disponível só após salvar): cada aba antiga
+// virou um bloco com subtítulo dentro da aba nova, preservando todos os campos, RNs e CAs originais.
+type Aba = "IDENTIFICACAO" | "FINANCEIRO" | "VAGAS_COTAS" | "DOCUMENTOS" | "SITUACOES";
 const abasBase:readonly { id:Aba; label:string }[] = [
- { id:"DADOS_GERAIS", label:"Dados Gerais" },
- { id:"DATAS", label:"Datas, Validades e Execução" },
- { id:"PRAZOS", label:"Prazos" },
- { id:"ISENCAO", label:"Isenção" },
- { id:"RECURSOS", label:"Recursos e Contratos" },
- { id:"COTAS", label:"Cotas" },
- { id:"CARGOS", label:"Cargos e Vagas" },
+ { id:"IDENTIFICACAO", label:"Identificação e Cronograma" },
+ { id:"FINANCEIRO", label:"Contrato e custo" },
+ { id:"VAGAS_COTAS", label:"Vagas e Cotas" },
  { id:"DOCUMENTOS", label:"Documentos" },
 ];
 
@@ -86,7 +83,7 @@ function valoresIniciais(certame:Certame | undefined, certames:readonly Certame[
   existePrevisaoRecursos:certame.existePrevisaoRecursos ? "S" : "N",
   diasPrazoExercicio:certame.diasPrazoExercicio, diasPrazoPosse:certame.diasPrazoPosse, diasPrazoProrrogacaoExercicio:certame.diasPrazoProrrogacaoExercicio, diasPrazoProrrogacaoPosse:certame.diasPrazoProrrogacaoPosse,
   dataInicioInscricaoIsencao:certame.dataInicioInscricaoIsencao, dataFimInscricaoIsencao:certame.dataFimInscricaoIsencao, leiIsencao:certame.leiIsencao, tipoIsencao:certame.tipoIsencao,
-  houveContratacaoBanca:certame.houveContratacaoBanca ? "S" : "N", gerouDespesas:certame.gerouDespesas ? "S" : "N",
+  gerouDespesas:certame.gerouDespesas ? "S" : "N",
   numeroEmpenho:certame.numeroEmpenho, anoEmpenho:certame.anoEmpenho, tipoContrato:certame.tipoContrato, numeroContrato:certame.numeroContrato, anoContrato:certame.anoContrato,
   codigoUo:certame.codigoUo, codigoUg:certame.codigoUg, numeroAditivo:certame.numeroAditivo, anoAditivo:certame.anoAditivo,
   cobraTaxaInscricao:certame.cobraTaxaInscricao ? "S" : "N", valorInscricao:certame.valorInscricao,
@@ -98,7 +95,7 @@ function valoresIniciais(certame:Certame | undefined, certames:readonly Certame[
   numeroConcurso:proximoNumeroCertame(anoReferencia, certames), anoConcurso:anoReferencia,
   nomeEdital:"", numeroEditalOrgao:"",
   dataPublicacaoEdital:"", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG",
-  existePrevisaoRecursos:"N", houveContratacaoBanca:"N", gerouDespesas:"N", cobraTaxaInscricao:"N",
+  existePrevisaoRecursos:"N", gerouDespesas:"N", cobraTaxaInscricao:"N",
  };
 }
 
@@ -141,13 +138,34 @@ export function CertameFormContent() {
  const existente = modoNovo ? undefined : certames.find((item) => item.id === id);
 
  const abaParam = searchParams.get("aba") as Aba | null;
- const [aba, setAba] = useState<Aba>(!modoNovo && abaParam === "SITUACOES" ? "SITUACOES" : "DADOS_GERAIS");
+ const [aba, setAba] = useState<Aba>(!modoNovo && abaParam === "SITUACOES" ? "SITUACOES" : "IDENTIFICACAO");
  // RN-06.1: no cadastro de um novo certame, o tipo precisa ser definido antes de liberar o restante do formulário.
  const [tipoConfirmado, setTipoConfirmado] = useState(!modoNovo);
  const { control, handleSubmit, watch, setValue } = useForm<CertameFormValues>({ defaultValues: valoresIniciais(existente, certames) });
  const valores = watch();
  const dispensarParaProcessoSeletivo = valores.tipoCertame === "PSS";
  const dispensarParaConcurso = valores.tipoCertame === "CONCURSO_PUBLICO";
+ const houveContratacaoEmpresa = valores.tipoContratacaoExecucao === "EMPRESA_CONTRATADA";
+
+ // Com a consolidação de 8 para 4 abas, uma mensagem de erro precisa apontar não só a aba, mas o
+ // bloco (subtítulo) dentro dela — este estado guarda o id do bloco a rolar/destacar (blocoClasse).
+ const [blocoDestaque, setBlocoDestaque] = useState<string | null>(null);
+ useEffect(() => {
+  if (!blocoDestaque) return undefined;
+  const elemento = document.getElementById(blocoDestaque);
+  elemento?.scrollIntoView({ behavior:"smooth", block:"start" });
+  const temporizador = setTimeout(() => setBlocoDestaque(null), 2500);
+  return () => clearTimeout(temporizador);
+ }, [blocoDestaque, aba]);
+ const blocoClasse = (idBloco:string) => `prototype-certame-bloco${blocoDestaque === idBloco ? " prototype-certame-bloco--destaque" : ""}`;
+ const irParaBloco = (novaAba:Aba, idBloco:string) => { setAba(novaAba); setBlocoDestaque(idBloco); };
+
+ // A validade em dias é recalculada automaticamente sempre que a data de validade (ou a publicação
+ // do edital, que serve de marco inicial) é informada, evitando que os dois campos fiquem divergentes.
+ useEffect(() => {
+  const dias = calcularValidadeDias(valores.dataPublicacaoEdital, valores.dataValidade);
+  if (dias !== undefined) setValue("validadeConcursoDias", dias);
+ }, [valores.dataPublicacaoEdital, valores.dataValidade, setValue]);
 
  const selecionarTipoCertame = (tipo:TipoCertame) => {
   const concurso = tipo === "CONCURSO_PUBLICO";
@@ -168,7 +186,7 @@ export function CertameFormContent() {
  const quadroVinculado = buscarQuadroPorCargo(cargoNomeAtual ?? "");
 
  const [fases, setFases] = useState<FaseCertame[]>(existente ? [...existente.fases] : [...FASES_TCE_FIXAS]);
- const faseForm = useForm<FaseFormValues>({ defaultValues: { nome:"" } });
+ const [faseArrastada, setFaseArrastada] = useState<number | null>(null);
 
  const [arquivos, setArquivos] = useState<Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>>(() =>
   Object.fromEntries(DOCUMENTOS_CERTAME.map((item) => [item.tipo, arquivoExistente(existente, item.tipo as TipoDocumentoCertame)]).filter(([, valor]) => valor)) as Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>,
@@ -218,9 +236,11 @@ export function CertameFormContent() {
  const [erro, setErro] = useState<string | null>(null);
  const situacaoForm = useForm<SituacaoFormValues>({ defaultValues: { tipo:"HOMOLOGADO" } });
 
+ // RN-20: Demonstrativo LRF é sempre obrigatório (obrigatorioSempre:true no domínio) — não depende
+ // mais do checkbox "gerou despesas". RN-21: Publicação do certame licitatório passa a seguir o
+ // mesmo gatilho do Contrato social — RN-22 unificou esse gatilho em "tipoContratacaoExecucao".
  const documentoObrigatorio = (tipo:string, obrigatorioSempre:boolean) => obrigatorioSempre
-  || (tipo === "DEMONSTRATIVO_LRF" && valores.gerouDespesas === "S")
-  || (tipo === "CONTRATO_SOCIAL_EMPRESA" && (valores.tipoContratacaoExecucao === "EMPRESA_CONTRATADA" || valores.houveContratacaoBanca === "S"));
+  || ((tipo === "CONTRATO_SOCIAL_EMPRESA" || tipo === "PUBLICACAO_CERTAME_LICITATORIO") && houveContratacaoEmpresa);
 
  const colunasCotas:ColumnMetaSeplag<CotaCertame>[] = [
   { header:"Tipo de cota", body:(row) => TIPOS_COTA.find((tipo) => tipo.value === row.tipo)?.label ?? row.tipo },
@@ -238,13 +258,6 @@ export function CertameFormContent() {
   { header:"PCD", body:(row) => row.vagaPcd ? row.quantidadePcd ?? 0 : 0 },
  ];
 
- const colunasFases:ColumnMetaSeplag<FaseCertame>[] = [
-  { field:"ordem", header:"Ordem" },
-  { field:"nome", header:"Nome da fase" },
- ];
- const renderAcoesFase = (row:FaseCertame) => <div className="prototype-certame-fase-acoes">
-  <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover fase" onClick={() => removerFase(row.ordem)} />
- </div>;
 
  const colunasDocumentos:ColumnMetaSeplag<typeof DOCUMENTOS_CERTAME[number]>[] = [
   { header:"Documento", body:(row) => <>{row.label}{documentoObrigatorio(row.tipo, row.obrigatorioSempre) && " *"}</> },
@@ -269,16 +282,21 @@ export function CertameFormContent() {
 
  const salvar = handleSubmit((dados) => {
   setErro(null);
-  if (cargos.length === 0) { setErro("Informe ao menos um cargo/vaga para salvar o certame (RN-14, Cenário 1)."); setAba("CARGOS"); return; }
+  // RN-23 (ER143): número do certame (TCE-MT) não pode se repetir para o mesmo tipo e exercício.
+  if (certameDuplicado(certames, dados, existente?.id)) { setErro("Já existe um certame aberto com esse número e tipo. Verifique."); irParaBloco("IDENTIFICACAO", "bloco-identificacao"); return; }
+  if (cargos.length === 0) { setErro("Informe ao menos um cargo/vaga para salvar o certame (RN-14, Cenário 1)."); irParaBloco("VAGAS_COTAS", "bloco-cargos-vagas"); return; }
   const documentosFaltando = DOCUMENTOS_CERTAME.filter((doc) => documentoObrigatorio(doc.tipo, doc.obrigatorioSempre) && !arquivos[doc.tipo as TipoDocumentoCertame]);
-  if (documentosFaltando.length > 0) { setErro(`Documento obrigatório pendente: ${documentosFaltando.map((doc) => doc.label).join(", ")}.`); setAba("DOCUMENTOS"); return; }
+  if (documentosFaltando.length > 0) { setErro(`Documento obrigatório pendente: ${documentosFaltando.map((doc) => doc.label).join(", ")}.`); irParaBloco("DOCUMENTOS", "bloco-documentos"); return; }
 
   const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
   const documentos = DOCUMENTOS_CERTAME.filter((doc) => arquivos[doc.tipo as TipoDocumentoCertame]).map((doc) => ({ tipo:doc.tipo as TipoDocumentoCertame, nomeArquivo:arquivos[doc.tipo as TipoDocumentoCertame]!.nome, anexadoEm:agora }));
+  // RN-22: "houveContratacaoBanca" deixou de ser um campo do formulário e passa a ser derivado do
+  // Tipo de contratação (execução), única fonte de verdade.
+  const houveContratacaoBanca = dados.tipoContratacaoExecucao === "EMPRESA_CONTRATADA";
 
   if (existente) {
    controlePssStore.set("certames", (atuais) => atuais.map((item) => item.id === existente.id ? {
-    ...item, ...dados, existePrevisaoRecursos:dados.existePrevisaoRecursos === "S", houveContratacaoBanca:dados.houveContratacaoBanca === "S", gerouDespesas:dados.gerouDespesas === "S", cobraTaxaInscricao:dados.cobraTaxaInscricao === "S",
+    ...item, ...dados, existePrevisaoRecursos:dados.existePrevisaoRecursos === "S", houveContratacaoBanca, gerouDespesas:dados.gerouDespesas === "S", cobraTaxaInscricao:dados.cobraTaxaInscricao === "S",
     cotas, cargos, fases, documentos, atualizadoEm:agora,
    } : item));
    navigate(`${BASE}/certames/${existente.id}`);
@@ -286,7 +304,7 @@ export function CertameFormContent() {
   }
   const novoId = `CERT-${dados.anoConcurso}-${dados.numeroConcurso.slice(-3)}`;
   const novo:Certame = {
-   id:novoId, ...dados, existePrevisaoRecursos:dados.existePrevisaoRecursos === "S", houveContratacaoBanca:dados.houveContratacaoBanca === "S", gerouDespesas:dados.gerouDespesas === "S", cobraTaxaInscricao:dados.cobraTaxaInscricao === "S",
+   id:novoId, ...dados, existePrevisaoRecursos:dados.existePrevisaoRecursos === "S", houveContratacaoBanca, gerouDespesas:dados.gerouDespesas === "S", cobraTaxaInscricao:dados.cobraTaxaInscricao === "S",
    cotas, cargos, fases, documentos,
    situacaoAtual:"ABERTO",
    historicoSituacoes:[{ id:`SIT-${novoId}-1`, certameId:novoId, tipo:"ABERTO", dataEfeito:dados.dataPublicacaoEdital, registradoEm:`${agora} 09:00`, usuario:"SUGP/SEPLAG", prazoPrestacaoContas:calcularPrazoPrestacaoContas(dados.dataPublicacaoEdital) }],
@@ -315,35 +333,51 @@ export function CertameFormContent() {
  };
  const removerCargo = (idCargo:string) => setCargos((atuais) => atuais.filter((item) => item.id !== idCargo));
 
- const renumerarFases = (lista:FaseCertame[]) => lista.map((item, index) => ({ ordem:index + 1, nome:item.nome }));
- const adicionarFase = () => {
-  const nome = faseForm.getValues("nome").trim();
-  if (!nome) return;
-  setFases((atuais) => [...atuais, { ordem:atuais.length + 1, nome }]);
-  faseForm.reset({ nome:"" });
- };
+ const renumerarFases = (lista:FaseCertame[]) => lista.map((item, index) => ({ ordem:index + 1, nome:item.nome, dataInicio:item.dataInicio, dataFim:item.dataFim }));
+ const adicionarFase = () => setFases((atuais) => [...atuais, { ordem:atuais.length + 1, nome:"", dataInicio:"", dataFim:"" }]);
+ const atualizarFase = (ordem:number, alteracoes:Partial<Pick<FaseCertame, "nome" | "dataInicio" | "dataFim">>) =>
+  setFases((atuais) => atuais.map((item) => item.ordem === ordem ? { ...item, ...alteracoes } : item));
  const removerFase = (ordem:number) => setFases((atuais) => renumerarFases(atuais.filter((item) => item.ordem !== ordem)));
- const reordenarFases = (novaOrdem:FaseCertame[]) => setFases(renumerarFases(novaOrdem));
+ const moverFase = (ordemOrigem:number, ordemDestino:number) => {
+  if (ordemOrigem === ordemDestino) return;
+  setFases((atuais) => {
+   const lista = [...atuais];
+   const indiceOrigem = lista.findIndex((item) => item.ordem === ordemOrigem);
+   const indiceDestino = lista.findIndex((item) => item.ordem === ordemDestino);
+   if (indiceOrigem === -1 || indiceDestino === -1) return atuais;
+   const [movida] = lista.splice(indiceOrigem, 1);
+   lista.splice(indiceDestino, 0, movida);
+   return renumerarFases(lista);
+  });
+ };
 
  const registrarSituacao = () => {
   if (!existente) return;
   const dados = situacaoForm.getValues();
   if (!dados.data) return;
+  // RN-24d — mesma lógica de RN-07/CA05, aplicada à data de efeito da situação.
+  if (dataEfeitoAnteriorPublicacao(dados.data, existente.dataPublicacaoEdital)) { setErro("A data de efeito não pode ser anterior à publicação do edital (RN-24d)."); return; }
+  // RN-24a (ER142).
+  if (dados.tipo === "RETIFICACAO_EDITAL" && !podeRegistrarRetificacaoEdital(existente.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Edital: o certame ainda não possui um registro de abertura (Aberto) no histórico (RN-24a)."); return; }
+  // RN-24b (ER144).
+  if (dados.tipo === "HOMOLOGADO" && homologacaoVigenteSemCancelamento(existente.historicoSituacoes)) { setErro("Já existe uma Homologação registrada para este certame sem Cancelamento/Anulação posterior (RN-24b)."); return; }
+  // RN-24c (ER145).
+  if (dados.tipo === "RETIFICACAO_HOMOLOGACAO" && !podeRegistrarRetificacaoHomologacao(existente.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Homologação sem um registro de Homologado anterior no histórico (RN-24c)."); return; }
+  setErro(null);
   const prazo = calcularPrazoPrestacaoContas(dados.data);
   const registro = { id:`SIT-${existente.id}-${existente.historicoSituacoes.length + 1}`, certameId:existente.id, tipo:dados.tipo, dataEfeito:dados.data, registradoEm:`${CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/")} ${new Date().toTimeString().slice(0, 5)}`, usuario:"SUGP/SEPLAG", prazoPrestacaoContas:prazo };
   controlePssStore.set("certames", (atuais) => atuais.map((item) => item.id === existente.id ? { ...item, situacaoAtual:dados.tipo, historicoSituacoes:[...item.historicoSituacoes, registro], atualizadoEm:dados.data! } : item));
   situacaoForm.reset({ tipo:"HOMOLOGADO", data:"" });
  };
 
- // RN-06, seção 3: para Processo Seletivo, o campo de isenção segue o mesmo padrão do concurso,
- // e a aba de Recursos e Contratos passou a ser exibida também para PSS; apenas o bloco de Prazos continua dispensado.
+ // As 4 abas fixas são exibidas para os dois tipos de certame (RN-06, seção 3); apenas o bloco de
+ // Prazos de posse/exercício, dentro de "Identificação e Cronograma", continua dispensado para PSS (RN-06.3).
  const abas:TabItemSeplag<Aba>[] = useMemo(() => {
-  const visiveis = abasBase.filter((item) => !(dispensarParaProcessoSeletivo && item.id === "PRAZOS"));
-  const comSituacoes = modoNovo ? visiveis : [...visiveis, { id:"SITUACOES" as Aba, label:"Situações" }];
+  const comSituacoes = modoNovo ? abasBase : [...abasBase, { id:"SITUACOES" as Aba, label:"Situações" }];
   return comSituacoes.map((item) => ({ id:item.id, label:item.label, value:item.id }));
- }, [modoNovo, dispensarParaProcessoSeletivo]);
+ }, [modoNovo]);
 
- useEffect(() => { if (!abas.some((item) => item.id === aba)) setAba("DADOS_GERAIS"); }, [abas, aba]);
+ useEffect(() => { if (!abas.some((item) => item.id === aba)) setAba("IDENTIFICACAO"); }, [abas, aba]);
 
  const abasFluxo = abas.filter((item) => item.id !== "SITUACOES");
  const indiceAbaAtual = abasFluxo.findIndex((item) => item.id === aba);
@@ -390,106 +424,173 @@ export function CertameFormContent() {
 
      <div className="col-12"><TabsSeplag items={abas} activeValue={aba} onChange={setAba} equalWidth /></div>
 
-     {aba === "DADOS_GERAIS" && <SpecArea metadata={certameFormTabSpecifications["Dados Gerais"]}><div className="col-12"><div className="grid">
-      <RotuloSeplag nome="Tipo do certame" cols="12 6 4" obrigatorio><div className="prototype-certame-campo-fixo-valor">{TIPOS_CERTAME.find((item) => item.value === valores.tipoCertame)?.label}</div></RotuloSeplag>
-      <RotuloSeplag nome="Tipo Concurso Aplic. (TCE-MT)" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{TIPOS_CONCURSO_APLIC_TCE.find((item) => item.value === valores.tipoConcursoAplic)?.label}</div></RotuloSeplag>
-      <NumberFieldSeplag name="anoConcurso" control={control} label="Ano do concurso" required cols="12 6 4" getFormErrorMessage={() => null} />
-      {!modoNovo
-       ? <SpecArea metadata={certameFormBlockSpecifications.mandanteBloqueado}><RotuloSeplag nome="Órgão responsável (mandante)" cols="12 6" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">{valores.setor}</div><small>Bloqueado após o cadastro — RN-05.</small></div></RotuloSeplag></SpecArea>
-       : <DropdownFieldSeplag name="setor" control={control} label="Órgão responsável (mandante)" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />}
-      <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="(selecione)" display="chip" getFormErrorMessage={() => null} />
-      <TextFieldSeplag name="numeroEditalOrgao" control={control} label="Número do edital do órgão" required cols="12 6 4" placeholder="Ex.: 001/SEPLAG/2026" getFormErrorMessage={() => null} />
-      <MaskFieldSeplag name="numeroConcurso" control={control} label="Número do certame (TCE-MT)" required cols="12 6 4" mask="99999999999" placeholder="00000000000" getFormErrorMessage={() => null} />
-      <TextFieldSeplag name="nomeEdital" control={control} label="Nome do edital" required cols="12" placeholder="[NÚMERO]/[ÓRGÃO]/[ANO] [descrição livre]" getFormErrorMessage={() => null} />
-      <DropdownFieldSeplag name="regimeJuridico" control={control} label="Regime jurídico" required cols="12 6 4" options={[...REGIMES_JURIDICOS]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-      {dispensarParaConcurso
-       ? <RotuloSeplag nome="Tipo de vínculo" cols="12 6 4" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">Nomeado Efetivo</div><small>Fixo para Concurso Público.</small></div></RotuloSeplag>
-       : <DropdownFieldSeplag name="tipoVinculo" control={control} label="Tipo de vínculo" required cols="12 6 4" options={[...TIPOS_VINCULO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />}
-      <DropdownFieldSeplag name="leiContratoTemporario" control={control} label={dispensarParaConcurso ? "Lei do concurso" : "Lei de contrato temporário"} required={dispensarParaConcurso || valores.tipoVinculo === "CONTRATO_TEMPORARIO"} cols="12 6 4" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada" getFormErrorMessage={() => null} />
-      <TextAreaFieldSeplag name="objetivo" control={control} label="Objetivo" cols="12" maxLength={1000} getFormErrorMessage={() => null} />
-     </div></div></SpecArea>}
+     {aba === "IDENTIFICACAO" && <SpecArea metadata={certameFormTabSpecifications["Identificação e Cronograma"]}><div className="col-12">
 
-     {aba === "DATAS" && <SpecArea metadata={certameFormTabSpecifications["Datas, Validades e Execução"]}><div className="col-12"><div className="grid">
-      <DateFieldSeplag name="dataPublicacaoEdital" control={control} label="Data de publicação do edital" required cols="12 6 3" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="dataRealizacao" control={control} label="Data de realização" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="dataValidade" control={control} label="Data de validade" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="dataResultado" control={control} label="Data do resultado" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="inicioInscricoesGerais" control={control} label="Início das inscrições gerais" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="fimInscricoesGerais" control={control} label="Fim das inscrições gerais" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
-      {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataProrrogacao" control={control} label="Data de prorrogação" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />}
-      {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataCancelamento" control={control} label="Data de cancelamento" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />}
-      <DropdownFieldSeplag name="abrangencia" control={control} label="Abrangência" required cols="12 6 4" options={[...ABRANGENCIAS]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-      <DropdownFieldSeplag name="tipoContratacaoExecucao" control={control} label="Tipo de contratação (execução)" required cols="12 6 4" options={[...TIPOS_CONTRATACAO_EXECUCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-      {valores.tipoContratacaoExecucao === "EMPRESA_CONTRATADA" && <DropdownFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" required cols="12 6 4" options={[...EMPRESAS_CADASTRADAS]} optionLabel="label" optionValue="value" placeholder="Selecione a empresa cadastrada" getFormErrorMessage={() => null} />}
-      <NumberFieldSeplag name="validadeConcursoDias" control={control} label={dispensarParaProcessoSeletivo ? "Validade do processo seletivo (dias)" : "Validade do concurso (dias)"} cols="12 6 4" getFormErrorMessage={() => null} />
-      <NumberFieldSeplag name="previsaoProrrogacaoDias" control={control} label="Previsão para prorrogação (dias)" cols="12 6 4" getFormErrorMessage={() => null} />
-      <NumberFieldSeplag name="prorrogacaoValidadeDias" control={control} label="Prorrogação da validade (dias)" cols="12 6 4" getFormErrorMessage={() => null} />
-      <CheckboxFieldSeplag name="existePrevisaoRecursos" control={control} label=" " checkboxLabel="Existe previsão de recursos?" cols="12" getFormErrorMessage={() => null} />
-     </div></div></SpecArea>}
-
-     {aba === "PRAZOS" && <SpecArea metadata={certameFormTabSpecifications["Prazos"]}><div className="col-12"><div className="grid">
-      <NumberFieldSeplag name="diasPrazoExercicio" control={control} label="Dias — prazo de exercício" cols="12 6 3" getFormErrorMessage={() => null} />
-      <NumberFieldSeplag name="diasPrazoPosse" control={control} label="Dias — prazo de posse" cols="12 6 3" getFormErrorMessage={() => null} />
-      <NumberFieldSeplag name="diasPrazoProrrogacaoExercicio" control={control} label="Dias — prorrogação do exercício" cols="12 6 3" getFormErrorMessage={() => null} />
-      <NumberFieldSeplag name="diasPrazoProrrogacaoPosse" control={control} label="Dias — prorrogação da posse" cols="12 6 3" getFormErrorMessage={() => null} />
-     </div></div></SpecArea>}
-
-     {aba === "ISENCAO" && <SpecArea metadata={certameFormTabSpecifications["Isenção"]}><div className="col-12"><div className="grid">
-      <CheckboxFieldSeplag name="cobraTaxaInscricao" control={control} label=" " checkboxLabel="O certame cobra taxa de inscrição?" cols="12" getFormErrorMessage={() => null} />
-      <CurrencyFieldSeplag name="valorInscricao" control={control} label="Valor da inscrição" required={valores.cobraTaxaInscricao === "S"} cols="12 6 4" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="dataInicioInscricaoIsencao" control={control} label="Início da inscrição com isenção" cols="12 6 4" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="dataFimInscricaoIsencao" control={control} label="Fim da inscrição com isenção" cols="12 6 4" getFormErrorMessage={() => null} />
-      <DropdownFieldSeplag name="tipoIsencao" control={control} label="Tipo da isenção" cols="12 6 4" options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-      <DropdownFieldSeplag name="leiIsencao" control={control} label="Lei de isenção" cols="12 6 4" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada" getFormErrorMessage={() => null} />
-     </div></div></SpecArea>}
-
-     {aba === "RECURSOS" && <SpecArea metadata={certameFormTabSpecifications["Recursos e Contratos"]}><div className="col-12"><div className="grid">
-      <CheckboxFieldSeplag name="houveContratacaoBanca" control={control} label=" " checkboxLabel="Houve contratação de banca/empresa organizadora?" cols="12" getFormErrorMessage={() => null} />
-      <CheckboxFieldSeplag name="gerouDespesas" control={control} label=" " checkboxLabel="O certame gerou despesas para o fiscalizado?" cols="12" getFormErrorMessage={() => null} />
-      <DropdownFieldSeplag name="tipoContrato" control={control} label="Tipo de contrato" required={valores.houveContratacaoBanca === "S"} cols="12 6 4" options={[...TIPOS_CONTRATO_BANCA]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-      <TextFieldSeplag name="numeroEmpenho" control={control} label="Número do empenho" required={valores.houveContratacaoBanca === "S"} cols="12 6 4" getFormErrorMessage={() => null} />
-      <NumberFieldSeplag name="anoEmpenho" control={control} label="Ano do empenho" cols="12 6 4" getFormErrorMessage={() => null} />
-      <TextFieldSeplag name="numeroContrato" control={control} label="Número do contrato" required={valores.houveContratacaoBanca === "S"} cols="12 6 4" getFormErrorMessage={() => null} />
-      <NumberFieldSeplag name="anoContrato" control={control} label="Ano do contrato" cols="12 6 4" getFormErrorMessage={() => null} />
-      <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" required={valores.houveContratacaoBanca === "S"} cols="12 6 4" getFormErrorMessage={() => null} />
-      <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" cols="12 6 4" getFormErrorMessage={() => null} />
-      <TextFieldSeplag name="codigoUo" control={control} label="Código da UO" cols="12 6 4" getFormErrorMessage={() => null} />
-      <TextFieldSeplag name="codigoUg" control={control} label="Código da UG" cols="12 6 4" getFormErrorMessage={() => null} />
-     </div></div></SpecArea>}
-
-     {aba === "COTAS" && <SpecArea metadata={certameFormTabSpecifications["Cotas"]}><div className="col-12">
-      <div className="grid align-items-end prototype-certame-subform">
-       <DropdownFieldSeplag name="tipo" control={cotaForm.control} label="Tipo de cota" cols="12 6 4" options={[...TIPOS_COTA]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-       <DropdownFieldSeplag name="lei" control={cotaForm.control} label="Lei cadastrada" cols="12 6 6" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada sobre cotas" getFormErrorMessage={() => null} />
-       <div className="col-12 md:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCota} /></div>
+      <div id="bloco-identificacao" className={blocoClasse("bloco-identificacao")}>
+       <h3>Identificação do certame</h3>
+       <div className="grid">
+        <RotuloSeplag nome="Tipo do certame" cols="12 6 4" obrigatorio><div className="prototype-certame-campo-fixo-valor">{TIPOS_CERTAME.find((item) => item.value === valores.tipoCertame)?.label}</div></RotuloSeplag>
+        <RotuloSeplag nome="Tipo Concurso Aplic. (TCE-MT)" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{TIPOS_CONCURSO_APLIC_TCE.find((item) => item.value === valores.tipoConcursoAplic)?.label}</div></RotuloSeplag>
+        <NumberFieldSeplag name="anoConcurso" control={control} label="Ano do concurso" required cols="12 6 4" getFormErrorMessage={() => null} />
+        {!modoNovo
+         ? <SpecArea metadata={certameFormBlockSpecifications.mandanteBloqueado}><RotuloSeplag nome="Órgão responsável (mandante)" cols="12 6" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">{valores.setor}</div><small>Bloqueado após o cadastro — RN-05.</small></div></RotuloSeplag></SpecArea>
+         : <DropdownFieldSeplag name="setor" control={control} label="Órgão responsável (mandante)" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />}
+        <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="(selecione)" display="chip" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="numeroEditalOrgao" control={control} label="Número do edital do órgão" required cols="12 6 4" placeholder="Ex.: 001/SEPLAG/2026" getFormErrorMessage={() => null} />
+        <MaskFieldSeplag name="numeroConcurso" control={control} label="Número do certame (TCE-MT)" required cols="12 6 4" mask="99999999999" placeholder="00000000000" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="nomeEdital" control={control} label="Nome do edital" required cols="12" placeholder="[NÚMERO]/[ÓRGÃO]/[ANO] [descrição livre]" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="regimeJuridico" control={control} label="Regime jurídico" required cols="12 6 4" options={[...REGIMES_JURIDICOS]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+        {dispensarParaConcurso
+         ? <RotuloSeplag nome="Tipo de vínculo" cols="12 6 4" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">Nomeado Efetivo</div><small>Fixo para Concurso Público.</small></div></RotuloSeplag>
+         : <DropdownFieldSeplag name="tipoVinculo" control={control} label="Tipo de vínculo" required cols="12 6 4" options={[...TIPOS_VINCULO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />}
+        <DropdownFieldSeplag name="leiContratoTemporario" control={control} label={dispensarParaConcurso ? "Lei do concurso" : "Lei de contrato temporário"} required={dispensarParaConcurso || valores.tipoVinculo === "CONTRATO_TEMPORARIO"} cols="12 6 4" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada" getFormErrorMessage={() => null} />
+        {dispensarParaProcessoSeletivo && <DropdownFieldSeplag name="leiProcessoSeletivoSimplificado" control={control} label="Lei do processo seletivo" required cols="12 6 4" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada" getFormErrorMessage={() => null} />}
+        <TextAreaFieldSeplag name="objetivo" control={control} label="Objetivo" cols="12" maxLength={1000} getFormErrorMessage={() => null} />
+       </div>
       </div>
-      <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cotas)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasCotas} hasEventoAcao handleView={null} handleEdit={null} handleDelete={(row) => removerCota(row.id)} handleOnPageChange={() => {}} />
-     </div></SpecArea>}
 
-     {aba === "CARGOS" && <SpecArea metadata={certameFormTabSpecifications["Cargos e Vagas"]}><div className="col-12">
-      <div className="grid align-items-end prototype-certame-subform">
-       <DropdownFieldSeplag name="vinculo" control={cargoForm.control} label="Vínculo da vaga" cols="12 6 2" options={[{ label:"Vaga nova do certame", value:"NOVO" }, { label:"Vaga existente no quadro", value:"EXISTENTE" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-       {cargoValores.vinculo === "EXISTENTE"
-        ? <DropdownFieldSeplag name="cargoExistenteId" control={cargoForm.control} label="Cargo/função" cols="12 6 2" options={CARGOS_CADASTRADOS.map((item) => ({ label:item.nome, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Buscar cargo cadastrado" getFormErrorMessage={() => null} />
-        : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" cols="12 6 2" placeholder="Nome do novo cargo" getFormErrorMessage={() => null} />}
-       <SpecArea metadata={certameFormBlockSpecifications.quadroVagasVinculado}><RotuloSeplag nome="Quadro de vagas" cols="12 6 3"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado ? `${quadroVinculado.quadroCodigo} — Versão ${quadroVinculado.quadroVersao}` : "—"}</div></RotuloSeplag></SpecArea>
-       <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Quantidade de vagas" cols="12 6 2" getFormErrorMessage={() => null} />
-       <CheckboxFieldSeplag name="vagaPcd" control={cargoForm.control} label=" " checkboxLabel="PCD/PNE" cols="12 6 1" getFormErrorMessage={() => null} />
-       {cargoValores.vagaPcd === "S" && <NumberFieldSeplag name="quantidadePcd" control={cargoForm.control} label="Qtd. PCD" cols="12 6 2" getFormErrorMessage={() => null} />}
-       <div className="col-12 md:col-3 lg:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCargo} /></div>
+      <div id="bloco-datas-execucao" className={blocoClasse("bloco-datas-execucao")}>
+       <h3>Datas e execução</h3>
+       <div className="grid">
+        <DateFieldSeplag name="dataPublicacaoEdital" control={control} label="Data de publicação do edital" required cols="12 6 3" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataRealizacao" control={control} label="Data de realização" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataValidade" control={control} label="Data de validade" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataResultado" control={control} label="Data do resultado" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="inicioInscricoesGerais" control={control} label="Início das inscrições gerais" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="fimInscricoesGerais" control={control} label="Fim das inscrições gerais" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataProrrogacao" control={control} label="Data de prorrogação" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />}
+        {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataCancelamento" control={control} label="Data de cancelamento" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />}
+        <NumberFieldSeplag name="validadeConcursoDias" control={control} label={dispensarParaProcessoSeletivo ? "Validade do processo seletivo (dias)" : "Validade do concurso (dias)"} cols="12 6 4" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="previsaoProrrogacaoDias" control={control} label="Previsão para prorrogação (dias)" cols="12 6 4" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="prorrogacaoValidadeDias" control={control} label="Prorrogação da validade (dias)" cols="12 6 4" getFormErrorMessage={() => null} />
+        <CheckboxFieldSeplag name="existePrevisaoRecursos" control={control} label=" " checkboxLabel="Existe previsão de recursos?" cols="12" getFormErrorMessage={() => null} />
+       </div>
       </div>
-      <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cargos)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasCargos} hasEventoAcao handleView={null} handleEdit={null} handleDelete={(row) => removerCargo(row.id)} handleOnPageChange={() => {}} />
-      <SpecArea metadata={certameFormBlockSpecifications.fasesFixas}><div className="prototype-certame-fases">
-       <h3>Fases do certame</h3>
-       <TablePaginadoSeplag dataKey="ordem" data={resultadosSemPaginacao(fases)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasFases} hasEventoAcao renderBotoes={renderAcoesFase} reorderableRows onRowReorder={reordenarFases} handleOnPageChange={() => {}} />
-       <div className="grid align-items-end prototype-certame-subform">
-        <TextFieldSeplag name="nome" control={faseForm.control} label="Nome da nova fase" cols="12 6 8" getFormErrorMessage={() => null} />
-        <div className="col-12 md:col-4"><BotaoAdicionarSeplag type="button" label="Adicionar fase" onClick={adicionarFase} /></div>
+
+      <SpecArea metadata={certameFormBlockSpecifications.fasesFixas}><div id="bloco-fases" className={`${blocoClasse("bloco-fases")} prototype-certame-fases`}>
+       <div className="prototype-certame-fases-head">
+        <h3>Fases do certame</h3>
+        <BotaoAdicionarSeplag type="button" label="Adicionar fase" onClick={adicionarFase} />
+       </div>
+       <div className="prototype-certame-fase-header">
+        <span />
+        <span>Nome da fase</span>
+        <span>Data início</span>
+        <span>Data fim</span>
+        <span />
+       </div>
+       <div className="prototype-certame-fase-list">
+        {fases.map((fase) => <div
+         key={fase.ordem}
+         className="prototype-certame-fase-row"
+         draggable
+         onDragStart={() => setFaseArrastada(fase.ordem)}
+         onDragOver={(event) => event.preventDefault()}
+         onDrop={() => { if (faseArrastada !== null) moverFase(faseArrastada, fase.ordem); setFaseArrastada(null); }}
+         onDragEnd={() => setFaseArrastada(null)}
+        >
+         <i className="pi pi-bars prototype-certame-fase-drag-handle" aria-hidden="true" />
+         <label>
+          <span className="prototype-certame-fase-visually-hidden">Nome da fase</span>
+          <input type="text" aria-label="Nome da fase" value={fase.nome} onChange={(event) => atualizarFase(fase.ordem, { nome:event.target.value })} />
+         </label>
+         <label>
+          <span className="prototype-certame-fase-visually-hidden">Data início da fase</span>
+          <input type="text" aria-label="Data início da fase" placeholder="dd/mm/aaaa" value={fase.dataInicio ?? ""} onChange={(event) => atualizarFase(fase.ordem, { dataInicio:event.target.value })} />
+         </label>
+         <label>
+          <span className="prototype-certame-fase-visually-hidden">Data fim da fase</span>
+          <input type="text" aria-label="Data fim da fase" placeholder="dd/mm/aaaa" value={fase.dataFim ?? ""} onChange={(event) => atualizarFase(fase.ordem, { dataFim:event.target.value })} />
+         </label>
+         <button type="button" className="prototype-certame-fase-remove" aria-label="Remover fase" title="Remover fase" onClick={() => removerFase(fase.ordem)}>
+          <i className="pi pi-times" aria-hidden="true" />
+         </button>
+        </div>)}
        </div>
       </div></SpecArea>
+
+      {/* RN-06.3: bloco de Prazos de posse/exercício continua dispensado para Processo Seletivo. */}
+      {!dispensarParaProcessoSeletivo && <div id="bloco-prazos" className={blocoClasse("bloco-prazos")}>
+       <h3>Prazos de posse/exercício</h3>
+       <div className="grid">
+        <NumberFieldSeplag name="diasPrazoExercicio" control={control} label="Dias — prazo de exercício" cols="12 6 3" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="diasPrazoPosse" control={control} label="Dias — prazo de posse" cols="12 6 3" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="diasPrazoProrrogacaoExercicio" control={control} label="Dias — prorrogação do exercício" cols="12 6 3" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="diasPrazoProrrogacaoPosse" control={control} label="Dias — prorrogação da posse" cols="12 6 3" getFormErrorMessage={() => null} />
+       </div>
+      </div>}
+
      </div></SpecArea>}
 
-     {aba === "DOCUMENTOS" && <SpecArea metadata={certameFormTabSpecifications["Documentos"]}><div className="col-12">
+     {aba === "FINANCEIRO" && <SpecArea metadata={certameFormTabSpecifications["Contrato e custo"]}><div className="col-12">
+
+      <div id="bloco-contratacao-custos" className={blocoClasse("bloco-contratacao-custos")}>
+       <h3>Contratação e custos</h3>
+       <div className="grid">
+        {/* RN-22: "Houve contratação de banca/empresa organizadora?" foi removido — o gatilho único
+            passa a ser "Tipo de contratação (execução)". Abrangência, Tipo de contratação (execução)
+            e Instituição realizadora foram trazidos do bloco Datas e execução para cá, na primeira linha. */}
+        <DropdownFieldSeplag name="abrangencia" control={control} label="Abrangência" required cols="12 6 4" options={[...ABRANGENCIAS]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="tipoContratacaoExecucao" control={control} label="Tipo de contratação (execução)" required cols="12 6 4" options={[...TIPOS_CONTRATACAO_EXECUCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+        {houveContratacaoEmpresa && <DropdownFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" required cols="12 6 4" options={[...EMPRESAS_CADASTRADAS]} optionLabel="label" optionValue="value" placeholder="Selecione a empresa cadastrada" getFormErrorMessage={() => null} />}
+        <CheckboxFieldSeplag name="gerouDespesas" control={control} label=" " checkboxLabel="O certame gerou despesas para o fiscalizado?" cols="12" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="tipoContrato" control={control} label="Tipo de contrato" required={houveContratacaoEmpresa} cols="12 6 4" options={[...TIPOS_CONTRATO_BANCA]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="numeroEmpenho" control={control} label="Número do empenho" required={houveContratacaoEmpresa} cols="12 6 4" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="anoEmpenho" control={control} label="Ano do empenho" cols="12 6 4" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="numeroContrato" control={control} label="Número do contrato" required={houveContratacaoEmpresa} cols="12 6 4" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="anoContrato" control={control} label="Ano do contrato" cols="12 6 4" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" required={houveContratacaoEmpresa} cols="12 6 4" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" cols="12 6 4" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="codigoUo" control={control} label="Código da UO" cols="12 6 4" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="codigoUg" control={control} label="Código da UG" cols="12 6 4" getFormErrorMessage={() => null} />
+       </div>
+      </div>
+
+      <div id="bloco-taxa-inscricao" className={blocoClasse("bloco-taxa-inscricao")}>
+       <h3>Taxa de inscrição</h3>
+       <div className="grid">
+        <CheckboxFieldSeplag name="cobraTaxaInscricao" control={control} label=" " checkboxLabel="O certame cobra taxa de inscrição?" cols="12" getFormErrorMessage={() => null} />
+        <CurrencyFieldSeplag name="valorInscricao" control={control} label="Valor da inscrição" required={valores.cobraTaxaInscricao === "S"} cols="12 6 4" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataInicioInscricaoIsencao" control={control} label="Início da inscrição com isenção" cols="12 6 4" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataFimInscricaoIsencao" control={control} label="Fim da inscrição com isenção" cols="12 6 4" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="tipoIsencao" control={control} label="Tipo da isenção" cols="12 6 4" options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="leiIsencao" control={control} label="Lei de isenção" cols="12 6 4" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada" getFormErrorMessage={() => null} />
+       </div>
+      </div>
+
+     </div></SpecArea>}
+
+     {aba === "VAGAS_COTAS" && <SpecArea metadata={certameFormTabSpecifications["Vagas e Cotas"]}><div className="col-12">
+
+      <div id="bloco-cotas" className={blocoClasse("bloco-cotas")}>
+       <h3>Cotas</h3>
+       <div className="grid align-items-end prototype-certame-subform">
+        <DropdownFieldSeplag name="tipo" control={cotaForm.control} label="Tipo de cota" cols="12 6 4" options={[...TIPOS_COTA]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="lei" control={cotaForm.control} label="Lei cadastrada" cols="12 6 6" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada sobre cotas" getFormErrorMessage={() => null} />
+        <div className="col-12 md:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCota} /></div>
+       </div>
+       <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cotas)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasCotas} hasEventoAcao handleView={null} handleEdit={null} handleDelete={(row) => removerCota(row.id)} handleOnPageChange={() => {}} />
+      </div>
+
+      <div id="bloco-cargos-vagas" className={blocoClasse("bloco-cargos-vagas")}>
+       <h3>Cargos e vagas</h3>
+       <div className="grid align-items-end prototype-certame-subform">
+        <DropdownFieldSeplag name="vinculo" control={cargoForm.control} label="Vínculo da vaga" cols="12 6 3" options={[{ label:"Vaga nova do certame", value:"NOVO" }, { label:"Vaga existente no quadro", value:"EXISTENTE" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+        {cargoValores.vinculo === "EXISTENTE"
+         ? <DropdownFieldSeplag name="cargoExistenteId" control={cargoForm.control} label="Cargo/função" cols="12 6 3" options={CARGOS_CADASTRADOS.map((item) => ({ label:item.nome, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Buscar cargo cadastrado" getFormErrorMessage={() => null} />
+         : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" cols="12 6 3" placeholder="Nome do novo cargo" getFormErrorMessage={() => null} />}
+        <SpecArea metadata={certameFormBlockSpecifications.quadroVagasVinculado}><RotuloSeplag nome="Quadro" cols="12 6 1"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado ? `${quadroVinculado.quadroCodigo} — Versão ${quadroVinculado.quadroVersao}` : "—"}</div></RotuloSeplag></SpecArea>
+        <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Qtd. vagas" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
+        <CheckboxFieldSeplag name="vagaPcd" control={cargoForm.control} label=" " checkboxLabel="PCD/PNE" cols="12 6 1" getFormErrorMessage={() => null} />
+        {cargoValores.vagaPcd === "S" && <NumberFieldSeplag name="quantidadePcd" control={cargoForm.control} label="Qtd. PCD" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
+        <div className="col-12 md:col-2 lg:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCargo} /></div>
+       </div>
+       <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cargos)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasCargos} hasEventoAcao handleView={null} handleEdit={null} handleDelete={(row) => removerCargo(row.id)} handleOnPageChange={() => {}} />
+      </div>
+
+     </div></SpecArea>}
+
+     {aba === "DOCUMENTOS" && <SpecArea metadata={certameFormTabSpecifications["Documentos"]}><div id="bloco-documentos" className={`col-12 ${blocoClasse("bloco-documentos")}`}>
       <fieldset className="prototype-documentos-assinatura-selector">
        <legend>Modo de assinatura do documento</legend>
        <div className="prototype-documentos-assinatura-options">

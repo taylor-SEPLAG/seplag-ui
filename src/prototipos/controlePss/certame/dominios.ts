@@ -51,7 +51,9 @@ export const EMPRESAS_CADASTRADAS = [
  { label:"CIEE — Centro de Integração Empresa-Escola", value:"CIEE" },
 ] as const;
 
-// RN-12: obrigatório quando houveContratacaoBanca = true.
+// RN-12/RN-22: obrigatório quando "Tipo de contratação (execução)" = Empresa Contratada — fonte
+// única de verdade para a contratação de banca/empresa organizadora (o antigo checkbox dedicado
+// "houve contratação de banca" foi removido do formulário).
 export const TIPOS_CONTRATO_BANCA = [
  { label:"Banca Organizadora", value:"BANCA_ORGANIZADORA" },
  { label:"Instituição Parceira", value:"INSTITUICAO_PARCEIRA" },
@@ -119,7 +121,12 @@ export const DOCUMENTOS_CERTAME: readonly { tipo:string; label:string; obrigator
  { tipo:"LOTACIONOGRAMA_ANALITICO", label:"Demonstrativo analítico do lotacionograma atualizado", obrigatorioSempre:true },
  { tipo:"PARECER_CONTROLE_INTERNO", label:"Parecer da unidade de controle interno", obrigatorioSempre:true },
  { tipo:"DECLARACAO_RESPONSAVEL", label:"Declaração do responsável", obrigatorioSempre:true },
- { tipo:"DEMONSTRATIVO_LRF", label:"Demonstrativo de Estimativa de Impacto (LRF)", obrigatorioSempre:false },
+ // RN-20: sempre obrigatório para Concurso Público e PSS — abertura de vaga é, por si só, ato
+ // gerador de despesa futura (Manual TCE/MT, Cap. III, item 1.1.5, Anexo XLII). Não depende mais
+ // do checkbox "gerou despesas".
+ { tipo:"DEMONSTRATIVO_LRF", label:"Demonstrativo de Estimativa de Impacto (LRF)", obrigatorioSempre:true },
+ // RN-21: mesmo gatilho condicional do Contrato social — obrigatório quando "Tipo de contratação
+ // (execução)" = Empresa Contratada (ver documentoObrigatorio em CertameFormContent.tsx).
  { tipo:"PUBLICACAO_CERTAME_LICITATORIO", label:"Publicação do certame licitatório (se houver)", obrigatorioSempre:false },
  { tipo:"CONTRATO_SOCIAL_EMPRESA", label:"Contrato social da empresa/instituição contratada", obrigatorioSempre:false },
  { tipo:"OUTROS_COMISSAO", label:"Outros documentos da comissão organizadora", obrigatorioSempre:false },
