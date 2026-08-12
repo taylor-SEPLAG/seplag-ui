@@ -9,11 +9,6 @@
 .prototype-painel-hero-novo{display:inline-flex;flex:0 0 auto;align-items:center;gap:var(--pss-espaco-1);min-height:2.6rem;padding:0 var(--pss-espaco-4);border:0;border-radius:var(--pss-raio-sm);background:#fff;color:#0b5fae;font-size:var(--pss-fonte-base);font-weight:800;cursor:pointer}
 .prototype-painel-hero-novo:hover{background:#eaf4ff}
 
-.prototype-painel-hero-nav{display:flex;flex-wrap:wrap;gap:var(--pss-espaco-1);margin-top:var(--pss-espaco-4);padding:var(--pss-espaco-1);border-radius:var(--pss-raio);background:#0a5299}
-.prototype-painel-hero-nav button{display:inline-flex;align-items:center;padding:var(--pss-espaco-2) var(--pss-espaco-3);border:0;border-radius:var(--pss-raio-sm);background:transparent;color:#cfe6ff;font-size:var(--pss-fonte-base);font-weight:750;cursor:pointer}
-.prototype-painel-hero-nav button.is-active{background:#fff;color:#0b5fae}
-.prototype-painel-hero-nav button:not(.is-active):hover{background:#0e5eaa;color:#fff}
-
 .prototype-painel-hero-filtros{display:flex;flex-wrap:wrap;align-items:end;gap:var(--pss-espaco-3);margin-top:var(--pss-espaco-4)}
 .prototype-painel-hero-filtros label{display:flex;min-width:12rem;flex:1 1 12rem;flex-direction:column;gap:var(--pss-espaco-1);color:#d9ecff;font-size:var(--pss-fonte-micro);font-weight:750}
 .prototype-painel-hero-filtros select,.prototype-painel-hero-filtros input{width:100%;min-height:2.5rem;padding:var(--pss-espaco-2);border:1px solid #3d7fc0;border-radius:var(--pss-raio-sm);background:#0e5eaa;color:#fff;font-size:var(--pss-fonte-base)}

@@ -27,14 +27,6 @@ const BUCKET_LABEL:Record<BucketStatusCertame, string> = {
 };
 const BUCKET_COR:Record<BucketStatusCertame, string> = { ELABORACAO:"", PUBLICADA:"", ANALISE:"orange", HOMOLOGADO:"green", CANCELADO:"red" };
 
-const navegacaoControlePss:readonly { label:string; rota:string; ativo?:boolean }[] = [
- { label:"Painel Geral", rota:"painel", ativo:true },
- { label:"Cadastro de Certames", rota:"certames" },
- { label:"Processos Seletivos", rota:"processos" },
- { label:"Controle de Vagas", rota:"vagas" },
- { label:"Integração SIES", rota:"integracao-sies" },
-];
-
 const normalizar = (valor:string) => valor.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("pt-BR");
 
 function parseDataReferencia(iso:string):Date {
@@ -102,10 +94,6 @@ export function PainelGeralPssContent() {
      </div>
      <SpecArea metadata={painelPssActionSpecifications["Novo certame"]}><button type="button" className="prototype-painel-hero-novo" onClick={() => navigate(`${BASE}/certames/novo`)}><i className="pi pi-plus" /> Novo certame</button></SpecArea>
     </div>
-
-    <nav className="prototype-painel-hero-nav" aria-label="Navegação do Controle PSS">
-     {navegacaoControlePss.map((item) => <button key={item.rota} type="button" className={item.ativo ? "is-active" : undefined} onClick={() => navigate(`${BASE}/${item.rota}`)}>{item.label}</button>)}
-    </nav>
 
     <div className="prototype-painel-hero-filtros">
      <SpecArea metadata={painelPssFilterSpecifications["Órgão"]}><label><span>Órgão</span><select value={filtroOrgao} onChange={(event) => setFiltroOrgao(event.target.value)}><option value="">Todos os órgãos</option>{ORGAOS_CERTAME.map((orgao) => <option key={orgao} value={orgao}>{orgao}</option>)}</select></label></SpecArea>
