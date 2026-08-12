@@ -134,7 +134,7 @@ export function PainelGeralPssContent() {
    </div>
 
    <div className="grid">
-    <div className="col-12 lg:col-5"><SpecArea metadata={painelPssBlockSpecifications.cotasResumo}><CardSeplag title="Cotas e vagas" subtitle={`${cotasCertames.length} certames com cota cadastrada`}>
+    <div className="col-12 lg:col-6"><SpecArea metadata={painelPssBlockSpecifications.cotasResumo}><CardSeplag title="Cotas e vagas" subtitle={`${cotasCertames.length} certames com cota cadastrada`}>
      <div className="col-12"><div className="prototype-painel-cotas-resumo">
       <div><span>Total de vagas</span><strong>{totalVagasAtivas.toLocaleString("pt-BR")}</strong></div>
       <div><span>Vagas PCD/PNE</span><strong>{totalVagasPcdAtivas.toLocaleString("pt-BR")}</strong></div>
@@ -144,7 +144,7 @@ export function PainelGeralPssContent() {
      {cotasLinhas.length === 0 && <p className="col-12 text-center text-color-secondary">Nenhuma cota cadastrada para o filtro atual.</p>}
     </CardSeplag></SpecArea></div>
 
-    <div className="col-12 lg:col-5"><CardSeplag title="Alertas de pendências" subtitle="Sinais que pedem atenção no filtro atual">
+    <div className="col-12 lg:col-6"><CardSeplag title="Alertas de pendências" subtitle="Sinais que pedem atenção no filtro atual">
      <div className="col-12"><div className="prototype-pss-alert-list">
       {alertas.map((alerta) => <SpecArea key={alerta.titulo} metadata={painelPssBlockSpecifications[alerta.specKey]}>
        <button type="button" className={alerta.kind} onClick={() => navigate(`${BASE}/certames`)}><i className={alerta.icon} /><div><strong>{alerta.titulo}</strong><span>{alerta.texto}</span></div><b>{alerta.valor}</b><i className="pi pi-chevron-right" /></button>
