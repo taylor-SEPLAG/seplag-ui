@@ -2199,3 +2199,36 @@
   color: #24364b;
   font-weight: 700;
 }
+.prototype-quadro-cargo-indisponivel {
+  display: block;
+  position: relative;
+  width: 100%;
+  color: #667085;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+
+.prototype-quadro-cargo-modal-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #acd5f5;
+  border-left: 4px solid #087bc1;
+  border-radius: 4px;
+  background: #eef8ff;
+  color: #163a59;
+}
+
+.prototype-quadro-cargo-modal-message > i {
+  margin-top: 2px;
+  color: #087bc1;
+  font-size: 18px;
+}
+
+.prototype-quadro-cargo-modal-message p {
+  margin: 5px 0 0;
+  line-height: 1.45;
+}

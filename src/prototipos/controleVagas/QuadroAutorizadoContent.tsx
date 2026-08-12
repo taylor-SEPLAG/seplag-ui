@@ -1345,6 +1345,7 @@ function QuadroAutorizadoForm({
   novaVersao: boolean;
   onBack: () => void;
 }) {
+  const { quadros } = useControleVagasStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -1407,6 +1408,42 @@ function QuadroAutorizadoForm({
     },
   });
   const form = watch();
+  const normalizarCargo = (cargo: string) =>
+    cargo.trim().toLocaleLowerCase("pt-BR");
+  const quadroExistenteDoCargo = (cargo: string) =>
+    quadros.find(
+      (quadro) =>
+        normalizarCargo(quadro.cargo) === normalizarCargo(cargo) &&
+        (!registro || quadro.codigo !== registro.codigo),
+    );
+  const opcoesCargo = cargosBaseTemporaria.map((item) => {
+    const quadroExistente = quadroExistenteDoCargo(item.nome);
+    return {
+      label:
+        item.situacaoLegal === "EM_EXTINCAO"
+          ? item.nome + " — Em extinção"
+          : item.nome,
+      value: item.nome,
+      indisponivel: Boolean(quadroExistente),
+      motivoIndisponibilidade: quadroExistente
+        ? `Já existe o quadro ${quadroExistente.codigo} para este cargo.`
+        : "",
+    };
+  });
+  const [avisoCargo, setAvisoCargo] = useState<string | null>(null);
+  const cargoSelecionadoJaPossuiQuadro = Boolean(
+    form.cargo && quadroExistenteDoCargo(form.cargo),
+  );
+
+  useEffect(() => {
+    if (!cargoSelecionadoJaPossuiQuadro) return;
+
+    setValue("cargo", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [cargoSelecionadoJaPossuiQuadro, form.cargo, setValue]);
+
   const modoAbrangencia = form.modoAbrangencia;
   const formaDestinacao =
     modoAbrangencia === "SEM_ORGAOS"
@@ -1462,6 +1499,9 @@ function QuadroAutorizadoForm({
       !form.regime && "Informe o regime jurídico.",
       !form.carreira && "Informe a carreira.",
       !form.cargo && "Informe o cargo.",
+      form.cargo &&
+        quadroExistenteDoCargo(form.cargo) &&
+        `Já existe um Quadro Autorizado para o cargo ${form.cargo}.`,
       !documentosLegaisIds.length &&
         "Vincule ao menos uma norma à autorização.",
       ...errosVigencia,
@@ -1610,6 +1650,30 @@ function QuadroAutorizadoForm({
           "</ul>"
         }
       />
+      <ModalSeplag
+        visible={Boolean(avisoCargo)}
+        titulo="Cargo indisponível"
+        fechar={() => setAvisoCargo(null)}
+        tamanho="min(32rem, 92vw)"
+        ariaLabel="Motivo de indisponibilidade do cargo"
+        customFooter={
+          <div className="prototype-quadro-modal-library-actions">
+            <BotaoVoltarSeplag
+              label="Fechar"
+              icon="pi pi-times"
+              onClick={() => setAvisoCargo(null)}
+            />
+          </div>
+        }
+      >
+        <div className="col-12 prototype-quadro-cargo-modal-message">
+          <i className="pi pi-info-circle" aria-hidden="true" />
+          <div>
+            <strong>Este cargo não pode ser selecionado.</strong>
+            <p>{avisoCargo}</p>
+          </div>
+        </div>
+      </ModalSeplag>
       <form onSubmit={submit} className="prototype-quadro-form">
         <section>
           <header>
@@ -1707,15 +1771,38 @@ function QuadroAutorizadoForm({
               label="Cargo"
               required
               cols="12"
-              options={cargosBaseTemporaria.map((item) => ({
-                label:
-                  item.situacaoLegal === "EM_EXTINCAO"
-                    ? item.nome + " — Em extinção"
-                    : item.nome,
-                value: item.nome,
-              }))}
+              options={opcoesCargo}
               optionLabel="label"
               optionValue="value"
+              onChange={(cargoSelecionado) => {
+                if (
+                  cargoSelecionado &&
+                  quadroExistenteDoCargo(String(cargoSelecionado))
+                ) {
+                  setValue("cargo", "", {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }
+              }}
+              itemTemplate={(option) => (
+                <span
+                  className={
+                    option.indisponivel
+                      ? "prototype-quadro-cargo-indisponivel"
+                      : undefined
+                  }
+                  aria-label={option.motivoIndisponibilidade || undefined}
+                  onClick={(event) => {
+                    if (!option.indisponivel) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setAvisoCargo(option.motivoIndisponibilidade);
+                  }}
+                >
+                  {option.label}
+                </span>
+              )}
               placeholder="Selecione"
               getFormErrorMessage={() => null}
             />
