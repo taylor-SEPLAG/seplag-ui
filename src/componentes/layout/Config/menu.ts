@@ -4,6 +4,7 @@ export interface IMenuSeplag {
   items?: IMenuSeplag[]
   nameRef?: string | null
   to?: string
+  activeRoutes?: string[]
   url?: string
   component?: React.ReactNode
   visibleOnRouter?: boolean
