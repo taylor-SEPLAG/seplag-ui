@@ -27,6 +27,15 @@ function resultadosSemPaginacao<T>(content:readonly T[]):ResultsSeplag<T> {
  return { content:[...content], totalPages:1, totalRecords:content.length, size:Math.max(content.length, 1), sizePage:Math.max(content.length, 1), pageActual:0, number:0, first:true, last:true, numberOfElements:content.length, empty:content.length === 0 };
 }
 
+// Cabeçalho de bloco (ícone + título + subtítulo) — separação por componente dentro de cada aba,
+// alinhada à maquete de referência do Cadastro de Certame.
+function BlocoHeader({ icone, titulo, subtitulo }:{ icone:string; titulo:string; subtitulo:string }) {
+ return <header className="prototype-certame-bloco-header">
+  <span className={`prototype-certame-bloco-icone pi ${icone}`} aria-hidden="true" />
+  <div><h3>{titulo}</h3><p>{subtitulo}</p></div>
+ </header>;
+}
+
 interface CertameFormValues {
  tipoCertame:TipoCertame; tipoConcursoAplic:string;
  leiContratoTemporario?:string; leiProcessoSeletivoSimplificado?:string;
@@ -50,12 +59,13 @@ interface CotaFormValues { tipo:string; lei:string }
 interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; quantidadeVagas:number; vagaPcd:string; quantidadePcd?:number }
 interface SituacaoFormValues { tipo:SituacaoCertame; data?:string }
 
-// Consolidação de 8 para 4 abas fixas (+ Situações, disponível só após salvar): cada aba antiga
+// Consolidação de 8 para 5 abas fixas (+ Situações, disponível só após salvar): cada aba antiga
 // virou um bloco com subtítulo dentro da aba nova, preservando todos os campos, RNs e CAs originais.
-type Aba = "IDENTIFICACAO" | "FINANCEIRO" | "VAGAS_COTAS" | "DOCUMENTOS" | "SITUACOES";
+type Aba = "IDENTIFICACAO" | "CRONOGRAMA" | "FINANCEIRO" | "VAGAS_COTAS" | "DOCUMENTOS" | "SITUACOES";
 const abasBase:readonly { id:Aba; label:string }[] = [
- { id:"IDENTIFICACAO", label:"Identificação e Cronograma" },
- { id:"FINANCEIRO", label:"Contrato e custo" },
+ { id:"IDENTIFICACAO", label:"Identificação" },
+ { id:"CRONOGRAMA", label:"Cronograma" },
+ { id:"FINANCEIRO", label:"Contrato e Custos" },
  { id:"VAGAS_COTAS", label:"Vagas e Cotas" },
  { id:"DOCUMENTOS", label:"Documentos" },
 ];
@@ -401,8 +411,8 @@ export function CertameFormContent() {
   setArquivoSituacao(null);
  };
 
- // As 4 abas fixas são exibidas para os dois tipos de certame (RN-06, seção 3); apenas o bloco de
- // Prazos de posse/exercício, dentro de "Identificação e Cronograma", continua dispensado para PSS (RN-06.3).
+ // As 5 abas fixas são exibidas para os dois tipos de certame (RN-06, seção 3); apenas o bloco de
+ // Prazos de posse/exercício, dentro de "Cronograma", continua dispensado para PSS (RN-06.3).
  const abas:TabItemSeplag<Aba>[] = useMemo(() => {
   const comSituacoes = modoNovo ? abasBase : [...abasBase, { id:"SITUACOES" as Aba, label:"Situações" }];
   return comSituacoes.map((item) => ({ id:item.id, label:item.label, value:item.id }));
@@ -455,10 +465,10 @@ export function CertameFormContent() {
 
      <div className="col-12"><TabsSeplag items={abas} activeValue={aba} onChange={setAba} equalWidth /></div>
 
-     {aba === "IDENTIFICACAO" && <SpecArea metadata={certameFormTabSpecifications["Identificação e Cronograma"]}><div className="col-12">
+     {aba === "IDENTIFICACAO" && <SpecArea metadata={certameFormTabSpecifications["Identificação"]}><div className="col-12">
 
       <div id="bloco-identificacao" className={blocoClasse("bloco-identificacao")}>
-       <h3>Identificação do certame</h3>
+       <BlocoHeader icone="pi-id-card" titulo="Identificação do certame" subtitulo="Dados que identificam o certame perante o TCE-MT." />
        <div className="grid">
         <RotuloSeplag nome="Tipo do certame / Aplic. TCE-MT" cols="12 6 5" obrigatorio><div className="prototype-certame-campo-fixo-valor">{TIPOS_CERTAME.find((item) => item.value === valores.tipoCertame)?.label} — {TIPOS_CONCURSO_APLIC_TCE.find((item) => item.value === valores.tipoConcursoAplic)?.label}</div></RotuloSeplag>
         <NumberFieldSeplag name="anoConcurso" control={control} label="Ano do concurso" required cols="12 6 4" getFormErrorMessage={() => null} />
@@ -480,8 +490,12 @@ export function CertameFormContent() {
        </div>
       </div>
 
+     </div></SpecArea>}
+
+     {aba === "CRONOGRAMA" && <SpecArea metadata={certameFormTabSpecifications["Cronograma"]}><div className="col-12">
+
       <div id="bloco-datas-execucao" className={blocoClasse("bloco-datas-execucao")}>
-       <h3>Datas e execução</h3>
+       <BlocoHeader icone="pi-calendar" titulo="Datas e execução" subtitulo="Marcos temporais do certame, a partir da publicação do edital." />
        <div className="grid">
         <DateFieldSeplag name="dataPublicacaoEdital" control={control} label="Data de publicação do edital" required cols="12 6 3" getFormErrorMessage={() => null} />
         <DateFieldSeplag name="dataRealizacao" control={control} label="Data de realização" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
@@ -500,7 +514,7 @@ export function CertameFormContent() {
 
       <SpecArea metadata={certameFormBlockSpecifications.fasesFixas}><div id="bloco-fases" className={`${blocoClasse("bloco-fases")} prototype-certame-fases`}>
        <div className="prototype-certame-fases-head">
-        <h3>Fases do certame</h3>
+        <BlocoHeader icone="pi-sitemap" titulo="Fases do certame" subtitulo="Cronograma editável de fases, com base no catálogo do TCE-MT." />
         <BotaoAdicionarSeplag type="button" label="Adicionar fase" onClick={adicionarFase} />
        </div>
        <div className="prototype-certame-fase-header">
@@ -542,7 +556,7 @@ export function CertameFormContent() {
 
       {/* RN-06.3: bloco de Prazos de posse/exercício continua dispensado para Processo Seletivo. */}
       {!dispensarParaProcessoSeletivo && <div id="bloco-prazos" className={blocoClasse("bloco-prazos")}>
-       <h3>Prazos de posse/exercício</h3>
+       <BlocoHeader icone="pi-clock" titulo="Prazos de posse/exercício" subtitulo="Prazos aplicáveis após o ingresso do candidato aprovado." />
        <div className="grid">
         <NumberFieldSeplag name="diasPrazoExercicio" control={control} label="Dias — prazo de exercício" cols="12 6 3" getFormErrorMessage={() => null} />
         <NumberFieldSeplag name="diasPrazoPosse" control={control} label="Dias — prazo de posse" cols="12 6 3" getFormErrorMessage={() => null} />
@@ -553,10 +567,10 @@ export function CertameFormContent() {
 
      </div></SpecArea>}
 
-     {aba === "FINANCEIRO" && <SpecArea metadata={certameFormTabSpecifications["Contrato e custo"]}><div className="col-12">
+     {aba === "FINANCEIRO" && <SpecArea metadata={certameFormTabSpecifications["Contrato e Custos"]}><div className="col-12">
 
       <div id="bloco-contratacao-custos" className={blocoClasse("bloco-contratacao-custos")}>
-       <h3>Contratação e custos</h3>
+       <BlocoHeader icone="pi-briefcase" titulo="Contratação e custos" subtitulo="Abrangência, execução do certame e dados do contrato, quando houver." />
        <div className="grid">
         {/* RN-22: "Houve contratação de banca/empresa organizadora?" foi removido — o gatilho único
             passa a ser "Tipo de contratação (execução)". Abrangência, Tipo de contratação (execução)
@@ -580,7 +594,7 @@ export function CertameFormContent() {
       </div>
 
       <div id="bloco-taxa-inscricao" className={blocoClasse("bloco-taxa-inscricao")}>
-       <h3>Taxa de inscrição</h3>
+       <BlocoHeader icone="pi-wallet" titulo="Taxa de inscrição" subtitulo="Valor da inscrição e regras de isenção, quando aplicável." />
        <div className="grid">
         <CheckboxFieldSeplag name="cobraTaxaInscricao" control={control} label=" " checkboxLabel="O certame cobra taxa de inscrição?" cols="12" getFormErrorMessage={() => null} />
         {valores.cobraTaxaInscricao === "S" && <>
@@ -598,7 +612,7 @@ export function CertameFormContent() {
      {aba === "VAGAS_COTAS" && <SpecArea metadata={certameFormTabSpecifications["Vagas e Cotas"]}><div className="col-12">
 
       <div id="bloco-cotas" className={blocoClasse("bloco-cotas")}>
-       <h3>Cotas</h3>
+       <BlocoHeader icone="pi-percentage" titulo="Cotas" subtitulo="Tipos de cota previstos em lei para o certame." />
        <div className="grid align-items-end prototype-certame-subform">
         <DropdownFieldSeplag name="tipo" control={cotaForm.control} label="Tipo de cota" cols="12 6 4" options={[...TIPOS_COTA]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
         <DropdownFieldSeplag name="lei" control={cotaForm.control} label="Lei cadastrada" cols="12 6 6" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada sobre cotas" getFormErrorMessage={() => null} />
@@ -608,7 +622,7 @@ export function CertameFormContent() {
       </div>
 
       <div id="bloco-cargos-vagas" className={blocoClasse("bloco-cargos-vagas")}>
-       <h3>Cargos e vagas</h3>
+       <BlocoHeader icone="pi-users" titulo="Cargos e vagas" subtitulo="Cargos/funções e vagas ofertadas, com vínculo automático ao Quadro de Vagas." />
        <div className="grid align-items-end prototype-certame-subform">
         <DropdownFieldSeplag name="vinculo" control={cargoForm.control} label="Vínculo da vaga" cols="12 6 3" options={[{ label:"Vaga nova do certame", value:"NOVO" }, { label:"Vaga existente no quadro", value:"EXISTENTE" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
         {cargoValores.vinculo === "EXISTENTE"
@@ -626,6 +640,7 @@ export function CertameFormContent() {
      </div></SpecArea>}
 
      {aba === "DOCUMENTOS" && <SpecArea metadata={certameFormTabSpecifications["Documentos"]}><div id="bloco-documentos" className={`col-12 ${blocoClasse("bloco-documentos")}`}>
+      <BlocoHeader icone="pi-file" titulo="Documentos do certame" subtitulo="Anexos exigidos para a prestação de contas ao TCE-MT." />
       <fieldset className="prototype-documentos-assinatura-selector">
        <legend>Modo de assinatura do documento</legend>
        <div className="prototype-documentos-assinatura-options">
@@ -675,13 +690,18 @@ export function CertameFormContent() {
      </div></SpecArea>}
 
      {aba === "SITUACOES" && existente && <SpecArea metadata={certameFormTabSpecifications["Situações"]}><div className="col-12">
-      <h3 className="mt-0">Histórico de situações</h3>
-      <ol className="prototype-certame-timeline">{[...existente.historicoSituacoes].reverse().map((item, indice) => <li key={item.id}><i className={indice === 0 ? "active" : ""} /><div className="date"><strong>{item.dataEfeito}</strong><small>registrado em {item.registradoEm}</small></div><div className="event"><strong>{situacaoLabel[item.tipo]}</strong>{item.prazoPrestacaoContas && <p>Prazo de prestação de contas ao TCE-MT: até {item.prazoPrestacaoContas} (RN-15).</p>}{item.documentoAnexado && <p><i className="pi pi-paperclip" aria-hidden="true" /> {item.documentoAnexado}</p>}<small>{item.usuario}</small></div></li>)}</ol>
-      <div className="grid align-items-end prototype-certame-subform">
-       <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 3" options={[...SITUACOES_CERTAME]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-       <DateFieldSeplag name="data" control={situacaoForm.control} label="Data de efeito" cols="12 6 3" getFormErrorMessage={() => null} />
-       <div className="col-12 md:col-3"><label className="prototype-ingresso-field"><span>Documento de apoio (opcional)</span><input type="file" accept="application/pdf,.pdf" onChange={(event) => setArquivoSituacao(event.target.files?.[0] ?? null)} /></label></div>
-       <div className="col-12 md:col-3"><SpecArea metadata={certameFormActionSpecifications["Registrar situação"]}><BotaoSeplag type="button" label="Registrar situação" icon="pi pi-check" onClick={registrarSituacao} /></SpecArea></div>
+      <div className="prototype-certame-bloco">
+       <BlocoHeader icone="pi-history" titulo="Histórico de situações" subtitulo="Situações registradas ao longo do ciclo de vida do certame." />
+       <ol className="prototype-certame-timeline">{[...existente.historicoSituacoes].reverse().map((item, indice) => <li key={item.id}><i className={indice === 0 ? "active" : ""} /><div className="date"><strong>{item.dataEfeito}</strong><small>registrado em {item.registradoEm}</small></div><div className="event"><strong>{situacaoLabel[item.tipo]}</strong>{item.prazoPrestacaoContas && <p>Prazo de prestação de contas ao TCE-MT: até {item.prazoPrestacaoContas} (RN-15).</p>}{item.documentoAnexado && <p><i className="pi pi-paperclip" aria-hidden="true" /> {item.documentoAnexado}</p>}<small>{item.usuario}</small></div></li>)}</ol>
+      </div>
+      <div className="prototype-certame-bloco">
+       <BlocoHeader icone="pi-plus-circle" titulo="Registrar nova situação" subtitulo="Adicione uma nova situação ao histórico do certame." />
+       <div className="grid align-items-end prototype-certame-subform">
+        <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 3" options={[...SITUACOES_CERTAME]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="data" control={situacaoForm.control} label="Data de efeito" cols="12 6 3" getFormErrorMessage={() => null} />
+        <div className="col-12 md:col-3"><label className="prototype-ingresso-field"><span>Documento de apoio (opcional)</span><input type="file" accept="application/pdf,.pdf" onChange={(event) => setArquivoSituacao(event.target.files?.[0] ?? null)} /></label></div>
+        <div className="col-12 md:col-3"><SpecArea metadata={certameFormActionSpecifications["Registrar situação"]}><BotaoSeplag type="button" label="Registrar situação" icon="pi pi-check" onClick={registrarSituacao} /></SpecArea></div>
+       </div>
       </div>
       <div className="col-12 flex justify-content-end"><BotaoVoltarSeplag type="button" onClick={() => navigate(`${BASE}/certames`)} /></div>
      </div></SpecArea>}

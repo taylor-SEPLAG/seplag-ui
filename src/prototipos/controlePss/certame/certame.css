@@ -16,17 +16,19 @@
 
 .prototype-certame-subform{padding-top:.5rem;margin-bottom:1rem}
 
-/* Blocos com subtítulo dentro de cada uma das 4 abas consolidadas (item 1 da refatoração). */
-.prototype-certame-bloco{padding:1.1rem 0 1.5rem;border-bottom:1px solid var(--surface-border);scroll-margin-top:1rem;transition:background-color .3s ease}
-.prototype-certame-bloco:first-child{padding-top:0}
-.prototype-certame-bloco:last-child{border-bottom:0;padding-bottom:.5rem}
-.prototype-certame-bloco--destaque{padding-left:.75rem;padding-right:.75rem;background:var(--primary-100);border-radius:8px;box-shadow:0 0 0 2px var(--primary-color)}
+/* Blocos com cabeçalho de ícone + título + subtítulo, cada um exibido como um cartão próprio
+   (separação por componente, alinhada à maquete de referência). */
+.prototype-certame-bloco{padding:1.25rem;margin-bottom:1rem;border:1px solid var(--surface-border);border-radius:10px;background:var(--surface-0);scroll-margin-top:1rem;transition:background-color .3s ease,box-shadow .3s ease}
+.prototype-certame-bloco:last-child{margin-bottom:0}
+.prototype-certame-bloco--destaque{box-shadow:0 0 0 2px var(--primary-color)}
 
-.prototype-certame-bloco>h3,.prototype-certame-fases-head h3{margin:0 0 1rem;color:var(--text-color);font-size:.8rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.prototype-certame-bloco-header{display:flex;align-items:flex-start;gap:.75rem;margin-bottom:1.1rem;padding-bottom:1.1rem;border-bottom:1px solid var(--surface-border)}
+.prototype-certame-bloco-icone{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;border-radius:8px;background:var(--primary-100);color:var(--primary-color);font-size:1rem}
+.prototype-certame-bloco-header h3{margin:0;color:var(--text-color);font-size:.95rem;font-weight:800}
+.prototype-certame-bloco-header p{margin:.2rem 0 0;color:var(--text-color-secondary);font-size:.8rem}
 
-.prototype-certame-fases{padding-top:1.1rem}
-.prototype-certame-fases-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:0}
-.prototype-certame-fases-head h3{margin:0}
+.prototype-certame-fases-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:1.1rem;padding-bottom:1.1rem;border-bottom:1px solid var(--surface-border)}
+.prototype-certame-fases-head .prototype-certame-bloco-header{margin-bottom:0;padding-bottom:0;border-bottom:0}
 
 .prototype-certame-fase-header,.prototype-certame-fase-row{display:grid;grid-template-columns:18px minmax(180px,1fr) 152px 152px 28px;column-gap:10px;align-items:center}
 .prototype-certame-fase-header{padding:8px 12px;border-bottom:1px solid var(--surface-border);background:var(--surface-50);color:var(--text-color-secondary);font-size:.72rem;font-weight:800;text-transform:uppercase}

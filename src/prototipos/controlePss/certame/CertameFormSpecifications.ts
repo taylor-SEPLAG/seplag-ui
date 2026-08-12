@@ -5,39 +5,44 @@ const spec = (id:string, title:string, description:string, businessRule:string, 
 
 export const certameFormScreenSpecification = spec(
  "PSS-CERT-FRM", "Cadastro/Edição de Certame", "Cadastrar ou editar um Concurso Público / PSS com base no edital publicado, replicando os campos hoje mantidos na tela 253 do CEAP.",
- "Cenário 1 (cadastro válido) exige tipo, nome/número do edital, número do certame, órgão responsável, lei, regime jurídico, tipo de vínculo, data de publicação e ao menos um cargo/vaga. Consolidação de 8 para 4 abas fixas (+ Situações) — todo campo, RN e CA das 8 abas originais foi preservado, apenas redistribuído em blocos com subtítulo dentro das 4 abas novas.",
- "Certame do controlePssStore.", "Certame", "Formulário React organizado em 4 abas fixas, cada uma com blocos internos com subtítulo",
+ "Cenário 1 (cadastro válido) exige tipo, nome/número do edital, número do certame, órgão responsável, lei, regime jurídico, tipo de vínculo, data de publicação e ao menos um cargo/vaga. Consolidação das 8 abas originais em 5 abas fixas (+ Situações) — Identificação e Cronograma são abas separadas, alinhadas à maquete de referência; todo campo, RN e CA das 8 abas originais foi preservado, redistribuído em blocos (cartões com ícone, título e subtítulo) dentro das 5 abas novas.",
+ "Certame do controlePssStore.", "Certame", "Formulário React organizado em 5 abas fixas, cada uma com blocos internos apresentados como cartões com ícone, título e subtítulo",
  "Salvar grava em controlePssStore.certames; o certame criado passa a status 'Aberto' (RN-15); bloqueia duplicidade de número/tipo/exercício (RN-23).",
 );
 
 export const certameFormTabSpecifications: Record<string, SpecificationMetadata> = {
- "Identificação e Cronograma": spec(
-  "PSS-CERT-FRM-TAB-001", "Identificação e Cronograma",
-  "Une os antigos blocos Dados Gerais, Datas/Validades e Execução, e Prazos em uma única aba, organizada em 4 blocos com subtítulo: \"Identificação do certame\", \"Datas e execução\", \"Fases do certame\" e \"Prazos de posse/exercício\".",
-  "Bloco Identificação do certame — RN-01 (tipo único Conc/PSS — RN-06.2), RN-02 (padrão de nomenclatura do edital), RN-03 (número TCE-MT sequencial e editável), RN-04 (numeração própria por órgão), RN-05 (órgão mandante único) e RN-06.4 (rótulo \"(selecione)\" em Órgãos participantes); Lei de contrato temporário e Lei de PSS ficam ocultas quando o tipo é Concurso (RN-06, seção 3). "
-  + "Bloco Datas e execução — RN-07 (a data de publicação do edital não pode ser posterior a nenhuma data subsequente do fluxo); Data de prorrogação e Data de cancelamento ficam ocultas para Processo Seletivo (RN-06, seção 3); RN-19 (validade em dias calculada automaticamente a partir de Publicação → Validade); Abrangência, Tipo de contratação (execução) e Instituição realizadora foram deslocados para o bloco Contratação e custos, na aba Financeiro. "
-  + "Bloco Fases do certame — trazido da aba Vagas e Cotas para junto do cronograma do certame; RN-09 (catálogo do TCE-MT como sugestão inicial; fases totalmente editáveis — nome, datas de início/fim, reordenar, incluir e remover). "
-  + "Bloco Prazos de posse/exercício — campos numéricos de apoio à contagem de prazos posteriores ao ingresso; bloco oculto por completo para Processo Seletivo (RN-06.3). "
+ "Identificação": spec(
+  "PSS-CERT-FRM-TAB-001", "Identificação",
+  "Aba com o bloco \"Identificação do certame\": dados que identificam o certame perante o TCE-MT.",
+  "RN-01 (tipo único Conc/PSS — RN-06.2), RN-02 (padrão de nomenclatura do edital), RN-03 (número TCE-MT sequencial e editável), RN-04 (numeração própria por órgão), RN-05 (órgão mandante único) e RN-06.4 (rótulo \"(selecione)\" em Órgãos participantes); Lei de contrato temporário e Lei de PSS ficam ocultas quando o tipo é Concurso (RN-06, seção 3). "
   + "RN-23 — ao salvar, bloqueia duplicidade de Número do certame (TCE-MT) para o mesmo Tipo e Ano do concurso.",
-  "Certame (blocos 1, 2, 3 e 7).", "Certame", "formulário com blocos internos com subtítulo",
+  "Certame (bloco 1).", "Certame", "formulário com bloco único",
  ),
- "Contrato e custo": spec(
-  "PSS-CERT-FRM-TAB-002", "Contrato e custo",
+ "Cronograma": spec(
+  "PSS-CERT-FRM-TAB-002", "Cronograma",
+  "Aba com os marcos temporais e o cronograma do certame, organizada em 3 blocos com ícone e subtítulo: \"Datas e execução\", \"Fases do certame\" e \"Prazos de posse/exercício\".",
+  "Bloco Datas e execução — RN-07 (a data de publicação do edital não pode ser posterior a nenhuma data subsequente do fluxo); Data de prorrogação e Data de cancelamento ficam ocultas para Processo Seletivo (RN-06, seção 3); RN-19 (validade em dias calculada automaticamente a partir de Publicação → Validade); Abrangência, Tipo de contratação (execução) e Instituição realizadora foram deslocados para o bloco Contratação e custos, na aba Contrato e Custos. "
+  + "Bloco Fases do certame — RN-09 (catálogo do TCE-MT como sugestão inicial; fases totalmente editáveis — nome, datas de início/fim, reordenar, incluir e remover). "
+  + "Bloco Prazos de posse/exercício — campos numéricos de apoio à contagem de prazos posteriores ao ingresso; bloco oculto por completo para Processo Seletivo (RN-06.3).",
+  "Certame (blocos 2, 3 e 7).", "Certame", "formulário com blocos internos com subtítulo",
+ ),
+ "Contrato e Custos": spec(
+  "PSS-CERT-FRM-TAB-003", "Contrato e Custos",
   "Une os antigos blocos Isenção e Recursos e Contratos em uma única aba, organizada em 2 blocos com subtítulo, nesta ordem: \"Contratação e custos\" e \"Taxa de inscrição\".",
-  "Bloco Contratação e custos (primeiro bloco/primeira linha da aba) — inclui Abrangência, Tipo de contratação (execução) e Instituição realizadora (trazidos do bloco Datas e execução, na aba Identificação e Cronograma). RN-12/RN-22 (empenho, contrato, tipo de contratação e aditivos tornam-se obrigatórios quando \"Tipo de contratação (execução)\" = Empresa Contratada; o checkbox \"Houve contratação de banca/empresa organizadora?\" foi removido — o campo Tipo de contratação, agora nesta aba, é a única fonte de verdade). "
+  "Bloco Contratação e custos (primeiro bloco/primeira linha da aba) — inclui Abrangência, Tipo de contratação (execução) e Instituição realizadora (trazidos do bloco Datas e execução, na aba Cronograma). RN-12/RN-22 (empenho, contrato, tipo de contratação e aditivos tornam-se obrigatórios quando \"Tipo de contratação (execução)\" = Empresa Contratada; o checkbox \"Houve contratação de banca/empresa organizadora?\" foi removido — o campo Tipo de contratação, agora nesta aba, é a única fonte de verdade). "
   + "Bloco Taxa de inscrição — RN-13 (obrigatório quando o certame prevê cobrança de taxa e isenção). "
   + "Aba exibida tanto para Concurso Público quanto para Processo Seletivo (RN-06, seção 3).",
   "Certame (blocos 4 e 5).", "Certame", "formulário com campos condicionais",
  ),
  "Vagas e Cotas": spec(
-  "PSS-CERT-FRM-TAB-003", "Vagas e Cotas",
-  "Une os antigos blocos Cargos e Vagas e Cotas em uma única aba, organizada em 2 blocos com subtítulo, nesta ordem: \"Cotas\" e \"Cargos e vagas\". A sub-lista de Fases foi deslocada para a aba Identificação e Cronograma, junto do cronograma do certame.",
+  "PSS-CERT-FRM-TAB-004", "Vagas e Cotas",
+  "Une os antigos blocos Cargos e Vagas e Cotas em uma única aba, organizada em 2 blocos com subtítulo, nesta ordem: \"Cotas\" e \"Cargos e vagas\". A sub-lista de Fases foi deslocada para a aba Cronograma.",
   "Bloco Cotas (primeiro bloco/primeira linha da aba) — RN-08 (o sistema aceita múltiplas cotas por certame) e RN-10 (a lei é buscada no catálogo já cadastrado no sistema). "
   + "Bloco Cargos e vagas — RN-10 (código de referência fixo '001'), RN-14 (vaga existente ou nova; ao menos um cargo/vaga é exigido para salvar) e RN-17 (vínculo automático e somente leitura com o Quadro de Vagas do Controle de Vagas > Quadro Autorizado, por cargo — rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso).",
   "Certame.cargos, Certame.cotas.", "CargoVagaCertame[] | CotaCertame[]", "formulário com 2 sub-grades",
  ),
  "Documentos": spec(
-  "PSS-CERT-FRM-TAB-004", "Documentos",
+  "PSS-CERT-FRM-TAB-005", "Documentos",
   "Anexos que compõem o pacote de prestação de contas da abertura do edital. Sem mudança de conteúdo na consolidação — mantida como estava.",
   "Capítulo III, itens 1.1 (Concurso) e 3.1 (PSS) do Manual de Orientação para Remessa de Documentos ao TCE/MT — justificativa, edital integral, comprovante de publicação do edital, lei/ato de autorização, declaração do ordenador de despesa, designação da comissão, lotacionograma analítico, parecer do controle interno e declaração do responsável são sempre obrigatórios. "
   + "RN-20 — Demonstrativo de Estimativa de Impacto (LRF) passa a ser SEMPRE obrigatório para Concurso Público e PSS (Cap. III, item 1.1.5, Anexo XLII), independente do checkbox \"gerou despesas\". "
@@ -45,7 +50,7 @@ export const certameFormTabSpecifications: Record<string, SpecificationMetadata>
   "Certame.documentos.", "DocumentoCertame[]", "tabela com anexo, visualização e remoção por linha",
  ),
  "Situações": spec(
-  "PSS-CERT-FRM-TAB-005", "Situações do Certame", "Histórico de situações do certame e registro de uma nova situação.",
+  "PSS-CERT-FRM-TAB-006", "Situações do Certame", "Histórico de situações do certame e registro de uma nova situação.",
   "RN-15 (nove situações, prazo de 48h) e RN-16 (homologação é o marco do prazo, distinto da publicação do resultado). "
   + "RN-24 — guardas de transição de estado: (a) Retificação de Edital exige registro de Aberto no histórico (ER142); (b) Homologado não pode ser registrado enquanto a última Homologação não tiver sido seguida de Cancelamento/Anulação (ER144); (c) Retificação de Homologação exige um Homologado prévio no histórico (ER145); (d) a data de efeito não pode ser anterior à publicação do edital (mesma lógica de RN-07).",
   "Certame.situacaoAtual, Certame.historicoSituacoes.", "SituacaoHistoricoCertame[]", "linha do tempo + formulário", "Disponível apenas para certames já salvos.",
@@ -55,7 +60,7 @@ export const certameFormTabSpecifications: Record<string, SpecificationMetadata>
 export const certameFormBlockSpecifications = {
  seletorTipo: spec("PSS-CERT-FRM-BLC-004", "Seleção do tipo de certame (etapa 1)", "Exigir a escolha entre Concurso Público e Processo Seletivo antes de exibir os demais campos do cadastro.", "RN-06.1 e Cenário 1 — a definição do tipo é a primeira etapa do fluxo; os campos subsequentes só aparecem após a escolha.", "Certame.tipoCertame.", "TipoCertame", "seletor de duas opções, exibido apenas no cadastro de novo certame"),
  mandanteBloqueado: spec("PSS-CERT-FRM-BLC-001", "Órgão mandante travado após salvar", "Impedir a troca do órgão responsável de um certame já cadastrado.", "RN-05 e Cenário 6 — não é permitido que outro órgão passe a responder pela prestação de contas de um certame que não é seu.", "Certame.setor.", "string", "campo somente leitura após a primeira gravação"),
- fasesFixas: spec("PSS-CERT-FRM-BLC-003", "Fases do certame", "Bloco (com subtítulo) dentro da aba Identificação e Cronograma, logo após Datas e execução, com a lista de fases do certame, iniciada com o catálogo padrão do TCE-MT.", "RN-09 — o usuário pode reordenar (arrastar e soltar pelo mouse), editar nome e datas de início/fim, remover e adicionar novas fases.", "Certame.fases.", "FaseCertame[]", "lista editável em linha, com reordenação por arraste"),
+ fasesFixas: spec("PSS-CERT-FRM-BLC-003", "Fases do certame", "Bloco (com subtítulo) dentro da aba Cronograma, logo após Datas e execução, com a lista de fases do certame, iniciada com o catálogo padrão do TCE-MT.", "RN-09 — o usuário pode reordenar (arrastar e soltar pelo mouse), editar nome e datas de início/fim, remover e adicionar novas fases.", "Certame.fases.", "FaseCertame[]", "lista editável em linha, com reordenação por arraste"),
  quadroVagasVinculado: spec("PSS-CERT-FRM-BLC-005", "Quadro de Vagas vinculado ao cargo", "Buscar e exibir o Quadro de Vagas (código e versão) vinculado automaticamente ao cargo selecionado ou digitado.", "RN-17 — vínculo automático, somente leitura, sem escolha manual; garante rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso. Vínculo em Controle de Vagas > Quadro Autorizado.", "CARGOS_CADASTRADOS (quadroCodigo/quadroVersao) e CargoVagaCertame.", "string", "campo somente leitura, atualizado ao trocar o cargo/função"),
 } satisfies Record<string, SpecificationMetadata>;
 

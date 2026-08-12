@@ -36,8 +36,9 @@ describe("menus do Controle PSS", () => {
     expect(EMPRESAS_CADASTRADAS.some((empresa) => empresa.value === "INSEL")).toBe(true);
     const result = render(<MemoryRouter initialEntries={["/prototipos/sigep/controle-pss/certames/novo"]}><Routes><Route path="/prototipos/sigep/controle-pss/certames/:id" element={<CertameFormContent />} /></Routes></MemoryRouter>);
     fireEvent.click(result.getByText("Processo Seletivo Simplificado (PSS)"));
-    expect(result.getByText("Identificação e Cronograma")).toBeTruthy();
-    fireEvent.click(result.getByText("Contrato e custo"));
+    expect(result.getByText("Identificação")).toBeTruthy();
+    expect(result.getByText("Cronograma")).toBeTruthy();
+    fireEvent.click(result.getByText("Contrato e Custos"));
     expect(result.getByText("Taxa de inscrição")).toBeTruthy();
   });
 
