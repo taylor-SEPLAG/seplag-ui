@@ -93,10 +93,15 @@ describe("menus do Controle PSS", () => {
 
   it("apresenta apenas os dados do Cadastro de Certames no Painel Geral", () => {
     const result = render(<MemoryRouter><PainelGeralPssContent /></MemoryRouter>);
-    expect(result.getByText("Certames em acompanhamento")).toBeTruthy();
-    expect(result.getByText("Cargos ofertados")).toBeTruthy();
+    expect(result.getByText("Painel de Certames Públicos")).toBeTruthy();
+    expect(result.getByText("Certames por status")).toBeTruthy();
+    expect(result.getByText("Próximos prazos")).toBeTruthy();
+    expect(result.getByText("Cotas e vagas")).toBeTruthy();
+    expect(result.getByText("Alertas de pendências")).toBeTruthy();
+    expect(result.getByText("Certames em andamento")).toBeTruthy();
     expect(result.getAllByText("Homologação").length).toBeGreaterThan(0);
-    expect(result.container.querySelectorAll(".prototype-pss-kpi").length).toBe(6);
+    expect(result.container.querySelectorAll(".prototype-pss-kpi").length).toBe(5);
+    expect(result.getByText(/SEPLAG-MT/)).toBeTruthy();
     expect(result.queryByText("Vagas por cargo")).toBeNull();
     expect(result.queryByText("Processos em acompanhamento")).toBeNull();
     expect(result.queryByText("Indicadores exibidos")).toBeNull();
