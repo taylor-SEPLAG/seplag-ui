@@ -336,6 +336,8 @@ export function CertameFormContent() {
   const cargoExistente = dados.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === dados.cargoExistenteId) : undefined;
   const cargoNome = dados.vinculo === "EXISTENTE" ? cargoExistente?.nome ?? "" : dados.cargoNome;
   if (!cargoNome || dados.quantidadeVagas <= 0) return;
+  if (dados.vagaPcd === "S" && !(dados.quantidadePcd && dados.quantidadePcd > 0)) { setErro("Informe a quantidade de vagas PCD/PNE."); return; }
+  setErro(null);
   const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
   setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, vagaPcd:dados.vagaPcd === "S", quantidadePcd:dados.vagaPcd === "S" ? dados.quantidadePcd : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
   cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, vagaPcd:"N", quantidadePcd:0 });
@@ -615,7 +617,7 @@ export function CertameFormContent() {
         <SpecArea metadata={certameFormBlockSpecifications.quadroVagasVinculado}><RotuloSeplag nome="Quadro" cols="12 6 1"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado ? `${quadroVinculado.quadroCodigo} — Versão ${quadroVinculado.quadroVersao}` : "—"}</div></RotuloSeplag></SpecArea>
         <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Qtd. vagas" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
         <CheckboxFieldSeplag name="vagaPcd" control={cargoForm.control} label=" " checkboxLabel="PCD/PNE" cols="12 6 1" getFormErrorMessage={() => null} />
-        {cargoValores.vagaPcd === "S" && <NumberFieldSeplag name="quantidadePcd" control={cargoForm.control} label="Qtd. PCD" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
+        {cargoValores.vagaPcd === "S" && <NumberFieldSeplag name="quantidadePcd" control={cargoForm.control} label="Qtd. PCD" required cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
         <div className="col-12 md:col-2 lg:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCargo} /></div>
        </div>
        <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cargos)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasCargos} hasEventoAcao handleView={null} handleEdit={null} handleDelete={(row) => removerCargo(row.id)} handleOnPageChange={() => {}} />
