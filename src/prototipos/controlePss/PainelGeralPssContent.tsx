@@ -145,7 +145,7 @@ export function PainelGeralPssContent() {
    </div>
 
    <div className="grid">
-    <div className="col-12 lg:col-7"><SpecArea metadata={painelPssBlockSpecifications.cotasResumo}><CardSeplag title="Cotas e vagas" subtitle={`${cotasCertames.length} certames com cota cadastrada`}>
+    <div className="col-12 lg:col-6"><SpecArea metadata={painelPssBlockSpecifications.cotasResumo}><CardSeplag title="Cotas e vagas" subtitle={`${cotasCertames.length} certames com cota cadastrada`}>
      <div className="col-12"><div className="prototype-painel-cotas-resumo">
       <div><span>Total de vagas</span><strong>{totalVagasAtivas.toLocaleString("pt-BR")}</strong></div>
       <div><span>Vagas PCD/PNE</span><strong>{totalVagasPcdAtivas.toLocaleString("pt-BR")}</strong></div>
