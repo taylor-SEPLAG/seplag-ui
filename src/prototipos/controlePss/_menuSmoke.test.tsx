@@ -32,12 +32,13 @@ describe("menus do Controle PSS", () => {
     expect(result.container.firstElementChild).not.toBeNull();
   });
 
-  it("mantém a aba de isenção para o PSS e usa a lista de empresas cadastradas", () => {
+  it("mantém o bloco de taxa de inscrição para o PSS e usa a lista de empresas cadastradas", () => {
     expect(EMPRESAS_CADASTRADAS.some((empresa) => empresa.value === "INSEL")).toBe(true);
     const result = render(<MemoryRouter initialEntries={["/prototipos/sigep/controle-pss/certames/novo"]}><Routes><Route path="/prototipos/sigep/controle-pss/certames/:id" element={<CertameFormContent />} /></Routes></MemoryRouter>);
     fireEvent.click(result.getByText("Processo Seletivo Simplificado (PSS)"));
-    expect(result.getByText("Isenção")).toBeTruthy();
-    expect(result.getByText("Dados Gerais")).toBeTruthy();
+    expect(result.getByText("Identificação e Cronograma")).toBeTruthy();
+    fireEvent.click(result.getByText("Contrato e custo"));
+    expect(result.getByText("Taxa de inscrição")).toBeTruthy();
   });
 
   it("gera a esteira padrão de etapas para qualquer processo novo", () => {
