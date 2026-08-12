@@ -146,10 +146,17 @@ export function DistribuicaoIndividualContent() {
   const isNovaDistribuicao = location.pathname.endsWith("/nova");
   const [searchParams] = useSearchParams();
   const quadroInicial = searchParams.get("quadro") ?? "";
+  const filtroQuadroInicial = isNovaDistribuicao
+    ? ""
+    : (quadros.find((quadro) => String(quadro.id) === quadroInicial)?.codigo ??
+      quadroInicial);
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
   const { control, watch, reset } = useForm<DistribuicaoFiltros>({
-    defaultValues: filtrosDistribuicaoIniciais,
+    defaultValues: {
+      ...filtrosDistribuicaoIniciais,
+      busca: filtroQuadroInicial,
+    },
   });
   const { busca, cargo: filtroCargo, orgao: filtroOrgao } = watch();
   const posicoes = useMemo(
@@ -173,15 +180,23 @@ export function DistribuicaoIndividualContent() {
         (item) => item.id === posicao.quadroAutorizadoId,
       );
       if (!vaga || !quadro) return;
-      const orgao =
-        posicao.orgaoDistribuicao ?? "Pendente de ato de distribuição";
-      const chave = `${posicao.quadroAutorizadoId}|${orgao}`;
+      const orgao = quadro.orgaosDefinidosLei?.length
+        ? quadro.orgaosDefinidosLei.join(" • ")
+        : quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
+          ? "Pendente de ato de distribuição"
+          : quadro.orgao;
+      const quadroPermiteMovimentacao =
+        quadro.situacao === "Vigente" &&
+        quadro.situacaoVigencia !== "ENCERRADO" &&
+        quadro.situacaoVigencia !== "EXTINTO";
+      const chave = String(posicao.quadroAutorizadoId);
       const atual = mapa.get(chave) ?? {
         chave,
         quadroId: quadro.id,
         quadroCodigo: quadro.codigo,
         versao: quadro.versao,
         cargo: posicao.cargo,
+
         orgao,
         total: 0,
         ocupadas: 0,
@@ -194,14 +209,44 @@ export function DistribuicaoIndividualContent() {
       if (posicao.situacaoDistribuicao === "PENDENTE_ATO") atual.pendentesAto++;
       if (vaga.estado === "OCUPADA") atual.ocupadas++;
       else atual.disponiveis++;
-      if (compromissosAtivos.has(vaga.id)) atual.comprometidas++;
+      if (vaga.estado === "DISPONIVEL" && compromissosAtivos.has(vaga.id))
+        atual.comprometidas++;
       if (
         vaga.estado === "DISPONIVEL" &&
         !compromissosAtivos.has(vaga.id) &&
-        posicao.situacaoLegal === "REGULAR"
+        posicao.situacaoLegal === "REGULAR" &&
+        quadroPermiteMovimentacao
       )
         atual.movimentaveis++;
       mapa.set(chave, atual);
+    });
+    const codigosRepresentados = new Set(
+      [...mapa.values()].map((grupo) => grupo.quadroCodigo),
+    );
+    const quadrosAtuais = new Map<string, QuadroAutorizadoRow>();
+    quadros.forEach((quadro) => {
+      const atual = quadrosAtuais.get(quadro.codigo);
+      if (!atual || quadro.versao > atual.versao) quadrosAtuais.set(quadro.codigo, quadro);
+    });
+    quadrosAtuais.forEach((quadro) => {
+      if (codigosRepresentados.has(quadro.codigo)) return;
+      const orgao = quadro.orgaosDefinidosLei?.length
+        ? quadro.orgaosDefinidosLei.join(" • ")
+        : quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
+          ? "Pendente de ato de distribuição"
+          : quadro.orgao;
+      mapa.set(String(quadro.id), {
+        chave: String(quadro.id),
+        quadroId: quadro.id,
+        quadroCodigo: quadro.codigo,
+        versao: quadro.versao,
+        cargo: quadro.cargo,
+        orgao,
+        total: quadro.autorizadas,
+        ocupadas: quadro.ocupadas,
+        disponiveis: Math.max(0, quadro.autorizadas - quadro.ocupadas),
+        comprometidas: 0, movimentaveis: 0, pendentesAto: 0,
+      });
     });
     return [...mapa.values()].sort(
       (a, b) =>
@@ -209,20 +254,22 @@ export function DistribuicaoIndividualContent() {
     );
   }, [posicoes, vagas, quadros, compromissosAtivos]);
   const opcoesCargo = [...new Set(grupos.map((grupo) => grupo.cargo))].sort();
-  const opcoesOrgao = [...new Set(grupos.map((grupo) => grupo.orgao))].sort();
+  const opcoesOrgao = [
+    ...new Set(grupos.flatMap((grupo) => grupo.orgao.split(" • "))),
+  ].sort();
   const gruposFiltrados = grupos.filter(
     (grupo) =>
       (!busca ||
         grupo.quadroCodigo.toLowerCase().includes(busca.toLowerCase())) &&
       (!filtroCargo || grupo.cargo === filtroCargo) &&
-      (!filtroOrgao || grupo.orgao === filtroOrgao),
+      (!filtroOrgao || grupo.orgao.split(" • ").includes(filtroOrgao)),
   );
   const paginas = Math.max(1, Math.ceil(gruposFiltrados.length / porPagina));
   const paginaAtual = Math.min(pagina, paginas);
   const colunasTabela = [
     {
       field: "quadroCodigo",
-      header: "Quadro autorizado",
+      header: "Quadro",
       sortable: true,
       body: (grupo: GrupoDistribuicao) => (
         <>
@@ -237,8 +284,8 @@ export function DistribuicaoIndividualContent() {
       sortable: true,
       body: (grupo: GrupoDistribuicao) => <strong>{grupo.cargo}</strong>,
     },
-    { field: "orgao", header: "Órgão de distribuição", sortable: true },
-    { field: "total", header: "Total", sortable: true },
+    { field: "orgao", header: "Órgão", sortable: true },
+    { field: "total", header: "Autorizadas", sortable: true },
     { field: "ocupadas", header: "Ocupadas", sortable: true },
     { field: "disponiveis", header: "Disponíveis", sortable: true },
     { field: "comprometidas", header: "Comprometidas", sortable: true },

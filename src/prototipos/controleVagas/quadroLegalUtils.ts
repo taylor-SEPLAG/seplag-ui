@@ -66,7 +66,21 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
       const sequencial = maiorSequencial + indice;
       const id = gerarIdentificadorVaga(base.orgaoTitular, base.cargo, sequencial);
       const historico: HistoricoVaga = { id: `HIS-${id}-001`, vagaId: id, ocorridoEm: dataRegistro, dataEfeito: comando.dataEfeito.split("-").reverse().join("/"), tipo: "CRIACAO", titulo: "Vaga criada por ampliação legal", descricao: `${comando.lei} ampliou o quadro em ${quantidade} vaga(s).`, origem: "Quadro Legal", usuario: "Usuário do protótipo", processo: comando.processo };
-      criadas.push({ ...base, id, sequencial, lei: comando.lei, criadaEm: dataRegistro, inicioVigencia: historico.dataEfeito, estado: "DISPONIVEL", situacaoLegal: "REGULAR", historico: [historico] });
+      criadas.push({
+        ...base,
+        id,
+        sequencial,
+        lei: comando.lei,
+        destinacaoPrevistaLei: "Pendente de ato de distribuição",
+        orgaoDistribuicaoInicial: undefined,
+        atoDistribuicaoInicial: undefined,
+        inicioVigenciaDistribuicao: undefined,
+        criadaEm: dataRegistro,
+        inicioVigencia: historico.dataEfeito,
+        estado: "DISPONIVEL",
+        situacaoLegal: "REGULAR",
+        historico: [historico],
+      });
     }
     return { vagas: [...vagas, ...criadas], criadas, alteradas, alertas, quantitativoAnterior: vagas.length, quantitativoPosterior: vagas.length + quantidade };
   }

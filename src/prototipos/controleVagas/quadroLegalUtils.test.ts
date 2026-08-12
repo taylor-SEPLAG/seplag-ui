@@ -136,3 +136,34 @@ describe("extinção progressiva do quadro", () => {
     ).toThrow("A vaga está em extinção");
   });
 });
+describe("ampliação legal do quadro", () => {
+  it("cria novas vagas disponíveis e pendentes de ato de distribuição", () => {
+    const vagaDistribuida: Vaga = {
+      ...vaga("VAG-1", "OCUPADA"),
+      orgaoDistribuicaoInicial: "SEPLAG",
+      atoDistribuicaoInicial: "Decreto anterior",
+      inicioVigenciaDistribuicao: "01/01/2025",
+    };
+
+    const resultado = aplicarAlteracaoQuadroLegal([vagaDistribuida], {
+      tipo: "AMPLIACAO",
+      quantidade: 2,
+      lei: "Lei de ampliação",
+      processo: "SEPLAG-PRO-AMPLIACAO",
+      dataEfeito: "2026-08-01",
+    });
+
+    expect(resultado.criadas).toHaveLength(2);
+    resultado.criadas.forEach((novaVaga) => {
+      expect(novaVaga.estado).toBe("DISPONIVEL");
+      expect(novaVaga.situacaoLegal).toBe("REGULAR");
+      expect(novaVaga.destinacaoPrevistaLei).toBe(
+        "Pendente de ato de distribuição",
+      );
+      expect(novaVaga.orgaoDistribuicaoInicial).toBeUndefined();
+      expect(novaVaga.atoDistribuicaoInicial).toBeUndefined();
+      expect(novaVaga.inicioVigenciaDistribuicao).toBeUndefined();
+    });
+    expect(resultado.vagas[0].orgaoDistribuicaoInicial).toBe("SEPLAG");
+  });
+});

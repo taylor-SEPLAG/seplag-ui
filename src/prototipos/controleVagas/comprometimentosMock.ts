@@ -68,7 +68,8 @@ const quadrosElegiveisParaIngresso = new Set(
         quadro.situacao === "Vigente" &&
         quadro.situacaoVigencia !== "ENCERRADO" &&
         quadro.situacaoVigencia !== "EXTINTO" &&
-        quadro.situacao !== "Vigência futura",
+        quadro.situacao !== "Vigência futura" &&
+        quadro.formaDestinacaoLegal !== "DISTRIBUICAO_POSTERIOR",
     )
     .map((quadro) => quadro.codigo),
 );
@@ -97,6 +98,7 @@ const ingressosAtivosMock = vagasIndividualizadasMock
     if (
       vaga.estado !== "DISPONIVEL" ||
       vaga.situacaoLegal !== "REGULAR" ||
+      !vaga.orgaoDistribuicaoInicial ||
       !quadrosElegiveisParaIngresso.has(vaga.quadroCodigo) ||
       vagasComDesfechoHistorico.has(vaga.id)
     ) {

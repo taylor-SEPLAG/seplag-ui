@@ -138,7 +138,9 @@ export function QuadroLegalOperacoes({
       return;
     const atual = controleVagasStore.getState();
     const novoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
-    const vigenciaFutura = dataEfeito > "2026-07-20";
+    const agora = new Date();
+    const hoje = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
+    const vigenciaFutura = dataEfeito > hoje;
     const vagasDaNovaVersao = resultado.vagas.map((vaga) => ({
       ...vaga,
       quadroAutorizadoId: novoId,
@@ -396,6 +398,12 @@ export function QuadroLegalOperacoes({
           {resultado.alertas.map((alerta) => (
             <MensagemSeplag key={alerta} severity="warning" message={alerta} />
           ))}
+          {tipo === "AMPLIACAO" && resultado.criadas.length > 0 && (
+            <MensagemSeplag
+              severity="info"
+              message="As novas vagas serão criadas como disponíveis, regulares e pendentes de ato de distribuição. A destinação deverá ser registrada no menu Distribuição."
+            />
+          )}
           {quantidadeImpactada > 0 && (
             <div className="prototype-legal-impact-list">
               <h4>{tipo === "REDUCAO" ? "Vagas reduzidas (do maior para o menor sequencial)" : "Amostra das vagas impactadas"}</h4>
@@ -407,6 +415,7 @@ export function QuadroLegalOperacoes({
                     <th>Efeito</th>
                     <th>Estado</th>
                     <th>Situação legal</th>
+                    {tipo === "AMPLIACAO" && <th>Distribuição</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -429,6 +438,9 @@ export function QuadroLegalOperacoes({
                             : "Ocupada"}
                         </td>
                         <td>{vaga.situacaoLegal.replaceAll("_", " ")}</td>
+                        {tipo === "AMPLIACAO" && (
+                          <td>Pendente de ato de distribuição</td>
+                        )}
                       </tr>
                     ))}
                 </tbody>
