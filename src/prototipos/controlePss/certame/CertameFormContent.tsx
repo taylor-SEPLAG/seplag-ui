@@ -36,6 +36,12 @@ function BlocoHeader({ icone, titulo, subtitulo }:{ icone:string; titulo:string;
  </header>;
 }
 
+// Título de bloco simples (sem ícone/subtítulo) — usado na aba Identificação, alinhada à maquete
+// de referência que agrupa os campos em cartões menores com título simples.
+function BlocoTitulo({ titulo }:{ titulo:string }) {
+ return <h3 className="prototype-certame-bloco-titulo">{titulo}</h3>;
+}
+
 interface CertameFormValues {
  tipoCertame:TipoCertame; tipoConcursoAplic:string;
  leiContratoTemporario?:string; leiProcessoSeletivoSimplificado?:string;
@@ -468,25 +474,43 @@ export function CertameFormContent() {
      {aba === "IDENTIFICACAO" && <SpecArea metadata={certameFormTabSpecifications["Identificação"]}><div className="col-12">
 
       <div id="bloco-identificacao" className={blocoClasse("bloco-identificacao")}>
-       <BlocoHeader icone="pi-id-card" titulo="Identificação do certame" subtitulo="Dados que identificam o certame perante o TCE-MT." />
+       <BlocoTitulo titulo="Identificação do certame" />
        <div className="grid">
         <RotuloSeplag nome="Tipo do certame / Aplic. TCE-MT" cols="12 6 5" obrigatorio><div className="prototype-certame-campo-fixo-valor">{TIPOS_CERTAME.find((item) => item.value === valores.tipoCertame)?.label} — {TIPOS_CONCURSO_APLIC_TCE.find((item) => item.value === valores.tipoConcursoAplic)?.label}</div></RotuloSeplag>
         <NumberFieldSeplag name="anoConcurso" control={control} label="Ano do concurso" required cols="12 6 4" getFormErrorMessage={() => null} />
+        <MaskFieldSeplag name="numeroConcurso" control={control} label="Número do certame (TCE-MT)" required cols="12 6" mask="99999999999" placeholder="00000000000" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="numeroEditalOrgao" control={control} label="Número do edital do órgão" required cols="12 6" placeholder="Ex.: 001/SEPLAG/2026" getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="nomeEdital" control={control} label="Nome do edital" required cols="12" placeholder="[NÚMERO]/[ÓRGÃO]/[ANO] [descrição livre]" getFormErrorMessage={() => null} />
+       </div>
+      </div>
+
+      <div className={blocoClasse("bloco-orgaos-envolvidos")}>
+       <BlocoTitulo titulo="Órgãos envolvidos" />
+       <div className="grid">
         {!modoNovo
          ? <SpecArea metadata={certameFormBlockSpecifications.mandanteBloqueado}><RotuloSeplag nome="Órgão responsável (mandante)" cols="12 6" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">{valores.setor}</div><small>Bloqueado após o cadastro — RN-05.</small></div></RotuloSeplag></SpecArea>
          : <DropdownFieldSeplag name="setor" control={control} label="Órgão responsável (mandante)" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />}
         <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="(selecione)" display="chip" getFormErrorMessage={() => null} />
-        <TextFieldSeplag name="numeroEditalOrgao" control={control} label="Número do edital do órgão" required cols="12 6 4" placeholder="Ex.: 001/SEPLAG/2026" getFormErrorMessage={() => null} />
-        <MaskFieldSeplag name="numeroConcurso" control={control} label="Número do certame (TCE-MT)" required cols="12 6 4" mask="99999999999" placeholder="00000000000" getFormErrorMessage={() => null} />
-        <TextFieldSeplag name="nomeEdital" control={control} label="Nome do edital" required cols="12" placeholder="[NÚMERO]/[ÓRGÃO]/[ANO] [descrição livre]" getFormErrorMessage={() => null} />
+       </div>
+      </div>
+
+      <div className={blocoClasse("bloco-enquadramento")}>
+       <BlocoTitulo titulo="Enquadramento funcional e legal" />
+       <div className="grid">
         {/* Tipo de vínculo vem antes de Regime jurídico — o vínculo funcional determina o regime. */}
         {dispensarParaConcurso
-         ? <RotuloSeplag nome="Tipo de vínculo" cols="12 6 4" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">Nomeado Efetivo</div><small>Fixo para Concurso Público.</small></div></RotuloSeplag>
-         : <DropdownFieldSeplag name="tipoVinculo" control={control} label="Tipo de vínculo" required cols="12 6 4" options={[...TIPOS_VINCULO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />}
-        <DropdownFieldSeplag name="regimeJuridico" control={control} label="Regime jurídico" required cols="12 6 4" options={[...REGIMES_JURIDICOS]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-        <DropdownFieldSeplag name="leiContratoTemporario" control={control} label={dispensarParaConcurso ? "Lei do concurso" : "Lei de contrato temporário"} required={dispensarParaConcurso || valores.tipoVinculo === "CONTRATO_TEMPORARIO"} cols="12 6 4" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada" getFormErrorMessage={() => null} />
-        {dispensarParaProcessoSeletivo && <DropdownFieldSeplag name="leiProcessoSeletivoSimplificado" control={control} label="Lei do processo seletivo" required cols="12 6 4" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada" getFormErrorMessage={() => null} />}
-        <TextAreaFieldSeplag name="objetivo" control={control} label="Objetivo" cols="12" maxLength={1000} getFormErrorMessage={() => null} />
+         ? <RotuloSeplag nome="Tipo de vínculo" cols="12 6" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">Nomeado Efetivo</div><small>Fixo para Concurso Público.</small></div></RotuloSeplag>
+         : <DropdownFieldSeplag name="tipoVinculo" control={control} label="Tipo de vínculo" required cols="12 6" options={[...TIPOS_VINCULO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />}
+        <DropdownFieldSeplag name="regimeJuridico" control={control} label="Regime jurídico" required cols="12 6" options={[...REGIMES_JURIDICOS]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="leiContratoTemporario" control={control} label={dispensarParaConcurso ? "Lei do concurso" : "Lei de contrato temporário"} required={dispensarParaConcurso || valores.tipoVinculo === "CONTRATO_TEMPORARIO"} cols="12 6" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada" getFormErrorMessage={() => null} />
+        {dispensarParaProcessoSeletivo && <DropdownFieldSeplag name="leiProcessoSeletivoSimplificado" control={control} label="Lei do processo seletivo" required cols="12 6" options={[...LEIS_CERTAME]} optionLabel="label" optionValue="value" placeholder="Buscar lei cadastrada" getFormErrorMessage={() => null} />}
+       </div>
+      </div>
+
+      <div className={blocoClasse("bloco-objetivo")}>
+       <BlocoTitulo titulo="Objetivo" />
+       <div className="grid">
+        <TextAreaFieldSeplag name="objetivo" control={control} label=" " cols="12" maxLength={1000} placeholder="Descreva o objetivo do certame..." getFormErrorMessage={() => null} />
        </div>
       </div>
 

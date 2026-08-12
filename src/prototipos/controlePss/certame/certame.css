@@ -27,6 +27,8 @@
 .prototype-certame-bloco-header h3{margin:0;color:var(--text-color);font-size:.95rem;font-weight:800}
 .prototype-certame-bloco-header p{margin:.2rem 0 0;color:var(--text-color-secondary);font-size:.8rem}
 
+.prototype-certame-bloco-titulo{margin:0 0 1.1rem;padding-bottom:1.1rem;border-bottom:1px solid var(--surface-border);color:var(--text-color);font-size:.95rem;font-weight:800}
+
 .prototype-certame-fases-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:1.1rem;padding-bottom:1.1rem;border-bottom:1px solid var(--surface-border)}
 .prototype-certame-fases-head .prototype-certame-bloco-header{margin-bottom:0;padding-bottom:0;border-bottom:0}
 
