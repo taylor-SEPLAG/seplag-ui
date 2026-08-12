@@ -165,8 +165,8 @@ export function PainelGeralPssContent() {
    </div>
 
    <SpecArea metadata={painelPssBlockSpecifications.tabelaCertames}><CardSeplag title="Certames em andamento" subtitle={`${certamesFiltrados.length} certames`}>
-    <TablePaginadoSeplag dataKey="id" data={resultados(certamesFiltrados)} rows={10} rowsPerPage={[10, 20, 50]} paginator={certamesFiltrados.length > 10} lazy={false} selectionMode={null} columns={colunasCertames}
-     hasEventoAcao handleView={(row) => navigate(`${BASE}/certames/${row.id}`)} handleEdit={null} handleDelete={null} handleOnPageChange={() => {}} />
+    <div className="col-12"><TablePaginadoSeplag dataKey="id" data={resultados(certamesFiltrados)} rows={10} rowsPerPage={[10, 20, 50]} paginator={certamesFiltrados.length > 10} lazy={false} selectionMode={null} columns={colunasCertames}
+     hasEventoAcao handleView={(row) => navigate(`${BASE}/certames/${row.id}`)} handleEdit={null} handleDelete={null} handleOnPageChange={() => {}} /></div>
     {certamesFiltrados.length === 0 && <p className="col-12 text-center text-color-secondary">Nenhum certame encontrado para os filtros/busca atuais.</p>}
    </CardSeplag></SpecArea>
 
