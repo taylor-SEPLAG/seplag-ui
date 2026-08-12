@@ -69,12 +69,13 @@ export const TIPOS_ISENCAO = [
 ] as const;
 
 // RN-08: o sistema permite múltiplas cotas por certame; apenas uma prevalece no envio ao TCE-MT.
-// Siglas PPP/PPI/PPIQ adicionadas a pedido — nomenclatura por extenso a confirmar com a área de negócio.
 export const TIPOS_COTA = [
- { label:"PcD — Pessoa com Deficiência", value:"PCD" },
+ { label:"Ampla Concorrência", value:"AMPLA" },
+ { label:"PCD — Pessoas com Deficiência", value:"PCD" },
  { label:"PPP — Pessoas Pretas e Pardas", value:"PPP" },
- { label:"PPI — Pretos, Pardos e Indígenas", value:"PPI" },
- { label:"PPIQ — Pretos, Pardos, Indígenas e Quilombolas", value:"PPIQ" },
+ { label:"Indígenas", value:"INDIGENAS" },
+ { label:"Quilombolas", value:"QUILOMBOLAS" },
+ { label:"TEA — Transtorno do Espectro Autista", value:"TEA" },
 ] as const;
 
 // Busca em tabela de leis cadastradas (campo "Lei que rege o certame" / seção 4.2 do US-XXX).

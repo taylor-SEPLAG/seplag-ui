@@ -59,7 +59,7 @@ export const certamesMock: Certame[] = [
   gerouDespesas:true, cobraTaxaInscricao:true, valorInscricao:120,
   cotas:[
    { id:"COTA-2", tipo:"PCD", lei:"LEI-6752-1995" },
-   { id:"COTA-3", tipo:"PPI", lei:"LC-600-2017" },
+   { id:"COTA-3", tipo:"INDIGENAS", lei:"LC-600-2017" },
   ],
   cargos:[{ id:"CGV-2", vinculo:"EXISTENTE", cargoExistenteId:"CGO-AUDITOR-FISCAL", cargoNome:"Auditor Fiscal", codigoReferenciaTce:"001", quantidadeVagas:30, vagaPcd:true, quantidadePcd:3, quadroCodigo:"QA-0007", quadroVersao:1 }],
   fases:[...FASES_TCE_FIXAS, { ordem:13, nome:"Curso de Formação (SEPLAG)" }],
@@ -170,7 +170,7 @@ export const certamesMock: Certame[] = [
   houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
   cotas:[
    { id:"COTA-5", tipo:"PCD", lei:"LEI-6752-1995" },
-   { id:"COTA-6", tipo:"PPI", lei:"LC-600-2017" },
+   { id:"COTA-6", tipo:"INDIGENAS", lei:"LC-600-2017" },
   ],
   cargos:[{ id:"CGV-5", vinculo:"NOVO", cargoNome:"Assistente Social", codigoReferenciaTce:"001", quantidadeVagas:15, vagaPcd:true, quantidadePcd:2 }],
   fases:[...FASES_TCE_FIXAS],
