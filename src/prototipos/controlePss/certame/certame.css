@@ -16,9 +16,38 @@
 
 .prototype-certame-subform{padding-top:.5rem;margin-bottom:1rem}
 
-.prototype-certame-fases{padding-top:.5rem}
-.prototype-certame-fases h3{margin:0 0 .5rem;font-size:.95rem}
-.prototype-certame-fase-acoes{display:flex;flex:1;gap:.25rem;justify-content:flex-end}
+/* Blocos com subtítulo dentro de cada uma das 4 abas consolidadas (item 1 da refatoração). */
+.prototype-certame-bloco{padding:1.1rem 0 1.5rem;border-bottom:1px solid var(--surface-border);scroll-margin-top:1rem;transition:background-color .3s ease}
+.prototype-certame-bloco:first-child{padding-top:0}
+.prototype-certame-bloco:last-child{border-bottom:0;padding-bottom:.5rem}
+.prototype-certame-bloco--destaque{padding-left:.75rem;padding-right:.75rem;background:var(--primary-100);border-radius:8px;box-shadow:0 0 0 2px var(--primary-color)}
+
+.prototype-certame-bloco>h3,.prototype-certame-fases-head h3{margin:0 0 1rem;color:var(--text-color);font-size:.8rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+
+.prototype-certame-fases{padding-top:1.1rem}
+.prototype-certame-fases-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:0}
+.prototype-certame-fases-head h3{margin:0}
+
+.prototype-certame-fase-header,.prototype-certame-fase-row{display:grid;grid-template-columns:18px minmax(180px,1fr) 152px 152px 28px;column-gap:10px;align-items:center}
+.prototype-certame-fase-header{padding:8px 12px;border-bottom:1px solid var(--surface-border);background:var(--surface-50);color:var(--text-color-secondary);font-size:.72rem;font-weight:800;text-transform:uppercase}
+.prototype-certame-fase-row{padding:7px 12px;border-bottom:1px solid var(--surface-border)}
+.prototype-certame-fase-row:last-child{border-bottom:0}
+.prototype-certame-fase-row[draggable="true"]{cursor:grab}
+.prototype-certame-fase-row[draggable="true"]:active{cursor:grabbing}
+.prototype-certame-fase-row label{display:block;min-width:0}
+.prototype-certame-fase-row input{width:100%;min-height:32px;padding:6px 8px;border:1px solid var(--surface-border);border-radius:6px;background:var(--surface-0);color:var(--text-color);font-size:.82rem}
+.prototype-certame-fase-row input:focus{border-color:var(--primary-color);box-shadow:0 0 0 2px var(--primary-100);outline:0}
+.prototype-certame-fase-drag-handle{justify-self:center;color:var(--text-color-secondary)}
+.prototype-certame-fase-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.prototype-certame-fase-remove{display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;border:0;background:transparent;color:var(--text-color-secondary);cursor:pointer}
+.prototype-certame-fase-remove:hover,.prototype-certame-fase-remove:focus-visible{color:#d32f2f;outline:0}
+
+@media (max-width:640px){
+ .prototype-certame-fase-header{display:none}
+ .prototype-certame-fase-row{grid-template-columns:18px minmax(0,1fr) 28px;row-gap:8px}
+ .prototype-certame-fase-row label{grid-column:2}
+ .prototype-certame-fase-remove{grid-column:3;grid-row:1}
+}
 
 .prototype-certame-timeline{margin:0 0 1rem;padding:0 0 0 1.5rem;list-style:none}
 .prototype-certame-timeline li{display:grid;grid-template-columns:auto 8rem 1fr;align-items:flex-start;gap:.75rem;padding:.5rem 0;border-bottom:1px solid var(--surface-border)}

@@ -22,7 +22,7 @@ export interface CargoVagaCertame { readonly id:string; vinculo:VinculoCargoCert
 
 // Fases do certame — lista editável (nome, ordem e quantidade livres) por certame; o catálogo em
 // dominios.FASES_TCE_FIXAS é usado apenas como sugestão inicial ao criar um novo certame.
-export interface FaseCertame { readonly ordem:number; nome:string; }
+export interface FaseCertame { readonly ordem:number; nome:string; dataInicio?:string; dataFim?:string; }
 
 export interface DocumentoCertame { readonly tipo:TipoDocumentoCertame; readonly nomeArquivo:string; readonly anexadoEm:string; }
 

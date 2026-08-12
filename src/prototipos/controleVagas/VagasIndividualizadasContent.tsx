@@ -1649,4 +1649,3 @@ function OcupantesDaVaga({ vagaId }: { vagaId: string }) {
     </section>
   );
 }
-

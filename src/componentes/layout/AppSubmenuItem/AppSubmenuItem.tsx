@@ -105,7 +105,8 @@ const AppSubmenuItemSeplag = ({
 
   const renderLink = (item: IMenuSeplag) => {
     const content = renderLinkContent(item);
-    const isActiveRoute = isRouteActive(item.to);
+    const isActiveRoute =
+      isRouteActive(item.to) || item.activeRoutes?.some(isRouteActive) === true;
     const linkClassName = [
       isActiveRoute ? "active-route" : "",
       active && item.to ? "active-menuitem-routerlink" : "",

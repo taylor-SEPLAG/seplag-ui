@@ -68,7 +68,7 @@ export function AppSubmenuSeplag(props: AppSubmenuSeplagProps) {
   };
 
   const hasActiveRoute = (item: IMenuSeplag): boolean => {
-    if (isRouteActive(item.to)) {
+    if (isRouteActive(item.to) || item.activeRoutes?.some(isRouteActive)) {
       return true;
     }
 
