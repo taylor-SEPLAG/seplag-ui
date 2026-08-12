@@ -7,8 +7,8 @@ import { ORGAOS_CERTAME, SITUACOES_CERTAME } from "./certame/dominios";
 import type { Certame, CotaCertame, SituacaoCertame } from "./certame/types";
 import {
  bucketStatusCertame, certameAtivo, documentosObrigatoriosTotal, documentosPendentes,
- homologacaoDeVagasPendente, inscricoesAbertas, prazoPrestacaoContasAtual, prazoVenceEmAteDias, proximosPrazos, totalVagas, totalVagasPcd,
- type BucketStatusCertame, type PrazoPainel,
+ homologacaoDeVagasPendente, inscricoesAbertas, prazoPrestacaoContasAtual, prazoVenceEmAteDias, totalVagas, totalVagasPcd,
+ type BucketStatusCertame,
 } from "./certame/painelSelectors";
 import { SpecArea, SpecificationMode } from "../shared/visualizationModes";
 import { painelPssActionSpecifications, painelPssBlockSpecifications, painelPssBusinessItems, painelPssFilterSpecifications, painelPssKpiSpecifications, painelPssScreenSpecification } from "./PainelGeralPssSpecifications";
@@ -80,12 +80,6 @@ export function PainelGeralPssContent() {
   return BUCKET_ORDEM.map((bucket) => ({ bucket, valor:contagem[bucket], pct:total === 0 ? 0 : Math.round((contagem[bucket] / total) * 100) }));
  }, [certamesFiltrados]);
 
- const prazos = useMemo(() => proximosPrazos(certamesFiltrados, dataReferencia, 8), [certamesFiltrados, dataReferencia]);
- const colunasPrazos:ColumnMetaSeplag<PrazoPainel>[] = [
-  { field:"titulo", header:"Prazo" }, { field:"orgao", header:"Órgão" }, { field:"data", header:"Vence em" },
-  { header:"Dias restantes", body:(row) => row.diasRestantes.toLocaleString("pt-BR") },
- ];
-
  const cotasCertames = useMemo(() => certamesFiltrados.filter((certame) => certame.cotas.length > 0), [certamesFiltrados]);
  const cotasLinhas:CotaLinha[] = useMemo(() => cotasCertames.flatMap((certame) => certame.cotas.map((cota) => ({ id:cota.id, certame, cota }))), [cotasCertames]);
  const totalVagasAtivas = certamesAtivos.reduce((total, certame) => total + totalVagas(certame), 0);
@@ -134,13 +128,8 @@ export function PainelGeralPssContent() {
    </CardSeplag>
 
    <div className="grid">
-    <div className="col-12 lg:col-6"><SpecArea metadata={painelPssBlockSpecifications.statusDistribuicao}><CardSeplag title="Certames por status" subtitle={`${certamesFiltrados.length} certames no filtro atual`}>
+    <div className="col-12"><SpecArea metadata={painelPssBlockSpecifications.statusDistribuicao}><CardSeplag title="Certames por status" subtitle={`${certamesFiltrados.length} certames no filtro atual`}>
      <div className="col-12"><div className="prototype-pss-bars">{distribuicaoStatus.map((item) => <button key={item.bucket} type="button" onClick={() => reset({ ...filtros, status:item.bucket })}><span>{BUCKET_LABEL[item.bucket]}</span><div><i className={BUCKET_COR[item.bucket]} style={{ width:`${item.pct}%` }} /></div><strong>{item.valor}</strong></button>)}</div></div>
-    </CardSeplag></SpecArea></div>
-
-    <div className="col-12 lg:col-6"><SpecArea metadata={painelPssBlockSpecifications.proximosPrazos}><CardSeplag title="Próximos prazos" subtitle="Prestação de contas ao TCE-MT (RN-15)">
-     <div className="col-12"><TablePaginadoSeplag dataKey="certameId" data={resultados(prazos)} rows={8} paginator={false} lazy={false} selectionMode={null} columns={colunasPrazos} hasEventoAcao={false} handleOnPageChange={() => {}} /></div>
-     {prazos.length === 0 && <p className="col-12 text-center text-color-secondary">Nenhum prazo em aberto para o filtro atual.</p>}
     </CardSeplag></SpecArea></div>
    </div>
 

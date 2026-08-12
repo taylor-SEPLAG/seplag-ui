@@ -95,7 +95,6 @@ describe("menus do Controle PSS", () => {
     const result = render(<MemoryRouter><PainelGeralPssContent /></MemoryRouter>);
     expect(result.getByText("Painel de Certames Públicos")).toBeTruthy();
     expect(result.getByText("Certames por status")).toBeTruthy();
-    expect(result.getByText("Próximos prazos")).toBeTruthy();
     expect(result.getByText("Cotas e vagas")).toBeTruthy();
     expect(result.getByText("Alertas de pendências")).toBeTruthy();
     expect(result.getByText("Certames em andamento")).toBeTruthy();
