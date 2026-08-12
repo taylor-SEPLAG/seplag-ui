@@ -564,14 +564,16 @@ export function CertameFormContent() {
         {houveContratacaoEmpresa && <DropdownFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" required cols="12 6 4" options={[...EMPRESAS_CADASTRADAS]} optionLabel="label" optionValue="value" placeholder="Selecione a empresa cadastrada" getFormErrorMessage={() => null} />}
         <CheckboxFieldSeplag name="gerouDespesas" control={control} label=" " checkboxLabel="O certame gerou despesas para o fiscalizado?" cols="12" getFormErrorMessage={() => null} />
         {houveContratacaoEmpresa && <DropdownFieldSeplag name="tipoContrato" control={control} label="Tipo de contrato" required cols="12 6 4" options={[...TIPOS_CONTRATO_BANCA]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />}
-        <TextFieldSeplag name="numeroEmpenho" control={control} label="Número do empenho" required={houveContratacaoEmpresa} cols="12 6 4" getFormErrorMessage={() => null} />
-        <NumberFieldSeplag name="anoEmpenho" control={control} label="Ano do empenho" cols="12 6 4" getFormErrorMessage={() => null} />
-        <TextFieldSeplag name="numeroContrato" control={control} label="Número do contrato" required={houveContratacaoEmpresa} cols="12 6 4" getFormErrorMessage={() => null} />
-        <NumberFieldSeplag name="anoContrato" control={control} label="Ano do contrato" cols="12 6 4" getFormErrorMessage={() => null} />
-        <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" required={houveContratacaoEmpresa} cols="12 6 4" getFormErrorMessage={() => null} />
-        <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" cols="12 6 4" getFormErrorMessage={() => null} />
-        <TextFieldSeplag name="codigoUo" control={control} label="Código da UO" cols="12 6 4" getFormErrorMessage={() => null} />
-        <TextFieldSeplag name="codigoUg" control={control} label="Código da UG" cols="12 6 4" getFormErrorMessage={() => null} />
+        {houveContratacaoEmpresa && <>
+         <TextFieldSeplag name="numeroEmpenho" control={control} label="Número do empenho" required cols="12 6 4" getFormErrorMessage={() => null} />
+         <NumberFieldSeplag name="anoEmpenho" control={control} label="Ano do empenho" cols="12 6 4" getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="numeroContrato" control={control} label="Número do contrato" required cols="12 6 4" getFormErrorMessage={() => null} />
+         <NumberFieldSeplag name="anoContrato" control={control} label="Ano do contrato" cols="12 6 4" getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" required cols="12 6 4" getFormErrorMessage={() => null} />
+         <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" cols="12 6 4" getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="codigoUo" control={control} label="Código da UO" cols="12 6 4" getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="codigoUg" control={control} label="Código da UG" cols="12 6 4" getFormErrorMessage={() => null} />
+        </>}
        </div>
       </div>
 
