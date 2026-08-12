@@ -14,3 +14,7 @@
 .prototype-painel-doc-progresso small{white-space:nowrap;color:var(--pss-texto-fraco);font-size:var(--pss-fonte-micro)}
 
 .prototype-painel-footer{margin:var(--pss-espaco-6) 0 0;padding-top:var(--pss-espaco-4);border-top:1px solid var(--pss-borda);color:var(--pss-texto-fraco);font-size:var(--pss-fonte-micro);text-align:center}
+
+/* Limita a tabela de Cotas e vagas a ~4 linhas visíveis, com rolagem vertical para o restante —
+   a lista pode crescer com o número de certames filtrados e não deve esticar o cartão. */
+.prototype-painel-cotas-tabela .p-datatable-wrapper{max-height:19.5rem;overflow-y:auto}
