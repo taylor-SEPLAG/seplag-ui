@@ -1,4 +1,5 @@
 import type { MovimentoVagaIndividual, PosicaoDistribuicaoVaga, SituacaoLegalVaga, TipoMovimentoVagaIndividual, Vaga } from "./types";
+import { gerarIdentificadorVaga } from "./vagaUtils";
 
 const legalPorTipo:Partial<Record<TipoMovimentoVagaIndividual,SituacaoLegalVaga>>={EXTINCAO:"EXTINTA",TRANSFORMACAO:"EM_TRANSFORMACAO"};
 const tiposDistributivos:readonly TipoMovimentoVagaIndividual[]=["DISTRIBUICAO","REDISTRIBUICAO","DECRETO"];
@@ -19,3 +20,46 @@ export function registrarMovimentoVaga(vaga:Vaga,posicao:PosicaoDistribuicaoVaga
  const hoje="2026-07-23";const id=`MVI-${Date.now().toString().slice(-7)}`;return{movimento:{id,vagaId:vaga.id,tipo:dados.tipo,dataEfeito:dados.dataEfeito,registradoEm:"2026-07-23 16:00",retroativo:dados.dataEfeito<hoje,orgaoAnterior:posicao.orgaoDistribuicao,unidadeAnterior:posicao.unidadeDistribuicao,orgaoPosterior:dados.orgao??posicao.orgaoDistribuicao,unidadePosterior:dados.unidade??posicao.unidadeDistribuicao,situacaoLegalAnterior:posicao.situacaoLegal,situacaoLegalPosterior:legalPorTipo[dados.tipo]??posicao.situacaoLegal,ato:dados.ato,processo:dados.processo,justificativa:dados.justificativa,cargoDestino:dados.cargoDestino,usuario:"Usuário do protótipo"}};
 }
 export function recalcularPosicoes(vagas:readonly Vaga[],movimentos:readonly MovimentoVagaIndividual[],data:string){return vagas.map((vaga)=>calcularPosicaoVaga(vaga,movimentos,data))}
+export interface IdentificacaoDistribuidaVaga {
+  identificador: string;
+  orgao: string;
+  sequencialNoOrgao: number;
+}
+
+/**
+ * Gera a identificação funcional somente para vagas formalmente distribuídas.
+ * A numeração reinicia em cada órgão, preservando o id técnico usado pelos
+ * relacionamentos e pelo histórico do protótipo.
+ */
+export function calcularIdentificacoesDistribuidas(
+  vagas: readonly Vaga[],
+  movimentos: readonly MovimentoVagaIndividual[],
+  dataReferencia: string,
+): Map<string, IdentificacaoDistribuidaVaga> {
+  const grupos = new Map<string, Array<{ vaga: Vaga; orgao: string }>>();
+
+  vagas.forEach((vaga) => {
+    const posicao = calcularPosicaoVaga(vaga, movimentos, dataReferencia);
+    if (posicao.situacaoDistribuicao !== "DISTRIBUIDA" || !posicao.orgaoDistribuicao) return;
+    const chave = `${vaga.quadroCodigo}::${posicao.orgaoDistribuicao}`;
+    const grupo = grupos.get(chave) ?? [];
+    grupo.push({ vaga, orgao: posicao.orgaoDistribuicao });
+    grupos.set(chave, grupo);
+  });
+
+  const identificacoes = new Map<string, IdentificacaoDistribuidaVaga>();
+  grupos.forEach((grupo) => {
+    grupo
+      .sort((a, b) => a.vaga.sequencial - b.vaga.sequencial || a.vaga.id.localeCompare(b.vaga.id))
+      .forEach(({ vaga, orgao }, index) => {
+        const sequencialNoOrgao = index + 1;
+        identificacoes.set(vaga.id, {
+          orgao,
+          sequencialNoOrgao,
+          identificador: gerarIdentificadorVaga(orgao, vaga.cargo, sequencialNoOrgao),
+        });
+      });
+  });
+
+  return identificacoes;
+}

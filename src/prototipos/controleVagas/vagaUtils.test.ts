@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { quadrosAutorizadosMock } from "./mockData";
 import { gerarVagasDoQuadro } from "./vagaUtils";
-import { calcularPosicaoVaga } from "./distribuicaoIndividual";
+import { calcularIdentificacoesDistribuidas, calcularPosicaoVaga } from "./distribuicaoIndividual";
 
 describe("destinação legal das vagas individualizadas", () => {
   it("respeita os quantitativos de todos os órgãos definidos em cada quadro", () => {
@@ -57,4 +57,27 @@ describe("destinação legal das vagas individualizadas", () => {
         codigo,
       ).toHaveLength(0);
     });
+  });
+  it("numera as vagas distribuídas separadamente em cada órgão", () => {
+    const quadro = quadrosAutorizadosMock.find((item) => item.codigo === "QA-0007");
+    expect(quadro).toBeDefined();
+    const vagas = gerarVagasDoQuadro(quadro!);
+    const identificacoes = calcularIdentificacoesDistribuidas(vagas, [], "2026-08-13");
+    const primeiraSefaz = vagas.find((vaga) => vaga.orgaoDistribuicaoInicial === "SEFAZ");
+
+    expect(primeiraSefaz).toBeDefined();
+    expect(identificacoes.get(primeiraSefaz!.id)?.identificador).toBe(
+      "VAG-SEFAZ-TECNICOADM-00001",
+    );
+    expect(
+      [...identificacoes.values()].filter((item) => item.orgao === "SEFAZ"),
+    ).toHaveLength(15);
+  });
+
+  it("não atribui identificador funcional antes do ato de distribuição", () => {
+    const quadro = quadrosAutorizadosMock.find((item) => item.codigo === "QA-0012");
+    expect(quadro).toBeDefined();
+    const vagas = gerarVagasDoQuadro(quadro!);
+
+    expect(calcularIdentificacoesDistribuidas(vagas, [], "2026-08-13").size).toBe(0);
   });});

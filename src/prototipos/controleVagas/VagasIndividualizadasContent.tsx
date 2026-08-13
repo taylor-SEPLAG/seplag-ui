@@ -17,7 +17,7 @@ import {
   orgaosBaseTemporaria,
   perfisProfissionaisBaseTemporaria,
 } from "./baseTemporaria";
-import { calcularPosicaoVaga } from "./distribuicaoIndividual";
+import { calcularIdentificacoesDistribuidas, calcularPosicaoVaga } from "./distribuicaoIndividual";
 import "./vagasIndividualizadas.css";
 import { SpecArea, SpecificationMode } from "../shared/visualizationModes";
 import {
@@ -61,32 +61,42 @@ const legalClass: Record<SituacaoLegalVaga, string> = {
 const fasesIngresso = [
   "Aguardando análise",
   "Em análise",
-  "Aguardando Efetivo Exercício",
-  "Posse Suspensa",
+  "Aguardando efetivo exercício",
+  "Posse suspensa",
 ] as const;
 
 const faseAtualDoComprometimento = (compromisso: import("./types").ComprometimentoVaga | undefined) =>
   compromisso?.fases.find((fase) => fase.situacao === "EM_ANDAMENTO");
 
+interface VagaIndividualizadaView extends Vaga {
+  identificadorExibicao: string;
+  orgaoAtual: string;
+  sequencialNoOrgao: number;
+}
+
 interface VagasIndividualizadasFiltros {
   quadro: string;
+  orgao: string;
   identificador: string;
+  ocupanteAtual: string;
   comprometimento: string;
   situacaoLegal: string;
 }
 
 const filtrosIniciais: VagasIndividualizadasFiltros = {
   quadro: "",
+  orgao: "",
   identificador: "",
+  ocupanteAtual: "",
   comprometimento: "",
   situacaoLegal: "",
 };
 
 const resultadoVagas = (
-  itens: Vaga[],
+  itens: VagaIndividualizadaView[],
   pagina: number,
   porPagina: number,
-): ResultsSeplag<Vaga> => {
+): ResultsSeplag<VagaIndividualizadaView> => {
   const totalPaginas = Math.max(1, Math.ceil(itens.length / porPagina));
   const paginaAtual = Math.min(pagina, totalPaginas - 1);
   const inicio = paginaAtual * porPagina;
@@ -108,7 +118,7 @@ const resultadoVagas = (
 };
 
 export function VagasIndividualizadasContent() {
-  const { vagas, quadros, comprometimentos, ocupacoes } =
+  const { vagas, quadros, comprometimentos, ocupacoes, movimentos } =
     useControleVagasStore();
   const [searchParams] = useSearchParams();
   const { control, reset } = useForm<VagasIndividualizadasFiltros>({
@@ -118,18 +128,27 @@ export function VagasIndividualizadasContent() {
     },
   });
   const filtros = useWatch({ control });
-  const [vagaSelecionada, setVagaSelecionada] = useState<Vaga | null>(null);
+  const [vagaSelecionada, setVagaSelecionada] = useState<VagaIndividualizadaView | null>(null);
   const [pagina, setPagina] = useState(0);
   const [porPagina, setPorPagina] = useState(10);
 
   const quadroSelecionado = filtros.quadro ?? "";
+  const orgao = filtros.orgao ?? "";
   const identificador = filtros.identificador ?? "";
+  const ocupanteAtual = filtros.ocupanteAtual ?? "";
   const comprometimento = filtros.comprometimento ?? "";
   const situacaoLegal = filtros.situacaoLegal ?? "";
 
   useEffect(() => {
     setPagina(0);
-  }, [quadroSelecionado, identificador, comprometimento, situacaoLegal]);
+  }, [
+    quadroSelecionado,
+    orgao,
+    identificador,
+    ocupanteAtual,
+    comprometimento,
+    situacaoLegal,
+  ]);
 
   const opcoesQuadro = useMemo(() => {
     const codigosComVagas = new Set(vagas.map((item) => item.quadroCodigo));
@@ -150,6 +169,20 @@ export function VagasIndividualizadasContent() {
     return [...opcoes].map(([value, label]) => ({ value, label }));
   }, [quadros, vagas]);
 
+  const dataReferencia = useMemo(() => {
+    const hoje = new Date();
+    return [
+      hoje.getFullYear(),
+      String(hoje.getMonth() + 1).padStart(2, "0"),
+      String(hoje.getDate()).padStart(2, "0"),
+    ].join("-");
+  }, []);
+
+  const identificacoesDistribuidas = useMemo(
+    () => calcularIdentificacoesDistribuidas(vagas, movimentos, dataReferencia),
+    [dataReferencia, movimentos, vagas],
+  );
+
   const vagasDoQuadro = useMemo(
     () =>
       quadroSelecionado
@@ -158,6 +191,31 @@ export function VagasIndividualizadasContent() {
     [quadroSelecionado, vagas],
   );
 
+  const vagasDistribuidasDoQuadro = useMemo<VagaIndividualizadaView[]>(
+    () =>
+      vagasDoQuadro.flatMap((vaga) => {
+        const identificacao = identificacoesDistribuidas.get(vaga.id);
+        return identificacao
+          ? [{
+              ...vaga,
+              identificadorExibicao: identificacao.identificador,
+              orgaoAtual: identificacao.orgao,
+              sequencialNoOrgao: identificacao.sequencialNoOrgao,
+            }]
+          : [];
+      }),
+    [identificacoesDistribuidas, vagasDoQuadro],
+  );
+
+  const opcoesOrgao = useMemo(
+    () =>
+      [...new Set(vagasDistribuidasDoQuadro.map((item) => item.orgaoAtual))]
+        .sort((a, b) => a.localeCompare(b, "pt-BR"))
+        .map((value) => ({ label: value, value })),
+    [vagasDistribuidasDoQuadro],
+  );
+
+  const pendentesDeAto = vagasDoQuadro.length - vagasDistribuidasDoQuadro.length;
   const pessoasComMaisVinculos = useMemo(() => {
     const ativas = ocupacoes.filter((item) => item.situacao === "ATIVA");
     return new Set(
@@ -173,21 +231,44 @@ export function VagasIndividualizadasContent() {
 
   const filtradas = useMemo(() => {
     const termo = identificador.trim().toLocaleLowerCase("pt-BR");
+    const termoOcupante = ocupanteAtual.trim().toLocaleLowerCase("pt-BR");
+    const termoOcupanteNumerico = termoOcupante.replace(/\D/g, "");
 
-    return vagasDoQuadro.filter((item) => {
+    return vagasDistribuidasDoQuadro.filter((item) => {
       const compromisso = comprometimentos.find(
         (registro) =>
           registro.vagaId === item.id && registro.situacao === "ATIVO" && registro.natureza === "OCUPACAO",
       );
+      const ocupacaoAtual = ocupacoes.find(
+        (registro) => registro.vagaId === item.id && registro.situacao === "ATIVA",
+      );
+      const faseAtual = faseAtualDoComprometimento(compromisso)?.nome;
+      const situacaoAtual = compromisso
+        ? faseAtual ?? "Aguardando análise"
+        : ocupacaoAtual
+          ? "EM_EXERCICIO"
+          : "LIVRE";
+      const textoOcupante = ocupacaoAtual
+        ? [ocupacaoAtual.pessoaNome, ocupacaoAtual.matricula, ocupacaoAtual.cpf]
+            .join(" ")
+            .toLocaleLowerCase("pt-BR")
+        : "";
+      const numerosOcupante = ocupacaoAtual
+        ? [ocupacaoAtual.matricula, ocupacaoAtual.cpf].join(" ").replace(/\D/g, "")
+        : "";
 
       return (
-        (!termo || item.id.toLocaleLowerCase("pt-BR").includes(termo)) &&
+        (!orgao || item.orgaoAtual === orgao) &&
+        (!termo || item.identificadorExibicao.toLocaleLowerCase("pt-BR").includes(termo)) &&
+        (!termoOcupante ||
+          (Boolean(ocupacaoAtual) &&
+            (textoOcupante.includes(termoOcupante) ||
+              (Boolean(termoOcupanteNumerico) &&
+                numerosOcupante.includes(termoOcupanteNumerico))))) &&
         (!comprometimento ||
-          (comprometimento === "LIVRE"
-            ? !compromisso
-            : comprometimento === "OCUPACAO"
-              ? Boolean(compromisso)
-              : faseAtualDoComprometimento(compromisso)?.nome === comprometimento)) &&
+          (comprometimento === "OCUPACAO"
+            ? Boolean(compromisso)
+            : situacaoAtual === comprometimento)) &&
         (!situacaoLegal ||
           (situacaoLegal === "ESPECIAL"
             ? item.situacaoLegal !== "REGULAR"
@@ -198,13 +279,15 @@ export function VagasIndividualizadasContent() {
     comprometimento,
     comprometimentos,
     identificador,
+    ocupanteAtual,
+    ocupacoes,
+    orgao,
     situacaoLegal,
-    vagasDoQuadro,
+    vagasDistribuidasDoQuadro,
   ]);
-
   const totais = useMemo(
     () =>
-      vagasDoQuadro.reduce(
+      vagasDistribuidasDoQuadro.reduce(
         (acumulado, item) => ({
           total: acumulado.total + 1,
           disponiveis:
@@ -216,7 +299,7 @@ export function VagasIndividualizadasContent() {
         }),
         { total: 0, disponiveis: 0, ocupadas: 0, emOcupacao: 0, excecoes: 0 },
       ),
-    [comprometimentos, vagasDoQuadro],
+    [comprometimentos, vagasDistribuidasDoQuadro],
   );
 
   const getComprometimento = (vagaId: string) =>
@@ -224,7 +307,7 @@ export function VagasIndividualizadasContent() {
       (item) => item.vagaId === vagaId && item.situacao === "ATIVO" && item.natureza === "OCUPACAO",
     );
 
-  const colunas = useMemo<ColumnMetaSeplag<Vaga>[]>(
+  const colunas = useMemo<ColumnMetaSeplag<VagaIndividualizadaView>[]>(
     () => [
       {
         header: "Identificador",
@@ -235,9 +318,8 @@ export function VagasIndividualizadasContent() {
               className="prototype-vaga-link"
               onClick={() => setVagaSelecionada(item)}
             >
-              {item.id}
+              {item.identificadorExibicao}
             </button>
-            <small>Sequencial {item.sequencial}</small>
           </div>
         ),
       },
@@ -250,7 +332,7 @@ export function VagasIndividualizadasContent() {
           </div>
         ),
       },
-      { header: "Órgão titular", field: "orgaoTitular" },
+      { header: "Órgão", field: "orgaoAtual" },
       {
         header: "Ocupante atual",
         body: (item) => {
@@ -285,12 +367,20 @@ export function VagasIndividualizadasContent() {
           const compromisso = getComprometimento(item.id);
           const faseAtual = faseAtualDoComprometimento(compromisso);
 
+          const ocupacaoAtual = ocupacoes.find(
+            (registro) => registro.vagaId === item.id && registro.situacao === "ATIVA",
+          );
+
           return compromisso ? (
             <span
               className={`prototype-vaga-commit ${compromisso.natureza.toLowerCase()}`}
             >
               <i className="pi pi-flag" />
               {faseAtual?.nome ?? "Aguardando análise"}
+            </span>
+          ) : ocupacaoAtual ? (
+            <span className="prototype-vaga-state ocupada">
+              <i className="pi pi-user" /> Em exercício
             </span>
           ) : (
             <span className="prototype-vaga-muted">Sem ingresso ativo</span>
@@ -341,9 +431,15 @@ export function VagasIndividualizadasContent() {
         {quadroSelecionado && (
           <section className="prototype-vaga-kpis prototype-vaga-kpis-seplag">
             <Kpi
-              label="Vagas individualizadas"
+              label="Vagas distribuídas"
               value={totais.total}
               icon="pi pi-list"
+            />
+            <Kpi
+              label="Pendentes de ato"
+              value={pendentesDeAto}
+              icon="pi pi-clock"
+              kind="warning"
             />
             <Kpi
               label="Disponíveis"
@@ -391,6 +487,23 @@ export function VagasIndividualizadasContent() {
               />
             </div>
             <div className="prototype-vaga-seplag-field">
+              <DropdownFieldSeplag<VagasIndividualizadasFiltros>
+                name="orgao"
+                control={control}
+                label="Órgão"
+                cols="12"
+                options={opcoesOrgao}
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Todos"
+                filter
+                filterPlaceholder="Pesquisar órgão"
+                showClear
+                disabled={!quadroSelecionado}
+                getFormErrorMessage={() => null}
+              />
+            </div>
+            <div className="prototype-vaga-seplag-field">
               <TextFieldSeplag<VagasIndividualizadasFiltros>
                 name="identificador"
                 control={control}
@@ -398,6 +511,17 @@ export function VagasIndividualizadasContent() {
                 cols="12"
                 icon="pi pi-search"
                 placeholder="Ex: VAG-SEPLAG-00001"
+                disabled={!quadroSelecionado}
+              />
+            </div>
+            <div className="prototype-vaga-seplag-field">
+              <TextFieldSeplag<VagasIndividualizadasFiltros>
+                name="ocupanteAtual"
+                control={control}
+                label="Ocupante atual"
+                cols="12"
+                icon="pi pi-search"
+                placeholder="Nome, matrícula ou CPF"
                 disabled={!quadroSelecionado}
               />
             </div>
@@ -410,6 +534,7 @@ export function VagasIndividualizadasContent() {
                 options={[
                   { label: "Sem ingresso ativo", value: "LIVRE" },
                   { label: "Com ingresso ativo", value: "OCUPACAO" },
+                  { label: "Em exercício", value: "EM_EXERCICIO" },
                   ...fasesIngresso.map((fase) => ({ label: fase, value: fase })),
                 ]}
                 optionLabel="label"
@@ -449,7 +574,7 @@ export function VagasIndividualizadasContent() {
           {quadroSelecionado ? (
             <SpecArea metadata={vagasBlockSpecifications.Tabela}>
               <div className="prototype-vaga-library-table">
-                <TablePaginadoSeplag<Vaga>
+                <TablePaginadoSeplag<VagaIndividualizadaView>
                   dataKey="id"
                   data={resultadoVagas(filtradas, pagina, porPagina)}
                   rows={porPagina}
@@ -564,6 +689,11 @@ function VagasIndividualizadasLegacy() {
         (!cargo || v.cargo === cargo) &&
         (!tipo || v.tipo === tipo) &&
         (!estado || v.estado === estado) &&
+        (!termoOcupante ||
+          (Boolean(ocupacaoAtual) &&
+            (textoOcupante.includes(termoOcupante) ||
+              (Boolean(termoOcupanteNumerico) &&
+                numerosOcupante.includes(termoOcupanteNumerico))))) &&
         (!comprometimento ||
           (comprometimento === "LIVRE"
             ? !compromisso
@@ -1149,7 +1279,7 @@ function Kpi({
     </SpecArea>
   );
 }
-function VagaDetalhe({ vaga, onClose }: { vaga: Vaga; onClose: () => void }) {
+function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose: () => void }) {
   const { movimentos } = useControleVagasStore();
   const hoje = new Date();
   const dataReferencia = [
@@ -1164,11 +1294,11 @@ function VagaDetalhe({ vaga, onClose }: { vaga: Vaga; onClose: () => void }) {
       titulo={
         <div className="prototype-vaga-modal-title">
           <span>Vaga individual</span>
-          <h2>{vaga.id}</h2>
-          <p>Identificador imutável · criado em {vaga.criadaEm}</p>
+          <h2>{vaga.identificadorExibicao}</h2>
+          <p>Identificador vigente · criado após a distribuição formal</p>
         </div>
       }
-      ariaLabel={`Detalhes da vaga ${vaga.id}`}
+      ariaLabel={`Detalhes da vaga ${vaga.identificadorExibicao}`}
       tamanho="min(1100px, 96vw)"
       fechar={onClose}
       customFooter={
@@ -1275,13 +1405,13 @@ function VagaDetalhe({ vaga, onClose }: { vaga: Vaga; onClose: () => void }) {
           <section>
             <h3>Integridade do identificador</h3>
             <div className="prototype-vaga-id-parts">
-              <code>{vaga.id}</code>
+              <code>{vaga.identificadorExibicao}</code>
               <div>
                 <span>VAG</span>
                 <small>Entidade</small>
               </div>
               <div>
-                <span>{vaga.orgaoTitular}</span>
+                <span>{vaga.orgaoAtual}</span>
                 <small>Órgão</small>
               </div>
               <div>
@@ -1289,8 +1419,8 @@ function VagaDetalhe({ vaga, onClose }: { vaga: Vaga; onClose: () => void }) {
                 <small>Cargo</small>
               </div>
               <div>
-                <span>{String(vaga.sequencial).padStart(5, "0")}</span>
-                <small>Sequencial</small>
+                <span>{String(vaga.sequencialNoOrgao).padStart(5, "0")}</span>
+                <small>Número no órgão</small>
               </div>
             </div>
             <div className="prototype-vaga-integrity">

@@ -53,7 +53,7 @@ import {
   TextFieldSeplag,
 } from "../../componentes/Fields";
 import type { ResultsSeplag } from "../../interfaces/Results";
-import { DocumentosLegaisAssociadosSeplag } from "../../componentes/DocumentosLegaisAssociados";
+import { BaseLegalVinculada } from "./BaseLegalVinculada";
 import {
   useDocumentosLegais,
   useDocumentosLegaisAssociaveis,
@@ -77,6 +77,7 @@ import {
   quadroFilterSpecifications,
   quadroKpiSpecifications,
   quadroScreenSpecification,
+  quadroTableSpecification,
 } from "./QuadroAutorizadoSpecifications";
 
 const BASE_PATH = `${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`;
@@ -429,15 +430,11 @@ function QuadroAutorizadoLista() {
         const vagasDoQuadro = vagas.filter(
           (vaga) => vaga.quadroAutorizadoId === item.id,
         );
-        const idsVagasDisponiveis = new Set(
-          vagasDoQuadro
-            .filter((vaga) => vaga.estado === "DISPONIVEL")
-            .map((vaga) => vaga.id),
-        );
+        const idsVagasDoQuadro = new Set(vagasDoQuadro.map((vaga) => vaga.id));
         const idsVagasComprometidas = new Set(
           comprometimentos
             .filter(
-              (item) => item.situacao === "ATIVO" && idsVagasDisponiveis.has(item.vagaId),
+              (item) => item.situacao === "ATIVO" && idsVagasDoQuadro.has(item.vagaId),
             )
             .map((item) => item.vagaId),
         );
@@ -609,6 +606,23 @@ function QuadroAutorizadoLista() {
           item,
           quadroColumnSpecifications.Ocupadas,
           <span>{item.ocupadas}</span>,
+        ),
+    },
+    {
+      field: "comprometidas",
+      header: (
+        <SpecArea metadata={quadroColumnSpecifications.Comprometidas}>
+          <span>Comprometidas</span>
+        </SpecArea>
+      ),
+      sortable: true,
+      body: (item) =>
+        celulaComEspecificacao(
+          item,
+          quadroColumnSpecifications.Comprometidas,
+          <strong className={item.comprometidas > 0 ? "is-warning" : ""}>
+            {item.comprometidas}
+          </strong>,
         ),
     },
     {
@@ -863,6 +877,7 @@ function QuadroAutorizadoLista() {
     <SpecificationMode
       screen={quadroScreenSpecification}
       businessItems={quadroBusinessItems}
+      showViewToggles
     >
       <div className="prototype-quadro-page">
         <header className="prototype-quadro-header">
@@ -1012,7 +1027,8 @@ function QuadroAutorizadoLista() {
               />
             </SpecArea>
           </div>
-          <div className="prototype-quadro-table prototype-quadro-library-table">
+          <SpecArea metadata={quadroTableSpecification}>
+            <div className="prototype-quadro-table prototype-quadro-library-table">
             <TablePaginadoSeplag<QuadroListaRow>
               dataKey="id"
               data={resultadosQuadro(filtrados)}
@@ -1024,11 +1040,17 @@ function QuadroAutorizadoLista() {
               expandedRows={linhasExpandidas}
               rowExpansionTemplate={renderHistoricoVersoes}
               hasEventoAcao
+              actionHeader={
+                <SpecArea metadata={quadroColumnSpecifications.Ações}>
+                  <span>Ações</span>
+                </SpecArea>
+              }
               renderBotoes={renderAcoes}
               renderExpander={renderControleHistorico}
               handleOnPageChange={() => undefined}
             />
-          </div>
+            </div>
+          </SpecArea>
         </section>
 
         <ModalDeleteSeplag
@@ -1355,18 +1377,8 @@ function QuadroAutorizadoForm({
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>(
     registro?.documentosLegaisIds ? [...registro.documentosLegaisIds] : [],
   );
-  const documentoCriadoId = searchParams.get("documentoLegalId");
-  useEffect(() => {
-    if (!documentoCriadoId) return;
-    setDocumentosLegaisIds((current) =>
-      current.includes(documentoCriadoId)
-        ? current
-        : [...current, documentoCriadoId],
-    );
-    navigate(location.pathname, { replace: true });
-  }, [documentoCriadoId, location.pathname, navigate]);
 
-  const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
+
   const { control, setValue, getValues, watch } = useForm<QuadroFormValues>({
     defaultValues: {
       vinculo: registro?.vinculo ?? "",
@@ -1675,37 +1687,10 @@ function QuadroAutorizadoForm({
         </div>
       </ModalSeplag>
       <form onSubmit={submit} className="prototype-quadro-form">
-        <section>
-          <header>
-            <i className="pi pi-link" />
-            <div>
-              <h2>
-                {novaVersao
-                  ? "Nova base legal vinculada"
-                  : "Base legal vinculada"}
-              </h2>
-              <p>
-                {novaVersao
-                  ? "Vincule a norma que fundamenta esta nova versão."
-                  : "Selecione uma norma cadastrada ou use o atalho para cadastrar uma nova."}
-              </p>
-            </div>
-          </header>
-          <div className="prototype-quadro-library-section">
-            <DocumentosLegaisAssociadosSeplag
-              label="Documentos legais associados"
-              required
-              options={documentosLegaisDisponiveis}
-              value={documentosLegaisIds}
-              onChange={setDocumentosLegaisIds}
-              onNovoCadastro={() => navigate(novoDocumentoUrl)}
-              onVisualizar={(documento) =>
-                navigate(`/prototipos/sigep/documentos-legais/${documento.id}`)
-              }
-              expandirAoAbrir
-            />
-          </div>
-        </section>
+        <BaseLegalVinculada
+          value={documentosLegaisIds}
+          onChange={setDocumentosLegaisIds}
+        />
         <section>
           <header>
             <i className="pi pi-briefcase" />
@@ -2373,6 +2358,8 @@ function QuadroAutorizadoDetalhe({
     </div>
   );
 }
+
+
 
 
 

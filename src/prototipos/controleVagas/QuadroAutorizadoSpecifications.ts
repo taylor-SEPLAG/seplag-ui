@@ -250,8 +250,17 @@ export const quadroColumnSpecifications: Record<string, SpecificationMetadata> =
       "integer",
       "TablePaginadoSeplag",
     ),
-    Disponíveis: spec(
+    Comprometidas: spec(
       "CV-QA-COL-006",
+      "Comprometidas",
+      "Mostrar vagas vinculadas a processo funcional ativo.",
+      "Vagas comprometidas permanecem disponíveis ou ocupadas conforme seu estado, mas não podem ser reduzidas nem movimentadas.",
+      "ComprometimentoVaga com situação ATIVO.",
+      "integer",
+      "TablePaginadoSeplag",
+    ),
+    Disponíveis: spec(
+      "CV-QA-COL-007",
       "Disponíveis",
       "Mostrar o saldo disponível que já possui destinação formal e pode ser utilizado.",
       "Subtrair do saldo disponível as vagas pendentes de ato de distribuição; pendência distributiva não é saldo livre.",
@@ -260,7 +269,7 @@ export const quadroColumnSpecifications: Record<string, SpecificationMetadata> =
       "TablePaginadoSeplag",
     ),
     "Pendentes de ato": spec(
-      "CV-QA-COL-007",
+      "CV-QA-COL-008",
       "Pendentes de ato de distribuição",
       "Mostrar vagas disponíveis que ainda dependem de ato formal para receber órgão de distribuição.",
       "A vaga permanece no estado Disponível, mas não integra Disponíveis livres enquanto sua situação distributiva for PENDENTE_ATO.",
@@ -269,7 +278,7 @@ export const quadroColumnSpecifications: Record<string, SpecificationMetadata> =
       "TablePaginadoSeplag",
     ),
     Situação: spec(
-      "CV-QA-COL-008",
+      "CV-QA-COL-009",
       "Situação",
       "Apresentar o estado temporal da versão.",
       "Calcular os seis estados operacionais oficiais pelas datas e pela situação cadastrada.",
@@ -287,7 +296,7 @@ export const quadroColumnSpecifications: Record<string, SpecificationMetadata> =
       "TablePaginadoSeplag (rowExpansionTemplate + ícones chevron)",
     ),
     Ações: spec(
-      "CV-QA-COL-009",
+      "CV-QA-COL-010",
       "Ações",
       "Disponibilizar somente operações permitidas.",
       "Visualizar sempre; editar/excluir antes da vigência; distribuir/criar nova versão quando vigente.",

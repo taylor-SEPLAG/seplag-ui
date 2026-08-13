@@ -238,6 +238,14 @@
 .prototype-view-toggles {
   display: none;
 }
+.prototype-view-toggles.is-visible {
+  position: fixed;
+  z-index: 1502;
+  top: 4.65rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.35rem;
+}
 .prototype-spec-root.is-active:not(.is-panel-collapsed)
   .prototype-view-toggles {
   right: 26rem;
@@ -938,3 +946,4 @@
 .prototype-spec-component-link:hover {
   text-decoration: underline;
 }
+

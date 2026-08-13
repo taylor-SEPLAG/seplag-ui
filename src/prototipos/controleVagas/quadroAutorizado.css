@@ -1841,15 +1841,15 @@
 }
 
 /* Quantitativos e situação centralizados; o expansor permanece na última coluna. */
-.prototype-quadro-library-table:not(.prototype-distribution-library-table) .p-datatable-thead > tr > th:nth-child(n + 4):nth-child(-n + 8),
-.prototype-quadro-library-table:not(.prototype-distribution-library-table) .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 8) {
+.prototype-quadro-library-table:not(.prototype-distribution-library-table) .p-datatable-thead > tr > th:nth-child(n + 4):nth-child(-n + 9),
+.prototype-quadro-library-table:not(.prototype-distribution-library-table) .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 9) {
   text-align: center !important;
 }
 
 .prototype-quadro-library-table:not(.prototype-distribution-library-table)
   .p-datatable-thead
   > tr
-  > th:nth-child(n + 4):nth-child(-n + 8)
+  > th:nth-child(n + 4):nth-child(-n + 9)
   .p-column-header-content {
   justify-content: center;
 }
@@ -1930,12 +1930,12 @@
 }
 
 .prototype-quadro-library-table:not(.prototype-distribution-library-table)
-  .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 7) > * {
+  .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 8) > * {
   width: 100%;
 }
 
 .prototype-quadro-library-table:not(.prototype-distribution-library-table)
-  .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 7)
+  .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 8)
   .prototype-quadro-spec-cell {
   justify-content: center;
   text-align: center;
@@ -2150,14 +2150,14 @@
 
 /* Ações do Quadro Autorizado. */
 .prototype-quadro-library-table:not(.prototype-distribution-library-table)
-  .p-datatable-thead > tr > th:nth-child(9),
+  .p-datatable-thead > tr > th:nth-child(10),
 .prototype-quadro-library-table:not(.prototype-distribution-library-table)
-  .p-datatable-tbody > tr > td:nth-child(9) {
+  .p-datatable-tbody > tr > td:nth-child(10) {
   text-align: center !important;
 }
 
 .prototype-quadro-library-table:not(.prototype-distribution-library-table)
-  .p-datatable-thead > tr > th:nth-child(9) .p-column-header-content {
+  .p-datatable-thead > tr > th:nth-child(10) .p-column-header-content {
   justify-content: center;
 }
 
@@ -2231,4 +2231,16 @@
 .prototype-quadro-cargo-modal-message p {
   margin: 5px 0 0;
   line-height: 1.45;
+}
+
+.prototype-legal-reduction-allocation input.is-invalid {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 1px #dc3545;
+}
+
+.prototype-legal-reduction-allocation .is-invalid-effect {
+  color: #b42318;
+  display: inline-block;
+  font-weight: 700;
+  line-height: 1.3;
 }
