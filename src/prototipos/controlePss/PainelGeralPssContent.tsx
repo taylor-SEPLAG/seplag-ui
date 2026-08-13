@@ -6,9 +6,8 @@ import { useControlePssStore } from "./controlePssStore";
 import { ORGAOS_CERTAME, SITUACOES_CERTAME } from "./certame/dominios";
 import type { Certame, CotaCertame, SituacaoCertame } from "./certame/types";
 import {
- bucketStatusCertame, certameAtivo, documentosObrigatoriosTotal, documentosPendentes,
+ certameAtivo, documentosObrigatoriosTotal, documentosPendentes,
  homologacaoDeVagasPendente, inscricoesAbertas, prazoPrestacaoContasAtual, prazoVenceEmAteDias, totalVagas, totalVagasPcd,
- type BucketStatusCertame,
 } from "./certame/painelSelectors";
 import { SpecArea, SpecificationMode } from "../shared/visualizationModes";
 import { painelPssActionSpecifications, painelPssBlockSpecifications, painelPssBusinessItems, painelPssFilterSpecifications, painelPssKpiSpecifications, painelPssScreenSpecification } from "./PainelGeralPssSpecifications";
@@ -21,7 +20,7 @@ import type { ResultsSeplag } from "../../interfaces/Results";
 import "./controlePssBase.css";
 import "./painelGeralPss.css";
 
-interface FiltroForm { termo:string; orgao?:string; status?:BucketStatusCertame }
+interface FiltroForm { termo:string; orgao?:string; status?:SituacaoCertame }
 interface CotaLinha { id:string; certame:Certame; cota:CotaCertame }
 
 const situacaoLabel:Record<SituacaoCertame, string> = Object.fromEntries(SITUACOES_CERTAME.map((item) => [item.value, item.label])) as Record<SituacaoCertame, string>;
@@ -30,12 +29,6 @@ const situacaoEstilo:Record<SituacaoCertame, { color:string; bg:string }> = {
  RETIFICACAO_HOMOLOGACAO:{ color:"#55637a", bg:"#eef1f5" }, PRORROGACAO_VALIDADE:{ color:"#8a5c00", bg:"#fff1cf" }, CANCELADO_ANULADO:{ color:"#ad3039", bg:"#ffe3e5" },
  PARALISADO:{ color:"#ad3039", bg:"#ffe3e5" }, HOMOLOGACAO_PARCIAL:{ color:"#8a5c00", bg:"#fff1cf" }, RETIFICACAO_HOMOLOGACAO_PARCIAL:{ color:"#8a5c00", bg:"#fff1cf" },
 };
-
-const BUCKET_ORDEM:readonly BucketStatusCertame[] = ["ELABORACAO", "PUBLICADA", "ANALISE", "HOMOLOGADO", "CANCELADO"];
-const BUCKET_LABEL:Record<BucketStatusCertame, string> = {
- ELABORACAO:"Em elaboração", PUBLICADA:"Publicada / Inscrições abertas", ANALISE:"Em análise / Recursos", HOMOLOGADO:"Homologado", CANCELADO:"Cancelado",
-};
-const BUCKET_COR:Record<BucketStatusCertame, string> = { ELABORACAO:"", PUBLICADA:"", ANALISE:"orange", HOMOLOGADO:"green", CANCELADO:"red" };
 
 const normalizar = (valor:string) => valor.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("pt-BR");
 
@@ -60,7 +53,7 @@ export function PainelGeralPssContent() {
   return certames.filter((certame) =>
    (!termo || normalizar(`${certame.numeroEditalOrgao} ${certame.nomeEdital} ${certame.setor}`).includes(termo)) &&
    (!filtros.orgao || certame.setor === filtros.orgao) &&
-   (!filtros.status || bucketStatusCertame(certame) === filtros.status),
+   (!filtros.status || certame.situacaoAtual === filtros.status),
   );
  }, [certames, filtros]);
  const certamesAtivos = useMemo(() => certamesFiltrados.filter(certameAtivo), [certamesFiltrados]);
@@ -74,10 +67,10 @@ export function PainelGeralPssContent() {
  ];
 
  const distribuicaoStatus = useMemo(() => {
-  const contagem:Record<BucketStatusCertame, number> = { ELABORACAO:0, PUBLICADA:0, ANALISE:0, HOMOLOGADO:0, CANCELADO:0 };
-  certamesFiltrados.forEach((certame) => { contagem[bucketStatusCertame(certame)] += 1; });
+  const contagem = Object.fromEntries(SITUACOES_CERTAME.map((item) => [item.value, 0])) as Record<SituacaoCertame, number>;
+  certamesFiltrados.forEach((certame) => { contagem[certame.situacaoAtual] += 1; });
   const total = certamesFiltrados.length;
-  return BUCKET_ORDEM.map((bucket) => ({ bucket, valor:contagem[bucket], pct:total === 0 ? 0 : Math.round((contagem[bucket] / total) * 100) }));
+  return SITUACOES_CERTAME.map((item) => ({ situacao:item.value, valor:contagem[item.value], pct:total === 0 ? 0 : Math.round((contagem[item.value] / total) * 100) }));
  }, [certamesFiltrados]);
 
  const cotasCertames = useMemo(() => certamesFiltrados.filter((certame) => certame.cotas.length > 0), [certamesFiltrados]);
@@ -120,7 +113,7 @@ export function PainelGeralPssContent() {
     <div className="col-12"><div className="grid">
      <TextFieldSeplag name="termo" control={control} label="Buscar certame" cols="12 6 4" placeholder="Edital, número ou órgão" getFormErrorMessage={() => null} />
      <SpecArea metadata={painelPssFilterSpecifications["Órgão"]}><DropdownFieldSeplag name="orgao" control={control} label="Órgão" cols="12 6 4" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" showClear getFormErrorMessage={() => null} /></SpecArea>
-     <SpecArea metadata={painelPssFilterSpecifications["Situação"]}><DropdownFieldSeplag name="status" control={control} label="Situação" cols="12 6 4" options={BUCKET_ORDEM.map((bucket) => ({ label:BUCKET_LABEL[bucket], value:bucket }))} optionLabel="label" optionValue="value" showClear getFormErrorMessage={() => null} /></SpecArea>
+     <SpecArea metadata={painelPssFilterSpecifications["Situação"]}><DropdownFieldSeplag name="status" control={control} label="Situação" cols="12 6 4" options={[...SITUACOES_CERTAME]} optionLabel="label" optionValue="value" showClear getFormErrorMessage={() => null} /></SpecArea>
      <div className="col-12 flex justify-content-end"><BotaoLimparFiltroSeplag label="Limpar filtros" onClick={() => reset({ termo:"" })} /></div>
     </div></div>
 
@@ -129,7 +122,7 @@ export function PainelGeralPssContent() {
 
    <div className="grid">
     <div className="col-12"><SpecArea metadata={painelPssBlockSpecifications.statusDistribuicao}><CardSeplag title="Certames por status" subtitle={`${certamesFiltrados.length} certames no filtro atual`}>
-     <div className="col-12"><div className="prototype-pss-bars">{distribuicaoStatus.map((item) => <button key={item.bucket} type="button" onClick={() => reset({ ...filtros, status:item.bucket })}><span>{BUCKET_LABEL[item.bucket]}</span><div><i className={BUCKET_COR[item.bucket]} style={{ width:`${item.pct}%` }} /></div><strong>{item.valor}</strong></button>)}</div></div>
+     <div className="col-12"><div className="prototype-pss-bars">{distribuicaoStatus.map((item) => <button key={item.situacao} type="button" onClick={() => reset({ ...filtros, status:item.situacao })}><span>{situacaoLabel[item.situacao]}</span><div><i style={{ width:`${item.pct}%`, backgroundColor:situacaoEstilo[item.situacao].color }} /></div><strong>{item.valor}</strong></button>)}</div></div>
     </CardSeplag></SpecArea></div>
    </div>
 
