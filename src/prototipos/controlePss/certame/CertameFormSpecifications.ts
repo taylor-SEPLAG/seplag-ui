@@ -38,7 +38,7 @@ export const certameFormTabSpecifications: Record<string, SpecificationMetadata>
   "PSS-CERT-FRM-TAB-004", "Vagas e Cotas",
   "Une os antigos blocos Cargos e Vagas e Cotas em uma única aba, organizada em 2 blocos com subtítulo, nesta ordem: \"Cotas\" e \"Cargos e vagas\". A sub-lista de Fases foi deslocada para a aba Cronograma.",
   "Bloco Cotas (primeiro bloco/primeira linha da aba) — RN-08 (o sistema aceita múltiplas cotas por certame) e RN-10 (a lei é buscada no catálogo já cadastrado no sistema). "
-  + "Bloco Cargos e vagas — RN-10 (código de referência fixo '001'), RN-14 (vaga existente ou nova; ao menos um cargo/vaga é exigido para salvar) e RN-17 (vínculo automático e somente leitura com o Quadro de Vagas do Controle de Vagas > Quadro Autorizado, por cargo — rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso).",
+  + "Bloco Cargos e vagas — RN-10 (código de referência fixo '001'), RN-14 (vaga existente ou nova; ao menos um cargo/vaga é exigido para salvar) e RN-17 (vínculo automático e somente leitura com o Quadro de Vagas do Controle de Vagas > Quadro Autorizado, por cargo — rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso). Cada cargo/vaga pode reservar vagas para um ou mais tipos de cota (RN-08), com a soma das reservas limitada à quantidade de vagas do cargo.",
   "Certame.cargos, Certame.cotas.", "CargoVagaCertame[] | CotaCertame[]", "formulário com 2 sub-grades",
  ),
  "Documentos": spec(
