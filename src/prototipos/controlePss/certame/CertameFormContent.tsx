@@ -260,6 +260,12 @@ export function CertameFormContent() {
  };
 
  const [erro, setErro] = useState<string | null>(null);
+ // A mensagem de erro fica no topo do card, acima das abas — sem isso, um erro disparado por uma
+ // ação dentro de um bloco (ex.: "Adicionar" cargo) passa despercebido quando a página já está rolada.
+ useEffect(() => {
+  if (!erro) return;
+  document.getElementById("certame-form-erro")?.scrollIntoView({ behavior:"smooth", block:"center" });
+ }, [erro]);
  const situacaoForm = useForm<SituacaoFormValues>({ defaultValues: { tipo:"HOMOLOGADO" } });
  // Documento de apoio à alteração manual de situação (aba Situações) — anexo opcional, usando o
  // componente padrão de upload (AnexarDocumentoSeplag), como os demais anexos do certame.
@@ -499,7 +505,7 @@ export function CertameFormContent() {
        : <BotaoSeplag type="button" label="Avançar" icon="pi pi-arrow-right" iconPos="right" onClick={avancar} />}
      </div> : undefined}
     >
-     {erro && <MensagemSeplag severity="error" message={erro} cols="12" />}
+     {erro && <div id="certame-form-erro" className="col-12"><MensagemSeplag severity="error" message={erro} cols="12" /></div>}
 
      <div className="col-12"><TabsSeplag items={abas} activeValue={aba} onChange={setAba} equalWidth /></div>
 
