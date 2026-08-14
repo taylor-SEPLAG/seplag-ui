@@ -27,7 +27,8 @@ export interface FaseCertame { readonly ordem:number; nome:string; dataInicio?:s
 export interface DocumentoCertame { readonly tipo:TipoDocumentoCertame; readonly nomeArquivo:string; readonly anexadoEm:string; }
 
 // RN-16: a homologação é o marco do prazo de prestação de contas, distinto da publicação do resultado.
-export interface SituacaoHistoricoCertame { readonly id:string; readonly certameId:string; readonly tipo:SituacaoCertame; readonly dataEfeito:string; readonly registradoEm:string; readonly usuario:string; readonly prazoPrestacaoContas?:string; }
+// documentoAnexado: nome do arquivo anexado quando a situação é alterada manualmente (aba Situações).
+export interface SituacaoHistoricoCertame { readonly id:string; readonly certameId:string; readonly tipo:SituacaoCertame; readonly dataEfeito:string; readonly registradoEm:string; readonly usuario:string; readonly prazoPrestacaoContas?:string; readonly documentoAnexado?:string; }
 
 export interface Certame {
  readonly id:string;

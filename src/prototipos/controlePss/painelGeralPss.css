@@ -1,0 +1,20 @@
+/* Complementos ao Painel Geral que a biblioteca (@componentes) não cobre — o restante da tela
+   (cabeçalho, filtros, cartões, tabelas, badges, botões) usa CardSeplag/BadgeSeplag/
+   TablePaginadoSeplag/BotaoSeplag/Fields, como as demais telas do app. */
+
+.prototype-painel-cotas-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--pss-espaco-3);padding:0 0 var(--pss-espaco-4)}
+.prototype-painel-cotas-resumo div{padding:var(--pss-espaco-3);border:1px solid var(--pss-borda-suave);border-radius:var(--pss-raio);background:var(--pss-superficie-suave)}
+.prototype-painel-cotas-resumo span{display:block;color:var(--pss-texto-fraco);font-size:var(--pss-fonte-micro);font-weight:750}
+.prototype-painel-cotas-resumo strong{font-size:1.2rem}
+
+.prototype-painel-doc-progresso{display:flex;align-items:center;gap:var(--pss-espaco-2);min-width:7rem}
+.prototype-painel-doc-progresso div{flex:1;height:.5rem;overflow:hidden;border-radius:var(--pss-raio-pill);background:#edf1f5}
+.prototype-painel-doc-progresso i{display:block;height:100%;border-radius:var(--pss-raio-pill);background:#2f9e63}
+.prototype-painel-doc-progresso i.incompleto{background:#ed8b2d}
+.prototype-painel-doc-progresso small{white-space:nowrap;color:var(--pss-texto-fraco);font-size:var(--pss-fonte-micro)}
+
+.prototype-painel-footer{margin:var(--pss-espaco-6) 0 0;padding-top:var(--pss-espaco-4);border-top:1px solid var(--pss-borda);color:var(--pss-texto-fraco);font-size:var(--pss-fonte-micro);text-align:center}
+
+/* Limita a tabela de Cotas e vagas a ~4 linhas visíveis, com rolagem vertical para o restante —
+   a lista pode crescer com o número de certames filtrados e não deve esticar o cartão. */
+.prototype-painel-cotas-tabela .p-datatable-wrapper{max-height:19.5rem;overflow-y:auto}
