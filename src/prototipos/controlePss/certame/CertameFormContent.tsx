@@ -15,7 +15,7 @@ import { MensagemSeplag } from "@componentes/Mensagem";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
 import { TabsSeplag, type TabItemSeplag } from "@componentes/Tabs";
 import { DateFieldSeplag, CheckboxFieldSeplag, CurrencyFieldSeplag, DropdownFieldSeplag, MaskFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
-import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
+import { AnexarDocumentoSeplag, type ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import Base64FileModal from "@componentes/Base64FileModal";
 import { ModalSeplag } from "@componentes/Modal";
 import RotuloSeplag from "@componentes/Rotulo";
@@ -258,8 +258,21 @@ export function CertameFormContent() {
 
  const [erro, setErro] = useState<string | null>(null);
  const situacaoForm = useForm<SituacaoFormValues>({ defaultValues: { tipo:"HOMOLOGADO" } });
- // Documento de apoio à alteração manual de situação (aba Situações) — anexo opcional, não persistido em base64 (mesmo padrão dos demais anexos do certame, que guardam apenas o nome do arquivo).
- const [arquivoSituacao, setArquivoSituacao] = useState<File | null>(null);
+ // Documento de apoio à alteração manual de situação (aba Situações) — anexo opcional, usando o
+ // componente padrão de upload (AnexarDocumentoSeplag), como os demais anexos do certame.
+ const [arquivoSituacao, setArquivoSituacao] = useState<ArquivoAnexadoSeplag | null>(null);
+ const uploadArquivoSituacao = (event:{ files?:File[] }) => {
+  const selecionado = event.files?.[0];
+  if (!selecionado) return;
+  if (!arquivoDocumentoCertameValido(selecionado)) {
+   setErro("Documento inválido: formato aceito .pdf, com até 10MB.");
+   return;
+  }
+  setErro(null);
+  const reader = new FileReader();
+  reader.onload = () => setArquivoSituacao({ nome:selecionado.name, extensao:"pdf", contentType:selecionado.type, conteudoEmBase64:String(reader.result).split(",")[1] ?? "", tamanho:selecionado.size });
+  reader.readAsDataURL(selecionado);
+ };
 
  // RN-20: Demonstrativo LRF é sempre obrigatório (obrigatorioSempre:true no domínio) — não depende
  // mais do checkbox "gerou despesas". RN-21: Publicação do certame licitatório passa a seguir o
@@ -408,10 +421,9 @@ export function CertameFormContent() {
   if (dados.tipo === "HOMOLOGADO" && homologacaoVigenteSemCancelamento(existente.historicoSituacoes)) { setErro("Já existe uma Homologação registrada para este certame sem Cancelamento/Anulação posterior (RN-24b)."); return; }
   // RN-24c (ER145).
   if (dados.tipo === "RETIFICACAO_HOMOLOGACAO" && !podeRegistrarRetificacaoHomologacao(existente.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Homologação sem um registro de Homologado anterior no histórico (RN-24c)."); return; }
-  if (arquivoSituacao && !arquivoDocumentoCertameValido(arquivoSituacao)) { setErro("Documento inválido: formato aceito .pdf, com até 10MB."); return; }
   setErro(null);
   const prazo = calcularPrazoPrestacaoContas(dados.data);
-  const registro = { id:`SIT-${existente.id}-${existente.historicoSituacoes.length + 1}`, certameId:existente.id, tipo:dados.tipo, dataEfeito:dados.data, registradoEm:`${CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/")} ${new Date().toTimeString().slice(0, 5)}`, usuario:"SUGP/SEPLAG", prazoPrestacaoContas:prazo, documentoAnexado:arquivoSituacao?.name };
+  const registro = { id:`SIT-${existente.id}-${existente.historicoSituacoes.length + 1}`, certameId:existente.id, tipo:dados.tipo, dataEfeito:dados.data, registradoEm:`${CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/")} ${new Date().toTimeString().slice(0, 5)}`, usuario:"SUGP/SEPLAG", prazoPrestacaoContas:prazo, documentoAnexado:arquivoSituacao?.nome };
   controlePssStore.set("certames", (atuais) => atuais.map((item) => item.id === existente.id ? { ...item, situacaoAtual:dados.tipo, historicoSituacoes:[...item.historicoSituacoes, registro], atualizadoEm:dados.data! } : item));
   situacaoForm.reset({ tipo:"HOMOLOGADO", data:"" });
   setArquivoSituacao(null);
@@ -723,7 +735,7 @@ export function CertameFormContent() {
        <div className="grid align-items-end prototype-certame-subform">
         <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 3" options={[...SITUACOES_CERTAME]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
         <DateFieldSeplag name="data" control={situacaoForm.control} label="Data de efeito" cols="12 6 3" getFormErrorMessage={() => null} />
-        <div className="col-12 md:col-3"><label className="prototype-ingresso-field"><span>Documento de apoio (opcional)</span><input type="file" accept="application/pdf,.pdf" onChange={(event) => setArquivoSituacao(event.target.files?.[0] ?? null)} /></label></div>
+        <AnexarDocumentoSeplag cols="12 6 3" label="Documento de apoio (opcional)" arquivoBase64={arquivoSituacao ?? undefined} onUploadDocument={uploadArquivoSituacao} onRemoveArquivo={() => setArquivoSituacao(null)} handleViewArquivo={() => {}} canView={false} accept="application/pdf" maxFileSize={10_000_000} helpText="Formato aceito: .pdf | Tamanho máximo: 10MB" />
         <div className="col-12 md:col-3"><SpecArea metadata={certameFormActionSpecifications["Registrar situação"]}><BotaoSeplag type="button" label="Registrar situação" icon="pi pi-check" onClick={registrarSituacao} /></SpecArea></div>
        </div>
       </div>
