@@ -16,13 +16,6 @@
 
 .prototype-certame-subform{padding-top:.5rem;margin-bottom:1rem}
 
-/* Reservas de cota por cargo/vaga — múltiplas reservas (ex.: PCD + PPP) exibidas como tags, tanto
-   na área de montagem (com botão de remover) quanto na coluna "Cota" da tabela de cargos. */
-.prototype-certame-cota-tags{display:flex;flex-wrap:wrap;gap:.4rem;padding-top:.25rem}
-.prototype-certame-cota-tag{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border:1px solid var(--surface-border);border-radius:999px;background:var(--surface-100);color:var(--text-color);font-size:.78rem}
-.prototype-certame-cota-tag button{display:inline-flex;align-items:center;justify-content:center;width:1rem;height:1rem;padding:0;border:0;background:transparent;color:var(--text-color-secondary);cursor:pointer}
-.prototype-certame-cota-tag button:hover,.prototype-certame-cota-tag button:focus-visible{color:#d32f2f;outline:0}
-
 /* Blocos com cabeçalho de ícone + título + subtítulo, cada um exibido como um cartão próprio
    (separação por componente, alinhada à maquete de referência). */
 .prototype-certame-bloco{padding:1.25rem;margin-bottom:1rem;border:1px solid var(--surface-border);border-radius:10px;background:var(--surface-0);scroll-margin-top:1rem;transition:background-color .3s ease,box-shadow .3s ease}
