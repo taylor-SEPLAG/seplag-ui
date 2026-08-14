@@ -1,7 +1,7 @@
 import type { ComprometimentoVaga, EstadoVaga, FaseComprometimento, NaturezaComprometimento, Vaga } from "./types";
 
 export const fasesPadrao: Record<NaturezaComprometimento, string[]> = {
-  OCUPACAO: ["Aguardando análise", "Em análise", "Aguardando Efetivo Exercício", "Posse Suspensa"],
+  OCUPACAO: ["Aguardando análise", "Em análise", "Aguardando efetivo exercício", "Posse suspensa"],
   DISPONIBILIZACAO: ["Solicitação registrada", "Instrução do processo", "Análise e validação", "Publicação do ato"],
 };
 
@@ -48,9 +48,9 @@ export type SituacaoIngressoVaga =
 const rotuloSituacaoIngresso: Record<SituacaoIngressoVaga, string> = {
   AGUARDANDO_ANALISE: "Aguardando análise",
   EM_ANALISE: "Em análise",
-  AGUARDANDO_EFETIVO_EXERCICIO: "Aguardando Efetivo Exercício",
+  AGUARDANDO_EFETIVO_EXERCICIO: "Aguardando efetivo exercício",
   INGRESSO_CONCLUIDO: "Ingresso concluído",
-  POSSE_SUSPENSA: "Posse Suspensa",
+  POSSE_SUSPENSA: "Posse suspensa",
   POSSE_NEGADA: "Posse Negada",
   TORNADO_SEM_EFEITO: "Tornado sem efeito",
 };

@@ -13,7 +13,6 @@ export const distribuicaoKpiSpecifications: Record<string, SpecificationMetadata
   "Disponíveis para movimentação": spec("CV-DIST-KPI-004", "Disponíveis para movimentação", "Vagas que podem participar de distribuição ou redistribuição.", "Exigir vaga disponível, regular e sem comprometimento ativo; preservar o mesmo quadro e a compatibilidade do destino.", "Vagas, comprometimentos e posição distributiva.", "integer", "KPI"),
   "Ocupadas — não movimentáveis": spec("CV-DIST-KPI-005", "Ocupadas — não movimentáveis", "Vagas ocupadas bloqueadas para operação distributiva.", "Distribuição e redistribuição não podem alterar a destinação de vaga ocupada neste fluxo.", "Vaga.estado.", "integer", "KPI"),
 };
-
 export const distribuicaoTabSpecifications: Record<string, SpecificationMetadata> = {
   "Distribuição por órgão": spec("CV-DIST-TAB-001", "Distribuição por órgão", "Consultar o saldo distributivo agrupado por quadro, cargo e órgão.", "Separar total, ocupadas, disponíveis, comprometidas, movimentáveis e pendentes de ato sem misturar quadros diferentes.", "Posição recalculada das vagas.", "GrupoDistribuicao[]", "aba com tabela"),
   "Histórico de distribuições": spec("CV-DIST-TAB-002", "Histórico de distribuições", "Consultar todos os atos de distribuição e redistribuição registrados.", "Cada vaga mantém movimento individual mesmo quando a operação foi registrada em lote; registros não são apagados ou sobrescritos.", "MovimentoVagaIndividual[].", "history[]", "aba com tabela"),
@@ -45,9 +44,15 @@ export const distribuicaoFilterSpecifications: Record<string, SpecificationMetad
   Fim: spec("CV-DIST-FLT-022", "Fim do período", "Definir a data final do histórico.", "Incluir movimentos com efeito igual ou anterior.", "periodoFim.", "date ISO", "date input"),
 };
 export const distribuicaoActionSpecifications: Record<string, SpecificationMetadata> = {
-  "Nova distribuição": spec("CV-DIST-ACT-001", "Nova distribuição", "Iniciar distribuição inicial ou redistribuição de vagas elegíveis.", "Exigir Quadro Autorizado vigente, vagas elegíveis, destino permitido, documento legal, processo SIGADOC, justificativa e data de efeito; simular antes de efetivar.", "NovaDistribuicao e documentos legais associáveis.", "navigation", "botão primário", "/prototipos/sigep/controle-vagas/distribuicao/nova"),
+  Distribuir: spec("CV-DIST-ACT-001", "Distribuir vagas", "Abrir a distribuição inicial do quadro da linha.", "Disponibilizar somente quando o quadro possuir vagas pendentes de ato, disponíveis, regulares e sem comprometimento; o quadro de origem é fixo.", "GrupoDistribuicao.distribuiveis e quadroAutorizadoId.", "navigation", "botão de ação", "/prototipos/sigep/controle-vagas/distribuicao/nova?quadro={id}"),
+  Redistribuir: spec("CV-DIST-ACT-004", "Redistribuir vagas", "Abrir a redistribuição do quadro da linha.", "Disponibilizar somente quando o quadro possuir vagas já distribuídas, disponíveis, regulares e sem comprometimento; o quadro de origem é fixo.", "GrupoDistribuicao.redistribuiveis e quadroAutorizadoId.", "navigation", "botão de ação", "/prototipos/sigep/controle-vagas/redistribuicao/nova?quadro={id}"),
   Limpar: spec("CV-DIST-ACT-002", "Limpar filtros", "Restaurar os filtros da consulta atual.", "Limpar todos os recortes e retornar a data padrão sem alterar dados.", "Estado local dos filtros.", "void", "botão"),
   Paginação: spec("CV-DIST-ACT-003", "Paginação", "Navegar pela posição distributiva sem aumentar a largura da tabela.", "Usar o componente padrão e permitir 10, 20 ou 50 registros por página.", "pagina, porPagina e totalRecords.", "PaginatorState", "PrimeReact Paginator"),
 };
 
 export const distribuicaoBusinessItems = [...Object.values(distribuicaoKpiSpecifications), ...Object.values(distribuicaoTabSpecifications), ...Object.values(distribuicaoBlockSpecifications), ...Object.values(distribuicaoFilterSpecifications), ...Object.values(distribuicaoActionSpecifications)];
+
+
+
+
+

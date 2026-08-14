@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Dropdown } from "primereact/dropdown";
-import { MultiSelect } from "primereact/multiselect";
 import {
   BotaoAdicionarSeplag,
   BotaoSalvarSeplag,
@@ -11,13 +10,12 @@ import {
   BotaoLimparFiltroSeplag,
   DateFieldSeplag,
   DropdownFieldSeplag,
-  MultiSelectFieldSeplag,
-  TabsSeplag,
+  NumberFieldSeplag,
   TablePaginadoSeplag,
   TextAreaFieldSeplag,
   TextFieldSeplag,
 } from "../../componentes";
-import { DocumentosLegaisAssociadosSeplag } from "../../componentes/DocumentosLegaisAssociados";
+import { BaseLegalVinculada } from "./BaseLegalVinculada";
 import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
 import {
   calcularPosicaoVaga,
@@ -46,6 +44,7 @@ import {
 } from "./DistribuicaoSpecifications";
 import type { ResultsSeplag } from "../../interfaces/Results";
 import "./distribuicaoIndividual.css";
+import "./quadroLegalOperacoes.css";
 
 type OperacaoDistribuicao = "DISTRIBUICAO" | "REDISTRIBUICAO";
 const operacaoLabel: Record<OperacaoDistribuicao, string> = {
@@ -73,19 +72,19 @@ interface GrupoDistribuicao {
   disponiveis: number;
   comprometidas: number;
   movimentaveis: number;
+  distribuiveis: number;
+  redistribuiveis: number;
   pendentesAto: number;
 }
 interface DestinacaoDistribuicao {
   id: number;
   orgao: string;
-  setor: string[];
   quantidade: number;
 }
 interface NovaDistribuicaoCampos {
-  quadroId: string;
   origem: string;
   destino: string;
-  vagasSelecionadas: string[];
+  quantidadeRedistribuicao: number;
   data: string;
   processo: string;
   justificativa: string;
@@ -117,39 +116,27 @@ const resultadosDistribuicao = (
   numberOfElements: content.length,
   empty: content.length === 0,
 });
-const setoresTemporariosPorOrgao: Record<string, string[]> = {
-  AGER: ["Diretoria de Regulação", "Coordenadoria Administrativa"],
-  "CASA CIVIL": ["Gabinete", "Coordenadoria Administrativa"],
-  CGE: ["Superintendência de Auditoria", "Coordenadoria de Corregedoria"],
-  PGE: ["Procuradoria Administrativa", "Coordenadoria de Apoio"],
-  PJC: ["Diretoria Metropolitana", "Diretoria do Interior"],
-  SEDUC: ["Unidade Central", "Diretoria Regional de Educação"],
-  SEFAZ: ["Gabinete", "Superintendência de Administração"],
-  SEMA: [
-    "Superintendência de Recursos Hídricos",
-    "Coordenadoria de Licenciamento",
-  ],
-  SEPLAG: [
-    "Coordenadoria de Desenvolvimento",
-    "Coordenadoria de Sistemas",
-    "Gerência de Planejamento de Pessoal",
-  ],
-  SES: ["Unidade Central", "Hospital Metropolitano"],
-  SINFRA: ["Superintendência de Obras", "Coordenadoria Administrativa"],
-};
-
 export function DistribuicaoIndividualContent() {
   const { movimentos, vagas, comprometimentos, quadros } =
     useControleVagasStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const isNovaDistribuicao = location.pathname.endsWith("/nova");
+  const isNovaDistribuicao = location.pathname.includes("/distribuicao/nova");
+  const isNovaRedistribuicao = location.pathname.includes("/redistribuicao/nova");
+  const isFormularioDistribuicao = isNovaDistribuicao || isNovaRedistribuicao;
   const [searchParams] = useSearchParams();
   const quadroInicial = searchParams.get("quadro") ?? "";
+  const filtroQuadroInicial = isFormularioDistribuicao
+    ? ""
+    : (quadros.find((quadro) => String(quadro.id) === quadroInicial)?.codigo ??
+      quadroInicial);
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
   const { control, watch, reset } = useForm<DistribuicaoFiltros>({
-    defaultValues: filtrosDistribuicaoIniciais,
+    defaultValues: {
+      ...filtrosDistribuicaoIniciais,
+      busca: filtroQuadroInicial,
+    },
   });
   const { busca, cargo: filtroCargo, orgao: filtroOrgao } = watch();
   const posicoes = useMemo(
@@ -173,35 +160,82 @@ export function DistribuicaoIndividualContent() {
         (item) => item.id === posicao.quadroAutorizadoId,
       );
       if (!vaga || !quadro) return;
-      const orgao =
-        posicao.orgaoDistribuicao ?? "Pendente de ato de distribuição";
-      const chave = `${posicao.quadroAutorizadoId}|${orgao}`;
+      const orgao = quadro.orgaosDefinidosLei?.length
+        ? quadro.orgaosDefinidosLei.join(" • ")
+        : quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
+          ? "Pendente de ato de distribuição"
+          : quadro.orgao;
+      const quadroPermiteMovimentacao =
+        quadro.situacao === "Vigente" &&
+        quadro.situacaoVigencia !== "ENCERRADO" &&
+        quadro.situacaoVigencia !== "EXTINTO";
+      const chave = String(posicao.quadroAutorizadoId);
       const atual = mapa.get(chave) ?? {
         chave,
         quadroId: quadro.id,
         quadroCodigo: quadro.codigo,
         versao: quadro.versao,
         cargo: posicao.cargo,
+
         orgao,
         total: 0,
         ocupadas: 0,
         disponiveis: 0,
         comprometidas: 0,
         movimentaveis: 0,
+        distribuiveis: 0,
+        redistribuiveis: 0,
         pendentesAto: 0,
       };
       atual.total++;
       if (posicao.situacaoDistribuicao === "PENDENTE_ATO") atual.pendentesAto++;
       if (vaga.estado === "OCUPADA") atual.ocupadas++;
       else atual.disponiveis++;
-      if (compromissosAtivos.has(vaga.id)) atual.comprometidas++;
-      if (
+      if (vaga.estado === "DISPONIVEL" && compromissosAtivos.has(vaga.id))
+        atual.comprometidas++;
+      const elegivel =
         vaga.estado === "DISPONIVEL" &&
         !compromissosAtivos.has(vaga.id) &&
-        posicao.situacaoLegal === "REGULAR"
-      )
+        posicao.situacaoLegal === "REGULAR" &&
+        quadroPermiteMovimentacao;
+      if (elegivel) {
         atual.movimentaveis++;
+        if (
+          posicao.situacaoDistribuicao === "PENDENTE_ATO" ||
+          !posicao.orgaoDistribuicao
+        )
+          atual.distribuiveis++;
+        else atual.redistribuiveis++;
+      }
       mapa.set(chave, atual);
+    });
+    const codigosRepresentados = new Set(
+      [...mapa.values()].map((grupo) => grupo.quadroCodigo),
+    );
+    const quadrosAtuais = new Map<string, QuadroAutorizadoRow>();
+    quadros.forEach((quadro) => {
+      const atual = quadrosAtuais.get(quadro.codigo);
+      if (!atual || quadro.versao > atual.versao) quadrosAtuais.set(quadro.codigo, quadro);
+    });
+    quadrosAtuais.forEach((quadro) => {
+      if (codigosRepresentados.has(quadro.codigo)) return;
+      const orgao = quadro.orgaosDefinidosLei?.length
+        ? quadro.orgaosDefinidosLei.join(" • ")
+        : quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
+          ? "Pendente de ato de distribuição"
+          : quadro.orgao;
+      mapa.set(String(quadro.id), {
+        chave: String(quadro.id),
+        quadroId: quadro.id,
+        quadroCodigo: quadro.codigo,
+        versao: quadro.versao,
+        cargo: quadro.cargo,
+        orgao,
+        total: quadro.autorizadas,
+        ocupadas: quadro.ocupadas,
+        disponiveis: Math.max(0, quadro.autorizadas - quadro.ocupadas),
+        comprometidas: 0, movimentaveis: 0, distribuiveis: 0, redistribuiveis: 0, pendentesAto: 0,
+      });
     });
     return [...mapa.values()].sort(
       (a, b) =>
@@ -209,20 +243,22 @@ export function DistribuicaoIndividualContent() {
     );
   }, [posicoes, vagas, quadros, compromissosAtivos]);
   const opcoesCargo = [...new Set(grupos.map((grupo) => grupo.cargo))].sort();
-  const opcoesOrgao = [...new Set(grupos.map((grupo) => grupo.orgao))].sort();
+  const opcoesOrgao = [
+    ...new Set(grupos.flatMap((grupo) => grupo.orgao.split(" • "))),
+  ].sort();
   const gruposFiltrados = grupos.filter(
     (grupo) =>
       (!busca ||
         grupo.quadroCodigo.toLowerCase().includes(busca.toLowerCase())) &&
       (!filtroCargo || grupo.cargo === filtroCargo) &&
-      (!filtroOrgao || grupo.orgao === filtroOrgao),
+      (!filtroOrgao || grupo.orgao.split(" • ").includes(filtroOrgao)),
   );
   const paginas = Math.max(1, Math.ceil(gruposFiltrados.length / porPagina));
   const paginaAtual = Math.min(pagina, paginas);
   const colunasTabela = [
     {
       field: "quadroCodigo",
-      header: "Quadro autorizado",
+      header: "Quadro",
       sortable: true,
       body: (grupo: GrupoDistribuicao) => (
         <>
@@ -237,8 +273,8 @@ export function DistribuicaoIndividualContent() {
       sortable: true,
       body: (grupo: GrupoDistribuicao) => <strong>{grupo.cargo}</strong>,
     },
-    { field: "orgao", header: "Órgão de distribuição", sortable: true },
-    { field: "total", header: "Total", sortable: true },
+    { field: "orgao", header: "Órgão", sortable: true },
+    { field: "total", header: "Autorizadas", sortable: true },
     { field: "ocupadas", header: "Ocupadas", sortable: true },
     { field: "disponiveis", header: "Disponíveis", sortable: true },
     { field: "comprometidas", header: "Comprometidas", sortable: true },
@@ -275,9 +311,10 @@ export function DistribuicaoIndividualContent() {
     controleVagasStore.set("movimentos", (itens) => [...itens, ...lote]);
     fecharNovo();
   };
-  if (isNovaDistribuicao)
+  if (isFormularioDistribuicao)
     return (
       <NovaDistribuicao
+        operacao={isNovaRedistribuicao ? "REDISTRIBUICAO" : "DISTRIBUICAO"}
         quadroInicial={quadroInicial}
         quadros={quadros}
         vagas={vagas}
@@ -430,18 +467,7 @@ export function DistribuicaoIndividualContent() {
               </div>
             </SpecArea>
           </div>
-          <div className="prototype-quadro-table-toolbar">
-            <SpecArea
-              metadata={distribuicaoActionSpecifications["Nova distribuição"]}
-            >
-              <BotaoAdicionarSeplag
-                label="Nova distribuição"
-                onClick={() =>
-                  navigate("/prototipos/sigep/controle-vagas/distribuicao/nova")
-                }
-              />
-            </SpecArea>
-          </div>
+
           <SpecArea
             metadata={distribuicaoBlockSpecifications["Tabela da posição"]}
           >
@@ -460,21 +486,44 @@ export function DistribuicaoIndividualContent() {
                 columns={colunasTabela}
                 hasEventoAcao
                 renderBotoes={(grupo) => (
-                  <BotaoIconSeplag
-                    type="button"
-                    tooltip={
-                      grupo.movimentaveis > 0
-                        ? `Distribuir vagas do ${grupo.quadroCodigo}`
-                        : "Não há vagas movimentáveis nesta linha"
-                    }
-                    icon="pi pi-sitemap"
-                    disabled={grupo.movimentaveis === 0}
-                    onClick={() =>
-                      navigate(
-                        `/prototipos/sigep/controle-vagas/distribuicao/nova?quadro=${grupo.quadroId}`,
-                      )
-                    }
-                  />
+                  <div className="prototype-distribution-row-actions">
+                    <SpecArea metadata={distribuicaoActionSpecifications.Distribuir}>
+                    <BotaoIconSeplag
+                      type="button"
+                      tooltip={
+                        grupo.distribuiveis > 0
+                          ? `Distribuir ${grupo.distribuiveis} vaga(s) pendente(s) do ${grupo.quadroCodigo}`
+                          : "Este quadro não possui vagas pendentes elegíveis para distribuição"
+                      }
+                      aria-label={`Distribuir vagas do ${grupo.quadroCodigo}`}
+                      icon="pi pi-sitemap"
+                      disabled={grupo.distribuiveis === 0}
+                      onClick={() =>
+                        navigate(
+                          `/prototipos/sigep/controle-vagas/distribuicao/nova?quadro=${grupo.quadroId}`,
+                        )
+                      }
+                    />
+                    </SpecArea>
+                    <SpecArea metadata={distribuicaoActionSpecifications.Redistribuir}>
+                    <BotaoIconSeplag
+                      type="button"
+                      tooltip={
+                        grupo.redistribuiveis > 0
+                          ? `Redistribuir ${grupo.redistribuiveis} vaga(s) do ${grupo.quadroCodigo}`
+                          : "Este quadro não possui vagas já distribuídas elegíveis para redistribuição"
+                      }
+                      aria-label={`Redistribuir vagas do ${grupo.quadroCodigo}`}
+                      icon="pi pi-arrow-right-arrow-left"
+                      disabled={grupo.redistribuiveis === 0}
+                      onClick={() =>
+                        navigate(
+                          `/prototipos/sigep/controle-vagas/redistribuicao/nova?quadro=${grupo.quadroId}`,
+                        )
+                      }
+                    />
+                    </SpecArea>
+                  </div>
                 )}
                 handleOnPageChange={(event) => {
                   setPagina((event.page ?? 0) + 1);
@@ -484,12 +533,13 @@ export function DistribuicaoIndividualContent() {
             </div>
           </SpecArea>
         </section>
-      </div>
+    </div>
     </SpecificationMode>
   );
 }
 
 function NovaDistribuicao({
+  operacao,
   quadroInicial,
   quadros,
   vagas,
@@ -499,6 +549,7 @@ function NovaDistribuicao({
   onClose,
   onSave,
 }: {
+  operacao: OperacaoDistribuicao;
   quadroInicial?: string;
   quadros: QuadroAutorizadoRow[];
   vagas: Vaga[];
@@ -509,10 +560,8 @@ function NovaDistribuicao({
   onSave: (lote: MovimentoVagaIndividual[]) => void;
 }) {
   const documentosLegaisDisponiveis = useDocumentosLegaisAssociaveis();
-  const [operacao, setOperacao] =
-    useState<OperacaoDistribuicao>("DISTRIBUICAO");
   const [destinacoes, setDestinacoes] = useState<DestinacaoDistribuicao[]>([
-    { id: 1, orgao: "", setor: [], quantidade: 1 },
+    { id: 1, orgao: "", quantidade: 1 },
   ]);
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>([]);
   const [simulado, setSimulado] = useState(false);
@@ -525,20 +574,18 @@ function NovaDistribuicao({
     formState: { errors },
   } = useForm<NovaDistribuicaoCampos>({
     defaultValues: {
-      quadroId: quadroInicial ?? "",
       origem: "",
       destino: "",
-      vagasSelecionadas: [],
+      quantidadeRedistribuicao: 0,
       data: hoje,
       processo: "",
       justificativa: "",
     },
   });
   const {
-    quadroId,
     origem,
     destino,
-    vagasSelecionadas,
+    quantidadeRedistribuicao,
     data,
     processo,
     justificativa,
@@ -557,7 +604,7 @@ function NovaDistribuicao({
     .filter((item) => documentosLegaisIds.includes(item.id))
     .map((item) => item.titulo)
     .join("; ");
-  const quadro = quadros.find((item) => item.id === Number(quadroId));
+  const quadro = quadros.find((item) => item.id === Number(quadroInicial));
   const posicoesQuadro = posicoes.filter(
     (item) => item.quadroAutorizadoId === quadro?.id,
   );
@@ -566,17 +613,43 @@ function NovaDistribuicao({
       .filter((item) => item.situacao === "ATIVO")
       .map((item) => item.vagaId),
   );
-  const orgaosOrigem = [
+  const resumoQuadro = (() => {
+    const vagasAtivas = vagas.filter(
+      (vaga) =>
+        vaga.quadroAutorizadoId === quadro?.id &&
+        vaga.situacaoLegal !== "EXTINTA",
+    );
+    const posicoesAtivas = posicoesQuadro.filter((posicao) =>
+      vagasAtivas.some((vaga) => vaga.id === posicao.vagaId),
+    );
+    const pendentes = posicoesAtivas.filter(
+      (posicao) => posicao.situacaoDistribuicao === "PENDENTE_ATO",
+    ).length;
+    const ocupadas = vagasAtivas.filter(
+      (vaga) => vaga.estado === "OCUPADA",
+    ).length;
+    const comprometidas = vagasAtivas.filter((vaga) =>
+      compromissos.has(vaga.id),
+    ).length;
+    const disponiveis =
+      vagasAtivas.filter((vaga) => vaga.estado === "DISPONIVEL").length -
+      pendentes;
+
+    return {
+      autorizadas: vagasAtivas.length,
+      ocupadas,
+      comprometidas,
+      disponiveis: Math.max(0, disponiveis),
+      pendentes,
+    };
+  })();  const orgaosOrigem = [
     ...new Set(
       posicoesQuadro
         .map((item) => item.orgaoDistribuicao)
         .filter(Boolean) as string[],
     ),
   ].sort();
-  const temQuantitativoLegal = Boolean(
-    quadro?.quantitativosLegaisPorOrgao?.length,
-  );
-  const orgaosPermitidos = quadro?.orgaosDefinidosLei?.length
+const orgaosPermitidos = quadro?.orgaosDefinidosLei?.length
     ? [...quadro.orgaosDefinidosLei]
     : [
         "AGER",
@@ -609,14 +682,20 @@ function NovaDistribuicao({
       total + (item.orgao ? Math.max(0, item.quantidade || 0) : 0),
     0,
   );
+  const candidatasOrdenadas = [...candidatas].sort((a, b) => {
+    const sequencialA = vagas.find((vaga) => vaga.id === a.vagaId)?.sequencial ?? 0;
+    const sequencialB = vagas.find((vaga) => vaga.id === b.vagaId)?.sequencial ?? 0;
+    return sequencialB - sequencialA;
+  });
+  const quantidadeRedistribuir = Math.max(0, Number(quantidadeRedistribuicao || 0));
   const selecionadas =
     operacao === "REDISTRIBUICAO"
-      ? candidatas.filter((item) => vagasSelecionadas.includes(item.vagaId))
+      ? candidatasOrdenadas.slice(0, quantidadeRedistribuir)
       : candidatas.slice(0, totalDestinacoes);
   const atualizarDestinacao = (
     id: number,
-    campo: "orgao" | "setor" | "quantidade",
-    valor: string | string[] | number,
+    campo: "orgao" | "quantidade",
+    valor: string | number,
   ) => {
     setDestinacoes((atuais) =>
       atuais.map((item) =>
@@ -624,7 +703,6 @@ function NovaDistribuicao({
           ? {
               ...item,
               [campo]: valor,
-              ...(campo === "orgao" ? { setor: [] } : {}),
             }
           : item,
       ),
@@ -637,7 +715,6 @@ function NovaDistribuicao({
       {
         id: Math.max(0, ...atuais.map((item) => item.id)) + 1,
         orgao: "",
-        setor: [],
         quantidade: 1,
       },
     ]);
@@ -649,20 +726,10 @@ function NovaDistribuicao({
     );
     setSimulado(false);
   };
-  const alterarOperacao = (valor: OperacaoDistribuicao) => {
-    if (valor === operacao) return;
-    setOperacao(valor);
-    setValue("origem", "");
-    setValue("destino", "");
-    setValue("vagasSelecionadas", []);
-    setDestinacoes([{ id: 1, orgao: "", setor: [], quantidade: 1 }]);
-    setSimulado(false);
-    setErro("");
-  };
   const simular = () => {
     setErro("");
     if (!quadro) {
-      setErro("Selecione o Quadro Autorizado.");
+      setErro("O Quadro Autorizado não foi informado ou não foi encontrado.");
       return;
     }
     if (bloqueioLegal) {
@@ -686,11 +753,9 @@ function NovaDistribuicao({
         );
         return;
       }
-      const chaves = destinacoes.map(
-        (item) => `${item.orgao}|${[...item.setor].sort().join(",")}`,
-      );
+      const chaves = destinacoes.map((item) => item.orgao);
       if (new Set(chaves).size !== chaves.length) {
-        setErro("Não repita a mesma combinação de órgão e setor.");
+        setErro("Não repita o mesmo órgão de destino.");
         return;
       }
       if (selecionadas.length < totalDestinacoes) {
@@ -718,8 +783,12 @@ function NovaDistribuicao({
         );
         return;
       }
-      if (!vagasSelecionadas.length) {
-        setErro("Selecione ao menos uma vaga numerada para redistribuir.");
+      if (!Number.isInteger(quantidadeRedistribuir) || quantidadeRedistribuir < 1) {
+        setErro("Informe uma quantidade inteira maior que zero para redistribuir.");
+        return;
+      }
+      if (quantidadeRedistribuir > candidatas.length) {
+        setErro(`Existem apenas ${candidatas.length} vagas elegíveis no órgão de origem.`);
         return;
       }
     }
@@ -738,7 +807,6 @@ function NovaDistribuicao({
     const atribuicoes: {
       posicao: PosicaoDistribuicaoVaga;
       orgao: string;
-      setor: string;
     }[] = [];
     if (operacao === "DISTRIBUICAO") {
       let cursor = 0;
@@ -750,13 +818,12 @@ function NovaDistribuicao({
           atribuicoes.push({
             posicao,
             orgao: item.orgao,
-            setor: item.setor.join(" • "),
           });
         cursor += item.quantidade;
       }
     } else {
       for (const posicao of selecionadas)
-        atribuicoes.push({ posicao, orgao: destino, setor: "" });
+        atribuicoes.push({ posicao, orgao: destino });
     }
     const lote: MovimentoVagaIndividual[] = [];
     for (const [indice, atribuicao] of atribuicoes.entries()) {
@@ -768,7 +835,6 @@ function NovaDistribuicao({
           tipo: operacao,
           dataEfeito: dataEfeitoIso,
           orgao: atribuicao.orgao,
-          unidade: atribuicao.setor || undefined,
           ato,
           processo,
           justificativa,
@@ -794,7 +860,7 @@ function NovaDistribuicao({
     <div className="prototype-ind-page prototype-distribution-form-page">
       <header className="prototype-ind-header">
         <div>
-          <h1>Nova distribuição</h1>
+          <h1>{operacao === "DISTRIBUICAO" ? "Nova distribuição" : "Nova redistribuição"}</h1>
           <p>
             O Quadro Autorizado define a origem e o limite legal da operação.
           </p>
@@ -810,73 +876,38 @@ function NovaDistribuicao({
             {erro}
           </div>
         )}
-        <TabsSeplag<OperacaoDistribuicao>
-          className="prototype-distribution-operation-tabs"
-          items={[
-            { label: "Distribuição", value: "DISTRIBUICAO" },
-            { label: "Redistribuição", value: "REDISTRIBUICAO" },
-          ]}
-          activeValue={operacao}
-          onChange={alterarOperacao}
-          equalWidth
-          maxWidth="680px"
-        />
         <div className="prototype-ind-form">
-          <DropdownFieldSeplag<NovaDistribuicaoCampos>
-            name="quadroId"
-            control={control}
-            label="Quadro Autorizado vigente"
-            cols="12"
-            required
-            options={quadros
-              .filter((item) => item.situacao === "Vigente")
-              .map((item) => ({
-                label: `${item.codigo} — ${item.cargo} — versão ${item.versao}`,
-                value: String(item.id),
-              }))}
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Selecione"
-            getFormErrorMessage={getFormErrorMessage}
-            onChange={() => {
-              setValue("origem", "");
-              setValue("destino", "");
-              setValue("vagasSelecionadas", []);
-              setDestinacoes([{ id: 1, orgao: "", setor: [], quantidade: 1 }]);
+          <BaseLegalVinculada
+            className="full prototype-distribution-legal-document"
+            value={documentosLegaisIds}
+            onChange={(ids) => {
+              setDocumentosLegaisIds(ids);
+              setSimulado(false);
             }}
           />
           {quadro && (
-            <section className="prototype-distribution-board-summary">
+            <section className="prototype-legal-version-context prototype-distribution-board-context">
+              <span>
+                Quadro da {operacao === "DISTRIBUICAO" ? "distribuição" : "redistribuição"}
+              </span>
               <div>
-                <span>Cargo</span>
-                <strong>{quadro.cargo}</strong>
+                <strong>{quadro.codigo}</strong>
+                <h3>{quadro.cargo}</h3>
+                <em>Versão vigente {quadro.versao}</em>
               </div>
-              <div>
-                <span>Carreira</span>
-                <strong>{quadro.carreira || "Não informada"}</strong>
-              </div>
-              <div>
-                <span>Tipo</span>
-                <strong>{quadro.tipoQuadro}</strong>
-              </div>
-              <div>
-                <span>Base legal</span>
-                <strong>{quadro.ato}</strong>
-              </div>
-              <div>
-                <span>Destinação</span>
-                <strong>
-                  {quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
-                    ? "Distribuição posterior pelo Estado"
-                    : temQuantitativoLegal
-                      ? "Quantitativos definidos pela lei"
-                      : "Órgãos permitidos pela lei"}
-                </strong>
-              </div>
-              <div>
-                <span>Autorizadas</span>
-                <strong>{quadro.autorizadas}</strong>
-              </div>
+              <dl className="prototype-legal-version-summary">
+                <div><dt>Autorizadas</dt><dd>{resumoQuadro.autorizadas}</dd></div>
+                <div><dt>Ocupadas</dt><dd>{resumoQuadro.ocupadas}</dd></div>
+                <div><dt>Comprometidas</dt><dd>{resumoQuadro.comprometidas}</dd></div>
+                <div><dt>Disponíveis</dt><dd>{resumoQuadro.disponiveis}</dd></div>
+                <div><dt>Pendentes de ato</dt><dd>{resumoQuadro.pendentes}</dd></div>
+              </dl>
+              <p>
+                <i className="pi pi-info-circle" />
+                {operacao === "DISTRIBUICAO"
+                  ? "Somente vagas pendentes de ato, disponíveis e sem comprometimento podem ser distribuídas."
+                  : "Somente vagas já distribuídas, disponíveis e sem comprometimento podem ser redistribuídas."}
+              </p>
             </section>
           )}
           {operacao === "DISTRIBUICAO" ? (
@@ -884,10 +915,7 @@ function NovaDistribuicao({
               <header>
                 <div>
                   <h3>Destinações da distribuição</h3>
-                  <p>
-                    Adicione os órgãos e, quando o ato definir, os respectivos
-                    setores.
-                  </p>
+                  <p>Adicione os órgãos e as respectivas quantidades.</p>
                 </div>
                 <BotaoAdicionarSeplag
                   type="button"
@@ -897,7 +925,6 @@ function NovaDistribuicao({
               </header>
               <div className="prototype-distribution-destination-head">
                 <span>Órgão *</span>
-                <span>Setor vinculado ao órgão</span>
                 <span>Quantidade *</span>
                 <span>Ações</span>
               </div>
@@ -924,27 +951,6 @@ function NovaDistribuicao({
                       onChange={(e) =>
                         atualizarDestinacao(item.id, "orgao", e.value ?? "")
                       }
-                    />
-                  </div>
-                  <div className="prototype-distribution-destination-field">
-                    <span>Setor vinculado ao órgão</span>
-                    <MultiSelect
-                      aria-label="Setor vinculado ao órgão"
-                      value={item.setor}
-                      options={(
-                        setoresTemporariosPorOrgao[item.orgao] ?? []
-                      ).map((setor) => ({ label: setor, value: setor }))}
-                      optionLabel="label"
-                      optionValue="value"
-                      placeholder="Sem setor definido"
-                      filter
-                      display="chip"
-                      maxSelectedLabels={3}
-                      className="w-full"
-                      onChange={(e) =>
-                        atualizarDestinacao(item.id, "setor", e.value ?? [])
-                      }
-                      disabled={!item.orgao}
                     />
                   </div>
                   <div className="prototype-distribution-destination-field">
@@ -1020,7 +1026,7 @@ function NovaDistribuicao({
                       placeholder="Selecione o órgão de origem"
                       getFormErrorMessage={getFormErrorMessage}
                       onChange={(value) => {
-                        setValue("vagasSelecionadas", []);
+                        setValue("quantidadeRedistribuicao", 0);
                         if (value === destino) {
                           setValue("destino", "");
                         }
@@ -1077,23 +1083,21 @@ function NovaDistribuicao({
                 </div>
               </section>
               <div className="full prototype-distribution-seplag-field">
-                <MultiSelectFieldSeplag<NovaDistribuicaoCampos>
-                  name="vagasSelecionadas"
+                <NumberFieldSeplag<NovaDistribuicaoCampos>
+                  name="quantidadeRedistribuicao"
                   control={control}
-                  label="Vagas numeradas"
+                  label="Quantidade de vagas"
                   cols="12"
                   required
-                  options={candidatas.map((item) => ({
-                    label: item.vagaId,
-                    value: item.vagaId,
-                  }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  display="chip"
-                  placeholder="Selecione as vagas disponíveis"
-                  maxSelectedLabels={6}
+                  min={1}
+                  max={candidatas.length || 1}
+                  useGrouping={false}
+                  placeholder="Informe quantas vagas serão redistribuídas"
                   getFormErrorMessage={getFormErrorMessage}
                 />
+                <small className="prototype-distribution-auto-selection-hint">
+                  O sistema selecionará automaticamente as vagas elegíveis de maior sequencial.
+                </small>
               </div>
             </>
           )}
@@ -1118,20 +1122,7 @@ function NovaDistribuicao({
               getFormErrorMessage={getFormErrorMessage}
             />
           </div>
-          <div className="full prototype-distribution-legal-document">
-            <DocumentosLegaisAssociadosSeplag
-              label="Documento legal vinculado"
-              required
-              options={documentosLegaisDisponiveis}
-              value={documentosLegaisIds}
-              onChange={(ids) => {
-                setDocumentosLegaisIds(ids);
-                setSimulado(false);
-              }}
-              exibirNovoCadastro={false}
-              expandirAoAbrir
-            />
-          </div>
+
           <TextAreaFieldSeplag<NovaDistribuicaoCampos>
             name="justificativa"
             control={control}
@@ -1161,12 +1152,12 @@ function NovaDistribuicao({
               <span>
                 {operacao === "DISTRIBUICAO"
                   ? "Total informado"
-                  : "Vagas selecionadas"}
+                  : "Quantidade informada"}
               </span>
               <strong>
                 {operacao === "DISTRIBUICAO"
                   ? totalDestinacoes
-                  : vagasSelecionadas.length}
+                  : quantidadeRedistribuir}
               </strong>
             </div>
             <div>
@@ -1177,7 +1168,7 @@ function NovaDistribuicao({
                   candidatas.length -
                     (operacao === "DISTRIBUICAO"
                       ? totalDestinacoes
-                      : vagasSelecionadas.length),
+                      : quantidadeRedistribuir),
                 )}
               </strong>
             </div>
@@ -1204,11 +1195,6 @@ function NovaDistribuicao({
                 {destinacoes.map((item) => (
                   <article key={item.id}>
                     <span>{item.orgao}</span>
-                    <small>
-                      {item.setor.length
-                        ? item.setor.join(" • ")
-                        : "Sem setor definido"}
-                    </small>
                     <strong>
                       {item.quantidade}{" "}
                       {item.quantidade === 1 ? "vaga" : "vagas"}
@@ -1261,3 +1247,7 @@ function NovaDistribuicao({
     </div>
   );
 }
+
+
+
+

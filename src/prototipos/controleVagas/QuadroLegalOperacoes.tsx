@@ -9,8 +9,8 @@ import {
   aplicarAlteracaoQuadroLegal,
   type TipoAlteracaoQuadroLegal,
 } from "./quadroLegalUtils";
-import { DocumentosLegaisAssociadosSeplag } from "../../componentes/DocumentosLegaisAssociados";
-import { documentosLegaisDisponiveis } from "./documentosLegaisData";
+import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
+import { BaseLegalVinculada } from "./BaseLegalVinculada";
 import { BotaoSalvarSeplag, BotaoSeplag } from "../../componentes/Botao";
 import {
   DateFieldSeplag,
@@ -19,7 +19,6 @@ import {
   TextFieldSeplag,
 } from "../../componentes/Fields";
 import { MensagemSeplag } from "../../componentes/Mensagem";
-import { cargosBaseTemporaria } from "./baseTemporaria";
 import { calcularPosicaoVaga } from "./distribuicaoIndividual";
 import "./quadroLegalOperacoes.css";
 
@@ -33,7 +32,7 @@ const descricoes: Record<TipoAlteracaoQuadroLegal, string> = {
   AMPLIACAO:
     "Cria novos identificadores após o último sequencial, sem reutilizar códigos.",
   REDUCAO:
-    "Extingue vagas disponíveis e mantém ocupadas em extinção até a vacância.",
+    "Reduz somente vagas disponíveis, regulares e sem comprometimento ativo.",
   TRANSFORMACAO:
     "Preserva a origem no histórico e gera vagas numeradas para o cargo de destino.",
   EXTINCAO_PROGRESSIVA:
@@ -47,20 +46,28 @@ export function QuadroLegalOperacoes({
   registro: QuadroAutorizadoRow;
   onSaved?: () => void;
 }) {
-  const { vagas, movimentos } = useControleVagasStore();
+  const { vagas, movimentos, comprometimentos, quadros } = useControleVagasStore();
+  const documentosLegaisDisponiveis = useDocumentosLegaisAssociaveis();
   const vagasOriginais = useMemo(
     () => vagas.filter((vaga) => vaga.quadroAutorizadoId === registro.id),
     [registro.id, vagas],
   );
-  const cargosDisponiveisTransformacao = useMemo(
-    () =>
-      cargosBaseTemporaria
-        .filter(
-          (cargo) =>
-            cargo.situacaoLegal === "REGULAR" && cargo.nome !== registro.cargo,
-        )
-        .map((cargo) => ({ label: cargo.nome, value: cargo.nome })),
-    [registro.cargo],
+  const quadrosDestino = useMemo(() => {
+    const atuais = new Map<string, QuadroAutorizadoRow>();
+    quadros
+      .filter((quadro) => quadro.codigo !== registro.codigo && quadro.situacao !== "Encerrada")
+      .forEach((quadro) => {
+        const anterior = atuais.get(quadro.codigo);
+        if (!anterior || quadro.versao > anterior.versao) atuais.set(quadro.codigo, quadro);
+      });
+    return [...atuais.values()].sort((a, b) => a.codigo.localeCompare(b.codigo));
+  }, [quadros, registro.codigo]);
+  const opcoesQuadroDestino = useMemo(
+    () => quadrosDestino.map((quadro) => ({
+      label: `${quadro.codigo} — ${quadro.cargo} — versão ${quadro.versao}`,
+      value: quadro.id,
+    })),
+    [quadrosDestino],
   );
   const [tipo, setTipo] = useState<TipoAlteracaoQuadroLegal>("AMPLIACAO");
   const {
@@ -70,17 +77,19 @@ export function QuadroLegalOperacoes({
   } = useForm<{
     dataEfeito: string;
     quantidade: number;
-    novoCargo: string;
+    quadroDestinoId: number | null;
   }>({
     defaultValues: {
       dataEfeito: "2026-08-01",
       quantidade: 1,
-      novoCargo: "",
+      quadroDestinoId: null,
     },
   });
   const dataEfeito = watchOperacao("dataEfeito");
   const quantidade = watchOperacao("quantidade");
-  const novoCargo = watchOperacao("novoCargo");
+  const quadroDestinoId = watchOperacao("quadroDestinoId");
+  const quadroDestino = quadrosDestino.find((quadro) => quadro.id === Number(quadroDestinoId));
+  const vagasDestino = useMemo(() => vagas.filter((vaga) => vaga.quadroAutorizadoId === quadroDestino?.id), [quadroDestino?.id, vagas]);
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>([]);
   const normasSelecionadas = documentosLegaisDisponiveis.filter((item) =>
     documentosLegaisIds.includes(item.id),
@@ -94,6 +103,24 @@ export function QuadroLegalOperacoes({
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false);
   const [reducaoPorOrgao, setReducaoPorOrgao] = useState<Record<string, number>>({});
 
+  const idsVagasComprometidas = useMemo(
+    () =>
+      new Set(
+        comprometimentos
+          .filter((item) => item.situacao === "ATIVO")
+          .map((item) => item.vagaId),
+      ),
+    [comprometimentos],
+  );
+
+  const resumoQuadro = useMemo(() => {
+    const ativas = vagasOriginais.filter((vaga) => vaga.situacaoLegal !== "EXTINTA");
+    const pendentes = ativas.filter((vaga) => calcularPosicaoVaga(vaga, movimentos, dataEfeito || "2026-07-20").situacaoDistribuicao === "PENDENTE_ATO").length;
+    const ocupadas = ativas.filter((vaga) => vaga.estado === "OCUPADA").length;
+    const comprometidas = ativas.filter((vaga) => idsVagasComprometidas.has(vaga.id)).length;
+    const disponiveis = ativas.filter((vaga) => vaga.estado === "DISPONIVEL").length - pendentes;
+    return { autorizadas: ativas.length, ocupadas, comprometidas, disponiveis: Math.max(0, disponiveis), pendentes };
+  }, [dataEfeito, idsVagasComprometidas, movimentos, vagasOriginais]);
   const vagasPorOrgao = useMemo(() => {
     const grupos = new Map<string, typeof vagasOriginais>();
     vagasOriginais.filter((vaga) => vaga.situacaoLegal !== "EXTINTA").forEach((vaga) => {
@@ -101,113 +128,207 @@ export function QuadroLegalOperacoes({
       const orgao = posicao.orgaoDistribuicao ?? "Pendente de ato de distribuição";
       grupos.set(orgao, [...(grupos.get(orgao) ?? []), vaga]);
     });
-    return [...grupos.entries()].map(([orgao, itens]) => ({
-      orgao, vagas: itens,
-      ocupadas: itens.filter((vaga) => vaga.estado === "OCUPADA").length,
-      disponiveis: itens.filter((vaga) => vaga.estado === "DISPONIVEL").length,
-    }));
-  }, [dataEfeito, movimentos, vagasOriginais]);
+    return [...grupos.entries()].map(([orgao, itens]) => {
+      const elegiveis = itens.filter(
+        (vaga) =>
+          vaga.estado === "DISPONIVEL" &&
+          vaga.situacaoLegal === "REGULAR" &&
+          !idsVagasComprometidas.has(vaga.id),
+      );
+      return {
+        orgao,
+        vagas: itens,
+        ocupadas: itens.filter((vaga) => vaga.estado === "OCUPADA").length,
+        disponiveis: itens.filter((vaga) => vaga.estado === "DISPONIVEL").length,
+        comprometidas: itens.filter((vaga) => idsVagasComprometidas.has(vaga.id)).length,
+        elegiveis,
+      };
+    });
+  }, [dataEfeito, idsVagasComprometidas, movimentos, vagasOriginais]);
 
   const vagasSelecionadasReducao = useMemo(() => vagasPorOrgao.flatMap((grupo) => {
-    const quantidadeGrupo = Math.min(reducaoPorOrgao[grupo.orgao] ?? 0, grupo.vagas.length);
-    return [...grupo.vagas].sort((a, b) => b.sequencial - a.sequencial).slice(0, quantidadeGrupo);
+    const quantidadeGrupo = Math.min(reducaoPorOrgao[grupo.orgao] ?? 0, grupo.elegiveis.length);
+    return [...grupo.elegiveis].sort((a, b) => b.sequencial - a.sequencial).slice(0, quantidadeGrupo);
   }), [reducaoPorOrgao, vagasPorOrgao]);
+  const totalSolicitadoReducao = useMemo(
+    () => Object.values(reducaoPorOrgao).reduce((total, item) => total + item, 0),
+    [reducaoPorOrgao],
+  );
+
+  const reducaoInvalida = tipo === "REDUCAO" && vagasPorOrgao.some(
+    (grupo) => (reducaoPorOrgao[grupo.orgao] ?? 0) > grupo.elegiveis.length,
+  );
+  const vagasDisponiveisComprometidas = useMemo(
+    () => vagasOriginais.filter(
+      (vaga) =>
+        vaga.situacaoLegal !== "EXTINTA" &&
+        vaga.estado === "DISPONIVEL" &&
+        idsVagasComprometidas.has(vaga.id),
+    ),
+    [idsVagasComprometidas, vagasOriginais],
+  );
+  const extincaoJaIniciada = tipo === "EXTINCAO_PROGRESSIVA" && Boolean(registro.extincaoProgressivaEmAndamento);
+  const extincaoInvalida = tipo === "EXTINCAO_PROGRESSIVA" && (extincaoJaIniciada || vagasDisponiveisComprometidas.length > 0);
+  const operacaoInvalida = reducaoInvalida || extincaoInvalida;
 
   const simular = (event: FormEvent) => {
     event.preventDefault();
     setSalvo(false);
+    if (operacaoInvalida) {
+      setResultado(null);
+      return;
+    }
     const quantidadeEfetiva = tipo === "REDUCAO" ? vagasSelecionadasReducao.length : quantidade;
     setResultado(
       aplicarAlteracaoQuadroLegal(vagasOriginais, {
         tipo,
-        quantidade: quantidadeEfetiva,
+        quantidade: tipo === "EXTINCAO_PROGRESSIVA" ? undefined : quantidadeEfetiva,
         lei,
         processo,
         dataEfeito,
-        novoCargo,
+        novoCargo: quadroDestino?.cargo,
+        novaCarreira: quadroDestino?.carreira,
+        quadroDestinoId: quadroDestino?.id,
+        quadroDestinoCodigo: quadroDestino?.codigo,
+        maiorSequencialDestino: Math.max(0, ...vagasDestino.map((vaga) => vaga.sequencial)),
         vagaIds: tipo === "REDUCAO" ? vagasSelecionadasReducao.map((vaga) => vaga.id) : undefined,
+        vagaIdsBloqueados: tipo === "REDUCAO" || tipo === "EXTINCAO_PROGRESSIVA" ? [...idsVagasComprometidas] : undefined,
       }),
     );
   };
 
   const registrarNovaVersao = () => {
-    if (
-      !resultado ||
-      resultado.criadas.length + resultado.alteradas.length === 0
-    )
-      return;
+    if (operacaoInvalida || !resultado || resultado.criadas.length + resultado.alteradas.length === 0) return;
     const atual = controleVagasStore.getState();
-    const novoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
-    const vigenciaFutura = dataEfeito > "2026-07-20";
-    const vagasDaNovaVersao = resultado.vagas.map((vaga) => ({
-      ...vaga,
-      quadroAutorizadoId: novoId,
-      quadroCodigo: registro.codigo,
-    }));
-    const ocupadas = vagasDaNovaVersao.filter(
-      (vaga) => vaga.estado === "OCUPADA" && vaga.situacaoLegal !== "EXTINTA",
-    ).length;
-    const extincaoProgressiva = tipo === "EXTINCAO_PROGRESSIVA";
-    const extincaoImediata =
-      extincaoProgressiva && resultado.quantitativoPosterior === 0;
-    const novaVersao: QuadroAutorizadoRow = {
-      ...registro,
-      id: novoId,
-      autorizadas: resultado.quantitativoPosterior,
-      ocupadas,
-      ato: lei,
-      processo,
-      inicioVigencia: dataEfeito.split("-").reverse().join("/"),
-      dataAtivacao: dataEfeito,
-      dataEncerramento: undefined,
-      motivoEncerramento: undefined,
-      situacaoVigencia: extincaoImediata ? "EXTINTO" : "ATIVO",
-      dataExtincao: extincaoImediata ? dataEfeito : undefined,
-      motivoExtincao: extincaoImediata
-        ? "Extinção progressiva concluída sem vagas ocupadas."
-        : undefined,
-      extincaoProgressivaEmAndamento:
-        extincaoProgressiva && !extincaoImediata,
-      dataInicioExtincaoProgressiva: extincaoProgressiva
-        ? dataEfeito
-        : undefined,
-      fimVigencia: extincaoImediata
-        ? dataEfeito.split("-").reverse().join("/")
-        : "",
-      situacao: vigenciaFutura
-        ? "Vigência futura"
-        : extincaoImediata
-          ? "Encerrada"
-          : "Vigente",
-      versao: registro.versao + 1,
-      atualizadoEm: "20/07/2026",
-    };
-    controleVagasStore.update((estado) => ({
-      ...estado,
-      quadros: [
-        ...estado.quadros.map((item) =>
-          item.id === registro.id && !vigenciaFutura
-            ? { ...item, situacao: "Encerrada" as const }
-            : item,
-        ),
-        novaVersao,
-      ],
-      vagas: vigenciaFutura
-        ? estado.vagas
-        : [
-            ...estado.vagas.filter(
-              (vaga) => vaga.quadroAutorizadoId !== registro.id,
-            ),
-            ...vagasDaNovaVersao,
-          ],
-    }));
+    const agora = new Date();
+    const hoje = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
+    const vigenciaFutura = dataEfeito > hoje;
+    const dataBr = dataEfeito.split("-").reverse().join("/");
+    const primeiroNovoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
+
+    if (tipo === "TRANSFORMACAO" && quadroDestino) {
+      const idOrigemNovaVersao = primeiroNovoId;
+      const idDestinoNovaVersao = primeiroNovoId + 1;
+      const paresTransformacao = new Map(
+        resultado.alteradas.map((vagaOrigem, indice) => [vagaOrigem.id, resultado.criadas[indice]]),
+      );
+      const vagasOrigemRestantes = resultado.vagas
+        .filter((vaga) => vaga.quadroAutorizadoId === registro.id)
+        .map((vaga, indice) => ({ ...vaga, quadroAutorizadoId: idOrigemNovaVersao, quadroCodigo: registro.codigo }));
+      const vagasTransformadas = resultado.criadas.map((vaga, indice) => ({
+        ...vaga,
+        quadroAutorizadoId: idDestinoNovaVersao,
+        quadroCodigo: quadroDestino.codigo,
+      }));
+      const vagasDestinoAnteriores = atual.vagas
+        .filter((vaga) => vaga.quadroAutorizadoId === quadroDestino.id)
+        .map((vaga, indice) => ({ ...vaga, quadroAutorizadoId: idDestinoNovaVersao, quadroCodigo: quadroDestino.codigo }));
+      const ocupadasTransformadas = vagasTransformadas.filter((vaga) => vaga.estado === "OCUPADA").length;
+      const comprometidasTransformadas = resultado.alteradas.filter((vaga) => idsVagasComprometidas.has(vaga.id)).length;
+      const origemNovaVersao: QuadroAutorizadoRow = {
+        ...registro,
+        id: idOrigemNovaVersao,
+        autorizadas: resultado.quantitativoPosterior,
+        ocupadas: Math.max(0, registro.ocupadas - ocupadasTransformadas),
+        comprometidas: Math.max(0, registro.comprometidas - comprometidasTransformadas),
+        ato: lei,
+        processo,
+        inicioVigencia: dataBr,
+        dataAtivacao: dataEfeito,
+        situacao: vigenciaFutura ? "Vigência futura" : "Vigente",
+        versao: registro.versao + 1,
+        atualizadoEm: dataBr,
+      };
+      const destinoNovaVersao: QuadroAutorizadoRow = {
+        ...quadroDestino,
+        id: idDestinoNovaVersao,
+        autorizadas: quadroDestino.autorizadas + vagasTransformadas.length,
+        ocupadas: quadroDestino.ocupadas + ocupadasTransformadas,
+        comprometidas: quadroDestino.comprometidas + comprometidasTransformadas,
+        ato: lei,
+        processo,
+        inicioVigencia: dataBr,
+        dataAtivacao: dataEfeito,
+        situacao: vigenciaFutura ? "Vigência futura" : "Vigente",
+        versao: quadroDestino.versao + 1,
+        atualizadoEm: dataBr,
+      };
+      controleVagasStore.update((estado) => ({
+        ...estado,
+        quadros: [
+          ...estado.quadros.map((item) =>
+            !vigenciaFutura && (item.id === registro.id || item.id === quadroDestino.id)
+              ? { ...item, situacao: "Encerrada" as const }
+              : item,
+          ),
+          origemNovaVersao,
+          destinoNovaVersao,
+        ],
+        vagas: vigenciaFutura
+          ? estado.vagas
+          : [
+              ...estado.vagas.filter((vaga) => vaga.quadroAutorizadoId !== registro.id && vaga.quadroAutorizadoId !== quadroDestino.id),
+              ...vagasOrigemRestantes,
+              ...vagasDestinoAnteriores,
+              ...vagasTransformadas,
+            ],
+        ocupacoes: vigenciaFutura
+          ? estado.ocupacoes
+          : estado.ocupacoes.map((ocupacao) => {
+              const destino = paresTransformacao.get(ocupacao.vagaId);
+              return destino ? { ...ocupacao, vagaId: destino.id, cargo: quadroDestino.cargo } : ocupacao;
+            }),
+        comprometimentos: vigenciaFutura
+          ? estado.comprometimentos
+          : estado.comprometimentos.map((comprometimento) => {
+              const destino = paresTransformacao.get(comprometimento.vagaId);
+              return destino ? { ...comprometimento, vagaId: destino.id } : comprometimento;
+            }),
+      }));
+    } else {
+      const novoId = primeiroNovoId;
+      const vagasDaNovaVersao = resultado.vagas.map((vaga, indice) => ({ ...vaga, quadroAutorizadoId: novoId, quadroCodigo: registro.codigo }));
+      const ocupadasNovaVersao = vagasDaNovaVersao.filter((vaga) => vaga.estado === "OCUPADA" && vaga.situacaoLegal !== "EXTINTA").length;
+      const extincaoProgressiva = tipo === "EXTINCAO_PROGRESSIVA";
+      const extincaoImediata = extincaoProgressiva && resultado.quantitativoPosterior === 0;
+      const novaVersao: QuadroAutorizadoRow = {
+        ...registro,
+        id: novoId,
+        autorizadas: resultado.quantitativoPosterior,
+        ocupadas: ocupadasNovaVersao,
+        comprometidas: extincaoProgressiva
+          ? vagasDaNovaVersao.filter((vaga) => vaga.situacaoLegal !== "EXTINTA" && idsVagasComprometidas.has(vaga.id)).length
+          : registro.comprometidas,
+        bloqueadas: extincaoProgressiva ? 0 : registro.bloqueadas,
+        ato: lei,
+        processo,
+        inicioVigencia: dataBr,
+        dataAtivacao: dataEfeito,
+        dataEncerramento: undefined,
+        motivoEncerramento: undefined,
+        situacaoVigencia: extincaoImediata ? "EXTINTO" : "ATIVO",
+        dataExtincao: extincaoImediata ? dataEfeito : undefined,
+        motivoExtincao: extincaoImediata ? "Extinção progressiva concluída sem vagas ocupadas." : undefined,
+        extincaoProgressivaEmAndamento: extincaoProgressiva && !extincaoImediata,
+        dataInicioExtincaoProgressiva: extincaoProgressiva ? dataEfeito : undefined,
+        fimVigencia: extincaoImediata ? dataBr : "",
+        situacao: vigenciaFutura ? "Vigência futura" : extincaoImediata ? "Encerrada" : "Vigente",
+        versao: registro.versao + 1,
+        atualizadoEm: dataBr,
+      };
+      controleVagasStore.update((estado) => ({
+        ...estado,
+        quadros: [...estado.quadros.map((item) => item.id === registro.id && !vigenciaFutura ? { ...item, situacao: "Encerrada" as const } : item), novaVersao],
+        vagas: vigenciaFutura ? estado.vagas : [...estado.vagas.filter((vaga) => vaga.quadroAutorizadoId !== registro.id), ...vagasDaNovaVersao],
+      }));
+    }
     setConfirmacaoAberta(false);
     setSalvo(true);
     window.setTimeout(() => onSaved?.(), 700);
   };
-
-  const quantidadeImpactada =
-    (resultado?.criadas.length ?? 0) + (resultado?.alteradas.length ?? 0);
+  const quantidadeImpactada = tipo === "TRANSFORMACAO"
+    ? resultado?.alteradas.length ?? 0
+    : (resultado?.criadas.length ?? 0) + (resultado?.alteradas.length ?? 0);
 
   return (
     <section className="prototype-legal-card">
@@ -219,34 +340,35 @@ export function QuadroLegalOperacoes({
             <h3>{registro.cargo}</h3>
             <em>Versão vigente {registro.versao}</em>
           </div>
-          <p><i className="pi pi-info-circle" /> A versão vigente será preservada. Selecione a lei ou o ato legal que fundamenta a alteração e simule seu impacto antes de registrar a nova versão.</p>
+          <dl className="prototype-legal-version-summary">
+            <div><dt>Autorizadas</dt><dd>{resumoQuadro.autorizadas}</dd></div>
+            <div><dt>Ocupadas</dt><dd>{resumoQuadro.ocupadas}</dd></div>
+            <div><dt>Comprometidas</dt><dd>{resumoQuadro.comprometidas}</dd></div>
+            <div><dt>Disponíveis</dt><dd>{resumoQuadro.disponiveis}</dd></div>
+            <div><dt>Pendentes de ato</dt><dd>{resumoQuadro.pendentes}</dd></div>
+          </dl>          <p><i className="pi pi-info-circle" /> A versão vigente será preservada. Selecione a lei ou o ato legal que fundamenta a alteração e simule seu impacto antes de registrar a nova versão.</p>
         </section>
-        <div className="prototype-legal-documents">
-          <DocumentosLegaisAssociadosSeplag
-            label="Lei ou ato legal"
-            required
-            options={documentosLegaisDisponiveis}
-            value={documentosLegaisIds}
-            onChange={(ids) => {
-              setDocumentosLegaisIds(ids);
-              setResultado(null);
-              setSalvo(false);
-            }}
-            onVisualizar={() => {}}
-            exibirNovoCadastro={false}
-            expandirAoAbrir
-          />
-        </div>
+        <BaseLegalVinculada
+          className="prototype-legal-documents"
+          value={documentosLegaisIds}
+          onChange={(ids) => {
+            setDocumentosLegaisIds(ids);
+            setResultado(null);
+            setSalvo(false);
+          }}
+        />
         <div className="prototype-legal-types">
           {(Object.keys(rotulos) as TipoAlteracaoQuadroLegal[]).map((item) => (
             <button
               key={item}
               type="button"
               className={tipo === item ? "active" : ""}
+              disabled={item === "EXTINCAO_PROGRESSIVA" && Boolean(registro.extincaoProgressivaEmAndamento)}
+              title={item === "EXTINCAO_PROGRESSIVA" && registro.extincaoProgressivaEmAndamento ? "A extinção progressiva deste quadro já está em andamento." : undefined}
               onClick={() => {
                 setTipo(item);
                 if (item !== "TRANSFORMACAO") {
-                  setOperacaoValue("novoCargo", "");
+                  setOperacaoValue("quadroDestinoId", null);
                 }
                 setResultado(null);
                 setSalvo(false);
@@ -274,33 +396,50 @@ export function QuadroLegalOperacoes({
             <header>
               <div>
                 <h3>Redução por órgão de distribuição</h3>
-                <p>Informe onde o limite será reduzido. Vagas disponíveis serão extintas imediatamente; as ocupadas ficarão em extinção até a vacância.</p>
+                <p>Somente vagas disponíveis, regulares e sem comprometimento ativo podem ser reduzidas.</p>
               </div>
-              <strong>{vagasSelecionadasReducao.length} vaga(s) selecionada(s)</strong>
+              <strong>{totalSolicitadoReducao} vaga(s) selecionada(s)</strong>
             </header>
             <table>
-              <thead><tr><th>Órgão</th><th>Distribuídas</th><th>Disponíveis</th><th>Ocupadas</th><th>Quantidade a reduzir</th><th>Efeito previsto</th></tr></thead>
+              <thead><tr><th>Órgão</th><th>Distribuídas</th><th>Ocupadas</th><th>Comprometidas</th><th>Disponíveis</th><th>Quantidade a reduzir</th><th>Efeito previsto</th></tr></thead>
               <tbody>{vagasPorOrgao.map((grupo) => {
-                const reduzir = Math.min(reducaoPorOrgao[grupo.orgao] ?? 0, grupo.vagas.length);
-                const selecionadas = [...grupo.vagas].sort((a, b) => b.sequencial - a.sequencial).slice(0, reduzir);
-                const imediatas = selecionadas.filter((vaga) => vaga.estado === "DISPONIVEL").length;
-                const progressivas = selecionadas.filter((vaga) => vaga.estado === "OCUPADA").length;
+                const reduzir = reducaoPorOrgao[grupo.orgao] ?? 0;
+                const excedeuDisponiveis = reduzir > grupo.elegiveis.length;
                 return <tr key={grupo.orgao}>
-                  <td><strong>{grupo.orgao}</strong></td><td>{grupo.vagas.length}</td><td>{grupo.disponiveis}</td><td>{grupo.ocupadas}</td>
-                  <td><input aria-label={`Reduzir vagas de ${grupo.orgao}`} type="number" min={0} max={grupo.vagas.length} value={reducaoPorOrgao[grupo.orgao] ?? 0} onChange={(event) => {
-                    const valor = Math.max(0, Math.min(grupo.vagas.length, Number(event.target.value) || 0));
+                  <td><strong>{grupo.orgao}</strong></td><td>{grupo.vagas.length}</td><td>{grupo.ocupadas}</td><td>{grupo.comprometidas}</td><td>{grupo.elegiveis.length}</td>
+                  <td><input aria-label={`Reduzir vagas de ${grupo.orgao}`} aria-invalid={excedeuDisponiveis} className={excedeuDisponiveis ? "is-invalid" : undefined} type="number" min={0} value={reducaoPorOrgao[grupo.orgao] ?? 0} onChange={(event) => {
+                    const valor = Math.max(0, Math.floor(Number(event.target.value) || 0));
                     const proximo = {...reducaoPorOrgao, [grupo.orgao]: valor};
                     setReducaoPorOrgao(proximo);
                     setOperacaoValue("quantidade", Object.values(proximo).reduce((total, item) => total + item, 0));
                     setResultado(null);
                   }} /></td>
-                  <td><span className="is-immediate">{imediatas} imediata(s)</span>{progressivas > 0 && <span className="is-progressive">{progressivas} em extinção</span>}</td>
+                  <td>{excedeuDisponiveis
+                    ? <span className="is-invalid-effect">Quantidade superior às {grupo.elegiveis.length} vaga(s) disponíveis.</span>
+                    : <span className="is-immediate">{reduzir} extinta(s) imediatamente</span>}
+                  </td>
                 </tr>;
               })}</tbody>
             </table>
           </section>
         )}
-        <div className="prototype-legal-fields prototype-legal-library-fields">
+        {tipo === "EXTINCAO_PROGRESSIVA" && (
+          <section className="prototype-legal-extinction-guidance">
+            <MensagemSeplag
+              severity="info"
+              message={`A operação alcançará o quadro inteiro: ${resumoQuadro.disponiveis + resumoQuadro.pendentes} vaga(s) disponível(is) serão extintas e ${resumoQuadro.ocupadas} ocupada(s) permanecerão até a vacância.`}
+            />
+            {vagasDisponiveisComprometidas.length > 0 && (
+              <MensagemSeplag
+                severity="error"
+                message={`${vagasDisponiveisComprometidas.length} vaga(s) disponível(is) possui(em) processo de ocupação ativo. Trate esses processos antes de registrar a extinção progressiva.`}
+              />
+            )}
+            {extincaoJaIniciada && (
+              <MensagemSeplag severity="warning" message="A extinção progressiva deste quadro já está em andamento e não pode ser iniciada novamente." />
+            )}
+          </section>
+        )}        <div className="prototype-legal-fields prototype-legal-library-fields">
           <DateFieldSeplag
             name="dataEfeito"
             control={operacaoControl}
@@ -312,6 +451,7 @@ export function QuadroLegalOperacoes({
           <TextFieldSeplag
             name="processo"
             label="Processo SIGADOC"
+            required
             value={processo}
             onChange={(value) => {
               setProcesso(value);
@@ -333,11 +473,11 @@ export function QuadroLegalOperacoes({
           )}
           {tipo === "TRANSFORMACAO" && (
             <DropdownFieldSeplag
-              name="novoCargo"
+              name="quadroDestinoId"
               control={operacaoControl}
-              label="Novo cargo"
+              label="Quadro Autorizado de destino"
               required
-              options={cargosDisponiveisTransformacao}
+              options={opcoesQuadroDestino}
               optionLabel="label"
               optionValue="value"
               onChange={() => {
@@ -345,17 +485,29 @@ export function QuadroLegalOperacoes({
                 setSalvo(false);
                 setReducaoPorOrgao({});
               }}
-              placeholder="Selecione o cargo de destino"
+              placeholder="Selecione o quadro de destino"
               cols="12 12 3"
               getFormErrorMessage={() => null}
             />
           )}
         </div>
-        <div className="prototype-legal-simulate-action">
+        {tipo === "TRANSFORMACAO" && quadroDestino && (
+          <section className="prototype-legal-destination-preview">
+            <header><span>Quadro de destino selecionado</span><strong>{quadroDestino.codigo} · versão {quadroDestino.versao}</strong></header>
+            <div>
+              <article><span>Cargo</span><strong>{quadroDestino.cargo}</strong></article>
+              <article><span>Autorizadas</span><strong>{quadroDestino.autorizadas}</strong></article>
+              <article><span>Ocupadas</span><strong>{quadroDestino.ocupadas}</strong></article>
+              <article><span>Comprometidas</span><strong>{quadroDestino.comprometidas}</strong></article>
+              <article><span>Último sequencial</span><strong>{Math.max(0, ...vagasDestino.map((vaga) => vaga.sequencial))}</strong></article>
+            </div>
+          </section>
+        )}        <div className="prototype-legal-simulate-action">
           <BotaoSeplag
             type="submit"
             label="Simular impacto legal"
             icon="pi pi-calculator"
+            disabled={operacaoInvalida}
           />
         </div>
       </form>
@@ -381,7 +533,7 @@ export function QuadroLegalOperacoes({
               <strong>{resultado.quantitativoAnterior}</strong>
             </article>
             <article>
-              <span>Quadro resultante</span>
+              <span>{tipo === "TRANSFORMACAO" ? "Origem resultante" : "Quadro resultante"}</span>
               <strong>{resultado.quantitativoPosterior}</strong>
             </article>
             <article>
@@ -393,9 +545,29 @@ export function QuadroLegalOperacoes({
               <strong>{resultado.alteradas.length}</strong>
             </article>
           </div>
-          {resultado.alertas.map((alerta) => (
+          {tipo === "EXTINCAO_PROGRESSIVA" && (
+            <section className="prototype-legal-transformation-balance">
+              <article><span>Extintas imediatamente</span><strong>{resultado.alteradas.filter((vaga) => vaga.situacaoLegal === "EXTINTA").length}</strong></article>
+              <article><span>Mantidas até a vacância</span><strong>{resultado.alteradas.filter((vaga) => vaga.situacaoLegal === "EM_EXTINCAO").length}</strong></article>
+              <article><span>Novos ingressos</span><strong>Bloqueados</strong></article>
+              <article><span>Encerramento do quadro</span><strong>Após a última vacância</strong></article>
+            </section>
+          )}          {tipo === "TRANSFORMACAO" && quadroDestino && (
+            <section className="prototype-legal-transformation-balance">
+              <article><span>Livres transformadas</span><strong>{resultado.alteradas.filter((vaga) => vaga.estado === "DISPONIVEL").length}</strong></article>
+              <article><span>Ocupadas transformadas</span><strong>{resultado.alteradas.filter((vaga) => vaga.estado === "OCUPADA").length}</strong></article>
+              <article><span>Origem após transformação</span><strong>{resultado.quantitativoPosterior}</strong></article>
+              <article><span>Destino após transformação</span><strong>{quadroDestino.autorizadas + resultado.criadas.length}</strong></article>
+            </section>
+          )}          {resultado.alertas.map((alerta) => (
             <MensagemSeplag key={alerta} severity="warning" message={alerta} />
           ))}
+          {tipo === "AMPLIACAO" && resultado.criadas.length > 0 && (
+            <MensagemSeplag
+              severity="info"
+              message="As novas vagas serão criadas como disponíveis, regulares e pendentes de ato de distribuição. A destinação deverá ser registrada no menu Distribuição."
+            />
+          )}
           {quantidadeImpactada > 0 && (
             <div className="prototype-legal-impact-list">
               <h4>{tipo === "REDUCAO" ? "Vagas reduzidas (do maior para o menor sequencial)" : "Amostra das vagas impactadas"}</h4>
@@ -407,21 +579,24 @@ export function QuadroLegalOperacoes({
                     <th>Efeito</th>
                     <th>Estado</th>
                     <th>Situação legal</th>
+                    {tipo === "AMPLIACAO" && <th>Distribuição</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {[...resultado.criadas, ...resultado.alteradas]
+                  {(tipo === "TRANSFORMACAO" ? resultado.criadas : [...resultado.criadas, ...resultado.alteradas])
                     .slice(0, tipo === "REDUCAO" ? resultado.alteradas.length : 8)
-                    .map((vaga) => (
+                    .map((vaga, indice) => (
                       <tr key={vaga.id + "-" + vaga.situacaoLegal}>
                         <td><strong>{vaga.sequencial}</strong></td>
                         <td>
                           <strong>{vaga.id}</strong>
                         </td>
                         <td>
-                          {resultado.criadas.some((item) => item.id === vaga.id)
-                            ? "Nova vaga numerada"
-                            : "Atualização preservando o código"}
+                          {tipo === "TRANSFORMACAO"
+                            ? vaga.estado === "OCUPADA" ? "Ocupada transformada para o quadro de destino" : "Disponível transformada para o quadro de destino"
+                            : resultado.criadas.some((item) => item.id === vaga.id)
+                              ? "Nova vaga numerada"
+                              : "Atualização preservando o código"}
                         </td>
                         <td>
                           {vaga.estado === "DISPONIVEL"
@@ -429,6 +604,9 @@ export function QuadroLegalOperacoes({
                             : "Ocupada"}
                         </td>
                         <td>{vaga.situacaoLegal.replaceAll("_", " ")}</td>
+                        {tipo === "AMPLIACAO" && (
+                          <td>Pendente de ato de distribuição</td>
+                        )}
                       </tr>
                     ))}
                 </tbody>
@@ -445,7 +623,7 @@ export function QuadroLegalOperacoes({
             <BotaoSalvarSeplag
               type="button"
               label="Registrar nova versão"
-              disabled={salvo || quantidadeImpactada === 0}
+              disabled={operacaoInvalida || salvo || quantidadeImpactada === 0}
               onClick={() => setConfirmacaoAberta(true)}
             />
           </footer>

@@ -1449,6 +1449,10 @@ function App() {
         element={<PrototiposControleVagasDistribuicaoSaldoPage />}
       />
       <Route
+        path="/prototipos/sigep/controle-vagas/redistribuicao/nova"
+        element={<PrototiposControleVagasDistribuicaoSaldoPage />}
+      />
+      <Route
         path="/prototipos/sigep/controle-vagas/projecoes"
         element={<PrototiposControleVagasProjecoesPage />}
       />
@@ -1800,3 +1804,4 @@ function App() {
 }
 
 export default App;
+

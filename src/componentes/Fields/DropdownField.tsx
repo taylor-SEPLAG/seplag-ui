@@ -27,6 +27,8 @@ export function DropdownFieldSeplag<T extends FieldValues = any>(
     defaultValue,
     filter = true,
     virtualScrollerOptions,
+    optionDisabled,
+    itemTemplate,
   } = props;
 
   if (!visible) return null;
@@ -62,6 +64,8 @@ export function DropdownFieldSeplag<T extends FieldValues = any>(
               options={safeOptions}
               optionLabel={optionLabel}
               optionValue={optionValue}
+              optionDisabled={optionDisabled}
+              itemTemplate={itemTemplate}
               className={classNames("w-full", {
                 "p-invalid": fieldState.error,
               })}

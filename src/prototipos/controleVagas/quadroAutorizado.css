@@ -799,6 +799,11 @@
   width: 14%;
   text-align: center;
 }
+.prototype-quadro-legal-allocation td:nth-child(2) .p-inputnumber {
+  display: block;
+  width: min(10rem, 100%);
+  margin: 0 auto;
+}
 .prototype-quadro-legal-allocation td input {
   width: 100%;
   min-height: 2rem;
@@ -864,16 +869,21 @@
   margin: 0;
 }
 .prototype-quadro-form-actions {
-  position: sticky;
-  bottom: 0;
+  position: static;
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
+  margin-top: 1rem;
   padding: 0.9rem 1rem;
   border: 1px solid #d4dee8;
   border-radius: 0.5rem;
   background: #fff;
   box-shadow: 0 -4px 12px #23384d0d;
+}
+.prototype-quadro-form-actions.prototype-quadro-form-actions--flow {
+  position: static;
+  inset: auto;
+  width: auto;
 }
 .prototype-quadro-form-actions button {
   display: inline-flex;
@@ -1026,7 +1036,12 @@
     align-items: stretch;
     flex-direction: column;
   }
-  .prototype-quadro-form-actions button {
+  .prototype-quadro-form-actions.prototype-quadro-form-actions--flow {
+  position: static;
+  inset: auto;
+  width: auto;
+}
+.prototype-quadro-form-actions button {
     justify-content: center;
   }
   .prototype-quadro-detail-card dl {
@@ -1825,16 +1840,16 @@
   color: #0877bd;
 }
 
-/* Situação centralizada; o expansor permanece na última coluna. */
-.prototype-quadro-library-table .p-datatable-thead > tr > th:nth-child(7),
-.prototype-quadro-library-table .p-datatable-tbody > tr > td:nth-child(7) {
+/* Quantitativos e situação centralizados; o expansor permanece na última coluna. */
+.prototype-quadro-library-table:not(.prototype-distribution-library-table) .p-datatable-thead > tr > th:nth-child(n + 4):nth-child(-n + 9),
+.prototype-quadro-library-table:not(.prototype-distribution-library-table) .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 9) {
   text-align: center !important;
 }
 
-.prototype-quadro-library-table
+.prototype-quadro-library-table:not(.prototype-distribution-library-table)
   .p-datatable-thead
   > tr
-  > th:nth-child(7)
+  > th:nth-child(n + 4):nth-child(-n + 9)
   .p-column-header-content {
   justify-content: center;
 }
@@ -1914,6 +1929,17 @@
   align-items: center;
 }
 
+.prototype-quadro-library-table:not(.prototype-distribution-library-table)
+  .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 8) > * {
+  width: 100%;
+}
+
+.prototype-quadro-library-table:not(.prototype-distribution-library-table)
+  .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 8)
+  .prototype-quadro-spec-cell {
+  justify-content: center;
+  text-align: center;
+}
 .prototype-quadro-spec-status {
   display: inline-flex;
   align-items: center;
@@ -2083,3 +2109,138 @@
   }
 }
 
+
+/* Padronização compartilhada das tabelas de Quadro Autorizado e Distribuição. */
+.prototype-quadro-library-table .p-datatable-thead > tr > th,
+.prototype-quadro-library-table .p-datatable-tbody > tr > td {
+  font-family: inherit;
+  line-height: 1.25;
+  vertical-align: middle;
+}
+
+.prototype-quadro-library-table .p-datatable-thead > tr > th {
+  padding: 0.75rem 0.65rem;
+  background: #f7f8f9;
+  color: #3f4e60;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.prototype-quadro-library-table .p-datatable-tbody > tr > td {
+  padding: 0.8rem 0.65rem;
+  color: #3f4e60;
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
+.prototype-quadro-library-table .p-datatable-tbody > tr > td strong {
+  font-weight: 700;
+}
+
+.prototype-quadro-library-table .p-datatable-tbody > tr > td small {
+  color: #7c899a;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.prototype-quadro-library-table .p-sortable-column .p-sortable-column-icon {
+  color: #9aa5b1;
+}
+
+/* Ações do Quadro Autorizado. */
+.prototype-quadro-library-table:not(.prototype-distribution-library-table)
+  .p-datatable-thead > tr > th:nth-child(10),
+.prototype-quadro-library-table:not(.prototype-distribution-library-table)
+  .p-datatable-tbody > tr > td:nth-child(10) {
+  text-align: center !important;
+}
+
+.prototype-quadro-library-table:not(.prototype-distribution-library-table)
+  .p-datatable-thead > tr > th:nth-child(10) .p-column-header-content {
+  justify-content: center;
+}
+
+/* Distribuição: descrições à esquerda e todos os quantitativos centralizados. */
+.prototype-distribution-library-table
+  .p-datatable-thead > tr > th:nth-child(n + 4):nth-child(-n + 9),
+.prototype-distribution-library-table
+  .p-datatable-tbody > tr > td:nth-child(n + 4):nth-child(-n + 9) {
+  text-align: center !important;
+}
+
+.prototype-distribution-library-table
+  .p-datatable-thead > tr > th:nth-child(n + 4):nth-child(-n + 9)
+  .p-column-header-content {
+  justify-content: center;
+}
+
+.prototype-distribution-library-table .p-datatable-thead > tr > th:last-child,
+.prototype-distribution-library-table .p-datatable-tbody > tr > td:last-child {
+  text-align: center !important;
+}
+
+.prototype-distribution-library-table
+  .p-datatable-thead > tr > th:last-child .p-column-header-content {
+  justify-content: center;
+}
+
+.prototype-distribution-library-table .p-datatable-tbody > tr > td:first-child strong {
+  color: #0072bc;
+  font-weight: 700;
+}
+
+.prototype-distribution-library-table .p-datatable-tbody > tr > td:first-child small {
+  display: block;
+  margin-top: 0.18rem;
+}
+
+.prototype-distribution-library-table .p-datatable-tbody > tr > td:nth-child(2) strong {
+  color: #24364b;
+  font-weight: 700;
+}
+.prototype-quadro-cargo-indisponivel {
+  display: block;
+  position: relative;
+  width: 100%;
+  color: #667085;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+
+.prototype-quadro-cargo-modal-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #acd5f5;
+  border-left: 4px solid #087bc1;
+  border-radius: 4px;
+  background: #eef8ff;
+  color: #163a59;
+}
+
+.prototype-quadro-cargo-modal-message > i {
+  margin-top: 2px;
+  color: #087bc1;
+  font-size: 18px;
+}
+
+.prototype-quadro-cargo-modal-message p {
+  margin: 5px 0 0;
+  line-height: 1.45;
+}
+
+.prototype-legal-reduction-allocation input.is-invalid {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 1px #dc3545;
+}
+
+.prototype-legal-reduction-allocation .is-invalid-effect {
+  color: #b42318;
+  display: inline-block;
+  font-weight: 700;
+  line-height: 1.3;
+}

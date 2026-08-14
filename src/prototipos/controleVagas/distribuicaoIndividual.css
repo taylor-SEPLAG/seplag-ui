@@ -307,6 +307,11 @@
   gap: 12px;
   padding: 19px 22px;
 }
+
+.prototype-distribution-board-context {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
 .prototype-ind-form label {
   display: flex;
   flex-direction: column;
@@ -884,7 +889,7 @@
 .prototype-distribution-destination-head,
 .prototype-distribution-destination-row {
   display: grid;
-  grid-template-columns: minmax(220px, 0.95fr) minmax(280px, 1.25fr) 150px 58px;
+  grid-template-columns: minmax(260px, 1fr) 150px 58px;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
@@ -988,7 +993,7 @@
 }
 .prototype-distribution-destination-head,
 .prototype-distribution-destination-row {
-  grid-template-columns: minmax(220px, 0.95fr) minmax(280px, 1.25fr) 150px 58px;
+  grid-template-columns: minmax(260px, 1fr) 150px 58px;
 }
 .prototype-distribution-availability {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1397,3 +1402,38 @@
   outline-offset: 3px;
   border-radius: 2px;
 }
+
+.prototype-distribution-auto-selection-hint {
+  display: block;
+  margin-top: 0.35rem;
+  color: #526479;
+  font-size: 0.72rem;
+}
+
+/* Distribuição: órgão ocupa o espaço livre; quantidade permanece compacta. */
+.prototype-distribution-destinations .prototype-distribution-destination-head,
+.prototype-distribution-destinations .prototype-distribution-destination-row {
+  grid-template-columns: minmax(260px, 1fr) 140px 58px !important;
+}
+
+.prototype-distribution-destinations .prototype-distribution-destination-field:nth-child(2),
+.prototype-distribution-destinations .prototype-distribution-destination-field:nth-child(2) .prototype-distribution-quantity-input {
+  width: 140px;
+  max-width: 140px;
+}
+
+@media (max-width: 700px) {
+  .prototype-distribution-destinations .prototype-distribution-destination-field:nth-child(2),
+  .prototype-distribution-destinations .prototype-distribution-destination-field:nth-child(2) .prototype-distribution-quantity-input {
+    width: 100%;
+    max-width: none;
+  }
+}
+.prototype-distribution-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+

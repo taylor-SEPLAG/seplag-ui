@@ -23,6 +23,7 @@ import {
 import { CONTROLE_VAGAS_BASE_PATH } from "./constants";
 import { QuadroLegalOperacoes } from "./QuadroLegalOperacoes";
 import { gerarVagasDoQuadro } from "./vagaUtils";
+import { calcularPosicaoVaga } from "./distribuicaoIndividual";
 import {
   carreirasBaseTemporaria,
   cargosBaseTemporaria,
@@ -52,7 +53,7 @@ import {
   TextFieldSeplag,
 } from "../../componentes/Fields";
 import type { ResultsSeplag } from "../../interfaces/Results";
-import { DocumentosLegaisAssociadosSeplag } from "../../componentes/DocumentosLegaisAssociados";
+import { BaseLegalVinculada } from "./BaseLegalVinculada";
 import {
   useDocumentosLegais,
   useDocumentosLegaisAssociaveis,
@@ -76,9 +77,14 @@ import {
   quadroFilterSpecifications,
   quadroKpiSpecifications,
   quadroScreenSpecification,
+  quadroTableSpecification,
 } from "./QuadroAutorizadoSpecifications";
 
 const BASE_PATH = `${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`;
+const dataReferenciaDistribuicao = (() => {
+  const data = new Date();
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+})();
 
 type VigenciaQuadroForm = SituacaoVigenciaValueSeplag;
 type ModoAbrangencia =
@@ -87,7 +93,6 @@ type ModoAbrangencia =
   | "ORGAOS_SEM_QUANTITATIVO"
   | "ORGAOS_COM_QUANTITATIVO";
 type QuadroFormValues = VigenciaQuadroForm & {
-  tipoQuadro: string;
   vinculo: string;
   regime: string;
   carreira: string;
@@ -115,7 +120,7 @@ const situacaoClass: Record<SituacaoQuadro, string> = {
 };
 
 const saldo = (item: QuadroAutorizadoRow) =>
-  item.autorizadas - item.ocupadas - item.comprometidas - item.bloqueadas;
+  item.autorizadas - item.ocupadas - item.bloqueadas;
 
 const orgaosDoQuadro = (item: QuadroAutorizadoRow) =>
   item.orgaosDefinidosLei?.length
@@ -198,6 +203,8 @@ type QuadroFiltrosForm = {
 type QuadroListaRow = QuadroAutorizadoRow & {
   orgaoResumo: string;
   disponiveisCalculadas: number;
+  movimentaveisCalculadas: number;
+  pendentesAto: number;
   statusVigencia: StatusOperacionalVigenciaSeplag;
 };
 
@@ -220,6 +227,11 @@ const statusVigenciaMeta: Record<
   ENCERRADO: { label: "Encerrado", color: "#6b7280", bg: "#f1f5f9" },
   EXTINTO: { label: "Extinto", color: "#b42318", bg: "#fee4e2" },
 };
+
+const tipoQuadroPorVinculo = (
+  vinculo: string,
+): QuadroAutorizadoRow["tipoQuadro"] =>
+  vinculo === "Exclusivamente comissionado" ? "Comissionado" : "Efetivo";
 
 const statusVigenciaDoQuadro = (item: QuadroAutorizadoRow) =>
   calcularStatusOperacionalVigenciaSeplag({
@@ -370,7 +382,8 @@ const resultadosQuadro = (
 });
 
 function QuadroAutorizadoLista() {
-  const { quadros } = useControleVagasStore();
+  const { quadros, vagas, movimentos, comprometimentos } =
+    useControleVagasStore();
   const navigate = useNavigate();
   const { control, reset, watch } = useForm<QuadroFiltrosForm>({
     defaultValues: filtrosIniciais,
@@ -387,9 +400,22 @@ function QuadroAutorizadoLista() {
   const [linhasExpandidas, setLinhasExpandidas] =
     useState<DataTableExpandedRows>({});
 
+  const quadrosOperacionais = useMemo(() => {
+    const idsComVagas = new Set(vagas.map((vaga) => vaga.quadroAutorizadoId));
+    const porCodigo = new Map<string, QuadroAutorizadoRow[]>();
+    quadros.forEach((quadro) => {
+      porCodigo.set(quadro.codigo, [...(porCodigo.get(quadro.codigo) ?? []), quadro]);
+    });
+    return [...porCodigo.values()].map((versoes) => {
+      const comVagas = versoes.filter((quadro) => idsComVagas.has(quadro.id));
+      return [...(comVagas.length ? comVagas : versoes)].sort(
+        (a, b) => b.versao - a.versao || b.id - a.id,
+      )[0];
+    });
+  }, [quadros, vagas]);
   const filtrados = useMemo(() => {
     const termo = filtros.busca.trim().toLocaleLowerCase("pt-BR");
-    return quadros
+    return quadrosOperacionais
       .filter(
         (item) =>
           (!termo || item.codigo.toLocaleLowerCase("pt-BR").includes(termo)) &&
@@ -400,19 +426,59 @@ function QuadroAutorizadoLista() {
             statusVigenciaDoQuadro(item) === filtros.situacao),
       )
       .sort((a, b) => b.id - a.id)
-      .map((item) => ({
-        ...item,
-        orgaoResumo: resumoOrgaos(item),
-        disponiveisCalculadas: Math.max(0, saldo(item)),
-        statusVigencia: statusVigenciaDoQuadro(item),
-      }));
+      .map((item) => {
+        const vagasDoQuadro = vagas.filter(
+          (vaga) => vaga.quadroAutorizadoId === item.id,
+        );
+        const idsVagasDoQuadro = new Set(vagasDoQuadro.map((vaga) => vaga.id));
+        const idsVagasComprometidas = new Set(
+          comprometimentos
+            .filter(
+              (item) => item.situacao === "ATIVO" && idsVagasDoQuadro.has(item.vagaId),
+            )
+            .map((item) => item.vagaId),
+        );
+        const comprometidasCalculadas = idsVagasComprometidas.size;
+        const quadroPermiteMovimentacao =
+          item.situacao === "Vigente" &&
+          item.situacaoVigencia !== "ENCERRADO" &&
+          item.situacaoVigencia !== "EXTINTO";
+        const movimentaveisCalculadas = quadroPermiteMovimentacao
+          ? vagasDoQuadro.filter(
+              (vaga) =>
+                vaga.estado === "DISPONIVEL" &&
+                vaga.situacaoLegal === "REGULAR" &&
+                !idsVagasComprometidas.has(vaga.id),
+            ).length
+          : 0;
+        const pendentesAto = vagasDoQuadro.filter((vaga) => {
+          const posicao = calcularPosicaoVaga(vaga, movimentos, dataReferenciaDistribuicao);
+          return (
+            vaga.estado === "DISPONIVEL" &&
+            vaga.situacaoLegal === "REGULAR" &&
+            posicao.situacaoDistribuicao === "PENDENTE_ATO"
+          );
+        }).length;
+        return {
+          ...item,
+          orgaoResumo: resumoOrgaos(item),
+          comprometidas: comprometidasCalculadas,
+          movimentaveisCalculadas,
+          pendentesAto,
+          disponiveisCalculadas: Math.max(0, saldo(item) - pendentesAto),
+          statusVigencia: statusVigenciaDoQuadro(item),
+        };
+      });
   }, [
     filtros.busca,
     filtros.cargo,
     filtros.orgao,
     filtros.tipo,
     filtros.situacao,
-    quadros,
+    quadrosOperacionais,
+    vagas,
+    movimentos,
+    comprometimentos,
   ]);
 
   const totais = filtrados.reduce(
@@ -477,15 +543,15 @@ function QuadroAutorizadoLista() {
     {
       field: "cargo",
       header: (
-        <SpecArea metadata={quadroColumnSpecifications["Cargo/Função"]}>
-          <span>Cargo/Função</span>
+        <SpecArea metadata={quadroColumnSpecifications.Cargo}>
+          <span>Cargo</span>
         </SpecArea>
       ),
       sortable: true,
       body: (item) =>
         celulaComEspecificacao(
           item,
-          quadroColumnSpecifications["Cargo/Função"],
+          quadroColumnSpecifications.Cargo,
           <div className="prototype-quadro-table-main">
             <strong>{item.cargo}</strong>
             <small>{item.perfilProfissional || item.vinculo}</small>
@@ -543,6 +609,23 @@ function QuadroAutorizadoLista() {
         ),
     },
     {
+      field: "comprometidas",
+      header: (
+        <SpecArea metadata={quadroColumnSpecifications.Comprometidas}>
+          <span>Comprometidas</span>
+        </SpecArea>
+      ),
+      sortable: true,
+      body: (item) =>
+        celulaComEspecificacao(
+          item,
+          quadroColumnSpecifications.Comprometidas,
+          <strong className={item.comprometidas > 0 ? "is-warning" : ""}>
+            {item.comprometidas}
+          </strong>,
+        ),
+    },
+    {
       field: "disponiveisCalculadas",
       header: (
         <SpecArea metadata={quadroColumnSpecifications.Disponíveis}>
@@ -564,6 +647,22 @@ function QuadroAutorizadoLista() {
         ),
     },
     {
+      field: "pendentesAto",
+      header: (
+        <SpecArea metadata={quadroColumnSpecifications["Pendentes de ato"]}>
+          <span>Pendentes de ato</span>
+        </SpecArea>
+      ),
+      sortable: true,
+      body: (item) =>
+        celulaComEspecificacao(
+          item,
+          quadroColumnSpecifications["Pendentes de ato"],
+          <strong className={item.pendentesAto > 0 ? "is-warning" : ""}>
+            {item.pendentesAto}
+          </strong>,
+        ),
+    },    {
       field: "statusVigencia",
       header: (
         <SpecArea metadata={quadroColumnSpecifications.Situação}>
@@ -709,7 +808,7 @@ function QuadroAutorizadoLista() {
           />
         </SpecArea>
       )}
-      {quadroProduzEfeitos(item) && (
+      {item.movimentaveisCalculadas > 0 && (
         <SpecArea metadata={quadroActionSpecifications.Distribuir}>
           <BotaoIconSeplag
             type="button"
@@ -778,6 +877,7 @@ function QuadroAutorizadoLista() {
     <SpecificationMode
       screen={quadroScreenSpecification}
       businessItems={quadroBusinessItems}
+      showViewToggles
     >
       <div className="prototype-quadro-page">
         <header className="prototype-quadro-header">
@@ -927,7 +1027,8 @@ function QuadroAutorizadoLista() {
               />
             </SpecArea>
           </div>
-          <div className="prototype-quadro-table prototype-quadro-library-table">
+          <SpecArea metadata={quadroTableSpecification}>
+            <div className="prototype-quadro-table prototype-quadro-library-table">
             <TablePaginadoSeplag<QuadroListaRow>
               dataKey="id"
               data={resultadosQuadro(filtrados)}
@@ -939,11 +1040,17 @@ function QuadroAutorizadoLista() {
               expandedRows={linhasExpandidas}
               rowExpansionTemplate={renderHistoricoVersoes}
               hasEventoAcao
+              actionHeader={
+                <SpecArea metadata={quadroColumnSpecifications.Ações}>
+                  <span>Ações</span>
+                </SpecArea>
+              }
               renderBotoes={renderAcoes}
               renderExpander={renderControleHistorico}
               handleOnPageChange={() => undefined}
             />
-          </div>
+            </div>
+          </SpecArea>
         </section>
 
         <ModalDeleteSeplag
@@ -1114,10 +1221,6 @@ function QuadroAutorizadoModal({
           <h3>Identificação</h3>
           <dl>
             <div>
-              <dt>Tipo de quadro</dt>
-              <dd>{registro.tipoQuadro}</dd>
-            </div>
-            <div>
               <dt>Tipo de vínculo</dt>
               <dd>{registro.vinculo}</dd>
             </div>
@@ -1264,6 +1367,7 @@ function QuadroAutorizadoForm({
   novaVersao: boolean;
   onBack: () => void;
 }) {
+  const { quadros } = useControleVagasStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -1273,21 +1377,10 @@ function QuadroAutorizadoForm({
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>(
     registro?.documentosLegaisIds ? [...registro.documentosLegaisIds] : [],
   );
-  const documentoCriadoId = searchParams.get("documentoLegalId");
-  useEffect(() => {
-    if (!documentoCriadoId) return;
-    setDocumentosLegaisIds((current) =>
-      current.includes(documentoCriadoId)
-        ? current
-        : [...current, documentoCriadoId],
-    );
-    navigate(location.pathname, { replace: true });
-  }, [documentoCriadoId, location.pathname, navigate]);
 
-  const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
+
   const { control, setValue, getValues, watch } = useForm<QuadroFormValues>({
     defaultValues: {
-      tipoQuadro: registro?.tipoQuadro ?? "",
       vinculo: registro?.vinculo ?? "",
       regime: registro?.regime ?? "",
       carreira: registro?.carreira ?? "",
@@ -1327,6 +1420,42 @@ function QuadroAutorizadoForm({
     },
   });
   const form = watch();
+  const normalizarCargo = (cargo: string) =>
+    cargo.trim().toLocaleLowerCase("pt-BR");
+  const quadroExistenteDoCargo = (cargo: string) =>
+    quadros.find(
+      (quadro) =>
+        normalizarCargo(quadro.cargo) === normalizarCargo(cargo) &&
+        (!registro || quadro.codigo !== registro.codigo),
+    );
+  const opcoesCargo = cargosBaseTemporaria.map((item) => {
+    const quadroExistente = quadroExistenteDoCargo(item.nome);
+    return {
+      label:
+        item.situacaoLegal === "EM_EXTINCAO"
+          ? item.nome + " — Em extinção"
+          : item.nome,
+      value: item.nome,
+      indisponivel: Boolean(quadroExistente),
+      motivoIndisponibilidade: quadroExistente
+        ? `Já existe o quadro ${quadroExistente.codigo} para este cargo.`
+        : "",
+    };
+  });
+  const [avisoCargo, setAvisoCargo] = useState<string | null>(null);
+  const cargoSelecionadoJaPossuiQuadro = Boolean(
+    form.cargo && quadroExistenteDoCargo(form.cargo),
+  );
+
+  useEffect(() => {
+    if (!cargoSelecionadoJaPossuiQuadro) return;
+
+    setValue("cargo", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [cargoSelecionadoJaPossuiQuadro, form.cargo, setValue]);
+
   const modoAbrangencia = form.modoAbrangencia;
   const formaDestinacao =
     modoAbrangencia === "SEM_ORGAOS"
@@ -1378,11 +1507,13 @@ function QuadroAutorizadoForm({
     };
     const errosVigencia = validarSituacaoVigenciaSeplag(vigencia);
     const novosErros = [
-      !form.tipoQuadro && "Informe o tipo de quadro.",
       !form.vinculo && "Informe o tipo de vínculo.",
       !form.regime && "Informe o regime jurídico.",
       !form.carreira && "Informe a carreira.",
       !form.cargo && "Informe o cargo.",
+      form.cargo &&
+        quadroExistenteDoCargo(form.cargo) &&
+        `Já existe um Quadro Autorizado para o cargo ${form.cargo}.`,
       !documentosLegaisIds.length &&
         "Vincule ao menos uma norma à autorização.",
       ...errosVigencia,
@@ -1432,7 +1563,7 @@ function QuadroAutorizadoForm({
     const quadro: QuadroAutorizadoRow = {
       id: novoId,
       codigo,
-      tipoQuadro: form.tipoQuadro as QuadroAutorizadoRow["tipoQuadro"],
+      tipoQuadro: tipoQuadroPorVinculo(form.vinculo),
       vinculo: form.vinculo,
       regime: form.regime,
       carreira: form.carreira,
@@ -1531,38 +1662,35 @@ function QuadroAutorizadoForm({
           "</ul>"
         }
       />
-      <form onSubmit={submit} className="prototype-quadro-form">
-        <section>
-          <header>
-            <i className="pi pi-link" />
-            <div>
-              <h2>
-                {novaVersao
-                  ? "Nova base legal vinculada"
-                  : "Base legal vinculada"}
-              </h2>
-              <p>
-                {novaVersao
-                  ? "Vincule a norma que fundamenta esta nova versão."
-                  : "Selecione uma norma cadastrada ou use o atalho para cadastrar uma nova."}
-              </p>
-            </div>
-          </header>
-          <div className="prototype-quadro-library-section">
-            <DocumentosLegaisAssociadosSeplag
-              label="Documentos legais associados"
-              required
-              options={documentosLegaisDisponiveis}
-              value={documentosLegaisIds}
-              onChange={setDocumentosLegaisIds}
-              onNovoCadastro={() => navigate(novoDocumentoUrl)}
-              onVisualizar={(documento) =>
-                navigate(`/prototipos/sigep/documentos-legais/${documento.id}`)
-              }
-              expandirAoAbrir
+      <ModalSeplag
+        visible={Boolean(avisoCargo)}
+        titulo="Cargo indisponível"
+        fechar={() => setAvisoCargo(null)}
+        tamanho="min(32rem, 92vw)"
+        ariaLabel="Motivo de indisponibilidade do cargo"
+        customFooter={
+          <div className="prototype-quadro-modal-library-actions">
+            <BotaoVoltarSeplag
+              label="Fechar"
+              icon="pi pi-times"
+              onClick={() => setAvisoCargo(null)}
             />
           </div>
-        </section>
+        }
+      >
+        <div className="col-12 prototype-quadro-cargo-modal-message">
+          <i className="pi pi-info-circle" aria-hidden="true" />
+          <div>
+            <strong>Este cargo não pode ser selecionado.</strong>
+            <p>{avisoCargo}</p>
+          </div>
+        </div>
+      </ModalSeplag>
+      <form onSubmit={submit} className="prototype-quadro-form">
+        <BaseLegalVinculada
+          value={documentosLegaisIds}
+          onChange={setDocumentosLegaisIds}
+        />
         <section>
           <header>
             <i className="pi pi-briefcase" />
@@ -1572,21 +1700,6 @@ function QuadroAutorizadoForm({
             </div>
           </header>
           <div className="prototype-quadro-fields">
-            <DropdownFieldSeplag
-              name="tipoQuadro"
-              control={control}
-              label="Tipo de quadro"
-              required
-              cols="12"
-              options={[
-                { label: "Efetivo", value: "Efetivo" },
-                { label: "Comissionado", value: "Comissionado" },
-              ]}
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Selecione"
-              getFormErrorMessage={() => null}
-            />
             <DropdownFieldSeplag
               name="vinculo"
               control={control}
@@ -1643,15 +1756,38 @@ function QuadroAutorizadoForm({
               label="Cargo"
               required
               cols="12"
-              options={cargosBaseTemporaria.map((item) => ({
-                label:
-                  item.situacaoLegal === "EM_EXTINCAO"
-                    ? item.nome + " — Em extinção"
-                    : item.nome,
-                value: item.nome,
-              }))}
+              options={opcoesCargo}
               optionLabel="label"
               optionValue="value"
+              onChange={(cargoSelecionado) => {
+                if (
+                  cargoSelecionado &&
+                  quadroExistenteDoCargo(String(cargoSelecionado))
+                ) {
+                  setValue("cargo", "", {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }
+              }}
+              itemTemplate={(option) => (
+                <span
+                  className={
+                    option.indisponivel
+                      ? "prototype-quadro-cargo-indisponivel"
+                      : undefined
+                  }
+                  aria-label={option.motivoIndisponibilidade || undefined}
+                  onClick={(event) => {
+                    if (!option.indisponivel) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setAvisoCargo(option.motivoIndisponibilidade);
+                  }}
+                >
+                  {option.label}
+                </span>
+              )}
               placeholder="Selecione"
               getFormErrorMessage={() => null}
             />
@@ -1815,7 +1951,6 @@ function QuadroAutorizadoForm({
                             <th>%</th>
                           </>
                         )}
-                        <th>Ações</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1851,22 +1986,7 @@ function QuadroAutorizadoForm({
                               </td>
                             </>
                           )}
-                          <td>
-                            <BotaoIconSeplag
-                              type="button"
-                              tooltip={"Remover " + orgao}
-                              aria-label={"Remover " + orgao}
-                              icon="pi pi-trash"
-                              severity="danger"
-                              onClick={() =>
-                                alterarOrgaosSelecionados(
-                                  orgaosDefinidos.filter(
-                                    (item) => item !== orgao,
-                                  ),
-                                )
-                              }
-                            />
-                          </td>
+
                         </tr>
                       ))}
                     </tbody>
@@ -1969,7 +2089,7 @@ function QuadroAutorizadoForm({
             />
           </div>
         </section>{" "}
-        <footer className="prototype-quadro-form-actions">
+        <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow">
           <BotaoVoltarSeplag
             label="Cancelar"
             icon="pi pi-times"
@@ -2115,10 +2235,6 @@ function QuadroAutorizadoDetalhe({
           </header>
           <dl>
             <div>
-              <dt>Tipo de quadro</dt>
-              <dd>{registro.tipoQuadro}</dd>
-            </div>
-            <div>
               <dt>Tipo de vínculo</dt>
               <dd>{registro.vinculo}</dd>
             </div>
@@ -2242,6 +2358,8 @@ function QuadroAutorizadoDetalhe({
     </div>
   );
 }
+
+
 
 
 
