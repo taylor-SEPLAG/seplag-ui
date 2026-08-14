@@ -167,6 +167,7 @@ export function DistribuicaoIndividualContent() {
   const isFormularioDistribuicao = isNovaDistribuicao || isNovaRedistribuicao;
   const [searchParams] = useSearchParams();
   const quadroInicial = searchParams.get("quadro") ?? "";
+  const saldoInicial = searchParams.get("saldo") ?? "";
   const filtroQuadroInicial = isFormularioDistribuicao
     ? ""
     : (quadros.find((quadro) => String(quadro.id) === quadroInicial)?.codigo ??
@@ -297,7 +298,8 @@ export function DistribuicaoIndividualContent() {
       (!busca ||
         grupo.quadroCodigo.toLowerCase().includes(busca.toLowerCase())) &&
       (!filtroCargo || grupo.cargo === filtroCargo) &&
-      (!filtroOrgao || grupo.orgao.split(" • ").includes(filtroOrgao)),
+      (!filtroOrgao || grupo.orgao.split(" • ").includes(filtroOrgao)) &&
+      (saldoInicial !== "PENDENTE_ATO" || grupo.pendentesAto > 0),
   );
   const paginas = Math.max(1, Math.ceil(gruposFiltrados.length / porPagina));
   const paginaAtual = Math.min(pagina, paginas);
@@ -1323,7 +1325,3 @@ const orgaosPermitidos = quadro?.orgaosDefinidosLei?.length
     </div>
   );
 }
-
-
-
-

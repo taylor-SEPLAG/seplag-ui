@@ -368,8 +368,11 @@ function QuadroAutorizadoLista() {
   const { quadros, vagas, movimentos, comprometimentos } =
     useControleVagasStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const situacaoInicial = searchParams.get("situacao") ?? "";
+  const saldoInicial = searchParams.get("saldo") ?? "";
   const { control, reset, watch } = useForm<QuadroFiltrosForm>({
-    defaultValues: filtrosIniciais,
+    defaultValues: { ...filtrosIniciais, situacao: situacaoInicial },
   });
   const filtros = watch();
   const [visualizado, setVisualizado] = useState<QuadroAutorizadoRow | null>(
@@ -449,7 +452,12 @@ function QuadroAutorizadoLista() {
           disponiveisCalculadas: Math.max(0, saldo(item) - pendentesAto),
           statusVigencia: statusVigenciaDoQuadro(item),
         };
-      });
+      })
+      .filter(
+        (item) =>
+          saldoInicial !== "SEM_VAGAS_LIVRES" ||
+          item.disponiveisCalculadas === 0,
+      );
   }, [
     filtros.busca,
     filtros.cargo,
@@ -460,6 +468,7 @@ function QuadroAutorizadoLista() {
     vagas,
     movimentos,
     comprometimentos,
+    saldoInicial,
   ]);
 
   const totais = filtrados.reduce(
@@ -2338,11 +2347,3 @@ function QuadroAutorizadoDetalhe({
     </div>
   );
 }
-
-
-
-
-
-
-
-

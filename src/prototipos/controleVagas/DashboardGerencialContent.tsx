@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MultiSelect } from "primereact/multiselect";
+import { Paginator, type PaginatorPageChangeEvent } from "primereact/paginator";
 import { CONTROLE_VAGAS_BASE_PATH as BASE } from "./constants";
 import { useControleVagasStore } from "./controleVagasStore";
 import {
@@ -22,12 +23,6 @@ import "./dashboardControleVagas.css";
 import "./dashboardGerencial.css";
 
 const hoje = "2026-07-21";
-const prioridadeLabel = {
-  REGULAR: "Regular",
-  ATENCAO: "Atencao",
-  CRITICA: "Critica",
-  DIVERGENTE: "Divergencia de conciliacao",
-} as const;
 const legalLabel = {
   REGULAR: "Regular",
   EM_EXTINCAO: "Em extincao",
@@ -59,6 +54,8 @@ export function DashboardGerencialContent() {
   const navigate = useNavigate();
   const [filtros, setFiltros] = useState(filtrosIniciais);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+  const [paginaGrupos, setPaginaGrupos] = useState(1);
+  const [porPaginaGrupos, setPorPaginaGrupos] = useState(10);
   const [indicadoresVisiveis, setIndicadoresVisiveis] = useState<
     Record<IndicadorDashboardId, boolean>
   >(
@@ -70,6 +67,19 @@ export function DashboardGerencialContent() {
   );
 
   const dados = useMemo(() => construirDashboard(state, filtros), [state, filtros]);
+  const totalPaginasGrupos = Math.max(
+    1,
+    Math.ceil(dados.grupos.length / porPaginaGrupos),
+  );
+  const paginaAtualGrupos = Math.min(paginaGrupos, totalPaginasGrupos);
+  const gruposPaginados = dados.grupos.slice(
+    (paginaAtualGrupos - 1) * porPaginaGrupos,
+    paginaAtualGrupos * porPaginaGrupos,
+  );
+
+  useEffect(() => {
+    setPaginaGrupos(1);
+  }, [filtros]);
   const orgaos = orgaosBaseTemporaria
     .map((item) => item.nome)
     .sort((a, b) => a.localeCompare(b, "pt-BR"));
@@ -80,6 +90,35 @@ export function DashboardGerencialContent() {
     .sort((a, b) => b.registradoEm.localeCompare(a.registradoEm))
     .slice(0, 5);
 
+  const resumoAlertas = useMemo(() => {
+    const porQuadro = new Map<string, { livres: number; ocupadas: number }>();
+    dados.grupos.forEach((grupo) => {
+      const atual = porQuadro.get(grupo.quadroCodigo) ?? { livres: 0, ocupadas: 0 };
+      atual.livres += grupo.disponiveisLivres;
+      atual.ocupadas += grupo.ocupadas;
+      porQuadro.set(grupo.quadroCodigo, atual);
+    });
+
+    const idsFiltrados = new Set(dados.grupos.map((grupo) => grupo.quadroId));
+    const quadrosEmEncerramento = new Set(
+      state.quadros
+        .filter(
+          (quadro) =>
+            idsFiltrados.has(quadro.id) &&
+            (quadro.situacaoVigencia === "ENCERRADO" ||
+              quadro.extincaoProgressivaEmAndamento) &&
+            (porQuadro.get(quadro.codigo)?.ocupadas ?? 0) > 0,
+        )
+        .map((quadro) => quadro.codigo),
+    ).size;
+
+    return {
+      quadrosSemVagasLivres: [...porQuadro.values()].filter(
+        (quadro) => quadro.livres === 0,
+      ).length,
+      quadrosEmEncerramento,
+    };
+  }, [dados.grupos, state.quadros]);
   const indicadores = [
     {
       label: "Cargos legais",
@@ -158,23 +197,26 @@ export function DashboardGerencialContent() {
     {
       icon: "pi pi-exclamation-triangle",
       kind: "critical",
-      titulo: "Quadros sem saldo livre",
-      valor: dados.grupos.filter((grupo) => grupo.disponiveisLivres === 0).length,
-      rota: "quadro-autorizado",
+      titulo: "Quadros sem vagas livres",
+      descricao: "Sem vaga livre para novo ingresso",
+      valor: resumoAlertas.quadrosSemVagasLivres,
+      rota: "quadro-autorizado?saldo=SEM_VAGAS_LIVRES",
     },
     {
-      icon: "pi pi-gavel",
+      icon: "pi pi-clock",
       kind: "warning",
-      titulo: "Ocupacoes judiciais extraquadro",
-      valor: dados.resumo.judiciais,
-      rota: "vagas?legal=DECISAO_JUDICIAL",
+      titulo: "Pendentes de ato de distribuição",
+      descricao: "Vagas que aguardam distribuição formal",
+      valor: dados.resumo.naoDistribuidas,
+      rota: "distribuicao?saldo=PENDENTE_ATO",
     },
     {
       icon: "pi pi-ban",
       kind: "warning",
-      titulo: "Vagas em extincao",
-      valor: dados.resumo.emExtincao,
-      rota: "vagas?legal=EM_EXTINCAO",
+      titulo: "Quadros em encerramento",
+      descricao: "Extinção progressiva com ocupações remanescentes",
+      valor: resumoAlertas.quadrosEmEncerramento,
+      rota: "quadro-autorizado?situacao=ENCERRADO",
     },
   ];
 
@@ -403,7 +445,7 @@ export function DashboardGerencialContent() {
                     <i className={alerta.icon} />
                     <div>
                       <strong>{alerta.titulo}</strong>
-                      <span>Abrir memoria e registros de origem</span>
+                      <span>{alerta.descricao}</span>
                     </div>
                     <b>{alerta.valor}</b>
                     <i className="pi pi-chevron-right" />
@@ -415,10 +457,10 @@ export function DashboardGerencialContent() {
         </div>
 
         <SpecArea metadata={dashboardBlockSpecifications.table}>
-          <section className="prototype-dash-card priority management-table">
+          <section className="prototype-dash-card management-table">
             <CardHeader
-              titulo="Quadro estrategico por autorizacao, cargo e orgao"
-              subtitulo="Origem rastreavel: quadro legal, vagas, ocupacoes, comprometimentos e distribuicao"
+              titulo="Situação das vagas por quadro e órgão"
+              subtitulo="Ocupação e saldo disponível em cada quadro e órgão"
             >
               <button onClick={() => navigate(`${BASE}/vagas`)}>
                 Ver vagas <i className="pi pi-arrow-right" />
@@ -428,53 +470,34 @@ export function DashboardGerencialContent() {
               <table>
                 <thead>
                   <tr>
-                    <th>Prioridade</th>
-                    <th>Quadro autorizado</th>
-                    <th>Cargo, carreira e lei</th>
+                    <th>Quadro</th>
+                    <th>Cargo</th>
                     <th>Órgão</th>
-                    <th className="num">Legais</th>
+                    <th className="num">Autorizadas</th>
                     <th className="num">Ocupadas</th>
                     <th className="num">Livres</th>
                     <th className="num">Em ocupação</th>
-                    <th className="num">Judiciais</th>
-                    <th />
+                    <th className="num">Ocupação</th>
+                    <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {dados.grupos.map((grupo) => (
+                  {gruposPaginados.map((grupo) => (
                     <tr key={grupo.chave}>
-                      <td>
-                        <span
-                          className={`prototype-management-priority ${grupo.prioridade.toLowerCase()}`}
-                        >
-                          {prioridadeLabel[grupo.prioridade]}
-                        </span>
-                      </td>
                       <td>
                         <strong>{grupo.quadroCodigo}</strong>
                       </td>
-                      <td>
-                        <strong>{grupo.cargo}</strong>
-                        <small>
-                          {grupo.carreira} | {grupo.lei}
-                        </small>
-                      </td>
-                      <td>
-                        <strong>{grupo.orgao}</strong>
-                        <small>{grupo.tipo === "EFETIVO" ? "Efetivo" : "Comissionado"}</small>
-                      </td>
+                      <td><strong>{grupo.cargo}</strong></td>
+                      <td><strong>{grupo.orgao}</strong></td>
                       <td className="num">{grupo.vagasLegais}</td>
-                      <td className="num">
-                        {grupo.ocupadas}
-                        <small>{grupo.percentualOcupacao}%</small>
-                      </td>
+                      <td className="num">{grupo.ocupadas}</td>
                       <td
                         className={`num ${grupo.disponiveisLivres === 0 ? "danger" : "positive"}`}
                       >
                         <strong>{grupo.disponiveisLivres}</strong>
                       </td>
                       <td className="num">{grupo.disponiveisComprometidas}</td>
-                      <td className="num">{grupo.judiciais}</td>
+                      <td className="num"><strong>{grupo.percentualOcupacao}%</strong></td>
                       <td>
                         <button
                           aria-label={`Ver vagas do quadro ${grupo.quadroCodigo}`}
@@ -493,6 +516,19 @@ export function DashboardGerencialContent() {
                 </tbody>
               </table>
             </div>
+            <footer className="prototype-management-pagination">
+              <Paginator
+                first={(paginaAtualGrupos - 1) * porPaginaGrupos}
+                rows={porPaginaGrupos}
+                totalRecords={dados.grupos.length}
+                rowsPerPageOptions={[10, 20, 50]}
+                onPageChange={(event: PaginatorPageChangeEvent) => {
+                  setPaginaGrupos(event.page + 1);
+                  setPorPaginaGrupos(event.rows);
+                }}
+                template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              />
+            </footer>
           </section>
         </SpecArea>
 
