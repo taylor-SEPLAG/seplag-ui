@@ -14,7 +14,7 @@ import { BadgeSeplag } from "@componentes/Badge";
 import { MensagemSeplag } from "@componentes/Mensagem";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
 import { TabsSeplag, type TabItemSeplag } from "@componentes/Tabs";
-import { DateFieldSeplag, CheckboxFieldSeplag, CurrencyFieldSeplag, DropdownFieldSeplag, MaskFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
+import { DateFieldSeplag, CheckboxFieldSeplag, CurrencyFieldSeplag, DropdownFieldSeplag, MaskFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, SwitchFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { AnexarDocumentoSeplag, type ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import Base64FileModal from "@componentes/Base64FileModal";
 import { ModalSeplag } from "@componentes/Modal";
@@ -62,7 +62,7 @@ interface CertameFormValues {
  cobraTaxaInscricao:string; valorInscricao?:number;
 }
 interface CotaFormValues { tipo:string; lei:string }
-interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; quantidadeVagas:number; tipoCota:string; quantidadeCota?:number }
+interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; quantidadeVagas:number; tipoCota:string; quantidadeCota?:number; aceitaCadastroReserva:string; quantidadeCadastroReserva?:number }
 interface SituacaoFormValues { tipo:SituacaoCertame; data?:string }
 
 // Consolidação de 8 para 5 abas fixas (+ Situações, disponível só após salvar): cada aba antiga
@@ -203,7 +203,7 @@ export function CertameFormContent() {
  const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:TIPOS_COTA[0].value, lei:"" } });
 
  const [cargos, setCargos] = useState<CargoVagaCertame[]>(existente ? [...existente.cargos] : []);
- const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, tipoCota:"", quantidadeCota:0 } });
+ const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 } });
  const cargoValores = cargoForm.watch();
  const cargoNomeAtual = cargoValores.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId)?.nome ?? "" : cargoValores.cargoNome;
  const quadroVinculado = buscarQuadroPorCargo(cargoNomeAtual ?? "");
@@ -299,6 +299,7 @@ export function CertameFormContent() {
   { header:"Cota", body:(row) => row.reservasCota.length > 0
    ? <div className="prototype-certame-cota-tags">{row.reservasCota.map((reserva) => <span key={reserva.id} className="prototype-certame-cota-tag">{TIPOS_COTA.find((tipo) => tipo.value === reserva.tipo)?.label ?? reserva.tipo} ({reserva.quantidade})</span>)}</div>
    : <span className="text-color-secondary">Ampla concorrência</span> },
+  { header:"Cadastro Reserva (CR)", body:(row) => row.aceitaCadastroReserva ? `${row.quantidadeCadastroReserva ?? 0} (ampla concorrência)` : <span className="text-color-secondary">Não aceita</span> },
  ];
 
 
@@ -383,10 +384,11 @@ export function CertameFormContent() {
   if (!cargoNome || dados.quantidadeVagas <= 0) return;
   const totalReservado = reservasCotaPendentes.reduce((total, item) => total + item.quantidade, 0);
   if (totalReservado > dados.quantidadeVagas) { setErro("A soma das cotas reservadas não pode exceder a quantidade de vagas do cargo."); return; }
+  if (dados.aceitaCadastroReserva === "S" && !(dados.quantidadeCadastroReserva && dados.quantidadeCadastroReserva > 0)) { setErro("Informe a quantidade de Cadastro Reserva (CR) para as vagas de ampla concorrência."); return; }
   setErro(null);
   const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
-  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaPendentes, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
-  cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, tipoCota:"", quantidadeCota:0 });
+  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaPendentes, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
+  cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 });
   setReservasCotaPendentes([]);
  };
  const removerCargo = (idCargo:string) => setCargos((atuais) => atuais.filter((item) => item.id !== idCargo));
@@ -684,6 +686,10 @@ export function CertameFormContent() {
          : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" cols="12 6 3" placeholder="Nome do novo cargo" getFormErrorMessage={() => null} />}
         <SpecArea metadata={certameFormBlockSpecifications.quadroVagasVinculado}><RotuloSeplag nome="Quadro" cols="12 6 1"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado ? `${quadroVinculado.quadroCodigo} — Versão ${quadroVinculado.quadroVersao}` : "—"}</div></RotuloSeplag></SpecArea>
         <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Qtd. vagas" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
+        <SpecArea metadata={certameFormBlockSpecifications.cadastroReserva}>
+         <SwitchFieldSeplag name="aceitaCadastroReserva" control={cargoForm.control} label="Cargo aceita treinamento para CR?" cols="12 6 3" getFormErrorMessage={() => null} />
+         {cargoValores.aceitaCadastroReserva === "S" && <NumberFieldSeplag name="quantidadeCadastroReserva" control={cargoForm.control} label="Qtd. Cadastro Reserva (CR) — ampla concorrência" required cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
+        </SpecArea>
         <DropdownFieldSeplag name="tipoCota" control={cargoForm.control} label="Tipo de cota" cols="12 6 3" options={TIPOS_COTA.filter((item) => item.value !== "AMPLA")} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />
         <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
         <div className="col-12 md:col-3 lg:col-3"><BotaoSeplag type="button" label="Reservar cota" icon="pi pi-plus" onClick={adicionarReservaCota} /></div>

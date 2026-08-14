@@ -23,7 +23,9 @@ export interface ReservaCotaCargo { readonly id:string; tipo:string; quantidade:
 // RN-14: vaga pode ser vinculada a uma vaga existente do quadro de cargos do órgão ou criada especificamente para o certame.
 // quadroCodigo/quadroVersao: Quadro de Vagas (Controle de Vagas > Quadro Autorizado) vinculado automaticamente ao cargo,
 // somente leitura — rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso.
-export interface CargoVagaCertame { readonly id:string; vinculo:VinculoCargoCertame; cargoExistenteId?:string; cargoNome:string; readonly codigoReferenciaTce:"001"; quantidadeVagas:number; reservasCota:readonly ReservaCotaCargo[]; quadroCodigo?:string; quadroVersao?:number; }
+// aceitaCadastroReserva/quantidadeCadastroReserva: Cadastro Reserva (CR) é exclusivo das vagas de
+// ampla concorrência do cargo — não se aplica às vagas reservadas por cota (reservasCota).
+export interface CargoVagaCertame { readonly id:string; vinculo:VinculoCargoCertame; cargoExistenteId?:string; cargoNome:string; readonly codigoReferenciaTce:"001"; quantidadeVagas:number; reservasCota:readonly ReservaCotaCargo[]; aceitaCadastroReserva:boolean; quantidadeCadastroReserva?:number; quadroCodigo?:string; quadroVersao?:number; }
 
 // Fases do certame — lista editável (nome, ordem e quantidade livres) por certame; o catálogo em
 // dominios.FASES_TCE_FIXAS é usado apenas como sugestão inicial ao criar um novo certame.
