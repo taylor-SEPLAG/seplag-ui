@@ -36,7 +36,6 @@ export interface DashboardGrupo {
   judiciais: number;
   divergentes: number;
   percentualOcupacao: number;
-  prioridade: "REGULAR" | "ATENCAO" | "CRITICA" | "DIVERGENTE";
   ocupacoes: OcupacaoVaga[];
 }
 
@@ -144,15 +143,6 @@ export function construirDashboard(
     const percentualOcupacao = saldo.vagasLegais
       ? Math.round((saldo.ocupadas / saldo.vagasLegais) * 100)
       : 0;
-    const prioridade: DashboardGrupo["prioridade"] = saldo.divergentes
-      ? "DIVERGENTE"
-      : saldo.excedentesJudiciais
-        ? "ATENCAO"
-        : saldo.disponiveisLivres === 0 || percentualOcupacao >= 98
-          ? "CRITICA"
-          : percentualOcupacao >= 90
-            ? "ATENCAO"
-            : "REGULAR";
     const destinos = [
       ...new Set(
         itens.map(
@@ -182,21 +172,16 @@ export function construirDashboard(
       judiciais: saldo.excedentesJudiciais,
       divergentes: saldo.divergentes,
       percentualOcupacao,
-      prioridade,
       ocupacoes: ocupacoesGrupo,
     };
   });
 
-  const ordem: Record<DashboardGrupo["prioridade"], number> = {
-    DIVERGENTE: 0,
-    CRITICA: 1,
-    ATENCAO: 2,
-    REGULAR: 3,
-  };
   grupos.sort(
     (a, b) =>
-      ordem[a.prioridade] - ordem[b.prioridade] ||
-      b.percentualOcupacao - a.percentualOcupacao,
+      Number(a.disponiveisLivres > 0) - Number(b.disponiveisLivres > 0) ||
+      a.disponiveisLivres - b.disponiveisLivres ||
+      b.percentualOcupacao - a.percentualOcupacao ||
+      a.cargo.localeCompare(b.cargo),
   );
 
   const total = (campo: keyof DashboardGrupo) =>

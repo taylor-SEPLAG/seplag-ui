@@ -213,16 +213,6 @@ const statusVigenciaMeta: Record<
   { label: string; color: string; bg: string }
 > = {
   AGENDADO: { label: "Agendado", color: "#8a5a00", bg: "#fff4d6" },
-  AGENDADO_ENCERRAMENTO: {
-    label: "Agendado para Encerramento",
-    color: "#6b7280",
-    bg: "#f1f5f9",
-  },
-  AGENDADO_EXTINCAO: {
-    label: "Agendado para Extinção",
-    color: "#b42318",
-    bg: "#fee4e2",
-  },
   ATIVO: { label: "Ativo", color: "#00843d", bg: "#dff3e8" },
   ENCERRADO: { label: "Encerrado", color: "#6b7280", bg: "#f1f5f9" },
   EXTINTO: { label: "Extinto", color: "#b42318", bg: "#fee4e2" },
@@ -233,8 +223,8 @@ const tipoQuadroPorVinculo = (
 ): QuadroAutorizadoRow["tipoQuadro"] =>
   vinculo === "Exclusivamente comissionado" ? "Comissionado" : "Efetivo";
 
-const statusVigenciaDoQuadro = (item: QuadroAutorizadoRow) =>
-  calcularStatusOperacionalVigenciaSeplag({
+const statusVigenciaDoQuadro = (item: QuadroAutorizadoRow) => {
+  const status = calcularStatusOperacionalVigenciaSeplag({
     situacao:
       item.situacaoVigencia ??
       (item.situacao === "Encerrada" ? "ENCERRADO" : "ATIVO"),
@@ -244,17 +234,12 @@ const statusVigenciaDoQuadro = (item: QuadroAutorizadoRow) =>
     dataExtincao: item.dataExtincao,
     motivoExtincao: item.motivoExtincao,
   });
-const statusVigenciaVisualDoQuadro = (item: QuadroAutorizadoRow) => {
-  const status = statusVigenciaDoQuadro(item);
-  if (item.extincaoProgressivaEmAndamento && status === "ATIVO") {
-    return {
-      label: "Em extinção progressiva",
-      color: "#9a6700",
-      bg: "#fff4ce",
-    };
-  }
-  return statusVigenciaMeta[status];
+  return item.extincaoProgressivaEmAndamento && status === "ATIVO"
+    ? "ENCERRADO"
+    : status;
 };
+const statusVigenciaVisualDoQuadro = (item: QuadroAutorizadoRow) =>
+  statusVigenciaMeta[statusVigenciaDoQuadro(item)];
 type VersaoAnteriorQuadro = {
   versao: number;
   cargo: string;
@@ -354,9 +339,7 @@ const quadroPermiteEdicaoDireta = (item: QuadroAutorizadoRow) =>
   statusVigenciaDoQuadro(item) === "AGENDADO";
 
 const quadroProduzEfeitos = (item: QuadroAutorizadoRow) =>
-  ["ATIVO", "AGENDADO_ENCERRAMENTO", "AGENDADO_EXTINCAO"].includes(
-    statusVigenciaDoQuadro(item),
-  );
+  statusVigenciaDoQuadro(item) === "ATIVO";
 const filtrosIniciais: QuadroFiltrosForm = {
   busca: "",
   cargo: "",
@@ -385,8 +368,11 @@ function QuadroAutorizadoLista() {
   const { quadros, vagas, movimentos, comprometimentos } =
     useControleVagasStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const situacaoInicial = searchParams.get("situacao") ?? "";
+  const saldoInicial = searchParams.get("saldo") ?? "";
   const { control, reset, watch } = useForm<QuadroFiltrosForm>({
-    defaultValues: filtrosIniciais,
+    defaultValues: { ...filtrosIniciais, situacao: situacaoInicial },
   });
   const filtros = watch();
   const [visualizado, setVisualizado] = useState<QuadroAutorizadoRow | null>(
@@ -440,9 +426,7 @@ function QuadroAutorizadoLista() {
         );
         const comprometidasCalculadas = idsVagasComprometidas.size;
         const quadroPermiteMovimentacao =
-          item.situacao === "Vigente" &&
-          item.situacaoVigencia !== "ENCERRADO" &&
-          item.situacaoVigencia !== "EXTINTO";
+          statusVigenciaDoQuadro(item) === "ATIVO";
         const movimentaveisCalculadas = quadroPermiteMovimentacao
           ? vagasDoQuadro.filter(
               (vaga) =>
@@ -468,7 +452,12 @@ function QuadroAutorizadoLista() {
           disponiveisCalculadas: Math.max(0, saldo(item) - pendentesAto),
           statusVigencia: statusVigenciaDoQuadro(item),
         };
-      });
+      })
+      .filter(
+        (item) =>
+          saldoInicial !== "SEM_VAGAS_LIVRES" ||
+          item.disponiveisCalculadas === 0,
+      );
   }, [
     filtros.busca,
     filtros.cargo,
@@ -479,6 +468,7 @@ function QuadroAutorizadoLista() {
     vagas,
     movimentos,
     comprometimentos,
+    saldoInicial,
   ]);
 
   const totais = filtrados.reduce(
@@ -672,9 +662,8 @@ function QuadroAutorizadoLista() {
       sortable: true,
       body: (item) => {
         const meta = statusVigenciaVisualDoQuadro(item);
-        const rotuloQuebrado = meta.label.startsWith("Agendado para ")
-          ? meta.label.replace("Agendado para ", "Agendado para\n")
-          : meta.label;
+        const rotuloQuebrado = meta.label;
+
         return (
           <SpecArea metadata={quadroColumnSpecifications.Situação}>
             <div className="prototype-quadro-spec-status">
@@ -2358,11 +2347,3 @@ function QuadroAutorizadoDetalhe({
     </div>
   );
 }
-
-
-
-
-
-
-
-

@@ -5,6 +5,7 @@ import {
   reconciliarQuadroAposVacanciaEmExtincao,
 } from "./quadroLegalUtils";
 import type { OcupacaoVaga, QuadroAutorizadoRow, Vaga } from "./types";
+import { gerarIdentificadorVaga } from "./vagaUtils";
 
 const vaga = (id: string, estado: Vaga["estado"]): Vaga => ({
   id,
@@ -263,5 +264,38 @@ describe("transformação entre Quadros Autorizados", () => {
     expect(resultado.quantitativoPosterior).toBe(1);
     expect(resultado.alteradas).toHaveLength(1);
     expect(resultado.criadas).toHaveLength(1);
+  });
+
+  it("preserva a distribuição vigente e usa o órgão atual no identificador transformado", () => {
+    const origem = {
+      ...vaga("VAG-ORIGEM", "DISPONIVEL"),
+      orgaoDistribuicaoInicial: "SEPLAG",
+      atoDistribuicaoInicial: "Decreto inicial",
+      inicioVigenciaDistribuicao: "01/01/2026",
+    };
+    const resultado = aplicarAlteracaoQuadroLegal([origem], {
+      tipo: "TRANSFORMACAO",
+      quantidade: 1,
+      lei: "Lei de transformação",
+      processo: "SEPLAG-PRO-TRANSFORMACAO",
+      dataEfeito: "2026-08-01",
+      novoCargo: "Cargo destino",
+      quadroDestinoId: 9,
+      quadroDestinoCodigo: "QA-DESTINO",
+      maiorSequencialDestino: 10,
+      distribuicaoAtualPorVagaId: {
+        "VAG-ORIGEM": {
+          orgao: "SEFAZ",
+          ato: "Decreto de redistribuição",
+          inicioVigencia: "01/07/2026",
+        },
+      },
+    });
+
+    const transformada = resultado.criadas[0];
+    expect(transformada.id).toBe(gerarIdentificadorVaga("SEFAZ", "Cargo destino", 11));
+    expect(transformada.orgaoDistribuicaoInicial).toBe("SEFAZ");
+    expect(transformada.atoDistribuicaoInicial).toBe("Decreto de redistribuição");
+    expect(transformada.inicioVigenciaDistribuicao).toBe("01/07/2026");
   });
 });

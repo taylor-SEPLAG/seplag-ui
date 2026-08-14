@@ -173,7 +173,7 @@ export const quadroFilterSpecifications: Record<string, SpecificationMetadata> =
       "CV-QA-FLT-005",
       "Situação",
       "Consultar quadros conforme o estado operacional da vigência.",
-      "Usar os estados oficiais Agendado, Ativo, Agendado para Encerramento, Encerrado, Agendado para Extinção e Extinto.",
+      "Usar somente os estados oficiais Agendado, Ativo, Encerrado e Extinto.",
       "SituacaoVigencia e datas do QuadroAutorizadoRow.",
       "enum",
       "DropdownFieldSeplag",

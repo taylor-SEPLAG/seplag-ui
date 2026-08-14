@@ -1,0 +1,19 @@
+{
+  "bridgeVersion": "3.6",
+  "kind": "google-docs-trusted-read-receipt",
+  "status": "failed",
+  "target": {
+    "documentId": null,
+    "documentUrl": "https://docs.google.com/document/d/1NkDiFG_Ant7nr11Wo1sNXcSel-bFv-DyWJFGgBJw9-A/edit?tab=t.0",
+    "selectedTabId": "t.0"
+  },
+  "dropdownMetadata": null,
+  "controlAwareness": null,
+  "warnings": [],
+  "error": {
+    "name": "DocsTrustedReadBridgeError",
+    "message": "document read normalizer source hash does not match the Google Docs trust catalog",
+    "operation": "evaluate-module"
+  }
+}
+

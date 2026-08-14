@@ -73,7 +73,7 @@ describe("menus do Controle de Vagas", () => {
         </Routes>
       </MemoryRouter>,
     );
-    expect(result.getByText("Evolução do quadro legal")).toBeTruthy();
+    expect(result.getByText("Nova versão do quadro")).toBeTruthy();
     expect(result.getByText("Ampliação legal")).toBeTruthy();
     expect(result.getByText("Redução legal")).toBeTruthy();
     expect(result.getByText("Transformação")).toBeTruthy();

@@ -6,7 +6,13 @@ import type {
 } from "./types";
 import { gerarIdentificadorVaga } from "./vagaUtils";
 
-export type TipoAlteracaoQuadroLegal = "AMPLIACAO" | "REDUCAO" | "TRANSFORMACAO" | "EXTINCAO_PROGRESSIVA";
+export type TipoAlteracaoQuadroLegal =
+  | "AMPLIACAO"
+  | "REDUCAO"
+  | "TRANSFORMACAO"
+  | "EXTINCAO_PROGRESSIVA"
+  | "INCLUSAO_ORGAO"
+  | "EXCLUSAO_ORGAO";
 
 export interface ComandoAlteracaoQuadroLegal {
   tipo: TipoAlteracaoQuadroLegal;
@@ -19,6 +25,11 @@ export interface ComandoAlteracaoQuadroLegal {
   quadroDestinoId?: number;
   quadroDestinoCodigo?: string;
   maiorSequencialDestino?: number;
+  distribuicaoAtualPorVagaId?: Readonly<Record<string, {
+    orgao?: string;
+    ato?: string;
+    inicioVigencia?: string;
+  }>>;
   vagaIds?: readonly string[];
   vagaIdsBloqueados?: readonly string[];
 }
@@ -61,9 +72,12 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
   const alteradas: Vaga[] = [];
   const alertas: string[] = [];
   const vagasAtivas = vagas.filter((vaga) => vaga.situacaoLegal !== "EXTINTA");
+  const alteracaoSomenteOrgao = comando.tipo === "INCLUSAO_ORGAO" || comando.tipo === "EXCLUSAO_ORGAO";
   const quantidade = comando.tipo === "EXTINCAO_PROGRESSIVA"
     ? vagasAtivas.length
-    : Math.max(0, Math.floor(comando.quantidade ?? 0));
+    : alteracaoSomenteOrgao
+      ? 0
+      : Math.max(0, Math.floor(comando.quantidade ?? 0));
   const base = vagas[0];
   if (!base || !comando.lei || !comando.processo.trim() || !comando.dataEfeito) {
     return {
@@ -71,6 +85,16 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
       criadas,
       alteradas,
       alertas: ["Preencha a lei ou ato legal, o Processo SIGADOC e a data de efeito."],
+      quantitativoAnterior: vagasAtivas.length,
+      quantitativoPosterior: vagasAtivas.length,
+    };
+  }
+  if (alteracaoSomenteOrgao) {
+    return {
+      vagas,
+      criadas,
+      alteradas,
+      alertas,
       quantitativoAnterior: vagasAtivas.length,
       quantitativoPosterior: vagasAtivas.length,
     };
@@ -125,7 +149,10 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
     candidatas.forEach((vaga) => alteradas.push(alterarSituacao(vaga, "EM_TRANSFORMACAO", comando, `${comando.lei}: transformação do ${vaga.quadroCodigo} para ${comando.quadroDestinoCodigo}.`)));
     candidatas.forEach((origem, indice) => {
       const sequencial = (comando.maiorSequencialDestino ?? 0) + indice + 1;
-      const id = gerarIdentificadorVaga(origem.orgaoTitular, comando.novoCargo!, sequencial);
+      const distribuicaoAtual = comando.distribuicaoAtualPorVagaId?.[origem.id];
+      const orgaoDistribuicaoAtual = distribuicaoAtual?.orgao ?? origem.orgaoDistribuicaoInicial;
+      const orgaoDoIdentificador = orgaoDistribuicaoAtual ?? origem.orgaoTitular;
+      const id = gerarIdentificadorVaga(orgaoDoIdentificador, comando.novoCargo!, sequencial);
       const historico: HistoricoVaga = {
         id: `HIS-${id}-${String(origem.historico.length + 1).padStart(3, "0")}`,
         vagaId: id,
@@ -140,7 +167,23 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
         usuario: "Usuário do protótipo",
         processo: comando.processo,
       };
-      criadas.push({ ...origem, id, sequencial, quadroAutorizadoId: comando.quadroDestinoId, quadroCodigo: comando.quadroDestinoCodigo, cargo: comando.novoCargo, carreira: comando.novaCarreira || origem.carreira, lei: comando.lei, criadaEm: dataRegistro, inicioVigencia: historico.dataEfeito, situacaoLegal: "REGULAR", historico: [...origem.historico, historico] });
+      criadas.push({
+        ...origem,
+        id,
+        sequencial,
+        quadroAutorizadoId: comando.quadroDestinoId,
+        quadroCodigo: comando.quadroDestinoCodigo,
+        cargo: comando.novoCargo,
+        carreira: comando.novaCarreira || origem.carreira,
+        lei: comando.lei,
+        orgaoDistribuicaoInicial: orgaoDistribuicaoAtual,
+        atoDistribuicaoInicial: distribuicaoAtual?.ato ?? origem.atoDistribuicaoInicial,
+        inicioVigenciaDistribuicao: distribuicaoAtual?.inicioVigencia ?? origem.inicioVigenciaDistribuicao,
+        criadaEm: dataRegistro,
+        inicioVigencia: historico.dataEfeito,
+        situacaoLegal: "REGULAR",
+        historico: [...origem.historico, historico],
+      });
     });
     const idsTransformadas = new Set(candidatas.map((vaga) => vaga.id));
     const quantitativoAnterior = vagas.filter((vaga) => vaga.situacaoLegal !== "EXTINTA").length;
@@ -185,9 +228,7 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
   }
 
   const idsBloqueados = new Set(comando.vagaIdsBloqueados ?? []);
-  const comprometidasAtivas = vagasAtivas.filter(
-    (vaga) => vaga.estado === "DISPONIVEL" && idsBloqueados.has(vaga.id),
-  );
+  const comprometidasAtivas = vagasAtivas.filter((vaga) => idsBloqueados.has(vaga.id));
   if (comprometidasAtivas.length > 0) {
     return {
       vagas,
@@ -240,6 +281,14 @@ export function reconciliarQuadroAposVacanciaEmExtincao(
       ...quadro,
       autorizadas: vagasRestantes.length,
       ocupadas,
+      comprometidas: 0,
+      bloqueadas: 0,
+      situacaoVigencia: "ENCERRADO",
+      dataEncerramento:
+        quadro.dataEncerramento ?? quadro.dataInicioExtincaoProgressiva ?? dataVacancia,
+      motivoEncerramento: "Extinção progressiva em andamento.",
+      situacao: "Encerrada",
+      atualizadoEm: dataBr(dataVacancia),
     };
   }
 

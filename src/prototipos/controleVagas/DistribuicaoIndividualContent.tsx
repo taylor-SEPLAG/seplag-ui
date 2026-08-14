@@ -43,6 +43,11 @@ import {
   distribuicaoScreenSpecification,
 } from "./DistribuicaoSpecifications";
 import type { ResultsSeplag } from "../../interfaces/Results";
+import { BadgeSeplag } from "../../componentes/Badge";
+import {
+  calcularStatusOperacionalVigenciaSeplag,
+  type StatusOperacionalVigenciaSeplag,
+} from "../../componentes/SituacaoVigencia";
 import "./distribuicaoIndividual.css";
 import "./quadroLegalOperacoes.css";
 
@@ -75,7 +80,43 @@ interface GrupoDistribuicao {
   distribuiveis: number;
   redistribuiveis: number;
   pendentesAto: number;
+  statusVigencia: StatusOperacionalVigenciaSeplag;
+  situacaoLabel: string;
+  movimentacaoBloqueada: boolean;
 }
+
+const situacaoDistribuicaoMeta: Record<
+  StatusOperacionalVigenciaSeplag,
+  { label: string; color: string; bg: string }
+> = {
+  AGENDADO: { label: "Agendado", color: "#8a5a00", bg: "#fff4d6" },
+  ATIVO: { label: "Ativo", color: "#00843d", bg: "#dff3e8" },
+  ENCERRADO: { label: "Encerrado", color: "#6b7280", bg: "#f1f5f9" },
+  EXTINTO: { label: "Extinto", color: "#b42318", bg: "#fee4e2" },
+};
+
+const statusDoQuadro = (quadro: QuadroAutorizadoRow) => {
+  const status = calcularStatusOperacionalVigenciaSeplag({
+    situacao:
+      quadro.situacaoVigencia ??
+      (quadro.situacao === "Encerrada" ? "ENCERRADO" : "ATIVO"),
+    dataAtivacao: quadro.dataAtivacao || quadro.inicioVigencia,
+    dataEncerramento:
+      quadro.dataEncerramento || quadro.fimVigencia || undefined,
+    motivoEncerramento: quadro.motivoEncerramento,
+    dataExtincao: quadro.dataExtincao,
+    motivoExtincao: quadro.motivoExtincao,
+  });
+  return quadro.extincaoProgressivaEmAndamento && status === "ATIVO"
+    ? "ENCERRADO"
+    : status;
+};
+
+const situacaoVisualDoQuadro = (quadro: QuadroAutorizadoRow) => {
+  const status = statusDoQuadro(quadro);
+  const meta = situacaoDistribuicaoMeta[status];
+  return { status, ...meta, bloqueada: status !== "ATIVO" };
+};
 interface DestinacaoDistribuicao {
   id: number;
   orgao: string;
@@ -126,6 +167,7 @@ export function DistribuicaoIndividualContent() {
   const isFormularioDistribuicao = isNovaDistribuicao || isNovaRedistribuicao;
   const [searchParams] = useSearchParams();
   const quadroInicial = searchParams.get("quadro") ?? "";
+  const saldoInicial = searchParams.get("saldo") ?? "";
   const filtroQuadroInicial = isFormularioDistribuicao
     ? ""
     : (quadros.find((quadro) => String(quadro.id) === quadroInicial)?.codigo ??
@@ -165,10 +207,8 @@ export function DistribuicaoIndividualContent() {
         : quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
           ? "Pendente de ato de distribuição"
           : quadro.orgao;
-      const quadroPermiteMovimentacao =
-        quadro.situacao === "Vigente" &&
-        quadro.situacaoVigencia !== "ENCERRADO" &&
-        quadro.situacaoVigencia !== "EXTINTO";
+      const situacaoVisual = situacaoVisualDoQuadro(quadro);
+      const quadroPermiteMovimentacao = !situacaoVisual.bloqueada;
       const chave = String(posicao.quadroAutorizadoId);
       const atual = mapa.get(chave) ?? {
         chave,
@@ -186,6 +226,9 @@ export function DistribuicaoIndividualContent() {
         distribuiveis: 0,
         redistribuiveis: 0,
         pendentesAto: 0,
+        statusVigencia: situacaoVisual.status,
+        situacaoLabel: situacaoVisual.label,
+        movimentacaoBloqueada: situacaoVisual.bloqueada,
       };
       atual.total++;
       if (posicao.situacaoDistribuicao === "PENDENTE_ATO") atual.pendentesAto++;
@@ -224,6 +267,7 @@ export function DistribuicaoIndividualContent() {
         : quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
           ? "Pendente de ato de distribuição"
           : quadro.orgao;
+      const situacaoVisual = situacaoVisualDoQuadro(quadro);
       mapa.set(String(quadro.id), {
         chave: String(quadro.id),
         quadroId: quadro.id,
@@ -235,6 +279,9 @@ export function DistribuicaoIndividualContent() {
         ocupadas: quadro.ocupadas,
         disponiveis: Math.max(0, quadro.autorizadas - quadro.ocupadas),
         comprometidas: 0, movimentaveis: 0, distribuiveis: 0, redistribuiveis: 0, pendentesAto: 0,
+        statusVigencia: situacaoVisual.status,
+        situacaoLabel: situacaoVisual.label,
+        movimentacaoBloqueada: situacaoVisual.bloqueada,
       });
     });
     return [...mapa.values()].sort(
@@ -251,7 +298,8 @@ export function DistribuicaoIndividualContent() {
       (!busca ||
         grupo.quadroCodigo.toLowerCase().includes(busca.toLowerCase())) &&
       (!filtroCargo || grupo.cargo === filtroCargo) &&
-      (!filtroOrgao || grupo.orgao.split(" • ").includes(filtroOrgao)),
+      (!filtroOrgao || grupo.orgao.split(" • ").includes(filtroOrgao)) &&
+      (saldoInicial !== "PENDENTE_ATO" || grupo.pendentesAto > 0),
   );
   const paginas = Math.max(1, Math.ceil(gruposFiltrados.length / porPagina));
   const paginaAtual = Math.min(pagina, paginas);
@@ -287,6 +335,26 @@ export function DistribuicaoIndividualContent() {
       ),
     },
     { field: "pendentesAto", header: "Pendentes de ato", sortable: true },
+    {
+      field: "statusVigencia",
+      header: "Situação",
+      sortable: true,
+      body: (grupo: GrupoDistribuicao) => {
+        const meta = situacaoDistribuicaoMeta[grupo.statusVigencia];
+        const rotulo = grupo.situacaoLabel;
+        return (
+          <BadgeSeplag
+            label={rotulo}
+            color={meta.color}
+            bg={meta.bg}
+            size="xs"
+            fontWeight
+            textAlign="center"
+            customStyle={{ whiteSpace: "pre-line", lineHeight: 1.15 }}
+          />
+        );
+      },
+    },
   ];
   const distribuidas = posicoes.filter(
     (item) => item.situacaoDistribuicao === "DISTRIBUIDA",
@@ -295,8 +363,14 @@ export function DistribuicaoIndividualContent() {
   const ocupadas = vagas.filter((item) => item.estado === "OCUPADA").length;
   const movimentaveis = posicoes.filter((item) => {
     const vaga = vagas.find((vaga) => vaga.id === item.vagaId);
+    const quadro = quadros.find(
+      (quadro) => quadro.id === item.quadroAutorizadoId,
+    );
+    if (!vaga || !quadro || situacaoVisualDoQuadro(quadro).bloqueada) {
+      return false;
+    }
     return (
-      vaga?.estado === "DISPONIVEL" &&
+      vaga.estado === "DISPONIVEL" &&
       !compromissosAtivos.has(item.vagaId) &&
       item.situacaoLegal === "REGULAR"
     );
@@ -491,7 +565,9 @@ export function DistribuicaoIndividualContent() {
                     <BotaoIconSeplag
                       type="button"
                       tooltip={
-                        grupo.distribuiveis > 0
+                        grupo.movimentacaoBloqueada
+                          ? `O quadro está ${grupo.situacaoLabel.toLowerCase()} e não permite distribuição de vagas`
+                          : grupo.distribuiveis > 0
                           ? `Distribuir ${grupo.distribuiveis} vaga(s) pendente(s) do ${grupo.quadroCodigo}`
                           : "Este quadro não possui vagas pendentes elegíveis para distribuição"
                       }
@@ -509,7 +585,9 @@ export function DistribuicaoIndividualContent() {
                     <BotaoIconSeplag
                       type="button"
                       tooltip={
-                        grupo.redistribuiveis > 0
+                        grupo.movimentacaoBloqueada
+                          ? `O quadro está ${grupo.situacaoLabel.toLowerCase()} e não permite redistribuição de vagas`
+                          : grupo.redistribuiveis > 0
                           ? `Redistribuir ${grupo.redistribuiveis} vaga(s) do ${grupo.quadroCodigo}`
                           : "Este quadro não possui vagas já distribuídas elegíveis para redistribuição"
                       }
@@ -1247,7 +1325,3 @@ const orgaosPermitidos = quadro?.orgaosDefinidosLei?.length
     </div>
   );
 }
-
-
-
-
