@@ -694,8 +694,8 @@ export function CertameFormContent() {
         <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Qtd. vagas" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
         <SpecArea metadata={certameFormBlockSpecifications.cadastroReserva}>
          <SwitchFieldSeplag name="aceitaCadastroReserva" control={cargoForm.control} label="Cargo aceita treinamento para CR?" cols="12 6 3" getFormErrorMessage={() => null} />
-         {cargoValores.aceitaCadastroReserva === "S" && <NumberFieldSeplag name="quantidadeCadastroReserva" control={cargoForm.control} label="Qtd. Cadastro Reserva (CR) — ampla concorrência" required cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
         </SpecArea>
+        {cargoValores.aceitaCadastroReserva === "S" && <NumberFieldSeplag name="quantidadeCadastroReserva" control={cargoForm.control} label="Qtd. Cadastro Reserva (CR) — ampla concorrência" required cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
         <DropdownFieldSeplag name="tipoCota" control={cargoForm.control} label="Tipo de cota" cols="12 6 3" options={TIPOS_COTA.filter((item) => item.value !== "AMPLA")} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />
         <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
         <div className="col-12 md:col-1 lg:col-1 prototype-certame-add-cota"><BotaoIconSeplag type="button" icon="pi pi-plus" tooltip="Adicionar cota à lista" onClick={adicionarReservaCota} /></div>

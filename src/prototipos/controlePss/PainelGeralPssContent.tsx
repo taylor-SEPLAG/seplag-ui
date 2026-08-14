@@ -38,7 +38,7 @@ function parseDataReferencia(iso:string):Date {
 }
 
 function resultados<T>(content:T[]):ResultsSeplag<T> {
- return { content, totalPages:Math.max(1, Math.ceil(content.length / 10)), totalRecords:content.length, size:10, sizePage:10, pageActual:0, first:true, last:true, numberOfElements:content.length, empty:content.length === 0 };
+ return { content, totalPages:Math.max(1, Math.ceil(content.length / 10)), totalRecords:content.length, size:10, sizePage:10, pageActual:0, number:0, first:true, last:true, numberOfElements:content.length, empty:content.length === 0 };
 }
 
 export function PainelGeralPssContent() {
