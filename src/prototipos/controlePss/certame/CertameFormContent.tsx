@@ -8,7 +8,7 @@ import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
 import { proximoNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, podeRegistrarRetificacaoEdital, homologacaoVigenteSemCancelamento, podeRegistrarRetificacaoHomologacao } from "./validations";
 import { ABRANGENCIAS, CARGOS_CADASTRADOS, DOCUMENTOS_CERTAME, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, LEIS_CERTAME, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
-import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, SituacaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
+import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, ReservaCotaCargo, SituacaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { MensagemSeplag } from "@componentes/Mensagem";
@@ -207,6 +207,9 @@ export function CertameFormContent() {
  const cargoValores = cargoForm.watch();
  const cargoNomeAtual = cargoValores.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId)?.nome ?? "" : cargoValores.cargoNome;
  const quadroVinculado = buscarQuadroPorCargo(cargoNomeAtual ?? "");
+ // Reservas de cota do cargo em edição (antes de "Adicionar") — um mesmo cargo pode acumular mais
+ // de uma reserva (ex.: 2 PCD + 1 PPP) antes de ser efetivamente incluído na lista de cargos.
+ const [reservasCotaPendentes, setReservasCotaPendentes] = useState<ReservaCotaCargo[]>([]);
 
  const [fases, setFases] = useState<FaseCertame[]>(existente ? [...existente.fases] : [...FASES_TCE_FIXAS]);
  const [faseArrastada, setFaseArrastada] = useState<number | null>(null);
@@ -293,7 +296,9 @@ export function CertameFormContent() {
    : <span className="text-color-secondary">—</span> },
   { field:"codigoReferenciaTce", header:"Cód. referência TCE" },
   { field:"quantidadeVagas", header:"Vagas" },
-  { header:"Cota", body:(row) => row.tipoCota ? <>{TIPOS_COTA.find((tipo) => tipo.value === row.tipoCota)?.label ?? row.tipoCota} ({row.quantidadeCota ?? 0})</> : <span className="text-color-secondary">Ampla concorrência</span> },
+  { header:"Cota", body:(row) => row.reservasCota.length > 0
+   ? <div className="prototype-certame-cota-tags">{row.reservasCota.map((reserva) => <span key={reserva.id} className="prototype-certame-cota-tag">{TIPOS_COTA.find((tipo) => tipo.value === reserva.tipo)?.label ?? reserva.tipo} ({reserva.quantidade})</span>)}</div>
+   : <span className="text-color-secondary">Ampla concorrência</span> },
   { header:"Cadastro Reserva (CR)", body:(row) => row.aceitaCadastroReserva ? `${row.quantidadeCadastroReserva ?? 0} (ampla concorrência)` : <span className="text-color-secondary">Não aceita</span> },
  ];
 
@@ -361,17 +366,30 @@ export function CertameFormContent() {
  };
  const removerCota = (idCota:string) => setCotas((atuais) => atuais.filter((item) => item.id !== idCota));
 
+ const adicionarReservaCota = () => {
+  const tipo = cargoForm.getValues("tipoCota");
+  const quantidade = cargoForm.getValues("quantidadeCota");
+  if (!tipo || !(quantidade && quantidade > 0)) { setErro("Selecione o tipo de cota e informe a quantidade a reservar."); return; }
+  setErro(null);
+  setReservasCotaPendentes((atuais) => [...atuais, { id:`RSV-${Date.now()}`, tipo, quantidade }]);
+  cargoForm.setValue("tipoCota", "");
+  cargoForm.setValue("quantidadeCota", 0);
+ };
+ const removerReservaCota = (idReserva:string) => setReservasCotaPendentes((atuais) => atuais.filter((item) => item.id !== idReserva));
+
  const adicionarCargo = () => {
   const dados = cargoForm.getValues();
   const cargoExistente = dados.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === dados.cargoExistenteId) : undefined;
   const cargoNome = dados.vinculo === "EXISTENTE" ? cargoExistente?.nome ?? "" : dados.cargoNome;
   if (!cargoNome || dados.quantidadeVagas <= 0) return;
-  if (dados.tipoCota && !(dados.quantidadeCota && dados.quantidadeCota > 0)) { setErro("Informe a quantidade de vagas reservadas para a cota selecionada."); return; }
+  const totalReservado = reservasCotaPendentes.reduce((total, item) => total + item.quantidade, 0);
+  if (totalReservado > dados.quantidadeVagas) { setErro("A soma das cotas reservadas não pode exceder a quantidade de vagas do cargo."); return; }
   if (dados.aceitaCadastroReserva === "S" && !(dados.quantidadeCadastroReserva && dados.quantidadeCadastroReserva > 0)) { setErro("Informe a quantidade de Cadastro Reserva (CR) para as vagas de ampla concorrência."); return; }
   setErro(null);
   const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
-  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, tipoCota:dados.tipoCota || undefined, quantidadeCota:dados.tipoCota ? dados.quantidadeCota : undefined, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
+  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaPendentes, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
   cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 });
+  setReservasCotaPendentes([]);
  };
  const removerCargo = (idCargo:string) => setCargos((atuais) => atuais.filter((item) => item.id !== idCargo));
 
@@ -673,7 +691,14 @@ export function CertameFormContent() {
          {cargoValores.aceitaCadastroReserva === "S" && <NumberFieldSeplag name="quantidadeCadastroReserva" control={cargoForm.control} label="Qtd. Cadastro Reserva (CR) — ampla concorrência" required cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
         </SpecArea>
         <DropdownFieldSeplag name="tipoCota" control={cargoForm.control} label="Tipo de cota" cols="12 6 3" options={TIPOS_COTA.filter((item) => item.value !== "AMPLA")} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />
-        {cargoValores.tipoCota && <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" required cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
+        <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
+        <div className="col-12 md:col-3 lg:col-3"><BotaoSeplag type="button" label="Reservar cota" icon="pi pi-plus" onClick={adicionarReservaCota} /></div>
+        {reservasCotaPendentes.length > 0 && <div className="col-12"><div className="prototype-certame-cota-tags">
+         {reservasCotaPendentes.map((reserva) => <span key={reserva.id} className="prototype-certame-cota-tag">
+          {TIPOS_COTA.find((tipo) => tipo.value === reserva.tipo)?.label ?? reserva.tipo} ({reserva.quantidade})
+          <button type="button" aria-label="Remover reserva de cota" onClick={() => removerReservaCota(reserva.id)}><i className="pi pi-times" aria-hidden="true" /></button>
+         </span>)}
+        </div></div>}
         <div className="col-12 md:col-2 lg:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCargo} /></div>
        </div>
        <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cargos)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasCargos} hasEventoAcao handleView={null} handleEdit={null} handleDelete={(row) => removerCargo(row.id)} handleOnPageChange={() => {}} />
