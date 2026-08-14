@@ -691,8 +691,8 @@ export function CertameFormContent() {
          {cargoValores.aceitaCadastroReserva === "S" && <NumberFieldSeplag name="quantidadeCadastroReserva" control={cargoForm.control} label="Qtd. Cadastro Reserva (CR) — ampla concorrência" required cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
         </SpecArea>
         <DropdownFieldSeplag name="tipoCota" control={cargoForm.control} label="Tipo de cota" cols="12 6 3" options={TIPOS_COTA.filter((item) => item.value !== "AMPLA")} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />
-        <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
-        <div className="col-12 md:col-3 lg:col-3"><BotaoSeplag type="button" label="Reservar cota" icon="pi pi-plus" onClick={adicionarReservaCota} /></div>
+        <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
+        <div className="col-12 md:col-1 lg:col-1 prototype-certame-add-cota"><BotaoIconSeplag type="button" icon="pi pi-plus" tooltip="Adicionar cota à lista" onClick={adicionarReservaCota} /></div>
         {reservasCotaPendentes.length > 0 && <div className="col-12"><div className="prototype-certame-cota-tags">
          {reservasCotaPendentes.map((reserva) => <span key={reserva.id} className="prototype-certame-cota-tag">
           {TIPOS_COTA.find((tipo) => tipo.value === reserva.tipo)?.label ?? reserva.tipo} ({reserva.quantidade})
