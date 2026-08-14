@@ -62,7 +62,7 @@ interface CertameFormValues {
  cobraTaxaInscricao:string; valorInscricao?:number;
 }
 interface CotaFormValues { tipo:string; lei:string }
-interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; quantidadeVagas:number; vagaPcd:string; quantidadePcd?:number }
+interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; quantidadeVagas:number; tipoCota:string; quantidadeCota?:number }
 interface SituacaoFormValues { tipo:SituacaoCertame; data?:string }
 
 // Consolidação de 8 para 5 abas fixas (+ Situações, disponível só após salvar): cada aba antiga
@@ -203,7 +203,7 @@ export function CertameFormContent() {
  const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:TIPOS_COTA[0].value, lei:"" } });
 
  const [cargos, setCargos] = useState<CargoVagaCertame[]>(existente ? [...existente.cargos] : []);
- const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, vagaPcd:"N", quantidadePcd:0 } });
+ const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, tipoCota:"", quantidadeCota:0 } });
  const cargoValores = cargoForm.watch();
  const cargoNomeAtual = cargoValores.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId)?.nome ?? "" : cargoValores.cargoNome;
  const quadroVinculado = buscarQuadroPorCargo(cargoNomeAtual ?? "");
@@ -293,7 +293,7 @@ export function CertameFormContent() {
    : <span className="text-color-secondary">—</span> },
   { field:"codigoReferenciaTce", header:"Cód. referência TCE" },
   { field:"quantidadeVagas", header:"Vagas" },
-  { header:"PCD", body:(row) => row.vagaPcd ? row.quantidadePcd ?? 0 : 0 },
+  { header:"Cota", body:(row) => row.tipoCota ? <>{TIPOS_COTA.find((tipo) => tipo.value === row.tipoCota)?.label ?? row.tipoCota} ({row.quantidadeCota ?? 0})</> : <span className="text-color-secondary">Ampla concorrência</span> },
  ];
 
 
@@ -365,11 +365,11 @@ export function CertameFormContent() {
   const cargoExistente = dados.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === dados.cargoExistenteId) : undefined;
   const cargoNome = dados.vinculo === "EXISTENTE" ? cargoExistente?.nome ?? "" : dados.cargoNome;
   if (!cargoNome || dados.quantidadeVagas <= 0) return;
-  if (dados.vagaPcd === "S" && !(dados.quantidadePcd && dados.quantidadePcd > 0)) { setErro("Informe a quantidade de vagas PCD/PNE."); return; }
+  if (dados.tipoCota && !(dados.quantidadeCota && dados.quantidadeCota > 0)) { setErro("Informe a quantidade de vagas reservadas para a cota selecionada."); return; }
   setErro(null);
   const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
-  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, vagaPcd:dados.vagaPcd === "S", quantidadePcd:dados.vagaPcd === "S" ? dados.quantidadePcd : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
-  cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, vagaPcd:"N", quantidadePcd:0 });
+  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, tipoCota:dados.tipoCota || undefined, quantidadeCota:dados.tipoCota ? dados.quantidadeCota : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
+  cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", quantidadeVagas:0, tipoCota:"", quantidadeCota:0 });
  };
  const removerCargo = (idCargo:string) => setCargos((atuais) => atuais.filter((item) => item.id !== idCargo));
 
@@ -666,8 +666,8 @@ export function CertameFormContent() {
          : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" cols="12 6 3" placeholder="Nome do novo cargo" getFormErrorMessage={() => null} />}
         <SpecArea metadata={certameFormBlockSpecifications.quadroVagasVinculado}><RotuloSeplag nome="Quadro" cols="12 6 1"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado ? `${quadroVinculado.quadroCodigo} — Versão ${quadroVinculado.quadroVersao}` : "—"}</div></RotuloSeplag></SpecArea>
         <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Qtd. vagas" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
-        <CheckboxFieldSeplag name="vagaPcd" control={cargoForm.control} label=" " checkboxLabel="PCD/PNE" cols="12 6 1" getFormErrorMessage={() => null} />
-        {cargoValores.vagaPcd === "S" && <NumberFieldSeplag name="quantidadePcd" control={cargoForm.control} label="Qtd. PCD" required cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
+        <DropdownFieldSeplag name="tipoCota" control={cargoForm.control} label="Tipo de cota" cols="12 6 2" options={TIPOS_COTA.filter((item) => item.value !== "AMPLA")} optionLabel="label" optionValue="value" placeholder="Nenhuma" showClear getFormErrorMessage={() => null} />
+        {cargoValores.tipoCota && <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" required cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
         <div className="col-12 md:col-2 lg:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCargo} /></div>
        </div>
        <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cargos)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasCargos} hasEventoAcao handleView={null} handleEdit={null} handleDelete={(row) => removerCargo(row.id)} handleOnPageChange={() => {}} />

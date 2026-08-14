@@ -32,7 +32,13 @@ export function totalVagas(certame:Certame):number {
 }
 
 export function totalVagasPcd(certame:Certame):number {
- return certame.cargos.reduce((total, cargo) => total + (cargo.vagaPcd ? cargo.quantidadePcd ?? 0 : 0), 0);
+ return totalVagasPorCota(certame, "PCD");
+}
+
+// Vagas reservadas para um tipo de cota específico (ver dominios.TIPOS_COTA), somadas entre os
+// cargos do certame — cada cargo/vaga rastreia sua própria cota (CargoVagaCertame.tipoCota).
+export function totalVagasPorCota(certame:Certame, tipoCota:string):number {
+ return certame.cargos.reduce((total, cargo) => total + (cargo.tipoCota === tipoCota ? cargo.quantidadeCota ?? 0 : 0), 0);
 }
 
 export function inscricoesAbertas(certame:Certame, dataReferencia:Date):boolean {

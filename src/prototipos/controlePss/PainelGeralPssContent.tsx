@@ -7,7 +7,7 @@ import { ORGAOS_CERTAME, SITUACOES_CERTAME } from "./certame/dominios";
 import type { Certame, CotaCertame, SituacaoCertame } from "./certame/types";
 import {
  certameAtivo, documentosObrigatoriosTotal, documentosPendentes,
- homologacaoDeVagasPendente, inscricoesAbertas, prazoPrestacaoContasAtual, prazoVenceEmAteDias, totalVagas, totalVagasPcd,
+ homologacaoDeVagasPendente, inscricoesAbertas, prazoPrestacaoContasAtual, prazoVenceEmAteDias, totalVagas, totalVagasPcd, totalVagasPorCota,
 } from "./certame/painelSelectors";
 import { SpecArea, SpecificationMode } from "../shared/visualizationModes";
 import { painelPssActionSpecifications, painelPssBlockSpecifications, painelPssBusinessItems, painelPssFilterSpecifications, painelPssKpiSpecifications, painelPssScreenSpecification } from "./PainelGeralPssSpecifications";
@@ -80,7 +80,7 @@ export function PainelGeralPssContent() {
  const colunasCotas:ColumnMetaSeplag<CotaLinha>[] = [
   { header:"Certame", body:(row) => <div><strong>{row.certame.numeroEditalOrgao}</strong><div className="text-sm text-color-secondary">{row.certame.setor}</div></div> },
   { header:"Tipo de cota", body:(row) => row.cota.tipo },
-  { header:"Vagas PCD", body:(row) => row.cota.tipo === "PCD" ? totalVagasPcd(row.certame).toLocaleString("pt-BR") : "—" },
+  { header:"Vagas reservadas", body:(row) => totalVagasPorCota(row.certame, row.cota.tipo).toLocaleString("pt-BR") },
  ];
 
  const alertas = [
