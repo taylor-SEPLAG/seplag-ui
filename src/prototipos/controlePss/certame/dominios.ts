@@ -35,6 +35,50 @@ export const ABRANGENCIAS = [
  { label:"Municipal", value:"MUNICIPAL" },
 ] as const;
 
+// Polo de aplicação do cargo/vaga — as opções e o comportamento do campo mudam conforme a
+// Abrangência do certame (aba Contrato e Custos): Municipal trava no município da Unidade Gestora
+// (placeholder de UI — a integração com o cadastro real de UG é dependência futura); Regional
+// abre a lista das 12 Regiões de Planejamento de Mato Grosso (cada uma com seu município-polo);
+// Estadual permite um ou mais municípios-polo específicos, com a opção exclusiva "Todos os Polos"
+// (todo o Estado). Fonte: divisão oficial das Regiões de Planejamento de MT (SEPLAN-MT).
+export const MUNICIPIO_UNIDADE_GESTORA = "Cuiabá";
+
+function normalizarCodigoPolo(nome:string) {
+ return nome.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/(^-+|-+$)/g, "");
+}
+
+export interface RegiaoPlanejamentoMT { value:string; regiao:string; polo:string; municipios:readonly string[] }
+
+export const REGIOES_PLANEJAMENTO_MT:readonly RegiaoPlanejamentoMT[] = [
+ { value:"REGIAO-I", regiao:"Região I — Metropolitana / Baixada Cuiabana", polo:"Cuiabá", municipios:["Cuiabá", "Várzea Grande", "Santo Antônio de Leverger", "Chapada dos Guimarães", "Acorizal", "Nossa Senhora do Livramento", "Barão de Melgaço", "Poconé", "Jangada", "Rosário Oeste", "Nobres", "Planalto da Serra"] },
+ { value:"REGIAO-II", regiao:"Região II — Sul", polo:"Rondonópolis", municipios:["Rondonópolis", "Jaciara", "Juscimeira", "Pedra Preta", "São José do Povo", "Itiquira", "Alto Araguaia", "Alto Garças", "Alto Taquari", "Guiratinga", "Tesouro", "Dom Aquino"] },
+ { value:"REGIAO-III", regiao:"Região III — Centro-Norte / Teles Pires", polo:"Sinop", municipios:["Sinop", "Sorriso", "Lucas do Rio Verde", "Nova Mutum", "Tapurah", "Ipiranga do Norte", "Itanhangá", "Cláudia", "Feliz Natal", "Santa Carmem", "Vera", "União do Sul"] },
+ { value:"REGIAO-IV", regiao:"Região IV — Norte", polo:"Alta Floresta", municipios:["Alta Floresta", "Colíder", "Guarantã do Norte", "Peixoto de Azevedo", "Matupá", "Marcelândia", "Nova Canaã do Norte", "Nova Santa Helena", "Itaúba", "Apiacás", "Carlinda", "Nova Bandeirantes", "Paranaíta"] },
+ { value:"REGIAO-V", regiao:"Região V — Sudoeste / Vale do Jauru", polo:"Cáceres", municipios:["Cáceres", "Mirassol d'Oeste", "São José dos Quatro Marcos", "Araputanga", "Pontes e Lacerda", "Comodoro", "Vila Bela da Santíssima Trindade", "Porto Esperidião", "Curvelândia", "Lambari d'Oeste", "Rio Branco", "Salto do Céu", "Reserva do Cabaçal", "Jauru", "Figueirópolis d'Oeste", "Indiavaí", "Vale de São Domingos", "Nova Lacerda", "Conquista d'Oeste"] },
+ { value:"REGIAO-VI", regiao:"Região VI — Tangará da Serra", polo:"Tangará da Serra", municipios:["Tangará da Serra", "Campo Novo do Parecis", "Barra do Bugres", "Nova Olímpia", "Arenápolis", "Denise", "Santo Afonso", "Porto Estrela", "Sapezal", "Brasnorte"] },
+ { value:"REGIAO-VII", regiao:"Região VII — Araguaia", polo:"Barra do Garças", municipios:["Barra do Garças", "Araguaiana", "Cocalinho", "Nova Xavantina", "Água Boa", "Pontal do Araguaia", "General Carneiro", "Torixoréu", "Ribeirãozinho", "Araguainha", "Campinápolis", "Nova Nazaré"] },
+ { value:"REGIAO-VIII", regiao:"Região VIII — Norte Araguaia", polo:"Confresa", municipios:["Confresa", "Vila Rica", "São Félix do Araguaia", "Santa Terezinha", "Porto Alegre do Norte", "Canabrava do Norte", "Luciara", "Alto Boa Vista", "Querência", "Ribeirão Cascalheira", "Serra Nova Dourada", "Bom Jesus do Araguaia"] },
+ { value:"REGIAO-IX", regiao:"Região IX — Noroeste", polo:"Juína", municipios:["Juína", "Juara", "Aripuanã", "Colniza", "Cotriguaçu", "Juruena", "Castanheira", "Novo Horizonte do Norte", "Porto dos Gaúchos", "Tabaporã"] },
+ { value:"REGIAO-X", regiao:"Região X — Médio Norte", polo:"Diamantino", municipios:["Diamantino", "Alto Paraguai", "Nova Marilândia", "Santo Afonso", "Arenápolis", "Nortelândia", "São José do Rio Claro", "Nova Maringá", "Santa Rita do Trivelato"] },
+ { value:"REGIAO-XI", regiao:"Região XI — Centro / Vale do Rio Cuiabá", polo:"Primavera do Leste", municipios:["Primavera do Leste", "Campo Verde", "Paranatinga", "Gaúcha do Norte", "Poxoréu"] },
+ // Classificação complementar de polos intermediários usada em divisões de saúde/educação — sem
+ // lista própria de municípios abrangidos (os municípios citados já pertencem às regiões IX e X).
+ { value:"REGIAO-XII", regiao:"Região XII — Centro-Oeste / Guaporé", polo:"Juara / São José do Rio Claro", municipios:[] },
+];
+
+export const POLOS_REGIONAIS = REGIOES_PLANEJAMENTO_MT.map((item) => ({ label:`${item.regiao} — Polo: ${item.polo}`, value:item.value }));
+
+export const POLO_TODOS_ESTADO = "TODOS";
+
+// Municípios-polo (Estadual) — a cidade-sede de cada Região de Planejamento; a Região XII soma dois
+// polos intermediários (Juara e São José do Rio Claro), ambos oferecidos como opções individuais.
+const NOMES_POLOS_MUNICIPAIS = Array.from(new Set(REGIOES_PLANEJAMENTO_MT.flatMap((item) => item.polo.split("/").map((nome) => nome.trim()))));
+
+export const POLOS_MUNICIPAIS = [
+ { label:"Todos os Polos", value:POLO_TODOS_ESTADO },
+ ...NOMES_POLOS_MUNICIPAIS.map((nome) => ({ label:nome, value:normalizarCodigoPolo(nome) })),
+];
+
 export const TIPOS_CONTRATACAO_EXECUCAO = [
  { label:"Própria UG", value:"PROPRIA_UG" },
  { label:"Empresa Contratada", value:"EMPRESA_CONTRATADA" },

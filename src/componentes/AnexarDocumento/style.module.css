@@ -114,6 +114,31 @@
   color: #005494 !important;
 }
 
+/* Variante compacta (só ícone, sem texto) — mesma altura dos demais campos de um formulário, para
+   caber lado a lado com eles na mesma linha em vez do botão largo com rótulo. */
+.uploadButtonCompact {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #2196f3 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.uploadButtonCompact:hover {
+  background: #1769aa !important;
+}
+
+/* Mesmo com iconOnly, o FileUpload ainda renderiza um rótulo vazio (&nbsp;) ao lado do ícone — esse
+   span invisível empurra o ícone para fora do centro do botão quadrado; escondê-lo centraliza. */
+.uploadButtonCompact :global(.p-button-label) {
+  display: none;
+}
+
 .helpText {
   color: #64748b;
   font-size: 0.82rem;
