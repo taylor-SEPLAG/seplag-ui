@@ -1552,6 +1552,14 @@ function App() {
       <Route path="/prototipos/sigep/backlog/quadro-autorizado/:id" element={<PrototiposBacklogQuadroAutorizadoPage />} />
       <Route path="/prototipos/sigep/backlog/quadro-autorizado/:id/editar" element={<PrototiposBacklogQuadroAutorizadoPage />} />
       <Route path="/prototipos/sigep/backlog/quadro-autorizado/:id/nova-versao" element={<PrototiposBacklogQuadroAutorizadoPage />} />
+      <Route
+        path="/prototipos/sigep/backlog/quadro-autorizado-2.0"
+        element={<Navigate to="/prototipos/sigep/backlog/controle-vagas-2.0/dashboard" replace />}
+      />
+      <Route
+        path="/prototipos/sigep/backlog/quadro-autorizado-2.0/quadro-autorizado"
+        element={<Navigate to="/prototipos/sigep/backlog/controle-vagas-2.0/quadro-autorizado" replace />}
+      />
       <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/configuracoes" element={<PrototiposBacklogControleVagasV2RegrasPage />} />
       <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/dashboard" element={<PrototiposBacklogControleVagasV2DashboardPage />} />
       <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/distribuicao" element={<PrototiposBacklogControleVagasV2DistribuicaoPage />} />
