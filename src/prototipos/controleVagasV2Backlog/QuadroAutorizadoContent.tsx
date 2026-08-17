@@ -46,7 +46,6 @@ import {
   type ColumnMetaSeplag,
 } from "../../componentes/TablePaginado";
 import {
-  DateFieldSeplag,
   DropdownFieldSeplag,
   MultiSelectFieldSeplag,
   NumberFieldSeplag,
@@ -60,6 +59,7 @@ import {
   useDocumentosLegaisAssociaveis,
 } from "../documentosLegais/documentosLegaisStore";
 import {
+  SituacaoVigenciaSeplag,
   calcularStatusOperacionalVigenciaSeplag,
   validarSituacaoVigenciaSeplag,
   type StatusOperacionalVigenciaSeplag,
@@ -1386,8 +1386,18 @@ function QuadroAutorizadoForm({
       processo: registro?.processo ?? "",
       fundamentacao: "",
       motivoAlteracao: "",
-      modoAbrangencia: "SEM_ORGAOS",
-      orgaosDefinidos: [],
+      modoAbrangencia: registro
+        ? registro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
+          ? "SEM_ORGAOS"
+          : registro.quantitativosLegaisPorOrgao?.length
+            ? "ORGAOS_COM_QUANTITATIVO"
+            : "ORGAOS_SEM_QUANTITATIVO"
+        : "",
+      orgaosDefinidos: registro?.orgaosDefinidosLei
+        ? [...registro.orgaosDefinidosLei]
+        : registro?.orgao && registro.orgao !== "ESTADO DE MATO GROSSO"
+          ? [registro.orgao]
+          : [],
       situacao: novaVersao ? "ATIVO" : (registro?.situacaoVigencia ?? "ATIVO"),
       dataAtivacao: novaVersao
         ? ""
@@ -1435,32 +1445,54 @@ function QuadroAutorizadoForm({
     });
   }, [cargoSelecionadoJaPossuiQuadro, form.cargo, setValue]);
 
-  const formaDestinacao = "DISTRIBUICAO_POSTERIOR" as const;
   const modoAbrangencia = form.modoAbrangencia;
+  const formaDestinacao =
+    modoAbrangencia === "SEM_ORGAOS"
+      ? "DISTRIBUICAO_POSTERIOR"
+      : "DEFINIDA_NA_LEI";
+  const defineQuantidadePorOrgao =
+    modoAbrangencia === "ORGAOS_COM_QUANTITATIVO";
   const orgaosDefinidos = form.orgaosDefinidos;
   const [quantidadesPorOrgao, setQuantidadesPorOrgao] = useState<
     Record<string, string>
-  >({});
+  >(() =>
+    Object.fromEntries(
+      (registro?.quantitativosLegaisPorOrgao ?? []).map((item) => [
+        item.orgao,
+        String(item.quantidade),
+      ]),
+    ),
+  );
+  useEffect(() => {
+    if (modoAbrangencia === "SEM_ORGAOS") {
+      setValue("orgaosDefinidos", []);
+      setQuantidadesPorOrgao({});
+    } else if (modoAbrangencia === "ORGAOS_SEM_QUANTITATIVO") {
+      setQuantidadesPorOrgao({});
+    }
+  }, [modoAbrangencia]);
   const alterarOrgaosSelecionados = (orgaos: string[]) => {
     setValue("orgaosDefinidos", orgaos, { shouldDirty: true });
+    setQuantidadesPorOrgao((atuais) =>
+      Object.fromEntries(orgaos.map((orgao) => [orgao, atuais[orgao] ?? ""])),
+    );
   };
-  const totalPorOrgao = 0;
+  const totalPorOrgao = orgaosDefinidos.reduce(
+    (total, orgao) => total + Number(quantidadesPorOrgao[orgao] || 0),
+    0,
+  );
   const quantidadeAutorizada = Number(form.quantidade || 0);
-  const saldoAlocacaoLegal = quantidadeAutorizada;
-  const vigenciaPrevia: VigenciaQuadroForm = {
-    situacao: "ATIVO",
-    dataAtivacao: form.dataAtivacao,
-  };
-  const statusVigenciaPrevia = calcularStatusOperacionalVigenciaSeplag(vigenciaPrevia);
-  const situacaoPrevia = statusVigenciaPrevia.startsWith("AGENDADO")
-    ? "Agendado"
-    : "Ativo";
+  const saldoAlocacaoLegal = Math.max(0, quantidadeAutorizada - totalPorOrgao);
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const valores = getValues();
     const vigencia: VigenciaQuadroForm = {
-      situacao: "ATIVO",
+      situacao: valores.situacao,
       dataAtivacao: valores.dataAtivacao,
+      dataEncerramento: valores.dataEncerramento,
+      motivoEncerramento: valores.motivoEncerramento,
+      dataExtincao: valores.dataExtincao,
+      motivoExtincao: valores.motivoExtincao,
     };
     const errosVigencia = validarSituacaoVigenciaSeplag(vigencia);
     const novosErros = [
@@ -1474,8 +1506,24 @@ function QuadroAutorizadoForm({
       !documentosLegaisIds.length &&
         "Vincule ao menos uma norma à autorização.",
       ...errosVigencia,
+      !modoAbrangencia &&
+        "Informe como a lei definiu a alocação das vagas.",
+      formaDestinacao === "DEFINIDA_NA_LEI" &&
+        Boolean(modoAbrangencia) &&
+        !orgaosDefinidos.length &&
+        "Selecione ao menos um órgão definido pela lei.",
       (!form.quantidade || Number(form.quantidade) <= 0) &&
         "Informe uma quantidade maior que zero.",
+      formaDestinacao === "DEFINIDA_NA_LEI" &&
+        defineQuantidadePorOrgao &&
+        totalPorOrgao !== Number(form.quantidade) &&
+        "A soma das quantidades por órgão deve ser igual à quantidade autorizada.",
+      formaDestinacao === "DEFINIDA_NA_LEI" &&
+        defineQuantidadePorOrgao &&
+        orgaosDefinidos.some(
+          (orgao) => Number(quantidadesPorOrgao[orgao] || 0) <= 0,
+        ) &&
+        "Informe uma quantidade maior que zero para cada órgão.",
       novaVersao && !form.motivoAlteracao && "Informe o motivo da nova versão.",
     ].filter(Boolean) as string[];
     setErros(novosErros);
@@ -1497,6 +1545,10 @@ function QuadroAutorizadoForm({
     const normasSelecionadas = documentosLegaisDisponiveis.filter((item) =>
       documentosLegaisIds.includes(item.id),
     );
+    const orgaoCompatibilidade =
+      formaDestinacao === "DEFINIDA_NA_LEI" && orgaosDefinidos.length === 1
+        ? orgaosDefinidos[0]
+        : "ESTADO DE MATO GROSSO";
     const quadro: QuadroAutorizadoRow = {
       id: novoId,
       codigo,
@@ -1506,11 +1558,21 @@ function QuadroAutorizadoForm({
       carreira: form.carreira,
       cargo: form.cargo,
       perfilProfissional: form.perfilProfissional,
-      orgao: "ESTADO DE MATO GROSSO",
-      abrangencia: "Distribuição posterior pelo Estado",
+      orgao: orgaoCompatibilidade,
+      abrangencia:
+        formaDestinacao === "DISTRIBUICAO_POSTERIOR"
+          ? "Distribuição posterior pelo Estado"
+          : "Destinação definida na lei",
       formaDestinacaoLegal: formaDestinacao,
-      orgaosDefinidosLei: [],
-      quantitativosLegaisPorOrgao: [],
+      orgaosDefinidosLei:
+        formaDestinacao === "DEFINIDA_NA_LEI" ? orgaosDefinidos : [],
+      quantitativosLegaisPorOrgao:
+        formaDestinacao === "DEFINIDA_NA_LEI" && defineQuantidadePorOrgao
+          ? orgaosDefinidos.map((orgao) => ({
+              orgao,
+              quantidade: Number(quantidadesPorOrgao[orgao]),
+            }))
+          : [],
       autorizadas: Number(form.quantidade),
       ocupadas: novaVersao ? (registro?.ocupadas ?? 0) : 0,
       comprometidas: novaVersao ? (registro?.comprometidas ?? 0) : 0,
@@ -1741,12 +1803,12 @@ function QuadroAutorizadoForm({
               <h2>
                 {novaVersao
                   ? "Nova configuração legal"
-                  : "Quantitativo"}
+                  : "Abrangência e quantitativo"}
               </h2>
               <p>
                 {novaVersao
-                  ? "Informe o quantitativo que passará a valer."
-                  : "Defina o total autorizado."}
+                  ? "Informe somente o quantitativo e a alocação que passarão a valer."
+                  : "Defina o total autorizado e como a legislação alocou as vagas."}
               </p>
             </div>
           </header>
@@ -1995,25 +2057,25 @@ function QuadroAutorizadoForm({
               </p>
             </div>
           </header>
-          <div className="prototype-quadro-library-section prototype-quadro-simple-vigencia">
-            <DateFieldSeplag
-              name="dataAtivacao"
+          <div className="prototype-quadro-library-section">
+            <SituacaoVigenciaSeplag
               control={control}
-              label="Data de início"
-              required
-              cols="12 12 4"
+              setValue={setValue}
+              situacoesDisponiveis={
+                !registro && !novaVersao ? ["ATIVO"] : undefined
+              }
+              rotuloDataAtivacao="Data de início"
+              cols={{
+                situacao: "12 12 3",
+                dataAtivacao: "12 12 3",
+                statusOperacional: "col-12 md:col-12 lg:col-5",
+                dataEncerramento: "12 12 3",
+                motivoEncerramento: "12",
+                dataExtincao: "12 12 3",
+                motivoExtincao: "12",
+              }}
               getFormErrorMessage={() => null}
             />
-            <div className="prototype-quadro-simple-status">
-              <span>Situação <strong>*</strong></span>
-              <BadgeSeplag
-                label={situacaoPrevia}
-                color={situacaoPrevia === "Agendado" ? "#8a5a00" : "#00843d"}
-                bg={situacaoPrevia === "Agendado" ? "#fff3d6" : "#dff3e8"}
-                size="sm"
-                fontWeight
-              />
-            </div>
           </div>
         </section>{" "}
         <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow">

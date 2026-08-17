@@ -47,6 +47,13 @@ import {
   PrototiposControlePssCertameFormPage,
   PrototiposBacklogRegrasPage,
   PrototiposBacklogQuadroAutorizadoPage,
+  PrototiposBacklogControleVagasV2RegrasPage,
+  PrototiposBacklogControleVagasV2QuadroPage,
+  PrototiposBacklogControleVagasV2DistribuicaoPage,
+  PrototiposBacklogControleVagasV2DashboardPage,
+  PrototiposBacklogControleVagasV2VagasPage,
+  PrototiposBacklogControleVagasV2MovimentacoesPage,
+  PrototiposBacklogControleVagasV2ProjecoesPage,
   PrototiposBacklogDistribuicaoPage,
   PrototiposBacklogDashboardPage,
   PrototiposBacklogVagasPage,
@@ -1545,6 +1552,29 @@ function App() {
       <Route path="/prototipos/sigep/backlog/quadro-autorizado/:id" element={<PrototiposBacklogQuadroAutorizadoPage />} />
       <Route path="/prototipos/sigep/backlog/quadro-autorizado/:id/editar" element={<PrototiposBacklogQuadroAutorizadoPage />} />
       <Route path="/prototipos/sigep/backlog/quadro-autorizado/:id/nova-versao" element={<PrototiposBacklogQuadroAutorizadoPage />} />
+      <Route
+        path="/prototipos/sigep/backlog/quadro-autorizado-2.0"
+        element={<Navigate to="/prototipos/sigep/backlog/controle-vagas-2.0/dashboard" replace />}
+      />
+      <Route
+        path="/prototipos/sigep/backlog/quadro-autorizado-2.0/quadro-autorizado"
+        element={<Navigate to="/prototipos/sigep/backlog/controle-vagas-2.0/quadro-autorizado" replace />}
+      />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/configuracoes" element={<PrototiposBacklogControleVagasV2RegrasPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/dashboard" element={<PrototiposBacklogControleVagasV2DashboardPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/distribuicao" element={<PrototiposBacklogControleVagasV2DistribuicaoPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/distribuicao/nova" element={<PrototiposBacklogControleVagasV2DistribuicaoPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/redistribuicao/nova" element={<PrototiposBacklogControleVagasV2DistribuicaoPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/vagas" element={<PrototiposBacklogControleVagasV2VagasPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/movimentacoes" element={<PrototiposBacklogControleVagasV2MovimentacoesPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/movimentacoes/nova-remocao" element={<PrototiposBacklogControleVagasV2MovimentacoesPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/movimentacoes/nova-cessao" element={<PrototiposBacklogControleVagasV2MovimentacoesPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/projecoes" element={<PrototiposBacklogControleVagasV2ProjecoesPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/quadro-autorizado" element={<PrototiposBacklogControleVagasV2QuadroPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/quadro-autorizado/novo" element={<PrototiposBacklogControleVagasV2QuadroPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/quadro-autorizado/:id" element={<PrototiposBacklogControleVagasV2QuadroPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/quadro-autorizado/:id/editar" element={<PrototiposBacklogControleVagasV2QuadroPage />} />
+      <Route path="/prototipos/sigep/backlog/controle-vagas-2.0/quadro-autorizado/:id/nova-versao" element={<PrototiposBacklogControleVagasV2QuadroPage />} />
       <Route path="/prototipos/sigep/quadro-pessoal/configuracoes" element={<PrototiposQuadroPessoalRegrasPage />} />
       <Route path="/prototipos/sigep/quadro-pessoal/dashboard" element={<PrototiposQuadroPessoalDashboardPage />} />
       <Route path="/prototipos/sigep/quadro-pessoal/distribuicao" element={<PrototiposQuadroPessoalDistribuicaoPage />} />
