@@ -112,6 +112,13 @@ import { DashboardGerencialContent as BacklogDashboardContent } from "./controle
 import { VagasIndividualizadasContent as BacklogVagasContent } from "./controleVagasBacklog/VagasIndividualizadasContent";
 import { MovimentacoesContent as BacklogMovimentacoesContent } from "./controleVagasBacklog/MovimentacoesContent";
 import { ProjecoesVagasContent as BacklogProjecoesContent } from "./controleVagasBacklog/ProjecoesVagasContent";
+import { ControleVagasRegrasContent as BacklogControleVagasV2RegrasContent } from "./controleVagasV2Backlog/ControleVagasRegrasContent";
+import { QuadroAutorizadoContent as BacklogControleVagasV2QuadroContent } from "./controleVagasV2Backlog/QuadroAutorizadoContent";
+import { DistribuicaoSaldoContent as BacklogControleVagasV2DistribuicaoContent } from "./controleVagasV2Backlog/DistribuicaoSaldoContent";
+import { DashboardGerencialContent as BacklogControleVagasV2DashboardContent } from "./controleVagasV2Backlog/DashboardGerencialContent";
+import { VagasIndividualizadasContent as BacklogControleVagasV2VagasContent } from "./controleVagasV2Backlog/VagasIndividualizadasContent";
+import { MovimentacoesContent as BacklogControleVagasV2MovimentacoesContent } from "./controleVagasV2Backlog/MovimentacoesContent";
+import { ProjecoesVagasContent as BacklogControleVagasV2ProjecoesContent } from "./controleVagasV2Backlog/ProjecoesVagasContent";
 import { ControleVagasRegrasContent as QuadroPessoalRegrasContent } from "./quadroPessoal/ControleVagasRegrasContent";
 import { QuadroAutorizadoContent as QuadroPessoalQuadroAutorizadoContent } from "./quadroPessoal/QuadroAutorizadoContent";
 import { DistribuicaoSaldoContent as QuadroPessoalDistribuicaoContent } from "./quadroPessoal/DistribuicaoSaldoContent";
@@ -355,7 +362,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnRouter: true,
         items: [
           {
-            label: "Controle de Vagas",
+            label: "Controle de Vagas 1.0",
             icon: "pi pi-chart-bar",
             url: "#",
             visibleOnMenu: true,
@@ -367,6 +374,19 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
               { label: "Vagas Individualizadas", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/vagas`, visibleOnMenu: true, visibleOnRouter: true },
               { label: "Movimentações", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/movimentacoes`, visibleOnMenu: true, visibleOnRouter: true },
               { label: "Projeções", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/projecoes`, visibleOnMenu: true, visibleOnRouter: true },
+            ],
+          },
+          {
+            label: "Controle de Vagas 2.0",
+            icon: "pi pi-chart-bar",
+            url: "#",
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+            items: [
+              { label: "Dashboard", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/controle-vagas-2.0/dashboard`, visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Quadro Autorizado", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/controle-vagas-2.0/quadro-autorizado`, visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Distribuição", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/controle-vagas-2.0/distribuicao`, visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Vagas Individualizadas", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/controle-vagas-2.0/vagas`, visibleOnMenu: true, visibleOnRouter: true },
             ],
           },
           {
@@ -6823,6 +6843,27 @@ export function PrototiposBacklogRegrasPage() {
 }
 export function PrototiposBacklogQuadroAutorizadoPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogQuadroAutorizadoContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogControleVagasV2RegrasPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogControleVagasV2RegrasContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogControleVagasV2QuadroPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogControleVagasV2QuadroContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogControleVagasV2DistribuicaoPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogControleVagasV2DistribuicaoContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogControleVagasV2DashboardPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogControleVagasV2DashboardContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogControleVagasV2VagasPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogControleVagasV2VagasContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogControleVagasV2MovimentacoesPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogControleVagasV2MovimentacoesContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogControleVagasV2ProjecoesPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogControleVagasV2ProjecoesContent /></PrototypeSystemPage>;
 }
 export function PrototiposBacklogDistribuicaoPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogDistribuicaoContent /></PrototypeSystemPage>;
