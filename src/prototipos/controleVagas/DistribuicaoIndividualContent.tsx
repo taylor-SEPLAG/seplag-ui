@@ -79,6 +79,7 @@ interface GrupoDistribuicao {
   movimentaveis: number;
   distribuiveis: number;
   redistribuiveis: number;
+  origensRedistribuiveis: string[];
   pendentesAto: number;
   statusVigencia: StatusOperacionalVigenciaSeplag;
   situacaoLabel: string;
@@ -225,6 +226,7 @@ export function DistribuicaoIndividualContent() {
         movimentaveis: 0,
         distribuiveis: 0,
         redistribuiveis: 0,
+        origensRedistribuiveis: [],
         pendentesAto: 0,
         statusVigencia: situacaoVisual.status,
         situacaoLabel: situacaoVisual.label,
@@ -248,7 +250,10 @@ export function DistribuicaoIndividualContent() {
           !posicao.orgaoDistribuicao
         )
           atual.distribuiveis++;
-        else atual.redistribuiveis++;
+        else {
+          atual.redistribuiveis++;
+          if (posicao.orgaoDistribuicao) atual.origensRedistribuiveis.push(posicao.orgaoDistribuicao);
+        }
       }
       mapa.set(chave, atual);
     });
@@ -278,11 +283,17 @@ export function DistribuicaoIndividualContent() {
         total: quadro.autorizadas,
         ocupadas: quadro.ocupadas,
         disponiveis: Math.max(0, quadro.autorizadas - quadro.ocupadas),
-        comprometidas: 0, movimentaveis: 0, distribuiveis: 0, redistribuiveis: 0, pendentesAto: 0,
+        comprometidas: 0, movimentaveis: 0, distribuiveis: 0, redistribuiveis: 0, origensRedistribuiveis: [], pendentesAto: 0,
         statusVigencia: situacaoVisual.status,
         situacaoLabel: situacaoVisual.label,
         movimentacaoBloqueada: situacaoVisual.bloqueada,
       });
+    });
+    mapa.forEach((grupo) => {
+      const permitidos = obterOrgaosPermitidos(quadros.find((item) => item.id === grupo.quadroId));
+      if (permitidos.length === 0) grupo.distribuiveis = 0;
+      grupo.redistribuiveis = grupo.origensRedistribuiveis.filter((origem) => permitidos.some((destino) => destino !== origem)).length;
+      grupo.movimentaveis = grupo.distribuiveis + grupo.redistribuiveis;
     });
     return [...mapa.values()].sort(
       (a, b) =>
@@ -562,6 +573,7 @@ export function DistribuicaoIndividualContent() {
                 renderBotoes={(grupo) => (
                   <div className="prototype-distribution-row-actions">
                     <SpecArea metadata={distribuicaoActionSpecifications.Distribuir}>
+                    <span className="prototype-distribution-action-tooltip" title={grupo.distribuiveis === 0 ? (grupo.movimentacaoBloqueada ? "A situação do quadro não permite distribuição." : grupo.pendentesAto === 0 ? "Todas as vagas deste quadro já foram distribuídas." : "Não existe órgão legalmente permitido para receber estas vagas.") : undefined}>
                     <BotaoIconSeplag
                       type="button"
                       tooltip={
@@ -580,8 +592,10 @@ export function DistribuicaoIndividualContent() {
                         )
                       }
                     />
+                    </span>
                     </SpecArea>
                     <SpecArea metadata={distribuicaoActionSpecifications.Redistribuir}>
+                    <span className="prototype-distribution-action-tooltip" title={grupo.redistribuiveis === 0 ? (grupo.movimentacaoBloqueada ? "A situação do quadro não permite redistribuição." : grupo.origensRedistribuiveis.length === 0 ? "Este quadro ainda não possui vagas distribuídas elegíveis." : "A redistribuição exige outro órgão permitido pela lei.") : undefined}>
                     <BotaoIconSeplag
                       type="button"
                       tooltip={
@@ -600,6 +614,7 @@ export function DistribuicaoIndividualContent() {
                         )
                       }
                     />
+                    </span>
                     </SpecArea>
                   </div>
                 )}
@@ -727,21 +742,7 @@ function NovaDistribuicao({
         .filter(Boolean) as string[],
     ),
   ].sort();
-const orgaosPermitidos = quadro?.orgaosDefinidosLei?.length
-    ? [...quadro.orgaosDefinidosLei]
-    : [
-        "AGER",
-        "CASA CIVIL",
-        "CGE",
-        "PGE",
-        "PJC",
-        "SEDUC",
-        "SEFAZ",
-        "SEMA",
-        "SEPLAG",
-        "SES",
-        "SINFRA",
-      ];
+  const orgaosPermitidos = obterOrgaosPermitidos(quadro);
   const bloqueioLegal = "";
   const candidatas = posicoesQuadro.filter((posicao) => {
     const vaga = vagas.find((item) => item.id === posicao.vagaId);
@@ -1325,3 +1326,12 @@ const orgaosPermitidos = quadro?.orgaosDefinidosLei?.length
     </div>
   );
 }
+
+const ORGAOS_DISTRIBUICAO_GERAIS = ["AGER", "CASA CIVIL", "CGE", "PGE", "PJC", "SEDUC", "SEFAZ", "SEMA", "SEPLAG", "SES", "SINFRA"];
+const obterOrgaosPermitidos = (quadro?: QuadroAutorizadoRow) => {
+  if (!quadro) return [];
+  if (quadro.orgaosDefinidosLei?.length) return [...new Set(quadro.orgaosDefinidosLei)];
+  if (quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR") return ORGAOS_DISTRIBUICAO_GERAIS;
+  if (quadro.orgao && quadro.orgao !== "ESTADO DE MATO GROSSO") return [quadro.orgao];
+  return [];
+};

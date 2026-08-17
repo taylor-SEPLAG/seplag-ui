@@ -1437,3 +1437,5 @@
 }
 
 
+.prototype-distribution-action-tooltip { display: inline-flex; }
+.prototype-distribution-action-tooltip:has(button:disabled) { cursor: help; }

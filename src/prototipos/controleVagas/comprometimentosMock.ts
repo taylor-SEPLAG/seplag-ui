@@ -93,6 +93,7 @@ const nomesSimulados = [
 ];
 
 const quantidadePorQuadro = new Map<string, number>();
+const limitePorQuadro = new Map<string, number>([["QA-0007", 8]]);
 const ingressosAtivosMock = vagasIndividualizadasMock
   .filter((vaga) => {
     if (
@@ -105,7 +106,8 @@ const ingressosAtivosMock = vagasIndividualizadasMock
       return false;
     }
     const quantidade = quantidadePorQuadro.get(vaga.quadroCodigo) ?? 0;
-    if (quantidade >= 30) return false;
+    const limite = limitePorQuadro.get(vaga.quadroCodigo) ?? 30;
+    if (quantidade >= limite) return false;
     quantidadePorQuadro.set(vaga.quadroCodigo, quantidade + 1);
     return true;
   })
