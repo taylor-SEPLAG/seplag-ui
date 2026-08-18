@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { CONTROLE_PSS_BASE_PATH as BASE } from "../constants";
@@ -7,12 +7,17 @@ import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certamesListActionSpecifications, certamesListBlockSpecifications, certamesListBusinessItems, certamesListFilterSpecifications, certamesListScreenSpecification } from "./CertamesListSpecifications";
 import { ORGAOS_CERTAME, SITUACOES_CERTAME, TIPOS_CERTAME } from "./dominios";
 import type { Certame, SituacaoCertame, TipoCertame } from "./types";
+import { lerRascunhoCertame, limparRascunhoCertame, type RascunhoCertame } from "./rascunhoCertameStore";
+import { SituacoesCertameModal } from "./SituacoesCertameModal";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
-import { BotaoIconSeplag, BotaoLimparFiltroSeplag } from "@componentes/Botao";
+import { BotaoIconSeplag, BotaoLimparFiltroSeplag, BotaoSeplag } from "@componentes/Botao";
 import { DropdownFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "../../../interfaces/Results";
+import "./certame.css";
+
+const abaLabel:Record<RascunhoCertame["aba"], string> = { IDENTIFICACAO:"Identificação", CRONOGRAMA:"Cronograma", FINANCEIRO:"Contrato e Custos", VAGAS_COTAS:"Vagas e Cotas", DOCUMENTOS:"Documentos" };
 
 interface FiltroForm { termo:string; orgao?:string; exercicio?:string; tipo?:TipoCertame; situacao?:SituacaoCertame }
 
@@ -32,7 +37,7 @@ const tipoLabel:Record<TipoCertame,string> = Object.fromEntries(TIPOS_CERTAME.ma
 const normalizar = (valor:string) => valor.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("pt-BR");
 
 function resultados<T>(content:T[]):ResultsSeplag<T> {
- return { content, totalPages:Math.max(1, Math.ceil(content.length / 10)), totalRecords:content.length, size:10, sizePage:10, pageActual:0, first:true, last:true, numberOfElements:content.length, empty:content.length === 0 };
+ return { content, totalPages:Math.max(1, Math.ceil(content.length / 10)), totalRecords:content.length, size:10, sizePage:10, pageActual:0, number:0, first:true, last:true, numberOfElements:content.length, empty:content.length === 0 };
 }
 
 export function CertamesListContent() {
@@ -40,6 +45,17 @@ export function CertamesListContent() {
  const navigate = useNavigate();
  const { control, reset, watch } = useForm<FiltroForm>({ defaultValues: { termo:"" } });
  const filtros = watch();
+ const [certameSituacoesId, setCertameSituacoesId] = useState<string | null>(null);
+
+ // Certame em cadastro (fase "Abertura/Cadastro"), ainda não salvo como registro — o progresso fica
+ // em rascunho local (ver rascunhoCertameStore) até a conclusão do cadastro; sinalizado aqui como
+ // pendência para retomada, já que ele não aparece na lista de certames efetivamente salvos.
+ const [rascunho, setRascunho] = useState<RascunhoCertame | null>(() => lerRascunhoCertame());
+ const descartarRascunho = () => {
+  if (!window.confirm("Descartar o rascunho deste cadastro? O progresso não salvo será perdido.")) return;
+  limparRascunhoCertame();
+  setRascunho(null);
+ };
 
  const exercicios = useMemo(() => Array.from(new Set(certames.map((item) => item.anoConcurso))).sort((a, b) => b - a).map((ano) => ({ label:String(ano), value:String(ano) })), [certames]);
 
@@ -59,12 +75,28 @@ export function CertamesListContent() {
   { field:"setor", header:"Órgão mandante" },
   { header:"Tipo", body:(row) => tipoLabel[row.tipoCertame] },
   { header:"Vagas", body:(row) => row.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0).toLocaleString("pt-BR") },
-  { header:"Situação", body:(row) => <div className="flex align-items-center gap-2"><BadgeSeplag label={situacaoLabel[row.situacaoAtual]} color={situacaoEstilo[row.situacaoAtual].color} bg={situacaoEstilo[row.situacaoAtual].bg} border="transparent" size="sm" />{row.cotas.length > 1 && <BadgeSeplag label={`${row.cotas.length} cotas`} color="#ad3039" bg="#ffe3e5" border="transparent" size="sm" />}</div> },
+  { header:"Cotas", body:(row) => row.cotas.length },
+  { header:"Fase de certame", body:(row) => <BadgeSeplag label={situacaoLabel[row.situacaoAtual]} color={situacaoEstilo[row.situacaoAtual].color} bg={situacaoEstilo[row.situacaoAtual].bg} border="transparent" size="sm" /> },
  ];
 
  return <SpecificationMode screen={certamesListScreenSpecification} businessItems={certamesListBusinessItems}>
   <div className="prototype-page-content prototype-page-content--white"><CardSeplag title="Cadastro de Certames">
    <div className="col-12"><SpecArea metadata={certamesListBlockSpecifications.aviso}><p className="text-sm text-color-secondary" style={{ margin:"0 0 1rem" }}>Concursos Públicos e Processos Seletivos Simplificados cadastrados no SIGEP com base no edital publicado, para fins de vínculo do candidato e prestação de contas ao TCE-MT.</p></SpecArea></div>
+
+   {rascunho && <div className="col-12 prototype-certames-rascunho-aviso">
+    <i className="pi pi-file-edit" aria-hidden="true" />
+    <div className="prototype-certames-rascunho-info">
+     <div className="prototype-certames-rascunho-titulo">
+      <strong>{rascunho.valores.nomeEdital || "Novo certame"}</strong>
+      <BadgeSeplag label="Em andamento" color="#8a5c00" bg="#fff1cf" border="transparent" size="sm" />
+     </div>
+     <span>Cadastro iniciado, ainda não salvo — parou na etapa "{abaLabel[rascunho.aba]}".</span>
+    </div>
+    <div className="prototype-certames-rascunho-acoes">
+     <BotaoSeplag type="button" label="Continuar cadastro" icon="pi pi-arrow-right" iconPos="right" onClick={() => navigate(`${BASE}/certames/novo`)} />
+     <BotaoIconSeplag type="button" severity="danger" tooltip="Descartar rascunho" icon="pi pi-trash" onClick={descartarRascunho} />
+    </div>
+   </div>}
 
    <div className="col-12"><div className="grid">
     <TextFieldSeplag name="termo" control={control} label="Pesquisar" cols="12 6 4" placeholder="Nome ou número do edital, órgão" getFormErrorMessage={() => null} />
@@ -82,10 +114,11 @@ export function CertamesListContent() {
      handleView={(row) => navigate(`${BASE}/certames/${row.id}`)}
      handleEdit={(row) => navigate(`${BASE}/certames/${row.id}`)}
      handleDelete={null}
-     renderBotoes={(row) => <SpecArea metadata={certamesListActionSpecifications["Reverter/Histórico"]}><BotaoIconSeplag type="button" tooltip="Reverter/Histórico" icon="pi pi-history" onClick={() => navigate(`${BASE}/certames/${row.id}?aba=SITUACOES`)} /></SpecArea>}
+     renderBotoes={(row) => <SpecArea metadata={certamesListActionSpecifications["Reverter/Histórico"]}><BotaoIconSeplag type="button" tooltip="Reverter/Histórico" icon="pi pi-history" onClick={() => setCertameSituacoesId(row.id)} /></SpecArea>}
      handleOnPageChange={() => {}}
     />
    </SpecArea></div>
   </CardSeplag></div>
+  {certameSituacoesId && <SituacoesCertameModal certameId={certameSituacoesId} onClose={() => setCertameSituacoesId(null)} />}
  </SpecificationMode>;
 }

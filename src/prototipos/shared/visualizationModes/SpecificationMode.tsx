@@ -61,10 +61,12 @@ export function SpecificationMode({
   children,
   screen,
   businessItems = [],
+  showViewToggles = false,
 }: {
   children: ReactNode;
   screen: SpecificationMetadata;
   businessItems?: SpecificationMetadata[];
+  showViewToggles?: boolean;
 }) {
   const [mode, setMode] = useState<ViewMode | null>(null);
   const [selected, setSelected] = useState<SpecificationMetadata | null>(null);
@@ -119,7 +121,7 @@ export function SpecificationMode({
       >
         {children}
         <div
-          className="prototype-view-toggles"
+          className={`prototype-view-toggles${showViewToggles ? " is-visible" : ""}`}
           role="group"
           aria-label="Modos de visualização do protótipo"
         >
@@ -507,3 +509,5 @@ function SpecItem({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+

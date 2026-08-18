@@ -61,6 +61,7 @@ export interface TablePaginadoSeplagProps<T extends DataTableValue> {
   readonly onRowToggle?: (event: DataTableRowToggleEvent) => void;
   readonly isDisabled?: boolean;
   readonly renderBotoes?: (data: T) => ReactNode;
+  readonly actionHeader?: ReactNode;
   readonly renderExpander?: (data: T) => ReactNode;
   readonly header?: DataTableHeaderTemplateType<T[]>;
   /** Exibe a alça de arrastar e habilita reordenar linhas com o mouse. */
@@ -110,6 +111,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
   onRowToggle,
   isDisabled,
   renderBotoes,
+  actionHeader = "Ações",
   renderExpander,
   reorderableRows = false,
   onRowReorder,
@@ -306,7 +308,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
           />
         ))}
         {hasEventoAcao && (
-          <Column key="col-acoes" header="Ações" body={actionBotoes} />
+          <Column key="col-acoes" header={actionHeader} body={actionBotoes} />
         )}
         {renderExpander && (
           <Column

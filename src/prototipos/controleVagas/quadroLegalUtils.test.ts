@@ -5,6 +5,7 @@ import {
   reconciliarQuadroAposVacanciaEmExtincao,
 } from "./quadroLegalUtils";
 import type { OcupacaoVaga, QuadroAutorizadoRow, Vaga } from "./types";
+import { gerarIdentificadorVaga } from "./vagaUtils";
 
 const vaga = (id: string, estado: Vaga["estado"]): Vaga => ({
   id,
@@ -76,7 +77,7 @@ describe("extinção progressiva do quadro", () => {
       [vaga("VAG-1", "DISPONIVEL"), vaga("VAG-2", "OCUPADA")],
       {
         tipo: "EXTINCAO_PROGRESSIVA",
-        quantidade: 99,
+        quantidade: 1,
         lei: "Lei de extinção",
         processo: "SEPLAG-PRO-TESTE",
         dataEfeito: "2026-08-01",
@@ -91,6 +92,22 @@ describe("extinção progressiva do quadro", () => {
       .toBe("EM_EXTINCAO");
   });
 
+  it("bloqueia a operação quando uma vaga disponível possui comprometimento ativo", () => {
+    const resultado = aplicarAlteracaoQuadroLegal(
+      [vaga("VAG-1", "DISPONIVEL"), vaga("VAG-2", "OCUPADA")],
+      {
+        tipo: "EXTINCAO_PROGRESSIVA",
+        lei: "Lei de extinção",
+        processo: "SEPLAG-PRO-TESTE",
+        dataEfeito: "2026-08-01",
+        vagaIdsBloqueados: ["VAG-1"],
+      },
+    );
+
+    expect(resultado.alteradas).toHaveLength(0);
+    expect(resultado.quantitativoPosterior).toBe(2);
+    expect(resultado.alertas[0]).toContain("comprometimento ativo");
+  });
   it("extingue a vaga na vacância e conclui a vigência do quadro", () => {
     const vagaEmExtincao = {
       ...vaga("VAG-2", "OCUPADA"),
@@ -134,5 +151,151 @@ describe("extinção progressiva do quadro", () => {
         efetivoExercicioEm: "2026-08-02",
       }),
     ).toThrow("A vaga está em extinção");
+  });
+});
+describe("ampliação legal do quadro", () => {
+  it("cria novas vagas disponíveis e pendentes de distribuição", () => {
+    const vagaDistribuida: Vaga = {
+      ...vaga("VAG-1", "OCUPADA"),
+      orgaoDistribuicaoInicial: "SEPLAG",
+      atoDistribuicaoInicial: "Decreto anterior",
+      inicioVigenciaDistribuicao: "01/01/2025",
+    };
+
+    const resultado = aplicarAlteracaoQuadroLegal([vagaDistribuida], {
+      tipo: "AMPLIACAO",
+      quantidade: 2,
+      lei: "Lei de ampliação",
+      processo: "SEPLAG-PRO-AMPLIACAO",
+      dataEfeito: "2026-08-01",
+    });
+
+    expect(resultado.criadas).toHaveLength(2);
+    resultado.criadas.forEach((novaVaga) => {
+      expect(novaVaga.estado).toBe("DISPONIVEL");
+      expect(novaVaga.situacaoLegal).toBe("REGULAR");
+      expect(novaVaga.destinacaoPrevistaLei).toBe(
+        "Pendente de distribuição",
+      );
+      expect(novaVaga.orgaoDistribuicaoInicial).toBeUndefined();
+      expect(novaVaga.atoDistribuicaoInicial).toBeUndefined();
+      expect(novaVaga.inicioVigenciaDistribuicao).toBeUndefined();
+    });
+    expect(resultado.vagas[0].orgaoDistribuicaoInicial).toBe("SEPLAG");
+  });
+});
+
+describe("redução legal do quadro", () => {
+  it("reduz somente vagas disponíveis, regulares e sem comprometimento ativo", () => {
+    const resultado = aplicarAlteracaoQuadroLegal(
+      [
+        vaga("VAG-1", "DISPONIVEL"),
+        vaga("VAG-2", "OCUPADA"),
+        vaga("VAG-3", "DISPONIVEL"),
+      ],
+      {
+        tipo: "REDUCAO",
+        quantidade: 3,
+        lei: "Lei de redução",
+        processo: "SEPLAG-PRO-REDUCAO",
+        dataEfeito: "2026-08-01",
+        vagaIds: ["VAG-1", "VAG-2", "VAG-3"],
+        vagaIdsBloqueados: ["VAG-3"],
+      },
+    );
+
+    expect(resultado.alteradas.map((item) => item.id)).toEqual(["VAG-1"]);
+    expect(resultado.vagas.find((item) => item.id === "VAG-1")?.situacaoLegal)
+      .toBe("EXTINTA");
+    expect(resultado.vagas.find((item) => item.id === "VAG-2")?.situacaoLegal)
+      .toBe("REGULAR");
+    expect(resultado.vagas.find((item) => item.id === "VAG-3")?.situacaoLegal)
+      .toBe("REGULAR");
+    expect(resultado.quantitativoPosterior).toBe(2);
+    expect(resultado.alertas).toContain(
+      "A redução foi limitada a 1 vaga(s) disponível(is), regular(es) e sem comprometimento.",
+    );
+  });
+});
+describe("transformação entre Quadros Autorizados", () => {
+  it("transforma vagas livres e ocupadas e continua o sequencial do destino", () => {
+    const resultado = aplicarAlteracaoQuadroLegal(
+      [vaga("VAG-1", "DISPONIVEL"), vaga("VAG-2", "OCUPADA"), vaga("VAG-3", "DISPONIVEL")],
+      {
+        tipo: "TRANSFORMACAO",
+        quantidade: 3,
+        lei: "Lei de transformação",
+        processo: "SEPLAG-PRO-TRANSFORMACAO",
+        dataEfeito: "2026-08-01",
+        novoCargo: "Cargo destino",
+        novaCarreira: "Carreira destino",
+        quadroDestinoId: 9,
+        quadroDestinoCodigo: "QA-DESTINO",
+        maiorSequencialDestino: 10,
+      },
+    );
+
+    expect(resultado.quantitativoAnterior).toBe(3);
+    expect(resultado.quantitativoPosterior).toBe(0);
+    expect(resultado.criadas.map((item) => item.sequencial)).toEqual([11, 12, 13]);
+    expect(resultado.criadas.map((item) => item.estado)).toEqual(["DISPONIVEL", "DISPONIVEL", "OCUPADA"]);
+    expect(resultado.criadas.every((item) => item.quadroAutorizadoId === 9)).toBe(true);
+    expect(resultado.criadas.every((item) => item.quadroCodigo === "QA-DESTINO")).toBe(true);
+    expect(resultado.criadas.every((item) => item.cargo === "Cargo destino")).toBe(true);
+    expect(resultado.criadas[0].historico.at(-1)?.descricao).toContain("QA-TESTE/VAG-3");
+  });
+
+  it("permite transformação parcial", () => {
+    const resultado = aplicarAlteracaoQuadroLegal(
+      [vaga("VAG-1", "DISPONIVEL"), vaga("VAG-2", "OCUPADA")],
+      {
+        tipo: "TRANSFORMACAO",
+        quantidade: 1,
+        lei: "Lei de transformação",
+        processo: "SEPLAG-PRO-TRANSFORMACAO",
+        dataEfeito: "2026-08-01",
+        novoCargo: "Cargo destino",
+        quadroDestinoId: 9,
+        quadroDestinoCodigo: "QA-DESTINO",
+        maiorSequencialDestino: 0,
+      },
+    );
+
+    expect(resultado.quantitativoPosterior).toBe(1);
+    expect(resultado.alteradas).toHaveLength(1);
+    expect(resultado.criadas).toHaveLength(1);
+  });
+
+  it("preserva a distribuição vigente e usa o órgão atual no identificador transformado", () => {
+    const origem = {
+      ...vaga("VAG-ORIGEM", "DISPONIVEL"),
+      orgaoDistribuicaoInicial: "SEPLAG",
+      atoDistribuicaoInicial: "Decreto inicial",
+      inicioVigenciaDistribuicao: "01/01/2026",
+    };
+    const resultado = aplicarAlteracaoQuadroLegal([origem], {
+      tipo: "TRANSFORMACAO",
+      quantidade: 1,
+      lei: "Lei de transformação",
+      processo: "SEPLAG-PRO-TRANSFORMACAO",
+      dataEfeito: "2026-08-01",
+      novoCargo: "Cargo destino",
+      quadroDestinoId: 9,
+      quadroDestinoCodigo: "QA-DESTINO",
+      maiorSequencialDestino: 10,
+      distribuicaoAtualPorVagaId: {
+        "VAG-ORIGEM": {
+          orgao: "SEFAZ",
+          ato: "Decreto de redistribuição",
+          inicioVigencia: "01/07/2026",
+        },
+      },
+    });
+
+    const transformada = resultado.criadas[0];
+    expect(transformada.id).toBe(gerarIdentificadorVaga("SEFAZ", "Cargo destino", 11));
+    expect(transformada.orgaoDistribuicaoInicial).toBe("SEFAZ");
+    expect(transformada.atoDistribuicaoInicial).toBe("Decreto de redistribuição");
+    expect(transformada.inicioVigenciaDistribuicao).toBe("01/07/2026");
   });
 });

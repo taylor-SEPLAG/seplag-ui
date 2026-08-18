@@ -73,6 +73,23 @@ Ao editar:
 - Não apagar colunas da tabela.
 - Não alterar `Matriz de permissões` e `Documentos/Legislação`, salvo pedido explícito.
 
+## Prevenção de numeração automática indevida
+
+Ao inserir novos critérios, regras, fluxos ou parágrafos no Google Docs, não presumir que uma quebra de linha encerra a lista atual. Um texto inserido no início, no fim ou no interior de um item numerado pode herdar o mesmo `listId`, nível de aninhamento e estilo do parágrafo adjacente. Quando isso acontece, títulos e descrições que deveriam ser texto comum passam a receber numeração automática.
+
+Para evitar esse problema:
+
+1. Antes da inserção, verificar se o parágrafo anterior e o posterior pertencem a uma lista.
+2. Preferir substituir os campos ou parágrafos já existentes no modelo, preservando a estrutura original, em vez de inserir um bloco completo em uma única operação.
+3. Quando for necessário acrescentar conteúdo, inserir cada parágrafo conforme sua função estrutural: título, descrição, item de lista ou passo de fluxo.
+4. Nos parágrafos que não devem pertencer a uma lista, remover explicitamente os marcadores ou a numeração do intervalo inserido e aplicar o estilo de parágrafo correspondente.
+5. Criar ou manter numeração somente nos itens para os quais o modelo realmente prevê lista automática. Não inserir números manualmente para compensar uma lista herdada.
+6. Tratar com atenção especial os limites entre `Critérios de aceitação`, `Fluxos Funcionais`, `Descrição da tela` e `Regras de negócio`, pois a inserção antes de um título pode fazer esse título herdar a lista anterior.
+7. Depois da edição, reler o documento com informação estrutural e confirmar, parágrafo por parágrafo, quais elementos estão marcados como itens de lista.
+8. Fazer uma conferência visual da guia editada antes de concluir a entrega.
+
+Sinal de erro: títulos `CAxx`, suas descrições e o título da seção seguinte aparecem numerados sequencialmente, embora o modelo não determine essa numeração. Nesse caso, não corrigir apenas os números visíveis; remover a associação indevida à lista e restaurar os estilos dos parágrafos afetados.
+
 ## Quantidade de conteúdo
 
 O modelo não limita a quantidade de itens da US.
@@ -186,6 +203,8 @@ Após editar o arquivo, conferir:
 - Se as regras mantiveram `RNxxx`.
 - Se os fluxos permanecem separados.
 - Se os títulos numerados continuam iguais.
+- Se somente os parágrafos previstos pelo modelo pertencem a listas numeradas ou com marcadores.
+- Se critérios, descrições e o título da seção seguinte não herdaram numeração automática da lista anterior.
 - Se as tabelas mantiveram as colunas corretas.
 - Se `Matriz de permissões` e `Documentos/Legislação` foram preservados.
 - Se não houve edição em arquivo errado, duplicado ou na lixeira.

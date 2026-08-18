@@ -1,4 +1,5 @@
 import type { FieldValues, RegisterOptions } from "react-hook-form";
+import type { ReactNode } from "react";
 import type { FormFieldSeplagProps } from "./FormFieldSeplagProps";
 
 export interface DropdownFieldSeplagProps<
@@ -15,4 +16,6 @@ export interface DropdownFieldSeplagProps<
   readonly defaultValue?: any;
   readonly filter?: boolean;
   readonly virtualScrollerOptions?: any;
+  readonly optionDisabled?: string | ((option: any) => boolean);
+  readonly itemTemplate?: (option: any) => ReactNode;
 }

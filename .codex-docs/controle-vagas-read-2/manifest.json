@@ -1,0 +1,27 @@
+{
+  "bridgeVersion": "3.6",
+  "kind": "google-docs-trusted-read",
+  "status": "failed",
+  "outputDir": "/workspace/.codex-docs/controle-vagas-read-2",
+  "target": {
+    "documentId": null,
+    "documentUrl": "https://docs.google.com/document/d/1NkDiFG_Ant7nr11Wo1sNXcSel-bFv-DyWJFGgBJw9-A/edit?tab=t.0",
+    "selectedTabId": "t.0"
+  },
+  "dropdownMetadata": null,
+  "controlAwareness": null,
+  "warnings": [],
+  "files": {
+    "receipt": {
+      "path": "/workspace/.codex-docs/controle-vagas-read-2/receipt.json",
+      "bytes": 551,
+      "sha256": "41d81c557c5d566e7fda33954a0bb9323fbab9522268d3d4445269880c6fa387"
+    }
+  },
+  "error": {
+    "name": "DocsTrustedReadBridgeError",
+    "message": "document read normalizer source hash does not match the Google Docs trust catalog",
+    "operation": "evaluate-module"
+  }
+}
+

@@ -1,0 +1,42 @@
+.prototype-base-legal-card {
+  overflow: visible;
+  border: 1px solid #d4dee8;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.prototype-base-legal-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid #e0e6ec;
+}
+
+.prototype-base-legal-card__header > i {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  flex: 0 0 2.35rem;
+  place-items: center;
+  border-radius: 0.5rem;
+  background: #e7f3fd;
+  color: #0871b8;
+}
+
+.prototype-base-legal-card__header h2 {
+  margin: 0 0 0.2rem;
+  color: #10213d;
+  font-size: 1.02rem;
+}
+
+.prototype-base-legal-card__header p {
+  margin: 0;
+  color: #68758a;
+  font-size: 0.75rem;
+}
+
+.prototype-base-legal-card__content {
+  padding: 1.1rem 1.15rem;
+}
+

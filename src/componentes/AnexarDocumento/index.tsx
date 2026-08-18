@@ -41,6 +41,9 @@ export interface AnexarDocumentoSeplagProps {
   readonly helpText?: string;
   readonly className?: string;
   readonly style?: React.CSSProperties;
+  /** Botão de escolher arquivo compacto, só com o ícone (sem o texto "Anexar documento") — usado
+   * quando o campo precisa caber ao lado de outros na mesma linha de um formulário. */
+  readonly chooseIconOnly?: boolean;
 }
 
 function formatTamanho(tamanho?: string | number) {
@@ -77,6 +80,7 @@ export function AnexarDocumentoSeplag(props: AnexarDocumentoSeplagProps) {
     helpText = "Formato aceito: .pdf | Tamanho máximo: 10MB",
     className,
     style,
+    chooseIconOnly = false,
   } = props;
 
   const fileListRef = useRef<HTMLDivElement | null>(null);
@@ -158,22 +162,17 @@ export function AnexarDocumentoSeplag(props: AnexarDocumentoSeplagProps) {
               ref={fileUploadRef}
               customUpload
               mode="basic"
-              chooseLabel="Anexar documento"
+              chooseOptions={chooseIconOnly
+               ? { icon: "pi pi-cloud-upload", iconOnly: true, className: styles.uploadButtonCompact }
+               : { label: "Anexar documento", icon: "pi pi-paperclip", className: styles.uploadButton }}
               invalidFileSizeMessageDetail="Tamanho Máximo do Arquivo Não Permitido. Tamanho Máximo de {1}."
               accept={accept}
               onSelect={onUploadDocument}
               maxFileSize={maxFileSize}
               multiple={multiple}
               className={styles.upload}
-              pt={{
-                chooseButton: {
-                  className: styles.uploadButton,
-                },
-              }}
             />
-            <small className={styles.helpText}>
-              {helpText}
-            </small>
+            {helpText && <small className={styles.helpText}>{helpText}</small>}
           </div>
         )}
       </div>
@@ -195,6 +194,7 @@ export function AnexarDocumentoSeplag(props: AnexarDocumentoSeplagProps) {
       onUploadDocument,
       shouldShowUploader,
       uploadKey,
+      chooseIconOnly,
     ],
   );
 

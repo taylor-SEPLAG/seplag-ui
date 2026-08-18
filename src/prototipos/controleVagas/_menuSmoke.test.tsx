@@ -39,11 +39,27 @@ describe("menus do Controle de Vagas", () => {
       </MemoryRouter>,
     );
     const editar = result.getAllByLabelText("Editar");
-    expect(editar.some((botao) => botao.hasAttribute("disabled"))).toBe(true);
-    expect(editar.some((botao) => !botao.hasAttribute("disabled"))).toBe(true);
+    expect(editar.every((botao) => !botao.hasAttribute("disabled"))).toBe(true);
+    expect(result.queryByLabelText("Distribuir vagas")).toBeNull();
     expect(
       result.getAllByLabelText("Criar nova versão")[0].querySelector(".pi-plus"),
     ).toBeTruthy();
+  });
+
+  it("resume órgãos no quadro e não repete a distribuição no histórico", () => {
+    const result = render(
+      <MemoryRouter>
+        <QuadroAutorizadoContent />
+      </MemoryRouter>,
+    );
+    const resumoOrgaos = result.getAllByRole("button", { name: /órgãos \+ pendente/i });
+    expect(resumoOrgaos.length).toBeGreaterThan(0);
+    fireEvent.click(resumoOrgaos[0]);
+    expect(result.getByRole("dialog", { name: /Órgãos do quadro/i })).toBeTruthy();
+    expect(result.getAllByText("Pendente de distribuição").length).toBeGreaterThan(0);
+    fireEvent.click(result.getAllByLabelText("Abrir detalhes do quadro")[0]);
+    expect(result.queryByText("Distribuição por órgão")).toBeNull();
+    expect(result.queryByText("Posição atual das vagas distribuídas e pendentes.")).toBeNull();
   });
 
   it("abre os dados do quadro em modal e diferencia a criação de nova versão", () => {
@@ -73,11 +89,26 @@ describe("menus do Controle de Vagas", () => {
         </Routes>
       </MemoryRouter>,
     );
-    expect(result.getByText("Evolução do quadro legal")).toBeTruthy();
+    expect(result.getByText("Nova versão do quadro")).toBeTruthy();
     expect(result.getByText("Ampliação legal")).toBeTruthy();
     expect(result.getByText("Redução legal")).toBeTruthy();
     expect(result.getByText("Transformação")).toBeTruthy();
     expect(result.getByText("Extinção progressiva")).toBeTruthy();
+    expect(result.getByText("Distribuição")).toBeTruthy();
+    expect(result.getByText("Redistribuição")).toBeTruthy();
+    expect(result.queryByText("Inclusão de órgão")).toBeNull();
+    expect(result.queryByText("Exclusão de órgão")).toBeNull();
+    expect(result.getByText("Observação")).toBeTruthy();
+    expect(result.queryByText("Justificativa")).toBeNull();
+    fireEvent.click(result.getByText("Distribuição"));
+    expect(result.getByText("Destinações da distribuição")).toBeTruthy();
+    expect(result.getAllByText("Quantidade atual").length).toBeGreaterThan(0);
+    expect(result.getAllByText("A adicionar *").length).toBeGreaterThan(0);
+    expect(result.getByText("Adicionar destinação")).toBeTruthy();
+    fireEvent.click(result.getByText("Redistribuição"));
+    expect(result.getByText("Órgão atual das vagas")).toBeTruthy();
+    expect(result.getByText("Novo órgão das vagas")).toBeTruthy();
+    fireEvent.click(result.getByText("Ampliação legal"));
     const buscaLegal = result.getByLabelText("Buscar documentos legais associados");
     fireEvent.focus(buscaLegal);
     const primeiraNorma = result.container.querySelector('input[type="checkbox"]');
@@ -99,7 +130,8 @@ describe("menus do Controle de Vagas", () => {
       </MemoryRouter>,
     );
     expect(result.getAllByText("Novo Quadro").length).toBeGreaterThan(0);
-    expect(result.getByText("Como a lei definiu a alocação das vagas?")).toBeTruthy();
+    expect(result.getByText("Quantidade autorizada")).toBeTruthy();
+    expect(result.queryByText("Como a lei definiu a alocação das vagas?")).toBeNull();
   });
 
   it("ativa, recolhe e expande o painel de especificação", () => {

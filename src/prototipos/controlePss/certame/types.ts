@@ -14,20 +14,28 @@ export type TipoDocumentoCertame = "JUSTIFICATIVA_ABERTURA" | "PUBLICACAO_CERTAM
 // RN-10: a lei referencia diretamente o catálogo de leis já cadastradas no sistema (ver dominios.LEIS_CERTAME).
 export interface CotaCertame { readonly id:string; tipo:string; lei:string; }
 
+// Reserva de vagas de um cargo para um tipo de cota específico (ver dominios.TIPOS_COTA — PCD,
+// PPP, Indígenas, Quilombolas, TEA). Um mesmo cargo/vaga pode ter mais de uma reserva simultânea
+// (ex.: das 15 vagas, 2 reservadas a PCD e 1 a PPP), desde que a soma não exceda quantidadeVagas.
+export interface ReservaCotaCargo { readonly id:string; tipo:string; quantidade:number; }
+
 // RN-10: cargo cadastrado com código de referência fixo "001" para fins de prestação de contas.
 // RN-14: vaga pode ser vinculada a uma vaga existente do quadro de cargos do órgão ou criada especificamente para o certame.
 // quadroCodigo/quadroVersao: Quadro de Vagas (Controle de Vagas > Quadro Autorizado) vinculado automaticamente ao cargo,
 // somente leitura — rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso.
-export interface CargoVagaCertame { readonly id:string; vinculo:VinculoCargoCertame; cargoExistenteId?:string; cargoNome:string; readonly codigoReferenciaTce:"001"; quantidadeVagas:number; vagaPcd:boolean; quantidadePcd?:number; quadroCodigo?:string; quadroVersao?:number; }
+// aceitaCadastroReserva/quantidadeCadastroReserva: Cadastro Reserva (CR) é exclusivo das vagas de
+// ampla concorrência do cargo — não se aplica às vagas reservadas por cota (reservasCota).
+export interface CargoVagaCertame { readonly id:string; vinculo:VinculoCargoCertame; cargoExistenteId?:string; cargoNome:string; polos?:readonly string[]; readonly codigoReferenciaTce:"001"; quantidadeVagas:number; reservasCota:readonly ReservaCotaCargo[]; aceitaCadastroReserva:boolean; quantidadeCadastroReserva?:number; quadroCodigo?:string; quadroVersao?:number; }
 
 // Fases do certame — lista editável (nome, ordem e quantidade livres) por certame; o catálogo em
 // dominios.FASES_TCE_FIXAS é usado apenas como sugestão inicial ao criar um novo certame.
-export interface FaseCertame { readonly ordem:number; nome:string; }
+export interface FaseCertame { readonly ordem:number; nome:string; dataInicio?:string; dataFim?:string; }
 
 export interface DocumentoCertame { readonly tipo:TipoDocumentoCertame; readonly nomeArquivo:string; readonly anexadoEm:string; }
 
 // RN-16: a homologação é o marco do prazo de prestação de contas, distinto da publicação do resultado.
-export interface SituacaoHistoricoCertame { readonly id:string; readonly certameId:string; readonly tipo:SituacaoCertame; readonly dataEfeito:string; readonly registradoEm:string; readonly usuario:string; readonly prazoPrestacaoContas?:string; }
+// documentoAnexado: nome do arquivo anexado quando a situação é alterada manualmente (aba Situações).
+export interface SituacaoHistoricoCertame { readonly id:string; readonly certameId:string; readonly tipo:SituacaoCertame; readonly dataEfeito:string; readonly registradoEm:string; readonly usuario:string; readonly prazoPrestacaoContas?:string; readonly documentoAnexado?:string; }
 
 export interface Certame {
  readonly id:string;
