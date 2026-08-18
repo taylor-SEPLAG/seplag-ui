@@ -151,7 +151,6 @@ export const dashboardBlockSpecifications = {
     "MovimentoVagaIndividual do tipo DISTRIBUICAO ou REDISTRIBUICAO.",
     "MovimentoVagaIndividual[]",
     "lista temporal",
-    "/prototipos/sigep/controle-vagas/distribuicao",
   ),
 } satisfies Record<string, SpecificationMetadata>;
 
@@ -174,7 +173,7 @@ export const dashboardAlertSpecifications: Record<string, SpecificationMetadata>
     "Vaga e posição temporal de distribuição.",
     "integer",
     "alerta navegável",
-    "/prototipos/sigep/controle-vagas/distribuicao?saldo=PENDENTE_ATO",
+    "/prototipos/sigep/controle-vagas/quadro-autorizado",
   ),
   "Quadros em encerramento": spec(
     "CV-DASH-ALT-003",
@@ -257,7 +256,7 @@ export const dashboardKpiSpecifications: Record<string, SpecificationMetadata> =
     "Quadro Autorizado, Vaga e posicao reconstruida pelos movimentos de Distribuicao.",
     "integer + subtotal",
     "KPI navegavel",
-    "/prototipos/sigep/controle-vagas/distribuicao",
+    "/prototipos/sigep/controle-vagas/quadro-autorizado",
   ),
   "Situacoes legais especiais": spec(
     "CV-DASH-KPI-009",

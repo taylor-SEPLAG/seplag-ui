@@ -174,7 +174,7 @@ export function DashboardGerencialContent() {
       hint: `${dados.resumo.disponiveisNaoDistribuidas} disponiveis`,
       icon: "pi pi-sitemap",
       cor: "orange",
-      onClick: () => navigate(`${BASE}/distribuicao`),
+      onClick: () => navigate(`${BASE}/quadro-autorizado`),
     },
     {
       label: "Situacoes legais especiais",
@@ -208,7 +208,7 @@ export function DashboardGerencialContent() {
       titulo: "Pendentes de ato de distribuição",
       descricao: "Vagas que aguardam distribuição formal",
       valor: dados.resumo.naoDistribuidas,
-      rota: "distribuicao?saldo=PENDENTE_ATO",
+      rota: "quadro-autorizado",
     },
     {
       icon: "pi pi-ban",
@@ -538,9 +538,7 @@ export function DashboardGerencialContent() {
               <CardHeader
                 titulo="Distribuicoes recentes"
                 subtitulo="Distribuicao inicial e redistribuicao"
-              >
-                <button onClick={() => navigate(`${BASE}/distribuicao`)}>Ver todas</button>
-              </CardHeader>
+              />
               <div className="prototype-dash-recent-list">
                 {eventos.map((movimento) => (
                   <article key={movimento.id}>
