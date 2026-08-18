@@ -137,7 +137,7 @@ export const quadrosAutorizadosMock: QuadroAutorizadoRow[] = [
     ato: "Lei Complementar nº 550/2014",
     processo: "SEPLAG-PRO-2025/00120",
     situacao: "Vigente",
-    versao: 3,
+    versao: 10,
     atualizadoEm: "10/07/2026",
   },
   {

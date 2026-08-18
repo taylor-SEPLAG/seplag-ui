@@ -2527,3 +2527,41 @@
     grid-template-columns: 1fr;
   }
 }
+.prototype-quadro-delete-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.prototype-quadro-delete-reason > span {
+  color: #344054;
+  font-weight: 600;
+}
+
+.prototype-quadro-delete-reason em {
+  color: #d92d20;
+  font-style: normal;
+}
+
+.prototype-quadro-delete-reason textarea {
+  width: 100%;
+  min-height: 5.5rem;
+  padding: 0.75rem;
+  resize: vertical;
+  border: 1px solid #98a2b3;
+  border-radius: 4px;
+  color: #344054;
+  font: inherit;
+}
+
+.prototype-quadro-delete-reason textarea:focus {
+  border-color: #1570ef;
+  outline: 2px solid rgb(21 112 239 / 20%);
+  outline-offset: 1px;
+}
+
+.prototype-quadro-delete-reason small {
+  align-self: flex-end;
+  color: #667085;
+}
