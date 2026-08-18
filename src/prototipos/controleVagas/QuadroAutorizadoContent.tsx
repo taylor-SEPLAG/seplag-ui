@@ -586,8 +586,15 @@ function QuadroAutorizadoLista() {
       ocupadas: acc.ocupadas + item.ocupadas,
       comprometidas: acc.comprometidas + item.comprometidas,
       disponiveis: acc.disponiveis + item.disponiveisCalculadas,
+      pendentesDistribuicao: acc.pendentesDistribuicao + item.pendentesAto,
     }),
-    { autorizadas: 0, ocupadas: 0, comprometidas: 0, disponiveis: 0 },
+    {
+      autorizadas: 0,
+      ocupadas: 0,
+      comprometidas: 0,
+      disponiveis: 0,
+      pendentesDistribuicao: 0,
+    },
   );
 
   const confirmarExclusao = () => {
@@ -751,15 +758,15 @@ function QuadroAutorizadoLista() {
     {
       field: "pendentesAto",
       header: (
-        <SpecArea metadata={quadroColumnSpecifications["Pendentes de ato"]}>
-          <span>Pendentes de ato</span>
+        <SpecArea metadata={quadroColumnSpecifications["Pendente de distribuição"]}>
+          <span>Pendente de distribuição</span>
         </SpecArea>
       ),
       sortable: true,
       body: (item) =>
         celulaComEspecificacao(
           item,
-          quadroColumnSpecifications["Pendentes de ato"],
+          quadroColumnSpecifications["Pendente de distribuição"],
           <strong className={item.pendentesAto > 0 ? "is-warning" : ""}>
             {item.pendentesAto}
           </strong>,
@@ -998,7 +1005,7 @@ function QuadroAutorizadoLista() {
       businessItems={quadroBusinessItems}
       showViewToggles
     >
-      <div className="prototype-quadro-page">
+      <div className="prototype-quadro-page prototype-quadro-page-current">
         <header className="prototype-quadro-header">
           <SpecArea metadata={quadroScreenSpecification}>
             <div>
@@ -1042,6 +1049,17 @@ function QuadroAutorizadoLista() {
               <div>
                 <span>Disponíveis</span>
                 <strong>{totais.disponiveis.toLocaleString("pt-BR")}</strong>
+              </div>
+            </article>
+          </SpecArea>
+          <SpecArea metadata={quadroKpiSpecifications["Pendente de distribuição"]}>
+            <article className="is-pending-distribution">
+              <i className="pi pi-clock" />
+              <div>
+                <span>Pendente de distribuição</span>
+                <strong>
+                  {totais.pendentesDistribuicao.toLocaleString("pt-BR")}
+                </strong>
               </div>
             </article>
           </SpecArea>
