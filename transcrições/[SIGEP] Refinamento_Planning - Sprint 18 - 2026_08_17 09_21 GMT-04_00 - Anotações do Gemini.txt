@@ -1,0 +1,832 @@
+📝 Observações
+ago. 17, 2026
+[SIGEP] Refinamento/Planning - Sprint 18
+convidado Alex Sandro Pereira Garcia Analistas SIGEP Reunião TI - SEPLAG André Parada de Oliveira Machado Daylton Brandão Junior Gabriel Rodrigues de Moura Glauber Hofman João Victor Pires Dos Santos Luciano da Silva Oliveira Roberto de Souza Xavier Junior Rodrigo Thaua Lima Barroso Rodrigo Schecheli Bussolo Thássyus Fabiano M de Almeida Carvalho Anselmo Gonçalves Cardoso Aryadne Lelis De Oliveira Deyvison dos Santos Silva Jonathas Gomes Marques Murilo de Alencar Silva Sabrina Larrayner Ortis Neves Vigilato Eddie Allen de Medeiros Pinto
+Anexos [SIGEP] Refinamento/Planning - Sprint 18
+Registros da reunião Transcrição Gravação
+Resumo
+Sessão técnica detalhou o sistema de controle de vagas, modelagem de versionamento e reestruturação do banco dados.
+
+Estrutura do sistema
+Controle de vagas envolve o gerenciamento de quadros autorizados baseados em legislação vigente. Status do quadro alterna automaticamente entre agendado e ativo conforme a data de início definida.
+
+Reestruturação e regras
+Substituição de categoria por carreira padroniza regras em todo o sistema. A modelagem permite a distribuição parcial de vagas mantendo registros pendentes de ato oficial.
+
+Versionamento e auditoria
+Arquitetura de dados para versionamento deve garantir rastreabilidade histórica e identificação de responsáveis pelas alterações. Simplificação removerá o agendamento de vigência, adotando apenas a data de cadastro.
+Decisões
+Precisa de mais conversa
+Estratégia de refatoração para carreiras A equipe debateu sobre a estratégia de refatoração do banco de dados (criar nova tabela de carreira versus renomear categoria), sem chegar a uma conclusão técnica final.
+Definição de versionamento para remoções O versionamento de remoções no sistema está pendente de definição devido a preocupações com o volume excessivo de histórico que seria gerado.
+Alinhada
+Simplificação da tela de criação A tela de criação de quadro autorizado será simplificada, removendo campos de vigência e status considerados desnecessários para a interface.
+Relacionamento entre regime e vínculo O sistema será alterado para estabelecer um relacionamento obrigatório entre o regime jurídico e o tipo de vínculo no cadastro.
+Substituição de categoria por carreira A nomenclatura "categoria" será substituída por "carreira" em todo o sistema.
+Criação de tela de perfil Será implementada uma tela específica para o cadastro de perfis profissionais, que anteriormente eram vinculados diretamente ao cargo.
+Remoção de agendamento de vigência A funcionalidade de agendamento de data de início para quadros autorizados será removida, tornando a alteração válida imediatamente após o salvamento na tela.
+Atualizamos a seção "Decisões" com base no seu feedback.
+Dê sua opinião: Sim ou Não é útil
+Próximas etapas
+[O grupo] Vincular regimes: Vincular regimes jurídicos aos tipos de vínculo conforme o último documento disponibilizado.
+[Taylor Augusto Dos Santos] Bloquear campos: Bloquear a seleção de regime jurídico enquanto um tipo de vínculo não for devidamente selecionado.
+[O grupo] Renomear categoria: Alterar a nomenclatura e a estrutura de categoria para carreira dentro do banco de dados.
+[O grupo] Implementar histórico: Implementar um fluxo de histórico de versões na interface para garantir a rastreabilidade das alterações nos quadros.
+[O grupo] Definir permissões: Configurar regras de acesso e permissões específicas para a realização de atualizações nos quadros autorizados.
+[Taylor Augusto Dos Santos] Verificar dados: Consultar Bruno sobre a relevância de exibir estatísticas de aposentadoria no sistema.
+[Taylor Augusto Dos Santos] Atualizar documentação: Revisar e atualizar as documentações das histórias de usuário e quadros conforme os pontos discutidos na reunião.
+[O grupo] Reunir equipe: Retornar a reunião as 14 horas para dar continuidade aos temas pendentes de discussão.
+[Taylor Augusto Dos Santos] Validar campos data: Conversar com o Bruno sobre a regra de negócio referente ao campo de data de efeito e seu funcionamento no calendário.
+[Taylor Augusto Dos Santos] Consultar banco: Discutir a modelagem do versionamento com a equipe de banco de dados para evitar retrabalho no desenvolvimento.
+Detalhes
+Visão Geral do Controle de Vagas: Taylor Augusto Dos Santos apresentou o módulo de controle de vaga, estruturado em torno do tratamento de efetivos e comissionados. O sistema é dividido em telas que compreendem o "Quadro Autorizado", a distribuição de vagas e a visualização de vagas individualizadas, onde o "Quadro Autorizado" serve para gerenciar a criação e a gestão de vagas para cargos e carreiras específicas conforme a legislação base (00:07:07).
+Criação de Quadros Autorizados e Cenários: O processo de criação de um novo quadro exige o anexo de uma base legal e a seleção do tipo de vínculo e cargo. Taylor Augusto Dos Santos explicou que existem três cenários possíveis para a autorização de vagas: leis que definem apenas o número total sem distribuir por órgãos, leis que definem órgãos mas não as quantidades por órgão, e leis completas que já definem a quantidade e os órgãos específicos (00:09:14).
+Gestão de Datas e Situações do Quadro: Taylor Augusto Dos Santos esclareceu que, ao cadastrar um quadro, a data pode ser atual ou futura. Se for uma data futura, o status é "agendado", permitindo edição. Caso a data seja atual ou anterior, o status passa a ser "ativo". Thássyus Fabiano M de Almeida Carvalho e Taylor Augusto Dos Santos discutiram a visibilidade desses estados, com a conclusão de que o sistema deve tratar a data de início para definir o estado do quadro automaticamente (00:11:34).
+Distribuição de Vagas por Órgão: Deyvison dos Santos Silva questionou sobre a possibilidade de indicar apenas uma parte das vagas por órgão e deixar o restante pendente. Taylor Augusto Dos Santos confirmou que isso é possível, mantendo as vagas não distribuídas como pendentes de ato de distribuição, permitindo que a distribuição seja feita de forma parcial (00:13:15).
+Vínculo e Regime Jurídico: Rodrigo Schecheli Bussolo pontuou, com base em conversas com Luciano da Silva Oliveira, que a estrutura de "Tipo de Vínculo" e "Regime Jurídico" exige um relacionamento obrigatório entre eles. Foi decidido que o sistema deve filtrar os regimes jurídicos disponíveis com base no tipo de vínculo selecionado para evitar inconsistências no cadastro (00:15:15).
+Refatoração de Categoria para Carreira: A equipe discutiu a mudança de nomenclatura e estrutura de "Categoria" para "Carreira". Rodrigo Schecheli Bussolo, Gabriel Rodrigues de Moura e Taylor Augusto Dos Santos debateram se deveriam manter as tabelas existentes ou criar novas. A decisão foi que "Carreira" substituirá o conceito de "Categoria" em todo o sistema, mas a equipe avaliou o impacto técnico dessa alteração, considerando o retrabalho necessário para refatorar o banco de dados e as telas (00:16:39).
+Perfil Profissional: Danielle Cristina Silva Cruz e Taylor Augusto Dos Santos discutiram a origem do campo "Perfil Profissional". Foi esclarecido que, atualmente, essa informação vem do cargo, mas o sistema carece de uma tela própria para gerenciar esses perfis, o que precisará ser desenvolvido no futuro (00:20:05).
+Restrições de Edição do Quadro: Taylor Augusto Dos Santos confirmou que o quadro autorizado permite edições completas apenas enquanto estiver no status de "agendado". Uma vez ativo, o quadro não permite mais edições diretas, restando apenas a opção de versionamento para alterações posteriores (00:22:12).
+Versionamento e Extinção Progressiva: Taylor Augusto Dos Santos detalhou a funcionalidade de versionamento, que permite ampliar ou reduzir quadros. Sobre a "Extinção Progressiva", foi esclarecido que serve para encerrar vagas de forma gradual conforme as pessoas se aposentam. A diferença entre "Extinto" e "Encerrado" é que o "Extinto" refere-se a um quadro onde ninguém mais ocupa as vagas, enquanto o "Encerrado" indica que o quadro foi marcado para extinção, mas ainda possui ocupantes (00:24:00).
+Tratamento de Vacâncias e Aposentadorias: Renan dos Santos Araujo e Taylor Augusto Dos Santos explicaram que, quando um servidor se aposenta, a vaga não desaparece, mas torna-se disponível novamente, a menos que o quadro tenha sido encerrado por extinção progressiva. A vaga mantém um histórico, mas o status de disponibilidade é redefinido pela aposentadoria (00:26:18).
+Definição de Carreiras e Subcategorias: Taylor Augusto Dos Santos e Danielle Cristina Silva Cruz esclareceram que "Subcategoria" foi uma adaptação técnica temporária para filtrar regras de negócio, mas que o correto é tratar tudo como "Carreira". O objetivo é eliminar a subcategoria e criar formas de agrupar carreiras para aplicação de regras comuns, em vez de usar filtros descendentes (00:30:40).
+Ações de Versionamento: Ampliação e Redução: As ações de versionamento incluem "Ampliação" (aumento de vagas) e "Redução Legal" (diminuição de vagas disponíveis). Taylor Augusto Dos Santos enfatizou que reduções legais só podem ser aplicadas a vagas disponíveis, não afetando as ocupadas (00:33:39).
+Controle de Histórico de Versões: Gabriel Rodrigues de Moura propôs que o sistema apresente uma cronologia clara das alterações no quadro autorizado. O objetivo é evitar que o histórico se perca, permitindo que o usuário visualize como o quadro evoluiu ao longo do tempo através de uma estrutura de registros filhos ou histórico, em vez de apenas sobrescrever os dados (00:34:47).
+Rastreabilidade e Auditoria de Alterações: André Parada de Oliveira Machado e Rodrigo Schecheli Bussolo discutiram a importância de registrar o usuário que realizou a alteração no versionamento. Foi acordado que o log ou histórico de versões deve conter a identificação do responsável pela ação para fins de auditoria (00:37:50).
+Modelagem de Dados para Versões: Gabriel Rodrigues de Moura, Rodrigo Schecheli Bussolo e André Parada de Oliveira Machado debateram intensamente a arquitetura de banco de dados para o versionamento. A proposta de Gabriel Rodrigues de Moura envolve manter o quadro principal e seus "filhos" (versões) para garantir que posses antigas apontem corretamente para a configuração da época. O grupo concordou que essa estrutura precisa ser bem discutida com a equipe de banco de dados antes do desenvolvimento (00:39:56).
+Distribuição Parcial de Vagas: Luciano da Silva Oliveira e Taylor Augusto Dos Santos discutiram cenários onde o usuário precisa indicar órgãos e quantidades, mas pode querer deixar a distribuição de parte das vagas para um momento posterior ("pendente de ato"). Taylor Augusto Dos Santos confirmou que o sistema deve suportar essa flexibilidade, onde apenas uma parcela das vagas é distribuída inicialmente (00:45:39).
+Cadastro de Órgãos e Instituições: Taylor Augusto Dos Santos e Danielle Cristina Silva Cruz trataram da necessidade de listar os órgãos ativos no sistema. Ficou acordado que a interface de controle de vagas deve listar todos os órgãos ativos cadastrados, independentemente de setores, para facilitar a distribuição (00:48:17).
+Fluxo de Distribuição de Vagas: Thássyus Fabiano M de Almeida Carvalho e Taylor Augusto Dos Santos alinharam que, mesmo após indicar órgãos no cadastro do quadro, ainda é necessário realizar o fluxo de distribuição (ou redistribuição) para efetivar as vagas conforme as regras parciais estabelecidas (00:50:34).
+Funcionalidade de Transformação de Quadros: Taylor Augusto Dos Santos apresentou a funcionalidade "Transformar", que altera o cargo associado a determinadas vagas. Rodrigo Schecheli Bussolo solicitou que o sistema identifique claramente a origem e o destino da transformação para manter a rastreabilidade do versionamento, sugerindo a criação de observações no campo de versionamento (00:54:11).
+Ajustes na Vigência e Calendário: Taylor Augusto Dos Santos concluiu que, para reduzir a complexidade, a funcionalidade de "data de efeito" agendada será removida. O sistema considerará a data de cadastro como a data de validade, simplificando o controle de agendamento (00:58:33).
+Regras para Extinção e Inclusão/Exclusão de Órgãos: Taylor Augusto Dos Santos detalhou que a extinção progressiva apenas altera o status da vaga quando ela fica livre (não volta a ser disponível). Sobre a inclusão e exclusão de órgãos, foi definido que um órgão só pode ser excluído se não houver vagas vinculadas a ele, e que novas inclusões de órgãos não permitem a exclusão de órgãos existentes que possuam vagas ocupadas, reforçando a necessidade de movimentações prévias (00:59:51).
+Gerenciamento de Vagas e Remoções: Taylor Augusto Dos Santos explica que, quando um órgão não possui vagas para determinado cargo no quadro, o posto pode ser excluído. Rodrigo Schecheli Bussolo questiona o procedimento de movimentação de pessoal entre órgãos. Taylor Augusto Dos Santos esclarece que essas movimentações, sejam remoções internas ou externas, impactam salários e a estrutura de recursos humanos, uma vez que a vaga acompanha a pessoa, sendo necessário considerar essas condições específicas (01:05:54).
+Versionamento e Histórico de Remoções: Rodrigo Schecheli Bussolo sugere que o impacto do versionamento futuro seja considerado nas decisões atuais. Taylor Augusto Dos Santos expressa preocupação de que, se cada remoção gerar uma nova versão, o histórico do sistema se tornará excessivamente volumoso, questionando a necessidade de gerar uma nova versão para cada movimentação de vaga, dado que isso altera o quadro de pessoal (01:07:10).
+Status da Documentação do Quadro: Luciano da Silva Oliveira indaga se as documentações referentes ao quadro estão devidamente atualizadas com as sugestões da equipe. Taylor Augusto Dos Santos informa que as áreas de quadro e distribuição estão sendo atualizadas e o objetivo é finalizar essas tarefas hoje, mencionando que o painel de controle (dashboard) também sofreu pequenas alterações. Taylor Augusto Dos Santos sugere incluir campos de observação para exibir o histórico, visando facilitar a visualização de mudanças (01:08:34).
+Processo de Distribuição de Vagas: Taylor Augusto Dos Santos diferencia o processo de remoção da "sessão", na qual a pessoa trabalha em outro órgão, mas mantém sua vaga original sem ocupar uma nova. A discussão foca na redistribuição de vagas que ainda estão desocupadas. Taylor Augusto Dos Santos explica que o status "Pendente de ato de distribuição" ocorre quando um quadro foi criado, mas nenhum órgão foi definido, deixando as vagas em uma espécie de banco de vagas do estado até que a distribuição seja realizada (01:09:55).
+Interrupção da Reunião: Alex Sandro Pereira Garcia sugere uma pausa para o almoço, dado que o horário já é 10:45, e propõe retomar os trabalhos às 14:00. O grupo concorda com a sugestão, decidindo utilizar o período da tarde para atualizar a documentação sobre os tópicos discutidos, e a reunião é suspensa (01:11:05).
+Revise as anotações do Gemini para checar se estão corretas. Confira dicas e saiba como o Gemini faz anotações
+Como está a qualidade de destas observações? Responda a uma breve pesquisa para nos dar seu feedback, incluindo o quanto as observações foram úteis para o que você precisa.
+📖 Transcrição
+ago. 17, 2026
+[SIGEP] Refinamento/Planning - Sprint 18 - Transcrição
+00:01:43
+Taylor Augusto Dos Santos: Alô. Alô.
+Thássyus Fabiano M de Almeida Carvalho: Bom dia. Bom dia,
+Deyvison dos Santos Silva: Bom dia, Ja.
+Taylor Augusto Dos Santos: Bom dia. Bom dia.
+Danielle Cristina Silva Cruz: Copiar a base do Nacional.
+Eddie Allen de Medeiros Pinto: Yeah.
+Rodrigo Thaua Lima Barroso: Yeah.
+André Parada de Oliveira Machado: Boa tarde,
+Danielle Cristina Silva Cruz: Bom
+Reunião TI - SEPLAG: Bom dia,
+Danielle Cristina Silva Cruz: dia.
+Marcela Souza de Oliveira: Bom dia, M.
+Danielle Cristina Silva Cruz: Tá melhor que eu. Esses dias entrei uma, falei boa noite,
+Rodrigo Schecheli Bussolo: Yeah.
+Reunião TI - SEPLAG: E aí, pessoal, bom dia. Eh, só para explicar um pouquinho aqui para quem é novo, né, tá no nosso pela primeira vez, a gente vai fazer o refinamento. Tor vai apresentar aqui todas ass, tá? Vocês podem tirar dúvida, fiquem à vontade e em seguida a gente vai fazer a planning. Se não der tudo agora de manhã, a gente continua de tarde, tá? Vou colocar aqui para gravar.
+00:07:07
+Reunião TI - SEPLAG: Tá aí, Taylor, pode. Deixa eu só pôr para gravar.
+Taylor Augusto Dos Santos: Beleza. Aí foi que passou o Beleza, pessoal. Tô conseguindo ver. Então, fechou. Então, tá. Eh,
+Eddie Allen de Medeiros Pinto: Угу.
+Taylor Augusto Dos Santos: então a gente tá vai começar com controle de vaga, certo? É basicamente um tratamento efetivos barra condicionado, mas por enquanto ele tá mais nos efetivos mesmo. Aí na as USS aqui elas estão divididas meio que baseado nas telas, certo? Então tem um dashboard lá, seria no caso a última parte, né? quadra autorizada, distribuição e as vagas individualizadas em si, certo? Eh, no quadro autorizado aqui a gente tá com cinco S. Então, a primeira vai lidar com a listagem nos quadros autorizados, a parte da consulta de história versão, cadastrar novo quadro, o editar e excluir um quadro e a parte de versionamento, certo? Eh, no quadro autorizado, o que que seria isso? eh quando nasce um um eh um cargo, uma carreira, né, e eventualmente um cargo, o o passo a depois disso seria eh você ter vagas para esse cargo barra carreira ali, certo?
+00:09:14
+Taylor Augusto Dos Santos: Daí quando surge essa lei lá que vai dizer, ó, tal cargo aqui vai ter tantas vagas, então a gente vai criar um quadro autorizado para isso, ou seja, para as pessoas vão começar a ocupar essas vagas ali, certo? Então a pessoa, o usuário vai vir aqui, no caso, novo quadro, ele vai criar, ele vai anexar essa base legal que ele tem lá, só como um um validadorzinho aqui, né, para identificar que foi teve uma legislação baseada naquilo ali. Eh, aí ele vai selecionar qual o tipo de vínculo, né, se é o efetivo comissionado, regime jurídico, esses dois ser dependentes lá, ele seleciona a carreira e o cargo. Então, o cargo seria o filtro principal aqui, por cada quadro tem um cargo. Então a gente não consegue criar, por exemplo, se a gente tem aqui agente arrecadador de tributos, tal, você só vai ter um quadro para esse cargo aqui. Não tem como você criar dois cargos ali, certo? E a distribuição dessas vagas então é feita pelos órgãos lá. Eh, feito isso, tem a quantidade que vai ser autorizada, então seria o número de vagas específicas lá. E daí aqui a gente tem três cenários, porque essa a lei que ela vem autorizando essas vagas, ela pode ter basicamente esses três cenários aqui, que é primeiro essa lei só diz o número das vagas.
+00:10:27
+Taylor Augusto Dos Santos: Então ela só tá falando, ó, são 500 vagas, mas não necessariamente foi feita essa distribuição ainda. Então ele não indica nem para quais órgãos são essas vagas, certo? nem a quantidade para cada um deles. Então, seria essa primeira opção aqui. Essas vagas, então, elas são cadastradas, o cargo é, o quadro ele é cadastrado, só que elas ficam pendente de ato de distribuição, que seria uma outra lei, um outro ato lá que vai vir e vai fazer a distribuição dessas vagas ali, certo? Uma outra possibilidade pode acontecer, essa lei já vem, ela define a quantidade de vagas e ela também já define quais órgãos vão ocupar essas vagas, só que ela não define a o a quantidade para cada um desse. Então, por exemplo, se fosse nesse caso, essa lei viria aqui, ela criou esse cargo aqui para esses três órgãos aqui. Então, ela só indica os órgãos, mas não indica qual a quantidade para cada um desses órgãos ali. E no último caso aí ela já vem completa,
+André Parada de Oliveira Machado: caiu ou não?
+Marcela Souza de Oliveira: Cortou.
+Thássyus Fabiano M de Almeida Carvalho: É,
+Taylor Augusto Dos Santos: Vai indicar vagas.
+Thássyus Fabiano M de Almeida Carvalho: travou.
+00:11:34
+Taylor Augusto Dos Santos: Você caiu. Caiu. Esperar um pouquinho.
+Reunião TI - SEPLAG: Agora voltou.
+Danielle Cristina Silva Cruz: voltou.
+Reunião TI - SEPLAG: Yeah.
+Danielle Cristina Silva Cruz: Yeah.
+Taylor Augusto Dos Santos: É internet. O sinalzinho aqui tá só um risquinho. Quando cair aí vocês vir tudo voltou, voltou, tá? Então aí aqui basicamente aí é a data, né, que vai começar se a data atual ou se é uma data futura. Quando for uma data futura,
+Carlos Vitor Vieira Mattos: Yeah.
+Taylor Augusto Dos Santos: ela vai vir como agendado e quando é tá como agendado, ela vai possibilitar a edição. perfil profissional ele não é obrigatório, tá? Eh, meio que vem, às vezes a lei já fala o perfil, às vezes não. Então não é não é obrigatório. Pode falar,
+Thássyus Fabiano M de Almeida Carvalho: Eh,
+Taylor Augusto Dos Santos: tá?
+Thássyus Fabiano M de Almeida Carvalho: na questão da vigência ali é porque tem situação ativo, né? Mas eu não vejo eh outras opções além.
+Taylor Augusto Dos Santos: É, não, porque o aí ela vem do versionamento, né?
+00:12:34
+Taylor Augusto Dos Santos: Então essa parte aqui,
+Thássyus Fabiano M de Almeida Carvalho: Eh,
+Taylor Augusto Dos Santos: inclusive pode daria até para remover essa partezinha aqui. O importante aqui seria a data mesmo e mostrar exclamaçãozinha ali. É que esse componente aqui ele geralmente ele tem os outros botõezinhos aqui, né? A gente tem que dar uma ajustada nele também, mas aqui no caso ele só é ela nesse caso aqui como
+Reunião TI - SEPLAG: Nas como ativa, então?
+Thássyus Fabiano M de Almeida Carvalho: é, então,
+Reunião TI - SEPLAG: Yeah.
+Taylor Augusto Dos Santos: agendada ainda, né?
+Thássyus Fabiano M de Almeida Carvalho: então aqui então,
+Taylor Augusto Dos Santos: Nem é porque não não tinha o o botãozinho
+Thássyus Fabiano M de Almeida Carvalho: por exemplo,
+Taylor Augusto Dos Santos: ali.
+Thássyus Fabiano M de Almeida Carvalho: assim, Eh, inicialmente, de repente esse camper nem apareceria, né, quando eu tô no processo de criação.
+Taylor Augusto Dos Santos: Isso. Essa parte aqui nem só acho que situação
+Thássyus Fabiano M de Almeida Carvalho: Então, porque aí a gente enviaria, na verdade,
+Taylor Augusto Dos Santos: aqui.
+Thássyus Fabiano M de Almeida Carvalho: assim, se a data de início já for posterior à data do pausto, a gente já sabe que o o eh ele já vai entrar no estado de
+00:13:15
+Taylor Augusto Dos Santos: Aí ele já é se for com a data atual anterior ele já vem como ativo ali
+Thássyus Fabiano M de Almeida Carvalho: agendado,
+Taylor Augusto Dos Santos: nesse no outro aqui é o agendado.
+Thássyus Fabiano M de Almeida Carvalho: então beleza. M.
+Taylor Augusto Dos Santos: A parte do agendado aqui, quando ele tá como agendado ainda é possível edit, certo? Então posso entrar lá na mesma tela, configurar ele e tal, fazer o que eu quero mexer aqui ou até excluir ele. A partir do momento que ele tá ativo, aí não tem mais como editar. A única coisa que a gente consegue fazer é a parte de pressionar ele agora.
+Deyvison dos Santos Silva: É,
+Taylor Augusto Dos Santos: Eh,
+Deyvison dos Santos Silva: eu queria tirar uma dúvida referente à questão de definição de vagas por órgão. Eu consigo indicar parte dessas vagas e deixar, vamos supor, 10% vagas ali para qualquer órgão poder pegar ou
+Taylor Augusto Dos Santos: sim, sim. Tipo,
+Deyvison dos Santos Silva: não?
+Taylor Augusto Dos Santos: ela ela ainda fica pendente de ata no caso lá. A lei falou, ó, teve uma lei que criou 500 vagas, aí depois veio uma e falou: "Ó, tem 100 que é para ser plag, mas as outras 400 ainda fica lá".
+00:14:18
+Taylor Augusto Dos Santos: Então elas ficam ainda pendente de essa daí ela passa a ser o SEPLAG ali.
+Thássyus Fabiano M de Almeida Carvalho: Ah,
+Taylor Augusto Dos Santos: Sim.
+Thássyus Fabiano M de Almeida Carvalho: seria um lançamento parcial,
+Deyvison dos Santos Silva: Entendi.
+Thássyus Fabiano M de Almeida Carvalho: né?
+Taylor Augusto Dos Santos: Isso.
+Deyvison dos Santos Silva: É, tem outra coisa ali em questão lá daquele indicou o órgão, mas não definiu quantidades. Você pode acessar aí a tela para mim de novo. Tor e isso indica alguns órgãos aí. Pode selecionar três aí.
+Taylor Augusto Dos Santos: A
+Deyvison dos Santos Silva: Acho que travou aí. Eu acho que essa parte aí de baixo que informa o órgão não ia ter necessidade porque fica redundante mostrando ali na seleção e vai ficar redundante.
+Taylor Augusto Dos Santos: tá mostrando em cima embaixo, né? É porque ele é meio que como só tá ocultando do próximo que o próximo mostra a quantidade lá e tal, mas dá dá para filtrar. Fica só aqui no na tabelinha.
+Deyvison dos Santos Silva: Beleza, só isso mesmo. Valeu, Ped.
+00:15:15
+Rodrigo Schecheli Bussolo: Ô, ali, sobe um pouquinho aí.
+Taylor Augusto Dos Santos: Rodrigo.
+Rodrigo Schecheli Bussolo: Eh, nesse nesses tipo de vínculo, regime jurídico. Eu tava falando mais cedo hoje, o Luciano, ele falou que no tipo de vínculo agora tem vários regime jurídico, vai ter que trazer
+Taylor Augusto Dos Santos: É tipo de vínculo,
+Rodrigo Schecheli Bussolo: filtrado,
+Taylor Augusto Dos Santos: eh, mexe com regime, né? Esses dois, um depende do outro.
+Reunião TI - SEPLAG: Isso mesmo.
+Taylor Augusto Dos Santos: Acho que já vai ir nessa ou essa modificação, não é isso?
+Reunião TI - SEPLAG: Isso,
+Taylor Augusto Dos Santos: nessa nessa
+Reunião TI - SEPLAG: isso.
+Rodrigo Schecheli Bussolo: mas então
+Reunião TI - SEPLAG: A gente tem o último documento lá do tipo de vínculo e aí a gente vai fazer essa alteração já para vincular,
+Taylor Augusto Dos Santos: sprint.
+Reunião TI - SEPLAG: para ter esse relacionamento entre o regime com o tipo de vínculo, tá? Aí você vai setar dentro do tipo de vínculo.
+Rodrigo Schecheli Bussolo: Aí,
+Reunião TI - SEPLAG: No tipo de vínculo, quando você fizer o cadastro, você vai pôr qual regime jurídico?
+00:16:03
+Reunião TI - SEPLAG: Pode ser mais de um,
+Rodrigo Schecheli Bussolo: mas é só um, pode ser vários.
+Reunião TI - SEPLAG: não, pode ser vários. Aham.
+Rodrigo Schecheli Bussolo: Então ali ele seleciona um tipo de vínculo e ele solista,
+Reunião TI - SEPLAG: E aqui já deve filtrar isso. Os regimes para aquele tipo de vínculo.
+Rodrigo Schecheli Bussolo: então fica bloqueado ali enquanto
+Reunião TI - SEPLAG: Fica, tá, Taylor? Tem que bloquear.
+Rodrigo Schecheli Bussolo: é,
+Reunião TI - SEPLAG: Ele não pode pôr regime jurídico sem tipo de
+Rodrigo Schecheli Bussolo: na verdade ele pode até deixar desbloqueado,
+Taylor Augusto Dos Santos: Isso, ele
+Reunião TI - SEPLAG: vínculo e estraada.
+Rodrigo Schecheli Bussolo: só só iria trazer nada, né?
+Reunião TI - SEPLAG: Pode ser também uma
+Rodrigo Schecheli Bussolo: O o a carreira é depende de algo aí.
+Taylor Augusto Dos Santos: a carreira e o cargo a gente vai mexer na próxima sprint que aí a gente vai eh reajustar
+Reunião TI - SEPLAG: opção.
+Taylor Augusto Dos Santos: ela lá porque tem subcategoria, tem uns negócios lá que a gente viu que não precisa.
+00:16:39
+Taylor Augusto Dos Santos: subcategoria nada mais é que a própria carreira, sendo que a carreira ela é um filtro, então tem a gente vai ajustá-las ainda. Mas o
+Thássyus Fabiano M de Almeida Carvalho: Mas a carreira não depende de nenhuma das opções anteriores ali,
+Taylor Augusto Dos Santos: o
+Thássyus Fabiano M de Almeida Carvalho: né, de tipo de vínculo, regime jurídico.
+Taylor Augusto Dos Santos: não, não,
+Thássyus Fabiano M de Almeida Carvalho: Vai depender deles ou não?
+Rodrigo Schecheli Bussolo: Não, pô,
+Taylor Augusto Dos Santos: não,
+Reunião TI - SEPLAG: Por enquanto não.
+Taylor Augusto Dos Santos: por enquanto não. Tem que ajustar
+Alex Sandro Pereira Garcia: Ela é baseada em alguma lente.
+Reunião TI - SEPLAG: Paraamente vai.
+Rodrigo Schecheli Bussolo: o o será que não era bom?
+Taylor Augusto Dos Santos: aí.
+Thássyus Fabiano M de Almeida Carvalho: Por enquanto não.
+Rodrigo Schecheli Bussolo: já criar essa carreira aí, porque hoje temos a categoria, né? talvez já criar essa
+Reunião TI - SEPLAG: É, não, não,
+Rodrigo Schecheli Bussolo: tabela.
+Reunião TI - SEPLAG: é que assim,
+Taylor Augusto Dos Santos: vai
+Reunião TI - SEPLAG: é, a gente só mudou o nome, é que carreira na verdade é categoria, entendeu?
+00:17:11
+Taylor Augusto Dos Santos: virar.
+Reunião TI - SEPLAG: É a mesma coisa. E aí tudo que for categoria agora vai ser carreira,
+Rodrigo Schecheli Bussolo: É porque no banco hoje nós temos a carreira e a sub, quer dizer, temos a categoria e a subcategoria,
+Reunião TI - SEPLAG: categoria e a subcategoria.
+Taylor Augusto Dos Santos: Isso. Na verdade,
+Rodrigo Schecheli Bussolo: então a gente vai permanecer isso porque eu acho que vai ficar no futuro,
+Taylor Augusto Dos Santos: tudo é só carreira.
+Reunião TI - SEPLAG: Perfeito.
+Rodrigo Schecheli Bussolo: vai ficar ruim, né? Se manter categoria e a gente chamar de
+Reunião TI - SEPLAG: Não,
+Rodrigo Schecheli Bussolo: carreira.
+Reunião TI - SEPLAG: não vai ter mais categoria. Tudo que for categoria vai virar carreira. A gente só mudou o nome.
+Gabriel Rodrigues de Moura: É,
+Taylor Augusto Dos Santos: Isso não vai ter mais
+Gabriel Rodrigues de Moura: o Aí vai começar
+Thássyus Fabiano M de Almeida Carvalho: Categoria. Yeah.
+Reunião TI - SEPLAG: M.
+Gabriel Rodrigues de Moura: o Pode
+Rodrigo Schecheli Bussolo: É,
+00:17:48
+Taylor Augusto Dos Santos: subcategoria.
+Luciano da Silva Oliveira: vai ter que alterar no banco.
+Rodrigo Schecheli Bussolo: é,
+Luciano da Silva Oliveira: É isso que outra tabela.
+Gabriel Rodrigues de Moura: ser o Isso aí vai dar um trabalho do carro, né?
+Rodrigo Schecheli Bussolo: então acho que alguém pode fazer esse crude aí.
+Gabriel Rodrigues de Moura: categoria no sistema inteiro,
+Rodrigo Schecheli Bussolo: Sim.
+Gabriel Rodrigues de Moura: você tá clicando em várias reg negócio, até na folha de pagamento. Acho que é um dos casos que vai, como mudou o nome, vai ser isso aí, tipo,
+Rodrigo Schecheli Bussolo: Então,
+Gabriel Rodrigues de Moura: alterar na tela porque refactorar tudo,
+Rodrigo Schecheli Bussolo: eu acho que é mais fácil,
+Gabriel Rodrigues de Moura: entendeu? Vai dar um trabalho infinito.
+Rodrigo Schecheli Bussolo: então, eh, a a acredito que o jeito mais fácil assim de não impactar tanto, a gente criava uma nova tabela chamada carreira, mantém a categoria, só que daí nesse Nesse caso aqui a gente já usa carreira, daí ah, em outro lugar lá tá usando categoria, daí abre uma US que daí arruma lá para usar carreira, porque se a gente só alterar eh de categoria para carreira, vai dar um impacto grande mesmo. Vai, vão ter que sei lá onde que vai ter que testar, vai ter que testar o sistema inteiro, que vai ter que fazer.
+00:18:59
+Gabriel Rodrigues de Moura: Ao meu ver é um label,
+André Parada de Oliveira Machado: É.
+Gabriel Rodrigues de Moura: é só um nome trocar, mas para aumentar a complexidade fazendo tudo só e como outros lugares do sistema gás coloca lá uma distrição, então dição, carreira é categoria ou refazer tudo isso aí mesmo que seja aplicado retrabalho infinito para só um
+Rodrigo Schecheli Bussolo: Ah, você fala só mudar o label ali, né? É,
+Gabriel Rodrigues de Moura: são só gente a gente não precisaar.
+Rodrigo Schecheli Bussolo: é uma opção também.
+Gabriel Rodrigues de Moura: A gente vai, olha o tanto de funcionalidade que amarra a categoria, velho. É um outro.
+André Parada de Oliveira Machado: ruim disso é a gente saber disso a longo prazo.
+Rodrigo Schecheli Bussolo: É, o problema é logo prazo.
+André Parada de Oliveira Machado: Sempre que entrar alguém você tem que falar: "Não é porque categoria carreira". Aí começa assim, aí muda trein
+Rodrigo Schecheli Bussolo: Eu
+Gabriel Rodrigues de Moura: Às vezes acontece se a gente começar uma entidade com o nome errado e lá na frente a gente trocar o nome dela. né? Por isso a gente vai refazer para
+Taylor Augusto Dos Santos: a
+Gabriel Rodrigues de Moura: outro refazer, mas é um custo de texto para refazer aí para os parentes
+00:20:05
+Rodrigo Schecheli Bussolo: acho que é capaz até da do pessoal do banco eh querer alterar o nome,
+Gabriel Rodrigues de Moura: é aí tem que depender você é aí
+Rodrigo Schecheli Bussolo: eu acho. O então por isso que eu acho que talvez a gente criaria um crew de novo e manter esse esse outro até para fazer essa transição, na minha visão assim seria algo que menos impactante que que a gente conseguiria fazer. Foi parcelado,
+Gabriel Rodrigues de Moura: É só trocar o membro da tela.
+Rodrigo Schecheli Bussolo: né?
+Taylor Augusto Dos Santos: Так.
+Rodrigo Schecheli Bussolo: É também.
+Gabriel Rodrigues de Moura: Nem tudo que tá na tela a gente tá no banco certinho, gente. de coisa,
+Rodrigo Schecheli Bussolo: Ah,
+Gabriel Rodrigues de Moura: mas isso aí vai de pessoal maior aí esses dia aí a gente faz,
+Rodrigo Schecheli Bussolo: e
+Gabriel Rodrigues de Moura: velho.
+Rodrigo Schecheli Bussolo: esse telor, esse perfil profissional vem da onde mesmo? Tem tem uma tabela para isso,
+Taylor Augusto Dos Santos: Não, não, não tem nem o cadastro dele ainda.
+Rodrigo Schecheli Bussolo: mas a gente vai deixar fixo
+Taylor Augusto Dos Santos: É só, é, ele é um,
+Rodrigo Schecheli Bussolo: então.
+Taylor Augusto Dos Santos: acho que tem uma lista, alguma coisa assim que puxou
+00:21:01
+Reunião TI - SEPLAG: Não, mas hoje vem do cargo Taylor.
+Rodrigo Schecheli Bussolo: Não, ali de boa de carga perfil profissional.
+Reunião TI - SEPLAG: Isso, isso. Hoje esse perfil profissional vem do cargo. Se você for lá na tela de cargo, você preenche esse
+Rodrigo Schecheli Bussolo: Ah, lá tem
+Reunião TI - SEPLAG: campo.
+Danielle Cristina Silva Cruz: Mas acho que as informações lá estão bocadas, não tem um lugar que que vem, sabe, perfil, especialidade.
+Taylor Augusto Dos Santos: É, vai ter que ter uma tela para cadastrar isso aí também.
+Reunião TI - SEPLAG: Sim.
+Taylor Augusto Dos Santos: Eu acho que o o que o Bussolo é válido, porque querendo ou não, a gente vai ter que revisitar tudo no no então se fizer já o novo a nova carreira e o novo cargo, a nova carreira pelo menos, né? O o aqui vai ter queitar o cargo também, vai tirar órgão lá, vai ter é bastante coisinha que vai ter que mexer.
+André Parada de Oliveira Machado: Bom que os que vem fazer um teste automatizado já.
+Rodrigo Schecheli Bussolo: Eh, desce mais um pouco aí rapidão.
+Gabriel Rodrigues de Moura: Melhorou agora. Melhorou agora.
+00:22:12
+Gabriel Rodrigues de Moura: Valeu.
+Rodrigo Schecheli Bussolo: Agora tá bom para ouvir, cara. Tinha alguma Ah, eh, vai no editar desse cara aí que é que você mostrou que tem como editar apenas quando ele tá agendado, né?
+Taylor Augusto Dos Santos: Isso. Ah, eu já deseditei
+Rodrigo Schecheli Bussolo: Ali embaixo. Ali embaixo.
+Taylor Augusto Dos Santos: bem tudo.
+Rodrigo Schecheli Bussolo: Aí ele permite mudar tudo.
+Taylor Augusto Dos Santos: Tudo é como se tivesse zerado mesmo.
+Rodrigo Schecheli Bussolo: Mas tem a situação.
+Taylor Augusto Dos Santos: É como se fosse um rascunho.
+Rodrigo Schecheli Bussolo: O que que por que que a situação ele
+Taylor Augusto Dos Santos: Ah, não, esse aqui tá errado.
+Rodrigo Schecheli Bussolo: vai?
+Taylor Augusto Dos Santos: Tá tá com módulozinho antigo. Pera aí. É aquele só teria que mudar para data. Daí no caso,
+Rodrigo Schecheli Bussolo: É só data, né? Tá
+Taylor Augusto Dos Santos: é e nada.
+Rodrigo Thaua Lima Barroso: Quando ele quando ele tá ativo,
+Rodrigo Schecheli Bussolo: beleza.
+Rodrigo Thaua Lima Barroso: ele não pode mudar mais nada.
+Taylor Augusto Dos Santos: Aí ele só
+00:22:56
+Rodrigo Schecheli Bussolo: Tá verando.
+Taylor Augusto Dos Santos: vaicionar
+Rodrigo Schecheli Bussolo: Tá.
+André Parada de Oliveira Machado: Essa vigência é da lei. Essa vigência é do quê?
+Taylor Augusto Dos Santos: é do do quadro em cílo.
+André Parada de Oliveira Machado: Do quadro.
+Taylor Augusto Dos Santos: É basicamente eu tô falando quando que ele começou,
+André Parada de Oliveira Machado: Ah.
+Taylor Augusto Dos Santos: quando que ele vai tá válido. Aí o, digamos que a pessoa começou a preencher, mas sei lá, não tem informação ainda ou tá esperando alguma coisa, então ele consegue, é como se fosse um rascunho mesmo,
+André Parada de Oliveira Machado: Ja.
+Taylor Augusto Dos Santos: o agendado lá no caso. Aí o depois que ele preenche a data que ele tá ativo, aí ele não consegue mais editar. É só versionar mesmo. Show. Vamos ter que ver carreira e card ainda como fazer certinho. Dependendo eu consigo levantar ele. Ah, é mais, deixa eu ver lá a lista de US. Então, a primeira tá falando da listagem de cargos, né? Basicamente mostrando essa tela aqui com as regrinhas delas. Consultar histórico diversão.
+00:24:00
+Taylor Augusto Dos Santos: Então, conforme o esse quadro vai sendo versionado, né, as versões antigas dele vão ficar aparecendo aqui um resuminho delas, certo? a partir do momento. que o versão não quadra, a versão atual fica encerrada, né? E a próxima fica ativa lá. A parte de versionamento, então para fazer esse versionamento é aqui no no maisinho, né? Aí nesse caso agora a gente tem seis opções de versionamento aqui. A gente teve o prépling surgiu essa dúvida aqui e eu eu conversei com o o cliente lá. Basicamente eu tem essas duas opções aqui no André,
+André Parada de Oliveira Machado: Volta ali rapidinho. Taylor,
+Taylor Augusto Dos Santos: caramba, faltou um botão voltar nessa
+André Parada de Oliveira Machado: que susto me deu,
+Taylor Augusto Dos Santos: página
+André Parada de Oliveira Machado: cara. Eh, a diferença de instinto encerrado é que encerrado eu ainda posso versionar ele. Ne.
+Taylor Augusto Dos Santos: extinto, não. Aí assim, extinto é a questão, ele vem do dessa versionamento aqui, certo? Que é extinção progressiva. Quando eu marco extinção progressiva, basicamente eu tô acabando com todas essas vagas, certo?
+00:25:10
+Taylor Augusto Dos Santos: Então, as que estiverem disponíveis elas deixam de existir. Eh, tá inativo lá, certo? Só que pode ter vagas que ainda tem pessoas ocupando essas vagas, então elas vão ficar lá ainda só esperando essas pessoas aposentarem, certo? Então, basicamente, a diferença seria essa. Quando tá extinto, é porque acabou, não tem mais ninguém, todo mundo aposentou e é isso. Ah, o encerrado é porque ele foi marcado paraa extinção, mas ainda tem pessoas ocupando essas vagas que não se aposentaram ainda.
+André Parada de Oliveira Machado: Se extinguir errado, tem como voltar darback?
+Taylor Augusto Dos Santos: Por enquanto não, por enquanto eu não mexi nessa parte dessa edição dele voltar talvez um novo
+André Parada de Oliveira Machado: Entendi. Então, nesse nesse caso,
+Taylor Augusto Dos Santos: versionamento.
+André Parada de Oliveira Machado: vai precisar de um jovem para ir vendo se vai liberando as vagas para ir extinguindo, né? até acabar todo mundo. Faz
+Taylor Augusto Dos Santos: Essa aí ele vai ser essa parte ela meio que vai ser alimentada com o do processo de aposentadoria, certo?
+André Parada de Oliveira Machado: sentido.
+Taylor Augusto Dos Santos: Da mesma forma que a gente vai ter uma parte aqui que é alimentada pelo processo de ingresso, que a gente não fez ainda, essa parte de aposentadoria aqui vai ser alimentada pelo processo de ingresso.
+00:26:18
+Taylor Augusto Dos Santos: Então a gente ainda vai mexer nessa nessa tela aqui mais para frente que ela depende de algumas coisas que não foi feita ainda.
+Rodrigo Schecheli Bussolo: Ô Taylor,
+Taylor Augusto Dos Santos: Vamos
+Rodrigo Schecheli Bussolo: então, então vamos falar assim,
+Taylor Augusto Dos Santos: falar.
+Rodrigo Schecheli Bussolo: eh, quando alguém vai aposentar, ele vai desocupar uma vaga ali e vai voltar ela.
+Taylor Augusto Dos Santos: Na verdade, el eu vou ver certinho se ele chega a desocupar,
+Rodrigo Schecheli Bussolo: Então,
+Taylor Augusto Dos Santos: mas na verdade ele ela só não fica disponível de novo, porque ela meio que ainda fica o histórico lá que foi ocupado. Então a gente não vai excluir essa vaga em momento algum, ela vai ser mantida no histórico lá. Ela só não volta a ser disponível, digamos assim.
+Rodrigo Schecheli Bussolo: mas ela desocupa.
+Renan dos Santos Araujo: Ela é tem a vacância dela.
+Rodrigo Schecheli Bussolo: Kom.
+Taylor Augusto Dos Santos: Não.
+Renan dos Santos Araujo: Ela ela a vaga em si ela vai carregar um histórico, mas um exemplo, a partir do momento que a pessoa que o o efetivo que até então
+Taylor Augusto Dos Santos: Eh
+Renan dos Santos Araujo: está nela aposentou, ela fica vaga novamente, entendeu?
+Rodrigo Schecheli Bussolo: Então ela fica
+Renan dos Santos Araujo: O número em si, vamos supor,
+00:27:20
+Rodrigo Schecheli Bussolo: disponível.
+Renan dos Santos Araujo: eu tenho 50 vagas, o Renan tá na vaga 43, o Renan se aposentou, a vaga 43 ela não deixa de existir, ela vai continuar existente, porém ela vai se tornar vaga de novo, entendeu? É uma de vacan isso.
+Taylor Augusto Dos Santos: se ela ela não tiver sido encerrada no no versionamento ali, mas aí senão ela não volta a ser disponível no ela fica como
+Rodrigo Schecheli Bussolo: Então, a aí pensa aí no caso o
+Taylor Augusto Dos Santos: encerrada.
+Rodrigo Schecheli Bussolo: o ocupado ele vai diminuir, o disponível vai aumentar, não tinha que ter um outro outra coluna aí de aposentados.
+Taylor Augusto Dos Santos: seria as ocupadas. Não, aquele só foi zerando, no caso, seria,
+Rodrigo Schecheli Bussolo: Se
+Thássyus Fabiano M de Almeida Carvalho: seria as vagas que já foram
+Taylor Augusto Dos Santos: tá? Isso seria quando a gente tem um um quadro que foi encerrado,
+Renan dos Santos Araujo: Encerrament
+Taylor Augusto Dos Santos: né,
+Thássyus Fabiano M de Almeida Carvalho: encertas.
+Taylor Augusto Dos Santos: que teve uma extinção progressiva, pessoal. Aí seria basicamente para exibir.
+Rodrigo Schecheli Bussolo: não,
+00:28:21
+Thássyus Fabiano M de Almeida Carvalho: Os encerrados, não é?
+Rodrigo Schecheli Bussolo: nem precisava ser eu
+Thássyus Fabiano M de Almeida Carvalho: É, é os encerrados, não é?
+Taylor Augusto Dos Santos: É,
+Rodrigo Schecheli Bussolo: encerrado.
+Taylor Augusto Dos Santos: eles seriam as que em teorias as que estão ocupadas ainda, as que não aposentou
+Thássyus Fabiano M de Almeida Carvalho: No.
+Rodrigo Schecheli Bussolo: É porque eu acho que tem um jeito de você olhar, acho que mais pra frente ele vaga individuais,
+Taylor Augusto Dos Santos: ainda.
+Rodrigo Schecheli Bussolo: então vai ter mais de tipo assim aí tem 21, vai ter mais de 21, pode ser, né? Pensando que vai ter os aposentados lá não vai sair,
+Taylor Augusto Dos Santos: É,
+Rodrigo Schecheli Bussolo: pelo que eu entendi,
+Taylor Augusto Dos Santos: é,
+Rodrigo Schecheli Bussolo: lá não some vaga, né?
+Taylor Augusto Dos Santos: seria no Então, então a gente tem um quadro, esse quadro foi extinto e daí seria para exibir as pessoas que
+Rodrigo Schecheli Bussolo: Não, não. Imagina que ele tá ativo.
+Taylor Augusto Dos Santos: aposentou.
+Rodrigo Schecheli Bussolo: Imagina que ele tá ativo. Ele era 50, daí 10 pessoas aposentaram,
+00:29:02
+Taylor Augusto Dos Santos: Ah,
+Rodrigo Schecheli Bussolo: vai voltar para 10 disponível.
+Taylor Augusto Dos Santos: não, isso, isso.
+Rodrigo Schecheli Bussolo: Aí lá na tem um lugar aí que eu acho que lista vaga a
+Taylor Augusto Dos Santos: As vagas individualizadas.
+Rodrigo Schecheli Bussolo: vaga, né? Mas se você olhar lá vai ter mais de 50.
+Taylor Augusto Dos Santos: Isso.
+Rodrigo Schecheli Bussolo: Não vai ficar estranho a visualização que
+Taylor Augusto Dos Santos: Não, mas daí não vai ficar mais que 50. Ó, se o quadro tá ativo,
+Rodrigo Schecheli Bussolo: bem
+Taylor Augusto Dos Santos: a pessoa aposentou, essa vaga volta a tá disponível paraa outra pessoa ocupar. Ainda aparece no
+Rodrigo Schecheli Bussolo: é só vai ter informação de quantos já passaram por aquela pelo por aquele quadro,
+Taylor Augusto Dos Santos: histórico.
+Rodrigo Schecheli Bussolo: né? Mas tudo bem, é só amar.
+Taylor Augusto Dos Santos: Tem tem como ver por quando você visualiza a vaga.
+Rodrigo Schecheli Bussolo: Sei se colocar ali a ocupação,
+Taylor Augusto Dos Santos: Não lembro qual exemplo.
+Rodrigo Schecheli Bussolo: né,
+Taylor Augusto Dos Santos: Ele eh ele mostra assim,
+Rodrigo Schecheli Bussolo: se tá em exercício ou não,
+Taylor Augusto Dos Santos: então tipo, ó, por exemplo, o João aqui ele já aposentou e tal.
+00:29:51
+Rodrigo Schecheli Bussolo: né,
+Taylor Augusto Dos Santos: Atualmente quem tá é a Renata, porque esse quadro aqui não foi encerrado. Agora o outro daria,
+Rodrigo Schecheli Bussolo: para.
+Taylor Augusto Dos Santos: eu acho que tem é isso,
+Rodrigo Schecheli Bussolo: Os dois ocuparam a mesma barga lá.
+Taylor Augusto Dos Santos: isso, isso, porque a aquele quadro ele não foi encerrado.
+Rodrigo Schecheli Bussolo: Ah, tá.
+Taylor Augusto Dos Santos: Yeah. A pessoa que tava ocupando a vaga aposentou, então essa vaga tornou a ficar livre de novo, certo? Se esse quadro tivesse sido encerrado, quando a pessoa aposenta, a vaga não volta a ser disponível,
+Rodrigo Schecheli Bussolo: É, não, não. Pensando no normal, ela ela volta a ficar disponível,
+Taylor Augusto Dos Santos: ela volta. Isso,
+Rodrigo Schecheli Bussolo: tá?
+Taylor Augusto Dos Santos: mas a parte acho que do quando ele é encerrado e mostrar quantos falta para aposentar, dá para na verdade quanto já aposentou, como quanto já aposentou, dá para mostrar, talvez.
+Renan dos Santos Araujo: Não,
+Taylor Augusto Dos Santos: Eu vou ver com o Bruno se essa informação é relevante por
+Renan dos Santos Araujo: mas não,
+Rodrigo Schecheli Bussolo: Nem nem tem essa nem tem como apresentar ainda.
+00:30:40
+Renan dos Santos Araujo: não é isso.
+Taylor Augusto Dos Santos: aí.
+Rodrigo Schecheli Bussolo: Ja.
+Renan dos Santos Araujo: E outra situação também, a gente vai ter outro tipo de vacância,
+Taylor Augusto Dos Santos: Uhum.
+Renan dos Santos Araujo: não é só aposentadoria. Então eu não sei se aí compete,
+Taylor Augusto Dos Santos: É,
+Renan dos Santos Araujo: compensa trazer essa informação,
+Taylor Augusto Dos Santos: vai.
+Renan dos Santos Araujo: mas aí a gente vê como é que a gente passa.
+Taylor Augusto Dos Santos: É muita coisa,
+Renan dos Santos Araujo: M.
+Taylor Augusto Dos Santos: Alex.
+Alex Sandro Pereira Garcia: Ah, só confirmando uma coisa, voltando um pouquinho ali, você tinha falado da da categoria que ela vai virar carreira, né? e tem a subcategoria.
+Taylor Augusto Dos Santos: Isso porque como que é na verdade? Na verdade, pelo que a gente for entender, subcategoria, na verdade hoje, né? Se a gente for olhar hoje, subcategoria ela é a carreira, certo? Só que daí eles precisavam de um jeito de filtrar. por exemplo, a gente não tem, digamos assim, a carreira militar, tem carreira aluno militar, tem carreira oficial militar e daí eles precisavam eh só que eles têm regras que se aplicam a várias carreiras diferentes.
+00:31:39
+Taylor Augusto Dos Santos: Então, a maneira que eles fizeram de juntar isso daí foi através da subcategoria. Só que o correto, basicamente, a gente tem carreiras, certo? E essas carreiras têm regras parecidas. Então, em vez de ter criado essas carreiras, ter virado subcategoria, elas teriam que ter feito, é basicamente um filtro. Hoje não sei se tô explicando, direito, ó. Mas vamos lá. Hoje a gente tem categoria, certo? E tem subcategoria, só que tem umas categorias lá que, na verdade, não são categorias, são carreiras. O que a gente vai fazer? A gente vai criar carreiras, certo? E quando precisar um filtro, a gente vai basicamente meio que criar um grupo de carreiras, alguma coisa assim. Essa parte que a gente tá pensando aí, mas subcategoria vai deixar de existir porque na verdade ela nunca existiu. O que existe mesmo são carreiras.
+Danielle Cristina Silva Cruz: foi uma adequação que eles fizeram no sistema para aplicar regras específicas a a um grupo, a um grupo específico.
+Gabriel Rodrigues de Moura: Eles agrupavam então, né,
+Taylor Augusto Dos Santos: É isso,
+Gabriel Rodrigues de Moura: para facilitar uma pesquisa, né,
+00:32:43
+Taylor Augusto Dos Santos: isso,
+Gabriel Rodrigues de Moura: aes agrupavam para facilitar,
+Taylor Augusto Dos Santos: isso.
+Gabriel Rodrigues de Moura: entende?
+Renan dos Santos Araujo: Eh,
+Gabriel Rodrigues de Moura: Não é um cargo que sai em edital,
+Renan dos Santos Araujo: algumas ações,
+Gabriel Rodrigues de Moura: nada, né, nem existe,
+Renan dos Santos Araujo: não.
+Gabriel Rodrigues de Moura: né? É para a dia,
+Taylor Augusto Dos Santos: O que vem da lei mesmo é a carreira.
+Gabriel Rodrigues de Moura: entendeu? M.
+Taylor Augusto Dos Santos: E daí, basicamente, o que eles precisam é um jeito de juntar algumas carreiras para aplicar a regra específica para eles, ah, tem uma regra aqui que eu vou aplicar para carreira militar aluno, carreira militar oficial, carreira militar praça. Então eles teriam que de um por um. Fazendo isso, a gente vai ter que pensar no jeito de juntar essas três e mandar esse comando ali. Então, seria, em vez de fazer um filtro para baixo, vai fazer um filtro para cima. Fechou aí. Ah, tá. Vamos voltar lá na na versão. Quando eu faço uma um versionamento desse quadro, eu tenho seis opções aqui. A primeira é ampliar esse quadro. Então, nada mais é que eu tô pegando a quantidade que eu tenho de vagas nesse quadro e eu tô aumentando.
+00:33:39
+Taylor Augusto Dos Santos: Então, beleza. Antes a gente tinha 500 autorizados aqui, a partir de agora vai aumentar a 100 a mais. Então, é uma conta demais que eu tô fazendo ali naquele quadro. Eh, redução legal. Basicamente eu tô tirando vagas desse quadro, certo? Então, eu tenho 500 autorizadas aqui, eu vou reduzir para 400. 400. Um detalhe, eu só vou conseguir reduzir vagas que estão disponíveis. Com vagas ocupadas, elas nem vão aparecer aqui nessa lista, eh, ou como foi distribuído e tal. Então, as vagas que eh estão ocupadas, eu não vou conseguir mexer nessa redução legal aqui. Eh, eu só a vaga que tá disponível eu consigo diminuir. É hoje que é feito isso. Ele teve uma lei lá que excluiu 50 vagas eh recentemente, ele foi lá na planilha, olhou as que estavam disponíveis, órgão por órgão, e foi diminuindo. As que estão ocupadas, ele não mexe.
+Gabriel Rodrigues de Moura: E a cronologia disso aí, ô ô, a cronologia, tipo, pode acontecer,
+Taylor Augusto Dos Santos: transformação.
+Gabriel Rodrigues de Moura: por exemplo, de ter três ajustes desse na tela, por exemplo, como que o usuário vai entender que passou por esses ajustes?
+00:34:47
+Gabriel Rodrigues de Moura: Não, seria interessante ter só uma dica assim, ter uma espécie de cronologia,
+André Parada de Oliveira Machado: histórico.
+Gabriel Rodrigues de Moura: é histórico, seria na tela ali. Exemp, eu tenho um quadro ali lá na volta na grid lá inicial lá do quadroado.
+Taylor Augusto Dos Santos: Ah, você fala já mostrar o histórico
+Gabriel Rodrigues de Moura: Ah, pera aí. Abre o quadro lá,
+Taylor Augusto Dos Santos: aqui.
+Gabriel Rodrigues de Moura: sabe? Esse quadro aí a gente tem um componente aí que expande, né, para baixo, né? E nesse spande a gente teria um fluxo de como que aquele quadro era no fluxo de tempo de acordo com essas mudanças que são feitas,
+Taylor Augusto Dos Santos: Isso.
+Gabriel Rodrigues de Moura: entendeu? Ah, ele iniciou de uma forma, beleza, é aquilo ali que tá, o primeiro que tá ali é o que sistema tá enxergando para olhar, né? Beleza. Aí alguém foi lá, clicou no maisinho lá, editou e fez uma redução. Aí aparece outro filho dele. Aí seria um quadro aí que aconteceu que ele teve uma um ajuste, uma adequação. Aí mostra como o quadro está agora. Por quê?
+00:35:38
+Gabriel Rodrigues de Moura: como o usuário pode fazer n atuações lá, fica muito subjetivo ele lembrar o que que aconteceu com esse quadro.
+Taylor Augusto Dos Santos: Ah.
+Gabriel Rodrigues de Moura: Então, seria legal ter um fluxo aí até pro sistema saber qual que é o ID de cargo, em tese, o filho desse cargo, desse quadro que eu vou olhar de parâmetro do sistema agora, entendeu? Fica muito subjetivo o car só vir alterar, alterar, alterar e aí como que a gente faz o controle disso? Então, seria interessante. Eu falo isso agora porque não dá de colocar lá na frente porque levando a tela do jeito que está, tá na cara de ser um update, atualização de colunas, mas não é tão assim.
+André Parada de Oliveira Machado: Ка.
+Gabriel Rodrigues de Moura: É um fluxo que a gente tem que guardar o quadro antigo e ter um quadro, vai ser um, vai ter o quadro principal, né? Depois vai ter o quadro abaixo que seria os filhos, os valores dele respectivo para aquele quadro, OK? Aí fez uma alteração, aumentou, diminuiu, extinguiu, ger ação que foi feita, até para a gente poder reverter esse processo, a gente ter saber para onde olhar para trás e qual que era o padrão anterior, entendeu? Isso não dá de ser feito lá na frente, tem que ser feito agora, porque a gente já é muito uma estrutura de banco de dados eh coesa com isso, entendeu?
+00:36:54
+Gabriel Rodrigues de Moura: É o meu ponto de vista aí.
+Taylor Augusto Dos Santos: Uhum. Então se ele começa com a versão que criou lá e cada nova versão geraria esse novo quadro filho. O que eu tinha feito, ele mostraria aqui,
+Gabriel Rodrigues de Moura: Exatamente.
+Taylor Augusto Dos Santos: né, a evolução desse quadro lá, o que foi feito lá para gerar. Mas daí também acho que é, dá para mostrar na na criada também.
+Gabriel Rodrigues de Moura: Porque vai ficar bem confuso. faço, tipo, a gente for fazer só update lá, beleza, mas se precisar voltar, a gente vai depender de uma auditoria que a gente sabe a o cenário lá, hipotético da auditoria paralelo do sistema inteiro, né? Vai duplicar o banco,
+Taylor Augusto Dos Santos: Tá.
+Gabriel Rodrigues de Moura: vai fazer espelho, né? Mas pro usuário aqui, velho, como que ele vai saber isso? Como que a gente vai usar o ID que tá de verdade agora para regras de negócio no sistema, que eu acho que esse quantidade de cargos aí vão, esse quadro vai servir de parâmetros para regras de outras telas,
+Taylor Augusto Dos Santos: Угу.
+Gabriel Rodrigues de Moura: né? Creio eu, né? Não vai ser só isso aí, né? Então, acho que é interessante pensar nisso.
+00:37:50
+Danielle Cristina Silva Cruz: futuramente. Sim.
+Gabriel Rodrigues de Moura: Exatamente. Se a gente faz sem esse essa base bem feita, a gente só faz um update ali de atualização, estamos lascados depois para vai ter que refazer tudo o banco disso aí, refazer toda a implementação. Não sei. Os outros dev os devs aí pode lá. Esse que acho.
+Taylor Augusto Dos Santos: Andre
+André Parada de Oliveira Machado: Oba! Na verdade, vou falar de uma coisa similar, mas é outra coisa. Eh, é uma dúvida se ali na hora de fazer esse update, a gente vai deixar o usuário simplesmente fazer ou ele vai ter uma roll específica para isso?
+Taylor Augusto Dos Santos: caí só, só escutei você agora.
+André Parada de Oliveira Machado: Não, a dúvida é se a gente vai tratar esse update.
+Taylor Augusto Dos Santos: Agora sim,
+André Parada de Oliveira Machado: Tá me ouvindo, Taylor?
+Taylor Augusto Dos Santos: agora sim, agora sim,
+André Parada de Oliveira Machado: A dúvida é se a gente vai tratar esse update só com uma roll lá no manopla ou se a gente vai
+Taylor Augusto Dos Santos: agora
+André Parada de Oliveira Machado: conseguir ver quem que fez a alteração X e Y. Por exemplo, ali, ó, na versão um para dois, teve ampliação legal de 40 pessoas, né?
+00:39:00
+André Parada de Oliveira Machado: Mas eu não sei,
+Taylor Augusto Dos Santos: mostrar quem fez
+André Parada de Oliveira Machado: eu não sei quem que fez isso e se fez errado. Apesar de ter a, pode ser
+Rodrigo Schecheli Bussolo: É, a gente pode colocar nesse nessa versão o usuário que fez que eu acho que essa
+André Parada de Oliveira Machado: Угуm.
+Rodrigo Schecheli Bussolo: versão aí vai ser uma tabela a parte que vai ser tipo um log, um histórico, não vai ser exatamente a tabela do quadro, mas vai ser algo que a gente consiga gravar as informações para ter o histórico. Pelo menos foi o que eu imaginei nesse nesse caso daí eu acho que dava pra gente colocar esse usuário que fez essa ação nele. Aí se quiser
+Gabriel Rodrigues de Moura: Acho que nem só o histórico, professor. A gente precisa guardar, considerar esse ID como parte do sistema pra gente apontar,
+Rodrigo Schecheli Bussolo: colocar
+Gabriel Rodrigues de Moura: porque qual que é o quadro de horário, o quadro que tá agora vigente é esse. Mas qual que são as vagas? Qual que é a abrangência dele? É o status de agora. É o filho dele, né? Do cargo. Eh, a gente tem quadro, né, que seria o pai.
+00:39:56
+Gabriel Rodrigues de Moura: Aí, esse quadro é do cargo X. Beleza? Qual que são as configurações desse filho no momento? Aí a gente teria essa primeira linha, entendeu? Aí o sistema inteiro vai pegar sempre o última versão que é atual, de acordo com quem fez aqui na tela, que tá determinando o sistema agora, né? Acho que seria nessa pegada assim também,
+Rodrigo Schecheli Bussolo: Cara, é, é,
+Gabriel Rodrigues de Moura: viu?
+Rodrigo Schecheli Bussolo: eu não sei como que vai ser exatamente no banco, mas eu pensaria em ter uma tabela parte só para isso daí. Eu é porque imagina assim, você vamos falar que toda hora você gera uma uma um registro novo para gravar essa versão nova, né? Vai chegar uma hora que você distribuiu uma vaga para alguém, talvez você vai estar apontando pro registro errado daí, né? Não sei.
+Gabriel Rodrigues de Moura: Ah, mas é por isso que a gente vai ter os filhos ali. A gente usaria o ID do filho do momento para distribuir aquela vaga. Depois que se muda altera-se o quadro, vai ter um novo filho ali, o novo ID. Esse ID usa para as novas novos crudes, novas regras que vão fazer agora.
+00:41:03
+Gabriel Rodrigues de Moura: O registro que ficou lá para trás, ele ficou apontado pro pro pela paretização do ID antigo que tava que ele era o vigente na época, entendeu? A gente teria toda essa cronologia, tipo, ah, o cara deu um cargo, mas o cargo ele deu uma posse lá para uma pessoa, mas ele estava deu deu uma posse apontando para um ID que um ID que tinha uma parização naquela época. Aí mudou-se o cargo, o quadro, gerou-se o novo ID, o ID3, por exemplo, agora deu cargo, uma aposta para outra pessoa com ID. Logo a gente vai ter no banco lá, tem duas pessoas empolsadas e as duas apontando para dois IDs diferentes porque eram quadros diferentes em períodos diferentes, entendeu? Então a gente não perderia essa cronologia, entendeu? A cada posse que a gente vai dar pra pessoa, a gente tem parametizações que foi que foi empregada para aquela pessoa tomar posse no período, entendeu? Seria nessa a ideia. É a ideia de pai e filho mesmo ali, entendeu?
+André Parada de Oliveira Machado: É, basicamente é ficar ficar no histórico,
+Gabriel Rodrigues de Moura: A gente usaria os filhos para apontar.
+André Parada de Oliveira Machado: né, que você fala.
+00:42:00
+Gabriel Rodrigues de Moura: Exatamente. Mas precisa ter estrutura.
+André Parada de Oliveira Machado: Entendi.
+Gabriel Rodrigues de Moura: Não dá de fazer um histórico simples. É a estrutura bem feita. Então,
+Rodrigo Schecheli Bussolo: Ele fala que o ver, Yeah. A distribuição vai ser apontando pra versão.
+André Parada de Oliveira Machado: É que aí ia ver quando que o cara entrou.
+Gabriel Rodrigues de Moura: Exatamente.
+André Parada de Oliveira Machado: entende?
+Gabriel Rodrigues de Moura: É, a gente aponta porque ah, porque, exemplo, agora vai est a versão três aqui. Aí a gente tem um carinha lá que tava foi com a versão dois, mas aí os cara, pô, não faz sentido. Aqui era assim, agora é assim. Eles, a gente vai ter os períodos ali para apontar, ó. Esse era a configuração quando esse cara tomou posse. Isso dá muito mais auditoria pro pessoal saber o que aconteceu nesse universo de 1 milhão de quadro aí que vai ter diversão, do que a gente só fazer updates e ficar escondendo do cara ali. É, é até pra gente mesmo. A gente vai se perdendo nesse trem aí. O usuário não vai achar intuitivo.
+00:42:49
+Gabriel Rodrigues de Moura: Aí pedi uma auditoria de tabela de espelho para saber. Ave Maria. M.
+Rodrigo Schecheli Bussolo: É, não, tipo assim, eu entendo a forma que você tá imaginando, eu não consigo ver, tipo assim, ah, eu tomei posse no quad na versão um e o cara tomando posse na versão três. Eu não consigo ver essa necessidade de de
+Gabriel Rodrigues de Moura: que simplesmente,
+Rodrigo Schecheli Bussolo: informação.
+Gabriel Rodrigues de Moura: entendeu? Saber o que aconteceu
+Rodrigo Schecheli Bussolo: Mas é que a a distribuição não não tá sendo afetada
+Gabriel Rodrigues de Moura: ali.
+Rodrigo Schecheli Bussolo: aqui. O que tá afetando aquil só tá aumentando ou diminuindo a vaga.
+Gabriel Rodrigues de Moura: Quantidades a gente precisa saber. São números. Números. A gente não sabe que é números.
+Rodrigo Schecheli Bussolo: Então, mas ô,
+Gabriel Rodrigues de Moura: números são, eu preciso saber qual que era a quantidade de número naquele período.
+Rodrigo Schecheli Bussolo: ele ele ele era 100, foi para 150.
+Gabriel Rodrigues de Moura: Aí depois ele pega e aumenta para 180. E aí que qualquer são
+Rodrigo Schecheli Bussolo: Tá beleza.
+00:43:45
+Rodrigo Schecheli Bussolo: Que que faz diferença de eu ter sido entrado na vaga 180 e o
+Gabriel Rodrigues de Moura: njo
+Rodrigo Schecheli Bussolo: cara ter entrado na vaga 100? Por que que a gente tá em versões diferentes?
+Gabriel Rodrigues de Moura: controle de auditoria mesmo assim que o cara tá fazendo ali no período e por que conseguiu passar se na antes ele era ele conseguia era só 150 e agora consegue 180 por mudou as parametrizações do período. Eu penso dessa forma.
+Rodrigo Schecheli Bussolo: Não,
+Gabriel Rodrigues de Moura: de controle mesmo, entendeu?
+Rodrigo Schecheli Bussolo: e eu eu até eu até acho que pode ter essas versões.
+Gabriel Rodrigues de Moura: São números, objetivos.
+Rodrigo Schecheli Bussolo: Eu acho que essas versões é OK ter só eu eu acho que a distribuição da vaga não precisa tá vinculada a versão, pode estar vinculado ao quadro que no final vai eu tipo assim você fala para mim: "Ah, por que que ele conseguiu entrar com se antes era 100, 180?" Ele vai olhar a versão, fala: "Não, ó, ele ele entrou nesse período, nesse período aqui a versão era essa." Tipo,
+André Parada de Oliveira Machado: É,
+Rodrigo Schecheli Bussolo: não sei sei,
+00:44:48
+André Parada de Oliveira Machado: dá para fazer isso também. Pelo
+Rodrigo Schecheli Bussolo: é, não sei. É, bom, vamos ver. A gente a gente discute essa modelagem depois,
+André Parada de Oliveira Machado: acaso,
+Gabriel Rodrigues de Moura: É,
+Rodrigo Schecheli Bussolo: eu acho.
+Gabriel Rodrigues de Moura: tem que ver com o pessoal de banco aí. É só uma ideia que eu vi ali que eu acho que vai se perder esses valores aí,
+Rodrigo Schecheli Bussolo: Eh, não, é interessante, sim. É, é interessante sim.
+Gabriel Rodrigues de Moura: entendeu?
+Rodrigo Schecheli Bussolo: Eu só não consigo ver talvez a necessidade mesmo. É que eu fico pensando, eh, se eu pedir um select para você, ah, me vê todos os quadros, eh, todas, eh, todo mundo que tá destruído nesse quadro, eu vou ter que ter mais uma um inner com uma tabela no meio aí, que seriam as versões, né? Eu dá também. É só questão de depois a gente discutir e ver aqui que é melhor mesmo.
+Gabriel Rodrigues de Moura: É, tem que falar com o pessoal do banco junto aí.
+Rodrigo Schecheli Bussolo: Acho que essa parte é,
+00:45:39
+Gabriel Rodrigues de Moura: É uma coisa que tem que discutir antes de iniciar o desenvolvimento disso aí que depois que entregou e
+Rodrigo Schecheli Bussolo: eu acho que a Aryadne já tá
+Gabriel Rodrigues de Moura: mudar de novo,
+Rodrigo Schecheli Bussolo: ela,
+Gabriel Rodrigues de Moura: aí fica naquele tira p tira p refaz, desfaz.
+Rodrigo Schecheli Bussolo: eu acho que ela já recebeu o o as US mais sexta.
+Gabriel Rodrigues de Moura: Eu vi esse carinha aí, Ren Canada.
+Rodrigo Schecheli Bussolo: Então, então depois a gente discute melhor isso.
+Luciano da Silva Oliveira: Oi. Consegue voltar lá na na opção novo lá, só para tirar uma dúvida ali. Eh, não, no outro lá, novo cadastro, novo quadro. Eh, ali embaixo ali, pode abaixar um pouquinho, a gente tem o indicar órgãos e quantidades de cada um. Eh, a gente acaba solicionando os órgãos aí, mas existe a possibilidade do usuário falar assim: "Eu quero fazer esse, mas eu não tenho". Selecionar um órgão, dois órgãos aí. Eu quero aplicar uma quantidade paraa casa civil, mas o da Gero, eu quero mexer posteriormente, ou seja, ele não quer atribuir a quantidade de vagas no momento, porque ah, eles não definiram a quantidade de vagas lá agora, eu vou colocar depois, mas eu já quero deixar os outros árferido, porque eu já tenho essa essa essa quantidade.
+00:47:05
+Taylor Augusto Dos Santos: Ah,
+Luciano da Silva Oliveira: Ele vai abrir essa possibilidade.
+Taylor Augusto Dos Santos: seria um meio termo, né? É, não, em teoria tem que ter como, porque daí eu vou ver como se tem esse cenário, mas tem como, por exemplo, eu distribuiria 100 aqui para um, não, isso aqui é outro e o restante ficaria pendente de ato, digamos, se ele tivesse mais órgãos aqui. Aí as outras vagas ainda ficam pendente de ato de distribuição. Eu só tô limitando esses órgãos aqui agora. Aí quando ele for fazer distribuição, só teria que aparecer esses órgãos aqui.
+Thássyus Fabiano M de Almeida Carvalho: มา
+Luciano da Silva Oliveira: Então isso daí vai permitir então nesse caso ou até acho
+Taylor Augusto Dos Santos: Uhum.
+Luciano da Silva Oliveira: que se você clicar em salvar ele tá pedindo obrigatoriamente para preencher ali. Aí, no caso, ele colocaria zerado.
+Taylor Augusto Dos Santos: Já para preencher tudo, né? É porque nesse caso aqui é não, nesse caso ele teria então só de selecionar os órgãos, salvar, ir lá e distribuir. Wi. só para ger ele consegue essa
+Luciano da Silva Oliveira: Eh,
+Taylor Augusto Dos Santos: daqui, porque essa daqui ele tem que refletir a lei.
+00:48:17
+Taylor Augusto Dos Santos: Só se eu vou ter que ver se a lei tiver, porque estranha a lei, digamos assim, eu vim com a lei e a lei tá falando, ó, tem 500 vagas, senha da tem esses outros três órgãos aí. Então, acho meio estranho. Acho que o se caso acontecesse esse esse cenário, ele teria que vir aqui indicar só os órgãos e daí ele vai lá e distribui só para ager. dele consegue fazer isso em vez dele já fazer essa pré pré-distribuição para dar aqui é nessa opção aqui seria quando já vem tudo mesmo. É porque ela tem que refletir a lei, querendo ou não.
+Luciano da Silva Oliveira: Os órgãos que vai exibir aí vai ser todos da tela de órgãos ou vai ser órgãos vinculados a instituições? Como é que vai ser os órgãos que vai aparecer aí?
+Taylor Augusto Dos Santos: Isso aí vai ser mexido também, né? Isa aí já tá órgão vai mudar,
+Reunião TI - SEPLAG: Desculpa, eu não ouvi.
+Danielle Cristina Silva Cruz: Vai
+Reunião TI - SEPLAG: Repete aí.
+Taylor Augusto Dos Santos: né? Órgão instituição.
+Danielle Cristina Silva Cruz: mudar.
+Reunião TI - SEPLAG: Isso não é comigo não.
+Danielle Cristina Silva Cruz: Sou eu.
+00:49:33
+Danielle Cristina Silva Cruz: Sou eu.
+Taylor Augusto Dos Santos: Ah,
+Danielle Cristina Silva Cruz: Não,
+Taylor Augusto Dos Santos: foi mal.
+Danielle Cristina Silva Cruz: mas aí eu não sei como é que você fez. É,
+Taylor Augusto Dos Santos: É,
+Danielle Cristina Silva Cruz: não,
+Taylor Augusto Dos Santos: não.
+Danielle Cristina Silva Cruz: aqui o
+Taylor Augusto Dos Santos: Aqui eu só preciso dos órgãos. todos os órgãos, no caso que ele vai mexer aí a parte antes tinha setor também, mas não vai mexer com setor, é só órgão mesmo. Basicamente eu tenho que listar tudo que tem aqui no no cadastro de órgão.
+Danielle Cristina Silva Cruz: todos os órgãos ativos. Okej.
+Taylor Augusto Dos Santos: É.
+Thássyus Fabiano M de Almeida Carvalho: Eh, uma dúvida com relação a essa parte aí. Assim, entendi. Eu entendi que na verdade são duas primeira é Então, nesse caso, eu indicou os órgãos,
+Murilo de Alencar Silva: Yeah.
+Thássyus Fabiano M de Almeida Carvalho: mas quantitativos, mas aí eu vou lá e distribuos. Aí os outros três ainda eu não tenho essa quantidade, mas eu teria a necessidade de voltar aqui e criar um versionamento para daí colocar as vagas restantes, porque vai tá vinculado em outra lei para daí distribuir.
+00:50:34
+Taylor Augusto Dos Santos: Tá aqui, ó, aqui a gente não especifica órgão, fica tudo pendente de hábito. Eu posso já indicar os órgãos, que eu tô meio que filtrando isso aí, permitindo só para esses órgãos ali, ou então ele já sai daqui completo com tudo distribuído. Então seria essas três opções. Nessa daqui, no caso, se eu indicar só o órgão, aí eu tenho que ir lá e fazer a distribuição. Quando eu faço a distribuição, eu não preciso distribuir tudo. Posso distribuir só um uma parcela dela.
+Thássyus Fabiano M de Almeida Carvalho: É mais por aquela questão que a gente falou de lançamento parcial mesmo, entendeu?
+Taylor Augusto Dos Santos: Isso.
+Thássyus Fabiano M de Almeida Carvalho: para entender exatamente como que esse fluxo então vai vai realmente ficar nesse sentido, entendeu? Você teria, por exemplo, indica indicou os órgãos de quantitativo parcial ali, por exemplo, mais exemplo, tá? Não sei.
+Taylor Augusto Dos Santos: É porque pelo que o BR tinha falado, quando ou ele indica eh não indica nada, só a quantidade, ou ele indica os órgãos ou ele já indica tudo quando vem da lei. Vou ver se tem algum caso desse parcial aí, mas se for, ele basicamente ele vem aqui, indica só os órgãos e depois distribui
+00:51:42
+Thássyus Fabiano M de Almeida Carvalho: E outra dúvida é com relação a,
+Taylor Augusto Dos Santos: lá.
+Thássyus Fabiano M de Almeida Carvalho: acho que eu entendi com relação ao que o Gabriel tinha comentado da questão dos lados. É porque não sei se is é um caso específico, né? Mas digamos que em algum momento eh por uma determinada lei, certa certo caso vai ser aplicado. Isso tava ali na versão três, por exemplo. E aí paraas novas paraas novas vagas ali, paraas novas para é para as novas vagas aí eu vou ter uma lei específica vai ter outras regras de negócio vai ser utilizada em outro local no sistema. Então, nesse caso, a gente conseguiria ter exatamente essa essa aplicação. A gente conseguiria falar que a partir daquela versão para aquelas novas vagas específico, eu ten uma outra regra de negócio aplicada em algum outro lugar no sistema. Aí isso resolveria um problema.
+Taylor Augusto Dos Santos: Acho tá com micro aberto.
+Luciano da Silva Oliveira: Ah, é, eu tô olhando lá na na nos arquivos lá que você colocou no driver lá, você tem uma US que é editar, excluir, distribuir.
+00:52:51
+Luciano da Silva Oliveira: Tô dando uma
+Taylor Augusto Dos Santos: O distribuir lá,
+Luciano da Silva Oliveira: olhada
+Taylor Augusto Dos Santos: ele é só desse atalhozinho que tem aqui. Ele não tá distribuindo nada lá ainda. Só
+Luciano da Silva Oliveira: que da US4 ele fala editar,
+Taylor Augusto Dos Santos: só
+Luciano da Silva Oliveira: excluir e distribuir quadro a quatro. Não, não, lá, lá naquela, lá naquela lá que você tá essa US4 é ela,
+Taylor Augusto Dos Santos: esse aqui, né?
+Luciano da Silva Oliveira: pelo que, pelo que eu entendi, a gente a mesma coisa do do novo
+Taylor Augusto Dos Santos: É,
+Luciano da Silva Oliveira: ali, muda mudou nela ali para pro novo.
+Taylor Augusto Dos Santos: é, não, essa daqui eu tô meio que falando o comportamento desses desses botões aqui, que o editar, né, o o excluir, o distribuir é basicamente eu tô falando para ele jogar para outra tela lá, é como se fosse um atalho que da ele já vem filtrado. Ele não, ele ela não chega em especificar a regra de distribuição, nada, é só meio que as o as ações desses botões aqui fora o distribuir. Aí o version é o que fala tudo do versionário. O essas daqui, pessoal, Já. Deixa eu ver. Quadro autorizado.
+00:54:11
+Taylor Augusto Dos Santos: É quadro autorizado. Eu já atualizei, tá? Aí elas tão, tá? A V2 aqui. A eu separei a V1 tá aqui ainda teve alguns comentários que vou ter que dar uma olhadinha certinho. Como teve coisa que eu apaguei e tal, não queria só editar o arquivo mesmo. Toda nova versão eu crio no ali, tá? Então vamos voltar lá. Distribuição. Amplia, então soma eh redução. Vou diminuir vagas que estão disponíveis. Eu não posso mexer com as vagas ocupadas. Transformar. Eu basicamente tô trocando o cargo. Eu tô falando, ó, esse quadro aqui antes ele tratava de um, agora ele tá tratando de outro. Então é como se ele fosse pegar vagas daqui e jogar para um outro quadro. Vagas que tão disponíveis também. A gente só vai mexer aqui com vagas que estão disponíveis. vaga que tá preenchida vai ser uma outra parte que é a parte de movimentação, aí vai incluir sessão, remoção. Então, até mesmo nesse transformar aqui, eh, acontece isso também, só que eu tô pegando essas vagas e jogando elas para um outro quadro.
+00:55:29
+Taylor Augusto Dos Santos: Então, a pessoa tem que ir lá, eh, se tiver ainda, ela tem que ir lá criar esse novo quadro e daí ela pode vir aqui jogar essas vagas para lá.
+Thássyus Fabiano M de Almeida Carvalho: Uma coisa que eu percebi nessa distribuição de opções é que me parece que você fez uma distribuição por coluna.
+Taylor Augusto Dos Santos: Fosso.
+Thássyus Fabiano M de Almeida Carvalho: É isso mesmo? Ali na primeira coluna somente o que é possível adicionar, na segunda reduzir. Aí a terceira e quarta elas não elas são dessa forma que é o ícone ali dá a ideia de uma coisa
+Taylor Augusto Dos Santos: Ah, não. Foi foi coincidência.
+Thássyus Fabiano M de Almeida Carvalho: diferente.
+Taylor Augusto Dos Santos: Foi coincidência o ícone,
+Thássyus Fabiano M de Almeida Carvalho: Ah,
+Taylor Augusto Dos Santos: né? Mais,
+Thássyus Fabiano M de Almeida Carvalho: é.
+Taylor Augusto Dos Santos: mais, menos, menos. Não, foi coincidência.
+Thássyus Fabiano M de Almeida Carvalho: Aí eu aí eu pensei que você tava separando dessa forma.
+Taylor Augusto Dos Santos: Não, não foi só, eu só adicionei eles dois aí ficou ali com instância,
+Thássyus Fabiano M de Almeida Carvalho: Ah.
+00:56:14
+Taylor Augusto Dos Santos: Rodrigo.
+Rodrigo Schecheli Bussolo: Nesse transformar aí você colocou lá que tem que girar duas versões,
+Taylor Augusto Dos Santos: Aham.
+Rodrigo Schecheli Bussolo: tá?
+Taylor Augusto Dos Santos: Atualizei lá que ele vai ter que versionar esse quadro e o destino também. Só faltou, deixa eu ver
+Reunião TI - SEPLAG: Ixe, ele caiu,
+André Parada de Oliveira Machado: caiu.
+Reunião TI - SEPLAG: ele caiu.
+André Parada de Oliveira Machado: Ah, tá. Okay.
+Reunião TI - SEPLAG: Você caiu aí,
+Danielle Cristina Silva Cruz: Tá ouvindo?
+Reunião TI - SEPLAG: Taylor.
+Danielle Cristina Silva Cruz: Eu não tô vendo ninguém. Okay.
+Reunião TI - SEPLAG: Pera aí, gente. Problemas técnicos. tá reconectando.
+Thássyus Fabiano M de Almeida Carvalho: em contato
+Taylor Augusto Dos Santos: Alô, alô. Soltei.
+Reunião TI - SEPLAG: Agora sim.
+Taylor Augusto Dos Santos: Preciso de um cabo de rede
+Rodrigo Schecheli Bussolo: Ô Taylor,
+Danielle Cristina Silva Cruz: Todos nós. Yeah.
+Rodrigo Schecheli Bussolo: como que vai ficar lá no no destino?
+Taylor Augusto Dos Santos: aqui.
+00:57:26
+Rodrigo Schecheli Bussolo: Como que vai ser esse transformação aí? Como que vai ser identificado a versão lá? Porque lá não vai ser uma transformação, né? Lá vai ser outra coisa, né?
+Taylor Augusto Dos Santos: É uma transformação também, porque ele em teoria não é uma uma ampliação, né? Porque ele foi transformado também. Ele recebeu aquelas vagas lá.
+Rodrigo Schecheli Bussolo: É que um é transforma para mais, outro para menos, senão não era bom ter
+Taylor Augusto Dos Santos: Isso daria para daria para especificar isso, transformação mais,
+Rodrigo Schecheli Bussolo: uma
+Taylor Augusto Dos Santos: transformação menos e tal, só para mostrar visualmente, né? Mas o que eu falo, eu não posso falar que o outro órgão sofreu uma ampliação porque daí não teria uma lei de
+Rodrigo Schecheli Bussolo: ou transformação origem e outro destino.
+Taylor Augusto Dos Santos: ampliação.
+Rodrigo Schecheli Bussolo: Só para conseguir identificar quem que é quem.
+Taylor Augusto Dos Santos: Quem recebeu e quem Aham.
+Rodrigo Schecheli Bussolo: É, o Não, não seria interessante ter uma observação nesse nesse tipo de versionamento aí?
+Taylor Augusto Dos Santos: Um campo livre.
+Rodrigo Schecheli Bussolo: É pro cara escrever alguma mensagem aí, não sei.
+00:58:33
+Taylor Augusto Dos Santos: É, faltou isso. Eu
+Luciano da Silva Oliveira: Ô Taylor, teve uma regra que você colocou aqui que a data início deve existir no calendário 29/12, somente é válida no bico.
+Taylor Augusto Dos Santos: vou eh na parte de data, eu vou conversar com o Bruno hoje sobre isso aí. para para não que essa data de efeito aqui é como se fosse jogar pro futuro, talvez agendar lá e tal. Vou ver se a gente consegue remover isso aí. A partir do momento que mexeu nessa tela, já tá válido, digamos assim,
+Rodrigo Schecheli Bussolo: É, seria bom.
+Taylor Augusto Dos Santos: porque senão eu acho que a complexidade aumenta
+Rodrigo Schecheli Bussolo: Sen não vai ter aquele caso lá que a gente discutiu de sumir,
+Taylor Augusto Dos Santos: bastante.
+Rodrigo Schecheli Bussolo: não tem informação, eu quero conseguir fazer duas vezes pro data futuro. Não tem lugar exibindo.
+Taylor Augusto Dos Santos: Da ideia é quando ele vem aqui mexendo nessa tela já vai tá valendo. Não tem a parte de agendamento. Aí eu teria que revisar. Aí eu vou revisar essas data tudo, basicamente. Tirar esse campo de efeito. Ele vai est só lá no no criar o dato.
+00:59:51
+Taylor Augusto Dos Santos: A gente até salva quando foi feito e tal, né, para mostrar lá no histórico, mas não para não ter a parte de agendamento.
+Luciano da Silva Oliveira: Eh Yeah.
+Taylor Augusto Dos Santos: Aí eu revejo todas essas regras de de data. extinção, né? É aquilo lá que eu falei, basicamente todas as marcas, eu tô encerrando o quadro e quando aí todo mundo aposentar, ele passa a ser extinto. Então, a mudança principal é que a partir do momento que esse quadro teve extinção progressiva e a a pessoa que tá ocupando ele se aposentou, ela não volta a ser disponível. Eh, no quando faço instituição progressiva, todas as vagas que estão disponível deixa de ser disponível, passa a ser encerrada lá e tal, e as que estão ocupadas vai ficar esperando as pessoas aposentaras ser encerrado. Tem que olhar se o charado, né? É, se ele tiver usado, ele só vai, é como se ele marcasse tabela de pingo, ele iria mexer na vaga, né? Talvez, só que daí já ainda não tem alguém algo extinto para mim encerrar
+Danielle Cristina Silva Cruz: Nossa, para vocês não acharem que o trailer tá louco,
+Taylor Augusto Dos Santos: extinguir que ver se tem uma câmera aí que já terminou a fotografia dele.
+01:01:05
+Danielle Cristina Silva Cruz: o Gabriel tá aqui do lado dele questionando
+Taylor Augusto Dos Santos: Acho que dá para eles ouvir como vai extinguir quando tem que ver se tem alguém lá que eu disse que só pode extinguir ele quando a última pessoa que tá lá foi aposentada, correto? Então eu tenho que olhar a tela de vínculo, ver quem tem o o cargo desse quadro, desse quadro, ver se eles estão ativos, né? Se tiver ativo, eu não faço essa distinção, né? Não é que assim, é quando você a partir do momento que ele fez a extinção, já começa a mexer das vagas disponível, deixa ser disponível. Sem pensar num questão de vagas, quero saber a regra de negócio antes de poder fazer mexer com vagas. aqui, só posso mexer, só posso extinguir quando não tiver servidor, po, pode, pode. Tive servidor ativo, você pode extinguir, pode extinguir, só que você não vai mexer em nada neles. A única coisa que você vai mexer é quando ele aposentar, a vaga dele não volta a ser, não volta a estar disponível, porque eu não posso vir aqui e aposentar o servidor, não é? Essa essa aqui eu só quero ver se quem tava mexendo cavalo. A parte de aposentar o servidor vai ser lá na na parte de de de não é vacância.
+01:02:28
+Taylor Augusto Dos Santos: Qual que é o nome aqui? Eu só vou est marcando a vaga. Eu tô falando, ó, a sua vaga ela tá marcada paraa extinção. Então quando ele aposentar, essa vaga não volta a ser disponível. as vagas, as vagas que estão disponível fica encerrado lá e as vagas que estão ocupadas vai receber um estatuzinho lá em encerramento, alguma coisa assim para ela não voltar a ser disponível. Aqui eu só vou mexer com a vaga. Não, não vou mexer com o servidor. inclui o órgão. Então, por eh nesse cenário aqui surgiu, porque, por exemplo, às vezes surgiu um órgão novo, então esse órgão vai utilizar essas vagas, então posso vir aqui incluir esse órgão. Aí eu vou ter que eventualmente fazer uma ampliação, talvez, ou fazer uma distribuição, mas a única coisa que eu vou fazer primeiro é incluir esse órgão, o restante depois. e exclusão de órgão. Aí no caso, eh eh esse órgão, por exemplo, deixou de existir também. Aí a regra disso daqui incluir, eu posso incluir a única regra de inclusão eu não posso incluir um órgão que já tá incluso, certo?
+01:03:43
+Taylor Augusto Dos Santos: e exclusão. Eu só vou poder excluir esse órgão se ele não tiver mais nenhuma vaga vinculada nele. Então, ou já vai ter sido feito todas as movimentações, todas as as redistribuições lá e tal, aí eu vou conseguir excluir esse órgão desse cargo, desse quadro aqui.
+Deyvison dos Santos Silva: Pensando nisso que você falou aí,
+Taylor Augusto Dos Santos: Bem-vindo.
+Deyvison dos Santos Silva: Taylor, de ampliar as vagas e incluir o Morgon, não tem como fazer os dois juntos na mesma ação, no mesmo versionamento. Então, no caso,
+Taylor Augusto Dos Santos: Hum.
+Deyvison dos Santos Silva: teria que criar duas versões.
+Taylor Augusto Dos Santos: Isso. Porque primeiro eu incluo aquele órgão lá porque esse órgão foi criado ou vai, sei lá, teve algum documento disso aí. E daí depois disso aí eu vou eh criar, porque às vezes eu nem preciso criar novas vagas, certo? Às vezes já tem vagas disponíveis lá. Então eu só adiciono esse órgão, pego as vagas disponível e faço uma redistribuição. Ou ou eu vou ah não, não tem vagas aqui, mas beleza. Eu adiciono esse órgão. Aí eventualmente vai ter uma ampliação desse dessa desse quadro e daí eu pego essas vagas e adilo para esse órgão ali.
+01:04:47
+Taylor Augusto Dos Santos: Então eu deixei separado porque são vários cenários.
+Deyvison dos Santos Silva: Valeu, Taylor.
+Rodrigo Schecheli Bussolo: É, acho que eu tava viajando aqui um pouco.
+Taylor Augusto Dos Santos: Rodrigo
+Rodrigo Schecheli Bussolo: Eh, só tira uma dúvida dessa exclusão aí de órgão. Eh, você consegue excluir um órgão que tem gente alocada nele?
+Taylor Augusto Dos Santos: não, não, nada. Aqui você não,
+Rodrigo Schecheli Bussolo: Ah, então só que sigo se não tiver nenhum
+Taylor Augusto Dos Santos: se tiver Se tiver isso não pode ter nada. Se tiver uma vaga lá, ela pode estar ocupada, disponível, seja o que for, eu não consigo excluir o órgão. Aí para eu conseguir excluir o órgão, eu teria que lá na parte de movimentação, que a gente não fez ainda, para fazer, acho que é remoção do servidor, que é quando eu mudo ele de órgão e a vaga dele vai junto. Isso é uma outra coisa que a gente não tá incluso aqui porque faz parte da vida útil do servidor lá. sessão e remoção é cabuloso. E ou então, digamos assim, ah, tem um órgão, ele tá com 10 vagas, elas estão disponíveis, eu teria que ir lá pegar essas 10 vagas, redistribuir elas para outro órgão.
+01:05:54
+Taylor Augusto Dos Santos: A partir do momento que esse órgão não tem nenhuma vaga daquele cargo ali, daquele quadro, aí eu posso vir aqui e excluir ele, certo? Isso aqui geralmente
+Rodrigo Schecheli Bussolo: Esse esse M. Caso que você falou que mover o mover a pessoa era de um órgão, ela foi para outro órgão. Aí você vai mover ela e você vai est em outro lugar,
+Taylor Augusto Dos Santos: Isso é,
+Rodrigo Schecheli Bussolo: certo?
+Taylor Augusto Dos Santos: vai ser, vai ser outra parte que isso aí depende daí, acho que vai ser útitor, alguma coisa assim.
+Rodrigo Schecheli Bussolo: Tá.
+Taylor Augusto Dos Santos: Isso aí depende de muita coisa que ele mexe com salário,
+Rodrigo Schecheli Bussolo: É,
+Taylor Augusto Dos Santos: mexe com tudo. Aí uma das condições disso é quando é quando acontece uma remoção,
+Rodrigo Schecheli Bussolo: mas
+Taylor Augusto Dos Santos: a vaga dele vai junto. Então, e tem várias condições de remoção interna, externa, pode remover de um órgão pro outro.
+Rodrigo Schecheli Bussolo: mas o o só eu só eh saber quando isso acontecer em outro lugar,
+Taylor Augusto Dos Santos: Então,
+Rodrigo Schecheli Bussolo: vai gerar um uma versão aí?
+Taylor Augusto Dos Santos: porque em teoria diminuiu uma vaga, né? É, pode ser.
+01:07:10
+Taylor Augusto Dos Santos: Mas daí cada remoção vai gerar uma nova versão. Não, acho que
+Rodrigo Schecheli Bussolo: É, só só pensa isso no futuro aí,
+Taylor Augusto Dos Santos: não.
+Rodrigo Schecheli Bussolo: depois a gente vê.
+Taylor Augusto Dos Santos: É, vai ter é não sei porque isso daí aí o histórico vai ficar gigantesco aqui. Mas daí cada pessoa que foi removida vai gerar uma nova versão, porque remoção é quando a pessoa vai para um outro órgão e leva a vaga dele junta. Então em teoria, eu tô diminuindo aqui. Tá mudando o quadro, né? Tá uma versão vai ter que ter. Vai, caramba, esse negócio vai ficar gigante. Eu não quero mais isso deixar um esse objetivo, velho. Como que as pessoas vão? Porque daí em teoria vai, ela vai ver que diminuiu as vagas e não não explica o eh, provavelmente vai ter que gerar uma nova versão, mas deixa isso aí pro loucura. Tá a
+Luciano da Silva Oliveira: Ô Taylor,
+Taylor Augusto Dos Santos: explosão.
+Luciano da Silva Oliveira: tudo isso daí que você tá comentando aí já tá atualizado da das
+Taylor Augusto Dos Santos: Quadro.
+Luciano da Silva Oliveira: documentação?
+01:08:34
+Taylor Augusto Dos Santos: Calma aí. Quadro autorizado. Já foi. Distribuição. Falta duas, eu acho. Aí acho que vagas. Eu não sei se mudou muita coisa. E o dash teve algumas coisinhas que mudou lá. O que tá atualizado porando é quadro e distribuição. Hoje eu já quero finalizar eles todos.
+Luciano da Silva Oliveira: É que essas essas no quadro aí vai ter que ver essa esses pontos que o pessoal colocou aí, né, para atualizar aí as documentações e tal.
+Taylor Augusto Dos Santos: Não, mas daí hoje o dia inteiro eu já vou atualizando o que falta.
+Luciano da Silva Oliveira: Não,
+Taylor Augusto Dos Santos: Taylor.
+Luciano da Silva Oliveira: dá uma revisada lá.
+Taylor Augusto Dos Santos: Tem um campo de observação, transformação, origem destino. Talvez a parte de mostrar o histórico aqui, dá para ter um um negócio que expande aqui. Beleza. Pressionamento. Alguma dúvida? Tá seguindo, vamos paraa distribuição. Então, eh, basicamente, eh, novamente, eu tô só mexendo com as vagas que não estão ocupadas, certo? Se uma vaga tiver com uma pessoa dentro lá, aí vai ser remoção ou eh ou sessão.
+01:09:55
+Taylor Augusto Dos Santos: Sessão é um outro tipo. A pessoa vai para um outro lá, só que ela não meio que não desocupa a vaga e tal. Eh, e ela não ocupa uma outra vaga lá também. Só ela mantém a vaga dela, mas tá trabalhando outro órgão. É outro outra coisa que não tá mexendo aqui. Aqui é só com as vagas que não tão ocupadas ainda. Eh, se ela tá movimentada, ou seja, quer dizer que ela não foi distribuída ainda, certo? Então, eu poderia vir aqui e redistribuir elas, porque nesse caso já tem os órgãos lá. Pendente de ato de distribuição. Que que é isso? Ele foi lá, criou o quadro, mas não definiu nenhum órgão. Então as aquelas vagas lá é como se ela tivesse num banco de vagas do estado lá. Então ela não alô, alô,
+Danielle Cristina Silva Cruz: Voltou. Volto.
+Taylor Augusto Dos Santos: voltou. Deixa eu voltar aqui também. Então, se eu fui lá, criei o quadro, mas não defini nenhum órgão, aquela primeira opção lá. Então, ele vai tá pendente desse ato de distribuição, eu vou vir aqui e vou fazer essa distribuição.
+01:11:05
+Rodrigo Thaua Lima Barroso: Ó, pediram para pedir para segurar que a menina tá passando pano aqui na na mesa.
+Taylor Augusto Dos Santos: Vou escolher os órgãos. Beleza. Да. Vai continuar avisi.
+Carlos Vitor Vieira Mattos: Yeah.
+Thássyus Fabiano M de Almeida Carvalho: Yeah.
+Alex Sandro Pereira Garcia: Pessoal tá na escuta aí.
+Thássyus Fabiano M de Almeida Carvalho: Sim.
+Eddie Allen de Medeiros Pinto: Sim.
+Alex Sandro Pereira Garcia: Seguinte, tava falando aqui com o pessoal aqui, eh,
+Taylor Augusto Dos Santos: Sim.
+Alex Sandro Pereira Garcia: que que vocês acham da gente deixar para tarde? Aí vocês atualizam a documentação do que a gente do que foi falado e a gente dá com dificidade o almoço, que já é 10:45. chamar perfeito.
+Taylor Augusto Dos Santos: Pode ser, pode ser.
+Alex Sandro Pereira Garcia: Então tá combinado. Então já marca na agenda já pra gente então, por gentileza. Passou de 1 hora e meia todo mundo já
+Taylor Augusto Dos Santos: toda
+Alex Sandro Pereira Garcia: fica.
+Danielle Cristina Silva Cruz: A partir das duas,
+Alex Sandro Pereira Garcia: Oi.
+Danielle Cristina Silva Cruz: a partir das 2 horas. Yeah.
+Alex Sandro Pereira Garcia: Fechou por mim. OK. Pelo pessoal aqui também.
+Rodrigo Schecheli Bussolo: O que que é? Cheguei agora. Fala de
+Danielle Cristina Silva Cruz: Não consegui entender Só
+Rodrigo Thaua Lima Barroso: vai encerrar e vai voltar as
+Rodrigo Schecheli Bussolo: Oi.
+Rodrigo Thaua Lima Barroso: duas.
+Rodrigo Schecheli Bussolo: Poxa. OK. Já foi essa daí da distribuição.
+Aryadne Lelis De Oliveira: Não,
+Taylor Augusto Dos Santos: Não,
+Aryadne Lelis De Oliveira: ainda não.
+Taylor Augusto Dos Santos: ainda não paramos nela.
+Rodrigo Schecheli Bussolo: A, então beleza.
+Alex Sandro Pereira Garcia: A gente continua então e e as questões lá das outras histórias vocês atualizam na pra gente, então fechou. Bom almoço, pessoal. Ah. Yeah.
+Renan dos Santos Araujo: Vamos. Ja.
+Thássyus Fabiano M de Almeida Carvalho: Valeu, até tarde. Okay.
+Rodrigo Thaua Lima Barroso: Valeu,
+Rodrigo Schecheli Bussolo: Eu M.
+Rodrigo Thaua Lima Barroso: Eo.
+A transcrição foi encerrada após 01:41:12
+Esta transcrição editável foi gerada por computador e pode conter erros. As pessoas também podem alterar o texto depois que ele for criado.

@@ -1884,12 +1884,19 @@
 
 .prototype-ingresso-doc-action-cell {
   text-align: center;
+  vertical-align: middle;
 }
 
 .prototype-ingresso-doc-actions {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 8px;
+}
+
+.prototype-ingresso-doc-actions--documentacao {
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .prototype-ingresso-doc-action-button.p-button {
@@ -1907,6 +1914,13 @@
 .prototype-ingresso-doc-action-button.p-button:hover,
 .prototype-ingresso-doc-action-button.p-button:focus {
   background: #2f6ee8;
+  color: #ffffff;
+}
+
+.prototype-ingresso-doc-action-button--delete.p-button,
+.prototype-ingresso-doc-action-button--delete.p-button:hover,
+.prototype-ingresso-doc-action-button--delete.p-button:focus {
+  background: #d32f2f;
   color: #ffffff;
 }
 
@@ -15879,6 +15893,55 @@
 .prototype-integration-security { display: flex; align-items: center; gap: 8px; margin: 12px 16px 0; padding: 9px 11px; border-radius: 5px; background: #eef7ff; color: #28567d; }
 .prototype-integration-technical pre { overflow-x: auto; margin: 12px 16px 16px; padding: 14px; border-radius: 6px; background: #162433; color: #d9e7f2; font: .75rem/1.65 Consolas, monospace; }
 
+.prototype-integration-quick-filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px 0; }
+.prototype-integration-quick-filters button { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border: 1px solid #cbd9e6; border-radius: 999px; background: #fff; color: #415b73; font-weight: 700; cursor: pointer; }
+.prototype-integration-quick-filters button span { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 20px; padding: 0 5px; border-radius: 999px; background: #edf2f7; font-size: .7rem; }
+.prototype-integration-quick-filters button.is-active { border-color: #2f80ed; background: #eef6ff; color: #1769cf; }
+.prototype-integration-people-table { min-width: 1180px; }
+.prototype-integration-people-table td:first-child strong { color: #183b56; white-space: nowrap; }
+.prototype-integration-record-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; border: 0; background: transparent; color: #1769cf; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.prototype-integration-person-detail-row > td { padding: 0 !important; background: #f4f8fc; }
+.prototype-integration-person-detail { display: flex; flex-direction: column; gap: 14px; padding: 16px; border-left: 3px solid #2f80ed; }
+.prototype-integration-person-detail > section { overflow: hidden; border: 1px solid #d8e2ec; border-radius: 7px; background: #fff; }
+.prototype-integration-person-detail > section > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border-bottom: 1px solid #e2eaf1; background: #f8fafc; }
+.prototype-integration-person-detail h4 { margin: 0; color: #183b56; font-size: .92rem; }
+.prototype-integration-person-detail header span { display: block; margin-top: 3px; color: #60758a; font-size: .76rem; }
+.prototype-integration-person-identification { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 8px 12px; }
+.prototype-integration-person-identification > div { padding: 9px 10px; border-bottom: 1px solid #edf1f5; }
+.prototype-integration-person-identification dt { color: #71869a; font-size: .68rem; font-weight: 700; text-transform: uppercase; }
+.prototype-integration-person-identification dd { margin: 3px 0 0; color: #183b56; font-weight: 700; }
+.prototype-integration-person-summary { display: flex; flex-wrap: wrap; gap: 8px; }
+.prototype-integration-person-summary span { padding: 7px 10px; border: 1px solid #d7e2ec; border-radius: 5px; background: #fff; color: #526b80; font-size: .76rem; }
+.prototype-integration-person-summary strong { color: #183b56; }
+.prototype-integration-person-error { padding: 11px 13px; border-left: 3px solid #c62828; border-radius: 4px; background: #fff4f3; color: #7f1d1d; }
+.prototype-integration-person-error p { margin: 5px 0 0; }
+.prototype-integration-person-detail > section > h4 { padding: 12px 14px; border-bottom: 1px solid #e2eaf1; background: #f8fafc; }
+.prototype-integration-compare-table { min-width: 940px; }
+.prototype-integration-field-status { display: inline-flex; padding: 3px 7px; border-radius: 999px; background: #eef2f6; color: #52616b; font-size: .7rem; font-weight: 700; white-space: nowrap; }
+.prototype-integration-field-status.is-incluído { background: #e4f4ea; color: #18733d; }
+.prototype-integration-field-status.is-atualizado { background: #eaf3ff; color: #1769cf; }
+.prototype-integration-field-status.is-erro { background: #fde8e8; color: #b42318; }
+.prototype-integration-field-status.is-sem-alteração, .prototype-integration-field-status.is-não-informado { background: #f0f2f4; color: #607080; }
+.prototype-integration-person-accordion { overflow: hidden; border: 1px solid #d8e2ec; border-radius: 7px; background: #fff; }
+.prototype-integration-person-accordion summary { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #f8fafc; cursor: pointer; list-style: none; }
+.prototype-integration-person-accordion summary div { display: flex; flex-direction: column; gap: 3px; }
+.prototype-integration-person-accordion summary span { color: #71869a; font-size: .74rem; }
+.prototype-integration-person-accordion .prototype-integration-table-wrap { border: 0; border-top: 1px solid #d8e2ec; border-radius: 0; }
+.prototype-integration-documents-heading { padding: 12px 14px; border-bottom: 1px solid #e2eaf1; background: #f8fafc; }
+.prototype-integration-documents-heading span { display: block; margin-top: 3px; color: #71869a; font-size: .74rem; }
+.prototype-integration-document-actions { display: flex; justify-content: center; gap: 6px; }
+.prototype-integration-documents-empty { margin: 0; padding: 18px 14px; color: #71869a; }
+.prototype-integration-pending-count { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 999px; background: #fff4d6; color: #805b10; font-size: .7rem; font-weight: 700; white-space: nowrap; }
+.prototype-integration-pending-count i { font-size: .7rem; }
+.prototype-integration-person-summary span.is-pending { border-color: #ead49a; background: #fff9e9; color: #805b10; }
+.prototype-integration-pending-section { border-color: #e5d39e !important; }
+.prototype-integration-pending-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border-bottom: 1px solid #eadfbf; background: #fffaf0; }
+.prototype-integration-pending-heading > div span { display: block; margin-top: 3px; color: #806b3b; font-size: .74rem; }
+.prototype-integration-pending-badge { display: inline-flex; padding: 4px 8px; border-radius: 999px; background: #e4f4ea; color: #18733d; font-size: .7rem; font-weight: 700; white-space: nowrap; }
+.prototype-integration-pending-section > p { margin: 0; padding: 11px 14px; color: #675a39; background: #fffdf8; }
+.prototype-integration-pending-section .prototype-integration-table-wrap { border: 0; border-top: 1px solid #e8debf; border-radius: 0; }
+.prototype-integration-field-status.is-de-para-pendente { background: #fff4d6; color: #805b10; }
+.prototype-integration-audit-notice { display: flex; align-items: center; gap: 7px; margin: 0; padding: 9px 11px; border-radius: 5px; background: #eef7ff; color: #28567d; font-size: .76rem; }
 @media (max-width: 1400px) {
   .prototype-integration-filter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .prototype-integration-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -16557,6 +16620,31 @@
   font-weight: 700;
 }
 
+.prototype-judicial-document-field { grid-column: span 2; }
+.prototype-judicial-upload-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.prototype-judicial-upload-area { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 3px; min-height: 66px; padding: 10px 12px; border: 1px dashed #9fb4c7; border-radius: 6px; background: #fbfdff; cursor: pointer; box-sizing: border-box; transition: border-color .15s ease, background .15s ease; }
+.prototype-judicial-upload-area:hover { border-color: #2f80ed; background: #f5f9ff; }
+.prototype-judicial-upload-area.is-invalid { border-color: #c62828; background: #fffafa; }
+.prototype-judicial-upload-button { display: inline-flex; grid-row: 1 / span 2; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 5px; background: #2f80ed; color: #fff !important; font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.prototype-judicial-upload-prompt { color: #405a72 !important; font-size: .78rem; font-weight: 600; }
+.prototype-judicial-upload-area small { grid-column: 2; color: #71869a; font-size: .7rem; }
+.prototype-judicial-upload-error { color: #b42318; font-size: .72rem; }
+.prototype-judicial-attachments { display: flex; flex-direction: column; gap: 7px; margin-top: 2px; padding-top: 8px; border-top: 1px solid #e4ebf1; }
+.prototype-judicial-attachments > strong { color: #334e68; font-size: .76rem; }
+.prototype-judicial-attachments > p { margin: 0; color: #71869a; font-size: .75rem; }
+.prototype-judicial-attachment-row { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 7px 9px; border: 1px solid #dbe5ee; border-radius: 6px; background: #fff; }
+.prototype-judicial-attachment-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 5px; background: #eaf3ff; color: #1769cf !important; }
+.prototype-judicial-attachment-info { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.prototype-judicial-attachment-info strong { overflow: hidden; color: #183b56; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+.prototype-judicial-attachment-info small { margin-top: 2px; color: #71869a; font-size: .68rem; }
+.prototype-judicial-attachment-actions { display: flex; gap: 6px; }
+.prototype-judicial-attachment-actions .p-button { width: 34px; min-width: 34px; height: 32px; padding: 0; }
+@media (max-width: 720px) {
+  .prototype-judicial-document-field { grid-column: 1 / -1; }
+  .prototype-judicial-upload-area { grid-template-columns: 1fr; }
+  .prototype-judicial-upload-button { grid-row: auto; justify-self: start; }
+  .prototype-judicial-upload-area small { grid-column: 1; }
+}
 .prototype-field-origin {
   display: inline-flex;
   margin-left: 7px;
@@ -16569,7 +16657,32 @@
   vertical-align: middle;
 }
 
-.prototype-novo-ingresso-dados-ingresso:not(.is-sies) .prototype-field-origin {
+.prototype-novo-ingresso-dados-ingresso:not(.is-sies) .prototype-judicial-document-field { grid-column: span 2; }
+.prototype-judicial-upload-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.prototype-judicial-upload-area { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 3px; min-height: 66px; padding: 10px 12px; border: 1px dashed #9fb4c7; border-radius: 6px; background: #fbfdff; cursor: pointer; box-sizing: border-box; transition: border-color .15s ease, background .15s ease; }
+.prototype-judicial-upload-area:hover { border-color: #2f80ed; background: #f5f9ff; }
+.prototype-judicial-upload-area.is-invalid { border-color: #c62828; background: #fffafa; }
+.prototype-judicial-upload-button { display: inline-flex; grid-row: 1 / span 2; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 5px; background: #2f80ed; color: #fff !important; font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.prototype-judicial-upload-prompt { color: #405a72 !important; font-size: .78rem; font-weight: 600; }
+.prototype-judicial-upload-area small { grid-column: 2; color: #71869a; font-size: .7rem; }
+.prototype-judicial-upload-error { color: #b42318; font-size: .72rem; }
+.prototype-judicial-attachments { display: flex; flex-direction: column; gap: 7px; margin-top: 2px; padding-top: 8px; border-top: 1px solid #e4ebf1; }
+.prototype-judicial-attachments > strong { color: #334e68; font-size: .76rem; }
+.prototype-judicial-attachments > p { margin: 0; color: #71869a; font-size: .75rem; }
+.prototype-judicial-attachment-row { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 7px 9px; border: 1px solid #dbe5ee; border-radius: 6px; background: #fff; }
+.prototype-judicial-attachment-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 5px; background: #eaf3ff; color: #1769cf !important; }
+.prototype-judicial-attachment-info { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.prototype-judicial-attachment-info strong { overflow: hidden; color: #183b56; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+.prototype-judicial-attachment-info small { margin-top: 2px; color: #71869a; font-size: .68rem; }
+.prototype-judicial-attachment-actions { display: flex; gap: 6px; }
+.prototype-judicial-attachment-actions .p-button { width: 34px; min-width: 34px; height: 32px; padding: 0; }
+@media (max-width: 720px) {
+  .prototype-judicial-document-field { grid-column: 1 / -1; }
+  .prototype-judicial-upload-area { grid-template-columns: 1fr; }
+  .prototype-judicial-upload-button { grid-row: auto; justify-self: start; }
+  .prototype-judicial-upload-area small { grid-column: 1; }
+}
+.prototype-field-origin {
   display: none;
 }
 

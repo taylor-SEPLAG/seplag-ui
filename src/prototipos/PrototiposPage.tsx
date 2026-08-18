@@ -271,7 +271,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
             label: "Distribuição",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/distribuicao`,
-            visibleOnMenu: true,
+            visibleOnMenu: false,
             visibleOnRouter: true,
           },          {
             label: "Vagas Individualizadas",
@@ -1348,6 +1348,7 @@ interface IntegracaoExecucaoRow {
 }
 
 const integracoesIngressoMock: IntegracaoExecucaoRow[] = [
+  { id: "INT-20270205-1015-PSS009", dataHora: "05/02/2027 10:15", sistema: "SIES", tipo: "Automática", situacao: "Concluída", recebidos: 2, incluidos: 2, atualizados: 0, semAlteracao: 0, erros: 0, edital: "009/2027/SEPLAG", inicio: "05/02/2027 às 10:15:02", fim: "05/02/2027 às 10:15:31", duracao: "29 segundos", candidatoIdsIncluidos: [65, 66] },
   { id: "INT-20260805-1542-PSS004", dataHora: "05/08/2026 15:40", sistema: "SIES", tipo: "Automática", situacao: "Concluída", recebidos: 12, incluidos: 2, atualizados: 1, semAlteracao: 9, erros: 0, edital: "004/2026/SES", inicio: "05/08/2026 às 15:40:02", fim: "05/08/2026 às 15:42:08", duracao: "2 minutos e 6 segundos", candidatoIdsIncluidos: [40, 41] },
   { id: "INT-20260805-1430-PSS005", dataHora: "05/08/2026 14:30", sistema: "SIES", tipo: "Automática", situacao: "Concluída", recebidos: 3, incluidos: 0, atualizados: 0, semAlteracao: 3, erros: 0, edital: "005/2026/SEDUC", inicio: "05/08/2026 às 14:30:01", fim: "05/08/2026 às 14:30:24", duracao: "23 segundos", candidatoIdsIncluidos: [] },
   { id: "INT-20260805-1540", dataHora: "05/08/2026 15:40", sistema: "SIES", tipo: "Automática", situacao: "Concluída com alertas", recebidos: 20, incluidos: 2, atualizados: 3, semAlteracao: 14, erros: 1, edital: "001/2026/SES", inicio: "05/08/2026 às 15:40:02", fim: "05/08/2026 às 15:41:18", duracao: "1 minuto e 16 segundos", candidatoIdsIncluidos: [1, 2] },
@@ -2069,6 +2070,30 @@ const ingressosMock: IngressoRow[] = [
     situacao: "Ingresso Concluído",
     dataIngresso: "2026-06-11",
   },
+  {
+    id: 65,
+    nome: "Gabriela Mendes",
+    cpf: "065.444.444-44",
+    matricula: "",
+    tipoIngresso: "Processo Seletivo",
+    tipoVinculo: "Estagiário",
+    orgao: "SEPLAG",
+    cargo: "Estagiário",
+    situacao: "Aguardando Analise",
+    dataIngresso: "2027-02-01",
+  },
+  {
+    id: 66,
+    nome: "Lucas Ribeiro",
+    cpf: "066.444.444-44",
+    matricula: "",
+    tipoIngresso: "Processo Seletivo",
+    tipoVinculo: "Estagiário",
+    orgao: "SEPLAG",
+    cargo: "Estagiário",
+    situacao: "Aguardando Analise",
+    dataIngresso: "2027-02-01",
+  },
 ];
 
 const getNumeroIngresso = (ingressoId: number) => `Ingresso nº 2026/${String(ingressoId).padStart(4, "0")}`;
@@ -2686,6 +2711,35 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
     ],
   },
+  {
+    id: 9,
+    titulo: "Processo Seletivo SEPLAG 2027",
+    tipo: "Processo Seletivo",
+    orgao: "SEPLAG",
+    edital: "Edital 009/2027",
+    candidatos: [
+      {
+        id: 65,
+        nome: "Gabriela Mendes",
+        classificacao: "1º",
+        cargo: "Estagiário",
+        tipoVaga: "AC",
+        dataNomeacao: "-",
+        dataPosse: "-",
+        dataEfetivoExercicio: "-",
+      },
+      {
+        id: 66,
+        nome: "Lucas Ribeiro",
+        classificacao: "2º",
+        cargo: "Estagiário",
+        tipoVaga: "AC",
+        dataNomeacao: "-",
+        dataPosse: "-",
+        dataEfetivoExercicio: "-",
+      },
+    ],
+  },
 ];
 
 const ingressoPoloCandidatoMap: Record<number, string> = {
@@ -2780,7 +2834,7 @@ const agruparCandidatosIngressoPorVaga = (
 };
 const ingressoTipoVinculoMap: Record<IngressoTipo, string> = {
   Concurso: "Efetivo",
-  "Processo Seletivo": "Temporário",
+  "Processo Seletivo": "Contrato Temporário",
   Nomeação: "Comissionado",
   "Exclusivo Comissionado": "Comissionado",
   "Residente Técnico": "Residente",
@@ -9835,7 +9889,7 @@ export function PrototiposEfetivoExercicioPage() {
             <tbody>
               {registrosEfetivoExercicio.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="prototype-empty-table-cell">
+                  <td colSpan={10} className="prototype-empty-table-cell">
                     Nenhum registro encontrado para os filtros informados.
                   </td>
                 </tr>
@@ -10256,6 +10310,8 @@ export function PrototiposIngressosTestePage() {
   const [execucaoSelecionada, setExecucaoSelecionada] = useState<IntegracaoExecucaoRow | null>(null);
   const [filtrosIntegracao, setFiltrosIntegracao] = useState({ periodoInicio: "", periodoFim: "", sistema: "", situacao: "", edital: "", tipo: "" });
   const [logTecnicoAberto, setLogTecnicoAberto] = useState(false);
+  const [filtroRegistrosIntegracao, setFiltroRegistrosIntegracao] = useState<"Todos" | "Incluídos" | "Atualizados" | "Sem alteração" | "Com erro">("Todos");
+  const [registroIntegracaoExpandido, setRegistroIntegracaoExpandido] = useState<string | null>(null);
   const [paginaIntegracoes, setPaginaIntegracoes] = useState(1);
   const [itensPorPaginaIntegracoes, setItensPorPaginaIntegracoes] = useState(10);
   const [editalExpandidoId, setEditalExpandidoId] = useState<string | null>(null);
@@ -10329,6 +10385,7 @@ export function PrototiposIngressosTestePage() {
         "Processo Seletivo-SES": "Enfermagem",
         "Processo Seletivo-SEDUC": "Professores",
         "Processo Seletivo-SEFAZ": "Analista Fazendário",
+        "Processo Seletivo-SEPLAG": "Estagiários",
       };
       const prefixoEdital = concursoProcesso.tipo === "Concurso" ? "Conc" : "PSS";
 
@@ -10537,12 +10594,21 @@ export function PrototiposIngressosTestePage() {
           </section>
 
           <div className="prototype-ingressos-teste-filters grid">
-            <TextFieldSeplag
+            <DropdownFieldSeplag
               name="concursoProcessoSeletivo"
               control={control}
               label="Nome do Edital"
-              placeholder="Buscar por nome ou número do edital"
+              placeholder="Todos"
               cols="12 12 7"
+              options={[
+                { label: "Todos", value: "" },
+                ...registrosIngressoTeste.map((registro) => ({
+                  label: registro.edital,
+                  value: registro.titulo,
+                })),
+              ]}
+              optionLabel="label"
+              optionValue="value"
               getFormErrorMessage={() => null}
             />
             <DropdownFieldSeplag
@@ -10631,17 +10697,95 @@ export function PrototiposIngressosTestePage() {
                       {[{ label: "Recebidos", value: execucaoSelecionada.recebidos, hint: "Total enviado pelo sistema de origem", icon: "pi pi-inbox" }, { label: "Incluídos", value: execucaoSelecionada.incluidos, hint: "Registros novos no SIGEP", icon: "pi pi-plus-circle" }, { label: "Atualizados", value: execucaoSelecionada.atualizados, hint: "Registros com dados alterados", icon: "pi pi-sync" }, { label: "Sem alteração", value: execucaoSelecionada.semAlteracao, hint: "Comparados sem mudança", icon: "pi pi-equals" }, { label: "Com erro", value: execucaoSelecionada.erros, hint: "Registros não processados", icon: "pi pi-exclamation-triangle" }].map((item) => <article key={item.label} className={item.label === "Com erro" ? "is-error" : ""}><i className={item.icon} /><div><strong>{item.value}</strong><span>{item.label}</span><small>{item.hint}</small></div></article>)}
                     </div>
                   </section>
-                  <section className="prototype-integration-section">
-                    <header><div><span className="prototype-integration-step">3</span><div><h3>Atualizações realizadas</h3><p>Valores anteriores e novos efetivamente processados no SIGEP.</p></div></div></header>
-                    <details className="prototype-integration-edital-group" open><summary><div><strong>Edital 001/2026/SES</strong><span>9 recebidos • 2 incluídos • 1 atualizado • 6 sem alteração</span></div><i className="pi pi-chevron-down" /></summary>
-                      <div className="prototype-integration-table-wrap"><table><thead><tr><th>Edital</th><th>Registro</th><th>Operação</th><th>Campo atualizado</th><th>Valor anterior</th><th>Novo valor</th><th>Resultado</th></tr></thead><tbody>
-                        <tr><td>001/2026/SES</td><td>Quantidade de nomeados</td><td>Atualização</td><td>Total de nomeados</td><td>7</td><td>9</td><td><span className="prototype-integration-result is-success">Sucesso</span></td></tr>
-                        <tr><td>002/2026/SEDUC</td><td>Quantidade de nomeados</td><td>Sem alteração</td><td>Total de nomeados</td><td>2</td><td>2</td><td><span className="prototype-integration-result is-neutral">Sem alteração</span></td></tr>
-                        <tr><td>003/2026/SEFAZ</td><td>Candidato recebido</td><td>Inclusão</td><td>Nomeado</td><td>—</td><td>Novo registro</td><td><span className="prototype-integration-result is-success">Sucesso</span></td></tr>
-                        <tr><td>004/2026/SES</td><td>Candidato recebido</td><td>Rejeição</td><td>Cargo</td><td>—</td><td>Cargo não localizado</td><td><span className="prototype-integration-result is-error">Erro</span></td></tr>
-                      </tbody></table></div>
-                    </details>
-                  </section>
+                  {(() => {
+                    const operacoes = [
+                      ...Array.from({ length: execucaoSelecionada.incluidos }, () => "Inclusão" as const),
+                      ...Array.from({ length: execucaoSelecionada.atualizados }, () => "Atualização" as const),
+                      ...Array.from({ length: execucaoSelecionada.semAlteracao }, () => "Sem alteração" as const),
+                      ...Array.from({ length: execucaoSelecionada.erros }, () => "Rejeição" as const),
+                    ];
+                    const nomes = ["Maria Oliveira", "João Silva", "Ana Souza", "Carlos Lima", "Fernanda Rocha", "Rafael Martins", "Juliana Costa", "Paulo Mendes"];
+                    const registros = operacoes.map((operacao, index) => ({
+                      id: `${execucaoSelecionada.id}-${index}`,
+                      nome: nomes[index] ?? `Pessoa processada ${index + 1}`,
+                      cpf: `***.${String(456 + index).padStart(3, "0")}.${String(789 - index).padStart(3, "0")}-**`,
+                      cargo: operacao === "Rejeição" ? "—" : index === 1 ? "Analista Especializado" : index % 2 ? "Técnico Administrativo" : "Analista Administrativo",
+                      tipoVaga: index % 4 === 1 ? "PPP" : index % 4 === 2 ? "PCD" : "Ampla Concorrência",
+                      operacao,
+                      resultado: operacao === "Rejeição" ? "Erro" : operacao === "Sem alteração" ? "Sem alteração" : "Sucesso",
+                      registroOrigem: `${execucaoSelecionada.sistema}-${84572 + index}`,
+                      pendencias: index === 1 ? 2 : index === execucaoSelecionada.incluidos ? 1 : 0,
+                    }));
+                    const filtrosRapidos = [
+                      { label: "Todos" as const, count: execucaoSelecionada.recebidos },
+                      { label: "Incluídos" as const, count: execucaoSelecionada.incluidos },
+                      { label: "Atualizados" as const, count: execucaoSelecionada.atualizados },
+                      { label: "Sem alteração" as const, count: execucaoSelecionada.semAlteracao },
+                      { label: "Com erro" as const, count: execucaoSelecionada.erros },
+                    ];
+                    const registrosFiltrados = registros.filter((registro) =>
+                      filtroRegistrosIntegracao === "Todos" ||
+                      (filtroRegistrosIntegracao === "Incluídos" && registro.operacao === "Inclusão") ||
+                      (filtroRegistrosIntegracao === "Atualizados" && registro.operacao === "Atualização") ||
+                      (filtroRegistrosIntegracao === "Com erro" && registro.operacao === "Rejeição") ||
+                      filtroRegistrosIntegracao === registro.operacao,
+                    );
+                    const editalExecucao = execucaoSelecionada.edital;
+
+                    return (
+                      <section className="prototype-integration-section">
+                        <header><div><span className="prototype-integration-step">3</span><div><h3>Registros processados</h3><p>Detalhamento das pessoas recebidas do sistema de origem e do resultado do processamento realizado pelo SIGEP.</p></div></div></header>
+                        <div className="prototype-integration-quick-filters" role="group" aria-label="Filtrar registros processados">
+                          {filtrosRapidos.map((filtro) => <button type="button" key={filtro.label} className={filtroRegistrosIntegracao === filtro.label ? "is-active" : undefined} onClick={() => { setFiltroRegistrosIntegracao(filtro.label); setRegistroIntegracaoExpandido(null); }}>{filtro.label} <span>{filtro.count}</span></button>)}
+                        </div>
+                        <details className="prototype-integration-edital-group" open>
+                          <summary><div><strong>Edital {editalExecucao}</strong><span>{execucaoSelecionada.recebidos} recebidos • {execucaoSelecionada.incluidos} incluídos • {execucaoSelecionada.atualizados} atualizados • {execucaoSelecionada.semAlteracao} sem alteração{execucaoSelecionada.erros ? ` • ${execucaoSelecionada.erros} com erro` : ""}{registros.some((registro) => registro.pendencias) ? ` • ${registros.filter((registro) => registro.pendencias).length} com pendências de parametrização` : ""}</span></div><i className="pi pi-chevron-down" /></summary>
+                          <div className="prototype-integration-table-wrap"><table className="prototype-integration-people-table"><thead><tr><th>Nome</th><th>CPF</th><th>Cargo</th><th>Tipo de vaga</th><th>Sistema de origem</th><th>Operação</th><th>Data da integração</th><th>Resultado</th><th>Pendências</th><th>Ações</th></tr></thead><tbody>
+                            {registrosFiltrados.map((registro, index) => {
+                              const expandido = registroIntegracaoExpandido === registro.id;
+                              const situacaoCampo = registro.operacao === "Inclusão" ? "Incluído" : registro.operacao === "Atualização" ? "Atualizado" : registro.operacao === "Rejeição" ? "Erro" : "Sem alteração";
+                              const pendenciasParametrizacao = registro.pendencias === 2
+                                ? [["Cargo", "Analista Especializado", "Não localizada"], ["Perfil/Especialidade", "Gestão Pública", "Não localizada"]]
+                                : registro.pendencias === 1
+                                  ? [["Código do cargo", "SIES-4587", "Não localizado"]]
+                                  : [];
+                              const temPendencia = (campo: string) => pendenciasParametrizacao.some(([informacao]) => informacao === campo);
+                              const valorPendente = (campo: string) => pendenciasParametrizacao.find(([informacao]) => informacao === campo)?.[1];
+                              const camposPrincipais = [
+                                ["Sistema de origem", execucaoSelecionada.sistema, execucaoSelecionada.sistema, execucaoSelecionada.sistema, "Sem alteração"],
+                                ["CPF", registro.cpf, registro.cpf, registro.cpf, "Sem alteração"],
+                                ["Nome", registro.nome, registro.nome, registro.nome, "Sem alteração"],
+                                ["Data de nascimento", "12/03/1992", "12/03/1992", "12/03/1992", "Sem alteração"],
+                                ["Classificação", `${index + 1}º`, registro.operacao === "Atualização" ? `${index + 3}º` : "—", `${index + 1}º`, situacaoCampo],
+                                ["Cargo", valorPendente("Cargo") ?? registro.cargo, temPendencia("Cargo") || registro.operacao === "Rejeição" ? "—" : registro.cargo, valorPendente("Cargo") ?? (registro.operacao === "Rejeição" ? "—" : registro.cargo), temPendencia("Cargo") ? "De-para pendente" : registro.operacao === "Rejeição" ? "Erro" : "Sem alteração"],
+                                ["Código do cargo", valorPendente("Código do cargo") ?? "10125", temPendencia("Código do cargo") || registro.operacao === "Inclusão" ? "—" : "10125", valorPendente("Código do cargo") ?? "10125", temPendencia("Código do cargo") ? "De-para pendente" : registro.operacao === "Inclusão" ? "Incluído" : "Sem alteração"],
+                                ["Carreira", "Profissionais da Administração", registro.operacao === "Inclusão" ? "—" : "Profissionais da Administração", "Profissionais da Administração", registro.operacao === "Inclusão" ? "Incluído" : "Sem alteração"],
+                                ["Perfil/Especialidade", valorPendente("Perfil/Especialidade") ?? "Administração", temPendencia("Perfil/Especialidade") ? "—" : "Administração", valorPendente("Perfil/Especialidade") ?? "Administração", temPendencia("Perfil/Especialidade") ? "De-para pendente" : "Sem alteração"],
+                                ["Tipo de vaga", registro.tipoVaga, registro.tipoVaga, registro.tipoVaga, "Sem alteração"],
+                                ["Data da nomeação", "01/08/2026", registro.operacao === "Inclusão" ? "—" : "01/08/2026", "01/08/2026", registro.operacao === "Inclusão" ? "Incluído" : "Sem alteração"],
+                                ["Data de agendamento da posse", "20/08/2026 09:00", registro.operacao === "Atualização" ? "21/08/2026 10:00" : "—", "20/08/2026 09:00", situacaoCampo],
+                                ["Data e hora da integração", execucaoSelecionada.dataHora.replace(" ", " às "), "—", execucaoSelecionada.dataHora.replace(" ", " às "), "Incluído"],
+                              ];
+                              const complementares = ["Gênero", "Estado Civil", "Raça", "Escolaridade", "Nacionalidade", "Grupo Sanguíneo", "País de nascimento", "UF", "Cidade Natal", "Possui alguma deficiência?", "Telefone", "E-mail", "Contato de Emergência", "Endereço"];
+                              return <Fragment key={registro.id}><tr><td><strong>{registro.nome}</strong></td><td>{registro.cpf}</td><td>{registro.cargo}</td><td>{registro.tipoVaga}</td><td>{execucaoSelecionada.sistema}</td><td>{registro.operacao}</td><td>{execucaoSelecionada.dataHora}</td><td><span className={`prototype-integration-result ${registro.resultado === "Erro" ? "is-error" : registro.resultado === "Sem alteração" ? "is-neutral" : "is-success"}`}>{registro.resultado}</span></td><td>{registro.pendencias ? <span className="prototype-integration-pending-count"><i className="pi pi-wrench" /> {registro.pendencias} {registro.pendencias === 1 ? "pendência" : "pendências"}</span> : "—"}</td><td><button type="button" className="prototype-integration-record-toggle" aria-expanded={expandido} onClick={() => setRegistroIntegracaoExpandido(expandido ? null : registro.id)}><i className={`pi ${expandido ? "pi-chevron-up" : "pi-eye"}`} /> {expandido ? "Ocultar" : "Ver detalhes"}</button></td></tr>
+                                {expandido ? <tr className="prototype-integration-person-detail-row"><td colSpan={10}><div className="prototype-integration-person-detail">
+                                  <section><header><div><h4>{registro.nome}</h4><span>CPF: {registro.cpf}</span></div><span className={`prototype-integration-result ${registro.resultado === "Erro" ? "is-error" : "is-success"}`}>{registro.resultado === "Erro" ? "Não processado" : "Processado com sucesso"}</span></header><dl className="prototype-integration-person-identification"><div><dt>Sistema de origem</dt><dd>{execucaoSelecionada.sistema}</dd></div><div><dt>Registro de origem</dt><dd>{registro.registroOrigem}</dd></div><div><dt>Edital</dt><dd>{editalExecucao}</dd></div><div><dt>Integração</dt><dd>{execucaoSelecionada.dataHora.replace(" ", " às ")}</dd></div><div><dt>Operação</dt><dd>{registro.operacao}</dd></div><div><dt>Resultado</dt><dd>{registro.resultado}</dd></div></dl></section>
+                                  {registro.resultado === "Erro" ? <div className="prototype-integration-person-error"><strong>Motivo do erro</strong><p>CPF obrigatório recebido em formato inválido, impossibilitando a identificação segura da pessoa e a gravação do registro.</p></div> : null}
+                                  {pendenciasParametrizacao.length ? <section className="prototype-integration-pending-section"><div className="prototype-integration-pending-heading"><div><h4>Pendências de parametrização</h4><span>{pendenciasParametrizacao.length} {pendenciasParametrizacao.length === 1 ? "pendência identificada" : "pendências identificadas"}</span></div><span className="prototype-integration-pending-badge">Processamento concluído</span></div><p>O registro foi importado normalmente. As correspondências abaixo poderão ser regularizadas posteriormente pelo fluxo de parametrização/de-para.</p><div className="prototype-integration-table-wrap"><table><thead><tr><th>Informação recebida</th><th>Valor recebido do {execucaoSelecionada.sistema}</th><th>Correspondência no SIGEP</th><th>Situação</th></tr></thead><tbody>{pendenciasParametrizacao.map(([informacao, valor, correspondencia]) => <tr key={informacao}><td>{informacao}</td><td><strong>{valor}</strong></td><td>{correspondencia}</td><td><span className="prototype-integration-field-status is-de-para-pendente">De-para pendente</span></td></tr>)}</tbody></table></div></section> : null}
+                                  <div className="prototype-integration-person-summary"><span><strong>23</strong> campos recebidos</span><span><strong>{registro.operacao === "Inclusão" ? 4 : 2}</strong> incluídos</span><span><strong>{registro.operacao === "Atualização" ? 2 : 0}</strong> atualizados</span><span><strong>{registro.pendencias ? 17 - registro.pendencias : 17}</strong> sem alteração</span>{registro.pendencias ? <span className="is-pending"><strong>{registro.pendencias}</strong> {registro.pendencias === 1 ? "pendência de parametrização" : "pendências de parametrização"}</span> : null}<span><strong>{registro.resultado === "Erro" ? 0 : 4}</strong> documentos</span></div>
+                                  <section><h4>Dados recebidos</h4><div className="prototype-integration-table-wrap"><table className="prototype-integration-compare-table"><thead><tr><th>Campo</th><th>Valor recebido</th><th>Valor anterior no SIGEP</th><th>Valor após processamento</th><th>Situação</th></tr></thead><tbody>{camposPrincipais.map(([campo, recebido, anterior, posterior, situacao]) => <tr key={campo}><td>{campo}</td><td>{recebido}</td><td>{anterior}</td><td>{posterior}</td><td><span className={`prototype-integration-field-status is-${String(situacao).toLowerCase().replace(" ", "-")}`}>{situacao}</span></td></tr>)}</tbody></table></div></section>
+                                  <details className="prototype-integration-person-accordion"><summary><div><strong>Dados complementares da Pessoa Física</strong><span>8 de 14 informações recebidas</span></div><i className="pi pi-chevron-down" /></summary><div className="prototype-integration-table-wrap"><table className="prototype-integration-compare-table"><thead><tr><th>Campo</th><th>Valor recebido</th><th>Valor anterior</th><th>Valor após processamento</th><th>Situação</th></tr></thead><tbody>{complementares.map((campo, campoIndex) => { const informado = campoIndex < 8; const valor = informado ? ["Feminino", "Solteiro(a)", "Parda", "Superior completo", "Brasileira", "O+", "Brasil", "MT"][campoIndex] : "—"; return <tr key={campo}><td>{campo}</td><td>{valor}</td><td>{informado ? valor : "—"}</td><td>{valor}</td><td><span className={`prototype-integration-field-status ${informado ? "is-sem-alteração" : "is-não-informado"}`}>{informado ? "Sem alteração" : "Não informado"}</span></td></tr>; })}</tbody></table></div></details>
+                                  <section><div className="prototype-integration-documents-heading"><div><h4>Documentos recebidos</h4><span>{registro.resultado === "Erro" ? "0 documentos recebidos" : "4 documentos recebidos"}</span></div></div>{registro.resultado === "Erro" ? <p className="prototype-integration-documents-empty">Nenhum documento recebido nesta integração.</p> : <div className="prototype-integration-table-wrap"><table><thead><tr><th>Documento</th><th>Arquivo</th><th>Sistema de origem</th><th>Data de recebimento</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{[["RG", "rg_candidato.pdf"], ["CPF", "cpf_candidato.pdf"], ["Diploma", "diploma.pdf"], ["Comprovante de endereço", "endereco.pdf"]].map(([documento, arquivo]) => <tr key={documento}><td>{documento}</td><td>{arquivo}</td><td>{execucaoSelecionada.sistema}</td><td>{execucaoSelecionada.dataHora}</td><td><span className="prototype-integration-field-status is-incluído">Recebido</span></td><td><div className="prototype-integration-document-actions"><BotaoIconSeplag type="button" icon="pi pi-eye" tooltip={`Visualizar ${arquivo}`} /><BotaoIconSeplag type="button" icon="pi pi-download" tooltip={`Baixar ${arquivo}`} /></div></td></tr>)}</tbody></table></div>}</section>
+                                  <p className="prototype-integration-audit-notice"><i className="pi pi-lock" /> Histórico disponível somente para consulta e auditoria.</p>
+                                </div></td></tr> : null}
+                              </Fragment>;
+                            })}
+                            {!registrosFiltrados.length ? <tr><td colSpan={10} className="prototype-empty-table-cell">Nenhum registro encontrado para este filtro.</td></tr> : null}
+                          </tbody></table></div>
+                        </details>
+                      </section>
+                    );
+                  })()}
                   <section className="prototype-integration-section">
                     <header><div><span className="prototype-integration-step">4</span><div><h3>Log funcional</h3><p>Eventos da execução em linguagem clara para usuários do SIGEP.</p></div></div></header>
                     <ol className="prototype-integration-functional-log">
@@ -11397,7 +11541,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <div className="prototype-ingressos-detail-card"><div className="prototype-ingressos-detail-heading"><i className="pi pi-calendar" aria-hidden="true" /><small>Limite da Posse</small></div><strong>{getLimitePosse(candidato) === "-" ? "Não definido" : getLimitePosse(candidato)}</strong><em className={`prototype-ingressos-deadline-detail is-${prazoPosseDetalhe.tone}`}><i className={prazoPosseDetalhe.icon} aria-hidden="true" />{prazoPosseDetalhe.texto}</em></div>
                 <div className="prototype-ingressos-detail-card"><div className="prototype-ingressos-detail-heading"><i className={`pi ${prazoEfetivoAtivo ? "pi-calendar-clock" : "pi-clock"}`} aria-hidden="true" /><small>Limite Efetivo Exercício</small></div><strong className={!prazoEfetivoAtivo ? "is-empty" : ""}>{prazoEfetivoAtivo ? getLimiteEfetivoExercicio(candidato) : "Não iniciado"}</strong>{prazoEfetivoDetalhe ? <em className={`prototype-ingressos-deadline-detail is-${prazoEfetivoDetalhe.tone}`}><i className={prazoEfetivoDetalhe.icon} aria-hidden="true" />{prazoEfetivoDetalhe.texto}</em> : <em className="prototype-ingressos-deadline-detail is-neutral">Aguardando conclusão da posse</em>}</div>
                 {dadosSuspensao ? <div className="prototype-ingressos-detail-card prototype-ingressos-detail-card--suspension"><div className="prototype-ingressos-detail-heading"><i className="pi pi-pause-circle" aria-hidden="true" /><small>Data de início da suspensão</small></div><strong className={dadosSuspensao.inicio === "Não informado" ? "is-empty" : ""}>{dadosSuspensao.inicio}</strong><em className="prototype-ingressos-deadline-detail is-paused">Prazo da posse suspenso</em></div> : null}
-                {dadosSuspensao ? <div className="prototype-ingressos-detail-card prototype-ingressos-detail-card--suspension"><div className="prototype-ingressos-detail-heading"><i className="pi pi-calendar-clock" aria-hidden="true" /><small>Prazo para resposta</small></div><strong className={dadosSuspensao.prazoResposta === "Não informado" ? "is-empty" : ""}>{dadosSuspensao.prazoResposta}</strong><em className="prototype-ingressos-deadline-detail is-paused">Aguardando resposta/complementação</em></div> : null}
+                {dadosSuspensao ? <div className="prototype-ingressos-detail-card prototype-ingressos-detail-card--suspension"><div className="prototype-ingressos-detail-heading"><i className="pi pi-calendar-clock" aria-hidden="true" /><small>Data fim da suspensão</small></div><strong className={dadosSuspensao.prazoResposta === "Não informado" ? "is-empty" : ""}>{dadosSuspensao.prazoResposta}</strong><em className="prototype-ingressos-deadline-detail is-paused">Fim do período de suspensão</em></div> : null}
               </section></td></tr> : null}
               </Fragment>
             );
@@ -12853,7 +12997,9 @@ export function PrototiposNovoIngressoPage() {
       ?.dataNascimento ?? "";
   const [tipoIngresso, setTipoIngresso] = useState<IngressoTipo | "">(tipoInicial);
   const [tipoVinculoEditavel, setTipoVinculoEditavel] = useState(
-    tipoInicial ? ingressoTipoVinculoMap[tipoInicial] : "",
+    processoOrigemDados?.titulo === "Processo Seletivo SEPLAG 2027"
+      ? "Estagiário"
+      : tipoInicial ? ingressoTipoVinculoMap[tipoInicial] : "",
   );
   const [activeTab, setActiveTab] = useState<NovoIngressoTab>(
     perfilNovoIngresso === "SETORIAL"
@@ -12892,7 +13038,9 @@ export function PrototiposNovoIngressoPage() {
   const [tipoVagaSelecionada, setTipoVagaSelecionada] = useState(tipoVagaInicial);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("Servidor Público");
   const [regimeJuridicoSelecionado, setRegimeJuridicoSelecionado] = useState(
-    tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo" ? "Estatutário Civil" : "Estatutário",
+    processoOrigemDados?.titulo === "Processo Seletivo SEPLAG 2027"
+      ? "Sem Vínculo Empregatício"
+      : tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo" ? "Estatutário Civil" : "Estatutário",
   );
   const [perfilEspecialidade, setPerfilEspecialidade] = useState(modoVisualizacao ? "Perfil Geral" : "Perfil geral");
   const [dataNomeacao, setDataNomeacao] = useState(
@@ -12910,6 +13058,8 @@ export function PrototiposNovoIngressoPage() {
   const [decisaoJudicial, setDecisaoJudicial] = useState<"Não" | "Sim">("Não");
   const [tipoAcaoJudicial, setTipoAcaoJudicial] = useState("");
   const [numeroProcessoJudicial, setNumeroProcessoJudicial] = useState("");
+  const [arquivoDecisaoJudicial, setArquivoDecisaoJudicial] = useState<File | null>(null);
+  const [erroArquivoDecisaoJudicial, setErroArquivoDecisaoJudicial] = useState("");
   const [documentacaoEtapa, setDocumentacaoEtapa] = useState<"analise" | "termos" | "setorial">(
     rascunhoAnaliseInicial?.documentacaoEtapa ?? "analise",
   );
@@ -13076,6 +13226,32 @@ export function PrototiposNovoIngressoPage() {
   const numeroIngressoAtual = `2026/${String(candidatoParam ?? 1).padStart(4, "0")}`;
   const documentosObrigatoriosIngresso = ingressoDocumentacaoObrigatoriaMock;
   const documentosAnexadosAnalise = documentosObrigatoriosIngresso;
+  const selecionarArquivoDecisaoJudicial = (arquivo?: File) => {
+    if (!arquivo) return;
+    const extensao = arquivo.name.split(".").pop()?.toLowerCase();
+    const formatoValido = ["pdf", "jpg", "jpeg", "png"].includes(extensao ?? "");
+    if (!formatoValido) {
+      setErroArquivoDecisaoJudicial("Formato inválido. Selecione um arquivo PDF, JPG, JPEG ou PNG.");
+      return;
+    }
+    if (arquivo.size > 10 * 1024 * 1024) {
+      setErroArquivoDecisaoJudicial("O arquivo excede o tamanho máximo permitido de 10 MB.");
+      return;
+    }
+    setArquivoDecisaoJudicial(arquivo);
+    setErroArquivoDecisaoJudicial("");
+  };
+  const baixarArquivoDecisaoJudicial = () => {
+    if (!arquivoDecisaoJudicial) return;
+    const url = URL.createObjectURL(arquivoDecisaoJudicial);
+    const link = window.document.createElement("a");
+    link.href = url;
+    link.download = arquivoDecisaoJudicial.name;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+  const formatarTamanhoArquivo = (bytes: number) =>
+    bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   const nomeArquivoDocumentoAnalise = (documento: (typeof documentosAnexadosAnalise)[number]) => {
     const arquivoAlterado = arquivosDocumentosAnalise[documento.documento];
     return arquivoAlterado === null ? "-" : arquivoAlterado?.name ?? documento.arquivo;
@@ -13980,6 +14156,7 @@ export function PrototiposNovoIngressoPage() {
               <option value="Estatutário">Estatutário</option>
               <option value="Celetista">Celetista</option>
               <option value="Regime Especial">Regime Especial</option>
+              <option value="Sem Vínculo Empregatício">Sem Vínculo Empregatício</option>
             </select>
           </label>
           <label className="prototype-ingresso-field">
@@ -13987,10 +14164,11 @@ export function PrototiposNovoIngressoPage() {
             {tipoIngresso === "Processo Seletivo" ? (
               <select value={tipoVinculoEditavel} onChange={(event) => { setTipoVinculoEditavel(event.target.value); setEqualizacaoSiesValidada(false); }}>
                 <option value="">Selecione...</option>
-                <option value="Temporário">Temporário</option>
-                <option value="Contrato Administrativo">Contrato Administrativo</option>
-                <option value="CLT">CLT</option>
-                <option value="Comissionado">Comissionado</option>
+                <option value="Contrato Temporário">Contrato Temporário</option>
+                <option value="Contrato Temporário Vínculo Único">Contrato Temporário Vínculo Único</option>
+                <option value="Residente Técnico">Residente Técnico</option>
+                <option value="Estagiário">Estagiário</option>
+                <option value="Bolsista">Bolsista</option>
               </select>
             ) : <input type="text" value={tipoVinculo} readOnly />}
           </label>
@@ -14147,10 +14325,14 @@ export function PrototiposNovoIngressoPage() {
             <span>Decisão Judicial<em>*</em></span>
             <select
               value={decisaoJudicial}
-              onChange={(event) =>
-                setDecisaoJudicial(event.target.value as "Não" | "Sim")
-              }
-            >
+              onChange={(event) => {
+                const novaDecisao = event.target.value as "Não" | "Sim";
+                setDecisaoJudicial(novaDecisao);
+                if (novaDecisao === "Não") {
+                  setArquivoDecisaoJudicial(null);
+                  setErroArquivoDecisaoJudicial("");
+                }
+              }}>
               <option value="Não">Não</option>
               <option value="Sim">Sim</option>
             </select>
@@ -14176,6 +14358,49 @@ export function PrototiposNovoIngressoPage() {
                   onChange={(event) => setNumeroProcessoJudicial(event.target.value)}
                 />
               </label>
+              <div className="prototype-ingresso-field prototype-judicial-document-field">
+                <span>Documento da Decisão Judicial<em>*</em></span>
+                <input
+                  id="arquivo-decisao-judicial"
+                  className="prototype-judicial-upload-input"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  required={!arquivoDecisaoJudicial}
+                  aria-invalid={Boolean(erroArquivoDecisaoJudicial)}
+                  aria-label="Anexar documento da decisão judicial"
+                  onChange={(event) => {
+                    selecionarArquivoDecisaoJudicial(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
+                <label
+                  htmlFor="arquivo-decisao-judicial"
+                  className={`prototype-judicial-upload-area${erroArquivoDecisaoJudicial ? " is-invalid" : ""}`}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    selecionarArquivoDecisaoJudicial(event.dataTransfer.files?.[0]);
+                  }}
+                >
+                  <span className="prototype-judicial-upload-button"><i className="pi pi-upload" aria-hidden="true" /> Escolher arquivo</span>
+                  <span className="prototype-judicial-upload-prompt">Arraste e solte o arquivo aqui ou clique para selecionar</span>
+                  <small>Formatos aceitos: PDF, JPG, PNG (Máx. 10MB)</small>
+                </label>
+                {erroArquivoDecisaoJudicial ? <small className="prototype-judicial-upload-error" role="alert">{erroArquivoDecisaoJudicial}</small> : null}
+                <div className="prototype-judicial-attachments">
+                  <strong>Arquivos anexados ({arquivoDecisaoJudicial ? 1 : 0})</strong>
+                  {arquivoDecisaoJudicial ? (
+                    <div className="prototype-judicial-attachment-row">
+                      <span className="prototype-judicial-attachment-icon"><i className={`pi ${arquivoDecisaoJudicial.type === "application/pdf" ? "pi-file-pdf" : "pi-image"}`} aria-hidden="true" /></span>
+                      <span className="prototype-judicial-attachment-info"><strong>{arquivoDecisaoJudicial.name}</strong><small>{formatarTamanhoArquivo(arquivoDecisaoJudicial.size)}</small></span>
+                      <div className="prototype-judicial-attachment-actions">
+                        <BotaoIconSeplag type="button" icon="pi pi-download" tooltip={`Baixar ${arquivoDecisaoJudicial.name}`} onClick={baixarArquivoDecisaoJudicial} />
+                        <BotaoIconSeplag type="button" icon="pi pi-trash" tooltip={`Remover ${arquivoDecisaoJudicial.name}`} severity="danger" onClick={() => { setArquivoDecisaoJudicial(null); setErroArquivoDecisaoJudicial(""); }} />
+                      </div>
+                    </div>
+                  ) : <p>Nenhum arquivo anexado</p>}
+                </div>
+              </div>
             </>
           ) : null}
         </div>
@@ -14449,7 +14674,11 @@ export function PrototiposNovoIngressoPage() {
               </tr>
             </thead>
             <tbody>
-              {documentosObrigatoriosIngresso.map((documento, index) => (
+              {documentosObrigatoriosIngresso.map((documento, index) => {
+                const nomeArquivo = nomeArquivoDocumentoAnalise(documento);
+                const situacaoDocumento = nomeArquivo === "-" ? "Pendente" : documento.situacao;
+
+                return (
                 <tr key={documento.documento}>
                   <td className="prototype-ingresso-doc-index-col">{index + 1}</td>
                   <td>{documento.documento}</td>
@@ -14461,15 +14690,15 @@ export function PrototiposNovoIngressoPage() {
                   <td>
                     <span
                       className={`prototype-ingresso-doc-status ${getIngressoDocumentoStatusClass(
-                        documento.situacao,
+                        situacaoDocumento,
                       )}`}
                     >
-                      {documento.situacao}
+                      {situacaoDocumento}
                     </span>
                   </td>
-                  <td>{documento.arquivo}</td>
+                  <td>{nomeArquivo}</td>
                   <td className="prototype-ingresso-doc-action-cell">
-                    <div className="prototype-ingresso-doc-actions">
+                    <div className="prototype-ingresso-doc-actions prototype-ingresso-doc-actions--documentacao">
                       <BotaoIconSeplag
                         type="button"
                         className="prototype-ingresso-doc-action-button"
@@ -14481,16 +14710,28 @@ export function PrototiposNovoIngressoPage() {
                         className="prototype-ingresso-doc-action-button"
                         icon="pi pi-download"
                         tooltip={
-                          documento.arquivo === "-"
+                          nomeArquivo === "-"
                             ? "Nenhum arquivo disponível para download"
-                            : `Baixar ${documento.arquivo}`
+                            : `Baixar ${nomeArquivo}`
                         }
-                        disabled={documento.arquivo === "-"}
+                        disabled={nomeArquivo === "-"}
+                        onClick={() => baixarDocumentoAnalise(documento)}
                       />
+                      {tipoIngresso === "Processo Seletivo" && nomeArquivo !== "-" ? (
+                        <BotaoIconSeplag
+                          type="button"
+                          className="prototype-ingresso-doc-action-button prototype-ingresso-doc-action-button--delete"
+                          icon="pi pi-trash"
+                          tooltip={`Excluir ${nomeArquivo}`}
+                          severity="danger"
+                          onClick={() => excluirDocumentoAnalise(documento.documento)}
+                        />
+                      ) : null}
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </section>
@@ -14854,7 +15095,7 @@ export function PrototiposNovoIngressoPage() {
                         <input type="date" required data-rascunho-campo="inicio-suspensao" defaultValue={String(rascunhoAnaliseInicial?.campos["inicio-suspensao"] ?? "")} />
                       </label>
                       <label className="prototype-ingresso-field">
-                        <span>Prazo para resposta/complementação<em>*</em></span>
+                        <span>Data fim da suspensão<em>*</em></span>
                         <input type="date" required data-rascunho-campo="prazo-suspensao" defaultValue={String(rascunhoAnaliseInicial?.campos["prazo-suspensao"] ?? "")} />
                       </label>
                       <label className="prototype-ingresso-field prototype-suspensao-prazo-full">

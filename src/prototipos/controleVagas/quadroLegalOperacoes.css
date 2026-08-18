@@ -15,3 +15,69 @@
 .prototype-legal-organization-change dt{color:#68788d;font-size:.67rem}
 .prototype-legal-organization-change dd{margin:4px 0 0;color:#17334f;font-size:1.05rem;font-weight:800}
 @media(max-width:700px){.prototype-legal-organization-change dl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.prototype-legal-distribution-version{margin:15px 0;border:1px solid #cfd9e5;border-radius:7px;overflow:hidden;background:#f8fbfd}
+.prototype-legal-distribution-version>header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 15px;border-bottom:1px solid #dbe3ec;background:#f5f8fb}
+.prototype-legal-distribution-version h3{margin:0 0 3px;font-size:.86rem}
+.prototype-legal-distribution-version p{margin:0;color:#64758a;font-size:.72rem}
+.prototype-legal-distribution-version>.col-12{width:auto;margin:10px 15px 0}
+.prototype-legal-distribution-summary-inline{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:7px 10px;padding:10px 15px;border-bottom:1px solid #e4ebf2;background:#fff}
+.prototype-legal-distribution-summary-inline span{color:#64758a;font-size:.68rem}
+.prototype-legal-distribution-summary-inline strong{color:#086db9;font-size:.72rem}
+.prototype-legal-distribution-head,.prototype-legal-distribution-row{display:grid;grid-template-columns:minmax(0,1fr) 140px 140px 70px;gap:8px;align-items:end;padding:0 15px}
+.prototype-legal-distribution-head{padding-top:11px;color:#536178;font-size:.66rem;font-weight:800;text-transform:uppercase}
+.prototype-legal-distribution-row{padding-top:8px}
+.prototype-legal-distribution-row label,.prototype-legal-distribution-row>div{display:flex;min-width:0;flex-direction:column;gap:5px}
+.prototype-legal-distribution-row label>span,.prototype-legal-distribution-row>div>span{display:none;color:#536178;font-size:.68rem;font-weight:800}
+.prototype-legal-distribution-row input{width:100%;height:38px;border:1px solid #c4cfdd;border-radius:5px;background:#fff;color:#26374c;padding:0 9px}
+.prototype-legal-distribution-row input.is-invalid{border-color:#e23b45;background:#fff5f5;color:#9f1d25}
+.prototype-legal-distribution-row input[readonly]{background:#f5f8fb;color:#536178;font-weight:800}
+.prototype-legal-distribution-dropdown{width:100%;min-height:38px}
+.prototype-legal-distribution-dropdown .p-dropdown-label{display:flex;align-items:center;color:#26374c;font-size:.86rem}
+.prototype-legal-distribution-row input{text-align:right}
+.prototype-legal-distribution-locked-orgao{display:flex;align-items:center;justify-content:space-between;gap:8px;height:38px;border:1px solid #d7e1ea;border-radius:5px;background:#f5f8fb;color:#26374c;padding:0 10px}
+.prototype-legal-distribution-locked-orgao strong{overflow:hidden;font-size:.86rem;text-overflow:ellipsis;white-space:nowrap}
+.prototype-legal-distribution-locked-orgao i{color:#748197;font-size:.78rem}
+.prototype-legal-distribution-locked-action{display:flex;align-items:center;justify-content:center;height:38px;border:1px solid #d7e1ea;border-radius:5px;background:#f5f8fb;color:#64758a;font-size:.68rem;font-weight:800;text-transform:uppercase}
+.prototype-legal-distribution-version>footer{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px 12px;margin-top:10px;padding:10px 15px;border-top:1px solid #dbe3ec;color:#51647a;font-size:.72rem}
+.prototype-legal-distribution-version>footer strong{color:#086db9}
+.prototype-legal-distribution-version>footer strong.is-invalid{color:#c62828}
+.prototype-legal-distribution-availability{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:14px 0 0;padding:12px;border:1px solid #cce1f2;border-radius:7px;background:#f1f8fe}
+.prototype-legal-distribution-availability article{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #d7e4ef;border-radius:5px;background:#fff}
+.prototype-legal-distribution-availability article.is-invalid{border-color:#f1b8bc;background:#fff5f5}
+.prototype-legal-distribution-availability span{color:#66778d;font-size:.68rem}
+.prototype-legal-distribution-availability strong{color:#086db9;font-size:1.05rem}
+.prototype-legal-distribution-availability strong.is-invalid,.prototype-legal-distribution-availability article.is-invalid strong{color:#c62828}
+.prototype-legal-distribution-availability small{grid-column:1/-1;color:#536b82;font-size:.7rem}
+.prototype-legal-distribution-simulation{padding:13px 16px}
+.prototype-legal-distribution-simulation>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.prototype-legal-distribution-simulation article{display:flex;flex-direction:column;padding:10px;border:1px solid #d7e4ef;border-radius:5px;background:#f7fbff}
+.prototype-legal-distribution-simulation span{color:#66778d;font-size:.68rem}
+.prototype-legal-distribution-simulation strong{margin-top:3px;color:#17334f;font-size:.95rem}
+.prototype-legal-distribution-simulation ul{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.prototype-legal-distribution-simulation li{padding:4px 7px;border-radius:999px;background:#eef3f8;color:#40536a;font-size:.68rem;font-weight:700}
+.prototype-legal-distribution-simulation small{display:block;margin-top:8px;color:#66778d;font-size:.7rem}
+.prototype-legal-redistribution-version{margin:15px 0;padding:0 0 13px;border-top:1px solid #dbe3ec}
+.prototype-legal-redistribution-version>.col-12{width:auto;margin:10px 0 0}
+.prototype-legal-redistribution-route{display:grid;grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr);gap:14px;align-items:end;padding-top:14px}
+.prototype-legal-redistribution-route article{display:flex;min-width:0;flex-direction:column;gap:12px}
+.prototype-legal-redistribution-route header{display:flex;align-items:center;gap:10px}
+.prototype-legal-redistribution-route header div{display:flex;flex-direction:column;gap:3px}
+.prototype-legal-redistribution-route header span:not(.prototype-legal-redistribution-icon){color:#536178;font-size:.66rem;font-weight:800;text-transform:uppercase}
+.prototype-legal-redistribution-route header strong{color:#17334f;font-size:.8rem}
+.prototype-legal-redistribution-icon{display:grid;width:34px;height:34px;place-items:center;border-radius:6px}
+.prototype-legal-redistribution-icon.is-origin{background:#e8f4fd;color:#086db9}
+.prototype-legal-redistribution-icon.is-destination{background:#e4f7ee;color:#18895b}
+.prototype-legal-redistribution-route label{display:flex;min-width:0;flex-direction:column;gap:6px}
+.prototype-legal-redistribution-route label>span{color:#536178;font-size:.7rem;font-weight:800}
+.prototype-legal-redistribution-arrow{display:grid;width:40px;height:40px;place-self:end center;place-items:center;border:1px solid #b7c8d9;border-radius:50%;color:#0871be;background:#fff}
+.prototype-legal-redistribution-quantity{margin-top:12px}
+.prototype-legal-redistribution-quantity>.col-12{width:100%;padding:0}
+.prototype-legal-redistribution-quantity small{display:block;margin-top:5px;color:#536b82;font-size:.7rem}
+.prototype-legal-card form>.col-12{width:100%;padding:0}
+@media(max-width:800px){.prototype-legal-distribution-head{display:none}.prototype-legal-distribution-row{grid-template-columns:1fr}.prototype-legal-distribution-row label>span,.prototype-legal-distribution-row>div>span{display:block}.prototype-legal-distribution-availability,.prototype-legal-distribution-simulation>div,.prototype-legal-redistribution-route{grid-template-columns:1fr}.prototype-legal-redistribution-arrow{display:none}}
+.prototype-legal-transformation-target{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 13px;border-bottom:1px solid #dbe3ec;background:#f2f9fe;color:#315d7b;font-size:.74rem}
+.prototype-legal-transformation-destination-field{padding:12px 13px;border-bottom:1px solid #dbe3ec;background:#fff}
+.prototype-legal-transformation-destination-field>.col-12{width:min(520px,100%);padding:0}
+.prototype-legal-transformation-target span{font-weight:800;text-transform:uppercase;font-size:.66rem}
+.prototype-legal-transformation-target strong{color:#17334f}
+.prototype-legal-transformation-allocation input:disabled{background:#eef3f8;color:#7a8797;cursor:not-allowed}

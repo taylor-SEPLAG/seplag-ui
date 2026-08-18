@@ -216,19 +216,6 @@ export function VagasIndividualizadasContent() {
   );
 
   const pendentesDeAto = vagasDoQuadro.length - vagasDistribuidasDoQuadro.length;
-  const pessoasComMaisVinculos = useMemo(() => {
-    const ativas = ocupacoes.filter((item) => item.situacao === "ATIVA");
-    return new Set(
-      ativas
-        .filter((item, _, todos) =>
-          todos.some(
-            (outro) => outro.id !== item.id && outro.pessoaId === item.pessoaId,
-          ),
-        )
-        .map((item) => item.pessoaId),
-    );
-  }, [ocupacoes]);
-
   const filtradas = useMemo(() => {
     const termo = identificador.trim().toLocaleLowerCase("pt-BR");
     const termoOcupante = ocupanteAtual.trim().toLocaleLowerCase("pt-BR");
@@ -310,7 +297,7 @@ export function VagasIndividualizadasContent() {
   const colunas = useMemo<ColumnMetaSeplag<VagaIndividualizadaView>[]>(
     () => [
       {
-        header: "Identificador",
+        header: "Nome da vaga",
         body: (item) => (
           <div className="prototype-vaga-primary-cell">
             <button
@@ -340,21 +327,12 @@ export function VagasIndividualizadasContent() {
             (registro) =>
               registro.vagaId === item.id && registro.situacao === "ATIVA",
           );
-          const possuiMaisVinculos = Boolean(
-            ocupacaoAtual && pessoasComMaisVinculos.has(ocupacaoAtual.pessoaId),
-          );
-
           return ocupacaoAtual ? (
             <div className="prototype-vaga-primary-cell">
               <strong>{ocupacaoAtual.pessoaNome}</strong>
               <small>
                 {ocupacaoAtual.matricula} · {ocupacaoAtual.vinculoId}
               </small>
-              {possuiMaisVinculos && (
-                <span className="prototype-vaga-multiple-link">
-                  <i className="pi pi-clone" /> Mais de um vínculo
-                </span>
-              )}
             </div>
           ) : (
             <span className="prototype-vaga-muted">Sem ocupante atual</span>
@@ -398,7 +376,7 @@ export function VagasIndividualizadasContent() {
         ),
       },
     ],
-    [comprometimentos, ocupacoes, pessoasComMaisVinculos],
+    [comprometimentos, ocupacoes],
   );
 
   const limpar = () => {
@@ -507,7 +485,7 @@ export function VagasIndividualizadasContent() {
               <TextFieldSeplag<VagasIndividualizadasFiltros>
                 name="identificador"
                 control={control}
-                label="Identificador"
+                label="Nome da vaga"
                 cols="12"
                 icon="pi pi-search"
                 placeholder="Ex: VAG-SEPLAG-00001"
@@ -646,18 +624,6 @@ function VagasIndividualizadasLegacy() {
   const [vaga, setVaga] = useState<Vaga | null>(null);
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
-  const pessoasComMaisVinculos = useMemo(() => {
-    const ativas = ocupacoes.filter((item) => item.situacao === "ATIVA");
-    return new Set(
-      ativas
-        .filter((item, _, todos) =>
-          todos.some(
-            (outro) => outro.id !== item.id && outro.pessoaId === item.pessoaId,
-          ),
-        )
-        .map((item) => item.pessoaId),
-    );
-  }, [ocupacoes]);
   const filtradas = useMemo(() => {
     const t = busca.trim().toLowerCase();
     return vagas.filter((v) => {
@@ -674,12 +640,7 @@ function VagasIndividualizadasLegacy() {
           ? Boolean(ocupacaoAtual)
           : ocupacaoFiltro === "HISTORICO"
             ? ocupacoesDaVaga.some((item) => item.situacao === "ENCERRADA")
-            : ocupacaoFiltro === "MULTIPLO"
-              ? Boolean(
-                  ocupacaoAtual &&
-                  pessoasComMaisVinculos.has(ocupacaoAtual.pessoaId),
-                )
-              : ocupacaoFiltro === "SEM_HISTORICO"
+            : ocupacaoFiltro === "SEM_HISTORICO"
                 ? ocupacoesDaVaga.length === 0
                 : true);
       return (
@@ -722,7 +683,6 @@ function VagasIndividualizadasLegacy() {
     vagas,
     comprometimentos,
     ocupacoes,
-    pessoasComMaisVinculos,
   ]);
   const paginas = Math.max(1, Math.ceil(filtradas.length / porPagina));
   const exibidas = filtradas.slice(
@@ -810,19 +770,13 @@ function VagasIndividualizadasLegacy() {
             icon="pi pi-balance-scale"
             kind="warning"
           />
-          <Kpi
-            label="Pessoas com mais de um vínculo"
-            value={pessoasComMaisVinculos.size}
-            icon="pi pi-clone"
-            kind="dual"
-          />
         </section>
         <section className="prototype-vaga-card">
           <div className="prototype-vaga-filters">
             <SpecArea metadata={vagasFilterSpecifications.Identificador}>
               <label className="wide">
                 <span>
-                  Identificador
+                  Nome da vaga
                   <button
                     type="button"
                     className="prototype-vaga-column-visibility"
@@ -832,8 +786,8 @@ function VagasIndividualizadasLegacy() {
                     }
                     aria-label={
                       mostrarIdentificador
-                        ? "Ocultar coluna de identificador"
-                        : "Exibir coluna de identificador"
+                        ? "Ocultar coluna de nome da vaga"
+                        : "Exibir coluna de nome da vaga"
                     }
                   >
                     <i
@@ -851,7 +805,7 @@ function VagasIndividualizadasLegacy() {
                       setBusca(e.target.value);
                       setPagina(1);
                     }}
-                    placeholder="Pesquisar identificador"
+                    placeholder="Pesquisar nome da vaga"
                   />
                 </div>
               </label>
@@ -957,7 +911,6 @@ function VagasIndividualizadasLegacy() {
               options={[
                 { label: "Com ocupante atual", value: "ATUAL" },
                 { label: "Com histórico anterior", value: "HISTORICO" },
-                { label: "Pessoa com mais de um vínculo", value: "MULTIPLO" },
                 { label: "Sem histórico de ocupação", value: "SEM_HISTORICO" },
               ]}
               onChange={(valor) => {
@@ -1010,7 +963,7 @@ function VagasIndividualizadasLegacy() {
               <table>
                 <thead>
                   <tr>
-                    {mostrarIdentificador && <th>Identificador</th>}
+                    {mostrarIdentificador && <th>Nome da vaga</th>}
                     {mostrarCargoCarreira && <th>Cargo e carreira</th>}
                     {mostrarOrgao && <th>Órgão titular</th>}
                     {mostrarTipo && <th>Tipo</th>}
@@ -1032,10 +985,6 @@ function VagasIndividualizadasLegacy() {
                     const ocupacaoAtual = ocupacoes.find(
                       (item) =>
                         item.vagaId === v.id && item.situacao === "ATIVA",
-                    );
-                    const vinculosMultiplos = Boolean(
-                      ocupacaoAtual &&
-                      pessoasComMaisVinculos.has(ocupacaoAtual.pessoaId),
                     );
                     const compromisso = getComprometimento(v.id);
                     const faseAtual = compromisso?.fases.find(
@@ -1097,12 +1046,6 @@ function VagasIndividualizadasLegacy() {
                                 <>
                                   <strong>{ocupacaoAtual.pessoaNome}</strong>
                                   <small>{ocupacaoAtual.cpf}</small>
-                                  {vinculosMultiplos && (
-                                    <span className="prototype-vaga-multiple-link">
-                                      <i className="pi pi-clone" /> Mais de um
-                                      vínculo
-                                    </span>
-                                  )}
                                 </>
                               ) : (
                                 <small>Sem ocupante atual</small>
@@ -1295,7 +1238,7 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
         <div className="prototype-vaga-modal-title">
           <span>Vaga individual</span>
           <h2>{vaga.identificadorExibicao}</h2>
-          <p>Identificador vigente · criado após a distribuição formal</p>
+          <p>Nome vigente · criado após a distribuição formal</p>
         </div>
       }
       ariaLabel={`Detalhes da vaga ${vaga.identificadorExibicao}`}
@@ -1380,7 +1323,7 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
                 <dt>Distribuição atual</dt>
                 <dd>
                   {distribuicao.orgaoDistribuicao ??
-                    "Pendente de ato de distribuição"}
+                    "Pendente de distribuição"}
                   {distribuicao.unidadeDistribuicao
                     ? ` • ${distribuicao.unidadeDistribuicao}`
                     : ""}
@@ -1403,7 +1346,7 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
             </dl>
           </section>
           <section>
-            <h3>Integridade do identificador</h3>
+            <h3>Composição do nome da vaga</h3>
             <div className="prototype-vaga-id-parts">
               <code>{vaga.identificadorExibicao}</code>
               <div>
@@ -1689,16 +1632,6 @@ function OcupantesDaVaga({ vagaId }: { vagaId: string }) {
   const itens = ocupacoes
     .filter((item) => item.vagaId === vagaId)
     .sort((a, b) => b.efetivoExercicioEm.localeCompare(a.efetivoExercicioEm));
-  const ativas = ocupacoes.filter((item) => item.situacao === "ATIVA");
-  const pessoasComMaisVinculos = new Set(
-    ativas
-      .filter((item, _, todos) =>
-        todos.some(
-          (outro) => outro.id !== item.id && outro.pessoaId === item.pessoaId,
-        ),
-      )
-      .map((item) => item.pessoaId),
-  );
   if (!itens.length) return null;
   const columns: ColumnMetaSeplag<OcupacaoVaga>[] = [
     {
@@ -1707,11 +1640,6 @@ function OcupantesDaVaga({ vagaId }: { vagaId: string }) {
         <>
           <strong>{item.pessoaNome}</strong>
           <small>{item.cpf}</small>
-          {pessoasComMaisVinculos.has(item.pessoaId) && (
-            <span className="prototype-vaga-multiple-link">
-              <i className="pi pi-clone" /> Mais de um vínculo
-            </span>
-          )}
         </>
       ),
     },
