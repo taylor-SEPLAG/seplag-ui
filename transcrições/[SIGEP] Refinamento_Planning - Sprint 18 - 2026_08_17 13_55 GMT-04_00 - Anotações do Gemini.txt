@@ -1,0 +1,1667 @@
+📝 Observações
+ago. 17, 2026
+[SIGEP] Refinamento/Planning - Sprint 18
+convidado Alex Sandro Pereira Garcia Analistas SIGEP Reunião TI - SEPLAG André Parada de Oliveira Machado Daylton Brandão Junior Gabriel Rodrigues de Moura Glauber Hofman João Victor Pires Dos Santos Luciano da Silva Oliveira Roberto de Souza Xavier Junior Rodrigo Thaua Lima Barroso Rodrigo Schecheli Bussolo Thássyus Fabiano M de Almeida Carvalho Anselmo Gonçalves Cardoso Aryadne Lelis De Oliveira Deyvison dos Santos Silva Jonathas Gomes Marques Murilo de Alencar Silva Sabrina Larrayner Ortis Neves Vigilato Eddie Allen de Medeiros Pinto
+Anexos [SIGEP] Refinamento/Planning - Sprint 18 Anotações do Gemini [SIGEP] Refinamento/Planning - Sprint 18 - 2026/08/17 09:21 GMT-04:00 - Recording
+Registros da reunião Transcrição Gravação
+Resumo
+O time definiu escopos de desenvolvimento, pontuou tarefas via Planning Poker e adiou o desenvolvimento do painel.
+
+Regras do Quadro Autorizado
+O processo de criação de quadros foi simplificado com a remoção de opções redundantes. Alterações como distribuição de vagas gerarão novas versões automaticamente no sistema.
+
+Estimativa de Tarefas Técnicas
+A equipe utilizou o Planning Poker para estimar complexidades de funcionalidades como histórico de versões e filtros. Tarefas foram consolidadas para otimizar o fluxo de desenvolvimento.
+
+Decisão sobre Painel Gerencial
+O desenvolvimento do painel de controle foi adiado para uma futura iteração para evitar bloqueios no cronograma. O time focará na implementação das funcionalidades prioritárias de quadros e vagas.
+Decisões
+Alinhada
+Mudanças estruturais na criação de quadros O fluxo de criação de quadros foi simplificado, eliminando três opções iniciais e centralizando as funções de distribuição e redistribuição dentro do versionamento.
+Geração automática de novas versões O sistema gerará automaticamente uma nova versão do quadro a cada alteração realizada pelo usuário.
+Consolidação de histórias de usuário As histórias de usuário 2 e 3 foram fundidas em uma única tarefa, e a história 1 (listagem de distribuição) foi excluída do escopo.
+Remoção de indicadores do dashboard Os indicadores (cards) presentes no topo do dashboard serão removidos, com a possibilidade de serem reintroduzidos em um momento futuro.
+Estimativa de pontos da história A estimativa de complexidade (story points) para a história de listagem de quadros foi definida consensualmente como 8.
+Separação das histórias de distribuição As funcionalidades de distribuição e redistribuição serão separadas em duas histórias de usuário distintas (histórias 6 e 7).
+Implementação de botão de pesquisa O botão de consultar será adicionado aos filtros de vagas para evitar carregamento automático e melhorar a performance da tela.
+Fusão das tarefas de filtros e listagem As funcionalidades de filtros e listagem de vagas serão unificadas em uma única entrega de desenvolvimento.
+Remoção de histórico na visualização As informações de histórico de ocupação e dados de integridade serão removidas da visualização detalhada da vaga, visto que não há dados disponíveis no momento.
+Adiantamento do dashboard para próxima sprint O desenvolvimento do dashboard foi adiado para a próxima sprint para evitar dependência de ferramentas externas e garantir a disponibilidade prévia dos dados.
+Arquivada
+Adiamento da implementação de carreira A implementação da tabela de carreira foi adiada para uma sprint futura, mantendo o uso da categoria atual por enquanto.
+Atualizamos a seção "Decisões" com base no seu feedback.
+Dê sua opinião: Sim ou Não é útil
+Próximas etapas
+[Taylor Augusto Dos Santos] Atualizar Histórias: Revisar as descrições das histórias de usuário para alinhar com as mudanças nos requisitos de criação de quadros. Remover as opções de inclusão e exclusão de órgãos e integrar essas ações dentro do versionamento.
+[Deyvison dos Santos Silva] Verificar Sprint: Consultar a equipe sobre a viabilidade de desenvolvimento das histórias de usuário para a sprint atual.
+[Taylor Augusto Dos Santos] Atualizar regras consulta: Modificar as diretrizes de negócio da funcionalidade para assegurar uma visualização mais simples e direta.
+[Taylor Augusto Dos Santos] Implementar paginação: Adicionar paginação na consulta do histórico de versões dentro do acordeão.
+[Taylor Augusto Dos Santos] Ajustar demandas distribuição: Revisar as ordens de serviço seis e sete referentes aos fluxos de movimentação de vagas.
+[Gabriel Rodrigues de Moura] Investigar tabela servidores: Analisar a estrutura dos dados para validar os vínculos funcionais e definir o comportamento do filtro de pesquisa.
+[Taylor Augusto Dos Santos] Adicionar botao de pesquisa: Adicionar um botao de pesquisa na tela de listagem de vagas para evitar consultas automaticas constantes ao banco de dados.
+[Taylor Augusto Dos Santos] Corrigir Redmines: Realizar as correcoes necessarias nos Redmines conforme discutido na reuniao mantendo os links originais.
+[O grupo] Informar devs: Informar os nomes dos desenvolvedores responsáveis pela atuacao em cada tarefa definida na sprint para organizacao interna.
+[Taylor Augusto Dos Santos] Ajustar prototipos: Remover as secoes de historico e integridade da visualizacao detalhada da vaga no prototipo conforme definido.
+[O grupo] Reportar impedimentos: Comunicar prontamente qualquer duvida ou impedimento tecnico encontrado durante a execucao das atividades da sprint.
+Detalhes
+Modificações no Quadro Autorizado: Taylor Augusto Dos Santos explicou que o processo de criação de um novo quadro foi simplificado, removendo opções redundantes. Ao criar um quadro, o usuário deve informar apenas tipo de vínculo, regime, carreira, cargo, perfil, quantidade de vagas e data de início. A tela de distribuição será integrada ao versionamento, e a inclusão ou exclusão de órgãos ocorrerá conforme o estado das vagas (00:00:02).
+Regras para Inativação e Distribuição de Vagas: Taylor Augusto Dos Santos detalhou que um órgão só pode ser inativado se não possuir vagas vinculadas. As telas de inclusão e exclusão serão substituídas pelas de distribuição e redistribuição, que fazem parte do versionamento do quadro autorizado. A distribuição consiste em alocar vagas pendentes para órgãos específicos, dependendo da lei vigente (00:01:23).
+Gerenciamento de Vagas Ocupadas e Redistribuição: Taylor Augusto Dos Santos esclareceu que a redistribuição envolve mover vagas desocupadas entre órgãos, exigindo uma justificativa em campo de observação. Vagas ocupadas serão tratadas futuramente com as funcionalidades de sessão e remoção. A tela de vagas individualizadas permitirá filtrar por órgão e visualizar o ocupante, embora atualmente aguarde integração com a tela de ingresso (00:02:33).
+Exibição de Vagas na Tela Individualizada: Rodrigo Schecheli Bussolo questionou a visibilidade de vagas não distribuídas. Taylor Augusto Dos Santos confirmou que vagas sem ocupante atual serão exibidas, mas reforçou que, se o órgão não for informado, o ingresso não poderá ser processado no sistema, mantendo a parte de ingresso em "standby" no desenvolvimento (00:04:38).
+Versionamento Automático: Deyvison dos Santos Silva confirmou que qualquer alteração realizada no quadro, como distribuição ou redistribuição, gerará automaticamente uma nova versão. Taylor Augusto Dos Santos explicou que a exclusão só será possível se o quadro estiver no período agendado, não havendo exclusão total após a ativação da primeira versão (00:06:25).
+Ajuste nas Histórias de Usuário: Taylor Augusto Dos Santos propôs a criação de novas histórias de usuário para distribuição e redistribuição dentro de "Quadro Autorizado", substituindo a tela anterior. O time discutiu a necessidade de manter as tarefas agrupadas ou separadas, decidindo ajustar o escopo das atividades para o planejamento (00:07:59).
+Consolidação das Histórias de Usuário: Reunião TI - SEPLAG apresentou as histórias de usuário para o "Planning Poker", consolidando os itens 2, 3, 4 e 5 em um único escopo de desenvolvimento, enquanto a história 1 (listagem de distribuição) será removida. A simulação da distribuição será mantida dentro desse fluxo (00:10:35).
+Definição de Escopo e Prazos: Jonathas Gomes Marques e Reunião TI - SEPLAG discutiram a necessidade de sincronizar o desenvolvimento e os testes dentro da mesma sprint, apesar de divergências iniciais sobre o fluxo de trabalho. Ficou definido que a prioridade imediata é o desenvolvimento pela equipe, deixando discussões sobre prazos de teste para um momento posterior (00:12:41).
+Estimativa para Listagem de Quadros Autorizados: A equipe realizou o "Planning Poker" para a funcionalidade de listagem de quadros autorizados. Após discussões sobre complexidade e status do banco de dados, o grupo entrou em consenso com uma pontuação de 8 pontos (00:16:00) (00:26:25).
+Indicadores na Tela Inicial: Thássyus Fabiano M de Almeida Carvalho questionou sobre os indicadores na parte superior da tela. Taylor Augusto Dos Santos sugeriu mantê-los inicialmente, mas, após debate sobre desempenho e complexidade, Luciano da Silva Oliveira recomendou remover os totalizadores neste momento para simplificar o desenvolvimento (00:17:05) (00:19:08).
+Consulta ao Histórico de Versões: A equipe debateu a estimativa para a funcionalidade de consulta ao histórico de versões. Foi esclarecido que a tarefa envolve a listagem de versionamento e a atualização de regras de negócio específicas. O time consolidou a pontuação em 5 pontos, considerando a necessidade de paginação (00:27:02) (00:31:57).
+Desafios de Dados e Migração: Gabriel Rodrigues de Moura levantou dúvidas sobre o histórico de servidores e cargos já existentes no estado. Taylor Augusto Dos Santos e Rodrigo Schecheli Bussolo esclareceram que o sistema começará do zero, sem migração automática de dados históricos de ocupação por enquanto, tratando o cadastro como manual (00:28:45).
+Cadastro do Quadro Autorizado: Taylor Augusto Dos Santos revisou as regras para o cadastro, confirmando que a vigência e situação (agendada ou ativa) serão mantidas, mas outras opções serão removidas. A equipe atribuiu 5 pontos a esta tarefa, considerando a reutilização de componentes existentes (00:36:19) (00:39:08).
+Estrutura de Carreira e Categoria: Aryadne Lelis De Oliveira e Gabriel Rodrigues de Moura discutiram a falta de uma tabela para "Carreira". Foi decidido que a categoria será tratada como carreira e, embora a estrutura de banco de dados ainda precise de definições futuras, o desenvolvimento seguirá com as amarrações necessárias entre carreira, cargo e perfil (00:40:48) (00:43:46).
+Edição e Exclusão de Quadros: Taylor Augusto Dos Santos esclareceu que botões de edição e exclusão só estarão visíveis quando o quadro estiver agendado. Após a ativação, essas opções não estarão disponíveis da mesma forma. A equipe atribuiu 3 pontos a esta tarefa, devido ao reaproveitamento de lógica das funcionalidades de inclusão (00:45:23) (00:48:25).
+Versionamento e Distribuição (Histórias 6 e 7): Taylor Augusto Dos Santos definiu que a história 6 abrangerá distribuição e a história 7 tratará da redistribuição. A equipe discutiu a complexidade do versionamento e das regras associadas, pontuando a tarefa em 13, devido à quantidade de validações de banco de dados e regras de negócio envolvidas na simulação e gravação dos dados (00:50:16) (00:53:06).
+Complexidade da Distribuição e Redistribuição de Vagas: Luciano da Silva Oliveira atribuiu uma pontuação de 13 para esta atividade, argumentando que a complexidade reside na estrutura do backend, apesar da simplicidade visual no front end, sendo apoiado por Alex Sandro Pereira Garcia (00:58:55).
+Funcionalidade de Redistribuição: Taylor Augusto Dos Santos explicou que o modelo incluirá a seleção de órgãos de origem e destino, além da quantidade de vagas redistribuídas, mantendo o foco em vagas disponíveis. O processo ainda não está totalmente modelado, resultando em uma estimativa de 8 pontos (01:00:08).
+Consulta de Vaga Individualizada: Foi estabelecida uma dependência desta funcionalidade em relação à existência de um quadro. Eddie Allen de Medeiros Pinto confirmou que a tabela de visualização já foi criada e precisa ser vinculada ao quadro autorizado (01:01:50).
+Histórico e Dinâmica das Vagas: Alex Sandro Pereira Garcia argumentou que as alterações nas vagas geram um histórico de ocupações que deve disparar ações no sistema e refletir no painel de controle (dashboard), justificando a pontuação de 8 pontos (01:02:57).
+Filtros de Vagas e Identificadores: Taylor Augusto Dos Santos descreveu que os filtros incluirão identificador, ocupante e ingresso, dependendo da seleção do quadro. Houve uma discussão sobre a necessidade de um botão de consulta para evitar consultas excessivas ao banco de dados enquanto o usuário digita, o que foi aceito como uma melhoria de performance .
+Status e Situações das Vagas: Foi esclarecido que o sistema lidará com situações específicas como "em transformação", "decisão judicial" e "extinção", embora nem todas as categorias estejam plenamente organizadas no momento (01:10:58).
+Fusão das Histórias de Usuário: A equipe, incluindo Alex Sandro Pereira Garcia e Rodrigo Schecheli Bussolo, decidiu fundir as histórias referentes à listagem de vagas e aos filtros de vagas em uma única unidade de trabalho, mantendo as pontuações de 5 pontos para a listagem e 8 pontos para os filtros .
+Visualização de Detalhes da Vaga: Taylor Augusto Dos Santos explicou que a tela exibirá informações gerais sobre o quadro e a carreira, e que o histórico de ocupação será removido temporariamente, visto que ainda não haverá registros de ocupação no momento inicial .
+Criação de Quadro: A equipe discutiu e definiu a pontuação de 3 pontos para a atividade de criação de um novo quadro .
+Estratégia de Implementação do Dashboard: Alex Sandro Pereira Garcia sugeriu o uso da ferramenta de Business Intelligence (BI) via frames dentro do sistema para facilitar a exportação de dados, mas Anselmo Gonçalves Cardoso alertou sobre os riscos de dependência de contratos externos. Decidiu-se, após a intervenção de Roberto de Souza Xavier Junior, adiar o desenvolvimento do dashboard para a próxima sprint, para não bloquear outras atividades de desenvolvimento que dependem dos dados .
+Ajuste no Tipo de Vínculo e Regime Jurídico: Foi identificada a necessidade de um ajuste para vincular o tipo de vínculo ao regime jurídico. Esta atividade, que não possui protótipo mas está modelada, recebeu a pontuação de 3 pontos (01:29:25).
+Logística e Encerramento da Sprint: A Reunião TI - SEPLAG definiu o encerramento da sprint para o dia 31 e estabeleceu a realização de reuniões diárias (daily) às 9:30. A equipe foi instruída a confirmar quais desenvolvedores atuarão em cada tarefa pendente para o início do ciclo (01:31:36).
+Revise as anotações do Gemini para checar se estão corretas. Confira dicas e saiba como o Gemini faz anotações
+Como está a qualidade de destas observações? Responda a uma breve pesquisa para nos dar seu feedback, incluindo o quanto as observações foram úteis para o que você precisa.
+📖 Transcrição
+ago. 17, 2026
+[SIGEP] Refinamento/Planning - Sprint 18 - Transcrição
+00:00:02
+Taylor Augusto Dos Santos: Partiu. Tá, pessoal, o Luciano trouxe umas ideias ali, a gente conversou aí o algumas modificações aqui, eu levei ela pro cliente. O cliente meio que já autorizou, aí a gente vai ter algumas mudancinhas aqui,
+Eddie Allen de Medeiros Pinto: Yeah.
+Taylor Augusto Dos Santos: certo? Basicamente, quando eu criar um novo quadro, não vai ter mais essas três opções aqui. A gente vai sumir com ela. Quando criar um novo quadro, a gente só vai colocar a lei, o tipo de vínculo, regime, carreira, cargo, perfil e a quantidade e a quando ele começa ou não lá, certo? Porque isso daqui ele tava misturando com distribuição e tal, já tava meio que fazendo duas coisas. Então, quando a gente for criar o quadro, a gente só vai criar o quadro e dizer a quantidade de vagas lá, basicamente. Certo? Outro detalhe que a gente vai acabar com toda essa tela de distribuição, a gente vai transformar ela, vai vir dentro da do versionamento.
+Luciano da Silva Oliveira: Да.
+Taylor Augusto Dos Santos: Então incluir órgão e exclusão também não vai ter mais. Isso meio que vai acontecer naturalmente dentro da do sistema, conforme o do dentro do sistema, certo? Por exemplo, quando um órgão for inativado, ele só vai ser inativado se não tiver nenhuma vaga.
+00:01:23
+Taylor Augusto Dos Santos: Então vai ter essa condição lá. E daí não vai precisar ter uma opção aqui de excluir ele. E a inclusão é meio que vai ser, entre aspas, liberada lá, né? O que vai depender vai ser a lei lá. Eh, aqui então, em vez de ter inclusão e exclusão, vai tirar essas opções e aqui vai ser a distribuição e a redistribuição, certo? Basicamente vou pegar a tela de lá e colocar ela aqui. Então, a gente vai ter o quadro autorizado, onde a gente cria o quadro, certo? Daí depois de criado a gente consegue versionar ele. Uma dessas versionação version verionamentos versionamentos vai ser a distribuição e essa redistribuição. Beleza? Eh, o restante acho que não muda. Eu vou falar aqui de red distribuição só para explicar mais ou menos. Basicamente essa parte aqui, então a parte daqui para baixo é o que vai aparecer na outra tela lá quando selecionar a opção lá. Na distribuição eu simplesmente escolho o órgão e a quantidade de vagas que eu vou para lá. E daí eu vou poder adicionar aqui quando preciso, certo? Lembrando que ele vai depender da lei, certo?
+00:02:33
+Taylor Augusto Dos Santos: Só que o a pessoa que cadastrar vai ter que saber certinho como que ele tá colocando aqui, tal. não vai ser mais uma trava no sistema, ela vai ter que colocar os órgãos certos aqui baseados numa lei e a quantidade aqui feita a distribuição, né, o que ele pode fazer depois, aí vai ser redistribuído. Então que é na distribuição, eu pego as vagas que foram criadas e estão pendentes ainda e eu tô falando, ó, essa vaga é desse órgão, entendeu? Eu tô distribuindo. distribuir é quando eu pego uma vaga que tá num órgão e coloco no outro. Lembrando, eu vou sempre estar mexendo aqui com vagas que não estão ocupadas. Vagas ocupadas a gente vai mexer em um outro momento que vai entrar a parte de sessão e remoção. Na na redistribuição, eu escolho o órgão destino, o o né, e o destino, e eu falo quantas vagas vai de um pro outro lado. Como não vai ter ninguém nessas vagas aqui, então é só somar e tirá-la. Aí eu vou colocar essa justificativa aqui, vai ser o campo de observação e eu vou colocar ela em todos os todas as opções de versionamento ali.
+00:03:41
+Taylor Augusto Dos Santos: Então ampliação vai ter um campo, tudo isso aqui vai ter um campinho de observação de tá no aí finalizando vagas individualizados. Aí é quando eu vejo vaga por vaga mesmo, depois do do quadro ter sido criado, as vagas ter sido distribuídas. Aí aqui eu vou enxergar a vaga em si. Então a pessoa consegue vir aqui filtrar o quadro, né? Primeiro de tudo, ele tem que selecionar um quadro, consegue filtrar por órgão, ele ele consegue ver qual pessoa tá ocupando aquela vaga lá. Aí essa parte aqui, essa tela, ela vai ser feita, né? Mas por enquanto ela não vai ser alimentada, porque isso daqui ela vai ser alimentada tanto pelo o ingresso quanto a parte de aposentadoria lá mais paraa frente por enquanto. Só pelo ingresso. Eh, acho que é isso.
+Rodrigo Schecheli Bussolo: Ô Taylor, volta ali naquela vagas individualizadas.
+Taylor Augusto Dos Santos: Pode falar. Uhum.
+Rodrigo Schecheli Bussolo: Ele não vai, se acaso ele não tá ainda distribuído,
+Taylor Augusto Dos Santos: sempre está
+Rodrigo Schecheli Bussolo: ele tem que aparecer. Aí vamos falar que eu já coloquei para um órgão, ele não deveria aparecer aí
+00:04:38
+Taylor Augusto Dos Santos: pode listar,
+Rodrigo Schecheli Bussolo: já não o órgão.
+Taylor Augusto Dos Santos: mas daí aqui teria que ser pendente no caso.
+Rodrigo Schecheli Bussolo: Vamos falar que eu já coloquei o órgão, só que eu ainda não, o cara não não ingressou ainda, não teria que tá. Eu vi uma hora que você mostrou que é quando ainda não tinha esse ocupante atual, eu acho.
+Taylor Augusto Dos Santos: Ah, tá. Não é ele aí aparece só a vaga. Deixa eu ver aqui. Ele fica assim, sem o componente atual.
+Rodrigo Schecheli Bussolo: Ali isso,
+Taylor Augusto Dos Santos: A vaga aparece, tal.
+Rodrigo Schecheli Bussolo: tá?
+Taylor Augusto Dos Santos: Na verdade, já essa daqui tá errada, na verdade, porque se ele já tá aguardando, em teoria era para ele ter um ocupante aqui já, só que ele não tá ocupando ainda, né? E
+Rodrigo Schecheli Bussolo: É, esse esse do lado ali,
+Taylor Augusto Dos Santos: efetivo.
+Rodrigo Schecheli Bussolo: ingresso, ocupação. Não, nós não teríamos hoje, né?
+Taylor Augusto Dos Santos: Não, isso aqui ainda não.
+Rodrigo Schecheli Bussolo: Tá.
+Taylor Augusto Dos Santos: Isso aqui ele vai puxar da a tela de ingresso da IS.
+00:05:36
+Rodrigo Schecheli Bussolo: Nem esse ocupante atual,
+Reunião TI - SEPLAG: О.
+Rodrigo Schecheli Bussolo: então ele vai ficar tudo sem ocupante atual,
+Taylor Augusto Dos Santos: Isso.
+Rodrigo Schecheli Bussolo: né?
+Taylor Augusto Dos Santos: Basicamente ele vai estar tudo assim,
+Rodrigo Schecheli Bussolo: O E se ele não informou o órgão?
+Taylor Augusto Dos Santos: sem ocupante, sem ingresso.
+Rodrigo Schecheli Bussolo: Ele aparece aí ou
+Taylor Augusto Dos Santos: Não, aí ele não consegue não consegue ingressar,
+Rodrigo Schecheli Bussolo: não?
+Taylor Augusto Dos Santos: né? Porque daí lá na tela de ingresso da IS, ela não vai conseguir relacionar essas essa pessoa nessa nessa vaga.
+Rodrigo Schecheli Bussolo: Ah, tá. Primeiro distribuir de quando ele distribuir tem que aparecer aí então, né?
+Taylor Augusto Dos Santos: Isso.
+Rodrigo Schecheli Bussolo: Ok. Tá.
+Taylor Augusto Dos Santos: Por enquanto Pantal e a parte do ingresso aqui vai ficar standby. Dev.
+Deyvison dos Santos Silva: Olha só, é só tirar uma dúvida, ver se eu entendi melhor. Distribuição. Então vai ficar dentro de quadro de autorizado, né? Dentro do
+Taylor Augusto Dos Santos: Isso a gente só vai Isso vai ter o dash,
+00:06:25
+Deyvison dos Santos Silva: quadro.
+Taylor Augusto Dos Santos: quadro autorizado e vagas individualizadas aí.
+Deyvison dos Santos Silva: Distribuição você faz depois de ser aprovado tudo certo. Aí só clicar no botão, ele abre o modal, no caso, para fazer distribuição ou abre uma tela em
+Taylor Augusto Dos Santos: Não vai ser tudo aqui dentro.
+Deyvison dos Santos Silva: si.
+Taylor Augusto Dos Santos: Então eu entro na versão e eu vou escolher o que que eu vou fazer. Se eu vou aqui no caso, né, eu iria nessa opção aqui, em vez de incluir órgão, vai ser a distribuição. E daí aqui eu vou escolher qual órgão que eu vou distribuir.
+Deyvison dos Santos Silva: Entendi.
+Taylor Augusto Dos Santos: E aqui seria redistribuição.
+Deyvison dos Santos Silva: Fechou. Beleza.
+Taylor Augusto Dos Santos: Aí toda vez que ele faz alguma coisa aqui,
+Deyvison dos Santos Silva: Era isso.
+Taylor Augusto Dos Santos: ele gera uma versão nova.
+Deyvison dos Santos Silva: Vai ser automática essa versão, basicamente, tá? Ou não.
+Taylor Augusto Dos Santos: Isso.
+Deyvison dos Santos Silva: Ah, fechou. Então alterarei alguma coisa já gerar uma nova versão.
+00:07:13
+Taylor Augusto Dos Santos: Isso aí as maneiras de alterar que ele vai ter.
+Deyvison dos Santos Silva: É isso.
+Taylor Augusto Dos Santos: Vai tá tudo aqui.
+Deyvison dos Santos Silva: Só não vai ter como excluir basicamente. Então
+Taylor Augusto Dos Santos: Tem a exclusão, né? Mas é a exclusão progressiva. Aqui no caso não exclu tudo.
+Deyvison dos Santos Silva: não é porque tinha um botão de excluir também, né? Na primeira versão.
+Taylor Augusto Dos Santos: Ah, não,
+Deyvison dos Santos Silva: Se não fosse aprovada,
+Taylor Augusto Dos Santos: isso é não,
+Deyvison dos Santos Silva: se tivesse no período agendado.
+Taylor Augusto Dos Santos: ainda ainda ainda é possível.
+Deyvison dos Santos Silva: Aí fechou.
+Taylor Augusto Dos Santos: Eu consigo excluir desde que não, se ele tiver agendado
+Deyvison dos Santos Silva: Então,
+Taylor Augusto Dos Santos: ainda.
+Deyvison dos Santos Silva: a partir da primeira versão foi ativada, vamos ser assim, aí não tem mais como
+Taylor Augusto Dos Santos: Isso, ele só vai,
+Deyvison dos Santos Silva: excluído.
+Taylor Augusto Dos Santos: o máximo que pode acontecer ele ter aquela explosão progressiva lá.
+Deyvison dos Santos Silva: Fechou? Beleza, então.
+00:07:59
+Taylor Augusto Dos Santos: Aí em questão das US, eu acredito que eu vou basicamente sumir com essas distribuição aqui, né? Não vai ter mais a tela. Aí aqui em quadra autorizada eu vou criar mais duas uss, uma para distribuição e outra para redistribuição. Aí eu queria ver com vocês também se vocês querem que eu quebre essa daqui para ficar basicamente uma para cada tipo de versionamento ou se pode deixar tudo
+Deyvison dos Santos Silva: Eu vou vou ver aqui com o pessoal ou ter para ver como que
+Taylor Augusto Dos Santos: junto.
+Deyvison dos Santos Silva: melhor fica, porque a distribuição basicamente só vai parar de existir,
+Taylor Augusto Dos Santos: É,
+Deyvison dos Santos Silva: vai ser vai ser atualizada no caso,
+Taylor Augusto Dos Santos: ela vai ela vai mudar, né?
+Deyvison dos Santos Silva: né?
+Taylor Augusto Dos Santos: Aqui é em distribuição a gente tinha seis US que lidava com toda a tela
+Deyvison dos Santos Silva: Versionada.
+Taylor Augusto Dos Santos: lá, só que daí basicamente eu vou pegar só duas, né? uma para cada um e colocar aqui em quadro
+Deyvison dos Santos Silva: Beleza,
+Taylor Augusto Dos Santos: autorizado.
+Deyvison dos Santos Silva: a gente vai ver aqui. com você então.
+00:09:03
+Taylor Augusto Dos Santos: Tak. Alguma dúvida
+Rodrigo Schecheli Bussolo: Acho que tá tranquilo. No.
+Taylor Augusto Dos Santos: tentarortar de novo. Esperar acabar isso aqui. Não é falaram que é difícil, gente.
+Jonathas Gomes Marques: tá diferente da reunião
+Taylor Augusto Dos Santos: Como
+Jonathas Gomes Marques: passada.
+Taylor Augusto Dos Santos: Jonatas? Não sei.
+Jonathas Gomes Marques: Essa tela não tá diferente da reunião passada. M.
+Taylor Augusto Dos Santos: Tá tá. que na no no prepan lá a gente tinha falado sobre incluir, excluir órgão, aí eu atualizei ela, só que daí já mudou também. A gente vai não vai mais precisar,
+Reunião TI - SEPLAG: É o
+Taylor Augusto Dos Santos: né? Só vai precisar isso aqui vai inclusão e exclusão vai acontecer dentro da
+Reunião TI - SEPLAG: seguinte,
+Taylor Augusto Dos Santos: distribuição, basicamente.
+Reunião TI - SEPLAG: eh vou pedir só para você me ajudar aqui a ajeitar as oss para eles
+Taylor Augusto Dos Santos: Uhum.
+Reunião TI - SEPLAG: jogarem o Plen Poker, tá? Aí assim, pessoal, para esses sprints extraordinariamente, a gente não dividiu, né, a para qual time vai ficar ass, até porque elas são todas relacionadas, né?
+00:10:35
+Reunião TI - SEPLAG: Posso apresentar aqui, Taylor? E aí vai ficar a critério de vocês. Então, assim, a votação eu vou abrir para todo mundo, tá? E aí depois a gente vai ajeitando aqui.
+Taylor Augusto Dos Santos: É mais fácil. A
+Reunião TI - SEPLAG: Tão vendo a minha tela? Beleza. Essas são as histórias que vai entrar,
+Taylor Augusto Dos Santos: gente
+Reunião TI - SEPLAG: né, que a gente vai fazer o a poker planning, tá? Rapidão, Taylor. Quadro autorizado fica, né? Toda de quadro autorizado fica, tá? A distribuição, qual que vai sair?
+Taylor Augusto Dos Santos: basicamente todas.
+Reunião TI - SEPLAG: Listar, né?
+Taylor Augusto Dos Santos: É,
+Reunião TI - SEPLAG: Listar
+Taylor Augusto Dos Santos: o list vai virar uma tela.
+Reunião TI - SEPLAG: sai.
+Taylor Augusto Dos Santos: Aí vai ter duas que vai ser
+Reunião TI - SEPLAG: Pera aí, deixa eu voltar então aqui.
+00:11:20
+Taylor Augusto Dos Santos: a dois e três eu vou transformar elas na outra lá. No caso, na verdade, eu vou juntar essas daí todas
+Rodrigo Schecheli Bussolo: Taylor,
+Taylor Augusto Dos Santos: as
+Reunião TI - SEPLAG: Tá.
+Rodrigo Schecheli Bussolo: então não vai precisar fazer aquela parte ali da simulação, né? Ou preciso é quatro ali,
+Taylor Augusto Dos Santos: simulação, ela vai ficar lá dentro do
+Rodrigo Schecheli Bussolo: ó.
+Taylor Augusto Dos Santos: do é que ela já tem na outra tela, na tela de diversionamento, tem uma simulaçãozinha lá também, só vai ter que fazer ela pro pra distribuição. Eu não quero nem apresentar,
+Reunião TI - SEPLAG: Tá. A dois e a três você vai juntar.
+Taylor Augusto Dos Santos: eu só quero ter um para mim saber quando tiver
+Reunião TI - SEPLAG: Beleza. A quatro e a cinco você mantém.
+Taylor Augusto Dos Santos: registrar vai ter também, só que elas vai estar dentro da 23 e3.
+Reunião TI - SEPLAG: Mas vai ser separado. ou não? Não, né? Então vai ser tudo dois e três.
+00:12:06
+Taylor Augusto Dos Santos: Isso. Dois e três vai juntar
+Reunião TI - SEPLAG: Eita! Então,
+Taylor Augusto Dos Santos: tudo.
+Reunião TI - SEPLAG: na verdade, tá? Então, vai ficar dois, 3, 4 e e cinco, né?
+Taylor Augusto Dos Santos: 4
+Reunião TI - SEPLAG: Tá? E cinco, uma só. Beleza. E a um mantém ou não? Não, né? Lista de distribuição.
+Taylor Augusto Dos Santos: Não, não,
+Reunião TI - SEPLAG: A um sai,
+Taylor Augusto Dos Santos: não.
+Reunião TI - SEPLAG: tá?
+Taylor Augusto Dos Santos: Uhum.
+Reunião TI - SEPLAG: A um, beleza. A um sai. Beleza. Aí você vai juntar então essas quatro em uma tela só. Show. Individualizada ficou tudo normal, né? Tudo igual.
+Taylor Augusto Dos Santos: normal gerou também.
+00:12:41
+Reunião TI - SEPLAG: E o das
+Taylor Augusto Dos Santos: A mesma coisa eu só vou eu só tenho que atualizar elas que foi removida aquela questão
+Reunião TI - SEPLAG: show.
+Taylor Augusto Dos Santos: de prioridade lá e acho que só acho que teve alguma coisa em alerta que eu alterei também. Aí eu vou atualizar
+Reunião TI - SEPLAG: Beleza.
+Jonathas Gomes Marques: Na verdade, essas são encadeadas, né?
+Reunião TI - SEPLAG: Isso.
+Taylor Augusto Dos Santos: isso.
+Jonathas Gomes Marques: CRU seguindo de cards. Então,
+Reunião TI - SEPLAG: Exatamente.
+Jonathas Gomes Marques: se você não desenvolveu o CRU, você não desenvolve esses esses cardes dasbords.
+Taylor Augusto Dos Santos: Isso
+Reunião TI - SEPLAG: Pera aí que eu já vou soltar aqui o link
+Rodrigo Schecheli Bussolo: das aí vai entrar na na
+Reunião TI - SEPLAG: do
+Rodrigo Schecheli Bussolo: play.
+Reunião TI - SEPLAG: pode entrar,
+Rodrigo Schecheli Bussolo: Jesus.
+Reunião TI - SEPLAG: nem que seja como gordura, entendeu? É agora que a gente vai definir o que que vai conseguir fazer, o que vai realmente entrar na na sprint. É um consenso.
+00:13:46
+Reunião TI - SEPLAG: E aí é a nossa discussão, né? A gente vai passando uma por uma e aí a gente vê, sabe, se tiver muito S, pouco S, entendeu? Pode entrar, nem que seja para fazer o fronte. Aí é um consenso entre o time. Beleza, vamos ver quem tá faltando aí, Jonatas. Quem vota aqui é só os debs, tá? Vocês
+Jonathas Gomes Marques: Por que que é? Não volta.
+Reunião TI - SEPLAG: vão ter a o ST, não é? Não é outro.
+Adriane Fernanda Echeverria Fernandez: A aqui a estimativa é só deve.
+Jonathas Gomes Marques: Não,
+Reunião TI - SEPLAG: Não vai ter outra estimativa de vocês que você apresentou pra gente?
+Jonathas Gomes Marques: telecomentar pra gente ter um esforço de de catálogo de serviços. Esse aqui se a gente não colocar se o que há não voltar,
+Carlos Vitor Vieira Mattos: M.
+Jonathas Gomes Marques: vocês estão considerando só o prazo do clipe de desenvolvimento.
+Reunião TI - SEPLAG: Isso,
+00:14:49
+Jonathas Gomes Marques: US elas são simples do ponto de vista de desenvolvimento porque são crudes,
+Reunião TI - SEPLAG: isso.
+Jonathas Gomes Marques: né? Então assim,
+Reunião TI - SEPLAG: Uhum.
+Jonathas Gomes Marques: o que que eu recomendaria? Faz mais sentido fazer tudo junto junto assim os movimentos e os testes da mesma sprint do que Tá, entendeu? Aí o prazo fica o prazo do time inteiro, tanto de teste quanto de de desenvolvimento. Que vocês acham?
+Reunião TI - SEPLAG: Deixa eu ver se eu entendi. de testar também, né? Sprint.
+Jonathas Gomes Marques: Que isso?
+Reunião TI - SEPLAG: Não, então, eh, e não foi isso que tinha sido combinado. Aí tem que ver. Não, não sei.
+Adriane Fernanda Echeverria Fernandez: Vamos fazer o seguinte, vamos seguir aqui com a estimativa,
+Reunião TI - SEPLAG: Aí
+Adriane Fernanda Echeverria Fernandez: como a gente já havia programado paraa equipe de desenvolvimento e aí a gente conversa depois sobre isso, porque o que foi combinado era uma sprint anterior, né, o os que ficarem.
+00:16:00
+Reunião TI - SEPLAG: isso que não daria para fazer por agora.
+Adriane Fernanda Echeverria Fernandez: Uhum. Isso,
+Reunião TI - SEPLAG: Sprint conjunto aí de desenvolvimento e
+Adriane Fernanda Echeverria Fernandez: isso mesmo. Vamos seguindo aqui para dev.
+Reunião TI - SEPLAG: teste. Beleza, já tá todo mundo aqui. Deixa eu ver se tá toda chamadinha aqui dentro. Alex, André, show, Gabriel. Beleza, Luciano. Cadê Bsolo? Rodrigo, beleza. Tá tá aí. Show. Tá também. Tá. A primeira história vai ser a da listagem dos quadros autorizados. Essa daqui. Aí, Taylor, se você quiser complementar em alguma coisa.
+Taylor Augusto Dos Santos: É basicamente para exibir a tela lá onde isso.
+Reunião TI - SEPLAG: Opa, V2, né?
+00:17:05
+Taylor Augusto Dos Santos: Mostrar todos os quadros. Cadê aqui?
+Reunião TI - SEPLAG: Essa é a
+Taylor Augusto Dos Santos: As colunas e tal,
+Reunião TI - SEPLAG: daqui.
+Taylor Augusto Dos Santos: os filtros. Aí ficou a tela inteira junto. Isso,
+Reunião TI - SEPLAG: Podem votar aí,
+Thássyus Fabiano M de Almeida Carvalho: Entendor.
+Taylor Augusto Dos Santos: rapaz. Tá desatualizado o Planning. Pera aí. Pode falar, pode falar.
+Reunião TI - SEPLAG: gente.
+Thássyus Fabiano M de Almeida Carvalho: E como que ficou aquela questão ali dos dos indicadores para tá inicial? Conseguiu? Você conseguiu verificar?
+Taylor Augusto Dos Santos: Qual?
+Thássyus Fabiano M de Almeida Carvalho: É porque tinha uns indicadores, né? na parte de cima.
+Rodrigo Schecheli Bussolo: Oke.
+Taylor Augusto Dos Santos: Ah, tá.
+Gabriel Rodrigues de Moura: pergunta. O Isa,
+Taylor Augusto Dos Santos: Acho que por enquanto vai manter
+Gabriel Rodrigues de Moura: o qu pessoal de banco de dados não teria que voltar aí também não?
+Reunião TI - SEPLAG: Podem votá-los.
+00:17:53
+Gabriel Rodrigues de Moura: Eles tinham que tá aqui também porque é é o prazo
+Reunião TI - SEPLAG: É porque as atividades dele estão engatinhadas.
+Gabriel Rodrigues de Moura: deles.
+Reunião TI - SEPLAG: Eles estão aqui também. O Ed e Ariadne estão aqui.
+Gabriel Rodrigues de Moura: Não fal para votar.
+Reunião TI - SEPLAG: Mas eles já tão eles já tão fazendo as atividades dele, tá? Ah.
+Gabriel Rodrigues de Moura: Então,
+Adriane Fernanda Echeverria Fernandez: Nós já abrimos a Redmine para
+Gabriel Rodrigues de Moura: amanhã já vai,
+Reunião TI - SEPLAG: É,
+Adriane Fernanda Echeverria Fernandez: eles.
+Reunião TI - SEPLAG: eles já tão Não,
+Gabriel Rodrigues de Moura: amanhã o banco de dados já vai est pronto pra gente, não vai atrapalhar nosso procedimento.
+Reunião TI - SEPLAG: falei que tá pronto, eu falei que eles já
+Gabriel Rodrigues de Moura: Então eles tinham que voltar aqui,
+Adriane Fernanda Echeverria Fernandez: Não, Gabriel, não é assim.
+Reunião TI - SEPLAG: começaram
+Adriane Fernanda Echeverria Fernandez: Yeah.
+Gabriel Rodrigues de Moura: não é isso que eu tô falando. Então esse prazo que não, exemplo, quando a gente pula um um store points aqui, a gente tá contando que a gente já consegue codar,
+00:18:23
+Reunião TI - SEPLAG: isso.
+Gabriel Rodrigues de Moura: entendeu? Sem mexer no banco, entendeu? Então o time já estaria pronto, mas como não está pronto deixa o que entrar nesse cenário aqui também para colocar o store point deles aqui também, entendeu? Que falar certo que faz aqui o desenvolvimento e o banco faz parte do desenvolvimento também como um todo, entendeu? Porque aí exemplo, a gente dá dá história,
+Reunião TI - SEPLAG: Perfeito.
+Gabriel Rodrigues de Moura: vamos supor essa história não é não é um nunca, né? Mas se eu dou um aqui, é só uma de consultar e todo o banco já tá pronto,
+Taylor Augusto Dos Santos: Isso.
+Reunião TI - SEPLAG: Uhum.
+Gabriel Rodrigues de Moura: não quer dizer que tá pronto. Aí amanhã eu vou chegar, não vai ter o banco. Aí o tempo que era de um já não é um, entendeu? Porque eu tô travado, entendeu?
+Reunião TI - SEPLAG: Não, show de bola.
+Gabriel Rodrigues de Moura: Acho que falta só de análise.
+Reunião TI - SEPLAG: Ô Aried, vocês quiserem votar também ou até dá um overview do que que
+Gabriel Rodrigues de Moura: Tem que participar também. Ví,
+00:19:08
+Reunião TI - SEPLAG: Uhum.
+Adriane Fernanda Echeverria Fernandez: Fala, Robertinho. M.
+Roberto de Souza Xavier Junior: Eu só fiquei com a dúvida aí que o Thássyus perguntou sobre os indicativos em cima e o Taylor falou: "Por enquanto sim, mas por enquanto ele muda, né? Aí teria que saber sim ou não para saber o que que vai votar, porque com ele é um voto, sem ele é outro voto. O que seria esse
+Taylor Augusto Dos Santos: Então é, é porque acho que foi levantado isso aí, a questão de da parte do desempenho, né? se isso aí seria muito pesado pro sistema motei esses cards aí ou
+Roberto de Souza Xavier Junior: porqu
+Taylor Augusto Dos Santos: não. Se o problema aqui, se ele não vai validar vai ter que voltar porque querendo ou não, nessa, pelo menos nesse daqui, ele vai mostrar os quadros. Deixa eu ver. Pera não, ele já tá falando das vagas,
+Roberto de Souza Xavier Junior: Yeah.
+Taylor Augusto Dos Santos: então no 2300 aqui é pouco, né? Na verdade aqui ele vai est mostrando todos os servidores efetivos, então não sei se isso seria algo pesado pro sistema da conta. Acho que foi isso que foi levantado.
+00:20:15
+Luciano da Silva Oliveira: Faz assim, arranca aqueles lá e depois no futuro a gente coloca isso.
+Taylor Augusto Dos Santos: Os cardzinhos de cima de
+Luciano da Silva Oliveira: Yeah.
+Reunião TI - SEPLAG: Ô, Ed, Ari, podem voltar também, viu?
+Taylor Augusto Dos Santos: cá.
+Reunião TI - SEPLAG: Entra no link aí.
+Taylor Augusto Dos Santos: Espera,
+Roberto de Souza Xavier Junior: É, eu ia falar
+Taylor Augusto Dos Santos: pessoal.
+Reunião TI - SEPLAG: Aí 21 estoura, tá? maior complexidade e um menor complexidade. Pode entrar e votar também se for o caso.
+Taylor Augusto Dos Santos: Mas são todos
+Rodrigo Schecheli Bussolo: No fim não vai precisar.
+Eddie Allen de Medeiros Pinto: Vou entrar aqui. Pera
+Rodrigo Schecheli Bussolo: Me manda o manda o link do onde tá
+Reunião TI - SEPLAG: Sim,
+Eddie Allen de Medeiros Pinto: aí.
+Reunião TI - SEPLAG: senhor.
+Taylor Augusto Dos Santos: lá
+Rodrigo Schecheli Bussolo: essas. O que tinham me passado aqui tá só antigo.
+Reunião TI - SEPLAG: Como assim?
+Rodrigo Schecheli Bussolo: Ah,
+Luciano da Silva Oliveira: Amin.
+Rodrigo Schecheli Bussolo: me passaram um link do drive.
+00:20:59
+Taylor Augusto Dos Santos: fazer aqui.
+Gabriel Rodrigues de Moura: É o mesmo link.
+Reunião TI - SEPLAG: É o mesmo link.
+Rodrigo Schecheli Bussolo: Não,
+Reunião TI - SEPLAG: M.
+Eddie Allen de Medeiros Pinto: Ja.
+Rodrigo Schecheli Bussolo: não do drive.
+Reunião TI - SEPLAG: Ah,
+Rodrigo Schecheli Bussolo: live é um Não,
+Reunião TI - SEPLAG: você quer do drive? Ah, mando, mando.
+Rodrigo Schecheli Bussolo: não.
+Reunião TI - SEPLAG: Pera aí. Do drive. Tem um aqui, ó.
+Taylor Augusto Dos Santos: transmissão deção
+Reunião TI - SEPLAG: Sprint 18
+Rodrigo Schecheli Bussolo: Cadê? Tá
+Reunião TI - SEPLAG: aqui, ó.
+Rodrigo Schecheli Bussolo: onde?
+Reunião TI - SEPLAG: Vou mandar aqui também a planilha e o drive.
+Taylor Augusto Dos Santos: gra
+Reunião TI - SEPLAG: do
+Rodrigo Schecheli Bussolo: Ah.
+Aryadne Lelis De Oliveira: Isa, eh, desculpa, eh, só me me tira uma dúvida que você acabou de falar aí,
+Reunião TI - SEPLAG: Oi,
+Aryadne Lelis De Oliveira: mas eu não compreendi.
+00:21:40
+Aryadne Lelis De Oliveira: Eh, essa votação é por questão de complexidade ou do tempo de desenvolvimento, como que é? Eu não entendi.
+Reunião TI - SEPLAG: isso. Os dois.
+Aryadne Lelis De Oliveira: É,
+Reunião TI - SEPLAG: Tempo de desenvolvimento,
+Aryadne Lelis De Oliveira: os dois,
+Reunião TI - SEPLAG: complexidade. Aham.
+Aryadne Lelis De Oliveira: tá? Aí tem uma numeração de uma 1 2 3 5 8 13
+Reunião TI - SEPLAG: Isso. 1 a 21.
+Aryadne Lelis De Oliveira: 21.
+Reunião TI - SEPLAG: Aham. Sendo um menor complexidade.
+Taylor Augusto Dos Santos: umando
+Reunião TI - SEPLAG: É uma coisa simples de fazer. E 21 estoura, né? A atividade, sei lá, é muito grande, extrapolaria o nosso tempo da sprint. Aí você votaria dentro este
+Aryadne Lelis De Oliveira: Entendi.
+Reunião TI - SEPLAG: intervalo?
+00:22:13
+Aryadne Lelis De Oliveira: Tá.
+Taylor Augusto Dos Santos: só
+Aryadne Lelis De Oliveira: Ah, pode dizer
+Reunião TI - SEPLAG: Itau Bsolo. Vou botar meu cafezinho aqui.
+Taylor Augusto Dos Santos: a gente não tem
+Reunião TI - SEPLAG: Podem botar para esse primeiro de da listagem do quadro
+Taylor Augusto Dos Santos: certeza para vocês como que vai funcionar isso
+Reunião TI - SEPLAG: aqui. Ficou com você, Ari?
+Taylor Augusto Dos Santos: Eh,
+Reunião TI - SEPLAG: Essa parte do quadro ou ficou com Anselmo?
+Aryadne Lelis De Oliveira: O quadro ficou comigo.
+Reunião TI - SEPLAG: Ah, tá. Pera aí.
+Taylor Augusto Dos Santos: você for para social lá,
+Reunião TI - SEPLAG: Vamos lá.
+Taylor Augusto Dos Santos: é qualquer pessoa vai
+Reunião TI - SEPLAG: Vixe, ainda tem
+Taylor Augusto Dos Santos: conseguir
+Reunião TI - SEPLAG: gente.
+Taylor Augusto Dos Santos: se ele não tiver, se ele não tiver
+Reunião TI - SEPLAG: Nossa senhora, ficou bem. A quer comentar porque que a complexidade ficou dois para você?
+Aryadne Lelis De Oliveira: O dois é muito complexo ou eu menos?
+Reunião TI - SEPLAG: Não é pouco, é menos.
+00:23:14
+Aryadne Lelis De Oliveira: Ah, não é porque assim eu não vi uma complexidade e também porque a gente já começou a
+Taylor Augusto Dos Santos: ele vai
+Aryadne Lelis De Oliveira: modelar desde sexta-feira, né? Então, praticamente já tá meio que pronto.
+Reunião TI - SEPLAG: Uhum.
+Aryadne Lelis De Oliveira: Só tô revisando aqui para passar pros meninos.
+Taylor Augusto Dos Santos: então que faz só depois Porque não
+Reunião TI - SEPLAG: Show. André Luciano,
+Taylor Augusto Dos Santos: só pera aí
+Reunião TI - SEPLAG: Ed nota
+Aryadne Lelis De Oliveira: Ja. Yeah.
+Reunião TI - SEPLAG: C.
+Eddie Allen de Medeiros Pinto: Eu acho que a complexidade eu acho que vai depender. Eu joguei, eu acredito que seja média, né? Mas ainda que a vai fazer, porque eu preciso linkcar a parte de de vagas, né, que eu fiquei responsável.
+Reunião TI - SEPLAG: Luciano paradinha.
+André Parada de Oliveira Machado: Acredito que os componentes já existem, a maioria deles. Essa parte de list complexas, porém tem algumas regras de negócio que faz com que não seja três. é minha opinião.
+00:24:22
+Reunião TI - SEPLAG: Tácios.
+Rodrigo Schecheli Bussolo: Olha
+Luciano da Silva Oliveira: Eh, olhando a tela, olhando a tela ali para desenvolvimento, ela não é tão complicada, porque basicamente para nós desenvolvedores já vai ter a tabela do bloco, a gente só vai trazer os dados ali, né? começou somente a listagem, a gente não vai estar gravando nada, tipo assim, não vai ser tão complexo. Acho que é a única ponto que poderia ser um pouquinho mais complexo a parte do versionamento ali da que tem uma outra grid ali por dentro, mas não vejo tant complexidade nisso. Eh, eu até poderia aumentar por coisa o start point, mas preciso ser convencido.
+Rodrigo Schecheli Bussolo: Eu acho que a única coisa que deixa mais complexa é essa parte aí de cima, que nem todas as informações ainda tem no sistema.
+Luciano da Silva Oliveira: Mas esse totalizador vai sair fora, não vai?
+Taylor Augusto Dos Santos: Acho que se pode ser feito depois,
+Rodrigo Schecheli Bussolo: Eu
+Taylor Augusto Dos Santos: né? qualquer coisa, ele vai
+Rodrigo Schecheli Bussolo: acho que talvez uma coisa que é complexo se definir a gente chegar
+Reunião TI - SEPLAG: Mas
+Rodrigo Schecheli Bussolo: aqui e não saber exatamente o que tem que fazer,
+Taylor Augusto Dos Santos: só
+Rodrigo Schecheli Bussolo: mas a gente disse vai fazer isso ou não.
+00:25:44
+Reunião TI - SEPLAG: exato, isso que eu ia falar, Taylor. Vai entrar ou não vai entrar para esse sprint?
+Rodrigo Schecheli Bussolo: falar.
+Reunião TI - SEPLAG: É opcional ou não?
+Rodrigo Schecheli Bussolo: Ah, é para beleza.
+Reunião TI - SEPLAG: Ponto. É que se você falar que tem que fazer, eles vão fazer, independente
+Taylor Augusto Dos Santos: então a gente apresentou pro cliente, tudo certinho, eles gostaram.
+Reunião TI - SEPLAG: como
+Taylor Augusto Dos Santos: Então aí o o não entrar seria se tipo não não tem como, entendeu? Não não dá para fazer, mas se tem como fazer, o ideal seria fazer.
+Reunião TI - SEPLAG: então vai entrar, gente.
+Adriane Fernanda Echeverria Fernandez: Então foi isso que ficou acordado com o cliente então que vai entrar. OK.
+Taylor Augusto Dos Santos: Nesse caso, teria que disso prazer.
+Reunião TI - SEPLAG: Show. Olha, já mudar a nota aqui, Gabriel, já que o único que ficou com 13.
+Gabriel Rodrigues de Moura: Eu já mudei o meu aqui para oit para oito.
+Reunião TI - SEPLAG: Ah, já mudou para oito.
+00:26:25
+Reunião TI - SEPLAG: Então, aí assim, pessoal,
+Gabriel Rodrigues de Moura: Questão do banco de dados que tá andado
+Reunião TI - SEPLAG: a gente tem que sair com um consenso. É,
+Gabriel Rodrigues de Moura: já.
+Reunião TI - SEPLAG: a gente tem que sair com consenso. Então, como a maioria foi oito, né, a gente vai seguir com a nota oito para essa beleza? Alguém tem algo contra? Não. Show. Deixa eu até por
+Adriane Fernanda Echeverria Fernandez: Seguimos. Yeah.
+Taylor Augusto Dos Santos: Mas daí, tipo, se não tiver como,
+Reunião TI - SEPLAG: aqui.
+Taylor Augusto Dos Santos: vai ficar pesada, a tela não vai carregar, eu levo pro cliente. a gente explica o motivo e tal e daí a gente
+Reunião TI - SEPLAG: É, aqui é um combinado,
+Taylor Augusto Dos Santos: retira.
+Reunião TI - SEPLAG: tá? O que não conseguir eh ser entregue durante essa sprint é tudo combinado. A gente vai encaixando, beleza?
+Gabriel Rodrigues de Moura: Será?
+00:27:02
+Gabriel Rodrigues de Moura: Yeah.
+Reunião TI - SEPLAG: Consultar histórico de versões. Aqui entra a parte do versionamento.
+Taylor Augusto Dos Santos: Quando eu abro a cordinha lá para mostrar o as versões anteriores.
+Reunião TI - SEPLAG: Fechou.
+Taylor Augusto Dos Santos: Yeah.
+Reunião TI - SEPLAG: Podem votar.
+Rodrigo Schecheli Bussolo: Ah, isso daí é a listagem só do versionamento.
+Reunião TI - SEPLAG: do
+Rodrigo Schecheli Bussolo: Ele não tá outra.
+Luciano da Silva Oliveira: Eu
+Rodrigo Schecheli Bussolo: Eu achei que ele tá dando a outra. M.
+Reunião TI - SEPLAG: versionamento.
+Luciano da Silva Oliveira: também.
+Gabriel Rodrigues de Moura: rapidinho. Aqueles autorizados ocupados lá, elas são referentes ao cargo, né? E os servidores estão usando, né? O quantitativo, né? Alô.
+Reunião TI - SEPLAG: Taylor tá
+Taylor Augusto Dos Santos: Isso.
+Gabriel Rodrigues de Moura: Troco.
+Taylor Augusto Dos Santos: Pendente de ato.
+Reunião TI - SEPLAG: mutado.
+Taylor Augusto Dos Santos: Eu criei a vaga, mas ninguém eu não distribuí ainda. Autorizadas aí que ela já tá.
+00:27:58
+Taylor Augusto Dos Santos: Não, calma aí. É,
+Gabriel Rodrigues de Moura: Foi pensado alguma coisa nas que já foram distribuídas?
+Taylor Augusto Dos Santos: o autorizado é o que já vem pela lei. Na verdade, eu acho que o como a gente mudou na hora de criar, talvez o autorizado vai sair, porque ele vai ser a mesma coisa do pendente
+Gabriel Rodrigues de Moura: pensou em algum pensou em alguma coisa que já foi distribuída, exemplo,
+Taylor Augusto Dos Santos: de
+Gabriel Rodrigues de Moura: não sei se vocês vão fazer quadro de horários. É, quadro de horários, quadro de cargos passados, um exemplo, tipo, ah, tem um cargo aqui, aí eles sabem quantidade de servidor, a gente vai olhar na nossa base servidores que tm esse cargo.
+Taylor Augusto Dos Santos: cortou.
+Danielle Cristina Silva Cruz: Cortou, Gabriel.
+Gabriel Rodrigues de Moura: A minha internet aqui tá difícil, viu? Meu Deus do céu,
+Danielle Cristina Silva Cruz: Ah,
+Gabriel Rodrigues de Moura: em qual parte cortou?
+Danielle Cristina Silva Cruz: nossa,
+Reunião TI - SEPLAG: É, não é saí não. M.
+Gabriel Rodrigues de Moura: Tá,
+Danielle Cristina Silva Cruz: falou de quadros antigos.
+Gabriel Rodrigues de Moura: a minha dúvida era a seguinte,
+Danielle Cristina Silva Cruz: M.
+Gabriel Rodrigues de Moura: a gente tem o qu Isso aí, então, a gente tem o quadro autorizado ali, né?
+00:28:45
+Gabriel Rodrigues de Moura: E, por exemplo, um cargo lá que tem no estado já. A gente vai fazer esse quadro olhando pros paraas pessoas que já estão dentro do estado, exemplo, ah, tenho ocupadas lá 10.000 pessoas. a gente vai ter esse essa essa ideia de pegar os servidores que estão já usando esses cargos e trazer aí também. Vai ter alguma coisa para trás pra gente pegar esses dados? Como que vai funcionar essa
+Rodrigo Schecheli Bussolo: Uai, vai fazer a migração de cidade.
+Gabriel Rodrigues de Moura: parte?
+Rodrigo Schecheli Bussolo: Vai.
+Gabriel Rodrigues de Moura: Ah, entendi. Mas isso é lá no futuro, né?
+Rodrigo Schecheli Bussolo: É,
+Gabriel Rodrigues de Moura: Que o que a gente tá fazendo olhando só pro que tá cadastrado aí,
+Rodrigo Schecheli Bussolo: mas
+Danielle Cristina Silva Cruz: Está mudo o Taylor. Ah, Taylor
+Gabriel Rodrigues de Moura: né? Por exemplo, cadastrou aí,
+Rodrigo Schecheli Bussolo: o eu acho
+Taylor Augusto Dos Santos: Não.
+Danielle Cristina Silva Cruz: caiu.
+Gabriel Rodrigues de Moura: ô Bussolo,
+Taylor Augusto Dos Santos: Alô.
+Gabriel Rodrigues de Moura: cadastra.
+Taylor Augusto Dos Santos: Alô.
+Gabriel Rodrigues de Moura: Tu cadastra aí se a gente partir do início zero. Lindo, beleza.
+00:29:28
+Rodrigo Schecheli Bussolo: que
+Gabriel Rodrigues de Moura: O que cadastrado aqui a gente reflete ali. OK. Mas o para trás foi pensado, tipo,
+Danielle Cristina Silva Cruz: Ah,
+Taylor Augusto Dos Santos: Ah,
+Gabriel Rodrigues de Moura: como que a gente vai fazer esses quadros do
+Taylor Augusto Dos Santos: você já vai querer o puxar o histórico
+Danielle Cristina Silva Cruz: você já vai puxar o histórico da
+Gabriel Rodrigues de Moura: passado?
+Rodrigo Schecheli Bussolo: eu acho que isso é tipo uma de imigração,
+Danielle Cristina Silva Cruz: vaga.
+Taylor Augusto Dos Santos: da tipo eu pegar uma vaga e falar todo mundo que ocupou ela
+Danielle Cristina Silva Cruz: pegar uma vaca e ela já.
+Gabriel Rodrigues de Moura: É porque exata,
+Rodrigo Schecheli Bussolo: sabia?
+Taylor Augusto Dos Santos: já.
+Gabriel Rodrigues de Moura: é porque o estado já tá rolando,
+Taylor Augusto Dos Santos: Não, não, não.
+Gabriel Rodrigues de Moura: gente.
+Taylor Augusto Dos Santos: Isso aí vai ser.
+Gabriel Rodrigues de Moura: Já tem um monte de gente empada no cargo. Como que vai funcionar um quadro autorizado?
+Taylor Augusto Dos Santos: Mas hoje em dia não tem nada oficial onde eles guardam
+Gabriel Rodrigues de Moura: Você você não você não sabe o quantitativo exato para
+Taylor Augusto Dos Santos: isso.
+Danielle Cristina Silva Cruz: Hoje não tem isso no CAP.
+Gabriel Rodrigues de Moura: que Um,
+Danielle Cristina Silva Cruz: Eles fazem planilha de Excel.
+00:30:01
+Danielle Cristina Silva Cruz: M.
+Alex Sandro Pereira Garcia: Então,
+Rodrigo Schecheli Bussolo: Ah, então vai ser tudo inclusão manual.
+Alex Sandro Pereira Garcia: a
+Gabriel Rodrigues de Moura: a gente teria que fazer um depara,
+Taylor Augusto Dos Santos: Yeah.
+Rodrigo Schecheli Bussolo: Yeah.
+Gabriel Rodrigues de Moura: né?
+Rodrigo Schecheli Bussolo: Ah,
+Taylor Augusto Dos Santos: Eles tinham um controle parecido com isso,
+Rodrigo Schecheli Bussolo: vai colar manualí.
+Taylor Augusto Dos Santos: mas era uma
+Gabriel Rodrigues de Moura: É, controle.
+Taylor Augusto Dos Santos: planilha.
+Gabriel Rodrigues de Moura: Não existe, não existe esse histórico. Ah, não tem nada.
+Rodrigo Schecheli Bussolo: Então é como se tivesse saindo
+Gabriel Rodrigues de Moura: Então, a gente vai usar a princípio o quadro aí que tá começando,
+Rodrigo Schecheli Bussolo: zero.
+Gabriel Rodrigues de Moura: então, né? Ele vai pro ponto zero. Então,
+Taylor Augusto Dos Santos: Isso,
+Gabriel Rodrigues de Moura: nosso.
+Taylor Augusto Dos Santos: isso.
+Rodrigo Schecheli Bussolo: Isso.
+Alex Sandro Pereira Garcia: Bom dia, Yeah.
+Gabriel Rodrigues de Moura: Aí um dia quem sabe a gente vai fazendo esse quem tá hoje no estado com o quadro. Seria um trem assim, né?
+Danielle Cristina Silva Cruz: pegar o quantitativo,
+Gabriel Rodrigues de Moura: Porque essa parte de travar eu pensaria que travaria.
+00:30:33
+Danielle Cristina Silva Cruz: né, e fazer um deparo, algo assim. Yeah.
+Alex Sandro Pereira Garcia: Exatamente.
+Gabriel Rodrigues de Moura: Exatamente.
+Alex Sandro Pereira Garcia: Yeah.
+Gabriel Rodrigues de Moura: É isso que eu tô pensando. Essa parte de travar ali, eu vejo se eu for lá na tabela de servidores, pessoa física lá para saber os funcionários lá, né? Vínculos quem são quem. Aí travaria essa pesquisa ali em cima, que é o a dúvida aí se vai travar ou não vai travar.
+Alex Sandro Pereira Garcia: alguma espécie de importação da planilha também,
+Gabriel Rodrigues de Moura: Enfim.
+Alex Sandro Pereira Garcia: caso essa planilha tinha considerada, já que eles estão sempre colocando a planilha. Yeah.
+Taylor Augusto Dos Santos: Eles têm d, mas acho que nessa planilha eles não têm essa o histórico de quem ocupou essa vaga e
+Gabriel Rodrigues de Moura: Qual que ficou? Eu tô vendo jogar pedrinha aí,
+Taylor Augusto Dos Santos: tal.
+Gabriel Rodrigues de Moura: tá? Eu tô questionando aqui. Não, perra aí em mim. Qual que ficou segundo essa? Consulta histórico diversões.
+Reunião TI - SEPLAG: Isso,
+Gabriel Rodrigues de Moura: Tô questionando aqui. Tá pegando dos outros,
+00:31:27
+Reunião TI - SEPLAG: gente. Vamos só repassar aqui.
+Rodrigo Schecheli Bussolo: É papel. M.
+Reunião TI - SEPLAG: Aí a próxima é cadastro, depois edição, exclusão, distribuição.
+Gabriel Rodrigues de Moura: cara.
+Reunião TI - SEPLAG: É que eu também não sabia, tá? Que tava separado. Aí eu vi que vocês aram tudo contando com histórica, né? Beleza. E depois o versionamento, ação versionar,
+Gabriel Rodrigues de Moura: Ah, as consultas dissais ficou para baixo, né?
+Reunião TI - SEPLAG: né? É, ficou o segundo. Ah, tá. Era a diversão. Não, a consulta diversão é
+Gabriel Rodrigues de Moura: Ah!
+Reunião TI - SEPLAG: agora.
+Gabriel Rodrigues de Moura: Ah! Entendi. Entendi. É agora, né? Beleza.
+Reunião TI - SEPLAG: Eita,
+Gabriel Rodrigues de Moura: Eh, deixa
+00:31:57
+Reunião TI - SEPLAG: Gabriel. É agora.
+Gabriel Rodrigues de Moura: eu
+Reunião TI - SEPLAG: É agora,
+Danielle Cristina Silva Cruz: todo robótico. Good.
+Reunião TI - SEPLAG: Gabriel.
+Luciano da Silva Oliveira: ali na na consulta ali,
+Gabriel Rodrigues de Moura: fiz. Tô questionando trem.
+Luciano da Silva Oliveira: só tem que atualizar as reg na na consulta aí do
+Reunião TI - SEPLAG: Isso.
+Luciano da Silva Oliveira: histórico, só tem que atualizar as regras de negócio lá, que tem bastante coisa que é relacionado à alteração, coisa ali.
+Taylor Augusto Dos Santos: Sim,
+Luciano da Silva Oliveira: Acho que é só como é sua visualização, pode ser mais simples aquelas regras ali,
+Taylor Augusto Dos Santos: sim.
+Luciano da Silva Oliveira: tem muita coisa ali que, no meu ponto de vista não faz sentido ter. Ja.
+Taylor Augusto Dos Santos: Sim,
+Reunião TI - SEPLAG: Anotado aí,
+Taylor Augusto Dos Santos: eu vou vir a noite hoje atualizando tudo.
+Reunião TI - SEPLAG: Taylor.
+Taylor Augusto Dos Santos: Sim. Alô.
+Reunião TI - SEPLAG: Show. Sim,
+Gabriel Rodrigues de Moura: pedir a consulta ações para ver um V mais,
+Taylor Augusto Dos Santos: Ah, tá. Foi mais ou menos
+00:32:35
+Reunião TI - SEPLAG: estamos ouvindo
+Gabriel Rodrigues de Moura: né?
+Taylor Augusto Dos Santos: assim.
+Reunião TI - SEPLAG: e
+Rodrigo Schecheli Bussolo: Taylor, tem paginação nessa consulta
+Reunião TI - SEPLAG: desculpa.
+Taylor Augusto Dos Santos: Eu tava pensando nisso agora,
+Rodrigo Schecheli Bussolo: aí.
+Taylor Augusto Dos Santos: quando abrir ali, eventualmente vai ter uma vai ter que ter uma páginação, né?
+Gabriel Rodrigues de Moura: É verdade.
+Taylor Augusto Dos Santos: Eu lembro se eu cheguei a colocar.
+Gabriel Rodrigues de Moura: Faltou a paginação dentro da paginação
+Taylor Augusto Dos Santos: Uhum.
+Gabriel Rodrigues de Moura: ali.
+Taylor Augusto Dos Santos: Quando abre o acorde, né?
+Gabriel Rodrigues de Moura: Aham. M.
+Taylor Augusto Dos Santos: Beleza.
+Roberto de Souza Xavier Junior: Oi.
+Reunião TI - SEPLAG: votar. Yeah.
+Roberto de Souza Xavier Junior: Eh,
+Reunião TI - SEPLAG: Opa, pode falar, Robertinho.
+Roberto de Souza Xavier Junior: eu ia falar pro já que a gente tá votando a história e não tá votando tipo de banco talvez seria legal quem o DBA que ficou responsável pela história antes da
+Reunião TI - SEPLAG: Uhum,
+Roberto de Souza Xavier Junior: gente voltar ele já falar o que foi feito nessa história. Ele falou:
+00:33:20
+Reunião TI - SEPLAG: perfeito.
+Roberto de Souza Xavier Junior: "Ó, não, não, não,
+Reunião TI - SEPLAG: Era isso que eu ia Uhum.
+Roberto de Souza Xavier Junior: não comecei, já comecei, já fiz".
+Reunião TI - SEPLAG: Uhum. Pra gente saber o status,
+Roberto de Souza Xavier Junior: E se o pessoal de que eh se o pessoal de que já tiver lido a história,
+Reunião TI - SEPLAG: né?
+Roberto de Souza Xavier Junior: tiver mais ou menos, ó, para essa históriaqu fazer 10 cenários, cinco cenários, que aí o pessoal já volta pensando em outro,
+Taylor Augusto Dos Santos: Tá
+Roberto de Souza Xavier Junior: né?
+Taylor Augusto Dos Santos: bom.
+Roberto de Souza Xavier Junior: Aí você tem uma uma votação de tudo,
+Reunião TI - SEPLAG: Uhum. Show. Maserti,
+Roberto de Souza Xavier Junior: não Aham.
+Reunião TI - SEPLAG: né? Uhum. Pode ser,
+Roberto de Souza Xavier Junior: Yeah.
+Reunião TI - SEPLAG: pode ser também. Aí, ô Aryadne, vocês já começaram a modelar essa parte também já, né?
+00:33:51
+Reunião TI - SEPLAG: Que é a parte do quadro também,
+Aryadne Lelis De Oliveira: Sim,
+Reunião TI - SEPLAG: parte do histórico.
+Aryadne Lelis De Oliveira: sim. Da 195 199 eu já modelei.
+Reunião TI - SEPLAG: 9:30.
+Aryadne Lelis De Oliveira: Sim. 195, 96, 97, 98,
+Reunião TI - SEPLAG: Ah, fechou.
+Aryadne Lelis De Oliveira: 99.
+Reunião TI - SEPLAG: Tá, tá finalizado. É,
+Aryadne Lelis De Oliveira: Já.
+Reunião TI - SEPLAG: deixa eu alguém quer mudar o voto? Aryadne, só falta você. Mas se for o caso, eu viro aqui já.
+Rodrigo Schecheli Bussolo: C.
+Reunião TI - SEPLAG: Vou virar então, gente.
+Rodrigo Schecheli Bussolo: Vamos, vamos, vamos, vamos.
+Reunião TI - SEPLAG: Ó, que que é isso?
+Rodrigo Schecheli Bussolo: Á, o cara apertou errado aí, hein?
+Reunião TI - SEPLAG: Já começa com 21 aí.
+André Parada de Oliveira Machado: Não, eu concordo.
+00:34:35
+André Parada de Oliveira Machado: Concordo.
+Reunião TI - SEPLAG: achando. Tá
+Rodrigo Thaua Lima Barroso: Ah, eu acho que vai ter não vai ter uma,
+Reunião TI - SEPLAG: jogando
+Rodrigo Thaua Lima Barroso: pelo que eu vi aqui, não vai ter uma listagem com uma paginação e um registro nessa tela não. Ah, não é nessa não.
+Reunião TI - SEPLAG: é só essa parte do histórico de versões.
+Rodrigo Thaua Lima Barroso: Clica no no na 74.
+Reunião TI - SEPLAG: Cá, ó.
+Luciano da Silva Oliveira: Vou dar embaixo só.
+Reunião TI - SEPLAG: Só esse modelzinho aqui,
+Rodrigo Thaua Lima Barroso: Ah, não,
+Reunião TI - SEPLAG: ó.
+Rodrigo Thaua Lima Barroso: não. Então eu ouvi errado. Vou mudar aqui.
+Reunião TI - SEPLAG: Show. Galerinha da nota cinco, no caso. Ah, o Alex já mudou.
+Rodrigo Thaua Lima Barroso: Achei que é
+Reunião TI - SEPLAG: Galerinha da nota três. Então, alguém quer justificar sua resposta?
+00:35:22
+Reunião TI - SEPLAG: Se não, seguimos o três. Bussolo achou fácil, hein?
+Alex Sandro Pereira Garcia: Você falou que é só o modal, né? Aí tem negócio e tudo.
+Rodrigo Schecheli Bussolo: 3
+Alex Sandro Pereira Garcia: Faz isso, né? Yeah.
+Reunião TI - SEPLAG: Uhum. Só essa parte aqui, ó. Beleza, gente. Vou mantendo três, né? Vamos para a próxima. Porque aqui próximo é o cadastro do quadro autorizado. Eu falo,
+Rodrigo Schecheli Bussolo: Vem cá. Vai tirar essa parte ali de baixo dessa aí.
+Reunião TI - SEPLAG: podem,
+Rodrigo Schecheli Bussolo: Vaiessa Tá.
+Reunião TI - SEPLAG: ó, essa daqui.
+Rodrigo Schecheli Bussolo: Como vai tirar?
+Taylor Augusto Dos Santos: Cortei isso.
+Rodrigo Schecheli Bussolo: É, entendor. Vai tirar essa parte aí.
+Taylor Augusto Dos Santos: Aquele os três ali não vai ter mais. A gente quando criar um novo quadro só vai dar a quantidade e daí essa parte aí toda vai
+00:36:19
+Rodrigo Schecheli Bussolo: Ah, beleza.
+Taylor Augusto Dos Santos: ser lá para distribuição.
+Reunião TI - SEPLAG: tá aqui, né?
+Rodrigo Schecheli Bussolo: É,
+Taylor Augusto Dos Santos: Isso.
+Rodrigo Schecheli Bussolo: a regra é que não pode ter mais de um quadro por
+Alex Sandro Pereira Garcia: Agora
+Taylor Augusto Dos Santos: Perfil é fraco.
+Rodrigo Schecheli Bussolo: mesmo mesmo se tiver em outra
+Taylor Augusto Dos Santos: Entendeu? Nosso sistema do perfil.
+Thássyus Fabiano M de Almeida Carvalho: M.
+Rodrigo Schecheli Bussolo: situação.
+Taylor Augusto Dos Santos: Não, não é só é um quadro por card.
+Rodrigo Schecheli Bussolo: Se tiver desativado essido essas coisas.
+Taylor Augusto Dos Santos: Então,
+Alex Sandro Pereira Garcia: vai continuar.
+Taylor Augusto Dos Santos: quando isso acontecer, é porque geralmente aquele cargo morreu, senão eles estariam utilizando esse quadro aqui ainda ou ele foi transformado e tals.
+Rodrigo Schecheli Bussolo: Так.
+Alex Sandro Pereira Garcia: vai continuar permitindo cadastrar uma uma lei a partir dessa tela aí ou vai remover. Yeah.
+Taylor Augusto Dos Santos: dizer
+Luciano da Silva Oliveira: Ali, ali também vai ser,
+Rodrigo Schecheli Bussolo: Você
+Reunião TI - SEPLAG: Sim.
+Luciano da Silva Oliveira: vai sumir aquela vigência lá embaixo, né? Vai pagar a data atualência.
+00:37:11
+Luciano da Silva Oliveira: Então, basicamente só aquela quantidade autorizada que vai subir o resto para baixo, arranca tudo,
+Taylor Augusto Dos Santos: a vigência ali embaixo continua,
+Luciano da Silva Oliveira: né?
+Rodrigo Schecheli Bussolo: não vai É.
+Taylor Augusto Dos Santos: no caso a data de de início, né?
+Reunião TI - SEPLAG: Só d início a situação que some,
+Taylor Augusto Dos Santos: que ainda tem,
+Thássyus Fabiano M de Almeida Carvalho: a situação que vai ativa,
+Reunião TI - SEPLAG: né?
+Taylor Augusto Dos Santos: é,
+Rodrigo Thaua Lima Barroso: É o status
+Taylor Augusto Dos Santos: é,
+Thássyus Fabiano M de Almeida Carvalho: né?
+Gabriel Rodrigues de Moura: Ah.
+Thássyus Fabiano M de Almeida Carvalho: Что?
+Rodrigo Thaua Lima Barroso: aí.
+Reunião TI - SEPLAG: É
+Taylor Augusto Dos Santos: ela vai, ela pode começar como agendada ou ativa.
+Reunião TI - SEPLAG: isso.
+Taylor Augusto Dos Santos: Se ela tiver agendada,
+Luciano da Silva Oliveira: Tá.
+Taylor Augusto Dos Santos: pode editar ou excluir,
+Luciano da Silva Oliveira: Não.
+Rodrigo Schecheli Bussolo: Esse negócio que o Alex falou ali de novo cadastro ali de documento, ele já existe,
+Taylor Augusto Dos Santos: senão
+Rodrigo Schecheli Bussolo: né?
+Reunião TI - SEPLAG: Isso já existe. É o mesmo da rúbrica, gente,
+00:37:43
+Rodrigo Schecheli Bussolo: Me preocupar de volum não,
+Reunião TI - SEPLAG: que vocês utilizaram.
+Rodrigo Schecheli Bussolo: só para saber. Yeah.
+Thássyus Fabiano M de Almeida Carvalho: E aquela parte,
+Luciano da Silva Oliveira: Aquele novo cadastro, aquele novo cadastro,
+Reunião TI - SEPLAG: Beleza.
+Thássyus Fabiano M de Almeida Carvalho: aquela parte lá
+Luciano da Silva Oliveira: ele chama, ele chama a tela de gestão lá para isso.
+Thássyus Fabiano M de Almeida Carvalho: do
+Reunião TI - SEPLAG: Documentos legais. Documentação.
+Taylor Augusto Dos Santos: tá.
+Reunião TI - SEPLAG: Documentos legais.
+Luciano da Silva Oliveira: Ja.
+Reunião TI - SEPLAG: Chama aqui, ó. Eu acho que não tem nada aqui.
+Taylor Augusto Dos Santos: Então pode ser que a gente vai
+Thássyus Fabiano M de Almeida Carvalho: adicionar
+Reunião TI - SEPLAG: Aqui é protótipo,
+Taylor Augusto Dos Santos: ter
+Reunião TI - SEPLAG: tá, gente? Eu ignoro que é o protótipo. Não sei se tá. Enfim,
+Taylor Augusto Dos Santos: ela Vai
+00:38:12
+Thássyus Fabiano M de Almeida Carvalho: Uhum. Eh, aí só uma uma detalhezinho em volta lá.
+Taylor Augusto Dos Santos: perfeito.
+Thássyus Fabiano M de Almeida Carvalho: Isso.
+Reunião TI - SEPLAG: podem
+Thássyus Fabiano M de Almeida Carvalho: Eh, aí aquela parte, então, regime jurídico vai ficar dependendo de a pessoa selecionar em tempo de vínculo, né? A parte de carreira a gente vai tá resolvendo em um outro sá que vai virar questão de categoria,
+Taylor Augusto Dos Santos: Isso. Carre carga.
+Thássyus Fabiano M de Almeida Carvalho: né?
+Taylor Augusto Dos Santos: S. Yeah.
+Thássyus Fabiano M de Almeida Carvalho: Ah.
+Reunião TI - SEPLAG: votar Aí, quem que é o DBA? Como é que Ah, esqueci, né, gente? Como é que tá a situação aqui? Já começaram a modelar essa parte de do cadastro do quadro, ó. Já começou ou já finalizou? Se já finalizou também, melhor ainda.
+Aryadne Lelis De Oliveira: É igual eu falei, eu já fiz essa parte do quadro aí
+00:39:08
+Reunião TI - SEPLAG: Ah, fechou.
+Aryadne Lelis De Oliveira: todinho.
+Reunião TI - SEPLAG: Vou botar cafezinho, então.
+Aryadne Lelis De Oliveira: Não deu nem tempo de eu voltar,
+Reunião TI - SEPLAG: Ô, desculpa. Como você já fez?
+Aryadne Lelis De Oliveira: mas tudo bem.
+Reunião TI - SEPLAG: Falei, ó. Tá, tá top,
+Aryadne Lelis De Oliveira: Ah.
+Reunião TI - SEPLAG: viu? Pra área um já tá perfeito. Bora lá. Nota mais alta, tá seus Alex.
+Alex Sandro Pereira Garcia: Opa, eu coloquei é uma parte bem tranquila de fazer, tá bem de boa. Eu só coloquei oito mesmos para ficar fácil de dividir ali. Back, front, quatro pro back e quatro pro front. Aí vai ter as regras do negócio. Não tranquilo. Tá tranquilo.
+Thássyus Fabiano M de Almeida Carvalho: Foi foi mais eh para preocupar essas relações esses detalhes que eu pontuei no no último
+Reunião TI - SEPLAG: chagra de negócio.
+Thássyus Fabiano M de Almeida Carvalho: caso aí é das regras de negócio ali, né, que eu foi mais uma preocupação, mas também abaixaria para para cim era só realmente pensar nisso aí.
+00:40:08
+Thássyus Fabiano M de Almeida Carvalho: Yeah.
+Rodrigo Schecheli Bussolo: Ó, se tiver que mexer, tipo lá na categoria, esse esse número aqui é o menos.
+Gabriel Rodrigues de Moura: Exatamente.
+Reunião TI - SEPLAG: Não,
+Rodrigo Schecheli Bussolo: Aquele outro lá que que é o nome é perfil profissional
+Reunião TI - SEPLAG: vamos perfil especialidade,
+Alex Sandro Pereira Garcia: Ja.
+Rodrigo Schecheli Bussolo: também.
+Alex Sandro Pereira Garcia: Yeah.
+Reunião TI - SEPLAG: né, que é o perfil profissional.
+Rodrigo Schecheli Bussolo: Eh, e eu não sei da onde vai vir. Pelo jeito vai ser uma lista que vou cair
+Gabriel Rodrigues de Moura: É verdade.
+Rodrigo Schecheli Bussolo: mocado,
+Gabriel Rodrigues de Moura: Você vai ser novo esse perfil aí, né?
+Rodrigo Schecheli Bussolo: mas é isso
+Gabriel Rodrigues de Moura: Vixe, cara.
+Rodrigo Schecheli Bussolo: aí.
+Gabriel Rodrigues de Moura: O o cara tô pensando que vai usar o o subcategoria, né?
+Rodrigo Schecheli Bussolo: Então,
+Gabriel Rodrigues de Moura: O categoria não vai,
+Rodrigo Schecheli Bussolo: será que não foi isso que pensaram?
+Gabriel Rodrigues de Moura: né? A gente vai usar um novo, né?
+Rodrigo Schecheli Bussolo: categoria e subcategoria.
+Gabriel Rodrigues de Moura: Ai, Deus.
+00:40:48
+Gabriel Rodrigues de Moura: A gente podia perguntar para Ariadne, ô Ariadne, aquele campo de categoria ali, a categoria, ô meu Deus do céu, o campo de carreira, foi feito uma nova tabela para ele ou foi reaproveitado do no
+Aryadne Lelis De Oliveira: Então é isso aqui. Esse é esse é até um ponto que eu ia comentar,
+Gabriel Rodrigues de Moura: categoria?
+Aryadne Lelis De Oliveira: porque eu tentei localizar aqui, eu acredito que nós não temos essa tabela. Não tem tabela.
+Gabriel Rodrigues de Moura: Aham.
+Aryadne Lelis De Oliveira: Só se não foi criada nenhuma tabela de carreira.
+Gabriel Rodrigues de Moura: Então,
+Aryadne Lelis De Oliveira: Esse esse aí vai ser a categoria
+Gabriel Rodrigues de Moura: o que as meninas explicou aí é que o carreira é categoria
+Danielle Cristina Silva Cruz: carreira é a categoria.
+Gabriel Rodrigues de Moura: agora.
+Aryadne Lelis De Oliveira: então,
+Gabriel Rodrigues de Moura: Eh,
+Aryadne Lelis De Oliveira: né?
+Gabriel Rodrigues de Moura: só que aí como que vai aí que chegou a dúvida nossa. Que que a gente vai fazer?
+Aryadne Lelis De Oliveira: Aham.
+Gabriel Rodrigues de Moura: A gente vai só trocar no fronte o nome do label ou vai fazer toda a estrutura do banco de dados com o nome carreira? Como que vocês fazem essa questão aí do lado de vocês? Vocês fazem tudo com o nome correto?
+00:41:41
+Aryadne Lelis De Oliveira: É porque se é porque se a gente alterar vai impactar demais coisas que fizeram uso,
+Gabriel Rodrigues de Moura: Sim, sim.
+Aryadne Lelis De Oliveira: né? Isso
+Gabriel Rodrigues de Moura: É aí, aí que dá,
+Aryadne Lelis De Oliveira: aí.
+Gabriel Rodrigues de Moura: a gente vai fazer um aí, aí que bateu a ideia, a gente vai fazer um crude novo que não vai estar relacionado ao sistema,
+Aryadne Lelis De Oliveira: Hum.
+Gabriel Rodrigues de Moura: que seria o carreira novo, né? Uma nova tabela. Só que o carreira que vai listar aqui não vai ser o mesmo carreira que tá lá em vínculo, por exemplo. Aí aí vai sair o OS. A gente alterando tudo isso, todos os esquemas onde tem categoria
+Aryadne Lelis De Oliveira: cortou.
+Gabriel Rodrigues de Moura: é gradivamente, entendeu? Ah,
+Aryadne Lelis De Oliveira: Olha o que que você falou.
+Gabriel Rodrigues de Moura: tá difícil esse meu micro aqui.
+Aryadne Lelis De Oliveira: Não deu para escutar. Yeah.
+Gabriel Rodrigues de Moura: Tô desistindo essa internet aqui. Gastei tudo o repertório que eu tinha de português.
+Luciano da Silva Oliveira: Aí,
+Danielle Cristina Silva Cruz: Fomos abençoados aqui.
+00:42:28
+Danielle Cristina Silva Cruz: Cortou.
+Luciano da Silva Oliveira: aí no caso acho que tinha que abrir uma específica para criar essa carreira aí lá.
+Aryadne Lelis De Oliveira: É,
+Alex Sandro Pereira Garcia: Aí, essa carreira
+Aryadne Lelis De Oliveira: esse é e esse é o único ponto que eu ainda tô pendente aqui, vamos dizer assim, né? Para porque até então eu não tinha ainda verificado essa questão que já que a categoria ela vai vai ser a a carreira, né? Então tem que ver o que que vai mudar, o que que vai tirar, o que que vai colocar. Mas assim, eh, para mim é aqui em questão de banco não muda muita coisa, entendeu? Aí eu penso mais em questão da aplicação.
+Alex Sandro Pereira Garcia: As amarrações dela vai ser da carreira, vai ser a carreira, o cargo perfil profissional.
+Aryadne Lelis De Oliveira: Então, houve essa mudança, Dani?
+Danielle Cristina Silva Cruz: Perdão. Pode repetir.
+Alex Sandro Pereira Garcia: Quais seram as amarrações do da carreira?
+Danielle Cristina Silva Cruz: tá falando,
+Alex Sandro Pereira Garcia: M.
+Taylor Augusto Dos Santos: carreira,
+Danielle Cristina Silva Cruz: carreira car vai ter
+Taylor Augusto Dos Santos: carga e perfil. Aí o que não vai ter mais é subcategoria lá.
+Reunião TI - SEPLAG: E a gente ainda tá na dúvida se vai amarrar o regime também, a o cargo ou se é só o tipo de
+00:43:46
+Alex Sandro Pereira Garcia: T
+Reunião TI - SEPLAG: vínculo.
+Aryadne Lelis De Oliveira: Tá, mas foi criada uma para isso.
+Reunião TI - SEPLAG: Não,
+Aryadne Lelis De Oliveira: Alguma coisa ainda não,
+Reunião TI - SEPLAG: ainda não.
+Aryadne Lelis De Oliveira: né?
+Reunião TI - SEPLAG: Ainda não. Vai ser na próxima,
+Alex Sandro Pereira Garcia: Tem uma coisa que acontece também, é que eles estão linkados no órgão, né? Desce mais para baixo aí.
+Thássyus Fabiano M de Almeida Carvalho: Então,
+Reunião TI - SEPLAG: não é?
+Thássyus Fabiano M de Almeida Carvalho: mas aí eu assim,
+Reunião TI - SEPLAG: A categoria que tá linkada ao órgão e a gente também vai arrancar.
+Thássyus Fabiano M de Almeida Carvalho: aí eu volto a eu volto a pontuar a complexidade que eu coloquei no caminho de oito. Eh, que a gente assim, a gente vai desenvolver essa parte, então, eh, que vai envolver, na verdade, uma OS futura para tá sendo segur na próxima sprint.
+Reunião TI - SEPLAG: É essa parte carreira cargo perfil profissional vocês vão desenvolver como tá. Quando a gente chegar na parte de carreira e cargo, que já é na próxima, a gente vai voltar e fazer essas amarrações aqui, gente,
+00:44:36
+Rodrigo Schecheli Bussolo: Tá beleza.
+Reunião TI - SEPLAG: tá?
+Rodrigo Schecheli Bussolo: Vai tu.
+Reunião TI - SEPLAG: Vai,
+Rodrigo Schecheli Bussolo: M.
+Reunião TI - SEPLAG: vai, vai ter outro. Tá. Belê. Ixe, parei em quem? Oito. Já foi. Nota cinco. Ih, já mudaram ali. Luciano, paradinha. Buolo já blô.
+Luciano da Silva Oliveira: Então, que que decidiu? vai criar uma OS. Que que vai ser?
+Reunião TI - SEPLAG: Não, não vai mexer ainda nessa daí. Vai vir, mas vai vir futuro. Não vai vir agora.
+Luciano da Silva Oliveira: Tá bom.
+André Parada de Oliveira Machado: Então vai listar categoria lá.
+Reunião TI - SEPLAG: Vai.
+André Parada de Oliveira Machado: Então é essa nota aí mesmo.
+Reunião TI - SEPLAG: Oi.
+00:45:23
+André Parada de Oliveira Machado: Então essa nota que já existe, né?
+Reunião TI - SEPLAG: É nota cinco.
+André Parada de Oliveira Machado: F.
+Reunião TI - SEPLAG: Aham. Então, a maioria ficou cinco. Alguém tem alguma coisa contra? Se não fechou, vamos pra próxima. Edição, exclusão e distribuição do quadro autorizado.
+Taylor Augusto Dos Santos: Essa é basicamente antes dele tá agendado, né? Tem a opção de editar e excluir. Essa o botãozinho de distribuição não vai ter mais. Então eu vou tirar ele daí ele vai para dentro do diversionamento. Isso é basicamente tô falando sobre editar e excluir lá as regrinhas bem básico também. Acho antes de estar ativo, eu consigo editar lá.
+Alex Sandro Pereira Garcia: Cada edição gera uma nova versão. Só confirmando,
+Taylor Augusto Dos Santos: Não,
+Alex Sandro Pereira Garcia: gera.
+Taylor Augusto Dos Santos: porque aí ele não criou ainda, né? Ele não tá não tá ativo. Então é
+Rodrigo Schecheli Bussolo: A versão é só depois que ele tá ativo, né? É só quando você usar as as gerar a versão lá,
+00:46:29
+Taylor Augusto Dos Santos: isso.
+Rodrigo Schecheli Bussolo: né?
+Taylor Augusto Dos Santos: Isso.
+Thássyus Fabiano M de Almeida Carvalho: Já já ia para versionamento direto se se a pessoa pegasse ali, né, e colocasse uma data de início retroativa, por exemplo. Sou dia 15,
+Taylor Augusto Dos Santos: Isso aí ele já começa ativo.
+Thássyus Fabiano M de Almeida Carvalho: aí ele já entra como ativo direta.
+Taylor Augusto Dos Santos: Aí ele teria que versionar.
+Thássyus Fabiano M de Almeida Carvalho: Então,
+Reunião TI - SEPLAG: Mais alguma dúvida? Senão podem ir lotando aí, gente.
+Thássyus Fabiano M de Almeida Carvalho: Ah, ele vaientar algo.
+Gabriel Rodrigues de Moura: A distribuição saiu dessa.
+Reunião TI - SEPLAG: De quadro.
+Thássyus Fabiano M de Almeida Carvalho: Não
+Reunião TI - SEPLAG: Ela falou que modelou.
+Aryadne Lelis De Oliveira: Tá vendo?
+Gabriel Rodrigues de Moura: Ja.
+Reunião TI - SEPLAG: paradinha. Tá pensando, Gabriel.
+Aryadne Lelis De Oliveira: Gente, como que vocês fazem esses trequinho aí de jogar pedrinha, um monte de coisa?
+Reunião TI - SEPLAG: Passa o mouse em
+00:47:49
+Renan dos Santos Araujo: na ferramenta.
+Reunião TI - SEPLAG: cima.
+Renan dos Santos Araujo: Coloca o mouse em cima.
+Danielle Cristina Silva Cruz: também tá querendo acertar alguém aí.
+Aryadne Lelis De Oliveira: Ah.
+Renan dos Santos Araujo: Aham.
+Rodrigo Schecheli Bussolo: Ja. Yeah.
+Renan dos Santos Araujo: Ela quer acertar alguém aí,
+Reunião TI - SEPLAG: Bora lá.
+Renan dos Santos Araujo: ó. Yeah.
+Reunião TI - SEPLAG: O paradinha já começou alto. Deu seu tstão. Paradinha.
+André Parada de Oliveira Machado: Ué, tem que ver se eu entendi. Yeah. Entendi também, né? Porque aqui aparentemente tá falando sobre dois fluxos diferentes, exclusão.
+Reunião TI - SEPLAG: Só
+André Parada de Oliveira Machado: Eh, aí essa exclusão vai considerar só quando não tiver vigente ainda ou quando tiver vigente, porque aí eu vou ter que colocar duas regras diferentes.
+Rodrigo Schecheli Bussolo: É, ele só exclui se tiver não
+André Parada de Oliveira Machado: E a mas o mesmo botão pode ser usado também
+Taylor Augusto Dos Santos: Aí
+Rodrigo Thaua Lima Barroso: É só não
+00:48:25
+Rodrigo Schecheli Bussolo: vigente.
+Rodrigo Thaua Lima Barroso: viente.
+André Parada de Oliveira Machado: para,
+Rodrigo Schecheli Bussolo: É,
+André Parada de Oliveira Machado: mas se for considerando só isso aí eu diminuo os pontos logo quando não tiver
+Rodrigo Schecheli Bussolo: é,
+Taylor Augusto Dos Santos: não, não.
+Rodrigo Schecheli Bussolo: não é só quando ainda não começou o quadro.
+Taylor Augusto Dos Santos: Esse esses dois botão aí eles só vão aparecer quando não tiver ativo em um.
+André Parada de Oliveira Machado: vigente, tá? Quando tiver
+Taylor Augusto Dos Santos: Só quando tiver agendado aparece esses dois botões. Depois só vai aparecer o botãozinho do do mais.
+André Parada de Oliveira Machado: vídeo,
+Taylor Augusto Dos Santos: vai ter o eu visualizar e uso mais, na verdade.
+André Parada de Oliveira Machado: eu dei uma baixada aí.
+Reunião TI - SEPLAG: Ó, tá bem equilibrado. Galerinha da nota 5. Alex Taylor,
+Rodrigo Schecheli Bussolo: Ah, o por que que Ah, por que que eu acho que é três?
+Reunião TI - SEPLAG: ah, pode falar,
+Rodrigo Schecheli Bussolo: Porque ele é a mesma coisa do inclusão,
+Reunião TI - SEPLAG: Balou.
+Rodrigo Schecheli Bussolo: então vai ser muita coisa já vai ter feito.
+00:49:19
+Rodrigo Schecheli Bussolo: E se você seguir a lógica lá do da aplicação, a exclusão também é tranquilo, forte, pensando no back, né? E o front, o front vai ser igual a inclusão vai ser igual tudo. Muita coisa dá para reaproveitar.
+Reunião TI - SEPLAG: Tauan vai querer falar, Alex vai querer falar também?
+Alex Sandro Pereira Garcia: Abaixo para três mim.
+Rodrigo Thaua Lima Barroso: Baixei para ter já fui com a maioria.
+Reunião TI - SEPLAG: É porque a maioria já vem. Show de bola.
+Rodrigo Thaua Lima Barroso: Yeah.
+Reunião TI - SEPLAG: Três. Próximo versionamento agora é a ação,
+Taylor Augusto Dos Santos: Tá. É, essa daí é um pouquinho mais maior de grande,
+Reunião TI - SEPLAG: né?
+Taylor Augusto Dos Santos: porque daí ela tá com todos dentro lá.
+Reunião TI - SEPLAG: Ah, tá.
+Alex Sandro Pereira Garcia: ao versionar todas as
+Reunião TI - SEPLAG: No caso é só isso daqui agora, né?
+Taylor Augusto Dos Santos: E não,
+Alex Sandro Pereira Garcia: regras
+Taylor Augusto Dos Santos: do jeito que ela tá aí, ela já tá meio que falando de tudo.
+00:50:16
+Taylor Augusto Dos Santos: É, só que eu, deixa eu ver. Ela já tá com incluir órgão, já é,
+Alex Sandro Pereira Garcia: ao versionar todas as regras são consideradas em são levadas em consideração, né? E aí tem o histórico também de tudo.
+Taylor Augusto Dos Santos: eu tinha essa daí ela tá com ampliação, redução, transformação, extinção progressiva. Aí eu eu quero até ver com vocês se eu já coloco nessa OS também a parte de distribuições de moção. Só que acho que vai ficar porque em teoria tá tudo na mesma tela, só que são coisas diferentes. ou se vocês preferem que divide uma s para
+Rodrigo Schecheli Bussolo: Olha,
+Luciano da Silva Oliveira: А
+Rodrigo Schecheli Bussolo: eu acho que dependendo dá para deixar alguns No jo. se não for muito complexo, eu acho que redução em ampliação é é bem parecido um com o outro, né? A transformação ela é um pouquinho diferente. Você tem que gerar duas versões. Qual que é o último ali da direita ali que eu não tô conseguindo ver? e
+Taylor Augusto Dos Santos: Aí ele em vez de ser a inclusão e de órgão e a exclusão não vai ter mais.
+00:51:22
+Rodrigo Schecheli Bussolo: distinção.
+Taylor Augusto Dos Santos: O que vai ter ali vai ser a distribuição. Aí vai ter uma OS só para ela e a redistribuição também com uma OS só para
+Rodrigo Schecheli Bussolo: Ah,
+Taylor Augusto Dos Santos: ela.
+Rodrigo Schecheli Bussolo: eu acho que esses quatro aí é até OK deixar aí junto, não sei.
+Taylor Augusto Dos Santos: Fechou? Eu só vou ajustar eles então porque aí ele tá incluindo ainda o incluir e remover o vou tirar eles e daí vou fazer as outras dúvidas distribuíção.
+Reunião TI - SEPLAG: Podem votar aí, galera. Essa parte também já tá modelada, né? Bem legal. Agora o Alex achou fácil. Não, Brin começa aí, Gabriel. Ô, então começa aí, Alex. Ô, caramba. Que que é isso? Tô 13, gente. Alguém quer falar alguma coisa ou defender?
+Alex Sandro Pereira Garcia: Essa daí incorpora basicamente todas as regras.
+Rodrigo Schecheli Bussolo: É, vai, eu acho que vai ser a parte mais complexa, vai gerar a versão.
+00:53:06
+Rodrigo Schecheli Bussolo: Eh, vai ter as quatro funcionalidades ali,
+Reunião TI - SEPLAG: Uhum.
+Rodrigo Schecheli Bussolo: né? pensando em complexidade,
+Reunião TI - SEPLAG: Perfeito.
+Rodrigo Schecheli Bussolo: não, em tempo, eu acho que é a mais complexa assim.
+Reunião TI - SEPLAG: Ah, show de bola. Tá. Agora vamos lá. Taylor, me ajuda aqui.
+Taylor Augusto Dos Santos: Ela
+Reunião TI - SEPLAG: Então, a história dois vai ser tudo então de distribuição. Tá mutado. Tá mutado.
+Rodrigo Schecheli Bussolo: Oh, Taylor.
+Taylor Augusto Dos Santos: no caso seria a seis,
+Rodrigo Schecheli Bussolo: Так.
+Taylor Augusto Dos Santos: né? Ela vai ser a quadra autorizado seis e ela vai incluir tudo de distribuição e redistribuição. Ô, seis e sete, na
+Reunião TI - SEPLAG: Cadê o caderro autorizado? Seis.
+Taylor Augusto Dos Santos: verdade.
+Reunião TI - SEPLAG: Oi. Ah, tá, entendi.
+Taylor Augusto Dos Santos: Eu vou, entendeu?
+00:53:52
+Reunião TI - SEPLAG: Quadro autorizado se que você vai fazer.
+Taylor Augusto Dos Santos: As seis e as sete eu vou fazer. Então a se vai ser a distribuição,
+Reunião TI - SEPLAG: Aham.
+Taylor Augusto Dos Santos: a sete a redistribuição.
+Reunião TI - SEPLAG: Tá. Então, por aqui 6. Seis distribuição, beleza? E uma de redistribuição,
+Taylor Augusto Dos Santos: Isso.
+Reunião TI - SEPLAG: tá? Só pra gente votar então sem o S. Enquanto isso, redistribuição, né? Eh, distribuição. Beleza. Que que você quer que eu mostre da distribuição para eles votarem?
+Rodrigo Schecheli Bussolo: É só o cadastro,
+Taylor Augusto Dos Santos: Pode ser a tela.
+Rodrigo Schecheli Bussolo: né?
+Reunião TI - SEPLAG: ver se eu acho o documento
+Taylor Augusto Dos Santos: É
+Reunião TI - SEPLAG: agora.
+Taylor Augusto Dos Santos: listar. Não vai ter mais. Vai iniciar onde ele
+Reunião TI - SEPLAG: A nova distribuição já foi,
+Taylor Augusto Dos Santos: colocá.
+00:54:49
+Reunião TI - SEPLAG: né? Deixa eu abrir aqui o protótipo. Tá esse aqui,
+Taylor Augusto Dos Santos: Isso aí.
+Reunião TI - SEPLAG: né?
+Taylor Augusto Dos Santos: Isso é base legal já vai ter lá na OS,
+Reunião TI - SEPLAG: Nova
+Taylor Augusto Dos Santos: certo?
+Reunião TI - SEPLAG: distribuição.
+Taylor Augusto Dos Santos: Esse quadro de resuminho aí também já vai ter. Então vai ser a partir dali destinação da distribuição, daí para baixo que vai aparecer na tela lá quando ele clicar na distribuição.
+Reunião TI - SEPLAG: Certo. Esse aqui tá com qual DBA? Já começou a modelagem ou já finalizou também?
+Anselmo Gonçalves Cardoso: não iniciado. Boa tarde, pessoal.
+Reunião TI - SEPLAG: Tarde, ó. Então, galera, não iniciou ainda, tá? Então, podem votar com essa complexidade também do banco.
+Taylor Augusto Dos Santos: Desculpem.
+Reunião TI - SEPLAG: Gabriel.
+Rodrigo Schecheli Bussolo: Ô Taylor, só perguntar um negócio para você. Todos vão ter aquele simular ali.
+00:56:13
+Reunião TI - SEPLAG: Mutado. Co?
+Taylor Augusto Dos Santos: Sim, ele mostra como que ficaria, né?
+Rodrigo Schecheli Bussolo: O o mais lá tem quatro opções.
+Taylor Augusto Dos Santos: Depois desse
+Rodrigo Schecheli Bussolo: Cada um tem um jeito de ver a simulação ou
+Taylor Augusto Dos Santos: Sim. Quer ver o Acho que só o extinção que não.
+Rodrigo Schecheli Bussolo: não?
+Taylor Augusto Dos Santos: O extinção ele só marca lá, ele só aparece que as vagas vão ser excluídas e tal.
+Rodrigo Schecheli Bussolo: Ele tá lá no documento explicar queão não do
+Taylor Augusto Dos Santos: Não, não do dessa de distribuição e remoção. Não,
+Rodrigo Schecheli Bussolo: dos outros quatro.
+Taylor Augusto Dos Santos: sim. Ele basicamente mostra o nome. Deixa eu ver aqui. Simular. Isso. Ué, cadê?
+Rodrigo Schecheli Bussolo: Так. Eu não sei se tem todos
+Taylor Augusto Dos Santos: Ele mostra a tabelinha de como ficaria essas vagas, um resuminho do nome delas. que ali eu tinha colocado identificador, né? Mas na verdade não vai ser identificador. Tá conversando com lá.
+00:57:30
+Taylor Augusto Dos Santos: Identificador vai ser algo fixo e único lá. O nome dessa vaga que ele vai mudar conforme ela é distribuída lá. Eu caí tá
+Rodrigo Thaua Lima Barroso: No caso é só um é só um resumo e depois do registro,
+Thássyus Fabiano M de Almeida Carvalho: Não.
+Reunião TI - SEPLAG: Opa,
+Rodrigo Thaua Lima Barroso: né?
+Taylor Augusto Dos Santos: isso.
+Reunião TI - SEPLAG: Luciano, você quer defender seu peixe aí da nota 13? Tentar convencer
+Luciano da Silva Oliveira: Ah,
+Reunião TI - SEPLAG: alguém.
+Luciano da Silva Oliveira: aquela tela lá da distribuição, olhando a quantidade de tabelas que a gente vai ter que estar inserindo, fazer toda a as validações ali. Aí ter pelo 13 ali, porque querendo não, a gente tem a simulação de distribuição, então a gente vai ter que fazer as quer do banco para consultar as coisas. tem as os totais autorizados, ocupados. A gente tem bastante regras e validações ali pra gente tá eh fazendo antes de gravar. E na hora que a gente gravar, a gente tem um monte de de tabela para trás de serindo lá, né? Garantir que todas vai dar tudo certo, né?
+00:58:55
+Luciano da Silva Oliveira: Então, por isso que eu coloquei um 13 ali, porque ela tem seu grau de complexidade do meu ponto de vista, tanto com a distribuição quanto com redistribuição. É isso. Olhar no front end, ela parece ser simples, mas olhar a estrutura do backend, ela vai ser bem complexa.
+Reunião TI - SEPLAG: Alex, subiu seu ponto aí.
+Alex Sandro Pereira Garcia: Concordo com o Luciano, por isso que eu subi de 8 para 13.
+Reunião TI - SEPLAG: Já jogando a gordurinha do banco, né? Bastante aí o solo paradinha. Eita, já outro sumiu.
+Rodrigo Schecheli Bussolo: Ah, eu possoar com as três aí.
+Reunião TI - SEPLAG: Gabriel Thássyus.
+Rodrigo Schecheli Bussolo: O simulação aí, velho. Chave de fazer.
+Reunião TI - SEPLAG: Tá, vai manter no 13. Então, alguém quer aumentar mais alguma coisa? Não, ó, todo mundo no 13. Show. Ah. É distribuição agora. Como é que é distribui?
+01:00:08
+Reunião TI - SEPLAG: Ah,
+Taylor Augusto Dos Santos: Aí a base legal já vai ter o quadrinho também. Aí a partir dali ele seleciona o órgão de origem,
+Reunião TI - SEPLAG: aqui.
+Taylor Augusto Dos Santos: o órgão de destino e a quantidade de vagas que vai ser redistribuída lá. Ele sempre vai estar mexendo só com vagas que estão disponíveis. Qual a data de justificativa?
+Reunião TI - SEPLAG: Beleza, podem voltar aí, gente. É, essa parte também não tá modelada ainda, né? Ah, beleza. Quatro. Opa. 513. Gabriel, Tauan, querem comentar aí a nota
+Taylor Augusto Dos Santos: hoje então
+Reunião TI - SEPLAG: oito.
+Rodrigo Thaua Lima Barroso: Eu não, eu só vou mudar a minha aqui.
+Reunião TI - SEPLAG: Gabriel achou fácil. Brincadeira, pelo amor de Deus. Sen não a gente continua no 13 também. Show. Essas daqui matou, né?
+01:01:50
+Reunião TI - SEPLAG: Taylor 2 3 4 5 virou redistribuição. Distribuição.
+Taylor Augusto Dos Santos: Isso pode pagar.
+Reunião TI - SEPLAG: Calma, calma. Depois eu vou ter que ajustar tudo isso aqui. Redmine show. Bora pra vaga individualizada. Só a consulta, né? Só consultinha pegar aqui, né?
+Taylor Augusto Dos Santos: Isso.
+Reunião TI - SEPLAG: que é mais selecionar. Ou seja, para ela existir tem que ter um quadro. Então, já temos uma dependência.
+Taylor Augusto Dos Santos: Seleciona o quadro,
+Alex Sandro Pereira Garcia: vai manter aquela parte vai,
+Taylor Augusto Dos Santos: depois
+Alex Sandro Pereira Garcia: né? M.
+Eddie Allen de Medeiros Pinto: Ah, tá.
+Taylor Augusto Dos Santos: mantémora.
+Eddie Allen de Medeiros Pinto: Vou criar essa aí. Eu já criei uma tabela de visualizada. Eh, só de confirmar variad se é do quadro autorizado que ela faz vinculação, tá? Depois vou filmar com ela, mas já tá criada uma tabela de de vagualizada.
+01:02:57
+Eddie Allen de Medeiros Pinto: M. Yeah.
+Reunião TI - SEPLAG: Beleza. Consulta, né, gente? Yeah.
+Thássyus Fabiano M de Almeida Carvalho: Essa parte já táelada também.
+Reunião TI - SEPLAG: Já, já. O Ed comentou aí o som.
+Taylor Augusto Dos Santos: Não
+Reunião TI - SEPLAG: Vou virar, tá? E B explica seu três aí. Tá bem
+Rodrigo Schecheli Bussolo: Errei.
+Reunião TI - SEPLAG: empatado.
+Rodrigo Schecheli Bussolo: Deve ser mais tá certo, hein?
+Reunião TI - SEPLAG: Beleza, galerinha do oito. Alex nunca volta baixo. Pode começar aí, Alex.
+Alex Sandro Pereira Garcia: Opa. Cada alteração na vaga vai criando um histórico, né, as ocupações e tudo.
+Reunião TI - SEPLAG: Uhum.
+Alex Sandro Pereira Garcia: Então, por isso eu coloquei oito ali,
+Reunião TI - SEPLAG: Mais sensível,
+Alex Sandro Pereira Garcia: porque cada alteração Uhum.
+Reunião TI - SEPLAG: né?
+01:04:42
+Alex Sandro Pereira Garcia: Cada cada alteração vai ter que disparar uma ação ali. E tem o dash ali em cima também, ó. E dependendo cada consulta que você fizer, vai ter que refletir no dash.
+André Parada de Oliveira Machado: E além do dash, tem essas colunas aí de ocupante de comprometimento que dependendo da que você faz,
+Rodrigo Thaua Lima Barroso: Concordo verdade.
+André Parada de Oliveira Machado: vai ficar um lento
+Rodrigo Thaua Lima Barroso: Ч.
+Reunião TI - SEPLAG: Tá oito. Então, mais alguém quer comentar? Sen não vamos. Ah, lembrando que aqui, gente, a gente dividiu assim, mas não significa que só o time do Luciano vai pegar isso aqui, tá? Porque é critério de vocês definir, aí vocês só passam pra gente colocar qual de vai atuar. Belê? Próxima. Só o filtro dessas vagas. quer dar um
+Taylor Augusto Dos Santos: Isso
+Reunião TI - SEPLAG: tostão? Identificador.
+Taylor Augusto Dos Santos: ocupante ingresso.
+01:05:55
+Taylor Augusto Dos Santos: É, por enquanto ele vai estando pelo Selecionou o quadro, né? Primeiro seleciona o quadro, depois o Aí começa o filtro dos órgãos lá,
+Reunião TI - SEPLAG: Ne.
+Taylor Augusto Dos Santos: identificar ador seria o próprio nome ali, voltará para nome ali.
+Reunião TI - SEPLAG: Tá.
+Taylor Augusto Dos Santos: O ocupante atual, ele buscaria então pelo nome, matriculou o CPF da pessoa, igual é quando vai o cadastro, buscar o cadastro lá. E aqui nessa parte de ingresso, a ocupação seria das flagzinhas que vai ter lá, que vai vir do ingresso
+Reunião TI - SEPLAG: O identificador ele não pode ficar amarrado com o quadro
+Taylor Augusto Dos Santos: ainda, não, porque ele muda,
+Reunião TI - SEPLAG: autorizado.
+Taylor Augusto Dos Santos: por exemplo, essa eh essa da essa vaga aqui, a vaga Cplag na lista 01, por exemplo, pode acontecer dela ser transformado para um outro cargo. Então o o esse identificador ele pode mudar o o código.
+Reunião TI - SEPLAG: Ah, entendi. Ele muda o quadro, né?
+Taylor Augusto Dos Santos: Eh, cada vaga vai ter um código único que não muda, mas o nome é que iss seria o nome da vaga, né?
+01:06:49
+Taylor Augusto Dos Santos: Isso daí ela pode mudar.
+Reunião TI - SEPLAG: Tá. E esse a desse identificador vai ficar desse jeito mesmo? Lembra que eu falei para você? Me dá tá enorme.
+Taylor Augusto Dos Santos: Então dá para tirar o vag do começo aí, mas o resto eu preciso, eu falo o órgão, né, o cargo e a posição.
+Reunião TI - SEPLAG: Uhum.
+Taylor Augusto Dos Santos: Esas três informações tá aí.
+Reunião TI - SEPLAG: Beleza.
+Luciano da Silva Oliveira: Qual o filtro que vai,
+Reunião TI - SEPLAG: De bola.
+Rodrigo Schecheli Bussolo: Yes.
+Luciano da Silva Oliveira: qual o filtro que vai levar em consideração que tá aí no no protótipo ou que tá na na US lá? Porque são dois duas coisas distintas.
+Taylor Augusto Dos Santos: Ah, não, dacho que eu não atualizei ainda. Deixa eu, eu não cheguei nela, deixa eu ver como que tá lá.
+Reunião TI - SEPLAG: Comprometimento. Que que é comprometimento?
+Taylor Augusto Dos Santos: Quando ela entra em algum daqueles seus das suas flags lá,
+Reunião TI - SEPLAG: Ah.
+01:07:33
+Taylor Augusto Dos Santos: aí ela passa a ter um estadous de comprometimento,
+Reunião TI - SEPLAG: Uhum.
+Taylor Augusto Dos Santos: mais a flag em si.
+Thássyus Fabiano M de Almeida Carvalho: Taylor, e aquela parte ali, no caso de autorizado, lembra que a gente tinha conversar de código que o que a lá era uma coisa, um elemento incomum, chegou de verificar isso daí d para saber se vai ser só numérico,
+Taylor Augusto Dos Santos: Não,
+Luciano da Silva Oliveira: de
+Taylor Augusto Dos Santos: não,
+Thássyus Fabiano M de Almeida Carvalho: vai ser,
+Taylor Augusto Dos Santos: não entendi. Não entendi.
+Thássyus Fabiano M de Almeida Carvalho: é que lembra que a gente conseguia filtrar o quadro, a gente editar que é atraso.
+Taylor Augusto Dos Santos: Ah, sim, sim. Ele não, não, não. Eu vou não. Ali ele lista, né, todos os quadros. Ele não vai digitar, ele lista. E daí no Ah, mas daí dá para pesquisar.
+Thássyus Fabiano M de Almeida Carvalho: Ah, tá. É um dropd, não é? É sim,
+Taylor Augusto Dos Santos: Deixa eu ver.
+01:08:19
+Thássyus Fabiano M de Almeida Carvalho: exatamente is que aí a gente,
+Taylor Augusto Dos Santos: Calma aí. É, mas dava para pesquisar
+Thássyus Fabiano M de Almeida Carvalho: na verdade dá para pesquisar,
+Taylor Augusto Dos Santos: aí.
+Thássyus Fabiano M de Almeida Carvalho: a pessoa pode colocar nome, então vai ser,
+Taylor Augusto Dos Santos: Ah, tá. Você fala, se ele digitar só o número, ele já busca, né? Ele não precisa digitar o criado.
+Thássyus Fabiano M de Almeida Carvalho: lembra?
+Taylor Augusto Dos Santos: Isso, isso,
+Thássyus Fabiano M de Almeida Carvalho: Porque porque antes tem aquela questão lá do Isso.
+Taylor Augusto Dos Santos: isso. Uhum.
+Luciano da Silva Oliveira: Eh, ali faz sentido a gente colocar esses filtros de ocupo atual, ingresso ocupação, tendo em vista
+Taylor Augusto Dos Santos: Eles não existem ainda,
+Luciano da Silva Oliveira: que
+Taylor Augusto Dos Santos: né? Em teoria. Então,
+Luciano da Silva Oliveira: vamos chegar
+Taylor Augusto Dos Santos: esse ingresso ocupação não tem ainda. Ele vai, acho que ele vai vir depois que o ingresso tiver pronto, só para tirar ele. Seria
+Luciano da Silva Oliveira: São coisas como não tá não tão pronto. Yeah.
+01:09:04
+Luciano da Silva Oliveira: ficar com um monte de coisa mocada aí não faz sentido, né? Daria, poderíamos tirar isso daí. Eh, outra dúvida ali, por exemplo, o quadradorizado, ele vai filtrar o órgão, algum outro filtro ali dentro da dos filtros filtro por outro ou vai tá ampla concorrência ali?
+Taylor Augusto Dos Santos: Como quando eu clico em quadro autorizado?
+Luciano da Silva Oliveira: Eh, aí ele vai filtrar o órgão que
+Taylor Augusto Dos Santos: Não, não,
+Luciano da Silva Oliveira: ele então,
+Taylor Augusto Dos Santos: ele só ali o ele lista o quadro aqui.
+Luciano da Silva Oliveira: mas por exemplo,
+Taylor Augusto Dos Santos: Ah,
+Luciano da Silva Oliveira: o
+Taylor Augusto Dos Santos: você fala se ele filtrar o órgão primeiro?
+Reunião TI - SEPLAG: Vai tá
+Luciano da Silva Oliveira: quadro,
+Taylor Augusto Dos Santos: Não, não, não. Do jeito que eu coloquei aqui,
+Reunião TI - SEPLAG: amarrado,
+Taylor Augusto Dos Santos: a primeira coisa tem que ser o
+Luciano da Silva Oliveira: tudo bem?
+Taylor Augusto Dos Santos: quadro.
+Luciano da Silva Oliveira: Aí você selecionou o quadro aí, o campo órgão, ele vai buscar todos os órgãos do quadro, vai tá amarrado,
+Taylor Augusto Dos Santos: Isso,
+Luciano da Silva Oliveira: vai
+Reunião TI - SEPLAG: tipo,
+Taylor Augusto Dos Santos: isso, isso, isso.
+01:09:55
+Reunião TI - SEPLAG: só do quadro ou todos os órgãos cadastrados?
+Luciano da Silva Oliveira: tá
+Taylor Augusto Dos Santos: Não, só do quadro. Só do quadro.
+Reunião TI - SEPLAG: Ah,
+Taylor Augusto Dos Santos: Então,
+Reunião TI - SEPLAG: tá.
+Taylor Augusto Dos Santos: por exemplo, se eu pegar esse analista ali,
+Luciano da Silva Oliveira: aí.
+Taylor Augusto Dos Santos: ele só vai mostrar se é plug porque é só
+Luciano da Silva Oliveira: Aí,
+Taylor Augusto Dos Santos: plug.
+Luciano da Silva Oliveira: por exemplo, ali o identificador que tá ali, a gente vai considerar que ele vai digitar um um com a informação, porque eh se a gente for pegar para olhar o identificador, ele tá um tamanho gigante lá, até o cara digital, dos três caracteres e o tempo ali, ele fica fazendo um monte de querer no banco. Será que não seria vantajoso colocar um botão consultar nessa tela para deixar preencher o que ele precisa e consultar no
+Taylor Augusto Dos Santos: Pode ser,
+Luciano da Silva Oliveira: final?
+Taylor Augusto Dos Santos: pode ser se melhorar a performance, porque ali a ideia, acho que o se ele fosse pesquisar, ele seria pelo pelo número, né? Então ele nem digitaria tudo aquilo ali. E ele filtra o órgão e no identificador ele pode digitar só o número da vaga que ele quer ver, mas pode ser.
+01:10:58
+Taylor Augusto Dos Santos: Eu coloco um botãozinho pesquisar para não ficar automático.
+Luciano da Silva Oliveira: essa situação legal. Não sei se a gente já tinha apertado.
+Taylor Augusto Dos Santos: Não, eu tenho que atualizar ele também. Tem umas aqui que não em transformação não não vai ter mais. Ele transforma direto e daí vai ter uns outros que não a gente não
+Luciano da Silva Oliveira: Eh,
+Taylor Augusto Dos Santos: colocou ele que quando vende. Tão me ouvindo?
+Reunião TI - SEPLAG: Sim,
+Taylor Augusto Dos Santos: Ah, tá. Tá aparecendo aqui que eu tô sem conexão.
+Reunião TI - SEPLAG: Sam.
+Taylor Augusto Dos Santos: Que loucura que o vai existir um momento em que uma pessoa vai estar ocupando uma vaga que em teoria não existe ainda porque foi uma decisão lá e tal. Então pode ser que fique negativo, só que isso eu não vou mexer não, não mexi ainda. Vou mexer sóc sessão para
+Luciano da Silva Oliveira: Tá, mas hoje hoje a gente tem lá situações especiais,
+Taylor Augusto Dos Santos: hoje
+Luciano da Silva Oliveira: regular, decisão judicial, extinção, extinta. Atualmente a gente só vai ter em transformação.
+Taylor Augusto Dos Santos: em transformação não vai ter extinta vai Ben ich.
+01:12:04
+Taylor Augusto Dos Santos: Extinção. OK.
+Luciano da Silva Oliveira: Então,
+Taylor Augusto Dos Santos: A regular é situação especial não vai ter decisão judicial vai ter, mas não não organizei lá.
+Luciano da Silva Oliveira: beleza? Aí, tá bom.
+Rodrigo Thaua Lima Barroso: Resumidamente vai ter os indicadores, o filtro pelo dropdinação.
+Reunião TI - SEPLAG: Isso.
+Taylor Augusto Dos Santos: Isso,
+Reunião TI - SEPLAG: Aqui também páginação e aqui ocupante atual,
+Taylor Augusto Dos Santos: isso. Fui ver se eu te
+Reunião TI - SEPLAG: ingresso vão tá tudo sem ocupante,
+Taylor Augusto Dos Santos: esquecupante
+Reunião TI - SEPLAG: né?
+Taylor Augusto Dos Santos: não vai ter ingresso ocupação também
+Reunião TI - SEPLAG: Ah, tá. Ah, é verdade.
+Taylor Augusto Dos Santos: não.
+Reunião TI - SEPLAG: Beleza. Mais alguma
+Alex Sandro Pereira Garcia: naquela informação ali,
+Reunião TI - SEPLAG: dúvida?
+Alex Sandro Pereira Garcia: mais de um vínculo, eu vou ter alguma informação com base naquele dado ali que tava aparecendo,
+Taylor Augusto Dos Santos: Não, não, isso aí eu vou vou tirar vou tirar porque o não faz sentido gente
+Alex Sandro Pereira Garcia: tá?
+01:13:02
+Alex Sandro Pereira Garcia: M.
+Taylor Augusto Dos Santos: mostrar ela. A gente teria que basicamente pesquisar pelo nome e às vezes pode ser que tá em não pesquisa o nome, daí apareceria os dois já, um vínculo embaixo do outro aqui.
+Reunião TI - SEPLAG: Beleza. Olha, Alex, bem baixinho.
+Alex Sandro Pereira Garcia: Considerei que a gente vai consumir as coisas lá do outro, né? A minha votação anterior,
+Rodrigo Schecheli Bussolo: Eu
+Reunião TI - SEPLAG: Uhum.
+Alex Sandro Pereira Garcia: eu tinha considerado que e eu tinha considerado todas as quatro histórias da vaga lá, por isso que eu tinha colocado oito. Mas eu posso subir, posso subir? Faz sentido subir. Vou subir aqui. Subir para Sim. M.
+Rodrigo Schecheli Bussolo: coloquei três aí porque eu achei que a outra já tinha isso daí. Aí descobri que não tinha, que é só o filtro, né? Essa essa história aí não é. Eu tô viajando aqui.
+Taylor Augusto Dos Santos: Isso aqui ele só vai mostrar as lá galerinha. Não vai fazer mais nada, não vai adicionar ninguém, não vai remover
+01:14:24
+Rodrigo Schecheli Bussolo: Não, não, não. A, a anterior não foi a
+Taylor Augusto Dos Santos: ninguém.
+Rodrigo Schecheli Bussolo: listagem.
+Reunião TI - SEPLAG: Não, a anterior foi a redistribuição.
+Rodrigo Schecheli Bussolo: Não, anterior.
+Taylor Augusto Dos Santos: Isso.
+Rodrigo Schecheli Bussolo: Uai.
+Alex Sandro Pereira Garcia: Não,
+Reunião TI - SEPLAG: Qual anterior?
+Alex Sandro Pereira Garcia: enquanto anterior foi da vaga.
+Taylor Augusto Dos Santos: Ah, não. Tá certo. Tá certo. Tá certo.
+Alex Sandro Pereira Garcia: M.
+Taylor Augusto Dos Santos: Esse é só os filtros.
+Reunião TI - SEPLAG: Ah, desculpa. Foi,
+Taylor Augusto Dos Santos: Esse é só os filtros.
+Reunião TI - SEPLAG: foi só aqui. Aham. Foi.
+Taylor Augusto Dos Santos: Isso.
+Rodrigo Schecheli Bussolo: Aí,
+Reunião TI - SEPLAG: Desculpa.
+Rodrigo Schecheli Bussolo: ó. Aí, essa foi os filtros.
+Taylor Augusto Dos Santos: O filtro posso juntar.
+Rodrigo Schecheli Bussolo: Os dois para mim parece ser juntos.
+Taylor Augusto Dos Santos: Posso juntar também.
+01:14:52
+Rodrigo Schecheli Bussolo: Não sei, né?
+Taylor Augusto Dos Santos: É que teve um, eu separei porque que teve um refinamento que foi falado disso,
+Rodrigo Schecheli Bussolo: S
+Taylor Augusto Dos Santos: de separar de filtros e tal, mas vocês que eu posso S. ou entendi
+Rodrigo Schecheli Bussolo: Ah, vou musi brigar por eles.
+Taylor Augusto Dos Santos: errado.
+Alex Sandro Pereira Garcia: Eu eu acho que pode juntar sim.
+Reunião TI - SEPLAG: Beleza.
+Alex Sandro Pereira Garcia: Por mim faria sentido sim juntar um e dois.
+Reunião TI - SEPLAG: 5 3 C.
+Alex Sandro Pereira Garcia: Yeah.
+Taylor Augusto Dos Santos: Listagem com os filtros, né?
+Reunião TI - SEPLAG: Ah,
+Taylor Augusto Dos Santos: Beleza.
+Reunião TI - SEPLAG: então esses dois aqui vamos juntar.
+Taylor Augusto Dos Santos: Uhum.
+Reunião TI - SEPLAG: Então vou pôr, posso pôr a mesma pontuação? Tudo cinco.
+Alex Sandro Pereira Garcia: Não,
+Rodrigo Schecheli Bussolo: Não.
+Reunião TI - SEPLAG: Esse mantém oito, tá?
+Alex Sandro Pereira Garcia: oito.
+Reunião TI - SEPLAG: E esse aqui cinco, tá?
+Rodrigo Schecheli Bussolo: Isso.
+Reunião TI - SEPLAG: Beleza. Beleza.
+01:15:39
+Reunião TI - SEPLAG: Beleza.
+Alex Sandro Pereira Garcia: É porque um vai usar os recursos do outro.
+Reunião TI - SEPLAG: Visualizar.
+Alex Sandro Pereira Garcia: M.
+Reunião TI - SEPLAG: Ah. Tá tranquilo. Visualizar detalhe da vaga individualizada. Achar esse
+Taylor Augusto Dos Santos: Aí é o informação geralzinha lá.
+Reunião TI - SEPLAG: aqui
+Taylor Augusto Dos Santos: Eu vou tirar essa parte do É,
+Reunião TI - SEPLAG: é só, né? que não vai
+Taylor Augusto Dos Santos: por enquanto não vai ter. Ele vai basicamente puxar uma informação geral dessa vaga, né, o quadro dela e tal.
+Reunião TI - SEPLAG: ter
+Taylor Augusto Dos Santos: Esse identificador de eh integridade identificador. Eu vou tirar isso daí. Era para ter tirado. Foi mal. É, ele tá basicamente explicando como que é formado o nome dessa vaga. Não, não precisa ter. E daí eu lá embaixo teria o histórico dessa vaga, né? Mas ele basicamente vai mostrar todo mundo que já ocupou essa vaga, mas como ninguém vai ocupar ainda, acho que não entra.
+01:16:35
+Rodrigo Schecheli Bussolo: É,
+Taylor Augusto Dos Santos: Seria só esse comecinho ali que ele vai mostrar então quadra,
+Rodrigo Schecheli Bussolo: não.
+Taylor Augusto Dos Santos: a lei ou um resumo mesmo da da vaga em si,
+Rodrigo Schecheli Bussolo: Que que coloca a versão que gerou essa página?
+Taylor Augusto Dos Santos: que a versão tem a ver com o quadro, né? Não com a vaga
+Rodrigo Schecheli Bussolo: É, eu vou saber, tipo assim,
+Taylor Augusto Dos Santos: necessariamente.
+Rodrigo Schecheli Bussolo: essa vaga foi distribuída na versão tal, não sei, né? Mas ficou de boa isso daí. Então vai tirar essa parte de baixo aí e as parte da direita,
+Rodrigo Thaua Lima Barroso: É,
+Rodrigo Schecheli Bussolo: certo?
+Rodrigo Thaua Lima Barroso: vai tirar o histórico e esse integridade,
+Taylor Augusto Dos Santos: Isso é a ocupação não vai ter ainda,
+Rodrigo Thaua Lima Barroso: né?
+Reunião TI - SEPLAG: çõ das.
+Taylor Augusto Dos Santos: né? Só depois do ingresso o histórico também não.
+Rodrigo Thaua Lima Barroso: Beleza.
+Taylor Augusto Dos Santos: E essa integridade aí também não.
+Reunião TI - SEPLAG: Ah, esqueci do histórico.
+Taylor Augusto Dos Santos: É o histórico ele não não existe, né?
+01:17:25
+Luciano da Silva Oliveira: Então só vai ter aquele piculação legal ali,
+Reunião TI - SEPLAG: Uhum.
+Luciano da Silva Oliveira: só aquilo ali,
+Taylor Augusto Dos Santos: É, ele vai mostrar tudo daquela vaga.
+Luciano da Silva Oliveira: basicamente
+Taylor Augusto Dos Santos: Qual carreira, qual órgão, qual aí mais para frente a gente vai incrementar essas outras coisas.
+Luciano da Silva Oliveira: com posções nominais ali para baixo não tem nada, né?
+Taylor Augusto Dos Santos: Não, não, não. Porque para, para ter isso eu preciso ter alguém naquela vaga, né? Por enquanto não vai ter ninguém.
+Luciano da Silva Oliveira: Да. No.
+Reunião TI - SEPLAG: Ai gente, eu não recomecei, desculpa. Podem votar. Desculpa.
+Taylor Augusto Dos Santos: Mas aí
+Reunião TI - SEPLAG: Bom que deu tempo de pensar.
+Aryadne Lelis De Oliveira: Isa, você não quer substituir meu nome aí pelo ED não,
+Reunião TI - SEPLAG: Oi.
+Aryadne Lelis De Oliveira: porque ele que tá com essa essa demanda agora aí nessa
+Reunião TI - SEPLAG: Aonde no?
+Taylor Augusto Dos Santos: Vai
+Aryadne Lelis De Oliveira: votação.
+Reunião TI - SEPLAG: Ah, pode. É só, é só sair.
+01:18:17
+Thássyus Fabiano M de Almeida Carvalho: Ah, no Dan
+Reunião TI - SEPLAG: Ele ele continua sem problemas.
+Aryadne Lelis De Oliveira: Ah, eu entendi.
+Reunião TI - SEPLAG: É,
+Aryadne Lelis De Oliveira: Eu consigo sair.
+Reunião TI - SEPLAG: consegue, consegue.
+Aryadne Lelis De Oliveira: Ah,
+Reunião TI - SEPLAG: Aí ele,
+Aryadne Lelis De Oliveira: então tá bom.
+Reunião TI - SEPLAG: ele continua, não tem problema não. Aí, Ed,
+Aryadne Lelis De Oliveira: Tá.
+Reunião TI - SEPLAG: se quiser voltar. Pera o Ed, gente. Pronto. Ah, brincou. Tá de brincadeira. Galerinha quer falar as notas aí?
+Rodrigo Schecheli Bussolo: Opa. Vamos falar ao mesmo tempo,
+Reunião TI - SEPLAG: Eu não
+Rodrigo Schecheli Bussolo: hein?
+Thássyus Fabiano M de Almeida Carvalho: No três.
+Taylor Augusto Dos Santos: Acabou.
+Thássyus Fabiano M de Almeida Carvalho: No três.
+Reunião TI - SEPLAG: acredito.
+01:18:50
+Taylor Augusto Dos Santos: Escreve no chat.
+Rodrigo Schecheli Bussolo: Três dois.
+Taylor Augusto Dos Santos: Escreve no
+Thássyus Fabiano M de Almeida Carvalho: É, escreve no chat ao mesmo tempo,
+Taylor Augusto Dos Santos: chat.
+Reunião TI - SEPLAG: Eh,
+Rodrigo Schecheli Bussolo: Caraca,
+Rodrigo Thaua Lima Barroso: Dois.
+Thássyus Fabiano M de Almeida Carvalho: ó.
+Rodrigo Schecheli Bussolo: vai dar um sisteminha aí. Pera aí. Um vai codar um é
+Reunião TI - SEPLAG: pode escrever no chat aí, deixa eu ver. 3
+Rodrigo Schecheli Bussolo: três três.
+Reunião TI - SEPLAG: 2
+Rodrigo Schecheli Bussolo: Isso.
+André Parada de Oliveira Machado: O cartão aí.
+Reunião TI - SEPLAG: Oi.
+André Parada de Oliveira Machado: Colocarão ali, ó. 15 dias trial.
+Reunião TI - SEPLAG: Ah, colocar o cartão. Beleza. Tá faltando alguém?
+Luciano da Silva Oliveira: do bolso.
+Reunião TI - SEPLAG: Bom, então ficou a nota três, né?
+Taylor Augusto Dos Santos: É que
+Alex Sandro Pereira Garcia: Acho que se criar um novo quadro ali,
+01:19:40
+Reunião TI - SEPLAG: Show.
+Alex Sandro Pereira Garcia: eles deixam.
+Reunião TI - SEPLAG: Será? Deixa eu ver. Pera aí, deixa eu voltar aqui. Calma.
+Alex Sandro Pereira Garcia: Vai lá no start mesmo.
+Reunião TI - SEPLAG: Start. Ah, será CR Gamer? Ah, foi. Vou mandar o link aqui. Aí sim, hein, cara. É bom, cara. É bom. Beleza.
+Thássyus Fabiano M de Almeida Carvalho: Der hacker, man. Yeah.
+Reunião TI - SEPLAG: Então, esse foi nota três. Alguém quer justificar sua resposta? Senão, seguimos.
+Taylor Augusto Dos Santos: Isa, acho que essa daí eu vou tirar porque essa daí ela tá falando das situações que não vai ter agora.
+Reunião TI - SEPLAG: Ah, essa quatro. Tá bom.
+01:20:23
+Taylor Augusto Dos Santos: Uhum.
+Reunião TI - SEPLAG: Tá.
+Taylor Augusto Dos Santos: Ela vai depender do ingresso.
+Reunião TI - SEPLAG: Então tem essa também.
+Taylor Augusto Dos Santos: Como a gente não vai mexer com nada ainda,
+Reunião TI - SEPLAG: Vamos ver.
+Murilo de Alencar Silva: Yeah.
+Taylor Augusto Dos Santos: não vai precisar
+Reunião TI - SEPLAG: Vamos ver. Tá beleza. Vamos de dashboard
+Taylor Augusto Dos Santos: dela.
+Reunião TI - SEPLAG: então.
+Alex Sandro Pereira Garcia: Ard chegou a ser demonstrado de manhã, não, né?
+Taylor Augusto Dos Santos: Não, acho que eu esqueci. tá compartilhando,
+Reunião TI - SEPLAG: Fala um pouquinho?
+Taylor Augusto Dos Santos: tá? No dash, basicamente, a gente começa com os filtros ali em cima. Se eu não me engano, eu separei também o filtro de listagem. Dá para juntar lá. Então, ele vai puxar órgão, tipo, carreira, cargo, situação legal. É aí. E esses indicadores exibidos eu fiz mais para ele, se ele quiser customizar, ele ativa e desativa o quadrozinho lá da tela dele lá e tal.
+01:21:14
+Taylor Augusto Dos Santos: Seria algo mais local, salvo no não teriam, a gente fez algo parecido, ia fazer algo parecido lá na quando criava o relatório. Eu acho que criar a pessoa salvava o filtro dela, mas eu acho que não precisa salvar, fica o que ele configurou a fica salva o local mesmo, só. Eh, e daí ele vai mostrando ali os cargos que tem, quais os quadros vigente, as vagas ocupadas ou não, como que tá o quadro, que que tá ocupado, que que tá disponível, que que tá em ocupação, seria os três estados que eles precisam ver lá e tal. Dos alertas e quadros que estão com vagas livres, tá pendente de desce um pouquinho tá dependente de
+Reunião TI - SEPLAG: Угуm. Да.
+Taylor Augusto Dos Santos: distribuição, se teve algum quadro encerrado. Aí são basicamente atalhos que vão levar para as telas correspondentes lá. E daí ali embaixo ele mostra meio que as vagas que tão como se fosse no alerta, ou seja, os quadros de vagas que não tem que acabou a vaga, digamos assim, tá? Seria alguma coisa para eles ficarem de olho para, por exemplo, eh, fazer uma uma ampliação legal, alguma coisa assim.
+01:22:25
+Taylor Augusto Dos Santos: Ele tinha alguns outros status ali, mas não fazia sentido eu remover. Então, por exemplo, ali o cargo de coronel tá com 100% de ocupado, então não tem vaga livre, por isso que ele tá em primeiro basicamente. Alex,
+Alex Sandro Pereira Garcia: Opa. É basicamente um dashboard demonstrativo, né? Sem funções gerenciais,
+Taylor Augusto Dos Santos: é,
+Alex Sandro Pereira Garcia: certo?
+Taylor Augusto Dos Santos: ele só vai puxar a informação que tem lá e tem atalhozinhos aí, basicamente.
+Alex Sandro Pereira Garcia: Ó, será que não seria interessante então a gente usar o BI do pessoal de banco? Porque lá a pessoa consegue fazer todas as consultas e ela também consegue já exportar um relatório no formato que ela quiser, seja seja esse formato em PDF, seja esse formato em CSV, Excel. E a gente tem a Aryadne, né, que ela cuida dessa parte do BI também que seria viável.
+Taylor Augusto Dos Santos: Então, É o que a é
+Alex Sandro Pereira Garcia: Aí dá para daria para puxar um frame para exibir aqui nessa tela aí exibir o
+Taylor Augusto Dos Santos: que Ah,
+Alex Sandro Pereira Garcia: frame do BI ao invés de desenvolver toda essa tela
+Taylor Augusto Dos Santos: tá. Então não seria um outro sistema que ele teria que sair e logar
+01:23:22
+Alex Sandro Pereira Garcia: aqui.
+Taylor Augusto Dos Santos: lá.
+Alex Sandro Pereira Garcia: Isso não seria puxaria um frame para cá e lá iria poder contemplar todas essas coisas e até mais.
+Taylor Augusto Dos Santos: Isso aí só.
+Alex Sandro Pereira Garcia: Que que você acharia?
+Taylor Augusto Dos Santos: Alô, vocês estão me ouvindo?
+Adriane Fernanda Echeverria Fernandez: Agora sim você tava mudo pra gente. Gente,
+Taylor Augusto Dos Santos: Ah, tá. Porque o tá voltando. Então, ele basicamente seria nessa tela aqui ainda. Ele não precisaria sair desse sistema e ir para outro, certo? ainda seria mostrado nessa nessa tela aqui.
+Alex Sandro Pereira Garcia: Isso, isso ia ser parte do sistema.
+Taylor Augusto Dos Santos: E daí o que eles estavam falando é que, por exemplo, as setoriais vão ver essa tela aqui, então só essa tela não teria acesso às outras. Então essa parte também tem como fazer. A pessoa só vai ter acesso a essa tela.
+Alex Sandro Pereira Garcia: Sim, tem.
+Taylor Augusto Dos Santos: Então dá para ver como que fica. Testar certinho por mim.
+Alex Sandro Pereira Garcia: Que que você diz, Marido?
+Taylor Augusto Dos Santos: Só teria que ter um protótipozinho, alguma coisa para mostrar pro cliente lá da como que ficaria e tal.
+01:24:31
+Taylor Augusto Dos Santos: O
+Aryadne Lelis De Oliveira: É, ou eh até onde sei, as aplicações que fazem uso, né, da dessa essa da PI do com o BI, né, vamos dizer assim, ele é pelo clique, né? Mas eu, como a gente agora aderiu o Power BI, eu tenho que ver como que vai funcionar isso, se a gente poderia fazer pelo clique ou pelo power, mas daria essa questão visual aí tudo a gente consegue fazer pela ferramenta fala André.
+André Parada de Oliveira Machado: Outra opção acho que seria colocar uma vi aí, né?
+Aryadne Lelis De Oliveira: Não, mas eu acho que o a sugestão do Alex é mais por questão visual, por questão de exportação, entendeu?
+André Parada de Oliveira Machado: Uhum.
+Aryadne Lelis De Oliveira: Do do do que eles querem arquivos de CSV, essas coisas, entendeu? Viu? A gente pode fazer isso aí independente. É a questão de visual, eu acho,
+André Parada de Oliveira Machado: Угу.
+Aryadne Lelis De Oliveira: mais que o Alex quis sugerir ao uso da ferramenta, não é, Alex?
+Reunião TI - SEPLAG: Beleza. Querem ir voltando aí?
+Aryadne Lelis De Oliveira: Aí eu vou falar só mais uma coisinha,
+01:26:00
+Reunião TI - SEPLAG: Não, pode falar, pode
+Aryadne Lelis De Oliveira: perdão. Eh,
+Reunião TI - SEPLAG: falar.
+Aryadne Lelis De Oliveira: essa parte de dashboard, ela ainda não foi desenvolvida, tá? eh essa questão de BI aí,
+Reunião TI - SEPLAG: Uhum.
+Aryadne Lelis De Oliveira: aí já entra um outra um outro quesito. Se for eh vamos dizer assim, se ele for optado em fazer o uso da ferramenta de BI, aí já eh vamos dizer assim, entra mais um tempo para desenvolvimento disso,
+Reunião TI - SEPLAG: Perfeito. Robertinho tá aí.
+Aryadne Lelis De Oliveira: entendeu?
+Reunião TI - SEPLAG: Quem que bate martelo nisso? É você, Robertinho.
+Roberto de Souza Xavier Junior: usar o e não usar se tiver como
+Reunião TI - SEPLAG: É a
+Aryadne Lelis De Oliveira: Deixa eu
+Roberto de Souza Xavier Junior: usar é seria interessante,
+Aryadne Lelis De Oliveira: ver.
+Roberto de Souza Xavier Junior: mas aí só que não,
+Reunião TI - SEPLAG: ferramenta.
+Taylor Augusto Dos Santos: para
+Roberto de Souza Xavier Junior: você falou que o do Power BI não tá não tá não
+01:26:45
+Aryadne Lelis De Oliveira: Então eu teri que confirmar com a Silvene se quer falar, se você tá sabendo de alguma coisa. Vê se você tá sabendo. Eu não tô. Pode falar.
+Anselmo Gonçalves Cardoso: Pessoal, eu não aconselho vincular ferramenta externa, que é contrato externo ao sistema, tá? que o contrato pode vencer você ficar sem poder utilizar. É um contrato que tem tempo, né? Assim como aquilo que vem vencer o Powerb também pode vencer o contrato e vocês estudar outra ferramenta
+Roberto de Souza Xavier Junior: Oke.
+Anselmo Gonçalves Cardoso: indisponível.
+Aryadne Lelis De Oliveira: Mas o clique ele não é vitalício nosso, ele tem tempo também.
+Anselmo Gonçalves Cardoso: Suporte, tá entendendo? Inclusive a gente já teve duas versões de clique aqui, mas é um risco, né?
+Taylor Augusto Dos Santos: É, aí aí complica aí eu prefiro 10.
+Anselmo Gonçalves Cardoso: sistema à parte que é vinculado a uma ferramenta que pode ser descontinuada, depende de contrato de terceiro,
+Taylor Augusto Dos Santos: Voltou
+Anselmo Gonçalves Cardoso: mas estou fazendo um sistema proprietário,
+Aryadne Lelis De Oliveira: É, tem esse detalhe.
+Anselmo Gonçalves Cardoso: eu não faria isso. a decisão de alto
+01:27:47
+Aryadne Lelis De Oliveira: Uhum.
+Anselmo Gonçalves Cardoso: risco.
+Aryadne Lelis De Oliveira: Bom, aí já fica com o desenvolvimento, então.
+Roberto de Souza Xavier Junior: Então esse dashboard tem que entrar nessa nessa expente
+Anselmo Gonçalves Cardoso: Se fosse um painel fora do sistema,
+Roberto de Souza Xavier Junior: agora.
+Anselmo Gonçalves Cardoso: super apoio, mas dentro do sistema não.
+Roberto de Souza Xavier Junior: Esse esse dasbard tem que ser para esse sprint porque a gente podia analisar isso.
+Taylor Augusto Dos Santos: Não.
+Adriane Fernanda Echeverria Fernandez: Não necessariamente, Robertinho. Se vocês avaliarem que não entra, a gente tira.
+Taylor Augusto Dos Santos: Lógico.
+Roberto de Souza Xavier Junior: É porque eu vejo na minha visão assim, independente se for fazer ockboard no desenvolvimento ou no BI, tinha que fazer. Tá ruim. Opa. Tá ruim. Tá ruim.
+Thássyus Fabiano M de Almeida Carvalho: A gente,
+Roberto de Souza Xavier Junior: Aí melhorou.
+Thássyus Fabiano M de Almeida Carvalho: a gente precisa ter os dados primeiros,
+Adriane Fernanda Echeverria Fernandez: Melhorou um pouquinho.
+Thássyus Fabiano M de Almeida Carvalho: né,
+Adriane Fernanda Echeverria Fernandez: Yeah.
+Thássyus Fabiano M de Almeida Carvalho: Roberto.
+01:28:36
+Roberto de Souza Xavier Junior: Ah, tá. Então, eh, independente vai fazer agora no dash, no lá no BI ou fazer na aplicação, seria interessante ter os dados, entendeu? Porque às vezes esses status mudam e aí fica mais complicado. E quem for fazer o dashboard vai ter que ficar esperando até no final o pessoal da outra da atividade
+Reunião TI - SEPLAG: Sim, sim.
+Roberto de Souza Xavier Junior: de criar, concluir a atividade para ele poder fazer a dele.
+Reunião TI - SEPLAG: Verdade.
+Roberto de Souza Xavier Junior: E aí você pode acabar atrasando sprint. Então, talvez deixar o dashboard sempre na na sprint posterior ao ao
+Reunião TI - SEPLAG: Paraa próxima, né?
+Roberto de Souza Xavier Junior: crude.
+Taylor Augusto Dos Santos: Pode ser.
+Reunião TI - SEPLAG: Pode ser,
+Roberto de Souza Xavier Junior: Aí a gente já vê com aí a gente vai pensando já aqui se como a gente fazer isso aí.
+Reunião TI - SEPLAG: pode ser. Beleza.
+Roberto de Souza Xavier Junior: Amen.
+Reunião TI - SEPLAG: Então, dash, fica pra próxima. E aí, para finalizar, então, a gente tem a do tipo de vínculo. Aqui, na verdade, foi só para ajustar, tá?
+01:29:25
+Reunião TI - SEPLAG: Foi, é um paliativo, porque a gente vai voltar e vai mexer, né, nessa tela mais a fundo. Eh, o que vai ser desenvolvido só o que tá em amarelo, tá gente? Mas aqui é só pra gente conseguir amarrar o tipo do vínculo ao regime jurídico. Então, por isso que não tem nem protótipo,
+Taylor Augusto Dos Santos: É
+Reunião TI - SEPLAG: é só essa a tela que a gente tem hoje mais o regime jurídico, tá? Então, a gente vai adicionar um campo ali, fazer um tratamento no nome dos campos também, sigla, nome e o regime jurídico, tirar a parte de órgão, que eu acho que tem lá, enfim. E essas regrinhas aqui de negócio só para salvar, para ele conseguir inserir mais de um regime jurídico, entendeu? regras básicas ali no tipo de vínculo. Alguma dúvida? E aí ela envolve diretamente, né, aquela parte do Taylor que vocês perguntaram, né, sobre a amarração entre o tipo e o regime. Ela vai ser feita aqui, né, na tela do tipo de vínculo.
+01:30:21
+Reunião TI - SEPLAG: Então já vamos fazer esse ajuste para na hora de chegar a criação do quadro já vai vir meio que amarrado. Alguma dúvida? Senão podemos lotar. Essa daí também tá modelada, né? Era que a Ari tava mexendo junto com o oceano,
+Aryadne Lelis De Oliveira: Sim,
+Reunião TI - SEPLAG: né?
+Aryadne Lelis De Oliveira: sim.
+Reunião TI - SEPLAG: Show. Podem botar aí, galerinha. Nossa, agora que eu entendi que era uma cobrinha. Ah, muito bom.
+Taylor Augusto Dos Santos: voltou. Пока.
+Reunião TI - SEPLAG: Nossa. Bora lá, Alex.
+Alex Sandro Pereira Garcia: Errei o número.
+Reunião TI - SEPLAG: Ah, que susto. Beleza, então, Gabriel. Ah, Tas. Então, tá todo mundo no três, né? Nossa, legal. Boa, Tib.
+01:31:36
+Reunião TI - SEPLAG: Boa. Seguinte, tarefinha para casa. Agora o Taylor vai fazer essa correção nessas, tá? Os Redmind já estão abertos, só que a gente vai ter que tratar alguns, mas o link vai se manter, tá? Mas eu vou passando certinho junto com Taylor. E é isso aí. Eu vou pedir para vocês que me passem o nome dos devs que vão atuar em cada, enfim, como vocês vão fazer divisão, enfim, eu coloco mais de um aqui, se for o caso, tá? E é isso, galera. Iniciamos a sprint. Bom trabalho a todos. Essa sprint finaliza no dia 31, tá? Até o final do mês aí. E é isso. Qual as nossas deles vão acontecer 9:30, tá? Eu acho que vocês já receberam um convite. Qualquer dúvida, qualquer impedimento, nos informe.
+01:32:25
+Reunião TI - SEPLAG: Belê? E aquilo lá é um combinado. Ah, isa, não vou conseguir entregar tudo. Beleza, tudo que você não vai conseguir entregar, o que que você consegue? Fechou. E aí entra pro final da Sprint
+Rodrigo Schecheli Bussolo: É, foi mal, eu perdi quando que é último dia?
+Reunião TI - SEPLAG: 31,
+Adriane Fernanda Echeverria Fernandez: Yeah.
+Reunião TI - SEPLAG: 15 dias corridos.
+Rodrigo Schecheli Bussolo: A gente a gente eh como como a equipe de teste
+Thássyus Fabiano M de Almeida Carvalho: Da.
+Rodrigo Schecheli Bussolo: do que não tá junto a essa sprint, a gente só sobe no final,
+Reunião TI - SEPLAG: Só sobe no final,
+Adriane Fernanda Echeverria Fernandez: Isso. S.
+Rodrigo Schecheli Bussolo: tá?
+Adriane Fernanda Echeverria Fernandez: Yeah.
+Rodrigo Schecheli Bussolo: Tudo bem?
+Reunião TI - SEPLAG: tá?
+Rodrigo Schecheli Bussolo: M. Yeah.
+Reunião TI - SEPLAG: Belê. Fechou. Gente, essas pendências da análise a gente vai resolvendo.
+André Parada de Oliveira Machado: Valeu,
+Reunião TI - SEPLAG: E vamos à visão.
+André Parada de Oliveira Machado: galera. Bom trabalho a todos.
+Reunião TI - SEPLAG: Valeu, até mais. Ciao.
+Adriane Fernanda Echeverria Fernandez: Valeu,
+Reunião TI - SEPLAG: Ciao.
+A transcrição foi encerrada após 01:47:27
+Esta transcrição editável foi gerada por computador e pode conter erros. As pessoas também podem alterar o texto depois que ele for criado.

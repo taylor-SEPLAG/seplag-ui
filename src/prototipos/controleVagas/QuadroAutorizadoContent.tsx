@@ -7,6 +7,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import type { DataTableExpandedRows } from "primereact/datatable";
+import { Paginator, type PaginatorPageChangeEvent } from "primereact/paginator";
 import {
   useLocation,
   useNavigate,
@@ -15,7 +16,11 @@ import {
 } from "react-router-dom";
 import "./quadroAutorizado.css";
 
-import type { QuadroAutorizadoRow, SituacaoQuadro } from "./types";
+import type {
+  EvolucaoQuadroLegal,
+  QuadroAutorizadoRow,
+  SituacaoQuadro,
+} from "./types";
 import {
   controleVagasStore,
   useControleVagasStore,
@@ -28,7 +33,6 @@ import {
   carreirasBaseTemporaria,
   cargosBaseTemporaria,
   perfisProfissionaisBaseTemporaria,
-  orgaosBaseTemporaria,
 } from "./baseTemporaria";
 import {
   BotaoAdicionarSeplag,
@@ -48,9 +52,7 @@ import {
 import {
   DateFieldSeplag,
   DropdownFieldSeplag,
-  MultiSelectFieldSeplag,
   NumberFieldSeplag,
-  RadioButtonFieldSeplag,
   TextFieldSeplag,
 } from "../../componentes/Fields";
 import type { ResultsSeplag } from "../../interfaces/Results";
@@ -131,11 +133,11 @@ const orgaosDoQuadro = (item: QuadroAutorizadoRow) =>
 
 const resumoOrgaos = (item: QuadroAutorizadoRow) => {
   if (item.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR")
-    return "Pendente de ato de distribuição";
+    return "Pendente de distribuição";
   const orgaos = orgaosDoQuadro(item).filter(
     (orgao) => orgao !== "ESTADO DE MATO GROSSO",
   );
-  if (!orgaos.length) return "Pendente de ato de distribuição";
+  if (!orgaos.length) return "Pendente de distribuição";
   if (orgaos.length === 1) return orgaos[0];
   return `${orgaos.length} órgãos definidos pela lei`;
 };
@@ -202,6 +204,11 @@ type QuadroFiltrosForm = {
 
 type QuadroListaRow = QuadroAutorizadoRow & {
   orgaoResumo: string;
+  distribuicaoOrgaos: Array<{
+    orgao: string;
+    quantidade: number;
+    pendente: boolean;
+  }>;
   disponiveisCalculadas: number;
   movimentaveisCalculadas: number;
   pendentesAto: number;
@@ -238,6 +245,17 @@ const statusVigenciaDoQuadro = (item: QuadroAutorizadoRow) => {
     ? "ENCERRADO"
     : status;
 };
+const resumoDistribuicaoOrgaos = (
+  distribuicao: QuadroListaRow["distribuicaoOrgaos"],
+) => {
+  const orgaosDistribuidos = distribuicao.filter((item) => !item.pendente);
+  const pendentes = distribuicao.find((item) => item.pendente)?.quantidade ?? 0;
+  if (!orgaosDistribuidos.length) return "Pendente de distribuição";
+  const sufixoPendente = pendentes > 0 ? " + Pendente" : "";
+  if (orgaosDistribuidos.length === 1)
+    return `${orgaosDistribuidos[0].orgao}${sufixoPendente}`;
+  return `Órgãos${sufixoPendente}`;
+};
 const statusVigenciaVisualDoQuadro = (item: QuadroAutorizadoRow) =>
   statusVigenciaMeta[statusVigenciaDoQuadro(item)];
 type VersaoAnteriorQuadro = {
@@ -247,13 +265,35 @@ type VersaoAnteriorQuadro = {
   autorizadas: number;
   vigencia: string;
   encerradaEm: string;
-  evolucao:
-    | "Ampliação legal"
-    | "Redução legal"
-    | "Transformação"
-    | "Extinção progressiva";
+  evolucao: EvolucaoQuadroLegal;
   ato: string;
 };
+
+const evolucaoPadraoPorTipo = (
+  item: QuadroAutorizadoRow,
+): EvolucaoQuadroLegal => {
+  if (item.evolucaoLegal) return item.evolucaoLegal;
+  if (item.extincaoProgressivaEmAndamento || item.situacaoVigencia === "EXTINTO") {
+    return "Extinção progressiva";
+  }
+  return item.autorizadas >= 0 ? "Ampliação legal" : "Redução legal";
+};
+
+const formatarVigenciaVersao = (item: QuadroAutorizadoRow) =>
+  `${item.inicioVigencia || "-"} a ${item.fimVigencia || "vigente"}`;
+
+const versaoAnteriorDoQuadro = (
+  item: QuadroAutorizadoRow,
+): VersaoAnteriorQuadro => ({
+  versao: item.versao,
+  cargo: item.cargo,
+  orgao: item.orgao,
+  autorizadas: item.autorizadas,
+  vigencia: formatarVigenciaVersao(item),
+  encerradaEm: item.dataEncerramento || item.atualizadoEm,
+  evolucao: evolucaoPadraoPorTipo(item),
+  ato: item.ato,
+});
 
 const versoesAnterioresPorQuadro: Record<string, VersaoAnteriorQuadro[]> = {
   "QA-0001": [
@@ -298,7 +338,7 @@ const versoesAnterioresPorQuadro: Record<string, VersaoAnteriorQuadro[]> = {
       autorizadas: 820,
       vigencia: "01/01/2024 a 31/12/2025",
       encerradaEm: "31/12/2025",
-      evolucao: "Transformação",
+      evolucao: "Transformação origem",
       ato: "Lei Complementar nº 740/2024",
     },
     {
@@ -383,8 +423,13 @@ function QuadroAutorizadoLista() {
     quadro: QuadroListaRow;
     versao: VersaoAnteriorQuadro;
   } | null>(null);
+  const [distribuicaoVisualizada, setDistribuicaoVisualizada] =
+    useState<QuadroListaRow | null>(null);
   const [linhasExpandidas, setLinhasExpandidas] =
     useState<DataTableExpandedRows>({});
+  const [paginasHistorico, setPaginasHistorico] = useState<
+    Record<string, { first: number; rows: number }>
+  >({});
 
   const quadrosOperacionais = useMemo(() => {
     const idsComVagas = new Set(vagas.map((vaga) => vaga.quadroAutorizadoId));
@@ -399,18 +444,58 @@ function QuadroAutorizadoLista() {
       )[0];
     });
   }, [quadros, vagas]);
+  const historicoVersoesPorQuadro = useMemo(() => {
+    const porCodigo = new Map<string, QuadroAutorizadoRow[]>();
+    quadros.forEach((quadro) => {
+      porCodigo.set(quadro.codigo, [...(porCodigo.get(quadro.codigo) ?? []), quadro]);
+    });
+    const historico = new Map<string, VersaoAnteriorQuadro[]>();
+    porCodigo.forEach((versoes, codigo) => {
+      const ordenadas = [...versoes].sort(
+        (a, b) => b.versao - a.versao || b.id - a.id,
+      );
+      if (ordenadas.length <= 1) return;
+      ordenadas.forEach((quadroAtual) => {
+        historico.set(
+          String(quadroAtual.id),
+          ordenadas
+            .filter((item) => item.id !== quadroAtual.id)
+            .map(versaoAnteriorDoQuadro),
+        );
+      });
+      historico.set(
+        codigo,
+        ordenadas.slice(1).map(versaoAnteriorDoQuadro),
+      );
+    });
+    return historico;
+  }, [quadros]);
   const filtrados = useMemo(() => {
     const termo = filtros.busca.trim().toLocaleLowerCase("pt-BR");
     return quadrosOperacionais
-      .filter(
-        (item) =>
+      .filter((item) => {
+        const vagasDoQuadro = vagas.filter(
+          (vaga) => vaga.quadroAutorizadoId === item.id,
+        );
+        const orgaosDistribuidos = new Set(
+          vagasDoQuadro
+            .map((vaga) =>
+              calcularPosicaoVaga(vaga, movimentos, dataReferenciaDistribuicao)
+                .orgaoDistribuicao,
+            )
+            .filter(Boolean) as string[],
+        );
+        return (
           (!termo || item.codigo.toLocaleLowerCase("pt-BR").includes(termo)) &&
           (!filtros.cargo || item.cargo === filtros.cargo) &&
-          (!filtros.orgao || orgaosDoQuadro(item).includes(filtros.orgao)) &&
+          (!filtros.orgao ||
+            orgaosDoQuadro(item).includes(filtros.orgao) ||
+            orgaosDistribuidos.has(filtros.orgao)) &&
           (!filtros.tipo || item.tipoQuadro === filtros.tipo) &&
           (!filtros.situacao ||
-            statusVigenciaDoQuadro(item) === filtros.situacao),
-      )
+            statusVigenciaDoQuadro(item) === filtros.situacao)
+        );
+      })
       .sort((a, b) => b.id - a.id)
       .map((item) => {
         const vagasDoQuadro = vagas.filter(
@@ -435,17 +520,41 @@ function QuadroAutorizadoLista() {
                 !idsVagasComprometidas.has(vaga.id),
             ).length
           : 0;
-        const pendentesAto = vagasDoQuadro.filter((vaga) => {
+        const distribuicaoPorOrgao = new Map<string, number>();
+        let pendentesAto = 0;
+        vagasDoQuadro.forEach((vaga) => {
           const posicao = calcularPosicaoVaga(vaga, movimentos, dataReferenciaDistribuicao);
-          return (
-            vaga.estado === "DISPONIVEL" &&
-            vaga.situacaoLegal === "REGULAR" &&
-            posicao.situacaoDistribuicao === "PENDENTE_ATO"
-          );
-        }).length;
+          if (posicao.orgaoDistribuicao) {
+            distribuicaoPorOrgao.set(
+              posicao.orgaoDistribuicao,
+              (distribuicaoPorOrgao.get(posicao.orgaoDistribuicao) ?? 0) + 1,
+            );
+          } else if (vaga.situacaoLegal !== "EXTINTA") {
+            pendentesAto += 1;
+          }
+        });
+        const distribuicaoOrgaos = [
+          ...[...distribuicaoPorOrgao.entries()]
+            .sort(([a], [b]) => a.localeCompare(b, "pt-BR"))
+            .map(([orgao, quantidade]) => ({
+              orgao,
+              quantidade,
+              pendente: false,
+            })),
+          ...(pendentesAto > 0
+            ? [
+                {
+                  orgao: "Pendente de distribuição",
+                  quantidade: pendentesAto,
+                  pendente: true,
+                },
+              ]
+            : []),
+        ];
         return {
           ...item,
-          orgaoResumo: resumoOrgaos(item),
+          orgaoResumo: resumoDistribuicaoOrgaos(distribuicaoOrgaos),
+          distribuicaoOrgaos,
           comprometidas: comprometidasCalculadas,
           movimentaveisCalculadas,
           pendentesAto,
@@ -561,10 +670,13 @@ function QuadroAutorizadoLista() {
           item,
           quadroColumnSpecifications.Órgão,
           <div className="prototype-quadro-table-main">
-            <span>{item.orgaoResumo}</span>
-            {orgaosDoQuadro(item).length > 1 && (
-              <small>{orgaosDoQuadro(item).join(" • ")}</small>
-            )}
+            <button
+              type="button"
+              className="prototype-quadro-orgao-summary-button"
+              onClick={() => setDistribuicaoVisualizada(item)}
+            >
+              {item.orgaoResumo}
+            </button>
           </div>,
         ),
     },
@@ -683,72 +795,108 @@ function QuadroAutorizadoLista() {
     },
   ];
   const renderHistoricoVersoes = (item: QuadroListaRow) => {
-    const versoes = versoesAnterioresPorQuadro[item.codigo] ?? [];
+    const versoes =
+      historicoVersoesPorQuadro.get(String(item.id)) ??
+      historicoVersoesPorQuadro.get(item.codigo) ??
+      versoesAnterioresPorQuadro[item.codigo] ??
+      [];
+    const chavePaginacao = String(item.id);
+    const paginacao = paginasHistorico[chavePaginacao] ?? {
+      first: 0,
+      rows: 5,
+    };
+    const firstHistorico =
+      paginacao.first >= versoes.length
+        ? Math.max(0, Math.floor(Math.max(versoes.length - 1, 0) / paginacao.rows) * paginacao.rows)
+        : paginacao.first;
+    const versoesPaginadas = versoes.slice(
+      firstHistorico,
+      firstHistorico + paginacao.rows,
+    );
+    const onHistoricoPageChange = (event: PaginatorPageChangeEvent) => {
+      setPaginasHistorico((atuais) => ({
+        ...atuais,
+        [chavePaginacao]: { first: event.first, rows: event.rows },
+      }));
+    };
+
     return (
       <SpecArea metadata={quadroColumnSpecifications["Histórico de versões"]}>
         <section className="prototype-quadro-version-history">
           {versoes.length ? (
-            <div className="prototype-quadro-version-table-wrap">
-              <table className="prototype-quadro-version-table">
-                <thead>
-                  <tr>
-                    <th>Versão</th>
-                    <th>Cargo/Função</th>
-                    <th>Órgão</th>
-                    <th>Vigência</th>
-                    <th>Autorizadas</th>
-                    <th>Evolução</th>
-                    <th>Situação</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {versoes.map((versao) => (
-                    <tr key={`${item.codigo}-${versao.versao}`}>
-                      <td>
-                        <strong>Versão {versao.versao}</strong>
-                      </td>
-                      <td>{versao.cargo}</td>
-                      <td>{versao.orgao}</td>
-                      <td>
-                        <span>{versao.vigencia}</span>
-                        <small>Encerrada em {versao.encerradaEm}</small>
-                      </td>
-                      <td>{versao.autorizadas.toLocaleString("pt-BR")}</td>
-                      <td>
-                        <BadgeSeplag
-                          label={versao.evolucao}
-                          color="#075f99"
-                          bg="#e8f5ff"
-                          size="xs"
-                          fontWeight
-                        />
-                      </td>
-                      <td>
-                        <BadgeSeplag
-                          label="Encerrada"
-                          color="#66788a"
-                          bg="#edf1f4"
-                          size="xs"
-                          fontWeight
-                        />
-                      </td>
-                      <td>
-                        <BotaoIconSeplag
-                          type="button"
-                          tooltip={`Visualizar versão ${versao.versao}`}
-                          aria-label={`Visualizar versão ${versao.versao}`}
-                          icon="pi pi-eye"
-                          onClick={() =>
-                            setVersaoVisualizada({ quadro: item, versao })
-                          }
-                        />
-                      </td>
+            <>
+              <div className="prototype-quadro-version-table-wrap">
+                <table className="prototype-quadro-version-table">
+                  <thead>
+                    <tr>
+                      <th>Versão</th>
+                      <th>Cargo/Função</th>
+                      <th>Órgão</th>
+                      <th>Vigência</th>
+                      <th>Autorizadas</th>
+                      <th>Evolução</th>
+                      <th>Situação</th>
+                      <th>Ações</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {versoesPaginadas.map((versao) => (
+                      <tr key={`${item.codigo}-${versao.versao}`}>
+                        <td>
+                          <strong>Versão {versao.versao}</strong>
+                        </td>
+                        <td>{versao.cargo}</td>
+                        <td>{versao.orgao}</td>
+                        <td>
+                          <span>{versao.vigencia}</span>
+                          <small>Encerrada em {versao.encerradaEm}</small>
+                        </td>
+                        <td>{versao.autorizadas.toLocaleString("pt-BR")}</td>
+                        <td>
+                          <BadgeSeplag
+                            label={versao.evolucao}
+                            color="#075f99"
+                            bg="#e8f5ff"
+                            size="xs"
+                            fontWeight
+                          />
+                        </td>
+                        <td>
+                          <BadgeSeplag
+                            label="Encerrada"
+                            color="#66788a"
+                            bg="#edf1f4"
+                            size="xs"
+                            fontWeight
+                          />
+                        </td>
+                        <td>
+                          <BotaoIconSeplag
+                            type="button"
+                            tooltip={`Visualizar versão ${versao.versao}`}
+                            aria-label={`Visualizar versão ${versao.versao}`}
+                            icon="pi pi-eye"
+                            onClick={() =>
+                              setVersaoVisualizada({ quadro: item, versao })
+                            }
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <footer className="prototype-quadro-version-pagination">
+                <Paginator
+                  first={firstHistorico}
+                  rows={paginacao.rows}
+                  totalRecords={versoes.length}
+                  rowsPerPageOptions={[5, 10, 20]}
+                  onPageChange={onHistoricoPageChange}
+                  template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                />
+              </footer>
+            </>
           ) : (
             <p className="prototype-quadro-version-empty">
               Este quadro está na primeira versão e ainda não possui versões
@@ -770,21 +918,18 @@ function QuadroAutorizadoLista() {
           onClick={() => setVisualizado(item)}
         />
       </SpecArea>
-      <SpecArea metadata={quadroActionSpecifications.Editar}>
-        <BotaoIconSeplag
-          type="button"
-          tooltip={
-            quadroPermiteEdicaoDireta(item)
-              ? "Editar antes da vigência"
-              : "Edição indisponível após a vigência"
-          }
-          aria-label="Editar"
-          icon="pi pi-pencil"
-          severity="warning"
-          disabled={!quadroPermiteEdicaoDireta(item)}
-          onClick={() => navigate(`${BASE_PATH}/${item.id}/editar`)}
-        />
-      </SpecArea>
+      {quadroPermiteEdicaoDireta(item) && (
+        <SpecArea metadata={quadroActionSpecifications.Editar}>
+          <BotaoIconSeplag
+            type="button"
+            tooltip="Editar antes da vigência"
+            aria-label="Editar"
+            icon="pi pi-pencil"
+            severity="warning"
+            onClick={() => navigate(`${BASE_PATH}/${item.id}/editar`)}
+          />
+        </SpecArea>
+      )}
       {quadroPermiteEdicaoDireta(item) && (
         <SpecArea metadata={quadroActionSpecifications.Excluir}>
           <BotaoIconSeplag
@@ -794,21 +939,6 @@ function QuadroAutorizadoLista() {
             icon="pi pi-trash"
             severity="danger"
             onClick={() => setExclusao(item)}
-          />
-        </SpecArea>
-      )}
-      {item.movimentaveisCalculadas > 0 && (
-        <SpecArea metadata={quadroActionSpecifications.Distribuir}>
-          <BotaoIconSeplag
-            type="button"
-            tooltip="Distribuir vagas deste quadro"
-            aria-label="Distribuir vagas"
-            icon="pi pi-sitemap"
-            onClick={() =>
-              navigate(
-                `${CONTROLE_VAGAS_BASE_PATH}/distribuicao?quadro=${item.id}`,
-              )
-            }
           />
         </SpecArea>
       )}
@@ -846,13 +976,13 @@ function QuadroAutorizadoLista() {
           className="prototype-quadro-expander"
           aria-label={
             aberto
-              ? "Fechar histórico de versões"
-              : "Abrir histórico de versões"
+              ? "Fechar detalhes do quadro"
+              : "Abrir detalhes do quadro"
           }
           title={
             aberto
-              ? "Fechar histórico de versões"
-              : "Abrir histórico de versões"
+              ? "Fechar detalhes do quadro"
+              : "Abrir detalhes do quadro"
           }
           onClick={alternar}
         >
@@ -956,9 +1086,22 @@ function QuadroAutorizadoLista() {
                   control={control}
                   label="Órgão"
                   cols="12"
-                  options={[...new Set(quadros.flatMap(orgaosDoQuadro))].map(
-                    (value) => ({ label: value, value }),
-                  )}
+                  options={[
+                    ...new Set([
+                      ...quadros.flatMap(orgaosDoQuadro),
+                      ...vagas
+                        .map((vaga) =>
+                          calcularPosicaoVaga(
+                            vaga,
+                            movimentos,
+                            dataReferenciaDistribuicao,
+                          ).orgaoDistribuicao,
+                        )
+                        .filter(Boolean),
+                    ]),
+                  ]
+                    .sort((a, b) => String(a).localeCompare(String(b), "pt-BR"))
+                    .map((value) => ({ label: value, value }))}
                   optionLabel="label"
                   optionValue="value"
                   placeholder="Todos"
@@ -1068,8 +1211,80 @@ function QuadroAutorizadoLista() {
             onClose={() => setVersaoVisualizada(null)}
           />
         )}
+        {distribuicaoVisualizada && (
+          <DistribuicaoOrgaosModal
+            quadro={distribuicaoVisualizada}
+            onClose={() => setDistribuicaoVisualizada(null)}
+          />
+        )}
       </div>
     </SpecificationMode>
+  );
+}
+
+function DistribuicaoOrgaosModal({
+  quadro,
+  onClose,
+}: {
+  quadro: QuadroListaRow;
+  onClose: () => void;
+}) {
+  const totalDistribuido = quadro.distribuicaoOrgaos.reduce(
+    (total, distribuicao) => total + distribuicao.quantidade,
+    0,
+  );
+
+  return (
+    <ModalSeplag
+      visible
+      titulo={`Órgãos do quadro ${quadro.codigo}`}
+      fechar={onClose}
+      tamanho="min(46rem, 94vw)"
+      ariaLabel={`Órgãos do quadro ${quadro.codigo}`}
+      customFooter={
+        <div className="prototype-quadro-modal-library-actions">
+          <BotaoVoltarSeplag
+            label="Fechar"
+            icon="pi pi-times"
+            onClick={onClose}
+          />
+        </div>
+      }
+    >
+      <div className="col-12 prototype-quadro-distribution-modal">
+        <header>
+          <div>
+            <span>{quadro.cargo}</span>
+            <strong>{quadro.orgaoResumo}</strong>
+          </div>
+          <strong>{totalDistribuido.toLocaleString("pt-BR")} vagas</strong>
+        </header>
+        {quadro.distribuicaoOrgaos.length ? (
+          <div className="prototype-quadro-distribution-modal-list">
+            {quadro.distribuicaoOrgaos.map((distribuicao) => (
+              <article
+                key={distribuicao.orgao}
+                className={distribuicao.pendente ? "is-pending" : undefined}
+              >
+                <span>{distribuicao.orgao}</span>
+                <strong>{distribuicao.quantidade.toLocaleString("pt-BR")}</strong>
+                <small>
+                  {totalDistribuido > 0
+                    ? `${((distribuicao.quantidade / totalDistribuido) * 100).toLocaleString("pt-BR", {
+                        maximumFractionDigits: 1,
+                      })}%`
+                    : "0%"}
+                </small>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="prototype-quadro-version-empty">
+            Ainda não há vagas individualizadas para detalhar.
+          </p>
+        )}
+      </div>
+    </ModalSeplag>
   );
 }
 
@@ -1436,17 +1651,6 @@ function QuadroAutorizadoForm({
   }, [cargoSelecionadoJaPossuiQuadro, form.cargo, setValue]);
 
   const formaDestinacao = "DISTRIBUICAO_POSTERIOR" as const;
-  const modoAbrangencia = form.modoAbrangencia;
-  const orgaosDefinidos = form.orgaosDefinidos;
-  const [quantidadesPorOrgao, setQuantidadesPorOrgao] = useState<
-    Record<string, string>
-  >({});
-  const alterarOrgaosSelecionados = (orgaos: string[]) => {
-    setValue("orgaosDefinidos", orgaos, { shouldDirty: true });
-  };
-  const totalPorOrgao = 0;
-  const quantidadeAutorizada = Number(form.quantidade || 0);
-  const saldoAlocacaoLegal = quantidadeAutorizada;
   const vigenciaPrevia: VigenciaQuadroForm = {
     situacao: "ATIVO",
     dataAtivacao: form.dataAtivacao,
@@ -1455,6 +1659,10 @@ function QuadroAutorizadoForm({
   const situacaoPrevia = statusVigenciaPrevia.startsWith("AGENDADO")
     ? "Agendado"
     : "Ativo";
+  const descricaoSituacaoPrevia =
+    situacaoPrevia === "Agendado"
+      ? "A autorização ficará programada para a data informada."
+      : "A autorização passa a valer a partir da data informada.";
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const valores = getValues();
@@ -1746,232 +1954,24 @@ function QuadroAutorizadoForm({
               <p>
                 {novaVersao
                   ? "Informe o quantitativo que passará a valer."
-                  : "Defina o total autorizado."}
+                  : "Defina o total de vagas autorizado."}
               </p>
             </div>
           </header>
           <div className="prototype-quadro-scope">
-            <div className="prototype-quadro-scope-summary">
-              <NumberFieldSeplag
-                name="quantidade"
-                control={control}
-                label={
-                  novaVersao
-                    ? "Nova quantidade autorizada"
-                    : "Quantidade autorizada"
-                }
-                required
-                cols="12"
-                min={1}
-                getFormErrorMessage={() => null}
-              />
-              <article className="prototype-quadro-summary-inline">
-                <span>Alocado pela lei</span>
-                <strong>
-                  {totalPorOrgao.toLocaleString("pt-BR")} <small>vagas</small>
-                </strong>
-              </article>
-              <article className="prototype-quadro-summary-inline">
-                <span>Saldo sem alocação legal</span>
-                <div>
-                  <strong
-                    className={
-                      saldoAlocacaoLegal === 0 && quantidadeAutorizada > 0
-                        ? "is-complete"
-                        : ""
-                    }
-                  >
-                    {saldoAlocacaoLegal.toLocaleString("pt-BR")}{" "}
-                    <small>vagas</small>
-                  </strong>
-                  {modoAbrangencia === "ORGAOS_COM_QUANTITATIVO" &&
-                    saldoAlocacaoLegal === 0 &&
-                    quantidadeAutorizada > 0 && (
-                      <em>
-                        <i className="pi pi-check-circle" /> Alocação concluída
-                      </em>
-                    )}
-                </div>
-              </article>
-            </div>
-            <div className="prototype-quadro-scope-question prototype-quadro-library-radio">
-              <RadioButtonFieldSeplag
-                name="modoAbrangencia"
-                control={control}
-                label="Como a lei definiu a alocação das vagas?"
-                required
-                cols="12"
-                variant="cards"
-                options={[
-                  {
-                    value: "SEM_ORGAOS",
-                    label: "Não indicou órgãos específicos",
-                    description:
-                      "As vagas poderão ser distribuídas posteriormente pelo Estado.",
-                    icon: "pi pi-file",
-                  },
-                  {
-                    value: "ORGAOS_SEM_QUANTITATIVO",
-                    label: "Indicou os órgãos, mas não definiu quantitativos",
-                    description:
-                      "A lei restringiu os órgãos que poderão receber as vagas.",
-                    icon: "pi pi-users",
-                  },
-                  {
-                    value: "ORGAOS_COM_QUANTITATIVO",
-                    label: "Indicou os órgãos e o quantitativo de cada um",
-                    description:
-                      "A lei definiu os órgãos e a quantidade destinada a cada um.",
-                    icon: "pi pi-building",
-                  },
-                ]}
-                getFormErrorMessage={() => null}
-              />
-            </div>
-            {modoAbrangencia === "SEM_ORGAOS" && (
-              <div className="prototype-quadro-library-message">
-                <MensagemSeplag
-                  severity="info"
-                  message="As vagas serão criadas como <strong>pendentes de ato de distribuição</strong>. A destinação será registrada posteriormente no menu Distribuição."
-                />
-              </div>
-            )}
-            {(modoAbrangencia === "ORGAOS_SEM_QUANTITATIVO" ||
-              modoAbrangencia === "ORGAOS_COM_QUANTITATIVO") && (
-              <div className="prototype-quadro-legal-allocation">
-                <h3>
-                  {modoAbrangencia === "ORGAOS_COM_QUANTITATIVO"
-                    ? "Alocação definida pela lei"
-                    : "Órgãos permitidos pela lei"}
-                </h3>
-                <MultiSelectFieldSeplag
-                  name="orgaosDefinidos"
-                  control={control}
-                  label="Órgãos"
-                  required
-                  cols="12"
-                  options={orgaosBaseTemporaria.map((item) => ({
-                    label: item.nome,
-                    value: item.nome,
-                  }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Selecione um ou mais órgãos"
-                  display="chip"
-                  maxSelectedLabels={4}
-                  onChange={alterarOrgaosSelecionados}
-                  getFormErrorMessage={() => null}
-                />
-
-                {orgaosDefinidos.length === 0 ? (
-                  <div className="prototype-quadro-empty-orgao">
-                    <i className="pi pi-building" /> Nenhum órgão adicionado.
-                  </div>
-                ) : (
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Órgão</th>
-                        {modoAbrangencia === "ORGAOS_COM_QUANTITATIVO" && (
-                          <>
-                            <th>Quantidade de vagas</th>
-                            <th>%</th>
-                          </>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orgaosDefinidos.map((orgao) => (
-                        <tr key={orgao}>
-                          <td>
-                            <strong>{orgao}</strong>
-                          </td>
-                          {modoAbrangencia === "ORGAOS_COM_QUANTITATIVO" && (
-                            <>
-                              <td>
-                                <NumberInputPadrao
-                                  value={quantidadesPorOrgao[orgao] ?? ""}
-                                  onChange={(value) =>
-                                    setQuantidadesPorOrgao((atuais) => ({
-                                      ...atuais,
-                                      [orgao]: value,
-                                    }))
-                                  }
-                                />
-                              </td>
-                              <td>
-                                {quantidadeAutorizada > 0
-                                  ? (
-                                      (Number(quantidadesPorOrgao[orgao] || 0) /
-                                        quantidadeAutorizada) *
-                                      100
-                                    ).toLocaleString("pt-BR", {
-                                      maximumFractionDigits: 2,
-                                    })
-                                  : "0"}
-                                %
-                              </td>
-                            </>
-                          )}
-
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-                {modoAbrangencia === "ORGAOS_COM_QUANTITATIVO" &&
-                  orgaosDefinidos.length > 0 && (
-                    <div
-                      className={
-                        "prototype-quadro-allocation-total " +
-                        (totalPorOrgao === quantidadeAutorizada &&
-                        quantidadeAutorizada > 0
-                          ? "is-valid"
-                          : totalPorOrgao > quantidadeAutorizada
-                            ? "is-over"
-                            : "")
-                      }
-                    >
-                      <div>
-                        <strong>Total alocado</strong>
-                        <span>
-                          {totalPorOrgao.toLocaleString("pt-BR")} de{" "}
-                          {quantidadeAutorizada.toLocaleString("pt-BR")} vagas
-                        </span>
-                      </div>
-                      <progress
-                        max={Math.max(1, quantidadeAutorizada)}
-                        value={Math.min(
-                          totalPorOrgao,
-                          Math.max(1, quantidadeAutorizada),
-                        )}
-                      />
-                      <small>
-                        <i
-                          className={
-                            "pi " +
-                            (totalPorOrgao === quantidadeAutorizada &&
-                            quantidadeAutorizada > 0
-                              ? "pi-check-circle"
-                              : "pi-info-circle")
-                          }
-                        />{" "}
-                        {totalPorOrgao === quantidadeAutorizada &&
-                        quantidadeAutorizada > 0
-                          ? "O total alocado corresponde ao autorizado."
-                          : totalPorOrgao > quantidadeAutorizada
-                            ? "O total alocado ultrapassa o autorizado."
-                            : "Ainda faltam " +
-                              Math.max(
-                                0,
-                                quantidadeAutorizada - totalPorOrgao,
-                              ).toLocaleString("pt-BR") +
-                              " vagas para alocar."}
-                      </small>
-                    </div>
-                  )}
-              </div>
-            )}
+            <NumberFieldSeplag
+              name="quantidade"
+              control={control}
+              label={
+                novaVersao
+                  ? "Nova quantidade autorizada"
+                  : "Quantidade autorizada"
+              }
+              required
+              cols="12"
+              min={1}
+              getFormErrorMessage={() => null}
+            />
             {novaVersao && (
               <div className="prototype-quadro-comparison">
                 <span>Quantidade vigente</span>
@@ -1996,23 +1996,42 @@ function QuadroAutorizadoForm({
             </div>
           </header>
           <div className="prototype-quadro-library-section prototype-quadro-simple-vigencia">
-            <DateFieldSeplag
-              name="dataAtivacao"
-              control={control}
-              label="Data de início"
-              required
-              cols="12 12 4"
-              getFormErrorMessage={() => null}
-            />
-            <div className="prototype-quadro-simple-status">
-              <span>Situação <strong>*</strong></span>
-              <BadgeSeplag
-                label={situacaoPrevia}
-                color={situacaoPrevia === "Agendado" ? "#8a5a00" : "#00843d"}
-                bg={situacaoPrevia === "Agendado" ? "#fff3d6" : "#dff3e8"}
-                size="sm"
-                fontWeight
+            <div className="prototype-quadro-vigencia-date">
+              <DateFieldSeplag
+                name="dataAtivacao"
+                control={control}
+                label="Data de início"
+                required
+                cols="12"
+                getFormErrorMessage={() => null}
               />
+            </div>
+            <div className="prototype-quadro-simple-status" aria-live="polite">
+              <i
+                className={
+                  "pi " +
+                  (situacaoPrevia === "Agendado"
+                    ? "pi-clock"
+                    : "pi-check-circle")
+                }
+              />
+              <div>
+                <span>
+                  Situação <strong>*</strong>
+                </span>
+                <div>
+                  <BadgeSeplag
+                    label={situacaoPrevia}
+                    color={
+                      situacaoPrevia === "Agendado" ? "#8a5a00" : "#00843d"
+                    }
+                    bg={situacaoPrevia === "Agendado" ? "#fff3d6" : "#dff3e8"}
+                    size="sm"
+                    fontWeight
+                  />
+                </div>
+                <small>{descricaoSituacaoPrevia}</small>
+              </div>
             </div>
           </div>
         </section>{" "}
@@ -2029,40 +2048,6 @@ function QuadroAutorizadoForm({
         </footer>
       </form>
     </div>
-  );
-}
-
-function NumberInputPadrao({
-  value,
-  onChange,
-  min = 1,
-  max,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  min?: number;
-  max?: number;
-}) {
-  const parsed = value === "" ? null : Number(value);
-  const { control, setValue, watch } = useForm<{ number: number | null }>({
-    defaultValues: { number: parsed },
-  });
-  const current = watch("number");
-  useEffect(() => setValue("number", parsed), [parsed, setValue]);
-  useEffect(() => {
-    const normalized = current == null ? "" : String(current);
-    if (normalized !== value) onChange(normalized);
-  }, [current, onChange, value]);
-  return (
-    <NumberFieldSeplag
-      name="number"
-      control={control}
-      label=""
-      cols="12"
-      min={min}
-      max={max}
-      getFormErrorMessage={() => null}
-    />
   );
 }
 function QuadroAutorizadoNovaVersao({

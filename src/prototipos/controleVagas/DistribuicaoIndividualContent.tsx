@@ -206,7 +206,7 @@ export function DistribuicaoIndividualContent() {
       const orgao = quadro.orgaosDefinidosLei?.length
         ? quadro.orgaosDefinidosLei.join(" • ")
         : quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
-          ? "Pendente de ato de distribuição"
+          ? "Pendente de distribuição"
           : quadro.orgao;
       const situacaoVisual = situacaoVisualDoQuadro(quadro);
       const quadroPermiteMovimentacao = !situacaoVisual.bloqueada;
@@ -270,7 +270,7 @@ export function DistribuicaoIndividualContent() {
       const orgao = quadro.orgaosDefinidosLei?.length
         ? quadro.orgaosDefinidosLei.join(" • ")
         : quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
-          ? "Pendente de ato de distribuição"
+          ? "Pendente de distribuição"
           : quadro.orgao;
       const situacaoVisual = situacaoVisualDoQuadro(quadro);
       mapa.set(String(quadro.id), {

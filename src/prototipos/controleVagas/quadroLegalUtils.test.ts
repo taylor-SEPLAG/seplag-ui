@@ -154,7 +154,7 @@ describe("extinção progressiva do quadro", () => {
   });
 });
 describe("ampliação legal do quadro", () => {
-  it("cria novas vagas disponíveis e pendentes de ato de distribuição", () => {
+  it("cria novas vagas disponíveis e pendentes de distribuição", () => {
     const vagaDistribuida: Vaga = {
       ...vaga("VAG-1", "OCUPADA"),
       orgaoDistribuicaoInicial: "SEPLAG",
@@ -175,7 +175,7 @@ describe("ampliação legal do quadro", () => {
       expect(novaVaga.estado).toBe("DISPONIVEL");
       expect(novaVaga.situacaoLegal).toBe("REGULAR");
       expect(novaVaga.destinacaoPrevistaLei).toBe(
-        "Pendente de ato de distribuição",
+        "Pendente de distribuição",
       );
       expect(novaVaga.orgaoDistribuicaoInicial).toBeUndefined();
       expect(novaVaga.atoDistribuicaoInicial).toBeUndefined();

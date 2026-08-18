@@ -271,7 +271,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
             label: "Distribuição",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/distribuicao`,
-            visibleOnMenu: true,
+            visibleOnMenu: false,
             visibleOnRouter: true,
           },          {
             label: "Vagas Individualizadas",

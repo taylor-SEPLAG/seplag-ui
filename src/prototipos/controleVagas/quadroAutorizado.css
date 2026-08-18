@@ -868,6 +868,56 @@
 .prototype-quadro-library-section > .grid {
   margin: 0;
 }
+.prototype-quadro-simple-vigencia {
+  display: grid;
+  grid-template-columns: minmax(18rem, 28rem) minmax(15rem, 1fr);
+  align-items: stretch;
+  gap: 0.85rem;
+}
+.prototype-quadro-vigencia-date {
+  min-width: 0;
+}
+.prototype-quadro-vigencia-date > .col-12 {
+  width: 100%;
+  padding: 0;
+}
+.prototype-quadro-simple-status {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+  min-width: 0;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid #d6e1eb;
+  border-radius: 0.45rem;
+  background: #f8fbfd;
+}
+.prototype-quadro-simple-status > i {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 0.45rem;
+  background: #e6f2fc;
+  color: #0870b6;
+}
+.prototype-quadro-simple-status > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+.prototype-quadro-simple-status span {
+  color: #3e4b60;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.prototype-quadro-simple-status small {
+  color: #65758a;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
 .prototype-quadro-form-actions {
   position: static;
   display: flex;
@@ -1318,6 +1368,20 @@
   color: #7c899a;
   font-size: 0.65rem;
 }
+.prototype-quadro-orgao-summary-button {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  color: #1f5f99;
+  font: inherit;
+  font-weight: 700;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+.prototype-quadro-orgao-summary-button:hover {
+  text-decoration: underline;
+}
 .prototype-quadro-modal-library-subtitle {
   display: block;
   margin-top: 0.2rem;
@@ -1349,6 +1413,9 @@
 }
 @media (max-width: 650px) {
   .prototype-quadro-library-filters {
+    grid-template-columns: 1fr;
+  }
+  .prototype-quadro-simple-vigencia {
     grid-template-columns: 1fr;
   }
   .prototype-quadro-modal-library-actions {
@@ -1970,6 +2037,88 @@
   background: #fff;
 }
 
+.prototype-quadro-distribution-modal.col-12 {
+  width: 100%;
+}
+
+.prototype-quadro-distribution-modal > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #dce8f2;
+  border-radius: 0.45rem;
+  background: #f3f8fc;
+}
+
+.prototype-quadro-distribution-modal > header div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.prototype-quadro-distribution-modal > header span {
+  overflow: hidden;
+  color: #65758a;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prototype-quadro-distribution-modal > header strong {
+  color: #17334f;
+  font-size: 0.9rem;
+}
+
+.prototype-quadro-distribution-modal > header > strong {
+  color: #086db9;
+  white-space: nowrap;
+}
+
+.prototype-quadro-distribution-modal-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.prototype-quadro-distribution-modal-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #d7e1ea;
+  border-radius: 0.4rem;
+  background: #fff;
+}
+
+.prototype-quadro-distribution-modal-list article.is-pending {
+  border-color: #f0d8a8;
+  background: #fffaf0;
+}
+
+.prototype-quadro-distribution-modal-list span {
+  overflow: hidden;
+  color: #4c5d72;
+  font-size: 0.76rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prototype-quadro-distribution-modal-list strong {
+  color: #17334f;
+  font-size: 0.95rem;
+}
+
+.prototype-quadro-distribution-modal-list small {
+  color: #68788d;
+  font-size: 0.68rem;
+}
+
 .prototype-quadro-version-table-wrap {
   overflow-x: auto;
   border: 1px solid #dce3e9;
@@ -2045,6 +2194,30 @@
   border-radius: 0.3rem;
   background: #1689e5;
   color: #fff;
+}
+
+.prototype-quadro-version-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 1rem 0;
+}
+
+.prototype-quadro-version-pagination .p-paginator {
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.prototype-quadro-version-pagination .p-paginator .p-paginator-page.p-highlight {
+  background: transparent;
+  color: #0057d9;
+  font-weight: 700;
+}
+
+.prototype-quadro-version-pagination .p-paginator .p-dropdown {
+  height: 38px;
+  margin-left: 12px;
 }
 
 .prototype-quadro-version-empty {

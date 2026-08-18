@@ -11,6 +11,8 @@ export type TipoAlteracaoQuadroLegal =
   | "REDUCAO"
   | "TRANSFORMACAO"
   | "EXTINCAO_PROGRESSIVA"
+  | "DISTRIBUICAO"
+  | "REDISTRIBUICAO"
   | "INCLUSAO_ORGAO"
   | "EXCLUSAO_ORGAO";
 
@@ -123,7 +125,7 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
         id,
         sequencial,
         lei: comando.lei,
-        destinacaoPrevistaLei: "Pendente de ato de distribuição",
+        destinacaoPrevistaLei: "Pendente de distribuição",
         orgaoDistribuicaoInicial: undefined,
         atoDistribuicaoInicial: undefined,
         inicioVigenciaDistribuicao: undefined,
@@ -141,10 +143,14 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
     if (!comando.novoCargo || !comando.quadroDestinoId || !comando.quadroDestinoCodigo) {
       return { vagas, criadas, alteradas, alertas: ["Selecione o Quadro Autorizado de destino da transformação."], quantitativoAnterior: vagas.length, quantitativoPosterior: vagas.length };
     }
-    const disponiveis = vagas.filter((vaga) => vaga.situacaoLegal === "REGULAR" && vaga.estado === "DISPONIVEL").sort((a, b) => b.sequencial - a.sequencial);
-    const ocupadas = vagas.filter((vaga) => vaga.situacaoLegal === "REGULAR" && vaga.estado === "OCUPADA").sort((a, b) => b.sequencial - a.sequencial);
+    const idsSelecionados = new Set(comando.vagaIds ?? []);
+    const idsBloqueados = new Set(comando.vagaIdsBloqueados ?? []);
+    const disponiveis = vagas.filter((vaga) => vaga.situacaoLegal === "REGULAR" && vaga.estado === "DISPONIVEL" && !idsBloqueados.has(vaga.id)).sort((a, b) => b.sequencial - a.sequencial);
+    const ocupadas = vagas.filter((vaga) => vaga.situacaoLegal === "REGULAR" && vaga.estado === "OCUPADA" && !idsBloqueados.has(vaga.id)).sort((a, b) => b.sequencial - a.sequencial);
     const elegiveis = [...disponiveis, ...ocupadas];
-    const candidatas = elegiveis.slice(0, quantidade);
+    const candidatas = comando.vagaIds?.length
+      ? elegiveis.filter((vaga) => idsSelecionados.has(vaga.id)).slice(0, quantidade)
+      : elegiveis.slice(0, quantidade);
     if (quantidade > elegiveis.length) alertas.push(`A transformação foi limitada a ${elegiveis.length} vaga(s) regulares do quadro de origem.`);
     candidatas.forEach((vaga) => alteradas.push(alterarSituacao(vaga, "EM_TRANSFORMACAO", comando, `${comando.lei}: transformação do ${vaga.quadroCodigo} para ${comando.quadroDestinoCodigo}.`)));
     candidatas.forEach((origem, indice) => {
