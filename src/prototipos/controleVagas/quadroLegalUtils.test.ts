@@ -302,4 +302,44 @@ describe("transformação entre Quadros Autorizados", () => {
     expect(transformada.atoDistribuicaoInicial).toBe("Decreto de redistribuição");
     expect(transformada.inicioVigenciaDistribuicao).toBe("01/07/2026");
   });
+  it("mantém sem Nome da vaga quando a transformação continua pendente de distribuição", () => {
+    const origem = {
+      ...vaga("VAG-PENDENTE", "DISPONIVEL"),
+      nome: undefined,
+      orgaoDistribuicaoInicial: undefined,
+    };
+    const resultado = aplicarAlteracaoQuadroLegal([origem], {
+      tipo: "TRANSFORMACAO",
+      quantidade: 1,
+      lei: "Lei de transformação",
+      processo: "SEPLAG-PRO-TRANSFORMACAO",
+      dataEfeito: "2026-08-01",
+      novoCargo: "Cargo destino",
+      quadroDestinoId: 9,
+      quadroDestinoCodigo: "QA-DESTINO",
+      maiorSequencialDestino: 10,
+    });
+
+    const transformada = resultado.criadas[0];
+    expect(transformada.id).toBe("VAG-PENDENTE");
+    expect(transformada.nome).toBeUndefined();
+    expect(transformada.orgaoDistribuicaoInicial).toBeUndefined();
+    expect(transformada.historico.at(-1)?.descricao).toContain("Nome da vaga não atribuído");
+  });
+  it("atualiza a base legal sem alterar vagas ou quantitativos", () => {
+    const original = vaga("VAG-1", "DISPONIVEL");
+    const resultado = aplicarAlteracaoQuadroLegal([original], {
+      tipo: "ATUALIZACAO_BASE_LEGAL",
+      lei: "Lei complementar atualizada",
+      processo: "SEPLAG-PRO-LEGAL",
+      dataEfeito: "2026-08-19",
+    });
+
+    expect(resultado.alertas).toEqual([]);
+    expect(resultado.criadas).toEqual([]);
+    expect(resultado.alteradas).toEqual([]);
+    expect(resultado.vagas).toEqual([original]);
+    expect(resultado.quantitativoAnterior).toBe(1);
+    expect(resultado.quantitativoPosterior).toBe(1);
+  });
 });

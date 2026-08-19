@@ -496,6 +496,10 @@ function QuadroAutorizadoLista() {
   );
   const [exclusao, setExclusao] = useState<QuadroAutorizadoRow | null>(null);
   const [motivoExclusao, setMotivoExclusao] = useState("");
+  const [versionamentoPendente, setVersionamentoPendente] = useState<{
+    registro: QuadroAutorizadoRow;
+    agendadas: QuadroAutorizadoRow[];
+  } | null>(null);
   const [versaoVisualizada, setVersaoVisualizada] = useState<{
     quadro: QuadroListaRow;
     versao: VersaoAnteriorQuadro;
@@ -508,6 +512,22 @@ function QuadroAutorizadoLista() {
     Record<string, { first: number; rows: number }>
   >({});
 
+  const solicitarNovaVersao = (registro: QuadroAutorizadoRow) => {
+    const agendadas = quadros
+      .filter(
+        (item) =>
+          item.codigo === registro.codigo &&
+          item.id !== registro.id &&
+          statusVigenciaDoQuadro(item) === "AGENDADO",
+      )
+      .sort((a, b) => b.versao - a.versao);
+    if (!agendadas.length) {
+      navigate(`${BASE_PATH}/${registro.id}/nova-versao`);
+      return;
+    }
+    setVisualizado(null);
+    setVersionamentoPendente({ registro, agendadas });
+  };
   const quadrosOperacionais = useMemo(() => {
     const idsComVagas = new Set(vagas.map((vaga) => vaga.quadroAutorizadoId));
     const porCodigo = new Map<string, QuadroAutorizadoRow[]>();
@@ -1049,7 +1069,7 @@ function QuadroAutorizadoLista() {
             tooltip="Criar nova versão"
             aria-label="Criar nova versão"
             icon="pi pi-plus"
-            onClick={() => navigate(`${BASE_PATH}/${item.id}/nova-versao`)}
+            onClick={() => solicitarNovaVersao(item)}
           />
         </SpecArea>
       )}
@@ -1330,10 +1350,33 @@ function QuadroAutorizadoLista() {
           <QuadroAutorizadoModal
             registro={visualizado}
             onClose={() => setVisualizado(null)}
-            onNovaVersao={() =>
-              navigate(`${BASE_PATH}/${visualizado.id}/nova-versao`)
-            }
+            onNovaVersao={() => solicitarNovaVersao(visualizado)}
           />
+        )}
+        {versionamentoPendente && (
+          <ModalSeplag
+            visible
+            titulo="Versão agendada existente"
+            fechar={() => setVersionamentoPendente(null)}
+            labelFechar="Não"
+            iconFechar="pi pi-times"
+            labelAcao="Sim, continuar"
+            iconAcao="pi pi-check"
+            funcAcao={() => {
+              const { registro } = versionamentoPendente;
+              setVersionamentoPendente(null);
+              navigate(`${BASE_PATH}/${registro.id}/nova-versao`);
+            }}
+            tamanho="min(36rem, 94vw)"
+            ariaLabel="Confirmação de substituição de versão agendada"
+          >
+            <MensagemSeplag
+              severity="warning"
+              message={versionamentoPendente.agendadas.length > 1
+                ? `Já existem ${versionamentoPendente.agendadas.length} versões agendadas para este quadro. Se continuar, elas serão substituídas pela nova versão.`
+                : `Já existe a versão ${versionamentoPendente.agendadas[0].versao} agendada para ${versionamentoPendente.agendadas[0].dataAtivacao?.split("-").reverse().join("/") || versionamentoPendente.agendadas[0].inicioVigencia}. Se continuar, ela será substituída pela nova versão.`}
+            />
+          </ModalSeplag>
         )}
         {versaoVisualizada && (
           <HistoricoVersaoModal

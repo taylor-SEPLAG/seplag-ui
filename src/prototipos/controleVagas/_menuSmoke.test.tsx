@@ -101,6 +101,7 @@ describe("menus do Controle de Vagas", () => {
     expect(result.getByText("Extinção progressiva")).toBeTruthy();
     expect(result.getByText("Distribuição")).toBeTruthy();
     expect(result.getByText("Redistribuição")).toBeTruthy();
+    expect(result.getByText("Atualização da base legal")).toBeTruthy();
     expect(result.queryByText("Inclusão de órgão")).toBeNull();
     expect(result.queryByText("Exclusão de órgão")).toBeNull();
     expect(result.getByText("Observação")).toBeTruthy();
