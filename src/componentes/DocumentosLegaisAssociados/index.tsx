@@ -21,6 +21,8 @@ export interface DocumentosLegaisAssociadosSeplagProps {
   filtroPlaceholder?: string;
   exibirNovoCadastro?: boolean;
   expandirAoAbrir?: boolean;
+  /** Quando há mais de uma lei selecionada, sinaliza a primeira como a norma aplicável (RN). */
+  indicarPrincipal?: boolean;
 }
 
 const MAX_VISIBLE_SELECTED_ITEMS = 3;
@@ -62,6 +64,7 @@ export function DocumentosLegaisAssociadosSeplag({
   filtroPlaceholder = "Filtrar por número ou descrição...",
   exibirNovoCadastro = true,
   expandirAoAbrir = false,
+  indicarPrincipal = false,
 }: Readonly<DocumentosLegaisAssociadosSeplagProps>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const selectedListRef = useRef<HTMLDivElement>(null);
@@ -270,13 +273,21 @@ export function DocumentosLegaisAssociadosSeplag({
           }`}
           ref={selectedListRef}
         >
-          {selectedDocuments.map((documento) => {
+          {selectedDocuments.map((documento, index) => {
             const badgeColors = getCategoriaColors(documento.categoria);
+            const ehPrincipal = indicarPrincipal && index === 0;
 
             return (
               <div className={styles.selectedRow} key={documento.id}>
                 <div className={styles.selectedInfo}>
-                  <div className={styles.selectedTitle}>{documento.titulo}</div>
+                  <div className={styles.selectedTitle}>
+                    {documento.titulo}
+                    {ehPrincipal && (
+                      <span className={styles.principalTag} title="Primeira lei selecionada — considerada a norma aplicável.">
+                        <i className="pi pi-star-fill" aria-hidden="true" /> Lei Aplic
+                      </span>
+                    )}
+                  </div>
                   {documento.descricao && (
                     <div className={styles.selectedDescription}>
                       {documento.descricao}

@@ -7,6 +7,18 @@ export const TIPOS_CERTAME = [
  { label:"Processo Seletivo Simplificado (PSS)", value:"PSS" },
 ] as const;
 
+// Carreira do cargo/vaga — só se aplica a Concurso Público (provimento efetivo, vinculado a um
+// plano de carreira); Processo Seletivo Simplificado não tem carreira (contratação temporária).
+export const CARREIRAS_CONCURSO = [
+ { label:"Servidor Público (Administração Geral)", value:"SERVIDOR_PUBLICO" },
+ { label:"Magistério", value:"MAGISTERIO" },
+ { label:"Saúde", value:"SAUDE" },
+ { label:"Segurança Pública", value:"SEGURANCA_PUBLICA" },
+ { label:"Fiscal/Tributária", value:"FISCAL_TRIBUTARIA" },
+ { label:"Perícia Oficial (POLITEC)", value:"PERICIA_OFICIAL" },
+ { label:"Procuradoria", value:"PROCURADORIA" },
+] as const;
+
 // TCE-MT — Aplique Gerador: classificação do certame conforme padrão do tribunal (RN-01).
 export const TIPOS_CONCURSO_APLIC_TCE = [
  { label:"Concurso Público", value:"1" },
@@ -35,14 +47,6 @@ export const ABRANGENCIAS = [
  { label:"Municipal", value:"MUNICIPAL" },
 ] as const;
 
-// Polo de aplicação do cargo/vaga — as opções e o comportamento do campo mudam conforme a
-// Abrangência do certame (aba Contrato e Custos): Municipal trava no município da Unidade Gestora
-// (placeholder de UI — a integração com o cadastro real de UG é dependência futura); Regional
-// abre a lista das 12 Regiões de Planejamento de Mato Grosso (cada uma com seu município-polo);
-// Estadual permite um ou mais municípios-polo específicos, com a opção exclusiva "Todos os Polos"
-// (todo o Estado). Fonte: divisão oficial das Regiões de Planejamento de MT (SEPLAN-MT).
-export const MUNICIPIO_UNIDADE_GESTORA = "Cuiabá";
-
 function normalizarCodigoPolo(nome:string) {
  return nome.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/(^-+|-+$)/g, "");
 }
@@ -66,18 +70,11 @@ export const REGIOES_PLANEJAMENTO_MT:readonly RegiaoPlanejamentoMT[] = [
  { value:"REGIAO-XII", regiao:"Região XII — Centro-Oeste / Guaporé", polo:"Juara / São José do Rio Claro", municipios:[] },
 ];
 
-export const POLOS_REGIONAIS = REGIOES_PLANEJAMENTO_MT.map((item) => ({ label:`${item.regiao} — Polo: ${item.polo}`, value:item.value }));
+// Lista simples de municípios do cargo/vaga — independente da Abrangência do certame (sem
+// travamento por Municipal, sem agrupamento por Região, sem opção "Todos os Polos").
+const NOMES_MUNICIPIOS_MT = Array.from(new Set(REGIOES_PLANEJAMENTO_MT.flatMap((item) => item.municipios))).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
-export const POLO_TODOS_ESTADO = "TODOS";
-
-// Municípios-polo (Estadual) — a cidade-sede de cada Região de Planejamento; a Região XII soma dois
-// polos intermediários (Juara e São José do Rio Claro), ambos oferecidos como opções individuais.
-const NOMES_POLOS_MUNICIPAIS = Array.from(new Set(REGIOES_PLANEJAMENTO_MT.flatMap((item) => item.polo.split("/").map((nome) => nome.trim()))));
-
-export const POLOS_MUNICIPAIS = [
- { label:"Todos os Polos", value:POLO_TODOS_ESTADO },
- ...NOMES_POLOS_MUNICIPAIS.map((nome) => ({ label:nome, value:normalizarCodigoPolo(nome) })),
-];
+export const MUNICIPIOS_MT = NOMES_MUNICIPIOS_MT.map((nome) => ({ label:nome, value:normalizarCodigoPolo(nome) }));
 
 export const TIPOS_CONTRATACAO_EXECUCAO = [
  { label:"Própria UG", value:"PROPRIA_UG" },
@@ -177,6 +174,53 @@ export const DOCUMENTOS_CERTAME: readonly { tipo:string; label:string; obrigator
  { tipo:"OUTROS_COMISSAO", label:"Outros documentos da comissão organizadora", obrigatorioSempre:false },
 ];
 
+// Catálogo alinhado à seção 2 (Retificação do Edital de Abertura) do Manual de Orientação para
+// Remessa de Documentos ao TCE/MT. Não bloqueia o salvamento do certame (obrigatorioSempre:false) —
+// só se aplica quando essa situação é de fato registrada (ver SituacoesCertameModal).
+export const DOCUMENTOS_RETIFICACAO_EDITAL: readonly { tipo:string; label:string; obrigatorioSempre:boolean }[] = [
+ { tipo:"TERMO_ADITIVO_EDITAL", label:"Termo aditivo ao edital de abertura", obrigatorioSempre:false },
+ { tipo:"COMPROVANTE_PUBLICACAO_TERMO_ADITIVO", label:"Comprovante da publicação do termo aditivo na Imprensa Oficial", obrigatorioSempre:false },
+];
+
+// Catálogo alinhado à seção 3 (Homologação) do Manual de Orientação para Remessa de Documentos ao
+// TCE/MT. Comprovante de residência (Agentes Comunitários de Saúde) não se aplica ao Poder
+// Executivo estadual — mantido como não obrigatório, com opção de justificativa N/A.
+export const DOCUMENTOS_HOMOLOGACAO: readonly { tipo:string; label:string; obrigatorioSempre:boolean }[] = [
+ { tipo:"EDITAL_HOMOLOGACAO_INSCRICOES", label:"Edital de homologação das inscrições", obrigatorioSempre:false },
+ { tipo:"DECISAO_RECURSOS_EDITAL_HOMOLOGACAO", label:"Decisão quanto aos recursos contra o edital de homologação das inscrições", obrigatorioSempre:false },
+ { tipo:"RELACAO_CANDIDATOS_APROVADOS", label:"Relação dos candidatos aprovados e classificados", obrigatorioSempre:false },
+ { tipo:"DECISAO_RECURSOS_RELACAO_CANDIDATOS", label:"Decisão quanto aos recursos contra a relação de candidatos aprovados e classificados", obrigatorioSempre:false },
+ { tipo:"EDITAL_RESULTADO_FINAL", label:"Edital de resultado final do certame", obrigatorioSempre:false },
+ { tipo:"ATO_HOMOLOGACAO", label:"Ato de homologação do certame", obrigatorioSempre:false },
+ { tipo:"COMPROVANTE_PUBLICACAO_EDITAL_HOMOLOGACAO", label:"Comprovante de publicação do edital de homologação das inscrições", obrigatorioSempre:false },
+ { tipo:"COMPROVANTE_PUBLICACAO_DECISAO_RECURSOS_EDITAL_HOMOLOGACAO", label:"Comprovante de publicação da decisão de recursos (edital de homologação)", obrigatorioSempre:false },
+ { tipo:"COMPROVANTE_PUBLICACAO_RELACAO_CANDIDATOS", label:"Comprovante de publicação da relação de candidatos aprovados e classificados", obrigatorioSempre:false },
+ { tipo:"COMPROVANTE_PUBLICACAO_DECISAO_RECURSOS_RELACAO_CANDIDATOS", label:"Comprovante de publicação da decisão de recursos (relação de candidatos)", obrigatorioSempre:false },
+ { tipo:"COMPROVANTE_PUBLICACAO_RESULTADO_FINAL", label:"Comprovante de publicação do resultado final do concurso", obrigatorioSempre:false },
+ { tipo:"COMPROVANTE_PUBLICACAO_ATO_HOMOLOGACAO", label:"Comprovante de publicação do ato de homologação", obrigatorioSempre:false },
+ { tipo:"COMPROVANTE_RESIDENCIA_ACS", label:"Comprovante de residência dos candidatos (Agentes Comunitários de Saúde)", obrigatorioSempre:false },
+];
+
+// Catálogo alinhado à seção 4 (Retificação da Homologação) — mesmos documentos da seção 3,
+// reeditados/republicados; tipos próprios para não sobrescrever o arquivo já anexado à Homologação.
+export const DOCUMENTOS_RETIFICACAO_HOMOLOGACAO: readonly { tipo:string; label:string; obrigatorioSempre:boolean }[] =
+ DOCUMENTOS_HOMOLOGACAO.map((item) => ({ ...item, tipo:`${item.tipo}_RETIF` }));
+
+// Catálogo de documentos exigido para cada situação do certame (ver SITUACOES_CERTAME) — usado tanto
+// na aba Documentos do cadastro quanto no registro de nova situação (SituacoesCertameModal). As
+// variantes "Parcial" reutilizam o catálogo da Homologação/Retificação de Homologação cheia, já que
+// o Manual do TCE/MT não distingue documentos próprios para a homologação parcial. Situações sem
+// catálogo (Prorrogação de Validade, Cancelamento/Anulação, Paralisação) seguem com o upload
+// genérico de "documento de apoio".
+export const DOCUMENTOS_POR_SITUACAO: Partial<Record<string, readonly { tipo:string; label:string; obrigatorioSempre:boolean }[]>> = {
+ ABERTO: DOCUMENTOS_CERTAME,
+ RETIFICACAO_EDITAL: DOCUMENTOS_RETIFICACAO_EDITAL,
+ HOMOLOGADO: DOCUMENTOS_HOMOLOGACAO,
+ RETIFICACAO_HOMOLOGACAO: DOCUMENTOS_RETIFICACAO_HOMOLOGACAO,
+ HOMOLOGACAO_PARCIAL: DOCUMENTOS_HOMOLOGACAO,
+ RETIFICACAO_HOMOLOGACAO_PARCIAL: DOCUMENTOS_RETIFICACAO_HOMOLOGACAO,
+};
+
 // Catálogo padrão do TCE-MT (RN-09), usado como sugestão inicial das fases de um novo certame.
 // A lista final (Certame.fases) é totalmente editável: renomear, reordenar, adicionar e remover.
 export const FASES_TCE_FIXAS: readonly { ordem:number; nome:string }[] = [
@@ -193,3 +237,26 @@ export const FASES_TCE_FIXAS: readonly { ordem:number; nome:string }[] = [
  { ordem:11, nome:"Convocação" },
  { ordem:12, nome:"Nomeação/Posse" },
 ];
+
+// Catálogo de Tipos de Prova/Etapa do TCE-MT (tabela TFCONC — TFCONC_CODIGO/TFCONC_DESCRICAO),
+// usado para classificar cada fase do cronograma no envio ao TCE-MT. Assim como o nome da fase,
+// a classificação é apenas uma sugestão: totalmente editável/alterável pelo usuário.
+export const TIPOS_FASE_CONCURSO_TCE = [
+ { value:"1", label:"Prova Escrita – Objetiva" },
+ { value:"2", label:"Prova Escrita – Subjetiva" },
+ { value:"3", label:"Prova Escrita – Objetiva e Subjetiva" },
+ { value:"4", label:"Prova Oral" },
+ { value:"5", label:"Prova de Títulos" },
+ { value:"6", label:"Apresentação de Currículos" },
+ { value:"7", label:"Entrevista" },
+ { value:"8", label:"Prova Psicológica / Psicotécnico" },
+ { value:"9", label:"Apresentação de Currículos e Entrevista" },
+ { value:"10", label:"Apresentação de Currículos e Entrevista e Prova Psicológica/Psicotécnico" },
+ { value:"11", label:"Entrevista e Prova Psicológica/Psicotécnico" },
+ { value:"12", label:"Prova Física" },
+ { value:"13", label:"Desempenho Didático" },
+ { value:"14", label:"Curso de Formação" },
+ { value:"15", label:"Prova de Digitação" },
+ { value:"16", label:"Investigação Social" },
+ { value:"17", label:"Prova Prática" },
+] as const;

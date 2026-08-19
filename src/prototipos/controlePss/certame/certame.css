@@ -78,6 +78,13 @@
 .prototype-certame-fase-row label{display:block;min-width:0}
 .prototype-certame-fase-row input{width:100%;min-height:32px;padding:6px 8px;border:1px solid var(--surface-border);border-radius:6px;background:var(--surface-0);color:var(--text-color);font-size:.82rem}
 .prototype-certame-fase-row input:focus{border-color:var(--primary-color);box-shadow:0 0 0 2px var(--primary-100);outline:0}
+.prototype-certame-fase-row .p-autocomplete{width:100%}
+/* Realce quando o nome digitado/selecionado corresponde a uma fase do catálogo padrão do TCE-MT
+   (Tipos de Prova/Etapa — TFCONC), distinguindo-a de um nome de fase totalmente livre. */
+.prototype-certame-fase-row .prototype-certame-fase-tce input,
+.prototype-certame-fase-row input.prototype-certame-fase-tce{border-color:#0b6199;background:#e9f3fc;color:#0b6199;font-weight:600}
+.prototype-certame-fase-row .prototype-certame-fase-tce input:focus,
+.prototype-certame-fase-row input.prototype-certame-fase-tce:focus{box-shadow:0 0 0 2px #b7dcf5}
 .prototype-certame-fase-drag-handle{justify-self:center;color:var(--text-color-secondary)}
 .prototype-certame-fase-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .prototype-certame-fase-remove{display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;border:0;background:transparent;color:var(--text-color-secondary);cursor:pointer}
@@ -124,3 +131,10 @@
  .prototype-certame-cargo-row{flex-wrap:wrap}
  .prototype-certame-cargo-titulo{flex-basis:100%;order:1}
 }
+
+.prototype-certame-documentos-grupo{margin-top:1.5rem}
+.prototype-certame-documentos-grupo:first-of-type{margin-top:1rem}
+.prototype-certame-documentos-grupo h4{margin:0 0 .6rem;color:var(--text-color);font-size:.85rem;font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+
+.prototype-certame-situacao-documentos{margin-top:.25rem}
+.prototype-certame-situacao-documentos-titulo{display:block;margin-bottom:.6rem;color:var(--text-color-secondary);font-size:.8rem;font-weight:700}

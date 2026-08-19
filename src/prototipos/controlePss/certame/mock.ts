@@ -5,7 +5,7 @@ export const certamesMock: Certame[] = [
  {
   id:"CERT-2026-001",
   tipoCertame:"PSS", tipoConcursoAplic:"4",
-  leiProcessoSeletivoSimplificado:"LC-600-2017",
+  leiProcessoSeletivoSimplificado:["LC-600-2017"],
   regimeJuridico:"ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO",
   setor:"SEDUC", setoresParticipantes:[],
   objetivo:"Contratação temporária de professores para suprir carência em escolas estaduais.",
@@ -17,8 +17,8 @@ export const certamesMock: Certame[] = [
   validadeConcursoDias:365, existePrevisaoRecursos:true,
   diasPrazoExercicio:15, diasPrazoPosse:30,
   houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
-  cotas:[{ id:"COTA-1", tipo:"PCD", lei:"LEI-6752-1995" }],
-  cargos:[{ id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", polos:["CUIABA"], codigoReferenciaTce:"001", quantidadeVagas:20, reservasCota:[{ id:"RSV-1", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10, quadroCodigo:"QA-0012", quadroVersao:1 }],
+  cotas:[{ id:"COTA-1", tipo:"PCD", lei:["LEI-6752-1995"] }],
+  cargos:[{ id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", cidades:["CUIABA"], codigoReferenciaTce:"001", quantidadeVagas:20, reservasCota:[{ id:"RSV-1", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10, quadroCodigo:"QA-0012", quadroVersao:1 }],
   fases:[...FASES_TCE_FIXAS],
   documentos:[
    { tipo:"JUSTIFICATIVA_ABERTURA", nomeArquivo:"justificativa-pss-seduc-2026.pdf", anexadoEm:"05/02/2026" },
@@ -39,7 +39,7 @@ export const certamesMock: Certame[] = [
  {
   id:"CERT-2026-002",
   tipoCertame:"CONCURSO_PUBLICO", tipoConcursoAplic:"1",
-  leiContratoTemporario:"LEI-6752-1995",
+  leiContratoTemporario:["LEI-6752-1995"],
   regimeJuridico:"ESTATUTARIO", tipoVinculo:"EFETIVO",
   setor:"SEFAZ", setoresParticipantes:["SEPLAG"],
   objetivo:"Provimento de cargos efetivos de Auditor Fiscal.",
@@ -52,14 +52,14 @@ export const certamesMock: Certame[] = [
   previsaoProrrogacaoDias:730, existePrevisaoRecursos:true,
   diasPrazoExercicio:15, diasPrazoPosse:30, diasPrazoProrrogacaoExercicio:15, diasPrazoProrrogacaoPosse:30,
   dataInicioInscricaoIsencao:"05/01/2026", dataFimInscricaoIsencao:"12/01/2026",
-  leiIsencao:"LEI-6752-1995", tipoIsencao:"HIPOSSUFICIENCIA_RENDA",
+  leiIsencao:["LEI-6752-1995"], tipoIsencao:"HIPOSSUFICIENCIA_RENDA",
   houveContratacaoBanca:true, numeroEmpenho:"2026NE000123", anoEmpenho:2026,
   tipoContrato:"BANCA_ORGANIZADORA", numeroContrato:"014/2026", anoContrato:2026,
   codigoUo:"18101", codigoUg:"180101", numeroAditivo:"001/2026", anoAditivo:2026,
   gerouDespesas:true, cobraTaxaInscricao:true, valorInscricao:120,
   cotas:[
-   { id:"COTA-2", tipo:"PCD", lei:"LEI-6752-1995" },
-   { id:"COTA-3", tipo:"INDIGENAS", lei:"LC-600-2017" },
+   { id:"COTA-2", tipo:"PCD", lei:["LEI-6752-1995"] },
+   { id:"COTA-3", tipo:"INDIGENAS", lei:["LC-600-2017"] },
   ],
   cargos:[{ id:"CGV-2", vinculo:"EXISTENTE", cargoExistenteId:"CGO-AUDITOR-FISCAL", cargoNome:"Auditor Fiscal", codigoReferenciaTce:"001", quantidadeVagas:30, reservasCota:[{ id:"RSV-2", tipo:"PCD", quantidade:3 }], aceitaCadastroReserva:false, quadroCodigo:"QA-0007", quadroVersao:1 }],
   fases:[...FASES_TCE_FIXAS, { ordem:13, nome:"Curso de Formação (SEPLAG)" }],
@@ -87,7 +87,7 @@ export const certamesMock: Certame[] = [
  {
   id:"CERT-2025-014",
   tipoCertame:"PSS", tipoConcursoAplic:"4",
-  leiProcessoSeletivoSimplificado:"LC-600-2017",
+  leiProcessoSeletivoSimplificado:["LC-600-2017"],
   regimeJuridico:"ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO",
   setor:"SES", setoresParticipantes:[],
   objetivo:"Contratação temporária de enfermeiros para reforço de unidades de urgência.",
@@ -121,7 +121,7 @@ export const certamesMock: Certame[] = [
  {
   id:"CERT-2026-003",
   tipoCertame:"PSS", tipoConcursoAplic:"4",
-  leiProcessoSeletivoSimplificado:"LC-600-2017",
+  leiProcessoSeletivoSimplificado:["LC-600-2017"],
   regimeJuridico:"ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO",
   setor:"SEPLAG", setoresParticipantes:[],
   objetivo:"Contratação temporária de técnicos administrativos para apoio à gestão orçamentária.",
@@ -132,7 +132,7 @@ export const certamesMock: Certame[] = [
   abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG",
   validadeConcursoDias:365, existePrevisaoRecursos:false,
   houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
-  cotas:[{ id:"COTA-4", tipo:"PPP", lei:"LC-600-2017" }],
+  cotas:[{ id:"COTA-4", tipo:"PPP", lei:["LC-600-2017"] }],
   cargos:[{ id:"CGV-4", vinculo:"NOVO", cargoNome:"Técnico Administrativo", codigoReferenciaTce:"001", quantidadeVagas:10, reservasCota:[], aceitaCadastroReserva:false }],
   fases:[...FASES_TCE_FIXAS],
   documentos:[
@@ -157,7 +157,7 @@ export const certamesMock: Certame[] = [
  {
   id:"CERT-2026-004",
   tipoCertame:"PSS", tipoConcursoAplic:"4",
-  leiProcessoSeletivoSimplificado:"LC-600-2017",
+  leiProcessoSeletivoSimplificado:["LC-600-2017"],
   regimeJuridico:"ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO",
   setor:"SEPLAG", setoresParticipantes:["SES"],
   objetivo:"Contratação temporária de assistentes sociais para reforço de equipes técnicas.",
@@ -169,8 +169,8 @@ export const certamesMock: Certame[] = [
   validadeConcursoDias:365, existePrevisaoRecursos:true,
   houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
   cotas:[
-   { id:"COTA-5", tipo:"PCD", lei:"LEI-6752-1995" },
-   { id:"COTA-6", tipo:"INDIGENAS", lei:"LC-600-2017" },
+   { id:"COTA-5", tipo:"PCD", lei:["LEI-6752-1995"] },
+   { id:"COTA-6", tipo:"INDIGENAS", lei:["LC-600-2017"] },
   ],
   cargos:[{ id:"CGV-5", vinculo:"NOVO", cargoNome:"Assistente Social", codigoReferenciaTce:"001", quantidadeVagas:15, reservasCota:[{ id:"RSV-3", tipo:"PCD", quantidade:2 }, { id:"RSV-4", tipo:"INDIGENAS", quantidade:1 }], aceitaCadastroReserva:false }],
   fases:[...FASES_TCE_FIXAS],
@@ -195,7 +195,7 @@ export const certamesMock: Certame[] = [
  {
   id:"CERT-2026-005",
   tipoCertame:"CONCURSO_PUBLICO", tipoConcursoAplic:"1",
-  leiContratoTemporario:"LEI-6752-1995",
+  leiContratoTemporario:["LEI-6752-1995"],
   regimeJuridico:"ESTATUTARIO", tipoVinculo:"EFETIVO",
   setor:"SEFAZ", setoresParticipantes:[],
   objetivo:"Provimento de cargos efetivos de Fiscal de Rendas.",
@@ -209,7 +209,7 @@ export const certamesMock: Certame[] = [
   tipoContrato:"BANCA_ORGANIZADORA", numeroContrato:"022/2026", anoContrato:2026,
   codigoUo:"25101", codigoUg:"250101", numeroAditivo:"002/2026", anoAditivo:2026,
   gerouDespesas:true, cobraTaxaInscricao:true, valorInscricao:95,
-  cotas:[{ id:"COTA-7", tipo:"PCD", lei:"LEI-6752-1995" }],
+  cotas:[{ id:"COTA-7", tipo:"PCD", lei:["LEI-6752-1995"] }],
   cargos:[{ id:"CGV-6", vinculo:"NOVO", cargoNome:"Fiscal de Rendas", codigoReferenciaTce:"001", quantidadeVagas:8, reservasCota:[{ id:"RSV-5", tipo:"PCD", quantidade:1 }], aceitaCadastroReserva:false }],
   fases:[...FASES_TCE_FIXAS],
   // RN-21: execução por empresa contratada — "Publicação do certame licitatório" ainda pendente.
