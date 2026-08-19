@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { ControleVagasRegrasContent } from "./ControleVagasRegrasContent";
 import { QuadroAutorizadoContent } from "./QuadroAutorizadoContent";
 import { DashboardGerencialContent } from "./DashboardGerencialContent";
@@ -21,6 +21,11 @@ const cases = [
   ["Vagas Individualizadas", VagasIndividualizadasContent],
   ["Distribuição", DistribuicaoIndividualContent],
 ] as const;
+
+function CurrentPath() {
+  const location = useLocation();
+  return <output aria-label="Rota atual">{location.pathname}{location.search}</output>;
+}
 
 describe("menus do Controle de Vagas", () => {
   it.each(cases)("renderiza %s", (_nome, Component) => {
@@ -230,6 +235,28 @@ describe("menus do Controle de Vagas", () => {
     fireEvent.click(controle);
     expect((controle as HTMLInputElement).checked).toBe(false);
     expect(possuiCartao("Cargos legais")).toBe(false);
+  });
+
+  it("direciona pendências ao Quadro Autorizado e não oferece atalho para Distribuição", () => {
+    const result = render(
+      <MemoryRouter initialEntries={["/prototipos/sigep/controle-vagas/dashboard"]}>
+        <DashboardGerencialContent />
+        <CurrentPath />
+      </MemoryRouter>,
+    );
+    const indicador = [...result.container.querySelectorAll("button.prototype-dash-kpi")]
+      .find((item) => item.textContent?.includes("Pendente de ato de distribuicao"));
+    expect(indicador).toBeTruthy();
+    fireEvent.click(indicador!);
+    expect(result.getByLabelText("Rota atual").textContent).toBe(
+      "/prototipos/sigep/controle-vagas/quadro-autorizado",
+    );
+    fireEvent.click(result.getByRole("button", { name: /Pendentes de ato de distribuição/ }));
+    expect(result.getByLabelText("Rota atual").textContent).toBe(
+      "/prototipos/sigep/controle-vagas/quadro-autorizado",
+    );
+    expect(result.queryByRole("button", { name: "Ver todas" })).toBeNull();
+    expect(result.container.innerHTML).not.toContain("/distribuicao");
   });
 
   it("possui as fontes necessárias para a Fase 10", () => {

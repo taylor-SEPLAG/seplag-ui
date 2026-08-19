@@ -4,7 +4,7 @@ import type {
   SituacaoLegalVaga,
   Vaga,
 } from "./types";
-import { gerarIdentificadorVaga } from "./vagaUtils";
+import { gerarIdentificadorVaga, gerarNomeVaga } from "./vagaUtils";
 
 export type TipoAlteracaoQuadroLegal =
   | "AMPLIACAO"
@@ -123,6 +123,7 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
       criadas.push({
         ...base,
         id,
+        nome: undefined,
         sequencial,
         lei: comando.lei,
         destinacaoPrevistaLei: "Pendente de distribuição",
@@ -158,7 +159,9 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
       const distribuicaoAtual = comando.distribuicaoAtualPorVagaId?.[origem.id];
       const orgaoDistribuicaoAtual = distribuicaoAtual?.orgao ?? origem.orgaoDistribuicaoInicial;
       const orgaoDoIdentificador = orgaoDistribuicaoAtual ?? origem.orgaoTitular;
-      const id = gerarIdentificadorVaga(orgaoDoIdentificador, comando.novoCargo!, sequencial);
+      const id = origem.id;
+      const nomeAnterior = origem.nome ?? origem.id.replace(/^VAG-/, "");
+      const nome = gerarNomeVaga(orgaoDoIdentificador, comando.novoCargo!, sequencial);
       const historico: HistoricoVaga = {
         id: `HIS-${id}-${String(origem.historico.length + 1).padStart(3, "0")}`,
         vagaId: id,
@@ -166,7 +169,7 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
         dataEfeito: comando.dataEfeito.split("-").reverse().join("/"),
         tipo: "ALTERACAO_LEGAL",
         titulo: "Vaga transformada entre Quadros Autorizados",
-        descricao: `${comando.lei}: origem ${origem.quadroCodigo}/${origem.id}; destino ${comando.quadroDestinoCodigo}/${id}.`,
+        descricao: `${comando.lei}: nome anterior ${nomeAnterior}; nome resultante ${nome}; ID técnico preservado.`,
         situacaoLegalAnterior: origem.situacaoLegal,
         situacaoLegalPosterior: "REGULAR",
         origem: "Quadro Legal",
@@ -176,6 +179,7 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
       criadas.push({
         ...origem,
         id,
+        nome,
         sequencial,
         quadroAutorizadoId: comando.quadroDestinoId,
         quadroCodigo: comando.quadroDestinoCodigo,
@@ -236,21 +240,23 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
   const idsBloqueados = new Set(comando.vagaIdsBloqueados ?? []);
   const comprometidasAtivas = vagasAtivas.filter((vaga) => idsBloqueados.has(vaga.id));
   if (comprometidasAtivas.length > 0) {
-    return {
-      vagas,
-      criadas,
-      alteradas,
-      alertas: [`${comprometidasAtivas.length} vaga(s) disponível(is) possui(em) comprometimento ativo. Trate os processos antes de registrar a extinção progressiva.`],
-      quantitativoAnterior: vagasAtivas.length,
-      quantitativoPosterior: vagasAtivas.length,
-    };
+    alertas.push(
+      `${comprometidasAtivas.length} vaga(s) comprometida(s) permanecerá(ão) controlada(s) até a conclusão dos respectivos processos.`,
+    );
   }
   const candidatas = vagasAtivas
     .sort((a, b) => Number(a.estado === "OCUPADA") - Number(b.estado === "OCUPADA"))
     .slice(0, quantidade);
   candidatas.forEach((vaga) => {
-    const situacao: SituacaoLegalVaga = vaga.estado === "OCUPADA" ? "EM_EXTINCAO" : "EXTINTA";
-    alteradas.push(alterarSituacao(vaga, situacao, comando, `${comando.lei}: vaga ${vaga.estado === "OCUPADA" ? "mantida até a vacância" : "extinta imediatamente"}.`));
+    const comprometida = idsBloqueados.has(vaga.id);
+    const mantida = vaga.estado === "OCUPADA" || comprometida;
+    const situacao: SituacaoLegalVaga = mantida ? "EM_EXTINCAO" : "EXTINTA";
+    const efeito = comprometida
+      ? "mantida até a conclusão do processo ativo"
+      : vaga.estado === "OCUPADA"
+        ? "mantida até a vacância"
+        : "extinta imediatamente";
+    alteradas.push(alterarSituacao(vaga, situacao, comando, `${comando.lei}: vaga ${efeito}.`));
   });
   const atualizadas = vagas.map((vaga) => alteradas.find((item) => item.id === vaga.id) ?? vaga);
   const quantitativoPosterior = atualizadas.filter((vaga) => vaga.situacaoLegal === "EM_EXTINCAO").length;

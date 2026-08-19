@@ -127,6 +127,15 @@ export const quadroKpiSpecifications: Record<string, SpecificationMetadata> = {
     "integer",
     "Estrutura visual HTML/CSS do protótipo (sem componente da biblioteca)",
   ),
+  "Pendente de distribuição": spec(
+    "CV-QA-KPI-005",
+    "Pendente de distribuição",
+    "Vagas que ainda não receberam órgão de distribuição.",
+    "Somar as vagas não extintas sem órgão de distribuição nos quadros exibidos após aplicar os filtros.",
+    "PosicaoDistribuicaoVaga.orgaoDistribuicao e Vaga.estado.",
+    "integer",
+    "Estrutura visual HTML/CSS do protótipo (sem componente da biblioteca)",
+  ),
 };
 
 export const quadroFilterSpecifications: Record<string, SpecificationMetadata> =
@@ -268,9 +277,9 @@ export const quadroColumnSpecifications: Record<string, SpecificationMetadata> =
       "integer",
       "TablePaginadoSeplag",
     ),
-    "Pendentes de ato": spec(
+    "Pendente de distribuição": spec(
       "CV-QA-COL-008",
-      "Pendentes de ato de distribuição",
+      "Pendente de distribuição",
       "Mostrar vagas disponíveis que ainda dependem de ato formal para receber órgão de distribuição.",
       "A vaga permanece no estado Disponível, mas não integra Disponíveis livres enquanto sua situação distributiva for PENDENTE_ATO.",
       "PosicaoDistribuicaoVaga.situacaoDistribuicao e Vaga.estado.",

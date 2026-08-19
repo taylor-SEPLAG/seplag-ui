@@ -1,5 +1,5 @@
 import { Dialog } from "primereact/dialog";
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, type ReactNode } from "react";
 import { BotaoSalvarSeplag, BotaoVoltarSeplag } from "../Botao";
 
 export interface ModalDeleteSeplagProps {
@@ -7,6 +7,8 @@ export interface ModalDeleteSeplagProps {
   onConfirm: () => void;
   onCancel: () => void;
   message?: string;
+  children?: ReactNode;
+  confirmDisabled?: boolean;
 }
 
 const ModalDeleteSeplag = ({
@@ -14,6 +16,8 @@ const ModalDeleteSeplag = ({
   onConfirm,
   onCancel,
   message,
+  children,
+  confirmDisabled = false,
 }: ModalDeleteSeplagProps) => {
   const handleConfirm = useCallback(() => onConfirm?.(), [onConfirm]);
   const handleCancel = useCallback(() => onCancel?.(), [onCancel]);
@@ -27,6 +31,7 @@ const ModalDeleteSeplag = ({
           icon="pi pi-check"
           iconPos="left"
           onClick={handleConfirm}
+          disabled={confirmDisabled}
           className="margin-app-entre-button"
         />
 
@@ -39,7 +44,7 @@ const ModalDeleteSeplag = ({
         />
       </div>
     ),
-    [handleConfirm, handleCancel],
+    [handleConfirm, handleCancel, confirmDisabled],
   );
 
   return (
@@ -52,6 +57,7 @@ const ModalDeleteSeplag = ({
       onHide={handleCancel}
     >
       <p>{message || "Deseja realmente remover o registro selecionado?"}</p>
+      {children}
     </Dialog>
   );
 };

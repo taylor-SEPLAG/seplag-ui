@@ -617,11 +617,11 @@ export function CertameFormContent() {
        <BlocoHeader icone="pi-calendar" titulo="Datas e execução" subtitulo="Marcos temporais do certame, a partir da publicação do edital." />
        <div className="grid">
         <DateFieldSeplag name="dataPublicacaoEdital" control={control} label="Data de publicação do edital" required cols="12 6 3" getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataRealizacao" control={control} label="Data de realização" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataValidade" control={control} label="Data de validade" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataResultado" control={control} label="Data do resultado" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="inicioInscricoesGerais" control={control} label="Início das inscrições gerais" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="fimInscricoesGerais" control={control} label="Fim das inscrições gerais" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataRealizacao" control={control} label="Data de realização" required cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataValidade" control={control} label="Data de validade" required cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataResultado" control={control} label="Data do resultado" required cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="inicioInscricoesGerais" control={control} label="Início das inscrições gerais" required cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="fimInscricoesGerais" control={control} label="Fim das inscrições gerais" required cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />
         {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataProrrogacao" control={control} label="Data de prorrogação" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />}
         {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataCancelamento" control={control} label="Data de cancelamento" cols="12 6 3" validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" getFormErrorMessage={() => null} />}
         <NumberFieldSeplag name="validadeConcursoDias" control={control} label={dispensarParaProcessoSeletivo ? "Validade do processo seletivo (dias)" : "Validade do concurso (dias)"} cols="12 6 4" getFormErrorMessage={() => null} />
@@ -677,10 +677,10 @@ export function CertameFormContent() {
       {!dispensarParaProcessoSeletivo && <div id="bloco-prazos" className={blocoClasse("bloco-prazos")}>
        <BlocoHeader icone="pi-clock" titulo="Prazos de posse/exercício" subtitulo="Prazos aplicáveis após o ingresso do candidato aprovado." />
        <div className="grid">
-        <NumberFieldSeplag name="diasPrazoPosse" control={control} label="Dias — prazo de posse" cols="12 6 3" getFormErrorMessage={() => null} />
-        <NumberFieldSeplag name="diasPrazoProrrogacaoPosse" control={control} label="Dias — prorrogação da posse" cols="12 6 3" getFormErrorMessage={() => null} />
-        <NumberFieldSeplag name="diasPrazoExercicio" control={control} label="Dias — prazo de exercício" cols="12 6 3" getFormErrorMessage={() => null} />
-        <NumberFieldSeplag name="diasPrazoProrrogacaoExercicio" control={control} label="Dias — prorrogação do exercício" cols="12 6 3" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="diasPrazoPosse" control={control} label="Dias — prazo de posse" required cols="12 6 3" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="diasPrazoProrrogacaoPosse" control={control} label="Dias — prorrogação da posse" required cols="12 6 3" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="diasPrazoExercicio" control={control} label="Dias — prazo de exercício" required cols="12 6 3" getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="diasPrazoProrrogacaoExercicio" control={control} label="Dias — prorrogação do exercício" required cols="12 6 3" getFormErrorMessage={() => null} />
        </div>
       </div>}
 
@@ -718,10 +718,10 @@ export function CertameFormContent() {
         <CheckboxFieldSeplag name="cobraTaxaInscricao" control={control} label=" " checkboxLabel="O certame cobra taxa de inscrição?" cols="12" getFormErrorMessage={() => null} />
         {valores.cobraTaxaInscricao === "S" && <>
          <CurrencyFieldSeplag name="valorInscricao" control={control} label="Valor da inscrição" required cols="12 6 4" getFormErrorMessage={() => null} />
-         <DateFieldSeplag name="dataInicioInscricaoIsencao" control={control} label="Início da inscrição com isenção" cols="12 6 4" getFormErrorMessage={() => null} />
-         <DateFieldSeplag name="dataFimInscricaoIsencao" control={control} label="Fim da inscrição com isenção" cols="12 6 4" getFormErrorMessage={() => null} />
-         <DropdownFieldSeplag name="tipoIsencao" control={control} label="Tipo da isenção" cols="12 6 4" options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-         <CampoLeiUnicaSeplag name="leiIsencao" control={control} label="Lei de isenção" cols="12 6 4" opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiIsencao")} />
+         <DateFieldSeplag name="dataInicioInscricaoIsencao" control={control} label="Início da inscrição com isenção" required cols="12 6 4" getFormErrorMessage={() => null} />
+         <DateFieldSeplag name="dataFimInscricaoIsencao" control={control} label="Fim da inscrição com isenção" required cols="12 6 4" getFormErrorMessage={() => null} />
+         <DropdownFieldSeplag name="tipoIsencao" control={control} label="Tipo da isenção" required cols="12 6 4" options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+         <CampoLeiUnicaSeplag name="leiIsencao" control={control} label="Lei de isenção" required cols="12 6 4" opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiIsencao")} />
         </>}
        </div>
       </div>

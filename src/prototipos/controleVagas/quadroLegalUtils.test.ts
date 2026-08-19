@@ -5,7 +5,7 @@ import {
   reconciliarQuadroAposVacanciaEmExtincao,
 } from "./quadroLegalUtils";
 import type { OcupacaoVaga, QuadroAutorizadoRow, Vaga } from "./types";
-import { gerarIdentificadorVaga } from "./vagaUtils";
+import { gerarNomeVaga } from "./vagaUtils";
 
 const vaga = (id: string, estado: Vaga["estado"]): Vaga => ({
   id,
@@ -92,7 +92,7 @@ describe("extinção progressiva do quadro", () => {
       .toBe("EM_EXTINCAO");
   });
 
-  it("bloqueia a operação quando uma vaga disponível possui comprometimento ativo", () => {
+  it("mantém a vaga comprometida até a conclusão do processo ativo", () => {
     const resultado = aplicarAlteracaoQuadroLegal(
       [vaga("VAG-1", "DISPONIVEL"), vaga("VAG-2", "OCUPADA")],
       {
@@ -104,9 +104,11 @@ describe("extinção progressiva do quadro", () => {
       },
     );
 
-    expect(resultado.alteradas).toHaveLength(0);
+    expect(resultado.alteradas).toHaveLength(2);
     expect(resultado.quantitativoPosterior).toBe(2);
-    expect(resultado.alertas[0]).toContain("comprometimento ativo");
+    expect(resultado.vagas.find((item) => item.id === "VAG-1")?.situacaoLegal)
+      .toBe("EM_EXTINCAO");
+    expect(resultado.alertas[0]).toContain("permanecerá(ão) controlada(s)");
   });
   it("extingue a vaga na vacância e conclui a vigência do quadro", () => {
     const vagaEmExtincao = {
@@ -242,7 +244,8 @@ describe("transformação entre Quadros Autorizados", () => {
     expect(resultado.criadas.every((item) => item.quadroAutorizadoId === 9)).toBe(true);
     expect(resultado.criadas.every((item) => item.quadroCodigo === "QA-DESTINO")).toBe(true);
     expect(resultado.criadas.every((item) => item.cargo === "Cargo destino")).toBe(true);
-    expect(resultado.criadas[0].historico.at(-1)?.descricao).toContain("QA-TESTE/VAG-3");
+    expect(resultado.criadas.map((item) => item.id)).toEqual(["VAG-3", "VAG-1", "VAG-2"]);
+    expect(resultado.criadas[0].historico.at(-1)?.descricao).toContain("ID técnico preservado");
   });
 
   it("permite transformação parcial", () => {
@@ -266,7 +269,7 @@ describe("transformação entre Quadros Autorizados", () => {
     expect(resultado.criadas).toHaveLength(1);
   });
 
-  it("preserva a distribuição vigente e usa o órgão atual no identificador transformado", () => {
+  it("preserva o ID técnico e usa o órgão atual no novo Nome da vaga", () => {
     const origem = {
       ...vaga("VAG-ORIGEM", "DISPONIVEL"),
       orgaoDistribuicaoInicial: "SEPLAG",
@@ -293,7 +296,8 @@ describe("transformação entre Quadros Autorizados", () => {
     });
 
     const transformada = resultado.criadas[0];
-    expect(transformada.id).toBe(gerarIdentificadorVaga("SEFAZ", "Cargo destino", 11));
+    expect(transformada.id).toBe("VAG-ORIGEM");
+    expect(transformada.nome).toBe(gerarNomeVaga("SEFAZ", "Cargo destino", 11));
     expect(transformada.orgaoDistribuicaoInicial).toBe("SEFAZ");
     expect(transformada.atoDistribuicaoInicial).toBe("Decreto de redistribuição");
     expect(transformada.inicioVigenciaDistribuicao).toBe("01/07/2026");

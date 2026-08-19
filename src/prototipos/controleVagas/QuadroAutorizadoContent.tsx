@@ -264,7 +264,8 @@ type VersaoAnteriorQuadro = {
   orgao: string;
   autorizadas: number;
   vigencia: string;
-  encerradaEm: string;
+  encerradaEm?: string;
+  statusVigencia?: StatusOperacionalVigenciaSeplag;
   evolucao: EvolucaoQuadroLegal;
   ato: string;
 };
@@ -276,7 +277,7 @@ const evolucaoPadraoPorTipo = (
   if (item.extincaoProgressivaEmAndamento || item.situacaoVigencia === "EXTINTO") {
     return "Extinção progressiva";
   }
-  return item.autorizadas >= 0 ? "Ampliação legal" : "Redução legal";
+  return item.autorizadas >= 0 ? "Ampliação" : "Redução";
 };
 
 const formatarVigenciaVersao = (item: QuadroAutorizadoRow) =>
@@ -290,7 +291,12 @@ const versaoAnteriorDoQuadro = (
   orgao: item.orgao,
   autorizadas: item.autorizadas,
   vigencia: formatarVigenciaVersao(item),
-  encerradaEm: item.dataEncerramento || item.atualizadoEm,
+  encerradaEm:
+    statusVigenciaDoQuadro(item) === "ENCERRADO" ||
+    statusVigenciaDoQuadro(item) === "EXTINTO"
+      ? item.dataEncerramento || item.atualizadoEm
+      : undefined,
+  statusVigencia: statusVigenciaDoQuadro(item),
   evolucao: evolucaoPadraoPorTipo(item),
   ato: item.ato,
 });
@@ -298,13 +304,83 @@ const versaoAnteriorDoQuadro = (
 const versoesAnterioresPorQuadro: Record<string, VersaoAnteriorQuadro[]> = {
   "QA-0001": [
     {
-      versao: 2,
+      versao: 9,
+      cargo: "Analista Administrativo",
+      orgao: "SEPLAG",
+      autorizadas: 120,
+      vigencia: "01/01/2025 a 31/03/2025",
+      encerradaEm: "31/03/2025",
+      evolucao: "Redistribuição - Destino",
+      ato: "Lei Complementar nº 550/2014",
+    },
+    {
+      versao: 8,
+      cargo: "Analista Administrativo",
+      orgao: "SEPLAG",
+      autorizadas: 120,
+      vigencia: "01/10/2024 a 31/12/2024",
+      encerradaEm: "31/12/2024",
+      evolucao: "Redistribuição - Origem",
+      ato: "Lei Complementar nº 550/2014",
+    },
+    {
+      versao: 7,
+      cargo: "Analista Administrativo",
+      orgao: "SEPLAG",
+      autorizadas: 120,
+      vigencia: "01/07/2024 a 30/09/2024",
+      encerradaEm: "30/09/2024",
+      evolucao: "Distribuição",
+      ato: "Lei Complementar nº 550/2014",
+    },
+    {
+      versao: 6,
+      cargo: "Analista Administrativo",
+      orgao: "SEPLAG",
+      autorizadas: 120,
+      vigencia: "01/01/2024 a 30/06/2024",
+      encerradaEm: "30/06/2024",
+      evolucao: "Extinção progressiva",
+      ato: "Lei Complementar nº 550/2014",
+    },
+    {
+      versao: 5,
+      cargo: "Analista Administrativo",
+      orgao: "SEPLAG",
+      autorizadas: 120,
+      vigencia: "01/07/2023 a 31/12/2023",
+      encerradaEm: "31/12/2023",
+      evolucao: "Transformação - Destino",
+      ato: "Lei Complementar nº 550/2014",
+    },
+    {
+      versao: 4,
       cargo: "Analista Administrativo",
       orgao: "SEPLAG",
       autorizadas: 110,
-      vigencia: "01/01/2023 a 31/12/2024",
-      encerradaEm: "31/12/2024",
-      evolucao: "Ampliação legal",
+      vigencia: "01/01/2023 a 30/06/2023",
+      encerradaEm: "30/06/2023",
+      evolucao: "Transformação - Origem",
+      ato: "Lei Complementar nº 550/2014",
+    },
+    {
+      versao: 3,
+      cargo: "Analista Administrativo",
+      orgao: "SEPLAG",
+      autorizadas: 110,
+      vigencia: "01/01/2022 a 31/12/2022",
+      encerradaEm: "31/12/2022",
+      evolucao: "Redução",
+      ato: "Lei Complementar nº 550/2014",
+    },
+    {
+      versao: 2,
+      cargo: "Analista Administrativo",
+      orgao: "SEPLAG",
+      autorizadas: 120,
+      vigencia: "01/01/2021 a 31/12/2021",
+      encerradaEm: "31/12/2021",
+      evolucao: "Ampliação",
       ato: "Lei Complementar nº 550/2014",
     },
     {
@@ -312,9 +388,9 @@ const versoesAnterioresPorQuadro: Record<string, VersaoAnteriorQuadro[]> = {
       cargo: "Analista Administrativo",
       orgao: "SEPLAG",
       autorizadas: 90,
-      vigencia: "01/01/2020 a 31/12/2022",
-      encerradaEm: "31/12/2022",
-      evolucao: "Ampliação legal",
+      vigencia: "01/01/2020 a 31/12/2020",
+      encerradaEm: "31/12/2020",
+      evolucao: "Criação",
       ato: "Lei Complementar nº 480/2013",
     },
   ],
@@ -326,7 +402,7 @@ const versoesAnterioresPorQuadro: Record<string, VersaoAnteriorQuadro[]> = {
       autorizadas: 540,
       vigencia: "01/03/2023 a 28/02/2025",
       encerradaEm: "28/02/2025",
-      evolucao: "Redução legal",
+      evolucao: "Redução",
       ato: "Lei nº 12.104/2023",
     },
   ],
@@ -338,7 +414,7 @@ const versoesAnterioresPorQuadro: Record<string, VersaoAnteriorQuadro[]> = {
       autorizadas: 820,
       vigencia: "01/01/2024 a 31/12/2025",
       encerradaEm: "31/12/2025",
-      evolucao: "Transformação origem",
+      evolucao: "Transformação - Origem",
       ato: "Lei Complementar nº 740/2024",
     },
     {
@@ -348,7 +424,7 @@ const versoesAnterioresPorQuadro: Record<string, VersaoAnteriorQuadro[]> = {
       autorizadas: 800,
       vigencia: "01/01/2022 a 31/12/2023",
       encerradaEm: "31/12/2023",
-      evolucao: "Ampliação legal",
+      evolucao: "Ampliação",
       ato: "Lei Complementar nº 690/2021",
     },
     {
@@ -358,7 +434,7 @@ const versoesAnterioresPorQuadro: Record<string, VersaoAnteriorQuadro[]> = {
       autorizadas: 760,
       vigencia: "01/01/2019 a 31/12/2021",
       encerradaEm: "31/12/2021",
-      evolucao: "Ampliação legal",
+      evolucao: "Ampliação",
       ato: "Lei Complementar nº 407/2010",
     },
   ],
@@ -419,6 +495,7 @@ function QuadroAutorizadoLista() {
     null,
   );
   const [exclusao, setExclusao] = useState<QuadroAutorizadoRow | null>(null);
+  const [motivoExclusao, setMotivoExclusao] = useState("");
   const [versaoVisualizada, setVersaoVisualizada] = useState<{
     quadro: QuadroListaRow;
     versao: VersaoAnteriorQuadro;
@@ -586,12 +663,24 @@ function QuadroAutorizadoLista() {
       ocupadas: acc.ocupadas + item.ocupadas,
       comprometidas: acc.comprometidas + item.comprometidas,
       disponiveis: acc.disponiveis + item.disponiveisCalculadas,
+      pendentesDistribuicao: acc.pendentesDistribuicao + item.pendentesAto,
     }),
-    { autorizadas: 0, ocupadas: 0, comprometidas: 0, disponiveis: 0 },
+    {
+      autorizadas: 0,
+      ocupadas: 0,
+      comprometidas: 0,
+      disponiveis: 0,
+      pendentesDistribuicao: 0,
+    },
   );
 
   const confirmarExclusao = () => {
-    if (!exclusao || !quadroPermiteEdicaoDireta(exclusao)) return;
+    if (
+      !exclusao ||
+      !quadroPermiteEdicaoDireta(exclusao) ||
+      !motivoExclusao.trim()
+    )
+      return;
     controleVagasStore.set("quadros", (itens) =>
       itens.filter((quadro) => quadro.id !== exclusao.id),
     );
@@ -599,6 +688,7 @@ function QuadroAutorizadoLista() {
       itens.filter((vaga) => vaga.quadroAutorizadoId !== exclusao.id),
     );
     setExclusao(null);
+    setMotivoExclusao("");
     setVisualizado(null);
   };
 
@@ -751,15 +841,15 @@ function QuadroAutorizadoLista() {
     {
       field: "pendentesAto",
       header: (
-        <SpecArea metadata={quadroColumnSpecifications["Pendentes de ato"]}>
-          <span>Pendentes de ato</span>
+        <SpecArea metadata={quadroColumnSpecifications["Pendente de distribuição"]}>
+          <span>Pendente de distribuição</span>
         </SpecArea>
       ),
       sortable: true,
       body: (item) =>
         celulaComEspecificacao(
           item,
-          quadroColumnSpecifications["Pendentes de ato"],
+          quadroColumnSpecifications["Pendente de distribuição"],
           <strong className={item.pendentesAto > 0 ? "is-warning" : ""}>
             {item.pendentesAto}
           </strong>,
@@ -840,49 +930,56 @@ function QuadroAutorizadoLista() {
                     </tr>
                   </thead>
                   <tbody>
-                    {versoesPaginadas.map((versao) => (
-                      <tr key={`${item.codigo}-${versao.versao}`}>
-                        <td>
-                          <strong>Versão {versao.versao}</strong>
-                        </td>
-                        <td>{versao.cargo}</td>
-                        <td>{versao.orgao}</td>
-                        <td>
-                          <span>{versao.vigencia}</span>
-                          <small>Encerrada em {versao.encerradaEm}</small>
-                        </td>
-                        <td>{versao.autorizadas.toLocaleString("pt-BR")}</td>
-                        <td>
-                          <BadgeSeplag
-                            label={versao.evolucao}
-                            color="#075f99"
-                            bg="#e8f5ff"
-                            size="xs"
-                            fontWeight
-                          />
-                        </td>
-                        <td>
-                          <BadgeSeplag
-                            label="Encerrada"
-                            color="#66788a"
-                            bg="#edf1f4"
-                            size="xs"
-                            fontWeight
-                          />
-                        </td>
-                        <td>
-                          <BotaoIconSeplag
-                            type="button"
-                            tooltip={`Visualizar versão ${versao.versao}`}
-                            aria-label={`Visualizar versão ${versao.versao}`}
-                            icon="pi pi-eye"
-                            onClick={() =>
-                              setVersaoVisualizada({ quadro: item, versao })
-                            }
-                          />
-                        </td>
-                      </tr>
-                    ))}
+                    {versoesPaginadas.map((versao) => {
+                      const statusVersao =
+                        versao.statusVigencia ?? "ENCERRADO";
+                      const metaStatus = statusVigenciaMeta[statusVersao];
+                      return (
+                        <tr key={`${item.codigo}-${versao.versao}`}>
+                          <td>
+                            <strong>Versão {versao.versao}</strong>
+                          </td>
+                          <td>{versao.cargo}</td>
+                          <td>{versao.orgao}</td>
+                          <td>
+                            <span>{versao.vigencia}</span>
+                            {versao.encerradaEm && (
+                              <small>Encerrada em {versao.encerradaEm}</small>
+                            )}
+                          </td>
+                          <td>{versao.autorizadas.toLocaleString("pt-BR")}</td>
+                          <td>
+                            <BadgeSeplag
+                              label={versao.evolucao}
+                              color="#075f99"
+                              bg="#e8f5ff"
+                              size="xs"
+                              fontWeight
+                            />
+                          </td>
+                          <td>
+                            <BadgeSeplag
+                              label={metaStatus.label}
+                              color={metaStatus.color}
+                              bg={metaStatus.bg}
+                              size="xs"
+                              fontWeight
+                            />
+                          </td>
+                          <td>
+                            <BotaoIconSeplag
+                              type="button"
+                              tooltip={`Visualizar versão ${versao.versao}`}
+                              aria-label={`Visualizar versão ${versao.versao}`}
+                              icon="pi pi-eye"
+                              onClick={() =>
+                                setVersaoVisualizada({ quadro: item, versao })
+                              }
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -938,7 +1035,10 @@ function QuadroAutorizadoLista() {
             aria-label="Excluir"
             icon="pi pi-trash"
             severity="danger"
-            onClick={() => setExclusao(item)}
+            onClick={() => {
+              setMotivoExclusao("");
+              setExclusao(item);
+            }}
           />
         </SpecArea>
       )}
@@ -998,7 +1098,7 @@ function QuadroAutorizadoLista() {
       businessItems={quadroBusinessItems}
       showViewToggles
     >
-      <div className="prototype-quadro-page">
+      <div className="prototype-quadro-page prototype-quadro-page-current">
         <header className="prototype-quadro-header">
           <SpecArea metadata={quadroScreenSpecification}>
             <div>
@@ -1042,6 +1142,17 @@ function QuadroAutorizadoLista() {
               <div>
                 <span>Disponíveis</span>
                 <strong>{totais.disponiveis.toLocaleString("pt-BR")}</strong>
+              </div>
+            </article>
+          </SpecArea>
+          <SpecArea metadata={quadroKpiSpecifications["Pendente de distribuição"]}>
+            <article className="is-pending-distribution">
+              <i className="pi pi-clock" />
+              <div>
+                <span>Pendente de distribuição</span>
+                <strong>
+                  {totais.pendentesDistribuicao.toLocaleString("pt-BR")}
+                </strong>
               </div>
             </article>
           </SpecArea>
@@ -1192,9 +1303,29 @@ function QuadroAutorizadoLista() {
               ? `Deseja realmente excluir ${exclusao.codigo}? Esta autorização ainda não entrou em vigência.`
               : undefined
           }
-          onCancel={() => setExclusao(null)}
+          onCancel={() => {
+            setExclusao(null);
+            setMotivoExclusao("");
+          }}
           onConfirm={confirmarExclusao}
-        />
+          confirmDisabled={!motivoExclusao.trim()}
+        >
+          <label className="prototype-quadro-delete-reason">
+            <span>
+              Motivo da exclusão <em>*</em>
+            </span>
+            <textarea
+              value={motivoExclusao}
+              onChange={(event) => setMotivoExclusao(event.target.value)}
+              rows={3}
+              maxLength={500}
+              required
+              autoFocus
+              placeholder="Informe o motivo da exclusão"
+            />
+            <small>{motivoExclusao.length}/500 caracteres</small>
+          </label>
+        </ModalDeleteSeplag>
         {visualizado && (
           <QuadroAutorizadoModal
             registro={visualizado}
@@ -1297,6 +1428,8 @@ function HistoricoVersaoModal({
   versao: VersaoAnteriorQuadro;
   onClose: () => void;
 }) {
+  const statusVersao = versao.statusVigencia ?? "ENCERRADO";
+  const metaStatus = statusVigenciaMeta[statusVersao];
   return (
     <ModalSeplag
       visible
@@ -1317,9 +1450,9 @@ function HistoricoVersaoModal({
       <div className="col-12 prototype-quadro-version-modal">
         <div className="prototype-quadro-version-modal-status">
           <BadgeSeplag
-            label="Encerrada"
-            color="#66788a"
-            bg="#edf1f4"
+            label={metaStatus.label}
+            color={metaStatus.color}
+            bg={metaStatus.bg}
             fontWeight
           />
           <strong>
@@ -1339,10 +1472,12 @@ function HistoricoVersaoModal({
             <dt>Vigência</dt>
             <dd>{versao.vigencia}</dd>
           </div>
-          <div>
-            <dt>Encerrada em</dt>
-            <dd>{versao.encerradaEm}</dd>
-          </div>
+          {versao.encerradaEm && (
+            <div>
+              <dt>Encerrada em</dt>
+              <dd>{versao.encerradaEm}</dd>
+            </div>
+          )}
           <div>
             <dt>Evolução</dt>
             <dd>{versao.evolucao}</dd>
@@ -1447,15 +1582,11 @@ function QuadroAutorizadoModal({
           </dl>
         </section>
         <section>
-          <h3>Abrangência e quantitativo</h3>
+          <h3>Destinação e quantitativos</h3>
           <dl>
             <div>
               <dt>Destinação legal</dt>
               <dd>{resumoOrgaos(registro)}</dd>
-            </div>
-            <div>
-              <dt>Abrangência</dt>
-              <dd>{registro.abrangencia}</dd>
             </div>
             <div>
               <dt>Autorizadas</dt>

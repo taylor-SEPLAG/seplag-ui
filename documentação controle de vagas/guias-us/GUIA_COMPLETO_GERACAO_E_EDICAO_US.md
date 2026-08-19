@@ -230,15 +230,21 @@ Descrever o efeito real de cada botão. Se a ação apenas navega para outra tel
 
 Preservar `RN001`, `RN002` etc. As regras devem ser independentes do layout e escritas de forma verificável.
 
+As regras de negócio devem ser apresentadas em tabela com exatamente duas colunas:
+
+```text
+Nº | Descrição da regra
+```
+
+Cada regra deve ocupar uma linha, com o identificador na coluna `Nº` e a descrição completa na coluna `Descrição da regra`. Não gerar regras como lista solta no formato `RN001 - ...`, salvo solicitação explícita do usuário.
+
 Exemplos:
 
-- a composição deve usar uma única posição consolidada;
-- todos os valores devem respeitar os filtros;
-- vagas extintas não entram no total legal vigente;
-- ocupada exige ocupação nominal ativa;
-- vaga comprometida continua disponível até o evento definitivo;
-- processo de disponibilização não libera a vaga antes da conclusão;
-- a tela não altera registros de origem.
+| Nº | Descrição da regra |
+|---|---|
+| RN001 | A composição deve usar uma única posição consolidada. |
+| RN002 | Todos os valores devem respeitar os filtros. |
+| RN003 | Vagas extintas não entram no total legal vigente. |
 
 ## 15. Protótipo
 

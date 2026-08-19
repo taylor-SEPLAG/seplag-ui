@@ -2417,3 +2417,151 @@
   font-weight: 700;
   line-height: 1.3;
 }
+
+/* KPIs da tela vigente no mesmo padrão visual de Vagas Individualizadas. */
+.prototype-quadro-page-current .prototype-quadro-kpis {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis article {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  border: 1px solid #dce3ee;
+  border-top: 3px solid #287dc2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis article > i {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 8px;
+  background: #e9f4fc;
+  color: #1470b8;
+  font-size: 1.1rem;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis article > div {
+  min-width: 0;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis span {
+  color: #68748a;
+  font-size: 0.79rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis strong {
+  margin-top: 0;
+  color: #111827;
+  font-size: 1.4rem;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis > :nth-child(1) article {
+  border-color: #dce3ee;
+  border-top-color: #287dc2;
+  background: #fff;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis > :nth-child(2) article {
+  border-color: #dce3ee;
+  border-top-color: #6356bd;
+  background: #fff;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis > :nth-child(2) article > i {
+  background: #eeebff;
+  color: #5c50af;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis > :nth-child(3) article {
+  border-color: #dce3ee;
+  border-top-color: #d88b17;
+  background: #fff;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis > :nth-child(3) article > i {
+  background: #fff3dc;
+  color: #bd7410;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis > :nth-child(4) article {
+  border-color: #dce3ee;
+  border-top-color: #27966a;
+  background: #fff;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis > :nth-child(4) article > i {
+  background: #e5f6ee;
+  color: #23875f;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis > :nth-child(5) article {
+  border-color: #dce3ee;
+  border-top-color: #d88b17;
+  background: #fff;
+}
+
+.prototype-quadro-page-current .prototype-quadro-kpis > :nth-child(5) article > i {
+  background: #fff3dc;
+  color: #bd7410;
+}
+
+@media (max-width: 900px) {
+  .prototype-quadro-page-current .prototype-quadro-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .prototype-quadro-page-current .prototype-quadro-kpis {
+    grid-template-columns: 1fr;
+  }
+}
+.prototype-quadro-delete-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.prototype-quadro-delete-reason > span {
+  color: #344054;
+  font-weight: 600;
+}
+
+.prototype-quadro-delete-reason em {
+  color: #d92d20;
+  font-style: normal;
+}
+
+.prototype-quadro-delete-reason textarea {
+  width: 100%;
+  min-height: 5.5rem;
+  padding: 0.75rem;
+  resize: vertical;
+  border: 1px solid #98a2b3;
+  border-radius: 4px;
+  color: #344054;
+  font: inherit;
+}
+
+.prototype-quadro-delete-reason textarea:focus {
+  border-color: #1570ef;
+  outline: 2px solid rgb(21 112 239 / 20%);
+  outline-offset: 1px;
+}
+
+.prototype-quadro-delete-reason small {
+  align-self: flex-end;
+  color: #667085;
+}

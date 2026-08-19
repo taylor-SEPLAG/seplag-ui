@@ -3,7 +3,16 @@ export interface RegraEvento { id:number; evento:string; origem:string; impacto:
 export type TipoQuadroLegal = "Efetivo" | "Comissionado";
 export type SituacaoQuadro = "Vigente"|"Vigência futura"|"Encerrada";
 export type FormaDestinacaoLegal = "DISTRIBUICAO_POSTERIOR" | "DEFINIDA_NA_LEI";
-export type EvolucaoQuadroLegal = "Ampliação legal" | "Redução legal" | "Transformação" | "Transformação origem" | "Transformação destino" | "Extinção progressiva" | "Distribuição" | "Redistribuição";
+export type EvolucaoQuadroLegal =
+  | "Criação"
+  | "Ampliação"
+  | "Redução"
+  | "Transformação - Origem"
+  | "Transformação - Destino"
+  | "Extinção progressiva"
+  | "Distribuição"
+  | "Redistribuição - Origem"
+  | "Redistribuição - Destino";
 export interface QuantitativoLegalOrgao { readonly orgao:string; readonly quantidade:number; }
 export interface QuadroAutorizadoRow { id:number; codigo:string; tipoQuadro:TipoQuadroLegal; vinculo:string; regime:string; carreira:string; cargo:string; perfilProfissional:string; orgao:string; abrangencia:string; formaDestinacaoLegal?:FormaDestinacaoLegal; orgaosDefinidosLei?:readonly string[]; quantitativosLegaisPorOrgao?:readonly QuantitativoLegalOrgao[]; documentosLegaisIds?:readonly string[]; situacaoVigencia?: "ATIVO"|"ENCERRADO"|"EXTINTO"; dataAtivacao?:string; dataEncerramento?:string; motivoEncerramento?:string; dataExtincao?:string; motivoExtincao?:string; extincaoProgressivaEmAndamento?:boolean; dataInicioExtincaoProgressiva?:string; evolucaoLegal?:EvolucaoQuadroLegal; autorizadas:number; ocupadas:number; comprometidas:number; bloqueadas:number; inicioVigencia:string; fimVigencia:string; ato:string; processo:string; situacao:SituacaoQuadro; versao:number; atualizadoEm:string; }
 
@@ -13,7 +22,7 @@ export type SituacaoLegalVaga = "REGULAR" | "DECISAO_JUDICIAL" | "EM_EXTINCAO" |
 export type TipoEventoHistoricoVaga = "CRIACAO" | "ALTERACAO_ESTADO" | "ALTERACAO_LEGAL" | "DISTRIBUICAO" | "CORRECAO";
 export interface HistoricoVaga { readonly id:string; readonly vagaId:string; readonly ocorridoEm:string; readonly dataEfeito:string; readonly tipo:TipoEventoHistoricoVaga; readonly titulo:string; readonly descricao:string; readonly estadoAnterior?:EstadoVaga; readonly estadoPosterior?:EstadoVaga; readonly situacaoLegalAnterior?:SituacaoLegalVaga; readonly situacaoLegalPosterior?:SituacaoLegalVaga; readonly origem:string; readonly usuario:string; readonly processo?:string; }
 export type SituacaoDistribuicaoVaga = "PENDENTE_ATO" | "DISTRIBUIDA";
-export interface Vaga { readonly id:string; readonly sequencial:number; readonly quadroAutorizadoId:number; readonly quadroCodigo:string; readonly tipo:TipoVagaLegal; readonly lei:string; readonly carreira:string; readonly cargo:string; readonly perfilProfissional:string; readonly orgaoTitular:string; readonly destinacaoPrevistaLei:string; readonly orgaoDistribuicaoInicial?:string; readonly atoDistribuicaoInicial?:string; readonly inicioVigenciaDistribuicao?:string; readonly criadaEm:string; readonly inicioVigencia:string; estado:EstadoVaga; situacaoLegal:SituacaoLegalVaga; readonly historico:readonly HistoricoVaga[]; }
+export interface Vaga { readonly id:string; readonly nome?:string; readonly sequencial:number; readonly quadroAutorizadoId:number; readonly quadroCodigo:string; readonly tipo:TipoVagaLegal; readonly lei:string; readonly carreira:string; readonly cargo:string; readonly perfilProfissional:string; readonly orgaoTitular:string; readonly destinacaoPrevistaLei:string; readonly orgaoDistribuicaoInicial?:string; readonly atoDistribuicaoInicial?:string; readonly inicioVigenciaDistribuicao?:string; readonly criadaEm:string; readonly inicioVigencia:string; estado:EstadoVaga; situacaoLegal:SituacaoLegalVaga; readonly historico:readonly HistoricoVaga[]; }
 export type NaturezaComprometimento = "OCUPACAO" | "DISPONIBILIZACAO";
 export type SituacaoComprometimento = "ATIVO" | "CONCLUIDO" | "CANCELADO";
 export type SituacaoFaseComprometimento = "PENDENTE" | "EM_ANDAMENTO" | "CONCLUIDA" | "CANCELADA";

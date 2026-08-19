@@ -1,11 +1,12 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useForm } from "react-hook-form";
+import { Paginator } from "primereact/paginator";
 import { Dropdown } from "primereact/dropdown";
 import {
   controleVagasStore,
   useControleVagasStore,
 } from "./controleVagasStore";
-import type { QuadroAutorizadoRow } from "./types";
+import type { EvolucaoQuadroLegal, QuadroAutorizadoRow } from "./types";
 import {
   aplicarAlteracaoQuadroLegal,
   type TipoAlteracaoQuadroLegal,
@@ -26,6 +27,7 @@ import {
   TextFieldSeplag,
 } from "../../componentes/Fields";
 import { MensagemSeplag } from "../../componentes/Mensagem";
+import { ModalSeplag } from "../../componentes/Modal";
 import {
   calcularPosicaoVaga,
   registrarMovimentoVaga,
@@ -69,6 +71,15 @@ const tiposAlteracaoDisponiveis: TipoAlteracaoQuadroLegal[] = [
   "DISTRIBUICAO",
   "REDISTRIBUICAO",
 ];
+const evolucaoDoVersionamento = (
+  tipo: TipoAlteracaoQuadroLegal,
+): EvolucaoQuadroLegal | undefined => {
+  if (tipo === "AMPLIACAO") return "Ampliação";
+  if (tipo === "REDUCAO") return "Redução";
+  if (tipo === "EXTINCAO_PROGRESSIVA") return "Extinção progressiva";
+  if (tipo === "DISTRIBUICAO") return "Distribuição";
+  return undefined;
+};
 interface DestinacaoVersionamento {
   id: number;
   orgao: string;
@@ -175,6 +186,7 @@ export function QuadroLegalOperacoes({
   > | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false);
+  const [primeiraVagaImpactada, setPrimeiraVagaImpactada] = useState(0);
   const [reducaoPorOrgao, setReducaoPorOrgao] = useState<Record<string, number>>({});
   const [transformacaoPorOrgao, setTransformacaoPorOrgao] = useState<Record<string, number>>({});
   const [destinacoesDistribuicao, setDestinacoesDistribuicao] = useState<DestinacaoVersionamento[]>([
@@ -184,6 +196,58 @@ export function QuadroLegalOperacoes({
   const [erroDistribuicao, setErroDistribuicao] = useState("");
   const [redistribuicaoSimulada, setRedistribuicaoSimulada] = useState(false);
   const [erroRedistribuicao, setErroRedistribuicao] = useState("");
+  const [agendamentoConfirmadoId, setAgendamentoConfirmadoId] = useState<number | null>(null);
+
+  const versoesAgendadas = useMemo(
+    () =>
+      quadros
+        .filter(
+          (quadro) =>
+            quadro.codigo === registro.codigo &&
+            quadro.id !== registro.id &&
+            quadro.situacao !== "Encerrada" &&
+            quadro.situacaoVigencia !== "ENCERRADO" &&
+            quadro.situacaoVigencia !== "EXTINTO" &&
+            (quadro.situacao === "Vigência futura" ||
+              Boolean(quadro.dataAtivacao && quadro.dataAtivacao > hoje)),
+        )
+        .sort((a, b) => b.versao - a.versao),
+    [hoje, quadros, registro.codigo, registro.id],
+  );
+  const versaoAgendada = versoesAgendadas[0];
+  const proximaVersao = Math.max(
+    registro.versao,
+    ...quadros
+      .filter((quadro) => quadro.codigo === registro.codigo)
+      .map((quadro) => quadro.versao),
+  ) + 1;
+  const substituirVersaoAgendada = (itens: QuadroAutorizadoRow[]) =>
+    versoesAgendadas.length
+      ? itens.map((item) =>
+          versoesAgendadas.some((agendada) => agendada.id === item.id)
+            ? {
+                ...item,
+                situacao: "Encerrada" as const,
+                situacaoVigencia: "ENCERRADO" as const,
+                dataEncerramento: hoje,
+                fimVigencia: hoje.split("-").reverse().join("/"),
+                motivoEncerramento:
+                  "Versão agendada substituída por novo versionamento.",
+              }
+            : item,
+        )
+      : itens;
+  const dataVersaoAgendada =
+    versaoAgendada?.dataAtivacao?.split("-").reverse().join("/") ||
+    versaoAgendada?.inicioVigencia ||
+    "";
+  const mensagemSubstituicaoAgendada =
+    versoesAgendadas.length > 1
+      ? `Já existem ${versoesAgendadas.length} versões agendadas para este quadro. Se você continuar, esses agendamentos serão substituídos pela nova versão.`
+      : `Já existe a versão ${versaoAgendada?.versao} agendada para ${dataVersaoAgendada}. Se você continuar, esse agendamento será substituído pela nova versão.`;
+  const deveConfirmarSubstituicao =
+    Boolean(versaoAgendada) &&
+    agendamentoConfirmadoId !== versaoAgendada?.id;
 
   const orgaosAtuais = useMemo(() => {
     if (registro.orgaosDefinidosLei?.length) return [...registro.orgaosDefinidosLei];
@@ -295,7 +359,7 @@ export function QuadroLegalOperacoes({
     [idsVagasComprometidas, vagasOriginais],
   );
   const extincaoJaIniciada = tipo === "EXTINCAO_PROGRESSIVA" && Boolean(registro.extincaoProgressivaEmAndamento);
-  const extincaoInvalida = tipo === "EXTINCAO_PROGRESSIVA" && (extincaoJaIniciada || vagasComprometidasAtivas.length > 0);
+  const extincaoInvalida = tipo === "EXTINCAO_PROGRESSIVA" && extincaoJaIniciada;
   const alteracaoSomenteOrgao = tipo === "INCLUSAO_ORGAO" || tipo === "EXCLUSAO_ORGAO";
   const resumoOrgaoExclusao = useMemo(() => {
     const grupo = vagasPorOrgao.find((item) => item.orgao === orgaoAlteracao);
@@ -434,6 +498,10 @@ export function QuadroLegalOperacoes({
     vagasElegiveisRedistribuicaoPorOrgao.find((grupo) => grupo.orgao === orgaoOrigemRedistribuicao)?.vagas ?? [];
   const vagasSelecionadasRedistribuicao = vagasElegiveisRedistribuicao.slice(0, quantidadeRedistribuicaoInformada);
   const saldoRedistribuicao = Math.max(0, vagasElegiveisRedistribuicao.length - quantidadeRedistribuicaoInformada);
+  const saldoDestinoRedistribuicaoAtual = vagasOriginais.filter((vaga) => {
+    if (vaga.situacaoLegal === "EXTINTA") return false;
+    return calcularPosicaoVaga(vaga, movimentos, dataEfeito || hoje).orgaoDistribuicao === orgaoDestinoRedistribuicao;
+  }).length;
   const operacaoDistribuicaoInvalida =
     tipo === "DISTRIBUICAO" &&
     (!distribuicaoSimulada ||
@@ -451,6 +519,29 @@ export function QuadroLegalOperacoes({
     exclusaoOrgaoBloqueada ||
     operacaoDistribuicaoInvalida ||
     operacaoRedistribuicaoInvalida;
+  const camposComunsIncompletos =
+    documentosLegaisIds.length === 0 ||
+    !processo.trim() ||
+    !dataEfeito;
+  const camposObrigatoriosIncompletos =
+    camposComunsIncompletos ||
+    (tipo === "AMPLIACAO" &&
+      (!Number.isInteger(Number(quantidade)) || Number(quantidade) < 1)) ||
+    (tipo === "REDUCAO" &&
+      (totalSolicitadoReducao < 1 || reducaoInvalida)) ||
+    (tipo === "TRANSFORMACAO" && transformacaoInvalida) ||
+    (tipo === "EXTINCAO_PROGRESSIVA" && extincaoInvalida) ||
+    (tipo === "DISTRIBUICAO" &&
+      (destinacoesDistribuicaoInformadas.length === 0 ||
+        destinacoesDistribuicaoInformadas.length !== destinacoesDistribuicao.length ||
+        totalDistribuicaoInformado < 1 ||
+        excedenteDistribuicao > 0)) ||
+    (tipo === "REDISTRIBUICAO" &&
+      (!orgaoOrigemRedistribuicao ||
+        !orgaoDestinoRedistribuicao ||
+        orgaoOrigemRedistribuicao === orgaoDestinoRedistribuicao ||
+        quantidadeRedistribuicaoInformada < 1 ||
+        quantidadeRedistribuicaoInformada > vagasElegiveisRedistribuicao.length));
 
   const resetarDistribuicao = () => {
     setDistribuicaoSimulada(false);
@@ -585,6 +676,15 @@ export function QuadroLegalOperacoes({
   const simular = (event: FormEvent) => {
     event.preventDefault();
     setSalvo(false);
+    setPrimeiraVagaImpactada(0);
+    if (camposObrigatoriosIncompletos) {
+      setResultado(null);
+      setDistribuicaoSimulada(false);
+      setRedistribuicaoSimulada(false);
+      setErroDistribuicao("");
+      setErroRedistribuicao("");
+      return;
+    }
     if (tipo === "DISTRIBUICAO") {
       const erro = validarDistribuicao();
       setErroDistribuicao(erro);
@@ -690,24 +790,25 @@ export function QuadroLegalOperacoes({
           loteId,
           quadroAutorizadoId: novoId,
           quadroCodigo: registro.codigo,
-          quadroVersao: registro.versao + 1,
+          quadroVersao: proximaVersao,
         });
       }
       const novaVersao: QuadroAutorizadoRow = {
         ...registro,
         id: novoId,
+        evolucaoLegal: "Distribuição",
         ato: lei,
         processo,
         inicioVigencia: dataBr,
         dataAtivacao: dataEfeito,
         situacao: vigenciaFutura ? "Vigência futura" : "Vigente",
-        versao: registro.versao + 1,
+        versao: proximaVersao,
         atualizadoEm: dataBr,
       };
       controleVagasStore.update((estado) => ({
         ...estado,
         quadros: [
-          ...estado.quadros.map((item) =>
+          ...substituirVersaoAgendada(estado.quadros).map((item) =>
             item.id === registro.id && !vigenciaFutura
               ? { ...item, situacao: "Encerrada" as const }
               : item,
@@ -765,26 +866,31 @@ export function QuadroLegalOperacoes({
           loteId,
           quadroAutorizadoId: novoId,
           quadroCodigo: registro.codigo,
-          quadroVersao: registro.versao + 1,
+          quadroVersao: proximaVersao,
         });
       }
       const novaVersao: QuadroAutorizadoRow = {
         ...registro,
         id: novoId,
+        evolucaoLegal: "Redistribuição - Destino",
         ato: lei,
         processo,
         inicioVigencia: dataBr,
         dataAtivacao: dataEfeito,
         situacao: vigenciaFutura ? "Vigência futura" : "Vigente",
-        versao: registro.versao + 1,
+        versao: proximaVersao,
         atualizadoEm: dataBr,
       };
       controleVagasStore.update((estado) => ({
         ...estado,
         quadros: [
-          ...estado.quadros.map((item) =>
+          ...substituirVersaoAgendada(estado.quadros).map((item) =>
             item.id === registro.id && !vigenciaFutura
-              ? { ...item, situacao: "Encerrada" as const }
+              ? {
+                  ...item,
+                  situacao: "Encerrada" as const,
+                  evolucaoLegal: "Redistribuição - Origem" as const,
+                }
               : item,
           ),
           novaVersao,
@@ -840,9 +946,9 @@ export function QuadroLegalOperacoes({
         inicioVigencia: dataBr,
         dataAtivacao: dataEfeito,
         situacao: vigenciaFutura ? "Vigência futura" : "Vigente",
-        versao: registro.versao + 1,
+        versao: proximaVersao,
         atualizadoEm: dataBr,
-        evolucaoLegal: "Transformação origem",
+        evolucaoLegal: "Transformação - Origem",
       };
       const destinoNovaVersao: QuadroAutorizadoRow = {
         ...quadroDestino,
@@ -857,17 +963,17 @@ export function QuadroLegalOperacoes({
         situacao: vigenciaFutura ? "Vigência futura" : "Vigente",
         versao: quadroDestino.versao + 1,
         atualizadoEm: dataBr,
-        evolucaoLegal: "Transformação destino",
+        evolucaoLegal: "Transformação - Destino",
       };
 
       controleVagasStore.update((estado) => ({
         ...estado,
         quadros: [
-          ...estado.quadros.map((item) =>
+          ...substituirVersaoAgendada(estado.quadros).map((item) =>
             !vigenciaFutura && item.id === registro.id
-              ? { ...item, situacao: "Encerrada" as const, evolucaoLegal: "Transformação origem" as const }
+              ? { ...item, situacao: "Encerrada" as const, evolucaoLegal: "Transformação - Origem" as const }
               : !vigenciaFutura && item.id === quadroDestino.id
-                ? { ...item, situacao: "Encerrada" as const, evolucaoLegal: "Transformação destino" as const }
+                ? { ...item, situacao: "Encerrada" as const, evolucaoLegal: "Transformação - Destino" as const }
               : item,
           ),
           origemNovaVersao,
@@ -903,9 +1009,16 @@ export function QuadroLegalOperacoes({
       const novaVersao: QuadroAutorizadoRow = {
         ...registro,
         id: novoId,
+        evolucaoLegal: evolucaoDoVersionamento(tipo),
         autorizadas: resultado.quantitativoPosterior,
         ocupadas: ocupadasNovaVersao,
-        comprometidas: extincaoProgressiva ? 0 : registro.comprometidas,
+        comprometidas: extincaoProgressiva
+          ? vagasDaNovaVersao.filter(
+              (vaga) =>
+                vaga.situacaoLegal !== "EXTINTA" &&
+                idsVagasComprometidas.has(vaga.id),
+            ).length
+          : registro.comprometidas,
 
         bloqueadas: extincaoProgressiva ? 0 : registro.bloqueadas,
         ato: lei,
@@ -925,7 +1038,7 @@ export function QuadroLegalOperacoes({
         dataInicioExtincaoProgressiva: extincaoProgressiva ? dataEfeito : undefined,
         fimVigencia: extincaoImediata ? dataBr : "",
         situacao: vigenciaFutura ? "Vigência futura" : extincaoProgressiva ? "Encerrada" : "Vigente",
-        versao: registro.versao + 1,
+        versao: proximaVersao,
         atualizadoEm: dataBr,
       };
       if (alteracaoSomenteOrgao) {
@@ -942,7 +1055,7 @@ export function QuadroLegalOperacoes({
       }
       controleVagasStore.update((estado) => ({
         ...estado,
-        quadros: [...estado.quadros.map((item) => item.id === registro.id && !vigenciaFutura ? { ...item, situacao: "Encerrada" as const } : item), novaVersao],
+        quadros: [...substituirVersaoAgendada(estado.quadros).map((item) => item.id === registro.id && !vigenciaFutura ? { ...item, situacao: "Encerrada" as const } : item), novaVersao],
         vagas: vigenciaFutura ? estado.vagas : [...estado.vagas.filter((vaga) => vaga.quadroAutorizadoId !== registro.id), ...vagasDaNovaVersao],
       }));
     }
@@ -955,6 +1068,15 @@ export function QuadroLegalOperacoes({
     : tipo === "TRANSFORMACAO"
       ? resultado?.alteradas.length ?? 0
       : (resultado?.criadas.length ?? 0) + (resultado?.alteradas.length ?? 0);
+  const vagasImpactadas = resultado
+    ? tipo === "TRANSFORMACAO"
+      ? resultado.criadas
+      : [...resultado.criadas, ...resultado.alteradas]
+    : [];
+  const vagasImpactadasExibidas =
+    tipo === "AMPLIACAO" || tipo === "REDUCAO" || tipo === "TRANSFORMACAO"
+      ? vagasImpactadas.slice(primeiraVagaImpactada, primeiraVagaImpactada + 10)
+      : vagasImpactadas.slice(0, 8);
   const orgaosResultantes = tipo === "INCLUSAO_ORGAO"
     ? [...new Set([...orgaosAtuais, orgaoAlteracao].filter(Boolean))]
     : tipo === "EXCLUSAO_ORGAO"
@@ -963,6 +1085,34 @@ export function QuadroLegalOperacoes({
 
   return (
     <section className="prototype-legal-card">
+      {versaoAgendada && (
+        <ModalSeplag
+          visible={deveConfirmarSubstituicao}
+          titulo="Versão agendada existente"
+          fechar={() => onSaved?.()}
+          labelFechar="Cancelar"
+          iconFechar="pi pi-times"
+          labelAcao="Continuar"
+          iconAcao="pi pi-check"
+          funcAcao={() => setAgendamentoConfirmadoId(versaoAgendada.id)}
+          tamanho="min(34rem, 94vw)"
+          ariaLabel="Confirmação de substituição de versão agendada"
+          closeOnEscape={false}
+        >
+          <div className="col-12">
+            <MensagemSeplag
+              severity="warning"
+              message={mensagemSubstituicaoAgendada}
+            />
+          </div>
+        </ModalSeplag>
+      )}
+      {versaoAgendada && (
+        <MensagemSeplag
+          severity="warning"
+          message={mensagemSubstituicaoAgendada}
+        />
+      )}
 <form onSubmit={simular}>
         <section className="prototype-legal-version-context">
           <span>Quadro que será versionado</span>
@@ -1371,8 +1521,8 @@ export function QuadroLegalOperacoes({
             </div>
             {quadroDestino ? (
               <div className="prototype-legal-transformation-target">
-                <span>Destino</span>
-                <strong>{quadroDestino.codigo} · {quadroDestino.cargo}</strong>
+                <span>Origem das vagas</span>
+                <strong>{registro.codigo} · {registro.cargo}</strong>
               </div>
             ) : (
               <MensagemSeplag severity="info" message="Selecione o Quadro Autorizado de destino para informar as quantidades por órgão." />
@@ -1414,8 +1564,8 @@ export function QuadroLegalOperacoes({
             />
             {vagasComprometidasAtivas.length > 0 && (
               <MensagemSeplag
-                severity="error"
-                message={`${vagasComprometidasAtivas.length} vaga(s) possui(em) comprometimento ativo. Trate esses processos antes de registrar a extinção progressiva.`}
+                severity="warning"
+                message={`${vagasComprometidasAtivas.length} vaga(s) possui(em) comprometimento ativo e permanecerá(ão) controlada(s) até a conclusão dos respectivos processos.`}
               />
             )}
             {extincaoJaIniciada && (
@@ -1555,27 +1705,12 @@ export function QuadroLegalOperacoes({
             </small>
           </section>
         )}
-        {tipo === "TRANSFORMACAO" && quadroDestino && (
-          <section className="prototype-legal-destination-preview">
-            <header><span>Quadro de destino selecionado</span><strong>{quadroDestino.codigo} · versão {quadroDestino.versao}</strong></header>
-            <div>
-              <article><span>Cargo</span><strong>{quadroDestino.cargo}</strong></article>
-              <article><span>Autorizadas</span><strong>{quadroDestino.autorizadas}</strong></article>
-              <article><span>Ocupadas</span><strong>{quadroDestino.ocupadas}</strong></article>
-              <article><span>Comprometidas</span><strong>{quadroDestino.comprometidas}</strong></article>
-              <article><span>Último sequencial</span><strong>{Math.max(0, ...vagasDestino.map((vaga) => vaga.sequencial))}</strong></article>
-            </div>
-          </section>
-        )}        <div className="prototype-legal-simulate-action">
+        <div className="prototype-legal-simulate-action">
           <BotaoSeplag
             type="submit"
             label={tipo === "DISTRIBUICAO" ? "Simular distribuição" : tipo === "REDISTRIBUICAO" ? "Simular redistribuição" : "Simular impacto legal"}
             icon={tipo === "DISTRIBUICAO" || tipo === "REDISTRIBUICAO" ? "pi pi-check" : "pi pi-calculator"}
-            disabled={
-              tipo === "DISTRIBUICAO"
-                ? totalDistribuicaoInformado < 1 || excedenteDistribuicao > 0
-                : tipo !== "REDISTRIBUICAO" && operacaoInvalida
-            }
+            disabled={camposObrigatoriosIncompletos}
           />
         </div>
       </form>
@@ -1593,6 +1728,13 @@ export function QuadroLegalOperacoes({
             </div>
             <span className="ok">Consistente</span>
           </header>
+          <section className="prototype-legal-transformation-balance">
+            <article><span>Quadro vigente</span><strong>{registro.codigo} · versão {registro.versao}</strong></article>
+            <article><span>Quadro resultante</span><strong>{registro.codigo} · versão {proximaVersao}</strong></article>
+            <article><span>Data de efeito</span><strong>{dataEfeito.split("-").reverse().join("/")}</strong></article>
+            <article><span>Situação resultante</span><strong>{dataEfeito > hoje ? "Agendado" : "Ativo"}</strong></article>
+            <article><span>Evolução registrada</span><strong>Distribuição</strong></article>
+          </section>
           <div className="prototype-legal-result-kpis">
             <article>
               <span>Vagas elegíveis</span>
@@ -1654,6 +1796,12 @@ export function QuadroLegalOperacoes({
             </div>
             <span className="ok">Consistente</span>
           </header>
+          <section className="prototype-legal-transformation-balance">
+            <article><span>Quadro vigente</span><strong>{registro.codigo} · versão {registro.versao}</strong></article>
+            <article><span>Quadro resultante</span><strong>{registro.codigo} · versão {proximaVersao}</strong></article>
+            <article><span>Data de efeito</span><strong>{dataEfeito.split("-").reverse().join("/")}</strong></article>
+            <article><span>Situação resultante</span><strong>{dataEfeito > hoje ? "Agendado" : "Ativo"}</strong></article>
+          </section>
           <div className="prototype-legal-result-kpis">
             <article>
               <span>Vagas elegíveis</span>
@@ -1691,6 +1839,18 @@ export function QuadroLegalOperacoes({
                 <span>Saldo na origem</span>
                 <strong>{saldoRedistribuicao}</strong>
               </article>
+              <article>
+                <span>Saldo anterior no destino</span>
+                <strong>{saldoDestinoRedistribuicaoAtual}</strong>
+              </article>
+              <article>
+                <span>Saldo resultante no destino</span>
+                <strong>{saldoDestinoRedistribuicaoAtual + quantidadeRedistribuicaoInformada}</strong>
+              </article>
+              <article>
+                <span>Evoluções registradas</span>
+                <strong>Redistribuição - Origem · Redistribuição - Destino</strong>
+              </article>
             </div>
             <ul>
               {vagasSelecionadasRedistribuicao.slice(0, 10).map((vaga) => (
@@ -1724,24 +1884,49 @@ export function QuadroLegalOperacoes({
               {resultado.alertas.length ? "Requer atenção" : "Consistente"}
             </span>
           </header>
-          <div className="prototype-legal-result-kpis">
-            <article>
-              <span>Quadro anterior</span>
-              <strong>{resultado.quantitativoAnterior}</strong>
-            </article>
-            <article>
-              <span>{tipo === "TRANSFORMACAO" ? "Origem resultante" : "Quadro resultante"}</span>
-              <strong>{resultado.quantitativoPosterior}</strong>
-            </article>
-            <article>
-              <span>Vagas geradas</span>
-              <strong>{resultado.criadas.length}</strong>
-            </article>
-            <article>
-              <span>Vagas afetadas</span>
-              <strong>{resultado.alteradas.length}</strong>
-            </article>
-          </div>
+          <section className="prototype-legal-transformation-balance">
+            {tipo === "AMPLIACAO" || tipo === "REDUCAO" ? (
+              <article><span>Versionamento do quadro</span><strong>{registro.codigo} · versão {registro.versao} → versão {proximaVersao}</strong></article>
+            ) : tipo !== "TRANSFORMACAO" ? (
+              <>
+                <article><span>Quadro vigente</span><strong>{registro.codigo} · versão {registro.versao}</strong></article>
+                <article><span>Quadro resultante</span><strong>{registro.codigo} · versão {proximaVersao}</strong></article>
+              </>
+            ) : null}
+            <article><span>Data de efeito</span><strong>{dataEfeito.split("-").reverse().join("/")}</strong></article>
+            <article><span>Situação resultante</span><strong>{dataEfeito > hoje ? "Agendado" : tipo === "EXTINCAO_PROGRESSIVA" && resultado.quantitativoPosterior > 0 ? "Encerrado" : tipo === "EXTINCAO_PROGRESSIVA" ? "Extinto" : "Ativo"}</strong></article>
+            {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <article><span>Evolução registrada</span><strong>{rotulos[tipo]}</strong></article>}
+          </section>
+          {tipo !== "TRANSFORMACAO" && <div className="prototype-legal-result-kpis">
+            {tipo === "AMPLIACAO" ? (
+              <>
+                <article><span>Quantidade atual</span><strong>{resultado.quantitativoAnterior}</strong></article>
+                <article><span>Ampliação</span><strong>+{resultado.criadas.length}</strong></article>
+                <article><span>Quantidade resultante</span><strong>{resultado.quantitativoPosterior}</strong></article>
+              </>
+            ) : tipo === "REDUCAO" ? (
+              <>
+                <article><span>Quantidade atual</span><strong>{resultado.quantitativoAnterior}</strong></article>
+                <article><span>Redução</span><strong>-{resultado.alteradas.length}</strong></article>
+                <article><span>Quantidade resultante</span><strong>{resultado.quantitativoPosterior}</strong></article>
+              </>
+            ) : (
+              <>
+                <article><span>Quadro anterior</span><strong>{resultado.quantitativoAnterior}</strong></article>
+                <article><span>{tipo === "TRANSFORMACAO" ? "Origem resultante" : "Quadro resultante"}</span><strong>{resultado.quantitativoPosterior}</strong></article>
+                <article><span>Vagas geradas</span><strong>{resultado.criadas.length}</strong></article>
+                <article><span>Vagas afetadas</span><strong>{resultado.alteradas.length}</strong></article>
+              </>
+            )}
+          </div>}
+          {tipo === "REDUCAO" && (
+            <section className="prototype-legal-transformation-balance">
+              <article><span>Vagas elegíveis para redução</span><strong>{vagasPorOrgao.reduce((total, grupo) => total + grupo.elegiveis.length, 0)}</strong></article>
+              <article><span>Vagas selecionadas</span><strong>{resultado.alteradas.length}</strong></article>
+              <article><span>Ocupadas</span><strong>{resumoQuadro.ocupadas}</strong></article>
+              <article><span>Comprometidas (podem incluir ocupadas)</span><strong>{resumoQuadro.comprometidas}</strong></article>
+            </section>
+          )}
           {alteracaoSomenteOrgao && orgaoAlteracao && (
             <section className="prototype-legal-transformation-balance">
               <article><span>Órgão</span><strong>{orgaoAlteracao}</strong></article>
@@ -1753,16 +1938,21 @@ export function QuadroLegalOperacoes({
           {tipo === "EXTINCAO_PROGRESSIVA" && (
             <section className="prototype-legal-transformation-balance">
               <article><span>Extintas imediatamente</span><strong>{resultado.alteradas.filter((vaga) => vaga.situacaoLegal === "EXTINTA").length}</strong></article>
-              <article><span>Mantidas até a vacância</span><strong>{resultado.alteradas.filter((vaga) => vaga.situacaoLegal === "EM_EXTINCAO").length}</strong></article>
+              <article><span>Ocupadas mantidas até a vacância</span><strong>{resultado.alteradas.filter((vaga) => vaga.situacaoLegal === "EM_EXTINCAO" && vaga.estado === "OCUPADA" && !idsVagasComprometidas.has(vaga.id)).length}</strong></article>
+              <article><span>Comprometidas mantidas até a conclusão</span><strong>{resultado.alteradas.filter((vaga) => vaga.situacaoLegal === "EM_EXTINCAO" && idsVagasComprometidas.has(vaga.id)).length}</strong></article>
+              <article><span>Total remanescente</span><strong>{resultado.quantitativoPosterior}</strong></article>
+              <article><span>Situação resultante</span><strong>{resultado.quantitativoPosterior > 0 ? "Encerrado" : "Extinto"}</strong></article>
               <article><span>Novos ingressos</span><strong>Bloqueados</strong></article>
               <article><span>Encerramento do quadro</span><strong>Após a última vacância</strong></article>
             </section>
           )}          {tipo === "TRANSFORMACAO" && quadroDestino && (
             <section className="prototype-legal-transformation-balance">
-              <article><span>Livres transformadas</span><strong>{resultado.alteradas.filter((vaga) => vaga.estado === "DISPONIVEL").length}</strong></article>
-              <article><span>Ocupadas transformadas</span><strong>{resultado.alteradas.filter((vaga) => vaga.estado === "OCUPADA").length}</strong></article>
-              <article><span>Origem após transformação</span><strong>{resultado.quantitativoPosterior}</strong></article>
-              <article><span>Destino após transformação</span><strong>{quadroDestino.autorizadas + resultado.criadas.length}</strong></article>
+              <article><span>Origem</span><strong>{registro.codigo} · versão {registro.versao} → {proximaVersao}</strong><small>{resultado.quantitativoAnterior} − {resultado.alteradas.length} = {resultado.quantitativoPosterior}</small></article>
+              <article><span>Destino</span><strong>{quadroDestino.codigo} · versão {quadroDestino.versao} → {quadroDestino.versao + 1}</strong><small>{quadroDestino.autorizadas} + {resultado.criadas.length} = {quadroDestino.autorizadas + resultado.criadas.length}</small></article>
+              <article><span>Vagas transformadas</span><strong>{resultado.alteradas.length}</strong></article>
+              <article><span>Livres / Ocupadas</span><strong>{resultado.alteradas.filter((vaga) => vaga.estado === "DISPONIVEL").length} / {resultado.alteradas.filter((vaga) => vaga.estado === "OCUPADA").length}</strong></article>
+              <article><span>Evolução da origem</span><strong>Transformação - Origem</strong></article>
+              <article><span>Evolução do destino</span><strong>Transformação - Destino</strong></article>
             </section>
           )}          {resultado.alertas.map((alerta) => (
             <MensagemSeplag key={alerta} severity="warning" message={alerta} />
@@ -1770,53 +1960,71 @@ export function QuadroLegalOperacoes({
           {tipo === "AMPLIACAO" && resultado.criadas.length > 0 && (
             <MensagemSeplag
               severity="info"
-              message="As novas vagas serão criadas como disponíveis, regulares e pendentes de distribuição. A destinação deverá ser registrada no menu Distribuição."
+              message={`${resultado.criadas.length} vaga(s) será(ão) criada(s) como Pendente(s) de distribuição.`}
+            />
+          )}
+          {tipo === "REDUCAO" && resultado.alteradas.length > 0 && (
+            <MensagemSeplag
+              severity="info"
+              message={`Serão extintas ${resultado.alteradas.length} vaga(s) disponível(is), regular(es) e sem comprometimento, priorizando os maiores sequenciais.`}
             />
           )}
           {quantidadeImpactada > 0 && (
             <div className="prototype-legal-impact-list">
-              <h4>{tipo === "REDUCAO" ? "Vagas reduzidas (do maior para o menor sequencial)" : "Amostra das vagas impactadas"}</h4>
+              <h4>{tipo === "REDUCAO" ? "Vagas que serão extintas" : tipo === "AMPLIACAO" ? "Vagas que serão criadas" : tipo === "TRANSFORMACAO" ? "Vagas que serão transformadas" : "Amostra das vagas impactadas"}</h4>
               <table>
                 <thead>
                   <tr>
                     <th>Sequencial</th>
-                    <th>Identificador</th>
-                    <th>Efeito</th>
-                    <th>Estado</th>
-                    <th>Situação legal</th>
-                    {tipo === "AMPLIACAO" && <th>Distribuição</th>}
+                    {tipo === "TRANSFORMACAO" ? <><th>Nome atual</th><th>Nome resultante</th><th>Condição</th></> : <th>Nome da vaga</th>}
+                    {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <th>Efeito</th>}
+                    {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <th>Estado</th>}
+                    {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <th>Situação legal</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {(tipo === "TRANSFORMACAO" ? resultado.criadas : [...resultado.criadas, ...resultado.alteradas])
-                    .slice(0, tipo === "REDUCAO" ? resultado.alteradas.length : 8)
-                    .map((vaga, indice) => (
+                  {vagasImpactadasExibidas.map((vaga) => (
                       <tr key={vaga.id + "-" + vaga.situacaoLegal}>
                         <td><strong>{vaga.sequencial}</strong></td>
-                        <td>
-                          <strong>{vaga.id}</strong>
-                        </td>
-                        <td>
+                        {tipo === "TRANSFORMACAO" ? (
+                          <>
+                            <td><strong>{resultado.alteradas.find((origem) => origem.id === vaga.id)?.nome ?? resultado.alteradas.find((origem) => origem.id === vaga.id)?.id.replace(/^VAG-/, "")}</strong></td>
+                            <td><strong>{vaga.nome ?? "Ainda não atribuído"}</strong></td>
+                            <td>{vaga.estado === "OCUPADA" ? "Ocupada" : "Disponível"}</td>
+                          </>
+                        ) : <td><strong>{vaga.nome ?? "Ainda não atribuído"}</strong></td>}
+                        {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <td>
                           {tipo === "TRANSFORMACAO"
                             ? vaga.estado === "OCUPADA" ? "Ocupada transformada para o quadro de destino" : "Disponível transformada para o quadro de destino"
                             : resultado.criadas.some((item) => item.id === vaga.id)
                               ? "Nova vaga numerada"
                               : "Atualização preservando o código"}
-                        </td>
-                        <td>
+                        </td>}
+                        {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <td>
                           {vaga.estado === "DISPONIVEL"
                             ? "Disponível"
                             : "Ocupada"}
-                        </td>
-                        <td>{vaga.situacaoLegal.replaceAll("_", " ")}</td>
-                        {tipo === "AMPLIACAO" && (
-                          <td>Pendente de distribuição</td>
-                        )}
+                        </td>}
+                        {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <td>{vaga.situacaoLegal.replaceAll("_", " ")}</td>}
                       </tr>
                     ))}
                 </tbody>
               </table>
-              {quantidadeImpactada > 8 && (
+              {(tipo === "AMPLIACAO" || tipo === "REDUCAO" || tipo === "TRANSFORMACAO") && (
+                <small>{quantidadeImpactada} {quantidadeImpactada === 1 ? "vaga encontrada" : "vagas encontradas"}.</small>
+              )}
+              {(tipo === "AMPLIACAO" || tipo === "REDUCAO" || tipo === "TRANSFORMACAO") && quantidadeImpactada > 10 && (
+                <footer className="prototype-quadro-version-pagination">
+                  <Paginator
+                    first={primeiraVagaImpactada}
+                    rows={10}
+                    totalRecords={quantidadeImpactada}
+                    template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+                    onPageChange={(event) => setPrimeiraVagaImpactada(event.first)}
+                  />
+                </footer>
+              )}
+              {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && quantidadeImpactada > 8 && (
                 <small>
                   Mais {quantidadeImpactada - 8} vaga(s) receberiam o mesmo
                   tratamento.
@@ -1867,7 +2075,7 @@ export function QuadroLegalOperacoes({
             <dl>
               <div>
                 <dt>Nova versão</dt>
-                <dd>Versão {registro.versao + 1}</dd>
+                <dd>Versão {proximaVersao}</dd>
               </div>
               <div>
                 <dt>Operação</dt>
@@ -1932,6 +2140,12 @@ export function QuadroLegalOperacoes({
                 </dd>
               </div>
             </dl>
+            {versaoAgendada && (
+              <MensagemSeplag
+                severity="warning"
+                message={`A versão ${versaoAgendada.versao}, agendada para ${dataVersaoAgendada}, será substituída. A nova versão ficará ${dataEfeito > hoje ? "Agendada" : "Ativa"}.`}
+              />
+            )}
             <footer>
               <button type="button" onClick={() => setConfirmacaoAberta(false)}>
                 Cancelar
@@ -1941,7 +2155,7 @@ export function QuadroLegalOperacoes({
                 className="is-primary"
                 onClick={registrarNovaVersao}
               >
-                <i className="pi pi-check" /> Confirmar e registrar
+                <i className="pi pi-check" /> {versaoAgendada ? "Substituir e registrar" : "Confirmar e registrar"}
               </button>
             </footer>
           </section>
