@@ -264,7 +264,8 @@ type VersaoAnteriorQuadro = {
   orgao: string;
   autorizadas: number;
   vigencia: string;
-  encerradaEm: string;
+  encerradaEm?: string;
+  statusVigencia?: StatusOperacionalVigenciaSeplag;
   evolucao: EvolucaoQuadroLegal;
   ato: string;
 };
@@ -290,7 +291,12 @@ const versaoAnteriorDoQuadro = (
   orgao: item.orgao,
   autorizadas: item.autorizadas,
   vigencia: formatarVigenciaVersao(item),
-  encerradaEm: item.dataEncerramento || item.atualizadoEm,
+  encerradaEm:
+    statusVigenciaDoQuadro(item) === "ENCERRADO" ||
+    statusVigenciaDoQuadro(item) === "EXTINTO"
+      ? item.dataEncerramento || item.atualizadoEm
+      : undefined,
+  statusVigencia: statusVigenciaDoQuadro(item),
   evolucao: evolucaoPadraoPorTipo(item),
   ato: item.ato,
 });
@@ -924,49 +930,56 @@ function QuadroAutorizadoLista() {
                     </tr>
                   </thead>
                   <tbody>
-                    {versoesPaginadas.map((versao) => (
-                      <tr key={`${item.codigo}-${versao.versao}`}>
-                        <td>
-                          <strong>Versão {versao.versao}</strong>
-                        </td>
-                        <td>{versao.cargo}</td>
-                        <td>{versao.orgao}</td>
-                        <td>
-                          <span>{versao.vigencia}</span>
-                          <small>Encerrada em {versao.encerradaEm}</small>
-                        </td>
-                        <td>{versao.autorizadas.toLocaleString("pt-BR")}</td>
-                        <td>
-                          <BadgeSeplag
-                            label={versao.evolucao}
-                            color="#075f99"
-                            bg="#e8f5ff"
-                            size="xs"
-                            fontWeight
-                          />
-                        </td>
-                        <td>
-                          <BadgeSeplag
-                            label="Encerrada"
-                            color="#66788a"
-                            bg="#edf1f4"
-                            size="xs"
-                            fontWeight
-                          />
-                        </td>
-                        <td>
-                          <BotaoIconSeplag
-                            type="button"
-                            tooltip={`Visualizar versão ${versao.versao}`}
-                            aria-label={`Visualizar versão ${versao.versao}`}
-                            icon="pi pi-eye"
-                            onClick={() =>
-                              setVersaoVisualizada({ quadro: item, versao })
-                            }
-                          />
-                        </td>
-                      </tr>
-                    ))}
+                    {versoesPaginadas.map((versao) => {
+                      const statusVersao =
+                        versao.statusVigencia ?? "ENCERRADO";
+                      const metaStatus = statusVigenciaMeta[statusVersao];
+                      return (
+                        <tr key={`${item.codigo}-${versao.versao}`}>
+                          <td>
+                            <strong>Versão {versao.versao}</strong>
+                          </td>
+                          <td>{versao.cargo}</td>
+                          <td>{versao.orgao}</td>
+                          <td>
+                            <span>{versao.vigencia}</span>
+                            {versao.encerradaEm && (
+                              <small>Encerrada em {versao.encerradaEm}</small>
+                            )}
+                          </td>
+                          <td>{versao.autorizadas.toLocaleString("pt-BR")}</td>
+                          <td>
+                            <BadgeSeplag
+                              label={versao.evolucao}
+                              color="#075f99"
+                              bg="#e8f5ff"
+                              size="xs"
+                              fontWeight
+                            />
+                          </td>
+                          <td>
+                            <BadgeSeplag
+                              label={metaStatus.label}
+                              color={metaStatus.color}
+                              bg={metaStatus.bg}
+                              size="xs"
+                              fontWeight
+                            />
+                          </td>
+                          <td>
+                            <BotaoIconSeplag
+                              type="button"
+                              tooltip={`Visualizar versão ${versao.versao}`}
+                              aria-label={`Visualizar versão ${versao.versao}`}
+                              icon="pi pi-eye"
+                              onClick={() =>
+                                setVersaoVisualizada({ quadro: item, versao })
+                              }
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1415,6 +1428,8 @@ function HistoricoVersaoModal({
   versao: VersaoAnteriorQuadro;
   onClose: () => void;
 }) {
+  const statusVersao = versao.statusVigencia ?? "ENCERRADO";
+  const metaStatus = statusVigenciaMeta[statusVersao];
   return (
     <ModalSeplag
       visible
@@ -1435,9 +1450,9 @@ function HistoricoVersaoModal({
       <div className="col-12 prototype-quadro-version-modal">
         <div className="prototype-quadro-version-modal-status">
           <BadgeSeplag
-            label="Encerrada"
-            color="#66788a"
-            bg="#edf1f4"
+            label={metaStatus.label}
+            color={metaStatus.color}
+            bg={metaStatus.bg}
             fontWeight
           />
           <strong>
@@ -1457,10 +1472,12 @@ function HistoricoVersaoModal({
             <dt>Vigência</dt>
             <dd>{versao.vigencia}</dd>
           </div>
-          <div>
-            <dt>Encerrada em</dt>
-            <dd>{versao.encerradaEm}</dd>
-          </div>
+          {versao.encerradaEm && (
+            <div>
+              <dt>Encerrada em</dt>
+              <dd>{versao.encerradaEm}</dd>
+            </div>
+          )}
           <div>
             <dt>Evolução</dt>
             <dd>{versao.evolucao}</dd>

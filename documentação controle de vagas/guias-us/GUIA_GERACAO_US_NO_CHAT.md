@@ -162,11 +162,13 @@ As regras devem ser objetivas, rastreáveis e independentes de layout.
 
 Quando o modelo possuir identificadores como `RN001`, `RN002`, `RN003`, eles devem ser preservados. No chat, gerar as regras já com os identificadores.
 
-Formato recomendado:
+As regras de negócio devem ser apresentadas em tabela com exatamente duas colunas:
 
 ```text
-RN001 - [Regra de negócio]
+Nº | Descrição da regra
 ```
+
+Cada linha deve conter o identificador da regra na primeira coluna e a descrição completa na segunda coluna. Não escrever as regras como lista solta no formato `RN001 - ...`, salvo quando o usuário pedir explicitamente esse formato.
 
 ## Protótipo
 

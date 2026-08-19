@@ -27,6 +27,7 @@ import {
   TextFieldSeplag,
 } from "../../componentes/Fields";
 import { MensagemSeplag } from "../../componentes/Mensagem";
+import { ModalSeplag } from "../../componentes/Modal";
 import {
   calcularPosicaoVaga,
   registrarMovimentoVaga,
@@ -195,19 +196,25 @@ export function QuadroLegalOperacoes({
   const [erroDistribuicao, setErroDistribuicao] = useState("");
   const [redistribuicaoSimulada, setRedistribuicaoSimulada] = useState(false);
   const [erroRedistribuicao, setErroRedistribuicao] = useState("");
+  const [agendamentoConfirmadoId, setAgendamentoConfirmadoId] = useState<number | null>(null);
 
-  const versaoAgendada = useMemo(
+  const versoesAgendadas = useMemo(
     () =>
       quadros
         .filter(
           (quadro) =>
             quadro.codigo === registro.codigo &&
             quadro.id !== registro.id &&
-            quadro.situacao === "Vigência futura",
+            quadro.situacao !== "Encerrada" &&
+            quadro.situacaoVigencia !== "ENCERRADO" &&
+            quadro.situacaoVigencia !== "EXTINTO" &&
+            (quadro.situacao === "Vigência futura" ||
+              Boolean(quadro.dataAtivacao && quadro.dataAtivacao > hoje)),
         )
-        .sort((a, b) => b.versao - a.versao)[0],
-    [quadros, registro.codigo, registro.id],
+        .sort((a, b) => b.versao - a.versao),
+    [hoje, quadros, registro.codigo, registro.id],
   );
+  const versaoAgendada = versoesAgendadas[0];
   const proximaVersao = Math.max(
     registro.versao,
     ...quadros
@@ -215,13 +222,32 @@ export function QuadroLegalOperacoes({
       .map((quadro) => quadro.versao),
   ) + 1;
   const substituirVersaoAgendada = (itens: QuadroAutorizadoRow[]) =>
-    versaoAgendada
+    versoesAgendadas.length
       ? itens.map((item) =>
-          item.id === versaoAgendada.id
-            ? { ...item, situacao: "Encerrada" as const }
+          versoesAgendadas.some((agendada) => agendada.id === item.id)
+            ? {
+                ...item,
+                situacao: "Encerrada" as const,
+                situacaoVigencia: "ENCERRADO" as const,
+                dataEncerramento: hoje,
+                fimVigencia: hoje.split("-").reverse().join("/"),
+                motivoEncerramento:
+                  "Versão agendada substituída por novo versionamento.",
+              }
             : item,
         )
       : itens;
+  const dataVersaoAgendada =
+    versaoAgendada?.dataAtivacao?.split("-").reverse().join("/") ||
+    versaoAgendada?.inicioVigencia ||
+    "";
+  const mensagemSubstituicaoAgendada =
+    versoesAgendadas.length > 1
+      ? `Já existem ${versoesAgendadas.length} versões agendadas para este quadro. Se você continuar, esses agendamentos serão substituídos pela nova versão.`
+      : `Já existe a versão ${versaoAgendada?.versao} agendada para ${dataVersaoAgendada}. Se você continuar, esse agendamento será substituído pela nova versão.`;
+  const deveConfirmarSubstituicao =
+    Boolean(versaoAgendada) &&
+    agendamentoConfirmadoId !== versaoAgendada?.id;
 
   const orgaosAtuais = useMemo(() => {
     if (registro.orgaosDefinidosLei?.length) return [...registro.orgaosDefinidosLei];
@@ -1060,9 +1086,31 @@ export function QuadroLegalOperacoes({
   return (
     <section className="prototype-legal-card">
       {versaoAgendada && (
+        <ModalSeplag
+          visible={deveConfirmarSubstituicao}
+          titulo="Versão agendada existente"
+          fechar={() => onSaved?.()}
+          labelFechar="Cancelar"
+          iconFechar="pi pi-times"
+          labelAcao="Continuar"
+          iconAcao="pi pi-check"
+          funcAcao={() => setAgendamentoConfirmadoId(versaoAgendada.id)}
+          tamanho="min(34rem, 94vw)"
+          ariaLabel="Confirmação de substituição de versão agendada"
+          closeOnEscape={false}
+        >
+          <div className="col-12">
+            <MensagemSeplag
+              severity="warning"
+              message={mensagemSubstituicaoAgendada}
+            />
+          </div>
+        </ModalSeplag>
+      )}
+      {versaoAgendada && (
         <MensagemSeplag
           severity="warning"
-          message={`Existe uma versão ${versaoAgendada.versao} agendada para ${versaoAgendada.dataAtivacao?.split("-").reverse().join("/") || versaoAgendada.inicioVigencia}. Se você continuar, ela será substituída pela nova versão.`}
+          message={mensagemSubstituicaoAgendada}
         />
       )}
 <form onSubmit={simular}>
@@ -2095,7 +2143,7 @@ export function QuadroLegalOperacoes({
             {versaoAgendada && (
               <MensagemSeplag
                 severity="warning"
-                message={`A versão ${versaoAgendada.versao}, agendada para ${versaoAgendada.dataAtivacao?.split("-").reverse().join("/") || versaoAgendada.inicioVigencia}, será substituída. A nova versão ficará ${dataEfeito > hoje ? "Agendada" : "Ativa"}.`}
+                message={`A versão ${versaoAgendada.versao}, agendada para ${dataVersaoAgendada}, será substituída. A nova versão ficará ${dataEfeito > hoje ? "Agendada" : "Ativa"}.`}
               />
             )}
             <footer>
