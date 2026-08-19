@@ -2844,7 +2844,6 @@ const ingressoTipoVinculoMap: Record<IngressoTipo, string> = {
 const ingressoTipoRadioOptions: { label: string; value: IngressoTipo }[] = [
   { label: "Concurso", value: "Concurso" },
   { label: "Processo Seletivo", value: "Processo Seletivo" },
-  { label: "Nomeação", value: "Nomeação" },
 ];
 
 const ingressoImportacaoPreview = [
@@ -12961,11 +12960,11 @@ export function PrototiposNovoIngressoPage() {
     candidatoProcessoOrigem?.cpf ??
     (candidatoProcessoOrigem
       ? `${String(candidatoProcessoOrigem.id).padStart(3, "0")}.444.444-44`
-      : ingressoOrigemDados?.cpf ?? "123.456.789-00");
+      : ingressoOrigemDados?.cpf ?? "");
   const orgaoInicial = searchParams.get("orgao") ?? ingressoOrigemDados?.orgao ?? "";
   const cargoInicial = searchParams.get("cargo") ?? ingressoOrigemDados?.cargo ?? candidatoProcessoOrigem?.cargo ?? "";
   const classificacaoInicial = searchParams.get("classificacao") ?? candidatoProcessoOrigem?.classificacao ?? "";
-  const tipoVagaInicial = searchParams.get("tipoVaga") ?? candidatoProcessoOrigem?.tipoVaga ?? "AC";
+  const tipoVagaInicial = searchParams.get("tipoVaga") ?? candidatoProcessoOrigem?.tipoVaga ?? "";
   const perfilParam = searchParams.get("perfil");
   const perfilNovoIngresso: IngressoPerfil = perfilParam === "setorial" ? "SETORIAL" : "PROVIMENTO";
   const situacoesIngressosSalvasNovo = JSON.parse(
@@ -13035,18 +13034,20 @@ export function PrototiposNovoIngressoPage() {
   const [modalContinuarEqualizacaoAberto, setModalContinuarEqualizacaoAberto] = useState(false);
   const [aplicacaoEqualizacao, setAplicacaoEqualizacao] = useState("todos");
   const [classificacaoSelecionada, setClassificacaoSelecionada] = useState(classificacaoInicial);
+  const [poloSelecionado, setPoloSelecionado] = useState("");
+  const polosIngressoOptions = [...new Set(Object.values(ingressoPoloCandidatoMap))].sort((a, b) => a.localeCompare(b, "pt-BR"));
   const [tipoVagaSelecionada, setTipoVagaSelecionada] = useState(tipoVagaInicial);
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState("Servidor Público");
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
   const [regimeJuridicoSelecionado, setRegimeJuridicoSelecionado] = useState(
     processoOrigemDados?.titulo === "Processo Seletivo SEPLAG 2027"
       ? "Sem Vínculo Empregatício"
-      : tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo" ? "Estatutário Civil" : "Estatutário",
+      : ingressoOrigemLista && (tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo") ? "Estatutário Civil" : "",
   );
-  const [perfilEspecialidade, setPerfilEspecialidade] = useState(modoVisualizacao ? "Perfil Geral" : "Perfil geral");
+  const [perfilEspecialidade, setPerfilEspecialidade] = useState(modoVisualizacao ? "Perfil Geral" : "");
   const [dataNomeacao, setDataNomeacao] = useState(
     candidatoProcessoOrigem?.dataNomeacao && candidatoProcessoOrigem.dataNomeacao !== "-"
       ? candidatoProcessoOrigem.dataNomeacao.split("/").reverse().join("-")
-      : "2026-07-13",
+      : "",
   );
   const [dataPosseIngresso, setDataPosseIngresso] = useState(
     candidatoProcessoOrigem?.dataPosse && candidatoProcessoOrigem.dataPosse !== "-"
@@ -13143,7 +13144,7 @@ export function PrototiposNovoIngressoPage() {
   const textoDiasPrazoEfetivo = prazoEfetivoVencido
     ? `${quantidadeDiasEfetivo} ${quantidadeDiasEfetivo === 1 ? "dia" : "dias"} em atraso`
     : `${quantidadeDiasEfetivo} ${quantidadeDiasEfetivo === 1 ? "dia" : "dias"}`;
-  const dataNomeacaoPrazoPosse = parseDataIsoLocal(dataNomeacao || "2026-07-13");
+  const dataNomeacaoPrazoPosse = parseDataIsoLocal(dataNomeacao);
   const prazoFinalPosse = dataNomeacaoPrazoPosse ? adicionarDias(dataNomeacaoPrazoPosse, 30) : null;
   const dataPosseAgendadaPrazo = parseDataIsoLocal(dataPosseIngresso);
   const hojePrazoPosse = new Date();
@@ -13164,7 +13165,7 @@ export function PrototiposNovoIngressoPage() {
     : `${diasFaltantesPosse} ${diasFaltantesPosse === 1 ? "dia" : "dias"}`;
   const formatarDataPrazoPosse = (data: Date | null) =>
     data?.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) ?? "-";
-  const tipoVinculo = tipoIngresso === "Concurso"
+  const tipoVinculo = concursoSelecionado && tipoIngresso === "Concurso"
     ? "Nomeado Efetivo"
     : tipoIngresso
       ? ingressoTipoVinculoMap[tipoIngresso]
@@ -13184,10 +13185,18 @@ export function PrototiposNovoIngressoPage() {
     "Técnico Administrativo - SES": { categoria: "Servidor Público", perfil: "Não se aplica", cbo: "4110-10" },
   };
   const dadosCargoSigep = cargoSigepEqualizado ? dadosCargoEqualizado[cargoSigepEqualizado] : undefined;
+  const selecionarCargoIngresso = (cargo: string) => {
+    setCargoSelecionado(cargo);
+    setPerfilEspecialidade(cargo ? getPerfilEspecialidadeIngresso(cargo) : "");
+  };
   const selecionarCargoSigep = (cargo: string) => {
     setCargoSigepEqualizado(cargo);
     setEqualizacaoSiesValidada(false);
-    if (!cargo) return;
+    if (!cargo) {
+      setCargoSelecionado("");
+      setPerfilEspecialidade("");
+      return;
+    }
     const dados = dadosCargoEqualizado[cargo];
     setCargoSelecionado(cargo);
     setCategoriaSelecionada(dados.categoria);
@@ -13421,7 +13430,7 @@ export function PrototiposNovoIngressoPage() {
   );
   const confirmarActionDisabled =
     isEtapaSomenteLeituraSetorial ||
-    (activeTab === "tipo-ingresso" && !tipoIngresso) ||
+    (activeTab === "tipo-ingresso" && (!tipoIngresso || !perfilEspecialidade || (tipoIngresso === "Concurso" && !categoriaSelecionada))) ||
     (activeTab === "efetivo-exercicio" &&
       servidorCompareceu === "Sim" &&
       (!dataEfetivoExercicio ||
@@ -13859,7 +13868,10 @@ export function PrototiposNovoIngressoPage() {
   };
 
   const goBack = () => {
-    solicitarSaidaAnalise(caminhoRetornoNovoIngresso);
+    const destino = !ingressoOrigemLista && !modoVisualizacao
+      ? "/prototipos/sigep/ingressos-teste"
+      : caminhoRetornoNovoIngresso;
+    solicitarSaidaAnalise(destino);
   };
 
   const salvarESairAnalise = () => {
@@ -14140,15 +14152,15 @@ export function PrototiposNovoIngressoPage() {
 
   const renderDadosIngresso = () => (
     <div className="prototype-novo-ingresso-dados-grid">
-      {tipoIngresso === "Processo Seletivo" ? renderEqualizacaoSies() : null}
-      <section className={`prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-dados-ingresso ${tipoIngresso === "Processo Seletivo" ? "is-sies" : ""}`}>
+      {tipoIngresso === "Processo Seletivo" && ingressoOrigemLista ? renderEqualizacaoSies() : null}
+      <section className={`prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-dados-ingresso ${tipoIngresso === "Processo Seletivo" && ingressoOrigemLista ? "is-sies" : ""}`}>
         <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-id-card" aria-hidden="true" /></span><span>Dados do Ingresso</span></h3>
         <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
           <label className="prototype-ingresso-field">
             <span>Regime Jurídico<em>*</em></span>
             <select
               value={regimeJuridicoSelecionado}
-              disabled={tipoIngresso === "Concurso"}
+              disabled={tipoIngresso === "Concurso" || tipoIngresso === "Processo Seletivo"}
               onChange={(event) => setRegimeJuridicoSelecionado(event.target.value)}
             >
               <option value="">Selecione...</option>
@@ -14162,7 +14174,7 @@ export function PrototiposNovoIngressoPage() {
           <label className="prototype-ingresso-field">
             <span>Tipo de Vínculo<em>*</em></span>
             {tipoIngresso === "Processo Seletivo" ? (
-              <select value={tipoVinculoEditavel} onChange={(event) => { setTipoVinculoEditavel(event.target.value); setEqualizacaoSiesValidada(false); }}>
+              <select value={tipoVinculoEditavel} disabled onChange={(event) => { setTipoVinculoEditavel(event.target.value); setEqualizacaoSiesValidada(false); }}>
                 <option value="">Selecione...</option>
                 <option value="Contrato Temporário">Contrato Temporário</option>
                 <option value="Contrato Temporário Vínculo Único">Contrato Temporário Vínculo Único</option>
@@ -14178,7 +14190,7 @@ export function PrototiposNovoIngressoPage() {
               <button
                 type="button"
                 className="prototype-multiselect-trigger"
-                disabled={tipoIngresso === "Concurso"}
+                disabled={tipoIngresso === "Concurso" || tipoIngresso === "Processo Seletivo"}
                 onClick={() => setOrgaosIngressoDropdownAberto((dropdownAberto) => !dropdownAberto)}
                 aria-expanded={orgaosIngressoDropdownAberto}
               >
@@ -14210,9 +14222,16 @@ export function PrototiposNovoIngressoPage() {
                 const processo = event.target.value;
                 setConcursoSelecionado(processo);
                 if (tipoIngresso === "Concurso") {
-                  setRegimeJuridicoSelecionado("Estatutário Civil");
+                  setRegimeJuridicoSelecionado(processo ? "Estatutário Civil" : "");
                   const orgaoConcurso = ["SES", "SEDUC", "SEFAZ"].find((orgao) => processo.includes(orgao));
                   setOrgaosIngressoSelecionados(orgaoConcurso ? [orgaoConcurso] : []);
+                } else if (tipoIngresso === "Processo Seletivo") {
+                  const processoSelecionado = ingressoConcursosProcessosMock.find((item) => item.titulo === processo);
+                  const processoEstagio = processoSelecionado?.titulo === "Processo Seletivo SEPLAG 2027";
+                  setRegimeJuridicoSelecionado(processo ? (processoEstagio ? "Sem Vínculo Empregatício" : "Estatutário Civil") : "");
+                  setTipoVinculoEditavel(processo ? (processoEstagio ? "Estagiário" : ingressoTipoVinculoMap["Processo Seletivo"]) : "");
+                  setOrgaoSelecionado(processoSelecionado?.orgao ?? "");
+                  setOrgaosIngressoSelecionados(processoSelecionado?.orgao ? [processoSelecionado.orgao] : []);
                 }
               }}
             >
@@ -14228,10 +14247,11 @@ export function PrototiposNovoIngressoPage() {
               ))}
             </select>
           </label>
-          <label className="prototype-ingresso-field">
-            <span>Carreira</span>
+          {tipoIngresso !== "Processo Seletivo" ? <label className="prototype-ingresso-field">
+            <span>Carreira{tipoIngresso === "Concurso" ? <em>*</em> : null}</span>
             <select
               value={categoriaSelecionada}
+              required={tipoIngresso === "Concurso"}
               onChange={(event) => { setCategoriaSelecionada(event.target.value); setEqualizacaoSiesValidada(false); }}
             >
               <option value="">Selecione...</option>
@@ -14241,7 +14261,7 @@ export function PrototiposNovoIngressoPage() {
               <option value="Gestor Governamental">Gestor Governamental</option>
               <option value="Temporário">Temporário</option>
             </select>
-          </label>
+          </label> : null}
           {tipoIngresso === "Processo Seletivo" ? <label className="prototype-ingresso-field">
             <span>Cargo/Função recebido via integração</span>
             <input type="text" value={cargoInicial} readOnly />
@@ -14251,7 +14271,7 @@ export function PrototiposNovoIngressoPage() {
             <select
               value={tipoIngresso === "Processo Seletivo" ? cargoSigepEqualizado : cargoSelecionado}
               disabled={ingressoOrigemLista}
-              onChange={(event) => tipoIngresso === "Processo Seletivo" ? selecionarCargoSigep(event.target.value) : setCargoSelecionado(event.target.value)}
+              onChange={(event) => tipoIngresso === "Processo Seletivo" ? selecionarCargoSigep(event.target.value) : selecionarCargoIngresso(event.target.value)}
             >
               <option value="">Selecione...</option>
               {tipoIngresso === "Processo Seletivo" ? Object.keys(dadosCargoEqualizado).map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>) : <><option value="Analista Administrativo">Analista Administrativo</option><option value="Professor">Professor</option><option value="Gestor Governamental">Gestor Governamental</option><option value="Técnico Administrativo Educacional">Técnico Administrativo Educacional</option><option value="Enfermeiro">Enfermeiro</option><option value="Técnico de Enfermagem">Técnico de Enfermagem</option><option value="Analista Fazendário">Analista Fazendário</option></>}
@@ -14259,32 +14279,45 @@ export function PrototiposNovoIngressoPage() {
           </label>
           {tipoIngresso === "Concurso" ? <div className="prototype-ingresso-field prototype-ingresso-reference-field">
             <span>Quadro de vaga<em>*</em></span>
-            <input type="text" value="QA-0012" required aria-required="true" readOnly />
+            <input type="text" value={concursoSelecionado && cargoSelecionado ? "QA-0012" : ""} required aria-required="true" readOnly />
           </div> : null}
           {tipoIngresso === "Concurso" ? <div className="prototype-ingresso-field prototype-ingresso-reference-field">
             <span>Identificador da vaga<em>*</em></span>
-            <input type="text" value="VAG-SEPLAG-ANALISTAAD-00001" required aria-required="true" readOnly />
+            <input type="text" value={concursoSelecionado && cargoSelecionado ? "VAG-SEPLAG-ANALISTAAD-00001" : ""} required aria-required="true" readOnly />
           </div> : null}
           <label className="prototype-ingresso-field">
-            <span>Perfil/Especialidade</span>
-            {tipoIngresso === "Processo Seletivo" ? (
-              <select value={perfilEspecialidade} onChange={(event) => { setPerfilEspecialidade(event.target.value); setEqualizacaoSiesValidada(false); }}>
-                <option value="">Selecione...</option>
-                <option value="Perfil Geral">Perfil Geral</option>
-                <option value="Gestão Administrativa">Gestão Administrativa</option>
-                <option value="Não se aplica">Não se aplica</option>
-              </select>
-            ) : (
-              <input type="text" value={perfilEspecialidade} onChange={(event) => setPerfilEspecialidade(event.target.value)} />
-            )}
+            <span>Perfil/Especialidade<em>*</em></span>
+            <input
+              type="text"
+              value={perfilEspecialidade}
+              placeholder="Preenchido conforme o Cargo/Função"
+              required
+              readOnly
+            />
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Polo</span>
+            <select
+              value={poloSelecionado}
+              disabled={ingressoOrigemLista}
+              onChange={(event) => setPoloSelecionado(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              {polosIngressoOptions.map((polo) => <option key={polo} value={polo}>{polo}</option>)}
+            </select>
           </label>
           <label className="prototype-ingresso-field">
             <span>Classificação<em>*</em></span>
             <input
               type="text"
+              inputMode="numeric"
+              placeholder="Ex.: 1°"
               value={classificacaoSelecionada}
               readOnly={ingressoOrigemLista}
-              onChange={(event) => setClassificacaoSelecionada(event.target.value)}
+              onChange={(event) => {
+                const numeros = event.target.value.replace(/\D/g, "");
+                setClassificacaoSelecionada(numeros ? `${Number(numeros)}°` : "");
+              }}
             />
           </label>
           <label className="prototype-ingresso-field">
@@ -14294,7 +14327,7 @@ export function PrototiposNovoIngressoPage() {
               disabled={ingressoOrigemLista}
               onChange={(event) => setTipoVagaSelecionada(event.target.value)}
             >
-              <option value="AC">AC</option>
+              <option value="">Selecione...</option>
               <option value="PCD">PCD</option>
               <option value="PPP">PPP</option>
             </select>
@@ -14304,7 +14337,7 @@ export function PrototiposNovoIngressoPage() {
             <input
               type="date"
               value={dataNomeacao}
-              disabled
+              disabled={ingressoOrigemLista}
               onChange={(event) => setDataNomeacao(event.target.value)}
             />
           </label>
@@ -14313,13 +14346,13 @@ export function PrototiposNovoIngressoPage() {
             <input
               type="date"
               value={dataPosseIngresso}
-              disabled={tipoIngresso === "Concurso"}
+              disabled={ingressoOrigemLista}
               onChange={(event) => setDataPosseIngresso(event.target.value)}
             />
           </label> : null}
           {tipoIngresso !== "Processo Seletivo" ? <label className="prototype-ingresso-field">
             <span>Data Limite para Posse<small className="prototype-field-origin">Calculado pela Data da Nomeação + 30 dias</small></span>
-            <input type="text" value={formatarDataPrazoPosse(prazoFinalPosse)} readOnly />
+            <input type="text" value={prazoFinalPosse ? formatarDataPrazoPosse(prazoFinalPosse) : ""} readOnly />
           </label> : null}
           <label className="prototype-ingresso-field">
             <span>Decisão Judicial<em>*</em></span>
@@ -14528,19 +14561,20 @@ export function PrototiposNovoIngressoPage() {
                 onClick={() => {
                   if (ingressoOrigemLista) return;
                   setTipoIngresso(tipoIngresso === option.value ? "" : option.value);
-                  setTipoVinculoEditavel(
-                    tipoIngresso === option.value ? "" : ingressoTipoVinculoMap[option.value],
-                  );
+                  setTipoVinculoEditavel("");
                   setRegimeJuridicoSelecionado(
-                    option.value === "Concurso" || option.value === "Processo Seletivo" ? "Estatutário Civil" : "Estatutário",
+                    "",
                   );
                   setConcursoSelecionado("");
                   setOrgaoSelecionado("");
                   setOrgaosIngressoSelecionados([]);
                   setOrgaosIngressoDropdownAberto(false);
                   setCargoSelecionado("");
+                  setCategoriaSelecionada("");
+                  setPerfilEspecialidade("");
+                  setPoloSelecionado("");
                   setClassificacaoSelecionada("");
-                  setTipoVagaSelecionada("AC");
+                  setTipoVagaSelecionada("");
                   setCargoSigepEqualizado("");
                   setEqualizacaoSiesValidada(false);
                   setSolicitacaoParametrizacao("");
@@ -15486,7 +15520,7 @@ export function PrototiposNovoIngressoPage() {
                     onClick={goBack}
                   />
                 </div>
-              ) : activeTab === "tipo-ingresso" && tipoIngresso === "Processo Seletivo" ? (
+              ) : activeTab === "tipo-ingresso" && tipoIngresso === "Processo Seletivo" && ingressoOrigemLista ? (
                 <div className="prototype-equalizacao-footer">
                   <div className="prototype-equalizacao-summary" aria-label="Resumo da equalização">
                     <span><strong>{equalizacaoSiesPendente ? 0 : 4}</strong> informações mapeadas</span>
@@ -15494,7 +15528,7 @@ export function PrototiposNovoIngressoPage() {
                     <span className={equalizacaoSiesPendente ? "has-pending" : ""}><strong>{equalizacaoSiesPendente ? 1 : 0}</strong> pendência impeditiva</span>
                   </div>
                   <div className="prototype-equalizacao-footer-actions">
-                    <button type="button" className="is-secondary" onClick={() => navigate("/prototipos/sigep/ingressos")}><i className="pi pi-times" /> Cancelar</button>
+                    <button type="button" className="is-secondary" onClick={goBack}><i className="pi pi-arrow-left" /> Voltar</button>
                     <button type="button" className="is-secondary"><i className="pi pi-save" /> Salvar como rascunho</button>
                     <button type="button" className="is-primary" onClick={validarEqualizacaoSies}><i className="pi pi-check-circle" /> Validar equalização</button>
                     <button type="button" className="is-primary" title={!equalizacaoSiesValidada ? "Conclua e valide a equalização dos dados obrigatórios para continuar." : undefined} disabled={equalizacaoSiesPendente || !equalizacaoSiesValidada || Boolean(solicitacaoParametrizacao)} onClick={() => setModalContinuarEqualizacaoAberto(true)}><i className="pi pi-arrow-right" /> Continuar ingresso</button>
