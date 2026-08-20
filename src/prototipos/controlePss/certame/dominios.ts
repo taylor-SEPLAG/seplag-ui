@@ -7,6 +7,11 @@ export const TIPOS_CERTAME = [
  { label:"Processo Seletivo Simplificado (PSS)", value:"PSS" },
 ] as const;
 
+export const OPCOES_SIM_NAO = [
+ { label:"Sim", value:"S" },
+ { label:"Não", value:"N" },
+] as const;
+
 // Carreira do cargo/vaga — só se aplica a Concurso Público (provimento efetivo, vinculado a um
 // plano de carreira); Processo Seletivo Simplificado não tem carreira (contratação temporária).
 export const CARREIRAS_CONCURSO = [
@@ -126,29 +131,44 @@ export const LEIS_CERTAME = [
  { label:"IN nº 05 — Trâmites de processo seletivo e concurso público", value:"IN-05" },
 ] as const;
 
+// Jornada de trabalho do cargo/vaga — para vaga existente, vem travada do cargo já cadastrado no
+// sistema (ver CARGOS_CADASTRADOS.jornada); para vaga nova, o usuário define ao cadastrar o cargo.
+export const JORNADAS_TRABALHO = [
+ { label:"20 horas semanais", value:"20H" },
+ { label:"24 horas semanais", value:"24H" },
+ { label:"30 horas semanais", value:"30H" },
+ { label:"40 horas semanais", value:"40H" },
+ { label:"Dedicação Exclusiva", value:"DEDICACAO_EXCLUSIVA" },
+] as const;
+
 // RN-11: cargos já cadastrados no sistema — consultados antes de permitir a criação de um novo (vaga existente).
 // quadroCodigo/quadroVersao: vínculo automático com o Quadro de Vagas (Controle de Vagas > Quadro Autorizado)
 // vigente para o cargo — rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso.
+// jornada: carga horária já registrada para o cargo (ver JORNADAS_TRABALHO).
 export const CARGOS_CADASTRADOS = [
- { id:"CGO-AUDITOR-FISCAL", nome:"Auditor Fiscal", quadroCodigo:"QA-0007", quadroVersao:1 },
- { id:"CGO-ANALISTA-TI", nome:"Analista de TI", quadroCodigo:"QA-0015", quadroVersao:2 },
- { id:"CGO-PROFESSOR-PORTUGUES", nome:"Professor — Língua Portuguesa", quadroCodigo:"QA-0012", quadroVersao:1 },
- { id:"CGO-ENFERMEIRO", nome:"Enfermeiro", quadroCodigo:"QA-0009", quadroVersao:1 },
- { id:"CGO-MEDICO", nome:"Médico", quadroCodigo:"QA-0021", quadroVersao:3 },
+ { id:"CGO-AUDITOR-FISCAL", nome:"Auditor Fiscal", quadroCodigo:"QA-0007", quadroVersao:1, jornada:"DEDICACAO_EXCLUSIVA" },
+ { id:"CGO-ANALISTA-TI", nome:"Analista de TI", quadroCodigo:"QA-0015", quadroVersao:2, jornada:"40H" },
+ { id:"CGO-PROFESSOR-PORTUGUES", nome:"Professor — Língua Portuguesa", quadroCodigo:"QA-0012", quadroVersao:1, jornada:"30H" },
+ { id:"CGO-ENFERMEIRO", nome:"Enfermeiro", quadroCodigo:"QA-0009", quadroVersao:1, jornada:"30H" },
+ { id:"CGO-MEDICO", nome:"Médico", quadroCodigo:"QA-0021", quadroVersao:3, jornada:"20H" },
 ] as const;
 
 export const ORGAOS_CERTAME = ["SEPLAG", "SEDUC", "SES", "SESP", "SEJUS", "SEFAZ", "SETASC", "SEMA", "PJC"] as const;
 
+// Sentinela usada no campo "Órgão" do cargo/vaga quando o certame tem mais de um órgão participante
+// (ver setoresParticipantes) — indica que a vaga é direcionada a todos eles, não a um específico.
+export const ORGAO_TODOS = "TODOS";
+
 export const SITUACOES_CERTAME = [
  { label:"Abertura", value:"ABERTO" },
- { label:"Retificação de Edital", value:"RETIFICACAO_EDITAL" },
+ { label:"Retificação do Edital de Abertura", value:"RETIFICACAO_EDITAL" },
  { label:"Homologação", value:"HOMOLOGADO" },
- { label:"Retificação de Homologação", value:"RETIFICACAO_HOMOLOGACAO" },
- { label:"Prorrogação de Validade", value:"PRORROGACAO_VALIDADE" },
+ { label:"Retificação da Homologação", value:"RETIFICACAO_HOMOLOGACAO" },
+ { label:"Prorrogação da Validade", value:"PRORROGACAO_VALIDADE" },
  { label:"Cancelamento/Anulação", value:"CANCELADO_ANULADO" },
  { label:"Paralisação", value:"PARALISADO" },
  { label:"Homologação Parcial", value:"HOMOLOGACAO_PARCIAL" },
- { label:"Retificação de Homologação Parcial", value:"RETIFICACAO_HOMOLOGACAO_PARCIAL" },
+ { label:"Retificação da Homologação Parcial", value:"RETIFICACAO_HOMOLOGACAO_PARCIAL" },
 ] as const;
 
 // Catálogo alinhado à seção 1.1 (Concurso Público) e 3.1 (PSS) do Manual de Orientação para Remessa

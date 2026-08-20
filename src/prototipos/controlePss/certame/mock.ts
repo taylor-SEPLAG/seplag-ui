@@ -18,7 +18,7 @@ export const certamesMock: Certame[] = [
   diasPrazoExercicio:15, diasPrazoPosse:30,
   houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
   cotas:[{ id:"COTA-1", tipo:"PCD", lei:["LEI-6752-1995"] }],
-  cargos:[{ id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", cidades:["CUIABA"], codigoReferenciaTce:"001", quantidadeVagas:20, reservasCota:[{ id:"RSV-1", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10, quadroCodigo:"QA-0012", quadroVersao:1 }],
+  cargos:[{ id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", cidades:["CUIABA"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:20, reservasCota:[{ id:"RSV-1", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10, quadroCodigo:"QA-0012", quadroVersao:1 }],
   fases:[...FASES_TCE_FIXAS],
   documentos:[
    { tipo:"JUSTIFICATIVA_ABERTURA", nomeArquivo:"justificativa-pss-seduc-2026.pdf", anexadoEm:"05/02/2026" },
