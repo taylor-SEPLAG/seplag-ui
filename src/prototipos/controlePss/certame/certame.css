@@ -124,29 +124,27 @@
 .prototype-certame-situacao-evento-btn .pi{font-size:.7rem;color:var(--primary-color)}
 .prototype-certame-situacao-evento-btn-dica{font-size:.68rem;font-weight:600;text-decoration:underline}
 
-/* Lista de cargos/vagas como cartões expansíveis (um por cargo), com o cabeçalho no padrão de
-   grade da maquete de referência: botão de expandir em caixa à esquerda, badge de vínculo,
-   célula de título com 2 linhas (cargo + resumo) e badge de situação/ações à direita. Expandir
-   mostra cada cota reservada em sua própria linha, em vez de empilhar tags numa única célula. */
-.prototype-certame-cargos-lista{margin-top:1rem;border:1px solid var(--surface-border);border-radius:10px;overflow:hidden}
+/* Lista de cargos/vagas como cartões expansíveis (um por cargo), em grid — cada cargo é seu próprio
+   cartão autocontido (borda + cantos arredondados), em vez de linhas empilhadas dentro de uma única
+   caixa. O cabeçalho segue o padrão da maquete de referência: botão de expandir à esquerda, badge de
+   vínculo, título (cargo + resumo) e badge de situação/ações; como o cartão fica mais estreito numa
+   coluna de grid, o cabeçalho sempre quebra linha (sem depender de media query). Expandir mostra
+   cada cota reservada em sua própria linha, em vez de empilhar tags numa única célula. */
+.prototype-certame-cargos-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1rem;margin-top:1rem}
 .prototype-certame-cargos-vazio{padding:1.5rem 0;text-align:center;font-size:.85rem}
-.prototype-certame-cargo-card{border-bottom:1px solid var(--surface-border);background:var(--surface-0)}
-.prototype-certame-cargo-card:last-child{border-bottom:0}
-.prototype-certame-cargo-row{display:flex;align-items:center;gap:.9rem;padding:.85rem 1.1rem}
+.prototype-certame-cargo-card{border:1px solid var(--surface-border);border-radius:10px;background:var(--surface-0);overflow:hidden}
+.prototype-certame-cargo-row{display:flex;flex-wrap:wrap;align-items:center;gap:.9rem;padding:.85rem 1.1rem}
 .prototype-certame-cargo-expand{flex:0 0 auto}
 .prototype-certame-cargo-expand .pi{transition:transform .2s ease}
-.prototype-certame-cargo-titulo{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:.2rem}
+.prototype-certame-cargo-titulo{flex:1 1 auto;min-width:0;flex-basis:100%;order:1;display:flex;flex-direction:column;gap:.2rem}
 .prototype-certame-cargo-titulo strong{font-size:1.05rem;color:var(--text-color)}
 .prototype-certame-cargo-titulo small{color:var(--text-color-secondary);font-size:.88rem}
 .prototype-certame-cargo-titulo small .prototype-certame-link-btn{display:inline;color:var(--primary-color);font-size:inherit}
 .prototype-certame-cargo-vagas{flex:0 0 auto;color:var(--text-color-secondary);font-size:.95rem;white-space:nowrap}
 .prototype-certame-cargo-acoes{flex:0 0 auto;display:flex;align-items:center;gap:.5rem}
 .prototype-certame-cargo-corpo{display:grid;transition:grid-template-rows .25s ease}
-.prototype-certame-cargo-corpo-conteudo{overflow:hidden}
-@media (max-width:720px){
- .prototype-certame-cargo-row{flex-wrap:wrap}
- .prototype-certame-cargo-titulo{flex-basis:100%;order:1}
-}
+.prototype-certame-cargo-corpo-conteudo{overflow:hidden;padding:1rem 1.1rem}
+.prototype-certame-cargo-corpo-conteudo>.grid{margin:0}
 
 .prototype-certame-documentos-grupo{margin-top:1.5rem}
 .prototype-certame-documentos-grupo:first-of-type{margin-top:1rem}

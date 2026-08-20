@@ -62,6 +62,21 @@ function BlocoTitulo({ titulo }:{ titulo:string }) {
  return <h3 className="prototype-certame-bloco-titulo">{titulo}</h3>;
 }
 
+// Resumo das vagas do cargo: Cota (soma das reservas), Ampla Concorrência (calculada, nunca
+// digitada) e Cadastro Reserva (independente, não desconta das outras duas) — usando o mesmo
+// padrão de rótulo/valor fixo já usado no formulário (RotuloSeplag), em tamanho normal.
+function ResumoVagasCargo({ quantidadeVagas, reservas, quantidadeCadastroReserva }:{ quantidadeVagas:number; reservas:readonly { quantidade:number }[]; quantidadeCadastroReserva?:number }) {
+ const totalCotas = reservas.reduce((total, item) => total + item.quantidade, 0);
+ const ampla = calcularAmplaConcorrencia(quantidadeVagas, reservas);
+ return (
+  <div className="grid">
+   <RotuloSeplag nome="Cota" cols="12 4"><div className="prototype-certame-campo-fixo-valor">{totalCotas}</div></RotuloSeplag>
+   <RotuloSeplag nome="Ampla concorrência" cols="12 4"><div className="prototype-certame-campo-fixo-valor">{ampla}</div></RotuloSeplag>
+   <RotuloSeplag nome="Cadastro reserva" cols="12 4"><div className="prototype-certame-campo-fixo-valor">{quantidadeCadastroReserva ?? "—"}</div></RotuloSeplag>
+  </div>
+ );
+}
+
 export interface CertameFormValues {
  tipoCertame:TipoCertame; tipoConcursoAplic:string;
  leiContratoTemporario?:string[]; leiProcessoSeletivoSimplificado?:string[];
@@ -176,6 +191,14 @@ function buscarQuadroPorCargo(nome:string) {
  const alvo = nome.trim().toLocaleLowerCase("pt-BR");
  if (!alvo) return undefined;
  return CARGOS_CADASTRADOS.find((item) => item.nome.trim().toLocaleLowerCase("pt-BR") === alvo);
+}
+
+// Ampla Concorrência nunca é digitada — é sempre o restante das vagas do cargo depois de reservar
+// as cotas (Qtd. vagas − soma das cotas). Cadastro Reserva é independente: não desconta da Ampla
+// Concorrência nem das cotas, pois é só o banco de convocação futura.
+function calcularAmplaConcorrencia(quantidadeVagas:number, reservas:readonly { quantidade:number }[]) {
+ const totalCotas = reservas.reduce((total, item) => total + item.quantidade, 0);
+ return Math.max(0, (quantidadeVagas || 0) - totalCotas);
 }
 
 function rotuloPolo(codigo:string) {
@@ -332,11 +355,6 @@ export function CertameFormContent() {
    if (titulos.length === 0) return "—";
    return titulos.length === 1 ? titulos[0] : `${titulos[0]} (+${titulos.length - 1})`;
   } },
- ];
-
- const colunasReservasCota:ColumnMetaSeplag<ReservaCotaCargo>[] = [
-  { header:"Tipo de cota", body:(row) => <BadgeSeplag label={TIPOS_COTA.find((tipo) => tipo.value === row.tipo)?.label ?? row.tipo} color="#0b6199" bg="#e9f3fc" border="transparent" size="sm" /> },
-  { field:"quantidade", header:"Quantidade" },
  ];
 
  // Cada cargo/vaga vira um card expansível: o cabeçalho resume vínculo, quadro, vagas e CR (igual
@@ -786,7 +804,7 @@ export function CertameFormContent() {
           </div>
           <div className="prototype-certame-cargo-corpo" style={{ gridTemplateRows:aberto ? "1fr" : "0fr" }}>
            <div className="prototype-certame-cargo-corpo-conteudo">
-            <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cargo.reservasCota)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasReservasCota} handleOnPageChange={() => {}} />
+            <ResumoVagasCargo quantidadeVagas={cargo.quantidadeVagas} reservas={cargo.reservasCota} quantidadeCadastroReserva={cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva : undefined} />
            </div>
           </div>
          </div>;
