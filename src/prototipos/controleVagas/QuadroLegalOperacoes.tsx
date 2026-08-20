@@ -106,9 +106,11 @@ const dataAtualIso = () => {
 
 export function QuadroLegalOperacoes({
   registro,
+  versaoEmEdicao,
   onSaved,
 }: {
   registro: QuadroAutorizadoRow;
+  versaoEmEdicao?: QuadroAutorizadoRow;
   onSaved?: () => void;
 }) {
   const { vagas, movimentos, comprometimentos, quadros } = useControleVagasStore();
@@ -142,7 +144,17 @@ export function QuadroLegalOperacoes({
     })),
     [quadrosDestino],
   );
-  const [tipo, setTipo] = useState<TipoAlteracaoQuadroLegal>("AMPLIACAO");
+const tipoInicial: TipoAlteracaoQuadroLegal = (() => {
+    const evolucao = versaoEmEdicao?.evolucaoLegal ?? "";
+    if (evolucao.startsWith("Redução")) return "REDUCAO";
+    if (evolucao.startsWith("Transformação")) return "TRANSFORMACAO";
+    if (evolucao.startsWith("Extinção")) return "EXTINCAO_PROGRESSIVA";
+    if (evolucao.startsWith("Distribuição")) return "DISTRIBUICAO";
+    if (evolucao.startsWith("Redistribuição")) return "REDISTRIBUICAO";
+    if (evolucao.startsWith("Atualização")) return "ATUALIZACAO_BASE_LEGAL";
+    return "AMPLIACAO";
+  })();
+  const [tipo, setTipo] = useState<TipoAlteracaoQuadroLegal>(tipoInicial);
   const {
     control: operacaoControl,
     watch: watchOperacao,
@@ -158,8 +170,10 @@ export function QuadroLegalOperacoes({
     observacao: string;
   }>({
     defaultValues: {
-      dataEfeito: hoje,
-      quantidade: 1,
+      dataEfeito: versaoEmEdicao?.dataAtivacao || hoje,
+      quantidade: versaoEmEdicao
+        ? Math.max(1, Math.abs(versaoEmEdicao.autorizadas - registro.autorizadas))
+        : 1,
       quadroDestinoId: null,
       orgaoAlteracao: "",
       orgaoOrigemRedistribuicao: "",
@@ -178,12 +192,14 @@ export function QuadroLegalOperacoes({
   const observacao = watchOperacao("observacao");
   const quadroDestino = quadrosDestino.find((quadro) => quadro.id === Number(quadroDestinoId));
   const vagasDestino = useMemo(() => vagas.filter((vaga) => vaga.quadroAutorizadoId === quadroDestino?.id), [quadroDestino?.id, vagas]);
-  const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>([]);
+  const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>(
+    versaoEmEdicao?.documentosLegaisIds ?? [],
+  );
   const normasSelecionadas = documentosLegaisDisponiveis.filter((item) =>
     documentosLegaisIds.includes(item.id),
   );
   const lei = normasSelecionadas.map((item) => item.titulo).join("; ");
-  const [processo, setProcesso] = useState(registro.processo);
+  const [processo, setProcesso] = useState(versaoEmEdicao?.processo ?? registro.processo);
   const [resultado, setResultado] = useState<ReturnType<
     typeof aplicarAlteracaoQuadroLegal
   > | null>(null);
@@ -208,6 +224,7 @@ export function QuadroLegalOperacoes({
           (quadro) =>
             quadro.codigo === registro.codigo &&
             quadro.id !== registro.id &&
+            quadro.id !== versaoEmEdicao?.id &&
             quadro.situacao !== "Encerrada" &&
             quadro.situacaoVigencia !== "ENCERRADO" &&
             quadro.situacaoVigencia !== "EXTINTO" &&
@@ -215,17 +232,19 @@ export function QuadroLegalOperacoes({
               Boolean(quadro.dataAtivacao && quadro.dataAtivacao > hoje)),
         )
         .sort((a, b) => b.versao - a.versao),
-    [hoje, quadros, registro.codigo, registro.id],
+    [hoje, quadros, registro.codigo, registro.id, versaoEmEdicao?.id],
   );
   const versaoAgendada = versoesAgendadas[0];
-  const proximaVersao = Math.max(
+  const proximaVersao = versaoEmEdicao?.versao ?? (Math.max(
     registro.versao,
     ...quadros
       .filter((quadro) => quadro.codigo === registro.codigo)
       .map((quadro) => quadro.versao),
-  ) + 1;
+  ) + 1);
   const substituirVersaoAgendada = (itens: QuadroAutorizadoRow[]) =>
-    versoesAgendadas.length
+    versaoEmEdicao
+      ? itens.filter((item) => item.id !== versaoEmEdicao.id)
+      : versoesAgendadas.length
       ? itens.map((item) =>
           versoesAgendadas.some((agendada) => agendada.id === item.id)
             ? {
@@ -797,7 +816,7 @@ const vagasElegiveisRedistribuicao =
       const dataHoje = dataAtualIso();
       const vigenciaFutura = dataEfeito > dataHoje;
       const dataBr = dataEfeito.split("-").reverse().join("/");
-      const novoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
+      const novoId = versaoEmEdicao?.id ?? Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
       const loteId = `DIST-${registro.codigo}-${dataEfeito.replaceAll("-", "")}-${String(atual.movimentos.length + 1).padStart(5, "0")}`;
       const atribuicoes: Array<{ vagaId: string; orgao: string }> = [];
       let cursor = 0;
@@ -883,7 +902,7 @@ const vagasElegiveisRedistribuicao =
       const dataHoje = dataAtualIso();
       const vigenciaFutura = dataEfeito > dataHoje;
       const dataBr = dataEfeito.split("-").reverse().join("/");
-      const novoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
+      const novoId = versaoEmEdicao?.id ?? Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
       const loteId = `REDIST-${registro.codigo}-${dataEfeito.replaceAll("-", "")}-${String(atual.movimentos.length + 1).padStart(5, "0")}`;
       const lote = [];
       for (const [indice, vaga] of vagasSelecionadasRedistribuicao.entries()) {
@@ -958,7 +977,7 @@ const vagasElegiveisRedistribuicao =
     const dataHoje = dataAtualIso();
     const vigenciaFutura = dataEfeito > dataHoje;
     const dataBr = dataEfeito.split("-").reverse().join("/");
-    const primeiroNovoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
+    const primeiroNovoId = versaoEmEdicao?.id ?? Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
 
     if (tipo === "TRANSFORMACAO" && quadroDestino) {
       const idOrigemNovaVersao = primeiroNovoId;

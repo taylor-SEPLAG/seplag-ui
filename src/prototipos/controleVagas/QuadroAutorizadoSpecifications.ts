@@ -383,6 +383,17 @@ export const quadroActionSpecifications: Record<string, SpecificationMetadata> =
       `${quadroScreenSpecification.route}/:id/nova-versao`,
       "Abre o fluxo de evolução legal preservando a versão atual.",
     ),
+    "Versão agendada existente": spec(
+      "CV-QA-ACT-009",
+      "Versão agendada existente",
+      "Informar que o quadro já possui uma versão futura programada.",
+      "Substitui a ação Criar nova versão e abre o histórico do quadro.",
+      "Versões do Quadro Autorizado.",
+      "expand",
+      "BotaoIconSeplag",
+      undefined,
+      "Exibe alerta amarelo com a versão e a data agendadas.",
+    ),
   };
 
 export const quadroBusinessItems = [
