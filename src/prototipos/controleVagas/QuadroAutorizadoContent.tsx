@@ -588,7 +588,7 @@ function QuadroAutorizadoLista() {
           (!filtros.orgao ||
             orgaosDoQuadro(item).includes(filtros.orgao) ||
             orgaosDistribuidos.has(filtros.orgao)) &&
-          (!filtros.tipo || item.tipoQuadro === filtros.tipo) &&
+          (!filtros.tipo || item.vinculo === filtros.tipo) &&
           (!filtros.situacao ||
             statusVigenciaDoQuadro(item) === filtros.situacao)
         );
@@ -1240,15 +1240,15 @@ function QuadroAutorizadoLista() {
                 />
               </div>
             </SpecArea>
-            <SpecArea metadata={quadroFilterSpecifications["Tipo de quadro"]}>
+            <SpecArea metadata={quadroFilterSpecifications["Tipo de vínculo"]}>
               <div className="prototype-quadro-spec-control">
                 <DropdownFieldSeplag
                   name="tipo"
                   control={control}
-                  label="Tipo de quadro"
+                  label="Tipo de vínculo"
                   cols="12"
                   options={[
-                    ...new Set(quadros.map((item) => item.tipoQuadro)),
+                    ...new Set(quadros.map((item) => item.vinculo)),
                   ].map((value) => ({ label: value, value }))}
                   optionLabel="label"
                   optionValue="value"

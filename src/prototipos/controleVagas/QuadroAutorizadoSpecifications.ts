@@ -1,6 +1,6 @@
 import type { SpecificationMetadata } from "../shared/visualizationModes";
 
-const filters = "Quadro; cargo; órgão; tipo de quadro e situação.";
+const filters = "Quadro; cargo; órgão; tipo de vínculo e situação.";
 const story =
   "Como gestor do quadro legal, quero consultar autorizações e sua posição para controlar o limite de vagas com rastreabilidade.";
 const componentSources: Record<string, string> = {
@@ -169,12 +169,12 @@ export const quadroFilterSpecifications: Record<string, SpecificationMetadata> =
       "string | vazio",
       "DropdownFieldSeplag",
     ),
-    "Tipo de quadro": spec(
+    "Tipo de vínculo": spec(
       "CV-QA-FLT-004",
-      "Tipo de quadro",
-      "Separar autorizações de cargos efetivos e comissionados.",
-      "Este módulo aceita somente Efetivo e Comissionado; temporários não geram vaga legal aqui.",
-      "QuadroAutorizadoRow.tipoQuadro.",
+      "Tipo de vínculo",
+      "Restringir a consulta ao tipo de vínculo selecionado.",
+      "Comparar exatamente com o tipo de vínculo informado no quadro autorizado.",
+      "QuadroAutorizadoRow.vinculo.",
       "enum",
       "DropdownFieldSeplag",
     ),

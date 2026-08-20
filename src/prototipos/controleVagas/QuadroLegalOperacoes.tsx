@@ -1218,7 +1218,7 @@ const vagasElegiveisRedistribuicao =
           <section className="prototype-legal-organization-change">
             <MensagemSeplag
               severity="info"
-              message="Esta operação atualiza somente a fundamentação legal do quadro. Quantitativos, vagas, cargo e distribuição serão preservados."
+              message="Somente a base legal será atualizada. O cargo, os quantitativos, as vagas e a distribuição permanecerão inalterados."
             />
           </section>
         )}        {alteracaoSomenteOrgao && (
@@ -2161,7 +2161,7 @@ const vagasElegiveisRedistribuicao =
           <section className="prototype-legal-organization-change">
             <MensagemSeplag
               severity="info"
-              message="Esta operação atualiza somente a fundamentação legal do quadro. Quantitativos, vagas, cargo e distribuição serão preservados."
+              message="Somente a base legal será atualizada. O cargo, os quantitativos, as vagas e a distribuição permanecerão inalterados."
             />
           </section>
         )}        {alteracaoSomenteOrgao && (
