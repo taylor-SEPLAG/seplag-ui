@@ -67,7 +67,7 @@ describe("destinação legal das vagas individualizadas", () => {
 
     expect(primeiraSefaz).toBeDefined();
     expect(identificacoes.get(primeiraSefaz!.id)?.identificador).toBe(
-      "VAG-SEFAZ-TECNICOADM-00001",
+      "SEFAZ-TECNICOADM-00001",
     );
     expect(
       [...identificacoes.values()].filter((item) => item.orgao === "SEFAZ"),

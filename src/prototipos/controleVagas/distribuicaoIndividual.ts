@@ -1,5 +1,5 @@
 import type { MovimentoVagaIndividual, PosicaoDistribuicaoVaga, SituacaoLegalVaga, TipoMovimentoVagaIndividual, Vaga } from "./types";
-import { gerarIdentificadorVaga } from "./vagaUtils";
+import { gerarNomeVaga } from "./vagaUtils";
 
 const legalPorTipo:Partial<Record<TipoMovimentoVagaIndividual,SituacaoLegalVaga>>={EXTINCAO:"EXTINTA",TRANSFORMACAO:"EM_TRANSFORMACAO"};
 const tiposDistributivos:readonly TipoMovimentoVagaIndividual[]=["DISTRIBUICAO","REDISTRIBUICAO","DECRETO"];
@@ -56,7 +56,7 @@ export function calcularIdentificacoesDistribuidas(
         identificacoes.set(vaga.id, {
           orgao,
           sequencialNoOrgao,
-          identificador: gerarIdentificadorVaga(orgao, vaga.cargo, sequencialNoOrgao),
+          identificador: gerarNomeVaga(orgao, vaga.cargo, sequencialNoOrgao),
         });
       });
   });

@@ -1,6 +1,6 @@
 import type { SpecificationMetadata } from "../shared/visualizationModes";
 
-const filters = "Quadro; cargo; órgão; tipo de quadro e situação.";
+const filters = "Quadro; cargo; órgão; tipo de vínculo e situação.";
 const story =
   "Como gestor do quadro legal, quero consultar autorizações e sua posição para controlar o limite de vagas com rastreabilidade.";
 const componentSources: Record<string, string> = {
@@ -169,12 +169,12 @@ export const quadroFilterSpecifications: Record<string, SpecificationMetadata> =
       "string | vazio",
       "DropdownFieldSeplag",
     ),
-    "Tipo de quadro": spec(
+    "Tipo de vínculo": spec(
       "CV-QA-FLT-004",
-      "Tipo de quadro",
-      "Separar autorizações de cargos efetivos e comissionados.",
-      "Este módulo aceita somente Efetivo e Comissionado; temporários não geram vaga legal aqui.",
-      "QuadroAutorizadoRow.tipoQuadro.",
+      "Tipo de vínculo",
+      "Restringir a consulta ao tipo de vínculo selecionado.",
+      "Comparar exatamente com o tipo de vínculo informado no quadro autorizado.",
+      "QuadroAutorizadoRow.vinculo.",
       "enum",
       "DropdownFieldSeplag",
     ),
@@ -382,6 +382,17 @@ export const quadroActionSpecifications: Record<string, SpecificationMetadata> =
       "BotaoIconSeplag + BotaoAdicionarSeplag",
       `${quadroScreenSpecification.route}/:id/nova-versao`,
       "Abre o fluxo de evolução legal preservando a versão atual.",
+    ),
+    "Versão agendada existente": spec(
+      "CV-QA-ACT-009",
+      "Versão agendada existente",
+      "Informar que o quadro já possui uma versão futura programada.",
+      "Substitui a ação Criar nova versão e abre o histórico do quadro.",
+      "Versões do Quadro Autorizado.",
+      "expand",
+      "BotaoIconSeplag",
+      undefined,
+      "Exibe alerta amarelo com a versão e a data agendadas.",
     ),
   };
 

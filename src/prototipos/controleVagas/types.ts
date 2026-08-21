@@ -12,7 +12,8 @@ export type EvolucaoQuadroLegal =
   | "Extinção progressiva"
   | "Distribuição"
   | "Redistribuição - Origem"
-  | "Redistribuição - Destino";
+  | "Redistribuição - Destino"
+  | "Atualização da base legal";
 export interface QuantitativoLegalOrgao { readonly orgao:string; readonly quantidade:number; }
 export interface QuadroAutorizadoRow { id:number; codigo:string; tipoQuadro:TipoQuadroLegal; vinculo:string; regime:string; carreira:string; cargo:string; perfilProfissional:string; orgao:string; abrangencia:string; formaDestinacaoLegal?:FormaDestinacaoLegal; orgaosDefinidosLei?:readonly string[]; quantitativosLegaisPorOrgao?:readonly QuantitativoLegalOrgao[]; documentosLegaisIds?:readonly string[]; situacaoVigencia?: "ATIVO"|"ENCERRADO"|"EXTINTO"; dataAtivacao?:string; dataEncerramento?:string; motivoEncerramento?:string; dataExtincao?:string; motivoExtincao?:string; extincaoProgressivaEmAndamento?:boolean; dataInicioExtincaoProgressiva?:string; evolucaoLegal?:EvolucaoQuadroLegal; autorizadas:number; ocupadas:number; comprometidas:number; bloqueadas:number; inicioVigencia:string; fimVigencia:string; ato:string; processo:string; situacao:SituacaoQuadro; versao:number; atualizadoEm:string; }
 

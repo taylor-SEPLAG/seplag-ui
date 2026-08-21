@@ -269,9 +269,29 @@
 }
 
 .selectedTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
   color: #0f172a;
   font-weight: 500;
+}
+
+.principalTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff4d6;
+  color: #8a5c00;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.principalTag i {
+  font-size: 0.68rem;
 }
 
 .selectedDescription {

@@ -146,6 +146,7 @@ export function QuadroAutorizadoContent() {
   const { quadros } = useControleVagasStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const [routeSearchParams] = useSearchParams();
   const { id } = useParams();
   const isNovo = location.pathname.endsWith("/novo");
   const isEditar = location.pathname.endsWith("/editar");
@@ -156,9 +157,14 @@ export function QuadroAutorizadoContent() {
     const registro = id
       ? quadros.find((item) => item.id === Number(id))
       : undefined;
+    const versaoEmEdicaoId = Number(routeSearchParams.get("editarAgendada"));
+    const versaoEmEdicao = versaoEmEdicaoId
+      ? quadros.find((item) => item.id === versaoEmEdicaoId)
+      : undefined;
     return registro?.situacao === "Vigente" ? (
       <QuadroAutorizadoNovaVersao
         registro={registro}
+        versaoEmEdicao={versaoEmEdicao}
         onBack={() => navigate(BASE_PATH)}
       />
     ) : (
@@ -259,6 +265,7 @@ const resumoDistribuicaoOrgaos = (
 const statusVigenciaVisualDoQuadro = (item: QuadroAutorizadoRow) =>
   statusVigenciaMeta[statusVigenciaDoQuadro(item)];
 type VersaoAnteriorQuadro = {
+  id?: number;
   versao: number;
   cargo: string;
   orgao: string;
@@ -286,6 +293,7 @@ const formatarVigenciaVersao = (item: QuadroAutorizadoRow) =>
 const versaoAnteriorDoQuadro = (
   item: QuadroAutorizadoRow,
 ): VersaoAnteriorQuadro => ({
+  id: item.id,
   versao: item.versao,
   cargo: item.cargo,
   orgao: item.orgao,
@@ -496,6 +504,7 @@ function QuadroAutorizadoLista() {
   );
   const [exclusao, setExclusao] = useState<QuadroAutorizadoRow | null>(null);
   const [motivoExclusao, setMotivoExclusao] = useState("");
+
   const [versaoVisualizada, setVersaoVisualizada] = useState<{
     quadro: QuadroListaRow;
     versao: VersaoAnteriorQuadro;
@@ -508,6 +517,29 @@ function QuadroAutorizadoLista() {
     Record<string, { first: number; rows: number }>
   >({});
 
+  const versoesAgendadasDoQuadro = (registro: QuadroAutorizadoRow) =>
+    quadros
+      .filter(
+        (item) =>
+          item.codigo === registro.codigo &&
+          item.id !== registro.id &&
+          statusVigenciaDoQuadro(item) === "AGENDADO",
+      )
+      .sort((a, b) => b.versao - a.versao);
+  const abrirHistoricoAgendado = (registro: QuadroAutorizadoRow) => {
+    setVisualizado(null);
+    setLinhasExpandidas((atuais) => ({
+      ...(atuais as Record<string, boolean>),
+      [String(registro.id)]: true,
+    }));
+  };
+  const solicitarNovaVersao = (registro: QuadroAutorizadoRow) => {
+    if (versoesAgendadasDoQuadro(registro).length) {
+      abrirHistoricoAgendado(registro);
+      return;
+    }
+    navigate(`${BASE_PATH}/${registro.id}/nova-versao`);
+  };
   const quadrosOperacionais = useMemo(() => {
     const idsComVagas = new Set(vagas.map((vaga) => vaga.quadroAutorizadoId));
     const porCodigo = new Map<string, QuadroAutorizadoRow[]>();
@@ -568,7 +600,7 @@ function QuadroAutorizadoLista() {
           (!filtros.orgao ||
             orgaosDoQuadro(item).includes(filtros.orgao) ||
             orgaosDistribuidos.has(filtros.orgao)) &&
-          (!filtros.tipo || item.tipoQuadro === filtros.tipo) &&
+          (!filtros.tipo || item.vinculo === filtros.tipo) &&
           (!filtros.situacao ||
             statusVigenciaDoQuadro(item) === filtros.situacao)
         );
@@ -915,12 +947,22 @@ function QuadroAutorizadoLista() {
         <section className="prototype-quadro-version-history">
           {versoes.length ? (
             <>
-              <div className="prototype-quadro-version-table-wrap">
+              <div className="prototype-quadro-version-table-container">
                 <table className="prototype-quadro-version-table">
+                  <colgroup>
+                    <col className="is-versao" />
+                    <col className="is-cargo" />
+                    <col className="is-orgao" />
+                    <col className="is-vigencia" />
+                    <col className="is-autorizadas" />
+                    <col className="is-evolucao" />
+                    <col className="is-situacao" />
+                    <col className="is-acoes" />
+                  </colgroup>
                   <thead>
                     <tr>
                       <th>Versão</th>
-                      <th>Cargo/Função</th>
+                      <th>Cargo</th>
                       <th>Órgão</th>
                       <th>Vigência</th>
                       <th>Autorizadas</th>
@@ -934,6 +976,10 @@ function QuadroAutorizadoLista() {
                       const statusVersao =
                         versao.statusVigencia ?? "ENCERRADO";
                       const metaStatus = statusVigenciaMeta[statusVersao];
+                      const registroAgendado =
+                        statusVersao === "AGENDADO" && versao.id
+                          ? quadros.find((quadro) => quadro.id === versao.id)
+                          : undefined;
                       return (
                         <tr key={`${item.codigo}-${versao.versao}`}>
                           <td>
@@ -967,15 +1013,42 @@ function QuadroAutorizadoLista() {
                             />
                           </td>
                           <td>
-                            <BotaoIconSeplag
-                              type="button"
-                              tooltip={`Visualizar versão ${versao.versao}`}
-                              aria-label={`Visualizar versão ${versao.versao}`}
-                              icon="pi pi-eye"
-                              onClick={() =>
-                                setVersaoVisualizada({ quadro: item, versao })
-                              }
-                            />
+                            <div className="prototype-quadro-actions">
+                              <BotaoIconSeplag
+                                type="button"
+                                tooltip={`Visualizar versão ${versao.versao}`}
+                                aria-label={`Visualizar versão ${versao.versao}`}
+                                icon="pi pi-eye"
+                                onClick={() =>
+                                  setVersaoVisualizada({ quadro: item, versao })
+                                }
+                              />
+                              {registroAgendado && (
+                                <>
+                                  <BotaoIconSeplag
+                                    type="button"
+                                    tooltip={`Editar versão ${versao.versao} agendada`}
+                                    aria-label="Editar"
+                                    icon="pi pi-pencil"
+                                    severity="warning"
+                                    onClick={() =>
+                                      navigate(`${BASE_PATH}/${item.id}/nova-versao?editarAgendada=${registroAgendado.id}`)
+                                    }
+                                  />
+                                  <BotaoIconSeplag
+                                    type="button"
+                                    tooltip={`Excluir versão ${versao.versao} agendada`}
+                                    aria-label="Excluir"
+                                    icon="pi pi-trash"
+                                    severity="danger"
+                                    onClick={() => {
+                                      setMotivoExclusao("");
+                                      setExclusao(registroAgendado);
+                                    }}
+                                  />
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1004,57 +1077,72 @@ function QuadroAutorizadoLista() {
       </SpecArea>
     );
   };
-  const renderAcoes = (item: QuadroListaRow) => (
-    <div className="prototype-quadro-actions">
-      <SpecArea metadata={quadroActionSpecifications.Visualizar}>
-        <BotaoIconSeplag
-          type="button"
-          tooltip="Visualizar"
-          aria-label="Visualizar"
-          icon="pi pi-eye"
-          onClick={() => setVisualizado(item)}
-        />
-      </SpecArea>
-      {quadroPermiteEdicaoDireta(item) && (
-        <SpecArea metadata={quadroActionSpecifications.Editar}>
+  const renderAcoes = (item: QuadroListaRow) => {
+    const agendadas = versoesAgendadasDoQuadro(item);
+    return (
+      <div className="prototype-quadro-actions">
+        <SpecArea metadata={quadroActionSpecifications.Visualizar}>
           <BotaoIconSeplag
             type="button"
-            tooltip="Editar antes da vigência"
-            aria-label="Editar"
-            icon="pi pi-pencil"
-            severity="warning"
-            onClick={() => navigate(`${BASE_PATH}/${item.id}/editar`)}
+            tooltip="Visualizar"
+            aria-label="Visualizar"
+            icon="pi pi-eye"
+            onClick={() => setVisualizado(item)}
           />
         </SpecArea>
-      )}
-      {quadroPermiteEdicaoDireta(item) && (
-        <SpecArea metadata={quadroActionSpecifications.Excluir}>
-          <BotaoIconSeplag
-            type="button"
-            tooltip="Excluir antes da vigência"
-            aria-label="Excluir"
-            icon="pi pi-trash"
-            severity="danger"
-            onClick={() => {
-              setMotivoExclusao("");
-              setExclusao(item);
-            }}
-          />
-        </SpecArea>
-      )}
-      {quadroProduzEfeitos(item) && (
-        <SpecArea metadata={quadroActionSpecifications["Criar nova versão"]}>
-          <BotaoIconSeplag
-            type="button"
-            tooltip="Criar nova versão"
-            aria-label="Criar nova versão"
-            icon="pi pi-plus"
-            onClick={() => navigate(`${BASE_PATH}/${item.id}/nova-versao`)}
-          />
-        </SpecArea>
-      )}
-    </div>
-  );
+        {quadroPermiteEdicaoDireta(item) && (
+          <SpecArea metadata={quadroActionSpecifications.Editar}>
+            <BotaoIconSeplag
+              type="button"
+              tooltip="Editar antes da vigência"
+              aria-label="Editar"
+              icon="pi pi-pencil"
+              severity="warning"
+              onClick={() => navigate(`${BASE_PATH}/${item.id}/editar`)}
+            />
+          </SpecArea>
+        )}
+        {quadroPermiteEdicaoDireta(item) && (
+          <SpecArea metadata={quadroActionSpecifications.Excluir}>
+            <BotaoIconSeplag
+              type="button"
+              tooltip="Excluir antes da vigência"
+              aria-label="Excluir"
+              icon="pi pi-trash"
+              severity="danger"
+              onClick={() => {
+                setMotivoExclusao("");
+                setExclusao(item);
+              }}
+            />
+          </SpecArea>
+        )}
+        {quadroProduzEfeitos(item) && !agendadas.length && (
+          <SpecArea metadata={quadroActionSpecifications["Criar nova versão"]}>
+            <BotaoIconSeplag
+              type="button"
+              tooltip="Criar nova versão"
+              aria-label="Criar nova versão"
+              icon="pi pi-plus"
+              onClick={() => solicitarNovaVersao(item)}
+            />
+          </SpecArea>
+        )}
+        {quadroProduzEfeitos(item) && agendadas.length > 0 && (
+          <SpecArea metadata={quadroActionSpecifications["Versão agendada existente"]}>
+            <BotaoIconSeplag
+              type="button"
+              tooltip={`Já existe a versão ${agendadas[0].versao} agendada para ${agendadas[0].dataAtivacao?.split("-").reverse().join("/") || agendadas[0].inicioVigencia}. Clique para abrir o histórico.`}
+              aria-label="Versão agendada existente"
+              icon="pi pi-exclamation-triangle"
+              severity="warning"
+              onClick={() => abrirHistoricoAgendado(item)}
+            />
+          </SpecArea>
+        )}
+      </div>
+    );
+  };
   const renderControleHistorico = (item: QuadroListaRow) => {
     const chave = String(item.id);
     const expandidas = linhasExpandidas as Record<string, boolean>;
@@ -1220,15 +1308,15 @@ function QuadroAutorizadoLista() {
                 />
               </div>
             </SpecArea>
-            <SpecArea metadata={quadroFilterSpecifications["Tipo de quadro"]}>
+            <SpecArea metadata={quadroFilterSpecifications["Tipo de vínculo"]}>
               <div className="prototype-quadro-spec-control">
                 <DropdownFieldSeplag
                   name="tipo"
                   control={control}
-                  label="Tipo de quadro"
+                  label="Tipo de vínculo"
                   cols="12"
                   options={[
-                    ...new Set(quadros.map((item) => item.tipoQuadro)),
+                    ...new Set(quadros.map((item) => item.vinculo)),
                   ].map((value) => ({ label: value, value }))}
                   optionLabel="label"
                   optionValue="value"
@@ -1330,9 +1418,8 @@ function QuadroAutorizadoLista() {
           <QuadroAutorizadoModal
             registro={visualizado}
             onClose={() => setVisualizado(null)}
-            onNovaVersao={() =>
-              navigate(`${BASE_PATH}/${visualizado.id}/nova-versao`)
-            }
+            onNovaVersao={() => solicitarNovaVersao(visualizado)}
+            temVersaoAgendada={versoesAgendadasDoQuadro(visualizado).length > 0}
           />
         )}
         {versaoVisualizada && (
@@ -1496,10 +1583,12 @@ function QuadroAutorizadoModal({
   registro,
   onClose,
   onNovaVersao,
+  temVersaoAgendada,
 }: {
   registro: QuadroAutorizadoRow;
   onClose: () => void;
   onNovaVersao: () => void;
+  temVersaoAgendada: boolean;
 }) {
   const documentosLegaisDisponiveis = useDocumentosLegais();
   const normas = documentosLegaisDisponiveis.filter((documento) =>
@@ -1516,7 +1605,7 @@ function QuadroAutorizadoModal({
           onClick={onClose}
         />
       </SpecArea>
-      {quadroProduzEfeitos(registro) && (
+      {quadroProduzEfeitos(registro) && !temVersaoAgendada && (
         <SpecArea metadata={quadroActionSpecifications["Criar nova versão"]}>
           <BotaoAdicionarSeplag
             label="Criar nova versão"
@@ -2183,19 +2272,21 @@ function QuadroAutorizadoForm({
 }
 function QuadroAutorizadoNovaVersao({
   registro,
+  versaoEmEdicao,
   onBack,
 }: {
   registro: QuadroAutorizadoRow;
+  versaoEmEdicao?: QuadroAutorizadoRow;
   onBack: () => void;
 }) {
   return (
     <div className="prototype-quadro-page">
       <header className="prototype-quadro-header">
         <div>
-          <h1>Nova versão do quadro</h1>
+          <h1>{versaoEmEdicao ? "Editar versão agendada" : "Nova versão do quadro"}</h1>
 </div>
       </header>
-<QuadroLegalOperacoes registro={registro} onSaved={onBack} />
+<QuadroLegalOperacoes registro={registro} versaoEmEdicao={versaoEmEdicao} onSaved={onBack} />
     </div>
   );
 }

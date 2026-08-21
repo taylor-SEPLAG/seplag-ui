@@ -13,6 +13,7 @@ export type TipoAlteracaoQuadroLegal =
   | "EXTINCAO_PROGRESSIVA"
   | "DISTRIBUICAO"
   | "REDISTRIBUICAO"
+  | "ATUALIZACAO_BASE_LEGAL"
   | "INCLUSAO_ORGAO"
   | "EXCLUSAO_ORGAO";
 
@@ -75,13 +76,14 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
   const alertas: string[] = [];
   const vagasAtivas = vagas.filter((vaga) => vaga.situacaoLegal !== "EXTINTA");
   const alteracaoSomenteOrgao = comando.tipo === "INCLUSAO_ORGAO" || comando.tipo === "EXCLUSAO_ORGAO";
+  const alteracaoSemImpactoVagas = alteracaoSomenteOrgao || comando.tipo === "ATUALIZACAO_BASE_LEGAL";
   const quantidade = comando.tipo === "EXTINCAO_PROGRESSIVA"
     ? vagasAtivas.length
-    : alteracaoSomenteOrgao
+    : alteracaoSemImpactoVagas
       ? 0
       : Math.max(0, Math.floor(comando.quantidade ?? 0));
   const base = vagas[0];
-  if (!base || !comando.lei || !comando.processo.trim() || !comando.dataEfeito) {
+  if ((!base && !alteracaoSemImpactoVagas) || !comando.lei || !comando.processo.trim() || !comando.dataEfeito) {
     return {
       vagas,
       criadas,
@@ -91,7 +93,7 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
       quantitativoPosterior: vagasAtivas.length,
     };
   }
-  if (alteracaoSomenteOrgao) {
+  if (alteracaoSemImpactoVagas) {
     return {
       vagas,
       criadas,
@@ -158,10 +160,11 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
       const sequencial = (comando.maiorSequencialDestino ?? 0) + indice + 1;
       const distribuicaoAtual = comando.distribuicaoAtualPorVagaId?.[origem.id];
       const orgaoDistribuicaoAtual = distribuicaoAtual?.orgao ?? origem.orgaoDistribuicaoInicial;
-      const orgaoDoIdentificador = orgaoDistribuicaoAtual ?? origem.orgaoTitular;
-      const id = origem.id;
-      const nomeAnterior = origem.nome ?? origem.id.replace(/^VAG-/, "");
-      const nome = gerarNomeVaga(orgaoDoIdentificador, comando.novoCargo!, sequencial);
+const id = origem.id;
+      const nomeAnterior = origem.nome;
+      const nome = orgaoDistribuicaoAtual
+        ? gerarNomeVaga(orgaoDistribuicaoAtual, comando.novoCargo!, sequencial)
+        : undefined;
       const historico: HistoricoVaga = {
         id: `HIS-${id}-${String(origem.historico.length + 1).padStart(3, "0")}`,
         vagaId: id,
@@ -169,7 +172,9 @@ export function aplicarAlteracaoQuadroLegal(vagasAtuais: readonly Vaga[], comand
         dataEfeito: comando.dataEfeito.split("-").reverse().join("/"),
         tipo: "ALTERACAO_LEGAL",
         titulo: "Vaga transformada entre Quadros Autorizados",
-        descricao: `${comando.lei}: nome anterior ${nomeAnterior}; nome resultante ${nome}; ID técnico preservado.`,
+        descricao: nome
+          ? `${comando.lei}: nome anterior ${nomeAnterior ?? "não atribuído"}; nome resultante ${nome}; ID técnico preservado.`
+          : `${comando.lei}: vaga transformada ainda pendente de distribuição; Nome da vaga não atribuído; ID técnico preservado.`,
         situacaoLegalAnterior: origem.situacaoLegal,
         situacaoLegalPosterior: "REGULAR",
         origem: "Quadro Legal",

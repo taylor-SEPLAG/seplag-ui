@@ -33,6 +33,7 @@ import {
   registrarMovimentoVaga,
 } from "./distribuicaoIndividual";
 import { orgaosBaseTemporaria } from "./baseTemporaria";
+import { gerarNomeVaga } from "./vagaUtils";
 import "./quadroLegalOperacoes.css";
 
 const rotulos: Record<TipoAlteracaoQuadroLegal, string> = {
@@ -42,6 +43,7 @@ const rotulos: Record<TipoAlteracaoQuadroLegal, string> = {
   EXTINCAO_PROGRESSIVA: "Extinção progressiva",
   DISTRIBUICAO: "Distribuição",
   REDISTRIBUICAO: "Redistribuição",
+  ATUALIZACAO_BASE_LEGAL: "Atualização da base legal",
   INCLUSAO_ORGAO: "Inclusão de órgão",
   EXCLUSAO_ORGAO: "Exclusão de órgão",
 };
@@ -58,6 +60,8 @@ const descricoes: Record<TipoAlteracaoQuadroLegal, string> = {
     "Versiona o quadro registrando a distribuição formal das vagas por órgão.",
   REDISTRIBUICAO:
     "Versiona o quadro registrando a movimentação de vagas entre órgãos.",
+  ATUALIZACAO_BASE_LEGAL:
+    "Atualiza a fundamentação legal sem alterar vagas, quantitativos ou distribuição.",
   INCLUSAO_ORGAO:
     "Inclui um órgão na destinação legal do quadro, sem distribuir vagas automaticamente.",
   EXCLUSAO_ORGAO:
@@ -70,6 +74,7 @@ const tiposAlteracaoDisponiveis: TipoAlteracaoQuadroLegal[] = [
   "EXTINCAO_PROGRESSIVA",
   "DISTRIBUICAO",
   "REDISTRIBUICAO",
+  "ATUALIZACAO_BASE_LEGAL",
 ];
 const evolucaoDoVersionamento = (
   tipo: TipoAlteracaoQuadroLegal,
@@ -78,6 +83,7 @@ const evolucaoDoVersionamento = (
   if (tipo === "REDUCAO") return "Redução";
   if (tipo === "EXTINCAO_PROGRESSIVA") return "Extinção progressiva";
   if (tipo === "DISTRIBUICAO") return "Distribuição";
+  if (tipo === "ATUALIZACAO_BASE_LEGAL") return "Atualização da base legal";
   return undefined;
 };
 interface DestinacaoVersionamento {
@@ -85,13 +91,10 @@ interface DestinacaoVersionamento {
   orgao: string;
   quantidade: number;
 }
-const ORGAOS_DISTRIBUICAO_GERAIS = ["AGER", "CASA CIVIL", "CGE", "PGE", "PJC", "SEDUC", "SEFAZ", "SEMA", "SEPLAG", "SES", "SINFRA"];
-const obterOrgaosPermitidosDistribuicao = (quadro: QuadroAutorizadoRow) => {
-  if (quadro.orgaosDefinidosLei?.length) return [...new Set(quadro.orgaosDefinidosLei)];
-  if (quadro.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR") return ORGAOS_DISTRIBUICAO_GERAIS;
-  if (quadro.orgao && quadro.orgao !== "ESTADO DE MATO GROSSO") return [quadro.orgao];
-  return [];
-};
+const obterOrgaosPermitidosDistribuicao = () =>
+  orgaosBaseTemporaria
+    .filter((orgao) => orgao.situacaoLegal === "REGULAR")
+    .map((orgao) => orgao.nome);
 const dataAtualIso = () => {
   const agora = new Date();
   return [
@@ -103,9 +106,11 @@ const dataAtualIso = () => {
 
 export function QuadroLegalOperacoes({
   registro,
+  versaoEmEdicao,
   onSaved,
 }: {
   registro: QuadroAutorizadoRow;
+  versaoEmEdicao?: QuadroAutorizadoRow;
   onSaved?: () => void;
 }) {
   const { vagas, movimentos, comprometimentos, quadros } = useControleVagasStore();
@@ -139,7 +144,17 @@ export function QuadroLegalOperacoes({
     })),
     [quadrosDestino],
   );
-  const [tipo, setTipo] = useState<TipoAlteracaoQuadroLegal>("AMPLIACAO");
+const tipoInicial: TipoAlteracaoQuadroLegal = (() => {
+    const evolucao = versaoEmEdicao?.evolucaoLegal ?? "";
+    if (evolucao.startsWith("Redução")) return "REDUCAO";
+    if (evolucao.startsWith("Transformação")) return "TRANSFORMACAO";
+    if (evolucao.startsWith("Extinção")) return "EXTINCAO_PROGRESSIVA";
+    if (evolucao.startsWith("Distribuição")) return "DISTRIBUICAO";
+    if (evolucao.startsWith("Redistribuição")) return "REDISTRIBUICAO";
+    if (evolucao.startsWith("Atualização")) return "ATUALIZACAO_BASE_LEGAL";
+    return "AMPLIACAO";
+  })();
+  const [tipo, setTipo] = useState<TipoAlteracaoQuadroLegal>(tipoInicial);
   const {
     control: operacaoControl,
     watch: watchOperacao,
@@ -155,8 +170,10 @@ export function QuadroLegalOperacoes({
     observacao: string;
   }>({
     defaultValues: {
-      dataEfeito: hoje,
-      quantidade: 1,
+      dataEfeito: versaoEmEdicao?.dataAtivacao || hoje,
+      quantidade: versaoEmEdicao
+        ? Math.max(1, Math.abs(versaoEmEdicao.autorizadas - registro.autorizadas))
+        : 1,
       quadroDestinoId: null,
       orgaoAlteracao: "",
       orgaoOrigemRedistribuicao: "",
@@ -175,18 +192,21 @@ export function QuadroLegalOperacoes({
   const observacao = watchOperacao("observacao");
   const quadroDestino = quadrosDestino.find((quadro) => quadro.id === Number(quadroDestinoId));
   const vagasDestino = useMemo(() => vagas.filter((vaga) => vaga.quadroAutorizadoId === quadroDestino?.id), [quadroDestino?.id, vagas]);
-  const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>([]);
+  const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>(
+    versaoEmEdicao?.documentosLegaisIds ?? [],
+  );
   const normasSelecionadas = documentosLegaisDisponiveis.filter((item) =>
     documentosLegaisIds.includes(item.id),
   );
   const lei = normasSelecionadas.map((item) => item.titulo).join("; ");
-  const [processo, setProcesso] = useState(registro.processo);
+  const [processo, setProcesso] = useState(versaoEmEdicao?.processo ?? registro.processo);
   const [resultado, setResultado] = useState<ReturnType<
     typeof aplicarAlteracaoQuadroLegal
   > | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false);
   const [primeiraVagaImpactada, setPrimeiraVagaImpactada] = useState(0);
+  const [primeiraVagaDistribuicao, setPrimeiraVagaDistribuicao] = useState(0);
   const [reducaoPorOrgao, setReducaoPorOrgao] = useState<Record<string, number>>({});
   const [transformacaoPorOrgao, setTransformacaoPorOrgao] = useState<Record<string, number>>({});
   const [destinacoesDistribuicao, setDestinacoesDistribuicao] = useState<DestinacaoVersionamento[]>([
@@ -196,7 +216,6 @@ export function QuadroLegalOperacoes({
   const [erroDistribuicao, setErroDistribuicao] = useState("");
   const [redistribuicaoSimulada, setRedistribuicaoSimulada] = useState(false);
   const [erroRedistribuicao, setErroRedistribuicao] = useState("");
-  const [agendamentoConfirmadoId, setAgendamentoConfirmadoId] = useState<number | null>(null);
 
   const versoesAgendadas = useMemo(
     () =>
@@ -205,6 +224,7 @@ export function QuadroLegalOperacoes({
           (quadro) =>
             quadro.codigo === registro.codigo &&
             quadro.id !== registro.id &&
+            quadro.id !== versaoEmEdicao?.id &&
             quadro.situacao !== "Encerrada" &&
             quadro.situacaoVigencia !== "ENCERRADO" &&
             quadro.situacaoVigencia !== "EXTINTO" &&
@@ -212,17 +232,19 @@ export function QuadroLegalOperacoes({
               Boolean(quadro.dataAtivacao && quadro.dataAtivacao > hoje)),
         )
         .sort((a, b) => b.versao - a.versao),
-    [hoje, quadros, registro.codigo, registro.id],
+    [hoje, quadros, registro.codigo, registro.id, versaoEmEdicao?.id],
   );
   const versaoAgendada = versoesAgendadas[0];
-  const proximaVersao = Math.max(
+  const proximaVersao = versaoEmEdicao?.versao ?? (Math.max(
     registro.versao,
     ...quadros
       .filter((quadro) => quadro.codigo === registro.codigo)
       .map((quadro) => quadro.versao),
-  ) + 1;
+  ) + 1);
   const substituirVersaoAgendada = (itens: QuadroAutorizadoRow[]) =>
-    versoesAgendadas.length
+    versaoEmEdicao
+      ? itens.filter((item) => item.id !== versaoEmEdicao.id)
+      : versoesAgendadas.length
       ? itens.map((item) =>
           versoesAgendadas.some((agendada) => agendada.id === item.id)
             ? {
@@ -245,9 +267,6 @@ export function QuadroLegalOperacoes({
     versoesAgendadas.length > 1
       ? `Já existem ${versoesAgendadas.length} versões agendadas para este quadro. Se você continuar, esses agendamentos serão substituídos pela nova versão.`
       : `Já existe a versão ${versaoAgendada?.versao} agendada para ${dataVersaoAgendada}. Se você continuar, esse agendamento será substituído pela nova versão.`;
-  const deveConfirmarSubstituicao =
-    Boolean(versaoAgendada) &&
-    agendamentoConfirmadoId !== versaoAgendada?.id;
 
   const orgaosAtuais = useMemo(() => {
     if (registro.orgaosDefinidosLei?.length) return [...registro.orgaosDefinidosLei];
@@ -361,6 +380,7 @@ export function QuadroLegalOperacoes({
   const extincaoJaIniciada = tipo === "EXTINCAO_PROGRESSIVA" && Boolean(registro.extincaoProgressivaEmAndamento);
   const extincaoInvalida = tipo === "EXTINCAO_PROGRESSIVA" && extincaoJaIniciada;
   const alteracaoSomenteOrgao = tipo === "INCLUSAO_ORGAO" || tipo === "EXCLUSAO_ORGAO";
+  const alteracaoSemImpactoVagas = alteracaoSomenteOrgao || tipo === "ATUALIZACAO_BASE_LEGAL";
   const resumoOrgaoExclusao = useMemo(() => {
     const grupo = vagasPorOrgao.find((item) => item.orgao === orgaoAlteracao);
     return {
@@ -373,7 +393,7 @@ export function QuadroLegalOperacoes({
   const exclusaoOrgaoBloqueada = tipo === "EXCLUSAO_ORGAO" && resumoOrgaoExclusao.atribuidas > 0;
   const alteracaoOrgaoInvalida = alteracaoSomenteOrgao && !orgaoAlteracao;
   const orgaosPermitidosDistribuicao = useMemo(
-    () => obterOrgaosPermitidosDistribuicao(registro),
+    () => obterOrgaosPermitidosDistribuicao(),
     [registro],
   );
   const vagasElegiveisDistribuicao = useMemo(
@@ -429,6 +449,42 @@ export function QuadroLegalOperacoes({
     0,
   );
   const vagasSelecionadasDistribuicao = vagasElegiveisDistribuicao.slice(0, totalDistribuicaoInformado);
+  const vagasSimulacaoDistribuicao = useMemo(() => {
+    const quantidadeAtualPorOrgao = new Map(
+      distribuicaoAtualOrgaos.orgaos.map((item) => [item.orgao, item.quantidade]),
+    );
+    const proximoSequencialPorOrgao = new Map<string, number>();
+    const itens: Array<{ vagaId: string; orgao: string; sequencial: number; nome: string }> = [];
+    let cursor = 0;
+
+    destinacoesDistribuicaoInformadas.forEach((destino) => {
+      const quantidade = Math.max(0, Math.floor(destino.quantidade || 0));
+      let sequencial =
+        proximoSequencialPorOrgao.get(destino.orgao) ??
+        (quantidadeAtualPorOrgao.get(destino.orgao) ?? 0) + 1;
+
+      vagasSelecionadasDistribuicao
+        .slice(cursor, cursor + quantidade)
+        .forEach((vaga) => {
+          itens.push({
+            vagaId: vaga.id,
+            orgao: destino.orgao,
+            sequencial,
+            nome: gerarNomeVaga(destino.orgao, registro.cargo, sequencial),
+          });
+          sequencial += 1;
+        });
+      proximoSequencialPorOrgao.set(destino.orgao, sequencial);
+      cursor += quantidade;
+    });
+
+    return itens;
+  }, [
+    destinacoesDistribuicaoInformadas,
+    distribuicaoAtualOrgaos.orgaos,
+    registro.cargo,
+    vagasSelecionadasDistribuicao,
+  ]);
   const linhasDistribuicao = useMemo(() => {
     const adicionaisPorOrgao = new Map(
       destinacoesDistribuicao
@@ -494,8 +550,13 @@ export function QuadroLegalOperacoes({
         })),
     [orgaoOrigemRedistribuicao, orgaosPermitidosDistribuicao],
   );
-  const vagasElegiveisRedistribuicao =
+const vagasElegiveisRedistribuicao =
     vagasElegiveisRedistribuicaoPorOrgao.find((grupo) => grupo.orgao === orgaoOrigemRedistribuicao)?.vagas ?? [];
+  const totalVagasElegiveisRedistribuicao = vagasElegiveisRedistribuicaoPorOrgao.reduce(
+    (total, grupo) => total + grupo.vagas.length,
+    0,
+  );
+  const redistribuicaoIndisponivel = totalVagasElegiveisRedistribuicao === 0;
   const vagasSelecionadasRedistribuicao = vagasElegiveisRedistribuicao.slice(0, quantidadeRedistribuicaoInformada);
   const saldoRedistribuicao = Math.max(0, vagasElegiveisRedistribuicao.length - quantidadeRedistribuicaoInformada);
   const saldoDestinoRedistribuicaoAtual = vagasOriginais.filter((vaga) => {
@@ -546,6 +607,7 @@ export function QuadroLegalOperacoes({
   const resetarDistribuicao = () => {
     setDistribuicaoSimulada(false);
     setErroDistribuicao("");
+    setPrimeiraVagaDistribuicao(0);
   };
   const resetarRedistribuicao = () => {
     setRedistribuicaoSimulada(false);
@@ -601,7 +663,7 @@ export function QuadroLegalOperacoes({
   };
   const removerDestinacaoDistribuicao = (id: number) => {
     setDestinacoesDistribuicao((atuais) =>
-      atuais.length === 1 ? atuais : atuais.filter((item) => item.id !== id),
+      atuais.filter((item) => item.id !== id),
     );
     resetarDistribuicao();
   };
@@ -682,6 +744,7 @@ export function QuadroLegalOperacoes({
       setDistribuicaoSimulada(false);
       setRedistribuicaoSimulada(false);
       setErroDistribuicao("");
+      setPrimeiraVagaDistribuicao(0);
       setErroRedistribuicao("");
       return;
     }
@@ -753,7 +816,7 @@ export function QuadroLegalOperacoes({
       const dataHoje = dataAtualIso();
       const vigenciaFutura = dataEfeito > dataHoje;
       const dataBr = dataEfeito.split("-").reverse().join("/");
-      const novoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
+      const novoId = versaoEmEdicao?.id ?? Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
       const loteId = `DIST-${registro.codigo}-${dataEfeito.replaceAll("-", "")}-${String(atual.movimentos.length + 1).padStart(5, "0")}`;
       const atribuicoes: Array<{ vagaId: string; orgao: string }> = [];
       let cursor = 0;
@@ -839,7 +902,7 @@ export function QuadroLegalOperacoes({
       const dataHoje = dataAtualIso();
       const vigenciaFutura = dataEfeito > dataHoje;
       const dataBr = dataEfeito.split("-").reverse().join("/");
-      const novoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
+      const novoId = versaoEmEdicao?.id ?? Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
       const loteId = `REDIST-${registro.codigo}-${dataEfeito.replaceAll("-", "")}-${String(atual.movimentos.length + 1).padStart(5, "0")}`;
       const lote = [];
       for (const [indice, vaga] of vagasSelecionadasRedistribuicao.entries()) {
@@ -909,12 +972,12 @@ export function QuadroLegalOperacoes({
       window.setTimeout(() => onSaved?.(), 700);
       return;
     }
-    if (operacaoInvalida || !resultado || (!alteracaoSomenteOrgao && resultado.criadas.length + resultado.alteradas.length === 0)) return;
+    if (operacaoInvalida || !resultado || (!alteracaoSemImpactoVagas && resultado.criadas.length + resultado.alteradas.length === 0)) return;
     const atual = controleVagasStore.getState();
     const dataHoje = dataAtualIso();
     const vigenciaFutura = dataEfeito > dataHoje;
     const dataBr = dataEfeito.split("-").reverse().join("/");
-    const primeiroNovoId = Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
+    const primeiroNovoId = versaoEmEdicao?.id ?? Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
 
     if (tipo === "TRANSFORMACAO" && quadroDestino) {
       const idOrigemNovaVersao = primeiroNovoId;
@@ -1010,6 +1073,7 @@ export function QuadroLegalOperacoes({
         ...registro,
         id: novoId,
         evolucaoLegal: evolucaoDoVersionamento(tipo),
+        documentosLegaisIds,
         autorizadas: resultado.quantitativoPosterior,
         ocupadas: ocupadasNovaVersao,
         comprometidas: extincaoProgressiva
@@ -1063,7 +1127,7 @@ export function QuadroLegalOperacoes({
     setSalvo(true);
     window.setTimeout(() => onSaved?.(), 700);
   };
-  const quantidadeImpactada = alteracaoSomenteOrgao
+  const quantidadeImpactada = alteracaoSemImpactoVagas
     ? 0
     : tipo === "TRANSFORMACAO"
       ? resultado?.alteradas.length ?? 0
@@ -1085,28 +1149,6 @@ export function QuadroLegalOperacoes({
 
   return (
     <section className="prototype-legal-card">
-      {versaoAgendada && (
-        <ModalSeplag
-          visible={deveConfirmarSubstituicao}
-          titulo="Versão agendada existente"
-          fechar={() => onSaved?.()}
-          labelFechar="Cancelar"
-          iconFechar="pi pi-times"
-          labelAcao="Continuar"
-          iconAcao="pi pi-check"
-          funcAcao={() => setAgendamentoConfirmadoId(versaoAgendada.id)}
-          tamanho="min(34rem, 94vw)"
-          ariaLabel="Confirmação de substituição de versão agendada"
-          closeOnEscape={false}
-        >
-          <div className="col-12">
-            <MensagemSeplag
-              severity="warning"
-              message={mensagemSubstituicaoAgendada}
-            />
-          </div>
-        </ModalSeplag>
-      )}
       {versaoAgendada && (
         <MensagemSeplag
           severity="warning"
@@ -1139,14 +1181,20 @@ export function QuadroLegalOperacoes({
             setSalvo(false);
           }}
         />
-        <div className="prototype-legal-types">
+        <div className="prototype-legal-types prototype-legal-types-current">
           {tiposAlteracaoDisponiveis.map((item) => (
             <button
               key={item}
               type="button"
               className={tipo === item ? "active" : ""}
-              disabled={item === "EXTINCAO_PROGRESSIVA" && Boolean(registro.extincaoProgressivaEmAndamento)}
-              title={item === "EXTINCAO_PROGRESSIVA" && registro.extincaoProgressivaEmAndamento ? "A extinção progressiva deste quadro já está em andamento." : undefined}
+              disabled={
+                item === "EXTINCAO_PROGRESSIVA" && Boolean(registro.extincaoProgressivaEmAndamento)
+              }
+              title={
+                item === "EXTINCAO_PROGRESSIVA" && registro.extincaoProgressivaEmAndamento
+                  ? "A extinção progressiva deste quadro já está em andamento."
+                  : undefined
+              }
               onClick={() => {
                 setTipo(item);
                 if (item !== "TRANSFORMACAO") {
@@ -1175,7 +1223,9 @@ export function QuadroLegalOperacoes({
                           ? "pi pi-sitemap"
                           : item === "REDISTRIBUICAO"
                             ? "pi pi-arrow-right-arrow-left"
-                            : "pi pi-ban"
+                            : item === "ATUALIZACAO_BASE_LEGAL"
+                              ? "pi pi-book"
+                              : "pi pi-ban"
                 }
               />
               <strong>{rotulos[item]}</strong>
@@ -1183,7 +1233,14 @@ export function QuadroLegalOperacoes({
             </button>
           ))}
         </div>
-        {alteracaoSomenteOrgao && (
+        {tipo === "ATUALIZACAO_BASE_LEGAL" && (
+          <section className="prototype-legal-organization-change">
+            <MensagemSeplag
+              severity="info"
+              message="Somente a base legal será atualizada. O cargo, os quantitativos, as vagas e a distribuição permanecerão inalterados."
+            />
+          </section>
+        )}        {alteracaoSomenteOrgao && (
           <section className="prototype-legal-organization-change">
             <DropdownFieldSeplag
               name="orgaoAlteracao"
@@ -1234,11 +1291,21 @@ export function QuadroLegalOperacoes({
               <BotaoAdicionarSeplag
                 type="button"
                 label="Adicionar destinação"
+                disabled={distribuicaoAtualOrgaos.pendentes === 0}
+                tooltip={distribuicaoAtualOrgaos.pendentes === 0
+                  ? "Não há vagas pendentes de distribuição."
+                  : "Adicionar órgão de destino"}
                 onClick={adicionarDestinacaoDistribuicao}
               />
             </header>
             {erroDistribuicao && (
               <MensagemSeplag severity="error" message={erroDistribuicao} />
+            )}
+            {distribuicaoAtualOrgaos.pendentes === 0 && (
+              <MensagemSeplag
+                severity="info"
+                message="Não há vagas pendentes de distribuição. Para mover vagas já distribuídas, utilize Redistribuição."
+              />
             )}
             <div className="prototype-legal-distribution-summary-inline">
               <span>Já distribuídas</span>
@@ -1252,7 +1319,9 @@ export function QuadroLegalOperacoes({
               <span>A adicionar *</span>
               <span>Ações</span>
             </div>
-            {linhasDistribuicao.map((item) => (
+            {linhasDistribuicao
+              .filter((item) => item.fixa || distribuicaoAtualOrgaos.pendentes > 0)
+              .map((item) => (
               <div
                 className={`prototype-legal-distribution-row${item.fixa ? " is-locked" : ""}`}
                 key={`${item.fixa ? "atual" : "nova"}-${item.id}-${item.orgao || "vazio"}`}
@@ -1325,7 +1394,6 @@ export function QuadroLegalOperacoes({
                       aria-label="Remover destinação"
                       icon="pi pi-trash"
                       severity="danger"
-                      disabled={destinacoesDistribuicao.length === 1}
                       onClick={() => removerDestinacaoDistribuicao(item.id)}
                     />
                   )}
@@ -1364,7 +1432,15 @@ export function QuadroLegalOperacoes({
             </footer>
           </section>
         )}
-        {tipo === "REDISTRIBUICAO" && (
+        {tipo === "REDISTRIBUICAO" && redistribuicaoIndisponivel && (
+          <section className="prototype-legal-redistribution-version">
+            <MensagemSeplag
+              severity="info"
+              message="Não é possível realizar a Redistribuição. O quadro não possui vagas formalmente distribuídas, disponíveis, regulares e sem comprometimento ativo."
+            />
+          </section>
+        )}
+        {tipo === "REDISTRIBUICAO" && !redistribuicaoIndisponivel && (
           <section className="prototype-legal-redistribution-version">
             {erroRedistribuicao && (
               <MensagemSeplag severity="error" message={erroRedistribuicao} />
@@ -1597,7 +1673,7 @@ export function QuadroLegalOperacoes({
             }}
             cols="12 12 4"
           />
-          {tipo !== "EXTINCAO_PROGRESSIVA" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && tipo !== "DISTRIBUICAO" && tipo !== "REDISTRIBUICAO" && !alteracaoSomenteOrgao && (
+          {tipo !== "EXTINCAO_PROGRESSIVA" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && tipo !== "DISTRIBUICAO" && tipo !== "REDISTRIBUICAO" && tipo !== "ATUALIZACAO_BASE_LEGAL" && !alteracaoSomenteOrgao && (
             <NumberFieldSeplag
               name="quantidade"
               control={operacaoControl}
@@ -1766,17 +1842,28 @@ export function QuadroLegalOperacoes({
                 </article>
               ))}
             </div>
-            <ul>
-              {vagasSelecionadasDistribuicao.slice(0, 10).map((vaga) => (
-                <li key={vaga.id}>{vaga.id}</li>
-              ))}
-            </ul>
-            {vagasSelecionadasDistribuicao.length > 10 && (
-              <small>
-                e mais {vagasSelecionadasDistribuicao.length - 10} vagas numeradas.
-              </small>
-            )}
           </section>
+          <div className="prototype-legal-impact-list">
+            <h4>Vagas que serão distribuídas</h4>
+            <table>
+              <thead><tr><th>Sequencial</th><th>Nome da vaga</th><th>Órgão de destino</th></tr></thead>
+              <tbody>
+                {vagasSimulacaoDistribuicao.slice(primeiraVagaDistribuicao, primeiraVagaDistribuicao + 10).map((item) => (
+                  <tr key={item.vagaId}>
+                    <td><strong>{item.sequencial}</strong></td>
+                    <td><strong>{item.nome}</strong></td>
+                    <td>{item.orgao}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <small>{vagasSimulacaoDistribuicao.length} {vagasSimulacaoDistribuicao.length === 1 ? "vaga encontrada" : "vagas encontradas"}.</small>
+            {vagasSimulacaoDistribuicao.length > 10 && (
+              <footer className="prototype-quadro-version-pagination">
+                <Paginator first={primeiraVagaDistribuicao} rows={10} totalRecords={vagasSimulacaoDistribuicao.length} template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" onPageChange={(event) => setPrimeiraVagaDistribuicao(event.first)} />
+              </footer>
+            )}
+          </div>
           <footer>
             <BotaoSalvarSeplag
               type="button"
@@ -1897,7 +1984,15 @@ export function QuadroLegalOperacoes({
             <article><span>Situação resultante</span><strong>{dataEfeito > hoje ? "Agendado" : tipo === "EXTINCAO_PROGRESSIVA" && resultado.quantitativoPosterior > 0 ? "Encerrado" : tipo === "EXTINCAO_PROGRESSIVA" ? "Extinto" : "Ativo"}</strong></article>
             {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <article><span>Evolução registrada</span><strong>{rotulos[tipo]}</strong></article>}
           </section>
-          {tipo !== "TRANSFORMACAO" && <div className="prototype-legal-result-kpis">
+          {tipo === "ATUALIZACAO_BASE_LEGAL" && (
+            <section className="prototype-legal-transformation-balance">
+              <article><span>Base legal vigente</span><strong>{registro.ato}</strong></article>
+              <article><span>Base legal resultante</span><strong>{lei}</strong></article>
+              <article><span>Quantitativo autorizado</span><strong>Sem alteração · {resultado.quantitativoPosterior}</strong></article>
+              <article><span>Impacto nas vagas</span><strong>Nenhum</strong></article>
+            </section>
+          )}
+          {tipo !== "TRANSFORMACAO" && tipo !== "ATUALIZACAO_BASE_LEGAL" && <div className="prototype-legal-result-kpis">
             {tipo === "AMPLIACAO" ? (
               <>
                 <article><span>Quantidade atual</span><strong>{resultado.quantitativoAnterior}</strong></article>
@@ -2036,7 +2131,7 @@ export function QuadroLegalOperacoes({
             <BotaoSalvarSeplag
               type="button"
               label="Registrar nova versão"
-              disabled={operacaoInvalida || salvo || (!alteracaoSomenteOrgao && quantidadeImpactada === 0)}
+              disabled={operacaoInvalida || salvo || (!alteracaoSemImpactoVagas && quantidadeImpactada === 0)}
               onClick={() => setConfirmacaoAberta(true)}
             />
           </footer>
@@ -2081,7 +2176,14 @@ export function QuadroLegalOperacoes({
                 <dt>Operação</dt>
                 <dd>{rotulos[tipo]}</dd>
               </div>
-              {alteracaoSomenteOrgao && (
+              {tipo === "ATUALIZACAO_BASE_LEGAL" && (
+          <section className="prototype-legal-organization-change">
+            <MensagemSeplag
+              severity="info"
+              message="Somente a base legal será atualizada. O cargo, os quantitativos, as vagas e a distribuição permanecerão inalterados."
+            />
+          </section>
+        )}        {alteracaoSomenteOrgao && (
                 <div>
                   <dt>Órgão</dt>
                   <dd>{orgaoAlteracao}</dd>
