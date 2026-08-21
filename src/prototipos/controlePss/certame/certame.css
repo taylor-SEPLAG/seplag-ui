@@ -124,27 +124,29 @@
 .prototype-certame-situacao-evento-btn .pi{font-size:.7rem;color:var(--primary-color)}
 .prototype-certame-situacao-evento-btn-dica{font-size:.68rem;font-weight:600;text-decoration:underline}
 
-/* Lista de cargos/vagas como cartões expansíveis (um por cargo), em grid — cada cargo é seu próprio
-   cartão autocontido (borda + cantos arredondados), em vez de linhas empilhadas dentro de uma única
-   caixa. O cabeçalho segue o padrão da maquete de referência: botão de expandir à esquerda, badge de
-   vínculo, título (cargo + resumo) e badge de situação/ações; como o cartão fica mais estreito numa
-   coluna de grid, o cabeçalho sempre quebra linha (sem depender de media query). Expandir mostra
-   cada cota reservada em sua própria linha, em vez de empilhar tags numa única célula. */
-.prototype-certame-cargos-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1rem;margin-top:1rem}
-.prototype-certame-cargos-vazio{padding:1.5rem 0;text-align:center;font-size:.85rem}
-.prototype-certame-cargo-card{border:1px solid var(--surface-border);border-radius:10px;background:var(--surface-0);overflow:hidden}
-.prototype-certame-cargo-row{display:flex;flex-wrap:wrap;align-items:center;gap:.9rem;padding:.85rem 1.1rem}
-.prototype-certame-cargo-expand{flex:0 0 auto}
+/* Cargos/vagas no mesmo grid padrão da biblioteca (TablePaginadoSeplag) usado pela tabela de Cotas
+   acima, mas sem o cabeçalho da tabela (protótipo de referência mostra só a linha do cargo) — cada
+   linha resume vínculo, cargo e vagas; a coluna "Vínculo" traz o botão de expandir (mesmo padrão de
+   outras tabelas do sistema, ex.: Ingressos/Quadro Autorizado). Expandir mostra a distribuição das
+   vagas (rowExpansionTemplate), em vez de um cartão próprio por cargo. */
+.prototype-certame-cargos-tabela .p-datatable-thead{display:none}
+.prototype-certame-cargo-vinculo-cell{display:flex;align-items:center;gap:.5rem}
 .prototype-certame-cargo-expand .pi{transition:transform .2s ease}
-.prototype-certame-cargo-titulo{flex:1 1 auto;min-width:0;flex-basis:100%;order:1;display:flex;flex-direction:column;gap:.2rem}
-.prototype-certame-cargo-titulo strong{font-size:1.05rem;color:var(--text-color)}
-.prototype-certame-cargo-titulo small{color:var(--text-color-secondary);font-size:.88rem}
+.prototype-certame-cargo-titulo{display:flex;flex-direction:column;gap:.2rem}
+.prototype-certame-cargo-titulo strong{font-size:.95rem;color:var(--text-color)}
+.prototype-certame-cargo-titulo small{color:var(--text-color-secondary);font-size:.82rem}
 .prototype-certame-cargo-titulo small .prototype-certame-link-btn{display:inline;color:var(--primary-color);font-size:inherit}
-.prototype-certame-cargo-vagas{flex:0 0 auto;color:var(--text-color-secondary);font-size:.95rem;white-space:nowrap}
-.prototype-certame-cargo-acoes{flex:0 0 auto;display:flex;align-items:center;gap:.5rem}
-.prototype-certame-cargo-corpo{display:grid;transition:grid-template-rows .25s ease}
-.prototype-certame-cargo-corpo-conteudo{overflow:hidden;padding:1rem 1.1rem}
-.prototype-certame-cargo-corpo-conteudo>.grid{margin:0}
+
+/* Painel "Distribuição da Vagas" (conteúdo expandido de cada cargo): um cartão por cota reservada
+   + Ampla concorrência + Cadastro reserva, dentro de uma caixa com título e ícone informativo —
+   layout do protótipo de referência (substitui a antiga tabela de resumo de 3 colunas fixas). */
+.prototype-certame-distribuicao-vagas{padding:1rem 1.1rem;border:1px solid var(--surface-border);border-radius:8px;background:var(--surface-0)}
+.prototype-certame-distribuicao-vagas>header{display:flex;align-items:center;gap:.45rem;margin-bottom:.85rem;color:var(--text-color);font-size:.82rem;font-weight:800}
+.prototype-certame-distribuicao-vagas>header .pi{color:var(--primary-color);font-size:.9rem}
+.prototype-certame-distribuicao-vagas-itens{display:flex;flex-wrap:wrap;gap:.75rem}
+.prototype-certame-distribuicao-vagas-item{display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem;border:1px solid var(--surface-border);border-radius:8px;background:var(--surface-50);white-space:nowrap}
+.prototype-certame-distribuicao-vagas-item span{color:var(--text-color-secondary);font-size:.82rem;font-weight:700}
+.prototype-certame-distribuicao-vagas-item strong{color:var(--text-color);font-size:.9rem}
 
 .prototype-certame-documentos-grupo{margin-top:1.5rem}
 .prototype-certame-documentos-grupo:first-of-type{margin-top:1rem}
