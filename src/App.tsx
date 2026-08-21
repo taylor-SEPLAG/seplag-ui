@@ -32,6 +32,8 @@ import {
   PrototiposCategoriaTesteFormPage,
   PrototiposCategoriaTestePage,
   PrototiposComponentesPage,
+  PrototiposGestaoDocumentosPage,
+  PrototiposGestaoDocumentosCadastroPage,
   PrototiposControleVagasRegrasPage,
   PrototiposControleVagasQuadroAutorizadoPage,
   PrototiposControleVagasDistribuicaoSaldoPage,
@@ -1366,6 +1368,14 @@ function App() {
       <Route
         path="/prototipos/sigep/painel-informativo"
         element={<Navigate to="/prototipos/sigep/gestao/painel-informativo" replace />}
+      />
+      <Route
+        path="/prototipos/sigep/parametrizacao/gestao-documentos/novo"
+        element={<PrototiposGestaoDocumentosCadastroPage />}
+      />
+      <Route
+        path="/prototipos/sigep/parametrizacao/gestao-documentos"
+        element={<PrototiposGestaoDocumentosPage />}
       />
       <Route
         path="/prototipos/sigep/componentes"
