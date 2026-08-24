@@ -27,6 +27,7 @@ import {
   PrototiposCargoPage,
   PrototiposCargoTesteFormPage,
   PrototiposCargoTestePage,
+  PrototiposCarreiraPage,
   PrototiposCategoriaPage,
   PrototiposCategoriaFormPage,
   PrototiposCategoriaTesteFormPage,
@@ -47,6 +48,8 @@ import {
   PrototiposControlePssIntegracaoSiesPage,
   PrototiposControlePssCertamesPage,
   PrototiposControlePssCertameFormPage,
+  PrototiposControlePssLocaisPage,
+  PrototiposControlePssLocalFormPage,
   PrototiposBacklogRegrasPage,
   PrototiposBacklogQuadroAutorizadoPage,
   PrototiposBacklogControleVagasV2RegrasPage,
@@ -146,7 +149,7 @@ function HomePage() {
       status: "Em prototipação",
       to: "/prototipos/sigep",
       links: [
-        { label: "Categoria", to: "/prototipos/sigep/categoria" },
+        { label: "Carreira", to: "/prototipos/sigep/carreira" },
         { label: "Cargo", to: "/prototipos/sigep/cargo" },
         { label: "Regime Jurídico", to: "/prototipos/sigep/regime-juridico" },
         { label: "Componentes", to: "/prototipos/sigep/componentes" },
@@ -1341,6 +1344,7 @@ function App() {
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma" element={<PrototiposOrganogramaPage />} />
+      <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade" element={<PrototiposEstruturaOrganizacionalPage />} />
       <Route
         path="/prototipos/sigep/documentos-legais"
         element={<PrototiposDocumentosLegaisPage />}
@@ -1532,6 +1536,18 @@ function App() {
         element={<PrototiposControlePssCertameFormPage />}
       />
       <Route
+        path="/prototipos/sigep/controle-pss/locais"
+        element={<PrototiposControlePssLocaisPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/locais/novo"
+        element={<PrototiposControlePssLocalFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/locais/:id"
+        element={<PrototiposControlePssLocalFormPage />}
+      />
+      <Route
         path="/prototipos/sigep/controle-pss/processos"
         element={<PrototiposControlePssProcessosPage />}
       />
@@ -1602,7 +1618,12 @@ function App() {
       <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/novo" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
       <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
       <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id/editar" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
-      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id/nova-versao" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />      <Route
+      <Route path="/prototipos/sigep/quadro-pessoal/quadro-autorizado/:id/nova-versao" element={<PrototiposQuadroPessoalQuadroAutorizadoPage />} />
+      <Route
+        path="/prototipos/sigep/carreira"
+        element={<PrototiposCarreiraPage />}
+      />
+      <Route
         path="/prototipos/sigep/categoria"
         element={<PrototiposCategoriaPage />}
       />

@@ -205,7 +205,6 @@ const tipoInicial: TipoAlteracaoQuadroLegal = (() => {
   > | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false);
-  const [primeiraVagaImpactada, setPrimeiraVagaImpactada] = useState(0);
   const [primeiraVagaDistribuicao, setPrimeiraVagaDistribuicao] = useState(0);
   const [reducaoPorOrgao, setReducaoPorOrgao] = useState<Record<string, number>>({});
   const [transformacaoPorOrgao, setTransformacaoPorOrgao] = useState<Record<string, number>>({});
@@ -738,7 +737,6 @@ const vagasElegiveisRedistribuicao =
   const simular = (event: FormEvent) => {
     event.preventDefault();
     setSalvo(false);
-    setPrimeiraVagaImpactada(0);
     if (camposObrigatoriosIncompletos) {
       setResultado(null);
       setDistribuicaoSimulada(false);
@@ -1132,15 +1130,6 @@ const vagasElegiveisRedistribuicao =
     : tipo === "TRANSFORMACAO"
       ? resultado?.alteradas.length ?? 0
       : (resultado?.criadas.length ?? 0) + (resultado?.alteradas.length ?? 0);
-  const vagasImpactadas = resultado
-    ? tipo === "TRANSFORMACAO"
-      ? resultado.criadas
-      : [...resultado.criadas, ...resultado.alteradas]
-    : [];
-  const vagasImpactadasExibidas =
-    tipo === "AMPLIACAO" || tipo === "REDUCAO" || tipo === "TRANSFORMACAO"
-      ? vagasImpactadas.slice(primeiraVagaImpactada, primeiraVagaImpactada + 10)
-      : vagasImpactadas.slice(0, 8);
   const orgaosResultantes = tipo === "INCLUSAO_ORGAO"
     ? [...new Set([...orgaosAtuais, orgaoAlteracao].filter(Boolean))]
     : tipo === "EXCLUSAO_ORGAO"
@@ -1802,7 +1791,6 @@ const vagasElegiveisRedistribuicao =
               <span>Resultado da simulação</span>
               <h3>Distribuição</h3>
             </div>
-            <span className="ok">Consistente</span>
           </header>
           <section className="prototype-legal-transformation-balance">
             <article><span>Quadro vigente</span><strong>{registro.codigo} · versão {registro.versao}</strong></article>
@@ -1881,7 +1869,6 @@ const vagasElegiveisRedistribuicao =
               <span>Resultado da simulação</span>
               <h3>Redistribuição</h3>
             </div>
-            <span className="ok">Consistente</span>
           </header>
           <section className="prototype-legal-transformation-balance">
             <article><span>Quadro vigente</span><strong>{registro.codigo} · versão {registro.versao}</strong></article>
@@ -1967,9 +1954,6 @@ const vagasElegiveisRedistribuicao =
               <span>Resultado da simulação</span>
               <h3>{rotulos[tipo]}</h3>
             </div>
-            <span className={resultado.alertas.length ? "warning" : "ok"}>
-              {resultado.alertas.length ? "Requer atenção" : "Consistente"}
-            </span>
           </header>
           <section className="prototype-legal-transformation-balance">
             {tipo === "AMPLIACAO" || tipo === "REDUCAO" ? (
@@ -2009,19 +1993,10 @@ const vagasElegiveisRedistribuicao =
               <>
                 <article><span>Quadro anterior</span><strong>{resultado.quantitativoAnterior}</strong></article>
                 <article><span>{tipo === "TRANSFORMACAO" ? "Origem resultante" : "Quadro resultante"}</span><strong>{resultado.quantitativoPosterior}</strong></article>
-                <article><span>Vagas geradas</span><strong>{resultado.criadas.length}</strong></article>
                 <article><span>Vagas afetadas</span><strong>{resultado.alteradas.length}</strong></article>
               </>
             )}
           </div>}
-          {tipo === "REDUCAO" && (
-            <section className="prototype-legal-transformation-balance">
-              <article><span>Vagas elegíveis para redução</span><strong>{vagasPorOrgao.reduce((total, grupo) => total + grupo.elegiveis.length, 0)}</strong></article>
-              <article><span>Vagas selecionadas</span><strong>{resultado.alteradas.length}</strong></article>
-              <article><span>Ocupadas</span><strong>{resumoQuadro.ocupadas}</strong></article>
-              <article><span>Comprometidas (podem incluir ocupadas)</span><strong>{resumoQuadro.comprometidas}</strong></article>
-            </section>
-          )}
           {alteracaoSomenteOrgao && orgaoAlteracao && (
             <section className="prototype-legal-transformation-balance">
               <article><span>Órgão</span><strong>{orgaoAlteracao}</strong></article>
@@ -2061,71 +2036,8 @@ const vagasElegiveisRedistribuicao =
           {tipo === "REDUCAO" && resultado.alteradas.length > 0 && (
             <MensagemSeplag
               severity="info"
-              message={`Serão extintas ${resultado.alteradas.length} vaga(s) disponível(is), regular(es) e sem comprometimento, priorizando os maiores sequenciais.`}
+              message={`Serão extintas ${resultado.alteradas.length} vaga(s) disponível(is), regular(es) e sem comprometimento.`}
             />
-          )}
-          {quantidadeImpactada > 0 && (
-            <div className="prototype-legal-impact-list">
-              <h4>{tipo === "REDUCAO" ? "Vagas que serão extintas" : tipo === "AMPLIACAO" ? "Vagas que serão criadas" : tipo === "TRANSFORMACAO" ? "Vagas que serão transformadas" : "Amostra das vagas impactadas"}</h4>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Sequencial</th>
-                    {tipo === "TRANSFORMACAO" ? <><th>Nome atual</th><th>Nome resultante</th><th>Condição</th></> : <th>Nome da vaga</th>}
-                    {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <th>Efeito</th>}
-                    {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <th>Estado</th>}
-                    {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <th>Situação legal</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {vagasImpactadasExibidas.map((vaga) => (
-                      <tr key={vaga.id + "-" + vaga.situacaoLegal}>
-                        <td><strong>{vaga.sequencial}</strong></td>
-                        {tipo === "TRANSFORMACAO" ? (
-                          <>
-                            <td><strong>{resultado.alteradas.find((origem) => origem.id === vaga.id)?.nome ?? resultado.alteradas.find((origem) => origem.id === vaga.id)?.id.replace(/^VAG-/, "")}</strong></td>
-                            <td><strong>{vaga.nome ?? "Ainda não atribuído"}</strong></td>
-                            <td>{vaga.estado === "OCUPADA" ? "Ocupada" : "Disponível"}</td>
-                          </>
-                        ) : <td><strong>{vaga.nome ?? "Ainda não atribuído"}</strong></td>}
-                        {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <td>
-                          {tipo === "TRANSFORMACAO"
-                            ? vaga.estado === "OCUPADA" ? "Ocupada transformada para o quadro de destino" : "Disponível transformada para o quadro de destino"
-                            : resultado.criadas.some((item) => item.id === vaga.id)
-                              ? "Nova vaga numerada"
-                              : "Atualização preservando o código"}
-                        </td>}
-                        {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <td>
-                          {vaga.estado === "DISPONIVEL"
-                            ? "Disponível"
-                            : "Ocupada"}
-                        </td>}
-                        {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <td>{vaga.situacaoLegal.replaceAll("_", " ")}</td>}
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-              {(tipo === "AMPLIACAO" || tipo === "REDUCAO" || tipo === "TRANSFORMACAO") && (
-                <small>{quantidadeImpactada} {quantidadeImpactada === 1 ? "vaga encontrada" : "vagas encontradas"}.</small>
-              )}
-              {(tipo === "AMPLIACAO" || tipo === "REDUCAO" || tipo === "TRANSFORMACAO") && quantidadeImpactada > 10 && (
-                <footer className="prototype-quadro-version-pagination">
-                  <Paginator
-                    first={primeiraVagaImpactada}
-                    rows={10}
-                    totalRecords={quantidadeImpactada}
-                    template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
-                    onPageChange={(event) => setPrimeiraVagaImpactada(event.first)}
-                  />
-                </footer>
-              )}
-              {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && quantidadeImpactada > 8 && (
-                <small>
-                  Mais {quantidadeImpactada - 8} vaga(s) receberiam o mesmo
-                  tratamento.
-                </small>
-              )}
-            </div>
           )}
           <footer>
             <BotaoSalvarSeplag
@@ -2221,16 +2133,14 @@ const vagasElegiveisRedistribuicao =
                     : resultado?.quantitativoPosterior}
                 </dd>
               </div>
-              <div>
-                <dt>{tipo === "DISTRIBUICAO" ? "Vagas distribuídas" : tipo === "REDISTRIBUICAO" ? "Vagas redistribuídas" : "Vagas geradas"}</dt>
+              {(tipo === "DISTRIBUICAO" || tipo === "REDISTRIBUICAO") && <div>
+                <dt>{tipo === "DISTRIBUICAO" ? "Vagas distribuídas" : "Vagas redistribuídas"}</dt>
                 <dd>
                   {tipo === "DISTRIBUICAO"
                     ? totalDistribuicaoInformado
-                    : tipo === "REDISTRIBUICAO"
-                      ? quantidadeRedistribuicaoInformada
-                    : resultado?.criadas.length}
+                    : quantidadeRedistribuicaoInformada}
                 </dd>
-              </div>
+              </div>}
               <div>
                 <dt>{tipo === "DISTRIBUICAO" ? "Destinações" : tipo === "REDISTRIBUICAO" ? "Destino" : "Vagas afetadas"}</dt>
                 <dd>

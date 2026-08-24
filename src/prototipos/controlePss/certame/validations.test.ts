@@ -104,7 +104,7 @@ describe("funções pré-existentes continuam corretas (regressão)", () => {
   expect(calcularPrazoPrestacaoContas("10/02/2026")).toBe("12/02/2026");
  });
 
- it("calcularValidadeDias calcula a diferença em dias entre publicação e validade", () => {
+ it("calcularValidadeDias calcula a diferença em dias entre o resultado e a validade", () => {
   expect(calcularValidadeDias("10/02/2026", "10/02/2027")).toBe(365);
  });
 });
