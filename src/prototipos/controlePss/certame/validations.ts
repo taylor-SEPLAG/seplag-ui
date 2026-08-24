@@ -17,10 +17,11 @@ export function calcularPrazoPrestacaoContas(dataEfeito?:string):string | undefi
  return format(addDays(data, 2), "dd/MM/yyyy");
 }
 
-// A validade em dias é derivada do intervalo entre a publicação do edital e a data de validade
-// informada, evitando divergência entre as duas datas e o número de dias exibido no formulário.
-export function calcularValidadeDias(dataPublicacaoEdital?:string, dataValidade?:string):number | undefined {
- const inicio = stringToDateSeplag(dataPublicacaoEdital ?? null);
+// RN: a validade em dias é derivada do intervalo entre a data do resultado e a data de validade
+// informada — não da publicação do edital — evitando divergência entre as duas datas e o número
+// de dias exibido no formulário.
+export function calcularValidadeDias(dataResultado?:string, dataValidade?:string):number | undefined {
+ const inicio = stringToDateSeplag(dataResultado ?? null);
  const fim = stringToDateSeplag(dataValidade ?? null);
  if (!inicio || !fim) return undefined;
  const dias = differenceInCalendarDays(fim, inicio);

@@ -17,7 +17,9 @@ export const SEPLAG_SECONDARY_LIGHT = "#90A4AE";
 
 // ── Semânticas ───────────────────────────────────────────────────────────────
 export const SEPLAG_SUCCESS = "#4CAF50";
+export const SEPLAG_SUCCESS_DARK = "#2E7D32";
 export const SEPLAG_WARNING = "#FF9800";
+export const SEPLAG_YELLOW = "#FFC107";
 export const SEPLAG_DANGER = "#F44336";
 export const SEPLAG_INFO = "#2196F3";
 

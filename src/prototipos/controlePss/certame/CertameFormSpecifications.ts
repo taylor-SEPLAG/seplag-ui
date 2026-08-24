@@ -21,7 +21,7 @@ export const certameFormTabSpecifications: Record<string, SpecificationMetadata>
  "Cronograma": spec(
   "PSS-CERT-FRM-TAB-002", "Cronograma",
   "Aba com os marcos temporais e o cronograma do certame, organizada em 3 blocos com ícone e subtítulo: \"Datas e execução\", \"Fases do certame\" e \"Prazos de posse/exercício\".",
-  "Bloco Datas e execução — RN-07 (a data de publicação do edital não pode ser posterior a nenhuma data subsequente do fluxo); Data de prorrogação e Data de cancelamento ficam ocultas para Processo Seletivo (RN-06, seção 3); RN-19 (validade em dias calculada automaticamente a partir de Publicação → Validade); Abrangência, Tipo de contratação (execução) e Instituição realizadora foram deslocados para o bloco Contratação e custos, na aba Contrato e Custos. "
+  "Bloco Datas e execução — RN-07 (a data de publicação do edital não pode ser posterior a nenhuma data subsequente do fluxo); Data de prorrogação e Data de cancelamento ficam ocultas para Processo Seletivo (RN-06, seção 3); RN-19 (validade em dias calculada automaticamente a partir de Resultado → Validade); Abrangência, Tipo de contratação (execução) e Instituição realizadora foram deslocados para o bloco Contratação e custos, na aba Contrato e Custos. "
   + "Bloco Fases do certame — RN-09 (catálogo do TCE-MT como sugestão inicial; fases totalmente editáveis — nome, datas de início/fim, reordenar, incluir e remover). "
   + "Bloco Prazos de posse/exercício — campos numéricos de apoio à contagem de prazos posteriores ao ingresso; bloco oculto por completo para Processo Seletivo (RN-06.3).",
   "Certame (blocos 2, 3 e 7).", "Certame", "formulário com blocos internos com subtítulo",

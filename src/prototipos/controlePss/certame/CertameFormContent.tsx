@@ -4,6 +4,7 @@ import { Controller, useForm, type Control, type FieldValues, type Path } from "
 import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA, CONTROLE_PSS_USUARIO_LOGADO } from "../constants";
 import { controlePssStore, useControlePssStore } from "../controlePssStore";
 import { CONTROLE_VAGAS_BASE_PATH } from "../../controleVagas/constants";
+import { useLocais } from "../locais/locaisStore";
 import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStore";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
@@ -60,6 +61,39 @@ export function BlocoHeader({ icone, titulo, subtitulo }:{ icone:string; titulo:
 // de referência que agrupa os campos em cartões menores com título simples.
 function BlocoTitulo({ titulo }:{ titulo:string }) {
  return <h3 className="prototype-certame-bloco-titulo">{titulo}</h3>;
+}
+
+// Rótulo curto de cota (ex.: "PCD" em vez de "PCD — Pessoas com Deficiência") para caber nos
+// cartões compactos do painel "Distribuição da Vagas".
+function rotuloCotaCurto(tipo:string) {
+ const label = TIPOS_COTA.find((item) => item.value === tipo)?.label ?? tipo;
+ return label.split(" — ")[0];
+}
+
+// Distribuição das vagas do cargo: um cartão por cota reservada (RN: cada tipo de cota é
+// independente, pode haver mais de uma), Ampla Concorrência (calculada, nunca digitada) e
+// Cadastro Reserva (independente, não desconta das outras duas).
+function DistribuicaoVagasCargo({ quantidadeVagas, reservas, quantidadeCadastroReserva }:{ quantidadeVagas:number; reservas:readonly ReservaCotaCargo[]; quantidadeCadastroReserva?:number }) {
+ const ampla = calcularAmplaConcorrencia(quantidadeVagas, reservas);
+ return (
+  <div className="prototype-certame-distribuicao-vagas">
+   <header><i className="pi pi-info-circle" aria-hidden="true" /><span>Distribuição da Vagas</span></header>
+   <div className="prototype-certame-distribuicao-vagas-itens">
+    {reservas.map((reserva) => <div key={reserva.id} className="prototype-certame-distribuicao-vagas-item">
+     <span>Cota - {rotuloCotaCurto(reserva.tipo)}</span>
+     <strong>{reserva.quantidade}</strong>
+    </div>)}
+    <div className="prototype-certame-distribuicao-vagas-item">
+     <span>Ampla concorrência</span>
+     <strong>{ampla}</strong>
+    </div>
+    <div className="prototype-certame-distribuicao-vagas-item">
+     <span>Cadastro reserva</span>
+     <strong>{quantidadeCadastroReserva ?? "—"}</strong>
+    </div>
+   </div>
+  </div>
+ );
 }
 
 export interface CertameFormValues {
@@ -178,6 +212,14 @@ function buscarQuadroPorCargo(nome:string) {
  return CARGOS_CADASTRADOS.find((item) => item.nome.trim().toLocaleLowerCase("pt-BR") === alvo);
 }
 
+// Ampla Concorrência nunca é digitada — é sempre o restante das vagas do cargo depois de reservar
+// as cotas (Qtd. vagas − soma das cotas). Cadastro Reserva é independente: não desconta da Ampla
+// Concorrência nem das cotas, pois é só o banco de convocação futura.
+function calcularAmplaConcorrencia(quantidadeVagas:number, reservas:readonly { quantidade:number }[]) {
+ const totalCotas = reservas.reduce((total, item) => total + item.quantidade, 0);
+ return Math.max(0, (quantidadeVagas || 0) - totalCotas);
+}
+
 function rotuloPolo(codigo:string) {
  return MUNICIPIOS_MT.find((item) => item.value === codigo)?.label ?? codigo;
 }
@@ -246,12 +288,13 @@ export function CertameFormContent() {
  const blocoClasse = (idBloco:string) => `prototype-certame-bloco${blocoDestaque === idBloco ? " prototype-certame-bloco--destaque" : ""}`;
  const irParaBloco = (novaAba:Aba, idBloco:string) => { setAba(novaAba); setBlocoDestaque(idBloco); };
 
- // A validade em dias é recalculada automaticamente sempre que a data de validade (ou a publicação
- // do edital, que serve de marco inicial) é informada, evitando que os dois campos fiquem divergentes.
+ // RN: a validade em dias é recalculada a partir da data do resultado (marco inicial), não da
+ // publicação do edital — evita que os dois campos (validade em dias x data de validade) fiquem
+ // divergentes.
  useEffect(() => {
-  const dias = calcularValidadeDias(valores.dataPublicacaoEdital, valores.dataValidade);
+  const dias = calcularValidadeDias(valores.dataResultado, valores.dataValidade);
   if (dias !== undefined) setValue("validadeConcursoDias", dias);
- }, [valores.dataPublicacaoEdital, valores.dataValidade, setValue]);
+ }, [valores.dataResultado, valores.dataValidade, setValue]);
 
  const selecionarTipoCertame = (tipo:TipoCertame) => {
   const concurso = tipo === "CONCURSO_PUBLICO";
@@ -276,17 +319,38 @@ export function CertameFormContent() {
  }, [searchParams, campoLeiRetorno, cotaForm, setValue, valores, navigate, location.pathname]);
 
  const [cargos, setCargos] = useState<CargoVagaCertame[]>(existente ? [...existente.cargos] : (rascunho?.cargos ?? []));
+ const polos = useLocais();
+ const polosOptions = useMemo(() => polos.filter((item) => item.situacao === "ATIVO").map((item) => ({ label:item.nomeLocal, value:item.nomeLocal })), [polos]);
  const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", cidades:[], jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 } });
  const cargoValores = cargoForm.watch();
  const cargoExistenteSelecionado = cargoValores.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId) : undefined;
  const cargoNomeAtual = cargoValores.vinculo === "EXISTENTE" ? cargoExistenteSelecionado?.nome ?? "" : cargoValores.cargoNome;
  const quadroVinculado = buscarQuadroPorCargo(cargoNomeAtual ?? "");
+ // RN: bloqueio de carga repetida — o par (Cargo/função + Jornada) não pode repetir o de uma vaga
+ // já salva na lista do certame. Verificado em tempo real (a cada tecla/seleção), contra `cargos`
+ // (lista salva), nunca contra o próprio formulário em edição.
+ const cargoJornadaRepetida = Boolean(cargoNomeAtual?.trim() && cargoValores.jornada && cargos.some((item) =>
+  item.jornada === cargoValores.jornada && item.cargoNome.trim().toLocaleLowerCase("pt-BR") === cargoNomeAtual.trim().toLocaleLowerCase("pt-BR")));
  // Sugere a jornada já cadastrada para o cargo selecionado, mas o campo continua editável — o
  // usuário pode ajustar manualmente caso o certame preveja jornada diferente da vigente.
  useEffect(() => {
   if (cargoExistenteSelecionado?.jornada) cargoForm.setValue("jornada", cargoExistenteSelecionado.jornada);
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [cargoExistenteSelecionado?.id]);
+ // Sugere a cidade cadastrada para o Polo selecionado, mas o campo continua editável — o usuário
+ // pode ajustar manualmente caso a vaga atenda outra(s) cidade(s) além da sede do polo.
+ const selecionarPolo = (nomePolo:string | null) => {
+  const localPolo = nomePolo ? polos.find((item) => item.nomeLocal === nomePolo && item.situacao === "ATIVO") : undefined;
+  const opcaoCidade = localPolo ? MUNICIPIOS_MT.find((item) => item.label.toLocaleLowerCase("pt-BR") === localPolo.cidade.toLocaleLowerCase("pt-BR")) : undefined;
+  if (opcaoCidade) cargoForm.setValue("cidades", [opcaoCidade.value]);
+ };
+ // Largura das colunas de "Identificação do cargo" ajustada à quantidade de campos realmente
+ // visíveis (Carreira e Órgão são condicionais) — grade de 4 colunas (25%) quando completa, para
+ // não deixar campos sobrando sozinhos numa linha quase vazia.
+ const mostrarCarreiraCargo = valores.tipoCertame === "CONCURSO_PUBLICO";
+ const mostrarOrgaoCargo = valores.setoresParticipantes.length > 1;
+ const totalCamposIdentificacaoCargo = 4 + (mostrarCarreiraCargo ? 1 : 0) + (mostrarOrgaoCargo ? 1 : 0);
+ const colsIdentificacaoCargo = totalCamposIdentificacaoCargo === 4 ? "12 6 3" : "12 6 2";
  // Reservas de cota do cargo em edição (antes de "Adicionar") — um mesmo cargo pode acumular mais
  // de uma reserva (ex.: 2 PCD + 1 PPP) antes de ser efetivamente incluído na lista de cargos.
  const [reservasCotaPendentes, setReservasCotaPendentes] = useState<ReservaCotaCargo[]>([]);
@@ -334,21 +398,41 @@ export function CertameFormContent() {
   } },
  ];
 
- const colunasReservasCota:ColumnMetaSeplag<ReservaCotaCargo>[] = [
-  { header:"Tipo de cota", body:(row) => <BadgeSeplag label={TIPOS_COTA.find((tipo) => tipo.value === row.tipo)?.label ?? row.tipo} color="#0b6199" bg="#e9f3fc" border="transparent" size="sm" /> },
-  { field:"quantidade", header:"Quantidade" },
- ];
-
- // Cada cargo/vaga vira um card expansível: o cabeçalho resume vínculo, quadro, vagas e CR (igual
- // à antiga linha de tabela); o corpo detalha cada cota reservada em sua própria linha — mais claro
- // que empilhar todas as cotas como tags dentro de uma única célula.
+ // Cada cargo/vaga usa o mesmo grid padrão da biblioteca (TablePaginadoSeplag) da tabela de Cotas
+ // acima: o cabeçalho resume vínculo, quadro, vagas e CR; a linha expande (rowExpansionTemplate)
+ // para detalhar Cota/Ampla concorrência/Cadastro reserva — mais claro que empilhar tudo em tags.
  const [cargosExpandidos, setCargosExpandidos] = useState<Set<string>>(new Set());
  const alternarCargoExpandido = (id:string) => setCargosExpandidos((atuais) => {
   const proximos = new Set(atuais);
   if (proximos.has(id)) proximos.delete(id); else proximos.add(id);
   return proximos;
  });
+ const cargosExpandidosRows = Object.fromEntries([...cargosExpandidos].map((id) => [id, true]));
 
+ const colunasCargos:ColumnMetaSeplag<CargoVagaCertame>[] = [
+  { header:"Vínculo", body:(cargo) => <div className="prototype-certame-cargo-vinculo-cell">
+   <BotaoIconSeplag type="button" className="prototype-certame-cargo-expand" tooltip={cargosExpandidos.has(cargo.id) ? "Recolher" : "Expandir"} icon={cargosExpandidos.has(cargo.id) ? "pi pi-chevron-down" : "pi pi-chevron-right"} onClick={() => alternarCargoExpandido(cargo.id)} />
+   <BadgeSeplag label={cargo.vinculo === "EXISTENTE" ? "Vaga existente" : "Vaga nova"} color="#0b6199" bg="#e9f3fc" border="transparent" size="md" />
+  </div> },
+  { header:"Cargo", body:(cargo) => <div className="prototype-certame-cargo-titulo">
+   <strong>{cargo.cargoNome}</strong>
+   <small>
+    {cargo.orgaoDestino && <>{cargo.orgaoDestino === ORGAO_TODOS ? "Todos os órgãos" : cargo.orgaoDestino} • </>}
+    {cargo.carreira && <>{CARREIRAS_CONCURSO.find((item) => item.value === cargo.carreira)?.label ?? cargo.carreira} • </>}
+    {cargo.polo && <>Polo {cargo.polo} • </>}
+    {cargo.cidades && cargo.cidades.length > 0 && <>Cidade {cargo.cidades.map(rotuloPolo).join(", ")} • </>}
+    {cargo.jornada && <>{JORNADAS_TRABALHO.find((item) => item.value === cargo.jornada)?.label ?? cargo.jornada} • </>}
+    {cargo.quadroCodigo ? <button type="button" className="prototype-certame-link-btn" onClick={() => navigate(`${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`)}>{cargo.quadroCodigo} — Versão {cargo.quadroVersao}</button> : "Sem quadro vinculado"}
+    {" "}• Cód. {cargo.codigoReferenciaTce}
+    {cargo.aceitaCadastroReserva && <> • CR {cargo.quantidadeCadastroReserva ?? 0}</>}
+   </small>
+  </div> },
+  { header:"Vagas", body:(cargo) => <BadgeSeplag label={`${cargo.quantidadeVagas} vaga${cargo.quantidadeVagas === 1 ? "" : "s"}`} color="#0b6199" bg="#e9f3fc" border="transparent" size="md" /> },
+  { header:"Cota", body:(cargo) => {
+   const temCotas = cargo.reservasCota.length > 0;
+   return <BadgeSeplag label={temCotas ? `${cargo.reservasCota.length} cota${cargo.reservasCota.length === 1 ? "" : "s"}` : "Ampla concorrência"} color={temCotas ? "#147441" : "#55637a"} bg={temCotas ? "#e2f5e8" : "#eef1f5"} border="transparent" size="md" />;
+  } },
+ ];
 
  const salvar = handleSubmit((dados) => {
   setErro(null);
@@ -409,6 +493,7 @@ export function CertameFormContent() {
   const cargoExistente = dados.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === dados.cargoExistenteId) : undefined;
   const cargoNome = dados.vinculo === "EXISTENTE" ? cargoExistente?.nome ?? "" : dados.cargoNome;
   if (!cargoNome || dados.quantidadeVagas <= 0) return;
+  if (cargoJornadaRepetida) { setErro("Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Ajuste o cargo ou a jornada para continuar."); return; }
   const totalReservado = reservasCotaPendentes.reduce((total, item) => total + item.quantidade, 0);
   if (totalReservado > dados.quantidadeVagas) { setErro("A soma das cotas reservadas não pode exceder a quantidade de vagas do cargo."); return; }
   if (dados.aceitaCadastroReserva === "S" && !(dados.quantidadeCadastroReserva && dados.quantidadeCadastroReserva > 0)) { setErro("Informe a quantidade de Cadastro Reserva (CR) para as vagas de ampla concorrência."); return; }
@@ -419,7 +504,6 @@ export function CertameFormContent() {
   setReservasCotaPendentes([]);
  };
  const removerCargo = (idCargo:string) => setCargos((atuais) => atuais.filter((item) => item.id !== idCargo));
-
  const renumerarFases = (lista:FaseCertame[]) => lista.map((item, index) => ({ ordem:index + 1, nome:item.nome, dataInicio:item.dataInicio, dataFim:item.dataFim }));
  const adicionarFase = () => setFases((atuais) => [...atuais, { ordem:atuais.length + 1, nome:"", dataInicio:"", dataFim:"" }]);
  // Preenche automaticamente a Data início de "Publicação do Edital"/"Homologação do Resultado"
@@ -524,7 +608,14 @@ export function CertameFormContent() {
       <div id="bloco-identificacao" className={blocoClasse("bloco-identificacao")}>
        <BlocoTitulo titulo="Identificação do certame" />
        <div className="grid">
-        <RotuloSeplag nome="Tipo do certame / Aplic. TCE-MT" cols="12 6 5" obrigatorio><div className="prototype-certame-campo-fixo-valor">{TIPOS_CERTAME.find((item) => item.value === valores.tipoCertame)?.label} — {TIPOS_CONCURSO_APLIC_TCE.find((item) => item.value === valores.tipoConcursoAplic)?.label}</div></RotuloSeplag>
+        <RotuloSeplag nome="Tipo do certame / Aplic. TCE-MT" cols="12 6 5" obrigatorio><div className="prototype-certame-campo-fixo-valor">{(() => {
+         const rotuloTipoCertame = TIPOS_CERTAME.find((item) => item.value === valores.tipoCertame)?.label;
+         const rotuloAplicTce = TIPOS_CONCURSO_APLIC_TCE.find((item) => item.value === valores.tipoConcursoAplic)?.label;
+         // Remove sigla entre parênteses (ex.: "(PSS)") só para comparar — evita repetir a mesma
+         // informação quando o rótulo do TCE-MT já descreve o mesmo tipo de certame.
+         const semSigla = (texto?:string) => texto?.replace(/\s*\([^)]*\)\s*$/, "").trim();
+         return rotuloAplicTce && semSigla(rotuloAplicTce) !== semSigla(rotuloTipoCertame) ? `${rotuloTipoCertame} — ${rotuloAplicTce}` : (rotuloAplicTce ?? rotuloTipoCertame);
+        })()}</div></RotuloSeplag>
         <NumberFieldSeplag name="anoConcurso" control={control} label="Ano do concurso" required cols="12 6 4" getFormErrorMessage={() => null} />
         <MaskFieldSeplag name="numeroConcurso" control={control} label="Número do certame (TCE-MT)" required cols="12 6" mask="99999999999" placeholder="00000000000" getFormErrorMessage={() => null} />
         <TextFieldSeplag name="numeroEditalOrgao" control={control} label="Número do edital do órgão" required cols="12 6" placeholder="Ex.: 001/SEPLAG/2026" getFormErrorMessage={() => null} />
@@ -712,23 +803,24 @@ export function CertameFormContent() {
         <div className="prototype-certame-subform-secao">
          <span className="prototype-certame-subform-secao-titulo">Identificação do cargo</span>
          <div className="grid align-items-end">
-          <DropdownFieldSeplag name="vinculo" control={cargoForm.control} label="Vínculo da vaga" cols="12 6 2" options={[{ label:"Vaga nova do certame", value:"NOVO" }, { label:"Vaga existente no quadro", value:"EXISTENTE" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-          {valores.tipoCertame === "CONCURSO_PUBLICO" && <DropdownFieldSeplag name="carreira" control={cargoForm.control} label="Carreira" cols="12 6 2" options={[...CARREIRAS_CONCURSO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />}
+          <DropdownFieldSeplag name="vinculo" control={cargoForm.control} label="Vínculo da vaga" cols={colsIdentificacaoCargo} options={[{ label:"Vaga nova do certame", value:"NOVO" }, { label:"Vaga existente no quadro", value:"EXISTENTE" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+          {mostrarCarreiraCargo && <DropdownFieldSeplag name="carreira" control={cargoForm.control} label="Carreira" cols={colsIdentificacaoCargo} options={[...CARREIRAS_CONCURSO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />}
           {cargoValores.vinculo === "EXISTENTE"
-           ? <DropdownFieldSeplag name="cargoExistenteId" control={cargoForm.control} label="Cargo/função" cols="12 6 2" options={CARGOS_CADASTRADOS.map((item) => ({ label:item.nome, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Buscar cargo cadastrado" getFormErrorMessage={() => null} />
-           : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" cols="12 6 2" placeholder="Nome do novo cargo" getFormErrorMessage={() => null} />}
-          {valores.setoresParticipantes.length > 1 && <DropdownFieldSeplag name="orgaoDestino" control={cargoForm.control} label="Órgão" cols="12 6 2" options={[{ label:"Todos os órgãos", value:ORGAO_TODOS }, ...valores.setoresParticipantes.map((orgao) => ({ label:orgao, value:orgao }))]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />}
-          <SpecArea metadata={certameFormBlockSpecifications.quadroVagasVinculado}><RotuloSeplag nome="Quadro" cols="12 6 2"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado ? `${quadroVinculado.quadroCodigo} — V${quadroVinculado.quadroVersao}` : "—"}</div></RotuloSeplag></SpecArea>
-          <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Qtd. vagas" cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
+           ? <DropdownFieldSeplag name="cargoExistenteId" control={cargoForm.control} label="Cargo/função" cols={colsIdentificacaoCargo} options={CARGOS_CADASTRADOS.map((item) => ({ label:item.nome, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Buscar cargo cadastrado" getFormErrorMessage={() => null} />
+           : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" cols={colsIdentificacaoCargo} placeholder="Nome do novo cargo" getFormErrorMessage={() => null} />}
+          {mostrarOrgaoCargo && <DropdownFieldSeplag name="orgaoDestino" control={cargoForm.control} label="Órgão" cols={colsIdentificacaoCargo} options={[{ label:"Todos os órgãos", value:ORGAO_TODOS }, ...valores.setoresParticipantes.map((orgao) => ({ label:orgao, value:orgao }))]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />}
+          <SpecArea metadata={certameFormBlockSpecifications.quadroVagasVinculado}><RotuloSeplag nome="Quadro" cols={colsIdentificacaoCargo}><div className="prototype-certame-campo-fixo-valor">{quadroVinculado ? `${quadroVinculado.quadroCodigo} — V${quadroVinculado.quadroVersao}` : "—"}</div></RotuloSeplag></SpecArea>
+          <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Qtd. vagas" cols={colsIdentificacaoCargo} inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
          </div>
         </div>
 
         <div className="prototype-certame-subform-secao">
          <span className="prototype-certame-subform-secao-titulo">Localização e jornada</span>
          <div className="grid align-items-end">
-          <TextFieldSeplag name="polo" control={cargoForm.control} label="Polo" cols="12 6 2" placeholder="Nome do Polo" getFormErrorMessage={() => null} />
-          <MultiSelectFieldSeplag name="cidades" control={cargoForm.control} label="Cidade" cols="12 6 2" options={[...MUNICIPIOS_MT]} optionLabel="label" optionValue="value" display="chip" placeholder="Selecione" getFormErrorMessage={() => null} />
-          <DropdownFieldSeplag name="jornada" control={cargoForm.control} label="Jornada" cols="12 6 2" options={[...JORNADAS_TRABALHO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="polo" control={cargoForm.control} label="Polo" cols="12 6 4" options={polosOptions} optionLabel="label" optionValue="value" placeholder="Selecione" showClear onChange={selecionarPolo} getFormErrorMessage={() => null} />
+          <MultiSelectFieldSeplag name="cidades" control={cargoForm.control} label="Cidade" cols="12 6 4" options={[...MUNICIPIOS_MT]} optionLabel="label" optionValue="value" display="chip" placeholder="Selecione" getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="jornada" control={cargoForm.control} label="Jornada" cols="12 6 4" options={[...JORNADAS_TRABALHO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />
+          {cargoJornadaRepetida && <div className="col-12"><MensagemSeplag severity="warning" message="Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Altere o vínculo, o cargo ou a jornada para continuar." cols="12" /></div>}
          </div>
         </div>
 
@@ -736,12 +828,12 @@ export function CertameFormContent() {
          <span className="prototype-certame-subform-secao-titulo">Reserva de cotas <small>— opcional, pode adicionar mais de uma</small></span>
          <div className="grid align-items-end">
           <SpecArea metadata={certameFormBlockSpecifications.cadastroReserva}>
-           <SwitchFieldSeplag name="aceitaCadastroReserva" control={cargoForm.control} label="Cargo aceita CR" cols="12 6 2" getFormErrorMessage={() => null} />
+           <SwitchFieldSeplag name="aceitaCadastroReserva" control={cargoForm.control} label="Cargo aceita CR" cols="12 6 3" getFormErrorMessage={() => null} />
           </SpecArea>
-          {cargoValores.aceitaCadastroReserva === "S" && <NumberFieldSeplag name="quantidadeCadastroReserva" control={cargoForm.control} label="Qtd. CR" required cols="12 6 2" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
-          <DropdownFieldSeplag name="tipoCota" control={cargoForm.control} label="Tipo de cota" cols="12 6 2" options={TIPOS_COTA.filter((item) => item.value !== "AMPLA")} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />
-          <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" cols="12 6 1" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
-          <div className="col-12 md:col-1 lg:col-1 prototype-certame-add-cota"><BotaoIconSeplag type="button" icon="pi pi-plus" tooltip="Adicionar cota à lista" onClick={adicionarReservaCota} /></div>
+          {cargoValores.aceitaCadastroReserva === "S" && <NumberFieldSeplag name="quantidadeCadastroReserva" control={cargoForm.control} label="Qtd. CR" required cols="12 6 3" inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />}
+          <DropdownFieldSeplag name="tipoCota" control={cargoForm.control} label="Tipo de cota" cols={cargoValores.aceitaCadastroReserva === "S" ? "12 6 3" : "12 6 4"} options={TIPOS_COTA.filter((item) => item.value !== "AMPLA")} optionLabel="label" optionValue="value" placeholder="Selecione" showClear getFormErrorMessage={() => null} />
+          <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" cols={cargoValores.aceitaCadastroReserva === "S" ? "12 6 2" : "12 6 4"} inputStyle={{ width:"100%" }} getFormErrorMessage={() => null} />
+          <div className="col-12 md:col-1 lg:col-1 prototype-certame-add-cota"><BotaoIconSeplag type="button" icon="pi pi-user-plus" tooltip="Adicionar cota à lista" onClick={adicionarReservaCota} /></div>
           {reservasCotaPendentes.length > 0 && <div className="col-12"><div className="prototype-certame-cota-tags">
            {reservasCotaPendentes.map((reserva) => <span key={reserva.id} className="prototype-certame-cota-tag">
             {TIPOS_COTA.find((tipo) => tipo.value === reserva.tipo)?.label ?? reserva.tipo} ({reserva.quantidade})
@@ -756,41 +848,23 @@ export function CertameFormContent() {
          <BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCargo} />
         </div>
        </div>
-       <div className="prototype-certame-cargos-lista">
-        {cargos.length === 0 && <p className="text-color-secondary prototype-certame-cargos-vazio">Nenhum registro encontrado</p>}
-        {cargos.map((cargo) => {
-         const aberto = cargosExpandidos.has(cargo.id);
-         const temCotas = cargo.reservasCota.length > 0;
-         return <div key={cargo.id} className="prototype-certame-cargo-card">
-          <div className="prototype-certame-cargo-row">
-           <BotaoIconSeplag type="button" className="prototype-certame-cargo-expand" tooltip={aberto ? "Recolher" : "Expandir"} icon={aberto ? "pi pi-chevron-down" : "pi pi-chevron-right"} onClick={() => alternarCargoExpandido(cargo.id)} />
-           <BadgeSeplag label={cargo.vinculo === "EXISTENTE" ? "Vaga existente" : "Vaga nova"} color="#0b6199" bg="#e9f3fc" border="transparent" size="md" />
-           <div className="prototype-certame-cargo-titulo">
-            <strong>{cargo.cargoNome}</strong>
-            <small>
-             {cargo.orgaoDestino && <>{cargo.orgaoDestino === ORGAO_TODOS ? "Todos os órgãos" : cargo.orgaoDestino} • </>}
-             {cargo.carreira && <>{CARREIRAS_CONCURSO.find((item) => item.value === cargo.carreira)?.label ?? cargo.carreira} • </>}
-             {cargo.polo && <>Polo {cargo.polo} • </>}
-             {cargo.cidades && cargo.cidades.length > 0 && <>Cidade {cargo.cidades.map(rotuloPolo).join(", ")} • </>}
-             {cargo.jornada && <>{JORNADAS_TRABALHO.find((item) => item.value === cargo.jornada)?.label ?? cargo.jornada} • </>}
-             {cargo.quadroCodigo ? <button type="button" className="prototype-certame-link-btn" onClick={() => navigate(`${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`)}>{cargo.quadroCodigo} — Versão {cargo.quadroVersao}</button> : "Sem quadro vinculado"}
-             {" "}• Cód. {cargo.codigoReferenciaTce}
-             {cargo.aceitaCadastroReserva && <> • CR {cargo.quantidadeCadastroReserva ?? 0}</>}
-            </small>
-           </div>
-           <span className="prototype-certame-cargo-vagas">{cargo.quantidadeVagas} vaga{cargo.quantidadeVagas === 1 ? "" : "s"}</span>
-           <BadgeSeplag label={temCotas ? `${cargo.reservasCota.length} cota${cargo.reservasCota.length === 1 ? "" : "s"}` : "Ampla concorrência"} color={temCotas ? "#147441" : "#55637a"} bg={temCotas ? "#e2f5e8" : "#eef1f5"} border="transparent" size="md" />
-           <div className="prototype-certame-cargo-acoes">
-            <BotaoIconSeplag type="button" severity="danger" tooltip="Remover cargo" icon="pi pi-trash" onClick={() => removerCargo(cargo.id)} />
-           </div>
-          </div>
-          <div className="prototype-certame-cargo-corpo" style={{ gridTemplateRows:aberto ? "1fr" : "0fr" }}>
-           <div className="prototype-certame-cargo-corpo-conteudo">
-            <TablePaginadoSeplag dataKey="id" data={resultadosSemPaginacao(cargo.reservasCota)} rows={50} paginator={false} lazy={false} selectionMode={null} columns={colunasReservasCota} handleOnPageChange={() => {}} />
-           </div>
-          </div>
-         </div>;
-        })}
+       <div className="prototype-certame-cargos-tabela">
+        <TablePaginadoSeplag
+         dataKey="id"
+         data={resultadosSemPaginacao(cargos)}
+         rows={50}
+         paginator={false}
+         lazy={false}
+         selectionMode={null}
+         columns={colunasCargos}
+         expandedRows={cargosExpandidosRows}
+         rowExpansionTemplate={(cargo) => <DistribuicaoVagasCargo quantidadeVagas={cargo.quantidadeVagas} reservas={cargo.reservasCota} quantidadeCadastroReserva={cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva : undefined} />}
+         hasEventoAcao
+         handleView={null}
+         handleEdit={null}
+         handleDelete={(row) => removerCargo(row.id)}
+         handleOnPageChange={() => {}}
+        />
        </div>
       </div>
 

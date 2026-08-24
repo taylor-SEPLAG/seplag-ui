@@ -33,6 +33,8 @@ import {
   PrototiposCategoriaTesteFormPage,
   PrototiposCategoriaTestePage,
   PrototiposComponentesPage,
+  PrototiposGestaoDocumentosPage,
+  PrototiposGestaoDocumentosCadastroPage,
   PrototiposControleVagasRegrasPage,
   PrototiposControleVagasQuadroAutorizadoPage,
   PrototiposControleVagasDistribuicaoSaldoPage,
@@ -46,6 +48,8 @@ import {
   PrototiposControlePssIntegracaoSiesPage,
   PrototiposControlePssCertamesPage,
   PrototiposControlePssCertameFormPage,
+  PrototiposControlePssLocaisPage,
+  PrototiposControlePssLocalFormPage,
   PrototiposBacklogRegrasPage,
   PrototiposBacklogQuadroAutorizadoPage,
   PrototiposBacklogControleVagasV2RegrasPage,
@@ -1370,6 +1374,14 @@ function App() {
         element={<Navigate to="/prototipos/sigep/gestao/painel-informativo" replace />}
       />
       <Route
+        path="/prototipos/sigep/parametrizacao/gestao-documentos/novo"
+        element={<PrototiposGestaoDocumentosCadastroPage />}
+      />
+      <Route
+        path="/prototipos/sigep/parametrizacao/gestao-documentos"
+        element={<PrototiposGestaoDocumentosPage />}
+      />
+      <Route
         path="/prototipos/sigep/componentes"
         element={<PrototiposComponentesPage />}
       />
@@ -1522,6 +1534,18 @@ function App() {
       <Route
         path="/prototipos/sigep/controle-pss/certames/:id"
         element={<PrototiposControlePssCertameFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/locais"
+        element={<PrototiposControlePssLocaisPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/locais/novo"
+        element={<PrototiposControlePssLocalFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/locais/:id"
+        element={<PrototiposControlePssLocalFormPage />}
       />
       <Route
         path="/prototipos/sigep/controle-pss/processos"
