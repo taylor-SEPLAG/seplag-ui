@@ -5,7 +5,7 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Controller, useForm, type FieldErrors } from "react-hook-form";
 import {
   BotaoLimparFiltroSeplag,
@@ -353,7 +353,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnRouter: true,
         items: [
           { label: "Listas de Referências", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Gestão de Documentos", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Gestão de Documentos", icon: "pi pi-circle-on", to: "/prototipos/sigep/parametrizacao/gestao-documentos", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Componentes", icon: "pi pi-circle-on", to: "/prototipos/sigep/componentes", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -2892,6 +2892,7 @@ const pessoasFisicasIngressoMock = [
   { cpf: "234.234.234-23", nome: "Camila Teixeira", dataNascimento: "24/04/1992" },
   { cpf: "345.345.345-34", nome: "Henrique Lopes", dataNascimento: "02/10/1986" },
 ];
+
 
 const ingressoDocumentosMock = [
   {
@@ -6398,6 +6399,200 @@ function getFormErrorMessage(errors: FieldErrors<SituacaoVigenciaDemoForm>) {
   };
 }
 
+type DocumentoParametrizado = {
+  id: number;
+  funcionalidade: string;
+  tipoDocumento: string;
+  situacao: "Ativo" | "Inativo";
+};
+
+const documentosParametrizadosIniciais: DocumentoParametrizado[] = [
+  { id: 1, funcionalidade: "NOMEAÇÃO", tipoDocumento: "123 123 213123", situacao: "Inativo" },
+  { id: 2, funcionalidade: "DEPENDENTE", tipoDocumento: "CÔNJUGE", situacao: "Inativo" },
+  { id: 3, funcionalidade: "DEPENDENTE", tipoDocumento: "CÔNJUGE", situacao: "Ativo" },
+  { id: 4, funcionalidade: "DEPENDENTE", tipoDocumento: "DEPENDENTE - CÔNJUGE QUARTA", situacao: "Inativo" },
+  { id: 5, funcionalidade: "DEPENDENTE", tipoDocumento: "DEPENDENTE - QUARTA", situacao: "Inativo" },
+  { id: 6, funcionalidade: "DEPENDENTE", tipoDocumento: "FILHO MENOR 24 ANOS", situacao: "Ativo" },
+  { id: 7, funcionalidade: "DEPENDENTE", tipoDocumento: "MENOR DE 21 ANOS", situacao: "Ativo" },
+  { id: 8, funcionalidade: "PESSOA FÍSICA", tipoDocumento: "PESSOA FÍSICA", situacao: "Ativo" },
+  { id: 9, funcionalidade: "PESSOA JURÍDICA", tipoDocumento: "PESSOA JURÍDICA", situacao: "Ativo" },
+  { id: 10, funcionalidade: "INGRESSO", tipoDocumento: "TERMO DE POSSE", situacao: "Ativo" },
+  { id: 11, funcionalidade: "APOSENTADORIA", tipoDocumento: "ATO DE APOSENTADORIA", situacao: "Ativo" },
+  { id: 12, funcionalidade: "VÍNCULO", tipoDocumento: "CONTRATO DE TRABALHO", situacao: "Inativo" },
+];
+
+export function PrototiposGestaoDocumentosPage() {
+  const navigate = useNavigate();
+  const [registros, setRegistros] = useState(documentosParametrizadosIniciais);
+  const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroSituacao, setFiltroSituacao] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
+  const [menuAberto, setMenuAberto] = useState<number | null>(null);
+  const [modal, setModal] = useState<"novo" | "editar" | "visualizar" | null>(null);
+  const [selecionado, setSelecionado] = useState<DocumentoParametrizado | null>(null);
+  const [form, setForm] = useState({ funcionalidade: "", tipoDocumento: "", situacao: "Ativo" as "Ativo" | "Inativo" });
+
+  const filtrados = useMemo(() => registros.filter((item) =>
+    item.tipoDocumento.toLocaleLowerCase("pt-BR").includes(filtroTipo.trim().toLocaleLowerCase("pt-BR")) &&
+    (!filtroSituacao || item.situacao === filtroSituacao)
+  ), [registros, filtroTipo, filtroSituacao]);
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
+  const paginaAtual = Math.min(pagina, totalPaginas);
+  const exibidos = filtrados.slice((paginaAtual - 1) * porPagina, paginaAtual * porPagina);
+
+  const abrir = (modo: "novo" | "editar" | "visualizar", item?: DocumentoParametrizado) => {
+    setMenuAberto(null);
+    setModal(modo);
+    setSelecionado(item ?? null);
+    setForm(item ? { funcionalidade: item.funcionalidade, tipoDocumento: item.tipoDocumento, situacao: item.situacao } : { funcionalidade: "", tipoDocumento: "", situacao: "Ativo" });
+  };
+  const salvar = () => {
+    if (!form.funcionalidade.trim() || !form.tipoDocumento.trim()) return;
+    if (modal === "editar" && selecionado) setRegistros((items) => items.map((item) => item.id === selecionado.id ? { ...item, ...form } : item));
+    else setRegistros((items) => [...items, { id: Math.max(0, ...items.map((item) => item.id)) + 1, ...form }]);
+    setModal(null);
+  };
+  const alternarSituacao = (item: DocumentoParametrizado) => {
+    setRegistros((items) => items.map((registro) => registro.id === item.id ? { ...registro, situacao: registro.situacao === "Ativo" ? "Inativo" : "Ativo" } : registro));
+    setMenuAberto(null);
+  };
+
+  return (
+    <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+      <div className="prototype-page-content prototype-doc-management">
+        <section className="prototype-doc-card">
+          <h1>Gestão de Documentos</h1>
+          <div className="prototype-doc-filters">
+            <label><span>Tipo de Documento</span><input value={filtroTipo} placeholder="Filtro" onChange={(event) => { setFiltroTipo(event.target.value); setPagina(1); }} /></label>
+            <label><span>Situação</span><select value={filtroSituacao} onChange={(event) => { setFiltroSituacao(event.target.value); setPagina(1); }}><option value="">Selecione...</option><option>Ativo</option><option>Inativo</option></select></label>
+            <button type="button" className="prototype-doc-clear" onClick={() => { setFiltroTipo(""); setFiltroSituacao(""); setPagina(1); }}><i className="pi pi-refresh" /> Limpar Filtro</button>
+          </div>
+          <div className="prototype-doc-toolbar"><button type="button" onClick={() => navigate("/prototipos/sigep/parametrizacao/gestao-documentos/novo")}><i className="pi pi-plus" /> Adicionar</button></div>
+          <div className="prototype-doc-table-wrap">
+            <table className="prototype-doc-table"><thead><tr><th>Funcionalidade</th><th>Tipo de Documento</th><th>Situação</th><th>Ações</th></tr></thead><tbody>
+              {exibidos.map((item) => <tr key={item.id}><td>{item.funcionalidade}</td><td>{item.tipoDocumento}</td><td><span className={`prototype-doc-status ${item.situacao === "Ativo" ? "is-active" : "is-inactive"}`}>{item.situacao}</span></td><td className="prototype-doc-actions"><button type="button" aria-label={`Visualizar ${item.tipoDocumento}`} onClick={() => abrir("visualizar", item)}><i className="pi pi-eye" /></button><button type="button" aria-label="Abrir ações" aria-expanded={menuAberto === item.id} onClick={() => setMenuAberto(menuAberto === item.id ? null : item.id)}><i className="pi pi-chevron-down" /></button>{menuAberto === item.id ? <div className="prototype-doc-actions-menu"><button type="button" onClick={() => abrir("editar", item)}><i className="pi pi-pencil" /> Editar</button><button type="button" onClick={() => alternarSituacao(item)}><i className={`pi ${item.situacao === "Ativo" ? "pi-ban" : "pi-check-circle"}`} /> {item.situacao === "Ativo" ? "Inativar" : "Ativar"}</button></div> : null}</td></tr>)}
+              {!exibidos.length ? <tr><td colSpan={4} className="prototype-doc-empty">Nenhum documento encontrado.</td></tr> : null}
+            </tbody></table>
+          </div>
+          <nav className="prototype-doc-pagination" aria-label="Paginação"><button type="button" disabled={paginaAtual === 1} onClick={() => setPagina(1)}><i className="pi pi-angle-double-left" /></button><button type="button" disabled={paginaAtual === 1} onClick={() => setPagina((value) => Math.max(1, value - 1))}><i className="pi pi-angle-left" /></button><span>{paginaAtual}</span><button type="button" disabled={paginaAtual === totalPaginas} onClick={() => setPagina((value) => Math.min(totalPaginas, value + 1))}><i className="pi pi-angle-right" /></button><button type="button" disabled={paginaAtual === totalPaginas} onClick={() => setPagina(totalPaginas)}><i className="pi pi-angle-double-right" /></button><select aria-label="Itens por página" value={porPagina} onChange={(event) => { setPorPagina(Number(event.target.value)); setPagina(1); }}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select></nav>
+        </section>
+      </div>
+      {modal ? <div className="prototype-doc-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setModal(null); }}><section className="prototype-doc-modal" role="dialog" aria-modal="true" aria-labelledby="doc-modal-title"><header><h2 id="doc-modal-title">{modal === "novo" ? "Adicionar documento" : modal === "editar" ? "Editar documento" : "Detalhes do documento"}</h2><button type="button" aria-label="Fechar" onClick={() => setModal(null)}><i className="pi pi-times" /></button></header><div className="prototype-doc-modal-body"><label><span>Funcionalidade <em>*</em></span><input autoFocus={modal !== "visualizar"} readOnly={modal === "visualizar"} value={form.funcionalidade} onChange={(event) => setForm({ ...form, funcionalidade: event.target.value.toUpperCase() })} /></label><label><span>Tipo de Documento <em>*</em></span><input readOnly={modal === "visualizar"} value={form.tipoDocumento} onChange={(event) => setForm({ ...form, tipoDocumento: event.target.value.toUpperCase() })} /></label><label><span>Situação</span><select disabled={modal === "visualizar"} value={form.situacao} onChange={(event) => setForm({ ...form, situacao: event.target.value as "Ativo" | "Inativo" })}><option>Ativo</option><option>Inativo</option></select></label></div><footer><button type="button" className="is-secondary" onClick={() => setModal(null)}>{modal === "visualizar" ? "Fechar" : "Cancelar"}</button>{modal !== "visualizar" ? <button type="button" className="is-primary" disabled={!form.funcionalidade.trim() || !form.tipoDocumento.trim()} onClick={salvar}><i className="pi pi-save" /> Salvar</button> : null}</footer></section></div> : null}
+    </PrototypeSystemPage>
+  );
+}
+type DocumentoCatalogo = { id: number; nome: string; codigo: string; obrigatorio: boolean };
+
+const catalogoDocumentosIngresso: DocumentoCatalogo[] = [
+  { id: 1, nome: "Carteira de Identidade Nacional (CIN)", codigo: "DOC-001", obrigatorio: true },
+  { id: 2, nome: "Cadastro de Pessoa Física (CPF)", codigo: "DOC-002", obrigatorio: true },
+  { id: 3, nome: "PIS/PASEP", codigo: "DOC-003", obrigatorio: true },
+  { id: 4, nome: "Carteira de Trabalho e Previdência Social (CTPS)", codigo: "DOC-004", obrigatorio: false },
+  { id: 5, nome: "Certidão de Nascimento", codigo: "DOC-005", obrigatorio: false },
+  { id: 6, nome: "Certidão de Casamento", codigo: "DOC-006", obrigatorio: false },
+  { id: 7, nome: "Título de Eleitor", codigo: "DOC-007", obrigatorio: false },
+  { id: 8, nome: "Comprovante de Quitação Eleitoral", codigo: "DOC-008", obrigatorio: false },
+  { id: 9, nome: "Certificado de Reservista", codigo: "DOC-009", obrigatorio: false },
+  { id: 10, nome: "Comprovante de Residência", codigo: "DOC-010", obrigatorio: false },
+  { id: 11, nome: "Conta Bancária (Banco do Brasil)", codigo: "DOC-011", obrigatorio: false },
+  { id: 12, nome: "Declaração de Acúmulo ou Não de Cargo", codigo: "DOC-012", obrigatorio: false },
+  { id: 13, nome: "Declaração de Bens", codigo: "DOC-013", obrigatorio: false },
+  { id: 14, nome: "Diploma de Nível Superior", codigo: "DOC-014", obrigatorio: true },
+  { id: 15, nome: "Certidão Criminal Estadual", codigo: "DOC-015", obrigatorio: false },
+  { id: 16, nome: "Foto 3x4", codigo: "DOC-016", obrigatorio: false },
+  { id: 17, nome: "Atestado de Saúde Ocupacional", codigo: "DOC-017", obrigatorio: false },
+  { id: 18, nome: "Comprovante de Escolaridade", codigo: "DOC-018", obrigatorio: false },
+];
+
+const vinculosDisponiveis = ["Nomeado Efetivo", "Contrato Temporário", "Comissionado", "Empregado Público", "Estagiário"];
+
+export function PrototiposGestaoDocumentosCadastroPage() {
+  const navigate = useNavigate();
+  const [funcionalidade, setFuncionalidade] = useState("Gestão de Ingresso");
+  const [vinculos, setVinculos] = useState<string[]>(["Nomeado Efetivo", "Contrato Temporário"]);
+  const [buscaVinculo, setBuscaVinculo] = useState("");
+  const [vinculosAbertos, setVinculosAbertos] = useState(false);
+  const [dataInicio, setDataInicio] = useState("2026-01-01");
+  const [dataFim, setDataFim] = useState("");
+  const [selecionados, setSelecionados] = useState<DocumentoCatalogo[]>(catalogoDocumentosIngresso.filter((item) => [1, 2, 3, 10, 14, 15, 16].includes(item.id)));
+  const [marcadosDisponiveis, setMarcadosDisponiveis] = useState<number[]>([]);
+  const [marcadosSelecionados, setMarcadosSelecionados] = useState<number[]>([]);
+  const [buscaDisponiveis, setBuscaDisponiveis] = useState("");
+  const [buscaSelecionados, setBuscaSelecionados] = useState("");
+  const [paginaDisponiveis, setPaginaDisponiveis] = useState(1);
+  const [arrastandoId, setArrastandoId] = useState<number | null>(null);
+  const [erros, setErros] = useState<Record<string, string>>({});
+
+  const disponiveis = catalogoDocumentosIngresso.filter((item) => !selecionados.some((selecionado) => selecionado.id === item.id));
+  const disponiveisFiltrados = disponiveis.filter((item) => `${item.nome} ${item.codigo}`.toLocaleLowerCase("pt-BR").includes(buscaDisponiveis.toLocaleLowerCase("pt-BR")));
+  const totalPaginas = Math.max(1, Math.ceil(disponiveisFiltrados.length / 10));
+  const paginaAtual = Math.min(paginaDisponiveis, totalPaginas);
+  const disponiveisPaginados = disponiveisFiltrados.slice((paginaAtual - 1) * 10, paginaAtual * 10);
+  const selecionadosFiltrados = selecionados.filter((item) => item.nome.toLocaleLowerCase("pt-BR").includes(buscaSelecionados.toLocaleLowerCase("pt-BR")));
+
+  const alternarVinculo = (vinculo: string) => setVinculos((atuais) => atuais.includes(vinculo) ? atuais.filter((item) => item !== vinculo) : [...atuais, vinculo]);
+  const adicionarSelecionados = () => {
+    const novos = catalogoDocumentosIngresso.filter((item) => marcadosDisponiveis.includes(item.id)).map((item) => ({ ...item, obrigatorio: false }));
+    setSelecionados((atuais) => [...atuais, ...novos]);
+    setMarcadosDisponiveis([]);
+    setPaginaDisponiveis(1);
+  };
+  const removerSelecionados = () => {
+    setSelecionados((atuais) => atuais.filter((item) => !marcadosSelecionados.includes(item.id)));
+    setMarcadosSelecionados([]);
+    setPaginaDisponiveis(1);
+  };
+  const removerUm = (id: number) => {
+    setSelecionados((atuais) => atuais.filter((item) => item.id !== id));
+    setMarcadosSelecionados((atuais) => atuais.filter((item) => item !== id));
+  };
+  const reordenar = (destinoId: number) => {
+    if (arrastandoId === null || arrastandoId === destinoId) return;
+    setSelecionados((atuais) => {
+      const origem = atuais.findIndex((item) => item.id === arrastandoId);
+      const destino = atuais.findIndex((item) => item.id === destinoId);
+      if (origem < 0 || destino < 0) return atuais;
+      const copia = [...atuais];
+      const [movido] = copia.splice(origem, 1);
+      copia.splice(destino, 0, movido);
+      return copia;
+    });
+    setArrastandoId(null);
+  };
+  const salvar = () => {
+    const validacoes: Record<string, string> = {};
+    if (!funcionalidade) validacoes.funcionalidade = "Selecione a funcionalidade.";
+    if (!vinculos.length) validacoes.vinculos = "Selecione ao menos um tipo de vínculo.";
+    if (!dataInicio) validacoes.dataInicio = "Informe a data de início.";
+    if (!selecionados.length) validacoes.documentos = "Selecione ao menos um documento.";
+    setErros(validacoes);
+    if (!Object.keys(validacoes).length) navigate("/prototipos/sigep/parametrizacao/gestao-documentos");
+  };
+
+  return (
+    <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+      <main className="prototype-doc-register">
+        <nav className="prototype-doc-breadcrumb" aria-label="Navegação estrutural"><span>Parametrização</span><i className="pi pi-angle-right" /><strong>Gestão de Documentos</strong></nav>
+        <header className="prototype-doc-register-header"><h1>Cadastrar – Gestão de Documentos</h1><p>Defina os documentos que serão exigidos no processo de ingresso e se são obrigatórios ou opcionais.</p></header>
+
+        <section className="prototype-doc-register-card"><h2>Dados da Parametrização</h2><div className="prototype-doc-general-grid">
+          <label><span>Funcionalidade <em>*</em></span><select value={funcionalidade} onChange={(event) => setFuncionalidade(event.target.value)}><option value="">Selecione...</option><option>Gestão de Ingresso</option><option>Gestão de Dependentes</option><option>Aposentadoria</option></select>{erros.funcionalidade ? <small>{erros.funcionalidade}</small> : null}</label>
+          <div className="prototype-doc-multiselect-field"><span>Tipo de Vínculo <em>*</em></span><button type="button" className="prototype-doc-multiselect" onClick={() => setVinculosAbertos((aberto) => !aberto)}>{vinculos.length ? vinculos.map((vinculo) => <span className="prototype-doc-chip" key={vinculo}>{vinculo}<i className="pi pi-times" role="button" tabIndex={0} aria-label={`Remover ${vinculo}`} onClick={(event) => { event.stopPropagation(); alternarVinculo(vinculo); }} /></span>) : <span className="is-placeholder">Selecione...</span>}<i className="pi pi-chevron-down" /></button>{vinculosAbertos ? <div className="prototype-doc-multiselect-panel"><div className="prototype-doc-search"><i className="pi pi-search" /><input autoFocus placeholder="Pesquisar tipo de vínculo" value={buscaVinculo} onChange={(event) => setBuscaVinculo(event.target.value)} /></div>{vinculosDisponiveis.filter((item) => item.toLocaleLowerCase("pt-BR").includes(buscaVinculo.toLocaleLowerCase("pt-BR"))).map((vinculo) => <label key={vinculo}><input type="checkbox" checked={vinculos.includes(vinculo)} onChange={() => alternarVinculo(vinculo)} /> {vinculo}</label>)}</div> : null}{erros.vinculos ? <small>{erros.vinculos}</small> : null}</div>
+          <label><span>Data Início <em>*</em></span><div className="prototype-doc-date"><input type="date" value={dataInicio} onChange={(event) => setDataInicio(event.target.value)} /><i className="pi pi-calendar" /></div>{erros.dataInicio ? <small>{erros.dataInicio}</small> : null}</label>
+          <label><span>Data Fim</span><div className="prototype-doc-date"><input type="date" min={dataInicio} value={dataFim} onChange={(event) => setDataFim(event.target.value)} /><i className="pi pi-calendar" /></div></label>
+        </div></section>
+
+        <section className="prototype-doc-register-card"><h2>Documentos da Parametrização</h2>{erros.documentos ? <div className="prototype-doc-validation"><i className="pi pi-exclamation-circle" /> {erros.documentos}</div> : null}<div className="prototype-doc-transfer">
+          <section className="prototype-doc-transfer-panel"><h3>Documentos disponíveis</h3><div className="prototype-doc-search"><i className="pi pi-search" /><input placeholder="Pesquisar documento" value={buscaDisponiveis} onChange={(event) => { setBuscaDisponiveis(event.target.value); setPaginaDisponiveis(1); }} /></div><div className="prototype-doc-transfer-table"><table><thead><tr><th aria-label="Seleção" /><th>Documento</th><th>Código</th></tr></thead><tbody>{disponiveisPaginados.map((item) => <tr key={item.id}><td><input type="checkbox" checked={marcadosDisponiveis.includes(item.id)} onChange={() => setMarcadosDisponiveis((atuais) => atuais.includes(item.id) ? atuais.filter((id) => id !== item.id) : [...atuais, item.id])} /></td><td>{item.nome}</td><td>{item.codigo}</td></tr>)}</tbody></table></div><footer className="prototype-doc-list-footer"><span>Exibindo {disponiveisFiltrados.length ? (paginaAtual - 1) * 10 + 1 : 0} a {Math.min(paginaAtual * 10, disponiveisFiltrados.length)} de {disponiveisFiltrados.length} documentos</span><nav><button type="button" disabled={paginaAtual === 1} onClick={() => setPaginaDisponiveis((pagina) => Math.max(1, pagina - 1))}><i className="pi pi-angle-left" /></button><span>{paginaAtual}</span><button type="button" disabled={paginaAtual === totalPaginas} onClick={() => setPaginaDisponiveis((pagina) => Math.min(totalPaginas, pagina + 1))}><i className="pi pi-angle-right" /></button></nav></footer></section>
+          <div className="prototype-doc-transfer-actions"><button type="button" className="is-primary" disabled={!marcadosDisponiveis.length} onClick={adicionarSelecionados}>Adicionar selecionados <i className="pi pi-arrow-right" /></button><button type="button" className="is-secondary" disabled={!marcadosSelecionados.length} onClick={removerSelecionados}><i className="pi pi-arrow-left" /> Remover selecionados</button></div>
+          <section className="prototype-doc-transfer-panel is-selected"><header><h3>Documentos selecionados ({selecionados.length})</h3><div><button type="button" onClick={() => setSelecionados((items) => items.map((item) => ({ ...item, obrigatorio: true })))}>Marcar todos como obrigatórios</button><button type="button" onClick={() => setSelecionados((items) => items.map((item) => ({ ...item, obrigatorio: false })))}>Desmarcar todos</button></div></header><div className="prototype-doc-search"><i className="pi pi-search" /><input placeholder="Pesquisar documento selecionado" value={buscaSelecionados} onChange={(event) => setBuscaSelecionados(event.target.value)} /></div><div className="prototype-doc-transfer-table"><table><thead><tr><th aria-label="Ordenação" /><th aria-label="Seleção" /><th>Documento</th><th>Obrigatório</th><th>Ação</th></tr></thead><tbody>{selecionadosFiltrados.map((item) => <tr key={item.id} draggable onDragStart={() => setArrastandoId(item.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => reordenar(item.id)} className={arrastandoId === item.id ? "is-dragging" : undefined}><td><i className="pi pi-bars prototype-doc-drag" title="Arraste para reordenar" /></td><td><input type="checkbox" checked={marcadosSelecionados.includes(item.id)} onChange={() => setMarcadosSelecionados((atuais) => atuais.includes(item.id) ? atuais.filter((id) => id !== item.id) : [...atuais, item.id])} /></td><td>{item.nome}<small>{item.codigo}</small></td><td><button type="button" role="switch" aria-checked={item.obrigatorio} className={`prototype-doc-toggle ${item.obrigatorio ? "is-on" : ""}`} onClick={() => setSelecionados((items) => items.map((documento) => documento.id === item.id ? { ...documento, obrigatorio: !documento.obrigatorio } : documento))}><span /></button><small>{item.obrigatorio ? "Obrigatório" : "Opcional"}</small></td><td><button type="button" className="prototype-doc-delete" aria-label={`Remover ${item.nome}`} onClick={() => removerUm(item.id)}><i className="pi pi-trash" /></button></td></tr>)}</tbody></table></div></section>
+        </div></section>
+        <footer className="prototype-doc-register-footer"><button type="button" className="is-back" onClick={() => navigate(-1)}><i className="pi pi-arrow-left" /> Voltar</button><button type="button" className="is-cancel" onClick={() => navigate("/prototipos/sigep/parametrizacao/gestao-documentos")}>Cancelar</button><button type="button" className="is-save" onClick={salvar}><i className="pi pi-save" /> Salvar parametrização</button></footer>
+      </main>
+    </PrototypeSystemPage>
+  );
+}
 export function PrototiposComponentesPage() {
   return (
     <PrototypeSystemPage
@@ -11332,7 +11527,7 @@ export function PrototiposIngressosTesteDetalhePage() {
   const indicadoresSituacaoIngresso = indicadoresGestaoIngresso.filter((indicador) =>
     (concursoProcesso.tipo === "Concurso"
       ? ["aguardando", "analise", "aguardando-efetivo", "concluido", "posse-suspensa", "posse-negada", "sem-efeito"]
-      : ["aguardando", "analise", "concluido", "cancelado"]
+      : ["aguardando", "analise", "aguardando-efetivo", "concluido", "cancelado"]
     ).includes(indicador.id),
   );
   const acessarIndicadorIngresso = (situacao?: IngressoSituacao) => {
@@ -12911,10 +13106,15 @@ type AnaliseProvimentoRascunho = {
   dataEfetivoExercicio?: string;
   dataFimEfetivoExercicio?: string;
   setorLotacaoEfetivo?: string;
-  servidorCompareceu?: "Sim" | "Não";
+  jornadaEfetivo?: string;
+  servidorCompareceu?: "" | "Sim" | "Não";
   orgaosEfetivoSelecionados?: string[];
   parecer: "aprovar" | "suspender" | "negar" | "sem-efeito";
   validacoes: Record<string, boolean>;
+  decisaoDocumentacao?: "aprovar" | "cancelar";
+  parecerDocumentacao?: string;
+  motivoCancelamentoDocumentacao?: string;
+  justificativaCancelamentoDocumentacao?: string;
   arquivosAnalise: Record<string, string | null>;
   formaAssinatura: "fisica" | "sigadoc";
   processosSigadoc: Record<string, string>;
@@ -13022,6 +13222,8 @@ export function PrototiposNovoIngressoPage() {
   const [concursoSelecionado, setConcursoSelecionado] = useState(concursoInicial);
   const [orgaoSelecionado, setOrgaoSelecionado] = useState(orgaoInicial);
   const [orgaosIngressoSelecionados, setOrgaosIngressoSelecionados] = useState<string[]>(orgaoInicial ? [orgaoInicial] : []);
+  const [orgaosParticipantesSelecionados, setOrgaosParticipantesSelecionados] = useState<string[]>([]);
+  const [cargoFuncaoEdital, setCargoFuncaoEdital] = useState("");
   const [orgaosIngressoDropdownAberto, setOrgaosIngressoDropdownAberto] = useState(false);
   const [orgaosEfetivoSelecionados, setOrgaosEfetivoSelecionados] = useState<string[]>(
     rascunhoAnaliseInicial?.orgaosEfetivoSelecionados ?? (orgaoInicial ? [orgaoInicial] : ["SEPLAG"]),
@@ -13075,6 +13277,16 @@ export function PrototiposNovoIngressoPage() {
   );
   const [situacaoIngresso, setSituacaoIngresso] = useState<IngressoSituacao>(situacaoInicialIngresso);
   const [documentosAnaliseValidados, setDocumentosAnaliseValidados] = useState<Record<string, boolean>>(rascunhoAnaliseInicial?.validacoes ?? {});
+  const [analiseDocumentacaoAberta, setAnaliseDocumentacaoAberta] = useState(true);
+  const [parecerDocumentacaoAberto, setParecerDocumentacaoAberto] = useState(true);
+  const [exibirAlertaDocumentosPendentes, setExibirAlertaDocumentosPendentes] = useState(false);
+  const [decisaoDocumentacao, setDecisaoDocumentacao] = useState<"aprovar" | "cancelar">(rascunhoAnaliseInicial?.decisaoDocumentacao ?? "aprovar");
+  const [parecerDocumentacao, setParecerDocumentacao] = useState(rascunhoAnaliseInicial?.parecerDocumentacao ?? "");
+  const [motivoCancelamentoDocumentacao, setMotivoCancelamentoDocumentacao] = useState(rascunhoAnaliseInicial?.motivoCancelamentoDocumentacao ?? "");
+  const [justificativaCancelamentoDocumentacao, setJustificativaCancelamentoDocumentacao] = useState(rascunhoAnaliseInicial?.justificativaCancelamentoDocumentacao ?? "");
+  const [modalFinalizarParecerAberto, setModalFinalizarParecerAberto] = useState(false);
+  const [finalizandoParecer, setFinalizandoParecer] = useState(false);
+  const finalizandoParecerRef = useRef(false);
   const [arquivosDocumentosAnalise, setArquivosDocumentosAnalise] = useState<Record<string, File | null>>(() => Object.fromEntries(Object.entries(rascunhoAnaliseInicial?.arquivosAnalise ?? {}).map(([documento, nome]) => [documento, nome === null ? null : new File([""], nome)])));
   const [formaAssinaturaDocumentos, setFormaAssinaturaDocumentos] = useState<"fisica" | "sigadoc">(rascunhoAnaliseInicial?.formaAssinatura ?? "sigadoc");
   const [processosSigadocDocumentos, setProcessosSigadocDocumentos] = useState<Record<string, string>>(
@@ -13125,9 +13337,8 @@ export function PrototiposNovoIngressoPage() {
     return rascunhoAnaliseInicial?.setorLotacaoEfetivo
       ?? (candidatoParam ? setoresSalvos[candidatoParam] ?? (candidatoParam === "51" ? "Núcleo Administrativo" : "") : "");
   });
-  const [servidorCompareceu, setServidorCompareceu] = useState<"Sim" | "Não">(
-    rascunhoAnaliseInicial?.servidorCompareceu ?? "Sim",
-  );
+  const [jornadaEfetivo, setJornadaEfetivo] = useState(rascunhoAnaliseInicial?.jornadaEfetivo ?? "");
+  const [servidorCompareceu, setServidorCompareceu] = useState<"" | "Sim" | "Não">("");
   const [modalComplementacaoAberto, setModalComplementacaoAberto] = useState(false);
   const [modalNegarPosseAberto, setModalNegarPosseAberto] = useState(false);
   const parseDataIsoLocal = (value: string) => {
@@ -13320,7 +13531,7 @@ export function PrototiposNovoIngressoPage() {
     isPerfilSetorial && isEtapaEfetivoExercicio
       ? "Concluir"
       : activeTab === "documentacao" && documentacaoEtapa === "analise"
-        ? "Continuar Ingresso"
+        ? tipoIngresso === "Processo Seletivo" ? "Finalizar parecer" : "Continuar Ingresso"
         : activeTab === "analise-provimento"
           ? "Finalizar Análise"
         : "Confirmar";
@@ -13356,7 +13567,7 @@ export function PrototiposNovoIngressoPage() {
           : "25"
       : "";
   const isDocumentoAnaliseValidado = (documento: string) =>
-    documentosAnaliseValidados[documento] ?? true;
+    documentosAnaliseValidados[documento] ?? false;
   const quantidadeDocumentosAnexados = documentosAnexadosAnalise.filter(
     (documento) => nomeArquivoDocumentoAnalise(documento) !== "-",
   ).length;
@@ -13364,14 +13575,19 @@ export function PrototiposNovoIngressoPage() {
     (documento) => nomeArquivoDocumentoAnalise(documento) !== "-" && isDocumentoAnaliseValidado(documento.documento),
   ).length;
   const todosDocumentosAnaliseMarcados =
-    documentosAnexadosAnalise.length > 0 &&
-    documentosAnexadosAnalise.every((documento) =>
-      isDocumentoAnaliseValidado(documento.documento),
-    );
+    quantidadeDocumentosAnexados > 0 &&
+    documentosAnexadosAnalise
+      .filter((documento) => nomeArquivoDocumentoAnalise(documento) !== "-")
+      .every((documento) => isDocumentoAnaliseValidado(documento.documento));
+  const existemDocumentosAnexadosPendentes =
+    quantidadeDocumentosAnalisados < quantidadeDocumentosAnexados;
   const marcarTodosDocumentosAnalise = (checked: boolean) => {
     setDocumentosAnaliseValidados(
       Object.fromEntries(
-        documentosAnexadosAnalise.map((documento) => [documento.documento, checked]),
+        documentosAnexadosAnalise.map((documento) => [
+          documento.documento,
+          checked && nomeArquivoDocumentoAnalise(documento) !== "-",
+        ]),
       ),
     );
   };
@@ -13386,6 +13602,17 @@ export function PrototiposNovoIngressoPage() {
     .find((nivel) => nivel.id === "orgaos")
     ?.itens.map((orgao) => ({ label: orgao.nome, value: orgao.id })) ?? [];
   const orgaosIngressoOptions = ["SEPLAG", "SES", "SEDUC", "SEFAZ"];
+  const orgaosParticipantesPorProcesso: Record<string, string[]> = {
+    "Processo Seletivo SES 2026": ["SES", "SEPLAG"],
+    "Processo Seletivo SEDUC 2026": ["SEDUC", "SEPLAG"],
+    "Processo Seletivo SEFAZ 2026": ["SEFAZ", "SEPLAG"],
+  };
+  const orgaosParticipantesResumo =
+    orgaosParticipantesSelecionados.length === 0
+      ? "Selecione..."
+      : orgaosParticipantesSelecionados.length <= 2
+        ? orgaosParticipantesSelecionados.join(", ")
+        : `${orgaosParticipantesSelecionados.length} órgãos selecionados`;
   const orgaosIngressoResumo =
     orgaosIngressoSelecionados.length === 0
       ? "Selecione..."
@@ -13407,11 +13634,8 @@ export function PrototiposNovoIngressoPage() {
         ? orgaosEfetivoSelecionados.join(", ")
         : `${orgaosEfetivoSelecionados.length} órgãos selecionados`;
   const toggleOrgaoEfetivo = (orgao: string) => {
-    setOrgaosEfetivoSelecionados((orgaosAtuais) =>
-      orgaosAtuais.includes(orgao)
-        ? orgaosAtuais.filter((item) => item !== orgao)
-        : [...orgaosAtuais, orgao],
-    );
+    setOrgaosEfetivoSelecionados([orgao]);
+    setOrgaosEfetivoDropdownAberto(false);
   };
   const documentosSuspensaoResumo =
     documentosSuspensaoSelecionados.length === 0
@@ -13439,11 +13663,19 @@ export function PrototiposNovoIngressoPage() {
   );
   const confirmarActionDisabled =
     isEtapaSomenteLeituraSetorial ||
-    (activeTab === "tipo-ingresso" && (!tipoIngresso || !perfilEspecialidade || (tipoIngresso === "Concurso" && !categoriaSelecionada))) ||
+    (activeTab === "tipo-ingresso" && (
+      !tipoIngresso ||
+      !perfilEspecialidade ||
+      !poloSelecionado ||
+      (tipoIngresso === "Concurso" && !categoriaSelecionada) ||
+      (tipoIngresso === "Processo Seletivo" && !ingressoOrigemLista &&
+        (!orgaosParticipantesSelecionados.length || !cargoFuncaoEdital.trim()))
+    )) ||
     (activeTab === "efetivo-exercicio" &&
-      servidorCompareceu === "Sim" &&
-      (!dataEfetivoExercicio ||
-        (tipoIngresso === "Processo Seletivo" && !dataFimEfetivoExercicio))) ||
+      (!servidorCompareceu ||
+        (servidorCompareceu === "Sim" &&
+          (!jornadaEfetivo || !dataEfetivoExercicio ||
+            (tipoIngresso === "Processo Seletivo" && !dataFimEfetivoExercicio))))) ||
     (activeTab === "analise-provimento" &&
       (!parecerProvimentoSalvo ||
         (formaAssinaturaDocumentos === "sigadoc" && !documentosSigadocPreenchidos)));
@@ -13835,10 +14067,15 @@ export function PrototiposNovoIngressoPage() {
         dataEfetivoExercicio,
         dataFimEfetivoExercicio,
         setorLotacaoEfetivo,
+        jornadaEfetivo,
         servidorCompareceu,
         orgaosEfetivoSelecionados,
         parecer: parecerProvimento,
         validacoes: documentosAnaliseValidados,
+        decisaoDocumentacao,
+        parecerDocumentacao,
+        motivoCancelamentoDocumentacao,
+        justificativaCancelamentoDocumentacao,
         arquivosAnalise: Object.fromEntries(Object.entries(arquivosDocumentosAnalise).map(([documento, arquivo]) => [documento, arquivo?.name ?? null])),
         formaAssinatura: formaAssinaturaDocumentos,
         processosSigadoc: processosSigadocDocumentos,
@@ -13877,6 +14114,10 @@ export function PrototiposNovoIngressoPage() {
   };
 
   const goBack = () => {
+    if (activeTab === "documentacao") {
+      setActiveTab("tipo-ingresso");
+      return;
+    }
     const destino = !ingressoOrigemLista && !modoVisualizacao
       ? "/prototipos/sigep/ingressos-teste"
       : caminhoRetornoNovoIngresso;
@@ -13924,6 +14165,62 @@ export function PrototiposNovoIngressoPage() {
     setActiveTab(proximaEtapa);
   };
 
+  const finalizarParecerDocumentacao = (destino: "efetivo" | "gestao") => {
+    if (finalizandoParecerRef.current) return;
+    if (decisaoDocumentacao === "cancelar" && destino === "efetivo") return;
+
+    finalizandoParecerRef.current = true;
+    setFinalizandoParecer(true);
+    try {
+      const chaveIngresso = candidatoParam ?? concursoSelecionado ?? "novo";
+      const historicos = JSON.parse(localStorage.getItem("prototype-ingresso-historico-documentacao") ?? "{}");
+      const registro = {
+        dataHora: new Date().toLocaleString("pt-BR"),
+        responsavel: "ROBERTO JUNIOR",
+        parecerSelecionado: decisaoDocumentacao === "aprovar" ? "Aprovar documentação" : "Cancelar ingresso",
+        parecer: parecerDocumentacao.trim(),
+        motivo: decisaoDocumentacao === "cancelar" ? motivoCancelamentoDocumentacao : "",
+        justificativa: decisaoDocumentacao === "cancelar" ? justificativaCancelamentoDocumentacao.trim() : "",
+        etapa: "Documentação",
+        conclusao: "Concluída",
+        destino,
+      };
+      localStorage.setItem("prototype-ingresso-historico-documentacao", JSON.stringify({
+        ...historicos,
+        [chaveIngresso]: [...(historicos[chaveIngresso] ?? []), registro],
+      }));
+
+      const situacaoFinal: IngressoSituacao = decisaoDocumentacao === "cancelar"
+        ? "Ingresso Cancelado"
+        : "Aguardando Efetivo Exercicio";
+      setSituacaoIngresso(situacaoFinal);
+      persistirSituacaoIngressoAtual(situacaoFinal);
+
+      if (decisaoDocumentacao === "cancelar" && candidatoParam) {
+        const cancelamentos = JSON.parse(localStorage.getItem("prototype-ingresso-cancelamentos") ?? "{}");
+        localStorage.setItem("prototype-ingresso-cancelamentos", JSON.stringify({
+          ...cancelamentos,
+          [candidatoParam]: {
+            motivo: motivoCancelamentoDocumentacao,
+            justificativa: justificativaCancelamentoDocumentacao.trim(),
+          },
+        }));
+      }
+
+      localStorage.removeItem(chaveRascunhoAnalise);
+      setAlteracoesAnalisePendentes(false);
+      setModalFinalizarParecerAberto(false);
+
+      if (destino === "efetivo") {
+        setActiveTab("efetivo-exercicio");
+      } else {
+        navigate("/prototipos/sigep/ingressos-teste", { replace: true });
+      }
+    } catch {
+      finalizandoParecerRef.current = false;
+      setFinalizandoParecer(false);
+    }
+  };
   const handleConfirmarNovoIngresso = () => {
     if (activeTab === "efetivo-exercicio") {
       if (situacaoInicialIngresso !== "Aguardando Efetivo Exercicio") return;
@@ -13994,11 +14291,20 @@ export function PrototiposNovoIngressoPage() {
     }
 
     if (documentacaoEtapa === "analise") {
-      setSituacaoIngresso("Em analise");
-      goNext();
+      if (decisaoDocumentacao === "cancelar") {
+        const campoInvalido = Array.from(document.querySelectorAll<HTMLSelectElement | HTMLTextAreaElement>(".prototype-documentacao-decision-fields [required]"))
+          .find((campo) => !campo.checkValidity());
+        if (campoInvalido) {
+          campoInvalido.reportValidity();
+          campoInvalido.focus();
+          return;
+        }
+        finalizarParecerDocumentacao("gestao");
+        return;
+      }
+      setModalFinalizarParecerAberto(true);
       return;
     }
-
     if (documentacaoEtapa === "termos") {
       setDocumentacaoEtapa("setorial");
       return;
@@ -14222,7 +14528,28 @@ export function PrototiposNovoIngressoPage() {
               ) : null}
             </div>
           </div>
-          <label className={`prototype-ingresso-field ${tipoIngresso === "Concurso" ? "prototype-concurso-first-field" : tipoIngresso === "Processo Seletivo" ? "prototype-processo-seletivo-first-field" : ""}`}>
+          {tipoIngresso === "Processo Seletivo" && !ingressoOrigemLista ? (
+            <div className="prototype-ingresso-field prototype-multiselect-field">
+              <span>Órgãos Participantes<em>*</em></span>
+              <div className="prototype-multiselect">
+                <button
+                  type="button"
+                  className="prototype-multiselect-trigger"
+                              disabled={tipoIngresso !== "Processo Seletivo"}
+                              aria-disabled={tipoIngresso !== "Processo Seletivo"}
+                              aria-expanded={orgaosEfetivoDropdownAberto}
+                              onClick={() => {
+                                if (tipoIngresso === "Processo Seletivo") {
+                                  setOrgaosEfetivoDropdownAberto((aberto) => !aberto);
+                                }
+                              }}
+                >
+                  <span>{orgaosParticipantesResumo}</span>
+                  <i className="pi pi-chevron-down" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          ) : null}          <label className={`prototype-ingresso-field ${tipoIngresso === "Concurso" ? "prototype-concurso-first-field" : tipoIngresso === "Processo Seletivo" ? "prototype-processo-seletivo-first-field" : ""}`}>
             <span>{processoOrigemLabel}<em>*</em></span>
             <select
               value={concursoSelecionado}
@@ -14241,6 +14568,8 @@ export function PrototiposNovoIngressoPage() {
                   setTipoVinculoEditavel(processo ? (processoEstagio ? "Estagiário" : ingressoTipoVinculoMap["Processo Seletivo"]) : "");
                   setOrgaoSelecionado(processoSelecionado?.orgao ?? "");
                   setOrgaosIngressoSelecionados(processoSelecionado?.orgao ? [processoSelecionado.orgao] : []);
+                  setOrgaosParticipantesSelecionados(processo ? orgaosParticipantesPorProcesso[processo] ?? [] : []);
+                  setCargoFuncaoEdital("");
                 }
               }}
             >
@@ -14272,8 +14601,12 @@ export function PrototiposNovoIngressoPage() {
             </select>
           </label> : null}
           {tipoIngresso === "Processo Seletivo" ? <label className="prototype-ingresso-field">
-            <span>Cargo/Função recebido via integração</span>
-            <input type="text" value={cargoInicial} readOnly />
+            <span>{ingressoOrigemLista ? "Cargo/Função recebido via integração" : "Cargo/Função no edital"}<em>*</em></span>
+            {ingressoOrigemLista ? (
+              <input type="text" value={cargoInicial} readOnly />
+            ) : (
+              <input type="text" value={cargoFuncaoEdital} required onChange={(event) => setCargoFuncaoEdital(event.target.value)} />
+            )}
           </label> : null}
           <label className="prototype-ingresso-field">
             <span>{tipoIngresso === "Processo Seletivo" ? "Cargo/Função no SIGEP" : "Cargo/Função"}<em>*</em></span>
@@ -14286,14 +14619,6 @@ export function PrototiposNovoIngressoPage() {
               {tipoIngresso === "Processo Seletivo" ? Object.keys(dadosCargoEqualizado).map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>) : <><option value="Analista Administrativo">Analista Administrativo</option><option value="Professor">Professor</option><option value="Gestor Governamental">Gestor Governamental</option><option value="Técnico Administrativo Educacional">Técnico Administrativo Educacional</option><option value="Enfermeiro">Enfermeiro</option><option value="Técnico de Enfermagem">Técnico de Enfermagem</option><option value="Analista Fazendário">Analista Fazendário</option></>}
             </select>
           </label>
-          {tipoIngresso === "Concurso" ? <div className="prototype-ingresso-field prototype-ingresso-reference-field">
-            <span>Quadro de vaga<em>*</em></span>
-            <input type="text" value={concursoSelecionado && cargoSelecionado ? "QA-0012" : ""} required aria-required="true" readOnly />
-          </div> : null}
-          {tipoIngresso === "Concurso" ? <div className="prototype-ingresso-field prototype-ingresso-reference-field">
-            <span>Identificador da vaga<em>*</em></span>
-            <input type="text" value={concursoSelecionado && cargoSelecionado ? "VAG-SEPLAG-ANALISTAAD-00001" : ""} required aria-required="true" readOnly />
-          </div> : null}
           <label className="prototype-ingresso-field">
             <span>Perfil/Especialidade<em>*</em></span>
             <input
@@ -14304,9 +14629,14 @@ export function PrototiposNovoIngressoPage() {
               readOnly
             />
           </label>
+          {tipoIngresso === "Concurso" ? <div className="prototype-ingresso-field prototype-ingresso-reference-field">
+            <span>Quadro de vaga<em>*</em></span>
+            <input type="text" value={concursoSelecionado && cargoSelecionado ? "QA-0012" : ""} required aria-required="true" readOnly />
+          </div> : null}
           <label className="prototype-ingresso-field">
-            <span>Polo</span>
+            <span>Polo<em>*</em></span>
             <select
+              required
               value={poloSelecionado}
               disabled={ingressoOrigemLista}
               onChange={(event) => setPoloSelecionado(event.target.value)}
@@ -14342,7 +14672,7 @@ export function PrototiposNovoIngressoPage() {
             </select>
           </label>
           <label className="prototype-ingresso-field">
-            <span>Data da Nomeação<em>*</em></span>
+            <span>{tipoIngresso === "Processo Seletivo" ? "Data da Convocação" : "Data da Nomeação"}<em>*</em></span>
             <input
               type="date"
               value={dataNomeacao}
@@ -14473,9 +14803,11 @@ export function PrototiposNovoIngressoPage() {
         <p>
           <strong>Tipo de Vínculo:</strong> {tipoVinculo}
         </p>
-        <p>
-          <strong>Carreira:</strong> {categoriaSelecionada || "-"}
-        </p>
+        {tipoIngresso !== "Processo Seletivo" ? (
+          <p>
+            <strong>Carreira:</strong> {categoriaSelecionada || "-"}
+          </p>
+        ) : null}
         <p>
           <strong>Cargo:</strong> {cargoSelecionado || "-"}
         </p>
@@ -14577,6 +14909,8 @@ export function PrototiposNovoIngressoPage() {
                   setConcursoSelecionado("");
                   setOrgaoSelecionado("");
                   setOrgaosIngressoSelecionados([]);
+                  setOrgaosParticipantesSelecionados([]);
+                  setCargoFuncaoEdital("");
                   setOrgaosIngressoDropdownAberto(false);
                   setCargoSelecionado("");
                   setCategoriaSelecionada("");
@@ -14690,97 +15024,211 @@ export function PrototiposNovoIngressoPage() {
 
       return (
         <section
-          className="prototype-ingresso-section"
+          className="prototype-ingresso-section prototype-documentacao-etapa"
           onChangeCapture={() => {
             setAlteracoesAnalisePendentes(true);
             setFeedbackRascunhoAnalise(null);
           }}
         >
-          {tipoIngresso === "Processo Seletivo" ? (
+          {tipoIngresso === "Processo Seletivo" && ingressoOrigemLista ? (
             <div className="prototype-equalizacao-alert prototype-documentacao-integracao-alert" role="status">
               <i className="pi pi-info-circle" aria-hidden="true" />
-              <span>
-                Documentos atualizados em {atualizacaoDocumentosIntegracao.replace(" ", " às ")}.
-              </span>
+              <span>Documentos atualizados em {atualizacaoDocumentosIntegracao.replace(" ", " às ")}.</span>
             </div>
           ) : null}
-          <h3>Documentação Obrigatória</h3>
-          <table className="prototype-simple-table prototype-ingresso-doc-table prototype-ingresso-doc-table--obrigatoria">
-            <thead>
-              <tr>
-                <th className="prototype-ingresso-doc-index-col"></th>
-                <th>Documento</th>
-                <th>Obrigatório</th>
-                <th>Situação</th>
-                <th>Arquivo</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {documentosObrigatoriosIngresso.map((documento, index) => {
-                const nomeArquivo = nomeArquivoDocumentoAnalise(documento);
-                const situacaoDocumento = nomeArquivo === "-" ? "Pendente" : documento.situacao;
 
-                return (
-                <tr key={documento.documento}>
-                  <td className="prototype-ingresso-doc-index-col">{index + 1}</td>
-                  <td>{documento.documento}</td>
-                  <td>
-                    <span className="prototype-ingresso-doc-required">
-                      {documento.obrigatorio}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      className={`prototype-ingresso-doc-status ${getIngressoDocumentoStatusClass(
-                        situacaoDocumento,
-                      )}`}
-                    >
-                      {situacaoDocumento}
-                    </span>
-                  </td>
-                  <td>{nomeArquivo}</td>
-                  <td className="prototype-ingresso-doc-action-cell">
-                    <div className="prototype-ingresso-doc-actions prototype-ingresso-doc-actions--documentacao">
-                      <BotaoIconSeplag
-                        type="button"
-                        className="prototype-ingresso-doc-action-button"
-                        icon="pi pi-cloud-upload"
-                        tooltip={`Enviar ${documento.documento}`}
-                      />
-                      <BotaoIconSeplag
-                        type="button"
-                        className="prototype-ingresso-doc-action-button"
-                        icon="pi pi-download"
-                        tooltip={
-                          nomeArquivo === "-"
-                            ? "Nenhum arquivo disponível para download"
-                            : `Baixar ${nomeArquivo}`
-                        }
-                        disabled={nomeArquivo === "-"}
-                        onClick={() => baixarDocumentoAnalise(documento)}
-                      />
-                      {tipoIngresso === "Processo Seletivo" && nomeArquivo !== "-" ? (
-                        <BotaoIconSeplag
-                          type="button"
-                          className="prototype-ingresso-doc-action-button prototype-ingresso-doc-action-button--delete"
-                          icon="pi pi-trash"
-                          tooltip={`Excluir ${nomeArquivo}`}
-                          severity="danger"
-                          onClick={() => excluirDocumentoAnalise(documento.documento)}
-                        />
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="prototype-vinculo-ativo-alert" role="alert">
+            <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+            <span>Este servidor já possui vínculo ativo. Matrícula: 327305 | Vínculo: 1. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
+          </div>
+          <div className="prototype-analise-provimento-panel prototype-analise-provimento-panel--header-icon">
+            <button
+              type="button"
+              className="prototype-recuar-section-header prototype-recuar-section-header--icon"
+              onClick={() => setAnaliseDocumentacaoAberta((aberta) => !aberta)}
+              aria-expanded={analiseDocumentacaoAberta}
+            >
+              <span className="prototype-recuar-section-title">
+                <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
+                <span>Análise de Documentos</span>
+              </span>
+              <span className="prototype-analise-accordion-actions">
+                <span className="prototype-document-analysis-summary" aria-label={`${quantidadeDocumentosAnexados} documentos anexados e ${quantidadeDocumentosAnalisados} documentos validados`}>
+                  <span className="is-attached">{quantidadeDocumentosAnexados} {quantidadeDocumentosAnexados === 1 ? "documento anexado" : "documentos anexados"}</span>
+                  <span className="is-analyzed">{quantidadeDocumentosAnalisados} {quantidadeDocumentosAnalisados === 1 ? "documento validado" : "documentos validados"}</span>
+                </span>
+                <i className={`pi ${analiseDocumentacaoAberta ? "pi-chevron-up" : "pi-chevron-down"}`} aria-hidden="true" />
+              </span>
+            </button>
+
+            {analiseDocumentacaoAberta ? (
+              <div className="prototype-documentacao-table-wrap">
+                <table className="prototype-simple-table prototype-analise-provimento-table prototype-documentacao-analysis-table">
+                  <thead>
+                    <tr>
+                      <th>Documento</th>
+                      <th>Nome do arquivo anexado</th>
+                      <th>
+                        <label className="prototype-analise-validacao-check prototype-analise-validacao-check--header">
+                          <input
+                            type="checkbox"
+                            aria-label="Marcar todos os documentos anexados como validados"
+                            checked={todosDocumentosAnaliseMarcados}
+                            disabled={quantidadeDocumentosAnexados === 0}
+                            onChange={(event) => marcarTodosDocumentosAnalise(event.target.checked)}
+                          />
+                          <span>Situação</span>
+                        </label>
+                      </th>
+                      <th>Validação</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {documentosAnexadosAnalise.map((documento, index) => {
+                      const nomeArquivo = nomeArquivoDocumentoAnalise(documento);
+                      const documentoValidado = isDocumentoAnaliseValidado(documento.documento);
+                      return (
+                        <tr key={documento.documento}>
+                          <td><span className="prototype-analise-documento-name">{documento.documento}</span></td>
+                          <td className="prototype-analise-arquivo-name" title={nomeArquivo === "-" ? undefined : nomeArquivo}>{nomeArquivo}</td>
+                          <td>
+                            <label className="prototype-analise-validacao-check">
+                              <input
+                                type="checkbox"
+                                aria-label={`Marcar ${documento.documento} como validado`}
+                                checked={documentoValidado}
+                                disabled={nomeArquivo === "-"}
+                                onChange={(event) => setDocumentosAnaliseValidados((atual) => ({
+                                  ...atual,
+                                  [documento.documento]: event.target.checked,
+                                }))}
+                              />
+                              <span className={`prototype-ingresso-doc-status ${documentoValidado ? "prototype-ingresso-doc-status--validado" : "prototype-ingresso-doc-status--pendente"}`}>
+                                {documentoValidado ? "Validado" : "Pendente"}
+                              </span>
+                            </label>
+                          </td>
+                          <td className="prototype-documentacao-validation-cell">
+                            {documentoValidado ? <><strong>{new Date().toLocaleDateString("pt-BR")}</strong><span>Provimento</span></> : <span>-</span>}
+                          </td>
+                          <td className="prototype-analise-documento-actions">
+                            <input
+                              id={`arquivo-documentacao-${index}`}
+                              className="prototype-analise-documento-file-input"
+                              type="file"
+                              accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                              onChange={(event) => {
+                                anexarDocumentoAnalise(documento.documento, event.target.files?.[0]);
+                                event.target.value = "";
+                              }}
+                            />
+                            <label className="prototype-analise-documento-upload-button" htmlFor={`arquivo-documentacao-${index}`} title={`Enviar ${documento.documento}`} aria-label={`Enviar ${documento.documento}`}>
+                              <i className="pi pi-cloud-upload" aria-hidden="true" />
+                            </label>
+                            <BotaoIconSeplag type="button" className="prototype-analise-documento-view-button" icon="pi pi-download" tooltip={nomeArquivo === "-" ? "Nenhum arquivo disponível" : `Baixar ${nomeArquivo}`} disabled={nomeArquivo === "-"} onClick={() => baixarDocumentoAnalise(documento)} />
+                            {nomeArquivo !== "-" ? <BotaoIconSeplag type="button" className="prototype-analise-documento-view-button" icon="pi pi-trash" tooltip={`Excluir ${nomeArquivo}`} severity="danger" onClick={() => excluirDocumentoAnalise(documento.documento)} /> : null}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="prototype-analise-provimento-panel prototype-parecer-provimento prototype-analise-provimento-panel--header-icon prototype-documentacao-parecer">
+            <button
+              type="button"
+              className="prototype-recuar-section-header prototype-recuar-section-header--icon"
+              onClick={() => setParecerDocumentacaoAberto((aberto) => !aberto)}
+              aria-expanded={parecerDocumentacaoAberto}
+            >
+              <span className="prototype-recuar-section-title">
+                <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-clipboard" aria-hidden="true" /></span>
+                <span>Parecer</span>
+              </span>
+              <i className={`pi ${parecerDocumentacaoAberto ? "pi-chevron-up" : "pi-chevron-down"}`} aria-hidden="true" />
+            </button>
+
+            {parecerDocumentacaoAberto ? (
+              <div className="prototype-documentacao-parecer-content">
+                <div className="prototype-parecer-radio-group prototype-documentacao-decision-cards">
+                  <label
+                    className={`prototype-parecer-option is-approve${decisaoDocumentacao === "aprovar" ? " is-selected" : ""}`}
+                    onClick={() => setExibirAlertaDocumentosPendentes(existemDocumentosAnexadosPendentes)}
+                  >
+                    <input
+                      type="radio"
+                      name="decisao-documentacao"
+                      checked={decisaoDocumentacao === "aprovar"}
+                      onChange={() => {
+                        setDecisaoDocumentacao("aprovar");
+                        setMotivoCancelamentoDocumentacao("");
+                        setJustificativaCancelamentoDocumentacao("");
+                      }}
+                    />
+                    <i className="pi pi-check" aria-hidden="true" />
+                    <strong>Aprovar documentação</strong>
+                    <small>Documentação validada para seguir para a próxima etapa.</small>
+                  </label>
+                  <label className={`prototype-parecer-option is-deny${decisaoDocumentacao === "cancelar" ? " is-selected" : ""}`}>
+                    <input
+                      type="radio"
+                      name="decisao-documentacao"
+                      checked={decisaoDocumentacao === "cancelar"}
+                      onChange={() => {
+                        setDecisaoDocumentacao("cancelar");
+                        setParecerDocumentacao("");
+                        setExibirAlertaDocumentosPendentes(false);
+                      }}
+                    />
+                    <i className="pi pi-times" aria-hidden="true" />
+                    <strong>Cancelar ingresso</strong>
+                    <small>Ingresso será cancelado mediante justificativa.</small>
+                  </label>
+                </div>
+
+                {decisaoDocumentacao === "aprovar" && exibirAlertaDocumentosPendentes && existemDocumentosAnexadosPendentes ? (
+                  <div className="prototype-parecer-alerta prototype-documentacao-pending-alert" role="alert">
+                    <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+                    <strong>Existem documentos obrigatórios pendentes de validação. Valide todos os documentos obrigatórios para aprovar a documentação.</strong>
+                  </div>
+                ) : null}
+
+                <div className="prototype-documentacao-decision-fields">
+                  {decisaoDocumentacao === "aprovar" ? (
+                    <label className="prototype-ingresso-field">
+                      <span>Parecer</span>
+                      <textarea value={parecerDocumentacao} maxLength={500} rows={4} placeholder="Digite um parecer, se necessário." onChange={(event) => setParecerDocumentacao(event.target.value)} />
+                    </label>
+                  ) : (
+                    <>
+                      <label className="prototype-ingresso-field prototype-documentacao-motivo-field">
+                        <span>Motivo<em>*</em></span>
+                        <select required value={motivoCancelamentoDocumentacao} onChange={(event) => setMotivoCancelamentoDocumentacao(event.target.value)}>
+                          <option value="">Selecione...</option>
+                          <option value="desistencia">Desistência</option>
+                          <option value="nao-comparecimento">Não comparecimento</option>
+                          <option value="documentacao-obrigatoria">Não apresentou documentação obrigatória</option>
+                          <option value="documento-nao-atende-edital">Documento apresentado não atende ao edital</option>
+                          <option value="outros">Outros</option>
+                        </select>
+                      </label>
+                      <label className="prototype-ingresso-field">
+                        <span>Justificativa<em>*</em></span>
+                        <textarea required value={justificativaCancelamentoDocumentacao} maxLength={500} rows={4} placeholder="Informe a justificativa do cancelamento." onChange={(event) => setJustificativaCancelamentoDocumentacao(event.target.value)} />
+                      </label>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </section>
       );
     }
-
     if (activeTab === "analise-provimento") {
       return (
         <section
@@ -14793,8 +15241,7 @@ export function PrototiposNovoIngressoPage() {
           <div className="prototype-analise-provimento-layout prototype-analise-provimento-layout--prazo-horizontal">
             <div className="prototype-analise-provimento-main">
 
-
-              <div
+<div
                 className={`prototype-prazo-posse-alert ${prazoPosseVencido ? "is-overdue" : "is-on-time"}`}
                 role="status"
                 aria-label={`Prazo da posse: ${prazoPosseVencido ? "fora do prazo" : "dentro do prazo"}`}
@@ -14832,7 +15279,10 @@ export function PrototiposNovoIngressoPage() {
                   </div>
                 </dl>
               </div>
-              <div className="prototype-analise-provimento-panel prototype-analise-provimento-panel--header-icon">
+                            <div className="prototype-vinculo-ativo-alert" role="alert">
+                <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+                <span>Este servidor já possui vínculo ativo. Matrícula: 327305 | Vínculo: 1. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
+              </div><div className="prototype-analise-provimento-panel prototype-analise-provimento-panel--header-icon">
                 <button
                   type="button"
                   className="prototype-recuar-section-header prototype-recuar-section-header--icon"
@@ -14844,9 +15294,9 @@ export function PrototiposNovoIngressoPage() {
                     <span>Análise de Documentos</span>
                   </span>
                   <span className="prototype-analise-accordion-actions">
-                    <span className="prototype-document-analysis-summary" aria-label={`${quantidadeDocumentosAnexados} documentos anexados e ${quantidadeDocumentosAnalisados} documentos analisados`}>
+                    <span className="prototype-document-analysis-summary" aria-label={`${quantidadeDocumentosAnexados} documentos anexados e ${quantidadeDocumentosAnalisados} documentos validados`}>
                       <span className="is-attached">{quantidadeDocumentosAnexados} {quantidadeDocumentosAnexados === 1 ? "documento anexado" : "documentos anexados"}</span>
-                      <span className="is-analyzed">{quantidadeDocumentosAnalisados} {quantidadeDocumentosAnalisados === 1 ? "documento analisado" : "documentos analisados"}</span>
+                      <span className="is-analyzed">{quantidadeDocumentosAnalisados} {quantidadeDocumentosAnalisados === 1 ? "documento validado" : "documentos validados"}</span>
                     </span>
                     <i className={`pi ${analiseProvimentoAberta ? "pi-chevron-up" : "pi-chevron-down"}`} />
                   </span>
@@ -15059,9 +15509,9 @@ export function PrototiposNovoIngressoPage() {
                 </div>
 
                 {parecerProvimento === "aprovar" && !todosDocumentosAnaliseMarcados ? (
-                  <div className="prototype-parecer-alerta" role="alert">
+                  <div className="prototype-parecer-alerta prototype-documentacao-pending-alert" role="alert">
                     <i className="pi pi-exclamation-triangle" />
-                    Todos os documentos devem ser validados para aprovar documentação.
+                    Existem documentos obrigatórios pendentes de validação. Valide todos os documentos obrigatórios para aprovar a documentação.
                   </div>
                 ) : null}
 
@@ -15213,7 +15663,7 @@ export function PrototiposNovoIngressoPage() {
                       ser preenchida quando houver complemento para registrar.
                     </p>
                     <div className="prototype-suspensao-prazo-grid">
-                      <label className="prototype-ingresso-field">
+                      <label className="prototype-ingresso-field prototype-documentacao-motivo-field">
                         <span>Motivo<em>*</em></span>
                         <select
                           value={motivoSemEfeito}
@@ -15366,8 +15816,9 @@ export function PrototiposNovoIngressoPage() {
                       <span>Servidor compareceu?<em>*</em></span>
                       <select
                         value={servidorCompareceu}
-                        onChange={(event) => setServidorCompareceu(event.target.value as "Sim" | "Não")}
+                        onChange={(event) => setServidorCompareceu(event.target.value as "" | "Sim" | "Não")}
                       >
+                        <option value="">Selecione...</option>
                         <option value="Sim">Sim</option>
                         <option value="Não">Não</option>
                       </select>
@@ -15396,9 +15847,14 @@ export function PrototiposNovoIngressoPage() {
                             <button
                               type="button"
                               className="prototype-multiselect-trigger"
-                              disabled
-                              aria-disabled="true"
-                              aria-expanded="false"
+                              disabled={tipoIngresso !== "Processo Seletivo"}
+                              aria-disabled={tipoIngresso !== "Processo Seletivo"}
+                              aria-expanded={orgaosEfetivoDropdownAberto}
+                              onClick={() => {
+                                if (tipoIngresso === "Processo Seletivo") {
+                                  setOrgaosEfetivoDropdownAberto((aberto) => !aberto);
+                                }
+                              }}
                             >
                               <span>{orgaosEfetivoResumo}</span>
                               <i className={`pi ${orgaosEfetivoDropdownAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
@@ -15408,7 +15864,8 @@ export function PrototiposNovoIngressoPage() {
                                 {orgaosEfetivoOptions.map((orgao) => (
                                   <label key={orgao} className="prototype-multiselect-option">
                                     <input
-                                      type="checkbox"
+                                      type="radio"
+                                      name="orgao-efetivo-exercicio"
                                       checked={orgaosEfetivoSelecionados.includes(orgao)}
                                       onChange={() => toggleOrgaoEfetivo(orgao)}
                                     />
@@ -15426,6 +15883,15 @@ export function PrototiposNovoIngressoPage() {
                             <option value="Unidade Central">Unidade Central</option>
                             <option value="Coordenadoria de Pessoas">Coordenadoria de Pessoas</option>
                             <option value="Núcleo Administrativo">Núcleo Administrativo</option>
+                          </select>
+                        </label>
+                        <label className="prototype-ingresso-field">
+                          <span>Jornada<em>*</em></span>
+                          <select required value={jornadaEfetivo} onChange={(event) => setJornadaEfetivo(event.target.value)}>
+                            <option value="">Selecione...</option>
+                            <option value="20 horas">20 horas</option>
+                            <option value="30 horas">30 horas</option>
+                            <option value="40 horas">40 horas</option>
                           </select>
                         </label>
                       </div>
@@ -15460,12 +15926,12 @@ export function PrototiposNovoIngressoPage() {
                         />
                       </label>
                     </>
-                  ) : (
+                  ) : servidorCompareceu === "Não" ? (
                     <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
                       <span>Observação</span>
                       <textarea placeholder="Registre uma observação, se necessário." />
                     </label>
-                  )}
+                  ) : null}
                 </div>                {servidorCompareceu === "Sim"
                   ? renderDocumentosGerados([
                       {
@@ -15575,6 +16041,33 @@ export function PrototiposNovoIngressoPage() {
         </CardSeplag>
       </div>
 
+      <ModalSeplag
+        visible={modalFinalizarParecerAberto}
+        titulo="Finalizar parecer"
+        fechar={() => {
+          if (!finalizandoParecer) setModalFinalizarParecerAberto(false);
+        }}
+        tamanho="680px"
+        hideFooter
+      >
+        <div className="prototype-finalizar-parecer-modal">
+          <p>Deseja prosseguir para a realização do Efetivo Exercício ou finalizar esta etapa e voltar para a Gestão de Ingresso?</p>
+          <div className="prototype-finalizar-parecer-options">
+            {decisaoDocumentacao === "aprovar" ? (
+              <button type="button" disabled={finalizandoParecer} onClick={() => finalizarParecerDocumentacao("efetivo")}>
+                <span className="prototype-finalizar-parecer-option-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span>
+                <span><strong>Prosseguir para Efetivo Exercício</strong><small>Finaliza o parecer e avança diretamente para a etapa 3.</small></span>
+                <i className="pi pi-arrow-right" aria-hidden="true" />
+              </button>
+            ) : null}
+            <button type="button" disabled={finalizandoParecer} onClick={() => finalizarParecerDocumentacao("gestao")}>
+              <span className="prototype-finalizar-parecer-option-icon"><i className="pi pi-briefcase" aria-hidden="true" /></span>
+              <span><strong>Finalizar etapa e voltar para Gestão de Ingresso</strong><small>Conclui a etapa atual e retorna para a gestão.</small></span>
+              <i className="pi pi-arrow-right" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </ModalSeplag>
       <ModalSeplag
         visible={modalSaidaAnaliseAberto}
         titulo="Deseja sair desta página?"
