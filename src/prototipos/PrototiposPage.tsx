@@ -132,6 +132,8 @@ import { ControleVagasPssContent as PssControleVagasContent } from "./controlePs
 import { IntegracaoSiesContent as PssIntegracaoSiesContent } from "./controlePss/IntegracaoSiesContent";
 import { CertamesListContent as PssCertamesListContent } from "./controlePss/certame/CertamesListContent";
 import { CertameFormContent as PssCertameFormContent } from "./controlePss/certame/CertameFormContent";
+import { LocaisListContent as PssLocaisListContent } from "./controlePss/locais/LocaisListContent";
+import { LocalFormContent as PssLocalFormContent } from "./controlePss/locais/LocalFormContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
 const SIGEP_PAINEL_INFORMATIVO_PATH =
@@ -302,6 +304,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Painel Geral", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/painel`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Cadastro de Certames", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/certames`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Polos", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/locais`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Processos Seletivos", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/processos`, visibleOnMenu: false, visibleOnRouter: true },
           { label: "Controle de Vagas", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/vagas`, visibleOnMenu: false, visibleOnRouter: true },
           { label: "Integração SIES", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/integracao-sies`, visibleOnMenu: false, visibleOnRouter: true },
@@ -6890,6 +6893,12 @@ export function PrototiposControlePssCertamesPage() {
 }
 export function PrototiposControlePssCertameFormPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssCertameFormContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssLocaisPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssLocaisListContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssLocalFormPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssLocalFormContent /></PrototypeSystemPage>;
 }
 export function PrototiposBacklogRegrasPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogRegrasContent /></PrototypeSystemPage>;

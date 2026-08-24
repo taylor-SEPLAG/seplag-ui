@@ -76,7 +76,7 @@ export function CertamesListContent() {
   { header:"Tipo", body:(row) => tipoLabel[row.tipoCertame] },
   { header:"Vagas", body:(row) => row.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0).toLocaleString("pt-BR") },
   { header:"Cotas", body:(row) => row.cotas.length },
-  { header:"Fase de certame", body:(row) => <BadgeSeplag label={situacaoLabel[row.situacaoAtual]} color={situacaoEstilo[row.situacaoAtual].color} bg={situacaoEstilo[row.situacaoAtual].bg} border="transparent" size="sm" /> },
+  { header:"Situação do certame", body:(row) => <BadgeSeplag label={situacaoLabel[row.situacaoAtual]} color={situacaoEstilo[row.situacaoAtual].color} bg={situacaoEstilo[row.situacaoAtual].bg} border="transparent" size="sm" /> },
  ];
 
  return <SpecificationMode screen={certamesListScreenSpecification} businessItems={certamesListBusinessItems}>

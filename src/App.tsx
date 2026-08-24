@@ -45,6 +45,8 @@ import {
   PrototiposControlePssIntegracaoSiesPage,
   PrototiposControlePssCertamesPage,
   PrototiposControlePssCertameFormPage,
+  PrototiposControlePssLocaisPage,
+  PrototiposControlePssLocalFormPage,
   PrototiposBacklogRegrasPage,
   PrototiposBacklogQuadroAutorizadoPage,
   PrototiposBacklogControleVagasV2RegrasPage,
@@ -1520,6 +1522,18 @@ function App() {
       <Route
         path="/prototipos/sigep/controle-pss/certames/:id"
         element={<PrototiposControlePssCertameFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/locais"
+        element={<PrototiposControlePssLocaisPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/locais/novo"
+        element={<PrototiposControlePssLocalFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/locais/:id"
+        element={<PrototiposControlePssLocalFormPage />}
       />
       <Route
         path="/prototipos/sigep/controle-pss/processos"
