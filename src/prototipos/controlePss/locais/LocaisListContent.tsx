@@ -9,6 +9,7 @@ import { BotaoAdicionarSeplag, BotaoConsultarSeplag, BotaoIconSeplag, BotaoLimpa
 import { DropdownFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "../../../interfaces/Results";
+import { SEPLAG_SUCCESS_DARK, SEPLAG_YELLOW } from "../../../tokens/colors";
 
 interface FiltroForm { nomeLocal:string; cidade?:string }
 
@@ -35,10 +36,6 @@ export function LocaisListContent() {
  const columns:ColumnMetaSeplag<Local>[] = [
   { header:"Polo", body:(row) => <div><strong>{row.nomeLocal}</strong>{row.situacao === "INATIVO" && <div className="text-sm text-color-secondary">Inativo</div>}</div> },
   { header:"Cidade", body:(row) => `${row.cidade}/${row.estado}` },
-  { header:"Ações", body:(row) => <div className="flex gap-2">
-   <BotaoIconSeplag type="button" severity="warning" tooltip="Editar" icon="pi pi-pencil" onClick={() => navigate(`${BASE}/locais/${row.id}`)} />
-   <BotaoIconSeplag type="button" severity={row.situacao === "ATIVO" ? "danger" : "success"} tooltip={row.situacao === "ATIVO" ? "Inativar" : "Ativar"} icon={row.situacao === "ATIVO" ? "pi pi-ban" : "pi pi-check"} onClick={() => locaisStore.toggleSituacao(row.id)} />
-  </div> },
  ];
 
  return <div className="prototype-page-content prototype-page-content--white">
@@ -53,7 +50,14 @@ export function LocaisListContent() {
 
   <CardSeplag title="Listar" cols="12" actions={<BotaoAdicionarSeplag label="Cadastrar" onClick={() => navigate(`${BASE}/locais/novo`)} />}>
    <div className="col-12">
-    <TablePaginadoSeplag dataKey="id" data={resultados(lista)} rows={10} rowsPerPage={[10, 20, 50]} paginator={lista.length > 10} lazy={false} selectionMode={null} columns={columns} handleOnPageChange={() => {}} />
+    <TablePaginadoSeplag dataKey="id" data={resultados(lista)} rows={10} rowsPerPage={[10, 20, 50]} paginator={lista.length > 10} lazy={false} selectionMode={null} columns={columns}
+     hasEventoAcao
+     handleEdit={(row) => navigate(`${BASE}/locais/${row.id}`)}
+     editarButtonStyle={{ backgroundColor:SEPLAG_YELLOW, borderColor:SEPLAG_YELLOW }}
+     handleDelete={null}
+     renderBotoes={(row) => <BotaoIconSeplag type="button" severity={row.situacao === "ATIVO" ? "danger" : "success"} style={row.situacao === "ATIVO" ? undefined : { backgroundColor:SEPLAG_SUCCESS_DARK, borderColor:SEPLAG_SUCCESS_DARK }} tooltip={row.situacao === "ATIVO" ? "Inativar" : "Ativar"} icon={row.situacao === "ATIVO" ? "pi pi-ban" : "pi pi-check"} onClick={() => locaisStore.toggleSituacao(row.id)} />}
+     handleOnPageChange={() => {}}
+    />
    </div>
   </CardSeplag>
  </div>;

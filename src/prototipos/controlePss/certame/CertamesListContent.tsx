@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { CONTROLE_PSS_BASE_PATH as BASE } from "../constants";
 import { useControlePssStore } from "../controlePssStore";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
-import { certamesListActionSpecifications, certamesListBlockSpecifications, certamesListBusinessItems, certamesListFilterSpecifications, certamesListScreenSpecification } from "./CertamesListSpecifications";
+import { certamesListBlockSpecifications, certamesListBusinessItems, certamesListFilterSpecifications, certamesListScreenSpecification } from "./CertamesListSpecifications";
 import { ORGAOS_CERTAME, SITUACOES_CERTAME, TIPOS_CERTAME } from "./dominios";
 import type { Certame, SituacaoCertame, TipoCertame } from "./types";
 import { lerRascunhoCertame, limparRascunhoCertame, type RascunhoCertame } from "./rascunhoCertameStore";
@@ -15,6 +15,7 @@ import { BotaoIconSeplag, BotaoLimparFiltroSeplag, BotaoSeplag } from "@componen
 import { DropdownFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "../../../interfaces/Results";
+import { SEPLAG_YELLOW } from "../../../tokens/colors";
 import "./certame.css";
 
 const abaLabel:Record<RascunhoCertame["aba"], string> = { IDENTIFICACAO:"Identificação", CRONOGRAMA:"Cronograma", FINANCEIRO:"Contrato e Custos", VAGAS_COTAS:"Vagas e Cotas", DOCUMENTOS:"Documentos" };
@@ -113,8 +114,9 @@ export function CertamesListContent() {
      handleAdicionar={() => navigate(`${BASE}/certames/novo`)}
      handleView={(row) => navigate(`${BASE}/certames/${row.id}`)}
      handleEdit={(row) => navigate(`${BASE}/certames/${row.id}`)}
+     editarButtonStyle={{ backgroundColor:SEPLAG_YELLOW, borderColor:SEPLAG_YELLOW }}
      handleDelete={null}
-     renderBotoes={(row) => <SpecArea metadata={certamesListActionSpecifications["Reverter/Histórico"]}><BotaoIconSeplag type="button" tooltip="Reverter/Histórico" icon="pi pi-history" onClick={() => setCertameSituacoesId(row.id)} /></SpecArea>}
+     extraAcoesSplit={(row) => [{ label:"Situação / Histórico", icon:"pi pi-history", command:() => setCertameSituacoesId(row.id) }]}
      handleOnPageChange={() => {}}
     />
    </SpecArea></div>

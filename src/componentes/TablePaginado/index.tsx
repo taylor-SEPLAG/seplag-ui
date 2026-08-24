@@ -5,7 +5,7 @@ import { SplitButton } from "primereact/splitbutton";
 import type { ResultsSeplag } from "../../interfaces/Results";
 import { ModalDeleteSeplag } from "@componentes/ModalDelete";
 import { BotaoAdicionarSeplag, BotaoIconSeplag } from "@componentes/Botao";
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import {
   DataTable,
   type DataTableExpandedRows,
@@ -52,6 +52,9 @@ export interface TablePaginadoSeplagProps<T extends DataTableValue> {
   readonly handleView?: ((arg: T) => void) | null;
   readonly handleAdicionar?: (() => void) | null;
   readonly disableAdicionar?: boolean;
+  /** Ações extras (além de Editar/Duplicar/Excluir) somadas à contagem que decide entre o grupo
+   * de ícones e o SplitButton — no SplitButton elas entram como itens do menu. */
+  readonly extraAcoesSplit?: (arg: T) => { label: string; icon: string; command: () => void }[];
   readonly expanderPosition?: "start" | "end";
   readonly collapsedRowIcon?: string;
   readonly expandedRowIcon?: string;
@@ -61,6 +64,8 @@ export interface TablePaginadoSeplagProps<T extends DataTableValue> {
   readonly onRowToggle?: (event: DataTableRowToggleEvent) => void;
   readonly isDisabled?: boolean;
   readonly renderBotoes?: (data: T) => ReactNode;
+  /** Sobrescreve o estilo padrão (severity="warning") do botão "Editar" nesta tabela. */
+  readonly editarButtonStyle?: CSSProperties;
   readonly actionHeader?: ReactNode;
   readonly renderExpander?: (data: T) => ReactNode;
   readonly header?: DataTableHeaderTemplateType<T[]>;
@@ -98,6 +103,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
   handleView,
   handleAdicionar,
   disableAdicionar,
+  extraAcoesSplit,
   handleSelectionChange,
   header,
   onRowSelect,
@@ -111,6 +117,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
   onRowToggle,
   isDisabled,
   renderBotoes,
+  editarButtonStyle,
   actionHeader = "Ações",
   renderExpander,
   reorderableRows = false,
@@ -155,12 +162,10 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
   }
 
   const actionBotoes = (rowData: T) => {
-    const individualCount = [
-      handleView,
-      handleEdit,
-      handleDelete,
-      handleDuplicar,
-    ].filter(Boolean).length;
+    const itensExtras = extraAcoesSplit?.(rowData) ?? [];
+    const individualCount =
+      [handleView, handleEdit, handleDelete, handleDuplicar].filter(Boolean)
+        .length + itensExtras.length;
 
     if (individualCount >= 3) {
       const splitModel = [] as any[];
@@ -182,6 +187,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
           icon: "pi pi-trash",
           command: () => handleAbrirConfirmacaoExclusao(rowData),
         });
+      splitModel.push(...itensExtras);
 
       return (
         <SplitButton
@@ -205,6 +211,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
         {handleEdit && (
           <BotaoIconSeplag
             severity="warning"
+            style={editarButtonStyle}
             type="button"
             tooltip="Editar"
             icon="pi pi-pencil"
@@ -228,6 +235,15 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
             onClick={() => handleAbrirConfirmacaoExclusao(rowData)}
           />
         )}
+        {itensExtras.map((item) => (
+          <BotaoIconSeplag
+            key={item.label}
+            type="button"
+            tooltip={item.label}
+            icon={item.icon}
+            onClick={item.command}
+          />
+        ))}
         {renderBotoes?.(rowData)}
       </div>
     );
