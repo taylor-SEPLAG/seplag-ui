@@ -119,6 +119,7 @@ import { DashboardGerencialContent as BacklogControleVagasV2DashboardContent } f
 import { VagasIndividualizadasContent as BacklogControleVagasV2VagasContent } from "./controleVagasV2Backlog/VagasIndividualizadasContent";
 import { MovimentacoesContent as BacklogControleVagasV2MovimentacoesContent } from "./controleVagasV2Backlog/MovimentacoesContent";
 import { ProjecoesVagasContent as BacklogControleVagasV2ProjecoesContent } from "./controleVagasV2Backlog/ProjecoesVagasContent";
+import { OrgaosEntidadesCadastro } from "./estruturaOrganizacional/OrgaosEntidadesCadastro";
 import { ControleVagasRegrasContent as QuadroPessoalRegrasContent } from "./quadroPessoal/ControleVagasRegrasContent";
 import { QuadroAutorizadoContent as QuadroPessoalQuadroAutorizadoContent } from "./quadroPessoal/QuadroAutorizadoContent";
 import { DistribuicaoSaldoContent as QuadroPessoalDistribuicaoContent } from "./quadroPessoal/DistribuicaoSaldoContent";
@@ -218,7 +219,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnRouter: true,
         items: [
           { label: "Instituição", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Órgão Entidade", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Órgão Entidade", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Setor", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -236,7 +237,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
             visibleOnMenu: true,
             visibleOnRouter: true,
           },
-          { label: "Categoria", icon: "pi pi-circle-on", to: "/prototipos/sigep/categoria", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Carreira", icon: "pi pi-circle-on", to: "/prototipos/sigep/carreira", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Cargo", icon: "pi pi-circle-on", to: "/prototipos/sigep/cargo", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tabelas de Vencimentos", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
@@ -1172,6 +1173,21 @@ interface CategoriaTesteRow extends CategoriaRow {
   vigencia: string;
 }
 
+interface CarreiraFiltroForm {
+  carreira?: string;
+  orgao?: string;
+  situacao?: "ATIVO" | "ENCERRADO";
+}
+
+interface CarreiraRow {
+  id: number;
+  sigla: string;
+  nome: string;
+  orgao: string;
+  orgaosVinculados: number;
+  situacao: "ATIVO" | "ENCERRADO";
+}
+
 interface CargoRow {
   id: number;
   cargo: string;
@@ -1565,6 +1581,17 @@ const categoriasTesteMock: CategoriaTesteRow[] = [
     vigencia: "01/01/2026 -",
     situacao: "ENCERRADO",
   },
+];
+
+const carreirasMock: CarreiraRow[] = [
+  { id: 1, sigla: "EDU", nome: "Profissionais da Educação", orgao: "seduc", orgaosVinculados: 2, situacao: "ATIVO" },
+  { id: 2, sigla: "SAUDE", nome: "Profissionais da Saúde", orgao: "ses", orgaosVinculados: 3, situacao: "ATIVO" },
+  { id: 3, sigla: "ADM", nome: "Profissionais da Administração", orgao: "seplag", orgaosVinculados: 1, situacao: "ATIVO" },
+  { id: 4, sigla: "TI", nome: "Profissionais de Tecnologia da Informação", orgao: "mti", orgaosVinculados: 2, situacao: "ATIVO" },
+  { id: 5, sigla: "FISC", nome: "Fiscalização e Arrecadação", orgao: "sefaz", orgaosVinculados: 1, situacao: "ATIVO" },
+  { id: 6, sigla: "SEG", nome: "Segurança Pública", orgao: "sesp", orgaosVinculados: 4, situacao: "ATIVO" },
+  { id: 7, sigla: "DESENV", nome: "Desenvolvimento Econômico e Social", orgao: "sedec", orgaosVinculados: 2, situacao: "ENCERRADO" },
+  { id: 8, sigla: "MEIO", nome: "Profissionais da Área Meio", orgao: "seplag", orgaosVinculados: 6, situacao: "ATIVO" },
 ];
 
 const subcategoriasTesteMock: SubcategoriaTesteRow[] = [
@@ -6733,33 +6760,13 @@ export function PrototiposAnexarDocumentoPage() {
 }
 
 export function PrototiposEstruturaOrganizacionalPage() {
-  const [estruturaSelecionada, setEstruturaSelecionada] =
-    useState<SeletorEstruturaOrganizacionalValueSeplag>({});
-
   return (
     <PrototypeSystemPage
       nomeSistema="GESTÃO DE PESSOAS"
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <div className="prototype-page-content">
-        <CardSeplag
-          title="Estrutura Organizacional"
-          cols="12"
-          legenda={() => (
-            <p className="prototype-card-description">
-              Componente para selecionar instituições e abrir níveis
-              vinculados conforme a hierarquia organizacional.
-            </p>
-          )}
-        >
-          <SeletorEstruturaOrganizacionalSeplag
-            niveis={estruturaOrganizacionalNiveis}
-            value={estruturaSelecionada}
-            onChange={setEstruturaSelecionada}
-          />
-        </CardSeplag>
-      </div>
+      <OrgaosEntidadesCadastro />
     </PrototypeSystemPage>
   );
 }
@@ -6954,6 +6961,141 @@ export function PrototiposQuadroPessoalMovimentacoesPage() {
 export function PrototiposQuadroPessoalVagasPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><QuadroPessoalVagasContent /></PrototypeSystemPage>;
 }
+export function PrototiposCarreiraPage() {
+  const { control, reset, watch } = useForm<CarreiraFiltroForm>({
+    defaultValues: {
+      carreira: "",
+      orgao: undefined,
+      situacao: undefined,
+    },
+  });
+  const filtros = watch();
+  const termo = filtros.carreira?.trim().toLowerCase();
+  const carreirasFiltradas = carreirasMock.filter((carreira) => {
+    const atendeCarreira =
+      !termo ||
+      carreira.sigla.toLowerCase().includes(termo) ||
+      carreira.nome.toLowerCase().includes(termo);
+    const atendeOrgao = !filtros.orgao || carreira.orgao === filtros.orgao;
+    const atendeSituacao =
+      !filtros.situacao || carreira.situacao === filtros.situacao;
+
+    return atendeCarreira && atendeOrgao && atendeSituacao;
+  });
+  const carreiraColumns: ColumnMetaSeplag<CarreiraRow>[] = [
+    { field: "sigla", header: "Sigla" },
+    { field: "nome", header: "Nome" },
+    {
+      header: "Órgãos Vinculados",
+      body: (row) => (
+        <button
+          type="button"
+          className="prototype-link-button"
+          onClick={() => {}}
+        >
+          {row.orgaosVinculados}{" "}
+          {row.orgaosVinculados === 1 ? "Órgão" : "Órgãos"}
+        </button>
+      ),
+    },
+    {
+      header: "Situação",
+      body: (row) => (
+        <BadgeSeplag
+          label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"}
+          color={row.situacao === "ATIVO" ? "#00843d" : "#5f6368"}
+          bg={row.situacao === "ATIVO" ? "#e9fbf0" : "#ffffff"}
+          border={row.situacao === "ATIVO" ? "#66e49a" : "#dfe3e8"}
+          size="md"
+        />
+      ),
+    },
+  ];
+  const orgaoOptions = [
+    { label: "SEPLAG", value: "seplag" },
+    { label: "SEDUC", value: "seduc" },
+    { label: "SES", value: "ses" },
+    { label: "MTI", value: "mti" },
+    { label: "SEFAZ", value: "sefaz" },
+    { label: "SESP", value: "sesp" },
+    { label: "SEDEC", value: "sedec" },
+  ];
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-page-content prototype-page-content--white">
+        <CardSeplag title="Carreiras" cols="12">
+          <div className="prototype-category-filters prototype-categoria-filters grid">
+            <TextFieldSeplag
+              name="carreira"
+              control={control}
+              label="Carreira (Sigla, Nome)"
+              cols="12 6 4"
+              getFormErrorMessage={() => null}
+            />
+            <DropdownFieldSeplag
+              name="orgao"
+              control={control}
+              label="Órgão"
+              cols="12 6 3"
+              options={orgaoOptions}
+              optionLabel="label"
+              optionValue="value"
+              getFormErrorMessage={() => null}
+            />
+            <DropdownFieldSeplag
+              name="situacao"
+              control={control}
+              label="Situação"
+              cols="12 6 3"
+              options={situacaoOptions}
+              optionLabel="label"
+              optionValue="value"
+              getFormErrorMessage={() => null}
+            />
+            <div className="prototype-category-clear col-12 md:col-6 lg:col-2">
+              <BotaoLimparFiltroSeplag
+                type="button"
+                label="Limpar Filtro"
+                icon="pi pi-refresh"
+                onClick={() =>
+                  reset({
+                    carreira: "",
+                    orgao: undefined,
+                    situacao: undefined,
+                  })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="prototype-category-table">
+            <TablePaginadoSeplag
+              dataKey="id"
+              data={createResults(carreirasFiltradas)}
+              rows={10}
+              paginator={false}
+              lazy={false}
+              selectionMode={null}
+              columns={carreiraColumns}
+              hasEventoAcao
+              handleAdicionar={() => {}}
+              handleView={() => {}}
+              handleEdit={() => {}}
+              handleDelete={() => {}}
+              handleOnPageChange={() => {}}
+            />
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
 export function PrototiposCategoriaPage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
