@@ -419,7 +419,7 @@ export function VagasIndividualizadasContent() {
               icon="pi pi-list"
             />
             <Kpi
-              label="Pendentes de ato"
+              label="Pendentes de distribuição"
               value={pendentesDeAto}
               icon="pi pi-clock"
               kind="warning"
@@ -1349,35 +1349,6 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
                 <dd>{vaga.inicioVigencia}</dd>
               </div>
             </dl>
-          </section>
-          <section>
-            <h3>Composição do nome da vaga</h3>
-            <div className="prototype-vaga-id-parts">
-              <code>{vaga.identificadorExibicao}</code>
-              <div>
-                <span>VAG</span>
-                <small>Entidade</small>
-              </div>
-              <div>
-                <span>{vaga.orgaoAtual}</span>
-                <small>Órgão</small>
-              </div>
-              <div>
-                <span>{vaga.cargo.slice(0, 10)}</span>
-                <small>Cargo</small>
-              </div>
-              <div>
-                <span>{String(vaga.sequencialNoOrgao).padStart(5, "0")}</span>
-                <small>Número no órgão</small>
-              </div>
-            </div>
-            <div className="prototype-vaga-integrity">
-              <i className="pi pi-shield" />
-              <span>
-                O histórico é acrescido por novos eventos. Registros anteriores
-                não são editados ou removidos.
-              </span>
-            </div>
           </section>
         </div>
         <OcupantesDaVaga vagaId={vaga.id} />
