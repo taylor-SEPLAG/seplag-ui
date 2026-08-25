@@ -924,7 +924,7 @@
 }
 
 .prototype-vaga-page-seplag .prototype-vaga-kpis-seplag {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
