@@ -409,6 +409,11 @@ export function VagasIndividualizadasContent() {
         {quadroSelecionado && (
           <section className="prototype-vaga-kpis prototype-vaga-kpis-seplag">
             <Kpi
+              label="Vagas autorizadas"
+              value={vagasDoQuadro.length}
+              icon="pi pi-file-check"
+            />
+            <Kpi
               label="Vagas distribuídas"
               value={totais.total}
               icon="pi pi-list"
