@@ -1317,22 +1317,8 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
                 </dd>
               </div>
               <div>
-                <dt>Órgão titular</dt>
+                <dt>Órgão</dt>
                 <dd>{vaga.orgaoTitular}</dd>
-              </div>
-              <div>
-                <dt>Destinação prevista na lei</dt>
-                <dd>{distribuicao.destinacaoPrevistaLei}</dd>
-              </div>
-              <div>
-                <dt>Distribuição atual</dt>
-                <dd>
-                  {distribuicao.orgaoDistribuicao ??
-                    "Pendente de distribuição"}
-                  {distribuicao.unidadeDistribuicao
-                    ? ` • ${distribuicao.unidadeDistribuicao}`
-                    : ""}
-                </dd>
               </div>
               <div>
                 <dt>Ato de distribuição</dt>
