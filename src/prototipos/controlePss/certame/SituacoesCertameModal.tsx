@@ -154,9 +154,9 @@ export function SituacoesCertameModal({ certameId, onClose }:{ certameId:string;
    <div className="prototype-certame-bloco">
     <BlocoHeader icone="pi-plus-circle" titulo="Registrar nova situação" subtitulo="Adicione uma nova situação ao histórico do certame." />
     <div className="grid align-items-end prototype-certame-subform">
-     <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 3" options={[...SITUACOES_CERTAME]} optionLabel="label" optionValue="value" onChange={() => setModoConsultaHistorico(false)} getFormErrorMessage={() => null} />
+     <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 6" options={[...SITUACOES_CERTAME]} optionLabel="label" optionValue="value" onChange={() => setModoConsultaHistorico(false)} getFormErrorMessage={() => null} />
      <DateFieldSeplag name="data" control={situacaoForm.control} label="Data de efeito" cols="12 6 3" getFormErrorMessage={() => null} />
-     {!catalogoDocumentos && <AnexarDocumentoSeplag cols="12 6 2" label="Documento de apoio (opcional)" arquivoBase64={arquivoSituacao ?? undefined} onUploadDocument={uploadArquivoSituacao} onRemoveArquivo={() => setArquivoSituacao(null)} handleViewArquivo={() => {}} canView={false} accept="application/pdf" maxFileSize={TAMANHO_MAXIMO_DOCUMENTO_CERTAME} helpText="" chooseIconOnly />}
+     {!catalogoDocumentos && <AnexarDocumentoSeplag cols="12 6 3" label="Documento de apoio (opcional)" arquivoBase64={arquivoSituacao ?? undefined} onUploadDocument={uploadArquivoSituacao} onRemoveArquivo={() => setArquivoSituacao(null)} handleViewArquivo={() => {}} canView={false} accept="application/pdf" maxFileSize={TAMANHO_MAXIMO_DOCUMENTO_CERTAME} helpText="" chooseIconOnly />}
      {catalogoDocumentos && <div className="col-12 prototype-certame-situacao-documentos" ref={documentosSituacaoRef}>
       <span className="prototype-certame-situacao-documentos-titulo">Documentos de {situacaoLabel[tipoSelecionado]} {modoConsultaHistorico ? "(já registrados)" : "(opcionais)"}</span>
       <SeletorFormaAssinaturaDocumento valor={formaAssinaturaSituacao} onChange={setFormaAssinaturaSituacao} name="forma-assinatura-situacao-certame" />

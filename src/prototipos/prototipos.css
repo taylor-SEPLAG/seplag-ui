@@ -514,7 +514,8 @@
   font-weight: 600;
 }
 
-.prototype-native-field select {
+.prototype-native-field select,
+.prototype-native-field input {
   width: 100%;
   min-height: 40px;
   border: 1px solid #d0d5dd;
@@ -525,7 +526,8 @@
   padding: 0.5rem 0.75rem;
 }
 
-.prototype-native-field select:focus {
+.prototype-native-field select:focus,
+.prototype-native-field input:focus {
   border-color: #005494;
   box-shadow: 0 0 0 2px rgba(0, 84, 148, 0.12);
   outline: none;
