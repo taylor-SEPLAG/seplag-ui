@@ -17958,3 +17958,13 @@
 .prototype-carreira-closing-section .prototype-carreira-section-icon { background: #fff0d5; color: #a45e00; }
 .prototype-carreira-register-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 18px; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; }
 @media (max-width: 900px) { .prototype-carreira-register-page { padding: 16px; } .prototype-carreira-vigencia-grid, .prototype-carreira-register-metadata { grid-template-columns: 1fr; } }
+
+/* Cargo usa a mesma linguagem de cartões adotada por Carreira e Quadro. */
+.prototype-cargo-form { display: grid; gap: 16px; padding: 2px; background: #f5f7fa; }
+.prototype-cargo-form-section { overflow: hidden; margin: 0; padding: 0; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; }
+.prototype-cargo-form-section:first-child { border-top: 1px solid #ced9e5; }
+.prototype-cargo-form-section > h3 { margin: 0; padding: 16px 18px; border-bottom: 1px solid #dde5ed; background: #fbfcfd; color: #17324d; font-size: 1rem; }
+.prototype-cargo-form-section > h3::before { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-right: 10px; border-radius: 6px; background: #e8f3ff; color: #0878c9; content: "›"; vertical-align: middle; }
+.prototype-cargo-form-fields { padding: 18px; }
+.prototype-cargo-vigencia-fields, .prototype-cargo-form-section > .prototype-table-wrapper { padding: 18px; }
+.prototype-cargo-form .prototype-category-form-footer { margin: 0; padding: 16px 18px; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; }

@@ -983,6 +983,8 @@ interface MatrizValidacaoFiltroForm {
 
 interface CargoForm {
   codigo?: string;
+  carreira?: string;
+  tiposVinculo?: string[];
   baseLegal?: string[];
   categoria?: string;
   subcategoria?: string;
@@ -1222,6 +1224,11 @@ interface CargoTesteRow extends CargoRow {
   jornadaPadrao: string;
   regrasUso: number;
   vigencia: string;
+  carreira?: string;
+  tiposVinculo?: string[];
+  descricao?: string;
+  dataInicio?: string;
+  documentosIds?: string[];
 }
 
 interface TipoVinculoTesteRow {
@@ -7183,6 +7190,7 @@ export function PrototiposQuadroPessoalVagasPage() {
 }
 export function PrototiposCarreiraPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [carreiras, setCarreiras] = useState(carreirasMock);
   const [pagina, setPagina] = useState(0);
   const [modalCarreira, setModalCarreira] = useState<
@@ -8210,9 +8218,19 @@ export function PrototiposCargoFormPage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
-  const { control, setValue } = useForm<CargoForm>({
+  const location = useLocation();
+  const { id } = useParams();
+  const cargoEmEdicao = id ? cargosTesteMock.find((item) => String(item.id) === id) : undefined;
+  const isEdicao = Boolean(id);
+  const documentosLegais = useDocumentosLegaisAssociaveis();
+  const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
+  const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
+  const [erroComplementar, setErroComplementar] = useState("");
+  const { control, setValue, handleSubmit, reset, watch } = useForm<CargoForm>({
     defaultValues: {
       codigo: "",
+      carreira: "",
+      tiposVinculo: [],
       baseLegal: [],
       categoria: "",
       subcategoria: "",
@@ -8241,20 +8259,84 @@ export function PrototiposCargoFormPage({
     },
   });
 
+  useEffect(() => {
+    if (!cargoEmEdicao) return;
+    reset({
+      codigo: cargoEmEdicao.codigo,
+      carreira: cargoEmEdicao.carreira ?? "",
+      naturezaVinculo: cargoEmEdicao.tiposVinculo?.[0] ?? "EFET",
+      categoria: cargoEmEdicao.categoria,
+      subcategoria: cargoEmEdicao.subcategoria,
+      nomeCargo: cargoEmEdicao.cargo,
+      descricao: cargoEmEdicao.descricao ?? "",
+      jornadaTrabalho: cargoEmEdicao.jornadaPadrao,
+      cargoChefia: "N",
+      permiteSubstituicao: "N",
+      exibirPortal: "N",
+      observacao: "",
+      situacao: cargoEmEdicao.situacao === "ATIVO" ? SITUACAO_VIGENCIA.ATIVO : SITUACAO_VIGENCIA.ENCERRADO,
+      dataAtivacao: cargoEmEdicao.dataInicio ?? cargoEmEdicao.vigencia.split(" -")[0],
+    });
+  }, [cargoEmEdicao, reset]);
+
+  useEffect(() => {
+    if (!cargoEmEdicao || !documentosLegais.length) return;
+    setDocumentosSelecionados(cargoEmEdicao.documentosIds?.length ? cargoEmEdicao.documentosIds : documentosLegais.slice(0, Math.max(1, cargoEmEdicao.baseLegal)).map((item) => item.id));
+  }, [cargoEmEdicao, documentosLegais]);
+
+  const salvarCargo = (values: CargoForm) => {
+    if (!values.naturezaVinculo) return setErroComplementar("Selecione o tipo de vínculo.");
+    if (["EFET", "COM"].includes(values.naturezaVinculo) && !values.carreira) return setErroComplementar("Carreira é obrigatória para os tipos de vínculo Efetivo e Comissionado.");
+    if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal para o cargo.");
+    const codigo = values.codigo?.trim().toUpperCase() ?? "";
+    if (cargosTesteMock.some((item) => item.id !== cargoEmEdicao?.id && item.codigo.toUpperCase() === codigo)) return setErroComplementar("Já existe um cargo cadastrado com esse código/sigla.");
+    const atualizado: CargoTesteRow = {
+      id: cargoEmEdicao?.id ?? Math.max(0, ...cargosTesteMock.map((item) => item.id)) + 1,
+      codigo, cargo: values.nomeCargo?.trim() ?? "", categoria: cargoEmEdicao?.categoria ?? "Não se aplica", subcategoria: cargoEmEdicao?.subcategoria ?? "Não se aplica",
+      jornadaPadrao: values.jornadaTrabalho ?? "Conforme regra", baseLegal: documentosSelecionados.length,
+      instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
+      vigencia: `${values.dataAtivacao || "A definir"} -`, situacao: values.situacao === SITUACAO_VIGENCIA.ENCERRADO ? "ENCERRADO" : "ATIVO",
+      carreira: values.carreira, tiposVinculo: values.naturezaVinculo ? [values.naturezaVinculo] : [], descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, documentosIds: documentosSelecionados,
+    };
+    if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
+    navigate(`${routePrefix}/cargo`);
+  };
+
+  if (isEdicao && !cargoEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert" role="alert">Cargo não encontrado.</div><BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/cargo`)} /></div></PrototypeSystemPage>;
+
+  const tipoVinculoSelecionado = watch("naturezaVinculo") ?? "";
+  const carreiraObrigatoria = ["EFET", "COM"].includes(tipoVinculoSelecionado);
+  const inicioVigenciaCargo = watch("dataAtivacao") ?? "";
+  const inicioVigenciaCargoIso = carreiraDataParaIso(inicioVigenciaCargo);
+  const hojeCargoIso = new Date().toISOString().slice(0, 10);
+  const situacaoInicialCargo = !inicioVigenciaCargoIso
+    ? "A definir"
+    : inicioVigenciaCargoIso > hojeCargoIso
+      ? "Agendado"
+      : "Ativo";
+
   return (
     <PrototypeSystemPage
       nomeSistema="GESTÃO DE PESSOAS"
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <form onSubmit={(event) => event.preventDefault()}>
+      <form onSubmit={handleSubmit(salvarCargo)}>
         <div className="prototype-page-content prototype-page-content--white">
           <CardSeplag
-            title="Cadastrar - Cargo"
+            title={isEdicao ? "Editar - Cargo" : "Cadastrar - Cargo"}
             cols="12"
             cardHeaderClassNames="prototype-category-card"
           >
             <div className="prototype-cargo-form">
+              {erroComplementar ? <div className="prototype-carreira-register-alert" role="alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
+              <section className="prototype-cargo-form-section">
+                <h3>Base Legal</h3>
+                <div className="prototype-carreira-register-body">
+                  <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={(ids) => { setDocumentosSelecionados(ids); setErroComplementar(""); }} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir />
+                </div>
+              </section>
+
               <section className="prototype-cargo-form-section">
                 <h3>Identificação</h3>
                 <div className="grid prototype-cargo-form-fields">
@@ -8288,51 +8370,27 @@ export function PrototiposCargoFormPage({
                 <h3>Classificação Funcional</h3>
                 <div className="grid prototype-cargo-form-fields">
                   <DropdownFieldSeplag
-                    name="categoria"
+                    name="naturezaVinculo"
                     control={control}
-                    label="Categoria"
-                    placeholder="Selecione..."
+                    label="Tipo de Vínculo"
+                    placeholder="Selecione o tipo de vínculo"
                     cols="12 12 6"
-                    options={cargoTesteCategoriaOptions}
+                    options={tiposVinculoTesteMock.filter((item) => item.situacao === "ATIVO").map((item) => ({ label: `${item.codigo} — ${item.nome}`, value: item.codigo }))}
                     optionLabel="label"
                     optionValue="value"
                     required
                     getFormErrorMessage={() => null}
                   />
                   <DropdownFieldSeplag
-                    name="subcategoria"
+                    name="carreira"
                     control={control}
-                    label="Subcategoria"
-                    placeholder="Selecione..."
+                    label={carreiraObrigatoria ? "Carreira" : "Carreira (opcional)"}
+                    placeholder={carreiraObrigatoria ? "Selecione a carreira" : "Cargo sem carreira vinculada"}
                     cols="12 12 6"
-                    options={cargoSubcategoriaOptions}
+                    options={carreirasMock.filter((item) => item.situacao === "ATIVO" || item.sigla === cargoEmEdicao?.carreira).map((item) => ({ label: `${item.sigla} — ${item.nome}`, value: item.sigla }))}
                     optionLabel="label"
                     optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  <DropdownFieldSeplag
-                    name="tipoCargo"
-                    control={control}
-                    label="Tipo de Cargo"
-                    placeholder="Selecione..."
-                    cols="12 12 3"
-                    options={cargoTipoOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  <DropdownFieldSeplag
-                    name="naturezaCargo"
-                    control={control}
-                    label="Natureza do Cargo"
-                    placeholder="Selecione..."
-                    cols="12 12 3"
-                    options={cargoNaturezaOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
+                    required={carreiraObrigatoria}
                     getFormErrorMessage={() => null}
                   />
                 </div>
@@ -8421,75 +8479,22 @@ export function PrototiposCargoFormPage({
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Base Legal</h3>
-                <div className="grid prototype-cargo-form-fields">
-                  <MultiSelectFieldSeplag
-                    name="baseLegal"
-                    control={control}
-                    label="Base Legal"
-                    placeholder="Selecione as Bases Legais"
-                    cols="12"
-                    options={cargoBaseLegalOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
                 <h3>Vigência</h3>
-                <div className="prototype-cargo-vigencia-fields">
-                  <SituacaoVigenciaSeplag<CargoForm>
-                    control={control}
-                    setValue={setValue}
-                    rotuloDataAtivacao="Início de Vigência"
-                    cols={{
-                      situacao: "12 12 3",
-                      dataAtivacao: "12 12 3",
-                      statusOperacional:
-                        "col-12 md:col-4 lg:col-4 prototype-status-operacional-col",
-                      dataEncerramento: "12 12 3",
-                      motivoEncerramento: "12",
-                      dataExtincao: "12 12 3",
-                      motivoExtincao: "12",
-                    }}
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3>Regras de Uso</h3>
-                <div className="prototype-table-wrapper">
-                  <table className="prototype-simple-table">
-                    <thead>
-                      <tr>
-                        <th>Instituição</th>
-                        <th>Órgão</th>
-                        <th>Regime</th>
-                        <th>Tipo de Vínculo</th>
-                        <th>Forma Provimento</th>
-                        <th>Jornada</th>
-                        <th>Situação</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cargoRegrasUsoTesteMock.map((regra) => (
-                        <tr key={regra.id}>
-                          <td>{regra.instituicao}</td>
-                          <td>{regra.orgao}</td>
-                          <td>{regra.regime}</td>
-                          <td>{regra.tipoVinculo}</td>
-                          <td>{regra.formaProvimento}</td>
-                          <td>{regra.jornada}</td>
-                          <td>{regra.situacao}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {!isEdicao ? (
+                  <div className="prototype-carreira-vigencia-grid">
+                    <div className="grid">
+                      <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} />
+                    </div>
+                    <div className={`prototype-carreira-status-card is-${situacaoInicialCargo.toLowerCase().replace(" ", "-")}`}>
+                      <span className="prototype-carreira-status-icon"><i className={situacaoInicialCargo === "Agendado" ? "pi pi-clock" : situacaoInicialCargo === "Ativo" ? "pi pi-check-circle" : "pi pi-calendar"} /></span>
+                      <div><small>Situação</small><strong>{situacaoInicialCargo}</strong><p>{situacaoInicialCargo === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicialCargo === "Agendado" ? "O cargo será ativado automaticamente na data informada." : "O cargo passa a valer a partir da data informada."}</p></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="prototype-cargo-vigencia-fields">
+                    <SituacaoVigenciaSeplag<CargoForm> control={control} setValue={setValue} rotuloDataAtivacao="Início de Vigência" cols={{ situacao: "12 12 3", dataAtivacao: "12 12 3", statusOperacional: "col-12 md:col-4 lg:col-4 prototype-status-operacional-col", dataEncerramento: "12 12 3", motivoEncerramento: "12", dataExtincao: "12 12 3", motivoExtincao: "12" }} getFormErrorMessage={() => null} />
+                  </div>
+                )}
               </section>
 
               <div className="prototype-category-form-footer">
@@ -8497,7 +8502,7 @@ export function PrototiposCargoFormPage({
                   type="button"
                   onClick={() => navigate(`${routePrefix}/cargo`)}
                 />
-                <BotaoSalvarSeplag type="submit" />
+                <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar cargo"} />
               </div>
             </div>
           </CardSeplag>

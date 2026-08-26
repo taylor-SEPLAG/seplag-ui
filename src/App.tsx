@@ -1649,6 +1649,10 @@ function App() {
         element={<PrototiposCargoFormPage />}
       />
       <Route
+        path="/prototipos/sigep/cargo/:id/editar"
+        element={<PrototiposCargoFormPage />}
+      />
+      <Route
         path="/prototipos/sigep/categoria/novo"
         element={<PrototiposCategoriaFormPage />}
       />
