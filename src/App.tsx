@@ -27,6 +27,7 @@ import {
   PrototiposCargoPage,
   PrototiposCargoTesteFormPage,
   PrototiposCargoTestePage,
+  PrototiposCarreiraFormPage,
   PrototiposCarreiraPage,
   PrototiposCategoriaPage,
   PrototiposCategoriaFormPage,
@@ -1628,6 +1629,14 @@ function App() {
         element={<PrototiposCarreiraPage />}
       />
       <Route
+        path="/prototipos/sigep/carreira/novo"
+        element={<PrototiposCarreiraFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/carreira/:id/editar"
+        element={<PrototiposCarreiraFormPage />}
+      />
+      <Route
         path="/prototipos/sigep/categoria"
         element={<PrototiposCategoriaPage />}
       />
@@ -1637,6 +1646,10 @@ function App() {
       />
       <Route
         path="/prototipos/sigep/cargo/novo"
+        element={<PrototiposCargoFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/cargo/:id/editar"
         element={<PrototiposCargoFormPage />}
       />
       <Route
@@ -1869,4 +1882,3 @@ function App() {
 }
 
 export default App;
-

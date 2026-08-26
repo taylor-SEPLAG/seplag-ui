@@ -983,6 +983,8 @@ interface MatrizValidacaoFiltroForm {
 
 interface CargoForm {
   codigo?: string;
+  carreira?: string;
+  tiposVinculo?: string[];
   baseLegal?: string[];
   categoria?: string;
   subcategoria?: string;
@@ -1182,6 +1184,15 @@ interface CarreiraFiltroForm {
   situacao?: "ATIVO" | "ENCERRADO";
 }
 
+interface CarreiraCadastroForm {
+  sigla: string;
+  nome: string;
+  observacao: string;
+  dataInicio: string;
+  dataEncerramento: string;
+  motivoEncerramento: string;
+}
+
 interface CarreiraRow {
   id: number;
   sigla: string;
@@ -1189,6 +1200,13 @@ interface CarreiraRow {
   orgao: string;
   orgaosVinculados: number;
   situacao: "ATIVO" | "ENCERRADO";
+  observacao?: string;
+  dataInicio?: string;
+  dataCriacao?: string;
+  dataEncerramento?: string;
+  motivoEncerramento?: string;
+  documentosIds?: string[];
+  orgaosIds?: string[];
 }
 
 interface CargoRow {
@@ -1206,6 +1224,11 @@ interface CargoTesteRow extends CargoRow {
   jornadaPadrao: string;
   regrasUso: number;
   vigencia: string;
+  carreira?: string;
+  tiposVinculo?: string[];
+  descricao?: string;
+  dataInicio?: string;
+  documentosIds?: string[];
 }
 
 interface TipoVinculoTesteRow {
@@ -7166,6 +7189,17 @@ export function PrototiposQuadroPessoalVagasPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><QuadroPessoalVagasContent /></PrototypeSystemPage>;
 }
 export function PrototiposCarreiraPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [carreiras, setCarreiras] = useState(carreirasMock);
+  const [pagina, setPagina] = useState(0);
+  const [modalCarreira, setModalCarreira] = useState<
+    "visualizar" | "editar" | "orgaos" | null
+  >(null);
+  const [carreiraSelecionada, setCarreiraSelecionada] =
+    useState<CarreiraRow | null>(null);
+  const [siglaEdicao, setSiglaEdicao] = useState("");
+  const [nomeEdicao, setNomeEdicao] = useState("");
   const { control, reset, watch } = useForm<CarreiraFiltroForm>({
     defaultValues: {
       carreira: "",
@@ -7174,8 +7208,13 @@ export function PrototiposCarreiraPage() {
     },
   });
   const filtros = watch();
+  useEffect(() => setPagina(0), [
+    filtros.carreira,
+    filtros.orgao,
+    filtros.situacao,
+  ]);
   const termo = filtros.carreira?.trim().toLowerCase();
-  const carreirasFiltradas = carreirasMock.filter((carreira) => {
+  const carreirasFiltradas = carreiras.filter((carreira) => {
     const atendeCarreira =
       !termo ||
       carreira.sigla.toLowerCase().includes(termo) ||
@@ -7186,6 +7225,54 @@ export function PrototiposCarreiraPage() {
 
     return atendeCarreira && atendeOrgao && atendeSituacao;
   });
+  const registrosPorPagina = 5;
+  useEffect(() => {
+    const ultimaPagina = Math.max(
+      0,
+      Math.ceil(carreirasFiltradas.length / registrosPorPagina) - 1,
+    );
+    setPagina((atual) => Math.min(atual, ultimaPagina));
+  }, [carreirasFiltradas.length]);
+  const carreirasPaginadas = carreirasFiltradas.slice(
+    pagina * registrosPorPagina,
+    (pagina + 1) * registrosPorPagina,
+  );
+  const carreiraResults = {
+    ...createResults(carreirasPaginadas),
+    pageActual: pagina,
+    totalPages: Math.max(
+      1,
+      Math.ceil(carreirasFiltradas.length / registrosPorPagina),
+    ),
+    totalRecords: carreirasFiltradas.length,
+    sizePage: registrosPorPagina,
+    size: registrosPorPagina,
+  };
+  const abrirModal = (
+    modo: "visualizar" | "editar" | "orgaos",
+    carreira: CarreiraRow | null = null,
+  ) => {
+    setCarreiraSelecionada(carreira);
+    setSiglaEdicao(carreira?.sigla ?? "");
+    setNomeEdicao(carreira?.nome ?? "");
+    setModalCarreira(modo);
+  };
+  const salvarCarreira = () => {
+    const sigla = siglaEdicao.trim().toUpperCase();
+    const nome = nomeEdicao.trim();
+    if (!sigla || !nome) return;
+
+    if (modalCarreira === "editar" && carreiraSelecionada) {
+      setCarreiras((atuais) =>
+        atuais.map((item) =>
+          item.id === carreiraSelecionada.id
+            ? { ...item, sigla, nome }
+            : item,
+        ),
+      );
+    }
+    setModalCarreira(null);
+  };
   const carreiraColumns: ColumnMetaSeplag<CarreiraRow>[] = [
     { field: "sigla", header: "Sigla" },
     { field: "nome", header: "Nome" },
@@ -7195,7 +7282,7 @@ export function PrototiposCarreiraPage() {
         <button
           type="button"
           className="prototype-link-button"
-          onClick={() => {}}
+          onClick={() => abrirModal("orgaos", row)}
         >
           {row.orgaosVinculados}{" "}
           {row.orgaosVinculados === 1 ? "Órgão" : "Órgãos"}
@@ -7232,13 +7319,27 @@ export function PrototiposCarreiraPage() {
       menuItems={menuGestaoPessoas}
     >
       <div className="prototype-page-content prototype-page-content--white">
-        <CardSeplag title="Carreiras" cols="12">
-          <div className="prototype-category-filters prototype-categoria-filters grid">
+        <CardSeplag
+          title="Carreiras"
+          cols="12"
+          cardHeaderClassNames="prototype-carreira-card"
+          headerNavigation={
+            <nav className="prototype-doc-breadcrumb" aria-label="Navegação estrutural">
+              <i className="pi pi-home" aria-hidden="true" />
+              <span>Cadastro</span>
+              <i className="pi pi-angle-right" aria-hidden="true" />
+              <span>Cargo e Concurso</span>
+              <i className="pi pi-angle-right" aria-hidden="true" />
+              <strong>Carreira</strong>
+            </nav>
+          }
+        >
+          <div className="prototype-category-filters prototype-carreira-filters grid">
             <TextFieldSeplag
               name="carreira"
               control={control}
               label="Carreira (Sigla, Nome)"
-              cols="12 6 4"
+              cols="12 6 5"
               getFormErrorMessage={() => null}
             />
             <DropdownFieldSeplag
@@ -7255,7 +7356,7 @@ export function PrototiposCarreiraPage() {
               name="situacao"
               control={control}
               label="Situação"
-              cols="12 6 3"
+              cols="12 6 2"
               options={situacaoOptions}
               optionLabel="label"
               optionValue="value"
@@ -7280,21 +7381,526 @@ export function PrototiposCarreiraPage() {
           <div className="prototype-category-table">
             <TablePaginadoSeplag
               dataKey="id"
-              data={createResults(carreirasFiltradas)}
-              rows={10}
-              paginator={false}
-              lazy={false}
+              data={carreiraResults}
+              rows={registrosPorPagina}
+              rowsPerPage={[registrosPorPagina]}
+              paginator
+              lazy
               selectionMode={null}
               columns={carreiraColumns}
               hasEventoAcao
-              handleAdicionar={() => {}}
-              handleView={() => {}}
-              handleEdit={() => {}}
-              handleDelete={() => {}}
-              handleOnPageChange={() => {}}
+              handleAdicionar={() => navigate("/prototipos/sigep/carreira/novo")}
+              handleView={(row) => abrirModal("visualizar", row)}
+              handleEdit={(row) => navigate(`/prototipos/sigep/carreira/${row.id}/editar`)}
+              handleDelete={(row) =>
+                setCarreiras((atuais) =>
+                  atuais.filter((item) => item.id !== row.id),
+                )
+              }
+              handleOnPageChange={(event) =>
+                setPagina(
+                  Math.floor(
+                    (event.first ?? 0) / (event.rows ?? registrosPorPagina),
+                  ),
+                )
+              }
             />
           </div>
         </CardSeplag>
+      </div>
+      <ModalSeplag
+        visible={modalCarreira === "visualizar"}
+        titulo="Visualizar Carreira"
+        fechar={() => setModalCarreira(null)}
+        labelFechar="Fechar"
+        hideFooter
+        tamanho="560px"
+      >
+        <dl className="prototype-carreira-details">
+          <div><dt>Sigla</dt><dd>{carreiraSelecionada?.sigla}</dd></div>
+          <div><dt>Situação</dt><dd>{carreiraSelecionada?.situacao === "ATIVO" ? "Ativo" : "Encerrado"}</dd></div>
+          <div className="is-full"><dt>Nome</dt><dd>{carreiraSelecionada?.nome}</dd></div>
+          <div className="is-full"><dt>Órgãos vinculados</dt><dd>{carreiraSelecionada?.orgaosVinculados ?? 0}</dd></div>
+        </dl>
+      </ModalSeplag>
+      <ModalSeplag
+        visible={modalCarreira === "editar"}
+        titulo="Editar Carreira"
+        fechar={() => setModalCarreira(null)}
+        labelFechar="Cancelar"
+        labelAcao="Salvar"
+        iconAcao="pi pi-save"
+        funcAcao={salvarCarreira}
+        tamanho="620px"
+      >
+        <div className="prototype-carreira-modal-form">
+          <label>
+            <span>Sigla*</span>
+            <input
+              className="p-inputtext p-component"
+              value={siglaEdicao}
+              maxLength={20}
+              onChange={(event) => setSiglaEdicao(event.target.value)}
+            />
+          </label>
+          <label>
+            <span>Nome*</span>
+            <input
+              className="p-inputtext p-component"
+              value={nomeEdicao}
+              maxLength={150}
+              onChange={(event) => setNomeEdicao(event.target.value)}
+            />
+          </label>
+        </div>
+      </ModalSeplag>
+      <ModalSeplag
+        visible={modalCarreira === "orgaos"}
+        titulo="Órgãos Vinculados"
+        fechar={() => setModalCarreira(null)}
+        labelFechar="Fechar"
+        hideFooter
+        tamanho="600px"
+      >
+        <div className="prototype-carreira-org-list">
+          <p><strong>{carreiraSelecionada?.sigla}</strong> — {carreiraSelecionada?.nome}</p>
+          <ul>
+            {Array.from(
+              { length: carreiraSelecionada?.orgaosVinculados ?? 0 },
+              (_, index) => (
+                <li key={index}>
+                  <i className="pi pi-building" aria-hidden="true" />
+                  {index === 0
+                    ? carreiraSelecionada?.orgao.toUpperCase()
+                    : `Órgão vinculado ${index + 1}`}
+                </li>
+              ),
+            )}
+          </ul>
+        </div>
+      </ModalSeplag>
+    </PrototypeSystemPage>
+  );
+}
+
+type CarreiraOrgaoCadastro = {
+  id: string;
+  nome: string;
+};
+
+const carreiraOrgaosCadastro: CarreiraOrgaoCadastro[] = [
+  { id: "seplag", nome: "SEPLAG — Secretaria de Estado de Planejamento e Gestão" },
+  { id: "seduc", nome: "SEDUC — Secretaria de Estado de Educação" },
+  { id: "ses", nome: "SES — Secretaria de Estado de Saúde" },
+  { id: "mti", nome: "MTI — Empresa Mato-grossense de Tecnologia da Informação" },
+  { id: "sefaz", nome: "SEFAZ — Secretaria de Estado de Fazenda" },
+  { id: "sesp", nome: "SESP — Secretaria de Estado de Segurança Pública" },
+];
+
+function carreiraDataParaIso(value: string) {
+  if (!value) return "";
+  const [dia, mes, ano] = value.split("/");
+  if (dia && mes && ano?.length === 4) return `${ano}-${mes}-${dia}`;
+  return value.slice(0, 10);
+}
+
+export function PrototiposCarreiraFormPage() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const carreiraEmEdicao = id
+    ? carreirasMock.find((item) => item.id === Number(id))
+    : undefined;
+  const isEdicao = Boolean(id);
+  const documentosLegais = useDocumentosLegaisAssociaveis();
+  const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
+  const [orgaosDisponiveis, setOrgaosDisponiveis] =
+    useState<CarreiraOrgaoCadastro[]>(carreiraOrgaosCadastro);
+  const [orgaosSelecionados, setOrgaosSelecionados] =
+    useState<CarreiraOrgaoCadastro[]>([]);
+  const [erroComplementar, setErroComplementar] = useState("");
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<CarreiraCadastroForm>({
+    defaultValues: {
+      sigla: "",
+      nome: "",
+      observacao: "",
+      dataInicio: "",
+      dataEncerramento: "",
+      motivoEncerramento: "",
+    },
+  });
+  useEffect(() => {
+    if (!carreiraEmEdicao) return;
+
+    reset({
+      sigla: carreiraEmEdicao.sigla,
+      nome: carreiraEmEdicao.nome,
+      observacao: carreiraEmEdicao.observacao ?? "",
+      dataInicio: carreiraEmEdicao.dataInicio ?? "01/01/2024",
+      dataEncerramento: carreiraEmEdicao.dataEncerramento ?? "",
+      motivoEncerramento: carreiraEmEdicao.motivoEncerramento ?? "",
+    });
+
+    const idsVinculados = carreiraEmEdicao.orgaosIds?.length
+      ? carreiraEmEdicao.orgaosIds
+      : [
+          carreiraEmEdicao.orgao,
+          ...carreiraOrgaosCadastro
+            .filter((orgao) => orgao.id !== carreiraEmEdicao.orgao)
+            .slice(0, Math.max(0, carreiraEmEdicao.orgaosVinculados - 1))
+            .map((orgao) => orgao.id),
+        ];
+    const selecionados = carreiraOrgaosCadastro.filter((orgao) =>
+      idsVinculados.includes(orgao.id),
+    );
+    setOrgaosSelecionados(selecionados);
+    setOrgaosDisponiveis(
+      carreiraOrgaosCadastro.filter((orgao) => !idsVinculados.includes(orgao.id)),
+    );
+  }, [carreiraEmEdicao, reset]);
+
+  useEffect(() => {
+    if (!carreiraEmEdicao || !documentosLegais.length) return;
+    setDocumentosSelecionados(
+      carreiraEmEdicao.documentosIds?.length
+        ? carreiraEmEdicao.documentosIds
+        : [documentosLegais[0].id],
+    );
+  }, [carreiraEmEdicao, documentosLegais]);
+  const dataInicio = watch("dataInicio");
+  const dataEncerramento = watch("dataEncerramento");
+  const dataInicioIso = carreiraDataParaIso(dataInicio);
+  const dataEncerramentoIso = carreiraDataParaIso(dataEncerramento);
+  const hojeIso = new Date().toISOString().slice(0, 10);
+  const statusVigencia =
+    dataEncerramentoIso && dataEncerramentoIso <= hojeIso
+      ? "Encerrado"
+      : !dataInicioIso
+        ? "A definir"
+        : dataInicioIso > hojeIso
+          ? "Agendado"
+          : "Ativo";
+
+  const getCarreiraErrorMessage = (name: string) => {
+    const fieldError = errors[name as keyof CarreiraCadastroForm];
+    return fieldError?.message ? (
+      <small className="p-error">{String(fieldError.message)}</small>
+    ) : null;
+  };
+
+  const salvarCadastro = (values: CarreiraCadastroForm) => {
+    if (
+      isEdicao &&
+      Boolean(values.dataEncerramento) !== Boolean(values.motivoEncerramento.trim())
+    ) {
+      setErroComplementar(
+        "Para encerrar a carreira, informe a data e o motivo do encerramento.",
+      );
+      return;
+    }
+    if (!documentosSelecionados.length) {
+      setErroComplementar("Selecione ao menos um documento legal para a carreira.");
+      return;
+    }
+    if (!orgaosSelecionados.length) {
+      setErroComplementar("Vincule ao menos um órgão à carreira.");
+      return;
+    }
+
+    const sigla = values.sigla.trim().toUpperCase();
+    if (
+      carreirasMock.some(
+        (item) => item.id !== carreiraEmEdicao?.id && item.sigla.toUpperCase() === sigla,
+      )
+    ) {
+      setErroComplementar("Já existe uma carreira cadastrada com essa sigla.");
+      return;
+    }
+
+    const dadosAtualizados: CarreiraRow = {
+      id: carreiraEmEdicao?.id ?? Math.max(0, ...carreirasMock.map((item) => item.id)) + 1,
+      sigla,
+      nome: values.nome.trim(),
+      orgao: orgaosSelecionados[0].id,
+      orgaosVinculados: orgaosSelecionados.length,
+      situacao:
+        values.dataEncerramento &&
+        carreiraDataParaIso(values.dataEncerramento) <= hojeIso
+          ? "ENCERRADO"
+          : "ATIVO",
+      observacao: values.observacao.trim(),
+      dataInicio: values.dataInicio,
+      dataCriacao: carreiraEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"),
+      dataEncerramento: values.dataEncerramento,
+      motivoEncerramento: values.motivoEncerramento.trim(),
+      documentosIds: documentosSelecionados,
+      orgaosIds: orgaosSelecionados.map((orgao) => orgao.id),
+    };
+
+    if (carreiraEmEdicao) {
+      Object.assign(carreiraEmEdicao, dadosAtualizados);
+    } else {
+      carreirasMock.push(dadosAtualizados);
+    }
+    navigate("/prototipos/sigep/carreira");
+  };
+
+  if (isEdicao && !carreiraEmEdicao) {
+    return (
+      <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+        <div className="prototype-carreira-register-page">
+          <div className="prototype-carreira-register-alert" role="alert">
+            <i className="pi pi-exclamation-circle" aria-hidden="true" />
+            <span>Carreira não encontrada.</span>
+          </div>
+          <BotaoVoltarSeplag type="button" onClick={() => navigate("/prototipos/sigep/carreira")} />
+        </div>
+      </PrototypeSystemPage>
+    );
+  }
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <div className="prototype-carreira-register-page">
+        <nav className="prototype-doc-breadcrumb" aria-label="Navegação estrutural">
+          <i className="pi pi-home" aria-hidden="true" />
+          <span>Cadastro</span>
+          <i className="pi pi-angle-right" aria-hidden="true" />
+          <span>Cargo e Concurso</span>
+          <i className="pi pi-angle-right" aria-hidden="true" />
+          <span>Carreira</span>
+          <i className="pi pi-angle-right" aria-hidden="true" />
+          <strong>{isEdicao ? "Editar" : "Novo"}</strong>
+        </nav>
+
+        <header className="prototype-carreira-register-title">
+          <div>
+            <span>{isEdicao ? "EDIÇÃO" : "CADASTRO"}</span>
+            <h1>{isEdicao ? "Editar carreira" : "Nova carreira"}</h1>
+            <p>
+              {isEdicao
+                ? "Atualize os dados cadastrais, a base legal e os órgãos vinculados."
+                : "Informe os dados que identificam a carreira e sua vigência inicial."}
+            </p>
+          </div>
+          <BadgeSeplag
+            label={isEdicao ? carreiraEmEdicao?.sigla ?? "Edição" : "Novo registro"}
+            color="#005ea8"
+            bg="#e8f3ff"
+            border="#a8d5f2"
+            size="md"
+          />
+        </header>
+
+        {erroComplementar ? (
+          <div className="prototype-carreira-register-alert" role="alert">
+            <i className="pi pi-exclamation-circle" aria-hidden="true" />
+            <span>{erroComplementar}</span>
+          </div>
+        ) : null}
+
+        <form
+          className="prototype-carreira-register-form"
+          onSubmit={handleSubmit(salvarCadastro)}
+        >
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span>
+              <div>
+                <h2>Identificação</h2>
+                <p>Dados principais usados para localizar e reconhecer a carreira.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <TextFieldSeplag
+                name="sigla"
+                control={control}
+                label="Sigla"
+                cols="12 12 3"
+                required
+                maxLength={20}
+                getFormErrorMessage={getCarreiraErrorMessage}
+              />
+              <TextFieldSeplag
+                name="nome"
+                control={control}
+                label="Nome"
+                cols="12 12 9"
+                required
+                maxLength={150}
+                getFormErrorMessage={getCarreiraErrorMessage}
+              />
+              <TextAreaFieldSeplag
+                name="observacao"
+                control={control}
+                label="Observação"
+                cols="12"
+                rows={4}
+                maxLength={500}
+                getFormErrorMessage={getCarreiraErrorMessage}
+              />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-calendar" /></span>
+              <div>
+                <h2>Vigência</h2>
+                <p>Informe quando a carreira passa a valer. O status é definido automaticamente.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-vigencia-grid">
+              <div className="grid">
+                <DateFieldSeplag
+                  name="dataInicio"
+                  control={control}
+                  label="Data de início"
+                  cols="12"
+                  required
+                  getFormErrorMessage={getCarreiraErrorMessage}
+                />
+              </div>
+              <div className={`prototype-carreira-status-card is-${statusVigencia.toLowerCase().replace(" ", "-")}`}>
+                <span className="prototype-carreira-status-icon">
+                  <i className={statusVigencia === "Agendado" ? "pi pi-clock" : statusVigencia === "Ativo" ? "pi pi-check-circle" : statusVigencia === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar"} />
+                </span>
+                <div>
+                  <small>Situação</small>
+                  <strong>{statusVigencia}</strong>
+                  <p>
+                    {statusVigencia === "Encerrado"
+                      ? "A carreira está encerrada conforme a data registrada."
+                      : statusVigencia === "Agendado"
+                      ? "A carreira será ativada automaticamente na data informada."
+                      : statusVigencia === "Ativo"
+                        ? "A carreira passa a valer a partir da data informada."
+                        : "Informe a data para calcular a situação inicial."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {isEdicao ? (
+            <section className="prototype-carreira-register-section">
+              <header>
+                <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" /></span>
+                <div>
+                  <h2>Dados do registro</h2>
+                  <p>Informações geradas automaticamente pelo sistema.</p>
+                </div>
+              </header>
+              <dl className="prototype-carreira-register-metadata">
+                <div><dt>Identificador</dt><dd>{carreiraEmEdicao?.id}</dd></div>
+                <div><dt>Data de criação</dt><dd>{carreiraEmEdicao?.dataCriacao ?? "01/01/2024"}</dd></div>
+                <div><dt>Situação atual</dt><dd>{statusVigencia}</dd></div>
+              </dl>
+            </section>
+          ) : null}
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span>
+              <div>
+                <h2>Base legal</h2>
+                <p>Associe o documento que fundamenta a criação da carreira.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-register-body">
+              <DocumentosLegaisAssociadosSeplag
+                label="Documentos legais associados"
+                required
+                options={documentosLegais}
+                value={documentosSelecionados}
+                onChange={(ids) => {
+                  setDocumentosSelecionados(ids);
+                  setErroComplementar("");
+                }}
+                exibirNovoCadastro={false}
+                expandirAoAbrir
+              />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-building" /></span>
+              <div>
+                <h2>Órgãos vinculados</h2>
+                <p>Selecione os órgãos nos quais a carreira poderá ser utilizada.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-register-body">
+              <PickListSeplag<CarreiraOrgaoCadastro>
+                title=""
+                titleNaoSelecionados="Órgãos disponíveis"
+                titleSelecionados="Órgãos selecionados"
+                dataKey="id"
+                dataLabel="nome"
+                filterBy="nome"
+                filterPlaceholder="Procurar por órgão"
+                naoSelecionados={orgaosDisponiveis}
+                selecionados={orgaosSelecionados}
+                setNaoSelecionados={setOrgaosDisponiveis}
+                setSelecionados={(orgaos) => {
+                  setOrgaosSelecionados(orgaos);
+                  setErroComplementar("");
+                }}
+              />
+            </div>
+          </section>
+
+          {isEdicao ? (
+            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
+              <header>
+                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" /></span>
+                <div>
+                  <h2>Encerramento</h2>
+                  <p>Use esta seção somente quando a carreira deixar de vigorar.</p>
+                </div>
+              </header>
+              <div className="grid prototype-carreira-register-fields">
+                <DateFieldSeplag
+                  name="dataEncerramento"
+                  control={control}
+                  label="Data de encerramento"
+                  cols="12 12 3"
+                  getFormErrorMessage={getCarreiraErrorMessage}
+                />
+                <TextAreaFieldSeplag
+                  name="motivoEncerramento"
+                  control={control}
+                  label="Motivo do encerramento"
+                  cols="12 12 9"
+                  rows={3}
+                  maxLength={500}
+                  getFormErrorMessage={getCarreiraErrorMessage}
+                />
+              </div>
+            </section>
+          ) : null}
+
+          <footer className="prototype-carreira-register-actions">
+            <BotaoVoltarSeplag
+              type="button"
+              onClick={() => navigate("/prototipos/sigep/carreira")}
+            />
+            <BotaoSalvarSeplag
+              type="submit"
+              label={isEdicao ? "Salvar alterações" : "Salvar carreira"}
+            />
+          </footer>
+        </form>
       </div>
     </PrototypeSystemPage>
   );
@@ -7612,9 +8218,19 @@ export function PrototiposCargoFormPage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
-  const { control, setValue } = useForm<CargoForm>({
+  const location = useLocation();
+  const { id } = useParams();
+  const cargoEmEdicao = id ? cargosTesteMock.find((item) => String(item.id) === id) : undefined;
+  const isEdicao = Boolean(id);
+  const documentosLegais = useDocumentosLegaisAssociaveis();
+  const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
+  const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
+  const [erroComplementar, setErroComplementar] = useState("");
+  const { control, setValue, handleSubmit, reset, watch } = useForm<CargoForm>({
     defaultValues: {
       codigo: "",
+      carreira: "",
+      tiposVinculo: [],
       baseLegal: [],
       categoria: "",
       subcategoria: "",
@@ -7643,20 +8259,84 @@ export function PrototiposCargoFormPage({
     },
   });
 
+  useEffect(() => {
+    if (!cargoEmEdicao) return;
+    reset({
+      codigo: cargoEmEdicao.codigo,
+      carreira: cargoEmEdicao.carreira ?? "",
+      naturezaVinculo: cargoEmEdicao.tiposVinculo?.[0] ?? "EFET",
+      categoria: cargoEmEdicao.categoria,
+      subcategoria: cargoEmEdicao.subcategoria,
+      nomeCargo: cargoEmEdicao.cargo,
+      descricao: cargoEmEdicao.descricao ?? "",
+      jornadaTrabalho: cargoEmEdicao.jornadaPadrao,
+      cargoChefia: "N",
+      permiteSubstituicao: "N",
+      exibirPortal: "N",
+      observacao: "",
+      situacao: cargoEmEdicao.situacao === "ATIVO" ? SITUACAO_VIGENCIA.ATIVO : SITUACAO_VIGENCIA.ENCERRADO,
+      dataAtivacao: cargoEmEdicao.dataInicio ?? cargoEmEdicao.vigencia.split(" -")[0],
+    });
+  }, [cargoEmEdicao, reset]);
+
+  useEffect(() => {
+    if (!cargoEmEdicao || !documentosLegais.length) return;
+    setDocumentosSelecionados(cargoEmEdicao.documentosIds?.length ? cargoEmEdicao.documentosIds : documentosLegais.slice(0, Math.max(1, cargoEmEdicao.baseLegal)).map((item) => item.id));
+  }, [cargoEmEdicao, documentosLegais]);
+
+  const salvarCargo = (values: CargoForm) => {
+    if (!values.naturezaVinculo) return setErroComplementar("Selecione o tipo de vínculo.");
+    if (["EFET", "COM"].includes(values.naturezaVinculo) && !values.carreira) return setErroComplementar("Carreira é obrigatória para os tipos de vínculo Efetivo e Comissionado.");
+    if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal para o cargo.");
+    const codigo = values.codigo?.trim().toUpperCase() ?? "";
+    if (cargosTesteMock.some((item) => item.id !== cargoEmEdicao?.id && item.codigo.toUpperCase() === codigo)) return setErroComplementar("Já existe um cargo cadastrado com esse código/sigla.");
+    const atualizado: CargoTesteRow = {
+      id: cargoEmEdicao?.id ?? Math.max(0, ...cargosTesteMock.map((item) => item.id)) + 1,
+      codigo, cargo: values.nomeCargo?.trim() ?? "", categoria: cargoEmEdicao?.categoria ?? "Não se aplica", subcategoria: cargoEmEdicao?.subcategoria ?? "Não se aplica",
+      jornadaPadrao: values.jornadaTrabalho ?? "Conforme regra", baseLegal: documentosSelecionados.length,
+      instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
+      vigencia: `${values.dataAtivacao || "A definir"} -`, situacao: values.situacao === SITUACAO_VIGENCIA.ENCERRADO ? "ENCERRADO" : "ATIVO",
+      carreira: values.carreira, tiposVinculo: values.naturezaVinculo ? [values.naturezaVinculo] : [], descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, documentosIds: documentosSelecionados,
+    };
+    if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
+    navigate(`${routePrefix}/cargo`);
+  };
+
+  if (isEdicao && !cargoEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert" role="alert">Cargo não encontrado.</div><BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/cargo`)} /></div></PrototypeSystemPage>;
+
+  const tipoVinculoSelecionado = watch("naturezaVinculo") ?? "";
+  const carreiraObrigatoria = ["EFET", "COM"].includes(tipoVinculoSelecionado);
+  const inicioVigenciaCargo = watch("dataAtivacao") ?? "";
+  const inicioVigenciaCargoIso = carreiraDataParaIso(inicioVigenciaCargo);
+  const hojeCargoIso = new Date().toISOString().slice(0, 10);
+  const situacaoInicialCargo = !inicioVigenciaCargoIso
+    ? "A definir"
+    : inicioVigenciaCargoIso > hojeCargoIso
+      ? "Agendado"
+      : "Ativo";
+
   return (
     <PrototypeSystemPage
       nomeSistema="GESTÃO DE PESSOAS"
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <form onSubmit={(event) => event.preventDefault()}>
+      <form onSubmit={handleSubmit(salvarCargo)}>
         <div className="prototype-page-content prototype-page-content--white">
           <CardSeplag
-            title="Cadastrar - Cargo"
+            title={isEdicao ? "Editar - Cargo" : "Cadastrar - Cargo"}
             cols="12"
             cardHeaderClassNames="prototype-category-card"
           >
             <div className="prototype-cargo-form">
+              {erroComplementar ? <div className="prototype-carreira-register-alert" role="alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
+              <section className="prototype-cargo-form-section">
+                <h3>Base Legal</h3>
+                <div className="prototype-carreira-register-body">
+                  <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={(ids) => { setDocumentosSelecionados(ids); setErroComplementar(""); }} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir />
+                </div>
+              </section>
+
               <section className="prototype-cargo-form-section">
                 <h3>Identificação</h3>
                 <div className="grid prototype-cargo-form-fields">
@@ -7690,51 +8370,27 @@ export function PrototiposCargoFormPage({
                 <h3>Classificação Funcional</h3>
                 <div className="grid prototype-cargo-form-fields">
                   <DropdownFieldSeplag
-                    name="categoria"
+                    name="naturezaVinculo"
                     control={control}
-                    label="Categoria"
-                    placeholder="Selecione..."
+                    label="Tipo de Vínculo"
+                    placeholder="Selecione o tipo de vínculo"
                     cols="12 12 6"
-                    options={cargoTesteCategoriaOptions}
+                    options={tiposVinculoTesteMock.filter((item) => item.situacao === "ATIVO").map((item) => ({ label: `${item.codigo} — ${item.nome}`, value: item.codigo }))}
                     optionLabel="label"
                     optionValue="value"
                     required
                     getFormErrorMessage={() => null}
                   />
                   <DropdownFieldSeplag
-                    name="subcategoria"
+                    name="carreira"
                     control={control}
-                    label="Subcategoria"
-                    placeholder="Selecione..."
+                    label={carreiraObrigatoria ? "Carreira" : "Carreira (opcional)"}
+                    placeholder={carreiraObrigatoria ? "Selecione a carreira" : "Cargo sem carreira vinculada"}
                     cols="12 12 6"
-                    options={cargoSubcategoriaOptions}
+                    options={carreirasMock.filter((item) => item.situacao === "ATIVO" || item.sigla === cargoEmEdicao?.carreira).map((item) => ({ label: `${item.sigla} — ${item.nome}`, value: item.sigla }))}
                     optionLabel="label"
                     optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  <DropdownFieldSeplag
-                    name="tipoCargo"
-                    control={control}
-                    label="Tipo de Cargo"
-                    placeholder="Selecione..."
-                    cols="12 12 3"
-                    options={cargoTipoOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  <DropdownFieldSeplag
-                    name="naturezaCargo"
-                    control={control}
-                    label="Natureza do Cargo"
-                    placeholder="Selecione..."
-                    cols="12 12 3"
-                    options={cargoNaturezaOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
+                    required={carreiraObrigatoria}
                     getFormErrorMessage={() => null}
                   />
                 </div>
@@ -7823,75 +8479,22 @@ export function PrototiposCargoFormPage({
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Base Legal</h3>
-                <div className="grid prototype-cargo-form-fields">
-                  <MultiSelectFieldSeplag
-                    name="baseLegal"
-                    control={control}
-                    label="Base Legal"
-                    placeholder="Selecione as Bases Legais"
-                    cols="12"
-                    options={cargoBaseLegalOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
                 <h3>Vigência</h3>
-                <div className="prototype-cargo-vigencia-fields">
-                  <SituacaoVigenciaSeplag<CargoForm>
-                    control={control}
-                    setValue={setValue}
-                    rotuloDataAtivacao="Início de Vigência"
-                    cols={{
-                      situacao: "12 12 3",
-                      dataAtivacao: "12 12 3",
-                      statusOperacional:
-                        "col-12 md:col-4 lg:col-4 prototype-status-operacional-col",
-                      dataEncerramento: "12 12 3",
-                      motivoEncerramento: "12",
-                      dataExtincao: "12 12 3",
-                      motivoExtincao: "12",
-                    }}
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3>Regras de Uso</h3>
-                <div className="prototype-table-wrapper">
-                  <table className="prototype-simple-table">
-                    <thead>
-                      <tr>
-                        <th>Instituição</th>
-                        <th>Órgão</th>
-                        <th>Regime</th>
-                        <th>Tipo de Vínculo</th>
-                        <th>Forma Provimento</th>
-                        <th>Jornada</th>
-                        <th>Situação</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cargoRegrasUsoTesteMock.map((regra) => (
-                        <tr key={regra.id}>
-                          <td>{regra.instituicao}</td>
-                          <td>{regra.orgao}</td>
-                          <td>{regra.regime}</td>
-                          <td>{regra.tipoVinculo}</td>
-                          <td>{regra.formaProvimento}</td>
-                          <td>{regra.jornada}</td>
-                          <td>{regra.situacao}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {!isEdicao ? (
+                  <div className="prototype-carreira-vigencia-grid">
+                    <div className="grid">
+                      <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} />
+                    </div>
+                    <div className={`prototype-carreira-status-card is-${situacaoInicialCargo.toLowerCase().replace(" ", "-")}`}>
+                      <span className="prototype-carreira-status-icon"><i className={situacaoInicialCargo === "Agendado" ? "pi pi-clock" : situacaoInicialCargo === "Ativo" ? "pi pi-check-circle" : "pi pi-calendar"} /></span>
+                      <div><small>Situação</small><strong>{situacaoInicialCargo}</strong><p>{situacaoInicialCargo === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicialCargo === "Agendado" ? "O cargo será ativado automaticamente na data informada." : "O cargo passa a valer a partir da data informada."}</p></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="prototype-cargo-vigencia-fields">
+                    <SituacaoVigenciaSeplag<CargoForm> control={control} setValue={setValue} rotuloDataAtivacao="Início de Vigência" cols={{ situacao: "12 12 3", dataAtivacao: "12 12 3", statusOperacional: "col-12 md:col-4 lg:col-4 prototype-status-operacional-col", dataEncerramento: "12 12 3", motivoEncerramento: "12", dataExtincao: "12 12 3", motivoExtincao: "12" }} getFormErrorMessage={() => null} />
+                  </div>
+                )}
               </section>
 
               <div className="prototype-category-form-footer">
@@ -7899,7 +8502,7 @@ export function PrototiposCargoFormPage({
                   type="button"
                   onClick={() => navigate(`${routePrefix}/cargo`)}
                 />
-                <BotaoSalvarSeplag type="submit" />
+                <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar cargo"} />
               </div>
             </div>
           </CardSeplag>
