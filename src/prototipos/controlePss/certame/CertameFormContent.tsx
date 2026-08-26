@@ -24,7 +24,7 @@ import { DocumentosLegaisAssociadosSeplag, type DocumentoLegalAssociadoSeplag } 
 import { SeplagAutoComplete } from "@componentes/AutoComplete";
 import gridCss from "@uteis/Grid";
 import { lerRascunhoCertame, limparRascunhoCertame, salvarRascunhoCertame } from "./rascunhoCertameStore";
-import { DocumentosCertameTabela, SeletorFormaAssinaturaDocumento, resultadosSemPaginacao } from "./DocumentosCertameTabela";
+import { DocumentosCertameTabela, resultadosSemPaginacao } from "./DocumentosCertameTabela";
 import "./certame.css";
 
 // Campo de lei com múltipla seleção, reaproveitando o layout padrão de "Documentos Legais
@@ -379,19 +379,14 @@ export function CertameFormContent() {
  const [arquivos, setArquivos] = useState<Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>>(() =>
   rascunho?.arquivos ?? Object.fromEntries(TODOS_DOCUMENTOS_CERTAME.map((item) => [item.tipo, arquivoExistente(existente, item.tipo as TipoDocumentoCertame)]).filter(([, valor]) => valor)) as Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>,
  );
- // Modo de assinatura dos documentos do certame — mesmo campo e funcionalidade do módulo de Ingresso.
- const [formaAssinaturaDocumentos, setFormaAssinaturaDocumentos] = useState<"fisica" | "sigadoc">(rascunho?.formaAssinaturaDocumentos ?? "sigadoc");
- const [processosSigadocDocumentos, setProcessosSigadocDocumentos] = useState<Partial<Record<TipoDocumentoCertame, string>>>(rascunho?.processosSigadocDocumentos ?? {});
-
  // Salva o progresso do cadastro (novo certame) a cada alteração, para recuperar automaticamente
  // caso o usuário saia do formulário antes de salvar (ex.: atalho "Cadastrar nova lei").
  useEffect(() => {
   if (!modoNovo || !tipoConfirmado) return;
-  salvarRascunhoCertame({ tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos, formaAssinaturaDocumentos, processosSigadocDocumentos });
- }, [modoNovo, tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos, formaAssinaturaDocumentos, processosSigadocDocumentos]);
+  salvarRascunhoCertame({ tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos });
+ }, [modoNovo, tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos]);
 
  const onChangeArquivoDocumento = (tipo:TipoDocumentoCertame, arquivo:ArquivoAnexadoSeplag | undefined) => setArquivos((atuais) => ({ ...atuais, [tipo]: arquivo }));
- const onChangeProcessoSigadocDocumento = (tipo:TipoDocumentoCertame, numero:string | undefined) => setProcessosSigadocDocumentos((atuais) => ({ ...atuais, [tipo]: numero }));
 
  const [erro, setErro] = useState<string | null>(null);
  // A mensagem de erro fica no topo do card, acima das abas — sem isso, um erro disparado por uma
@@ -898,10 +893,9 @@ export function CertameFormContent() {
 
      {aba === "DOCUMENTOS" && <SpecArea metadata={certameFormTabSpecifications["Documentos"]}><div id="bloco-documentos" className={`col-12 ${blocoClasse("bloco-documentos")}`}>
       <BlocoHeader icone="pi-file" titulo="Documentos do certame" subtitulo="Anexos exigidos para a prestação de contas ao TCE-MT." />
-      <SeletorFormaAssinaturaDocumento valor={formaAssinaturaDocumentos} onChange={setFormaAssinaturaDocumentos} />
       {GRUPOS_DOCUMENTOS_CERTAME_ABA.map((grupo) => <div key={grupo.titulo} className="prototype-certame-documentos-grupo">
        <h4>{grupo.titulo}</h4>
-       <DocumentosCertameTabela documentos={grupo.documentos} arquivos={arquivos} onChangeArquivo={onChangeArquivoDocumento} processosSigadoc={processosSigadocDocumentos} onChangeProcessoSigadoc={onChangeProcessoSigadocDocumento} formaAssinatura={formaAssinaturaDocumentos} documentoObrigatorio={documentoObrigatorio} onError={setErro} />
+       <DocumentosCertameTabela documentos={grupo.documentos} arquivos={arquivos} onChangeArquivo={onChangeArquivoDocumento} documentoObrigatorio={documentoObrigatorio} onError={setErro} />
       </div>)}
       <p className="text-sm text-color-secondary">Formato aceito: .pdf | Tamanho máximo: 10MB</p>
      </div></SpecArea>}
