@@ -51,6 +51,8 @@ import {
   PrototiposControlePssCertameFormPage,
   PrototiposControlePssLocaisPage,
   PrototiposControlePssLocalFormPage,
+  PrototiposControlePssFasesCertamePage,
+  PrototiposControlePssFaseCertameFormPage,
   PrototiposBacklogRegrasPage,
   PrototiposBacklogQuadroAutorizadoPage,
   PrototiposBacklogControleVagasV2RegrasPage,
@@ -103,6 +105,7 @@ import {
   PrototiposImportarIngressoPage,
   PrototiposIngressoDetalhePage,
   PrototiposIngressosPage,
+  PrototiposAtoTornarSemEfeitoLotePage,
   PrototiposIngressosTesteDetalhePage,
   PrototiposIngressosTestePage,
   PrototiposMatrizValidacaoTesteFormPage,
@@ -1426,6 +1429,10 @@ function App() {
         element={<PrototiposIngressosTestePage />}
       />
       <Route
+        path="/prototipos/sigep/ingressos-teste/:id/gerar-ato-lote"
+        element={<PrototiposAtoTornarSemEfeitoLotePage />}
+      />
+      <Route
         path="/prototipos/sigep/ingressos-teste/:id"
         element={<PrototiposIngressosTesteDetalhePage />}
       />
@@ -1558,6 +1565,18 @@ function App() {
       <Route
         path="/prototipos/sigep/controle-pss/locais/:id"
         element={<PrototiposControlePssLocalFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/fases-certame"
+        element={<PrototiposControlePssFasesCertamePage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/fases-certame/novo"
+        element={<PrototiposControlePssFaseCertameFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/fases-certame/:id"
+        element={<PrototiposControlePssFaseCertameFormPage />}
       />
       <Route
         path="/prototipos/sigep/controle-pss/processos"

@@ -9,6 +9,7 @@ import { ORGAOS_CERTAME, SITUACOES_CERTAME, TIPOS_CERTAME } from "./dominios";
 import type { Certame, SituacaoCertame, TipoCertame } from "./types";
 import { lerRascunhoCertame, limparRascunhoCertame, type RascunhoCertame } from "./rascunhoCertameStore";
 import { SituacoesCertameModal } from "./SituacoesCertameModal";
+import { stringToDateSeplag } from "@uteis/manipulaData";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoLimparFiltroSeplag, BotaoSeplag } from "@componentes/Botao";
@@ -79,7 +80,8 @@ export function CertamesListContent() {
    (!exercicioFiltro || String(certame.anoConcurso) === exercicioFiltro) &&
    (!tipoFiltro || certame.tipoCertame === tipoFiltro) &&
    (!situacaoFiltro || certame.situacaoAtual === situacaoFiltro),
-  );
+  // RN011: ordenada por data de publicação do edital, mais recente primeiro.
+  ).sort((a, b) => (stringToDateSeplag(b.dataPublicacaoEdital)?.getTime() ?? 0) - (stringToDateSeplag(a.dataPublicacaoEdital)?.getTime() ?? 0));
  }, [certames, termo, orgaoFiltro, exercicioFiltro, tipoFiltro, situacaoFiltro]);
 
  const totalPaginas = Math.max(1, Math.ceil(lista.length / itensPorPagina));
@@ -94,7 +96,7 @@ export function CertamesListContent() {
 
  return <SpecificationMode screen={certamesListScreenSpecification} businessItems={certamesListBusinessItems}>
   <div className="prototype-page-content prototype-page-content--white prototype-ingressos-teste-list-page">
-   <CardSeplag title="Cadastro de Certames" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card" actions={<BotaoAdicionarSeplag label="Cadastrar" onClick={() => navigate(`${BASE}/certames/novo`)} />}>
+   <CardSeplag title="Cadastro de Certames" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card">
     <div className="col-12"><div className="prototype-ingressos-teste-content">
      <SpecArea metadata={certamesListBlockSpecifications.aviso}><p className="prototype-ingressos-teste-support">Concursos Públicos e Processos Seletivos Simplificados cadastrados no SIGEP com base no edital publicado, para fins de vínculo do candidato e prestação de contas ao TCE-MT.</p></SpecArea>
      <hr className="prototype-ingressos-teste-header-divider" />
@@ -156,6 +158,10 @@ export function CertamesListContent() {
       </div>
      </div>
 
+     <div className="prototype-certame-list-acoes">
+      <BotaoAdicionarSeplag label="Novo Certame" onClick={() => navigate(`${BASE}/certames/novo`)} />
+     </div>
+
      <SpecArea metadata={certamesListBlockSpecifications.lista}><div className="prototype-efetivo-exercicio-table-wrap">
       <table className="prototype-simple-table">
        <thead>
@@ -186,7 +192,7 @@ export function CertamesListContent() {
              <div className="prototype-ingresso-candidato-actions">
               <div className="prototype-ingresso-actions-dropdown">
                <div className="prototype-ingresso-actions-trigger" role="group" aria-label="Ações do certame">
-                <button type="button" className="prototype-ingresso-actions-eye" title="Visualizar" aria-label="Visualizar" onClick={() => navigate(`${BASE}/certames/${row.id}`)}>
+                <button type="button" className="prototype-ingresso-actions-eye" title="Visualizar" aria-label="Visualizar" onClick={() => navigate(`${BASE}/certames/${row.id}?modo=visualizar`)}>
                  <i className="pi pi-eye" aria-hidden="true" />
                 </button>
                 <button type="button" className="prototype-ingresso-actions-arrow" title="Mais ações" aria-label="Mais ações" aria-expanded={acoesMenuAbertoId === menuId} onClick={() => setAcoesMenuAbertoId((atual) => atual === menuId ? null : menuId)}>
