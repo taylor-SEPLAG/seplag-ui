@@ -1,3 +1,8 @@
+/* Ação "Novo Certame" abaixo dos filtros (em vez de no cabeçalho do card) — mesmo padrão da tela
+   "Gestão de Ingresso" (.prototype-ingressos-teste-table-actions), que traz o botão principal
+   junto da tabela, não junto do título. */
+.prototype-certame-list-acoes{display:flex;align-items:center;justify-content:flex-start;padding:1rem 0}
+
 /* Filtro da listagem de Certames — 6 itens (Pesquisar, Órgão, Exercício, Tipo, Situação, Limpar
    filtro) numa única linha, em vez de quebrar em 4+2 como o grid padrão de 4 colunas herdado de
    .prototype-ingressos-filters (pensado para telas com só 4 campos + botão). */
