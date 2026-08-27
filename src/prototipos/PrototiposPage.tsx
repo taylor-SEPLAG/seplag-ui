@@ -11372,10 +11372,10 @@ export function PrototiposIngressosTestePage() {
       const tornadosSemEfeito = contarSituacao("Tornado sem efeito");
       const exoneracoesOficio = contarSituacao("Exoneração de oficio");
       const cancelados = contarSituacao("Ingresso Cancelado");
-      const totalOcorrencias = concursoProcesso.tipo === "Concurso"
-        ? possesSuspensas + possesNegadas + tornadosSemEfeito + exoneracoesOficio
+      const encerradosSemIngresso = concursoProcesso.tipo === "Concurso"
+        ? possesNegadas + tornadosSemEfeito + exoneracoesOficio
         : cancelados;
-      const pendentes = Math.max(nomeados - ingressadosAjustados - totalOcorrencias, 0);
+      const pendentes = Math.max(nomeados - ingressadosAjustados - encerradosSemIngresso, 0);
       const situacao: IngressoTesteSituacao = nomeados === 0
         ? "Sem nomeados"
         : pendentes === 0
@@ -11405,7 +11405,7 @@ export function PrototiposIngressosTestePage() {
         nomeados,
         pendentes,
         ingressados: ingressadosAjustados,
-        encerradosSemIngresso: totalOcorrencias,
+        encerradosSemIngresso,
         possesSuspensas,
         possesNegadas,
         tornadosSemEfeito,
