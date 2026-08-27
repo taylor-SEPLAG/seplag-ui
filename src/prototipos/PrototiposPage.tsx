@@ -1253,6 +1253,7 @@ type IngressoSituacao =
   | "Posse Suspensa"
   | "Aguardando Efetivo Exercicio"
   | "Tornado sem efeito"
+  | "Exoneração de oficio"
   | "Posse Negada"
   | "Encerrado por desistência"
   | "Ingresso Cancelado"
@@ -1365,9 +1366,11 @@ type IngressoTesteSituacao = "Não iniciado" | "Em andamento" | "Concluído" | "
 
 interface IngressoTesteTabelaRow extends IngressosTesteGridRow {
   pendentes: number;
+  encerradosSemIngresso: number;
   possesSuspensas: number;
   possesNegadas: number;
   tornadosSemEfeito: number;
+  exoneracoesOficio: number;
   cancelados: number;
   situacao: IngressoTesteSituacao;
 }
@@ -1392,6 +1395,11 @@ interface IntegracaoExecucaoRow {
   candidatoIdsIncluidos?: number[];
 }
 
+const alteracoesHistoricoIntegracaoMock = [
+  { campo: "Polo", valorAnterior: "Cuiabá", novoValor: "Várzea Grande" },
+  { campo: "Tipo de vaga", valorAnterior: "Ampla Concorrência", novoValor: "PCD" },
+  { campo: "Data de agendamento da posse", valorAnterior: "10/08/2026", novoValor: "12/08/2026" },
+];
 const integracoesIngressoMock: IntegracaoExecucaoRow[] = [
   { id: "INT-20270205-1015-PSS009", dataHora: "05/02/2027 10:15", sistema: "SIES", tipo: "Automática", situacao: "Concluída", recebidos: 2, incluidos: 2, atualizados: 0, semAlteracao: 0, erros: 0, edital: "009/2027/SEPLAG", inicio: "05/02/2027 às 10:15:02", fim: "05/02/2027 às 10:15:31", duracao: "29 segundos", candidatoIdsIncluidos: [65, 66] },
   { id: "INT-20260805-1542-PSS004", dataHora: "05/08/2026 15:40", sistema: "SIES", tipo: "Automática", situacao: "Concluída", recebidos: 12, incluidos: 2, atualizados: 1, semAlteracao: 9, erros: 0, edital: "004/2026/SES", inicio: "05/08/2026 às 15:40:02", fim: "05/08/2026 às 15:42:08", duracao: "2 minutos e 6 segundos", candidatoIdsIncluidos: [40, 41] },
@@ -10542,7 +10550,7 @@ export function PrototiposEfetivoExercicioPage() {
   const situacoesEfetivoExercicio: IngressoSituacao[] = [
     "Aguardando Efetivo Exercicio",
     "Ingresso Concluído",
-    "Tornado sem efeito",
+    "Exoneração de oficio",
   ];
   const formatarSituacaoEfetivoExercicio = (situacao: IngressoSituacao) =>
     situacao === "Tornado sem efeito" ? "Exoneração de oficio" : situacao;
@@ -10582,7 +10590,7 @@ export function PrototiposEfetivoExercicioPage() {
     dataLimite: string,
   ) => {
     const limite = parseDataEfetivoExercicio(dataLimite);
-    if (!limite || situacao === "Tornado sem efeito") return null;
+    if (!limite || situacao === "Tornado sem efeito" || situacao === "Exoneração de oficio") return null;
 
     if (situacao === "Aguardando Efetivo Exercicio") {
       const hoje = new Date();
@@ -10619,7 +10627,8 @@ export function PrototiposEfetivoExercicioPage() {
     .flatMap((concursoProcesso) =>
       concursoProcesso.candidatos.map((candidato) => {
         const ingresso = ingressosMock.find((item) => item.id === candidato.id);
-        const situacao = getSituacaoEfetivoExercicio(candidato.id, concursoProcesso.titulo);
+        const situacaoRegistrada = getSituacaoEfetivoExercicio(candidato.id, concursoProcesso.titulo);
+        const situacao = concursoProcesso.tipo === "Processo Seletivo" && situacaoRegistrada === "Exoneração de oficio" ? "Ingresso Cancelado" : situacaoRegistrada;
 
         return {
           id: candidato.id,
@@ -10679,7 +10688,7 @@ export function PrototiposEfetivoExercicioPage() {
     { label: "Total de Registros", value: todosRegistrosEfetivoExercicio.length, icon: "pi pi-users", tone: "blue" },
     { label: "Aguardando Efetivo Exercício", value: totalEfetivoExercicioPorSituacao["Aguardando Efetivo Exercicio"], icon: "pi pi-calendar-clock", tone: "amber" },
     { label: "Ingressos Concluídos", value: totalEfetivoExercicioPorSituacao["Ingresso Concluído"], icon: "pi pi-check-circle", tone: "green" },
-    { label: "Exoneração de oficio", value: totalEfetivoExercicioPorSituacao["Tornado sem efeito"], icon: "pi pi-minus-circle", tone: "red" },
+    { label: "Exoneração de oficio", value: totalEfetivoExercicioPorSituacao["Exoneração de oficio"], icon: "pi pi-minus-circle", tone: "red" },
   ];
   const registrosEfetivoExercicio = todosRegistrosEfetivoExercicio.filter((registro) => {
       const atendeTermo =
@@ -10716,6 +10725,11 @@ export function PrototiposEfetivoExercicioPage() {
         descricao: "Ingresso aguardando registro do efetivo exercício.",
       },
       "Tornado sem efeito": {
+        color: "#6b7280",
+        bg: "#f3f4f6",
+        descricao: "Ingresso tornado sem efeito.",
+      },
+      "Exoneração de oficio": {
         color: "#6b7280",
         bg: "#f3f4f6",
         descricao: "Exoneração de oficio por não comparecimento ao efetivo exercício.",
@@ -11023,17 +11037,17 @@ export function PrototiposEfetivoExercicioPage() {
                     <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-database" aria-hidden="true" /></span>
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:42</small>
-                      <strong>Dados integrados do sistema de origem</strong>
+                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Dados integrados" : "Dados integrados do SIES"}</strong>
                       <p>Dados cadastrais, classificação, cargo, polo, tipo de vaga e documentação do candidato foram recebidos.</p>
-                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática → SIGEP</span>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "SIMPLIFICA" : "SIES"} → SIGEP</span>
                     </div>
                   </li>
                   <li>
                     <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span>
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:43</small>
-                      <strong>Candidato incluído na lista</strong>
-                      <p><b>{candidatoHistoricoSelecionado.candidato.nome}</b> foi vinculado ao {candidatoHistoricoSelecionado.concursoProcesso.edital}, com classificação {candidatoHistoricoSelecionado.candidato.classificacao}.</p>
+                      <strong>Candidato incluído na lista do {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Concurso" : "seletivo"}</strong>
+                      <p><b>{candidatoHistoricoSelecionado.candidato.nome}</b> foi vinculado ao {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Concurso" : "PSS"} {candidatoHistoricoSelecionado.concursoProcesso.edital}, com classificação {candidatoHistoricoSelecionado.candidato.classificacao}.</p>
                       <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
                     </div>
                   </li>
@@ -11051,7 +11065,7 @@ export function PrototiposEfetivoExercicioPage() {
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{candidatoHistoricoSelecionado.candidato.dataPosse} às 10:40</small>
                       <strong>Análise do provimento</strong>
-                      <p>O provimento foi analisado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                      <p>A análise do provimento foi concluída e o candidato foi encaminhado ao órgão responsável para registro do Efetivo Exercício.</p>
                       <dl className="prototype-ingressos-candidate-history-details">
                         <div><dt>Parecer</dt><dd>Aprovado</dd></div>
                         <div><dt>Órgão encaminhado</dt><dd>{candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
@@ -11078,7 +11092,7 @@ export function PrototiposEfetivoExercicioPage() {
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio} às 08:16</small>
                       <strong>Ingresso concluído</strong>
-                      <p>Matrícula e vínculo funcional foram gerados com sucesso.</p>
+                      <p>Matrícula e vínculo funcional foram efetivados com sucesso.</p>
                       <div className="prototype-ingressos-candidate-history-result"><span><b>Matrícula:</b> {ingressoHistoricoSelecionado.matricula || "Não informada"}</span><span><b>Vínculo:</b> 01</span></div>
                       <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
                     </div>
@@ -11101,20 +11115,48 @@ export function PrototiposEfetivoExercicioPage() {
                     <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-database" aria-hidden="true" /></span>
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:42</small>
-                      <strong>Dados integrados do SIES</strong>
+                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Dados integrados do SIMPLIFICA" : "Dados integrados do SIES"}</strong>
                       <p>Dados cadastrais, classificação, cargo, polo, tipo de vaga e documentação do candidato foram recebidos.</p>
-                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática SIES → SIGEP</span>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "SIMPLIFICA" : "SIES"} → SIGEP</span>
                     </div>
                   </li>
                   <li>
                     <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span>
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:43</small>
-                      <strong>Candidato incluído na lista do seletivo</strong>
-                      <p><b>{candidatoHistoricoSelecionado.candidato.nome}</b> foi vinculado ao {candidatoHistoricoSelecionado.concursoProcesso.edital}, com classificação {candidatoHistoricoSelecionado.candidato.classificacao}.</p>
+                      <strong>Candidato incluído na lista do {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Concurso" : "seletivo"}</strong>
+                      <p><b>{candidatoHistoricoSelecionado.candidato.nome}</b> foi vinculado ao {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Concurso" : "PSS"} {candidatoHistoricoSelecionado.concursoProcesso.edital}, com classificação {candidatoHistoricoSelecionado.candidato.classificacao}.</p>
                       <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
                     </div>
                   </li>
+              {candidatoHistoricoSelecionado.candidato.id === 1 ? (
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-sync" aria-hidden="true" /></span>
+                <details className="prototype-ingressos-candidate-history-card prototype-ingressos-candidate-history-update">
+                  <summary>
+                    <div className="prototype-ingressos-candidate-history-update-summary">
+                      <small>05/08/2026 às 10:15</small>
+                      <div className="prototype-ingressos-candidate-history-update-title">
+                        <strong>{candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Dados atualizados via integração" : "Dados atualizados via integração do SIES"}</strong>
+                        <span>{alteracoesHistoricoIntegracaoMock.length} campos atualizados</span>
+                      </div>
+                      <p>Foram identificadas alterações nos dados do candidato recebidos pelo {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "SIMPLIFICA" : "SIES"}.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "SIMPLIFICA" : "SIES"} → SIGEP</span>
+                    </div>
+                    <i className="pi pi-chevron-down prototype-ingressos-candidate-history-update-toggle" aria-hidden="true" />
+                  </summary>
+                  <div className="prototype-ingressos-candidate-history-update-body">
+                    <strong>Detalhes das alterações</strong>
+                    <table>
+                      <thead><tr><th>Campo atualizado</th><th>Valor anterior</th><th>Novo valor</th></tr></thead>
+                      <tbody>{alteracoesHistoricoIntegracaoMock.map((alteracao) => (
+                        <tr key={alteracao.campo}><td>{alteracao.campo}</td><td>{alteracao.valorAnterior || "Não informado"}</td><td>{alteracao.novoValor || "Não informado"}</td></tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                </details>
+              </li>
+              ) : null}
                   <li>
                     <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
                     <div className="prototype-ingressos-candidate-history-card">
@@ -11129,7 +11171,7 @@ export function PrototiposEfetivoExercicioPage() {
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{candidatoHistoricoSelecionado.candidato.dataPosse} às 10:40</small>
                       <strong>Análise do provimento</strong>
-                      <p>O provimento foi aprovado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                      <p>A análise do provimento foi concluída e o candidato foi encaminhado ao órgão responsável para registro do Efetivo Exercício.</p>
                       <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
                         <div><dt>Parecer</dt><dd>Aprovado</dd></div>
                         <div><dt>Órgão encaminhado</dt><dd>{orgaosEfetivoExercicioSalvos[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
@@ -11140,7 +11182,7 @@ export function PrototiposEfetivoExercicioPage() {
                 </ol>
                 <p className="prototype-ingressos-candidate-history-notice"><i className="pi pi-info-circle" aria-hidden="true" /> O histórico registra automaticamente cada etapa do ingresso e não pode ser editado ou excluído.</p>
               </div>
-              ) : situacaoHistoricoSelecionado === "Tornado sem efeito" ? (
+              ) : situacaoHistoricoSelecionado === "Exoneração de oficio" ? (
               <div className="prototype-ingressos-candidate-history">
                 <div className="prototype-ingressos-candidate-history-summary">
                   <div><span>Nº do Ingresso</span><strong>{getNumeroIngresso(ingressoHistoricoSelecionado.id)}</strong></div>
@@ -11155,17 +11197,17 @@ export function PrototiposEfetivoExercicioPage() {
                     <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-database" aria-hidden="true" /></span>
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:42</small>
-                      <strong>Dados integrados do sistema de origem</strong>
+                      <strong>{candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Dados integrados" : "Dados integrados do SIES"}</strong>
                       <p>Dados cadastrais, classificação, cargo, polo, tipo de vaga e documentação do candidato foram recebidos.</p>
-                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática → SIGEP</span>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "SIMPLIFICA" : "SIES"} → SIGEP</span>
                     </div>
                   </li>
                   <li>
                     <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span>
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{candidatoHistoricoSelecionado.candidato.dataNomeacao} às 09:43</small>
-                      <strong>Candidato incluído na lista</strong>
-                      <p><b>{candidatoHistoricoSelecionado.candidato.nome}</b> foi vinculado ao {candidatoHistoricoSelecionado.concursoProcesso.edital}, com classificação {candidatoHistoricoSelecionado.candidato.classificacao}.</p>
+                      <strong>Candidato incluído na lista do {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Concurso" : "seletivo"}</strong>
+                      <p><b>{candidatoHistoricoSelecionado.candidato.nome}</b> foi vinculado ao {candidatoHistoricoSelecionado.concursoProcesso.tipo === "Concurso" ? "Concurso" : "PSS"} {candidatoHistoricoSelecionado.concursoProcesso.edital}, com classificação {candidatoHistoricoSelecionado.candidato.classificacao}.</p>
                       <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
                     </div>
                   </li>
@@ -11183,7 +11225,7 @@ export function PrototiposEfetivoExercicioPage() {
                     <div className="prototype-ingressos-candidate-history-card">
                       <small>{candidatoHistoricoSelecionado.candidato.dataPosse} às 10:40</small>
                       <strong>Análise do provimento</strong>
-                      <p>O provimento foi analisado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                      <p>A análise do provimento foi concluída e o candidato foi encaminhado ao órgão responsável para registro do Efetivo Exercício.</p>
                       <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
                         <div><dt>Parecer</dt><dd>Aprovado</dd></div>
                         <div><dt>Órgão encaminhado</dt><dd>{orgaosEfetivoExercicioSalvos[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
@@ -11198,15 +11240,10 @@ export function PrototiposEfetivoExercicioPage() {
                         datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)],
                         candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio,
                       )} às 08:15</small>
-                      <strong>Efetivo exercício registrado</strong>
-                      <p className="prototype-ingressos-candidate-history-justification"><b>Servidor não compareceu.</b> Foi registrada a Exoneração de oficio por ausência no início das atividades.</p>
-                      <dl className="prototype-ingressos-candidate-history-details">
-                        <div><dt>Data prevista</dt><dd>{getDataEfetivoExercicioConcluido(
-                        datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)],
-                        candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio,
-                      )}</dd></div>
-                        <div><dt>Órgão</dt><dd>{orgaosEfetivoExercicioSalvos[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
-                        <div><dt>Situação</dt><dd>Não compareceu</dd></div>
+                      <strong>Exoneração de ofício registrada</strong>
+                      <p>O ingresso foi encerrado por não comparecimento do candidato ao Efetivo Exercício.</p>
+                      <dl className="prototype-ingressos-candidate-history-details prototype-efetivo-history-details">
+                        <div><dt>Motivo</dt><dd>Não comparecimento</dd></div>
                       </dl>
                       <span className="prototype-ingressos-candidate-history-owner">Responsável: Maria Oliveira — Setorial {candidatoHistoricoSelecionado.concursoProcesso.orgao}</span>
                     </div>
@@ -11306,19 +11343,21 @@ export function PrototiposIngressosTestePage() {
         ...candidatosCriados,
       ];
       const situacoesDemonstracaoConcurso: Partial<Record<number, IngressoSituacao>> = {
-        1: "Aguardando Analise", 2: "Em analise", 3: "Em analise", 4: "Posse Suspensa",
-        5: "Aguardando Efetivo Exercicio", 6: "Tornado sem efeito", 7: "Posse Negada",
-        8: "Ingresso Concluído", 14: "Em analise", 15: "Em analise", 16: "Ingresso Concluído",
+        1: "Tornado sem efeito", 2: "Tornado sem efeito", 3: "Tornado sem efeito", 4: "Tornado sem efeito",
+        5: "Tornado sem efeito", 6: "Exoneração de oficio", 7: "Posse Negada",
+        8: "Ingresso Concluído", 14: "Posse Suspensa", 15: "Em analise", 16: "Ingresso Concluído",
         17: "Aguardando Analise", 18: "Aguardando Analise", 19: "Aguardando Analise",
       };
       const getSituacaoSalvaCandidato = (candidatoId: number): IngressoSituacao | undefined => {
+        if (concursoProcesso.id === 1 && [1, 2, 3, 4, 5].includes(candidatoId)) return "Tornado sem efeito";
+        if (concursoProcesso.id === 1 && candidatoId === 14) return "Posse Suspensa";
         const situacaoSalva = situacoesIngressosPorConcurso[concursoProcesso.titulo]?.[String(candidatoId)] ??
           situacoesIngressosSalvas[String(candidatoId)] as string | undefined;
         const situacaoNormalizada = situacaoSalva === "Ingresso cancelado"
           ? "Ingresso Cancelado"
           : situacaoSalva as IngressoSituacao | undefined;
 
-        return situacaoNormalizada ??
+        return (concursoProcesso.tipo === "Processo Seletivo" && situacaoNormalizada === "Exoneração de oficio" ? "Ingresso Cancelado" : situacaoNormalizada) ??
           (candidatoId === 52 ? "Ingresso Cancelado" : undefined) ??
           (concursoProcesso.tipo === "Concurso" ? situacoesDemonstracaoConcurso[candidatoId] : undefined) ??
           ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
@@ -11340,11 +11379,12 @@ export function PrototiposIngressosTestePage() {
       const possesSuspensas = contarSituacao("Posse Suspensa");
       const possesNegadas = contarSituacao("Posse Negada");
       const tornadosSemEfeito = contarSituacao("Tornado sem efeito");
+      const exoneracoesOficio = contarSituacao("Exoneração de oficio");
       const cancelados = contarSituacao("Ingresso Cancelado");
-      const totalOcorrencias = concursoProcesso.tipo === "Concurso"
-        ? possesSuspensas + possesNegadas + tornadosSemEfeito
+      const encerradosSemIngresso = concursoProcesso.tipo === "Concurso"
+        ? possesNegadas + tornadosSemEfeito + exoneracoesOficio
         : cancelados;
-      const pendentes = Math.max(nomeados - ingressadosAjustados - totalOcorrencias, 0);
+      const pendentes = Math.max(nomeados - ingressadosAjustados - encerradosSemIngresso, 0);
       const situacao: IngressoTesteSituacao = nomeados === 0
         ? "Sem nomeados"
         : pendentes === 0
@@ -11374,9 +11414,11 @@ export function PrototiposIngressosTestePage() {
         nomeados,
         pendentes,
         ingressados: ingressadosAjustados,
+        encerradosSemIngresso,
         possesSuspensas,
         possesNegadas,
         tornadosSemEfeito,
+        exoneracoesOficio,
         cancelados,
         situacao,
         rotaIngresso: `/prototipos/sigep/ingressos-teste/${concursoProcesso.id}`,
@@ -11404,6 +11446,7 @@ export function PrototiposIngressosTestePage() {
           { label: "Posses suspensas", value: row.possesSuspensas, icon: "pi pi-pause-circle", tone: "purple" },
           { label: "Posses negadas", value: row.possesNegadas, icon: "pi pi-ban", tone: "red" },
           { label: "Tornado sem efeito", value: row.tornadosSemEfeito, icon: "pi pi-minus-circle", tone: "gray" },
+          { label: "Exoneração de ofício", value: row.exoneracoesOficio, icon: "pi pi-user-minus", tone: "gray" },
         ]
       : [{ label: "Cancelados", value: row.cancelados, icon: "pi pi-times-circle", tone: "red" }];
 
@@ -11461,6 +11504,7 @@ export function PrototiposIngressosTestePage() {
     { field: "nomeados", header: "Nomeados", sortable: true, bodyClassName: "prototype-ingressos-number-cell" },
     { field: "pendentes", header: "Pendentes", sortable: true, bodyClassName: "prototype-ingressos-number-cell" },
     { field: "ingressados", header: "Ingressados", sortable: true, bodyClassName: "prototype-ingressos-number-cell" },
+    { field: "encerradosSemIngresso", header: "Encerrados sem ingresso", sortable: true, bodyClassName: "prototype-ingressos-number-cell" },
     {
       field: "situacao",
       header: "Situação",
@@ -11512,6 +11556,12 @@ export function PrototiposIngressosTestePage() {
       tone: "amber",
     },
     {
+      label: "Total de Encerrados sem ingresso",
+      value: registrosIngressoTeste.reduce((total, registro) => total + registro.encerradosSemIngresso, 0),
+      icon: "pi pi-stop-circle",
+      tone: "gray",
+    },
+    {
       label: "Total de Posses Suspensas",
       value: registrosIngressoTeste.reduce((total, registro) => total + registro.possesSuspensas, 0),
       icon: "pi pi-pause-circle",
@@ -11528,6 +11578,12 @@ export function PrototiposIngressosTestePage() {
       value: registrosIngressoTeste.reduce((total, registro) => total + registro.tornadosSemEfeito, 0),
       icon: "pi pi-minus-circle",
       tone: "light-blue",
+    },
+    {
+      label: "Total de Exonerações de ofício",
+      value: registrosIngressoTeste.reduce((total, registro) => total + registro.exoneracoesOficio, 0),
+      icon: "pi pi-user-minus",
+      tone: "gray",
     },
     {
       label: "Total de Ingressos Cancelados",
@@ -11907,7 +11963,8 @@ export function PrototiposIngressosTesteDetalhePage() {
     "Encerrado por desistência",
     "Ingresso Cancelado",
     "Tornado sem efeito",
-  ];
+    "Exoneração de oficio",
+  ].filter((situacao) => concursoProcesso?.tipo !== "Processo Seletivo" || situacao !== "Exoneração de oficio");
   const getFiltroGrupo = (grupoId: string) =>
     filtrosGrupo[grupoId] ?? { nome: "", situacao: "" };
   const atualizarFiltroGrupo = (
@@ -11935,6 +11992,8 @@ export function PrototiposIngressosTesteDetalhePage() {
     }));
   };
   const getSituacaoCandidato = (candidatoId: number): IngressoSituacao => {
+    if (concursoProcesso?.id === 1 && [1, 2, 3, 4, 5].includes(candidatoId)) return "Tornado sem efeito";
+    if (concursoProcesso?.id === 1 && candidatoId === 14) return "Posse Suspensa";
     const situacaoSalva = concursoProcesso
       ? situacoesIngressosPorConcurso[concursoProcesso.titulo]?.[String(candidatoId)] ??
         situacoesIngressosSalvas[String(candidatoId)]
@@ -11943,14 +12002,14 @@ export function PrototiposIngressosTesteDetalhePage() {
       ? "Ingresso Cancelado"
       : situacaoSalva as IngressoSituacao | undefined;
     const situacoesDemonstracaoConcurso: Partial<Record<number, IngressoSituacao>> = {
-      1: "Aguardando Analise",
-      2: "Em analise",
-      3: "Em analise",
-      5: "Aguardando Efetivo Exercicio",
+      1: "Tornado sem efeito",
+      2: "Tornado sem efeito",
+      3: "Tornado sem efeito",
+      5: "Tornado sem efeito",
       8: "Ingresso Concluído",
-      4: "Posse Suspensa",
+      4: "Tornado sem efeito",
       7: "Posse Negada",
-      6: "Tornado sem efeito",
+      6: "Exoneração de oficio",
       14: "Em analise",
       15: "Em analise",
       16: "Ingresso Concluído",
@@ -11959,7 +12018,7 @@ export function PrototiposIngressosTesteDetalhePage() {
       19: "Aguardando Analise",
     };
 
-    return situacaoNormalizada ??
+    return (concursoProcesso?.tipo === "Processo Seletivo" && situacaoNormalizada === "Exoneração de oficio" ? "Ingresso Cancelado" : situacaoNormalizada) ??
       (candidatoId === 52 ? "Ingresso Cancelado" : undefined) ??
       (concursoProcesso?.tipo === "Concurso" ? situacoesDemonstracaoConcurso[candidatoId] : undefined) ??
       ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
@@ -12136,7 +12195,7 @@ export function PrototiposIngressosTesteDetalhePage() {
     const concluido = (texto: string): IndicadorPrazoIngresso => ({ tone: "success", icon: "pi pi-check-circle", texto, tooltip: texto });
 
     if (situacao === "Posse Suspensa") return { posse: { tone: "paused", icon: "pi pi-pause-circle", texto: "Prazo suspenso", tooltip: "Prazo da posse suspenso." } as IndicadorPrazoIngresso, efetivo: neutro("Não iniciado") };
-    if (situacao === "Posse Negada" || situacao === "Tornado sem efeito") return { posse: neutro("Processo encerrado"), efetivo: neutro("Não se aplica") };
+    if (situacao === "Posse Negada" || situacao === "Tornado sem efeito" || situacao === "Exoneração de oficio") return { posse: neutro("Processo encerrado"), efetivo: neutro("Não se aplica") };
     if (situacao === "Aguardando Efetivo Exercicio") return { posse: concluido(candidato.dataPosse && candidato.dataPosse !== "-" ? `Posse concluída em ${candidato.dataPosse}` : "Posse concluída"), efetivo: getIndicadorPrazoAtivo("Limite do efetivo exercício", limiteEfetivo) };
     if (situacao === "Ingresso Concluído") return { posse: concluido(candidato.dataPosse && candidato.dataPosse !== "-" ? `Posse concluída em ${candidato.dataPosse}` : "Posse concluída"), efetivo: concluido(`Exercício iniciado em ${getDataEfetivoExercicio(candidato) || "data não informada"}`) };
     return { posse: getIndicadorPrazoAtivo("Limite da posse", limitePosse), efetivo: neutro("Aguardando conclusão da posse") };
@@ -12148,7 +12207,7 @@ export function PrototiposIngressosTesteDetalhePage() {
     const { situacaoAtual } = candidato;
     if (situacaoAtual === "Ingresso Concluído") return { ...indicadores.efetivo, texto: "Concluído" };
     if (situacaoAtual === "Posse Suspensa") return { ...indicadores.posse, tone: "paused", texto: "Prazo suspenso" };
-    if (situacaoAtual === "Posse Negada" || situacaoAtual === "Tornado sem efeito") return { ...indicadores.posse, tone: "neutral", icon: "pi pi-minus-circle", texto: "Encerrado" };
+    if (situacaoAtual === "Posse Negada" || situacaoAtual === "Tornado sem efeito" || situacaoAtual === "Exoneração de oficio") return { ...indicadores.posse, tone: "neutral", icon: "pi pi-minus-circle", texto: "Encerrado" };
 
     const etapaEfetivo = situacaoAtual === "Aguardando Efetivo Exercicio";
     const indicador = etapaEfetivo ? indicadores.efetivo : indicadores.posse;
@@ -12257,6 +12316,12 @@ export function PrototiposIngressosTesteDetalhePage() {
   const historicoIngressoAguardandoEfetivoExercicio = historicoCandidatoSelecionado
     ? getSituacaoCandidato(historicoCandidatoSelecionado.id) === "Aguardando Efetivo Exercicio"
     : false;
+  const historicoIngressoPosseSuspensa = historicoCandidatoSelecionado
+    ? getSituacaoCandidato(historicoCandidatoSelecionado.id) === "Posse Suspensa"
+    : false;
+  const historicoIngressoExoneracaoOficio = historicoCandidatoSelecionado
+    ? getSituacaoCandidato(historicoCandidatoSelecionado.id) === "Exoneração de oficio"
+    : false;
   const historicoIngressoPosseNegada = historicoCandidatoSelecionado
     ? getSituacaoCandidato(historicoCandidatoSelecionado.id) === "Posse Negada"
     : false;
@@ -12317,11 +12382,12 @@ export function PrototiposIngressosTesteDetalhePage() {
     { id: "posse-suspensa", label: "Posse Suspensa", valor: contarSituacaoIngresso("Posse Suspensa"), subtitulo: "Posses temporariamente suspensas", icon: "pi pi-pause-circle", tone: "purple", situacao: "Posse Suspensa" },
     { id: "posse-negada", label: "Posse Negada", valor: contarSituacaoIngresso("Posse Negada"), subtitulo: "Posses negadas", icon: "pi pi-ban", tone: "coral", situacao: "Posse Negada" },
     { id: "sem-efeito", label: "Tornado sem efeito", valor: contarSituacaoIngresso("Tornado sem efeito"), subtitulo: "Nomeações tornadas sem efeito", icon: "pi pi-minus-circle", tone: "gray", situacao: "Tornado sem efeito" },
+    { id: "exoneracao-oficio", label: "Exoneração de oficio", valor: contarSituacaoIngresso("Exoneração de oficio"), subtitulo: "Exonerações por não comparecimento", icon: "pi pi-user-minus", tone: "gray", situacao: "Exoneração de oficio" },
     { id: "cancelado", label: "Ingresso cancelado", valor: contarSituacaoIngresso("Ingresso Cancelado"), subtitulo: "Ingressos cancelados", icon: "pi pi-times-circle", tone: "red", situacao: "Ingresso Cancelado" },
   ];
   const indicadoresSituacaoIngresso = indicadoresGestaoIngresso.filter((indicador) =>
     (concursoProcesso.tipo === "Concurso"
-      ? ["aguardando", "analise", "aguardando-efetivo", "concluido", "posse-suspensa", "posse-negada", "sem-efeito"]
+      ? ["aguardando", "analise", "aguardando-efetivo", "concluido", "posse-suspensa", "posse-negada", "sem-efeito", "exoneracao-oficio"]
       : ["aguardando", "analise", "aguardando-efetivo", "concluido", "cancelado"]
     ).includes(indicador.id),
   );
@@ -12383,7 +12449,9 @@ export function PrototiposIngressosTesteDetalhePage() {
             const ingressoIniciado = candidato.situacaoAtual !== "Aguardando Analise";
             const podeIngressarCandidato =
               !(concursoProcesso.tipo === "Concurso" && candidato.situacaoAtual === "Aguardando Efetivo Exercicio") &&
-              !["Posse Negada", "Tornado sem efeito", "Ingresso Concluído", "Encerrado por desistência", "Ingresso Cancelado"].includes(candidato.situacaoAtual);
+              !["Posse Negada", "Tornado sem efeito", "Exoneração de oficio", "Ingresso Concluído", "Encerrado por desistência", "Ingresso Cancelado"].includes(candidato.situacaoAtual);
+            const atuarEfetivoProcessoSeletivo = concursoProcesso.tipo === "Processo Seletivo" && candidato.situacaoAtual === "Aguardando Efetivo Exercicio";
+            const continuarIngresso = candidato.situacaoAtual === "Em analise";
             const podeCancelarIngresso = ingressoIniciado && podeIngressarCandidato;
             const parametrosIngresso = `candidato=${candidato.id}&tipo=${encodeURIComponent(concursoProcesso.tipo)}&concurso=${encodeURIComponent(concursoProcesso.titulo)}&orgao=${encodeURIComponent(concursoProcesso.orgao)}&cargo=${encodeURIComponent(candidato.cargo)}&classificacao=${encodeURIComponent(candidato.classificacao)}&tipoVaga=${encodeURIComponent(candidato.tipoVaga)}`;
             const concursoExpandido = concursoProcesso.tipo === "Concurso" && candidatoConcursoExpandidoId === candidato.id;
@@ -12409,7 +12477,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                 : null;
             const posseSuspensa = candidato.situacaoAtual === "Posse Suspensa";
             const dadosSuspensao = posseSuspensa
-              ? { inicio: candidato.id === 4 ? "25/07/2026" : "Não informado", prazoResposta: candidato.id === 4 ? "08/08/2026" : "Não informado" }
+              ? { inicio: candidato.id === 14 ? "25/08/2026" : "Não informado", prazoResposta: "Não informado" }
               : null;
             const indicadorPosseGrid = getIndicadorPosseAgendada(candidato);
             const indicadorEfetivoCalculado = indicadoresPrazo && candidato.situacaoAtual === "Aguardando Efetivo Exercicio"
@@ -12433,7 +12501,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                 {concursoProcesso.tipo === "Processo Seletivo" ? <td>{concursoProcesso.orgao}</td> : null}
                 {concursoProcesso.tipo === "Concurso" ? <><td>{numeroIngresso}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorPosseGrid ? ` has-indicator is-${indicadorPosseGrid.tone}` : ""}`}><span>{candidato.dataPosse || "-"}</span>{indicadorPosseGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorPosseGrid.tone}`} tabIndex={0} aria-label={indicadorPosseGrid.tooltip} data-tooltip={indicadorPosseGrid.tooltip}><i className={indicadorPosseGrid.icon} aria-hidden="true" /></span> : null}</span></td><td>{orgaosEncaminhadosSalvos[String(candidato.id)] ?? "-"}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorEfetivoGrid ? ` has-indicator is-${indicadorEfetivoGrid.tone}` : ""}`}><span>{dataEfetivoExercicioExibida}</span>{indicadorEfetivoGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorEfetivoGrid.tone}`} tabIndex={0} aria-label={indicadorEfetivoGrid.tooltip} data-tooltip={indicadorEfetivoGrid.tooltip}><i className={indicadorEfetivoGrid.icon} aria-hidden="true" /></span> : null}</span></td></> : null}
                 {concursoProcesso.tipo === "Processo Seletivo" ? <><td>{numeroIngresso}</td><td>{dataEfetivoExercicio}</td><td>{setorLotacao}</td></> : null}
-                <td><BadgeSeplag label={candidato.situacaoAtual === "Tornado sem efeito" ? "Exoneração de oficio" : formatarSituacaoIngresso(candidato.situacaoAtual)} color={situacaoBadge.color} bg={situacaoBadge.bg} border={situacaoBadge.border} size="sm" /></td>
+                <td><BadgeSeplag label={formatarSituacaoIngresso(candidato.situacaoAtual)} color={situacaoBadge.color} bg={situacaoBadge.bg} border={situacaoBadge.border} size="sm" /></td>
                 <td>
                   <div className="prototype-ingresso-candidato-actions">
                     <div className="prototype-ingresso-actions-dropdown" data-candidate-actions={candidato.id}>
@@ -12491,11 +12559,11 @@ export function PrototiposIngressosTesteDetalhePage() {
                             onClick={() => {
                               if (!podeIngressarCandidato) return;
                               setMenuAcoesCandidatoAbertoId(null);
-                              navigate(`/prototipos/sigep/ingressos/novo?${parametrosIngresso}`);
+                              navigate(`/prototipos/sigep/ingressos/novo?${parametrosIngresso}${atuarEfetivoProcessoSeletivo ? "&etapa=efetivo-exercicio" : ""}`);
                             }}
                           >
-                            <i className="pi pi-sign-in" aria-hidden="true" />
-                            <span>Ingressar candidato</span>
+                            <i className={`pi ${atuarEfetivoProcessoSeletivo ? "pi-briefcase" : "pi-sign-in"}`} aria-hidden="true" />
+                            <span>{atuarEfetivoProcessoSeletivo ? "Atuar efetivo exercício" : continuarIngresso ? "Continuar ingresso" : "Ingressar candidato"}</span>
                           </button>
                           {concursoProcesso.tipo === "Processo Seletivo" ? (
                             <button
@@ -12563,7 +12631,7 @@ export function PrototiposIngressosTesteDetalhePage() {
             <nav className="prototype-ingressos-page-navigation" aria-label="Navegação da página">
               <button
                 type="button"
-                onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/prototipos/sigep/ingressos-teste")}
+                onClick={() => navigate("/prototipos/sigep/ingressos-teste")}
               >
                 <i className="pi pi-arrow-left" aria-hidden="true" />
                 <span>Voltar para Gestão de Ingresso</span>
@@ -12571,7 +12639,10 @@ export function PrototiposIngressosTesteDetalhePage() {
             </nav>
           )}
           actions={(
-            <BotaoSeplag type="button" label="Ver detalhes" icon="pi pi-info-circle" outlined className="prototype-ingressos-teste-info-details-button" onClick={() => setPainelDetalhesAberto(true)} />
+            <div className="prototype-ingressos-integration-notice-actions">
+              {concursoProcesso.tipo === "Concurso" ? <BotaoSeplag type="button" label="Gerar ato em lote" icon="pi pi-file-export" onClick={() => navigate("/prototipos/sigep/ingressos-teste/" + concursoProcesso.id + "/gerar-ato-lote")} /> : null}
+              <BotaoSeplag type="button" label="Ver detalhes" icon="pi pi-info-circle" outlined className="prototype-ingressos-teste-info-details-button" onClick={() => setPainelDetalhesAberto(true)} />
+            </div>
           )}
           cols="12"
           cardHeaderClassNames="prototype-regime-card prototype-ingressos-card prototype-ingressos-card--pss"
@@ -12981,21 +13052,50 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-database" aria-hidden="true" /></span>
                 <div className="prototype-ingressos-candidate-history-card">
                   <small>05/08/2026 às 09:42</small>
-                  <strong>Dados integrados do SIES</strong>
+                  <strong>Dados integrados</strong>
                   <p>Dados cadastrais, classificação, cargo, polo, tipo de vaga e documentação do candidato foram recebidos.</p>
-                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática SIES → SIGEP</span>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática {concursoProcesso.tipo === "Concurso" ? "SIMPLIFICA" : "SIES"} → SIGEP</span>
                 </div>
               </li>
               <li>
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span>
                 <div className="prototype-ingressos-candidate-history-card">
                   <small>05/08/2026 às 09:43</small>
-                  <strong>Candidato incluído na lista do seletivo</strong>
-                  <p><b>{historicoCandidatoSelecionado.nome}</b> foi vinculado ao PSS {numeroEditalDetalhe}/{concursoProcesso.orgao}, com classificação {historicoCandidatoSelecionado.classificacao}.</p>
+                  <strong>Candidato incluído na lista do {concursoProcesso.tipo === "Concurso" ? "Concurso" : "Processo Seletivo"}</strong>
+                  <p><b>{historicoCandidatoSelecionado.nome}</b> foi vinculado ao {concursoProcesso.tipo === "Concurso" ? "Concurso" : "Processo Seletivo"} {numeroEditalDetalhe}/{concursoProcesso.orgao}, com classificação {historicoCandidatoSelecionado.classificacao}.</p>
                   <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
                 </div>
               </li>
+              {(historicoCandidatoSelecionado.id === 1 || (concursoProcesso.tipo === "Processo Seletivo" && historicoCandidatoSelecionado.id === 41)) ? (
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-sync" aria-hidden="true" /></span>
+                <details className="prototype-ingressos-candidate-history-card prototype-ingressos-candidate-history-update">
+                  <summary>
+                    <div className="prototype-ingressos-candidate-history-update-summary">
+                      <small>05/08/2026 às 10:15</small>
+                      <div className="prototype-ingressos-candidate-history-update-title">
+                        <strong>Dados atualizados via integração</strong>
+                        <span>{alteracoesHistoricoIntegracaoMock.length} campos atualizados</span>
+                      </div>
+                      <p>Foram identificadas alterações nos dados do candidato recebidos pelo {concursoProcesso.tipo === "Concurso" ? "SIMPLIFICA" : "SIES"}.</p>
+                      <span className="prototype-ingressos-candidate-history-owner">Responsável: Integração automática {concursoProcesso.tipo === "Concurso" ? "SIMPLIFICA" : "SIES"} → SIGEP</span>
+                    </div>
+                    <i className="pi pi-chevron-down prototype-ingressos-candidate-history-update-toggle" aria-hidden="true" />
+                  </summary>
+                  <div className="prototype-ingressos-candidate-history-update-body">
+                    <strong>Detalhes das alterações</strong>
+                    <table>
+                      <thead><tr><th>Campo atualizado</th><th>Valor anterior</th><th>Novo valor</th></tr></thead>
+                      <tbody>{alteracoesHistoricoIntegracaoMock.map((alteracao) => (
+                        <tr key={alteracao.campo}><td>{alteracao.campo}</td><td>{alteracao.valorAnterior || "Não informado"}</td><td>{alteracao.novoValor || "Não informado"}</td></tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                </details>
+              </li>
+              ) : null}
               {historicoIngressoEmAnalise ? (
+              <>
               <li>
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
                 <div className="prototype-ingressos-candidate-history-card">
@@ -13005,6 +13105,39 @@ export function PrototiposIngressosTesteDetalhePage() {
                   <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
                 </div>
               </li>
+              {historicoCandidatoSelecionado.id === 15 ? (
+              <>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-pause-circle" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>20/08/2026 às 10:40</small>
+                  <strong>Análise do Provimento</strong>
+                  <p>A análise do provimento foi suspensa.</p>
+                  <dl className="prototype-ingressos-candidate-history-details">
+                    <div><dt>Parecer</dt><dd>Posse Suspensa</dd></div>
+                    <div><dt>Motivo</dt><dd>Complementação de documentação</dd></div>
+                    <div><dt>Data de início</dt><dd>20/08/2026</dd></div>
+                    <div><dt>Data fim</dt><dd>25/08/2026</dd></div>
+                  </dl>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-refresh" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>25/08/2026 às 00:00</small>
+                  <strong>Análise do Provimento retomada</strong>
+                  <p>O período de suspensão da posse foi encerrado e a análise foi disponibilizada novamente ao Provimento.</p>
+                  <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
+                    <div><dt>Fim da suspensão</dt><dd>25/08/2026</dd></div>
+                    <div><dt>Situação</dt><dd>Em Análise</dd></div>
+                  </dl>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
+                </div>
+              </li>
+              </>
+              ) : null}
+              </>
               ) : null}
               {historicoIngressoAguardandoEfetivoExercicio ? (
               <>
@@ -13021,11 +13154,11 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
                 <div className="prototype-ingressos-candidate-history-card">
                   <small>05/08/2026 às 10:40</small>
-                  <strong>Análise do provimento</strong>
-                  <p>O provimento foi aprovado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                  <strong>{concursoProcesso.tipo === "Concurso" ? "Análise do Provimento" : "Análise da Documentação"}</strong>
+                  <p>{concursoProcesso.tipo === "Concurso" ? "A análise do provimento foi concluída e o candidato foi encaminhado ao órgão responsável para registro do Efetivo Exercício." : "A análise da documentação foi concluída e o candidato está apto a prosseguir para a etapa de Efetivo Exercício."}</p>
                   <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
                     <div><dt>Parecer</dt><dd>Aprovado</dd></div>
-                    <div><dt>Órgão encaminhado</dt><dd>{orgaosEncaminhadosSalvos[String(historicoCandidatoSelecionado.id)] ?? concursoProcesso.orgao}</dd></div>
+                    {concursoProcesso.tipo === "Concurso" ? <div><dt>Órgão encaminhado</dt><dd>{orgaosEncaminhadosSalvos[String(historicoCandidatoSelecionado.id)] ?? concursoProcesso.orgao}</dd></div> : null}
                   </dl>
                   <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
                 </div>
@@ -13047,10 +13180,10 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-times-circle" aria-hidden="true" /></span>
                 <div className="prototype-ingressos-candidate-history-card">
                   <small>05/08/2026 às 10:40</small>
-                  <strong>Análise do provimento</strong>
+                  <strong>{concursoProcesso.tipo === "Concurso" ? "Análise do Provimento" : "Análise da Documentação"}</strong>
                   <p>A análise do provimento foi encerrada e a nomeação foi tornada sem efeito.</p>
                   <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
-                    <div><dt>Parecer</dt><dd>Tornado sem efeito</dd></div>
+                    <div><dt>Parecer</dt><dd>Tornado sem Efeito</dd></div>
                     <div><dt>Motivo</dt><dd>{dadosTornadoSemEfeitoHistorico?.motivo ?? "Não comparecimento"}</dd></div>
                   </dl>
                   {dadosTornadoSemEfeitoHistorico?.justificativa ? (
@@ -13061,7 +13194,34 @@ export function PrototiposIngressosTesteDetalhePage() {
               </li>
               </>
               ) : null}
-              {historicoIngressoPosseNegada ? (
+              {historicoIngressoPosseSuspensa ? (
+              <>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 09:45</small>
+                  <strong>Ingresso criado</strong>
+                  <p>Ingresso nº {`2026/${String(historicoCandidatoSelecionado.id).padStart(4, "0")}`} criado.</p>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-pause-circle" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>25/08/2026 às 10:40</small>
+                  <strong>Análise do Provimento</strong>
+                  <p>A análise do provimento foi suspensa.</p>
+                  <dl className="prototype-ingressos-candidate-history-details">
+                    <div><dt>Parecer</dt><dd>Posse Suspensa</dd></div>
+                    <div><dt>Motivo</dt><dd>Complementação de documentação</dd></div>
+                    <div><dt>Data de início</dt><dd>25/08/2026</dd></div>
+                  </dl>
+                  <p className="prototype-ingressos-candidate-history-justification"><b>Justificativa:</b> Prazo suspenso para análise da documentação complementar solicitada.</p>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              </>
+              ) : null}              {historicoIngressoPosseNegada ? (
               <>
               <li>
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
@@ -13076,11 +13236,11 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-ban" aria-hidden="true" /></span>
                 <div className="prototype-ingressos-candidate-history-card">
                   <small>05/08/2026 às 10:40</small>
-                  <strong>Análise do provimento</strong>
+                  <strong>{concursoProcesso.tipo === "Concurso" ? "Análise do Provimento" : "Análise da Documentação"}</strong>
                   <p>A análise do provimento foi encerrada com negativa da posse.</p>
                   <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
                     <div><dt>Parecer</dt><dd>Posse Negada</dd></div>
-                    <div><dt>Motivo do encaminhamento</dt><dd>{dadosAnaliseNegadaHistorico?.motivo ?? "Candidato não atendeu aos requisitos obrigatórios para posse"}</dd></div>
+                    <div><dt>Motivo</dt><dd>{dadosAnaliseNegadaHistorico?.motivo ?? "Candidato não atendeu aos requisitos obrigatórios para posse"}</dd></div>
                   </dl>
                   {dadosAnaliseNegadaHistorico?.justificativa ? (
                     <p className="prototype-ingressos-candidate-history-justification"><b>Justificativa:</b> {dadosAnaliseNegadaHistorico.justificativa}</p>
@@ -13090,7 +13250,7 @@ export function PrototiposIngressosTesteDetalhePage() {
               </li>
               </>
               ) : null}
-              {historicoIngressoConcluido ? (
+              {historicoIngressoExoneracaoOficio ? (
               <>
               <li>
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
@@ -13105,8 +13265,45 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
                 <div className="prototype-ingressos-candidate-history-card">
                   <small>05/08/2026 às 10:40</small>
-                  <strong>Análise do provimento</strong>
-                  <p>O provimento foi analisado e encaminhado ao órgão responsável para registro do efetivo exercício.</p>
+                  <strong>Análise do Provimento</strong>
+                  <p>{concursoProcesso.tipo === "Concurso" ? "A análise do provimento foi concluída e o candidato foi encaminhado ao órgão responsável para registro do Efetivo Exercício." : "A análise da documentação foi concluída e o candidato está apto a prosseguir para a etapa de Efetivo Exercício."}</p>
+                  <dl className="prototype-ingressos-candidate-history-details prototype-negada-history-details">
+                    <div><dt>Parecer</dt><dd>Aprovado</dd></div>
+                    <div><dt>Órgão encaminhado</dt><dd>{orgaosEncaminhadosSalvos[String(historicoCandidatoSelecionado.id)] ?? concursoProcesso.orgao}</dd></div>
+                  </dl>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              <li className="is-ended">
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-minus" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>25/08/2026 às 08:15</small>
+                  <strong>Exoneração de ofício registrada</strong>
+                  <p>O ingresso foi encerrado por não comparecimento do candidato ao Efetivo Exercício.</p>
+                  <dl className="prototype-ingressos-candidate-history-details prototype-efetivo-history-details">
+                    <div><dt>Motivo</dt><dd>Não comparecimento</dd></div>
+                  </dl>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Maria Oliveira — Setorial {concursoProcesso.orgao}</span>
+                </div>
+              </li>
+              </>
+              ) : null}              {historicoIngressoConcluido ? (
+              <>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-plus" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 09:45</small>
+                  <strong>Ingresso criado</strong>
+                  <p>Ingresso nº {`2026/${String(historicoCandidatoSelecionado.id).padStart(4, "0")}`} criado.</p>
+                  <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
+                </div>
+              </li>
+              <li>
+                <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
+                <div className="prototype-ingressos-candidate-history-card">
+                  <small>05/08/2026 às 10:40</small>
+                  <strong>{concursoProcesso.tipo === "Concurso" ? "Análise do Provimento" : "Análise da Documentação"}</strong>
+                  <p>{concursoProcesso.tipo === "Concurso" ? "A análise do provimento foi concluída e o candidato foi encaminhado ao órgão responsável para registro do Efetivo Exercício." : "A análise da documentação foi concluída e o candidato está apto a prosseguir para a etapa de Efetivo Exercício."}</p>
                   <dl className="prototype-ingressos-candidate-history-details">
                     <div><dt>Parecer</dt><dd>Aprovado</dd></div>
                     <div><dt>Órgão encaminhado</dt><dd>{concursoProcesso.orgao}</dd></div>
@@ -13123,7 +13320,10 @@ export function PrototiposIngressosTesteDetalhePage() {
                   <dl className="prototype-ingressos-candidate-history-details">
                     <div><dt>Data do efetivo exercício</dt><dd>10/08/2026</dd></div>
                     <div><dt>Órgão</dt><dd>{concursoProcesso.orgao}</dd></div>
-                    <div><dt>Setor</dt><dd>Hospital Regional de Várzea Grande</dd></div>
+                    <div><dt>Setor/Lotação</dt><dd>Hospital Regional de Várzea Grande</dd></div>
+                    <div><dt>Jornada</dt><dd>40 horas</dd></div>
+                    <div><dt>Referência</dt><dd>001A</dd></div>
+                    {concursoProcesso.tipo === "Processo Seletivo" ? <div><dt>Data fim do exercício</dt><dd>10/02/2027</dd></div> : null}
                   </dl>
                   <span className="prototype-ingressos-candidate-history-owner">Responsável: Maria Oliveira — Setorial {concursoProcesso.orgao}</span>
                 </div>
@@ -13133,7 +13333,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <div className="prototype-ingressos-candidate-history-card">
                   <small>10/08/2026 às 08:16</small>
                   <strong>Ingresso concluído</strong>
-                  <p>Matrícula e vínculo funcional foram gerados com sucesso.</p>
+                  <p>Matrícula e vínculo funcional foram efetivados com sucesso.</p>
                   <div className="prototype-ingressos-candidate-history-result"><span><b>Matrícula:</b> 123456</span><span><b>Vínculo:</b> 01</span></div>
                   <span className="prototype-ingressos-candidate-history-owner">Responsável: Sistema SIGEP</span>
                 </div>
@@ -13178,17 +13378,25 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-times-circle" aria-hidden="true" /></span>
                 <div className="prototype-ingressos-candidate-history-card">
                   <small>06/08/2026 às 15:40</small>
-                  <strong>Ingresso cancelado</strong>
-                  <p>A situação do ingresso foi alterada para <b>Ingresso Cancelado</b>.</p>
-                  <dl className="prototype-ingressos-candidate-history-details">
+                  <strong>{dadosCancelamentoHistorico?.motivo === "documentacao-obrigatoria" ? "Análise da Documentação" : dadosCancelamentoHistorico?.motivo === "nao-comparecimento" ? "Ingresso Cancelado por não comparecimento" : "Ingresso cancelado"}</strong>
+                  <p>{dadosCancelamentoHistorico?.motivo === "nao-comparecimento"
+                    ? "O ingresso foi encerrado por não comparecimento do candidato ao Efetivo Exercício."
+                    : dadosCancelamentoHistorico?.motivo === "documentacao-obrigatoria"
+                      ? "A análise da documentação foi encerrada e o processo de ingresso do candidato foi cancelado, sem prosseguimento para a etapa de Efetivo Exercício."
+                      : "O processo de ingresso do candidato foi cancelado."}</p>
+                  <dl className="prototype-ingressos-candidate-history-details prototype-efetivo-history-details">
                     <div>
                       <dt>Motivo</dt>
-                      <dd>{motivosCancelamentoLabels[dadosCancelamentoHistorico?.motivo ?? ""] ?? "Não informado"}</dd>
+                      <dd>{dadosCancelamentoHistorico?.motivo === "nao-comparecimento"
+                        ? "Não comparecimento"
+                        : motivosCancelamentoLabels[dadosCancelamentoHistorico?.motivo ?? ""] ?? "Não informado"}</dd>
                     </div>
                   </dl>
-                  <p className="prototype-ingressos-candidate-history-justification">
-                    <b>Justificativa:</b> {dadosCancelamentoHistorico?.justificativa || "Não informada."}
-                  </p>
+                  {dadosCancelamentoHistorico?.justificativa ? (
+                    <p className="prototype-ingressos-candidate-history-justification">
+                      <b>{dadosCancelamentoHistorico.motivo === "nao-comparecimento" ? "Observação:" : "Justificativa:"}</b> {dadosCancelamentoHistorico.justificativa}
+                    </p>
+                  ) : null}
                   <span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span>
                 </div>
               </li>
@@ -13202,6 +13410,34 @@ export function PrototiposIngressosTesteDetalhePage() {
     </PrototypeSystemPage>
   );
 }
+
+type AtoLoteRegistro = { numero: string; data: string; ids: number[]; documento: string };
+export function PrototiposAtoTornarSemEfeitoLotePage() {
+ const navigate=useNavigate(); const {id}=useParams(); const concurso=ingressoConcursosProcessosMock.find(x=>x.id===Number(id));
+ const chave="prototype-atos-lote-v2-"+(id??""); const [atos,setAtos]=useState<AtoLoteRegistro[]>(()=>JSON.parse(localStorage.getItem(chave)??"[]"));
+ const [selecionados,setSelecionados]=useState<number[]>([]); const [filtros,setFiltros]=useState(false); const [detalhesEditalAberto,setDetalhesEditalAberto]=useState(false); const [atoVisualizacao,setAtoVisualizacao]=useState<AtoLoteRegistro|null>(null); const [busca,setBusca]=useState(""); const [feedback,setFeedback]=useState(""); const [pagina,setPagina]=useState(1); const [itensPorPagina,setItensPorPagina]=useState(10);
+ if(!concurso||concurso.tipo!=="Concurso") return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-page-content"><CardSeplag title="Gerar Ato de Tornar sem Efeito em Lote" cols="12"><div className="prototype-empty-table-cell">Funcionalidade disponível apenas para concursos.</div></CardSeplag></div></PrototypeSystemPage>;
+ const situacoes=JSON.parse(localStorage.getItem("prototype-ingresso-situacoes-concursos")??"{}") as Record<string,Record<string,IngressoSituacao>>;
+ const gerados=new Set(atos.flatMap(a=>a.ids)); const servidores=concurso.candidatos.filter(c=>concurso.id===1?[1,2,3,4,5].includes(c.id):(situacoes[concurso.titulo]?.[String(c.id)]??"")==="Tornado sem efeito").map(c=>({...c,cpf:ingressosMock.find(i=>i.id===c.id)?.cpf??"-",gerado:gerados.has(c.id)}));
+ const visiveis=servidores.filter(s=>!busca||(s.nome+" "+s.cpf).toLowerCase().includes(busca.toLowerCase())); const disponiveis=servidores.filter(s=>!s.gerado); const totalPaginas=Math.max(1,Math.ceil(visiveis.length/itensPorPagina)); const paginaAtual=Math.min(pagina,totalPaginas); const paginados=visiveis.slice((paginaAtual-1)*itensPorPagina,paginaAtual*itensPorPagina); const inicio=visiveis.length?(paginaAtual-1)*itensPorPagina+1:0; const fim=Math.min(paginaAtual*itensPorPagina,visiveis.length);
+ const gerar=()=>{const lista=disponiveis.filter(s=>selecionados.includes(s.id));if(!lista.length)return;const agora=new Date();const numero="ATO "+String(atos.length+1).padStart(3,"0")+"/"+agora.getFullYear()+"/"+concurso.orgao;const documento=numero+"\nConcurso: "+concurso.titulo+"\n\n"+lista.map(s=>s.nome+" | CPF: "+s.cpf+" | Ingresso: 2026/"+String(s.id).padStart(4,"0")).join("\n");const novos=[...atos,{numero,data:agora.toLocaleString("pt-BR"),ids:lista.map(s=>s.id),documento}];localStorage.setItem(chave,JSON.stringify(novos));setAtos(novos);setSelecionados([]);setFeedback("Ato gerado com sucesso.");};
+ const abrir=(ato:AtoLoteRegistro,baixar:boolean)=>{const url=URL.createObjectURL(new Blob([ato.documento],{type:"text/plain;charset=utf-8"}));if(baixar){const a=document.createElement("a");a.href=url;a.download=ato.numero.replaceAll("/","-")+".txt";a.click();}else window.open(url,"_blank","noopener,noreferrer");window.setTimeout(()=>URL.revokeObjectURL(url),30000);};
+ return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-page-content prototype-page-content--white prototype-ingressos-teste-detail-page prototype-ato-lote-page"><CardSeplag title="Gerar Ato de Tornar sem Efeito em Lote" subtitle="Selecione os servidores que estão na situação “Tornado sem efeito” para gerar o ato em lote." subtitlePosition="below" headerNavigation={<nav className="prototype-ingressos-page-navigation"><button onClick={()=>navigate("/prototipos/sigep/ingressos-teste/"+concurso.id)}><i className="pi pi-arrow-left"/> Voltar para Gestão de Candidatos do Concurso</button></nav>} actions={<BotaoSeplag type="button" label="Ver detalhes" icon="pi pi-info-circle" outlined className="prototype-ato-lote-details-button prototype-ingressos-teste-info-details-button" onClick={()=>setDetalhesEditalAberto(true)}/>} cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card prototype-ingressos-card--pss">
+ {feedback&&<div className="prototype-ato-lote-success"><i className="pi pi-check-circle"/>{feedback}</div>}
+
+ <section className="prototype-ato-lote-section"><header><div><h3>Servidores na situação Tornado sem efeito</h3><p>Concurso {concurso.edital.replace(/^Edital\s*/i,"")}/{concurso.orgao}</p></div><BotaoSeplag type="button" label="Filtrar" icon="pi pi-filter" outlined className="prototype-ato-lote-details-button prototype-ingressos-teste-info-details-button" onClick={()=>setFiltros(!filtros)}/></header>
+ {filtros&&<div className="prototype-ato-lote-filters"><label><span>Nome ou CPF</span><input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Buscar por nome ou CPF"/></label></div>}
+ <div className="prototype-ato-lote-selection"><div><label><input type="checkbox" disabled={!disponiveis.length} checked={disponiveis.length>0&&disponiveis.every(s=>selecionados.includes(s.id))} onChange={e=>setSelecionados(e.target.checked?disponiveis.map(s=>s.id):[])}/> Selecionar todos ({servidores.length})</label><small>{selecionados.length} selecionados</small></div></div>
+ <div className="prototype-ato-lote-table-wrap"><table className="prototype-simple-table"><thead><tr><th>Seleção</th><th>Classificação</th><th>Nome</th><th>Cargo/Polo</th><th>Tipo de vaga</th><th>Nº do Ingresso</th><th>Situação</th><th>Ato gerado</th></tr></thead><tbody>{paginados.length?paginados.map(s=><tr key={s.id}><td><input type="checkbox" disabled={s.gerado} checked={selecionados.includes(s.id)} onChange={e=>setSelecionados(e.target.checked?[...selecionados,s.id]:selecionados.filter(x=>x!==s.id))}/></td><td>{s.classificacao}</td><td>{s.nome}</td><td><span className="prototype-ato-lote-cargo">{s.cargo}</span><small className="prototype-ato-lote-polo">{getPoloCandidatoIngresso(s.id)}</small></td><td><span className="prototype-ato-lote-vaga">{s.tipoVaga}</span></td><td>{"2026/"+String(s.id).padStart(4,"0")}</td><td><span className="prototype-ato-lote-tag is-ended">Tornado sem efeito</span></td><td><span className={"prototype-ato-lote-tag "+(s.gerado?"is-success":"is-neutral")}>{s.gerado?"✓ Ato gerado":"Não gerado"}</span></td></tr>):<tr><td colSpan={8} className="prototype-empty-table-cell">Nenhum servidor na situação Tornado sem efeito.</td></tr>}</tbody></table></div><div className="prototype-ato-lote-pagination"><div><button disabled={paginaAtual===1} onClick={()=>setPagina(1)} aria-label="Primeira página"><i className="pi pi-angle-double-left"/></button><button disabled={paginaAtual===1} onClick={()=>setPagina(p=>p-1)} aria-label="Página anterior"><i className="pi pi-angle-left"/></button><button className="is-current" aria-current="page">{paginaAtual}</button><button disabled={paginaAtual===totalPaginas} onClick={()=>setPagina(p=>p+1)} aria-label="Próxima página"><i className="pi pi-angle-right"/></button><button disabled={paginaAtual===totalPaginas} onClick={()=>setPagina(totalPaginas)} aria-label="Última página"><i className="pi pi-angle-double-right"/></button><select aria-label="Itens por página" value={itensPorPagina} onChange={e=>{setItensPorPagina(Number(e.target.value));setPagina(1)}}><option value={10}>10</option><option value={20}>20</option></select></div></div>
+ {!disponiveis.length&&servidores.length>0&&<div className="prototype-ato-lote-info">Todos os servidores nesta situação já possuem Ato de Tornar sem Efeito gerado.</div>}
+ <footer><strong>{selecionados.length} servidores selecionados</strong><div><BotaoSeplag type="button" label="Limpar seleção" outlined className="prototype-ato-lote-secondary-action" disabled={!selecionados.length} onClick={()=>setSelecionados([])}/><BotaoSeplag type="button" label="Concluir e gerar ato em lote" icon="pi pi-file-export" className="prototype-ato-lote-primary-action" disabled={!selecionados.length} onClick={gerar}/></div></footer></section>
+ <section className="prototype-ato-lote-section"><header><div><h3>Atos gerados <i className="pi pi-info-circle" aria-hidden="true"/></h3></div></header><table className="prototype-simple-table"><thead><tr><th>Nº do ato</th><th>Data de criação</th><th>Quantidade</th><th>Gerado por</th><th>Status</th><th>Ações</th></tr></thead><tbody>{atos.length?atos.map(a=><tr key={a.numero}><td>{a.numero}</td><td>{a.data}</td><td>{a.ids.length}</td><td>Roberto Junior</td><td><span className="prototype-ato-lote-tag is-success">Concluído</span></td><td><div className="prototype-ato-lote-actions"><button type="button" title="Visualizar ato" aria-label="Visualizar ato" onClick={()=>setAtoVisualizacao(a)}><i className="pi pi-eye"/></button><button type="button" title="Baixar ato" aria-label="Baixar ato" onClick={()=>abrir(a,true)}><i className="pi pi-download"/></button></div></td></tr>):<tr><td colSpan={6} className="prototype-empty-table-cell">Nenhum ato gerado até o momento.</td></tr>}</tbody></table></section>
+ <div className="prototype-ato-lote-info"><i className="pi pi-info-circle"/> O ato em lote inclui somente os servidores selecionados que estejam na situação “Tornado sem efeito” e ainda não possuam ato gerado.</div>
+ <Sidebar visible={detalhesEditalAberto} position="right" header="Detalhes do edital" className="prototype-ingressos-teste-details-sidebar" onHide={()=>setDetalhesEditalAberto(false)}><div className="prototype-ingressos-teste-details-panel"><h3>{"Conc "+concurso.edital.replace(/^Edital\s*/i,"")+"/"+concurso.orgao+" — "+(concurso.candidatos[0]?.cargo??"")}</h3><dl><div><dt>Tipo</dt><dd>{concurso.tipo}</dd></div><div><dt>Número do Edital</dt><dd>{concurso.edital.replace(/^Edital\s*/i,"")+"/"+concurso.orgao}</dd></div><div><dt>Órgão responsável</dt><dd>{concurso.orgao}</dd></div><div><dt>Regime Jurídico</dt><dd>Estatutário Civil</dd></div><div><dt>Tipo de Vínculo</dt><dd>Nomeado Efetivo</dd></div><div><dt>Data de realização</dt><dd>15/03/2026</dd></div><div><dt>Data de validade</dt><dd>10/02/2027</dd></div><div><dt>Total de vagas</dt><dd>{concurso.candidatos.length}</dd></div><div><dt>Total de nomeados</dt><dd>{concurso.candidatos.length}</dd></div><div><dt>Total de ingressados</dt><dd>{concurso.id===1?2:0}</dd></div></dl></div></Sidebar> <ModalSeplag visible={Boolean(atoVisualizacao)} titulo="Visualizar detalhes" fechar={()=>setAtoVisualizacao(null)} tamanho="960px" hideFooter>{atoVisualizacao?<div className="prototype-ato-lote-modal"><dl><div><dt>Nº do ato</dt><dd>{atoVisualizacao.numero}</dd></div><div><dt>Data de criação</dt><dd>{atoVisualizacao.data}</dd></div><div><dt>Quantidade de servidores</dt><dd>{atoVisualizacao.ids.length}</dd></div><div><dt>Gerado por</dt><dd>Roberto Junior</dd></div></dl><h4>Servidores incluídos no ato</h4><div className="prototype-ato-lote-modal-table"><table className="prototype-simple-table"><thead><tr><th>Classificação</th><th>Nome</th><th>CPF</th><th>Cargo/Polo</th><th>Tipo de vaga</th><th>Nº do Ingresso</th></tr></thead><tbody>{atoVisualizacao.ids.map(candidatoId=>{const servidor=concurso.candidatos.find(candidato=>candidato.id===candidatoId);if(!servidor)return null;const cpf=ingressosMock.find(i=>i.id===servidor.id)?.cpf??"-";return <tr key={servidor.id}><td>{servidor.classificacao}</td><td>{servidor.nome}</td><td>{cpf==="-"?"-":"***."+cpf.slice(4,11)+"-**"}</td><td><strong>{servidor.cargo}</strong><small>{getPoloCandidatoIngresso(servidor.id)}</small></td><td>{servidor.tipoVaga}</td><td>{"2026/"+String(servidor.id).padStart(4,"0")}</td></tr>})}</tbody></table></div></div>:null}</ModalSeplag>
+ </CardSeplag></div></PrototypeSystemPage>;
+}
+
+
 export function PrototiposIngressosPage() {
   const navigate = useNavigate();
   const { control, reset, watch } = useForm<IngressoFiltroForm>({
@@ -13243,7 +13479,7 @@ export function PrototiposIngressosPage() {
       ? "Ingresso Cancelado"
       : situacaoSalva as IngressoSituacao | undefined;
 
-    return situacaoNormalizada ??
+    return (concursoProcesso?.tipo === "Processo Seletivo" && situacaoNormalizada === "Exoneração de oficio" ? "Ingresso Cancelado" : situacaoNormalizada) ??
       ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
       "Aguardando Analise";
   };
@@ -13329,6 +13565,7 @@ export function PrototiposIngressosPage() {
     "Encerrado por desistência",
     "Ingresso Cancelado",
     "Tornado sem efeito",
+    "Exoneração de oficio",
   ];
   const candidatosDashboard = ingressoConcursosProcessosMock.flatMap(
     (concursoProcesso) => concursoProcesso.candidatos,
@@ -14001,7 +14238,7 @@ export function PrototiposNovoIngressoPage() {
   const nascimentoInicial =
     candidatoProcessoOrigem?.dataNascimento ??
     pessoasFisicasIngressoMock.find((pessoa) => pessoa.cpf === candidatoOrigemCpf)
-      ?.dataNascimento ?? "";
+      ?.dataNascimento ?? (ingressoOrigemLista ? "1990-05-14" : "");
   const [tipoIngresso, setTipoIngresso] = useState<IngressoTipo | "">(tipoInicial);
   const [tipoVinculoEditavel, setTipoVinculoEditavel] = useState(
     processoOrigemDados?.titulo === "Processo Seletivo SEPLAG 2027"
@@ -14044,16 +14281,16 @@ export function PrototiposNovoIngressoPage() {
   const [modalContinuarEqualizacaoAberto, setModalContinuarEqualizacaoAberto] = useState(false);
   const [aplicacaoEqualizacao, setAplicacaoEqualizacao] = useState("todos");
   const [classificacaoSelecionada, setClassificacaoSelecionada] = useState(classificacaoInicial);
-  const [poloSelecionado, setPoloSelecionado] = useState("");
+  const [poloSelecionado, setPoloSelecionado] = useState(ingressoOrigemLista && candidatoParam ? getPoloCandidatoIngresso(Number(candidatoParam)) : "");
   const polosIngressoOptions = [...new Set(Object.values(ingressoPoloCandidatoMap))].sort((a, b) => a.localeCompare(b, "pt-BR"));
   const [tipoVagaSelecionada, setTipoVagaSelecionada] = useState(tipoVagaInicial);
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState(ingressoOrigemLista ? (cargoInicial === "Professor" ? "Profissional da Educação" : ["Enfermeiro", "Técnico de Enfermagem"].includes(cargoInicial) ? "Profissional da Saúde" : cargoInicial === "Gestor Governamental" ? "Gestor Governamental" : "Servidor Público") : "");
   const [regimeJuridicoSelecionado, setRegimeJuridicoSelecionado] = useState(
     processoOrigemDados?.titulo === "Processo Seletivo SEPLAG 2027"
       ? "Sem Vínculo Empregatício"
       : ingressoOrigemLista && (tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo") ? "Estatutário Civil" : "",
   );
-  const [perfilEspecialidade, setPerfilEspecialidade] = useState(modoVisualizacao ? "Perfil Geral" : "");
+  const [perfilEspecialidade, setPerfilEspecialidade] = useState(modoVisualizacao ? "Perfil Geral" : ingressoOrigemLista && cargoInicial ? getPerfilEspecialidadeIngresso(cargoInicial) : "");
   const [dataNomeacao, setDataNomeacao] = useState(
     candidatoProcessoOrigem?.dataNomeacao && candidatoProcessoOrigem.dataNomeacao !== "-"
       ? candidatoProcessoOrigem.dataNomeacao.split("/").reverse().join("-")
@@ -14066,6 +14303,7 @@ export function PrototiposNovoIngressoPage() {
         ? "2026-07-30"
         : "",
   );
+  const [dataLimitePosseEditavel, setDataLimitePosseEditavel] = useState("");
   const [decisaoJudicial, setDecisaoJudicial] = useState<"Não" | "Sim">("Não");
   const [tipoAcaoJudicial, setTipoAcaoJudicial] = useState("");
   const [numeroProcessoJudicial, setNumeroProcessoJudicial] = useState("");
@@ -14172,7 +14410,7 @@ export function PrototiposNovoIngressoPage() {
     nextDate.setDate(nextDate.getDate() + days);
     return nextDate;
   };
-  const dataPosseEfetivoIso = dataPosse || dataPosseIngresso || "2026-07-13";
+  const dataPosseEfetivoIso = dataPosse || dataPosseIngresso;
   const dataPosseEfetivo = parseDataIsoLocal(dataPosseEfetivoIso);
   const prazoFinalEfetivo = dataPosseEfetivo ? adicionarDias(dataPosseEfetivo, 15) : null;
   const hojeEfetivo = new Date();
@@ -14186,7 +14424,8 @@ export function PrototiposNovoIngressoPage() {
     ? `${quantidadeDiasEfetivo} ${quantidadeDiasEfetivo === 1 ? "dia" : "dias"} em atraso`
     : `${quantidadeDiasEfetivo} ${quantidadeDiasEfetivo === 1 ? "dia" : "dias"}`;
   const dataNomeacaoPrazoPosse = parseDataIsoLocal(dataNomeacao);
-  const prazoFinalPosse = dataNomeacaoPrazoPosse ? adicionarDias(dataNomeacaoPrazoPosse, 30) : null;
+  const prazoFinalPosseAutomatico = dataNomeacaoPrazoPosse ? adicionarDias(dataNomeacaoPrazoPosse, 30) : null;
+  const prazoFinalPosse = dataLimitePosseEditavel ? parseDataIsoLocal(dataLimitePosseEditavel) : prazoFinalPosseAutomatico;
   const dataPosseAgendadaPrazo = parseDataIsoLocal(dataPosseIngresso);
   const hojePrazoPosse = new Date();
   hojePrazoPosse.setHours(0, 0, 0, 0);
@@ -14206,6 +14445,7 @@ export function PrototiposNovoIngressoPage() {
     : `${diasFaltantesPosse} ${diasFaltantesPosse === 1 ? "dia" : "dias"}`;
   const formatarDataPrazoPosse = (data: Date | null) =>
     data?.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) ?? "-";
+  const formatarDataInput = (data: Date | null) => data ? `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}` : "";
   const tipoVinculo = concursoSelecionado && tipoIngresso === "Concurso"
     ? "Nomeado Efetivo"
     : tipoIngresso
@@ -14468,7 +14708,9 @@ export function PrototiposNovoIngressoPage() {
     (parecerProvimento === "aprovar" && documentosAprovacaoGerados) ||
     (parecerProvimento === "suspender" && termoSuspensaoGerado) ||
     (parecerProvimento === "negar" && termoNegativaGerado) ||
-    (parecerProvimento === "sem-efeito" && termoSemEfeitoGerado);
+    (parecerProvimento === "sem-efeito" &&
+      Boolean(motivoSemEfeito) &&
+      (motivoSemEfeito !== "outros" || Boolean(justificativaSemEfeito.trim())));
   const documentosSigadocEsperados =
     parecerProvimento === "aprovar"
       ? ["Checklist de documentos recebidos", "Termo de Posse", "Termo de Encaminhamento"]
@@ -14499,7 +14741,9 @@ export function PrototiposNovoIngressoPage() {
             (tipoIngresso === "Processo Seletivo" && !dataFimEfetivoExercicio))))) ||
     (activeTab === "analise-provimento" &&
       (!parecerProvimentoSalvo ||
-        (formaAssinaturaDocumentos === "sigadoc" && !documentosSigadocPreenchidos)));
+        (parecerProvimento !== "sem-efeito" &&
+          formaAssinaturaDocumentos === "sigadoc" &&
+          !documentosSigadocPreenchidos)));
   const justificativaSemEfeitoObrigatoria =
     parecerProvimento === "sem-efeito" &&
     motivoSemEfeito === "outros" &&
@@ -15192,8 +15436,9 @@ export function PrototiposNovoIngressoPage() {
   const handleConfirmarNovoIngresso = () => {
     if (activeTab === "efetivo-exercicio") {
       if (situacaoInicialIngresso !== "Aguardando Efetivo Exercicio") return;
-      const situacaoConclusaoEfetivo: IngressoSituacao =
-        servidorCompareceu === "Não" ? "Tornado sem efeito" : "Ingresso Concluído";
+      const situacaoConclusaoEfetivo: IngressoSituacao = servidorCompareceu === "Não"
+        ? tipoIngresso === "Processo Seletivo" ? "Ingresso Cancelado" : "Exoneração de oficio"
+        : "Ingresso Concluído";
       if (situacaoConclusaoEfetivo === "Ingresso Concluído" && !dataEfetivoExercicio) return;
       setSituacaoIngresso(situacaoConclusaoEfetivo);
       persistirSituacaoIngressoAtual(situacaoConclusaoEfetivo);
@@ -15208,7 +15453,7 @@ export function PrototiposNovoIngressoPage() {
         persistirDataEfetivoExercicioAtual(dataConclusaoEtapa);
         persistirSetorLotacaoEfetivoAtual(setorLotacaoEfetivo);
       }
-      navigate("/prototipos/sigep/ingressos/efetivo-exercicio");
+      navigate(tipoIngresso === "Processo Seletivo" ? caminhoRetornoNovoIngresso : "/prototipos/sigep/ingressos/efetivo-exercicio", { replace: true });
       return;
     }
 
@@ -15508,9 +15753,9 @@ export function PrototiposNovoIngressoPage() {
                 <button
                   type="button"
                   className="prototype-multiselect-trigger"
-                              disabled={tipoIngresso !== "Processo Seletivo"}
-                              aria-disabled={tipoIngresso !== "Processo Seletivo"}
-                              aria-expanded={orgaosEfetivoDropdownAberto}
+                              disabled
+                              aria-disabled
+                              aria-expanded="false"
                               onClick={() => {
                                 if (tipoIngresso === "Processo Seletivo") {
                                   setOrgaosEfetivoDropdownAberto((aberto) => !aberto);
@@ -15640,6 +15885,7 @@ export function PrototiposNovoIngressoPage() {
               onChange={(event) => setTipoVagaSelecionada(event.target.value)}
             >
               <option value="">Selecione...</option>
+              <option value="AC">AC</option>
               <option value="PCD">PCD</option>
               <option value="PPP">PPP</option>
             </select>
@@ -15663,8 +15909,8 @@ export function PrototiposNovoIngressoPage() {
             />
           </label> : null}
           {tipoIngresso !== "Processo Seletivo" ? <label className="prototype-ingresso-field">
-            <span>Data Limite para Posse<small className="prototype-field-origin">Calculado pela Data da Nomeação + 30 dias</small></span>
-            <input type="text" value={prazoFinalPosse ? formatarDataPrazoPosse(prazoFinalPosse) : ""} readOnly />
+            <span>Data Limite para Posse<small className="prototype-field-origin">Calculado automaticamente e editável</small></span>
+            <input type="date" value={dataLimitePosseEditavel || formatarDataInput(prazoFinalPosseAutomatico)} onChange={(event) => setDataLimitePosseEditavel(event.target.value)} />
           </label> : null}
           <label className="prototype-ingresso-field">
             <span>Decisão Judicial<em>*</em></span>
@@ -15759,6 +16005,11 @@ export function PrototiposNovoIngressoPage() {
       : concursoSelecionado;
     const tipoVinculoResumo = tipoIngresso === "Concurso" ? "Efetivo" : tipoVinculo;
     const exibirPrazoPosseNoResumo = activeTab === "analise-provimento" && tipoIngresso === "Concurso";
+    const exibirPrazoEfetivoNoResumo = activeTab === "efetivo-exercicio" && tipoIngresso === "Concurso";
+    const prazoEfetivoCalculado = Boolean(dataPosseEfetivo && prazoFinalEfetivo && diasRestantesEfetivo !== null);
+    const situacaoPrazoEfetivo = prazoEfetivoCalculado ? (prazoEfetivoVencido ? "Fora do prazo" : "Dentro do prazo") : "Prazo não calculado";
+    const unidadeDiasPrazoEfetivo = quantidadeDiasEfetivo === 1 ? "dia" : "dias";
+    const textoResumidoPrazoEfetivo = prazoEfetivoCalculado ? (prazoEfetivoVencido ? `Efetivo Exercício • ${quantidadeDiasEfetivo} ${unidadeDiasPrazoEfetivo} fora do prazo` : `Efetivo Exercício • ${quantidadeDiasEfetivo} ${unidadeDiasPrazoEfetivo} restantes`) : "Efetivo Exercício • Prazo não calculado";
     const situacaoPrazoPosse = prazoPosseVencido ? "Fora do prazo" : "Dentro do prazo";
     const quantidadeDiasPrazoPosse = prazoPosseVencido ? diasPrazoPosse : diasFaltantesPosse;
     const unidadeDiasPrazoPosse = quantidadeDiasPrazoPosse === 1 ? "dia" : "dias";
@@ -15794,6 +16045,19 @@ export function PrototiposNovoIngressoPage() {
               </span>
             </span>
           ) : null}
+          {exibirPrazoEfetivoNoResumo ? (
+            <span className={"prototype-ingresso-prazo-badge " + (prazoEfetivoCalculado ? (prazoEfetivoVencido ? "is-overdue" : "is-on-time") : "is-neutral")} tabIndex={0} role="status" aria-label={textoResumidoPrazoEfetivo + ". " + situacaoPrazoEfetivo}>
+              <i className="pi pi-clock" aria-hidden="true" />
+              <span>{textoResumidoPrazoEfetivo}</span>
+              {prazoEfetivoCalculado ? <strong>{situacaoPrazoEfetivo}</strong> : null}
+              <span className="prototype-ingresso-prazo-popover" role="tooltip">
+                <span><i className="pi pi-calendar" /><em>Data da posse</em><b>{dataPosseEfetivo ? formatarDataPrazoPosse(dataPosseEfetivo) : "Não informada"}</b></span>
+                <span><i className="pi pi-check-square" /><em>Prazo final</em><b>{prazoFinalEfetivo ? formatarDataPrazoPosse(prazoFinalEfetivo) : "-"}</b></span>
+                {prazoEfetivoCalculado ? <span><i className="pi pi-clock" /><em>{prazoEfetivoVencido ? "Dias fora do prazo" : "Dias restantes"}</em><b>{quantidadeDiasEfetivo} {unidadeDiasPrazoEfetivo}</b></span> : null}
+                <span><i className="pi pi-users" /><em>Situação</em><b className={prazoEfetivoCalculado ? "is-status" : ""}>{situacaoPrazoEfetivo}</b></span>
+              </span>
+            </span>
+          ) : null}
         </header>
         <dl className="prototype-ingresso-readonly-grid">
           <div><dt>Nome</dt>{renderValorResumo(resumoIngressoNome)}</div>
@@ -15803,23 +16067,15 @@ export function PrototiposNovoIngressoPage() {
           <div><dt>{tipoIngresso === "Processo Seletivo" ? "Processo Seletivo" : "Concurso"}</dt>{renderValorResumo(concursoProcessoResumo)}</div>
           <div><dt>Regime Jurídico</dt>{renderValorResumo(regimeJuridicoSelecionado)}</div>
           <div><dt>Decisão Judicial</dt>{renderValorResumo(decisaoJudicial)}</div>
-          <div>
+          {tipoIngresso !== "Processo Seletivo" ? <div>
             <dt>{activeTab === "efetivo-exercicio" ? "Data da Posse" : "Prazo para Posse"}</dt>
-            {renderValorResumo(
-              tipoIngresso !== "Processo Seletivo"
-                ? activeTab === "efetivo-exercicio"
-                  ? dataPosseIngresso
-                    ? formatarDataIsoParaPtBr(dataPosseIngresso)
-                    : ""
-                  : "30/07/2026"
-                : "",
-            )}
-          </div>
-          <div><dt>Carreira</dt>{renderValorResumo(tipoIngresso !== "Processo Seletivo" ? categoriaSelecionada : "")}</div>
+            {renderValorResumo(activeTab === "efetivo-exercicio" ? (dataPosseIngresso ? formatarDataIsoParaPtBr(dataPosseIngresso) : "") : "30/07/2026")}
+          </div> : null}
+          {tipoIngresso !== "Processo Seletivo" ? <div><dt>Carreira</dt>{renderValorResumo(categoriaSelecionada)}</div> : null}
           <div><dt>Cargo</dt>{renderValorResumo(cargoSelecionado)}</div>
           <div>
             <dt>Situação</dt>
-            <dd><span className="prototype-ingresso-situacao-tag">{situacaoIngresso === "Em analise" ? "Em análise" : situacaoIngresso}</span></dd>
+            <dd><span className={`prototype-ingresso-situacao-tag${situacaoIngresso === "Aguardando Efetivo Exercicio" ? " is-waiting-effective" : ""}`}>{situacaoIngresso === "Em analise" ? "Em análise" : situacaoIngresso}</span></dd>
           </div>
         </dl>
       </section>
@@ -16548,8 +16804,8 @@ export function PrototiposNovoIngressoPage() {
                         <input type="date" required data-rascunho-campo="inicio-suspensao" defaultValue={String(rascunhoAnaliseInicial?.campos["inicio-suspensao"] ?? "")} />
                       </label>
                       <label className="prototype-ingresso-field">
-                        <span>Data fim da suspensão<em>*</em></span>
-                        <input type="date" required data-rascunho-campo="prazo-suspensao" defaultValue={String(rascunhoAnaliseInicial?.campos["prazo-suspensao"] ?? "")} />
+                        <span>Data fim da suspensão</span>
+                        <input type="date" data-rascunho-campo="prazo-suspensao" defaultValue={String(rascunhoAnaliseInicial?.campos["prazo-suspensao"] ?? "")} />
                       </label>
                       <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
                         <span>Justificativa<em>*</em></span>
@@ -16742,32 +16998,6 @@ export function PrototiposNovoIngressoPage() {
         >
           <div className="prototype-analise-provimento-layout prototype-analise-provimento-layout--prazo-horizontal prototype-efetivo-exercicio-layout">
             <div className="prototype-analise-provimento-main">
-              {tipoIngresso !== "Processo Seletivo" ? (
-                <div
-                  className={`prototype-prazo-posse-alert ${prazoEfetivoVencido ? "is-overdue" : "is-on-time"}`}
-                  role="status"
-                  aria-label={`Prazo do efetivo exercício: ${prazoEfetivoVencido ? "fora do prazo" : "dentro do prazo"}`}
-                >
-                  <div className="prototype-prazo-posse-alert-title">
-                    <span className="prototype-prazo-posse-alert-icon">
-                      <i className={`pi ${prazoEfetivoVencido ? "pi-exclamation-triangle" : "pi-calendar-clock"}`} aria-hidden="true" />
-                    </span>
-                    <strong>Prazo do Efetivo Exercício</strong>
-                  </div>
-                  <dl className="prototype-prazo-posse-alert-fields prototype-prazo-posse-alert-fields--efetivo">
-                    <div><dt>Data da posse</dt><dd>{dataPosseEfetivo ? formatarDataPtBr(dataPosseEfetivo) : "Não informada"}</dd></div>
-                    <div><dt>Prazo final</dt><dd>{prazoFinalEfetivo ? formatarDataPtBr(prazoFinalEfetivo) : "Não informado"}</dd></div>
-                    <div>
-                      <dt>{prazoEfetivoVencido ? "Dias em atraso" : "Dias restantes"}</dt>
-                      <dd className="prototype-prazo-posse-alert-days">{textoDiasPrazoEfetivo}</dd>
-                    </div>
-                    <div className="prototype-prazo-posse-alert-status-field">
-                      <dt>Situação</dt>
-                      <dd><span className="prototype-prazo-posse-alert-status">{prazoEfetivoVencido ? "Fora do prazo" : "Dentro do prazo"}</span></dd>
-                    </div>
-                  </dl>
-                </div>
-              ) : null}
               <div className="prototype-efetivo-exercicio-card prototype-novo-ingresso-panel">
                 <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-briefcase" aria-hidden="true" /></span><span>Dados do Efetivo Exercício</span></h3>
                 <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
@@ -16812,7 +17042,7 @@ export function PrototiposNovoIngressoPage() {
                               className="prototype-multiselect-trigger"
                               disabled={tipoIngresso !== "Processo Seletivo"}
                               aria-disabled={tipoIngresso !== "Processo Seletivo"}
-                              aria-expanded={orgaosEfetivoDropdownAberto}
+                              aria-expanded={tipoIngresso === "Processo Seletivo" && orgaosEfetivoDropdownAberto}
                               onClick={() => {
                                 if (tipoIngresso === "Processo Seletivo") {
                                   setOrgaosEfetivoDropdownAberto((aberto) => !aberto);

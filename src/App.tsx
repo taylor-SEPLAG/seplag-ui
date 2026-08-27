@@ -105,6 +105,7 @@ import {
   PrototiposImportarIngressoPage,
   PrototiposIngressoDetalhePage,
   PrototiposIngressosPage,
+  PrototiposAtoTornarSemEfeitoLotePage,
   PrototiposIngressosTesteDetalhePage,
   PrototiposIngressosTestePage,
   PrototiposMatrizValidacaoTesteFormPage,
@@ -1419,6 +1420,10 @@ function App() {
       <Route
         path="/prototipos/sigep/ingressos-teste"
         element={<PrototiposIngressosTestePage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos-teste/:id/gerar-ato-lote"
+        element={<PrototiposAtoTornarSemEfeitoLotePage />}
       />
       <Route
         path="/prototipos/sigep/ingressos-teste/:id"
