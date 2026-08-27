@@ -135,6 +135,8 @@ import { CertamesListContent as PssCertamesListContent } from "./controlePss/cer
 import { CertameFormContent as PssCertameFormContent } from "./controlePss/certame/CertameFormContent";
 import { LocaisListContent as PssLocaisListContent } from "./controlePss/locais/LocaisListContent";
 import { LocalFormContent as PssLocalFormContent } from "./controlePss/locais/LocalFormContent";
+import { FasesCertameListContent as PssFasesCertameListContent } from "./controlePss/fasesCertame/FasesCertameListContent";
+import { FaseCertameFormContent as PssFaseCertameFormContent } from "./controlePss/fasesCertame/FaseCertameFormContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
 const SIGEP_PAINEL_INFORMATIVO_PATH =
@@ -306,6 +308,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Painel Geral", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/painel`, visibleOnMenu: false, visibleOnRouter: true },
           { label: "Cadastro de Certames", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/certames`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Locais", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/locais`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Fase do Certame", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/fases-certame`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Processos Seletivos", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/processos`, visibleOnMenu: false, visibleOnRouter: true },
           { label: "Controle de Vagas", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/vagas`, visibleOnMenu: false, visibleOnRouter: true },
           { label: "Integração SIES", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/integracao-sies`, visibleOnMenu: false, visibleOnRouter: true },
@@ -7124,6 +7127,12 @@ export function PrototiposControlePssLocaisPage() {
 }
 export function PrototiposControlePssLocalFormPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssLocalFormContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssFasesCertamePage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssFasesCertameListContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssFaseCertameFormPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssFaseCertameFormContent /></PrototypeSystemPage>;
 }
 export function PrototiposBacklogRegrasPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogRegrasContent /></PrototypeSystemPage>;
