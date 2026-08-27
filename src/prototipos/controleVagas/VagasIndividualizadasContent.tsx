@@ -409,12 +409,17 @@ export function VagasIndividualizadasContent() {
         {quadroSelecionado && (
           <section className="prototype-vaga-kpis prototype-vaga-kpis-seplag">
             <Kpi
+              label="Vagas autorizadas"
+              value={vagasDoQuadro.length}
+              icon="pi pi-file-check"
+            />
+            <Kpi
               label="Vagas distribuídas"
               value={totais.total}
               icon="pi pi-list"
             />
             <Kpi
-              label="Pendentes de ato"
+              label="Pendentes de distribuição"
               value={pendentesDeAto}
               icon="pi pi-clock"
               kind="warning"
@@ -1312,22 +1317,8 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
                 </dd>
               </div>
               <div>
-                <dt>Órgão titular</dt>
+                <dt>Órgão</dt>
                 <dd>{vaga.orgaoTitular}</dd>
-              </div>
-              <div>
-                <dt>Destinação prevista na lei</dt>
-                <dd>{distribuicao.destinacaoPrevistaLei}</dd>
-              </div>
-              <div>
-                <dt>Distribuição atual</dt>
-                <dd>
-                  {distribuicao.orgaoDistribuicao ??
-                    "Pendente de distribuição"}
-                  {distribuicao.unidadeDistribuicao
-                    ? ` • ${distribuicao.unidadeDistribuicao}`
-                    : ""}
-                </dd>
               </div>
               <div>
                 <dt>Ato de distribuição</dt>
@@ -1344,35 +1335,6 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
                 <dd>{vaga.inicioVigencia}</dd>
               </div>
             </dl>
-          </section>
-          <section>
-            <h3>Composição do nome da vaga</h3>
-            <div className="prototype-vaga-id-parts">
-              <code>{vaga.identificadorExibicao}</code>
-              <div>
-                <span>VAG</span>
-                <small>Entidade</small>
-              </div>
-              <div>
-                <span>{vaga.orgaoAtual}</span>
-                <small>Órgão</small>
-              </div>
-              <div>
-                <span>{vaga.cargo.slice(0, 10)}</span>
-                <small>Cargo</small>
-              </div>
-              <div>
-                <span>{String(vaga.sequencialNoOrgao).padStart(5, "0")}</span>
-                <small>Número no órgão</small>
-              </div>
-            </div>
-            <div className="prototype-vaga-integrity">
-              <i className="pi pi-shield" />
-              <span>
-                O histórico é acrescido por novos eventos. Registros anteriores
-                não são editados ou removidos.
-              </span>
-            </div>
           </section>
         </div>
         <OcupantesDaVaga vagaId={vaga.id} />

@@ -358,7 +358,7 @@
 }
 .prototype-vaga-detail-grid {
   display: grid;
-  grid-template-columns: 1.35fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 25px;
   padding: 22px 24px;
 }
@@ -924,7 +924,7 @@
 }
 
 .prototype-vaga-page-seplag .prototype-vaga-kpis-seplag {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -1167,3 +1167,8 @@
     padding: 28px 20px;
   }
 }
+
+.prototype-vaga-detail-content .prototype-vaga-detail-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.prototype-vaga-detail-content .prototype-vaga-detail-grid > section { grid-column: 1 / -1; width: 100%; }

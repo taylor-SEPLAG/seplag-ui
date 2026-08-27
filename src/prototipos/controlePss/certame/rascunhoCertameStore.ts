@@ -14,7 +14,6 @@ export interface RascunhoCertame {
  tipoConfirmado:boolean; aba:Aba; valores:CertameFormValues;
  cotas:CotaCertame[]; cargos:CargoVagaCertame[]; fases:FaseCertame[];
  arquivos:Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>;
- formaAssinaturaDocumentos:"fisica" | "sigadoc"; processosSigadocDocumentos:Partial<Record<TipoDocumentoCertame, string>>;
 }
 
 export function lerRascunhoCertame():RascunhoCertame | null {

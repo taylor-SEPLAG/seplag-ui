@@ -29,6 +29,7 @@ export function DropdownFieldSeplag<T extends FieldValues = any>(
     virtualScrollerOptions,
     optionDisabled,
     itemTemplate,
+    panelClassName,
   } = props;
 
   if (!visible) return null;
@@ -79,6 +80,7 @@ export function DropdownFieldSeplag<T extends FieldValues = any>(
               disabled={disabled}
               showClear={showClear}
               loading={isLoading}
+              panelClassName={panelClassName}
             />
             {getFormErrorMessage(field.name)}
           </div>

@@ -734,6 +734,51 @@ const vagasElegiveisRedistribuicao =
     return "";
   };
 
+  const calcularResultadoVersionamento = () => {
+    const quantidadeEfetiva =
+      tipo === "REDUCAO"
+        ? vagasSelecionadasReducao.length
+        : tipo === "TRANSFORMACAO"
+          ? vagasSelecionadasTransformacao.length
+          : quantidade;
+    const distribuicaoAtualPorVagaId = tipo === "TRANSFORMACAO"
+      ? Object.fromEntries(vagasOriginais.map((vaga) => {
+          const posicao = calcularPosicaoVaga(vaga, movimentos, dataEfeito || hoje);
+          return [vaga.id, {
+            orgao: posicao.orgaoDistribuicao,
+            ato: posicao.atoDistribuicao,
+            inicioVigencia: posicao.inicioVigenciaDistribuicao,
+          }];
+        }))
+      : undefined;
+    return aplicarAlteracaoQuadroLegal(vagasOriginais, {
+        tipo,
+        quantidade: tipo === "EXTINCAO_PROGRESSIVA" || alteracaoSomenteOrgao ? undefined : quantidadeEfetiva,
+        lei,
+        processo,
+        dataEfeito,
+        novoCargo: quadroDestino?.cargo,
+        novaCarreira: quadroDestino?.carreira,
+        quadroDestinoId: quadroDestino?.id,
+        quadroDestinoCodigo: quadroDestino?.codigo,
+        maiorSequencialDestino: Math.max(0, ...vagasDestino.map((vaga) => vaga.sequencial)),
+        distribuicaoAtualPorVagaId,
+        vagaIds: tipo === "REDUCAO"
+          ? vagasSelecionadasReducao.map((vaga) => vaga.id)
+          : tipo === "TRANSFORMACAO"
+            ? vagasSelecionadasTransformacao.map((vaga) => vaga.id)
+            : undefined,
+        vagaIdsBloqueados: tipo === "REDUCAO" || tipo === "EXTINCAO_PROGRESSIVA" || tipo === "TRANSFORMACAO" ? [...idsVagasComprometidas] : undefined,
+      });
+  };
+
+  const abrirConfirmacaoAtualizacaoBaseLegal = () => {
+    if (camposObrigatoriosIncompletos || operacaoInvalida) return;
+    setSalvo(false);
+    setResultado(calcularResultadoVersionamento());
+    setConfirmacaoAberta(true);
+  };
+
   const simular = (event: FormEvent) => {
     event.preventDefault();
     setSalvo(false);
@@ -744,6 +789,10 @@ const vagasElegiveisRedistribuicao =
       setErroDistribuicao("");
       setPrimeiraVagaDistribuicao(0);
       setErroRedistribuicao("");
+      return;
+    }
+    if (tipo === "ATUALIZACAO_BASE_LEGAL") {
+      abrirConfirmacaoAtualizacaoBaseLegal();
       return;
     }
     if (tipo === "DISTRIBUICAO") {
@@ -764,43 +813,7 @@ const vagasElegiveisRedistribuicao =
       setResultado(null);
       return;
     }
-    const quantidadeEfetiva =
-      tipo === "REDUCAO"
-        ? vagasSelecionadasReducao.length
-        : tipo === "TRANSFORMACAO"
-          ? vagasSelecionadasTransformacao.length
-          : quantidade;
-    const distribuicaoAtualPorVagaId = tipo === "TRANSFORMACAO"
-      ? Object.fromEntries(vagasOriginais.map((vaga) => {
-          const posicao = calcularPosicaoVaga(vaga, movimentos, dataEfeito || hoje);
-          return [vaga.id, {
-            orgao: posicao.orgaoDistribuicao,
-            ato: posicao.atoDistribuicao,
-            inicioVigencia: posicao.inicioVigenciaDistribuicao,
-          }];
-        }))
-      : undefined;
-    setResultado(
-      aplicarAlteracaoQuadroLegal(vagasOriginais, {
-        tipo,
-        quantidade: tipo === "EXTINCAO_PROGRESSIVA" || alteracaoSomenteOrgao ? undefined : quantidadeEfetiva,
-        lei,
-        processo,
-        dataEfeito,
-        novoCargo: quadroDestino?.cargo,
-        novaCarreira: quadroDestino?.carreira,
-        quadroDestinoId: quadroDestino?.id,
-        quadroDestinoCodigo: quadroDestino?.codigo,
-        maiorSequencialDestino: Math.max(0, ...vagasDestino.map((vaga) => vaga.sequencial)),
-        distribuicaoAtualPorVagaId,
-        vagaIds: tipo === "REDUCAO"
-          ? vagasSelecionadasReducao.map((vaga) => vaga.id)
-          : tipo === "TRANSFORMACAO"
-            ? vagasSelecionadasTransformacao.map((vaga) => vaga.id)
-            : undefined,
-        vagaIdsBloqueados: tipo === "REDUCAO" || tipo === "EXTINCAO_PROGRESSIVA" || tipo === "TRANSFORMACAO" ? [...idsVagasComprometidas] : undefined,
-      }),
-    );
+    setResultado(calcularResultadoVersionamento());
   };
 
   const registrarNovaVersao = () => {
@@ -1772,10 +1785,29 @@ const vagasElegiveisRedistribuicao =
         )}
         <div className="prototype-legal-simulate-action">
           <BotaoSeplag
-            type="submit"
-            label={tipo === "DISTRIBUICAO" ? "Simular distribuição" : tipo === "REDISTRIBUICAO" ? "Simular redistribuição" : "Simular impacto legal"}
-            icon={tipo === "DISTRIBUICAO" || tipo === "REDISTRIBUICAO" ? "pi pi-check" : "pi pi-calculator"}
+            type={tipo === "ATUALIZACAO_BASE_LEGAL" ? "button" : "submit"}
+            label={
+              tipo === "ATUALIZACAO_BASE_LEGAL"
+                ? "Registrar nova versão"
+                : tipo === "DISTRIBUICAO"
+                  ? "Simular distribuição"
+                  : tipo === "REDISTRIBUICAO"
+                    ? "Simular redistribuição"
+                    : "Simular impacto legal"
+            }
+            icon={
+              tipo === "ATUALIZACAO_BASE_LEGAL"
+                ? "pi pi-save"
+                : tipo === "DISTRIBUICAO" || tipo === "REDISTRIBUICAO"
+                  ? "pi pi-check"
+                  : "pi pi-calculator"
+            }
             disabled={camposObrigatoriosIncompletos}
+            onClick={
+              tipo === "ATUALIZACAO_BASE_LEGAL"
+                ? abrirConfirmacaoAtualizacaoBaseLegal
+                : undefined
+            }
           />
         </div>
       </form>
@@ -1831,27 +1863,6 @@ const vagasElegiveisRedistribuicao =
               ))}
             </div>
           </section>
-          <div className="prototype-legal-impact-list">
-            <h4>Vagas que serão distribuídas</h4>
-            <table>
-              <thead><tr><th>Sequencial</th><th>Nome da vaga</th><th>Órgão de destino</th></tr></thead>
-              <tbody>
-                {vagasSimulacaoDistribuicao.slice(primeiraVagaDistribuicao, primeiraVagaDistribuicao + 10).map((item) => (
-                  <tr key={item.vagaId}>
-                    <td><strong>{item.sequencial}</strong></td>
-                    <td><strong>{item.nome}</strong></td>
-                    <td>{item.orgao}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <small>{vagasSimulacaoDistribuicao.length} {vagasSimulacaoDistribuicao.length === 1 ? "vaga encontrada" : "vagas encontradas"}.</small>
-            {vagasSimulacaoDistribuicao.length > 10 && (
-              <footer className="prototype-quadro-version-pagination">
-                <Paginator first={primeiraVagaDistribuicao} rows={10} totalRecords={vagasSimulacaoDistribuicao.length} template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" onPageChange={(event) => setPrimeiraVagaDistribuicao(event.first)} />
-              </footer>
-            )}
-          </div>
           <footer>
             <BotaoSalvarSeplag
               type="button"
@@ -1947,7 +1958,7 @@ const vagasElegiveisRedistribuicao =
           </footer>
         </div>
       )}
-      {resultado && (
+      {resultado && tipo !== "ATUALIZACAO_BASE_LEGAL" && (
         <div className="prototype-legal-result">
           <header>
             <div>
@@ -1982,6 +1993,7 @@ const vagasElegiveisRedistribuicao =
                 <article><span>Quantidade atual</span><strong>{resultado.quantitativoAnterior}</strong></article>
                 <article><span>Ampliação</span><strong>+{resultado.criadas.length}</strong></article>
                 <article><span>Quantidade resultante</span><strong>{resultado.quantitativoPosterior}</strong></article>
+                <article><span>Vagas geradas</span><strong>{resultado.criadas.length}</strong></article>
               </>
             ) : tipo === "REDUCAO" ? (
               <>
@@ -2020,6 +2032,7 @@ const vagasElegiveisRedistribuicao =
               <article><span>Origem</span><strong>{registro.codigo} · versão {registro.versao} → {proximaVersao}</strong><small>{resultado.quantitativoAnterior} − {resultado.alteradas.length} = {resultado.quantitativoPosterior}</small></article>
               <article><span>Destino</span><strong>{quadroDestino.codigo} · versão {quadroDestino.versao} → {quadroDestino.versao + 1}</strong><small>{quadroDestino.autorizadas} + {resultado.criadas.length} = {quadroDestino.autorizadas + resultado.criadas.length}</small></article>
               <article><span>Vagas transformadas</span><strong>{resultado.alteradas.length}</strong></article>
+              <article><span>Vagas geradas</span><strong>{resultado.criadas.length}</strong></article>
               <article><span>Livres / Ocupadas</span><strong>{resultado.alteradas.filter((vaga) => vaga.estado === "DISPONIVEL").length} / {resultado.alteradas.filter((vaga) => vaga.estado === "OCUPADA").length}</strong></article>
               <article><span>Evolução da origem</span><strong>Transformação - Origem</strong></article>
               <article><span>Evolução do destino</span><strong>Transformação - Destino</strong></article>
@@ -2113,7 +2126,7 @@ const vagasElegiveisRedistribuicao =
                 <dt>Processo</dt>
                 <dd>{processo || "Não informado"}</dd>
               </div>
-              <div>
+              {tipo !== "ATUALIZACAO_BASE_LEGAL" && <div>
                 <dt>Quadro anterior</dt>
                 <dd>
                   {tipo === "DISTRIBUICAO"
@@ -2122,8 +2135,8 @@ const vagasElegiveisRedistribuicao =
                       ? resumoQuadro.autorizadas
                     : resultado?.quantitativoAnterior}
                 </dd>
-              </div>
-              <div>
+              </div>}
+              {tipo !== "ATUALIZACAO_BASE_LEGAL" && <div>
                 <dt>Quadro resultante</dt>
                 <dd>
                   {tipo === "DISTRIBUICAO"
@@ -2132,25 +2145,42 @@ const vagasElegiveisRedistribuicao =
                       ? resumoQuadro.autorizadas
                     : resultado?.quantitativoPosterior}
                 </dd>
-              </div>
-              {(tipo === "DISTRIBUICAO" || tipo === "REDISTRIBUICAO") && <div>
-                <dt>{tipo === "DISTRIBUICAO" ? "Vagas distribuídas" : "Vagas redistribuídas"}</dt>
-                <dd>
-                  {tipo === "DISTRIBUICAO"
-                    ? totalDistribuicaoInformado
-                    : quantidadeRedistribuicaoInformada}
-                </dd>
               </div>}
-              <div>
-                <dt>{tipo === "DISTRIBUICAO" ? "Destinações" : tipo === "REDISTRIBUICAO" ? "Destino" : "Vagas afetadas"}</dt>
-                <dd>
-                  {tipo === "DISTRIBUICAO"
-                    ? destinacoesDistribuicaoInformadas.length
-                    : tipo === "REDISTRIBUICAO"
-                      ? orgaoDestinoRedistribuicao
-                    : resultado?.alteradas.length}
-                </dd>
-              </div>
+              {tipo === "AMPLIACAO" && (
+                <div><dt>Vagas geradas</dt><dd>{resultado?.criadas.length ?? 0}</dd></div>
+              )}
+              {tipo === "REDUCAO" && (
+                <div><dt>Redução</dt><dd>{resultado?.alteradas.length ?? 0}</dd></div>
+              )}
+              {tipo === "TRANSFORMACAO" && (
+                <>
+                  <div><dt>Vagas transformadas</dt><dd>{resultado?.alteradas.length ?? 0}</dd></div>
+                  <div><dt>Vagas geradas</dt><dd>{resultado?.criadas.length ?? 0}</dd></div>
+                  <div>
+                    <dt>Destino resultante</dt>
+                    <dd>{quadroDestino ? quadroDestino.autorizadas + (resultado?.criadas.length ?? 0) : "-"}</dd>
+                  </div>
+                </>
+              )}
+              {tipo === "EXTINCAO_PROGRESSIVA" && (
+                <>
+                  <div><dt>Vagas afetadas</dt><dd>{resultado?.alteradas.length ?? 0}</dd></div>
+                  <div><dt>Total remanescente</dt><dd>{resultado?.quantitativoPosterior ?? 0}</dd></div>
+                </>
+              )}
+              {tipo === "DISTRIBUICAO" && (
+                <>
+                  <div><dt>Vagas distribuídas</dt><dd>{totalDistribuicaoInformado}</dd></div>
+                  <div><dt>Destinações</dt><dd>{destinacoesDistribuicaoInformadas.length}</dd></div>
+                </>
+              )}
+              {tipo === "REDISTRIBUICAO" && (
+                <>
+                  <div><dt>Vagas redistribuídas</dt><dd>{quantidadeRedistribuicaoInformada}</dd></div>
+                  <div><dt>Órgão de origem</dt><dd>{orgaoOrigemRedistribuicao}</dd></div>
+                  <div><dt>Órgão de destino</dt><dd>{orgaoDestinoRedistribuicao}</dd></div>
+                </>
+              )}
             </dl>
             {versaoAgendada && (
               <MensagemSeplag

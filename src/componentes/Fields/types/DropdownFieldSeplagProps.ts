@@ -18,4 +18,5 @@ export interface DropdownFieldSeplagProps<
   readonly virtualScrollerOptions?: any;
   readonly optionDisabled?: string | ((option: any) => boolean);
   readonly itemTemplate?: (option: any) => ReactNode;
+  readonly panelClassName?: string;
 }

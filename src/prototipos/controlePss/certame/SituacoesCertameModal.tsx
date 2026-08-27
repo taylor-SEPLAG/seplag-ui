@@ -5,7 +5,7 @@ import { controlePssStore, useControlePssStore } from "../controlePssStore";
 import { calcularPrazoPrestacaoContas, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento, podeRegistrarRetificacaoEdital, podeRegistrarRetificacaoHomologacao } from "./validations";
 import { DOCUMENTOS_POR_SITUACAO, SITUACOES_CERTAME } from "./dominios";
 import { BlocoHeader } from "./CertameFormContent";
-import { DocumentosCertameTabela, type DocumentoCertameCatalogoItem, SeletorFormaAssinaturaDocumento, TAMANHO_MAXIMO_DOCUMENTO_CERTAME, arquivoDocumentoCertameValido } from "./DocumentosCertameTabela";
+import { DocumentosCertameTabela, type DocumentoCertameCatalogoItem, TAMANHO_MAXIMO_DOCUMENTO_CERTAME, arquivoDocumentoCertameValido } from "./DocumentosCertameTabela";
 import type { Certame, DocumentoCertame, SituacaoCertame, TipoDocumentoCertame } from "./types";
 import { ModalSeplag } from "@componentes/Modal";
 import { MensagemSeplag } from "@componentes/Mensagem";
@@ -45,10 +45,6 @@ export function SituacoesCertameModal({ certameId, onClose }:{ certameId:string;
  // Manual de Orientação do TCE-MT, em vez do upload único e genérico de "documento de apoio".
  const catalogoDocumentos = DOCUMENTOS_POR_SITUACAO[tipoSelecionado];
  const [documentosSituacao, setDocumentosSituacao] = useState<Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>>({});
- // Não persistido no Certame (mesma limitação do cadastro completo — ver formaAssinaturaDocumentos
- // em CertameFormContent.tsx): vale só enquanto o modal está aberto.
- const [processosSigadocSituacao, setProcessosSigadocSituacao] = useState<Partial<Record<TipoDocumentoCertame, string>>>({});
- const [formaAssinaturaSituacao, setFormaAssinaturaSituacao] = useState<"fisica" | "sigadoc">("sigadoc");
  // Cada situação do histórico com catálogo de documentos (ver DOCUMENTOS_POR_SITUACAO) é clicável —
  // em vez de duplicar a tabela de documentos, o clique só troca a "Nova situação" para o mesmo tipo
  // e rola até a lista de "Registrar nova situação" logo abaixo, que já carrega os documentos
@@ -84,7 +80,6 @@ export function SituacoesCertameModal({ certameId, onClose }:{ certameId:string;
  };
 
  const onChangeArquivoSituacao = (tipo:TipoDocumentoCertame, arquivo:ArquivoAnexadoSeplag | undefined) => setDocumentosSituacao((atuais) => ({ ...atuais, [tipo]: arquivo }));
- const onChangeProcessoSigadocSituacao = (tipo:TipoDocumentoCertame, numero:string | undefined) => setProcessosSigadocSituacao((atuais) => ({ ...atuais, [tipo]: numero }));
 
  const registrarSituacao = () => {
   if (!certame) return;
@@ -120,7 +115,6 @@ export function SituacoesCertameModal({ certameId, onClose }:{ certameId:string;
   situacaoForm.reset({ tipo:"HOMOLOGADO", data:"" });
   setArquivoSituacao(null);
   setDocumentosSituacao({});
-  setProcessosSigadocSituacao({});
   setModoConsultaHistorico(false);
  };
 
@@ -154,13 +148,12 @@ export function SituacoesCertameModal({ certameId, onClose }:{ certameId:string;
    <div className="prototype-certame-bloco">
     <BlocoHeader icone="pi-plus-circle" titulo="Registrar nova situação" subtitulo="Adicione uma nova situação ao histórico do certame." />
     <div className="grid align-items-end prototype-certame-subform">
-     <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 3" options={[...SITUACOES_CERTAME]} optionLabel="label" optionValue="value" onChange={() => setModoConsultaHistorico(false)} getFormErrorMessage={() => null} />
+     <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 6" options={[...SITUACOES_CERTAME]} optionLabel="label" optionValue="value" onChange={() => setModoConsultaHistorico(false)} getFormErrorMessage={() => null} />
      <DateFieldSeplag name="data" control={situacaoForm.control} label="Data de efeito" cols="12 6 3" getFormErrorMessage={() => null} />
-     {!catalogoDocumentos && <AnexarDocumentoSeplag cols="12 6 2" label="Documento de apoio (opcional)" arquivoBase64={arquivoSituacao ?? undefined} onUploadDocument={uploadArquivoSituacao} onRemoveArquivo={() => setArquivoSituacao(null)} handleViewArquivo={() => {}} canView={false} accept="application/pdf" maxFileSize={TAMANHO_MAXIMO_DOCUMENTO_CERTAME} helpText="" chooseIconOnly />}
+     {!catalogoDocumentos && <AnexarDocumentoSeplag cols="12 6 3" label="Documento de apoio (opcional)" arquivoBase64={arquivoSituacao ?? undefined} onUploadDocument={uploadArquivoSituacao} onRemoveArquivo={() => setArquivoSituacao(null)} handleViewArquivo={() => {}} canView={false} accept="application/pdf" maxFileSize={TAMANHO_MAXIMO_DOCUMENTO_CERTAME} helpText="" chooseIconOnly />}
      {catalogoDocumentos && <div className="col-12 prototype-certame-situacao-documentos" ref={documentosSituacaoRef}>
       <span className="prototype-certame-situacao-documentos-titulo">Documentos de {situacaoLabel[tipoSelecionado]} {modoConsultaHistorico ? "(já registrados)" : "(opcionais)"}</span>
-      <SeletorFormaAssinaturaDocumento valor={formaAssinaturaSituacao} onChange={setFormaAssinaturaSituacao} name="forma-assinatura-situacao-certame" />
-      <DocumentosCertameTabela key={documentosSituacaoVersao} documentos={catalogoDocumentos} arquivos={documentosSituacao} onChangeArquivo={onChangeArquivoSituacao} processosSigadoc={processosSigadocSituacao} onChangeProcessoSigadoc={onChangeProcessoSigadocSituacao} formaAssinatura={formaAssinaturaSituacao} documentoObrigatorio={() => false} onError={setErro} somenteLeitura={modoConsultaHistorico} />
+      <DocumentosCertameTabela key={documentosSituacaoVersao} documentos={catalogoDocumentos} arquivos={documentosSituacao} onChangeArquivo={onChangeArquivoSituacao} documentoObrigatorio={() => false} onError={setErro} somenteLeitura={modoConsultaHistorico} />
      </div>}
      <div className="col-12 md:col-3"><BotaoSeplag type="button" label="Registrar situação" icon="pi pi-check" onClick={registrarSituacao} /></div>
     </div>

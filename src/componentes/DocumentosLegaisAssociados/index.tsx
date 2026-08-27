@@ -23,6 +23,8 @@ export interface DocumentosLegaisAssociadosSeplagProps {
   expandirAoAbrir?: boolean;
   /** Quando há mais de uma lei selecionada, sinaliza a primeira como a norma aplicável (RN). */
   indicarPrincipal?: boolean;
+  /** Modo somente leitura: esconde "Novo Cadastro" e os botões de remover, e impede abrir o painel de busca. */
+  disabled?: boolean;
 }
 
 const MAX_VISIBLE_SELECTED_ITEMS = 3;
@@ -65,6 +67,7 @@ export function DocumentosLegaisAssociadosSeplag({
   exibirNovoCadastro = true,
   expandirAoAbrir = false,
   indicarPrincipal = false,
+  disabled = false,
 }: Readonly<DocumentosLegaisAssociadosSeplagProps>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const selectedListRef = useRef<HTMLDivElement>(null);
@@ -144,7 +147,7 @@ export function DocumentosLegaisAssociadosSeplag({
           {label}
           {required && <span className={styles.required}>*</span>}
         </label>
-        {exibirNovoCadastro && (
+        {exibirNovoCadastro && !disabled && (
           <button
             className={styles.novoCadastro}
             type="button"
@@ -161,23 +164,26 @@ export function DocumentosLegaisAssociadosSeplag({
         role="combobox"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        onClick={() => setIsOpen(true)}
+        aria-disabled={disabled}
+        onClick={() => { if (!disabled) setIsOpen(true); }}
       >
         <i className={`pi pi-search ${styles.searchIcon}`} aria-hidden="true" />
         <div className={styles.chips}>
           {selectedDocuments.map((documento) => (
             <span className={styles.chip} key={documento.id}>
               <span>{documento.titulo}</span>
-              <button
-                type="button"
-                aria-label={`Remover ${documento.titulo}`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  removeDocument(documento.id);
-                }}
-              >
-                <i className="pi pi-times" aria-hidden="true" />
-              </button>
+              {!disabled && (
+                <button
+                  type="button"
+                  aria-label={`Remover ${documento.titulo}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    removeDocument(documento.id);
+                  }}
+                >
+                  <i className="pi pi-times" aria-hidden="true" />
+                </button>
+              )}
             </span>
           ))}
           <input
@@ -185,20 +191,23 @@ export function DocumentosLegaisAssociadosSeplag({
             aria-label="Buscar documentos legais associados"
             value={search}
             placeholder={selectedDocuments.length ? "" : placeholder}
+            disabled={disabled}
             onChange={(event) => {
               setSearch(event.target.value);
               setIsOpen(true);
             }}
-            onFocus={() => setIsOpen(true)}
+            onFocus={() => { if (!disabled) setIsOpen(true); }}
           />
         </div>
-        <i
-          className={`pi ${isOpen ? "pi-chevron-up" : "pi-chevron-down"} ${styles.toggleIcon}`}
-          aria-hidden="true"
-        />
+        {!disabled && (
+          <i
+            className={`pi ${isOpen ? "pi-chevron-up" : "pi-chevron-down"} ${styles.toggleIcon}`}
+            aria-hidden="true"
+          />
+        )}
       </div>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div
           className={`${styles.dropdown} ${
             expandirAoAbrir ? styles.dropdownInline : ""
@@ -311,14 +320,16 @@ export function DocumentosLegaisAssociadosSeplag({
                 >
                   <i className="pi pi-eye" aria-hidden="true" />
                 </button>
-                <button
-                  className={styles.iconButton}
-                  type="button"
-                  aria-label={`Remover ${documento.titulo}`}
-                  onClick={() => removeDocument(documento.id)}
-                >
-                  <i className="pi pi-times" aria-hidden="true" />
-                </button>
+                {!disabled && (
+                  <button
+                    className={styles.iconButton}
+                    type="button"
+                    aria-label={`Remover ${documento.titulo}`}
+                    onClick={() => removeDocument(documento.id)}
+                  >
+                    <i className="pi pi-times" aria-hidden="true" />
+                  </button>
+                )}
               </div>
             );
           })}
