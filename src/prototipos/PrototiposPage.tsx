@@ -10628,15 +10628,10 @@ export function PrototiposEfetivoExercicioPage() {
                         datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)],
                         candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio,
                       )} às 08:15</small>
-                      <strong>Efetivo exercício registrado</strong>
-                      <p className="prototype-ingressos-candidate-history-justification"><b>Servidor não compareceu.</b> Foi registrada a Exoneração de oficio por ausência no início das atividades.</p>
-                      <dl className="prototype-ingressos-candidate-history-details">
-                        <div><dt>Data prevista</dt><dd>{getDataEfetivoExercicioConcluido(
-                        datasEfetivoExercicioSalvas[String(candidatoHistoricoSelecionado.candidato.id)],
-                        candidatoHistoricoSelecionado.candidato.dataEfetivoExercicio,
-                      )}</dd></div>
-                        <div><dt>Órgão</dt><dd>{orgaosEfetivoExercicioSalvos[String(candidatoHistoricoSelecionado.candidato.id)] ?? candidatoHistoricoSelecionado.concursoProcesso.orgao}</dd></div>
-                        <div><dt>Situação</dt><dd>Não compareceu</dd></div>
+                      <strong>Exoneração de ofício registrada</strong>
+                      <p>O ingresso foi encerrado por não comparecimento do candidato ao Efetivo Exercício.</p>
+                      <dl className="prototype-ingressos-candidate-history-details prototype-efetivo-history-details">
+                        <div><dt>Motivo</dt><dd>Não comparecimento</dd></div>
                       </dl>
                       <span className="prototype-ingressos-candidate-history-owner">Responsável: Maria Oliveira — Setorial {candidatoHistoricoSelecionado.concursoProcesso.orgao}</span>
                     </div>

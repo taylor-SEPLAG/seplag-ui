@@ -16611,6 +16611,14 @@
 .prototype-ingressos-teste-indicators > .prototype-ingressos-teste-indicator {
   grid-column: span 4;
 }
+
+.prototype-efetivo-exercicio-content .prototype-ingressos-teste-indicators {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.prototype-efetivo-exercicio-content .prototype-ingressos-teste-indicators > .prototype-ingressos-teste-indicator {
+  grid-column: span 1;
+}
 .prototype-ingressos-teste-indicator {
   display: flex;
   align-items: center;
@@ -19410,4 +19418,15 @@
   border-color: #f3a8c8;
   background: #fde8f1;
   color: #c2185b;
+}
+@media (max-width: 1050px) {
+  .prototype-efetivo-exercicio-content .prototype-ingressos-teste-indicators {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .prototype-efetivo-exercicio-content .prototype-ingressos-teste-indicators {
+    grid-template-columns: 1fr;
+  }
 }
