@@ -1,0 +1,93 @@
+.tipos-unidades-list-page,
+.tipos-unidades-list-table {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.tipos-unidades-list-table .p-datatable-wrapper {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.tipos-unidades-list-table .p-datatable-table {
+  min-width: 0 !important;
+  width: 100% !important;
+  table-layout: fixed;
+}
+
+.tipos-unidades-list-table .p-datatable-thead > tr > th,
+.tipos-unidades-list-table .p-datatable-tbody > tr > td {
+  min-width: 0 !important;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.tipos-unidades-list-table .p-datatable-thead > tr > th:nth-child(1),
+.tipos-unidades-list-table .p-datatable-tbody > tr > td:nth-child(1) { width: 25%; }
+.tipos-unidades-list-table .p-datatable-thead > tr > th:nth-child(2),
+.tipos-unidades-list-table .p-datatable-tbody > tr > td:nth-child(2) { width: 52%; }
+.tipos-unidades-list-table .p-datatable-thead > tr > th:nth-child(3),
+.tipos-unidades-list-table .p-datatable-tbody > tr > td:nth-child(3) { width: 12%; text-align: center; }
+.tipos-unidades-list-table .p-datatable-thead > tr > th:nth-child(4),
+.tipos-unidades-list-table .p-datatable-tbody > tr > td:nth-child(4) { width: 11%; text-align: center; }
+
+.tipos-unidades-register-page,
+.tipos-unidades-register-content,
+.tipos-unidades-register-panel,
+.tipos-unidades-register-actions {
+  box-sizing: border-box;
+  max-width: 100%;
+  width: 100%;
+}
+
+.tipos-unidades-register-panel {
+  margin: 0 !important;
+  padding: 18px !important;
+  border-color: #ced9e5 !important;
+  background: #fff;
+}
+
+.tipos-unidades-register-fields {
+  padding-top: 10px;
+}
+
+.tipos-unidades-field-help {
+  display: block;
+  margin: -6px 0 4px 8px;
+  color: #65788a;
+  font-size: 0.72rem;
+}
+
+.tipos-unidades-situacao-field {
+  display: flex;
+  align-items: flex-start;
+}
+
+.tipos-unidades-register-note {
+  margin-top: 4px;
+  padding: 13px 14px !important;
+  border: 1px solid #bdddf5;
+  border-left: 4px solid #168ee0;
+  border-radius: 4px;
+  background: #edf7fe;
+  color: #29475d;
+  font-size: 0.76rem;
+}
+
+.tipos-unidades-register-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #d6dfe5;
+}
+
+@media (max-width: 640px) {
+  .tipos-unidades-register-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+}

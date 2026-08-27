@@ -111,6 +111,8 @@ import {
   PrototiposPage,
   PrototiposPessoaFisicaFormPage,
   PrototiposPessoaVinculosPage,
+  PrototiposPerfilEspecialidadePage,
+  PrototiposPerfilEspecialidadeFormPage,
   PrototiposPericiaPage,
   PrototiposSigepPage,
   PrototiposSigepRegimeJuridicoNovoPage,
@@ -128,7 +130,7 @@ import {
 import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
 import { PrototiposOrganogramaPage } from "./prototipos/estruturaOrganizacional/OrganogramaPage";
 import { PrototiposUnidadesPage } from "./prototipos/estruturaOrganizacional/UnidadesPage";
-import { PrototiposTiposUnidadesPage } from "./prototipos/estruturaOrganizacional/TiposUnidadesPage";
+import { PrototiposTipoUnidadeCadastroPage, PrototiposTiposUnidadesPage } from "./prototipos/estruturaOrganizacional/TiposUnidadesPage";
 import {
   PrototiposSicadBaseConhecimentoPage,
   PrototiposSicadFilaChamadosPage,
@@ -1348,8 +1350,13 @@ function App() {
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma" element={<PrototiposOrganogramaPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" element={<PrototiposTiposUnidadesPage />} />
+      <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades/cadastrar" element={<PrototiposTipoUnidadeCadastroPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades" element={<PrototiposUnidadesPage />} />
+      <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo" element={<PrototiposUnidadesPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade" element={<PrototiposEstruturaOrganizacionalPage />} />
+      <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade/cadastro-ente-federativo" element={<PrototiposEstruturaOrganizacionalPage modo="ente" />} />
+      <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade/cadastro-orgao-entidade" element={<PrototiposEstruturaOrganizacionalPage modo="orgao" />} />
+      <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade/cadastro-orgao-externo" element={<PrototiposEstruturaOrganizacionalPage modo="externo" />} />
       <Route
         path="/prototipos/sigep/documentos-legais"
         element={<PrototiposDocumentosLegaisPage />}
@@ -1637,6 +1644,12 @@ function App() {
         element={<PrototiposCarreiraFormPage />}
       />
       <Route
+        path="/prototipos/sigep/perfil-especialidade"
+        element={<PrototiposPerfilEspecialidadePage />}
+      />
+      <Route path="/prototipos/sigep/perfil-especialidade/novo" element={<PrototiposPerfilEspecialidadeFormPage />} />
+      <Route path="/prototipos/sigep/perfil-especialidade/:id/editar" element={<PrototiposPerfilEspecialidadeFormPage />} />
+      <Route
         path="/prototipos/sigep/categoria"
         element={<PrototiposCategoriaPage />}
       />
@@ -1662,6 +1675,10 @@ function App() {
       />
       <Route
         path="/prototipos/sigep/regime-juridico/novo"
+        element={<PrototiposSigepRegimeJuridicoNovoPage />}
+      />
+      <Route
+        path="/prototipos/sigep/regime-juridico/:id/editar"
         element={<PrototiposSigepRegimeJuridicoNovoPage />}
       />
       <Route
@@ -1702,14 +1719,26 @@ function App() {
       />
       <Route
         path="/prototipos/sigep/cargo-concurso-teste/tipo-vinculo"
-        element={<PrototiposTipoVinculoTestePage />}
+        element={<PrototiposTipoVinculoTestePage routePrefix="/prototipos/sigep/cargo-concurso-teste" />}
       />
       <Route
         path="/prototipos/sigep/cargo-concurso-teste/tipo-vinculo/novo"
-        element={<PrototiposTipoVinculoTesteFormPage />}
+        element={<PrototiposTipoVinculoTesteFormPage routePrefix="/prototipos/sigep/cargo-concurso-teste" />}
       />
       <Route
         path="/prototipos/sigep/cargo-concurso-teste/tipo-vinculo/:id/editar"
+        element={<PrototiposTipoVinculoTesteFormPage routePrefix="/prototipos/sigep/cargo-concurso-teste" />}
+      />
+      <Route
+        path="/prototipos/sigep/tipo-vinculo"
+        element={<PrototiposTipoVinculoTestePage />}
+      />
+      <Route
+        path="/prototipos/sigep/tipo-vinculo/novo"
+        element={<PrototiposTipoVinculoTesteFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/tipo-vinculo/:id/editar"
         element={<PrototiposTipoVinculoTesteFormPage />}
       />
       <Route

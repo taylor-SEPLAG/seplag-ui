@@ -18,6 +18,7 @@ import { AnexarDocumentoSeplag } from "@componentes/AnexarDocumento";
 import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import { BadgeSeplag } from "@componentes/Badge";
 import { CardSeplag } from "@componentes/Card";
+import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { ModalSeplag } from "@componentes/Modal";
 import { Sidebar } from "primereact/sidebar";
 import { SeplagAutoComplete } from "@componentes/AutoComplete";
@@ -119,7 +120,7 @@ import { DashboardGerencialContent as BacklogControleVagasV2DashboardContent } f
 import { VagasIndividualizadasContent as BacklogControleVagasV2VagasContent } from "./controleVagasV2Backlog/VagasIndividualizadasContent";
 import { MovimentacoesContent as BacklogControleVagasV2MovimentacoesContent } from "./controleVagasV2Backlog/MovimentacoesContent";
 import { ProjecoesVagasContent as BacklogControleVagasV2ProjecoesContent } from "./controleVagasV2Backlog/ProjecoesVagasContent";
-import { OrgaosEntidadesCadastro } from "./estruturaOrganizacional/OrgaosEntidadesCadastro";
+import { OrgaosEntidadesContent } from "./estruturaOrganizacional/OrgaosEntidadesContent";
 import { ControleVagasRegrasContent as QuadroPessoalRegrasContent } from "./quadroPessoal/ControleVagasRegrasContent";
 import { QuadroAutorizadoContent as QuadroPessoalQuadroAutorizadoContent } from "./quadroPessoal/QuadroAutorizadoContent";
 import { DistribuicaoSaldoContent as QuadroPessoalDistribuicaoContent } from "./quadroPessoal/DistribuicaoSaldoContent";
@@ -222,7 +223,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Órgão Entidade", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tipos de Unidades", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Unidades", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Unidades", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades", activeRoutes: ["/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo"], visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -241,6 +242,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           },
           { label: "Carreira", icon: "pi pi-circle-on", to: "/prototipos/sigep/carreira", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Cargo", icon: "pi pi-circle-on", to: "/prototipos/sigep/cargo", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Perfil/Especialidade", icon: "pi pi-circle-on", to: "/prototipos/sigep/perfil-especialidade", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tabelas de Vencimentos", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -318,7 +320,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
-          { label: "Tipo de Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Tipo de Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: false, visibleOnRouter: true },
           { label: "Gestão de Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", activeRoutes: ["/prototipos/sigep/ingressos/novo"], visibleOnMenu: true, visibleOnRouter: true },
@@ -960,14 +962,12 @@ interface CategoriaFiltroForm {
 
 interface CargoFiltroForm {
   cargo?: string;
-  categoria?: string;
   situacao?: string;
 }
 
 interface TipoVinculoFiltroForm {
   termo?: string;
-  natureza?: string;
-  instituicao?: string;
+  regimeJuridico?: string;
   situacao?: string;
 }
 
@@ -996,9 +996,11 @@ interface CargoForm {
   formaProvimento?: string;
   regimeJuridico?: string;
   jornadaTrabalho?: string;
+  jornadasPermitidas?: string[];
   escolaridadeMinima?: string;
   cbo?: string;
   especialidade?: string;
+  perfisEspecialidades?: number[];
   naturezaVinculo?: string;
   cargoChefia?: "S" | "N";
   permiteSubstituicao?: "S" | "N";
@@ -1017,6 +1019,7 @@ interface TipoVinculoForm {
   nome?: string;
   descricao?: string;
   natureza?: string;
+  regimesJuridicos?: string[];
   baseLegal?: string[];
   geraVinculoFuncional?: "S" | "N";
   exigeCargo?: "S" | "N";
@@ -1229,6 +1232,7 @@ interface CargoTesteRow extends CargoRow {
   descricao?: string;
   dataInicio?: string;
   documentosIds?: string[];
+  perfisEspecialidadesIds?: number[];
 }
 
 interface TipoVinculoTesteRow {
@@ -1240,6 +1244,7 @@ interface TipoVinculoTesteRow {
   instituicao: string;
   instituicoesVinculadas: number;
   comportamentos: string[];
+  regimesJuridicos: string[];
   vigencia: string;
   situacao: "ATIVO" | "ENCERRADO";
 }
@@ -1596,6 +1601,7 @@ const categoriasTesteMock: CategoriaTesteRow[] = [
     subcategorias: 4,
     vigencia: "01/03/2026 -",
     situacao: "ATIVO",
+    perfisEspecialidadesIds: [5],
   },
   {
     id: 4,
@@ -1606,6 +1612,7 @@ const categoriasTesteMock: CategoriaTesteRow[] = [
     subcategorias: 5,
     vigencia: "01/01/2026 -",
     situacao: "ENCERRADO",
+    perfisEspecialidadesIds: [2, 6],
   },
 ];
 
@@ -1830,67 +1837,47 @@ const cargoRegrasUsoTesteMock = [
   },
 ];
 
+const criarTipoVinculo = (
+  id: number,
+  nome: string,
+  natureza: string,
+  regimesJuridicos: string[] = [],
+): TipoVinculoTesteRow => ({
+  id,
+  codigo: `TV${String(id).padStart(3, "0")}`,
+  nome,
+  descricao: `Tipo de vínculo ${nome.toLocaleLowerCase("pt-BR")}.`,
+  natureza,
+  instituicao: "govmt",
+  instituicoesVinculadas: 1,
+  comportamentos: ["Gera vínculo", "Permite folha"],
+  regimesJuridicos,
+  vigencia: "01/01/2026 -",
+  situacao: "ATIVO",
+});
+
+// Carga oficial e relações Regime Jurídico x Tipo de Vínculo do modelo SIGEP.
 const tiposVinculoTesteMock: TipoVinculoTesteRow[] = [
-  {
-    id: 1,
-    codigo: "EFET",
-    nome: "Efetivo",
-    descricao: "Vínculo decorrente de provimento efetivo em cargo público.",
-    natureza: "Permanente",
-    instituicao: "govmt",
-    instituicoesVinculadas: 1,
-    comportamentos: ["Gera vínculo", "Exige cargo", "Permite folha"],
-    vigencia: "01/01/2026 -",
-    situacao: "ATIVO",
-  },
-  {
-    id: 2,
-    codigo: "CONT",
-    nome: "Contratado",
-    descricao: "Vínculo temporário decorrente de contratação por prazo determinado.",
-    natureza: "Temporário",
-    instituicao: "govmt",
-    instituicoesVinculadas: 1,
-    comportamentos: ["Gera vínculo", "Exige cargo", "Exige data fim"],
-    vigencia: "01/01/2026 -",
-    situacao: "ATIVO",
-  },
-  {
-    id: 3,
-    codigo: "COM",
-    nome: "Comissionado",
-    descricao: "Vínculo de livre nomeação e exoneração.",
-    natureza: "Comissionado",
-    instituicao: "govmt",
-    instituicoesVinculadas: 1,
-    comportamentos: ["Gera vínculo", "Permite folha", "Permite evento"],
-    vigencia: "01/01/2026 -",
-    situacao: "ATIVO",
-  },
-  {
-    id: 4,
-    codigo: "APOS",
-    nome: "Aposentado/Inativo",
-    descricao: "Vínculo previdenciário de servidor aposentado ou inativo.",
-    natureza: "Previdenciário",
-    instituicao: "govmt",
-    instituicoesVinculadas: 1,
-    comportamentos: ["Permite folha", "Permite aposentadoria"],
-    vigencia: "01/01/2026 -",
-    situacao: "ATIVO",
-  },
-  {
-    id: 5,
-    codigo: "PENS",
-    nome: "Pensionista",
-    descricao: "Vínculo previdenciário ou especial para beneficiário de pensão.",
-    natureza: "Previdenciário",
-    instituicao: "govmt",
-    instituicoesVinculadas: 1,
-    comportamentos: ["Permite folha", "Permite pensionista"],
-    vigencia: "01/01/2026 -",
-    situacao: "ENCERRADO",
-  },
+  criarTipoVinculo(1, "Nomeado Efetivo", "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Sem Vínculo Empregatício"]),
+  criarTipoVinculo(2, "Exclusivamente Comissionado", "Comissionado", ["Estatutário Civil", "Regime Misto"]),
+  criarTipoVinculo(3, "Contrato Temporário", "Temporário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial", "Militar Temporário"]),
+  criarTipoVinculo(4, "Contrato Temporário Vínculo Único", "Temporário", ["Regime Especial"]),
+  criarTipoVinculo(5, "Residente Técnico", "Temporário", ["Sem Vínculo Empregatício"]),
+  criarTipoVinculo(6, "Estagiário", "Temporário", ["Sem Vínculo Empregatício"]),
+  criarTipoVinculo(7, "Bolsista", "Temporário", ["Estatutário Civil", "Regime Especial", "Sem Vínculo Empregatício"]),
+  criarTipoVinculo(8, "Estabilizado Constitucionalmente", "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial"]),
+  criarTipoVinculo(9, "Empossado em Cargo Eletivo", "Eletivo", ["Estatutário Civil"]),
+  criarTipoVinculo(10, "Nomeado Conselheiro", "Comissionado", ["Regime Misto"]),
+  criarTipoVinculo(11, "Designação AVNM", "Militar", ["Estatutário Militar"]),
+  criarTipoVinculo(12, "Convocação ATO GOV", "Militar", ["Estatutário Militar"]),
+  criarTipoVinculo(13, "Designação PTTC", "Militar", ["Estatutário Militar"]),
+  criarTipoVinculo(14, "Pensão Especial", "Previdenciário", ["Estatutário Civil", "Outros"]),
+  criarTipoVinculo(15, "Beneficiário de Aposentado", "Previdenciário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto"]),
+  criarTipoVinculo(16, "Provisório", "Temporário", ["Estatutário Civil", "Outros"]),
+  criarTipoVinculo(17, "Terceirizados", "Terceirizado"),
+  criarTipoVinculo(18, "Empregado Público", "Permanente"),
+  criarTipoVinculo(19, "Servidor Permutado", "Permanente"),
+  criarTipoVinculo(20, "Decisão Judicial", "Especial"),
 ];
 
 const ingressosMock: IngressoRow[] = [
@@ -3253,51 +3240,59 @@ const matrizValidacaoTesteMock: MatrizValidacaoTesteRow[] = [
 const regimesJuridicosMock: RegimeJuridicoRow[] = [
   {
     id: 1,
-    nome: "ESTATUTARIO CIVIL",
-    descricao: "Estatutário Civil",
+    nome: "ESTATUTÁRIO CIVIL",
+    descricao: "Regime estatutário aplicável aos servidores públicos civis.",
     instituicao: "govmt",
     instituicoesVinculadas: 1,
-    situacao: STATUS_OPERACIONAL_VIGENCIA.AGENDADO,
+    situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
   },
   {
     id: 2,
-    nome: "ESTATUTARIO MILITAR",
-    descricao: "Estatutário Militar",
+    nome: "ESTATUTÁRIO MILITAR",
+    descricao: "Regime estatutário aplicável aos militares do Estado.",
     instituicao: "govmt",
-    instituicoesVinculadas: 3,
-    situacao: "ATIVO",
+    instituicoesVinculadas: 1,
+    situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
   },
   {
     id: 3,
-    nome: "MILITAR TEMPORARIO",
-    descricao: "Militar Temporário",
+    nome: "REGIME MISTO",
+    descricao: "Regime aplicável a vínculos com características jurídicas combinadas.",
     instituicao: "govmt",
-    instituicoesVinculadas: 2,
-    situacao: STATUS_OPERACIONAL_VIGENCIA.AGENDADO_ENCERRAMENTO,
+    instituicoesVinculadas: 1,
+    situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
   },
   {
     id: 4,
-    nome: "REGIME CELETISTA",
-    descricao: "Regime Celetista",
+    nome: "SEM VÍNCULO EMPREGATÍCIO",
+    descricao: "Relação institucional que não caracteriza vínculo empregatício.",
     instituicao: "govmt",
     instituicoesVinculadas: 1,
-    situacao: STATUS_OPERACIONAL_VIGENCIA.ENCERRADO,
+    situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
   },
   {
     id: 5,
     nome: "REGIME ESPECIAL",
-    descricao: "Regime Especial(Contrato Temporário)",
+    descricao: "Regime definido por legislação ou condições funcionais específicas.",
     instituicao: "govmt",
     instituicoesVinculadas: 1,
-    situacao: STATUS_OPERACIONAL_VIGENCIA.AGENDADO_EXTINCAO,
+    situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
   },
   {
     id: 6,
-    nome: "REGIME MISTO",
-    descricao: "Regime Misto(Comissionados)",
+    nome: "MILITAR TEMPORÁRIO",
+    descricao: "Regime aplicável ao militar admitido por período temporário.",
     instituicao: "govmt",
     instituicoesVinculadas: 1,
-    situacao: STATUS_OPERACIONAL_VIGENCIA.EXTINTO,
+    situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
+  },
+  {
+    id: 7,
+    nome: "OUTROS",
+    descricao: "Outros regimes jurídicos não enquadrados nas classificações disponíveis.",
+    instituicao: "govmt",
+    instituicoesVinculadas: 1,
+    situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
   },
 ];
 
@@ -6267,8 +6262,13 @@ const cargoEscolaridadeOptions = [
 
 const cargoCboOptions = [
   { label: "2124-05 - Analista de sistemas", value: "2124-05" },
+  { label: "2142-05 - Engenheiro civil", value: "2142-05" },
+  { label: "2251-20 - Médico cardiologista", value: "2251-20" },
+  { label: "2515-10 - Psicólogo", value: "2515-10" },
   { label: "2521-05 - Administrador", value: "2521-05" },
+  { label: "2522-10 - Contador", value: "2522-10" },
   { label: "3211-05 - Técnico agropecuário", value: "3211-05" },
+  { label: "3511-05 - Técnico em contabilidade", value: "3511-05" },
 ];
 
 const cargoEspecialidadeOptions = [
@@ -6286,6 +6286,8 @@ const tipoVinculoNaturezaOptions = [
   { label: "Especial", value: "Especial" },
   { label: "Requisitado/Cedido", value: "Requisitado/Cedido" },
   { label: "Militar", value: "Militar" },
+  { label: "Eletivo", value: "Eletivo" },
+  { label: "Terceirizado", value: "Terceirizado" },
   { label: "Não Funcional", value: "Não Funcional" },
 ];
 
@@ -6980,14 +6982,16 @@ export function PrototiposAnexarDocumentoPage() {
   );
 }
 
-export function PrototiposEstruturaOrganizacionalPage() {
+export function PrototiposEstruturaOrganizacionalPage({
+  modo = "lista",
+}: Readonly<{ modo?: "lista" | "ente" | "orgao" | "externo" }> = {}) {
   return (
     <PrototypeSystemPage
       nomeSistema="GESTÃO DE PESSOAS"
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <OrgaosEntidadesCadastro />
+      <OrgaosEntidadesContent modo={modo} />
     </PrototypeSystemPage>
   );
 }
@@ -7324,14 +7328,7 @@ export function PrototiposCarreiraPage() {
           cols="12"
           cardHeaderClassNames="prototype-carreira-card"
           headerNavigation={
-            <nav className="prototype-doc-breadcrumb" aria-label="Navegação estrutural">
-              <i className="pi pi-home" aria-hidden="true" />
-              <span>Cadastro</span>
-              <i className="pi pi-angle-right" aria-hidden="true" />
-              <span>Cargo e Concurso</span>
-              <i className="pi pi-angle-right" aria-hidden="true" />
-              <strong>Carreira</strong>
-            </nav>
+            <BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Carreira" }]} />
           }
         >
           <div className="prototype-category-filters prototype-carreira-filters grid">
@@ -7481,6 +7478,188 @@ export function PrototiposCarreiraPage() {
       </ModalSeplag>
     </PrototypeSystemPage>
   );
+}
+
+interface PerfilEspecialidadeRow {
+  id: number;
+  codigo: string;
+  nome: string;
+  areaFormacao: string;
+  cbo: string;
+  cargosVinculados: number;
+  situacao: "ATIVO" | "ENCERRADO";
+  descricao?: string;
+  observacao?: string;
+  nivelFormacao?: string;
+  exigeRegistro?: "S" | "N";
+  conselho?: string;
+  especializacao?: string;
+  dataInicio?: string;
+  dataCriacao?: string;
+  dataEncerramento?: string;
+  motivoEncerramento?: string;
+  documentosIds?: string[];
+}
+
+const perfisEspecialidadesMock: PerfilEspecialidadeRow[] = [
+  { id: 1, codigo: "PER-0001", nome: "Contador", areaFormacao: "Ciências Contábeis", cbo: "2522-10", cargosVinculados: 2, situacao: "ATIVO", descricao: "Perfil responsável por atividades contábeis, fiscais, patrimoniais e de prestação de contas.", observacao: "Pode exigir experiência em contabilidade aplicada ao setor público.", nivelFormacao: "superior", exigeRegistro: "S", conselho: "CRC", especializacao: "", dataInicio: "01/02/2024", dataCriacao: "15/01/2024" },
+  { id: 2, codigo: "PER-0002", nome: "Administrador", areaFormacao: "Administração", cbo: "2521-05", cargosVinculados: 3, situacao: "ATIVO", descricao: "Perfil voltado ao planejamento, organização e gestão de recursos e processos administrativos.", observacao: "Aplicável às unidades administrativas e de planejamento.", nivelFormacao: "superior", exigeRegistro: "N", conselho: "", especializacao: "", dataInicio: "10/03/2024", dataCriacao: "20/02/2024" },
+  { id: 3, codigo: "PER-0003", nome: "Psicólogo", areaFormacao: "Psicologia", cbo: "2515-10", cargosVinculados: 2, situacao: "ATIVO", descricao: "Perfil destinado à avaliação, orientação e acompanhamento psicológico em contextos institucionais.", observacao: "A área de atuação será definida conforme a necessidade do órgão.", nivelFormacao: "superior", exigeRegistro: "S", conselho: "CRP", especializacao: "", dataInicio: "01/04/2024", dataCriacao: "12/03/2024" },
+  { id: 4, codigo: "PER-0004", nome: "Engenheiro Civil", areaFormacao: "Engenharia Civil", cbo: "2142-05", cargosVinculados: 1, situacao: "ATIVO", descricao: "Perfil responsável por projetos, obras, fiscalização e emissão de pareceres técnicos de engenharia civil.", observacao: "Pode atuar na fiscalização de contratos de obras públicas.", nivelFormacao: "superior", exigeRegistro: "S", conselho: "CREA", especializacao: "", dataInicio: "15/05/2024", dataCriacao: "30/04/2024" },
+  { id: 5, codigo: "PER-0005", nome: "Médico Cardiologista", areaFormacao: "Medicina", cbo: "2251-20", cargosVinculados: 1, situacao: "ATIVO", descricao: "Perfil médico especializado em prevenção, diagnóstico e tratamento de doenças cardiovasculares.", observacao: "Atuação condicionada à regularidade do registro profissional.", nivelFormacao: "pos-graduacao", exigeRegistro: "S", conselho: "CRM", especializacao: "Cardiologia", dataInicio: "01/06/2024", dataCriacao: "10/05/2024" },
+  { id: 6, codigo: "PER-0006", nome: "Analista de Sistemas", areaFormacao: "Tecnologia da Informação", cbo: "2124-05", cargosVinculados: 2, situacao: "ATIVO", descricao: "Perfil responsável por análise, desenvolvimento, integração e sustentação de sistemas de informação.", observacao: "Pode atuar em desenvolvimento de software, dados ou arquitetura de soluções.", nivelFormacao: "superior", exigeRegistro: "N", conselho: "", especializacao: "", dataInicio: "01/07/2024", dataCriacao: "14/06/2024" },
+  { id: 7, codigo: "PER-0007", nome: "Técnico em Contabilidade", areaFormacao: "Não informada", cbo: "3511-05", cargosVinculados: 0, situacao: "ENCERRADO", descricao: "Perfil técnico de apoio à escrituração, conciliação e organização de documentos contábeis.", observacao: "Perfil mantido apenas para consulta histórica.", nivelFormacao: "medio", exigeRegistro: "S", conselho: "CRC", especializacao: "", dataInicio: "01/01/2023", dataCriacao: "15/12/2022", dataEncerramento: "31/12/2025", motivoEncerramento: "Perfil substituído por nova estrutura de atribuições profissionais." },
+];
+
+export function PrototiposPerfilEspecialidadePage() {
+  const navigate = useNavigate();
+  const [pagina, setPagina] = useState(0);
+  const { control, reset, watch } = useForm<{ termo?: string; areaFormacao?: string; situacao?: string }>({ defaultValues: { termo: "", areaFormacao: undefined, situacao: undefined } });
+  const filtros = watch();
+  const termo = filtros.termo?.trim().toLowerCase();
+  const filtrados = perfisEspecialidadesMock.filter((perfil) =>
+    (!termo || perfil.nome.toLowerCase().includes(termo) || perfil.cbo.includes(termo)) &&
+    (!filtros.areaFormacao || perfil.areaFormacao === filtros.areaFormacao) &&
+    (!filtros.situacao || perfil.situacao === filtros.situacao),
+  );
+  const registrosPorPagina = 5;
+  useEffect(() => setPagina(0), [filtros.termo, filtros.areaFormacao, filtros.situacao]);
+  const paginados = filtrados.slice(pagina * registrosPorPagina, (pagina + 1) * registrosPorPagina);
+  const resultados = { ...createResults(paginados), pageActual: pagina, totalPages: Math.max(1, Math.ceil(filtrados.length / registrosPorPagina)), totalRecords: filtrados.length, sizePage: registrosPorPagina, size: registrosPorPagina };
+  const colunas: ColumnMetaSeplag<PerfilEspecialidadeRow>[] = [
+    { field: "nome", header: "Perfil/Especialidade" },
+    { field: "areaFormacao", header: "Área de formação" },
+    { field: "cbo", header: "CBO" },
+    { header: "Cargos", body: (row) => <button type="button" className="prototype-link-button">{row.cargosVinculados} {row.cargosVinculados === 1 ? "Cargo" : "Cargos"}</button> },
+    { header: "Situação", body: (row) => <BadgeSeplag label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"} color={row.situacao === "ATIVO" ? "#00843d" : "#5f6368"} bg={row.situacao === "ATIVO" ? "#e9fbf0" : "#ffffff"} border={row.situacao === "ATIVO" ? "#66e49a" : "#dfe3e8"} size="md" /> },
+  ];
+  const areas = Array.from(new Set(perfisEspecialidadesMock.map((item) => item.areaFormacao))).map((area) => ({ label: area, value: area }));
+
+  return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+    <div className="prototype-page-content prototype-page-content--white">
+      <CardSeplag title="Perfis/Especialidades" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil/Especialidade" }]} />}>
+        <div className="prototype-category-filters prototype-carreira-filters grid">
+          <TextFieldSeplag name="termo" control={control} label="Perfil/Especialidade (Nome, CBO)" cols="12 6 5" getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="areaFormacao" control={control} label="Área de formação" cols="12 6 3" options={areas} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 2" options={situacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+          <div className="prototype-category-clear col-12 md:col-6 lg:col-2"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ termo: "", areaFormacao: undefined, situacao: undefined })} /></div>
+        </div>
+        <div className="prototype-category-table prototype-perfil-especialidade-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/perfil-especialidade/novo")} handleView={(row) => navigate(`/prototipos/sigep/perfil-especialidade/${row.id}/editar`)} handleEdit={(row) => navigate(`/prototipos/sigep/perfil-especialidade/${row.id}/editar`)} handleDelete={() => {}} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
+      </CardSeplag>
+    </div>
+  </PrototypeSystemPage>;
+}
+
+interface PerfilEspecialidadeForm {
+  nome: string;
+  descricao: string;
+  observacao: string;
+  nivelFormacao: string;
+  formacoes: string[];
+  cbo: string;
+  exigeRegistro: "S" | "N";
+  conselho: string;
+  especializacoes: string[];
+  dataInicio: string;
+  dataEncerramento: string;
+  motivoEncerramento: string;
+}
+
+const perfilFormacaoOptions = [
+  "Administração",
+  "Ciências Contábeis",
+  "Direito",
+  "Enfermagem",
+  "Engenharia Civil",
+  "Medicina",
+  "Pedagogia",
+  "Psicologia",
+  "Tecnologia da Informação",
+].map((formacao) => ({ label: formacao, value: formacao }));
+
+const perfilEspecializacaoOptions = [
+  "Auditoria e Controladoria",
+  "Cardiologia",
+  "Direito Administrativo",
+  "Engenharia de Segurança do Trabalho",
+  "Gestão de Pessoas",
+  "Gestão Pública",
+  "Psicologia Organizacional",
+  "Saúde Pública",
+  "Tecnologia da Informação",
+].map((especializacao) => ({ label: especializacao, value: especializacao }));
+
+export function PrototiposPerfilEspecialidadeFormPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { id } = useParams();
+  const perfilEmEdicao = id ? perfisEspecialidadesMock.find((item) => String(item.id) === id) : undefined;
+  const isEdicao = Boolean(id);
+  const documentosLegais = useDocumentosLegaisAssociaveis();
+  const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
+  const proximoId = Math.max(0, ...perfisEspecialidadesMock.map((item) => item.id)) + 1;
+  const codigoGerado = perfilEmEdicao?.codigo ?? `PER-${String(proximoId).padStart(4, "0")}`;
+  const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
+  const [erroComplementar, setErroComplementar] = useState("");
+  const { control, handleSubmit, reset, setValue, watch } = useForm<PerfilEspecialidadeForm>({ defaultValues: { nome: "", descricao: "", observacao: "", nivelFormacao: "", formacoes: [], cbo: "", exigeRegistro: "N", conselho: "", especializacoes: [], dataInicio: "", dataEncerramento: "", motivoEncerramento: "" } });
+
+  useEffect(() => {
+    if (!perfilEmEdicao) return;
+    const nivelFormacao = perfilEmEdicao.nivelFormacao ?? (perfilEmEdicao.areaFormacao ? "superior" : "");
+    reset({ nome: perfilEmEdicao.nome, descricao: perfilEmEdicao.descricao ?? "", observacao: perfilEmEdicao.observacao ?? "", nivelFormacao, formacoes: nivelFormacao === "superior" || nivelFormacao === "pos-graduacao" ? perfilEmEdicao.areaFormacao.split(", ").filter(Boolean) : [], cbo: perfilEmEdicao.cbo, exigeRegistro: perfilEmEdicao.exigeRegistro ?? "N", conselho: perfilEmEdicao.conselho ?? "", especializacoes: nivelFormacao === "pos-graduacao" ? (perfilEmEdicao.especializacao ?? "").split(", ").filter(Boolean) : [], dataInicio: perfilEmEdicao.dataInicio ?? "01/01/2026", dataEncerramento: perfilEmEdicao.dataEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "31/12/2025" : ""), motivoEncerramento: perfilEmEdicao.motivoEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "Perfil encerrado administrativamente." : "") });
+    setDocumentosSelecionados(perfilEmEdicao.documentosIds ?? []);
+  }, [perfilEmEdicao, reset]);
+
+  useEffect(() => {
+    if (!perfilEmEdicao || !documentosLegais.length || perfilEmEdicao.documentosIds?.length || documentosSelecionados.length) return;
+    setDocumentosSelecionados([documentosLegais[0].id]);
+  }, [documentosLegais, documentosSelecionados.length, perfilEmEdicao]);
+
+  const exigeRegistro = watch("exigeRegistro") === "S";
+  const nivelSuperiorSelecionado = watch("nivelFormacao") === "superior";
+  const nivelPosGraduacaoSelecionado = watch("nivelFormacao") === "pos-graduacao";
+  const exibeFormacao = nivelSuperiorSelecionado || nivelPosGraduacaoSelecionado;
+  const dataInicio = watch("dataInicio");
+  const dataEncerramento = watch("dataEncerramento");
+  useEffect(() => {
+    if (!exibeFormacao) setValue("formacoes", []);
+  }, [exibeFormacao, setValue]);
+  useEffect(() => {
+    if (!nivelPosGraduacaoSelecionado) setValue("especializacoes", []);
+  }, [nivelPosGraduacaoSelecionado, setValue]);
+  const inicioIso = carreiraDataParaIso(dataInicio);
+  const encerramentoIso = carreiraDataParaIso(dataEncerramento);
+  const hojeIso = new Date().toISOString().slice(0, 10);
+  const status = encerramentoIso && encerramentoIso <= hojeIso ? "Encerrado" : !inicioIso ? "A definir" : inicioIso > hojeIso ? "Agendado" : "Ativo";
+  const salvar = (values: PerfilEspecialidadeForm) => {
+    if (isEdicao && Boolean(values.dataEncerramento) !== Boolean(values.motivoEncerramento.trim())) return setErroComplementar("Para encerrar o perfil, informe a data e o motivo do encerramento.");
+    if (isEdicao && values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) < carreiraDataParaIso(values.dataInicio)) return setErroComplementar("A data de encerramento não pode ser anterior à data de início.");
+    if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
+    if (exigeRegistro && !values.conselho) return setErroComplementar("Selecione o conselho profissional exigido.");
+    if (perfisEspecialidadesMock.some((item) => item.id !== perfilEmEdicao?.id && item.nome.trim().toLowerCase() === values.nome.trim().toLowerCase())) return setErroComplementar("Já existe um Perfil/Especialidade com esse nome.");
+    const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: exibeFormacao ? values.formacoes.join(", ") || "Não informada" : "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso ? "ENCERRADO" : "ATIVO", descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: values.exigeRegistro, conselho: exigeRegistro ? values.conselho : "", especializacao: nivelPosGraduacaoSelecionado ? values.especializacoes.join(", ") : "", dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
+    if (perfilEmEdicao) Object.assign(perfilEmEdicao, atualizado); else perfisEspecialidadesMock.push(atualizado);
+    navigate("/prototipos/sigep/perfil-especialidade");
+  };
+
+  if (isEdicao && !perfilEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert">Perfil/Especialidade não encontrado.</div><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-especialidade"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link></div></PrototypeSystemPage>;
+
+  return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+    <div className="prototype-carreira-register-page">
+      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil/Especialidade", to: "/prototipos/sigep/perfil-especialidade" }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
+      <header className="prototype-carreira-register-title"><div><h1>{isEdicao ? "Editar perfil profissional" : "Cadastrar perfil profissional"}</h1><p>Informe a identificação e os requisitos profissionais.</p></div></header>
+      {erroComplementar ? <div className="prototype-carreira-register-alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
+      <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil ou especialidade.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil/Especialidade" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <MultiSelectFieldSeplag name="formacoes" control={control} label="Formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : "12 12 4"} options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais formações" getFormErrorMessage={() => null} /> : null}{nivelPosGraduacaoSelecionado ? <MultiSelectFieldSeplag name="especializacoes" control={control} label="Especialização" cols="12 12 3" options={perfilEspecializacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais especializações" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-calendar" /></span><div><h2>Vigência</h2><p>Informe quando o perfil passa a valer. A situação é calculada automaticamente.</p></div></header><div className="prototype-carreira-vigencia-grid"><div className="grid"><DateFieldSeplag name="dataInicio" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} /></div><div className={`prototype-carreira-status-card is-${status.toLowerCase().replace(" ", "-")}`}><span className="prototype-carreira-status-icon"><i className={status === "Agendado" ? "pi pi-clock" : status === "Ativo" ? "pi pi-check-circle" : status === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar"} /></span><div><small>Situação</small><strong>{status}</strong><p>{status === "Encerrado" ? "O perfil está encerrado conforme a data registrada." : status === "A definir" ? "Informe a data para calcular a situação inicial." : status === "Agendado" ? "O perfil será ativado automaticamente na data informada." : "O perfil passa a valer a partir da data informada."}</p></div></div></div></section>
+        {isEdicao ? <section className="prototype-carreira-register-section prototype-carreira-closing-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-ban" /></span><div><h2>Encerramento</h2><p>Use esta seção somente quando o perfil ou especialidade deixar de vigorar.</p></div></header><div className="grid prototype-carreira-register-fields"><DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} /><TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} /></div></section> : null}
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o perfil ou especialidade.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
+        <footer className="prototype-carreira-register-actions"><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-especialidade"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link><BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar perfil"} /></footer>
+      </form>
+    </div>
+  </PrototypeSystemPage>;
 }
 
 type CarreiraOrgaoCadastro = {
@@ -7671,16 +7850,7 @@ export function PrototiposCarreiraFormPage() {
       menuItems={menuGestaoPessoas}
     >
       <div className="prototype-carreira-register-page">
-        <nav className="prototype-doc-breadcrumb" aria-label="Navegação estrutural">
-          <i className="pi pi-home" aria-hidden="true" />
-          <span>Cadastro</span>
-          <i className="pi pi-angle-right" aria-hidden="true" />
-          <span>Cargo e Concurso</span>
-          <i className="pi pi-angle-right" aria-hidden="true" />
-          <span>Carreira</span>
-          <i className="pi pi-angle-right" aria-hidden="true" />
-          <strong>{isEdicao ? "Editar" : "Novo"}</strong>
-        </nav>
+        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Carreira", to: "/prototipos/sigep/carreira" }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
 
         <header className="prototype-carreira-register-title">
           <div>
@@ -7949,7 +8119,7 @@ export function PrototiposCategoriaPage({
       ),
     },
     {
-      header: "Instituições",
+      header: "Órgãos",
       body: (row) => (
         <button
           type="button"
@@ -8061,7 +8231,6 @@ export function PrototiposCargoPage({
   const { control, reset, watch } = useForm<CargoFiltroForm>({
     defaultValues: {
       cargo: "",
-      categoria: undefined,
       situacao: undefined,
     },
   });
@@ -8073,12 +8242,10 @@ export function PrototiposCargoPage({
       !cargoBusca ||
       cargo.codigo.toLowerCase().includes(cargoBusca) ||
       cargo.cargo.toLowerCase().includes(cargoBusca);
-    const atendeCategoria =
-      !filtros.categoria || cargo.categoria === filtros.categoria;
     const atendeSituacao =
       !filtros.situacao || cargo.situacao === filtros.situacao;
 
-    return atendeCargo && atendeCategoria && atendeSituacao;
+    return atendeCargo && atendeSituacao;
   });
   const cargoResults = {
     ...createResults(cargosFiltrados),
@@ -8089,34 +8256,7 @@ export function PrototiposCargoPage({
   const cargoColumns: ColumnMetaSeplag<CargoTesteRow>[] = [
     { field: "codigo", header: "Código/Sigla" },
     { field: "cargo", header: "Cargo" },
-    { field: "categoria", header: "Categoria" },
-    { field: "subcategoria", header: "Subcategoria" },
-    { field: "jornadaPadrao", header: "Jornada Padrão" },
-    {
-      header: "Base Legal",
-      body: (row) => (
-        <button
-          type="button"
-          className="prototype-link-button"
-          onClick={() => {}}
-        >
-          {row.baseLegal} Base(s)
-        </button>
-      ),
-    },
     { field: "vigencia", header: "Vigência" },
-    {
-      header: "Instituições",
-      body: (row) => (
-        <button
-          type="button"
-          className="prototype-link-button"
-          onClick={() => {}}
-        >
-          {row.instituicoes} Instituição(ões)
-        </button>
-      ),
-    },
     {
       header: "Situação",
       body: (row) => (
@@ -8138,7 +8278,7 @@ export function PrototiposCargoPage({
       menuItems={menuGestaoPessoas}
     >
       <div className="prototype-page-content prototype-page-content--white">
-        <CardSeplag title="Cargos" cols="12">
+        <CardSeplag title="Cargos" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Cargo" }]} />}>
           <div className="prototype-category-filters prototype-cargo-filters grid">
             <TextFieldSeplag
               name="cargo"
@@ -8146,17 +8286,6 @@ export function PrototiposCargoPage({
               label="Cargo"
               placeholder="Nome do Cargo"
               cols="12 12 4"
-              getFormErrorMessage={() => null}
-            />
-            <DropdownFieldSeplag
-              name="categoria"
-              control={control}
-              label="Categoria"
-              placeholder="Selecione a Categoria"
-              cols="12 12 4"
-              options={cargoCategoriaOptions}
-              optionLabel="label"
-              optionValue="value"
               getFormErrorMessage={() => null}
             />
             <DropdownFieldSeplag
@@ -8178,7 +8307,6 @@ export function PrototiposCargoPage({
                 onClick={() =>
                   reset({
                     cargo: "",
-                    categoria: undefined,
                     situacao: undefined,
                   })
                 }
@@ -8242,9 +8370,11 @@ export function PrototiposCargoFormPage({
       formaProvimento: "",
       regimeJuridico: "",
       jornadaTrabalho: "",
+      jornadasPermitidas: [],
       escolaridadeMinima: "",
       cbo: "",
       especialidade: "",
+      perfisEspecialidades: [],
       naturezaVinculo: "",
       cargoChefia: "N",
       permiteSubstituicao: "N",
@@ -8269,7 +8399,8 @@ export function PrototiposCargoFormPage({
       subcategoria: cargoEmEdicao.subcategoria,
       nomeCargo: cargoEmEdicao.cargo,
       descricao: cargoEmEdicao.descricao ?? "",
-      jornadaTrabalho: cargoEmEdicao.jornadaPadrao,
+      jornadasPermitidas: cargoEmEdicao.jornadaPadrao.split(",").map((jornada) => jornada.trim()).filter((jornada) => cargoJornadaOptions.some((option) => option.value === jornada)),
+      perfisEspecialidades: cargoEmEdicao.perfisEspecialidadesIds ?? [],
       cargoChefia: "N",
       permiteSubstituicao: "N",
       exibirPortal: "N",
@@ -8293,10 +8424,10 @@ export function PrototiposCargoFormPage({
     const atualizado: CargoTesteRow = {
       id: cargoEmEdicao?.id ?? Math.max(0, ...cargosTesteMock.map((item) => item.id)) + 1,
       codigo, cargo: values.nomeCargo?.trim() ?? "", categoria: cargoEmEdicao?.categoria ?? "Não se aplica", subcategoria: cargoEmEdicao?.subcategoria ?? "Não se aplica",
-      jornadaPadrao: values.jornadaTrabalho ?? "Conforme regra", baseLegal: documentosSelecionados.length,
+      jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
       vigencia: `${values.dataAtivacao || "A definir"} -`, situacao: values.situacao === SITUACAO_VIGENCIA.ENCERRADO ? "ENCERRADO" : "ATIVO",
-      carreira: values.carreira, tiposVinculo: values.naturezaVinculo ? [values.naturezaVinculo] : [], descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, documentosIds: documentosSelecionados,
+      carreira: values.carreira, tiposVinculo: values.naturezaVinculo ? [values.naturezaVinculo] : [], descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [],
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     navigate(`${routePrefix}/cargo`);
@@ -8305,7 +8436,10 @@ export function PrototiposCargoFormPage({
   if (isEdicao && !cargoEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert" role="alert">Cargo não encontrado.</div><BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/cargo`)} /></div></PrototypeSystemPage>;
 
   const tipoVinculoSelecionado = watch("naturezaVinculo") ?? "";
+  const idsPerfisSelecionados = watch("perfisEspecialidades") ?? [];
+  const perfisSelecionadosCargo = perfisEspecialidadesMock.filter((perfil) => idsPerfisSelecionados.includes(perfil.id));
   const carreiraObrigatoria = ["EFET", "COM"].includes(tipoVinculoSelecionado);
+  useEffect(() => { if (!carreiraObrigatoria) setValue("carreira", undefined); }, [carreiraObrigatoria, setValue]);
   const inicioVigenciaCargo = watch("dataAtivacao") ?? "";
   const inicioVigenciaCargoIso = carreiraDataParaIso(inicioVigenciaCargo);
   const hojeCargoIso = new Date().toISOString().slice(0, 10);
@@ -8327,18 +8461,19 @@ export function PrototiposCargoFormPage({
             title={isEdicao ? "Editar - Cargo" : "Cadastrar - Cargo"}
             cols="12"
             cardHeaderClassNames="prototype-category-card"
+            headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Cargo", to: `${routePrefix}/cargo` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />}
           >
             <div className="prototype-cargo-form">
               {erroComplementar ? <div className="prototype-carreira-register-alert" role="alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
               <section className="prototype-cargo-form-section">
-                <h3>Base Legal</h3>
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>Base Legal</h3>
                 <div className="prototype-carreira-register-body">
                   <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={(ids) => { setDocumentosSelecionados(ids); setErroComplementar(""); }} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir />
                 </div>
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Identificação</h3>
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>Identificação</h3>
                 <div className="grid prototype-cargo-form-fields">
                   <TextFieldSeplag
                     name="codigo"
@@ -8356,18 +8491,11 @@ export function PrototiposCargoFormPage({
                     required
                     getFormErrorMessage={() => null}
                   />
-                  <TextFieldSeplag
-                    name="descricao"
-                    control={control}
-                    label="Descrição"
-                    cols="12"
-                    getFormErrorMessage={() => null}
-                  />
                 </div>
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Classificação Funcional</h3>
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-sitemap" aria-hidden="true" /></span>Classificação Funcional</h3>
                 <div className="grid prototype-cargo-form-fields">
                   <DropdownFieldSeplag
                     name="naturezaVinculo"
@@ -8381,29 +8509,31 @@ export function PrototiposCargoFormPage({
                     required
                     getFormErrorMessage={() => null}
                   />
-                  <DropdownFieldSeplag
-                    name="carreira"
-                    control={control}
-                    label={carreiraObrigatoria ? "Carreira" : "Carreira (opcional)"}
-                    placeholder={carreiraObrigatoria ? "Selecione a carreira" : "Cargo sem carreira vinculada"}
-                    cols="12 12 6"
-                    options={carreirasMock.filter((item) => item.situacao === "ATIVO" || item.sigla === cargoEmEdicao?.carreira).map((item) => ({ label: `${item.sigla} — ${item.nome}`, value: item.sigla }))}
-                    optionLabel="label"
-                    optionValue="value"
-                    required={carreiraObrigatoria}
-                    getFormErrorMessage={() => null}
-                  />
+                  {carreiraObrigatoria ? (
+                    <DropdownFieldSeplag
+                      name="carreira"
+                      control={control}
+                      label="Carreira"
+                      placeholder="Selecione a carreira"
+                      cols="12 12 6"
+                      options={carreirasMock.filter((item) => item.situacao === "ATIVO" || item.sigla === cargoEmEdicao?.carreira).map((item) => ({ label: `${item.sigla} — ${item.nome}`, value: item.sigla }))}
+                      optionLabel="label"
+                      optionValue="value"
+                      required
+                      getFormErrorMessage={() => null}
+                    />
+                  ) : null}
                 </div>
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Características do Cargo</h3>
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>Características do Cargo</h3>
                 <div className="grid prototype-cargo-form-fields">
-                  <DropdownFieldSeplag
-                    name="jornadaTrabalho"
+                  <MultiSelectFieldSeplag
+                    name="jornadasPermitidas"
                     control={control}
-                    label="Jornada padrão do cargo"
-                    placeholder="Selecione..."
+                    label="Jornadas permitidas"
+                    placeholder="Selecione uma ou mais jornadas"
                     cols="12 12 3"
                     options={cargoJornadaOptions}
                     optionLabel="label"
@@ -8426,7 +8556,7 @@ export function PrototiposCargoFormPage({
                   <DropdownFieldSeplag
                     name="cbo"
                     control={control}
-                    label="CBO"
+                    label="CBO do Cargo"
                     placeholder="Selecione..."
                     cols="12 12 3"
                     options={cargoCboOptions}
@@ -8434,17 +8564,25 @@ export function PrototiposCargoFormPage({
                     optionValue="value"
                     getFormErrorMessage={() => null}
                   />
-                  <DropdownFieldSeplag
-                    name="especialidade"
+                  <MultiSelectFieldSeplag
+                    name="perfisEspecialidades"
                     control={control}
-                    label="Especialidade"
-                    placeholder="Selecione..."
+                    label="Perfil/Especialidade"
+                    placeholder="Selecione um ou mais perfis"
                     cols="12 12 3"
-                    options={cargoEspecialidadeOptions}
+                    options={perfisEspecialidadesMock.filter((perfil) => perfil.situacao === "ATIVO" || idsPerfisSelecionados.includes(perfil.id)).map((perfil) => ({ label: perfil.nome, value: perfil.id }))}
                     optionLabel="label"
                     optionValue="value"
                     getFormErrorMessage={() => null}
                   />
+                  {perfisSelecionadosCargo.length ? (
+                    <div className="col-12 prototype-cargo-profile-table-wrapper">
+                      <table className="prototype-cargo-profile-table">
+                        <thead><tr><th>Perfil/Especialidade</th><th>Área de formação</th><th>CBO</th></tr></thead>
+                        <tbody>{perfisSelecionadosCargo.map((perfil) => <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td></tr>)}</tbody>
+                      </table>
+                    </div>
+                  ) : null}
                   <SwitchFieldSeplag
                     name="cargoChefia"
                     control={control}
@@ -8466,20 +8604,11 @@ export function PrototiposCargoFormPage({
                     cols="12 12 4"
                     getFormErrorMessage={() => null}
                   />
-                  <TextAreaFieldSeplag
-                    name="observacao"
-                    control={control}
-                    label="Observação"
-                    cols="12"
-                    rows={4}
-                    maxLength={500}
-                    getFormErrorMessage={() => null}
-                  />
                 </div>
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Vigência</h3>
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>Vigência</h3>
                 {!isEdicao ? (
                   <div className="prototype-carreira-vigencia-grid">
                     <div className="grid">
@@ -8497,6 +8626,7 @@ export function PrototiposCargoFormPage({
                 )}
               </section>
 
+              <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o cargo.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
               <div className="prototype-category-form-footer">
                 <BotaoVoltarSeplag
                   type="button"
@@ -8528,12 +8658,6 @@ export function PrototiposCategoriaFormPage({
   const [documentosSubcategoria, setDocumentosSubcategoria] = useState<
     string[]
   >([]);
-  const [instituicoesDisponiveis, setInstituicoesDisponiveis] = useState(
-    regimeTesteInstituicaoOptions.filter((item) => item.value !== "govmt"),
-  );
-  const [instituicoesSelecionadas, setInstituicoesSelecionadas] = useState(
-    regimeTesteInstituicaoOptions.filter((item) => item.value === "govmt"),
-  );
   const { control, setValue } = useForm<CategoriaForm>({
     defaultValues: {
       sigla: categoria?.sigla ?? "",
@@ -8786,43 +8910,57 @@ export function PrototiposSigepRegimeJuridicoPage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
-  const { control, reset } = useForm<RegimeJuridicoFiltroForm>({
+  const [searchParams] = useSearchParams();
+  const tipoVinculoParam = searchParams.get("tipoVinculo") ?? "";
+  const [pagina, setPagina] = useState(0);
+  const { control, reset, watch } = useForm<RegimeJuridicoFiltroForm>({
     defaultValues: {
-      nome: "REGIME ESPECIAL",
-      instituicao: "govmt",
+      nome: "",
       situacao: STATUS_OPERACIONAL_VIGENCIA.ATIVO,
     },
   });
-  const regimeResults = {
-    ...createResults(regimesJuridicosMock),
-    totalPages: 5,
-    totalRecords: 45,
-    size: 10,
-    sizePage: 10,
-  };
+  const filtros = watch();
+  const regimesFiltrados = regimesJuridicosMock.filter((regime) => {
+    const tiposDoRegime = tiposVinculoTesteMock.filter((tipo) =>
+      tipo.regimesJuridicos.some((nomeRegime) =>
+        nomeRegime.localeCompare(regime.nome, "pt-BR", { sensitivity: "base" }) === 0,
+      ),
+    );
+    return (
+      (!filtros.nome?.trim() || `${regime.nome} ${regime.descricao}`.toLowerCase().includes(filtros.nome.trim().toLowerCase())) &&
+      (!filtros.situacao || regime.situacao === filtros.situacao) &&
+      (!tipoVinculoParam || tiposDoRegime.some((tipo) => tipo.nome === tipoVinculoParam))
+    );
+  });
+  const registrosPorPagina = 10;
+  useEffect(() => setPagina(0), [filtros.nome, filtros.situacao]);
+  const conteudoPagina = regimesFiltrados.slice(pagina * registrosPorPagina, (pagina + 1) * registrosPorPagina);
+  const regimeResults = { ...createResults(conteudoPagina), pageActual: pagina, totalPages: Math.max(1, Math.ceil(regimesFiltrados.length / registrosPorPagina)), totalRecords: regimesFiltrados.length, size: registrosPorPagina, sizePage: registrosPorPagina };
   const regimeColumns: ColumnMetaSeplag<RegimeJuridicoRow>[] = [
     { field: "nome", header: "Nome" },
     { field: "descricao", header: "Descrição" },
     {
-      header: "Instituições Vinculadas",
-      body: (row) => (
-        <button
-          type="button"
-          className="prototype-link-button"
-          onClick={() => {}}
-        >
-          {row.instituicoesVinculadas}{" "}
-          {row.instituicoesVinculadas === 1 ? "Instituição" : "Instituições"}
-        </button>
-      ),
+      header: "Tipos de Vínculo",
+      body: (row) => {
+        const quantidade = tiposVinculoTesteMock.filter((tipo) =>
+          tipo.regimesJuridicos.some((nomeRegime) =>
+            nomeRegime.localeCompare(row.nome, "pt-BR", { sensitivity: "base" }) === 0,
+          ),
+        ).length;
+        return (
+          <button
+            type="button"
+            className="prototype-link-button"
+            onClick={() => navigate(`${routePrefix}/tipo-vinculo?regimeJuridico=${encodeURIComponent(row.nome)}`)}
+          >
+            {quantidade} {quantidade === 1 ? "Vínculo" : "Vínculos"}
+          </button>
+        );
+      },
     },
     {
       header: "Situação",
-      body: (row) => (
-        <span className="prototype-regime-status-badge">
-          {renderGrupoCalculoStatusBadge(row.situacao)}
-        </span>
-      ),
+      body: (row) => renderGrupoCalculoStatusBadge(row.situacao),
     },
   ];
 
@@ -8837,30 +8975,26 @@ export function PrototiposSigepRegimeJuridicoPage({
           title="Regime Jurídico"
           cols="12"
           cardHeaderClassNames="prototype-regime-card"
+          headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Regime Jurídico" }]} />}
         >
           <div className="prototype-category-filters prototype-regime-filters grid">
+            {tipoVinculoParam ? (
+              <div className="col-12 prototype-carreira-register-alert" role="status">
+                Exibindo regimes associados a <strong>{tipoVinculoParam}</strong>.
+              </div>
+            ) : null}
             <TextFieldSeplag
               name="nome"
               control={control}
               label="Nome"
-              cols="12 6 3"
-              getFormErrorMessage={() => null}
-            />
-            <DropdownFieldSeplag
-              name="instituicao"
-              control={control}
-              label="Instituição"
-              cols="12 6 2"
-              options={regimeInstituicaoOptions}
-              optionLabel="label"
-              optionValue="value"
+              cols="12 6 5"
               getFormErrorMessage={() => null}
             />
             <DropdownFieldSeplag
               name="situacao"
               control={control}
               label="Situação"
-              cols="12 6 2"
+              cols="12 6 3"
               options={regimeSituacaoOptions}
               optionLabel="label"
               optionValue="value"
@@ -8871,23 +9005,23 @@ export function PrototiposSigepRegimeJuridicoPage({
                 type="button"
                 label="Limpar"
                 icon="pi pi-refresh"
-                onClick={() =>
+                onClick={() => {
                   reset({
                     nome: "",
-                    instituicao: undefined,
                     situacao: undefined,
-                  })
-                }
+                  });
+                  navigate(`${routePrefix}/regime-juridico`);
+                }}
               />
             </div>
           </div>
 
-          <div className="prototype-regime-table">
+          <div className="prototype-regime-table prototype-regime-table--sigep-list">
             <TablePaginadoSeplag
               dataKey="id"
               data={regimeResults}
-              rows={10}
-              rowsPerPage={[10]}
+              rows={registrosPorPagina}
+              rowsPerPage={[registrosPorPagina]}
               paginator
               lazy
               selectionMode={null}
@@ -8903,7 +9037,7 @@ export function PrototiposSigepRegimeJuridicoPage({
                 navigate(`${routePrefix}/regime-juridico/${row.id}/editar`)
               }
               handleDelete={() => {}}
-              handleOnPageChange={() => {}}
+              handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))}
             />
           </div>
         </CardSeplag>
@@ -8916,19 +9050,36 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const regimeEmEdicao = id ? regimesJuridicosMock.find((item) => String(item.id) === id) : undefined;
+  const isEdicao = Boolean(id);
   const [baseLegalSelecionada, setBaseLegalSelecionada] = useState<string[]>(
     [],
   );
-  const [estruturaSelecionada, setEstruturaSelecionada] =
-    useState<SeletorEstruturaOrganizacionalValueSeplag>({});
-  const { control, setValue } = useForm<RegimeJuridicoForm>({
+  const { control, handleSubmit, watch } = useForm<RegimeJuridicoForm>({
     defaultValues: {
-      nome: "",
-      sigla: "",
-      situacao: SITUACAO_VIGENCIA.ATIVO,
-      dataAtivacao: "13/05/2026",
+      nome: regimeEmEdicao?.nome ?? "",
+      sigla: regimeEmEdicao?.nome.split(" ").map((parte) => parte[0]).join("").slice(0, 10) ?? "",
+      descricao: regimeEmEdicao?.descricao ?? "",
+      situacao: regimeEmEdicao?.situacao === STATUS_OPERACIONAL_VIGENCIA.ENCERRADO ? SITUACAO_VIGENCIA.ENCERRADO : SITUACAO_VIGENCIA.ATIVO,
+      dataAtivacao: "",
     },
   });
+  const inicioVigencia = watch("dataAtivacao") ?? "";
+  const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
+  const hojeIso = new Date().toISOString().slice(0, 10);
+  const situacaoInicial = !inicioVigenciaIso ? "A definir" : inicioVigenciaIso > hojeIso ? "Agendado" : "Ativo";
+  const situacaoIcone = situacaoInicial === "Agendado" ? "pi pi-clock" : situacaoInicial === "Ativo" ? "pi pi-check-circle" : "pi pi-calendar";
+  const situacaoTexto = situacaoInicial === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicial === "Agendado" ? "O regime jurídico será ativado automaticamente na data informada." : "O regime jurídico passa a valer a partir da data informada.";
+
+  const salvar = (values: RegimeJuridicoForm) => {
+    const registro = { id: regimeEmEdicao?.id ?? Math.max(0, ...regimesJuridicosMock.map((item) => item.id)) + 1, nome: values.nome?.trim() ?? "", descricao: values.descricao?.trim() ?? "", instituicao: "", instituicoesVinculadas: 0, situacao: situacaoInicial === "Agendado" ? STATUS_OPERACIONAL_VIGENCIA.AGENDADO : STATUS_OPERACIONAL_VIGENCIA.ATIVO };
+    if (regimeEmEdicao) Object.assign(regimeEmEdicao, registro); else regimesJuridicosMock.push(registro);
+    navigate(`${routePrefix}/regime-juridico`);
+  };
+
+  if (isEdicao && !regimeEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert" role="alert">Regime Jurídico não encontrado.</div><BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/regime-juridico`)} /></div></PrototypeSystemPage>;
+
 
   return (
     <PrototypeSystemPage
@@ -8936,14 +9087,23 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <form onSubmit={(event) => event.preventDefault()}>
+      <form onSubmit={handleSubmit(salvar)}>
         <div className="prototype-page-content prototype-page-content--white prototype-regime-page">
           <CardSeplag
-            title="Cadastrar - Regime Jurídico"
+            title={isEdicao ? "Editar - Regime Jurídico" : "Cadastrar - Regime Jurídico"}
             cols="12"
             cardHeaderClassNames="prototype-regime-card"
+            headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Regime Jurídico", to: `${routePrefix}/regime-juridico` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />}
           >
             <div className="grid prototype-category-form-fields prototype-regime-form-fields">
+              <TextFieldSeplag
+                name="sigla"
+                control={control}
+                label="Código"
+                cols="12 12 4"
+                maxLength={30}
+                getFormErrorMessage={() => null}
+              />
               <TextFieldSeplag
                 name="nome"
                 control={control}
@@ -8954,12 +9114,11 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
                 getFormErrorMessage={() => null}
               />
               <TextFieldSeplag
-                name="sigla"
+                name="descricao"
                 control={control}
-                label="Sigla"
-                cols="12 12 4"
-                required
-                maxLength={30}
+                label="Descrição"
+                cols="12"
+                maxLength={500}
                 getFormErrorMessage={() => null}
               />
 
@@ -8975,33 +9134,8 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
                 />
               </div>
 
-              <div className="col-12 prototype-regime-section">
-                <SeletorEstruturaOrganizacionalSeplag
-                  niveis={estruturaOrganizacionalNiveis}
-                  value={estruturaSelecionada}
-                  onChange={setEstruturaSelecionada}
-                />
-              </div>
 
-              <div className="col-12 prototype-category-vigencia">
-                <h6>Vigência</h6>
-                <SituacaoVigenciaSeplag
-                  control={control}
-                  setValue={setValue}
-                  rotuloDataAtivacao="Início de Vigência"
-                  cols={{
-                    situacao: "12 12 3",
-                    dataAtivacao: "12 12 3",
-                    statusOperacional:
-                      "col-12 md:col-12 lg:col-5 prototype-status-operacional-col",
-                    dataEncerramento: "12 12 3",
-                    motivoEncerramento: "12",
-                    dataExtincao: "12 12 3",
-                    motivoExtincao: "12",
-                  }}
-                  getFormErrorMessage={() => null}
-                />
-              </div>
+              <section className="col-12 prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-angle-right" /></span><div><h2>Vigência</h2></div></header><div className="prototype-carreira-register-body"><div className="prototype-carreira-vigencia-grid"><div className="grid"><DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} /></div><div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}><span className="prototype-carreira-status-icon"><i className={situacaoIcone} /></span><div><small>Situação</small><strong>{situacaoInicial}</strong><p>{situacaoTexto}</p></div></div></div></div></section>
             </div>
 
             <div className="prototype-category-form-footer">
@@ -9009,7 +9143,7 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
                 type="button"
                 onClick={() => navigate(`${routePrefix}/regime-juridico`)}
               />
-              <BotaoSalvarSeplag type="submit" />
+              <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar regime jurídico"} />
             </div>
           </CardSeplag>
         </div>
@@ -10006,15 +10140,6 @@ export function PrototiposSigepRegimeJuridicoTesteNovoPage() {
                     maxLength={30}
                     getFormErrorMessage={() => null}
                   />
-                  <TextAreaFieldSeplag
-                    name="descricao"
-                    control={control}
-                    label="Descrição"
-                    cols="12"
-                    rows={4}
-                    maxLength={500}
-                    getFormErrorMessage={() => null}
-                  />
                 </div>
               </section>
 
@@ -10087,18 +10212,24 @@ export function PrototiposSigepRegimeJuridicoTesteNovoPage() {
   );
 }
 
-export function PrototiposTipoVinculoTestePage() {
+export function PrototiposTipoVinculoTestePage({
+  routePrefix = SIGEP_BASE_PATH,
+}: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
-  const routePrefix = SIGEP_CARGO_CONCURSO_TESTE_BASE_PATH;
+  const [searchParams] = useSearchParams();
+  const regimeJuridicoParam = searchParams.get("regimeJuridico") ?? "";
+  const regimeJuridicoInicial = Array.from(
+    new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos)),
+  ).find((regime) =>
+    regime.localeCompare(regimeJuridicoParam, "pt-BR", { sensitivity: "base" }) === 0,
+  );
   const { control, reset, watch } = useForm<TipoVinculoFiltroForm>({
     defaultValues: {
       termo: "",
-      natureza: undefined,
-      instituicao: undefined,
+      regimeJuridico: regimeJuridicoInicial,
       situacao: undefined,
     },
   });
-  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
   const filtros = watch();
   const termoBusca = filtros.termo?.trim().toLowerCase();
   const tiposFiltrados = tiposVinculoTesteMock.filter((tipo) => {
@@ -10107,15 +10238,16 @@ export function PrototiposTipoVinculoTestePage() {
       tipo.codigo.toLowerCase().includes(termoBusca) ||
       tipo.nome.toLowerCase().includes(termoBusca) ||
       tipo.descricao.toLowerCase().includes(termoBusca);
-    const atendeNatureza =
-      !filtros.natureza || tipo.natureza === filtros.natureza;
-    const atendeInstituicao =
-      !filtros.instituicao || tipo.instituicao === filtros.instituicao;
+    const atendeRegime =
+      !filtros.regimeJuridico ||
+      tipo.regimesJuridicos.some((regime) =>
+        regime.localeCompare(filtros.regimeJuridico ?? "", "pt-BR", { sensitivity: "base" }) === 0,
+      );
     const atendeSituacao =
       !filtros.situacao || tipo.situacao === filtros.situacao;
 
     return (
-      atendeTermo && atendeNatureza && atendeInstituicao && atendeSituacao
+      atendeTermo && atendeRegime && atendeSituacao
     );
   });
   const tipoVinculoResults = {
@@ -10128,23 +10260,19 @@ export function PrototiposTipoVinculoTestePage() {
   const tipoVinculoColumns: ColumnMetaSeplag<TipoVinculoTesteRow>[] = [
     { field: "codigo", header: "Sigla/Código" },
     { field: "nome", header: "Tipo de Vínculo" },
-    { field: "natureza", header: "Natureza" },
     {
-      header: "Instituições",
+      header: "Regimes Jurídicos",
       body: (row) => (
         <button
           type="button"
           className="prototype-link-button"
-          onClick={() => {}}
+          title={row.regimesJuridicos.join(", ")}
+          onClick={() => navigate(`${routePrefix}/regime-juridico?tipoVinculo=${encodeURIComponent(row.nome)}`)}
         >
-          {row.instituicoesVinculadas}{" "}
-          {row.instituicoesVinculadas === 1 ? "Instituição" : "Instituições"}
+          {row.regimesJuridicos.length}{" "}
+          {row.regimesJuridicos.length === 1 ? "Regime" : "Regimes"}
         </button>
       ),
-    },
-    {
-      header: "Comportamentos",
-      body: (row) => row.comportamentos.join(", "),
     },
     { field: "vigencia", header: "Vigência" },
     {
@@ -10168,33 +10296,44 @@ export function PrototiposTipoVinculoTestePage() {
       menuItems={menuGestaoPessoas}
     >
       <div className="prototype-page-content prototype-page-content--white">
-        <CardSeplag title="Tipo de Vínculo" cols="12">
+        <CardSeplag
+          title="Tipos de Vínculo"
+          cols="12"
+          cardHeaderClassNames="prototype-carreira-card"
+          headerNavigation={
+            <BreadcrumbSeplag
+              divided
+              items={[
+                { label: "Cadastro" },
+                { label: "Vínculos Funcionais" },
+                { label: "Tipo de Vínculo" },
+              ]}
+            />
+          }
+        >
           <div className="prototype-category-filters prototype-tipo-vinculo-filters grid">
+            {regimeJuridicoInicial ? (
+              <div className="col-12 prototype-carreira-register-alert" role="status">
+                Exibindo vínculos associados a <strong>{regimeJuridicoInicial}</strong>.
+              </div>
+            ) : null}
             <TextFieldSeplag
               name="termo"
               control={control}
               label="Nome ou Código/Sigla"
-              cols="12 12 3"
+              placeholder="Informe a sigla ou o nome"
+              cols="12 12 5"
               getFormErrorMessage={() => null}
             />
             <DropdownFieldSeplag
-              name="natureza"
+              name="regimeJuridico"
               control={control}
-              label="Natureza do Vínculo"
-              placeholder="Selecione..."
+              label="Regime Jurídico"
+              placeholder="Selecione o regime"
               cols="12 12 3"
-              options={tipoVinculoNaturezaOptions}
-              optionLabel="label"
-              optionValue="value"
-              getFormErrorMessage={() => null}
-            />
-            <DropdownFieldSeplag
-              name="instituicao"
-              control={control}
-              label="Instituição"
-              placeholder="Selecione..."
-              cols="12 12 2"
-              options={regimeTesteInstituicaoOptions}
+              options={Array.from(
+                new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos)),
+              ).map((item) => ({ label: item, value: item }))}
               optionLabel="label"
               optionValue="value"
               getFormErrorMessage={() => null}
@@ -10203,7 +10342,7 @@ export function PrototiposTipoVinculoTestePage() {
               name="situacao"
               control={control}
               label="Situação"
-              placeholder="Selecione..."
+              placeholder="Selecione a situação"
               cols="12 12 2"
               options={situacaoOptions}
               optionLabel="label"
@@ -10215,14 +10354,14 @@ export function PrototiposTipoVinculoTestePage() {
                 type="button"
                 label="Limpar"
                 icon="pi pi-refresh"
-                onClick={() =>
+                onClick={() => {
                   reset({
                     termo: "",
-                    natureza: undefined,
-                    instituicao: undefined,
+                    regimeJuridico: undefined,
                     situacao: undefined,
-                  })
-                }
+                  });
+                  navigate(`${routePrefix}/tipo-vinculo`);
+                }}
               />
             </div>
           </div>
@@ -10257,11 +10396,15 @@ export function PrototiposTipoVinculoTestePage() {
   );
 }
 
-export function PrototiposTipoVinculoTesteFormPage() {
+export function PrototiposTipoVinculoTesteFormPage({
+  routePrefix = SIGEP_BASE_PATH,
+}: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
-  const routePrefix = SIGEP_CARGO_CONCURSO_TESTE_BASE_PATH;
   const { id } = useParams();
   const isEditing = Boolean(id);
+  const tipoEmEdicao = id
+    ? tiposVinculoTesteMock.find((item) => String(item.id) === id)
+    : undefined;
   const [baseLegalSelecionada, setBaseLegalSelecionada] = useState<string[]>(
     [],
   );
@@ -10271,12 +10414,13 @@ export function PrototiposTipoVinculoTesteFormPage() {
   const [instituicoesSelecionadas, setInstituicoesSelecionadas] = useState(
     regimeTesteInstituicaoOptions.filter((item) => item.value === "govmt"),
   );
-  const { control, setValue } = useForm<TipoVinculoForm>({
+  const { control, handleSubmit, setValue, watch } = useForm<TipoVinculoForm>({
     defaultValues: {
-      codigo: "",
-      nome: "",
-      descricao: "",
-      natureza: "",
+      codigo: tipoEmEdicao?.codigo ?? "",
+      nome: tipoEmEdicao?.nome ?? "",
+      descricao: tipoEmEdicao?.descricao ?? "",
+      natureza: tipoEmEdicao?.natureza ?? "",
+      regimesJuridicos: tipoEmEdicao?.regimesJuridicos ?? [],
       baseLegal: [],
       geraVinculoFuncional: "S",
       exigeCargo: "S",
@@ -10347,6 +10491,37 @@ export function PrototiposTipoVinculoTesteFormPage() {
       descricao: "Obrigatoriedade de data final prevista para o vínculo.",
     },
   ];
+  const inicioVigencia = watch("dataAtivacao") ?? "";
+  const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
+  const hojeIso = new Date().toISOString().slice(0, 10);
+  const situacaoInicial = !inicioVigenciaIso
+    ? "A definir"
+    : inicioVigenciaIso > hojeIso
+      ? "Agendado"
+      : "Ativo";
+
+  const salvar = (values: TipoVinculoForm) => {
+    const registro: TipoVinculoTesteRow = {
+      id: tipoEmEdicao?.id ?? Math.max(0, ...tiposVinculoTesteMock.map((item) => item.id)) + 1,
+      codigo: values.codigo?.trim() ?? "",
+      nome: values.nome?.trim() ?? "",
+      descricao: values.descricao?.trim() || `Tipo de vínculo ${values.nome?.trim().toLocaleLowerCase("pt-BR")}.`,
+      natureza: values.natureza ?? "",
+      instituicao: tipoEmEdicao?.instituicao ?? "govmt",
+      instituicoesVinculadas: tipoEmEdicao?.instituicoesVinculadas ?? 1,
+      comportamentos: tipoEmEdicao?.comportamentos ?? ["Gera vínculo", "Permite folha"],
+      regimesJuridicos: values.regimesJuridicos ?? [],
+      vigencia: tipoEmEdicao?.vigencia ?? "01/01/2026 -",
+      situacao: values.situacao === SITUACAO_VIGENCIA.ENCERRADO ? "ENCERRADO" : "ATIVO",
+    };
+    if (tipoEmEdicao) Object.assign(tipoEmEdicao, registro);
+    else tiposVinculoTesteMock.push(registro);
+    navigate(`${routePrefix}/tipo-vinculo`);
+  };
+
+  if (isEditing && !tipoEmEdicao) {
+    return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert" role="alert">Tipo de vínculo não encontrado.</div><BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/tipo-vinculo`)} /></div></PrototypeSystemPage>;
+  }
 
   return (
     <PrototypeSystemPage
@@ -10354,16 +10529,33 @@ export function PrototiposTipoVinculoTesteFormPage() {
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <form onSubmit={(event) => event.preventDefault()}>
+      <form onSubmit={handleSubmit(salvar)}>
         <div className="prototype-page-content prototype-page-content--white">
           <CardSeplag
             title={`${isEditing ? "Alterar" : "Cadastrar"} - Tipo de Vínculo`}
             cols="12"
             cardHeaderClassNames="prototype-category-card"
+            headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Vínculos Funcionais" }, { label: "Tipo de Vínculo", to: `${routePrefix}/tipo-vinculo` }, { label: isEditing ? "Editar" : "Cadastrar" }]} />}
           >
-            <div className="prototype-cargo-form">
+            <div className="prototype-cargo-form prototype-tipo-vinculo-form">
               <section className="prototype-cargo-form-section">
-                <h3>Dados Gerais</h3>
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>Base Legal</h3>
+                <div className="prototype-carreira-register-body">
+                  <DocumentosLegaisAssociadosSeplag
+                    label="Documentos legais associados"
+                    required
+                    options={documentosLegaisMock}
+                    value={baseLegalSelecionada}
+                    onChange={setBaseLegalSelecionada}
+                    onNovoCadastro={() => navigate(`/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(window.location.pathname)}`)}
+                    onVisualizar={() => {}}
+                    expandirAoAbrir
+                  />
+                </div>
+              </section>
+
+              <section className="prototype-cargo-form-section">
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>Identificação</h3>
                 <div className="grid prototype-cargo-form-fields">
                   <TextFieldSeplag
                     name="codigo"
@@ -10381,20 +10573,11 @@ export function PrototiposTipoVinculoTesteFormPage() {
                     required
                     getFormErrorMessage={() => null}
                   />
-                  <TextAreaFieldSeplag
-                    name="descricao"
-                    control={control}
-                    label="Descrição"
-                    cols="12"
-                    rows={4}
-                    maxLength={500}
-                    getFormErrorMessage={() => null}
-                  />
                 </div>
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Classificação</h3>
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-tags" aria-hidden="true" /></span>Classificação</h3>
                 <div className="grid prototype-cargo-form-fields">
                   <DropdownFieldSeplag
                     name="natureza"
@@ -10408,28 +10591,22 @@ export function PrototiposTipoVinculoTesteFormPage() {
                     required
                     getFormErrorMessage={() => null}
                   />
+                  <MultiSelectFieldSeplag
+                    name="regimesJuridicos"
+                    control={control}
+                    label="Regimes Jurídicos associados"
+                    placeholder="Selecione um ou mais regimes"
+                    cols="12 12 8"
+                    options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))}
+                    optionLabel="label"
+                    optionValue="value"
+                    getFormErrorMessage={() => null}
+                  />
                 </div>
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Instituições</h3>
-                <PickListSeplag<(typeof regimeTesteInstituicaoOptions)[number]>
-                  title=""
-                  titleNaoSelecionados="Instituições disponíveis"
-                  titleSelecionados="Instituições selecionadas"
-                  dataKey="value"
-                  dataLabel="label"
-                  filterBy="label"
-                  filterPlaceholder="Procurar por instituição"
-                  naoSelecionados={instituicoesDisponiveis}
-                  selecionados={instituicoesSelecionadas}
-                  setNaoSelecionados={setInstituicoesDisponiveis}
-                  setSelecionados={setInstituicoesSelecionadas}
-                />
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3>Comportamentos do Vínculo</h3>
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>Comportamentos do Vínculo</h3>
                 <div className="prototype-shared-criterios-list prototype-tipo-vinculo-comportamentos">
                   {comportamentoRows.map((comportamento) => (
                     <div
@@ -10449,22 +10626,16 @@ export function PrototiposTipoVinculoTesteFormPage() {
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Base Legal</h3>
-                <div className="prototype-regime-section">
-                  <DocumentosLegaisAssociadosSeplag
-                    label="Base Legal"
-                    options={documentosLegaisMock}
-                    value={baseLegalSelecionada}
-                    onChange={setBaseLegalSelecionada}
-                    onNovoCadastro={() => {}}
-                    onVisualizar={() => {}}
-                  />
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3>Vigência</h3>
-                <div className="prototype-cargo-vigencia-fields">
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>Vigência</h3>
+                {!isEditing ? (
+                  <div className="prototype-carreira-vigencia-grid">
+                    <div className="grid"><DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} /></div>
+                    <div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}>
+                      <span className="prototype-carreira-status-icon"><i className={situacaoInicial === "Agendado" ? "pi pi-clock" : situacaoInicial === "Ativo" ? "pi pi-check-circle" : "pi pi-calendar"} /></span>
+                      <div><small>Situação</small><strong>{situacaoInicial}</strong><p>{situacaoInicial === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicial === "Agendado" ? "O tipo de vínculo será ativado automaticamente na data informada." : "O tipo de vínculo passa a valer a partir da data informada."}</p></div>
+                    </div>
+                  </div>
+                ) : <div className="prototype-cargo-vigencia-fields">
                   <SituacaoVigenciaSeplag<TipoVinculoForm>
                     control={control}
                     setValue={setValue}
@@ -10481,11 +10652,11 @@ export function PrototiposTipoVinculoTesteFormPage() {
                     }}
                     getFormErrorMessage={() => null}
                   />
-                </div>
+                </div>}
               </section>
 
               <section className="prototype-cargo-form-section">
-                <h3>Observação</h3>
+                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-comment" aria-hidden="true" /></span>Observação</h3>
                 <div className="grid prototype-cargo-form-fields">
                   <TextAreaFieldSeplag
                     name="observacao"
@@ -10504,7 +10675,7 @@ export function PrototiposTipoVinculoTesteFormPage() {
                   type="button"
                   onClick={() => navigate(`${routePrefix}/tipo-vinculo`)}
                 />
-                <BotaoSalvarSeplag type="submit" />
+                <BotaoSalvarSeplag type="submit" label={isEditing ? "Salvar alterações" : "Salvar tipo de vínculo"} />
               </div>
             </div>
           </CardSeplag>

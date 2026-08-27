@@ -1,54 +1,178 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
+import { useNavigate } from "react-router-dom";
+import { BadgeSeplag } from "@componentes/Badge";
+import { BotaoLimparFiltroSeplag, BotaoSalvarSeplag, BotaoSeplag } from "@componentes/Botao";
+import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { CardSeplag } from "@componentes/Card";
-import { DropdownFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
+import { DropdownFieldSeplag, RadioButtonFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
+import { PanelSeplag } from "@componentes/PanelSeplag";
+import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
+import type { ResultsSeplag } from "@interfaces/Results";
 import { menuGestaoPessoas, PrototypeSystemPage } from "../PrototiposPage";
 import "./tiposUnidades.css";
+import "./tiposUnidadesList.css";
 
-type TipoUnidade={id:number;nome:string;descricao:string;niveis:string[];situacao:"Ativo"|"Inativo"};
-type Filtro={pesquisa:string;situacao:string};
-type Formulario={nome:string;descricao:string;situacao:"Ativo"|"Inativo"};
-const noError=()=>null;
-const situacoes=[{label:"Ativos",value:"Ativo"},{label:"Inativos",value:"Inativo"},{label:"Todos",value:""}];
-const niveis=[
-  ["I — Decisão Colegiada","Conselhos, comissões e colegiados"],
-  ["II — Direção Superior","Gabinetes, Secretarias Adjuntas e Diretorias"],
-  ["III — Apoio Estratégico e Especializado","NGER, Ouvidoria e unidades especializadas"],
-  ["IV — Assessoramento Superior","Gabinetes de direção e unidades de assessoria"],
-  ["V — Administração Sistêmica","Superintendências, Coordenadorias, Gerências e Núcleos"],
-  ["VI — Execução Programática","Unidades responsáveis pelas atividades finalísticas"],
-  ["VII — Administração Regionalizada","Estruturas regionais, quando previstas"],
-  ["VIII — Administração Desconcentrada","Unidades desconcentradas, quando previstas"]
-];
-const iniciais:TipoUnidade[]=[
-  {id:1,nome:"Conselho",descricao:"",niveis:[niveis[0][0]],situacao:"Ativo"},
-  {id:2,nome:"Gabinete",descricao:"",niveis:[niveis[1][0],niveis[3][0]],situacao:"Ativo"},
-  {id:3,nome:"Secretaria Adjunta",descricao:"",niveis:[niveis[1][0]],situacao:"Ativo"},
-  {id:4,nome:"Superintendência",descricao:"",niveis:[niveis[4][0],niveis[5][0]],situacao:"Ativo"},
-  {id:5,nome:"Coordenadoria",descricao:"",niveis:[niveis[4][0],niveis[5][0]],situacao:"Ativo"},
-  {id:6,nome:"Gerência",descricao:"",niveis:[niveis[4][0],niveis[5][0]],situacao:"Ativo"},
-  {id:7,nome:"Núcleo",descricao:"",niveis:[niveis[2][0],niveis[4][0],niveis[5][0]],situacao:"Ativo"}
+type SituacaoTipoUnidade = "ATIVO" | "INATIVO";
+
+interface TipoUnidadeRow {
+  id: number;
+  nome: string;
+  descricao: string;
+  situacao: SituacaoTipoUnidade;
+}
+
+interface TipoUnidadeFiltro {
+  pesquisa: string;
+  situacao?: SituacaoTipoUnidade;
+}
+
+const tiposUnidades: TipoUnidadeRow[] = [
+  { id: 1, nome: "Gabinete", descricao: "Unidade de apoio e direção vinculada às estruturas de gestão.", situacao: "ATIVO" },
+  { id: 2, nome: "Secretaria Adjunta", descricao: "Estrutura de direção adjunta do órgão.", situacao: "ATIVO" },
+  { id: 3, nome: "Superintendência", descricao: "Unidade organizacional de coordenação e supervisão.", situacao: "ATIVO" },
+  { id: 4, nome: "Coordenadoria", descricao: "Unidade responsável pela coordenação de atividades específicas.", situacao: "ATIVO" },
+  { id: 5, nome: "Gerência", descricao: "Unidade responsável pela execução e gestão de atividades operacionais.", situacao: "ATIVO" },
+  { id: 6, nome: "Núcleo", descricao: "Unidade de apoio ou execução especializada.", situacao: "ATIVO" },
+  { id: 7, nome: "Unidade", descricao: "Classificação genérica para unidades administrativas específicas.", situacao: "ATIVO" },
+  { id: 8, nome: "Conselho", descricao: "Estrutura colegiada prevista na organização institucional.", situacao: "ATIVO" },
+  { id: 9, nome: "Comissão", descricao: "Estrutura colegiada de natureza específica ou temporária.", situacao: "ATIVO" },
+  { id: 10, nome: "Ouvidoria", descricao: "Unidade responsável por atividades de ouvidoria.", situacao: "ATIVO" },
+  { id: 11, nome: "Diretoria", descricao: "Unidade de direção prevista na estrutura do órgão.", situacao: "ATIVO" },
 ];
 
-export function PrototiposTiposUnidadesPage(){
-  const [tipos,setTipos]=useState(iniciais); const [formAberto,setFormAberto]=useState(false); const [editando,setEditando]=useState<number|null>(null); const [selecionados,setSelecionados]=useState<string[]>([]); const [feedback,setFeedback]=useState("");
-  const filtros=useForm<Filtro>({defaultValues:{pesquisa:"",situacao:"Ativo"}}); const formulario=useForm<Formulario>({defaultValues:{nome:"",descricao:"",situacao:"Ativo"}});
-  const filtro=filtros.watch(); const dados=formulario.watch();
-  const lista=useMemo(()=>tipos.filter(item=>(!filtro.pesquisa||item.nome.toLocaleLowerCase("pt-BR").includes(filtro.pesquisa.toLocaleLowerCase("pt-BR")))&&(!filtro.situacao||item.situacao===filtro.situacao)),[filtro,tipos]);
-  const abrir=(item?:TipoUnidade)=>{setEditando(item?.id??null);setSelecionados(item?.niveis??[]);formulario.reset({nome:item?.nome??"",descricao:item?.descricao??"",situacao:item?.situacao??"Ativo"});setFeedback("");setFormAberto(true)};
-  const fechar=()=>{setFormAberto(false);setEditando(null);setSelecionados([]);setFeedback("");formulario.reset()};
-  const alternar=(nivel:string)=>setSelecionados(atual=>atual.includes(nivel)?atual.filter(item=>item!==nivel):[...atual,nivel]);
-  const salvar=()=>{if(!dados.nome.trim()){setFeedback("Informe o nome do tipo de unidade.");return}if(!selecionados.length){setFeedback("Selecione pelo menos um nível organizacional.");return}const registro={id:editando??Date.now(),nome:dados.nome.trim(),descricao:dados.descricao.trim(),niveis:selecionados,situacao:dados.situacao};setTipos(atual=>editando?atual.map(item=>item.id===editando?registro:item):[...atual,registro]);setFormAberto(false);setFeedback(editando?"Tipo atualizado com sucesso.":"Tipo cadastrado com sucesso.")};
-  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><div className="tipos-unidades-page prototype-page-content">
-    {!formAberto?<CardSeplag title="Tipos de Unidades" cols="12" legenda={()=><p className="tipos-unidades-desc">Cadastre os tipos que poderão ser utilizados na estrutura organizacional dos órgãos.</p>}>
-      <div className="col-12 tipos-unidades-filtros"><div className="grid"><TextFieldSeplag name="pesquisa" label="Pesquisar" placeholder="Digite o nome do tipo" cols="12 8" control={filtros.control} getFormErrorMessage={noError}/><DropdownFieldSeplag name="situacao" label="Situação" cols="12 4" control={filtros.control} options={situacoes} optionLabel="label" optionValue="value" getFormErrorMessage={noError}/></div></div>
-      <div className="col-12 tipos-unidades-table-section"><div className="tipos-unidades-table-toolbar"><BotaoSeplag label="Adicionar" icon="pi pi-plus" onClick={()=>abrir()}/></div><div className="tipos-unidades-table"><table><thead><tr><th>Tipo de unidade</th><th>Níveis permitidos</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{lista.map(item=><tr key={item.id}><td><strong>{item.nome}</strong><small>Tipo parametrizado</small></td><td><div className="tipos-unidades-chips">{item.niveis.map(nivel=><span key={nivel}>{nivel}</span>)}</div></td><td><span className={`tipos-unidades-status ${item.situacao.toLowerCase()}`}>{item.situacao}</span></td><td><BotaoSeplag label="Editar" icon="pi pi-pencil" outlined onClick={()=>abrir(item)}/></td></tr>)}</tbody></table>{!lista.length&&<div className="tipos-unidades-empty">Nenhum tipo encontrado.</div>}</div></div>
-    </CardSeplag>:<><header className="tipos-unidades-header"><span>Estrutura Organizacional › Tipos de Unidades › {editando?"Editar":"Cadastrar"}</span><h1>{editando?"Editar":"Cadastrar"} Tipo de Unidade</h1><p>Informe o tipo e defina em quais níveis da estrutura ele poderá ser utilizado.</p></header><div className="tipos-unidades-layout"><div>
-      <CardSeplag title="Dados do tipo" cols="12" legenda={()=><p className="tipos-unidades-desc">Identifique o tipo de unidade que ficará disponível para os cadastros.</p>}><div className="grid"><TextFieldSeplag name="nome" label="Nome do tipo" required placeholder="Ex.: Superintendência" cols="12 8" control={formulario.control} getFormErrorMessage={noError}/><DropdownFieldSeplag name="situacao" label="Situação" cols="12 4" control={formulario.control} options={[{label:"Ativo",value:"Ativo"},{label:"Inativo",value:"Inativo"}]} optionLabel="label" optionValue="value" getFormErrorMessage={noError}/><TextAreaFieldSeplag name="descricao" label="Descrição" placeholder="Descreva, se necessário, a finalidade deste tipo de unidade." cols="12" control={formulario.control} getFormErrorMessage={noError}/></div></CardSeplag>
-      <CardSeplag title="Níveis organizacionais permitidos" cols="12" legenda={()=><p className="tipos-unidades-desc">Selecione um ou mais níveis em que este tipo poderá ser utilizado no cadastro de unidades.</p>}><div className="tipos-unidades-levels">{niveis.map(([nivel,exemplo])=><label key={nivel} className={selecionados.includes(nivel)?"selected":""}><input type="checkbox" checked={selecionados.includes(nivel)} onChange={()=>alternar(nivel)}/><span><strong>{nivel}</strong><small>{exemplo}</small></span></label>)}</div><p className="tipos-unidades-help">Exemplo: “Superintendência” pode ser permitida em Administração Sistêmica e Execução Programática.</p></CardSeplag>
-      {feedback&&<div className="tipos-unidades-feedback"><i className="pi pi-exclamation-circle"/> {feedback}</div>}<footer className="tipos-unidades-actions"><BotaoVoltarSeplag label="Cancelar" onClick={fechar}/><BotaoSalvarSeplag label="Salvar" onClick={salvar}/></footer>
-    </div><aside className="tipos-unidades-summary"><h3>Resumo do cadastro</h3><div><small>Tipo de unidade</small><strong className={!dados.nome?"empty":""}>{dados.nome||"Não informado"}</strong><small>Situação</small><strong>{dados.situacao}</strong><small>Níveis selecionados</small>{selecionados.length?<div className="tipos-unidades-chips">{selecionados.map(nivel=><span key={nivel}>{nivel}</span>)}</div>:<strong className="empty">Nenhum nível selecionado</strong>}<p><b>Como será usado:</b><br/>Ao cadastrar uma Unidade Organizacional, o sistema exibirá este tipo somente quando o nível escolhido estiver entre os níveis permitidos aqui.</p></div></aside></div></>}
-    {!formAberto&&feedback&&<div className="tipos-unidades-toast"><i className="pi pi-check-circle"/> {feedback}</div>}
-  </div></PrototypeSystemPage>
+const situacaoOptions = [
+  { label: "Ativo", value: "ATIVO" },
+  { label: "Inativo", value: "INATIVO" },
+];
+
+export function PrototiposTiposUnidadesPage() {
+  const navigate = useNavigate();
+  const [pagina, setPagina] = useState(0);
+  const registrosPorPagina = 10;
+  const { control, reset, watch } = useForm<TipoUnidadeFiltro>({
+    defaultValues: { pesquisa: "", situacao: "ATIVO" },
+  });
+  const filtros = watch();
+  const pesquisa = filtros.pesquisa.trim().toLocaleLowerCase("pt-BR");
+  const filtrados = tiposUnidades.filter((item) =>
+    (!pesquisa || item.nome.toLocaleLowerCase("pt-BR").includes(pesquisa) || item.descricao.toLocaleLowerCase("pt-BR").includes(pesquisa)) &&
+    (!filtros.situacao || item.situacao === filtros.situacao),
+  );
+
+  useEffect(() => setPagina(0), [filtros.pesquisa, filtros.situacao]);
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / registrosPorPagina));
+  const paginaAtual = Math.min(pagina, totalPaginas - 1);
+  const content = filtrados.slice(paginaAtual * registrosPorPagina, (paginaAtual + 1) * registrosPorPagina);
+  const data: ResultsSeplag<TipoUnidadeRow> = {
+    content,
+    last: paginaAtual + 1 >= totalPaginas,
+    totalPages: totalPaginas,
+    pageActual: paginaAtual,
+    sizePage: registrosPorPagina,
+    totalRecords: filtrados.length,
+    size: registrosPorPagina,
+    number: paginaAtual,
+    first: paginaAtual === 0,
+    numberOfElements: content.length,
+    empty: content.length === 0,
+  };
+
+  const columns: ColumnMetaSeplag<TipoUnidadeRow>[] = [
+    { field: "nome", header: "Tipo de unidade" },
+    { field: "descricao", header: "Descrição" },
+    {
+      header: "Situação",
+      body: (row) => <BadgeSeplag label={row.situacao === "ATIVO" ? "Ativo" : "Inativo"} color={row.situacao === "ATIVO" ? "#00843d" : "#6b7280"} bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#f1f3f5"} border="transparent" size="md" />,
+    },
+  ];
+
+  return (
+    <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+      <div className="prototype-page-content prototype-page-content--white tipos-unidades-list-page">
+        <CardSeplag
+          title="Tipos de Unidades"
+          cols="12"
+          cardHeaderClassNames="prototype-carreira-card"
+          headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Tipos de Unidades" }]} />}
+        >
+          <div className="prototype-category-filters prototype-carreira-filters grid">
+            <TextFieldSeplag name="pesquisa" control={control} label="Tipo de unidade" placeholder="Digite o nome ou a descrição" cols="12 6 7" getFormErrorMessage={() => null} />
+            <DropdownFieldSeplag name="situacao" control={control} label="Situação" placeholder="Selecione a situação" cols="12 6 3" options={situacaoOptions} optionLabel="label" optionValue="value" showClear getFormErrorMessage={() => null} />
+            <div className="prototype-category-clear col-12 md:col-6 lg:col-2">
+              <BotaoLimparFiltroSeplag type="button" label="Limpar" icon="pi pi-refresh" onClick={() => reset({ pesquisa: "", situacao: undefined })} />
+            </div>
+          </div>
+          <div className="tipos-unidades-list-table">
+            <TablePaginadoSeplag
+              dataKey="id"
+              data={data}
+              rows={registrosPorPagina}
+              rowsPerPage={[registrosPorPagina]}
+              columns={columns}
+              lazy
+              paginator
+              selectionMode={null}
+              hasEventoAcao
+              handleAdicionar={() => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades/cadastrar")}
+              handleView={() => {}}
+              handleEdit={() => {}}
+              handleDelete={() => {}}
+              handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))}
+            />
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+interface TipoUnidadeCadastroForm {
+  nome: string;
+  descricao: string;
+  situacao: "ATIVO" | "INATIVO";
+}
+
+export function PrototiposTipoUnidadeCadastroPage() {
+  const navigate = useNavigate();
+  const { control } = useForm<TipoUnidadeCadastroForm>({
+    defaultValues: { nome: "", descricao: "", situacao: "ATIVO" },
+  });
+  const voltar = () => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades");
+
+  return (
+    <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+      <div className="prototype-page-content prototype-page-content--white tipos-unidades-register-page">
+        <CardSeplag
+          title="Cadastrar Tipo de Unidade"
+          cols="12"
+          cardHeaderClassNames="prototype-category-card"
+          headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Tipos de Unidades", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" }, { label: "Cadastrar" }]} />}
+        >
+          <div className="tipos-unidades-register-content">
+            <PanelSeplag title="Dados do tipo" description="Cadastre somente a classificação da unidade. A posição hierárquica será definida no organograma." className="tipos-unidades-register-panel">
+              <div className="grid tipos-unidades-register-fields">
+                <div className="col-12 lg:col-9">
+                  <TextFieldSeplag name="nome" control={control} label="Nome do tipo" placeholder="Ex.: Superintendência" cols="12" required maxLength={150} getFormErrorMessage={() => null} />
+                  <small className="tipos-unidades-field-help">Utilize a denominação institucional do tipo de unidade.</small>
+                </div>
+                <div className="col-12 lg:col-3 tipos-unidades-situacao-field">
+                  <RadioButtonFieldSeplag name="situacao" control={control} label="Situação" cols="12" options={[{ label: "Ativo", value: "ATIVO" }, { label: "Inativo", value: "INATIVO" }]} getFormErrorMessage={() => null} />
+                </div>
+                <div className="col-12">
+                  <TextAreaFieldSeplag name="descricao" control={control} label="Descrição" placeholder="Informe uma breve descrição, quando necessário." cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} />
+                  <small className="tipos-unidades-field-help">Campo opcional. Não utilize este campo para definir regras de hierarquia.</small>
+                </div>
+                <div className="col-12 tipos-unidades-register-note"><strong>Importante:</strong> este cadastro não define nível, unidade superior ou posição no organograma. Essas relações serão configuradas na montagem da estrutura organizacional.</div>
+              </div>
+            </PanelSeplag>
+            <footer className="tipos-unidades-register-actions">
+              <BotaoSeplag type="button" label="Cancelar" outlined onClick={voltar} />
+              <BotaoSalvarSeplag type="button" label="Salvar" onClick={() => {}} />
+            </footer>
+          </div>
+        </CardSeplag>
+      </div>
+    </PrototypeSystemPage>
+  );
 }

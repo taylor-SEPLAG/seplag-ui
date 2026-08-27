@@ -2,3 +2,14 @@
 .unidades-filtros{width:100%;margin-top:0}.unidades-table-section{width:100%}.unidades-table-toolbar{display:flex;align-items:center;min-height:72px;padding:16px;border:1px solid #d4dee4;border-bottom:0;background:#f8f9fa}.unidades-table{margin-top:0;border-radius:0 0 6px 6px}
 .unidades-filtros>.grid{align-items:end}.unidades-clear{align-self:end}.unidades-clear .p-button{width:100%;min-width:0;padding-left:.55rem;padding-right:.55rem}
 .unidades-table tbody tr:nth-child(even){background:#f7f7f9}.unidades-table td{height:64px}.unidades-rule{margin-top:0}
+.unidades-setor-cell strong,.unidades-setor-cell small{display:block}.unidades-setor-cell small{margin-top:4px;color:#70818b}
+.unidades-page.prototype-page-content--white{padding:24px;background:#fff}
+.unidades-page .prototype-carreira-card .p-card-body{padding:1rem}
+.unidades-table-section{min-width:0;overflow:hidden}
+.unidades-table-section .p-datatable-wrapper{overflow-x:hidden}
+.unidades-table-section .p-datatable-table{width:100%!important;min-width:100%!important;table-layout:fixed}
+.unidades-table-section .p-datatable-thead>tr>th:nth-child(1){width:18%}
+.unidades-table-section .p-datatable-thead>tr>th:nth-child(2){width:15%}
+.unidades-table-section .p-datatable-thead>tr>th:nth-child(3){width:22%}
+.unidades-table-section .p-datatable-thead>tr>th:nth-child(4){width:27%}
+.unidades-table-section .p-datatable-thead>tr>th:nth-child(5){width:10%}.unidades-table-section .p-datatable-thead>tr>th:nth-child(6){width:8%}
