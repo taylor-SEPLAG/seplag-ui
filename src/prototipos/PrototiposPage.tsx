@@ -244,7 +244,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           },
           { label: "Carreira", icon: "pi pi-circle-on", to: "/prototipos/sigep/carreira", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Cargo", icon: "pi pi-circle-on", to: "/prototipos/sigep/cargo", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Perfil/Especialidade", icon: "pi pi-circle-on", to: "/prototipos/sigep/perfil-especialidade", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Perfil Profissional", icon: "pi pi-circle-on", to: "/prototipos/sigep/perfil-especialidade", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tabelas de Vencimentos", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -7926,15 +7926,6 @@ export function PrototiposCarreiraFormPage() {
                 maxLength={150}
                 getFormErrorMessage={getCarreiraErrorMessage}
               />
-              <TextAreaFieldSeplag
-                name="observacao"
-                control={control}
-                label="Observação"
-                cols="12"
-                rows={4}
-                maxLength={500}
-                getFormErrorMessage={getCarreiraErrorMessage}
-              />
             </div>
           </section>
 
@@ -8076,6 +8067,27 @@ export function PrototiposCarreiraFormPage() {
               </div>
             </section>
           ) : null}
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span>
+              <div>
+                <h2>Observação</h2>
+                <p>Registre informações complementares sobre a carreira.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <TextAreaFieldSeplag
+                name="observacao"
+                control={control}
+                label="Observação"
+                cols="12"
+                rows={4}
+                maxLength={500}
+                getFormErrorMessage={getCarreiraErrorMessage}
+              />
+            </div>
+          </section>
 
           <footer className="prototype-carreira-register-actions">
             <BotaoVoltarSeplag
@@ -8411,7 +8423,7 @@ export function PrototiposCargoFormPage({
     reset({
       codigo: cargoEmEdicao.codigo,
       carreira: cargoEmEdicao.carreira ?? "",
-      naturezaVinculo: cargoEmEdicao.tiposVinculo?.[0] ?? "EFET",
+      naturezaVinculo: cargoEmEdicao.tiposVinculo?.[0] ?? "TV001",
       categoria: cargoEmEdicao.categoria,
       subcategoria: cargoEmEdicao.subcategoria,
       nomeCargo: cargoEmEdicao.cargo,
@@ -8434,7 +8446,8 @@ export function PrototiposCargoFormPage({
 
   const salvarCargo = (values: CargoForm) => {
     if (!values.naturezaVinculo) return setErroComplementar("Selecione o tipo de vínculo.");
-    if (["EFET", "COM"].includes(values.naturezaVinculo) && !values.carreira) return setErroComplementar("Carreira é obrigatória para os tipos de vínculo Efetivo e Comissionado.");
+    const vinculoSelecionado = tiposVinculoTesteMock.find((item) => item.codigo === values.naturezaVinculo);
+    if (vinculoSelecionado?.nome === "Nomeado Efetivo" && !values.carreira) return setErroComplementar("Carreira é obrigatória para o tipo de vínculo Nomeado Efetivo.");
     if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal para o cargo.");
     const codigo = values.codigo?.trim().toUpperCase() ?? "";
     if (cargosTesteMock.some((item) => item.id !== cargoEmEdicao?.id && item.codigo.toUpperCase() === codigo)) return setErroComplementar("Já existe um cargo cadastrado com esse código/sigla.");
@@ -8453,9 +8466,10 @@ export function PrototiposCargoFormPage({
   if (isEdicao && !cargoEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert" role="alert">Cargo não encontrado.</div><BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/cargo`)} /></div></PrototypeSystemPage>;
 
   const tipoVinculoSelecionado = watch("naturezaVinculo") ?? "";
+  const dadosTipoVinculoSelecionado = tiposVinculoTesteMock.find((item) => item.codigo === tipoVinculoSelecionado);
   const idsPerfisSelecionados = watch("perfisEspecialidades") ?? [];
   const perfisSelecionadosCargo = perfisEspecialidadesMock.filter((perfil) => idsPerfisSelecionados.includes(perfil.id));
-  const carreiraObrigatoria = ["EFET", "COM"].includes(tipoVinculoSelecionado);
+  const carreiraObrigatoria = dadosTipoVinculoSelecionado?.nome === "Nomeado Efetivo";
   useEffect(() => { if (!carreiraObrigatoria) setValue("carreira", undefined); }, [carreiraObrigatoria, setValue]);
   const inicioVigenciaCargo = watch("dataAtivacao") ?? "";
   const inicioVigenciaCargoIso = carreiraDataParaIso(inicioVigenciaCargo);
@@ -8520,7 +8534,7 @@ export function PrototiposCargoFormPage({
                     label="Tipo de Vínculo"
                     placeholder="Selecione o tipo de vínculo"
                     cols="12 12 6"
-                    options={tiposVinculoTesteMock.filter((item) => item.situacao === "ATIVO").map((item) => ({ label: `${item.codigo} — ${item.nome}`, value: item.codigo }))}
+                    options={tiposVinculoTesteMock.filter((item) => item.situacao === "ATIVO").map((item) => ({ label: item.nome, value: item.codigo }))}
                     optionLabel="label"
                     optionValue="value"
                     required
