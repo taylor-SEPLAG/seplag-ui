@@ -1178,7 +1178,7 @@ interface CategoriaRow {
   descricao: string;
   instituicao: string;
   instituicoesVinculadas: number;
-  situacao: "ATIVO" | "ENCERRADO";
+  situacao: "ATIVO" | "ENCERRADO" | "EXTINTO";
 }
 
 interface CategoriaTesteRow extends CategoriaRow {
@@ -1207,7 +1207,7 @@ interface CarreiraRow {
   nome: string;
   orgao: string;
   orgaosVinculados: number;
-  situacao: "ATIVO" | "ENCERRADO";
+  situacao: "ATIVO" | "ENCERRADO" | "EXTINTO";
   observacao?: string;
   dataInicio?: string;
   dataCriacao?: string;
@@ -1223,7 +1223,7 @@ interface CargoRow {
   categoria: string;
   baseLegal: number;
   instituicoes: number;
-  situacao: "ATIVO" | "ENCERRADO";
+  situacao: "ATIVO" | "ENCERRADO" | "EXTINTO";
 }
 
 interface CargoTesteRow extends CargoRow {
@@ -1238,6 +1238,10 @@ interface CargoTesteRow extends CargoRow {
   dataInicio?: string;
   dataEncerramento?: string;
   motivoEncerramento?: string;
+  dataExtincao?: string;
+  motivoExtincao?: string;
+  dataExtincao?: string;
+  motivoExtincao?: string;
   documentosIds?: string[];
   perfisEspecialidadesIds?: number[];
 }
@@ -1253,7 +1257,9 @@ interface TipoVinculoTesteRow {
   comportamentos: string[];
   regimesJuridicos: string[];
   vigencia: string;
-  situacao: "ATIVO" | "ENCERRADO";
+  situacao: "ATIVO" | "ENCERRADO" | "EXTINTO";
+  dataExtincao?: string;
+  motivoExtincao?: string;
 }
 
 type IngressoSituacao =
@@ -1431,7 +1437,7 @@ interface MatrizValidacaoTesteRow {
   formaProvimento: string;
   jornada: string;
   vigencia: string;
-  situacao: "ATIVO" | "ENCERRADO";
+  situacao: "ATIVO" | "ENCERRADO" | "EXTINTO";
   especificidade: "Genérica" | "Por órgão" | "Por cargo";
 }
 
@@ -1445,6 +1451,8 @@ interface RegimeJuridicoRow {
   dataAtivacao?: string;
   dataEncerramento?: string;
   motivoEncerramento?: string;
+  dataExtincao?: string;
+  motivoExtincao?: string;
 }
 
 interface RegimeJuridicoTesteRow extends RegimeJuridicoRow {
@@ -1655,6 +1663,8 @@ const subcategoriasTesteMock: SubcategoriaTesteRow[] = [
     regrasUso: 3,
     vigencia: "01/01/2026 -",
     situacao: "ATIVO",
+    tiposVinculo: ["TV001"],
+    perfisEspecialidadesIds: [1],
   },
   {
     id: 2,
@@ -1803,6 +1813,8 @@ const cargosTesteMock: CargoTesteRow[] = [
     regrasUso: 2,
     vigencia: "01/03/2026 -",
     situacao: "ATIVO",
+    tiposVinculo: ["TV002"],
+    perfisEspecialidadesIds: [2],
   },
   {
     id: 3,
@@ -1816,6 +1828,8 @@ const cargosTesteMock: CargoTesteRow[] = [
     regrasUso: 4,
     vigencia: "01/01/2026 -",
     situacao: "ATIVO",
+    tiposVinculo: ["TV011"],
+    perfisEspecialidadesIds: [3],
   },
   {
     id: 4,
@@ -1829,6 +1843,8 @@ const cargosTesteMock: CargoTesteRow[] = [
     regrasUso: 1,
     vigencia: "01/01/2026 -",
     situacao: "ENCERRADO",
+    tiposVinculo: ["TV003"],
+    perfisEspecialidadesIds: [4],
   },
 ];
 
@@ -6198,7 +6214,14 @@ const grupoEleitoFiltroAvancadoOptions = {
 const situacaoOptions = [
   { label: "Ativo", value: "ATIVO" },
   { label: "Encerrado", value: "ENCERRADO" },
+  { label: "Extinto", value: "EXTINTO" },
 ];
+
+const situacaoBadge = (situacao: string) => {
+  if (situacao === "ATIVO") return { label: "Ativo", color: "#00843d", bg: "#e9fbf0", border: "#66e49a" };
+  if (situacao === "EXTINTO") return { label: "Extinto", color: "#b42318", bg: "#fff1f0", border: "#f3b4b0" };
+  return { label: "Encerrado", color: "#5f6368", bg: "#ffffff", border: "#dfe3e8" };
+};
 
 const ingressoTipoOptions = Array.from(
   new Set(ingressosMock.map((ingresso) => ingresso.tipoIngresso)),
@@ -7321,7 +7344,7 @@ export function PrototiposCarreiraPage() {
       header: "Situação",
       body: (row) => (
         <BadgeSeplag
-          label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"}
+          label={row.situacao === "ATIVO" ? "Ativo" : row.situacao === "EXTINTO" ? "Extinto" : "Encerrado"}
           color={row.situacao === "ATIVO" ? "#00843d" : "#5f6368"}
           bg={row.situacao === "ATIVO" ? "#e9fbf0" : "#ffffff"}
           border={row.situacao === "ATIVO" ? "#66e49a" : "#dfe3e8"}
@@ -7411,13 +7434,8 @@ export function PrototiposCarreiraPage() {
               columns={carreiraColumns}
               hasEventoAcao
               handleAdicionar={() => navigate("/prototipos/sigep/carreira/novo")}
-              handleView={(row) => abrirModal("visualizar", row)}
+              handleView={(row) => navigate(`/prototipos/sigep/carreira/${row.id}/visualizar`)}
               handleEdit={(row) => navigate(`/prototipos/sigep/carreira/${row.id}/editar`)}
-              handleDelete={(row) =>
-                setCarreiras((atuais) =>
-                  atuais.filter((item) => item.id !== row.id),
-                )
-              }
               handleOnPageChange={(event) =>
                 setPagina(
                   Math.floor(
@@ -7511,7 +7529,7 @@ interface PerfilEspecialidadeRow {
   areaFormacao: string;
   cbo: string;
   cargosVinculados: number;
-  situacao: "ATIVO" | "ENCERRADO";
+  situacao: "ATIVO" | "ENCERRADO" | "EXTINTO";
   descricao?: string;
   observacao?: string;
   nivelFormacao?: string;
@@ -7522,6 +7540,8 @@ interface PerfilEspecialidadeRow {
   dataCriacao?: string;
   dataEncerramento?: string;
   motivoEncerramento?: string;
+  dataExtincao?: string;
+  motivoExtincao?: string;
   documentosIds?: string[];
 }
 
@@ -7534,6 +7554,78 @@ const perfisEspecialidadesMock: PerfilEspecialidadeRow[] = [
   { id: 6, codigo: "PER-0006", nome: "Analista de Sistemas", areaFormacao: "Tecnologia da Informação", cbo: "2124-05", cargosVinculados: 2, situacao: "ATIVO", descricao: "Perfil responsável por análise, desenvolvimento, integração e sustentação de sistemas de informação.", observacao: "Pode atuar em desenvolvimento de software, dados ou arquitetura de soluções.", nivelFormacao: "superior", exigeRegistro: "N", conselho: "", especializacao: "", dataInicio: "01/07/2024", dataCriacao: "14/06/2024" },
   { id: 7, codigo: "PER-0007", nome: "Técnico em Contabilidade", areaFormacao: "Não informada", cbo: "3511-05", cargosVinculados: 0, situacao: "ENCERRADO", descricao: "Perfil técnico de apoio à escrituração, conciliação e organização de documentos contábeis.", observacao: "Perfil mantido apenas para consulta histórica.", nivelFormacao: "medio", exigeRegistro: "S", conselho: "CRC", especializacao: "", dataInicio: "01/01/2023", dataCriacao: "15/12/2022", dataEncerramento: "31/12/2025", motivoEncerramento: "Perfil substituído por nova estrutura de atribuições profissionais." },
 ];
+
+const normalizarRelacionamento = (value: string | undefined) =>
+  value?.trim().toLocaleLowerCase("pt-BR") ?? "";
+
+function possuiDependenciaAtiva(tipo: "regime" | "vinculo" | "carreira" | "perfil", id: number) {
+  if (tipo === "regime") {
+    const regime = regimesJuridicosMock.find((item) => item.id === id);
+    return tiposVinculoTesteMock.some(
+      (item) =>
+        item.situacao === "ATIVO" &&
+        Boolean(regime) &&
+        item.regimesJuridicos.some(
+          (nome) => normalizarRelacionamento(nome) === normalizarRelacionamento(regime?.nome),
+        ),
+    );
+  }
+
+  if (tipo === "vinculo") {
+    const vinculo = tiposVinculoTesteMock.find((item) => item.id === id);
+    return cargosTesteMock.some(
+      (item) =>
+        item.situacao === "ATIVO" &&
+        Boolean(vinculo) &&
+        (item.tiposVinculo ?? []).some(
+          (valor) =>
+            normalizarRelacionamento(valor) === normalizarRelacionamento(vinculo?.codigo) ||
+            normalizarRelacionamento(valor) === normalizarRelacionamento(vinculo?.nome),
+        ),
+    );
+  }
+
+  if (tipo === "carreira") {
+    const carreira = carreirasMock.find((item) => item.id === id);
+    return cargosTesteMock.some(
+      (item) =>
+        item.situacao === "ATIVO" &&
+        Boolean(carreira) &&
+        [item.carreira, item.categoria].some(
+          (valor) => normalizarRelacionamento(valor) === normalizarRelacionamento(carreira?.sigla) || normalizarRelacionamento(valor) === normalizarRelacionamento(carreira?.nome),
+        ),
+    );
+  }
+
+  return cargosTesteMock.some(
+    (item) => item.situacao === "ATIVO" && item.perfisEspecialidadesIds?.includes(id),
+  );
+}
+
+function atualizarExtincoesDerivadas() {
+  const hoje = new Date().toLocaleDateString("pt-BR");
+  const motivo = "Extinto automaticamente por não possuir dependências ativas.";
+  const marcarExtinto = (item: { situacao: string; dataExtincao?: string; motivoExtincao?: string }) => {
+    item.situacao = "EXTINTO";
+    item.dataExtincao ||= hoje;
+    item.motivoExtincao ||= motivo;
+  };
+
+  // Avalia de baixo para cima para que o encerramento de um dependente possa
+  // liberar a extinção do registro-pai na mesma operação.
+  perfisEspecialidadesMock.forEach((item) => {
+    if (item.situacao === "EXTINTO" || (item.situacao === "ENCERRADO" && item.dataEncerramento && !possuiDependenciaAtiva("perfil", item.id))) marcarExtinto(item);
+  });
+  carreirasMock.forEach((item) => {
+    if (item.situacao === "EXTINTO" || (item.situacao === "ENCERRADO" && item.dataEncerramento && !possuiDependenciaAtiva("carreira", item.id))) marcarExtinto(item);
+  });
+  tiposVinculoTesteMock.forEach((item) => {
+    if (item.situacao === "EXTINTO" || (item.situacao === "ENCERRADO" && item.dataEncerramento && !possuiDependenciaAtiva("vinculo", item.id))) marcarExtinto(item);
+  });
+  regimesJuridicosMock.forEach((item) => {
+    if (item.situacao === STATUS_OPERACIONAL_VIGENCIA.EXTINTO || (item.situacao === STATUS_OPERACIONAL_VIGENCIA.ENCERRADO && item.dataEncerramento && !possuiDependenciaAtiva("regime", item.id))) marcarExtinto(item);
+  });
+}
 
 export function PrototiposPerfilEspecialidadePage() {
   const navigate = useNavigate();
@@ -7555,7 +7647,7 @@ export function PrototiposPerfilEspecialidadePage() {
     { field: "areaFormacao", header: "Área de formação" },
     { field: "cbo", header: "CBO" },
     { header: "Cargos", body: (row) => <button type="button" className="prototype-link-button">{row.cargosVinculados} {row.cargosVinculados === 1 ? "Cargo" : "Cargos"}</button> },
-    { header: "Situação", body: (row) => <BadgeSeplag label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"} color={row.situacao === "ATIVO" ? "#00843d" : "#5f6368"} bg={row.situacao === "ATIVO" ? "#e9fbf0" : "#ffffff"} border={row.situacao === "ATIVO" ? "#66e49a" : "#dfe3e8"} size="md" /> },
+    { header: "Situação", body: (row) => { const badge = situacaoBadge(row.situacao); return <BadgeSeplag label={badge.label} color={badge.color} bg={badge.bg} border={badge.border} size="md" />; } },
   ];
   const areas = Array.from(new Set(perfisEspecialidadesMock.map((item) => item.areaFormacao))).map((area) => ({ label: area, value: area }));
 
@@ -7568,7 +7660,7 @@ export function PrototiposPerfilEspecialidadePage() {
           <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 2" options={situacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
           <div className="prototype-category-clear col-12 md:col-6 lg:col-2"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ termo: "", areaFormacao: undefined, situacao: undefined })} /></div>
         </div>
-        <div className="prototype-category-table prototype-perfil-especialidade-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/perfil-profissional/novo")} handleView={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/editar`)} handleEdit={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/editar`)} handleDelete={() => {}} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
+          <div className="prototype-category-table prototype-perfil-especialidade-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/perfil-profissional/novo")} handleView={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/visualizar`)} handleEdit={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/editar`)} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
       </CardSeplag>
     </div>
   </PrototypeSystemPage>;
@@ -7619,6 +7711,7 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const { id } = useParams();
   const perfilEmEdicao = id ? perfisEspecialidadesMock.find((item) => String(item.id) === id) : undefined;
   const isEdicao = Boolean(id);
+  const isVisualizacao = location.pathname.endsWith("/visualizar");
   const documentosLegais = useDocumentosLegaisAssociaveis();
   const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
   const proximoId = Math.max(0, ...perfisEspecialidadesMock.map((item) => item.id)) + 1;
@@ -7654,33 +7747,38 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const inicioIso = carreiraDataParaIso(dataInicio);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
-  const status = encerramentoIso && encerramentoIso <= hojeIso ? "Encerrado" : !inicioIso ? "A definir" : inicioIso > hojeIso ? "Agendado" : "Ativo";
+  const status = perfilEmEdicao?.situacao === "EXTINTO" ? "Extinto" : encerramentoIso && encerramentoIso <= hojeIso ? "Encerrado" : !inicioIso ? "A definir" : inicioIso > hojeIso ? "Agendado" : "Ativo";
   const salvar = (values: PerfilEspecialidadeForm) => {
     if (isEdicao && Boolean(values.dataEncerramento) !== Boolean(values.motivoEncerramento.trim())) return setErroComplementar("Para encerrar o perfil, informe a data e o motivo do encerramento.");
     if (isEdicao && values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) < carreiraDataParaIso(values.dataInicio)) return setErroComplementar("A data de encerramento não pode ser anterior à data de início.");
     if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
     if (exigeRegistro && !values.conselho) return setErroComplementar("Selecione o conselho profissional exigido.");
     if (perfisEspecialidadesMock.some((item) => item.id !== perfilEmEdicao?.id && item.nome.trim().toLowerCase() === values.nome.trim().toLowerCase())) return setErroComplementar("Já existe um Perfil Profissional com esse nome.");
-    const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: exibeFormacao ? values.formacoes.join(", ") || "Não informada" : "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso ? "ENCERRADO" : "ATIVO", descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: values.exigeRegistro, conselho: exigeRegistro ? values.conselho : "", especializacao: nivelPosGraduacaoSelecionado ? values.especializacoes.join(", ") : "", dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
+    const situacaoAtualizada = values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
+      ? possuiDependenciaAtiva("perfil", perfilEmEdicao?.id ?? proximoId) ? "ENCERRADO" : "EXTINTO"
+      : "ATIVO";
+    const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: exibeFormacao ? values.formacoes.join(", ") || "Não informada" : "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: situacaoAtualizada, descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: values.exigeRegistro, conselho: exigeRegistro ? values.conselho : "", especializacao: nivelPosGraduacaoSelecionado ? values.especializacoes.join(", ") : "", dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
     if (perfilEmEdicao) Object.assign(perfilEmEdicao, atualizado); else perfisEspecialidadesMock.push(atualizado);
+    atualizarExtincoesDerivadas();
     navigate("/prototipos/sigep/perfil-profissional");
   };
 
   if (isEdicao && !perfilEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert">Perfil Profissional não encontrado.</div><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-profissional"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link></div></PrototypeSystemPage>;
 
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
-    <div className="prototype-carreira-register-page">
-      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil Profissional", to: "/prototipos/sigep/perfil-profissional" }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
-      <header className="prototype-carreira-register-title"><div><h1>{isEdicao ? "Editar perfil profissional" : "Cadastrar perfil profissional"}</h1><p>Informe a identificação e os requisitos profissionais.</p></div></header>
+    <div className={`prototype-carreira-register-page${isVisualizacao ? " is-visualizacao" : ""}`}>
+      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil Profissional", to: "/prototipos/sigep/perfil-profissional" }, { label: isVisualizacao ? "Visualizar" : isEdicao ? "Editar" : "Cadastrar" }]} />
+      <header className="prototype-carreira-register-title"><div><h1>{isVisualizacao ? "Visualizar perfil profissional" : isEdicao ? "Editar perfil profissional" : "Cadastrar perfil profissional"}</h1><p>Informe a identificação e os requisitos profissionais.</p></div>{isVisualizacao ? <BotaoIconSeplag severity="warning" type="button" icon="pi pi-pencil" aria-label="Editar perfil profissional" tooltip="Editar" onClick={() => navigate(`/prototipos/sigep/perfil-profissional/${id}/editar`)} /> : null}</header>
       {erroComplementar ? <div className="prototype-carreira-register-alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
       <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
+        <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <MultiSelectFieldSeplag name="formacoes" control={control} label="Formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : "12 12 4"} options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais formações" getFormErrorMessage={() => null} /> : null}{nivelPosGraduacaoSelecionado ? <MultiSelectFieldSeplag name="especializacoes" control={control} label="Especialização" cols="12 12 3" options={perfilEspecializacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais especializações" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-calendar" /></span><div><h2>Vigência</h2><p>Informe quando o perfil passa a valer. A situação é calculada automaticamente.</p></div></header><div className="prototype-carreira-vigencia-grid"><div className="grid"><DateFieldSeplag name="dataInicio" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} /></div><div className={`prototype-carreira-status-card is-${status.toLowerCase().replace(" ", "-")}`}><span className="prototype-carreira-status-icon"><i className={status === "Agendado" ? "pi pi-clock" : status === "Ativo" ? "pi pi-check-circle" : status === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar"} /></span><div><small>Situação</small><strong>{status}</strong><p>{status === "Encerrado" ? "O perfil está encerrado conforme a data registrada." : status === "A definir" ? "Informe a data para calcular a situação inicial." : status === "Agendado" ? "O perfil será ativado automaticamente na data informada." : "O perfil passa a valer a partir da data informada."}</p></div></div></div></section>
-        {isEdicao ? <section className="prototype-carreira-register-section prototype-carreira-closing-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-ban" /></span><div><h2>Encerramento</h2><p>Use esta seção somente quando o perfil profissional deixar de vigorar.</p></div></header><div className="grid prototype-carreira-register-fields"><DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} /><TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} /></div></section> : null}
+        <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={status} entidade="o perfil profissional" getFormErrorMessage={() => null} />
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
         <footer className="prototype-carreira-register-actions"><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-profissional"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link><BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar perfil"} /></footer>
+        </fieldset>
       </form>
     </div>
   </PrototypeSystemPage>;
@@ -7707,13 +7805,115 @@ function carreiraDataParaIso(value: string) {
   return value.slice(0, 10);
 }
 
+interface PrototypeVigenciaEditorProps {
+  control: any;
+  setValue: (name: string, value: string) => void;
+  isEdicao: boolean;
+  readOnly?: boolean;
+  dataInicioName: string;
+  dataEncerramentoName: string;
+  motivoEncerramentoName: string;
+  dataEncerramento: string;
+  status: string;
+  entidade: string;
+  getFormErrorMessage: (name: string) => ReactNode;
+}
+
+function PrototypeVigenciaEditor({
+  control,
+  setValue,
+  isEdicao,
+  readOnly = false,
+  dataInicioName,
+  dataEncerramentoName,
+  motivoEncerramentoName,
+  dataEncerramento,
+  status,
+  entidade,
+  getFormErrorMessage,
+}: Readonly<PrototypeVigenciaEditorProps>) {
+  const solicitarEncerramento = () => {
+    setValue(dataEncerramentoName, new Date().toLocaleDateString("pt-BR"));
+  };
+
+  return (
+    <section className="prototype-carreira-register-section">
+      <header>
+        <span className="prototype-carreira-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>
+        <div>
+          <h2>Vigência</h2>
+          <p>Informe quando {entidade} passa a valer. A situação é calculada automaticamente.</p>
+        </div>
+      </header>
+      <div className="prototype-carreira-vigencia-grid">
+        <div className="prototype-carreira-vigencia-fields">
+          <div className="grid">
+            <DateFieldSeplag
+              name={dataInicioName}
+              control={control}
+              label="Data de início"
+              cols="12"
+              required
+              getFormErrorMessage={getFormErrorMessage}
+            />
+          </div>
+          {isEdicao && !readOnly && !dataEncerramento ? (
+            <BotaoSeplag
+              type="button"
+              label="Encerrar"
+              icon="pi pi-ban"
+              severity="warning"
+              outlined
+              onClick={solicitarEncerramento}
+            />
+          ) : null}
+        </div>
+        <div className={`prototype-carreira-status-card is-${status.toLowerCase().replace(" ", "-")}`}>
+          <span className="prototype-carreira-status-icon">
+            <i className={status === "Agendado" ? "pi pi-clock" : status === "Encerrado" ? "pi pi-times-circle" : status === "Extinto" ? "pi pi-ban" : status === "Ativo" ? "pi pi-check-circle" : "pi pi-calendar"} />
+          </span>
+          <div>
+            <small>Situação</small>
+            <strong>{status}</strong>
+            <p>{status === "Encerrado" ? `${entidade} está encerrado conforme a data registrada.` : status === "Extinto" ? `${entidade} foi extinto automaticamente por não possuir dependências ativas.` : status === "Agendado" ? `${entidade} será ativado automaticamente na data informada.` : status === "Ativo" ? `${entidade} passa a valer a partir da data informada.` : "Informe a data para calcular a situação inicial."}</p>
+          </div>
+        </div>
+      </div>
+      {isEdicao && dataEncerramento ? (
+        <div className="grid prototype-carreira-vigencia-encerramento">
+          <DateFieldSeplag
+            name={dataEncerramentoName}
+            control={control}
+            label="Data de encerramento"
+            cols="12 12 4"
+            required
+            getFormErrorMessage={getFormErrorMessage}
+          />
+          <TextAreaFieldSeplag
+            name={motivoEncerramentoName}
+            control={control}
+            label="Motivo do encerramento"
+            cols="12 12 8"
+            rows={3}
+            maxLength={500}
+            required
+            getFormErrorMessage={getFormErrorMessage}
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export function PrototiposCarreiraFormPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const carreiraEmEdicao = id
     ? carreirasMock.find((item) => item.id === Number(id))
     : undefined;
   const isEdicao = Boolean(id);
+  const isVisualizacao = location.pathname.endsWith("/visualizar");
   const documentosLegais = useDocumentosLegaisAssociaveis();
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
   const [orgaosDisponiveis, setOrgaosDisponiveis] =
@@ -7725,6 +7925,7 @@ export function PrototiposCarreiraFormPage() {
     control,
     handleSubmit,
     reset,
+    setValue,
     watch,
     formState: { errors },
   } = useForm<CarreiraCadastroForm>({
@@ -7832,9 +8033,8 @@ export function PrototiposCarreiraFormPage() {
       orgao: orgaosSelecionados[0].id,
       orgaosVinculados: orgaosSelecionados.length,
       situacao:
-        values.dataEncerramento &&
-        carreiraDataParaIso(values.dataEncerramento) <= hojeIso
-          ? "ENCERRADO"
+        values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
+          ? possuiDependenciaAtiva("carreira", carreiraEmEdicao?.id ?? 0) ? "ENCERRADO" : "EXTINTO"
           : "ATIVO",
       observacao: values.observacao.trim(),
       dataInicio: values.dataInicio,
@@ -7850,6 +8050,7 @@ export function PrototiposCarreiraFormPage() {
     } else {
       carreirasMock.push(dadosAtualizados);
     }
+    atualizarExtincoesDerivadas();
     navigate("/prototipos/sigep/carreira");
   };
 
@@ -7873,26 +8074,19 @@ export function PrototiposCarreiraFormPage() {
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <div className="prototype-carreira-register-page">
-        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Carreira", to: "/prototipos/sigep/carreira" }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
+      <div className={`prototype-carreira-register-page${isVisualizacao ? " is-visualizacao" : ""}`}>
+        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Carreira", to: "/prototipos/sigep/carreira" }, { label: isVisualizacao ? "Visualizar" : isEdicao ? "Editar" : "Cadastrar" }]} />
 
         <header className="prototype-carreira-register-title">
           <div>
-            <span>{isEdicao ? "EDIÇÃO" : "CADASTRO"}</span>
-            <h1>{isEdicao ? "Editar carreira" : "Nova carreira"}</h1>
+            <h1>{isVisualizacao ? "Visualizar carreira" : isEdicao ? "Editar carreira" : "Nova carreira"}</h1>
             <p>
               {isEdicao
                 ? "Atualize os dados cadastrais, a base legal e os órgãos vinculados."
                 : "Informe os dados que identificam a carreira e sua vigência inicial."}
             </p>
           </div>
-          <BadgeSeplag
-            label={isEdicao ? carreiraEmEdicao?.sigla ?? "Edição" : "Novo registro"}
-            color="#005ea8"
-            bg="#e8f3ff"
-            border="#a8d5f2"
-            size="md"
-          />
+          {isVisualizacao ? <BotaoIconSeplag severity="warning" type="button" icon="pi pi-pencil" aria-label="Editar carreira" tooltip="Editar" onClick={() => navigate(`/prototipos/sigep/carreira/${id}/editar`)} /> : null}
         </header>
 
         {erroComplementar ? (
@@ -7906,6 +8100,7 @@ export function PrototiposCarreiraFormPage() {
           className="prototype-carreira-register-form"
           onSubmit={handleSubmit(salvarCadastro)}
         >
+          <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
           <section className="prototype-carreira-register-section">
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span>
@@ -7936,75 +8131,7 @@ export function PrototiposCarreiraFormPage() {
             </div>
           </section>
 
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-calendar" /></span>
-              <div>
-                <h2>Vigência</h2>
-                <p>Informe quando a carreira passa a valer. O status é definido automaticamente.</p>
-              </div>
-            </header>
-            <div className="prototype-carreira-vigencia-grid">
-              <div className="grid">
-                <DateFieldSeplag
-                  name="dataInicio"
-                  control={control}
-                  label="Data de início"
-                  cols="12"
-                  required
-                  getFormErrorMessage={getCarreiraErrorMessage}
-                />
-              </div>
-              <div className={`prototype-carreira-status-card is-${statusVigencia.toLowerCase().replace(" ", "-")}`}>
-                <span className="prototype-carreira-status-icon">
-                  <i className={statusVigencia === "Agendado" ? "pi pi-clock" : statusVigencia === "Ativo" ? "pi pi-check-circle" : statusVigencia === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar"} />
-                </span>
-                <div>
-                  <small>Situação</small>
-                  <strong>{statusVigencia}</strong>
-                  <p>
-                    {statusVigencia === "Encerrado"
-                      ? "A carreira está encerrada conforme a data registrada."
-                      : statusVigencia === "Agendado"
-                      ? "A carreira será ativada automaticamente na data informada."
-                      : statusVigencia === "Ativo"
-                        ? "A carreira passa a valer a partir da data informada."
-                        : "Informe a data para calcular a situação inicial."}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {isEdicao ? (
-            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" /></span>
-                <div>
-                  <h2>Encerramento</h2>
-                  <p>Use esta seção somente quando a carreira deixar de vigorar.</p>
-                </div>
-              </header>
-              <div className="grid prototype-carreira-register-fields">
-                <DateFieldSeplag
-                  name="dataEncerramento"
-                  control={control}
-                  label="Data de encerramento"
-                  cols="12 12 3"
-                  getFormErrorMessage={getCarreiraErrorMessage}
-                />
-                <TextAreaFieldSeplag
-                  name="motivoEncerramento"
-                  control={control}
-                  label="Motivo do encerramento"
-                  cols="12 12 9"
-                  rows={3}
-                  maxLength={500}
-                  getFormErrorMessage={getCarreiraErrorMessage}
-                />
-              </div>
-            </section>
-          ) : null}
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={statusVigencia} entidade="a carreira" getFormErrorMessage={getCarreiraErrorMessage} />
 
           {isEdicao ? (
             <section className="prototype-carreira-register-section">
@@ -8106,6 +8233,7 @@ export function PrototiposCarreiraFormPage() {
               label={isEdicao ? "Salvar alterações" : "Salvar carreira"}
             />
           </footer>
+          </fieldset>
         </form>
       </div>
     </PrototypeSystemPage>
@@ -8171,7 +8299,7 @@ export function PrototiposCategoriaPage({
       header: "Situação",
       body: (row) => (
         <BadgeSeplag
-          label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"}
+          label={row.situacao === "ATIVO" ? "Ativo" : row.situacao === "EXTINTO" ? "Extinto" : "Encerrado"}
           color={row.situacao === "ATIVO" ? "#00843d" : "#9a6500"}
           bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1c7"}
           border="transparent"
@@ -8250,7 +8378,6 @@ export function PrototiposCategoriaPage({
               handleEdit={(row) =>
                 navigate(`${routePrefix}/categoria/${row.id}/editar`)
               }
-              handleDelete={() => {}}
               handleOnPageChange={() => {}}
             />
           </div>
@@ -8297,7 +8424,7 @@ export function PrototiposCargoPage({
       header: "Situação",
       body: (row) => (
         <BadgeSeplag
-          label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"}
+          label={row.situacao === "ATIVO" ? "Ativo" : row.situacao === "EXTINTO" ? "Extinto" : "Encerrado"}
           color={row.situacao === "ATIVO" ? "#00843d" : "#9a6500"}
           bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1c7"}
           border="transparent"
@@ -8363,12 +8490,11 @@ export function PrototiposCargoPage({
               hasEventoAcao
               handleAdicionar={() => navigate(`${routePrefix}/cargo/novo`)}
               handleView={(row) =>
-                navigate(`${routePrefix}/cargo/${row.id}/editar`)
+                navigate(`${routePrefix}/cargo/${row.id}/visualizar`)
               }
               handleEdit={(row) =>
                 navigate(`${routePrefix}/cargo/${row.id}/editar`)
               }
-              handleDelete={() => {}}
               handleOnPageChange={() => {}}
             />
           </div>
@@ -8386,6 +8512,7 @@ export function PrototiposCargoFormPage({
   const { id } = useParams();
   const cargoEmEdicao = id ? cargosTesteMock.find((item) => String(item.id) === id) : undefined;
   const isEdicao = Boolean(id);
+  const isVisualizacao = location.pathname.endsWith("/visualizar");
   const documentosLegais = useDocumentosLegaisAssociaveis();
   const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
@@ -8469,6 +8596,7 @@ export function PrototiposCargoFormPage({
       carreira: values.carreira, tiposVinculo: values.naturezaVinculo ? [values.naturezaVinculo] : [], descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [],
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
+    atualizarExtincoesDerivadas();
     navigate(`${routePrefix}/cargo`);
   };
 
@@ -8499,31 +8627,25 @@ export function PrototiposCargoFormPage({
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <div className="prototype-carreira-register-page">
-        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Cargo", to: `${routePrefix}/cargo` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
+      <div className={`prototype-carreira-register-page${isVisualizacao ? " is-visualizacao" : ""}`}>
+        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Cargo", to: `${routePrefix}/cargo` }, { label: isVisualizacao ? "Visualizar" : isEdicao ? "Editar" : "Cadastrar" }]} />
 
         <header className="prototype-carreira-register-title">
           <div>
-            <span>{isEdicao ? "EDIÇÃO" : "CADASTRO"}</span>
-            <h1>{isEdicao ? "Editar cargo" : "Novo cargo"}</h1>
+            <h1>{isVisualizacao ? "Visualizar cargo" : isEdicao ? "Editar cargo" : "Novo cargo"}</h1>
             <p>
               {isEdicao
                 ? "Atualize a identificação, classificação funcional, características e vigência do cargo."
                 : "Informe os dados que identificam o cargo e sua vigência inicial."}
             </p>
           </div>
-          <BadgeSeplag
-            label={isEdicao ? cargoEmEdicao?.codigo ?? "Edição" : "Novo registro"}
-            color="#005ea8"
-            bg="#e8f3ff"
-            border="#a8d5f2"
-            size="md"
-          />
+          {isVisualizacao ? <BotaoIconSeplag severity="warning" type="button" icon="pi pi-pencil" aria-label="Editar cargo" tooltip="Editar" onClick={() => navigate(`${routePrefix}/cargo/${id}/editar`)} /> : null}
         </header>
 
         {erroComplementar ? <div className="prototype-carreira-register-alert" role="alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
 
         <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvarCargo)}>
+          <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
           <section className="prototype-carreira-register-section">
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>
@@ -8538,46 +8660,7 @@ export function PrototiposCargoFormPage({
             </div>
           </section>
 
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>
-              <div>
-                <h2>Vigência</h2>
-                <p>Informe quando o cargo passa a valer. A situação é calculada automaticamente.</p>
-              </div>
-            </header>
-            <div className="prototype-carreira-vigencia-grid">
-              <div className="grid">
-                <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} />
-              </div>
-              <div className={`prototype-carreira-status-card is-${situacaoInicialCargo.toLowerCase().replace(" ", "-")}`}>
-                <span className="prototype-carreira-status-icon">
-                  <i className={situacaoInicialCargo === "Agendado" ? "pi pi-clock" : situacaoInicialCargo === "Ativo" ? "pi pi-check-circle" : situacaoInicialCargo === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar"} />
-                </span>
-                <div>
-                  <small>Situação</small>
-                  <strong>{situacaoInicialCargo}</strong>
-                  <p>{situacaoInicialCargo === "Encerrado" ? "O cargo está encerrado conforme a data registrada." : situacaoInicialCargo === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicialCargo === "Agendado" ? "O cargo será ativado automaticamente na data informada." : "O cargo passa a valer a partir da data informada."}</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {isEdicao ? (
-            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" aria-hidden="true" /></span>
-                <div>
-                  <h2>Encerramento</h2>
-                  <p>Use esta seção somente quando o cargo deixar de vigorar.</p>
-                </div>
-              </header>
-              <div className="grid prototype-carreira-register-fields">
-                <DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} />
-                <TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} />
-              </div>
-            </section>
-          ) : null}
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramentoCargo} status={situacaoInicialCargo} entidade="o cargo" getFormErrorMessage={() => null} />
 
           {isEdicao ? (
             <section className="prototype-carreira-register-section">
@@ -8669,6 +8752,7 @@ export function PrototiposCargoFormPage({
             <BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/cargo`)} />
             <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar cargo"} />
           </footer>
+          </fieldset>
         </form>
       </div>
     </PrototypeSystemPage>
@@ -8729,7 +8813,7 @@ export function PrototiposCategoriaFormPage({
       header: "Situação",
       body: (row) => (
         <BadgeSeplag
-          label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"}
+          label={row.situacao === "ATIVO" ? "Ativo" : row.situacao === "EXTINTO" ? "Extinto" : "Encerrado"}
           color={row.situacao === "ATIVO" ? "#00843d" : "#9a6500"}
           bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1c7"}
           border="transparent"
@@ -9045,12 +9129,11 @@ export function PrototiposSigepRegimeJuridicoPage({
                 navigate(`${routePrefix}/regime-juridico/novo`)
               }
               handleView={(row) =>
-                navigate(`${routePrefix}/regime-juridico/${row.id}/editar`)
+                navigate(`${routePrefix}/regime-juridico/${row.id}/visualizar`)
               }
               handleEdit={(row) =>
                 navigate(`${routePrefix}/regime-juridico/${row.id}/editar`)
               }
-              handleDelete={() => {}}
               handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))}
             />
           </div>
@@ -9064,13 +9147,15 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const regimeEmEdicao = id ? regimesJuridicosMock.find((item) => String(item.id) === id) : undefined;
   const isEdicao = Boolean(id);
+  const isVisualizacao = location.pathname.endsWith("/visualizar");
   const [baseLegalSelecionada, setBaseLegalSelecionada] = useState<string[]>(
     [],
   );
-  const { control, handleSubmit, watch } = useForm<RegimeJuridicoForm>({
+  const { control, handleSubmit, setValue, watch } = useForm<RegimeJuridicoForm>({
     defaultValues: {
       nome: regimeEmEdicao?.nome ?? "",
       sigla: regimeEmEdicao?.nome.split(" ").map((parte) => parte[0]).join("").slice(0, 10) ?? "",
@@ -9086,13 +9171,17 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
   const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
-  const situacaoInicial = encerramentoIso && encerramentoIso <= hojeIso ? "Encerrado" : !inicioVigenciaIso ? "A definir" : inicioVigenciaIso > hojeIso ? "Agendado" : "Ativo";
+  const situacaoInicial = regimeEmEdicao?.situacao === STATUS_OPERACIONAL_VIGENCIA.EXTINTO ? "Extinto" : encerramentoIso && encerramentoIso <= hojeIso ? "Encerrado" : !inicioVigenciaIso ? "A definir" : inicioVigenciaIso > hojeIso ? "Agendado" : "Ativo";
   const situacaoIcone = situacaoInicial === "Agendado" ? "pi pi-clock" : situacaoInicial === "Ativo" ? "pi pi-check-circle" : situacaoInicial === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar";
   const situacaoTexto = situacaoInicial === "Encerrado" ? "O regime jurídico está encerrado conforme a data registrada." : situacaoInicial === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicial === "Agendado" ? "O regime jurídico será ativado automaticamente na data informada." : "O regime jurídico passa a valer a partir da data informada.";
 
   const salvar = (values: RegimeJuridicoForm) => {
-    const registro = { id: regimeEmEdicao?.id ?? Math.max(0, ...regimesJuridicosMock.map((item) => item.id)) + 1, nome: values.nome?.trim() ?? "", descricao: values.descricao?.trim() ?? "", instituicao: regimeEmEdicao?.instituicao ?? "", instituicoesVinculadas: regimeEmEdicao?.instituicoesVinculadas ?? 0, situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso ? STATUS_OPERACIONAL_VIGENCIA.ENCERRADO : situacaoInicial === "Agendado" ? STATUS_OPERACIONAL_VIGENCIA.AGENDADO : STATUS_OPERACIONAL_VIGENCIA.ATIVO, dataAtivacao: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "" };
+    const situacaoRegime = values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
+      ? possuiDependenciaAtiva("regime", regimeEmEdicao?.id ?? 0) ? STATUS_OPERACIONAL_VIGENCIA.ENCERRADO : STATUS_OPERACIONAL_VIGENCIA.EXTINTO
+      : situacaoInicial === "Agendado" ? STATUS_OPERACIONAL_VIGENCIA.AGENDADO : STATUS_OPERACIONAL_VIGENCIA.ATIVO;
+    const registro = { id: regimeEmEdicao?.id ?? Math.max(0, ...regimesJuridicosMock.map((item) => item.id)) + 1, nome: values.nome?.trim() ?? "", descricao: values.descricao?.trim() ?? "", instituicao: regimeEmEdicao?.instituicao ?? "", instituicoesVinculadas: regimeEmEdicao?.instituicoesVinculadas ?? 0, situacao: situacaoRegime, dataAtivacao: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "" };
     if (regimeEmEdicao) Object.assign(regimeEmEdicao, registro); else regimesJuridicosMock.push(registro);
+    atualizarExtincoesDerivadas();
     navigate(`${routePrefix}/regime-juridico`);
   };
 
@@ -9105,29 +9194,23 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <div className="prototype-carreira-register-page">
-        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Regime Jurídico", to: `${routePrefix}/regime-juridico` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
+      <div className={`prototype-carreira-register-page${isVisualizacao ? " is-visualizacao" : ""}`}>
+        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Regime Jurídico", to: `${routePrefix}/regime-juridico` }, { label: isVisualizacao ? "Visualizar" : isEdicao ? "Editar" : "Cadastrar" }]} />
 
         <header className="prototype-carreira-register-title">
           <div>
-            <span>{isEdicao ? "EDIÇÃO" : "CADASTRO"}</span>
-            <h1>{isEdicao ? "Editar regime jurídico" : "Novo regime jurídico"}</h1>
+            <h1>{isVisualizacao ? "Visualizar regime jurídico" : isEdicao ? "Editar regime jurídico" : "Novo regime jurídico"}</h1>
             <p>
               {isEdicao
                 ? "Atualize os dados cadastrais, a base legal e a vigência do regime jurídico."
                 : "Informe os dados que identificam o regime jurídico e sua vigência inicial."}
             </p>
           </div>
-          <BadgeSeplag
-            label={isEdicao ? regimeEmEdicao?.nome ?? "Edição" : "Novo registro"}
-            color="#005ea8"
-            bg="#e8f3ff"
-            border="#a8d5f2"
-            size="md"
-          />
+          {isVisualizacao ? <BotaoIconSeplag severity="warning" type="button" icon="pi pi-pencil" aria-label="Editar regime jurídico" tooltip="Editar" onClick={() => navigate(`${routePrefix}/regime-juridico/${id}/editar`)} /> : null}
         </header>
 
         <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
+          <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
           <section className="prototype-carreira-register-section">
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>
@@ -9165,44 +9248,7 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
             </div>
           </section>
 
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>
-              <div>
-                <h2>Vigência</h2>
-                <p>Informe quando o regime jurídico passa a valer. A situação é calculada automaticamente.</p>
-              </div>
-            </header>
-            <div className="prototype-carreira-vigencia-grid">
-              <div className="grid">
-                <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} />
-              </div>
-              <div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}>
-                <span className="prototype-carreira-status-icon"><i className={situacaoIcone} /></span>
-                <div>
-                  <small>Situação</small>
-                  <strong>{situacaoInicial}</strong>
-                  <p>{situacaoTexto}</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {isEdicao ? (
-            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" aria-hidden="true" /></span>
-                <div>
-                  <h2>Encerramento</h2>
-                  <p>Use esta seção somente quando o regime jurídico deixar de vigorar.</p>
-                </div>
-              </header>
-              <div className="grid prototype-carreira-register-fields">
-                <DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} />
-                <TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} />
-              </div>
-            </section>
-          ) : null}
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o regime jurídico" getFormErrorMessage={() => null} />
 
           {isEdicao ? (
             <section className="prototype-carreira-register-section">
@@ -9250,6 +9296,7 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
             />
             <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar regime jurídico"} />
           </div>
+          </fieldset>
         </form>
       </div>
     </PrototypeSystemPage>
@@ -9302,7 +9349,7 @@ export function PrototiposCategoriaTestePage() {
       header: "Situação",
       body: (row) => (
         <BadgeSeplag
-          label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"}
+          label={row.situacao === "ATIVO" ? "Ativo" : row.situacao === "EXTINTO" ? "Extinto" : "Encerrado"}
           color={row.situacao === "ATIVO" ? "#00843d" : "#9a6500"}
           bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1c7"}
           border="transparent"
@@ -9642,7 +9689,7 @@ export function PrototiposCargoTestePage() {
       header: "Situação",
       body: (row) => (
         <BadgeSeplag
-          label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"}
+          label={row.situacao === "ATIVO" ? "Ativo" : row.situacao === "EXTINTO" ? "Extinto" : "Encerrado"}
           color={row.situacao === "ATIVO" ? "#00843d" : "#9a6500"}
           bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1c7"}
           border="transparent"
@@ -10193,12 +10240,6 @@ export function PrototiposSigepRegimeJuridicoTesteNovoPage() {
   const [baseLegalSelecionada, setBaseLegalSelecionada] = useState<string[]>(
     [],
   );
-  const [instituicoesDisponiveis, setInstituicoesDisponiveis] = useState(
-    regimeTesteInstituicaoOptions.filter((item) => item.value !== "govmt"),
-  );
-  const [instituicoesSelecionadas, setInstituicoesSelecionadas] = useState(
-    regimeTesteInstituicaoOptions.filter((item) => item.value === "govmt"),
-  );
   const { control, setValue } = useForm<RegimeJuridicoForm>({
     defaultValues: {
       nome: "",
@@ -10383,7 +10424,7 @@ export function PrototiposTipoVinculoTestePage({
       header: "Situação",
       body: (row) => (
         <BadgeSeplag
-          label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"}
+          label={row.situacao === "ATIVO" ? "Ativo" : row.situacao === "EXTINTO" ? "Extinto" : "Encerrado"}
           color={row.situacao === "ATIVO" ? "#00843d" : "#9a6500"}
           bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1c7"}
           border="transparent"
@@ -10485,12 +10526,11 @@ export function PrototiposTipoVinculoTestePage({
                 navigate(`${routePrefix}/tipo-vinculo/novo`)
               }
               handleView={(row) =>
-                navigate(`${routePrefix}/tipo-vinculo/${row.id}/editar`)
+                navigate(`${routePrefix}/tipo-vinculo/${row.id}/visualizar`)
               }
               handleEdit={(row) =>
                 navigate(`${routePrefix}/tipo-vinculo/${row.id}/editar`)
               }
-              handleDelete={() => {}}
               handleOnPageChange={() => {}}
             />
           </div>
@@ -10507,21 +10547,16 @@ export function PrototiposTipoVinculoTesteFormPage({
   const location = useLocation();
   const { id } = useParams();
   const isEditing = Boolean(id);
+  const isVisualizacao = location.pathname.endsWith("/visualizar");
   const tipoEmEdicao = id
     ? tiposVinculoTesteMock.find((item) => String(item.id) === id)
     : undefined;
   const [baseLegalSelecionada, setBaseLegalSelecionada] = useState<string[]>(
     [],
   );
-  const [instituicoesDisponiveis, setInstituicoesDisponiveis] = useState(
-    regimeTesteInstituicaoOptions.filter((item) => item.value !== "govmt"),
-  );
-  const [instituicoesSelecionadas, setInstituicoesSelecionadas] = useState(
-    regimeTesteInstituicaoOptions.filter((item) => item.value === "govmt"),
-  );
   const [dataInicioVigenciaEdicao = "", dataEncerramentoVigenciaEdicao = ""] =
     tipoEmEdicao?.vigencia.split(" - ") ?? [];
-  const { control, handleSubmit, watch } = useForm<TipoVinculoForm>({
+  const { control, handleSubmit, setValue, watch } = useForm<TipoVinculoForm>({
     defaultValues: {
       codigo: tipoEmEdicao?.codigo ?? "",
       nome: tipoEmEdicao?.nome ?? "",
@@ -10576,7 +10611,9 @@ export function PrototiposTipoVinculoTesteFormPage({
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
   const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
-  const situacaoInicial = encerramentoIso && encerramentoIso <= hojeIso
+  const situacaoInicial = tipoEmEdicao?.situacao === "EXTINTO"
+    ? "Extinto"
+    : encerramentoIso && encerramentoIso <= hojeIso
     ? "Encerrado"
     : !inicioVigenciaIso
     ? "A definir"
@@ -10599,10 +10636,13 @@ export function PrototiposTipoVinculoTesteFormPage({
       comportamentos: comportamentosSelecionados,
       regimesJuridicos: values.regimesJuridicos ?? [],
       vigencia: `${values.dataAtivacao ?? ""} - ${values.dataEncerramento ?? ""}`.trim(),
-      situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso ? "ENCERRADO" : "ATIVO",
+      situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
+        ? possuiDependenciaAtiva("vinculo", tipoEmEdicao?.id ?? 0) ? "ENCERRADO" : "EXTINTO"
+        : "ATIVO",
     };
     if (tipoEmEdicao) Object.assign(tipoEmEdicao, registro);
     else tiposVinculoTesteMock.push(registro);
+    atualizarExtincoesDerivadas();
     navigate(`${routePrefix}/tipo-vinculo`);
   };
 
@@ -10616,29 +10656,23 @@ export function PrototiposTipoVinculoTesteFormPage({
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <div className="prototype-carreira-register-page">
-        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Vínculos Funcionais" }, { label: "Tipo de Vínculo", to: `${routePrefix}/tipo-vinculo` }, { label: isEditing ? "Editar" : "Cadastrar" }]} />
+      <div className={`prototype-carreira-register-page${isVisualizacao ? " is-visualizacao" : ""}`}>
+        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Vínculos Funcionais" }, { label: "Tipo de Vínculo", to: `${routePrefix}/tipo-vinculo` }, { label: isVisualizacao ? "Visualizar" : isEditing ? "Editar" : "Cadastrar" }]} />
 
         <header className="prototype-carreira-register-title">
           <div>
-            <span>{isEditing ? "EDIÇÃO" : "CADASTRO"}</span>
-            <h1>{isEditing ? "Editar tipo de vínculo" : "Novo tipo de vínculo"}</h1>
+            <h1>{isVisualizacao ? "Visualizar tipo de vínculo" : isEditing ? "Editar tipo de vínculo" : "Novo tipo de vínculo"}</h1>
             <p>
               {isEditing
                 ? "Atualize a identificação, classificação, comportamentos e vigência do tipo de vínculo."
                 : "Informe os dados que identificam o tipo de vínculo e sua vigência inicial."}
             </p>
           </div>
-          <BadgeSeplag
-            label={isEditing ? tipoEmEdicao?.codigo ?? "Edição" : "Novo registro"}
-            color="#005ea8"
-            bg="#e8f3ff"
-            border="#a8d5f2"
-            size="md"
-          />
+          {isVisualizacao ? <BotaoIconSeplag severity="warning" type="button" icon="pi pi-pencil" aria-label="Editar tipo de vínculo" tooltip="Editar" onClick={() => navigate(`${routePrefix}/tipo-vinculo/${id}/editar`)} /> : null}
         </header>
 
         <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
+          <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
           <section className="prototype-carreira-register-section">
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>
@@ -10653,46 +10687,7 @@ export function PrototiposTipoVinculoTesteFormPage({
             </div>
           </section>
 
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>
-              <div>
-                <h2>Vigência</h2>
-                <p>Informe quando o tipo de vínculo passa a valer. A situação é calculada automaticamente.</p>
-              </div>
-            </header>
-            <div className="prototype-carreira-vigencia-grid">
-              <div className="grid">
-                <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} />
-              </div>
-              <div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}>
-                <span className="prototype-carreira-status-icon">
-                  <i className={situacaoInicial === "Agendado" ? "pi pi-clock" : situacaoInicial === "Ativo" ? "pi pi-check-circle" : situacaoInicial === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar"} />
-                </span>
-                <div>
-                  <small>Situação</small>
-                  <strong>{situacaoInicial}</strong>
-                  <p>{situacaoInicial === "Encerrado" ? "O tipo de vínculo está encerrado conforme a data registrada." : situacaoInicial === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicial === "Agendado" ? "O tipo de vínculo será ativado automaticamente na data informada." : "O tipo de vínculo passa a valer a partir da data informada."}</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {isEditing ? (
-            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" aria-hidden="true" /></span>
-                <div>
-                  <h2>Encerramento</h2>
-                  <p>Use esta seção somente quando o tipo de vínculo deixar de vigorar.</p>
-                </div>
-              </header>
-              <div className="grid prototype-carreira-register-fields">
-                <DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} />
-                <TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} />
-              </div>
-            </section>
-          ) : null}
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEditing} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o tipo de vínculo" getFormErrorMessage={() => null} />
 
           {isEditing ? (
             <section className="prototype-carreira-register-section">
@@ -10758,31 +10753,6 @@ export function PrototiposTipoVinculoTesteFormPage({
 
           <section className="prototype-carreira-register-section">
             <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-building" aria-hidden="true" /></span>
-              <div>
-                <h2>Instituições vinculadas</h2>
-                <p>Selecione as instituições nas quais o tipo de vínculo poderá ser utilizado.</p>
-              </div>
-            </header>
-            <div className="prototype-carreira-register-body">
-              <PickListSeplag
-                title=""
-                titleNaoSelecionados="Instituições disponíveis"
-                titleSelecionados="Instituições selecionadas"
-                dataKey="value"
-                dataLabel="label"
-                filterBy="label"
-                filterPlaceholder="Procurar por instituição"
-                naoSelecionados={instituicoesDisponiveis}
-                selecionados={instituicoesSelecionadas}
-                setNaoSelecionados={setInstituicoesDisponiveis}
-                setSelecionados={setInstituicoesSelecionadas}
-              />
-            </div>
-          </section>
-
-          <section className="prototype-carreira-register-section">
-            <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-comment" aria-hidden="true" /></span>
               <div>
                 <h2>Observação</h2>
@@ -10798,6 +10768,7 @@ export function PrototiposTipoVinculoTesteFormPage({
             <BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/tipo-vinculo`)} />
             <BotaoSalvarSeplag type="submit" label={isEditing ? "Salvar alterações" : "Salvar tipo de vínculo"} />
           </footer>
+          </fieldset>
         </form>
       </div>
     </PrototypeSystemPage>

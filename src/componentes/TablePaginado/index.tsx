@@ -51,6 +51,10 @@ export interface TablePaginadoSeplagProps<T extends DataTableValue> {
   readonly handleDuplicar?: ((arg: T) => void) | null;
   readonly handleView?: ((arg: T) => void) | null;
   readonly handleAdicionar?: (() => void) | null;
+  /** Personaliza a ação que ocupa o lugar da exclusão nesta tabela. */
+  readonly deleteActionLabel?: string;
+  readonly deleteActionIcon?: string;
+  readonly deleteConfirmationMessage?: string;
   readonly disableAdicionar?: boolean;
   /** Ações extras (além de Editar/Duplicar/Excluir) somadas à contagem que decide entre o grupo
    * de ícones e o SplitButton — no SplitButton elas entram como itens do menu. */
@@ -102,6 +106,9 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
   handleDuplicar,
   handleView,
   handleAdicionar,
+  deleteActionLabel = "Excluir",
+  deleteActionIcon = "pi pi-trash",
+  deleteConfirmationMessage,
   disableAdicionar,
   extraAcoesSplit,
   handleSelectionChange,
@@ -183,8 +190,8 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
         });
       if (handleDelete)
         splitModel.push({
-          label: "Excluir",
-          icon: "pi pi-trash",
+          label: deleteActionLabel,
+          icon: deleteActionIcon,
           command: () => handleAbrirConfirmacaoExclusao(rowData),
         });
       splitModel.push(...itensExtras);
@@ -230,8 +237,8 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
           <BotaoIconSeplag
             severity="danger"
             type="button"
-            tooltip="Excluir"
-            icon="pi pi-trash"
+            tooltip={deleteActionLabel}
+            icon={deleteActionIcon}
             onClick={() => handleAbrirConfirmacaoExclusao(rowData)}
           />
         )}
@@ -347,6 +354,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
         visible={visibleConfirmExcluir}
         onCancel={() => setVisibleConfirmExcluir(false)}
         onConfirm={confirmarExclusao}
+        message={deleteConfirmationMessage}
       />
     </div>
   );
