@@ -244,7 +244,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           },
           { label: "Carreira", icon: "pi pi-circle-on", to: "/prototipos/sigep/carreira", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Cargo", icon: "pi pi-circle-on", to: "/prototipos/sigep/cargo", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Perfil Profissional", icon: "pi pi-circle-on", to: "/prototipos/sigep/perfil-especialidade", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Perfil Profissional", icon: "pi pi-circle-on", to: "/prototipos/sigep/perfil-profissional", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tabelas de Vencimentos", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -1028,6 +1028,8 @@ interface TipoVinculoForm {
   exigeCargo?: "S" | "N";
   exigeVaga?: "S" | "N";
   permiteControleVagas?: "S" | "N";
+  concursoPublico?: "S" | "N";
+  processoSeletivo?: "S" | "N";
   permiteFolha?: "S" | "N";
   permiteAposentadoria?: "S" | "N";
   permitePensionista?: "S" | "N";
@@ -1234,6 +1236,8 @@ interface CargoTesteRow extends CargoRow {
   tiposVinculo?: string[];
   descricao?: string;
   dataInicio?: string;
+  dataEncerramento?: string;
+  motivoEncerramento?: string;
   documentosIds?: string[];
   perfisEspecialidadesIds?: number[];
 }
@@ -1438,6 +1442,9 @@ interface RegimeJuridicoRow {
   instituicao: string;
   instituicoesVinculadas: number;
   situacao: StatusOperacionalVigenciaSeplag;
+  dataAtivacao?: string;
+  dataEncerramento?: string;
+  motivoEncerramento?: string;
 }
 
 interface RegimeJuridicoTesteRow extends RegimeJuridicoRow {
@@ -7544,7 +7551,7 @@ export function PrototiposPerfilEspecialidadePage() {
   const paginados = filtrados.slice(pagina * registrosPorPagina, (pagina + 1) * registrosPorPagina);
   const resultados = { ...createResults(paginados), pageActual: pagina, totalPages: Math.max(1, Math.ceil(filtrados.length / registrosPorPagina)), totalRecords: filtrados.length, sizePage: registrosPorPagina, size: registrosPorPagina };
   const colunas: ColumnMetaSeplag<PerfilEspecialidadeRow>[] = [
-    { field: "nome", header: "Perfil/Especialidade" },
+    { field: "nome", header: "Perfil Profissional" },
     { field: "areaFormacao", header: "Área de formação" },
     { field: "cbo", header: "CBO" },
     { header: "Cargos", body: (row) => <button type="button" className="prototype-link-button">{row.cargosVinculados} {row.cargosVinculados === 1 ? "Cargo" : "Cargos"}</button> },
@@ -7554,14 +7561,14 @@ export function PrototiposPerfilEspecialidadePage() {
 
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
     <div className="prototype-page-content prototype-page-content--white">
-      <CardSeplag title="Perfis/Especialidades" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil/Especialidade" }]} />}>
+      <CardSeplag title="Perfis Profissionais" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil Profissional" }]} />}>
         <div className="prototype-category-filters prototype-carreira-filters grid">
-          <TextFieldSeplag name="termo" control={control} label="Perfil/Especialidade (Nome, CBO)" cols="12 6 5" getFormErrorMessage={() => null} />
+          <TextFieldSeplag name="termo" control={control} label="Perfil Profissional (Nome, CBO)" cols="12 6 5" getFormErrorMessage={() => null} />
           <DropdownFieldSeplag name="areaFormacao" control={control} label="Área de formação" cols="12 6 3" options={areas} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
           <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 2" options={situacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
           <div className="prototype-category-clear col-12 md:col-6 lg:col-2"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ termo: "", areaFormacao: undefined, situacao: undefined })} /></div>
         </div>
-        <div className="prototype-category-table prototype-perfil-especialidade-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/perfil-especialidade/novo")} handleView={(row) => navigate(`/prototipos/sigep/perfil-especialidade/${row.id}/editar`)} handleEdit={(row) => navigate(`/prototipos/sigep/perfil-especialidade/${row.id}/editar`)} handleDelete={() => {}} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
+        <div className="prototype-category-table prototype-perfil-especialidade-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/perfil-profissional/novo")} handleView={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/editar`)} handleEdit={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/editar`)} handleDelete={() => {}} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
       </CardSeplag>
     </div>
   </PrototypeSystemPage>;
@@ -7653,27 +7660,27 @@ export function PrototiposPerfilEspecialidadeFormPage() {
     if (isEdicao && values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) < carreiraDataParaIso(values.dataInicio)) return setErroComplementar("A data de encerramento não pode ser anterior à data de início.");
     if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
     if (exigeRegistro && !values.conselho) return setErroComplementar("Selecione o conselho profissional exigido.");
-    if (perfisEspecialidadesMock.some((item) => item.id !== perfilEmEdicao?.id && item.nome.trim().toLowerCase() === values.nome.trim().toLowerCase())) return setErroComplementar("Já existe um Perfil/Especialidade com esse nome.");
+    if (perfisEspecialidadesMock.some((item) => item.id !== perfilEmEdicao?.id && item.nome.trim().toLowerCase() === values.nome.trim().toLowerCase())) return setErroComplementar("Já existe um Perfil Profissional com esse nome.");
     const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: exibeFormacao ? values.formacoes.join(", ") || "Não informada" : "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso ? "ENCERRADO" : "ATIVO", descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: values.exigeRegistro, conselho: exigeRegistro ? values.conselho : "", especializacao: nivelPosGraduacaoSelecionado ? values.especializacoes.join(", ") : "", dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
     if (perfilEmEdicao) Object.assign(perfilEmEdicao, atualizado); else perfisEspecialidadesMock.push(atualizado);
-    navigate("/prototipos/sigep/perfil-especialidade");
+    navigate("/prototipos/sigep/perfil-profissional");
   };
 
-  if (isEdicao && !perfilEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert">Perfil/Especialidade não encontrado.</div><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-especialidade"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link></div></PrototypeSystemPage>;
+  if (isEdicao && !perfilEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert">Perfil Profissional não encontrado.</div><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-profissional"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link></div></PrototypeSystemPage>;
 
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
     <div className="prototype-carreira-register-page">
-      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil/Especialidade", to: "/prototipos/sigep/perfil-especialidade" }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
+      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil Profissional", to: "/prototipos/sigep/perfil-profissional" }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
       <header className="prototype-carreira-register-title"><div><h1>{isEdicao ? "Editar perfil profissional" : "Cadastrar perfil profissional"}</h1><p>Informe a identificação e os requisitos profissionais.</p></div></header>
       {erroComplementar ? <div className="prototype-carreira-register-alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
       <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil ou especialidade.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil/Especialidade" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <MultiSelectFieldSeplag name="formacoes" control={control} label="Formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : "12 12 4"} options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais formações" getFormErrorMessage={() => null} /> : null}{nivelPosGraduacaoSelecionado ? <MultiSelectFieldSeplag name="especializacoes" control={control} label="Especialização" cols="12 12 3" options={perfilEspecializacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais especializações" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-calendar" /></span><div><h2>Vigência</h2><p>Informe quando o perfil passa a valer. A situação é calculada automaticamente.</p></div></header><div className="prototype-carreira-vigencia-grid"><div className="grid"><DateFieldSeplag name="dataInicio" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} /></div><div className={`prototype-carreira-status-card is-${status.toLowerCase().replace(" ", "-")}`}><span className="prototype-carreira-status-icon"><i className={status === "Agendado" ? "pi pi-clock" : status === "Ativo" ? "pi pi-check-circle" : status === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar"} /></span><div><small>Situação</small><strong>{status}</strong><p>{status === "Encerrado" ? "O perfil está encerrado conforme a data registrada." : status === "A definir" ? "Informe a data para calcular a situação inicial." : status === "Agendado" ? "O perfil será ativado automaticamente na data informada." : "O perfil passa a valer a partir da data informada."}</p></div></div></div></section>
-        {isEdicao ? <section className="prototype-carreira-register-section prototype-carreira-closing-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-ban" /></span><div><h2>Encerramento</h2><p>Use esta seção somente quando o perfil ou especialidade deixar de vigorar.</p></div></header><div className="grid prototype-carreira-register-fields"><DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} /><TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} /></div></section> : null}
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o perfil ou especialidade.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
-        <footer className="prototype-carreira-register-actions"><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-especialidade"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link><BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar perfil"} /></footer>
+        {isEdicao ? <section className="prototype-carreira-register-section prototype-carreira-closing-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-ban" /></span><div><h2>Encerramento</h2><p>Use esta seção somente quando o perfil profissional deixar de vigorar.</p></div></header><div className="grid prototype-carreira-register-fields"><DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} /><TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} /></div></section> : null}
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
+        <footer className="prototype-carreira-register-actions"><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-profissional"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link><BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar perfil"} /></footer>
       </form>
     </div>
   </PrototypeSystemPage>;
@@ -7970,6 +7977,36 @@ export function PrototiposCarreiraFormPage() {
           </section>
 
           {isEdicao ? (
+            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
+              <header>
+                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" /></span>
+                <div>
+                  <h2>Encerramento</h2>
+                  <p>Use esta seção somente quando a carreira deixar de vigorar.</p>
+                </div>
+              </header>
+              <div className="grid prototype-carreira-register-fields">
+                <DateFieldSeplag
+                  name="dataEncerramento"
+                  control={control}
+                  label="Data de encerramento"
+                  cols="12 12 3"
+                  getFormErrorMessage={getCarreiraErrorMessage}
+                />
+                <TextAreaFieldSeplag
+                  name="motivoEncerramento"
+                  control={control}
+                  label="Motivo do encerramento"
+                  cols="12 12 9"
+                  rows={3}
+                  maxLength={500}
+                  getFormErrorMessage={getCarreiraErrorMessage}
+                />
+              </div>
+            </section>
+          ) : null}
+
+          {isEdicao ? (
             <section className="prototype-carreira-register-section">
               <header>
                 <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" /></span>
@@ -8037,36 +8074,6 @@ export function PrototiposCarreiraFormPage() {
               />
             </div>
           </section>
-
-          {isEdicao ? (
-            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" /></span>
-                <div>
-                  <h2>Encerramento</h2>
-                  <p>Use esta seção somente quando a carreira deixar de vigorar.</p>
-                </div>
-              </header>
-              <div className="grid prototype-carreira-register-fields">
-                <DateFieldSeplag
-                  name="dataEncerramento"
-                  control={control}
-                  label="Data de encerramento"
-                  cols="12 12 3"
-                  getFormErrorMessage={getCarreiraErrorMessage}
-                />
-                <TextAreaFieldSeplag
-                  name="motivoEncerramento"
-                  control={control}
-                  label="Motivo do encerramento"
-                  cols="12 12 9"
-                  rows={3}
-                  maxLength={500}
-                  getFormErrorMessage={getCarreiraErrorMessage}
-                />
-              </div>
-            </section>
-          ) : null}
 
           <section className="prototype-carreira-register-section">
             <header>
@@ -8436,6 +8443,8 @@ export function PrototiposCargoFormPage({
       observacao: "",
       situacao: cargoEmEdicao.situacao === "ATIVO" ? SITUACAO_VIGENCIA.ATIVO : SITUACAO_VIGENCIA.ENCERRADO,
       dataAtivacao: cargoEmEdicao.dataInicio ?? cargoEmEdicao.vigencia.split(" -")[0],
+      dataEncerramento: cargoEmEdicao.dataEncerramento ?? "",
+      motivoEncerramento: cargoEmEdicao.motivoEncerramento ?? "",
     });
   }, [cargoEmEdicao, reset]);
 
@@ -8456,14 +8465,12 @@ export function PrototiposCargoFormPage({
       codigo, cargo: values.nomeCargo?.trim() ?? "", categoria: cargoEmEdicao?.categoria ?? "Não se aplica", subcategoria: cargoEmEdicao?.subcategoria ?? "Não se aplica",
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
-      vigencia: `${values.dataAtivacao || "A definir"} -`, situacao: values.situacao === SITUACAO_VIGENCIA.ENCERRADO ? "ENCERRADO" : "ATIVO",
-      carreira: values.carreira, tiposVinculo: values.naturezaVinculo ? [values.naturezaVinculo] : [], descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [],
+      vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO",
+      carreira: values.carreira, tiposVinculo: values.naturezaVinculo ? [values.naturezaVinculo] : [], descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [],
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     navigate(`${routePrefix}/cargo`);
   };
-
-  if (isEdicao && !cargoEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert" role="alert">Cargo não encontrado.</div><BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/cargo`)} /></div></PrototypeSystemPage>;
 
   const tipoVinculoSelecionado = watch("naturezaVinculo") ?? "";
   const dadosTipoVinculoSelecionado = tiposVinculoTesteMock.find((item) => item.codigo === tipoVinculoSelecionado);
@@ -8472,13 +8479,19 @@ export function PrototiposCargoFormPage({
   const carreiraObrigatoria = dadosTipoVinculoSelecionado?.nome === "Nomeado Efetivo";
   useEffect(() => { if (!carreiraObrigatoria) setValue("carreira", undefined); }, [carreiraObrigatoria, setValue]);
   const inicioVigenciaCargo = watch("dataAtivacao") ?? "";
+  const dataEncerramentoCargo = watch("dataEncerramento") ?? "";
   const inicioVigenciaCargoIso = carreiraDataParaIso(inicioVigenciaCargo);
+  const encerramentoCargoIso = carreiraDataParaIso(dataEncerramentoCargo);
   const hojeCargoIso = new Date().toISOString().slice(0, 10);
-  const situacaoInicialCargo = !inicioVigenciaCargoIso
+  const situacaoInicialCargo = encerramentoCargoIso && encerramentoCargoIso <= hojeCargoIso
+    ? "Encerrado"
+    : !inicioVigenciaCargoIso
     ? "A definir"
     : inicioVigenciaCargoIso > hojeCargoIso
       ? "Agendado"
       : "Ativo";
+
+  if (isEdicao && !cargoEmEdicao) return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-carreira-register-page"><div className="prototype-carreira-register-alert" role="alert">Cargo não encontrado.</div><BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/cargo`)} /></div></PrototypeSystemPage>;
 
   return (
     <PrototypeSystemPage
@@ -8486,189 +8499,178 @@ export function PrototiposCargoFormPage({
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <form onSubmit={handleSubmit(salvarCargo)}>
-        <div className="prototype-page-content prototype-page-content--white">
-          <CardSeplag
-            title={isEdicao ? "Editar - Cargo" : "Cadastrar - Cargo"}
-            cols="12"
-            cardHeaderClassNames="prototype-category-card"
-            headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Cargo", to: `${routePrefix}/cargo` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />}
-          >
-            <div className="prototype-cargo-form">
-              {erroComplementar ? <div className="prototype-carreira-register-alert" role="alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>Base Legal</h3>
-                <div className="prototype-carreira-register-body">
-                  <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={(ids) => { setDocumentosSelecionados(ids); setErroComplementar(""); }} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir />
+      <div className="prototype-carreira-register-page">
+        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Cargo", to: `${routePrefix}/cargo` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
+
+        <header className="prototype-carreira-register-title">
+          <div>
+            <span>{isEdicao ? "EDIÇÃO" : "CADASTRO"}</span>
+            <h1>{isEdicao ? "Editar cargo" : "Novo cargo"}</h1>
+            <p>
+              {isEdicao
+                ? "Atualize a identificação, classificação funcional, características e vigência do cargo."
+                : "Informe os dados que identificam o cargo e sua vigência inicial."}
+            </p>
+          </div>
+          <BadgeSeplag
+            label={isEdicao ? cargoEmEdicao?.codigo ?? "Edição" : "Novo registro"}
+            color="#005ea8"
+            bg="#e8f3ff"
+            border="#a8d5f2"
+            size="md"
+          />
+        </header>
+
+        {erroComplementar ? <div className="prototype-carreira-register-alert" role="alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
+
+        <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvarCargo)}>
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>
+              <div>
+                <h2>Identificação</h2>
+                <p>Dados principais usados para localizar e reconhecer o cargo.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <TextFieldSeplag name="codigo" control={control} label="Código/Sigla" cols="12 12 3" required getFormErrorMessage={() => null} />
+              <TextFieldSeplag name="nomeCargo" control={control} label="Nome do Cargo" cols="12 12 9" required getFormErrorMessage={() => null} />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>
+              <div>
+                <h2>Vigência</h2>
+                <p>Informe quando o cargo passa a valer. A situação é calculada automaticamente.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-vigencia-grid">
+              <div className="grid">
+                <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} />
+              </div>
+              <div className={`prototype-carreira-status-card is-${situacaoInicialCargo.toLowerCase().replace(" ", "-")}`}>
+                <span className="prototype-carreira-status-icon">
+                  <i className={situacaoInicialCargo === "Agendado" ? "pi pi-clock" : situacaoInicialCargo === "Ativo" ? "pi pi-check-circle" : situacaoInicialCargo === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar"} />
+                </span>
+                <div>
+                  <small>Situação</small>
+                  <strong>{situacaoInicialCargo}</strong>
+                  <p>{situacaoInicialCargo === "Encerrado" ? "O cargo está encerrado conforme a data registrada." : situacaoInicialCargo === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicialCargo === "Agendado" ? "O cargo será ativado automaticamente na data informada." : "O cargo passa a valer a partir da data informada."}</p>
                 </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>Identificação</h3>
-                <div className="grid prototype-cargo-form-fields">
-                  <TextFieldSeplag
-                    name="codigo"
-                    control={control}
-                    label="Código/Sigla"
-                    cols="12 12 3"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  <TextFieldSeplag
-                    name="nomeCargo"
-                    control={control}
-                    label="Nome do Cargo"
-                    cols="12 12 9"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-sitemap" aria-hidden="true" /></span>Classificação Funcional</h3>
-                <div className="grid prototype-cargo-form-fields">
-                  <DropdownFieldSeplag
-                    name="naturezaVinculo"
-                    control={control}
-                    label="Tipo de Vínculo"
-                    placeholder="Selecione o tipo de vínculo"
-                    cols="12 12 6"
-                    options={tiposVinculoTesteMock.filter((item) => item.situacao === "ATIVO").map((item) => ({ label: item.nome, value: item.codigo }))}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  {carreiraObrigatoria ? (
-                    <DropdownFieldSeplag
-                      name="carreira"
-                      control={control}
-                      label="Carreira"
-                      placeholder="Selecione a carreira"
-                      cols="12 12 6"
-                      options={carreirasMock.filter((item) => item.situacao === "ATIVO" || item.sigla === cargoEmEdicao?.carreira).map((item) => ({ label: `${item.sigla} — ${item.nome}`, value: item.sigla }))}
-                      optionLabel="label"
-                      optionValue="value"
-                      required
-                      getFormErrorMessage={() => null}
-                    />
-                  ) : null}
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>Características do Cargo</h3>
-                <div className="grid prototype-cargo-form-fields">
-                  <MultiSelectFieldSeplag
-                    name="jornadasPermitidas"
-                    control={control}
-                    label="Jornadas permitidas"
-                    placeholder="Selecione uma ou mais jornadas"
-                    cols="12 12 3"
-                    options={cargoJornadaOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  <DropdownFieldSeplag
-                    name="escolaridadeMinima"
-                    control={control}
-                    label="Escolaridade Mínima"
-                    placeholder="Selecione..."
-                    cols="12 12 3"
-                    options={cargoEscolaridadeOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  <DropdownFieldSeplag
-                    name="cbo"
-                    control={control}
-                    label="CBO do Cargo"
-                    placeholder="Selecione..."
-                    cols="12 12 3"
-                    options={cargoCboOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    getFormErrorMessage={() => null}
-                  />
-                  <MultiSelectFieldSeplag
-                    name="perfisEspecialidades"
-                    control={control}
-                    label="Perfil/Especialidade"
-                    placeholder="Selecione um ou mais perfis"
-                    cols="12 12 3"
-                    options={perfisEspecialidadesMock.filter((perfil) => perfil.situacao === "ATIVO" || idsPerfisSelecionados.includes(perfil.id)).map((perfil) => ({ label: perfil.nome, value: perfil.id }))}
-                    optionLabel="label"
-                    optionValue="value"
-                    getFormErrorMessage={() => null}
-                  />
-                  {perfisSelecionadosCargo.length ? (
-                    <div className="col-12 prototype-cargo-profile-table-wrapper">
-                      <table className="prototype-cargo-profile-table">
-                        <thead><tr><th>Perfil/Especialidade</th><th>Área de formação</th><th>CBO</th></tr></thead>
-                        <tbody>{perfisSelecionadosCargo.map((perfil) => <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td></tr>)}</tbody>
-                      </table>
-                    </div>
-                  ) : null}
-                  <SwitchFieldSeplag
-                    name="cargoChefia"
-                    control={control}
-                    label="Cargo de Chefia"
-                    cols="12 12 4"
-                    getFormErrorMessage={() => null}
-                  />
-                  <SwitchFieldSeplag
-                    name="permiteSubstituicao"
-                    control={control}
-                    label="Permite Substituição"
-                    cols="12 12 4"
-                    getFormErrorMessage={() => null}
-                  />
-                  <SwitchFieldSeplag
-                    name="exibirPortal"
-                    control={control}
-                    label="Exibir no Portal?"
-                    cols="12 12 4"
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>Vigência</h3>
-                {!isEdicao ? (
-                  <div className="prototype-carreira-vigencia-grid">
-                    <div className="grid">
-                      <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} />
-                    </div>
-                    <div className={`prototype-carreira-status-card is-${situacaoInicialCargo.toLowerCase().replace(" ", "-")}`}>
-                      <span className="prototype-carreira-status-icon"><i className={situacaoInicialCargo === "Agendado" ? "pi pi-clock" : situacaoInicialCargo === "Ativo" ? "pi pi-check-circle" : "pi pi-calendar"} /></span>
-                      <div><small>Situação</small><strong>{situacaoInicialCargo}</strong><p>{situacaoInicialCargo === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicialCargo === "Agendado" ? "O cargo será ativado automaticamente na data informada." : "O cargo passa a valer a partir da data informada."}</p></div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="prototype-cargo-vigencia-fields">
-                    <SituacaoVigenciaSeplag<CargoForm> control={control} setValue={setValue} rotuloDataAtivacao="Início de Vigência" cols={{ situacao: "12 12 3", dataAtivacao: "12 12 3", statusOperacional: "col-12 md:col-4 lg:col-4 prototype-status-operacional-col", dataEncerramento: "12 12 3", motivoEncerramento: "12", dataExtincao: "12 12 3", motivoExtincao: "12" }} getFormErrorMessage={() => null} />
-                  </div>
-                )}
-              </section>
-
-              <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o cargo.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
-              <div className="prototype-category-form-footer">
-                <BotaoVoltarSeplag
-                  type="button"
-                  onClick={() => navigate(`${routePrefix}/cargo`)}
-                />
-                <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar cargo"} />
               </div>
             </div>
-          </CardSeplag>
-        </div>
-      </form>
+          </section>
+
+          {isEdicao ? (
+            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
+              <header>
+                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" aria-hidden="true" /></span>
+                <div>
+                  <h2>Encerramento</h2>
+                  <p>Use esta seção somente quando o cargo deixar de vigorar.</p>
+                </div>
+              </header>
+              <div className="grid prototype-carreira-register-fields">
+                <DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} />
+                <TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} />
+              </div>
+            </section>
+          ) : null}
+
+          {isEdicao ? (
+            <section className="prototype-carreira-register-section">
+              <header>
+                <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" aria-hidden="true" /></span>
+                <div>
+                  <h2>Dados do registro</h2>
+                  <p>Informações geradas automaticamente pelo sistema.</p>
+                </div>
+              </header>
+              <dl className="prototype-carreira-register-metadata">
+                <div><dt>Identificador</dt><dd>{cargoEmEdicao?.id}</dd></div>
+                <div><dt>Categoria</dt><dd>{cargoEmEdicao?.categoria || "Não informada"}</dd></div>
+                <div><dt>Situação atual</dt><dd>{situacaoInicialCargo}</dd></div>
+              </dl>
+            </section>
+          ) : null}
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
+              <div>
+                <h2>Base legal</h2>
+                <p>Associe os documentos que fundamentam a criação do cargo.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-register-body">
+              <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={(ids) => { setDocumentosSelecionados(ids); setErroComplementar(""); }} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-sitemap" aria-hidden="true" /></span>
+              <div>
+                <h2>Classificação funcional</h2>
+                <p>Defina o tipo de vínculo e a carreira associada quando aplicável.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <DropdownFieldSeplag name="naturezaVinculo" control={control} label="Tipo de Vínculo" placeholder="Selecione o tipo de vínculo" cols="12 12 6" options={tiposVinculoTesteMock.filter((item) => item.situacao === "ATIVO").map((item) => ({ label: item.nome, value: item.codigo }))} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              {carreiraObrigatoria ? (
+                <DropdownFieldSeplag name="carreira" control={control} label="Carreira" placeholder="Selecione a carreira" cols="12 12 6" options={carreirasMock.filter((item) => item.situacao === "ATIVO" || item.sigla === cargoEmEdicao?.carreira).map((item) => ({ label: `${item.sigla} — ${item.nome}`, value: item.sigla }))} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              ) : null}
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>
+              <div>
+                <h2>Características do cargo</h2>
+                <p>Configure jornada, escolaridade, CBO e perfis profissionais vinculados.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <MultiSelectFieldSeplag name="jornadasPermitidas" control={control} label="Jornadas permitidas" placeholder="Selecione uma ou mais jornadas" cols="12 12 3" options={cargoJornadaOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              <DropdownFieldSeplag name="escolaridadeMinima" control={control} label="Escolaridade Mínima" placeholder="Selecione..." cols="12 12 3" options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              <DropdownFieldSeplag name="cbo" control={control} label="CBO do Cargo" placeholder="Selecione..." cols="12 12 3" options={cargoCboOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="perfisEspecialidades" control={control} label="Perfil Profissional" placeholder="Selecione um ou mais perfis" cols="12 12 3" options={perfisEspecialidadesMock.filter((perfil) => perfil.situacao === "ATIVO" || idsPerfisSelecionados.includes(perfil.id)).map((perfil) => ({ label: perfil.nome, value: perfil.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+              {perfisSelecionadosCargo.length ? (
+                <div className="col-12 prototype-cargo-profile-table-wrapper">
+                  <table className="prototype-cargo-profile-table">
+                    <thead><tr><th>Perfil Profissional</th><th>Área de formação</th><th>CBO</th></tr></thead>
+                    <tbody>{perfisSelecionadosCargo.map((perfil) => <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              ) : null}
+              <SwitchFieldSeplag name="cargoChefia" control={control} label="Cargo de Chefia" cols="12 12 4" getFormErrorMessage={() => null} />
+              <SwitchFieldSeplag name="permiteSubstituicao" control={control} label="Permite Substituição" cols="12 12 4" getFormErrorMessage={() => null} />
+              <SwitchFieldSeplag name="exibirPortal" control={control} label="Exibir no Portal?" cols="12 12 4" getFormErrorMessage={() => null} />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-comment" aria-hidden="true" /></span>
+              <div>
+                <h2>Observação</h2>
+                <p>Registre informações complementares sobre o cargo.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} />
+            </div>
+          </section>
+
+          <footer className="prototype-carreira-register-actions">
+            <BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/cargo`)} />
+            <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar cargo"} />
+          </footer>
+        </form>
+      </div>
     </PrototypeSystemPage>
   );
 }
@@ -8971,25 +8973,6 @@ export function PrototiposSigepRegimeJuridicoPage({
     { field: "nome", header: "Nome" },
     { field: "descricao", header: "Descrição" },
     {
-      header: "Tipos de Vínculo",
-      body: (row) => {
-        const quantidade = tiposVinculoTesteMock.filter((tipo) =>
-          tipo.regimesJuridicos.some((nomeRegime) =>
-            nomeRegime.localeCompare(row.nome, "pt-BR", { sensitivity: "base" }) === 0,
-          ),
-        ).length;
-        return (
-          <button
-            type="button"
-            className="prototype-link-button"
-            onClick={() => navigate(`${routePrefix}/tipo-vinculo?regimeJuridico=${encodeURIComponent(row.nome)}`)}
-          >
-            {quantidade} {quantidade === 1 ? "Vínculo" : "Vínculos"}
-          </button>
-        );
-      },
-    },
-    {
       header: "Situação",
       body: (row) => renderGrupoCalculoStatusBadge(row.situacao),
     },
@@ -9001,14 +8984,14 @@ export function PrototiposSigepRegimeJuridicoPage({
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <div className="prototype-page-content prototype-page-content--white prototype-regime-page">
+      <div className="prototype-page-content prototype-page-content--white">
         <CardSeplag
-          title="Regime Jurídico"
+          title="Regimes Jurídicos"
           cols="12"
-          cardHeaderClassNames="prototype-regime-card"
+          cardHeaderClassNames="prototype-carreira-card"
           headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Regime Jurídico" }]} />}
         >
-          <div className="prototype-category-filters prototype-regime-filters grid">
+          <div className="prototype-category-filters prototype-carreira-filters grid">
             {tipoVinculoParam ? (
               <div className="col-12 prototype-carreira-register-alert" role="status">
                 Exibindo regimes associados a <strong>{tipoVinculoParam}</strong>.
@@ -9017,7 +9000,7 @@ export function PrototiposSigepRegimeJuridicoPage({
             <TextFieldSeplag
               name="nome"
               control={control}
-              label="Nome"
+              label="Regime Jurídico (Nome, Descrição)"
               cols="12 6 5"
               getFormErrorMessage={() => null}
             />
@@ -9034,7 +9017,7 @@ export function PrototiposSigepRegimeJuridicoPage({
             <div className="prototype-category-clear col-12 md:col-6 lg:col-2">
               <BotaoLimparFiltroSeplag
                 type="button"
-                label="Limpar"
+                label="Limpar Filtro"
                 icon="pi pi-refresh"
                 onClick={() => {
                   reset({
@@ -9047,7 +9030,7 @@ export function PrototiposSigepRegimeJuridicoPage({
             </div>
           </div>
 
-          <div className="prototype-regime-table prototype-regime-table--sigep-list">
+          <div className="prototype-category-table">
             <TablePaginadoSeplag
               dataKey="id"
               data={regimeResults}
@@ -9093,18 +9076,22 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
       sigla: regimeEmEdicao?.nome.split(" ").map((parte) => parte[0]).join("").slice(0, 10) ?? "",
       descricao: regimeEmEdicao?.descricao ?? "",
       situacao: regimeEmEdicao?.situacao === STATUS_OPERACIONAL_VIGENCIA.ENCERRADO ? SITUACAO_VIGENCIA.ENCERRADO : SITUACAO_VIGENCIA.ATIVO,
-      dataAtivacao: "",
+      dataAtivacao: isEdicao ? regimeEmEdicao?.dataAtivacao ?? "01/01/2026" : "",
+      dataEncerramento: regimeEmEdicao?.dataEncerramento ?? "",
+      motivoEncerramento: regimeEmEdicao?.motivoEncerramento ?? "",
     },
   });
   const inicioVigencia = watch("dataAtivacao") ?? "";
+  const dataEncerramento = watch("dataEncerramento") ?? "";
   const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
+  const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
-  const situacaoInicial = !inicioVigenciaIso ? "A definir" : inicioVigenciaIso > hojeIso ? "Agendado" : "Ativo";
-  const situacaoIcone = situacaoInicial === "Agendado" ? "pi pi-clock" : situacaoInicial === "Ativo" ? "pi pi-check-circle" : "pi pi-calendar";
-  const situacaoTexto = situacaoInicial === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicial === "Agendado" ? "O regime jurídico será ativado automaticamente na data informada." : "O regime jurídico passa a valer a partir da data informada.";
+  const situacaoInicial = encerramentoIso && encerramentoIso <= hojeIso ? "Encerrado" : !inicioVigenciaIso ? "A definir" : inicioVigenciaIso > hojeIso ? "Agendado" : "Ativo";
+  const situacaoIcone = situacaoInicial === "Agendado" ? "pi pi-clock" : situacaoInicial === "Ativo" ? "pi pi-check-circle" : situacaoInicial === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar";
+  const situacaoTexto = situacaoInicial === "Encerrado" ? "O regime jurídico está encerrado conforme a data registrada." : situacaoInicial === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicial === "Agendado" ? "O regime jurídico será ativado automaticamente na data informada." : "O regime jurídico passa a valer a partir da data informada.";
 
   const salvar = (values: RegimeJuridicoForm) => {
-    const registro = { id: regimeEmEdicao?.id ?? Math.max(0, ...regimesJuridicosMock.map((item) => item.id)) + 1, nome: values.nome?.trim() ?? "", descricao: values.descricao?.trim() ?? "", instituicao: "", instituicoesVinculadas: 0, situacao: situacaoInicial === "Agendado" ? STATUS_OPERACIONAL_VIGENCIA.AGENDADO : STATUS_OPERACIONAL_VIGENCIA.ATIVO };
+    const registro = { id: regimeEmEdicao?.id ?? Math.max(0, ...regimesJuridicosMock.map((item) => item.id)) + 1, nome: values.nome?.trim() ?? "", descricao: values.descricao?.trim() ?? "", instituicao: regimeEmEdicao?.instituicao ?? "", instituicoesVinculadas: regimeEmEdicao?.instituicoesVinculadas ?? 0, situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso ? STATUS_OPERACIONAL_VIGENCIA.ENCERRADO : situacaoInicial === "Agendado" ? STATUS_OPERACIONAL_VIGENCIA.AGENDADO : STATUS_OPERACIONAL_VIGENCIA.ATIVO, dataAtivacao: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "" };
     if (regimeEmEdicao) Object.assign(regimeEmEdicao, registro); else regimesJuridicosMock.push(registro);
     navigate(`${routePrefix}/regime-juridico`);
   };
@@ -9118,15 +9105,38 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <form onSubmit={handleSubmit(salvar)}>
-        <div className="prototype-page-content prototype-page-content--white prototype-regime-page">
-          <CardSeplag
-            title={isEdicao ? "Editar - Regime Jurídico" : "Cadastrar - Regime Jurídico"}
-            cols="12"
-            cardHeaderClassNames="prototype-regime-card"
-            headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Regime Jurídico", to: `${routePrefix}/regime-juridico` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />}
-          >
-            <div className="grid prototype-category-form-fields prototype-regime-form-fields">
+      <div className="prototype-carreira-register-page">
+        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Regime Jurídico", to: `${routePrefix}/regime-juridico` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
+
+        <header className="prototype-carreira-register-title">
+          <div>
+            <span>{isEdicao ? "EDIÇÃO" : "CADASTRO"}</span>
+            <h1>{isEdicao ? "Editar regime jurídico" : "Novo regime jurídico"}</h1>
+            <p>
+              {isEdicao
+                ? "Atualize os dados cadastrais, a base legal e a vigência do regime jurídico."
+                : "Informe os dados que identificam o regime jurídico e sua vigência inicial."}
+            </p>
+          </div>
+          <BadgeSeplag
+            label={isEdicao ? regimeEmEdicao?.nome ?? "Edição" : "Novo registro"}
+            color="#005ea8"
+            bg="#e8f3ff"
+            border="#a8d5f2"
+            size="md"
+          />
+        </header>
+
+        <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>
+              <div>
+                <h2>Identificação</h2>
+                <p>Dados principais usados para localizar e reconhecer o regime jurídico.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
               <TextFieldSeplag
                 name="sigla"
                 control={control}
@@ -9152,33 +9162,96 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
                 maxLength={500}
                 getFormErrorMessage={() => null}
               />
+            </div>
+          </section>
 
-              <div className="col-12 prototype-regime-section">
-                <DocumentosLegaisAssociadosSeplag
-                  label="Base Legal"
-                  required
-                  options={documentosLegaisMock}
-                  value={baseLegalSelecionada}
-                  onChange={setBaseLegalSelecionada}
-                  onNovoCadastro={() => {}}
-                  onVisualizar={() => {}}
-                />
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>
+              <div>
+                <h2>Vigência</h2>
+                <p>Informe quando o regime jurídico passa a valer. A situação é calculada automaticamente.</p>
               </div>
-
-
-              <section className="col-12 prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-angle-right" /></span><div><h2>Vigência</h2></div></header><div className="prototype-carreira-register-body"><div className="prototype-carreira-vigencia-grid"><div className="grid"><DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} /></div><div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}><span className="prototype-carreira-status-icon"><i className={situacaoIcone} /></span><div><small>Situação</small><strong>{situacaoInicial}</strong><p>{situacaoTexto}</p></div></div></div></div></section>
+            </header>
+            <div className="prototype-carreira-vigencia-grid">
+              <div className="grid">
+                <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} />
+              </div>
+              <div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}>
+                <span className="prototype-carreira-status-icon"><i className={situacaoIcone} /></span>
+                <div>
+                  <small>Situação</small>
+                  <strong>{situacaoInicial}</strong>
+                  <p>{situacaoTexto}</p>
+                </div>
+              </div>
             </div>
+          </section>
 
-            <div className="prototype-category-form-footer">
-              <BotaoVoltarSeplag
-                type="button"
-                onClick={() => navigate(`${routePrefix}/regime-juridico`)}
+          {isEdicao ? (
+            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
+              <header>
+                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" aria-hidden="true" /></span>
+                <div>
+                  <h2>Encerramento</h2>
+                  <p>Use esta seção somente quando o regime jurídico deixar de vigorar.</p>
+                </div>
+              </header>
+              <div className="grid prototype-carreira-register-fields">
+                <DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} />
+                <TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} />
+              </div>
+            </section>
+          ) : null}
+
+          {isEdicao ? (
+            <section className="prototype-carreira-register-section">
+              <header>
+                <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" aria-hidden="true" /></span>
+                <div>
+                  <h2>Dados do registro</h2>
+                  <p>Informações geradas automaticamente pelo sistema.</p>
+                </div>
+              </header>
+              <dl className="prototype-carreira-register-metadata">
+                <div><dt>Identificador</dt><dd>{regimeEmEdicao?.id}</dd></div>
+                <div><dt>Instituição</dt><dd>{regimeEmEdicao?.instituicao || "Não informada"}</dd></div>
+                <div><dt>Situação atual</dt><dd>{situacaoInicial}</dd></div>
+              </dl>
+            </section>
+          ) : null}
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
+              <div>
+                <h2>Base legal</h2>
+                <p>Associe os documentos que fundamentam o regime jurídico.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-register-body">
+              <DocumentosLegaisAssociadosSeplag
+                label="Documentos legais associados"
+                required
+                options={documentosLegaisMock}
+                value={baseLegalSelecionada}
+                onChange={setBaseLegalSelecionada}
+                onNovoCadastro={() => {}}
+                onVisualizar={() => {}}
+                expandirAoAbrir
               />
-              <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar regime jurídico"} />
             </div>
-          </CardSeplag>
-        </div>
-      </form>
+          </section>
+
+          <div className="prototype-carreira-register-actions">
+            <BotaoVoltarSeplag
+              type="button"
+              onClick={() => navigate(`${routePrefix}/regime-juridico`)}
+            />
+            <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar regime jurídico"} />
+          </div>
+        </form>
+      </div>
     </PrototypeSystemPage>
   );
 }
@@ -10431,6 +10504,7 @@ export function PrototiposTipoVinculoTesteFormPage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const isEditing = Boolean(id);
   const tipoEmEdicao = id
@@ -10445,7 +10519,9 @@ export function PrototiposTipoVinculoTesteFormPage({
   const [instituicoesSelecionadas, setInstituicoesSelecionadas] = useState(
     regimeTesteInstituicaoOptions.filter((item) => item.value === "govmt"),
   );
-  const { control, handleSubmit, setValue, watch } = useForm<TipoVinculoForm>({
+  const [dataInicioVigenciaEdicao = "", dataEncerramentoVigenciaEdicao = ""] =
+    tipoEmEdicao?.vigencia.split(" - ") ?? [];
+  const { control, handleSubmit, watch } = useForm<TipoVinculoForm>({
     defaultValues: {
       codigo: tipoEmEdicao?.codigo ?? "",
       nome: tipoEmEdicao?.nome ?? "",
@@ -10457,6 +10533,8 @@ export function PrototiposTipoVinculoTesteFormPage({
       exigeCargo: "S",
       exigeVaga: "N",
       permiteControleVagas: "S",
+      concursoPublico: tipoEmEdicao?.comportamentos.includes("Concurso público") ? "S" : "N",
+      processoSeletivo: tipoEmEdicao?.comportamentos.includes("Processo seletivo") ? "S" : "N",
       permiteFolha: "S",
       permiteAposentadoria: "N",
       permitePensionista: "N",
@@ -10464,8 +10542,8 @@ export function PrototiposTipoVinculoTesteFormPage({
       exigeDataFim: "N",
       observacao: "",
       situacao: SITUACAO_VIGENCIA.ATIVO,
-      dataAtivacao: "",
-      dataEncerramento: "",
+      dataAtivacao: dataInicioVigenciaEdicao,
+      dataEncerramento: dataEncerramentoVigenciaEdicao,
       dataExtincao: "",
       motivoEncerramento: "",
       motivoExtincao: "",
@@ -10477,61 +10555,39 @@ export function PrototiposTipoVinculoTesteFormPage({
     descricao: string;
   }> = [
     {
-      name: "geraVinculoFuncional",
-      titulo: "Gera vínculo funcional?",
-      descricao: "Indica se o tipo cria um vínculo funcional para a pessoa.",
-    },
-    {
-      name: "exigeCargo",
-      titulo: "Exige cargo?",
-      descricao: "Torna obrigatória a seleção de cargo nos fluxos aplicáveis.",
-    },
-    {
-      name: "exigeVaga",
-      titulo: "Exige vaga?",
-      descricao: "Permite exigir vaga quando o cargo controlar quadro.",
-    },
-    {
       name: "permiteControleVagas",
       titulo: "Permite controle de vagas?",
       descricao: "Habilita uso no módulo de Controle de Vagas.",
     },
     {
-      name: "permiteFolha",
-      titulo: "Permite folha?",
-      descricao: "Indica se o vínculo pode gerar registros para pagamento.",
+      name: "concursoPublico",
+      titulo: "Concurso público?",
+      descricao: "Indica que o tipo de vínculo se aplica a concurso público.",
     },
     {
-      name: "permiteAposentadoria",
-      titulo: "Permite aposentadoria?",
-      descricao: "Habilita fluxos previdenciários de aposentadoria/inatividade.",
-    },
-    {
-      name: "permitePensionista",
-      titulo: "Permite pensionista?",
-      descricao: "Habilita fluxos específicos de pensionista.",
-    },
-    {
-      name: "permiteEventoCargo",
-      titulo: "Permite evento de cargo?",
-      descricao: "Permite uso em provimento, alteração ou evento de cargo.",
-    },
-    {
-      name: "exigeDataFim",
-      titulo: "Exige data fim?",
-      descricao: "Obrigatoriedade de data final prevista para o vínculo.",
+      name: "processoSeletivo",
+      titulo: "Processo seletivo?",
+      descricao: "Indica que o tipo de vínculo se aplica a processo seletivo.",
     },
   ];
   const inicioVigencia = watch("dataAtivacao") ?? "";
+  const dataEncerramento = watch("dataEncerramento") ?? "";
   const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
+  const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
-  const situacaoInicial = !inicioVigenciaIso
+  const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
+  const situacaoInicial = encerramentoIso && encerramentoIso <= hojeIso
+    ? "Encerrado"
+    : !inicioVigenciaIso
     ? "A definir"
     : inicioVigenciaIso > hojeIso
       ? "Agendado"
       : "Ativo";
 
   const salvar = (values: TipoVinculoForm) => {
+    const comportamentosSelecionados = comportamentoRows
+      .filter((comportamento) => values[comportamento.name] === "S")
+      .map((comportamento) => comportamento.titulo.replace("?", ""));
     const registro: TipoVinculoTesteRow = {
       id: tipoEmEdicao?.id ?? Math.max(0, ...tiposVinculoTesteMock.map((item) => item.id)) + 1,
       codigo: values.codigo?.trim() ?? "",
@@ -10540,10 +10596,10 @@ export function PrototiposTipoVinculoTesteFormPage({
       natureza: values.natureza ?? "",
       instituicao: tipoEmEdicao?.instituicao ?? "govmt",
       instituicoesVinculadas: tipoEmEdicao?.instituicoesVinculadas ?? 1,
-      comportamentos: tipoEmEdicao?.comportamentos ?? ["Gera vínculo", "Permite folha"],
+      comportamentos: comportamentosSelecionados,
       regimesJuridicos: values.regimesJuridicos ?? [],
-      vigencia: tipoEmEdicao?.vigencia ?? "01/01/2026 -",
-      situacao: values.situacao === SITUACAO_VIGENCIA.ENCERRADO ? "ENCERRADO" : "ATIVO",
+      vigencia: `${values.dataAtivacao ?? ""} - ${values.dataEncerramento ?? ""}`.trim(),
+      situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso ? "ENCERRADO" : "ATIVO",
     };
     if (tipoEmEdicao) Object.assign(tipoEmEdicao, registro);
     else tiposVinculoTesteMock.push(registro);
@@ -10560,158 +10616,190 @@ export function PrototiposTipoVinculoTesteFormPage({
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <form onSubmit={handleSubmit(salvar)}>
-        <div className="prototype-page-content prototype-page-content--white">
-          <CardSeplag
-            title={`${isEditing ? "Alterar" : "Cadastrar"} - Tipo de Vínculo`}
-            cols="12"
-            cardHeaderClassNames="prototype-category-card"
-            headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Vínculos Funcionais" }, { label: "Tipo de Vínculo", to: `${routePrefix}/tipo-vinculo` }, { label: isEditing ? "Editar" : "Cadastrar" }]} />}
-          >
-            <div className="prototype-cargo-form prototype-tipo-vinculo-form">
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>Base Legal</h3>
-                <div className="prototype-carreira-register-body">
-                  <DocumentosLegaisAssociadosSeplag
-                    label="Documentos legais associados"
-                    required
-                    options={documentosLegaisMock}
-                    value={baseLegalSelecionada}
-                    onChange={setBaseLegalSelecionada}
-                    onNovoCadastro={() => navigate(`/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(window.location.pathname)}`)}
-                    onVisualizar={() => {}}
-                    expandirAoAbrir
-                  />
+      <div className="prototype-carreira-register-page">
+        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Vínculos Funcionais" }, { label: "Tipo de Vínculo", to: `${routePrefix}/tipo-vinculo` }, { label: isEditing ? "Editar" : "Cadastrar" }]} />
+
+        <header className="prototype-carreira-register-title">
+          <div>
+            <span>{isEditing ? "EDIÇÃO" : "CADASTRO"}</span>
+            <h1>{isEditing ? "Editar tipo de vínculo" : "Novo tipo de vínculo"}</h1>
+            <p>
+              {isEditing
+                ? "Atualize a identificação, classificação, comportamentos e vigência do tipo de vínculo."
+                : "Informe os dados que identificam o tipo de vínculo e sua vigência inicial."}
+            </p>
+          </div>
+          <BadgeSeplag
+            label={isEditing ? tipoEmEdicao?.codigo ?? "Edição" : "Novo registro"}
+            color="#005ea8"
+            bg="#e8f3ff"
+            border="#a8d5f2"
+            size="md"
+          />
+        </header>
+
+        <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>
+              <div>
+                <h2>Identificação</h2>
+                <p>Dados principais usados para localizar e reconhecer o tipo de vínculo.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <TextFieldSeplag name="codigo" control={control} label="Sigla/Código" cols="12 12 3" required getFormErrorMessage={() => null} />
+              <TextFieldSeplag name="nome" control={control} label="Nome do Tipo de Vínculo" cols="12 12 9" required getFormErrorMessage={() => null} />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>
+              <div>
+                <h2>Vigência</h2>
+                <p>Informe quando o tipo de vínculo passa a valer. A situação é calculada automaticamente.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-vigencia-grid">
+              <div className="grid">
+                <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} />
+              </div>
+              <div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}>
+                <span className="prototype-carreira-status-icon">
+                  <i className={situacaoInicial === "Agendado" ? "pi pi-clock" : situacaoInicial === "Ativo" ? "pi pi-check-circle" : situacaoInicial === "Encerrado" ? "pi pi-times-circle" : "pi pi-calendar"} />
+                </span>
+                <div>
+                  <small>Situação</small>
+                  <strong>{situacaoInicial}</strong>
+                  <p>{situacaoInicial === "Encerrado" ? "O tipo de vínculo está encerrado conforme a data registrada." : situacaoInicial === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicial === "Agendado" ? "O tipo de vínculo será ativado automaticamente na data informada." : "O tipo de vínculo passa a valer a partir da data informada."}</p>
                 </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>Identificação</h3>
-                <div className="grid prototype-cargo-form-fields">
-                  <TextFieldSeplag
-                    name="codigo"
-                    control={control}
-                    label="Sigla/Código"
-                    cols="12 12 3"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  <TextFieldSeplag
-                    name="nome"
-                    control={control}
-                    label="Nome do Tipo de Vínculo"
-                    cols="12 12 9"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-tags" aria-hidden="true" /></span>Classificação</h3>
-                <div className="grid prototype-cargo-form-fields">
-                  <DropdownFieldSeplag
-                    name="natureza"
-                    control={control}
-                    label="Natureza do Vínculo"
-                    placeholder="Selecione..."
-                    cols="12 12 4"
-                    options={tipoVinculoNaturezaOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    required
-                    getFormErrorMessage={() => null}
-                  />
-                  <MultiSelectFieldSeplag
-                    name="regimesJuridicos"
-                    control={control}
-                    label="Regimes Jurídicos associados"
-                    placeholder="Selecione um ou mais regimes"
-                    cols="12 12 8"
-                    options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))}
-                    optionLabel="label"
-                    optionValue="value"
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>Comportamentos do Vínculo</h3>
-                <div className="prototype-shared-criterios-list prototype-tipo-vinculo-comportamentos">
-                  {comportamentoRows.map((comportamento) => (
-                    <div
-                      className="prototype-shared-criterio-item"
-                      key={comportamento.name}
-                    >
-                      <CheckboxFieldSeplag<TipoVinculoForm>
-                        name={comportamento.name}
-                        control={control}
-                        checkboxLabel={comportamento.titulo}
-                        cols="12"
-                      />
-                      <span>{comportamento.descricao}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-calendar" aria-hidden="true" /></span>Vigência</h3>
-                {!isEditing ? (
-                  <div className="prototype-carreira-vigencia-grid">
-                    <div className="grid"><DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} /></div>
-                    <div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}>
-                      <span className="prototype-carreira-status-icon"><i className={situacaoInicial === "Agendado" ? "pi pi-clock" : situacaoInicial === "Ativo" ? "pi pi-check-circle" : "pi pi-calendar"} /></span>
-                      <div><small>Situação</small><strong>{situacaoInicial}</strong><p>{situacaoInicial === "A definir" ? "Informe a data para calcular a situação inicial." : situacaoInicial === "Agendado" ? "O tipo de vínculo será ativado automaticamente na data informada." : "O tipo de vínculo passa a valer a partir da data informada."}</p></div>
-                    </div>
-                  </div>
-                ) : <div className="prototype-cargo-vigencia-fields">
-                  <SituacaoVigenciaSeplag<TipoVinculoForm>
-                    control={control}
-                    setValue={setValue}
-                    rotuloDataAtivacao="Início de Vigência"
-                    cols={{
-                      situacao: "12 12 3",
-                      dataAtivacao: "12 12 3",
-                      statusOperacional:
-                        "col-12 md:col-4 lg:col-4 prototype-status-operacional-col",
-                      dataEncerramento: "12 12 3",
-                      motivoEncerramento: "12",
-                      dataExtincao: "12 12 3",
-                      motivoExtincao: "12",
-                    }}
-                    getFormErrorMessage={() => null}
-                  />
-                </div>}
-              </section>
-
-              <section className="prototype-cargo-form-section">
-                <h3><span className="prototype-cargo-section-icon"><i className="pi pi-comment" aria-hidden="true" /></span>Observação</h3>
-                <div className="grid prototype-cargo-form-fields">
-                  <TextAreaFieldSeplag
-                    name="observacao"
-                    control={control}
-                    label="Observação"
-                    cols="12"
-                    rows={4}
-                    maxLength={500}
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </section>
-
-              <div className="prototype-category-form-footer">
-                <BotaoVoltarSeplag
-                  type="button"
-                  onClick={() => navigate(`${routePrefix}/tipo-vinculo`)}
-                />
-                <BotaoSalvarSeplag type="submit" label={isEditing ? "Salvar alterações" : "Salvar tipo de vínculo"} />
               </div>
             </div>
-          </CardSeplag>
-        </div>
-      </form>
+          </section>
+
+          {isEditing ? (
+            <section className="prototype-carreira-register-section prototype-carreira-closing-section">
+              <header>
+                <span className="prototype-carreira-section-icon"><i className="pi pi-ban" aria-hidden="true" /></span>
+                <div>
+                  <h2>Encerramento</h2>
+                  <p>Use esta seção somente quando o tipo de vínculo deixar de vigorar.</p>
+                </div>
+              </header>
+              <div className="grid prototype-carreira-register-fields">
+                <DateFieldSeplag name="dataEncerramento" control={control} label="Data de encerramento" cols="12 12 3" getFormErrorMessage={() => null} />
+                <TextAreaFieldSeplag name="motivoEncerramento" control={control} label="Motivo do encerramento" cols="12 12 9" rows={3} maxLength={500} getFormErrorMessage={() => null} />
+              </div>
+            </section>
+          ) : null}
+
+          {isEditing ? (
+            <section className="prototype-carreira-register-section">
+              <header>
+                <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" aria-hidden="true" /></span>
+                <div>
+                  <h2>Dados do registro</h2>
+                  <p>Informações geradas automaticamente pelo sistema.</p>
+                </div>
+              </header>
+              <dl className="prototype-carreira-register-metadata">
+                <div><dt>Identificador</dt><dd>{tipoEmEdicao?.id}</dd></div>
+                <div><dt>Instituição</dt><dd>{tipoEmEdicao?.instituicao || "Não informada"}</dd></div>
+                <div><dt>Situação atual</dt><dd>{situacaoInicial}</dd></div>
+              </dl>
+            </section>
+          ) : null}
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
+              <div>
+                <h2>Base legal</h2>
+                <p>Associe os documentos que fundamentam o tipo de vínculo.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-register-body">
+              <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegaisMock} value={baseLegalSelecionada} onChange={setBaseLegalSelecionada} onNovoCadastro={() => navigate(novoDocumentoUrl)} onVisualizar={() => {}} expandirAoAbrir />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-tags" aria-hidden="true" /></span>
+              <div>
+                <h2>Classificação</h2>
+                <p>Defina a natureza e os regimes jurídicos associados ao tipo de vínculo.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <DropdownFieldSeplag name="natureza" control={control} label="Natureza do Vínculo" placeholder="Selecione..." cols="12 12 4" options={tipoVinculoNaturezaOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos associados" placeholder="Selecione um ou mais regimes" cols="12 12 8" options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>
+              <div>
+                <h2>Comportamentos do vínculo</h2>
+                <p>Configure as regras operacionais aplicáveis a este tipo de vínculo.</p>
+              </div>
+            </header>
+            <div className="prototype-shared-criterios-list prototype-tipo-vinculo-comportamentos">
+              {comportamentoRows.map((comportamento) => (
+                <div className="prototype-shared-criterio-item" key={comportamento.name}>
+                  <CheckboxFieldSeplag<TipoVinculoForm> name={comportamento.name} control={control} checkboxLabel={comportamento.titulo} cols="12" />
+                  <span>{comportamento.descricao}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-building" aria-hidden="true" /></span>
+              <div>
+                <h2>Instituições vinculadas</h2>
+                <p>Selecione as instituições nas quais o tipo de vínculo poderá ser utilizado.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-register-body">
+              <PickListSeplag
+                title=""
+                titleNaoSelecionados="Instituições disponíveis"
+                titleSelecionados="Instituições selecionadas"
+                dataKey="value"
+                dataLabel="label"
+                filterBy="label"
+                filterPlaceholder="Procurar por instituição"
+                naoSelecionados={instituicoesDisponiveis}
+                selecionados={instituicoesSelecionadas}
+                setNaoSelecionados={setInstituicoesDisponiveis}
+                setSelecionados={setInstituicoesSelecionadas}
+              />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-comment" aria-hidden="true" /></span>
+              <div>
+                <h2>Observação</h2>
+                <p>Registre informações complementares sobre o tipo de vínculo.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} />
+            </div>
+          </section>
+
+          <footer className="prototype-carreira-register-actions">
+            <BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/tipo-vinculo`)} />
+            <BotaoSalvarSeplag type="submit" label={isEditing ? "Salvar alterações" : "Salvar tipo de vínculo"} />
+          </footer>
+        </form>
+      </div>
     </PrototypeSystemPage>
   );
 }

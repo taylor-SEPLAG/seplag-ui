@@ -6,6 +6,7 @@ import {
   Navigate,
   useLocation,
   useNavigate,
+  useParams,
 } from "react-router-dom";
 import { useMemo, useState } from "react";
 import {
@@ -344,6 +345,11 @@ function HomePage() {
       </footer>
     </div>
   );
+}
+
+function PerfilEspecialidadeEditRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/prototipos/sigep/perfil-profissional/${id}/editar`} replace />;
 }
 
 type CalendarDay = {
@@ -1663,11 +1669,14 @@ function App() {
         element={<PrototiposCarreiraFormPage />}
       />
       <Route
-        path="/prototipos/sigep/perfil-especialidade"
+        path="/prototipos/sigep/perfil-profissional"
         element={<PrototiposPerfilEspecialidadePage />}
       />
-      <Route path="/prototipos/sigep/perfil-especialidade/novo" element={<PrototiposPerfilEspecialidadeFormPage />} />
-      <Route path="/prototipos/sigep/perfil-especialidade/:id/editar" element={<PrototiposPerfilEspecialidadeFormPage />} />
+      <Route path="/prototipos/sigep/perfil-profissional/novo" element={<PrototiposPerfilEspecialidadeFormPage />} />
+      <Route path="/prototipos/sigep/perfil-profissional/:id/editar" element={<PrototiposPerfilEspecialidadeFormPage />} />
+      <Route path="/prototipos/sigep/perfil-especialidade" element={<Navigate to="/prototipos/sigep/perfil-profissional" replace />} />
+      <Route path="/prototipos/sigep/perfil-especialidade/novo" element={<Navigate to="/prototipos/sigep/perfil-profissional/novo" replace />} />
+      <Route path="/prototipos/sigep/perfil-especialidade/:id/editar" element={<PerfilEspecialidadeEditRedirect />} />
       <Route
         path="/prototipos/sigep/categoria"
         element={<PrototiposCategoriaPage />}
