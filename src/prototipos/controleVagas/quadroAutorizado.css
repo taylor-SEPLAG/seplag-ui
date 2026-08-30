@@ -2404,37 +2404,39 @@
   font-weight: 700;
 }
 .prototype-quadro-cargo-indisponivel {
-  display: block;
+  display: flex;
   position: relative;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
   width: 100%;
   color: #667085;
   cursor: not-allowed;
+}
+
+.prototype-quadro-cargo-indisponivel .prototype-quadro-cargo-indisponivel-label {
+  display: inline-block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: calc(100% - 96px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
 }
 
-
-.prototype-quadro-cargo-modal-message {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px;
-  border: 1px solid #acd5f5;
-  border-left: 4px solid #087bc1;
-  border-radius: 4px;
-  background: #eef8ff;
-  color: #163a59;
-}
-
-.prototype-quadro-cargo-modal-message > i {
-  margin-top: 2px;
-  color: #087bc1;
-  font-size: 18px;
-}
-
-.prototype-quadro-cargo-modal-message p {
-  margin: 5px 0 0;
-  line-height: 1.45;
+.prototype-quadro-cargo-indisponivel-badge {
+  flex: 0 0 auto;
+  border: 1px solid #b8d6f2;
+  border-radius: 999px;
+  background: #eaf5ff;
+  color: #075b96;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
 }
 
 .prototype-legal-reduction-allocation input.is-invalid {
