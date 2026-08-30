@@ -9250,23 +9250,6 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
 
           <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o regime jurídico" getFormErrorMessage={() => null} />
 
-          {isEdicao ? (
-            <section className="prototype-carreira-register-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" aria-hidden="true" /></span>
-                <div>
-                  <h2>Dados do registro</h2>
-                  <p>Informações geradas automaticamente pelo sistema.</p>
-                </div>
-              </header>
-              <dl className="prototype-carreira-register-metadata">
-                <div><dt>Identificador</dt><dd>{regimeEmEdicao?.id}</dd></div>
-                <div><dt>Instituição</dt><dd>{regimeEmEdicao?.instituicao || "Não informada"}</dd></div>
-                <div><dt>Situação atual</dt><dd>{situacaoInicial}</dd></div>
-              </dl>
-            </section>
-          ) : null}
-
           <section className="prototype-carreira-register-section">
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
@@ -10688,23 +10671,6 @@ export function PrototiposTipoVinculoTesteFormPage({
           </section>
 
           <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEditing} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o tipo de vínculo" getFormErrorMessage={() => null} />
-
-          {isEditing ? (
-            <section className="prototype-carreira-register-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" aria-hidden="true" /></span>
-                <div>
-                  <h2>Dados do registro</h2>
-                  <p>Informações geradas automaticamente pelo sistema.</p>
-                </div>
-              </header>
-              <dl className="prototype-carreira-register-metadata">
-                <div><dt>Identificador</dt><dd>{tipoEmEdicao?.id}</dd></div>
-                <div><dt>Instituição</dt><dd>{tipoEmEdicao?.instituicao || "Não informada"}</dd></div>
-                <div><dt>Situação atual</dt><dd>{situacaoInicial}</dd></div>
-              </dl>
-            </section>
-          ) : null}
 
           <section className="prototype-carreira-register-section">
             <header>

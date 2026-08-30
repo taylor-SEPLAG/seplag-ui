@@ -119,7 +119,7 @@ No conteúdo do chat, os passos podem ser listados em sequência. Na edição do
 Para cada grupo de tela, usar a estrutura:
 
 ```text
-Descrição da tela - Grupo: [Nome do Grupo]
+Grupo: [Nome do Grupo]
 ```
 
 A tabela do grupo deve possuir exatamente estas colunas:
