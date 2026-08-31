@@ -10688,12 +10688,11 @@ export function PrototiposTipoVinculoTesteFormPage({
               <span className="prototype-carreira-section-icon"><i className="pi pi-tags" aria-hidden="true" /></span>
               <div>
                 <h2>Classificação</h2>
-                <p>Defina a natureza e os regimes jurídicos associados ao tipo de vínculo.</p>
+                <p>Defina os regimes jurídicos associados ao tipo de vínculo.</p>
               </div>
             </header>
             <div className="grid prototype-carreira-register-fields">
-              <DropdownFieldSeplag name="natureza" control={control} label="Natureza do Vínculo" placeholder="Selecione..." cols="12 12 4" options={tipoVinculoNaturezaOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
-              <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos associados" placeholder="Selecione um ou mais regimes" cols="12 12 8" options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos associados" placeholder="Selecione um ou mais regimes" cols="12" options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
             </div>
           </section>
 
