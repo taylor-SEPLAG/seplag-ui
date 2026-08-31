@@ -8729,9 +8729,6 @@ export function PrototiposCargoFormPage({
                   </table>
                 </div>
               ) : null}
-              <SwitchFieldSeplag name="cargoChefia" control={control} label="Cargo de Chefia" cols="12 12 4" getFormErrorMessage={() => null} />
-              <SwitchFieldSeplag name="permiteSubstituicao" control={control} label="Permite Substituição" cols="12 12 4" getFormErrorMessage={() => null} />
-              <SwitchFieldSeplag name="exibirPortal" control={control} label="Exibir no Portal?" cols="12 12 4" getFormErrorMessage={() => null} />
             </div>
           </section>
 
