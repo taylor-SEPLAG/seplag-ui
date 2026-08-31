@@ -356,3 +356,16 @@
 
 .prototype-certame-situacao-documentos{margin-top:.25rem}
 .prototype-certame-situacao-documentos-titulo{display:block;margin-bottom:.6rem;color:var(--text-color-secondary);font-size:.8rem;font-weight:700}
+
+/* Os quatro indicadores da listagem ocupam toda a largura disponível. */
+.prototype-certames-list-indicators {
+ display:grid;
+ grid-template-columns:repeat(4,minmax(0,1fr));
+}
+.prototype-certames-list-indicators>.prototype-ingressos-teste-indicator { grid-column:span 1; }
+@media (max-width:1050px){
+ .prototype-certames-list-indicators { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:640px){
+ .prototype-certames-list-indicators { grid-template-columns:1fr; }
+}

@@ -19758,7 +19758,8 @@
 .prototype-cargo-vigencia-fields, .prototype-cargo-form-section > .prototype-table-wrapper { padding: 18px; }
 .prototype-cargo-form .prototype-category-form-footer { margin: 0; padding: 16px 18px; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; }
 
-.prototype-locais-status {
+.prototype-locais-status,
+.prototype-fases-certame-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -19773,13 +19774,15 @@
   white-space: nowrap;
 }
 
-.prototype-locais-status.is-active {
+.prototype-locais-status.is-active,
+.prototype-fases-certame-status.is-active {
   border-color: #5be193;
   background: #ecfff3;
   color: #00a33a;
 }
 
-.prototype-locais-status.is-inactive {
+.prototype-locais-status.is-inactive,
+.prototype-fases-certame-status.is-inactive {
   border-color: #dfe2e5;
   background: #fff;
   color: #69717a;
