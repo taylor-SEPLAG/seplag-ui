@@ -1228,7 +1228,7 @@ function Kpi({
   );
 }
 function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose: () => void }) {
-  const { movimentos } = useControleVagasStore();
+  const { movimentos, quadros } = useControleVagasStore();
   const hoje = new Date();
   const dataReferencia = [
     hoje.getFullYear(),
@@ -1236,6 +1236,11 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
     String(hoje.getDate()).padStart(2, "0"),
   ].join("-");
   const distribuicao = calcularPosicaoVaga(vaga, movimentos, dataReferencia);
+  const quadro = quadros.find((item) => item.id === vaga.quadroAutorizadoId);
+  const leisDoQuadro = (quadro?.ato ?? vaga.lei)
+    .split(";")
+    .map((lei) => lei.trim())
+    .filter(Boolean);
   return (
     <ModalSeplag
       visible
@@ -1285,16 +1290,21 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
                 <dd>{vaga.quadroCodigo}</dd>
               </div>
               <div>
-                <dt>Tipo</dt>
+                <dt>Tipo de vínculo</dt>
                 <dd>
-                  {vaga.tipo === "EFETIVO"
-                    ? "Cargo efetivo"
-                    : "Cargo comissionado"}
+                  {quadro?.vinculo ??
+                    (vaga.tipo === "EFETIVO"
+                      ? "Cargo efetivo"
+                      : "Cargo comissionado")}
                 </dd>
               </div>
               <div className="full">
-                <dt>Lei</dt>
-                <dd>{vaga.lei}</dd>
+                <dt>Leis</dt>
+                <dd>
+                  {leisDoQuadro.map((lei) => (
+                    <span key={lei}>{lei}</span>
+                  ))}
+                </dd>
               </div>
               <div>
                 <dt>Carreira</dt>
@@ -1321,18 +1331,16 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
                 <dd>{vaga.orgaoTitular}</dd>
               </div>
               <div>
-                <dt>Ato de distribuição</dt>
+                <dt>Data de criação do quadro</dt>
                 <dd>
-                  {distribuicao.atoDistribuicao ?? "Aguardando ato formal"}
+                  {quadro?.dataAtivacao ??
+                    quadro?.inicioVigencia ??
+                    vaga.inicioVigencia}
                 </dd>
               </div>
               <div>
-                <dt>Vigência da distribuição</dt>
+                <dt>Data de distribuição da vaga</dt>
                 <dd>{distribuicao.inicioVigenciaDistribuicao ?? "—"}</dd>
-              </div>
-              <div>
-                <dt>Início da vigência do quadro</dt>
-                <dd>{vaga.inicioVigencia}</dd>
               </div>
             </dl>
           </section>

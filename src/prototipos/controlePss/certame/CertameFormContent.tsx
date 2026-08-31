@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Controller, useForm, type Control, type FieldValues, type Path } from "react-hook-form";
 import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA, CONTROLE_PSS_USUARIO_LOGADO } from "../constants";
@@ -32,6 +32,10 @@ import "./certame.css";
 // primeira lei selecionada é sinalizada como a norma aplicável (indicarPrincipal), já que a ordem
 // de seleção é significativa quando mais de uma lei rege o mesmo campo.
 function CampoLeiMultiplaSeplag<T extends FieldValues = any>({ name, control, label, required, cols = "12", opcoes, onNovoCadastro, disabled }: Readonly<{ name:Path<T>; control:Control<T>; label:string; required?:boolean; cols?:string; opcoes:DocumentoLegalAssociadoSeplag[]; onNovoCadastro:() => void; disabled?:boolean }>) {
+ // "Visualizar" (ação por lei já selecionada) navega para a página completa do Documento Legal —
+ // mesmo padrão já usado em Controle de Vagas (BaseLegalVinculada.tsx): mostra todos os campos
+ // cadastrados da norma (tipo, número, ano, ementa, datas) e o anexo, se houver.
+ const navigate = useNavigate();
  return <div className={gridCss(cols)}>
   <Controller name={name} control={control} rules={required ? { validate:(value) => (Array.isArray(value) && value.length > 0) || `${label} é obrigatório` } : undefined} render={({ field }) => (
    <DocumentosLegaisAssociadosSeplag
@@ -41,6 +45,7 @@ function CampoLeiMultiplaSeplag<T extends FieldValues = any>({ name, control, la
     value={(field.value as string[] | undefined) ?? []}
     onChange={(ids) => field.onChange(ids)}
     onNovoCadastro={onNovoCadastro}
+    onVisualizar={(documento) => navigate(`/prototipos/sigep/documentos-legais/${documento.id}`)}
     placeholder="Buscar lei cadastrada"
     indicarPrincipal
     disabled={disabled}
@@ -268,7 +273,7 @@ export function CertameFormContent() {
  const [aba, setAba] = useState<Aba>(campoLeiRetorno === "cotaLei" ? "VAGAS_COTAS" : (rascunho?.aba ?? "IDENTIFICACAO"));
  // RN-06.1: no cadastro de um novo certame, o tipo precisa ser definido antes de liberar o restante do formulário.
  const [tipoConfirmado, setTipoConfirmado] = useState(!modoNovo || Boolean(rascunho?.tipoConfirmado));
- const { control, handleSubmit, watch, setValue } = useForm<CertameFormValues>({ defaultValues: rascunho?.valores ?? valoresIniciais(existente, certames) });
+ const { control, handleSubmit, watch, setValue, getValues } = useForm<CertameFormValues>({ defaultValues: rascunho?.valores ?? valoresIniciais(existente, certames) });
  const valores = watch();
  const dispensarParaProcessoSeletivo = valores.tipoCertame === "PSS";
  const dispensarParaConcurso = valores.tipoCertame === "CONCURSO_PUBLICO";
@@ -318,14 +323,21 @@ export function CertameFormContent() {
  const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:TIPOS_COTA[0].value, lei:[] } });
 
  // Ao voltar do cadastro de uma nova lei (atalho "+"), soma a lei recém-criada às já selecionadas no
- // campo de origem (identificado por campoLei no returnTo) e limpa os parâmetros da URL.
+ // campo de origem (identificado por campoLei no returnTo) e limpa os parâmetros da URL. Usa uma ref
+ // para lembrar qual documentoLegalId já foi processado nesta sessão do componente: nem "não depender
+ // de valores" nem "checar se o id já está na lista" bastam sozinhos, porque o StrictMode do React
+ // roda o efeito duas vezes em sequência, antes de o primeiro setValue/navigate terminar de propagar
+ // — só a ref, que é síncrona e não depende de nenhum estado externo, evita a duplicata de verdade.
+ const documentoLegalProcessadoRef = useRef<string | null>(null);
  useEffect(() => {
   const documentoLegalId = searchParams.get("documentoLegalId");
-  if (!documentoLegalId || !campoLeiRetorno) return;
+  if (!documentoLegalId || !campoLeiRetorno || documentoLegalProcessadoRef.current === documentoLegalId) return;
+  documentoLegalProcessadoRef.current = documentoLegalId;
   if (campoLeiRetorno === "cotaLei") cotaForm.setValue("lei", [...(cotaForm.getValues("lei") ?? []), documentoLegalId]);
-  else if (campoLeiRetorno === "leiContratoTemporario" || campoLeiRetorno === "leiProcessoSeletivoSimplificado" || campoLeiRetorno === "leiIsencao") setValue(campoLeiRetorno, [...(valores[campoLeiRetorno] ?? []), documentoLegalId]);
+  else if (campoLeiRetorno === "leiContratoTemporario" || campoLeiRetorno === "leiProcessoSeletivoSimplificado" || campoLeiRetorno === "leiIsencao") setValue(campoLeiRetorno, [...(getValues(campoLeiRetorno) ?? []), documentoLegalId]);
   navigate(location.pathname, { replace:true });
- }, [searchParams, campoLeiRetorno, cotaForm, setValue, valores, navigate, location.pathname]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [searchParams, campoLeiRetorno]);
 
  const [cargos, setCargos] = useState<CargoVagaCertame[]>(existente ? [...existente.cargos] : (rascunho?.cargos ?? []));
  const polos = useLocais();

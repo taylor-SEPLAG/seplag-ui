@@ -9,6 +9,7 @@ import { ORGAOS_CERTAME, SITUACOES_CERTAME, TIPOS_CERTAME } from "./dominios";
 import type { Certame, SituacaoCertame, TipoCertame } from "./types";
 import { lerRascunhoCertame, limparRascunhoCertame, type RascunhoCertame } from "./rascunhoCertameStore";
 import { SituacoesCertameModal } from "./SituacoesCertameModal";
+import { stringToDateSeplag } from "@uteis/manipulaData";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoLimparFiltroSeplag, BotaoSeplag } from "@componentes/Botao";
@@ -79,7 +80,8 @@ export function CertamesListContent() {
    (!exercicioFiltro || String(certame.anoConcurso) === exercicioFiltro) &&
    (!tipoFiltro || certame.tipoCertame === tipoFiltro) &&
    (!situacaoFiltro || certame.situacaoAtual === situacaoFiltro),
-  );
+  // RN011: ordenada por data de publicação do edital, mais recente primeiro.
+  ).sort((a, b) => (stringToDateSeplag(b.dataPublicacaoEdital)?.getTime() ?? 0) - (stringToDateSeplag(a.dataPublicacaoEdital)?.getTime() ?? 0));
  }, [certames, termo, orgaoFiltro, exercicioFiltro, tipoFiltro, situacaoFiltro]);
 
  const totalPaginas = Math.max(1, Math.ceil(lista.length / itensPorPagina));

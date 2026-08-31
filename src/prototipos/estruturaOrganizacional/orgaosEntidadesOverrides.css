@@ -1,0 +1,78 @@
+.orgao-display-field {
+  display: flex;
+  min-height: 68px;
+  box-sizing: border-box;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 12px;
+  border: 1px solid #d6dfe5;
+  border-radius: 4px;
+  background: #f5f7f9;
+}
+
+.orgao-display-field span {
+  color: #53697d;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.orgao-display-field strong {
+  color: #253b50;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.orgao-step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0 4px;
+  border-top: 1px solid #d6dfe5;
+}
+
+.orgao-cadastro-card .orgao-tab-content,
+.orgao-cadastro-card .orgao-tab-content > .orgao-form-section,
+.orgao-cadastro-card .orgao-tab-content > .orgao-step-actions {
+  box-sizing: border-box;
+  grid-column: 1 / -1;
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.orgao-cadastro-card .orgao-tab-content > .orgao-form-section {
+  flex: 0 0 100%;
+}
+
+.orgao-external-form {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  flex-direction: column;
+  gap: 0;
+}
+
+.orgao-external-form > .orgao-form-section,
+.orgao-external-form > .orgao-step-actions {
+  box-sizing: border-box;
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.orgao-fields-grid.cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 720px) {
+  .orgao-fields-grid.cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .orgao-step-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

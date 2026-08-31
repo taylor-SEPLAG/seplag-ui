@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import type { ArquivoAnexadoSeplag } from "../../componentes/AnexarDocumento";
 import type { DocumentoLegalAssociadoSeplag } from "../../componentes/DocumentosLegaisAssociados";
 
@@ -82,5 +82,10 @@ export function useDocumentosLegais() {
 }
 
 export function useDocumentosLegaisAssociaveis() {
-  return useDocumentosLegais().filter((document) => getSituacaoDocumentoLegal(document) === "ATIVO");
+  const documentos = useDocumentosLegais();
+
+  return useMemo(
+    () => documentos.filter((document) => getSituacaoDocumentoLegal(document) === "ATIVO"),
+    [documentos],
+  );
 }

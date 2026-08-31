@@ -146,6 +146,9 @@ export { default as LogoSeplagBrancoVazado } from "../assets/img/LOGO SEPLAG - B
 export { TablePaginadoSeplag } from "./TablePaginado";
 export type { TablePaginadoSeplagProps, ColumnMetaSeplag } from "./TablePaginado";
 
+export { BreadcrumbSeplag } from "./Breadcrumb";
+export type { BreadcrumbSeplagProps, BreadcrumbItemSeplag } from "./Breadcrumb";
+
 export { StatusByFilterChipSeplag } from "./StatusByFilterChip/StatusByFilterChip";
 export { StatusByDataFimChipSeplag } from "./StatusByDataFimChip/StatusByDataFimChip";
 
