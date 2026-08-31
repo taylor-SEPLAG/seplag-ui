@@ -19640,3 +19640,30 @@
 .prototype-cargo-form-fields { padding: 18px; }
 .prototype-cargo-vigencia-fields, .prototype-cargo-form-section > .prototype-table-wrapper { padding: 18px; }
 .prototype-cargo-form .prototype-category-form-footer { margin: 0; padding: 16px 18px; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; }
+
+.prototype-locais-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 28px;
+  box-sizing: border-box;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.prototype-locais-status.is-active {
+  border-color: #5be193;
+  background: #ecfff3;
+  color: #00a33a;
+}
+
+.prototype-locais-status.is-inactive {
+  border-color: #dfe2e5;
+  background: #fff;
+  color: #69717a;
+}
