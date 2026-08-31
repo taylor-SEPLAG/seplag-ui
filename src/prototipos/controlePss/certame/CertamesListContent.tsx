@@ -101,7 +101,7 @@ export function CertamesListContent() {
      <SpecArea metadata={certamesListBlockSpecifications.aviso}><p className="prototype-ingressos-teste-support">Concursos Públicos e Processos Seletivos Simplificados cadastrados no SIGEP com base no edital publicado, para fins de vínculo do candidato e prestação de contas ao TCE-MT.</p></SpecArea>
      <hr className="prototype-ingressos-teste-header-divider" />
 
-     <section className="prototype-ingressos-teste-indicators" aria-label="Indicadores de certames">
+     <section className="prototype-ingressos-teste-indicators prototype-certames-list-indicators" aria-label="Indicadores de certames">
       {indicadores.map((indicador) => <article key={indicador.label} className={`prototype-ingressos-teste-indicator prototype-ingressos-teste-indicator--${indicador.tone}`}>
        <span className="prototype-ingressos-teste-indicator-icon" aria-hidden="true"><i className={indicador.icon} /></span>
        <div><span>{indicador.label}</span><strong>{indicador.value.toLocaleString("pt-BR")}</strong></div>

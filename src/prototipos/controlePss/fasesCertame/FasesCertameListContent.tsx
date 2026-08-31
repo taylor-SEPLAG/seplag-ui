@@ -36,7 +36,7 @@ export function FasesCertameListContent() {
  const rotuloTipoTce = (tipoTceId?:string) => TIPOS_FASE_CONCURSO_TCE.find((tipo) => tipo.value === tipoTceId)?.label;
 
  return <div className="prototype-page-content prototype-page-content--white prototype-ingressos-teste-list-page">
-  <CardSeplag title="Fase do Certame" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card" actions={<BotaoAdicionarSeplag label="Cadastrar" onClick={() => navigate(`${BASE}/fases-certame/novo`)} />}>
+  <CardSeplag title="Fase do Certame" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card">
    <div className="col-12"><div className="prototype-ingressos-teste-content">
     <p className="prototype-ingressos-teste-support">Consulte, cadastre e gerencie as fases disponíveis para o cronograma dos certames.</p>
     <hr className="prototype-ingressos-teste-header-divider" />
@@ -59,22 +59,28 @@ export function FasesCertameListContent() {
      </div>
     </div>
 
-    <div className="prototype-efetivo-exercicio-table-wrap">
-     <table className="prototype-simple-table">
+    <div className="prototype-ingressos-teste-table-shell">
+     <div className="prototype-ingressos-teste-table-actions">
+      <BotaoAdicionarSeplag label="Cadastrar" onClick={() => navigate(`${BASE}/fases-certame/novo`)} />
+     </div>
+     <div className="prototype-efetivo-exercicio-table-wrap">
+      <table className="prototype-simple-table prototype-fases-certame-table">
       <thead>
        <tr>
         <th>Fase</th>
         <th>Origem</th>
+        <th>Situação</th>
         <th>Ações</th>
        </tr>
       </thead>
       <tbody>
        {listaPaginada.length === 0
-        ? <tr><td colSpan={3} className="prototype-empty-table-cell">Nenhum registro encontrado para os filtros informados.</td></tr>
+        ? <tr><td colSpan={4} className="prototype-empty-table-cell">Nenhum registro encontrado para os filtros informados.</td></tr>
         : listaPaginada.map((row:FaseCertameCatalogo) => (
          <tr key={row.id}>
-          <td><strong>{row.nome}</strong>{row.situacao === "INATIVO" && <div className="text-sm text-color-secondary">Inativo</div>}</td>
+          <td>{row.nome}</td>
           <td>{row.tipoTceId ? <span title={rotuloTipoTce(row.tipoTceId)}>Tabela do TCE-MT</span> : "Personalizada"}</td>
+          <td><span className={`prototype-fases-certame-status ${row.situacao === "ATIVO" ? "is-active" : "is-inactive"}`}>{row.situacao === "ATIVO" ? "Ativo" : "Inativo"}</span></td>
           <td>
            <div className="flex gap-2">
             <BotaoIconSeplag type="button" tooltip="Editar" icon="pi pi-pencil" style={{ backgroundColor:SEPLAG_YELLOW, borderColor:SEPLAG_YELLOW }} onClick={() => navigate(`${BASE}/fases-certame/${row.id}`)} />
@@ -84,7 +90,8 @@ export function FasesCertameListContent() {
          </tr>
         ))}
       </tbody>
-     </table>
+      </table>
+     </div>
     </div>
 
     <nav className="prototype-efetivo-exercicio-pagination" aria-label="Paginação de fases do certame">

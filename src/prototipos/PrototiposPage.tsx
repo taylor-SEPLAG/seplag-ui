@@ -6603,7 +6603,7 @@ const vinculosDisponiveis = ["Nomeado Efetivo", "Contrato Temporário", "Comissi
 
 export function PrototiposGestaoDocumentosCadastroPage() {
   const navigate = useNavigate();
-  const [funcionalidade, setFuncionalidade] = useState("Gestão de Ingresso");
+  const [funcionalidade, setFuncionalidade] = useState("Ingresso");
   const [vinculos, setVinculos] = useState<string[]>(["Nomeado Efetivo", "Contrato Temporário"]);
   const [buscaVinculo, setBuscaVinculo] = useState("");
   const [vinculosAbertos, setVinculosAbertos] = useState(false);
@@ -6671,7 +6671,7 @@ export function PrototiposGestaoDocumentosCadastroPage() {
         <header className="prototype-doc-register-header"><h1>Cadastrar – Gestão de Documentos</h1><p>Defina os documentos que serão exigidos no processo de ingresso e se são obrigatórios ou opcionais.</p></header>
 
         <section className="prototype-doc-register-card"><h2>Dados da Parametrização</h2><div className="prototype-doc-general-grid">
-          <label><span>Funcionalidade <em>*</em></span><select value={funcionalidade} onChange={(event) => setFuncionalidade(event.target.value)}><option value="">Selecione...</option><option>Gestão de Ingresso</option><option>Gestão de Dependentes</option><option>Aposentadoria</option></select>{erros.funcionalidade ? <small>{erros.funcionalidade}</small> : null}</label>
+          <label><span>Funcionalidade <em>*</em></span><select value={funcionalidade} onChange={(event) => setFuncionalidade(event.target.value)}><option value="">Selecione...</option><option>Ingresso</option><option>Gestão de Dependentes</option><option>Aposentadoria</option></select>{erros.funcionalidade ? <small>{erros.funcionalidade}</small> : null}</label>
           <div className="prototype-doc-multiselect-field"><span>Tipo de Vínculo <em>*</em></span><button type="button" className="prototype-doc-multiselect" onClick={() => setVinculosAbertos((aberto) => !aberto)}>{vinculos.length ? vinculos.map((vinculo) => <span className="prototype-doc-chip" key={vinculo}>{vinculo}<i className="pi pi-times" role="button" tabIndex={0} aria-label={`Remover ${vinculo}`} onClick={(event) => { event.stopPropagation(); alternarVinculo(vinculo); }} /></span>) : <span className="is-placeholder">Selecione...</span>}<i className="pi pi-chevron-down" /></button>{vinculosAbertos ? <div className="prototype-doc-multiselect-panel"><div className="prototype-doc-search"><i className="pi pi-search" /><input autoFocus placeholder="Pesquisar tipo de vínculo" value={buscaVinculo} onChange={(event) => setBuscaVinculo(event.target.value)} /></div>{vinculosDisponiveis.filter((item) => item.toLocaleLowerCase("pt-BR").includes(buscaVinculo.toLocaleLowerCase("pt-BR"))).map((vinculo) => <label key={vinculo}><input type="checkbox" checked={vinculos.includes(vinculo)} onChange={() => alternarVinculo(vinculo)} /> {vinculo}</label>)}</div> : null}{erros.vinculos ? <small>{erros.vinculos}</small> : null}</div>
           <label><span>Data Início <em>*</em></span><div className="prototype-doc-date"><input type="date" value={dataInicio} onChange={(event) => setDataInicio(event.target.value)} /><i className="pi pi-calendar" /></div>{erros.dataInicio ? <small>{erros.dataInicio}</small> : null}</label>
           <label><span>Data Fim</span><div className="prototype-doc-date"><input type="date" min={dataInicio} value={dataFim} onChange={(event) => setDataFim(event.target.value)} /><i className="pi pi-calendar" /></div></label>
