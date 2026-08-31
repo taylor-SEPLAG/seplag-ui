@@ -7496,26 +7496,31 @@ export function PrototiposCarreiraPage() {
       </ModalSeplag>
       <ModalSeplag
         visible={modalCarreira === "orgaos"}
-        titulo="Órgãos Vinculados"
+        titulo={`Órgãos vinculados (${carreiraSelecionada?.orgaosVinculados ?? 0})`}
         fechar={() => setModalCarreira(null)}
         labelFechar="Fechar"
         hideFooter
         tamanho="600px"
       >
-        <div className="prototype-carreira-org-list">
+        <div className="prototype-carreira-org-list prototype-linked-records-list">
           <p><strong>{carreiraSelecionada?.sigla}</strong> — {carreiraSelecionada?.nome}</p>
           <ul>
-            {Array.from(
-              { length: carreiraSelecionada?.orgaosVinculados ?? 0 },
-              (_, index) => (
-                <li key={index}>
+            {(() => {
+              const orgaoPrincipal = carreiraSelecionada?.orgao;
+              const orgaosVinculados = [
+                ...(orgaoPrincipal ? [orgaoPrincipal] : []),
+                ...carreiraOrgaosCadastro
+                  .filter((orgao) => orgao.id !== orgaoPrincipal)
+                  .slice(0, Math.max(0, (carreiraSelecionada?.orgaosVinculados ?? 0) - 1))
+                  .map((orgao) => orgao.id),
+              ];
+              return orgaosVinculados.map((orgaoId, index) => (
+                <li key={orgaoId}>
                   <i className="pi pi-building" aria-hidden="true" />
-                  {index === 0
-                    ? carreiraSelecionada?.orgao.toUpperCase()
-                    : `Órgão vinculado ${index + 1}`}
+                  <strong>{index + 1}.</strong> {carreiraOrgaosCadastro.find((orgao) => orgao.id === orgaoId)?.nome ?? orgaoId.toUpperCase()}
                 </li>
-              ),
-            )}
+              ));
+            })()}
           </ul>
         </div>
       </ModalSeplag>
@@ -7751,7 +7756,7 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const salvar = (values: PerfilEspecialidadeForm) => {
     if (isEdicao && Boolean(values.dataEncerramento) !== Boolean(values.motivoEncerramento.trim())) return setErroComplementar("Para encerrar o perfil, informe a data e o motivo do encerramento.");
     if (isEdicao && values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) < carreiraDataParaIso(values.dataInicio)) return setErroComplementar("A data de encerramento não pode ser anterior à data de início.");
-    if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
+    if (isEdicao && !documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
     if (exigeRegistro && !values.conselho) return setErroComplementar("Selecione o conselho profissional exigido.");
     if (perfisEspecialidadesMock.some((item) => item.id !== perfilEmEdicao?.id && item.nome.trim().toLowerCase() === values.nome.trim().toLowerCase())) return setErroComplementar("Já existe um Perfil Profissional com esse nome.");
     const situacaoAtualizada = values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
@@ -7772,7 +7777,7 @@ export function PrototiposPerfilEspecialidadeFormPage() {
       {erroComplementar ? <div className="prototype-carreira-register-alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
       <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
         <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>
+        {isEdicao ? (<section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>) : null}
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <MultiSelectFieldSeplag name="formacoes" control={control} label="Formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : "12 12 4"} options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais formações" getFormErrorMessage={() => null} /> : null}{nivelPosGraduacaoSelecionado ? <MultiSelectFieldSeplag name="especializacoes" control={control} label="Especialização" cols="12 12 3" options={perfilEspecializacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais especializações" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
         <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={status} entidade="o perfil profissional" getFormErrorMessage={() => null} />
@@ -7796,6 +7801,7 @@ const carreiraOrgaosCadastro: CarreiraOrgaoCadastro[] = [
   { id: "mti", nome: "MTI — Empresa Mato-grossense de Tecnologia da Informação" },
   { id: "sefaz", nome: "SEFAZ — Secretaria de Estado de Fazenda" },
   { id: "sesp", nome: "SESP — Secretaria de Estado de Segurança Pública" },
+  { id: "sedec", nome: "SEDEC — Secretaria de Estado de Desenvolvimento Econômico" },
 ];
 
 function carreiraDataParaIso(value: string) {
@@ -8417,7 +8423,7 @@ export function PrototiposCargoPage({
     size: 10,
   };
   const cargoColumns: ColumnMetaSeplag<CargoTesteRow>[] = [
-    { field: "codigo", header: "Código/Sigla" },
+    { field: "codigo", header: "Sigla" },
     { field: "cargo", header: "Cargo" },
     { field: "vigencia", header: "Vigência" },
     {
@@ -8655,29 +8661,13 @@ export function PrototiposCargoFormPage({
               </div>
             </header>
             <div className="grid prototype-carreira-register-fields">
-              <TextFieldSeplag name="codigo" control={control} label="Código/Sigla" cols="12 12 3" required getFormErrorMessage={() => null} />
+              <TextFieldSeplag name="codigo" control={control} label="Sigla" cols="12 12 3" required getFormErrorMessage={() => null} />
               <TextFieldSeplag name="nomeCargo" control={control} label="Nome do Cargo" cols="12 12 9" required getFormErrorMessage={() => null} />
             </div>
           </section>
 
           <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramentoCargo} status={situacaoInicialCargo} entidade="o cargo" getFormErrorMessage={() => null} />
 
-          {isEdicao ? (
-            <section className="prototype-carreira-register-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" aria-hidden="true" /></span>
-                <div>
-                  <h2>Dados do registro</h2>
-                  <p>Informações geradas automaticamente pelo sistema.</p>
-                </div>
-              </header>
-              <dl className="prototype-carreira-register-metadata">
-                <div><dt>Identificador</dt><dd>{cargoEmEdicao?.id}</dd></div>
-                <div><dt>Categoria</dt><dd>{cargoEmEdicao?.categoria || "Não informada"}</dd></div>
-                <div><dt>Situação atual</dt><dd>{situacaoInicialCargo}</dd></div>
-              </dl>
-            </section>
-          ) : null}
 
           <section className="prototype-carreira-register-section">
             <header>
@@ -10445,7 +10435,7 @@ export function PrototiposTipoVinculoTestePage({
             <TextFieldSeplag
               name="termo"
               control={control}
-              label="Nome ou Código/Sigla"
+              label="Nome ou Sigla"
               placeholder="Informe a sigla ou o nome"
               cols="12 12 5"
               getFormErrorMessage={() => null}
@@ -10688,6 +10678,7 @@ export function PrototiposTipoVinculoTesteFormPage({
 
           <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEditing} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o tipo de vínculo" getFormErrorMessage={() => null} />
 
+          {isEditing ? (
           <section className="prototype-carreira-register-section">
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
@@ -10700,6 +10691,7 @@ export function PrototiposTipoVinculoTesteFormPage({
               <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegaisMock} value={baseLegalSelecionada} onChange={setBaseLegalSelecionada} onNovoCadastro={() => navigate(novoDocumentoUrl)} onVisualizar={() => {}} expandirAoAbrir />
             </div>
           </section>
+          ) : null}
 
           <section className="prototype-carreira-register-section">
             <header>
@@ -10710,7 +10702,7 @@ export function PrototiposTipoVinculoTesteFormPage({
               </div>
             </header>
             <div className="grid prototype-carreira-register-fields">
-              <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos associados" placeholder="Selecione um ou mais regimes" cols="12" options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos" placeholder="Selecione um ou mais regimes" cols="12" required options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
             </div>
           </section>
 
