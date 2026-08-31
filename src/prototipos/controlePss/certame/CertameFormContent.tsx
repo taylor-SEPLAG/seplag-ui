@@ -109,7 +109,7 @@ export interface CertameFormValues {
  instituicaoRealizadora?:string; previsaoProrrogacaoDias?:number; prorrogacaoValidadeDias?:number; validadeConcursoDias?:number;
  existePrevisaoRecursos:string;
  diasPrazoExercicio?:number; diasPrazoPosse?:number; diasPrazoProrrogacaoExercicio?:number; diasPrazoProrrogacaoPosse?:number;
- dataInicioInscricaoIsencao?:string; dataFimInscricaoIsencao?:string; leiIsencao?:string[]; tipoIsencao?:string;
+ dataInicioInscricaoIsencao?:string; dataFimInscricaoIsencao?:string; leiIsencao?:string[]; tipoIsencao?:string[];
  gerouDespesas:string;
  numeroEmpenho?:string; anoEmpenho?:number; tipoContrato?:string; numeroContrato?:string; anoContrato?:number;
  codigoUo?:string; codigoUg?:string; numeroAditivo?:string; anoAditivo?:number;
@@ -167,7 +167,7 @@ function valoresIniciais(certame:Certame | undefined, certames:readonly Certame[
   instituicaoRealizadora:certame.instituicaoRealizadora, previsaoProrrogacaoDias:certame.previsaoProrrogacaoDias, prorrogacaoValidadeDias:certame.prorrogacaoValidadeDias, validadeConcursoDias:certame.validadeConcursoDias,
   existePrevisaoRecursos:certame.existePrevisaoRecursos ? "S" : "N",
   diasPrazoExercicio:certame.diasPrazoExercicio, diasPrazoPosse:certame.diasPrazoPosse, diasPrazoProrrogacaoExercicio:certame.diasPrazoProrrogacaoExercicio, diasPrazoProrrogacaoPosse:certame.diasPrazoProrrogacaoPosse,
-  dataInicioInscricaoIsencao:certame.dataInicioInscricaoIsencao, dataFimInscricaoIsencao:certame.dataFimInscricaoIsencao, leiIsencao:certame.leiIsencao ? [...certame.leiIsencao] : undefined, tipoIsencao:certame.tipoIsencao,
+  dataInicioInscricaoIsencao:certame.dataInicioInscricaoIsencao, dataFimInscricaoIsencao:certame.dataFimInscricaoIsencao, leiIsencao:certame.leiIsencao ? [...certame.leiIsencao] : undefined, tipoIsencao:certame.tipoIsencao ? [...certame.tipoIsencao] : undefined,
   gerouDespesas:certame.gerouDespesas ? "S" : "N",
   numeroEmpenho:certame.numeroEmpenho, anoEmpenho:certame.anoEmpenho, tipoContrato:certame.tipoContrato, numeroContrato:certame.numeroContrato, anoContrato:certame.anoContrato,
   codigoUo:certame.codigoUo, codigoUg:certame.codigoUg, numeroAditivo:certame.numeroAditivo, anoAditivo:certame.anoAditivo,
@@ -809,7 +809,7 @@ export function CertameFormContent() {
         <CurrencyFieldSeplag name="valorInscricao" control={control} label="Valor da inscrição" required cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
         <DateFieldSeplag name="dataInicioInscricaoIsencao" control={control} label="Início da inscrição com isenção" required cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
         <DateFieldSeplag name="dataFimInscricaoIsencao" control={control} label="Fim da inscrição com isenção" required cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DropdownFieldSeplag name="tipoIsencao" control={control} label="Tipo da isenção" required cols={colsTaxaInscricao} options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <MultiSelectFieldSeplag name="tipoIsencao" control={control} label="Tipo da isenção" required cols={colsTaxaInscricao} options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" display="chip" placeholder="Selecione" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         <CampoLeiMultiplaSeplag name="leiIsencao" control={control} label="Lei de isenção" required cols={colsTaxaInscricao} opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiIsencao")} disabled={modoVisualizar} />
        </div>}
       </div>

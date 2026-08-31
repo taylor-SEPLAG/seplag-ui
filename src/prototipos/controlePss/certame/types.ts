@@ -95,7 +95,7 @@ export interface Certame {
  dataInicioInscricaoIsencao?:string;
  dataFimInscricaoIsencao?:string;
  leiIsencao?:readonly string[];
- tipoIsencao?:string;
+ tipoIsencao?:string[];
  // 5. Recursos e Contratos
  houveContratacaoBanca:boolean;
  gerouDespesas:boolean;

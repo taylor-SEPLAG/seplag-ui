@@ -52,7 +52,7 @@ export const certamesMock: Certame[] = [
   previsaoProrrogacaoDias:730, existePrevisaoRecursos:true,
   diasPrazoExercicio:15, diasPrazoPosse:30, diasPrazoProrrogacaoExercicio:15, diasPrazoProrrogacaoPosse:30,
   dataInicioInscricaoIsencao:"05/01/2026", dataFimInscricaoIsencao:"12/01/2026",
-  leiIsencao:["LEI-6752-1995"], tipoIsencao:"HIPOSSUFICIENCIA_RENDA",
+  leiIsencao:["LEI-6752-1995"], tipoIsencao:["HIPOSSUFICIENCIA_RENDA"],
   houveContratacaoBanca:true, numeroEmpenho:"2026NE000123", anoEmpenho:2026,
   tipoContrato:"BANCA_ORGANIZADORA", numeroContrato:"014/2026", anoContrato:2026,
   codigoUo:"18101", codigoUg:"180101", numeroAditivo:"001/2026", anoAditivo:2026,
