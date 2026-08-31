@@ -6,6 +6,7 @@ import {
   Navigate,
   useLocation,
   useNavigate,
+  useParams,
 } from "react-router-dom";
 import { useMemo, useState } from "react";
 import {
@@ -344,6 +345,11 @@ function HomePage() {
       </footer>
     </div>
   );
+}
+
+function PerfilEspecialidadeEditRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/prototipos/sigep/perfil-profissional/${id}/editar`} replace />;
 }
 
 type CalendarDay = {
@@ -1662,12 +1668,17 @@ function App() {
         path="/prototipos/sigep/carreira/:id/editar"
         element={<PrototiposCarreiraFormPage />}
       />
+      <Route path="/prototipos/sigep/carreira/:id/visualizar" element={<PrototiposCarreiraFormPage />} />
       <Route
-        path="/prototipos/sigep/perfil-especialidade"
+        path="/prototipos/sigep/perfil-profissional"
         element={<PrototiposPerfilEspecialidadePage />}
       />
-      <Route path="/prototipos/sigep/perfil-especialidade/novo" element={<PrototiposPerfilEspecialidadeFormPage />} />
-      <Route path="/prototipos/sigep/perfil-especialidade/:id/editar" element={<PrototiposPerfilEspecialidadeFormPage />} />
+      <Route path="/prototipos/sigep/perfil-profissional/novo" element={<PrototiposPerfilEspecialidadeFormPage />} />
+      <Route path="/prototipos/sigep/perfil-profissional/:id/editar" element={<PrototiposPerfilEspecialidadeFormPage />} />
+      <Route path="/prototipos/sigep/perfil-profissional/:id/visualizar" element={<PrototiposPerfilEspecialidadeFormPage />} />
+      <Route path="/prototipos/sigep/perfil-especialidade" element={<Navigate to="/prototipos/sigep/perfil-profissional" replace />} />
+      <Route path="/prototipos/sigep/perfil-especialidade/novo" element={<Navigate to="/prototipos/sigep/perfil-profissional/novo" replace />} />
+      <Route path="/prototipos/sigep/perfil-especialidade/:id/editar" element={<PerfilEspecialidadeEditRedirect />} />
       <Route
         path="/prototipos/sigep/categoria"
         element={<PrototiposCategoriaPage />}
@@ -1684,6 +1695,7 @@ function App() {
         path="/prototipos/sigep/cargo/:id/editar"
         element={<PrototiposCargoFormPage />}
       />
+      <Route path="/prototipos/sigep/cargo/:id/visualizar" element={<PrototiposCargoFormPage />} />
       <Route
         path="/prototipos/sigep/categoria/novo"
         element={<PrototiposCategoriaFormPage />}
@@ -1700,6 +1712,7 @@ function App() {
         path="/prototipos/sigep/regime-juridico/:id/editar"
         element={<PrototiposSigepRegimeJuridicoNovoPage />}
       />
+      <Route path="/prototipos/sigep/regime-juridico/:id/visualizar" element={<PrototiposSigepRegimeJuridicoNovoPage />} />
       <Route
         path="/prototipos/sigep/cargo-concurso-teste/regime-juridico"
         element={<PrototiposSigepRegimeJuridicoTestePage />}
@@ -1760,6 +1773,7 @@ function App() {
         path="/prototipos/sigep/tipo-vinculo/:id/editar"
         element={<PrototiposTipoVinculoTesteFormPage />}
       />
+      <Route path="/prototipos/sigep/tipo-vinculo/:id/visualizar" element={<PrototiposTipoVinculoTesteFormPage />} />
       <Route
         path="/prototipos/sigep/cargo-concurso-teste/matriz-validacao"
         element={<PrototiposMatrizValidacaoTestePage />}

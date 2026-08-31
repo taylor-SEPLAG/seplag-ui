@@ -135,7 +135,7 @@ Os critérios devem cobrir, quando fizer sentido:
 
 Separar cada jornada relevante em um fluxo próprio. Não juntar abertura, filtragem, cálculo, navegação e erro em um fluxo único quando isso dificultar o teste.
 
-Cada fluxo deve conter passos na ordem real da operação. Não inserir numeração manual quando o modelo já possuir lista numerada.
+Cada fluxo deve conter passos na ordem real da operação. O título deve usar o formato `Fluxo - [Nome do fluxo funcional]`, sem numeração no título. Não inserir numeração manual nos passos quando o modelo já possuir lista numerada.
 
 Exemplos de fluxos para um Dashboard:
 
@@ -147,7 +147,7 @@ Exemplos de fluxos para um Dashboard:
 
 ## 10. Descrição da tela e origem dos dados
 
-Para cada grupo da tela, manter a tabela com as colunas:
+Para cada grupo da tela, usar o título no formato `Grupo: [Nome do Grupo]` e manter a tabela com as colunas:
 
 ```text
 Nome | Tipo | Editável | Obrigatório | Tamanho | Orientações/Observações

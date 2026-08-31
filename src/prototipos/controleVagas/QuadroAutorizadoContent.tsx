@@ -1851,12 +1851,12 @@ function QuadroAutorizadoForm({
           : item.nome,
       value: item.nome,
       indisponivel: Boolean(quadroExistente),
+      quadroCodigo: quadroExistente?.codigo,
       motivoIndisponibilidade: quadroExistente
         ? `Já existe o quadro ${quadroExistente.codigo} para este cargo.`
         : "",
     };
   });
-  const [avisoCargo, setAvisoCargo] = useState<string | null>(null);
   const cargoSelecionadoJaPossuiQuadro = Boolean(
     form.cargo && quadroExistenteDoCargo(form.cargo),
   );
@@ -2017,30 +2017,6 @@ function QuadroAutorizadoForm({
           "</ul>"
         }
       />
-      <ModalSeplag
-        visible={Boolean(avisoCargo)}
-        titulo="Cargo indisponível"
-        fechar={() => setAvisoCargo(null)}
-        tamanho="min(32rem, 92vw)"
-        ariaLabel="Motivo de indisponibilidade do cargo"
-        customFooter={
-          <div className="prototype-quadro-modal-library-actions">
-            <BotaoVoltarSeplag
-              label="Fechar"
-              icon="pi pi-times"
-              onClick={() => setAvisoCargo(null)}
-            />
-          </div>
-        }
-      >
-        <div className="col-12 prototype-quadro-cargo-modal-message">
-          <i className="pi pi-info-circle" aria-hidden="true" />
-          <div>
-            <strong>Este cargo não pode ser selecionado.</strong>
-            <p>{avisoCargo}</p>
-          </div>
-        </div>
-      </ModalSeplag>
       <form onSubmit={submit} className="prototype-quadro-form">
         <BaseLegalVinculada
           value={documentosLegaisIds}
@@ -2133,14 +2109,15 @@ function QuadroAutorizadoForm({
                       : undefined
                   }
                   aria-label={option.motivoIndisponibilidade || undefined}
-                  onClick={(event) => {
-                    if (!option.indisponivel) return;
-                    event.preventDefault();
-                    event.stopPropagation();
-                    setAvisoCargo(option.motivoIndisponibilidade);
-                  }}
                 >
-                  {option.label}
+                  <span className="prototype-quadro-cargo-indisponivel-label">
+                    {option.label}
+                  </span>
+                  {option.quadroCodigo && (
+                    <span className="prototype-quadro-cargo-indisponivel-badge">
+                      {option.quadroCodigo}
+                    </span>
+                  )}
                 </span>
               )}
               placeholder="Selecione"

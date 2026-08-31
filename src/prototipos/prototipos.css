@@ -19707,6 +19707,9 @@
 .prototype-carreira-section-icon, .prototype-carreira-status-icon { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 6px; background: #e8f3ff; color: #0878c9; }
 .prototype-carreira-register-fields, .prototype-carreira-register-body { padding: 18px; }
 .prototype-carreira-vigencia-grid { display: grid; grid-template-columns: minmax(260px, .42fr) minmax(380px, 1fr); gap: 14px; padding: 18px; }
+.prototype-carreira-vigencia-fields { min-width: 0; }
+.prototype-carreira-vigencia-fields > .p-button { margin-top: 4px; }
+.prototype-carreira-vigencia-encerramento { margin: 0; padding: 16px 18px 18px; border-top: 1px solid #e2e8ef; }
 .prototype-carreira-status-card { display: flex; align-items: center; gap: 12px; min-height: 92px; padding: 14px 16px; border: 1px solid #cbdced; border-radius: 6px; background: #f5faff; }
 .prototype-carreira-status-card small, .prototype-carreira-status-card strong { display: block; }
 .prototype-carreira-status-card small { margin-bottom: 4px; color: #4a6480; font-weight: 600; }
@@ -19714,6 +19717,11 @@
 .prototype-carreira-status-card.is-agendado strong { border-color: #e5bd61; background: #fff8e6; color: #8a5a00; }
 .prototype-carreira-status-card.is-a-definir strong { border-color: #cbd5df; background: #f3f5f7; color: #526273; }
 .prototype-carreira-status-card.is-encerrado strong { border-color: #d7dde3; background: #fff; color: #536273; }
+.prototype-carreira-status-card.is-extinto strong { border-color: #f3b4b0; background: #fff1f0; color: #b42318; }
+.prototype-carreira-register-page.is-visualizacao .prototype-carreira-register-form { pointer-events: none; }
+.prototype-carreira-register-page.is-visualizacao .prototype-carreira-register-actions { display: none; }
+.prototype-visualizacao-fieldset { display: grid; min-width: 0; margin: 0; padding: 0; border: 0; gap: 16px; }
+.prototype-carreira-register-title > .p-button { flex: 0 0 auto; margin-top: 2px; }
 .prototype-carreira-register-metadata { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 18px; gap: 12px; }
 .prototype-carreira-register-metadata > div { padding: 13px 15px; border: 1px solid #d7e1ea; border-radius: 5px; background: #f7fafc; }
 .prototype-carreira-register-metadata dt { margin-bottom: 5px; color: #5b7187; font-size: .75rem; }
