@@ -8223,6 +8223,23 @@
   color: #0072ce;
 }
 
+.prototype-tipo-vinculo-regimes-list {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.prototype-tipo-vinculo-regimes-list > p,
+.prototype-tipo-vinculo-regimes-list ul,
+.prototype-tipo-vinculo-regimes-list li {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.prototype-tipo-vinculo-regimes-list ul {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 @media (max-width: 900px) {
   .prototype-carreira-filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -8,6 +8,7 @@ import {
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Controller, useForm, type FieldErrors } from "react-hook-form";
 import {
+  BotaoChipSeplag,
   BotaoLimparFiltroSeplag,
   BotaoIconSeplag,
   BotaoSalvarSeplag,
@@ -10342,6 +10343,7 @@ export function PrototiposTipoVinculoTestePage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
+  const [tipoVinculoRegimes, setTipoVinculoRegimes] = useState<TipoVinculoTesteRow | null>(null);
   const [searchParams] = useSearchParams();
   const regimeJuridicoParam = searchParams.get("regimeJuridico") ?? "";
   const regimeJuridicoInicial = Array.from(
@@ -10384,20 +10386,20 @@ export function PrototiposTipoVinculoTestePage({
     sizePage: 10,
   };
   const tipoVinculoColumns: ColumnMetaSeplag<TipoVinculoTesteRow>[] = [
-    { field: "codigo", header: "Sigla/Código" },
+    { field: "codigo", header: "Sigla" },
     { field: "nome", header: "Tipo de Vínculo" },
     {
       header: "Regimes Jurídicos",
       body: (row) => (
-        <button
-          type="button"
+        <BotaoChipSeplag
           className="prototype-link-button"
-          title={row.regimesJuridicos.join(", ")}
-          onClick={() => navigate(`${routePrefix}/regime-juridico?tipoVinculo=${encodeURIComponent(row.nome)}`)}
+          tooltip={row.regimesJuridicos.join(", ")}
+          aria-label={`Visualizar regimes jurídicos vinculados a ${row.nome}`}
+          onClick={() => setTipoVinculoRegimes(row)}
         >
           {row.regimesJuridicos.length}{" "}
           {row.regimesJuridicos.length === 1 ? "Regime" : "Regimes"}
-        </button>
+        </BotaoChipSeplag>
       ),
     },
     { field: "vigencia", header: "Vigência" },
@@ -10517,6 +10519,25 @@ export function PrototiposTipoVinculoTestePage({
           </div>
         </CardSeplag>
       </div>
+      <ModalSeplag
+        visible={Boolean(tipoVinculoRegimes)}
+        titulo={`Regimes jurídicos vinculados (${tipoVinculoRegimes?.regimesJuridicos.length ?? 0})`}
+        fechar={() => setTipoVinculoRegimes(null)}
+        hideFooter
+        tamanho="620px"
+      >
+        <div className="prototype-carreira-org-list prototype-tipo-vinculo-regimes-list">
+          <p><strong>{tipoVinculoRegimes?.codigo}</strong> — {tipoVinculoRegimes?.nome}</p>
+          <ul>
+            {tipoVinculoRegimes?.regimesJuridicos.map((regime, index) => (
+              <li key={regime}>
+                <i className="pi pi-book" aria-hidden="true" />
+                <strong>{index + 1}.</strong> {regime}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </ModalSeplag>
     </PrototypeSystemPage>
   );
 }
@@ -10663,7 +10684,7 @@ export function PrototiposTipoVinculoTesteFormPage({
               </div>
             </header>
             <div className="grid prototype-carreira-register-fields">
-              <TextFieldSeplag name="codigo" control={control} label="Sigla/Código" cols="12 12 3" required getFormErrorMessage={() => null} />
+              <TextFieldSeplag name="codigo" control={control} label="Sigla" cols="12 12 3" required getFormErrorMessage={() => null} />
               <TextFieldSeplag name="nome" control={control} label="Nome do Tipo de Vínculo" cols="12 12 9" required getFormErrorMessage={() => null} />
             </div>
           </section>
