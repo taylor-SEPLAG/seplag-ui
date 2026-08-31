@@ -7496,26 +7496,31 @@ export function PrototiposCarreiraPage() {
       </ModalSeplag>
       <ModalSeplag
         visible={modalCarreira === "orgaos"}
-        titulo="Órgãos Vinculados"
+        titulo={`Órgãos vinculados (${carreiraSelecionada?.orgaosVinculados ?? 0})`}
         fechar={() => setModalCarreira(null)}
         labelFechar="Fechar"
         hideFooter
         tamanho="600px"
       >
-        <div className="prototype-carreira-org-list">
+        <div className="prototype-carreira-org-list prototype-linked-records-list">
           <p><strong>{carreiraSelecionada?.sigla}</strong> — {carreiraSelecionada?.nome}</p>
           <ul>
-            {Array.from(
-              { length: carreiraSelecionada?.orgaosVinculados ?? 0 },
-              (_, index) => (
-                <li key={index}>
+            {(() => {
+              const orgaoPrincipal = carreiraSelecionada?.orgao;
+              const orgaosVinculados = [
+                ...(orgaoPrincipal ? [orgaoPrincipal] : []),
+                ...carreiraOrgaosCadastro
+                  .filter((orgao) => orgao.id !== orgaoPrincipal)
+                  .slice(0, Math.max(0, (carreiraSelecionada?.orgaosVinculados ?? 0) - 1))
+                  .map((orgao) => orgao.id),
+              ];
+              return orgaosVinculados.map((orgaoId, index) => (
+                <li key={orgaoId}>
                   <i className="pi pi-building" aria-hidden="true" />
-                  {index === 0
-                    ? carreiraSelecionada?.orgao.toUpperCase()
-                    : `Órgão vinculado ${index + 1}`}
+                  <strong>{index + 1}.</strong> {carreiraOrgaosCadastro.find((orgao) => orgao.id === orgaoId)?.nome ?? orgaoId.toUpperCase()}
                 </li>
-              ),
-            )}
+              ));
+            })()}
           </ul>
         </div>
       </ModalSeplag>
@@ -7551,7 +7556,7 @@ const perfisEspecialidadesMock: PerfilEspecialidadeRow[] = [
   { id: 2, codigo: "PER-0002", nome: "Administrador", areaFormacao: "Administração", cbo: "2521-05", cargosVinculados: 3, situacao: "ATIVO", descricao: "Perfil voltado ao planejamento, organização e gestão de recursos e processos administrativos.", observacao: "Aplicável às unidades administrativas e de planejamento.", nivelFormacao: "superior", exigeRegistro: "N", conselho: "", especializacao: "", dataInicio: "10/03/2024", dataCriacao: "20/02/2024" },
   { id: 3, codigo: "PER-0003", nome: "Psicólogo", areaFormacao: "Psicologia", cbo: "2515-10", cargosVinculados: 2, situacao: "ATIVO", descricao: "Perfil destinado à avaliação, orientação e acompanhamento psicológico em contextos institucionais.", observacao: "A área de atuação será definida conforme a necessidade do órgão.", nivelFormacao: "superior", exigeRegistro: "S", conselho: "CRP", especializacao: "", dataInicio: "01/04/2024", dataCriacao: "12/03/2024" },
   { id: 4, codigo: "PER-0004", nome: "Engenheiro Civil", areaFormacao: "Engenharia Civil", cbo: "2142-05", cargosVinculados: 1, situacao: "ATIVO", descricao: "Perfil responsável por projetos, obras, fiscalização e emissão de pareceres técnicos de engenharia civil.", observacao: "Pode atuar na fiscalização de contratos de obras públicas.", nivelFormacao: "superior", exigeRegistro: "S", conselho: "CREA", especializacao: "", dataInicio: "15/05/2024", dataCriacao: "30/04/2024" },
-  { id: 5, codigo: "PER-0005", nome: "Médico Cardiologista", areaFormacao: "Medicina", cbo: "2251-20", cargosVinculados: 1, situacao: "ATIVO", descricao: "Perfil médico especializado em prevenção, diagnóstico e tratamento de doenças cardiovasculares.", observacao: "Atuação condicionada à regularidade do registro profissional.", nivelFormacao: "pos-graduacao", exigeRegistro: "S", conselho: "CRM", especializacao: "Cardiologia", dataInicio: "01/06/2024", dataCriacao: "10/05/2024" },
+  { id: 5, codigo: "PER-0005", nome: "Médico Cardiologista", areaFormacao: "Medicina", cbo: "2251-20", cargosVinculados: 1, situacao: "ATIVO", descricao: "Perfil médico especializado em prevenção, diagnóstico e tratamento de doenças cardiovasculares.", observacao: "Atuação condicionada à regularidade do registro profissional.", nivelFormacao: "superior", exigeRegistro: "S", conselho: "CRM", especializacao: "", dataInicio: "01/06/2024", dataCriacao: "10/05/2024" },
   { id: 6, codigo: "PER-0006", nome: "Analista de Sistemas", areaFormacao: "Tecnologia da Informação", cbo: "2124-05", cargosVinculados: 2, situacao: "ATIVO", descricao: "Perfil responsável por análise, desenvolvimento, integração e sustentação de sistemas de informação.", observacao: "Pode atuar em desenvolvimento de software, dados ou arquitetura de soluções.", nivelFormacao: "superior", exigeRegistro: "N", conselho: "", especializacao: "", dataInicio: "01/07/2024", dataCriacao: "14/06/2024" },
   { id: 7, codigo: "PER-0007", nome: "Técnico em Contabilidade", areaFormacao: "Não informada", cbo: "3511-05", cargosVinculados: 0, situacao: "ENCERRADO", descricao: "Perfil técnico de apoio à escrituração, conciliação e organização de documentos contábeis.", observacao: "Perfil mantido apenas para consulta histórica.", nivelFormacao: "medio", exigeRegistro: "S", conselho: "CRC", especializacao: "", dataInicio: "01/01/2023", dataCriacao: "15/12/2022", dataEncerramento: "31/12/2025", motivoEncerramento: "Perfil substituído por nova estrutura de atribuições profissionais." },
 ];
@@ -7647,7 +7652,6 @@ export function PrototiposPerfilEspecialidadePage() {
     { field: "nome", header: "Perfil Profissional" },
     { field: "areaFormacao", header: "Área de formação" },
     { field: "cbo", header: "CBO" },
-    { header: "Cargos", body: (row) => <button type="button" className="prototype-link-button">{row.cargosVinculados} {row.cargosVinculados === 1 ? "Cargo" : "Cargos"}</button> },
     { header: "Situação", body: (row) => { const badge = situacaoBadge(row.situacao); return <BadgeSeplag label={badge.label} color={badge.color} bg={badge.bg} border={badge.border} size="md" />; } },
   ];
   const areas = Array.from(new Set(perfisEspecialidadesMock.map((item) => item.areaFormacao))).map((area) => ({ label: area, value: area }));
@@ -7675,7 +7679,6 @@ interface PerfilEspecialidadeForm {
   cbo: string;
   exigeRegistro: "S" | "N";
   conselho: string;
-  especializacoes: string[];
   dataInicio: string;
   dataEncerramento: string;
   motivoEncerramento: string;
@@ -7693,17 +7696,7 @@ const perfilFormacaoOptions = [
   "Tecnologia da Informação",
 ].map((formacao) => ({ label: formacao, value: formacao }));
 
-const perfilEspecializacaoOptions = [
-  "Auditoria e Controladoria",
-  "Cardiologia",
-  "Direito Administrativo",
-  "Engenharia de Segurança do Trabalho",
-  "Gestão de Pessoas",
-  "Gestão Pública",
-  "Psicologia Organizacional",
-  "Saúde Pública",
-  "Tecnologia da Informação",
-].map((especializacao) => ({ label: especializacao, value: especializacao }));
+const perfilNivelFormacaoOptions = cargoEscolaridadeOptions.filter((option) => option.value !== "pos-graduacao");
 
 export function PrototiposPerfilEspecialidadeFormPage() {
   const navigate = useNavigate();
@@ -7718,12 +7711,12 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const codigoGerado = perfilEmEdicao?.codigo ?? `PER-${String(proximoId).padStart(4, "0")}`;
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
   const [erroComplementar, setErroComplementar] = useState("");
-  const { control, handleSubmit, reset, setValue, watch } = useForm<PerfilEspecialidadeForm>({ defaultValues: { nome: "", descricao: "", observacao: "", nivelFormacao: "", formacoes: [], cbo: "", exigeRegistro: "N", conselho: "", especializacoes: [], dataInicio: "", dataEncerramento: "", motivoEncerramento: "" } });
+  const { control, handleSubmit, reset, setValue, watch } = useForm<PerfilEspecialidadeForm>({ defaultValues: { nome: "", descricao: "", observacao: "", nivelFormacao: "", formacoes: [], cbo: "", exigeRegistro: "N", conselho: "", dataInicio: "", dataEncerramento: "", motivoEncerramento: "" } });
 
   useEffect(() => {
     if (!perfilEmEdicao) return;
     const nivelFormacao = perfilEmEdicao.nivelFormacao ?? (perfilEmEdicao.areaFormacao ? "superior" : "");
-    reset({ nome: perfilEmEdicao.nome, descricao: perfilEmEdicao.descricao ?? "", observacao: perfilEmEdicao.observacao ?? "", nivelFormacao, formacoes: nivelFormacao === "superior" || nivelFormacao === "pos-graduacao" ? perfilEmEdicao.areaFormacao.split(", ").filter(Boolean) : [], cbo: perfilEmEdicao.cbo, exigeRegistro: perfilEmEdicao.exigeRegistro ?? "N", conselho: perfilEmEdicao.conselho ?? "", especializacoes: nivelFormacao === "pos-graduacao" ? (perfilEmEdicao.especializacao ?? "").split(", ").filter(Boolean) : [], dataInicio: perfilEmEdicao.dataInicio ?? "01/01/2026", dataEncerramento: perfilEmEdicao.dataEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "31/12/2025" : ""), motivoEncerramento: perfilEmEdicao.motivoEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "Perfil encerrado administrativamente." : "") });
+    reset({ nome: perfilEmEdicao.nome, descricao: perfilEmEdicao.descricao ?? "", observacao: perfilEmEdicao.observacao ?? "", nivelFormacao, formacoes: nivelFormacao === "superior" ? perfilEmEdicao.areaFormacao.split(", ").filter(Boolean) : [], cbo: perfilEmEdicao.cbo, exigeRegistro: perfilEmEdicao.exigeRegistro ?? "N", conselho: perfilEmEdicao.conselho ?? "", dataInicio: perfilEmEdicao.dataInicio ?? "01/01/2026", dataEncerramento: perfilEmEdicao.dataEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "31/12/2025" : ""), motivoEncerramento: perfilEmEdicao.motivoEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "Perfil encerrado administrativamente." : "") });
     setDocumentosSelecionados(perfilEmEdicao.documentosIds ?? []);
   }, [perfilEmEdicao, reset]);
 
@@ -7734,16 +7727,12 @@ export function PrototiposPerfilEspecialidadeFormPage() {
 
   const exigeRegistro = watch("exigeRegistro") === "S";
   const nivelSuperiorSelecionado = watch("nivelFormacao") === "superior";
-  const nivelPosGraduacaoSelecionado = watch("nivelFormacao") === "pos-graduacao";
-  const exibeFormacao = nivelSuperiorSelecionado || nivelPosGraduacaoSelecionado;
+  const exibeFormacao = nivelSuperiorSelecionado;
   const dataInicio = watch("dataInicio");
   const dataEncerramento = watch("dataEncerramento");
   useEffect(() => {
     if (!exibeFormacao) setValue("formacoes", []);
   }, [exibeFormacao, setValue]);
-  useEffect(() => {
-    if (!nivelPosGraduacaoSelecionado) setValue("especializacoes", []);
-  }, [nivelPosGraduacaoSelecionado, setValue]);
   const inicioIso = carreiraDataParaIso(dataInicio);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
@@ -7751,13 +7740,13 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const salvar = (values: PerfilEspecialidadeForm) => {
     if (isEdicao && Boolean(values.dataEncerramento) !== Boolean(values.motivoEncerramento.trim())) return setErroComplementar("Para encerrar o perfil, informe a data e o motivo do encerramento.");
     if (isEdicao && values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) < carreiraDataParaIso(values.dataInicio)) return setErroComplementar("A data de encerramento não pode ser anterior à data de início.");
-    if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
+    if (isEdicao && !documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
     if (exigeRegistro && !values.conselho) return setErroComplementar("Selecione o conselho profissional exigido.");
     if (perfisEspecialidadesMock.some((item) => item.id !== perfilEmEdicao?.id && item.nome.trim().toLowerCase() === values.nome.trim().toLowerCase())) return setErroComplementar("Já existe um Perfil Profissional com esse nome.");
     const situacaoAtualizada = values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
       ? possuiDependenciaAtiva("perfil", perfilEmEdicao?.id ?? proximoId) ? "ENCERRADO" : "EXTINTO"
       : "ATIVO";
-    const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: exibeFormacao ? values.formacoes.join(", ") || "Não informada" : "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: situacaoAtualizada, descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: values.exigeRegistro, conselho: exigeRegistro ? values.conselho : "", especializacao: nivelPosGraduacaoSelecionado ? values.especializacoes.join(", ") : "", dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
+    const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: exibeFormacao ? values.formacoes.join(", ") || "Não informada" : "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: situacaoAtualizada, descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: values.exigeRegistro, conselho: exigeRegistro ? values.conselho : "", especializacao: "", dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
     if (perfilEmEdicao) Object.assign(perfilEmEdicao, atualizado); else perfisEspecialidadesMock.push(atualizado);
     atualizarExtincoesDerivadas();
     navigate("/prototipos/sigep/perfil-profissional");
@@ -7772,9 +7761,9 @@ export function PrototiposPerfilEspecialidadeFormPage() {
       {erroComplementar ? <div className="prototype-carreira-register-alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
       <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
         <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>
+        {isEdicao ? (<section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>) : null}
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <MultiSelectFieldSeplag name="formacoes" control={control} label="Formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : "12 12 4"} options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais formações" getFormErrorMessage={() => null} /> : null}{nivelPosGraduacaoSelecionado ? <MultiSelectFieldSeplag name="especializacoes" control={control} label="Especialização" cols="12 12 3" options={perfilEspecializacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais especializações" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={perfilNivelFormacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <MultiSelectFieldSeplag name="formacoes" control={control} label="Formação" cols="12 12 4" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais formações" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
         <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={status} entidade="o perfil profissional" getFormErrorMessage={() => null} />
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
         <footer className="prototype-carreira-register-actions"><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-profissional"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link><BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar perfil"} /></footer>
@@ -7796,6 +7785,7 @@ const carreiraOrgaosCadastro: CarreiraOrgaoCadastro[] = [
   { id: "mti", nome: "MTI — Empresa Mato-grossense de Tecnologia da Informação" },
   { id: "sefaz", nome: "SEFAZ — Secretaria de Estado de Fazenda" },
   { id: "sesp", nome: "SESP — Secretaria de Estado de Segurança Pública" },
+  { id: "sedec", nome: "SEDEC — Secretaria de Estado de Desenvolvimento Econômico" },
 ];
 
 function carreiraDataParaIso(value: string) {
@@ -8417,7 +8407,7 @@ export function PrototiposCargoPage({
     size: 10,
   };
   const cargoColumns: ColumnMetaSeplag<CargoTesteRow>[] = [
-    { field: "codigo", header: "Código/Sigla" },
+    { field: "codigo", header: "Sigla" },
     { field: "cargo", header: "Cargo" },
     { field: "vigencia", header: "Vigência" },
     {
@@ -8655,29 +8645,13 @@ export function PrototiposCargoFormPage({
               </div>
             </header>
             <div className="grid prototype-carreira-register-fields">
-              <TextFieldSeplag name="codigo" control={control} label="Código/Sigla" cols="12 12 3" required getFormErrorMessage={() => null} />
+              <TextFieldSeplag name="codigo" control={control} label="Sigla" cols="12 12 3" required getFormErrorMessage={() => null} />
               <TextFieldSeplag name="nomeCargo" control={control} label="Nome do Cargo" cols="12 12 9" required getFormErrorMessage={() => null} />
             </div>
           </section>
 
           <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramentoCargo} status={situacaoInicialCargo} entidade="o cargo" getFormErrorMessage={() => null} />
 
-          {isEdicao ? (
-            <section className="prototype-carreira-register-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" aria-hidden="true" /></span>
-                <div>
-                  <h2>Dados do registro</h2>
-                  <p>Informações geradas automaticamente pelo sistema.</p>
-                </div>
-              </header>
-              <dl className="prototype-carreira-register-metadata">
-                <div><dt>Identificador</dt><dd>{cargoEmEdicao?.id}</dd></div>
-                <div><dt>Categoria</dt><dd>{cargoEmEdicao?.categoria || "Não informada"}</dd></div>
-                <div><dt>Situação atual</dt><dd>{situacaoInicialCargo}</dd></div>
-              </dl>
-            </section>
-          ) : null}
 
           <section className="prototype-carreira-register-section">
             <header>
@@ -10445,7 +10419,7 @@ export function PrototiposTipoVinculoTestePage({
             <TextFieldSeplag
               name="termo"
               control={control}
-              label="Nome ou Código/Sigla"
+              label="Nome ou Sigla"
               placeholder="Informe a sigla ou o nome"
               cols="12 12 5"
               getFormErrorMessage={() => null}
@@ -10688,6 +10662,7 @@ export function PrototiposTipoVinculoTesteFormPage({
 
           <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEditing} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o tipo de vínculo" getFormErrorMessage={() => null} />
 
+          {isEditing ? (
           <section className="prototype-carreira-register-section">
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
@@ -10700,6 +10675,7 @@ export function PrototiposTipoVinculoTesteFormPage({
               <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegaisMock} value={baseLegalSelecionada} onChange={setBaseLegalSelecionada} onNovoCadastro={() => navigate(novoDocumentoUrl)} onVisualizar={() => {}} expandirAoAbrir />
             </div>
           </section>
+          ) : null}
 
           <section className="prototype-carreira-register-section">
             <header>
@@ -10710,7 +10686,7 @@ export function PrototiposTipoVinculoTesteFormPage({
               </div>
             </header>
             <div className="grid prototype-carreira-register-fields">
-              <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos associados" placeholder="Selecione um ou mais regimes" cols="12" options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos" placeholder="Selecione um ou mais regimes" cols="12" required options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
             </div>
           </section>
 
