@@ -7531,35 +7531,31 @@ const perfisEspecialidadesMock: PerfilEspecialidadeRow[] = [
 export function PrototiposPerfilEspecialidadePage() {
   const navigate = useNavigate();
   const [pagina, setPagina] = useState(0);
-  const { control, reset, watch } = useForm<{ termo?: string; areaFormacao?: string; situacao?: string }>({ defaultValues: { termo: "", areaFormacao: undefined, situacao: undefined } });
+  const { control, reset, watch } = useForm<{ termo?: string; situacao?: string }>({ defaultValues: { termo: "", situacao: undefined } });
   const filtros = watch();
   const termo = filtros.termo?.trim().toLowerCase();
   const filtrados = perfisEspecialidadesMock.filter((perfil) =>
     (!termo || perfil.nome.toLowerCase().includes(termo) || perfil.cbo.includes(termo)) &&
-    (!filtros.areaFormacao || perfil.areaFormacao === filtros.areaFormacao) &&
     (!filtros.situacao || perfil.situacao === filtros.situacao),
   );
   const registrosPorPagina = 5;
-  useEffect(() => setPagina(0), [filtros.termo, filtros.areaFormacao, filtros.situacao]);
+  useEffect(() => setPagina(0), [filtros.termo, filtros.situacao]);
   const paginados = filtrados.slice(pagina * registrosPorPagina, (pagina + 1) * registrosPorPagina);
   const resultados = { ...createResults(paginados), pageActual: pagina, totalPages: Math.max(1, Math.ceil(filtrados.length / registrosPorPagina)), totalRecords: filtrados.length, sizePage: registrosPorPagina, size: registrosPorPagina };
   const colunas: ColumnMetaSeplag<PerfilEspecialidadeRow>[] = [
-    { field: "nome", header: "Perfil/Especialidade" },
+    { field: "nome", header: "Perfil Profissional" },
     { field: "areaFormacao", header: "Área de formação" },
     { field: "cbo", header: "CBO" },
     { header: "Cargos", body: (row) => <button type="button" className="prototype-link-button">{row.cargosVinculados} {row.cargosVinculados === 1 ? "Cargo" : "Cargos"}</button> },
     { header: "Situação", body: (row) => <BadgeSeplag label={row.situacao === "ATIVO" ? "Ativo" : "Encerrado"} color={row.situacao === "ATIVO" ? "#00843d" : "#5f6368"} bg={row.situacao === "ATIVO" ? "#e9fbf0" : "#ffffff"} border={row.situacao === "ATIVO" ? "#66e49a" : "#dfe3e8"} size="md" /> },
   ];
-  const areas = Array.from(new Set(perfisEspecialidadesMock.map((item) => item.areaFormacao))).map((area) => ({ label: area, value: area }));
-
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
     <div className="prototype-page-content prototype-page-content--white">
-      <CardSeplag title="Perfis/Especialidades" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil/Especialidade" }]} />}>
+      <CardSeplag title="Perfil Profissional" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil Profissional" }]} />}>
         <div className="prototype-category-filters prototype-carreira-filters grid">
-          <TextFieldSeplag name="termo" control={control} label="Perfil/Especialidade (Nome, CBO)" cols="12 6 5" getFormErrorMessage={() => null} />
-          <DropdownFieldSeplag name="areaFormacao" control={control} label="Área de formação" cols="12 6 3" options={areas} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-          <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 2" options={situacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-          <div className="prototype-category-clear col-12 md:col-6 lg:col-2"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ termo: "", areaFormacao: undefined, situacao: undefined })} /></div>
+          <TextFieldSeplag name="termo" control={control} label="Perfil Profissional (Nome, CBO)" cols="12 6 7" getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 3" options={situacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+          <div className="prototype-category-clear col-12 md:col-6 lg:col-2"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ termo: "", situacao: undefined })} /></div>
         </div>
         <div className="prototype-category-table prototype-perfil-especialidade-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/perfil-especialidade/novo")} handleView={(row) => navigate(`/prototipos/sigep/perfil-especialidade/${row.id}/editar`)} handleEdit={(row) => navigate(`/prototipos/sigep/perfil-especialidade/${row.id}/editar`)} handleDelete={() => {}} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
       </CardSeplag>
@@ -9118,67 +9114,63 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <form onSubmit={handleSubmit(salvar)}>
-        <div className="prototype-page-content prototype-page-content--white prototype-regime-page">
-          <CardSeplag
-            title={isEdicao ? "Editar - Regime Jurídico" : "Cadastrar - Regime Jurídico"}
-            cols="12"
-            cardHeaderClassNames="prototype-regime-card"
-            headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Regime Jurídico", to: `${routePrefix}/regime-juridico` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />}
-          >
-            <div className="grid prototype-category-form-fields prototype-regime-form-fields">
-              <TextFieldSeplag
-                name="sigla"
-                control={control}
-                label="Código"
-                cols="12 12 4"
-                maxLength={30}
-                getFormErrorMessage={() => null}
-              />
-              <TextFieldSeplag
-                name="nome"
-                control={control}
-                label="Nome"
-                cols="12 12 8"
-                required
-                maxLength={150}
-                getFormErrorMessage={() => null}
-              />
-              <TextFieldSeplag
+      <div className="prototype-carreira-register-page">
+        <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Regime Jurídico", to: `${routePrefix}/regime-juridico` }, { label: isEdicao ? "Editar" : "Cadastrar" }]} />
+        <header className="prototype-carreira-register-title">
+          <div>
+            <span>{isEdicao ? "EDIÇÃO" : "CADASTRO"}</span>
+            <h1>{isEdicao ? "Editar regime jurídico" : "Novo regime jurídico"}</h1>
+            <p>{isEdicao ? "Atualize os dados cadastrais, a vigência e a base legal do regime jurídico." : "Informe os dados que identificam o regime jurídico e sua vigência inicial."}</p>
+          </div>
+          <BadgeSeplag label={isEdicao ? regimeEmEdicao?.nome ?? "Edição" : "Novo registro"} color="#005ea8" bg="#e8f3ff" border="#a8d5f2" size="md" />
+        </header>
+        <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
+          <section className="prototype-carreira-register-section">
+            <header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados principais usados para localizar e reconhecer o regime jurídico.</p></div></header>
+            <div className="grid prototype-carreira-register-fields">
+              <TextFieldSeplag name="sigla" control={control} label="Código" cols="12 12 3" maxLength={30} getFormErrorMessage={() => null} />
+              <TextFieldSeplag name="nome" control={control} label="Nome" cols="12 12 9" required maxLength={150} getFormErrorMessage={() => null} />
+            </div>
+          </section>
+          <section className="prototype-carreira-register-section">
+            <header><span className="prototype-carreira-section-icon"><i className="pi pi-calendar" /></span><div><h2>Vigência</h2><p>Informe quando o regime jurídico passa a valer. O status é definido automaticamente.</p></div></header>
+            <div className="prototype-carreira-vigencia-grid">
+              <div className="grid"><DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} /></div>
+              <div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}><span className="prototype-carreira-status-icon"><i className={situacaoIcone} /></span><div><small>Situação</small><strong>{situacaoInicial}</strong><p>{situacaoTexto}</p></div></div>
+            </div>
+          </section>
+          <section className="prototype-carreira-register-section">
+            <header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe o documento que fundamenta a criação do regime jurídico.</p></div></header>
+            <div className="prototype-carreira-register-body">
+              <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegaisMock} value={baseLegalSelecionada} onChange={setBaseLegalSelecionada} onNovoCadastro={() => {}} onVisualizar={() => {}} />
+            </div>
+          </section>
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span>
+              <div>
+                <h2>Observação</h2>
+                <p>Registre informações complementares sobre o regime jurídico.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <TextAreaFieldSeplag
                 name="descricao"
                 control={control}
-                label="Descrição"
+                label="Observação"
                 cols="12"
+                rows={4}
                 maxLength={500}
                 getFormErrorMessage={() => null}
               />
-
-              <div className="col-12 prototype-regime-section">
-                <DocumentosLegaisAssociadosSeplag
-                  label="Base Legal"
-                  required
-                  options={documentosLegaisMock}
-                  value={baseLegalSelecionada}
-                  onChange={setBaseLegalSelecionada}
-                  onNovoCadastro={() => {}}
-                  onVisualizar={() => {}}
-                />
-              </div>
-
-
-              <section className="col-12 prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-angle-right" /></span><div><h2>Vigência</h2></div></header><div className="prototype-carreira-register-body"><div className="prototype-carreira-vigencia-grid"><div className="grid"><DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" cols="12" required getFormErrorMessage={() => null} /></div><div className={`prototype-carreira-status-card is-${situacaoInicial.toLowerCase().replace(" ", "-")}`}><span className="prototype-carreira-status-icon"><i className={situacaoIcone} /></span><div><small>Situação</small><strong>{situacaoInicial}</strong><p>{situacaoTexto}</p></div></div></div></div></section>
             </div>
-
-            <div className="prototype-category-form-footer">
-              <BotaoVoltarSeplag
-                type="button"
-                onClick={() => navigate(`${routePrefix}/regime-juridico`)}
-              />
-              <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar regime jurídico"} />
-            </div>
-          </CardSeplag>
-        </div>
-      </form>
+          </section>
+          <footer className="prototype-carreira-register-actions">
+            <BotaoVoltarSeplag type="button" onClick={() => navigate(`${routePrefix}/regime-juridico`)} />
+            <BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar regime jurídico"} />
+          </footer>
+        </form>
+      </div>
     </PrototypeSystemPage>
   );
 }
