@@ -310,6 +310,15 @@ export function CertameFormContent() {
   if (dias !== undefined) setValue("validadeConcursoDias", dias);
  }, [valores.dataResultado, valores.dataValidade, setValue]);
 
+ // O órgão mandante não pode também ser órgão participante — remove automaticamente se o usuário
+ // trocar o mandante para um órgão já marcado como participante.
+ useEffect(() => {
+  if (valores.setor && valores.setoresParticipantes.includes(valores.setor)) {
+   setValue("setoresParticipantes", valores.setoresParticipantes.filter((item) => item !== valores.setor));
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [valores.setor]);
+
  const selecionarTipoCertame = (tipo:TipoCertame) => {
   const concurso = tipo === "CONCURSO_PUBLICO";
   setValue("tipoCertame", tipo);
@@ -654,7 +663,7 @@ export function CertameFormContent() {
         {!modoNovo
          ? <SpecArea metadata={certameFormBlockSpecifications.mandanteBloqueado}><RotuloSeplag nome="Órgão responsável (mandante)" cols="12 6" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">{valores.setor}</div><small>Bloqueado após o cadastro — RN-05.</small></div></RotuloSeplag></SpecArea>
          : <DropdownFieldSeplag name="setor" control={control} label="Órgão responsável (mandante)" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
-        <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="(selecione)" display="chip" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.filter((item) => item !== valores.setor).map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="(selecione)" display="chip" disabled={modoVisualizar} getFormErrorMessage={() => null} />
        </div>
       </div>
 
