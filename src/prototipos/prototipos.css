@@ -19827,3 +19827,10 @@
 .prototype-perfil-especialidade-table .p-datatable-thead > tr > th:nth-child(7),
 .prototype-perfil-especialidade-table .p-datatable-tbody > tr > td:nth-child(7) { width: 11%; }
 .prototype-perfil-especialidade-table .p-splitbutton { width: 88px; max-width: 100%; }
+
+.prototype-ingressos-details-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
