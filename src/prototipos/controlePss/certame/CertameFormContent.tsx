@@ -9,7 +9,8 @@ import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStor
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
 import { proximoNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento } from "./validations";
-import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, MUNICIPIOS_MT, OPCOES_SIM_NAO, ORGAO_TODOS, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_FASE_CONCURSO_TCE, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
+import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, MUNICIPIOS_MT, OPCOES_SIM_NAO, ORGAO_TODOS, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
+import { useFasesCertame } from "../fasesCertame/fasesCertameStore";
 import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, ReservaCotaCargo, SituacaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
@@ -21,9 +22,9 @@ import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import RotuloSeplag from "@componentes/Rotulo";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import { DocumentosLegaisAssociadosSeplag, type DocumentoLegalAssociadoSeplag } from "@componentes/DocumentosLegaisAssociados";
-import { SeplagAutoComplete } from "@componentes/AutoComplete";
+import { Dropdown } from "primereact/dropdown";
 import gridCss from "@uteis/Grid";
-import { lerRascunhoCertame, limparRascunhoCertame, salvarRascunhoCertame } from "./rascunhoCertameStore";
+import { lerRascunhoCertame, limparRascunhoCertame, novoRascunhoCertameId, salvarRascunhoCertame } from "./rascunhoCertameStore";
 import { DocumentosCertameTabela, resultadosSemPaginacao } from "./DocumentosCertameTabela";
 import "./certame.css";
 
@@ -176,12 +177,15 @@ function valoresIniciais(certame:Certame | undefined, certames:readonly Certame[
  };
  return {
   tipoCertame:"PSS", tipoConcursoAplic:"4",
-  regimeJuridico:"ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO",
+  regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO",
   setor:"", setoresParticipantes:[], objetivo:"",
   numeroConcurso:proximoNumeroCertame(anoReferencia, certames), anoConcurso:anoReferencia,
   nomeEdital:"", numeroEditalOrgao:"",
   dataPublicacaoEdital:"", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG",
   existePrevisaoRecursos:"N", gerouDespesas:"N", cobraTaxaInscricao:"N",
+  // RN006: prazos padrão de posse (30 dias) e efetivo exercício (15 dias) para certame novo —
+  // permanecem editáveis. Não há valor padrão para as prorrogações.
+  diasPrazoPosse:30, diasPrazoExercicio:15,
  };
 }
 
@@ -225,22 +229,12 @@ function rotuloPolo(codigo:string) {
  return MUNICIPIOS_MT.find((item) => item.value === codigo)?.label ?? codigo;
 }
 
-// Sugestões de "Nome da fase" a partir do catálogo de Tipos de Prova/Etapa do TCE-MT — o campo
-// continua sendo texto livre (qualquer nome digitado é aceito), a busca só ajuda a encontrar e
-// reaproveitar um dos nomes já padronizados pelo TCE-MT.
-function filtrarTiposFaseTce(consulta:string) {
- const termo = consulta.trim().toLocaleLowerCase("pt-BR");
- const rotulos = TIPOS_FASE_CONCURSO_TCE.map((item) => item.label);
- if (!termo) return rotulos;
- return rotulos.filter((label) => label.toLocaleLowerCase("pt-BR").includes(termo));
-}
-
 export function CertameFormContent() {
  const { certames } = useControlePssStore();
  const navigate = useNavigate();
  const location = useLocation();
  const { id } = useParams<{ id?:string }>();
- const [searchParams] = useSearchParams();
+ const [searchParams, setSearchParams] = useSearchParams();
  const modoNovo = !id || id === "novo";
  const existente = modoNovo ? undefined : certames.find((item) => item.id === id);
  // "Visualizar" (ação da listagem) abre o mesmo formulário de "Editar", mas em modo somente leitura:
@@ -248,9 +242,27 @@ export function CertameFormContent() {
  // só acessível para um certame já existente (nunca para "novo certame").
  const modoVisualizar = !modoNovo && searchParams.get("modo") === "visualizar";
 
+ // Identidade do rascunho: vários certames novos podem estar "em andamento" ao mesmo tempo (RN008),
+ // então cada um precisa do seu próprio id — recebido em ?rascunho=<id> ao retomar via "Continuar
+ // cadastro" na listagem, ou gerado aqui na primeira vez que "Novo certame" é aberto. Gravar o id de
+ // volta na URL (replace, sem navegar) garante que um refresh no meio do preenchimento retome o
+ // mesmo rascunho em vez de começar outro do zero.
+ const rascunhoId = useMemo(() => searchParams.get("rascunho") ?? novoRascunhoCertameId(), []);
+ useEffect(() => {
+  if (!modoNovo || searchParams.get("rascunho") === rascunhoId) return;
+  setSearchParams((atuais) => { const proximos = new URLSearchParams(atuais); proximos.set("rascunho", rascunhoId); return proximos; }, { replace:true });
+ }, [modoNovo, rascunhoId, searchParams, setSearchParams]);
+
  // Rascunho de um cadastro em andamento (só se aplica a "novo certame" — ver RascunhoCertame acima).
- const rascunho = useMemo(() => (modoNovo ? lerRascunhoCertame() : null), []);
+ const rascunho = useMemo(() => (modoNovo ? lerRascunhoCertame(rascunhoId) : null), []);
  const [avisoRascunho, setAvisoRascunho] = useState(Boolean(rascunho));
+ // Depois de "Salvar certame" (fluxo novo), o navigate() para /certames/:id ainda deixa este mesmo
+ // componente montado por mais um render com `modoNovo` ainda true (o :id só troca no render
+ // seguinte) — nesse render extra, o efeito de auto-salvar rascunho roda de novo (watch() do
+ // react-hook-form gera um objeto `valores` novo a cada render, então o efeito sempre reexecuta) e
+ // recria o rascunho logo depois de limparRascunhoCertame() já ter rodado. A ref corta isso: uma vez
+ // salvo, o efeito para de escrever, mesmo nesse render extra.
+ const certameSalvoRef = useRef(false);
  useEffect(() => {
   if (!avisoRascunho) return undefined;
   const temporizador = setTimeout(() => setAvisoRascunho(false), 6000);
@@ -279,6 +291,12 @@ export function CertameFormContent() {
  const dispensarParaProcessoSeletivo = valores.tipoCertame === "PSS";
  const dispensarParaConcurso = valores.tipoCertame === "CONCURSO_PUBLICO";
  const houveContratacaoEmpresa = valores.tipoContratacaoExecucao === "EMPRESA_CONTRATADA";
+ // "Tipo de vínculo" lista só os vínculos com a flag do tipo de certame atual (concursoPublico ou
+ // processoSeletivo); "Regime jurídico" lista só os regimes cadastrados no vínculo já selecionado
+ // — fica vazio (e desabilitado) até o usuário escolher um Tipo de vínculo primeiro.
+ const opcoesTipoVinculo = useMemo(() => TIPOS_VINCULO.filter((item) => dispensarParaConcurso ? item.concursoPublico : item.processoSeletivo), [dispensarParaConcurso]);
+ const tipoVinculoSelecionado = TIPOS_VINCULO.find((item) => item.value === valores.tipoVinculo);
+ const opcoesRegimeJuridico = useMemo(() => tipoVinculoSelecionado ? REGIMES_JURIDICOS.filter((item) => (tipoVinculoSelecionado.regimesJuridicos as readonly string[]).includes(item.value)) : [], [tipoVinculoSelecionado]);
  // Largura de coluna calculada pela quantidade de campos realmente visíveis em cada bloco (mesma
  // técnica de colsIdentificacaoCargo, em "Cargos e vagas") — evita linhas com espaço sobrando
  // quando campos condicionais estão ocultos. Onde a coluna resultante é estreita (col-2) e rótulos
@@ -324,7 +342,7 @@ export function CertameFormContent() {
   const concurso = tipo === "CONCURSO_PUBLICO";
   setValue("tipoCertame", tipo);
   setValue("tipoConcursoAplic", concurso ? "1" : "4");
-  setValue("regimeJuridico", concurso ? "ESTATUTARIO" : "ESPECIAL");
+  setValue("regimeJuridico", concurso ? "ESTATUTARIO_CIVIL" : "REGIME_ESPECIAL");
   setValue("tipoVinculo", concurso ? "EFETIVO" : "CONTRATO_TEMPORARIO");
   setTipoConfirmado(true);
  };
@@ -401,7 +419,11 @@ export function CertameFormContent() {
 
  const [fases, setFases] = useState<FaseCertame[]>(existente ? [...existente.fases] : (rascunho?.fases ?? [...FASES_TCE_FIXAS]));
  const [faseArrastada, setFaseArrastada] = useState<number | null>(null);
- const [sugestoesFase, setSugestoesFase] = useState<string[]>(() => filtrarTiposFaseTce(""));
+ // "Nome da fase" só aceita seleção do catálogo de Cadastro > Controle de Certame > Fase do
+ // Certame (RN005) — sem digitação livre. O catálogo já vem seedado com os 17 Tipos de
+ // Prova/Etapa do TCE-MT (tipoTceId preenchido) e cresce com as fases que o usuário cadastrar lá.
+ const catalogoFases = useFasesCertame();
+ const opcoesFase = useMemo(() => catalogoFases.filter((item) => item.situacao === "ATIVO").map((item) => ({ label:item.nome, value:item.nome })), [catalogoFases]);
 
  const [arquivos, setArquivos] = useState<Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>>(() =>
   rascunho?.arquivos ?? Object.fromEntries(TODOS_DOCUMENTOS_CERTAME.map((item) => [item.tipo, arquivoExistente(existente, item.tipo as TipoDocumentoCertame)]).filter(([, valor]) => valor)) as Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>,
@@ -409,9 +431,9 @@ export function CertameFormContent() {
  // Salva o progresso do cadastro (novo certame) a cada alteração, para recuperar automaticamente
  // caso o usuário saia do formulário antes de salvar (ex.: atalho "Cadastrar nova lei").
  useEffect(() => {
-  if (!modoNovo || !tipoConfirmado) return;
-  salvarRascunhoCertame({ tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos });
- }, [modoNovo, tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos]);
+  if (!modoNovo || !tipoConfirmado || certameSalvoRef.current) return;
+  salvarRascunhoCertame({ id:rascunhoId, tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos });
+ }, [modoNovo, tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos, rascunhoId]);
 
  const onChangeArquivoDocumento = (tipo:TipoDocumentoCertame, arquivo:ArquivoAnexadoSeplag | undefined) => setArquivos((atuais) => ({ ...atuais, [tipo]: arquivo }));
 
@@ -471,9 +493,9 @@ export function CertameFormContent() {
   setErro(null);
   // RN-23 (ER143): número do certame (TCE-MT) não pode se repetir para o mesmo tipo e exercício.
   if (certameDuplicado(certames, dados, existente?.id)) { setErro("Já existe um certame aberto com esse número e tipo. Verifique."); irParaBloco("IDENTIFICACAO", "bloco-identificacao"); return; }
-  if (cargos.length === 0) { setErro("Informe ao menos um cargo/vaga para salvar o certame (RN-14, Cenário 1)."); irParaBloco("VAGAS_COTAS", "bloco-cargos-vagas"); return; }
-  const documentosFaltando = TODOS_DOCUMENTOS_CERTAME.filter((doc) => documentoObrigatorio(doc.tipo, doc.obrigatorioSempre) && !arquivos[doc.tipo as TipoDocumentoCertame]);
-  if (documentosFaltando.length > 0) { setErro(`Documento obrigatório pendente: ${documentosFaltando.map((doc) => doc.label).join(", ")}.`); irParaBloco("DOCUMENTOS", "bloco-documentos"); return; }
+  // Cargos/vagas e documentos não bloqueiam mais o salvamento: um certame pode ser salvo só com os
+  // dados básicos de Identificação e liberado para a comissão completar o restante depois, editando
+  // o registro já salvo — vários certames podem estar "em andamento" ao mesmo tempo dessa forma.
 
   const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
   const documentos = TODOS_DOCUMENTOS_CERTAME.filter((doc) => arquivos[doc.tipo as TipoDocumentoCertame]).map((doc) => ({ tipo:doc.tipo as TipoDocumentoCertame, nomeArquivo:arquivos[doc.tipo as TipoDocumentoCertame]!.nome, anexadoEm:agora }));
@@ -498,7 +520,8 @@ export function CertameFormContent() {
    criadoEm:agora, atualizadoEm:agora, responsavel:CONTROLE_PSS_USUARIO_LOGADO,
   };
   controlePssStore.set("certames", (atuais) => [...atuais, novo]);
-  limparRascunhoCertame();
+  certameSalvoRef.current = true;
+  limparRascunhoCertame(rascunhoId);
   navigate(`${BASE}/certames/${novoId}`);
  });
 
@@ -671,11 +694,12 @@ export function CertameFormContent() {
       <div className={blocoClasse("bloco-enquadramento")}>
        <BlocoHeader icone="pi-shield" titulo="Enquadramento funcional e legal" subtitulo="Vínculo funcional, regime jurídico e base legal do certame." />
        <div className="grid prototype-certame-grid-6col">
-        {/* Tipo de vínculo vem antes de Regime jurídico — o vínculo funcional determina o regime. */}
-        {dispensarParaConcurso
-         ? <RotuloSeplag nome="Tipo de vínculo" cols={colsEnquadramento} obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">Nomeado Efetivo</div><small>Fixo para Concurso Público.</small></div></RotuloSeplag>
-         : <DropdownFieldSeplag name="tipoVinculo" control={control} label="Tipo de vínculo" required cols={colsEnquadramento} options={[...TIPOS_VINCULO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
-        <DropdownFieldSeplag name="regimeJuridico" control={control} label="Regime jurídico" required cols={colsEnquadramento} options={[...REGIMES_JURIDICOS]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        {/* Tipo de vínculo vem antes de Regime jurídico — o vínculo funcional determina o regime.
+            As opções de cada campo vêm do catálogo TIPOS_VINCULO (dominios.ts): Tipo de vínculo é
+            filtrado pela flag concursoPublico/processoSeletivo do tipo de certame atual; Regime
+            jurídico é filtrado pelos regimes cadastrados no vínculo já selecionado. */}
+        <DropdownFieldSeplag name="tipoVinculo" control={control} label="Tipo de vínculo" required cols={colsEnquadramento} options={opcoesTipoVinculo} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="regimeJuridico" control={control} label="Regime jurídico" required cols={colsEnquadramento} options={opcoesRegimeJuridico} optionLabel="label" optionValue="value" placeholder={tipoVinculoSelecionado ? "Selecione" : "Selecione o tipo de vínculo primeiro"} showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar || !tipoVinculoSelecionado} getFormErrorMessage={() => null} />
         <CampoLeiMultiplaSeplag name="leiContratoTemporario" control={control} label={dispensarParaConcurso ? "Lei do concurso" : "Lei de contrato temporário"} required={dispensarParaConcurso || valores.tipoVinculo === "CONTRATO_TEMPORARIO"} cols={colsEnquadramento} opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiContratoTemporario")} disabled={modoVisualizar} />
         {dispensarParaProcessoSeletivo && <CampoLeiMultiplaSeplag name="leiProcessoSeletivoSimplificado" control={control} label="Lei do processo seletivo" required cols={colsEnquadramento} opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiProcessoSeletivoSimplificado")} disabled={modoVisualizar} />}
        </div>
@@ -695,12 +719,12 @@ export function CertameFormContent() {
       <div id="bloco-datas-execucao" className={blocoClasse("bloco-datas-execucao")}>
        <BlocoHeader icone="pi-calendar" titulo="Datas e execução" subtitulo="Marcos temporais do certame, a partir da publicação do edital." />
        <div className={`grid${dispensarParaProcessoSeletivo ? " prototype-certame-grid-6col" : ""}`}>
-        <DateFieldSeplag name="dataPublicacaoEdital" control={control} label="Data de publicação do edital" required cols={colsDatasExecucao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataRealizacao" control={control} label="Data de realização" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataValidade" control={control} label="Data de validade" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataResultado" control={control} label="Data do resultado" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="inicioInscricoesGerais" control={control} label="Início das inscrições gerais" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="fimInscricoesGerais" control={control} label="Fim das inscrições gerais" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataPublicacaoEdital" control={control} label="Data de publicação do edital" cols={colsDatasExecucao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataRealizacao" control={control} label="Data de realização" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataValidade" control={control} label="Data de validade" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataResultado" control={control} label="Data do resultado" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="inicioInscricoesGerais" control={control} label="Início das inscrições gerais" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="fimInscricoesGerais" control={control} label="Fim das inscrições gerais" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataProrrogacao" control={control} label="Data de prorrogação" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
         {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataCancelamento" control={control} label="Data de cancelamento" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
        </div>
@@ -729,7 +753,7 @@ export function CertameFormContent() {
        </div>
        <div className="prototype-certame-fase-list">
         {fases.map((fase) => {
-         const ehFaseTce = TIPOS_FASE_CONCURSO_TCE.some((item) => item.label === fase.nome);
+         const ehFaseTce = catalogoFases.some((item) => item.situacao === "ATIVO" && Boolean(item.tipoTceId) && item.nome === fase.nome);
          return <div
          key={fase.ordem}
          className="prototype-certame-fase-row"
@@ -742,14 +766,16 @@ export function CertameFormContent() {
          <i className="pi pi-bars prototype-certame-fase-drag-handle" aria-hidden="true" />
          <label>
           <span className="prototype-certame-fase-visually-hidden">Nome da fase</span>
-          <SeplagAutoComplete
+          <Dropdown
            inputId={`fase-nome-${fase.ordem}`}
-           value={fase.nome}
-           suggestions={sugestoesFase}
-           completeMethod={(query) => setSugestoesFase(filtrarTiposFaseTce(query))}
-           onChange={(event) => atualizarFase(fase.ordem, { nome:typeof event.value === "string" ? event.value : "" })}
-           dropdown
-           placeholder="Digite ou selecione uma fase do catálogo TCE-MT"
+           value={fase.nome || null}
+           options={opcoesFase}
+           optionLabel="label"
+           optionValue="value"
+           onChange={(event) => atualizarFase(fase.ordem, { nome:event.value ?? "" })}
+           filter
+           showClear
+           placeholder="Selecione uma fase cadastrada"
            className={`w-full${ehFaseTce ? " prototype-certame-fase-tce" : ""}`}
            tooltip={ehFaseTce ? "Fase do catálogo padrão do TCE-MT" : undefined}
            disabled={modoVisualizar}
@@ -792,17 +818,17 @@ export function CertameFormContent() {
         {/* RN-22: "Houve contratação de banca/empresa organizadora?" foi removido — o gatilho único
             passa a ser "Tipo de contratação (execução)". Abrangência, Tipo de contratação (execução)
             e Instituição realizadora foram trazidos do bloco Datas e execução para cá, na primeira linha. */}
-        <DropdownFieldSeplag name="abrangencia" control={control} label="Abrangência" required cols={colsContratacaoCustos} options={[...ABRANGENCIAS]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DropdownFieldSeplag name="tipoContratacaoExecucao" control={control} label="Tipo de contratação (execução)" required cols={colsContratacaoCustos} options={[...TIPOS_CONTRATACAO_EXECUCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        {houveContratacaoEmpresa && <DropdownFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" required cols={colsContratacaoCustos} options={[...EMPRESAS_CADASTRADAS]} optionLabel="label" optionValue="value" placeholder="Selecione a empresa cadastrada" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+        <DropdownFieldSeplag name="abrangencia" control={control} label="Abrangência" cols={colsContratacaoCustos} options={[...ABRANGENCIAS]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="tipoContratacaoExecucao" control={control} label="Tipo de contratação (execução)" cols={colsContratacaoCustos} options={[...TIPOS_CONTRATACAO_EXECUCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        {houveContratacaoEmpresa && <DropdownFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" cols={colsContratacaoCustos} options={[...EMPRESAS_CADASTRADAS]} optionLabel="label" optionValue="value" placeholder="Selecione a empresa cadastrada" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
         <RadioButtonFieldSeplag name="gerouDespesas" control={control} label="O certame gerou despesas para o fiscalizado?" options={[...OPCOES_SIM_NAO]} cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        {houveContratacaoEmpresa && <DropdownFieldSeplag name="tipoContrato" control={control} label="Tipo de contrato" required cols={colsContratacaoCustos} options={[...TIPOS_CONTRATO_BANCA]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+        {houveContratacaoEmpresa && <DropdownFieldSeplag name="tipoContrato" control={control} label="Tipo de contrato" cols={colsContratacaoCustos} options={[...TIPOS_CONTRATO_BANCA]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
         {houveContratacaoEmpresa && <>
-         <TextFieldSeplag name="numeroEmpenho" control={control} label="Número do empenho" required cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="numeroEmpenho" control={control} label="Número do empenho" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <NumberFieldSeplag name="anoEmpenho" control={control} label="Ano do empenho" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <TextFieldSeplag name="numeroContrato" control={control} label="Número do contrato" required cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="numeroContrato" control={control} label="Número do contrato" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <NumberFieldSeplag name="anoContrato" control={control} label="Ano do contrato" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" required cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <TextFieldSeplag name="codigoUo" control={control} label="Código da UO" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <TextFieldSeplag name="codigoUg" control={control} label="Código da UG" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
@@ -816,11 +842,11 @@ export function CertameFormContent() {
         <CheckboxFieldSeplag name="cobraTaxaInscricao" control={control} label=" " checkboxLabel="O certame cobra taxa de inscrição?" cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
        </div>
        {valores.cobraTaxaInscricao === "S" && <div className="grid prototype-certame-grid-6col prototype-certame-grid-fill">
-        <CurrencyFieldSeplag name="valorInscricao" control={control} label="Valor da inscrição" required cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataInicioInscricaoIsencao" control={control} label="Início da inscrição com isenção" required cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataFimInscricaoIsencao" control={control} label="Fim da inscrição com isenção" required cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <MultiSelectFieldSeplag name="tipoIsencao" control={control} label="Tipo da isenção" required cols={colsTaxaInscricao} options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" display="chip" placeholder="Selecione" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <CampoLeiMultiplaSeplag name="leiIsencao" control={control} label="Lei de isenção" required cols={colsTaxaInscricao} opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiIsencao")} disabled={modoVisualizar} />
+        <CurrencyFieldSeplag name="valorInscricao" control={control} label="Valor da inscrição" cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataInicioInscricaoIsencao" control={control} label="Início da inscrição com isenção" cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataFimInscricaoIsencao" control={control} label="Fim da inscrição com isenção" cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <MultiSelectFieldSeplag name="tipoIsencao" control={control} label="Tipo da isenção" cols={colsTaxaInscricao} options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" display="chip" placeholder="Selecione" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <CampoLeiMultiplaSeplag name="leiIsencao" control={control} label="Lei de isenção" cols={colsTaxaInscricao} opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiIsencao")} disabled={modoVisualizar} />
        </div>}
       </div>
 

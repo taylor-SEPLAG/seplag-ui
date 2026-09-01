@@ -7,14 +7,14 @@ import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certamesListBlockSpecifications, certamesListBusinessItems, certamesListFilterSpecifications, certamesListScreenSpecification } from "./CertamesListSpecifications";
 import { ORGAOS_CERTAME, SITUACOES_CERTAME, TIPOS_CERTAME } from "./dominios";
 import type { Certame, SituacaoCertame, TipoCertame } from "./types";
-import { lerRascunhoCertame, limparRascunhoCertame, type RascunhoCertame } from "./rascunhoCertameStore";
+import { lerRascunhosCertame, limparRascunhoCertame, type RascunhoCertame } from "./rascunhoCertameStore";
 import { HistoricoSituacoesCertameModal } from "./HistoricoSituacoesCertameModal";
 import { RegistrarSituacaoCertameModal } from "./RegistrarSituacaoCertameModal";
 import { stringToDateSeplag } from "@uteis/manipulaData";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
-import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoLimparFiltroSeplag, BotaoSeplag } from "@componentes/Botao";
-import { TextFieldSeplag } from "@componentes/Fields";
+import { BotaoAdicionarSeplag, BotaoLimparFiltroSeplag } from "@componentes/Botao";
+import { DropdownFieldSeplag } from "@componentes/Fields";
 import "./certame.css";
 
 const abaLabel:Record<RascunhoCertame["aba"], string> = { IDENTIFICACAO:"Identificação", CRONOGRAMA:"Cronograma", FINANCEIRO:"Contrato e Custos", VAGAS_COTAS:"Vagas e Cotas", DOCUMENTOS:"Documentos" };
@@ -34,7 +34,6 @@ const situacaoEstilo:Record<SituacaoCertame,{ color:string; bg:string }> = {
  RETIFICACAO_HOMOLOGACAO_PARCIAL: { color:"#8a5c00", bg:"#fff1cf" },
 };
 const tipoLabel:Record<TipoCertame,string> = Object.fromEntries(TIPOS_CERTAME.map((item) => [item.value, item.label])) as Record<TipoCertame,string>;
-const normalizar = (valor:string) => valor.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("pt-BR");
 
 const ITENS_POR_PAGINA_OPCOES = [10, 20, 50];
 
@@ -53,17 +52,26 @@ export function CertamesListContent() {
  const [certameRegistrarSituacaoId, setCertameRegistrarSituacaoId] = useState<string | null>(null);
  const [acoesMenuAbertoId, setAcoesMenuAbertoId] = useState<string | null>(null);
 
- // Certame em cadastro (fase "Abertura/Cadastro"), ainda não salvo como registro — o progresso fica
- // em rascunho local (ver rascunhoCertameStore) até a conclusão do cadastro; sinalizado aqui como
- // pendência para retomada, já que ele não aparece na lista de certames efetivamente salvos.
- const [rascunho, setRascunho] = useState<RascunhoCertame | null>(() => lerRascunhoCertame());
- const descartarRascunho = () => {
+ // Certames em cadastro (fase "Abertura/Cadastro"), ainda não salvos como registro — o progresso
+ // fica em rascunho local (ver rascunhoCertameStore) até a conclusão do cadastro; sinalizado aqui
+ // como pendência para retomada, já que eles não aparecem na lista de certames efetivamente salvos.
+ // Vários certames podem chegar simultaneamente (RN008), então mais de um rascunho pode existir ao
+ // mesmo tempo — cada um com seu próprio aviso e ações.
+ const [rascunhos, setRascunhos] = useState<RascunhoCertame[]>(() => lerRascunhosCertame());
+ const descartarRascunho = (id:string) => {
   if (!window.confirm("Descartar o rascunho deste cadastro? O progresso não salvo será perdido.")) return;
-  limparRascunhoCertame();
-  setRascunho(null);
+  limparRascunhoCertame(id);
+  setRascunhos((atuais) => atuais.filter((item) => item.id !== id));
  };
 
  const exercicios = useMemo(() => Array.from(new Set(certames.map((item) => item.anoConcurso))).sort((a, b) => b - a).map((ano) => String(ano)), [certames]);
+
+ // "Pesquisar" virou um dropdown pesquisável (filtro embutido do DropdownFieldSeplag) em vez de
+ // texto livre — escolhe um certame específico pelo número/nome do edital, em vez de digitar um
+ // trecho e esperar bater com vários registros. "Todos" como primeira opção deixa o campo com o
+ // mesmo texto padrão de valor vazio que Órgão/Exercício/Tipo/Situação, em vez de um placeholder
+ // descritivo só nesse campo.
+ const opcoesCertame = useMemo(() => [{ label:"Todos", value:"" }, ...certames.map((item) => ({ label:`${item.numeroEditalOrgao} — ${item.nomeEdital}`, value:item.id }))], [certames]);
 
  // Cards de indicadores acima do filtro — mesmo padrão de "Efetivo Exercício"/"Controle de Vagas"
  // (faixa de KPIs resumindo a lista antes de filtrar).
@@ -75,9 +83,8 @@ export function CertamesListContent() {
  ], [certames]);
 
  const lista = useMemo(() => {
-  const termoNormalizado = normalizar(termo.trim());
   return certames.filter((certame) =>
-   (!termoNormalizado || normalizar(`${certame.nomeEdital} ${certame.numeroEditalOrgao} ${certame.setor}`).includes(termoNormalizado)) &&
+   (!termo || certame.id === termo) &&
    (!orgaoFiltro || certame.setor === orgaoFiltro) &&
    (!exercicioFiltro || String(certame.anoConcurso) === exercicioFiltro) &&
    (!tipoFiltro || certame.tipoCertame === tipoFiltro) &&
@@ -110,23 +117,8 @@ export function CertamesListContent() {
       </article>)}
      </section>
 
-     {rascunho && <div className="prototype-certames-rascunho-aviso">
-      <i className="pi pi-file-edit" aria-hidden="true" />
-      <div className="prototype-certames-rascunho-info">
-       <div className="prototype-certames-rascunho-titulo">
-        <strong>{rascunho.valores.nomeEdital || "Novo certame"}</strong>
-        <BadgeSeplag label="Em andamento" color="#8a5c00" bg="#fff1cf" border="transparent" size="sm" />
-       </div>
-       <span>Cadastro iniciado, ainda não salvo — parou na etapa "{abaLabel[rascunho.aba]}".</span>
-      </div>
-      <div className="prototype-certames-rascunho-acoes">
-       <BotaoSeplag type="button" label="Continuar cadastro" icon="pi pi-arrow-right" iconPos="right" onClick={() => navigate(`${BASE}/certames/novo`)} />
-       <BotaoIconSeplag type="button" severity="danger" tooltip="Descartar rascunho" icon="pi pi-trash" onClick={descartarRascunho} />
-      </div>
-     </div>}
-
      <div className="prototype-category-filters prototype-ingressos-filters prototype-certame-list-filters grid">
-      <TextFieldSeplag name="termo" control={control} label="Pesquisar" cols="12" placeholder="Nome ou número do edital, órgão" getFormErrorMessage={() => null} />
+      <DropdownFieldSeplag name="termo" control={control} label="Pesquisar" cols="12" options={opcoesCertame} optionLabel="label" optionValue="value" placeholder="Pesquisar certame" showClear getFormErrorMessage={() => null} />
       <SpecArea metadata={certamesListFilterSpecifications["Órgão"]}><label className="prototype-native-field">
        <span>Órgão</span>
        <select value={orgaoFiltro} onChange={(event) => { setOrgaoFiltro(event.target.value); setPagina(1); }}>
@@ -178,7 +170,29 @@ export function CertamesListContent() {
         </tr>
        </thead>
        <tbody>
-        {listaPaginada.length === 0
+        {rascunhos.map((rascunho) => <tr key={rascunho.id} className="prototype-certames-rascunho-linha">
+         <td><strong>{rascunho.valores.numeroEditalOrgao || "_"}</strong><div className="text-sm text-color-secondary">{rascunho.valores.nomeEdital || "Novo certame"}</div></td>
+         <td>{rascunho.valores.setor || "_"}</td>
+         <td>{tipoLabel[rascunho.valores.tipoCertame] ?? "_"}</td>
+         <td>{rascunho.cargos.length > 0 ? rascunho.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0).toLocaleString("pt-BR") : "_"}</td>
+         <td>{rascunho.cotas.length > 0 ? rascunho.cotas.length : "_"}</td>
+         <td><BadgeSeplag label="Em andamento" color="#8a5c00" bg="#fff1cf" border="transparent" size="sm" /></td>
+         <td>
+          <div className="prototype-ingresso-candidato-actions">
+           <div className="prototype-ingresso-actions-dropdown">
+            <div className="prototype-ingresso-actions-trigger" role="group" aria-label="Ações do rascunho">
+             <button type="button" className="prototype-ingresso-actions-eye" title={`Continuar cadastro — parou na etapa "${abaLabel[rascunho.aba]}"`} aria-label="Editar rascunho" onClick={() => navigate(`${BASE}/certames/novo?rascunho=${rascunho.id}`)}>
+              <i className="pi pi-pencil" aria-hidden="true" />
+             </button>
+             <button type="button" className="prototype-ingresso-actions-arrow" title="Excluir rascunho" aria-label="Excluir rascunho" onClick={() => descartarRascunho(rascunho.id)}>
+              <i className="pi pi-trash" aria-hidden="true" />
+             </button>
+            </div>
+           </div>
+          </div>
+         </td>
+        </tr>)}
+        {rascunhos.length === 0 && listaPaginada.length === 0
          ? <tr><td colSpan={7} className="prototype-empty-table-cell">Nenhum certame encontrado para os filtros informados.</td></tr>
          : listaPaginada.map((row:Certame) => {
           const menuId = row.id;
