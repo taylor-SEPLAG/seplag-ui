@@ -1,6 +1,6 @@
 import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import type { Aba, CertameFormValues } from "./CertameFormContent";
-import type { CargoVagaCertame, CotaCertame, FaseCertame, TipoDocumentoCertame } from "./types";
+import type { CargoVagaCertame, CotaCertame, FaseCertame, TaxaInscricaoCertame, TipoDocumentoCertame } from "./types";
 
 // Rascunhos de certames NOVOS ainda não salvos (fase "Abertura/Cadastro"). Vários concursos/PSS
 // podem chegar simultaneamente, então mais de um rascunho pode existir ao mesmo tempo — cada um
@@ -15,7 +15,7 @@ export const RASCUNHOS_CERTAME_CHAVE = "controlePss:certame:rascunhosNovo";
 export interface RascunhoCertame {
  readonly id:string;
  tipoConfirmado:boolean; aba:Aba; valores:CertameFormValues;
- cotas:CotaCertame[]; cargos:CargoVagaCertame[]; fases:FaseCertame[];
+ cotas:CotaCertame[]; cargos:CargoVagaCertame[]; fases:FaseCertame[]; taxasInscricao:TaxaInscricaoCertame[];
  arquivos:Partial<Record<TipoDocumentoCertame, ArquivoAnexadoSeplag>>;
 }
 
