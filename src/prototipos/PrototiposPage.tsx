@@ -7837,6 +7837,7 @@ interface PrototypeVigenciaEditorProps {
   status: string;
   entidade: string;
   getFormErrorMessage: (name: string) => ReactNode;
+  permitirEncerramento?: boolean;
 }
 
 function PrototypeVigenciaEditor({
@@ -7851,6 +7852,7 @@ function PrototypeVigenciaEditor({
   status,
   entidade,
   getFormErrorMessage,
+  permitirEncerramento = true,
 }: Readonly<PrototypeVigenciaEditorProps>) {
   const solicitarEncerramento = () => {
     setValue(dataEncerramentoName, new Date().toLocaleDateString("pt-BR"));
@@ -7881,7 +7883,7 @@ function PrototypeVigenciaEditor({
               getFormErrorMessage={getFormErrorMessage}
             />
           </div>
-          {isEdicao && !readOnly && !dataEncerramento ? (
+          {permitirEncerramento && isEdicao && !readOnly && !dataEncerramento ? (
             <BotaoSeplag
               type="button"
               label="Encerrar"
@@ -7903,7 +7905,7 @@ function PrototypeVigenciaEditor({
           </div>
         </div>
       </div>
-      {isEdicao && dataEncerramento ? (
+      {permitirEncerramento && isEdicao && dataEncerramento ? (
         <div className="grid prototype-carreira-vigencia-encerramento">
           <DateFieldSeplag
             name={dataEncerramentoName}
@@ -9019,6 +9021,15 @@ export function PrototiposSigepRegimeJuridicoPage({
   const [searchParams] = useSearchParams();
   const tipoVinculoParam = searchParams.get("tipoVinculo") ?? "";
   const [pagina, setPagina] = useState(0);
+  const [regimeParaEncerrar, setRegimeParaEncerrar] = useState<RegimeJuridicoRow | null>(null);
+  const {
+    control: controlEncerramento,
+    handleSubmit: handleSubmitEncerramento,
+    reset: resetEncerramento,
+    formState: { errors: errorsEncerramento },
+  } = useForm<{ dataEncerramento: string; motivoEncerramento: string }>({
+    defaultValues: { dataEncerramento: "", motivoEncerramento: "" },
+  });
   const { control, reset, watch } = useForm<RegimeJuridicoFiltroForm>({
     defaultValues: {
       nome: "",
@@ -9050,6 +9061,39 @@ export function PrototiposSigepRegimeJuridicoPage({
       body: (row) => renderGrupoCalculoStatusBadge(row.situacao),
     },
   ];
+
+  const abrirEncerramento = (regime: RegimeJuridicoRow) => {
+    resetEncerramento({
+      dataEncerramento: new Date().toLocaleDateString("pt-BR"),
+      motivoEncerramento: "",
+    });
+    setRegimeParaEncerrar(regime);
+  };
+
+  const fecharEncerramento = () => {
+    setRegimeParaEncerrar(null);
+    resetEncerramento({ dataEncerramento: "", motivoEncerramento: "" });
+  };
+
+  const confirmarEncerramento = handleSubmitEncerramento((values) => {
+    if (!regimeParaEncerrar) return;
+    regimeParaEncerrar.dataEncerramento = values.dataEncerramento;
+    regimeParaEncerrar.motivoEncerramento = values.motivoEncerramento.trim();
+    regimeParaEncerrar.situacao = possuiDependenciaAtiva("regime", regimeParaEncerrar.id)
+      ? STATUS_OPERACIONAL_VIGENCIA.ENCERRADO
+      : STATUS_OPERACIONAL_VIGENCIA.EXTINTO;
+    atualizarExtincoesDerivadas();
+    fecharEncerramento();
+  });
+
+  const validarDataEncerramento = (value: string) => {
+    const naoFutura = validacaoDataNaoFuturaSeplag(
+      "A data de encerramento deve ser a data atual ou uma data anterior",
+    )(value);
+    if (naoFutura !== true) return naoFutura;
+    const inicioIso = carreiraDataParaIso(regimeParaEncerrar?.dataAtivacao ?? "01/01/2026");
+    return carreiraDataParaIso(value) >= inicioIso || "A data de encerramento não pode ser anterior à data de início";
+  };
 
   return (
     <PrototypeSystemPage
@@ -9123,11 +9167,57 @@ export function PrototiposSigepRegimeJuridicoPage({
               handleEdit={(row) =>
                 navigate(`${routePrefix}/regime-juridico/${row.id}/editar`)
               }
+              renderBotoes={(row) => row.situacao === STATUS_OPERACIONAL_VIGENCIA.ATIVO ? (
+                <BotaoIconSeplag
+                  type="button"
+                  icon="pi pi-ban"
+                  severity="danger"
+                  tooltip="Encerrar"
+                  aria-label={`Encerrar regime jurídico ${row.nome}`}
+                  onClick={() => abrirEncerramento(row)}
+                />
+              ) : null}
               handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))}
             />
           </div>
         </CardSeplag>
       </div>
+      <ModalSeplag
+        visible={Boolean(regimeParaEncerrar)}
+        titulo={`Encerrar regime jurídico${regimeParaEncerrar ? ` — ${regimeParaEncerrar.nome}` : ""}`}
+        fechar={fecharEncerramento}
+        labelFechar="Cancelar"
+        labelAcao="Encerrar"
+        iconAcao="pi pi-ban"
+        funcAcao={confirmarEncerramento}
+        tamanho="820px"
+      >
+        <div className="grid" style={{ paddingTop: "12px" }}>
+          <DateFieldSeplag
+            name="dataEncerramento"
+            control={controlEncerramento}
+            label="Data de encerramento"
+            cols="12"
+            required
+            maxDate={new Date()}
+            customValidation={validarDataEncerramento}
+            getFormErrorMessage={(error) => error?.message}
+          />
+          <TextAreaFieldSeplag
+            name="motivoEncerramento"
+            control={controlEncerramento}
+            label="Motivo do encerramento"
+            cols="12"
+            rows={4}
+            maxLength={500}
+            required
+            getFormErrorMessage={(error) => error?.message}
+          />
+          {errorsEncerramento.root?.message ? (
+            <small className="p-error col-12">{errorsEncerramento.root.message}</small>
+          ) : null}
+        </div>
+      </ModalSeplag>
     </PrototypeSystemPage>
   );
 }
@@ -9236,7 +9326,7 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
             </div>
           </section>
 
-          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o regime jurídico" getFormErrorMessage={() => null} />
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o regime jurídico" getFormErrorMessage={() => null} permitirEncerramento={false} />
 
           <section className="prototype-carreira-register-section">
             <header>
