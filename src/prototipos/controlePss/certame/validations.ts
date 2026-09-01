@@ -9,8 +9,8 @@ export function proximoNumeroCertame(exercicio:number, certames:readonly Certame
  return String(doExercicio + 1).padStart(11, "0");
 }
 
-// RN-15/RN-16: cada mudança de situação — em especial a Homologação — reabre um prazo de 48h
-// para nova prestação de contas ao TCE-MT, contado a partir da data de efeito registrada.
+// RN001: cada mudança de situação — em especial a Homologação — reabre um prazo de 2 dias
+// corridos para nova prestação de contas ao TCE-MT, contado a partir da data de efeito registrada.
 export function calcularPrazoPrestacaoContas(dataEfeito?:string):string | undefined {
  const data = stringToDateSeplag(dataEfeito ?? null);
  if (!data) return undefined;

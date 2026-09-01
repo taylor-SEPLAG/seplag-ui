@@ -207,7 +207,13 @@ export const DOCUMENTOS_CERTAME: readonly { tipo:string; label:string; obrigator
  // (execução)" = Empresa Contratada (ver documentoObrigatorio em CertameFormContent.tsx).
  { tipo:"PUBLICACAO_CERTAME_LICITATORIO", label:"Publicação do certame licitatório (se houver)", obrigatorioSempre:false },
  { tipo:"CONTRATO_SOCIAL_EMPRESA", label:"Contrato social da empresa/instituição contratada", obrigatorioSempre:false },
+ // Manual de Orientação, item 25 — exigido só após a publicação do edital, mas tratado aqui como
+ // sempre obrigatório (mesmo padrão dos demais itens "obrigatório antes/depois da publicação").
+ { tipo:"OFICIO_ENCAMINHAMENTO", label:"Ofício de Encaminhamento (com informações do Edital)", obrigatorioSempre:true },
  { tipo:"OUTROS_COMISSAO", label:"Outros documentos da comissão organizadora", obrigatorioSempre:false },
+ // Manual de Orientação, item 31/Anexo XLV — só é anexado quando algum dos itens acima ficou
+ // ausente; por isso não entra na lista de sempre-obrigatórios.
+ { tipo:"JUSTIFICATIVA_NAO_ENCAMINHAMENTO", label:"Justificativa do não-encaminhamento de documentos (Anexo XLV, quando aplicável)", obrigatorioSempre:false },
 ];
 
 // Catálogo alinhado à seção 2 (Retificação do Edital de Abertura) do Manual de Orientação para

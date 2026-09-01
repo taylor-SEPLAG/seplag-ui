@@ -10,7 +10,7 @@ import type { Certame, DocumentoCertame, SituacaoCertame, TipoDocumentoCertame }
 import { ModalSeplag } from "@componentes/Modal";
 import { MensagemSeplag } from "@componentes/Mensagem";
 import { BotaoSeplag } from "@componentes/Botao";
-import { DateFieldSeplag, DropdownFieldSeplag } from "@componentes/Fields";
+import { DateFieldSeplag, DropdownFieldSeplag, TextAreaFieldSeplag } from "@componentes/Fields";
 import { AnexarDocumentoSeplag, type ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import "./certame.css";
 
@@ -26,9 +26,12 @@ function arquivosDoCatalogo(catalogo:readonly DocumentoCertameCatalogoItem[] | u
  return mapa;
 }
 
-interface SituacaoFormValues { tipo:SituacaoCertame; data?:string }
+interface SituacaoFormValues { tipo:SituacaoCertame; data?:string; justificativa?:string }
 
 const situacaoLabel:Record<SituacaoCertame, string> = Object.fromEntries(SITUACOES_CERTAME.map((item) => [item.value, item.label])) as Record<SituacaoCertame, string>;
+// O certame já nasce na situação "Abertura" (RN007) — "Registrar situação" serve para as próximas
+// mudanças de situação, então "Abertura" não é reoferecida aqui.
+const OPCOES_NOVA_SITUACAO = SITUACOES_CERTAME.filter((item) => item.value !== "ABERTO");
 
 // Modal de "Registrar situação" do certame — só o formulário de inclusão; para consultar o
 // histórico já registrado, ver HistoricoSituacoesCertameModal (ação separada na listagem).
@@ -69,14 +72,18 @@ export function RegistrarSituacaoCertameModal({ certameId, onClose }:{ certameId
   if (!certame) return;
   const dados = situacaoForm.getValues();
   if (!dados.data) { setErro("Informe a data de efeito da situação."); return; }
-  // RN-24d — mesma lógica de RN-07/CA05, aplicada à data de efeito da situação.
-  if (dataEfeitoAnteriorPublicacao(dados.data, certame.dataPublicacaoEdital)) { setErro("A data de efeito não pode ser anterior à publicação do edital (RN-24d)."); return; }
-  // RN-24a (ER142).
-  if (dados.tipo === "RETIFICACAO_EDITAL" && !podeRegistrarRetificacaoEdital(certame.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Edital: o certame ainda não possui um registro de abertura (Aberto) no histórico (RN-24a)."); return; }
-  // RN-24b (ER144).
-  if (dados.tipo === "HOMOLOGADO" && homologacaoVigenteSemCancelamento(certame.historicoSituacoes)) { setErro("Já existe uma Homologação registrada para este certame sem Cancelamento/Anulação posterior (RN-24b)."); return; }
-  // RN-24c (ER145).
-  if (dados.tipo === "RETIFICACAO_HOMOLOGACAO" && !podeRegistrarRetificacaoHomologacao(certame.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Homologação sem um registro de Homologado anterior no histórico (RN-24c)."); return; }
+  if (dataEfeitoAnteriorPublicacao(dados.data, certame.dataPublicacaoEdital)) { setErro("A data de efeito não pode ser anterior à publicação do edital (RN006)."); return; }
+  if (dados.tipo === "RETIFICACAO_EDITAL" && !podeRegistrarRetificacaoEdital(certame.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Edital: o certame ainda não possui um registro de abertura (Aberto) no histórico (RN003)."); return; }
+  if (dados.tipo === "HOMOLOGADO" && homologacaoVigenteSemCancelamento(certame.historicoSituacoes)) { setErro("Já existe uma Homologação registrada para este certame sem Cancelamento/Anulação posterior (RN004)."); return; }
+  if (dados.tipo === "RETIFICACAO_HOMOLOGACAO" && !podeRegistrarRetificacaoHomologacao(certame.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Homologação sem um registro de Homologado anterior no histórico (RN005)."); return; }
+  if (catalogoDocumentos) {
+   const pendentes = catalogoDocumentos.filter((item) => item.obrigatorioSempre && !documentosSituacao[item.tipo as TipoDocumentoCertame]);
+   if (pendentes.length > 0) { setErro(`Documento obrigatório pendente: ${pendentes.map((item) => item.label).join(", ")}.`); return; }
+  }
+  // Situações sem catálogo de documentos (Prorrogação da Validade, Cancelamento/Anulação, Paralisação)
+  // não têm nenhum documento já cadastrado — por isso exigem documento de apoio + justificativa.
+  if (!catalogoDocumentos && !arquivoSituacao) { setErro("Anexe o documento de apoio desta situação."); return; }
+  if (!catalogoDocumentos && !dados.justificativa?.trim()) { setErro("Informe a justificativa desta situação."); return; }
   setErro(null);
   const prazo = calcularPrazoPrestacaoContas(dados.data);
   const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
@@ -94,27 +101,28 @@ export function RegistrarSituacaoCertameModal({ certameId, onClose }:{ certameId
       return Array.from(mapa.values());
      })()
    : certame.documentos;
-  const registro = { id:`SIT-${certame.id}-${certame.historicoSituacoes.length + 1}`, certameId:certame.id, tipo:dados.tipo, dataEfeito:dados.data, registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`, usuario:CONTROLE_PSS_USUARIO_LOGADO, prazoPrestacaoContas:prazo, documentoAnexado:documentoAnexadoResumo };
+  const registro = { id:`SIT-${certame.id}-${certame.historicoSituacoes.length + 1}`, certameId:certame.id, tipo:dados.tipo, dataEfeito:dados.data, registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`, usuario:CONTROLE_PSS_USUARIO_LOGADO, prazoPrestacaoContas:prazo, documentoAnexado:documentoAnexadoResumo, justificativa:catalogoDocumentos ? undefined : dados.justificativa };
   controlePssStore.set("certames", (atuais) => atuais.map((item) => item.id === certame.id ? { ...item, situacaoAtual:dados.tipo, historicoSituacoes:[...item.historicoSituacoes, registro], documentos:documentosAtualizados, atualizadoEm:dados.data! } : item));
-  situacaoForm.reset({ tipo:"HOMOLOGADO", data:"" });
+  situacaoForm.reset({ tipo:"HOMOLOGADO", data:"", justificativa:"" });
   setArquivoSituacao(null);
   setDocumentosSituacao({});
  };
 
  if (!certame) return null;
 
- return <ModalSeplag visible titulo={`Registrar situação — ${certame.numeroEditalOrgao}`} fechar={onClose} tamanho="820px" hideFooter closeOnEscape>
+ return <ModalSeplag visible titulo={`Registrar situação — ${certame.numeroEditalOrgao}`} fechar={onClose} tamanho="1100px" hideFooter closeOnEscape>
   <div className="col-12">
    {erro && <MensagemSeplag severity="error" message={erro} cols="12" />}
    <div className="prototype-certame-bloco">
     <BlocoHeader icone="pi-plus-circle" titulo="Registrar nova situação" subtitulo="Adicione uma nova situação ao histórico do certame." />
     <div className="grid align-items-end prototype-certame-subform">
-     <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 6" options={[...SITUACOES_CERTAME]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+     <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 6" options={[...OPCOES_NOVA_SITUACAO]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
      <DateFieldSeplag name="data" control={situacaoForm.control} label="Data de efeito" cols="12 6 3" getFormErrorMessage={() => null} />
-     {!catalogoDocumentos && <AnexarDocumentoSeplag cols="12 6 3" label="Documento de apoio (opcional)" arquivoBase64={arquivoSituacao ?? undefined} onUploadDocument={uploadArquivoSituacao} onRemoveArquivo={() => setArquivoSituacao(null)} handleViewArquivo={() => {}} canView={false} accept="application/pdf" maxFileSize={TAMANHO_MAXIMO_DOCUMENTO_CERTAME} helpText="" chooseIconOnly />}
+     {!catalogoDocumentos && <AnexarDocumentoSeplag cols="12 6 3" label="Documento de apoio *" arquivoBase64={arquivoSituacao ?? undefined} onUploadDocument={uploadArquivoSituacao} onRemoveArquivo={() => setArquivoSituacao(null)} handleViewArquivo={() => {}} canView={false} accept="application/pdf" maxFileSize={TAMANHO_MAXIMO_DOCUMENTO_CERTAME} helpText="" chooseIconOnly />}
+     {!catalogoDocumentos && <TextAreaFieldSeplag name="justificativa" control={situacaoForm.control} label="Justificativa" cols="12" rows={3} required getFormErrorMessage={() => null} />}
      {catalogoDocumentos && <div className="col-12 prototype-certame-situacao-documentos">
-      <span className="prototype-certame-situacao-documentos-titulo">Documentos de {situacaoLabel[tipoSelecionado]} (opcionais)</span>
-      <DocumentosCertameTabela key={documentosSituacaoVersao} documentos={catalogoDocumentos} arquivos={documentosSituacao} onChangeArquivo={onChangeArquivoSituacao} documentoObrigatorio={() => false} onError={setErro} />
+      <span className="prototype-certame-situacao-documentos-titulo">Documentos de {situacaoLabel[tipoSelecionado]}</span>
+      <DocumentosCertameTabela key={documentosSituacaoVersao} documentos={catalogoDocumentos} arquivos={documentosSituacao} onChangeArquivo={onChangeArquivoSituacao} documentoObrigatorio={(_tipo, obrigatorioSempre) => obrigatorioSempre} onError={setErro} />
      </div>}
      <div className="col-12 md:col-3"><BotaoSeplag type="button" label="Registrar situação" icon="pi pi-check" onClick={registrarSituacao} /></div>
     </div>
