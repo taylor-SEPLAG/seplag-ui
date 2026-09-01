@@ -3935,7 +3935,7 @@
 
 .prototype-tipo-vinculo-table .p-datatable-thead > tr > th:nth-child(2),
 .prototype-tipo-vinculo-table .p-datatable-tbody > tr > td:nth-child(2) {
-  width: 29%;
+  width: 27%;
 }
 
 .prototype-tipo-vinculo-table .p-datatable-thead > tr > th:nth-child(3),
@@ -3958,8 +3958,25 @@
 
 .prototype-tipo-vinculo-table .p-datatable-thead > tr > th:nth-child(6),
 .prototype-tipo-vinculo-table .p-datatable-tbody > tr > td:nth-child(6) {
-  width: 9%;
+  width: 11%;
   text-align: center;
+}
+
+.prototype-encerramento-modal-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 4px;
+  padding: 12px 14px;
+  border: 1px solid #93c5fd;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  line-height: 1.45;
+}
+
+.prototype-encerramento-modal-info .pi {
+  margin-top: 2px;
 }
 
 .prototype-tipo-vinculo-table .p-splitbutton {
