@@ -1335,6 +1335,8 @@ interface IngressoConcursoProcessoRow {
   edital: string;
   dataRealizacao?: string;
   dataValidade?: string;
+  dataResultado?: string;
+  orgaosParticipantes?: string[];
   diasPrazoPosse?: number;
   diasPrazoExercicio?: number;
   diasProrrogacaoPosse?: number;
@@ -2529,6 +2531,8 @@ const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
     tipo: "Processo Seletivo",
     orgao: "SES",
     edital: "Edital 004/2026",
+    dataResultado: "05/08/2026",
+    orgaosParticipantes: ["SES", "SEPLAG"],
     candidatos: [
       {
         id: 10,
@@ -12647,8 +12651,8 @@ export function PrototiposIngressosTesteDetalhePage() {
   };
   const prefixoEditalDetalhe = concursoProcesso.tipo === "Concurso" ? "Conc" : "PSS";
   const nomeEditalDetalhe = `${prefixoEditalDetalhe} ${numeroEditalDetalhe}/${concursoProcesso.orgao} — ${descricaoEditalDetalhe[`${concursoProcesso.tipo}-${concursoProcesso.orgao}`] ?? concursoProcesso.titulo}`;
-  const cotasConcursoDetalhe = concursoProcesso.cotas ?? Array.from(new Set(concursoProcesso.candidatos.map((candidato) => candidato.tipoVaga).filter((tipo) => tipo !== "AC")));
-  const polosConcursoDetalhe = concursoProcesso.polos ?? Array.from(new Set(concursoProcesso.candidatos.map((candidato) => getPoloCandidatoIngresso(candidato.id))));
+  const cotasEditalDetalhe = concursoProcesso.cotas ?? Array.from(new Set(concursoProcesso.candidatos.map((candidato) => candidato.tipoVaga).filter((tipo) => tipo !== "AC")));
+  const polosEditalDetalhe = concursoProcesso.polos ?? Array.from(new Set(concursoProcesso.candidatos.map((candidato) => getPoloCandidatoIngresso(candidato.id))));
   const gruposCargoPoloConsulta = candidatosPaginadosIngresso.reduce<Record<string, typeof candidatosPendentesIngresso>>((resultado, candidato) => {
     const chave = `${candidato.cargo}|||${candidato.polo}`;
     resultado[chave] = [...(resultado[chave] ?? []), candidato];
@@ -13225,15 +13229,21 @@ export function PrototiposIngressosTesteDetalhePage() {
         <div className="prototype-ingressos-teste-details-panel">
           <h3>{nomeEditalDetalhe}</h3>
           {concursoProcesso.tipo === "Processo Seletivo" ? (
-          <div className="prototype-ingressos-pss-details-sections">
-            <section><h4>Órgão responsável</h4><dl><div><dt>Órgão</dt><dd>{concursoProcesso.orgao}</dd></div></dl></section>
-            <section><h4>Dados do edital</h4><dl><div><dt>Número</dt><dd>{numeroEditalDetalhe}/{concursoProcesso.orgao}</dd></div><div><dt>Tipo</dt><dd>{concursoProcesso.tipo}</dd></div></dl></section>
-            <section><h4>Cargos e vagas</h4><dl><div><dt>Total de cargos</dt><dd>{grupos.length}</dd></div><div><dt>Total de vagas</dt><dd>{concursoProcesso.candidatos.length}</dd></div></dl></section>
-            <section><h4>Vigência</h4><dl><div><dt>Data de realização</dt><dd>15/03/2026</dd></div><div><dt>Data de validade</dt><dd>10/02/2027</dd></div></dl></section>
-            <section><h4>Regime e vínculo</h4><dl><div><dt>Regime Jurídico</dt><dd>Estatutário Civil</dd></div><div><dt>Tipo de Vínculo</dt><dd>Temporário</dd></div></dl></section>
-            <section><h4>Integração</h4><dl><div><dt>Sistema de origem</dt><dd>SIES</dd></div><div><dt>Situação</dt><dd>Integrado</dd></div></dl></section>
-            <section><h4>Histórico de atualizações</h4><dl><div><dt>Última atualização</dt><dd>05/08/2026, 09:42</dd></div></dl></section>
-          </div>
+          <dl>
+            <div><dt>Tipo</dt><dd>{concursoProcesso.tipo}</dd></div>
+            <div><dt>Número do Edital</dt><dd>{numeroEditalDetalhe}/{concursoProcesso.orgao}</dd></div>
+            <div><dt>Órgão responsável</dt><dd>{concursoProcesso.orgao}</dd></div>
+            <div><dt>Órgãos participantes</dt><dd>{concursoProcesso.orgaosParticipantes?.join(", ") || "Não informado"}</dd></div>
+            <div><dt>Regime Jurídico</dt><dd>Estatutário Civil</dd></div>
+            <div><dt>Tipo de Vínculo</dt><dd>Temporário</dd></div>
+            <div><dt>Data de realização</dt><dd>{concursoProcesso.dataRealizacao ?? "15/03/2026"}</dd></div>
+            <div><dt>Data de validade</dt><dd>{concursoProcesso.dataValidade ?? "10/02/2027"}</dd></div>
+            <div><dt>Data do resultado</dt><dd>{concursoProcesso.dataResultado ?? "Não informada"}</dd></div>
+            <div><dt>Cotas</dt><dd className="prototype-ingressos-details-tags">{cotasEditalDetalhe.length ? cotasEditalDetalhe.map((cota) => <BadgeSeplag key={cota} label={cota} color="#087d3d" bg="#eafbf1" border="#69dc98" size="sm" />) : "Não possui"}</dd></div>
+            <div><dt>Polo</dt><dd className="prototype-ingressos-details-tags">{polosEditalDetalhe.length ? polosEditalDetalhe.map((polo) => <BadgeSeplag key={polo} label={polo} color="#0b6199" bg="#e9f3fc" border="#8dc6ec" size="sm" />) : "Não informado"}</dd></div>
+            <div><dt>Quantidade de vagas totais no edital</dt><dd>{concursoProcesso.quantidadeVagas ?? concursoProcesso.candidatos.length}</dd></div>
+            <div><dt>Quantidade de cadastro de reserva</dt><dd>{concursoProcesso.quantidadeCadastroReserva ?? 0}</dd></div>
+          </dl>
           ) : (
           <dl>
             <div><dt>Tipo</dt><dd>{concursoProcesso.tipo}</dd></div>
@@ -13247,8 +13257,8 @@ export function PrototiposIngressosTesteDetalhePage() {
             <div><dt>Dias — prazo de exercício</dt><dd>{concursoProcesso.diasPrazoExercicio ?? 15} dias</dd></div>
             <div><dt>Dias — prorrogação da posse</dt><dd>{concursoProcesso.diasProrrogacaoPosse ?? 0} dias</dd></div>
             <div><dt>Dias — prorrogação do exercício</dt><dd>{concursoProcesso.diasProrrogacaoExercicio ?? 0} dias</dd></div>
-            <div><dt>Cotas</dt><dd className="prototype-ingressos-details-tags">{cotasConcursoDetalhe.length ? cotasConcursoDetalhe.map((cota) => <BadgeSeplag key={cota} label={cota} color="#087d3d" bg="#eafbf1" border="#69dc98" size="sm" />) : "Não possui"}</dd></div>
-            <div><dt>Polo</dt><dd>{polosConcursoDetalhe.join(", ") || "Não informado"}</dd></div>
+            <div><dt>Cotas</dt><dd className="prototype-ingressos-details-tags">{cotasEditalDetalhe.length ? cotasEditalDetalhe.map((cota) => <BadgeSeplag key={cota} label={cota} color="#087d3d" bg="#eafbf1" border="#69dc98" size="sm" />) : "Não possui"}</dd></div>
+            <div><dt>Polo</dt><dd className="prototype-ingressos-details-tags">{polosEditalDetalhe.length ? polosEditalDetalhe.map((polo) => <BadgeSeplag key={polo} label={polo} color="#0b6199" bg="#e9f3fc" border="#8dc6ec" size="sm" />) : "Não informado"}</dd></div>
             <div><dt>Quantidade de vagas totais no edital</dt><dd>{concursoProcesso.quantidadeVagas ?? concursoProcesso.candidatos.length}</dd></div>
             <div><dt>Quantidade de cadastro de reserva</dt><dd>{concursoProcesso.quantidadeCadastroReserva ?? 0}</dd></div>
           </dl>
