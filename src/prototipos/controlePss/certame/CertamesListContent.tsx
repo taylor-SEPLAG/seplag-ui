@@ -10,6 +10,7 @@ import type { Certame, SituacaoCertame, TipoCertame } from "./types";
 import { lerRascunhosCertame, limparRascunhoCertame, type RascunhoCertame } from "./rascunhoCertameStore";
 import { HistoricoSituacoesCertameModal } from "./HistoricoSituacoesCertameModal";
 import { RegistrarSituacaoCertameModal } from "./RegistrarSituacaoCertameModal";
+import { podeEditarCertame } from "./validations";
 import { stringToDateSeplag } from "@uteis/manipulaData";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
@@ -216,9 +217,10 @@ export function CertamesListContent() {
                 </button>
                </div>
                {acoesMenuAbertoId === menuId && <div className="prototype-ingresso-actions-menu" role="menu">
-                <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); navigate(`${BASE}/certames/${row.id}`); }}>
+                {/* RN001: Editar só aparece com o certame em Abertura ou Retificação de Edital. */}
+                {podeEditarCertame(row.situacaoAtual) && <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); navigate(`${BASE}/certames/${row.id}`); }}>
                  <i className="pi pi-pencil" aria-hidden="true" /><span>Editar</span>
-                </button>
+                </button>}
                 <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setCertameHistoricoId(row.id); }}>
                  <i className="pi pi-history" aria-hidden="true" /><span>Histórico</span>
                 </button>

@@ -5,11 +5,12 @@ import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA, CONTROLE_
 import { controlePssStore, useControlePssStore } from "../controlePssStore";
 import { CONTROLE_VAGAS_BASE_PATH } from "../../controleVagas/constants";
 import { useLocais } from "../locais/locaisStore";
+import { useTiposCota, useTiposCotaAtivos } from "../tiposCota/tiposCotaStore";
 import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStore";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
 import { proximoNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento } from "./validations";
-import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAO_TODOS, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
+import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAO_TODOS, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
 import { useFasesCertame } from "../fasesCertame/fasesCertameStore";
 import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, ReservaCotaCargo, SituacaoCertame, TaxaInscricaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
 import { CardSeplag } from "@componentes/Card";
@@ -66,23 +67,24 @@ export function BlocoHeader({ icone, titulo, subtitulo }:{ icone:string; titulo:
 }
 
 // Rótulo curto de cota (ex.: "PCD" em vez de "PCD — Pessoas com Deficiência") para caber nos
-// cartões compactos do painel "Distribuição da Vagas".
-function rotuloCotaCurto(tipo:string) {
- const label = TIPOS_COTA.find((item) => item.value === tipo)?.label ?? tipo;
+// cartões compactos do painel "Distribuição da Vagas". Recebe o catálogo completo (não só os
+// ativos) para continuar rotulando corretamente reservas já registradas com um tipo desativado.
+function rotuloCotaCurto(tipo:string, tiposCota:readonly { value:string; label:string }[]) {
+ const label = tiposCota.find((item) => item.value === tipo)?.label ?? tipo;
  return label.split(" — ")[0];
 }
 
 // Distribuição das vagas do cargo: um cartão por cota reservada (RN: cada tipo de cota é
 // independente, pode haver mais de uma), Ampla Concorrência (calculada, nunca digitada) e
 // Cadastro Reserva (independente, não desconta das outras duas).
-function DistribuicaoVagasCargo({ quantidadeVagas, reservas, quantidadeCadastroReserva }:{ quantidadeVagas:number; reservas:readonly ReservaCotaCargo[]; quantidadeCadastroReserva?:number }) {
+function DistribuicaoVagasCargo({ quantidadeVagas, reservas, quantidadeCadastroReserva, tiposCota }:{ quantidadeVagas:number; reservas:readonly ReservaCotaCargo[]; quantidadeCadastroReserva?:number; tiposCota:readonly { value:string; label:string }[] }) {
  const ampla = calcularAmplaConcorrencia(quantidadeVagas, reservas);
  return (
   <div className="prototype-certame-distribuicao-vagas">
    <header><i className="pi pi-info-circle" aria-hidden="true" /><span>Distribuição da Vagas</span></header>
    <div className="prototype-certame-distribuicao-vagas-itens">
     {reservas.map((reserva) => <div key={reserva.id} className="prototype-certame-distribuicao-vagas-item">
-     <span>Cota - {rotuloCotaCurto(reserva.tipo)}</span>
+     <span>Cota - {rotuloCotaCurto(reserva.tipo, tiposCota)}</span>
      <strong>{reserva.quantidade}</strong>
     </div>)}
     <div className="prototype-certame-distribuicao-vagas-item">
@@ -339,8 +341,12 @@ export function CertameFormContent() {
   setTipoConfirmado(true);
  };
 
+ // Catálogo de tipos de cota (menu "Tipos de Cota", mesmo padrão de Locais/Fase do Certame) — inclui
+ // inativos para continuar rotulando corretamente cotas já registradas com um tipo desativado.
+ const tiposCota = useTiposCota();
+ const tiposCotaAtivos = useTiposCotaAtivos();
  const [cotas, setCotas] = useState<CotaCertame[]>(existente ? [...existente.cotas] : (rascunho?.cotas ?? []));
- const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:TIPOS_COTA[0].value, lei:[] } });
+ const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:tiposCotaAtivos[0]?.value ?? "", lei:[] } });
  const taxasLegadas:TaxaInscricaoCertame[] = existente?.cobraTaxaInscricao && existente.valorInscricao !== undefined ? [{ id:`TAXA-${existente.id}-1`, valor:existente.valorInscricao, inicioIsencao:existente.dataInicioInscricaoIsencao, fimIsencao:existente.dataFimInscricaoIsencao, tipoIsencao:existente.tipoIsencao ?? [], leiIsencao:existente.leiIsencao?.[0] }] : [];
  const [taxasInscricao, setTaxasInscricao] = useState<TaxaInscricaoCertame[]>(rascunho?.taxasInscricao ? [...rascunho.taxasInscricao] : (existente?.taxasInscricao ? [...existente.taxasInscricao] : taxasLegadas));
  const [taxaRascunho, setTaxaRascunho] = useState<TaxaInscricaoRascunho | null>(null);
@@ -382,7 +388,7 @@ export function CertameFormContent() {
  // A reserva de cota de uma vaga só pode usar um tipo já cadastrado no bloco "Cotas" (que por sua vez
  // não deixa cadastrar um tipo sem lei — ver adicionarCota) — evita reservar cota sem lei que a ampare.
  const tiposCotaCadastrados = useMemo(() => new Set(cotas.filter((item) => item.lei.length > 0).map((item) => item.tipo)), [cotas]);
- const opcoesTipoCotaReserva = useMemo(() => TIPOS_COTA.filter((item) => item.value !== "AMPLA" && tiposCotaCadastrados.has(item.value)), [tiposCotaCadastrados]);
+ const opcoesTipoCotaReserva = useMemo(() => tiposCotaAtivos.filter((item) => item.value !== "AMPLA" && tiposCotaCadastrados.has(item.value)), [tiposCotaAtivos, tiposCotaCadastrados]);
 
  // Ao voltar do cadastro de uma nova lei (atalho "+"), soma a lei recém-criada às já selecionadas no
  // campo de origem (identificado por campoLei no returnTo) e limpa os parâmetros da URL. Usa uma ref
@@ -483,7 +489,7 @@ export function CertameFormContent() {
   || ((tipo === "CONTRATO_SOCIAL_EMPRESA" || tipo === "PUBLICACAO_CERTAME_LICITATORIO") && houveContratacaoEmpresa);
 
  const colunasCotas:ColumnMetaSeplag<CotaCertame>[] = [
-  { header:"Tipo de cota", body:(row) => <BadgeSeplag label={TIPOS_COTA.find((tipo) => tipo.value === row.tipo)?.label ?? row.tipo} color="#0b6199" bg="#e9f3fc" border="transparent" size="sm" /> },
+  { header:"Tipo de cota", body:(row) => <BadgeSeplag label={tiposCota.find((tipo) => tipo.value === row.tipo)?.label ?? row.tipo} color="#0b6199" bg="#e9f3fc" border="transparent" size="sm" /> },
   { header:"Lei", body:(row) => {
    const titulos = row.lei.map((id) => opcoesLeis.find((lei) => lei.id === id)?.titulo ?? id);
    if (titulos.length === 0) return "—";
@@ -562,7 +568,7 @@ export function CertameFormContent() {
   const dados = cotaForm.getValues();
   if (!dados.lei || dados.lei.length === 0) return;
   setCotas((atuais) => [...atuais, { id:`COTA-${Date.now()}`, tipo:dados.tipo, lei:dados.lei }]);
-  cotaForm.reset({ tipo:TIPOS_COTA[0].value, lei:[] });
+  cotaForm.reset({ tipo:tiposCotaAtivos[0]?.value ?? "", lei:[] });
  };
  const removerCota = (idCota:string) => setCotas((atuais) => atuais.filter((item) => item.id !== idCota));
 
@@ -903,7 +909,9 @@ export function CertameFormContent() {
       <div id="bloco-cotas" className={blocoClasse("bloco-cotas")}>
        <BlocoHeader icone="pi-percentage" titulo="Cotas" subtitulo="Tipos de cota previstos em lei para o certame." />
        {!modoVisualizar && <div className="grid align-items-end prototype-certame-subform">
-        <DropdownFieldSeplag name="tipo" control={cotaForm.control} label="Tipo de cota" cols="12 6 4" options={[...TIPOS_COTA]} optionLabel="label" optionValue="value" showClear={false} panelClassName="prototype-certame-dropdown-panel" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="tipo" control={cotaForm.control} label="Tipo de cota" cols="12 6 3" options={[...tiposCotaAtivos]} optionLabel="label" optionValue="value" showClear={false} panelClassName="prototype-certame-dropdown-panel" getFormErrorMessage={() => null} />
+        {/* Mesmo padrão de "+ Novo Cadastro" da Lei, mas levando ao menu Tipos de Cota (Locais/Fase do Certame). */}
+        <div className="col-12 md:col-1 flex align-items-end"><BotaoIconSeplag type="button" tooltip="Cadastrar novo tipo de cota" icon="pi pi-plus-circle" onClick={() => navigate(`${BASE}/tipos-cota/novo`)} /></div>
         <CampoLeiMultiplaSeplag name="lei" control={cotaForm.control} label="Lei cadastrada" cols="12 6 6" opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("cotaLei")} />
         <div className="col-12 md:col-2"><BotaoAdicionarSeplag type="button" label="Adicionar" onClick={adicionarCota} /></div>
        </div>}
@@ -953,7 +961,7 @@ export function CertameFormContent() {
            <span className="prototype-certame-subform-secao-titulo" style={{ fontSize:".8rem", marginBottom:".4rem" }}>Cotas adicionadas</span>
            <div className="prototype-certame-cota-tags">
             {reservasCotaPendentes.map((reserva) => <span key={reserva.id} className="prototype-certame-cota-tag">
-             {TIPOS_COTA.find((tipo) => tipo.value === reserva.tipo)?.label ?? reserva.tipo} ({reserva.quantidade})
+             {tiposCota.find((tipo) => tipo.value === reserva.tipo)?.label ?? reserva.tipo} ({reserva.quantidade})
              <button type="button" aria-label="Remover reserva de cota" onClick={() => removerReservaCota(reserva.id)}><i className="pi pi-times" aria-hidden="true" /></button>
             </span>)}
            </div>
@@ -981,7 +989,7 @@ export function CertameFormContent() {
          selectionMode={null}
          columns={colunasCargos}
          expandedRows={cargosExpandidosRows}
-         rowExpansionTemplate={(cargo) => <DistribuicaoVagasCargo quantidadeVagas={cargo.quantidadeVagas} reservas={cargo.reservasCota} quantidadeCadastroReserva={cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva : undefined} />}
+         rowExpansionTemplate={(cargo) => <DistribuicaoVagasCargo quantidadeVagas={cargo.quantidadeVagas} reservas={cargo.reservasCota} quantidadeCadastroReserva={cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva : undefined} tiposCota={tiposCota} />}
          hasEventoAcao={!modoVisualizar}
          handleView={null}
          handleEdit={null}

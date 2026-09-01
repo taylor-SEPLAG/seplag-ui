@@ -8,9 +8,15 @@ import {
  certameDuplicado,
  dataEfeitoAnteriorPublicacao,
  homologacaoVigenteSemCancelamento,
+ podeEditarCertame,
+ podeRegistrarParalisacao,
+ podeRegistrarProrrogacaoValidade,
  podeRegistrarRetificacaoEdital,
  podeRegistrarRetificacaoHomologacao,
+ podeRegistrarRetificacaoHomologacaoParcial,
+ podeRegistrarRetomadaCronograma,
  proximoNumeroCertame,
+ situacaoAtualDoHistorico,
 } from "./validations";
 
 function historico(...tipos:SituacaoHistoricoCertame["tipo"][]):SituacaoHistoricoCertame[] {
@@ -40,17 +46,25 @@ describe("RN-23 — certameDuplicado (ER143)", () => {
  });
 });
 
-describe("RN-24a — podeRegistrarRetificacaoEdital (ER142)", () => {
- it("permite quando o histórico já tem um registro Aberto", () => {
+describe("RN003/RN019 — podeRegistrarRetificacaoEdital (ER142)", () => {
+ it("permite quando o histórico já tem um registro Aberto e a situação atual é Abertura", () => {
   expect(podeRegistrarRetificacaoEdital(historico("ABERTO"))).toBe(true);
  });
 
  it("bloqueia quando o histórico não tem nenhum registro Aberto", () => {
   expect(podeRegistrarRetificacaoEdital([])).toBe(false);
  });
+
+ it("permite quando a situação atual é Paralisação (RN019)", () => {
+  expect(podeRegistrarRetificacaoEdital(historico("ABERTO", "PARALISADO"))).toBe(true);
+ });
+
+ it("bloqueia quando a situação atual já avançou para Homologado (RN019)", () => {
+  expect(podeRegistrarRetificacaoEdital(historico("ABERTO", "HOMOLOGADO"))).toBe(false);
+ });
 });
 
-describe("RN-24b — homologacaoVigenteSemCancelamento (ER144)", () => {
+describe("RN004 — homologacaoVigenteSemCancelamento", () => {
  it("bloqueia nova Homologação quando a última já homologou sem cancelamento depois", () => {
   expect(homologacaoVigenteSemCancelamento(historico("ABERTO", "HOMOLOGADO"))).toBe(true);
  });
@@ -63,19 +77,106 @@ describe("RN-24b — homologacaoVigenteSemCancelamento (ER144)", () => {
   expect(homologacaoVigenteSemCancelamento(historico("ABERTO"))).toBe(false);
  });
 
+ it("bloqueia quando a Homologação Parcial vigente ainda não foi cancelada (Homologação e Parcial compartilham a guarda)", () => {
+  expect(homologacaoVigenteSemCancelamento(historico("ABERTO", "HOMOLOGACAO_PARCIAL"))).toBe(true);
+ });
+
  it("usa o cenário real do mock CERT-2026-002 (Aberto → Homologado, sem cancelamento) — bloqueia nova homologação", () => {
   const certame = certamesMock.find((item) => item.id === "CERT-2026-002")!;
   expect(homologacaoVigenteSemCancelamento(certame.historicoSituacoes)).toBe(true);
  });
 });
 
-describe("RN-24c — podeRegistrarRetificacaoHomologacao (ER145)", () => {
- it("permite quando há um Homologado prévio no histórico", () => {
+describe("RN005 — podeRegistrarRetificacaoHomologacao (ER145)", () => {
+ it("permite quando há um Homologado (completo) prévio no histórico", () => {
   expect(podeRegistrarRetificacaoHomologacao(historico("ABERTO", "HOMOLOGADO"))).toBe(true);
  });
 
  it("bloqueia quando não há nenhum Homologado no histórico", () => {
   expect(podeRegistrarRetificacaoHomologacao(historico("ABERTO", "PARALISADO"))).toBe(false);
+ });
+
+ it("bloqueia quando só há Homologação Parcial (não basta — precisa da completa)", () => {
+  expect(podeRegistrarRetificacaoHomologacao(historico("ABERTO", "HOMOLOGACAO_PARCIAL"))).toBe(false);
+ });
+});
+
+describe("RN017 — podeRegistrarRetificacaoHomologacaoParcial", () => {
+ it("permite quando há uma Homologação Parcial prévia", () => {
+  expect(podeRegistrarRetificacaoHomologacaoParcial(historico("ABERTO", "HOMOLOGACAO_PARCIAL"))).toBe(true);
+ });
+
+ it("bloqueia quando só há Homologação completa (não basta — precisa da parcial)", () => {
+  expect(podeRegistrarRetificacaoHomologacaoParcial(historico("ABERTO", "HOMOLOGADO"))).toBe(false);
+ });
+});
+
+describe("RN018 — podeRegistrarProrrogacaoValidade", () => {
+ it("permite quando há Homologação vigente sem cancelamento", () => {
+  expect(podeRegistrarProrrogacaoValidade(historico("ABERTO", "HOMOLOGADO"))).toBe(true);
+ });
+
+ it("bloqueia quando ainda não houve nenhuma Homologação", () => {
+  expect(podeRegistrarProrrogacaoValidade(historico("ABERTO"))).toBe(false);
+ });
+
+ it("bloqueia quando a Homologação já foi cancelada", () => {
+  expect(podeRegistrarProrrogacaoValidade(historico("ABERTO", "HOMOLOGADO", "CANCELADO_ANULADO"))).toBe(false);
+ });
+});
+
+describe("RN020 — podeRegistrarParalisacao", () => {
+ it("permite a partir da Abertura", () => {
+  expect(podeRegistrarParalisacao(historico("ABERTO"))).toBe(true);
+ });
+
+ it("permite a partir de uma Retificação de Edital", () => {
+  expect(podeRegistrarParalisacao(historico("ABERTO", "RETIFICACAO_EDITAL"))).toBe(true);
+ });
+
+ it("bloqueia depois de Homologado", () => {
+  expect(podeRegistrarParalisacao(historico("ABERTO", "HOMOLOGADO"))).toBe(false);
+ });
+});
+
+describe("RN023 — podeRegistrarRetomadaCronograma", () => {
+ it("permite quando a situação atual é Paralisação", () => {
+  expect(podeRegistrarRetomadaCronograma(historico("ABERTO", "PARALISADO"))).toBe(true);
+ });
+
+ it("bloqueia quando a situação atual não é Paralisação", () => {
+  expect(podeRegistrarRetomadaCronograma(historico("ABERTO"))).toBe(false);
+ });
+});
+
+describe("situacaoAtualDoHistorico", () => {
+ it("retorna o tipo do último registro do histórico", () => {
+  expect(situacaoAtualDoHistorico(historico("ABERTO", "PARALISADO"))).toBe("PARALISADO");
+ });
+
+ it("assume Abertura quando o histórico está vazio (RN007)", () => {
+  expect(situacaoAtualDoHistorico([])).toBe("ABERTO");
+ });
+});
+
+describe("RN001 (Listagem) — podeEditarCertame", () => {
+ it("permite Editar com o certame em Abertura", () => {
+  expect(podeEditarCertame("ABERTO")).toBe(true);
+ });
+
+ it("permite Editar com o certame em Retificação de Edital", () => {
+  expect(podeEditarCertame("RETIFICACAO_EDITAL")).toBe(true);
+ });
+
+ it("bloqueia Editar para as demais situações", () => {
+  expect(podeEditarCertame("PARALISADO")).toBe(false);
+  expect(podeEditarCertame("HOMOLOGADO")).toBe(false);
+  expect(podeEditarCertame("HOMOLOGACAO_PARCIAL")).toBe(false);
+  expect(podeEditarCertame("RETIFICACAO_HOMOLOGACAO")).toBe(false);
+  expect(podeEditarCertame("RETIFICACAO_HOMOLOGACAO_PARCIAL")).toBe(false);
+  expect(podeEditarCertame("PRORROGACAO_VALIDADE")).toBe(false);
+  expect(podeEditarCertame("CANCELADO_ANULADO")).toBe(false);
+  expect(podeEditarCertame("RETOMADA_CRONOGRAMA")).toBe(false);
  });
 });
 

@@ -35,7 +35,7 @@ export function totalVagasPcd(certame:Certame):number {
  return totalVagasPorCota(certame, "PCD");
 }
 
-// Vagas reservadas para um tipo de cota específico (ver dominios.TIPOS_COTA), somadas entre todas
+// Vagas reservadas para um tipo de cota específico (ver tiposCota/tiposCotaStore.ts), somadas entre todas
 // as reservas de todos os cargos do certame — um mesmo cargo pode ter mais de uma reserva (ex.:
 // PCD e PPP simultaneamente), ver CargoVagaCertame.reservasCota.
 export function totalVagasPorCota(certame:Certame, tipoCota:string):number {

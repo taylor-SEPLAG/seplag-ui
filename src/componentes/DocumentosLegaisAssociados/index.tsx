@@ -25,6 +25,10 @@ export interface DocumentosLegaisAssociadosSeplagProps {
   indicarPrincipal?: boolean;
   /** Modo somente leitura: esconde "Novo Cadastro" e os botões de remover, e impede abrir o painel de busca. */
   disabled?: boolean;
+  /** Reduz a altura mínima da caixa de busca para bater com a altura padrão dos demais campos de
+   * texto (46px, ver .prototype-ingresso-field input) — útil em formulários curtos como
+   * TipoCotaFormContent, onde esse campo divide linha com um input comum. */
+  compact?: boolean;
 }
 
 const MAX_VISIBLE_SELECTED_ITEMS = 3;
@@ -68,6 +72,7 @@ export function DocumentosLegaisAssociadosSeplag({
   expandirAoAbrir = false,
   indicarPrincipal = false,
   disabled = false,
+  compact = false,
 }: Readonly<DocumentosLegaisAssociadosSeplagProps>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const selectedListRef = useRef<HTMLDivElement>(null);
@@ -160,7 +165,7 @@ export function DocumentosLegaisAssociadosSeplag({
       </div>
 
       <div
-        className={`${styles.inputShell} ${isOpen ? styles.inputShellOpen : ""}`}
+        className={`${styles.inputShell} ${compact ? styles.inputShellCompact : ""} ${isOpen ? styles.inputShellOpen : ""}`}
         role="combobox"
         aria-expanded={isOpen}
         aria-haspopup="listbox"

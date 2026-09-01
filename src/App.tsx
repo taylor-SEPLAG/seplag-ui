@@ -54,6 +54,8 @@ import {
   PrototiposControlePssLocalFormPage,
   PrototiposControlePssFasesCertamePage,
   PrototiposControlePssFaseCertameFormPage,
+  PrototiposControlePssTiposCotaPage,
+  PrototiposControlePssTipoCotaFormPage,
   PrototiposBacklogRegrasPage,
   PrototiposBacklogQuadroAutorizadoPage,
   PrototiposBacklogControleVagasV2RegrasPage,
@@ -1588,6 +1590,18 @@ function App() {
       <Route
         path="/prototipos/sigep/controle-pss/fases-certame/:id"
         element={<PrototiposControlePssFaseCertameFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/tipos-cota"
+        element={<PrototiposControlePssTiposCotaPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/tipos-cota/novo"
+        element={<PrototiposControlePssTipoCotaFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/tipos-cota/:id"
+        element={<PrototiposControlePssTipoCotaFormPage />}
       />
       <Route
         path="/prototipos/sigep/controle-pss/processos"

@@ -54,6 +54,11 @@
   cursor: text;
 }
 
+.inputShellCompact {
+  min-height: 46px;
+  padding: 0 12px;
+}
+
 .inputShellOpen,
 .inputShell:focus-within {
   border-color: #7aa7d9;

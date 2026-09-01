@@ -131,14 +131,8 @@ export const TIPOS_ISENCAO = [
 ] as const;
 
 // RN-08: o sistema permite múltiplas cotas por certame; apenas uma prevalece no envio ao TCE-MT.
-export const TIPOS_COTA = [
- { label:"Ampla Concorrência", value:"AMPLA" },
- { label:"PCD — Pessoas com Deficiência", value:"PCD" },
- { label:"PPP — Pessoas Pretas e Pardas", value:"PPP" },
- { label:"Indígenas", value:"INDIGENAS" },
- { label:"Quilombolas", value:"QUILOMBOLAS" },
- { label:"TEA — Transtorno do Espectro Autista", value:"TEA" },
-] as const;
+// Os tipos de cota deixaram de ser uma lista fixa aqui — agora são um catálogo gerenciável no menu
+// "Tipos de Cota" (ver ../tiposCota/tiposCotaStore.ts, mesmo padrão de Locais/Fase do Certame).
 
 // Busca em tabela de leis cadastradas (campo "Lei que rege o certame" / seção 4.2 do US-XXX).
 export const LEIS_CERTAME = [
@@ -185,6 +179,9 @@ export const SITUACOES_CERTAME = [
  { label:"Paralisação", value:"PARALISADO" },
  { label:"Homologação Parcial", value:"HOMOLOGACAO_PARCIAL" },
  { label:"Retificação da Homologação Parcial", value:"RETIFICACAO_HOMOLOGACAO_PARCIAL" },
+ // RN023: retoma o cronograma após uma Paralisação sem alterar o edital — quando a retomada exige
+ // mudança de regras/datas, usa-se Retificação de Edital em vez desta situação.
+ { label:"Retomada do Cronograma", value:"RETOMADA_CRONOGRAMA" },
 ] as const;
 
 // Catálogo alinhado à seção 1.1 (Concurso Público) e 3.1 (PSS) do Manual de Orientação para Remessa
@@ -221,7 +218,8 @@ export const DOCUMENTOS_CERTAME: readonly { tipo:string; label:string; obrigator
 // só se aplica quando essa situação é de fato registrada (ver RegistrarSituacaoCertameModal).
 export const DOCUMENTOS_RETIFICACAO_EDITAL: readonly { tipo:string; label:string; obrigatorioSempre:boolean }[] = [
  { tipo:"TERMO_ADITIVO_EDITAL", label:"Termo aditivo ao edital de abertura", obrigatorioSempre:false },
- { tipo:"COMPROVANTE_PUBLICACAO_TERMO_ADITIVO", label:"Comprovante da publicação do termo aditivo na Imprensa Oficial", obrigatorioSempre:false },
+ // RN008: único item obrigatório do catálogo — é a prova formal de publicação exigida pelo TCE-MT.
+ { tipo:"COMPROVANTE_PUBLICACAO_TERMO_ADITIVO", label:"Comprovante da publicação do termo aditivo na Imprensa Oficial", obrigatorioSempre:true },
 ];
 
 // Catálogo alinhado à seção 3 (Homologação) do Manual de Orientação para Remessa de Documentos ao
@@ -233,13 +231,14 @@ export const DOCUMENTOS_HOMOLOGACAO: readonly { tipo:string; label:string; obrig
  { tipo:"RELACAO_CANDIDATOS_APROVADOS", label:"Relação dos candidatos aprovados e classificados", obrigatorioSempre:false },
  { tipo:"DECISAO_RECURSOS_RELACAO_CANDIDATOS", label:"Decisão quanto aos recursos contra a relação de candidatos aprovados e classificados", obrigatorioSempre:false },
  { tipo:"EDITAL_RESULTADO_FINAL", label:"Edital de resultado final do certame", obrigatorioSempre:false },
- { tipo:"ATO_HOMOLOGACAO", label:"Ato de homologação do certame", obrigatorioSempre:false },
+ // RN008: itens obrigatórios do catálogo — são a prova formal do ato de homologação exigida pelo TCE-MT.
+ { tipo:"ATO_HOMOLOGACAO", label:"Ato de homologação do certame", obrigatorioSempre:true },
  { tipo:"COMPROVANTE_PUBLICACAO_EDITAL_HOMOLOGACAO", label:"Comprovante de publicação do edital de homologação das inscrições", obrigatorioSempre:false },
  { tipo:"COMPROVANTE_PUBLICACAO_DECISAO_RECURSOS_EDITAL_HOMOLOGACAO", label:"Comprovante de publicação da decisão de recursos (edital de homologação)", obrigatorioSempre:false },
  { tipo:"COMPROVANTE_PUBLICACAO_RELACAO_CANDIDATOS", label:"Comprovante de publicação da relação de candidatos aprovados e classificados", obrigatorioSempre:false },
  { tipo:"COMPROVANTE_PUBLICACAO_DECISAO_RECURSOS_RELACAO_CANDIDATOS", label:"Comprovante de publicação da decisão de recursos (relação de candidatos)", obrigatorioSempre:false },
  { tipo:"COMPROVANTE_PUBLICACAO_RESULTADO_FINAL", label:"Comprovante de publicação do resultado final do concurso", obrigatorioSempre:false },
- { tipo:"COMPROVANTE_PUBLICACAO_ATO_HOMOLOGACAO", label:"Comprovante de publicação do ato de homologação", obrigatorioSempre:false },
+ { tipo:"COMPROVANTE_PUBLICACAO_ATO_HOMOLOGACAO", label:"Comprovante de publicação do ato de homologação", obrigatorioSempre:true },
  { tipo:"COMPROVANTE_RESIDENCIA_ACS", label:"Comprovante de residência dos candidatos (Agentes Comunitários de Saúde)", obrigatorioSempre:false },
 ];
 
