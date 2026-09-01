@@ -11,13 +11,13 @@ import { certameFormActionSpecifications, certameFormBlockSpecifications, certam
 import { proximoNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento } from "./validations";
 import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAO_TODOS, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
 import { useFasesCertame } from "../fasesCertame/fasesCertameStore";
-import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, ReservaCotaCargo, SituacaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
+import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, ReservaCotaCargo, SituacaoCertame, TaxaInscricaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { MensagemSeplag } from "@componentes/Mensagem";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
 import { TabsSeplag, type TabItemSeplag } from "@componentes/Tabs";
-import { DateFieldSeplag, CheckboxFieldSeplag, CurrencyFieldSeplag, DropdownFieldSeplag, MaskFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, RadioButtonFieldSeplag, SwitchFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
+import { DateFieldSeplag, CheckboxFieldSeplag, DropdownFieldSeplag, MaskFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, RadioButtonFieldSeplag, SwitchFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import RotuloSeplag from "@componentes/Rotulo";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
@@ -117,6 +117,7 @@ export interface CertameFormValues {
  cobraTaxaInscricao:string; valorInscricao?:number;
 }
 interface CotaFormValues { tipo:string; lei:string[] }
+interface TaxaInscricaoRascunho { valor:string; inicioIsencao:string; fimIsencao:string; tipoIsencao:string; leiIsencao:string; }
 interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; carreira?:string; polo?:string; jornada?:string; orgaoDestino?:string; quantidadeVagas:number; tipoCota:string; quantidadeCota?:number; aceitaCadastroReserva:string; quantidadeCadastroReserva?:number }
 
 // Consolidação de 8 para 5 abas fixas: cada aba antiga virou um bloco com subtítulo dentro da aba
@@ -296,7 +297,6 @@ export function CertameFormContent() {
  const colsEnquadramento = dispensarParaProcessoSeletivo ? "12 6" : "12 6 4";
  const colsDatasExecucao = dispensarParaProcessoSeletivo ? "12 6 2" : "12 6 3";
  const colsContratacaoCustos = houveContratacaoEmpresa ? "12 6 4" : "12 6 6";
- const colsTaxaInscricao = "12 6 2";
 
  // Com a consolidação de 8 para 4 abas, uma mensagem de erro precisa apontar não só a aba, mas o
  // bloco (subtítulo) dentro dela — este estado guarda o id do bloco a rolar/destacar (blocoClasse).
@@ -339,6 +339,44 @@ export function CertameFormContent() {
 
  const [cotas, setCotas] = useState<CotaCertame[]>(existente ? [...existente.cotas] : (rascunho?.cotas ?? []));
  const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:TIPOS_COTA[0].value, lei:[] } });
+ const taxasLegadas:TaxaInscricaoCertame[] = existente?.cobraTaxaInscricao && existente.valorInscricao !== undefined ? [{ id:`TAXA-${existente.id}-1`, valor:existente.valorInscricao, inicioIsencao:existente.dataInicioInscricaoIsencao, fimIsencao:existente.dataFimInscricaoIsencao, tipoIsencao:existente.tipoIsencao?.[0], leiIsencao:existente.leiIsencao?.[0] }] : [];
+ const [taxasInscricao, setTaxasInscricao] = useState<TaxaInscricaoCertame[]>(existente?.taxasInscricao ? [...existente.taxasInscricao] : taxasLegadas);
+ const [taxaRascunho, setTaxaRascunho] = useState<TaxaInscricaoRascunho | null>(null);
+ const [taxaEmEdicaoId, setTaxaEmEdicaoId] = useState<string | null>(null);
+ const [errosTaxa, setErrosTaxa] = useState<Partial<Record<keyof TaxaInscricaoRascunho, string>>>({});
+ const taxaValorRef = useRef<HTMLInputElement | null>(null);
+ const adicionarTaxa = () => {
+  if (taxaRascunho) return;
+  setErrosTaxa({});
+  setTaxaRascunho({ valor:"", inicioIsencao:"", fimIsencao:"", tipoIsencao:"", leiIsencao:"" });
+  window.setTimeout(() => taxaValorRef.current?.focus(), 0);
+ };
+ const cancelarTaxa = () => { setTaxaRascunho(null); setTaxaEmEdicaoId(null); setErrosTaxa({}); };
+ const editarTaxa = (taxa:TaxaInscricaoCertame) => {
+  if (taxaRascunho) return;
+  setErrosTaxa({});
+  setTaxaEmEdicaoId(taxa.id);
+  setTaxaRascunho({ valor:String(taxa.valor), inicioIsencao:taxa.inicioIsencao ?? "", fimIsencao:taxa.fimIsencao ?? "", tipoIsencao:taxa.tipoIsencao ?? "", leiIsencao:taxa.leiIsencao ?? "" });
+  window.setTimeout(() => taxaValorRef.current?.focus(), 0);
+ };
+ const dataComparavel = (valor:string) => { const partes = valor.split("/"); return partes.length === 3 ? `${partes[2]}${partes[1]}${partes[0]}` : valor; };
+ const formatarDataTaxa = (valor?:string) => valor && /^\d{4}-\d{2}-\d{2}$/.test(valor) ? valor.split("-").reverse().join("/") : (valor || "—");
+ const salvarTaxa = () => {
+  if (!taxaRascunho) return;
+  const erros:Partial<Record<keyof TaxaInscricaoRascunho, string>> = {};
+  const valor = Number(taxaRascunho.valor.replace(",", "."));
+  if (!Number.isFinite(valor) || valor <= 0) erros.valor = "Informe um valor maior que zero.";
+  if (!taxaRascunho.inicioIsencao) erros.inicioIsencao = "Informe a data inicial.";
+  if (!taxaRascunho.fimIsencao) erros.fimIsencao = "Informe a data final.";
+  if (!taxaRascunho.tipoIsencao) erros.tipoIsencao = "Selecione o tipo de isenção.";
+  if (!taxaRascunho.leiIsencao) erros.leiIsencao = "Selecione a lei de isenção.";
+  if (taxaRascunho.inicioIsencao && taxaRascunho.fimIsencao && dataComparavel(taxaRascunho.fimIsencao) < dataComparavel(taxaRascunho.inicioIsencao)) erros.fimIsencao = "A data final deve ser igual ou posterior à inicial.";
+  if (Object.keys(erros).length) { setErrosTaxa(erros); return; }
+  const taxaSalva:TaxaInscricaoCertame = { id:taxaEmEdicaoId ?? `TAXA-${Date.now()}`, valor, inicioIsencao:taxaRascunho.inicioIsencao, fimIsencao:taxaRascunho.fimIsencao, tipoIsencao:taxaRascunho.tipoIsencao, leiIsencao:taxaRascunho.leiIsencao };
+  setTaxasInscricao((atuais) => taxaEmEdicaoId ? atuais.map((taxa) => taxa.id === taxaEmEdicaoId ? taxaSalva : taxa) : [...atuais, taxaSalva]);
+  cancelarTaxa();
+ };
+ const excluirTaxa = (id:string) => { if (window.confirm("Excluir esta taxa de inscrição?")) setTaxasInscricao((atuais) => atuais.filter((taxa) => taxa.id !== id)); };
  // A reserva de cota de uma vaga só pode usar um tipo já cadastrado no bloco "Cotas" (que por sua vez
  // não deixa cadastrar um tipo sem lei — ver adicionarCota) — evita reservar cota sem lei que a ampare.
  const tiposCotaCadastrados = useMemo(() => new Set(cotas.filter((item) => item.lei.length > 0).map((item) => item.tipo)), [cotas]);
@@ -476,6 +514,8 @@ export function CertameFormContent() {
  const salvar = handleSubmit((dados) => {
   if (modoVisualizar) return;
   setErro(null);
+  if (dados.cobraTaxaInscricao === "S" && taxaRascunho) { setErro("Salve ou cancele a nova taxa de inscrição antes de salvar o certame."); irParaBloco("FINANCEIRO", "bloco-taxa-inscricao"); return; }
+  if (dados.cobraTaxaInscricao === "S" && taxasInscricao.length === 0) { setErro("Adicione ao menos uma taxa de inscrição."); irParaBloco("FINANCEIRO", "bloco-taxa-inscricao"); return; }
   // RN-23 (ER143): número do certame (TCE-MT) não pode se repetir para o mesmo tipo e exercício.
   if (certameDuplicado(certames, dados, existente?.id)) { setErro("Já existe um certame aberto com esse número e tipo. Verifique."); irParaBloco("IDENTIFICACAO", "bloco-identificacao"); return; }
   // Cargos/vagas e documentos não bloqueiam mais o salvamento: um certame pode ser salvo só com os
@@ -491,7 +531,7 @@ export function CertameFormContent() {
   if (existente) {
    controlePssStore.set("certames", (atuais) => atuais.map((item) => item.id === existente.id ? {
     ...item, ...dados, existePrevisaoRecursos:dados.existePrevisaoRecursos === "S", houveContratacaoBanca, gerouDespesas:dados.gerouDespesas === "S", cobraTaxaInscricao:dados.cobraTaxaInscricao === "S",
-    cotas, cargos, fases, documentos, atualizadoEm:agora,
+    cotas, cargos, fases, documentos, taxasInscricao:dados.cobraTaxaInscricao === "S" ? taxasInscricao : [], atualizadoEm:agora,
    } : item));
    navigate(`${BASE}/certames/${existente.id}`);
    return;
@@ -499,7 +539,7 @@ export function CertameFormContent() {
   const novoId = `CERT-${dados.anoConcurso}-${dados.numeroConcurso.slice(-3)}`;
   const novo:Certame = {
    id:novoId, ...dados, existePrevisaoRecursos:dados.existePrevisaoRecursos === "S", houveContratacaoBanca, gerouDespesas:dados.gerouDespesas === "S", cobraTaxaInscricao:dados.cobraTaxaInscricao === "S",
-   cotas, cargos, fases, documentos,
+   cotas, cargos, fases, documentos, taxasInscricao:dados.cobraTaxaInscricao === "S" ? taxasInscricao : [],
    situacaoAtual:"ABERTO",
    historicoSituacoes:[{ id:`SIT-${novoId}-1`, certameId:novoId, tipo:"ABERTO", dataEfeito:dados.dataPublicacaoEdital, registradoEm:`${agora} 09:00`, usuario:CONTROLE_PSS_USUARIO_LOGADO, prazoPrestacaoContas:calcularPrazoPrestacaoContas(dados.dataPublicacaoEdital) }],
    criadoEm:agora, atualizadoEm:agora, responsavel:CONTROLE_PSS_USUARIO_LOGADO,
@@ -817,16 +857,32 @@ export function CertameFormContent() {
       </div>
 
       <div id="bloco-taxa-inscricao" className={blocoClasse("bloco-taxa-inscricao")}>
-       <BlocoHeader icone="pi-wallet" titulo="Taxa de inscrição" subtitulo="Valor da inscrição e regras de isenção, quando aplicável." />
-       <div className="grid">
-        <CheckboxFieldSeplag name="cobraTaxaInscricao" control={control} label=" " checkboxLabel="O certame cobra taxa de inscrição?" cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+       <div className="prototype-certame-taxa-header">
+        <BlocoHeader icone="pi-wallet" titulo="Taxa de inscrição" subtitulo="Valor da inscrição e regras de isenção, quando aplicável." />
+        {valores.cobraTaxaInscricao === "S" && !modoVisualizar && <BotaoAdicionarSeplag type="button" label="Adicionar taxa" onClick={adicionarTaxa} disabled={Boolean(taxaRascunho)} />}
        </div>
-       {valores.cobraTaxaInscricao === "S" && <div className="grid prototype-certame-grid-6col prototype-certame-grid-fill">
-        <CurrencyFieldSeplag name="valorInscricao" control={control} label="Valor da inscrição" cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataInicioInscricaoIsencao" control={control} label="Início da inscrição com isenção" cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataFimInscricaoIsencao" control={control} label="Fim da inscrição com isenção" cols={colsTaxaInscricao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <MultiSelectFieldSeplag name="tipoIsencao" control={control} label="Tipo da isenção" cols={colsTaxaInscricao} options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" display="chip" placeholder="Selecione" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <CampoLeiMultiplaSeplag name="leiIsencao" control={control} label="Lei de isenção" cols={colsTaxaInscricao} opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiIsencao")} disabled={modoVisualizar} />
+       <div className="grid prototype-certame-taxa-toggle"><CheckboxFieldSeplag name="cobraTaxaInscricao" control={control} label=" " checkboxLabel="O certame cobra taxa de inscrição?" cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} /></div>
+       {valores.cobraTaxaInscricao === "S" && <div className="prototype-certame-taxas-table-wrap">
+        <table className="prototype-certame-taxas-table">
+         <thead><tr><th>Nº</th><th>Valor da inscrição <span className="required-marker">*</span></th><th>Início da inscrição com isenção <span className="required-marker">*</span></th><th>Fim da inscrição com isenção <span className="required-marker">*</span></th><th>Tipo da isenção <span className="required-marker">*</span></th><th>Lei de isenção <span className="required-marker">*</span></th><th>Ações</th></tr></thead>
+         <tbody>
+          {taxasInscricao.map((taxa, index) => taxaEmEdicaoId === taxa.id ? null : <tr key={taxa.id}>
+           <td>{index + 1}</td><td>{taxa.valor.toLocaleString("pt-BR", { style:"currency", currency:"BRL" })}</td><td>{formatarDataTaxa(taxa.inicioIsencao)}</td><td>{formatarDataTaxa(taxa.fimIsencao)}</td><td>{TIPOS_ISENCAO.find((item) => item.value === taxa.tipoIsencao)?.label ?? "—"}</td><td>{opcoesLeis.find((lei) => lei.id === taxa.leiIsencao)?.titulo ?? "—"}</td>
+           <td><div className="prototype-certame-taxa-row-actions"><BotaoIconSeplag type="button" severity="warning" tooltip="Editar taxa" icon="pi pi-pencil" disabled={modoVisualizar || Boolean(taxaRascunho)} onClick={() => editarTaxa(taxa)} /><BotaoIconSeplag type="button" severity="danger" tooltip="Excluir taxa" icon="pi pi-trash" disabled={modoVisualizar || Boolean(taxaRascunho)} onClick={() => excluirTaxa(taxa.id)} /></div></td>
+          </tr>)}
+          {taxaRascunho && <tr className="is-editing">
+           <td>{taxaEmEdicaoId ? taxasInscricao.findIndex((taxa) => taxa.id === taxaEmEdicaoId) + 1 : taxasInscricao.length + 1}</td>
+           <td><input ref={taxaValorRef} required aria-required="true" type="number" min="0.01" step="0.01" value={taxaRascunho.valor} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, valor:event.target.value })} placeholder="R$ 0,00" />{errosTaxa.valor && <small>{errosTaxa.valor}</small>}</td>
+           <td><input required aria-required="true" type="date" value={taxaRascunho.inicioIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, inicioIsencao:event.target.value })} placeholder="dd/mm/aaaa" />{errosTaxa.inicioIsencao && <small>{errosTaxa.inicioIsencao}</small>}</td>
+           <td><input required aria-required="true" type="date" value={taxaRascunho.fimIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, fimIsencao:event.target.value })} placeholder="dd/mm/aaaa" />{errosTaxa.fimIsencao && <small>{errosTaxa.fimIsencao}</small>}</td>
+           <td><select required aria-required="true" value={taxaRascunho.tipoIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, tipoIsencao:event.target.value })}><option value="">Selecione</option>{TIPOS_ISENCAO.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>{errosTaxa.tipoIsencao && <small>{errosTaxa.tipoIsencao}</small>}</td>
+           <td><select required aria-required="true" value={taxaRascunho.leiIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, leiIsencao:event.target.value })}><option value="">Buscar lei</option>{opcoesLeis.map((lei) => <option key={lei.id} value={lei.id}>{lei.titulo}</option>)}</select>{errosTaxa.leiIsencao && <small>{errosTaxa.leiIsencao}</small>}</td>
+           <td><div className="prototype-certame-taxa-row-actions"><button type="button" className="is-save" title="Salvar taxa" aria-label="Salvar taxa" onClick={salvarTaxa}><i className="pi pi-check" /></button><button type="button" className="is-cancel" title="Cancelar inclusão" aria-label="Cancelar inclusão" onClick={cancelarTaxa}><i className="pi pi-times" /></button></div></td>
+          </tr>}
+          {!taxasInscricao.length && !taxaRascunho && <tr><td colSpan={7} className="prototype-certame-taxas-empty">Nenhuma taxa de inscrição adicionada.</td></tr>}
+         </tbody>
+        </table>
+        <div className="prototype-certame-taxa-law-action"><BotaoSeplag type="button" label="Cadastrar nova lei" icon="pi pi-plus-circle" outlined onClick={() => irCadastrarLei("leiIsencao")} /></div>
        </div>}
       </div>
 
