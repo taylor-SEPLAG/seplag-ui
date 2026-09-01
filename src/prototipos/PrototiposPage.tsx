@@ -339,7 +339,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
-          { label: "Tipo de documentos", icon: "pi pi-circle-on", to: "/prototipos/sigep/tipos-documentos", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Tipo de documentos Legais", icon: "pi pi-circle-on", to: "/prototipos/sigep/tipos-documentos", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Documentos Legais", icon: "pi pi-circle-on", to: "/prototipos/sigep/documentos-legais", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },

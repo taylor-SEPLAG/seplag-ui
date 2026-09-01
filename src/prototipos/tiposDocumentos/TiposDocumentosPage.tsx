@@ -59,8 +59,8 @@ export function PrototiposTiposDocumentosPage() {
 
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
     <div className="prototype-page-content prototype-page-content--white prototype-tipos-documentos-page">
-      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Documentação" }, { label: "Tipo de documentos" }]} />
-      <CardSeplag title="Tipos de Documentos" subtitle="Consulte, cadastre e gerencie os tipos de documentos e atos normativos da instituição." subtitlePosition="below" cols="12">
+      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Documentação" }, { label: "Tipo de documentos Legais" }]} />
+      <CardSeplag title="Tipo de documentos Legais" subtitle="Consulte, cadastre e gerencie os tipos de documentos e atos normativos da instituição." subtitlePosition="below" cols="12">
         <div className="col-12 grid prototype-tipos-documentos-filters">
           <TextFieldSeplag name="nome" control={filtroForm.control} label="Tipo de Documento" placeholder="Ex.: Lei Ordinária, Edital, Portaria..." cols="12 12 9" getFormErrorMessage={() => null} />
           <div className="col-12 lg:col-3 prototype-tipos-documentos-clear"><BotaoLimparFiltroSeplag label="Limpar filtro" onClick={() => filtroForm.reset({ nome: "" })} /></div>
