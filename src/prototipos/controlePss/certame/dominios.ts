@@ -196,7 +196,7 @@ export const DOCUMENTOS_CERTAME: readonly { tipo:string; label:string; obrigator
 
 // Catálogo alinhado à seção 2 (Retificação do Edital de Abertura) do Manual de Orientação para
 // Remessa de Documentos ao TCE/MT. Não bloqueia o salvamento do certame (obrigatorioSempre:false) —
-// só se aplica quando essa situação é de fato registrada (ver SituacoesCertameModal).
+// só se aplica quando essa situação é de fato registrada (ver RegistrarSituacaoCertameModal).
 export const DOCUMENTOS_RETIFICACAO_EDITAL: readonly { tipo:string; label:string; obrigatorioSempre:boolean }[] = [
  { tipo:"TERMO_ADITIVO_EDITAL", label:"Termo aditivo ao edital de abertura", obrigatorioSempre:false },
  { tipo:"COMPROVANTE_PUBLICACAO_TERMO_ADITIVO", label:"Comprovante da publicação do termo aditivo na Imprensa Oficial", obrigatorioSempre:false },
@@ -227,7 +227,7 @@ export const DOCUMENTOS_RETIFICACAO_HOMOLOGACAO: readonly { tipo:string; label:s
  DOCUMENTOS_HOMOLOGACAO.map((item) => ({ ...item, tipo:`${item.tipo}_RETIF` }));
 
 // Catálogo de documentos exigido para cada situação do certame (ver SITUACOES_CERTAME) — usado tanto
-// na aba Documentos do cadastro quanto no registro de nova situação (SituacoesCertameModal). As
+// na aba Documentos do cadastro quanto no registro de nova situação (RegistrarSituacaoCertameModal). As
 // variantes "Parcial" reutilizam o catálogo da Homologação/Retificação de Homologação cheia, já que
 // o Manual do TCE/MT não distingue documentos próprios para a homologação parcial. Situações sem
 // catálogo (Prorrogação de Validade, Cancelamento/Anulação, Paralisação) seguem com o upload

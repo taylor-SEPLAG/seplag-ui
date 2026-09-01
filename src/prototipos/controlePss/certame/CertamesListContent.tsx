@@ -8,7 +8,8 @@ import { certamesListBlockSpecifications, certamesListBusinessItems, certamesLis
 import { ORGAOS_CERTAME, SITUACOES_CERTAME, TIPOS_CERTAME } from "./dominios";
 import type { Certame, SituacaoCertame, TipoCertame } from "./types";
 import { lerRascunhoCertame, limparRascunhoCertame, type RascunhoCertame } from "./rascunhoCertameStore";
-import { SituacoesCertameModal } from "./SituacoesCertameModal";
+import { HistoricoSituacoesCertameModal } from "./HistoricoSituacoesCertameModal";
+import { RegistrarSituacaoCertameModal } from "./RegistrarSituacaoCertameModal";
 import { stringToDateSeplag } from "@uteis/manipulaData";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
@@ -48,7 +49,8 @@ export function CertamesListContent() {
  const [situacaoFiltro, setSituacaoFiltro] = useState<SituacaoCertame | "">("");
  const [pagina, setPagina] = useState(1);
  const [itensPorPagina, setItensPorPagina] = useState(10);
- const [certameSituacoesId, setCertameSituacoesId] = useState<string | null>(null);
+ const [certameHistoricoId, setCertameHistoricoId] = useState<string | null>(null);
+ const [certameRegistrarSituacaoId, setCertameRegistrarSituacaoId] = useState<string | null>(null);
  const [acoesMenuAbertoId, setAcoesMenuAbertoId] = useState<string | null>(null);
 
  // Certame em cadastro (fase "Abertura/Cadastro"), ainda não salvo como registro — o progresso fica
@@ -203,8 +205,11 @@ export function CertamesListContent() {
                 <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); navigate(`${BASE}/certames/${row.id}`); }}>
                  <i className="pi pi-pencil" aria-hidden="true" /><span>Editar</span>
                 </button>
-                <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setCertameSituacoesId(row.id); }}>
-                 <i className="pi pi-history" aria-hidden="true" /><span>Situação / Histórico</span>
+                <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setCertameHistoricoId(row.id); }}>
+                 <i className="pi pi-history" aria-hidden="true" /><span>Histórico</span>
+                </button>
+                <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setCertameRegistrarSituacaoId(row.id); }}>
+                 <i className="pi pi-plus-circle" aria-hidden="true" /><span>Nova Situação</span>
                 </button>
                </div>}
               </div>
@@ -230,6 +235,7 @@ export function CertamesListContent() {
     </div></div>
    </CardSeplag>
   </div>
-  {certameSituacoesId && <SituacoesCertameModal certameId={certameSituacoesId} onClose={() => setCertameSituacoesId(null)} />}
+  {certameHistoricoId && <HistoricoSituacoesCertameModal certameId={certameHistoricoId} onClose={() => setCertameHistoricoId(null)} />}
+  {certameRegistrarSituacaoId && <RegistrarSituacaoCertameModal certameId={certameRegistrarSituacaoId} onClose={() => setCertameRegistrarSituacaoId(null)} />}
  </SpecificationMode>;
 }

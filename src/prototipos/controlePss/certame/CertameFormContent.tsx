@@ -120,7 +120,8 @@ interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:stri
 
 // Consolidação de 8 para 5 abas fixas: cada aba antiga virou um bloco com subtítulo dentro da aba
 // nova, preservando todos os campos, RNs e CAs originais. O histórico de situações deixou de ser
-// uma aba do cadastro — agora abre como modal a partir da listagem (ver SituacoesCertameModal).
+// uma aba do cadastro — agora abre como modal a partir da listagem (ver HistoricoSituacoesCertameModal
+// e RegistrarSituacaoCertameModal).
 export type Aba = "IDENTIFICACAO" | "CRONOGRAMA" | "FINANCEIRO" | "VAGAS_COTAS" | "DOCUMENTOS";
 const abasBase:readonly { id:Aba; label:string }[] = [
  { id:"IDENTIFICACAO", label:"Identificação" },
@@ -193,7 +194,7 @@ function arquivoExistente(certame:Certame | undefined, tipo:TipoDocumentoCertame
 // TCE/MT). Só o grupo de Abertura bloqueia o salvamento do certame (obrigatorioSempre) e aparece na
 // aba Documentos do cadastro — os demais (Retificação de Edital, Homologação, Retificação de
 // Homologação) só ficam disponíveis para anexar ao registrar a situação correspondente (ver
-// SituacoesCertameModal), evitando tabelas vazias e redundantes no cadastro. Mesmo assim entram em
+// RegistrarSituacaoCertameModal), evitando tabelas vazias e redundantes no cadastro. Mesmo assim entram em
 // TODOS_DOCUMENTOS_CERTAME para que o salvamento deste formulário preserve documentos já anexados
 // por lá, em vez de descartá-los.
 const GRUPOS_DOCUMENTOS_CERTAME = [
