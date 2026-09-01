@@ -1,6 +1,9 @@
 export type TipoCertame = "CONCURSO_PUBLICO" | "PSS";
-export type RegimeJuridicoCertame = "ESTATUTARIO" | "CELETISTA" | "ESPECIAL";
-export type TipoVinculoCertame = "EFETIVO" | "CONTRATO_TEMPORARIO" | "BOLSISTA" | "RESIDENTE" | "ESTAGIARIO";
+// Regimes jurídicos do catálogo real de Cadastro > Vínculos Funcionais > Tipo de Vínculo (ver
+// dominios.ts, TIPOS_VINCULO) — substitui a lista curta (Estatutário/Celetista/Especial) que
+// existia antes só neste módulo.
+export type RegimeJuridicoCertame = "ESTATUTARIO_CIVIL" | "ESTATUTARIO_MILITAR" | "REGIME_MISTO" | "SEM_VINCULO_EMPREGATICIO" | "REGIME_ESPECIAL" | "MILITAR_TEMPORARIO";
+export type TipoVinculoCertame = "EFETIVO" | "CONTRATO_TEMPORARIO" | "CONTRATO_TEMPORARIO_VINCULO_UNICO" | "RESIDENTE" | "ESTAGIARIO" | "BOLSISTA" | "ESTABILIZADO_CONSTITUCIONALMENTE";
 export type AbrangenciaCertame = "ESTADUAL" | "REGIONAL" | "MUNICIPAL";
 export type TipoContratacaoExecucaoCertame = "PROPRIA_UG" | "EMPRESA_CONTRATADA";
 export type VinculoCargoCertame = "EXISTENTE" | "NOVO";
@@ -95,7 +98,7 @@ export interface Certame {
  dataInicioInscricaoIsencao?:string;
  dataFimInscricaoIsencao?:string;
  leiIsencao?:readonly string[];
- tipoIsencao?:string;
+ tipoIsencao?:string[];
  // 5. Recursos e Contratos
  houveContratacaoBanca:boolean;
  gerouDespesas:boolean;

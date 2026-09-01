@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { TIPOS_FASE_CONCURSO_TCE } from "../certame/dominios";
+import { FASES_TCE_FIXAS, TIPOS_FASE_CONCURSO_TCE } from "../certame/dominios";
 
 export type SituacaoFaseCertame = "ATIVO" | "INATIVO";
 
@@ -20,7 +20,17 @@ function criar(id:string, nome:string, tipoTceId?:string):FaseCertameCatalogo {
 
 // Seed inicial: o catálogo de Tipos de Prova/Etapa do TCE-MT já vem referenciado à própria tabela
 // (tipoTceId = value do TCE) — novas fases cadastradas pelo usuário podem ou não referenciar um tipo.
-let fases:FaseCertameCatalogo[] = TIPOS_FASE_CONCURSO_TCE.map((tipo) => criar(`fase-tce-${tipo.value}`, tipo.label, tipo.value));
+// Também inclui as 12 fases padrão do cronograma (FASES_TCE_FIXAS — Publicação do Edital,
+// Período de Inscrições etc.), sem tipoTceId: são marcos do processo, não classificações do
+// TFCONC, mas precisam estar no catálogo porque são o valor pré-selecionado de cada certame novo
+// (ver CertameFormContent) e o campo "Nome da fase" só aceita valores já cadastrados aqui (RN005).
+let fases:FaseCertameCatalogo[] = [
+ ...TIPOS_FASE_CONCURSO_TCE.map((tipo) => criar(`fase-tce-${tipo.value}`, tipo.label, tipo.value)),
+ ...FASES_TCE_FIXAS.map((item) => criar(`fase-padrao-${item.ordem}`, item.nome)),
+ // Fase personalizada usada no certame mock "Auditor Fiscal" (mock.ts) — exemplo de fase
+ // adicionada pelo usuário além das 12 padrão + 17 do TCE-MT.
+ criar("fase-custom-curso-formacao-seplag", "Curso de Formação (SEPLAG)"),
+];
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((listener) => listener());

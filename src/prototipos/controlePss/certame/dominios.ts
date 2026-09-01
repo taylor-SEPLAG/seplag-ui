@@ -32,18 +32,34 @@ export const TIPOS_CONCURSO_APLIC_TCE = [
  { label:"Processo Seletivo Simplificado", value:"4" },
 ] as const;
 
+// Regimes jurídicos — mesmos 6 nomes usados em Cadastro > Vínculos Funcionais > Tipo de Vínculo
+// (ver PrototiposPage.tsx, tiposVinculoTesteMock/regimesJuridicosMock — "carga oficial do modelo
+// SIGEP"), restritos aos que aparecem vinculados aos Tipos de Vínculo reaproveitados abaixo.
 export const REGIMES_JURIDICOS = [
- { label:"Estatutário", value:"ESTATUTARIO" },
- { label:"Celetista", value:"CELETISTA" },
- { label:"Especial", value:"ESPECIAL" },
+ { label:"Estatutário Civil", value:"ESTATUTARIO_CIVIL" },
+ { label:"Estatutário Militar", value:"ESTATUTARIO_MILITAR" },
+ { label:"Regime Misto", value:"REGIME_MISTO" },
+ { label:"Sem Vínculo Empregatício", value:"SEM_VINCULO_EMPREGATICIO" },
+ { label:"Regime Especial", value:"REGIME_ESPECIAL" },
+ { label:"Militar Temporário", value:"MILITAR_TEMPORARIO" },
 ] as const;
 
-// "Efetivo" não entra aqui: é exclusivo do Concurso Público, exibido como campo fixo "Nomeado Efetivo".
+// Catálogo de Tipos de Vínculo — reaproveita nome e Regimes Jurídicos vinculados do catálogo real
+// de Cadastro > Vínculos Funcionais > Tipo de Vínculo (mesma origem do comentário acima),
+// restrito aos 7 tipos que fazem sentido para o vínculo funcional de um certame. As flags
+// concursoPublico/processoSeletivo são uma decisão deste módulo (Certame) — o catálogo de origem
+// não diferencia isso por linha, então essa classificação foi feita por inferência e precisa de
+// validação de negócio antes de virar regra definitiva. O Cadastro de Certame usa as duas
+// informações para filtrar, respectivamente, as opções de "Tipo de vínculo" (pelo tipo do
+// certame) e de "Regime jurídico" (pelo tipo de vínculo já selecionado).
 export const TIPOS_VINCULO = [
- { label:"Contrato Temporário", value:"CONTRATO_TEMPORARIO" },
- { label:"Bolsista", value:"BOLSISTA" },
- { label:"Residente", value:"RESIDENTE" },
- { label:"Estagiário", value:"ESTAGIARIO" },
+ { label:"Nomeado Efetivo", value:"EFETIVO", concursoPublico:true, processoSeletivo:false, regimesJuridicos:["ESTATUTARIO_CIVIL", "ESTATUTARIO_MILITAR", "REGIME_MISTO", "SEM_VINCULO_EMPREGATICIO"] },
+ { label:"Contrato Temporário", value:"CONTRATO_TEMPORARIO", concursoPublico:false, processoSeletivo:true, regimesJuridicos:["ESTATUTARIO_CIVIL", "ESTATUTARIO_MILITAR", "REGIME_MISTO", "REGIME_ESPECIAL", "MILITAR_TEMPORARIO"] },
+ { label:"Contrato Temporário Vínculo Único", value:"CONTRATO_TEMPORARIO_VINCULO_UNICO", concursoPublico:false, processoSeletivo:true, regimesJuridicos:["REGIME_ESPECIAL"] },
+ { label:"Residente Técnico", value:"RESIDENTE", concursoPublico:false, processoSeletivo:true, regimesJuridicos:["SEM_VINCULO_EMPREGATICIO"] },
+ { label:"Estagiário", value:"ESTAGIARIO", concursoPublico:false, processoSeletivo:true, regimesJuridicos:["SEM_VINCULO_EMPREGATICIO"] },
+ { label:"Bolsista", value:"BOLSISTA", concursoPublico:false, processoSeletivo:true, regimesJuridicos:["ESTATUTARIO_CIVIL", "REGIME_ESPECIAL", "SEM_VINCULO_EMPREGATICIO"] },
+ { label:"Estabilizado Constitucionalmente", value:"ESTABILIZADO_CONSTITUCIONALMENTE", concursoPublico:true, processoSeletivo:false, regimesJuridicos:["ESTATUTARIO_CIVIL", "ESTATUTARIO_MILITAR", "REGIME_MISTO", "REGIME_ESPECIAL"] },
 ] as const;
 
 export const ABRANGENCIAS = [
@@ -196,7 +212,7 @@ export const DOCUMENTOS_CERTAME: readonly { tipo:string; label:string; obrigator
 
 // Catálogo alinhado à seção 2 (Retificação do Edital de Abertura) do Manual de Orientação para
 // Remessa de Documentos ao TCE/MT. Não bloqueia o salvamento do certame (obrigatorioSempre:false) —
-// só se aplica quando essa situação é de fato registrada (ver SituacoesCertameModal).
+// só se aplica quando essa situação é de fato registrada (ver RegistrarSituacaoCertameModal).
 export const DOCUMENTOS_RETIFICACAO_EDITAL: readonly { tipo:string; label:string; obrigatorioSempre:boolean }[] = [
  { tipo:"TERMO_ADITIVO_EDITAL", label:"Termo aditivo ao edital de abertura", obrigatorioSempre:false },
  { tipo:"COMPROVANTE_PUBLICACAO_TERMO_ADITIVO", label:"Comprovante da publicação do termo aditivo na Imprensa Oficial", obrigatorioSempre:false },
@@ -227,7 +243,7 @@ export const DOCUMENTOS_RETIFICACAO_HOMOLOGACAO: readonly { tipo:string; label:s
  DOCUMENTOS_HOMOLOGACAO.map((item) => ({ ...item, tipo:`${item.tipo}_RETIF` }));
 
 // Catálogo de documentos exigido para cada situação do certame (ver SITUACOES_CERTAME) — usado tanto
-// na aba Documentos do cadastro quanto no registro de nova situação (SituacoesCertameModal). As
+// na aba Documentos do cadastro quanto no registro de nova situação (RegistrarSituacaoCertameModal). As
 // variantes "Parcial" reutilizam o catálogo da Homologação/Retificação de Homologação cheia, já que
 // o Manual do TCE/MT não distingue documentos próprios para a homologação parcial. Situações sem
 // catálogo (Prorrogação de Validade, Cancelamento/Anulação, Paralisação) seguem com o upload

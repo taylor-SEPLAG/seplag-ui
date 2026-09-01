@@ -52,7 +52,8 @@ export interface DocumentosCertameTabelaProps {
 
 // Tabela de documentos do certame (Documento | Arquivo anexado | Tamanho | Ações), assinatura física
 // (upload direto do PDF assinado). Reaproveitada tanto na aba Documentos do cadastro completo (uma
-// instância por grupo/situação) quanto no registro de nova situação (SituacoesCertameModal), para que
+// instância por grupo/situação) quanto no registro/consulta de situação (RegistrarSituacaoCertameModal
+// e HistoricoSituacoesCertameModal), para que
 // o mesmo documento anexado em qualquer uma das duas telas apareça refletido na outra (ambas
 // leem/gravam em Certame.documentos).
 export function DocumentosCertameTabela({ documentos, arquivos, onChangeArquivo, documentoObrigatorio, onError, somenteLeitura }:DocumentosCertameTabelaProps) {

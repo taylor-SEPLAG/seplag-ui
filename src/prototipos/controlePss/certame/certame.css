@@ -18,6 +18,14 @@
 }
 .prototype-ingressos-filters.prototype-certame-list-filters .prototype-category-clear .p-button{width:auto!important;min-width:150px;padding-inline:14px;white-space:nowrap}
 
+/* "Pesquisar" é o único campo do filtro que usa o Dropdown/RotuloSeplag padrão da biblioteca — os
+   outros 4 (Órgão, Exercício, Tipo, Situação) são selects nativos (.prototype-native-field), com
+   rótulo menor/mais escuro e altura de campo fixa em 40px. Sem isso, "Pesquisar" ficava com rótulo
+   maior e altura de campo diferente, desalinhando a linha inteira. */
+.prototype-ingressos-filters.prototype-certame-list-filters .label-rotulo{font-size:.875rem;font-weight:600;color:#344054}
+.prototype-ingressos-filters.prototype-certame-list-filters .p-dropdown{min-height:40px;border-color:#d0d5dd;border-radius:6px}
+.prototype-ingressos-filters.prototype-certame-list-filters .p-dropdown .p-dropdown-label{display:flex;align-items:center;padding:.5rem .75rem;color:#1d2939}
+
 /* Reestilização do formulário de Cadastro de Certame para seguir a mesma paleta/tipografia das
    telas "Novo Ingresso"/"Efetivo Exercício" (Vínculos Funcionais) — só CSS, sem alterar a estrutura
    dos componentes nem a lógica do formulário. Escopado por .prototype-certame-form-page para não
@@ -149,15 +157,11 @@
  .prototype-certame-grid-fill>[class*="col-"]{width:auto;max-width:none;flex:none;padding:0}
 }
 
-/* Aviso de rascunho pendente na listagem de certames — certame em cadastro, ainda não salvo (ver
-   rascunhoCertameStore), com atalho para retomar de onde parou ou descartar o progresso. */
-.prototype-certames-rascunho-aviso{display:flex;align-items:center;gap:.9rem;padding:.9rem 1.1rem;margin-bottom:1rem;border:1px solid #f3d9a1;border-radius:10px;background:#fffaf0}
-.prototype-certames-rascunho-aviso>.pi{font-size:1.3rem;color:#8a5c00}
-.prototype-certames-rascunho-info{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:.2rem}
-.prototype-certames-rascunho-titulo{display:flex;align-items:center;gap:.6rem}
-.prototype-certames-rascunho-titulo strong{font-size:.92rem;color:var(--text-color)}
-.prototype-certames-rascunho-info>span{color:var(--text-color-secondary);font-size:.8rem}
-.prototype-certames-rascunho-acoes{flex:0 0 auto;display:flex;align-items:center;gap:.5rem}
+/* Linha de rascunho pendente na grid de certames — certame em cadastro, ainda não salvo (ver
+   rascunhoCertameStore), com o mesmo tom âmbar do badge "Em andamento" para se destacar das linhas
+   de certames já salvos, sem precisar de uma faixa separada acima da grid. */
+.prototype-certames-rascunho-linha{background:#fffaf0}
+.prototype-certames-rascunho-linha:hover{background:#fff3db}
 
 .prototype-certame-tipo-gate{display:flex;flex-direction:column;gap:1rem;padding:.5rem 0 1.5rem}
 .prototype-certame-tipo-gate>p{margin:0;color:var(--text-color-secondary);font-size:.9rem}
@@ -283,13 +287,15 @@
 .prototype-certame-fase-row label{display:block;min-width:0}
 .prototype-certame-fase-row input{width:100%;min-height:32px;padding:6px 8px;border:1px solid var(--surface-border);border-radius:6px;background:var(--surface-0);color:var(--text-color);font-size:.82rem}
 .prototype-certame-fase-row input:focus{border-color:var(--primary-color);box-shadow:0 0 0 2px var(--primary-100);outline:0}
-.prototype-certame-fase-row .p-autocomplete{width:100%}
-/* Realce quando o nome digitado/selecionado corresponde a uma fase do catálogo padrão do TCE-MT
-   (Tipos de Prova/Etapa — TFCONC), distinguindo-a de um nome de fase totalmente livre. */
-.prototype-certame-fase-row .prototype-certame-fase-tce input,
-.prototype-certame-fase-row input.prototype-certame-fase-tce{border-color:#0b6199;background:#e9f3fc;color:#0b6199;font-weight:600}
-.prototype-certame-fase-row .prototype-certame-fase-tce input:focus,
-.prototype-certame-fase-row input.prototype-certame-fase-tce:focus{box-shadow:0 0 0 2px #b7dcf5}
+.prototype-certame-fase-row .p-dropdown{width:100%}
+/* Realce quando a fase selecionada corresponde a um item do catálogo do TCE-MT (tipoTceId
+   preenchido em fasesCertameStore), distinguindo-a de uma fase sem correspondência no tribunal
+   (ex.: os 12 marcos padrão do cronograma). O fundo/borda do Dropdown do PrimeReact ficam no
+   wrapper .p-dropdown, não no <input> interno — !important porque a regra genérica de
+   ".prototype-certame-form-page .p-dropdown" (mesma especificidade, definida antes) senão vence. */
+.prototype-certame-fase-row .prototype-certame-fase-tce.p-dropdown{border-color:#0b6199!important;background:#e9f3fc!important}
+.prototype-certame-fase-row .prototype-certame-fase-tce input{color:#0b6199;font-weight:600}
+.prototype-certame-fase-row .prototype-certame-fase-tce.p-dropdown:not(.p-disabled).p-focus{box-shadow:0 0 0 2px #b7dcf5!important;border-color:#0b6199!important}
 .prototype-certame-fase-drag-handle{justify-self:center;color:var(--text-color-secondary)}
 .prototype-certame-fase-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .prototype-certame-fase-remove{display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;border:0;background:transparent;color:var(--text-color-secondary);cursor:pointer}

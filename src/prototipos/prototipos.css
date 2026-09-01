@@ -263,6 +263,43 @@
   width: 100%;
 }
 
+.prototype-tipo-vinculo-filters {
+  display: grid !important;
+  grid-template-columns: minmax(280px, 2fr) minmax(220px, 1.15fr) minmax(160px, 0.75fr) minmax(140px, 0.7fr);
+  gap: 16px;
+  width: 100%;
+  margin: 0 0 8px;
+}
+
+.prototype-tipo-vinculo-filters > [class*="col-"],
+.prototype-tipo-vinculo-filters > .prototype-category-clear {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  padding: 0 !important;
+}
+
+.prototype-tipo-vinculo-filters > .col-12.prototype-carreira-register-alert {
+  grid-column: 1 / -1;
+}
+
+.prototype-tipo-vinculo-filters .prototype-category-clear,
+.prototype-tipo-vinculo-filters .prototype-category-clear .p-button {
+  width: 100% !important;
+}
+
+@media (max-width: 1100px) {
+  .prototype-tipo-vinculo-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .prototype-tipo-vinculo-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .prototype-folha-catalogo-filters {
   display: grid !important;
   grid-template-columns: minmax(280px, 1fr) minmax(220px, 320px) 112px;
@@ -8221,6 +8258,39 @@
 
 .prototype-carreira-org-list li i {
   color: #0072ce;
+}
+
+.prototype-linked-records-list {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.prototype-linked-records-list > p,
+.prototype-linked-records-list ul,
+.prototype-linked-records-list li {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.prototype-linked-records-list ul {
+  grid-template-columns: minmax(0, 1fr);
+}
+.prototype-tipo-vinculo-regimes-list {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.prototype-tipo-vinculo-regimes-list > p,
+.prototype-tipo-vinculo-regimes-list ul,
+.prototype-tipo-vinculo-regimes-list li {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.prototype-tipo-vinculo-regimes-list ul {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 @media (max-width: 900px) {
