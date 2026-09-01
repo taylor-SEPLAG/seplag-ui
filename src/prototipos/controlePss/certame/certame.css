@@ -47,7 +47,6 @@
 .prototype-certame-form-page hr{border-top:1px solid #e1e8f0}
 
 .prototype-certame-form-page .prototype-certame-bloco,
-.prototype-certame-form-page .prototype-certame-stepper-wrap,
 .prototype-certame-form-page .prototype-certame-tipo-card{border:1px solid #d6e0ea;border-radius:6px;background:#ffffff}
 .prototype-certame-form-page .prototype-certame-bloco-header,
 .prototype-certame-form-page .prototype-certame-fases-head{border-bottom:1px solid #e1e8f0}
@@ -236,25 +235,16 @@
 .prototype-certame-cargos-tabela .p-datatable-thead>tr>th{padding:10px 12px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:var(--text-color-secondary);background:var(--surface-50);white-space:nowrap}
 .prototype-certame-cargos-tabela .p-datatable-tbody>tr>td{padding:10px 12px;font-size:.83rem}
 
-/* Navegação entre abas do certame como etapas numeradas (estilo assistente/wizard), com marcador
-   preenchido e "check" para as etapas já percorridas — alinhada à maquete de referência. */
-.prototype-certame-stepper-wrap{display:flex;align-items:flex-start;gap:1.25rem;padding:1rem 1.25rem 1.25rem;margin-bottom:1rem;border:1px solid var(--surface-border);border-radius:10px;background:var(--surface-0)}
-.prototype-certame-stepper{position:relative;flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem}
-.prototype-certame-stepper::before{content:"";position:absolute;top:14px;left:6%;right:6%;height:1px;background:var(--surface-300)}
-.prototype-certame-step{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:.5rem;border:0;background:transparent;padding:0;text-align:center;cursor:pointer}
-.prototype-certame-step-marker{display:inline-flex;width:28px;height:28px;flex:0 0 28px;align-items:center;justify-content:center;border:2px solid var(--surface-300);border-radius:999px;background:var(--surface-0);color:var(--text-color-secondary);font-size:.8rem;font-weight:800;box-shadow:0 0 0 4px var(--surface-0)}
-.prototype-certame-step.is-active .prototype-certame-step-marker,.prototype-certame-step.is-completed .prototype-certame-step-marker{border-color:var(--primary-color);background:var(--primary-color);color:#fff}
-.prototype-certame-step-text{display:flex;flex-direction:column;gap:.2rem;max-width:170px}
-.prototype-certame-step-text strong{color:var(--text-color);font-size:.85rem;font-weight:700}
-.prototype-certame-step.is-active .prototype-certame-step-text strong{color:var(--primary-color)}
-.prototype-certame-step-text small{color:var(--text-color-secondary);font-size:.72rem;line-height:1.3}
-.prototype-certame-step-situacoes{align-self:center;display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .9rem;border:1px solid var(--surface-border);border-radius:999px;background:var(--surface-0);color:var(--text-color-secondary);font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap}
-.prototype-certame-step-situacoes.is-active{border-color:var(--primary-color);color:var(--primary-color);background:var(--primary-100)}
+/* Navegação principal no padrão de abas azul/cinza da biblioteca SIGEP. */
+.prototype-certame-tabs { margin-bottom:1rem; padding-inline:0; }
+.prototype-certame-tabs .tabs-seplag-equal-grid { gap:1px!important; }
+.prototype-certame-tabs .p-button { min-width:0; font-size:.82rem; font-weight:600; box-shadow:none; }
 @media (max-width:900px){
- .prototype-certame-stepper{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
- .prototype-certame-stepper::before{display:none}
+ .prototype-certame-tabs .tabs-seplag-equal-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
 }
-
+@media (max-width:520px){
+ .prototype-certame-tabs .tabs-seplag-equal-grid { grid-template-columns:1fr!important; }
+}
 /* Reservas de cota por cargo/vaga — múltiplas reservas (ex.: PCD + PPP) exibidas como tags, tanto
    na área de montagem (com botão de remover) quanto na coluna "Cota" da tabela de cargos. */
 .prototype-certame-cota-tags{display:flex;flex-wrap:wrap;gap:.4rem;padding-top:.25rem}
@@ -280,6 +270,7 @@
 
 .prototype-certame-fase-header,.prototype-certame-fase-row{display:grid;grid-template-columns:18px minmax(180px,1fr) 152px 152px 28px;column-gap:10px;align-items:center}
 .prototype-certame-fase-header{padding:8px 12px;border-bottom:1px solid var(--surface-border);background:var(--surface-50);color:var(--text-color-secondary);font-size:.72rem;font-weight:800;text-transform:uppercase}
+.prototype-certame-fase-header .obrigatorio{margin-left:2px;font-style:normal}
 .prototype-certame-fase-row{padding:7px 12px;border-bottom:1px solid var(--surface-border)}
 .prototype-certame-fase-row:last-child{border-bottom:0}
 .prototype-certame-fase-row[draggable="true"]{cursor:grab}

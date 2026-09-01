@@ -9,14 +9,14 @@ import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStor
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
 import { proximoNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento } from "./validations";
-import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, MUNICIPIOS_MT, OPCOES_SIM_NAO, ORGAO_TODOS, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
+import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAO_TODOS, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_COTA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
 import { useFasesCertame } from "../fasesCertame/fasesCertameStore";
 import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, ReservaCotaCargo, SituacaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { MensagemSeplag } from "@componentes/Mensagem";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
-import type { TabItemSeplag } from "@componentes/Tabs";
+import { TabsSeplag, type TabItemSeplag } from "@componentes/Tabs";
 import { DateFieldSeplag, CheckboxFieldSeplag, CurrencyFieldSeplag, DropdownFieldSeplag, MaskFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, RadioButtonFieldSeplag, SwitchFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import RotuloSeplag from "@componentes/Rotulo";
@@ -117,7 +117,7 @@ export interface CertameFormValues {
  cobraTaxaInscricao:string; valorInscricao?:number;
 }
 interface CotaFormValues { tipo:string; lei:string[] }
-interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; carreira?:string; polo?:string; cidades:string[]; jornada?:string; orgaoDestino?:string; quantidadeVagas:number; tipoCota:string; quantidadeCota?:number; aceitaCadastroReserva:string; quantidadeCadastroReserva?:number }
+interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; carreira?:string; polo?:string; jornada?:string; orgaoDestino?:string; quantidadeVagas:number; tipoCota:string; quantidadeCota?:number; aceitaCadastroReserva:string; quantidadeCadastroReserva?:number }
 
 // Consolidação de 8 para 5 abas fixas: cada aba antiga virou um bloco com subtítulo dentro da aba
 // nova, preservando todos os campos, RNs e CAs originais. O histórico de situações deixou de ser
@@ -132,13 +132,6 @@ const abasBase:readonly { id:Aba; label:string }[] = [
  { id:"DOCUMENTOS", label:"Documentos" },
 ];
 
-const abaDescricoes:Record<Aba, string> = {
- IDENTIFICACAO:"Dados que identificam o certame perante o TCE-MT.",
- CRONOGRAMA:"Datas, fases e prazos do certame.",
- FINANCEIRO:"Custos, contratação de banca e taxa de inscrição.",
- VAGAS_COTAS:"Cargos, vagas ofertadas e reservas de cota.",
- DOCUMENTOS:"Documentos exigidos para a prestação de contas ao TCE-MT.",
-};
 
 const anoReferencia = Number(CONTROLE_PSS_DATA_REFERENCIA.slice(0, 4));
 const situacaoLabel:Record<SituacaoCertame,string> = Object.fromEntries(SITUACOES_CERTAME.map((item) => [item.value, item.label])) as Record<SituacaoCertame,string>;
@@ -225,9 +218,6 @@ function calcularAmplaConcorrencia(quantidadeVagas:number, reservas:readonly { q
  return Math.max(0, (quantidadeVagas || 0) - totalCotas);
 }
 
-function rotuloPolo(codigo:string) {
- return MUNICIPIOS_MT.find((item) => item.value === codigo)?.label ?? codigo;
-}
 
 export function CertameFormContent() {
  const { certames } = useControlePssStore();
@@ -370,7 +360,7 @@ export function CertameFormContent() {
  const [cargos, setCargos] = useState<CargoVagaCertame[]>(existente ? [...existente.cargos] : (rascunho?.cargos ?? []));
  const polos = useLocais();
  const polosOptions = useMemo(() => polos.filter((item) => item.situacao === "ATIVO").map((item) => ({ label:item.nomeLocal, value:item.nomeLocal })), [polos]);
- const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", cidades:[], jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 } });
+ const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 } });
  const cargoValores = cargoForm.watch();
  const cargoExistenteSelecionado = cargoValores.vinculo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId) : undefined;
  const cargoNomeAtual = cargoValores.vinculo === "EXISTENTE" ? cargoExistenteSelecionado?.nome ?? "" : cargoValores.cargoNome;
@@ -388,7 +378,6 @@ export function CertameFormContent() {
   cargoValores.carreira ? (CARREIRAS_CONCURSO.find((item) => item.value === cargoValores.carreira)?.label ?? cargoValores.carreira) : undefined,
   cargoValores.orgaoDestino ? (cargoValores.orgaoDestino === ORGAO_TODOS ? "Todos os órgãos" : cargoValores.orgaoDestino) : undefined,
   cargoValores.polo || undefined,
-  cargoValores.cidades && cargoValores.cidades.length > 0 ? cargoValores.cidades.map(rotuloPolo).join(", ") : undefined,
   cargoValores.jornada ? (JORNADAS_TRABALHO.find((item) => item.value === cargoValores.jornada)?.label ?? cargoValores.jornada) : undefined,
   cargoValores.quantidadeVagas > 0 ? `${cargoValores.quantidadeVagas} vaga${cargoValores.quantidadeVagas === 1 ? "" : "s"}` : undefined,
  ].filter((label):label is string => Boolean(label));
@@ -399,13 +388,6 @@ export function CertameFormContent() {
   if (cargoExistenteSelecionado?.jornada) cargoForm.setValue("jornada", cargoExistenteSelecionado.jornada);
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [cargoExistenteSelecionado?.id]);
- // Sugere a cidade cadastrada para o Polo selecionado, mas o campo continua editável — o usuário
- // pode ajustar manualmente caso a vaga atenda outra(s) cidade(s) além da sede do polo.
- const selecionarPolo = (nomePolo:string | null) => {
-  const localPolo = nomePolo ? polos.find((item) => item.nomeLocal === nomePolo && item.situacao === "ATIVO") : undefined;
-  const opcaoCidade = localPolo ? MUNICIPIOS_MT.find((item) => item.label.toLocaleLowerCase("pt-BR") === localPolo.cidade.toLocaleLowerCase("pt-BR")) : undefined;
-  if (opcaoCidade) cargoForm.setValue("cidades", [opcaoCidade.value]);
- };
  // Largura das colunas de "Identificação do cargo" ajustada à quantidade de campos realmente
  // visíveis (Carreira e Órgão são condicionais) — grade de 4 colunas (25%) quando completa, para
  // não deixar campos sobrando sozinhos numa linha quase vazia.
@@ -478,7 +460,6 @@ export function CertameFormContent() {
   { header:"Órgão", body:(cargo) => cargo.orgaoDestino ? (cargo.orgaoDestino === ORGAO_TODOS ? "Todos os órgãos" : cargo.orgaoDestino) : "—" },
   { header:"Quadro", body:(cargo) => cargo.quadroCodigo ? <button type="button" className="prototype-certame-link-btn" onClick={() => navigate(`${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`)}>{cargo.quadroCodigo}</button> : "—" },
   { header:"Polo", body:(cargo) => cargo.polo || "—" },
-  { header:"Cidade", body:(cargo) => cargo.cidades && cargo.cidades.length > 0 ? cargo.cidades.map(rotuloPolo).join(", ") : "—" },
   { header:"Jornada", body:(cargo) => cargo.jornada ? (JORNADAS_TRABALHO.find((item) => item.value === cargo.jornada)?.label ?? cargo.jornada) : "—" },
   { header:"Qtd. vagas", body:(cargo) => <BadgeSeplag label={`${cargo.quantidadeVagas} vaga${cargo.quantidadeVagas === 1 ? "" : "s"}`} color="#0b6199" bg="#e9f3fc" border="transparent" size="sm" /> },
   { header:"CR", body:(cargo) => cargo.aceitaCadastroReserva ? <BadgeSeplag label={String(cargo.quantidadeCadastroReserva ?? 0)} color="#147441" bg="#e2f5e8" border="transparent" size="sm" /> : "—" },
@@ -555,8 +536,8 @@ export function CertameFormContent() {
   if (dados.aceitaCadastroReserva === "S" && !(dados.quantidadeCadastroReserva && dados.quantidadeCadastroReserva > 0)) { setErro("Informe a quantidade de Cadastro Reserva (CR) para as vagas de ampla concorrência."); return; }
   setErro(null);
   const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
-  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:valores.tipoCertame === "CONCURSO_PUBLICO" ? dados.carreira : undefined, polo:dados.polo?.trim() ? dados.polo.trim() : undefined, cidades:dados.cidades.length > 0 ? dados.cidades : undefined, jornada:dados.jornada, orgaoDestino:valores.setoresParticipantes.length > 1 ? dados.orgaoDestino : undefined, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaPendentes, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
-  cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", cidades:[], jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 });
+  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:dados.vinculo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:valores.tipoCertame === "CONCURSO_PUBLICO" ? dados.carreira : undefined, polo:dados.polo?.trim() ? dados.polo.trim() : undefined, jornada:dados.jornada, orgaoDestino:valores.setoresParticipantes.length > 1 ? dados.orgaoDestino : undefined, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaPendentes, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
+  cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 });
   setReservasCotaPendentes([]);
  };
  const removerCargo = (idCargo:string) => setCargos((atuais) => atuais.filter((item) => item.id !== idCargo));
@@ -648,18 +629,13 @@ export function CertameFormContent() {
      {erro && <div id="certame-form-erro" className="col-12"><MensagemSeplag severity="error" message={erro} cols="12" /></div>}
      {avisoRascunho && <div className="col-12"><MensagemSeplag severity="info" message="Continuamos de onde você parou — o rascunho deste cadastro foi restaurado automaticamente." cols="12" /></div>}
 
-     <div className="col-12 prototype-certame-stepper-wrap">
-      <div className="prototype-certame-stepper" aria-label="Etapas do certame">
-       {abasFluxo.map((step, index) => {
-        const isActive = step.id === aba;
-        const isCompleted = index < indiceAbaAtual;
-        return <button key={step.id} type="button" className={`prototype-certame-step${isActive ? " is-active" : ""}${isCompleted ? " is-completed" : ""}`} aria-current={isActive ? "step" : undefined} onClick={() => setAba(step.id as Aba)}>
-         <span className="prototype-certame-step-marker">{isCompleted ? <i className="pi pi-check" aria-hidden="true" /> : index + 1}</span>
-         <span className="prototype-certame-step-text"><strong>{step.label}</strong><small>{abaDescricoes[step.id as Aba]}</small></span>
-        </button>;
-       })}
-      </div>
-     </div>
+     <TabsSeplag<Aba>
+      items={abasFluxo}
+      activeValue={aba}
+      onChange={setAba}
+      equalWidth
+      className="prototype-certame-tabs"
+     />
 
      {aba === "IDENTIFICACAO" && <SpecArea metadata={certameFormTabSpecifications["Identificação"]}><div className="col-12">
 
@@ -719,12 +695,12 @@ export function CertameFormContent() {
       <div id="bloco-datas-execucao" className={blocoClasse("bloco-datas-execucao")}>
        <BlocoHeader icone="pi-calendar" titulo="Datas e execução" subtitulo="Marcos temporais do certame, a partir da publicação do edital." />
        <div className={`grid${dispensarParaProcessoSeletivo ? " prototype-certame-grid-6col" : ""}`}>
-        <DateFieldSeplag name="dataPublicacaoEdital" control={control} label="Data de publicação do edital" cols={colsDatasExecucao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataRealizacao" control={control} label="Data de realização" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataValidade" control={control} label="Data de validade" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="dataResultado" control={control} label="Data do resultado" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="inicioInscricoesGerais" control={control} label="Início das inscrições gerais" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DateFieldSeplag name="fimInscricoesGerais" control={control} label="Fim das inscrições gerais" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataPublicacaoEdital" control={control} label="Data de publicação do edital" required cols={colsDatasExecucao} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataRealizacao" control={control} label="Data de realização" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataValidade" control={control} label="Data de validade" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="dataResultado" control={control} label="Data do resultado" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="inicioInscricoesGerais" control={control} label="Início das inscrições gerais" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DateFieldSeplag name="fimInscricoesGerais" control={control} label="Fim das inscrições gerais" required cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataProrrogacao" control={control} label="Data de prorrogação" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
         {!dispensarParaProcessoSeletivo && <DateFieldSeplag name="dataCancelamento" control={control} label="Data de cancelamento" cols={colsDatasExecucao} validateAfterDate={valores.dataPublicacaoEdital} validateAfterMessage="Não pode ser anterior à publicação do edital (RN-07)" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
        </div>
@@ -732,10 +708,10 @@ export function CertameFormContent() {
            comecem em uma linha nova e preencham certinho, em vez de o PrimeFlex encaixá-los na
            sobra da última linha de datas. */}
        <div className="grid">
-        <NumberFieldSeplag name="validadeConcursoDias" control={control} label={dispensarParaProcessoSeletivo ? "Validade do processo seletivo (dias)" : "Validade do concurso (dias)"} cols="12 6 4" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <NumberFieldSeplag name="validadeConcursoDias" control={control} label={dispensarParaProcessoSeletivo ? "Validade do processo seletivo (dias)" : "Validade do concurso (dias)"} required={dispensarParaConcurso} cols="12 6 4" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         <NumberFieldSeplag name="previsaoProrrogacaoDias" control={control} label="Previsão para prorrogação (dias)" cols="12 6 4" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         <NumberFieldSeplag name="prorrogacaoValidadeDias" control={control} label="Prorrogação da validade (dias)" cols="12 6 4" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <RadioButtonFieldSeplag name="existePrevisaoRecursos" control={control} label="Existe previsão de recursos?" options={[...OPCOES_SIM_NAO]} cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <RadioButtonFieldSeplag name="existePrevisaoRecursos" control={control} label="Existe previsão de recursos?" required={dispensarParaConcurso} options={[...OPCOES_SIM_NAO]} cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
        </div>
       </div>
 
@@ -747,8 +723,8 @@ export function CertameFormContent() {
        <div className="prototype-certame-fase-header">
         <span />
         <span>Nome da fase</span>
-        <span>Data início</span>
-        <span>Data fim</span>
+        <span>Data início<em className="obrigatorio" aria-hidden="true">*</em></span>
+        <span>Data fim<em className="obrigatorio" aria-hidden="true">*</em></span>
         <span />
        </div>
        <div className="prototype-certame-fase-list">
@@ -783,11 +759,11 @@ export function CertameFormContent() {
          </label>
          <label>
           <span className="prototype-certame-fase-visually-hidden">Data início da fase</span>
-          <input type="text" aria-label="Data início da fase" placeholder="dd/mm/aaaa" value={fase.dataInicio ?? ""} onChange={(event) => atualizarFase(fase.ordem, { dataInicio:event.target.value })} disabled={modoVisualizar} />
+          <input type="text" aria-label="Data início da fase" aria-required="true" required={!modoVisualizar} placeholder="dd/mm/aaaa" value={fase.dataInicio ?? ""} onChange={(event) => atualizarFase(fase.ordem, { dataInicio:event.target.value })} disabled={modoVisualizar} />
          </label>
          <label>
           <span className="prototype-certame-fase-visually-hidden">Data fim da fase</span>
-          <input type="text" aria-label="Data fim da fase" placeholder="dd/mm/aaaa" value={fase.dataFim ?? ""} onChange={(event) => atualizarFase(fase.ordem, { dataFim:event.target.value })} disabled={modoVisualizar} />
+          <input type="text" aria-label="Data fim da fase" aria-required="true" required={!modoVisualizar} placeholder="dd/mm/aaaa" value={fase.dataFim ?? ""} onChange={(event) => atualizarFase(fase.ordem, { dataFim:event.target.value })} disabled={modoVisualizar} />
          </label>
          {!modoVisualizar && <button type="button" className="prototype-certame-fase-remove" aria-label="Remover fase" title="Remover fase" onClick={() => removerFase(fase.ordem)}>
           <i className="pi pi-times" aria-hidden="true" />
@@ -818,20 +794,20 @@ export function CertameFormContent() {
         {/* RN-22: "Houve contratação de banca/empresa organizadora?" foi removido — o gatilho único
             passa a ser "Tipo de contratação (execução)". Abrangência, Tipo de contratação (execução)
             e Instituição realizadora foram trazidos do bloco Datas e execução para cá, na primeira linha. */}
-        <DropdownFieldSeplag name="abrangencia" control={control} label="Abrangência" cols={colsContratacaoCustos} options={[...ABRANGENCIAS]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DropdownFieldSeplag name="tipoContratacaoExecucao" control={control} label="Tipo de contratação (execução)" cols={colsContratacaoCustos} options={[...TIPOS_CONTRATACAO_EXECUCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        {houveContratacaoEmpresa && <DropdownFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" cols={colsContratacaoCustos} options={[...EMPRESAS_CADASTRADAS]} optionLabel="label" optionValue="value" placeholder="Selecione a empresa cadastrada" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
-        <RadioButtonFieldSeplag name="gerouDespesas" control={control} label="O certame gerou despesas para o fiscalizado?" options={[...OPCOES_SIM_NAO]} cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        {houveContratacaoEmpresa && <DropdownFieldSeplag name="tipoContrato" control={control} label="Tipo de contrato" cols={colsContratacaoCustos} options={[...TIPOS_CONTRATO_BANCA]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+        <DropdownFieldSeplag name="abrangencia" control={control} label="Abrangência" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={[...ABRANGENCIAS]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="tipoContratacaoExecucao" control={control} label="Tipo de contratação (execução)" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={[...TIPOS_CONTRATACAO_EXECUCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        {houveContratacaoEmpresa && <DropdownFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={[...EMPRESAS_CADASTRADAS]} optionLabel="label" optionValue="value" placeholder="Selecione a empresa cadastrada" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+        <RadioButtonFieldSeplag name="gerouDespesas" control={control} label="O certame gerou despesas para o fiscalizado?" required={houveContratacaoEmpresa} options={[...OPCOES_SIM_NAO]} cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        {houveContratacaoEmpresa && <DropdownFieldSeplag name="tipoContrato" control={control} label="Tipo de contrato" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={[...TIPOS_CONTRATO_BANCA]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
         {houveContratacaoEmpresa && <>
-         <TextFieldSeplag name="numeroEmpenho" control={control} label="Número do empenho" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <NumberFieldSeplag name="anoEmpenho" control={control} label="Ano do empenho" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <TextFieldSeplag name="numeroContrato" control={control} label="Número do contrato" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <NumberFieldSeplag name="anoContrato" control={control} label="Ano do contrato" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <TextFieldSeplag name="codigoUo" control={control} label="Código da UO" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <TextFieldSeplag name="codigoUg" control={control} label="Código da UG" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="numeroEmpenho" control={control} label="Número do empenho" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <NumberFieldSeplag name="anoEmpenho" control={control} label="Ano do empenho" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="numeroContrato" control={control} label="Número do contrato" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <NumberFieldSeplag name="anoContrato" control={control} label="Ano do contrato" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="codigoUo" control={control} label="Código da UO" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="codigoUg" control={control} label="Código da UG" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
         </>}
        </div>
       </div>
@@ -884,9 +860,8 @@ export function CertameFormContent() {
         <div className="prototype-certame-subform-secao">
          <span className="prototype-certame-subform-secao-titulo"><span className="prototype-certame-subform-secao-numero">2</span>Localização e jornada</span>
          <div className="grid align-items-end">
-          <DropdownFieldSeplag name="polo" control={cargoForm.control} label="Polo" cols="12 6 4" options={polosOptions} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} onChange={selecionarPolo} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-          <MultiSelectFieldSeplag name="cidades" control={cargoForm.control} label="Cidade" cols="12 6 4" options={[...MUNICIPIOS_MT]} optionLabel="label" optionValue="value" display="chip" placeholder="Selecione" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-          <DropdownFieldSeplag name="jornada" control={cargoForm.control} label="Jornada" cols="12 6 4" options={[...JORNADAS_TRABALHO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="polo" control={cargoForm.control} label="Polo" cols="12 6 6" options={polosOptions} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="jornada" control={cargoForm.control} label="Jornada" cols="12 6 6" options={[...JORNADAS_TRABALHO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
           {cargoJornadaRepetida && <div className="col-12"><MensagemSeplag severity="warning" message="Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Altere o vínculo, o cargo ou a jornada para continuar." cols="12" /></div>}
          </div>
         </div>
