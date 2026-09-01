@@ -27,7 +27,7 @@ export type TipoDocumentoCertame = "JUSTIFICATIVA_ABERTURA" | "PUBLICACAO_CERTAM
 // CampoLeiMultiplaSeplag em CertameFormContent.tsx).
 export interface CotaCertame { readonly id:string; tipo:string; lei:readonly string[]; }
 
-export interface TaxaInscricaoCertame { readonly id:string; valor:number; inicioIsencao?:string; fimIsencao?:string; tipoIsencao?:string; leiIsencao?:string; }
+export interface TaxaInscricaoCertame { readonly id:string; valor:number; inicioIsencao?:string; fimIsencao?:string; tipoIsencao:string[]; leiIsencao?:string; }
 
 // Reserva de vagas de um cargo para um tipo de cota específico (ver dominios.TIPOS_COTA — PCD,
 // PPP, Indígenas, Quilombolas, TEA). Um mesmo cargo/vaga pode ter mais de uma reserva simultânea

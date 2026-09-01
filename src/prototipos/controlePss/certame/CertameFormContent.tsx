@@ -23,6 +23,7 @@ import RotuloSeplag from "@componentes/Rotulo";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import { DocumentosLegaisAssociadosSeplag, type DocumentoLegalAssociadoSeplag } from "@componentes/DocumentosLegaisAssociados";
 import { Dropdown } from "primereact/dropdown";
+import { MultiSelect } from "primereact/multiselect";
 import gridCss from "@uteis/Grid";
 import { lerRascunhoCertame, limparRascunhoCertame, novoRascunhoCertameId, salvarRascunhoCertame } from "./rascunhoCertameStore";
 import { DocumentosCertameTabela, resultadosSemPaginacao } from "./DocumentosCertameTabela";
@@ -117,7 +118,7 @@ export interface CertameFormValues {
  cobraTaxaInscricao:string; valorInscricao?:number;
 }
 interface CotaFormValues { tipo:string; lei:string[] }
-interface TaxaInscricaoRascunho { valor:string; inicioIsencao:string; fimIsencao:string; tipoIsencao:string; leiIsencao:string; }
+interface TaxaInscricaoRascunho { valor:string; inicioIsencao:string; fimIsencao:string; tipoIsencao:string[]; leiIsencao:string; }
 interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; carreira?:string; polo?:string; jornada?:string; orgaoDestino?:string; quantidadeVagas:number; tipoCota:string; quantidadeCota?:number; aceitaCadastroReserva:string; quantidadeCadastroReserva?:number }
 
 // Consolidação de 8 para 5 abas fixas: cada aba antiga virou um bloco com subtítulo dentro da aba
@@ -339,7 +340,7 @@ export function CertameFormContent() {
 
  const [cotas, setCotas] = useState<CotaCertame[]>(existente ? [...existente.cotas] : (rascunho?.cotas ?? []));
  const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:TIPOS_COTA[0].value, lei:[] } });
- const taxasLegadas:TaxaInscricaoCertame[] = existente?.cobraTaxaInscricao && existente.valorInscricao !== undefined ? [{ id:`TAXA-${existente.id}-1`, valor:existente.valorInscricao, inicioIsencao:existente.dataInicioInscricaoIsencao, fimIsencao:existente.dataFimInscricaoIsencao, tipoIsencao:existente.tipoIsencao?.[0], leiIsencao:existente.leiIsencao?.[0] }] : [];
+ const taxasLegadas:TaxaInscricaoCertame[] = existente?.cobraTaxaInscricao && existente.valorInscricao !== undefined ? [{ id:`TAXA-${existente.id}-1`, valor:existente.valorInscricao, inicioIsencao:existente.dataInicioInscricaoIsencao, fimIsencao:existente.dataFimInscricaoIsencao, tipoIsencao:existente.tipoIsencao ?? [], leiIsencao:existente.leiIsencao?.[0] }] : [];
  const [taxasInscricao, setTaxasInscricao] = useState<TaxaInscricaoCertame[]>(existente?.taxasInscricao ? [...existente.taxasInscricao] : taxasLegadas);
  const [taxaRascunho, setTaxaRascunho] = useState<TaxaInscricaoRascunho | null>(null);
  const [taxaEmEdicaoId, setTaxaEmEdicaoId] = useState<string | null>(null);
@@ -348,7 +349,7 @@ export function CertameFormContent() {
  const adicionarTaxa = () => {
   if (taxaRascunho) return;
   setErrosTaxa({});
-  setTaxaRascunho({ valor:"", inicioIsencao:"", fimIsencao:"", tipoIsencao:"", leiIsencao:"" });
+  setTaxaRascunho({ valor:"", inicioIsencao:"", fimIsencao:"", tipoIsencao:[], leiIsencao:"" });
   window.setTimeout(() => taxaValorRef.current?.focus(), 0);
  };
  const cancelarTaxa = () => { setTaxaRascunho(null); setTaxaEmEdicaoId(null); setErrosTaxa({}); };
@@ -356,7 +357,7 @@ export function CertameFormContent() {
   if (taxaRascunho) return;
   setErrosTaxa({});
   setTaxaEmEdicaoId(taxa.id);
-  setTaxaRascunho({ valor:String(taxa.valor), inicioIsencao:taxa.inicioIsencao ?? "", fimIsencao:taxa.fimIsencao ?? "", tipoIsencao:taxa.tipoIsencao ?? "", leiIsencao:taxa.leiIsencao ?? "" });
+  setTaxaRascunho({ valor:String(taxa.valor), inicioIsencao:taxa.inicioIsencao ?? "", fimIsencao:taxa.fimIsencao ?? "", tipoIsencao:Array.isArray(taxa.tipoIsencao) ? [...taxa.tipoIsencao] : [], leiIsencao:taxa.leiIsencao ?? "" });
   window.setTimeout(() => taxaValorRef.current?.focus(), 0);
  };
  const dataComparavel = (valor:string) => { const partes = valor.split("/"); return partes.length === 3 ? `${partes[2]}${partes[1]}${partes[0]}` : valor; };
@@ -368,7 +369,7 @@ export function CertameFormContent() {
   if (!Number.isFinite(valor) || valor <= 0) erros.valor = "Informe um valor maior que zero.";
   if (!taxaRascunho.inicioIsencao) erros.inicioIsencao = "Informe a data inicial.";
   if (!taxaRascunho.fimIsencao) erros.fimIsencao = "Informe a data final.";
-  if (!taxaRascunho.tipoIsencao) erros.tipoIsencao = "Selecione o tipo de isenção.";
+  if (taxaRascunho.tipoIsencao.length === 0) erros.tipoIsencao = "Selecione o tipo de isenção.";
   if (!taxaRascunho.leiIsencao) erros.leiIsencao = "Selecione a lei de isenção.";
   if (taxaRascunho.inicioIsencao && taxaRascunho.fimIsencao && dataComparavel(taxaRascunho.fimIsencao) < dataComparavel(taxaRascunho.inicioIsencao)) erros.fimIsencao = "A data final deve ser igual ou posterior à inicial.";
   if (Object.keys(erros).length) { setErrosTaxa(erros); return; }
@@ -867,7 +868,7 @@ export function CertameFormContent() {
          <thead><tr><th>Nº</th><th>Valor da inscrição <span className="required-marker">*</span></th><th>Início da inscrição com isenção <span className="required-marker">*</span></th><th>Fim da inscrição com isenção <span className="required-marker">*</span></th><th>Tipo da isenção <span className="required-marker">*</span></th><th>Lei de isenção <span className="required-marker">*</span></th><th>Ações</th></tr></thead>
          <tbody>
           {taxasInscricao.map((taxa, index) => taxaEmEdicaoId === taxa.id ? null : <tr key={taxa.id}>
-           <td>{index + 1}</td><td>{taxa.valor.toLocaleString("pt-BR", { style:"currency", currency:"BRL" })}</td><td>{formatarDataTaxa(taxa.inicioIsencao)}</td><td>{formatarDataTaxa(taxa.fimIsencao)}</td><td>{TIPOS_ISENCAO.find((item) => item.value === taxa.tipoIsencao)?.label ?? "—"}</td><td>{opcoesLeis.find((lei) => lei.id === taxa.leiIsencao)?.titulo ?? "—"}</td>
+           <td>{index + 1}</td><td>{taxa.valor.toLocaleString("pt-BR", { style:"currency", currency:"BRL" })}</td><td>{formatarDataTaxa(taxa.inicioIsencao)}</td><td>{formatarDataTaxa(taxa.fimIsencao)}</td><td>{taxa.tipoIsencao.length ? <div className="prototype-certame-tipos-isencao">{taxa.tipoIsencao.map((tipo) => <span key={tipo}>{TIPOS_ISENCAO.find((item) => item.value === tipo)?.label ?? tipo}</span>)}</div> : "—"}</td><td>{opcoesLeis.find((lei) => lei.id === taxa.leiIsencao)?.titulo ?? "—"}</td>
            <td><div className="prototype-certame-taxa-row-actions"><BotaoIconSeplag type="button" severity="warning" tooltip="Editar taxa" icon="pi pi-pencil" disabled={modoVisualizar || Boolean(taxaRascunho)} onClick={() => editarTaxa(taxa)} /><BotaoIconSeplag type="button" severity="danger" tooltip="Excluir taxa" icon="pi pi-trash" disabled={modoVisualizar || Boolean(taxaRascunho)} onClick={() => excluirTaxa(taxa.id)} /></div></td>
           </tr>)}
           {taxaRascunho && <tr className="is-editing">
@@ -875,7 +876,7 @@ export function CertameFormContent() {
            <td><input ref={taxaValorRef} required aria-required="true" type="number" min="0.01" step="0.01" value={taxaRascunho.valor} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, valor:event.target.value })} placeholder="R$ 0,00" />{errosTaxa.valor && <small>{errosTaxa.valor}</small>}</td>
            <td><input required aria-required="true" type="date" value={taxaRascunho.inicioIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, inicioIsencao:event.target.value })} placeholder="dd/mm/aaaa" />{errosTaxa.inicioIsencao && <small>{errosTaxa.inicioIsencao}</small>}</td>
            <td><input required aria-required="true" type="date" value={taxaRascunho.fimIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, fimIsencao:event.target.value })} placeholder="dd/mm/aaaa" />{errosTaxa.fimIsencao && <small>{errosTaxa.fimIsencao}</small>}</td>
-           <td><select required aria-required="true" value={taxaRascunho.tipoIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, tipoIsencao:event.target.value })}><option value="">Selecione</option>{TIPOS_ISENCAO.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>{errosTaxa.tipoIsencao && <small>{errosTaxa.tipoIsencao}</small>}</td>
+           <td><MultiSelect required aria-required="true" value={taxaRascunho.tipoIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, tipoIsencao:event.value ?? [] })} options={TIPOS_ISENCAO} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" filter maxSelectedLabels={2} selectedItemsLabel="{0} tipos selecionados" />{errosTaxa.tipoIsencao && <small>{errosTaxa.tipoIsencao}</small>}</td>
            <td><select required aria-required="true" value={taxaRascunho.leiIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, leiIsencao:event.target.value })}><option value="">Buscar lei</option>{opcoesLeis.map((lei) => <option key={lei.id} value={lei.id}>{lei.titulo}</option>)}</select>{errosTaxa.leiIsencao && <small>{errosTaxa.leiIsencao}</small>}</td>
            <td><div className="prototype-certame-taxa-row-actions"><button type="button" className="is-save" title="Salvar taxa" aria-label="Salvar taxa" onClick={salvarTaxa}><i className="pi pi-check" /></button><button type="button" className="is-cancel" title="Cancelar inclusão" aria-label="Cancelar inclusão" onClick={cancelarTaxa}><i className="pi pi-times" /></button></div></td>
           </tr>}
