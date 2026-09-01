@@ -131,6 +131,7 @@ import {
   PrototiposDocumentoLegalFormPage,
   PrototiposDocumentosLegaisPage,
 } from "./prototipos/documentosLegais/DocumentosLegaisPages";
+import { PrototiposTiposDocumentosPage } from "./prototipos/tiposDocumentos/TiposDocumentosPage";
 import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
 import { PrototiposOrganogramaPage } from "./prototipos/estruturaOrganizacional/OrganogramaPage";
 import { PrototiposUnidadesPage } from "./prototipos/estruturaOrganizacional/UnidadesPage";
@@ -1366,6 +1367,10 @@ function App() {
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade/cadastro-ente-federativo" element={<PrototiposEstruturaOrganizacionalPage modo="ente" />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade/cadastro-orgao-entidade" element={<PrototiposEstruturaOrganizacionalPage modo="orgao" />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade/cadastro-orgao-externo" element={<PrototiposEstruturaOrganizacionalPage modo="externo" />} />
+      <Route
+        path="/prototipos/sigep/tipos-documentos"
+        element={<PrototiposTiposDocumentosPage />}
+      />
       <Route
         path="/prototipos/sigep/documentos-legais"
         element={<PrototiposDocumentosLegaisPage />}
