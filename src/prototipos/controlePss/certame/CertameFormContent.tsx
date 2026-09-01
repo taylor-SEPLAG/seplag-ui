@@ -248,6 +248,7 @@ export function CertameFormContent() {
  // Rascunho de um cadastro em andamento (só se aplica a "novo certame" — ver RascunhoCertame acima).
  const rascunho = useMemo(() => (modoNovo ? lerRascunhoCertame(rascunhoId) : null), []);
  const [avisoRascunho, setAvisoRascunho] = useState(Boolean(rascunho));
+ const [confirmacaoRascunho, setConfirmacaoRascunho] = useState(false);
  // Depois de "Salvar certame" (fluxo novo), o navigate() para /certames/:id ainda deixa este mesmo
  // componente montado por mais um render com `modoNovo` ainda true (o :id só troca no render
  // seguinte) — nesse render extra, o efeito de auto-salvar rascunho roda de novo (watch() do
@@ -341,7 +342,7 @@ export function CertameFormContent() {
  const [cotas, setCotas] = useState<CotaCertame[]>(existente ? [...existente.cotas] : (rascunho?.cotas ?? []));
  const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:TIPOS_COTA[0].value, lei:[] } });
  const taxasLegadas:TaxaInscricaoCertame[] = existente?.cobraTaxaInscricao && existente.valorInscricao !== undefined ? [{ id:`TAXA-${existente.id}-1`, valor:existente.valorInscricao, inicioIsencao:existente.dataInicioInscricaoIsencao, fimIsencao:existente.dataFimInscricaoIsencao, tipoIsencao:existente.tipoIsencao ?? [], leiIsencao:existente.leiIsencao?.[0] }] : [];
- const [taxasInscricao, setTaxasInscricao] = useState<TaxaInscricaoCertame[]>(existente?.taxasInscricao ? [...existente.taxasInscricao] : taxasLegadas);
+ const [taxasInscricao, setTaxasInscricao] = useState<TaxaInscricaoCertame[]>(rascunho?.taxasInscricao ? [...rascunho.taxasInscricao] : (existente?.taxasInscricao ? [...existente.taxasInscricao] : taxasLegadas));
  const [taxaRascunho, setTaxaRascunho] = useState<TaxaInscricaoRascunho | null>(null);
  const [taxaEmEdicaoId, setTaxaEmEdicaoId] = useState<string | null>(null);
  const [errosTaxa, setErrosTaxa] = useState<Partial<Record<keyof TaxaInscricaoRascunho, string>>>({});
@@ -457,9 +458,15 @@ export function CertameFormContent() {
  // caso o usuário saia do formulário antes de salvar (ex.: atalho "Cadastrar nova lei").
  useEffect(() => {
   if (!modoNovo || !tipoConfirmado || certameSalvoRef.current) return;
-  salvarRascunhoCertame({ id:rascunhoId, tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos });
- }, [modoNovo, tipoConfirmado, aba, valores, cotas, cargos, fases, arquivos, rascunhoId]);
+  salvarRascunhoCertame({ id:rascunhoId, tipoConfirmado, aba, valores, cotas, cargos, fases, taxasInscricao, arquivos });
+ }, [modoNovo, tipoConfirmado, aba, valores, cotas, cargos, fases, taxasInscricao, arquivos, rascunhoId]);
 
+ const salvarRascunhoAtual = () => {
+  if (!modoNovo) return;
+  salvarRascunhoCertame({ id:rascunhoId, tipoConfirmado, aba, valores:getValues(), cotas, cargos, fases, taxasInscricao, arquivos });
+  setConfirmacaoRascunho(true);
+  window.setTimeout(() => setConfirmacaoRascunho(false), 3500);
+ };
  const onChangeArquivoDocumento = (tipo:TipoDocumentoCertame, arquivo:ArquivoAnexadoSeplag | undefined) => setArquivos((atuais) => ({ ...atuais, [tipo]: arquivo }));
 
  const [erro, setErro] = useState<string | null>(null);
@@ -667,12 +674,14 @@ export function CertameFormContent() {
      </div> : undefined}
      footer={<div className="col-12 flex justify-content-end align-items-center gap-2">
       <BotaoVoltarSeplag type="button" onClick={voltar} />
+      {modoNovo && <BotaoSeplag type="button" label="Salvar rascunho" icon="pi pi-save" className="prototype-certame-save-draft" outlined onClick={salvarRascunhoAtual} />}
       {!ehUltimaAba && <BotaoSeplag type="button" label="Avançar" icon="pi pi-arrow-right" iconPos="right" onClick={avancar} />}
-      {ehUltimaAba && !modoVisualizar && <SpecArea metadata={certameFormActionSpecifications["Salvar certame"]}><BotaoSalvarSeplag type="submit" label="Salvar certame" /></SpecArea>}
+      {ehUltimaAba && !modoVisualizar && <SpecArea metadata={certameFormActionSpecifications["Salvar certame"]}><BotaoSalvarSeplag type="submit" label="Finalizar cadastro" /></SpecArea>}
      </div>}
     >
      {erro && <div id="certame-form-erro" className="col-12"><MensagemSeplag severity="error" message={erro} cols="12" /></div>}
      {avisoRascunho && <div className="col-12"><MensagemSeplag severity="info" message="Continuamos de onde você parou — o rascunho deste cadastro foi restaurado automaticamente." cols="12" /></div>}
+     {confirmacaoRascunho && <div className="col-12"><MensagemSeplag severity="success" message="Rascunho salvo com sucesso." cols="12" /></div>}
 
      <TabsSeplag<Aba>
       items={abasFluxo}
