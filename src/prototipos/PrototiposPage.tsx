@@ -8181,28 +8181,11 @@ export function PrototiposCarreiraFormPage() {
 
           <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={statusVigencia} entidade="a carreira" getFormErrorMessage={getCarreiraErrorMessage} />
 
-          {isEdicao ? (
-            <section className="prototype-carreira-register-section">
-              <header>
-                <span className="prototype-carreira-section-icon"><i className="pi pi-info-circle" /></span>
-                <div>
-                  <h2>Dados do registro</h2>
-                  <p>Informações geradas automaticamente pelo sistema.</p>
-                </div>
-              </header>
-              <dl className="prototype-carreira-register-metadata">
-                <div><dt>Identificador</dt><dd>{carreiraEmEdicao?.id}</dd></div>
-                <div><dt>Data de criação</dt><dd>{carreiraEmEdicao?.dataCriacao ?? "01/01/2024"}</dd></div>
-                <div><dt>Situação atual</dt><dd>{statusVigencia}</dd></div>
-              </dl>
-            </section>
-          ) : null}
-
           <section className="prototype-carreira-register-section">
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-building" /></span>
               <div>
-                <h2>Órgãos vinculados</h2>
+                <h2>Órgãos vinculados<span className="prototype-required-marker">*</span></h2>
                 <p>Selecione os órgãos nos quais a carreira poderá ser utilizada.</p>
               </div>
             </header>
