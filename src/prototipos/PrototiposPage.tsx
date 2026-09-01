@@ -7703,7 +7703,7 @@ interface PerfilEspecialidadeForm {
   descricao: string;
   observacao: string;
   nivelFormacao: string;
-  formacoes: string[];
+  formacao: string;
   cbo: string;
   exigeRegistro: "S" | "N";
   conselho: string;
@@ -7739,12 +7739,12 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const codigoGerado = perfilEmEdicao?.codigo ?? `PER-${String(proximoId).padStart(4, "0")}`;
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
   const [erroComplementar, setErroComplementar] = useState("");
-  const { control, handleSubmit, reset, setValue, watch } = useForm<PerfilEspecialidadeForm>({ defaultValues: { nome: "", descricao: "", observacao: "", nivelFormacao: "", formacoes: [], cbo: "", exigeRegistro: "N", conselho: "", dataInicio: "", dataEncerramento: "", motivoEncerramento: "" } });
+  const { control, handleSubmit, reset, setValue, watch } = useForm<PerfilEspecialidadeForm>({ defaultValues: { nome: "", descricao: "", observacao: "", nivelFormacao: "", formacao: "", cbo: "", exigeRegistro: "N", conselho: "", dataInicio: "", dataEncerramento: "", motivoEncerramento: "" } });
 
   useEffect(() => {
     if (!perfilEmEdicao) return;
     const nivelFormacao = perfilEmEdicao.nivelFormacao ?? (perfilEmEdicao.areaFormacao ? "superior" : "");
-    reset({ nome: perfilEmEdicao.nome, descricao: perfilEmEdicao.descricao ?? "", observacao: perfilEmEdicao.observacao ?? "", nivelFormacao, formacoes: nivelFormacao === "superior" ? perfilEmEdicao.areaFormacao.split(", ").filter(Boolean) : [], cbo: perfilEmEdicao.cbo, exigeRegistro: perfilEmEdicao.exigeRegistro ?? "N", conselho: perfilEmEdicao.conselho ?? "", dataInicio: perfilEmEdicao.dataInicio ?? "01/01/2026", dataEncerramento: perfilEmEdicao.dataEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "31/12/2025" : ""), motivoEncerramento: perfilEmEdicao.motivoEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "Perfil encerrado administrativamente." : "") });
+    reset({ nome: perfilEmEdicao.nome, descricao: perfilEmEdicao.descricao ?? "", observacao: perfilEmEdicao.observacao ?? "", nivelFormacao, formacao: nivelFormacao === "superior" ? perfilEmEdicao.areaFormacao.split(", ")[0] ?? "" : "", cbo: perfilEmEdicao.cbo, exigeRegistro: perfilEmEdicao.exigeRegistro ?? "N", conselho: perfilEmEdicao.conselho ?? "", dataInicio: perfilEmEdicao.dataInicio ?? "01/01/2026", dataEncerramento: perfilEmEdicao.dataEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "31/12/2025" : ""), motivoEncerramento: perfilEmEdicao.motivoEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "Perfil encerrado administrativamente." : "") });
     setDocumentosSelecionados(perfilEmEdicao.documentosIds ?? []);
   }, [perfilEmEdicao, reset]);
 
@@ -7759,7 +7759,7 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const dataInicio = watch("dataInicio");
   const dataEncerramento = watch("dataEncerramento");
   useEffect(() => {
-    if (!exibeFormacao) setValue("formacoes", []);
+    if (!exibeFormacao) setValue("formacao", "");
   }, [exibeFormacao, setValue]);
   const inicioIso = carreiraDataParaIso(dataInicio);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
@@ -7774,7 +7774,7 @@ export function PrototiposPerfilEspecialidadeFormPage() {
     const situacaoAtualizada = values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
       ? possuiDependenciaAtiva("perfil", perfilEmEdicao?.id ?? proximoId) ? "ENCERRADO" : "EXTINTO"
       : "ATIVO";
-    const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: exibeFormacao ? values.formacoes.join(", ") || "Não informada" : "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: situacaoAtualizada, descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: values.exigeRegistro, conselho: exigeRegistro ? values.conselho : "", especializacao: "", dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
+    const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: exibeFormacao ? values.formacao || "Não informada" : "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: situacaoAtualizada, descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: values.exigeRegistro, conselho: exigeRegistro ? values.conselho : "", especializacao: "", dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
     if (perfilEmEdicao) Object.assign(perfilEmEdicao, atualizado); else perfisEspecialidadesMock.push(atualizado);
     atualizarExtincoesDerivadas();
     navigate("/prototipos/sigep/perfil-profissional");
@@ -7794,7 +7794,7 @@ export function PrototiposPerfilEspecialidadeFormPage() {
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
         <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={status} entidade="o perfil profissional" getFormErrorMessage={() => null} />
         </div>
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={perfilNivelFormacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <MultiSelectFieldSeplag name="formacoes" control={control} label="Formação" cols="12 12 4" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais formações" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={perfilNivelFormacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <DropdownFieldSeplag name="formacao" control={control} label="Formação" cols="12 12 4" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma formação" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
         <footer className="prototype-carreira-register-actions"><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-profissional"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link><BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar perfil"} /></footer>
         </fieldset>
@@ -8728,8 +8728,8 @@ export function PrototiposCargoFormPage({
             <div className="grid prototype-carreira-register-fields">
               <MultiSelectFieldSeplag name="jornadasPermitidas" control={control} label="Jornadas permitidas" placeholder="Selecione uma ou mais jornadas" cols="12 12 3" options={cargoJornadaOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
               <DropdownFieldSeplag name="escolaridadeMinima" control={control} label="Escolaridade Mínima" placeholder="Selecione..." cols="12 12 3" options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
-              <DropdownFieldSeplag name="cbo" control={control} label="CBO do Cargo" placeholder="Selecione..." cols="12 12 3" options={cargoCboOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-              <MultiSelectFieldSeplag name="perfisEspecialidades" control={control} label="Perfil Profissional" placeholder="Selecione um ou mais perfis" cols="12 12 3" options={perfisEspecialidadesMock.filter((perfil) => perfil.situacao === "ATIVO" || idsPerfisSelecionados.includes(perfil.id)).map((perfil) => ({ label: perfil.nome, value: perfil.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+              <DropdownFieldSeplag name="cbo" control={control} label="CBO do Cargo" placeholder="Selecione..." cols="12 12 3" options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="perfisEspecialidades" control={control} label="Perfil Profissional" placeholder="Selecione um ou mais perfis" cols="12 12 3" options={perfisEspecialidadesMock.filter((perfil) => perfil.situacao === "ATIVO" || idsPerfisSelecionados.includes(perfil.id)).map((perfil) => ({ label: perfil.nome, value: perfil.id }))} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
               {perfisSelecionadosCargo.length ? (
                 <div className="col-12 prototype-cargo-profile-table-wrapper">
                   <table className="prototype-cargo-profile-table">
@@ -9061,7 +9061,7 @@ export function PrototiposSigepRegimeJuridicoPage({
   const regimeResults = { ...createResults(conteudoPagina), pageActual: pagina, totalPages: Math.max(1, Math.ceil(regimesFiltrados.length / registrosPorPagina)), totalRecords: regimesFiltrados.length, size: registrosPorPagina, sizePage: registrosPorPagina };
   const regimeColumns: ColumnMetaSeplag<RegimeJuridicoRow>[] = [
     { field: "nome", header: "Nome" },
-    { field: "descricao", header: "Descrição" },
+    { field: "descricao", header: "Observação" },
     {
       header: "Situação",
       body: (row) => renderGrupoCalculoStatusBadge(row.situacao),
@@ -9090,7 +9090,7 @@ export function PrototiposSigepRegimeJuridicoPage({
             <TextFieldSeplag
               name="nome"
               control={control}
-              label="Regime Jurídico (Nome, Descrição)"
+              label="Regime Jurídico (Nome, Observação)"
               cols="12 6 5"
               getFormErrorMessage={() => null}
             />
@@ -9227,7 +9227,7 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
               <TextFieldSeplag
                 name="sigla"
                 control={control}
-                label="Código"
+                label="Sigla"
                 cols="12 12 4"
                 maxLength={30}
                 getFormErrorMessage={() => null}
