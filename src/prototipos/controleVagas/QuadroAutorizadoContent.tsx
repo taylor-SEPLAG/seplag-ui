@@ -2139,6 +2139,7 @@ function QuadroAutorizadoForm({
             />
           </div>{" "}
         </section>{" "}
+        <div className="prototype-quadro-form-paired">
         <section>
           <header>
             <i className="pi pi-building" />
@@ -2231,7 +2232,8 @@ function QuadroAutorizadoForm({
               </div>
             </div>
           </div>
-        </section>{" "}
+        </section>
+        </div>{" "}
         <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow">
           <BotaoVoltarSeplag
             label="Cancelar"

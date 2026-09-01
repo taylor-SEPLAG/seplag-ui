@@ -45,8 +45,8 @@ export interface DocumentosCertameTabelaProps {
  readonly onChangeArquivo: (tipo:TipoDocumentoCertame, arquivo:ArquivoAnexadoSeplag | undefined) => void;
  readonly documentoObrigatorio?: (tipo:string, obrigatorioSempre:boolean) => boolean;
  readonly onError: (mensagem:string) => void;
- /** Esconde upload/remoção — só o botão de visualizar. Usado ao consultar os documentos de
-  * uma situação já registrada no histórico, para não parecer editável um registro já salvo. */
+ /** Esconde upload/download/remoção — só o botão de visualizar. Usado ao consultar os documentos
+  * de uma situação já registrada no histórico, para não parecer editável um registro já salvo. */
  readonly somenteLeitura?: boolean;
 }
 
@@ -87,7 +87,6 @@ export function DocumentosCertameTabela({ documentos, arquivos, onChangeArquivo,
   const inputId = `certame-doc-upload-${row.tipo}`;
   if (somenteLeitura) return <>
    <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar documento" disabled={!arquivo} onClick={() => setDocumentoVisualizando(tipo)} />
-   <BotaoIconSeplag type="button" icon="pi pi-download" tooltip="Realizar download do arquivo anexado." disabled={!arquivo} onClick={() => arquivo && baixarArquivoDocumentoCertame(arquivo)} />
   </>;
   return <>
    <input id={inputId} type="file" accept="application/pdf" style={{ display:"none" }} onChange={(event) => { const arquivoSelecionado = event.target.files?.[0]; if (arquivoSelecionado) criarUploadHandler(tipo)({ files:[arquivoSelecionado] }); event.target.value = ""; }} />

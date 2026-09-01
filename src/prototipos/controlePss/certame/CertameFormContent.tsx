@@ -339,6 +339,10 @@ export function CertameFormContent() {
 
  const [cotas, setCotas] = useState<CotaCertame[]>(existente ? [...existente.cotas] : (rascunho?.cotas ?? []));
  const cotaForm = useForm<CotaFormValues>({ defaultValues: { tipo:TIPOS_COTA[0].value, lei:[] } });
+ // A reserva de cota de uma vaga só pode usar um tipo já cadastrado no bloco "Cotas" (que por sua vez
+ // não deixa cadastrar um tipo sem lei — ver adicionarCota) — evita reservar cota sem lei que a ampare.
+ const tiposCotaCadastrados = useMemo(() => new Set(cotas.filter((item) => item.lei.length > 0).map((item) => item.tipo)), [cotas]);
+ const opcoesTipoCotaReserva = useMemo(() => TIPOS_COTA.filter((item) => item.value !== "AMPLA" && tiposCotaCadastrados.has(item.value)), [tiposCotaCadastrados]);
 
  // Ao voltar do cadastro de uma nova lei (atalho "+"), soma a lei recém-criada às já selecionadas no
  // campo de origem (identificado por campoLei no returnTo) e limpa os parâmetros da URL. Usa uma ref
@@ -876,7 +880,7 @@ export function CertameFormContent() {
            </div>
           </SpecArea>
           {cargoValores.aceitaCadastroReserva === "S" && <NumberFieldSeplag name="quantidadeCadastroReserva" control={cargoForm.control} label="Qtd. CR" required cols="12 6 2" inputStyle={{ width:"100%" }} disabled={modoVisualizar} getFormErrorMessage={() => null} />}
-          <DropdownFieldSeplag name="tipoCota" control={cargoForm.control} label="Tipo de cota" cols={cargoValores.aceitaCadastroReserva === "S" ? "12 6 3" : "12 6 4"} options={TIPOS_COTA.filter((item) => item.value !== "AMPLA")} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="tipoCota" control={cargoForm.control} label="Tipo de cota" cols={cargoValores.aceitaCadastroReserva === "S" ? "12 6 3" : "12 6 4"} options={opcoesTipoCotaReserva} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
           <NumberFieldSeplag name="quantidadeCota" control={cargoForm.control} label="Qtd. cota" cols="12 6 3" inputStyle={{ width:"100%" }} disabled={modoVisualizar} getFormErrorMessage={() => null} />
           <div className="col-12 md:col-6 lg:col-2 prototype-certame-add-cota"><BotaoAdicionarSeplag type="button" label="Adicionar cota" icon="pi pi-user-plus" onClick={adicionarReservaCota} /></div>
           {reservasCotaPendentes.length > 0 && <div className="col-12">

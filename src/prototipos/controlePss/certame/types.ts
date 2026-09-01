@@ -16,7 +16,7 @@ export type SituacaoCertame = "ABERTO" | "RETIFICACAO_EDITAL" | "HOMOLOGADO" | "
 // Grupo 3 (Homologação): editais, decisões de recursos e comprovantes de publicação da homologação.
 // Grupo 4 (Retificação da Homologação): mesmos documentos do Grupo 3, reeditados/republicados —
 // tipos próprios (sufixo _RETIF) para não compartilhar o arquivo anexado com a Homologação original.
-export type TipoDocumentoCertame = "JUSTIFICATIVA_ABERTURA" | "PUBLICACAO_CERTAME_LICITATORIO" | "LEI_ATO_AUTORIZACAO" | "DECLARACAO_RESPONSAVEL" | "DEMONSTRATIVO_LRF" | "OUTROS_COMISSAO" | "EDITAL_INTEGRA" | "COMPROVANTE_PUBLICACAO_EDITAL" | "DECLARACAO_ORDENADOR_DESPESA" | "DESIGNACAO_COMISSAO" | "PARECER_CONTROLE_INTERNO" | "LOTACIONOGRAMA_ANALITICO" | "CONTRATO_SOCIAL_EMPRESA"
+export type TipoDocumentoCertame = "JUSTIFICATIVA_ABERTURA" | "PUBLICACAO_CERTAME_LICITATORIO" | "LEI_ATO_AUTORIZACAO" | "DECLARACAO_RESPONSAVEL" | "DEMONSTRATIVO_LRF" | "OUTROS_COMISSAO" | "EDITAL_INTEGRA" | "COMPROVANTE_PUBLICACAO_EDITAL" | "DECLARACAO_ORDENADOR_DESPESA" | "DESIGNACAO_COMISSAO" | "PARECER_CONTROLE_INTERNO" | "LOTACIONOGRAMA_ANALITICO" | "CONTRATO_SOCIAL_EMPRESA" | "OFICIO_ENCAMINHAMENTO" | "JUSTIFICATIVA_NAO_ENCAMINHAMENTO"
  | "TERMO_ADITIVO_EDITAL" | "COMPROVANTE_PUBLICACAO_TERMO_ADITIVO"
  | "EDITAL_HOMOLOGACAO_INSCRICOES" | "DECISAO_RECURSOS_EDITAL_HOMOLOGACAO" | "RELACAO_CANDIDATOS_APROVADOS" | "DECISAO_RECURSOS_RELACAO_CANDIDATOS" | "EDITAL_RESULTADO_FINAL" | "ATO_HOMOLOGACAO" | "COMPROVANTE_PUBLICACAO_EDITAL_HOMOLOGACAO" | "COMPROVANTE_PUBLICACAO_DECISAO_RECURSOS_EDITAL_HOMOLOGACAO" | "COMPROVANTE_PUBLICACAO_RELACAO_CANDIDATOS" | "COMPROVANTE_PUBLICACAO_DECISAO_RECURSOS_RELACAO_CANDIDATOS" | "COMPROVANTE_PUBLICACAO_RESULTADO_FINAL" | "COMPROVANTE_PUBLICACAO_ATO_HOMOLOGACAO" | "COMPROVANTE_RESIDENCIA_ACS"
  | "EDITAL_HOMOLOGACAO_INSCRICOES_RETIF" | "DECISAO_RECURSOS_EDITAL_HOMOLOGACAO_RETIF" | "RELACAO_CANDIDATOS_APROVADOS_RETIF" | "DECISAO_RECURSOS_RELACAO_CANDIDATOS_RETIF" | "EDITAL_RESULTADO_FINAL_RETIF" | "ATO_HOMOLOGACAO_RETIF" | "COMPROVANTE_PUBLICACAO_EDITAL_HOMOLOGACAO_RETIF" | "COMPROVANTE_PUBLICACAO_DECISAO_RECURSOS_EDITAL_HOMOLOGACAO_RETIF" | "COMPROVANTE_PUBLICACAO_RELACAO_CANDIDATOS_RETIF" | "COMPROVANTE_PUBLICACAO_DECISAO_RECURSOS_RELACAO_CANDIDATOS_RETIF" | "COMPROVANTE_PUBLICACAO_RESULTADO_FINAL_RETIF" | "COMPROVANTE_PUBLICACAO_ATO_HOMOLOGACAO_RETIF" | "COMPROVANTE_RESIDENCIA_ACS_RETIF";
@@ -55,7 +55,7 @@ export interface DocumentoCertame { readonly tipo:TipoDocumentoCertame; readonly
 
 // RN-16: a homologação é o marco do prazo de prestação de contas, distinto da publicação do resultado.
 // documentoAnexado: nome do arquivo anexado quando a situação é alterada manualmente (aba Situações).
-export interface SituacaoHistoricoCertame { readonly id:string; readonly certameId:string; readonly tipo:SituacaoCertame; readonly dataEfeito:string; readonly registradoEm:string; readonly usuario:string; readonly prazoPrestacaoContas?:string; readonly documentoAnexado?:string; }
+export interface SituacaoHistoricoCertame { readonly id:string; readonly certameId:string; readonly tipo:SituacaoCertame; readonly dataEfeito:string; readonly registradoEm:string; readonly usuario:string; readonly prazoPrestacaoContas?:string; readonly documentoAnexado?:string; readonly justificativa?:string; }
 
 export interface Certame {
  readonly id:string;

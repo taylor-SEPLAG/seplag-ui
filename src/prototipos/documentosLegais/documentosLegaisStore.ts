@@ -2,7 +2,10 @@ import { useMemo, useSyncExternalStore } from "react";
 import type { ArquivoAnexadoSeplag } from "../../componentes/AnexarDocumento";
 import type { DocumentoLegalAssociadoSeplag } from "../../componentes/DocumentosLegaisAssociados";
 
-export type SituacaoDocumentoLegal = "ATIVO" | "INATIVO";
+export type SituacaoDocumentoLegal =
+  | "Vigente"
+  | "Revogada"
+  | "Parcialmente revogada";
 
 export interface DocumentoLegal extends DocumentoLegalAssociadoSeplag {
   tipo: string;
@@ -15,7 +18,13 @@ export interface DocumentoLegal extends DocumentoLegalAssociadoSeplag {
   dataFim?: string;
   observacao?: string;
   arquivo?: ArquivoAnexadoSeplag;
-  substituiOuAltera: boolean;
+  arquivos: ArquivoAnexadoSeplag[];
+  natureza: string;
+  abrangencia: string;
+  veiculoPublicacao: string;
+  aplicacoes: string[];
+  normasAlteradas: string[];
+  normasRevogadas: string[];
   situacao: SituacaoDocumentoLegal;
 }
 
@@ -36,25 +45,42 @@ export function getSituacaoDocumentoLegal(
   const start = parseDate(document.dataVigencia);
   const end = parseDate(document.dataFim);
   const reference = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
-  return start && start <= reference && (!end || end >= reference) ? "ATIVO" : "INATIVO";
+  return start && start <= reference && (!end || end >= reference)
+    ? "Vigente"
+    : "Revogada";
 }
 
 function createInitial(id: string, tipo: string, numero: string, ano: number, nome: string): DocumentoLegal {
-  return { id, tipo, numero, ano, nome, titulo: `${tipo === "Lei Complementar" ? "LC" : tipo} nº ${numero}/${ano}`, categoria: tipo, descricao: nome, ementa: nome, dataVigencia: `01/01/${ano}`, substituiOuAltera: false, situacao: "ATIVO" };
+  return {
+    id, tipo, numero, ano, nome,
+    titulo: `${tipo === "Lei Complementar" ? "LC" : tipo} nº ${numero}/${ano}`,
+    categoria: tipo,
+    descricao: nome,
+    ementa: nome,
+    dataVigencia: `01/01/${ano}`,
+    arquivos: [],
+    natureza: "Criação",
+    abrangencia: "ESTADUAL",
+    veiculoPublicacao: "Diário Oficial do Estado - DOE",
+    aplicacoes: ["Carreira"],
+    normasAlteradas: [],
+    normasRevogadas: [],
+    situacao: "Vigente",
+  };
 }
 
-let documents: DocumentoLegal[] = [
-  createInitial("lc-4-1990", "Lei Complementar", "4", 1990, "Estatuto dos Servidores Públicos do Estado de Mato Grosso"),
-  createInitial("lei-7554-2001", "Lei", "7.554", 2001, "Carreira dos Profissionais de Desenvolvimento Econômico e Social"),
-  createInitial("lei-8321-2005", "Lei", "8.321", 2005, "Carreira dos profissionais da POLITEC"),
-  createInitial("lei-10050-2014", "Lei", "10.050", 2014, "Alterações da carreira de Desenvolvimento Econômico e Social"),
-  createInitial("lei-10052-2014", "Lei", "10.052", 2014, "Carreira dos Profissionais da Área Meio"),
-  createInitial("lei-10884-2019", "Lei", "10.884", 2019, "Perfis profissionais e vinculações quantitativas"),
-  createInitial("decreto-1447-2022", "Decreto", "1.447", 2022, "Redistribuição de cargos entre órgãos e entidades"),
-  createInitial("lc-846-2026", "Lei Complementar", "846", 2026, "Alterações na organização e estrutura da POLITEC"),
-  createInitial("lc-851-2026", "Lei Complementar", "851", 2026, "Criação e extinção de cargos e outras alterações"),
-  createInitial("lei-13428-2026", "Lei", "13.428", 2026, "Alteração recente de carreira da POLITEC"),
-];
+const lc500 = createInitial("lc-500-2026", "Lei Complementar", "500", 2026, "Plano de Cargos e Carreiras");
+lc500.dataVigencia = "10/08/2026";
+lc500.aplicacoes = ["Cargo", "Carreira"];
+lc500.normasRevogadas = ["lei-100-2015"];
+const lei100 = createInitial("lei-100-2015", "Lei Ordinária", "100", 2015, "Estrutura da Carreira X");
+lei100.dataFim = "09/08/2026";
+lei100.situacao = "Revogada";
+const decreto455 = createInitial("decreto-455-2020", "Decreto Estadual", "455", 2020, "Regulamentação de ingresso");
+decreto455.veiculoPublicacao = "IOB";
+decreto455.aplicacoes = ["Concurso", "Cargo"];
+decreto455.situacao = "Parcialmente revogada";
+let documents: DocumentoLegal[] = [lc500, lei100, decreto455];
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((listener) => listener());
@@ -85,7 +111,7 @@ export function useDocumentosLegaisAssociaveis() {
   const documentos = useDocumentosLegais();
 
   return useMemo(
-    () => documentos.filter((document) => getSituacaoDocumentoLegal(document) === "ATIVO"),
+    () => documentos.filter((document) => getSituacaoDocumentoLegal(document) === "Vigente"),
     [documentos],
   );
 }

@@ -64,6 +64,7 @@ import ExcelJS from "exceljs";
 import type { IMenuSeplag, IVinculoSeplag } from "@componentes/layout/Config/menu";
 import type { AppSystemItemSeplag } from "@componentes/layout/AppSwitcher";
 import type { ResultsSeplag } from "../interfaces/Results";
+import { validacaoDataNaoFuturaSeplag } from "../uteis/validacoes/validacaoDataNaoFutura";
 import logoEstado from "../assets/img/Logo_Branco_Estado_MT.png";
 import logoSeplagMtExcel from "../assets/img/logo-seplag-mt-excel.png";
 import logoSeplag from "../assets/img/logo-seplag.png";
@@ -338,7 +339,10 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         url: "#",
         visibleOnMenu: true,
         visibleOnRouter: true,
-        items: [{ label: "Documentos Legais", icon: "pi pi-circle-on", to: "/prototipos/sigep/documentos-legais", visibleOnMenu: true, visibleOnRouter: true }],
+        items: [
+          { label: "Tipo de documentos Legais", icon: "pi pi-circle-on", to: "/prototipos/sigep/tipos-documentos", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Documentos Legais", icon: "pi pi-circle-on", to: "/prototipos/sigep/documentos-legais", visibleOnMenu: true, visibleOnRouter: true },
+        ],
       },
       {
         label: "Aposentadoria e Benefícios",
@@ -7786,9 +7790,11 @@ export function PrototiposPerfilEspecialidadeFormPage() {
       <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
         <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
         {isEdicao ? (<section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>) : null}
+        <div className="prototype-perfil-paired-sections">
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={perfilNivelFormacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <MultiSelectFieldSeplag name="formacoes" control={control} label="Formação" cols="12 12 4" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais formações" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
         <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={status} entidade="o perfil profissional" getFormErrorMessage={() => null} />
+        </div>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={perfilNivelFormacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <MultiSelectFieldSeplag name="formacoes" control={control} label="Formação" cols="12 12 4" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais formações" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
         <footer className="prototype-carreira-register-actions"><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-profissional"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link><BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar perfil"} /></footer>
         </fieldset>
@@ -7868,6 +7874,10 @@ function PrototypeVigenciaEditor({
               label="Data de início"
               cols="12"
               required
+              maxDate={new Date()}
+              customValidation={validacaoDataNaoFuturaSeplag(
+                "A data de início deve ser a data atual ou uma data anterior",
+              )}
               getFormErrorMessage={getFormErrorMessage}
             />
           </div>
@@ -8117,6 +8127,30 @@ export function PrototiposCarreiraFormPage() {
           <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
           <section className="prototype-carreira-register-section">
             <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span>
+              <div>
+                <h2>Base legal</h2>
+                <p>Associe o documento que fundamenta a criação da carreira.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-register-body">
+              <DocumentosLegaisAssociadosSeplag
+                label="Documentos legais associados"
+                required
+                options={documentosLegais}
+                value={documentosSelecionados}
+                onChange={(ids) => {
+                  setDocumentosSelecionados(ids);
+                  setErroComplementar("");
+                }}
+                exibirNovoCadastro={false}
+                expandirAoAbrir
+              />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span>
               <div>
                 <h2>Identificação</h2>
@@ -8163,30 +8197,6 @@ export function PrototiposCarreiraFormPage() {
               </dl>
             </section>
           ) : null}
-
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span>
-              <div>
-                <h2>Base legal</h2>
-                <p>Associe o documento que fundamenta a criação da carreira.</p>
-              </div>
-            </header>
-            <div className="prototype-carreira-register-body">
-              <DocumentosLegaisAssociadosSeplag
-                label="Documentos legais associados"
-                required
-                options={documentosLegais}
-                value={documentosSelecionados}
-                onChange={(ids) => {
-                  setDocumentosSelecionados(ids);
-                  setErroComplementar("");
-                }}
-                exibirNovoCadastro={false}
-                expandirAoAbrir
-              />
-            </div>
-          </section>
 
           <section className="prototype-carreira-register-section">
             <header>
@@ -8662,6 +8672,19 @@ export function PrototiposCargoFormPage({
           <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
           <section className="prototype-carreira-register-section">
             <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
+              <div>
+                <h2>Base legal</h2>
+                <p>Associe os documentos que fundamentam a criação do cargo.</p>
+              </div>
+            </header>
+            <div className="prototype-carreira-register-body">
+              <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={(ids) => { setDocumentosSelecionados(ids); setErroComplementar(""); }} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir />
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-id-card" aria-hidden="true" /></span>
               <div>
                 <h2>Identificação</h2>
@@ -8674,22 +8697,7 @@ export function PrototiposCargoFormPage({
             </div>
           </section>
 
-          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramentoCargo} status={situacaoInicialCargo} entidade="o cargo" getFormErrorMessage={() => null} />
-
-
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
-              <div>
-                <h2>Base legal</h2>
-                <p>Associe os documentos que fundamentam a criação do cargo.</p>
-              </div>
-            </header>
-            <div className="prototype-carreira-register-body">
-              <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={(ids) => { setDocumentosSelecionados(ids); setErroComplementar(""); }} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir />
-            </div>
-          </section>
-
+          <div className="prototype-cargo-paired-sections">
           <section className="prototype-carreira-register-section">
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-sitemap" aria-hidden="true" /></span>
@@ -8705,6 +8713,9 @@ export function PrototiposCargoFormPage({
               ) : null}
             </div>
           </section>
+
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramentoCargo} status={situacaoInicialCargo} entidade="o cargo" getFormErrorMessage={() => null} />
+          </div>
 
           <section className="prototype-carreira-register-section">
             <header>
@@ -8722,8 +8733,8 @@ export function PrototiposCargoFormPage({
               {perfisSelecionadosCargo.length ? (
                 <div className="col-12 prototype-cargo-profile-table-wrapper">
                   <table className="prototype-cargo-profile-table">
-                    <thead><tr><th>Perfil Profissional</th><th>Área de formação</th><th>CBO</th></tr></thead>
-                    <tbody>{perfisSelecionadosCargo.map((perfil) => <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td></tr>)}</tbody>
+                    <thead><tr><th>Perfil Profissional</th><th>Área de formação</th><th>CBO</th><th>CBO eSocial</th></tr></thead>
+                    <tbody>{perfisSelecionadosCargo.map((perfil) => <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td><td>{perfil.cbo.replace(/\D/g, "")}</td></tr>)}</tbody>
                   </table>
                 </div>
               ) : null}
@@ -10684,7 +10695,21 @@ export function PrototiposTipoVinculoTesteFormPage({
             </div>
           </section>
 
+          <div className="prototype-tipo-vinculo-paired-sections">
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-tags" aria-hidden="true" /></span>
+              <div>
+                <h2>Classificação</h2>
+                <p>Defina os regimes jurídicos associados ao tipo de vínculo.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos" placeholder="Selecione um ou mais regimes" cols="12" required options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+            </div>
+          </section>
           <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEditing} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o tipo de vínculo" getFormErrorMessage={() => null} />
+          </div>
 
           {isEditing ? (
           <section className="prototype-carreira-register-section">
@@ -10700,19 +10725,6 @@ export function PrototiposTipoVinculoTesteFormPage({
             </div>
           </section>
           ) : null}
-
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-tags" aria-hidden="true" /></span>
-              <div>
-                <h2>Classificação</h2>
-                <p>Defina os regimes jurídicos associados ao tipo de vínculo.</p>
-              </div>
-            </header>
-            <div className="grid prototype-carreira-register-fields">
-              <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos" placeholder="Selecione um ou mais regimes" cols="12" required options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-            </div>
-          </section>
 
           <section className="prototype-carreira-register-section">
             <header>
