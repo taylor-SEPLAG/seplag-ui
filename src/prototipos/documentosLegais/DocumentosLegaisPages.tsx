@@ -3,9 +3,9 @@ import { useForm } from "react-hook-form";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   AnexarDocumentoSeplag, BadgeSeplag, BotaoLimparFiltroSeplag,
-  BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag, BreadcrumbSeplag, CardSeplag,
+  BotaoChipSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag, BreadcrumbSeplag, CardSeplag,
   DateFieldSeplag, DropdownFieldSeplag, MultiSelectFieldSeplag,
-  RadioButtonFieldSeplag, TablePaginadoSeplag, TextAreaFieldSeplag,
+  ModalSeplag, TablePaginadoSeplag, TextAreaFieldSeplag,
   TextFieldSeplag, type ArquivoAnexadoSeplag, type ColumnMetaSeplag,
 } from "../../componentes";
 import type { ResultsSeplag } from "../../interfaces/Results";
@@ -23,14 +23,14 @@ const naturezas = ["Criação", "Plano de Cargos, Carreiras e Salários (PCCS)",
 const abrangencias = ["FEDERAL", "ESTADUAL", "MUNICIPAL"].map(option);
 const veiculos = ["Diário Oficial do Estado - DOE", "IOB", "Jornal de Grande Circulação"].map(option);
 const aplicacoes = ["Cargo", "Carreira", "Concurso", "Rubricas", "Estrutura / Organograma", "Vínculo", "Benefícios", "Aposentadoria / Pensão"].map(option);
-const situacoes = ["Vigente", "Revogada"].map(option);
+const situacoes = ["Vigente", "Revogada", "Encerrado"].map(option);
 
 interface FiltroForm { termo: string; tipo?: string; situacao?: SituacaoDocumentoLegal }
 interface DocumentoForm {
   tipo: string; numero: string; ano: string; nome: string;
   dataVigencia: string; dataPublicacao: string; dataFim: string;
   natureza: string; abrangencia: string; veiculoPublicacao: string;
-  aplicacoes: string[]; ementa: string; relacionaNormas: "SIM" | "NAO";
+  aplicacoes: string[]; tipoAltera: string; ementa: string; relacionaNormas: "NENHUMA" | "ALTERA" | "REVOGA";
   normasAlteradas: string[]; normasRevogadas: string[];
 }
 
@@ -46,6 +46,7 @@ function StatusBadge({ situacao }: { situacao: SituacaoDocumentoLegal }) {
 export function PrototiposDocumentosLegaisPage() {
   const navigate = useNavigate();
   const documents = useDocumentosLegais();
+  const [documentoAplicacoes, setDocumentoAplicacoes] = useState<DocumentoLegal | null>(null);
   const tipos = useTiposDocumentos().map((item) => option(item.nome));
   const { control, reset, watch } = useForm<FiltroForm>({ defaultValues: { termo: "" } });
   const filters = watch();
@@ -69,6 +70,19 @@ export function PrototiposDocumentosLegaisPage() {
     },
     { field: "tipo", header: "Tipo" },
     { field: "veiculoPublicacao", header: "Veículo de Publicação" },
+    {
+      header: "Aplicação da Norma",
+      body: (row) => (
+        <BotaoChipSeplag
+          className="prototype-link-button"
+          tooltip={row.aplicacoes.join(", ") || "Nenhuma aplicação vinculada"}
+          aria-label={`Visualizar aplicações vinculadas a ${row.titulo}`}
+          onClick={() => setDocumentoAplicacoes(row)}
+        >
+          {row.aplicacoes.length} {row.aplicacoes.length === 1 ? "Aplicação" : "Aplicações"}
+        </BotaoChipSeplag>
+      ),
+    },
     { header: "Situação", body: (row) => <StatusBadge situacao={row.situacao} /> },
   ];
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
@@ -87,6 +101,30 @@ export function PrototiposDocumentosLegaisPage() {
         </div>
       </CardSeplag>
     </div>
+    <ModalSeplag
+      visible={Boolean(documentoAplicacoes)}
+      titulo={`Aplicações da norma (${documentoAplicacoes?.aplicacoes.length ?? 0})`}
+      fechar={() => setDocumentoAplicacoes(null)}
+      labelFechar="Fechar"
+      hideFooter
+      tamanho="620px"
+    >
+      <div className="prototype-documentos-legais-applications">
+        <p><strong>{documentoAplicacoes?.titulo}</strong> — {documentoAplicacoes?.nome}</p>
+        {documentoAplicacoes?.aplicacoes.length ? (
+          <ul>
+            {documentoAplicacoes.aplicacoes.map((aplicacao, index) => (
+              <li key={aplicacao}>
+                <i className="pi pi-check-circle" aria-hidden="true" />
+                <strong>{index + 1}.</strong> {aplicacao}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <span>Nenhuma aplicação vinculada.</span>
+        )}
+      </div>
+    </ModalSeplag>
   </PrototypeSystemPage>;
 }
 
@@ -106,8 +144,12 @@ export function PrototiposDocumentoLegalFormPage() {
     tipo: document?.tipo ?? "", numero: document?.numero ?? "", ano: String(document?.ano ?? new Date().getFullYear()), nome: document?.nome ?? "",
     dataVigencia: document?.dataVigencia ?? "", dataPublicacao: document?.dataPublicacao ?? "", dataFim: document?.dataFim ?? "",
     natureza: document?.natureza ?? "", abrangencia: document?.abrangencia ?? "", veiculoPublicacao: document?.veiculoPublicacao ?? "",
-    aplicacoes: document?.aplicacoes ?? [], ementa: document?.ementa ?? "",
-    relacionaNormas: document && (document.normasAlteradas.length > 0 || document.normasRevogadas.length > 0) ? "SIM" : "NAO",
+    aplicacoes: document?.aplicacoes ?? [], tipoAltera: document?.tipoAltera ?? "Não Informado", ementa: document?.ementa ?? "",
+    relacionaNormas: document?.normasAlteradas.length
+      ? "ALTERA"
+      : document?.normasRevogadas.length
+        ? "REVOGA"
+        : "NENHUMA",
     normasAlteradas: document?.normasAlteradas ?? [], normasRevogadas: document?.normasRevogadas ?? [],
   } });
   const relacionaNormas = watch("relacionaNormas");
@@ -128,12 +170,12 @@ export function PrototiposDocumentoLegalFormPage() {
   const save = (form: DocumentoForm) => {
     setError("");
     if (form.dataFim && form.dataFim < form.dataVigencia) return setError("A data fim não pode ser anterior à data de vigência.");
-    if (form.relacionaNormas === "SIM" && !form.normasAlteradas.length && !form.normasRevogadas.length) return setError("Selecione ao menos uma norma alterada ou revogada.");
-    if (form.normasAlteradas.some((norma) => form.normasRevogadas.includes(norma))) return setError("Uma norma não pode ser alterada e revogada ao mesmo tempo.");
+    if (form.relacionaNormas === "ALTERA" && !form.normasAlteradas.length) return setError("Selecione ao menos uma norma alterada.");
+    if (form.relacionaNormas === "REVOGA" && !form.normasRevogadas.length) return setError("Selecione ao menos uma norma revogada.");
     const input: DocumentoLegalInput = {
       ...form, ano: Number(form.ano), arquivos: files, arquivo: files[0],
-      normasAlteradas: form.relacionaNormas === "SIM" ? form.normasAlteradas : [],
-      normasRevogadas: form.relacionaNormas === "SIM" ? form.normasRevogadas : [],
+      normasAlteradas: form.relacionaNormas === "ALTERA" ? form.normasAlteradas : [],
+      normasRevogadas: form.relacionaNormas === "REVOGA" ? form.normasRevogadas : [],
     };
     if (documentosLegaisStore.isDuplicate(input, id)) return setError("Já existe um documento com o mesmo tipo, número e ano.");
     if (id) documentosLegaisStore.update(id, input); else documentosLegaisStore.create(input);
@@ -179,7 +221,25 @@ export function PrototiposDocumentoLegalFormPage() {
             <DropdownFieldSeplag name="natureza" control={control} label="Natureza da Lei" cols="12 12 4" options={naturezas} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
             <DropdownFieldSeplag name="abrangencia" control={control} label="Tipo de Abrangência" cols="12 6 4" options={abrangencias} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
             <DropdownFieldSeplag name="veiculoPublicacao" control={control} label="Veículo de Publicação" cols="12 6 4" options={veiculos} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
-            <MultiSelectFieldSeplag name="aplicacoes" control={control} label="Aplicação da Norma" cols="12" options={aplicacoes} optionLabel="label" optionValue="value" display="chip" required readOnly={viewing} selectedItemsLabel="{0} funcionalidades selecionadas" getFormErrorMessage={() => null} />
+            <MultiSelectFieldSeplag name="aplicacoes" control={control} label="Aplicação da Norma" cols="12 12 6" options={aplicacoes} optionLabel="label" optionValue="value" display="chip" required readOnly={viewing} selectedItemsLabel="{0} funcionalidades selecionadas" getFormErrorMessage={() => null} />
+            <DropdownFieldSeplag
+              name="tipoAltera"
+              control={control}
+              label="Tipo Altera"
+              cols="12 12 6"
+              options={[
+                { label: "Não Informado", value: "Não Informado" },
+                { label: "Revisão Geral Anual", value: "Revisão Geral Anual" },
+                { label: "Aumento Salarial", value: "Aumento Salarial" },
+                { label: "Revisão Geral Anual e Aumento Salarial", value: "Revisão Geral Anual e Aumento Salarial" },
+                { label: "Diminuição Salarial", value: "Diminuição Salarial" },
+              ]}
+              optionLabel="label"
+              optionValue="value"
+              showClear={false}
+              filter={false}
+              getFormErrorMessage={() => null}
+            />
             </div>
           </section>
 
@@ -199,16 +259,34 @@ export function PrototiposDocumentoLegalFormPage() {
 
           <section className="prototype-documento-legal-register-section">
             <header>
-              <span className="prototype-documento-legal-section-icon"><i className="pi pi-sitemap" /></span>
-              <div><h2>Relação com outras normas</h2><p>Registre normas alteradas ou revogadas por este documento.</p></div>
+              <span className="prototype-documento-legal-section-icon"><i className="pi pi-link" /></span>
+              <div><h2>Relação com outras normas</h2><p>Registre se esta norma altera, revoga ou não possui relação com outras normas cadastradas.</p></div>
             </header>
             <div className="grid prototype-documento-legal-register-fields">
-            <RadioButtonFieldSeplag name="relacionaNormas" control={control} label="Este documento altera ou revoga outras normas?" cols="12" required options={[{ label: "Sim", value: "SIM" }, { label: "Não", value: "NAO" }]} getFormErrorMessage={() => null} />
-            {relacionaNormas === "SIM" && <>
-              <MultiSelectFieldSeplag name="normasAlteradas" control={control} label="Norma(s) Alterada(s)" cols="12 12 6" options={normasOptions} optionLabel="label" optionValue="value" display="chip" readOnly={viewing} selectedItemsLabel="{0} normas selecionadas" getFormErrorMessage={() => null} />
-              <MultiSelectFieldSeplag name="normasRevogadas" control={control} label="Norma(s) Revogada(s)" cols="12 12 6" options={normasOptions} optionLabel="label" optionValue="value" display="chip" readOnly={viewing} selectedItemsLabel="{0} normas selecionadas" getFormErrorMessage={() => null} />
+            <DropdownFieldSeplag
+              name="relacionaNormas"
+              control={control}
+              label="Qual a relação deste documento com outras normas?"
+              cols="12"
+              options={[
+                { label: "Não altera nem revoga outra norma", value: "NENHUMA" },
+                { label: "Altera outra norma", value: "ALTERA" },
+                { label: "Revoga outra norma", value: "REVOGA" },
+              ]}
+              optionLabel="label"
+              optionValue="value"
+              required
+              showClear={false}
+              filter={false}
+              getFormErrorMessage={() => null}
+            />
+            {relacionaNormas === "ALTERA" ? (
+              <MultiSelectFieldSeplag name="normasAlteradas" control={control} label="Norma(s) alterada(s)" cols="12" options={normasOptions} optionLabel="label" optionValue="value" display="chip" readOnly={viewing} selectedItemsLabel="{0} normas selecionadas" required getFormErrorMessage={() => null} />
+            ) : null}
+            {relacionaNormas === "REVOGA" ? <>
+              <MultiSelectFieldSeplag name="normasRevogadas" control={control} label="Norma(s) revogada(s)" cols="12" options={normasOptions} optionLabel="label" optionValue="value" display="chip" readOnly={viewing} selectedItemsLabel="{0} normas selecionadas" required getFormErrorMessage={() => null} />
               <div className="col-12 prototype-documentos-legais-info"><i className="pi pi-info-circle" /> Normas revogadas permanecem disponíveis para consulta e histórico. Elas não são substituídas automaticamente nos registros em que já foram utilizadas.</div>
-            </>}
+            </> : null}
             </div>
           </section>
 
