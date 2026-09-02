@@ -5,7 +5,6 @@ import { LEIS_CERTAME } from "../certame/dominios";
 import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStore";
 import { tiposCotaStore, useTiposCota, type TipoCota } from "./tiposCotaStore";
 import { CardSeplag } from "@componentes/Card";
-import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoLimparFiltroSeplag } from "@componentes/Botao";
 import { SEPLAG_SUCCESS_DARK, SEPLAG_YELLOW } from "../../../tokens/colors";
 
@@ -79,7 +78,7 @@ export function TiposCotaListContent() {
         ? <tr><td colSpan={4} className="prototype-empty-table-cell">Nenhum registro encontrado para os filtros informados.</td></tr>
         : listaPaginada.map((row:TipoCota) => (
          <tr key={row.id}>
-          <td><BadgeSeplag label={row.label} color="#0b6199" bg="#e9f3fc" border="transparent" size="sm" /></td>
+          <td>{row.label}</td>
           <td>{row.lei.length === 0 ? "—" : row.lei.map(tituloLei).join(", ")}</td>
           <td><span className={`prototype-locais-status ${row.situacao === "ATIVO" ? "is-active" : "is-inactive"}`}>{row.situacao === "ATIVO" ? "Ativo" : "Inativo"}</span></td>
           <td>

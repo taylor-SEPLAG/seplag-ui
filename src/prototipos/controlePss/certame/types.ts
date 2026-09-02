@@ -23,8 +23,8 @@ export type TipoDocumentoCertame = "JUSTIFICATIVA_ABERTURA" | "PUBLICACAO_CERTAM
 
 // RN-08: o sistema permite múltiplas cotas por certame.
 // RN-10: a lei referencia diretamente o catálogo de leis já cadastradas no sistema (ver dominios.LEIS_CERTAME).
-// Cada campo de lei aceita mais de uma norma; a primeira selecionada é a lei aplicável (ver
-// CampoLeiMultiplaSeplag em CertameFormContent.tsx).
+// Cada campo de lei aceita mais de uma norma; com 2+ leis, o usuário marca manualmente qual é a
+// "Lei Aplic" via radiobutton (RN009 — ver CampoLeiMultiplaSeplag em CertameFormContent.tsx).
 export interface CotaCertame { readonly id:string; tipo:string; lei:readonly string[]; }
 
 export interface TaxaInscricaoCertame { readonly id:string; valor:number; inicioIsencao?:string; fimIsencao?:string; tipoIsencao:string[]; leiIsencao?:string; }
@@ -64,8 +64,9 @@ export interface Certame {
  // 1. Dados Gerais do Certame
  tipoCertame:TipoCertame;
  tipoConcursoAplic:string;
- // RN007.1: o campo permite marcar mais de uma lei; a posição 0 do array é sempre a lei aplicável
- // (marcada por radiobutton na tela — ver CampoLeiAplicavelSeplag em CertameFormContent.tsx).
+ // RN009: o campo permite marcar mais de uma lei; com 2+ leis, nenhuma vem marcada como "Lei
+ // Aplic" por padrão — o usuário marca manualmente via radiobutton na tela (ver
+ // DocumentosLegaisAssociadosSeplag/CampoLeiMultiplaSeplag em CertameFormContent.tsx).
  leiContratoTemporario?:readonly string[];
  leiProcessoSeletivoSimplificado?:readonly string[];
  regimeJuridico:RegimeJuridicoCertame;

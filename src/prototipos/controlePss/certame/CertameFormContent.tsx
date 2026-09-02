@@ -10,6 +10,7 @@ import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
 import { gerarNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento } from "./validations";
 import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
+import { CATALOGO_UG } from "./catalogoUg";
 import { useFasesCertame } from "../fasesCertame/fasesCertameStore";
 import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, ReservaCotaCargo, SituacaoCertame, TaxaInscricaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
 import { CardSeplag } from "@componentes/Card";
@@ -30,9 +31,9 @@ import { DocumentosCertameTabela, resultadosSemPaginacao } from "./DocumentosCer
 import "./certame.css";
 
 // Campo de lei com múltipla seleção, reaproveitando o layout padrão de "Documentos Legais
-// Associados" (busca com chips, painel de opções com checkbox e atalho "Novo Cadastro"). RN: a
-// primeira lei selecionada é sinalizada como a norma aplicável (indicarPrincipal), já que a ordem
-// de seleção é significativa quando mais de uma lei rege o mesmo campo.
+// Associados" (busca com chips, painel de opções com checkbox e atalho "Novo Cadastro"). RN009:
+// com 2+ leis selecionadas nenhuma vem marcada como "Lei Aplic" por padrão — o usuário marca
+// manualmente, via radiobutton (indicarPrincipal), qual delas é a aplicável naquele campo.
 function CampoLeiMultiplaSeplag<T extends FieldValues = any>({ name, control, label, required, cols = "12", opcoes, onNovoCadastro, disabled }: Readonly<{ name:Path<T>; control:Control<T>; label:string; required?:boolean; cols?:string; opcoes:DocumentoLegalAssociadoSeplag[]; onNovoCadastro:() => void; disabled?:boolean }>) {
  // "Visualizar" (ação por lei já selecionada) navega para a página completa do Documento Legal —
  // mesmo padrão já usado em Controle de Vagas (BaseLegalVinculada.tsx): mostra todos os campos
@@ -63,19 +64,24 @@ interface LeiOpcaoCertame { id:string; numero:string; titulo:string; tipo?:strin
 
 // Campo de "lei aplicável" com seleção múltipla (checkbox) + uma marcação exclusiva de qual das
 // selecionadas é a lei aplicável (radiobutton, só habilitado em linhas já marcadas com checkbox).
-// A posição 0 do array é sempre a aplicável — marcar o radio de outra linha reordena o array para
-// promovê-la; desmarcar o checkbox da aplicável promove a próxima automaticamente (RN014). Nunca
-// existe o estado "selecionada mas sem nenhuma marcada como aplicável" enquanto houver ao menos uma
-// selecionada. Diferente de CampoLeiMultiplaSeplag (Lei de isenção/Lei da cota, sem esse conceito de
-// "aplicável"): aqui o campo de busca nunca mostra os valores escolhidos sobrepostos ao ícone de
-// lupa — eles só aparecem no bloco de confirmação abaixo, em lista.
+// RN009: com apenas 1 lei selecionada, ela é a aplicável automaticamente; com 2+, nenhuma vem
+// marcada por padrão — o usuário precisa marcar manualmente, via radiobutton, qual delas é a
+// aplicável naquele campo. RN014: se a lei removida era a marcada, nenhuma assume o lugar
+// automaticamente — o usuário precisa marcar manualmente outra (a menos que só reste 1). A posição
+// 0 do array continua sendo a "candidata" à aplicável (marcar o radio de outra linha reordena o
+// array para promovê-la), mas só é tratada como aplicável de fato quando marcadaManualmente é true
+// (ou quando só há 1 lei selecionada). Diferente de CampoLeiMultiplaSeplag (Lei de isenção/Lei da
+// cota, sem esse conceito de "aplicável"): aqui o campo de busca nunca mostra os valores escolhidos
+// sobrepostos ao ícone de lupa — eles só aparecem no bloco de confirmação abaixo, em lista.
 function CampoLeiAplicavelSeplag<T extends FieldValues = any>({ name, control, label, required, cols = "12", opcoes, onNovoCadastro, onVerLei, disabled, assunto, substantivo }: Readonly<{ name:Path<T>; control:Control<T>; label:string; required?:boolean; cols?:string; opcoes:LeiOpcaoCertame[]; onNovoCadastro:() => void; onVerLei:(id:string) => void; disabled?:boolean; assunto:string; substantivo:string }>) {
  const { field } = useController({ name, control, rules: required ? { validate:(value) => (Array.isArray(value) && value.length > 0) || `${label} é obrigatório` } : undefined });
  const rootRef = useRef<HTMLDivElement>(null);
  const inputRef = useRef<HTMLInputElement>(null);
  const [isOpen, setIsOpen] = useState(false);
  const [search, setSearch] = useState("");
+ const [marcadaManualmente, setMarcadaManualmente] = useState(false);
  const selecionadosIds = (field.value as string[] | undefined) ?? [];
+ const idAplicavel = selecionadosIds.length === 1 ? selecionadosIds[0] : (marcadaManualmente ? selecionadosIds[0] : null);
 
  const opcoesFiltradas = useMemo(() => {
   const query = search.trim().toLocaleLowerCase("pt-BR");
@@ -97,16 +103,21 @@ function CampoLeiAplicavelSeplag<T extends FieldValues = any>({ name, control, l
 
  const alternarSelecao = (id:string) => {
   if (selecionadosIds.includes(id)) {
-   // RN014: se a lei removida era a aplicável (posição 0) e ainda sobra alguma, a próxima assume o lugar automaticamente — a própria filtragem já preserva a ordem das demais.
+   // RN014: se a lei removida era a marcada como aplicável, nenhuma assume o lugar automaticamente
+   // — o usuário precisa marcar manualmente outra (a menos que só reste 1, que vira aplicável sozinha).
    const restantes = selecionadosIds.filter((item) => item !== id);
    field.onChange(restantes.length > 0 ? restantes : undefined);
+   if (id === idAplicavel) setMarcadaManualmente(false);
   } else {
+   // RN009: ao passar de 1 para 2+ leis selecionadas sem marcação manual, nenhuma fica marcada.
+   if (selecionadosIds.length === 1) setMarcadaManualmente(false);
    field.onChange([...selecionadosIds, id]);
   }
  };
  const marcarAplicavel = (id:string) => {
-  if (!selecionadosIds.includes(id) || selecionadosIds[0] === id) return;
-  field.onChange([id, ...selecionadosIds.filter((item) => item !== id)]);
+  if (!selecionadosIds.includes(id)) return;
+  if (selecionadosIds[0] !== id) field.onChange([id, ...selecionadosIds.filter((item) => item !== id)]);
+  setMarcadaManualmente(true);
  };
  const removerSelecionada = (id:string) => alternarSelecao(id);
 
@@ -138,7 +149,7 @@ function CampoLeiAplicavelSeplag<T extends FieldValues = any>({ name, control, l
     <div className="prototype-certame-lei-aplicavel-opcoes">
      {opcoesFiltradas.length ? opcoesFiltradas.map((opcao) => {
       const marcadaSelecao = selecionadosIds.includes(opcao.id);
-      const marcadaAplicavel = selecionadosIds[0] === opcao.id;
+      const marcadaAplicavel = idAplicavel === opcao.id;
       return <div
        key={opcao.id}
        className={`prototype-certame-lei-aplicavel-opcao${marcadaSelecao ? " is-selecionada" : ""}`}
@@ -172,15 +183,16 @@ function CampoLeiAplicavelSeplag<T extends FieldValues = any>({ name, control, l
 
    <div className="prototype-certame-lei-aplicavel-confirmacao">
     {selecionadas.length > 0 ? <div className="prototype-certame-lei-aplicavel-confirmacao-lista">
-     {selecionadas.map((item, index) => <div className="prototype-certame-lei-aplicavel-confirmacao-item" key={item.id}>
-      {index === 0 ? <i className="pi pi-star-fill" aria-hidden="true" /> : <span className="prototype-certame-lei-aplicavel-confirmacao-spacer" aria-hidden="true" />}
+     {selecionadas.length > 1 && !idAplicavel && <div className="prototype-certame-lei-aplicavel-confirmacao-aviso"><i className="pi pi-exclamation-triangle" aria-hidden="true" /> Marque qual das leis abaixo é a aplicável {assunto}.</div>}
+     {selecionadas.map((item) => { const ehAplicavel = item.id === idAplicavel; return <div className="prototype-certame-lei-aplicavel-confirmacao-item" key={item.id}>
+      {ehAplicavel ? <i className="pi pi-star-fill" aria-hidden="true" /> : <span className="prototype-certame-lei-aplicavel-confirmacao-spacer" aria-hidden="true" />}
       <div className="prototype-certame-lei-aplicavel-confirmacao-texto">
-       {index === 0 && <strong>Lei aplicável {assunto}</strong>}
+       {ehAplicavel && <strong>Lei aplicável {assunto}</strong>}
        <span>{item.numero} — {item.titulo}</span>
       </div>
       <button type="button" className="prototype-certame-lei-aplicavel-ver" onClick={() => onVerLei(item.id)}>Ver lei</button>
       {!disabled && <button type="button" className="prototype-certame-lei-aplicavel-remover" aria-label={`Remover ${item.numero}`} onClick={() => removerSelecionada(item.id)}><i className="pi pi-times" aria-hidden="true" /></button>}
-     </div>)}
+     </div>; })}
     </div> : <span className="prototype-certame-lei-aplicavel-confirmacao-vazio">{required ? "Nenhuma lei escolhida — campo obrigatório." : "Nenhuma lei escolhida."}</span>}
    </div>
   </div>
@@ -416,6 +428,9 @@ export function CertameFormContent() {
   ...LEIS_CERTAME.map((lei) => { const [numero, titulo] = lei.label.split(" — "); return { id:lei.value, numero, titulo:titulo ?? "" }; }),
   ...documentosLegaisCadastrados.map((documento) => ({ id:documento.id, numero:documento.titulo, titulo:documento.descricao || documento.titulo, tipo:documento.categoria })),
  ], [documentosLegaisCadastrados]);
+ // "Código da UG" busca no catálogo interno de Unidades Gestoras do TCE-MT (CATALOGO_UG),
+ // exibindo nome + código de cada UG — não é mais texto livre.
+ const opcoesUg = useMemo(() => CATALOGO_UG.map((ug) => ({ value:ug.codigo, label:`${ug.nome} — ${ug.codigo}` })), []);
  const campoLeiRetorno = searchParams.get("campoLei");
  const irCadastrarLei = (campoLei:string) => {
   const returnTo = `${location.pathname}?campoLei=${campoLei}`;
@@ -1025,8 +1040,11 @@ export function CertameFormContent() {
         {/* RN-22: "Houve contratação de banca/empresa organizadora?" foi removido — o gatilho único
             passa a ser "Tipo de contratação (execução)". Abrangência, Tipo de contratação (execução)
             e Instituição realizadora foram trazidos do bloco Datas e execução para cá, na primeira linha. */}
-        <DropdownFieldSeplag name="abrangencia" control={control} label="Abrangência" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={[...ABRANGENCIAS]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DropdownFieldSeplag name="tipoContratacaoExecucao" control={control} label="Tipo de contratação (execução)" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={[...TIPOS_CONTRATACAO_EXECUCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        {/* RN006: Abrangência é sempre obrigatória, independente do Tipo de contratação (execução)
+            ser Própria UG ou Empresa Contratada — não depende de houveContratacaoEmpresa. O próprio
+            Tipo de contratação (execução) também é sempre obrigatório, já que é o campo-gatilho. */}
+        <DropdownFieldSeplag name="abrangencia" control={control} label="Abrangência" required cols={colsContratacaoCustos} options={[...ABRANGENCIAS]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="tipoContratacaoExecucao" control={control} label="Tipo de contratação (execução)" required cols={colsContratacaoCustos} options={[...TIPOS_CONTRATACAO_EXECUCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         {houveContratacaoEmpresa && <DropdownFieldSeplag name="instituicaoRealizadora" control={control} label="Instituição realizadora" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={[...EMPRESAS_CADASTRADAS]} optionLabel="label" optionValue="value" placeholder="Selecione a empresa cadastrada" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
         <RadioButtonFieldSeplag name="gerouDespesas" control={control} label="O certame gerou despesas para o fiscalizado?" required={houveContratacaoEmpresa} options={[...OPCOES_SIM_NAO]} cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         {houveContratacaoEmpresa && <DropdownFieldSeplag name="tipoContrato" control={control} label="Tipo de contrato" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={[...TIPOS_CONTRATO_BANCA]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
@@ -1038,7 +1056,7 @@ export function CertameFormContent() {
          <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <TextFieldSeplag name="codigoUo" control={control} label="Código da UO" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <TextFieldSeplag name="codigoUg" control={control} label="Código da UG" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <DropdownFieldSeplag name="codigoUg" control={control} label="Código da UG" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={opcoesUg} optionLabel="label" optionValue="value" placeholder="Buscar UG por nome ou código" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         </>}
        </div>
       </div>
