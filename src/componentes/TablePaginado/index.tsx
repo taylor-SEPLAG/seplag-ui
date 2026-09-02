@@ -37,6 +37,7 @@ export interface TablePaginadoSeplagProps<T extends DataTableValue> {
   readonly hasEventoAcao?: boolean;
   readonly lazy?: boolean;
   readonly paginator?: boolean;
+  readonly emptyMessage?: ReactNode;
   readonly metaKeySelection?: boolean;
   readonly rowsPerPage?: number[];
   readonly selected?: T[] | null;
@@ -97,6 +98,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
   metaKeySelection = false,
   lazy = true,
   paginator = true,
+  emptyMessage = "Nenhum registro encontrado",
   selected = null,
   rowsPerPage,
   handleOnPageChange,
@@ -283,7 +285,7 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
         stripedRows
         header={header ? customHeader(header) : renderHeader()}
         metaKeySelection={metaKeySelection}
-        emptyMessage="Nenhum registro encontrado"
+        emptyMessage={emptyMessage}
         onFilter={handleFilterChange}
         onPage={handleOnPageChange}
         onRowSelect={isDisabled ? undefined : onRowSelect}
