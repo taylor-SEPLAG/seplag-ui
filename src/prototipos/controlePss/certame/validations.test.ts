@@ -15,7 +15,7 @@ import {
  podeRegistrarRetificacaoHomologacao,
  podeRegistrarRetificacaoHomologacaoParcial,
  podeRegistrarRetomadaCronograma,
- proximoNumeroCertame,
+ gerarNumeroCertame,
  situacaoAtualDoHistorico,
 } from "./validations";
 
@@ -42,7 +42,7 @@ describe("RN-23 — certameDuplicado (ER143)", () => {
  });
 
  it("não bloqueia um número inédito", () => {
-  expect(certameDuplicado(certamesMock, { numeroConcurso:"00000000999", tipoCertame:"PSS", anoConcurso:2026 })).toBe(false);
+  expect(certameDuplicado(certamesMock, { numeroConcurso:"00000099999", tipoCertame:"PSS", anoConcurso:2026 })).toBe(false);
  });
 });
 
@@ -196,11 +196,23 @@ describe("RN-24d — dataEfeitoAnteriorPublicacao", () => {
  });
 });
 
-describe("funções pré-existentes continuam corretas (regressão)", () => {
- it("proximoNumeroCertame soma 1 ao total de certames do exercício", () => {
-  expect(proximoNumeroCertame(2026, certamesMock)).toBe(String(certamesMock.filter((item) => item.anoConcurso === 2026).length + 1).padStart(11, "0"));
+describe("RN01/RN03 — gerarNumeroCertame (Número do Certame TCE-MT)", () => {
+ it("gera o próximo sequencial do exercício, somando os dois tipos de certame", () => {
+  // 2026 no mock: 5 certames (Concurso Público e PSS somados) — próximo é 6
+  expect(gerarNumeroCertame(2026, certamesMock)).toBe("00000000006");
  });
 
+ it("não soma certames de outro exercício", () => {
+  // 2025 no mock: só 1 certame — próximo é 2, não continua a contagem de 2026
+  expect(gerarNumeroCertame(2025, certamesMock)).toBe("00000000002");
+ });
+
+ it("reinicia a sequência para um exercício ainda sem nenhum certame", () => {
+  expect(gerarNumeroCertame(2027, certamesMock)).toBe("00000000001");
+ });
+});
+
+describe("funções pré-existentes continuam corretas (regressão)", () => {
  it("calcularPrazoPrestacaoContas soma 48h (2 dias) à data de efeito", () => {
   expect(calcularPrazoPrestacaoContas("10/02/2026")).toBe("12/02/2026");
  });

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Controller, useForm, type Control, type FieldValues, type Path } from "react-hook-form";
+import { Controller, useController, useForm, type Control, type FieldValues, type Path } from "react-hook-form";
 import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA, CONTROLE_PSS_USUARIO_LOGADO } from "../constants";
 import { controlePssStore, useControlePssStore } from "../controlePssStore";
 import { CONTROLE_VAGAS_BASE_PATH } from "../../controleVagas/constants";
@@ -9,7 +9,7 @@ import { useTiposCota, useTiposCotaAtivos } from "../tiposCota/tiposCotaStore";
 import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStore";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
-import { proximoNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento } from "./validations";
+import { gerarNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento } from "./validations";
 import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAO_TODOS, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
 import { useFasesCertame } from "../fasesCertame/fasesCertameStore";
 import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, ReservaCotaCargo, SituacaoCertame, TaxaInscricaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
@@ -18,7 +18,7 @@ import { BadgeSeplag } from "@componentes/Badge";
 import { MensagemSeplag } from "@componentes/Mensagem";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
 import { TabsSeplag, type TabItemSeplag } from "@componentes/Tabs";
-import { DateFieldSeplag, CheckboxFieldSeplag, DropdownFieldSeplag, MaskFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, RadioButtonFieldSeplag, SwitchFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
+import { DateFieldSeplag, CheckboxFieldSeplag, DropdownFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, RadioButtonFieldSeplag, SwitchFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
 import RotuloSeplag from "@componentes/Rotulo";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
@@ -54,6 +54,137 @@ function CampoLeiMultiplaSeplag<T extends FieldValues = any>({ name, control, la
     disabled={disabled}
    />
   )} />
+ </div>;
+}
+
+// Opção normalizada (número + título separados) para CampoLeiAplicavelSeplag — LEIS_CERTAME (domínio
+// fixo) embute os dois num só "label" ("LC 600/2017 — Contratação..."), enquanto DocumentoLegal (Documentos
+// Legais) já vem separado (titulo = número, descricao = nome da norma); normalizados aqui num só formato.
+interface LeiOpcaoCertame { id:string; numero:string; titulo:string; tipo?:string }
+
+// Campo de "lei aplicável" com seleção múltipla (checkbox) + uma marcação exclusiva de qual das
+// selecionadas é a lei aplicável (radiobutton, só habilitado em linhas já marcadas com checkbox).
+// A posição 0 do array é sempre a aplicável — marcar o radio de outra linha reordena o array para
+// promovê-la; desmarcar o checkbox da aplicável promove a próxima automaticamente (RN014). Nunca
+// existe o estado "selecionada mas sem nenhuma marcada como aplicável" enquanto houver ao menos uma
+// selecionada. Diferente de CampoLeiMultiplaSeplag (Lei de isenção/Lei da cota, sem esse conceito de
+// "aplicável"): aqui o campo de busca nunca mostra os valores escolhidos sobrepostos ao ícone de
+// lupa — eles só aparecem no bloco de confirmação abaixo, em lista.
+function CampoLeiAplicavelSeplag<T extends FieldValues = any>({ name, control, label, required, cols = "12", opcoes, onNovoCadastro, onVerLei, disabled, assunto, substantivo }: Readonly<{ name:Path<T>; control:Control<T>; label:string; required?:boolean; cols?:string; opcoes:LeiOpcaoCertame[]; onNovoCadastro:() => void; onVerLei:(id:string) => void; disabled?:boolean; assunto:string; substantivo:string }>) {
+ const { field } = useController({ name, control, rules: required ? { validate:(value) => (Array.isArray(value) && value.length > 0) || `${label} é obrigatório` } : undefined });
+ const rootRef = useRef<HTMLDivElement>(null);
+ const inputRef = useRef<HTMLInputElement>(null);
+ const [isOpen, setIsOpen] = useState(false);
+ const [search, setSearch] = useState("");
+ const selecionadosIds = (field.value as string[] | undefined) ?? [];
+
+ const opcoesFiltradas = useMemo(() => {
+  const query = search.trim().toLocaleLowerCase("pt-BR");
+  if (!query) return opcoes;
+  return opcoes.filter((item) => `${item.numero} ${item.titulo}`.toLocaleLowerCase("pt-BR").includes(query));
+ }, [opcoes, search]);
+ // Ordem da lista de confirmação segue a ordem do array (posição 0 = aplicável), não a ordem do catálogo.
+ const selecionadas = useMemo(() => selecionadosIds.map((id) => opcoes.find((item) => item.id === id)).filter((item):item is LeiOpcaoCertame => Boolean(item)), [selecionadosIds, opcoes]);
+
+ useEffect(() => {
+  if (!isOpen) return undefined;
+  const handlePointerDown = (event:MouseEvent) => { if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false); };
+  document.addEventListener("mousedown", handlePointerDown);
+  return () => document.removeEventListener("mousedown", handlePointerDown);
+ }, [isOpen]);
+
+ const abrir = () => { if (!disabled) setIsOpen(true); };
+ const fechar = () => { setIsOpen(false); };
+
+ const alternarSelecao = (id:string) => {
+  if (selecionadosIds.includes(id)) {
+   // RN014: se a lei removida era a aplicável (posição 0) e ainda sobra alguma, a próxima assume o lugar automaticamente — a própria filtragem já preserva a ordem das demais.
+   const restantes = selecionadosIds.filter((item) => item !== id);
+   field.onChange(restantes.length > 0 ? restantes : undefined);
+  } else {
+   field.onChange([...selecionadosIds, id]);
+  }
+ };
+ const marcarAplicavel = (id:string) => {
+  if (!selecionadosIds.includes(id) || selecionadosIds[0] === id) return;
+  field.onChange([id, ...selecionadosIds.filter((item) => item !== id)]);
+ };
+ const removerSelecionada = (id:string) => alternarSelecao(id);
+
+ return <div className={gridCss(cols)}>
+  <div className={`prototype-certame-lei-aplicavel${disabled ? " is-disabled" : ""}`} ref={rootRef}>
+   <div className="prototype-certame-lei-aplicavel-header">
+    <span className="label-rotulo">{label}{required && <span className="obrigatorio"> *</span>}</span>
+    {!disabled && <button type="button" className="prototype-certame-lei-aplicavel-novo" onClick={onNovoCadastro}><i className="pi pi-plus-circle" aria-hidden="true" />NOVO CADASTRO</button>}
+   </div>
+
+   <div className={`prototype-certame-lei-aplicavel-shell${isOpen ? " is-open" : ""}`} role="combobox" aria-expanded={isOpen} aria-haspopup="true" aria-disabled={disabled} onClick={abrir}>
+    <i className="pi pi-search" aria-hidden="true" />
+    <input
+     ref={inputRef}
+     className="prototype-certame-lei-aplicavel-input"
+     value={search}
+     placeholder="Buscar por número ou título da lei"
+     disabled={disabled}
+     aria-label={label}
+     onChange={(event) => { setSearch(event.target.value); setIsOpen(true); }}
+     onFocus={abrir}
+     onKeyDown={(event) => { if (event.key === "Escape" && isOpen) { event.preventDefault(); fechar(); } }}
+    />
+    {!disabled && <i className={`pi ${isOpen ? "pi-chevron-up" : "pi-chevron-down"} prototype-certame-lei-aplicavel-chevron`} aria-hidden="true" onClick={(event) => { event.stopPropagation(); if (isOpen) fechar(); else abrir(); }} />}
+   </div>
+
+   {isOpen && !disabled && <div className="prototype-certame-lei-aplicavel-dropdown">
+    <div className="prototype-certame-lei-aplicavel-dropdown-titulo">Escolha a(s) lei(s) aplicável(is) {assunto}</div>
+    <div className="prototype-certame-lei-aplicavel-opcoes">
+     {opcoesFiltradas.length ? opcoesFiltradas.map((opcao) => {
+      const marcadaSelecao = selecionadosIds.includes(opcao.id);
+      const marcadaAplicavel = selecionadosIds[0] === opcao.id;
+      return <div
+       key={opcao.id}
+       className={`prototype-certame-lei-aplicavel-opcao${marcadaSelecao ? " is-selecionada" : ""}`}
+       role="checkbox"
+       aria-checked={marcadaSelecao}
+       aria-label={`Selecionar ${opcao.numero}`}
+       tabIndex={0}
+       onClick={() => alternarSelecao(opcao.id)}
+       onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); alternarSelecao(opcao.id); } }}
+      >
+       <input
+        type="radio"
+        name={`${name}-aplicavel`}
+        className="prototype-certame-lei-aplicavel-radio-input"
+        checked={marcadaAplicavel}
+        disabled={!marcadaSelecao}
+        aria-label={`Marcar ${opcao.numero} como lei aplicável`}
+        onClick={(event) => event.stopPropagation()}
+        onChange={() => marcarAplicavel(opcao.id)}
+       />
+       <span className="prototype-certame-lei-aplicavel-opcao-texto">
+        <span className="prototype-certame-lei-aplicavel-numero">{opcao.numero}{opcao.tipo && <span className="prototype-certame-lei-aplicavel-tipo"> · {opcao.tipo}</span>}</span>
+        <span className="prototype-certame-lei-aplicavel-titulo">{opcao.titulo}</span>
+       </span>
+       {marcadaAplicavel && <span className="prototype-certame-lei-aplicavel-pill"><i className="pi pi-star-fill" aria-hidden="true" /> Lei aplicável</span>}
+      </div>;
+     }) : <div className="prototype-certame-lei-aplicavel-vazio">Nenhuma lei encontrada.</div>}
+    </div>
+    <div className="prototype-certame-lei-aplicavel-dropdown-rodape"><i className="pi pi-star-fill" aria-hidden="true" /> Marque o radiobutton para indicar qual lei selecionada é a aplicável — só uma por {substantivo}.</div>
+   </div>}
+
+   <div className="prototype-certame-lei-aplicavel-confirmacao">
+    {selecionadas.length > 0 ? <div className="prototype-certame-lei-aplicavel-confirmacao-lista">
+     {selecionadas.map((item, index) => <div className="prototype-certame-lei-aplicavel-confirmacao-item" key={item.id}>
+      {index === 0 ? <i className="pi pi-star-fill" aria-hidden="true" /> : <span className="prototype-certame-lei-aplicavel-confirmacao-spacer" aria-hidden="true" />}
+      <div className="prototype-certame-lei-aplicavel-confirmacao-texto">
+       {index === 0 && <strong>Lei aplicável {assunto}</strong>}
+       <span>{item.numero} — {item.titulo}</span>
+      </div>
+      <button type="button" className="prototype-certame-lei-aplicavel-ver" onClick={() => onVerLei(item.id)}>Ver lei</button>
+      {!disabled && <button type="button" className="prototype-certame-lei-aplicavel-remover" aria-label={`Remover ${item.numero}`} onClick={() => removerSelecionada(item.id)}><i className="pi pi-times" aria-hidden="true" /></button>}
+     </div>)}
+    </div> : <span className="prototype-certame-lei-aplicavel-confirmacao-vazio">{required ? "Nenhuma lei escolhida — campo obrigatório." : "Nenhuma lei escolhida."}</span>}
+   </div>
+  </div>
  </div>;
 }
 
@@ -176,7 +307,7 @@ function valoresIniciais(certame:Certame | undefined, certames:readonly Certame[
   tipoCertame:"PSS", tipoConcursoAplic:"4",
   regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO",
   setor:"", setoresParticipantes:[], objetivo:"",
-  numeroConcurso:proximoNumeroCertame(anoReferencia, certames), anoConcurso:anoReferencia,
+  numeroConcurso:gerarNumeroCertame(anoReferencia, certames), anoConcurso:anoReferencia,
   nomeEdital:"", numeroEditalOrgao:"",
   dataPublicacaoEdital:"", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG",
   existePrevisaoRecursos:"N", gerouDespesas:"N", cobraTaxaInscricao:"N",
@@ -272,6 +403,14 @@ export function CertameFormContent() {
   ...LEIS_CERTAME.map((lei) => ({ id:lei.value, titulo:lei.label, categoria:"Lei" })),
   ...documentosLegaisCadastrados.map((documento) => ({ id:documento.id, titulo:documento.titulo, categoria:documento.categoria, descricao:documento.descricao })),
  ], [documentosLegaisCadastrados]);
+ // Mesmas fontes de opcoesLeis, mas com número e título já separados (CampoLeiAplicavelSeplag — Lei
+ // do concurso/contrato temporário/processo seletivo): LEIS_CERTAME embute os dois num só "label"
+ // ("LC 600/2017 — Contratação..."); DocumentoLegal (Documentos Legais) já vem separado (titulo é só
+ // o número, descricao é o nome da norma).
+ const opcoesLeisCertame = useMemo<LeiOpcaoCertame[]>(() => [
+  ...LEIS_CERTAME.map((lei) => { const [numero, titulo] = lei.label.split(" — "); return { id:lei.value, numero, titulo:titulo ?? "" }; }),
+  ...documentosLegaisCadastrados.map((documento) => ({ id:documento.id, numero:documento.titulo, titulo:documento.descricao || documento.titulo, tipo:documento.categoria })),
+ ], [documentosLegaisCadastrados]);
  const campoLeiRetorno = searchParams.get("campoLei");
  const irCadastrarLei = (campoLei:string) => {
   const returnTo = `${location.pathname}?campoLei=${campoLei}`;
@@ -331,6 +470,19 @@ export function CertameFormContent() {
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [valores.setor]);
+
+ // RN01/RN03 (ver especificação "Número do Certame TCE-MT"): o número nunca é digitado — é
+ // recalculado automaticamente enquanto o certame ainda não foi salvo pela primeira vez, refletindo
+ // o Ano ainda em edição na pré-visualização (o Tipo do certame não entra na conta — RN02 original
+ // foi descartado a pedido: Concurso Público e PSS dividem a mesma sequência do exercício, e o tipo
+ // já é distinguido pelo campo "Tipo do certame"). RN04/RN06 travam o valor definitivamente a partir
+ // do primeiro "Salvar certame" — depois disso nem reabrir para editar nem nenhuma alteração geram
+ // um número novo (ver também o campo "Ano do concurso", travado no mesmo momento por V3).
+ useEffect(() => {
+  if (!modoNovo || certameSalvoRef.current) return;
+  setValue("numeroConcurso", gerarNumeroCertame(valores.anoConcurso, certames));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [modoNovo, valores.anoConcurso, certames]);
 
  const selecionarTipoCertame = (tipo:TipoCertame) => {
   const concurso = tipo === "CONCURSO_PUBLICO";
@@ -710,8 +862,19 @@ export function CertameFormContent() {
          const semSigla = (texto?:string) => texto?.replace(/\s*\([^)]*\)\s*$/, "").trim();
          return rotuloAplicTce && semSigla(rotuloAplicTce) !== semSigla(rotuloTipoCertame) ? `${rotuloTipoCertame} — ${rotuloAplicTce}` : (rotuloAplicTce ?? rotuloTipoCertame);
         })()}</div></RotuloSeplag>
-        <NumberFieldSeplag name="anoConcurso" control={control} label="Ano do concurso" required cols="12 6 4" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <MaskFieldSeplag name="numeroConcurso" control={control} label="Número do certame (TCE-MT)" required cols="12 6" mask="99999999999" placeholder="00000000000" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        {/* Ano do concurso trava junto com o número a partir do primeiro "Salvar certame" — o número
+            é sequencial por exercício (RN03), então trocar o ano depois de gravado desalinharia a
+            contagem da qual o número já congelado fazia parte. */}
+        {!modoNovo
+         ? <RotuloSeplag nome="Ano do concurso" cols="12 6 4" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">{valores.anoConcurso}</div><small>Bloqueado após o cadastro — RN04/RN06.</small></div></RotuloSeplag>
+         : <NumberFieldSeplag name="anoConcurso" control={control} label="Ano do concurso" required cols="12 6 4" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+        {/* Número do certame (TCE-MT) nunca é digitado (RN01) — sempre calculado pelo sistema:
+            sequencial de 11 dígitos, zerado a cada exercício (RN03). O tipo do certame não é
+            codificado no número — Concurso Público e PSS dividem a mesma sequência do exercício, já
+            que o tipo é distinguido pelo campo "Tipo do certame" acima. Some enquanto o certame ainda
+            não foi salvo (reflete o Ano em edição) e trava para sempre a partir do primeiro "Salvar
+            certame" — RN04/RN06 (ver useEffect de geração acima). */}
+        <RotuloSeplag nome="Número do certame (TCE-MT)" cols="12 6" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor prototype-certame-campo-fixo-mono">{valores.numeroConcurso}</div><small>Gerado automaticamente pelo sistema — RN01/RN03.</small></div></RotuloSeplag>
         <TextFieldSeplag name="numeroEditalOrgao" control={control} label="Número do edital do órgão" required cols="12 6" placeholder="Ex.: 001/SEPLAG/2026" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         <TextFieldSeplag name="nomeEdital" control={control} label="Nome do edital" required cols="12" placeholder="[NÚMERO]/[ÓRGÃO]/[ANO] [descrição livre]" disabled={modoVisualizar} getFormErrorMessage={() => null} />
        </div>
@@ -736,8 +899,8 @@ export function CertameFormContent() {
             jurídico é filtrado pelos regimes cadastrados no vínculo já selecionado. */}
         <DropdownFieldSeplag name="tipoVinculo" control={control} label="Tipo de vínculo" required cols={colsEnquadramento} options={opcoesTipoVinculo} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         <DropdownFieldSeplag name="regimeJuridico" control={control} label="Regime jurídico" required cols={colsEnquadramento} options={opcoesRegimeJuridico} optionLabel="label" optionValue="value" placeholder={tipoVinculoSelecionado ? "Selecione" : "Selecione o tipo de vínculo primeiro"} showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar || !tipoVinculoSelecionado} getFormErrorMessage={() => null} />
-        <CampoLeiMultiplaSeplag name="leiContratoTemporario" control={control} label={dispensarParaConcurso ? "Lei do concurso" : "Lei de contrato temporário"} required={dispensarParaConcurso || valores.tipoVinculo === "CONTRATO_TEMPORARIO"} cols={colsEnquadramento} opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiContratoTemporario")} disabled={modoVisualizar} />
-        {dispensarParaProcessoSeletivo && <CampoLeiMultiplaSeplag name="leiProcessoSeletivoSimplificado" control={control} label="Lei do processo seletivo" required cols={colsEnquadramento} opcoes={opcoesLeis} onNovoCadastro={() => irCadastrarLei("leiProcessoSeletivoSimplificado")} disabled={modoVisualizar} />}
+        <CampoLeiAplicavelSeplag name="leiContratoTemporario" control={control} label={dispensarParaConcurso ? "Lei do concurso" : "Lei de contrato temporário"} required={dispensarParaConcurso || valores.tipoVinculo === "CONTRATO_TEMPORARIO"} cols={colsEnquadramento} opcoes={opcoesLeisCertame} assunto={dispensarParaConcurso ? "ao concurso" : "ao contrato temporário"} substantivo={dispensarParaConcurso ? "concurso" : "contrato temporário"} onNovoCadastro={() => irCadastrarLei("leiContratoTemporario")} onVerLei={(id) => navigate(`/prototipos/sigep/documentos-legais/${id}`)} disabled={modoVisualizar} />
+        {dispensarParaProcessoSeletivo && <CampoLeiAplicavelSeplag name="leiProcessoSeletivoSimplificado" control={control} label="Lei do processo seletivo" required cols={colsEnquadramento} opcoes={opcoesLeisCertame} assunto="ao processo seletivo" substantivo="processo seletivo" onNovoCadastro={() => irCadastrarLei("leiProcessoSeletivoSimplificado")} onVerLei={(id) => navigate(`/prototipos/sigep/documentos-legais/${id}`)} disabled={modoVisualizar} />}
        </div>
       </div>
 

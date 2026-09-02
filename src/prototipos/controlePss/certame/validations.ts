@@ -2,10 +2,12 @@ import { addDays, differenceInCalendarDays, format, isBefore } from "date-fns";
 import { stringToDateSeplag } from "@uteis/manipulaData";
 import type { Certame, SituacaoCertame, SituacaoHistoricoCertame, TipoCertame } from "./types";
 
-// RN-03: número sequencial de 11 dígitos, zerado a cada exercício — sugerido automaticamente
-// (Cenário 3) mas sempre editável pelo usuário até a publicação do edital.
-export function proximoNumeroCertame(exercicio:number, certames:readonly Certame[]):string {
- const doExercicio = certames.filter((certame) => certame.anoConcurso === exercicio).length;
+// RN01/RN03: o número do certame (TCE-MT) nunca é digitado — sempre calculado, sequencial de 11
+// dígitos, zerado a cada exercício. O tipo do certame (Concurso Público/PSS) não é codificado dentro
+// deste número — já é um campo próprio do cadastro (Tipo do certame), então Concurso Público e PSS
+// dividem a mesma sequência dentro do mesmo exercício.
+export function gerarNumeroCertame(ano:number, certames:readonly Certame[]):string {
+ const doExercicio = certames.filter((certame) => certame.anoConcurso === ano).length;
  return String(doExercicio + 1).padStart(11, "0");
 }
 

@@ -64,6 +64,8 @@ export interface Certame {
  // 1. Dados Gerais do Certame
  tipoCertame:TipoCertame;
  tipoConcursoAplic:string;
+ // RN007.1: o campo permite marcar mais de uma lei; a posição 0 do array é sempre a lei aplicável
+ // (marcada por radiobutton na tela — ver CampoLeiAplicavelSeplag em CertameFormContent.tsx).
  leiContratoTemporario?:readonly string[];
  leiProcessoSeletivoSimplificado?:readonly string[];
  regimeJuridico:RegimeJuridicoCertame;
