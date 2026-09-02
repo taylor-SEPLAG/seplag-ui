@@ -18,7 +18,7 @@ import { BotaoAdicionarSeplag, BotaoLimparFiltroSeplag } from "@componentes/Bota
 import { DropdownFieldSeplag } from "@componentes/Fields";
 import "./certame.css";
 
-const abaLabel:Record<RascunhoCertame["aba"], string> = { IDENTIFICACAO:"Identificação", CRONOGRAMA:"Cronograma", FINANCEIRO:"Contrato e Custos", VAGAS_COTAS:"Vagas e Cotas", DOCUMENTOS:"Documentos" };
+const abaLabel:Record<RascunhoCertame["aba"], string> = { IDENTIFICACAO:"Identificação", CRONOGRAMA:"Cronograma", FINANCEIRO:"Contrato e Custos", VAGAS_COTAS:"Vagas", DOCUMENTOS:"Documentos" };
 
 interface FiltroForm { termo:string }
 

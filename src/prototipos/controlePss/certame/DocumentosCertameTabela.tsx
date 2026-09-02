@@ -16,17 +16,6 @@ export function arquivoDocumentoCertameValido(arquivo:File):boolean {
  return EXTENSOES_DOCUMENTO_CERTAME.includes(extensao) && arquivo.size <= TAMANHO_MAXIMO_DOCUMENTO_CERTAME;
 }
 
-function baixarArquivoDocumentoCertame(arquivo:ArquivoAnexadoSeplag) {
- const binario = atob(arquivo.conteudoEmBase64);
- const bytes = Uint8Array.from(binario, (caractere) => caractere.codePointAt(0) ?? 0);
- const url = URL.createObjectURL(new Blob([bytes], { type:arquivo.contentType || "application/pdf" }));
- const link = document.createElement("a");
- link.href = url;
- link.download = arquivo.nome;
- link.click();
- URL.revokeObjectURL(url);
-}
-
 export function formatarTamanhoArquivo(tamanho?:string | number):string {
  if (tamanho === undefined || tamanho === null || tamanho === "") return "—";
  if (typeof tamanho === "string") return tamanho;
@@ -45,7 +34,7 @@ export interface DocumentosCertameTabelaProps {
  readonly onChangeArquivo: (tipo:TipoDocumentoCertame, arquivo:ArquivoAnexadoSeplag | undefined) => void;
  readonly documentoObrigatorio?: (tipo:string, obrigatorioSempre:boolean) => boolean;
  readonly onError: (mensagem:string) => void;
- /** Esconde upload/download/remoção — só o botão de visualizar. Usado ao consultar os documentos
+ /** Esconde upload/remoção — só o botão de visualizar. Usado ao consultar os documentos
   * de uma situação já registrada no histórico, para não parecer editável um registro já salvo. */
  readonly somenteLeitura?: boolean;
 }
@@ -92,7 +81,6 @@ export function DocumentosCertameTabela({ documentos, arquivos, onChangeArquivo,
    <input id={inputId} type="file" accept="application/pdf" style={{ display:"none" }} onChange={(event) => { const arquivoSelecionado = event.target.files?.[0]; if (arquivoSelecionado) criarUploadHandler(tipo)({ files:[arquivoSelecionado] }); event.target.value = ""; }} />
    <BotaoIconSeplag type="button" icon="pi pi-cloud-upload" tooltip={arquivo ? "Substituir documento" : "Anexar documento"} onClick={() => document.getElementById(inputId)?.click()} />
    <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar documento" disabled={!arquivo} onClick={() => setDocumentoVisualizando(tipo)} />
-   <BotaoIconSeplag type="button" icon="pi pi-download" tooltip="Realizar download do arquivo anexado." disabled={!arquivo} onClick={() => arquivo && baixarArquivoDocumentoCertame(arquivo)} />
    <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover documento" disabled={!arquivo} onClick={() => { onChangeArquivo(tipo, undefined); setDocumentosVersao((versao) => versao + 1); }} />
   </>;
  };
