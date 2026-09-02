@@ -18,10 +18,16 @@
 .prototype-documentos-legais-table th:nth-child(3) { min-width: 17rem; }
 .prototype-documentos-legais-table th:nth-child(4) { min-width: 11rem; }
 .prototype-documentos-legais-table th:nth-child(5) { min-width: 13rem; }
-.prototype-documentos-legais-table th:nth-child(6) { width: 10rem; text-align: center; }
+.prototype-documentos-legais-table th:nth-child(6) { width: 11rem; text-align: center; }
 .prototype-documentos-legais-table td:nth-child(6) { text-align: center; }
+.prototype-documentos-legais-table th:nth-child(7) { width: 9rem; text-align: center; }
+.prototype-documentos-legais-table td:nth-child(7) { text-align: center; }
 .prototype-documentos-legais-table th:last-child { width: 8rem; }
 .prototype-documentos-legais-number { color: #005494; }
+.prototype-documentos-legais-applications > p { margin: 0 0 14px; color: #334e68; }
+.prototype-documentos-legais-applications > ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.prototype-documentos-legais-applications li { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid #d8e0e8; border-radius: 4px; background: #f8fafc; }
+.prototype-documentos-legais-applications li .pi { color: #0878c9; }
 @media (max-width: 900px) {
   .prototype-documentos-legais-clear .p-button { width: 100% !important; }
 }
