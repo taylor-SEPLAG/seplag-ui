@@ -8465,7 +8465,6 @@ export function PrototiposCargoPage({
   const cargoColumns: ColumnMetaSeplag<CargoTesteRow>[] = [
     { field: "codigo", header: "Sigla" },
     { field: "cargo", header: "Cargo" },
-    { field: "vigencia", header: "Vigência" },
     {
       header: "Situação",
       body: (row) => (
@@ -10609,7 +10608,6 @@ export function PrototiposTipoVinculoTestePage({
         </BotaoChipSeplag>
       ),
     },
-    { field: "vigencia", header: "Vigência" },
     {
       header: "Situação",
       body: (row) => (
@@ -10764,9 +10762,6 @@ export function PrototiposTipoVinculoTesteFormPage({
   const tipoEmEdicao = id
     ? tiposVinculoTesteMock.find((item) => String(item.id) === id)
     : undefined;
-  const [baseLegalSelecionada, setBaseLegalSelecionada] = useState<string[]>(
-    [],
-  );
   const [dataInicioVigenciaEdicao = "", dataEncerramentoVigenciaEdicao = ""] =
     tipoEmEdicao?.vigencia.split(" - ") ?? [];
   const { control, handleSubmit, setValue, watch } = useForm<TipoVinculoForm>({
@@ -10823,7 +10818,6 @@ export function PrototiposTipoVinculoTesteFormPage({
   const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
-  const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
   const situacaoInicial = tipoEmEdicao?.situacao === "EXTINTO"
     ? "Extinto"
     : encerramentoIso && encerramentoIso <= hojeIso
@@ -10915,21 +10909,6 @@ export function PrototiposTipoVinculoTesteFormPage({
           </section>
           <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEditing} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o tipo de vínculo" getFormErrorMessage={() => null} permitirEncerramento={false} />
           </div>
-
-          {isEditing ? (
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
-              <div>
-                <h2>Base legal</h2>
-                <p>Associe os documentos que fundamentam o tipo de vínculo.</p>
-              </div>
-            </header>
-            <div className="prototype-carreira-register-body">
-              <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegaisMock} value={baseLegalSelecionada} onChange={setBaseLegalSelecionada} onNovoCadastro={() => navigate(novoDocumentoUrl)} onVisualizar={() => {}} expandirAoAbrir />
-            </div>
-          </section>
-          ) : null}
 
           <section className="prototype-carreira-register-section">
             <header>
