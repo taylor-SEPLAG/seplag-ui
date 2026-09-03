@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CONTROLE_PSS_BASE_PATH as BASE } from "../constants";
 import { TIPOS_FASE_CONCURSO_TCE } from "../certame/dominios";
+import { useControlePssStore } from "../controlePssStore";
 import { fasesCertameStore, useFasesCertame, type FaseCertameCatalogo } from "./fasesCertameStore";
 import { CardSeplag } from "@componentes/Card";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoLimparFiltroSeplag } from "@componentes/Botao";
@@ -13,7 +14,12 @@ const ITENS_POR_PAGINA_OPCOES = [5, 10, 20];
 
 export function FasesCertameListContent() {
  const fases = useFasesCertame();
+ const { certames } = useControlePssStore();
  const navigate = useNavigate();
+ // RN006: uma fase referenciada no cronograma de algum certame (por nome — Certame.fases não guarda
+ // o id do catálogo, só o nome escolhido no Dropdown) não pode ser inativada, para não sumir da
+ // lista de sugestões (RN004) de quem já a usa.
+ const nomesFaseEmUso = useMemo(() => new Set(certames.flatMap((certame) => certame.fases.map((fase) => fase.nome))), [certames]);
  const [nomeFiltro, setNomeFiltro] = useState("");
  const [origemFiltro, setOrigemFiltro] = useState("");
  const [pagina, setPagina] = useState(1);
@@ -76,7 +82,9 @@ export function FasesCertameListContent() {
       <tbody>
        {listaPaginada.length === 0
         ? <tr><td colSpan={4} className="prototype-empty-table-cell">Nenhum registro encontrado para os filtros informados.</td></tr>
-        : listaPaginada.map((row:FaseCertameCatalogo) => (
+        : listaPaginada.map((row:FaseCertameCatalogo) => {
+         const emUso = row.situacao === "ATIVO" && nomesFaseEmUso.has(row.nome);
+         return (
          <tr key={row.id}>
           <td>{row.nome}</td>
           <td>{row.tipoTceId ? <span title={rotuloTipoTce(row.tipoTceId)}>Tabela do TCE-MT</span> : "Personalizada"}</td>
@@ -84,11 +92,12 @@ export function FasesCertameListContent() {
           <td>
            <div className="flex gap-2">
             <BotaoIconSeplag type="button" tooltip="Editar" icon="pi pi-pencil" style={{ backgroundColor:SEPLAG_YELLOW, borderColor:SEPLAG_YELLOW }} onClick={() => navigate(`${BASE}/fases-certame/${row.id}`)} />
-            <BotaoIconSeplag type="button" severity={row.situacao === "ATIVO" ? "danger" : "success"} style={row.situacao === "ATIVO" ? undefined : { backgroundColor:SEPLAG_SUCCESS_DARK, borderColor:SEPLAG_SUCCESS_DARK }} tooltip={row.situacao === "ATIVO" ? "Inativar" : "Ativar"} icon={row.situacao === "ATIVO" ? "pi pi-ban" : "pi pi-check"} onClick={() => fasesCertameStore.toggleSituacao(row.id)} />
+            <BotaoIconSeplag type="button" disabled={emUso} severity={row.situacao === "ATIVO" ? "danger" : "success"} style={row.situacao === "ATIVO" ? undefined : { backgroundColor:SEPLAG_SUCCESS_DARK, borderColor:SEPLAG_SUCCESS_DARK }} tooltip={emUso ? "Fase em uso no cronograma de um ou mais certames" : (row.situacao === "ATIVO" ? "Inativar" : "Ativar")} icon={row.situacao === "ATIVO" ? "pi pi-ban" : "pi pi-check"} onClick={() => fasesCertameStore.toggleSituacao(row.id)} />
            </div>
           </td>
          </tr>
-        ))}
+         );
+        })}
       </tbody>
       </table>
      </div>
