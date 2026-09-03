@@ -267,7 +267,7 @@ export function PrototiposDocumentoLegalFormPage() {
               name="relacionaNormas"
               control={control}
               label="Qual a relação deste documento com outras normas?"
-              cols="12"
+              cols="12 12 6"
               options={[
                 { label: "Não altera nem revoga outra norma", value: "NENHUMA" },
                 { label: "Altera outra norma", value: "ALTERA" },
@@ -281,10 +281,10 @@ export function PrototiposDocumentoLegalFormPage() {
               getFormErrorMessage={() => null}
             />
             {relacionaNormas === "ALTERA" ? (
-              <MultiSelectFieldSeplag name="normasAlteradas" control={control} label="Norma(s) alterada(s)" cols="12" options={normasOptions} optionLabel="label" optionValue="value" display="chip" readOnly={viewing} selectedItemsLabel="{0} normas selecionadas" required getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="normasAlteradas" control={control} label="Norma(s) alterada(s)" cols="12 12 6" options={normasOptions} optionLabel="label" optionValue="value" display="chip" readOnly={viewing} selectedItemsLabel="{0} normas selecionadas" required getFormErrorMessage={() => null} />
             ) : null}
             {relacionaNormas === "REVOGA" ? <>
-              <MultiSelectFieldSeplag name="normasRevogadas" control={control} label="Norma(s) revogada(s)" cols="12" options={normasOptions} optionLabel="label" optionValue="value" display="chip" readOnly={viewing} selectedItemsLabel="{0} normas selecionadas" required getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="normasRevogadas" control={control} label="Norma(s) revogada(s)" cols="12 12 6" options={normasOptions} optionLabel="label" optionValue="value" display="chip" readOnly={viewing} selectedItemsLabel="{0} normas selecionadas" required getFormErrorMessage={() => null} />
               <div className="col-12 prototype-documentos-legais-info"><i className="pi pi-info-circle" /> Normas revogadas permanecem disponíveis para consulta e histórico. Elas não são substituídas automaticamente nos registros em que já foram utilizadas.</div>
             </> : null}
             </div>
