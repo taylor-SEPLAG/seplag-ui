@@ -173,6 +173,9 @@
 .prototype-certame-campo-fixo{display:flex;flex-direction:column;gap:.3rem}
 .prototype-certame-campo-fixo-valor{display:flex;align-items:center;min-height:2.6rem;padding:0 .75rem;border:1px solid var(--surface-border);border-radius:6px;background:var(--surface-100);color:var(--text-color-secondary);font-size:.9rem}
 .prototype-certame-campo-fixo small{color:var(--text-color-secondary);font-size:.72rem;line-height:1.3}
+/* Número do certame (TCE-MT) — dígitos alinhados/tabulares, para o valor de 11 dígitos gerado pelo
+   sistema (RN01/RN02) não parecer um texto qualquer nem quebrar visualmente entre os três blocos. */
+.prototype-certame-campo-fixo-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700;letter-spacing:.03em;font-variant-numeric:tabular-nums}
 
 .prototype-certame-link-btn{display:flex;flex-direction:column;gap:.1rem;padding:0;border:0;background:none;color:var(--primary-color);cursor:pointer;text-align:left}
 .prototype-certame-link-btn strong{font-size:.85rem}
@@ -205,28 +208,50 @@
 .prototype-certame-form-page [class*="_selectedCount_"],
 .prototype-certame-form-page [class*="_concluir_"]{font-size:.7rem}
 
-/* Agrupamento do formulário "Cargos e vagas" em seções numeradas (1 Identificação da vaga,
-   2 Localização e jornada, 3 Reserva de cotas) — cada uma com sua própria grade de campos. Espaço
-   maior entre seções para ficarem visualmente separadas (não só o título numerado diferenciando). */
-.prototype-certame-subform-secao{margin-top:1.75rem;padding-top:1.5rem;border-top:1px solid var(--surface-border)}
-.prototype-certame-subform-secao:first-child{margin-top:0;padding-top:0;border-top:0}
+/* Formulário de vagas: cinco blocos brancos independentes, com o mesmo cabeçalho e espaçamento. */
+.prototype-certame-vaga-principal{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(260px,1fr);gap:1rem}
+.prototype-certame-vaga-area{min-width:0;padding:1.1rem;border:1px solid var(--surface-border);border-radius:8px;background:var(--surface-0)}
+.prototype-certame-vaga-area-header{display:flex;align-items:center;gap:.65rem;margin:0 0 1.15rem}
+.prototype-certame-vaga-area-header h4{margin:0;color:var(--text-color);font-size:.88rem;font-weight:800}
+.prototype-certame-vaga-area-icone{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 34px;border-radius:7px;background:#e6f3ff;color:#0072bc;font-size:.9rem}
+.prototype-certame-vaga-dados .grid{row-gap:.35rem}
+.prototype-certame-vaga-cr .p-inputnumber{width:100%;max-width:220px}
+.prototype-certame-vaga-cotas{margin-top:1rem}
+.prototype-certame-cotas-conteudo.is-active{display:grid;grid-template-columns:minmax(190px,24%) minmax(0,1fr);gap:1.25rem;align-items:start}
+.prototype-certame-cotas-opcao{min-width:0}
+.prototype-certame-cotas-detalhes{min-width:0;padding-left:1.25rem}
 .prototype-certame-subform-secao-titulo{display:flex;align-items:center;gap:.55rem;margin-bottom:.65rem;color:var(--text-color);font-size:.88rem;font-weight:800}
 .prototype-certame-subform-secao-titulo small{font-weight:600;color:var(--text-color-secondary);font-size:.72rem}
-.prototype-certame-subform-secao-numero{display:inline-flex;flex:0 0 22px;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:var(--primary-color);color:#fff;font-size:.72rem;font-weight:800}
+.prototype-certame-subform-secao-titulo>.pi{color:var(--primary-color);font-size:.86rem}
 .prototype-certame-subform-secao-info{color:var(--text-color-secondary);font-size:.82rem;cursor:help}
 .prototype-certame-subform-rodape{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--surface-border)}
+.prototype-certame-cota-campos{margin-top:0}
+.prototype-certame-cota-campos .p-dropdown,.prototype-certame-cota-campos .p-inputnumber{max-width:100%}
+.prototype-certame-cota-campos .prototype-certame-add-cota{max-width:190px}
+.prototype-certame-add-cota .p-button{min-width:170px;white-space:nowrap}
+.prototype-certame-add-cota .p-button-label{white-space:nowrap}
+.prototype-certame-cotas-grid{width:100%;margin-top:.75rem;overflow-x:auto;border:1px solid var(--surface-border);border-radius:6px}
+.prototype-certame-cotas-grid table{width:100%;table-layout:fixed;border-collapse:collapse}
+.prototype-certame-cotas-grid th,.prototype-certame-cotas-grid td{padding:.65rem 1rem;border-bottom:1px solid var(--surface-border);font-size:.78rem;text-align:left}
+.prototype-certame-cotas-grid th{background:var(--surface-50);color:var(--text-color-secondary);font-size:.7rem;font-weight:800;text-transform:uppercase}
+.prototype-certame-cotas-grid tr:last-child td{border-bottom:0}
+.prototype-certame-cotas-grid th:first-child,.prototype-certame-cotas-grid td:first-child{width:58%}
+.prototype-certame-cotas-grid th:nth-child(2),.prototype-certame-cotas-grid td:nth-child(2){width:22%;text-align:right}
+.prototype-certame-cotas-grid th:last-child,.prototype-certame-cotas-grid td:last-child{width:20%;text-align:center}
+.prototype-certame-cotas-grid button{width:28px;height:28px;padding:0;border:0;border-radius:4px;background:transparent;color:#c62828;cursor:pointer}
+.prototype-certame-cotas-grid button:hover{background:#ffebee}
+.prototype-certame-cotas-empty{text-align:center!important;color:var(--text-color-secondary)}
 
 /* "Resumo da vaga" — pills com o que já foi preenchido no formulário acima, antes de confirmar a
    inclusão na lista (substitui o antigo rodapé de texto simples + botão "Adicionar"). */
-.prototype-certame-resumo-vaga{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;margin-top:1.25rem;padding-top:1.1rem;border-top:1px solid var(--surface-border)}
-.prototype-certame-resumo-vaga-titulo{display:flex;align-items:center;gap:.6rem;flex:0 0 auto;white-space:nowrap;color:var(--text-color);font-size:.85rem;font-weight:800}
-.prototype-certame-resumo-vaga-icone{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:0 0 28px;border-radius:6px;background:#e6f3ff;color:#0072bc;font-size:.85rem}
+.prototype-certame-resumo-vaga{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;margin-top:1rem}
+.prototype-certame-resumo-vaga .prototype-certame-vaga-area-header{flex:0 0 auto;margin:0}
 .prototype-certame-resumo-vaga-pills{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;flex:1 1 auto}
 .prototype-certame-resumo-vaga>.p-button{flex:0 0 auto;margin-left:auto}
 
 /* Título "Vagas adicionadas" acima da tabela — mesmo padrão de ícone + texto usado nos demais
    cabeçalhos de bloco/seção deste formulário. */
-.prototype-certame-cargos-tabela-titulo{display:flex;align-items:center;gap:.5rem;margin:1.5rem 0 .75rem;padding-top:1.5rem;border-top:1px solid var(--surface-border);color:var(--text-color);font-size:.85rem;font-weight:800}
+.prototype-certame-vagas-adicionadas{margin-top:1rem}
 
 /* Tabela "Vagas adicionadas" densa como no protótipo — o tamanho padrão do PrimeReact DataTable
    (16px/16px de padding) fazia texto como "Magistério"/"Tapurah"/"40 horas semanais" quebrar em
@@ -234,6 +259,17 @@
    tomada nesta tela — RN oficial não expõe edição em linha aqui). */
 .prototype-certame-cargos-tabela .p-datatable-thead>tr>th{padding:10px 12px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:var(--text-color-secondary);background:var(--surface-50);white-space:nowrap}
 .prototype-certame-cargos-tabela .p-datatable-tbody>tr>td{padding:10px 12px;font-size:.83rem}
+.prototype-certame-cotas-expand{display:inline-flex;align-items:center;gap:.35rem;padding:0;border:0;background:transparent;cursor:pointer}
+.prototype-certame-cotas-expand:disabled{cursor:default}
+.prototype-certame-cotas-expand>.pi{color:var(--primary-color);font-size:.76rem}
+
+@media (max-width:900px){
+ .prototype-certame-vaga-principal{grid-template-columns:1fr}
+ .prototype-certame-cotas-conteudo.is-active{grid-template-columns:1fr;gap:1rem}
+ .prototype-certame-cotas-detalhes{padding-left:0;padding-top:1rem;border-left:0;border-top:1px solid var(--surface-border)}
+ .prototype-certame-resumo-vaga{align-items:flex-start}
+ .prototype-certame-resumo-vaga>.p-button{width:100%;margin-left:0}
+}
 
 /* Navegação principal no padrão de abas azul/cinza da biblioteca SIGEP. */
 .prototype-certame-tabs { margin-bottom:1rem; padding-inline:0; }
@@ -395,3 +431,73 @@
 @media(max-width:640px){.prototype-certame-taxa-header,.prototype-certame-taxa-law-action{align-items:stretch;flex-direction:column}.prototype-certame-taxa-header>.p-button{width:100%}}
 .prototype-certame-save-draft.p-button{border:1px solid #3b82f6!important;background:#fff!important;color:#2563eb!important}
 .prototype-certame-save-draft.p-button:hover{border-color:#1d4ed8!important;background:#eff6ff!important;color:#1d4ed8!important}
+
+/* Campo "Lei aplicável" (CampoLeiAplicavelSeplag — Lei do concurso/contrato temporário/processo
+   seletivo): seleção múltipla (checkbox) + uma marcação exclusiva de qual é a aplicável
+   (radiobutton, só habilitado em linhas já com checkbox marcado) — RN007.1. O campo de busca nunca
+   exibe os valores escolhidos sobrepostos ao ícone de lupa; eles só aparecem, em lista, no bloco de
+   confirmação abaixo do campo. */
+.prototype-certame-lei-aplicavel{position:relative;display:flex;flex-direction:column;gap:.35rem}
+.prototype-certame-lei-aplicavel-header{display:flex;align-items:center;justify-content:space-between;gap:.5rem;min-height:2.5rem}
+.prototype-certame-lei-aplicavel-novo{display:inline-flex;align-items:center;gap:.3rem;padding:0;border:0;background:none;color:var(--primary-color);font-size:.72rem;font-weight:800;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.prototype-certame-lei-aplicavel-novo:hover,.prototype-certame-lei-aplicavel-novo:focus-visible{text-decoration:underline;outline:0}
+
+/* O campo é só busca — nunca exibe o valor escolhido embutido (ícone e texto não competem mais
+   pelo mesmo espaço). */
+.prototype-certame-lei-aplicavel-shell{display:flex;align-items:center;gap:.5rem;min-height:32px;padding:0 .6rem;border:1px solid #cbd7e3;border-radius:5px;background:#fff;cursor:text}
+.prototype-certame-lei-aplicavel-shell.is-open{border-color:var(--primary-color);box-shadow:0 0 0 .2rem #cfe6f7}
+.prototype-certame-lei-aplicavel.is-disabled .prototype-certame-lei-aplicavel-shell{background:#eef2f7;cursor:not-allowed}
+.prototype-certame-lei-aplicavel-shell>.pi-search{color:#8896a8;font-size:.78rem;flex:0 0 auto}
+.prototype-certame-lei-aplicavel-chevron{color:#8896a8;font-size:.72rem;flex:0 0 auto}
+.prototype-certame-lei-aplicavel-input{flex:1 1 auto;min-width:0;border:0;outline:0;background:transparent;color:#1f2d3d;font-size:.76rem}
+.prototype-certame-lei-aplicavel-input::placeholder{color:#8896a8}
+.prototype-certame-lei-aplicavel-input:disabled{cursor:not-allowed}
+.prototype-certame-lei-aplicavel-shell:focus-within{outline:0}
+
+.prototype-certame-lei-aplicavel-dropdown{position:absolute;z-index:20;top:calc(100% + 4px);left:0;right:0;display:flex;flex-direction:column;border:1px solid var(--surface-border);border-radius:8px;background:#fff;box-shadow:0 8px 24px rgba(16,36,64,.12);overflow:hidden}
+.prototype-certame-lei-aplicavel-dropdown-titulo{padding:.6rem .8rem;border-bottom:1px solid var(--surface-border);color:var(--text-color);font-size:.76rem;font-weight:800}
+.prototype-certame-lei-aplicavel-opcoes{max-height:280px;overflow-y:auto;padding:.3rem}
+.prototype-certame-lei-aplicavel-vazio{padding:.9rem .8rem;color:var(--text-color-secondary);font-size:.78rem;text-align:center}
+
+/* Linha inteira é o alvo de seleção (role="checkbox" — clique ou Enter/Espaço alterna, sem precisar
+   acertar uma caixinha pequena); o radiobutton continua um controle nativo à parte, só para marcar
+   qual das já selecionadas é a aplicável (desabilitado até a própria linha ser selecionada). Alvo
+   mínimo de 40px de altura (acessibilidade — WCAG 2.5.5). */
+.prototype-certame-lei-aplicavel-opcao{display:flex;align-items:flex-start;gap:.55rem;min-height:40px;padding:.5rem .6rem;border-radius:6px;cursor:pointer}
+.prototype-certame-lei-aplicavel-opcao:hover{background:var(--surface-50,#f8fafc)}
+.prototype-certame-lei-aplicavel-opcao.is-selecionada{background:var(--primary-100)}
+.prototype-certame-lei-aplicavel-opcao:focus-visible{outline:2px solid var(--primary-color);outline-offset:-2px}
+.prototype-certame-lei-aplicavel-radio-input{flex:0 0 auto;width:16px;height:16px;margin:2px 0 0;accent-color:var(--primary-color);cursor:pointer}
+.prototype-certame-lei-aplicavel-radio-input:disabled{cursor:not-allowed;opacity:.4}
+.prototype-certame-lei-aplicavel-radio-input:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}
+.prototype-certame-lei-aplicavel-opcao-texto{display:flex;flex-direction:column;gap:.15rem;flex:1 1 auto;min-width:0}
+.prototype-certame-lei-aplicavel-numero{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:800;font-size:.82rem;color:var(--text-color)}
+.prototype-certame-lei-aplicavel-tipo{font-family:inherit;font-weight:400;color:var(--text-color-secondary);font-size:.72rem}
+.prototype-certame-lei-aplicavel-titulo{color:var(--text-color-secondary);font-size:.78rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Etiqueta consequência automática da seleção — nunca um botão/toggle à parte. */
+.prototype-certame-lei-aplicavel-pill{display:inline-flex;flex:0 0 auto;align-items:center;gap:.3rem;align-self:center;padding:.25rem .55rem;border-radius:999px;background:#fff1cf;color:#8a5c00;font-size:.68rem;font-weight:800;white-space:nowrap}
+.prototype-certame-lei-aplicavel-pill .pi{font-size:.65rem}
+
+.prototype-certame-lei-aplicavel-dropdown-rodape{display:flex;align-items:center;gap:.4rem;padding:.55rem .8rem;border-top:1px solid var(--surface-border);background:var(--surface-50,#f8fafc);color:var(--text-color-secondary);font-size:.7rem}
+.prototype-certame-lei-aplicavel-dropdown-rodape .pi{color:#8a5c00;font-size:.68rem}
+
+/* Bloco de confirmação — o único lugar da tela onde as leis escolhidas aparecem, em lista (a
+   aplicável sempre primeiro, com a estrela; as demais alinhadas no mesmo lugar, sem estrela). */
+.prototype-certame-lei-aplicavel-confirmacao{min-height:2.6rem;padding:.15rem .7rem;border:1px solid var(--surface-border);border-radius:6px;background:var(--surface-50,#f8fafc)}
+.prototype-certame-lei-aplicavel-confirmacao-lista{display:flex;flex-direction:column}
+.prototype-certame-lei-aplicavel-confirmacao-item{display:flex;align-items:flex-start;gap:.6rem;padding:.45rem 0}
+.prototype-certame-lei-aplicavel-confirmacao-item+.prototype-certame-lei-aplicavel-confirmacao-item{border-top:1px solid var(--surface-border)}
+.prototype-certame-lei-aplicavel-confirmacao-item>.pi-star-fill{margin-top:.2rem;color:#8a5c00;font-size:.85rem;flex:0 0 auto}
+.prototype-certame-lei-aplicavel-confirmacao-spacer{width:.85rem;flex:0 0 auto}
+.prototype-certame-lei-aplicavel-confirmacao-texto{display:flex;flex-direction:column;gap:.1rem;flex:1 1 auto;min-width:0}
+.prototype-certame-lei-aplicavel-confirmacao-texto strong{color:var(--text-color);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+.prototype-certame-lei-aplicavel-confirmacao-texto span{color:var(--text-color);font-size:.82rem}
+.prototype-certame-lei-aplicavel-confirmacao-vazio{display:block;padding:.6rem 0;color:var(--text-color-secondary);font-size:.78rem}
+.prototype-certame-lei-aplicavel-confirmacao-aviso{display:flex;align-items:center;gap:.4rem;padding:.5rem .1rem;color:#8a5c00;font-size:.76rem;font-weight:600}
+.prototype-certame-lei-aplicavel-confirmacao-aviso .pi{font-size:.72rem}
+.prototype-certame-lei-aplicavel-ver{flex:0 0 auto;align-self:center;min-height:40px;padding:0 .3rem;border:0;background:none;color:var(--primary-color);font-size:.78rem;font-weight:700;text-decoration:underline;cursor:pointer}
+.prototype-certame-lei-aplicavel-ver:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}
+.prototype-certame-lei-aplicavel-remover{flex:0 0 auto;align-self:center;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;background:none;color:var(--text-color-secondary);cursor:pointer}
+.prototype-certame-lei-aplicavel-remover:hover,.prototype-certame-lei-aplicavel-remover:focus-visible{color:#d32f2f;outline:0}
+.prototype-certame-lei-aplicavel-remover:focus-visible{outline:2px solid var(--primary-color);outline-offset:-2px;border-radius:4px}

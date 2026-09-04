@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CONTROLE_PSS_BASE_PATH as BASE } from "../constants";
-import { TIPOS_FASE_CONCURSO_TCE } from "../certame/dominios";
-import { useControlePssStore } from "../controlePssStore";
-import { fasesCertameStore, useFasesCertame, type FaseCertameCatalogo } from "./fasesCertameStore";
+import { LEIS_CERTAME } from "../certame/dominios";
+import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStore";
+import { tiposCotaStore, useTiposCota, type TipoCota } from "./tiposCotaStore";
 import { CardSeplag } from "@componentes/Card";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoLimparFiltroSeplag } from "@componentes/Botao";
 import { SEPLAG_SUCCESS_DARK, SEPLAG_YELLOW } from "../../../tokens/colors";
@@ -12,53 +12,47 @@ const normalizar = (valor:string) => valor.normalize("NFD").replace(/[̀-ͯ]/g, 
 
 const ITENS_POR_PAGINA_OPCOES = [5, 10, 20];
 
-export function FasesCertameListContent() {
- const fases = useFasesCertame();
- const { certames } = useControlePssStore();
+// Mesmo padrão de tela de Locais (LocaisListContent) e Fase do Certame (FasesCertameListContent):
+// listagem com filtro simples, cadastrar/editar em página própria, ativar/inativar em vez de excluir
+// (evita quebrar cotas já registradas em certames que referenciam este código).
+export function TiposCotaListContent() {
+ const tiposCota = useTiposCota();
  const navigate = useNavigate();
- // RN006: uma fase referenciada no cronograma de algum certame (por nome — Certame.fases não guarda
- // o id do catálogo, só o nome escolhido no Dropdown) não pode ser inativada, para não sumir da
- // lista de sugestões (RN004) de quem já a usa.
- const nomesFaseEmUso = useMemo(() => new Set(certames.flatMap((certame) => certame.fases.map((fase) => fase.nome))), [certames]);
  const [nomeFiltro, setNomeFiltro] = useState("");
- const [origemFiltro, setOrigemFiltro] = useState("");
  const [pagina, setPagina] = useState(1);
  const [itensPorPagina, setItensPorPagina] = useState(10);
 
+ // Mesma fonte de leis do formulário (LEIS_CERTAME + Documentos Legais cadastrados), só para
+ // resolver o título exibido na coluna "Lei".
+ const documentosLegaisCadastrados = useDocumentosLegais();
+ const tituloLei = useMemo(() => {
+  const mapa = new Map<string, string>();
+  for (const lei of LEIS_CERTAME) mapa.set(lei.value, lei.label);
+  for (const documento of documentosLegaisCadastrados) mapa.set(documento.id, documento.titulo);
+  return (id:string) => mapa.get(id) ?? id;
+ }, [documentosLegaisCadastrados]);
+
  const lista = useMemo(() => {
   const termo = normalizar(nomeFiltro.trim());
-  return fases.filter((fase) =>
-   (!termo || normalizar(fase.nome).includes(termo)) &&
-   (!origemFiltro || (origemFiltro === "TCE" ? Boolean(fase.tipoTceId) : !fase.tipoTceId)),
-  );
- }, [fases, nomeFiltro, origemFiltro]);
+  return tiposCota.filter((item) => !termo || normalizar(item.label).includes(termo) || normalizar(item.value).includes(termo));
+ }, [tiposCota, nomeFiltro]);
 
  const totalPaginas = Math.max(1, Math.ceil(lista.length / itensPorPagina));
  const paginaAtual = Math.min(pagina, totalPaginas);
  const listaPaginada = lista.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
 
- const limparFiltros = () => { setNomeFiltro(""); setOrigemFiltro(""); setPagina(1); };
-
- const rotuloTipoTce = (tipoTceId?:string) => TIPOS_FASE_CONCURSO_TCE.find((tipo) => tipo.value === tipoTceId)?.label;
+ const limparFiltros = () => { setNomeFiltro(""); setPagina(1); };
 
  return <div className="prototype-page-content prototype-page-content--white prototype-ingressos-teste-list-page">
-  <CardSeplag title="Fase do Certame" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card">
+  <CardSeplag title="Tipos de Cota" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card">
    <div className="col-12"><div className="prototype-ingressos-teste-content">
-    <p className="prototype-ingressos-teste-support">Consulte, cadastre e gerencie as fases disponíveis para o cronograma dos certames.</p>
+    <p className="prototype-ingressos-teste-support">Consulte, cadastre e gerencie os tipos de cota previstos em lei para os certames.</p>
     <hr className="prototype-ingressos-teste-header-divider" />
 
     <div className="prototype-category-filters prototype-ingressos-filters grid">
      <label className="prototype-native-field">
-      <span>Fase</span>
-      <input type="text" value={nomeFiltro} placeholder="Nome da fase" onChange={(event) => { setNomeFiltro(event.target.value); setPagina(1); }} />
-     </label>
-     <label className="prototype-native-field">
-      <span>Origem</span>
-      <select value={origemFiltro} onChange={(event) => { setOrigemFiltro(event.target.value); setPagina(1); }}>
-       <option value="">Todas</option>
-       <option value="TCE">Tabela do TCE-MT</option>
-       <option value="PERSONALIZADA">Personalizada</option>
-      </select>
+      <span>Tipo de cota</span>
+      <input type="text" value={nomeFiltro} placeholder="Código ou nome" onChange={(event) => { setNomeFiltro(event.target.value); setPagina(1); }} />
      </label>
      <div className="prototype-category-clear">
       <BotaoLimparFiltroSeplag type="button" label="Limpar filtro" icon="pi pi-refresh" onClick={limparFiltros} style={{ width:"auto", minWidth:150, paddingInline:14, whiteSpace:"nowrap" }} />
@@ -67,14 +61,14 @@ export function FasesCertameListContent() {
 
     <div className="prototype-ingressos-teste-table-shell">
      <div className="prototype-ingressos-teste-table-actions">
-      <BotaoAdicionarSeplag label="Cadastrar" onClick={() => navigate(`${BASE}/fases-certame/novo`)} />
+      <BotaoAdicionarSeplag label="Cadastrar" onClick={() => navigate(`${BASE}/tipos-cota/novo`)} />
      </div>
      <div className="prototype-efetivo-exercicio-table-wrap">
-      <table className="prototype-simple-table prototype-fases-certame-table">
+      <table className="prototype-simple-table prototype-locais-table">
       <thead>
        <tr>
-        <th>Fase</th>
-        <th>Origem</th>
+        <th>Tipo de cota</th>
+        <th>Lei</th>
         <th>Situação</th>
         <th>Ações</th>
        </tr>
@@ -82,28 +76,25 @@ export function FasesCertameListContent() {
       <tbody>
        {listaPaginada.length === 0
         ? <tr><td colSpan={4} className="prototype-empty-table-cell">Nenhum registro encontrado para os filtros informados.</td></tr>
-        : listaPaginada.map((row:FaseCertameCatalogo) => {
-         const emUso = row.situacao === "ATIVO" && nomesFaseEmUso.has(row.nome);
-         return (
+        : listaPaginada.map((row:TipoCota) => (
          <tr key={row.id}>
-          <td>{row.nome}</td>
-          <td>{row.tipoTceId ? <span title={rotuloTipoTce(row.tipoTceId)}>Tabela do TCE-MT</span> : "Personalizada"}</td>
-          <td><span className={`prototype-fases-certame-status ${row.situacao === "ATIVO" ? "is-active" : "is-inactive"}`}>{row.situacao === "ATIVO" ? "Ativo" : "Inativo"}</span></td>
+          <td>{row.label}</td>
+          <td>{row.lei.length === 0 ? "—" : row.lei.map(tituloLei).join(", ")}</td>
+          <td><span className={`prototype-locais-status ${row.situacao === "ATIVO" ? "is-active" : "is-inactive"}`}>{row.situacao === "ATIVO" ? "Ativo" : "Inativo"}</span></td>
           <td>
            <div className="flex gap-2">
-            <BotaoIconSeplag type="button" tooltip="Editar" icon="pi pi-pencil" style={{ backgroundColor:SEPLAG_YELLOW, borderColor:SEPLAG_YELLOW }} onClick={() => navigate(`${BASE}/fases-certame/${row.id}`)} />
-            <BotaoIconSeplag type="button" disabled={emUso} severity={row.situacao === "ATIVO" ? "danger" : "success"} style={row.situacao === "ATIVO" ? undefined : { backgroundColor:SEPLAG_SUCCESS_DARK, borderColor:SEPLAG_SUCCESS_DARK }} tooltip={emUso ? "Fase em uso no cronograma de um ou mais certames" : (row.situacao === "ATIVO" ? "Inativar" : "Ativar")} icon={row.situacao === "ATIVO" ? "pi pi-ban" : "pi pi-check"} onClick={() => fasesCertameStore.toggleSituacao(row.id)} />
+            <BotaoIconSeplag type="button" tooltip="Editar" icon="pi pi-pencil" style={{ backgroundColor:SEPLAG_YELLOW, borderColor:SEPLAG_YELLOW }} onClick={() => navigate(`${BASE}/tipos-cota/${row.id}`)} />
+            <BotaoIconSeplag type="button" severity={row.situacao === "ATIVO" ? "danger" : "success"} style={row.situacao === "ATIVO" ? undefined : { backgroundColor:SEPLAG_SUCCESS_DARK, borderColor:SEPLAG_SUCCESS_DARK }} tooltip={row.situacao === "ATIVO" ? "Inativar" : "Ativar"} icon={row.situacao === "ATIVO" ? "pi pi-ban" : "pi pi-check"} onClick={() => tiposCotaStore.toggleSituacao(row.id)} />
            </div>
           </td>
          </tr>
-         );
-        })}
+        ))}
       </tbody>
       </table>
      </div>
     </div>
 
-    <nav className="prototype-efetivo-exercicio-pagination" aria-label="Paginação de fases do certame">
+    <nav className="prototype-efetivo-exercicio-pagination" aria-label="Paginação de tipos de cota">
      <button type="button" aria-label="Primeira página" disabled={paginaAtual === 1} onClick={() => setPagina(1)}><i className="pi pi-angle-double-left" aria-hidden="true" /></button>
      <button type="button" aria-label="Página anterior" disabled={paginaAtual === 1} onClick={() => setPagina((atual) => Math.max(1, atual - 1))}><i className="pi pi-angle-left" aria-hidden="true" /></button>
      <span aria-current="page">{paginaAtual}</span>

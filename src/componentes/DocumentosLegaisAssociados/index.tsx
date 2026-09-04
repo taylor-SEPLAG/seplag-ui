@@ -21,10 +21,15 @@ export interface DocumentosLegaisAssociadosSeplagProps {
   filtroPlaceholder?: string;
   exibirNovoCadastro?: boolean;
   expandirAoAbrir?: boolean;
-  /** Quando há mais de uma lei selecionada, sinaliza a primeira como a norma aplicável (RN). */
+  /** RN009: com 1 lei selecionada ela é a "Lei Aplic" automaticamente; com 2+, exibe um radiobutton
+   * por lei para o usuário marcar manualmente qual delas é a aplicável (nenhuma vem marcada por padrão). */
   indicarPrincipal?: boolean;
   /** Modo somente leitura: esconde "Novo Cadastro" e os botões de remover, e impede abrir o painel de busca. */
   disabled?: boolean;
+  /** Reduz a altura mínima da caixa de busca para bater com a altura padrão dos demais campos de
+   * texto (46px, ver .prototype-ingresso-field input) — útil em formulários curtos como
+   * TipoCotaFormContent, onde esse campo divide linha com um input comum. */
+  compact?: boolean;
 }
 
 const MAX_VISIBLE_SELECTED_ITEMS = 3;
@@ -68,12 +73,17 @@ export function DocumentosLegaisAssociadosSeplag({
   expandirAoAbrir = false,
   indicarPrincipal = false,
   disabled = false,
+  compact = false,
 }: Readonly<DocumentosLegaisAssociadosSeplagProps>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const selectedListRef = useRef<HTMLDivElement>(null);
   const [internalValue, setInternalValue] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  // RN009: com 2+ leis selecionadas, nenhuma vem marcada como "Lei Aplic" por padrão — o usuário
+  // precisa marcar manualmente via radiobutton qual delas é a aplicável. Só existe uma marcação por
+  // vez neste campo; com apenas 1 lei selecionada ela é considerada aplicável automaticamente.
+  const [principalId, setPrincipalId] = useState<string | null>(null);
   const selectedIds = value ?? internalValue;
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const documentsById = useMemo(
@@ -119,6 +129,9 @@ export function DocumentosLegaisAssociadosSeplag({
 
   const removeDocument = (id: string) => {
     updateSelected(selectedIds.filter((item) => item !== id));
+    // RN014: se a lei removida era a "Lei Aplic", nenhuma fica marcada automaticamente — o usuário
+    // precisa marcar manualmente outra lei da lista, se houver mais de uma restante.
+    if (principalId === id) setPrincipalId(null);
   };
 
   useEffect(() => {
@@ -160,7 +173,7 @@ export function DocumentosLegaisAssociadosSeplag({
       </div>
 
       <div
-        className={`${styles.inputShell} ${isOpen ? styles.inputShellOpen : ""}`}
+        className={`${styles.inputShell} ${compact ? styles.inputShellCompact : ""} ${isOpen ? styles.inputShellOpen : ""}`}
         role="combobox"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
@@ -282,17 +295,43 @@ export function DocumentosLegaisAssociadosSeplag({
           }`}
           ref={selectedListRef}
         >
-          {selectedDocuments.map((documento, index) => {
+          {selectedDocuments.map((documento) => {
             const badgeColors = getCategoriaColors(documento.categoria);
-            const ehPrincipal = indicarPrincipal && index === 0;
+            // RN009: com apenas 1 lei selecionada ela é a "Lei Aplic" automaticamente; com 2+, só
+            // fica marcada a que o usuário selecionar manualmente via radiobutton.
+            const unicaSelecionada = selectedDocuments.length === 1;
+            const ehPrincipal =
+              indicarPrincipal && (unicaSelecionada || principalId === documento.id);
+            const exibirRadiobutton =
+              indicarPrincipal && !disabled && selectedDocuments.length > 1;
 
             return (
-              <div className={styles.selectedRow} key={documento.id}>
+              <div
+                className={`${styles.selectedRow} ${
+                  exibirRadiobutton ? styles.selectedRowWithRadio : ""
+                }`}
+                key={documento.id}
+              >
+                {exibirRadiobutton && (
+                  <label
+                    className={styles.principalRadioWrap}
+                    title="Marcar como Lei Aplic"
+                  >
+                    <input
+                      className={styles.principalRadio}
+                      type="radio"
+                      name={`lei-aplic-${label}`}
+                      checked={principalId === documento.id}
+                      onChange={() => setPrincipalId(documento.id)}
+                      aria-label={`Marcar ${documento.titulo} como Lei Aplic`}
+                    />
+                  </label>
+                )}
                 <div className={styles.selectedInfo}>
                   <div className={styles.selectedTitle}>
                     {documento.titulo}
                     {ehPrincipal && (
-                      <span className={styles.principalTag} title="Primeira lei selecionada — considerada a norma aplicável.">
+                      <span className={styles.principalTag} title="Lei Aplic — norma aplicável marcada para este campo.">
                         <i className="pi pi-star-fill" aria-hidden="true" /> Lei Aplic
                       </span>
                     )}

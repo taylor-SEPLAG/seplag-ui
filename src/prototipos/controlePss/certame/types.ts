@@ -8,8 +8,8 @@ export type AbrangenciaCertame = "ESTADUAL" | "REGIONAL" | "MUNICIPAL";
 export type TipoContratacaoExecucaoCertame = "PROPRIA_UG" | "EMPRESA_CONTRATADA";
 export type VinculoCargoCertame = "EXISTENTE" | "NOVO";
 
-// RN-15: nove situações previstas, cada uma reabrindo o prazo de 48h de prestação de contas ao TCE-MT.
-export type SituacaoCertame = "ABERTO" | "RETIFICACAO_EDITAL" | "HOMOLOGADO" | "RETIFICACAO_HOMOLOGACAO" | "PRORROGACAO_VALIDADE" | "CANCELADO_ANULADO" | "PARALISADO" | "HOMOLOGACAO_PARCIAL" | "RETIFICACAO_HOMOLOGACAO_PARCIAL";
+// RN-15: dez situações previstas, cada uma reabrindo o prazo de 48h de prestação de contas ao TCE-MT.
+export type SituacaoCertame = "ABERTO" | "RETIFICACAO_EDITAL" | "HOMOLOGADO" | "RETIFICACAO_HOMOLOGACAO" | "PRORROGACAO_VALIDADE" | "CANCELADO_ANULADO" | "PARALISADO" | "HOMOLOGACAO_PARCIAL" | "RETIFICACAO_HOMOLOGACAO_PARCIAL" | "RETOMADA_CRONOGRAMA";
 
 // Grupo 1 (Abertura): documentos exigidos na abertura do certame.
 // Grupo 2 (Retificação do Edital de Abertura): termo aditivo ao edital e respectiva publicação.
@@ -23,13 +23,13 @@ export type TipoDocumentoCertame = "JUSTIFICATIVA_ABERTURA" | "PUBLICACAO_CERTAM
 
 // RN-08: o sistema permite múltiplas cotas por certame.
 // RN-10: a lei referencia diretamente o catálogo de leis já cadastradas no sistema (ver dominios.LEIS_CERTAME).
-// Cada campo de lei aceita mais de uma norma; a primeira selecionada é a lei aplicável (ver
-// CampoLeiMultiplaSeplag em CertameFormContent.tsx).
+// Cada campo de lei aceita mais de uma norma; com 2+ leis, o usuário marca manualmente qual é a
+// "Lei Aplic" via radiobutton (RN009 — ver CampoLeiMultiplaSeplag em CertameFormContent.tsx).
 export interface CotaCertame { readonly id:string; tipo:string; lei:readonly string[]; }
 
 export interface TaxaInscricaoCertame { readonly id:string; valor:number; inicioIsencao?:string; fimIsencao?:string; tipoIsencao:string[]; leiIsencao?:string; }
 
-// Reserva de vagas de um cargo para um tipo de cota específico (ver dominios.TIPOS_COTA — PCD,
+// Reserva de vagas de um cargo para um tipo de cota específico (ver tiposCota/tiposCotaStore.ts — PCD,
 // PPP, Indígenas, Quilombolas, TEA). Um mesmo cargo/vaga pode ter mais de uma reserva simultânea
 // (ex.: das 15 vagas, 2 reservadas a PCD e 1 a PPP), desde que a soma não exceda quantidadeVagas.
 export interface ReservaCotaCargo { readonly id:string; tipo:string; quantidade:number; }
@@ -64,6 +64,9 @@ export interface Certame {
  // 1. Dados Gerais do Certame
  tipoCertame:TipoCertame;
  tipoConcursoAplic:string;
+ // RN009: o campo permite marcar mais de uma lei; com 2+ leis, nenhuma vem marcada como "Lei
+ // Aplic" por padrão — o usuário marca manualmente via radiobutton na tela (ver
+ // DocumentosLegaisAssociadosSeplag/CampoLeiMultiplaSeplag em CertameFormContent.tsx).
  leiContratoTemporario?:readonly string[];
  leiProcessoSeletivoSimplificado?:readonly string[];
  regimeJuridico:RegimeJuridicoCertame;

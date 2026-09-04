@@ -3659,26 +3659,21 @@
 
 .prototype-cargo-table .p-datatable-thead > tr > th:nth-child(2),
 .prototype-cargo-table .p-datatable-tbody > tr > td:nth-child(2) {
-  width: 37%;
+  width: 55%;
 }
 
 .prototype-cargo-table .p-datatable-thead > tr > th:nth-child(3),
 .prototype-cargo-table .p-datatable-tbody > tr > td:nth-child(3) {
-  width: 20%;
+  width: 15%;
 }
 
 .prototype-cargo-table .p-datatable-thead > tr > th:nth-child(4),
 .prototype-cargo-table .p-datatable-tbody > tr > td:nth-child(4) {
-  width: 13%;
-}
-
-.prototype-cargo-table .p-datatable-thead > tr > th:nth-child(5),
-.prototype-cargo-table .p-datatable-tbody > tr > td:nth-child(5) {
   width: 12%;
 }
 
-.prototype-cargo-table .p-datatable-tbody > tr > td:nth-child(4),
-.prototype-cargo-table .p-datatable-tbody > tr > td:nth-child(5) {
+.prototype-cargo-table .p-datatable-tbody > tr > td:nth-child(3),
+.prototype-cargo-table .p-datatable-tbody > tr > td:nth-child(4) {
   text-align: center;
 }
 
@@ -3935,18 +3930,18 @@
 
 .prototype-tipo-vinculo-table .p-datatable-thead > tr > th:nth-child(2),
 .prototype-tipo-vinculo-table .p-datatable-tbody > tr > td:nth-child(2) {
-  width: 29%;
+  width: 34%;
 }
 
 .prototype-tipo-vinculo-table .p-datatable-thead > tr > th:nth-child(3),
 .prototype-tipo-vinculo-table .p-datatable-tbody > tr > td:nth-child(3) {
-  width: 20%;
+  width: 26%;
   text-align: center;
 }
 
 .prototype-tipo-vinculo-table .p-datatable-thead > tr > th:nth-child(4),
 .prototype-tipo-vinculo-table .p-datatable-tbody > tr > td:nth-child(4) {
-  width: 15%;
+  width: 13%;
   text-align: center;
 }
 
@@ -3956,10 +3951,21 @@
   text-align: center;
 }
 
-.prototype-tipo-vinculo-table .p-datatable-thead > tr > th:nth-child(6),
-.prototype-tipo-vinculo-table .p-datatable-tbody > tr > td:nth-child(6) {
-  width: 9%;
-  text-align: center;
+.prototype-encerramento-modal-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 4px;
+  padding: 12px 14px;
+  border: 1px solid #93c5fd;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  line-height: 1.45;
+}
+
+.prototype-encerramento-modal-info .pi {
+  margin-top: 2px;
 }
 
 .prototype-tipo-vinculo-table .p-splitbutton {

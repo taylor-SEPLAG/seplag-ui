@@ -54,6 +54,11 @@
   cursor: text;
 }
 
+.inputShellCompact {
+  min-height: 46px;
+  padding: 0 12px;
+}
+
 .inputShellOpen,
 .inputShell:focus-within {
   border-color: #7aa7d9;
@@ -260,8 +265,25 @@
   border-bottom: 1px solid #e5ebf2;
 }
 
+.selectedRowWithRadio {
+  grid-template-columns: auto 1fr auto auto auto;
+}
+
 .selectedRow:last-child {
   border-bottom: 0;
+}
+
+.principalRadioWrap {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.principalRadio {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #0072ce;
 }
 
 .selectedInfo {

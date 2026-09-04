@@ -139,6 +139,8 @@ import { CertameFormContent as PssCertameFormContent } from "./controlePss/certa
 import { LocaisListContent as PssLocaisListContent } from "./controlePss/locais/LocaisListContent";
 import { LocalFormContent as PssLocalFormContent } from "./controlePss/locais/LocalFormContent";
 import { FasesCertameListContent as PssFasesCertameListContent } from "./controlePss/fasesCertame/FasesCertameListContent";
+import { TiposCotaListContent as PssTiposCotaListContent } from "./controlePss/tiposCota/TiposCotaListContent";
+import { TipoCotaFormContent as PssTipoCotaFormContent } from "./controlePss/tiposCota/TipoCotaFormContent";
 import { FaseCertameFormContent as PssFaseCertameFormContent } from "./controlePss/fasesCertame/FaseCertameFormContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
@@ -313,6 +315,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Cadastro de Certames", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/certames`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Locais", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/locais`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Fase do Certame", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/fases-certame`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Tipos de Cota", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/tipos-cota`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Processos Seletivos", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/processos`, visibleOnMenu: false, visibleOnRouter: true },
           { label: "Controle de Vagas", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/vagas`, visibleOnMenu: false, visibleOnRouter: true },
           { label: "Integração SIES", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/integracao-sies`, visibleOnMenu: false, visibleOnRouter: true },
@@ -1263,6 +1266,9 @@ interface TipoVinculoTesteRow {
   regimesJuridicos: string[];
   vigencia: string;
   situacao: "ATIVO" | "ENCERRADO" | "EXTINTO";
+  dataInicio?: string;
+  dataEncerramento?: string;
+  motivoEncerramento?: string;
   dataExtincao?: string;
   motivoExtincao?: string;
 }
@@ -7205,6 +7211,12 @@ export function PrototiposControlePssFasesCertamePage() {
 export function PrototiposControlePssFaseCertameFormPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssFaseCertameFormContent /></PrototypeSystemPage>;
 }
+export function PrototiposControlePssTiposCotaPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssTiposCotaListContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssTipoCotaFormPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssTipoCotaFormContent /></PrototypeSystemPage>;
+}
 export function PrototiposBacklogRegrasPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><BacklogRegrasContent /></PrototypeSystemPage>;
 }
@@ -7278,6 +7290,7 @@ export function PrototiposCarreiraPage() {
   >(null);
   const [carreiraSelecionada, setCarreiraSelecionada] =
     useState<CarreiraRow | null>(null);
+  const [carreiraParaEncerrar, setCarreiraParaEncerrar] = useState<CarreiraRow | null>(null);
   const [siglaEdicao, setSiglaEdicao] = useState("");
   const [nomeEdicao, setNomeEdicao] = useState("");
   const { control, reset, watch } = useForm<CarreiraFiltroForm>({
@@ -7465,6 +7478,9 @@ export function PrototiposCarreiraPage() {
               handleAdicionar={() => navigate("/prototipos/sigep/carreira/novo")}
               handleView={(row) => navigate(`/prototipos/sigep/carreira/${row.id}/visualizar`)}
               handleEdit={(row) => navigate(`/prototipos/sigep/carreira/${row.id}/editar`)}
+              renderBotoes={(row) => row.situacao === "ATIVO" ? (
+                <BotaoIconSeplag type="button" icon="pi pi-ban" severity="danger" tooltip="Encerrar" aria-label={`Encerrar carreira ${row.nome}`} onClick={() => setCarreiraParaEncerrar(row)} />
+              ) : null}
               handleOnPageChange={(event) =>
                 setPagina(
                   Math.floor(
@@ -7552,6 +7568,24 @@ export function PrototiposCarreiraPage() {
           </ul>
         </div>
       </ModalSeplag>
+      <PrototypeEncerramentoModal
+        visible={Boolean(carreiraParaEncerrar)}
+        entidade="carreira"
+        nomeRegistro={carreiraParaEncerrar?.nome ?? ""}
+        dataInicio={carreiraParaEncerrar?.dataInicio}
+        fechar={() => setCarreiraParaEncerrar(null)}
+        confirmar={(dataEncerramento, motivoEncerramento) => {
+          if (!carreiraParaEncerrar) return;
+          Object.assign(carreiraParaEncerrar, {
+            dataEncerramento,
+            motivoEncerramento,
+            situacao: possuiDependenciaAtiva("carreira", carreiraParaEncerrar.id) ? "ENCERRADO" : "EXTINTO",
+          });
+          atualizarExtincoesDerivadas();
+          setCarreiras((atuais) => [...atuais]);
+          setCarreiraParaEncerrar(null);
+        }}
+      />
     </PrototypeSystemPage>
   );
 }
@@ -7664,6 +7698,7 @@ function atualizarExtincoesDerivadas() {
 export function PrototiposPerfilEspecialidadePage() {
   const navigate = useNavigate();
   const [pagina, setPagina] = useState(0);
+  const [perfilParaEncerrar, setPerfilParaEncerrar] = useState<PerfilEspecialidadeRow | null>(null);
   const { control, reset, watch } = useForm<{ termo?: string; areaFormacao?: string; situacao?: string }>({ defaultValues: { termo: "", areaFormacao: undefined, situacao: undefined } });
   const filtros = watch();
   const termo = filtros.termo?.trim().toLowerCase();
@@ -7692,9 +7727,10 @@ export function PrototiposPerfilEspecialidadePage() {
           <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 2" options={situacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
           <div className="prototype-category-clear col-12 md:col-6 lg:col-2"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ termo: "", areaFormacao: undefined, situacao: undefined })} /></div>
         </div>
-          <div className="prototype-category-table prototype-perfil-especialidade-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/perfil-profissional/novo")} handleView={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/visualizar`)} handleEdit={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/editar`)} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
+          <div className="prototype-category-table prototype-perfil-especialidade-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/perfil-profissional/novo")} handleView={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/visualizar`)} handleEdit={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/editar`)} renderBotoes={(row) => row.situacao === "ATIVO" ? <BotaoIconSeplag type="button" icon="pi pi-ban" severity="danger" tooltip="Encerrar" aria-label={`Encerrar perfil profissional ${row.nome}`} onClick={() => setPerfilParaEncerrar(row)} /> : null} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
       </CardSeplag>
     </div>
+    <PrototypeEncerramentoModal visible={Boolean(perfilParaEncerrar)} entidade="perfil profissional" nomeRegistro={perfilParaEncerrar?.nome ?? ""} dataInicio={perfilParaEncerrar?.dataInicio} fechar={() => setPerfilParaEncerrar(null)} confirmar={(dataEncerramento, motivoEncerramento) => { if (!perfilParaEncerrar) return; Object.assign(perfilParaEncerrar, { dataEncerramento, motivoEncerramento, situacao: possuiDependenciaAtiva("perfil", perfilParaEncerrar.id) ? "ENCERRADO" : "EXTINTO" }); atualizarExtincoesDerivadas(); setPerfilParaEncerrar(null); }} />
   </PrototypeSystemPage>;
 }
 
@@ -7768,7 +7804,7 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const salvar = (values: PerfilEspecialidadeForm) => {
     if (isEdicao && Boolean(values.dataEncerramento) !== Boolean(values.motivoEncerramento.trim())) return setErroComplementar("Para encerrar o perfil, informe a data e o motivo do encerramento.");
     if (isEdicao && values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) < carreiraDataParaIso(values.dataInicio)) return setErroComplementar("A data de encerramento não pode ser anterior à data de início.");
-    if (isEdicao && !documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
+    if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
     if (exigeRegistro && !values.conselho) return setErroComplementar("Selecione o conselho profissional exigido.");
     if (perfisEspecialidadesMock.some((item) => item.id !== perfilEmEdicao?.id && item.nome.trim().toLowerCase() === values.nome.trim().toLowerCase())) return setErroComplementar("Já existe um Perfil Profissional com esse nome.");
     const situacaoAtualizada = values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
@@ -7789,10 +7825,10 @@ export function PrototiposPerfilEspecialidadeFormPage() {
       {erroComplementar ? <div className="prototype-carreira-register-alert"><i className="pi pi-exclamation-circle" /><span>{erroComplementar}</span></div> : null}
       <form className="prototype-carreira-register-form" onSubmit={handleSubmit(salvar)}>
         <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
-        {isEdicao ? (<section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam o perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>) : null}
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam a criação do perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={(ids) => { setDocumentosSelecionados(ids); setErroComplementar(""); }} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>
         <div className="prototype-perfil-paired-sections">
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
-        <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={status} entidade="o perfil profissional" getFormErrorMessage={() => null} />
+        <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={status} entidade="o perfil profissional" getFormErrorMessage={() => null} permitirEncerramento={false} />
         </div>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={perfilNivelFormacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <DropdownFieldSeplag name="formacao" control={control} label="Formação" cols="12 12 4" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma formação" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
@@ -7837,6 +7873,7 @@ interface PrototypeVigenciaEditorProps {
   status: string;
   entidade: string;
   getFormErrorMessage: (name: string) => ReactNode;
+  permitirEncerramento?: boolean;
 }
 
 function PrototypeVigenciaEditor({
@@ -7851,6 +7888,7 @@ function PrototypeVigenciaEditor({
   status,
   entidade,
   getFormErrorMessage,
+  permitirEncerramento = true,
 }: Readonly<PrototypeVigenciaEditorProps>) {
   const solicitarEncerramento = () => {
     setValue(dataEncerramentoName, new Date().toLocaleDateString("pt-BR"));
@@ -7881,7 +7919,7 @@ function PrototypeVigenciaEditor({
               getFormErrorMessage={getFormErrorMessage}
             />
           </div>
-          {isEdicao && !readOnly && !dataEncerramento ? (
+          {permitirEncerramento && isEdicao && !readOnly && !dataEncerramento ? (
             <BotaoSeplag
               type="button"
               label="Encerrar"
@@ -7903,7 +7941,7 @@ function PrototypeVigenciaEditor({
           </div>
         </div>
       </div>
-      {isEdicao && dataEncerramento ? (
+      {permitirEncerramento && isEdicao && dataEncerramento ? (
         <div className="grid prototype-carreira-vigencia-encerramento">
           <DateFieldSeplag
             name={dataEncerramentoName}
@@ -8179,7 +8217,7 @@ export function PrototiposCarreiraFormPage() {
             </div>
           </section>
 
-          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={statusVigencia} entidade="a carreira" getFormErrorMessage={getCarreiraErrorMessage} />
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={statusVigencia} entidade="a carreira" getFormErrorMessage={getCarreiraErrorMessage} permitirEncerramento={false} />
 
           <section className="prototype-carreira-register-section">
             <header>
@@ -8398,6 +8436,7 @@ export function PrototiposCargoPage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
+  const [cargoParaEncerrar, setCargoParaEncerrar] = useState<CargoTesteRow | null>(null);
   const { control, reset, watch } = useForm<CargoFiltroForm>({
     defaultValues: {
       cargo: "",
@@ -8426,7 +8465,6 @@ export function PrototiposCargoPage({
   const cargoColumns: ColumnMetaSeplag<CargoTesteRow>[] = [
     { field: "codigo", header: "Sigla" },
     { field: "cargo", header: "Cargo" },
-    { field: "vigencia", header: "Vigência" },
     {
       header: "Situação",
       body: (row) => (
@@ -8502,11 +8540,15 @@ export function PrototiposCargoPage({
               handleEdit={(row) =>
                 navigate(`${routePrefix}/cargo/${row.id}/editar`)
               }
+              renderBotoes={(row) => row.situacao === "ATIVO" ? (
+                <BotaoIconSeplag type="button" icon="pi pi-ban" severity="danger" tooltip="Encerrar" aria-label={`Encerrar cargo ${row.cargo}`} onClick={() => setCargoParaEncerrar(row)} />
+              ) : null}
               handleOnPageChange={() => {}}
             />
           </div>
         </CardSeplag>
       </div>
+      <PrototypeEncerramentoModal visible={Boolean(cargoParaEncerrar)} entidade="cargo" nomeRegistro={cargoParaEncerrar?.cargo ?? ""} dataInicio={cargoParaEncerrar?.dataInicio ?? cargoParaEncerrar?.vigencia.split(" -")[0]} fechar={() => setCargoParaEncerrar(null)} confirmar={(dataEncerramento, motivoEncerramento) => { if (!cargoParaEncerrar) return; Object.assign(cargoParaEncerrar, { dataEncerramento, motivoEncerramento, vigencia: `${cargoParaEncerrar.dataInicio ?? cargoParaEncerrar.vigencia.split(" -")[0]} - ${dataEncerramento}`, situacao: "ENCERRADO" }); atualizarExtincoesDerivadas(); setCargoParaEncerrar(null); }} />
     </PrototypeSystemPage>
   );
 }
@@ -8697,7 +8739,7 @@ export function PrototiposCargoFormPage({
             </div>
           </section>
 
-          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramentoCargo} status={situacaoInicialCargo} entidade="o cargo" getFormErrorMessage={() => null} />
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramentoCargo} status={situacaoInicialCargo} entidade="o cargo" getFormErrorMessage={() => null} permitirEncerramento={false} />
           </div>
 
           <section className="prototype-carreira-register-section">
@@ -9019,6 +9061,15 @@ export function PrototiposSigepRegimeJuridicoPage({
   const [searchParams] = useSearchParams();
   const tipoVinculoParam = searchParams.get("tipoVinculo") ?? "";
   const [pagina, setPagina] = useState(0);
+  const [regimeParaEncerrar, setRegimeParaEncerrar] = useState<RegimeJuridicoRow | null>(null);
+  const {
+    control: controlEncerramento,
+    handleSubmit: handleSubmitEncerramento,
+    reset: resetEncerramento,
+    formState: { errors: errorsEncerramento },
+  } = useForm<{ dataEncerramento: string; motivoEncerramento: string }>({
+    defaultValues: { dataEncerramento: "", motivoEncerramento: "" },
+  });
   const { control, reset, watch } = useForm<RegimeJuridicoFiltroForm>({
     defaultValues: {
       nome: "",
@@ -9050,6 +9101,39 @@ export function PrototiposSigepRegimeJuridicoPage({
       body: (row) => renderGrupoCalculoStatusBadge(row.situacao),
     },
   ];
+
+  const abrirEncerramento = (regime: RegimeJuridicoRow) => {
+    resetEncerramento({
+      dataEncerramento: new Date().toLocaleDateString("pt-BR"),
+      motivoEncerramento: "",
+    });
+    setRegimeParaEncerrar(regime);
+  };
+
+  const fecharEncerramento = () => {
+    setRegimeParaEncerrar(null);
+    resetEncerramento({ dataEncerramento: "", motivoEncerramento: "" });
+  };
+
+  const confirmarEncerramento = handleSubmitEncerramento((values) => {
+    if (!regimeParaEncerrar) return;
+    regimeParaEncerrar.dataEncerramento = values.dataEncerramento;
+    regimeParaEncerrar.motivoEncerramento = values.motivoEncerramento.trim();
+    regimeParaEncerrar.situacao = possuiDependenciaAtiva("regime", regimeParaEncerrar.id)
+      ? STATUS_OPERACIONAL_VIGENCIA.ENCERRADO
+      : STATUS_OPERACIONAL_VIGENCIA.EXTINTO;
+    atualizarExtincoesDerivadas();
+    fecharEncerramento();
+  });
+
+  const validarDataEncerramento = (value: string) => {
+    const naoFutura = validacaoDataNaoFuturaSeplag(
+      "A data de encerramento deve ser a data atual ou uma data anterior",
+    )(value);
+    if (naoFutura !== true) return naoFutura;
+    const inicioIso = carreiraDataParaIso(regimeParaEncerrar?.dataAtivacao ?? "01/01/2026");
+    return carreiraDataParaIso(value) >= inicioIso || "A data de encerramento não pode ser anterior à data de início";
+  };
 
   return (
     <PrototypeSystemPage
@@ -9123,12 +9207,144 @@ export function PrototiposSigepRegimeJuridicoPage({
               handleEdit={(row) =>
                 navigate(`${routePrefix}/regime-juridico/${row.id}/editar`)
               }
+              renderBotoes={(row) => row.situacao === STATUS_OPERACIONAL_VIGENCIA.ATIVO ? (
+                <BotaoIconSeplag
+                  type="button"
+                  icon="pi pi-ban"
+                  severity="danger"
+                  tooltip="Encerrar"
+                  aria-label={`Encerrar regime jurídico ${row.nome}`}
+                  onClick={() => abrirEncerramento(row)}
+                />
+              ) : null}
               handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))}
             />
           </div>
         </CardSeplag>
       </div>
+      <ModalSeplag
+        visible={Boolean(regimeParaEncerrar)}
+        titulo={`Encerrar regime jurídico${regimeParaEncerrar ? ` — ${regimeParaEncerrar.nome}` : ""}`}
+        fechar={fecharEncerramento}
+        labelFechar="Cancelar"
+        labelAcao="Encerrar"
+        iconAcao="pi pi-ban"
+        funcAcao={confirmarEncerramento}
+        tamanho="820px"
+      >
+        <div className="grid" style={{ paddingTop: "12px" }}>
+          <DateFieldSeplag
+            name="dataEncerramento"
+            control={controlEncerramento}
+            label="Data de encerramento"
+            cols="12"
+            required
+            maxDate={new Date()}
+            customValidation={validarDataEncerramento}
+            getFormErrorMessage={(error) => error?.message}
+          />
+          <TextAreaFieldSeplag
+            name="motivoEncerramento"
+            control={controlEncerramento}
+            label="Motivo do encerramento"
+            cols="12"
+            rows={4}
+            maxLength={500}
+            required
+            getFormErrorMessage={(error) => error?.message}
+          />
+          {errorsEncerramento.root?.message ? (
+            <small className="p-error col-12">{errorsEncerramento.root.message}</small>
+          ) : null}
+        </div>
+      </ModalSeplag>
     </PrototypeSystemPage>
+  );
+}
+
+interface PrototypeEncerramentoModalProps {
+  visible: boolean;
+  entidade: string;
+  nomeRegistro: string;
+  dataInicio?: string;
+  fechar: () => void;
+  confirmar: (dataEncerramento: string, motivoEncerramento: string) => void;
+}
+
+function PrototypeEncerramentoModal({
+  visible,
+  entidade,
+  nomeRegistro,
+  dataInicio = "01/01/2026",
+  fechar,
+  confirmar,
+}: Readonly<PrototypeEncerramentoModalProps>) {
+  const { control, handleSubmit, reset } = useForm<{
+    dataEncerramento: string;
+    motivoEncerramento: string;
+  }>({ defaultValues: { dataEncerramento: "", motivoEncerramento: "" } });
+
+  useEffect(() => {
+    if (visible) {
+      reset({
+        dataEncerramento: new Date().toLocaleDateString("pt-BR"),
+        motivoEncerramento: "",
+      });
+    }
+  }, [reset, visible]);
+
+  const validarData = (value: string) => {
+    const naoFutura = validacaoDataNaoFuturaSeplag(
+      "A data de encerramento deve ser a data atual ou uma data anterior",
+    )(value);
+    if (naoFutura !== true) return naoFutura;
+    return carreiraDataParaIso(value) >= carreiraDataParaIso(dataInicio) ||
+      "A data de encerramento não pode ser anterior à data de início";
+  };
+
+  return (
+    <ModalSeplag
+      visible={visible}
+      titulo={`Encerrar ${entidade}${nomeRegistro ? ` — ${nomeRegistro}` : ""}`}
+      fechar={fechar}
+      labelFechar="Cancelar"
+      labelAcao="Encerrar"
+      iconAcao="pi pi-ban"
+      funcAcao={handleSubmit((values) =>
+        confirmar(values.dataEncerramento, values.motivoEncerramento.trim()),
+      )}
+      tamanho="820px"
+    >
+      <div className="grid" style={{ paddingTop: "12px" }}>
+        <div className="col-12 prototype-encerramento-modal-info" role="note">
+          <i className="pi pi-info-circle" aria-hidden="true" />
+          <span>
+            Ao confirmar, o encerramento será registrado com a data e o motivo
+            informados. O registro continuará disponível para consulta.
+          </span>
+        </div>
+        <DateFieldSeplag
+          name="dataEncerramento"
+          control={control}
+          label="Data de encerramento"
+          cols="12"
+          required
+          maxDate={new Date()}
+          customValidation={validarData}
+          getFormErrorMessage={(error) => error?.message}
+        />
+        <TextAreaFieldSeplag
+          name="motivoEncerramento"
+          control={control}
+          label="Motivo do encerramento"
+          cols="12"
+          rows={4}
+          maxLength={500}
+          required
+          getFormErrorMessage={(error) => error?.message}
+        />
+      </div>
+    </ModalSeplag>
   );
 }
 
@@ -9236,7 +9452,7 @@ export function PrototiposSigepRegimeJuridicoNovoPage({
             </div>
           </section>
 
-          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o regime jurídico" getFormErrorMessage={() => null} />
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o regime jurídico" getFormErrorMessage={() => null} permitirEncerramento={false} />
 
           <section className="prototype-carreira-register-section">
             <header>
@@ -10333,6 +10549,7 @@ export function PrototiposTipoVinculoTestePage({
 }: CargoConcursoRouteProps = {}) {
   const navigate = useNavigate();
   const [tipoVinculoRegimes, setTipoVinculoRegimes] = useState<TipoVinculoTesteRow | null>(null);
+  const [tipoVinculoParaEncerrar, setTipoVinculoParaEncerrar] = useState<TipoVinculoTesteRow | null>(null);
   const [searchParams] = useSearchParams();
   const regimeJuridicoParam = searchParams.get("regimeJuridico") ?? "";
   const regimeJuridicoInicial = Array.from(
@@ -10391,7 +10608,6 @@ export function PrototiposTipoVinculoTestePage({
         </BotaoChipSeplag>
       ),
     },
-    { field: "vigencia", header: "Vigência" },
     {
       header: "Situação",
       body: (row) => (
@@ -10503,6 +10719,9 @@ export function PrototiposTipoVinculoTestePage({
               handleEdit={(row) =>
                 navigate(`${routePrefix}/tipo-vinculo/${row.id}/editar`)
               }
+              renderBotoes={(row) => row.situacao === "ATIVO" ? (
+                <BotaoIconSeplag type="button" icon="pi pi-ban" severity="danger" tooltip="Encerrar" aria-label={`Encerrar tipo de vínculo ${row.nome}`} onClick={() => setTipoVinculoParaEncerrar(row)} />
+              ) : null}
               handleOnPageChange={() => {}}
             />
           </div>
@@ -10527,6 +10746,7 @@ export function PrototiposTipoVinculoTestePage({
           </ul>
         </div>
       </ModalSeplag>
+      <PrototypeEncerramentoModal visible={Boolean(tipoVinculoParaEncerrar)} entidade="tipo de vínculo" nomeRegistro={tipoVinculoParaEncerrar?.nome ?? ""} dataInicio={tipoVinculoParaEncerrar?.dataInicio ?? tipoVinculoParaEncerrar?.vigencia.split(" -")[0]} fechar={() => setTipoVinculoParaEncerrar(null)} confirmar={(dataEncerramento, motivoEncerramento) => { if (!tipoVinculoParaEncerrar) return; const dataInicio = tipoVinculoParaEncerrar.dataInicio ?? tipoVinculoParaEncerrar.vigencia.split(" -")[0]; Object.assign(tipoVinculoParaEncerrar, { dataInicio, dataEncerramento, motivoEncerramento, vigencia: `${dataInicio} - ${dataEncerramento}`, situacao: possuiDependenciaAtiva("vinculo", tipoVinculoParaEncerrar.id) ? "ENCERRADO" : "EXTINTO" }); atualizarExtincoesDerivadas(); setTipoVinculoParaEncerrar(null); }} />
     </PrototypeSystemPage>
   );
 }
@@ -10542,9 +10762,6 @@ export function PrototiposTipoVinculoTesteFormPage({
   const tipoEmEdicao = id
     ? tiposVinculoTesteMock.find((item) => String(item.id) === id)
     : undefined;
-  const [baseLegalSelecionada, setBaseLegalSelecionada] = useState<string[]>(
-    [],
-  );
   const [dataInicioVigenciaEdicao = "", dataEncerramentoVigenciaEdicao = ""] =
     tipoEmEdicao?.vigencia.split(" - ") ?? [];
   const { control, handleSubmit, setValue, watch } = useForm<TipoVinculoForm>({
@@ -10601,7 +10818,6 @@ export function PrototiposTipoVinculoTesteFormPage({
   const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
-  const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`;
   const situacaoInicial = tipoEmEdicao?.situacao === "EXTINTO"
     ? "Extinto"
     : encerramentoIso && encerramentoIso <= hojeIso
@@ -10691,23 +10907,8 @@ export function PrototiposTipoVinculoTesteFormPage({
               <MultiSelectFieldSeplag name="regimesJuridicos" control={control} label="Regimes Jurídicos" placeholder="Selecione um ou mais regimes" cols="12" required options={Array.from(new Set(tiposVinculoTesteMock.flatMap((item) => item.regimesJuridicos))).map((regime) => ({ label: regime, value: regime }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
             </div>
           </section>
-          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEditing} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o tipo de vínculo" getFormErrorMessage={() => null} />
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEditing} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={situacaoInicial} entidade="o tipo de vínculo" getFormErrorMessage={() => null} permitirEncerramento={false} />
           </div>
-
-          {isEditing ? (
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-file" aria-hidden="true" /></span>
-              <div>
-                <h2>Base legal</h2>
-                <p>Associe os documentos que fundamentam o tipo de vínculo.</p>
-              </div>
-            </header>
-            <div className="prototype-carreira-register-body">
-              <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegaisMock} value={baseLegalSelecionada} onChange={setBaseLegalSelecionada} onNovoCadastro={() => navigate(novoDocumentoUrl)} onVisualizar={() => {}} expandirAoAbrir />
-            </div>
-          </section>
-          ) : null}
 
           <section className="prototype-carreira-register-section">
             <header>

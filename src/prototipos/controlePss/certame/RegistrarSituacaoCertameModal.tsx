@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { CONTROLE_PSS_DATA_REFERENCIA, CONTROLE_PSS_USUARIO_LOGADO } from "../constants";
 import { controlePssStore, useControlePssStore } from "../controlePssStore";
-import { calcularPrazoPrestacaoContas, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento, podeRegistrarRetificacaoEdital, podeRegistrarRetificacaoHomologacao } from "./validations";
+import { calcularPrazoPrestacaoContas, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento, podeRegistrarParalisacao, podeRegistrarProrrogacaoValidade, podeRegistrarRetificacaoEdital, podeRegistrarRetificacaoHomologacao, podeRegistrarRetificacaoHomologacaoParcial, podeRegistrarRetomadaCronograma } from "./validations";
 import { DOCUMENTOS_POR_SITUACAO, SITUACOES_CERTAME } from "./dominios";
 import { BlocoHeader } from "./CertameFormContent";
 import { DocumentosCertameTabela, type DocumentoCertameCatalogoItem, TAMANHO_MAXIMO_DOCUMENTO_CERTAME, arquivoDocumentoCertameValido } from "./DocumentosCertameTabela";
@@ -73,9 +73,13 @@ export function RegistrarSituacaoCertameModal({ certameId, onClose }:{ certameId
   const dados = situacaoForm.getValues();
   if (!dados.data) { setErro("Informe a data de efeito da situação."); return; }
   if (dataEfeitoAnteriorPublicacao(dados.data, certame.dataPublicacaoEdital)) { setErro("A data de efeito não pode ser anterior à publicação do edital (RN006)."); return; }
-  if (dados.tipo === "RETIFICACAO_EDITAL" && !podeRegistrarRetificacaoEdital(certame.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Edital: o certame ainda não possui um registro de abertura (Aberto) no histórico (RN003)."); return; }
-  if (dados.tipo === "HOMOLOGADO" && homologacaoVigenteSemCancelamento(certame.historicoSituacoes)) { setErro("Já existe uma Homologação registrada para este certame sem Cancelamento/Anulação posterior (RN004)."); return; }
+  if (dados.tipo === "RETIFICACAO_EDITAL" && !podeRegistrarRetificacaoEdital(certame.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Edital: o certame precisa estar em Abertura ou Paralisação, com um registro de abertura no histórico (RN003)."); return; }
+  if ((dados.tipo === "HOMOLOGADO" || dados.tipo === "HOMOLOGACAO_PARCIAL") && homologacaoVigenteSemCancelamento(certame.historicoSituacoes)) { setErro("Já existe uma Homologação ou Homologação Parcial registrada para este certame sem Cancelamento/Anulação posterior (RN004)."); return; }
   if (dados.tipo === "RETIFICACAO_HOMOLOGACAO" && !podeRegistrarRetificacaoHomologacao(certame.historicoSituacoes)) { setErro("Não é possível registrar Retificação de Homologação sem um registro de Homologado anterior no histórico (RN005)."); return; }
+  if (dados.tipo === "RETIFICACAO_HOMOLOGACAO_PARCIAL" && !podeRegistrarRetificacaoHomologacaoParcial(certame.historicoSituacoes)) { setErro("Não é possível registrar Retificação da Homologação Parcial sem um registro de Homologação Parcial anterior no histórico (RN017)."); return; }
+  if (dados.tipo === "PRORROGACAO_VALIDADE" && !podeRegistrarProrrogacaoValidade(certame.historicoSituacoes)) { setErro("Não é possível registrar Prorrogação da Validade: o certame ainda não possui uma Homologação ou Homologação Parcial vigente no histórico (RN018)."); return; }
+  if (dados.tipo === "PARALISADO" && !podeRegistrarParalisacao(certame.historicoSituacoes)) { setErro("Não é possível registrar Paralisação: o certame já avançou além da fase de Abertura/Retificação de Edital (RN020)."); return; }
+  if (dados.tipo === "RETOMADA_CRONOGRAMA" && !podeRegistrarRetomadaCronograma(certame.historicoSituacoes)) { setErro("Não é possível registrar Retomada do Cronograma: o certame não está em Paralisação (RN023)."); return; }
   if (catalogoDocumentos) {
    const pendentes = catalogoDocumentos.filter((item) => item.obrigatorioSempre && !documentosSituacao[item.tipo as TipoDocumentoCertame]);
    if (pendentes.length > 0) { setErro(`Documento obrigatório pendente: ${pendentes.map((item) => item.label).join(", ")}.`); return; }

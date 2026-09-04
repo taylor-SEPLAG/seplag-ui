@@ -5,7 +5,7 @@ import type { DocumentoLegalAssociadoSeplag } from "../../componentes/Documentos
 export type SituacaoDocumentoLegal =
   | "Vigente"
   | "Revogada"
-  | "Parcialmente revogada";
+  | "Encerrado";
 
 export interface DocumentoLegal extends DocumentoLegalAssociadoSeplag {
   tipo: string;
@@ -23,6 +23,7 @@ export interface DocumentoLegal extends DocumentoLegalAssociadoSeplag {
   abrangencia: string;
   veiculoPublicacao: string;
   aplicacoes: string[];
+  tipoAltera?: string;
   normasAlteradas: string[];
   normasRevogadas: string[];
   situacao: SituacaoDocumentoLegal;
@@ -63,6 +64,7 @@ function createInitial(id: string, tipo: string, numero: string, ano: number, no
     abrangencia: "ESTADUAL",
     veiculoPublicacao: "Diário Oficial do Estado - DOE",
     aplicacoes: ["Carreira"],
+    tipoAltera: "Não Informado",
     normasAlteradas: [],
     normasRevogadas: [],
     situacao: "Vigente",
@@ -79,7 +81,7 @@ lei100.situacao = "Revogada";
 const decreto455 = createInitial("decreto-455-2020", "Decreto Estadual", "455", 2020, "Regulamentação de ingresso");
 decreto455.veiculoPublicacao = "IOB";
 decreto455.aplicacoes = ["Concurso", "Cargo"];
-decreto455.situacao = "Parcialmente revogada";
+decreto455.situacao = "Encerrado";
 let documents: DocumentoLegal[] = [lc500, lei100, decreto455];
 
 const listeners = new Set<() => void>();

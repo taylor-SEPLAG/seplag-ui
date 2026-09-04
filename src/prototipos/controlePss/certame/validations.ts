@@ -1,11 +1,13 @@
 import { addDays, differenceInCalendarDays, format, isBefore } from "date-fns";
 import { stringToDateSeplag } from "@uteis/manipulaData";
-import type { Certame, SituacaoHistoricoCertame, TipoCertame } from "./types";
+import type { Certame, SituacaoCertame, SituacaoHistoricoCertame, TipoCertame } from "./types";
 
-// RN-03: número sequencial de 11 dígitos, zerado a cada exercício — sugerido automaticamente
-// (Cenário 3) mas sempre editável pelo usuário até a publicação do edital.
-export function proximoNumeroCertame(exercicio:number, certames:readonly Certame[]):string {
- const doExercicio = certames.filter((certame) => certame.anoConcurso === exercicio).length;
+// RN01/RN03: o número do certame (TCE-MT) nunca é digitado — sempre calculado, sequencial de 11
+// dígitos, zerado a cada exercício. O tipo do certame (Concurso Público/PSS) não é codificado dentro
+// deste número — já é um campo próprio do cadastro (Tipo do certame), então Concurso Público e PSS
+// dividem a mesma sequência dentro do mesmo exercício.
+export function gerarNumeroCertame(ano:number, certames:readonly Certame[]):string {
+ const doExercicio = certames.filter((certame) => certame.anoConcurso === ano).length;
  return String(doExercicio + 1).padStart(11, "0");
 }
 
@@ -43,25 +45,73 @@ export function dataEfeitoAnteriorPublicacao(dataEfeito?:string, dataPublicacaoE
  return isBefore(efeito, publicacao);
 }
 
-// RN-24a (equivalente a ER142): só é possível registrar uma Retificação de Edital se o certame já
-// possuir um registro de abertura (Aberto) no histórico — todo certame salvo nasce com esse
-// registro (RN-15), então a guarda cobre apenas o caso de histórico corrompido/ausente.
-export function podeRegistrarRetificacaoEdital(historico:readonly SituacaoHistoricoCertame[]):boolean {
- return historico.some((item) => item.tipo === "ABERTO");
+// Situação atual do certame = tipo do registro mais recente do histórico. Histórico vazio equivale
+// a "ABERTO" porque RN007 garante que todo certame nasce automaticamente nessa situação; só fica
+// vazio de fato em cenário de histórico corrompido/ausente.
+export function situacaoAtualDoHistorico(historico:readonly SituacaoHistoricoCertame[]):SituacaoCertame {
+ return historico.length > 0 ? historico[historico.length - 1].tipo : "ABERTO";
 }
 
-// RN-24b (equivalente a ER144): não é permitido registrar uma nova Homologação enquanto a última
-// Homologação do histórico não tiver sido seguida de um Cancelamento/Anulação.
+// RN001 (Listagem de Certames): o atalho "Editar" só fica disponível enquanto a situação atual do
+// certame é Abertura ou Retificação de Edital — depois que o certame avança (Paralisação,
+// Homologação, Prorrogação, Cancelamento etc.), o cadastro deixa de ser editável por aqui e as
+// mudanças passam a ser feitas via "Nova Situação".
+export function podeEditarCertame(situacaoAtual:SituacaoCertame):boolean {
+ return situacaoAtual === "ABERTO" || situacaoAtual === "RETIFICACAO_EDITAL";
+}
+
+// RN003/RN019 (equivalente a ER142, RN-24a): Retificação de Edital exige que o certame já possua um
+// registro de Abertura no histórico E que a situação atual seja Abertura, Paralisação ou a própria
+// Retificação de Edital — não é mais permitida depois de Homologação, Prorrogação ou Cancelamento.
+export function podeRegistrarRetificacaoEdital(historico:readonly SituacaoHistoricoCertame[]):boolean {
+ if (!historico.some((item) => item.tipo === "ABERTO")) return false;
+ const atual = situacaoAtualDoHistorico(historico);
+ return atual === "ABERTO" || atual === "PARALISADO" || atual === "RETIFICACAO_EDITAL";
+}
+
+// RN004 (equivalente a ER144, RN-24b): Homologação e Homologação Parcial compartilham a mesma
+// guarda de vigência — não é permitido registrar uma nova Homologação ou Homologação Parcial
+// enquanto a última do histórico (completa ou parcial) não tiver sido seguida de Cancelamento/Anulação.
 export function homologacaoVigenteSemCancelamento(historico:readonly SituacaoHistoricoCertame[]):boolean {
  for (let indice = historico.length - 1; indice >= 0; indice -= 1) {
   if (historico[indice].tipo === "CANCELADO_ANULADO") return false;
-  if (historico[indice].tipo === "HOMOLOGADO") return true;
+  if (historico[indice].tipo === "HOMOLOGADO" || historico[indice].tipo === "HOMOLOGACAO_PARCIAL") return true;
  }
  return false;
 }
 
-// RN-24c (equivalente a ER145): só é possível registrar uma Retificação de Homologação se houver
-// um registro de Homologado prévio no histórico do certame.
+// RN005 (equivalente a ER145, RN-24c): só é possível registrar Retificação de Homologação se houver
+// um registro de Homologação (completa) prévio no histórico — uma Homologação Parcial prévia não é
+// suficiente (ver RN017, a contrapartida parcial desta guarda).
 export function podeRegistrarRetificacaoHomologacao(historico:readonly SituacaoHistoricoCertame[]):boolean {
  return historico.some((item) => item.tipo === "HOMOLOGADO");
+}
+
+// RN017 (nova): contrapartida da RN005 para a trilha parcial — só é possível registrar Retificação
+// da Homologação Parcial se houver um registro de Homologação Parcial prévio; uma Homologação
+// completa prévia não é suficiente.
+export function podeRegistrarRetificacaoHomologacaoParcial(historico:readonly SituacaoHistoricoCertame[]):boolean {
+ return historico.some((item) => item.tipo === "HOMOLOGACAO_PARCIAL");
+}
+
+// RN018 (nova): Prorrogação da Validade só pode ser registrada com uma Homologação ou Homologação
+// Parcial vigente (sem Cancelamento/Anulação posterior) — mesma checagem da RN004, já que só faz
+// sentido prorrogar a vigência de uma seleção já homologada.
+export function podeRegistrarProrrogacaoValidade(historico:readonly SituacaoHistoricoCertame[]):boolean {
+ return homologacaoVigenteSemCancelamento(historico);
+}
+
+// RN020 (nova): Paralisação só pode ser registrada enquanto a situação atual for anterior à
+// Homologação (Abertura, Retificação de Edital ou a própria Paralisação) — depois de Homologado,
+// Prorrogado ou Cancelado usa-se outra situação, não faz sentido paralisar.
+export function podeRegistrarParalisacao(historico:readonly SituacaoHistoricoCertame[]):boolean {
+ const atual = situacaoAtualDoHistorico(historico);
+ return atual === "ABERTO" || atual === "RETIFICACAO_EDITAL" || atual === "PARALISADO";
+}
+
+// RN023 (nova): Retomada do Cronograma só pode ser registrada com a situação atual em Paralisação —
+// sinaliza que o motivo da paralisação foi resolvido sem precisar alterar o edital (ao contrário da
+// Retificação de Edital, usada quando a retomada exige mudança de regras/datas).
+export function podeRegistrarRetomadaCronograma(historico:readonly SituacaoHistoricoCertame[]):boolean {
+ return situacaoAtualDoHistorico(historico) === "PARALISADO";
 }
