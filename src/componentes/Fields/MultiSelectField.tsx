@@ -22,6 +22,7 @@ export function MultiSelectFieldSeplag<T extends FieldValues = any>(
     placeholder = "Selecione...",
     display = "comma",
     maxSelectedLabels = 3,
+    selectionLimit,
     selectedItemsLabel,
     readOnly = false,
     onChange,
@@ -60,6 +61,7 @@ export function MultiSelectFieldSeplag<T extends FieldValues = any>(
               placeholder={placeholder}
               display={effectiveDisplay}
               maxSelectedLabels={maxSelectedLabels}
+              selectionLimit={selectionLimit}
               selectedItemsLabel={selectedItemsLabel}
             />
             {getFormErrorMessage(field.name)}

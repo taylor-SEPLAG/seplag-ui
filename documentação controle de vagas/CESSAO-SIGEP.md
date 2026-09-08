@@ -201,6 +201,8 @@ Esta relação ainda poderá ser revista quando as telas de solicitação, anál
 
 ## 9. Pendências
 
+- manter e validar as questões registradas em `movimentação/cessão/DÚVIDAS.md`;
+
 - definir o formulário de nova solicitação;
 - detalhar diferenças entre cessão interna e externa;
 - definir os documentos obrigatórios por modalidade;
@@ -265,3 +267,11 @@ A tela externa possui somente rota e estado reservado. Seus campos específicos 
 - A etapa Servidor passou a separar pessoa e vínculo ativo; admite dois vínculos somente como exceção para exercício de cargo em comissão e exige a opção remuneratória prevista no Manual.
 
 - Ajustado o alinhamento das etapas para manter o ícone imediatamente ao lado do número e do título.
+
+- Corrigida falha de renderização ao selecionar servidor com dois vínculos, causada pela ausência dos campos tipados e do cálculo dos vínculos selecionados.
+
+- A seleção passou a listar todos os vínculos ativos da pessoa e permite escolher até dois vínculos específicos para serem abrangidos pela cessão.
+
+- Corrigida a tela branca ao exibir vínculos: o componente de múltipla seleção estava sendo utilizado sem a respectiva importação na página do protótipo.
+
+- Adicionado resumo progressivo em acordeão: cada etapa exibe os dados consolidados das etapas anteriores e permite retornar para edição.

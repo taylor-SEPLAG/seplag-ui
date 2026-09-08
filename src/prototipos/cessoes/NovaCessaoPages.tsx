@@ -1,24 +1,33 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { 
+  useState } from "react";
+import { 
+  useForm } from "react-hook-form";
+import { 
+  useNavigate } from "react-router-dom";
 import {
-  BotaoSalvarSeplag,
+  
+  AccordionCardSeplag,BotaoSalvarSeplag,
   BotaoVoltarSeplag,
   BreadcrumbSeplag,
   CardSeplag,
   DateFieldSeplag,
   DropdownFieldSeplag,
+  MultiSelectFieldSeplag,
   RadioButtonFieldSeplag,
   TabsSeplag,
   TextAreaFieldSeplag,
   TextFieldSeplag,
 } from "../../componentes";
-import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
+import { 
+  PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import "./novaCessao.css";
 
 type EtapaCessao = "servidor" | "destino" | "dados" | "documentos" | "revisao";
 interface NovaCessaoInternaForm {
   servidor: string;
+  vinculosSelecionados: string[];
+  opcaoRemuneratoria: string;
+  vinculoRemuneratorio: string;
   unidadeDestino: string;
   codigoUnidade: string;
   hipotese: string;
@@ -63,6 +72,7 @@ const servidorDetalhes: Record<string, ServidorCessao> = {
     vinculos: [
       { matricula: "123456", cargo: "Analista Administrativo", carreira: "Área Instrumental", cargaHoraria: "40 horas", cedente: "SEFAZ", lotacao: "Coordenadoria Administrativa", probatorio: "Não" },
       { matricula: "654321", cargo: "Professora da Educação Básica", carreira: "Educação Básica", cargaHoraria: "20 horas", cedente: "SEDUC", lotacao: "Escola Estadual Pedro II", probatorio: "Não" },
+      { matricula: "789012", cargo: "Técnica Administrativa", carreira: "Apoio Administrativo", cargaHoraria: "20 horas", cedente: "SEPLAG", lotacao: "Gerência de Atendimento", probatorio: "Não" },
     ],
   },
   carlos: {
@@ -95,9 +105,16 @@ export function PrototiposNovaCessaoInternaPage() {
   const navigate = useNavigate();
   const [etapa, setEtapa] = useState<EtapaCessao>("servidor");
   const [maiorEtapaLiberada, setMaiorEtapaLiberada] = useState(0);
-  const { control, watch, handleSubmit } = useForm<NovaCessaoInternaForm>({ defaultValues: { servidor: "", vinculoPrincipal: "", cessaoDoisVinculos: "NAO", opcaoRemuneratoria: "", unidadeDestino: "", codigoUnidade: "", hipotese: "", cargoComissionado: "", cargoFuncao: "", atividades: "", motivacao: "", inicio: "", fim: "" } });
+  const [resumoAberto, setResumoAberto] = useState(true);
+  const { control, watch, handleSubmit, setValue } = useForm<NovaCessaoInternaForm>({ defaultValues: { servidor: "", vinculosSelecionados: [], opcaoRemuneratoria: "", vinculoRemuneratorio: "", unidadeDestino: "", codigoUnidade: "", hipotese: "", cargoComissionado: "", cargoFuncao: "", atividades: "", motivacao: "", inicio: "", fim: "" } });
   const valores = watch();
   const servidor = servidorDetalhes[valores.servidor];
+  const doisVinculos = (valores.vinculosSelecionados?.length ?? 0) === 2;
+  const vinculosSelecionados = servidor
+    ? servidor.vinculos.filter((item) => valores.vinculosSelecionados?.includes(item.matricula))
+    : [];
+  const unidadeDestinoSelecionada = unidadeOptions.find((item) => item.value === valores.unidadeDestino)?.label;
+  const hipoteseSelecionada = hipoteseOptions.find((item) => item.value === valores.hipotese)?.label;
   const indice = etapas.findIndex((item) => item.value === etapa);
   const erro = () => null;
   const etapasVisiveis = etapas.map((item, index) => ({
@@ -123,17 +140,35 @@ export function PrototiposNovaCessaoInternaPage() {
           <TabsSeplag items={etapasVisiveis} activeValue={etapa} onChange={setEtapa} equalWidth className="prototype-nova-cessao-tabs" />
 
           <form onSubmit={enviar}>
+            {indice > 0 && etapa !== "revisao" && <div className="prototype-nova-cessao-progress-summary">
+              <AccordionCardSeplag title="Resumo das etapas concluídas" iconTitulo="pi pi-check-circle" isOpen={resumoAberto} showIcon onToggle={() => setResumoAberto((aberto) => !aberto)}>
+                <div className="prototype-nova-cessao-progress-content">
+                  <article>
+                    <div><strong>1. Servidor</strong><span>{servidor?.nome || "Não informado"} • {vinculosSelecionados.length ? vinculosSelecionados.map((item) => "Matrícula " + item.matricula).join(" e ") : "vínculo não informado"}</span></div>
+                    <button type="button" onClick={() => setEtapa("servidor")}><i className="pi pi-pencil" /> Editar</button>
+                  </article>
+                  {indice > 1 && <article>
+                    <div><strong>2. Destino</strong><span>SEPLAG • {unidadeDestinoSelecionada || "unidade não informada"}{valores.cargoComissionado === "SIM" ? " • Cargo em comissão" : ""}</span></div>
+                    <button type="button" onClick={() => setEtapa("destino")}><i className="pi pi-pencil" /> Editar</button>
+                  </article>}
+                  {indice > 2 && <article>
+                    <div><strong>3. Dados da cessão</strong><span>{hipoteseSelecionada || "Hipótese não informada"} • {valores.inicio && valores.fim ? valores.inicio + " a " + valores.fim : "período não informado"}</span></div>
+                    <button type="button" onClick={() => setEtapa("dados")}><i className="pi pi-pencil" /> Editar</button>
+                  </article>}
+                </div>
+              </AccordionCardSeplag>
+            </div>}
             <section className="prototype-nova-cessao-panel">
               {etapa === "servidor" && <>
                 <h3>Servidor</h3><p>Selecione o servidor e o vínculo ativo que será abrangido pela cessão.</p>
-                <div className="grid"><DropdownFieldSeplag name="servidor" control={control} label="Nome ou matrícula" options={servidorOptions} optionLabel="label" optionValue="value" placeholder="Pesquise o servidor" required cols="12 6" getFormErrorMessage={erro} /></div>
+                <div className="grid"><DropdownFieldSeplag name="servidor" control={control} label="Nome ou matrícula" options={servidorOptions} optionLabel="label" optionValue="value" placeholder="Pesquise o servidor" required cols="12 6" getFormErrorMessage={erro} onChange={() => { setValue("vinculosSelecionados", []); setValue("opcaoRemuneratoria", ""); setValue("vinculoRemuneratorio", ""); }} /></div>
                 {servidor && <div className="prototype-nova-cessao-vinculos">
                   <div className="prototype-nova-cessao-person"><span><strong>{servidor.nome}</strong><small>CPF {servidor.cpf}</small></span><em>{servidor.vinculos.length} {servidor.vinculos.length === 1 ? "vínculo ativo" : "vínculos ativos"}</em></div>
-                  <RadioButtonFieldSeplag name="vinculoPrincipal" control={control} label="Vínculo da cessão" options={servidor.vinculos.map((vinculo) => ({ label: "Matrícula " + vinculo.matricula + " — " + vinculo.cargo, value: vinculo.matricula, icon: "pi pi-id-card", description: vinculo.carreira + " • " + vinculo.cargaHoraria + " • " + vinculo.cedente + " • " + vinculo.lotacao }))} variant="cards" required cols="12" getFormErrorMessage={erro} />
-                  {servidor.vinculos.length === 2 && <>
-                    <RadioButtonFieldSeplag name="cessaoDoisVinculos" control={control} label="Abrangência da cessão" options={[{ label: "Apenas o vínculo selecionado", value: "NAO" }, { label: "Os dois vínculos ativos", value: "SIM" }]} required cols="12" getFormErrorMessage={erro} />
-                    {doisVinculos && <div className="prototype-nova-cessao-special-rule"><i className="pi pi-info-circle" /><span><strong>Regra excepcional para dois vínculos</strong><small>Permitida para afastamento de ambos no exercício de cargo em comissão. A opção remuneratória deve constar no processo.</small></span></div>}
-                    {doisVinculos && <RadioButtonFieldSeplag name="opcaoRemuneratoria" control={control} label="Opção remuneratória" options={[{ label: "Remuneração integral do cargo em comissão", value: "CARGO_INTEGRAL" }, { label: "Remuneração de um vínculo efetivo acrescida do percentual de comissionamento", value: "EFETIVO_COM_PERCENTUAL" }]} variant="cards" required cols="12" getFormErrorMessage={erro} />}
+                  <MultiSelectFieldSeplag name="vinculosSelecionados" control={control} label="Vínculos abrangidos pela cessão" options={servidor.vinculos.map((vinculo) => ({ label: "Matrícula " + vinculo.matricula + " — " + vinculo.cargo + " • " + vinculo.cedente, value: vinculo.matricula }))} optionLabel="label" optionValue="value" display="chip" selectionLimit={2} maxSelectedLabels={2} placeholder="Selecione até dois vínculos" required cols="12" getFormErrorMessage={erro} />
+                  {doisVinculos && <>
+                    <div className="prototype-nova-cessao-special-rule"><i className="pi pi-info-circle" /><span><strong>Regra excepcional para dois vínculos</strong><small>Permitida para afastamento de ambos no exercício de cargo em comissão. A opção remuneratória deve constar no processo.</small></span></div>
+                    <RadioButtonFieldSeplag name="opcaoRemuneratoria" control={control} label="Opção remuneratória" options={[{ label: "Remuneração integral do cargo em comissão", value: "CARGO_INTEGRAL" }, { label: "Remuneração de um vínculo efetivo acrescida do percentual de comissionamento", value: "EFETIVO_COM_PERCENTUAL" }]} variant="cards" required cols="12" getFormErrorMessage={erro} />
+                    {valores.opcaoRemuneratoria === "EFETIVO_COM_PERCENTUAL" && <DropdownFieldSeplag name="vinculoRemuneratorio" control={control} label="Vínculo utilizado para remuneração" options={vinculosSelecionados.map((vinculo) => ({ label: "Matrícula " + vinculo.matricula + " — " + vinculo.cargo, value: vinculo.matricula }))} optionLabel="label" optionValue="value" required cols="12 6" getFormErrorMessage={erro} />}
                   </>}
                 </div>}
               </>}
@@ -152,7 +187,7 @@ export function PrototiposNovaCessaoInternaPage() {
               </>}
               {etapa === "revisao" && <>
                 <h3>Revisão e envio</h3><p>Confira as informações antes de encaminhar ao órgão cedente.</p>
-                <dl className="prototype-nova-cessao-summary"><div><dt>Tipo</dt><dd>Cessão interna</dd></div><div><dt>Servidor</dt><dd>{servidor?.nome || "Não informado"}</dd></div><div><dt>Vínculo(s)</dt><dd>{vinculosSelecionados.length ? vinculosSelecionados.map((item) => item.matricula).join(" e ") : "Não informado"}</dd></div><div><dt>Cedente(s)</dt><dd>{vinculosSelecionados.length ? [...new Set(vinculosSelecionados.map((item) => item.cedente))].join(" e ") : "Não informado"}</dd></div><div><dt>Cessionário</dt><dd>SEPLAG</dd></div><div><dt>Unidade de exercício</dt><dd>{unidadeOptions.find((item) => item.value === valores.unidadeDestino)?.label || "Não informada"}</dd></div><div><dt>Período</dt><dd>{valores.inicio && valores.fim ? `${valores.inicio} a ${valores.fim}` : "Não informado"}</dd></div><div><dt>Ônus</dt><dd>Órgão cessionário — sem reembolso</dd></div></dl>
+                <dl className="prototype-nova-cessao-summary"><div><dt>Tipo</dt><dd>Cessão interna</dd></div><div><dt>Servidor</dt><dd>{servidor?.nome || "Não informado"}</dd></div><div><dt>Vínculo(s)</dt><dd>{vinculosSelecionados.length ? vinculosSelecionados.map((item) => item.matricula).join(" e ") : "Não informado"}</dd></div><div><dt>Cedente(s)</dt><dd>{vinculosSelecionados.length ? [...new Set(vinculosSelecionados.map((item) => item.cedente))].join(" e ") : "Não informado"}</dd></div><div><dt>Cessionário</dt><dd>SEPLAG</dd></div><div><dt>Unidade de exercício</dt><dd>{unidadeDestinoSelecionada || "Não informada"}</dd></div><div><dt>Período</dt><dd>{valores.inicio && valores.fim ? `${valores.inicio} a ${valores.fim}` : "Não informado"}</dd></div><div><dt>Ônus</dt><dd>Órgão cessionário — sem reembolso</dd></div></dl>
                 <div className="prototype-nova-cessao-declaration"><i className="pi pi-exclamation-triangle" /><span>Após o envio, a solicitação ficará aguardando a instrução e a decisão do órgão cedente.</span></div>
               </>}
             </section>

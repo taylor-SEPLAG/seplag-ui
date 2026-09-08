@@ -4,7 +4,7 @@ import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { CardSeplag } from "@componentes/Card";
-import { CNPJFieldSeplag, DateFieldSeplag, DropdownFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
+import { CNPJFieldSeplag, DateFieldSeplag, DropdownFieldSeplag, NumberFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { PanelSeplag } from "@componentes/PanelSeplag";
 import "./orgaosEntidades.css";
 import "./orgaosEntidadesOverrides.css";
@@ -23,6 +23,21 @@ export interface OrgaosEntidadesCadastroProps {
 }
 const noError = () => null;
 const opts = (values: string[]) => values.map((value) => ({ label: value, value }));
+const tiposOrganizacao = ["Secretaria", "Órgão Desconcentrado", "Autarquia", "Fundação Pública", "Empresa Pública", "Sociedade de Economia Mista"];
+const classificacaoPorTipo: Record<string, string> = {
+  Secretaria: "85 - Órgão público integrante da administração direta",
+  "Órgão Desconcentrado": "85 - Órgão público integrante da administração direta",
+  Autarquia: "80 - Entidade beneficente/isenta",
+  "Fundação Pública": "80 - Entidade beneficente/isenta",
+  "Empresa Pública": "99 - Pessoas jurídicas em geral",
+  "Sociedade de Economia Mista": "99 - Pessoas jurídicas em geral",
+};
+const dadosSuperiores: Record<string, { esferaGoverno: string; esferaPoder: string; cnpjEfr: string }> = {
+  "Estado de Mato Grosso - GOV": { esferaGoverno: "Estadual", esferaPoder: "Executivo", cnpjEfr: "03.507.415/0001-00" },
+  "Governadoria do Estado": { esferaGoverno: "Estadual", esferaPoder: "Executivo", cnpjEfr: "03.507.415/0001-00" },
+  "Casa Civil": { esferaGoverno: "Estadual", esferaPoder: "Executivo", cnpjEfr: "03.507.415/0001-00" },
+  "Secretaria de Estado de Planejamento e Gestão - SEPLAG": { esferaGoverno: "Estadual", esferaPoder: "Executivo", cnpjEfr: "03.507.415/0001-00" },
+};
 const autoLabel = (texto: string) => (
   <span className="orgao-auto-label">
     {texto}
@@ -43,6 +58,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
       esferaPoder: "Executivo",
       formaAdministracao: "Administração Direta",
       personalidade: "Não",
+      tipoOrganizacao: "Secretaria",
       estabelecimento: "Matriz",
       cnpj: "03.507.415/0011-16",
       razao: "Secretaria de Estado de Planejamento e Gestão",
@@ -63,6 +79,8 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
       cnpjEfr: "03.507.415/0001-00",
       aliquotaRat: "",
       fap: "",
+      codigoFpas: "",
+      tipoLotacaoTributaria: "",
       cep: "",
       uf: "MT",
       municipio: "",
@@ -100,6 +118,18 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
     setValue("estabelecimento", "Matriz");
     setValue("classificacaoTributaria", "85 - Ente Federativo");
   }, [tipoInicial, setValue]);
+  useEffect(() => {
+    if (tipoInicial === "ente") return;
+    setValue("classificacaoTributaria", classificacaoPorTipo[dados.tipoOrganizacao] ?? "");
+  }, [dados.tipoOrganizacao, tipoInicial, setValue]);
+  useEffect(() => {
+    if (tipoInicial === "ente") return;
+    const superior = dadosSuperiores[dados.orgaoSuperior || dados.enteFederativo];
+    if (!superior) return;
+    setValue("esferaGoverno", superior.esferaGoverno);
+    setValue("esferaPoder", superior.esferaPoder);
+    setValue("cnpjEfr", superior.cnpjEfr);
+  }, [dados.enteFederativo, dados.orgaoSuperior, tipoInicial, setValue]);
   const abas: { id: Aba; label: string; descricao: string }[] = [
     {
       id: "identificacao",
@@ -182,6 +212,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
                     <DropdownFieldSeplag name="orgaoSuperior" label="Órgão superior" disabled={disabled} options={opts(["Governadoria do Estado", "Casa Civil", "Secretaria de Estado de Planejamento e Gestão - SEPLAG"])} optionLabel="label" optionValue="value" placeholder="Selecione, se houver" showClear {...common} />
                   </>
                 )}
+                {tipoInicial !== "ente" && <DropdownFieldSeplag name="tipoOrganizacao" label="Tipo de Organização" required disabled={disabled} options={opts(tiposOrganizacao)} optionLabel="label" optionValue="value" {...common} />}
                 <DropdownFieldSeplag name="esferaGoverno" label={autoLabel("Esfera de Governo")} disabled options={opts(["Estadual"])} optionLabel="label" optionValue="value" {...common} />
                 <DropdownFieldSeplag name="esferaPoder" label={autoLabel("Esfera de Poder")} disabled options={opts(["Executivo"])} optionLabel="label" optionValue="value" {...common} />
                 {tipoInicial !== "ente" && (
@@ -196,10 +227,12 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
             <PanelSeplag title="Informações para o eSocial" description="Dados utilizados nas obrigações do eSocial." className="orgao-form-section">
               <div className="orgao-fields-grid cols-3">
                 <DropdownFieldSeplag name="situacao" label="Situação cadastral" disabled={disabled} options={opts(["Ativa", "Baixada"])} optionLabel="label" optionValue="value" {...common} />
-                <DropdownFieldSeplag name="classificacaoTributaria" label={tipoInicial === "ente" ? autoLabel("Classificação Tributária") : "Classificação Tributária"} disabled={tipoInicial === "ente" || disabled} options={opts(["85 - Ente Federativo"])} optionLabel="label" optionValue="value" {...common} />
+                <DropdownFieldSeplag name="classificacaoTributaria" label={autoLabel("Classificação Tributária")} disabled options={opts(tipoInicial === "ente" ? ["85 - Ente Federativo"] : Object.values(classificacaoPorTipo))} optionLabel="label" optionValue="value" {...common} />
                 {tipoInicial !== "ente" && <TextFieldSeplag name="siafi" label="Número SIAFI" disabled={disabled} {...common} />}
-                <TextFieldSeplag name="aliquotaRat" label="Alíquota RAT/GILRAT" disabled={disabled} {...common} />
-                <TextFieldSeplag name="fap" label="FAP (Fator Acidentário)" disabled={disabled} {...common} />
+                <DropdownFieldSeplag name="aliquotaRat" label="Alíquota RAT / GILRAT" disabled={disabled} options={opts(["1%", "2%", "3%"]) } optionLabel="label" optionValue="value" placeholder="Selecione..." {...common} />
+                <NumberFieldSeplag name="fap" label="FAP (Fator Acidentário)" disabled={disabled} min={0.5} max={2} inputStyle={{ width: "100%" }} {...common} />
+                <DropdownFieldSeplag name="codigoFpas" label="Código FPAS" disabled={disabled} options={opts(["515 - Comércio e serviços", "523 - Órgãos do poder público", "582 - Órgãos federais, estaduais e municipais", "604 - Produtor rural"])} optionLabel="label" optionValue="value" placeholder="Selecione..." {...common} />
+                <DropdownFieldSeplag name="tipoLotacaoTributaria" label="Tipo de Lotação Tributária" disabled={disabled} options={opts(["01 - Classificação da atividade econômica", "02 - Obra de construção civil", "03 - Pessoa física tomadora de serviços", "21 - Escritório administrativo"])} optionLabel="label" optionValue="value" placeholder="Selecione..." {...common} />
                 <DropdownFieldSeplag name="registroEletronico" label="Registro Eletrônico Empregados" disabled={disabled} options={opts(["Não aplicável", "Sim", "Não"])} optionLabel="label" optionValue="value" {...common} />
                 <DropdownFieldSeplag name="desoneracao" label="Desoneração da Folha" disabled={disabled} options={opts(["Não aplicável", "Sim", "Não"])} optionLabel="label" optionValue="value" {...common} />
                 {tipoInicial !== "ente" && <CNPJFieldSeplag name="cnpjEfr" label={autoLabel("CNPJ do EFR")} validarCNPJ={false} disabled {...common} />}

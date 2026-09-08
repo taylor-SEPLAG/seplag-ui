@@ -12,6 +12,7 @@ export interface MultiSelectFieldSeplagProps<
   readonly placeholder?: string;
   readonly display?: "chip" | "comma";
   readonly maxSelectedLabels?: number;
+  readonly selectionLimit?: number;
   readonly selectedItemsLabel?: string;
   readonly readOnly?: boolean;
   readonly onChange?: (value: any[]) => void;

@@ -14,6 +14,14 @@
 .prototype-nova-cessao-tabs .p-button { justify-content:center; gap:.5rem; }
 .prototype-nova-cessao-tabs .p-button .p-button-label { flex:0 0 auto; }
 .prototype-nova-cessao-tabs .p-button .p-button-icon { flex:0 0 auto; margin:0; }
+.prototype-nova-cessao-progress-summary { margin-bottom:1rem; }
+.prototype-nova-cessao-progress-summary > div { margin-bottom:0!important; border-color:#b7d3e8!important; background:#f8fbfe!important; }
+.prototype-nova-cessao-progress-content { display:flex; flex-direction:column; gap:.65rem; padding:.65rem 0 .1rem; }
+.prototype-nova-cessao-progress-content article { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.7rem .8rem; border-top:1px solid #dbe7f0; background:#fff; }
+.prototype-nova-cessao-progress-content article > div { display:flex; min-width:0; flex-direction:column; gap:.2rem; }
+.prototype-nova-cessao-progress-content article strong { color:#344054; font-size:.88rem; }
+.prototype-nova-cessao-progress-content article span { color:#667085; font-size:.8rem; line-height:1.35; }
+.prototype-nova-cessao-progress-content article button { display:inline-flex; align-items:center; gap:.35rem; border:0; background:transparent; color:#0b6199; font-weight:600; cursor:pointer; }
 .prototype-nova-cessao-panel { min-height:15rem; padding:1.25rem; border:1px solid #d0d5dd; border-radius:.45rem; background:#fff; }
 .prototype-nova-cessao-panel h3 { margin:0 0 .25rem; color:#344054; }
 .prototype-nova-cessao-panel > p { margin:.25rem 0 1.25rem; color:#667085; }
