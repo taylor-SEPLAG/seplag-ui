@@ -19,7 +19,7 @@ import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import "./cessoesList.css";
 
 type TipoCessao = "INTERNA" | "EXTERNA";
-type SituacaoCessao = "RASCUNHO" | "AGUARDANDO_CEDENTE" | "DEVOLVIDA" | "AGUARDANDO_SEPLAG" | "AGUARDANDO_PUBLICACAO" | "PUBLICADA" | "ATIVA" | "EM_PRORROGACAO" | "ENCERRADA";
+type SituacaoCessao = "RASCUNHO" | "AGUARDANDO_CEDENTE" | "DEVOLVIDA" | "INDEFERIDA" | "AGUARDANDO_SEPLAG" | "AGUARDANDO_PUBLICACAO" | "PUBLICADA" | "ATIVA" | "EM_PRORROGACAO" | "ENCERRADA";
 type PerfilAcesso = "SOLICITANTE_CESSIONARIO" | "SOLICITADO_CEDENTE" | "SEPLAG";
 
 interface UsuarioPrototype {
@@ -65,24 +65,21 @@ const perfilOpcaoLabel: Record<PerfilAcesso, string> = {
   SEPLAG: "SEPLAG",
 };
 
-const registros: CessaoListItem[] = [
-  { id: "CES-2026-0001", servidor: "Maria Aparecida Silva", matricula: "123456", tipo: "INTERNA", orgaoCedente: "SEFAZ", orgaoCessionario: "SEPLAG", inicio: "01/11/2026", fim: "31/10/2027", etapaAtual: "Órgão cedente", situacao: "AGUARDANDO_CEDENTE" },
-  { id: "CES-2026-0002", servidor: "João Carlos de Souza", matricula: "654321", tipo: "EXTERNA", orgaoCedente: "SEPLAG", orgaoCessionario: "TJMT", inicio: "15/10/2026", fim: "14/10/2027", etapaAtual: "SEPLAG", situacao: "AGUARDANDO_SEPLAG" },
-  { id: "CES-2026-0003", servidor: "Ana Paula Lima", matricula: "987654", tipo: "INTERNA", orgaoCedente: "SEDUC", orgaoCessionario: "SEFAZ", inicio: "01/09/2026", fim: "31/08/2027", etapaAtual: "Cessão vigente", situacao: "ATIVA" },
-  { id: "CES-2026-0004", servidor: "Carlos Eduardo Mendes", matricula: "741852", tipo: "INTERNA", orgaoCedente: "SES", orgaoCessionario: "SEPLAG", inicio: "10/09/2026", fim: "09/09/2027", etapaAtual: "Publicação", situacao: "AGUARDANDO_PUBLICACAO" },
-  { id: "CES-2026-0005", servidor: "Luciana Ferreira Alves", matricula: "369258", tipo: "EXTERNA", orgaoCedente: "SINFRA", orgaoCessionario: "Prefeitura de Cuiabá", inicio: "01/02/2025", fim: "31/01/2026", etapaAtual: "Concluída", situacao: "ENCERRADA" },
-  { id: "CES-2026-0006", servidor: "Rafael Martins Costa", matricula: "852147", tipo: "INTERNA", orgaoCedente: "CGE", orgaoCessionario: "SEPLAG", inicio: "01/10/2026", fim: "30/09/2027", etapaAtual: "Órgão cessionário", situacao: "DEVOLVIDA" },
-  { id: "CES-2026-0007", servidor: "Patrícia Gomes Ribeiro", matricula: "159753", tipo: "INTERNA", orgaoCedente: "SEFAZ", orgaoCessionario: "CGE", inicio: "20/09/2026", fim: "19/09/2027", etapaAtual: "SEPLAG", situacao: "AGUARDANDO_SEPLAG" },
-];
+const REGISTROS_STORAGE_KEY = "sigep-prototype-cessoes-registros";
+
+function carregarRegistros(): CessaoListItem[] {
+  try {
+    const salvo = window.localStorage.getItem(REGISTROS_STORAGE_KEY);
+    return salvo ? JSON.parse(salvo) as CessaoListItem[] : [];
+  } catch {
+    return [];
+  }
+}
 
 const criarOpcoesOrgao = (orgaos: string[]) => [
   { label: "Todos", value: "" },
   ...Array.from(new Set(orgaos)).sort((a, b) => a.localeCompare(b, "pt-BR")).map((orgao) => ({ label: orgao, value: orgao })),
 ];
-
-const orgaoCessionarioOptions = criarOpcoesOrgao(registros.map((item) => item.orgaoCessionario));
-const orgaoCedenteOptions = criarOpcoesOrgao(registros.map((item) => item.orgaoCedente));
-const etapaOptions = criarOpcoesOrgao(registros.map((item) => item.etapaAtual));
 
 const tipoOptions = [
   { label: "Todos", value: "" },
@@ -94,6 +91,7 @@ const situacaoLabels: Record<SituacaoCessao, string> = {
   RASCUNHO: "Rascunho",
   AGUARDANDO_CEDENTE: "Aguardando confirmação do cedente",
   DEVOLVIDA: "Devolvida para correção",
+  INDEFERIDA: "Indeferida pelo cedente",
   AGUARDANDO_SEPLAG: "Aguardando aprovação da SEPLAG",
   AGUARDANDO_PUBLICACAO: "Aguardando publicação",
   PUBLICADA: "Publicada — aguardando início",
@@ -111,6 +109,7 @@ const badgeStyles: Record<SituacaoCessao, { color: string; bg: string }> = {
   RASCUNHO: { color: "#475467", bg: "#f2f4f7" },
   AGUARDANDO_CEDENTE: { color: "#8a5c00", bg: "#fff1cf" },
   DEVOLVIDA: { color: "#9a3412", bg: "#ffedd5" },
+  INDEFERIDA: { color: "#b42318", bg: "#fee4e2" },
   AGUARDANDO_SEPLAG: { color: "#0b6199", bg: "#e9f3fc" },
   AGUARDANDO_PUBLICACAO: { color: "#6b3fa0", bg: "#f1e9fb" },
   PUBLICADA: { color: "#175cd3", bg: "#eaf2ff" },
@@ -136,6 +135,7 @@ function usuarioInicial() {
 export function PrototiposCessoesPage() {
   const navigate = useNavigate();
   const [modalTipoAberto, setModalTipoAberto] = useState(false);
+  const [registros] = useState<CessaoListItem[]>(carregarRegistros);
   const { control, watch, reset } = useForm<FiltrosCessao>({ defaultValues: { termo: "", tipo: "", situacao: "", orgaoCessionario: "", orgaoCedente: "", etapaAtual: "" } });
   const [usuarioId, setUsuarioId] = useState(usuarioInicial);
   const [page, setPage] = useState(0);
@@ -147,12 +147,15 @@ export function PrototiposCessoesPage() {
   const orgaoCedente = watch("orgaoCedente");
   const etapaAtual = watch("etapaAtual");
   const usuario = usuariosPrototype.find((item) => item.id === usuarioId) ?? usuariosPrototype[0];
+  const orgaoCessionarioOptions = useMemo(() => criarOpcoesOrgao(registros.map((item) => item.orgaoCessionario)), [registros]);
+  const orgaoCedenteOptions = useMemo(() => criarOpcoesOrgao(registros.map((item) => item.orgaoCedente)), [registros]);
+  const etapaOptions = useMemo(() => criarOpcoesOrgao(registros.map((item) => item.etapaAtual)), [registros]);
 
   const registrosVisiveis = useMemo(() => {
     if (usuario.perfil === "SEPLAG") return registros;
     if (usuario.perfil === "SOLICITANTE_CESSIONARIO") return registros.filter((item) => item.orgaoCessionario === usuario.orgao);
-    return registros.filter((item) => item.orgaoCedente === usuario.orgao);
-  }, [usuario]);
+    return registros.filter((item) => item.orgaoCedente.split(" / ").includes(usuario.orgao));
+  }, [registros, usuario]);
 
   const filtrados = useMemo(() => {
     const query = normalize(termo.trim());
@@ -239,7 +242,8 @@ export function PrototiposCessoesPage() {
             <TablePaginadoSeplag dataKey="id" data={data} rows={rows} rowsPerPage={[10, 25, 50]} paginator={filtrados.length > 10} lazy={false} selectionMode={null} columns={columns} hasEventoAcao handleAdicionar={null} handleEdit={null} handleDelete={null} handleView={null}
               handleOnPageChange={(event) => { setPage(event.page ?? 0); setRows(event.rows ?? 10); }} actionHeader="Ações" renderBotoes={(row) => {
                 const acao = acaoDaLinha(row);
-                return <BotaoIconSeplag type="button" icon={acao.icon} tooltip={`${acao.label}: ${row.id}`} aria-label={`${acao.label}: ${row.id}`} onClick={() => window.alert(`${acao.label}: tela a implementar na próxima etapa.`)} />;
+                const analisarComoCedente = usuario.perfil === "SOLICITADO_CEDENTE" && row.situacao === "AGUARDANDO_CEDENTE";
+                return <BotaoIconSeplag type="button" icon={acao.icon} tooltip={`${acao.label}: ${row.id}`} aria-label={`${acao.label}: ${row.id}`} onClick={() => analisarComoCedente ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-cedente`) : window.alert(`${acao.label}: tela a implementar na próxima etapa.`)} />;
               }} emptyMessage="Nenhuma cessão foi encontrada para os filtros informados." />
           </div>
         </div>

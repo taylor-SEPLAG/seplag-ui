@@ -6,7 +6,9 @@ import {
   useNavigate } from "react-router-dom";
 import {
   
-  AccordionCardSeplag,BotaoSalvarSeplag,
+  AccordionCardSeplag,
+  ModalSeplag,
+  BotaoSalvarSeplag,
   BotaoVoltarSeplag,
   BreadcrumbSeplag,
   CardSeplag,
@@ -95,6 +97,8 @@ const unidadeOptions = [
   { label: "Superintendência de Gestão de Pessoas — UO 120", value: "120" },
   { label: "Coordenadoria de Movimentação — UO 124", value: "124" },
 ];
+const REGISTROS_CESSAO_STORAGE_KEY = "sigep-prototype-cessoes-registros";
+
 const hipoteseOptions = [
   { label: "Exercício de cargo em comissão ou função de confiança", value: "CARGO" },
   { label: "Situação de comprovado interesse público", value: "INTERESSE_PUBLICO" },
@@ -106,6 +110,11 @@ export function PrototiposNovaCessaoInternaPage() {
   const [etapa, setEtapa] = useState<EtapaCessao>("servidor");
   const [maiorEtapaLiberada, setMaiorEtapaLiberada] = useState(0);
   const [resumoAberto, setResumoAberto] = useState(true);
+  const [modalSigadocAberto, setModalSigadocAberto] = useState(false);
+  const [numeroSigadoc, setNumeroSigadoc] = useState("");
+  const [sigadocVinculado, setSigadocVinculado] = useState("");
+  const [erroSigadoc, setErroSigadoc] = useState("");
+  const [modalEnvioConcluido, setModalEnvioConcluido] = useState(false);
   const { control, watch, handleSubmit, setValue } = useForm<NovaCessaoInternaForm>({ defaultValues: { servidor: "", vinculosSelecionados: [], opcaoRemuneratoria: "", vinculoRemuneratorio: "", unidadeDestino: "", codigoUnidade: "", hipotese: "", cargoComissionado: "", cargoFuncao: "", atividades: "", motivacao: "", inicio: "", fim: "" } });
   const valores = watch();
   const servidor = servidorDetalhes[valores.servidor];
@@ -128,7 +137,58 @@ export function PrototiposNovaCessaoInternaPage() {
     setEtapa(etapas[proximaEtapa].value);
   };
   const voltar = () => indice === 0 ? navigate("/prototipos/sigep/movimentacao/cessoes") : setEtapa(etapas[indice - 1].value);
-  const enviar = handleSubmit(() => { window.alert("Solicitação de cessão interna enviada ao órgão cedente."); navigate("/prototipos/sigep/movimentacao/cessoes"); });
+  const enviar = handleSubmit(() => {
+    if (!servidor || !vinculosSelecionados.length || !sigadocVinculado) return;
+    let registros: Array<Record<string, unknown>> = [];
+    try {
+      const salvos = window.localStorage.getItem(REGISTROS_CESSAO_STORAGE_KEY);
+      registros = salvos ? JSON.parse(salvos) : [];
+    } catch {
+      registros = [];
+    }
+    const proximoNumero = registros.reduce((maior, item) => {
+      const numero = Number(String(item.id ?? "").match(/(\d+)$/)?.[1] ?? 0);
+      return Math.max(maior, numero);
+    }, 0) + 1;
+    const cedentes = [...new Set(vinculosSelecionados.map((item) => item.cedente))];
+    registros.push({
+      id: `CES-${new Date().getFullYear()}-${String(proximoNumero).padStart(4, "0")}`,
+      servidor: servidor.nome,
+      matricula: vinculosSelecionados.map((item) => item.matricula).join(" e "),
+      tipo: "INTERNA",
+      orgaoCedente: cedentes.join(" / "),
+      orgaoCessionario: "SEPLAG",
+      inicio: valores.inicio,
+      fim: valores.fim,
+      etapaAtual: "Órgão cedente",
+      situacao: "AGUARDANDO_CEDENTE",
+      processoSigadoc: sigadocVinculado,
+      unidadeDestino: unidadeDestinoSelecionada,
+      hipotese: hipoteseSelecionada,
+      atividades: valores.atividades,
+      motivacao: valores.motivacao,
+      cargoComissionado: valores.cargoComissionado,
+      cargoFuncao: valores.cargoFuncao,
+    });
+    window.localStorage.setItem(REGISTROS_CESSAO_STORAGE_KEY, JSON.stringify(registros));
+    setModalEnvioConcluido(true);
+  });
+  const concluirEnvio = () => {
+    setModalEnvioConcluido(false);
+    navigate("/prototipos/sigep/movimentacao/cessoes");
+  };
+  const abrirVinculoSigadoc = () => {
+    setNumeroSigadoc(sigadocVinculado);
+    setErroSigadoc("");
+    setModalSigadocAberto(true);
+  };
+  const vincularSigadoc = () => {
+    const numero = numeroSigadoc.trim();
+    if (!numero) { setErroSigadoc("Informe o número do processo SIGADOC."); return; }
+    setSigadocVinculado(numero);
+    setErroSigadoc("");
+    setModalSigadocAberto(false);
+  };
 
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
     <div className="prototype-page-content prototype-page-content--white prototype-nova-cessao-page">
@@ -139,7 +199,7 @@ export function PrototiposNovaCessaoInternaPage() {
           <div className="prototype-nova-cessao-notice"><i className="pi pi-info-circle" /><span>Cessão interna: movimentação entre órgãos ou entidades do Poder Executivo Estadual.</span></div>
           <TabsSeplag items={etapasVisiveis} activeValue={etapa} onChange={setEtapa} equalWidth className="prototype-nova-cessao-tabs" />
 
-          <form onSubmit={enviar}>
+          <div>
             {indice > 0 && etapa !== "revisao" && <div className="prototype-nova-cessao-progress-summary">
               <AccordionCardSeplag title="Resumo das etapas concluídas" iconTitulo="pi pi-check-circle" isOpen={resumoAberto} showIcon onToggle={() => setResumoAberto((aberto) => !aberto)}>
                 <div className="prototype-nova-cessao-progress-content">
@@ -177,24 +237,73 @@ export function PrototiposNovaCessaoInternaPage() {
                 <div className="grid"><TextFieldSeplag name="orgaoDestino" label="Órgão cessionário" value="SEPLAG" disabled cols="12 6" getFormErrorMessage={erro} /><DropdownFieldSeplag name="unidadeDestino" control={control} label="Unidade de exercício" options={unidadeOptions} optionLabel="label" optionValue="value" required cols="12 6" getFormErrorMessage={erro} onChange={() => undefined} /><TextFieldSeplag name="codigoUnidade" label="Código da unidade" value={valores.unidadeDestino} disabled cols="12 4" getFormErrorMessage={erro} /><RadioButtonFieldSeplag name="cargoComissionado" control={control} label="Exercerá cargo em comissão ou função de confiança?" options={[{ label: "Sim", value: "SIM" }, { label: "Não", value: "NAO", disabled: doisVinculos }]} required cols="12 8" getFormErrorMessage={erro} />{valores.cargoComissionado === "SIM" && <TextFieldSeplag name="cargoFuncao" control={control} label="Cargo ou função" required cols="12 6" getFormErrorMessage={erro} />}</div>
               </>}
               {etapa === "dados" && <>
-                <h3>Dados da cessão</h3><p>O manual exige motivação, período e definição do ônus.</p>
+                <h3>Dados da cessão</h3><p>A cessão exige motivação, período e definição do ônus.</p>
                 <div className="grid"><DropdownFieldSeplag name="hipotese" control={control} label="Hipótese da cessão" options={doisVinculos ? hipoteseOptions.filter((item) => item.value === "CARGO") : hipoteseOptions} optionLabel="label" optionValue="value" required cols="12 6" getFormErrorMessage={erro} /><TextFieldSeplag name="onus" label="Ônus" value="Órgão cessionário — sem reembolso" disabled cols="12 6" getFormErrorMessage={erro} /><DateFieldSeplag name="inicio" control={control} label="Data inicial" required cols="12 6 3" getFormErrorMessage={erro} /><DateFieldSeplag name="fim" control={control} label="Data final" required validateAfterDate={valores.inicio} cols="12 6 3" getFormErrorMessage={erro} /><TextAreaFieldSeplag name="atividades" control={control} label="Atividades que serão exercidas" required rows={3} maxLength={1000} cols="12" getFormErrorMessage={erro} /><TextAreaFieldSeplag name="motivacao" control={control} label="Motivação do pedido" required rows={4} maxLength={2000} cols="12" getFormErrorMessage={erro} /></div>
                 <div className="prototype-nova-cessao-warning"><i className="pi pi-clock" /> O pedido deve ser protocolado com antecedência mínima de 60 dias e o período não pode ultrapassar cinco anos.</div>
               </>}
               {etapa === "documentos" && <>
                 <h3>Documentos</h3><p>A instrução oficial ocorre no SIGADOC. Nesta etapa ficam registrados os documentos sob responsabilidade do solicitante.</p>
-                <div className="prototype-nova-cessao-docs"><article><i className="pi pi-file" /><span><strong>Ofício de solicitação de cessão interna</strong><small>Obrigatório na abertura.</small></span><button type="button">Vincular documento</button></article><article className="is-future"><i className="pi pi-lock" /><span><strong>Manifestação da unidade de lotação</strong><small>Será produzida durante a instrução pelo órgão cedente.</small></span><em>Etapa do cedente</em></article><article className="is-future"><i className="pi pi-lock" /><span><strong>Manifestação técnica do órgão central</strong><small>Será produzida após a autorização do cedente.</small></span><em>Etapa da SEPLAG</em></article></div>
+                <div className="prototype-nova-cessao-docs"><article className={sigadocVinculado ? "is-linked" : undefined}><i className={sigadocVinculado ? "pi pi-check-circle" : "pi pi-file"} /><span><strong>Ofício de solicitação de cessão interna</strong><small>{sigadocVinculado ? <>Processo SIGADOC: <b>{sigadocVinculado}</b></> : "Obrigatório na abertura."}</small></span><button type="button" onClick={abrirVinculoSigadoc}>{sigadocVinculado ? "Alterar vínculo" : "Vincular documento"}</button></article><article className="is-future"><i className="pi pi-lock" /><span><strong>Manifestação da unidade de lotação</strong><small>Será produzida durante a instrução pelo órgão cedente.</small></span><em>Etapa do cedente</em></article><article className="is-future"><i className="pi pi-lock" /><span><strong>Manifestação técnica do órgão central</strong><small>Será produzida após a autorização do cedente.</small></span><em>Etapa da SEPLAG</em></article></div>
               </>}
               {etapa === "revisao" && <>
                 <h3>Revisão e envio</h3><p>Confira as informações antes de encaminhar ao órgão cedente.</p>
-                <dl className="prototype-nova-cessao-summary"><div><dt>Tipo</dt><dd>Cessão interna</dd></div><div><dt>Servidor</dt><dd>{servidor?.nome || "Não informado"}</dd></div><div><dt>Vínculo(s)</dt><dd>{vinculosSelecionados.length ? vinculosSelecionados.map((item) => item.matricula).join(" e ") : "Não informado"}</dd></div><div><dt>Cedente(s)</dt><dd>{vinculosSelecionados.length ? [...new Set(vinculosSelecionados.map((item) => item.cedente))].join(" e ") : "Não informado"}</dd></div><div><dt>Cessionário</dt><dd>SEPLAG</dd></div><div><dt>Unidade de exercício</dt><dd>{unidadeDestinoSelecionada || "Não informada"}</dd></div><div><dt>Período</dt><dd>{valores.inicio && valores.fim ? `${valores.inicio} a ${valores.fim}` : "Não informado"}</dd></div><div><dt>Ônus</dt><dd>Órgão cessionário — sem reembolso</dd></div></dl>
+                <div className="prototype-nova-cessao-review">
+                  <section><header><h4>1. Servidor</h4><button type="button" onClick={() => setEtapa("servidor")}><i className="pi pi-pencil" /> Editar</button></header><dl><div><dt>Servidor</dt><dd>{servidor?.nome || "Não informado"}</dd></div><div><dt>Matrícula(s)</dt><dd>{vinculosSelecionados.length ? vinculosSelecionados.map((item) => item.matricula).join(" e ") : "Não informada"}</dd></div><div><dt>Cedente(s)</dt><dd>{vinculosSelecionados.length ? [...new Set(vinculosSelecionados.map((item) => item.cedente))].join(" e ") : "Não informado"}</dd></div></dl></section>
+                  <section><header><h4>2. Destino</h4><button type="button" onClick={() => setEtapa("destino")}><i className="pi pi-pencil" /> Editar</button></header><dl><div><dt>Cessionário</dt><dd>SEPLAG</dd></div><div><dt>Unidade de exercício</dt><dd>{unidadeDestinoSelecionada || "Não informada"}</dd></div><div><dt>Cargo em comissão ou função de confiança</dt><dd>{valores.cargoComissionado === "SIM" ? "Sim" : valores.cargoComissionado === "NAO" ? "Não" : "Não informado"}</dd></div>{valores.cargoComissionado === "SIM" && <div><dt>Cargo ou função</dt><dd>{valores.cargoFuncao || "Não informado"}</dd></div>}</dl></section>
+                  <section><header><h4>3. Dados da cessão</h4><button type="button" onClick={() => setEtapa("dados")}><i className="pi pi-pencil" /> Editar</button></header><dl><div><dt>Hipótese</dt><dd>{hipoteseSelecionada || "Não informada"}</dd></div><div><dt>Período</dt><dd>{valores.inicio && valores.fim ? `${valores.inicio} a ${valores.fim}` : "Não informado"}</dd></div><div><dt>Ônus</dt><dd>Órgão cessionário — sem reembolso</dd></div><div className="is-wide"><dt>Atividades que serão exercidas</dt><dd>{valores.atividades || "Não informadas"}</dd></div><div className="is-wide"><dt>Motivação do pedido</dt><dd>{valores.motivacao || "Não informada"}</dd></div></dl></section>
+                  <section><header><h4>4. Documentos</h4><button type="button" onClick={() => setEtapa("documentos")}><i className="pi pi-pencil" /> Editar</button></header><dl><div><dt>Documento</dt><dd>Ofício de solicitação de cessão interna</dd></div><div><dt>Processo SIGADOC</dt><dd>{sigadocVinculado || "Não vinculado"}</dd></div><div><dt>Situação</dt><dd className={sigadocVinculado ? "is-success" : "is-pending"}>{sigadocVinculado ? "Vinculado" : "Pendente"}</dd></div></dl></section>
+                </div>
                 <div className="prototype-nova-cessao-declaration"><i className="pi pi-exclamation-triangle" /><span>Após o envio, a solicitação ficará aguardando a instrução e a decisão do órgão cedente.</span></div>
               </>}
             </section>
-            <div className="prototype-nova-cessao-footer"><BotaoVoltarSeplag label={indice === 0 ? "Cancelar" : "Voltar"} icon={indice === 0 ? "pi pi-times" : "pi pi-arrow-left"} onClick={voltar} /><div><BotaoSalvarSeplag type="button" label="Salvar rascunho" icon="pi pi-save" onClick={() => window.alert("Rascunho salvo no protótipo.")} />{etapa === "revisao" ? <BotaoSalvarSeplag type="submit" label="Enviar ao órgão cedente" icon="pi pi-send" /> : <BotaoSalvarSeplag type="button" label="Continuar" icon="pi pi-arrow-right" iconPos="right" onClick={avancar} />}</div></div>
-          </form>
+            <div className="prototype-nova-cessao-footer"><BotaoVoltarSeplag label={indice === 0 ? "Cancelar" : "Voltar"} icon={indice === 0 ? "pi pi-times" : "pi pi-arrow-left"} onClick={voltar} /><div><BotaoSalvarSeplag type="button" label="Salvar rascunho" icon="pi pi-save" onClick={() => window.alert("Rascunho salvo no protótipo.")} />{etapa === "revisao" ? <BotaoSalvarSeplag type="button" label="Enviar ao órgão cedente" icon="pi pi-send" disabled={!sigadocVinculado} tooltip={!sigadocVinculado ? "Vincule o processo SIGADOC antes do envio." : undefined} onClick={() => void enviar()} /> : <BotaoSalvarSeplag type="button" label="Continuar" icon="pi pi-arrow-right" iconPos="right" onClick={avancar} />}</div></div>
+          </div>
         </div>
       </CardSeplag>
+      <ModalSeplag
+        visible={modalSigadocAberto}
+        titulo="Vincular documento do SIGADOC"
+        tamanho="32rem"
+        fechar={() => setModalSigadocAberto(false)}
+        labelFechar="Cancelar"
+        labelAcao="Vincular"
+        funcAcao={vincularSigadoc}
+      >
+        <div className="grid prototype-nova-cessao-sigadoc-modal">
+          <TextFieldSeplag
+            name="processoSigadoc"
+            label="Processo SIGADOC"
+            value={numeroSigadoc}
+            onChange={(valor) => {
+              setNumeroSigadoc(valor);
+              if (erroSigadoc) setErroSigadoc("");
+            }}
+            placeholder="Ex.: SEMA-PRO-2026/03081"
+            required
+            cols="12"
+            getFormErrorMessage={() => erroSigadoc || null}
+          />
+          <small className="col-12">
+            O número é informado manualmente neste protótipo. Uma integração com o SIGADOC poderá automatizar a consulta e a vinculação no futuro.
+          </small>
+        </div>
+      </ModalSeplag>
+      <ModalSeplag
+        visible={modalEnvioConcluido}
+        titulo="Solicitação enviada"
+        tamanho="34rem"
+        fechar={concluirEnvio}
+        customFooter={<BotaoSalvarSeplag type="button" label="Voltar para cessões" icon="pi pi-arrow-right" iconPos="right" onClick={concluirEnvio} />}
+      >
+        <div className="prototype-nova-cessao-success-modal">
+          <i className="pi pi-check-circle" aria-hidden="true" />
+          <div>
+            <strong>Solicitação enviada ao órgão cedente</strong>
+            <p>O pedido foi encaminhado e ficará aguardando a instrução e a decisão do órgão cedente.</p>
+            <small>Processo SIGADOC: {sigadocVinculado}</small>
+          </div>
+        </div>
+      </ModalSeplag>
     </div>
   </PrototypeSystemPage>;
 }

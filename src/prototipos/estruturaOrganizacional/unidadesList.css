@@ -172,6 +172,11 @@
   font-size: 0.8125rem;
 }
 
+.unidades-register-address-fields {
+  margin: 0;
+  padding: 4px 0 0;
+}
+
 .unidades-register-note i {
   color: #1689dc;
 }

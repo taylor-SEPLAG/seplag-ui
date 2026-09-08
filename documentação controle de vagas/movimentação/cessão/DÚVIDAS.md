@@ -8,6 +8,8 @@ Este documento registra questões que precisam de validação funcional ou jurí
 | --- | --- | --- | --- | --- | --- |
 | CES-DUV-001 | Quantidade de vínculos | A cessão simultânea está limitada a exatamente dois vínculos efetivos ou pode abranger três ou mais vínculos da mesma pessoa? | A seção 2.1.2.3 do Manual de Cessão e Remoção, 4ª edição, trata expressamente apenas de servidor com dois vínculos e admite o afastamento de ambos para exercício de cargo em comissão. O manual não informa se essa exceção alcança mais de dois vínculos. | Pendente | Área responsável pela movimentação de pessoas / assessoria jurídica / PGE |
 
+| CES-DUV-002 | Ônus e reembolso | Quais regras devem ser automatizadas para identificar as exceções ao ônus geral da cessão interna? | As seções 2.1.3 e 2.1.4 do manual apresentam regras específicas conforme carreira, órgão, finalidade e fonte de recursos. | Pendente | Área responsável pela movimentação de pessoas / Folha / Financeiro / assessoria jurídica |
+
 ## CES-DUV-001 — Limite de vínculos em uma cessão
 
 ### Contexto
@@ -41,3 +43,16 @@ Até a confirmação, o protótipo deve:
 
 - Manual de Cessão e Remoção, 4ª edição, seção 2.1.2.3.
 - Parecer nº 925/SGACI/2019 e Manifestação nº 17/SGACI/2020 da PGE, mencionados pelo manual e ainda não analisados integralmente neste projeto.
+## CES-DUV-002 — Exceções de ônus e reembolso
+
+Devem ser retomadas e detalhadas antes da implementação definitiva das regras financeiras:
+
+- determinadas situações envolvendo servidores do grupo TAF/SEFAZ;
+- profissionais do SUS cedidos para atividades próprias do sistema;
+- algumas cessões para a Assembleia Legislativa;
+- requisição da Justiça Eleitoral;
+- militares;
+- servidores do sistema penitenciário e socioeducativo;
+- folhas financiadas por recursos constitucionalmente vinculados ou fontes com finalidade específica, situação em que pode existir reembolso mesmo dentro do Poder Executivo.
+
+Até a validação funcional e jurídica, essas situações não devem ser transformadas em decisões automáticas definitivas no SIGEP.

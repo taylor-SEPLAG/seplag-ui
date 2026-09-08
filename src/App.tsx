@@ -135,6 +135,7 @@ import {
 } from "./prototipos/documentosLegais/DocumentosLegaisPages";
 import { PrototiposTiposDocumentosPage } from "./prototipos/tiposDocumentos/TiposDocumentosPage";
 import { PrototiposCessoesPage } from "./prototipos/cessoes/CessoesListPage";
+import { PrototiposCessaoCedentePage } from "./prototipos/cessoes/CessaoCedentePage";
 import { PrototiposNovaCessaoExternaPage, PrototiposNovaCessaoInternaPage } from "./prototipos/cessoes/NovaCessaoPages";
 import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
 import { PrototiposOrganogramaPage } from "./prototipos/estruturaOrganizacional/OrganogramaPage";
@@ -1689,6 +1690,7 @@ function App() {
         element={<PrototiposControleVagasQuadroAutorizadoPage />}
       />
       <Route path="/prototipos/sigep/movimentacao/cessoes" element={<PrototiposCessoesPage />} />
+      <Route path="/prototipos/sigep/movimentacao/cessoes/:id/analise-cedente" element={<PrototiposCessaoCedentePage />} />
       <Route path="/prototipos/sigep/movimentacao/cessoes/nova/interna" element={<PrototiposNovaCessaoInternaPage />} />
       <Route path="/prototipos/sigep/movimentacao/cessoes/nova/externa" element={<PrototiposNovaCessaoExternaPage />} />
       <Route

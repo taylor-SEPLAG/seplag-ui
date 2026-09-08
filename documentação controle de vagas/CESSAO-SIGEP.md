@@ -275,3 +275,112 @@ A tela externa possui somente rota e estado reservado. Seus campos específicos 
 - Corrigida a tela branca ao exibir vínculos: o componente de múltipla seleção estava sendo utilizado sem a respectiva importação na página do protótipo.
 
 - Adicionado resumo progressivo em acordeão: cada etapa exibe os dados consolidados das etapas anteriores e permite retornar para edição.
+
+
+- A etapa Documentos passou a permitir a vinculação manual do número do processo SIGADOC por modal. Esta solução é provisória e poderá ser substituída por integração automática com o SIGADOC.
+
+- Corrigido o envio indevido ao vincular o processo SIGADOC: o formulário somente aceita submissão final na etapa 5 (Revisão).
+
+- A navegação entre as etapas foi desacoplada da submissão HTML: Continuar na etapa 4 apenas abre a etapa 5, e o envio final ocorre exclusivamente pelo botão da Revisão.
+
+- A etapa Revisão foi reorganizada em blocos editáveis de Servidor, Destino, Dados da cessão e Documentos; passou a consolidar hipótese, atividades, motivação, cargo/função e processo SIGADOC, bloqueando o envio enquanto o documento obrigatório não estiver vinculado.
+
+- Removidos todos os registros simulados de cessão da listagem dos perfis Cessionário, Cedente e SEPLAG; indicadores e tabela passam a iniciar zerados/vazios.
+
+- Substituído o alerta nativo após o envio por modal de confirmação no padrão do SIGEP, com mensagem de sucesso, número do processo SIGADOC e retorno controlado à listagem.
+
+- As solicitações enviadas passaram a ser persistidas no armazenamento do protótipo e compartilhadas entre os perfis. O registro nasce em `AGUARDANDO_CEDENTE`, aparece para o cessionário como acompanhamento e para o respectivo órgão cedente como ação pendente.
+
+## Planejamento da análise pelo órgão cedente
+
+Situação atual: somente a listagem por perfil e a persistência da solicitação foram implementadas. A tela de análise/decisão do órgão cedente ainda não existe.
+
+Fluxo proposto com base no Manual de Cessão e Remoção:
+
+1. o Cedente abre uma solicitação em `AGUARDANDO_CEDENTE`;
+2. confere integralmente os dados enviados pelo Cessionário e o processo SIGADOC;
+3. a Unidade Sistêmica de Gestão de Pessoas analisa o pedido e instrui os autos;
+4. registra ou vincula a manifestação da unidade de lotação;
+5. registra ou vincula a manifestação técnica da área setorial;
+6. submete a decisão ao dirigente máximo do órgão ou entidade cedente;
+7. se autorizada, encaminha a solicitação à SEPLAG em `AGUARDANDO_SEPLAG`;
+8. se houver insuficiência, devolve ao Cessionário para correção, com justificativa;
+9. se indeferida, encerra a análise com decisão e motivação registradas.
+
+Estrutura planejada para a tela:
+
+- cabeçalho com identificação, situação e etapa atual;
+- resumo somente leitura das etapas preenchidas pelo Cessionário;
+- painel de verificações funcionais e impedimentos;
+- seção de documentos sob responsabilidade do Cedente;
+- seção de decisão do dirigente máximo;
+- histórico e rastreabilidade;
+- ações `Devolver para correção`, `Indeferir` e `Autorizar e encaminhar à SEPLAG`.
+
+Pontos do manual que precisam ser refletidos:
+
+- análise e instrução pela Unidade Sistêmica de Gestão de Pessoas;
+- deliberação do dirigente máximo do Cedente;
+- compatibilidade de atribuições quando o servidor estiver em estágio probatório;
+- impedimento por evento concomitante incompatível;
+- manifestação da unidade de lotação;
+- manifestação técnica da área setorial;
+- despacho de autorização ou indeferimento;
+- encaminhamento à SEPLAG somente após autorização e instrução documental.
+- Implementada a página de análise do órgão cedente, com conferência dos dados recebidos, verificações funcionais, referências dos documentos no SIGADOC e decisões persistidas de devolução, indeferimento ou autorização com encaminhamento à SEPLAG.
+
+- Corrigida a tela branca ao abrir a análise do Cedente: os campos de verificação passaram a compartilhar corretamente o `react-hook-form control` exigido pelo componente `RadioButtonFieldSeplag`.
+
+## Auditoria do que o Cedente deve verificar
+
+A tela do Cedente deve operacionalizar os seguintes pontos do Manual de Cessão e Remoção, sem transformar automaticamente a análise discricionária em aprovação:
+
+### Pedido recebido
+
+- presença do ofício de solicitação;
+- motivação e interesse público;
+- hipótese da cessão;
+- período determinado e limite de cinco anos;
+- antecedência mínima de 60 dias;
+- órgão e unidade de exercício, com seu código;
+- atividades a serem desempenhadas;
+- definição do ônus e do reembolso, quando aplicável;
+- atos anteriores, quando se tratar de prorrogação.
+
+### Servidor e vínculo
+
+- vínculo efetivo ou emprego público abrangido pelas regras; não há cessão de exclusivamente comissionado ou temporário;
+- situação funcional e vida funcional atualizadas;
+- ausência de evento concomitante impeditivo;
+- eventual obrigação de permanência após licença para qualificação;
+- impedimento por PAD quando a legislação da carreira assim determinar, com declaração quando exigida;
+- permissão e regras específicas da carreira;
+- estágio probatório: somente cessão interna e compatibilidade entre atribuições;
+- dois vínculos: exercício de cargo em comissão, seleção dos vínculos, opção remuneratória e manifestação do servidor;
+- regra própria para militar, inclusive hipótese de agregação.
+
+### Ônus
+
+- aplicação da regra geral conforme cessão interna ou externa;
+- identificação das exceções por carreira, órgão, finalidade e fonte de recursos;
+- necessidade de manifestação dos órgãos nos casos especiais;
+- existência e regularidade do reembolso quando aplicável.
+
+### Instrução e decisão do Cedente
+
+- manifestação da unidade de lotação;
+- manifestação técnica da área setorial;
+- despacho de autorização ou indeferimento pelo dirigente máximo ou delegado com delegação publicada;
+- processo SIGADOC devidamente instruído;
+- encaminhamento à SEPLAG somente quando autorizado e completo;
+- orientação de que o servidor não pode se afastar antes da publicação no DOE.
+
+### Ajustes necessários na tela implementada
+
+- substituir verificações genéricas por itens objetivos;
+- oferecer respostas `Sim`, `Não` e `Não se aplica`;
+- exibir automaticamente condições conhecidas do cadastro funcional;
+- tornar estágio probatório, PAD, dois vínculos, militar e regras especiais condicionais;
+- incluir despacho opcional de solicitação de manifestação da unidade de lotação;
+- registrar evidência, fundamento e observação nas verificações relevantes;
+- não tratar todos os itens como aprovação automática: a autorização permanece decisão do dirigente máximo.

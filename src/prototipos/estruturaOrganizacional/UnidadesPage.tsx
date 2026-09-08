@@ -56,6 +56,14 @@ interface UnidadeCadastroForm {
   uf: string;
   municipio: string;
   outraLocalidade: "NAO" | "SIM";
+  cep: string;
+  estadoEndereco: string;
+  cidadeEndereco: string;
+  bairroEndereco: string;
+  tipoLogradouro: string;
+  logradouro: string;
+  numeroEndereco: string;
+  complementoEndereco: string;
 }
 
 function UnidadeCadastroPage() {
@@ -71,6 +79,14 @@ function UnidadeCadastroPage() {
       uf: "",
       municipio: "",
       outraLocalidade: "NAO",
+      cep: "",
+      estadoEndereco: "",
+      cidadeEndereco: "",
+      bairroEndereco: "",
+      tipoLogradouro: "",
+      logradouro: "",
+      numeroEndereco: "",
+      complementoEndereco: "",
     },
   });
   const orgao = watch("orgao");
@@ -120,15 +136,31 @@ function UnidadeCadastroPage() {
 
             <PanelSeplag title="Localização" description="UF e Município são herdados do órgão. Informe endereço próprio apenas quando a unidade funcionar em outra localidade." className="unidades-register-panel">
               <div className="grid unidades-register-fields">
-                <div className="col-12 lg:col-6 unidades-register-inherited">
-                  <TextFieldSeplag name="uf" control={control} label="UF" placeholder="Selecione o órgão" cols="12" disabled={!localidadePropria} getFormErrorMessage={noError} />
-                  {!localidadePropria && <span>Herdado do órgão</span>}
-                </div>
-                <div className="col-12 lg:col-6 unidades-register-inherited">
-                  <TextFieldSeplag name="municipio" control={control} label="Município" placeholder="Selecione o órgão" cols="12" disabled={!localidadePropria} getFormErrorMessage={noError} />
-                  {!localidadePropria && <span>Herdado do órgão</span>}
-                </div>
+                {!localidadePropria && (
+                  <>
+                    <div className="col-12 lg:col-6 unidades-register-inherited">
+                      <TextFieldSeplag name="uf" control={control} label="UF" placeholder="Selecione o órgão" cols="12" disabled getFormErrorMessage={noError} />
+                      <span>Herdado do órgão</span>
+                    </div>
+                    <div className="col-12 lg:col-6 unidades-register-inherited">
+                      <TextFieldSeplag name="municipio" control={control} label="Município" placeholder="Selecione o órgão" cols="12" disabled getFormErrorMessage={noError} />
+                      <span>Herdado do órgão</span>
+                    </div>
+                  </>
+                )}
                 <RadioButtonFieldSeplag name="outraLocalidade" control={control} label="A unidade funciona em outra localidade?" cols="12" options={[{ label: "Não", value: "NAO" }, { label: "Sim", value: "SIM" }]} getFormErrorMessage={noError} />
+                {localidadePropria && (
+                  <div className="col-12 grid unidades-register-address-fields">
+                    <TextFieldSeplag name="cep" control={control} label="CEP" placeholder="00000-000" cols="12 12 6" required maxLength={9} getFormErrorMessage={noError} />
+                    <DropdownFieldSeplag name="estadoEndereco" control={control} label="Estado" placeholder="Selecione..." cols="12 12 4" required options={options(["Acre", "Alagoas", "Amapá", "Amazonas", "Bahia", "Ceará", "Distrito Federal", "Espírito Santo", "Goiás", "Maranhão", "Mato Grosso", "Mato Grosso do Sul", "Minas Gerais", "Pará", "Paraíba", "Paraná", "Pernambuco", "Piauí", "Rio de Janeiro", "Rio Grande do Norte", "Rio Grande do Sul", "Rondônia", "Roraima", "Santa Catarina", "São Paulo", "Sergipe", "Tocantins"])} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
+                    <DropdownFieldSeplag name="cidadeEndereco" control={control} label="Cidade" placeholder="Selecione..." cols="12 12 4" required options={options(["Cuiabá", "Várzea Grande", "Rondonópolis", "Sinop", "Cáceres"])} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
+                    <TextFieldSeplag name="bairroEndereco" control={control} label="Bairro/Distrito" placeholder="Informe o bairro ou distrito" cols="12 12 4" required getFormErrorMessage={noError} />
+                    <DropdownFieldSeplag name="tipoLogradouro" control={control} label="Tipo de Logradouro" placeholder="Selecione..." cols="12 12 4" required options={options(["Rua", "Avenida", "Rodovia", "Praça", "Travessa", "Estrada", "Alameda"])} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
+                    <TextFieldSeplag name="logradouro" control={control} label="Logradouro" placeholder="Informe o logradouro" cols="12 12 6" required getFormErrorMessage={noError} />
+                    <TextFieldSeplag name="numeroEndereco" control={control} label="Número" placeholder="Número" cols="12 12 2" required getFormErrorMessage={noError} />
+                    <TextFieldSeplag name="complementoEndereco" control={control} label="Complemento" placeholder="Informe o complemento" cols="12" getFormErrorMessage={noError} />
+                  </div>
+                )}
                 <div className="col-12 unidades-register-note">
                   <i className="pi pi-info-circle" />
                   <span>{localidadePropria ? "Informe a UF e o Município próprios da unidade." : "A unidade utilizará a UF e o Município herdados do órgão selecionado."}</span>
