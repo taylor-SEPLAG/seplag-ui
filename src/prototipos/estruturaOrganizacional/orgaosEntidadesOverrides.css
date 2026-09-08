@@ -64,8 +64,32 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.orgao-fields-grid.ente-identification-grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.ente-identification-grid > :nth-child(1),
+.ente-identification-grid > :nth-child(2) {
+  grid-column: span 3;
+}
+
+.ente-identification-grid > :nth-child(n + 3) {
+  grid-column: span 6;
+}
+
+@media (max-width: 1050px) {
+  .orgao-fields-grid.ente-identification-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ente-identification-grid > :nth-child(n) {
+    grid-column: span 1;
+  }
+}
+
 @media (max-width: 720px) {
-  .orgao-fields-grid.cols-2 {
+  .orgao-fields-grid.cols-2,
+  .orgao-fields-grid.ente-identification-grid {
     grid-template-columns: 1fr;
   }
 }

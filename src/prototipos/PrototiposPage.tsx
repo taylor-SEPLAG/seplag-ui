@@ -305,6 +305,16 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         ],
       },
       {
+        label: "Movimentação",
+        icon: "pi pi-sync",
+        url: "#",
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+        items: [
+          { label: "Cessão", icon: "pi pi-circle-on", to: "/prototipos/sigep/movimentacao/cessoes", visibleOnMenu: true, visibleOnRouter: true },
+        ],
+      },
+      {
         label: "Controle de Certame",
         icon: "pi pi-file-check",
         url: "#",
