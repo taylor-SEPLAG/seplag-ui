@@ -1036,6 +1036,7 @@ interface CargoForm {
 }
 
 interface TipoVinculoForm {
+  idInterno?: number;
   codigo?: string;
   nome?: string;
   descricao?: string;
@@ -1046,6 +1047,8 @@ interface TipoVinculoForm {
   exigeCargo?: "S" | "N";
   exigeVaga?: "S" | "N";
   permiteControleVagas?: "S" | "N";
+  permiteAcumuloVinculo?: "S" | "N";
+  vinculosAcumulaveis?: number[];
   concursoPublico?: "S" | "N";
   processoSeletivo?: "S" | "N";
   permiteFolha?: "S" | "N";
@@ -1273,6 +1276,7 @@ interface TipoVinculoTesteRow {
   instituicao: string;
   instituicoesVinculadas: number;
   comportamentos: string[];
+  vinculosAcumulaveis?: number[];
   regimesJuridicos: string[];
   vigencia: string;
   situacao: "ATIVO" | "ENCERRADO" | "EXTINTO";
@@ -10579,7 +10583,7 @@ export function PrototiposTipoVinculoTestePage({
   const tiposFiltrados = tiposVinculoTesteMock.filter((tipo) => {
     const atendeTermo =
       !termoBusca ||
-      tipo.codigo.toLowerCase().includes(termoBusca) ||
+      String(tipo.id).includes(termoBusca) ||
       tipo.nome.toLowerCase().includes(termoBusca) ||
       tipo.descricao.toLowerCase().includes(termoBusca);
     const atendeRegime =
@@ -10602,7 +10606,7 @@ export function PrototiposTipoVinculoTestePage({
     sizePage: 10,
   };
   const tipoVinculoColumns: ColumnMetaSeplag<TipoVinculoTesteRow>[] = [
-    { field: "codigo", header: "Sigla" },
+    { field: "id", header: "ID" },
     { field: "nome", header: "Tipo de Vínculo" },
     {
       header: "Regimes Jurídicos",
@@ -10663,8 +10667,8 @@ export function PrototiposTipoVinculoTestePage({
             <TextFieldSeplag
               name="termo"
               control={control}
-              label="Nome ou Sigla"
-              placeholder="Informe a sigla ou o nome"
+              label="Nome ou ID"
+              placeholder="Informe o ID ou o nome"
               cols="12 12 5"
               getFormErrorMessage={() => null}
             />
@@ -10745,7 +10749,7 @@ export function PrototiposTipoVinculoTestePage({
         tamanho="620px"
       >
         <div className="prototype-carreira-org-list prototype-tipo-vinculo-regimes-list">
-          <p><strong>{tipoVinculoRegimes?.codigo}</strong> — {tipoVinculoRegimes?.nome}</p>
+          <p><strong>ID {tipoVinculoRegimes?.id}</strong> — {tipoVinculoRegimes?.nome}</p>
           <ul>
             {tipoVinculoRegimes?.regimesJuridicos.map((regime, index) => (
               <li key={regime}>
@@ -10776,6 +10780,7 @@ export function PrototiposTipoVinculoTesteFormPage({
     tipoEmEdicao?.vigencia.split(" - ") ?? [];
   const { control, handleSubmit, setValue, watch } = useForm<TipoVinculoForm>({
     defaultValues: {
+      idInterno: tipoEmEdicao?.id ?? Math.max(0, ...tiposVinculoTesteMock.map((item) => item.id)) + 1,
       codigo: tipoEmEdicao?.codigo ?? "",
       nome: tipoEmEdicao?.nome ?? "",
       descricao: tipoEmEdicao?.descricao ?? "",
@@ -10786,6 +10791,8 @@ export function PrototiposTipoVinculoTesteFormPage({
       exigeCargo: "S",
       exigeVaga: "N",
       permiteControleVagas: "S",
+      permiteAcumuloVinculo: tipoEmEdicao?.comportamentos.includes("Permite acúmulo de vínculo") ? "S" : "N",
+      vinculosAcumulaveis: tipoEmEdicao?.vinculosAcumulaveis ?? [],
       concursoPublico: tipoEmEdicao?.comportamentos.includes("Concurso público") ? "S" : "N",
       processoSeletivo: tipoEmEdicao?.comportamentos.includes("Processo seletivo") ? "S" : "N",
       permiteFolha: "S",
@@ -10813,6 +10820,11 @@ export function PrototiposTipoVinculoTesteFormPage({
       descricao: "Habilita uso no módulo de Controle de Vagas.",
     },
     {
+      name: "permiteAcumuloVinculo",
+      titulo: "Permite acúmulo de vínculo?",
+      descricao: "Permite definir os tipos de vínculo que podem ser acumulados com este vínculo.",
+    },
+    {
       name: "concursoPublico",
       titulo: "Concurso público?",
       descricao: "Indica que o tipo de vínculo se aplica a concurso público.",
@@ -10825,6 +10837,7 @@ export function PrototiposTipoVinculoTesteFormPage({
   ];
   const inicioVigencia = watch("dataAtivacao") ?? "";
   const dataEncerramento = watch("dataEncerramento") ?? "";
+  const permiteAcumuloVinculo = watch("permiteAcumuloVinculo") === "S";
   const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
@@ -10842,15 +10855,20 @@ export function PrototiposTipoVinculoTesteFormPage({
     const comportamentosSelecionados = comportamentoRows
       .filter((comportamento) => values[comportamento.name] === "S")
       .map((comportamento) => comportamento.titulo.replace("?", ""));
+    const registroId = tipoEmEdicao?.id ?? Math.max(0, ...tiposVinculoTesteMock.map((item) => item.id)) + 1;
+    const vinculosAcumulaveis = values.permiteAcumuloVinculo === "S"
+      ? (values.vinculosAcumulaveis ?? []).filter((vinculoId) => vinculoId !== registroId)
+      : [];
     const registro: TipoVinculoTesteRow = {
-      id: tipoEmEdicao?.id ?? Math.max(0, ...tiposVinculoTesteMock.map((item) => item.id)) + 1,
-      codigo: values.codigo?.trim() ?? "",
+      id: registroId,
+      codigo: tipoEmEdicao?.codigo ?? `TV${String(registroId).padStart(3, "0")}`,
       nome: values.nome?.trim() ?? "",
       descricao: values.descricao?.trim() || `Tipo de vínculo ${values.nome?.trim().toLocaleLowerCase("pt-BR")}.`,
       natureza: values.natureza ?? "",
       instituicao: tipoEmEdicao?.instituicao ?? "govmt",
       instituicoesVinculadas: tipoEmEdicao?.instituicoesVinculadas ?? 1,
       comportamentos: comportamentosSelecionados,
+      vinculosAcumulaveis,
       regimesJuridicos: values.regimesJuridicos ?? [],
       vigencia: `${values.dataAtivacao ?? ""} - ${values.dataEncerramento ?? ""}`.trim(),
       situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
@@ -10859,6 +10877,13 @@ export function PrototiposTipoVinculoTesteFormPage({
     };
     if (tipoEmEdicao) Object.assign(tipoEmEdicao, registro);
     else tiposVinculoTesteMock.push(registro);
+    tiposVinculoTesteMock.forEach((tipo) => {
+      if (tipo.id === registroId) return;
+      const relacionados = new Set(tipo.vinculosAcumulaveis ?? []);
+      if (vinculosAcumulaveis.includes(tipo.id)) relacionados.add(registroId);
+      else relacionados.delete(registroId);
+      tipo.vinculosAcumulaveis = Array.from(relacionados);
+    });
     atualizarExtincoesDerivadas();
     navigate(`${routePrefix}/tipo-vinculo`);
   };
@@ -10899,7 +10924,7 @@ export function PrototiposTipoVinculoTesteFormPage({
               </div>
             </header>
             <div className="grid prototype-carreira-register-fields">
-              <TextFieldSeplag name="codigo" control={control} label="Sigla" cols="12 12 3" required getFormErrorMessage={() => null} />
+              <TextFieldSeplag name="idInterno" control={control} label="ID" cols="12 12 3" disabled getFormErrorMessage={() => null} />
               <TextFieldSeplag name="nome" control={control} label="Nome do Tipo de Vínculo" cols="12 12 9" required getFormErrorMessage={() => null} />
             </div>
           </section>
@@ -10936,6 +10961,25 @@ export function PrototiposTipoVinculoTesteFormPage({
                 </div>
               ))}
             </div>
+            {permiteAcumuloVinculo ? (
+              <div className="grid prototype-carreira-register-fields">
+                <MultiSelectFieldSeplag
+                  name="vinculosAcumulaveis"
+                  control={control}
+                  label="Tipos de vínculo permitidos para acúmulo"
+                  placeholder="Selecione um ou mais tipos de vínculo"
+                  cols="12"
+                  required
+                  options={tiposVinculoTesteMock
+                    .filter((item) => item.id !== tipoEmEdicao?.id)
+                    .map((item) => ({ label: item.nome, value: item.id }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  getFormErrorMessage={() => null}
+                />
+                <small className="col-12">A permissão é bidirecional: o vínculo selecionado também passará a permitir acúmulo com este tipo.</small>
+              </div>
+            ) : null}
           </section>
 
           <section className="prototype-carreira-register-section">
