@@ -54,3 +54,33 @@
 
 .prototype-cedente-page .p-card-body { padding-left: 1.5rem; padding-right: 1.5rem; }
 
+
+.prototype-seplag-validation-warning {
+  display: flex;
+  gap: .75rem;
+  padding: .75rem 1rem;
+  color: #8a4b08;
+  background: #fff8e8;
+  border-bottom: 1px solid #f2ce87;
+}
+.prototype-seplag-validation-warning ul { margin: .25rem 0 0 1.15rem; padding: 0; }
+.prototype-seplag-document-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; padding: 1rem; }
+.prototype-seplag-document-list article { display: flex; gap: .75rem; align-items: center; min-height: 4.5rem; padding: .85rem 1rem; border: 1px solid #ccd7df; border-radius: 6px; }
+.prototype-seplag-document-list article i { font-size: 1.2rem; color: #0069b4; }
+.prototype-seplag-document-list article div { display: flex; flex-direction: column; gap: .25rem; }
+.prototype-seplag-document-list article span { color: #536b7b; font-size: .875rem; }
+.prototype-seplag-document-list article.is-missing { border-color: #efc16e; background: #fffaf0; }
+.prototype-seplag-document-list article.is-missing i { color: #a75b00; }
+.prototype-seplag-central { margin: 0 1rem 1rem; padding: 1rem; border: 1px solid #b8d5e8; border-radius: 6px; background: #f7fbfe; }
+.prototype-seplag-central h4 { margin: 0 0 .75rem; }
+.prototype-seplag-conclusion { display: flex; flex-direction: column; gap: .45rem; }
+.prototype-seplag-conclusion > span { font-weight: 600; color: #4a4a4a; }
+.prototype-seplag-conclusion select { width: 100%; min-height: 42px; padding: 0 .75rem; border: 1px solid #c8d2dc; border-radius: 4px; background: #fff; color: #263746; font: inherit; }
+.prototype-seplag-responsibility { display: flex; flex-wrap: wrap; gap: 1.5rem; padding-top: .75rem; color: #536b7b; font-size: .875rem; }
+@media (max-width: 800px) { .prototype-seplag-document-list { grid-template-columns: 1fr; } }
+
+.prototype-seplag-checks { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem 1.25rem; padding: .75rem 1rem; border: 1px solid #cbdce8; border-radius: 6px; background: #f8fbfd; }
+.prototype-seplag-checks strong { margin-right: .25rem; }
+.prototype-seplag-checks span { display: inline-flex; align-items: center; gap: .4rem; }
+.prototype-seplag-checks .is-ok { color: #147441; }
+.prototype-seplag-checks .is-warning { color: #9a5700; }

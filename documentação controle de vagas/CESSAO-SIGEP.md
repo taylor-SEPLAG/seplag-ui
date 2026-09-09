@@ -395,3 +395,12 @@ A tela do Cedente deve operacionalizar os seguintes pontos do Manual de Cessão 
 
 - Implementado o modo de análise da SEPLAG reutilizando o componente-base da análise do Cedente. A SEPLAG confere novamente os quatro blocos, consulta os documentos do Cedente sem editá-los, vincula a manifestação técnica do órgão central e pode devolver ao Cedente para complementação ou concluir a análise e encaminhar para publicação.
 
+
+### Conclusão da análise central pela SEPLAG
+
+- A SEPLAG marca cada bloco como conforme ou solicita complementação ao órgão cedente.
+- Blocos com dados obrigatórios ausentes não podem ser marcados como conformes.
+- Os documentos produzidos pelo órgão cedente são apresentados para consulta, sem edição pela SEPLAG.
+- A manifestação técnica central registra referência SIGADOC, conclusão, observação/fundamentação, responsável e data.
+- A conclusão favorável altera a situação para **Aguardando publicação** e a etapa atual para **Publicação**.
+- A devolução da SEPLAG segue para o órgão cedente, responsável por complementar a instrução.

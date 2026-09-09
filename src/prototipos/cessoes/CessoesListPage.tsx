@@ -255,7 +255,7 @@ export function PrototiposCessoesPage() {
                 const analisarComoCedente = usuario.perfil === "SOLICITADO_CEDENTE" && row.situacao === "AGUARDANDO_CEDENTE";
                 const corrigirComoCessionario = usuario.perfil === "SOLICITANTE_CESSIONARIO" && row.situacao === "DEVOLVIDA";
                 const analisarComoSeplag = usuario.perfil === "SEPLAG" && row.situacao === "AGUARDANDO_SEPLAG";
-                return <BotaoIconSeplag type="button" icon={acao.icon} tooltip={`${acao.label}: ${row.id}`} aria-label={`${acao.label}: ${row.id}`} onClick={() => analisarComoCedente ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-cedente`) : corrigirComoCessionario ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/corrigir`) : analisarComoSeplag ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-seplag`) : window.alert(`${acao.label}: tela a implementar na próxima etapa.`)} />;
+                return <BotaoIconSeplag type="button" icon={acao.icon} tooltip={`${acao.label}: ${row.id}`} aria-label={`${acao.label}: ${row.id}`} onClick={() => analisarComoCedente ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-cedente`) : corrigirComoCessionario ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/corrigir`) : analisarComoSeplag || usuario.perfil === "SEPLAG" ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-seplag`) : usuario.perfil === "SOLICITADO_CEDENTE" ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-cedente`) : navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-cedente`)} />;
               }} emptyMessage="Nenhuma cessão foi encontrada para os filtros informados." />
           </div>
         </div>
@@ -274,6 +274,7 @@ export function PrototiposCessoesPage() {
     </ModalSeplag>
   </PrototypeSystemPage>;
 }
+
 
 
 
