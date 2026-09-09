@@ -22,7 +22,8 @@
 .prototype-nova-cessao-review dd.is-success { color:#00875a; }
 .prototype-nova-cessao-review dd.is-pending { color:#b54708; }
 .prototype-nova-cessao-declaration { display:flex; align-items:flex-start; gap:.65rem; padding:.65rem .8rem; border:1px solid #b7d3e8; border-radius:.4rem; background:#f5faff; color:#344054; line-height:1.45; }
-.prototype-nova-cessao-notice i { color:#0b6199; margin-top:.15rem; }
+.prototype-nova-cessao-notice { flex-direction:row; align-items:flex-start; gap:.65rem; padding:.75rem .9rem; border:1px solid #b7d3e8; border-radius:.4rem; background:#f2f8fc; color:#344054; line-height:1.45; }
+.prototype-nova-cessao-notice i { flex:0 0 auto; color:#0b6199; margin-top:.15rem; }
 .prototype-nova-cessao-tabs { margin:1rem 0; }
 .prototype-nova-cessao-tabs .p-button { justify-content:center; gap:.5rem; }
 .prototype-nova-cessao-tabs .p-button .p-button-label { flex:0 0 auto; }
@@ -78,3 +79,6 @@
 .prototype-nova-cessao-success-modal strong { color:#1d2939; font-size:1rem; }
 .prototype-nova-cessao-success-modal p { margin:0; color:#475467; line-height:1.45; }
 .prototype-nova-cessao-success-modal small { color:#667085; font-weight:600; }
+
+.prototype-nova-cessao-correction-status{display:flex;margin-top:.75rem;align-items:center;gap:.65rem;padding:.7rem .9rem;border:1px solid #f0c36a;border-radius:.4rem;background:#fff9eb;color:#7a4b00}.prototype-nova-cessao-correction-status>span,.prototype-nova-cessao-correction-alert>span{display:flex;flex-direction:column;gap:.2rem}.prototype-nova-cessao-correction-status small,.prototype-nova-cessao-correction-alert small{color:inherit}.prototype-nova-cessao-correction-alert,.prototype-nova-cessao-approved{display:flex;align-items:flex-start;gap:.7rem;margin-bottom:1rem;padding:.8rem 1rem;border:1px solid #f0c36a;border-radius:.4rem;background:#fff9eb;color:#7a4b00}.prototype-nova-cessao-correction-alert.is-done{border-color:#86d5b5;background:#f2fbf7;color:#146c43}.prototype-nova-cessao-approved{border-color:#b7d3e8;background:#f2f8fc;color:#344054}.prototype-nova-cessao-correction-alert i,.prototype-nova-cessao-approved i{margin-top:.15rem}.prototype-nova-cessao-shared-fields{min-width:0;margin:0;padding:0;border:0}.prototype-nova-cessao-shared-fields:disabled{opacity:1}
+

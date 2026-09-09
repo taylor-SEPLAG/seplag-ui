@@ -33,3 +33,24 @@
 @media(max-width:900px){.prototype-cedente-summary{grid-template-columns:1fr 1fr}.prototype-cedente-actions{align-items:stretch;flex-direction:column}.prototype-cedente-actions>div{justify-content:flex-start}}
 @media(max-width:640px){.prototype-cedente-heading{flex-direction:column}.prototype-cedente-summary{grid-template-columns:1fr}.prototype-cedente-summary>.is-wide{grid-column:auto}.prototype-cedente-actions>div{flex-direction:column}.prototype-cedente-actions button{width:100%}}
 
+
+.prototype-cedente-guidance,.prototype-cedente-readiness{display:flex;align-items:flex-start;gap:.65rem;padding:.8rem 1rem;border:1px solid #b7d3e8;border-radius:.4rem;background:#f2f8fc;color:#344054}
+.prototype-cedente-guidance i{margin-top:.15rem;color:#0b6199}
+.prototype-cedente-section>header{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.prototype-cedente-block-decision{padding:.8rem 1rem;background:#fbfcfd;border-top:1px solid #eaecf0}
+.prototype-cedente-block-decision.is-aprovado{background:#f4fbf7}
+.prototype-cedente-block-decision.is-correcao{background:#fffbf2}
+.prototype-cedente-block-actions{display:flex;align-items:center;justify-content:flex-end;gap:.55rem;flex-wrap:wrap}
+.prototype-cedente-block-actions>span{margin-right:auto;color:#475467;font-size:.82rem;font-weight:600}
+.prototype-cedente-block-actions button{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem .8rem;border:1px solid #b8c2cc;border-radius:.35rem;background:#fff;color:#344054;font:inherit;font-size:.84rem;font-weight:600;cursor:pointer}
+.prototype-cedente-block-actions button.approve.is-selected{border-color:#15803d;background:#eaf8ef;color:#166534}
+.prototype-cedente-block-actions button.correction.is-selected{border-color:#d97706;background:#fff4df;color:#9a4e00}
+.prototype-cedente-block-actions button:disabled{cursor:not-allowed;opacity:.65}
+.prototype-cedente-block-decision>.p-field,.prototype-cedente-block-decision>.col-12{margin-top:.75rem}
+.prototype-cedente-readiness{border-color:#f0c36a;background:#fff9eb;color:#7a4b00}
+.prototype-cedente-readiness.is-ready{border-color:#86d5b5;background:#f2fbf7;color:#146c43}
+.prototype-cedente-readiness i{margin-top:.15rem}
+@media(max-width:640px){.prototype-cedente-section>header{align-items:flex-start;flex-direction:column}.prototype-cedente-block-actions{align-items:stretch;flex-direction:column}.prototype-cedente-block-actions>span{margin-right:0}.prototype-cedente-block-actions button{justify-content:center}}
+
+.prototype-cedente-page .p-card-body { padding-left: 1.5rem; padding-right: 1.5rem; }
+

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
@@ -135,7 +135,17 @@ function usuarioInicial() {
 export function PrototiposCessoesPage() {
   const navigate = useNavigate();
   const [modalTipoAberto, setModalTipoAberto] = useState(false);
-  const [registros] = useState<CessaoListItem[]>(carregarRegistros);
+  const [registros, setRegistros] = useState<CessaoListItem[]>(carregarRegistros);
+  useEffect(() => {
+    const atualizar = () => setRegistros(carregarRegistros());
+    atualizar();
+    window.addEventListener("storage", atualizar);
+    window.addEventListener("sigep-cessoes-updated", atualizar);
+    return () => {
+      window.removeEventListener("storage", atualizar);
+      window.removeEventListener("sigep-cessoes-updated", atualizar);
+    };
+  }, []);
   const { control, watch, reset } = useForm<FiltrosCessao>({ defaultValues: { termo: "", tipo: "", situacao: "", orgaoCessionario: "", orgaoCedente: "", etapaAtual: "" } });
   const [usuarioId, setUsuarioId] = useState(usuarioInicial);
   const [page, setPage] = useState(0);
@@ -239,11 +249,13 @@ export function PrototiposCessoesPage() {
           {usuario.perfil === "SOLICITANTE_CESSIONARIO" && <div className="prototype-cessoes-actions"><BotaoAdicionarSeplag label="Nova solicitação de cessão" onClick={() => setModalTipoAberto(true)} /></div>}
 
           <div className="prototype-cessoes-table">
-            <TablePaginadoSeplag dataKey="id" data={data} rows={rows} rowsPerPage={[10, 25, 50]} paginator={filtrados.length > 10} lazy={false} selectionMode={null} columns={columns} hasEventoAcao handleAdicionar={null} handleEdit={null} handleDelete={null} handleView={null}
+            <TablePaginadoSeplag key={usuarioId} dataKey="id" data={data} rows={rows} rowsPerPage={[10, 25, 50]} paginator={filtrados.length > 10} lazy={false} selectionMode={null} columns={columns} hasEventoAcao handleAdicionar={null} handleEdit={null} handleDelete={null} handleView={null}
               handleOnPageChange={(event) => { setPage(event.page ?? 0); setRows(event.rows ?? 10); }} actionHeader="Ações" renderBotoes={(row) => {
                 const acao = acaoDaLinha(row);
                 const analisarComoCedente = usuario.perfil === "SOLICITADO_CEDENTE" && row.situacao === "AGUARDANDO_CEDENTE";
-                return <BotaoIconSeplag type="button" icon={acao.icon} tooltip={`${acao.label}: ${row.id}`} aria-label={`${acao.label}: ${row.id}`} onClick={() => analisarComoCedente ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-cedente`) : window.alert(`${acao.label}: tela a implementar na próxima etapa.`)} />;
+                const corrigirComoCessionario = usuario.perfil === "SOLICITANTE_CESSIONARIO" && row.situacao === "DEVOLVIDA";
+                const analisarComoSeplag = usuario.perfil === "SEPLAG" && row.situacao === "AGUARDANDO_SEPLAG";
+                return <BotaoIconSeplag type="button" icon={acao.icon} tooltip={`${acao.label}: ${row.id}`} aria-label={`${acao.label}: ${row.id}`} onClick={() => analisarComoCedente ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-cedente`) : corrigirComoCessionario ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/corrigir`) : analisarComoSeplag ? navigate(`/prototipos/sigep/movimentacao/cessoes/${row.id}/analise-seplag`) : window.alert(`${acao.label}: tela a implementar na próxima etapa.`)} />;
               }} emptyMessage="Nenhuma cessão foi encontrada para os filtros informados." />
           </div>
         </div>
@@ -262,3 +274,7 @@ export function PrototiposCessoesPage() {
     </ModalSeplag>
   </PrototypeSystemPage>;
 }
+
+
+
+

@@ -384,3 +384,14 @@ A tela do Cedente deve operacionalizar os seguintes pontos do Manual de Cessão 
 - incluir despacho opcional de solicitação de manifestação da unidade de lotação;
 - registrar evidência, fundamento e observação nas verificações relevantes;
 - não tratar todos os itens como aprovação automática: a autorização permanece decisão do dirigente máximo.
+- Replanejada e implementada a análise do órgão cedente em quatro blocos correspondentes às etapas recebidas: Servidor e vínculos, Destino, Dados da cessão e Documentos. Cada bloco pode ser aprovado ou devolvido para correção, com comentário obrigatório. O encaminhamento à SEPLAG somente é liberado após a aprovação integral e a vinculação da manifestação da lotação, manifestação técnica e despacho do dirigente. O indeferimento permanece uma decisão separada e fundamentada.
+
+
+- Implementada a tela de correção do Cessionário na rota /prototipos/sigep/movimentacao/cessoes/:id/corrigir: abre na primeira etapa devolvida, sinaliza etapas com alerta, exibe os comentários do Cedente, mantém etapas aprovadas somente para consulta, exige a conclusão de todas as correções e reencaminha os blocos alterados como 'Revisar novamente'.
+
+
+- Regra revisada para reenvio após correção: ao retornar ao Cedente, todos os blocos da análise recebem o estado 'Revisar novamente', inclusive os aprovados no ciclo anterior. Os comentários anteriores são retirados da análise corrente e permanecem preservados somente no histórico.
+
+
+- Implementado o modo de análise da SEPLAG reutilizando o componente-base da análise do Cedente. A SEPLAG confere novamente os quatro blocos, consulta os documentos do Cedente sem editá-los, vincula a manifestação técnica do órgão central e pode devolver ao Cedente para complementação ou concluir a análise e encaminhar para publicação.
+

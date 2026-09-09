@@ -3,7 +3,7 @@ import {
 import { 
   useForm } from "react-hook-form";
 import { 
-  useNavigate } from "react-router-dom";
+  useNavigate, useParams } from "react-router-dom";
 import {
   
   AccordionCardSeplag,
@@ -98,6 +98,16 @@ const unidadeOptions = [
   { label: "Coordenadoria de Movimentação — UO 124", value: "124" },
 ];
 const REGISTROS_CESSAO_STORAGE_KEY = "sigep-prototype-cessoes-registros";
+interface RegistroCessaoCorrecao {
+  id: string; servidor: string; matricula: string; tipo: string; orgaoCedente: string; orgaoCessionario: string;
+  inicio: string; fim: string; etapaAtual: string; situacao: string; processoSigadoc?: string; unidadeDestino?: string;
+  hipotese?: string; atividades?: string; motivacao?: string; cargoComissionado?: string; cargoFuncao?: string;
+  analiseCedente?: Record<string, string>; historico?: Array<{ data: string; acao: string; detalhe?: string }>;
+}
+function carregarCessaoCorrecao(id?: string) {
+  try { return (JSON.parse(window.localStorage.getItem(REGISTROS_CESSAO_STORAGE_KEY) || "[]") as RegistroCessaoCorrecao[]).find((item) => item.id === id); }
+  catch { return undefined; }
+}
 
 const hipoteseOptions = [
   { label: "Exercício de cargo em comissão ou função de confiança", value: "CARGO" },
@@ -105,17 +115,25 @@ const hipoteseOptions = [
   { label: "Caso previsto em lei específica", value: "LEI_ESPECIFICA" },
 ];
 
-export function PrototiposNovaCessaoInternaPage() {
+export function PrototiposNovaCessaoInternaPage({ modo = "nova" }: { modo?: "nova" | "correcao" }) {
   const navigate = useNavigate();
-  const [etapa, setEtapa] = useState<EtapaCessao>("servidor");
-  const [maiorEtapaLiberada, setMaiorEtapaLiberada] = useState(0);
+  const { id } = useParams();
+  const registroCorrecao = modo === "correcao" ? carregarCessaoCorrecao(id) : undefined;
+  const servidorInicial = Object.entries(servidorDetalhes).find(([, item]) => item.nome === registroCorrecao?.servidor)?.[0] || "";
+  const matriculasIniciais = registroCorrecao?.matricula.split(/\s+e\s+/).map((item) => item.trim()).filter(Boolean) || [];
+  const unidadeInicial = unidadeOptions.find((item) => item.label === registroCorrecao?.unidadeDestino)?.value || "";
+  const hipoteseInicial = hipoteseOptions.find((item) => item.label === registroCorrecao?.hipotese)?.value || "";
+  const etapasComCorrecao = (["servidor", "destino", "dados", "documentos"] as EtapaCessao[]).filter((item) => registroCorrecao?.analiseCedente?.[`${item}Resultado`] === "CORRECAO");
+  const [etapa, setEtapa] = useState<EtapaCessao>(() => etapasComCorrecao[0] || "servidor");
+  const [etapasCorrigidas, setEtapasCorrigidas] = useState<EtapaCessao[]>([]);
+  const [maiorEtapaLiberada, setMaiorEtapaLiberada] = useState(modo === "correcao" ? 4 : 0);
   const [resumoAberto, setResumoAberto] = useState(true);
   const [modalSigadocAberto, setModalSigadocAberto] = useState(false);
-  const [numeroSigadoc, setNumeroSigadoc] = useState("");
-  const [sigadocVinculado, setSigadocVinculado] = useState("");
+  const [numeroSigadoc, setNumeroSigadoc] = useState(registroCorrecao?.processoSigadoc || "");
+  const [sigadocVinculado, setSigadocVinculado] = useState(registroCorrecao?.processoSigadoc || "");
   const [erroSigadoc, setErroSigadoc] = useState("");
   const [modalEnvioConcluido, setModalEnvioConcluido] = useState(false);
-  const { control, watch, handleSubmit, setValue } = useForm<NovaCessaoInternaForm>({ defaultValues: { servidor: "", vinculosSelecionados: [], opcaoRemuneratoria: "", vinculoRemuneratorio: "", unidadeDestino: "", codigoUnidade: "", hipotese: "", cargoComissionado: "", cargoFuncao: "", atividades: "", motivacao: "", inicio: "", fim: "" } });
+  const { control, watch, handleSubmit, setValue } = useForm<NovaCessaoInternaForm>({ defaultValues: { servidor: servidorInicial, vinculosSelecionados: matriculasIniciais, opcaoRemuneratoria: "", vinculoRemuneratorio: "", unidadeDestino: unidadeInicial, codigoUnidade: unidadeInicial, hipotese: hipoteseInicial, cargoComissionado: registroCorrecao?.cargoComissionado || "", cargoFuncao: registroCorrecao?.cargoFuncao || "", atividades: registroCorrecao?.atividades || "", motivacao: registroCorrecao?.motivacao || "", inicio: registroCorrecao?.inicio || "", fim: registroCorrecao?.fim || "" } });
   const valores = watch();
   const servidor = servidorDetalhes[valores.servidor];
   const doisVinculos = (valores.vinculosSelecionados?.length ?? 0) === 2;
@@ -126,12 +144,19 @@ export function PrototiposNovaCessaoInternaPage() {
   const hipoteseSelecionada = hipoteseOptions.find((item) => item.value === valores.hipotese)?.label;
   const indice = etapas.findIndex((item) => item.value === etapa);
   const erro = () => null;
+  const precisaCorrecao = (item: EtapaCessao) => etapasComCorrecao.includes(item);
+  const etapaAprovada = (item: EtapaCessao) => modo === "correcao" && item !== "revisao" && registroCorrecao?.analiseCedente?.[`${item}Resultado`] === "APROVADO";
+  const comentarioEtapa = etapa !== "revisao" ? registroCorrecao?.analiseCedente?.[`${etapa}Comentario`] : "";
+  const somenteLeitura = etapaAprovada(etapa);
+  const correcoesConcluidas = etapasComCorrecao.every((item) => etapasCorrigidas.includes(item));
   const etapasVisiveis = etapas.map((item, index) => ({
     ...item,
-    icon: index < indice ? "pi pi-check-circle" : item.icon,
-    disabled: index > maiorEtapaLiberada,
+    label: modo === "correcao" && precisaCorrecao(item) ? `${item.label} — corrigir` : item.label,
+    icon: modo === "correcao" && precisaCorrecao(item) ? (etapasCorrigidas.includes(item) ? "pi pi-check-circle" : "pi pi-exclamation-triangle") : index < indice || etapaAprovada(item) ? "pi pi-check-circle" : item.icon,
+    disabled: modo === "nova" && index > maiorEtapaLiberada,
   }));
   const avancar = () => {
+    if (modo === "correcao" && etapa !== "revisao" && precisaCorrecao(etapa) && !etapasCorrigidas.includes(etapa)) setEtapasCorrigidas((atual) => [...atual, etapa]);
     const proximaEtapa = Math.min(indice + 1, etapas.length - 1);
     setMaiorEtapaLiberada((atual) => Math.max(atual, proximaEtapa));
     setEtapa(etapas[proximaEtapa].value);
@@ -151,25 +176,24 @@ export function PrototiposNovaCessaoInternaPage() {
       return Math.max(maior, numero);
     }, 0) + 1;
     const cedentes = [...new Set(vinculosSelecionados.map((item) => item.cedente))];
-    registros.push({
-      id: `CES-${new Date().getFullYear()}-${String(proximoNumero).padStart(4, "0")}`,
-      servidor: servidor.nome,
-      matricula: vinculosSelecionados.map((item) => item.matricula).join(" e "),
-      tipo: "INTERNA",
-      orgaoCedente: cedentes.join(" / "),
-      orgaoCessionario: "SEPLAG",
-      inicio: valores.inicio,
-      fim: valores.fim,
-      etapaAtual: "Órgão cedente",
-      situacao: "AGUARDANDO_CEDENTE",
-      processoSigadoc: sigadocVinculado,
-      unidadeDestino: unidadeDestinoSelecionada,
-      hipotese: hipoteseSelecionada,
-      atividades: valores.atividades,
-      motivacao: valores.motivacao,
-      cargoComissionado: valores.cargoComissionado,
-      cargoFuncao: valores.cargoFuncao,
-    });
+    const dadosAtualizados = {
+      servidor: servidor.nome, matricula: vinculosSelecionados.map((item) => item.matricula).join(" e "), tipo: "INTERNA",
+      orgaoCedente: cedentes.join(" / "), orgaoCessionario: "SEPLAG", inicio: valores.inicio, fim: valores.fim,
+      etapaAtual: modo === "correcao" ? "Órgão cedente — nova análise" : "Órgão cedente", situacao: "AGUARDANDO_CEDENTE",
+      processoSigadoc: sigadocVinculado, unidadeDestino: unidadeDestinoSelecionada, hipotese: hipoteseSelecionada,
+      atividades: valores.atividades, motivacao: valores.motivacao, cargoComissionado: valores.cargoComissionado, cargoFuncao: valores.cargoFuncao,
+    };
+    if (modo === "correcao" && registroCorrecao) {
+      const analiseCedente = { ...(registroCorrecao.analiseCedente || {}) };
+      (["servidor", "destino", "dados", "documentos"] as EtapaCessao[]).forEach((item) => {
+        analiseCedente[`${item}Resultado`] = "REVISAR";
+        analiseCedente[`${item}Comentario`] = "";
+      });
+      const atualizado = { ...registroCorrecao, ...dadosAtualizados, analiseCedente, historico: [...(registroCorrecao.historico || []), { data: new Date().toLocaleString("pt-BR"), acao: "Correções realizadas e solicitação reenviada ao órgão cedente", detalhe: etapasComCorrecao.join(", ") }] };
+      registros = registros.map((item) => item.id === registroCorrecao.id ? atualizado : item);
+    } else {
+      registros.push({ id: `CES-${new Date().getFullYear()}-${String(proximoNumero).padStart(4, "0")}`, ...dadosAtualizados });
+    }
     window.localStorage.setItem(REGISTROS_CESSAO_STORAGE_KEY, JSON.stringify(registros));
     setModalEnvioConcluido(true);
   });
@@ -192,11 +216,12 @@ export function PrototiposNovaCessaoInternaPage() {
 
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
     <div className="prototype-page-content prototype-page-content--white prototype-nova-cessao-page">
-      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Movimentação" }, { label: "Cessão" }, { label: "Nova solicitação" }, { label: "Interna" }]} />
-      <CardSeplag title="Nova solicitação de cessão interna" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card">
+      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={modo === "correcao" ? [{ label: "Movimentação" }, { label: "Cessão" }, { label: registroCorrecao?.id || "Solicitação" }, { label: "Corrigir solicitação" }] : [{ label: "Movimentação" }, { label: "Cessão" }, { label: "Nova solicitação" }, { label: "Interna" }]} />
+      <CardSeplag title={modo === "correcao" ? "Cessão interna" : "Nova solicitação de cessão interna"} cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card">
         <div className="col-12 prototype-nova-cessao-content">
-          <p className="prototype-nova-cessao-support">Informe os dados necessários para encaminhar o pedido ao órgão cedente.</p>
+          <p className="prototype-nova-cessao-support">{modo === "correcao" ? "Corrija as etapas indicadas pelo órgão cedente e revise as alterações antes do reenvio." : "Informe os dados necessários para encaminhar o pedido ao órgão cedente."}</p>
           <div className="prototype-nova-cessao-notice"><i className="pi pi-info-circle" /><span>Cessão interna: movimentação entre órgãos ou entidades do Poder Executivo Estadual.</span></div>
+          {modo === "correcao" && <div className="prototype-nova-cessao-correction-status"><i className="pi pi-replay" /><span><strong>Devolvida</strong><small>{registroCorrecao?.id} • {registroCorrecao?.servidor}</small></span></div>}
           <TabsSeplag items={etapasVisiveis} activeValue={etapa} onChange={setEtapa} equalWidth className="prototype-nova-cessao-tabs" />
 
           <div>
@@ -219,6 +244,9 @@ export function PrototiposNovaCessaoInternaPage() {
               </AccordionCardSeplag>
             </div>}
             <section className="prototype-nova-cessao-panel">
+              {modo === "correcao" && etapa !== "revisao" && precisaCorrecao(etapa) && <div className={etapasCorrigidas.includes(etapa) ? "prototype-nova-cessao-correction-alert is-done" : "prototype-nova-cessao-correction-alert"}><i className={etapasCorrigidas.includes(etapa) ? "pi pi-check-circle" : "pi pi-exclamation-triangle"} /><span><strong>{etapasCorrigidas.includes(etapa) ? "Correção marcada como concluída" : "Correção solicitada pelo órgão cedente"}</strong><small>{comentarioEtapa || "Revise as informações desta etapa."}</small></span></div>}
+              {modo === "correcao" && etapa !== "revisao" && etapaAprovada(etapa) && <div className="prototype-nova-cessao-approved"><i className="pi pi-lock" /><span>Etapa aprovada pelo órgão cedente. As informações estão disponíveis somente para consulta.</span></div>}
+              <fieldset className="prototype-nova-cessao-shared-fields" disabled={somenteLeitura}>
               {etapa === "servidor" && <>
                 <h3>Servidor</h3><p>Selecione o servidor e o vínculo ativo que será abrangido pela cessão.</p>
                 <div className="grid"><DropdownFieldSeplag name="servidor" control={control} label="Nome ou matrícula" options={servidorOptions} optionLabel="label" optionValue="value" placeholder="Pesquise o servidor" required cols="12 6" getFormErrorMessage={erro} onChange={() => { setValue("vinculosSelecionados", []); setValue("opcaoRemuneratoria", ""); setValue("vinculoRemuneratorio", ""); }} /></div>
@@ -243,7 +271,14 @@ export function PrototiposNovaCessaoInternaPage() {
               </>}
               {etapa === "documentos" && <>
                 <h3>Documentos</h3><p>A instrução oficial ocorre no SIGADOC. Nesta etapa ficam registrados os documentos sob responsabilidade do solicitante.</p>
-                <div className="prototype-nova-cessao-docs"><article className={sigadocVinculado ? "is-linked" : undefined}><i className={sigadocVinculado ? "pi pi-check-circle" : "pi pi-file"} /><span><strong>Ofício de solicitação de cessão interna</strong><small>{sigadocVinculado ? <>Processo SIGADOC: <b>{sigadocVinculado}</b></> : "Obrigatório na abertura."}</small></span><button type="button" onClick={abrirVinculoSigadoc}>{sigadocVinculado ? "Alterar vínculo" : "Vincular documento"}</button></article><article className="is-future"><i className="pi pi-lock" /><span><strong>Manifestação da unidade de lotação</strong><small>Será produzida durante a instrução pelo órgão cedente.</small></span><em>Etapa do cedente</em></article><article className="is-future"><i className="pi pi-lock" /><span><strong>Manifestação técnica do órgão central</strong><small>Será produzida após a autorização do cedente.</small></span><em>Etapa da SEPLAG</em></article></div>
+                <div className="prototype-nova-cessao-docs">
+                  <article className={sigadocVinculado ? "is-linked" : undefined}><i className={sigadocVinculado ? "pi pi-check-circle" : "pi pi-file"} /><span><strong>1. Ofício de solicitação de cessão interna</strong><small>{sigadocVinculado ? <>Processo SIGADOC: <b>{sigadocVinculado}</b></> : "Pedido formal do órgão cessionário. Obrigatório na abertura."}</small></span><button type="button" onClick={abrirVinculoSigadoc}>{sigadocVinculado ? "Alterar vínculo" : "Vincular documento"}</button></article>
+                  <article className="is-future"><i className="pi pi-lock" /><span><strong>2. Solicitação de manifestação da unidade de lotação</strong><small>Despacho opcional para solicitar o posicionamento da unidade onde o servidor está lotado.</small></span><em>Etapa do Cedente • Opcional</em></article>
+                  <article className="is-future"><i className="pi pi-lock" /><span><strong>3. Manifestação da unidade de lotação</strong><small>Posicionamento da unidade sobre a liberação do servidor e seus impactos.</small></span><em>Etapa do Cedente</em></article>
+                  <article className="is-future"><i className="pi pi-lock" /><span><strong>4. Manifestação técnica da área setorial</strong><small>Análise da Gestão de Pessoas do órgão cedente sobre a regularidade da cessão.</small></span><em>Etapa do Cedente</em></article>
+                  <article className="is-future"><i className="pi pi-lock" /><span><strong>5. Despacho de autorização ou indeferimento</strong><small>Decisão formal do dirigente máximo do órgão cedente.</small></span><em>Etapa do Cedente</em></article>
+                  <article className="is-future"><i className="pi pi-lock" /><span><strong>6. Manifestação técnica do órgão central</strong><small>Análise final da SEPLAG antes da publicação do ato administrativo.</small></span><em>Etapa da SEPLAG</em></article>
+                </div>
               </>}
               {etapa === "revisao" && <>
                 <h3>Revisão e envio</h3><p>Confira as informações antes de encaminhar ao órgão cedente.</p>
@@ -255,8 +290,9 @@ export function PrototiposNovaCessaoInternaPage() {
                 </div>
                 <div className="prototype-nova-cessao-declaration"><i className="pi pi-exclamation-triangle" /><span>Após o envio, a solicitação ficará aguardando a instrução e a decisão do órgão cedente.</span></div>
               </>}
+            </fieldset>
             </section>
-            <div className="prototype-nova-cessao-footer"><BotaoVoltarSeplag label={indice === 0 ? "Cancelar" : "Voltar"} icon={indice === 0 ? "pi pi-times" : "pi pi-arrow-left"} onClick={voltar} /><div><BotaoSalvarSeplag type="button" label="Salvar rascunho" icon="pi pi-save" onClick={() => window.alert("Rascunho salvo no protótipo.")} />{etapa === "revisao" ? <BotaoSalvarSeplag type="button" label="Enviar ao órgão cedente" icon="pi pi-send" disabled={!sigadocVinculado} tooltip={!sigadocVinculado ? "Vincule o processo SIGADOC antes do envio." : undefined} onClick={() => void enviar()} /> : <BotaoSalvarSeplag type="button" label="Continuar" icon="pi pi-arrow-right" iconPos="right" onClick={avancar} />}</div></div>
+            <div className="prototype-nova-cessao-footer"><BotaoVoltarSeplag label={indice === 0 ? (modo === "correcao" ? "Voltar para cessões" : "Cancelar") : "Voltar"} icon={indice === 0 ? (modo === "correcao" ? "pi pi-arrow-left" : "pi pi-times") : "pi pi-arrow-left"} onClick={voltar} /><div><BotaoSalvarSeplag type="button" label={modo === "correcao" ? "Salvar correções" : "Salvar rascunho"} icon="pi pi-save" onClick={() => window.alert(modo === "correcao" ? "Correções salvas no protótipo." : "Rascunho salvo no protótipo.")} />{etapa === "revisao" ? <BotaoSalvarSeplag type="button" label={modo === "correcao" ? "Reenviar ao órgão cedente" : "Enviar ao órgão cedente"} icon="pi pi-send" disabled={!sigadocVinculado || (modo === "correcao" && !correcoesConcluidas)} tooltip={!sigadocVinculado ? "Vincule o processo SIGADOC antes do envio." : modo === "correcao" && !correcoesConcluidas ? "Conclua todas as etapas devolvidas antes do reenvio." : undefined} onClick={() => void enviar()} /> : <BotaoSalvarSeplag type="button" label={modo === "correcao" && precisaCorrecao(etapa) ? "Marcar como corrigida e continuar" : "Continuar"} icon="pi pi-arrow-right" iconPos="right" onClick={avancar} />}</div></div>
           </div>
         </div>
       </CardSeplag>
@@ -290,7 +326,7 @@ export function PrototiposNovaCessaoInternaPage() {
       </ModalSeplag>
       <ModalSeplag
         visible={modalEnvioConcluido}
-        titulo="Solicitação enviada"
+        titulo={modo === "correcao" ? "Solicitação reenviada" : "Solicitação enviada"}
         tamanho="34rem"
         fechar={concluirEnvio}
         customFooter={<BotaoSalvarSeplag type="button" label="Voltar para cessões" icon="pi pi-arrow-right" iconPos="right" onClick={concluirEnvio} />}
@@ -298,8 +334,8 @@ export function PrototiposNovaCessaoInternaPage() {
         <div className="prototype-nova-cessao-success-modal">
           <i className="pi pi-check-circle" aria-hidden="true" />
           <div>
-            <strong>Solicitação enviada ao órgão cedente</strong>
-            <p>O pedido foi encaminhado e ficará aguardando a instrução e a decisão do órgão cedente.</p>
+            <strong>{modo === "correcao" ? "Correções enviadas ao órgão cedente" : "Solicitação enviada ao órgão cedente"}</strong>
+            <p>{modo === "correcao" ? "As etapas corrigidas ficarão aguardando nova análise do órgão cedente." : "O pedido foi encaminhado e ficará aguardando a instrução e a decisão do órgão cedente."}</p>
             <small>Processo SIGADOC: {sigadocVinculado}</small>
           </div>
         </div>
@@ -312,3 +348,12 @@ export function PrototiposNovaCessaoExternaPage() {
   const navigate = useNavigate();
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-page-content prototype-page-content--white"><BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Movimentação" }, { label: "Cessão" }, { label: "Nova solicitação" }, { label: "Externa" }]} /><CardSeplag title="Nova solicitação de cessão externa" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card"><div className="col-12 prototype-nova-cessao-placeholder"><i className="pi pi-info-circle" /><h3>Tela reservada</h3><p>O fluxo específico da cessão externa será detalhado antes da implementação.</p><BotaoVoltarSeplag label="Voltar para cessões" onClick={() => navigate("/prototipos/sigep/movimentacao/cessoes")} /></div></CardSeplag></div></PrototypeSystemPage>;
 }
+
+
+
+
+
+
+
+
+
