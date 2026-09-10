@@ -28,8 +28,68 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 0 4px;
-  border-top: 1px solid #d6dfe5;
+  padding: 16px 18px;
+  border: 1px solid #ced9e5;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.orgao-cadastro-form,
+.orgao-external-form {
+  display: grid;
+  gap: 16px;
+  padding: 0;
+  background: transparent;
+}
+
+.orgao-cadastro-form > .orgao-stepper {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #ced9e5;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.orgao-cadastro-form .orgao-tab-content {
+  gap: 16px;
+}
+
+.orgao-cadastro-form .orgao-tab-content > [class*="col-"],
+.orgao-external-form > [class*="col-"] {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+}
+
+.orgao-cadastro-page .orgao-form-section {
+  overflow: hidden;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid #ced9e5 !important;
+  border-radius: 6px !important;
+  background: #fff;
+}
+
+.orgao-cadastro-page .orgao-form-section > .flex.flex-column:first-child {
+  gap: 3px;
+  padding: 15px 18px;
+  border-bottom: 1px solid #dde5ed;
+  background: #fbfcfd;
+}
+
+.orgao-cadastro-page .orgao-form-section > .flex.flex-column:first-child .label-destaque {
+  color: #17324d;
+  font-size: 1rem;
+}
+
+.orgao-cadastro-page .orgao-form-section > .flex.flex-column:first-child .text-sm {
+  color: #58708a;
+  font-size: 0.82rem;
+}
+
+.orgao-cadastro-page .orgao-form-section > .orgao-fields-grid {
+  margin-top: 0;
+  padding: 18px;
 }
 
 .orgao-cadastro-card .orgao-tab-content,
@@ -46,11 +106,8 @@
 }
 
 .orgao-external-form {
-  display: flex;
   box-sizing: border-box;
   width: 100%;
-  flex-direction: column;
-  gap: 0;
 }
 
 .orgao-external-form > .orgao-form-section,

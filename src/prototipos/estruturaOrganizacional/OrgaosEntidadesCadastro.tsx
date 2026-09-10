@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
-import { CardSeplag } from "@componentes/Card";
 import { CNPJFieldSeplag, DateFieldSeplag, DropdownFieldSeplag, NumberFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { PanelSeplag } from "@componentes/PanelSeplag";
 import "./orgaosEntidades.css";
@@ -153,18 +152,15 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
     },
   ];
   return (
-    <div className="orgao-cadastro-page prototype-page-content prototype-page-content--white">
-      <CardSeplag
-        cols="12"
-        cardHeaderClassNames="orgao-cadastro-card"
-        headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Órgãos e Entidades" }]} />}
-        title={
-          <div className="orgao-cadastro-title">
-            <strong>{tipoInicial === "ente" ? "Cadastro de Ente Federativo" : "Cadastro de Órgãos"}</strong>
-            <small>Consulte as informações vigentes ou edite uma seção específica.</small>
-          </div>
-        }
-      >
+    <div className="prototype-carreira-register-page orgao-cadastro-page">
+      <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Órgãos e Entidades" }, { label: "Cadastrar" }]} />
+      <header className="prototype-carreira-register-title">
+        <div>
+          <h1>{tipoInicial === "ente" ? "Novo ente federativo" : "Novo órgão ou entidade"}</h1>
+          <p>{tipoInicial === "ente" ? "Informe os dados que identificam o ente federativo e suas integrações." : "Informe os dados que identificam o órgão ou entidade e sua vinculação institucional."}</p>
+        </div>
+      </header>
+      <div className="prototype-carreira-register-form orgao-cadastro-form">
         <nav
           className="orgao-stepper"
           style={{
@@ -312,7 +308,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
             </div>
           </div>
         )}
-      </CardSeplag>
+      </div>
     </div>
   );
 }
