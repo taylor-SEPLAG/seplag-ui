@@ -621,11 +621,16 @@ export function CertameFormContent() {
  const cargoExistenteSelecionado = usaCargoDoQuadro ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId) : undefined;
  const cargoNomeAtual = usaCargoDoQuadro ? cargoExistenteSelecionado?.nome ?? "" : cargoValores.cargoNome;
  const quadroVinculado = cargoExistenteSelecionado ?? buscarQuadroPorCargo(cargoNomeAtual ?? "");
+ // Id da vaga sendo editada (ver editarCargo) — null quando o modal está adicionando uma vaga nova.
+ // Declarado antes de cargoJornadaRepetida, que já o referencia (TDZ: usar antes de declarar um
+ // const de useState quebra em runtime assim que o `some` abaixo chega a rodar).
+ const [cargoEmEdicaoId, setCargoEmEdicaoId] = useState<string | null>(null);
  // RN: bloqueio de carga repetida — o par (Cargo/função + Jornada) não pode repetir o de uma vaga
  // já salva na lista do certame. Verificado em tempo real (a cada tecla/seleção), contra `cargos`
- // (lista salva), nunca contra o próprio formulário em edição.
+ // (lista salva), nunca contra o próprio formulário em edição — daí excluir `cargoEmEdicaoId` da
+ // comparação, senão a vaga em edição sempre bateria contra ela mesma.
  const cargoJornadaRepetida = Boolean(cargoNomeAtual?.trim() && cargoValores.jornada && cargos.some((item) =>
-  item.jornada === cargoValores.jornada && item.cargoNome.trim().toLocaleLowerCase("pt-BR") === cargoNomeAtual.trim().toLocaleLowerCase("pt-BR")));
+  item.id !== cargoEmEdicaoId && item.jornada === cargoValores.jornada && item.cargoNome.trim().toLocaleLowerCase("pt-BR") === cargoNomeAtual.trim().toLocaleLowerCase("pt-BR")));
  // "Resumo da vaga" — pills com o que já foi preenchido no formulário, exibidas antes de confirmar
  // a inclusão na lista (bloco "Cargos e vagas").
  const resumoVagaPills = [
@@ -807,19 +812,38 @@ export function CertameFormContent() {
   if (dados.aceitaCadastroReserva === "S" && !(dados.quantidadeCadastroReserva && dados.quantidadeCadastroReserva > 0)) { setErro("Informe a quantidade de Cadastro Reserva (CR) para as vagas de ampla concorrência."); return false; }
   setErro(null);
   const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
-  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:vinculoEfetivo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:valores.tipoCertame === "CONCURSO_PUBLICO" ? dados.carreira : undefined, polo:dados.polo.trim(), cidades:exibirCidadeVaga ? dados.cidades : cidadesDoPoloSelecionado, jornada:dados.jornada, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaAtivas, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
+  const cargoSalvo:CargoVagaCertame = { id:cargoEmEdicaoId ?? `CGV-${Date.now()}`, vinculo:vinculoEfetivo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:valores.tipoCertame === "CONCURSO_PUBLICO" ? dados.carreira : undefined, polo:dados.polo.trim(), cidades:exibirCidadeVaga ? dados.cidades : cidadesDoPoloSelecionado, jornada:dados.jornada, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaAtivas, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao };
+  // Edição (cargoEmEdicaoId setado por editarCargo): substitui a vaga existente no lugar, preservando
+  // a posição na lista; sem isso, seria tratado como uma vaga nova e duplicaria a linha.
+  setCargos((atuais) => cargoEmEdicaoId ? atuais.map((item) => item.id === cargoEmEdicaoId ? cargoSalvo : item) : [...atuais, cargoSalvo]);
   cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", cidades:[], jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, possuiCotas:"N", tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 });
   setReservasCotaPendentes([]);
+  setCargoEmEdicaoId(null);
   return true;
  };
  const removerCargo = (idCargo:string) => setCargos((atuais) => atuais.filter((item) => item.id !== idCargo));
+ // Reabre o modal de vaga pré-preenchido com os dados de uma vaga já adicionada — "Adicionar vaga"
+ // (adicionarCargo) faz a gravação nos dois casos, distinguindo pelo cargoEmEdicaoId.
+ const editarCargo = (cargo:CargoVagaCertame) => {
+  setErro(null);
+  setCargoEmEdicaoId(cargo.id);
+  cargoForm.reset({
+   vinculo:cargo.vinculo, cargoExistenteId:cargo.cargoExistenteId, cargoNome:cargo.vinculo === "EXISTENTE" ? "" : cargo.cargoNome,
+   carreira:cargo.carreira, polo:cargo.polo ?? "", cidades:[...(cargo.cidades ?? [])], jornada:cargo.jornada, orgaoDestino:cargo.orgaoDestino,
+   quantidadeVagas:cargo.quantidadeVagas, possuiCotas:cargo.reservasCota.length ? "S" : "N", tipoCota:"", quantidadeCota:0,
+   aceitaCadastroReserva:cargo.aceitaCadastroReserva ? "S" : "N", quantidadeCadastroReserva:cargo.quantidadeCadastroReserva ?? 0,
+  });
+  setReservasCotaPendentes([...cargo.reservasCota]);
+  setModalVagaAberto(true);
+ };
  // Modal "Adicionar vaga" (ver bloco Cargos e vagas na aba Vagas): abre a partir do botão no
- // cabeçalho de "Vagas adicionadas" e fecha sozinho ao adicionar com sucesso; "Cancelar" descarta o
- // rascunho de vaga em montagem sem gravar nada na lista.
+ // cabeçalho de "Vagas adicionadas" (nova vaga) ou do ícone Editar de uma linha (editarCargo) e fecha
+ // sozinho ao salvar com sucesso; "Cancelar" descarta o rascunho de vaga em montagem sem gravar nada.
  const [modalVagaAberto, setModalVagaAberto] = useState(false);
  const confirmarAdicionarVaga = async () => { if (await adicionarCargo()) setModalVagaAberto(false); };
  const cancelarVaga = () => {
   setErro(null);
+  setCargoEmEdicaoId(null);
   cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", cidades:[], jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, possuiCotas:"N", tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 });
   setReservasCotaPendentes([]);
   setModalVagaAberto(false);
@@ -1198,7 +1222,7 @@ export function CertameFormContent() {
          rowExpansionTemplate={(cargo) => <DistribuicaoVagasCargo quantidadeVagas={cargo.quantidadeVagas} reservas={cargo.reservasCota} quantidadeCadastroReserva={cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva : undefined} tiposCota={tiposCota} />}
          hasEventoAcao={!modoVisualizar}
          handleView={null}
-         handleEdit={null}
+         handleEdit={modoVisualizar ? null : (row) => editarCargo(row)}
           handleDelete={modoVisualizar ? null : (row) => removerCargo(row.id)}
           deleteActionLabel="Excluir vaga"
           deleteConfirmationMessage="Deseja excluir esta vaga do certame?"
@@ -1210,13 +1234,13 @@ export function CertameFormContent() {
 
       {!modoVisualizar && <ModalSeplag
        visible={modalVagaAberto}
-       titulo={`Adicionar vaga — ${TIPOS_CERTAME.find((item) => item.value === valores.tipoCertame)?.label ?? ""}`}
+       titulo={`${cargoEmEdicaoId ? "Editar" : "Adicionar"} vaga — ${TIPOS_CERTAME.find((item) => item.value === valores.tipoCertame)?.label ?? ""}`}
        fechar={cancelarVaga}
        tamanho="900px"
        closeOnEscape
        customFooter={<div className="flex justify-content-end gap-2">
         <BotaoFecharSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={cancelarVaga} />
-        <BotaoAdicionarSeplag type="button" label="Adicionar vaga" icon="pi pi-check" disabled={!podeAdicionarVaga} onClick={confirmarAdicionarVaga} />
+        <BotaoAdicionarSeplag type="button" label={cargoEmEdicaoId ? "Salvar vaga" : "Adicionar vaga"} icon="pi pi-check" disabled={!podeAdicionarVaga} onClick={confirmarAdicionarVaga} />
        </div>}
       >
        <div className="col-12 prototype-certame-subform">
