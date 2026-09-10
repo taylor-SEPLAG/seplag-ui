@@ -304,6 +304,9 @@
 .prototype-certame-fases-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:1.1rem;padding-bottom:1.1rem;border-bottom:1px solid var(--surface-border)}
 .prototype-certame-fases-head .prototype-certame-bloco-header{margin-bottom:0;padding-bottom:0;border-bottom:0}
 
+.prototype-certame-vagas-adicionadas-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:1.15rem}
+.prototype-certame-vagas-adicionadas-head .prototype-certame-vaga-area-header{margin:0}
+
 .prototype-certame-fase-header,.prototype-certame-fase-row{display:grid;grid-template-columns:18px minmax(180px,1fr) 152px 152px 28px;column-gap:10px;align-items:center}
 .prototype-certame-fase-header{padding:8px 12px;border-bottom:1px solid var(--surface-border);background:var(--surface-50);color:var(--text-color-secondary);font-size:.72rem;font-weight:800;text-transform:uppercase}
 .prototype-certame-fase-header .obrigatorio{margin-left:2px;font-style:normal}

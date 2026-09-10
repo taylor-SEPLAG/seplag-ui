@@ -18,7 +18,12 @@ export const certamesMock: Certame[] = [
   diasPrazoExercicio:15, diasPrazoPosse:30,
   houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
   cotas:[{ id:"COTA-1", tipo:"PCD", lei:["LEI-6752-1995"] }],
-  cargos:[{ id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", cidades:["CUIABA"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:20, reservasCota:[{ id:"RSV-1", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10, quadroCodigo:"QA-0012", quadroVersao:1 }],
+  // Exemplo de certame com múltiplos cargos/vagas — 3 cargos, somando 47 vagas no total.
+  cargos:[
+   { id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", cidades:["CUIABA"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:20, reservasCota:[{ id:"RSV-1", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10, quadroCodigo:"QA-0012", quadroVersao:1 },
+   { id:"CGV-7", vinculo:"NOVO", cargoNome:"Professor — Matemática", cidades:["CUIABA"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:15, reservasCota:[{ id:"RSV-6", tipo:"PCD", quantidade:1 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:6, quadroCodigo:"QA-0013", quadroVersao:1 },
+   { id:"CGV-8", vinculo:"NOVO", cargoNome:"Professor — Ciências", cidades:["VARZEA-GRANDE"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:12, reservasCota:[], aceitaCadastroReserva:false, quadroCodigo:"QA-0014", quadroVersao:1 },
+  ],
   fases:[...FASES_TCE_FIXAS],
   documentos:[
    { tipo:"JUSTIFICATIVA_ABERTURA", nomeArquivo:"justificativa-pss-seduc-2026.pdf", anexadoEm:"05/02/2026" },
@@ -61,7 +66,11 @@ export const certamesMock: Certame[] = [
    { id:"COTA-2", tipo:"PCD", lei:["LEI-6752-1995"] },
    { id:"COTA-3", tipo:"INDIGENAS", lei:["LC-600-2017"] },
   ],
-  cargos:[{ id:"CGV-2", vinculo:"EXISTENTE", cargoExistenteId:"CGO-AUDITOR-FISCAL", cargoNome:"Auditor Fiscal", codigoReferenciaTce:"001", quantidadeVagas:30, reservasCota:[{ id:"RSV-2", tipo:"PCD", quantidade:3 }], aceitaCadastroReserva:false, quadroCodigo:"QA-0007", quadroVersao:1 }],
+  // Exemplo de certame com múltiplos cargos/vagas — 2 cargos, somando 35 vagas no total.
+  cargos:[
+   { id:"CGV-2", vinculo:"EXISTENTE", cargoExistenteId:"CGO-AUDITOR-FISCAL", cargoNome:"Auditor Fiscal", codigoReferenciaTce:"001", quantidadeVagas:30, reservasCota:[{ id:"RSV-2", tipo:"PCD", quantidade:3 }], aceitaCadastroReserva:false, quadroCodigo:"QA-0007", quadroVersao:1 },
+   { id:"CGV-9", vinculo:"EXISTENTE", cargoExistenteId:"CGO-ANALISTA-TI", cargoNome:"Analista de TI", codigoReferenciaTce:"001", quantidadeVagas:5, reservasCota:[{ id:"RSV-7", tipo:"PCD", quantidade:1 }], aceitaCadastroReserva:false, quadroCodigo:"QA-0015", quadroVersao:2 },
+  ],
   fases:[...FASES_TCE_FIXAS, { ordem:13, nome:"Curso de Formação (SEPLAG)" }],
   documentos:[
    { tipo:"JUSTIFICATIVA_ABERTURA", nomeArquivo:"justificativa-cp-sefaz-2026.pdf", anexadoEm:"20/12/2025" },

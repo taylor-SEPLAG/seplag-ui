@@ -32,14 +32,18 @@ describe("menus do Controle PSS", () => {
     expect(result.container.firstElementChild).not.toBeNull();
   });
 
-  it("mantém o bloco de taxa de inscrição para o PSS e usa a lista de empresas cadastradas", () => {
+  it("mantém o bloco de taxa de inscrição para o PSS e usa a lista de empresas cadastradas", async () => {
     expect(EMPRESAS_CADASTRADAS.some((empresa) => empresa.value === "INSEL")).toBe(true);
     const result = render(<MemoryRouter initialEntries={["/prototipos/sigep/controle-pss/certames/novo"]}><Routes><Route path="/prototipos/sigep/controle-pss/certames/:id" element={<CertameFormContent />} /></Routes></MemoryRouter>);
     fireEvent.click(result.getByText("Processo Seletivo Simplificado (PSS)"));
     expect(result.getByText("Identificação")).toBeTruthy();
     expect(result.getByText("Cronograma")).toBeTruthy();
+    // CA04 (US218): Número do edital do órgão e Nome do edital são obrigatórios para sair da aba
+    // Identificação — sem preenchê-los, o clique em outra aba fica bloqueado (validação assíncrona).
+    fireEvent.change(result.getByLabelText(/Número do edital do órgão/), { target: { value: "001/SEPLAG/2026" } });
+    fireEvent.change(result.getByLabelText(/Nome do edital/), { target: { value: "001/SEPLAG/2026 Processo seletivo simplificado" } });
     fireEvent.click(result.getByText("Contrato e Custos"));
-    expect(result.getByText("Taxa de inscrição")).toBeTruthy();
+    expect(await result.findByText("Taxa de inscrição")).toBeTruthy();
   });
 
   it("gera a esteira padrão de etapas para qualquer processo novo", () => {
