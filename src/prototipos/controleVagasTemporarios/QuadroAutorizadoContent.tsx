@@ -1,3 +1,5 @@
+import { NovoQuadroTemporarioContent } from "./NovoQuadroTemporarioContent";
+import { listarQuadrosTemporarios } from "./novoQuadroTemporarioStore";
 import {
   useEffect,
   useMemo,
@@ -154,6 +156,8 @@ export function QuadroAutorizadoContent() {
   const isNovaVersao = location.pathname.endsWith("/nova-versao");
   const isDetalhe = Boolean(id) && !isEditar && !isNovaVersao;
 
+  if (isNovo) return <NovoQuadroTemporarioContent />;
+
   if (isNovaVersao) {
     const registro = id
       ? quadros.find((item) => item.id === Number(id))
@@ -198,9 +202,51 @@ export function QuadroAutorizadoContent() {
     );
   }
 
-  return <QuadroAutorizadoLista />;
+  return <QuadrosContratosTemporariosLista />;
 }
 
+function QuadrosContratosTemporariosLista() {
+  const navigate = useNavigate();
+  const [quadros] = useState(() => listarQuadrosTemporarios());
+  const [busca, setBusca] = useState("");
+  const [orgao, setOrgao] = useState("");
+  const [selecionado, setSelecionado] = useState<string | null>(null);
+  const termo = busca.trim().toLocaleLowerCase("pt-BR");
+  const filtrados = quadros.filter((q) => (!termo || `${q.codigo} ${q.certame.nomeEdital} ${q.certame.numeroEditalOrgao}`.toLocaleLowerCase("pt-BR").includes(termo)) && (!orgao || q.certame.setor === orgao));
+  const cargos = quadros.reduce((total, q) => total + q.cargos.length, 0);
+  const semLimite = quadros.reduce((total, q) => total + q.cargos.filter((c) => c.modoControle === "SEM_LIMITE").length, 0);
+  const orgaos = [...new Set(quadros.map((q) => q.certame.setor))].sort();
+  const detalhe = quadros.find((q) => q.id === selecionado);
+  return (
+    <div className="prototype-temporarios-quadro-page prototype-temporarios-quadro-page-current">
+      <header className="prototype-temporarios-quadro-header">
+        <div>
+          <h1>Quadro Contratos Temporários</h1>
+          <p>Quadros originados nos processos seletivos simplificados cadastrados.</p>
+        </div>
+      </header>
+      <section className="prototype-temporarios-quadro-kpis">
+        <article><i className="pi pi-file-check" /><div><span>Quadros cadastrados</span><strong>{quadros.length}</strong></div></article>
+        <article><i className="pi pi-sitemap" /><div><span>Seletivos vinculados</span><strong>{quadros.length}</strong></div></article>
+        <article><i className="pi pi-briefcase" /><div><span>Cargos controlados</span><strong>{cargos}</strong></div></article>
+        <article><i className="pi pi-infinity" /><div><span>Cargos sem limite</span><strong>{semLimite}</strong></div></article>
+      </section>
+      <section className="prototype-temporarios-quadro-card">
+        <div className="prototype-temporarios-quadro-filters prototype-temporarios-quadro-library-filters prototype-temporarios-quadro-list-filters">
+          <label><span>Quadro</span><input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Código, edital ou número" /></label>
+          <label><span>Órgão</span><select value={orgao} onChange={(e) => setOrgao(e.target.value)}><option value="">Todos</option>{orgaos.map((o) => <option key={o}>{o}</option>)}</select></label>
+          <BotaoLimparFiltroSeplag label="Limpar" onClick={() => { setBusca(""); setOrgao(""); }} />
+        </div>
+        <div className="prototype-temporarios-quadro-table-toolbar"><BotaoAdicionarSeplag label="Novo Quadro" onClick={() => navigate(`${BASE_PATH}/novo`)} /></div>
+        <div className="prototype-temporarios-quadro-table prototype-temporarios-quadro-list-table">
+          <table><thead><tr><th>Quadro <i className="pi pi-sort-alt" /></th><th>Processo seletivo <i className="pi pi-sort-alt" /></th><th>Órgão <i className="pi pi-sort-alt" /></th><th>Vigência <i className="pi pi-sort-alt" /></th><th>Cargos <i className="pi pi-sort-alt" /></th><th>Situação <i className="pi pi-sort-alt" /></th><th>Ações</th></tr></thead><tbody>{filtrados.map((q) => <tr key={q.id}><td><button className="prototype-temporarios-quadro-link" onClick={() => setSelecionado(q.id)}>{q.codigo}</button><small>{q.certame.numeroEditalOrgao}</small></td><td><strong>{q.certame.nomeEdital}</strong><small>{q.certame.situacaoAtual}</small></td><td>{q.certame.setor}</td><td>{q.dataAtivacao ?? "Não informada"}</td><td>{q.cargos.length}</td><td><BadgeSeplag label="Ativo" color="#00843d" bg="#dff3e8" size="sm" fontWeight /></td><td><div className="prototype-temporarios-quadro-actions"><BotaoIconSeplag icon="pi pi-eye" tooltip="Visualizar" onClick={() => setSelecionado(q.id)} /></div></td></tr>)}</tbody></table>
+          {filtrados.length === 0 && <div className="prototype-temporarios-empty-content"><i className="pi pi-briefcase" /><h2>Nenhum quadro de contrato temporário cadastrado</h2><p>Os quadros serão criados a partir de um processo seletivo no Controle de Certame.</p><BotaoAdicionarSeplag label="Criar primeiro quadro" onClick={() => navigate(`${BASE_PATH}/novo`)} /></div>}
+        </div>
+      </section>
+      {detalhe && <div className="prototype-temporarios-detail-backdrop" onMouseDown={() => setSelecionado(null)}><section className="prototype-temporarios-detail" role="dialog" aria-label={`Detalhes ${detalhe.codigo}`} onMouseDown={(e) => e.stopPropagation()}><header><div><span>{detalhe.codigo}</span><h2>{detalhe.certame.nomeEdital}</h2><p>{detalhe.certame.numeroEditalOrgao} · {detalhe.certame.setor}</p></div><button aria-label="Fechar" onClick={() => setSelecionado(null)}><i className="pi pi-times" /></button></header><div className="prototype-temporarios-detail-body"><h3>Cargos e vagas do seletivo</h3>{detalhe.cargos.map((c) => <article key={c.id}><strong>{c.cargoNome}</strong><span>{c.quantidadeVagas} vagas · {c.aceitaCadastroReserva ? "Sem limite quantitativo" : `Limite de ${c.quantidadeVagas}`}</span></article>)}</div></section></div>}
+    </div>
+  );
+}
 type QuadroFiltrosForm = {
   busca: string;
   cargo: string;
@@ -1192,7 +1238,7 @@ function QuadroAutorizadoLista() {
         <header className="prototype-temporarios-quadro-header">
           <SpecArea metadata={quadroScreenSpecification}>
             <div>
-              <h1>Quadro Autorizado</h1>
+              <h1>Quadro Contratos Temporários</h1>
               <p>Quantitativos autorizados por cargo, vínculo e órgão.</p>
             </div>
           </SpecArea>
@@ -1900,7 +1946,7 @@ function QuadroAutorizadoForm({
       !form.cargo && "Informe o cargo.",
       form.cargo &&
         quadroExistenteDoCargo(form.cargo) &&
-        `Já existe um Quadro Autorizado para o cargo ${form.cargo}.`,
+        `Já existe um Quadro Contratos Temporários para o cargo ${form.cargo}.`,
       !documentosLegaisIds.length &&
         "Vincule ao menos uma norma à autorização.",
       ...errosVigencia,
@@ -2281,7 +2327,7 @@ function QuadroAutorizadoDetalhe({
     <div className="prototype-temporarios-quadro-page">
       <header className="prototype-temporarios-quadro-header">
         <div>
-          <BotaoVoltarSeplag label="Quadro Autorizado" onClick={onBack} />
+          <BotaoVoltarSeplag label="Quadro Contratos Temporários" onClick={onBack} />
           <div className="prototype-temporarios-quadro-title-line">
             <h1>{registro.codigo}</h1>
             <span

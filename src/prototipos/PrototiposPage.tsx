@@ -291,7 +291,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
             visibleOnMenu: false,
             visibleOnRouter: true,
           },          {
-            label: "Quadro Autorizado",
+            label: "Quadro Vagas Servidores Efetivos",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`,
             visibleOnMenu: false,
@@ -303,7 +303,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
             visibleOnMenu: false,
             visibleOnRouter: true,
           },          {
-            label: "Vagas Individualizadas",
+            label: "Vagas Efetivos",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/vagas`,
             visibleOnMenu: false,
@@ -11308,8 +11308,8 @@ export function PrototiposTipoVinculoTesteFormPage({
                         cols="12"
                         required
                         options={[
-                          { label: "Vagas Efetivos", value: "VAGAS_EFETIVOS" },
-                          { label: "Vagas Temporários", value: "VAGAS_TEMPORARIOS" },
+                          { label: "Vagas Servidores Efetivos", value: "VAGAS_EFETIVOS" },
+                          { label: "Vagas Contratos Temporários", value: "VAGAS_TEMPORARIOS" },
                           { label: "Vagas Comissionados", value: "VAGAS_COMISSIONADOS" },
                           { label: "Vagas Bolsistas", value: "VAGAS_RESIDENTES" },
                         ]}
