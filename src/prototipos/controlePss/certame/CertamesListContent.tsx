@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { CONTROLE_PSS_BASE_PATH as BASE } from "../constants";
 import { useControlePssStore } from "../controlePssStore";
@@ -14,13 +13,11 @@ import { podeEditarCertame } from "./validations";
 import { stringToDateSeplag } from "@uteis/manipulaData";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
-import { BotaoAdicionarSeplag, BotaoLimparFiltroSeplag } from "@componentes/Botao";
-import { DropdownFieldSeplag } from "@componentes/Fields";
+import { BotaoAdicionarSeplag, BotaoLimparFiltroSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
+import { ModalSeplag } from "@componentes/Modal";
 import "./certame.css";
 
 const abaLabel:Record<RascunhoCertame["aba"], string> = { IDENTIFICACAO:"Identificação", CRONOGRAMA:"Cronograma", FINANCEIRO:"Contrato e Custos", VAGAS_COTAS:"Vagas", DOCUMENTOS:"Documentos" };
-
-interface FiltroForm { termo:string }
 
 const situacaoLabel:Record<SituacaoCertame,string> = Object.fromEntries(SITUACOES_CERTAME.map((item) => [item.value, item.label])) as Record<SituacaoCertame,string>;
 const situacaoEstilo:Record<SituacaoCertame,{ color:string; bg:string }> = {
@@ -41,10 +38,9 @@ const ITENS_POR_PAGINA_OPCOES = [10, 20, 50];
 export function CertamesListContent() {
  const { certames } = useControlePssStore();
  const navigate = useNavigate();
- const { control, watch, reset } = useForm<FiltroForm>({ defaultValues: { termo:"" } });
- const termo = watch("termo");
  const [orgaoFiltro, setOrgaoFiltro] = useState("");
  const [exercicioFiltro, setExercicioFiltro] = useState("");
+ const [nomeEditalFiltro, setNomeEditalFiltro] = useState("");
  const [tipoFiltro, setTipoFiltro] = useState<TipoCertame | "">("");
  const [situacaoFiltro, setSituacaoFiltro] = useState<SituacaoCertame | "">("");
  const [pagina, setPagina] = useState(1);
@@ -52,6 +48,10 @@ export function CertamesListContent() {
  const [certameHistoricoId, setCertameHistoricoId] = useState<string | null>(null);
  const [certameRegistrarSituacaoId, setCertameRegistrarSituacaoId] = useState<string | null>(null);
  const [acoesMenuAbertoId, setAcoesMenuAbertoId] = useState<string | null>(null);
+ // "Adicionar" abre um modal para escolher o tipo (Concurso Público/PSS) antes de ir pro formulário
+ // — a tela de seleção deixa de aparecer inline dentro do form nesse fluxo (continua existindo lá
+ // como retaguarda para quem chega direto em /certames/novo sem passar por este modal).
+ const [modalTipoAberto, setModalTipoAberto] = useState(false);
 
  // Certames em cadastro (fase "Abertura/Cadastro"), ainda não salvos como registro — o progresso
  // fica em rascunho local (ver rascunhoCertameStore) até a conclusão do cadastro; sinalizado aqui
@@ -66,13 +66,7 @@ export function CertamesListContent() {
  };
 
  const exercicios = useMemo(() => Array.from(new Set(certames.map((item) => item.anoConcurso))).sort((a, b) => b - a).map((ano) => String(ano)), [certames]);
-
- // "Pesquisar" virou um dropdown pesquisável (filtro embutido do DropdownFieldSeplag) em vez de
- // texto livre — escolhe um certame específico pelo número/nome do edital, em vez de digitar um
- // trecho e esperar bater com vários registros. "Todos" como primeira opção deixa o campo com o
- // mesmo texto padrão de valor vazio que Órgão/Exercício/Tipo/Situação, em vez de um placeholder
- // descritivo só nesse campo.
- const opcoesCertame = useMemo(() => [{ label:"Todos", value:"" }, ...certames.map((item) => ({ label:`${item.numeroEditalOrgao} — ${item.nomeEdital}`, value:item.id }))], [certames]);
+ const nomesEdital = useMemo(() => Array.from(new Set(certames.map((item) => item.nomeEdital))).sort((a, b) => a.localeCompare(b, "pt-BR")), [certames]);
 
  // Cards de indicadores acima do filtro — mesmo padrão de "Efetivo Exercício"/"Controle de Vagas"
  // (faixa de KPIs resumindo a lista antes de filtrar).
@@ -85,22 +79,21 @@ export function CertamesListContent() {
 
  const lista = useMemo(() => {
   return certames.filter((certame) =>
-   (!termo || certame.id === termo) &&
    (!orgaoFiltro || certame.setor === orgaoFiltro) &&
    (!exercicioFiltro || String(certame.anoConcurso) === exercicioFiltro) &&
+   (!nomeEditalFiltro || certame.nomeEdital === nomeEditalFiltro) &&
    (!tipoFiltro || certame.tipoCertame === tipoFiltro) &&
    (!situacaoFiltro || certame.situacaoAtual === situacaoFiltro),
   // RN011: ordenada por data de publicação do edital, mais recente primeiro.
   ).sort((a, b) => (stringToDateSeplag(b.dataPublicacaoEdital)?.getTime() ?? 0) - (stringToDateSeplag(a.dataPublicacaoEdital)?.getTime() ?? 0));
- }, [certames, termo, orgaoFiltro, exercicioFiltro, tipoFiltro, situacaoFiltro]);
+ }, [certames, orgaoFiltro, exercicioFiltro, nomeEditalFiltro, tipoFiltro, situacaoFiltro]);
 
  const totalPaginas = Math.max(1, Math.ceil(lista.length / itensPorPagina));
  const paginaAtual = Math.min(pagina, totalPaginas);
  const listaPaginada = lista.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
 
  const limparFiltros = () => {
-  reset({ termo:"" });
-  setOrgaoFiltro(""); setExercicioFiltro(""); setTipoFiltro(""); setSituacaoFiltro("");
+  setOrgaoFiltro(""); setExercicioFiltro(""); setNomeEditalFiltro(""); setTipoFiltro(""); setSituacaoFiltro("");
   setPagina(1);
  };
 
@@ -119,23 +112,29 @@ export function CertamesListContent() {
      </section>
 
      <div className="prototype-category-filters prototype-ingressos-filters prototype-certame-list-filters grid">
-      <DropdownFieldSeplag name="termo" control={control} label="Pesquisar" cols="12" options={opcoesCertame} optionLabel="label" optionValue="value" placeholder="Pesquisar certame" showClear getFormErrorMessage={() => null} />
-      <SpecArea metadata={certamesListFilterSpecifications["Órgão"]}><label className="prototype-native-field">
-       <span>Órgão</span>
-       <select value={orgaoFiltro} onChange={(event) => { setOrgaoFiltro(event.target.value); setPagina(1); }}>
-        <option value="">Todos</option>
-        {ORGAOS_CERTAME.map((item) => <option key={item} value={item}>{item}</option>)}
-       </select>
-      </label></SpecArea>
-      <SpecArea metadata={certamesListFilterSpecifications["Exercício"]}><label className="prototype-native-field">
-       <span>Exercício</span>
+      <SpecArea metadata={certamesListFilterSpecifications["Ano"]}><label className="prototype-native-field">
+       <span>Ano</span>
        <select value={exercicioFiltro} onChange={(event) => { setExercicioFiltro(event.target.value); setPagina(1); }}>
         <option value="">Todos</option>
         {exercicios.map((ano) => <option key={ano} value={ano}>{ano}</option>)}
        </select>
       </label></SpecArea>
-      <SpecArea metadata={certamesListFilterSpecifications["Tipo"]}><label className="prototype-native-field">
-       <span>Tipo</span>
+      <SpecArea metadata={certamesListFilterSpecifications["Nome do edital"]}><label className="prototype-native-field">
+       <span>Nome do edital</span>
+       <select value={nomeEditalFiltro} onChange={(event) => { setNomeEditalFiltro(event.target.value); setPagina(1); }}>
+        <option value="">Todos</option>
+        {nomesEdital.map((nome) => <option key={nome} value={nome}>{nome}</option>)}
+       </select>
+      </label></SpecArea>
+      <SpecArea metadata={certamesListFilterSpecifications["Órgão mandante"]}><label className="prototype-native-field">
+       <span>Órgão mandante</span>
+       <select value={orgaoFiltro} onChange={(event) => { setOrgaoFiltro(event.target.value); setPagina(1); }}>
+        <option value="">Todos</option>
+        {ORGAOS_CERTAME.map((item) => <option key={item} value={item}>{item}</option>)}
+       </select>
+      </label></SpecArea>
+      <SpecArea metadata={certamesListFilterSpecifications["Tipo do certame"]}><label className="prototype-native-field">
+       <span>Tipo do certame</span>
        <select value={tipoFiltro} onChange={(event) => { setTipoFiltro(event.target.value as TipoCertame | ""); setPagina(1); }}>
         <option value="">Todos</option>
         {TIPOS_CERTAME.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
@@ -154,29 +153,29 @@ export function CertamesListContent() {
      </div>
 
      <div className="prototype-certame-list-acoes">
-      <BotaoAdicionarSeplag label="Novo Certame" onClick={() => navigate(`${BASE}/certames/novo`)} />
+      <BotaoAdicionarSeplag label="Adicionar" onClick={() => setModalTipoAberto(true)} />
      </div>
 
      <SpecArea metadata={certamesListBlockSpecifications.lista}><div className="prototype-efetivo-exercicio-table-wrap">
       <table className="prototype-simple-table">
        <thead>
         <tr>
-         <th>Certame</th>
+         <th>Nº do certame</th>
+         <th>Ano</th>
+         <th>Nome do edital</th>
          <th>Órgão mandante</th>
-         <th>Tipo</th>
-         <th>Vagas</th>
-         <th>Cotas</th>
-         <th>Situação do certame</th>
+         <th>Tipo do certame</th>
+         <th>Situação</th>
          <th>Ações</th>
         </tr>
        </thead>
        <tbody>
         {rascunhos.map((rascunho) => <tr key={rascunho.id} className="prototype-certames-rascunho-linha">
-         <td><strong>{rascunho.valores.numeroEditalOrgao || "_"}</strong><div className="text-sm text-color-secondary">{rascunho.valores.nomeEdital || "Novo certame"}</div></td>
+         <td>{rascunho.valores.numeroConcurso || "_"}</td>
+         <td>{rascunho.valores.anoConcurso || "_"}</td>
+         <td>{rascunho.valores.nomeEdital || "Novo certame"}</td>
          <td>{rascunho.valores.setor || "_"}</td>
          <td>{tipoLabel[rascunho.valores.tipoCertame] ?? "_"}</td>
-         <td>{rascunho.cargos.length > 0 ? rascunho.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0).toLocaleString("pt-BR") : "_"}</td>
-         <td>{rascunho.cotas.length > 0 ? rascunho.cotas.length : "_"}</td>
          <td><BadgeSeplag label="Em andamento" color="#8a5c00" bg="#fff1cf" border="transparent" size="sm" /></td>
          <td>
           <div className="prototype-ingresso-candidato-actions">
@@ -199,11 +198,11 @@ export function CertamesListContent() {
           const menuId = row.id;
           return (
            <tr key={row.id}>
-            <td><strong>{row.numeroEditalOrgao}</strong><div className="text-sm text-color-secondary">{row.nomeEdital}</div></td>
+            <td>{row.numeroConcurso}</td>
+            <td>{row.anoConcurso}</td>
+            <td>{row.nomeEdital}</td>
             <td>{row.setor}</td>
             <td>{tipoLabel[row.tipoCertame]}</td>
-            <td>{row.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0).toLocaleString("pt-BR")}</td>
-            <td>{row.cotas.length}</td>
             <td><BadgeSeplag label={situacaoLabel[row.situacaoAtual]} color={situacaoEstilo[row.situacaoAtual].color} bg={situacaoEstilo[row.situacaoAtual].bg} border="transparent" size="sm" /></td>
             <td>
              <div className="prototype-ingresso-candidato-actions">
@@ -253,5 +252,23 @@ export function CertamesListContent() {
   </div>
   {certameHistoricoId && <HistoricoSituacoesCertameModal certameId={certameHistoricoId} onClose={() => setCertameHistoricoId(null)} />}
   {certameRegistrarSituacaoId && <RegistrarSituacaoCertameModal certameId={certameRegistrarSituacaoId} onClose={() => setCertameRegistrarSituacaoId(null)} />}
+  <ModalSeplag
+   visible={modalTipoAberto}
+   titulo="Novo Certame"
+   fechar={() => setModalTipoAberto(false)}
+   tamanho="640px"
+   closeOnEscape
+   customFooter={<BotaoVoltarSeplag type="button" onClick={() => setModalTipoAberto(false)} />}
+  >
+   <div className="col-12 prototype-certame-tipo-gate">
+    <p>Selecione o tipo de certame que deseja cadastrar.</p>
+    <div className="prototype-certame-tipo-gate-options">
+     {TIPOS_CERTAME.map((item) => <button key={item.value} type="button" className="prototype-certame-tipo-card" onClick={() => navigate(`${BASE}/certames/novo?tipo=${item.value}`)}>
+      <strong>{item.label}</strong>
+      <span>Sigla: {item.value === "CONCURSO_PUBLICO" ? "Conc" : "PSS"}</span>
+     </button>)}
+    </div>
+   </div>
+  </ModalSeplag>
  </SpecificationMode>;
 }

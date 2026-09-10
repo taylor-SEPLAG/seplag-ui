@@ -16,7 +16,8 @@ import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCe
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { MensagemSeplag } from "@componentes/Mensagem";
-import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
+import { BotaoAdicionarSeplag, BotaoFecharSeplag, BotaoIconSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
+import { ModalSeplag } from "@componentes/Modal";
 import { TabsSeplag, type TabItemSeplag } from "@componentes/Tabs";
 import { DateFieldSeplag, CheckboxFieldSeplag, DropdownFieldSeplag, MultiSelectFieldSeplag, NumberFieldSeplag, RadioButtonFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import type { ArquivoAnexadoSeplag } from "@componentes/AnexarDocumento";
@@ -64,24 +65,29 @@ interface LeiOpcaoCertame { id:string; numero:string; titulo:string; tipo?:strin
 
 // Campo de "lei aplicável" com seleção múltipla (checkbox) + uma marcação exclusiva de qual das
 // selecionadas é a lei aplicável (radiobutton, só habilitado em linhas já marcadas com checkbox).
-// RN009: com apenas 1 lei selecionada, ela é a aplicável automaticamente; com 2+, nenhuma vem
-// marcada por padrão — o usuário precisa marcar manualmente, via radiobutton, qual delas é a
-// aplicável naquele campo. RN014: se a lei removida era a marcada, nenhuma assume o lugar
-// automaticamente — o usuário precisa marcar manualmente outra (a menos que só reste 1). A posição
-// 0 do array continua sendo a "candidata" à aplicável (marcar o radio de outra linha reordena o
-// array para promovê-la), mas só é tratada como aplicável de fato quando marcadaManualmente é true
-// (ou quando só há 1 lei selecionada). Diferente de CampoLeiMultiplaSeplag (Lei de isenção/Lei da
-// cota, sem esse conceito de "aplicável"): aqui o campo de busca nunca mostra os valores escolhidos
-// sobrepostos ao ícone de lupa — eles só aparecem no bloco de confirmação abaixo, em lista.
+// RN009: com apenas 1 lei selecionada, ela é a aplicável automaticamente; com 2+, a primeira lei já
+// cadastrada (posição 0 do array) continua marcada como aplicável por padrão — o usuário pode marcar
+// manualmente, via radiobutton, uma lei diferente daquele campo. RN014: se a lei removida era a
+// marcada e ainda sobra mais de uma, ninguém assume o lugar automaticamente — o usuário precisa
+// marcar manualmente outra (a menos que só reste 1, que volta a ser a aplicável sozinha). A posição
+// 0 do array é sempre a candidata à aplicável (marcar o radio de outra linha reordena o array para
+// promovê-la); "semAplicavel" só liga quando a guarda da RN014 precisa suspender essa promoção
+// automática. Diferente de CampoLeiMultiplaSeplag (Lei de isenção/Lei da cota, sem esse conceito de
+// "aplicável"): aqui o campo de busca nunca mostra os valores escolhidos sobrepostos ao ícone de
+// lupa — eles só aparecem no bloco de confirmação abaixo, em lista.
 function CampoLeiAplicavelSeplag<T extends FieldValues = any>({ name, control, label, required, cols = "12", opcoes, onNovoCadastro, onVerLei, disabled, assunto, substantivo }: Readonly<{ name:Path<T>; control:Control<T>; label:string; required?:boolean; cols?:string; opcoes:LeiOpcaoCertame[]; onNovoCadastro:() => void; onVerLei:(id:string) => void; disabled?:boolean; assunto:string; substantivo:string }>) {
  const { field } = useController({ name, control, rules: required ? { validate:(value) => (Array.isArray(value) && value.length > 0) || `${label} é obrigatório` } : undefined });
  const rootRef = useRef<HTMLDivElement>(null);
  const inputRef = useRef<HTMLInputElement>(null);
  const [isOpen, setIsOpen] = useState(false);
  const [search, setSearch] = useState("");
- const [marcadaManualmente, setMarcadaManualmente] = useState(false);
+ // CA05/RN009 (US218 - Identificação): com 1 lei selecionada, ela é sempre a aplicável. Com 2+, a
+ // aplicável é sempre a que está na posição 0 do array (marcarAplicavel reordena para lá) — exceto
+ // quando "semAplicavel" está ativo, usado só pela guarda da RN014 (ver alternarSelecao) para os
+ // casos em que ninguém deve assumir o lugar automaticamente.
+ const [semAplicavel, setSemAplicavel] = useState(false);
  const selecionadosIds = (field.value as string[] | undefined) ?? [];
- const idAplicavel = selecionadosIds.length === 1 ? selecionadosIds[0] : (marcadaManualmente ? selecionadosIds[0] : null);
+ const idAplicavel = selecionadosIds.length === 0 ? null : selecionadosIds.length === 1 ? selecionadosIds[0] : (semAplicavel ? null : selecionadosIds[0]);
 
  const opcoesFiltradas = useMemo(() => {
   const query = search.trim().toLocaleLowerCase("pt-BR");
@@ -103,21 +109,23 @@ function CampoLeiAplicavelSeplag<T extends FieldValues = any>({ name, control, l
 
  const alternarSelecao = (id:string) => {
   if (selecionadosIds.includes(id)) {
-   // RN014: se a lei removida era a marcada como aplicável, nenhuma assume o lugar automaticamente
-   // — o usuário precisa marcar manualmente outra (a menos que só reste 1, que vira aplicável sozinha).
    const restantes = selecionadosIds.filter((item) => item !== id);
    field.onChange(restantes.length > 0 ? restantes : undefined);
-   if (id === idAplicavel) setMarcadaManualmente(false);
+   // RN014: se a lei removida era a marcada como aplicável e ainda sobra mais de uma, ninguém assume
+   // o lugar automaticamente — o usuário precisa marcar manualmente outra. Com 1 ou nenhuma
+   // restante, a regra de seleção única (RN009, item 1) volta a valer sozinha.
+   if (id === idAplicavel) setSemAplicavel(restantes.length > 1);
+   else if (restantes.length <= 1) setSemAplicavel(false);
   } else {
-   // RN009: ao passar de 1 para 2+ leis selecionadas sem marcação manual, nenhuma fica marcada.
-   if (selecionadosIds.length === 1) setMarcadaManualmente(false);
+   // RN009/CA05: ao passar de 1 para 2+ leis selecionadas, a primeira lei já cadastrada (posição 0)
+   // continua sendo a aplicável automaticamente — não precisa de marcação manual.
    field.onChange([...selecionadosIds, id]);
   }
  };
  const marcarAplicavel = (id:string) => {
   if (!selecionadosIds.includes(id)) return;
   if (selecionadosIds[0] !== id) field.onChange([id, ...selecionadosIds.filter((item) => item !== id)]);
-  setMarcadaManualmente(true);
+  setSemAplicavel(false);
  };
  const removerSelecionada = (id:string) => alternarSelecao(id);
 
@@ -269,7 +277,7 @@ export interface CertameFormValues {
  cobraTaxaInscricao:string; valorInscricao?:number;
 }
 interface TaxaInscricaoRascunho { valor:string; inicioIsencao:string; fimIsencao:string; tipoIsencao:string[]; leiIsencao:string; }
-interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; carreira?:string; polo?:string; jornada?:string; orgaoDestino?:string; quantidadeVagas:number; possuiCotas:string; tipoCota:string; quantidadeCota?:number; aceitaCadastroReserva:string; quantidadeCadastroReserva?:number }
+interface CargoFormValues { vinculo:"EXISTENTE" | "NOVO"; cargoExistenteId?:string; cargoNome:string; carreira?:string; polo?:string; cidades:string[]; jornada?:string; orgaoDestino?:string; quantidadeVagas:number; possuiCotas:string; tipoCota:string; quantidadeCota?:number; aceitaCadastroReserva:string; quantidadeCadastroReserva?:number }
 
 // Consolidação de 8 para 5 abas fixas: cada aba antiga virou um bloco com subtítulo dentro da aba
 // nova, preservando todos os campos, RNs e CAs originais. O histórico de situações deixou de ser
@@ -383,6 +391,11 @@ export function CertameFormContent() {
  // todos os campos ficam bloqueados e as ações de adicionar/remover cargo, cota e fase somem —
  // só acessível para um certame já existente (nunca para "novo certame").
  const modoVisualizar = !modoNovo && searchParams.get("modo") === "visualizar";
+ // CA06/RN010 (US218 - Identificação): uma vez Homologado, a aba Identificação vira somente leitura
+ // mesmo fora do modo Visualizar. Só libera de novo se uma Retificação (Edital/Homologação/Homologação
+ // Parcial) for registrada depois — o que já se reflete aqui, já que situacaoAtual troca para o tipo
+ // de retificação nesse momento e deixa de ser "HOMOLOGADO".
+ const identificacaoTravada = existente?.situacaoAtual === "HOMOLOGADO";
 
  // Identidade do rascunho: vários certames novos podem estar "em andamento" ao mesmo tempo (RN008),
  // então cada um precisa do seu próprio id — recebido em ?rascunho=<id> ao retomar via "Continuar
@@ -438,9 +451,14 @@ export function CertameFormContent() {
  };
 
  const [aba, setAba] = useState<Aba>(campoLeiRetorno === "cotaLei" ? "VAGAS_COTAS" : (rascunho?.aba ?? "IDENTIFICACAO"));
+ // O modal "Novo Certame" da listagem já resolve a escolha do tipo antes de navegar pra cá — chega
+ // com ?tipo=CONCURSO_PUBLICO|PSS, o que libera o restante do formulário direto, sem repetir a
+ // pergunta na tela de seleção inline (ver useEffect logo após selecionarTipoCertame).
+ const tipoDaUrl = searchParams.get("tipo");
+ const tipoDaUrlValido = TIPOS_CERTAME.some((item) => item.value === tipoDaUrl) ? (tipoDaUrl as TipoCertame) : undefined;
  // RN-06.1: no cadastro de um novo certame, o tipo precisa ser definido antes de liberar o restante do formulário.
- const [tipoConfirmado, setTipoConfirmado] = useState(!modoNovo || Boolean(rascunho?.tipoConfirmado));
- const { control, handleSubmit, watch, setValue, getValues } = useForm<CertameFormValues>({ defaultValues: rascunho?.valores ?? valoresIniciais(existente, certames) });
+ const [tipoConfirmado, setTipoConfirmado] = useState(!modoNovo || Boolean(rascunho?.tipoConfirmado) || Boolean(tipoDaUrlValido));
+ const { control, handleSubmit, watch, setValue, getValues, trigger } = useForm<CertameFormValues>({ defaultValues: rascunho?.valores ?? valoresIniciais(existente, certames) });
  const valores = watch();
  const dispensarParaProcessoSeletivo = valores.tipoCertame === "PSS";
  const dispensarParaConcurso = valores.tipoCertame === "CONCURSO_PUBLICO";
@@ -512,6 +530,16 @@ export function CertameFormContent() {
   setValue("tipoVinculo", concurso ? "EFETIVO" : "CONTRATO_TEMPORARIO");
   setTipoConfirmado(true);
  };
+ // Aplica o tipo já escolhido no modal "Novo Certame" (ver CertamesListContent) assim que o form
+ // monta — só numa primeira carga sem rascunho ainda salvo, pra não sobrescrever escolhas manuais
+ // já feitas (regime jurídico, tipo de vínculo) numa retomada/reload de um rascunho em andamento.
+ const tipoDaUrlAplicadoRef = useRef(false);
+ useEffect(() => {
+  if (!modoNovo || !tipoDaUrlValido || tipoDaUrlAplicadoRef.current || rascunho) return;
+  tipoDaUrlAplicadoRef.current = true;
+  selecionarTipoCertame(tipoDaUrlValido);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [modoNovo, tipoDaUrlValido, rascunho]);
 
  // Catálogo de tipos de cota (menu "Tipos de Cota", mesmo padrão de Locais/Fase do Certame) — inclui
  // inativos para continuar rotulando corretamente cotas já registradas com um tipo desativado.
@@ -578,8 +606,16 @@ export function CertameFormContent() {
  const [cargos, setCargos] = useState<CargoVagaCertame[]>(existente ? [...existente.cargos] : (rascunho?.cargos ?? []));
  const polos = useLocais();
  const polosOptions = useMemo(() => polos.filter((item) => item.situacao === "ATIVO").map((item) => ({ label:item.nomeLocal, value:item.nomeLocal })), [polos]);
- const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, possuiCotas:"N", tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 } });
+ const cargoForm = useForm<CargoFormValues>({ defaultValues: { vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", cidades:[], jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, possuiCotas:"N", tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 } });
  const cargoValores = cargoForm.watch();
+ // Um Polo pode abranger mais de uma cidade (cadastro de Locais) — a Cidade da vaga só precisa ser
+ // perguntada quando há ambiguidade a resolver; com uma única cidade ela é aplicada automaticamente.
+ const cidadesDoPoloSelecionado = useMemo(() => polos.find((item) => item.nomeLocal === cargoValores.polo)?.cidade ?? [], [polos, cargoValores.polo]);
+ const exibirCidadeVaga = cidadesDoPoloSelecionado.length > 1;
+ useEffect(() => {
+  if (!exibirCidadeVaga) cargoForm.setValue("cidades", []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [cargoValores.polo]);
  const mostrarCarreiraCargo = valores.tipoCertame === "CONCURSO_PUBLICO";
  const usaCargoDoQuadro = mostrarCarreiraCargo || cargoValores.vinculo === "EXISTENTE";
  const cargoExistenteSelecionado = usaCargoDoQuadro ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId) : undefined;
@@ -617,6 +653,7 @@ export function CertameFormContent() {
   && cargoValores.quantidadeVagas > 0
   && cargoValores.polo
   && cargoValores.jornada
+  && (!exibirCidadeVaga || cargoValores.cidades.length > 0)
   && (!mostrarCarreiraCargo || cargoValores.carreira)
   && (mostrarCarreiraCargo || cargoValores.vinculo),
  );
@@ -690,6 +727,7 @@ export function CertameFormContent() {
   { header:"Cargo/função", body:(cargo) => <strong>{cargo.cargoNome}</strong> },
   { header:"Qtd. vagas", body:(cargo) => cargo.quantidadeVagas },
   { header:"Polo", body:(cargo) => cargo.polo || "—" },
+  { header:"Cidade", body:(cargo) => cargo.cidades?.length ? cargo.cidades.join(", ") : "—" },
   { header:"Jornada", body:(cargo) => cargo.jornada ? (JORNADAS_TRABALHO.find((item) => item.value === cargo.jornada)?.label ?? cargo.jornada) : "—" },
   { header:"CR", body:(cargo) => String(cargo.aceitaCadastroReserva ? (cargo.quantidadeCadastroReserva ?? 0) : 0) },
   { header:"Cotas", body:(cargo) => {
@@ -755,25 +793,37 @@ export function CertameFormContent() {
  };
  const removerReservaCota = (idReserva:string) => setReservasCotaPendentes((atuais) => atuais.filter((item) => item.id !== idReserva));
 
- const adicionarCargo = async () => {
+ const adicionarCargo = async ():Promise<boolean> => {
   const dados = cargoForm.getValues();
   const vinculoEfetivo = mostrarCarreiraCargo ? "EXISTENTE" : dados.vinculo;
   const cargoExistente = vinculoEfetivo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === dados.cargoExistenteId) : undefined;
   const cargoNome = vinculoEfetivo === "EXISTENTE" ? cargoExistente?.nome ?? "" : dados.cargoNome;
-  const camposObrigatorios:(keyof CargoFormValues)[] = [...(!mostrarCarreiraCargo ? ["vinculo" as const] : []), vinculoEfetivo === "EXISTENTE" ? "cargoExistenteId" : "cargoNome", "quantidadeVagas", "polo", "jornada", ...(mostrarCarreiraCargo ? ["carreira" as const] : []), ...(dados.aceitaCadastroReserva === "S" ? ["quantidadeCadastroReserva" as const] : [])];
+  const camposObrigatorios:(keyof CargoFormValues)[] = [...(!mostrarCarreiraCargo ? ["vinculo" as const] : []), vinculoEfetivo === "EXISTENTE" ? "cargoExistenteId" : "cargoNome", "quantidadeVagas", "polo", "jornada", ...(exibirCidadeVaga ? ["cidades" as const] : []), ...(mostrarCarreiraCargo ? ["carreira" as const] : []), ...(dados.aceitaCadastroReserva === "S" ? ["quantidadeCadastroReserva" as const] : [])];
   const formularioValido = await cargoForm.trigger(camposObrigatorios);
-  if (!formularioValido || !cargoNome || dados.quantidadeVagas <= 0 || !dados.polo || !dados.jornada || (mostrarCarreiraCargo && !dados.carreira)) { setErro("Preencha todos os campos obrigatórios dos Dados da vaga."); return; }
-  if (cargoJornadaRepetida) { setErro("Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Ajuste o cargo ou a jornada para continuar."); return; }
+  if (!formularioValido || !cargoNome || dados.quantidadeVagas <= 0 || !dados.polo || !dados.jornada || (exibirCidadeVaga && !dados.cidades.length) || (mostrarCarreiraCargo && !dados.carreira)) { setErro("Preencha todos os campos obrigatórios dos Dados da vaga."); return false; }
+  if (cargoJornadaRepetida) { setErro("Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Ajuste o cargo ou a jornada para continuar."); return false; }
   const totalReservado = reservasCotaAtivas.reduce((total, item) => total + item.quantidade, 0);
-  if (totalReservado > dados.quantidadeVagas) { setErro("A soma das cotas reservadas não pode exceder a quantidade de vagas do cargo."); return; }
-  if (dados.aceitaCadastroReserva === "S" && !(dados.quantidadeCadastroReserva && dados.quantidadeCadastroReserva > 0)) { setErro("Informe a quantidade de Cadastro Reserva (CR) para as vagas de ampla concorrência."); return; }
+  if (totalReservado > dados.quantidadeVagas) { setErro("A soma das cotas reservadas não pode exceder a quantidade de vagas do cargo."); return false; }
+  if (dados.aceitaCadastroReserva === "S" && !(dados.quantidadeCadastroReserva && dados.quantidadeCadastroReserva > 0)) { setErro("Informe a quantidade de Cadastro Reserva (CR) para as vagas de ampla concorrência."); return false; }
   setErro(null);
   const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
-  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:vinculoEfetivo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:valores.tipoCertame === "CONCURSO_PUBLICO" ? dados.carreira : undefined, polo:dados.polo.trim(), jornada:dados.jornada, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaAtivas, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
-  cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, possuiCotas:"N", tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 });
+  setCargos((atuais) => [...atuais, { id:`CGV-${Date.now()}`, vinculo:vinculoEfetivo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:valores.tipoCertame === "CONCURSO_PUBLICO" ? dados.carreira : undefined, polo:dados.polo.trim(), cidades:exibirCidadeVaga ? dados.cidades : cidadesDoPoloSelecionado, jornada:dados.jornada, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaAtivas, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao }]);
+  cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", cidades:[], jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, possuiCotas:"N", tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 });
   setReservasCotaPendentes([]);
+  return true;
  };
  const removerCargo = (idCargo:string) => setCargos((atuais) => atuais.filter((item) => item.id !== idCargo));
+ // Modal "Adicionar vaga" (ver bloco Cargos e vagas na aba Vagas): abre a partir do botão no
+ // cabeçalho de "Vagas adicionadas" e fecha sozinho ao adicionar com sucesso; "Cancelar" descarta o
+ // rascunho de vaga em montagem sem gravar nada na lista.
+ const [modalVagaAberto, setModalVagaAberto] = useState(false);
+ const confirmarAdicionarVaga = async () => { if (await adicionarCargo()) setModalVagaAberto(false); };
+ const cancelarVaga = () => {
+  setErro(null);
+  cargoForm.reset({ vinculo:"NOVO", cargoExistenteId:undefined, cargoNome:"", carreira:undefined, polo:"", cidades:[], jornada:undefined, orgaoDestino:undefined, quantidadeVagas:0, possuiCotas:"N", tipoCota:"", quantidadeCota:0, aceitaCadastroReserva:"N", quantidadeCadastroReserva:0 });
+  setReservasCotaPendentes([]);
+  setModalVagaAberto(false);
+ };
  const renumerarFases = (lista:FaseCertame[]) => lista.map((item, index) => ({ ordem:index + 1, nome:item.nome, dataInicio:item.dataInicio, dataFim:item.dataFim }));
  const adicionarFase = () => setFases((atuais) => [...atuais, { ordem:atuais.length + 1, nome:"", dataInicio:"", dataFim:"" }]);
  // Preenche automaticamente a Data início de "Publicação do Edital"/"Homologação do Resultado"
@@ -819,7 +869,42 @@ export function CertameFormContent() {
  const abasFluxo = abas;
  const indiceAbaAtual = abasFluxo.findIndex((item) => item.id === aba);
  const ehUltimaAba = indiceAbaAtual === abasFluxo.length - 1;
- const avancar = () => { if (indiceAbaAtual >= 0 && indiceAbaAtual < abasFluxo.length - 1) setAba(abasFluxo[indiceAbaAtual + 1].id as Aba); };
+ // CA04 (US218 - Identificação): Ano do concurso (só em cadastro novo — depois vira fixo), Número do
+ // edital do órgão e Nome do edital são obrigatórios para sair da aba Identificação, seja clicando em
+ // outra aba ou no botão "Salvar <aba>". O Número do certame é gerado automaticamente e não entra na validação.
+ const camposObrigatoriosIdentificacao:(keyof CertameFormValues)[] = [...(modoNovo ? ["anoConcurso" as const] : []), "numeroEditalOrgao", "nomeEdital"];
+ const validarAbaIdentificacao = async () => {
+  const valido = await trigger(camposObrigatoriosIdentificacao);
+  if (!valido) { setErro("Preencha os campos obrigatórios da Identificação (Ano do concurso, Número do edital do órgão e Nome do edital) antes de continuar."); irParaBloco("IDENTIFICACAO", "bloco-identificacao"); }
+  return valido;
+ };
+ // CA07/RN006 (US219 - Cronograma): sair da aba Cronograma com Data de publicação do edital, Data de
+ // realização, Data de validade, Data do resultado, Início ou Fim das inscrições gerais vazios bloqueia
+ // a navegação para Contrato e Custos.
+ const camposObrigatoriosCronograma:(keyof CertameFormValues)[] = ["dataPublicacaoEdital", "dataRealizacao", "dataValidade", "dataResultado", "inicioInscricoesGerais", "fimInscricoesGerais"];
+ const validarAbaCronograma = async () => {
+  const valido = await trigger(camposObrigatoriosCronograma);
+  if (!valido) { setErro("Preencha os campos obrigatórios desta aba antes de avançar."); irParaBloco("CRONOGRAMA", "bloco-datas-execucao"); }
+  return valido;
+ };
+ const validarAbaAtual = () => {
+  if (aba === "IDENTIFICACAO") return validarAbaIdentificacao();
+  if (aba === "CRONOGRAMA") return validarAbaCronograma();
+  return Promise.resolve(true);
+ };
+ const mudarAba = async (novaAba:Aba) => {
+  if (novaAba !== aba && !(await validarAbaAtual())) return;
+  setAba(novaAba);
+ };
+ // Rótulo do botão de avançar, nomeado pela aba em que o usuário está ("Salvar Identificação",
+ // "Salvar Cronograma" etc.) — substitui o par genérico "Salvar rascunho" + "Avançar" por um único
+ // botão que já deixa claro o que vai ser salvo ao clicar.
+ const rotuloAbaAtual = abasFluxo[indiceAbaAtual]?.label ?? "";
+ const salvarEAvancar = async () => {
+  if (!(await validarAbaAtual())) return;
+  salvarRascunhoAtual();
+  if (indiceAbaAtual >= 0 && indiceAbaAtual < abasFluxo.length - 1) setAba(abasFluxo[indiceAbaAtual + 1].id as Aba);
+ };
  // Volta uma etapa do fluxo (mantendo os dados já preenchidos); na primeira etapa, sai para a listagem.
  const voltar = () => { if (indiceAbaAtual > 0) { setAba(abasFluxo[indiceAbaAtual - 1].id as Aba); return; } navigate(`${BASE}/certames`); };
 
@@ -855,8 +940,7 @@ export function CertameFormContent() {
      </div> : undefined}
      footer={<div className="col-12 flex justify-content-end align-items-center gap-2">
       <BotaoVoltarSeplag type="button" onClick={voltar} />
-      {modoNovo && <BotaoSeplag type="button" label="Salvar rascunho" icon="pi pi-save" className="prototype-certame-save-draft" outlined onClick={salvarRascunhoAtual} />}
-      {!ehUltimaAba && <BotaoSeplag type="button" label="Avançar" icon="pi pi-arrow-right" iconPos="right" onClick={avancar} />}
+      {!ehUltimaAba && <BotaoSeplag type="button" label={`Salvar ${rotuloAbaAtual}`} icon="pi pi-save" onClick={salvarEAvancar} />}
       {ehUltimaAba && !modoVisualizar && <SpecArea metadata={certameFormActionSpecifications["Salvar certame"]}><BotaoSalvarSeplag type="submit" label="Finalizar cadastro" /></SpecArea>}
      </div>}
     >
@@ -867,7 +951,7 @@ export function CertameFormContent() {
      <TabsSeplag<Aba>
       items={abasFluxo}
       activeValue={aba}
-      onChange={setAba}
+      onChange={mudarAba}
       equalWidth
       className="prototype-certame-tabs"
      />
@@ -890,7 +974,7 @@ export function CertameFormContent() {
             contagem da qual o número já congelado fazia parte. */}
         {!modoNovo
          ? <RotuloSeplag nome="Ano do concurso" cols="12 6 4" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">{valores.anoConcurso}</div><small>Bloqueado após o cadastro — RN04/RN06.</small></div></RotuloSeplag>
-         : <NumberFieldSeplag name="anoConcurso" control={control} label="Ano do concurso" required cols="12 6 4" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+         : <NumberFieldSeplag name="anoConcurso" control={control} label="Ano do concurso" required cols="12 6 4" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />}
         {/* Número do certame (TCE-MT) nunca é digitado (RN01) — sempre calculado pelo sistema:
             sequencial de 11 dígitos, zerado a cada exercício (RN03). O tipo do certame não é
             codificado no número — Concurso Público e PSS dividem a mesma sequência do exercício, já
@@ -898,18 +982,16 @@ export function CertameFormContent() {
             não foi salvo (reflete o Ano em edição) e trava para sempre a partir do primeiro "Salvar
             certame" — RN04/RN06 (ver useEffect de geração acima). */}
         <RotuloSeplag nome="Número do certame (TCE-MT)" cols="12 6" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor prototype-certame-campo-fixo-mono">{valores.numeroConcurso}</div><small>Gerado automaticamente pelo sistema — RN01/RN03.</small></div></RotuloSeplag>
-        <TextFieldSeplag name="numeroEditalOrgao" control={control} label="Número do edital do órgão" required cols="12 6" placeholder="Ex.: 001/SEPLAG/2026" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <TextFieldSeplag name="nomeEdital" control={control} label="Nome do edital" required cols="12" placeholder="[NÚMERO]/[ÓRGÃO]/[ANO] [descrição livre]" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="numeroEditalOrgao" control={control} label="Número do edital do órgão" required cols="12 6" placeholder="Ex.: 001/SEPLAG/2026" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
+        <TextFieldSeplag name="nomeEdital" control={control} label="Nome do edital" required cols="12" placeholder="[NÚMERO]/[ÓRGÃO]/[ANO] [descrição livre]" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
        </div>
       </div>
 
       <div className={blocoClasse("bloco-orgaos-envolvidos")}>
        <BlocoHeader icone="pi-building" titulo="Órgãos envolvidos" subtitulo="Órgão mandante e órgãos participantes do certame." />
        <div className="grid">
-        {!modoNovo
-         ? <SpecArea metadata={certameFormBlockSpecifications.mandanteBloqueado}><RotuloSeplag nome="Órgão responsável (mandante)" cols="12 6" obrigatorio><div className="prototype-certame-campo-fixo"><div className="prototype-certame-campo-fixo-valor">{valores.setor}</div><small>Bloqueado após o cadastro — RN-05.</small></div></RotuloSeplag></SpecArea>
-         : <DropdownFieldSeplag name="setor" control={control} label="Órgão responsável (mandante)" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
-        <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.filter((item) => item !== valores.setor).map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="(selecione)" display="chip" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="setor" control={control} label="Órgão responsável (mandante)" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
+        <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.filter((item) => item !== valores.setor).map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="(selecione)" display="chip" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
        </div>
       </div>
 
@@ -920,17 +1002,17 @@ export function CertameFormContent() {
             As opções de cada campo vêm do catálogo TIPOS_VINCULO (dominios.ts): Tipo de vínculo é
             filtrado pela flag concursoPublico/processoSeletivo do tipo de certame atual; Regime
             jurídico é filtrado pelos regimes cadastrados no vínculo já selecionado. */}
-        <DropdownFieldSeplag name="tipoVinculo" control={control} label="Tipo de vínculo" required cols={colsEnquadramento} options={opcoesTipoVinculo} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-        <DropdownFieldSeplag name="regimeJuridico" control={control} label="Regime jurídico" required cols={colsEnquadramento} options={opcoesRegimeJuridico} optionLabel="label" optionValue="value" placeholder={tipoVinculoSelecionado ? "Selecione" : "Selecione o tipo de vínculo primeiro"} showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar || !tipoVinculoSelecionado} getFormErrorMessage={() => null} />
-        <CampoLeiAplicavelSeplag name="leiContratoTemporario" control={control} label={dispensarParaConcurso ? "Lei do concurso" : "Lei de contrato temporário"} required={dispensarParaConcurso || valores.tipoVinculo === "CONTRATO_TEMPORARIO"} cols={colsEnquadramento} opcoes={opcoesLeisCertame} assunto={dispensarParaConcurso ? "ao concurso" : "ao contrato temporário"} substantivo={dispensarParaConcurso ? "concurso" : "contrato temporário"} onNovoCadastro={() => irCadastrarLei("leiContratoTemporario")} onVerLei={(id) => navigate(`/prototipos/sigep/documentos-legais/${id}`)} disabled={modoVisualizar} />
-        {dispensarParaProcessoSeletivo && <CampoLeiAplicavelSeplag name="leiProcessoSeletivoSimplificado" control={control} label="Lei do processo seletivo" required cols={colsEnquadramento} opcoes={opcoesLeisCertame} assunto="ao processo seletivo" substantivo="processo seletivo" onNovoCadastro={() => irCadastrarLei("leiProcessoSeletivoSimplificado")} onVerLei={(id) => navigate(`/prototipos/sigep/documentos-legais/${id}`)} disabled={modoVisualizar} />}
+        <DropdownFieldSeplag name="tipoVinculo" control={control} label="Tipo de vínculo" required cols={colsEnquadramento} options={opcoesTipoVinculo} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="regimeJuridico" control={control} label="Regime jurídico" required cols={colsEnquadramento} options={opcoesRegimeJuridico} optionLabel="label" optionValue="value" placeholder={tipoVinculoSelecionado ? "Selecione" : "Selecione o tipo de vínculo primeiro"} showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar || identificacaoTravada || !tipoVinculoSelecionado} getFormErrorMessage={() => null} />
+        <CampoLeiAplicavelSeplag name="leiContratoTemporario" control={control} label={dispensarParaConcurso ? "Lei do concurso" : "Lei de contrato temporário"} required={dispensarParaConcurso || valores.tipoVinculo === "CONTRATO_TEMPORARIO"} cols={colsEnquadramento} opcoes={opcoesLeisCertame} assunto={dispensarParaConcurso ? "ao concurso" : "ao contrato temporário"} substantivo={dispensarParaConcurso ? "concurso" : "contrato temporário"} onNovoCadastro={() => irCadastrarLei("leiContratoTemporario")} onVerLei={(id) => navigate(`/prototipos/sigep/documentos-legais/${id}`)} disabled={modoVisualizar || identificacaoTravada} />
+        {dispensarParaProcessoSeletivo && <CampoLeiAplicavelSeplag name="leiProcessoSeletivoSimplificado" control={control} label="Lei do processo seletivo" required cols={colsEnquadramento} opcoes={opcoesLeisCertame} assunto="ao processo seletivo" substantivo="processo seletivo" onNovoCadastro={() => irCadastrarLei("leiProcessoSeletivoSimplificado")} onVerLei={(id) => navigate(`/prototipos/sigep/documentos-legais/${id}`)} disabled={modoVisualizar || identificacaoTravada} />}
        </div>
       </div>
 
       <div className={blocoClasse("bloco-objetivo")}>
        <BlocoHeader icone="pi-align-left" titulo="Objetivo" subtitulo="Descrição do objetivo do certame." />
        <div className="grid">
-        <TextAreaFieldSeplag name="objetivo" control={control} label=" " cols="12" maxLength={1000} placeholder="Descreva o objetivo do certame..." disabled={modoVisualizar} getFormErrorMessage={() => null} />
+        <TextAreaFieldSeplag name="objetivo" control={control} label=" " cols="12" maxLength={1000} placeholder="Descreva o objetivo do certame..." disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
        </div>
       </div>
 
@@ -1097,7 +1179,47 @@ export function CertameFormContent() {
 
       <div id="bloco-cargos-vagas" className={blocoClasse("bloco-cargos-vagas")}>
        <BlocoHeader icone="pi-users" titulo="Cargos e vagas" subtitulo="Cadastre os cargos/funções e vagas que estarão disponíveis no edital." />
-       {!modoVisualizar && <div className="prototype-certame-subform">
+       <section className="prototype-certame-vaga-area prototype-certame-vagas-adicionadas">
+        <div className="prototype-certame-vagas-adicionadas-head">
+         <SecaoVagaHeader icone="pi-list" titulo="Vagas adicionadas" />
+         {!modoVisualizar && <BotaoAdicionarSeplag type="button" label="Adicionar vaga" onClick={() => setModalVagaAberto(true)} />}
+        </div>
+        <div className="prototype-certame-cargos-tabela">
+        <TablePaginadoSeplag
+         dataKey="id"
+         data={resultadosSemPaginacao(cargos)}
+         rows={50}
+          paginator={false}
+          emptyMessage="Nenhuma vaga adicionada."
+         lazy={false}
+         selectionMode={null}
+         columns={colunasCargos}
+         expandedRows={cargosExpandidosRows}
+         rowExpansionTemplate={(cargo) => <DistribuicaoVagasCargo quantidadeVagas={cargo.quantidadeVagas} reservas={cargo.reservasCota} quantidadeCadastroReserva={cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva : undefined} tiposCota={tiposCota} />}
+         hasEventoAcao={!modoVisualizar}
+         handleView={null}
+         handleEdit={null}
+          handleDelete={modoVisualizar ? null : (row) => removerCargo(row.id)}
+          deleteActionLabel="Excluir vaga"
+          deleteConfirmationMessage="Deseja excluir esta vaga do certame?"
+         handleOnPageChange={() => {}}
+        />
+        </div>
+       </section>
+      </div>
+
+      {!modoVisualizar && <ModalSeplag
+       visible={modalVagaAberto}
+       titulo={`Adicionar vaga — ${TIPOS_CERTAME.find((item) => item.value === valores.tipoCertame)?.label ?? ""}`}
+       fechar={cancelarVaga}
+       tamanho="900px"
+       closeOnEscape
+       customFooter={<div className="flex justify-content-end gap-2">
+        <BotaoFecharSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={cancelarVaga} />
+        <BotaoAdicionarSeplag type="button" label="Adicionar vaga" icon="pi pi-check" disabled={!podeAdicionarVaga} onClick={confirmarAdicionarVaga} />
+       </div>}
+      >
+       <div className="col-12 prototype-certame-subform">
         <div className="prototype-certame-vaga-principal">
          <section className="prototype-certame-vaga-area prototype-certame-vaga-dados">
           <SecaoVagaHeader icone="pi-briefcase" titulo="Dados da vaga" />
@@ -1110,6 +1232,7 @@ export function CertameFormContent() {
            <RotuloSeplag nome="Quadro de vagas" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado?.quadroCodigo ?? "—"}</div></RotuloSeplag>
            <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Quantidade de vagas" required min={1} cols="12 6 4" inputStyle={{ width:"100%" }} disabled={modoVisualizar} getFormErrorMessage={() => null} />
            <DropdownFieldSeplag name="polo" control={cargoForm.control} label="Polo" required cols="12 6 4" options={polosOptions} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+           {exibirCidadeVaga && <MultiSelectFieldSeplag name="cidades" control={cargoForm.control} label="Cidade" required cols="12 6 4" options={cidadesDoPoloSelecionado.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
            <DropdownFieldSeplag name="jornada" control={cargoForm.control} label="Jornada" required cols="12 6 4" options={[...JORNADAS_TRABALHO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
            {cargoJornadaRepetida && <div className="col-12"><MensagemSeplag severity="warning" message="Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Altere o vínculo, o cargo ou a jornada para continuar." cols="12" /></div>}
           </div>
@@ -1148,34 +1271,9 @@ export function CertameFormContent() {
           {resumoVagaCrPill && <BadgeSeplag label={resumoVagaCrPill} color="#147441" bg="#e2f5e8" border="transparent" size="xs" />}
           {reservasCotaAtivas.length > 0 && <BadgeSeplag label={`${reservasCotaAtivas.length} cota${reservasCotaAtivas.length === 1 ? "" : "s"}`} color="#147441" bg="#e2f5e8" border="transparent" size="xs" />}
          </div>
-         <BotaoAdicionarSeplag type="button" label="Adicionar vaga" disabled={!podeAdicionarVaga} onClick={adicionarCargo} />
         </section>
-       </div>}
-       <section className="prototype-certame-vaga-area prototype-certame-vagas-adicionadas">
-        <SecaoVagaHeader icone="pi-list" titulo="Vagas adicionadas" />
-        <div className="prototype-certame-cargos-tabela">
-        <TablePaginadoSeplag
-         dataKey="id"
-         data={resultadosSemPaginacao(cargos)}
-         rows={50}
-          paginator={false}
-          emptyMessage="Nenhuma vaga adicionada."
-         lazy={false}
-         selectionMode={null}
-         columns={colunasCargos}
-         expandedRows={cargosExpandidosRows}
-         rowExpansionTemplate={(cargo) => <DistribuicaoVagasCargo quantidadeVagas={cargo.quantidadeVagas} reservas={cargo.reservasCota} quantidadeCadastroReserva={cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva : undefined} tiposCota={tiposCota} />}
-         hasEventoAcao={!modoVisualizar}
-         handleView={null}
-         handleEdit={null}
-          handleDelete={modoVisualizar ? null : (row) => removerCargo(row.id)}
-          deleteActionLabel="Excluir vaga"
-          deleteConfirmationMessage="Deseja excluir esta vaga do certame?"
-         handleOnPageChange={() => {}}
-        />
-        </div>
-       </section>
-      </div>
+       </div>
+      </ModalSeplag>}
 
      </div></SpecArea>}
 
