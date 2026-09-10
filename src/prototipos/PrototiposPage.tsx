@@ -249,7 +249,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Carreira", icon: "pi pi-circle-on", to: "/prototipos/sigep/carreira", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Cargo", icon: "pi pi-circle-on", to: "/prototipos/sigep/cargo", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Perfil Profissional", icon: "pi pi-circle-on", to: "/prototipos/sigep/perfil-profissional", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Tabelas de Vencimentos", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Tabelas de Vencimentos", icon: "pi pi-circle-on", to: "/prototipos/sigep/tabelas-vencimentos", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -8553,6 +8553,58 @@ export function PrototiposCargoPage({
   );
 }
 
+interface TabelaVencimentoCargoRow extends CargoTesteRow {
+  quantidadePerfis:number;
+  quantidadeTabelas:number;
+}
+
+export function PrototiposTabelaVencimentosPage() {
+  const [cargoExpandidoId, setCargoExpandidoId] = useState<number | null>(null);
+  const { control, reset, watch } = useForm<{ cargo:string }>({ defaultValues:{ cargo:"" } });
+  const cargoSelecionado = watch("cargo");
+  const cargosTabela: TabelaVencimentoCargoRow[] = cargosTesteMock.map((cargo) => ({
+    ...cargo,
+    quantidadePerfis:(cargo.perfisEspecialidadesIds ?? []).length,
+    quantidadeTabelas:cargo.regrasUso,
+  }));
+  const cargosFiltrados = cargosTabela.filter((cargo) => !cargoSelecionado || String(cargo.id) === cargoSelecionado);
+  const resultados = { ...createResults(cargosFiltrados), totalPages:1, totalRecords:cargosFiltrados.length, sizePage:10, size:10 };
+  const linhasExpandidas = cargoExpandidoId !== null ? { [cargoExpandidoId]:true } : {};
+  const perfisDoCargo = (cargo:TabelaVencimentoCargoRow) => perfisEspecialidadesMock.filter((perfil) => cargo.perfisEspecialidadesIds?.includes(perfil.id));
+  const colunas:ColumnMetaSeplag<TabelaVencimentoCargoRow>[] = [
+    { field:"cargo", header:"Cargo", sortable:true },
+    { field:"quantidadeTabelas", header:"Tabelas", sortable:true },
+    {
+      header:"Ação",
+      body:(cargo) => <div className="prototype-vencimentos-actions">
+        <BotaoSeplag type="button" label="Adicionar" icon="pi pi-plus" onClick={() => setCargoExpandidoId(cargo.id)} />
+        <button type="button" className="prototype-vencimentos-expander" aria-label={`${cargoExpandidoId === cargo.id ? "Recolher" : "Expandir"} tabelas do cargo ${cargo.cargo}`} aria-expanded={cargoExpandidoId === cargo.id} onClick={() => setCargoExpandidoId((atual) => atual === cargo.id ? null : cargo.id)}>
+          <i className={`pi ${cargoExpandidoId === cargo.id ? "pi-chevron-up" : "pi-chevron-down"}`} aria-hidden="true" />
+        </button>
+      </div>,
+    },
+  ];
+  const renderPerfis = (cargo:TabelaVencimentoCargoRow) => {
+    const perfis = perfisDoCargo(cargo);
+    if (!perfis.length) return <div className="prototype-vencimentos-empty-profile">Nenhum perfil ou especialidade vinculado a este cargo.</div>;
+    return <div className="prototype-vencimentos-expanded"><strong>Perfis e especialidades do cargo</strong><table><thead><tr><th>Perfil/Especialidade</th><th>Área de formação</th><th>CBO</th><th>Situação</th></tr></thead><tbody>{perfis.map((perfil) => { const badge = situacaoBadge(perfil.situacao); return <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td><td><BadgeSeplag label={badge.label} color={badge.color} bg={badge.bg} border={badge.border} size="sm" /></td></tr>; })}</tbody></table></div>;
+  };
+  return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+    <div className="prototype-page-content prototype-page-content--white prototype-ingressos-teste-list-page">
+      <CardSeplag title="Tabela de Vencimentos" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card">
+        <div className="prototype-ingressos-teste-content">
+          <p className="prototype-ingressos-teste-support">Consulte os cargos e seus respectivos perfis profissionais e especialidades.</p>
+          <hr className="prototype-ingressos-teste-header-divider" />
+          <div className="prototype-vencimentos-filters grid">
+            <DropdownFieldSeplag name="cargo" control={control} label="Cargo" placeholder="Todos" cols="12 12 8" options={[{ label:"Todos", value:"" }, ...cargosTabela.map((cargo) => ({ label:cargo.cargo, value:String(cargo.id) }))]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+            <div className="prototype-category-clear col-12 md:col-4"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ cargo:"" })} /></div>
+          </div>
+          <div className="prototype-ingressos-teste-table-shell prototype-vencimentos-table-shell"><div className="prototype-ingressos-teste-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={10} rowsPerPage={[10]} paginator={false} lazy={false} selectionMode={null} columns={colunas} expandedRows={linhasExpandidas} rowExpansionTemplate={renderPerfis} emptyMessage="Nenhum cargo encontrado." handleOnPageChange={() => {}} /></div></div>
+        </div>
+      </CardSeplag>
+    </div>
+  </PrototypeSystemPage>;
+}
 export function PrototiposCargoFormPage({
   routePrefix = SIGEP_BASE_PATH,
 }: CargoConcursoRouteProps = {}) {
