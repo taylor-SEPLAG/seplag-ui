@@ -118,8 +118,10 @@ const resultadoVagas = (
 };
 
 export function VagasIndividualizadasContent() {
-  const { vagas, quadros, comprometimentos, ocupacoes, movimentos } =
+  const { vagas: todasVagas, quadros: todosQuadros, comprometimentos, ocupacoes, movimentos } =
     useControleVagasStore();
+  const vagas = useMemo(() => todasVagas.filter((vaga) => vaga.tipo === "EFETIVO"), [todasVagas]);
+  const quadros = useMemo(() => todosQuadros.filter((quadro) => quadro.tipoQuadro === "Efetivo"), [todosQuadros]);
   const [searchParams] = useSearchParams();
   const { control, reset } = useForm<VagasIndividualizadasFiltros>({
     defaultValues: {

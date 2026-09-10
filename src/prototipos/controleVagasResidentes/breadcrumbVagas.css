@@ -1,0 +1,2 @@
+.breadcrumb-vagas-residentes { margin: 1.5rem 1.75rem 0; padding: 0 1rem; background: #fff; border: 1px solid #d8e0e8; border-bottom: 0; border-radius: 4px 4px 0 0; }
+@media (max-width: 640px) { .breadcrumb-vagas-residentes { margin: 1rem 1.25rem 0; } }

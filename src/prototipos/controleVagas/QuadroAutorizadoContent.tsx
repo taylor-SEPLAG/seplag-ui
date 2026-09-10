@@ -143,7 +143,8 @@ const resumoOrgaos = (item: QuadroAutorizadoRow) => {
 };
 
 export function QuadroAutorizadoContent() {
-  const { quadros } = useControleVagasStore();
+  const { quadros: todosQuadros } = useControleVagasStore();
+  const quadros = useMemo(() => todosQuadros.filter((quadro) => quadro.tipoQuadro === "Efetivo"), [todosQuadros]);
   const navigate = useNavigate();
   const location = useLocation();
   const [routeSearchParams] = useSearchParams();
@@ -489,8 +490,9 @@ const resultadosQuadro = (
 });
 
 function QuadroAutorizadoLista() {
-  const { quadros, vagas, movimentos, comprometimentos } =
+  const { quadros: todosQuadros, vagas, movimentos, comprometimentos } =
     useControleVagasStore();
+  const quadros = useMemo(() => todosQuadros.filter((quadro) => quadro.tipoQuadro === "Efetivo"), [todosQuadros]);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const situacaoInicial = searchParams.get("situacao") ?? "";
@@ -2039,10 +2041,6 @@ function QuadroAutorizadoForm({
               cols="12"
               options={[
                 { label: "Servidor efetivo", value: "Servidor efetivo" },
-                {
-                  label: "Exclusivamente comissionado",
-                  value: "Exclusivamente comissionado",
-                },
               ]}
               optionLabel="label"
               optionValue="value"
