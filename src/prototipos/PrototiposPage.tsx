@@ -283,7 +283,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Vagas Efetivos", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/efetivos`, activeRoutes: [`${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`, `${CONTROLE_VAGAS_BASE_PATH}/vagas`], visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vagas Temporários", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/temporarios`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vagas Comissionados", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/comissionados`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vagas Residentes", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/residentes`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vagas Bolsistas", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/residentes`, visibleOnMenu: true, visibleOnRouter: true },
           {
             label: "Regras e Parâmetros",
             icon: "pi pi-circle-on",
@@ -11259,7 +11259,7 @@ export function PrototiposTipoVinculoTesteFormPage({
                           { label: "Vagas Efetivos", value: "VAGAS_EFETIVOS" },
                           { label: "Vagas Temporários", value: "VAGAS_TEMPORARIOS" },
                           { label: "Vagas Comissionados", value: "VAGAS_COMISSIONADOS" },
-                          { label: "Vagas Residentes", value: "VAGAS_RESIDENTES" },
+                          { label: "Vagas Bolsistas", value: "VAGAS_RESIDENTES" },
                         ]}
                         optionLabel="label"
                         optionValue="value"
