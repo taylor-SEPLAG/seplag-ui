@@ -1192,7 +1192,7 @@ function QuadroAutorizadoLista() {
         <header className="prototype-quadro-header">
           <SpecArea metadata={quadroScreenSpecification}>
             <div>
-              <h1>Quadro Autorizado</h1>
+              <h1>Quadro Servidores Efetivos</h1>
               <p>Quantitativos autorizados por cargo, vínculo e órgão.</p>
             </div>
           </SpecArea>
@@ -2281,7 +2281,7 @@ function QuadroAutorizadoDetalhe({
     <div className="prototype-quadro-page">
       <header className="prototype-quadro-header">
         <div>
-          <BotaoVoltarSeplag label="Quadro Autorizado" onClick={onBack} />
+          <BotaoVoltarSeplag label="Quadro Servidores Efetivos" onClick={onBack} />
           <div className="prototype-quadro-title-line">
             <h1>{registro.codigo}</h1>
             <span

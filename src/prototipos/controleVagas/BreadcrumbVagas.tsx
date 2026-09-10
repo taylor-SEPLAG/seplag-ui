@@ -11,10 +11,10 @@ export function BreadcrumbVagas() {
     dashboard: "Dashboard", configuracoes: "Regras e Parâmetros",
     distribuicao: "Distribuição", redistribuicao: "Redistribuição",
     movimentacoes: "Movimentações", cessoes: "Cessões", projecoes: "Projeções",
-    "quadro-autorizado": "Quadro Autorizado", vagas: "Vagas Individualizadas",
+    "quadro-autorizado": "Quadro Servidores Efetivos", vagas: "Vagas Servidores Efetivos",
   };
   const categoria = !partes.length || ["efetivos", "quadro-autorizado", "vagas"].includes(partes[0]);
-  if (categoria) items.push({ label: "Vagas Efetivos", to: "/prototipos/sigep/controle-vagas/efetivos" });
+  if (categoria) items.push({ label: "Vagas Servidores Efetivos", to: "/prototipos/sigep/controle-vagas/efetivos" });
   const tela = partes[0];
   if (telas[tela]) items.push({ label: telas[tela], to: base + "/" + tela });
   if (partes.length > 1) {

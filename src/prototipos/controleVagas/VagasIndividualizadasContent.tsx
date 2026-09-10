@@ -400,7 +400,7 @@ export function VagasIndividualizadasContent() {
         <header className="prototype-vaga-header">
           <SpecArea metadata={vagasScreenSpecification}>
             <div>
-              <h1>Vagas Individualizadas</h1>
+              <h1>Vagas Servidores Efetivos</h1>
               <p>
                 Consulte as vagas numeradas vinculadas a um Quadro Autorizado.
               </p>
@@ -459,7 +459,7 @@ export function VagasIndividualizadasContent() {
               <DropdownFieldSeplag<VagasIndividualizadasFiltros>
                 name="quadro"
                 control={control}
-                label="Quadro Autorizado"
+                label="Quadro Servidores Efetivos"
                 cols="12"
                 options={opcoesQuadro}
                 optionLabel="label"
@@ -580,7 +580,7 @@ export function VagasIndividualizadasContent() {
             <div className="prototype-vaga-initial-state" role="status">
               <i className="pi pi-list" aria-hidden="true" />
               <div>
-                <strong>Selecione um Quadro Autorizado</strong>
+                <strong>Selecione um Quadro Servidores Efetivos</strong>
                 <span>
                   As vagas individualizadas serão apresentadas após a seleção.
                 </span>
@@ -745,7 +745,7 @@ function VagasIndividualizadasLegacy() {
         <header className="prototype-vaga-header">
           <SpecArea metadata={vagasScreenSpecification}>
             <div>
-              <h1>Vagas Individualizadas</h1>
+              <h1>Vagas Servidores Efetivos</h1>
               <p>
                 Identificação, estado operacional, fundamento legal e histórico
                 de cada vaga.
