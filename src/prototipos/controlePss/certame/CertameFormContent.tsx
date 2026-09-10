@@ -1135,8 +1135,8 @@ export function CertameFormContent() {
          <NumberFieldSeplag name="anoEmpenho" control={control} label="Ano do empenho" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <TextFieldSeplag name="numeroContrato" control={control} label="Número do contrato" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <NumberFieldSeplag name="anoContrato" control={control} label="Ano do contrato" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-         <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <TextFieldSeplag name="numeroAditivo" control={control} label="Número do aditivo" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+         <NumberFieldSeplag name="anoAditivo" control={control} label="Ano do aditivo" cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <TextFieldSeplag name="codigoUo" control={control} label="Código da UO" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} disabled={modoVisualizar} getFormErrorMessage={() => null} />
          <DropdownFieldSeplag name="codigoUg" control={control} label="Código da UG" required={houveContratacaoEmpresa} cols={colsContratacaoCustos} options={opcoesUg} optionLabel="label" optionValue="value" placeholder="Buscar UG por nome ou código" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
         </>}

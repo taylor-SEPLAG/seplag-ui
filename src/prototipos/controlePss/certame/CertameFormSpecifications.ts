@@ -29,7 +29,7 @@ export const certameFormTabSpecifications: Record<string, SpecificationMetadata>
  "Contrato e Custos": spec(
   "PSS-CERT-FRM-TAB-003", "Contrato e Custos",
   "Une os antigos blocos Isenção e Recursos e Contratos em uma única aba, organizada em 2 blocos com subtítulo, nesta ordem: \"Contratação e custos\" e \"Taxa de inscrição\".",
-  "Bloco Contratação e custos (primeiro bloco/primeira linha da aba) — inclui Abrangência, Tipo de contratação (execução) e Instituição realizadora (trazidos do bloco Datas e execução, na aba Cronograma). RN-12/RN-22 (empenho, contrato, tipo de contratação e aditivos tornam-se obrigatórios quando \"Tipo de contratação (execução)\" = Empresa Contratada; o checkbox \"Houve contratação de banca/empresa organizadora?\" foi removido — o campo Tipo de contratação, agora nesta aba, é a única fonte de verdade). "
+  "Bloco Contratação e custos (primeiro bloco/primeira linha da aba) — inclui Abrangência, Tipo de contratação (execução) e Instituição realizadora (trazidos do bloco Datas e execução, na aba Cronograma). RN-12/RN-22 (empenho, contrato e tipo de contratação tornam-se obrigatórios quando \"Tipo de contratação (execução)\" = Empresa Contratada; Número/Ano do aditivo permanecem opcionais, pois nem todo contrato tem aditivo; o checkbox \"Houve contratação de banca/empresa organizadora?\" foi removido — o campo Tipo de contratação, agora nesta aba, é a única fonte de verdade). "
   + "Bloco Taxa de inscrição — RN-13 (obrigatório quando o certame prevê cobrança de taxa e isenção). "
   + "Aba exibida tanto para Concurso Público quanto para Processo Seletivo (RN-06, seção 3).",
   "Certame (blocos 4 e 5).", "Certame", "formulário com campos condicionais",
