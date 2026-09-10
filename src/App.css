@@ -1272,7 +1272,7 @@
 }
 
 .calendar-day-cell:first-child,
-.calendar-day-cell:last-child,
+.calendar-day-cell:nth-child(7),
 .calendar-day-cell.is-muted {
   background: #f8f5fb;
 }
@@ -1280,6 +1280,12 @@
 .calendar-day-cell.is-muted {
   color: #25252a;
 }
+
+/* Destaca visualmente a coluna de sábado com um tom mais claro. */
+.calendar-day-cell:nth-child(7) {
+  background: #f1eafb;
+}
+
 
 .calendar-day-cell.is-today {
   outline: 3px solid #005a92;
@@ -1399,6 +1405,7 @@
 }
 
 .calendar-event.is-holiday {
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -29,14 +29,10 @@ function CadastroOrgaoExterno() {
   const navigate=useNavigate();
   const {control}=useForm<Record<string,string>>({defaultValues:{sigla:"",cnpj:"",descricao:"",tipoOrgao:"",cep:"",uf:"MT",municipio:"",bairro:"",tipoLogradouro:"Avenida",logradouro:"",numero:"",complemento:"",telefone1:"",telefone2:"",website:"",email1:"",email2:""}});
   const common={control,getFormErrorMessage:noError};
-  return <div className="orgao-cadastro-page prototype-page-content prototype-page-content--white">
-    <CardSeplag
-      cols="12"
-      cardHeaderClassNames="orgao-cadastro-card"
-      headerNavigation={<BreadcrumbSeplag divided items={[{label:"Cadastro"},{label:"Estrutura Organizacional"},{label:"Órgãos e Entidades"},{label:"Cadastrar Órgão Externo"}]}/>}
-      title={<div className="orgao-cadastro-title"><strong>Cadastrar - Órgão Externo</strong><small>Cadastro simplificado com os campos necessários para referência no SIGEP.</small></div>}
-    >
-      <div className="orgao-external-form">
+  return <div className="prototype-carreira-register-page orgao-cadastro-page">
+    <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{label:"Cadastro"},{label:"Estrutura Organizacional"},{label:"Órgãos e Entidades"},{label:"Cadastrar"}]}/>
+    <header className="prototype-carreira-register-title"><div><h1>Novo órgão externo</h1><p>Cadastro simplificado com os campos necessários para referência no SIGEP.</p></div></header>
+      <div className="prototype-carreira-register-form orgao-external-form">
         <PanelSeplag title="Detalhes" description="Informe os dados principais do órgão externo." className="orgao-form-section">
           <div className="orgao-fields-grid cols-2">
             <TextFieldSeplag name="sigla" label="Sigla" required placeholder="Ex.: INVEST MT" {...common}/>
@@ -68,7 +64,6 @@ function CadastroOrgaoExterno() {
         </PanelSeplag>
         <div className="orgao-step-actions"><BotaoVoltarSeplag type="button" onClick={()=>navigate(-1)}/><BotaoSalvarSeplag type="button" label="Salvar cadastro" onClick={()=>{}}/></div>
       </div>
-    </CardSeplag>
   </div>;
 }
 

@@ -1,0 +1,84 @@
+.prototype-cessoes-type-intro { color: #475467; margin-bottom: .5rem; }
+.prototype-cessoes-type-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
+.prototype-cessoes-type-card { display:flex; align-items:center; gap:.85rem; width:100%; min-height:7rem; padding:1rem; border:1px solid #b7d3e8; border-radius:.45rem; background:#fff; color:#064f83; text-align:left; cursor:pointer; }
+.prototype-cessoes-type-card:hover,.prototype-cessoes-type-card:focus-visible { border-color:#0b6199; background:#f5faff; box-shadow:0 0 0 .15rem rgb(11 97 153 / 12%); outline:none; }
+.prototype-cessoes-type-card > i:first-child { display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:50%; background:#e9f3fc; font-size:1.2rem; }
+.prototype-cessoes-type-card span { display:flex; flex:1; flex-direction:column; gap:.25rem; }
+.prototype-cessoes-type-card strong { font-size:1rem; }
+.prototype-cessoes-type-card small { color:#475467; line-height:1.35; }
+.prototype-nova-cessao-content { padding:.25rem .75rem 1rem; }
+.prototype-nova-cessao-support { margin:.5rem 0 1rem; color:#475467; font-size:1rem; }
+.prototype-nova-cessao-notice,.prototype-nova-cessao-warning,.prototype-nova-cessao-review { display:flex; flex-direction:column; gap:.85rem; margin-top:1rem; }
+.prototype-nova-cessao-review section { overflow:hidden; border:1px solid #d0d5dd; border-radius:.4rem; background:#fff; }
+.prototype-nova-cessao-review header { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.65rem 1rem; border-bottom:1px solid #e4e7ec; background:#f8fafc; }
+.prototype-nova-cessao-review h4 { margin:0; color:#344054; font-size:.95rem; }
+.prototype-nova-cessao-review header button { display:inline-flex; align-items:center; gap:.35rem; border:0; background:transparent; color:#0b6199; font-weight:600; cursor:pointer; }
+.prototype-nova-cessao-review dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin:0; }
+.prototype-nova-cessao-review dl > div { min-width:0; padding:.75rem 1rem; border-right:1px solid #eaecf0; border-bottom:1px solid #eaecf0; }
+.prototype-nova-cessao-review dl > div:nth-child(3n) { border-right:0; }
+.prototype-nova-cessao-review dl > .is-wide { grid-column:1/-1; border-right:0; }
+.prototype-nova-cessao-review dt { color:#667085; font-size:.78rem; }
+.prototype-nova-cessao-review dd { margin:.25rem 0 0; color:#1d2939; font-weight:600; overflow-wrap:anywhere; white-space:pre-wrap; }
+.prototype-nova-cessao-review dd.is-success { color:#00875a; }
+.prototype-nova-cessao-review dd.is-pending { color:#b54708; }
+.prototype-nova-cessao-declaration { display:flex; align-items:flex-start; gap:.65rem; padding:.65rem .8rem; border:1px solid #b7d3e8; border-radius:.4rem; background:#f5faff; color:#344054; line-height:1.45; }
+.prototype-nova-cessao-notice { flex-direction:row; align-items:flex-start; gap:.65rem; padding:.75rem .9rem; border:1px solid #b7d3e8; border-radius:.4rem; background:#f2f8fc; color:#344054; line-height:1.45; }
+.prototype-nova-cessao-notice i { flex:0 0 auto; color:#0b6199; margin-top:.15rem; }
+.prototype-nova-cessao-tabs { margin:1rem 0; }
+.prototype-nova-cessao-tabs .p-button { justify-content:center; gap:.5rem; }
+.prototype-nova-cessao-tabs .p-button .p-button-label { flex:0 0 auto; }
+.prototype-nova-cessao-tabs .p-button .p-button-icon { flex:0 0 auto; margin:0; }
+.prototype-nova-cessao-progress-summary { margin-bottom:1rem; }
+.prototype-nova-cessao-progress-summary > div { margin-bottom:0!important; border-color:#b7d3e8!important; background:#f8fbfe!important; }
+.prototype-nova-cessao-progress-content { display:flex; flex-direction:column; gap:.65rem; padding:.65rem 0 .1rem; }
+.prototype-nova-cessao-progress-content article { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.7rem .8rem; border-top:1px solid #dbe7f0; background:#fff; }
+.prototype-nova-cessao-progress-content article > div { display:flex; min-width:0; flex-direction:column; gap:.2rem; }
+.prototype-nova-cessao-progress-content article strong { color:#344054; font-size:.88rem; }
+.prototype-nova-cessao-progress-content article span { color:#667085; font-size:.8rem; line-height:1.35; }
+.prototype-nova-cessao-progress-content article button { display:inline-flex; align-items:center; gap:.35rem; border:0; background:transparent; color:#0b6199; font-weight:600; cursor:pointer; }
+.prototype-nova-cessao-panel { min-height:15rem; padding:1.25rem; border:1px solid #d0d5dd; border-radius:.45rem; background:#fff; }
+.prototype-nova-cessao-panel h3 { margin:0 0 .25rem; color:#344054; }
+.prototype-nova-cessao-panel > p { margin:.25rem 0 1.25rem; color:#667085; }
+
+
+.prototype-nova-cessao-vinculos { display:flex; flex-direction:column; gap:1rem; margin-top:1rem; }
+.prototype-nova-cessao-person { display:flex; align-items:center; justify-content:space-between; gap:1rem; max-width:54rem; padding:.8rem 1rem; border:1px solid #d0d5dd; border-radius:.4rem; background:#f9fafb; }
+.prototype-nova-cessao-person span { display:flex; flex-direction:column; gap:.2rem; }
+.prototype-nova-cessao-person small { color:#667085; }
+.prototype-nova-cessao-person em { color:#0b6199; font-size:.82rem; font-style:normal; font-weight:600; }
+.prototype-nova-cessao-special-rule { display:flex; align-items:flex-start; gap:.65rem; max-width:54rem; padding:.75rem .9rem; border:1px solid #fedf89; border-radius:.4rem; background:#fffaeb; color:#7a2e0e; }
+.prototype-nova-cessao-special-rule > i { margin-top:.15rem; }
+.prototype-nova-cessao-special-rule span { display:flex; flex-direction:column; gap:.2rem; }
+.prototype-nova-cessao-special-rule small { line-height:1.4; }
+.prototype-nova-cessao-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; margin:1rem 0 0; border:1px solid #d0d5dd; border-radius:.4rem; overflow:hidden; }
+.prototype-nova-cessao-summary div { padding:.8rem 1rem; border-right:1px solid #eaecf0; border-bottom:1px solid #eaecf0; }
+.prototype-nova-cessao-summary dt { color:#667085; font-size:.78rem; }
+.prototype-nova-cessao-summary dd { margin:.25rem 0 0; color:#1d2939; font-weight:600; }
+.prototype-nova-cessao-warning { margin-top:1rem; border-color:#fedf89; background:#fffaeb; color:#7a2e0e; }
+.prototype-nova-cessao-docs { display:flex; flex-direction:column; gap:.75rem; }
+.prototype-nova-cessao-docs article { display:flex; align-items:center; gap:.8rem; padding:1rem; border:1px solid #d0d5dd; border-radius:.4rem; }
+.prototype-nova-cessao-docs article > i { color:#0b6199; font-size:1.2rem; }
+.prototype-nova-cessao-docs span { display:flex; flex:1; flex-direction:column; gap:.2rem; }
+.prototype-nova-cessao-docs small,.prototype-nova-cessao-docs em { color:#667085; font-size:.78rem; font-style:normal; }
+.prototype-nova-cessao-docs button { padding:.55rem .8rem; border:1px solid #0b6199; border-radius:.3rem; background:#fff; color:#0b6199; font-weight:600; cursor:pointer; }
+.prototype-nova-cessao-docs .is-linked { border-color:#86d5b5; background:#f2fbf7; }
+.prototype-nova-cessao-docs .is-linked > i { color:#00875a; }
+.prototype-nova-cessao-sigadoc-modal { margin-top:.25rem; }
+.prototype-nova-cessao-sigadoc-modal > small { margin-top:-.25rem; color:#667085; line-height:1.4; }.prototype-nova-cessao-docs .is-future { background:#f9fafb; }
+.prototype-nova-cessao-declaration { margin-top:1rem; border-color:#fedf89; background:#fffaeb; }
+.prototype-nova-cessao-footer { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1rem; }
+.prototype-nova-cessao-footer > div { display:flex; gap:.75rem; }
+.prototype-nova-cessao-placeholder { display:flex; min-height:22rem; flex-direction:column; justify-content:center; align-items:center; gap:.7rem; text-align:center; color:#475467; }
+.prototype-nova-cessao-placeholder > i { color:#0b6199; font-size:2rem; }
+.prototype-nova-cessao-placeholder h3,.prototype-nova-cessao-placeholder p { margin:0; }
+@media(max-width:900px){.prototype-cessoes-type-options,.prototype-nova-cessao-summary,.prototype-nova-cessao-review dl{grid-template-columns:1fr 1fr}.prototype-nova-cessao-tabs .tabs-seplag-equal-grid{grid-template-columns:1fr 1fr!important}}
+@media(max-width:640px){.prototype-cessoes-type-options,.prototype-nova-cessao-summary,.prototype-nova-cessao-review dl{grid-template-columns:1fr}.prototype-nova-cessao-review dl>.is-wide{grid-column:auto}.prototype-nova-cessao-footer{align-items:stretch;flex-direction:column}.prototype-nova-cessao-footer>div{flex-direction:column}.prototype-nova-cessao-footer button{width:100%}}
+.prototype-nova-cessao-success-modal { display:flex; align-items:flex-start; gap:1rem; padding:.5rem .25rem; }
+.prototype-nova-cessao-success-modal > i { display:grid; width:2.75rem; height:2.75rem; flex:0 0 2.75rem; place-items:center; border-radius:50%; background:#dcfae6; color:#00875a; font-size:1.35rem; }
+.prototype-nova-cessao-success-modal > div { display:flex; flex-direction:column; gap:.45rem; }
+.prototype-nova-cessao-success-modal strong { color:#1d2939; font-size:1rem; }
+.prototype-nova-cessao-success-modal p { margin:0; color:#475467; line-height:1.45; }
+.prototype-nova-cessao-success-modal small { color:#667085; font-weight:600; }
+
+.prototype-nova-cessao-correction-status{display:flex;margin-top:.75rem;align-items:center;gap:.65rem;padding:.7rem .9rem;border:1px solid #f0c36a;border-radius:.4rem;background:#fff9eb;color:#7a4b00}.prototype-nova-cessao-correction-status>span,.prototype-nova-cessao-correction-alert>span{display:flex;flex-direction:column;gap:.2rem}.prototype-nova-cessao-correction-status small,.prototype-nova-cessao-correction-alert small{color:inherit}.prototype-nova-cessao-correction-alert,.prototype-nova-cessao-approved{display:flex;align-items:flex-start;gap:.7rem;margin-bottom:1rem;padding:.8rem 1rem;border:1px solid #f0c36a;border-radius:.4rem;background:#fff9eb;color:#7a4b00}.prototype-nova-cessao-correction-alert.is-done{border-color:#86d5b5;background:#f2fbf7;color:#146c43}.prototype-nova-cessao-approved{border-color:#b7d3e8;background:#f2f8fc;color:#344054}.prototype-nova-cessao-correction-alert i,.prototype-nova-cessao-approved i{margin-top:.15rem}.prototype-nova-cessao-shared-fields{min-width:0;margin:0;padding:0;border:0}.prototype-nova-cessao-shared-fields:disabled{opacity:1}
+
