@@ -3722,16 +3722,19 @@
 }
 
 .prototype-cargo-teste-table .p-datatable-wrapper {
-  overflow-x: auto;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .prototype-cargo-teste-table .p-datatable-table {
-  min-width: 0;
+  min-width: 0 !important;
+  table-layout: fixed;
+  width: 100% !important;
 }
 
 .prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(1),
 .prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(1) {
-  width: 12%;
+  width: 8%;
 }
 
 .prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(2),
@@ -3740,38 +3743,28 @@
 }
 
 .prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(3),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(3),
-.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(4),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(4) {
-  width: 15%;
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(3) {
+  width: 43%;
   white-space: normal;
 }
 
-.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(5),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(5),
-.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(6),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(6),
-.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(7),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(7),
-.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(8),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(8) {
-  width: 9%;
+.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(4),
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(4) {
+  width: 13%;
   min-width: 0;
+  text-align: center;
+}
+
+.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(5),
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(5) {
+  width: 18%;
+  min-width: 0;
+  text-align: center;
   white-space: nowrap;
 }
 
-.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(9),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(9) {
-  width: 110px;
-  min-width: 110px;
-}
-
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(5),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(6),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(7),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(8),
-.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(9) {
-  text-align: center;
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(5) > * {
+  max-width: 100%;
 }
 
 .prototype-matriz-filters {
@@ -10824,7 +10817,7 @@
   background: #ffffff;
 }
 
-.prototype-shared-criterio-item span {
+.prototype-shared-criterio-item > span {
   display: block;
   margin-top: 6px;
   color: #52616b;
@@ -19910,6 +19903,131 @@
 .prototype-perfil-especialidade-table .p-datatable-thead > tr > th:nth-child(7),
 .prototype-perfil-especialidade-table .p-datatable-tbody > tr > td:nth-child(7) { width: 11%; }
 .prototype-perfil-especialidade-table .p-splitbutton { width: 88px; max-width: 100%; }
+
+/* As listagens cadastrais devem acomodar todas as colunas sem rolagem horizontal. */
+.prototype-carreira-table,
+.prototype-cargo-teste-table,
+.prototype-perfil-especialidade-table {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.prototype-comportamento-inline-field {
+  min-width: 0;
+  margin: 0;
+}
+
+.prototype-comportamento-inline-field > [class*="col-"] {
+  padding: 0;
+}
+
+.prototype-comportamento-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.prototype-comportamento-title-row.has-inline-field {
+  grid-template-columns: minmax(190px, 0.8fr) minmax(220px, 1.2fr);
+  align-items: center;
+}
+
+.prototype-comportamento-title-row > [class*="col-"] {
+  width: 100%;
+  max-width: none !important;
+  padding: 0;
+}
+
+.prototype-comportamento-title-row.has-inline-field .prototype-comportamento-question {
+  min-width: 0;
+}
+
+.prototype-comportamento-question > [class*="col-"] {
+  width: 100%;
+  max-width: none !important;
+  padding: 0;
+}
+
+.prototype-comportamento-question > span {
+  display: block;
+  margin-top: 6px;
+  color: #52616b;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 700px) {
+  .prototype-comportamento-title-row.has-inline-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.prototype-carreira-table .p-datatable-wrapper,
+.prototype-cargo-teste-table .p-datatable-wrapper,
+.prototype-perfil-especialidade-table .p-datatable-wrapper {
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+.prototype-carreira-table .p-datatable-table,
+.prototype-cargo-teste-table .p-datatable-table,
+.prototype-perfil-especialidade-table .p-datatable-table {
+  min-width: 0 !important;
+  table-layout: fixed;
+  width: 100% !important;
+}
+
+.prototype-carreira-table .p-datatable-thead > tr > th,
+.prototype-carreira-table .p-datatable-tbody > tr > td,
+.prototype-cargo-teste-table .p-datatable-thead > tr > th,
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td,
+.prototype-perfil-especialidade-table .p-datatable-thead > tr > th,
+.prototype-perfil-especialidade-table .p-datatable-tbody > tr > td {
+  box-sizing: border-box;
+  min-width: 0 !important;
+  overflow-wrap: anywhere;
+  padding-inline: 10px;
+  white-space: normal;
+}
+
+.prototype-carreira-table .p-datatable-thead > tr > th:nth-child(1),
+.prototype-carreira-table .p-datatable-tbody > tr > td:nth-child(1) { width: 7%; }
+.prototype-carreira-table .p-datatable-thead > tr > th:nth-child(2),
+.prototype-carreira-table .p-datatable-tbody > tr > td:nth-child(2) { width: 14%; }
+.prototype-carreira-table .p-datatable-thead > tr > th:nth-child(3),
+.prototype-carreira-table .p-datatable-tbody > tr > td:nth-child(3) { width: 29%; }
+.prototype-carreira-table .p-datatable-thead > tr > th:nth-child(4),
+.prototype-carreira-table .p-datatable-tbody > tr > td:nth-child(4) { width: 18%; }
+.prototype-carreira-table .p-datatable-thead > tr > th:nth-child(5),
+.prototype-carreira-table .p-datatable-tbody > tr > td:nth-child(5) { width: 13%; }
+.prototype-carreira-table .p-datatable-thead > tr > th:nth-child(6),
+.prototype-carreira-table .p-datatable-tbody > tr > td:nth-child(6) { width: 19%; }
+
+.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(1),
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(1) { width: 8% !important; }
+.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(2),
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(2) { width: 18% !important; }
+.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(3),
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(3) { width: 43% !important; }
+.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(4),
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(4) { width: 13% !important; text-align: center; }
+.prototype-cargo-teste-table .p-datatable-thead > tr > th:nth-child(5),
+.prototype-cargo-teste-table .p-datatable-tbody > tr > td:nth-child(5) { width: 18% !important; text-align: center; white-space: nowrap; }
+
+.prototype-perfil-especialidade-table .p-datatable-thead > tr > th:nth-child(1),
+.prototype-perfil-especialidade-table .p-datatable-tbody > tr > td:nth-child(1) { width: 7%; }
+.prototype-perfil-especialidade-table .p-datatable-thead > tr > th:nth-child(2),
+.prototype-perfil-especialidade-table .p-datatable-tbody > tr > td:nth-child(2) { width: 27%; }
+.prototype-perfil-especialidade-table .p-datatable-thead > tr > th:nth-child(3),
+.prototype-perfil-especialidade-table .p-datatable-tbody > tr > td:nth-child(3) { width: 22%; }
+.prototype-perfil-especialidade-table .p-datatable-thead > tr > th:nth-child(4),
+.prototype-perfil-especialidade-table .p-datatable-tbody > tr > td:nth-child(4) { width: 14%; }
+.prototype-perfil-especialidade-table .p-datatable-thead > tr > th:nth-child(5),
+.prototype-perfil-especialidade-table .p-datatable-tbody > tr > td:nth-child(5) { width: 12%; }
+.prototype-perfil-especialidade-table .p-datatable-thead > tr > th:nth-child(6),
+.prototype-perfil-especialidade-table .p-datatable-tbody > tr > td:nth-child(6) { width: 18%; }
 
 .prototype-ingressos-details-tags {
   display: flex;

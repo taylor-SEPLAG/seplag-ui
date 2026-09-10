@@ -1,3 +1,16 @@
+import { BreadcrumbVagas as BreadcrumbVagasResidentes } from "./controleVagasResidentes/BreadcrumbVagas";
+import { BreadcrumbVagas as BreadcrumbVagasComissionados } from "./controleVagasComissionados/BreadcrumbVagas";
+import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTemporarios/BreadcrumbVagas";
+import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
+import { VagasTemporariosContent } from "./controleVagasTemporarios/VagasTemporariosContent";
+import { QuadroAutorizadoContent as QuadroTemporariosContent } from "./controleVagasTemporarios/QuadroAutorizadoContent";
+import { VagasIndividualizadasContent as IndividualizadasTemporariosContent } from "./controleVagasTemporarios/VagasIndividualizadasContent";
+import { VagasComissionadosContent } from "./controleVagasComissionados/VagasComissionadosContent";
+import { QuadroAutorizadoContent as QuadroComissionadosContent } from "./controleVagasComissionados/QuadroAutorizadoContent";
+import { VagasIndividualizadasContent as IndividualizadasComissionadosContent } from "./controleVagasComissionados/VagasIndividualizadasContent";
+import { VagasResidentesContent } from "./controleVagasResidentes/VagasResidentesContent";
+import { QuadroAutorizadoContent as QuadroResidentesContent } from "./controleVagasResidentes/QuadroAutorizadoContent";
+import { VagasIndividualizadasContent as IndividualizadasResidentesContent } from "./controleVagasResidentes/VagasIndividualizadasContent";
 import {
   Link,
   useLocation,
@@ -106,6 +119,7 @@ import { QuadroAutorizadoContent } from "./controleVagas/QuadroAutorizadoContent
 import { DistribuicaoSaldoContent } from "./controleVagas/DistribuicaoSaldoContent";
 import { DashboardGerencialContent } from "./controleVagas/DashboardGerencialContent";
 import { VagasIndividualizadasContent } from "./controleVagas/VagasIndividualizadasContent";
+import { VagasEfetivosContent } from "./controleVagas/VagasEfetivosContent";
 import { MovimentacoesContent } from "./controleVagas/MovimentacoesContent";
 import { ProjecoesVagasContent } from "./controleVagas/ProjecoesVagasContent";
 import { ControleVagasRegrasContent as BacklogRegrasContent } from "./controleVagasBacklog/ControleVagasRegrasContent";
@@ -266,6 +280,10 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
             visibleOnMenu: true,
             visibleOnRouter: true,
           },
+          { label: "Vagas Efetivos", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/efetivos`, activeRoutes: [`${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`, `${CONTROLE_VAGAS_BASE_PATH}/vagas`], visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vagas Temporários", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/temporarios`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vagas Comissionados", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/comissionados`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vagas Residentes", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/residentes`, visibleOnMenu: true, visibleOnRouter: true },
           {
             label: "Regras e Parâmetros",
             icon: "pi pi-circle-on",
@@ -276,7 +294,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
             label: "Quadro Autorizado",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`,
-            visibleOnMenu: true,
+            visibleOnMenu: false,
             visibleOnRouter: true,
           },          {
             label: "Distribuição",
@@ -288,7 +306,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
             label: "Vagas Individualizadas",
             icon: "pi pi-circle-on",
             to: `${CONTROLE_VAGAS_BASE_PATH}/vagas`,
-            visibleOnMenu: true,
+            visibleOnMenu: false,
             visibleOnRouter: true,          },          {
             label: "Movimentações",
             icon: "pi pi-circle-on",
@@ -1027,7 +1045,8 @@ interface CargoForm {
   naturezaVinculo?: string;
   permiteAcumuloCargo?: "S" | "N";
   cargosAcumulaveis?: number[];
-  permiteMovimentacao?: "S" | "N";
+  permiteCessao?: "S" | "N";
+  permiteRemocao?: "S" | "N";
   cargoChefia?: "S" | "N";
   permiteSubstituicao?: "S" | "N";
   exibirPortal?: "S" | "N";
@@ -1052,8 +1071,12 @@ interface TipoVinculoForm {
   exigeCargo?: "S" | "N";
   exigeVaga?: "S" | "N";
   permiteControleVagas?: "S" | "N";
+  tipoControleVagas?: string;
   permiteAcumuloVinculo?: "S" | "N";
   vinculosAcumulaveis?: number[];
+  exigeCarreira?: "S" | "N";
+  permiteCessao?: "S" | "N";
+  permiteRemocao?: "S" | "N";
   concursoPublico?: "S" | "N";
   processoSeletivo?: "S" | "N";
   permiteFolha?: "S" | "N";
@@ -1219,6 +1242,7 @@ interface CarreiraFiltroForm {
 }
 
 interface CarreiraCadastroForm {
+  codigoInterno: number;
   sigla: string;
   nome: string;
   observacao: string;
@@ -1273,7 +1297,8 @@ interface CargoTesteRow extends CargoRow {
   documentosIds?: string[];
   perfisEspecialidadesIds?: number[];
   cargosAcumulaveis?: number[];
-  permiteMovimentacao?: "S" | "N";
+  permiteCessao?: "S" | "N";
+  permiteRemocao?: "S" | "N";
 }
 
 interface TipoVinculoTesteRow {
@@ -1285,6 +1310,7 @@ interface TipoVinculoTesteRow {
   instituicao: string;
   instituicoesVinculadas: number;
   comportamentos: string[];
+  tipoControleVagas?: string;
   vinculosAcumulaveis?: number[];
   regimesJuridicos: string[];
   vigencia: string;
@@ -7154,9 +7180,50 @@ export function PrototiposControleVagasRegrasPage() {
       ambienteSistema="Protótipo"
       menuItems={menuGestaoPessoas}
     >
+      <BreadcrumbVagasEfetivos />
       <ControleVagasRegrasContent />
     </PrototypeSystemPage>
   );
+}
+export function PrototiposVagasTemporariosPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasTemporarios /><VagasTemporariosContent /></PrototypeSystemPage>;
+}
+export function PrototiposVagasTemporariosQuadroPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasTemporarios /><QuadroTemporariosContent /></PrototypeSystemPage>;
+}
+export function PrototiposVagasTemporariosIndividualizadasPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasTemporarios /><IndividualizadasTemporariosContent /></PrototypeSystemPage>;
+}
+export function PrototiposVagasComissionadosPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasComissionados /><VagasComissionadosContent /></PrototypeSystemPage>;
+}
+export function PrototiposVagasComissionadosQuadroPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasComissionados /><QuadroComissionadosContent /></PrototypeSystemPage>;
+}
+export function PrototiposVagasComissionadosIndividualizadasPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasComissionados /><IndividualizadasComissionadosContent /></PrototypeSystemPage>;
+}
+export function PrototiposVagasResidentesPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasResidentes /><VagasResidentesContent /></PrototypeSystemPage>;
+}
+export function PrototiposVagasResidentesQuadroPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasResidentes /><QuadroResidentesContent /></PrototypeSystemPage>;
+}
+export function PrototiposVagasResidentesIndividualizadasPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasResidentes /><IndividualizadasResidentesContent /></PrototypeSystemPage>;
+}
+export function PrototiposControleVagasEfetivosPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasEfetivos /><VagasEfetivosContent /></PrototypeSystemPage>;
 }
 export function PrototiposControleVagasQuadroAutorizadoPage() {
   return (
@@ -7165,6 +7232,7 @@ export function PrototiposControleVagasQuadroAutorizadoPage() {
       ambienteSistema="Protótipo"
       menuItems={menuGestaoPessoas}
     >
+      <BreadcrumbVagasEfetivos />
       <QuadroAutorizadoContent />
     </PrototypeSystemPage>
   );
@@ -7176,6 +7244,7 @@ export function PrototiposControleVagasDistribuicaoSaldoPage() {
       ambienteSistema="Protótipo"
       menuItems={menuGestaoPessoas}
     >
+      <BreadcrumbVagasEfetivos />
       <DistribuicaoSaldoContent />
     </PrototypeSystemPage>
   );
@@ -7183,6 +7252,7 @@ export function PrototiposControleVagasDistribuicaoSaldoPage() {
 export function PrototiposControleVagasDashboardPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasEfetivos />
       <DashboardGerencialContent />
     </PrototypeSystemPage>
   );
@@ -7190,6 +7260,7 @@ export function PrototiposControleVagasDashboardPage() {
 export function PrototiposControleVagasProjecoesPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasEfetivos />
       <ProjecoesVagasContent />
     </PrototypeSystemPage>
   );
@@ -7197,6 +7268,7 @@ export function PrototiposControleVagasProjecoesPage() {
 export function PrototiposControleVagasCessoesPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasEfetivos />
       <MovimentacoesContent />
     </PrototypeSystemPage>
   );
@@ -7204,6 +7276,7 @@ export function PrototiposControleVagasCessoesPage() {
 export function PrototiposControleVagasVagasPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasEfetivos />
       <VagasIndividualizadasContent />
     </PrototypeSystemPage>
   );
@@ -7394,6 +7467,7 @@ export function PrototiposCarreiraPage() {
     setModalCarreira(null);
   };
   const carreiraColumns: ColumnMetaSeplag<CarreiraRow>[] = [
+    { field: "id", header: "Código" },
     { field: "sigla", header: "Sigla" },
     { field: "nome", header: "Nome" },
     {
@@ -7491,7 +7565,7 @@ export function PrototiposCarreiraPage() {
             </div>
           </div>
 
-          <div className="prototype-category-table">
+          <div className="prototype-category-table prototype-carreira-table">
             <TablePaginadoSeplag
               dataKey="id"
               data={carreiraResults}
@@ -7739,6 +7813,7 @@ export function PrototiposPerfilEspecialidadePage() {
   const paginados = filtrados.slice(pagina * registrosPorPagina, (pagina + 1) * registrosPorPagina);
   const resultados = { ...createResults(paginados), pageActual: pagina, totalPages: Math.max(1, Math.ceil(filtrados.length / registrosPorPagina)), totalRecords: filtrados.length, sizePage: registrosPorPagina, size: registrosPorPagina };
   const colunas: ColumnMetaSeplag<PerfilEspecialidadeRow>[] = [
+    { field: "id", header: "Código" },
     { field: "nome", header: "Perfil Profissional" },
     { field: "areaFormacao", header: "Área de formação" },
     { field: "cbo", header: "CBO" },
@@ -7762,6 +7837,7 @@ export function PrototiposPerfilEspecialidadePage() {
 }
 
 interface PerfilEspecialidadeForm {
+  codigoInterno: number;
   nome: string;
   descricao: string;
   observacao: string;
@@ -7806,12 +7882,12 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const codigoGerado = perfilEmEdicao?.codigo ?? `PER-${String(proximoId).padStart(4, "0")}`;
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
   const [erroComplementar, setErroComplementar] = useState("");
-  const { control, handleSubmit, reset, setValue, watch } = useForm<PerfilEspecialidadeForm>({ defaultValues: { nome: "", descricao: "", observacao: "", nivelFormacao: "", formacao: "", cbo: "", exigeRegistro: "N", conselho: "", dataInicio: "", dataEncerramento: "", motivoEncerramento: "" } });
+  const { control, handleSubmit, reset, setValue, watch } = useForm<PerfilEspecialidadeForm>({ defaultValues: { codigoInterno: perfilEmEdicao?.id ?? proximoId, nome: "", descricao: "", observacao: "", nivelFormacao: "", formacao: "", cbo: "", exigeRegistro: "N", conselho: "", dataInicio: "", dataEncerramento: "", motivoEncerramento: "" } });
 
   useEffect(() => {
     if (!perfilEmEdicao) return;
     const nivelFormacao = perfilEmEdicao.nivelFormacao ?? (perfilEmEdicao.areaFormacao ? "superior" : "");
-    reset({ nome: perfilEmEdicao.nome, descricao: perfilEmEdicao.descricao ?? "", observacao: perfilEmEdicao.observacao ?? "", nivelFormacao, formacao: nivelFormacao === "superior" ? perfilEmEdicao.areaFormacao.split(", ")[0] ?? "" : "", cbo: perfilEmEdicao.cbo, exigeRegistro: perfilEmEdicao.exigeRegistro ?? "N", conselho: perfilEmEdicao.conselho ?? "", dataInicio: perfilEmEdicao.dataInicio ?? "01/01/2026", dataEncerramento: perfilEmEdicao.dataEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "31/12/2025" : ""), motivoEncerramento: perfilEmEdicao.motivoEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "Perfil encerrado administrativamente." : "") });
+    reset({ codigoInterno: perfilEmEdicao.id, nome: perfilEmEdicao.nome, descricao: perfilEmEdicao.descricao ?? "", observacao: perfilEmEdicao.observacao ?? "", nivelFormacao, formacao: nivelFormacao === "superior" ? perfilEmEdicao.areaFormacao.split(", ")[0] ?? "" : "", cbo: perfilEmEdicao.cbo, exigeRegistro: perfilEmEdicao.exigeRegistro ?? "N", conselho: perfilEmEdicao.conselho ?? "", dataInicio: perfilEmEdicao.dataInicio ?? "01/01/2026", dataEncerramento: perfilEmEdicao.dataEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "31/12/2025" : ""), motivoEncerramento: perfilEmEdicao.motivoEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "Perfil encerrado administrativamente." : "") });
     setDocumentosSelecionados(perfilEmEdicao.documentosIds ?? []);
   }, [perfilEmEdicao, reset]);
 
@@ -7858,7 +7934,7 @@ export function PrototiposPerfilEspecialidadeFormPage() {
         <fieldset className="prototype-visualizacao-fieldset" disabled={isVisualizacao}>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-file" /></span><div><h2>Base legal</h2><p>Associe os documentos que fundamentam a criação do perfil profissional.</p></div></header><div className="prototype-carreira-register-body"><DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegais} value={documentosSelecionados} onChange={(ids) => { setDocumentosSelecionados(ids); setErroComplementar(""); }} onNovoCadastro={() => navigate(novoDocumentoUrl)} expandirAoAbrir /></div></section>
         <div className="prototype-perfil-paired-sections">
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="codigoInterno" control={control} label="Código" cols="12 12 3" disabled getFormErrorMessage={() => null} /><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12 12 9" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
         <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={status} entidade="o perfil profissional" getFormErrorMessage={() => null} permitirEncerramento={false} />
         </div>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={perfilNivelFormacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{exibeFormacao ? <DropdownFieldSeplag name="formacao" control={control} label="Área de Formação" cols="12 12 4" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma área de formação" getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={exibeFormacao ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
@@ -8010,6 +8086,7 @@ export function PrototiposCarreiraFormPage() {
   const isEdicao = Boolean(id);
   const isVisualizacao = location.pathname.endsWith("/visualizar");
   const documentosLegais = useDocumentosLegaisAssociaveis();
+  const proximaCarreiraId = Math.max(0, ...carreirasMock.map((item) => item.id)) + 1;
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
   const [orgaosDisponiveis, setOrgaosDisponiveis] =
     useState<CarreiraOrgaoCadastro[]>(carreiraOrgaosCadastro);
@@ -8025,6 +8102,7 @@ export function PrototiposCarreiraFormPage() {
     formState: { errors },
   } = useForm<CarreiraCadastroForm>({
     defaultValues: {
+      codigoInterno: carreiraEmEdicao?.id ?? proximaCarreiraId,
       sigla: "",
       nome: "",
       observacao: "",
@@ -8037,6 +8115,7 @@ export function PrototiposCarreiraFormPage() {
     if (!carreiraEmEdicao) return;
 
     reset({
+      codigoInterno: carreiraEmEdicao.id,
       sigla: carreiraEmEdicao.sigla,
       nome: carreiraEmEdicao.nome,
       observacao: carreiraEmEdicao.observacao ?? "",
@@ -8230,6 +8309,14 @@ export function PrototiposCarreiraFormPage() {
             </header>
             <div className="grid prototype-carreira-register-fields">
               <TextFieldSeplag
+                name="codigoInterno"
+                control={control}
+                label="Código"
+                cols="12 12 3"
+                disabled
+                getFormErrorMessage={getCarreiraErrorMessage}
+              />
+              <TextFieldSeplag
                 name="sigla"
                 control={control}
                 label="Sigla"
@@ -8242,7 +8329,7 @@ export function PrototiposCarreiraFormPage() {
                 name="nome"
                 control={control}
                 label="Nome"
-                cols="12 12 9"
+                cols="12 12 6"
                 required
                 maxLength={150}
                 getFormErrorMessage={getCarreiraErrorMessage}
@@ -8496,6 +8583,7 @@ export function PrototiposCargoPage({
     size: 10,
   };
   const cargoColumns: ColumnMetaSeplag<CargoTesteRow>[] = [
+    { field: "id", header: "Código" },
     { field: "codigo", header: "Sigla" },
     { field: "cargo", header: "Cargo" },
     {
@@ -8555,7 +8643,7 @@ export function PrototiposCargoPage({
             </div>
           </div>
 
-          <div className="prototype-cargo-table">
+          <div className="prototype-cargo-table prototype-cargo-teste-table">
             <TablePaginadoSeplag
               dataKey="id"
               data={cargoResults}
@@ -8626,7 +8714,8 @@ export function PrototiposCargoFormPage({
       naturezaVinculo: "",
       permiteAcumuloCargo: "N",
       cargosAcumulaveis: [],
-      permiteMovimentacao: "N",
+      permiteCessao: "N",
+      permiteRemocao: "N",
       cargoChefia: "N",
       permiteSubstituicao: "N",
       exibirPortal: "N",
@@ -8657,7 +8746,8 @@ export function PrototiposCargoFormPage({
       perfisEspecialidades: cargoEmEdicao.perfisEspecialidadesIds ?? [],
       permiteAcumuloCargo: cargoEmEdicao.cargosAcumulaveis?.length ? "S" : "N",
       cargosAcumulaveis: cargoEmEdicao.cargosAcumulaveis ?? [],
-      permiteMovimentacao: cargoEmEdicao.permiteMovimentacao ?? "N",
+      permiteCessao: cargoEmEdicao.permiteCessao ?? "N",
+      permiteRemocao: cargoEmEdicao.permiteRemocao ?? "N",
       cargoChefia: "N",
       permiteSubstituicao: "N",
       exibirPortal: "N",
@@ -8696,7 +8786,7 @@ export function PrototiposCargoFormPage({
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
       vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO",
-      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, permiteMovimentacao: values.permiteMovimentacao ?? "N",
+      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, permiteCessao: values.permiteCessao ?? "N", permiteRemocao: values.permiteRemocao ?? "N",
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     cargosTesteMock.forEach((cargo) => {
@@ -8877,8 +8967,12 @@ export function PrototiposCargoFormPage({
                 <span>Permite definir os cargos que podem ser acumulados com este cargo.</span>
               </div>
               <div className="prototype-shared-criterio-item">
-                <CheckboxFieldSeplag<CargoForm> name="permiteMovimentacao" control={control} checkboxLabel="Permite movimentação por cessão/remoção?" cols="12" />
-                <span>Indica se o cargo admite movimentação funcional por cessão ou remoção.</span>
+                <CheckboxFieldSeplag<CargoForm> name="permiteCessao" control={control} checkboxLabel="Permite Cessão?" cols="12" />
+                <span>Indica se o cargo admite movimentação funcional por cessão.</span>
+              </div>
+              <div className="prototype-shared-criterio-item">
+                <CheckboxFieldSeplag<CargoForm> name="permiteRemocao" control={control} checkboxLabel="Permite Remoção?" cols="12" />
+                <span>Indica se o cargo admite movimentação funcional por remoção.</span>
               </div>
             </div>
             {permiteAcumuloCargo ? (
@@ -10912,9 +11006,13 @@ export function PrototiposTipoVinculoTesteFormPage({
       geraVinculoFuncional: "S",
       exigeCargo: "S",
       exigeVaga: "N",
-      permiteControleVagas: "S",
+      permiteControleVagas: tipoEmEdicao?.comportamentos.includes("Permite controle de vagas") ? "S" : "N",
+      tipoControleVagas: tipoEmEdicao?.tipoControleVagas ?? "",
       permiteAcumuloVinculo: tipoEmEdicao?.comportamentos.includes("Permite acúmulo de vínculo") ? "S" : "N",
       vinculosAcumulaveis: tipoEmEdicao?.vinculosAcumulaveis ?? [],
+      exigeCarreira: tipoEmEdicao?.comportamentos.includes("Exige Carreira") ? "S" : "N",
+      permiteCessao: tipoEmEdicao?.comportamentos.includes("Permite Cessão") ? "S" : "N",
+      permiteRemocao: tipoEmEdicao?.comportamentos.includes("Permite Remoção") ? "S" : "N",
       concursoPublico: tipoEmEdicao?.comportamentos.includes("Concurso público") ? "S" : "N",
       processoSeletivo: tipoEmEdicao?.comportamentos.includes("Processo seletivo") ? "S" : "N",
       permiteFolha: "S",
@@ -10947,6 +11045,16 @@ export function PrototiposTipoVinculoTesteFormPage({
       descricao: "Permite definir os tipos de vínculo que podem ser acumulados com este vínculo.",
     },
     {
+      name: "permiteCessao",
+      titulo: "Permite Cessão?",
+      descricao: "Indica se o tipo de vínculo admite movimentação funcional por cessão.",
+    },
+    {
+      name: "permiteRemocao",
+      titulo: "Permite Remoção?",
+      descricao: "Indica se o tipo de vínculo admite movimentação funcional por remoção.",
+    },
+    {
       name: "concursoPublico",
       titulo: "Concurso público?",
       descricao: "Indica que o tipo de vínculo se aplica a concurso público.",
@@ -10956,9 +11064,15 @@ export function PrototiposTipoVinculoTesteFormPage({
       titulo: "Processo seletivo?",
       descricao: "Indica que o tipo de vínculo se aplica a processo seletivo.",
     },
+    {
+      name: "exigeCarreira",
+      titulo: "Exige Carreira?",
+      descricao: "Indica se este tipo de vínculo exige associação com uma carreira.",
+    },
   ];
   const inicioVigencia = watch("dataAtivacao") ?? "";
   const dataEncerramento = watch("dataEncerramento") ?? "";
+  const permiteControleVagas = watch("permiteControleVagas") === "S";
   const permiteAcumuloVinculo = watch("permiteAcumuloVinculo") === "S";
   const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
@@ -10990,6 +11104,7 @@ export function PrototiposTipoVinculoTesteFormPage({
       instituicao: tipoEmEdicao?.instituicao ?? "govmt",
       instituicoesVinculadas: tipoEmEdicao?.instituicoesVinculadas ?? 1,
       comportamentos: comportamentosSelecionados,
+      tipoControleVagas: values.permiteControleVagas === "S" ? values.tipoControleVagas : "",
       vinculosAcumulaveis,
       regimesJuridicos: values.regimesJuridicos ?? [],
       vigencia: `${values.dataAtivacao ?? ""} - ${values.dataEncerramento ?? ""}`.trim(),
@@ -11078,8 +11193,33 @@ export function PrototiposTipoVinculoTesteFormPage({
             <div className="prototype-shared-criterios-list prototype-tipo-vinculo-comportamentos">
               {comportamentoRows.map((comportamento) => (
                 <div className="prototype-shared-criterio-item" key={comportamento.name}>
-                  <CheckboxFieldSeplag<TipoVinculoForm> name={comportamento.name} control={control} checkboxLabel={comportamento.titulo} cols="12" />
-                  <span>{comportamento.descricao}</span>
+                  <div className={`prototype-comportamento-title-row${comportamento.name === "permiteControleVagas" && permiteControleVagas ? " has-inline-field" : ""}`}>
+                    <div className="prototype-comportamento-question">
+                      <CheckboxFieldSeplag<TipoVinculoForm> name={comportamento.name} control={control} checkboxLabel={comportamento.titulo} cols="12" />
+                      <span>{comportamento.descricao}</span>
+                    </div>
+                    {comportamento.name === "permiteControleVagas" && permiteControleVagas ? (
+                      <div className="grid prototype-comportamento-inline-field">
+                      <DropdownFieldSeplag
+                        name="tipoControleVagas"
+                        control={control}
+                        label="Tipo de vaga"
+                        placeholder="Selecione o tipo de vaga"
+                        cols="12"
+                        required
+                        options={[
+                          { label: "Vagas Efetivos", value: "VAGAS_EFETIVOS" },
+                          { label: "Vagas Temporários", value: "VAGAS_TEMPORARIOS" },
+                          { label: "Vagas Comissionados", value: "VAGAS_COMISSIONADOS" },
+                          { label: "Vagas Residentes", value: "VAGAS_RESIDENTES" },
+                        ]}
+                        optionLabel="label"
+                        optionValue="value"
+                        getFormErrorMessage={() => null}
+                      />
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               ))}
             </div>

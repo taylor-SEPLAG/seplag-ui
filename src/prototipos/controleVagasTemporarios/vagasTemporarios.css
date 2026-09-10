@@ -1,0 +1,13 @@
+.prototype-temporarios-efetivos-page { min-height: 100%; padding: 1.5rem 1.75rem 3rem; background: #f5f7fa; color: #17233c; }
+.prototype-temporarios-efetivos-page header > span { color: #096bb1; font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.prototype-temporarios-efetivos-page h1 { margin: .2rem 0 .5rem; font-size: 1.7rem; }
+.prototype-temporarios-efetivos-page p { color: #526178; line-height: 1.6; }
+.prototype-temporarios-efetivos-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; max-width: 1000px; margin-top: 1.75rem; }
+.prototype-temporarios-efetivos-options > a { display: flex; flex-direction: column; align-items: flex-start; padding: 1.75rem; border: 1px solid #dce4ed; border-radius: 12px; background: #fff; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+.prototype-temporarios-efetivos-options > a:hover { border-color: #096bb1; box-shadow: 0 4px 16px #17233c12; }
+.prototype-temporarios-efetivos-options > a:focus-visible { outline: 3px solid #096bb1; outline-offset: 4px; }
+.prototype-temporarios-efetivos-options > a > i { padding: .85rem; border-radius: 10px; background: #eaf3fb; color: #096bb1; font-size: 1.5rem; }
+.prototype-temporarios-efetivos-options h2 { margin: 1.25rem 0 .25rem; font-size: 1.2rem; }
+.prototype-temporarios-efetivos-options p { margin: .25rem 0 1.5rem; }
+.prototype-temporarios-efetivos-options a > span { margin-top: auto; color: #096bb1; font-weight: 600; display: flex; align-items: center; gap: .75rem; }
+@media (max-width: 640px) { .prototype-temporarios-efetivos-page { padding: 1.25rem; } .prototype-temporarios-efetivos-options { grid-template-columns: 1fr; } }

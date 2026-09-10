@@ -301,10 +301,10 @@ export function VagasIndividualizadasContent() {
       {
         header: "Nome da vaga",
         body: (item) => (
-          <div className="prototype-vaga-primary-cell">
+          <div className="prototype-comissionados-vaga-primary-cell">
             <button
               type="button"
-              className="prototype-vaga-link"
+              className="prototype-comissionados-vaga-link"
               onClick={() => setVagaSelecionada(item)}
             >
               {item.identificadorExibicao}
@@ -315,7 +315,7 @@ export function VagasIndividualizadasContent() {
       {
         header: "Cargo/Função",
         body: (item) => (
-          <div className="prototype-vaga-primary-cell">
+          <div className="prototype-comissionados-vaga-primary-cell">
             <strong>{item.cargo}</strong>
             <small>{item.carreira}</small>
           </div>
@@ -330,14 +330,14 @@ export function VagasIndividualizadasContent() {
               registro.vagaId === item.id && registro.situacao === "ATIVA",
           );
           return ocupacaoAtual ? (
-            <div className="prototype-vaga-primary-cell">
+            <div className="prototype-comissionados-vaga-primary-cell">
               <strong>{ocupacaoAtual.pessoaNome}</strong>
               <small>
                 {ocupacaoAtual.matricula} · {ocupacaoAtual.vinculoId}
               </small>
             </div>
           ) : (
-            <span className="prototype-vaga-muted">Sem ocupante atual</span>
+            <span className="prototype-comissionados-vaga-muted">Sem ocupante atual</span>
           );
         },
       },
@@ -353,17 +353,17 @@ export function VagasIndividualizadasContent() {
 
           return compromisso ? (
             <span
-              className={`prototype-vaga-commit ${compromisso.natureza.toLowerCase()}`}
+              className={`prototype-comissionados-vaga-commit ${compromisso.natureza.toLowerCase()}`}
             >
               <i className="pi pi-flag" />
               {faseAtual?.nome ?? "Aguardando análise"}
             </span>
           ) : ocupacaoAtual ? (
-            <span className="prototype-vaga-state ocupada">
+            <span className="prototype-comissionados-vaga-state ocupada">
               <i className="pi pi-user" /> Em exercício
             </span>
           ) : (
-            <span className="prototype-vaga-muted">Sem ingresso ativo</span>
+            <span className="prototype-comissionados-vaga-muted">Sem ingresso ativo</span>
           );
         },
       },
@@ -371,7 +371,7 @@ export function VagasIndividualizadasContent() {
         header: "Situação legal",
         body: (item) => (
           <span
-            className={`prototype-vaga-legal ${legalClass[item.situacaoLegal]}`}
+            className={`prototype-comissionados-vaga-legal ${legalClass[item.situacaoLegal]}`}
           >
             {legalLabel[item.situacaoLegal]}
           </span>
@@ -396,8 +396,8 @@ export function VagasIndividualizadasContent() {
       screen={vagasScreenSpecification}
       businessItems={vagasBusinessItems}
     >
-      <div className="prototype-vaga-page prototype-vaga-page-seplag">
-        <header className="prototype-vaga-header">
+      <div className="prototype-comissionados-vaga-page prototype-comissionados-vaga-page-seplag">
+        <header className="prototype-comissionados-vaga-header">
           <SpecArea metadata={vagasScreenSpecification}>
             <div>
               <h1>Vagas Individualizadas</h1>
@@ -409,7 +409,7 @@ export function VagasIndividualizadasContent() {
         </header>
 
         {quadroSelecionado && (
-          <section className="prototype-vaga-kpis prototype-vaga-kpis-seplag">
+          <section className="prototype-comissionados-vaga-kpis prototype-comissionados-vaga-kpis-seplag">
             <Kpi
               label="Vagas autorizadas"
               value={vagasDoQuadro.length}
@@ -453,9 +453,9 @@ export function VagasIndividualizadasContent() {
           </section>
         )}
 
-        <section className="prototype-vaga-card prototype-vaga-card-seplag">
-          <div className="prototype-vaga-filters-seplag">
-            <div className="prototype-vaga-seplag-field">
+        <section className="prototype-comissionados-vaga-card prototype-comissionados-vaga-card-seplag">
+          <div className="prototype-comissionados-vaga-filters-seplag">
+            <div className="prototype-comissionados-vaga-seplag-field">
               <DropdownFieldSeplag<VagasIndividualizadasFiltros>
                 name="quadro"
                 control={control}
@@ -471,7 +471,7 @@ export function VagasIndividualizadasContent() {
                 getFormErrorMessage={() => null}
               />
             </div>
-            <div className="prototype-vaga-seplag-field">
+            <div className="prototype-comissionados-vaga-seplag-field">
               <DropdownFieldSeplag<VagasIndividualizadasFiltros>
                 name="orgao"
                 control={control}
@@ -488,7 +488,7 @@ export function VagasIndividualizadasContent() {
                 getFormErrorMessage={() => null}
               />
             </div>
-            <div className="prototype-vaga-seplag-field">
+            <div className="prototype-comissionados-vaga-seplag-field">
               <TextFieldSeplag<VagasIndividualizadasFiltros>
                 name="identificador"
                 control={control}
@@ -499,7 +499,7 @@ export function VagasIndividualizadasContent() {
                 disabled={!quadroSelecionado}
               />
             </div>
-            <div className="prototype-vaga-seplag-field">
+            <div className="prototype-comissionados-vaga-seplag-field">
               <TextFieldSeplag<VagasIndividualizadasFiltros>
                 name="ocupanteAtual"
                 control={control}
@@ -510,7 +510,7 @@ export function VagasIndividualizadasContent() {
                 disabled={!quadroSelecionado}
               />
             </div>
-            <div className="prototype-vaga-seplag-field">
+            <div className="prototype-comissionados-vaga-seplag-field">
               <DropdownFieldSeplag<VagasIndividualizadasFiltros>
                 name="comprometimento"
                 control={control}
@@ -530,7 +530,7 @@ export function VagasIndividualizadasContent() {
                 getFormErrorMessage={() => null}
               />
             </div>
-            <div className="prototype-vaga-seplag-field">
+            <div className="prototype-comissionados-vaga-seplag-field">
               <DropdownFieldSeplag<VagasIndividualizadasFiltros>
                 name="situacaoLegal"
                 control={control}
@@ -551,14 +551,14 @@ export function VagasIndividualizadasContent() {
                 getFormErrorMessage={() => null}
               />
             </div>
-            <div className="prototype-vaga-seplag-field prototype-vaga-clear">
+            <div className="prototype-comissionados-vaga-seplag-field prototype-comissionados-vaga-clear">
               <BotaoLimparFiltroSeplag type="button" onClick={limpar} />
             </div>
           </div>
 
           {quadroSelecionado ? (
             <SpecArea metadata={vagasBlockSpecifications.Tabela}>
-              <div className="prototype-vaga-library-table">
+              <div className="prototype-comissionados-vaga-library-table">
                 <TablePaginadoSeplag<VagaIndividualizadaView>
                   dataKey="id"
                   data={resultadoVagas(filtradas, pagina, porPagina)}
@@ -577,7 +577,7 @@ export function VagasIndividualizadasContent() {
               </div>
             </SpecArea>
           ) : (
-            <div className="prototype-vaga-initial-state" role="status">
+            <div className="prototype-comissionados-vaga-initial-state" role="status">
               <i className="pi pi-list" aria-hidden="true" />
               <div>
                 <strong>Selecione um Quadro Autorizado</strong>
@@ -741,8 +741,8 @@ function VagasIndividualizadasLegacy() {
       screen={vagasScreenSpecification}
       businessItems={vagasBusinessItems}
     >
-      <div className="prototype-vaga-page">
-        <header className="prototype-vaga-header">
+      <div className="prototype-comissionados-vaga-page">
+        <header className="prototype-comissionados-vaga-header">
           <SpecArea metadata={vagasScreenSpecification}>
             <div>
               <h1>Vagas Individualizadas</h1>
@@ -753,7 +753,7 @@ function VagasIndividualizadasLegacy() {
             </div>
           </SpecArea>
         </header>
-        <section className="prototype-vaga-kpis">
+        <section className="prototype-comissionados-vaga-kpis">
           <Kpi
             label="Vagas individualizadas"
             value={totais.total}
@@ -778,15 +778,15 @@ function VagasIndividualizadasLegacy() {
             kind="warning"
           />
         </section>
-        <section className="prototype-vaga-card">
-          <div className="prototype-vaga-filters">
+        <section className="prototype-comissionados-vaga-card">
+          <div className="prototype-comissionados-vaga-filters">
             <SpecArea metadata={vagasFilterSpecifications.Identificador}>
               <label className="wide">
                 <span>
                   Nome da vaga
                   <button
                     type="button"
-                    className="prototype-vaga-column-visibility"
+                    className="prototype-comissionados-vaga-column-visibility"
                     onClick={() => setMostrarIdentificador((valor) => !valor)}
                     title={
                       mostrarIdentificador ? "Ocultar coluna" : "Exibir coluna"
@@ -966,7 +966,7 @@ function VagasIndividualizadasLegacy() {
             </SpecArea>
           </div>{" "}
           <SpecArea metadata={vagasBlockSpecifications.Tabela}>
-            <div className="prototype-vaga-table">
+            <div className="prototype-comissionados-vaga-table">
               <table>
                 <thead>
                   <tr>
@@ -1002,7 +1002,7 @@ function VagasIndividualizadasLegacy() {
                         {mostrarIdentificador && (
                           <td>
                             <button
-                              className="prototype-vaga-link"
+                              className="prototype-comissionados-vaga-link"
                               onClick={() => setVaga(v)}
                             >
                               {v.id}
@@ -1021,7 +1021,7 @@ function VagasIndividualizadasLegacy() {
                         {mostrarOrgao && <td>{v.orgaoTitular}</td>}
                         {mostrarTipo && (
                           <td>
-                            <span className="prototype-vaga-type">
+                            <span className="prototype-comissionados-vaga-type">
                               {v.tipo === "EFETIVO"
                                 ? "Efetivo"
                                 : "Comissionado"}
@@ -1032,7 +1032,7 @@ function VagasIndividualizadasLegacy() {
                           <td>
                             <span
                               className={
-                                "prototype-vaga-state " + v.estado.toLowerCase()
+                                "prototype-comissionados-vaga-state " + v.estado.toLowerCase()
                               }
                             >
                               <i
@@ -1078,7 +1078,7 @@ function VagasIndividualizadasLegacy() {
                             {compromisso ? (
                               <span
                                 className={
-                                  "prototype-vaga-commit " +
+                                  "prototype-comissionados-vaga-commit " +
                                   compromisso.natureza.toLowerCase()
                                 }
                               >
@@ -1095,7 +1095,7 @@ function VagasIndividualizadasLegacy() {
                           <td>
                             <span
                               className={
-                                "prototype-vaga-legal " +
+                                "prototype-comissionados-vaga-legal " +
                                 legalClass[v.situacaoLegal]
                               }
                             >
@@ -1105,12 +1105,12 @@ function VagasIndividualizadasLegacy() {
                         )}
                         {mostrarLei && (
                           <td>
-                            <span className="prototype-vaga-law">{v.lei}</span>
+                            <span className="prototype-comissionados-vaga-law">{v.lei}</span>
                           </td>
                         )}
                         <td>
                           <button
-                            className="prototype-vaga-detail-button"
+                            className="prototype-comissionados-vaga-detail-button"
                             onClick={() => setVaga(v)}
                             title="Visualizar vaga"
                           >
@@ -1125,7 +1125,7 @@ function VagasIndividualizadasLegacy() {
             </div>
           </SpecArea>
           <SpecArea metadata={vagasActionSpecifications.Paginação}>
-            <footer className="prototype-vaga-pagination">
+            <footer className="prototype-comissionados-vaga-pagination">
               <Paginator
                 first={(Math.min(pagina, paginas) - 1) * porPagina}
                 rows={porPagina}
@@ -1172,7 +1172,7 @@ function FiltroPesquisa({
           {visibility && (
             <button
               type="button"
-              className="prototype-vaga-column-visibility"
+              className="prototype-comissionados-vaga-column-visibility"
               onClick={visibility.onToggle}
               title={visibility.visible ? "Ocultar coluna" : "Exibir coluna"}
               aria-label={
@@ -1197,7 +1197,7 @@ function FiltroPesquisa({
           filter={searchable}
           filterPlaceholder="Pesquisar"
           emptyFilterMessage="Nenhum resultado encontrado"
-          className="prototype-vaga-filter-dropdown"
+          className="prototype-comissionados-vaga-filter-dropdown"
           onChange={(event: DropdownChangeEvent) =>
             onChange(String(event.value ?? ""))
           }
@@ -1247,7 +1247,7 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
     <ModalSeplag
       visible
       titulo={
-        <div className="prototype-vaga-modal-title">
+        <div className="prototype-comissionados-vaga-modal-title">
           <span>Vaga individual</span>
           <h2>{vaga.identificadorExibicao}</h2>
           <p>Nome vigente · criado após a distribuição formal</p>
@@ -1265,9 +1265,9 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
         />
       }
     >
-      <div className="col-12 prototype-vaga-detail-content">
-        <div className="prototype-vaga-summary">
-          <span className={`prototype-vaga-state ${vaga.estado.toLowerCase()}`}>
+      <div className="col-12 prototype-comissionados-vaga-detail-content">
+        <div className="prototype-comissionados-vaga-summary">
+          <span className={`prototype-comissionados-vaga-state ${vaga.estado.toLowerCase()}`}>
             <i
               className={
                 vaga.estado === "DISPONIVEL"
@@ -1278,12 +1278,12 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
             {estadoLabel[vaga.estado]}
           </span>
           <span
-            className={`prototype-vaga-legal ${legalClass[vaga.situacaoLegal]}`}
+            className={`prototype-comissionados-vaga-legal ${legalClass[vaga.situacaoLegal]}`}
           >
             {legalLabel[vaga.situacaoLegal]}
           </span>
         </div>
-        <div className="prototype-vaga-detail-grid">
+        <div className="prototype-comissionados-vaga-detail-grid">
           <section>
             <h3>Vinculação legal</h3>
             <dl>
@@ -1348,7 +1348,7 @@ function VagaDetalhe({ vaga, onClose }: { vaga: VagaIndividualizadaView; onClose
           </section>
         </div>
         <OcupantesDaVaga vagaId={vaga.id} />
-        <section className="prototype-vaga-history">
+        <section className="prototype-comissionados-vaga-history">
           <header>
             <div>
               <h3>Histórico imutável</h3>
@@ -1422,7 +1422,7 @@ function PosicaoFuncionalDaVaga({ vaga }: { vaga: Vaga }) {
     );
   return (
     <>
-      <section className="prototype-vaga-commitment-detail">
+      <section className="prototype-comissionados-vaga-commitment-detail">
         <header>
           <div>
             <h3>Posição funcional e movimentações</h3>
@@ -1463,7 +1463,7 @@ function PosicaoFuncionalDaVaga({ vaga }: { vaga: Vaga }) {
         </dl>
       </section>
       {eventos.length > 0 && (
-        <section className="prototype-vaga-history">
+        <section className="prototype-comissionados-vaga-history">
           <header>
             <div>
               <h3>Histórico de movimentações funcionais</h3>
@@ -1522,7 +1522,7 @@ function ComprometimentoDaVaga({ vagaId }: { vagaId: string }) {
     (fase) => fase.situacao === "CONCLUIDA",
   ).length;
   return (
-    <section className="prototype-vaga-commitment-detail">
+    <section className="prototype-comissionados-vaga-commitment-detail">
       <header>
         <div>
           <h3>{ativo ? "Ingresso ativo" : "Último ingresso"}</h3>
@@ -1533,7 +1533,7 @@ function ComprometimentoDaVaga({ vagaId }: { vagaId: string }) {
           </p>
         </div>
         <span
-          className={"prototype-vaga-commit " + processo.natureza.toLowerCase()}
+          className={"prototype-comissionados-vaga-commit " + processo.natureza.toLowerCase()}
         >
           <i className="pi pi-flag" />
           {ativo
@@ -1567,7 +1567,7 @@ function ComprometimentoDaVaga({ vagaId }: { vagaId: string }) {
           <dd>{processo.motivo}</dd>
         </div>
       </dl>
-      <div className="prototype-vaga-commitment-progress">
+      <div className="prototype-comissionados-vaga-commitment-progress">
         <span>
           <i
             style={{ width: (concluidas / processo.fases.length) * 100 + "%" }}
@@ -1658,7 +1658,7 @@ function OcupantesDaVaga({ vagaId }: { vagaId: string }) {
     empty: false,
   };
   return (
-    <section className="prototype-vaga-occupants">
+    <section className="prototype-comissionados-vaga-occupants">
       <header>
         <h3>Ocupações nominais</h3>
         <p>

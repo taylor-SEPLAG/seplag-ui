@@ -733,7 +733,7 @@ function QuadroAutorizadoLista() {
   ) =>
     item.id === filtrados[0]?.id ? (
       <SpecArea metadata={metadata}>
-        <div className="prototype-quadro-spec-cell">{content}</div>
+        <div className="prototype-comissionados-quadro-spec-cell">{content}</div>
       </SpecArea>
     ) : (
       content
@@ -752,9 +752,9 @@ function QuadroAutorizadoLista() {
         celulaComEspecificacao(
           item,
           quadroColumnSpecifications.Quadro,
-          <div className="prototype-quadro-table-main">
+          <div className="prototype-comissionados-quadro-table-main">
             <button
-              className="prototype-quadro-link"
+              className="prototype-comissionados-quadro-link"
               onClick={() => setVisualizado(item)}
             >
               {item.codigo}
@@ -775,7 +775,7 @@ function QuadroAutorizadoLista() {
         celulaComEspecificacao(
           item,
           quadroColumnSpecifications.Cargo,
-          <div className="prototype-quadro-table-main">
+          <div className="prototype-comissionados-quadro-table-main">
             <strong>{item.cargo}</strong>
             <small>{item.perfilProfissional || item.vinculo}</small>
           </div>,
@@ -793,10 +793,10 @@ function QuadroAutorizadoLista() {
         celulaComEspecificacao(
           item,
           quadroColumnSpecifications.Órgão,
-          <div className="prototype-quadro-table-main">
+          <div className="prototype-comissionados-quadro-table-main">
             <button
               type="button"
-              className="prototype-quadro-orgao-summary-button"
+              className="prototype-comissionados-quadro-orgao-summary-button"
               onClick={() => setDistribuicaoVisualizada(item)}
             >
               {item.orgaoResumo}
@@ -902,7 +902,7 @@ function QuadroAutorizadoLista() {
 
         return (
           <SpecArea metadata={quadroColumnSpecifications.Situação}>
-            <div className="prototype-quadro-spec-status">
+            <div className="prototype-comissionados-quadro-spec-status">
               <BadgeSeplag
                 label={rotuloQuebrado}
                 color={meta.color}
@@ -946,11 +946,11 @@ function QuadroAutorizadoLista() {
 
     return (
       <SpecArea metadata={quadroColumnSpecifications["Histórico de versões"]}>
-        <section className="prototype-quadro-version-history">
+        <section className="prototype-comissionados-quadro-version-history">
           {versoes.length ? (
             <>
-              <div className="prototype-quadro-version-table-container">
-                <table className="prototype-quadro-version-table">
+              <div className="prototype-comissionados-quadro-version-table-container">
+                <table className="prototype-comissionados-quadro-version-table">
                   <colgroup>
                     <col className="is-versao" />
                     <col className="is-cargo" />
@@ -1015,7 +1015,7 @@ function QuadroAutorizadoLista() {
                             />
                           </td>
                           <td>
-                            <div className="prototype-quadro-actions">
+                            <div className="prototype-comissionados-quadro-actions">
                               <BotaoIconSeplag
                                 type="button"
                                 tooltip={`Visualizar versão ${versao.versao}`}
@@ -1058,7 +1058,7 @@ function QuadroAutorizadoLista() {
                   </tbody>
                 </table>
               </div>
-              <footer className="prototype-quadro-version-pagination">
+              <footer className="prototype-comissionados-quadro-version-pagination">
                 <Paginator
                   first={firstHistorico}
                   rows={paginacao.rows}
@@ -1070,7 +1070,7 @@ function QuadroAutorizadoLista() {
               </footer>
             </>
           ) : (
-            <p className="prototype-quadro-version-empty">
+            <p className="prototype-comissionados-quadro-version-empty">
               Este quadro está na primeira versão e ainda não possui versões
               anteriores.
             </p>
@@ -1082,7 +1082,7 @@ function QuadroAutorizadoLista() {
   const renderAcoes = (item: QuadroListaRow) => {
     const agendadas = versoesAgendadasDoQuadro(item);
     return (
-      <div className="prototype-quadro-actions">
+      <div className="prototype-comissionados-quadro-actions">
         <SpecArea metadata={quadroActionSpecifications.Visualizar}>
           <BotaoIconSeplag
             type="button"
@@ -1163,7 +1163,7 @@ function QuadroAutorizadoLista() {
       <SpecArea metadata={quadroColumnSpecifications["Histórico de versões"]}>
         <button
           type="button"
-          className="prototype-quadro-expander"
+          className="prototype-comissionados-quadro-expander"
           aria-label={
             aberto
               ? "Fechar detalhes do quadro"
@@ -1188,8 +1188,8 @@ function QuadroAutorizadoLista() {
       businessItems={quadroBusinessItems}
       showViewToggles
     >
-      <div className="prototype-quadro-page prototype-quadro-page-current">
-        <header className="prototype-quadro-header">
+      <div className="prototype-comissionados-quadro-page prototype-comissionados-quadro-page-current">
+        <header className="prototype-comissionados-quadro-header">
           <SpecArea metadata={quadroScreenSpecification}>
             <div>
               <h1>Quadro Autorizado</h1>
@@ -1198,7 +1198,7 @@ function QuadroAutorizadoLista() {
           </SpecArea>
         </header>
 
-        <section className="prototype-quadro-kpis">
+        <section className="prototype-comissionados-quadro-kpis">
           <SpecArea metadata={quadroKpiSpecifications.Autorizadas}>
             <article>
               <i className="pi pi-file-check" />
@@ -1248,10 +1248,10 @@ function QuadroAutorizadoLista() {
           </SpecArea>
         </section>
 
-        <section className="prototype-quadro-card">
-          <div className="prototype-quadro-filters prototype-quadro-library-filters">
+        <section className="prototype-comissionados-quadro-card">
+          <div className="prototype-comissionados-quadro-filters prototype-comissionados-quadro-library-filters">
             <SpecArea metadata={quadroFilterSpecifications.Quadro}>
-              <div className="prototype-quadro-spec-control">
+              <div className="prototype-comissionados-quadro-spec-control">
                 <TextFieldSeplag
                   name="busca"
                   control={control}
@@ -1263,7 +1263,7 @@ function QuadroAutorizadoLista() {
               </div>
             </SpecArea>
             <SpecArea metadata={quadroFilterSpecifications.Cargo}>
-              <div className="prototype-quadro-spec-control">
+              <div className="prototype-comissionados-quadro-spec-control">
                 <DropdownFieldSeplag
                   name="cargo"
                   control={control}
@@ -1281,7 +1281,7 @@ function QuadroAutorizadoLista() {
               </div>
             </SpecArea>
             <SpecArea metadata={quadroFilterSpecifications.Órgão}>
-              <div className="prototype-quadro-spec-control">
+              <div className="prototype-comissionados-quadro-spec-control">
                 <DropdownFieldSeplag
                   name="orgao"
                   control={control}
@@ -1311,7 +1311,7 @@ function QuadroAutorizadoLista() {
               </div>
             </SpecArea>
             <SpecArea metadata={quadroFilterSpecifications["Tipo de vínculo"]}>
-              <div className="prototype-quadro-spec-control">
+              <div className="prototype-comissionados-quadro-spec-control">
                 <DropdownFieldSeplag
                   name="tipo"
                   control={control}
@@ -1328,7 +1328,7 @@ function QuadroAutorizadoLista() {
               </div>
             </SpecArea>
             <SpecArea metadata={quadroFilterSpecifications.Situação}>
-              <div className="prototype-quadro-spec-control">
+              <div className="prototype-comissionados-quadro-spec-control">
                 <DropdownFieldSeplag
                   name="situacao"
                   control={control}
@@ -1345,14 +1345,14 @@ function QuadroAutorizadoLista() {
               </div>
             </SpecArea>
             <SpecArea metadata={quadroFilterSpecifications.Limpar}>
-              <div className="prototype-quadro-spec-control">
+              <div className="prototype-comissionados-quadro-spec-control">
                 <BotaoLimparFiltroSeplag
                   onClick={() => reset(filtrosIniciais)}
                 />
               </div>
             </SpecArea>
           </div>
-          <div className="prototype-quadro-table-toolbar">
+          <div className="prototype-comissionados-quadro-table-toolbar">
             <SpecArea metadata={quadroActionSpecifications["Novo Quadro"]}>
               <BotaoAdicionarSeplag
                 label="Novo Quadro"
@@ -1361,7 +1361,7 @@ function QuadroAutorizadoLista() {
             </SpecArea>
           </div>
           <SpecArea metadata={quadroTableSpecification}>
-            <div className="prototype-quadro-table prototype-quadro-library-table">
+            <div className="prototype-comissionados-quadro-table prototype-comissionados-quadro-library-table">
             <TablePaginadoSeplag<QuadroListaRow>
               dataKey="id"
               data={resultadosQuadro(filtrados)}
@@ -1400,7 +1400,7 @@ function QuadroAutorizadoLista() {
           onConfirm={confirmarExclusao}
           confirmDisabled={!motivoExclusao.trim()}
         >
-          <label className="prototype-quadro-delete-reason">
+          <label className="prototype-comissionados-quadro-delete-reason">
             <span>
               Motivo da exclusão <em>*</em>
             </span>
@@ -1462,7 +1462,7 @@ function DistribuicaoOrgaosModal({
       tamanho="min(46rem, 94vw)"
       ariaLabel={`Órgãos do quadro ${quadro.codigo}`}
       customFooter={
-        <div className="prototype-quadro-modal-library-actions">
+        <div className="prototype-comissionados-quadro-modal-library-actions">
           <BotaoVoltarSeplag
             label="Fechar"
             icon="pi pi-times"
@@ -1471,7 +1471,7 @@ function DistribuicaoOrgaosModal({
         </div>
       }
     >
-      <div className="col-12 prototype-quadro-distribution-modal">
+      <div className="col-12 prototype-comissionados-quadro-distribution-modal">
         <header>
           <div>
             <span>{quadro.cargo}</span>
@@ -1480,7 +1480,7 @@ function DistribuicaoOrgaosModal({
           <strong>{totalDistribuido.toLocaleString("pt-BR")} vagas</strong>
         </header>
         {quadro.distribuicaoOrgaos.length ? (
-          <div className="prototype-quadro-distribution-modal-list">
+          <div className="prototype-comissionados-quadro-distribution-modal-list">
             {quadro.distribuicaoOrgaos.map((distribuicao) => (
               <article
                 key={distribuicao.orgao}
@@ -1499,7 +1499,7 @@ function DistribuicaoOrgaosModal({
             ))}
           </div>
         ) : (
-          <p className="prototype-quadro-version-empty">
+          <p className="prototype-comissionados-quadro-version-empty">
             Ainda não há vagas individualizadas para detalhar.
           </p>
         )}
@@ -1527,7 +1527,7 @@ function HistoricoVersaoModal({
       tamanho="min(52rem, 94vw)"
       ariaLabel={`Versão ${versao.versao} do quadro ${quadro.codigo}`}
       customFooter={
-        <div className="prototype-quadro-modal-library-actions">
+        <div className="prototype-comissionados-quadro-modal-library-actions">
           <BotaoVoltarSeplag
             label="Fechar"
             icon="pi pi-times"
@@ -1536,8 +1536,8 @@ function HistoricoVersaoModal({
         </div>
       }
     >
-      <div className="col-12 prototype-quadro-version-modal">
-        <div className="prototype-quadro-version-modal-status">
+      <div className="col-12 prototype-comissionados-quadro-version-modal">
+        <div className="prototype-comissionados-quadro-version-modal-status">
           <BadgeSeplag
             label={metaStatus.label}
             color={metaStatus.color}
@@ -1599,7 +1599,7 @@ function QuadroAutorizadoModal({
   const quantitativos = registro.quantitativosLegaisPorOrgao ?? [];
   const status = statusVigenciaVisualDoQuadro(registro);
   const footer = (
-    <div className="prototype-quadro-modal-library-actions">
+    <div className="prototype-comissionados-quadro-modal-library-actions">
       <SpecArea metadata={quadroActionSpecifications["Fechar visualização"]}>
         <BotaoVoltarSeplag
           label="Fechar"
@@ -1623,7 +1623,7 @@ function QuadroAutorizadoModal({
       titulo={
         <div>
           <strong>{registro.codigo}</strong>
-          <small className="prototype-quadro-modal-library-subtitle">
+          <small className="prototype-comissionados-quadro-modal-library-subtitle">
             {registro.cargo} • Versão {registro.versao}
           </small>
         </div>
@@ -1633,7 +1633,7 @@ function QuadroAutorizadoModal({
       customFooter={footer}
       ariaLabel={"Quadro autorizado " + registro.codigo}
     >
-      <div className="col-12 prototype-quadro-modal-status">
+      <div className="col-12 prototype-comissionados-quadro-modal-status">
         <SpecArea metadata={quadroColumnSpecifications.Situação}>
           <BadgeSeplag
             label={status.label}
@@ -1646,7 +1646,7 @@ function QuadroAutorizadoModal({
           {registro.autorizadas.toLocaleString("pt-BR")} vagas autorizadas
         </strong>
       </div>
-      <div className="col-12 prototype-quadro-modal-body">
+      <div className="col-12 prototype-comissionados-quadro-modal-body">
         <section>
           <h3>Identificação</h3>
           <dl>
@@ -1715,7 +1715,7 @@ function QuadroAutorizadoModal({
             </table>
           )}
           {!quantitativos.length && orgaosDoQuadro(registro).length > 1 && (
-            <p className="prototype-quadro-modal-orgs">
+            <p className="prototype-comissionados-quadro-modal-orgs">
               {orgaosDoQuadro(registro).join(" • ")}
             </p>
           )}
@@ -1994,8 +1994,8 @@ function QuadroAutorizadoForm({
       ? "Editar autorização"
       : "Novo Quadro";
   return (
-    <div className="prototype-quadro-page">
-      <header className="prototype-quadro-header">
+    <div className="prototype-comissionados-quadro-page">
+      <header className="prototype-comissionados-quadro-header">
         <div>
          <h1>{titulo}</h1>
           <p>
@@ -2019,7 +2019,7 @@ function QuadroAutorizadoForm({
           "</ul>"
         }
       />
-      <form onSubmit={submit} className="prototype-quadro-form">
+      <form onSubmit={submit} className="prototype-comissionados-quadro-form">
         <BaseLegalVinculada
           value={documentosLegaisIds}
           onChange={setDocumentosLegaisIds}
@@ -2032,7 +2032,7 @@ function QuadroAutorizadoForm({
               <p>Combinação utilizada para controlar o quantitativo.</p>
             </div>
           </header>
-          <div className="prototype-quadro-fields">
+          <div className="prototype-comissionados-quadro-fields">
             <DropdownFieldSeplag
               name="vinculo"
               control={control}
@@ -2103,16 +2103,16 @@ function QuadroAutorizadoForm({
                 <span
                   className={
                     option.indisponivel
-                      ? "prototype-quadro-cargo-indisponivel"
+                      ? "prototype-comissionados-quadro-cargo-indisponivel"
                       : undefined
                   }
                   aria-label={option.motivoIndisponibilidade || undefined}
                 >
-                  <span className="prototype-quadro-cargo-indisponivel-label">
+                  <span className="prototype-comissionados-quadro-cargo-indisponivel-label">
                     {option.label}
                   </span>
                   {option.quadroCodigo && (
-                    <span className="prototype-quadro-cargo-indisponivel-badge">
+                    <span className="prototype-comissionados-quadro-cargo-indisponivel-badge">
                       {option.quadroCodigo}
                     </span>
                   )}
@@ -2137,7 +2137,7 @@ function QuadroAutorizadoForm({
             />
           </div>{" "}
         </section>{" "}
-        <div className="prototype-quadro-form-paired">
+        <div className="prototype-comissionados-quadro-form-paired">
         <section>
           <header>
             <i className="pi pi-building" />
@@ -2154,7 +2154,7 @@ function QuadroAutorizadoForm({
               </p>
             </div>
           </header>
-          <div className="prototype-quadro-scope">
+          <div className="prototype-comissionados-quadro-scope">
             <NumberFieldSeplag
               name="quantidade"
               control={control}
@@ -2169,7 +2169,7 @@ function QuadroAutorizadoForm({
               getFormErrorMessage={() => null}
             />
             {novaVersao && (
-              <div className="prototype-quadro-comparison">
+              <div className="prototype-comissionados-quadro-comparison">
                 <span>Quantidade vigente</span>
                 <strong>{registro?.autorizadas}</strong>
                 <i className="pi pi-arrow-right" />
@@ -2191,8 +2191,8 @@ function QuadroAutorizadoForm({
               </p>
             </div>
           </header>
-          <div className="prototype-quadro-library-section prototype-quadro-simple-vigencia">
-            <div className="prototype-quadro-vigencia-date">
+          <div className="prototype-comissionados-quadro-library-section prototype-comissionados-quadro-simple-vigencia">
+            <div className="prototype-comissionados-quadro-vigencia-date">
               <DateFieldSeplag
                 name="dataAtivacao"
                 control={control}
@@ -2202,7 +2202,7 @@ function QuadroAutorizadoForm({
                 getFormErrorMessage={() => null}
               />
             </div>
-            <div className="prototype-quadro-simple-status" aria-live="polite">
+            <div className="prototype-comissionados-quadro-simple-status" aria-live="polite">
               <i
                 className={
                   "pi " +
@@ -2232,7 +2232,7 @@ function QuadroAutorizadoForm({
           </div>
         </section>
         </div>{" "}
-        <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow">
+        <footer className="prototype-comissionados-quadro-form-actions prototype-comissionados-quadro-form-actions--flow">
           <BotaoVoltarSeplag
             label="Cancelar"
             icon="pi pi-times"
@@ -2257,8 +2257,8 @@ function QuadroAutorizadoNovaVersao({
   onBack: () => void;
 }) {
   return (
-    <div className="prototype-quadro-page">
-      <header className="prototype-quadro-header">
+    <div className="prototype-comissionados-quadro-page">
+      <header className="prototype-comissionados-quadro-header">
         <div>
           <h1>{versaoEmEdicao ? "Editar versão agendada" : "Nova versão do quadro"}</h1>
 </div>
@@ -2278,14 +2278,14 @@ function QuadroAutorizadoDetalhe({
   const situacao = registro.situacao;
   const disponivel = Math.max(0, saldo(registro));
   return (
-    <div className="prototype-quadro-page">
-      <header className="prototype-quadro-header">
+    <div className="prototype-comissionados-quadro-page">
+      <header className="prototype-comissionados-quadro-header">
         <div>
           <BotaoVoltarSeplag label="Quadro Autorizado" onClick={onBack} />
-          <div className="prototype-quadro-title-line">
+          <div className="prototype-comissionados-quadro-title-line">
             <h1>{registro.codigo}</h1>
             <span
-              className={`prototype-quadro-status ${situacaoClass[situacao]}`}
+              className={`prototype-comissionados-quadro-status ${situacaoClass[situacao]}`}
             >
               {situacao}
             </span>
@@ -2295,7 +2295,7 @@ function QuadroAutorizadoDetalhe({
             {registro.versao}
           </p>
         </div>
-        <div className="prototype-quadro-header-actions">
+        <div className="prototype-comissionados-quadro-header-actions">
           {situacao === "Vigência futura" && (
             <button
               onClick={() => navigate(`${BASE_PATH}/${registro.id}/editar`)}
@@ -2305,7 +2305,7 @@ function QuadroAutorizadoDetalhe({
           )}
           {situacao === "Vigente" && (
             <button
-              className="prototype-quadro-primary"
+              className="prototype-comissionados-quadro-primary"
               onClick={() =>
                 navigate(`${BASE_PATH}/${registro.id}/nova-versao`)
               }
@@ -2315,7 +2315,7 @@ function QuadroAutorizadoDetalhe({
           )}
         </div>
       </header>
-      <section className="prototype-quadro-detail-kpis">
+      <section className="prototype-comissionados-quadro-detail-kpis">
         <article>
           <span>Autorizadas</span>
           <strong>{registro.autorizadas}</strong>
@@ -2339,8 +2339,8 @@ function QuadroAutorizadoDetalhe({
           <strong>{disponivel}</strong>
         </article>
       </section>
-      <div className="prototype-quadro-detail-grid">
-        <section className="prototype-quadro-detail-card">
+      <div className="prototype-comissionados-quadro-detail-grid">
+        <section className="prototype-comissionados-quadro-detail-card">
           <header>
             <h2>Identificação e abrangência</h2>
           </header>
@@ -2381,7 +2381,7 @@ function QuadroAutorizadoDetalhe({
             )}
           </dl>
         </section>
-        <section className="prototype-quadro-detail-card">
+        <section className="prototype-comissionados-quadro-detail-card">
           <header>
             <h2>Vigência e fundamentação</h2>
           </header>
@@ -2413,7 +2413,7 @@ function QuadroAutorizadoDetalhe({
           </dl>
         </section>
       </div>
-      <section className="prototype-quadro-detail-card prototype-quadro-history">
+      <section className="prototype-comissionados-quadro-detail-card prototype-comissionados-quadro-history">
         <header>
           <div>
             <h2>Histórico de versões</h2>
@@ -2444,7 +2444,7 @@ function QuadroAutorizadoDetalhe({
               </td>
               <td>
                 <span
-                  className={`prototype-quadro-status ${situacaoClass[situacao]}`}
+                  className={`prototype-comissionados-quadro-status ${situacaoClass[situacao]}`}
                 >
                   {situacao}
                 </span>
@@ -2457,7 +2457,7 @@ function QuadroAutorizadoDetalhe({
                 <td>{Math.max(1, registro.autorizadas - 10)}</td>
                 <td>Versão anterior substituída</td>
                 <td>
-                  <span className="prototype-quadro-status is-closed">
+                  <span className="prototype-comissionados-quadro-status is-closed">
                     Substituída
                   </span>
                 </td>
