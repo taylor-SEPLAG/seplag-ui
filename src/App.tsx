@@ -26,6 +26,7 @@ import {
   PrototiposAuditoriaPage,
   PrototiposCargoFormPage,
   PrototiposCargoPage,
+  PrototiposTabelaVencimentosPage,
   PrototiposCargoTesteFormPage,
   PrototiposCargoTestePage,
   PrototiposCarreiraFormPage,
@@ -139,6 +140,7 @@ import {
   PrototiposTipoVinculoTestePage,
   PrototiposVinculoDetalhePage,
 } from "./prototipos/PrototiposPage";
+import { TabelaVencimentosFeaturePage } from "./prototipos/tabelaVencimentos/TabelaVencimentosFeaturePage";
 import {
   PrototiposDocumentoLegalFormPage,
   PrototiposDocumentosLegaisPage,
@@ -1886,6 +1888,10 @@ function App() {
       <Route
         path="/prototipos/sigep/cargo"
         element={<PrototiposCargoPage />}
+      />
+      <Route
+        path={"/prototipos/sigep/tabelas-vencimentos/*"}
+        element={<TabelaVencimentosFeaturePage />}
       />
       <Route
         path="/prototipos/sigep/cargo/novo"

@@ -20039,3 +20039,23 @@
   gap: 6px;
   align-items: center;
 }
+/* Tabela de Vencimentos — listagem de cargos com perfis/especialidades expansíveis. */
+.prototype-vencimentos-filters{align-items:end;margin-top:.25rem;margin-bottom:.75rem}
+.prototype-vencimentos-filters .prototype-category-clear{display:flex;align-items:flex-end;padding-bottom:.5rem}
+.prototype-vencimentos-table-shell{overflow:hidden}
+.prototype-vencimentos-cargo-cell{align-items:center;font-weight:600}
+.prototype-vencimentos-table-shell .p-datatable-thead>tr>th:nth-child(1),.prototype-vencimentos-table-shell .p-datatable-tbody>tr>td:nth-child(1){width:70%}
+.prototype-vencimentos-table-shell .p-datatable-thead>tr>th:nth-child(2),.prototype-vencimentos-table-shell .p-datatable-tbody>tr>td:nth-child(2){width:17%}
+.prototype-vencimentos-table-shell .p-datatable-thead>tr>th:nth-child(3),.prototype-vencimentos-table-shell .p-datatable-tbody>tr>td:nth-child(3){width:240px}
+.prototype-vencimentos-actions{display:flex;align-items:center;justify-content:flex-start;gap:1rem}
+.prototype-vencimentos-actions>.p-button{min-width:122px}
+.prototype-vencimentos-expander{display:inline-grid;width:40px;height:40px;flex:0 0 40px;place-items:center;border:3px solid #9ed5fb;border-radius:50%;background:#fff;color:#66788a;cursor:pointer}
+.prototype-vencimentos-expander:hover{border-color:#2498e8;color:#0067a7;background:#f2f9ff}
+.prototype-vencimentos-expanded{padding:.9rem 1.25rem 1.15rem;background:#f8fafc}
+.prototype-vencimentos-expanded>strong{display:block;margin-bottom:.65rem;color:#142b44;font-size:.86rem}
+.prototype-vencimentos-expanded table{width:100%;border-collapse:collapse;background:#fff}
+.prototype-vencimentos-expanded th,.prototype-vencimentos-expanded td{padding:.7rem .8rem;border:1px solid #d9e2ec;text-align:left}
+.prototype-vencimentos-expanded th{background:#f2f5f8;color:#24364b;font-size:.76rem;font-weight:700}
+.prototype-vencimentos-expanded td{font-size:.82rem}
+.prototype-vencimentos-empty-profile{padding:1rem 1.25rem;background:#f8fafc;color:#64748b;font-size:.84rem}
+@media(max-width:768px){.prototype-vencimentos-expanded{overflow-x:auto}.prototype-vencimentos-expanded table{min-width:720px}}
