@@ -198,8 +198,8 @@ describe("RN-24d — dataEfeitoAnteriorPublicacao", () => {
 
 describe("RN01/RN03 — gerarNumeroCertame (Número do Certame TCE-MT)", () => {
  it("gera o próximo sequencial do exercício, somando os dois tipos de certame", () => {
-  // 2026 no mock: 5 certames (Concurso Público e PSS somados) — próximo é 6
-  expect(gerarNumeroCertame(2026, certamesMock)).toBe("00000000006");
+  // 2026 no mock: 8 certames (Concurso Público e PSS somados) — próximo é 9
+  expect(gerarNumeroCertame(2026, certamesMock)).toBe("00000000009");
  });
 
  it("não soma certames de outro exercício", () => {

@@ -135,9 +135,29 @@
 }
 
 .unidades-register-panel > .unidades-register-fields,
-.unidades-register-panel > .unidades-register-legal-documents {
+.unidades-register-panel > .unidades-register-legal-documents,
+.unidades-register-panel > .unidades-position-grid {
   padding: 18px;
 }
+
+.unidades-position-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); gap: 20px; }
+.unidades-position-selection > [class*="col-"] { width: 100%; max-width: none; padding: 0; }
+.unidades-position-controls { margin: 0; align-items: end; }
+.unidades-position-controls > [class*="col-"] { min-width: 0; }
+.unidades-position-selection > p { margin: 6px 0 14px; color: #58708a; font-size: 0.78rem; }
+.unidades-position-tree, .unidades-position-summary { box-sizing: border-box; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; }
+.unidades-position-tree { display: flex; min-height: 190px; flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px; }
+.unidades-position-tree span, .unidades-position-tree strong { position: relative; padding: 9px 12px; border: 1px solid #d3deea; border-radius: 6px; background: #fff; color: #17324d; font-size: 0.86rem; }
+.unidades-position-tree .level-2 { margin-left: 24px; }
+.unidades-position-tree .level-3 { margin-left: 48px; border: 2px solid #0878c9; background: #eef7ff; color: #075d96; }
+.unidades-position-tree .level-2::before, .unidades-position-tree .level-3::before { position: absolute; top: 50%; right: 100%; width: 16px; margin-right: 8px; border-top: 1px solid #b7c7d8; content: ""; }
+.unidades-position-summary { padding: 16px; }
+.unidades-position-summary h3 { margin: 0 0 8px; color: #17324d; font-size: 1rem; }
+.unidades-position-summary dl { margin: 0; }
+.unidades-position-summary dl > div { padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+.unidades-position-summary dl > div:last-child { border-bottom: 0; }
+.unidades-position-summary dt { margin-bottom: 3px; color: #58708a; font-size: 0.75rem; }
+.unidades-position-summary dd { margin: 0; color: #172b4d; font-size: 0.88rem; font-weight: 700; }
 
 .unidades-register-fields {
   margin: 0;
@@ -204,6 +224,8 @@
 }
 
 @media (max-width: 700px) {
+  .unidades-position-grid { grid-template-columns: 1fr; }
+
   .unidades-register-actions {
     flex-direction: column-reverse;
   }

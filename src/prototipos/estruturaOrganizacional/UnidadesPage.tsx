@@ -6,7 +6,7 @@ import { BotaoLimparFiltroSeplag, BotaoSalvarSeplag, BotaoSeplag } from "@compon
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { CardSeplag } from "@componentes/Card";
 import { DocumentosLegaisAssociadosSeplag, type DocumentoLegalAssociadoSeplag } from "@componentes/DocumentosLegaisAssociados";
-import { DropdownFieldSeplag, RadioButtonFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
+import { DateFieldSeplag, DropdownFieldSeplag, RadioButtonFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { PanelSeplag } from "@componentes/PanelSeplag";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "@interfaces/Results";
@@ -54,6 +54,7 @@ const documentosLegaisUnidade: DocumentoLegalAssociadoSeplag[] = [
 
 interface UnidadeCadastroForm {
   orgao: string;
+  formaVinculacao: "ORGAO" | "SETOR";
   setorSuperior: string;
   tipo: string;
   nome: string;
@@ -71,6 +72,8 @@ interface UnidadeCadastroForm {
   logradouro: string;
   numeroEndereco: string;
   complementoEndereco: string;
+  dataInicio: string;
+  dataFim: string;
 }
 
 function UnidadeCadastroPage() {
@@ -79,6 +82,7 @@ function UnidadeCadastroPage() {
   const { control, watch, setValue } = useForm<UnidadeCadastroForm>({
     defaultValues: {
       orgao: "",
+      formaVinculacao: "SETOR",
       setorSuperior: "",
       tipo: "",
       nome: "",
@@ -96,12 +100,25 @@ function UnidadeCadastroPage() {
       logradouro: "",
       numeroEndereco: "",
       complementoEndereco: "",
+      dataInicio: "",
+      dataFim: "",
     },
   });
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
   const orgao = watch("orgao");
+  const formaVinculacao = watch("formaVinculacao");
+  const setorSuperior = watch("setorSuperior");
+  const nomeSetor = watch("nome");
   const outraLocalidade = watch("outraLocalidade");
   const localidadePropria = outraLocalidade === "SIM";
+  const orgaoSelecionado = orgao ? orgao.split(" - ")[0] : "Órgão não selecionado";
+  const niveisPorSetor: Record<string, number> = { "Gabinete do Secretário": 2, "Secretaria Adjunta": 3, "Superintendência de Modernização Organizacional": 4, "Coordenadoria de Modelagem Organizacional": 5 };
+  const vinculadoDiretamenteAoOrgao = formaVinculacao === "ORGAO";
+  const nivelHierarquico = vinculadoDiretamenteAoOrgao ? 1 : setorSuperior ? (niveisPorSetor[setorSuperior] ?? 1) + 1 : null;
+
+  useEffect(() => {
+    if (vinculadoDiretamenteAoOrgao) setValue("setorSuperior", "");
+  }, [setValue, vinculadoDiretamenteAoOrgao]);
 
   useEffect(() => {
     if (!orgao) {
@@ -130,12 +147,44 @@ function UnidadeCadastroPage() {
             <PanelSeplag title="Identificação do setor" description="Selecione o órgão e informe os dados básicos do setor." className="unidades-register-panel">
               <div className="grid unidades-register-fields">
                 <DropdownFieldSeplag name="orgao" control={control} label="Órgão/Entidade" placeholder="Selecione..." cols="12 12 4" options={options(["SEPLAG - Secretaria de Estado de Planejamento e Gestão", "SEDUC - Secretaria de Estado de Educação"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
-                <DropdownFieldSeplag name="setorSuperior" control={control} label="Setor superior" placeholder="Selecione, se houver..." cols="12 12 4" options={options(["Gabinete do Secretário", "Secretaria Adjunta", "Superintendência de Modernização Organizacional", "Coordenadoria de Modelagem Organizacional"])} optionLabel="label" optionValue="value" showClear getFormErrorMessage={noError} />
-                <DropdownFieldSeplag name="tipo" control={control} label="Tipo de setor" placeholder="Selecione..." cols="12 12 4" options={options(["Gabinete", "Secretaria Adjunta", "Superintendência", "Coordenadoria", "Gerência", "Núcleo", "Setor", "Conselho", "Comissão", "Ouvidoria", "Diretoria"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="tipo" control={control} label="Tipo de setor" placeholder="Selecione..." cols="12 12 8" options={options(["Gabinete", "Secretaria Adjunta", "Superintendência", "Coordenadoria", "Gerência", "Núcleo", "Setor", "Conselho", "Comissão", "Ouvidoria", "Diretoria"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
                 <div className="col-12 unidades-register-field-help">UF e Município serão preenchidos automaticamente conforme o órgão selecionado.</div>
                 <TextFieldSeplag name="codigo" control={control} label="Código" placeholder="Gerado automaticamente" cols="12 12 3" disabled getFormErrorMessage={noError} />
                 <TextFieldSeplag name="nome" control={control} label="Nome do setor" placeholder="Ex.: Coordenadoria de Modelagem Organizacional" cols="12 12 6" required maxLength={200} getFormErrorMessage={noError} />
                 <TextFieldSeplag name="sigla" control={control} label="Sigla" placeholder="Ex.: CMO" cols="12 12 3" maxLength={20} getFormErrorMessage={noError} />
+              </div>
+            </PanelSeplag>
+
+            <PanelSeplag title="Posição na estrutura" description="Escolha o setor superior. O nível hierárquico será definido automaticamente." className="unidades-register-panel">
+              <div className="unidades-position-grid">
+                <div className="unidades-position-selection">
+                  <div className="grid unidades-position-controls">
+                    <RadioButtonFieldSeplag name="formaVinculacao" control={control} label="Forma de Vinculação" cols="12 12 6" options={[{ label: "Diretamente ao órgão", value: "ORGAO" }, { label: "Vincular a outro setor", value: "SETOR" }]} getFormErrorMessage={noError} />
+                    <DropdownFieldSeplag name="setorSuperior" control={control} label="Setor superior" placeholder={vinculadoDiretamenteAoOrgao ? "Vinculado diretamente ao órgão" : "Selecione..."} cols="12 12 6" options={options(["Gabinete do Secretário", "Secretaria Adjunta", "Superintendência de Modernização Organizacional", "Coordenadoria de Modelagem Organizacional"])} optionLabel="label" optionValue="value" required={!vinculadoDiretamenteAoOrgao} disabled={vinculadoDiretamenteAoOrgao} getFormErrorMessage={noError} />
+                  </div>
+                  <p>Somente setores válidos para receber este setor são exibidos.</p>
+                  <div className="unidades-position-tree" aria-label="Prévia da posição na estrutura">
+                    <span className="level-1">{orgaoSelecionado}</span>
+                    {!vinculadoDiretamenteAoOrgao && setorSuperior && <span className="level-2">{setorSuperior}</span>}
+                    <strong className="level-3">{nomeSetor || "Novo setor"}</strong>
+                  </div>
+                </div>
+                <aside className="unidades-position-summary">
+                  <h3>Resumo da posição</h3>
+                  <dl>
+                    <div><dt>Forma de vinculação</dt><dd>{vinculadoDiretamenteAoOrgao ? "Diretamente ao órgão" : "Vinculado a outro setor"}</dd></div>
+                    <div><dt>Setor superior</dt><dd>{vinculadoDiretamenteAoOrgao ? "Não se aplica" : setorSuperior || "Não selecionado"}</dd></div>
+                    <div><dt>Nível hierárquico</dt><dd>{nivelHierarquico ? `${nivelHierarquico} · calculado automaticamente` : "Aguardando seleção"}</dd></div>
+                    <div><dt>Novo setor</dt><dd>{nomeSetor || "Nome ainda não informado"}</dd></div>
+                  </dl>
+                </aside>
+              </div>
+            </PanelSeplag>
+
+            <PanelSeplag title="Vigência" description="Informe o período de vigência do setor." className="unidades-register-panel">
+              <div className="grid unidades-register-fields">
+                <DateFieldSeplag name="dataInicio" control={control} label="Data de início" cols="12 12 6" required getFormErrorMessage={noError} />
+                <DateFieldSeplag name="dataFim" control={control} label="Data de fim" cols="12 12 6" getFormErrorMessage={noError} />
               </div>
             </PanelSeplag>
 
