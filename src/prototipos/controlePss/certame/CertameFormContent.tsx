@@ -8,7 +8,7 @@ import { useTiposCota, useTiposCotaAtivos } from "../tiposCota/tiposCotaStore";
 import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStore";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
-import { gerarNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, homologacaoVigenteSemCancelamento } from "./validations";
+import { gerarNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, deduzirTipoVaga, homologacaoVigenteSemCancelamento, podeCadastrarVagaNoCertame } from "./validations";
 import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
 import { CATALOGO_UG } from "./catalogoUg";
 import { useFasesCertame } from "../fasesCertame/fasesCertameStore";
@@ -616,6 +616,19 @@ export function CertameFormContent() {
   if (!exibirCidadeVaga) cargoForm.setValue("cidades", []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [cargoValores.polo]);
+ // Fluxo Órgão mandante/participante da vaga: o campo "Órgão da vaga" só é exibido quando o certame
+ // tem órgãos participantes — sem participante, todas as vagas assumem o órgão mandante
+ // automaticamente e o campo nem aparece (nada a escolher). Opções = mandante + participantes,
+ // preenchimento sempre opcional (em branco = vaga de Aproveitamento, ver deduzirTipoVaga).
+ const exibirOrgaoVaga = valores.setoresParticipantes.length > 0;
+ const orgaosVagaOptions = useMemo(
+  () => [valores.setor, ...valores.setoresParticipantes].filter((item):item is string => Boolean(item)).map((item) => ({ label:item, value:item })),
+  [valores.setor, valores.setoresParticipantes],
+ );
+ useEffect(() => {
+  if (!exibirOrgaoVaga) cargoForm.setValue("orgaoDestino", undefined);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [valores.setoresParticipantes]);
  const mostrarCarreiraCargo = valores.tipoCertame === "CONCURSO_PUBLICO";
  const usaCargoDoQuadro = mostrarCarreiraCargo || cargoValores.vinculo === "EXISTENTE";
  const cargoExistenteSelecionado = usaCargoDoQuadro ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId) : undefined;
@@ -642,6 +655,10 @@ export function CertameFormContent() {
   cargoValores.quantidadeVagas > 0 ? `${cargoValores.quantidadeVagas} vaga${cargoValores.quantidadeVagas === 1 ? "" : "s"}` : undefined,
  ].filter((label):label is string => Boolean(label));
  const resumoVagaCrPill = cargoValores.aceitaCadastroReserva === "S" && cargoValores.quantidadeCadastroReserva ? `CR ${cargoValores.quantidadeCadastroReserva}` : undefined;
+ // Tipo da vaga deduzido (fluxo Órgão mandante/participante) — sigla do órgão vinculado ou
+ // "Aproveitamento", exibido como pill de destaque no Resumo da vaga antes de salvar.
+ const tipoVagaResumo = valores.setor ? deduzirTipoVaga(valores.setor, valores.setoresParticipantes, cargoValores.orgaoDestino) : undefined;
+ const tipoVagaResumoEhAproveitamento = tipoVagaResumo === "Aproveitamento";
  // Sugere a jornada já cadastrada para o cargo selecionado, mas o campo continua editável — o
  // usuário pode ajustar manualmente caso o certame preveja jornada diferente da vigente.
  useEffect(() => {
@@ -665,7 +682,10 @@ export function CertameFormContent() {
  const cadastroReservaValido = cargoValores.aceitaCadastroReserva === "N"
   || Boolean(cargoValores.quantidadeCadastroReserva && cargoValores.quantidadeCadastroReserva > 0);
  const cotasValidas = cargoValores.possuiCotas === "N" || reservasCotaPendentes.length > 0;
- const podeAdicionarVaga = dadosPrincipaisVagaValidos && cadastroReservaValido && cotasValidas && !cargoJornadaRepetida;
+ // Trava-mestra do fluxo Órgão mandante/participante: nenhuma vaga pode ser cadastrada sem o órgão
+ // mandante definido no certame (aba Identificação).
+ const podeCadastrarVaga = podeCadastrarVagaNoCertame(valores.setor);
+ const podeAdicionarVaga = podeCadastrarVaga && dadosPrincipaisVagaValidos && cadastroReservaValido && cotasValidas && !cargoJornadaRepetida;
  useEffect(() => {
   const assinatura = cargoForm.watch((dados, { name }) => {
    if (name === "possuiCotas" && dados.possuiCotas === "N") {
@@ -734,6 +754,11 @@ export function CertameFormContent() {
   { header:"Polo", body:(cargo) => cargo.polo || "—" },
   { header:"Cidade", body:(cargo) => cargo.cidades?.length ? cargo.cidades.join(", ") : "—" },
   { header:"Jornada", body:(cargo) => cargo.jornada ? (JORNADAS_TRABALHO.find((item) => item.value === cargo.jornada)?.label ?? cargo.jornada) : "—" },
+  ...(valores.setoresParticipantes.length > 0 ? [{ header:"Órgão", body:(cargo:CargoVagaCertame) => {
+   const tipo = deduzirTipoVaga(valores.setor, valores.setoresParticipantes, cargo.orgaoDestino);
+   const aproveitamento = tipo === "Aproveitamento";
+   return <BadgeSeplag label={tipo} color={aproveitamento ? "#8a5c00" : "#0b6199"} bg={aproveitamento ? "#fff1cf" : "#e9f3fc"} border="transparent" size="sm" />;
+  } }] : []),
   { header:"CR", body:(cargo) => String(cargo.aceitaCadastroReserva ? (cargo.quantidadeCadastroReserva ?? 0) : 0) },
   { header:"Cotas", body:(cargo) => {
    const temCotas = cargo.reservasCota.length > 0;
@@ -799,6 +824,10 @@ export function CertameFormContent() {
  const removerReservaCota = (idReserva:string) => setReservasCotaPendentes((atuais) => atuais.filter((item) => item.id !== idReserva));
 
  const adicionarCargo = async ():Promise<boolean> => {
+  // Trava-mestra (fluxo Órgão mandante/participante): checagem defensiva além do disabled do botão —
+  // mesmo padrão já usado para cargoJornadaRepetida abaixo, evita gravar com um podeAdicionarVaga
+  // desatualizado.
+  if (!podeCadastrarVaga) { setErro("Defina o órgão responsável (mandante) na aba Identificação antes de cadastrar vagas."); return false; }
   const dados = cargoForm.getValues();
   const vinculoEfetivo = mostrarCarreiraCargo ? "EXISTENTE" : dados.vinculo;
   const cargoExistente = vinculoEfetivo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === dados.cargoExistenteId) : undefined;
@@ -812,7 +841,7 @@ export function CertameFormContent() {
   if (dados.aceitaCadastroReserva === "S" && !(dados.quantidadeCadastroReserva && dados.quantidadeCadastroReserva > 0)) { setErro("Informe a quantidade de Cadastro Reserva (CR) para as vagas de ampla concorrência."); return false; }
   setErro(null);
   const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
-  const cargoSalvo:CargoVagaCertame = { id:cargoEmEdicaoId ?? `CGV-${Date.now()}`, vinculo:vinculoEfetivo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:valores.tipoCertame === "CONCURSO_PUBLICO" ? dados.carreira : undefined, polo:dados.polo.trim(), cidades:exibirCidadeVaga ? dados.cidades : cidadesDoPoloSelecionado, jornada:dados.jornada, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaAtivas, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao };
+  const cargoSalvo:CargoVagaCertame = { id:cargoEmEdicaoId ?? `CGV-${Date.now()}`, vinculo:vinculoEfetivo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:valores.tipoCertame === "CONCURSO_PUBLICO" ? dados.carreira : undefined, polo:dados.polo.trim(), cidades:exibirCidadeVaga ? dados.cidades : cidadesDoPoloSelecionado, jornada:dados.jornada, orgaoDestino:exibirOrgaoVaga ? dados.orgaoDestino : undefined, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaAtivas, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao };
   // Edição (cargoEmEdicaoId setado por editarCargo): substitui a vaga existente no lugar, preservando
   // a posição na lista; sem isso, seria tratado como uma vaga nova e duplicaria a linha.
   setCargos((atuais) => cargoEmEdicaoId ? atuais.map((item) => item.id === cargoEmEdicaoId ? cargoSalvo : item) : [...atuais, cargoSalvo]);
@@ -1203,10 +1232,11 @@ export function CertameFormContent() {
 
       <div id="bloco-cargos-vagas" className={blocoClasse("bloco-cargos-vagas")}>
        <BlocoHeader icone="pi-users" titulo="Cargos e vagas" subtitulo="Cadastre os cargos/funções e vagas que estarão disponíveis no edital." />
+       {!modoVisualizar && !podeCadastrarVaga && <MensagemSeplag severity="warning" message="Defina o órgão responsável (mandante) na aba Identificação antes de cadastrar vagas." cols="12" />}
        <section className="prototype-certame-vaga-area prototype-certame-vagas-adicionadas">
         <div className="prototype-certame-vagas-adicionadas-head">
          <SecaoVagaHeader icone="pi-list" titulo="Vagas adicionadas" />
-         {!modoVisualizar && <BotaoAdicionarSeplag type="button" label="Adicionar vaga" onClick={() => setModalVagaAberto(true)} />}
+         {!modoVisualizar && <BotaoAdicionarSeplag type="button" label="Adicionar vaga" disabled={!podeCadastrarVaga} onClick={() => setModalVagaAberto(true)} />}
         </div>
         <div className="prototype-certame-cargos-tabela">
         <TablePaginadoSeplag
@@ -1258,6 +1288,11 @@ export function CertameFormContent() {
            <DropdownFieldSeplag name="polo" control={cargoForm.control} label="Polo" required cols="12 6 4" options={polosOptions} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
            {exibirCidadeVaga && <MultiSelectFieldSeplag name="cidades" control={cargoForm.control} label="Cidade" required cols="12 6 4" options={cidadesDoPoloSelecionado.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
            <DropdownFieldSeplag name="jornada" control={cargoForm.control} label="Jornada" required cols="12 6 4" options={[...JORNADAS_TRABALHO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+           {exibirOrgaoVaga && <DropdownFieldSeplag name="orgaoDestino" control={cargoForm.control} label="Órgão da vaga" cols="12 6 4" options={orgaosVagaOptions} optionLabel="label" optionValue="value" placeholder="(opcional)" showClear panelClassName="prototype-certame-dropdown-panel" itemTemplate={(option) => <div className="flex align-items-center justify-content-between gap-2 w-full">
+            <span>{option.label}</span>
+            {option.value === valores.setor && <BadgeSeplag label="Mandante" color="#0b6199" bg="#e9f3fc" border="transparent" size="xs" />}
+           </div>} disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+           {exibirOrgaoVaga && <div className="col-12"><p className="text-sm text-color-secondary">Deixe em branco para tratar a vaga como Aproveitamento — sem vínculo com um órgão específico.</p></div>}
            {cargoJornadaRepetida && <div className="col-12"><MensagemSeplag severity="warning" message="Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Altere o vínculo, o cargo ou a jornada para continuar." cols="12" /></div>}
           </div>
          </section>
@@ -1292,6 +1327,7 @@ export function CertameFormContent() {
          <SecaoVagaHeader icone="pi-users" titulo="Resumo da vaga" />
          <div className="prototype-certame-resumo-vaga-pills">
           {resumoVagaPills.map((label) => <BadgeSeplag key={label} label={label} color="#0b6199" bg="#e9f3fc" border="transparent" size="xs" />)}
+          {tipoVagaResumo && <BadgeSeplag label={tipoVagaResumoEhAproveitamento ? "Aproveitamento" : tipoVagaResumo} color={tipoVagaResumoEhAproveitamento ? "#8a5c00" : "#0b6199"} bg={tipoVagaResumoEhAproveitamento ? "#fff1cf" : "#e9f3fc"} border="transparent" size="xs" />}
           {resumoVagaCrPill && <BadgeSeplag label={resumoVagaCrPill} color="#147441" bg="#e2f5e8" border="transparent" size="xs" />}
           {reservasCotaAtivas.length > 0 && <BadgeSeplag label={`${reservasCotaAtivas.length} cota${reservasCotaAtivas.length === 1 ? "" : "s"}`} color="#147441" bg="#e2f5e8" border="transparent" size="xs" />}
          </div>
