@@ -242,8 +242,8 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnRouter: true,
         items: [
           { label: "Órgão Entidade", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Tipos de Setores", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Setores", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades", activeRoutes: ["/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo"], visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Tipos de Unidades", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Unidades", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades", activeRoutes: ["/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo"], visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -1987,6 +1987,25 @@ const tiposVinculoTesteMock: TipoVinculoTesteRow[] = [
   criarTipoVinculo(6, "Estagiário", "Temporário", ["Sem Vínculo Empregatício"]),
   criarTipoVinculo(7, "Bolsista", "Temporário", ["Estatutário Civil", "Regime Especial", "Sem Vínculo Empregatício"]),
   criarTipoVinculo(8, "Estabilizado Constitucionalmente", "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial"]),
+  {
+    ...criarTipoVinculo(21, "Contrato Emergencial Extinto", "Temporário", ["Regime Especial"]),
+    descricao: "Tipo de vínculo extinto por alteração da legislação aplicável.",
+    vigencia: "01/01/2020 - 31/12/2024",
+    situacao: "ENCERRADO",
+    dataInicio: "01/01/2020",
+    dataEncerramento: "31/12/2024",
+    motivoEncerramento: "Extinção determinada pela legislação aplicável ao vínculo.",
+  },
+  {
+    ...criarTipoVinculo(22, "Programa Especial Encerrado", "Especial", ["Regime Especial"]),
+    descricao: "Tipo de vínculo encerrado automaticamente após o fim dos vínculos vigentes.",
+    vigencia: "01/01/2018 - 31/12/2023",
+    situacao: "EXTINTO",
+    dataInicio: "01/01/2018",
+    dataEncerramento: "31/12/2023",
+    motivoEncerramento: "Vínculo extinto conforme a legislação do programa especial.",
+    dataExtincao: "30/06/2024",
+  },
   criarTipoVinculo(9, "Empossado em Cargo Eletivo", "Eletivo", ["Estatutário Civil"]),
   criarTipoVinculo(10, "Nomeado Conselheiro", "Comissionado", ["Regime Misto"]),
   criarTipoVinculo(11, "Designação AVNM", "Militar", ["Estatutário Militar"]),
@@ -10945,9 +10964,9 @@ export function PrototiposTipoVinculoTestePage({
       body: (row) => (
         <BadgeSeplag
           label={situacaoBadge(row.situacao).label}
-          color={row.situacao === "ATIVO" ? "#00843d" : "#9a6500"}
-          bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1c7"}
-          border="transparent"
+          color={row.situacao === "ATIVO" ? "#00843d" : "#b42318"}
+          bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1f0"}
+          border={row.situacao === "ATIVO" ? "transparent" : "#f3b4b0"}
           size="md"
         />
       ),
