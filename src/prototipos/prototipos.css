@@ -19773,7 +19773,7 @@
 .prototype-cargo-paired-sections { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: 16px; }
 .prototype-cargo-paired-sections > .prototype-carreira-register-section { min-width: 0; height: 100%; }
 .prototype-cargo-paired-sections .prototype-carreira-vigencia-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.prototype-tipo-vinculo-paired-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 16px; }
+.prototype-tipo-vinculo-paired-sections { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: 16px; }
 .prototype-tipo-vinculo-paired-sections > .prototype-carreira-register-section { min-width: 0; height: 100%; }
 .prototype-tipo-vinculo-paired-sections .prototype-carreira-vigencia-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .prototype-perfil-paired-sections { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: 16px; }
