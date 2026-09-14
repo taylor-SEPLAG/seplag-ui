@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
+import { MultiSelect } from "primereact/multiselect";
 import { CONTROLE_PSS_BASE_PATH as BASE } from "../constants";
 import { cidadesPorEstado, ESTADOS_BRASIL } from "./dominios";
 import { locaisStore, useLocais, type LocalInput } from "./locaisStore";
@@ -14,7 +15,7 @@ export function LocalFormContent() {
  const modoNovo = !id || id === "novo";
  const existente = modoNovo ? undefined : locais.find((item) => item.id === id);
 
- const { register, handleSubmit, watch, setValue } = useForm<LocalInput>({ defaultValues: { estado: existente?.estado ?? "", cidade: existente?.cidade ?? "", nomeLocal: existente?.nomeLocal ?? "" } });
+ const { register, handleSubmit, watch, setValue } = useForm<LocalInput>({ defaultValues: { estado: existente?.estado ?? "", cidade: existente?.cidade ?? [], nomeLocal: existente?.nomeLocal ?? "" } });
  const valores = watch();
  const cidadesDisponiveis = useMemo(() => cidadesPorEstado(valores.estado), [valores.estado]);
  const [erro, setErro] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export function LocalFormContent() {
 
  const salvar = handleSubmit((dados) => {
   setErro(null);
-  if (!dados.estado || !dados.cidade || !dados.nomeLocal.trim()) { setErro("Preencha os campos obrigatórios."); return; }
+  if (!dados.estado || !dados.cidade.length || !dados.nomeLocal.trim()) { setErro("Preencha os campos obrigatórios."); return; }
   if (locaisStore.isDuplicate(dados, existente?.id)) { setErro("Já existe um polo com esse nome cadastrado nessa cidade."); return; }
 
   if (existente) {
@@ -44,17 +45,24 @@ export function LocalFormContent() {
      <div className="prototype-ingresso-import-grid">
       <label className="prototype-ingresso-field">
        <span>Estado<em>*</em></span>
-       <select {...register("estado", { onChange: () => setValue("cidade", "") })}>
+       <select {...register("estado", { onChange: () => setValue("cidade", []) })}>
         <option value="">Selecione...</option>
         {ESTADOS_BRASIL.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
        </select>
       </label>
       <label className="prototype-ingresso-field">
        <span>Cidade<em>*</em></span>
-       <select {...register("cidade")} disabled={!valores.estado}>
-        <option value="">{valores.estado ? "Selecione uma opção" : "Selecione o estado primeiro"}</option>
-        {cidadesDisponiveis.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-       </select>
+       <MultiSelect
+        value={valores.cidade}
+        onChange={(event) => setValue("cidade", event.value ?? [])}
+        options={cidadesDisponiveis}
+        optionLabel="label"
+        optionValue="value"
+        filter
+        display="chip"
+        disabled={!valores.estado}
+        placeholder={valores.estado ? "Selecione uma ou mais opções" : "Selecione o estado primeiro"}
+       />
       </label>
       <label className="prototype-ingresso-field">
        <span>Nome do Polo<em>*</em></span>

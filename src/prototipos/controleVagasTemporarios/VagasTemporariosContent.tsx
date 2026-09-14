@@ -7,19 +7,19 @@ export function VagasTemporariosContent() {
     <main className="prototype-temporarios-efetivos-page">
       <header>
         <span>Controle de Vagas</span>
-        <h1>Vagas Temporários</h1>
+        <h1>Contratos Temporários</h1>
         <p>Selecione uma opção para consultar e gerenciar as vagas dos servidores temporários.</p>
       </header>
       <nav className="prototype-temporarios-efetivos-options" aria-label="Opções de vagas de temporários">
         <Link to={`${BASE}/quadro-autorizado`}>
           <i className="pi pi-book" aria-hidden="true" />
-          <h2>Quadro Autorizado</h2>
+          <h2>Quadro Vagas Contratos Temporários</h2>
           <p>Consulte os cargos, a base legal e os quantitativos autorizados.</p>
           <span>Acessar quadro <i className="pi pi-arrow-right" aria-hidden="true" /></span>
         </Link>
         <Link to={`${BASE}/vagas`}>
           <i className="pi pi-id-card" aria-hidden="true" />
-          <h2>Vagas Individualizadas</h2>
+          <h2>Vagas Contratos Temporários</h2>
           <p>Acompanhe a situação, a ocupação e o histórico de cada vaga.</p>
           <span>Acessar vagas <i className="pi pi-arrow-right" aria-hidden="true" /></span>
         </Link>

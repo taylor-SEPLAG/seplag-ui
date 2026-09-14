@@ -5,7 +5,7 @@ export type SituacaoLocal = "ATIVO" | "INATIVO";
 export interface Local {
  id:string;
  estado:string; // sigla da UF
- cidade:string;
+ cidade:string[];
  nomeLocal:string;
  situacao:SituacaoLocal;
 }
@@ -13,7 +13,7 @@ export interface Local {
 export type LocalInput = Pick<Local, "estado" | "cidade" | "nomeLocal">;
 
 function criar(id:string, nomeLocal:string, cidade:string, estado = "MT"):Local {
- return { id, nomeLocal, cidade, estado, situacao:"ATIVO" };
+ return { id, nomeLocal, cidade:[cidade], estado, situacao:"ATIVO" };
 }
 
 let locais:Local[] = [
@@ -39,7 +39,13 @@ export const locaisStore = {
  getSnapshot: () => locais,
  findById: (id:string) => locais.find((local) => local.id === id),
  isDuplicate(input:LocalInput, ignoredId?:string) {
-  return locais.some((local) => local.id !== ignoredId && local.estado === input.estado && local.cidade === input.cidade && local.nomeLocal.trim().toLocaleLowerCase("pt-BR") === input.nomeLocal.trim().toLocaleLowerCase("pt-BR"));
+  const nome = input.nomeLocal.trim().toLocaleLowerCase("pt-BR");
+  return locais.some((local) =>
+   local.id !== ignoredId &&
+   local.estado === input.estado &&
+   local.nomeLocal.trim().toLocaleLowerCase("pt-BR") === nome &&
+   local.cidade.some((cidade) => input.cidade.includes(cidade)),
+  );
  },
  create(input:LocalInput) {
   const local:Local = { ...input, id:`local-${Date.now()}`, situacao:"ATIVO" };

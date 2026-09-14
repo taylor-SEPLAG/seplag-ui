@@ -12,13 +12,14 @@ export const certamesListScreenSpecification = spec(
 
 export const certamesListBlockSpecifications = {
  aviso: spec("PSS-CERT-LST-BLC-001", "Origem do cadastro", "Esclarecer que, diferente de 'Processos Seletivos', este cadastro é escrito no SIGEP.", "RN-01 a RN-16 — o cadastro replica a estrutura da tela 253 do CEAP já validada pelo TCE-MT.", "Regra do módulo.", "estático", "faixa informativa"),
- lista: spec("PSS-CERT-LST-BLC-002", "Lista de certames", "Selecionar o certame a visualizar ou editar.", "Cada linha exibe número/nome do edital, órgão mandante (RN-05), tipo (RN-01) e situação atual (RN-15). RN-06.5 — cada linha traz os atalhos Visualizar, Editar e Reverter/Histórico vinculados à situação do registro, sem exigir abertura prévia.", "Certame[] filtrados.", "Certame[]", "tabela selecionável", "/prototipos/sigep/controle-pss/certames/:id"),
+ lista: spec("PSS-CERT-LST-BLC-002", "Lista de certames", "Selecionar o certame a visualizar ou editar.", "Cada linha exibe Nº do certame (TCE-MT — RN-03), ano, nome do edital, órgão mandante (RN-05), tipo (RN-01) e situação atual (RN-15). RN-06.5 — cada linha traz os atalhos Visualizar, Editar e Reverter/Histórico vinculados à situação do registro, sem exigir abertura prévia.", "Certame[] filtrados.", "Certame[]", "tabela selecionável", "/prototipos/sigep/controle-pss/certames/:id"),
 } satisfies Record<string, SpecificationMetadata>;
 
 export const certamesListFilterSpecifications: Record<string, SpecificationMetadata> = {
- "Órgão": spec("PSS-CERT-LST-FLT-001", "Órgão", "Restringir a lista ao órgão mandante do certame.", "RN-05 — apenas o órgão mandante figura como responsável pela prestação de contas.", "Certame.setor.", "string", "select simples"),
- "Exercício": spec("PSS-CERT-LST-FLT-002", "Exercício", "Restringir a lista ao ano do certame.", "RN-03 — o número do certame do TCE-MT é sequencial e zera a cada exercício.", "Certame.anoConcurso.", "number", "select simples"),
- "Tipo": spec("PSS-CERT-LST-FLT-003", "Tipo de certame", "Restringir a lista a Concurso Público ou PSS.", "RN-01 — são os únicos dois tipos utilizados pela SEPLAG.", "Certame.tipoCertame.", "TipoCertame", "select simples"),
+ "Ano": spec("PSS-CERT-LST-FLT-002", "Ano", "Restringir a lista ao ano do certame.", "RN-03 — o número do certame do TCE-MT é sequencial e zera a cada exercício.", "Certame.anoConcurso.", "number", "select simples"),
+ "Nome do edital": spec("PSS-CERT-LST-FLT-005", "Nome do edital", "Restringir a lista ao nome do edital do certame.", "Certame.nomeEdital identifica o edital de forma legível, além do Nº do certame (TCE-MT).", "Certame.nomeEdital.", "string", "select simples"),
+ "Órgão mandante": spec("PSS-CERT-LST-FLT-001", "Órgão mandante", "Restringir a lista ao órgão mandante do certame.", "RN-05 — apenas o órgão mandante figura como responsável pela prestação de contas.", "Certame.setor.", "string", "select simples"),
+ "Tipo do certame": spec("PSS-CERT-LST-FLT-003", "Tipo de certame", "Restringir a lista a Concurso Público ou PSS.", "RN-01 — são os únicos dois tipos utilizados pela SEPLAG.", "Certame.tipoCertame.", "TipoCertame", "select simples"),
  "Situação": spec("PSS-CERT-LST-FLT-004", "Situação", "Restringir a lista pela situação atual do certame.", "RN-15 — nove situações possíveis, cada uma com prazo próprio de prestação de contas.", "Certame.situacaoAtual.", "SituacaoCertame", "select simples"),
 };
 

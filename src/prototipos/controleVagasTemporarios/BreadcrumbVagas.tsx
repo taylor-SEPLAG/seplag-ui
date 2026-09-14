@@ -11,10 +11,10 @@ export function BreadcrumbVagas() {
     dashboard: "Dashboard", configuracoes: "Regras e Parâmetros",
     distribuicao: "Distribuição", redistribuicao: "Redistribuição",
     movimentacoes: "Movimentações", cessoes: "Cessões", projecoes: "Projeções",
-    "quadro-autorizado": "Quadro Autorizado", vagas: "Vagas Individualizadas",
+    "quadro-autorizado": "Quadro Contratos Temporários", vagas: "Vagas Contratos Temporários",
   };
   const categoria = true;
-  if (categoria) items.push({ label: "Vagas Temporários", to: "/prototipos/sigep/controle-vagas/temporarios" });
+  if (categoria) items.push({ label: "Vagas Contratos Temporários", to: "/prototipos/sigep/controle-vagas/temporarios" });
   const tela = partes[0];
   if (telas[tela]) items.push({ label: telas[tela], to: base + "/" + tela });
   if (partes.length > 1) {

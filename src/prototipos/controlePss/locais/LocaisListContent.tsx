@@ -23,7 +23,7 @@ export function LocaisListContent() {
   const termo = normalizar(nomeFiltro.trim());
   return locais.filter((local) =>
    (!termo || normalizar(local.nomeLocal).includes(termo)) &&
-   (!cidadeFiltro || `${local.cidade}/${local.estado}` === cidadeFiltro),
+   (!cidadeFiltro || local.cidade.some((cidade) => `${cidade}/${local.estado}` === cidadeFiltro)),
   );
  }, [locais, nomeFiltro, cidadeFiltro]);
 
@@ -76,7 +76,7 @@ export function LocaisListContent() {
         : listaPaginada.map((row:Local) => (
          <tr key={row.id}>
           <td>{row.nomeLocal}</td>
-          <td>{row.cidade}/{row.estado}</td>
+          <td>{row.cidade.map((cidade) => `${cidade}/${row.estado}`).join(", ")}</td>
           <td><span className={`prototype-locais-status ${row.situacao === "ATIVO" ? "is-active" : "is-inactive"}`}>{row.situacao === "ATIVO" ? "Ativo" : "Inativo"}</span></td>
           <td>
            <div className="flex gap-2">

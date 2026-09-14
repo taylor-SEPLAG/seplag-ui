@@ -18,7 +18,12 @@ export const certamesMock: Certame[] = [
   diasPrazoExercicio:15, diasPrazoPosse:30,
   houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
   cotas:[{ id:"COTA-1", tipo:"PCD", lei:["LEI-6752-1995"] }],
-  cargos:[{ id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", cidades:["CUIABA"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:20, reservasCota:[{ id:"RSV-1", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10, quadroCodigo:"QA-0012", quadroVersao:1 }],
+  // Exemplo de certame com múltiplos cargos/vagas — 3 cargos, somando 47 vagas no total.
+  cargos:[
+   { id:"CGV-1", vinculo:"NOVO", cargoNome:"Professor — Língua Portuguesa", cidades:["CUIABA"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:20, reservasCota:[{ id:"RSV-1", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10, quadroCodigo:"QA-0012", quadroVersao:1 },
+   { id:"CGV-7", vinculo:"NOVO", cargoNome:"Professor — Matemática", cidades:["CUIABA"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:15, reservasCota:[{ id:"RSV-6", tipo:"PCD", quantidade:1 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:6, quadroCodigo:"QA-0013", quadroVersao:1 },
+   { id:"CGV-8", vinculo:"NOVO", cargoNome:"Professor — Ciências", cidades:["VARZEA-GRANDE"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:12, reservasCota:[], aceitaCadastroReserva:false, quadroCodigo:"QA-0014", quadroVersao:1 },
+  ],
   fases:[...FASES_TCE_FIXAS],
   documentos:[
    { tipo:"JUSTIFICATIVA_ABERTURA", nomeArquivo:"justificativa-pss-seduc-2026.pdf", anexadoEm:"05/02/2026" },
@@ -61,7 +66,11 @@ export const certamesMock: Certame[] = [
    { id:"COTA-2", tipo:"PCD", lei:["LEI-6752-1995"] },
    { id:"COTA-3", tipo:"INDIGENAS", lei:["LC-600-2017"] },
   ],
-  cargos:[{ id:"CGV-2", vinculo:"EXISTENTE", cargoExistenteId:"CGO-AUDITOR-FISCAL", cargoNome:"Auditor Fiscal", codigoReferenciaTce:"001", quantidadeVagas:30, reservasCota:[{ id:"RSV-2", tipo:"PCD", quantidade:3 }], aceitaCadastroReserva:false, quadroCodigo:"QA-0007", quadroVersao:1 }],
+  // Exemplo de certame com múltiplos cargos/vagas — 2 cargos, somando 35 vagas no total.
+  cargos:[
+   { id:"CGV-2", vinculo:"EXISTENTE", cargoExistenteId:"CGO-AUDITOR-FISCAL", cargoNome:"Auditor Fiscal", codigoReferenciaTce:"001", quantidadeVagas:30, reservasCota:[{ id:"RSV-2", tipo:"PCD", quantidade:3 }], aceitaCadastroReserva:false, quadroCodigo:"QA-0007", quadroVersao:1 },
+   { id:"CGV-9", vinculo:"EXISTENTE", cargoExistenteId:"CGO-ANALISTA-TI", cargoNome:"Analista de TI", codigoReferenciaTce:"001", quantidadeVagas:5, reservasCota:[{ id:"RSV-7", tipo:"PCD", quantidade:1 }], aceitaCadastroReserva:false, quadroCodigo:"QA-0015", quadroVersao:2 },
+  ],
   fases:[...FASES_TCE_FIXAS, { ordem:13, nome:"Curso de Formação (SEPLAG)" }],
   documentos:[
    { tipo:"JUSTIFICATIVA_ABERTURA", nomeArquivo:"justificativa-cp-sefaz-2026.pdf", anexadoEm:"20/12/2025" },
@@ -233,4 +242,27 @@ export const certamesMock: Certame[] = [
   ],
   criadoEm:"02/01/2026", atualizadoEm:"20/07/2026", responsavel:"SUGP/SEPLAG",
  },
-];
+ {
+  id:"CERT-2026-006", tipoCertame:"PSS", tipoConcursoAplic:"4", leiProcessoSeletivoSimplificado:["LC-600-2017"], regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO", setor:"SES", setoresParticipantes:[], objetivo:"Contratação temporária multiprofissional para as unidades estaduais de urgência e emergência.", numeroConcurso:"00000000006", anoConcurso:2026, nomeEdital:"PSS 006/2026/SES — Rede de Urgência", numeroEditalOrgao:"006/2026/SES", dataPublicacaoEdital:"12/08/2026", dataRealizacao:"20/09/2026", dataValidade:"12/08/2027", inicioInscricoesGerais:"15/08/2026", fimInscricoesGerais:"31/08/2026", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG", validadeConcursoDias:365, existePrevisaoRecursos:true, houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, cotas:[{ id:"COTA-8", tipo:"PCD", lei:["LEI-6752-1995"] }],
+  cargos:[
+   { id:"CGV-10", vinculo:"NOVO", cargoNome:"Enfermeiro", cidades:["CUIABA","RONDONOPOLIS"], jornada:"40H", codigoReferenciaTce:"001", quantidadeVagas:24, reservasCota:[{ id:"RSV-8", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:20 },
+   { id:"CGV-11", vinculo:"NOVO", cargoNome:"Técnico de Enfermagem", cidades:["CUIABA","SINOP"], jornada:"40H", codigoReferenciaTce:"001", quantidadeVagas:36, reservasCota:[{ id:"RSV-9", tipo:"PCD", quantidade:3 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:30 },
+   { id:"CGV-12", vinculo:"NOVO", cargoNome:"Fisioterapeuta", cidades:["CUIABA"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:10, reservasCota:[], aceitaCadastroReserva:false },
+  ], fases:[...FASES_TCE_FIXAS], documentos:[], situacaoAtual:"ABERTO", historicoSituacoes:[{ id:"SIT-11", certameId:"CERT-2026-006", tipo:"ABERTO", dataEfeito:"12/08/2026", registradoEm:"12/08/2026 09:00", usuario:"SES", prazoPrestacaoContas:"14/08/2026" }], criadoEm:"05/08/2026", atualizadoEm:"12/08/2026", responsavel:"SES",
+ },
+ {
+  id:"CERT-2026-007", tipoCertame:"PSS", tipoConcursoAplic:"4", leiProcessoSeletivoSimplificado:["LC-600-2017"], regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO", setor:"SEMA", setoresParticipantes:[], objetivo:"Contratação temporária para reforço das equipes de licenciamento e fiscalização ambiental.", numeroConcurso:"00000000007", anoConcurso:2026, nomeEdital:"PSS 007/2026/SEMA — Fiscalização Ambiental", numeroEditalOrgao:"007/2026/SEMA", dataPublicacaoEdital:"18/08/2026", dataRealizacao:"25/09/2026", dataValidade:"18/08/2027", inicioInscricoesGerais:"20/08/2026", fimInscricoesGerais:"06/09/2026", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG", validadeConcursoDias:365, existePrevisaoRecursos:true, houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, cotas:[],
+  cargos:[
+   { id:"CGV-13", vinculo:"NOVO", cargoNome:"Analista Ambiental", cidades:["CUIABA","BARRA-DO-GARCAS"], jornada:"40H", codigoReferenciaTce:"001", quantidadeVagas:18, reservasCota:[], aceitaCadastroReserva:true, quantidadeCadastroReserva:18 },
+   { id:"CGV-14", vinculo:"NOVO", cargoNome:"Técnico Ambiental", cidades:["CUIABA","SINOP"], jornada:"40H", codigoReferenciaTce:"001", quantidadeVagas:22, reservasCota:[], aceitaCadastroReserva:true, quantidadeCadastroReserva:15 },
+   { id:"CGV-15", vinculo:"NOVO", cargoNome:"Geólogo", cidades:["CUIABA"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:6, reservasCota:[], aceitaCadastroReserva:false },
+  ], fases:[...FASES_TCE_FIXAS], documentos:[], situacaoAtual:"ABERTO", historicoSituacoes:[{ id:"SIT-12", certameId:"CERT-2026-007", tipo:"ABERTO", dataEfeito:"18/08/2026", registradoEm:"18/08/2026 10:10", usuario:"SEMA", prazoPrestacaoContas:"20/08/2026" }], criadoEm:"11/08/2026", atualizadoEm:"18/08/2026", responsavel:"SEMA",
+ },
+ {
+  id:"CERT-2026-008", tipoCertame:"PSS", tipoConcursoAplic:"4", leiProcessoSeletivoSimplificado:["LC-600-2017"], regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO", setor:"SETASC", setoresParticipantes:[], objetivo:"Contratação temporária de equipe técnica para a rede estadual de proteção social.", numeroConcurso:"00000000008", anoConcurso:2026, nomeEdital:"PSS 008/2026/SETASC — Proteção Social", numeroEditalOrgao:"008/2026/SETASC", dataPublicacaoEdital:"25/08/2026", dataRealizacao:"04/10/2026", dataValidade:"25/08/2027", inicioInscricoesGerais:"28/08/2026", fimInscricoesGerais:"14/09/2026", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG", validadeConcursoDias:365, existePrevisaoRecursos:false, houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, cotas:[{ id:"COTA-9", tipo:"PPP", lei:["LC-600-2017"] }],
+  cargos:[
+   { id:"CGV-16", vinculo:"NOVO", cargoNome:"Assistente Social", cidades:["CUIABA","CACERES"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:16, reservasCota:[{ id:"RSV-10", tipo:"PPP", quantidade:3 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:12 },
+   { id:"CGV-17", vinculo:"NOVO", cargoNome:"Psicólogo", cidades:["CUIABA","RONDONOPOLIS"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:14, reservasCota:[{ id:"RSV-11", tipo:"PPP", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10 },
+   { id:"CGV-18", vinculo:"NOVO", cargoNome:"Pedagogo", cidades:["CUIABA","SINOP"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:12, reservasCota:[], aceitaCadastroReserva:false },
+  ], fases:[...FASES_TCE_FIXAS], documentos:[], situacaoAtual:"ABERTO", historicoSituacoes:[{ id:"SIT-13", certameId:"CERT-2026-008", tipo:"ABERTO", dataEfeito:"25/08/2026", registradoEm:"25/08/2026 08:30", usuario:"SETASC", prazoPrestacaoContas:"27/08/2026" }], criadoEm:"18/08/2026", atualizadoEm:"25/08/2026", responsavel:"SETASC",
+ }];

@@ -14,7 +14,7 @@ export function BreadcrumbVagas() {
     "quadro-autorizado": "Quadro Autorizado", vagas: "Vagas Individualizadas",
   };
   const categoria = true;
-  if (categoria) items.push({ label: "Vagas Residentes", to: "/prototipos/sigep/controle-vagas/residentes" });
+  if (categoria) items.push({ label: "Vagas Bolsistas", to: "/prototipos/sigep/controle-vagas/residentes" });
   const tela = partes[0];
   if (telas[tela]) items.push({ label: telas[tela], to: base + "/" + tela });
   if (partes.length > 1) {

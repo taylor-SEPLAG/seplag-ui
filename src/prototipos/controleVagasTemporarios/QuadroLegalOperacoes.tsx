@@ -1580,7 +1580,7 @@ const vagasElegiveisRedistribuicao =
               <DropdownFieldSeplag
                 name="quadroDestinoId"
                 control={operacaoControl}
-                label="Quadro Autorizado de destino"
+                label="Quadro Contratos Temporários de destino"
                 required
                 options={opcoesQuadroDestino}
                 optionLabel="label"
@@ -1603,7 +1603,7 @@ const vagasElegiveisRedistribuicao =
                 <strong>{registro.codigo} · {registro.cargo}</strong>
               </div>
             ) : (
-              <MensagemSeplag severity="info" message="Selecione o Quadro Autorizado de destino para informar as quantidades por órgão." />
+              <MensagemSeplag severity="info" message="Selecione o Quadro Contratos Temporários de destino para informar as quantidades por órgão." />
             )}
             <table>
               <thead><tr><th>Órgão</th><th>Distribuídas</th><th>Disponíveis</th><th>Ocupadas</th><th>Comprometidas</th><th>Elegíveis</th><th>Quantidade a transformar</th><th>Destino</th></tr></thead>

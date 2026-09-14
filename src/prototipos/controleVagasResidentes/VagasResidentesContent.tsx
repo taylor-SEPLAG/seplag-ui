@@ -7,10 +7,10 @@ export function VagasResidentesContent() {
     <main className="prototype-residentes-efetivos-page">
       <header>
         <span>Controle de Vagas</span>
-        <h1>Vagas Residentes</h1>
-        <p>Selecione uma opção para consultar e gerenciar as vagas dos residentes.</p>
+        <h1>Vagas Bolsistas</h1>
+        <p>Selecione uma opção para consultar e gerenciar as vagas dos bolsistas.</p>
       </header>
-      <nav className="prototype-residentes-efetivos-options" aria-label="Opções de vagas de residentes">
+      <nav className="prototype-residentes-efetivos-options" aria-label="Opções de vagas de bolsistas">
         <Link to={`${BASE}/quadro-autorizado`}>
           <i className="pi pi-book" aria-hidden="true" />
           <h2>Quadro Autorizado</h2>
