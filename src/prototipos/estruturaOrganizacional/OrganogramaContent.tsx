@@ -27,6 +27,7 @@ type Filtros = {
   nomeOrganograma: string;
   documentoLegal: string;
   busca: string;
+  nivel: string;
   dataAnterior: string;
   dataAtual: string;
 };
@@ -36,10 +37,16 @@ const unidades: Unidade[] = [
   { id: "DS002", codigo: "DS002", nome: "Gabinete do Secretário de Estado", tipo: "Gabinete", nivel: "Direção Superior", superior: "DS001", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
   { id: "DS010", codigo: "DS010", nome: "Secretaria Adjunta de Planejamento e Governo Digital", tipo: "Secretaria Adjunta", nivel: "Direção Superior", superior: "DS002", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
   { id: "DS011", codigo: "DS011", nome: "Secretaria Adjunta de Gestão de Pessoas", tipo: "Secretaria Adjunta", nivel: "Direção Superior", superior: "DS002", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
+  { id: "DS012", codigo: "DS012", nome: "Secretaria Adjunta de Aquisições Governamentais", tipo: "Secretaria Adjunta", nivel: "Direção Superior", superior: "DS002", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
+  { id: "DS013", codigo: "DS013", nome: "Secretaria Adjunta de Administração Sistêmica", tipo: "Secretaria Adjunta", nivel: "Direção Superior", superior: "DS002", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
   { id: "AE020", codigo: "AE020", nome: "Unidade Setorial de Controle Interno - UNISECI", tipo: "Unidade", nivel: "Apoio Estratégico", superior: "DS002", inicioUnidade: "15/03/2021", inicioPosicao: "15/03/2021", atoLegal: "Decreto nº 2.185/2026" },
+  { id: "AE021", codigo: "AE021", nome: "Ouvidoria Setorial", tipo: "Ouvidoria", nivel: "Apoio Estratégico", superior: "DS002", inicioUnidade: "15/03/2021", inicioPosicao: "15/03/2021", atoLegal: "Decreto nº 2.185/2026" },
   { id: "EP100", codigo: "EP100", nome: "Superintendência de Planejamento Estadual", tipo: "Superintendência", nivel: "Execução Programática", superior: "DS010", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
   { id: "EP104", codigo: "EP104", nome: "Superintendência de Governança Digital", tipo: "Superintendência", nivel: "Execução Programática", superior: "DS010", inicioUnidade: "10/05/2022", inicioPosicao: "10/05/2022", atoLegal: "Decreto nº 2.185/2026" },
+  { id: "EP108", codigo: "EP108", nome: "Superintendência de Modernização Organizacional", tipo: "Superintendência", nivel: "Execução Programática", superior: "DS010", inicioUnidade: "10/05/2022", inicioPosicao: "10/05/2022", atoLegal: "Decreto nº 2.185/2026" },
   { id: "EP109", codigo: "EP109", nome: "Coordenadoria de Modelagem Organizacional", tipo: "Coordenadoria", nivel: "Execução Programática", superior: "EP104", inicioUnidade: "15/01/2026", inicioPosicao: "15/01/2026", atoLegal: "Decreto nº 2.185/2026" },
+  { id: "EP200", codigo: "EP200", nome: "Superintendência de Provimento, Aplicação e Monitoramento", tipo: "Superintendência", nivel: "Execução Programática", superior: "DS011", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
+  { id: "EP201", codigo: "EP201", nome: "Coordenadoria de Provimento", tipo: "Coordenadoria", nivel: "Execução Programática", superior: "EP200", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
 ];
 
 const comparacoes = [
@@ -58,29 +65,32 @@ export function OrganogramaContent() {
       nomeOrganograma: "Estrutura Organizacional SEPLAG - 2026",
       documentoLegal: "Decreto nº 2.185, de 03/07/2026",
       busca: "",
+      nivel: "Todos os níveis",
       dataAnterior: "2025-01-01",
       dataAtual: "2026-09-14",
     },
   });
   const [visao, setVisao] = useState<"arvore" | "lista">("arvore");
   const [comparar, setComparar] = useState(false);
+  const [expandido, setExpandido] = useState(false);
   const [selecionada, setSelecionada] = useState<Unidade | null>(null);
   const busca = watch("busca");
+  const nivel = watch("nivel");
   const dataAnterior = watch("dataAnterior");
   const dataAtual = watch("dataAtual");
 
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
-    if (!termo) return unidades;
     return unidades.filter((unidade) =>
-      `${unidade.codigo} ${unidade.nome} ${unidade.tipo} ${unidade.nivel}`
+      (nivel === "Todos os níveis" || unidade.nivel === nivel) &&
+      (!termo || `${unidade.codigo} ${unidade.nome} ${unidade.tipo} ${unidade.nivel}`
         .toLocaleLowerCase("pt-BR")
-        .includes(termo),
+        .includes(termo)),
     );
-  }, [busca]);
+  }, [busca, nivel]);
 
   const idsVisiveis = useMemo(() => {
-    if (!busca.trim()) return new Set(unidades.map((unidade) => unidade.id));
+    if (!busca.trim() && nivel === "Todos os níveis") return new Set(unidades.map((unidade) => unidade.id));
     const ids = new Set(filtradas.map((unidade) => unidade.id));
     filtradas.forEach((unidade) => {
       let superior = unidade.superior;
@@ -90,10 +100,28 @@ export function OrganogramaContent() {
       }
     });
     return ids;
-  }, [busca, filtradas]);
+  }, [busca, filtradas, nivel]);
 
   const nomeSuperior = (unidade: Unidade) =>
     unidades.find((item) => item.id === unidade.superior)?.nome ?? "Sem unidade superior";
+
+  const profundidade = (unidade: Unidade) => {
+    let valor = 0;
+    let superior = unidade.superior;
+    while (superior) {
+      valor += 1;
+      superior = unidades.find((item) => item.id === superior)?.superior ?? null;
+    }
+    return valor;
+  };
+
+  const exportarPdf = () => {
+    document.body.classList.add("organograma-print-mode");
+    const limpar = () => document.body.classList.remove("organograma-print-mode");
+    window.addEventListener("afterprint", limpar, { once: true });
+    window.print();
+    window.setTimeout(limpar, 1000);
+  };
 
   const NoArvore = ({ unidade, raiz = false }: { unidade: Unidade; raiz?: boolean }) => {
     const filhos = unidades.filter(
@@ -180,18 +208,23 @@ export function OrganogramaContent() {
         <PanelSeplag className="organograma-panel organograma-consulta">
           <div className="organograma-toolbar">
             <div className="organograma-view-switch" aria-label="Modo de visualização">
-              <BotaoSeplag label="Árvore (Organograma)" icon="pi pi-sitemap" outlined={visao !== "arvore"} onClick={() => setVisao("arvore")} />
-              <BotaoSeplag label="Lista" icon="pi pi-list" outlined={visao !== "lista"} onClick={() => setVisao("lista")} />
+              <BotaoSeplag label="Organograma" icon="pi pi-sitemap" outlined={visao !== "arvore"} onClick={() => setVisao("arvore")} />
+              <BotaoSeplag label="Árvore / Lista" icon="pi pi-list" outlined={visao !== "lista"} onClick={() => setVisao("lista")} />
+              <BotaoSeplag label={expandido ? "Fechar tela cheia" : "Expandir"} icon={expandido ? "pi pi-times" : "pi pi-window-maximize"} outlined onClick={() => setExpandido((valor) => !valor)} />
+              <BotaoSeplag label="Exportar PDF" icon="pi pi-file-pdf" outlined onClick={exportarPdf} />
             </div>
-            <div className="organograma-search">
-              <TextFieldSeplag name="busca" control={control} label="Pesquisar" placeholder="Buscar por código, nome, tipo ou nível" cols="12" getFormErrorMessage={semErro} />
-              {visao === "lista" && (
+          </div>
+          <div className="grid organograma-filters">
+            <TextFieldSeplag name="busca" control={control} label="Pesquisar unidade" placeholder="Buscar por código, nome, tipo ou nível" cols="12 6 5" getFormErrorMessage={semErro} />
+            <DropdownFieldSeplag name="nivel" control={control} label="Filtrar por nível" cols="12 6 3" options={opcoes(["Todos os níveis", "Direção Superior", "Apoio Estratégico", "Execução Programática"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
+            {visao === "lista" && (
+              <div className="col-12 md:col-4 organograma-compare-wrap">
                 <label className="organograma-compare-toggle">
                   <input type="checkbox" checked={comparar} onChange={(event) => setComparar(event.target.checked)} />
                   <span>Comparar períodos</span>
                 </label>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </PanelSeplag>
 
@@ -217,10 +250,19 @@ export function OrganogramaContent() {
         )}
 
         <PanelSeplag
-          title={visao === "arvore" ? "Estrutura hierárquica" : comparar ? "Comparação da estrutura" : "Relação de unidades"}
-          description={visao === "arvore" ? "Selecione uma unidade no organograma para consultar os detalhes." : "Consulte a composição e a posição hierárquica das unidades."}
-          className="organograma-panel organograma-result"
+          title={visao === "arvore" ? "Estrutura hierárquica" : comparar ? "Comparação da estrutura" : "Estrutura da SEPLAG"}
+          description={visao === "arvore" ? "Selecione uma unidade no organograma para consultar os detalhes." : comparar ? "Consulte as alterações entre os períodos selecionados." : "Cadastro baseado na estrutura definida no Decreto nº 2.185/2026."}
+          className={`organograma-panel organograma-result ${expandido ? "is-expanded" : ""}`}
         >
+          {expandido && (
+            <div className="organograma-expanded-toolbar">
+              <strong>Estrutura da SEPLAG</strong>
+              <div className="organograma-expanded-actions">
+                <BotaoSeplag label="Exportar PDF" icon="pi pi-file-pdf" outlined onClick={exportarPdf} />
+                <BotaoSeplag label="Fechar tela cheia" icon="pi pi-times" outlined onClick={() => setExpandido(false)} />
+              </div>
+            </div>
+          )}
           {visao === "arvore" ? (
             <div className="organograma-tree-canvas">
               <div className="organograma-tree">
@@ -243,20 +285,14 @@ export function OrganogramaContent() {
               </table>
             </div>
           ) : (
-            <div className="organograma-table-scroll">
-              <table className="organograma-table">
-                <thead><tr><th>Código e nome da unidade</th><th>Nível organizacional</th><th>Tipo</th><th>Unidade superior</th><th>Vigência da posição</th><th>Ações</th></tr></thead>
-                <tbody>
-                  {filtradas.map((unidade) => (
-                    <tr key={unidade.id}>
-                      <td><strong>{unidade.codigo}</strong><span>{unidade.nome}</span></td>
-                      <td>{unidade.nivel}</td><td><span className="organograma-type">{unidade.tipo}</span></td>
-                      <td>{nomeSuperior(unidade)}</td><td>{unidade.inicioPosicao} a {unidade.fimPosicao ?? "Atual"}</td>
-                      <td><BotaoSeplag label="Detalhes" icon="pi pi-eye" outlined onClick={() => setSelecionada(unidade)} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="organograma-hierarchy-list">
+              {filtradas.map((unidade) => (
+                <button type="button" key={unidade.id} className="organograma-hierarchy-row" style={{ paddingLeft: `${12 + profundidade(unidade) * 22}px` }} onClick={() => setSelecionada(unidade)}>
+                  <strong>{unidade.codigo} - {unidade.nome}</strong>
+                  <span>{unidade.nivel} <i>•</i> Superior: {nomeSuperior(unidade)}</span>
+                </button>
+              ))}
+              {filtradas.length === 0 && <p className="organograma-empty">Nenhuma unidade encontrada.</p>}
             </div>
           )}
           <div className="organograma-result-summary">
