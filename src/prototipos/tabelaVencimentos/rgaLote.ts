@@ -1,4 +1,8 @@
-﻿import type {
+import {
+  isRgaVigenciaWithinTable,
+  RGA_VIGENCIA_FORA_TABELA,
+} from "./rgaVigencia";
+import type {
   MatrixData,
   TabelaSalva,
   Versao,
@@ -74,21 +78,24 @@ export function validateBatch(
     new Date(params.vigencia).toISOString().slice(0, 10) !== params.vigencia
   )
     errors.push("Informe uma vigência válida.");
-  if (params.fim && params.fim < params.vigencia)
-    errors.push(
-      "A data fim da vigência do RGA não pode ser anterior à data de início.",
-    );
+  if (params.fim && params.vigencia && params.fim < params.vigencia)
+    errors.push(RGA_VIGENCIA_FORA_TABELA);
   if (!params.baseLegal) errors.push("Selecione a base legal obrigatória.");
   journeys.forEach((journey) => {
     const prefix = journey.cargo + " — " + journey.jornada + ": ";
     if (!journey.incideRga) errors.push(prefix + "Incide RGA = Não.");
     if (!journey.item) errors.push(prefix + "não existe versão vigente.");
     else {
-      if (params.vigencia <= iso(journey.item.inicio))
-        errors.push(
-          prefix +
-            "a nova vigência deve ser posterior ao início da versão vigente.",
-        );
+      if (
+        !isRgaVigenciaWithinTable(
+          iso(journey.item.inicio),
+          journey.item.fim ? iso(journey.item.fim) : undefined,
+          params.vigencia,
+          params.fim,
+        ) &&
+        !errors.includes(RGA_VIGENCIA_FORA_TABELA)
+      )
+        errors.push(RGA_VIGENCIA_FORA_TABELA);
       if (
         journey.versions.some(
           (version) =>

@@ -53,7 +53,9 @@ export function RgaLotePage({
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const submitting = useRef(false);
   const docs = useDocumentosLegaisAssociaveis();
-  const journeys = getJourneys().filter((journey) => journey.incideRga);
+  const journeys = getJourneys().filter(
+    (journey) => journey.incideRga && Boolean(journey.item),
+  );
   const normalize = (text: string) =>
     text
       .normalize("NFD")
@@ -146,30 +148,29 @@ export function RgaLotePage({
   const footer = (
     <div className="tv-batch-footer">
       <div className="tv-batch-footer-left">
-        <BotaoVoltarSeplag
-          type="button"
-          label="Cancelar"
-          icon="pi pi-times"
-          onClick={onClose}
-        />
         <span>{selected.length} jornadas selecionadas</span>
       </div>
       <div>
-        {step > 0 && (
-          <BotaoVoltarSeplag
-            type="button"
-            label="Voltar"
-            onClick={() => {
-              setErrors([]);
+        <BotaoVoltarSeplag
+          type="button"
+          label="Voltar"
+          icon="pi pi-arrow-left"
+          onClick={() => {
+            setErrors([]);
+            if (step > 0) {
               setStep(step - 1);
-            }}
-          />
-        )}
+              return;
+            }
+            onClose();
+          }}
+        />
 
         {step < 2 ? (
           <BotaoSeplag
             type="button"
             label="Avançar"
+            icon="pi pi-arrow-right"
+            iconPos="right"
             disabled={!selected.length}
             onClick={advance}
           />

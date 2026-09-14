@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   createBatch,
   resolveJourneyVersions,
@@ -128,7 +128,20 @@ describe("RGA em lote por jornada", () => {
       validateBatch([journey()], { ...params, vigencia: "2027-02-31" }).join(),
     ).toContain("vigência válida");
   });
-  it("ativa a versão na vigência sem mutar os registros históricos", () => {
+  it("aceita vigência do RGA no início da tabela e bloqueia período externo", () => {
+    expect(
+      validateBatch([journey()], { ...params, vigencia: "2026-01-01" }),
+    ).toEqual([]);
+
+    const tabelaComFim = journey();
+    tabelaComFim.item = { ...tabelaComFim.item!, fim: "31/12/2026" };
+    tabelaComFim.versions = [tabelaComFim.item];
+    expect(
+      validateBatch([tabelaComFim], params),
+    ).toContain(
+      "A vigência do RGA deve estar contida no período de vigência da Tabela de Vencimentos.",
+    );
+  });  it("ativa a versão na vigência sem mutar os registros históricos", () => {
     const records = createBatch(
       [],
       [journey()],
