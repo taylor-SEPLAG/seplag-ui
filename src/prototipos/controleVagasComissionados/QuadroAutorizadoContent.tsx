@@ -15,6 +15,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import "./quadroAutorizado.css";
+import { NovoQuadroComissionadoContent } from "./NovoQuadroComissionadoContent";
 
 import type {
   EvolucaoQuadroLegal,
@@ -173,7 +174,11 @@ export function QuadroAutorizadoContent() {
     );
   }
 
-  if (isNovo || isEditar) {
+  if (isNovo) {
+    return <NovoQuadroComissionadoContent />;
+  }
+
+  if (isEditar) {
     const registro = id
       ? quadros.find((item) => item.id === Number(id))
       : undefined;
