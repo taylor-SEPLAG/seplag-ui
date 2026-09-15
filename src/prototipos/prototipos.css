@@ -163,6 +163,7 @@
 .prototype-shell {
   min-height: 100vh;
   height: auto;
+  overflow: visible;
 }
 
 .prototype-shell .layout-wrapper {
@@ -174,12 +175,21 @@
 .prototype-shell .layout-main {
   min-height: 100vh;
   height: auto;
+  display: flex;
+  flex-direction: column;
   overflow: visible;
 }
 
 .prototype-shell .layout-scroll {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   min-height: calc(100vh - 60px);
-  overflow-y: visible;
+  overflow: visible;
+}
+
+.prototype-shell .layout-content {
+  flex: 1;
 }
 
 .prototype-shell .layout-sidebar {

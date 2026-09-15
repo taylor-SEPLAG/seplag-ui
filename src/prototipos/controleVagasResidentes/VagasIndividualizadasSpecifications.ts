@@ -1,43 +1,179 @@
 import type { SpecificationMetadata } from "../shared/visualizationModes";
 
-const story = "Como gestor de vagas, quero consultar cada vaga numerada e sua situação completa, para identificar fundamento legal, ocupação, distribuição, ingressos ativos e histórico.";
-const filters = "Quadro Autorizado, órgão, nome da vaga, ocupante atual, ingresso/ocupação e situação legal.";
-const spec = (id: string, title: string, description: string, businessRule: string, source: string, dataType: string, component: string, route?: string, behavior?: string): SpecificationMetadata => ({ id, title, description, businessRule, source, dataType, component, route, behavior, filters, userStory: story, status: "CONFIRMADO" });
+const story =
+  "Como gestor de bolsas, quero consultar cada vaga de bolsa para acompanhar sua distribuição, seleção e vínculo ativo.";
 
-export const vagasScreenSpecification = spec("CV-RESIDENTES-VAG", "Vagas Individualizadas", "Consultar a identidade, posição operacional, fundamento legal, ocupação e histórico de cada vaga numerada.", "Cada vaga pertence a um Quadro Autorizado e mantém histórico imutável. O nome da vaga é atribuído após a distribuição formal, reinicia a numeração em cada órgão e vagas pendentes de ato não compõem a listagem. A tela é consultiva: ocupações e comprometimentos são recebidos dos processos responsáveis.", "Quadro Autorizado, Vaga, OcupacaoVaga, ComprometimentoVaga e MovimentoVagaIndividual.", "VagasIndividualizadasViewModel", "Página React conectada ao store", "/prototipos/sigep/controle-vagas/residentes/vagas", "Filtros restringem a lista; olhos controlam somente a visibilidade das colunas; o detalhe reúne a memória integral da vaga.");
+const spec = (
+  id: string,
+  title: string,
+  description: string,
+  businessRule: string,
+  source: string,
+  dataType: string,
+  component: string,
+  route?: string,
+  behavior?: string,
+): SpecificationMetadata => ({
+  id,
+  title,
+  description,
+  businessRule,
+  source,
+  dataType,
+  component,
+  route,
+  behavior,
+  filters:
+    "Quadro Autorizado Bolsistas, órgão, vaga de bolsa, bolsista atual e situação.",
+  userStory: story,
+  status: "CONFIRMADO",
+});
+
+export const vagasScreenSpecification = spec(
+  "CV-BOLSISTAS-VAG",
+  "Vagas Individualizadas Bolsistas",
+  "Consultar as vagas de bolsa vinculadas a um quadro autorizado, com a situação de distribuição, seleção ou bolsa ativa.",
+  "Cada vaga pertence a um Quadro Autorizado Bolsistas e a um cargo bolsista. A tela é consultiva e não administra carreira, posse, exercício ou movimentações funcionais.",
+  "Quadro Autorizado Bolsistas, Vaga e dados de alocação da bolsa.",
+  "VagaBolsistaView",
+  "Página React conectada ao store",
+  "/prototipos/sigep/controle-vagas/bolsistas/vagas",
+  "Filtros restringem a lista e a visualização abre o resumo da vaga de bolsa.",
+);
 
 export const vagasKpiSpecifications: Record<string, SpecificationMetadata> = {
-  "Vagas distribuídas": spec("CV-RESIDENTES-VAG-KPI-001", "Vagas distribuídas", "Quantidade de vagas com distribuição formal no quadro consultado.", "Somente vagas distribuídas recebem nome da vaga e compõem a listagem.", "Vaga[] e MovimentoVagaIndividual[].", "integer", "KPI"),
-  "Pendentes de distribuição": spec("CV-RESIDENTES-VAG-KPI-006", "Pendentes de distribuição", "Quantidade de vagas autorizadas que ainda não possuem distribuição formal.", "Exibir somente o total no card; essas vagas não recebem nome da vaga e não aparecem na tabela.", "Vaga[] e posição de distribuição.", "integer", "KPI"),
-  Disponíveis: spec("CV-RESIDENTES-VAG-KPI-002", "Disponíveis", "Vagas cujo estado atual permite ocupação, observadas as demais restrições.", "Estado DISPONIVEL não significa necessariamente livre: a vaga pode estar Em ocupação ou possuir situação legal especial.", "Vaga.estado e comprometimentos.", "integer", "KPI"),
-  Ocupadas: spec("CV-RESIDENTES-VAG-KPI-003", "Ocupadas", "Vagas associadas a uma ocupação nominal ativa.", "Cada ocupação ativa deve corresponder a uma vaga em estado OCUPADA.", "Vaga.estado e OcupacaoVaga ativa.", "integer", "KPI"),
-  "Em ocupação": spec("CV-RESIDENTES-VAG-KPI-007", "Em ocupação", "Vagas distribuídas e disponíveis que estão vinculadas a um processo de ingresso ativo.", "Aguardando análise, Em análise, Aguardando efetivo exercício e Posse suspensa mantêm a vaga comprometida; o efetivo exercício encerra o processo e cria a ocupação.", "ComprometimentoVaga ativo de natureza OCUPACAO.", "integer", "KPI"),
-  "Situação legal especial": spec("CV-RESIDENTES-VAG-KPI-004", "Situação legal especial", "Vagas em decisão judicial, extinção ou transformação.", "Situação legal especial deve permanecer rastreável e pode restringir nova ocupação ou movimentação.", "Vaga.situacaoLegal.", "integer", "KPI"),
+  "Vagas de bolsas autorizadas": spec(
+    "CV-BOLSISTAS-VAG-KPI-001",
+    "Vagas de bolsas autorizadas",
+    "Total de vagas originadas nos quadros bolsistas.",
+    "Cada quadro autorizado pode originar vagas numeradas conforme seu quantitativo.",
+    "Quadro Autorizado Bolsistas e Vaga.",
+    "integer",
+    "KPI",
+  ),
+  "Pendentes de distribuição": spec(
+    "CV-BOLSISTAS-VAG-KPI-002",
+    "Pendentes de distribuição",
+    "Vagas ainda sem órgão definido.",
+    "A vaga pendente não possui órgão de alocação.",
+    "Vaga.orgaoTitular.",
+    "integer",
+    "KPI",
+  ),
+  Disponíveis: spec(
+    "CV-BOLSISTAS-VAG-KPI-003",
+    "Disponíveis",
+    "Vagas já distribuídas e prontas para serem ocupadas.",
+    "A vaga disponível já foi distribuída e não possui processo de ingresso nem bolsista ativo.",
+    "Vaga e alocações da bolsa.",
+    "integer",
+    "KPI",
+  ),
+  "Em ocupação": spec(
+    "CV-BOLSISTAS-VAG-KPI-004",
+    "Em ocupação",
+    "Vagas envolvidas em processo de ingresso de bolsista.",
+    "A reserva permanece até a alocação ser concluída ou cancelada.",
+    "Comprometimento de vaga.",
+    "integer",
+    "KPI",
+  ),
+  "Ocupadas": spec(
+    "CV-BOLSISTAS-VAG-KPI-005",
+    "Ocupadas",
+    "Vagas já preenchidas por um bolsista.",
+    "Uma bolsa ativa ocupa uma vaga de bolsa até seu encerramento.",
+    "Ocupação da vaga.",
+    "integer",
+    "KPI",
+  ),
 };
 
 export const vagasFilterSpecifications: Record<string, SpecificationMetadata> = {
-  Identificador: spec("CV-RESIDENTES-VAG-FLT-001", "Nome da vaga", "Localizar uma vaga pelo seu nome individual.", "Pesquisar exclusivamente o nome da vaga; o olho controla a coluna sem alterar o filtro.", "Vaga.id.", "string", "campo de busca"),
-  Órgão: spec("CV-RESIDENTES-VAG-FLT-002", "Órgão", "Restringir a consulta ao órgão da distribuição vigente.", "Listar somente órgãos que possuem vagas formalmente distribuídas no Quadro Autorizado selecionado.", "MovimentoVagaIndividual vigente e identificações distribuídas.", "string | vazio", "dropdown pesquisável"),
-  Carreira: spec("CV-RESIDENTES-VAG-FLT-003", "Carreira", "Restringir vagas pela carreira informada no quadro.", "Carreira e cargo permanecem campos distintos.", "Vaga.carreira.", "string | vazio", "dropdown pesquisável"),
-  Cargo: spec("CV-RESIDENTES-VAG-FLT-004", "Cargo", "Restringir vagas pelo cargo legal.", "O cargo deriva do Quadro Autorizado de origem.", "Vaga.cargo.", "string | vazio", "dropdown pesquisável"),
-  Tipo: spec("CV-RESIDENTES-VAG-FLT-005", "Tipo", "Separar vagas efetivas e comissionadas.", "O Controle de Vagas trata somente cargos efetivos e comissionados.", "Vaga.tipo.", "enum | vazio", "dropdown"),
-  Estado: spec("CV-RESIDENTES-VAG-FLT-006", "Estado", "Separar vagas disponíveis e ocupadas.", "O estado só muda no evento definitivo; comprometimento não substitui o estado.", "Vaga.estado.", "enum | vazio", "dropdown"),
-  Comprometimento: spec("CV-RESIDENTES-VAG-FLT-007", "Ingresso/ocupação", "Localizar vagas sem ingresso ativo ou em uma das fases do processo de ocupação.", "A fase é recebida do Ingresso do Servidor; Aguardando análise, Em análise, Aguardando Efetivo Exercício e Posse Suspensa mantêm a vaga disponível e comprometida. Ingresso concluído encerra o processo; Em exercício representa a ocupação ativa atual.", "ComprometimentoVaga ativo de natureza OCUPACAO e sua fase atual.", "enum | vazio", "dropdown"),
-  Ocupação: spec("CV-RESIDENTES-VAG-FLT-008", "Ocupação", "Consultar vaga por condição e histórico de ocupação.", "Distinguir ocupante atual, ocupante anterior e ausência de histórico.", "OcupacaoVaga[].", "enum | vazio", "dropdown"),
-  "Situação legal": spec("CV-RESIDENTES-VAG-FLT-009", "Situação legal", "Restringir vagas pela condição jurídica atual.", "Regular, decisão judicial, em extinção, extinta ou em transformação são condições versionadas e rastreáveis.", "Vaga.situacaoLegal.", "enum | vazio", "dropdown"),
-  Lei: spec("CV-RESIDENTES-VAG-FLT-010", "Lei", "Localizar vagas pelo fundamento legal do quadro.", "A vaga deve apontar para base legal existente e vinculada ao respectivo quadro.", "Vaga.lei.", "string | vazio", "dropdown pesquisável"),
-  "Ocupante atual": spec("CV-RESIDENTES-VAG-FLT-011", "Ocupante atual", "Localizar vagas pelo ocupante atual.", "Pesquisar somente a ocupação ativa pelo nome da pessoa, matrícula ou CPF; ocupações encerradas não devem corresponder ao filtro.", "OcupacaoVaga ativa: pessoaNome, matricula e cpf.", "string | vazio", "campo de busca"),
+  Quadro: spec(
+    "CV-BOLSISTAS-VAG-FLT-001",
+    "Quadro Autorizado Bolsistas",
+    "Restringir a consulta ao quadro de bolsas.",
+    "Somente quadros identificados pelo código QAB compõem as opções.",
+    "QuadroAutorizado.codigo.",
+    "string | vazio",
+    "dropdown pesquisável",
+  ),
+  Órgão: spec(
+    "CV-BOLSISTAS-VAG-FLT-002",
+    "Órgão",
+    "Restringir a consulta ao órgão da distribuição.",
+    "A opção lista apenas órgãos com vagas de bolsa distribuídas.",
+    "Vaga.orgaoTitular.",
+    "string | vazio",
+    "dropdown pesquisável",
+  ),
+  "Vaga de bolsa": spec(
+    "CV-BOLSISTAS-VAG-FLT-003",
+    "Vaga de bolsa",
+    "Localizar uma vaga pelo seu identificador.",
+    "A pesquisa considera o identificador exibido da vaga.",
+    "Vaga.codigo.",
+    "string | vazio",
+    "campo de busca",
+  ),
+  "Bolsista atual": spec(
+    "CV-BOLSISTAS-VAG-FLT-004",
+    "Bolsista atual",
+    "Localizar uma bolsa pelo nome do bolsista atualmente vinculado.",
+    "Somente bolsas ativas possuem bolsista atual.",
+    "Ocupação ativa da vaga.",
+    "string | vazio",
+    "campo de busca",
+  ),
+  Situação: spec(
+    "CV-BOLSISTAS-VAG-FLT-005",
+    "Situação",
+    "Separar vagas disponíveis, em seleção e com bolsa ativa.",
+    "A situação é calculada a partir da reserva de seleção e da alocação ativa.",
+    "Vaga, comprometimento e ocupação.",
+    "enum | vazio",
+    "dropdown",
+  ),
 };
 
 export const vagasBlockSpecifications: Record<string, SpecificationMetadata> = {
-  Tabela: spec("CV-RESIDENTES-VAG-TBL-001", "Consulta das vagas individualizadas", "Exibir nome vigente da vaga, cargo, órgão da distribuição, ocupante, vínculo, ingresso/ocupação e situação legal.", "Ações permanecem visíveis; ocultar coluna modifica somente a apresentação. Os dados de ocupação e comprometimento devem ser conciliados com o estado da vaga.", "Vaga[] e seletores derivados do store.", "table", "tabela paginada"),
-  Detalhe: spec("CV-RESIDENTES-VAG-DTL-001", "Detalhe da vaga", "Apresentar a memória completa de uma vaga numerada.", "Exibir vínculo legal, posição distributiva, ocupação atual e anterior, ingresso ativo e histórico imutável sem permitir edição direta.", "Vaga e entidades relacionadas.", "VagaDetalheViewModel", "modal de consulta"),
+  Tabela: spec(
+    "CV-BOLSISTAS-VAG-TBL-001",
+    "Consulta das vagas de bolsa",
+    "Exibir a vaga de bolsa, cargo bolsista, órgão, bolsista atual e situação.",
+    "A tabela não exibe carreira, cargo efetivo, vínculo funcional, posse ou exercício.",
+    "VagaBolsistaView.",
+    "table",
+    "tabela paginada",
+  ),
+  Detalhe: spec(
+    "CV-BOLSISTAS-VAG-DTL-001",
+    "Detalhe da vaga de bolsa",
+    "Apresentar identificação, autorização e situação atual da bolsa.",
+    "O detalhe registra a origem no quadro, cargo bolsista, órgão e documentos associados.",
+    "VagaBolsistaView.",
+    "modal de consulta",
+    "ModalSeplag",
+  ),
 };
 
 export const vagasActionSpecifications: Record<string, SpecificationMetadata> = {
-  Limpar: spec("CV-RESIDENTES-VAG-ACT-001", "Limpar filtros", "Restaurar a consulta completa.", "Limpar critérios e retornar à primeira página sem alterar a visibilidade das colunas nem os dados.", "Estado local dos filtros.", "void", "botão"),
-  Visualizar: spec("CV-RESIDENTES-VAG-ACT-002", "Visualizar vaga", "Abrir o detalhe integral da vaga selecionada.", "A ação é exclusivamente consultiva e não altera estado, ocupação ou histórico.", "Vaga selecionada.", "dialog", "botão de ação"),
-  Paginação: spec("CV-RESIDENTES-VAG-ACT-003", "Paginação", "Navegar pelos resultados da consulta.", "Usar o componente padrão e permitir 10, 20 ou 50 registros por página.", "pagina, porPagina e totalRecords.", "PaginatorState", "PrimeReact Paginator"),
+  Visualizar: spec(
+    "CV-BOLSISTAS-VAG-ACT-001",
+    "Visualizar vaga de bolsa",
+    "Abrir o detalhe consultivo da vaga selecionada.",
+    "Nenhuma alteração é realizada pela ação de visualização.",
+    "VagaBolsistaView.",
+    "ação",
+    "BotaoIconSeplag",
+  ),
 };
 
-export const vagasBusinessItems = [...Object.values(vagasKpiSpecifications), ...Object.values(vagasFilterSpecifications), ...Object.values(vagasBlockSpecifications), ...Object.values(vagasActionSpecifications)];
+export const vagasBusinessItems = [
+  "O quadro bolsista é identificado pelo código QAB.",
+  "Cada vaga de bolsa pertence a um cargo bolsista e a um quadro autorizado.",
+  "A situação permitida é Disponível, Em ocupação ou Bolsa ativa.",
+  "Não há situação agendada, posse, efetivo exercício, cessão ou remoção neste fluxo.",
+];
+

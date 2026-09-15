@@ -1,4 +1,5 @@
 import { BreadcrumbVagas as BreadcrumbVagasResidentes } from "./controleVagasResidentes/BreadcrumbVagas";
+import { atualizarControleVagasBolsistas } from "./controleVagasResidentes/cargosBolsistasStore";
 import { BreadcrumbVagas as BreadcrumbVagasComissionados } from "./controleVagasComissionados/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTemporarios/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
@@ -283,7 +284,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Vagas Efetivos", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/efetivos`, activeRoutes: [`${CONTROLE_VAGAS_BASE_PATH}/quadro-autorizado`, `${CONTROLE_VAGAS_BASE_PATH}/vagas`], visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vagas Temporários", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/temporarios`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vagas Comissionados", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/comissionados`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vagas Bolsistas", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/residentes`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vagas Bolsistas", icon: "pi pi-circle-on", to: `${CONTROLE_VAGAS_BASE_PATH}/bolsistas`, visibleOnMenu: true, visibleOnRouter: true },
           {
             label: "Regras e Parâmetros",
             icon: "pi pi-circle-on",
@@ -1933,7 +1934,51 @@ const cargosTesteMock: CargoTesteRow[] = [
     tiposVinculo: ["TV003"],
     perfisEspecialidadesIds: [],
   },
-];
+  {
+    id: 6,
+    codigo: "BOLS_NIV_MED",
+    cargo: "Bolsista de Nível Médio",
+    categoria: "Bolsistas",
+    subcategoria: "Estágio",
+    jornadaPadrao: "20H",
+    baseLegal: 1,
+    instituicoes: 0,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO",
+    tiposVinculo: ["TV007"],
+    controleVagasBolsista: true,
+  },
+  {
+    id: 7,
+    codigo: "BOLS_POS_GRAD",
+    cargo: "Bolsista de Pós-Graduação",
+    categoria: "Bolsistas",
+    subcategoria: "Estágio",
+    jornadaPadrao: "20H",
+    baseLegal: 1,
+    instituicoes: 0,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO",
+    tiposVinculo: ["TV007"],
+    controleVagasBolsista: true,
+  },
+  {
+    id: 8,
+    codigo: "RES_TECNICO",
+    cargo: "Residente Técnico",
+    categoria: "Bolsistas",
+    subcategoria: "Residência",
+    jornadaPadrao: "30H",
+    baseLegal: 1,
+    instituicoes: 0,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO",
+    tiposVinculo: ["TV005", "TV007"],
+    controleVagasBolsista: true,
+  },];
 
 const cargoRegrasUsoTesteMock = [
   {
@@ -7832,34 +7877,30 @@ export function PrototiposPerfilEspecialidadePage() {
   const navigate = useNavigate();
   const [pagina, setPagina] = useState(0);
   const [perfilParaEncerrar, setPerfilParaEncerrar] = useState<PerfilEspecialidadeRow | null>(null);
-  const { control, reset, watch } = useForm<{ termo?: string; areaFormacao?: string; situacao?: string }>({ defaultValues: { termo: "", areaFormacao: undefined, situacao: undefined } });
+  const { control, reset, watch } = useForm<{ termo?: string; situacao?: string }>({ defaultValues: { termo: "", situacao: undefined } });
   const filtros = watch();
   const termo = filtros.termo?.trim().toLowerCase();
   const filtrados = perfisEspecialidadesMock.filter((perfil) =>
     (!termo || perfil.nome.toLowerCase().includes(termo) || perfil.cbo.includes(termo)) &&
-    (!filtros.areaFormacao || perfil.areaFormacao === filtros.areaFormacao) &&
     (!filtros.situacao || perfil.situacao === filtros.situacao),
   );
   const registrosPorPagina = 5;
-  useEffect(() => setPagina(0), [filtros.termo, filtros.areaFormacao, filtros.situacao]);
+  useEffect(() => setPagina(0), [filtros.termo, filtros.situacao]);
   const paginados = filtrados.slice(pagina * registrosPorPagina, (pagina + 1) * registrosPorPagina);
   const resultados = { ...createResults(paginados), pageActual: pagina, totalPages: Math.max(1, Math.ceil(filtrados.length / registrosPorPagina)), totalRecords: filtrados.length, sizePage: registrosPorPagina, size: registrosPorPagina };
   const colunas: ColumnMetaSeplag<PerfilEspecialidadeRow>[] = [
     { field: "id", header: "Código" },
     { field: "nome", header: "Perfil Profissional" },
-    { field: "areaFormacao", header: "Área de formação" },
     { field: "cbo", header: "CBO" },
     { header: "Situação", body: (row) => { const badge = situacaoBadge(row.situacao); return <BadgeSeplag label={badge.label} color={badge.color} bg={badge.bg} border={badge.border} size="md" />; } },
   ];
-  const areas = Array.from(new Set(perfisEspecialidadesMock.map((item) => item.areaFormacao))).map((area) => ({ label: area, value: area }));
   return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
     <div className="prototype-page-content prototype-page-content--white">
       <CardSeplag title="Perfis Profissionais" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Cargo e Concurso" }, { label: "Perfil Profissional" }]} />}>
         <div className="prototype-category-filters prototype-carreira-filters grid">
           <TextFieldSeplag name="termo" control={control} label="Perfil Profissional (Nome, CBO)" cols="12 6 5" getFormErrorMessage={() => null} />
-          <DropdownFieldSeplag name="areaFormacao" control={control} label="Área de formação" cols="12 6 3" options={areas} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-          <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 2" options={situacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
-          <div className="prototype-category-clear col-12 md:col-6 lg:col-2"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ termo: "", areaFormacao: undefined, situacao: undefined })} /></div>
+          <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 3" options={situacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+          <div className="prototype-category-clear col-12 md:col-6 lg:col-2"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ termo: "", situacao: undefined })} /></div>
         </div>
           <div className="prototype-category-table prototype-perfil-especialidade-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/perfil-profissional/novo")} handleView={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/visualizar`)} handleEdit={(row) => navigate(`/prototipos/sigep/perfil-profissional/${row.id}/editar`)} renderBotoes={(row) => row.situacao === "ATIVO" ? <BotaoIconSeplag type="button" icon="pi pi-ban" severity="danger" tooltip="Extinguir" aria-label={`Extinguir perfil profissional ${row.nome}`} onClick={() => setPerfilParaEncerrar(row)} /> : null} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
       </CardSeplag>
@@ -8543,9 +8584,9 @@ export function PrototiposCategoriaPage({
       body: (row) => (
         <BadgeSeplag
           label={situacaoBadge(row.situacao).label}
-          color={row.situacao === "ATIVO" ? "#00843d" : "#9a6500"}
-          bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1c7"}
-          border="transparent"
+          color={situacaoBadge(row.situacao).color}
+          bg={situacaoBadge(row.situacao).bg}
+          border={situacaoBadge(row.situacao).border}
           size="md"
         />
       ),
@@ -8669,9 +8710,9 @@ export function PrototiposCargoPage({
       body: (row) => (
         <BadgeSeplag
           label={situacaoBadge(row.situacao).label}
-          color={row.situacao === "ATIVO" ? "#00843d" : "#9a6500"}
-          bg={row.situacao === "ATIVO" ? "#e2f3e8" : "#fff1c7"}
-          border="transparent"
+          color={situacaoBadge(row.situacao).color}
+          bg={situacaoBadge(row.situacao).bg}
+          border={situacaoBadge(row.situacao).border}
           size="md"
         />
       ),
@@ -8916,6 +8957,7 @@ export function PrototiposCargoFormPage({
       carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis,
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
+    atualizarControleVagasBolsistas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasBolsista === true);
     cargosTesteMock.forEach((cargo) => {
       if (cargo.id === registroId) return;
       const relacionados = new Set(cargo.cargosAcumulaveis ?? []);
@@ -9053,7 +9095,7 @@ export function PrototiposCargoFormPage({
             </div>
           </section>
 
-          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramentoCargo} dataExtincaoName="dataExtincao" status={situacaoInicialCargo} entidade="o cargo" getFormErrorMessage={() => null} permitirEncerramento={false} />
+          <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataAtivacao" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramentoCargo} status={situacaoInicialCargo} entidade="o cargo" getFormErrorMessage={() => null} permitirEncerramento={false} />
           </div>
 
           <section className="prototype-carreira-register-section">
@@ -9092,7 +9134,10 @@ export function PrototiposCargoFormPage({
                 <CheckboxFieldSeplag<CargoForm> name="permiteAcumuloCargo" control={control} checkboxLabel="Permite acúmulo de cargo?" cols="12" />
                 <span>Permite definir os cargos que podem ser acumulados com este cargo.</span>
               </div>
-            </div>
+              <div className="prototype-shared-criterio-item">
+                <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" />
+                <span>Disponibiliza este cargo no Quadro Autorizado Bolsistas.</span>
+              </div>            </div>
             {permiteAcumuloCargo ? (
               <div className="grid prototype-carreira-register-fields">
                 <MultiSelectFieldSeplag

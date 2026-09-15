@@ -1,2 +1,35 @@
-.breadcrumb-vagas-residentes { margin: 1.5rem 1.75rem 0; padding: 0 1rem; background: #fff; border: 1px solid #d8e0e8; border-bottom: 0; border-radius: 4px 4px 0 0; }
-@media (max-width: 640px) { .breadcrumb-vagas-residentes { margin: 1rem 1.25rem 0; } }
+.breadcrumb-vagas-residentes {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 1.75rem 0;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 1px solid #d8e0e8;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+}
+
+.breadcrumb-vagas-residentes > :first-child {
+  min-width: 0;
+  flex: 1;
+}
+
+.breadcrumb-vagas-residentes .p-button {
+  flex: 0 0 auto;
+  min-width: auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .breadcrumb-vagas-residentes {
+    align-items: flex-start;
+    flex-direction: column;
+    margin: 1rem 1.25rem 0;
+  }
+
+  .breadcrumb-vagas-residentes .p-button {
+    width: 100%;
+  }
+}
+
