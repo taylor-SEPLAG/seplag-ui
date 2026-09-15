@@ -9,7 +9,7 @@ import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStor
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
 import { gerarNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, deduzirTipoVaga, homologacaoVigenteSemCancelamento, podeCadastrarVagaNoCertame } from "./validations";
-import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, FASES_TCE_FIXAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
+import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
 import { CATALOGO_UG } from "./catalogoUg";
 import { useFasesCertame } from "../fasesCertame/fasesCertameStore";
 import type { AbrangenciaCertame, CargoVagaCertame, Certame, CotaCertame, FaseCertame, RegimeJuridicoCertame, ReservaCotaCargo, SituacaoCertame, TaxaInscricaoCertame, TipoCertame, TipoContratacaoExecucaoCertame, TipoDocumentoCertame, TipoVinculoCertame } from "./types";
@@ -698,7 +698,9 @@ export function CertameFormContent() {
   return () => assinatura.unsubscribe();
  }, [cargoForm]);
 
- const [fases, setFases] = useState<FaseCertame[]>(existente ? [...existente.fases] : (rascunho?.fases ?? [...FASES_TCE_FIXAS]));
+ // Certame novo nasce sem nenhuma fase pré-preenchida — o catálogo do TCE-MT (FASES_TCE_FIXAS)
+ // continua disponível só como opção no dropdown "Nome da fase", não mais como seed automático.
+ const [fases, setFases] = useState<FaseCertame[]>(existente ? [...existente.fases] : (rascunho?.fases ?? []));
  const [faseArrastada, setFaseArrastada] = useState<number | null>(null);
  // "Nome da fase" só aceita seleção do catálogo de Cadastro > Controle de Certame > Fase do
  // Certame (RN005) — sem digitação livre. O catálogo já vem seedado com os 17 Tipos de
@@ -1101,14 +1103,15 @@ export function CertameFormContent() {
         <BlocoHeader icone="pi-sitemap" titulo="Fases do certame" subtitulo="Cronograma editável de fases, com base no catálogo do TCE-MT." />
         {!modoVisualizar && <BotaoAdicionarSeplag type="button" label="Adicionar fase" onClick={adicionarFase} />}
        </div>
-       <div className="prototype-certame-fase-header">
+       {fases.length > 0 && <div className="prototype-certame-fase-header">
         <span />
         <span>Nome da fase</span>
         <span>Data início<em className="obrigatorio" aria-hidden="true">*</em></span>
         <span>Data fim<em className="obrigatorio" aria-hidden="true">*</em></span>
         <span />
-       </div>
+       </div>}
        <div className="prototype-certame-fase-list">
+        {fases.length === 0 && <p className="prototype-certame-fases-empty">Nenhuma fase adicionada.</p>}
         {fases.map((fase) => {
          const ehFaseTce = catalogoFases.some((item) => item.situacao === "ATIVO" && Boolean(item.tipoTceId) && item.nome === fase.nome);
          return <div
