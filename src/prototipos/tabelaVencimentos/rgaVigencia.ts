@@ -1,5 +1,7 @@
 export const RGA_VIGENCIA_FORA_TABELA =
   "A vigência do RGA deve estar contida no período de vigência da Tabela de Vencimentos.";
+export const RGA_VIGENCIA_FORA_TABELAS_LOTE =
+  "A vigência do RGA deve estar contida no período de vigência de todas as Tabelas de Vencimentos selecionadas. Revise as jornadas com conflito.";
 
 export function isRgaVigenciaWithinTable(
   tabelaInicio: string,

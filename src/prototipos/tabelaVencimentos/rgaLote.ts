@@ -1,6 +1,6 @@
 import {
   isRgaVigenciaWithinTable,
-  RGA_VIGENCIA_FORA_TABELA,
+  RGA_VIGENCIA_FORA_TABELAS_LOTE,
 } from "./rgaVigencia";
 import type {
   MatrixData,
@@ -78,24 +78,44 @@ export function validateBatch(
     new Date(params.vigencia).toISOString().slice(0, 10) !== params.vigencia
   )
     errors.push("Informe uma vigência válida.");
-  if (params.fim && params.vigencia && params.fim < params.vigencia)
-    errors.push(RGA_VIGENCIA_FORA_TABELA);
+  const vigenciaValida =
+    params.vigencia.length === 10 &&
+    !Number.isNaN(Date.parse(params.vigencia)) &&
+    new Date(params.vigencia).toISOString().slice(0, 10) === params.vigencia;
+  const dataFimValida =
+    !params.fim ||
+    (params.fim.length === 10 &&
+      !Number.isNaN(Date.parse(params.fim)) &&
+      new Date(params.fim).toISOString().slice(0, 10) === params.fim);
+  const conflitosDeVigencia =
+    vigenciaValida && dataFimValida
+      ? journeys.filter(
+          (journey) =>
+            journey.item &&
+            !isRgaVigenciaWithinTable(
+              iso(journey.item.inicio),
+              journey.item.fim ? iso(journey.item.fim) : undefined,
+              params.vigencia,
+              params.fim,
+            ),
+        )
+      : [];
+  if (conflitosDeVigencia.length) {
+    errors.push(RGA_VIGENCIA_FORA_TABELAS_LOTE);
+    conflitosDeVigencia.forEach((journey) =>
+      errors.push(
+        journey.cargo +
+          " — " +
+          journey.jornada +
+          ": vigência incompatível com o período do RGA informado.",
+      ),
+    );
+  }
   if (!params.baseLegal) errors.push("Selecione a base legal obrigatória.");
   journeys.forEach((journey) => {
     const prefix = journey.cargo + " — " + journey.jornada + ": ";
-    if (!journey.incideRga) errors.push(prefix + "Incide RGA = Não.");
     if (!journey.item) errors.push(prefix + "não existe versão vigente.");
     else {
-      if (
-        !isRgaVigenciaWithinTable(
-          iso(journey.item.inicio),
-          journey.item.fim ? iso(journey.item.fim) : undefined,
-          params.vigencia,
-          params.fim,
-        ) &&
-        !errors.includes(RGA_VIGENCIA_FORA_TABELA)
-      )
-        errors.push(RGA_VIGENCIA_FORA_TABELA);
       if (
         journey.versions.some(
           (version) =>
@@ -192,6 +212,10 @@ export function createBatch(
     }
     const source = journey.item!;
     const matrix = simulateMatrix(source.matrix!, params.percentual);
+    const effectiveParams: Parameters = {
+      ...params,
+      fim: params.fim || (source.fim ? iso(source.fim) : ""),
+    };
     records.push({
       id: batchId + "-" + journey.key,
       cargoId: journey.cargoId,
@@ -205,7 +229,7 @@ export function createBatch(
         ano: Number(params.ano),
         numero: nextVersion(journey),
         inicio: brDate(params.vigencia),
-        fim: params.fim ? brDate(params.fim) : undefined,
+        fim: effectiveParams.fim ? brDate(effectiveParams.fim) : undefined,
         status: "Futura",
         alteracao: brDate(appliedAt.slice(0, 10)),
         usuario: "Roberto Junior",
@@ -215,7 +239,7 @@ export function createBatch(
         baseLegal: params.baseLegal,
         observacao: params.observacao,
         auditoriaRga: {
-          ...params,
+          ...effectiveParams,
           responsavel: "Roberto Junior",
           aplicadaEm: appliedAt,
           versaoOrigem: source.numero || "V" + journey.versions.length,
@@ -224,7 +248,11 @@ export function createBatch(
           tipoAplicacao: "Em lote",
         },
       },
-      rga: { ...params, responsavel: "Roberto Junior", aplicadaEm: appliedAt },
+      rga: {
+        ...effectiveParams,
+        responsavel: "Roberto Junior",
+        aplicadaEm: appliedAt,
+      },
     });
   }
   return records;

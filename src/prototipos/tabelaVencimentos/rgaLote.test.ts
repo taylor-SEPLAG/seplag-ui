@@ -89,17 +89,16 @@ describe("RGA em lote por jornada", () => {
     );
     expect(JSON.stringify(previous)).toBe(before);
   });
-  it("bloqueia todo o lote e identifica a jornada não elegível", () => {
-    const invalid = { ...journey("40 horas"), incideRga: false };
-    expect(() =>
-      createBatch(
-        [],
-        [journey(), invalid],
-        params,
-        "2026-09-10T10:00:00Z",
-        "lote",
-      ),
-    ).toThrow("Auditor Fiscal — 40 horas: Incide RGA = Não");
+  it("configura Incide RGA como Sim ao aplicar em jornada sem incidência", () => {
+    const withoutIncidence = { ...journey("40 horas"), incideRga: false };
+    const result = createBatch(
+      [],
+      [withoutIncidence],
+      params,
+      "2026-09-10T10:00:00Z",
+      "lote",
+    );
+    expect(result.at(-1)?.incideRga).toBe(true);
   });
   it("bloqueia ausência de versão vigente e conflito futuro", () => {
     expect(
@@ -139,9 +138,27 @@ describe("RGA em lote por jornada", () => {
     expect(
       validateBatch([tabelaComFim], params),
     ).toContain(
-      "A vigência do RGA deve estar contida no período de vigência da Tabela de Vencimentos.",
+      "A vigência do RGA deve estar contida no período de vigência de todas as Tabelas de Vencimentos selecionadas. Revise as jornadas com conflito.",
     );
-  });  it("ativa a versão na vigência sem mutar os registros históricos", () => {
+    expect(validateBatch([tabelaComFim], params).join()).toContain(
+      "Auditor Fiscal — 20 horas: vigência incompatível",
+    );
+  });
+  it("limita o período aberto do RGA à data fim da tabela", () => {
+    const tabelaComFim = journey();
+    tabelaComFim.item = { ...tabelaComFim.item!, fim: "31/12/2027" };
+    tabelaComFim.versions = [tabelaComFim.item];
+    const result = createBatch(
+      [],
+      [tabelaComFim],
+      params,
+      "2026-09-10T10:00:00Z",
+      "lote",
+    );
+    expect(result.at(-1)?.versao.fim).toBe("31/12/2027");
+    expect(result.at(-1)?.rga?.fim).toBe("2027-12-31");
+  });
+  it("ativa a versão na vigência sem mutar os registros históricos", () => {
     const records = createBatch(
       [],
       [journey()],
