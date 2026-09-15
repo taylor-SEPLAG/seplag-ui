@@ -57,9 +57,11 @@
   color: #68748a;
 }
 
-.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(2),`n.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(3),
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(2),
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(3),
 .prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(4),
-.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(2),`n.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(3),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(2),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(3),
 .prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(4),
 .prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(5),
 .prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(5),
