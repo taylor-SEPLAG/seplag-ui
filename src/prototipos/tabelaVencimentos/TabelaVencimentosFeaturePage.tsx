@@ -18,6 +18,10 @@ import "./tabelaVencimentos.css";
 import "./tabelaVencimentosSpacing.css";
 import { RgaLotePage } from "./RgaLotePage";
 import { resolveJourneyVersions } from "./rgaLote";
+import {
+  isRgaVigenciaWithinTable,
+  RGA_VIGENCIA_FORA_TABELA,
+} from "./rgaVigencia";
 
 type Status = "Vigente" | "Futura" | "Encerrada";
 type AbrangenciaTabela =
@@ -716,58 +720,46 @@ function RgaHistoryDetails({
   const matrix = version.matrix;
   return (
     <div className="tv-history-rga">
-      <section className="tv-history-rga-section">
-        <div className="tv-history-additional-info tv-history-rga-info">
-          <div className="tv-history-info-pair">
-            <span>
-              <small>Ano do RGA</small>
-              <strong>{audit.ano}</strong>
-            </span>
-            <span>
-              <small>Percentual do RGA</small>
-              <strong>{rgaPercentual(audit.percentual)}</strong>
-            </span>
+      <section className="tv-history-rga-section tv-history-rga-data-section">
+        <div className="tv-history-rga-data-grid">
+          <div className="tv-history-data-item">
+            <small>Ano do RGA</small>
+            <strong>{audit.ano}</strong>
           </div>
-          <div className="tv-history-info-pair">
-            <span>
-              <small>Data início da vigência do RGA</small>
-              <strong>{rgaDate(audit.vigencia)}</strong>
-            </span>
-            <span>
-              <small>Data fim da vigência do RGA</small>
-              <strong>{rgaDate(audit.fim)}</strong>
-            </span>
+          <div className="tv-history-data-item">
+            <small>Percentual do RGA</small>
+            <strong>{rgaPercentual(audit.percentual)}</strong>
           </div>
-          <div className="tv-history-info-pair">
-            <span>
-              <small>Versão de origem</small>
-              <strong>{audit.versaoOrigem || "—"}</strong>
-            </span>
-            <span>
-              <small>Tipo de aplicação</small>
-              <strong>
-                {audit.tipoAplicacao ||
-                  (audit.loteId ? "Em lote" : "Individual")}
-              </strong>
-            </span>
+          <div className="tv-history-data-item">
+            <small>Data início da vigência do RGA</small>
+            <strong>{rgaDate(audit.vigencia)}</strong>
           </div>
-          <div className="tv-history-info-pair">
-            <span>
-              <small>Identificador da aplicação</small>
-              <strong>{audit.loteId || "—"}</strong>
-            </span>
-            <span>
-              <small>Responsável pela aplicação</small>
-              <strong>{audit.responsavel || version.usuario}</strong>
-            </span>
+          <div className="tv-history-data-item">
+            <small>Versão de origem</small>
+            <strong>{audit.versaoOrigem || "—"}</strong>
           </div>
-          <div className="tv-history-info-pair">
-            <span>
-              <small>Data e hora da aplicação</small>
-              <strong>{rgaDateTime(audit.aplicadaEm)}</strong>
-            </span>
+          <div className="tv-history-data-item">
+            <small>Tipo de aplicação</small>
+            <strong>
+              {audit.tipoAplicacao ||
+                (audit.loteId ? "Em lote" : "Individual")}
+            </strong>
           </div>
-          <div className="tv-history-info-full">
+          <div className="tv-history-data-item">
+            <small>Data fim da vigência do RGA</small>
+            <strong>{rgaDate(audit.fim)}</strong>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Data e hora da aplicação</small>
+            <strong>{rgaDateTime(audit.aplicadaEm)}</strong>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Responsável pela aplicação</small>
+            <strong>{audit.responsavel || version.usuario}</strong>
+          </div>
+        </div>
+        <div className="tv-history-rga-meta">
+          <div className="tv-history-data-item">
             <small>Base legal do RGA</small>
             <div className="tv-legal-file">
               <i className="pi pi-file-pdf" aria-hidden="true" />
@@ -784,7 +776,7 @@ function RgaHistoryDetails({
               )}
             </div>
           </div>
-          <div className="tv-history-info-full">
+          <div className="tv-history-data-item">
             <small>Observação</small>
             <p>{audit.observacao || "—"}</p>
           </div>
@@ -796,19 +788,32 @@ function RgaHistoryDetails({
           <table className="tv-history-rga-values">
             <thead>
               <tr>
-                <th>Nível</th><th>Classe</th><th>Valor base</th><th>Percentual RGA</th><th>Valor com RGA</th><th>Diferença</th>
+                <th>Nível</th>
+                <th>Classe</th>
+                <th>Valor base</th>
+                <th>Percentual RGA</th>
+                <th>Valor com RGA</th>
+                <th>Diferença</th>
               </tr>
             </thead>
             <tbody>
               {matrix?.rows.flatMap((row, rowIndex) =>
                 matrix.columns.map((column, columnIndex) => {
-                  const base = version.valorBase?.rows[rowIndex]?.values[columnIndex] || "—";
+                  const base =
+                    version.valorBase?.rows[rowIndex]?.values[columnIndex] ||
+                    "—";
                   const applied = row.values[columnIndex] || "—";
                   const difference = rgaMoney(applied) - rgaMoney(base);
                   return (
                     <tr key={row.name + column}>
-                      <td>{row.name}</td><td>{column}</td><td>{base}</td><td>{rgaPercentual(audit.percentual)}</td><td>{applied}</td>
-                      <td className={difference > 0 ? "tv-rga-positive" : undefined}>{difference > 0 ? "+ " + rgaCurrency(difference) : "—"}</td>
+                      <td>{row.name}</td>
+                      <td>{column}</td>
+                      <td>{base}</td>
+                      <td>{rgaPercentual(audit.percentual)}</td>
+                      <td>{applied}</td>
+                      <td className={difference > 0 ? "tv-rga-positive" : undefined}>
+                        {difference > 0 ? "+ " + rgaCurrency(difference) : "—"}
+                      </td>
                     </tr>
                   );
                 }),
@@ -970,25 +975,27 @@ function List({ batch = false }: { batch?: boolean }) {
         baseLegal: table.baseLegal,
         observacao: table.observacao,
       }));
-      const historyBase = cargo.id === 1 ? history : [];
-      const savedVersionsWithoutBaseDuplicate = savedVersions.filter(
-        (version) =>
-          !historyBase.some((baseVersion) => baseVersion.inicio === version.inicio),
-      );
-      const hasStaticTable = cargo.id === 1 || index < cargo.vigentes;
+      const firstCargoVersions =
+        index === 0 ? history : index === 2 ? [VERSOES[2]] : [];
+      const hasStaticTable =
+        cargo.id === 1 ? firstCargoVersions.length > 0 : index < cargo.vigentes;
       const historySize = hasStaticTable
         ? cargo.id === 1
-          ? history.length
+          ? firstCargoVersions.length
           : Math.max(1, Math.min(history.length, cargo.tabelas - index))
         : 0;
-      const staticVersions = hasStaticTable
-        ? cargo.semTabelaVigente
-          ? [VERSOES[2]]
-          : history.slice(0, historySize)
-        : [];
-      const rawVersions = cargo.id === 1
-        ? [...staticVersions, ...savedVersionsWithoutBaseDuplicate]
-        : savedVersions.length
+      const staticVersions =
+        cargo.id === 1
+          ? firstCargoVersions
+          : hasStaticTable
+            ? cargo.semTabelaVigente
+              ? [VERSOES[2]]
+              : history.slice(0, historySize)
+            : [];
+      const rawVersions =
+        cargo.id === 1
+          ? staticVersions
+          : savedVersions.length
           ? savedVersions
           : staticVersions;
       return {
@@ -1112,19 +1119,15 @@ function List({ batch = false }: { batch?: boolean }) {
         <div className="prototype-ingressos-teste-content">
           {listParams.get("rgaLote") === "1" && (
             <div className="tv-save-success" role="status">
-              RGA aplicada com sucesso. Novas versões criadas para todas as
-              jornadas selecionadas.
+              <i className="pi pi-check-circle" aria-hidden="true" />
+              <span>RGA aplicado com sucesso.</span>
             </div>
           )}
           <hr className="prototype-ingressos-teste-header-divider" />
           {listParams.get("salvo") === "1" && (
             <div className="tv-save-success" role="status">
               <i className="pi pi-check-circle" aria-hidden="true" />
-              <span>
-                {listParams.get("rga") === "1"
-                  ? "Tabela de vencimentos finalizada com sucesso."
-                  : "Tabela de vencimentos salva com sucesso."}
-              </span>
+              <span>Tabela de Vencimentos cadastrada com sucesso.</span>
             </div>
           )}
           <div className="prototype-ingressos-teste-filters grid">
@@ -1275,7 +1278,11 @@ function List({ batch = false }: { batch?: boolean }) {
                                                 : "—"}
                                             </td>
                                             <td>
-                                              {incideRga ? "Sim" : "Não"}
+                                              {item
+                                                ? incideRga
+                                                  ? "Sim"
+                                                  : "Não"
+                                                : "—"}
                                             </td>
                                             <td>
                                               {item ? (
@@ -1569,6 +1576,13 @@ function List({ batch = false }: { batch?: boolean }) {
               </button>
             </header>
             <div className="tv-journey-history-divider" />
+            <div className="tv-journey-history-toolbar">
+              <strong>Versões</strong>
+              <span>
+                {historyJourney.versions.length}{" "}
+                {historyJourney.versions.length === 1 ? "registro" : "registros"}
+              </span>
+            </div>
             <div className="tv-scroll tv-journey-history-grid-wrap">
               <table className="tv-journey-history-grid">
                 <thead>
@@ -1710,30 +1724,22 @@ function List({ batch = false }: { batch?: boolean }) {
                                     <Matrix data={version.matrix} />
                                   </div>
                                 ) : historyTab === "info" ? (
-                                  <div className="tv-history-additional-info">                                    <div className="tv-history-info-full">
-                                      <small>Origem da alteração</small>
-                                      <p>{version.origem === "Versionamento" ? "Alteração manual" : version.origem || "Cadastro inicial"}</p>
-                                    </div>                                    <div className="tv-history-info-pair">
-                                      <span>
+                                  <div className="tv-history-additional-info">
+                                    <div className="tv-history-info-grid">
+                                      <div className="tv-history-data-item">
                                         <small>Data início da vigência</small>
                                         <strong>{version.inicio}</strong>
-                                      </span>
-                                      <span>
+                                      </div>
+                                      <div className="tv-history-data-item">
                                         <small>Data fim da vigência</small>
                                         <strong>{version.fim || "—"}</strong>
-                                      </span>
-                                    </div>
-                                    <div className="tv-history-info-pair">
-                                      <span>
-                                        <small>
-                                          Responsável pela última alteração
-                                        </small>
+                                      </div>
+                                      <div className="tv-history-data-item">
+                                        <small>Responsável pela última alteração</small>
                                         <strong>{version.usuario}</strong>
-                                      </span>
-                                      <span>
-                                        <small>
-                                          Data e hora da última alteração
-                                        </small>
+                                      </div>
+                                      <div className="tv-history-data-item">
+                                        <small>Data e hora da última alteração</small>
                                         <strong>
                                           {version.auditoriaRga
                                             ? rgaDateTime(
@@ -1741,30 +1747,38 @@ function List({ batch = false }: { batch?: boolean }) {
                                               )
                                             : version.alteracao + " às 14:32"}
                                         </strong>
-                                      </span>
-                                    </div>
-                                    <div className="tv-history-info-full">
-                                      <small>Base legal</small>
-                                      <div className="tv-legal-file">
-                                        <i
-                                          className="pi pi-file-pdf"
-                                          aria-hidden="true"
-                                        />
-                                        <span>
-                                          {version.baseLegal ||
-                                            "Lei_Complementar_600_2017.pdf"}
-                                        </span>
-                                        <button
-                                          type="button"
-                                          title="Visualizar arquivo"
-                                          aria-label="Visualizar arquivo"
-                                          onClick={() => setLegalPreview(true)}
-                                        >
-                                          <i className="pi pi-eye" />
-                                        </button>
+                                      </div>
+                                      <div className="tv-history-data-item">
+                                        <small>Origem da alteração</small>
+                                        <strong>
+                                          {version.origem === "Versionamento"
+                                            ? "Alteração manual"
+                                            : version.origem || "Cadastro inicial"}
+                                        </strong>
+                                      </div>
+                                      <div className="tv-history-data-item">
+                                        <small>Base legal</small>
+                                        <div className="tv-legal-file">
+                                          <i
+                                            className="pi pi-file-pdf"
+                                            aria-hidden="true"
+                                          />
+                                          <span>
+                                            {version.baseLegal ||
+                                              "Lei_Complementar_600_2017.pdf"}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            title="Visualizar arquivo"
+                                            aria-label="Visualizar arquivo"
+                                            onClick={() => setLegalPreview(true)}
+                                          >
+                                            <i className="pi pi-eye" />
+                                          </button>
+                                        </div>
                                       </div>
                                     </div>
-                                    <div className="tv-history-info-full">
+                                    <div className="tv-history-info-observation">
                                       <small>Observação</small>
                                       <p>
                                         {version.observacao ||
@@ -1811,13 +1825,6 @@ function List({ batch = false }: { batch?: boolean }) {
                 </select>
               </div>
             </div>
-            <footer className="tv-journey-history-footer">
-              <BotaoSeplag
-                type="button"
-                label="Fechar"
-                onClick={() => setHistoryJourney(undefined)}
-              />
-            </footer>
             {legalPreview && (
               <div className="tv-legal-preview-overlay" role="presentation">
                 <section
@@ -2297,6 +2304,8 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
   const [rgaApplyConfirmation, setRgaApplyConfirmation] = useState(false);
   const [rgaApplied, setRgaApplied] = useState(viewRgaEnabled);
   const [rgaSimulationStale, setRgaSimulationStale] = useState(false);
+  const [rgaSimulationSignature, setRgaSimulationSignature] = useState("");
+  const [rgaSuccess, setRgaSuccess] = useState(false);
   const [rgaError, setRgaError] = useState("");
   const opcoesDocumentosLegais = useDocumentosLegaisAssociaveis();
   const cargo = CARGOS.find((x) => String(x.id) === cargoId);
@@ -2328,11 +2337,27 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
     ? Math.max(1, savedVersionsForJourney.length)
     : 0;
   const editingVersionNumber = originVersionNumber + 1;
+  const rgaSimulationSignatureFor = (matrix: MatrixData) =>
+    JSON.stringify({
+      matrix,
+      ano: rgaAno,
+      percentual: rgaPercentual,
+      vigenciaRgaInicio: rgaInicio,
+      vigenciaRgaFim: rgaFim,
+      baseLegal: [...rgaBaseLegal].sort(),
+      vigenciaTabelaInicio: vigenciaInicio,
+      vigenciaTabelaFim: vigenciaFim,
+      incideRga,
+    });
   const invalidateRgaSimulation = () => {
-    if (!rgaSimulation && !rgaApplied) return;
+    if (!rgaSimulationSignature && !rgaApplied) return;
     setRgaSimulation(undefined);
+    setRgaSimulationSignature("");
     setRgaApplied(false);
+    setRgaAppliedMatrix(undefined);
+    setRgaSuccess(false);
     setRgaSimulationStale(true);
+    setRgaError("");
   };
   const formatRgaPercentage = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 5);
@@ -2346,6 +2371,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
   };
   const simulateRga = () => {
     setRgaError("");
+    setRgaSuccess(false);
     const form = formRef.current;
     if (!form) return;
     const formData = new FormData(form);
@@ -2368,6 +2394,35 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
         ),
       })),
     };
+    if (
+      !isRgaVigenciaWithinTable(
+        vigenciaInicio,
+        vigenciaFim || undefined,
+        rgaInicio,
+        rgaFim || undefined,
+      )
+    ) {
+      setRgaError(RGA_VIGENCIA_FORA_TABELA);
+      return;
+    }
+    const matrixIncomplete =
+      matrixBase.columns.some((column) => !column.trim()) ||
+      matrixBase.rows.some(
+        (row) =>
+          !row.name.trim() ||
+          row.values.some(
+            (value) =>
+              !String(value)
+                .replace(/\D/g, "")
+                .replace(/^0+/, "").length,
+          ),
+      );
+    if (matrixIncomplete) {
+      setRgaError(
+        "Preencha todos os níveis, classes e valores da matriz antes de simular a RGA.",
+      );
+      return;
+    }
     const percentual = Number(rgaPercentual.replace("%", "").replace(",", "."));
     if (
       !percentual ||
@@ -2401,8 +2456,40 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
       })),
     });
     setRgaBaseMatrix(matrixBase);
+    setRgaSimulationSignature(rgaSimulationSignatureFor(matrixBase));
     setRgaApplied(false);
     setRgaSimulationStale(false);
+  };
+  const confirmRgaApplication = () => {
+    const form = formRef.current;
+    if (!form || !rgaSimulation || !rgaSimulationSignature) return;
+    const formData = new FormData(form);
+    const matrixColumns = formData.getAll("matrixColumnName").map(String);
+    const matrixRowNames = formData.getAll("matrixRowName").map(String);
+    const matrixValues = formData.getAll("matrixValue").map(String);
+    const currentMatrix: MatrixData = {
+      columns: matrixColumns,
+      rows: matrixRowNames.map((name, rowIndex) => ({
+        name,
+        values: matrixColumns.map(
+          (_, columnIndex) =>
+            matrixValues[rowIndex * matrixColumns.length + columnIndex] || "",
+        ),
+      })),
+    };
+    if (
+      rgaSimulationStale ||
+      rgaSimulationSignature !== rgaSimulationSignatureFor(currentMatrix)
+    ) {
+      invalidateRgaSimulation();
+      setRgaApplyConfirmation(false);
+      return;
+    }
+    setRgaAppliedMatrix(rgaSimulation);
+    setRgaApplied(true);
+    setRgaSuccess(true);
+    setRgaError("");
+    setRgaApplyConfirmation(false);
   };
   const back = () => nav(BASE);
   const save = (e: FormEvent<HTMLFormElement>) => {
@@ -2660,7 +2747,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
           const target = event.target as HTMLInputElement;
           if (
             !target.name?.startsWith("matrix") ||
-            (!rgaSimulation && !rgaApplied)
+            (!rgaSimulationSignature && !rgaApplied)
           )
             return;
           invalidateRgaSimulation();
@@ -2773,7 +2860,10 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                 type="date"
                 disabled={view}
                 value={vigenciaInicio}
-                onChange={(event) => setVigenciaInicio(event.target.value)}
+                onChange={(event) => {
+                  invalidateRgaSimulation();
+                  setVigenciaInicio(event.target.value);
+                }}
               />
             </label>
             <label className="prototype-ingresso-field">
@@ -2783,7 +2873,10 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                 type="date"
                 disabled={view}
                 value={vigenciaFim}
-                onChange={(event) => setVigenciaFim(event.target.value)}
+                onChange={(event) => {
+                  invalidateRgaSimulation();
+                  setVigenciaFim(event.target.value);
+                }}
               />
             </label>
             <div className="prototype-ingresso-field tv-base-legal-field">
@@ -2831,7 +2924,10 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                     name="incideRga"
                     checked={incideRga}
                     disabled={view}
-                    onChange={() => setIncideRga(true)}
+                    onChange={() => {
+                      invalidateRgaSimulation();
+                      setIncideRga(true);
+                    }}
                   />
                   <span>Sim</span>
                 </label>
@@ -2842,6 +2938,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                     checked={!incideRga}
                     disabled={view}
                     onChange={() => {
+                      invalidateRgaSimulation();
                       setIncideRga(false);
                       if (activeTab === "rga") setActiveTab("identificacao");
                     }}
@@ -2912,9 +3009,15 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
             <Matrix
               key={String(copy) + String(Boolean(rgaAppliedMatrix))}
               edit={!view}
-              copy={view || copy || Boolean(rgaAppliedMatrix)}
+              copy={
+                view ||
+                copy ||
+                Boolean(rgaAppliedMatrix) ||
+                Boolean(rgaSimulationStale && rgaBaseMatrix)
+              }
               data={
                 rgaAppliedMatrix ||
+                (rgaSimulationStale ? rgaBaseMatrix : undefined) ||
                 (view || edit ? savedRecord?.matrix : undefined)
               }
               onStructureChange={invalidateRgaSimulation}
@@ -2948,7 +3051,12 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                   <BotaoSalvarSeplag
                     type="button"
                     label="Aplicar RGA"
-                    disabled={!rgaSimulation || rgaApplied}
+                    disabled={
+                      !rgaSimulation ||
+                      !rgaSimulationSignature ||
+                      rgaSimulationStale ||
+                      rgaApplied
+                    }
                     onClick={() => setRgaApplyConfirmation(true)}
                   />
                 </div>
@@ -3125,7 +3233,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                           "tv-status " +
                           (rgaApplied
                             ? "vigente"
-                            : rgaSimulation
+                            : rgaSimulationSignature
                               ? "futura"
                               : "sem-tabela")
                         }
@@ -3134,7 +3242,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                           ? "Aplicada"
                           : rgaSimulationStale
                             ? "Simulação desatualizada"
-                            : rgaSimulation
+                            : rgaSimulationSignature
                               ? "Simulação realizada"
                               : "Não simulada"}
                       </span>
@@ -3143,13 +3251,27 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                 </dl>
               </aside>
             </div>
-            {rgaSimulationStale && (
-              <div className="tv-error">
-                Os valores desta versão foram alterados após a última simulação.
-                Realize uma nova simulação da RGA para atualizar os resultados.
+            {rgaSuccess && (
+              <div className="tv-save-success" role="status">
+                <i className="pi pi-check-circle" aria-hidden="true" />
+                <span>RGA aplicado com sucesso.</span>
               </div>
             )}
-            {rgaError && <div className="tv-error">{rgaError}</div>}
+            {rgaSimulationStale && (
+              <div className="tv-rga-alert-error" role="alert">
+                <i className="pi pi-exclamation-circle" aria-hidden="true" />
+                <span>
+                  As informações utilizadas na última simulação foram alteradas.
+                  Realize uma nova simulação do RGA para atualizar os resultados.
+                </span>
+              </div>
+            )}
+            {rgaError && (
+              <div className="tv-rga-alert-error" role="alert">
+                <i className="pi pi-exclamation-circle" aria-hidden="true" />
+                <span>{rgaError}</span>
+              </div>
+            )}
             <div className="tv-rga-preview">
               <h4>{view || (edit && rgaContextEnabled) ? "Valores aplicados pelo RGA" : "Pré-visualização dos novos valores"}</h4>
               <div className="tv-scroll">
@@ -3247,7 +3369,9 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                       ? "Finalizar"
                       : "Salvar tabela"
                 }
-                disabled={activeTab === "rga" && !rgaApplied}
+                disabled={
+                  activeTab === "rga" && (!rgaApplied || rgaSimulationStale)
+                }
               />
             </div>
           )}
@@ -3353,11 +3477,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
               <BotaoSalvarSeplag
                 type="button"
                 label="Confirmar aplicação"
-                onClick={() => {
-                  setRgaAppliedMatrix(rgaSimulation);
-                  setRgaApplied(true);
-                  setRgaApplyConfirmation(false);
-                }}
+                onClick={confirmRgaApplication}
               />
             </footer>
           </section>

@@ -3015,20 +3015,33 @@ const ingressoPoloCandidatoMap: Record<number, string> = {
 const getPoloCandidatoIngresso = (candidatoId: number) =>
   ingressoPoloCandidatoMap[candidatoId] ?? "Cuiabá";
 
-const getPerfilEspecialidadeIngresso = (cargo: string) => {
-  const especialidades: Record<string, string> = {
-    "Analista Administrativo": "Gestão de Pessoas",
-    Professor: "Educação Básica",
-    "Assessor Técnico": "Assessoramento Técnico",
-    "Gestor Governamental": "Gestão Pública",
-    "Técnico Administrativo Educacional": "Administração Escolar",
-    Enfermeiro: "Saúde Assistencial",
-    "Técnico de Enfermagem": "Saúde Assistencial",
-    "Analista Fazendário": "Administração Tributária",
-  };
-
-  return especialidades[cargo] ?? "Área administrativa";
+const ingressoPerfisProfissionaisPorCargo: Record<string, string[]> = {
+  "Analista Administrativo": [
+    "Gestão de Pessoas",
+    "Gestão Administrativa",
+    "Administração Geral",
+  ],
+  Professor: ["Educação Básica", "Educação Especial"],
+  "Assessor Técnico": ["Assessoramento Técnico"],
+  "Gestor Governamental": ["Gestão Pública", "Políticas Públicas"],
+  "Técnico Administrativo Educacional": [
+    "Administração Escolar",
+    "Apoio Administrativo Educacional",
+  ],
+  Enfermeiro: ["Saúde Assistencial", "Saúde Coletiva"],
+  "Técnico de Enfermagem": ["Saúde Assistencial", "Urgência e Emergência"],
+  "Analista Fazendário": ["Administração Tributária", "Finanças Públicas"],
 };
+
+const ingressoCidadesPorPolo: Record<string, string[]> = {
+  Cuiabá: ["Cuiabá", "Chapada dos Guimarães", "Santo Antônio de Leverger"],
+  Sinop: ["Sinop", "Sorriso", "Lucas do Rio Verde"],
+  "Várzea Grande": ["Várzea Grande", "Nossa Senhora do Livramento", "Poconé"],
+  Rondonópolis: ["Rondonópolis", "Jaciara", "Primavera do Leste"],
+};
+
+const getPerfilEspecialidadeIngresso = (cargo: string) =>
+  ingressoPerfisProfissionaisPorCargo[cargo]?.[0] ?? "Área administrativa";
 
 const getTipoVagaIngressoBadge = (tipoVaga: IngressoCandidatoRow["tipoVaga"]) => {
   if (tipoVaga === "PCD") {
@@ -15160,7 +15173,15 @@ export function PrototiposNovoIngressoPage() {
   const [aplicacaoEqualizacao, setAplicacaoEqualizacao] = useState("todos");
   const [classificacaoSelecionada, setClassificacaoSelecionada] = useState(classificacaoInicial);
   const [poloSelecionado, setPoloSelecionado] = useState(ingressoOrigemLista && candidatoParam ? getPoloCandidatoIngresso(Number(candidatoParam)) : "");
+  const [cidadeSelecionada, setCidadeSelecionada] = useState(
+    ingressoOrigemLista && candidatoParam
+      ? getPoloCandidatoIngresso(Number(candidatoParam))
+      : "",
+  );
   const polosIngressoOptions = [...new Set(Object.values(ingressoPoloCandidatoMap))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const cidadesIngressoOptions = poloSelecionado
+    ? ingressoCidadesPorPolo[poloSelecionado] ?? []
+    : [];
   const [tipoVagaSelecionada, setTipoVagaSelecionada] = useState(tipoVagaInicial);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(ingressoOrigemLista ? (cargoInicial === "Professor" ? "Profissional da Educação" : ["Enfermeiro", "Técnico de Enfermagem"].includes(cargoInicial) ? "Profissional da Saúde" : cargoInicial === "Gestor Governamental" ? "Gestor Governamental" : "Servidor Público") : "");
   const [regimeJuridicoSelecionado, setRegimeJuridicoSelecionado] = useState(
@@ -15344,6 +15365,16 @@ export function PrototiposNovoIngressoPage() {
     "Técnico Administrativo - SES": { categoria: "Servidor Público", perfil: "Não se aplica", cbo: "4110-10" },
   };
   const dadosCargoSigep = cargoSigepEqualizado ? dadosCargoEqualizado[cargoSigepEqualizado] : undefined;
+  const cargoPerfilSelecionado =
+    tipoIngresso === "Processo Seletivo"
+      ? cargoSigepEqualizado
+      : cargoSelecionado;
+  const perfisProfissionaisOptions =
+    tipoIngresso === "Processo Seletivo"
+      ? dadosCargoSigep
+        ? [...new Set([dadosCargoSigep.perfil, "Não se aplica"])]
+        : []
+      : ingressoPerfisProfissionaisPorCargo[cargoSelecionado] ?? [];
   const selecionarCargoIngresso = (cargo: string) => {
     setCargoSelecionado(cargo);
     setPerfilEspecialidade(cargo ? getPerfilEspecialidadeIngresso(cargo) : "");
@@ -15608,6 +15639,7 @@ export function PrototiposNovoIngressoPage() {
       !tipoIngresso ||
       !perfilEspecialidade ||
       !poloSelecionado ||
+      !cidadeSelecionada ||
       (tipoIngresso === "Concurso" && !categoriaSelecionada) ||
       (tipoIngresso === "Processo Seletivo" && !ingressoOrigemLista &&
         (!orgaosParticipantesSelecionados.length || !cargoFuncaoEdital.trim()))
@@ -16716,14 +16748,18 @@ export function PrototiposNovoIngressoPage() {
             </select>
           </label>
           <label className="prototype-ingresso-field">
-            <span>Perfil/Especialidade<em>*</em></span>
-            <input
-              type="text"
+            <span>Perfil Profissional<em>*</em></span>
+            <select
               value={perfilEspecialidade}
-              placeholder="Preenchido conforme o Cargo/Função"
               required
-              readOnly
-            />
+              disabled={ingressoOrigemLista || !cargoPerfilSelecionado}
+              onChange={(event) => setPerfilEspecialidade(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              {perfisProfissionaisOptions.map((perfil) => (
+                <option key={perfil} value={perfil}>{perfil}</option>
+              ))}
+            </select>
           </label>
           {tipoIngresso === "Concurso" ? <div className="prototype-ingresso-field prototype-ingresso-reference-field">
             <span>Quadro de vaga<em>*</em></span>
@@ -16735,10 +16771,27 @@ export function PrototiposNovoIngressoPage() {
               required
               value={poloSelecionado}
               disabled={ingressoOrigemLista}
-              onChange={(event) => setPoloSelecionado(event.target.value)}
+              onChange={(event) => {
+                setPoloSelecionado(event.target.value);
+                setCidadeSelecionada("");
+              }}
             >
               <option value="">Selecione...</option>
               {polosIngressoOptions.map((polo) => <option key={polo} value={polo}>{polo}</option>)}
+            </select>
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Cidade<em>*</em></span>
+            <select
+              required
+              value={cidadeSelecionada}
+              disabled={ingressoOrigemLista || !poloSelecionado}
+              onChange={(event) => setCidadeSelecionada(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              {cidadesIngressoOptions.map((cidade) => (
+                <option key={cidade} value={cidade}>{cidade}</option>
+              ))}
             </select>
           </label>
           <label className="prototype-ingresso-field">
@@ -17036,6 +17089,7 @@ export function PrototiposNovoIngressoPage() {
                   setCategoriaSelecionada("");
                   setPerfilEspecialidade("");
                   setPoloSelecionado("");
+                  setCidadeSelecionada("");
                   setClassificacaoSelecionada("");
                   setTipoVagaSelecionada("");
                   setCargoSigepEqualizado("");

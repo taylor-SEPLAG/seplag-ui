@@ -53,7 +53,7 @@ export function RgaLotePage({
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const submitting = useRef(false);
   const docs = useDocumentosLegaisAssociaveis();
-  const journeys = getJourneys().filter((journey) => journey.incideRga);
+  const journeys = getJourneys().filter((journey) => Boolean(journey.item));
   const normalize = (text: string) =>
     text
       .normalize("NFD")
@@ -146,30 +146,29 @@ export function RgaLotePage({
   const footer = (
     <div className="tv-batch-footer">
       <div className="tv-batch-footer-left">
-        <BotaoVoltarSeplag
-          type="button"
-          label="Cancelar"
-          icon="pi pi-times"
-          onClick={onClose}
-        />
         <span>{selected.length} jornadas selecionadas</span>
       </div>
       <div>
-        {step > 0 && (
-          <BotaoVoltarSeplag
-            type="button"
-            label="Voltar"
-            onClick={() => {
-              setErrors([]);
+        <BotaoVoltarSeplag
+          type="button"
+          label="Voltar"
+          icon="pi pi-arrow-left"
+          onClick={() => {
+            setErrors([]);
+            if (step > 0) {
               setStep(step - 1);
-            }}
-          />
-        )}
+              return;
+            }
+            onClose();
+          }}
+        />
 
         {step < 2 ? (
           <BotaoSeplag
             type="button"
             label="Avançar"
+            icon="pi pi-arrow-right"
+            iconPos="right"
             disabled={!selected.length}
             onClick={advance}
           />
@@ -237,9 +236,10 @@ export function RgaLotePage({
             <div className="tv-rga-info">
               <i className="pi pi-info-circle" />
               <span>
-                Selecione os cargos que possuem incidência de RGA. Apenas
-                cargos parametrizados para incidir RGA estão disponíveis para
-                seleção.
+                Selecione os cargos que receberão a aplicação do RGA.
+                Jornadas que ainda não possuem incidência de RGA serão
+                automaticamente configuradas com Incide RGA = Sim após a
+                confirmação da aplicação.
               </span>
             </div>
             <label className="tv-batch-search">
@@ -310,6 +310,7 @@ export function RgaLotePage({
                     <th>Jornada</th>
                     <th>Versão vigente</th>
                     <th>Vigência</th>
+                    <th>Incide RGA</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -345,11 +346,12 @@ export function RgaLotePage({
                             (journey.item.fim || "Atual")
                           : "—"}
                       </td>
+                      <td>{journey.incideRga ? "Sim" : "Não"}</td>
                     </tr>
                   ))}
                   {!visibleJourneys.length && (
                     <tr>
-                      <td colSpan={6}>Nenhuma jornada elegível encontrada.</td>
+                      <td colSpan={7}>Nenhuma jornada elegível encontrada.</td>
                     </tr>
                   )}
                 </tbody>
@@ -428,8 +430,8 @@ export function RgaLotePage({
               <div className="tv-rga-info">
                 <i className="pi pi-info-circle" />
                 <span>
-                  Os parâmetros informados nesta etapa serão aplicados a todas
-                  as jornadas selecionadas.
+                  Os parâmetros informados nesta etapa serão aplicados a todos
+                  os cargos selecionados.
                 </span>
               </div>
               <div className="tv-batch-fields">
