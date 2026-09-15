@@ -157,3 +157,14 @@
     flex-direction: column;
   }
 }
+.orgao-section-history{margin-top:1rem;padding-top:.8rem;border-top:1px dashed #cad8e6;width:100%}
+.orgao-section-history-actions{display:flex;justify-content:flex-end;gap:.5rem;flex-wrap:wrap}
+.orgao-section-history-box{margin-top:.9rem;padding:.85rem;border:1px solid #d6e0ea;border-radius:5px;background:#fbfcfe}
+.orgao-section-history-box>strong{display:block;margin-bottom:.75rem;color:#4b6171;font-size:.76rem}
+.orgao-section-history-box>p{margin:.5rem 0;color:#617688;font-size:.78rem}
+.orgao-section-history-scroll{width:100%;overflow-x:auto}
+.orgao-section-history-scroll table{width:100%;min-width:650px;border-collapse:collapse;font-size:.74rem}
+.orgao-section-history-scroll th{padding:.6rem;text-align:left;background:#eef3f8;color:#344f66;border-bottom:1px solid #d4e0eb;white-space:nowrap}
+.orgao-section-history-scroll td{padding:.6rem;border-bottom:1px solid #dfe7ef;vertical-align:top}
+.orgao-section-history-scroll th:first-child,.orgao-section-history-scroll td:first-child{min-width:155px}
+.orgao-vigencia-feedback{margin:.5rem 0;padding:.65rem .85rem;border:1px solid #c5e3ce;border-radius:5px;background:#effaf2;color:#206b39;font-size:.78rem}

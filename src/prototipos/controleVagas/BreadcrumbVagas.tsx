@@ -1,9 +1,11 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { BotaoSeplag } from "../../componentes";
 import { BreadcrumbSeplag, type BreadcrumbItemSeplag } from "../../componentes/Breadcrumb";
 import "./breadcrumbVagas.css";
 
 export function BreadcrumbVagas() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const base = "/prototipos/sigep/controle-vagas";
   const partes = pathname.slice(base.length).split("/").filter(Boolean);
   const items: BreadcrumbItemSeplag[] = [{ label: "Controle de Vagas", to: "/prototipos/sigep/controle-vagas/dashboard" }];
@@ -22,5 +24,14 @@ export function BreadcrumbVagas() {
     const rotulos: Record<string, string> = { novo: "Cadastrar", nova: "Cadastrar", editar: "Editar", "nova-versao": "Nova versão", "nova-remocao": "Nova remoção", "nova-cessao": "Nova cessão" };
     items.push({ label: rotulos[acao] ?? "Visualizar" });
   }
-  return <div className="breadcrumb-vagas-efetivos"><BreadcrumbSeplag divided homeTo="/prototipos/sigep" items={items} /></div>;
+  const atalho = partes.length === 1 && tela === "quadro-autorizado"
+    ? { label: "Vagas Servidores Efetivos", icon: "pi pi-list", destino: base + "/vagas" }
+    : partes.length === 1 && tela === "vagas"
+      ? { label: "Quadro Servidores Efetivos", icon: "pi pi-table", destino: base + "/quadro-autorizado" }
+      : null;
+
+  return <div className="breadcrumb-vagas-efetivos">
+    <BreadcrumbSeplag divided homeTo="/prototipos/sigep" items={items} />
+    {atalho && <BotaoSeplag type="button" variant="back" label={atalho.label} icon={atalho.icon} onClick={() => navigate(atalho.destino)} />}
+  </div>;
 }

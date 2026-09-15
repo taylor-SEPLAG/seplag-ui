@@ -23,6 +23,8 @@ type ItemEstrutura = { id: string; nome: string; dotacoes: Dotacao[]; subitens: 
 
 type Nivel = { id: string; nome: string; itens: ItemEstrutura[] };
 
+const SIMBOLOGIAS = ["DGA-1", "DGA-2", "DGA-3", "DGA-4", "DGA-5", "DGA-6", "DGA-7", "DGA-8", "DGA-9", "DGA-10"];
+
 const novoId = () => crypto.randomUUID();
 const novaDotacao = (): Dotacao => ({ id: novoId(), perfil: "", simbologia: "", cargos: 0, funcoes: 0 });
 const novoItem = (): ItemEstrutura => ({ id: novoId(), nome: "", dotacoes: [], subitens: [] });
@@ -58,6 +60,8 @@ export function NovoQuadroComissionadoContent() {
 
   const atualizarNivel = (id: string, atualizar: (nivel: Nivel) => Nivel) => setNiveis((atual) => atual.map((nivel) => nivel.id === id ? atualizar(nivel) : nivel));
   const total = niveis.reduce((soma, nivel) => soma + contarDotacoes(nivel.itens), 0);
+  const totais = niveis.reduce((soma, nivel) => somarTotais(nivel.itens, soma), { cargos: 0, funcoes: 0 });
+  const resumoSimbologias = SIMBOLOGIAS.map((simbologia) => ({ simbologia, ...somarPorSimbologia(niveis, simbologia) }));
   const vigenciaAgendada = calcularStatusOperacionalVigenciaSeplag({ situacao: "ATIVO", dataAtivacao: dataVigencia }) === STATUS_OPERACIONAL_VIGENCIA.AGENDADO;
 
   const salvarQuadro = () => {
@@ -85,7 +89,7 @@ export function NovoQuadroComissionadoContent() {
       <header><i className="pi pi-building" /><div><h2>Identificação do quadro</h2><p>Selecione o órgão a que pertence o quadro. A fundamentação é informada na Base legal.</p></div></header>
       <div className="nqc-fields">
         <label><span className="nqc-label">Nome do quadro <em>*</em></span><input value={nome} onChange={(event) => setNome(event.target.value)} placeholder="Ex.: Estrutura organizacional da SESP" /></label>
-        <label><span className="nqc-label">Órgão <em>*</em></span><select value={orgao} onChange={(event) => setOrgao(event.target.value)}><option value="">Selecione...</option><option>SEPLAG</option><option>SESP</option><option>SES</option><option>SEDUC</option><option>SEMA</option></select></label>
+        <label><span className="nqc-label">Órgão <em>*</em></span><select value={orgao} onChange={(event) => setOrgao(event.target.value)}><option value="">Selecione...</option><option>SEPLAG</option><option>POLITEC</option><option>SESP</option><option>SES</option><option>SEDUC</option><option>SEMA</option></select></label>
       </div>
     </section>
 
@@ -105,7 +109,11 @@ export function NovoQuadroComissionadoContent() {
       <div className="nqc-niveis">{niveis.map((nivel, indice) => <NivelEditor key={nivel.id} nivel={nivel} indice={indice} onChange={(atualizar) => atualizarNivel(nivel.id, atualizar)} onRemove={() => setNiveis((atual) => atual.filter((item) => item.id !== nivel.id))} />)}</div>
     </section>
 
-    <footer><span>{total} {total === 1 ? "dotação registrada" : "dotações registradas"}</span><div><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length} onClick={salvarQuadro} /></div></footer>
+    <section className="nqc-card nqc-resumo">
+      <header><i className="pi pi-chart-bar" /><div><h2>Resumo das dotações</h2><p>Quantitativos autorizados por simbologia remuneratória.</p></div></header>
+      <div className="nqc-resumo-table-wrap"><table><thead><tr><th>Simbologia remuneratória</th><th>Cargo</th><th>Função</th></tr></thead><tbody>{resumoSimbologias.map((linha) => <tr key={linha.simbologia}><td>{linha.simbologia}</td><td>{linha.cargos || "-"}</td><td>{linha.funcoes || "-"}</td></tr>)}</tbody><tfoot><tr><th>Subtotal</th><th>{totais.cargos}</th><th>{totais.funcoes}</th></tr><tr><th>Total</th><th colSpan={2}>{totais.cargos + totais.funcoes}</th></tr></tfoot></table></div>
+    </section>
+    <footer><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length} onClick={salvarQuadro} /></div></footer>
   </div>;
 }
 
@@ -118,14 +126,36 @@ function NivelEditor({ nivel, indice, onChange, onRemove }: { nivel: Nivel; indi
 function ItemEditor({ item, nivel, onChange, onRemove }: { item: ItemEstrutura; nivel: number; onChange: (atualizar: (item: ItemEstrutura) => ItemEstrutura) => void; onRemove: () => void }) {
   return <article className={`nqc-item nqc-item-${nivel}`}><div className="nqc-item-title"><i className={nivel ? "pi pi-angle-right" : "pi pi-folder"} /><input value={item.nome} onChange={(event) => onChange((atual) => ({ ...atual, nome: event.target.value }))} placeholder={nivel ? "Nome do subitem" : "Nome do item"} /><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir item" tooltip="Excluir item" onClick={onRemove} /></div>
     <div className="nqc-dotacoes">{item.dotacoes.map((dotacao) => <DotacaoEditor key={dotacao.id} dotacao={dotacao} onChange={(atualizar) => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.map((linha) => linha.id === dotacao.id ? atualizar(linha) : linha) }))} onRemove={() => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.filter((linha) => linha.id !== dotacao.id) }))} />)}</div>
-    <div className="nqc-item-actions"><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, dotacoes: [...atual.dotacoes, novaDotacao()] }))}><i className="pi pi-plus" />Adicionar dotação</button>{nivel === 0 && <button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, subitens: [...atual.subitens, novoItem()] }))}><i className="pi pi-plus" />Adicionar subitem</button>}</div>
-    {item.subitens.map((subitem) => <ItemEditor key={subitem.id} item={subitem} nivel={1} onChange={(atualizar) => onChange((atual) => ({ ...atual, subitens: atualizarItem(atual.subitens, subitem.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, subitens: excluirItem(atual.subitens, subitem.id) }))} />)}
+    <div className="nqc-item-actions"><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, dotacoes: [...atual.dotacoes, novaDotacao()] }))}><i className="pi pi-plus" />Adicionar dotação</button><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, subitens: [...atual.subitens, novoItem()] }))}><i className="pi pi-plus" />Adicionar subitem</button></div>
+    {item.subitens.map((subitem) => <ItemEditor key={subitem.id} item={subitem} nivel={nivel + 1} onChange={(atualizar) => onChange((atual) => ({ ...atual, subitens: atualizarItem(atual.subitens, subitem.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, subitens: excluirItem(atual.subitens, subitem.id) }))} />)}
   </article>;
 }
 
 function DotacaoEditor({ dotacao, onChange, onRemove }: { dotacao: Dotacao; onChange: (atualizar: (dotacao: Dotacao) => Dotacao) => void; onRemove: () => void }) {
   const atualizar = <K extends keyof Dotacao>(campo: K, valor: Dotacao[K]) => onChange((atual) => ({ ...atual, [campo]: valor }));
-  return <div className="nqc-dotacao"><label>Perfil<input value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)} placeholder="Ex.: Assessor Técnico II" /></label><label>Simbologia remuneratória<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{["DGA-1","DGA-2","DGA-3","DGA-4","DGA-5","DGA-6","DGA-7","DGA-8","DGA-9","DGA-10"].map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label><label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label><label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} /></div>;
+  return <div className="nqc-dotacao"><label>Perfil<input value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)} placeholder="Ex.: Assessor Técnico II" /></label><label>Simbologia remuneratória<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{SIMBOLOGIAS.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label><label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label><label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} /></div>;
+}
+
+function somarPorSimbologia(niveis: Nivel[], simbologia: string) {
+  const somarItens = (itens: ItemEstrutura[]): { cargos: number; funcoes: number } => itens.reduce((total, item) => {
+    const dotacoes = item.dotacoes.filter((dotacao) => dotacao.simbologia === simbologia);
+    const filhos = somarItens(item.subitens);
+    return { cargos: total.cargos + dotacoes.reduce((soma, dotacao) => soma + dotacao.cargos, 0) + filhos.cargos, funcoes: total.funcoes + dotacoes.reduce((soma, dotacao) => soma + dotacao.funcoes, 0) + filhos.funcoes };
+  }, { cargos: 0, funcoes: 0 });
+  return niveis.reduce((total, nivel) => { const atual = somarItens(nivel.itens); return { cargos: total.cargos + atual.cargos, funcoes: total.funcoes + atual.funcoes }; }, { cargos: 0, funcoes: 0 });
 }
 
 function contarDotacoes(itens: ItemEstrutura[]): number { return itens.reduce((total, item) => total + item.dotacoes.length + contarDotacoes(item.subitens), 0); }
+
+function somarTotais(itens: ItemEstrutura[], acumulado = { cargos: 0, funcoes: 0 }) {
+  return itens.reduce((total, item) => ({
+    cargos: total.cargos + item.dotacoes.reduce((soma, dotacao) => soma + dotacao.cargos, 0) + somarTotais(item.subitens).cargos,
+    funcoes: total.funcoes + item.dotacoes.reduce((soma, dotacao) => soma + dotacao.funcoes, 0) + somarTotais(item.subitens).funcoes,
+  }), acumulado);
+}
+
+
+
+
+
+

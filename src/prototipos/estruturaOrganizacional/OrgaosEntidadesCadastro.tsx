@@ -15,6 +15,36 @@ type Dados = Record<string, string> & {
   tipoCadastro: TipoCadastro;
   classificacao: Classificacao;
 };
+type SecaoHistorico = "endereco" | "contato" | "responsavel" | "banco" | "integracoes";
+type VersaoSecao = { inicio: string; fim?: string; dados: Record<string, string> };
+const camposSecao: Record<SecaoHistorico, { titulo: string; colunas: { campo: string; label: string }[] }> = {
+  endereco: { titulo: "Endereço", colunas: [
+    { campo: "cep", label: "CEP" }, { campo: "uf", label: "UF" }, { campo: "municipio", label: "Município" },
+    { campo: "bairro", label: "Bairro/Distrito" }, { campo: "tipoLogradouro", label: "Tipo de Logradouro" },
+    { campo: "logradouro", label: "Logradouro" }, { campo: "numero", label: "Número" }, { campo: "complemento", label: "Complemento" },
+  ] },
+  contato: { titulo: "Contato", colunas: [
+    { campo: "telefone1", label: "Telefone 1" }, { campo: "telefone2", label: "Telefone 2" },
+    { campo: "website", label: "Website" }, { campo: "email1", label: "E-mail 1" }, { campo: "email2", label: "E-mail 2" },
+  ] },
+  responsavel: { titulo: "Responsável", colunas: [
+    { campo: "responsavel", label: "Responsável" }, { campo: "cargoFuncao", label: "Cargo/Função" },
+    { campo: "dataInicioResponsavel", label: "Data de Início" },
+  ] },
+  banco: { titulo: "Dados bancários", colunas: [
+    { campo: "banco", label: "Banco" }, { campo: "agencia", label: "Agência" },
+    { campo: "conta", label: "Conta" }, { campo: "digitoVerificador", label: "DV" },
+  ] },
+  integracoes: { titulo: "Integrações", colunas: [
+    { campo: "codigoArh", label: "Código ARH" }, { campo: "codigoSeap", label: "Código SEAP" },
+    { campo: "uoFiplan", label: "UO Fiplan" }, { campo: "codigoAplic", label: "Código APLIC" },
+  ] },
+};
+const dataHoje = () => new Date().toLocaleDateString("pt-BR");
+const capturarSecao = (secao: SecaoHistorico, dados: Dados) =>
+  Object.fromEntries(camposSecao[secao].colunas.map(({ campo }) => [campo, String(dados[campo] ?? "")]));
+const possuiInformacao = (valores: Record<string, string>) =>
+  Object.values(valores).some((valor) => valor.trim() !== "");
 
 export interface OrgaosEntidadesCadastroProps {
   onBack?: () => void;
@@ -46,6 +76,9 @@ const autoLabel = (texto: string) => (
 
 export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Readonly<OrgaosEntidadesCadastroProps>) {
   const [aba, setAba] = useState<Aba>("identificacao");
+  const [vigencias, setVigencias] = useState<Partial<Record<SecaoHistorico, VersaoSecao[]>>>({});
+  const [historicosAbertos, setHistoricosAbertos] = useState<Partial<Record<SecaoHistorico, boolean>>>({});
+  const [mensagemVigencia, setMensagemVigencia] = useState("");
   const { control, watch, setValue } = useForm<Dados>({
     defaultValues: {
       tipoCadastro: tipoInicial,
@@ -107,6 +140,38 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
     },
   });
   const dados = watch();
+  const salvarSecao = (secao: SecaoHistorico) => {
+    const novosDados = capturarSecao(secao, dados);
+    if (!possuiInformacao(novosDados)) return;
+    const versoes = vigencias[secao] ?? [];
+    const vigente = versoes.at(-1);
+    if (vigente && JSON.stringify(vigente.dados) === JSON.stringify(novosDados)) return;
+    const hoje = dataHoje();
+    setVigencias((atuais) => {
+      const anteriores = [...(atuais[secao] ?? [])];
+      if (anteriores.length) anteriores[anteriores.length - 1] = { ...anteriores[anteriores.length - 1], fim: hoje };
+      anteriores.push({ inicio: hoje, dados: novosDados });
+      return { ...atuais, [secao]: anteriores };
+    });
+    setMensagemVigencia(vigente ? `Nova vigência criada para ${camposSecao[secao].titulo}.` : `Vigência inicial registrada para ${camposSecao[secao].titulo}.`);
+  };
+  const HistoricoSecao = ({ secao }: { secao: SecaoHistorico }) => {
+    const anteriores = (vigencias[secao] ?? []).slice(0, -1).reverse();
+    const aberta = historicosAbertos[secao] ?? false;
+    return <div className="orgao-section-history">
+      <div className="orgao-section-history-actions">
+        <BotaoSeplag type="button" label="Salvar alterações" icon="pi pi-save" outlined onClick={() => salvarSecao(secao)} />
+        <BotaoSeplag type="button" label="Histórico" icon="pi pi-history" outlined onClick={() => setHistoricosAbertos((atual) => ({ ...atual, [secao]: !aberta }))} />
+      </div>
+      {aberta && <div className="orgao-section-history-box">
+        <strong>VIGÊNCIAS ANTERIORES - {camposSecao[secao].titulo.toLocaleUpperCase("pt-BR")}</strong>
+        {anteriores.length ? <div className="orgao-section-history-scroll"><table>
+          <thead><tr><th>Período de Vigência</th>{camposSecao[secao].colunas.map(({ campo, label }) => <th key={campo}>{label}</th>)}</tr></thead>
+          <tbody>{anteriores.map((versao, index) => <tr key={`${versao.inicio}-${index}`}><td>{versao.inicio} a {versao.fim}</td>{camposSecao[secao].colunas.map(({ campo }) => <td key={campo}>{versao.dados[campo] || "—"}</td>)}</tr>)}</tbody>
+        </table></div> : <p>Nenhuma vigência anterior para esta seção.</p>}
+      </div>}
+    </div>;
+  };
   const disabled = false;
   const common = { control, getFormErrorMessage: noError };
   useEffect(() => {
@@ -160,6 +225,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
           <p>{tipoInicial === "ente" ? "Informe os dados que identificam o ente federativo e suas integrações." : "Informe os dados que identificam o órgão ou entidade e sua vinculação institucional."}</p>
         </div>
       </header>
+      {mensagemVigencia && <div className="orgao-vigencia-feedback" role="status">{mensagemVigencia}</div>}
       <div className="prototype-carreira-register-form orgao-cadastro-form">
         <nav
           className="orgao-stepper"
@@ -253,6 +319,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
                 <TextFieldSeplag name="numero" control={control} label="Número" required getFormErrorMessage={noError} />
                 <TextFieldSeplag name="complemento" control={control} label="Complemento" getFormErrorMessage={noError} />
               </div>
+              <HistoricoSecao secao="endereco" />
             </PanelSeplag>
             <PanelSeplag title="Contato" description="Informe os canais institucionais." className="orgao-form-section">
               <div className="orgao-fields-grid cols-3">
@@ -262,6 +329,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
                 <TextFieldSeplag name="email1" control={control} label="E-mail 1" getFormErrorMessage={noError} />
                 <TextFieldSeplag name="email2" control={control} label="E-mail 2" getFormErrorMessage={noError} />
               </div>
+              <HistoricoSecao secao="contato" />
             </PanelSeplag>
             <div className="orgao-step-actions">
               <BotaoVoltarSeplag type="button" onClick={() => setAba("identificacao")} />
@@ -277,6 +345,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
                 <DropdownFieldSeplag name="cargoFuncao" control={control} label="Cargo/Função" required options={opts(["Secretário de Estado", "Secretário Adjunto", "Presidente", "Diretor", "Coordenador"])} optionLabel="label" optionValue="value" placeholder="Selecione..." getFormErrorMessage={noError} />
                 <DateFieldSeplag name="dataInicioResponsavel" control={control} label="Data de Início" required getFormErrorMessage={noError} />
               </div>
+              <HistoricoSecao secao="responsavel" />
             </PanelSeplag>
             <PanelSeplag title="Dados bancários" description="Informe os dados bancários." className="orgao-form-section">
               <div className="orgao-fields-grid cols-4">
@@ -285,6 +354,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
                 <TextFieldSeplag name="conta" control={control} label="Conta" maxLength={20} getFormErrorMessage={noError} />
                 <TextFieldSeplag name="digitoVerificador" control={control} label="DV" maxLength={2} getFormErrorMessage={noError} />
               </div>
+              <HistoricoSecao secao="banco" />
             </PanelSeplag>
             <div className="orgao-step-actions">
               <BotaoVoltarSeplag type="button" onClick={() => setAba("localizacao")} />
@@ -301,6 +371,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
                 <TextFieldSeplag name="uoFiplan" control={control} label="UO Fiplan" getFormErrorMessage={noError} />
                 <TextFieldSeplag name="codigoAplic" control={control} label="Código APLIC" getFormErrorMessage={noError} />
               </div>
+              <HistoricoSecao secao="integracoes" />
             </PanelSeplag>
             <div className="orgao-step-actions">
               <BotaoVoltarSeplag type="button" onClick={() => setAba("responsavel")} />
