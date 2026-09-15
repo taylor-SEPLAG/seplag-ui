@@ -1,0 +1,8 @@
+import fs from 'node:fs';
+import zlib from 'node:zlib';
+const raw=fs.readFileSync('C:/Users/taylorsantos/Downloads/diario_oficial_2026-09-11_suplemento_completo.pdf').toString('latin1');
+const ss=[];for(const m of raw.matchAll(/stream\r?\n([\s\S]*?)endstream/g)){let b=Buffer.from(m[1],'latin1');try{if(/FlateDecode/.test(raw.slice(Math.max(0,m.index-160),m.index)))b=zlib.inflateSync(b);ss.push(b.toString('latin1'))}catch{}}
+const map=new Map;for(const s of ss)if(/beginbfchar|beginbfrange/.test(s))for(const q of s.matchAll(/<([0-9A-F]+)>\s+<([0-9A-F]+)>/gi)){let v='';for(let i=0;i<q[2].length;i+=4)v+=String.fromCharCode(parseInt(q[2].slice(i,i+4),16));map.set(parseInt(q[1],16),v)}
+const dh=h=>(h.match(/.{1,4}/g)||[]).map(v=>map.get(parseInt(v,16))??String.fromCharCode(parseInt(v,16))).join(''); const ue=v=>v.replace(/\\([0-7]{1,3}|[nrtbf()\\])/g,(_,c)=>({n:'\n',r:'\r',t:'\t',b:'\b',f:'\f','(':'(',')':')','\\':'\\'}[c]??String.fromCharCode(parseInt(c,8))));let o=[];
+for(let i=0;i<ss.length;i++){const s=ss[i];if(!/\bTm\b/.test(s))continue;let x=0,y=0,f='';const r=/\/(\w+)\s+\d+(?:\.\d+)?\s+Tf|[-.\d]+\s+[-.\d]+\s+[-.\d]+\s+[-.\d]+\s+([-.\d]+)\s+([-.\d]+)\s+Tm|\(((?:\\.|[^)])*)\)\s*Tj|<([0-9A-F]+)>\s*Tj|\[([\s\S]*?)\]\s*TJ/g;for(let q;(q=r.exec(s));){if(q[1]){f=q[1];continue}if(q[2]){x=+q[2];y=+q[3];continue}let v=q[4]!==undefined?ue(q[4]):q[5]!==undefined?dh(q[5]):'';if(q[6]!==undefined){v='';for(const p of q[6].matchAll(/\(((?:\\.|[^)])*)\)|<([0-9A-F]+)>/g))v+=p[2]===undefined?ue(p[1]):dh(p[2])}if(v.trim())o.push([i,x,y,f,v].join('\t'))}}
+fs.writeFileSync('tmp/pdfs/anexo-coords.tsv',o.join('\n'));console.log(ss.length,map.size,o.length);
