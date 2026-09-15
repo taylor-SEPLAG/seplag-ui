@@ -15,6 +15,8 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import "./quadroAutorizado.css";
+import { NovoQuadroComissionadoContent } from "./NovoQuadroComissionadoContent";
+import { QuadroAutorizadoComissionadoLista } from "./QuadroAutorizadoComissionadoLista";
 
 import type {
   EvolucaoQuadroLegal,
@@ -154,6 +156,10 @@ export function QuadroAutorizadoContent() {
   const isNovaVersao = location.pathname.endsWith("/nova-versao");
   const isDetalhe = Boolean(id) && !isEditar && !isNovaVersao;
 
+  if (!isNovo && !isEditar && !isNovaVersao && !isDetalhe) {
+    return <QuadroAutorizadoComissionadoLista />;
+  }
+
   if (isNovaVersao) {
     const registro = id
       ? quadros.find((item) => item.id === Number(id))
@@ -173,7 +179,11 @@ export function QuadroAutorizadoContent() {
     );
   }
 
-  if (isNovo || isEditar) {
+  if (isNovo) {
+    return <NovoQuadroComissionadoContent />;
+  }
+
+  if (isEditar) {
     const registro = id
       ? quadros.find((item) => item.id === Number(id))
       : undefined;

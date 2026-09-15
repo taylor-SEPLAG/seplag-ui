@@ -29,11 +29,8 @@ import { CONTROLE_VAGAS_BASE_PATH } from "./constants";
 import { QuadroLegalOperacoes } from "./QuadroLegalOperacoes";
 import { gerarVagasDoQuadro } from "./vagaUtils";
 import { calcularPosicaoVaga } from "./distribuicaoIndividual";
-import {
-  carreirasBaseTemporaria,
-  cargosBaseTemporaria,
-  perfisProfissionaisBaseTemporaria,
-} from "./baseTemporaria";
+import { perfisProfissionaisBaseTemporaria } from "./baseTemporaria";
+import { listarCargosBolsistas } from "./cargosBolsistasStore";
 import {
   BotaoAdicionarSeplag,
   BotaoIconSeplag,
@@ -1192,7 +1189,7 @@ function QuadroAutorizadoLista() {
         <header className="prototype-residentes-quadro-header">
           <SpecArea metadata={quadroScreenSpecification}>
             <div>
-              <h1>Quadro Autorizado</h1>
+              <h1>Quadro Autorizado Bolsistas</h1>
               <p>Quantitativos autorizados por cargo, vínculo e órgão.</p>
             </div>
           </SpecArea>
@@ -1807,8 +1804,8 @@ function QuadroAutorizadoForm({
 
   const { control, setValue, getValues, watch } = useForm<QuadroFormValues>({
     defaultValues: {
-      vinculo: registro?.vinculo ?? "",
-      regime: registro?.regime ?? "",
+      vinculo: registro?.vinculo ?? "Bolsista",
+      regime: registro?.regime ?? "Sem vínculo empregatício",
       carreira: registro?.carreira ?? "",
       cargo: registro?.cargo ?? "",
       perfilProfissional: registro?.perfilProfissional ?? "",
@@ -1844,13 +1841,10 @@ function QuadroAutorizadoForm({
         normalizarCargo(quadro.cargo) === normalizarCargo(cargo) &&
         (!registro || quadro.codigo !== registro.codigo),
     );
-  const opcoesCargo = cargosBaseTemporaria.map((item) => {
+  const opcoesCargo = listarCargosBolsistas().map((item) => {
     const quadroExistente = quadroExistenteDoCargo(item.nome);
     return {
-      label:
-        item.situacaoLegal === "EM_EXTINCAO"
-          ? item.nome + " — Em extinção"
-          : item.nome,
+      label: item.nome,
       value: item.nome,
       indisponivel: Boolean(quadroExistente),
       quadroCodigo: quadroExistente?.codigo,
@@ -1877,14 +1871,8 @@ function QuadroAutorizadoForm({
     situacao: "ATIVO",
     dataAtivacao: form.dataAtivacao,
   };
-  const statusVigenciaPrevia = calcularStatusOperacionalVigenciaSeplag(vigenciaPrevia);
-  const situacaoPrevia = statusVigenciaPrevia.startsWith("AGENDADO")
-    ? "Agendado"
-    : "Ativo";
-  const descricaoSituacaoPrevia =
-    situacaoPrevia === "Agendado"
-      ? "A autorização ficará programada para a data informada."
-      : "A autorização passa a valer a partir da data informada.";
+  const situacaoPrevia = "Ativo";
+  const descricaoSituacaoPrevia = "A autorização passa a valer a partir da data informada.";
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const valores = getValues();
@@ -1894,9 +1882,6 @@ function QuadroAutorizadoForm({
     };
     const errosVigencia = validarSituacaoVigenciaSeplag(vigencia);
     const novosErros = [
-      !form.vinculo && "Informe o tipo de vínculo.",
-      !form.regime && "Informe o regime jurídico.",
-      !form.carreira && "Informe a carreira.",
       !form.cargo && "Informe o cargo.",
       form.cargo &&
         quadroExistenteDoCargo(form.cargo) &&
@@ -1904,6 +1889,13 @@ function QuadroAutorizadoForm({
       !documentosLegaisIds.length &&
         "Vincule ao menos uma norma à autorização.",
       ...errosVigencia,
+      (() => {
+        const [dia, mes, ano] = String(valores.dataAtivacao).split("/");
+        const dataInformada = new Date(Number(ano), Number(mes) - 1, Number(dia));
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        return dataInformada > hoje && "A data de início não pode ser futura.";
+      })(),
       (!form.quantidade || Number(form.quantidade) <= 0) &&
         "Informe uma quantidade maior que zero.",
       novaVersao && !form.motivoAlteracao && "Informe o motivo da nova versão.",
@@ -1917,7 +1909,7 @@ function QuadroAutorizadoForm({
         : registro.id;
     const codigo = novaVersao
       ? registro!.codigo
-      : (registro?.codigo ?? `QA-${String(novoId).padStart(4, "0")}`);
+      : (registro?.codigo ?? `QAB-${String(novoId).padStart(4, "0")}`);
     const statusVigencia = calcularStatusOperacionalVigenciaSeplag(vigencia);
     const situacao = statusVigencia.startsWith("AGENDADO")
       ? ("Vigência futura" as const)
@@ -1989,10 +1981,10 @@ function QuadroAutorizadoForm({
     window.setTimeout(() => navigate(BASE_PATH), 700);
   };
   const titulo = novaVersao
-    ? "Nova versão do quadro"
+    ? "Nova versão do quadro bolsista"
     : registro
       ? "Editar autorização"
-      : "Novo Quadro";
+      : "Novo Quadro Bolsistas";
   return (
     <div className="prototype-residentes-quadro-page">
       <header className="prototype-residentes-quadro-header">
@@ -2033,52 +2025,6 @@ function QuadroAutorizadoForm({
             </div>
           </header>
           <div className="prototype-residentes-quadro-fields">
-            <DropdownFieldSeplag
-              name="vinculo"
-              control={control}
-              label="Tipo de vínculo"
-              required
-              cols="12"
-              options={[
-                { label: "Servidor efetivo", value: "Servidor efetivo" },
-              ]}
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Selecione"
-              getFormErrorMessage={() => null}
-            />
-            <DropdownFieldSeplag
-              name="regime"
-              control={control}
-              label="Regime jurídico"
-              required
-              cols="12"
-              options={["Estatutário", "Administrativo", "Celetista"].map(
-                (value) => ({ label: value, value }),
-              )}
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Selecione"
-              getFormErrorMessage={() => null}
-            />
-            <DropdownFieldSeplag
-              name="carreira"
-              control={control}
-              label="Carreira"
-              required
-              cols="12"
-              options={carreirasBaseTemporaria.map((item) => ({
-                label:
-                  item.situacaoLegal === "EM_EXTINCAO"
-                    ? item.nome + " — Em extinção"
-                    : item.nome,
-                value: item.nome,
-              }))}
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Selecione"
-              getFormErrorMessage={() => null}
-            />
             <DropdownFieldSeplag
               name="cargo"
               control={control}
@@ -2199,6 +2145,15 @@ function QuadroAutorizadoForm({
                 label="Data de início"
                 required
                 cols="12"
+                maxDate={new Date()}
+                customValidation={(value) => {
+                  if (!value) return true;
+                  const [dia, mes, ano] = String(value).split("/");
+                  const dataInformada = new Date(Number(ano), Number(mes) - 1, Number(dia));
+                  const hoje = new Date();
+                  hoje.setHours(0, 0, 0, 0);
+                  return dataInformada <= hoje || "A data de início não pode ser futura.";
+                }}
                 getFormErrorMessage={() => null}
               />
             </div>
@@ -2260,7 +2215,7 @@ function QuadroAutorizadoNovaVersao({
     <div className="prototype-residentes-quadro-page">
       <header className="prototype-residentes-quadro-header">
         <div>
-          <h1>{versaoEmEdicao ? "Editar versão agendada" : "Nova versão do quadro"}</h1>
+          <h1>{versaoEmEdicao ? "Editar versão agendada" : "Nova versão do quadro bolsista"}</h1>
 </div>
       </header>
 <QuadroLegalOperacoes registro={registro} versaoEmEdicao={versaoEmEdicao} onSaved={onBack} />

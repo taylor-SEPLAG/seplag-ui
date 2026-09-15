@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { BadgeSeplag } from "@componentes/Badge";
-import { BotaoLimparFiltroSeplag, BotaoSalvarSeplag, BotaoSeplag } from "@componentes/Botao";
+import { BotaoLimparFiltroSeplag } from "@componentes/Botao";
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { CardSeplag } from "@componentes/Card";
 import { DropdownFieldSeplag, RadioButtonFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { PanelSeplag } from "@componentes/PanelSeplag";
+import { ModalSeplag } from "@componentes/Modal";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "@interfaces/Results";
 import { menuGestaoPessoas, PrototypeSystemPage } from "../PrototiposPage";
@@ -47,15 +48,34 @@ const situacaoOptions = [
 ];
 
 export function PrototiposTiposUnidadesPage() {
-  const navigate = useNavigate();
+  const [registros, setRegistros] = useState(tiposUnidades);
+  const [modalCadastro, setModalCadastro] = useState(false);
   const [pagina, setPagina] = useState(0);
   const registrosPorPagina = 10;
   const { control, reset, watch } = useForm<TipoUnidadeFiltro>({
     defaultValues: { pesquisa: "", situacao: "ATIVO" },
   });
+  const { control: cadastroControl, reset: resetCadastro, handleSubmit } = useForm<TipoUnidadeCadastroForm>({
+    defaultValues: { nome: "", descricao: "", situacao: "ATIVO" },
+  });
+  const fecharCadastro = () => {
+    setModalCadastro(false);
+    resetCadastro({ nome: "", descricao: "", situacao: "ATIVO" });
+  };
+  const cadastrarTipo = handleSubmit((form) => {
+    const nome = form.nome.trim();
+    if (!nome) return;
+    setRegistros((atuais) => [...atuais, {
+      id: Math.max(0, ...atuais.map((item) => item.id)) + 1,
+      nome,
+      descricao: form.descricao.trim(),
+      situacao: form.situacao,
+    }]);
+    fecharCadastro();
+  });
   const filtros = watch();
   const pesquisa = filtros.pesquisa.trim().toLocaleLowerCase("pt-BR");
-  const filtrados = tiposUnidades.filter((item) =>
+  const filtrados = registros.filter((item) =>
     (!pesquisa || item.nome.toLocaleLowerCase("pt-BR").includes(pesquisa) || item.descricao.toLocaleLowerCase("pt-BR").includes(pesquisa)) &&
     (!filtros.situacao || item.situacao === filtros.situacao),
   );
@@ -114,7 +134,7 @@ export function PrototiposTiposUnidadesPage() {
               paginator
               selectionMode={null}
               hasEventoAcao
-              handleAdicionar={() => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades/cadastrar")}
+              handleAdicionar={() => setModalCadastro(true)}
               handleView={() => {}}
               handleEdit={() => {}}
               handleDelete={() => {}}
@@ -122,6 +142,26 @@ export function PrototiposTiposUnidadesPage() {
             />
           </div>
         </CardSeplag>
+        <ModalSeplag visible={modalCadastro} titulo="Cadastrar Tipo de Unidade" fechar={fecharCadastro} labelFechar="Cancelar" labelAcao="Salvar" funcAcao={cadastrarTipo} tamanho="850px">
+          <div className="col-12 tipos-unidades-register-content">
+            <PanelSeplag title="Dados do tipo" description="Cadastre somente a classificação da unidade. A posição hierárquica será definida no organograma." className="tipos-unidades-register-panel">
+              <div className="grid tipos-unidades-register-fields">
+                <div className="col-12 lg:col-9">
+                  <TextFieldSeplag name="nome" control={cadastroControl} label="Nome do tipo" placeholder="Ex.: Superintendência" cols="12" required maxLength={150} getFormErrorMessage={() => null} />
+                  <small className="tipos-unidades-field-help">Utilize a denominação institucional do tipo de unidade.</small>
+                </div>
+                <div className="col-12 lg:col-3 tipos-unidades-situacao-field">
+                  <RadioButtonFieldSeplag name="situacao" control={cadastroControl} label="Situação" cols="12" options={[{ label: "Ativo", value: "ATIVO" }, { label: "Inativo", value: "INATIVO" }]} getFormErrorMessage={() => null} />
+                </div>
+                <div className="col-12">
+                  <TextAreaFieldSeplag name="descricao" control={cadastroControl} label="Descrição" placeholder="Informe uma breve descrição, quando necessário." cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} />
+                  <small className="tipos-unidades-field-help">Campo opcional. Não utilize este campo para definir regras de hierarquia.</small>
+                </div>
+                <div className="col-12 tipos-unidades-register-note"><strong>Importante:</strong> este cadastro não define nível, unidade superior ou posição no organograma. Essas relações serão configuradas na montagem da estrutura organizacional.</div>
+              </div>
+            </PanelSeplag>
+          </div>
+        </ModalSeplag>
       </div>
     </PrototypeSystemPage>
   );
@@ -134,45 +174,5 @@ interface TipoUnidadeCadastroForm {
 }
 
 export function PrototiposTipoUnidadeCadastroPage() {
-  const navigate = useNavigate();
-  const { control } = useForm<TipoUnidadeCadastroForm>({
-    defaultValues: { nome: "", descricao: "", situacao: "ATIVO" },
-  });
-  const voltar = () => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades");
-
-  return (
-    <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
-      <div className="prototype-page-content prototype-page-content--white tipos-unidades-register-page">
-        <CardSeplag
-          title="Cadastrar Tipo de Unidade"
-          cols="12"
-          cardHeaderClassNames="prototype-category-card"
-          headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Tipos de Unidades", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" }, { label: "Cadastrar" }]} />}
-        >
-          <div className="tipos-unidades-register-content">
-            <PanelSeplag title="Dados do tipo" description="Cadastre somente a classificação da unidade. A posição hierárquica será definida no organograma." className="tipos-unidades-register-panel">
-              <div className="grid tipos-unidades-register-fields">
-                <div className="col-12 lg:col-9">
-                  <TextFieldSeplag name="nome" control={control} label="Nome do tipo" placeholder="Ex.: Superintendência" cols="12" required maxLength={150} getFormErrorMessage={() => null} />
-                  <small className="tipos-unidades-field-help">Utilize a denominação institucional do tipo de unidade.</small>
-                </div>
-                <div className="col-12 lg:col-3 tipos-unidades-situacao-field">
-                  <RadioButtonFieldSeplag name="situacao" control={control} label="Situação" cols="12" options={[{ label: "Ativo", value: "ATIVO" }, { label: "Inativo", value: "INATIVO" }]} getFormErrorMessage={() => null} />
-                </div>
-                <div className="col-12">
-                  <TextAreaFieldSeplag name="descricao" control={control} label="Descrição" placeholder="Informe uma breve descrição, quando necessário." cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} />
-                  <small className="tipos-unidades-field-help">Campo opcional. Não utilize este campo para definir regras de hierarquia.</small>
-                </div>
-                <div className="col-12 tipos-unidades-register-note"><strong>Importante:</strong> este cadastro não define nível, unidade superior ou posição no organograma. Essas relações serão configuradas na montagem da estrutura organizacional.</div>
-              </div>
-            </PanelSeplag>
-            <footer className="tipos-unidades-register-actions">
-              <BotaoSeplag type="button" label="Cancelar" outlined onClick={voltar} />
-              <BotaoSalvarSeplag type="button" label="Salvar" onClick={() => {}} />
-            </footer>
-          </div>
-        </CardSeplag>
-      </div>
-    </PrototypeSystemPage>
-  );
+  return <Navigate to="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" replace />;
 }

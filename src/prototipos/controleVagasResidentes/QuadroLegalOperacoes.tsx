@@ -70,8 +70,7 @@ const descricoes: Record<TipoAlteracaoQuadroLegal, string> = {
 const tiposAlteracaoDisponiveis: TipoAlteracaoQuadroLegal[] = [
   "AMPLIACAO",
   "REDUCAO",
-  "TRANSFORMACAO",
-  "EXTINCAO_PROGRESSIVA",
+"EXTINCAO_PROGRESSIVA",
   "DISTRIBUICAO",
   "REDISTRIBUICAO",
   "ATUALIZACAO_BASE_LEGAL",
@@ -825,7 +824,7 @@ const vagasElegiveisRedistribuicao =
       }
       const atual = controleVagasStore.getState();
       const dataHoje = dataAtualIso();
-      const vigenciaFutura = dataEfeito > dataHoje;
+      const vigenciaFutura = false;
       const dataBr = dataEfeito.split("-").reverse().join("/");
       const novoId = versaoEmEdicao?.id ?? Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
       const loteId = `DIST-${registro.codigo}-${dataEfeito.replaceAll("-", "")}-${String(atual.movimentos.length + 1).padStart(5, "0")}`;
@@ -911,7 +910,7 @@ const vagasElegiveisRedistribuicao =
       }
       const atual = controleVagasStore.getState();
       const dataHoje = dataAtualIso();
-      const vigenciaFutura = dataEfeito > dataHoje;
+      const vigenciaFutura = false;
       const dataBr = dataEfeito.split("-").reverse().join("/");
       const novoId = versaoEmEdicao?.id ?? Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
       const loteId = `REDIST-${registro.codigo}-${dataEfeito.replaceAll("-", "")}-${String(atual.movimentos.length + 1).padStart(5, "0")}`;
@@ -986,7 +985,7 @@ const vagasElegiveisRedistribuicao =
     if (operacaoInvalida || !resultado || (!alteracaoSemImpactoVagas && resultado.criadas.length + resultado.alteradas.length === 0)) return;
     const atual = controleVagasStore.getState();
     const dataHoje = dataAtualIso();
-    const vigenciaFutura = dataEfeito > dataHoje;
+    const vigenciaFutura = false;
     const dataBr = dataEfeito.split("-").reverse().join("/");
     const primeiroNovoId = versaoEmEdicao?.id ?? Math.max(0, ...atual.quadros.map((item) => item.id)) + 1;
 
@@ -1170,7 +1169,7 @@ const vagasElegiveisRedistribuicao =
             <div><dt>Ocupadas</dt><dd>{resumoQuadro.ocupadas}</dd></div>
             <div><dt>Comprometidas</dt><dd>{resumoQuadro.comprometidas}</dd></div>
             <div><dt>Disponíveis</dt><dd>{resumoQuadro.disponiveis}</dd></div>
-            <div><dt>Pendentes de ato</dt><dd>{resumoQuadro.pendentes}</dd></div>
+            <div><dt>Pendentes de Distribuição</dt><dd>{resumoQuadro.pendentes}</dd></div>
           </dl>          <p><i className="pi pi-info-circle" /> A versão vigente será preservada. Selecione a lei ou o ato legal que fundamenta a alteração e simule seu impacto antes de registrar a nova versão.</p>
         </section>
         <BaseLegalVinculada
@@ -1828,7 +1827,7 @@ const vagasElegiveisRedistribuicao =
             <article><span>Quadro vigente</span><strong>{registro.codigo} · versão {registro.versao}</strong></article>
             <article><span>Quadro resultante</span><strong>{registro.codigo} · versão {proximaVersao}</strong></article>
             <article><span>Data de efeito</span><strong>{dataEfeito.split("-").reverse().join("/")}</strong></article>
-            <article><span>Situação resultante</span><strong>{dataEfeito > hoje ? "Agendado" : "Ativo"}</strong></article>
+            <article><span>Situação resultante</span><strong>{"Ativo"}</strong></article>
             <article><span>Evolução registrada</span><strong>Distribuição</strong></article>
           </section>
           <div className="prototype-residentes-legal-result-kpis">
@@ -1885,7 +1884,7 @@ const vagasElegiveisRedistribuicao =
             <article><span>Quadro vigente</span><strong>{registro.codigo} · versão {registro.versao}</strong></article>
             <article><span>Quadro resultante</span><strong>{registro.codigo} · versão {proximaVersao}</strong></article>
             <article><span>Data de efeito</span><strong>{dataEfeito.split("-").reverse().join("/")}</strong></article>
-            <article><span>Situação resultante</span><strong>{dataEfeito > hoje ? "Agendado" : "Ativo"}</strong></article>
+            <article><span>Situação resultante</span><strong>{"Ativo"}</strong></article>
           </section>
           <div className="prototype-residentes-legal-result-kpis">
             <article>
@@ -1976,7 +1975,7 @@ const vagasElegiveisRedistribuicao =
               </>
             ) : null}
             <article><span>Data de efeito</span><strong>{dataEfeito.split("-").reverse().join("/")}</strong></article>
-            <article><span>Situação resultante</span><strong>{dataEfeito > hoje ? "Agendado" : tipo === "EXTINCAO_PROGRESSIVA" && resultado.quantitativoPosterior > 0 ? "Encerrado" : tipo === "EXTINCAO_PROGRESSIVA" ? "Extinto" : "Ativo"}</strong></article>
+            <article><span>Situação resultante</span><strong>{tipo === "EXTINCAO_PROGRESSIVA" && resultado.quantitativoPosterior > 0 ? "Encerrado" : tipo === "EXTINCAO_PROGRESSIVA" ? "Extinto" : "Ativo"}</strong></article>
             {tipo !== "AMPLIACAO" && tipo !== "REDUCAO" && tipo !== "TRANSFORMACAO" && <article><span>Evolução registrada</span><strong>{rotulos[tipo]}</strong></article>}
           </section>
           {tipo === "ATUALIZACAO_BASE_LEGAL" && (
@@ -2023,7 +2022,7 @@ const vagasElegiveisRedistribuicao =
               <article><span>Ocupadas mantidas até a vacância</span><strong>{resultado.alteradas.filter((vaga) => vaga.situacaoLegal === "EM_EXTINCAO" && vaga.estado === "OCUPADA" && !idsVagasComprometidas.has(vaga.id)).length}</strong></article>
               <article><span>Comprometidas mantidas até a conclusão</span><strong>{resultado.alteradas.filter((vaga) => vaga.situacaoLegal === "EM_EXTINCAO" && idsVagasComprometidas.has(vaga.id)).length}</strong></article>
               <article><span>Total remanescente</span><strong>{resultado.quantitativoPosterior}</strong></article>
-              <article><span>Situação resultante</span><strong>{resultado.quantitativoPosterior > 0 ? "Encerrado" : "Extinto"}</strong></article>
+            <article><span>Situação resultante</span><strong>{tipo === "EXTINCAO_PROGRESSIVA" && resultado.quantitativoPosterior > 0 ? "Encerrado" : tipo === "EXTINCAO_PROGRESSIVA" ? "Extinto" : "Ativo"}</strong></article>
               <article><span>Novos ingressos</span><strong>Bloqueados</strong></article>
               <article><span>Encerramento do quadro</span><strong>Após a última vacância</strong></article>
             </section>

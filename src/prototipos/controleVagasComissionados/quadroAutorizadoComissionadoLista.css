@@ -1,0 +1,152 @@
+.prototype-comissionados-quadro-page .prototype-quadro-header {
+  padding-top: 0;
+}
+
+.prototype-comissionados-quadro-page .prototype-quadro-kpis > :nth-child(1) article {
+  border-top-color: #287dc2;
+}
+
+.prototype-comissionados-quadro-page .prototype-quadro-kpis > :nth-child(2) article {
+  border-top-color: #6356bd;
+}
+
+.prototype-comissionados-quadro-page .prototype-quadro-kpis > :nth-child(2) article > i {
+  background: #eeebff;
+  color: #5c50af;
+}
+
+.prototype-comissionados-quadro-page .prototype-quadro-kpis > :nth-child(3) article {
+  border-top-color: #d88b17;
+}
+
+.prototype-comissionados-quadro-page .prototype-quadro-kpis > :nth-child(3) article > i {
+  background: #fff3dc;
+  color: #bd7410;
+}
+
+.prototype-comissionados-quadro-page .prototype-quadro-kpis > :nth-child(4) article {
+  border-top-color: #27966a;
+}
+
+.prototype-comissionados-quadro-page .prototype-quadro-kpis > :nth-child(4) article > i {
+  background: #e5f6ee;
+  color: #23875f;
+}
+
+.prototype-comissionados-quadro-page .prototype-quadro-kpis > :nth-child(5) article {
+  border-top-color: #d88b17;
+}
+
+.prototype-comissionados-quadro-page .prototype-quadro-kpis > :nth-child(5) article > i {
+  background: #fff3dc;
+  color: #bd7410;
+}
+
+.prototype-comissionados-quadro-filters {
+  grid-template-columns: minmax(15rem, 1.6fr) minmax(12rem, 1fr) minmax(12rem, 1fr) auto;
+}
+
+.prototype-comissionados-quadro-main strong {
+  color: #0072bc;
+  font-weight: 700;
+}
+
+.prototype-comissionados-quadro-main small {
+  display: block;
+  margin-top: .18rem;
+  color: #68748a;
+}
+
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(2),`n.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(3),
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(4),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(2),`n.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(3),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(4),
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(5),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(5),
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(6),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(6) {
+  text-align: center;
+}
+
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(n + 2) .p-column-header-content,
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:last-child .p-column-header-content {
+  justify-content: center;
+}
+
+.prototype-comissionados-quadro-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.prototype-comissionados-quadro-actions .p-button {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: .28rem;
+}
+
+.prototype-comissionados-quadro-detail {
+  position: fixed;
+  z-index: 20;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: min(29rem, calc(100vw - 3rem));
+  padding: 1rem;
+  border: 1px solid #b9d4e7;
+  border-radius: .5rem;
+  background: #fff;
+  box-shadow: 0 12px 32px #152a4140;
+}
+
+.prototype-comissionados-quadro-detail header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.prototype-comissionados-quadro-detail header span {
+  color: #0871b8;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.prototype-comissionados-quadro-detail h2 {
+  margin: .2rem 0;
+  font-size: 1rem;
+}
+
+.prototype-comissionados-quadro-detail dl {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .8rem;
+  margin: 1rem 0 0;
+}
+
+.prototype-comissionados-quadro-detail dt {
+  color: #68758a;
+  font-size: .72rem;
+}
+
+.prototype-comissionados-quadro-detail dd {
+  margin: .2rem 0 0;
+  color: #17233c;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .prototype-comissionados-quadro-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 650px) {
+  .prototype-comissionados-quadro-filters { grid-template-columns: 1fr; }
+}
+/* O badge de situação deve manter o formato compacto do componente padrão. */
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(5) > span {
+  display: inline-flex !important;
+  width: auto !important;
+  min-width: 0 !important;
+  flex: 0 0 auto;
+}

@@ -1657,7 +1657,13 @@ function App() {
       <Route path="/prototipos/sigep/controle-vagas/residentes/quadro-autorizado/novo" element={<PrototiposVagasResidentesQuadroPage />} />
       <Route path="/prototipos/sigep/controle-vagas/residentes/quadro-autorizado/:id" element={<PrototiposVagasResidentesQuadroPage />} />
       <Route path="/prototipos/sigep/controle-vagas/residentes/quadro-autorizado/:id/editar" element={<PrototiposVagasResidentesQuadroPage />} />
-      <Route path="/prototipos/sigep/controle-vagas/residentes/quadro-autorizado/:id/nova-versao" element={<PrototiposVagasResidentesQuadroPage />} />
+      <Route path="/prototipos/sigep/controle-vagas/residentes/quadro-autorizado/:id/nova-versao" element={<PrototiposVagasResidentesQuadroPage />} />      <Route path="/prototipos/sigep/controle-vagas/bolsistas" element={<PrototiposVagasResidentesPage />} />
+      <Route path="/prototipos/sigep/controle-vagas/bolsistas/vagas" element={<PrototiposVagasResidentesIndividualizadasPage />} />
+      <Route path="/prototipos/sigep/controle-vagas/bolsistas/quadro-autorizado" element={<PrototiposVagasResidentesQuadroPage />} />
+      <Route path="/prototipos/sigep/controle-vagas/bolsistas/quadro-autorizado/novo" element={<PrototiposVagasResidentesQuadroPage />} />
+      <Route path="/prototipos/sigep/controle-vagas/bolsistas/quadro-autorizado/:id" element={<PrototiposVagasResidentesQuadroPage />} />
+      <Route path="/prototipos/sigep/controle-vagas/bolsistas/quadro-autorizado/:id/editar" element={<PrototiposVagasResidentesQuadroPage />} />
+      <Route path="/prototipos/sigep/controle-vagas/bolsistas/quadro-autorizado/:id/nova-versao" element={<PrototiposVagasResidentesQuadroPage />} />
       <Route
         path="/prototipos/sigep/controle-vagas/efetivos"
         element={<PrototiposControleVagasEfetivosPage />}

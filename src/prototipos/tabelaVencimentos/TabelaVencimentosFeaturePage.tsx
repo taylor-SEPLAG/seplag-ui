@@ -16,6 +16,12 @@ import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
 import "./tabelaVencimentos.css";
 import "./tabelaVencimentosSpacing.css";
+import { RgaLotePage } from "./RgaLotePage";
+import { resolveJourneyVersions } from "./rgaLote";
+import {
+  isRgaVigenciaWithinTable,
+  RGA_VIGENCIA_FORA_TABELA,
+} from "./rgaVigencia";
 
 type Status = "Vigente" | "Futura" | "Encerrada";
 type AbrangenciaTabela =
@@ -31,9 +37,28 @@ type Cargo = {
   jornadas: string[];
   vigentes: number;
   tabelas: number;
+  semTabelaVigente?: boolean;
+  incideRga?: boolean;
   alteracao: string;
 };
-type Versao = {
+export type Versao = {
+  numero?: string;
+  valorBase?: MatrixData;
+  auditoriaRga?: {
+    ano: string;
+    percentual: string;
+    vigencia: string;
+    fim?: string;
+    baseLegal: string;
+    arredondamento: string;
+    observacao: string;
+    responsavel: string;
+    aplicadaEm: string;
+    versaoOrigem: string;
+    novaVersao: string;
+    loteId?: string;
+    tipoAplicacao?: "Individual" | "Em lote";
+  };
   ano: number;
   inicio: string;
   fim?: string;
@@ -46,8 +71,11 @@ type Versao = {
   origem?: "Cadastro inicial" | "Versionamento" | "RGA";
   percentualRga?: string;
 };
-type MatrixData = { columns: string[]; rows: Array<{ name: string; values: string[] }> };
-type TabelaSalva = {
+export type MatrixData = {
+  columns: string[];
+  rows: Array<{ name: string; values: string[] }>;
+};
+export type TabelaSalva = {
   id?: string;
   cargoId: number;
   jornada: string;
@@ -56,14 +84,26 @@ type TabelaSalva = {
   baseLegal?: string;
   observacao?: string;
   incideRga?: boolean;
-  rga?: { percentual: string; ano: string; vigencia: string; baseLegal: string; observacao: string; responsavel?: string; aplicadaEm?: string };
+  rga?: {
+    percentual: string;
+    ano: string;
+    vigencia: string;
+    inicio?: string;
+    fim?: string;
+    baseLegal: string;
+    observacao: string;
+    responsavel?: string;
+    aplicadaEm?: string;
+  };
 };
 const BASE = "/prototipos/sigep/tabelas-vencimentos";
 const STORAGE_KEY = "sigep-tabelas-vencimentos-salvas";
 const readSavedTables = (): TabelaSalva[] => {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) || "[]") as TabelaSalva[];
+    return JSON.parse(
+      window.sessionStorage.getItem(STORAGE_KEY) || "[]",
+    ) as TabelaSalva[];
   } catch {
     return [];
   }
@@ -92,7 +132,9 @@ const isVersionCurrent = (version: Versao) => {
   const today = localIsoDate();
   const start = toInputDate(version.inicio);
   const end = version.fim ? toInputDate(version.fim) : "";
-  return version.status === "Vigente" && start <= today && (!end || end >= today);
+  return (
+    version.status === "Vigente" && start <= today && (!end || end >= today)
+  );
 };
 const defaultMatrixData = (): MatrixData => ({
   columns: ["A", "B", "C", "D", "E"],
@@ -197,16 +239,87 @@ const CARGOS: Cargo[] = [
     tabelas: 1,
     alteracao: "08/07/2026",
   },
+  {
+    id: 8,
+    nome: "Gestor Governamental",
+    carreira: "Gestão Governamental",
+    abrangencia: "Aplicada a todos os perfis",
+    perfis: ["Gestão de Políticas Públicas"],
+    jornadas: ["40 horas"],
+    vigentes: 1,
+    tabelas: 1,
+    semTabelaVigente: true,
+    incideRga: false,
+    alteracao: "11/09/2026",
+  },
 ];
 const MATRIZ_HISTORICO_FAKE: MatrixData = {
   columns: ["A", "B", "C", "D", "E"],
   rows: [
-    { name: "001", values: ["R$ 4.500,00", "R$ 4.750,00", "R$ 5.000,00", "R$ 5.250,00", "R$ 5.500,00"] },
-    { name: "002", values: ["R$ 4.800,00", "R$ 5.050,00", "R$ 5.300,00", "R$ 5.550,00", "R$ 5.800,00"] },
-    { name: "003", values: ["R$ 5.100,00", "R$ 5.350,00", "R$ 5.600,00", "R$ 5.850,00", "R$ 6.100,00"] },
-    { name: "004", values: ["R$ 5.400,00", "R$ 5.650,00", "R$ 5.900,00", "R$ 6.150,00", "R$ 6.400,00"] },
-    { name: "005", values: ["R$ 5.700,00", "R$ 5.950,00", "R$ 6.200,00", "R$ 6.450,00", "R$ 6.700,00"] },
+    {
+      name: "001",
+      values: [
+        "R$ 4.500,00",
+        "R$ 4.750,00",
+        "R$ 5.000,00",
+        "R$ 5.250,00",
+        "R$ 5.500,00",
+      ],
+    },
+    {
+      name: "002",
+      values: [
+        "R$ 4.800,00",
+        "R$ 5.050,00",
+        "R$ 5.300,00",
+        "R$ 5.550,00",
+        "R$ 5.800,00",
+      ],
+    },
+    {
+      name: "003",
+      values: [
+        "R$ 5.100,00",
+        "R$ 5.350,00",
+        "R$ 5.600,00",
+        "R$ 5.850,00",
+        "R$ 6.100,00",
+      ],
+    },
+    {
+      name: "004",
+      values: [
+        "R$ 5.400,00",
+        "R$ 5.650,00",
+        "R$ 5.900,00",
+        "R$ 6.150,00",
+        "R$ 6.400,00",
+      ],
+    },
+    {
+      name: "005",
+      values: [
+        "R$ 5.700,00",
+        "R$ 5.950,00",
+        "R$ 6.200,00",
+        "R$ 6.450,00",
+        "R$ 6.700,00",
+      ],
+    },
   ],
+};
+const MATRIZ_HISTORICO_RGA: MatrixData = {
+  columns: [...MATRIZ_HISTORICO_FAKE.columns],
+  rows: MATRIZ_HISTORICO_FAKE.rows.map((row) => ({
+    name: row.name,
+    values: row.values.map((value) => {
+      const cents = Number(value.replace(/\D/g, "")) || 0;
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(Math.round(cents * 1.054) / 100);
+    }),
+  })),
 };
 const VERSOES: Versao[] = [
   {
@@ -225,9 +338,28 @@ const VERSOES: Versao[] = [
     status: "Vigente",
     alteracao: "12/08/2026",
     usuario: "Maria Silva",
-    matrix: MATRIZ_HISTORICO_FAKE,
-    baseLegal: "Lei_Complementar_600_2017.pdf",
-    observacao: "Valores definidos conforme a estrutura vigente da carreira.",
+    origem: "RGA",
+    percentualRga: "5,40%",
+    valorBase: MATRIZ_HISTORICO_FAKE,
+    matrix: MATRIZ_HISTORICO_RGA,
+    auditoriaRga: {
+      ano: "2026",
+      percentual: "5,40%",
+      vigencia: "2026-01-01",
+      baseLegal: "Lei Complementar nº 600/2017",
+      arredondamento: "2 casas decimais",
+      observacao:
+        "Aplicação da Revisão Geral Anual referente ao exercício de 2026.",
+      responsavel: "Maria Silva",
+      aplicadaEm: "2026-01-01T14:32:00",
+      versaoOrigem: "V2",
+      novaVersao: "V3",
+      tipoAplicacao: "Em lote",
+      loteId: "RGA-2026-0003",
+    },
+    baseLegal: "Lei Complementar nº 600/2017",
+    observacao:
+      "Aplicação da Revisão Geral Anual referente ao exercício de 2026.",
   },
   {
     ano: 2025,
@@ -283,29 +415,28 @@ function Matrix({
     }
     return name;
   };
-  const initialColumns = data?.columns || (copy
-    ? ["A", "B", "C", "D", "E"]
-    : ["A"]);
+  const initialColumns =
+    data?.columns || (copy ? ["A", "B", "C", "D", "E"] : ["A"]);
   const initialRows = data
     ? data.rows.map((row, index) => ({
         id: index + 1,
         name: row.name,
-        values: Object.fromEntries(row.values.map((value, columnIndex) => [columnIndex + 1, value])),
+        values: Object.fromEntries(
+          row.values.map((value, columnIndex) => [columnIndex + 1, value]),
+        ),
       }))
     : copy
       ? VALORES.map((row, index) => ({
-        id: index + 1,
-        name: String(index + 1).padStart(3, "0"),
-        values: Object.fromEntries(
-          initialColumns.map((_, columnIndex) => [
-            columnIndex + 1,
-            "R$ " + row[columnIndex + 1],
-          ]),
-        ),
-      }))
-    : [
-        { id: 1, name: "001", values: { 1: "" } },
-      ];
+          id: index + 1,
+          name: String(index + 1).padStart(3, "0"),
+          values: Object.fromEntries(
+            initialColumns.map((_, columnIndex) => [
+              columnIndex + 1,
+              "R$ " + row[columnIndex + 1],
+            ]),
+          ),
+        }))
+      : [{ id: 1, name: "001", values: { 1: "" } }];
   const [columns, setColumns] = useState(
     initialColumns.map((name, index) => ({ id: index + 1, name })),
   );
@@ -324,18 +455,28 @@ function Matrix({
     onStructureChange?.();
     const id = Math.max(0, ...columns.map((item) => item.id)) + 1;
     setColumns([...columns, { id, name: alphabeticalName(id) }]);
-    setRows(rows.map((row) => ({ ...row, values: { ...row.values, [id]: "" } })));
+    setRows(
+      rows.map((row) => ({ ...row, values: { ...row.values, [id]: "" } })),
+    );
   };
   const removeColumn = (id: number) => {
     const filled = rows.some((row) => hasValue(row.values[id] || ""));
-    if (filled && !window.confirm("Esta coluna possui valores preenchidos. Deseja removê-la da tabela?")) return;
+    if (
+      filled &&
+      !window.confirm(
+        "Esta coluna possui valores preenchidos. Deseja removê-la da tabela?",
+      )
+    )
+      return;
     onStructureChange?.();
     setColumns(columns.filter((item) => item.id !== id));
-    setRows(rows.map((row) => {
-      const values = { ...row.values };
-      delete values[id];
-      return { ...row, values };
-    }));
+    setRows(
+      rows.map((row) => {
+        const values = { ...row.values };
+        delete values[id];
+        return { ...row, values };
+      }),
+    );
   };
   const addRow = () => {
     onStructureChange?.();
@@ -347,16 +488,25 @@ function Matrix({
           /^\d+$/.test(item.name.trim()) ? Number(item.name) : 0,
         ),
       ) + 1;
-    setRows([...rows, {
-      id,
-      name: String(nextLevel).padStart(3, "0"),
-      values: Object.fromEntries(columns.map((column) => [column.id, ""])),
-    }]);
+    setRows([
+      ...rows,
+      {
+        id,
+        name: String(nextLevel).padStart(3, "0"),
+        values: Object.fromEntries(columns.map((column) => [column.id, ""])),
+      },
+    ]);
   };
   const removeRow = (id: number) => {
     const row = rows.find((item) => item.id === id);
-    if (row && Object.values(row.values).some(hasValue) &&
-      !window.confirm("Esta linha possui valores preenchidos. Deseja removê-la da tabela?")) return;
+    if (
+      row &&
+      Object.values(row.values).some(hasValue) &&
+      !window.confirm(
+        "Esta linha possui valores preenchidos. Deseja removê-la da tabela?",
+      )
+    )
+      return;
     onStructureChange?.();
     setRows(rows.filter((item) => item.id !== id));
   };
@@ -373,9 +523,29 @@ function Matrix({
                 {columns.map((column) => (
                   <th key={column.id}>
                     <div className="tv-matrix-column-head">
-                      <input required name="matrixColumnName" aria-label="Nome da coluna" placeholder="Nome da coluna" value={column.name}
-                        onChange={(event) => setColumns(columns.map((item) => item.id === column.id ? { ...item, name: event.target.value } : item))} />
-                      <button type="button" className="tv-matrix-delete" title="Remover coluna" aria-label={'Remover coluna ' + column.name} onClick={() => removeColumn(column.id)}>
+                      <input
+                        required
+                        name="matrixColumnName"
+                        aria-label="Nome da coluna"
+                        placeholder="Nome da coluna"
+                        value={column.name}
+                        onChange={(event) =>
+                          setColumns(
+                            columns.map((item) =>
+                              item.id === column.id
+                                ? { ...item, name: event.target.value }
+                                : item,
+                            ),
+                          )
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="tv-matrix-delete"
+                        title="Remover coluna"
+                        aria-label={"Remover coluna " + column.name}
+                        onClick={() => removeColumn(column.id)}
+                      >
                         <i className="pi pi-trash" />
                       </button>
                     </div>
@@ -398,21 +568,60 @@ function Matrix({
               {rows.map((row) => (
                 <tr key={row.id}>
                   <th>
-                    <input required name="matrixRowName" aria-label="Nome da linha" placeholder="Nome da linha" value={row.name}
-                      onChange={(event) => setRows(rows.map((item) => item.id === row.id ? { ...item, name: event.target.value } : item))} />
+                    <input
+                      required
+                      name="matrixRowName"
+                      aria-label="Nome da linha"
+                      placeholder="Nome da linha"
+                      value={row.name}
+                      onChange={(event) =>
+                        setRows(
+                          rows.map((item) =>
+                            item.id === row.id
+                              ? { ...item, name: event.target.value }
+                              : item,
+                          ),
+                        )
+                      }
+                    />
                   </th>
                   {columns.map((column) => (
                     <td key={column.id}>
-                      <input name="matrixValue" inputMode="numeric" aria-label={'Valor de ' + row.name + ' / ' + column.name}
-                        placeholder="R$ 0,00" value={row.values[column.id] || ""}
+                      <input
+                        name="matrixValue"
+                        inputMode="numeric"
+                        aria-label={
+                          "Valor de " + row.name + " / " + column.name
+                        }
+                        placeholder="R$ 0,00"
+                        value={row.values[column.id] || ""}
                         onChange={(event) => {
                           const value = formatCurrency(event.target.value);
-                          setRows(rows.map((item) => item.id === row.id ? { ...item, values: { ...item.values, [column.id]: value } } : item));
-                        }} />
+                          setRows(
+                            rows.map((item) =>
+                              item.id === row.id
+                                ? {
+                                    ...item,
+                                    values: {
+                                      ...item.values,
+                                      [column.id]: value,
+                                    },
+                                  }
+                                : item,
+                            ),
+                          );
+                        }}
+                      />
                     </td>
                   ))}
                   <td className="tv-matrix-row-action">
-                    <button type="button" className="tv-matrix-delete" title="Remover linha" aria-label={'Remover linha ' + row.name} onClick={() => removeRow(row.id)}>
+                    <button
+                      type="button"
+                      className="tv-matrix-delete"
+                      title="Remover linha"
+                      aria-label={"Remover linha " + row.name}
+                      onClick={() => removeRow(row.id)}
+                    >
                       <i className="pi pi-trash" />
                     </button>
                   </td>
@@ -451,14 +660,168 @@ function Matrix({
             <tr key={row.id}>
               <th>{row.name}</th>
               {initialColumns.map((_, columnIndex) => (
-                <td key={columnIndex}>
-                  {row.values[columnIndex + 1] || "—"}
-                </td>
+                <td key={columnIndex}>{row.values[columnIndex + 1] || "—"}</td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+const rgaDate = (value?: string) => {
+  if (!value) return "—";
+  return value.includes("-") ? formatDate(value) : value;
+};
+const rgaDateTime = (value?: string) => {
+  if (!value) return "—";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return (
+    parsed.toLocaleDateString("pt-BR") +
+    " às " +
+    parsed.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+  );
+};
+const rgaPercentual = (value?: string) =>
+  value ? (value.endsWith("%") ? value : value + "%") : "—";
+const rgaMoney = (value: string) =>
+  Number(value.replace(/\D/g, "")) / 100 || 0;
+const rgaCurrency = (value: number) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+const applyRgaToMatrix = (matrix: MatrixData, percentual: string): MatrixData => {
+  const rate = Number(percentual.replace("%", "").replace(",", ".")) || 0;
+  return {
+    columns: [...matrix.columns],
+    rows: matrix.rows.map((row) => ({
+      name: row.name,
+      values: row.values.map((value) =>
+        rgaCurrency(Math.round(rgaMoney(value) * (1 + rate / 100) * 100) / 100),
+      ),
+    })),
+  };
+};
+function RgaHistoryDetails({
+  version,
+  onLegalPreview,
+}: {
+  version: Versao;
+  onLegalPreview: () => void;
+}) {
+  const audit = version.auditoriaRga;
+  if (!audit) return null;
+  const matrix = version.matrix;
+  return (
+    <div className="tv-history-rga">
+      <section className="tv-history-rga-section tv-history-rga-data-section">
+        <div className="tv-history-rga-data-grid">
+          <div className="tv-history-data-item">
+            <small>Ano do RGA</small>
+            <strong>{audit.ano}</strong>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Percentual do RGA</small>
+            <strong>{rgaPercentual(audit.percentual)}</strong>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Data início da vigência do RGA</small>
+            <strong>{rgaDate(audit.vigencia)}</strong>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Versão de origem</small>
+            <strong>{audit.versaoOrigem || "—"}</strong>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Tipo de aplicação</small>
+            <strong>
+              {audit.tipoAplicacao ||
+                (audit.loteId ? "Em lote" : "Individual")}
+            </strong>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Data fim da vigência do RGA</small>
+            <strong>{rgaDate(audit.fim)}</strong>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Data e hora da aplicação</small>
+            <strong>{rgaDateTime(audit.aplicadaEm)}</strong>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Responsável pela aplicação</small>
+            <strong>{audit.responsavel || version.usuario}</strong>
+          </div>
+        </div>
+        <div className="tv-history-rga-meta">
+          <div className="tv-history-data-item">
+            <small>Base legal do RGA</small>
+            <div className="tv-legal-file">
+              <i className="pi pi-file-pdf" aria-hidden="true" />
+              <span>{audit.baseLegal || "—"}</span>
+              {audit.baseLegal && (
+                <button
+                  type="button"
+                  title="Visualizar arquivo"
+                  aria-label="Visualizar arquivo"
+                  onClick={onLegalPreview}
+                >
+                  <i className="pi pi-eye" />
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="tv-history-data-item">
+            <small>Observação</small>
+            <p>{audit.observacao || "—"}</p>
+          </div>
+        </div>
+      </section>
+      <section className="tv-history-rga-section">
+        <h4>Valores aplicados pelo RGA</h4>
+        <div className="tv-scroll">
+          <table className="tv-history-rga-values">
+            <thead>
+              <tr>
+                <th>Nível</th>
+                <th>Classe</th>
+                <th>Valor base</th>
+                <th>Percentual RGA</th>
+                <th>Valor com RGA</th>
+                <th>Diferença</th>
+              </tr>
+            </thead>
+            <tbody>
+              {matrix?.rows.flatMap((row, rowIndex) =>
+                matrix.columns.map((column, columnIndex) => {
+                  const base =
+                    version.valorBase?.rows[rowIndex]?.values[columnIndex] ||
+                    "—";
+                  const applied = row.values[columnIndex] || "—";
+                  const difference = rgaMoney(applied) - rgaMoney(base);
+                  return (
+                    <tr key={row.name + column}>
+                      <td>{row.name}</td>
+                      <td>{column}</td>
+                      <td>{base}</td>
+                      <td>{rgaPercentual(audit.percentual)}</td>
+                      <td>{applied}</td>
+                      <td className={difference > 0 ? "tv-rga-positive" : undefined}>
+                        {difference > 0 ? "+ " + rgaCurrency(difference) : "—"}
+                      </td>
+                    </tr>
+                  );
+                }),
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }
@@ -565,7 +928,7 @@ function Modal({
     </div>
   );
 }
-function List() {
+function List({ batch = false }: { batch?: boolean }) {
   const nav = useNavigate();
   const [listParams] = useSearchParams();
   const savedTables = readSavedTables();
@@ -580,10 +943,15 @@ function List() {
     cargo: Cargo;
     jornada: string;
     versions: Versao[];
+    incideRga: boolean;
   }>();
-  const [journeyActionMenu, setJourneyActionMenu] = useState<string | null>(null);
-  const [historyExpandedVersion, setHistoryExpandedVersion] = useState<string | null>(null);
-  const [historyTab, setHistoryTab] = useState<"valores" | "info">("valores");
+  const [journeyActionMenu, setJourneyActionMenu] = useState<string | null>(
+    null,
+  );
+  const [historyExpandedVersion, setHistoryExpandedVersion] = useState<
+    string | null
+  >(null);
+  const [historyTab, setHistoryTab] = useState<"valores" | "info" | "rga">("valores");
   const [legalPreview, setLegalPreview] = useState(false);
   const { control, reset, watch } = useForm<{ cargo: string }>({
     defaultValues: { cargo: "" },
@@ -596,7 +964,9 @@ function List() {
     const history = [VERSOES[1], VERSOES[2], VERSOES[3]];
     return cargo.jornadas.map((jornada, index) => {
       const savedForJourney = savedTables
-        .filter((table) => table.cargoId === cargo.id && table.jornada === jornada)
+        .filter(
+          (table) => table.cargoId === cargo.id && table.jornada === jornada,
+        )
         .reverse();
       const saved = savedForJourney[0];
       const savedVersions = savedForJourney.map((table) => ({
@@ -605,50 +975,130 @@ function List() {
         baseLegal: table.baseLegal,
         observacao: table.observacao,
       }));
-      const hasStaticTable = index < cargo.vigentes;
+      const firstCargoVersions =
+        index === 0 ? history : index === 2 ? [VERSOES[2]] : [];
+      const hasStaticTable =
+        cargo.id === 1 ? firstCargoVersions.length > 0 : index < cargo.vigentes;
       const historySize = hasStaticTable
-        ? Math.max(1, Math.min(history.length, cargo.tabelas - index))
+        ? cargo.id === 1
+          ? firstCargoVersions.length
+          : Math.max(1, Math.min(history.length, cargo.tabelas - index))
         : 0;
-      const versions = savedVersions.length
-        ? savedVersions
-        : hasStaticTable ? history.slice(0, historySize) : [];
+      const staticVersions =
+        cargo.id === 1
+          ? firstCargoVersions
+          : hasStaticTable
+            ? cargo.semTabelaVigente
+              ? [VERSOES[2]]
+              : history.slice(0, historySize)
+            : [];
+      const rawVersions =
+        cargo.id === 1
+          ? staticVersions
+          : savedVersions.length
+          ? savedVersions
+          : staticVersions;
       return {
-        item: versions.find(isVersionCurrent),
+        item: resolveJourneyVersions(rawVersions, localIsoDate()).find(
+          isVersionCurrent,
+        ),
         jornada,
-        codigo: versions.length
+        codigo: rawVersions.length
           ? "TV-" +
             String(cargo.id).padStart(2, "0") +
             String(index + 1).padStart(2, "0")
           : undefined,
-        versions,
-        savedId: saved?.id,
+        versions: resolveJourneyVersions(rawVersions, localIsoDate()),
+        savedId: savedForJourney.find(
+          (record) =>
+            record.versao.inicio ===
+            resolveJourneyVersions(rawVersions, localIsoDate()).find(
+              isVersionCurrent,
+            )?.inicio,
+        )?.id,
+        incideRga:
+          cargo.incideRga ??
+          (cargo.id === 1
+            ? true
+            : (saved?.incideRga ?? hasStaticTable)),
       };
     });
   };
-  const endValidity = (cargo: Cargo, jornada: string, item: Versao, savedId?: string) => {
+  const endValidity = (
+    cargo: Cargo,
+    jornada: string,
+    item: Versao,
+    savedId?: string,
+  ) => {
     const today = formatDate(localIsoDate());
     const previousDay = formatDate(previousIsoDate());
-    if (!window.confirm(
-      "Encerrar vigência da tabela?\n\nA tabela deixará de ser aplicada a partir de " + today +
-      ". A versão atualmente vigente será mantida no histórico com vigência até " + previousDay +
-      ".\n\nA jornada ficará sem tabela vigente até que uma nova tabela seja cadastrada.",
-    )) return;
+    if (
+      !window.confirm(
+        "Encerrar vigência da tabela?\n\nA tabela deixará de ser aplicada a partir de " +
+          today +
+          ". A versão atualmente vigente será mantida no histórico com vigência até " +
+          previousDay +
+          ".\n\nA jornada ficará sem tabela vigente até que uma nova tabela seja cadastrada.",
+      )
+    )
+      return;
     const saved = readSavedTables();
-    const index = savedId ? saved.findIndex((record) => record.id === savedId) : -1;
+    const index = savedId
+      ? saved.findIndex((record) => record.id === savedId)
+      : -1;
     if (index >= 0) {
-      saved[index] = { ...saved[index], versao: { ...saved[index].versao, fim: previousDay, status: "Encerrada", alteracao: today } };
+      saved[index] = {
+        ...saved[index],
+        versao: {
+          ...saved[index].versao,
+          fim: previousDay,
+          status: "Encerrada",
+          alteracao: today,
+        },
+      };
     } else {
       saved.push({
-        id: Date.now().toString(), cargoId: cargo.id, jornada,
-        versao: { ...item, fim: previousDay, status: "Encerrada", alteracao: today },
-        matrix: defaultMatrixData(), baseLegal: "Lei_Complementar_600_2017.pdf",
-        observacao: "Valores definidos conforme a estrutura vigente da carreira.",
+        id: Date.now().toString(),
+        cargoId: cargo.id,
+        jornada,
+        versao: {
+          ...item,
+          fim: previousDay,
+          status: "Encerrada",
+          alteracao: today,
+        },
+        matrix: defaultMatrixData(),
+        baseLegal: "Lei_Complementar_600_2017.pdf",
+        observacao:
+          "Valores definidos conforme a estrutura vigente da carreira.",
       });
     }
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
     setJourneyActionMenu(null);
     setDataRevision((value) => value + 1);
   };
+  if (batch)
+    return (
+      <RgaLotePage
+        getJourneys={() =>
+          CARGOS.flatMap((cargo) =>
+            cargoTables(cargo).map((table) => ({
+              ...table,
+              cargoId: cargo.id,
+              cargo: cargo.nome,
+              key: cargo.id + ":" + table.jornada,
+            })),
+          )
+        }
+        readTables={readSavedTables}
+        onClose={() => nav(BASE)}
+        onApply={(records) => {
+          window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+          setDataRevision((value) => value + 1);
+          nav(BASE + "?rgaLote=1");
+        }}
+      />
+    );
   return (
     <>
       <CardSeplag
@@ -666,237 +1116,432 @@ function List() {
           />
         }
       >
-      <div className="prototype-ingressos-teste-content">
-        <hr className="prototype-ingressos-teste-header-divider" />
-        {listParams.get("salvo") === "1" && (
-          <div className="tv-save-success" role="status">
-            <i className="pi pi-check-circle" aria-hidden="true" />
-            <span>{listParams.get("rga") === "1" ? "Tabela de vencimentos finalizada com sucesso." : "Tabela de vencimentos salva com sucesso."}</span>
-          </div>
-        )}
-        <div className="prototype-ingressos-teste-filters grid">
-          <DropdownFieldSeplag
-            name="cargo"
-            control={control}
-            label="Código do cargo ou nome do cargo"
-            placeholder="Todos"
-            cols="12 12 10"
-            options={[
-              { label: "Todos", value: "" },
-              ...CARGOS.map((item) => ({
-                label:
-                  String(item.id).padStart(4, "0") + " — " + item.nome,
-                value: String(item.id),
-              })),
-            ]}
-            optionLabel="label"
-            optionValue="value"
-            getFormErrorMessage={() => null}
-          />
-          <div className="prototype-category-clear">
-            <BotaoLimparFiltroSeplag
-              type="button"
-              label="Limpar filtros"
-              icon="pi pi-refresh"
-              onClick={() => reset({ cargo: "" })}
+        <div className="prototype-ingressos-teste-content">
+          {listParams.get("rgaLote") === "1" && (
+            <div className="tv-save-success" role="status">
+              <i className="pi pi-check-circle" aria-hidden="true" />
+              <span>RGA aplicado com sucesso.</span>
+            </div>
+          )}
+          <hr className="prototype-ingressos-teste-header-divider" />
+          {listParams.get("salvo") === "1" && (
+            <div className="tv-save-success" role="status">
+              <i className="pi pi-check-circle" aria-hidden="true" />
+              <span>Tabela de Vencimentos cadastrada com sucesso.</span>
+            </div>
+          )}
+          <div className="prototype-ingressos-teste-filters grid">
+            <DropdownFieldSeplag
+              name="cargo"
+              control={control}
+              label="Código do cargo ou nome do cargo"
+              placeholder="Todos"
+              cols="12 12 10"
+              options={[
+                { label: "Todos", value: "" },
+                ...CARGOS.map((item) => ({
+                  label: String(item.id).padStart(4, "0") + " — " + item.nome,
+                  value: String(item.id),
+                })),
+              ]}
+              optionLabel="label"
+              optionValue="value"
+              getFormErrorMessage={() => null}
             />
+            <div className="prototype-category-clear">
+              <BotaoLimparFiltroSeplag
+                type="button"
+                label="Limpar filtros"
+                icon="pi pi-refresh"
+                onClick={() => reset({ cargo: "" })}
+              />
+            </div>
+            <div className="tv-batch-main-action">
+              <BotaoSeplag
+                type="button"
+                label="Aplicar RGA em lote"
+
+                onClick={() => nav(BASE + "/aplicar-rga-em-lote")}
+              />
+            </div>
           </div>
-        </div>
-        <div className="prototype-ingressos-teste-table-shell">
-          <div className="prototype-ingressos-teste-table">
-            <table className="tv-cargo-accordion-table">
-              <thead>
-                <tr>
-                  <th>Código do cargo <i className="pi pi-sort-alt" /></th>
-                  <th>Cargo <i className="pi pi-sort-alt" /></th>
-                  <th>Jornadas</th>
-                  <th>Ação</th>
-                </tr>
-              </thead>
-              {rows.map((cargo) => {
-                const expanded = expandedCargo === cargo.id;
-                const tables = cargoTables(cargo);
-                return (
-                  <tbody key={cargo.id}>
-                    <tr className={expanded ? "tv-cargo-open-row" : undefined}>
-                      <td>{String(cargo.id).padStart(4, "0")}</td>
-                      <td>{cargo.nome}</td>
-                      <td>
-                        <span className="tv-profile-count-tag">
-                          {cargo.jornadas.length} {cargo.jornadas.length === 1 ? "jornada" : "jornadas"}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="tv-cargo-row-actions">
-                          <button
-                            type="button"
-                            className="tv-cargo-expand"
-                            aria-label={expanded ? "Recolher cargo" : "Expandir cargo"}
-                            onClick={() => setExpandedCargo(expanded ? null : cargo.id)}
-                          >
-                            <i className={"pi " + (expanded ? "pi-chevron-up" : "pi-chevron-down")} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    {expanded && (
-                      <tr className="tv-cargo-expanded-row">
-                        <td colSpan={4}>
-                          <div className="tv-cargo-expanded-content">
-                            {tables.length ? (
-                              <div className="tv-scroll">
-                                <table className="tv-cargo-history-table">
-                                  <thead>
-                                    <tr>
-                                      <th>Jornada</th>
-                                      <th>Versão</th>
-                                      <th>Ano</th>
-                                      <th>Vigência</th>
-                                      <th>Situação</th>
-                                      <th>Ações</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {tables.map(({ item, jornada, versions, savedId }, journeyIndex) => (
-                                      <tr key={jornada}>
-                                        <td>
-                                          <span className={"tv-journey-tag tone-" + (journeyIndex % 4)}>
-                                            {jornada}
-                                          </span>
-                                        </td>
-                                        <td>{item ? "V" + versions.length : "—"}</td>
-                                        <td>{item?.ano || "—"}</td>
-                                        <td>{item ? item.inicio + " – " + (item.fim || "Atual") : "—"}</td>
-                                        <td>
-                                          {item ? (
-                                            <StatusTag value={item.status} />
-                                          ) : versions.length ? (
-                                            <span className="tv-status sem-vigente">Sem tabela vigente</span>
-                                          ) : (
-                                            <span className="tv-status sem-tabela">Sem tabela cadastrada</span>
-                                          )}
-                                        </td>
-                                        <td>
-                                          {item ? (
-                                            <div className="tv-journey-actions tv-journey-split-actions">
-                                              <button
-                                                type="button"
-                                                className="tv-journey-view-button"
-                                                title="Visualizar tabela"
-                                                aria-label="Visualizar tabela"
-                                                onClick={() => nav(
-                                                  BASE + "/visualizar?cargo=" + cargo.id +
-                                                  "&jornada=" + encodeURIComponent(jornada) +
-                                                  "&inicio=" + encodeURIComponent(item.inicio) +
-                                                  "&fim=" + encodeURIComponent(item.fim || "") +
-                                                  (savedId ? "&registro=" + encodeURIComponent(savedId) : "")
-                                                )}
-                                              >
-                                                <i className="pi pi-eye" />
-                                              </button>
-                                              <button
-                                                type="button"
-                                                className="tv-journey-history-button"
-                                                title="Mais ações"
-                                                aria-label="Mais ações"
-                                                aria-expanded={journeyActionMenu === cargo.id + "-" + jornada}
-                                                onClick={() => {
-                                                  const key = cargo.id + "-" + jornada;
-                                                  setJourneyActionMenu(journeyActionMenu === key ? null : key);
-                                                }}
-                                              >
-                                                <i className="pi pi-chevron-down" />
-                                              </button>
-                                              {journeyActionMenu === cargo.id + "-" + jornada && (
-                                                <div className="tv-journey-action-menu">
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      setJourneyActionMenu(null);
-                                                      nav(
-                                                        BASE + "/editar/" + (savedId || cargo.id + "-" + encodeURIComponent(jornada)) +
-                                                        "?cargo=" + cargo.id +
-                                                        "&jornada=" + encodeURIComponent(jornada) +
-                                                        "&inicio=" + encodeURIComponent(item.inicio) +
-                                                        "&fim=" + encodeURIComponent(item.fim || "") +
-                                                        (savedId ? "&registro=" + encodeURIComponent(savedId) : "")
-                                                      );
-                                                    }}
-                                                  >
-                                                    <i className="pi pi-copy" /> Versionar
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      setJourneyActionMenu(null);
-                                                      setHistoryExpandedVersion(null);
-                                                      setHistoryTab("valores");
-                                                      setHistoryJourney({ cargo, jornada, versions });
-                                                    }}
-                                                  >
-                                                    <i className="pi pi-history" /> Histórico
-                                                  </button>
-                                                </div>
-                                              )}
-                                            </div>
-                                          ) : versions.length ? (
-                                            <div className="tv-journey-actions">
-                                              <button type="button" title="Consultar histórico" aria-label="Consultar histórico" onClick={() => {
-                                                setHistoryExpandedVersion(null);
-                                                setHistoryTab("valores");
-                                                setHistoryJourney({ cargo, jornada, versions });
-                                              }}><i className="pi pi-history" /></button>
-                                              <button type="button" title="Cadastrar nova tabela" aria-label="Cadastrar nova tabela" onClick={() => nav(BASE + "/novo?cargo=" + cargo.id + "&jornada=" + encodeURIComponent(jornada))}><i className="pi pi-plus" /></button>
-                                            </div>
-                                          ) : (
-                                            <button
-                                              type="button"
-                                              className="tv-journey-create-button"
-                                              title="Cadastrar tabela"
-                                              aria-label="Cadastrar tabela"
-                                              onClick={() =>
-                                                nav(
-                                                  BASE +
-                                                    "/novo?cargo=" +
-                                                    cargo.id +
-                                                    "&jornada=" +
-                                                    encodeURIComponent(jornada),
-                                                )
-                                              }
-                                            >
-                                              <i className="pi pi-plus" />
-                                            </button>
-                                          )}
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            ) : (
-                              <div className="tv-cargo-table-empty">
-                                Nenhuma tabela de vencimentos cadastrada para este cargo.
-                              </div>
-                            )}
+          <div className="prototype-ingressos-teste-table-shell">
+            <div className="prototype-ingressos-teste-table">
+              <table className="tv-cargo-accordion-table">
+                <thead>
+                  <tr>
+                    <th>
+                      Código do cargo <i className="pi pi-sort-alt" />
+                    </th>
+                    <th>
+                      Cargo <i className="pi pi-sort-alt" />
+                    </th>
+                    <th>Jornadas</th>
+                    <th>Ação</th>
+                  </tr>
+                </thead>
+                {rows.map((cargo) => {
+                  const expanded = expandedCargo === cargo.id;
+                  const tables = cargoTables(cargo);
+                  return (
+                    <tbody key={cargo.id}>
+                      <tr
+                        className={expanded ? "tv-cargo-open-row" : undefined}
+                      >
+                        <td>{String(cargo.id).padStart(4, "0")}</td>
+                        <td>{cargo.nome}</td>
+                        <td>
+                          <span className="tv-profile-count-tag">
+                            {cargo.jornadas.length}{" "}
+                            {cargo.jornadas.length === 1
+                              ? "jornada"
+                              : "jornadas"}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="tv-cargo-row-actions">
+                            <button
+                              type="button"
+                              className="tv-cargo-expand"
+                              aria-label={
+                                expanded ? "Recolher cargo" : "Expandir cargo"
+                              }
+                              onClick={() =>
+                                setExpandedCargo(expanded ? null : cargo.id)
+                              }
+                            >
+                              <i
+                                className={
+                                  "pi " +
+                                  (expanded
+                                    ? "pi-chevron-up"
+                                    : "pi-chevron-down")
+                                }
+                              />
+                            </button>
                           </div>
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                );
-              })}
-            </table>
-            <div className="tv-cargo-main-pager">
-              <button type="button" disabled><i className="pi pi-angle-double-left" /></button>
-              <button type="button" disabled><i className="pi pi-angle-left" /></button>
-              <span>1</span>
-              <button type="button" disabled><i className="pi pi-angle-right" /></button>
-              <button type="button" disabled><i className="pi pi-angle-double-right" /></button>
-              <select aria-label="Itens por página" defaultValue="10"><option>10</option></select>
+                      {expanded && (
+                        <tr className="tv-cargo-expanded-row">
+                          <td colSpan={4}>
+                            <div className="tv-cargo-expanded-content">
+                              {tables.length ? (
+                                <div className="tv-scroll">
+                                  <table className="tv-cargo-history-table">
+                                    <thead>
+                                      <tr>
+                                        <th>Jornada</th>
+                                        <th>Versão</th>
+                                        <th>Ano</th>
+                                        <th>Vigência</th>
+                                        <th>Incide RGA</th>
+                                        <th>Situação</th>
+                                        <th>Ações</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {tables.map(
+                                        (
+                                          {
+                                            item,
+                                            jornada,
+                                            versions,
+                                            savedId,
+                                            incideRga,
+                                          },
+                                          journeyIndex,
+                                        ) => (
+                                          <tr key={jornada}>
+                                            <td>
+                                              <span
+                                                className={
+                                                  "tv-journey-tag tone-" +
+                                                  (journeyIndex % 4)
+                                                }
+                                              >
+                                                {jornada}
+                                              </span>
+                                            </td>
+                                            <td>
+                                              {item
+                                                ? item.numero ||
+                                                  "V" + versions.length
+                                                : "—"}
+                                            </td>
+                                            <td>{item?.ano || "—"}</td>
+                                            <td>
+                                              {item
+                                                ? item.inicio +
+                                                  " – " +
+                                                  (item.fim || "Atual")
+                                                : "—"}
+                                            </td>
+                                            <td>
+                                              {item
+                                                ? incideRga
+                                                  ? "Sim"
+                                                  : "Não"
+                                                : "—"}
+                                            </td>
+                                            <td>
+                                              {item ? (
+                                                <StatusTag
+                                                  value={item.status}
+                                                />
+                                              ) : versions.length ? (
+                                                <span className="tv-status sem-vigente">
+                                                  Sem tabela vigente
+                                                </span>
+                                              ) : (
+                                                <span className="tv-status sem-tabela">
+                                                  Sem tabela cadastrada
+                                                </span>
+                                              )}
+                                            </td>
+                                            <td>
+                                              {item ? (
+                                                <div className="tv-journey-actions tv-journey-split-actions">
+                                                  <button
+                                                    type="button"
+                                                    className="tv-journey-view-button"
+                                                    title="Visualizar tabela"
+                                                    aria-label="Visualizar tabela"
+                                                    onClick={() =>
+                                                      nav(
+                                                        BASE +
+                                                          "/visualizar?cargo=" +
+                                                          cargo.id +
+                                                          "&jornada=" +
+                                                          encodeURIComponent(
+                                                            jornada,
+                                                          ) +
+                                                          "&inicio=" +
+                                                          encodeURIComponent(
+                                                            item.inicio,
+                                                          ) +
+                                                          "&fim=" +
+                                                          encodeURIComponent(
+                                                            item.fim || "",
+                                                          ) +
+                                                          (savedId
+                                                            ? "&registro=" +
+                                                              encodeURIComponent(
+                                                                savedId,
+                                                              )
+                                                            : "") +
+                                                            "&incideRga=" + incideRga,
+                                                      )
+                                                    }
+                                                  >
+                                                    <i className="pi pi-eye" />
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    className="tv-journey-history-button"
+                                                    title="Mais ações"
+                                                    aria-label="Mais ações"
+                                                    aria-expanded={
+                                                      journeyActionMenu ===
+                                                      cargo.id + "-" + jornada
+                                                    }
+                                                    onClick={() => {
+                                                      const key =
+                                                        cargo.id +
+                                                        "-" +
+                                                        jornada;
+                                                      setJourneyActionMenu(
+                                                        journeyActionMenu ===
+                                                          key
+                                                          ? null
+                                                          : key,
+                                                      );
+                                                    }}
+                                                  >
+                                                    <i className="pi pi-chevron-down" />
+                                                  </button>
+                                                  {journeyActionMenu ===
+                                                    cargo.id +
+                                                      "-" +
+                                                      jornada && (
+                                                    <div className="tv-journey-action-menu">
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                          setJourneyActionMenu(
+                                                            null,
+                                                          );
+                                                          nav(
+                                                            BASE +
+                                                              "/editar/" +
+                                                              (savedId ||
+                                                                cargo.id +
+                                                                  "-" +
+                                                                  encodeURIComponent(
+                                                                    jornada,
+                                                                  )) +
+                                                              "?cargo=" +
+                                                              cargo.id +
+                                                              "&jornada=" +
+                                                              encodeURIComponent(
+                                                                jornada,
+                                                              ) +
+                                                              "&inicio=" +
+                                                              encodeURIComponent(
+                                                                item.inicio,
+                                                              ) +
+                                                              "&fim=" +
+                                                              encodeURIComponent(
+                                                                item.fim || "",
+                                                              ) +
+                                                              (savedId
+                                                                ? "&registro=" +
+                                                                  encodeURIComponent(
+                                                                    savedId,
+                                                                  )
+                                                                : "") +
+                                                              "&incideRga=" +
+                                                              incideRga,
+                                                          );
+                                                        }}
+                                                      >
+                                                        <i className="pi pi-copy" />{" "}
+                                                        Versionar
+                                                      </button>
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                          setJourneyActionMenu(
+                                                            null,
+                                                          );
+                                                          setHistoryExpandedVersion(
+                                                            null,
+                                                          );
+                                                          setHistoryTab(
+                                                            "valores",
+                                                          );
+                                                          setHistoryJourney({
+                                                            cargo,
+                                                            jornada,
+                                                            versions,
+                                                          });
+                                                        }}
+                                                      >
+                                                        <i className="pi pi-history" />{" "}
+                                                        Histórico
+                                                      </button>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              ) : versions.length ? (
+                                                <div className="tv-journey-actions">
+                                                  <button
+                                                    type="button"
+                                                    title="Consultar histórico"
+                                                    aria-label="Consultar histórico"
+                                                    onClick={() => {
+                                                      setHistoryExpandedVersion(
+                                                        null,
+                                                      );
+                                                      setHistoryTab("valores");
+                                                      setHistoryJourney({
+                                                        cargo,
+                                                        jornada,
+                                                        versions,
+                                                      });
+                                                    }}
+                                                  >
+                                                    <i className="pi pi-history" />
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    title="Cadastrar nova tabela"
+                                                    aria-label="Cadastrar nova tabela"
+                                                    onClick={() =>
+                                                      nav(
+                                                        BASE +
+                                                          "/novo?cargo=" +
+                                                          cargo.id +
+                                                          "&jornada=" +
+                                                          encodeURIComponent(
+                                                            jornada,
+                                                          ),
+                                                      )
+                                                    }
+                                                  >
+                                                    <i className="pi pi-plus" />
+                                                  </button>
+                                                </div>
+                                              ) : (
+                                                <button
+                                                  type="button"
+                                                  className="tv-journey-create-button"
+                                                  title="Cadastrar tabela"
+                                                  aria-label="Cadastrar tabela"
+                                                  onClick={() =>
+                                                    nav(
+                                                      BASE +
+                                                        "/novo?cargo=" +
+                                                        cargo.id +
+                                                        "&jornada=" +
+                                                        encodeURIComponent(
+                                                          jornada,
+                                                        ),
+                                                    )
+                                                  }
+                                                >
+                                                  <i className="pi pi-plus" />
+                                                </button>
+                                              )}
+                                            </td>
+                                          </tr>
+                                        ),
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              ) : (
+                                <div className="tv-cargo-table-empty">
+                                  Nenhuma tabela de vencimentos cadastrada para
+                                  este cargo.
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  );
+                })}
+              </table>
+              <div
+                className="tv-cargo-main-pager"
+                role="navigation"
+                aria-label="Paginação da tabela de vencimentos"
+              >
+                <button type="button" disabled aria-label="Primeira página">
+                  <i className="pi pi-angle-double-left" aria-hidden="true" />
+                </button>
+                <button type="button" disabled aria-label="Página anterior">
+                  <i className="pi pi-angle-left" aria-hidden="true" />
+                </button>
+                <span aria-current="page">1</span>
+                <button type="button" disabled aria-label="Próxima página">
+                  <i className="pi pi-angle-right" aria-hidden="true" />
+                </button>
+                <button type="button" disabled aria-label="Última página">
+                  <i className="pi pi-angle-double-right" aria-hidden="true" />
+                </button>
+                <div className="tv-cargo-page-size">
+                  <select aria-label="Itens por página" defaultValue="10">
+                    <option>10</option>
+                  </select>
+                  <i className="pi pi-chevron-down" aria-hidden="true" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </CardSeplag>
       {viewTable && (
         <Modal
@@ -909,19 +1554,35 @@ function List() {
       )}
       {historyJourney && (
         <div className="tv-profile-list-overlay" role="presentation">
-          <section className="tv-journey-history-modal" role="dialog" aria-modal="true">
+          <section
+            className="tv-journey-history-modal"
+            role="dialog"
+            aria-modal="true"
+          >
             <header>
               <div>
                 <h2>Histórico da jornada</h2>
                 <p>
-                  <strong>{historyJourney.cargo.nome}</strong> · Jornada: {historyJourney.jornada}
+                  <strong>{historyJourney.cargo.nome}</strong> · Jornada:{" "}
+                  {historyJourney.jornada}
                 </p>
               </div>
-              <button type="button" aria-label="Fechar" onClick={() => setHistoryJourney(undefined)}>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={() => setHistoryJourney(undefined)}
+              >
                 <i className="pi pi-times" />
               </button>
             </header>
             <div className="tv-journey-history-divider" />
+            <div className="tv-journey-history-toolbar">
+              <strong>Versões</strong>
+              <span>
+                {historyJourney.versions.length}{" "}
+                {historyJourney.versions.length === 1 ? "registro" : "registros"}
+              </span>
+            </div>
             <div className="tv-scroll tv-journey-history-grid-wrap">
               <table className="tv-journey-history-grid">
                 <thead>
@@ -930,6 +1591,7 @@ function List() {
                     <th>Ano</th>
                     <th>Início da vigência</th>
                     <th>Fim da vigência</th>
+                    <th>Origem da alteração</th>
                     <th>Situação</th>
                     <th>Alterado por</th>
                     <th>Última alteração</th>
@@ -942,72 +1604,193 @@ function List() {
                     const expanded = historyExpandedVersion === versionKey;
                     return (
                       <Fragment key={versionKey}>
-                        <tr className={expanded ? "tv-history-version-open" : undefined}>
+                        <tr
+                          className={
+                            expanded ? "tv-history-version-open" : undefined
+                          }
+                        >
                           <td>
-                            <span className="tv-history-version-label">{"V" + (historyJourney.versions.length - versionIndex)}</span>
-                            {version.origem && <small className="tv-history-version-origin">{version.origem}{version.percentualRga ? " · " + version.percentualRga : ""}</small>}
+                            <span className="tv-history-version-label">
+                              {version.numero ||
+                                "V" +
+                                  (historyJourney.versions.length -
+                                    versionIndex)}
+                            </span>
                           </td>
                           <td>{version.ano}</td>
                           <td>{version.inicio}</td>
                           <td>{version.fim || "—"}</td>
-                          <td><StatusTag value={version.status} /></td>
+                          <td>
+                            <span
+                              className={
+                                "tv-history-origin-tag" +
+                                (version.origem === "RGA" ? " rga" : "")
+                              }
+                            >
+                              {version.origem === "Versionamento"
+                                ? "Alteração manual"
+                                : version.origem || "Cadastro inicial"}
+                              {version.origem === "RGA" &&
+                                " · " +
+                                  (version.auditoriaRga?.percentual ||
+                                    version.percentualRga ||
+                                    "—")}
+                            </span>
+                          </td>
+                          <td>
+                            <StatusTag value={version.status} />
+                          </td>
                           <td>{version.usuario}</td>
-                          <td>{version.alteracao} às 14:32</td>
+                          <td>
+                            {version.auditoriaRga
+                              ? rgaDateTime(version.auditoriaRga.aplicadaEm)
+                              : version.alteracao + " às 14:32"}
+                          </td>
                           <td>
                             <button
                               type="button"
                               className="tv-history-expand-button"
-                              title={expanded ? "Recolher tabela" : "Expandir tabela"}
-                              aria-label={expanded ? "Recolher tabela" : "Expandir tabela"}
+                              title={
+                                expanded ? "Recolher tabela" : "Expandir tabela"
+                              }
+                              aria-label={
+                                expanded ? "Recolher tabela" : "Expandir tabela"
+                              }
                               aria-expanded={expanded}
                               onClick={() => {
-                                setHistoryExpandedVersion(expanded ? null : versionKey);
+                                setHistoryExpandedVersion(
+                                  expanded ? null : versionKey,
+                                );
                                 setHistoryTab("valores");
                               }}
                             >
-                              <i className={"pi " + (expanded ? "pi-chevron-up" : "pi-chevron-down")} />
+                              <i
+                                className={
+                                  "pi " +
+                                  (expanded
+                                    ? "pi-chevron-up"
+                                    : "pi-chevron-down")
+                                }
+                              />
                             </button>
                           </td>
                         </tr>
                         {expanded && (
                           <tr className="tv-history-version-detail-row">
-                            <td colSpan={8}>
+                            <td colSpan={9}>
                               <section className="tv-history-version-detail">
                                 <header>
                                   <h3>Tabela de vencimentos — {version.ano}</h3>
-                                  <StatusTag value={version.status} />
+                                  <div className="tv-history-detail-tags">
+                                    {version.origem === "RGA" && (
+                                      <span className="tv-history-origin-tag rga">
+                                        RGA · {rgaPercentual(version.auditoriaRga?.percentual || version.percentualRga)}
+                                      </span>
+                                    )}
+                                    <StatusTag value={version.status} />
+                                  </div>
                                 </header>
                                 <nav className="tv-tabs">
-                                  <button type="button" className={historyTab === "valores" ? "active" : ""} onClick={() => setHistoryTab("valores")}>Tabela de valores</button>
-                                  <button type="button" className={historyTab === "info" ? "active" : ""} onClick={() => setHistoryTab("info")}>Informações adicionais</button>
+                                  <button
+                                    type="button"
+                                    className={
+                                      historyTab === "valores" ? "active" : ""
+                                    }
+                                    onClick={() => setHistoryTab("valores")}
+                                  >
+                                    Tabela de valores
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={
+                                      historyTab === "info" ? "active" : ""
+                                    }
+                                    onClick={() => setHistoryTab("info")}
+                                  >
+                                    Informações adicionais
+                                  </button>
+                                  {version.origem === "RGA" && version.auditoriaRga && (
+                                    <button
+                                      type="button"
+                                      className={historyTab === "rga" ? "active" : ""}
+                                      onClick={() => setHistoryTab("rga")}
+                                    >
+                                      RGA
+                                    </button>
+                                  )}
                                 </nav>
                                 {historyTab === "valores" ? (
-                                  <div className="tv-history-matrix"><Matrix data={version.matrix} /></div>
-                                ) : (
+                                  <div className="tv-history-matrix">
+                                    <Matrix data={version.matrix} />
+                                  </div>
+                                ) : historyTab === "info" ? (
                                   <div className="tv-history-additional-info">
-                                    <div className="tv-history-info-pair">
-                                      <span><small>Data início da vigência</small><strong>{version.inicio}</strong></span>
-                                      <span><small>Data fim da vigência</small><strong>{version.fim || "—"}</strong></span>
-                                    </div>
-                                    <div className="tv-history-info-pair">
-                                      <span><small>Responsável pela última alteração</small><strong>{version.usuario}</strong></span>
-                                      <span><small>Data e hora da última alteração</small><strong>{version.alteracao} às 14:32</strong></span>
-                                    </div>
-                                    <div className="tv-history-info-full">
-                                      <small>Base legal</small>
-                                      <div className="tv-legal-file">
-                                        <i className="pi pi-file-pdf" aria-hidden="true" />
-                                        <span>{version.baseLegal || "Lei_Complementar_600_2017.pdf"}</span>
-                                        <button type="button" title="Visualizar arquivo" aria-label="Visualizar arquivo" onClick={() => setLegalPreview(true)}>
-                                          <i className="pi pi-eye" />
-                                        </button>
+                                    <div className="tv-history-info-grid">
+                                      <div className="tv-history-data-item">
+                                        <small>Data início da vigência</small>
+                                        <strong>{version.inicio}</strong>
+                                      </div>
+                                      <div className="tv-history-data-item">
+                                        <small>Data fim da vigência</small>
+                                        <strong>{version.fim || "—"}</strong>
+                                      </div>
+                                      <div className="tv-history-data-item">
+                                        <small>Responsável pela última alteração</small>
+                                        <strong>{version.usuario}</strong>
+                                      </div>
+                                      <div className="tv-history-data-item">
+                                        <small>Data e hora da última alteração</small>
+                                        <strong>
+                                          {version.auditoriaRga
+                                            ? rgaDateTime(
+                                                version.auditoriaRga.aplicadaEm,
+                                              )
+                                            : version.alteracao + " às 14:32"}
+                                        </strong>
+                                      </div>
+                                      <div className="tv-history-data-item">
+                                        <small>Origem da alteração</small>
+                                        <strong>
+                                          {version.origem === "Versionamento"
+                                            ? "Alteração manual"
+                                            : version.origem || "Cadastro inicial"}
+                                        </strong>
+                                      </div>
+                                      <div className="tv-history-data-item">
+                                        <small>Base legal</small>
+                                        <div className="tv-legal-file">
+                                          <i
+                                            className="pi pi-file-pdf"
+                                            aria-hidden="true"
+                                          />
+                                          <span>
+                                            {version.baseLegal ||
+                                              "Lei_Complementar_600_2017.pdf"}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            title="Visualizar arquivo"
+                                            aria-label="Visualizar arquivo"
+                                            onClick={() => setLegalPreview(true)}
+                                          >
+                                            <i className="pi pi-eye" />
+                                          </button>
+                                        </div>
                                       </div>
                                     </div>
-                                    <div className="tv-history-info-full">
+                                    <div className="tv-history-info-observation">
                                       <small>Observação</small>
-                                      <p>{version.observacao || "Valores definidos conforme a estrutura vigente da carreira."}</p>
+                                      <p>
+                                        {version.observacao ||
+                                          "Valores definidos conforme a estrutura vigente da carreira."}
+                                      </p>
                                     </div>
                                   </div>
+                                ) : (
+                                  <RgaHistoryDetails
+                                    version={version}
+                                    onLegalPreview={() => setLegalPreview(true)}
+                                  />
                                 )}
                               </section>
                             </td>
@@ -1018,12 +1801,23 @@ function List() {
                   })}
                 </tbody>
               </table>
-              <div className="tv-journey-history-pager" aria-label="Paginação do histórico">
-                <button type="button" disabled aria-label="Primeira página"><i className="pi pi-angle-double-left" /></button>
-                <button type="button" disabled aria-label="Página anterior"><i className="pi pi-angle-left" /></button>
+              <div
+                className="tv-journey-history-pager"
+                aria-label="Paginação do histórico"
+              >
+                <button type="button" disabled aria-label="Primeira página">
+                  <i className="pi pi-angle-double-left" />
+                </button>
+                <button type="button" disabled aria-label="Página anterior">
+                  <i className="pi pi-angle-left" />
+                </button>
                 <span aria-current="page">1</span>
-                <button type="button" disabled aria-label="Próxima página"><i className="pi pi-angle-right" /></button>
-                <button type="button" disabled aria-label="Última página"><i className="pi pi-angle-double-right" /></button>
+                <button type="button" disabled aria-label="Próxima página">
+                  <i className="pi pi-angle-right" />
+                </button>
+                <button type="button" disabled aria-label="Última página">
+                  <i className="pi pi-angle-double-right" />
+                </button>
                 <select aria-label="Itens por página" defaultValue="10">
                   <option value="10">10</option>
                   <option value="20">20</option>
@@ -1031,22 +1825,39 @@ function List() {
                 </select>
               </div>
             </div>
-            <footer className="tv-journey-history-footer">
-              <BotaoSeplag type="button" label="Fechar" onClick={() => setHistoryJourney(undefined)} />
-            </footer>
             {legalPreview && (
               <div className="tv-legal-preview-overlay" role="presentation">
-                <section className="tv-legal-preview" role="dialog" aria-modal="true" aria-label="Visualização da Base legal">
+                <section
+                  className="tv-legal-preview"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Visualização da Base legal"
+                >
                   <header>
-                    <div><h3>Base legal</h3><p>Lei_Complementar_600_2017.pdf</p></div>
-                    <button type="button" aria-label="Fechar visualização" onClick={() => setLegalPreview(false)}><i className="pi pi-times" /></button>
+                    <div>
+                      <h3>Base legal</h3>
+                      <p>Lei_Complementar_600_2017.pdf</p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Fechar visualização"
+                      onClick={() => setLegalPreview(false)}
+                    >
+                      <i className="pi pi-times" />
+                    </button>
                   </header>
                   <div className="tv-legal-preview-content">
                     <i className="pi pi-file-pdf" aria-hidden="true" />
                     <strong>Lei Complementar nº 600/2017</strong>
                     <span>Pré-visualização do documento de Base legal.</span>
                   </div>
-                  <footer><BotaoSeplag type="button" label="Fechar" onClick={() => setLegalPreview(false)} /></footer>
+                  <footer>
+                    <BotaoSeplag
+                      type="button"
+                      label="Fechar"
+                      onClick={() => setLegalPreview(false)}
+                    />
+                  </footer>
                 </section>
               </div>
             )}
@@ -1401,11 +2212,48 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
   const initial = params.get("cargo") || "";
   const initialCargo = CARGOS.find((x) => String(x.id) === initial);
   const initialJornada = params.get("jornada") || "";
-  const savedRecord = readSavedTables().find((table) => table.id === params.get("registro"));
-  const initialInicio = toInputDate(savedRecord?.versao.inicio || params.get("inicio") || "");
-  const initialFim = toInputDate(savedRecord?.versao.fim || params.get("fim") || "");
-  const [vigenciaInicio, setVigenciaInicio] = useState(view || edit ? initialInicio || "2026-01-01" : "");
-  const [vigenciaFim, setVigenciaFim] = useState(view || edit ? initialFim : "");
+  const savedRecord = readSavedTables().find(
+    (table) => table.id === params.get("registro"),
+  );
+  const initialInicio = toInputDate(
+    savedRecord?.versao.inicio || params.get("inicio") || "",
+  );
+  const initialFim = toInputDate(
+    savedRecord?.versao.fim || params.get("fim") || "",
+  );
+  const gridIncideRga = params.get("incideRga") === "true";
+  const rgaContextEnabled =
+    (view || edit) &&
+    (gridIncideRga || Boolean(savedRecord?.incideRga));
+  const viewRgaEnabled = view && rgaContextEnabled;
+  const rgaViewDefaults =
+    rgaContextEnabled
+      ? {
+          percentual: "5,40%",
+          ano: initialInicio.slice(0, 4) || String(new Date().getFullYear()),
+          vigencia: initialInicio,
+          inicio: initialInicio,
+          fim: initialFim,
+          baseLegal: "Lei Complementar nº 600/2017",
+          observacao:
+            "Aplicação da Revisão Geral Anual referente ao exercício vigente.",
+        }
+      : undefined;
+  const rgaInfo = savedRecord?.rga || rgaViewDefaults;
+  const rgaViewBase = rgaContextEnabled
+    ? savedRecord?.versao.valorBase || savedRecord?.matrix || defaultMatrixData()
+    : undefined;
+  const rgaViewApplied = rgaViewBase
+    ? savedRecord?.versao.origem === "RGA" && savedRecord?.matrix
+      ? savedRecord.matrix
+      : applyRgaToMatrix(rgaViewBase, rgaInfo?.percentual || "0%")
+    : undefined;
+  const [vigenciaInicio, setVigenciaInicio] = useState(
+    view || edit ? initialInicio || "2026-01-01" : "",
+  );
+  const [vigenciaFim, setVigenciaFim] = useState(
+    view || edit ? initialFim : "",
+  );
   const [carreira, setCarreira] = useState(initialCargo?.carreira || "");
   const [cargoId, setCargoId] = useState(initial);
   const [jornada, setJornada] = useState(initialJornada);
@@ -1414,58 +2262,116 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
   const [documentosLegais, setDocumentosLegais] = useState<string[]>(
     savedRecord?.baseLegal ? savedRecord.baseLegal.split(", ") : [],
   );
-  const [incideRga, setIncideRga] = useState(savedRecord?.incideRga ?? false);
-  const [observacao, setObservacao] = useState(
-    view || edit ? savedRecord?.observacao || "Valores definidos conforme a estrutura vigente da carreira." : "",
+  const [incideRga, setIncideRga] = useState(
+    gridIncideRga || Boolean(savedRecord?.incideRga),
   );
-  const [activeTab, setActiveTab] = useState<"identificacao" | "valores" | "rga">("identificacao");
-  const [rgaPercentual, setRgaPercentual] = useState(savedRecord?.rga?.percentual || "");
-  const [rgaAno, setRgaAno] = useState(savedRecord?.rga?.ano || String(new Date().getFullYear()));
-  const [rgaBaseLegal, setRgaBaseLegal] = useState<string[]>(savedRecord?.rga?.baseLegal ? [savedRecord.rga.baseLegal] : []);
-  const [rgaObservacao, setRgaObservacao] = useState(savedRecord?.rga?.observacao || "");
-  const [rgaSimulation, setRgaSimulation] = useState<MatrixData>();
-  const [rgaBaseMatrix, setRgaBaseMatrix] = useState<MatrixData>();
-  const [rgaAppliedMatrix, setRgaAppliedMatrix] = useState<MatrixData>();
+  const [observacao, setObservacao] = useState(
+    view || edit
+      ? savedRecord?.observacao ||
+          "Valores definidos conforme a estrutura vigente da carreira."
+      : "",
+  );
+  const [activeTab, setActiveTab] = useState<
+    "identificacao" | "valores" | "rga"
+  >("identificacao");
+  const [rgaPercentual, setRgaPercentual] = useState(
+    rgaInfo?.percentual || "",
+  );
+  const [rgaAno, setRgaAno] = useState(
+    rgaInfo?.ano || String(new Date().getFullYear()),
+  );
+  const [rgaInicio, setRgaInicio] = useState(
+    rgaInfo?.inicio || rgaInfo?.vigencia || vigenciaInicio || "",
+  );
+  const [rgaFim, setRgaFim] = useState(
+    rgaInfo?.fim || vigenciaFim || "",
+  );
+  const [rgaBaseLegal, setRgaBaseLegal] = useState<string[]>(
+    rgaInfo?.baseLegal ? [rgaInfo.baseLegal] : [],
+  );
+  const [rgaObservacao, setRgaObservacao] = useState(
+    rgaInfo?.observacao || "",
+  );
+  const [rgaSimulation, setRgaSimulation] = useState<MatrixData | undefined>(
+    rgaViewApplied,
+  );
+  const [rgaBaseMatrix, setRgaBaseMatrix] = useState<MatrixData | undefined>(
+    rgaViewBase,
+  );
+  const [rgaAppliedMatrix, setRgaAppliedMatrix] = useState<MatrixData | undefined>(
+    viewRgaEnabled ? rgaViewApplied : undefined,
+  );
   const [rgaApplyConfirmation, setRgaApplyConfirmation] = useState(false);
-  const [rgaApplied, setRgaApplied] = useState(false);
+  const [rgaApplied, setRgaApplied] = useState(viewRgaEnabled);
   const [rgaSimulationStale, setRgaSimulationStale] = useState(false);
+  const [rgaSimulationSignature, setRgaSimulationSignature] = useState("");
+  const [rgaSuccess, setRgaSuccess] = useState(false);
   const [rgaError, setRgaError] = useState("");
   const opcoesDocumentosLegais = useDocumentosLegaisAssociaveis();
   const cargo = CARGOS.find((x) => String(x.id) === cargoId);
   const jornadaIndex = cargo?.jornadas.indexOf(jornada) ?? -1;
   const hasPreviousTable = Boolean(
     cargo &&
-      jornada &&
-      (savedRecord ||
-        readSavedTables().some(
-          (table) => table.cargoId === cargo.id && table.jornada === jornada,
-        ) ||
-        (jornadaIndex >= 0 && jornadaIndex < cargo.vigentes)),
+    jornada &&
+    (savedRecord ||
+      readSavedTables().some(
+        (table) => table.cargoId === cargo.id && table.jornada === jornada,
+      ) ||
+      (jornadaIndex >= 0 && jornadaIndex < cargo.vigentes)),
   );
-  const previousSavedTable = cargo && jornada
-    ? readSavedTables().filter((table) => table.cargoId === cargo.id && table.jornada === jornada).slice(-1)[0]
-    : undefined;
-  const savedVersionsForJourney = cargo && jornada
-    ? readSavedTables().filter((table) => table.cargoId === cargo.id && table.jornada === jornada)
-    : [];
-  const originVersionNumber = hasPreviousTable ? Math.max(1, savedVersionsForJourney.length) : 0;
+  const previousSavedTable =
+    cargo && jornada
+      ? readSavedTables()
+          .filter(
+            (table) => table.cargoId === cargo.id && table.jornada === jornada,
+          )
+          .slice(-1)[0]
+      : undefined;
+  const savedVersionsForJourney =
+    cargo && jornada
+      ? readSavedTables().filter(
+          (table) => table.cargoId === cargo.id && table.jornada === jornada,
+        )
+      : [];
+  const originVersionNumber = hasPreviousTable
+    ? Math.max(1, savedVersionsForJourney.length)
+    : 0;
   const editingVersionNumber = originVersionNumber + 1;
+  const rgaSimulationSignatureFor = (matrix: MatrixData) =>
+    JSON.stringify({
+      matrix,
+      ano: rgaAno,
+      percentual: rgaPercentual,
+      vigenciaRgaInicio: rgaInicio,
+      vigenciaRgaFim: rgaFim,
+      baseLegal: [...rgaBaseLegal].sort(),
+      vigenciaTabelaInicio: vigenciaInicio,
+      vigenciaTabelaFim: vigenciaFim,
+      incideRga,
+    });
   const invalidateRgaSimulation = () => {
-    if (!rgaSimulation && !rgaApplied) return;
+    if (!rgaSimulationSignature && !rgaApplied) return;
     setRgaSimulation(undefined);
+    setRgaSimulationSignature("");
     setRgaApplied(false);
+    setRgaAppliedMatrix(undefined);
+    setRgaSuccess(false);
     setRgaSimulationStale(true);
+    setRgaError("");
   };
   const formatRgaPercentage = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 5);
     if (!digits) return "";
-    return (Number(digits) / 100).toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }) + "%";
+    return (
+      (Number(digits) / 100).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) + "%"
+    );
   };
   const simulateRga = () => {
     setRgaError("");
+    setRgaSuccess(false);
     const form = formRef.current;
     if (!form) return;
     const formData = new FormData(form);
@@ -1473,33 +2379,117 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
     const matrixRowNames = formData.getAll("matrixRowName").map(String);
     const matrixValues = formData.getAll("matrixValue").map(String);
     if (!matrixColumns.length || !matrixRowNames.length) {
-      setRgaError("Informe os níveis, classes e valores da nova versão antes de simular a RGA.");
+      setRgaError(
+        "Informe os níveis, classes e valores da nova versão antes de simular a RGA.",
+      );
       return;
     }
     const matrixBase: MatrixData = {
       columns: matrixColumns,
       rows: matrixRowNames.map((name, rowIndex) => ({
         name,
-        values: matrixColumns.map((_, columnIndex) => matrixValues[rowIndex * matrixColumns.length + columnIndex] || ""),
+        values: matrixColumns.map(
+          (_, columnIndex) =>
+            matrixValues[rowIndex * matrixColumns.length + columnIndex] || "",
+        ),
       })),
     };
-    const percentual = Number(rgaPercentual.replace("%", "").replace(",", "."));
-    if (!percentual || percentual <= 0 || !rgaAno || !rgaBaseLegal.length) {
-      setRgaError("Preencha os campos obrigatórios da parametrização antes de simular a aplicação.");
+    if (
+      !isRgaVigenciaWithinTable(
+        vigenciaInicio,
+        vigenciaFim || undefined,
+        rgaInicio,
+        rgaFim || undefined,
+      )
+    ) {
+      setRgaError(RGA_VIGENCIA_FORA_TABELA);
       return;
     }
-    const parseMoney = (value: string) => Number(value.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
-    const formatMoney = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+    const matrixIncomplete =
+      matrixBase.columns.some((column) => !column.trim()) ||
+      matrixBase.rows.some(
+        (row) =>
+          !row.name.trim() ||
+          row.values.some(
+            (value) =>
+              !String(value)
+                .replace(/\D/g, "")
+                .replace(/^0+/, "").length,
+          ),
+      );
+    if (matrixIncomplete) {
+      setRgaError(
+        "Preencha todos os níveis, classes e valores da matriz antes de simular a RGA.",
+      );
+      return;
+    }
+    const percentual = Number(rgaPercentual.replace("%", "").replace(",", "."));
+    if (
+      !percentual ||
+      percentual <= 0 ||
+      !rgaAno ||
+      !rgaBaseLegal.length ||
+      !rgaInicio ||
+      (rgaFim && rgaFim < rgaInicio)
+    ) {
+      setRgaError(
+        "Preencha os campos obrigatórios da parametrização e confira o intervalo de vigência do RGA antes de simular a aplicação.",
+      );
+      return;
+    }
+    const parseMoney = (value: string) =>
+      Number(value.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
+    const formatMoney = (value: number) =>
+      new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(value);
     setRgaSimulation({
       columns: [...matrixBase.columns],
       rows: matrixBase.rows.map((row) => ({
         name: row.name,
-        values: row.values.map((value) => formatMoney(Math.round(parseMoney(value) * (1 + percentual / 100) * 100) / 100)),
+        values: row.values.map((value) =>
+          formatMoney(
+            Math.round(parseMoney(value) * (1 + percentual / 100) * 100) / 100,
+          ),
+        ),
       })),
     });
     setRgaBaseMatrix(matrixBase);
+    setRgaSimulationSignature(rgaSimulationSignatureFor(matrixBase));
     setRgaApplied(false);
     setRgaSimulationStale(false);
+  };
+  const confirmRgaApplication = () => {
+    const form = formRef.current;
+    if (!form || !rgaSimulation || !rgaSimulationSignature) return;
+    const formData = new FormData(form);
+    const matrixColumns = formData.getAll("matrixColumnName").map(String);
+    const matrixRowNames = formData.getAll("matrixRowName").map(String);
+    const matrixValues = formData.getAll("matrixValue").map(String);
+    const currentMatrix: MatrixData = {
+      columns: matrixColumns,
+      rows: matrixRowNames.map((name, rowIndex) => ({
+        name,
+        values: matrixColumns.map(
+          (_, columnIndex) =>
+            matrixValues[rowIndex * matrixColumns.length + columnIndex] || "",
+        ),
+      })),
+    };
+    if (
+      rgaSimulationStale ||
+      rgaSimulationSignature !== rgaSimulationSignatureFor(currentMatrix)
+    ) {
+      invalidateRgaSimulation();
+      setRgaApplyConfirmation(false);
+      return;
+    }
+    setRgaAppliedMatrix(rgaSimulation);
+    setRgaApplied(true);
+    setRgaSuccess(true);
+    setRgaError("");
+    setRgaApplyConfirmation(false);
   };
   const back = () => nav(BASE);
   const save = (e: FormEvent<HTMLFormElement>) => {
@@ -1507,7 +2497,9 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
     const d = new FormData(e.currentTarget);
     if (activeTab === "identificacao") {
       if (!cargo || !jornada || !d.get("inicio") || !documentosLegais.length) {
-        setError("Preencha todos os campos obrigatórios de Identificação e vigência para continuar.");
+        setError(
+          "Preencha todos os campos obrigatórios de Identificação e vigência para continuar.",
+        );
         return;
       }
       if (d.get("fim") && String(d.get("fim")) < String(d.get("inicio"))) {
@@ -1527,7 +2519,9 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
       return;
     }
     const hasDuplicates = (values: FormDataEntryValue[]) => {
-      const normalized = values.map((value) => String(value).trim().toLocaleLowerCase("pt-BR"));
+      const normalized = values.map((value) =>
+        String(value).trim().toLocaleLowerCase("pt-BR"),
+      );
       return new Set(normalized).size !== normalized.length;
     };
     if (hasDuplicates(d.getAll("matrixRowName"))) {
@@ -1540,7 +2534,10 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
     }
     const hasMatrixValue = d
       .getAll("matrixValue")
-      .some((value) => String(value).replace(/\D/g, "").replace(/^0+/, "").length > 0);
+      .some(
+        (value) =>
+          String(value).replace(/\D/g, "").replace(/^0+/, "").length > 0,
+      );
     if (!hasMatrixValue) {
       setError(
         "Informe ao menos um valor para uma combinação de nível e classe antes de salvar a tabela.",
@@ -1559,15 +2556,24 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
       const salvasDaJornada = readSavedTables().filter(
         (table) => table.cargoId === cargo.id && table.jornada === jornada,
       );
-      const existeVigenteSalva = salvasDaJornada.some((table) => isVersionCurrent(table.versao));
-      const existeVigenteInicial = salvasDaJornada.length === 0 && jornadaIndex >= 0 && jornadaIndex < cargo.vigentes;
+      const existeVigenteSalva = salvasDaJornada.some((table) =>
+        isVersionCurrent(table.versao),
+      );
+      const existeVigenteInicial =
+        salvasDaJornada.length === 0 &&
+        jornadaIndex >= 0 &&
+        jornadaIndex < cargo.vigentes;
       if (novaTabelaVigente && (existeVigenteSalva || existeVigenteInicial)) {
-        setError("Já existe uma tabela de vencimentos vigente para esta jornada. Utilize a opção Versionar para criar uma nova versão.");
+        setError(
+          "Já existe uma tabela de vencimentos vigente para esta jornada. Utilize a opção Versionar para criar uma nova versão.",
+        );
         return;
       }
     }
     if (!edit && d.get("inicio") === "2026-01-01") {
-      setError("Já existe uma tabela de vencimentos para esta jornada no período informado. Revise as datas de vigência para continuar.");
+      setError(
+        "Já existe uma tabela de vencimentos para esta jornada no período informado. Revise as datas de vigência para continuar.",
+      );
       return;
     }
     if (activeTab === "valores" && incideRga) {
@@ -1575,14 +2581,18 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
       setActiveTab("rga");
       return;
     }
-    if (activeTab === "rga" && !rgaApplied) {
-      setError("Simule e confirme a aplicação da RGA antes de salvar a tabela.");
+    if (activeTab === "rga" && !rgaApplied && !edit) {
+      setError(
+        "Simule e confirme a aplicação da RGA antes de salvar a tabela.",
+      );
       return;
     }
     if (cargo && jornada) {
       const todayIso = localIsoDate();
       const today = formatDate(todayIso);
-      const previousDay = formatDate(previousIsoDate(String(d.get("inicio") || todayIso)));
+      const previousDay = formatDate(
+        previousIsoDate(String(d.get("inicio") || todayIso)),
+      );
       if (edit && !versionConfirmed.current) {
         setVersionConfirmationOpen(true);
         return;
@@ -1606,30 +2616,63 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
           status: inicio > todayIso ? "Futura" : "Vigente",
           alteracao: new Date().toLocaleDateString("pt-BR"),
           usuario: "Roberto Junior",
-          origem: rgaApplied ? "RGA" : edit ? "Versionamento" : "Cadastro inicial",
+          origem: rgaApplied
+            ? "RGA"
+            : edit
+              ? "Versionamento"
+              : "Cadastro inicial",
           percentualRga: rgaApplied ? rgaPercentual : undefined,
+          valorBase:
+            rgaApplied && rgaBaseMatrix
+              ? structuredClone(rgaBaseMatrix)
+              : undefined,
+          auditoriaRga: rgaApplied
+            ? {
+                ano: rgaAno,
+                percentual: rgaPercentual,
+                vigencia: rgaInicio,
+                fim: rgaFim || undefined,
+                baseLegal: rgaBaseLegal.join(", "),
+                arredondamento: "2 casas decimais",
+                observacao: rgaObservacao,
+                responsavel: "Roberto Junior",
+                aplicadaEm: new Date().toISOString(),
+                versaoOrigem: originVersionNumber
+                  ? "V" + originVersionNumber
+                  : "—",
+                novaVersao: "V" + editingVersionNumber,
+                tipoAplicacao: "Individual",
+              }
+            : undefined,
         },
         matrix: {
           columns: matrixColumns,
           rows: matrixRowNames.map((name, rowIndex) => ({
             name,
-            values: matrixColumns.map((_, columnIndex) =>
-              matrixValues[rowIndex * matrixColumns.length + columnIndex] || "",
+            values: matrixColumns.map(
+              (_, columnIndex) =>
+                matrixValues[rowIndex * matrixColumns.length + columnIndex] ||
+                "",
             ),
           })),
         },
-        baseLegal: documentosLegais.join(", ") || "Lei Complementar nº 600/2017",
+        baseLegal:
+          documentosLegais.join(", ") || "Lei Complementar nº 600/2017",
         observacao,
         incideRga,
-        rga: incideRga ? {
-          percentual: rgaPercentual,
-          ano: rgaAno,
-          vigencia: inicio,
-          baseLegal: rgaBaseLegal.join(", "),
-          observacao: rgaObservacao,
-          responsavel: "Roberto Junior",
-          aplicadaEm: new Date().toLocaleString("pt-BR"),
-        } : undefined,
+        rga: incideRga
+          ? {
+              percentual: rgaPercentual,
+              ano: rgaAno,
+              vigencia: rgaInicio,
+              inicio: rgaInicio,
+              fim: rgaFim || undefined,
+              baseLegal: rgaBaseLegal.join(", "),
+              observacao: rgaObservacao,
+              responsavel: "Roberto Junior",
+              aplicadaEm: new Date().toLocaleString("pt-BR"),
+            }
+          : undefined,
       };
       const savedIndex = savedRecord?.id
         ? saved.findIndex((item) => item.id === savedRecord.id)
@@ -1638,7 +2681,11 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
         if (savedIndex >= 0) {
           saved[savedIndex] = {
             ...saved[savedIndex],
-            versao: { ...saved[savedIndex].versao, fim: previousDay, status: "Encerrada" },
+            versao: {
+              ...saved[savedIndex].versao,
+              fim: previousDay,
+              status: "Encerrada",
+            },
           };
         } else {
           saved.push({
@@ -1646,7 +2693,8 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
             cargoId: cargo.id,
             jornada,
             versao: {
-              ano: Number(initialInicio.slice(0, 4)) || new Date().getFullYear(),
+              ano:
+                Number(initialInicio.slice(0, 4)) || new Date().getFullYear(),
               inicio: formatDate(initialInicio || "2026-01-01"),
               fim: previousDay,
               status: "Encerrada",
@@ -1655,7 +2703,8 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
             },
             matrix: defaultMatrixData(),
             baseLegal: "Lei_Complementar_600_2017.pdf",
-            observacao: "Valores definidos conforme a estrutura vigente da carreira.",
+            observacao:
+              "Valores definidos conforme a estrutura vigente da carreira.",
           });
         }
         saved.push(record);
@@ -1672,8 +2721,9 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
         view
           ? "Visualizar tabela de vencimentos"
           : edit
-          ? "Alterar tabela de vencimentos – " + (savedRecord?.versao.ano || initialInicio.slice(0, 4) || "2026")
-          : "Nova tabela de vencimentos"
+            ? "Alterar tabela de vencimentos – " +
+              (savedRecord?.versao.ano || initialInicio.slice(0, 4) || "2026")
+            : "Nova tabela de vencimentos"
       }
       cols="12"
       cardHeaderClassNames="prototype-regime-card prototype-ingressos-card tv-form-card"
@@ -1689,17 +2739,53 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
         />
       }
     >
-      <form ref={formRef} className="tv-form col-12" onSubmit={save} onInputCapture={(event) => {
-        const target = event.target as HTMLInputElement;
-        if (!target.name?.startsWith("matrix") || (!rgaSimulation && !rgaApplied)) return;
-        invalidateRgaSimulation();
-      }}>
-        <nav className="tv-form-tabs" aria-label="Etapas da tabela de vencimentos">
-          <button type="button" className={activeTab === "identificacao" ? "active" : ""} onClick={() => setActiveTab("identificacao")}>Identificação e vigência</button>
-          <button type="button" className={activeTab === "valores" ? "active" : ""} onClick={() => setActiveTab("valores")}>Valores por Nível e Classe</button>
-          <button type="button" disabled={!incideRga} className={activeTab === "rga" ? "active" : ""} onClick={() => setActiveTab("rga")}>Aplicação de RGA</button>
+      <form
+        ref={formRef}
+        className="tv-form col-12"
+        onSubmit={save}
+        onInputCapture={(event) => {
+          const target = event.target as HTMLInputElement;
+          if (
+            !target.name?.startsWith("matrix") ||
+            (!rgaSimulationSignature && !rgaApplied)
+          )
+            return;
+          invalidateRgaSimulation();
+        }}
+      >
+        <nav
+          className="tv-form-tabs"
+          aria-label="Etapas da tabela de vencimentos"
+        >
+          <button
+            type="button"
+            className={activeTab === "identificacao" ? "active" : ""}
+            onClick={() => setActiveTab("identificacao")}
+          >
+            Identificação e vigência
+          </button>
+          <button
+            type="button"
+            className={activeTab === "valores" ? "active" : ""}
+            onClick={() => setActiveTab("valores")}
+          >
+            Valores por Nível e Classe
+          </button>
+          <button
+            type="button"
+            disabled={!incideRga}
+            className={activeTab === "rga" ? "active" : ""}
+            onClick={() => setActiveTab("rga")}
+          >
+            Aplicação de RGA
+          </button>
         </nav>
-        <section className={"prototype-novo-ingresso-panel tv-tab-panel " + (activeTab === "identificacao" ? "active" : "")}>
+        <section
+          className={
+            "prototype-novo-ingresso-panel tv-tab-panel " +
+            (activeTab === "identificacao" ? "active" : "")
+          }
+        >
           <h3>
             <span className="prototype-novo-ingresso-panel-icon">
               <i className="pi pi-calendar" aria-hidden="true" />
@@ -1774,55 +2860,133 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                 type="date"
                 disabled={view}
                 value={vigenciaInicio}
-                onChange={(event) => setVigenciaInicio(event.target.value)}
+                onChange={(event) => {
+                  invalidateRgaSimulation();
+                  setVigenciaInicio(event.target.value);
+                }}
               />
             </label>
             <label className="prototype-ingresso-field">
               <span>Data fim da vigência</span>
-              <input name="fim" type="date" disabled={view} value={vigenciaFim} onChange={(event) => setVigenciaFim(event.target.value)} />
+              <input
+                name="fim"
+                type="date"
+                disabled={view}
+                value={vigenciaFim}
+                onChange={(event) => {
+                  invalidateRgaSimulation();
+                  setVigenciaFim(event.target.value);
+                }}
+              />
             </label>
             <div className="prototype-ingresso-field tv-base-legal-field">
               {view ? (
                 <label className="prototype-ingresso-field">
                   <span>Base legal</span>
-                  <input type="text" disabled value={savedRecord?.baseLegal || "Lei Complementar nº 600/2017"} readOnly />
+                  <input
+                    type="text"
+                    disabled
+                    value={
+                      savedRecord?.baseLegal || "Lei Complementar nº 600/2017"
+                    }
+                    readOnly
+                  />
                 </label>
-              ) : <DocumentosLegaisAssociadosSeplag
-                label="Base legal"
-                required
-                options={opcoesDocumentosLegais}
-                value={documentosLegais}
-                onChange={setDocumentosLegais}
-                onVisualizar={(documento) =>
-                  nav("/prototipos/sigep/documentos-legais/" + documento.id)
-                }
-                placeholder="Buscar documentos legais..."
-                exibirNovoCadastro={false}
-                compact
-                expandirAoAbrir
-              />}
+              ) : (
+                <DocumentosLegaisAssociadosSeplag
+                  label="Base legal"
+                  required
+                  options={opcoesDocumentosLegais}
+                  value={documentosLegais}
+                  onChange={setDocumentosLegais}
+                  onVisualizar={(documento) =>
+                    nav("/prototipos/sigep/documentos-legais/" + documento.id)
+                  }
+                  placeholder="Buscar documentos legais..."
+                  exibirNovoCadastro={false}
+                  compact
+                  expandirAoAbrir
+                />
+              )}
             </div>
-            <div className="tv-rga-field" role="group" aria-labelledby="tv-rga-label">
-              <span id="tv-rga-label" className="tv-rga-label">Incide RGA?</span>
+            <div
+              className="tv-rga-field"
+              role="group"
+              aria-labelledby="tv-rga-label"
+            >
+              <span id="tv-rga-label" className="tv-rga-label">
+                Incide RGA?
+              </span>
               <div className="tv-rga-options">
-                <label><input type="radio" name="incideRga" checked={incideRga} disabled={view} onChange={() => setIncideRga(true)} /><span>Sim</span></label>
-                <label><input type="radio" name="incideRga" checked={!incideRga} disabled={view} onChange={() => { setIncideRga(false); if (activeTab === "rga") setActiveTab("identificacao"); }} /><span>Não</span></label>
+                <label>
+                  <input
+                    type="radio"
+                    name="incideRga"
+                    checked={incideRga}
+                    disabled={view}
+                    onChange={() => {
+                      invalidateRgaSimulation();
+                      setIncideRga(true);
+                    }}
+                  />
+                  <span>Sim</span>
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="incideRga"
+                    checked={!incideRga}
+                    disabled={view}
+                    onChange={() => {
+                      invalidateRgaSimulation();
+                      setIncideRga(false);
+                      if (activeTab === "rga") setActiveTab("identificacao");
+                    }}
+                  />
+                  <span>Não</span>
+                </label>
               </div>
             </div>
           </div>
         </section>
-        <section className={"prototype-novo-ingresso-panel tv-observation-card tv-tab-panel " + (activeTab === "identificacao" ? "active" : "")}>
+        <section
+          className={
+            "prototype-novo-ingresso-panel tv-observation-card tv-tab-panel " +
+            (activeTab === "identificacao" ? "active" : "")
+          }
+        >
           <h3>
-            <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-comment" aria-hidden="true" /></span>
-            <div><strong>Observação</strong><small>Registre informações complementares sobre a tabela de vencimentos.</small></div>
+            <span className="prototype-novo-ingresso-panel-icon">
+              <i className="pi pi-comment" aria-hidden="true" />
+            </span>
+            <div>
+              <span className="tv-observation-title">Observação</span>
+              <small>
+                Registre informações complementares sobre a tabela de
+                vencimentos.
+              </small>
+            </div>
           </h3>
           <div className="tv-observation-content">
             <label htmlFor="tv-observacao">Observação</label>
-            <textarea id="tv-observacao" name="observacao" rows={5} maxLength={2000} disabled={view} value={observacao} onChange={(event) => setObservacao(event.target.value)} />
+            <textarea
+              id="tv-observacao"
+              name="observacao"
+              rows={5}
+              maxLength={2000}
+              disabled={view}
+              value={observacao}
+              onChange={(event) => setObservacao(event.target.value)}
+            />
             <small>{observacao.length}/2000</small>
           </div>
         </section>
-        <section className={"prototype-novo-ingresso-panel tv-values-panel tv-tab-panel " + (activeTab === "valores" ? "active" : "")}>
+        <section
+          className={
+            "prototype-novo-ingresso-panel tv-values-panel tv-tab-panel " +
+            (activeTab === "valores" ? "active" : "")
+          }
+        >
           <h3>
             <span className="prototype-novo-ingresso-panel-icon">
               <i className="pi pi-dollar" aria-hidden="true" />
@@ -1832,124 +2996,489 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
           <div className="tv-values-content">
             <div className="tv-section-head">
               <p>Matriz gerada conforme a estrutura do cargo e da carreira.</p>
-            {!view && <BotaoSeplag
-              type="button"
-              label="Copiar valores da tabela anterior"
-              icon="pi pi-copy"
-              disabled={!hasPreviousTable}
-              onClick={() => setCopy(true)}
-            />}
+              {!view && (
+                <BotaoSeplag
+                  type="button"
+                  label="Copiar valores da tabela anterior"
+                  icon="pi pi-copy"
+                  disabled={!hasPreviousTable}
+                  onClick={() => setCopy(true)}
+                />
+              )}
             </div>
-            <Matrix key={String(copy) + String(Boolean(rgaAppliedMatrix))} edit={!view} copy={view || copy || Boolean(rgaAppliedMatrix)} data={rgaAppliedMatrix || (view || edit ? savedRecord?.matrix : undefined)} onStructureChange={invalidateRgaSimulation} />
+            <Matrix
+              key={String(copy) + String(Boolean(rgaAppliedMatrix))}
+              edit={!view}
+              copy={
+                view ||
+                copy ||
+                Boolean(rgaAppliedMatrix) ||
+                Boolean(rgaSimulationStale && rgaBaseMatrix)
+              }
+              data={
+                rgaAppliedMatrix ||
+                (rgaSimulationStale ? rgaBaseMatrix : undefined) ||
+                (view || edit ? savedRecord?.matrix : undefined)
+              }
+              onStructureChange={invalidateRgaSimulation}
+            />
           </div>
         </section>
         {incideRga && (
-          <section className={"prototype-novo-ingresso-panel tv-rga-panel tv-tab-panel " + (activeTab === "rga" ? "active" : "")}>
+          <section
+            className={
+              "prototype-novo-ingresso-panel tv-rga-panel tv-tab-panel " +
+              (activeTab === "rga" ? "active" : "")
+            }
+          >
             <div className="tv-rga-heading">
-              <div><h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-percentage" /></span><span>Aplicação de RGA</span></h3></div>
-              <div className="tv-rga-actions">
-                <BotaoSeplag type="button" label="Simular aplicação" icon="pi pi-calculator" onClick={simulateRga} />
-                <BotaoSalvarSeplag type="button" label="Aplicar RGA" disabled={!rgaSimulation || rgaApplied} onClick={() => setRgaApplyConfirmation(true)} />
+              <div>
+                <h3>
+                  <span className="prototype-novo-ingresso-panel-icon">
+                    <i className="pi pi-percentage" />
+                  </span>
+                  <span>Aplicação de RGA</span>
+                </h3>
               </div>
+              {!view && (
+                <div className="tv-rga-actions">
+                  <BotaoSeplag
+                    type="button"
+                    label="Simular aplicação"
+                    icon="pi pi-calculator"
+                    onClick={simulateRga}
+                  />
+                  <BotaoSalvarSeplag
+                    type="button"
+                    label="Aplicar RGA"
+                    disabled={
+                      !rgaSimulation ||
+                      !rgaSimulationSignature ||
+                      rgaSimulationStale ||
+                      rgaApplied
+                    }
+                    onClick={() => setRgaApplyConfirmation(true)}
+                  />
+                </div>
+              )}
             </div>
-            <div className="tv-rga-info"><i className="pi pi-info-circle" /><span>A RGA será calculada sobre os valores atualmente informados na seção Valores por Nível e Classe desta versão.</span></div>
+            <div className="tv-rga-info">
+              <i className="pi pi-info-circle" />
+              <span>
+                O RGA será calculado sobre os valores atualmente informados na
+                seção Valores por Nível e Classe desta versão.
+              </span>
+            </div>
             <div className="tv-rga-main-grid">
               <div className="tv-rga-parameters">
                 <h4>Parametrização da RGA</h4>
                 <div className="tv-rga-fields">
-                  <label><span>Ano da RGA<em>*</em></span><input value={rgaAno} disabled={view} inputMode="numeric" onChange={(e) => { invalidateRgaSimulation(); setRgaAno(e.target.value.replace(/\D/g, "").slice(0, 4)); }} /></label>
-                  <label><span>Percentual da RGA<em>*</em></span><input value={rgaPercentual} disabled={view} inputMode="numeric" placeholder="0,00%" onChange={(e) => { invalidateRgaSimulation(); setRgaPercentual(formatRgaPercentage(e.target.value)); }} /></label>
-                  <div className="prototype-ingresso-field tv-base-legal-field tv-rga-legal"><DocumentosLegaisAssociadosSeplag label="Base legal da RGA" required options={opcoesDocumentosLegais} value={rgaBaseLegal} onChange={(value) => { invalidateRgaSimulation(); setRgaBaseLegal(value); }} onVisualizar={(documento) => nav("/prototipos/sigep/documentos-legais/" + documento.id)} placeholder="Buscar documentos legais..." exibirNovoCadastro={false} compact expandirAoAbrir /></div>
-                  <label className="wide"><span>Observação</span><textarea rows={3} value={rgaObservacao} disabled={view} onChange={(e) => setRgaObservacao(e.target.value)} /></label>
+                  <label>
+                    <span>
+                      Ano do RGA<em>*</em>
+                    </span>
+                    <input
+                      value={rgaAno}
+                      disabled={view}
+                      inputMode="numeric"
+                      onChange={(e) => {
+                        invalidateRgaSimulation();
+                        setRgaAno(
+                          e.target.value.replace(/\D/g, "").slice(0, 4),
+                        );
+                      }}
+                    />
+                  </label>
+                  <label>
+                    <span>
+                      Percentual do RGA<em>*</em>
+                    </span>
+                    <input
+                      value={rgaPercentual}
+                      disabled={view}
+                      inputMode="numeric"
+                      placeholder="0,00%"
+                      onChange={(e) => {
+                        invalidateRgaSimulation();
+                        setRgaPercentual(formatRgaPercentage(e.target.value));
+                      }}
+                    />
+                  </label>
+
+                  <label>
+                    <span>
+                      Data início da vigência do RGA<em>*</em>
+                    </span>
+                    <input
+                      type="date"
+                      value={rgaInicio}
+                      disabled={view}
+                      onChange={(e) => {
+                        invalidateRgaSimulation();
+                        setRgaInicio(e.target.value);
+                      }}
+                    />
+                  </label>
+
+                  <label>
+                    <span>Data fim da vigência do RGA</span>
+                    <input
+                      type="date"
+                      value={rgaFim}
+                      min={rgaInicio || undefined}
+                      disabled={view}
+                      onChange={(e) => {
+                        invalidateRgaSimulation();
+                        setRgaFim(e.target.value);
+                      }}
+                    />
+                  </label>
+                  <div className="prototype-ingresso-field tv-base-legal-field tv-rga-legal">
+                    <DocumentosLegaisAssociadosSeplag
+                      label="Base legal da RGA"
+                      required
+                      options={opcoesDocumentosLegais}
+                      value={rgaBaseLegal}
+                      onChange={(value) => {
+                        invalidateRgaSimulation();
+                        setRgaBaseLegal(value);
+                      }}
+                      onVisualizar={(documento) =>
+                        nav(
+                          "/prototipos/sigep/documentos-legais/" + documento.id,
+                        )
+                      }
+                      placeholder="Buscar documentos legais..."
+                      exibirNovoCadastro={false}
+                      compact
+                      expandirAoAbrir
+                    />
+                  </div>
+                  <label className="wide">
+                    <span>Observação</span>
+                    <textarea
+                      rows={3}
+                      value={rgaObservacao}
+                      disabled={view}
+                      onChange={(e) => setRgaObservacao(e.target.value)}
+                    />
+                  </label>
                 </div>
               </div>
               <aside className="tv-rga-summary">
                 <h4>Resumo da aplicação</h4>
                 <dl>
-                  <div><dt>Cargo</dt><dd>{cargo?.nome || "—"}</dd></div>
-                  <div><dt>Jornada</dt><dd>{jornada || "—"}</dd></div>
-                  <div><dt>Versão de origem</dt><dd>{originVersionNumber ? "V" + originVersionNumber : "—"}</dd></div>
-                  <div><dt>Versão em edição</dt><dd>{"V" + editingVersionNumber}</dd></div>
-                  <div><dt>Vigência da nova versão</dt><dd>{vigenciaInicio ? formatDate(vigenciaInicio) + (vigenciaFim ? " – " + formatDate(vigenciaFim) : " – Atual") : "—"}</dd></div>
-                  <div><dt>Quantidade de valores da matriz</dt><dd>{rgaSimulation ? rgaSimulation.rows.length * rgaSimulation.columns.length : "—"}</dd></div>
-                  <div><dt>Percentual da RGA</dt><dd>{rgaPercentual || "—"}</dd></div>
-                  <div><dt>Reflexo nos servidores</dt><dd><span className="tv-status vigente">Automático</span></dd></div>
-                  <div><dt>Status da RGA</dt><dd><span className={"tv-status " + (rgaApplied ? "vigente" : rgaSimulation ? "futura" : "sem-tabela")}>{rgaApplied ? "Aplicada" : rgaSimulationStale ? "Simulação desatualizada" : rgaSimulation ? "Simulação realizada" : "Não simulada"}</span></dd></div>
+                  <div>
+                    <dt>Cargo</dt>
+                    <dd>{cargo?.nome || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Jornada</dt>
+                    <dd>{jornada || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Versão de origem</dt>
+                    <dd>
+                      {originVersionNumber ? "V" + originVersionNumber : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Versão em edição</dt>
+                    <dd>{"V" + editingVersionNumber}</dd>
+                  </div>
+                  <div>
+                    <dt>Vigência da nova versão</dt>
+                    <dd>
+                      {vigenciaInicio
+                        ? formatDate(vigenciaInicio) +
+                          (vigenciaFim
+                            ? " – " + formatDate(vigenciaFim)
+                            : " – Atual")
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Vigência do RGA</dt>
+                    <dd>
+                      {rgaInicio
+                        ? formatDate(rgaInicio) +
+                          (rgaFim ? " – " + formatDate(rgaFim) : " – Atual")
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Quantidade de valores da matriz</dt>
+                    <dd>
+                      {rgaSimulation
+                        ? rgaSimulation.rows.length *
+                          rgaSimulation.columns.length
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Percentual da RGA</dt>
+                    <dd>{rgaPercentual || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Reflexo nos servidores</dt>
+                    <dd>
+                      <span className="tv-status vigente">Automático</span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Status da RGA</dt>
+                    <dd>
+                      <span
+                        className={
+                          "tv-status " +
+                          (rgaApplied
+                            ? "vigente"
+                            : rgaSimulationSignature
+                              ? "futura"
+                              : "sem-tabela")
+                        }
+                      >
+                        {rgaApplied
+                          ? "Aplicada"
+                          : rgaSimulationStale
+                            ? "Simulação desatualizada"
+                            : rgaSimulationSignature
+                              ? "Simulação realizada"
+                              : "Não simulada"}
+                      </span>
+                    </dd>
+                  </div>
                 </dl>
               </aside>
             </div>
-            {rgaSimulationStale && <div className="tv-error">Os valores desta versão foram alterados após a última simulação. Realize uma nova simulação da RGA para atualizar os resultados.</div>}
-            {rgaError && <div className="tv-error">{rgaError}</div>}
+            {rgaSuccess && (
+              <div className="tv-save-success" role="status">
+                <i className="pi pi-check-circle" aria-hidden="true" />
+                <span>RGA aplicado com sucesso.</span>
+              </div>
+            )}
+            {rgaSimulationStale && (
+              <div className="tv-rga-alert-error" role="alert">
+                <i className="pi pi-exclamation-circle" aria-hidden="true" />
+                <span>
+                  As informações utilizadas na última simulação foram alteradas.
+                  Realize uma nova simulação do RGA para atualizar os resultados.
+                </span>
+              </div>
+            )}
+            {rgaError && (
+              <div className="tv-rga-alert-error" role="alert">
+                <i className="pi pi-exclamation-circle" aria-hidden="true" />
+                <span>{rgaError}</span>
+              </div>
+            )}
             <div className="tv-rga-preview">
-              <h4>Pré-visualização dos novos valores</h4>
-              <div className="tv-scroll"><table><thead><tr><th>Nível</th><th>Classe</th><th>Valor base</th><th>Percentual RGA</th><th>Valor com RGA</th><th>Diferença</th></tr></thead><tbody>
-                {rgaSimulation ? rgaSimulation.rows.flatMap((row, rowIndex) => rgaSimulation.columns.map((column, columnIndex) => {
-                  const current = rgaBaseMatrix?.rows[rowIndex]?.values[columnIndex] || "R$ 0,00";
-                  const updated = row.values[columnIndex];
-                  const money = (value: string) => Number(value.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
-                  const difference = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(money(updated) - money(current));
-                  return <tr key={row.name + column}><td>{row.name}</td><td>{column}</td><td>{current}</td><td>{rgaPercentual}</td><td>{updated}</td><td>+ {difference}</td></tr>;
-                })) : <tr><td colSpan={6} className="tv-rga-empty">Execute a simulação para visualizar os novos valores.</td></tr>}
-              </tbody></table></div>
+              <h4>{view || (edit && rgaContextEnabled) ? "Valores aplicados pelo RGA" : "Pré-visualização dos novos valores"}</h4>
+              <div className="tv-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nível</th>
+                      <th>Classe</th>
+                      <th>Valor base</th>
+                      <th>Percentual RGA</th>
+                      <th>Valor com RGA</th>
+                      <th>Diferença</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rgaSimulation ? (
+                      rgaSimulation.rows.flatMap((row, rowIndex) =>
+                        rgaSimulation.columns.map((column, columnIndex) => {
+                          const current =
+                            rgaBaseMatrix?.rows[rowIndex]?.values[
+                              columnIndex
+                            ] || "R$ 0,00";
+                          const updated = row.values[columnIndex];
+                          const money = (value: string) =>
+                            Number(
+                              value.replace(/[^\d,]/g, "").replace(",", "."),
+                            ) || 0;
+                          const difference = new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(money(updated) - money(current));
+                          return (
+                            <tr key={row.name + column}>
+                              <td>{row.name}</td>
+                              <td>{column}</td>
+                              <td>{current}</td>
+                              <td>{rgaPercentual}</td>
+                              <td>{updated}</td>
+                              <td>+ {difference}</td>
+                            </tr>
+                          );
+                        }),
+                      )
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="tv-rga-empty">
+                          Execute a simulação para visualizar os novos valores.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="tv-rga-rules"><h4>Regras do reflexo automático</h4><div><p><i className="pi pi-calendar" aria-hidden="true" /><span>A nova versão da tabela de vencimentos passa a vigorar a partir da data de início informada.</span></p><p><i className="pi pi-users" aria-hidden="true" /><span>Todos os servidores vinculados a esta tabela terão o reflexo automático em sua remuneração-base conforme o respectivo Nível e Classe.</span></p><p><i className="pi pi-file" aria-hidden="true" /><span>Rubricas adicionais que possuam regra própria de incidência de RGA deverão ser tratadas separadamente.</span></p></div></div>
+            <div className="tv-rga-rules">
+              <h4>Regras do reflexo automático</h4>
+              <div>
+                <p>
+                  <i className="pi pi-calendar" aria-hidden="true" />
+                  <span>
+                    A nova versão da tabela de vencimentos passa a vigorar a
+                    partir da data de início informada.
+                  </span>
+                </p>
+                <p>
+                  <i className="pi pi-users" aria-hidden="true" />
+                  <span>
+                    Todos os servidores vinculados a esta tabela terão o reflexo
+                    automático em sua remuneração-base conforme o respectivo
+                    Nível e Classe.
+                  </span>
+                </p>
+                <p>
+                  <i className="pi pi-file" aria-hidden="true" />
+                  <span>
+                    Rubricas adicionais que possuam regra própria de incidência
+                    de RGA deverão ser tratadas separadamente.
+                  </span>
+                </p>
+              </div>
+            </div>
           </section>
         )}
         {error && <div className="tv-error">{error}</div>}
         <div className="tv-form-actions">
           <BotaoVoltarSeplag type="button" label="Voltar" onClick={back} />
-          {!view && <div className="tv-form-actions-primary">
-            <BotaoSalvarSeplag
-              type="submit"
-              label={activeTab === "identificacao" ? "Salvar Identificação" : activeTab === "rga" ? "Finalizar" : "Salvar tabela"}
-              disabled={activeTab === "rga" && !rgaApplied}
-            />
-          </div>}
+          {!view && (
+            <div className="tv-form-actions-primary">
+              <BotaoSalvarSeplag
+                type="submit"
+                label={
+                  activeTab === "identificacao"
+                    ? "Salvar Identificação"
+                    : activeTab === "rga"
+                      ? "Finalizar"
+                      : "Salvar tabela"
+                }
+                disabled={
+                  activeTab === "rga" && (!rgaApplied || rgaSimulationStale)
+                }
+              />
+            </div>
+          )}
         </div>
       </form>
       {versionConfirmationOpen && (
         <div className="tv-profile-list-overlay" role="presentation">
-          <section className="tv-version-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="tv-version-confirm-title">
+          <section
+            className="tv-version-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tv-version-confirm-title"
+          >
             <header>
-              <div className="tv-version-confirm-icon" aria-hidden="true"><i className="pi pi-copy" /></div>
+              <div className="tv-version-confirm-icon" aria-hidden="true">
+                <i className="pi pi-copy" />
+              </div>
               <div>
-                <h2 id="tv-version-confirm-title">Confirmar versionamento da tabela?</h2>
+                <h2 id="tv-version-confirm-title">
+                  Confirmar versionamento da tabela?
+                </h2>
                 <p>Revise as informações antes de criar a nova versão.</p>
               </div>
-              <button type="button" className="tv-version-confirm-close" aria-label="Fechar" onClick={() => setVersionConfirmationOpen(false)}><i className="pi pi-times" /></button>
+              <button
+                type="button"
+                className="tv-version-confirm-close"
+                aria-label="Fechar"
+                onClick={() => setVersionConfirmationOpen(false)}
+              >
+                <i className="pi pi-times" />
+              </button>
             </header>
             <div className="tv-version-confirm-content">
-              <p>As alterações entrarão em vigor em <strong>{formatDate(localIsoDate())}</strong>.</p>
-              <p>A versão atualmente vigente será encerrada em <strong>{formatDate(previousIsoDate())}</strong> e permanecerá disponível no histórico.</p>
+              <p>
+                As alterações entrarão em vigor em{" "}
+                <strong>{formatDate(localIsoDate())}</strong>.
+              </p>
+              <p>
+                A versão atualmente vigente será encerrada em{" "}
+                <strong>{formatDate(previousIsoDate())}</strong> e permanecerá
+                disponível no histórico.
+              </p>
               <p>Uma nova versão será criada com os valores informados.</p>
             </div>
             <footer>
-              <BotaoVoltarSeplag type="button" label="Cancelar" onClick={() => setVersionConfirmationOpen(false)} />
-              <BotaoSalvarSeplag type="button" label="Confirmar versionamento" onClick={() => {
-                setVersionConfirmationOpen(false);
-                versionConfirmed.current = true;
-                formRef.current?.requestSubmit();
-              }} />
+              <BotaoVoltarSeplag
+                type="button"
+                label="Cancelar"
+                onClick={() => setVersionConfirmationOpen(false)}
+              />
+              <BotaoSalvarSeplag
+                type="button"
+                label="Confirmar versionamento"
+                onClick={() => {
+                  setVersionConfirmationOpen(false);
+                  versionConfirmed.current = true;
+                  formRef.current?.requestSubmit();
+                }}
+              />
             </footer>
           </section>
         </div>
       )}
       {rgaApplyConfirmation && rgaSimulation && (
         <div className="tv-profile-list-overlay" role="presentation">
-          <section className="tv-version-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="tv-rga-confirm-title">
+          <section
+            className="tv-version-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tv-rga-confirm-title"
+          >
             <header>
-              <div className="tv-version-confirm-icon" aria-hidden="true"><i className="pi pi-percentage" /></div>
-              <div><h2 id="tv-rga-confirm-title">Aplicar RGA</h2><p>Confirme a geração da nova versão da tabela.</p></div>
-              <button type="button" className="tv-version-confirm-close" aria-label="Fechar" onClick={() => setRgaApplyConfirmation(false)}><i className="pi pi-times" /></button>
+              <div className="tv-version-confirm-icon" aria-hidden="true">
+                <i className="pi pi-percentage" />
+              </div>
+              <div>
+                <h2 id="tv-rga-confirm-title">Aplicar RGA</h2>
+                <p>Confirme a geração da nova versão da tabela.</p>
+              </div>
+              <button
+                type="button"
+                className="tv-version-confirm-close"
+                aria-label="Fechar"
+                onClick={() => setRgaApplyConfirmation(false)}
+              >
+                <i className="pi pi-times" />
+              </button>
             </header>
-            <div className="tv-version-confirm-content"><p>A RGA será aplicada aos valores desta versão da tabela de vencimentos. Os valores calculados substituirão os valores atualmente informados na matriz desta nova versão. A versão anterior permanecerá inalterada. Deseja continuar?</p></div>
+            <div className="tv-version-confirm-content">
+              <p>
+                O RGA será aplicado aos valores desta versão da tabela de
+                vencimentos. Os valores calculados substituirão os valores
+                atualmente informados na matriz desta nova versão. A versão
+                anterior permanecerá inalterada. Deseja continuar?
+              </p>
+            </div>
             <footer>
-              <BotaoVoltarSeplag type="button" label="Cancelar" onClick={() => setRgaApplyConfirmation(false)} />
-              <BotaoSalvarSeplag type="button" label="Confirmar aplicação" onClick={() => {
-                setRgaAppliedMatrix(rgaSimulation);
-                setRgaApplied(true);
-                setRgaApplyConfirmation(false);
-              }} />
+              <BotaoVoltarSeplag
+                type="button"
+                label="Cancelar"
+                onClick={() => setRgaApplyConfirmation(false)}
+              />
+              <BotaoSalvarSeplag
+                type="button"
+                label="Confirmar aplicação"
+                onClick={confirmRgaApplication}
+              />
             </footer>
           </section>
         </div>
@@ -1962,8 +3491,10 @@ export function TabelaVencimentosFeaturePage() {
   const id = loc.pathname.match(/cargo\/(\d+)/)?.[1];
   const cargo = CARGOS.find((x) => String(x.id) === id);
   let content = <List />;
-  if (loc.pathname.endsWith("/novo")) content = <Form edit={false} />;
-  else if (loc.pathname.endsWith("/visualizar")) content = <Form edit={false} view />;
+  if (loc.pathname.endsWith("/aplicar-rga-em-lote")) content = <List batch />;
+  else if (loc.pathname.endsWith("/novo")) content = <Form edit={false} />;
+  else if (loc.pathname.endsWith("/visualizar"))
+    content = <Form edit={false} view />;
   else if (loc.pathname.includes("/editar/")) content = <Form edit />;
   else if (cargo) content = <Detail cargo={cargo} />;
   return (
@@ -1978,3 +3509,21 @@ export function TabelaVencimentosFeaturePage() {
     </PrototypeSystemPage>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

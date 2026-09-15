@@ -5,6 +5,7 @@ import { BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { CNPJFieldSeplag, DateFieldSeplag, DropdownFieldSeplag, NumberFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { PanelSeplag } from "@componentes/PanelSeplag";
+import { ModalSeplag } from "@componentes/Modal";
 import "./orgaosEntidades.css";
 import "./orgaosEntidadesOverrides.css";
 
@@ -15,10 +16,74 @@ type Dados = Record<string, string> & {
   tipoCadastro: TipoCadastro;
   classificacao: Classificacao;
 };
+type SecaoHistorico = "identificacao" | "endereco" | "contato" | "responsavel" | "banco" | "integracoes";
+type VersaoSecao = { inicio: string; fim?: string; dados: Record<string, string> };
+const camposSecao: Record<SecaoHistorico, { titulo: string; colunas: { campo: string; label: string }[] }> = {
+  identificacao: { titulo: "Identificação cadastral", colunas: [
+    { campo: "dataAbertura", label: "Data de Abertura" }, { campo: "cnpj", label: "CNPJ" },
+    { campo: "razao", label: "Nome/Razão Social" }, { campo: "fantasia", label: "Nome Fantasia" },
+    { campo: "sigla", label: "Sigla" }, { campo: "natureza", label: "Natureza Jurídica" },
+    { campo: "cnae", label: "CNAE principal" }, { campo: "inscricaoEstadual", label: "Inscrição Estadual" },
+    { campo: "inscricaoMunicipal", label: "Inscrição Municipal" },
+  ] },
+  endereco: { titulo: "Endereço", colunas: [
+    { campo: "cep", label: "CEP" }, { campo: "uf", label: "UF" }, { campo: "municipio", label: "Município" },
+    { campo: "bairro", label: "Bairro/Distrito" }, { campo: "tipoLogradouro", label: "Tipo de Logradouro" },
+    { campo: "logradouro", label: "Logradouro" }, { campo: "numero", label: "Número" }, { campo: "complemento", label: "Complemento" },
+  ] },
+  contato: { titulo: "Contato", colunas: [
+    { campo: "telefone1", label: "Telefone 1" }, { campo: "telefone2", label: "Telefone 2" },
+    { campo: "website", label: "Website" }, { campo: "email1", label: "E-mail 1" }, { campo: "email2", label: "E-mail 2" },
+  ] },
+  responsavel: { titulo: "Responsável", colunas: [
+    { campo: "responsavel", label: "Responsável" }, { campo: "cargoFuncao", label: "Cargo/Função" },
+    { campo: "dataInicioResponsavel", label: "Data de Início" },
+  ] },
+  banco: { titulo: "Dados bancários", colunas: [
+    { campo: "banco", label: "Banco" }, { campo: "agencia", label: "Agência" },
+    { campo: "tipoConta", label: "Tipo de conta" }, { campo: "contaDv", label: "Conta/DV" },
+  ] },
+  integracoes: { titulo: "Integrações", colunas: [
+    { campo: "codigoArh", label: "Código ARH" }, { campo: "codigoSeap", label: "Código SEAP" },
+    { campo: "uoFiplan", label: "UO Fiplan" }, { campo: "codigoAplic", label: "Código APLIC" },
+  ] },
+};
+const dataHoje = () => new Date().toLocaleDateString("pt-BR");
+const capturarSecao = (secao: SecaoHistorico, dados: Dados) =>
+  Object.fromEntries(camposSecao[secao].colunas.map(({ campo }) => [campo, String(dados[campo] ?? "")]));
+const possuiInformacao = (valores: Record<string, string>) =>
+  Object.values(valores).some((valor) => valor.trim() !== "");
+const vigenciasIniciais: Partial<Record<SecaoHistorico, VersaoSecao[]>> = {
+  identificacao: [
+    { inicio: "01/01/2015", fim: "31/12/2018", dados: { dataAbertura: "2015-01-01", cnpj: "03.507.415/0001-00", razao: "Estado de Mato Grosso", fantasia: "GOV MT", sigla: "GOV", natureza: "Órgão Público do Poder Executivo Estadual", cnae: "8411-6/00", inscricaoEstadual: "Isento", inscricaoMunicipal: "Isento" } },
+    { inicio: "01/01/2019", dados: { dataAbertura: "2019-01-01", cnpj: "03.507.415/0001-00", razao: "Estado de Mato Grosso", fantasia: "GOV", sigla: "GOV", natureza: "Órgão Público do Poder Executivo Estadual", cnae: "8411-6/00", inscricaoEstadual: "Isento", inscricaoMunicipal: "Isento" } },
+  ],
+  endereco: [
+    { inicio: "01/01/2015", fim: "31/12/2018", dados: { cep: "78050-000", uf: "MT", municipio: "Cuiabá", bairro: "Centro Político Administrativo", tipoLogradouro: "Rua", logradouro: "Palácio Paiaguás - Rua A", numero: "s/n", complemento: "" } },
+    { inicio: "01/01/2019", dados: { cep: "78050-970", uf: "MT", municipio: "Cuiabá", bairro: "Centro Político Administrativo", tipoLogradouro: "Avenida", logradouro: "Palácio Paiaguás - Av. Historiador Rubens de Mendonça", numero: "s/n", complemento: "Centro Político Administrativo" } },
+  ],
+  contato: [
+    { inicio: "01/01/2021", fim: "14/03/2023", dados: { telefone1: "(65) 3613-0000", telefone2: "", website: "https://www.mt.gov.br", email1: "contato@seplag.mt.gov.br", email2: "" } },
+    { inicio: "15/03/2023", dados: { telefone1: "(65) 3613-3000", telefone2: "(65) 3613-3010", website: "https://www.seplag.mt.gov.br", email1: "gabinete@seplag.mt.gov.br", email2: "atendimento@seplag.mt.gov.br" } },
+  ],
+  responsavel: [
+    { inicio: "01/01/2022", fim: "31/12/2023", dados: { responsavel: "Carlos Eduardo Silva", cargoFuncao: "Secretário Adjunto", dataInicioResponsavel: "2022-01-01" } },
+    { inicio: "01/01/2024", dados: { responsavel: "Ana Paula Ferreira", cargoFuncao: "Secretário de Estado", dataInicioResponsavel: "2024-01-01" } },
+  ],
+  banco: [
+    { inicio: "01/01/2020", fim: "31/12/2023", dados: { banco: "104 - Caixa Econômica Federal", agencia: "1468", tipoConta: "Conta Corrente", contaDv: "1080-4" } },
+    { inicio: "01/01/2024", dados: { banco: "001 - Banco do Brasil", agencia: "3834-2", tipoConta: "Conta Corrente", contaDv: "11.840-8" } },
+  ],
+  integracoes: [
+    { inicio: "01/01/2021", fim: "31/12/2023", dados: { codigoArh: "10020", codigoSeap: "SEPLAG-01", uoFiplan: "110101", codigoAplic: "APLIC-10020" } },
+    { inicio: "01/01/2024", dados: { codigoArh: "10020", codigoSeap: "SEPLAG-01", uoFiplan: "110101", codigoAplic: "APLIC-10020" } },
+  ],
+};
 
 export interface OrgaosEntidadesCadastroProps {
   onBack?: () => void;
   tipoInicial?: TipoCadastro;
+  registro?: { nome:string; sigla:string; cnpj:string; classificacao:string; tipoOrganizacao?:string; tipo:string };
 }
 const noError = () => null;
 const opts = (values: string[]) => values.map((value) => ({ label: value, value }));
@@ -44,30 +109,35 @@ const autoLabel = (texto: string) => (
   </span>
 );
 
-export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Readonly<OrgaosEntidadesCadastroProps>) {
+export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBack }: Readonly<OrgaosEntidadesCadastroProps>) {
   const [aba, setAba] = useState<Aba>("identificacao");
+  const [vigencias, setVigencias] = useState<Partial<Record<SecaoHistorico, VersaoSecao[]>>>(vigenciasIniciais);
+  const [historicosAbertos, setHistoricosAbertos] = useState<Partial<Record<SecaoHistorico, boolean>>>({});
+  const [mensagemVigencia, setMensagemVigencia] = useState("");
+  const [secoesEmEdicao, setSecoesEmEdicao] = useState<Partial<Record<SecaoHistorico, boolean>>>({});
+  const usaEdicaoPorBloco = tipoInicial === "ente";
   const { control, watch, setValue } = useForm<Dados>({
     defaultValues: {
       tipoCadastro: tipoInicial,
-      classificacao: "orgao",
+      classificacao: registro?.tipo === "Entidade" ? "entidade" : "orgao",
       enteSuperior: "Estado de Mato Grosso - GOV",
       enteFederativo: "Estado de Mato Grosso - GOV",
       orgaoSuperior: "",
       esferaGoverno: "Estadual",
       esferaPoder: "Executivo",
-      formaAdministracao: "Administração Direta",
+      formaAdministracao: registro?.tipo === "Entidade" ? "Administração Indireta" : "Administração Direta",
       personalidade: "Não",
-      tipoOrganizacao: "Secretaria",
+      tipoOrganizacao: registro?.tipoOrganizacao ?? "Secretaria",
       estabelecimento: "Matriz",
-      cnpj: "03.507.415/0011-16",
-      razao: "Secretaria de Estado de Planejamento e Gestão",
-      fantasia: "SEPLAG",
-      sigla: "SEPLAG",
+      cnpj: registro?.cnpj ?? (tipoInicial === "ente" ? "03.507.415/0001-00" : "03.507.415/0011-16"),
+      razao: registro?.nome ?? (tipoInicial === "ente" ? "Estado de Mato Grosso" : "Secretaria de Estado de Planejamento e Gestão"),
+      fantasia: registro?.sigla ?? (tipoInicial === "ente" ? "GOV" : "SEPLAG"),
+      sigla: registro?.sigla ?? (tipoInicial === "ente" ? "GOV" : "SEPLAG"),
       dataAbertura: "2019-01-01",
       dataExtincao: "",
-      inscricaoEstadual: "",
-      inscricaoMunicipal: "",
-      natureza: "Órgão Público do Poder Executivo Estadual",
+      inscricaoEstadual: "Isento",
+      inscricaoMunicipal: "Isento",
+      natureza: registro?.tipoOrganizacao === "Autarquia" ? "Autarquia" : registro?.tipoOrganizacao === "Empresa Pública" ? "Empresa Pública" : "Órgão Público do Poder Executivo Estadual",
       cnae: "8411-6/00",
       aplic: "Administração",
       situacao: "Ativa",
@@ -80,33 +150,87 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
       fap: "",
       codigoFpas: "",
       tipoLotacaoTributaria: "",
-      cep: "",
+      cep: "78050-970",
       uf: "MT",
-      municipio: "",
-      bairro: "",
+      municipio: "Cuiabá",
+      bairro: "Centro Político Administrativo",
       tipoLogradouro: "Avenida",
-      logradouro: "",
-      numero: "",
-      complemento: "",
-      telefone1: "",
-      telefone2: "",
-      website: "",
-      email1: "",
-      email2: "",
-      responsavel: "",
-      cargoFuncao: "",
-      dataInicioResponsavel: "",
-      banco: "",
-      agencia: "",
-      conta: "",
-      digitoVerificador: "",
-      codigoArh: "",
-      codigoSeap: "",
-      uoFiplan: "",
-      codigoAplic: "",
+      logradouro: "Palácio Paiaguás - Av. Historiador Rubens de Mendonça",
+      numero: "s/n",
+      complemento: "Centro Político Administrativo",
+      telefone1: "(65) 3613-3000",
+      telefone2: "(65) 3613-3010",
+      website: "https://www.seplag.mt.gov.br",
+      email1: "gabinete@seplag.mt.gov.br",
+      email2: "atendimento@seplag.mt.gov.br",
+      responsavel: "Ana Paula Ferreira",
+      cargoFuncao: "Secretário de Estado",
+      dataInicioResponsavel: "2024-01-01",
+      banco: "001 - Banco do Brasil",
+      agencia: "3834-2",
+      tipoConta: "Conta Corrente",
+      contaDv: "11.840-8",
+      codigoArh: "10020",
+      codigoSeap: "SEPLAG-01",
+      uoFiplan: "110101",
+      codigoAplic: "APLIC-10020",
     },
   });
   const dados = watch();
+  const salvarSecao = (secao: SecaoHistorico) => {
+    const novosDados = capturarSecao(secao, dados);
+    if (!possuiInformacao(novosDados)) {
+      setSecoesEmEdicao((atuais) => ({ ...atuais, [secao]: false }));
+      return;
+    }
+    const versoes = vigencias[secao] ?? [];
+    const vigente = versoes.at(-1);
+    if (vigente && JSON.stringify(vigente.dados) === JSON.stringify(novosDados)) {
+      setSecoesEmEdicao((atuais) => ({ ...atuais, [secao]: false }));
+      return;
+    }
+    const hoje = dataHoje();
+    setVigencias((atuais) => {
+      const anteriores = [...(atuais[secao] ?? [])];
+      if (anteriores.length) anteriores[anteriores.length - 1] = { ...anteriores[anteriores.length - 1], fim: hoje };
+      anteriores.push({ inicio: hoje, dados: novosDados });
+      return { ...atuais, [secao]: anteriores };
+    });
+    setMensagemVigencia(vigente ? `Nova vigência criada para ${camposSecao[secao].titulo}.` : `Vigência inicial registrada para ${camposSecao[secao].titulo}.`);
+    setSecoesEmEdicao((atuais) => ({ ...atuais, [secao]: false }));
+  };
+  const HistoricoSecao = ({ secao }: { secao: SecaoHistorico }) => {
+    const anteriores = (vigencias[secao] ?? []).slice(0, -1).reverse();
+    const aberta = historicosAbertos[secao] ?? false;
+    const editando = secoesEmEdicao[secao] ?? false;
+    return <>
+      {!usaEdicaoPorBloco && <div className="orgao-section-history-actions">
+        <BotaoSeplag type="button" label="Salvar alterações" icon="pi pi-save" outlined onClick={() => salvarSecao(secao)} />
+        <BotaoSeplag type="button" label="Histórico" icon="pi pi-history" outlined onClick={() => setHistoricosAbertos((atual) => ({ ...atual, [secao]: !aberta }))} />
+      </div>}
+      {usaEdicaoPorBloco && editando && <div className="orgao-section-save-action">
+        <BotaoSalvarSeplag type="button" label="Salvar" icon="pi pi-save" onClick={() => salvarSecao(secao)} />
+      </div>}
+      <ModalSeplag visible={aberta} titulo={`Vigências anteriores - ${camposSecao[secao].titulo}`} fechar={() => setHistoricosAbertos((atual) => ({ ...atual, [secao]: false }))} hideFooter tamanho="min(1100px, calc(100vw - 32px))">
+        <div className="col-12 orgao-section-history-box">
+        <strong>VIGÊNCIAS ANTERIORES - {camposSecao[secao].titulo.toLocaleUpperCase("pt-BR")}</strong>
+        {anteriores.length ? <div className="orgao-section-history-scroll"><table>
+          <thead><tr><th>Período de Vigência</th>{camposSecao[secao].colunas.map(({ campo, label }) => <th key={campo}>{label}</th>)}</tr></thead>
+          <tbody>{anteriores.map((versao, index) => <tr key={`${versao.inicio}-${index}`}><td>{versao.inicio} a {versao.fim}</td>{camposSecao[secao].colunas.map(({ campo }) => <td key={campo}>{versao.dados[campo] || "—"}</td>)}</tr>)}</tbody>
+        </table></div> : <p>Nenhuma vigência anterior para esta seção.</p>}
+        </div>
+      </ModalSeplag>
+    </>;
+  };
+  const bloqueado = (secao: SecaoHistorico) => usaEdicaoPorBloco && !secoesEmEdicao[secao];
+  const AcoesSecao = ({ secao }: { secao: SecaoHistorico }) => {
+    const editando = secoesEmEdicao[secao] ?? false;
+    const aberto = historicosAbertos[secao] ?? false;
+    return <div className="orgao-section-history-actions">
+      {!editando && <BotaoSeplag type="button" label="Editar" icon="pi pi-pencil" outlined onClick={() => setSecoesEmEdicao((atuais) => ({ ...atuais, [secao]: true }))} />}
+      <BotaoSeplag type="button" label="Histórico" icon="pi pi-history" outlined onClick={() => setHistoricosAbertos((atual) => ({ ...atual, [secao]: !aberto }))} />
+    </div>;
+  };
   const disabled = false;
   const common = { control, getFormErrorMessage: noError };
   useEffect(() => {
@@ -156,10 +280,11 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
       <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Órgãos e Entidades" }, { label: "Cadastrar" }]} />
       <header className="prototype-carreira-register-title">
         <div>
-          <h1>{tipoInicial === "ente" ? "Novo ente federativo" : "Novo órgão ou entidade"}</h1>
+          <h1>{registro ? registro.nome : tipoInicial === "ente" ? "Novo ente federativo" : "Novo órgão ou entidade"}</h1>
           <p>{tipoInicial === "ente" ? "Informe os dados que identificam o ente federativo e suas integrações." : "Informe os dados que identificam o órgão ou entidade e sua vinculação institucional."}</p>
         </div>
       </header>
+      {mensagemVigencia && <div className="orgao-vigencia-feedback" role="status">{mensagemVigencia}</div>}
       <div className="prototype-carreira-register-form orgao-cadastro-form">
         <nav
           className="orgao-stepper"
@@ -186,19 +311,21 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
         {aba === "identificacao" && (
           <div className="orgao-tab-content">
             <PanelSeplag title="Identificação cadastral" description="Dados oficiais de identificação do órgão ou entidade." className="orgao-form-section">
+              {usaEdicaoPorBloco && <AcoesSecao secao="identificacao" />}
               <div className={`orgao-fields-grid cols-4${tipoInicial === "ente" ? " ente-identification-grid" : ""}`}>
-                <DateFieldSeplag name="dataAbertura" label="Data de Abertura" disabled={disabled} {...common} />
-                <CNPJFieldSeplag name="cnpj" required validarCNPJ={false} disabled={disabled} {...common} />
-                <TextFieldSeplag name="razao" label="Nome/Razão Social" required disabled={disabled} {...common} />
-                <TextFieldSeplag name="fantasia" label="Nome Fantasia" disabled={disabled} {...common} />
-                <TextFieldSeplag name="sigla" label="Sigla" required disabled={disabled} {...common} />
+                <DateFieldSeplag name="dataAbertura" label="Data de Abertura" disabled={disabled || bloqueado("identificacao")} {...common} />
+                <CNPJFieldSeplag name="cnpj" required validarCNPJ={false} disabled={disabled || bloqueado("identificacao")} {...common} />
+                <TextFieldSeplag name="razao" label="Nome/Razão Social" required disabled={disabled || bloqueado("identificacao")} {...common} />
+                <TextFieldSeplag name="fantasia" label="Nome Fantasia" disabled={disabled || bloqueado("identificacao")} {...common} />
+                <TextFieldSeplag name="sigla" label="Sigla" required disabled={disabled || bloqueado("identificacao")} {...common} />
                 {tipoInicial !== "ente" && <DateFieldSeplag name="dataExtincao" label="Data de Extinção" disabled={disabled} {...common} />}
-                <DropdownFieldSeplag name="natureza" label="Natureza Jurídica" disabled={disabled} options={opts(["Órgão Público do Poder Executivo Estadual"])} optionLabel="label" optionValue="value" {...common} />
-                <TextFieldSeplag name="cnae" label="CNAE principal" disabled={disabled} {...common} />
-                <TextFieldSeplag name="inscricaoEstadual" label="Inscrição Estadual" disabled={disabled} {...common} />
-                <TextFieldSeplag name="inscricaoMunicipal" label="Inscrição Municipal" disabled={disabled} {...common} />
+                <DropdownFieldSeplag name="natureza" label="Natureza Jurídica" disabled={disabled || bloqueado("identificacao")} options={opts(["Órgão Público do Poder Executivo Estadual", "Autarquia", "Empresa Pública"])} optionLabel="label" optionValue="value" {...common} />
+                <TextFieldSeplag name="cnae" label="CNAE principal" disabled={disabled || bloqueado("identificacao")} {...common} />
+                <TextFieldSeplag name="inscricaoEstadual" label="Inscrição Estadual" disabled={disabled || bloqueado("identificacao")} {...common} />
+                <TextFieldSeplag name="inscricaoMunicipal" label="Inscrição Municipal" disabled={disabled || bloqueado("identificacao")} {...common} />
                 {tipoInicial !== "ente" && <DropdownFieldSeplag name="aplic" label="Tipo do APLIC TCE/MT" disabled={disabled} options={opts(["Administração", "Gestão"])} optionLabel="label" optionValue="value" {...common} />}
               </div>
+              {usaEdicaoPorBloco && <HistoricoSecao secao="identificacao" />}
             </PanelSeplag>
             <PanelSeplag title="Classificação institucional" description="Defina o enquadramento institucional e os dados derivados do vínculo superior." className="orgao-form-section">
               <div className="orgao-fields-grid cols-3">
@@ -243,25 +370,29 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
         {aba === "localizacao" && (
           <div className="orgao-tab-content">
             <PanelSeplag title="Endereço" description="Informe o endereço institucional." className="orgao-form-section">
+              {usaEdicaoPorBloco && <AcoesSecao secao="endereco" />}
               <div className="orgao-fields-grid cols-4">
-                <TextFieldSeplag name="cep" control={control} label="CEP" required maxLength={9} getFormErrorMessage={noError} />
-                <DropdownFieldSeplag name="uf" control={control} label="UF" required options={opts(["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"])} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
-                <TextFieldSeplag name="municipio" control={control} label="Município" required getFormErrorMessage={noError} />
-                <TextFieldSeplag name="bairro" control={control} label="Bairro/Distrito" required getFormErrorMessage={noError} />
-                <DropdownFieldSeplag name="tipoLogradouro" control={control} label="Tipo de Logradouro" options={opts(["Avenida", "Rua", "Rodovia", "Praça", "Travessa", "Estrada", "Alameda"])} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
-                <TextFieldSeplag name="logradouro" control={control} label="Logradouro" required getFormErrorMessage={noError} />
-                <TextFieldSeplag name="numero" control={control} label="Número" required getFormErrorMessage={noError} />
-                <TextFieldSeplag name="complemento" control={control} label="Complemento" getFormErrorMessage={noError} />
+                <TextFieldSeplag name="cep" control={control} label="CEP" required maxLength={9} disabled={bloqueado("endereco")} getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="uf" control={control} label="UF" required disabled={bloqueado("endereco")} options={opts(["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"])} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
+                <TextFieldSeplag name="municipio" control={control} label="Município" required disabled={bloqueado("endereco")} getFormErrorMessage={noError} />
+                <TextFieldSeplag name="bairro" control={control} label="Bairro/Distrito" required disabled={bloqueado("endereco")} getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="tipoLogradouro" control={control} label="Tipo de Logradouro" disabled={bloqueado("endereco")} options={opts(["Avenida", "Rua", "Rodovia", "Praça", "Travessa", "Estrada", "Alameda"])} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
+                <TextFieldSeplag name="logradouro" control={control} label="Logradouro" required disabled={bloqueado("endereco")} getFormErrorMessage={noError} />
+                <TextFieldSeplag name="numero" control={control} label="Número" required disabled={bloqueado("endereco")} getFormErrorMessage={noError} />
+                <TextFieldSeplag name="complemento" control={control} label="Complemento" disabled={bloqueado("endereco")} getFormErrorMessage={noError} />
               </div>
+              {usaEdicaoPorBloco && <HistoricoSecao secao="endereco" />}
             </PanelSeplag>
             <PanelSeplag title="Contato" description="Informe os canais institucionais." className="orgao-form-section">
+              {usaEdicaoPorBloco && <AcoesSecao secao="contato" />}
               <div className="orgao-fields-grid cols-3">
-                <TextFieldSeplag name="telefone1" control={control} label="Telefone 1" maxLength={15} getFormErrorMessage={noError} />
-                <TextFieldSeplag name="telefone2" control={control} label="Telefone 2" maxLength={15} getFormErrorMessage={noError} />
-                <TextFieldSeplag name="website" control={control} label="Website" getFormErrorMessage={noError} />
-                <TextFieldSeplag name="email1" control={control} label="E-mail 1" getFormErrorMessage={noError} />
-                <TextFieldSeplag name="email2" control={control} label="E-mail 2" getFormErrorMessage={noError} />
+                <TextFieldSeplag name="telefone1" control={control} label="Telefone 1" maxLength={15} disabled={bloqueado("contato")} getFormErrorMessage={noError} />
+                <TextFieldSeplag name="telefone2" control={control} label="Telefone 2" maxLength={15} disabled={bloqueado("contato")} getFormErrorMessage={noError} />
+                <TextFieldSeplag name="website" control={control} label="Website" disabled={bloqueado("contato")} getFormErrorMessage={noError} />
+                <TextFieldSeplag name="email1" control={control} label="E-mail 1" disabled={bloqueado("contato")} getFormErrorMessage={noError} />
+                <TextFieldSeplag name="email2" control={control} label="E-mail 2" disabled={bloqueado("contato")} getFormErrorMessage={noError} />
               </div>
+              {usaEdicaoPorBloco && <HistoricoSecao secao="contato" />}
             </PanelSeplag>
             <div className="orgao-step-actions">
               <BotaoVoltarSeplag type="button" onClick={() => setAba("identificacao")} />
@@ -272,19 +403,23 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
         {aba === "responsavel" && (
           <div className="orgao-tab-content">
             <PanelSeplag title="Responsável" description="Selecione o responsável vigente." className="orgao-form-section">
+              {usaEdicaoPorBloco && <AcoesSecao secao="responsavel" />}
               <div className="orgao-fields-grid cols-3">
-                <DropdownFieldSeplag name="responsavel" control={control} label="Responsável" required options={opts(["Ana Paula Ferreira", "Carlos Eduardo Silva", "Mariana Souza Oliveira"])} optionLabel="label" optionValue="value" placeholder="Selecione..." getFormErrorMessage={noError} />
-                <DropdownFieldSeplag name="cargoFuncao" control={control} label="Cargo/Função" required options={opts(["Secretário de Estado", "Secretário Adjunto", "Presidente", "Diretor", "Coordenador"])} optionLabel="label" optionValue="value" placeholder="Selecione..." getFormErrorMessage={noError} />
-                <DateFieldSeplag name="dataInicioResponsavel" control={control} label="Data de Início" required getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="responsavel" control={control} label="Responsável" required disabled={bloqueado("responsavel")} options={opts(["Ana Paula Ferreira", "Carlos Eduardo Silva", "Mariana Souza Oliveira"])} optionLabel="label" optionValue="value" placeholder="Selecione..." getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="cargoFuncao" control={control} label="Cargo/Função" required disabled={bloqueado("responsavel")} options={opts(["Secretário de Estado", "Secretário Adjunto", "Presidente", "Diretor", "Coordenador"])} optionLabel="label" optionValue="value" placeholder="Selecione..." getFormErrorMessage={noError} />
+                <DateFieldSeplag name="dataInicioResponsavel" control={control} label="Data de Início" required disabled={bloqueado("responsavel")} getFormErrorMessage={noError} />
               </div>
+              {usaEdicaoPorBloco && <HistoricoSecao secao="responsavel" />}
             </PanelSeplag>
             <PanelSeplag title="Dados bancários" description="Informe os dados bancários." className="orgao-form-section">
+              {usaEdicaoPorBloco && <AcoesSecao secao="banco" />}
               <div className="orgao-fields-grid cols-4">
-                <DropdownFieldSeplag name="banco" control={control} label="Banco" options={opts(["001 - Banco do Brasil", "104 - Caixa Econômica Federal", "237 - Bradesco", "341 - Itaú Unibanco", "748 - Sicredi"])} optionLabel="label" optionValue="value" placeholder="Selecione..." showClear getFormErrorMessage={noError} />
-                <TextFieldSeplag name="agencia" control={control} label="Agência" maxLength={10} getFormErrorMessage={noError} />
-                <TextFieldSeplag name="conta" control={control} label="Conta" maxLength={20} getFormErrorMessage={noError} />
-                <TextFieldSeplag name="digitoVerificador" control={control} label="DV" maxLength={2} getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="banco" control={control} label="Banco" disabled={bloqueado("banco")} options={opts(["001 - Banco do Brasil", "104 - Caixa Econômica Federal", "237 - Bradesco", "341 - Itaú Unibanco", "748 - Sicredi"])} optionLabel="label" optionValue="value" placeholder="Selecione..." showClear getFormErrorMessage={noError} />
+                <TextFieldSeplag name="agencia" control={control} label="Agência" maxLength={10} disabled={bloqueado("banco")} getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="tipoConta" control={control} label="Tipo de conta" disabled={bloqueado("banco")} options={opts(["Conta Corrente", "Conta Poupança", "Conta Salario"])} optionLabel="label" optionValue="value" placeholder="Selecione..." getFormErrorMessage={noError} />
+                <TextFieldSeplag name="contaDv" control={control} label="Conta/DV" maxLength={25} disabled={bloqueado("banco")} getFormErrorMessage={noError} />
               </div>
+              {usaEdicaoPorBloco && <HistoricoSecao secao="banco" />}
             </PanelSeplag>
             <div className="orgao-step-actions">
               <BotaoVoltarSeplag type="button" onClick={() => setAba("localizacao")} />
@@ -301,6 +436,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", onBack }: Reado
                 <TextFieldSeplag name="uoFiplan" control={control} label="UO Fiplan" getFormErrorMessage={noError} />
                 <TextFieldSeplag name="codigoAplic" control={control} label="Código APLIC" getFormErrorMessage={noError} />
               </div>
+              {!usaEdicaoPorBloco && <HistoricoSecao secao="integracoes" />}
             </PanelSeplag>
             <div className="orgao-step-actions">
               <BotaoVoltarSeplag type="button" onClick={() => setAba("responsavel")} />

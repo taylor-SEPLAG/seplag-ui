@@ -163,6 +163,7 @@
 .prototype-shell {
   min-height: 100vh;
   height: auto;
+  overflow: visible;
 }
 
 .prototype-shell .layout-wrapper {
@@ -174,12 +175,21 @@
 .prototype-shell .layout-main {
   min-height: 100vh;
   height: auto;
+  display: flex;
+  flex-direction: column;
   overflow: visible;
 }
 
 .prototype-shell .layout-scroll {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   min-height: calc(100vh - 60px);
-  overflow-y: visible;
+  overflow: visible;
+}
+
+.prototype-shell .layout-content {
+  flex: 1;
 }
 
 .prototype-shell .layout-sidebar {
@@ -19773,7 +19783,7 @@
 .prototype-cargo-paired-sections { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: 16px; }
 .prototype-cargo-paired-sections > .prototype-carreira-register-section { min-width: 0; height: 100%; }
 .prototype-cargo-paired-sections .prototype-carreira-vigencia-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.prototype-tipo-vinculo-paired-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 16px; }
+.prototype-tipo-vinculo-paired-sections { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: 16px; }
 .prototype-tipo-vinculo-paired-sections > .prototype-carreira-register-section { min-width: 0; height: 100%; }
 .prototype-tipo-vinculo-paired-sections .prototype-carreira-vigencia-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .prototype-perfil-paired-sections { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: 16px; }

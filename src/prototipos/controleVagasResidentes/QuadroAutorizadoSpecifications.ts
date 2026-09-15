@@ -86,7 +86,7 @@ export const quadroScreenSpecification = spec(
   "QuadroAutorizadoRow, documentos legais, vigência e posição das vagas individualizadas.",
   "QuadroAutorizadoViewModel[]",
   "SpecificationMode + TablePaginadoSeplag + BadgeSeplag + BotaoAdicionarSeplag",
-  "/prototipos/sigep/controle-vagas/residentes/quadro-autorizado",
+  "/prototipos/sigep/controle-vagas/bolsistas/quadro-autorizado",
   "Apresenta o registro mais recente primeiro; filtros e ordenação modificam somente a consulta.",
 );
 
