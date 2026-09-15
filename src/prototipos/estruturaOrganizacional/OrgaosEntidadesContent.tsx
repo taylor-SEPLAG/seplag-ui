@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { BotaoLimparFiltroSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
@@ -12,26 +12,26 @@ import type { ResultsSeplag } from "@interfaces/Results";
 import { OrgaosEntidadesCadastro } from "./OrgaosEntidadesCadastro";
 import "./orgaosEntidades.css";
 
-type Registro = { id:number; nome:string; sigla:string; cnpj:string; tipo:string; classificacao:string; esfera:string };
+type Registro = { id:number; nome:string; sigla:string; cnpj:string; tipo:"Ente Federativo"|"Órgão"|"Entidade"|"Órgão Externo"; classificacao:string; esfera:string; tipoOrganizacao?:string };
 type Filtros = { busca:string; tipo:string; classificacao:string };
 const registros:Registro[] = [
   {id:1,nome:"Estado de Mato Grosso",sigla:"GOV",cnpj:"03.507.415/0001-00",tipo:"Ente Federativo",classificacao:"Ente Federativo",esfera:"Estadual"},
-  {id:2,nome:"Secretaria de Estado de Planejamento e Gestão",sigla:"SEPLAG",cnpj:"03.507.415/0011-16",tipo:"Órgão",classificacao:"Administração Direta",esfera:"Estadual"},
-  {id:3,nome:"Departamento Estadual de Trânsito",sigla:"DETRAN-MT",cnpj:"03.829.702/0001-70",tipo:"Entidade",classificacao:"Autarquia",esfera:"Estadual"},
+  {id:2,nome:"Secretaria de Estado de Planejamento e Gestão",sigla:"SEPLAG",cnpj:"03.507.415/0011-16",tipo:"Órgão",classificacao:"Secretaria",tipoOrganizacao:"Secretaria",esfera:"Estadual"},
+  {id:3,nome:"Departamento Estadual de Trânsito",sigla:"DETRAN-MT",cnpj:"03.829.702/0001-70",tipo:"Entidade",classificacao:"Autarquia",tipoOrganizacao:"Autarquia",esfera:"Estadual"},
   {id:4,nome:"Assembleia Legislativa do Estado de Mato Grosso",sigla:"ALMT",cnpj:"03.929.049/0001-11",tipo:"Órgão Externo",classificacao:"Órgão Externo",esfera:"Estadual"},
-  {id:5,nome:"Controladoria Geral do Estado",sigla:"CGE",cnpj:"03.507.415/0024-30",tipo:"Órgão",classificacao:"Administração Direta",esfera:"Estadual"},
-  {id:6,nome:"Empresa Mato-grossense de Tecnologia da Informação",sigla:"MTI",cnpj:"15.011.059/0001-52",tipo:"Entidade",classificacao:"Empresa Pública",esfera:"Estadual"},
+  {id:5,nome:"Controladoria Geral do Estado",sigla:"CGE",cnpj:"03.507.415/0024-30",tipo:"Órgão",classificacao:"Órgão Desconcentrado",tipoOrganizacao:"Órgão Desconcentrado",esfera:"Estadual"},
+  {id:6,nome:"Empresa Mato-grossense de Tecnologia da Informação",sigla:"MTI",cnpj:"15.011.059/0001-52",tipo:"Entidade",classificacao:"Empresa Pública",tipoOrganizacao:"Empresa Pública",esfera:"Estadual"},
 ];
 const opts=(v:string[])=>v.map(value=>({label:value,value}));
 const noError=()=>null;
 
-function CadastroOrgaoExterno() {
+function CadastroOrgaoExterno({registro}:Readonly<{registro?:Registro}>) {
   const navigate=useNavigate();
-  const {control}=useForm<Record<string,string>>({defaultValues:{sigla:"",cnpj:"",descricao:"",tipoOrgao:"",cep:"",uf:"MT",municipio:"",bairro:"",tipoLogradouro:"Avenida",logradouro:"",numero:"",complemento:"",telefone1:"",telefone2:"",website:"",email1:"",email2:""}});
+  const {control}=useForm<Record<string,string>>({defaultValues:{sigla:registro?.sigla??"",cnpj:registro?.cnpj??"",descricao:registro?.nome??"",tipoOrgao:registro?"Órgão público":"",cep:"",uf:"MT",municipio:"",bairro:"",tipoLogradouro:"Avenida",logradouro:"",numero:"",complemento:"",telefone1:"",telefone2:"",website:"",email1:"",email2:""}});
   const common={control,getFormErrorMessage:noError};
   return <div className="prototype-carreira-register-page orgao-cadastro-page">
     <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{label:"Cadastro"},{label:"Estrutura Organizacional"},{label:"Órgãos e Entidades"},{label:"Cadastrar"}]}/>
-    <header className="prototype-carreira-register-title"><div><h1>Novo órgão externo</h1><p>Cadastro simplificado com os campos necessários para referência no SIGEP.</p></div></header>
+    <header className="prototype-carreira-register-title"><div><h1>{registro?.nome??"Novo órgão externo"}</h1><p>Cadastro simplificado com os campos necessários para referência no SIGEP.</p></div></header>
       <div className="prototype-carreira-register-form orgao-external-form">
         <PanelSeplag title="Detalhes" description="Informe os dados principais do órgão externo." className="orgao-form-section">
           <div className="orgao-fields-grid cols-2">
@@ -69,21 +69,28 @@ function CadastroOrgaoExterno() {
 
 export function OrgaosEntidadesContent({modo="lista"}:Readonly<{modo?:"lista"|"ente"|"orgao"|"externo"}>){
   const navigate=useNavigate();
+  const location=useLocation();
+  const registroSelecionado=(location.state as {registro?:Registro}|null)?.registro;
   const [modalAdicionar,setModalAdicionar]=useState(false); const [pagina,setPagina]=useState(0);
   const {control,watch,reset}=useForm<Filtros>({defaultValues:{busca:"",tipo:"",classificacao:""}}); const f=watch(); const rows=5;
   const {control:controlTipo,watch:watchTipo,reset:resetTipo}=useForm<{tipoCadastro:"ente"|"orgao"|"externo"}>({defaultValues:{tipoCadastro:"orgao"}}); const tipoCadastro=watchTipo("tipoCadastro");
   const filtrados=useMemo(()=>registros.filter(r=>{const q=f.busca.trim().toLowerCase();return (!q||[r.nome,r.sigla,r.cnpj].some(v=>v.toLowerCase().includes(q)))&&(!f.tipo||r.tipo===f.tipo)&&(!f.classificacao||r.classificacao===f.classificacao)}),[f.busca,f.tipo,f.classificacao]);
-  const content=filtrados.slice(pagina*rows,pagina*rows+rows);
-  const data:ResultsSeplag<Registro>={content,last:(pagina+1)*rows>=filtrados.length,totalPages:Math.ceil(filtrados.length/rows),pageActual:pagina,sizePage:rows,totalRecords:filtrados.length,size:content.length,number:pagina,first:pagina===0,numberOfElements:content.length,empty:!content.length};
+  const paginaSegura=Math.min(pagina,Math.max(0,Math.ceil(filtrados.length/rows)-1));
+  const content=filtrados.slice(paginaSegura*rows,paginaSegura*rows+rows);
+  const data:ResultsSeplag<Registro>={content,last:(paginaSegura+1)*rows>=filtrados.length,totalPages:Math.ceil(filtrados.length/rows),pageActual:paginaSegura,sizePage:rows,totalRecords:filtrados.length,size:content.length,number:paginaSegura,first:paginaSegura===0,numberOfElements:content.length,empty:!content.length};
   const columns:ColumnMetaSeplag<Registro>[]=[
     {header:"Nome / Sigla",body:r=><div className="orgao-name-cell"><strong>{r.nome}</strong><span>{r.sigla}</span></div>},{header:"CNPJ",field:"cnpj"},
     {header:"Tipo de registro",body:r=><span className="orgao-type-badge">{r.tipo}</span>},{header:"Classificação",field:"classificacao"},{header:"Esfera",field:"esfera"}
   ];
-  if(modo==="ente") return <OrgaosEntidadesCadastro tipoInicial="ente" onBack={()=>navigate(-1)}/>;
-  if(modo==="orgao") return <OrgaosEntidadesCadastro tipoInicial="orgao" onBack={()=>navigate(-1)}/>;
-  if(modo==="externo") return <CadastroOrgaoExterno/>;
+  if(modo==="ente") return <OrgaosEntidadesCadastro tipoInicial="ente" registro={registroSelecionado} onBack={()=>navigate(-1)}/>;
+  if(modo==="orgao") return <OrgaosEntidadesCadastro tipoInicial="orgao" registro={registroSelecionado} onBack={()=>navigate(-1)}/>;
+  if(modo==="externo") return <CadastroOrgaoExterno registro={registroSelecionado}/>;
   const common={control,getFormErrorMessage:noError};
   const abrirAdicionar=()=>{resetTipo({tipoCadastro:"orgao"});setModalAdicionar(true)};
+  const abrirRegistro=(registro:Registro)=>{
+    const destino=registro.tipo==="Ente Federativo"?"cadastro-ente-federativo":registro.tipo==="Órgão Externo"?"cadastro-orgao-externo":"cadastro-orgao-entidade";
+    navigate(`/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade/${destino}`,{state:{registro}});
+  };
   const continuarCadastro=()=>{
     setModalAdicionar(false);
     const destinos={ente:"cadastro-ente-federativo",orgao:"cadastro-orgao-entidade",externo:"cadastro-orgao-externo"};
@@ -94,10 +101,10 @@ export function OrgaosEntidadesContent({modo="lista"}:Readonly<{modo?:"lista"|"e
       <div className="prototype-category-filters prototype-carreira-filters orgao-list-filters grid">
         <TextFieldSeplag name="busca" label="Órgão ou Entidade (Nome, Sigla, CNPJ)" cols="12 6 5" placeholder="Nome, sigla ou CNPJ" {...common}/>
         <DropdownFieldSeplag name="tipo" label="Tipo de registro" cols="12 6 3" options={opts(["Ente Federativo","Órgão","Entidade","Órgão Externo"])} optionLabel="label" optionValue="value" placeholder="Selecione..." showClear {...common}/>
-        <DropdownFieldSeplag name="classificacao" label="Classificação" cols="12 6 2" options={opts(["Ente Federativo","Administração Direta","Autarquia","Empresa Pública","Órgão Externo"])} optionLabel="label" optionValue="value" placeholder="Selecione..." showClear {...common}/>
+        <DropdownFieldSeplag name="classificacao" label="Classificação" cols="12 6 2" options={opts([...new Set(registros.map((registro)=>registro.classificacao))])} optionLabel="label" optionValue="value" placeholder="Selecione..." showClear {...common}/>
         <div className="prototype-category-clear col-12 md:col-6 lg:col-2"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={()=>{reset();setPagina(0)}}/></div>
       </div>
-      <div className="prototype-category-table orgao-list-table"><TablePaginadoSeplag dataKey="id" data={data} rows={rows} rowsPerPage={[rows]} columns={columns} lazy paginator selectionMode={null} hasEventoAcao handleAdicionar={abrirAdicionar} handleOnPageChange={e=>setPagina(Math.floor((e.first??0)/(e.rows??rows)))} handleView={()=>navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade/cadastro-orgao-entidade")} extraAcoesSplit={()=>[{label:"Editar",icon:"pi pi-pencil",command:()=>navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade/cadastro-orgao-entidade")},{label:"Inativar",icon:"pi pi-ban",command:()=>{}}]}/></div>
+      <div className="prototype-category-table orgao-list-table"><TablePaginadoSeplag dataKey="id" data={data} rows={rows} rowsPerPage={[rows]} columns={columns} lazy paginator selectionMode={null} hasEventoAcao handleAdicionar={abrirAdicionar} handleOnPageChange={e=>setPagina(Math.floor((e.first??0)/(e.rows??rows)))} handleView={(registro)=>abrirRegistro(registro)} extraAcoesSplit={(registro)=>[{label:"Editar",icon:"pi pi-pencil",command:()=>abrirRegistro(registro)},{label:"Inativar",icon:"pi pi-ban",command:()=>{}}]}/></div>
     </CardSeplag>
     <ModalSeplag visible={modalAdicionar} titulo={<div className="orgao-add-modal-title"><strong>O que deseja adicionar?</strong><small>Selecione o tipo de registro para iniciar o cadastro.</small></div>} fechar={()=>setModalAdicionar(false)} tamanho="min(760px, calc(100vw - 32px))" customFooter={<div className="orgao-add-modal-actions"><BotaoSeplag label="Cancelar" outlined style={{border:"1px solid #1687c9",color:"#0870b6",background:"#fff"}} onClick={()=>setModalAdicionar(false)}/><BotaoSeplag label="Continuar" onClick={continuarCadastro}/></div>}>
       <div className="col-12 orgao-add-modal-content"><RadioButtonFieldSeplag name="tipoCadastro" control={controlTipo} variant="cards" getFormErrorMessage={noError} options={[
