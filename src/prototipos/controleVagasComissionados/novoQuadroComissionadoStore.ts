@@ -38,6 +38,8 @@ const quadroPolitec2026: QuadroComissionadoSalvo = {
   dataVigencia: "2026-09-11",
   documentosLegaisIds: ["decreto-2252-2026"],
   salvoEm: "2026-09-11T12:00:00.000Z",
+  quadroBaseId: "quadro-politec-decreto-2252-2026",
+  versao: 1,
   niveis: [
     { id: "politec-decisao", nome: "Nível de Decisão Colegiada", itens: [{ id: "politec-conselho", nome: "Conselho de Política Científica e Tecnológica", dotacoes: [], subitens: [] }] },
     { id: "politec-direcao", nome: "Nível de Direção Superior", itens: [
@@ -87,6 +89,26 @@ export function prepararNovoQuadroComissionado() {
   window.localStorage.removeItem(CHAVE_RASCUNHO);
 }
 
+export function prepararNovaVersaoQuadroComissionado(id: string) {
+  const quadros = listarQuadrosComissionados();
+  const quadro = quadros.find((item) => item.id === id);
+  if (!quadro) return;
+  const quadroBaseId = quadro.quadroBaseId ?? quadro.id;
+  const maiorVersao = quadros
+    .filter((item) => (item.quadroBaseId ?? item.id) === quadroBaseId)
+    .reduce((maior, item) => Math.max(maior, item.versao ?? 1), 1);
+  const novaVersao: QuadroComissionadoSalvo = {
+    ...structuredClone(quadro),
+    id: crypto.randomUUID(),
+    quadroBaseId,
+    versao: maiorVersao + 1,
+    versaoAnteriorId: quadro.id,
+    motivoVersionamento: "",
+    dataVigencia: "",
+    salvoEm: new Date().toISOString(),
+  };
+  window.localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(novaVersao));
+}
 export function prepararEdicaoQuadroComissionado(id: string) {
   const quadro = listarQuadrosComissionados().find((item) => item.id === id);
   if (quadro) window.localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(quadro));

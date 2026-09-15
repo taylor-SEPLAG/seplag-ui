@@ -57,9 +57,11 @@
   color: #68748a;
 }
 
-.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(2),`n.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(3),
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(2),
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(3),
 .prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(4),
-.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(2),`n.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(3),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(2),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(3),
 .prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(4),
 .prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(5),
 .prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(5),
@@ -149,4 +151,26 @@
   width: auto !important;
   min-width: 0 !important;
   flex: 0 0 auto;
+}
+
+.prototype-comissionados-historico { padding: .85rem 1rem; background: #f8fbfd; }
+.prototype-comissionados-historico header { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .65rem; color: #35455c; }
+.prototype-comissionados-historico header span { color: #68758a; font-size: .78rem; }
+.prototype-comissionados-historico table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.prototype-comissionados-historico th, .prototype-comissionados-historico td { padding: .55rem .7rem; border: 1px solid #dbe3ea; text-align: left; }
+.prototype-comissionados-historico th { background: #f2f5f8; color: #35455c; font-weight: 800; }
+.prototype-comissionados-historico td:last-child { text-align: center; }
+@media (max-width: 700px) { .prototype-comissionados-historico header { flex-direction: column; } }
+
+/* Coluna Ações: grupo centralizado no cabeçalho e em cada linha. */
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(6),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(6) {
+  text-align: center !important;
+}
+
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(6) .p-column-header-content,
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(6) .prototype-comissionados-quadro-actions {
+  display: flex;
+  width: 100%;
+  justify-content: center;
 }
