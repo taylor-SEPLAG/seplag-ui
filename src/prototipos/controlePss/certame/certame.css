@@ -310,6 +310,7 @@
 .prototype-certame-fase-header,.prototype-certame-fase-row{display:grid;grid-template-columns:18px minmax(180px,1fr) 152px 152px 28px;column-gap:10px;align-items:center}
 .prototype-certame-fase-header{padding:8px 12px;border-bottom:1px solid var(--surface-border);background:var(--surface-50);color:var(--text-color-secondary);font-size:.72rem;font-weight:800;text-transform:uppercase}
 .prototype-certame-fase-header .obrigatorio{margin-left:2px;font-style:normal}
+.prototype-certame-fases-empty{padding:1rem!important;color:var(--text-color-secondary)!important;text-align:center!important}
 .prototype-certame-fase-row{padding:7px 12px;border-bottom:1px solid var(--surface-border)}
 .prototype-certame-fase-row:last-child{border-bottom:0}
 .prototype-certame-fase-row[draggable="true"]{cursor:grab}

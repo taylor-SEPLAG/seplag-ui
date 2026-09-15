@@ -115,3 +115,21 @@ export function podeRegistrarParalisacao(historico:readonly SituacaoHistoricoCer
 export function podeRegistrarRetomadaCronograma(historico:readonly SituacaoHistoricoCertame[]):boolean {
  return situacaoAtualDoHistorico(historico) === "PARALISADO";
 }
+
+// Trava-mestra do fluxo Órgão mandante/participante: nenhuma vaga pode ser cadastrada sem o órgão
+// mandante (Certame.setor) definido — órgão participante é sempre opcional, mandante nunca é.
+export function podeCadastrarVagaNoCertame(setor:string):boolean {
+ return Boolean(setor.trim());
+}
+
+// Fluxo Órgão mandante/participante da vaga (campo "Órgão da vaga", só exibido quando o certame tem
+// órgãos participantes): deduz o tipo da vaga antes de salvar —
+// - sem participantes, o campo não é exibido e toda vaga assume automaticamente o órgão mandante;
+// - com participantes e o usuário escolheu um órgão (mandante ou participante), a vaga fica
+//   vinculada a esse órgão;
+// - com participantes e o campo deixado em branco, a vaga é de "Aproveitamento" — sem erro de
+//   validação, é um estado válido e intencional (vaga sem vínculo a um órgão específico).
+export function deduzirTipoVaga(setor:string, setoresParticipantes:readonly string[], orgaoDestino?:string):string {
+ if (setoresParticipantes.length === 0) return setor;
+ return orgaoDestino || "Aproveitamento";
+}

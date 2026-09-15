@@ -17,6 +17,8 @@ import {
  podeRegistrarRetomadaCronograma,
  gerarNumeroCertame,
  situacaoAtualDoHistorico,
+ podeCadastrarVagaNoCertame,
+ deduzirTipoVaga,
 } from "./validations";
 
 function historico(...tipos:SituacaoHistoricoCertame["tipo"][]):SituacaoHistoricoCertame[] {
@@ -219,5 +221,36 @@ describe("funções pré-existentes continuam corretas (regressão)", () => {
 
  it("calcularValidadeDias calcula a diferença em dias entre o resultado e a validade", () => {
   expect(calcularValidadeDias("10/02/2026", "10/02/2027")).toBe(365);
+ });
+});
+
+describe("Trava-mestra — podeCadastrarVagaNoCertame (Órgão mandante/participante)", () => {
+ it("bloqueia quando o órgão mandante não está definido", () => {
+  expect(podeCadastrarVagaNoCertame("")).toBe(false);
+ });
+
+ it("bloqueia um valor só com espaços", () => {
+  expect(podeCadastrarVagaNoCertame("   ")).toBe(false);
+ });
+
+ it("permite quando o órgão mandante está definido", () => {
+  expect(podeCadastrarVagaNoCertame("SEFAZ")).toBe(true);
+ });
+});
+
+describe("Fluxo Órgão mandante/participante — deduzirTipoVaga", () => {
+ it("sem órgãos participantes, deduz o órgão mandante automaticamente (campo não exibido)", () => {
+  expect(deduzirTipoVaga("SEFAZ", [])).toBe("SEFAZ");
+  expect(deduzirTipoVaga("SEFAZ", [], "SEPLAG")).toBe("SEFAZ");
+ });
+
+ it("com participantes e um órgão escolhido, deduz a sigla do órgão escolhido (mandante ou participante)", () => {
+  expect(deduzirTipoVaga("SEFAZ", ["SEPLAG"], "SEFAZ")).toBe("SEFAZ");
+  expect(deduzirTipoVaga("SEFAZ", ["SEPLAG"], "SEPLAG")).toBe("SEPLAG");
+ });
+
+ it("com participantes e campo em branco, deduz Aproveitamento", () => {
+  expect(deduzirTipoVaga("SEFAZ", ["SEPLAG"])).toBe("Aproveitamento");
+  expect(deduzirTipoVaga("SEFAZ", ["SEPLAG"], "")).toBe("Aproveitamento");
  });
 });
