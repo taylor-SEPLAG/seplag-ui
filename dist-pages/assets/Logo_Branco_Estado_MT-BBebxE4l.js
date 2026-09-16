@@ -1,1 +1,0 @@
-var e=`/seplag-ui/assets/Logo_Branco_Estado_MT-CfrGxBuK.png`;export{e as t};
