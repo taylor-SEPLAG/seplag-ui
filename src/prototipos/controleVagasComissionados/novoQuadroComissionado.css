@@ -80,3 +80,22 @@
 .nqc-versionamento-content label { display: flex; flex-direction: column; gap: .45rem; }
 .nqc-versionamento-content textarea { width: 100%; min-height: 5.5rem; box-sizing: border-box; resize: vertical; padding: .7rem; border: 1px solid #b9c7d5; border-radius: .35rem; color: #25344a; font: inherit; }
 .nqc-versionamento-content textarea:focus { border-color: #0871b8; outline: 2px solid rgb(8 113 184 / 16%); }
+
+.nqc-resumo-linha-dga td:first-child { padding: 0; }
+.nqc-resumo-accordion-trigger { align-items: center; background: transparent; border: 0; color: inherit; cursor: pointer; display: flex; font: inherit; font-weight: 700; gap: .55rem; padding: .45rem .65rem; text-align: left; width: 100%; }
+.nqc-resumo-accordion-trigger:hover { background: #f3f8fd; color: #006eb8; }
+.nqc-resumo-accordion-trigger i { color: #006eb8; font-size: .72rem; }
+.nqc-resumo-perfis > td { background: #f8fbfe; padding: .55rem .85rem; }
+.nqc-resumo-perfis table { background: #fff; }
+.nqc-resumo-perfis table th { background: #edf5fc; font-size: .78rem; text-transform: none; }
+.nqc-resumo-perfis table td:first-child, .nqc-resumo-perfis table th:first-child { text-align: left; }
+
+.nqc-orgao-indisponivel .prototype-quadro-cargo-indisponivel-label { flex: 0 0 auto; max-width: none; overflow: visible; text-overflow: clip; }
+
+.nqc-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.nqc-fields > .col-12 { min-width: 0; padding: 0; }
+.nqc-fields .content-rotulo .label-rotulo { color: #47556a; font-size: .8rem; font-weight: 700; }
+.nqc-fields .content-rotulo .p-inputtext, .nqc-fields .content-rotulo .p-dropdown { min-height: 2.4rem; font-size: .875rem; }
+
+.nqc-fields .content-rotulo > .label-rotulo { align-self: flex-start; flex-direction: row; justify-content: flex-start; gap: .2rem; width: auto; text-align: left; }
+.nqc-fields .content-rotulo > .label-rotulo .obrigatorio { display: inline; }
