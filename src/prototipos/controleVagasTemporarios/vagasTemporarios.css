@@ -11,3 +11,12 @@
 .prototype-temporarios-efetivos-options p { margin: .25rem 0 1.5rem; }
 .prototype-temporarios-efetivos-options a > span { margin-top: auto; color: #096bb1; font-weight: 600; display: flex; align-items: center; gap: .75rem; }
 @media (max-width: 640px) { .prototype-temporarios-efetivos-page { padding: 1.25rem; } .prototype-temporarios-efetivos-options { grid-template-columns: 1fr; } }
+
+/* Página inicial de temporários no mesmo padrão de cartões independentes. */
+.prototype-temporarios-efetivos-page { background: transparent; }
+.prototype-temporarios-efetivos-page > header {
+  padding: 1.35rem 1.5rem;
+  border: 1px solid #d4dee8;
+  border-radius: .5rem;
+  background: #fff;
+}

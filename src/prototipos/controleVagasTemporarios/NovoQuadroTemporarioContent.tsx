@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form";
 import { DateFieldSeplag } from "../../componentes/Fields";
-import { BadgeSeplag } from "../../componentes/Badge";
 
 import { BotaoSalvarSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
 import { useState, type FormEvent } from "react";
@@ -8,19 +7,17 @@ import { useNavigate } from "react-router-dom";
 import { Dropdown } from "primereact/dropdown";
 import { useControlePssStore } from "../controlePss/controlePssStore";
 import { REGIMES_JURIDICOS, TIPOS_VINCULO, SITUACOES_CERTAME } from "../controlePss/certame/dominios";
-import { listarQuadrosTemporarios, salvarQuadroTemporario, seletivoTemporario, type QuadroTemporarioCadastro } from "./novoQuadroTemporarioStore";
+import { listarQuadrosTemporarios, salvarQuadroTemporario, seletivoTemporario } from "./novoQuadroTemporarioStore";
 import "./novoQuadroTemporario.css";
 
 export function NovoQuadroTemporarioContent() {
  const navigate = useNavigate();
  const { control, watch, reset } = useForm<{ dataAtivacao:string }>({ defaultValues:{ dataAtivacao:"" } });
  const dataAtivacao = watch("dataAtivacao");
- const agendado = calcularStatusOperacionalVigenciaSeplag({ situacao:"ATIVO", dataAtivacao }).startsWith("AGENDADO");
  const { certames } = useControlePssStore();
  const [certameId, setCertameId] = useState<string>("");
  const [erro, setErro] = useState("");
  const [quadrosExistentes] = useState(() => listarQuadrosTemporarios());
- const [salvo, setSalvo] = useState<QuadroTemporarioCadastro | null>(null);
  const seletivos = certames.filter(seletivoTemporario);
  const quadrosPorCertame = new Map(quadrosExistentes.map((quadro) => [quadro.certameId, quadro]));
  const opcoesSeletivo = seletivos.map((item) => {
@@ -33,14 +30,14 @@ export function NovoQuadroTemporarioContent() {
  const salvar = (event: FormEvent) => {
   event.preventDefault();
   if (!certame || !cargos.length) { setErro("Selecione um processo seletivo com cargos cadastrados para criar o quadro."); return; }
-  const errosVigencia = validarSituacaoVigenciaSeplag({ situacao:"ATIVO", dataAtivacao });
-  if (!dataAtivacao || errosVigencia.length) { setErro(errosVigencia.join(" ") || "Informe a data de início."); return; }
-  try { setSalvo(salvarQuadroTemporario(certame, "", dataAtivacao)); setErro(""); }
+  if (!dataAtivacao) { setErro("Informe a data de início."); return; }
+  if (dataFutura(dataAtivacao)) { setErro("A data de início não pode ser futura."); return; }
+  try { salvarQuadroTemporario(certame, "", dataAtivacao); setErro(""); navigate("/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado"); }
   catch (error) { setErro(error instanceof Error ? error.message : "Não foi possível salvar o quadro. Tente novamente."); }
  };
  return <main className="novo-quadro-temporario">
   <header><h1>Novo Quadro Temporário</h1><p>Vincule o quadro às vagas de um processo seletivo cadastrado.</p></header>
-  {salvo ? <section className="nqt-card" role="status"><h2>Quadro {salvo.codigo} criado com sucesso</h2><p>{salvo.certame.nomeEdital} · {salvo.cargos.length} cargo(s)</p><p>Todos os cargos do seletivo foram incluídos, com suas respectivas regras de vagas.</p><button type="button" onClick={() => { setSalvo(null); reset(); setCertameId(""); }}>Cadastrar outro quadro</button><button type="button" onClick={voltar}>Voltar</button></section> : <form onSubmit={salvar}>
+  <form onSubmit={salvar}>
    {erro && <p className="nqt-error" role="alert">{erro}</p>}
    <section className="nqt-card"><header className="nqt-section-header"><i className="pi pi-file" aria-hidden="true" /><div><h2>Seletivo de origem</h2><p>Selecione o processo seletivo que fundamenta o quadro temporário.</p></div></header><div className="nqt-section-body"><label htmlFor="nqt-seletivo">Processo Seletivo *</label>
     <Dropdown inputId="nqt-seletivo" value={certameId} options={opcoesSeletivo} optionDisabled="indisponivel" filter showClear placeholder="Selecione o processo seletivo" emptyMessage="Nenhum PSS temporário cadastrado" emptyFilterMessage="Nenhum seletivo encontrado" itemTemplate={(option) => <span className={option.indisponivel ? "nqt-seletivo-indisponivel" : "nqt-seletivo-option"}><span>{option.label}</span>{option.quadroCodigo && <small>{option.quadroCodigo}</small>}</span>} onChange={event => { setCertameId(event.value ?? ""); setErro(""); }} />
@@ -61,7 +58,7 @@ export function NovoQuadroTemporarioContent() {
     </div>
    </section>
    <footer><BotaoVoltarSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={voltar} /><BotaoSalvarSeplag type="submit" label="Criar Quadro Temporário" disabled={!certame || !cargos.length} /></footer>
-  </form>}
+  </form>
  </main>;
 }
 function Dado({ label, value }: { label:string; value?:string | number }) { return <div><dt>{label}</dt><dd>{value === undefined || value === "" ? "Não informado" : value}</dd></div>; }

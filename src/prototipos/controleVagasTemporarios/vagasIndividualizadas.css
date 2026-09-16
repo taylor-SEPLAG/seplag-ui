@@ -1175,3 +1175,61 @@
 .prototype-temporarios-vaga-detail-content .prototype-temporarios-vaga-detail-grid dd > span {
   display: block;
 }
+
+/* Vagas individualizadas: título, indicadores, filtros e listagem em cartões separados. */
+.prototype-temporarios-vaga-page-seplag {
+  background: transparent;
+  padding: 1rem 1.75rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.prototype-temporarios-vaga-page-seplag .prototype-temporarios-vaga-header,
+.prototype-temporarios-vaga-page-seplag .prototype-temporarios-vaga-card-seplag {
+  margin: 0;
+  border: 1px solid #d4dee8;
+  border-radius: .5rem;
+  background: #fff;
+}
+.prototype-temporarios-vaga-page-seplag .prototype-temporarios-vaga-header {
+  padding: 1.35rem 1.5rem;
+}
+.prototype-temporarios-vaga-page-seplag .prototype-temporarios-vaga-kpis-seplag {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+@media (max-width: 760px) {
+  .prototype-temporarios-vaga-page-seplag { padding: 1rem; }
+}
+
+/* Vagas individualizadas de contratos temporários. */
+.temporarios-vagas-page { padding: 1rem 1.75rem 3rem; color: #17233c; display: flex; flex-direction: column; gap: 1rem; }
+.temporarios-vagas-header, .temporarios-vagas-card { background: #fff; border: 1px solid #d4dee8; border-radius: .5rem; }
+.temporarios-vagas-header { padding: 1.35rem 1.5rem; }
+.temporarios-vagas-header h1 { margin: 0 0 .35rem; font-size: 1.4rem; }
+.temporarios-vagas-header p { margin: 0; color: #526178; }
+.temporarios-vagas-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
+.temporarios-vagas-kpis article { min-height: 74px; display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem; background: #fff; border: 1px solid #d4dee8; border-top: 3px solid #1682d4; border-radius: .5rem; }
+.temporarios-vagas-kpis article > i { display: grid; place-items: center; width: 2.35rem; height: 2.35rem; border-radius: .45rem; background: #e7f3fc; color: #0877c5; }
+.temporarios-vagas-kpis article span, .temporarios-vagas-kpis article strong { display: block; }
+.temporarios-vagas-kpis article span { color: #526178; font-size: .76rem; }
+.temporarios-vagas-kpis article strong { margin-top: .15rem; font-size: 1.25rem; }
+.temporarios-vagas-kpis article.available { border-top-color: #159b65; }.temporarios-vagas-kpis article.warning { border-top-color: #d88800; }.temporarios-vagas-kpis article.occupied { border-top-color: #6254c8; }
+.temporarios-vagas-filters-card { padding: 1.1rem 1.35rem; }
+.temporarios-vagas-filters { display: grid; grid-template-columns: repeat(4, minmax(12rem, 1fr)); gap: 1rem; align-items: end; }
+.temporarios-vagas-field { display: flex; flex-direction: column; gap: .35rem; min-width: 0; color: #35455d; font-size: .8rem; font-weight: 700; }
+.temporarios-vagas-field input, .temporarios-vagas-field select { width: 100%; height: 2.5rem; box-sizing: border-box; border: 1px solid #b9c9da; border-radius: .25rem; padding: 0 .75rem; background: #fff; color: #34445b; font: inherit; font-weight: 400; }
+.temporarios-vagas-field input:disabled, .temporarios-vagas-field select:disabled { background: #f6f8fb; color: #99a6b7; }
+.temporarios-vagas-search { position: relative; }.temporarios-vagas-search input { padding-right: 2.3rem; }.temporarios-vagas-search i { position: absolute; right: .75rem; top: .78rem; color: #59708a; }
+.temporarios-vagas-clear { align-self: end; }.temporarios-vagas-clear .p-button { height: 2.5rem; width: 100%; min-width: 8rem; }
+.temporarios-vagas-list-card { overflow: hidden; }.temporarios-vagas-table-wrap { overflow: auto; }
+.temporarios-vagas-table-wrap table { width: 100%; min-width: 1030px; border-collapse: collapse; }.temporarios-vagas-table-wrap th, .temporarios-vagas-table-wrap td { padding: .78rem .75rem; border-right: 1px solid #dce4ed; border-bottom: 1px solid #dce4ed; text-align: left; vertical-align: middle; font-size: .84rem; }.temporarios-vagas-table-wrap th:last-child, .temporarios-vagas-table-wrap td:last-child { border-right: 0; }.temporarios-vagas-table-wrap th { background: #f5f7fa; color: #273b55; font-size: .76rem; }.temporarios-vagas-table-wrap td small { display:block; margin-top:.18rem; color:#718096; font-size:.73rem; }
+.temporarios-vagas-link { padding: 0; border: 0; background: transparent; color: #006bb6; font: inherit; font-weight: 700; cursor: pointer; }.temporarios-vagas-link:hover { text-decoration: underline; }.temporarios-vagas-muted { color: #748197; }
+.temporarios-vagas-view { display: inline-flex; width: 2rem; height: 2rem; align-items: center; justify-content: center; border: 0; border-radius: .25rem; background: #0784d3; color: #fff; cursor: pointer; }.temporarios-vagas-view i { line-height: 1; }
+.temporarios-vagas-badge { display: inline-flex; align-items: center; padding: .18rem .5rem; border-radius: 1rem; font-size: .75rem; font-weight: 700; color: #087440; background: #dff4e8; }.temporarios-vagas-badge.em_ocupacao { color: #9a6100; background:#fff0d4; }.temporarios-vagas-badge.ocupada { color:#5544ba; background:#eeebff; }.temporarios-vagas-badge.legal.extinta { color:#b42318; background:#fee4e2; }.temporarios-vagas-badge.legal.encerrada { color:#64748b; background:#f1f5f9; }
+.temporarios-vagas-empty { min-height: 15rem; display: flex; align-items: center; justify-content: center; gap: .75rem; color: #526178; }.temporarios-vagas-empty > i { display: grid; width: 3rem; height: 3rem; place-items: center; border-radius: .5rem; background:#e7f3fc; color:#0877c5; font-size:1.25rem; }.temporarios-vagas-empty strong, .temporarios-vagas-empty span { display:block; }.temporarios-vagas-empty strong { color:#17233c; margin-bottom:.25rem; }.temporarios-vagas-empty span { font-size:.82rem; }
+.temporarios-vagas-no-results { padding: 2rem; margin: 0; text-align: center; color: #64748b; }
+.temporarios-vagas-detail { display: grid; gap: 1rem; }.temporarios-vagas-detail section { border: 1px solid #dce4ed; border-radius: .4rem; overflow: hidden; }.temporarios-vagas-detail h3 { margin: 0; padding: .85rem 1rem; border-bottom:1px solid #dce4ed; font-size:.95rem; }.temporarios-vagas-detail dl { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:1rem; padding:1rem; margin:0; }.temporarios-vagas-detail dt { color:#64748b; font-size:.75rem; }.temporarios-vagas-detail dd { margin:.25rem 0 0; font-size:.86rem; }.temporarios-vagas-detail-badges, .temporarios-vagas-detail section > p { margin: 1rem; }
+@media (max-width: 1180px) { .temporarios-vagas-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); } }.temporarios-vagas-kpis-status { grid-template-columns: repeat(4, minmax(0,1fr)); }
+@media (max-width: 800px) { .temporarios-vagas-page { padding:1rem; }.temporarios-vagas-kpis, .temporarios-vagas-kpis-status, .temporarios-vagas-filters, .temporarios-vagas-detail dl { grid-template-columns: 1fr; } }

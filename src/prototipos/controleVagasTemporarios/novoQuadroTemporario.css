@@ -62,3 +62,17 @@
   font-weight: 700;
   text-decoration: none;
 }
+/* O formulário usa cartões independentes como as telas de Carreira. */
+.novo-quadro-temporario {
+  background: transparent;
+  padding: 1rem 1.75rem 3rem;
+}
+.novo-quadro-temporario > header {
+  margin: 0 0 1rem;
+  padding: 1.35rem 1.5rem;
+  border: 1px solid #d4dee8;
+  border-radius: .5rem;
+  background: #fff;
+}
+.novo-quadro-temporario form { gap: 1rem; }
+@media(max-width:640px) { .novo-quadro-temporario { padding: 1rem; } }

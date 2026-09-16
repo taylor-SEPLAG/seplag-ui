@@ -2748,3 +2748,89 @@
   margin: 0;
   font-size: 0.9rem;
 }
+/* Estrutura visual em blocos, alinhada ao padrão das telas de Carreira. */
+.prototype-temporarios-quadro-page-current {
+  background: transparent;
+  padding: 1rem 1.75rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-header,
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-card {
+  margin: 0;
+  background: #fff;
+  border: 1px solid #d4dee8;
+  border-radius: .5rem;
+  box-shadow: none;
+}
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-header {
+  padding: 1.35rem 1.5rem;
+}
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-kpis {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-filters-card {
+  padding: 1.15rem 1.35rem;
+}
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-table-card {
+  overflow: hidden;
+}
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-table-toolbar {
+  margin: 0;
+  padding: .7rem 1rem;
+  border-bottom: 1px solid #e0e6ec;
+  background: #fff;
+}
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-list-filters {
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .prototype-temporarios-quadro-page-current { padding: 1rem; }
+}
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-list-filters {
+  border-top: 0;
+  border-bottom: 0;
+}
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-list-filters {
+  grid-template-columns: minmax(18rem, 1.7fr) minmax(14rem, 1fr) minmax(12rem, 1fr) auto !important;
+}
+.prototype-temporarios-quadro-view-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+}
+.prototype-temporarios-quadro-view-action .p-button-icon {
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+@media (max-width: 900px) {
+  .prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-list-filters { grid-template-columns: 1fr !important; }
+}
+.prototype-temporarios-quadro-cargos-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: .2rem .5rem;
+  border: 0;
+  border-radius: .25rem;
+  background: transparent;
+  color: #006bb6;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.prototype-temporarios-quadro-cargos-action:hover,
+.prototype-temporarios-quadro-cargos-action:focus-visible { background: #e8f3fb; outline: 0; }
+.prototype-temporarios-quadro-cargos-modal { padding: .25rem 0; }
+.prototype-temporarios-quadro-cargos-modal > p { margin: 0 0 1rem; color: #5d6b7d; }
+.prototype-temporarios-quadro-cargos-modal table { width: 100%; border-collapse: collapse; }
+.prototype-temporarios-quadro-cargos-modal th,
+.prototype-temporarios-quadro-cargos-modal td { padding: .8rem; border: 1px solid #dce4ed; text-align: left; vertical-align: middle; }
+.prototype-temporarios-quadro-cargos-modal th { background: #f5f7fa; font-size: .78rem; }
+.prototype-temporarios-quadro-cargos-modal td small { display: block; margin-top: .2rem; color: #64748b; }
