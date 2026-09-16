@@ -159,6 +159,28 @@
 .unidades-position-summary dt { margin-bottom: 3px; color: #58708a; font-size: 0.75rem; }
 .unidades-position-summary dd { margin: 0; color: #172b4d; font-size: 0.88rem; font-weight: 700; }
 
+.unidades-structure-change { padding: 16px 18px 18px; }
+.unidades-structure-change-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; color: #17324d; font-size: 0.95rem; font-weight: 700; }
+.unidades-structure-change-header .p-button { flex: 0 0 auto; }
+.unidades-structure-current { display: flex; flex-direction: column; gap: 5px; margin-top: 16px; padding: 14px 16px; border: 1px solid #b9dcf5; border-radius: 6px; background: #edf8ff; color: #075d96; }
+.unidades-structure-current small { font-size: 0.68rem; font-weight: 700; }
+.unidades-structure-current strong { font-size: 0.86rem; }
+.unidades-structure-current span { color: #58708a; font-size: 0.76rem; }
+
+.unidades-position-order { margin-top: 18px; padding-top: 16px; border-top: 1px dashed #cbd8e5; }
+.unidades-position-order-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.unidades-position-order-heading h3 { margin: 0; color: #17324d; font-size: 0.94rem; }
+.unidades-position-order-heading p { margin: 4px 0 12px; color: #58708a; font-size: 0.78rem; }
+.unidades-position-order-heading > .pi { padding-top: 3px; color: #0878c9; }
+.unidades-position-order-list { display: flex; flex-direction: column; gap: 7px; }
+.unidades-position-sort-item { display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 8px 10px; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; color: #17324d; font-size: 0.84rem; cursor: grab; user-select: none; }
+.unidades-position-sort-item:active { cursor: grabbing; }
+.unidades-position-sort-item:hover { border-color: #75aae0; background: #f5faff; }
+.unidades-position-sort-item.is-dragging { border-style: dashed; opacity: 0.55; }
+.unidades-position-drag-handle { color: #6d8299; }
+.unidades-position-sort-index { display: inline-flex; align-items: center; justify-content: center; min-width: 21px; height: 21px; border-radius: 50%; background: #eaf3fb; color: #075d96; font-size: 0.72rem; font-weight: 700; }
+.unidades-position-order-empty { padding: 12px; border: 1px dashed #ced9e5; border-radius: 6px; color: #58708a; font-size: 0.8rem; }
+
 .unidades-register-fields {
   margin: 0;
   row-gap: 0.5rem;
@@ -234,3 +256,5 @@
     width: 100%;
   }
 }
+.unidades-register-fieldset{min-width:0;margin:0;padding:0;border:0}
+.unidades-register-fieldset:disabled{opacity:1}

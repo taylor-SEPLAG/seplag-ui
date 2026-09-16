@@ -2623,3 +2623,5 @@
   align-self: flex-end;
   color: #667085;
 }
+
+.prototype-residentes-quadro-kpis--bolsistas { grid-template-columns: repeat(5, minmax(0, 1fr)); }

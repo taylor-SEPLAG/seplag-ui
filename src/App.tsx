@@ -39,6 +39,7 @@ import {
   PrototiposGestaoDocumentosPage,
   PrototiposGestaoDocumentosCadastroPage,
   PrototiposControleVagasRegrasPage,
+  PrototiposControleVagasGeralPage,
   PrototiposVagasTemporariosPage,
   PrototiposVagasTemporariosQuadroPage,
   PrototiposVagasTemporariosIndividualizadasPage,
@@ -61,6 +62,8 @@ import {
   PrototiposControlePssIntegracaoSiesPage,
   PrototiposControlePssCertamesPage,
   PrototiposControlePssCertameFormPage,
+  PrototiposControlePssComissoesPage,
+  PrototiposControlePssComissaoFormPage,
   PrototiposControlePssLocaisPage,
   PrototiposControlePssLocalFormPage,
   PrototiposControlePssFasesCertamePage,
@@ -1673,6 +1676,9 @@ function App() {
         element={<PrototiposControleVagasRegrasPage />}
       />
       <Route
+        path="/prototipos/sigep/controle-vagas"
+        element={<PrototiposControleVagasGeralPage />}
+      />      <Route
         path="/prototipos/sigep/controle-vagas/dashboard"
         element={<PrototiposControleVagasDashboardPage />}
       />
@@ -1755,6 +1761,18 @@ function App() {
       <Route
         path="/prototipos/sigep/controle-pss/certames/:id"
         element={<PrototiposControlePssCertameFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/comissoes"
+        element={<PrototiposControlePssComissoesPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/comissoes/novo"
+        element={<PrototiposControlePssComissaoFormPage />}
+      />
+      <Route
+        path="/prototipos/sigep/controle-pss/comissoes/:id"
+        element={<PrototiposControlePssComissaoFormPage />}
       />
       <Route
         path="/prototipos/sigep/controle-pss/locais"

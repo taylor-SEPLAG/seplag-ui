@@ -141,7 +141,7 @@ const resumoOrgaos = (item: QuadroAutorizadoRow) => {
 
 export function QuadroAutorizadoContent() {
   const { quadros: todosQuadros } = useControleVagasStore();
-  const quadros = useMemo(() => todosQuadros.filter((quadro) => quadro.tipoQuadro === "Efetivo"), [todosQuadros]);
+  const quadros = useMemo(() => todosQuadros.filter((quadro) => quadro.codigo.startsWith("QAB-")), [todosQuadros]);
   const navigate = useNavigate();
   const location = useLocation();
   const [routeSearchParams] = useSearchParams();
@@ -202,7 +202,6 @@ type QuadroFiltrosForm = {
   busca: string;
   cargo: string;
   orgao: string;
-  tipo: string;
   situacao: string;
 };
 
@@ -216,6 +215,8 @@ type QuadroListaRow = QuadroAutorizadoRow & {
   disponiveisCalculadas: number;
   movimentaveisCalculadas: number;
   pendentesAto: number;
+  vagasDistribuidas: number;
+  vagasPendentesDistribuicao: number;
   statusVigencia: StatusOperacionalVigenciaSeplag;
 };
 
@@ -246,7 +247,7 @@ const statusVigenciaDoQuadro = (item: QuadroAutorizadoRow) => {
     motivoExtincao: item.motivoExtincao,
   });
   return item.extincaoProgressivaEmAndamento && status === "ATIVO"
-    ? "ENCERRADO"
+    ? "EXTINTO"
     : status;
 };
 const resumoDistribuicaoOrgaos = (
@@ -278,6 +279,7 @@ type VersaoAnteriorQuadro = {
 const evolucaoPadraoPorTipo = (
   item: QuadroAutorizadoRow,
 ): EvolucaoQuadroLegal => {
+  if (item.versao === 1) return "Criação";
   if (item.evolucaoLegal) return item.evolucaoLegal;
   if (item.extincaoProgressivaEmAndamento || item.situacaoVigencia === "EXTINTO") {
     return "Extinção progressiva";
@@ -302,7 +304,7 @@ const versaoAnteriorDoQuadro = (
     statusVigenciaDoQuadro(item) === "EXTINTO"
       ? item.dataEncerramento || item.atualizadoEm
       : undefined,
-  statusVigencia: statusVigenciaDoQuadro(item),
+          statusVigencia: statusVigenciaDoQuadro(item) === "AGENDADO" ? "ATIVO" : statusVigenciaDoQuadro(item),
   evolucao: evolucaoPadraoPorTipo(item),
   ato: item.ato,
 });
@@ -466,7 +468,6 @@ const filtrosIniciais: QuadroFiltrosForm = {
   busca: "",
   cargo: "",
   orgao: "",
-  tipo: "",
   situacao: "",
 };
 
@@ -489,7 +490,7 @@ const resultadosQuadro = (
 function QuadroAutorizadoLista() {
   const { quadros: todosQuadros, vagas, movimentos, comprometimentos } =
     useControleVagasStore();
-  const quadros = useMemo(() => todosQuadros.filter((quadro) => quadro.tipoQuadro === "Efetivo"), [todosQuadros]);
+  const quadros = useMemo(() => todosQuadros.filter((quadro) => quadro.codigo.startsWith("QAB-")), [todosQuadros]);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const situacaoInicial = searchParams.get("situacao") ?? "";
@@ -573,7 +574,7 @@ function QuadroAutorizadoLista() {
       });
       historico.set(
         codigo,
-        ordenadas.slice(1).map(versaoAnteriorDoQuadro),
+        ordenadas.map(versaoAnteriorDoQuadro),
       );
     });
     return historico;
@@ -599,7 +600,6 @@ function QuadroAutorizadoLista() {
           (!filtros.orgao ||
             orgaosDoQuadro(item).includes(filtros.orgao) ||
             orgaosDistribuidos.has(filtros.orgao)) &&
-          (!filtros.tipo || item.vinculo === filtros.tipo) &&
           (!filtros.situacao ||
             statusVigenciaDoQuadro(item) === filtros.situacao)
         );
@@ -609,6 +609,9 @@ function QuadroAutorizadoLista() {
         const vagasDoQuadro = vagas.filter(
           (vaga) => vaga.quadroAutorizadoId === item.id,
         );
+        const quadroFinalizado =
+          statusVigenciaDoQuadro(item) === "ENCERRADO" ||
+          statusVigenciaDoQuadro(item) === "EXTINTO";
         const idsVagasDoQuadro = new Set(vagasDoQuadro.map((vaga) => vaga.id));
         const idsVagasComprometidas = new Set(
           comprometimentos
@@ -632,7 +635,7 @@ function QuadroAutorizadoLista() {
         let pendentesAto = 0;
         vagasDoQuadro.forEach((vaga) => {
           const posicao = calcularPosicaoVaga(vaga, movimentos, dataReferenciaDistribuicao);
-          if (posicao.orgaoDistribuicao) {
+          if (posicao.orgaoDistribuicao && posicao.orgaoDistribuicao.trim().toLocaleUpperCase("pt-BR") !== "ESTADO DE MATO GROSSO") {
             distribuicaoPorOrgao.set(
               posicao.orgaoDistribuicao,
               (distribuicaoPorOrgao.get(posicao.orgaoDistribuicao) ?? 0) + 1,
@@ -641,6 +644,19 @@ function QuadroAutorizadoLista() {
             pendentesAto += 1;
           }
         });
+        const vagasDistribuidas = quadroFinalizado
+          ? 0
+          : [...distribuicaoPorOrgao.values()].reduce(
+              (total, quantidade) => total + quantidade,
+              0,
+            );
+        const vagasPendentesDistribuicao = quadroFinalizado
+          ? 0
+          : Math.max(
+              0,
+              Number(item.autorizadas ?? 0) - vagasDistribuidas,
+            );
+
         const distribuicaoOrgaos = [
           ...[...distribuicaoPorOrgao.entries()]
             .sort(([a], [b]) => a.localeCompare(b, "pt-BR"))
@@ -649,11 +665,11 @@ function QuadroAutorizadoLista() {
               quantidade,
               pendente: false,
             })),
-          ...(pendentesAto > 0
+          ...(vagasPendentesDistribuicao > 0
             ? [
                 {
                   orgao: "Pendente de distribuição",
-                  quantidade: pendentesAto,
+                  quantidade: vagasPendentesDistribuicao,
                   pendente: true,
                 },
               ]
@@ -661,13 +677,17 @@ function QuadroAutorizadoLista() {
         ];
         return {
           ...item,
-          orgaoResumo: resumoDistribuicaoOrgaos(distribuicaoOrgaos),
+          orgaoResumo: quadroFinalizado && vagasDistribuidas === 0
+            ? "Vagas encerradas"
+            : resumoDistribuicaoOrgaos(distribuicaoOrgaos),
           distribuicaoOrgaos,
           comprometidas: comprometidasCalculadas,
           movimentaveisCalculadas,
           pendentesAto,
-          disponiveisCalculadas: Math.max(0, saldo(item) - pendentesAto),
-          statusVigencia: statusVigenciaDoQuadro(item),
+          vagasDistribuidas,
+          vagasPendentesDistribuicao,
+          disponiveisCalculadas: quadroFinalizado ? 0 : Math.max(0, saldo(item) - pendentesAto),
+          statusVigencia: statusVigenciaDoQuadro(item) === "AGENDADO" ? "ATIVO" : statusVigenciaDoQuadro(item),
         };
       })
       .filter(
@@ -679,7 +699,6 @@ function QuadroAutorizadoLista() {
     filtros.busca,
     filtros.cargo,
     filtros.orgao,
-    filtros.tipo,
     filtros.situacao,
     quadrosOperacionais,
     vagas,
@@ -688,22 +707,50 @@ function QuadroAutorizadoLista() {
     saldoInicial,
   ]);
 
-  const totais = filtrados.reduce(
-    (acc, item) => ({
-      autorizadas: acc.autorizadas + item.autorizadas,
-      ocupadas: acc.ocupadas + item.ocupadas,
-      comprometidas: acc.comprometidas + item.comprometidas,
-      disponiveis: acc.disponiveis + item.disponiveisCalculadas,
-      pendentesDistribuicao: acc.pendentesDistribuicao + item.pendentesAto,
-    }),
-    {
-      autorizadas: 0,
-      ocupadas: 0,
-      comprometidas: 0,
-      disponiveis: 0,
-      pendentesDistribuicao: 0,
-    },
-  );
+  const indicadores = useMemo(() => {
+    const idsQuadros = new Set(quadrosOperacionais.map((quadro) => quadro.id));
+    const vagasBolsistas = vagas.filter((vaga) => idsQuadros.has(vaga.quadroAutorizadoId));
+    const vagasDistribuidas = vagasBolsistas.filter((vaga) => {
+      const quadro = quadrosOperacionais.find((item) => item.id === vaga.quadroAutorizadoId);
+      if (!quadro || statusVigenciaDoQuadro(quadro) !== "ATIVO") return false;
+
+      const orgao = calcularPosicaoVaga(
+        vaga,
+        movimentos,
+        dataReferenciaDistribuicao,
+      ).orgaoDistribuicao?.trim().toLocaleUpperCase("pt-BR");
+      return Boolean(orgao) && orgao !== "ESTADO DE MATO GROSSO";
+    });
+    const vagasAutorizadas = quadrosOperacionais.reduce(
+      (total, quadro) => total + Number(quadro.autorizadas ?? 0),
+      0,
+    );
+
+    const vagasPendentesDistribuicao = quadrosOperacionais.reduce(
+      (total, quadro) => {
+        if (statusVigenciaDoQuadro(quadro) !== "ATIVO") return total;
+        const distribuidas = vagas.filter((vaga) => {
+          if (vaga.quadroAutorizadoId !== quadro.id) return false;
+          const orgao = calcularPosicaoVaga(
+            vaga,
+            movimentos,
+            dataReferenciaDistribuicao,
+          ).orgaoDistribuicao?.trim().toLocaleUpperCase("pt-BR");
+          return Boolean(orgao) && orgao !== "ESTADO DE MATO GROSSO";
+        }).length;
+        return total + Math.max(Number(quadro.autorizadas ?? 0) - distribuidas, 0);
+      },
+      0,
+    );
+
+    return {
+      quadrosCadastrados: quadrosOperacionais.length,
+      cargosBolsistasVinculados: listarCargosBolsistas().length,
+      vagasBolsistasAutorizadas: vagasAutorizadas,
+      vagasBolsistasDistribuidas: vagasDistribuidas.length,
+      vagasPendentesDistribuicao,
+    };
+  }, [quadrosOperacionais, vagas, movimentos]);
 
   const confirmarExclusao = () => {
     if (
@@ -805,7 +852,7 @@ function QuadroAutorizadoLista() {
       field: "autorizadas",
       header: (
         <SpecArea metadata={quadroColumnSpecifications.Autorizadas}>
-          <span>Autorizadas</span>
+          <span>Vagas autorizadas</span>
         </SpecArea>
       ),
       sortable: true,
@@ -817,75 +864,38 @@ function QuadroAutorizadoLista() {
         ),
     },
     {
-      field: "ocupadas",
+      field: "vagasDistribuidas",
       header: (
-        <SpecArea metadata={quadroColumnSpecifications.Ocupadas}>
-          <span>Ocupadas</span>
+        <SpecArea metadata={quadroColumnSpecifications.Autorizadas}>
+          <span>Vagas distribuídas</span>
         </SpecArea>
       ),
       sortable: true,
       body: (item) =>
         celulaComEspecificacao(
           item,
-          quadroColumnSpecifications.Ocupadas,
-          <span>{item.ocupadas}</span>,
+          quadroColumnSpecifications.Autorizadas,
+          <span>{item.vagasDistribuidas}</span>,
         ),
     },
     {
-      field: "comprometidas",
+      field: "vagasPendentesDistribuicao",
       header: (
-        <SpecArea metadata={quadroColumnSpecifications.Comprometidas}>
-          <span>Comprometidas</span>
+        <SpecArea metadata={quadroColumnSpecifications.Autorizadas}>
+          <span>Vagas pendentes de distribuição</span>
         </SpecArea>
       ),
       sortable: true,
       body: (item) =>
         celulaComEspecificacao(
           item,
-          quadroColumnSpecifications.Comprometidas,
-          <strong className={item.comprometidas > 0 ? "is-warning" : ""}>
-            {item.comprometidas}
+          quadroColumnSpecifications.Autorizadas,
+          <strong className={item.vagasPendentesDistribuicao > 0 ? "is-warning" : ""}>
+            {item.vagasPendentesDistribuicao}
           </strong>,
         ),
     },
     {
-      field: "disponiveisCalculadas",
-      header: (
-        <SpecArea metadata={quadroColumnSpecifications.Disponíveis}>
-          <span>Disponíveis</span>
-        </SpecArea>
-      ),
-      sortable: true,
-      body: (item) =>
-        celulaComEspecificacao(
-          item,
-          quadroColumnSpecifications.Disponíveis,
-          <strong
-            className={
-              item.disponiveisCalculadas <= 0 ? "is-danger" : "is-positive"
-            }
-          >
-            {item.disponiveisCalculadas}
-          </strong>,
-        ),
-    },
-    {
-      field: "pendentesAto",
-      header: (
-        <SpecArea metadata={quadroColumnSpecifications["Pendente de distribuição"]}>
-          <span>Pendente de distribuição</span>
-        </SpecArea>
-      ),
-      sortable: true,
-      body: (item) =>
-        celulaComEspecificacao(
-          item,
-          quadroColumnSpecifications["Pendente de distribuição"],
-          <strong className={item.pendentesAto > 0 ? "is-warning" : ""}>
-            {item.pendentesAto}
-          </strong>,
-        ),
-    },    {
       field: "statusVigencia",
       header: (
         <SpecArea metadata={quadroColumnSpecifications.Situação}>
@@ -894,7 +904,7 @@ function QuadroAutorizadoLista() {
       ),
       sortable: true,
       body: (item) => {
-        const meta = statusVigenciaVisualDoQuadro(item);
+        const meta = statusVigenciaMeta[item.statusVigencia];
         const rotuloQuebrado = meta.label;
 
         return (
@@ -917,8 +927,8 @@ function QuadroAutorizadoLista() {
   ];
   const renderHistoricoVersoes = (item: QuadroListaRow) => {
     const versoes =
-      historicoVersoesPorQuadro.get(String(item.id)) ??
       historicoVersoesPorQuadro.get(item.codigo) ??
+      historicoVersoesPorQuadro.get(String(item.id)) ??
       versoesAnterioresPorQuadro[item.codigo] ??
       [];
     const chavePaginacao = String(item.id);
@@ -1190,18 +1200,18 @@ function QuadroAutorizadoLista() {
           <SpecArea metadata={quadroScreenSpecification}>
             <div>
               <h1>Quadro Autorizado Bolsistas</h1>
-              <p>Quantitativos autorizados por cargo, vínculo e órgão.</p>
+              <p>Quadros e vagas de bolsas autorizadas por cargo.</p>
             </div>
           </SpecArea>
         </header>
 
-        <section className="prototype-residentes-quadro-kpis">
+        <section className="prototype-residentes-quadro-kpis prototype-residentes-quadro-kpis--bolsistas">
           <SpecArea metadata={quadroKpiSpecifications.Autorizadas}>
             <article>
               <i className="pi pi-file-check" />
               <div>
-                <span>Autorizadas</span>
-                <strong>{totais.autorizadas.toLocaleString("pt-BR")}</strong>
+                <span>Quadros cadastrados</span>
+                <strong>{indicadores.quadrosCadastrados.toLocaleString("pt-BR")}</strong>
               </div>
             </article>
           </SpecArea>
@@ -1209,8 +1219,8 @@ function QuadroAutorizadoLista() {
             <article>
               <i className="pi pi-users" />
               <div>
-                <span>Ocupadas</span>
-                <strong>{totais.ocupadas.toLocaleString("pt-BR")}</strong>
+                <span>Cargos bolsistas vinculados</span>
+                <strong>{indicadores.cargosBolsistasVinculados.toLocaleString("pt-BR")}</strong>
               </div>
             </article>
           </SpecArea>
@@ -1218,8 +1228,8 @@ function QuadroAutorizadoLista() {
             <article>
               <i className="pi pi-clock" />
               <div>
-                <span>Comprometidas</span>
-                <strong>{totais.comprometidas.toLocaleString("pt-BR")}</strong>
+                <span>Vagas bolsistas autorizadas</span>
+                <strong>{indicadores.vagasBolsistasAutorizadas.toLocaleString("pt-BR")}</strong>
               </div>
             </article>
           </SpecArea>
@@ -1227,8 +1237,8 @@ function QuadroAutorizadoLista() {
             <article className="is-available">
               <i className="pi pi-check-circle" />
               <div>
-                <span>Disponíveis</span>
-                <strong>{totais.disponiveis.toLocaleString("pt-BR")}</strong>
+                <span>Vagas bolsistas distribuídas</span>
+                <strong>{indicadores.vagasBolsistasDistribuidas.toLocaleString("pt-BR")}</strong>
               </div>
             </article>
           </SpecArea>
@@ -1236,9 +1246,9 @@ function QuadroAutorizadoLista() {
             <article className="is-pending-distribution">
               <i className="pi pi-clock" />
               <div>
-                <span>Pendente de distribuição</span>
+                <span>Vagas pendentes de distribuição</span>
                 <strong>
-                  {totais.pendentesDistribuicao.toLocaleString("pt-BR")}
+                  {indicadores.vagasPendentesDistribuicao.toLocaleString("pt-BR")}
                 </strong>
               </div>
             </article>
@@ -1307,23 +1317,6 @@ function QuadroAutorizadoLista() {
                 />
               </div>
             </SpecArea>
-            <SpecArea metadata={quadroFilterSpecifications["Tipo de vínculo"]}>
-              <div className="prototype-residentes-quadro-spec-control">
-                <DropdownFieldSeplag
-                  name="tipo"
-                  control={control}
-                  label="Tipo de vínculo"
-                  cols="12"
-                  options={[
-                    ...new Set(quadros.map((item) => item.vinculo)),
-                  ].map((value) => ({ label: value, value }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Todos"
-                  getFormErrorMessage={() => null}
-                />
-              </div>
-            </SpecArea>
             <SpecArea metadata={quadroFilterSpecifications.Situação}>
               <div className="prototype-residentes-quadro-spec-control">
                 <DropdownFieldSeplag
@@ -1331,7 +1324,7 @@ function QuadroAutorizadoLista() {
                   control={control}
                   label="Situação"
                   cols="12"
-                  options={Object.entries(statusVigenciaMeta).map(
+                  options={Object.entries(statusVigenciaMeta).filter(([value]) => value !== "AGENDADO").map(
                     ([value, meta]) => ({ label: meta.label, value }),
                   )}
                   optionLabel="label"

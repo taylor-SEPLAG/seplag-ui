@@ -8,6 +8,8 @@ import { ControleVagasPssContent } from "./ControleVagasPssContent";
 import { IntegracaoSiesContent } from "./IntegracaoSiesContent";
 import { CertamesListContent } from "./certame/CertamesListContent";
 import { CertameFormContent } from "./certame/CertameFormContent";
+import { ComissoesListContent } from "./comissoes/ComissoesListContent";
+import { ComissaoFormContent } from "./comissoes/ComissaoFormContent";
 import { EMPRESAS_CADASTRADAS } from "./certame/dominios";
 import { controlePssStore } from "./controlePssStore";
 import { definicoesEtapasPss, etapasBloqueadas, etapasManuais, gerarEtapasDoProcesso, progressoProcesso } from "./fluxoPssUtils";
@@ -24,6 +26,8 @@ const cases = [
   ["Integração SIES", IntegracaoSiesContent],
   ["Cadastro de Certames", CertamesListContent],
   ["Formulário de Certame", CertameFormContent],
+  ["Cadastro de Comissões", ComissoesListContent],
+  ["Formulário de Comissão", ComissaoFormContent],
 ] as const;
 
 describe("menus do Controle PSS", () => {

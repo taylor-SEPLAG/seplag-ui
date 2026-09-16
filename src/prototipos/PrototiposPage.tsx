@@ -1,8 +1,10 @@
 import { BreadcrumbVagas as BreadcrumbVagasResidentes } from "./controleVagasResidentes/BreadcrumbVagas";
 import { atualizarControleVagasBolsistas } from "./controleVagasResidentes/cargosBolsistasStore";
+import { atualizarControleVagasComissionadas, cargosComissionadosIniciais } from "./controleVagasComissionados/cargosComissionadosStore";
 import { BreadcrumbVagas as BreadcrumbVagasComissionados } from "./controleVagasComissionados/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTemporarios/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
+import { ControleVagasGeralContent } from "./controleVagas/ControleVagasGeralContent";
 import { VagasTemporariosContent } from "./controleVagasTemporarios/VagasTemporariosContent";
 import { QuadroAutorizadoContent as QuadroTemporariosContent } from "./controleVagasTemporarios/QuadroAutorizadoContent";
 import { VagasIndividualizadasContent as IndividualizadasTemporariosContent } from "./controleVagasTemporarios/VagasIndividualizadasContent";
@@ -150,6 +152,8 @@ import { ProcessosSeletivosContent as PssProcessosSeletivosContent } from "./con
 import { ControleVagasPssContent as PssControleVagasContent } from "./controlePss/ControleVagasPssContent";
 import { IntegracaoSiesContent as PssIntegracaoSiesContent } from "./controlePss/IntegracaoSiesContent";
 import { CertamesListContent as PssCertamesListContent } from "./controlePss/certame/CertamesListContent";
+import { ComissoesListContent as PssComissoesListContent } from "./controlePss/comissoes/ComissoesListContent";
+import { ComissaoFormContent as PssComissaoFormContent } from "./controlePss/comissoes/ComissaoFormContent";
 import { CertameFormContent as PssCertameFormContent } from "./controlePss/certame/CertameFormContent";
 import { LocaisListContent as PssLocaisListContent } from "./controlePss/locais/LocaisListContent";
 import { LocalFormContent as PssLocalFormContent } from "./controlePss/locais/LocalFormContent";
@@ -270,7 +274,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
       {
         label: "Controle de Vagas",
         icon: "pi pi-chart-bar",
-        url: "#",
+        to: CONTROLE_VAGAS_BASE_PATH,
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
@@ -342,6 +346,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Painel Geral", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/painel`, visibleOnMenu: false, visibleOnRouter: true },
           { label: "Cadastro de Certames", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/certames`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Comissões", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/comissoes`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Locais", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/locais`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Fase do Certame", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/fases-certame`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tipos de Cota", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/tipos-cota`, visibleOnMenu: true, visibleOnRouter: true },
@@ -1978,7 +1983,23 @@ const cargosTesteMock: CargoTesteRow[] = [
     situacao: "ATIVO",
     tiposVinculo: ["TV005", "TV007"],
     controleVagasBolsista: true,
-  },];
+  },
+  ...cargosComissionadosIniciais.map((item) => ({
+    id: item.id,
+    codigo: item.codigo,
+    cargo: item.nome,
+    categoria: "Cargos em Comissão",
+    subcategoria: "Simbologia remuneratória",
+    jornadaPadrao: "Conforme ato",
+    baseLegal: 1,
+    instituicoes: 0,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO" as const,
+    tiposVinculo: ["TV003"],
+    controleVagasComissionadas: true,
+  })),
+];
 
 const cargoRegrasUsoTesteMock = [
   {
@@ -7507,6 +7528,13 @@ export function PrototiposControleVagasDistribuicaoSaldoPage() {
     </PrototypeSystemPage>
   );
 }
+export function PrototiposControleVagasGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <ControleVagasGeralContent />
+    </PrototypeSystemPage>
+  );
+}
 export function PrototiposControleVagasDashboardPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
@@ -7556,6 +7584,12 @@ export function PrototiposControlePssCertamesPage() {
 }
 export function PrototiposControlePssCertameFormPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssCertameFormContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssComissoesPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssComissoesListContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssComissaoFormPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssComissaoFormContent /></PrototypeSystemPage>;
 }
 export function PrototiposControlePssLocaisPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssLocaisListContent /></PrototypeSystemPage>;
@@ -9135,10 +9169,11 @@ export function PrototiposCargoFormPage({
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
       vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO",
-      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis,
+      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasComissionadas: values.controleVagasComissionadas === true,
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     atualizarControleVagasBolsistas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasBolsista === true);
+    atualizarControleVagasComissionadas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasComissionadas === true);
     cargosTesteMock.forEach((cargo) => {
       if (cargo.id === registroId) return;
       const relacionados = new Set(cargo.cargosAcumulaveis ?? []);
@@ -9318,6 +9353,10 @@ export function PrototiposCargoFormPage({
               <div className="prototype-shared-criterio-item">
                 <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" />
                 <span>Disponibiliza este cargo no Quadro Autorizado Bolsistas.</span>
+              </div>
+              <div className="prototype-shared-criterio-item">
+                <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" />
+                <span>Disponibiliza este cargo como simbologia remuneratória no Quadro de Vagas Comissionados.</span>
               </div>            </div>
             {permiteAcumuloCargo ? (
               <div className="grid prototype-carreira-register-fields">

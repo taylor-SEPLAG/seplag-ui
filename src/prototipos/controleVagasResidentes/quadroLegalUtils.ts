@@ -300,10 +300,10 @@ export function reconciliarQuadroAposVacanciaEmExtincao(
       ocupadas,
       comprometidas: 0,
       bloqueadas: 0,
-      situacaoVigencia: "ENCERRADO",
-      dataEncerramento:
-        quadro.dataEncerramento ?? quadro.dataInicioExtincaoProgressiva ?? dataVacancia,
-      motivoEncerramento: "Extinção progressiva em andamento.",
+      situacaoVigencia: "EXTINTO",
+      dataExtincao:
+        quadro.dataExtincao ?? quadro.dataInicioExtincaoProgressiva ?? dataVacancia,
+      motivoExtincao: "Extinção progressiva em andamento.",
       situacao: "Encerrada",
       atualizadoEm: dataBr(dataVacancia),
     };
@@ -315,9 +315,9 @@ export function reconciliarQuadroAposVacanciaEmExtincao(
     ocupadas: 0,
     comprometidas: 0,
     bloqueadas: 0,
-    situacaoVigencia: "EXTINTO",
-    dataExtincao: dataVacancia,
-    motivoExtincao:
+    situacaoVigencia: "ENCERRADO",
+    dataEncerramento: dataVacancia,
+    motivoEncerramento:
       "Extinção progressiva concluída após a vacância da última vaga ocupada.",
     fimVigencia: dataBr(dataVacancia),
     situacao: "Encerrada",

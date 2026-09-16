@@ -88,53 +88,41 @@
   border-radius: .28rem;
 }
 
-.prototype-comissionados-quadro-detail {
-  position: fixed;
-  z-index: 20;
-  right: 1.5rem;
-  bottom: 1.5rem;
-  width: min(29rem, calc(100vw - 3rem));
-  padding: 1rem;
-  border: 1px solid #b9d4e7;
-  border-radius: .5rem;
-  background: #fff;
-  box-shadow: 0 12px 32px #152a4140;
+.prototype-comissionados-quadro-summary-modal {
+  padding: .25rem .1rem .15rem;
 }
 
-.prototype-comissionados-quadro-detail header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.prototype-comissionados-quadro-detail header span {
+.prototype-comissionados-quadro-summary-modal header span {
+  display: block;
   color: #0871b8;
   font-size: .68rem;
   font-weight: 800;
   letter-spacing: .06em;
 }
 
-.prototype-comissionados-quadro-detail h2 {
-  margin: .2rem 0;
+.prototype-comissionados-quadro-summary-modal h2 {
+  margin: .25rem 0 0;
+  color: #17233c;
   font-size: 1rem;
+  line-height: 1.35;
 }
 
-.prototype-comissionados-quadro-detail dl {
+.prototype-comissionados-quadro-summary-modal dl {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .8rem;
-  margin: 1rem 0 0;
+  margin: 1.15rem 0 .1rem;
 }
 
-.prototype-comissionados-quadro-detail dt {
+.prototype-comissionados-quadro-summary-modal dt {
   color: #68758a;
   font-size: .72rem;
 }
 
-.prototype-comissionados-quadro-detail dd {
+.prototype-comissionados-quadro-summary-modal dd {
   margin: .2rem 0 0;
   color: #17233c;
+  font-size: .95rem;
   font-weight: 700;
 }
 
@@ -151,4 +139,48 @@
   width: auto !important;
   min-width: 0 !important;
   flex: 0 0 auto;
+}
+
+.prototype-comissionados-historico { padding: .85rem 1rem; background: #f8fbfd; }
+.prototype-comissionados-historico header { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .65rem; color: #35455c; }
+.prototype-comissionados-historico header span { color: #68758a; font-size: .78rem; }
+.prototype-comissionados-historico table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.prototype-comissionados-historico th, .prototype-comissionados-historico td { padding: .55rem .7rem; border: 1px solid #dbe3ea; text-align: left; }
+.prototype-comissionados-historico th { background: #f2f5f8; color: #35455c; font-weight: 800; }
+.prototype-comissionados-historico td:last-child { text-align: center; }
+@media (max-width: 700px) { .prototype-comissionados-historico header { flex-direction: column; } }
+
+/* Coluna Ações: grupo centralizado no cabeçalho e em cada linha. */
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(6),
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(6) {
+  text-align: center !important;
+}
+
+.prototype-comissionados-quadro-table .p-datatable-thead > tr > th:nth-child(6) .p-column-header-content,
+.prototype-comissionados-quadro-table .p-datatable-tbody > tr > td:nth-child(6) .prototype-comissionados-quadro-actions {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+/* Filtros da listagem: controles com tipografia, altura e alinhamento uniformes. */
+.prototype-comissionados-quadro-filters { grid-template-columns: minmax(22rem, 1.45fr) repeat(2, minmax(17rem, 1fr)) auto; align-items: end; }
+.prototype-comissionados-quadro-filters > .prototype-quadro-spec-control, .prototype-comissionados-quadro-filters > .prototype-quadro-spec-control > .col-12, .prototype-comissionados-quadro-filters .content-rotulo, .prototype-comissionados-quadro-filters .elemento, .prototype-comissionados-quadro-filters .elemento > .flex { min-width: 0; width: 100%; }
+.prototype-comissionados-quadro-filters > .prototype-quadro-spec-control > .col-12 { padding: 0; }
+.prototype-comissionados-quadro-filters .label-rotulo { color: #47556a; font-size: .88rem !important; font-weight: 700; }
+.prototype-comissionados-quadro-filters .p-inputtext, .prototype-comissionados-quadro-filters .p-dropdown, .prototype-comissionados-quadro-filters .p-multiselect { height: 2.5rem; min-height: 2.5rem; font-size: .95rem; }
+.prototype-comissionados-quadro-filters .p-dropdown-label, .prototype-comissionados-quadro-filters .p-multiselect-label { font-size: .95rem; }
+@media (max-width: 1100px) { .prototype-comissionados-quadro-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+@media (min-width: 1101px) { .prototype-comissionados-quadro-filters { grid-template-columns: minmax(28rem, 1.55fr) repeat(2, minmax(18rem, 1fr)) minmax(7rem, auto); } .prototype-comissionados-quadro-filters > .prototype-quadro-spec-control:has(> .p-button), .prototype-comissionados-quadro-filters > .prototype-quadro-spec-control:has(> button) { grid-column: 4 !important; grid-row: 1 !important; } }
+
+/* Sobrescreve a grade global de efetivos: Quadro, Órgão, Situação e Limpar. */
+@media (min-width: 1101px) {
+  .prototype-quadro-library-filters.prototype-comissionados-quadro-filters {
+    grid-template-columns: minmax(32rem, 1.7fr) minmax(18rem, 1fr) minmax(18rem, 1fr) minmax(7rem, auto) !important;
+  }
+  .prototype-quadro-library-filters.prototype-comissionados-quadro-filters > .prototype-quadro-spec-control:nth-child(1) { grid-column: 1 !important; }
+  .prototype-quadro-library-filters.prototype-comissionados-quadro-filters > .prototype-quadro-spec-control:nth-child(2) { grid-column: 2 !important; }
+  .prototype-quadro-library-filters.prototype-comissionados-quadro-filters > .prototype-quadro-spec-control:nth-child(3) { grid-column: 3 !important; }
+  .prototype-quadro-library-filters.prototype-comissionados-quadro-filters > .prototype-quadro-spec-control:nth-child(4) { grid-column: 4 !important; grid-row: 1 !important; align-self: end; }
 }

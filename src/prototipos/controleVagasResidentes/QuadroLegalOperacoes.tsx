@@ -1656,6 +1656,15 @@ const vagasElegiveisRedistribuicao =
             label="Data de efeito"
             required
             cols="12 12 3"
+            maxDate={new Date()}
+            customValidation={(value) => {
+              if (!value) return true;
+              const [dia, mes, ano] = String(value).split("/");
+              const dataInformada = new Date(Number(ano), Number(mes) - 1, Number(dia));
+              const dataLimite = new Date();
+              dataLimite.setHours(0, 0, 0, 0);
+              return dataInformada <= dataLimite || "A data de efeito não pode ser futura.";
+            }}
             onChange={() => {
               setResultado(null);
               resetarOperacoesDistributivas();

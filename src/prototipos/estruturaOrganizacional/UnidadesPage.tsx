@@ -24,6 +24,8 @@ interface UnidadeRow {
   tipo: string;
   localizacao: string;
   situacao: SituacaoUnidade;
+  unidadeSuperior?: string;
+  ordem: number;
 }
 
 interface UnidadeFiltro {
@@ -33,17 +35,32 @@ interface UnidadeFiltro {
   situacao?: SituacaoUnidade;
 }
 
-const unidades: UnidadeRow[] = [
-  { id: 1, nome: "Gabinete do Secretário de Estado de Planejamento e Gestão", sigla: "GAB", codigo: "U0001", orgao: "SEPLAG", tipo: "Gabinete", localizacao: "Cuiabá/MT", situacao: "ATIVA" },
-  { id: 2, nome: "Gabinete do Secretário Adjunto de Planejamento e Governo Digital", sigla: "GSAPGD", codigo: "U0002", orgao: "SEPLAG", tipo: "Secretaria Adjunta", localizacao: "Cuiabá/MT", situacao: "ATIVA" },
-  { id: 3, nome: "Superintendência de Modernização Organizacional", sigla: "SUMO", codigo: "U0003", orgao: "SEPLAG", tipo: "Superintendência", localizacao: "Cuiabá/MT", situacao: "ATIVA" },
-  { id: 4, nome: "Coordenadoria de Modelagem Organizacional", sigla: "CMO", codigo: "U0004", orgao: "SEPLAG", tipo: "Coordenadoria", localizacao: "Cuiabá/MT", situacao: "ATIVA" },
-  { id: 5, nome: "Gerência de Otimização de Processos", sigla: "GEOP", codigo: "U0005", orgao: "SEPLAG", tipo: "Gerência", localizacao: "Cuiabá/MT", situacao: "ATIVA" },
-  { id: 6, nome: "Núcleo de Gestão Estratégica para Resultados - NGER", sigla: "NGER", codigo: "U0006", orgao: "SEPLAG", tipo: "Núcleo", localizacao: "Cuiabá/MT", situacao: "ATIVA" },
-  { id: 7, nome: "Gabinete do Secretário de Estado de Educação", sigla: "GAB", codigo: "U0101", orgao: "SEDUC", tipo: "Gabinete", localizacao: "Cuiabá/MT", situacao: "ATIVA" },
-  { id: 8, nome: "Superintendência de Gestão de Pessoas", sigla: "SGP", codigo: "U0102", orgao: "SEDUC", tipo: "Superintendência", localizacao: "Cuiabá/MT", situacao: "ATIVA" },
-  { id: 9, nome: "Coordenadoria Regional", sigla: "COR", codigo: "U0103", orgao: "SEDUC", tipo: "Coordenadoria", localizacao: "Rondonópolis/MT", situacao: "ATIVA" },
+const CHAVE_UNIDADES_CADASTRADAS = "sigep-prototipo-unidades-cadastradas-v2";
+const unidadesIniciais: UnidadeRow[] = [
+  { id: 1, nome: "Gabinete do Secretário de Estado de Planejamento e Gestão", sigla: "GAB", codigo: "U0001", orgao: "SEPLAG", tipo: "Gabinete", localizacao: "Cuiabá/MT", situacao: "ATIVA", ordem: 1 },
+  { id: 2, nome: "Gabinete do Secretário Adjunto de Planejamento e Governo Digital", sigla: "GSAPGD", codigo: "U0002", orgao: "SEPLAG", tipo: "Secretaria Adjunta", localizacao: "Cuiabá/MT", situacao: "ATIVA", unidadeSuperior: "Gabinete do Secretário de Estado de Planejamento e Gestão", ordem: 1 },
+  { id: 3, nome: "Superintendência de Modernização Organizacional", sigla: "SUMO", codigo: "U0003", orgao: "SEPLAG", tipo: "Superintendência", localizacao: "Cuiabá/MT", situacao: "ATIVA", unidadeSuperior: "Gabinete do Secretário Adjunto de Planejamento e Governo Digital", ordem: 1 },
+  { id: 4, nome: "Coordenadoria de Modelagem Organizacional", sigla: "CMO", codigo: "U0004", orgao: "SEPLAG", tipo: "Coordenadoria", localizacao: "Cuiabá/MT", situacao: "ATIVA", unidadeSuperior: "Gabinete do Secretário Adjunto de Planejamento e Governo Digital", ordem: 2 },
+  { id: 5, nome: "Gerência de Otimização de Processos", sigla: "GEOP", codigo: "U0005", orgao: "SEPLAG", tipo: "Gerência", localizacao: "Cuiabá/MT", situacao: "ATIVA", unidadeSuperior: "Gabinete do Secretário Adjunto de Planejamento e Governo Digital", ordem: 3 },
+  { id: 6, nome: "Núcleo de Gestão Estratégica para Resultados - NGER", sigla: "NGER", codigo: "U0006", orgao: "SEPLAG", tipo: "Núcleo", localizacao: "Cuiabá/MT", situacao: "ATIVA", unidadeSuperior: "Superintendência de Modernização Organizacional", ordem: 1 },
+  { id: 7, nome: "Gabinete do Secretário de Estado de Educação", sigla: "GAB", codigo: "U0101", orgao: "SEDUC", tipo: "Gabinete", localizacao: "Cuiabá/MT", situacao: "ATIVA", ordem: 1 },
+  { id: 8, nome: "Superintendência de Gestão de Pessoas", sigla: "SGP", codigo: "U0102", orgao: "SEDUC", tipo: "Superintendência", localizacao: "Cuiabá/MT", situacao: "ATIVA", unidadeSuperior: "Gabinete do Secretário de Estado de Educação", ordem: 1 },
+  { id: 9, nome: "Coordenadoria Regional", sigla: "COR", codigo: "U0103", orgao: "SEDUC", tipo: "Coordenadoria", localizacao: "Rondonópolis/MT", situacao: "ATIVA", unidadeSuperior: "Superintendência de Gestão de Pessoas", ordem: 1 },
 ];
+
+const lerUnidadesCadastradas = (): UnidadeRow[] => {
+  if (typeof window === "undefined") return unidadesIniciais;
+  try {
+    const registros = window.localStorage.getItem(CHAVE_UNIDADES_CADASTRADAS);
+    return registros ? JSON.parse(registros) as UnidadeRow[] : unidadesIniciais;
+  } catch {
+    return unidadesIniciais;
+  }
+};
+
+const gravarUnidadesCadastradas = (registros: UnidadeRow[]) => {
+  window.localStorage.setItem(CHAVE_UNIDADES_CADASTRADAS, JSON.stringify(registros));
+};
 
 const options = (values: string[]) => values.map((value) => ({ label: value, value }));
 const documentosLegaisUnidade: DocumentoLegalAssociadoSeplag[] = [
@@ -57,6 +74,7 @@ interface UnidadeCadastroForm {
   formaVinculacao: "ORGAO" | "SETOR";
   setorSuperior: string;
   tipo: string;
+  nivelOrganizacional: string;
   nome: string;
   sigla: string;
   codigo: string;
@@ -79,15 +97,19 @@ interface UnidadeCadastroForm {
 function UnidadeCadastroPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const unidadeSelecionada = (location.state as { unidade?: UnidadeRow } | null)?.unidade;
+  const modoVisualizacao = new URLSearchParams(location.search).get("modo") === "visualizar";
+  const modoEdicao = new URLSearchParams(location.search).get("modo") === "editar";
   const { control, watch, setValue } = useForm<UnidadeCadastroForm>({
     defaultValues: {
-      orgao: "",
-      formaVinculacao: "SETOR",
-      setorSuperior: "",
-      tipo: "",
-      nome: "",
-      sigla: "",
-      codigo: "",
+      orgao: unidadeSelecionada ? (unidadeSelecionada.orgao === "SEPLAG" ? "SEPLAG - Secretaria de Estado de Planejamento e Gestão" : "SEDUC - Secretaria de Estado de Educação") : "",
+      formaVinculacao: unidadeSelecionada?.unidadeSuperior ? "SETOR" : "ORGAO",
+      setorSuperior: unidadeSelecionada?.unidadeSuperior ?? "",
+      tipo: unidadeSelecionada?.tipo ?? "",
+      nivelOrganizacional: "Nível de Execução Programática",
+      nome: unidadeSelecionada?.nome ?? "",
+      sigla: unidadeSelecionada?.sigla ?? "",
+      codigo: unidadeSelecionada?.codigo ?? "",
       documento: "",
       uf: "",
       municipio: "",
@@ -105,6 +127,9 @@ function UnidadeCadastroPage() {
     },
   });
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
+  const [unidadesCadastradas, setUnidadesCadastradas] = useState<UnidadeRow[]>(lerUnidadesCadastradas);
+  const [unidadeArrastada, setUnidadeArrastada] = useState<number | null>(null);
+  const [alterandoEstrutura, setAlterandoEstrutura] = useState(!modoEdicao);
   const orgao = watch("orgao");
   const formaVinculacao = watch("formaVinculacao");
   const setorSuperior = watch("setorSuperior");
@@ -112,9 +137,25 @@ function UnidadeCadastroPage() {
   const outraLocalidade = watch("outraLocalidade");
   const localidadePropria = outraLocalidade === "SIM";
   const orgaoSelecionado = orgao ? orgao.split(" - ")[0] : "Órgão não selecionado";
-  const niveisPorSetor: Record<string, number> = { "Gabinete do Secretário": 2, "Secretaria Adjunta": 3, "Superintendência de Modernização Organizacional": 4, "Coordenadoria de Modelagem Organizacional": 5 };
   const vinculadoDiretamenteAoOrgao = formaVinculacao === "ORGAO";
-  const nivelHierarquico = vinculadoDiretamenteAoOrgao ? 1 : setorSuperior ? (niveisPorSetor[setorSuperior] ?? 1) + 1 : null;
+  const unidadeSuperiorSelecionada = unidadesCadastradas.find((unidade) => unidade.nome === setorSuperior);
+  const nivelHierarquico = vinculadoDiretamenteAoOrgao ? 1 : unidadeSuperiorSelecionada ? 2 : null;
+  const unidadesMesmoNivel = orgao
+    ? unidadesCadastradas
+      .filter((unidade) => unidade.orgao === orgaoSelecionado && unidade.unidadeSuperior === (vinculadoDiretamenteAoOrgao ? undefined : setorSuperior) && unidade.id !== unidadeSelecionada?.id)
+      .sort((a, b) => a.ordem - b.ordem)
+    : [];
+  const unidadesSuperiores = unidadesCadastradas.filter((unidade) => unidade.orgao === orgaoSelecionado && unidade.id !== unidadeSelecionada?.id);
+  const caminhoSubordinacao = (() => {
+    if (!unidadeSelecionada) return [];
+    const caminho = [unidadeSelecionada.nome];
+    let superior = unidadeSelecionada.unidadeSuperior;
+    while (superior) {
+      caminho.unshift(superior);
+      superior = unidadesCadastradas.find((unidade) => unidade.nome === superior)?.unidadeSuperior;
+    }
+    return [unidadeSelecionada.orgao, ...caminho];
+  })();
 
   useEffect(() => {
     if (vinculadoDiretamenteAoOrgao) setValue("setorSuperior", "");
@@ -132,6 +173,48 @@ function UnidadeCadastroPage() {
 
   const voltar = () => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades");
   const noError = () => null;
+  const trocarOrdem = (unidadeDestino: number) => {
+    if (!unidadeArrastada || unidadeArrastada === unidadeDestino) return;
+
+    setUnidadesCadastradas((cadastroAtual) => {
+      const ordem = unidadesMesmoNivel.map((unidade) => unidade.id);
+      const indiceOrigem = ordem.indexOf(unidadeArrastada);
+      const indiceDestino = ordem.indexOf(unidadeDestino);
+      if (indiceOrigem < 0 || indiceDestino < 0) return cadastroAtual;
+
+      ordem.splice(indiceOrigem, 1);
+      ordem.splice(indiceDestino, 0, unidadeArrastada);
+      const registrosAtualizados = cadastroAtual.map((unidade) => {
+        const novaOrdem = ordem.indexOf(unidade.id);
+        return novaOrdem >= 0 ? { ...unidade, ordem: novaOrdem + 1 } : unidade;
+      });
+      gravarUnidadesCadastradas(registrosAtualizados);
+      return registrosAtualizados;
+    });
+    setUnidadeArrastada(null);
+  };
+  const salvarUnidade = () => {
+    const proximaOrdem = unidadesCadastradas
+      .filter((unidade) => unidade.orgao === orgaoSelecionado && unidade.unidadeSuperior === (vinculadoDiretamenteAoOrgao ? undefined : setorSuperior) && unidade.id !== unidadeSelecionada?.id)
+      .reduce((maior, unidade) => Math.max(maior, unidade.ordem), 0) + 1;
+    const registro: UnidadeRow = {
+      id: unidadeSelecionada?.id ?? Math.max(0, ...unidadesCadastradas.map((unidade) => unidade.id)) + 1,
+      nome: nomeSetor,
+      sigla: watch("sigla"),
+      codigo: watch("codigo") || `U${String(unidadesCadastradas.length + 1).padStart(4, "0")}`,
+      orgao: orgaoSelecionado,
+      tipo: watch("tipo"),
+      localizacao: localidadePropria ? `${watch("cidadeEndereco") || "Cuiabá"}/MT` : "Cuiabá/MT",
+      situacao: unidadeSelecionada?.situacao ?? "ATIVA",
+      unidadeSuperior: vinculadoDiretamenteAoOrgao ? undefined : setorSuperior,
+      ordem: unidadeSelecionada?.ordem ?? proximaOrdem,
+    };
+    const registrosAtualizados = unidadeSelecionada
+      ? unidadesCadastradas.map((unidade) => unidade.id === unidadeSelecionada.id ? registro : unidade)
+      : [...unidadesCadastradas, registro];
+    gravarUnidadesCadastradas(registrosAtualizados);
+    navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades");
+  };
 
   return (
     <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
@@ -139,28 +222,43 @@ function UnidadeCadastroPage() {
         <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Unidades", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades" }, { label: "Cadastrar" }]} />
         <header className="prototype-carreira-register-title">
           <div>
-            <h1>Nova unidade</h1>
-            <p>Cadastre as unidades que compõem a estrutura do órgão.</p>
+            <h1>{modoVisualizacao ? "Visualizar unidade" : modoEdicao ? "Editar unidade" : "Nova unidade"}</h1>
+            <p>{modoVisualizacao ? "Consulte os dados da unidade cadastrada." : modoEdicao ? "Atualize os dados da unidade cadastrada." : "Cadastre as unidades que compõem a estrutura do órgão."}</p>
           </div>
         </header>
           <div className="prototype-carreira-register-form unidades-register-content">
+            <fieldset className="unidades-register-fieldset" disabled={modoVisualizacao}>
             <PanelSeplag title="Identificação da unidade" description="Selecione o órgão e informe os dados básicos da unidade." className="unidades-register-panel">
               <div className="grid unidades-register-fields">
                 <DropdownFieldSeplag name="orgao" control={control} label="Órgão/Entidade" placeholder="Selecione..." cols="12 12 4" options={options(["SEPLAG - Secretaria de Estado de Planejamento e Gestão", "SEDUC - Secretaria de Estado de Educação"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
-                <DropdownFieldSeplag name="tipo" control={control} label="Tipo de unidade" placeholder="Selecione..." cols="12 12 8" options={options(["Gabinete", "Secretaria Adjunta", "Superintendência", "Coordenadoria", "Gerência", "Núcleo", "Unidade", "Conselho", "Comissão", "Ouvidoria", "Diretoria"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="tipo" control={control} label="Tipo de unidade" placeholder="Selecione..." cols="12 12 4" options={options(["Gabinete", "Secretaria Adjunta", "Superintendência", "Coordenadoria", "Gerência", "Núcleo", "Unidade", "Conselho", "Comissão", "Ouvidoria", "Diretoria"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="nivelOrganizacional" control={control} label="Nível organizacional" placeholder="Selecione..." cols="12 12 4" options={options(["Nível de Decisão Colegiada", "Nível de Direção Superior", "Nível de Assessoramento Superior", "Nível Assessoramento Estratégico e Especializado", "Nível de Administração Sistêmica", "Nível de Execução Programática", "Nível de Administração Regionalizada", "Nível de Administração Desconcentrada", "Nível de Administração Descentralizada"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
                 <div className="col-12 unidades-register-field-help">UF e Município serão preenchidos automaticamente conforme o órgão selecionado.</div>
-                <TextFieldSeplag name="codigo" control={control} label="Código" placeholder="Gerado automaticamente" cols="12 12 3" disabled getFormErrorMessage={noError} />
-                <TextFieldSeplag name="nome" control={control} label="Nome da unidade" placeholder="Ex.: Coordenadoria de Modelagem Organizacional" cols="12 12 6" required maxLength={200} getFormErrorMessage={noError} />
+                <TextFieldSeplag name="codigo" control={control} label="Código" placeholder="Gerado automaticamente" cols="12 12 2" disabled getFormErrorMessage={noError} />
+                <TextFieldSeplag name="nome" control={control} label="Nome da unidade" placeholder="Ex.: Coordenadoria de Modelagem Organizacional" cols="12 12 7" required maxLength={200} getFormErrorMessage={noError} />
                 <TextFieldSeplag name="sigla" control={control} label="Sigla" placeholder="Ex.: CMO" cols="12 12 3" maxLength={20} getFormErrorMessage={noError} />
               </div>
             </PanelSeplag>
 
             <PanelSeplag title="Posição na estrutura" description="Escolha a unidade superior. O nível hierárquico será definido automaticamente." className="unidades-register-panel">
-              <div className="unidades-position-grid">
+              {modoEdicao && (
+                <div className="unidades-structure-change">
+                  <div className="unidades-structure-change-header">
+                    <span>Posição na Estrutura Organizacional</span>
+                    <BotaoSeplag type="button" label="Alterar Estrutura / Subordinação" icon="pi pi-external-link" severity="warning" onClick={() => setAlterandoEstrutura(true)} />
+                  </div>
+                  <div className="unidades-structure-current">
+                    <small>SUBORDINAÇÃO ATUAL NA ÁRVORE:</small>
+                    <strong>{caminhoSubordinacao.join(" > ")}</strong>
+                    <span>As alterações de posição serão aplicadas ao salvar a unidade.</span>
+                  </div>
+                </div>
+              )}
+              {(alterandoEstrutura || !modoEdicao) && <div className="unidades-position-grid">
                 <div className="unidades-position-selection">
                   <div className="grid unidades-position-controls">
                     <RadioButtonFieldSeplag name="formaVinculacao" control={control} label="Forma de Vinculação" cols="12 12 6" options={[{ label: "Diretamente ao órgão", value: "ORGAO" }, { label: "Vincular a outra unidade", value: "SETOR" }]} getFormErrorMessage={noError} />
-                    <DropdownFieldSeplag name="setorSuperior" control={control} label="Unidade superior" placeholder={vinculadoDiretamenteAoOrgao ? "Vinculada diretamente ao órgão" : "Selecione..."} cols="12 12 6" options={options(["Gabinete do Secretário", "Secretaria Adjunta", "Superintendência de Modernização Organizacional", "Coordenadoria de Modelagem Organizacional"])} optionLabel="label" optionValue="value" required={!vinculadoDiretamenteAoOrgao} disabled={vinculadoDiretamenteAoOrgao} getFormErrorMessage={noError} />
+                    <DropdownFieldSeplag name="setorSuperior" control={control} label="Unidade superior" placeholder={vinculadoDiretamenteAoOrgao ? "Vinculada diretamente ao órgão" : "Selecione..."} cols="12 12 6" options={options(unidadesSuperiores.map((unidade) => unidade.nome))} optionLabel="label" optionValue="value" required={!vinculadoDiretamenteAoOrgao} disabled={vinculadoDiretamenteAoOrgao} getFormErrorMessage={noError} />
                   </div>
                   <p>Somente unidades válidas para receber esta unidade são exibidas.</p>
                   <div className="unidades-position-tree" aria-label="Prévia da posição na estrutura">
@@ -168,6 +266,40 @@ function UnidadeCadastroPage() {
                     {!vinculadoDiretamenteAoOrgao && setorSuperior && <span className="level-2">{setorSuperior}</span>}
                     <strong className="level-3">{nomeSetor || "Nova unidade"}</strong>
                   </div>
+                  <section className="unidades-position-order" aria-labelledby="ordem-unidades-titulo">
+                    <div className="unidades-position-order-heading">
+                      <div>
+                        <h3 id="ordem-unidades-titulo">Ordem das unidades no mesmo nível</h3>
+                        <p>Arraste uma unidade e solte sobre outra para alterar a ordem de exibição.</p>
+                      </div>
+                      <i className="pi pi-sort-alt" aria-hidden="true" />
+                    </div>
+                    {unidadesMesmoNivel.length > 0 ? (
+                      <div className="unidades-position-order-list" aria-label="Unidades ordenáveis no mesmo nível">
+                        {unidadesMesmoNivel.map((unidade, indice) => (
+                          <div
+                            key={unidade.id}
+                            className={`unidades-position-sort-item${unidadeArrastada === unidade.id ? " is-dragging" : ""}`}
+                            draggable
+                            onDragStart={(event) => {
+                              event.dataTransfer.effectAllowed = "move";
+                              setUnidadeArrastada(unidade.id);
+                            }}
+                            onDragEnd={() => setUnidadeArrastada(null)}
+                            onDragOver={(event) => event.preventDefault()}
+                            onDrop={() => trocarOrdem(unidade.id)}
+                            title="Arraste para reorganizar"
+                          >
+                            <i className="pi pi-bars unidades-position-drag-handle" aria-hidden="true" />
+                            <span className="unidades-position-sort-index">{indice + 1}</span>
+                            <span>{unidade.nome}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="unidades-position-order-empty">Selecione a unidade superior para ordenar as unidades deste nível.</div>
+                    )}
+                  </section>
                 </div>
                 <aside className="unidades-position-summary">
                   <h3>Resumo da posição</h3>
@@ -178,7 +310,7 @@ function UnidadeCadastroPage() {
                     <div><dt>Nova unidade</dt><dd>{nomeSetor || "Nome ainda não informado"}</dd></div>
                   </dl>
                 </aside>
-              </div>
+              </div>}
             </PanelSeplag>
 
             <PanelSeplag title="Vigência" description="Informe o período de vigência da unidade." className="unidades-register-panel">
@@ -227,10 +359,11 @@ function UnidadeCadastroPage() {
                 </div>
               </div>
             </PanelSeplag>
+            </fieldset>
 
             <footer className="prototype-carreira-register-actions unidades-register-actions">
-              <BotaoSeplag type="button" label="Cancelar" outlined onClick={voltar} />
-              <BotaoSalvarSeplag type="button" label="Salvar unidade" onClick={() => {}} />
+              <BotaoSeplag type="button" label={modoVisualizacao ? "Voltar" : "Cancelar"} outlined onClick={voltar} />
+              {!modoVisualizacao && <BotaoSalvarSeplag type="button" label={modoEdicao ? "Salvar alterações" : "Salvar unidade"} onClick={salvarUnidade} />}
             </footer>
           </div>
       </div>
@@ -243,13 +376,14 @@ export function PrototiposUnidadesPage() {
   const location = useLocation();
   const cadastro = location.pathname.endsWith("/novo");
   const [pagina, setPagina] = useState(0);
+  const [unidadesCadastradas] = useState<UnidadeRow[]>(lerUnidadesCadastradas);
   const registrosPorPagina = 10;
   const { control, reset, watch } = useForm<UnidadeFiltro>({
     defaultValues: { pesquisa: "", situacao: "ATIVA" },
   });
   const filtros = watch();
   const termo = filtros.pesquisa.trim().toLocaleLowerCase("pt-BR");
-  const filtradas = unidades.filter((unidade) =>
+  const filtradas = unidadesCadastradas.filter((unidade) =>
     (!termo || [unidade.nome, unidade.sigla, unidade.codigo].some((valor) => valor.toLocaleLowerCase("pt-BR").includes(termo))) &&
     (!filtros.orgao || unidade.orgao === filtros.orgao) &&
     (!filtros.tipo || unidade.tipo === filtros.tipo) &&
@@ -308,7 +442,7 @@ export function PrototiposUnidadesPage() {
           <div className="prototype-category-filters prototype-cargo-filters unidades-list-filters grid">
             <TextFieldSeplag name="pesquisa" control={control} label="Pesquisar" placeholder="Nome da unidade, sigla ou código" cols="12 6 4" getFormErrorMessage={() => null} />
             <DropdownFieldSeplag name="orgao" control={control} label="Órgão/Entidade" placeholder="Todos" cols="12 6 2" options={options(["SEPLAG", "SEDUC"])} optionLabel="label" optionValue="value" showClear getFormErrorMessage={() => null} />
-            <DropdownFieldSeplag name="tipo" control={control} label="Tipo de unidade" placeholder="Todos" cols="12 6 2" options={options([...new Set(unidades.map((item) => item.tipo))])} optionLabel="label" optionValue="value" showClear getFormErrorMessage={() => null} />
+            <DropdownFieldSeplag name="tipo" control={control} label="Tipo de unidade" placeholder="Todos" cols="12 6 2" options={options([...new Set(unidadesCadastradas.map((item) => item.tipo))])} optionLabel="label" optionValue="value" showClear getFormErrorMessage={() => null} />
             <DropdownFieldSeplag name="situacao" control={control} label="Situação" placeholder="Todas" cols="12 6 2" options={[{ label: "Ativa", value: "ATIVA" }, { label: "Inativa", value: "INATIVA" }]} optionLabel="label" optionValue="value" showClear getFormErrorMessage={() => null} />
             <div className="prototype-category-clear col-12 md:col-6 lg:col-2">
               <BotaoLimparFiltroSeplag type="button" label="Limpar" icon="pi pi-refresh" onClick={() => reset({ pesquisa: "", orgao: undefined, tipo: undefined, situacao: undefined })} />
@@ -327,8 +461,8 @@ export function PrototiposUnidadesPage() {
               selectionMode={null}
               hasEventoAcao
               handleAdicionar={() => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo")}
-              handleView={() => {}}
-              handleEdit={() => {}}
+              handleView={(unidade) => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo?modo=visualizar", { state: { unidade } })}
+              handleEdit={(unidade) => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo?modo=editar", { state: { unidade } })}
               handleDelete={() => {}}
               handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))}
             />
