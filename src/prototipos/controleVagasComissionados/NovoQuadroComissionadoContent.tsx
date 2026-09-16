@@ -10,6 +10,7 @@ import {
 import { MensagemSeplag } from "../../componentes/Mensagem";
 import { DateFieldSeplag, DropdownFieldSeplag, TextFieldSeplag } from "../../componentes/Fields";
 import { BaseLegalVinculada } from "./BaseLegalVinculada";
+import { listarCargosControleVagasComissionadas } from "./cargosComissionadosStore";
 import {
   lerRascunhoQuadroComissionado,
   salvarRascunhoQuadroComissionado,
@@ -23,8 +24,6 @@ type Dotacao = { id: string; perfil: string; simbologia: string; cargos: number;
 type ItemEstrutura = { id: string; nome: string; dotacoes: Dotacao[]; subitens: ItemEstrutura[] };
 
 type Nivel = { id: string; nome: string; itens: ItemEstrutura[] };
-
-const SIMBOLOGIAS = ["DGA-1", "DGA-2", "DGA-3", "DGA-4", "DGA-5", "DGA-6", "DGA-7", "DGA-8", "DGA-9", "DGA-10"];
 
 const novoId = () => crypto.randomUUID();
 const novaDotacao = (): Dotacao => ({ id: novoId(), perfil: "", simbologia: "", cargos: 0, funcoes: 0 });
@@ -87,7 +86,8 @@ export function NovoQuadroComissionadoContent() {
   const atualizarNivel = (id: string, atualizar: (nivel: Nivel) => Nivel) => setNiveis((atual) => atual.map((nivel) => nivel.id === id ? atualizar(nivel) : nivel));
   const total = niveis.reduce((soma, nivel) => soma + contarDotacoes(nivel.itens), 0);
   const totais = niveis.reduce((soma, nivel) => somarTotais(nivel.itens, soma), { cargos: 0, funcoes: 0 });
-  const resumoSimbologias = SIMBOLOGIAS.map((simbologia) => ({ simbologia, ...somarPorSimbologia(niveis, simbologia), perfis: perfisPorSimbologia(niveis, simbologia) }));
+  const simbologias = listarCargosControleVagasComissionadas().map((cargo) => cargo.codigo);
+  const resumoSimbologias = simbologias.map((simbologia) => ({ simbologia, ...somarPorSimbologia(niveis, simbologia), perfis: perfisPorSimbologia(niveis, simbologia) }));
   const orgaos = ["SEPLAG", "POLITEC", "SESP", "SES", "SEDUC", "SEMA"];
   const quadrosCadastrados = listarQuadrosComissionados();
   const normalizarOrgao = (valor: string) => valor.trim().toLocaleLowerCase("pt-BR");
@@ -158,7 +158,7 @@ export function NovoQuadroComissionadoContent() {
     <section className="nqc-card nqc-estrutura">
       <header><i className="pi pi-sitemap" /><div><h2>Estrutura organizacional</h2><p>Adicione os níveis da estrutura. Em cada nível, registre itens, subitens e suas dotações autorizadas.</p></div><BotaoAdicionarSeplag label="Adicionar nível" onClick={() => setNiveis((atual) => [...atual, novoNivel()])} /></header>
       {!niveis.length && <div className="nqc-empty"><i className="pi pi-sitemap" /><strong>Nenhum nível cadastrado</strong><span>Comece por um nível, como “Direção Superior” ou “Administração Sistêmica”.</span></div>}
-      <div className="nqc-niveis">{niveis.map((nivel, indice) => <NivelEditor key={nivel.id} nivel={nivel} indice={indice} onChange={(atualizar) => atualizarNivel(nivel.id, atualizar)} onRemove={() => setNiveis((atual) => atual.filter((item) => item.id !== nivel.id))} />)}</div>
+      <div className="nqc-niveis">{niveis.map((nivel, indice) => <NivelEditor key={nivel.id} nivel={nivel} indice={indice} onChange={(atualizar) => atualizarNivel(nivel.id, atualizar)} onRemove={() => setNiveis((atual) => atual.filter((item) => item.id !== nivel.id))} simbologias={simbologias} />)}</div>
     </section>
 
     <section className="nqc-card nqc-resumo">
@@ -180,23 +180,23 @@ export function NovoQuadroComissionadoContent() {
   </div>;
 }
 
-function NivelEditor({ nivel, indice, onChange, onRemove }: { nivel: Nivel; indice: number; onChange: (atualizar: (nivel: Nivel) => Nivel) => void; onRemove: () => void }) {
+function NivelEditor({ nivel, indice, onChange, onRemove, simbologias }: { nivel: Nivel; indice: number; onChange: (atualizar: (nivel: Nivel) => Nivel) => void; onRemove: () => void; simbologias: string[] }) {
   return <article className="nqc-nivel"><div className="nqc-nivel-title"><span>Nível {indice + 1}</span><input value={nivel.nome} onChange={(event) => onChange((atual) => ({ ...atual, nome: event.target.value }))} placeholder="Ex.: Nível de Administração Sistêmica" /><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir nível" tooltip="Excluir nível" onClick={onRemove} /></div>
-    <div className="nqc-nivel-itens">{nivel.itens.map((item) => <ItemEditor key={item.id} item={item} nivel={0} onChange={(atualizar) => onChange((atual) => ({ ...atual, itens: atualizarItem(atual.itens, item.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, itens: excluirItem(atual.itens, item.id) }))} />)}</div>
+    <div className="nqc-nivel-itens">{nivel.itens.map((item) => <ItemEditor key={item.id} item={item} nivel={0} onChange={(atualizar) => onChange((atual) => ({ ...atual, itens: atualizarItem(atual.itens, item.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, itens: excluirItem(atual.itens, item.id) }))} simbologias={simbologias} />)}</div>
     <button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, itens: [...atual.itens, novoItem()] }))}><i className="pi pi-plus" />Adicionar item</button>
   </article>;
 }
-function ItemEditor({ item, nivel, onChange, onRemove }: { item: ItemEstrutura; nivel: number; onChange: (atualizar: (item: ItemEstrutura) => ItemEstrutura) => void; onRemove: () => void }) {
+function ItemEditor({ item, nivel, onChange, onRemove, simbologias }: { item: ItemEstrutura; nivel: number; onChange: (atualizar: (item: ItemEstrutura) => ItemEstrutura) => void; onRemove: () => void; simbologias: string[] }) {
   return <article className={"nqc-item nqc-item-" + nivel}><div className="nqc-item-title"><i className={nivel ? "pi pi-angle-right" : "pi pi-folder"} /><input value={item.nome} onChange={(event) => onChange((atual) => ({ ...atual, nome: event.target.value }))} placeholder={nivel ? "Nome do subitem" : "Nome do item"} /><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir item" tooltip="Excluir item" onClick={onRemove} /></div>
-    <div className="nqc-dotacoes">{item.dotacoes.map((dotacao) => <DotacaoEditor key={dotacao.id} dotacao={dotacao} onChange={(atualizar) => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.map((linha) => linha.id === dotacao.id ? atualizar(linha) : linha) }))} onRemove={() => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.filter((linha) => linha.id !== dotacao.id) }))} />)}</div>
+    <div className="nqc-dotacoes">{item.dotacoes.map((dotacao) => <DotacaoEditor key={dotacao.id} dotacao={dotacao} onChange={(atualizar) => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.map((linha) => linha.id === dotacao.id ? atualizar(linha) : linha) }))} onRemove={() => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.filter((linha) => linha.id !== dotacao.id) }))} simbologias={simbologias} />)}</div>
     <div className="nqc-item-actions"><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, dotacoes: [...atual.dotacoes, novaDotacao()] }))}><i className="pi pi-plus" />Adicionar dotação</button><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, subitens: [...atual.subitens, novoItem()] }))}><i className="pi pi-plus" />Adicionar subitem</button></div>
-    {item.subitens.map((subitem) => <ItemEditor key={subitem.id} item={subitem} nivel={nivel + 1} onChange={(atualizar) => onChange((atual) => ({ ...atual, subitens: atualizarItem(atual.subitens, subitem.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, subitens: excluirItem(atual.subitens, subitem.id) }))} />)}
+    {item.subitens.map((subitem) => <ItemEditor key={subitem.id} item={subitem} nivel={nivel + 1} onChange={(atualizar) => onChange((atual) => ({ ...atual, subitens: atualizarItem(atual.subitens, subitem.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, subitens: excluirItem(atual.subitens, subitem.id) }))} simbologias={simbologias} />)}
   </article>;
 }
 
-function DotacaoEditor({ dotacao, onChange, onRemove }: { dotacao: Dotacao; onChange: (atualizar: (dotacao: Dotacao) => Dotacao) => void; onRemove: () => void }) {
+function DotacaoEditor({ dotacao, onChange, onRemove, simbologias }: { dotacao: Dotacao; onChange: (atualizar: (dotacao: Dotacao) => Dotacao) => void; onRemove: () => void; simbologias: string[] }) {
   const atualizar = <K extends keyof Dotacao>(campo: K, valor: Dotacao[K]) => onChange((atual) => ({ ...atual, [campo]: valor }));
-  return <div className="nqc-dotacao"><label>Perfil<input value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)} placeholder="Ex.: Assessor Técnico II" /></label><label>Simbologia remuneratória<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{SIMBOLOGIAS.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label><label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label><label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} /></div>;
+  return <div className="nqc-dotacao"><label>Perfil<input value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)} placeholder="Ex.: Assessor Técnico II" /></label><label>Simbologia remuneratória<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{simbologias.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label><label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label><label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} /></div>;
 }
 
 

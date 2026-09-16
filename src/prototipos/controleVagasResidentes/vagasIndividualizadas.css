@@ -1175,3 +1175,12 @@
 .prototype-residentes-vaga-detail-content .prototype-residentes-vaga-detail-grid dd > span {
   display: block;
 }
+
+.prototype-residentes-vaga-state.encerrada {
+  background: #f1f5f9;
+  color: #475569;
+}
+.prototype-residentes-vaga-state.extinta {
+  background: #fee4e2;
+  color: #b42318;
+}

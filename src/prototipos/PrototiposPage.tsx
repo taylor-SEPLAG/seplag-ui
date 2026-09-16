@@ -1,5 +1,6 @@
 import { BreadcrumbVagas as BreadcrumbVagasResidentes } from "./controleVagasResidentes/BreadcrumbVagas";
 import { atualizarControleVagasBolsistas } from "./controleVagasResidentes/cargosBolsistasStore";
+import { atualizarControleVagasComissionadas, cargosComissionadosIniciais } from "./controleVagasComissionados/cargosComissionadosStore";
 import { BreadcrumbVagas as BreadcrumbVagasComissionados } from "./controleVagasComissionados/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTemporarios/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
@@ -1981,7 +1982,23 @@ const cargosTesteMock: CargoTesteRow[] = [
     situacao: "ATIVO",
     tiposVinculo: ["TV005", "TV007"],
     controleVagasBolsista: true,
-  },];
+  },
+  ...cargosComissionadosIniciais.map((item) => ({
+    id: item.id,
+    codigo: item.codigo,
+    cargo: item.nome,
+    categoria: "Cargos em Comissão",
+    subcategoria: "Simbologia remuneratória",
+    jornadaPadrao: "Conforme ato",
+    baseLegal: 1,
+    instituicoes: 0,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO" as const,
+    tiposVinculo: ["TV003"],
+    controleVagasComissionadas: true,
+  })),
+];
 
 const cargoRegrasUsoTesteMock = [
   {
@@ -8976,10 +8993,11 @@ export function PrototiposCargoFormPage({
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
       vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO",
-      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis,
+      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasComissionadas: values.controleVagasComissionadas === true,
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     atualizarControleVagasBolsistas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasBolsista === true);
+    atualizarControleVagasComissionadas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasComissionadas === true);
     cargosTesteMock.forEach((cargo) => {
       if (cargo.id === registroId) return;
       const relacionados = new Set(cargo.cargosAcumulaveis ?? []);
@@ -9159,6 +9177,10 @@ export function PrototiposCargoFormPage({
               <div className="prototype-shared-criterio-item">
                 <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" />
                 <span>Disponibiliza este cargo no Quadro Autorizado Bolsistas.</span>
+              </div>
+              <div className="prototype-shared-criterio-item">
+                <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" />
+                <span>Disponibiliza este cargo como simbologia remuneratória no Quadro de Vagas Comissionados.</span>
               </div>            </div>
             {permiteAcumuloCargo ? (
               <div className="grid prototype-carreira-register-fields">

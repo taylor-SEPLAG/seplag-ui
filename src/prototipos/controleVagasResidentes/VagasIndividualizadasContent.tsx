@@ -17,7 +17,7 @@ import {
 import type { ColumnMetaSeplag } from "../../componentes/TablePaginado";
 import type { ResultsSeplag } from "../../interfaces/Results";
 
-type SituacaoBolsa = "DISPONIVEL" | "EM_SELECAO" | "ATIVA";
+type SituacaoBolsa = "DISPONIVEL" | "EM_SELECAO" | "ATIVA" | "ENCERRADA" | "EXTINTA";
 
 interface FiltrosVagasBolsistas {
   quadro: string;
@@ -45,6 +45,8 @@ const situacaoMeta: Record<SituacaoBolsa, { label: string; classe: string; icon:
   DISPONIVEL: { label: "Disponível", classe: "disponivel", icon: "pi pi-check-circle" },
   EM_SELECAO: { label: "Em ocupação", classe: "em-ocupacao", icon: "pi pi-user-plus" },
   ATIVA: { label: "Ocupada", classe: "ocupada", icon: "pi pi-user" },
+  ENCERRADA: { label: "Encerrada", classe: "encerrada", icon: "pi pi-lock" },
+  EXTINTA: { label: "Extinta", classe: "extinta", icon: "pi pi-ban" },
 };
 
 function resultadoVagas(
@@ -108,12 +110,19 @@ export function VagasIndividualizadasContent() {
             item.situacao === "ATIVO" &&
             item.natureza === "OCUPACAO",
         );
+        const quadro = quadros.find((item) => item.codigo === vaga.quadroCodigo);
+        const quadroFinalizado =
+          quadro?.situacaoVigencia === "ENCERRADO" ||
+          quadro?.situacaoVigencia === "EXTINTO";
         const situacaoBolsa: SituacaoBolsa = ocupacao
           ? "ATIVA"
-          : comprometimento
-            ? "EM_SELECAO"
-            : "DISPONIVEL";
-        const quadro = quadros.find((item) => item.codigo === vaga.quadroCodigo);
+          : quadro?.situacaoVigencia === "EXTINTO"
+            ? "EXTINTA"
+            : quadroFinalizado
+              ? "ENCERRADA"
+              : comprometimento
+                ? "EM_SELECAO"
+                : "DISPONIVEL";
         const sequencial = String(vaga.sequencial ?? 0).padStart(3, "0");
 
         return {
@@ -171,13 +180,14 @@ export function VagasIndividualizadasContent() {
   const totais = useMemo(() => {
     const quadro = quadros.find((item) => item.codigo === quadroSelecionado);
     const autorizadas = quadroSelecionado ? Number(quadro?.autorizadas ?? vagasDoQuadro.length) : 0;
+    const quadroFinalizado = quadro?.situacaoVigencia === "ENCERRADO" || quadro?.situacaoVigencia === "EXTINTO";
     const distribuidas = vagasDoQuadro.filter((vaga) => vaga.orgaoExibicao !== "Pendente de distribuição");
     return {
       autorizadas,
-      pendentes: Math.max(autorizadas - distribuidas.length, 0),
-      disponiveis: distribuidas.filter((vaga) => vaga.situacaoBolsa === "DISPONIVEL").length,
-      emOcupacao: distribuidas.filter((vaga) => vaga.situacaoBolsa === "EM_SELECAO").length,
-      ocupadas: distribuidas.filter((vaga) => vaga.situacaoBolsa === "ATIVA").length,
+      pendentes: quadroFinalizado ? 0 : Math.max(autorizadas - distribuidas.length, 0),
+      disponiveis: quadroFinalizado ? 0 : distribuidas.filter((vaga) => vaga.situacaoBolsa === "DISPONIVEL").length,
+      emOcupacao: quadroFinalizado ? 0 : distribuidas.filter((vaga) => vaga.situacaoBolsa === "EM_SELECAO").length,
+      ocupadas: vagasDoQuadro.filter((vaga) => vaga.situacaoBolsa === "ATIVA").length,
     };
   }, [quadroSelecionado, quadros, vagasDoQuadro]);
   const colunas = useMemo<ColumnMetaSeplag<VagaBolsistaView>[]>(
