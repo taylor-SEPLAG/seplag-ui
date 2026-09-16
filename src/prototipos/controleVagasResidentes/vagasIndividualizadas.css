@@ -1184,3 +1184,14 @@
   background: #fee4e2;
   color: #b42318;
 }
+
+/* Segunda linha de indicadores operacionais das vagas bolsistas. */
+.prototype-bolsistas-posicoes-status-kpis {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 650px) {
+  .prototype-bolsistas-posicoes-status-kpis {
+    grid-template-columns: 1fr;
+  }
+}

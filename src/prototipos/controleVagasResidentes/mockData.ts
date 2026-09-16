@@ -180,8 +180,8 @@ export const quadrosAutorizadosMock: QuadroAutorizadoRow[] = [
     orgao: estadoDeMatoGrosso,
     abrangencia: "Estadual",
     formaDestinacaoLegal: "DISTRIBUICAO_POSTERIOR",
-    autorizadas: 6,
-    ocupadas: 0,
+    autorizadas: 3,
+    ocupadas: 3,
     comprometidas: 0,
     bloqueadas: 0,
     inicioVigencia: "2025-01-01",
@@ -192,6 +192,7 @@ export const quadrosAutorizadosMock: QuadroAutorizadoRow[] = [
     situacaoVigencia: "EXTINTO",
     dataAtivacao: "2025-01-01",
     dataExtincao: "2026-04-30",
+    extincaoProgressivaEmAndamento: true,
     motivoExtincao: "Encerramento do programa de residência técnica.",
     versao: 1,
     atualizadoEm: "2026-04-30 18:00",
@@ -208,7 +209,7 @@ export const quadrosAutorizadosMock: QuadroAutorizadoRow[] = [
     orgao: estadoDeMatoGrosso,
     abrangencia: "Estadual",
     formaDestinacaoLegal: "DISTRIBUICAO_POSTERIOR",
-    autorizadas: 5,
+    autorizadas: 0,
     ocupadas: 0,
     comprometidas: 0,
     bloqueadas: 0,
@@ -292,6 +293,12 @@ export const vagasIndividualizadasMock: Vaga[] = [
     "SEPLAG",
     "SES",
   ]),
-  ...criarVagasBolsistas(103, "QAB-0003", "Residente Técnico", 6, []),
-  ...criarVagasBolsistas(104, "QAB-0004", "Bolsista de Apoio Técnico", 5, []),
+  ...criarVagasBolsistas(103, "QAB-0003", "Residente Técnico", 6, ["SES", "SES", "SES"])
+    .map((vaga, indice) =>
+      indice < 3
+        ? { ...vaga, estado: "OCUPADA" as const, situacaoLegal: "EM_EXTINCAO" as const }
+        : { ...vaga, situacaoLegal: "EXTINTA" as const },
+    ),
+  ...criarVagasBolsistas(104, "QAB-0004", "Bolsista de Apoio Técnico", 5, [])
+    .map((vaga) => ({ ...vaga, situacaoLegal: "EXTINTA" as const })),
 ];

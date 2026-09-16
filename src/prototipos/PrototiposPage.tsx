@@ -4,6 +4,7 @@ import { atualizarControleVagasComissionadas, cargosComissionadosIniciais } from
 import { BreadcrumbVagas as BreadcrumbVagasComissionados } from "./controleVagasComissionados/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTemporarios/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
+import { ControleVagasGeralContent } from "./controleVagas/ControleVagasGeralContent";
 import { VagasTemporariosContent } from "./controleVagasTemporarios/VagasTemporariosContent";
 import { QuadroAutorizadoContent as QuadroTemporariosContent } from "./controleVagasTemporarios/QuadroAutorizadoContent";
 import { VagasIndividualizadasContent as IndividualizadasTemporariosContent } from "./controleVagasTemporarios/VagasIndividualizadasContent";
@@ -273,7 +274,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
       {
         label: "Controle de Vagas",
         icon: "pi pi-chart-bar",
-        url: "#",
+        to: CONTROLE_VAGAS_BASE_PATH,
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
@@ -7356,6 +7357,13 @@ export function PrototiposControleVagasDistribuicaoSaldoPage() {
     >
       <BreadcrumbVagasEfetivos />
       <DistribuicaoSaldoContent />
+    </PrototypeSystemPage>
+  );
+}
+export function PrototiposControleVagasGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <ControleVagasGeralContent />
     </PrototypeSystemPage>
   );
 }

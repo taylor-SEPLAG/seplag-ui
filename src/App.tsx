@@ -39,6 +39,7 @@ import {
   PrototiposGestaoDocumentosPage,
   PrototiposGestaoDocumentosCadastroPage,
   PrototiposControleVagasRegrasPage,
+  PrototiposControleVagasGeralPage,
   PrototiposVagasTemporariosPage,
   PrototiposVagasTemporariosQuadroPage,
   PrototiposVagasTemporariosIndividualizadasPage,
@@ -1675,6 +1676,9 @@ function App() {
         element={<PrototiposControleVagasRegrasPage />}
       />
       <Route
+        path="/prototipos/sigep/controle-vagas"
+        element={<PrototiposControleVagasGeralPage />}
+      />      <Route
         path="/prototipos/sigep/controle-vagas/dashboard"
         element={<PrototiposControleVagasDashboardPage />}
       />

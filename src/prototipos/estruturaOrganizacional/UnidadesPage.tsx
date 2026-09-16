@@ -129,6 +129,7 @@ function UnidadeCadastroPage() {
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
   const [unidadesCadastradas, setUnidadesCadastradas] = useState<UnidadeRow[]>(lerUnidadesCadastradas);
   const [unidadeArrastada, setUnidadeArrastada] = useState<number | null>(null);
+  const [alterandoEstrutura, setAlterandoEstrutura] = useState(!modoEdicao);
   const orgao = watch("orgao");
   const formaVinculacao = watch("formaVinculacao");
   const setorSuperior = watch("setorSuperior");
@@ -145,6 +146,16 @@ function UnidadeCadastroPage() {
       .sort((a, b) => a.ordem - b.ordem)
     : [];
   const unidadesSuperiores = unidadesCadastradas.filter((unidade) => unidade.orgao === orgaoSelecionado && unidade.id !== unidadeSelecionada?.id);
+  const caminhoSubordinacao = (() => {
+    if (!unidadeSelecionada) return [];
+    const caminho = [unidadeSelecionada.nome];
+    let superior = unidadeSelecionada.unidadeSuperior;
+    while (superior) {
+      caminho.unshift(superior);
+      superior = unidadesCadastradas.find((unidade) => unidade.nome === superior)?.unidadeSuperior;
+    }
+    return [unidadeSelecionada.orgao, ...caminho];
+  })();
 
   useEffect(() => {
     if (vinculadoDiretamenteAoOrgao) setValue("setorSuperior", "");
@@ -230,7 +241,20 @@ function UnidadeCadastroPage() {
             </PanelSeplag>
 
             <PanelSeplag title="Posição na estrutura" description="Escolha a unidade superior. O nível hierárquico será definido automaticamente." className="unidades-register-panel">
-              <div className="unidades-position-grid">
+              {modoEdicao && (
+                <div className="unidades-structure-change">
+                  <div className="unidades-structure-change-header">
+                    <span>Posição na Estrutura Organizacional</span>
+                    <BotaoSeplag type="button" label="Alterar Estrutura / Subordinação" icon="pi pi-external-link" severity="warning" onClick={() => setAlterandoEstrutura(true)} />
+                  </div>
+                  <div className="unidades-structure-current">
+                    <small>SUBORDINAÇÃO ATUAL NA ÁRVORE:</small>
+                    <strong>{caminhoSubordinacao.join(" > ")}</strong>
+                    <span>As alterações de posição serão aplicadas ao salvar a unidade.</span>
+                  </div>
+                </div>
+              )}
+              {(alterandoEstrutura || !modoEdicao) && <div className="unidades-position-grid">
                 <div className="unidades-position-selection">
                   <div className="grid unidades-position-controls">
                     <RadioButtonFieldSeplag name="formaVinculacao" control={control} label="Forma de Vinculação" cols="12 12 6" options={[{ label: "Diretamente ao órgão", value: "ORGAO" }, { label: "Vincular a outra unidade", value: "SETOR" }]} getFormErrorMessage={noError} />
@@ -286,7 +310,7 @@ function UnidadeCadastroPage() {
                     <div><dt>Nova unidade</dt><dd>{nomeSetor || "Nome ainda não informado"}</dd></div>
                   </dl>
                 </aside>
-              </div>
+              </div>}
             </PanelSeplag>
 
             <PanelSeplag title="Vigência" description="Informe o período de vigência da unidade." className="unidades-register-panel">

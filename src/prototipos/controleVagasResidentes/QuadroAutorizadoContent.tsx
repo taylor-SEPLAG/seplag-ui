@@ -247,7 +247,7 @@ const statusVigenciaDoQuadro = (item: QuadroAutorizadoRow) => {
     motivoExtincao: item.motivoExtincao,
   });
   return item.extincaoProgressivaEmAndamento && status === "ATIVO"
-    ? "ENCERRADO"
+    ? "EXTINTO"
     : status;
 };
 const resumoDistribuicaoOrgaos = (
@@ -279,6 +279,7 @@ type VersaoAnteriorQuadro = {
 const evolucaoPadraoPorTipo = (
   item: QuadroAutorizadoRow,
 ): EvolucaoQuadroLegal => {
+  if (item.versao === 1) return "Criação";
   if (item.evolucaoLegal) return item.evolucaoLegal;
   if (item.extincaoProgressivaEmAndamento || item.situacaoVigencia === "EXTINTO") {
     return "Extinção progressiva";
@@ -573,7 +574,7 @@ function QuadroAutorizadoLista() {
       });
       historico.set(
         codigo,
-        ordenadas.slice(1).map(versaoAnteriorDoQuadro),
+        ordenadas.map(versaoAnteriorDoQuadro),
       );
     });
     return historico;
@@ -643,10 +644,12 @@ function QuadroAutorizadoLista() {
             pendentesAto += 1;
           }
         });
-        const vagasDistribuidas = [...distribuicaoPorOrgao.values()].reduce(
-          (total, quantidade) => total + quantidade,
-          0,
-        );
+        const vagasDistribuidas = quadroFinalizado
+          ? 0
+          : [...distribuicaoPorOrgao.values()].reduce(
+              (total, quantidade) => total + quantidade,
+              0,
+            );
         const vagasPendentesDistribuicao = quadroFinalizado
           ? 0
           : Math.max(
@@ -708,6 +711,9 @@ function QuadroAutorizadoLista() {
     const idsQuadros = new Set(quadrosOperacionais.map((quadro) => quadro.id));
     const vagasBolsistas = vagas.filter((vaga) => idsQuadros.has(vaga.quadroAutorizadoId));
     const vagasDistribuidas = vagasBolsistas.filter((vaga) => {
+      const quadro = quadrosOperacionais.find((item) => item.id === vaga.quadroAutorizadoId);
+      if (!quadro || statusVigenciaDoQuadro(quadro) !== "ATIVO") return false;
+
       const orgao = calcularPosicaoVaga(
         vaga,
         movimentos,
@@ -921,8 +927,8 @@ function QuadroAutorizadoLista() {
   ];
   const renderHistoricoVersoes = (item: QuadroListaRow) => {
     const versoes =
-      historicoVersoesPorQuadro.get(String(item.id)) ??
       historicoVersoesPorQuadro.get(item.codigo) ??
+      historicoVersoesPorQuadro.get(String(item.id)) ??
       versoesAnterioresPorQuadro[item.codigo] ??
       [];
     const chavePaginacao = String(item.id);

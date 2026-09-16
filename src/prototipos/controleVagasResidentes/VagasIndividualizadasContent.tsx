@@ -3,7 +3,10 @@ import { useForm, useWatch } from "react-hook-form";
 import type { DataTableStateEvent } from "primereact/datatable";
 import { useSearchParams } from "react-router-dom";
 import { useControleVagasStore } from "./controleVagasStore";
+import { listarCargosBolsistas } from "./cargosBolsistasStore";
 import type { Vaga } from "./types";
+import "../controleVagas/quadroAutorizado.css";
+import "../controleVagasComissionados/vagasIndividualizadas.css";
 import "./vagasIndividualizadas.css";
 import {
   BotaoIconSeplag,
@@ -116,7 +119,7 @@ export function VagasIndividualizadasContent() {
           quadro?.situacaoVigencia === "EXTINTO";
         const situacaoBolsa: SituacaoBolsa = ocupacao
           ? "ATIVA"
-          : quadro?.situacaoVigencia === "EXTINTO"
+          : vaga.situacaoLegal === "EXTINTA" || quadro?.situacaoVigencia === "EXTINTO"
             ? "EXTINTA"
             : quadroFinalizado
               ? "ENCERRADA"
@@ -184,12 +187,21 @@ export function VagasIndividualizadasContent() {
     const distribuidas = vagasDoQuadro.filter((vaga) => vaga.orgaoExibicao !== "Pendente de distribuição");
     return {
       autorizadas,
+      distribuidas: quadroSelecionado ? distribuidas.length : 0,
       pendentes: quadroFinalizado ? 0 : Math.max(autorizadas - distribuidas.length, 0),
       disponiveis: quadroFinalizado ? 0 : distribuidas.filter((vaga) => vaga.situacaoBolsa === "DISPONIVEL").length,
       emOcupacao: quadroFinalizado ? 0 : distribuidas.filter((vaga) => vaga.situacaoBolsa === "EM_SELECAO").length,
       ocupadas: vagasDoQuadro.filter((vaga) => vaga.situacaoBolsa === "ATIVA").length,
     };
   }, [quadroSelecionado, quadros, vagasDoQuadro]);
+  const indicadoresGerais = useMemo(() => {
+    const quadrosBolsistas = quadros.filter((quadro) => quadro.codigo.startsWith("QAB-"));
+
+    return {
+      quadrosCadastrados: quadrosBolsistas.length,
+      cargosBolsistasVinculados: listarCargosBolsistas().length,
+    };
+  }, [quadros]);
   const colunas = useMemo<ColumnMetaSeplag<VagaBolsistaView>[]>(
     () => [
       {
@@ -261,8 +273,8 @@ export function VagasIndividualizadasContent() {
   };
 
   return (
-    <div className="prototype-residentes-vaga-page prototype-residentes-vaga-page-seplag">
-      <header className="prototype-residentes-vaga-header">
+    <div className="prototype-quadro-page prototype-quadro-page-current prototype-comissionados-posicoes-page prototype-bolsistas-posicoes-page">
+      <header className="prototype-quadro-header">
         <div>
           <h1>Vagas Individualizadas Bolsistas</h1>
           <p>
@@ -272,19 +284,23 @@ export function VagasIndividualizadasContent() {
         </div>
       </header>
 
-      {quadroSelecionado && (
-      <section className="prototype-residentes-vaga-kpis prototype-residentes-vaga-kpis-seplag">
-        <Kpi label="Vagas de bolsas autorizadas" value={totais.autorizadas} icon="pi pi-file-check" />
-        <Kpi label="Pendentes de distribuição" value={totais.pendentes} icon="pi pi-share-alt" kind="warning" />
-        <Kpi label="Disponíveis" value={totais.disponiveis} icon="pi pi-check-circle" kind="available" />
-          <Kpi label="Em ocupação" value={totais.emOcupacao} icon="pi pi-user-plus" kind="warning" />
-          <Kpi label="Ocupadas" value={totais.ocupadas} icon="pi pi-users" kind="occupied" />
+      <section className="prototype-quadro-kpis prototype-bolsistas-posicoes-kpis">
+        <Kpi label="Quadros cadastrados" value={indicadoresGerais.quadrosCadastrados} icon="pi pi-file-check" />
+        <Kpi label="Cargos bolsistas vinculados" value={indicadoresGerais.cargosBolsistasVinculados} icon="pi pi-users" />
+        <Kpi label="Vagas bolsistas autorizadas" value={totais.autorizadas} icon="pi pi-clock" />
+        <Kpi label="Vagas bolsistas distribuídas" value={totais.distribuidas} icon="pi pi-check-circle" kind="available" />
+        <Kpi label="Vagas pendentes de distribuição" value={totais.pendentes} icon="pi pi-clock" kind="warning" />
       </section>
-      )}
 
-      <section className="prototype-residentes-vaga-card prototype-residentes-vaga-card-seplag">
-        <div className="prototype-residentes-vaga-filters-seplag">
-          <div className="prototype-residentes-vaga-seplag-field">
+      <section className="prototype-comissionados-status-kpis prototype-bolsistas-posicoes-status-kpis">
+        <Kpi label="Vagas bolsistas disponíveis" value={totais.disponiveis} icon="pi pi-check-circle" kind="available" />
+        <Kpi label="Vagas bolsistas em ocupação" value={totais.emOcupacao} icon="pi pi-user-plus" kind="warning" />
+        <Kpi label="Vagas bolsistas ocupadas" value={totais.ocupadas} icon="pi pi-users" kind="occupied" />
+      </section>
+
+      <section className="prototype-quadro-card">
+        <div className="prototype-quadro-filters prototype-quadro-library-filters prototype-comissionados-posicoes-filters prototype-bolsistas-posicoes-filters">
+          <div className="prototype-quadro-spec-control">
             <DropdownFieldSeplag<FiltrosVagasBolsistas>
               name="quadro"
               control={control}
@@ -297,7 +313,7 @@ export function VagasIndividualizadasContent() {
               getFormErrorMessage={() => null}
             />
           </div>
-          <div className="prototype-residentes-vaga-seplag-field">
+          <div className="prototype-quadro-spec-control">
             <DropdownFieldSeplag<FiltrosVagasBolsistas>
               name="orgao"
               control={control}
@@ -310,7 +326,7 @@ export function VagasIndividualizadasContent() {
               getFormErrorMessage={() => null}
             />
           </div>
-          <div className="prototype-residentes-vaga-seplag-field">
+          <div className="prototype-quadro-spec-control">
             <TextFieldSeplag<FiltrosVagasBolsistas>
               name="bolsista"
               control={control}
@@ -320,7 +336,7 @@ export function VagasIndividualizadasContent() {
               placeholder="Nome do bolsista"
             />
           </div>
-          <div className="prototype-residentes-vaga-seplag-field">
+          <div className="prototype-quadro-spec-control">
             <DropdownFieldSeplag<FiltrosVagasBolsistas>
               name="situacao"
               control={control}
@@ -330,6 +346,8 @@ export function VagasIndividualizadasContent() {
                 { label: "Disponível", value: "DISPONIVEL" },
                 { label: "Em ocupação", value: "EM_SELECAO" },
                 { label: "Ocupada", value: "ATIVA" },
+                { label: "Encerrada", value: "ENCERRADA" },
+                { label: "Extinta", value: "EXTINTA" },
               ]}
               optionLabel="label"
               optionValue="value"
@@ -337,12 +355,12 @@ export function VagasIndividualizadasContent() {
               getFormErrorMessage={() => null}
             />
           </div>
-          <div className="prototype-residentes-vaga-filter-action">
+          <div className="prototype-quadro-spec-control">
             <BotaoLimparFiltroSeplag onClick={limpar} />
           </div>
         </div>
 
-        <div className="prototype-residentes-vaga-library-table">
+        <div className="prototype-quadro-table prototype-quadro-library-table prototype-comissionados-posicoes-table prototype-bolsistas-posicoes-table">
           <TablePaginadoSeplag<VagaBolsistaView>
             dataKey="id"
             data={resultadoVagas(filtradas, pagina, porPagina)}
