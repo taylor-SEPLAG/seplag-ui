@@ -46,15 +46,15 @@ export function BaseLegalVinculada({
   const novoDocumentoUrl = `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(returnTo)}`;
 
   return (
-    <section className={`prototype-comissionados-base-legal-card ${className}`.trim()}>
-      <header className="prototype-comissionados-base-legal-card__header">
+    <section className={`prototype-base-legal-card ${className}`.trim()}>
+      <header className="prototype-base-legal-card__header">
         <i className="pi pi-link" aria-hidden="true" />
         <div>
           <h2>Base legal vinculada</h2>
           <p>Selecione uma norma cadastrada ou use o atalho para cadastrar uma nova.</p>
         </div>
       </header>
-      <div className="prototype-comissionados-base-legal-card__content">
+      <div className="prototype-base-legal-card__content">
         <DocumentosLegaisAssociadosSeplag
           label="Documentos legais associados"
           required={required}

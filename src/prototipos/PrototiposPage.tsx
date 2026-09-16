@@ -12773,6 +12773,14 @@ export function PrototiposIngressosTesteDetalhePage() {
   const [menuAcoesCandidatoAbertoId, setMenuAcoesCandidatoAbertoId] = useState<number | null>(null);
   const [candidatoConcursoExpandidoId, setCandidatoConcursoExpandidoId] = useState<number | null>(null);
   const [candidatoCancelamento, setCandidatoCancelamento] = useState<{ id: number; nome: string } | null>(null);
+  const [candidatoExclusao, setCandidatoExclusao] = useState<{ id: number; nome: string } | null>(null);
+  const [exclusoesIngressoPorConcurso, setExclusoesIngressoPorConcurso] = useState<
+    Record<string, number[]>
+  >(() =>
+    JSON.parse(
+      localStorage.getItem("prototype-ingresso-exclusoes-concursos") ?? "{}",
+    ),
+  );
   const [motivoCancelamento, setMotivoCancelamento] = useState("");
   const [justificativaCancelamento, setJustificativaCancelamento] = useState("");
   const [erroCancelamento, setErroCancelamento] = useState("");
@@ -12934,6 +12942,34 @@ export function PrototiposIngressosTesteDetalhePage() {
     };
 
     return badgeMap[situacao] ?? { color: "#4b5563", bg: "#eef2f7", border: "#cbd5e1" };
+  };
+  const confirmarExclusaoIngresso = () => {
+    if (
+      !candidatoExclusao ||
+      !concursoProcesso ||
+      getSituacaoCandidato(candidatoExclusao.id) !== "Em analise"
+    ) {
+      setCandidatoExclusao(null);
+      return;
+    }
+
+    const idsExcluidos = [
+      ...new Set([
+        ...(exclusoesIngressoPorConcurso[concursoProcesso.titulo] ?? []),
+        candidatoExclusao.id,
+      ]),
+    ];
+    const exclusoesAtualizadas = {
+      ...exclusoesIngressoPorConcurso,
+      [concursoProcesso.titulo]: idsExcluidos,
+    };
+    localStorage.setItem(
+      "prototype-ingresso-exclusoes-concursos",
+      JSON.stringify(exclusoesAtualizadas),
+    );
+    setExclusoesIngressoPorConcurso(exclusoesAtualizadas);
+    setCandidatoExclusao(null);
+    setMenuAcoesCandidatoAbertoId(null);
   };
   const fecharModalCancelamento = () => {
     setCandidatoCancelamento(null);
@@ -13147,7 +13183,12 @@ export function PrototiposIngressosTesteDetalhePage() {
   const ultimaTentativaIntegracao = execucoesEditalAtual[0];
   const ultimaIntegracaoBemSucedida = execucoesEditalAtual.find((execucao) => execucao.situacao === "Concluída" || execucao.situacao === "Concluída com alertas");
   const aguardandoListaCandidatos = concursoProcesso.titulo === "Processo Seletivo SEFAZ 2026" && !ultimaIntegracaoBemSucedida;
-  const candidatosGestaoIngresso = aguardandoListaCandidatos ? [] : concursoProcesso.candidatos;
+  const candidatosExcluidosIds = new Set(
+    exclusoesIngressoPorConcurso[concursoProcesso.titulo] ?? [],
+  );
+  const candidatosGestaoIngresso = (
+    aguardandoListaCandidatos ? [] : concursoProcesso.candidatos
+  ).filter((candidato) => !candidatosExcluidosIds.has(candidato.id));
   const grupos = agruparCandidatosIngressoPorVaga(candidatosGestaoIngresso);
   const novosCandidatosIds = new Set(ultimaIntegracaoBemSucedida?.candidatoIdsIncluidos ?? []);
   const quantidadeNovosCandidatos = ultimaIntegracaoBemSucedida?.incluidos;
@@ -13472,6 +13513,23 @@ export function PrototiposIngressosTesteDetalhePage() {
                             >
                               <i className="pi pi-times-circle" aria-hidden="true" />
                               <span>Cancelar ingresso</span>
+                            </button>
+                          ) : null}
+                          {candidato.situacaoAtual === "Em analise" ? (
+                            <button
+                              type="button"
+                              role="menuitem"
+                              className="is-danger"
+                              onClick={() => {
+                                setMenuAcoesCandidatoAbertoId(null);
+                                setCandidatoExclusao({
+                                  id: candidato.id,
+                                  nome: candidato.nome,
+                                });
+                              }}
+                            >
+                              <i className="pi pi-trash" aria-hidden="true" />
+                              <span>Excluir ingresso</span>
                             </button>
                           ) : null}
                           <button
@@ -13882,6 +13940,23 @@ export function PrototiposIngressosTesteDetalhePage() {
             />
           </label>
           {erroCancelamento ? <p className="prototype-ingresso-cancelamento-error" role="alert">{erroCancelamento}</p> : null}
+        </div>
+      </ModalSeplag>
+      <ModalSeplag
+        visible={Boolean(candidatoExclusao)}
+        titulo="Confirmar exclusão do ingresso"
+        fechar={() => setCandidatoExclusao(null)}
+        labelFechar="Cancelar"
+        labelAcao="Confirmar exclusão"
+        iconAcao="pi pi-trash"
+        funcAcao={confirmarExclusaoIngresso}
+        tamanho="560px"
+      >
+        <div className="prototype-ingresso-modal-content">
+          <p>
+            Deseja excluir o ingresso de <strong>{candidatoExclusao?.nome}</strong>?
+          </p>
+          <p>Esta ação não poderá ser desfeita.</p>
         </div>
       </ModalSeplag>
       <Sidebar

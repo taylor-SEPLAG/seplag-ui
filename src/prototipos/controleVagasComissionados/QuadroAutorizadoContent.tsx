@@ -156,7 +156,11 @@ export function QuadroAutorizadoContent() {
   const isNovaVersao = location.pathname.endsWith("/nova-versao");
   const isDetalhe = Boolean(id) && !isEditar && !isNovaVersao;
 
-  if (!isNovo && !isEditar && !isNovaVersao && !isDetalhe) {
+  if (isNovo || isNovaVersao) {
+    return <NovoQuadroComissionadoContent />;
+  }
+
+  if (!isEditar && !isDetalhe) {
     return <QuadroAutorizadoComissionadoLista />;
   }
 

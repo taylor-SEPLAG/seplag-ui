@@ -1,9 +1,9 @@
-.novo-quadro-comissionado { min-height: 100%; padding: 1.5rem 1.75rem 3rem; background: #fff; color: #17233c; }
-.novo-quadro-comissionado > header { padding-bottom: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid #dedede; }
+.novo-quadro-comissionado { color: #17233c; }
+.novo-quadro-comissionado > header { padding: 0; margin-bottom: 1.2rem; border: 0; }
 .novo-quadro-comissionado > header .p-button { min-width: auto; }
 .novo-quadro-comissionado > header span { color: #096bb1; font-size: .72rem; font-weight: 800; letter-spacing: .08em; }
-.novo-quadro-comissionado h1 { margin: .2rem 0 .35rem; color: #3f3f3f; font-size: 1.3rem; }
-.novo-quadro-comissionado > header p { margin: 0; color: #606b78; font-size: .86rem; }
+.novo-quadro-comissionado h1 { color: #17233c; }
+.novo-quadro-comissionado > header p { color: #657187; }
 .nqc-card { margin-bottom: 1rem; overflow: hidden; border: 1px solid #d4dee8; border-radius: .5rem; background: #fff; }
 .nqc-card > header { display: flex; align-items: center; gap: .75rem; padding: 1rem 1.15rem; border-bottom: 1px solid #e0e6ec; }
 .nqc-card > header > i { display: grid; width: 2.4rem; height: 2.4rem; place-items: center; border-radius: .45rem; background: #e6f2fc; color: #0870b6; }
@@ -75,3 +75,8 @@
 .nqc-resumo thead th, .nqc-resumo tfoot th { background: #f3f5f7; font-size: .86rem; font-weight: 800; text-transform: uppercase; }
 .nqc-resumo th:nth-child(n + 2), .nqc-resumo td:nth-child(n + 2) { width: 6rem; text-align: center; }
 .nqc-resumo tfoot tr:last-child th { font-size: .92rem; }
+
+.nqc-versionamento-content { padding: 1rem 1.15rem; }
+.nqc-versionamento-content label { display: flex; flex-direction: column; gap: .45rem; }
+.nqc-versionamento-content textarea { width: 100%; min-height: 5.5rem; box-sizing: border-box; resize: vertical; padding: .7rem; border: 1px solid #b9c7d5; border-radius: .35rem; color: #25344a; font: inherit; }
+.nqc-versionamento-content textarea:focus { border-color: #0871b8; outline: 2px solid rgb(8 113 184 / 16%); }

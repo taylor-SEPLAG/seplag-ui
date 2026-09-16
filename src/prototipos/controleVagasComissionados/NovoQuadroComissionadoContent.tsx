@@ -6,6 +6,7 @@ import {
   BotaoSalvarSeplag,
   BotaoVoltarSeplag,
 } from "../../componentes/Botao";
+import { MensagemSeplag } from "../../componentes/Mensagem";
 import {
   calcularStatusOperacionalVigenciaSeplag,
   STATUS_OPERACIONAL_VIGENCIA,
@@ -17,6 +18,7 @@ import {
   type NivelComissionadoSalvo,
 } from "./novoQuadroComissionadoStore";
 import "./novoQuadroComissionado.css";
+import "../controleVagas/quadroAutorizado.css";
 
 type Dotacao = { id: string; perfil: string; simbologia: string; cargos: number; funcoes: number };
 type ItemEstrutura = { id: string; nome: string; dotacoes: Dotacao[]; subitens: ItemEstrutura[] };
@@ -55,6 +57,8 @@ export function NovoQuadroComissionadoContent() {
   const [dataVigencia, setDataVigencia] = useState(() => rascunhoInicial?.dataVigencia ?? "");
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>(() => rascunhoInicial?.documentosLegaisIds ?? []);
   const [niveis, setNiveis] = useState<Nivel[]>(() => normalizarNiveis(rascunhoInicial?.niveis));
+  const [motivoVersionamento, setMotivoVersionamento] = useState(() => rascunhoInicial?.motivoVersionamento ?? "");
+  const emVersionamento = Boolean(rascunhoInicial?.versao && rascunhoInicial.versao > 1);
   const [salvo, setSalvo] = useState(false);
   const dataVigenciaRef = useRef<HTMLInputElement>(null);
 
@@ -72,18 +76,29 @@ export function NovoQuadroComissionadoContent() {
       dataVigencia,
       documentosLegaisIds,
       niveis: structuredClone(niveis) as NivelComissionadoSalvo[],
+      quadroBaseId: rascunhoInicial?.quadroBaseId ?? idQuadro,
+      versao: rascunhoInicial?.versao ?? 1,
+      versaoAnteriorId: rascunhoInicial?.versaoAnteriorId,
+      motivoVersionamento: emVersionamento ? motivoVersionamento.trim() : undefined,
       salvoEm: new Date().toISOString(),
     });
     setSalvo(true);
   };
-  return <div className="novo-quadro-comissionado">
-    <header>
-      <div><span>CONTROLE DE VAGAS</span><h1>Novo Quadro Comissionado</h1><p>Cadastre a estrutura autorizada de um órgão, incluindo níveis, itens, cargos em comissão e funções de confiança.</p></div>
+  return <div className="prototype-quadro-page novo-quadro-comissionado">
+    <header className="prototype-quadro-header">
+      <div><h1>{emVersionamento ? "Nova versão do quadro comissionado" : "Novo Quadro Comissionado"}</h1><p>{emVersionamento ? `Versão ${rascunhoInicial?.versao} do quadro ${rascunhoInicial?.nome}. Revise a estrutura e informe o motivo do versionamento.` : "Cadastre a estrutura autorizada de um órgão, incluindo níveis, itens, cargos em comissão e funções de confiança."}</p></div>
     </header>
 
-    {salvo && <div className="nqc-feedback"><i className="pi pi-check-circle" />Estrutura do quadro salva para o órgão selecionado.</div>}
+    <MensagemSeplag visible={salvo} severity="success" message="Estrutura do quadro salva para o órgão selecionado." />
 
+    <div className="prototype-quadro-form">
     <BaseLegalVinculada value={documentosLegaisIds} onChange={setDocumentosLegaisIds} />
+
+    {emVersionamento && <section className="nqc-card nqc-versionamento">
+      <header><i className="pi pi-history" /><div><h2>Motivo do versionamento</h2><p>Descreva a alteração que fundamenta esta nova versão do quadro.</p></div></header>
+      <div className="nqc-versionamento-content"><label><span className="nqc-label">Motivo <em>*</em></span><textarea value={motivoVersionamento} onChange={(event) => setMotivoVersionamento(event.target.value)} placeholder="Ex.: Adequação da estrutura organizacional conforme novo ato normativo." /></label></div>
+    </section>}
+
 
     <section className="nqc-card">
       <header><i className="pi pi-building" /><div><h2>Identificação do quadro</h2><p>Selecione o órgão a que pertence o quadro. A fundamentação é informada na Base legal.</p></div></header>
@@ -113,7 +128,8 @@ export function NovoQuadroComissionadoContent() {
       <header><i className="pi pi-chart-bar" /><div><h2>Resumo das dotações</h2><p>Quantitativos autorizados por simbologia remuneratória.</p></div></header>
       <div className="nqc-resumo-table-wrap"><table><thead><tr><th>Simbologia remuneratória</th><th>Cargo</th><th>Função</th></tr></thead><tbody>{resumoSimbologias.map((linha) => <tr key={linha.simbologia}><td>{linha.simbologia}</td><td>{linha.cargos || "-"}</td><td>{linha.funcoes || "-"}</td></tr>)}</tbody><tfoot><tr><th>Subtotal</th><th>{totais.cargos}</th><th>{totais.funcoes}</th></tr><tr><th>Total</th><th colSpan={2}>{totais.cargos + totais.funcoes}</th></tr></tfoot></table></div>
     </section>
-    <footer><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length} onClick={salvarQuadro} /></div></footer>
+    <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow"><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length || (emVersionamento && !motivoVersionamento.trim())} onClick={salvarQuadro} /></div></footer>
+    </div>
   </div>;
 }
 
@@ -124,7 +140,7 @@ function NivelEditor({ nivel, indice, onChange, onRemove }: { nivel: Nivel; indi
   </article>;
 }
 function ItemEditor({ item, nivel, onChange, onRemove }: { item: ItemEstrutura; nivel: number; onChange: (atualizar: (item: ItemEstrutura) => ItemEstrutura) => void; onRemove: () => void }) {
-  return <article className={`nqc-item nqc-item-${nivel}`}><div className="nqc-item-title"><i className={nivel ? "pi pi-angle-right" : "pi pi-folder"} /><input value={item.nome} onChange={(event) => onChange((atual) => ({ ...atual, nome: event.target.value }))} placeholder={nivel ? "Nome do subitem" : "Nome do item"} /><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir item" tooltip="Excluir item" onClick={onRemove} /></div>
+  return <article className={"nqc-item nqc-item-" + nivel}><div className="nqc-item-title"><i className={nivel ? "pi pi-angle-right" : "pi pi-folder"} /><input value={item.nome} onChange={(event) => onChange((atual) => ({ ...atual, nome: event.target.value }))} placeholder={nivel ? "Nome do subitem" : "Nome do item"} /><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir item" tooltip="Excluir item" onClick={onRemove} /></div>
     <div className="nqc-dotacoes">{item.dotacoes.map((dotacao) => <DotacaoEditor key={dotacao.id} dotacao={dotacao} onChange={(atualizar) => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.map((linha) => linha.id === dotacao.id ? atualizar(linha) : linha) }))} onRemove={() => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.filter((linha) => linha.id !== dotacao.id) }))} />)}</div>
     <div className="nqc-item-actions"><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, dotacoes: [...atual.dotacoes, novaDotacao()] }))}><i className="pi pi-plus" />Adicionar dotação</button><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, subitens: [...atual.subitens, novoItem()] }))}><i className="pi pi-plus" />Adicionar subitem</button></div>
     {item.subitens.map((subitem) => <ItemEditor key={subitem.id} item={subitem} nivel={nivel + 1} onChange={(atualizar) => onChange((atual) => ({ ...atual, subitens: atualizarItem(atual.subitens, subitem.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, subitens: excluirItem(atual.subitens, subitem.id) }))} />)}
