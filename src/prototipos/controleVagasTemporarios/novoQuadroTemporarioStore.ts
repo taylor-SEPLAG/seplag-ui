@@ -2,12 +2,12 @@ import type { Certame, CargoVagaCertame } from "../controlePss/certame/types";
 export interface QuadroTemporarioCadastro {
  id: string; codigo: string; certameId: string;
  certame: Certame; cargos: (CargoVagaCertame & { modoControle: "LIMITADO" | "SEM_LIMITE"; limiteVagas?: number })[];
- observacoes: string; criadoEm: string; dataAtivacao?: string;
+ observacoes: string; criadoEm: string; dataAtivacao?: string; vagasReais: number;
 }
 const chave = "sigep:quadros-temporarios:cadastros:v1";
 export function listarQuadrosTemporarios(): QuadroTemporarioCadastro[] {
  const json = localStorage.getItem(chave);
- return json ? JSON.parse(json).map((item: QuadroTemporarioCadastro) => ({ ...item, cargos: item.cargos ?? item.certame.cargos.map(cargo => ({ ...cargo, modoControle: cargo.aceitaCadastroReserva ? "SEM_LIMITE" : "LIMITADO", limiteVagas: cargo.aceitaCadastroReserva ? undefined : cargo.quantidadeVagas })) })) : [];
+ return json ? JSON.parse(json).map((item: QuadroTemporarioCadastro) => ({ ...item, vagasReais: item.vagasReais ?? 0, cargos: item.cargos ?? item.certame.cargos.map(cargo => ({ ...cargo, modoControle: cargo.aceitaCadastroReserva ? "SEM_LIMITE" : "LIMITADO", limiteVagas: cargo.aceitaCadastroReserva ? undefined : cargo.quantidadeVagas })) })) : [];
 }
 export function seletivoTemporario(certame: Certame) {
  return certame.tipoCertame === "PSS" && ["CONTRATO_TEMPORARIO", "CONTRATO_TEMPORARIO_VINCULO_UNICO"].includes(certame.tipoVinculo);
@@ -22,7 +22,7 @@ export function salvarQuadroTemporario(certame: Certame, observacoes: string, da
   certameId: certame.id,
   certame: structuredClone(certame),
   cargos: certame.cargos.map(cargo => ({ ...structuredClone(cargo), modoControle: cargo.aceitaCadastroReserva ? "SEM_LIMITE" : "LIMITADO", limiteVagas: cargo.aceitaCadastroReserva ? undefined : cargo.quantidadeVagas })),
-  dataAtivacao, observacoes: observacoes.trim(), criadoEm: new Date().toISOString(),
+  dataAtivacao, observacoes: observacoes.trim(), vagasReais: 0, criadoEm: new Date().toISOString(),
  };
  localStorage.setItem(chave, JSON.stringify([...quadros, registro]));
  return registro;

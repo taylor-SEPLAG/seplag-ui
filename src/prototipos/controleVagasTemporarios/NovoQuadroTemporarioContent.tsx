@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { Dropdown } from "primereact/dropdown";
 import { useControlePssStore } from "../controlePss/controlePssStore";
 import { REGIMES_JURIDICOS, TIPOS_VINCULO, SITUACOES_CERTAME } from "../controlePss/certame/dominios";
-import { salvarQuadroTemporario, seletivoTemporario, type QuadroTemporarioCadastro } from "./novoQuadroTemporarioStore";
+import { listarQuadrosTemporarios, salvarQuadroTemporario, seletivoTemporario, type QuadroTemporarioCadastro } from "./novoQuadroTemporarioStore";
 import "./novoQuadroTemporario.css";
 
 export function NovoQuadroTemporarioContent() {
@@ -19,8 +19,14 @@ export function NovoQuadroTemporarioContent() {
  const { certames } = useControlePssStore();
  const [certameId, setCertameId] = useState<string>("");
  const [erro, setErro] = useState("");
+ const [quadrosExistentes] = useState(() => listarQuadrosTemporarios());
  const [salvo, setSalvo] = useState<QuadroTemporarioCadastro | null>(null);
  const seletivos = certames.filter(seletivoTemporario);
+ const quadrosPorCertame = new Map(quadrosExistentes.map((quadro) => [quadro.certameId, quadro]));
+ const opcoesSeletivo = seletivos.map((item) => {
+  const quadroExistente = quadrosPorCertame.get(item.id);
+  return { value: item.id, label: [item.numeroConcurso + "/" + item.anoConcurso, item.nomeEdital, item.setor].join(" — "), indisponivel: Boolean(quadroExistente), quadroCodigo: quadroExistente?.codigo };
+ });
  const certame = seletivos.find(item => item.id === certameId);
  const cargos = certame?.cargos ?? [];
  const voltar = () => navigate("/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado");
@@ -37,7 +43,7 @@ export function NovoQuadroTemporarioContent() {
   {salvo ? <section className="nqt-card" role="status"><h2>Quadro {salvo.codigo} criado com sucesso</h2><p>{salvo.certame.nomeEdital} · {salvo.cargos.length} cargo(s)</p><p>Todos os cargos do seletivo foram incluídos, com suas respectivas regras de vagas.</p><button type="button" onClick={() => { setSalvo(null); reset(); setCertameId(""); }}>Cadastrar outro quadro</button><button type="button" onClick={voltar}>Voltar</button></section> : <form onSubmit={salvar}>
    {erro && <p className="nqt-error" role="alert">{erro}</p>}
    <section className="nqt-card"><header className="nqt-section-header"><i className="pi pi-file" aria-hidden="true" /><div><h2>Seletivo de origem</h2><p>Selecione o processo seletivo que fundamenta o quadro temporário.</p></div></header><div className="nqt-section-body"><label htmlFor="nqt-seletivo">Processo Seletivo *</label>
-    <Dropdown inputId="nqt-seletivo" value={certameId} options={seletivos.map(item => ({ value:item.id, label:[item.numeroConcurso + "/" + item.anoConcurso, item.nomeEdital, item.setor].join(" — ") }))} filter showClear placeholder="Selecione o processo seletivo" emptyMessage="Nenhum PSS temporário cadastrado" emptyFilterMessage="Nenhum seletivo encontrado" onChange={event => { setCertameId(event.value ?? ""); setErro(""); }} />
+    <Dropdown inputId="nqt-seletivo" value={certameId} options={opcoesSeletivo} optionDisabled="indisponivel" filter showClear placeholder="Selecione o processo seletivo" emptyMessage="Nenhum PSS temporário cadastrado" emptyFilterMessage="Nenhum seletivo encontrado" itemTemplate={(option) => <span className={option.indisponivel ? "nqt-seletivo-indisponivel" : "nqt-seletivo-option"}><span>{option.label}</span>{option.quadroCodigo && <small>{option.quadroCodigo}</small>}</span>} onChange={event => { setCertameId(event.value ?? ""); setErro(""); }} />
     {!seletivos.length && <p>Nenhum processo seletivo com vínculo temporário está cadastrado no Controle de Certame.</p>}
     {certame && <dl className="nqt-grid"><Dado label="Edital" value={certame.nomeEdital} /><Dado label="Número do edital" value={certame.numeroEditalOrgao} /><Dado label="Órgão responsável" value={certame.setor} /><Dado label="Tipo de vínculo" value={TIPOS_VINCULO.find(item => item.value === certame.tipoVinculo)?.label} /><Dado label="Regime jurídico" value={REGIMES_JURIDICOS.find(item => item.value === certame.regimeJuridico)?.label} /><Dado label="Situação" value={SITUACOES_CERTAME.find(item => item.value === certame.situacaoAtual)?.label} /><Dado label="Publicação do edital" value={certame.dataPublicacaoEdital} /><Dado label="Validade do seletivo" value={certame.dataValidade} /></dl>}
    </div></section>

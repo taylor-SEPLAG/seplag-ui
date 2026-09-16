@@ -2626,7 +2626,7 @@
 
 /* Listagem de contratos temporários no mesmo padrão da consulta de efetivos. */
 .prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-kpis {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .prototype-temporarios-quadro-list-filters {
@@ -2734,4 +2734,17 @@
   .prototype-temporarios-quadro-list-filters {
     grid-template-columns: 1fr !important;
   }
+}
+.prototype-temporarios-quadro-list-empty {
+  display: grid;
+  min-height: 15rem;
+  place-items: center;
+  padding: 2rem;
+  color: #566b84;
+  text-align: center;
+}
+
+.prototype-temporarios-quadro-list-empty p {
+  margin: 0;
+  font-size: 0.9rem;
 }
