@@ -57,6 +57,7 @@ interface UnidadeCadastroForm {
   formaVinculacao: "ORGAO" | "SETOR";
   setorSuperior: string;
   tipo: string;
+  nivelOrganizacional: string;
   nome: string;
   sigla: string;
   codigo: string;
@@ -85,6 +86,7 @@ function UnidadeCadastroPage() {
       formaVinculacao: "SETOR",
       setorSuperior: "",
       tipo: "",
+      nivelOrganizacional: "",
       nome: "",
       sigla: "",
       codigo: "",
@@ -147,10 +149,11 @@ function UnidadeCadastroPage() {
             <PanelSeplag title="Identificação da unidade" description="Selecione o órgão e informe os dados básicos da unidade." className="unidades-register-panel">
               <div className="grid unidades-register-fields">
                 <DropdownFieldSeplag name="orgao" control={control} label="Órgão/Entidade" placeholder="Selecione..." cols="12 12 4" options={options(["SEPLAG - Secretaria de Estado de Planejamento e Gestão", "SEDUC - Secretaria de Estado de Educação"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
-                <DropdownFieldSeplag name="tipo" control={control} label="Tipo de unidade" placeholder="Selecione..." cols="12 12 8" options={options(["Gabinete", "Secretaria Adjunta", "Superintendência", "Coordenadoria", "Gerência", "Núcleo", "Unidade", "Conselho", "Comissão", "Ouvidoria", "Diretoria"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="tipo" control={control} label="Tipo de unidade" placeholder="Selecione..." cols="12 12 4" options={options(["Gabinete", "Secretaria Adjunta", "Superintendência", "Coordenadoria", "Gerência", "Núcleo", "Unidade", "Conselho", "Comissão", "Ouvidoria", "Diretoria"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="nivelOrganizacional" control={control} label="Nível organizacional" placeholder="Selecione..." cols="12 12 4" options={options(["Nível de Decisão Colegiada", "Nível de Direção Superior", "Nível de Assessoramento Superior", "Nível Assessoramento Estratégico e Especializado", "Nível de Administração Sistêmica", "Nível de Execução Programática", "Nível de Administração Regionalizada", "Nível de Administração Desconcentrada", "Nível de Administração Descentralizada"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
                 <div className="col-12 unidades-register-field-help">UF e Município serão preenchidos automaticamente conforme o órgão selecionado.</div>
-                <TextFieldSeplag name="codigo" control={control} label="Código" placeholder="Gerado automaticamente" cols="12 12 3" disabled getFormErrorMessage={noError} />
-                <TextFieldSeplag name="nome" control={control} label="Nome da unidade" placeholder="Ex.: Coordenadoria de Modelagem Organizacional" cols="12 12 6" required maxLength={200} getFormErrorMessage={noError} />
+                <TextFieldSeplag name="codigo" control={control} label="Código" placeholder="Gerado automaticamente" cols="12 12 2" disabled getFormErrorMessage={noError} />
+                <TextFieldSeplag name="nome" control={control} label="Nome da unidade" placeholder="Ex.: Coordenadoria de Modelagem Organizacional" cols="12 12 7" required maxLength={200} getFormErrorMessage={noError} />
                 <TextFieldSeplag name="sigla" control={control} label="Sigla" placeholder="Ex.: CMO" cols="12 12 3" maxLength={20} getFormErrorMessage={noError} />
               </div>
             </PanelSeplag>
