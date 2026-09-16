@@ -8,6 +8,8 @@ export interface DotacaoComissionadaSalva {
 
 export interface ItemEstruturaComissionadaSalvo {
   id: string;
+  /** Código funcional imutável do quadro; é compartilhado por todas as suas versões. */
+  codigo?: string;
   nome: string;
   dotacoes: DotacaoComissionadaSalva[];
   subitens: ItemEstruturaComissionadaSalvo[];
@@ -2088,6 +2090,7 @@ const nivelRegionalizadaPolitec: NivelComissionadoSalvo = {
 
 const quadroPolitec2026: QuadroComissionadoSalvo = {
   id: "quadro-politec-decreto-2252-2026",
+  codigo: "QC-0001",
   nome: "Estrutura organizacional da POLITEC — Decreto nº 2.252/2026",
   orgao: "POLITEC",
   dataVigencia: "2026-09-11",
@@ -2109,6 +2112,46 @@ const quadroPolitec2026: QuadroComissionadoSalvo = {
   ],
 };
 
+
+function normalizarCodigo(codigo: string | undefined) {
+  return codigo?.trim().toUpperCase() || "";
+}
+
+function proximoCodigoQuadro(codigos: Iterable<string>) {
+  let maior = 0;
+  for (const codigo of codigos) {
+    const encontrado = /^QC-(\d+)$/.exec(codigo);
+    if (encontrado) maior = Math.max(maior, Number(encontrado[1]));
+  }
+  return "QC-" + String(maior + 1).padStart(4, "0");
+}
+
+/** Garante que o código seja persistido uma única vez por quadro, inclusive ao migrar registros antigos. */
+function garantirCodigosQuadro(quadros: QuadroComissionadoSalvo[]) {
+  const codigoPorQuadroBase = new Map<string, string>();
+  const usados = new Set<string>();
+
+  quadros.forEach((quadro) => {
+    const codigo = normalizarCodigo(quadro.codigo);
+    if (!codigo) return;
+    const chave = quadro.quadroBaseId ?? quadro.id;
+    if (!codigoPorQuadroBase.has(chave)) codigoPorQuadroBase.set(chave, codigo);
+    usados.add(codigo);
+  });
+
+  quadros.forEach((quadro) => {
+    const chave = quadro.quadroBaseId ?? quadro.id;
+    if (codigoPorQuadroBase.has(chave)) return;
+    const codigo = proximoCodigoQuadro(usados);
+    codigoPorQuadroBase.set(chave, codigo);
+    usados.add(codigo);
+  });
+
+  return quadros.map((quadro) => ({
+    ...quadro,
+    codigo: codigoPorQuadroBase.get(quadro.quadroBaseId ?? quadro.id)!,
+  }));
+}
 export function listarQuadrosComissionados(): QuadroComissionadoSalvo[] {
   try {
     const valor = window.localStorage.getItem(CHAVE_CADASTROS);
@@ -2118,7 +2161,7 @@ export function listarQuadrosComissionados(): QuadroComissionadoSalvo[] {
       const pertenceAoQuadroPolitec = (quadro: QuadroComissionadoSalvo) => (quadro.quadroBaseId ?? quadro.id) === quadroPolitec2026.id;
       const versoesConfirmadas = quadrosLidos.filter((quadro) => pertenceAoQuadroPolitec(quadro) && quadro.id !== quadroPolitec2026.id && quadro.modeloEstruturaVersao === modeloAtual && quadro.versionamentoConfirmado === true && quadro.versionamentoOrigem === "fluxo-confirmado-v2" && quadro.versionamentoModelo === 2);
       const outrosQuadros = quadrosLidos.filter((quadro) => !pertenceAoQuadroPolitec(quadro));
-      const resultado = [quadroPolitec2026, ...versoesConfirmadas, ...outrosQuadros];
+      const resultado = garantirCodigosQuadro([quadroPolitec2026, ...versoesConfirmadas, ...outrosQuadros]);
       window.localStorage.setItem(CHAVE_CADASTROS, JSON.stringify(resultado));
       return resultado;
     }
@@ -2143,15 +2186,26 @@ export function lerRascunhoQuadroComissionado(): QuadroComissionadoSalvo | null 
 }
 
 export function salvarRascunhoQuadroComissionado(quadro: QuadroComissionadoSalvo) {
-  const quadroConfirmado = { ...quadro, versionamentoConfirmado: (quadro.versao ?? 1) > 1 ? true : quadro.versionamentoConfirmado, versionamentoOrigem: (quadro.versao ?? 1) > 1 ? "fluxo-confirmado-v2" as const : quadro.versionamentoOrigem, versionamentoModelo: (quadro.versao ?? 1) > 1 ? 2 as const : quadro.versionamentoModelo };
-  window.localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(quadroConfirmado));
   const quadros = listarQuadrosComissionados();
+  const quadroBaseId = quadro.quadroBaseId ?? quadro.id;
+  const codigoDaSerie = quadros.find((item) => (item.quadroBaseId ?? item.id) === quadroBaseId)?.codigo;
+  const quadroConfirmado = {
+    ...quadro,
+    codigo: normalizarCodigo(quadro.codigo) || codigoDaSerie,
+    versionamentoConfirmado: (quadro.versao ?? 1) > 1 ? true : quadro.versionamentoConfirmado,
+    versionamentoOrigem: (quadro.versao ?? 1) > 1 ? "fluxo-confirmado-v2" as const : quadro.versionamentoOrigem,
+    versionamentoModelo: (quadro.versao ?? 1) > 1 ? 2 as const : quadro.versionamentoModelo,
+  };
   const indice = quadros.findIndex((item) => item.id === quadroConfirmado.id);
-  if (indice >= 0) quadros[indice] = quadroConfirmado;
-  else quadros.push(quadroConfirmado);
-  window.localStorage.setItem(CHAVE_CADASTROS, JSON.stringify(quadros));
+  const atualizados = indice >= 0
+    ? quadros.map((item, posicao) => posicao === indice ? quadroConfirmado : item)
+    : [...quadros, quadroConfirmado];
+  const persistidos = garantirCodigosQuadro(atualizados);
+  const persistido = persistidos.find((item) => item.id === quadroConfirmado.id)!;
+  window.localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(persistido));
+  window.localStorage.setItem(CHAVE_CADASTROS, JSON.stringify(persistidos));
+  return persistido;
 }
-
 export function prepararNovoQuadroComissionado() {
   window.localStorage.removeItem(CHAVE_RASCUNHO);
 }

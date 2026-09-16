@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { BadgeSeplag } from "../../componentes/Badge";
 import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoLimparFiltroSeplag } from "../../componentes/Botao";
 import { DropdownFieldSeplag, MultiSelectFieldSeplag, TextFieldSeplag } from "../../componentes/Fields";
+import { ModalSeplag } from "../../componentes/Modal";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "../../componentes/TablePaginado";
 import type { ResultsSeplag } from "../../interfaces/Results";
 import {
@@ -43,12 +44,12 @@ export function QuadroAutorizadoComissionadoLista() {
   const filtros = watch();
   const [detalhe, setDetalhe] = useState<QuadroLista | null>(null);
   const [linhasExpandidas, setLinhasExpandidas] = useState<DataTableExpandedRows>({});
-  const quadros = useMemo<QuadroLista[]>(() => listarQuadrosComissionados().map((quadro, indice) => {
+  const quadros = useMemo<QuadroLista[]>(() => listarQuadrosComissionados().map((quadro) => {
     const totais = quadro.niveis.reduce((total, nivel) => {
       const itens = somarItens(nivel.itens ?? []);
       return { cargos: total.cargos + itens.cargos, funcoes: total.funcoes + itens.funcoes, dotacoes: total.dotacoes + itens.dotacoes };
     }, { cargos: 0, funcoes: 0, dotacoes: 0 });
-    return { ...quadro, ...totais, codigo: `QC-${String(indice + 1).padStart(4, "0")}`, situacao: situacaoDoQuadro(quadro) };
+    return { ...quadro, ...totais, codigo: quadro.codigo ?? "QC-0000", situacao: situacaoDoQuadro(quadro) };
   }), []);
 
   const quadrosAtuais = useMemo(() => {
@@ -97,7 +98,9 @@ export function QuadroAutorizadoComissionadoLista() {
       <div className="prototype-quadro-table-toolbar"><BotaoAdicionarSeplag label="Novo Quadro" onClick={novoQuadro} /></div>
       <div className="prototype-quadro-table prototype-quadro-library-table prototype-comissionados-quadro-table"><TablePaginadoSeplag<QuadroLista> dataKey="id" data={resultados(filtrados)} rows={10} rowsPerPage={[10, 20, 50]} lazy={false} selectionMode={null} columns={columns} expandedRows={linhasExpandidas} rowExpansionTemplate={renderHistoricoVersoes} hasEventoAcao actionHeader="Ações" renderBotoes={(quadro) => <span className="prototype-quadro-actions prototype-comissionados-quadro-actions"><BotaoIconSeplag icon="pi pi-eye" aria-label={`Visualizar ${quadro.nome}`} tooltip="Visualizar estrutura" onClick={() => setDetalhe(quadro)} />{quadro.situacao === "Ativo" && <BotaoIconSeplag icon="pi pi-plus" aria-label="Criar nova versão" tooltip="Criar nova versão" onClick={() => criarNovaVersao(quadro.id)} />}</span>} renderExpander={(quadro) => { const aberto = Boolean((linhasExpandidas as Record<string, boolean>)[quadro.id]); return <button type="button" className="prototype-quadro-expander" aria-label={aberto ? "Fechar versões anteriores" : "Abrir versões anteriores"} title={aberto ? "Fechar versões anteriores" : "Abrir versões anteriores"} onClick={() => setLinhasExpandidas((atual) => { const proximas = { ...(atual as Record<string, boolean>) }; if (aberto) delete proximas[quadro.id]; else proximas[quadro.id] = true; return proximas; })}><i className={aberto ? "pi pi-chevron-up" : "pi pi-chevron-down"} /></button>; }} handleOnPageChange={() => undefined} emptyMessage="Nenhum quadro comissionado encontrado." /></div>
     </section>
-    {detalhe && <aside className="prototype-comissionados-quadro-detail" role="dialog" aria-label="Resumo do quadro"><header><div><span>QUADRO COMISSIONADO</span><h2>{detalhe.nome}</h2></div><BotaoIconSeplag icon="pi pi-times" aria-label="Fechar resumo" tooltip="Fechar" onClick={() => setDetalhe(null)} /></header><dl><div><dt>Órgão</dt><dd>{detalhe.orgao}</dd></div><div><dt>Versão</dt><dd>{detalhe.versao ?? 1}</dd></div><div><dt>Níveis</dt><dd>{detalhe.niveis.length}</dd></div><div><dt>Itens e subitens</dt><dd>{contarItens(detalhe.niveis)}</dd></div><div><dt>Cargos autorizados</dt><dd>{detalhe.cargos}</dd></div><div><dt>Funções autorizadas</dt><dd>{detalhe.funcoes}</dd></div></dl></aside>}
+    <ModalSeplag visible={Boolean(detalhe)} titulo="Visualizar estrutura" fechar={() => setDetalhe(null)} hideFooter tamanho="min(31rem, 94vw)" ariaLabel="Resumo do quadro comissionado">
+      {detalhe && <section className="prototype-comissionados-quadro-summary-modal"><header><span>QUADRO COMISSIONADO</span><h2>{detalhe.nome}</h2></header><dl><div><dt>Órgão</dt><dd>{detalhe.orgao}</dd></div><div><dt>Versão</dt><dd>{detalhe.versao ?? 1}</dd></div><div><dt>Níveis</dt><dd>{detalhe.niveis.length}</dd></div><div><dt>Itens e subitens</dt><dd>{contarItens(detalhe.niveis)}</dd></div><div><dt>Cargos autorizados</dt><dd>{detalhe.cargos}</dd></div><div><dt>Funções autorizadas</dt><dd>{detalhe.funcoes}</dd></div></dl></section>}
+    </ModalSeplag>
   </main>;
 }
 function SituacaoBadge({ situacao }: { situacao: SituacaoLista }) {

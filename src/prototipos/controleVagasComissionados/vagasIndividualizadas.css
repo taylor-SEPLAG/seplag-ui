@@ -125,3 +125,41 @@
 
 .prototype-comissionados-posicoes-initial-state strong { color: #273950; font-size: .95rem; }
 .prototype-comissionados-posicoes-initial-state span { font-size: .78rem; }
+
+/* Grade única: seis filtros e a ação Limpar na mesma linha. */
+@media (min-width: 1101px) {
+  .prototype-quadro-library-filters.prototype-comissionados-posicoes-filters {
+    grid-template-columns: minmax(12rem, 1.18fr) repeat(5, minmax(10rem, 1fr)) minmax(7rem, auto) !important;
+    grid-auto-flow: row;
+  }
+  .prototype-quadro-library-filters.prototype-comissionados-posicoes-filters > .prototype-quadro-spec-control:nth-child(1) { grid-column: 1 !important; }
+  .prototype-quadro-library-filters.prototype-comissionados-posicoes-filters > .prototype-quadro-spec-control:nth-child(2) { grid-column: 2 !important; }
+  .prototype-quadro-library-filters.prototype-comissionados-posicoes-filters > .prototype-quadro-spec-control:nth-child(3) { grid-column: 3 !important; }
+  .prototype-quadro-library-filters.prototype-comissionados-posicoes-filters > .prototype-quadro-spec-control:nth-child(4) { grid-column: 4 !important; }
+  .prototype-quadro-library-filters.prototype-comissionados-posicoes-filters > .prototype-quadro-spec-control:nth-child(5) { grid-column: 5 !important; }
+  .prototype-quadro-library-filters.prototype-comissionados-posicoes-filters > .prototype-quadro-spec-control:nth-child(6) { grid-column: 6 !important; }
+  .prototype-quadro-library-filters.prototype-comissionados-posicoes-filters > .prototype-quadro-spec-control:nth-child(7) { grid-column: 7 !important; grid-row: 1 !important; align-self: end; }
+}
+
+@media (min-width: 1101px) { .prototype-quadro-library-filters.prototype-comissionados-posicoes-filters > .prototype-quadro-spec-control:nth-child(7) { margin-bottom: .35rem; } }
+
+.prototype-comissionados-status-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin: -8px 0 18px; }
+.prototype-comissionados-status-kpis article { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px 14px; border: 1px solid #dce3ee; border-top: 3px solid #287dc2; border-radius: .5rem; background: #fff; }
+.prototype-comissionados-status-kpis article > i { display: grid; flex: 0 0 38px; width: 38px; height: 38px; place-items: center; border-radius: .45rem; background: #e6f2fc; color: #0870b6; font-size: 1.05rem; }
+.prototype-comissionados-status-kpis article > div { display: flex; min-width: 0; flex-direction: column; }
+.prototype-comissionados-status-kpis span { color: #68748a; font-size: .79rem; font-weight: 400; line-height: 1.2; }
+.prototype-comissionados-status-kpis strong { color: #111827; font-size: 1.4rem; }
+.prototype-comissionados-status-kpis > :nth-child(1) article, .prototype-comissionados-status-kpis > :nth-child(4) article { border-top-color: #27966a; }
+.prototype-comissionados-status-kpis > :nth-child(1) article > i, .prototype-comissionados-status-kpis > :nth-child(4) article > i { background: #e5f6ee; color: #23875f; }
+.prototype-comissionados-status-kpis > :nth-child(2) article, .prototype-comissionados-status-kpis > :nth-child(5) article { border-top-color: #d88b17; }
+.prototype-comissionados-status-kpis > :nth-child(2) article > i, .prototype-comissionados-status-kpis > :nth-child(5) article > i { background: #fff3dc; color: #bd7410; }
+@media (max-width: 1100px) { .prototype-comissionados-status-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 650px) { .prototype-comissionados-status-kpis { grid-template-columns: 1fr; } }
+
+.prototype-comissionados-posicoes-table .p-datatable-tbody > tr > td:nth-child(5) > span,
+.prototype-comissionados-posicoes-table .p-datatable-tbody > tr > td:nth-child(6) > span {
+  display: inline-flex;
+  width: 100%;
+  justify-content: center !important;
+  text-align: center;
+}

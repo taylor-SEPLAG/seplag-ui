@@ -96,8 +96,8 @@ export function NovoQuadroComissionadoContent() {
   const orgaoSelecionadoJaPossuiQuadro = Boolean(orgao && quadroExistenteDoOrgao(orgao));
   const opcoesOrgao = orgaos.map((valor) => {
     const quadroExistente = quadroExistenteDoOrgao(valor);
-    const indice = quadroExistente ? quadrosCadastrados.findIndex((quadro) => quadro.id === quadroExistente.id) + 1 : 0;
-    return { label: valor, value: valor, indisponivel: Boolean(quadroExistente), quadroCodigo: quadroExistente ? `QC-${String(indice).padStart(4, "0")}` : undefined, motivoIndisponibilidade: quadroExistente ? `Já existe o quadro QC-${String(indice).padStart(4, "0")} para este órgão.` : "" };
+    const codigo = quadroExistente?.codigo;
+    return { label: valor, value: valor, indisponivel: Boolean(quadroExistente), quadroCodigo: codigo, motivoIndisponibilidade: codigo ? "Já existe o quadro " + codigo + " para este órgão." : "" };
   });
   useEffect(() => {
     if (!orgaoSelecionadoJaPossuiQuadro) return;
