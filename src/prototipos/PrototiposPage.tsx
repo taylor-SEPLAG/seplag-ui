@@ -150,6 +150,8 @@ import { ProcessosSeletivosContent as PssProcessosSeletivosContent } from "./con
 import { ControleVagasPssContent as PssControleVagasContent } from "./controlePss/ControleVagasPssContent";
 import { IntegracaoSiesContent as PssIntegracaoSiesContent } from "./controlePss/IntegracaoSiesContent";
 import { CertamesListContent as PssCertamesListContent } from "./controlePss/certame/CertamesListContent";
+import { ComissoesListContent as PssComissoesListContent } from "./controlePss/comissoes/ComissoesListContent";
+import { ComissaoFormContent as PssComissaoFormContent } from "./controlePss/comissoes/ComissaoFormContent";
 import { CertameFormContent as PssCertameFormContent } from "./controlePss/certame/CertameFormContent";
 import { LocaisListContent as PssLocaisListContent } from "./controlePss/locais/LocaisListContent";
 import { LocalFormContent as PssLocalFormContent } from "./controlePss/locais/LocalFormContent";
@@ -342,6 +344,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Painel Geral", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/painel`, visibleOnMenu: false, visibleOnRouter: true },
           { label: "Cadastro de Certames", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/certames`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Comissões", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/comissoes`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Locais", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/locais`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Fase do Certame", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/fases-certame`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tipos de Cota", icon: "pi pi-circle-on", to: `${CONTROLE_PSS_BASE_PATH}/tipos-cota`, visibleOnMenu: true, visibleOnRouter: true },
@@ -7388,6 +7391,12 @@ export function PrototiposControlePssCertamesPage() {
 }
 export function PrototiposControlePssCertameFormPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssCertameFormContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssComissoesPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssComissoesListContent /></PrototypeSystemPage>;
+}
+export function PrototiposControlePssComissaoFormPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssComissaoFormContent /></PrototypeSystemPage>;
 }
 export function PrototiposControlePssLocaisPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><PssLocaisListContent /></PrototypeSystemPage>;
