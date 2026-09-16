@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { DateFieldSeplag } from "../../componentes/Fields";
 import { BadgeSeplag } from "../../componentes/Badge";
-import { calcularStatusOperacionalVigenciaSeplag, validarSituacaoVigenciaSeplag } from "../../componentes/SituacaoVigencia";
+
 import { BotaoSalvarSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -56,8 +56,8 @@ export function NovoQuadroTemporarioContent() {
    </div></section>
    <section className="nqt-card"><header className="nqt-section-header"><i className="pi pi-calendar" aria-hidden="true" /><div><h2>Vigência</h2><p>Informe a situação temporal da autorização utilizando o padrão do sistema.</p></div></header>
     <div className="nqt-section-body nqt-vigencia">
-     <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" required cols="12" getFormErrorMessage={() => null} />
-     <div className="nqt-situacao" aria-live="polite"><i className={"pi " + (agendado ? "pi-clock" : "pi-check-circle")} aria-hidden="true" /><div><span>Situação *</span><div><BadgeSeplag label={agendado ? "Agendado" : "Ativo"} color={agendado ? "#8a5a00" : "#00843d"} bg={agendado ? "#fff3d6" : "#dff3e8"} size="sm" fontWeight /></div><small>{agendado ? "A autorização ficará programada para a data informada." : "A autorização passa a valer a partir da data informada."}</small></div></div>
+     <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" required cols="12" maxDate={new Date()} customValidation={(value) => !value || !dataFutura(String(value)) || "A data de início não pode ser futura."} getFormErrorMessage={() => null} />
+     <div className="nqt-situacao" aria-live="polite"><i className="pi pi-check-circle" aria-hidden="true" /><div><span>Situação</span><div><strong>Ativo</strong></div><small>O quadro passa a valer na data informada.</small></div></div>
     </div>
    </section>
    <footer><BotaoVoltarSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={voltar} /><BotaoSalvarSeplag type="submit" label="Criar Quadro Temporário" disabled={!certame || !cargos.length} /></footer>
@@ -65,3 +65,13 @@ export function NovoQuadroTemporarioContent() {
  </main>;
 }
 function Dado({ label, value }: { label:string; value?:string | number }) { return <div><dt>{label}</dt><dd>{value === undefined || value === "" ? "Não informado" : value}</dd></div>; }
+
+function dataFutura(valor: string) {
+ const [dia, mes, ano] = valor.split("/").map(Number);
+ if (!dia || !mes || !ano) return false;
+ const informada = new Date(ano, mes - 1, dia);
+ informada.setHours(0, 0, 0, 0);
+ const hoje = new Date();
+ hoje.setHours(0, 0, 0, 0);
+ return informada > hoje;
+}
