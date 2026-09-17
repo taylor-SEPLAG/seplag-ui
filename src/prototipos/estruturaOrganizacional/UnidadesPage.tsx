@@ -6,7 +6,7 @@ import { BotaoLimparFiltroSeplag, BotaoSalvarSeplag, BotaoSeplag } from "@compon
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { CardSeplag } from "@componentes/Card";
 import { DocumentosLegaisAssociadosSeplag, type DocumentoLegalAssociadoSeplag } from "@componentes/DocumentosLegaisAssociados";
-import { DateFieldSeplag, DropdownFieldSeplag, RadioButtonFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
+import { DateFieldSeplag, DropdownFieldSeplag, RadioButtonFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { PanelSeplag } from "@componentes/PanelSeplag";
 import { ModalSeplag } from "@componentes/Modal";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
@@ -59,6 +59,7 @@ interface UnidadeCadastroForm {
   dataInicio: string;
   dataInicioEstrutura: string;
   documentoEstrutura: string;
+  justificativaMudanca: string;
   dataFimExtincao: string;
   documentoExtincao: string;
 }
@@ -94,6 +95,7 @@ function UnidadeCadastroPage() {
       dataInicio: unidadeSelecionada?.dataInicio ?? "",
       dataInicioEstrutura: "",
       documentoEstrutura: "",
+      justificativaMudanca: "",
       dataFimExtincao: unidadeSelecionada?.dataFim ?? "Não informada",
       documentoExtincao: unidadeSelecionada?.documentoExtincaoId ?? "Não informado",
     },
@@ -104,7 +106,7 @@ function UnidadeCadastroPage() {
   const [unidadesCadastradas, setUnidadesCadastradas] = useState<UnidadeRow[]>(lerUnidadesCadastradas);
   const [unidadeArrastada, setUnidadeArrastada] = useState<number | null>(null);
   const [ordemRascunho, setOrdemRascunho] = useState<number[]>([]);
-  const [alterandoEstrutura, setAlterandoEstrutura] = useState(!modoEdicao);
+  const [modalAlterarEstrutura, setModalAlterarEstrutura] = useState(false);
   const orgao = watch("orgao");
   const formaVinculacao = watch("formaVinculacao");
   const setorSuperior = watch("setorSuperior");
@@ -150,8 +152,14 @@ function UnidadeCadastroPage() {
   })();
 
   useEffect(() => {
-    if (vinculadoDiretamenteAoOrgao) setValue("setorSuperior", "");
-  }, [setValue, vinculadoDiretamenteAoOrgao]);
+    if (vinculadoDiretamenteAoOrgao && !modalAlterarEstrutura) setValue("setorSuperior", "");
+  }, [modalAlterarEstrutura, setValue, vinculadoDiretamenteAoOrgao]);
+
+  useEffect(() => {
+    if (!modalAlterarEstrutura) return;
+    if (setorSuperior === "__ORGAO__") setValue("formaVinculacao", "ORGAO");
+    else if (setorSuperior) setValue("formaVinculacao", "SETOR");
+  }, [modalAlterarEstrutura, setorSuperior, setValue]);
 
   useEffect(() => {
     if (!orgao) {
@@ -246,7 +254,7 @@ function UnidadeCadastroPage() {
         setConfirmarMovimentacao(true);
         return;
       }
-      criarNovaVersaoEstrutural(registrosAtualizados, registro.orgao, watch("dataInicioEstrutura"), watch("documentoEstrutura"));
+      criarNovaVersaoEstrutural(registrosAtualizados, registro.orgao, watch("dataInicioEstrutura"), watch("documentoEstrutura"), watch("justificativaMudanca"));
       navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades");
       return;
     }
@@ -284,7 +292,7 @@ function UnidadeCadastroPage() {
                 <div className="unidades-structure-change">
                   <div className="unidades-structure-change-header">
                     <span>Posição na Estrutura Organizacional</span>
-                    <BotaoSeplag type="button" label="Alterar Estrutura / Subordinação" icon="pi pi-external-link" outlined onClick={() => setAlterandoEstrutura(true)} />
+                    <BotaoSeplag type="button" label="Alterar Estrutura / Subordinação" icon="pi pi-external-link" outlined onClick={() => { setValue("formaVinculacao", unidadeSelecionada?.unidadeSuperior ? "SETOR" : "ORGAO"); setValue("setorSuperior", unidadeSelecionada?.unidadeSuperior ?? "__ORGAO__"); setModalAlterarEstrutura(true); }} />
                   </div>
                   <div className="unidades-structure-current">
                     <small>SUBORDINAÇÃO ATUAL NA ÁRVORE:</small>
@@ -293,7 +301,7 @@ function UnidadeCadastroPage() {
                   </div>
                 </div>
               )}
-              {(alterandoEstrutura || !modoEdicao) && <div className="unidades-position-grid">
+              {!modoEdicao && <div className="unidades-position-grid">
                 <div className="unidades-position-selection">
                   <div className="grid unidades-position-controls">
                     <RadioButtonFieldSeplag name="formaVinculacao" control={control} label="Forma de Vinculação" cols="12 12 6" options={[{ label: "Diretamente ao órgão", value: "ORGAO" }, { label: "Vincular a outra unidade", value: "SETOR" }]} getFormErrorMessage={noError} />
@@ -351,13 +359,6 @@ function UnidadeCadastroPage() {
                 </aside>
               </div>}
             </PanelSeplag>
-
-            {modoEdicao && alterandoEstrutura && <PanelSeplag title="Fundamentação da alteração estrutural" description="Informe a vigência e o documento legal que fundamentam a nova posição." className="unidades-register-panel">
-              <div className="grid unidades-register-fields">
-                <DateFieldSeplag name="dataInicioEstrutura" control={control} label="Data de início da nova estrutura" cols="12 12 6" required getFormErrorMessage={noError} />
-                <DropdownFieldSeplag name="documentoEstrutura" control={control} label="Documento Legal" placeholder="Selecione..." cols="12 12 6" required options={documentosLegaisUnidade.map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
-              </div>
-            </PanelSeplag>}
 
             <PanelSeplag title="Vigência" description="Informe o período de vigência da unidade." className="unidades-register-panel">
               <div className="grid unidades-register-fields">
@@ -421,6 +422,17 @@ function UnidadeCadastroPage() {
             <ModalSeplag visible={confirmarMovimentacao} titulo="Confirmar movimentação de ramo" fechar={() => setConfirmarMovimentacao(false)} labelFechar="Cancelar" labelAcao="Continuar" funcAcao={() => { setConfirmarMovimentacao(false); salvarUnidade(true); }} tamanho="620px">
               <p>A unidade possui <strong>{[...nomesDescendentes].filter((nome) => unidadesCadastradas.some((unidade) => unidade.nome === nome && unidade.situacao === "ATIVA")).length}</strong> unidade(s) subordinada(s) ativa(s).</p>
               <p>Ao continuar, todo o ramo será movimentado para a nova posição, preservando as relações internas.</p>
+            </ModalSeplag>
+            <ModalSeplag visible={modalAlterarEstrutura} titulo="Alterar Subordinação Estrutural" fechar={() => setModalAlterarEstrutura(false)} labelFechar="Cancelar" labelAcao="Confirmar Alteração Estrutural" iconAcao="pi pi-check" funcAcao={() => salvarUnidade()} tamanho="720px">
+              <div className="grid unidades-estrutura-modal">
+                <div className="col-12 unidades-estrutura-atual"><small>SUBORDINAÇÃO ATUAL:</small><strong>{caminhoSubordinacao.join(" > ")}</strong></div>
+                <DropdownFieldSeplag name="setorSuperior" control={control} label="Nova Unidade Superior (Mãe)" placeholder="Selecione a nova unidade pai..." cols="12" required options={[{ label: "Diretamente ao Órgão/Entidade", value: "__ORGAO__" }, ...unidadesSuperiores.map((unidade) => ({ label: unidade.nome, value: unidade.nome }))]} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
+                <DateFieldSeplag name="dataInicioEstrutura" control={control} label="Data da Nova Vigência" cols="12 12 5" required getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="documentoEstrutura" control={control} label="Amparo Legal da Reorganização" placeholder="Selecione o amparo legal..." cols="12 12 7" required options={documentosLegaisUnidade.map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
+                <TextAreaFieldSeplag name="justificativaMudanca" control={control} label="Justificativa da Mudança" placeholder="Informe a motivação técnica/legal para o remanejamento deste setor..." rows={3} maxLength={1000} cols="12" getFormErrorMessage={noError} />
+                {errosValidacao.length > 0 && <div className="col-12 unidades-operation-error">{errosValidacao.join(" ")}</div>}
+                <div className="col-12 unidades-estrutura-alert"><i className="pi pi-exclamation-triangle" /><span>Ao confirmar, a relação de subordinação anterior será encerrada na data informada. O organograma manterá o histórico retroativo e publicará uma nova versão vigente.</span></div>
+              </div>
             </ModalSeplag>
           </div>
       </div>

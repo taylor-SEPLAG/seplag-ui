@@ -42,6 +42,7 @@ export interface VersaoOrganograma {
   inicio: string;
   fim?: string;
   situacao: "VIGENTE" | "ENCERRADA";
+  justificativa?: string;
 }
 
 export interface PosicaoEstrutural {
@@ -185,7 +186,7 @@ export const obterUnidadesNoOrganograma = (estrutura: EstruturaOrganizacionalSta
   return versao ? obterUnidadesDaVersao(estrutura, versao.id) : [];
 };
 
-export const criarNovaVersaoEstrutural = (unidades: UnidadeEstrutural[], orgao: string, inicio: string, documentoLegalId: string) => {
+export const criarNovaVersaoEstrutural = (unidades: UnidadeEstrutural[], orgao: string, inicio: string, documentoLegalId: string, justificativa?: string) => {
   const estruturaAtual = lerEstruturaOrganizacional();
   const versaoAtual = obterVersaoVigente(estruturaAtual, orgao);
   if (!versaoAtual) return estruturaAtual;
@@ -199,6 +200,7 @@ export const criarNovaVersaoEstrutural = (unidades: UnidadeEstrutural[], orgao: 
     documentoLegal: documento?.titulo ?? "Documento legal não informado",
     inicio,
     situacao: "VIGENTE",
+    justificativa,
   };
   const posicoesAnteriores = estruturaAtual.posicoes.map((posicao) => posicao.versaoId === versaoAtual.id ? { ...posicao, fim: inicio } : posicao);
   const versoesAtualizadas = estruturaAtual.versoes.map((versao) => versao.id === versaoAtual.id ? versaoAnterior : versao).concat(novaVersao);
