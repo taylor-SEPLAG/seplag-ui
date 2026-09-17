@@ -14,6 +14,7 @@ export interface UnidadeEstrutural {
   dataFim?: string;
   documentoCriacaoId?: string;
   documentoExtincaoId?: string;
+  justificativaExtincao?: string;
   servidoresAtivosLotados?: number;
   referencias?: number;
   documentosLegaisCriacaoIds?: string[];
@@ -216,12 +217,12 @@ export const criarNovaVersaoEstrutural = (unidades: UnidadeEstrutural[], orgao: 
   return estrutura;
 };
 
-export const extinguirUnidadeDaEstrutura = (unidadeId: number, dataFim: string, documentoExtincaoId: string) => {
+export const extinguirUnidadeDaEstrutura = (unidadeId: number, dataFim: string, documentoExtincaoId: string, justificativaExtincao: string) => {
   const estruturaAtual = lerEstruturaOrganizacional();
   const unidade = estruturaAtual.unidades.find((item) => item.id === unidadeId);
   if (!unidade) return estruturaAtual;
-  const unidades = estruturaAtual.unidades.map((item) => item.id === unidadeId ? { ...item, situacao: "EXTINTA" as const, dataFim, documentoExtincaoId } : item);
-  const estrutura = { ...estruturaAtual, unidades, auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "EXTINCAO" as const, unidadeId, descricao: `Extinção da unidade ${unidade.nome}` }] };
+  const unidades = estruturaAtual.unidades.map((item) => item.id === unidadeId ? { ...item, situacao: "EXTINTA" as const, dataFim, documentoExtincaoId, justificativaExtincao } : item);
+  const estrutura = { ...estruturaAtual, unidades, auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "EXTINCAO" as const, unidadeId, descricao: `Extinção da unidade ${unidade.nome}: ${justificativaExtincao}` }] };
   gravarEstruturaOrganizacional(estrutura);
   return estrutura;
 };

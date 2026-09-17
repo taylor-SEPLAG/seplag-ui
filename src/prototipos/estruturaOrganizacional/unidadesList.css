@@ -271,3 +271,22 @@
 .unidades-estrutura-atual strong { font-size: 0.84rem; }
 .unidades-estrutura-alert { display: flex; gap: 9px; padding: 12px 14px; border: 1px solid #f5d58d; border-radius: 6px; background: #fffaf0; color: #875a00; font-size: 0.8rem; line-height: 1.35; }
 .unidades-estrutura-alert .pi { margin-top: 2px; }
+.unidades-register-panel { position: relative; }
+.unidades-extinguir-action { position: absolute; top: 14px; right: 18px; z-index: 1; }
+.unidades-extincao-footer { display: flex; justify-content: flex-end; gap: 10px; }
+.unidades-extincao-pendencias { display: flex; gap: 12px; padding: 14px 16px; border: 1px solid #f5d58d; border-radius: 6px; background: #fff8e6; color: #875a00; }
+.unidades-extincao-pendencias .pi { margin-top: 3px; color: #5b2c83; }
+.unidades-extincao-pendencias div { display: flex; flex-direction: column; gap: 3px; }
+.unidades-extincao-pendencias span { font-size: 0.83rem; line-height: 1.35; }
+.unidades-extincao-selecionada { display: flex; justify-content: space-between; gap: 14px; padding: 13px 16px; border: 1px solid #d9e1ea; border-radius: 6px; background: #f8fafc; color: #4b5563; font-size: 0.84rem; }
+.unidades-extincao-selecionada strong { color: #172b4d; }
+.unidades-extincao-irreversivel { display: flex; flex-direction: column; gap: 3px; padding: 13px 16px; border-left: 4px solid #4b5563; border-radius: 6px; background: #f4f6f8; color: #4b5563; font-size: 0.84rem; }
+.unidades-extincao-irreversivel span { line-height: 1.35; }
+.unidades-extinta-legal-view { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+.unidades-extinta-legal-view > div > label { display: block; margin-bottom: 6px; color: #172b4d; font-size: 0.8rem; font-weight: 700; }
+.unidades-extinta-documento { padding: 10px 13px; border: 1px solid #cad7e5; border-radius: 5px; background: #fff; color: #075d96; font-size: 0.84rem; }
+.unidades-extinta-documento.is-extincao { border-color: #f49a9a; background: #fff9f9; color: #ba1a1a; }
+.unidades-extinta-documento-detail { display: flex; flex-direction: column; gap: 4px; padding: 13px; border: 1px solid #f5b5b5; border-radius: 5px; background: #fff7f7; color: #8e1717; }
+.unidades-extinta-documento-detail strong { font-size: 0.86rem; }
+.unidades-extinta-documento-detail span { font-size: 0.76rem; }
+@media (max-width: 700px) { .unidades-extinguir-action { position: static; display: flex; justify-content: flex-end; padding: 12px 18px 0; } .unidades-extincao-selecionada { flex-direction: column; } }

@@ -62,6 +62,7 @@ interface UnidadeCadastroForm {
   justificativaMudanca: string;
   dataFimExtincao: string;
   documentoExtincao: string;
+  justificativaExtincao: string;
 }
 
 function UnidadeCadastroPage() {
@@ -70,6 +71,7 @@ function UnidadeCadastroPage() {
   const unidadeSelecionada = (location.state as { unidade?: UnidadeRow } | null)?.unidade;
   const modoVisualizacao = new URLSearchParams(location.search).get("modo") === "visualizar";
   const modoEdicao = new URLSearchParams(location.search).get("modo") === "editar";
+  const unidadeExtinta = unidadeSelecionada?.situacao === "EXTINTA";
   const { control, watch, setValue } = useForm<UnidadeCadastroForm>({
     defaultValues: {
       orgao: unidadeSelecionada ? (unidadeSelecionada.orgao === "SEPLAG" ? "SEPLAG - Secretaria de Estado de Planejamento e Gestão" : "SEDUC - Secretaria de Estado de Educação") : "",
@@ -98,11 +100,14 @@ function UnidadeCadastroPage() {
       justificativaMudanca: "",
       dataFimExtincao: unidadeSelecionada?.dataFim ?? "Não informada",
       documentoExtincao: unidadeSelecionada?.documentoExtincaoId ?? "Não informado",
+      justificativaExtincao: unidadeSelecionada?.justificativaExtincao ?? "",
     },
   });
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>(unidadeSelecionada?.documentosLegaisCriacaoIds ?? (unidadeSelecionada?.documentoCriacaoId ? [unidadeSelecionada.documentoCriacaoId] : []));
   const [errosValidacao, setErrosValidacao] = useState<string[]>([]);
   const [confirmarMovimentacao, setConfirmarMovimentacao] = useState(false);
+  const [modalExtincao, setModalExtincao] = useState(false);
+  const [erroExtincao, setErroExtincao] = useState("");
   const [unidadesCadastradas, setUnidadesCadastradas] = useState<UnidadeRow[]>(lerUnidadesCadastradas);
   const [unidadeArrastada, setUnidadeArrastada] = useState<number | null>(null);
   const [ordemRascunho, setOrdemRascunho] = useState<number[]>([]);
@@ -361,23 +366,22 @@ function UnidadeCadastroPage() {
             </PanelSeplag>
 
             <PanelSeplag title="Vigência" description="Informe o período de vigência da unidade." className="unidades-register-panel">
+              {modoEdicao && unidadeSelecionada?.situacao === "ATIVA" && <div className="unidades-extinguir-action"><BotaoSeplag type="button" label="Extinguir Unidade" icon="pi pi-ban" severity="danger" outlined onClick={() => { setErroExtincao(""); setValue("dataFimExtincao", ""); setValue("documentoExtincao", ""); setValue("justificativaExtincao", ""); setModalExtincao(true); }} /></div>}
               <div className="grid unidades-register-fields">
                 <DateFieldSeplag name="dataInicio" control={control} label="Data de início" cols="12 12 6" required getFormErrorMessage={noError} />
+                {modoVisualizacao && unidadeExtinta && <DateFieldSeplag name="dataFimExtincao" control={control} label="Data de fim (Extinção)" cols="12 12 6" required disabled getFormErrorMessage={noError} />}
               </div>
             </PanelSeplag>
 
-            {modoVisualizacao && unidadeSelecionada?.situacao === "EXTINTA" && <PanelSeplag title="Dados de extinção" description="Informações da vigência encerrada da unidade." className="unidades-register-panel">
-              <div className="grid unidades-register-fields">
-                <TextFieldSeplag name="dataInicio" control={control} label="Data de início" cols="12 12 4" disabled getFormErrorMessage={noError} />
-                <TextFieldSeplag name="dataFimExtincao" control={control} label="Data de fim" cols="12 12 4" disabled getFormErrorMessage={noError} />
-                <TextFieldSeplag name="documentoExtincao" control={control} label="Documento Legal de Extinção" cols="12 12 4" disabled getFormErrorMessage={noError} />
-              </div>
-            </PanelSeplag>}
-
-            <PanelSeplag title="Fundamentação legal" description="Informe o documento que sustenta a existência da unidade." className="unidades-register-panel">
-              <div className="unidades-register-legal-documents">
+            <PanelSeplag title="Fundamentação legal" description={unidadeExtinta ? "Informe os documentos legais que sustentam a existência e a extinção da unidade." : "Informe o documento que sustenta a existência da unidade."} className="unidades-register-panel">
+              {modoVisualizacao && unidadeExtinta ? <div className="unidades-extinta-legal-view">
+                <div><label>Documento legal de criação / existência</label><div className="unidades-extinta-documento">{documentosLegaisUnidade.find((documento) => documento.id === unidadeSelecionada.documentoCriacaoId)?.titulo ?? "Documento de criação não informado"}</div></div>
+                <div><label>Documento legal de extinção / desativação</label><div className="unidades-extinta-documento is-extincao">{documentosLegaisUnidade.find((documento) => documento.id === unidadeSelecionada.documentoExtincaoId)?.titulo ?? unidadeSelecionada.documentoExtincaoId ?? "Documento de extinção não informado"}</div></div>
+                <div className="unidades-extinta-documento-detail"><strong>{documentosLegaisUnidade.find((documento) => documento.id === unidadeSelecionada.documentoExtincaoId)?.titulo ?? "Ato de Extinção"}</strong><span>Documento que dispõe sobre a extinção e reorganização de estruturas administrativas.</span></div>
+                <TextAreaFieldSeplag name="justificativaExtincao" control={control} label="Justificativa da extinção" rows={3} maxLength={1000} cols="12" required disabled getFormErrorMessage={noError} />
+              </div> : <div className="unidades-register-legal-documents">
                 <DocumentosLegaisAssociadosSeplag label="Documentos legais associados" required options={documentosLegaisUnidade} value={documentosSelecionados} onChange={setDocumentosSelecionados} onNovoCadastro={() => navigate(`/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`)} onVisualizar={() => {}} expandirAoAbrir />
-              </div>
+              </div>}
             </PanelSeplag>
 
             <PanelSeplag title="Localização" description="UF e Município são herdados do órgão. Informe endereço próprio apenas quando a unidade funcionar em outra localidade." className="unidades-register-panel">
@@ -432,6 +436,25 @@ function UnidadeCadastroPage() {
                 <TextAreaFieldSeplag name="justificativaMudanca" control={control} label="Justificativa da Mudança" placeholder="Informe a motivação técnica/legal para o remanejamento deste setor..." rows={3} maxLength={1000} cols="12" getFormErrorMessage={noError} />
                 {errosValidacao.length > 0 && <div className="col-12 unidades-operation-error">{errosValidacao.join(" ")}</div>}
                 <div className="col-12 unidades-estrutura-alert"><i className="pi pi-exclamation-triangle" /><span>Ao confirmar, a relação de subordinação anterior será encerrada na data informada. O organograma manterá o histórico retroativo e publicará uma nova versão vigente.</span></div>
+              </div>
+            </ModalSeplag>
+            <ModalSeplag visible={modalExtincao} titulo="Extinguir Unidade Organizacional" fechar={() => setModalExtincao(false)} tamanho="720px" customFooter={<div className="unidades-extincao-footer"><BotaoSeplag type="button" label="Cancelar" icon="pi pi-times" outlined onClick={() => setModalExtincao(false)} /><BotaoSeplag type="button" label="Confirmar Extinção" icon="pi pi-bolt" severity="danger" onClick={() => {
+              if (!unidadeSelecionada) return;
+              const possuiSubordinadas = unidadesCadastradas.some((unidade) => unidade.unidadeSuperior === unidadeSelecionada.nome && unidade.situacao === "ATIVA");
+              const possuiPendencias = possuiSubordinadas || (unidadeSelecionada.servidoresAtivosLotados ?? 0) > 0;
+              if (possuiPendencias) { setErroExtincao("Não é possível extinguir esta unidade enquanto houver servidores lotados e/ou unidades subordinadas ativas."); return; }
+              if (!watch("documentoExtincao") || !watch("dataFimExtincao") || !watch("justificativaExtincao").trim()) { setErroExtincao("Informe o Amparo Legal, a Data fim da vigência e a Justificativa da Extinção."); return; }
+              extinguirUnidadeDaEstrutura(unidadeSelecionada.id, watch("dataFimExtincao"), watch("documentoExtincao"), watch("justificativaExtincao"));
+              setModalExtincao(false); navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades");
+            }} /></div>}>
+              <div className="grid unidades-extincao-estrutura-modal">
+                <div className="col-12 unidades-extincao-pendencias"><i className="pi pi-users" /><div><strong>Verificação de Pendências:</strong><span>Certifique-se de que todos os servidores e unidades vinculadas já foram redistribuídos.</span></div></div>
+                <div className="col-12 unidades-extincao-selecionada"><span>Unidade selecionada:</span><strong>{unidadeSelecionada?.sigla} - {unidadeSelecionada?.nome}</strong></div>
+                <DropdownFieldSeplag name="documentoExtincao" control={control} label="Fundamentação Legal" placeholder="Selecione o amparo legal..." cols="12" required options={documentosLegaisUnidade.map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={noError} />
+                <DateFieldSeplag name="dataFimExtincao" control={control} label="Data fim da vigência (Encerramento)" cols="12" required getFormErrorMessage={noError} />
+                <TextAreaFieldSeplag name="justificativaExtincao" control={control} label="Justificativa da Extinção" placeholder="Descreva os motivos administrativos, operacionais ou normativos para a extinção desta unidade..." rows={4} maxLength={1000} cols="12" required getFormErrorMessage={noError} />
+                {erroExtincao && <div className="col-12 unidades-operation-error">{erroExtincao}</div>}
+                <div className="col-12 unidades-extincao-irreversivel"><strong>Atenção sobre a irreversibilidade:</strong><span>Uma vez extinta, esta unidade não poderá ser reativada.</span></div>
               </div>
             </ModalSeplag>
           </div>
@@ -550,7 +573,7 @@ export function PrototiposUnidadesPage() {
             const possuiImpedimento = possuiSubordinadas || (unidadeParaExtinguir.servidoresAtivosLotados ?? 0) > 0;
             if (possuiImpedimento) { setErroOperacao(`Não é possível extinguir a unidade ${unidadeParaExtinguir.nome}, pois existem servidores lotados e/ou unidades subordinadas ativas.`); return; }
             if (!watchExtincao("dataFim") || !watchExtincao("documentoExtincao")) { setErroOperacao("Informe a Data de Fim e o Documento Legal de Extinção."); return; }
-            const estrutura = extinguirUnidadeDaEstrutura(unidadeParaExtinguir.id, watchExtincao("dataFim"), watchExtincao("documentoExtincao"));
+            const estrutura = extinguirUnidadeDaEstrutura(unidadeParaExtinguir.id, watchExtincao("dataFim"), watchExtincao("documentoExtincao"), "Extinção registrada pela gestão da estrutura organizacional.");
             setUnidadesCadastradas(estrutura.unidades); setUnidadeParaExtinguir(null); setErroOperacao("");
           }} tamanho="680px">
             {unidadeParaExtinguir && <div className="grid unidades-extincao-modal"><p className="col-12">A unidade <strong>{unidadeParaExtinguir.nome}</strong> será encerrada formalmente e não poderá ser reativada.</p>{erroOperacao && <p className="col-12 unidades-operation-error">{erroOperacao}</p>}<DateFieldSeplag name="dataFim" control={controlExtincao} label="Data de Fim" cols="12 12 6" required getFormErrorMessage={() => null} /><DropdownFieldSeplag name="documentoExtincao" control={controlExtincao} label="Documento Legal de Extinção" placeholder="Selecione..." cols="12 12 6" required options={documentosLegaisUnidade.map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} /></div>}
