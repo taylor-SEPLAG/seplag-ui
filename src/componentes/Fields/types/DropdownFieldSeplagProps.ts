@@ -15,6 +15,9 @@ export interface DropdownFieldSeplagProps<
   readonly onChange?: (value: any) => void;
   readonly defaultValue?: any;
   readonly filter?: boolean;
+  /** Nomes de propriedades do objeto de cada opção a considerar na busca do filtro (ex.:
+   * "label,matricula"), além do optionLabel — repassado direto para o Dropdown do PrimeReact. */
+  readonly filterBy?: string;
   readonly virtualScrollerOptions?: any;
   readonly optionDisabled?: string | ((option: any) => boolean);
   readonly itemTemplate?: (option: any) => ReactNode;
