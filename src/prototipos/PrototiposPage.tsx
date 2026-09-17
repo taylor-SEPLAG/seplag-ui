@@ -7,6 +7,8 @@ import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTe
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
 import { ControleVagasGeralContent } from "./controleVagas/ControleVagasGeralContent";
 import { CadastroGeralContent } from "./cadastro/CadastroGeralContent";
+import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
+import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
 import { VagasTemporariosContent } from "./controleVagasTemporarios/VagasTemporariosContent";
 import { QuadroAutorizadoContent as QuadroTemporariosContent } from "./controleVagasTemporarios/QuadroAutorizadoContent";
 import { VagasIndividualizadasContent as IndividualizadasTemporariosContent } from "./controleVagasTemporarios/VagasIndividualizadasContent";
@@ -342,7 +344,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
       {
         label: "Controle de Certame",
         icon: "pi pi-file-check",
-        url: "#",
+        to: "/prototipos/sigep/controle-pss",
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
@@ -360,7 +362,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
       {
         label: "Vínculos Funcionais",
         icon: "pi pi-link",
-        url: "#",
+        to: "/prototipos/sigep/vinculos-funcionais",
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
@@ -7551,6 +7553,22 @@ export function PrototiposCadastroGeralPage() {
   );
 }
 
+
+export function PrototiposControleCertameGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <ControleCertameGeralContent />
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposVinculosFuncionaisGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <VinculosFuncionaisGeralContent />
+    </PrototypeSystemPage>
+  );
+}
 export function PrototiposControleVagasDashboardPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>

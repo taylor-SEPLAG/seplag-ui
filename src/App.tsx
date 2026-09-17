@@ -57,6 +57,8 @@ import {
   PrototiposControleVagasVagasPage,
   PrototiposControleVagasCessoesPage,
   PrototiposControleVagasProjecoesPage,
+  PrototiposControleCertameGeralPage,
+  PrototiposVinculosFuncionaisGeralPage,
   PrototiposControlePssPainelPage,
   PrototiposControlePssProcessosPage,
   PrototiposControlePssVagasPage,
@@ -1748,6 +1750,8 @@ function App() {
       <Route path="/prototipos/sigep/movimentacao/cessoes/:id/corrigir" element={<PrototiposCorrecaoCessaoPage />} />
       <Route path="/prototipos/sigep/movimentacao/cessoes/nova/interna" element={<PrototiposNovaCessaoInternaPage />} />
       <Route path="/prototipos/sigep/movimentacao/cessoes/nova/externa" element={<PrototiposNovaCessaoExternaPage />} />
+      <Route path="/prototipos/sigep/controle-pss" element={<PrototiposControleCertameGeralPage />} />
+      <Route path="/prototipos/sigep/vinculos-funcionais" element={<PrototiposVinculosFuncionaisGeralPage />} />
       <Route
         path="/prototipos/sigep/controle-pss/painel"
         element={<PrototiposControlePssPainelPage />}
