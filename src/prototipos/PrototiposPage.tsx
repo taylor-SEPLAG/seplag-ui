@@ -1,8 +1,14 @@
 import { BreadcrumbVagas as BreadcrumbVagasResidentes } from "./controleVagasResidentes/BreadcrumbVagas";
 import { atualizarControleVagasBolsistas } from "./controleVagasResidentes/cargosBolsistasStore";
+import { atualizarControleVagasComissionadas, cargosComissionadosIniciais } from "./controleVagasComissionados/cargosComissionadosStore";
+import { atualizarControleVagasTemporarias } from "./controleVagasTemporarios/cargosTemporariosStore";
 import { BreadcrumbVagas as BreadcrumbVagasComissionados } from "./controleVagasComissionados/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTemporarios/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
+import { ControleVagasGeralContent } from "./controleVagas/ControleVagasGeralContent";
+import { CadastroGeralContent } from "./cadastro/CadastroGeralContent";
+import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
+import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
 import { VagasTemporariosContent } from "./controleVagasTemporarios/VagasTemporariosContent";
 import { QuadroAutorizadoContent as QuadroTemporariosContent } from "./controleVagasTemporarios/QuadroAutorizadoContent";
 import { VagasIndividualizadasContent as IndividualizadasTemporariosContent } from "./controleVagasTemporarios/VagasIndividualizadasContent";
@@ -219,7 +225,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
   {
     label: "Cadastro",
     icon: "pi pi-file-edit",
-    url: "#",
+    to: "/prototipos/sigep/cadastro",
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
@@ -272,7 +278,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
       {
         label: "Controle de Vagas",
         icon: "pi pi-chart-bar",
-        url: "#",
+        to: CONTROLE_VAGAS_BASE_PATH,
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
@@ -338,7 +344,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
       {
         label: "Controle de Certame",
         icon: "pi pi-file-check",
-        url: "#",
+        to: "/prototipos/sigep/controle-pss",
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
@@ -356,14 +362,14 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
       {
         label: "Vínculos Funcionais",
         icon: "pi pi-link",
-        url: "#",
+        to: "/prototipos/sigep/vinculos-funcionais",
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
           { label: "Tipos de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: false, visibleOnRouter: true },
-          { label: "Gestão de Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", activeRoutes: ["/prototipos/sigep/ingressos/novo"], visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Gestão de Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Efetivo Exercício", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/efetivo-exercicio", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vacância", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
@@ -1047,6 +1053,9 @@ interface CargoForm {
   perfisEspecialidades?: number[];
   naturezaVinculo?: string;
   permiteAcumuloCargo?: "S" | "N";
+  controleVagasBolsista?: boolean;
+  controleVagasComissionadas?: boolean;
+  controleVagasTemporarias?: boolean;
   cargosAcumulaveis?: number[];
   cargoChefia?: "S" | "N";
   permiteSubstituicao?: "S" | "N";
@@ -1295,6 +1304,9 @@ interface CargoTesteRow extends CargoRow {
   documentosIds?: string[];
   perfisEspecialidadesIds?: number[];
   cargosAcumulaveis?: number[];
+  controleVagasBolsista?: boolean;
+  controleVagasComissionadas?: boolean;
+  controleVagasTemporarias?: boolean;
 }
 
 interface TipoVinculoTesteRow {
@@ -1981,7 +1993,23 @@ const cargosTesteMock: CargoTesteRow[] = [
     situacao: "ATIVO",
     tiposVinculo: ["TV005", "TV007"],
     controleVagasBolsista: true,
-  },];
+  },
+  ...cargosComissionadosIniciais.map((item) => ({
+    id: item.id,
+    codigo: item.codigo,
+    cargo: item.nome,
+    categoria: "Cargos em Comissão",
+    subcategoria: "Simbologia remuneratória",
+    jornadaPadrao: "Conforme ato",
+    baseLegal: 1,
+    instituicoes: 0,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO" as const,
+    tiposVinculo: ["TV003"],
+    controleVagasComissionadas: true,
+  })),
+];
 
 const cargoRegrasUsoTesteMock = [
   {
@@ -3043,6 +3071,151 @@ const ingressoCidadesPorPolo: Record<string, string[]> = {
   Rondonópolis: ["Rondonópolis", "Jaciara", "Primavera do Leste"],
 };
 
+const ingressoCidadesMatoGrosso = [
+  "Acorizal",
+  "Água Boa",
+  "Alta Floresta",
+  "Alto Araguaia",
+  "Alto Boa Vista",
+  "Alto Garças",
+  "Alto Paraguai",
+  "Alto Taquari",
+  "Apiacás",
+  "Araguaiana",
+  "Araguainha",
+  "Araputanga",
+  "Arenápolis",
+  "Aripuanã",
+  "Barão de Melgaço",
+  "Barra do Bugres",
+  "Barra do Garças",
+  "Boa Esperança do Norte",
+  "Bom Jesus do Araguaia",
+  "Brasnorte",
+  "Cáceres",
+  "Campinápolis",
+  "Campo Novo do Parecis",
+  "Campo Verde",
+  "Campos de Júlio",
+  "Canabrava do Norte",
+  "Canarana",
+  "Carlinda",
+  "Castanheira",
+  "Chapada dos Guimarães",
+  "Cláudia",
+  "Cocalinho",
+  "Colíder",
+  "Colniza",
+  "Comodoro",
+  "Confresa",
+  "Conquista D'Oeste",
+  "Cotriguaçu",
+  "Cuiabá",
+  "Curvelândia",
+  "Denise",
+  "Diamantino",
+  "Dom Aquino",
+  "Feliz Natal",
+  "Figueirópolis D'Oeste",
+  "Gaúcha do Norte",
+  "General Carneiro",
+  "Glória D'Oeste",
+  "Guarantã do Norte",
+  "Guiratinga",
+  "Indiavaí",
+  "Ipiranga do Norte",
+  "Itanhangá",
+  "Itaúba",
+  "Itiquira",
+  "Jaciara",
+  "Jangada",
+  "Jauru",
+  "Juara",
+  "Juína",
+  "Juruena",
+  "Juscimeira",
+  "Lambari D'Oeste",
+  "Lucas do Rio Verde",
+  "Luciara",
+  "Marcelândia",
+  "Matupá",
+  "Mirassol d'Oeste",
+  "Nobres",
+  "Nortelândia",
+  "Nossa Senhora do Livramento",
+  "Nova Bandeirantes",
+  "Nova Brasilândia",
+  "Nova Canaã do Norte",
+  "Nova Guarita",
+  "Nova Lacerda",
+  "Nova Marilândia",
+  "Nova Maringá",
+  "Nova Monte Verde",
+  "Nova Mutum",
+  "Nova Nazaré",
+  "Nova Olímpia",
+  "Nova Santa Helena",
+  "Nova Ubiratã",
+  "Nova Xavantina",
+  "Novo Horizonte do Norte",
+  "Novo Mundo",
+  "Novo Santo Antônio",
+  "Novo São Joaquim",
+  "Paranaíta",
+  "Paranatinga",
+  "Pedra Preta",
+  "Peixoto de Azevedo",
+  "Planalto da Serra",
+  "Poconé",
+  "Pontal do Araguaia",
+  "Ponte Branca",
+  "Pontes e Lacerda",
+  "Porto Alegre do Norte",
+  "Porto dos Gaúchos",
+  "Porto Esperidião",
+  "Porto Estrela",
+  "Poxoréu",
+  "Primavera do Leste",
+  "Querência",
+  "Reserva do Cabaçal",
+  "Ribeirão Cascalheira",
+  "Ribeirãozinho",
+  "Rio Branco",
+  "Rondolândia",
+  "Rondonópolis",
+  "Rosário Oeste",
+  "Salto do Céu",
+  "Santa Carmem",
+  "Santa Cruz do Xingu",
+  "Santa Rita do Trivelato",
+  "Santa Terezinha",
+  "Santo Afonso",
+  "Santo Antônio de Leverger",
+  "Santo Antônio do Leste",
+  "São Félix do Araguaia",
+  "São José do Povo",
+  "São José do Rio Claro",
+  "São José do Xingu",
+  "São José dos Quatro Marcos",
+  "São Pedro da Cipa",
+  "Sapezal",
+  "Serra Nova Dourada",
+  "Sinop",
+  "Sorriso",
+  "Tabaporã",
+  "Tangará da Serra",
+  "Tapurah",
+  "Terra Nova do Norte",
+  "Tesouro",
+  "Torixoréu",
+  "União do Sul",
+  "Vale de São Domingos",
+  "Várzea Grande",
+  "Vera",
+  "Vila Bela da Santíssima Trindade",
+  "Vila Rica",
+];
+
 const getPerfilEspecialidadeIngresso = (cargo: string) =>
   ingressoPerfisProfissionaisPorCargo[cargo]?.[0] ?? "Área administrativa";
 
@@ -3315,6 +3488,29 @@ const ingressoDocumentacaoObrigatoriaMock = [
   ),
   criarDocumentoObrigatorioIngresso("3.2 - Carteira Nacional de Habilitação - CNH, categorias B, C ou D", "Condicional"),
   criarDocumentoObrigatorioIngresso("4.2 - Carteira Nacional de Habilitação - CNH, categoria D", "Condicional"),
+];
+
+const ingressoDocumentacaoEstagiarioMock = [
+  criarDocumentoObrigatorioIngresso("Cópia do RG e CPF"),
+  criarDocumentoObrigatorioIngresso("Cópia do comprovante de endereço atualizado"),
+  criarDocumentoObrigatorioIngresso(
+    "Atestado de frequência atualizado emitido pela instituição de ensino",
+  ),
+  criarDocumentoObrigatorioIngresso("Conta salário ou corrente no Banco do Brasil"),
+  criarDocumentoObrigatorioIngresso(
+    "Certificado de quitação com o serviço militar obrigatório, para estudante do sexo masculino com maioridade civil",
+    "Condicional",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "Certidão de nascimento ou casamento, sentença declaratória de união estável ou Escritura Pública de União Estável",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "Comprovação de consulta de regularidade da qualificação cadastral do eSocial — https://www.gov.br/esocial/pt-br/empresas/consulta-qualificacao-cadastral",
+  ),
+  criarDocumentoObrigatorioIngresso(
+    "Diploma de graduação ou atestado de conclusão do curso superior, no caso de estagiário de pós-graduação",
+    "Condicional",
+  ),
 ];
 
 const ingressoDocumentosGeradosMock = [
@@ -7342,6 +7538,37 @@ export function PrototiposControleVagasDistribuicaoSaldoPage() {
     </PrototypeSystemPage>
   );
 }
+export function PrototiposControleVagasGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <ControleVagasGeralContent />
+    </PrototypeSystemPage>
+  );
+}
+export function PrototiposCadastroGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <CadastroGeralContent />
+    </PrototypeSystemPage>
+  );
+}
+
+
+export function PrototiposControleCertameGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <ControleCertameGeralContent />
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposVinculosFuncionaisGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <VinculosFuncionaisGeralContent />
+    </PrototypeSystemPage>
+  );
+}
 export function PrototiposControleVagasDashboardPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
@@ -8905,6 +9132,9 @@ export function PrototiposCargoFormPage({
       perfisEspecialidades: [],
       naturezaVinculo: "",
       permiteAcumuloCargo: "N",
+      controleVagasBolsista: false,
+      controleVagasComissionadas: false,
+      controleVagasTemporarias: false,
       cargosAcumulaveis: [],
       cargoChefia: "N",
       permiteSubstituicao: "N",
@@ -8935,6 +9165,9 @@ export function PrototiposCargoFormPage({
       jornadasPermitidas: cargoEmEdicao.jornadaPadrao.split(",").map((jornada) => jornada.trim()).filter((jornada) => cargoJornadaOptions.some((option) => option.value === jornada)),
       perfisEspecialidades: cargoEmEdicao.perfisEspecialidadesIds ?? [],
       permiteAcumuloCargo: cargoEmEdicao.cargosAcumulaveis?.length ? "S" : "N",
+      controleVagasBolsista: cargoEmEdicao.controleVagasBolsista === true,
+      controleVagasComissionadas: cargoEmEdicao.controleVagasComissionadas === true,
+      controleVagasTemporarias: cargoEmEdicao.controleVagasTemporarias === true,
       cargosAcumulaveis: cargoEmEdicao.cargosAcumulaveis ?? [],
       cargoChefia: "N",
       permiteSubstituicao: "N",
@@ -8976,10 +9209,12 @@ export function PrototiposCargoFormPage({
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
       vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO",
-      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis,
+      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasBolsista: values.controleVagasBolsista === true, controleVagasComissionadas: values.controleVagasComissionadas === true, controleVagasTemporarias: values.controleVagasTemporarias === true,
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     atualizarControleVagasBolsistas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasBolsista === true);
+    atualizarControleVagasComissionadas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasComissionadas === true);
+    atualizarControleVagasTemporarias({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasTemporarias === true);
     cargosTesteMock.forEach((cargo) => {
       if (cargo.id === registroId) return;
       const relacionados = new Set(cargo.cargosAcumulaveis ?? []);
@@ -9159,6 +9394,14 @@ export function PrototiposCargoFormPage({
               <div className="prototype-shared-criterio-item">
                 <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" />
                 <span>Disponibiliza este cargo no Quadro Autorizado Bolsistas.</span>
+              </div>
+              <div className="prototype-shared-criterio-item">
+                <CheckboxFieldSeplag<CargoForm> name="controleVagasTemporarias" control={control} checkboxLabel="Controla vagas temporárias?" cols="12" />
+                <span>Disponibiliza este cargo para o controle de vagas dos processos seletivos temporários.</span>
+              </div>
+              <div className="prototype-shared-criterio-item">
+                <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" />
+                <span>Disponibiliza este cargo como simbologia remuneratória no Quadro de Vagas Comissionados.</span>
               </div>            </div>
             {permiteAcumuloCargo ? (
               <div className="grid prototype-carreira-register-fields">
@@ -15115,6 +15358,7 @@ type AnaliseProvimentoRascunho = {
   dataPosse?: string;
   dataEfetivoExercicio?: string;
   dataFimEfetivoExercicio?: string;
+  numeroApoliceSeguro?: string;
   setorLotacaoEfetivo?: string;
   jornadaEfetivo?: string;
   referenciaEfetivo?: string;
@@ -15166,6 +15410,8 @@ export function PrototiposNovoIngressoPage() {
       : "/prototipos/sigep/ingressos";
   const nomeEditalProcessoSelecionado = processoOrigemDados?.titulo === "Processo Seletivo SES 2026"
     ? "PSS 004/2026/SES — Enfermagem"
+    : processoOrigemDados?.titulo === "Processo Seletivo SEPLAG 2027"
+      ? "PSS 009/2027/SEPLAG — Estagiários"
     : processoOrigemDados?.edital ?? "Edital não informado";
   const candidatoProcessoOrigem = candidatoParam
     ? processoOrigemDados?.candidatos.find((candidato) => String(candidato.id) === candidatoParam)
@@ -15220,6 +15466,13 @@ export function PrototiposNovoIngressoPage() {
       ? "Estagiário"
       : tipoInicial ? ingressoTipoVinculoMap[tipoInicial] : "",
   );
+  const [instituicaoEnsino, setInstituicaoEnsino] = useState("");
+  const [agenteIntegracao, setAgenteIntegracao] = useState("");
+  const [modalidadeEstagio, setModalidadeEstagio] = useState("");
+  const [cursoEstagio, setCursoEstagio] = useState("");
+  const [dataInicioEstagio, setDataInicioEstagio] = useState("");
+  const [dataTerminoEstagio, setDataTerminoEstagio] = useState("");
+  const [supervisorEstagio, setSupervisorEstagio] = useState("");
   const [activeTab, setActiveTab] = useState<NovoIngressoTab>(
     perfilNovoIngresso === "SETORIAL"
       ? "efetivo-exercicio"
@@ -15233,7 +15486,17 @@ export function PrototiposNovoIngressoPage() {
   const [concursoSelecionado, setConcursoSelecionado] = useState(concursoInicial);
   const [orgaoSelecionado, setOrgaoSelecionado] = useState(orgaoInicial);
   const [orgaosIngressoSelecionados, setOrgaosIngressoSelecionados] = useState<string[]>(orgaoInicial ? [orgaoInicial] : []);
-  const [orgaosParticipantesSelecionados, setOrgaosParticipantesSelecionados] = useState<string[]>([]);
+  const [orgaosParticipantesSelecionados, setOrgaosParticipantesSelecionados] = useState<string[]>(
+    concursoInicial === "Processo Seletivo SES 2026"
+      ? ["SES", "SEPLAG"]
+      : concursoInicial === "Processo Seletivo SEDUC 2026"
+        ? ["SEDUC", "SEPLAG"]
+        : concursoInicial === "Processo Seletivo SEFAZ 2026"
+          ? ["SEFAZ", "SEPLAG"]
+          : concursoInicial === "Processo Seletivo SEPLAG 2027"
+            ? ["SEPLAG"]
+            : [],
+  );
   const [cargoFuncaoEdital, setCargoFuncaoEdital] = useState("");
   const [orgaosIngressoDropdownAberto, setOrgaosIngressoDropdownAberto] = useState(false);
   const [orgaosEfetivoSelecionados, setOrgaosEfetivoSelecionados] = useState<string[]>(
@@ -15265,7 +15528,7 @@ export function PrototiposNovoIngressoPage() {
   const polosIngressoOptions = [...new Set(Object.values(ingressoPoloCandidatoMap))].sort((a, b) => a.localeCompare(b, "pt-BR"));
   const cidadesIngressoOptions = poloSelecionado
     ? ingressoCidadesPorPolo[poloSelecionado] ?? []
-    : [];
+    : ingressoCidadesMatoGrosso;
   const [tipoVagaSelecionada, setTipoVagaSelecionada] = useState(tipoVagaInicial);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(ingressoOrigemLista ? (cargoInicial === "Professor" ? "Profissional da Educação" : ["Enfermeiro", "Técnico de Enfermagem"].includes(cargoInicial) ? "Profissional da Saúde" : cargoInicial === "Gestor Governamental" ? "Gestor Governamental" : "Servidor Público") : "");
   const [regimeJuridicoSelecionado, setRegimeJuridicoSelecionado] = useState(
@@ -15274,6 +15537,7 @@ export function PrototiposNovoIngressoPage() {
       : ingressoOrigemLista && (tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo") ? "Estatutário Civil" : "",
   );
   const [perfilEspecialidade, setPerfilEspecialidade] = useState(modoVisualizacao ? "Perfil Geral" : ingressoOrigemLista && cargoInicial ? getPerfilEspecialidadeIngresso(cargoInicial) : "");
+  const [nivelIngresso, setNivelIngresso] = useState(ingressoOrigemLista ? "superior" : "");
   const [dataNomeacao, setDataNomeacao] = useState(
     candidatoProcessoOrigem?.dataNomeacao && candidatoProcessoOrigem.dataNomeacao !== "-"
       ? candidatoProcessoOrigem.dataNomeacao.split("/").reverse().join("-")
@@ -15357,6 +15621,9 @@ export function PrototiposNovoIngressoPage() {
   const [dataFimEfetivoExercicio, setDataFimEfetivoExercicio] = useState(
     rascunhoAnaliseInicial?.dataFimEfetivoExercicio ?? "",
   );
+  const [numeroApoliceSeguro, setNumeroApoliceSeguro] = useState(
+    rascunhoAnaliseInicial?.numeroApoliceSeguro ?? "",
+  );
   const [setorLotacaoEfetivo, setSetorLotacaoEfetivo] = useState(() => {
     const setoresSalvos = JSON.parse(
       localStorage.getItem("prototype-ingresso-setores-lotacao") ?? "{}",
@@ -15381,6 +15648,7 @@ export function PrototiposNovoIngressoPage() {
     dataPosse,
     dataEfetivoExercicio,
     dataFimEfetivoExercicio,
+    numeroApoliceSeguro,
   ]);  const [modalComplementacaoAberto, setModalComplementacaoAberto] = useState(false);
   const [modalNegarPosseAberto, setModalNegarPosseAberto] = useState(false);
   const parseDataIsoLocal = (value: string) => {
@@ -15431,9 +15699,41 @@ export function PrototiposNovoIngressoPage() {
   const formatarDataInput = (data: Date | null) => data ? `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}` : "";
   const tipoVinculo = concursoSelecionado && tipoIngresso === "Concurso"
     ? "Nomeado Efetivo"
-    : tipoIngresso
-      ? ingressoTipoVinculoMap[tipoIngresso]
-      : "";
+    : tipoIngresso === "Processo Seletivo"
+      ? tipoVinculoEditavel || ingressoTipoVinculoMap[tipoIngresso]
+      : tipoIngresso
+        ? ingressoTipoVinculoMap[tipoIngresso]
+        : "";
+  const vinculoExigeDadosEducacionais = ["Estagiário", "Bolsista"].includes(
+    tipoIngresso === "Processo Seletivo" ? tipoVinculoEditavel : tipoVinculo,
+  );
+  const vinculoEstagiario = ["Estagiário", "Bolsista"].includes(
+    tipoIngresso === "Processo Seletivo" ? tipoVinculoEditavel : tipoVinculo,
+  );
+  useEffect(() => {
+    if (!vinculoEstagiario) return;
+    setDataEfetivoExercicio(dataInicioEstagio);
+    setDataFimEfetivoExercicio(dataTerminoEstagio);
+  }, [vinculoEstagiario, dataInicioEstagio, dataTerminoEstagio]);
+  const supervisoresEstagio = [
+    { nome: "Maria Silva", matricula: "102345", cargo: "Analista Administrativo", formacao: "Administração" },
+    { nome: "Carlos Lima", matricula: "104782", cargo: "Gestor Governamental", formacao: "Administração Pública" },
+    { nome: "Ana Souza", matricula: "108936", cargo: "Técnica Administrativa", formacao: "Gestão Pública" },
+  ];
+  const dadosSupervisorEstagio = supervisoresEstagio.find(
+    (supervisor) => supervisor.nome === supervisorEstagio,
+  );
+  const instituicoesEnsinoMatoGrosso = [
+    "Universidade Federal de Mato Grosso (UFMT)",
+    "Universidade do Estado de Mato Grosso (UNEMAT)",
+    "Instituto Federal de Mato Grosso (IFMT)",
+    "Centro Universitário de Várzea Grande (UNIVAG)",
+    "Universidade de Cuiabá (UNIC)",
+    "Centro Universitário de Rondonópolis (UniRondon)",
+    "Centro Universitário Fasipe (UNIFASIPE)",
+    "Centro Universitário do Vale do Araguaia (UNIVAR)",
+    "Centro Universitário Cathedral (UniCathedral)",
+  ];
   const equalizacaoSiesPendente = !cargoSigepEqualizado;
   const statusEqualizacaoSies = solicitacaoParametrizacao
     ? "Parametrização solicitada"
@@ -15507,7 +15807,9 @@ export function PrototiposNovoIngressoPage() {
   const resumoIngressoNome = candidatoNome || pessoaFisicaEncontrada?.nome || "João Silva";
   const resumoIngressoCpf = candidatoCpf || pessoaFisicaEncontrada?.cpf || "000.000.000-00";
   const numeroIngressoAtual = `2026/${String(candidatoParam ?? 1).padStart(4, "0")}`;
-  const documentosObrigatoriosIngresso = ingressoDocumentacaoObrigatoriaMock;
+  const documentosObrigatoriosIngresso = vinculoEstagiario
+    ? ingressoDocumentacaoEstagiarioMock
+    : ingressoDocumentacaoObrigatoriaMock;
   const documentosAnexadosAnalise = documentosObrigatoriosIngresso;
   const selecionarArquivoDecisaoJudicial = (arquivo?: File) => {
     if (!arquivo) return;
@@ -15599,7 +15901,7 @@ export function PrototiposNovoIngressoPage() {
     tipoIngresso === "Processo Seletivo" ? "Processo Seletivo" : "Concurso";
   const processoOrigemOptions =
     tipoIngresso === "Processo Seletivo"
-      ? ["Processo Seletivo SES 2026", "Processo Seletivo SEDUC 2026", "Processo Seletivo SEFAZ 2026"]
+      ? ["Processo Seletivo SES 2026", "Processo Seletivo SEDUC 2026", "Processo Seletivo SEFAZ 2026", "Processo Seletivo SEPLAG 2027"]
       : ["Concurso SES 2026", "Concurso SEDUC 2026", "Concurso SEFAZ 2026"];
   const getConcursoOrigemLabel = (titulo: string) => {
     const concurso = ingressoConcursosProcessosMock.find((processo) => processo.titulo === titulo);
@@ -15660,6 +15962,7 @@ export function PrototiposNovoIngressoPage() {
     "Processo Seletivo SES 2026": ["SES", "SEPLAG"],
     "Processo Seletivo SEDUC 2026": ["SEDUC", "SEPLAG"],
     "Processo Seletivo SEFAZ 2026": ["SEFAZ", "SEPLAG"],
+    "Processo Seletivo SEPLAG 2027": ["SEPLAG"],
   };
   const orgaosParticipantesResumo =
     orgaosParticipantesSelecionados.length === 0
@@ -15721,18 +16024,30 @@ export function PrototiposNovoIngressoPage() {
     isEtapaSomenteLeituraSetorial ||
     (activeTab === "tipo-ingresso" && (
       !tipoIngresso ||
+      !nivelIngresso ||
       !perfilEspecialidade ||
-      !poloSelecionado ||
       !cidadeSelecionada ||
+      (vinculoExigeDadosEducacionais &&
+        !instituicaoEnsino.trim()) ||
+      (vinculoEstagiario &&
+        (!modalidadeEstagio ||
+          !cursoEstagio.trim() ||
+          !supervisorEstagio)) ||
       (tipoIngresso === "Concurso" && !categoriaSelecionada) ||
       (tipoIngresso === "Processo Seletivo" && !ingressoOrigemLista &&
-        (!orgaosParticipantesSelecionados.length || !cargoFuncaoEdital.trim()))
+        !cargoFuncaoEdital.trim())
     )) ||
+    (activeTab === "documentacao" &&
+      vinculoEstagiario &&
+      decisaoDocumentacao === "aprovar" &&
+      (!dataInicioEstagio || !dataTerminoEstagio)) ||
     (activeTab === "efetivo-exercicio" &&
       (!servidorCompareceu ||
         (servidorCompareceu === "Sim" &&
           (!jornadaEfetivo || !referenciaEfetivo || !dataEfetivoExercicio ||
-            (tipoIngresso === "Processo Seletivo" && !dataFimEfetivoExercicio))))) ||
+            (tipoIngresso === "Processo Seletivo" && !dataFimEfetivoExercicio) ||
+            (vinculoEstagiario &&
+              (!numeroApoliceSeguro.trim() || !supervisorEstagio)))))) ||
     (activeTab === "analise-provimento" &&
       (!parecerProvimentoSalvo ||
         (parecerProvimento !== "sem-efeito" &&
@@ -15982,6 +16297,7 @@ export function PrototiposNovoIngressoPage() {
       "Referência: " + (referenciaEfetivo || "-"),
       "Data do efetivo exercício: " + (dataEfetivoExercicio || "-"),
       "Data fim do exercício: " + (dataFimEfetivoExercicio || "-"),
+      ...(vinculoEstagiario ? ["Número da apólice de seguro: " + (numeroApoliceSeguro || "-")] : []),
     ].join("\n");
   };
 
@@ -16023,6 +16339,7 @@ export function PrototiposNovoIngressoPage() {
       arquivoEnviado?: string;
       tamanhoEnviado?: string;
     }[],
+    exibirModeloArquivo = true,
   ) => {
     const documentosDesatualizados = documentos.filter((documento, index) => {
       const conteudoModeloAtual = criarConteudoModeloDocumento(documento.nomeArquivo);
@@ -16047,7 +16364,7 @@ export function PrototiposNovoIngressoPage() {
           <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-file" aria-hidden="true" /></span>
           <span>Documentos</span>
         </span>
-        {documentosDesatualizados.length > 0 ? (
+        {documentosDesatualizados.length > 0 && !vinculoEstagiario ? (
           <BotaoSeplag
             type="button"
             className="prototype-documentos-atualizar-modelos"
@@ -16070,7 +16387,7 @@ export function PrototiposNovoIngressoPage() {
             <th>Nome do arquivo enviado</th>
             <th>Tamanho enviado</th>
             {formaAssinaturaDocumentos === "sigadoc" ? <th>Nº Processo SIGADOC</th> : null}
-            {formaAssinaturaDocumentos === "fisica" ? <th>Modelo do arquivo</th> : null}
+            {formaAssinaturaDocumentos === "fisica" && exibirModeloArquivo ? <th>Modelo do arquivo</th> : null}
             <th>Ações</th>
           </tr>
         </thead>
@@ -16089,7 +16406,7 @@ export function PrototiposNovoIngressoPage() {
               {formaAssinaturaDocumentos === "sigadoc" ? (
                 <td>{processosSigadocDocumentos[documento.nomeArquivo] || "-"}</td>
               ) : null}
-              {formaAssinaturaDocumentos === "fisica" ? (
+              {formaAssinaturaDocumentos === "fisica" && exibirModeloArquivo ? (
                 <td className="prototype-documentos-gerados-modelo-cell">
                   <div className="prototype-documentos-gerados-modelo-actions">
                     <BotaoIconSeplag
@@ -16271,6 +16588,7 @@ export function PrototiposNovoIngressoPage() {
         dataPosse,
         dataEfetivoExercicio,
         dataFimEfetivoExercicio,
+        numeroApoliceSeguro,
         setorLotacaoEfetivo,
         jornadaEfetivo,
         referenciaEfetivo,
@@ -16438,11 +16756,13 @@ export function PrototiposNovoIngressoPage() {
       persistirSituacaoIngressoAtual(situacaoConclusaoEfetivo);
       if (situacaoConclusaoEfetivo === "Ingresso Concluído") {
         const agora = new Date();
-        const dataConclusaoEtapa = [
-          agora.getFullYear(),
-          String(agora.getMonth() + 1).padStart(2, "0"),
-          String(agora.getDate()).padStart(2, "0"),
-        ].join("-");
+        const dataConclusaoEtapa = vinculoEstagiario
+          ? dataInicioEstagio
+          : [
+              agora.getFullYear(),
+              String(agora.getMonth() + 1).padStart(2, "0"),
+              String(agora.getDate()).padStart(2, "0"),
+            ].join("-");
         setDataEfetivoExercicio(dataConclusaoEtapa);
         persistirDataEfetivoExercicioAtual(dataConclusaoEtapa);
         persistirSetorLotacaoEfetivoAtual(setorLotacaoEfetivo);
@@ -16701,7 +17021,17 @@ export function PrototiposNovoIngressoPage() {
           <label className="prototype-ingresso-field">
             <span>Tipo de Vínculo<em>*</em></span>
             {tipoIngresso === "Processo Seletivo" ? (
-              <select value={tipoVinculoEditavel} disabled onChange={(event) => { setTipoVinculoEditavel(event.target.value); setEqualizacaoSiesValidada(false); }}>
+              <select value={tipoVinculoEditavel} disabled onChange={(event) => {
+                const novoTipoVinculo = event.target.value;
+                setTipoVinculoEditavel(novoTipoVinculo);
+                if (["Estagiário", "Bolsista"].includes(novoTipoVinculo)) {
+                  setTipoVagaSelecionada("");
+                } else {
+                  setInstituicaoEnsino("");
+                  setAgenteIntegracao("");
+                }
+                setEqualizacaoSiesValidada(false);
+              }}>
                 <option value="">Selecione...</option>
                 <option value="Contrato Temporário">Contrato Temporário</option>
                 <option value="Contrato Temporário Vínculo Único">Contrato Temporário Vínculo Único</option>
@@ -16742,7 +17072,7 @@ export function PrototiposNovoIngressoPage() {
           </div>
           {tipoIngresso === "Processo Seletivo" && !ingressoOrigemLista ? (
             <div className="prototype-ingresso-field prototype-multiselect-field">
-              <span>Órgãos Participantes<em>*</em></span>
+              <span>Órgãos Participantes</span>
               <div className="prototype-multiselect">
                 <button
                   type="button"
@@ -16776,8 +17106,22 @@ export function PrototiposNovoIngressoPage() {
                 } else if (tipoIngresso === "Processo Seletivo") {
                   const processoSelecionado = ingressoConcursosProcessosMock.find((item) => item.titulo === processo);
                   const processoEstagio = processoSelecionado?.titulo === "Processo Seletivo SEPLAG 2027";
-                  setRegimeJuridicoSelecionado(processo ? (processoEstagio ? "Sem Vínculo Empregatício" : "Estatutário Civil") : "");
-                  setTipoVinculoEditavel(processo ? (processoEstagio ? "Estagiário" : ingressoTipoVinculoMap["Processo Seletivo"]) : "");
+                  const manterTipoVinculoInicial = ["Estagiário", "Bolsista", "Residente Técnico"].includes(tipoVinculoEditavel);
+                  const tipoVinculoProcesso = processo
+                    ? manterTipoVinculoInicial
+                      ? tipoVinculoEditavel
+                      : processoEstagio
+                        ? "Estagiário"
+                        : ingressoTipoVinculoMap["Processo Seletivo"]
+                    : "";
+                  const processoSemVinculoEmpregaticio = ["Estagiário", "Bolsista", "Residente Técnico"].includes(tipoVinculoProcesso);
+                  setRegimeJuridicoSelecionado(
+                    processo ? (processoSemVinculoEmpregaticio ? "Sem Vínculo Empregatício" : "Estatutário Civil") : "",
+                  );
+                  setTipoVinculoEditavel(tipoVinculoProcesso);
+                  setInstituicaoEnsino("");
+                  setAgenteIntegracao("");
+                  if (["Estagiário", "Bolsista"].includes(tipoVinculoProcesso)) setTipoVagaSelecionada("");
                   setOrgaoSelecionado(processoSelecionado?.orgao ?? "");
                   setOrgaosIngressoSelecionados(processoSelecionado?.orgao ? [processoSelecionado.orgao] : []);
                   setOrgaosParticipantesSelecionados(processo ? orgaosParticipantesPorProcesso[processo] ?? [] : []);
@@ -16791,6 +17135,8 @@ export function PrototiposNovoIngressoPage() {
                   {tipoIngresso === "Processo Seletivo"
                     ? option === "Processo Seletivo SES 2026"
                       ? "PSS 004/2026/SES — Enfermagem"
+                      : option === "Processo Seletivo SEPLAG 2027"
+                        ? "PSS 009/2027/SEPLAG — Estagiários"
                       : ingressoConcursosProcessosMock.find((processo) => processo.titulo === option)?.edital ?? option
                     : getConcursoOrigemLabel(option)}
                 </option>
@@ -16832,6 +17178,20 @@ export function PrototiposNovoIngressoPage() {
             </select>
           </label>
           <label className="prototype-ingresso-field">
+            <span>Escolaridade<em>*</em></span>
+            <select
+              value={nivelIngresso}
+              required
+              disabled={modoVisualizacao}
+              onChange={(event) => setNivelIngresso(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              {perfilNivelFormacaoOptions.map((nivel) => (
+                <option key={nivel.value} value={nivel.value}>{nivel.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="prototype-ingresso-field">
             <span>Perfil Profissional<em>*</em></span>
             <select
               value={perfilEspecialidade}
@@ -16850,14 +17210,19 @@ export function PrototiposNovoIngressoPage() {
             <input type="text" value={concursoSelecionado && cargoSelecionado ? "QA-0012" : ""} required aria-required="true" readOnly />
           </div> : null}
           <label className="prototype-ingresso-field">
-            <span>Polo<em>*</em></span>
+            <span>Polo</span>
             <select
-              required
               value={poloSelecionado}
               disabled={ingressoOrigemLista}
               onChange={(event) => {
-                setPoloSelecionado(event.target.value);
-                setCidadeSelecionada("");
+                const novoPolo = event.target.value;
+                const cidadesDoPolo = novoPolo
+                  ? ingressoCidadesPorPolo[novoPolo] ?? []
+                  : ingressoCidadesMatoGrosso;
+                setPoloSelecionado(novoPolo);
+                setCidadeSelecionada((cidadeAtual) =>
+                  cidadesDoPolo.includes(cidadeAtual) ? cidadeAtual : "",
+                );
               }}
             >
               <option value="">Selecione...</option>
@@ -16869,7 +17234,7 @@ export function PrototiposNovoIngressoPage() {
             <select
               required
               value={cidadeSelecionada}
-              disabled={ingressoOrigemLista || !poloSelecionado}
+              disabled={ingressoOrigemLista}
               onChange={(event) => setCidadeSelecionada(event.target.value)}
             >
               <option value="">Selecione...</option>
@@ -16878,6 +17243,39 @@ export function PrototiposNovoIngressoPage() {
               ))}
             </select>
           </label>
+          {vinculoExigeDadosEducacionais && !vinculoEstagiario ? (
+            <>
+              <label className="prototype-ingresso-field">
+                <span>Instituição de ensino<em>*</em></span>
+                <select
+                  required
+                  value={instituicaoEnsino}
+                  disabled={modoVisualizacao}
+                  onChange={(event) => setInstituicaoEnsino(event.target.value)}
+                >
+                  <option value="">Selecione...</option>
+                  {instituicoesEnsinoMatoGrosso.map((instituicao) => (
+                    <option key={instituicao} value={instituicao}>{instituicao}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="prototype-ingresso-field">
+                <span>Agente de Integração<em>*</em></span>
+                <select
+                  required
+                  value={agenteIntegracao}
+                  disabled={modoVisualizacao}
+                  onChange={(event) => setAgenteIntegracao(event.target.value)}
+                >
+                  <option value="">Selecione...</option>
+                  <option value="CIEE">CIEE</option>
+                  <option value="IEL">IEL</option>
+                  <option value="Patativa">Patativa</option>
+                  <option value="Super estagio">Super estagio</option>
+                </select>
+              </label>
+            </>
+          ) : null}
           <label className="prototype-ingresso-field">
             <span>Classificação<em>*</em></span>
             <input
@@ -16892,19 +17290,21 @@ export function PrototiposNovoIngressoPage() {
               }}
             />
           </label>
-          <label className="prototype-ingresso-field">
-            <span>Tipo de vaga<em>*</em></span>
-            <select
-              value={tipoVagaSelecionada}
-              disabled={ingressoOrigemLista}
-              onChange={(event) => setTipoVagaSelecionada(event.target.value)}
-            >
-              <option value="">Selecione...</option>
-              <option value="AC">AC</option>
-              <option value="PCD">PCD</option>
-              <option value="PPP">PPP</option>
-            </select>
-          </label>
+          {!vinculoExigeDadosEducacionais ? (
+            <label className="prototype-ingresso-field">
+              <span>Tipo de vaga<em>*</em></span>
+              <select
+                value={tipoVagaSelecionada}
+                disabled={ingressoOrigemLista}
+                onChange={(event) => setTipoVagaSelecionada(event.target.value)}
+              >
+                <option value="">Selecione...</option>
+                <option value="AC">AC</option>
+                <option value="PCD">PCD</option>
+                <option value="PPP">PPP</option>
+              </select>
+            </label>
+          ) : null}
           <label className="prototype-ingresso-field">
             <span>{tipoIngresso === "Processo Seletivo" ? "Data da Convocação" : "Data da Nomeação"}<em>*</em></span>
             <input
@@ -17011,6 +17411,92 @@ export function PrototiposNovoIngressoPage() {
           ) : null}
         </div>
       </section>
+      {vinculoEstagiario ? (
+        <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-estagio">
+          <h3>
+            <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-book" aria-hidden="true" /></span>
+            <span>Informações do Estágio</span>
+          </h3>
+          <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+            <label className="prototype-ingresso-field">
+              <span>Modalidade do estágio<em>*</em></span>
+              <select required value={modalidadeEstagio} onChange={(event) => setModalidadeEstagio(event.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="Obrigatório">Obrigatório</option>
+                <option value="Não obrigatório">Não obrigatório</option>
+              </select>
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Curso<em>*</em></span>
+              <input type="text" required value={cursoEstagio} onChange={(event) => setCursoEstagio(event.target.value)} />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Instituição de ensino<em>*</em></span>
+              <select
+                required
+                value={instituicaoEnsino}
+                disabled={modoVisualizacao}
+                onChange={(event) => setInstituicaoEnsino(event.target.value)}
+              >
+                <option value="">Selecione...</option>
+                {instituicoesEnsinoMatoGrosso.map((instituicao) => (
+                  <option key={instituicao} value={instituicao}>{instituicao}</option>
+                ))}
+              </select>
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Agente de integração</span>
+              <select
+                value={agenteIntegracao}
+                disabled={modoVisualizacao}
+                onChange={(event) => setAgenteIntegracao(event.target.value)}
+              >
+                <option value="">Selecione...</option>
+                <option value="CIEE">CIEE</option>
+                <option value="IEL">IEL</option>
+                <option value="Patativa">Patativa</option>
+                <option value="Super estagio">Super estagio</option>
+              </select>
+            </label>
+          </div>
+        </section>
+      ) : null}
+      {vinculoEstagiario ? (
+        <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-supervisor-estagio">
+          <h3>
+            <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-user" aria-hidden="true" /></span>
+            <span>Supervisor do estágio</span>
+          </h3>
+          <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+            <label className="prototype-ingresso-field">
+              <span>CPF ou nome<em>*</em></span>
+              <select
+                required
+                value={supervisorEstagio}
+                disabled={modoVisualizacao}
+                onChange={(event) => setSupervisorEstagio(event.target.value)}
+              >
+                <option value="">Selecione...</option>
+                {supervisoresEstagio.map((supervisor) => (
+                  <option key={supervisor.matricula} value={supervisor.nome}>{supervisor.nome}</option>
+                ))}
+              </select>
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Matrícula</span>
+              <input type="text" value={dadosSupervisorEstagio?.matricula ?? ""} readOnly />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Cargo</span>
+              <input type="text" value={dadosSupervisorEstagio?.cargo ?? ""} readOnly />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Formação</span>
+              <input type="text" value={dadosSupervisorEstagio?.formacao ?? ""} readOnly />
+            </label>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 
@@ -17079,6 +17565,7 @@ export function PrototiposNovoIngressoPage() {
           <div><dt>CPF</dt>{renderValorResumo(resumoIngressoCpf)}</div>
           <div><dt>Tipo</dt>{renderValorResumo(tipoIngresso)}</div>
           <div><dt>Tipo de Vínculo</dt>{renderValorResumo(tipoVinculoResumo)}</div>
+          {vinculoEstagiario ? <div><dt>Agente de integração</dt>{renderValorResumo(agenteIntegracao)}</div> : null}
           <div><dt>{tipoIngresso === "Processo Seletivo" ? "Processo Seletivo" : "Concurso"}</dt>{renderValorResumo(concursoProcessoResumo)}</div>
           <div><dt>Regime Jurídico</dt>{renderValorResumo(regimeJuridicoSelecionado)}</div>
           <div><dt>Decisão Judicial</dt>{renderValorResumo(decisaoJudicial)}</div>
@@ -17097,12 +17584,14 @@ export function PrototiposNovoIngressoPage() {
     );
   };
   const renderNovoIngressoStepper = () => {
-    const etapaAtualLabel =
-      fluxoNovoIngressoTabs[activeTabIndex]?.label ?? fluxoNovoIngressoTabs[0]?.label ?? "Ingresso";
-
     return (
       <div className="prototype-novo-ingresso-stepper-wrap">
-        <div className="prototype-novo-ingresso-stepper" aria-label="Etapas do novo ingresso">
+        <div
+          className={`prototype-novo-ingresso-stepper${
+            fluxoNovoIngressoTabs.length === 1 ? " is-single" : ""
+          }`}
+          aria-label="Etapas do novo ingresso"
+        >
           {fluxoNovoIngressoTabs.map((step, index) => {
             const isActive = step.value === activeTab;
             const isCompleted = index < activeTabIndex;
@@ -17123,19 +17612,12 @@ export function PrototiposNovoIngressoPage() {
                   setActiveTab(step.value!);
                 }}
               >
-                <span className="prototype-novo-ingresso-step-marker">
-                  {isCompleted ? <i className="pi pi-check" aria-hidden="true" /> : index + 1}
-                </span>
+                <span className="prototype-novo-ingresso-step-marker">{index + 1}</span>
                 <span className="prototype-novo-ingresso-step-label">{step.label}</span>
+                {isActive ? <small>Etapa atual</small> : null}
               </button>
             );
           })}
-        </div>
-        <div className="prototype-novo-ingresso-step-current" aria-live="polite">
-          <strong>{Math.max(activeTabIndex + 1, 1)} de {fluxoNovoIngressoTabs.length}</strong>
-          <span>
-            Etapa Atual: <b>{etapaAtualLabel}</b>
-          </span>
         </div>
       </div>
     );
@@ -17160,6 +17642,8 @@ export function PrototiposNovoIngressoPage() {
                   if (ingressoOrigemLista) return;
                   setTipoIngresso(tipoIngresso === option.value ? "" : option.value);
                   setTipoVinculoEditavel("");
+                  setInstituicaoEnsino("");
+                  setAgenteIntegracao("");
                   setRegimeJuridicoSelecionado(
                     "",
                   );
@@ -17295,10 +17779,12 @@ export function PrototiposNovoIngressoPage() {
             </div>
           ) : null}
 
-          <div className="prototype-vinculo-ativo-alert" role="alert">
-            <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-            <span>Este servidor já possui vínculo ativo. Matrícula: 327305 | Vínculo: 1. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
-          </div>
+          {!vinculoEstagiario ? (
+            <div className="prototype-vinculo-ativo-alert" role="alert">
+              <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+              <span>Este servidor já possui vínculo ativo. Matrícula: 327305 | Vínculo: 1. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
+            </div>
+          ) : null}
           <div className="prototype-analise-provimento-panel prototype-analise-provimento-panel--header-icon">
             <button
               type="button"
@@ -17405,7 +17891,7 @@ export function PrototiposNovoIngressoPage() {
             >
               <span className="prototype-recuar-section-title">
                 <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-clipboard" aria-hidden="true" /></span>
-                <span>Parecer</span>
+                <span>{vinculoEstagiario ? "Parecer e Termo de Compromisso" : "Parecer"}</span>
               </span>
               <i className={`pi ${parecerDocumentacaoAberto ? "pi-chevron-up" : "pi-chevron-down"}`} aria-hidden="true" />
             </button>
@@ -17457,10 +17943,44 @@ export function PrototiposNovoIngressoPage() {
 
                 <div className="prototype-documentacao-decision-fields">
                   {decisaoDocumentacao === "aprovar" ? (
-                    <label className="prototype-ingresso-field">
-                      <span>Parecer</span>
-                      <textarea value={parecerDocumentacao} maxLength={500} rows={4} placeholder="Digite um parecer, se necessário." onChange={(event) => setParecerDocumentacao(event.target.value)} />
-                    </label>
+                    <>
+                      {vinculoEstagiario ? (
+                        <section className="prototype-termo-compromisso-dados" aria-label="Dados do Termo de Compromisso">
+                          <div className="prototype-termo-compromisso-dados-grid">
+                            <label className="prototype-ingresso-field">
+                              <span>Agente de integração</span>
+                              <input type="text" value={agenteIntegracao} readOnly />
+                            </label>
+                            <label className="prototype-ingresso-field">
+                              <span>Instituição de ensino</span>
+                              <input type="text" value={instituicaoEnsino} readOnly />
+                            </label>
+                            <label className="prototype-ingresso-field">
+                              <span>Data de início<em>*</em></span>
+                              <input
+                                type="date"
+                                required
+                                value={dataInicioEstagio}
+                                onChange={(event) => setDataInicioEstagio(event.target.value)}
+                              />
+                            </label>
+                            <label className="prototype-ingresso-field">
+                              <span>Data de término<em>*</em></span>
+                              <input
+                                type="date"
+                                required
+                                value={dataTerminoEstagio}
+                                onChange={(event) => setDataTerminoEstagio(event.target.value)}
+                              />
+                            </label>
+                          </div>
+                        </section>
+                      ) : null}
+                      <label className="prototype-ingresso-field prototype-documentacao-parecer-field">
+                        <span>Parecer</span>
+                        <textarea value={parecerDocumentacao} maxLength={500} rows={4} placeholder="Digite um parecer, se necessário." onChange={(event) => setParecerDocumentacao(event.target.value)} />
+                      </label>
+                    </>
                   ) : (
                     <>
                       <label className="prototype-ingresso-field prototype-documentacao-motivo-field">
@@ -17481,6 +18001,25 @@ export function PrototiposNovoIngressoPage() {
                     </>
                   )}
                 </div>
+                {vinculoEstagiario && decisaoDocumentacao === "aprovar" ? (
+                  <>
+                    <div className="prototype-estagio-formalizacao-alert" role="status">
+                      <div className="prototype-estagio-formalizacao-alert-icon">
+                        <i className="pi pi-info-circle" aria-hidden="true" />
+                      </div>
+                      <div className="prototype-estagio-formalizacao-alert-content">
+                        <strong>Prazo para formalização</strong>
+                        <p>O Termo de Compromisso deve ser entregue até o dia 15 do mês de referência da contratação.</p>
+                      </div>
+                    </div>
+                    {renderDocumentosGerados([
+                      {
+                        nomeArquivo: "Termo de Compromisso",
+                        modeloArquivo: "modelo_termo_compromisso_estagio.pdf",
+                      },
+                    ], false)}
+                  </>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -17499,10 +18038,12 @@ export function PrototiposNovoIngressoPage() {
           <div className="prototype-analise-provimento-layout prototype-analise-provimento-layout--prazo-horizontal">
             <div className="prototype-analise-provimento-main">
 
-              <div className="prototype-vinculo-ativo-alert" role="alert">
-                <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-                <span>Este servidor já possui vínculo ativo. Matrícula: 327305 | Vínculo: 1. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
-              </div>
+              {!vinculoEstagiario ? (
+                <div className="prototype-vinculo-ativo-alert" role="alert">
+                  <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+                  <span>Este servidor já possui vínculo ativo. Matrícula: 327305 | Vínculo: 1. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
+                </div>
+              ) : null}
               <div className="prototype-analise-provimento-panel prototype-analise-provimento-panel--header-icon">
                 <button
                   type="button"
@@ -18122,6 +18663,7 @@ export function PrototiposNovoIngressoPage() {
                             type="date"
                             value={dataEfetivoExercicio}
                             required={servidorCompareceu === "Sim"}
+                            readOnly={vinculoEstagiario}
                             onChange={(event) => setDataEfetivoExercicio(event.target.value)}
                           />
                         </label>
@@ -18131,10 +18673,26 @@ export function PrototiposNovoIngressoPage() {
                             type="date"
                             value={dataFimEfetivoExercicio}
                             required={tipoIngresso === "Processo Seletivo"}
+                            readOnly={vinculoEstagiario}
                             onChange={(event) => setDataFimEfetivoExercicio(event.target.value)}
                           />
                         </label>
                       </div>
+
+                      {vinculoEstagiario ? (
+                        <div className="prototype-efetivo-exercicio-apolice-row">
+                          <label className="prototype-ingresso-field">
+                            <span>Número da apólice de seguro<em>*</em></span>
+                            <input
+                              type="text"
+                              required
+                              value={numeroApoliceSeguro}
+                              onChange={(event) => setNumeroApoliceSeguro(event.target.value)}
+                              placeholder="Informe o número da apólice"
+                            />
+                          </label>
+                        </div>
+                      ) : null}
 
                       <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
                         <span>Observação</span>
@@ -18144,14 +18702,16 @@ export function PrototiposNovoIngressoPage() {
                           placeholder="Registre uma observação, se necessário."
                         />
                       </label>
-                      <div className="prototype-efetivo-exercicio-generate-row">
-                        <BotaoSeplag
-                          type="button"
-                          label="Gerar termo"
-                          icon="pi pi-file"
-                          onClick={() => setTermoEfetivoExercicioGerado(true)}
-                        />
-                      </div>
+                      {!vinculoEstagiario ? (
+                        <div className="prototype-efetivo-exercicio-generate-row">
+                          <BotaoSeplag
+                            type="button"
+                            label="Gerar termo"
+                            icon="pi pi-file"
+                            onClick={() => setTermoEfetivoExercicioGerado(true)}
+                          />
+                        </div>
+                      ) : null}
                     </>
                   ) : servidorCompareceu === "Não" ? (
                     <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
@@ -18207,6 +18767,41 @@ export function PrototiposNovoIngressoPage() {
                   </div>
                 ) : null}
               </div>
+              {vinculoEstagiario && servidorCompareceu === "Sim" ? (
+                <section className="prototype-efetivo-exercicio-card prototype-novo-ingresso-panel prototype-novo-ingresso-supervisor-estagio">
+                  <h3>
+                    <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-user" aria-hidden="true" /></span>
+                    <span>Supervisor do estágio</span>
+                  </h3>
+                  <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+                    <label className="prototype-ingresso-field">
+                      <span>CPF ou nome<em>*</em></span>
+                      <select
+                        required
+                        value={supervisorEstagio}
+                        onChange={(event) => setSupervisorEstagio(event.target.value)}
+                      >
+                        <option value="">Selecione...</option>
+                        {supervisoresEstagio.map((supervisor) => (
+                          <option key={supervisor.matricula} value={supervisor.nome}>{supervisor.nome}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="prototype-ingresso-field">
+                      <span>Matrícula</span>
+                      <input type="text" value={dadosSupervisorEstagio?.matricula ?? ""} readOnly />
+                    </label>
+                    <label className="prototype-ingresso-field">
+                      <span>Cargo</span>
+                      <input type="text" value={dadosSupervisorEstagio?.cargo ?? ""} readOnly />
+                    </label>
+                    <label className="prototype-ingresso-field">
+                      <span>Formação</span>
+                      <input type="text" value={dadosSupervisorEstagio?.formacao ?? ""} readOnly />
+                    </label>
+                  </div>
+                </section>
+              ) : null}
             </div>
 
 

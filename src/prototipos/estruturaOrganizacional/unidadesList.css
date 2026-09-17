@@ -159,6 +159,31 @@
 .unidades-position-summary dt { margin-bottom: 3px; color: #58708a; font-size: 0.75rem; }
 .unidades-position-summary dd { margin: 0; color: #172b4d; font-size: 0.88rem; font-weight: 700; }
 
+.unidades-structure-change { padding: 16px 18px 18px; }
+.unidades-structure-change-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; color: #17324d; font-size: 0.95rem; font-weight: 700; }
+.unidades-structure-change-header .p-button { flex: 0 0 auto; }
+.unidades-structure-current { display: flex; flex-direction: column; gap: 5px; margin-top: 16px; padding: 14px 16px; border: 1px solid #b9dcf5; border-radius: 6px; background: #edf8ff; color: #075d96; }
+.unidades-structure-current small { font-size: 0.68rem; font-weight: 700; }
+.unidades-structure-current strong { font-size: 0.86rem; }
+.unidades-structure-current span { color: #58708a; font-size: 0.76rem; }
+
+.unidades-position-order { margin-top: 18px; padding-top: 16px; border-top: 1px dashed #cbd8e5; }
+.unidades-position-order-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.unidades-position-order-heading h3 { margin: 0; color: #17324d; font-size: 0.94rem; }
+.unidades-position-order-heading p { margin: 4px 0 12px; color: #58708a; font-size: 0.78rem; }
+.unidades-position-order-heading > .pi { padding-top: 3px; color: #0878c9; }
+.unidades-position-order-list { display: flex; flex-direction: column; gap: 7px; }
+.unidades-position-sort-item { display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 8px 10px; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; color: #17324d; font-size: 0.84rem; cursor: grab; user-select: none; }
+.unidades-position-sort-item:active { cursor: grabbing; }
+.unidades-position-sort-item:hover { border-color: #75aae0; background: #f5faff; }
+.unidades-position-sort-item.is-dragging { border-style: dashed; opacity: 0.55; }
+.unidades-position-sort-item.is-draft { border-color: #75aae0; background: #f5faff; }
+.unidades-position-sort-item span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.unidades-position-sort-item small { color: #58708a; font-size: 0.68rem; }
+.unidades-position-drag-handle { color: #6d8299; }
+.unidades-position-sort-index { display: inline-flex; align-items: center; justify-content: center; min-width: 21px; height: 21px; border-radius: 50%; background: #eaf3fb; color: #075d96; font-size: 0.72rem; font-weight: 700; }
+.unidades-position-order-empty { padding: 12px; border: 1px dashed #ced9e5; border-radius: 6px; color: #58708a; font-size: 0.8rem; }
+
 .unidades-register-fields {
   margin: 0;
   row-gap: 0.5rem;
@@ -234,3 +259,34 @@
     width: 100%;
   }
 }
+.unidades-register-fieldset{min-width:0;margin:0;padding:0;border:0}
+.unidades-register-fieldset:disabled{opacity:1}
+.unidades-validation-summary { margin: 0 0 16px; padding: 14px 18px; border: 1px solid #f2b8b5; border-radius: 6px; background: #fff5f5; color: #9b1c1c; }
+.unidades-validation-summary strong { font-size: 0.9rem; }
+.unidades-validation-summary ul { margin: 6px 0 0; padding-left: 18px; font-size: 0.82rem; }
+.unidades-extincao-modal p { margin: 0 0 14px; color: #334e68; line-height: 1.45; }
+.unidades-operation-error { padding: 10px 12px; border: 1px solid #f2b8b5; border-radius: 6px; background: #fff5f5; color: #9b1c1c !important; font-size: 0.86rem; }
+.unidades-estrutura-atual { display: flex; flex-direction: column; gap: 5px; padding: 13px 15px; border: 1px solid #d8e3ef; border-radius: 6px; background: #f8fafc; color: #075d96; }
+.unidades-estrutura-atual small { color: #58708a; font-size: 0.68rem; font-weight: 700; }
+.unidades-estrutura-atual strong { font-size: 0.84rem; }
+.unidades-estrutura-alert { display: flex; gap: 9px; padding: 12px 14px; border: 1px solid #f5d58d; border-radius: 6px; background: #fffaf0; color: #875a00; font-size: 0.8rem; line-height: 1.35; }
+.unidades-estrutura-alert .pi { margin-top: 2px; }
+.unidades-register-panel { position: relative; }
+.unidades-extinguir-action { position: absolute; top: 14px; right: 18px; z-index: 1; }
+.unidades-extincao-footer { display: flex; justify-content: flex-end; gap: 10px; }
+.unidades-extincao-pendencias { display: flex; gap: 12px; padding: 14px 16px; border: 1px solid #f5d58d; border-radius: 6px; background: #fff8e6; color: #875a00; }
+.unidades-extincao-pendencias .pi { margin-top: 3px; color: #5b2c83; }
+.unidades-extincao-pendencias div { display: flex; flex-direction: column; gap: 3px; }
+.unidades-extincao-pendencias span { font-size: 0.83rem; line-height: 1.35; }
+.unidades-extincao-selecionada { display: flex; justify-content: space-between; gap: 14px; padding: 13px 16px; border: 1px solid #d9e1ea; border-radius: 6px; background: #f8fafc; color: #4b5563; font-size: 0.84rem; }
+.unidades-extincao-selecionada strong { color: #172b4d; }
+.unidades-extincao-irreversivel { display: flex; flex-direction: column; gap: 3px; padding: 13px 16px; border-left: 4px solid #4b5563; border-radius: 6px; background: #f4f6f8; color: #4b5563; font-size: 0.84rem; }
+.unidades-extincao-irreversivel span { line-height: 1.35; }
+.unidades-extinta-legal-view { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+.unidades-extinta-legal-view > div > label { display: block; margin-bottom: 6px; color: #172b4d; font-size: 0.8rem; font-weight: 700; }
+.unidades-extinta-documento { padding: 10px 13px; border: 1px solid #cad7e5; border-radius: 5px; background: #fff; color: #075d96; font-size: 0.84rem; }
+.unidades-extinta-documento.is-extincao { border-color: #f49a9a; background: #fff9f9; color: #ba1a1a; }
+.unidades-extinta-documento-detail { display: flex; flex-direction: column; gap: 4px; padding: 13px; border: 1px solid #f5b5b5; border-radius: 5px; background: #fff7f7; color: #8e1717; }
+.unidades-extinta-documento-detail strong { font-size: 0.86rem; }
+.unidades-extinta-documento-detail span { font-size: 0.76rem; }
+@media (max-width: 700px) { .unidades-extinguir-action { position: static; display: flex; justify-content: flex-end; padding: 12px 18px 0; } .unidades-extincao-selecionada { flex-direction: column; } }

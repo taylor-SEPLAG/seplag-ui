@@ -1,0 +1,85 @@
+.prototype-cadastro-geral {
+  padding: 2rem;
+}
+
+.prototype-cadastro-geral > header {
+  margin-bottom: 2rem;
+}
+
+.prototype-cadastro-geral > header > span {
+  color: var(--primary-color, #0067a5);
+  font-size: .875rem;
+  font-weight: 700;
+}
+
+.prototype-cadastro-geral h1 {
+  color: #1d2d3d;
+  font-size: 2rem;
+  margin: .25rem 0 .5rem;
+}
+
+.prototype-cadastro-geral > header > p {
+  color: #526579;
+  margin: 0;
+}
+
+.prototype-cadastro-geral > section {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.prototype-cadastro-geral > section > a {
+  background: #fff;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 4%);
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  min-height: 194px;
+  padding: 1.25rem;
+  text-decoration: none;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.prototype-cadastro-geral > section > a:hover {
+  border-color: #0078bd;
+  box-shadow: 0 6px 16px rgb(0 76 128 / 12%);
+  transform: translateY(-2px);
+}
+
+.prototype-cadastro-geral > section > a > i:first-child {
+  color: #0067a5;
+  font-size: 1.5rem;
+}
+
+.prototype-cadastro-geral h2 {
+  color: #1d2d3d;
+  font-size: 1.125rem;
+  margin: 1rem 0 .5rem;
+}
+
+.prototype-cadastro-geral section p {
+  color: #526579;
+  font-size: .9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.prototype-cadastro-geral section a > span {
+  color: #0067a5;
+  font-size: .875rem;
+  font-weight: 700;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.prototype-cadastro-geral section a > span i {
+  font-size: .75rem;
+  margin-left: .25rem;
+}
+
+@media (max-width: 640px) {
+  .prototype-cadastro-geral { padding: 1rem; }
+}

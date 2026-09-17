@@ -37,3 +37,42 @@
 @media(max-width:640px) { .novo-quadro-temporario .nqt-vigencia { grid-template-columns:1fr; } }
 .prototype-temporarios-empty-state{min-height:330px;display:flex;align-items:center;justify-content:center;padding:2rem}.prototype-temporarios-empty-content{text-align:center;max-width:520px}.prototype-temporarios-empty-content>i{display:inline-grid;width:3.25rem;height:3.25rem;place-items:center;border-radius:.6rem;background:#e6f2fc;color:#0870b6;font-size:1.5rem}.prototype-temporarios-empty-content h2{margin:1rem 0 .35rem;font-size:1.1rem}.prototype-temporarios-empty-content p{color:#68758a}.prototype-temporarios-list{width:100%}.prototype-temporarios-list article{display:flex;justify-content:space-between;gap:1rem;padding:1rem 0;border-bottom:1px solid #e0e6ec}.prototype-temporarios-list h2{margin:.25rem 0;font-size:1rem}.prototype-temporarios-list p,.prototype-temporarios-list small{display:block;margin:0;color:#68758a;font-size:.8rem}
 .prototype-temporarios-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem}.prototype-temporarios-kpis article{padding:1rem;border:1px solid #d4dee8;border-radius:.5rem;background:#fff}.prototype-temporarios-kpis span,.prototype-temporarios-kpis strong{display:block}.prototype-temporarios-kpis span{color:#68758a;font-size:.75rem}.prototype-temporarios-kpis strong{margin-top:.4rem;font-size:1.35rem}.prototype-temporarios-library{padding:1.15rem}.prototype-temporarios-filters{display:grid;grid-template-columns:2fr 1fr auto;gap:.75rem;align-items:end;margin-bottom:1rem}.prototype-temporarios-filters label{font-size:.8rem;font-weight:600}.prototype-temporarios-filters input,.prototype-temporarios-filters select{display:block;width:100%;box-sizing:border-box;margin-top:.35rem;padding:.65rem;border:1px solid #cbd5e1;border-radius:4px;background:#fff}.prototype-temporarios-table-wrap{overflow:auto}.prototype-temporarios-table-wrap table{width:100%;border-collapse:collapse}.prototype-temporarios-table-wrap th,.prototype-temporarios-table-wrap td{padding:.85rem .7rem;border-bottom:1px solid #e0e6ec;text-align:left;vertical-align:top}.prototype-temporarios-table-wrap th{background:#f7f9fb;font-size:.78rem}.prototype-temporarios-table-wrap td small{display:block;margin-top:.25rem;color:#68758a;font-size:.75rem}.prototype-temporarios-status{padding:.25rem .55rem;border-radius:999px;background:#dff3e8;color:#00843d;font-size:.75rem;font-weight:600}.prototype-temporarios-detail-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:1rem;background:#17233c66}.prototype-temporarios-detail{width:min(720px,100%);max-height:85vh;overflow:auto;border-radius:.6rem;background:#fff}.prototype-temporarios-detail>header{display:flex;justify-content:space-between;padding:1.25rem;border-bottom:1px solid #e0e6ec}.prototype-temporarios-detail-body{padding:1.25rem}.prototype-temporarios-detail-body article{display:flex;justify-content:space-between;gap:1rem;padding:.9rem 0;border-bottom:1px solid #e0e6ec}@media(max-width:800px){.prototype-temporarios-kpis{grid-template-columns:repeat(2,1fr)}.prototype-temporarios-filters{grid-template-columns:1fr}}
+
+.nqt-seletivo-option,
+.nqt-seletivo-indisponivel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.nqt-seletivo-indisponivel {
+  color: #6b7280;
+  text-decoration: line-through;
+}
+
+.nqt-seletivo-indisponivel small {
+  flex: 0 0 auto;
+  padding: 0.08rem 0.38rem;
+  border: 1px solid #9fc8ed;
+  border-radius: 999px;
+  color: #0870b6;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+/* O formulário usa cartões independentes como as telas de Carreira. */
+.novo-quadro-temporario {
+  background: transparent;
+  padding: 1rem 1.75rem 3rem;
+}
+.novo-quadro-temporario > header {
+  margin: 0 0 1rem;
+  padding: 1.35rem 1.5rem;
+  border: 1px solid #d4dee8;
+  border-radius: .5rem;
+  background: #fff;
+}
+.novo-quadro-temporario form { gap: 1rem; }
+@media(max-width:640px) { .novo-quadro-temporario { padding: 1rem; } }

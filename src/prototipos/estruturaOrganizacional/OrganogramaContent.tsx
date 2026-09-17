@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { BotaoSeplag } from "@componentes/Botao";
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
@@ -6,24 +6,14 @@ import { CardSeplag } from "@componentes/Card";
 import { DateFieldSeplag, DropdownFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { ModalSeplag } from "@componentes/Modal";
 import { PanelSeplag } from "@componentes/PanelSeplag";
+import { lerEstruturaOrganizacional, obterUnidadesDaVersao, obterVersaoVigente, type UnidadeNoOrganograma } from "./estruturaOrganizacionalStore";
 import "./organograma.css";
 
-type Unidade = {
-  id: string;
-  codigo: string;
-  nome: string;
-  tipo: string;
-  nivel: string;
-  superior: string | null;
-  inicioUnidade: string;
-  fimUnidade?: string;
-  inicioPosicao: string;
-  fimPosicao?: string;
-  atoLegal: string;
-};
+type Unidade = UnidadeNoOrganograma;
 
 type Filtros = {
   orgao: string;
+  versaoId: string;
   nomeOrganograma: string;
   documentoLegal: string;
   busca: string;
@@ -31,23 +21,6 @@ type Filtros = {
   dataAnterior: string;
   dataAtual: string;
 };
-
-const unidades: Unidade[] = [
-  { id: "DS001", codigo: "DS001", nome: "Secretaria de Estado de Planejamento e Gestão", tipo: "Secretaria de Estado", nivel: "Direção Superior", superior: null, inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "DS002", codigo: "DS002", nome: "Gabinete do Secretário de Estado", tipo: "Gabinete", nivel: "Direção Superior", superior: "DS001", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "DS010", codigo: "DS010", nome: "Secretaria Adjunta de Planejamento e Governo Digital", tipo: "Secretaria Adjunta", nivel: "Direção Superior", superior: "DS002", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "DS011", codigo: "DS011", nome: "Secretaria Adjunta de Gestão de Pessoas", tipo: "Secretaria Adjunta", nivel: "Direção Superior", superior: "DS002", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "DS012", codigo: "DS012", nome: "Secretaria Adjunta de Aquisições Governamentais", tipo: "Secretaria Adjunta", nivel: "Direção Superior", superior: "DS002", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "DS013", codigo: "DS013", nome: "Secretaria Adjunta de Administração Sistêmica", tipo: "Secretaria Adjunta", nivel: "Direção Superior", superior: "DS002", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "AE020", codigo: "AE020", nome: "Unidade Setorial de Controle Interno - UNISECI", tipo: "Unidade", nivel: "Apoio Estratégico", superior: "DS002", inicioUnidade: "15/03/2021", inicioPosicao: "15/03/2021", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "AE021", codigo: "AE021", nome: "Ouvidoria Setorial", tipo: "Ouvidoria", nivel: "Apoio Estratégico", superior: "DS002", inicioUnidade: "15/03/2021", inicioPosicao: "15/03/2021", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "EP100", codigo: "EP100", nome: "Superintendência de Planejamento Estadual", tipo: "Superintendência", nivel: "Execução Programática", superior: "DS010", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "EP104", codigo: "EP104", nome: "Superintendência de Governança Digital", tipo: "Superintendência", nivel: "Execução Programática", superior: "DS010", inicioUnidade: "10/05/2022", inicioPosicao: "10/05/2022", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "EP108", codigo: "EP108", nome: "Superintendência de Modernização Organizacional", tipo: "Superintendência", nivel: "Execução Programática", superior: "DS010", inicioUnidade: "10/05/2022", inicioPosicao: "10/05/2022", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "EP109", codigo: "EP109", nome: "Coordenadoria de Modelagem Organizacional", tipo: "Coordenadoria", nivel: "Execução Programática", superior: "EP104", inicioUnidade: "15/01/2026", inicioPosicao: "15/01/2026", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "EP200", codigo: "EP200", nome: "Superintendência de Provimento, Aplicação e Monitoramento", tipo: "Superintendência", nivel: "Execução Programática", superior: "DS011", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
-  { id: "EP201", codigo: "EP201", nome: "Coordenadoria de Provimento", tipo: "Coordenadoria", nivel: "Execução Programática", superior: "EP200", inicioUnidade: "01/01/2020", inicioPosicao: "01/01/2020", atoLegal: "Decreto nº 2.185/2026" },
-];
 
 const comparacoes = [
   { status: "incluida", codigo: "EP109", nome: "Coordenadoria de Modelagem Organizacional", anterior: "Não existia", atual: "Subordinada à Superintendência de Governança Digital", documento: "Decreto nº 2.185/2026" },
@@ -59,9 +32,10 @@ const opcoes = (valores: string[]) => valores.map((valor) => ({ label: valor, va
 const semErro = () => null;
 
 export function OrganogramaContent() {
-  const { control, watch } = useForm<Filtros>({
+  const { control, watch, setValue } = useForm<Filtros>({
     defaultValues: {
       orgao: "SEPLAG - Secretaria de Estado de Planejamento e Gestão",
+      versaoId: "",
       nomeOrganograma: "Estrutura Organizacional SEPLAG - 2026",
       documentoLegal: "Decreto nº 2.185, de 03/07/2026",
       busca: "",
@@ -74,16 +48,31 @@ export function OrganogramaContent() {
   const [comparar, setComparar] = useState(false);
   const [expandido, setExpandido] = useState(false);
   const [selecionada, setSelecionada] = useState<Unidade | null>(null);
+  const [estrutura] = useState(lerEstruturaOrganizacional);
+  const orgao = watch("orgao");
+  const orgaoSelecionado = orgao.split(" - ")[0];
+  const versaoVigente = obterVersaoVigente(estrutura, orgaoSelecionado);
+  const versoesDoOrgao = useMemo(() => estrutura.versoes.filter((versao) => versao.orgao === orgaoSelecionado).sort((a, b) => b.inicio.localeCompare(a.inicio)), [estrutura, orgaoSelecionado]);
+  const versaoIdForm = watch("versaoId");
+  const versaoId = versaoIdForm || versaoVigente?.id || "";
+  const versaoSelecionada = versoesDoOrgao.find((versao) => versao.id === versaoId) ?? versaoVigente;
+  const unidades = useMemo(() => versaoSelecionada ? obterUnidadesDaVersao(estrutura, versaoSelecionada.id) : [], [estrutura, versaoSelecionada]);
   const busca = watch("busca");
   const nivel = watch("nivel");
   const dataAnterior = watch("dataAnterior");
   const dataAtual = watch("dataAtual");
 
+  useEffect(() => {
+    if (versaoVigente && !versoesDoOrgao.some((versao) => versao.id === versaoIdForm)) setValue("versaoId", versaoVigente.id);
+    setValue("nomeOrganograma", versaoSelecionada?.nome ?? "Organograma não cadastrado");
+    setValue("documentoLegal", versaoSelecionada?.documentoLegal ?? "Documento legal não informado");
+  }, [setValue, versaoIdForm, versaoSelecionada, versaoVigente, versoesDoOrgao]);
+
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
     return unidades.filter((unidade) =>
-      (nivel === "Todos os níveis" || unidade.nivel === nivel) &&
-      (!termo || `${unidade.codigo} ${unidade.nome} ${unidade.tipo} ${unidade.nivel}`
+      (nivel === "Todos os níveis" || unidade.nivelOrganizacional === nivel) &&
+      (!termo || `${unidade.codigo} ${unidade.nome} ${unidade.tipo} ${unidade.nivelOrganizacional}`
         .toLocaleLowerCase("pt-BR")
         .includes(termo)),
     );
@@ -93,24 +82,24 @@ export function OrganogramaContent() {
     if (!busca.trim() && nivel === "Todos os níveis") return new Set(unidades.map((unidade) => unidade.id));
     const ids = new Set(filtradas.map((unidade) => unidade.id));
     filtradas.forEach((unidade) => {
-      let superior = unidade.superior;
+      let superior = unidade.superiorId;
       while (superior) {
         ids.add(superior);
-        superior = unidades.find((item) => item.id === superior)?.superior ?? null;
+        superior = unidades.find((item) => item.id === superior)?.superiorId ?? null;
       }
     });
     return ids;
   }, [busca, filtradas, nivel]);
 
   const nomeSuperior = (unidade: Unidade) =>
-    unidades.find((item) => item.id === unidade.superior)?.nome ?? "Sem unidade superior";
+    unidades.find((item) => item.id === unidade.superiorId)?.nome ?? "Órgão/Entidade";
 
   const profundidade = (unidade: Unidade) => {
     let valor = 0;
-    let superior = unidade.superior;
+    let superior = unidade.superiorId;
     while (superior) {
       valor += 1;
-      superior = unidades.find((item) => item.id === superior)?.superior ?? null;
+      superior = unidades.find((item) => item.id === superior)?.superiorId ?? null;
     }
     return valor;
   };
@@ -125,7 +114,7 @@ export function OrganogramaContent() {
 
   const NoArvore = ({ unidade, raiz = false }: { unidade: Unidade; raiz?: boolean }) => {
     const filhos = unidades.filter(
-      (item) => item.superior === unidade.id && idsVisiveis.has(item.id),
+      (item) => item.superiorId === unidade.id && idsVisiveis.has(item.id),
     );
     return (
       <div className="organograma-tree-wrap">
@@ -154,7 +143,7 @@ export function OrganogramaContent() {
     );
   };
 
-  const raiz = unidades[0];
+  const raiz = unidades.find((unidade) => unidade.superiorId === null);
   const formatarData = (data: string) =>
     data ? data.split("-").reverse().join("/") : "Não informada";
 
@@ -200,8 +189,9 @@ export function OrganogramaContent() {
               optionValue="value"
               getFormErrorMessage={semErro}
             />
-            <TextFieldSeplag name="nomeOrganograma" control={control} label="Nome do organograma" cols="12 12 3" disabled getFormErrorMessage={semErro} />
-            <TextFieldSeplag name="documentoLegal" control={control} label="Documento legal" cols="12 12 3" disabled getFormErrorMessage={semErro} />
+            <DropdownFieldSeplag name="versaoId" control={control} label="Versão da estrutura" cols="12 12 6" options={versoesDoOrgao.map((versao) => ({ label: `${versao.situacao === "VIGENTE" ? "Vigente" : "Histórica"} · ${versao.inicio} · ${versao.nome}`, value: versao.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
+            <TextFieldSeplag name="nomeOrganograma" control={control} label="Nome do organograma" cols="12 12 6" disabled getFormErrorMessage={semErro} />
+            <TextFieldSeplag name="documentoLegal" control={control} label="Documento legal" cols="12 12 6" disabled getFormErrorMessage={semErro} />
           </div>
         </PanelSeplag>
 
@@ -216,7 +206,7 @@ export function OrganogramaContent() {
           </div>
           <div className="grid organograma-filters">
             <TextFieldSeplag name="busca" control={control} label="Pesquisar unidade" placeholder="Buscar por código, nome, tipo ou nível" cols="12 6 5" getFormErrorMessage={semErro} />
-            <DropdownFieldSeplag name="nivel" control={control} label="Filtrar por nível" cols="12 6 3" options={opcoes(["Todos os níveis", "Direção Superior", "Apoio Estratégico", "Execução Programática"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
+            <DropdownFieldSeplag name="nivel" control={control} label="Filtrar por nível" cols="12 6 3" options={opcoes(["Todos os níveis", ...new Set(unidades.map((unidade) => unidade.nivelOrganizacional))])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
             {visao === "lista" && (
               <div className="col-12 md:col-4 organograma-compare-wrap">
                 <label className="organograma-compare-toggle">
@@ -266,7 +256,7 @@ export function OrganogramaContent() {
           {visao === "arvore" ? (
             <div className="organograma-tree-canvas">
               <div className="organograma-tree">
-                {idsVisiveis.has(raiz.id) ? <NoArvore unidade={raiz} raiz /> : <p>Nenhuma unidade encontrada.</p>}
+                {raiz && idsVisiveis.has(raiz.id) ? <NoArvore unidade={raiz} raiz /> : <p>Nenhuma unidade encontrada.</p>}
               </div>
             </div>
           ) : comparar ? (
@@ -289,7 +279,7 @@ export function OrganogramaContent() {
               {filtradas.map((unidade) => (
                 <button type="button" key={unidade.id} className="organograma-hierarchy-row" style={{ paddingLeft: `${12 + profundidade(unidade) * 22}px` }} onClick={() => setSelecionada(unidade)}>
                   <strong>{unidade.codigo} - {unidade.nome}</strong>
-                  <span>{unidade.nivel} <i>•</i> Superior: {nomeSuperior(unidade)}</span>
+                  <span>{unidade.nivelOrganizacional} <i>•</i> Superior: {nomeSuperior(unidade)}</span>
                 </button>
               ))}
               {filtradas.length === 0 && <p className="organograma-empty">Nenhuma unidade encontrada.</p>}
@@ -315,13 +305,13 @@ export function OrganogramaContent() {
             <header><span>{selecionada.codigo}</span><h3>{selecionada.nome}</h3></header>
             <dl>
               <div><dt>Tipo de unidade</dt><dd>{selecionada.tipo}</dd></div>
-              <div><dt>Nível organizacional</dt><dd>{selecionada.nivel}</dd></div>
+              <div><dt>Nível organizacional</dt><dd>{selecionada.nivelOrganizacional}</dd></div>
               <div><dt>Unidade superior</dt><dd>{nomeSuperior(selecionada)}</dd></div>
-              <div><dt>Ato legal</dt><dd>{selecionada.atoLegal}</dd></div>
+              <div><dt>Ato legal</dt><dd>{versaoVigente?.documentoLegal ?? "Não informado"}</dd></div>
             </dl>
             <div className="organograma-validity">
-              <article><strong>Vigência da unidade</strong><span>{selecionada.inicioUnidade} a {selecionada.fimUnidade ?? "Atual"}</span></article>
-              <article><strong>Vigência da posição hierárquica</strong><span>{selecionada.inicioPosicao} a {selecionada.fimPosicao ?? "Atual"}</span></article>
+              <article><strong>Vigência da unidade</strong><span>{selecionada.dataInicio} a Atual</span></article>
+              <article><strong>Vigência da posição hierárquica</strong><span>{versaoVigente?.inicio ?? "Não informada"} a Atual</span></article>
             </div>
           </div>
         )}
