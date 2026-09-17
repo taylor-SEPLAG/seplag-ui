@@ -133,3 +133,11 @@ export function deduzirTipoVaga(setor:string, setoresParticipantes:readonly stri
  if (setoresParticipantes.length === 0) return setor;
  return orgaoDestino || "Aproveitamento";
 }
+
+// RN (US220 — Vagas): um órgão participante não pode ser removido do certame enquanto ainda
+// houver vaga(s) vinculada(s) a ele (CargoVagaCertame.orgaoDestino) — a remoção é bloqueada
+// (revertida) e o usuário precisa excluir ou reatribuir essas vagas na aba Vagas primeiro.
+// Retorna o primeiro órgão removido que ainda tem vaga vinculada, ou undefined se nenhum bloqueia.
+export function orgaoParticipanteRemovidoComVaga<T extends { orgaoDestino?:string }>(orgaosRemovidos:readonly string[], cargos:readonly T[]):string | undefined {
+ return orgaosRemovidos.find((orgao) => cargos.some((cargo) => cargo.orgaoDestino === orgao));
+}

@@ -26,6 +26,7 @@ export function DropdownFieldSeplag<T extends FieldValues = any>(
     onChange,
     defaultValue,
     filter = true,
+    filterBy,
     virtualScrollerOptions,
     optionDisabled,
     itemTemplate,
@@ -56,6 +57,7 @@ export function DropdownFieldSeplag<T extends FieldValues = any>(
           <div className="flex flex-column">
             <Dropdown
               filter={filter}
+              filterBy={filterBy}
               virtualScrollerOptions={
                 virtualScrollerOptions ??
                 (safeOptions.length > 50 ? { itemSize: 38 } : undefined)

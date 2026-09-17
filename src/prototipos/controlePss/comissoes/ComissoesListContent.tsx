@@ -7,7 +7,7 @@ import { certamesMock } from "../certame/mock";
 import type { Comissao, StatusComissao, TipoComissao } from "./types";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
-import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoLimparFiltroSeplag, BotaoSeplag } from "@componentes/Botao";
+import { BotaoAdicionarSeplag, BotaoLimparFiltroSeplag, BotaoSeplag } from "@componentes/Botao";
 import { ModalSeplag } from "@componentes/Modal";
 import "./comissoes.css";
 
@@ -31,6 +31,8 @@ export function ComissoesListContent() {
  const [pagina, setPagina] = useState(1);
  const [itensPorPagina, setItensPorPagina] = useState(10);
  const [comissaoExcluirId, setComissaoExcluirId] = useState<string | null>(null);
+ const [comissaoAlternarStatus, setComissaoAlternarStatus] = useState<Comissao | null>(null);
+ const [acoesMenuAbertoId, setAcoesMenuAbertoId] = useState<string | null>(null);
 
  const lista = useMemo(() => comissoes.filter((comissao) =>
   (!tipoFiltro || comissao.tipo === tipoFiltro) &&
@@ -43,9 +45,21 @@ export function ComissoesListContent() {
 
  const limparFiltros = () => { setTipoFiltro(""); setStatusFiltro(""); setPagina(1); };
 
- const alternarStatus = (comissao:Comissao) => {
-  const proximo:StatusComissao = comissao.status === "ENCERRADA" ? "EM_ANDAMENTO" : "ENCERRADA";
-  comissoesStore.update(comissao.id, { status:proximo });
+ // KPIs no topo da listagem — somam sobre todas as comissões, independente dos filtros aplicados.
+ const indicadores = useMemo(() => [
+  { label:"Total de comissões", value:comissoes.length, icon:"pi pi-briefcase", tone:"gray" },
+  { label:"Rascunhos", value:comissoes.filter((item) => item.status === "RASCUNHO").length, icon:"pi pi-file-edit", tone:"amber" },
+  { label:"Em andamento", value:comissoes.filter((item) => item.status === "EM_ANDAMENTO").length, icon:"pi pi-play", tone:"green" },
+  { label:"Encerradas", value:comissoes.filter((item) => item.status === "ENCERRADA").length, icon:"pi pi-lock", tone:"blue" },
+  { label:"Processos seletivos", value:comissoes.filter((item) => item.tipo === "PROCESSO_SELETIVO").length, icon:"pi pi-users", tone:"teal" },
+  { label:"Concursos públicos", value:comissoes.filter((item) => item.tipo === "CONCURSO").length, icon:"pi pi-building", tone:"purple" },
+ ], [comissoes]);
+
+ const confirmarAlternarStatus = () => {
+  if (!comissaoAlternarStatus) return;
+  const proximo:StatusComissao = comissaoAlternarStatus.status === "ENCERRADA" ? "EM_ANDAMENTO" : "ENCERRADA";
+  comissoesStore.update(comissaoAlternarStatus.id, { status:proximo });
+  setComissaoAlternarStatus(null);
  };
 
  const confirmarExclusao = () => {
@@ -59,7 +73,14 @@ export function ComissoesListContent() {
     <p className="prototype-ingressos-teste-support">Cadastro das comissões instituídas para condução de concursos públicos e processos seletivos.</p>
     <hr className="prototype-ingressos-teste-header-divider" />
 
-    <div className="prototype-category-filters prototype-ingressos-filters grid">
+    <section className="prototype-ingressos-teste-indicators prototype-comissoes-list-indicators" aria-label="Indicadores de comissões">
+     {indicadores.map((indicador) => <article key={indicador.label} className={`prototype-ingressos-teste-indicator prototype-ingressos-teste-indicator--${indicador.tone}`}>
+      <span className="prototype-ingressos-teste-indicator-icon" aria-hidden="true"><i className={indicador.icon} /></span>
+      <div><span>{indicador.label}</span><strong>{indicador.value.toLocaleString("pt-BR")}</strong></div>
+     </article>)}
+    </section>
+
+    <div className="prototype-category-filters prototype-ingressos-filters prototype-comissoes-list-filters grid">
      <label className="prototype-native-field">
       <span>Tipo</span>
       <select value={tipoFiltro} onChange={(event) => { setTipoFiltro(event.target.value as TipoComissao | ""); setPagina(1); }}>
@@ -74,17 +95,16 @@ export function ComissoesListContent() {
        {STATUS_COMISSAO.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
       </select>
      </label>
-     <div className="prototype-category-clear prototype-comissoes-acoes-filtro">
-      <BotaoSeplag type="button" label="Exportar" icon="pi pi-file-export" outlined onClick={() => window.print()} />
+     <div className="prototype-category-clear">
       <BotaoLimparFiltroSeplag type="button" label="Limpar filtros" icon="pi pi-refresh" onClick={limparFiltros} />
      </div>
     </div>
 
-    <div className="prototype-ingressos-teste-table-shell">
-     <div className="prototype-ingressos-teste-table-actions">
-      <BotaoAdicionarSeplag label="Nova comissão" onClick={() => navigate(`${BASE}/comissoes/novo`)} />
-     </div>
-     <div className="prototype-efetivo-exercicio-table-wrap">
+    <div className="prototype-comissoes-list-acoes">
+     <BotaoAdicionarSeplag label="Nova comissão" onClick={() => navigate(`${BASE}/comissoes/novo`)} />
+    </div>
+
+    <div className="prototype-efetivo-exercicio-table-wrap">
      <table className="prototype-simple-table">
       <thead>
        <tr>
@@ -101,7 +121,12 @@ export function ComissoesListContent() {
       <tbody>
        {listaPaginada.length === 0
         ? <tr><td colSpan={8} className="prototype-empty-table-cell">Nenhuma comissão encontrada para os filtros aplicados.</td></tr>
-        : listaPaginada.map((row) => <tr key={row.id}>
+        : listaPaginada.map((row) => {
+         const menuId = row.id;
+         // Encerrar/Reabrir só se aplica a uma comissão que já saiu do rascunho (Em andamento ou
+         // Encerrada) — um rascunho ainda não existe "de fato" para ser encerrado.
+         const podeAlternarStatus = row.status === "EM_ANDAMENTO" || row.status === "ENCERRADA";
+         return <tr key={row.id}>
          <td>{row.numero}</td>
          <td>{nomeConcurso(row.certameId)}</td>
          <td>{row.nome}</td>
@@ -110,16 +135,34 @@ export function ComissoesListContent() {
          <td>{row.termino ?? "—"}</td>
          <td><BadgeSeplag label={statusLabel[row.status]} color={statusEstilo[row.status].color} bg={statusEstilo[row.status].bg} border="transparent" size="sm" /></td>
          <td>
-          <div className="flex gap-2">
-           <BotaoIconSeplag type="button" tooltip="Editar" icon="pi pi-pencil" onClick={() => navigate(`${BASE}/comissoes/${row.id}`)} />
-           <BotaoIconSeplag type="button" tooltip={row.status === "ENCERRADA" ? "Reabrir" : "Encerrar"} icon={row.status === "ENCERRADA" ? "pi pi-refresh" : "pi pi-ban"} onClick={() => alternarStatus(row)} />
-           <BotaoIconSeplag type="button" severity="danger" tooltip="Excluir" icon="pi pi-trash" onClick={() => setComissaoExcluirId(row.id)} />
+          <div className="prototype-ingresso-candidato-actions">
+           <div className="prototype-ingresso-actions-dropdown">
+            <div className="prototype-ingresso-actions-trigger" role="group" aria-label="Ações da comissão">
+             <button type="button" className="prototype-ingresso-actions-eye" title="Visualizar" aria-label="Visualizar" onClick={() => navigate(`${BASE}/comissoes/${row.id}?modo=visualizar`)}>
+              <i className="pi pi-eye" aria-hidden="true" />
+             </button>
+             <button type="button" className="prototype-ingresso-actions-arrow" title="Mais ações" aria-label="Mais ações" aria-expanded={acoesMenuAbertoId === menuId} onClick={() => setAcoesMenuAbertoId((atual) => atual === menuId ? null : menuId)}>
+              <i className="pi pi-chevron-down" aria-hidden="true" />
+             </button>
+            </div>
+            {acoesMenuAbertoId === menuId && <div className="prototype-ingresso-actions-menu" role="menu">
+             <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); navigate(`${BASE}/comissoes/${row.id}`); }}>
+              <i className="pi pi-pencil" aria-hidden="true" /><span>Editar</span>
+             </button>
+             {podeAlternarStatus && <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setComissaoAlternarStatus(row); }}>
+              <i className={row.status === "ENCERRADA" ? "pi pi-refresh" : "pi pi-ban"} aria-hidden="true" /><span>{row.status === "ENCERRADA" ? "Reabrir" : "Encerrar"}</span>
+             </button>}
+             {row.status === "RASCUNHO" && <button type="button" role="menuitem" className="is-danger" onClick={() => { setAcoesMenuAbertoId(null); setComissaoExcluirId(row.id); }}>
+              <i className="pi pi-trash" aria-hidden="true" /><span>Excluir</span>
+             </button>}
+            </div>}
+           </div>
           </div>
          </td>
-        </tr>)}
+        </tr>;
+        })}
       </tbody>
      </table>
-     </div>
     </div>
 
     <nav className="prototype-efetivo-exercicio-pagination" aria-label="Paginação de comissões">
@@ -147,6 +190,24 @@ export function ComissoesListContent() {
    </div>}
   >
    <p className="col-12">Deseja realmente excluir esta comissão? Essa ação não pode ser desfeita.</p>
+  </ModalSeplag>
+
+  <ModalSeplag
+   visible={comissaoAlternarStatus !== null}
+   titulo={comissaoAlternarStatus?.status === "ENCERRADA" ? "Reabrir comissão" : "Encerrar comissão"}
+   fechar={() => setComissaoAlternarStatus(null)}
+   tamanho="480px"
+   closeOnEscape
+   customFooter={<div className="flex justify-content-end gap-2">
+    <BotaoSeplag type="button" label="Cancelar" outlined onClick={() => setComissaoAlternarStatus(null)} />
+    <BotaoSeplag type="button" label={comissaoAlternarStatus?.status === "ENCERRADA" ? "Reabrir" : "Encerrar"} onClick={confirmarAlternarStatus} />
+   </div>}
+  >
+   <p className="col-12">
+    {comissaoAlternarStatus?.status === "ENCERRADA"
+     ? "Deseja realmente reabrir esta comissão? Ela volta para o status \"Em andamento\"."
+     : "Deseja realmente encerrar esta comissão? Ela deixa de aparecer como ativa."}
+   </p>
   </ModalSeplag>
  </div>;
 }

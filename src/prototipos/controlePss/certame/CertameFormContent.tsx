@@ -8,7 +8,7 @@ import { useTiposCota, useTiposCotaAtivos } from "../tiposCota/tiposCotaStore";
 import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStore";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
 import { certameFormActionSpecifications, certameFormBlockSpecifications, certameFormBusinessItems, certameFormScreenSpecification, certameFormTabSpecifications } from "./CertameFormSpecifications";
-import { gerarNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, deduzirTipoVaga, homologacaoVigenteSemCancelamento, podeCadastrarVagaNoCertame } from "./validations";
+import { gerarNumeroCertame, calcularPrazoPrestacaoContas, calcularValidadeDias, certameDuplicado, dataEfeitoAnteriorPublicacao, deduzirTipoVaga, homologacaoVigenteSemCancelamento, orgaoParticipanteRemovidoComVaga, podeCadastrarVagaNoCertame } from "./validations";
 import { ABRANGENCIAS, CARGOS_CADASTRADOS, CARREIRAS_CONCURSO, DOCUMENTOS_CERTAME, DOCUMENTOS_HOMOLOGACAO, DOCUMENTOS_RETIFICACAO_EDITAL, DOCUMENTOS_RETIFICACAO_HOMOLOGACAO, EMPRESAS_CADASTRADAS, JORNADAS_TRABALHO, LEIS_CERTAME, OPCOES_SIM_NAO, ORGAOS_CERTAME, REGIMES_JURIDICOS, SITUACOES_CERTAME, TIPOS_CERTAME, TIPOS_CONCURSO_APLIC_TCE, TIPOS_CONTRATACAO_EXECUCAO, TIPOS_CONTRATO_BANCA, TIPOS_ISENCAO, TIPOS_VINCULO } from "./dominios";
 import { CATALOGO_UG } from "./catalogoUg";
 import { useFasesCertame } from "../fasesCertame/fasesCertameStore";
@@ -612,10 +612,6 @@ export function CertameFormContent() {
  // perguntada quando há ambiguidade a resolver; com uma única cidade ela é aplicada automaticamente.
  const cidadesDoPoloSelecionado = useMemo(() => polos.find((item) => item.nomeLocal === cargoValores.polo)?.cidade ?? [], [polos, cargoValores.polo]);
  const exibirCidadeVaga = cidadesDoPoloSelecionado.length > 1;
- useEffect(() => {
-  if (!exibirCidadeVaga) cargoForm.setValue("cidades", []);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [cargoValores.polo]);
  // Fluxo Órgão mandante/participante da vaga: o campo "Órgão da vaga" só é exibido quando o certame
  // tem órgãos participantes — sem participante, todas as vagas assumem o órgão mandante
  // automaticamente e o campo nem aparece (nada a escolher). Opções = mandante + participantes,
@@ -694,9 +690,19 @@ export function CertameFormContent() {
     cargoForm.setValue("quantidadeCota", 0);
    }
    if (name === "aceitaCadastroReserva" && dados.aceitaCadastroReserva === "N") cargoForm.setValue("quantidadeCadastroReserva", 0);
+   // RN015 (US220 — Vagas): a seleção de Cidade é reiniciada sempre que o Polo é alterado pelo
+   // usuário — com mais de uma cidade cadastrada para o novo polo, todas vêm pré-selecionadas por
+   // padrão (o usuário desmarca as que não quiser); com uma única cidade (ou nenhuma), o campo nem
+   // aparece e ela é aplicada automaticamente (ver exibirCidadeVaga/cargoSalvo). Só reage a uma
+   // troca de Polo feita pelo usuário (name === "polo") — não a um cargoForm.reset() ao abrir o
+   // modal para editar uma vaga já salva, que já traz as cidades corretas daquele registro.
+   if (name === "polo") {
+    const cidadesDoPolo = polos.find((item) => item.nomeLocal === dados.polo)?.cidade ?? [];
+    cargoForm.setValue("cidades", cidadesDoPolo.length > 1 ? [...cidadesDoPolo] : []);
+   }
   });
   return () => assinatura.unsubscribe();
- }, [cargoForm]);
+ }, [cargoForm, polos]);
 
  // Certame novo nasce sem nenhuma fase pré-preenchida — o catálogo do TCE-MT (FASES_TCE_FIXAS)
  // continua disponível só como opção no dropdown "Nome da fase", não mais como seed automático.
@@ -733,6 +739,23 @@ export function CertameFormContent() {
   if (!erro) return;
   document.getElementById("certame-form-erro")?.scrollIntoView({ behavior:"smooth", block:"center" });
  }, [erro]);
+ // RN (US220 — Vagas): não é permitido remover da lista de participantes um órgão que ainda tem
+ // vaga(s) vinculada(s) a ele (CargoVagaCertame.orgaoDestino) — a remoção é revertida e o usuário
+ // é orientado a excluir (ou reatribuir) essas vagas na aba Vagas antes de tentar de novo.
+ const setoresParticipantesAnteriorRef = useRef(valores.setoresParticipantes);
+ useEffect(() => {
+  const anterior = setoresParticipantesAnteriorRef.current;
+  const removidos = anterior.filter((orgao) => !valores.setoresParticipantes.includes(orgao));
+  const orgaoBloqueado = orgaoParticipanteRemovidoComVaga(removidos, cargos);
+  if (orgaoBloqueado) {
+   setValue("setoresParticipantes", anterior);
+   setErro(`Não é possível remover o órgão "${orgaoBloqueado}" dos participantes: existem vagas vinculadas a ele. Exclua ou reatribua essas vagas na aba Vagas antes de remover o órgão.`);
+   irParaBloco("VAGAS_COTAS", "bloco-cargos-vagas");
+   return;
+  }
+  setoresParticipantesAnteriorRef.current = valores.setoresParticipantes;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [valores.setoresParticipantes]);
  // RN-20: Demonstrativo LRF é sempre obrigatório (obrigatorioSempre:true no domínio) — não depende
  // mais do checkbox "gerou despesas". RN-21: Publicação do certame licitatório passa a seguir o
  // mesmo gatilho do Contrato social — RN-22 unificou esse gatilho em "tipoContratacaoExecucao".
@@ -1046,7 +1069,8 @@ export function CertameFormContent() {
        <BlocoHeader icone="pi-building" titulo="Órgãos envolvidos" subtitulo="Órgão mandante e órgãos participantes do certame." />
        <div className="grid">
         <DropdownFieldSeplag name="setor" control={control} label="Órgão responsável (mandante)" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
-        <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.filter((item) => item !== valores.setor).map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="(selecione)" display="chip" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
+        <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.filter((item) => item !== valores.setor).map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" optionDisabled={(item:{ value:string }) => cargos.some((cargo) => cargo.orgaoDestino === item.value)} placeholder="(selecione)" display="chip" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
+        {!modoVisualizar && valores.setoresParticipantes.some((orgao) => cargos.some((cargo) => cargo.orgaoDestino === orgao)) && <div className="col-12"><small className="text-color-secondary">Órgãos com vagas vinculadas (em cinza) não podem ser removidos — exclua a vaga na aba Vagas antes.</small></div>}
        </div>
       </div>
 
@@ -1286,16 +1310,16 @@ export function CertameFormContent() {
           {usaCargoDoQuadro
              ? <DropdownFieldSeplag name="cargoExistenteId" control={cargoForm.control} label="Cargo/função" required cols="12 6 4" options={CARGOS_CADASTRADOS.map((item) => ({ label:item.nome, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Buscar cargo cadastrado" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
              : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" required cols="12 6 4" placeholder="Nome do novo cargo" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
-           <RotuloSeplag nome="Quadro de vagas" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado?.quadroCodigo ?? "—"}</div></RotuloSeplag>
-           <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Quantidade de vagas" required min={1} cols="12 6 4" inputStyle={{ width:"100%" }} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-           <DropdownFieldSeplag name="polo" control={cargoForm.control} label="Polo" required cols="12 6 4" options={polosOptions} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-           {exibirCidadeVaga && <MultiSelectFieldSeplag name="cidades" control={cargoForm.control} label="Cidade" required cols="12 6 4" options={cidadesDoPoloSelecionado.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
-           <DropdownFieldSeplag name="jornada" control={cargoForm.control} label="Jornada" required cols="12 6 4" options={[...JORNADAS_TRABALHO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
            {exibirOrgaoVaga && <DropdownFieldSeplag name="orgaoDestino" control={cargoForm.control} label="Órgão da vaga" cols="12 6 4" options={orgaosVagaOptions} optionLabel="label" optionValue="value" placeholder="(opcional)" showClear panelClassName="prototype-certame-dropdown-panel" itemTemplate={(option) => <div className="flex align-items-center justify-content-between gap-2 w-full">
             <span>{option.label}</span>
             {option.value === valores.setor && <BadgeSeplag label="Mandante" color="#0b6199" bg="#e9f3fc" border="transparent" size="xs" />}
            </div>} disabled={modoVisualizar} getFormErrorMessage={() => null} />}
            {exibirOrgaoVaga && <div className="col-12"><p className="text-sm text-color-secondary">Deixe em branco para tratar a vaga como Aproveitamento — sem vínculo com um órgão específico.</p></div>}
+           <RotuloSeplag nome="Quadro de vagas" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado?.quadroCodigo ?? "—"}</div></RotuloSeplag>
+           <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Quantidade de vagas" required min={1} cols="12 6 4" inputStyle={{ width:"100%" }} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+           <DropdownFieldSeplag name="polo" control={cargoForm.control} label="Polo" required cols="12 6 4" options={polosOptions} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+           {exibirCidadeVaga && <MultiSelectFieldSeplag name="cidades" control={cargoForm.control} label="Cidade" required cols="12 6 4" options={cidadesDoPoloSelecionado.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+           <DropdownFieldSeplag name="jornada" control={cargoForm.control} label="Jornada" required cols="12 6 4" options={[...JORNADAS_TRABALHO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
            {cargoJornadaRepetida && <div className="col-12"><MensagemSeplag severity="warning" message="Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Altere o vínculo, o cargo ou a jornada para continuar." cols="12" /></div>}
           </div>
          </section>

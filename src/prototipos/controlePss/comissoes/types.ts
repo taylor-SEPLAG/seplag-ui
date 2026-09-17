@@ -13,7 +13,7 @@ export interface AtoNomeacaoMembro {
  numeroAto?:string;
  dataPublicacao?:string;
  localPublicacao?:LocalPublicacaoAto;
- arquivos:readonly ArquivoAtoNomeacao[];
+ arquivo?:ArquivoAtoNomeacao;
 }
 
 export interface MembroComissao {
