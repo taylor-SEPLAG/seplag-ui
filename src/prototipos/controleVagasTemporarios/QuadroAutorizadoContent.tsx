@@ -212,12 +212,13 @@ function QuadrosContratosTemporariosLista() {
   const [quadros] = useState(() => listarQuadrosTemporarios());
   const { certames } = useControlePssStore();
   const [busca, setBusca] = useState("");
+  const [cargo, setCargo] = useState("");
   const [orgao, setOrgao] = useState("");
   const [situacao, setSituacao] = useState("");
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [cargosSelecionado, setCargosSelecionado] = useState<string | null>(null);
   const termo = busca.trim().toLocaleLowerCase("pt-BR");
-  const filtrados = quadros.filter((q) => (!termo || `${q.codigo} ${q.certame.nomeEdital} ${q.certame.numeroEditalOrgao}`.toLocaleLowerCase("pt-BR").includes(termo)) && (!orgao || q.certame.setor === orgao) && (!situacao || q.situacao === situacao));
+  const filtrados = quadros.filter((q) => (!termo || `${q.codigo} ${q.certame.nomeEdital} ${q.certame.numeroEditalOrgao}`.toLocaleLowerCase("pt-BR").includes(termo)) && (!cargo || q.cargos.some((item) => item.cargoNome === cargo)) && (!orgao || q.certame.setor === orgao) && (!situacao || q.situacao === situacao));
   const processosSeletivos = certames.filter(seletivoTemporario).length;
   const cargosControlados = listarCargosControleVagasTemporarias().length;
   const vagasPrevistas = quadros.reduce(
@@ -226,6 +227,7 @@ function QuadrosContratosTemporariosLista() {
   );
   const vagasReais = quadros.reduce((total, quadro) => total + quadro.vagasReais, 0);
   const orgaos = [...new Set(quadros.map((q) => q.certame.setor))].sort();
+  const cargosFiltro = [...new Set(quadros.flatMap((q) => q.cargos.map((item) => item.cargoNome)))].sort((a, b) => a.localeCompare(b, "pt-BR"));
   const detalhe = quadros.find((q) => q.id === selecionado);
   const quadroCargos = quadros.find((q) => q.id === cargosSelecionado);
   return (
@@ -246,9 +248,10 @@ function QuadrosContratosTemporariosLista() {
       <section className="prototype-temporarios-quadro-card prototype-temporarios-quadro-filters-card">
         <div className="prototype-temporarios-quadro-filters prototype-temporarios-quadro-library-filters prototype-temporarios-quadro-list-filters">
           <label><span>Quadro</span><input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Código, edital ou número" /></label>
+          <label><span>Cargo</span><select value={cargo} onChange={(e) => setCargo(e.target.value)}><option value="">Todos</option>{cargosFiltro.map((item) => <option key={item}>{item}</option>)}</select></label>
           <label><span>Órgão</span><select value={orgao} onChange={(e) => setOrgao(e.target.value)}><option value="">Todos</option>{orgaos.map((o) => <option key={o}>{o}</option>)}</select></label>
           <label><span>Situação</span><select value={situacao} onChange={(e) => setSituacao(e.target.value)}><option value="">Todas</option><option value="ATIVO">Ativo</option><option value="EXTINTO">Extinto</option><option value="ENCERRADO">Encerrado</option></select></label>
-          <BotaoLimparFiltroSeplag label="Limpar" onClick={() => { setBusca(""); setOrgao(""); setSituacao(""); }} />
+          <BotaoLimparFiltroSeplag label="Limpar" onClick={() => { setBusca(""); setCargo(""); setOrgao(""); setSituacao(""); }} />
         </div>
       </section>
       <section className="prototype-temporarios-quadro-card prototype-temporarios-quadro-table-card">

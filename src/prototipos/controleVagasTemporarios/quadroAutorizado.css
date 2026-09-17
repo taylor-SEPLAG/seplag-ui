@@ -2834,3 +2834,6 @@
 .prototype-temporarios-quadro-cargos-modal td { padding: .8rem; border: 1px solid #dce4ed; text-align: left; vertical-align: middle; }
 .prototype-temporarios-quadro-cargos-modal th { background: #f5f7fa; font-size: .78rem; }
 .prototype-temporarios-quadro-cargos-modal td small { display: block; margin-top: .2rem; color: #64748b; }
+.prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-list-filters {
+  grid-template-columns: minmax(18rem, 1.55fr) minmax(14rem, 1.2fr) minmax(12rem, 1fr) minmax(12rem, 1fr) auto !important;
+}
