@@ -1053,6 +1053,7 @@ interface CargoForm {
   perfisEspecialidades?: number[];
   naturezaVinculo?: string;
   permiteAcumuloCargo?: "S" | "N";
+  controleVagasEfetivos?: boolean;
   controleVagasBolsista?: boolean;
   controleVagasComissionadas?: boolean;
   controleVagasTemporarias?: boolean;
@@ -1304,6 +1305,7 @@ interface CargoTesteRow extends CargoRow {
   documentosIds?: string[];
   perfisEspecialidadesIds?: number[];
   cargosAcumulaveis?: number[];
+  controleVagasEfetivos?: boolean;
   controleVagasBolsista?: boolean;
   controleVagasComissionadas?: boolean;
   controleVagasTemporarias?: boolean;
@@ -9132,6 +9134,7 @@ export function PrototiposCargoFormPage({
       perfisEspecialidades: [],
       naturezaVinculo: "",
       permiteAcumuloCargo: "N",
+      controleVagasEfetivos: false,
       controleVagasBolsista: false,
       controleVagasComissionadas: false,
       controleVagasTemporarias: false,
@@ -9165,6 +9168,7 @@ export function PrototiposCargoFormPage({
       jornadasPermitidas: cargoEmEdicao.jornadaPadrao.split(",").map((jornada) => jornada.trim()).filter((jornada) => cargoJornadaOptions.some((option) => option.value === jornada)),
       perfisEspecialidades: cargoEmEdicao.perfisEspecialidadesIds ?? [],
       permiteAcumuloCargo: cargoEmEdicao.cargosAcumulaveis?.length ? "S" : "N",
+      controleVagasEfetivos: cargoEmEdicao.controleVagasEfetivos === true,
       controleVagasBolsista: cargoEmEdicao.controleVagasBolsista === true,
       controleVagasComissionadas: cargoEmEdicao.controleVagasComissionadas === true,
       controleVagasTemporarias: cargoEmEdicao.controleVagasTemporarias === true,
@@ -9209,7 +9213,7 @@ export function PrototiposCargoFormPage({
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
       vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO",
-      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasBolsista: values.controleVagasBolsista === true, controleVagasComissionadas: values.controleVagasComissionadas === true, controleVagasTemporarias: values.controleVagasTemporarias === true,
+      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasEfetivos: values.controleVagasEfetivos === true, controleVagasBolsista: values.controleVagasBolsista === true, controleVagasComissionadas: values.controleVagasComissionadas === true, controleVagasTemporarias: values.controleVagasTemporarias === true,
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     atualizarControleVagasBolsistas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasBolsista === true);
@@ -9391,18 +9395,7 @@ export function PrototiposCargoFormPage({
                 <CheckboxFieldSeplag<CargoForm> name="permiteAcumuloCargo" control={control} checkboxLabel="Permite acúmulo de cargo?" cols="12" />
                 <span>Permite definir os cargos que podem ser acumulados com este cargo.</span>
               </div>
-              <div className="prototype-shared-criterio-item">
-                <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" />
-                <span>Disponibiliza este cargo no Quadro Autorizado Bolsistas.</span>
-              </div>
-              <div className="prototype-shared-criterio-item">
-                <CheckboxFieldSeplag<CargoForm> name="controleVagasTemporarias" control={control} checkboxLabel="Controla vagas temporárias?" cols="12" />
-                <span>Disponibiliza este cargo para o controle de vagas dos processos seletivos temporários.</span>
-              </div>
-              <div className="prototype-shared-criterio-item">
-                <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" />
-                <span>Disponibiliza este cargo como simbologia remuneratória no Quadro de Vagas Comissionados.</span>
-              </div>            </div>
+            </div>
             {permiteAcumuloCargo ? (
               <div className="grid prototype-carreira-register-fields">
                 <MultiSelectFieldSeplag
@@ -9422,6 +9415,36 @@ export function PrototiposCargoFormPage({
                 <small className="col-12">A permissão é bidirecional: o cargo selecionado também passará a permitir acúmulo com este cargo.</small>
               </div>
             ) : null}
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-chart-bar" aria-hidden="true" /></span>
+              <div>
+                <h2>Controle de vagas</h2>
+                <p>Defina em quais quadros de vagas este cargo poderá ser utilizado.</p>
+              </div>
+            </header>
+            <div className="prototype-cargo-controle-vagas">
+              <div className="prototype-cargo-controle-vagas-opcoes">
+                <div className="prototype-shared-criterio-item">
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasEfetivos" control={control} checkboxLabel="Controla vagas de efetivos?" cols="12" />
+                  <span>Disponibiliza este cargo no Quadro de Vagas Efetivos.</span>
+                </div>
+                <div className="prototype-shared-criterio-item">
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasTemporarias" control={control} checkboxLabel="Controla vagas temporárias?" cols="12" />
+                  <span>Disponibiliza este cargo para o controle de vagas dos processos seletivos temporários.</span>
+                </div>
+                <div className="prototype-shared-criterio-item">
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" />
+                  <span>Disponibiliza este cargo como simbologia remuneratória no Quadro de Vagas Comissionados.</span>
+                </div>
+                <div className="prototype-shared-criterio-item">
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" />
+                  <span>Disponibiliza este cargo no Quadro de Vagas Bolsistas.</span>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section className="prototype-carreira-register-section">
