@@ -38,6 +38,7 @@ import {
   PrototiposComponentesPage,
   PrototiposGestaoDocumentosPage,
   PrototiposGestaoDocumentosCadastroPage,
+  PrototiposCadastroGeralPage,
   PrototiposControleVagasRegrasPage,
   PrototiposControleVagasGeralPage,
   PrototiposVagasTemporariosPage,
@@ -1515,6 +1516,7 @@ function App() {
         element={<PrototiposSicadChamadoDetalhePage />}
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
+      <Route path="/prototipos/sigep/cadastro" element={<PrototiposCadastroGeralPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma" element={<PrototiposOrganogramaPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" element={<PrototiposTiposUnidadesPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades/cadastrar" element={<PrototiposTipoUnidadeCadastroPage />} />

@@ -6,6 +6,7 @@ import { BreadcrumbVagas as BreadcrumbVagasComissionados } from "./controleVagas
 import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTemporarios/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
 import { ControleVagasGeralContent } from "./controleVagas/ControleVagasGeralContent";
+import { CadastroGeralContent } from "./cadastro/CadastroGeralContent";
 import { VagasTemporariosContent } from "./controleVagasTemporarios/VagasTemporariosContent";
 import { QuadroAutorizadoContent as QuadroTemporariosContent } from "./controleVagasTemporarios/QuadroAutorizadoContent";
 import { VagasIndividualizadasContent as IndividualizadasTemporariosContent } from "./controleVagasTemporarios/VagasIndividualizadasContent";
@@ -222,7 +223,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
   {
     label: "Cadastro",
     icon: "pi pi-file-edit",
-    url: "#",
+    to: "/prototipos/sigep/cadastro",
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
@@ -7542,6 +7543,14 @@ export function PrototiposControleVagasGeralPage() {
     </PrototypeSystemPage>
   );
 }
+export function PrototiposCadastroGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <CadastroGeralContent />
+    </PrototypeSystemPage>
+  );
+}
+
 export function PrototiposControleVagasDashboardPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>

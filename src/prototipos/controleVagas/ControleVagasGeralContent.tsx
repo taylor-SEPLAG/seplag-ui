@@ -38,7 +38,6 @@ export function ControleVagasGeralContent() {
   return (
     <main className="prototype-controle-vagas-geral">
       <header>
-        <span>Controle de Vagas</span>
         <h1>Controle de Vagas</h1>
         <p>Selecione uma área para consultar e gerenciar os quadros e as vagas autorizadas.</p>
       </header>
