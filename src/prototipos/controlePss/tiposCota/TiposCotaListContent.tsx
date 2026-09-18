@@ -5,8 +5,7 @@ import { LEIS_CERTAME } from "../certame/dominios";
 import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStore";
 import { tiposCotaStore, useTiposCota, type TipoCota } from "./tiposCotaStore";
 import { CardSeplag } from "@componentes/Card";
-import { BotaoAdicionarSeplag, BotaoIconSeplag, BotaoLimparFiltroSeplag } from "@componentes/Botao";
-import { SEPLAG_SUCCESS_DARK, SEPLAG_YELLOW } from "../../../tokens/colors";
+import { BotaoAdicionarSeplag, BotaoLimparFiltroSeplag } from "@componentes/Botao";
 
 const normalizar = (valor:string) => valor.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("pt-BR");
 
@@ -21,6 +20,7 @@ export function TiposCotaListContent() {
  const [nomeFiltro, setNomeFiltro] = useState("");
  const [pagina, setPagina] = useState(1);
  const [itensPorPagina, setItensPorPagina] = useState(10);
+ const [acoesMenuAbertoId, setAcoesMenuAbertoId] = useState<string | null>(null);
 
  // Mesma fonte de leis do formulário (LEIS_CERTAME + Documentos Legais cadastrados), só para
  // resolver o título exibido na coluna "Lei".
@@ -82,9 +82,25 @@ export function TiposCotaListContent() {
           <td>{row.lei.length === 0 ? "—" : row.lei.map(tituloLei).join(", ")}</td>
           <td><span className={`prototype-locais-status ${row.situacao === "ATIVO" ? "is-active" : "is-inactive"}`}>{row.situacao === "ATIVO" ? "Ativo" : "Inativo"}</span></td>
           <td>
-           <div className="flex gap-2">
-            <BotaoIconSeplag type="button" tooltip="Editar" icon="pi pi-pencil" style={{ backgroundColor:SEPLAG_YELLOW, borderColor:SEPLAG_YELLOW }} onClick={() => navigate(`${BASE}/tipos-cota/${row.id}`)} />
-            <BotaoIconSeplag type="button" severity={row.situacao === "ATIVO" ? "danger" : "success"} style={row.situacao === "ATIVO" ? undefined : { backgroundColor:SEPLAG_SUCCESS_DARK, borderColor:SEPLAG_SUCCESS_DARK }} tooltip={row.situacao === "ATIVO" ? "Inativar" : "Ativar"} icon={row.situacao === "ATIVO" ? "pi pi-ban" : "pi pi-check"} onClick={() => tiposCotaStore.toggleSituacao(row.id)} />
+           <div className="prototype-ingresso-candidato-actions">
+            <div className="prototype-ingresso-actions-dropdown">
+             <div className="prototype-ingresso-actions-trigger" role="group" aria-label="Ações do tipo de cota">
+              <button type="button" className="prototype-ingresso-actions-eye" title="Visualizar" aria-label="Visualizar" onClick={() => navigate(`${BASE}/tipos-cota/${row.id}?modo=visualizar`)}>
+               <i className="pi pi-eye" aria-hidden="true" />
+              </button>
+              <button type="button" className="prototype-ingresso-actions-arrow" title="Mais ações" aria-label="Mais ações" aria-expanded={acoesMenuAbertoId === row.id} onClick={() => setAcoesMenuAbertoId((atual) => atual === row.id ? null : row.id)}>
+               <i className="pi pi-chevron-down" aria-hidden="true" />
+              </button>
+             </div>
+             {acoesMenuAbertoId === row.id && <div className="prototype-ingresso-actions-menu" role="menu">
+              <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); navigate(`${BASE}/tipos-cota/${row.id}`); }}>
+               <i className="pi pi-pencil" aria-hidden="true" /><span>Editar</span>
+              </button>
+              <button type="button" role="menuitem" className={row.situacao === "ATIVO" ? "is-danger" : undefined} onClick={() => { setAcoesMenuAbertoId(null); tiposCotaStore.toggleSituacao(row.id); }}>
+               <i className={row.situacao === "ATIVO" ? "pi pi-ban" : "pi pi-check"} aria-hidden="true" /><span>{row.situacao === "ATIVO" ? "Inativar" : "Ativar"}</span>
+              </button>
+             </div>}
+            </div>
            </div>
           </td>
          </tr>

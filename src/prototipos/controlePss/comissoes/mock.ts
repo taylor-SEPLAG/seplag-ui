@@ -3,7 +3,7 @@ import type { Comissao } from "./types";
 export const comissoesMock:Comissao[] = [
  {
   id:"COM-2501", numero:"2501", tipo:"CONCURSO", certameId:"CERT-2026-002",
-  nome:"Comissão Especial do Concurso — Auditor Fiscal", finalidade:"Acompanhar a execução do concurso público, da abertura até a homologação do resultado.", observacoes:"",
+  nome:"Comissão Especial do Concurso — Auditor Fiscal", observacoes:"",
   previsaoInicio:"01/07/2026", inicio:"01/07/2026", previsaoTermino:"31/12/2026", termino:undefined,
   orgao:"SEFAZ", vinculoResponsavelId:"SRV-0004", status:"EM_ANDAMENTO",
   membros:[
@@ -16,7 +16,7 @@ export const comissoesMock:Comissao[] = [
  },
  {
   id:"COM-2502", numero:"2502", tipo:"PROCESSO_SELETIVO", certameId:"CERT-2026-001",
-  nome:"Comissão Especial de Processo Seletivo", finalidade:"Conduzir o processo seletivo simplificado para contratação temporária de professores.", observacoes:"Comissão renovada anualmente.",
+  nome:"Comissão Especial de Processo Seletivo", observacoes:"Comissão renovada anualmente.",
   previsaoInicio:"25/06/2026", inicio:"25/06/2026", previsaoTermino:undefined, termino:undefined,
   orgao:"SEDUC", vinculoResponsavelId:"SRV-0003", status:"EM_ANDAMENTO",
   membros:[
@@ -27,7 +27,7 @@ export const comissoesMock:Comissao[] = [
  },
  {
   id:"COM-2503", numero:"2503", tipo:"PROCESSO_SELETIVO", certameId:undefined,
-  nome:"Comissão de PSS — Assistente Social", finalidade:"", observacoes:"",
+  nome:"Comissão de PSS — Assistente Social", observacoes:"",
   previsaoInicio:undefined, inicio:undefined, previsaoTermino:undefined, termino:undefined,
   orgao:"SEPLAG", vinculoResponsavelId:undefined, status:"RASCUNHO",
   membros:[],
@@ -35,7 +35,7 @@ export const comissoesMock:Comissao[] = [
  },
  {
   id:"COM-2490", numero:"2490", tipo:"CONCURSO", certameId:undefined,
-  nome:"Comissão do Concurso — Fiscal de Rendas (2024)", finalidade:"Comissão do concurso encerrado em 2024.", observacoes:"",
+  nome:"Comissão do Concurso — Fiscal de Rendas (2024)", observacoes:"",
   previsaoInicio:"05/02/2024", inicio:"05/02/2024", previsaoTermino:"30/11/2024", termino:"30/11/2024",
   orgao:"SEFAZ", vinculoResponsavelId:"SRV-0004", status:"ENCERRADA",
   membros:[
@@ -46,7 +46,7 @@ export const comissoesMock:Comissao[] = [
  },
  {
   id:"COM-2504", numero:"2504", tipo:"PROCESSO_SELETIVO", certameId:"CERT-2026-004",
-  nome:"Comissão de PSS — Assistente Social", finalidade:"Conduzir o processo seletivo simplificado para contratação de assistentes sociais.", observacoes:"",
+  nome:"Comissão de PSS — Assistente Social", observacoes:"",
   previsaoInicio:"10/08/2026", inicio:"10/08/2026", previsaoTermino:"10/02/2027", termino:undefined,
   orgao:"SEPLAG", vinculoResponsavelId:"SRV-0001", status:"EM_ANDAMENTO",
   membros:[
@@ -61,7 +61,7 @@ export const comissoesMock:Comissao[] = [
  },
  {
   id:"COM-2505", numero:"2505", tipo:"CONCURSO", certameId:"CERT-2026-005",
-  nome:"Comissão do Concurso — Fiscal de Rendas 2026", finalidade:"", observacoes:"Aguardando definição do responsável e composição.",
+  nome:"Comissão do Concurso — Fiscal de Rendas 2026", observacoes:"Aguardando definição do responsável e composição.",
   previsaoInicio:undefined, inicio:undefined, previsaoTermino:undefined, termino:undefined,
   orgao:"SEFAZ", vinculoResponsavelId:undefined, status:"RASCUNHO",
   membros:[],
@@ -69,7 +69,7 @@ export const comissoesMock:Comissao[] = [
  },
  {
   id:"COM-2470", numero:"2470", tipo:"PROCESSO_SELETIVO", certameId:undefined,
-  nome:"Comissão de PSS — Enfermagem (2025)", finalidade:"Comissão do processo seletivo de enfermagem encerrado em 2025.", observacoes:"",
+  nome:"Comissão de PSS — Enfermagem (2025)", observacoes:"",
   previsaoInicio:"10/01/2025", inicio:"10/01/2025", previsaoTermino:"10/07/2025", termino:"10/07/2025",
   orgao:"SES", vinculoResponsavelId:"SRV-0005", status:"ENCERRADA",
   membros:[
@@ -82,7 +82,7 @@ export const comissoesMock:Comissao[] = [
  },
  {
   id:"COM-2506", numero:"2506", tipo:"PROCESSO_SELETIVO", certameId:undefined,
-  nome:"Comissão de PSS — Gestão Prisional", finalidade:"", observacoes:"",
+  nome:"Comissão de PSS — Gestão Prisional", observacoes:"",
   previsaoInicio:undefined, inicio:undefined, previsaoTermino:undefined, termino:undefined,
   orgao:"SEJUS", vinculoResponsavelId:undefined, status:"RASCUNHO",
   membros:[],

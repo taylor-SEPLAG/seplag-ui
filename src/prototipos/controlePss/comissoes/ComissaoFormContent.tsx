@@ -33,15 +33,15 @@ const statusEstilo:Record<StatusComissao,{ color:string; bg:string }> = {
 const TIPO_CERTAME_POR_TIPO_COMISSAO:Record<TipoComissao,string> = { PROCESSO_SELETIVO:"PSS", CONCURSO:"CONCURSO_PUBLICO" };
 
 interface ComissaoFormValues {
- tipo:TipoComissao; certameId:string; nome:string; finalidade:string; observacoes:string;
+ tipo:TipoComissao; certameId:string; nome:string; observacoes:string;
  previsaoInicio:string; inicio:string; previsaoTermino:string; termino:string;
  orgao:string; vinculoResponsavelId:string;
 }
 
 function valoresIniciais(comissao:Comissao | undefined):ComissaoFormValues {
- if (!comissao) return { tipo:"PROCESSO_SELETIVO", certameId:"", nome:"", finalidade:"", observacoes:"", previsaoInicio:"", inicio:"", previsaoTermino:"", termino:"", orgao:"", vinculoResponsavelId:"" };
+ if (!comissao) return { tipo:"PROCESSO_SELETIVO", certameId:"", nome:"", observacoes:"", previsaoInicio:"", inicio:"", previsaoTermino:"", termino:"", orgao:"", vinculoResponsavelId:"" };
  return {
-  tipo:comissao.tipo, certameId:comissao.certameId ?? "", nome:comissao.nome, finalidade:comissao.finalidade ?? "", observacoes:comissao.observacoes ?? "",
+  tipo:comissao.tipo, certameId:comissao.certameId ?? "", nome:comissao.nome, observacoes:comissao.observacoes ?? "",
   previsaoInicio:comissao.previsaoInicio ?? "", inicio:comissao.inicio ?? "", previsaoTermino:comissao.previsaoTermino ?? "", termino:comissao.termino ?? "",
   orgao:comissao.orgao, vinculoResponsavelId:comissao.vinculoResponsavelId ?? "",
  };
@@ -105,6 +105,10 @@ export function ComissaoFormContent() {
  const [aba, setAba] = useState<"IDENTIFICACAO" | "COMPOSICAO">("IDENTIFICACAO");
  const [membros, setMembros] = useState<MembroComissao[]>(existente ? [...existente.membros] : []);
  const [erro, setErro] = useState<string | null>(null);
+ // Documento que institui a comissão (ex.: Portaria/Decreto de criação) — mesmo padrão de anexo
+ // (.pdf, único arquivo) do Ato de nomeação de cada membro.
+ const [arquivoComissaoPendente, setArquivoComissaoPendente] = useState<ArquivoAtoNomeacao | undefined>(existente?.arquivo);
+ const [visualizarArquivoComissao, setVisualizarArquivoComissao] = useState(false);
 
  const opcoesConcurso = useMemo(() => certamesMock.filter((certame) => certame.tipoCertame === TIPO_CERTAME_POR_TIPO_COMISSAO[valores.tipo]).map((certame) => ({ label:certame.nomeEdital, value:certame.id })), [valores.tipo]);
  // Ao trocar o Tipo, um Concurso já selecionado de outro tipo deixa de ser uma opção válida.
@@ -130,9 +134,9 @@ export function ComissaoFormContent() {
   setErro(null);
   const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
   const dadosComuns = {
-   tipo:dados.tipo, certameId:dados.certameId || undefined, nome:dados.nome, finalidade:dados.finalidade || undefined, observacoes:dados.observacoes || undefined,
+   tipo:dados.tipo, certameId:dados.certameId || undefined, nome:dados.nome, observacoes:dados.observacoes || undefined,
    previsaoInicio:dados.previsaoInicio || undefined, inicio:dados.inicio || undefined, previsaoTermino:dados.previsaoTermino || undefined, termino:dados.termino || undefined,
-   orgao:dados.orgao, vinculoResponsavelId:dados.vinculoResponsavelId || undefined,
+   orgao:dados.orgao, vinculoResponsavelId:dados.vinculoResponsavelId || undefined, arquivo:arquivoComissaoPendente,
   };
   if (existente) {
    comissoesStore.update(existente.id, { ...dadosComuns, membros, atualizadoEm:agora });
@@ -197,16 +201,31 @@ export function ComissaoFormContent() {
  const confirmarRemocaoMembro = () => { if (membroExcluirId) setMembros((atuais) => atuais.filter((item) => item.id !== membroExcluirId)); setMembroExcluirId(null); };
 
  // Ato de nomeação tem uma única vaga de arquivo (o PDF do próprio ato) — anexar substitui o
- // arquivo anterior, mesmo padrão de validação (.pdf, até 10MB) do DocumentosCertameTabela.
+ // arquivo anterior, mesmo padrão de validação (.pdf, até 2MB) do DocumentosCertameTabela.
  const onSelecionarArquivoAto = (event:React.ChangeEvent<HTMLInputElement>) => {
   const selecionado = event.target.files?.[0];
   event.target.value = "";
   if (!selecionado) return;
-  if (!arquivoDocumentoCertameValido(selecionado)) { setErro("Arquivo inválido: formato aceito .pdf, com até 10MB."); return; }
+  if (!arquivoDocumentoCertameValido(selecionado)) { setErro("Arquivo inválido: formato aceito .pdf, com até 2MB."); return; }
   setErro(null);
   const reader = new FileReader();
   reader.onload = () => {
    setArquivoAtoPendente({ id:`ARQ-${Date.now()}`, nome:selecionado.name, extensao:"pdf", contentType:selecionado.type, conteudoEmBase64:String(reader.result).split(",")[1] ?? "", tamanho:selecionado.size });
+  };
+  reader.readAsDataURL(selecionado);
+ };
+
+ // Documento da comissão tem uma única vaga de arquivo — anexar substitui o arquivo anterior,
+ // mesmo padrão de validação (.pdf, até 2MB) do Ato de nomeação.
+ const onSelecionarArquivoComissao = (event:React.ChangeEvent<HTMLInputElement>) => {
+  const selecionado = event.target.files?.[0];
+  event.target.value = "";
+  if (!selecionado) return;
+  if (!arquivoDocumentoCertameValido(selecionado)) { setErro("Arquivo inválido: formato aceito .pdf, com até 2MB."); return; }
+  setErro(null);
+  const reader = new FileReader();
+  reader.onload = () => {
+   setArquivoComissaoPendente({ id:`ARQ-${Date.now()}`, nome:selecionado.name, extensao:"pdf", contentType:selecionado.type, conteudoEmBase64:String(reader.result).split(",")[1] ?? "", tamanho:selecionado.size });
   };
   reader.readAsDataURL(selecionado);
  };
@@ -243,10 +262,9 @@ export function ComissaoFormContent() {
       <div className="grid">
        <RotuloSeplag nome="Número" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{numeroForm}</div></RotuloSeplag>
        <DropdownFieldSeplag name="tipo" control={control} label="Tipo" required cols="12 6 4" options={TIPOS_COMISSAO} optionLabel="label" optionValue="value" showClear={false} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <DropdownFieldSeplag name="certameId" control={control} label="Concurso" cols="12 6 4" options={opcoesConcurso} optionLabel="label" optionValue="value" placeholder="Nenhum concurso vinculado" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+       <DropdownFieldSeplag name="certameId" control={control} label="Edital" cols="12 6 4" options={opcoesConcurso} optionLabel="label" optionValue="value" placeholder="Nenhum edital vinculado" disabled={modoVisualizar} getFormErrorMessage={() => null} />
        <TextFieldSeplag name="nome" control={control} label="Nome" required cols="12" placeholder="Nome da comissão" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <TextAreaFieldSeplag name="finalidade" control={control} label="Finalidade" cols="12 6" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <TextAreaFieldSeplag name="observacoes" control={control} label="Observações" cols="12 6" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+       <TextAreaFieldSeplag name="observacoes" control={control} label="Observações" cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
       </div>
      </div>
 
@@ -265,6 +283,29 @@ export function ComissaoFormContent() {
       <div className="grid">
        <DropdownFieldSeplag name="orgao" control={control} label="Órgão" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} disabled={modoVisualizar} getFormErrorMessage={() => null} />
        <DropdownFieldSeplag name="vinculoResponsavelId" control={control} label="Vínc. responsável" cols="12 6" options={servidoresDoOrgao.map((item) => ({ label:item.nome, value:item.id, matricula:item.matricula }))} optionLabel="label" optionValue="value" filterBy="label,matricula" itemTemplate={(option) => <span>{option.matricula} — {option.label}</span>} placeholder={valores.orgao ? "Selecione o servidor responsável" : "Selecione o Órgão primeiro"} disabled={modoVisualizar || !valores.orgao} getFormErrorMessage={() => null} />
+      </div>
+     </div>
+
+     <div className="prototype-certame-bloco">
+      <BlocoHeader icone="pi-paperclip" titulo="Documento" subtitulo="Ato de criação da comissão (portaria, decreto ou resolução)." />
+      <div className="prototype-efetivo-exercicio-table-wrap">
+      <table className="prototype-simple-table prototype-comissoes-arquivo-table">
+       <thead><tr><th>Arquivo anexado</th><th>Tamanho</th><th>Ações</th></tr></thead>
+       <tbody>
+        <tr>
+         <td>{arquivoComissaoPendente?.nome ?? "Nenhum arquivo anexado"}</td>
+         <td>{arquivoComissaoPendente ? formatarTamanhoArquivo(arquivoComissaoPendente.tamanho) : "—"}</td>
+         <td>
+          <input id="comissao-arquivo-upload" type="file" accept="application/pdf" style={{ display:"none" }} onChange={onSelecionarArquivoComissao} />
+          <div className="flex gap-2 justify-content-end">
+           {!modoVisualizar && <BotaoIconSeplag type="button" icon="pi pi-cloud-upload" tooltip={arquivoComissaoPendente ? "Substituir arquivo" : "Anexar arquivo"} onClick={() => document.getElementById("comissao-arquivo-upload")?.click()} />}
+           <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar arquivo" disabled={!arquivoComissaoPendente} onClick={() => setVisualizarArquivoComissao(true)} />
+           {!modoVisualizar && <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover arquivo" disabled={!arquivoComissaoPendente} onClick={() => setArquivoComissaoPendente(undefined)} />}
+          </div>
+         </td>
+        </tr>
+       </tbody>
+      </table>
       </div>
      </div>
     </div>}
@@ -298,12 +339,11 @@ export function ComissaoFormContent() {
   <ModalSeplag
    visible={modalMembroAberto}
    titulo={<div className="prototype-comissoes-modal-titulo">
-    <small className="prototype-comissoes-kicker">{membroEmEdicaoId ? "Editar membro" : "Novo membro"}</small>
     <strong>{membroEmEdicaoId ? "Editar membro da comissão" : "Adicionar membro à comissão"}</strong>
     <span>Selecione o servidor e informe o ato de nomeação.</span>
    </div>}
    fechar={fecharModalMembro}
-   tamanho="700px"
+   tamanho="960px"
    closeOnEscape
    customFooter={<div className="flex justify-content-end gap-2">
     <BotaoFecharSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={fecharModalMembro} />
@@ -325,19 +365,19 @@ export function ComissaoFormContent() {
         {!servidorSelecionado && <small className="p-error">Selecione um servidor.</small>}
        </>}
      <div className="grid">
-      <DropdownFieldSeplag name="cargo" control={membroForm.control} label="Cargo na comissão" required cols="12" options={CARGOS_MEMBRO_COMISSAO} optionLabel="label" optionValue="value" showClear={false} getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="inicio" control={membroForm.control} label="Início" cols="12 6" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="fim" control={membroForm.control} label="Fim" cols="12 6" getFormErrorMessage={() => null} />
+      <DropdownFieldSeplag name="cargo" control={membroForm.control} label="Cargo na comissão" required cols="12 4" options={CARGOS_MEMBRO_COMISSAO} optionLabel="label" optionValue="value" showClear={false} getFormErrorMessage={() => null} />
+      <DateFieldSeplag name="inicio" control={membroForm.control} label="Início" cols="12 4" getFormErrorMessage={() => null} />
+      <DateFieldSeplag name="fim" control={membroForm.control} label="Fim" cols="12 4" getFormErrorMessage={() => null} />
      </div>
     </section>
 
     <section>
      <small className="prototype-comissoes-kicker">Ato de nomeação</small>
      <div className="grid">
-      <DropdownFieldSeplag name="tipoAto" control={membroForm.control} label="Tipo de ato" required cols="12 6" options={TIPOS_ATO_NOMEACAO} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-      <TextFieldSeplag name="numeroAto" control={membroForm.control} label="Número do ato" required cols="12 6" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="dataPublicacao" control={membroForm.control} label="Data da publicação" required cols="12 6" getFormErrorMessage={() => null} />
-      <DropdownFieldSeplag name="localPublicacao" control={membroForm.control} label="Local da publicação" required cols="12 6" options={LOCAIS_PUBLICACAO_ATO} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+      <DropdownFieldSeplag name="tipoAto" control={membroForm.control} label="Tipo de ato" required cols="12 6 3" options={TIPOS_ATO_NOMEACAO} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+      <TextFieldSeplag name="numeroAto" control={membroForm.control} label="Número do ato" required cols="12 6 3" getFormErrorMessage={() => null} />
+      <DateFieldSeplag name="dataPublicacao" control={membroForm.control} label="Data da publicação" required cols="12 6 3" getFormErrorMessage={() => null} />
+      <DropdownFieldSeplag name="localPublicacao" control={membroForm.control} label="Local da publicação" required cols="12 6 3" options={LOCAIS_PUBLICACAO_ATO} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
      </div>
     </section>
 
@@ -352,7 +392,7 @@ export function ComissaoFormContent() {
         <td>{arquivoAtoPendente ? formatarTamanhoArquivo(arquivoAtoPendente.tamanho) : "—"}</td>
         <td>
          <input id="comissao-membro-ato-upload" type="file" accept="application/pdf" style={{ display:"none" }} onChange={onSelecionarArquivoAto} />
-         <div className="flex gap-2">
+         <div className="flex gap-2 justify-content-end">
           <BotaoIconSeplag type="button" icon="pi pi-cloud-upload" tooltip={arquivoAtoPendente ? "Substituir arquivo" : "Anexar arquivo"} onClick={() => document.getElementById("comissao-membro-ato-upload")?.click()} />
           <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar arquivo" disabled={!arquivoAtoPendente} onClick={() => setVisualizarArquivoAto(true)} />
           <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover arquivo" disabled={!arquivoAtoPendente} onClick={() => setArquivoAtoPendente(undefined)} />
@@ -373,6 +413,15 @@ export function ComissaoFormContent() {
    mimeType="application/pdf"
    fileName={arquivoAtoPendente?.nome}
    header={arquivoAtoPendente?.nome}
+  />
+
+  <Base64FileModal
+   visible={visualizarArquivoComissao}
+   onHide={() => setVisualizarArquivoComissao(false)}
+   base64={arquivoComissaoPendente?.conteudoEmBase64 ?? null}
+   mimeType="application/pdf"
+   fileName={arquivoComissaoPendente?.nome}
+   header={arquivoComissaoPendente?.nome}
   />
 
   <ModalSeplag
