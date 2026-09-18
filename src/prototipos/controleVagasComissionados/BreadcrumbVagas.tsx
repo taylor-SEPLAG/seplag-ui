@@ -31,7 +31,8 @@ export function BreadcrumbVagas() {
       : null;
 
   return <div className="breadcrumb-vagas-comissionados">
-    <BreadcrumbSeplag divided homeTo="/prototipos/sigep" items={items} />
+    <BreadcrumbSeplag homeTo="/prototipos/sigep" items={items} />
     {atalho && <BotaoSeplag type="button" variant="back" label={atalho.label} icon={atalho.icon} onClick={() => navigate(atalho.destino)} />}
   </div>;
 }
+

@@ -67,7 +67,7 @@ export function BreadcrumbVagas() {
 
   return (
     <div className="breadcrumb-vagas-residentes">
-      <BreadcrumbSeplag divided homeTo="/prototipos/sigep" items={items} />
+      <BreadcrumbSeplag homeTo="/prototipos/sigep" items={items} />
       {atalho && (
         <BotaoSeplag
           type="button"
@@ -80,4 +80,5 @@ export function BreadcrumbVagas() {
     </div>
   );
 }
+
 

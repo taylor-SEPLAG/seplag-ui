@@ -104,3 +104,6 @@
   .prototype-controle-vagas-geral { padding: 1.25rem; }
   .prototype-controle-vagas-geral > section { grid-template-columns: 1fr; }
 }
+
+.prototype-controle-vagas-geral > .prototype-doc-breadcrumb { margin: 0 0 1rem; padding: .875rem 1.125rem; border: 1px solid #d8e0e8; border-radius: 6px; background: #fff; }
+

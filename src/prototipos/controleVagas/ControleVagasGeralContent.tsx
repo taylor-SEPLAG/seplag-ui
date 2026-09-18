@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import "./controleVagasGeral.css";
 
 const destinos = [
@@ -55,3 +56,4 @@ export function ControleVagasGeralContent() {
     </main>
   );
 }
+

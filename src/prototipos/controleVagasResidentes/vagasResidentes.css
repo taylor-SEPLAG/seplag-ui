@@ -11,3 +11,5 @@
 .prototype-residentes-efetivos-options p { margin: .25rem 0 1.5rem; }
 .prototype-residentes-efetivos-options a > span { margin-top: auto; color: #096bb1; font-weight: 600; display: flex; align-items: center; gap: .75rem; }
 @media (max-width: 640px) { .prototype-residentes-efetivos-page { padding: 1.25rem; } .prototype-residentes-efetivos-options { grid-template-columns: 1fr; } }
+
+

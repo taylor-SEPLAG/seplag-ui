@@ -38,7 +38,8 @@ export function BreadcrumbVagas() {
 
   return (
     <div className="breadcrumb-vagas-temporarios">
-      <BreadcrumbSeplag divided homeTo="/prototipos/sigep" items={items} />
+      <BreadcrumbSeplag homeTo="/prototipos/sigep" items={items} />
     </div>
   );
 }
+

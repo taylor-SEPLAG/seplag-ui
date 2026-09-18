@@ -77,7 +77,7 @@ export function DashboardGerencialContent() {
   const limpar = () => { setSelecionados(tipos.map((t) => t.id)); setOrgao(""); setSituacao(""); };
 
   return <main className="controle-vagas-dashboard">
-    <section className="controle-vagas-dashboard-header"><span>CONTROLE DE VAGAS</span><h1>Dashboard de vagas</h1><p>Acompanhe os quadros e as vagas das modalidades selecionadas.</p></section>
+    <section className="controle-vagas-dashboard-header"><h1>Dashboard de vagas</h1><p>Acompanhe os quadros e as vagas das modalidades selecionadas.</p></section>
     <section className="controle-vagas-dashboard-card controle-vagas-dashboard-filters">
       <div className="controle-vagas-dashboard-field controle-vagas-dashboard-types"><span>Tipos de vagas</span><div>{tipos.map((tipo) => <label key={tipo.id}><input type="checkbox" checked={selecionados.includes(tipo.id)} onChange={() => alternar(tipo.id)} /><span>{tipo.nome}</span></label>)}</div></div>
       <label className="controle-vagas-dashboard-field"><span>Órgão</span><select value={orgao} onChange={(e) => setOrgao(e.target.value)}><option value="">Todos</option>{orgaos.map((x) => <option key={x}>{x}</option>)}</select></label>
@@ -96,5 +96,6 @@ export function DashboardGerencialContent() {
 function Kpi({ label, value, icon, tone }: { label: string; value: number; icon: string; tone: string }) { return <article className={"controle-vagas-dashboard-kpi " + tone}><i className={icon} /><div><span>{label}</span><strong>{n(value)}</strong></div></article>; }
 function Legenda({ label, value, tone }: { label: string; value: number; tone: string }) { return <li><i className={tone} /><span>{label}</span><strong>{n(value)}</strong></li>; }
 function Alerta({ icon, title, value, description }: { icon: string; title: string; value: number; description: string }) { return <article><i className={icon} /><div><strong>{title}</strong><span>{description}</span></div><b>{n(value)}</b></article>; }
+
 
 
