@@ -34,7 +34,7 @@ export const comissoesMock:Comissao[] = [
   criadoEm:"10/09/2026", atualizadoEm:"10/09/2026",
  },
  {
-  id:"COM-2490", numero:"2490", tipo:"CONCURSO", certameId:undefined,
+  id:"COM-2490", numero:"2490", tipo:"CONCURSO", certameId:"CERT-2024-001",
   nome:"Comissão do Concurso — Fiscal de Rendas (2024)", observacoes:"",
   previsaoInicio:"05/02/2024", inicio:"05/02/2024", previsaoTermino:"30/11/2024", termino:"30/11/2024",
   orgao:"SEFAZ", vinculoResponsavelId:"SRV-0004", status:"ENCERRADA",
@@ -68,7 +68,7 @@ export const comissoesMock:Comissao[] = [
   criadoEm:"12/09/2026", atualizadoEm:"12/09/2026",
  },
  {
-  id:"COM-2470", numero:"2470", tipo:"PROCESSO_SELETIVO", certameId:undefined,
+  id:"COM-2470", numero:"2470", tipo:"PROCESSO_SELETIVO", certameId:"CERT-2025-014",
   nome:"Comissão de PSS — Enfermagem (2025)", observacoes:"",
   previsaoInicio:"10/01/2025", inicio:"10/01/2025", previsaoTermino:"10/07/2025", termino:"10/07/2025",
   orgao:"SES", vinculoResponsavelId:"SRV-0005", status:"ENCERRADA",

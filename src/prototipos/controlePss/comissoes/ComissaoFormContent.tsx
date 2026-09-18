@@ -17,6 +17,7 @@ import Base64FileModal from "@componentes/Base64FileModal";
 import RotuloSeplag from "@componentes/Rotulo";
 import { BlocoHeader } from "../certame/CertameFormContent";
 import { arquivoDocumentoCertameValido, formatarTamanhoArquivo } from "../certame/DocumentosCertameTabela";
+import { SEPLAG_YELLOW } from "../../../tokens/colors";
 import "../certame/certame.css";
 import "./comissoes.css";
 
@@ -152,6 +153,7 @@ export function ComissaoFormContent() {
  // --- Modal "Adicionar/Editar membro" ---
  const [modalMembroAberto, setModalMembroAberto] = useState(false);
  const [membroEmEdicaoId, setMembroEmEdicaoId] = useState<string | null>(null);
+ const [membroSomenteLeitura, setMembroSomenteLeitura] = useState(false);
  const [servidorSelecionadoId, setServidorSelecionadoId] = useState<string | null>(null);
  const [arquivoAtoPendente, setArquivoAtoPendente] = useState<ArquivoAtoNomeacao | undefined>(undefined);
  const [visualizarArquivoAto, setVisualizarArquivoAto] = useState(false);
@@ -170,19 +172,23 @@ export function ComissaoFormContent() {
  const abrirNovoMembro = () => {
   setErro(null);
   setMembroEmEdicaoId(null);
+  setMembroSomenteLeitura(false);
   setServidorSelecionadoId(null);
   setArquivoAtoPendente(undefined);
   membroForm.reset(membroValoresIniciais());
   setModalMembroAberto(true);
  };
- const editarMembro = (membro:MembroComissao) => {
+ const abrirMembroExistente = (membro:MembroComissao, somenteLeitura:boolean) => {
   setErro(null);
   setMembroEmEdicaoId(membro.id);
+  setMembroSomenteLeitura(somenteLeitura);
   setServidorSelecionadoId(membro.servidorId);
   setArquivoAtoPendente(membro.atoNomeacao.arquivo);
   membroForm.reset({ cargo:membro.cargo, inicio:membro.inicio ?? "", fim:membro.fim ?? "", tipoAto:membro.atoNomeacao.tipoAto ?? "", numeroAto:membro.atoNomeacao.numeroAto ?? "", dataPublicacao:membro.atoNomeacao.dataPublicacao ?? "", localPublicacao:membro.atoNomeacao.localPublicacao ?? "" });
   setModalMembroAberto(true);
  };
+ const editarMembro = (membro:MembroComissao) => abrirMembroExistente(membro, false);
+ const visualizarMembro = (membro:MembroComissao) => abrirMembroExistente(membro, true);
  const fecharModalMembro = () => setModalMembroAberto(false);
 
  const confirmarMembro = () => {
@@ -325,10 +331,11 @@ export function ComissaoFormContent() {
           <strong>{membro.nome}</strong>
           <span>{cargoLabel[membro.cargo]} · {membro.matricula}</span>
          </div>
-         {!modoVisualizar && <div className="flex gap-2">
-          <BotaoIconSeplag type="button" tooltip="Editar" icon="pi pi-pencil" onClick={() => editarMembro(membro)} />
-          <BotaoIconSeplag type="button" severity="danger" tooltip="Excluir" icon="pi pi-trash" onClick={() => setMembroExcluirId(membro.id)} />
-         </div>}
+         <div className="flex gap-2">
+          <BotaoIconSeplag type="button" tooltip="Visualizar" icon="pi pi-eye" onClick={() => visualizarMembro(membro)} />
+          {!modoVisualizar && <BotaoIconSeplag type="button" tooltip="Editar" icon="pi pi-pencil" style={{ backgroundColor:SEPLAG_YELLOW, borderColor:SEPLAG_YELLOW }} onClick={() => editarMembro(membro)} />}
+          {!modoVisualizar && <BotaoIconSeplag type="button" severity="danger" tooltip="Excluir" icon="pi pi-trash" onClick={() => setMembroExcluirId(membro.id)} />}
+         </div>
         </div>)}
        </div>}
      </div>
@@ -339,16 +346,20 @@ export function ComissaoFormContent() {
   <ModalSeplag
    visible={modalMembroAberto}
    titulo={<div className="prototype-comissoes-modal-titulo">
-    <strong>{membroEmEdicaoId ? "Editar membro da comissão" : "Adicionar membro à comissão"}</strong>
-    <span>Selecione o servidor e informe o ato de nomeação.</span>
+    <strong>{membroSomenteLeitura ? "Visualizar membro da comissão" : membroEmEdicaoId ? "Editar membro da comissão" : "Adicionar membro à comissão"}</strong>
+    <span>{membroSomenteLeitura ? "Detalhes do servidor e do ato de nomeação." : "Selecione o servidor e informe o ato de nomeação."}</span>
    </div>}
    fechar={fecharModalMembro}
    tamanho="960px"
    closeOnEscape
-   customFooter={<div className="flex justify-content-end gap-2">
-    <BotaoFecharSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={fecharModalMembro} />
-    <BotaoAdicionarSeplag type="button" label={membroEmEdicaoId ? "Salvar" : "Adicionar"} icon="pi pi-check" disabled={!podeConfirmarMembro} onClick={confirmarMembro} />
-   </div>}
+   customFooter={membroSomenteLeitura
+    ? <div className="flex justify-content-end gap-2">
+      <BotaoFecharSeplag type="button" label="Fechar" icon="pi pi-times" onClick={fecharModalMembro} />
+     </div>
+    : <div className="flex justify-content-end gap-2">
+      <BotaoFecharSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={fecharModalMembro} />
+      <BotaoAdicionarSeplag type="button" label={membroEmEdicaoId ? "Salvar" : "Adicionar"} icon="pi pi-check" disabled={!podeConfirmarMembro} onClick={confirmarMembro} />
+     </div>}
   >
    <div className="col-12 prototype-comissoes-membro-form">
     {erro && <p className="prototype-comissoes-erro">{erro}</p>}
@@ -365,26 +376,26 @@ export function ComissaoFormContent() {
         {!servidorSelecionado && <small className="p-error">Selecione um servidor.</small>}
        </>}
      <div className="grid">
-      <DropdownFieldSeplag name="cargo" control={membroForm.control} label="Cargo na comissão" required cols="12 4" options={CARGOS_MEMBRO_COMISSAO} optionLabel="label" optionValue="value" showClear={false} getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="inicio" control={membroForm.control} label="Início" cols="12 4" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="fim" control={membroForm.control} label="Fim" cols="12 4" getFormErrorMessage={() => null} />
+      <DropdownFieldSeplag name="cargo" control={membroForm.control} label="Cargo na comissão" required cols="12 4" options={CARGOS_MEMBRO_COMISSAO} optionLabel="label" optionValue="value" showClear={false} disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
+      <DateFieldSeplag name="inicio" control={membroForm.control} label="Início" cols="12 4" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
+      <DateFieldSeplag name="fim" control={membroForm.control} label="Fim" cols="12 4" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
      </div>
     </section>
 
     <section>
      <small className="prototype-comissoes-kicker">Ato de nomeação</small>
      <div className="grid">
-      <DropdownFieldSeplag name="tipoAto" control={membroForm.control} label="Tipo de ato" required cols="12 6 3" options={TIPOS_ATO_NOMEACAO} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
-      <TextFieldSeplag name="numeroAto" control={membroForm.control} label="Número do ato" required cols="12 6 3" getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="dataPublicacao" control={membroForm.control} label="Data da publicação" required cols="12 6 3" getFormErrorMessage={() => null} />
-      <DropdownFieldSeplag name="localPublicacao" control={membroForm.control} label="Local da publicação" required cols="12 6 3" options={LOCAIS_PUBLICACAO_ATO} optionLabel="label" optionValue="value" placeholder="Selecione" getFormErrorMessage={() => null} />
+      <DropdownFieldSeplag name="tipoAto" control={membroForm.control} label="Tipo de ato" required cols="12 6 3" options={TIPOS_ATO_NOMEACAO} optionLabel="label" optionValue="value" placeholder="Selecione" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
+      <TextFieldSeplag name="numeroAto" control={membroForm.control} label="Número do ato" required cols="12 6 3" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
+      <DateFieldSeplag name="dataPublicacao" control={membroForm.control} label="Data da publicação" required cols="12 6 3" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
+      <DropdownFieldSeplag name="localPublicacao" control={membroForm.control} label="Local da publicação" required cols="12 6 3" options={LOCAIS_PUBLICACAO_ATO} optionLabel="label" optionValue="value" placeholder="Selecione" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
      </div>
     </section>
 
     <section>
      <small className="prototype-comissoes-kicker">Arquivos</small>
      <div className="prototype-efetivo-exercicio-table-wrap">
-     <table className="prototype-simple-table">
+     <table className="prototype-simple-table prototype-comissoes-arquivo-table">
       <thead><tr><th>Arquivo anexado</th><th>Tamanho</th><th>Ações</th></tr></thead>
       <tbody>
        <tr>
@@ -393,9 +404,9 @@ export function ComissaoFormContent() {
         <td>
          <input id="comissao-membro-ato-upload" type="file" accept="application/pdf" style={{ display:"none" }} onChange={onSelecionarArquivoAto} />
          <div className="flex gap-2 justify-content-end">
-          <BotaoIconSeplag type="button" icon="pi pi-cloud-upload" tooltip={arquivoAtoPendente ? "Substituir arquivo" : "Anexar arquivo"} onClick={() => document.getElementById("comissao-membro-ato-upload")?.click()} />
+          {!membroSomenteLeitura && <BotaoIconSeplag type="button" icon="pi pi-cloud-upload" tooltip={arquivoAtoPendente ? "Substituir arquivo" : "Anexar arquivo"} onClick={() => document.getElementById("comissao-membro-ato-upload")?.click()} />}
           <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar arquivo" disabled={!arquivoAtoPendente} onClick={() => setVisualizarArquivoAto(true)} />
-          <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover arquivo" disabled={!arquivoAtoPendente} onClick={() => setArquivoAtoPendente(undefined)} />
+          {!membroSomenteLeitura && <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover arquivo" disabled={!arquivoAtoPendente} onClick={() => setArquivoAtoPendente(undefined)} />}
          </div>
         </td>
        </tr>
