@@ -50,12 +50,18 @@
    (.prototype-certame-list-acoes). */
 .prototype-comissoes-list-acoes{display:flex;align-items:center;justify-content:flex-start;padding:1rem 0}
 
-/* Filtro da listagem de Comissões — 3 itens (Tipo, Status, Limpar filtros) numa única linha, em
-   vez de quebrar 3+1 como o grid padrão de 4 colunas herdado de .prototype-ingressos-filters. */
-.prototype-ingressos-filters.prototype-comissoes-list-filters{grid-template-columns:minmax(200px,1fr) minmax(200px,1fr) auto}
+/* Filtro da listagem de Comissões — 6 itens (Número, Edital, Nome, Tipo, Status, Limpar filtros)
+   numa única linha, mesmo padrão do filtro da listagem de Certames. */
+.prototype-ingressos-filters.prototype-comissoes-list-filters{grid-template-columns:minmax(130px,.8fr) minmax(180px,1fr) minmax(200px,1.2fr) minmax(160px,.9fr) minmax(160px,.9fr) auto}
+@media(max-width:1400px){.prototype-ingressos-filters.prototype-comissoes-list-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:900px){.prototype-ingressos-filters.prototype-comissoes-list-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.prototype-ingressos-filters.prototype-comissoes-list-filters{grid-template-columns:minmax(0,1fr)}}
 .prototype-ingressos-filters.prototype-comissoes-list-filters .prototype-category-clear .p-button{width:auto!important;min-width:150px;padding-inline:14px;white-space:nowrap}
+
+/* Filtro "Edital" usa Dropdown com busca própria (Pesquisar...) em vez de <select> nativo — mesmo
+   alinhamento de altura/borda dos demais campos do filtro. */
+.prototype-ingressos-filters.prototype-comissoes-list-filters .p-dropdown{min-height:40px;border-color:#d0d5dd;border-radius:6px}
+.prototype-ingressos-filters.prototype-comissoes-list-filters .p-dropdown .p-dropdown-label{display:flex;align-items:center;padding:.5rem .75rem;color:#1d2939}
 
 .prototype-comissoes-membros-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:1rem}
 .prototype-comissoes-membros-empty{padding:1.25rem;text-align:center;color:var(--text-color-secondary);border:1px dashed var(--surface-border);border-radius:8px}

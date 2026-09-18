@@ -9,6 +9,7 @@ import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoAdicionarSeplag, BotaoLimparFiltroSeplag, BotaoSeplag } from "@componentes/Botao";
 import { ModalSeplag } from "@componentes/Modal";
+import { Dropdown } from "primereact/dropdown";
 import "./comissoes.css";
 
 const tipoLabel:Record<TipoComissao,string> = Object.fromEntries(TIPOS_COMISSAO.map((item) => [item.value, item.label])) as Record<TipoComissao,string>;
@@ -26,6 +27,9 @@ const ITENS_POR_PAGINA_OPCOES = [10, 20, 50];
 export function ComissoesListContent() {
  const comissoes = useComissoes();
  const navigate = useNavigate();
+ const [numeroFiltro, setNumeroFiltro] = useState("");
+ const [editalFiltro, setEditalFiltro] = useState("");
+ const [nomeFiltro, setNomeFiltro] = useState("");
  const [tipoFiltro, setTipoFiltro] = useState<TipoComissao | "">("");
  const [statusFiltro, setStatusFiltro] = useState<StatusComissao | "">("");
  const [pagina, setPagina] = useState(1);
@@ -34,16 +38,26 @@ export function ComissoesListContent() {
  const [comissaoAlternarStatus, setComissaoAlternarStatus] = useState<Comissao | null>(null);
  const [acoesMenuAbertoId, setAcoesMenuAbertoId] = useState<string | null>(null);
 
+ // Número, Edital e Nome listados no filtro são só os valores efetivamente cadastrados em alguma
+ // comissão — mesmo padrão do filtro "Nome do edital" da listagem de Certames, cada um com busca
+ // própria (Dropdown com filter, em vez de <select>/<input> de texto livre).
+ const numeros = useMemo(() => Array.from(new Set(comissoes.map((item) => item.numero))).sort((a, b) => b.localeCompare(a, "pt-BR", { numeric:true })), [comissoes]);
+ const editais = useMemo(() => Array.from(new Set(comissoes.map((item) => nomeConcurso(item.certameId)).filter((nome) => nome !== "—"))).sort((a, b) => a.localeCompare(b, "pt-BR")), [comissoes]);
+ const nomes = useMemo(() => Array.from(new Set(comissoes.map((item) => item.nome))).sort((a, b) => a.localeCompare(b, "pt-BR")), [comissoes]);
+
  const lista = useMemo(() => comissoes.filter((comissao) =>
+  (!numeroFiltro || comissao.numero === numeroFiltro) &&
+  (!editalFiltro || nomeConcurso(comissao.certameId) === editalFiltro) &&
+  (!nomeFiltro || comissao.nome === nomeFiltro) &&
   (!tipoFiltro || comissao.tipo === tipoFiltro) &&
   (!statusFiltro || comissao.status === statusFiltro),
- ).sort((a, b) => b.numero.localeCompare(a.numero, "pt-BR", { numeric:true })), [comissoes, tipoFiltro, statusFiltro]);
+ ).sort((a, b) => b.numero.localeCompare(a.numero, "pt-BR", { numeric:true })), [comissoes, numeroFiltro, editalFiltro, nomeFiltro, tipoFiltro, statusFiltro]);
 
  const totalPaginas = Math.max(1, Math.ceil(lista.length / itensPorPagina));
  const paginaAtual = Math.min(pagina, totalPaginas);
  const listaPaginada = lista.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
 
- const limparFiltros = () => { setTipoFiltro(""); setStatusFiltro(""); setPagina(1); };
+ const limparFiltros = () => { setNumeroFiltro(""); setEditalFiltro(""); setNomeFiltro(""); setTipoFiltro(""); setStatusFiltro(""); setPagina(1); };
 
  // KPIs no topo da listagem — somam sobre todas as comissões, independente dos filtros aplicados.
  const indicadores = useMemo(() => [
@@ -81,6 +95,18 @@ export function ComissoesListContent() {
     </section>
 
     <div className="prototype-category-filters prototype-ingressos-filters prototype-comissoes-list-filters grid">
+     <label className="prototype-native-field">
+      <span>Número</span>
+      <Dropdown value={numeroFiltro || null} options={numeros.map((numero) => ({ label:numero, value:numero }))} onChange={(event) => { setNumeroFiltro(event.value ?? ""); setPagina(1); }} filter showClear placeholder="Todos os números" className="w-full" />
+     </label>
+     <label className="prototype-native-field">
+      <span>Edital</span>
+      <Dropdown value={editalFiltro || null} options={editais.map((nome) => ({ label:nome, value:nome }))} onChange={(event) => { setEditalFiltro(event.value ?? ""); setPagina(1); }} filter showClear placeholder="Todos os editais" className="w-full" />
+     </label>
+     <label className="prototype-native-field">
+      <span>Nome</span>
+      <Dropdown value={nomeFiltro || null} options={nomes.map((nome) => ({ label:nome, value:nome }))} onChange={(event) => { setNomeFiltro(event.value ?? ""); setPagina(1); }} filter showClear placeholder="Todos os nomes" className="w-full" />
+     </label>
      <label className="prototype-native-field">
       <span>Tipo</span>
       <select value={tipoFiltro} onChange={(event) => { setTipoFiltro(event.target.value as TipoComissao | ""); setPagina(1); }}>
