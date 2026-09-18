@@ -11,6 +11,7 @@ import { MensagemSeplag } from "../../componentes/Mensagem";
 import { DateFieldSeplag, DropdownFieldSeplag, TextFieldSeplag } from "../../componentes/Fields";
 import { BaseLegalVinculada } from "./BaseLegalVinculada";
 import { listarCargosControleVagasComissionadas } from "./cargosComissionadosStore";
+import { listarPerfisDgaControleVagasComissionadas } from "./perfisDgaStore";
 import {
   lerRascunhoQuadroComissionado,
   salvarRascunhoQuadroComissionado,
@@ -196,7 +197,9 @@ function ItemEditor({ item, nivel, onChange, onRemove, simbologias }: { item: It
 
 function DotacaoEditor({ dotacao, onChange, onRemove, simbologias }: { dotacao: Dotacao; onChange: (atualizar: (dotacao: Dotacao) => Dotacao) => void; onRemove: () => void; simbologias: string[] }) {
   const atualizar = <K extends keyof Dotacao>(campo: K, valor: Dotacao[K]) => onChange((atual) => ({ ...atual, [campo]: valor }));
-  return <div className="nqc-dotacao"><label>Perfil<input value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)} placeholder="Ex.: Assessor Técnico II" /></label><label>Simbologia remuneratória<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{simbologias.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label><label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label><label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} /></div>;
+  const perfisDga = listarPerfisDgaControleVagasComissionadas();
+  const perfisDisponiveis = [...new Set([...perfisDga.map((perfil) => perfil.nome), dotacao.perfil].filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  return <div className="nqc-dotacao"><label>Perfil<select value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)}><option value="">Selecione...</option>{perfisDisponiveis.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}</select></label><label>Simbologia remuneratória<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{simbologias.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label><label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label><label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} /></div>;
 }
 
 
