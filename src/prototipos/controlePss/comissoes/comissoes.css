@@ -1,5 +1,45 @@
 .prototype-comissoes-erro{color:#ad3039;font-weight:700}
 
+/* O modal "Adicionar/editar membro" é renderizado pelo Dialog do PrimeReact via portal (fora de
+   .prototype-certame-form-page na árvore do DOM), então os campos não herdam o padrão compacto do
+   restante do formulário (certame.css) — replica aqui as mesmas regras para não ficar campo "fora
+   do padrão" dentro do mesmo modal (ex.: "Número do ato" x "Data da publicação"). */
+.prototype-comissoes-membro-form input.p-inputtext,
+.prototype-comissoes-membro-form .p-dropdown,
+.prototype-comissoes-membro-form .p-multiselect,
+.prototype-comissoes-membro-form input.p-inputnumber-input{display:flex;align-items:center;height:32px!important;padding:0 10px;border-radius:5px;border-color:#cbd7e3;background:#ffffff;color:#1f2d3d;font-size:.76rem}
+.prototype-comissoes-membro-form .p-dropdown .p-inputtext,
+.prototype-comissoes-membro-form .p-multiselect .p-inputtext{padding:0}
+.prototype-comissoes-membro-form .p-dropdown .p-dropdown-label,
+.prototype-comissoes-membro-form .p-multiselect .p-multiselect-label{font-size:.76rem;padding-top:0;padding-bottom:0}
+.prototype-comissoes-membro-form .p-dropdown .p-dropdown-trigger,
+.prototype-comissoes-membro-form .p-dropdown .p-dropdown-clear-icon{width:1.75rem}
+.prototype-comissoes-membro-form .p-inputtext:disabled,
+.prototype-comissoes-membro-form .p-dropdown.p-disabled{background:#eef2f7;color:#1f2d3d;font-weight:700;opacity:1;cursor:not-allowed}
+.prototype-comissoes-membro-form .p-calendar{display:flex}
+.prototype-comissoes-membro-form .p-calendar .p-inputtext{border-color:#cbd7e3;background:#ffffff;color:#1f2d3d;font-size:.76rem}
+.prototype-comissoes-membro-form .p-calendar .p-datepicker-trigger{height:32px!important;width:40px}
+.prototype-comissoes-membro-form .p-focus,
+.prototype-comissoes-membro-form .p-inputwrapper-focus,
+.prototype-comissoes-membro-form input.p-inputtext:focus{box-shadow:0 0 0 .2rem #cfe6f7!important;border-color:#0072bc!important}
+
+/* Tabela de arquivo do ato de nomeação: reduz linha/cabeçalho para o padrão compacto do modal. */
+.prototype-comissoes-membro-form .prototype-simple-table th,
+.prototype-comissoes-membro-form .prototype-simple-table td{padding:.5rem .7rem;font-size:.8rem;vertical-align:middle}
+.prototype-comissoes-membro-form .prototype-simple-table th{font-size:.7rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--text-color-secondary);background:#f8fafc}
+.prototype-comissoes-membro-form .prototype-simple-table th:last-child{text-align:right}
+.prototype-comissoes-membro-form .prototype-simple-table th:nth-child(2),
+.prototype-comissoes-membro-form .prototype-simple-table td:nth-child(2){width:110px}
+.prototype-comissoes-membro-form .prototype-simple-table th:nth-child(3),
+.prototype-comissoes-membro-form .prototype-simple-table td:nth-child(3){width:150px}
+
+/* Tabela de documento da comissão (aba Identificação): mesmo ajuste do arquivo do ato de nomeação. */
+.prototype-comissoes-arquivo-table th:last-child{text-align:right}
+.prototype-comissoes-arquivo-table th:nth-child(2),
+.prototype-comissoes-arquivo-table td:nth-child(2){width:110px}
+.prototype-comissoes-arquivo-table th:nth-child(3),
+.prototype-comissoes-arquivo-table td:nth-child(3){width:150px}
+
 /* Os seis indicadores da listagem ocupam toda a largura disponível. */
 .prototype-comissoes-list-indicators{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
 .prototype-comissoes-list-indicators>.prototype-ingressos-teste-indicator{grid-column:span 1}

@@ -34,7 +34,6 @@ export interface Comissao {
  tipo:TipoComissao;
  certameId?:string;
  nome:string;
- finalidade?:string;
  observacoes?:string;
  previsaoInicio?:string;
  inicio?:string;
@@ -44,6 +43,9 @@ export interface Comissao {
  vinculoResponsavelId?:string;
  status:StatusComissao;
  membros:readonly MembroComissao[];
+ // Documento que institui a comissão (ex.: Portaria/Decreto de criação) — mesmo padrão de anexo
+ // (.pdf, único arquivo) do Ato de nomeação de cada membro.
+ arquivo?:ArquivoAtoNomeacao;
  readonly criadoEm:string;
  atualizadoEm:string;
 }

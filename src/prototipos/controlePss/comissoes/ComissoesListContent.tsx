@@ -109,7 +109,7 @@ export function ComissoesListContent() {
       <thead>
        <tr>
         <th>Número</th>
-        <th>Concurso</th>
+        <th>Edital</th>
         <th>Nome</th>
         <th>Tipo</th>
         <th>Início</th>
