@@ -7,7 +7,7 @@ export function VagasComissionadosContent() {
     <main className="prototype-comissionados-efetivos-page">
       <header>
         <span>Controle de Vagas</span>
-        <h1>Vagas Comissionados</h1>
+        <h1>Comissionados</h1>
         <p>Selecione uma opção para consultar e gerenciar as vagas dos servidores comissionados.</p>
       </header>
       <nav className="prototype-comissionados-efetivos-options" aria-label="Opções de vagas de comissionados">
@@ -27,3 +27,4 @@ export function VagasComissionadosContent() {
     </main>
   );
 }
+
