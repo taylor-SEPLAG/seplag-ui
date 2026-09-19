@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CONTROLE_PSS_BASE_PATH as BASE } from "../constants";
 import { comissoesStore, useComissoes } from "./comissoesStore";
+import { HistoricoMembrosComissaoModal } from "./HistoricoMembrosComissaoModal";
 import { STATUS_COMISSAO, TIPOS_COMISSAO } from "./dominios";
 import { certamesMock } from "../certame/mock";
 import type { Comissao, StatusComissao, TipoComissao } from "./types";
@@ -36,6 +37,7 @@ export function ComissoesListContent() {
  const [itensPorPagina, setItensPorPagina] = useState(10);
  const [comissaoExcluirId, setComissaoExcluirId] = useState<string | null>(null);
  const [comissaoAlternarStatus, setComissaoAlternarStatus] = useState<Comissao | null>(null);
+ const [comissaoHistoricoId, setComissaoHistoricoId] = useState<string | null>(null);
  const [acoesMenuAbertoId, setAcoesMenuAbertoId] = useState<string | null>(null);
 
  // Número, Edital e Nome listados no filtro são só os valores efetivamente cadastrados em alguma
@@ -175,6 +177,9 @@ export function ComissoesListContent() {
              <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); navigate(`${BASE}/comissoes/${row.id}`); }}>
               <i className="pi pi-pencil" aria-hidden="true" /><span>Editar</span>
              </button>
+             <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setComissaoHistoricoId(row.id); }}>
+              <i className="pi pi-history" aria-hidden="true" /><span>Histórico</span>
+             </button>
              {podeAlternarStatus && <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setComissaoAlternarStatus(row); }}>
               <i className={row.status === "ENCERRADA" ? "pi pi-refresh" : "pi pi-ban"} aria-hidden="true" /><span>{row.status === "ENCERRADA" ? "Reabrir" : "Encerrar"}</span>
              </button>}
@@ -235,5 +240,7 @@ export function ComissoesListContent() {
      : "Deseja realmente encerrar esta comissão? Ela deixa de aparecer como ativa."}
    </p>
   </ModalSeplag>
+
+  {comissaoHistoricoId && <HistoricoMembrosComissaoModal comissaoId={comissaoHistoricoId} onClose={() => setComissaoHistoricoId(null)} />}
  </div>;
 }

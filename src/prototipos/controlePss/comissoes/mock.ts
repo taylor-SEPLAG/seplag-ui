@@ -12,6 +12,10 @@ export const comissoesMock:Comissao[] = [
    { id:"MBR-2", servidorId:"SRV-0002", nome:"Bruno Henrique Costa Silva", matricula:"234567-2", lotacao:"SEPLAG — Planejamento", cargo:"SECRETARIO", inicio:"01/07/2026", fim:undefined,
     atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"045/2026/SEFAZ", dataPublicacao:"28/06/2026", localPublicacao:"DOE" } },
   ],
+  historicoMembros:[
+   { id:"HIST-1", membroId:"MBR-1", membroNome:"Diego Martins Rocha", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Presidente.", registradoEm:"25/06/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-2", membroId:"MBR-2", membroNome:"Bruno Henrique Costa Silva", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Secretário.", registradoEm:"01/07/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+  ],
   criadoEm:"25/06/2026", atualizadoEm:"01/07/2026",
  },
  {
@@ -23,6 +27,10 @@ export const comissoesMock:Comissao[] = [
    { id:"MBR-3", servidorId:"SRV-0003", nome:"Carla Regina Souza Alves", matricula:"345678-3", lotacao:"SEDUC — Ensino Fundamental", cargo:"PRESIDENTE", inicio:"25/06/2026", fim:undefined,
     atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"", dataPublicacao:undefined, localPublicacao:undefined } },
   ],
+  historicoMembros:[
+   { id:"HIST-3", membroId:"MBR-3", membroNome:"Carla Regina Souza Alves", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Membro.", registradoEm:"20/06/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-4", membroId:"MBR-3", membroNome:"Carla Regina Souza Alves", tipo:"CARGO_ALTERADO", descricao:"Cargo alterado de Membro para Presidente.", registradoEm:"25/06/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+  ],
   criadoEm:"20/06/2026", atualizadoEm:"25/06/2026",
  },
  {
@@ -31,6 +39,7 @@ export const comissoesMock:Comissao[] = [
   previsaoInicio:undefined, inicio:undefined, previsaoTermino:undefined, termino:undefined,
   orgao:"SEPLAG", vinculoResponsavelId:undefined, status:"RASCUNHO",
   membros:[],
+  historicoMembros:[],
   criadoEm:"10/09/2026", atualizadoEm:"10/09/2026",
  },
  {
@@ -42,6 +51,7 @@ export const comissoesMock:Comissao[] = [
    { id:"MBR-4", servidorId:"SRV-0004", nome:"Diego Martins Rocha", matricula:"456789-4", lotacao:"SEFAZ — Auditoria Fiscal", cargo:"PRESIDENTE", inicio:"05/02/2024", fim:"30/11/2024",
     atoNomeacao:{ tipoAto:"DECRETO", numeroAto:"012/2024", dataPublicacao:"01/02/2024", localPublicacao:"DOE" } },
   ],
+  historicoMembros:[],
   criadoEm:"20/01/2024", atualizadoEm:"30/11/2024",
  },
  {
@@ -51,12 +61,20 @@ export const comissoesMock:Comissao[] = [
   orgao:"SEPLAG", vinculoResponsavelId:"SRV-0001", status:"EM_ANDAMENTO",
   membros:[
    { id:"MBR-5", servidorId:"SRV-0001", nome:"Ana Paula Ferreira Lima", matricula:"123456-1", lotacao:"SEPLAG — Gestão de Pessoas", cargo:"PRESIDENTE", inicio:"10/08/2026", fim:undefined,
-    atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/08/2026", localPublicacao:"DOE" } },
+    atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/08/2026", localPublicacao:"DOE", arquivo:{ id:"ARQ-1", nome:"portaria_078_2026_seplag.pdf", extensao:"pdf", contentType:"application/pdf", conteudoEmBase64:"", tamanho:184320 } } },
    { id:"MBR-6", servidorId:"SRV-0002", nome:"Bruno Henrique Costa Silva", matricula:"234567-2", lotacao:"SEPLAG — Planejamento", cargo:"SECRETARIO", inicio:"10/08/2026", fim:undefined,
     atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/08/2026", localPublicacao:"DOE" } },
    { id:"MBR-7", servidorId:"SRV-0005", nome:"Elaine Cristina Barbosa", matricula:"567890-5", lotacao:"SES — Vigilância Sanitária", cargo:"SUPLENTE", inicio:"10/08/2026", fim:undefined,
     atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/08/2026", localPublicacao:"DOE" } },
   ],
+  historicoMembros:[
+   { id:"HIST-5", membroId:"MBR-5", membroNome:"Ana Paula Ferreira Lima", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Presidente.", registradoEm:"01/08/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-6", membroId:"MBR-6", membroNome:"Bruno Henrique Costa Silva", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Secretário.", registradoEm:"01/08/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-7", tipo:"DOCUMENTO_COMISSAO_ALTERADO", descricao:"Documento da comissão anexado (portaria_078_2026_seplag.pdf).", registradoEm:"01/08/2026 09:05", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-8", membroId:"MBR-7", membroNome:"Elaine Cristina Barbosa", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Suplente.", registradoEm:"10/08/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-9", membroId:"MBR-5", membroNome:"Ana Paula Ferreira Lima", tipo:"ARQUIVO_ATO_ALTERADO", descricao:"Arquivo do ato de nomeação anexado (portaria_078_2026_seplag.pdf).", registradoEm:"10/08/2026 09:10", usuario:"Roberto Junior — SUGP/SEPLAG" },
+  ],
+  arquivo:{ id:"ARQ-2", nome:"portaria_078_2026_seplag.pdf", extensao:"pdf", contentType:"application/pdf", conteudoEmBase64:"", tamanho:184320 },
   criadoEm:"01/08/2026", atualizadoEm:"10/08/2026",
  },
  {
@@ -65,6 +83,7 @@ export const comissoesMock:Comissao[] = [
   previsaoInicio:undefined, inicio:undefined, previsaoTermino:undefined, termino:undefined,
   orgao:"SEFAZ", vinculoResponsavelId:undefined, status:"RASCUNHO",
   membros:[],
+  historicoMembros:[],
   criadoEm:"12/09/2026", atualizadoEm:"12/09/2026",
  },
  {
@@ -78,6 +97,12 @@ export const comissoesMock:Comissao[] = [
    { id:"MBR-9", servidorId:"SRV-0006", nome:"Fábio Augusto Pereira", matricula:"678901-6", lotacao:"SESP — Corregedoria", cargo:"MEMBRO", inicio:"10/01/2025", fim:"10/07/2025",
     atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"003/2025/SES", dataPublicacao:"08/01/2025", localPublicacao:"DOE" } },
   ],
+  historicoMembros:[
+   { id:"HIST-10", membroId:"MBR-8", membroNome:"Elaine Cristina Barbosa", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Presidente.", registradoEm:"10/01/2025 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-11", membroId:"MBR-10", membroNome:"Gabriel Nunes Teixeira", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Membro.", registradoEm:"10/01/2025 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-12", membroId:"MBR-10", membroNome:"Gabriel Nunes Teixeira", tipo:"MEMBRO_REMOVIDO", descricao:"Removido da comissão (era Membro).", registradoEm:"15/03/2025 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-13", membroId:"MBR-9", membroNome:"Fábio Augusto Pereira", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Membro.", registradoEm:"15/03/2025 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+  ],
   criadoEm:"20/12/2024", atualizadoEm:"10/07/2025",
  },
  {
@@ -86,6 +111,7 @@ export const comissoesMock:Comissao[] = [
   previsaoInicio:undefined, inicio:undefined, previsaoTermino:undefined, termino:undefined,
   orgao:"SEJUS", vinculoResponsavelId:undefined, status:"RASCUNHO",
   membros:[],
+  historicoMembros:[],
   criadoEm:"14/09/2026", atualizadoEm:"14/09/2026",
  },
 ];
