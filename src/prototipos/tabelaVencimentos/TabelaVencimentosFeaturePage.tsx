@@ -3367,7 +3367,7 @@ function Form({
                 type="submit"
                 label={
                   activeTab === "identificacao"
-                    ? "Salvar Identificação"
+                    ? "Avançar"
                     : activeTab === "rga"
                       ? "Finalizar"
                       : "Salvar tabela"
