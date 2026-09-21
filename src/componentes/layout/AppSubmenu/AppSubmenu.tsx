@@ -89,7 +89,9 @@ export function AppSubmenuSeplag(props: AppSubmenuSeplagProps) {
     }
 
     const key = item.label ?? "";
-    const isActive = activeMenu?.label === item.label || hasActiveRoute(item);
+    const isActive =
+      !collapsedMenus.includes(key) &&
+      (activeMenu?.label === item.label || hasActiveRoute(item));
 
     if (isActive) {
       setActiveMenu(null);

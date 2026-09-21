@@ -2314,6 +2314,12 @@
   margin-bottom: 16px;
   border-bottom: 1px solid #cbd8e5;
 }
+.tv-form-tabs.tv-form-tabs--rga-only {
+  grid-template-columns: repeat(3, 1fr);
+}
+.tv-form-tabs.tv-form-tabs--two {
+  grid-template-columns: repeat(2, 1fr);
+}
 .tv-form-tabs button {
   min-height: 44px;
   padding: 0 16px;
@@ -2539,6 +2545,10 @@
     grid-template-columns: 1fr;
   }
   .tv-form-tabs {
+    grid-template-columns: 1fr;
+  }
+  .tv-form-tabs.tv-form-tabs--two,
+  .tv-form-tabs.tv-form-tabs--rga-only {
     grid-template-columns: 1fr;
   }
 }
@@ -3106,13 +3116,11 @@
 .tv-cargo-history-table th:nth-child(1) { width: 18%; }
 .tv-cargo-history-table th:nth-child(2) { width: 10%; }
 .tv-cargo-history-table th:nth-child(3) { width: 8%; }
-.tv-cargo-history-table th:nth-child(4) { width: 30%; }
-.tv-cargo-history-table th:nth-child(5) { width: 8%; text-align: center; }
-.tv-cargo-history-table th:nth-child(6) { width: 16%; text-align: center; }
-.tv-cargo-history-table th:nth-child(7) { width: 8%; text-align: center; }
+.tv-cargo-history-table th:nth-child(4) { width: 38%; }
+.tv-cargo-history-table th:nth-child(5) { width: 16%; text-align: center; }
+.tv-cargo-history-table th:nth-child(6) { width: 8%; text-align: center; }
 .tv-cargo-history-table td:nth-child(5),
-.tv-cargo-history-table td:nth-child(6),
-.tv-cargo-history-table td:nth-child(7) { text-align: center; }
+.tv-cargo-history-table td:nth-child(6) { text-align: center; }
 
 /* Histórico da jornada preserva o detalhamento completo da versão. */
 .tv-journey-history-modal .tv-journey-history-grid { min-width: 1120px; }
