@@ -163,8 +163,8 @@ export function NovoQuadroComissionadoContent() {
     </section>
 
     <section className="nqc-card nqc-resumo">
-      <header><i className="pi pi-chart-bar" /><div><h2>Resumo das dotações</h2><p>Quantitativos autorizados por simbologia remuneratória.</p></div></header>
-      <div className="nqc-resumo-table-wrap"><table><thead><tr><th>Simbologia remuneratória</th><th>Cargo</th><th>Função</th></tr></thead><tbody>{resumoSimbologias.map((linha) => {
+      <header><i className="pi pi-chart-bar" /><div><h2>Resumo das dotações</h2><p>Quantitativos autorizados por cargo comissionado.</p></div></header>
+      <div className="nqc-resumo-table-wrap"><table><thead><tr><th>Cargo Comissionado</th><th>Cargo</th><th>Função</th></tr></thead><tbody>{resumoSimbologias.map((linha) => {
         const aberto = simbolosAbertos.includes(linha.simbologia);
         const alternar = () => setSimbolosAbertos((atuais) => aberto ? atuais.filter((simbolo) => simbolo !== linha.simbologia) : [...atuais, linha.simbologia]);
         return <Fragment key={linha.simbologia}>
@@ -172,7 +172,7 @@ export function NovoQuadroComissionadoContent() {
             <td><button type="button" className="nqc-resumo-accordion-trigger" onClick={alternar} aria-expanded={aberto} aria-controls={`perfis-${linha.simbologia}`}><i className={aberto ? "pi pi-chevron-down" : "pi pi-chevron-right"} />{linha.simbologia}</button></td>
             <td>{linha.cargos || "-"}</td><td>{linha.funcoes || "-"}</td>
           </tr>
-          {aberto && <tr id={`perfis-${linha.simbologia}`} className="nqc-resumo-perfis"><td colSpan={3}>{linha.perfis.length ? <table><thead><tr><th>Perfil profissional</th><th>Cargo</th><th>Função</th></tr></thead><tbody>{linha.perfis.map((perfil) => <tr key={perfil.nome}><td>{perfil.nome}</td><td>{perfil.cargos || "-"}</td><td>{perfil.funcoes || "-"}</td></tr>)}</tbody></table> : <span>Nenhum perfil associado a esta simbologia.</span>}</td></tr>}
+          {aberto && <tr id={`perfis-${linha.simbologia}`} className="nqc-resumo-perfis"><td colSpan={3}>{linha.perfis.length ? <table><thead><tr><th>Perfil Profissional</th><th>Cargo</th><th>Função</th></tr></thead><tbody>{linha.perfis.map((perfil) => <tr key={perfil.nome}><td>{perfil.nome}</td><td>{perfil.cargos || "-"}</td><td>{perfil.funcoes || "-"}</td></tr>)}</tbody></table> : <span>Nenhum perfil associado a este cargo comissionado.</span>}</td></tr>}
         </Fragment>;
       })}</tbody><tfoot><tr><th>Subtotal</th><th>{totais.cargos}</th><th>{totais.funcoes}</th></tr><tr><th>Total</th><th colSpan={2}>{totais.cargos + totais.funcoes}</th></tr></tfoot></table></div>
     </section>
@@ -199,7 +199,7 @@ function DotacaoEditor({ dotacao, onChange, onRemove, simbologias }: { dotacao: 
   const atualizar = <K extends keyof Dotacao>(campo: K, valor: Dotacao[K]) => onChange((atual) => ({ ...atual, [campo]: valor }));
   const perfisDga = listarPerfisDgaControleVagasComissionadas();
   const perfisDisponiveis = [...new Set([...perfisDga.map((perfil) => perfil.nome), dotacao.perfil].filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  return <div className="nqc-dotacao"><label>Perfil<select value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)}><option value="">Selecione...</option>{perfisDisponiveis.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}</select></label><label>Simbologia remuneratória<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{simbologias.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label><label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label><label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} /></div>;
+  return <div className="nqc-dotacao"><label>Perfil Profissional<select value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)}><option value="">Selecione...</option>{perfisDisponiveis.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}</select></label><label>Cargo Comissionado<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{simbologias.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label><label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label><label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} /></div>;
 }
 
 

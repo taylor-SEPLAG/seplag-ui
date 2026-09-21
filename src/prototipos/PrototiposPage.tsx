@@ -9457,7 +9457,7 @@ export function PrototiposCargoFormPage({
                 </div>
                 <div className="prototype-shared-criterio-item">
                   <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" />
-                  <span>Disponibiliza este cargo como simbologia remuneratória no Quadro de Vagas Comissionados.</span>
+                  <span>Disponibiliza este cargo como Cargo Comissionado no Quadro de Vagas Comissionados.</span>
                 </div>
                 <div className="prototype-shared-criterio-item">
                   <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" />
