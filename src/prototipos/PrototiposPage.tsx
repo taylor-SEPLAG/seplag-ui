@@ -8021,6 +8021,12 @@ export function PrototiposCarreiraPage() {
   );
 }
 
+type PerfilRequisitoFormacao = {
+  posGraduacoes: string[];
+  exigeRegistro: "S" | "N";
+  conselho: string;
+};
+
 interface PerfilEspecialidadeRow {
   id: number;
   codigo: string;
@@ -8042,6 +8048,8 @@ interface PerfilEspecialidadeRow {
   dataExtincao?: string;
   motivoExtincao?: string;
   documentosIds?: string[];
+  perfilDga?: boolean;
+  requisitosFormacao?: Record<string, PerfilRequisitoFormacao>;
 }
 
 const perfisEspecialidadesMock: PerfilEspecialidadeRow[] = [
@@ -8168,13 +8176,11 @@ interface PerfilEspecialidadeForm {
   descricao: string;
   observacao: string;
   nivelFormacao: string;
-  formacao: string;
-  formacaoTecnica: string;
-  areaPosGraduacao: string;
+  formacao: string[];
+  formacaoTecnica: string[];
+  requisitosFormacao: Record<string, PerfilRequisitoFormacao>;
   cbo: string;
-  exigeRegistro: "S" | "N";
   perfilDga: boolean;
-  conselho: string;
   dataInicio: string;
   dataEncerramento: string;
   motivoEncerramento: string;
@@ -8221,12 +8227,14 @@ export function PrototiposPerfilEspecialidadeFormPage() {
   const codigoGerado = perfilEmEdicao?.codigo ?? `PER-${String(proximoId).padStart(4, "0")}`;
   const [documentosSelecionados, setDocumentosSelecionados] = useState<string[]>([]);
   const [erroComplementar, setErroComplementar] = useState("");
-  const { control, handleSubmit, reset, setValue, watch } = useForm<PerfilEspecialidadeForm>({ defaultValues: { codigoInterno: perfilEmEdicao?.id ?? proximoId, nome: "", descricao: "", observacao: "", nivelFormacao: "", formacao: "", formacaoTecnica: "", areaPosGraduacao: "", cbo: "", exigeRegistro: "N", perfilDga: false, conselho: "", dataInicio: "", dataEncerramento: "", motivoEncerramento: "" } });
+  const { control, handleSubmit, reset, setValue, watch } = useForm<PerfilEspecialidadeForm>({ defaultValues: { codigoInterno: perfilEmEdicao?.id ?? proximoId, nome: "", descricao: "", observacao: "", nivelFormacao: "", formacao: [], formacaoTecnica: [], requisitosFormacao: {}, cbo: "", perfilDga: false, dataInicio: "", dataEncerramento: "", motivoEncerramento: "" } });
 
   useEffect(() => {
     if (!perfilEmEdicao) return;
     const nivelFormacao = perfilEmEdicao.nivelFormacao ?? (perfilEmEdicao.areaFormacao ? "superior" : "");
-    reset({ codigoInterno: perfilEmEdicao.id, nome: perfilEmEdicao.nome, descricao: perfilEmEdicao.descricao ?? "", observacao: perfilEmEdicao.observacao ?? "", nivelFormacao, formacao: nivelFormacao === "superior" || nivelFormacao === "pos-graduacao" ? perfilEmEdicao.areaFormacao.split(", ")[0] ?? "" : "", formacaoTecnica: nivelFormacao === "medio-tecnico" ? perfilEmEdicao.areaFormacao : "", areaPosGraduacao: nivelFormacao === "pos-graduacao" ? perfilEmEdicao.especializacao ?? "" : "", cbo: perfilEmEdicao.cbo, exigeRegistro: perfilEmEdicao.exigeRegistro ?? "N", perfilDga: perfilEmEdicao.perfilDga === true, conselho: perfilEmEdicao.conselho ?? "", dataInicio: perfilEmEdicao.dataInicio ?? "01/01/2026", dataEncerramento: perfilEmEdicao.dataEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "31/12/2025" : ""), motivoEncerramento: perfilEmEdicao.motivoEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "Perfil encerrado administrativamente." : "") });
+    const areasLegadas = perfilEmEdicao.areaFormacao && perfilEmEdicao.areaFormacao !== "Não informada" ? perfilEmEdicao.areaFormacao.split(", ") : [];
+    const requisitosLegados = Object.fromEntries(areasLegadas.map((area) => [area, { posGraduacoes: nivelFormacao === "pos-graduacao" && perfilEmEdicao.especializacao ? perfilEmEdicao.especializacao.split(", ") : [], exigeRegistro: perfilEmEdicao.exigeRegistro ?? "N", conselho: perfilEmEdicao.conselho ?? "" }]));
+    reset({ codigoInterno: perfilEmEdicao.id, nome: perfilEmEdicao.nome, descricao: perfilEmEdicao.descricao ?? "", observacao: perfilEmEdicao.observacao ?? "", nivelFormacao, formacao: nivelFormacao === "superior" || nivelFormacao === "pos-graduacao" ? areasLegadas : [], formacaoTecnica: nivelFormacao === "medio-tecnico" ? areasLegadas : [], requisitosFormacao: perfilEmEdicao.requisitosFormacao ?? requisitosLegados, cbo: perfilEmEdicao.cbo, perfilDga: perfilEmEdicao.perfilDga === true, dataInicio: perfilEmEdicao.dataInicio ?? "01/01/2026", dataEncerramento: perfilEmEdicao.dataEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "31/12/2025" : ""), motivoEncerramento: perfilEmEdicao.motivoEncerramento ?? (perfilEmEdicao.situacao === "ENCERRADO" ? "Perfil encerrado administrativamente." : "") });
     setDocumentosSelecionados(perfilEmEdicao.documentosIds ?? []);
   }, [perfilEmEdicao, reset]);
 
@@ -8235,22 +8243,28 @@ export function PrototiposPerfilEspecialidadeFormPage() {
     setDocumentosSelecionados([documentosLegais[0].id]);
   }, [documentosLegais, documentosSelecionados.length, perfilEmEdicao]);
 
-  const exigeRegistro = watch("exigeRegistro") === "S";
   const nivelFormacaoSelecionado = watch("nivelFormacao");
   const nivelPosGraduacaoSelecionado = nivelFormacaoSelecionado === "pos-graduacao";
   const nivelTecnicoSelecionado = nivelFormacaoSelecionado === "medio-tecnico";
   const exibeFormacao = nivelFormacaoSelecionado === "superior" || nivelPosGraduacaoSelecionado;
+  const areasFormacaoSelecionadas = watch("formacao") ?? [];
+  const areasTecnicasSelecionadas = watch("formacaoTecnica") ?? [];
+  const requisitosFormacao = watch("requisitosFormacao") ?? {};
   const dataInicio = watch("dataInicio");
   const dataEncerramento = watch("dataEncerramento");
   useEffect(() => {
-    if (!exibeFormacao) setValue("formacao", "");
+    if (!exibeFormacao) setValue("formacao", []);
   }, [exibeFormacao, setValue]);
   useEffect(() => {
-    if (!nivelPosGraduacaoSelecionado) setValue("areaPosGraduacao", "");
-  }, [nivelPosGraduacaoSelecionado, setValue]);
-  useEffect(() => {
-    if (!nivelTecnicoSelecionado) setValue("formacaoTecnica", "");
+    if (!nivelTecnicoSelecionado) setValue("formacaoTecnica", []);
   }, [nivelTecnicoSelecionado, setValue]);
+  const areasSelecionadasParaTabela = nivelTecnicoSelecionado ? areasTecnicasSelecionadas : exibeFormacao ? areasFormacaoSelecionadas : [];
+  const atualizarRequisitoFormacao = (area: string, valores: Partial<PerfilRequisitoFormacao>) => {
+    setValue("requisitosFormacao", {
+      ...requisitosFormacao,
+      [area]: { posGraduacoes: [], exigeRegistro: "N", conselho: "", ...requisitosFormacao[area], ...valores },
+    });
+  };
   const inicioIso = carreiraDataParaIso(dataInicio);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
@@ -8259,15 +8273,16 @@ export function PrototiposPerfilEspecialidadeFormPage() {
     if (isEdicao && Boolean(values.dataEncerramento) !== Boolean(values.motivoEncerramento.trim())) return setErroComplementar("Para extinguir o perfil, informe a data e o motivo da extinção.");
     if (isEdicao && values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) < carreiraDataParaIso(values.dataInicio)) return setErroComplementar("A data de extinção não pode ser anterior à data de início.");
     if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal.");
-    if (nivelTecnicoSelecionado && !values.formacaoTecnica) return setErroComplementar("Selecione a Área de Formação Técnica.");
-    if (nivelPosGraduacaoSelecionado && !values.formacao) return setErroComplementar("Selecione a Área de Formação.");
-    if (nivelPosGraduacaoSelecionado && !values.areaPosGraduacao) return setErroComplementar("Selecione a Área de Pós-Graduação.");
-    if (exigeRegistro && !values.conselho) return setErroComplementar("Selecione o conselho profissional exigido.");
+    if (nivelTecnicoSelecionado && !values.formacaoTecnica.length) return setErroComplementar("Selecione ao menos uma Área de Formação Técnica.");
+    if (exibeFormacao && !values.formacao.length) return setErroComplementar("Selecione ao menos uma Área de Formação.");
+    const areasSelecionadas = nivelTecnicoSelecionado ? values.formacaoTecnica : exibeFormacao ? values.formacao : [];
+    if (nivelPosGraduacaoSelecionado && areasSelecionadas.some((area) => !(values.requisitosFormacao[area]?.posGraduacoes ?? []).length)) return setErroComplementar("Selecione ao menos uma Área de Pós-Graduação para cada Área de Formação.");
+    if (areasSelecionadas.some((area) => values.requisitosFormacao[area]?.exigeRegistro === "S" && !values.requisitosFormacao[area]?.conselho)) return setErroComplementar("Selecione o conselho profissional para cada área que exige registro.");
     if (perfisEspecialidadesMock.some((item) => item.id !== perfilEmEdicao?.id && item.nome.trim().toLowerCase() === values.nome.trim().toLowerCase())) return setErroComplementar("Já existe um Perfil Profissional com esse nome.");
     const situacaoAtualizada = values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeIso
       ? possuiDependenciaAtiva("perfil", perfilEmEdicao?.id ?? proximoId) ? "ENCERRADO" : "EXTINTO"
       : "ATIVO";
-    const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: nivelTecnicoSelecionado ? values.formacaoTecnica || "Não informada" : exibeFormacao ? values.formacao || "Não informada" : "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: situacaoAtualizada, descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: values.exigeRegistro, perfilDga: values.perfilDga, conselho: exigeRegistro ? values.conselho : "", especializacao: nivelPosGraduacaoSelecionado ? values.areaPosGraduacao : "", dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
+    const atualizado: PerfilEspecialidadeRow = { id: perfilEmEdicao?.id ?? proximoId, codigo: codigoGerado, nome: values.nome.trim(), areaFormacao: areasSelecionadas.join(", ") || "Não informada", cbo: values.cbo, cargosVinculados: perfilEmEdicao?.cargosVinculados ?? 0, situacao: situacaoAtualizada, descricao: values.descricao.trim(), observacao: values.observacao.trim(), nivelFormacao: values.nivelFormacao, exigeRegistro: areasSelecionadas.some((area) => values.requisitosFormacao[area]?.exigeRegistro === "S") ? "S" : "N", perfilDga: values.perfilDga, conselho: [...new Set(areasSelecionadas.map((area) => values.requisitosFormacao[area]?.conselho).filter(Boolean))].join(", "), especializacao: nivelPosGraduacaoSelecionado ? areasSelecionadas.map((area) => values.requisitosFormacao[area]?.posGraduacoes.join(", ") ?? "").filter(Boolean).join("; ") : "", requisitosFormacao: Object.fromEntries(areasSelecionadas.map((area) => [area, values.requisitosFormacao[area] ?? { posGraduacoes: [], exigeRegistro: "N", conselho: "" }])), dataInicio: values.dataInicio, dataCriacao: perfilEmEdicao?.dataCriacao ?? new Date().toLocaleDateString("pt-BR"), dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento.trim() : "", documentosIds: documentosSelecionados };
     if (perfilEmEdicao) Object.assign(perfilEmEdicao, atualizado); else perfisEspecialidadesMock.push(atualizado);
     atualizarPerfilDgaControleVagasComissionadas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.nome }, atualizado.perfilDga === true);
     atualizarExtincoesDerivadas();
@@ -8288,7 +8303,7 @@ export function PrototiposPerfilEspecialidadeFormPage() {
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-id-card" /></span><div><h2>Identificação</h2><p>Dados utilizados para reconhecer o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextFieldSeplag name="codigoInterno" control={control} label="Código" cols="12 12 3" disabled getFormErrorMessage={() => null} /><TextFieldSeplag name="nome" control={control} label="Nome do Perfil Profissional" cols="12 12 9" required maxLength={150} getFormErrorMessage={() => null} /></div></section>
         <PrototypeVigenciaEditor control={control} setValue={setValue} isEdicao={isEdicao} readOnly={isVisualizacao} dataInicioName="dataInicio" dataEncerramentoName="dataEncerramento" motivoEncerramentoName="motivoEncerramento" dataEncerramento={dataEncerramento} status={status} entidade="o perfil profissional" getFormErrorMessage={() => null} permitirEncerramento={false} />
         </div>
-        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina formação, classificação ocupacional e habilitação profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao || nivelTecnicoSelecionado ? "12 12 4" : "12 12 6"} options={perfilNivelFormacaoOptions} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />{nivelTecnicoSelecionado ? <DropdownFieldSeplag name="formacaoTecnica" control={control} label="Área de Formação Técnica" cols="12 12 4" options={perfilFormacaoTecnicaOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma área técnica" required getFormErrorMessage={() => null} /> : null}{exibeFormacao ? <DropdownFieldSeplag name="formacao" control={control} label="Área de Formação" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : "12 12 4"} options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma área de formação" required={nivelPosGraduacaoSelecionado} getFormErrorMessage={() => null} /> : null}{nivelPosGraduacaoSelecionado ? <DropdownFieldSeplag name="areaPosGraduacao" control={control} label="Área de Pós-Graduação" cols="12 12 3" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma área de pós-graduação" required getFormErrorMessage={() => null} /> : null}<DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols={nivelPosGraduacaoSelecionado ? "12 12 3" : exibeFormacao || nivelTecnicoSelecionado ? "12 12 4" : "12 12 6"} options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><SwitchFieldSeplag name="exigeRegistro" control={control} label="Exige registro profissional" cols="12 12 4" getFormErrorMessage={() => null} /><DropdownFieldSeplag name="conselho" control={control} label="Conselho profissional" cols="12 12 4" options={[{ label: "CRC", value: "CRC" }, { label: "CRM", value: "CRM" }, { label: "CREA", value: "CREA" }, { label: "CRP", value: "CRP" }, { label: "OAB", value: "OAB" }]} optionLabel="label" optionValue="value" required={exigeRegistro} disabled={!exigeRegistro} getFormErrorMessage={() => null} /></div></section>
+        <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-verified" /></span><div><h2>Requisitos profissionais</h2><p>Defina as formações aceitas, a classificação ocupacional e as habilitações aplicáveis.</p></div></header><div className="grid prototype-carreira-register-fields"><DropdownFieldSeplag name="nivelFormacao" control={control} label="Nível de formação" cols="12 12 4" options={perfilNivelFormacaoOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} /><DropdownFieldSeplag name="cbo" control={control} label="CBO específico" cols="12 12 4" options={cargoCboOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />{nivelTecnicoSelecionado ? <MultiSelectFieldSeplag name="formacaoTecnica" control={control} label="Área de Formação Técnica" cols="12 12 4" options={perfilFormacaoTecnicaOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais áreas técnicas" required getFormErrorMessage={() => null} /> : null}{exibeFormacao ? <MultiSelectFieldSeplag name="formacao" control={control} label="Área de Formação" cols="12 12 4" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais áreas de formação" required getFormErrorMessage={() => null} /> : null}{areasSelecionadasParaTabela.length ? <div className="col-12 prototype-cargo-profile-table-wrapper"><table className="prototype-cargo-profile-table prototype-perfil-requisitos-table"><thead><tr><th>{nivelTecnicoSelecionado ? "Área de Formação Técnica" : "Área de Formação"}</th>{nivelPosGraduacaoSelecionado ? <th>Áreas de Pós-Graduação</th> : null}{!nivelTecnicoSelecionado ? <th>Exige registro profissional</th> : null}</tr></thead><tbody>{areasSelecionadasParaTabela.map((area) => { const requisito = requisitosFormacao[area] ?? { posGraduacoes: [], exigeRegistro: "N" as const, conselho: "" }; return <tr key={area}><td>{nivelTecnicoSelecionado ? `Técnico em ${area}` : area}</td>{nivelPosGraduacaoSelecionado ? <td><MultiSelectFieldSeplag name={`requisitosFormacao.${area}.posGraduacoes` as never} control={control} label="" cols="12" options={perfilFormacaoOptions} optionLabel="label" optionValue="value" placeholder="Selecione uma ou mais pós-graduações" getFormErrorMessage={() => null} /></td> : null}{!nivelTecnicoSelecionado ? <td><div className="prototype-perfil-registro-cell"><label className="prototype-perfil-requisito-switch"><input type="checkbox" checked={requisito.exigeRegistro === "S"} onChange={(event) => atualizarRequisitoFormacao(area, { exigeRegistro: event.target.checked ? "S" : "N", conselho: event.target.checked ? requisito.conselho : "" })} /><span>Exige</span></label>{requisito.exigeRegistro === "S" ? <select className="p-inputtext p-component" value={requisito.conselho} onChange={(event) => atualizarRequisitoFormacao(area, { conselho: event.target.value })} aria-label={`Conselho profissional para ${area}`}><option value="">Selecione o conselho</option>{["CRC", "CRM", "CREA", "CRP", "OAB"].map((conselho) => <option key={conselho} value={conselho}>{conselho}</option>)}</select> : null}</div></td> : null}</tr>; })}</tbody></table></div> : null}</div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" /></span><div><h2>Comportamentos do perfil</h2><p>Configure as regras operacionais aplicáveis a este perfil profissional.</p></div></header><div className="prototype-shared-criterios-list prototype-tipo-vinculo-comportamentos"><div className="prototype-shared-criterio-item"><CheckboxFieldSeplag name="perfilDga" control={control} checkboxLabel="É Perfil de DGA?" cols="12" getFormErrorMessage={() => null} /><span>Disponibiliza este perfil na lista de perfis do Controle de Vagas Comissionados.</span></div></div></section>
         <section className="prototype-carreira-register-section"><header><span className="prototype-carreira-section-icon"><i className="pi pi-comment" /></span><div><h2>Observação</h2><p>Registre informações complementares sobre o perfil profissional.</p></div></header><div className="grid prototype-carreira-register-fields"><TextAreaFieldSeplag name="observacao" control={control} label="Observação" cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} /></div></section>
         <footer className="prototype-carreira-register-actions"><Link className="prototype-profile-back-link" to="/prototipos/sigep/perfil-profissional"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link><BotaoSalvarSeplag type="submit" label={isEdicao ? "Salvar alterações" : "Salvar perfil"} /></footer>
