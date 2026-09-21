@@ -92,6 +92,8 @@ import {
   PrototiposQuadroPessoalMovimentacoesPage,
   PrototiposQuadroPessoalProjecoesPage,
   PrototiposEfetivoExercicioPage,
+  PrototiposIngressoGeralPage,
+  PrototiposIngressosComissionadosPage,
   PrototiposDocumentosVinculadosPage,
   PrototiposEstruturaOrganizacionalPage,
   PrototiposSituacaoVigenciaPage,
@@ -141,8 +143,12 @@ import {
   PrototiposSigepRegimeJuridicoTestePage,
   PrototiposTipoVinculoTesteFormPage,
   PrototiposTipoVinculoTestePage,
-  PrototiposVinculoDetalhePage,
 } from "./prototipos/PrototiposPage";
+import {
+  PrototiposVinculoCadastroPage,
+  PrototiposVinculoVisualizacaoPage,
+  PrototiposVinculosPage,
+} from "./prototipos/vinculos/VinculosPages";
 import { TabelaVencimentosFeaturePage } from "./prototipos/tabelaVencimentos/TabelaVencimentosFeaturePage";
 import {
   PrototiposDocumentoLegalFormPage,
@@ -1589,6 +1595,10 @@ function App() {
         element={<PrototiposSigepRegimeJuridicoPage />}
       />
       <Route
+        path="/prototipos/sigep/ingresso"
+        element={<PrototiposIngressoGeralPage />}
+      />
+      <Route
         path="/prototipos/sigep/ingressos"
         element={<PrototiposIngressosPage />}
       />
@@ -1607,6 +1617,9 @@ function App() {
       <Route
         path="/prototipos/sigep/ingressos/efetivo-exercicio"
         element={<PrototiposEfetivoExercicioPage />}
+      />      <Route
+        path="/prototipos/sigep/ingressos/comissionados"
+        element={<PrototiposIngressosComissionadosPage />}
       />
       <Route
         path="/prototipos/sigep/ingressos/efetivo-exercicio/novo"
@@ -1637,8 +1650,16 @@ function App() {
         element={<PrototiposPessoaVinculosPage />}
       />
       <Route
+        path="/prototipos/sigep/vinculos"
+        element={<PrototiposVinculosPage />}
+      />
+      <Route
+        path="/prototipos/sigep/vinculos/novo"
+        element={<PrototiposVinculoCadastroPage />}
+      />
+      <Route
         path="/prototipos/sigep/vinculos/:id"
-        element={<PrototiposVinculoDetalhePage />}
+        element={<PrototiposVinculoVisualizacaoPage />}
       />
       <Route path="/prototipos/sigep/controle-vagas/temporarios" element={<PrototiposVagasTemporariosPage />} />
       <Route path="/prototipos/sigep/controle-vagas/temporarios/vagas" element={<PrototiposVagasTemporariosIndividualizadasPage />} />

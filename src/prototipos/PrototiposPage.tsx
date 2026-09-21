@@ -5,6 +5,7 @@ import { BreadcrumbVagas as BreadcrumbVagasComissionados } from "./controleVagas
 import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTemporarios/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
 import { ControleVagasGeralContent } from "./controleVagas/ControleVagasGeralContent";
+import { IngressoGeralContent } from "./ingresso/IngressoGeralContent";
 import { VagasTemporariosContent } from "./controleVagasTemporarios/VagasTemporariosContent";
 import { QuadroAutorizadoContent as QuadroTemporariosContent } from "./controleVagasTemporarios/QuadroAutorizadoContent";
 import { VagasIndividualizadasContent as IndividualizadasTemporariosContent } from "./controleVagasTemporarios/VagasIndividualizadasContent";
@@ -356,6 +357,19 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         ],
       },
       {
+        label: "Ingresso",
+        icon: "pi pi-sign-in",
+        to: "/prototipos/sigep/ingresso",
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+        items: [
+          { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: false, visibleOnRouter: true },
+          { label: "Gestão de Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Efetivo Exercício", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/efetivo-exercicio", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Ingresso Comissionados", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/comissionados", visibleOnMenu: true, visibleOnRouter: true },
+        ],
+      },
+      {
         label: "Vínculos Funcionais",
         icon: "pi pi-link",
         url: "#",
@@ -363,10 +377,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnRouter: true,
         items: [
           { label: "Tipos de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vínculo", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: false, visibleOnRouter: true },
-          { label: "Gestão de Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Efetivo Exercício", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/efetivo-exercicio", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vacância", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -3252,7 +3263,7 @@ const ingressoTipoVinculoMap: Record<IngressoTipo, string> = {
   Concurso: "Efetivo",
   "Processo Seletivo": "Contrato Temporário",
   Nomeação: "Comissionado",
-  "Exclusivo Comissionado": "Comissionado",
+  "Exclusivo Comissionado": "Exclusivamente Comissionado",
   "Residente Técnico": "Residente",
   Estagiário: "Estagiário",
 };
@@ -3260,6 +3271,10 @@ const ingressoTipoVinculoMap: Record<IngressoTipo, string> = {
 const ingressoTipoRadioOptions: { label: string; value: IngressoTipo }[] = [
   { label: "Concurso", value: "Concurso" },
   { label: "Processo Seletivo", value: "Processo Seletivo" },
+  {
+    label: "Nomeação",
+    value: "Exclusivo Comissionado",
+  },
 ];
 
 const ingressoImportacaoPreview = [
@@ -7528,7 +7543,13 @@ export function PrototiposControleVagasDistribuicaoSaldoPage() {
     </PrototypeSystemPage>
   );
 }
-export function PrototiposControleVagasGeralPage() {
+export function PrototiposIngressoGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+      <IngressoGeralContent />
+    </PrototypeSystemPage>
+  );
+}export function PrototiposControleVagasGeralPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
       <ControleVagasGeralContent />
@@ -11869,6 +11890,16 @@ export function PrototiposEfetivoExercicioPage() {
           title="Efetivo Exercício"
           cols="12"
           cardHeaderClassNames="prototype-regime-card prototype-ingressos-card"
+          headerNavigation={
+            <BreadcrumbSeplag
+              divided
+              className="prototype-ingresso-header-breadcrumb"
+              items={[
+                { label: "Ingresso" },
+                { label: "Efetivo Exercício" },
+              ]}
+            />
+          }
         >
           <div className="prototype-ingressos-teste-content prototype-efetivo-exercicio-content">
             <p className="prototype-ingressos-teste-support">Acompanhe os candidatos que aguardam o registro do efetivo exercício.</p>
@@ -12388,6 +12419,231 @@ export function PrototiposEfetivoExercicioPage() {
   );
 }
 
+type IngressoComissionadoSituacao =
+  | "Em análise"
+  | "Aguardando efetivo exercício"
+  | "Ingresso concluído"
+  | "Ingresso cancelado";
+
+interface IngressoComissionadoRow {
+  id: number;
+  nome: string;
+  cpf: string;
+  atoNomeacao: string;
+  orgao: string;
+  cargo: string;
+  dataEfetivoExercicio: string;
+  setorLotacao: string;
+  situacao: IngressoComissionadoSituacao;
+}
+
+const ingressosComissionadosMock: IngressoComissionadoRow[] = [
+  { id: 1, nome: "João Silva", cpf: "000.000.000-00", atoNomeacao: "0001/2026", orgao: "SEPLAG", cargo: "Assessor Especial", dataEfetivoExercicio: "-", setorLotacao: "Gabinete do Secretário", situacao: "Em análise" },
+  { id: 2, nome: "Maria Souza", cpf: "111.111.111-11", atoNomeacao: "0002/2026", orgao: "SEDUC", cargo: "Assessora Técnica", dataEfetivoExercicio: "-", setorLotacao: "Coordenadoria Administrativa", situacao: "Em análise" },
+  { id: 3, nome: "Carlos Pereira", cpf: "222.222.222-22", atoNomeacao: "0003/2026", orgao: "SES", cargo: "Diretor de Unidade", dataEfetivoExercicio: "-", setorLotacao: "Diretoria de Gestão", situacao: "Aguardando efetivo exercício" },
+  { id: 4, nome: "Ana Costa", cpf: "333.333.333-33", atoNomeacao: "0004/2026", orgao: "SEFAZ", cargo: "Chefe de Gabinete", dataEfetivoExercicio: "10/09/2026", setorLotacao: "Gabinete", situacao: "Ingresso concluído" },
+  { id: 5, nome: "Fernanda Rocha", cpf: "444.444.444-44", atoNomeacao: "0005/2026", orgao: "SEPLAG", cargo: "Coordenadora", dataEfetivoExercicio: "-", setorLotacao: "Coordenadoria de Pessoas", situacao: "Ingresso cancelado" },
+];
+
+export function PrototiposIngressosComissionadosPage() {
+  const navigate = useNavigate();
+  const { control, reset, watch } = useForm<{ termo: string }>({ defaultValues: { termo: "" } });
+  const [registros, setRegistros] = useState(ingressosComissionadosMock);
+  const [situacaoFiltro, setSituacaoFiltro] = useState<IngressoComissionadoSituacao | "">("");
+  const [pagina, setPagina] = useState(1);
+  const [itensPorPagina, setItensPorPagina] = useState(10);
+  const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
+  const [historicoSelecionado, setHistoricoSelecionado] = useState<IngressoComissionadoRow | null>(null);
+  const termo = watch("termo")?.trim().toLowerCase() ?? "";
+  const situacoes: IngressoComissionadoSituacao[] = [
+    "Em análise",
+    "Aguardando efetivo exercício",
+    "Ingresso concluído",
+    "Ingresso cancelado",
+  ];
+  const indicadores: Array<{ label: string; situacao: IngressoComissionadoSituacao | ""; icon: string; tone: string }> = [
+    { label: "Total de Registros", situacao: "", icon: "pi pi-users", tone: "blue" },
+    { label: situacoes[0], situacao: situacoes[0], icon: "pi pi-search", tone: "blue" },
+    { label: situacoes[1], situacao: situacoes[1], icon: "pi pi-calendar-clock", tone: "amber" },
+    { label: situacoes[2], situacao: situacoes[2], icon: "pi pi-check-circle", tone: "green" },
+    { label: situacoes[3], situacao: situacoes[3], icon: "pi pi-times-circle", tone: "red" },
+  ];
+  const registrosFiltrados = registros.filter((registro) => {
+    const cpfBusca = termo.replace(/\D/g, "");
+    const atendeTermo = !termo || registro.nome.toLowerCase().includes(termo) || (cpfBusca && registro.cpf.replace(/\D/g, "").includes(cpfBusca));
+    return atendeTermo && (!situacaoFiltro || registro.situacao === situacaoFiltro);
+  });
+  const totalPaginas = Math.max(1, Math.ceil(registrosFiltrados.length / itensPorPagina));
+  const paginaAtual = Math.min(pagina, totalPaginas);
+  const registrosPaginados = registrosFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
+  const limparFiltros = () => {
+    reset({ termo: "" });
+    setSituacaoFiltro("");
+    setPagina(1);
+  };
+  const getBadge = (situacao: IngressoComissionadoSituacao) => {
+    const badges: Record<IngressoComissionadoSituacao, { color: string; bg: string; border: string }> = {
+      "Em análise": { color: "#0057b8", bg: "#e8f3ff", border: "#8ec5ff" },
+      "Aguardando efetivo exercício": { color: "#be185d", bg: "#fce7f3", border: "#f9a8d4" },
+      "Ingresso concluído": { color: "#00843d", bg: "#e2f3e8", border: "#86d39f" },
+      "Ingresso cancelado": { color: "#b42318", bg: "#fff1f0", border: "#fda29b" },
+    };
+    return badges[situacao];
+  };
+  const continuarIngresso = (registro: IngressoComissionadoRow) => {
+    const etapa = registro.situacao === "Aguardando efetivo exercício"
+      ? "efetivo-exercicio"
+      : registro.situacao === "Em análise"
+        ? "documentacao"
+        : "tipo-ingresso";
+    const parametros = new URLSearchParams({
+      tipo: "Exclusivo Comissionado",
+      candidato: String(registro.id),
+      orgao: registro.orgao,
+      cargo: registro.cargo,
+      etapa,
+    });
+    navigate(`/prototipos/sigep/ingressos/novo?${parametros.toString()}`);
+  };
+  const visualizarIngresso = (registro: IngressoComissionadoRow) => {
+    const parametros = new URLSearchParams({
+      tipo: "Exclusivo Comissionado",
+      candidato: String(registro.id),
+      orgao: registro.orgao,
+      cargo: registro.cargo,
+      modo: "visualizacao",
+    });
+    navigate(`/prototipos/sigep/ingressos/novo?${parametros.toString()}`);
+  };
+
+  return (
+    <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+      <div className="prototype-page-content prototype-page-content--white prototype-ingressos-teste-list-page">
+        <CardSeplag
+          title="Gestão de Ingresso de Comissonados"
+          cols="12"
+          cardHeaderClassNames="prototype-regime-card prototype-ingressos-card"
+          headerNavigation={
+            <BreadcrumbSeplag
+              divided
+              className="prototype-ingresso-header-breadcrumb"
+              items={[
+                { label: "Ingresso" },
+                { label: "Ingresso Comissionados" },
+              ]}
+            />
+          }
+        >
+          <div className="prototype-ingressos-teste-content prototype-ingressos-comissionados-content">
+            <p className="prototype-ingressos-teste-support">Acompanhe e gerencie os ingressos de servidores exclusivamente comissionados.</p>
+            <hr className="prototype-ingressos-teste-header-divider" />
+            <section className="prototype-ingressos-teste-indicators" aria-label="Situações dos ingressos comissionados">
+              {indicadores.map((indicador) => (
+                <button
+                  key={indicador.label}
+                  type="button"
+                  className={`prototype-ingressos-teste-indicator prototype-ingressos-teste-indicator--${indicador.tone} is-clickable`}
+                  onClick={() => { setSituacaoFiltro((atual) => atual === indicador.situacao ? "" : indicador.situacao); setPagina(1); }}
+                >
+                  <span className="prototype-ingressos-teste-indicator-icon" aria-hidden="true"><i className={indicador.icon} /></span>
+                  <div><span>{indicador.label}</span><strong>{indicador.situacao ? registros.filter((registro) => registro.situacao === indicador.situacao).length : registros.length}</strong></div>
+                </button>
+              ))}
+            </section>
+
+            <div className="prototype-category-filters prototype-ingressos-filters prototype-ingressos-comissionados-filters grid">
+              <TextFieldSeplag name="termo" control={control} label="Nome ou CPF" cols="12" getFormErrorMessage={() => null} />
+              <label className="prototype-native-field">
+                <span>Situação</span>
+                <select value={situacaoFiltro} onChange={(event) => { setSituacaoFiltro(event.target.value as IngressoComissionadoSituacao | ""); setPagina(1); }}>
+                  <option value="">Todas</option>
+                  {situacoes.map((situacao) => <option key={situacao} value={situacao}>{situacao}</option>)}
+                </select>
+              </label>
+              <div className="prototype-category-clear">
+                <BotaoLimparFiltroSeplag type="button" label="Limpar filtro" icon="pi pi-refresh" onClick={limparFiltros} />
+              </div>
+            </div>
+
+            <div className="prototype-ingressos-teste-table-actions prototype-ingressos-comissionados-table-actions">
+              <BotaoSeplag
+                type="button"
+                label="Novo Ingresso"
+                icon="pi pi-plus"
+                onClick={() => navigate("/prototipos/sigep/ingressos/novo?tipo=Exclusivo%20Comissionado")}
+              />
+            </div>
+            <div className="prototype-efetivo-exercicio-table-wrap">
+              <table className="prototype-simple-table prototype-ingresso-candidatos-table prototype-ingressos-comissionados-table">
+                <thead><tr><th>Nº do<br />Ingresso</th><th>Nome</th><th>CPF</th><th>Ato da nomeação</th><th>Órgão</th><th>Data do efetivo exercício</th><th>Setor/Lotação</th><th>Situação</th><th>Ações</th></tr></thead>
+                <tbody>
+                  {registrosPaginados.length === 0 ? <tr><td colSpan={9} className="prototype-empty-table-cell">Nenhum ingresso comissionado encontrado para os filtros informados.</td></tr> : registrosPaginados.map((registro) => {
+                    const badge = getBadge(registro.situacao);
+                    const encerrado = ["Ingresso concluído", "Ingresso cancelado"].includes(registro.situacao);
+                    const podeExcluir = registro.situacao === "Em análise";
+                    return <tr key={registro.id}>
+                      <td>{`2026/${String(registro.id).padStart(4, "0")}`}</td>
+                      <td>{registro.nome}</td>
+                      <td>{registro.cpf}</td>
+                      <td>{registro.atoNomeacao}</td>
+                      <td>{registro.orgao}</td>
+                      <td>{registro.dataEfetivoExercicio}</td>
+                      <td>{registro.situacao === "Ingresso concluído" ? registro.setorLotacao : "-"}</td>
+                      <td className="prototype-efetivo-exercicio-situacao-cell">
+                        <span className="prototype-efetivo-exercicio-situacao-badge" title={registro.situacao}>
+                          <BadgeSeplag label={registro.situacao} color={badge.color} bg={badge.bg} border={badge.border} size="md" />
+                        </span>
+                      </td>
+                      <td>
+                        <div className="prototype-ingresso-candidato-actions"><div className="prototype-ingresso-actions-dropdown">
+                          <div className="prototype-ingresso-actions-trigger" role="group" aria-label={`Ações do ingresso de ${registro.nome}`}>
+                            <button type="button" className="prototype-ingresso-actions-eye" title="Visualizar ingresso" aria-label="Visualizar ingresso" onClick={() => visualizarIngresso(registro)}><i className="pi pi-eye" aria-hidden="true" /></button>
+                            <button type="button" className="prototype-ingresso-actions-arrow" title="Mais ações" aria-label="Mais ações" aria-expanded={menuAbertoId === registro.id} onClick={() => setMenuAbertoId((atual) => atual === registro.id ? null : registro.id)}><i className="pi pi-chevron-down" aria-hidden="true" /></button>
+                          </div>
+                          {menuAbertoId === registro.id ? <div className="prototype-ingresso-actions-menu" role="menu">
+                            <button type="button" role="menuitem" className={encerrado ? "is-disabled" : undefined} aria-disabled={encerrado} onClick={() => { if (encerrado) return; setMenuAbertoId(null); continuarIngresso(registro); }}><i className="pi pi-sign-in" aria-hidden="true" /><span>Continuar ingresso</span></button>
+                            <button type="button" role="menuitem" className={encerrado ? "is-disabled" : "is-danger"} aria-disabled={encerrado} onClick={() => { if (encerrado) return; setMenuAbertoId(null); setRegistros((atuais) => atuais.map((item) => item.id === registro.id ? { ...item, situacao: "Ingresso cancelado" } : item)); }}><i className="pi pi-times-circle" aria-hidden="true" /><span>Cancelar ingresso</span></button>
+                            {podeExcluir ? <button type="button" role="menuitem" className="is-danger" onClick={() => { setMenuAbertoId(null); setRegistros((atuais) => atuais.filter((item) => item.id !== registro.id)); }}><i className="pi pi-trash" aria-hidden="true" /><span>Excluir ingresso</span></button> : null}
+                            <button type="button" role="menuitem" onClick={() => { setMenuAbertoId(null); setHistoricoSelecionado(registro); }}><i className="pi pi-history" aria-hidden="true" /><span>Histórico do ingresso</span></button>
+                          </div> : null}
+                        </div></div>
+                      </td>
+                    </tr>;
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <nav className="prototype-efetivo-exercicio-pagination" aria-label="Paginação dos ingressos comissionados">
+              <button type="button" aria-label="Primeira página" disabled={paginaAtual === 1} onClick={() => setPagina(1)}><i className="pi pi-angle-double-left" aria-hidden="true" /></button>
+              <button type="button" aria-label="Página anterior" disabled={paginaAtual === 1} onClick={() => setPagina((atual) => Math.max(1, atual - 1))}><i className="pi pi-angle-left" aria-hidden="true" /></button>
+              <span aria-current="page">{paginaAtual}</span>
+              <button type="button" aria-label="Próxima página" disabled={paginaAtual === totalPaginas} onClick={() => setPagina((atual) => Math.min(totalPaginas, atual + 1))}><i className="pi pi-angle-right" aria-hidden="true" /></button>
+              <button type="button" aria-label="Última página" disabled={paginaAtual === totalPaginas} onClick={() => setPagina(totalPaginas)}><i className="pi pi-angle-double-right" aria-hidden="true" /></button>
+              <select aria-label="Itens por página" value={itensPorPagina} onChange={(event) => { setItensPorPagina(Number(event.target.value)); setPagina(1); }}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select>
+            </nav>
+          </div>
+        </CardSeplag>
+      </div>
+
+      <ModalSeplag visible={Boolean(historicoSelecionado)} titulo="Histórico do ingresso" fechar={() => setHistoricoSelecionado(null)} tamanho="760px" hideFooter>
+        {historicoSelecionado ? <div className="prototype-ingressos-candidate-history">
+          <div className="prototype-ingressos-candidate-history-summary">
+            <div><span>Nº do Ingresso</span><strong>{`2026/${String(historicoSelecionado.id).padStart(4, "0")}`}</strong></div>
+            <div><span>Nome</span><strong>{historicoSelecionado.nome}</strong></div>
+            <div><span>Órgão</span><strong>{historicoSelecionado.orgao}</strong></div>
+            <div><span>Setor/Lotação</span><strong>{historicoSelecionado.setorLotacao}</strong></div>
+            <div><span>Situação</span><strong>{historicoSelecionado.situacao}</strong></div>
+          </div>
+          <ol className="prototype-ingressos-candidate-history-timeline">
+            <li><span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span><div className="prototype-ingressos-candidate-history-card"><small>15/09/2026 às 09:30</small><strong>Ingresso comissionado iniciado</strong><p>Cadastro criado para nomeação exclusivamente comissionada.</p><span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span></div></li>
+            <li><span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-info-circle" aria-hidden="true" /></span><div className="prototype-ingressos-candidate-history-card"><small>16/09/2026 às 14:10</small><strong>Situação atualizada</strong><p>O ingresso passou para a situação {historicoSelecionado.situacao}.</p><span className="prototype-ingressos-candidate-history-owner">Responsável: Roberto Junior — Provimento</span></div></li>
+          </ol>
+        </div> : null}
+      </ModalSeplag>
+    </PrototypeSystemPage>
+  );
+}
 interface IngressoEfetivoExercicioFiltroForm {
   termo: string;
 }
@@ -12692,6 +12948,16 @@ export function PrototiposIngressosTestePage() {
           title="Gestão de Ingresso"
           cols="12"
           cardHeaderClassNames="prototype-regime-card prototype-ingressos-card"
+          headerNavigation={
+            <BreadcrumbSeplag
+              divided
+              className="prototype-ingresso-header-breadcrumb"
+              items={[
+                { label: "Ingresso" },
+                { label: "Gestão de Ingresso" },
+              ]}
+            />
+          }
         >
           <div className="prototype-ingressos-teste-content">
           <p className="prototype-ingressos-teste-support">Acompanhe concursos e processos seletivos disponíveis para ingresso.</p>
@@ -15489,13 +15755,20 @@ export function PrototiposNovoIngressoPage() {
   const [regimeJuridicoSelecionado, setRegimeJuridicoSelecionado] = useState(
     processoOrigemDados?.titulo === "Processo Seletivo SEPLAG 2027"
       ? "Sem Vínculo Empregatício"
-      : ingressoOrigemLista && (tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo") ? "Estatutário Civil" : "",
+      : tipoInicial === "Exclusivo Comissionado"
+        ? "Regime Misto"
+        : ingressoOrigemLista && (tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo") ? "Estatutário Civil" : "",
   );
   const [perfilEspecialidade, setPerfilEspecialidade] = useState(modoVisualizacao ? "Perfil Geral" : ingressoOrigemLista && cargoInicial ? getPerfilEspecialidadeIngresso(cargoInicial) : "");
   const [nivelIngresso, setNivelIngresso] = useState(ingressoOrigemLista ? "superior" : "");
   const [dataNomeacao, setDataNomeacao] = useState(
     candidatoProcessoOrigem?.dataNomeacao && candidatoProcessoOrigem.dataNomeacao !== "-"
       ? candidatoProcessoOrigem.dataNomeacao.split("/").reverse().join("-")
+      : "",
+  );
+  const [atoNomeacao, setAtoNomeacao] = useState(
+    tipoInicial === "Exclusivo Comissionado" && candidatoParam
+      ? ingressosComissionadosMock.find((registro) => registro.id === Number(candidatoParam))?.atoNomeacao ?? ""
       : "",
   );
   const [dataPosseIngresso, setDataPosseIngresso] = useState(
@@ -15742,10 +16015,12 @@ export function PrototiposNovoIngressoPage() {
     setEqualizacaoSiesValidada(Boolean(cargoSigepEqualizado) && !solicitacaoParametrizacao);
     setModalResultadoEqualizacaoAberto(true);
   };
+  const usaFluxoDocumentacao =
+    tipoIngresso === "Processo Seletivo" || tipoIngresso === "Exclusivo Comissionado";
   const fluxoNovoIngressoTabs =
     tipoIngresso === "Concurso"
       ? novoIngressoConcursoSteps
-      : tipoIngresso === "Processo Seletivo"
+      : usaFluxoDocumentacao
         ? novoIngressoProcessoSeletivoSteps
         : novoIngressoEtapaInicial;
   const isPerfilSetorial = perfilNovoIngresso === "SETORIAL";
@@ -15981,7 +16256,8 @@ export function PrototiposNovoIngressoPage() {
       !tipoIngresso ||
       !nivelIngresso ||
       !perfilEspecialidade ||
-      !cidadeSelecionada ||
+      (tipoIngresso === "Exclusivo Comissionado" && !/^[0-9]{4}\/[0-9]{4}$/.test(atoNomeacao)) ||
+      (tipoIngresso !== "Exclusivo Comissionado" && !cidadeSelecionada) ||
       (vinculoExigeDadosEducacionais &&
         !instituicaoEnsino.trim()) ||
       (vinculoEstagiario &&
@@ -16970,6 +17246,7 @@ export function PrototiposNovoIngressoPage() {
               <option value="Estatutário">Estatutário</option>
               <option value="Celetista">Celetista</option>
               <option value="Regime Especial">Regime Especial</option>
+              <option value="Regime Misto">Regime Misto</option>
               <option value="Sem Vínculo Empregatício">Sem Vínculo Empregatício</option>
             </select>
           </label>
@@ -16981,6 +17258,7 @@ export function PrototiposNovoIngressoPage() {
                 setTipoVinculoEditavel(novoTipoVinculo);
                 if (["Estagiário", "Bolsista"].includes(novoTipoVinculo)) {
                   setTipoVagaSelecionada("");
+                  setAtoNomeacao("");
                 } else {
                   setInstituicaoEnsino("");
                   setAgenteIntegracao("");
@@ -17046,7 +17324,7 @@ export function PrototiposNovoIngressoPage() {
                 </button>
               </div>
             </div>
-          ) : null}          <label className={`prototype-ingresso-field ${tipoIngresso === "Concurso" ? "prototype-concurso-first-field" : tipoIngresso === "Processo Seletivo" ? "prototype-processo-seletivo-first-field" : ""}`}>
+          ) : null}          {tipoIngresso !== "Exclusivo Comissionado" ? <label className={`prototype-ingresso-field ${tipoIngresso === "Concurso" ? "prototype-concurso-first-field" : tipoIngresso === "Processo Seletivo" ? "prototype-processo-seletivo-first-field" : ""}`}>
             <span>{processoOrigemLabel}<em>*</em></span>
             <select
               value={concursoSelecionado}
@@ -17097,8 +17375,8 @@ export function PrototiposNovoIngressoPage() {
                 </option>
               ))}
             </select>
-          </label>
-          {tipoIngresso !== "Processo Seletivo" ? <label className="prototype-ingresso-field">
+          </label> : null}
+          {tipoIngresso !== "Processo Seletivo" && tipoIngresso !== "Exclusivo Comissionado" ? <label className="prototype-ingresso-field">
             <span>Carreira{tipoIngresso === "Concurso" ? <em>*</em> : null}</span>
             <select
               value={categoriaSelecionada}
@@ -17151,7 +17429,7 @@ export function PrototiposNovoIngressoPage() {
             <select
               value={perfilEspecialidade}
               required
-              disabled={ingressoOrigemLista || !cargoPerfilSelecionado}
+              disabled={tipoIngresso !== "Exclusivo Comissionado" && (ingressoOrigemLista || !cargoPerfilSelecionado)}
               onChange={(event) => setPerfilEspecialidade(event.target.value)}
             >
               <option value="">Selecione...</option>
@@ -17164,6 +17442,7 @@ export function PrototiposNovoIngressoPage() {
             <span>Quadro de vaga<em>*</em></span>
             <input type="text" value={concursoSelecionado && cargoSelecionado ? "QA-0012" : ""} required aria-required="true" readOnly />
           </div> : null}
+          {tipoIngresso !== "Exclusivo Comissionado" ? <>
           <label className="prototype-ingresso-field">
             <span>Polo</span>
             <select
@@ -17198,6 +17477,7 @@ export function PrototiposNovoIngressoPage() {
               ))}
             </select>
           </label>
+          </> : null}
           {vinculoExigeDadosEducacionais && !vinculoEstagiario ? (
             <>
               <label className="prototype-ingresso-field">
@@ -17231,7 +17511,7 @@ export function PrototiposNovoIngressoPage() {
               </label>
             </>
           ) : null}
-          <label className="prototype-ingresso-field">
+          {tipoIngresso !== "Exclusivo Comissionado" ? <label className="prototype-ingresso-field">
             <span>Classificação<em>*</em></span>
             <input
               type="text"
@@ -17244,8 +17524,8 @@ export function PrototiposNovoIngressoPage() {
                 setClassificacaoSelecionada(numeros ? `${Number(numeros)}°` : "");
               }}
             />
-          </label>
-          {!vinculoExigeDadosEducacionais ? (
+          </label> : null}
+          {!vinculoExigeDadosEducacionais && tipoIngresso !== "Exclusivo Comissionado" ? (
             <label className="prototype-ingresso-field">
               <span>Tipo de vaga<em>*</em></span>
               <select
@@ -17269,7 +17549,26 @@ export function PrototiposNovoIngressoPage() {
               onChange={(event) => setDataNomeacao(event.target.value)}
             />
           </label>
-          {tipoIngresso !== "Processo Seletivo" ? <label className="prototype-ingresso-field">
+          {tipoIngresso === "Exclusivo Comissionado" ? (
+            <label className="prototype-ingresso-field">
+              <span>Ato de Nomeação<em>*</em></span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="0000/0000"
+                maxLength={9}
+                pattern="[0-9]{4}/[0-9]{4}"
+                title="Informe o ato no formato 0000/0000"
+                required
+                value={atoNomeacao}
+                onChange={(event) => {
+                  const numeros = event.target.value.replace(/\D/g, "").slice(0, 8);
+                  setAtoNomeacao(numeros.length > 4 ? `${numeros.slice(0, 4)}/${numeros.slice(4)}` : numeros);
+                }}
+              />
+            </label>
+          ) : null}
+          {tipoIngresso !== "Processo Seletivo" && tipoIngresso !== "Exclusivo Comissionado" ? <label className="prototype-ingresso-field">
             <span>Data Agendada da Posse<em>*</em><small className="prototype-field-origin">Preenchimento manual</small></span>
             <input
               type="date"
@@ -17278,7 +17577,7 @@ export function PrototiposNovoIngressoPage() {
               onChange={(event) => setDataPosseIngresso(event.target.value)}
             />
           </label> : null}
-          {tipoIngresso !== "Processo Seletivo" ? <label className="prototype-ingresso-field">
+          {tipoIngresso !== "Processo Seletivo" && tipoIngresso !== "Exclusivo Comissionado" ? <label className="prototype-ingresso-field">
             <span>Data Limite para Posse<small className="prototype-field-origin">Calculado automaticamente e editável</small></span>
             <input type="date" value={dataLimitePosseEditavel || formatarDataInput(prazoFinalPosseAutomatico)} onChange={(event) => setDataLimitePosseEditavel(event.target.value)} />
           </label> : null}
@@ -17518,17 +17817,18 @@ export function PrototiposNovoIngressoPage() {
         <dl className="prototype-ingresso-readonly-grid">
           <div><dt>Nome</dt>{renderValorResumo(resumoIngressoNome)}</div>
           <div><dt>CPF</dt>{renderValorResumo(resumoIngressoCpf)}</div>
-          <div><dt>Tipo</dt>{renderValorResumo(tipoIngresso)}</div>
+          <div><dt>Tipo</dt>{renderValorResumo(tipoIngresso === "Exclusivo Comissionado" ? "Nomeação" : tipoIngresso)}</div>
           <div><dt>Tipo de Vínculo</dt>{renderValorResumo(tipoVinculoResumo)}</div>
+          {tipoIngresso === "Exclusivo Comissionado" ? <div><dt>Ato de Nomeação</dt>{renderValorResumo(atoNomeacao)}</div> : null}
           {vinculoEstagiario ? <div><dt>Agente de integração</dt>{renderValorResumo(agenteIntegracao)}</div> : null}
-          <div><dt>{tipoIngresso === "Processo Seletivo" ? "Processo Seletivo" : "Concurso"}</dt>{renderValorResumo(concursoProcessoResumo)}</div>
+          {tipoIngresso !== "Exclusivo Comissionado" ? <div><dt>{tipoIngresso === "Processo Seletivo" ? "Processo Seletivo" : "Concurso"}</dt>{renderValorResumo(concursoProcessoResumo)}</div> : null}
           <div><dt>Regime Jurídico</dt>{renderValorResumo(regimeJuridicoSelecionado)}</div>
           <div><dt>Decisão Judicial</dt>{renderValorResumo(decisaoJudicial)}</div>
-          {tipoIngresso !== "Processo Seletivo" ? <div>
+          {tipoIngresso !== "Processo Seletivo" && tipoIngresso !== "Exclusivo Comissionado" ? <div>
             <dt>{activeTab === "efetivo-exercicio" ? "Data da Posse" : "Prazo para Posse"}</dt>
             {renderValorResumo(activeTab === "efetivo-exercicio" ? (dataPosseIngresso ? formatarDataIsoParaPtBr(dataPosseIngresso) : "") : "30/07/2026")}
           </div> : null}
-          {tipoIngresso !== "Processo Seletivo" ? <div><dt>Carreira</dt>{renderValorResumo(categoriaSelecionada)}</div> : null}
+          {tipoIngresso !== "Processo Seletivo" && tipoIngresso !== "Exclusivo Comissionado" ? <div><dt>Carreira</dt>{renderValorResumo(categoriaSelecionada)}</div> : null}
           <div><dt>Cargo</dt>{renderValorResumo(cargoSelecionado)}</div>
           <div>
             <dt>Situação</dt>
@@ -17600,7 +17900,9 @@ export function PrototiposNovoIngressoPage() {
                   setInstituicaoEnsino("");
                   setAgenteIntegracao("");
                   setRegimeJuridicoSelecionado(
-                    "",
+                    tipoIngresso !== option.value && option.value === "Exclusivo Comissionado"
+                      ? "Regime Misto"
+                      : "",
                   );
                   setConcursoSelecionado("");
                   setOrgaoSelecionado("");
@@ -18780,7 +19082,7 @@ export function PrototiposNovoIngressoPage() {
           cardHeaderClassNames="prototype-novo-ingresso-card"
         >
           <div className={`prototype-ingresso-flow ${activeTab === "tipo-ingresso" ? "" : "prototype-novo-ingresso-etapa-panel"}`}>
-            {tipoIngresso === "Concurso" || tipoIngresso === "Processo Seletivo"
+            {tipoIngresso === "Concurso" || usaFluxoDocumentacao
               ? renderNovoIngressoStepper()
               : null}
 

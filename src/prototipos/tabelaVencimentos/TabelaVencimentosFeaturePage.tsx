@@ -1016,6 +1016,7 @@ function List({ batch = false }: { batch?: boolean }) {
               isVersionCurrent,
             )?.inicio,
         )?.id,
+        sourceSavedId: saved?.id,
         incideRga:
           cargo.incideRga ??
           (cargo.id === 1
@@ -1023,6 +1024,21 @@ function List({ batch = false }: { batch?: boolean }) {
             : (saved?.incideRga ?? hasStaticTable)),
       };
     });
+  };
+  const openRgaApplication = (
+    cargo: Cargo,
+    jornada: string,
+    sourceSavedId?: string,
+  ) => {
+    const params = new URLSearchParams({
+      cargo: String(cargo.id),
+      jornada,
+      inicio: formatDate(localIsoDate()),
+      fim: "",
+      incideRga: "true",
+    });
+    if (sourceSavedId) params.set("registro", sourceSavedId);
+    nav(BASE + "/aplicar-rga?" + params.toString());
   };
   const endValidity = (
     cargo: Cargo,
@@ -1248,6 +1264,7 @@ function List({ batch = false }: { batch?: boolean }) {
                                             jornada,
                                             versions,
                                             savedId,
+                                            sourceSavedId,
                                             incideRga,
                                           },
                                           journeyIndex,
@@ -1365,6 +1382,18 @@ function List({ batch = false }: { batch?: boolean }) {
                                                       "-" +
                                                       jornada && (
                                                     <div className="tv-journey-action-menu">
+                                                      {item.status === "Vigente" ? (
+                                                        <button
+                                                          type="button"
+                                                          onClick={() => {
+                                                            setJourneyActionMenu(null);
+                                                            openRgaApplication(cargo, jornada, sourceSavedId);
+                                                          }}
+                                                        >
+                                                          <i className="pi pi-percentage" />{" "}
+                                                          Aplicar RGA
+                                                        </button>
+                                                      ) : null}
                                                       <button
                                                         type="button"
                                                         onClick={() => {
@@ -1437,12 +1466,28 @@ function List({ batch = false }: { batch?: boolean }) {
                                                 <div className="tv-journey-actions">
                                                   <button
                                                     type="button"
+                                                    className="tv-journey-view-button"
+                                                    title="Cadastrar nova tabela"
+                                                    aria-label="Cadastrar nova tabela"
+                                                    onClick={() =>
+                                                      nav(
+                                                        BASE +
+                                                          "/novo?cargo=" +
+                                                          cargo.id +
+                                                          "&jornada=" +
+                                                          encodeURIComponent(jornada),
+                                                      )
+                                                    }
+                                                  >
+                                                    <i className="pi pi-plus" />
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    className="tv-journey-history-button"
                                                     title="Consultar histórico"
                                                     aria-label="Consultar histórico"
                                                     onClick={() => {
-                                                      setHistoryExpandedVersion(
-                                                        null,
-                                                      );
+                                                      setHistoryExpandedVersion(null);
                                                       setHistoryTab("valores");
                                                       setHistoryJourney({
                                                         cargo,
@@ -1452,24 +1497,6 @@ function List({ batch = false }: { batch?: boolean }) {
                                                     }}
                                                   >
                                                     <i className="pi pi-history" />
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    title="Cadastrar nova tabela"
-                                                    aria-label="Cadastrar nova tabela"
-                                                    onClick={() =>
-                                                      nav(
-                                                        BASE +
-                                                          "/novo?cargo=" +
-                                                          cargo.id +
-                                                          "&jornada=" +
-                                                          encodeURIComponent(
-                                                            jornada,
-                                                          ),
-                                                      )
-                                                    }
-                                                  >
-                                                    <i className="pi pi-plus" />
                                                   </button>
                                                 </div>
                                               ) : (
@@ -2203,7 +2230,15 @@ function Detail({ cargo }: { cargo: Cargo }) {
     </>
   );
 }
-function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
+function Form({
+  edit,
+  view = false,
+  rgaOnly = false,
+}: {
+  edit: boolean;
+  view?: boolean;
+  rgaOnly?: boolean;
+}) {
   const nav = useNavigate();
   const formRef = useRef<HTMLFormElement>(null);
   const versionConfirmed = useRef(false);
@@ -2216,10 +2251,14 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
     (table) => table.id === params.get("registro"),
   );
   const initialInicio = toInputDate(
-    savedRecord?.versao.inicio || params.get("inicio") || "",
+    rgaOnly
+      ? params.get("inicio") || savedRecord?.versao.inicio || ""
+      : savedRecord?.versao.inicio || params.get("inicio") || "",
   );
   const initialFim = toInputDate(
-    savedRecord?.versao.fim || params.get("fim") || "",
+    rgaOnly
+      ? params.get("fim") || ""
+      : savedRecord?.versao.fim || params.get("fim") || "",
   );
   const gridIncideRga = params.get("incideRga") === "true";
   const rgaContextEnabled =
@@ -2262,8 +2301,8 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
   const [documentosLegais, setDocumentosLegais] = useState<string[]>(
     savedRecord?.baseLegal ? savedRecord.baseLegal.split(", ") : [],
   );
-  const [incideRga, setIncideRga] = useState(
-    gridIncideRga || Boolean(savedRecord?.incideRga),
+  const [incideRga] = useState(
+    rgaOnly || gridIncideRga || Boolean(savedRecord?.incideRga),
   );
   const [observacao, setObservacao] = useState(
     view || edit
@@ -2273,7 +2312,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
   );
   const [activeTab, setActiveTab] = useState<
     "identificacao" | "valores" | "rga"
-  >("identificacao");
+  >(rgaOnly ? "rga" : "identificacao");
   const [rgaPercentual, setRgaPercentual] = useState(
     rgaInfo?.percentual || "",
   );
@@ -2490,6 +2529,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
     setRgaSuccess(true);
     setRgaError("");
     setRgaApplyConfirmation(false);
+    if (rgaOnly) versionConfirmed.current = true;
   };
   const back = () => nav(BASE);
   const save = (e: FormEvent<HTMLFormElement>) => {
@@ -2576,11 +2616,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
       );
       return;
     }
-    if (activeTab === "valores" && incideRga) {
-      setError("");
-      setActiveTab("rga");
-      return;
-    }
+
     if (activeTab === "rga" && !rgaApplied && !edit) {
       setError(
         "Simule e confirme a aplicação da RGA antes de salvar a tabela.",
@@ -2718,12 +2754,15 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
   return (
     <CardSeplag
       title={
-        view
-          ? "Visualizar tabela de vencimentos"
-          : edit
-            ? "Alterar tabela de vencimentos – " +
-              (savedRecord?.versao.ano || initialInicio.slice(0, 4) || "2026")
-            : "Nova tabela de vencimentos"
+        rgaOnly
+          ? "Aplicar RGA – " +
+            (initialInicio.slice(0, 4) || String(new Date().getFullYear()))
+          : view
+            ? "Visualizar tabela de vencimentos"
+            : edit
+              ? "Alterar tabela de vencimentos – " +
+                (savedRecord?.versao.ano || initialInicio.slice(0, 4) || "2026")
+              : "Nova tabela de vencimentos"
       }
       cols="12"
       cardHeaderClassNames="prototype-regime-card prototype-ingressos-card tv-form-card"
@@ -2734,7 +2773,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
             { label: "Cadastro" },
             { label: "Cargo e Concurso" },
             { label: "Tabela de Vencimentos", to: BASE },
-            { label: view ? "Visualizar" : edit ? "Versionar" : "Cadastrar" },
+            { label: rgaOnly ? "Aplicar RGA" : view ? "Visualizar" : edit ? "Versionar" : "Cadastrar" },
           ]}
         />
       }
@@ -2754,7 +2793,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
         }}
       >
         <nav
-          className="tv-form-tabs"
+          className={`tv-form-tabs ${rgaOnly ? "tv-form-tabs--rga-only" : "tv-form-tabs--two"}`}
           aria-label="Etapas da tabela de vencimentos"
         >
           <button
@@ -2771,14 +2810,15 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
           >
             Valores por Nível e Classe
           </button>
-          <button
-            type="button"
-            disabled={!incideRga}
-            className={activeTab === "rga" ? "active" : ""}
-            onClick={() => setActiveTab("rga")}
-          >
-            Aplicação de RGA
-          </button>
+          {rgaOnly ? (
+            <button
+              type="button"
+              className={activeTab === "rga" ? "active" : ""}
+              onClick={() => setActiveTab("rga")}
+            >
+              Aplicação de RGA
+            </button>
+          ) : null}
         </nav>
         <section
           className={
@@ -2858,7 +2898,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                 required
                 name="inicio"
                 type="date"
-                disabled={view}
+                disabled={view || rgaOnly}
                 value={vigenciaInicio}
                 onChange={(event) => {
                   invalidateRgaSimulation();
@@ -2871,7 +2911,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
               <input
                 name="fim"
                 type="date"
-                disabled={view}
+                disabled={view || rgaOnly}
                 value={vigenciaFim}
                 onChange={(event) => {
                   invalidateRgaSimulation();
@@ -2880,7 +2920,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
               />
             </label>
             <div className="prototype-ingresso-field tv-base-legal-field">
-              {view ? (
+              {view || rgaOnly ? (
                 <label className="prototype-ingresso-field">
                   <span>Base legal</span>
                   <input
@@ -2909,44 +2949,6 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
                 />
               )}
             </div>
-            <div
-              className="tv-rga-field"
-              role="group"
-              aria-labelledby="tv-rga-label"
-            >
-              <span id="tv-rga-label" className="tv-rga-label">
-                Incide RGA?
-              </span>
-              <div className="tv-rga-options">
-                <label>
-                  <input
-                    type="radio"
-                    name="incideRga"
-                    checked={incideRga}
-                    disabled={view}
-                    onChange={() => {
-                      invalidateRgaSimulation();
-                      setIncideRga(true);
-                    }}
-                  />
-                  <span>Sim</span>
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="incideRga"
-                    checked={!incideRga}
-                    disabled={view}
-                    onChange={() => {
-                      invalidateRgaSimulation();
-                      setIncideRga(false);
-                      if (activeTab === "rga") setActiveTab("identificacao");
-                    }}
-                  />
-                  <span>Não</span>
-                </label>
-              </div>
-            </div>
           </div>
         </section>
         <section
@@ -2974,7 +2976,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
               name="observacao"
               rows={5}
               maxLength={2000}
-              disabled={view}
+              disabled={view || rgaOnly}
               value={observacao}
               onChange={(event) => setObservacao(event.target.value)}
             />
@@ -2996,7 +2998,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
           <div className="tv-values-content">
             <div className="tv-section-head">
               <p>Matriz gerada conforme a estrutura do cargo e da carreira.</p>
-              {!view && (
+              {!view && !rgaOnly && (
                 <BotaoSeplag
                   type="button"
                   label="Copiar valores da tabela anterior"
@@ -3008,9 +3010,10 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
             </div>
             <Matrix
               key={String(copy) + String(Boolean(rgaAppliedMatrix))}
-              edit={!view}
+              edit={!view && !rgaOnly}
               copy={
                 view ||
+                rgaOnly ||
                 copy ||
                 Boolean(rgaAppliedMatrix) ||
                 Boolean(rgaSimulationStale && rgaBaseMatrix)
@@ -3024,7 +3027,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
             />
           </div>
         </section>
-        {incideRga && (
+        {rgaOnly && (
           <section
             className={
               "prototype-novo-ingresso-panel tv-rga-panel tv-tab-panel " +
@@ -3358,7 +3361,7 @@ function Form({ edit, view = false }: { edit: boolean; view?: boolean }) {
         {error && <div className="tv-error">{error}</div>}
         <div className="tv-form-actions">
           <BotaoVoltarSeplag type="button" label="Voltar" onClick={back} />
-          {!view && (
+          {!view && (!rgaOnly || activeTab === "rga") && (
             <div className="tv-form-actions-primary">
               <BotaoSalvarSeplag
                 type="submit"
@@ -3495,6 +3498,8 @@ export function TabelaVencimentosFeaturePage() {
   else if (loc.pathname.endsWith("/novo")) content = <Form edit={false} />;
   else if (loc.pathname.endsWith("/visualizar"))
     content = <Form edit={false} view />;
+  else if (loc.pathname.endsWith("/aplicar-rga"))
+    content = <Form edit rgaOnly />;
   else if (loc.pathname.includes("/editar/")) content = <Form edit />;
   else if (cargo) content = <Detail cargo={cargo} />;
   return (

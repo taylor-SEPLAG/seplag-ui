@@ -2314,6 +2314,12 @@
   margin-bottom: 16px;
   border-bottom: 1px solid #cbd8e5;
 }
+.tv-form-tabs.tv-form-tabs--rga-only {
+  grid-template-columns: repeat(3, 1fr);
+}
+.tv-form-tabs.tv-form-tabs--two {
+  grid-template-columns: repeat(2, 1fr);
+}
 .tv-form-tabs button {
   min-height: 44px;
   padding: 0 16px;
@@ -2539,6 +2545,10 @@
     grid-template-columns: 1fr;
   }
   .tv-form-tabs {
+    grid-template-columns: 1fr;
+  }
+  .tv-form-tabs.tv-form-tabs--two,
+  .tv-form-tabs.tv-form-tabs--rga-only {
     grid-template-columns: 1fr;
   }
 }

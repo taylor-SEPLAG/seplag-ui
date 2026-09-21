@@ -20149,3 +20149,65 @@
 .prototype-vencimentos-expanded td{font-size:.82rem}
 .prototype-vencimentos-empty-profile{padding:1rem 1.25rem;background:#f8fafc;color:#64748b;font-size:.84rem}
 @media(max-width:768px){.prototype-vencimentos-expanded{overflow-x:auto}.prototype-vencimentos-expanded table{min-width:720px}}
+
+/* Gestão de ingresso de comissionados */
+.prototype-ingressos-comissionados-filters {
+  grid-template-columns: minmax(280px, 520px) minmax(190px, 280px) max-content;
+  justify-content: start;
+  align-items: end;
+  column-gap: 20px;
+}
+
+.prototype-ingressos-comissionados-filters .prototype-category-clear {
+  margin-left: 4px;
+}
+
+.prototype-ingressos-comissionados-filters .prototype-category-clear .p-button {
+  width: 150px !important;
+  min-width: 150px;
+  padding-inline: 14px;
+  white-space: nowrap;
+}
+
+.prototype-ingressos-comissionados-table-actions {
+  margin-top: 2px;
+  border: 1px solid #dee2e6;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+}
+.prototype-ingressos-comissionados-table {
+  width: 100%;
+  min-width: 1520px;
+  table-layout: fixed;
+}
+
+.prototype-ingressos-comissionados-table th:nth-child(1),
+.prototype-ingressos-comissionados-table td:nth-child(1) { width: 120px; }
+.prototype-ingressos-comissionados-table th:nth-child(2),
+.prototype-ingressos-comissionados-table td:nth-child(2) { width: 210px; }
+.prototype-ingressos-comissionados-table th:nth-child(3),
+.prototype-ingressos-comissionados-table td:nth-child(3) {
+  width: 170px;
+  white-space: nowrap;
+}
+.prototype-ingressos-comissionados-table th:nth-child(4),
+.prototype-ingressos-comissionados-table td:nth-child(4) { width: 180px; }
+.prototype-ingressos-comissionados-table th:nth-child(5),
+.prototype-ingressos-comissionados-table td:nth-child(5) { width: 110px; }
+.prototype-ingressos-comissionados-table th:nth-child(6),
+.prototype-ingressos-comissionados-table td:nth-child(6) { width: 190px; }
+.prototype-ingressos-comissionados-table th:nth-child(7),
+.prototype-ingressos-comissionados-table td:nth-child(7) { width: 220px; }
+.prototype-ingressos-comissionados-table th:nth-child(8),
+.prototype-ingressos-comissionados-table td:nth-child(8) { width: 190px; }
+.prototype-ingressos-comissionados-table th:nth-child(9),
+.prototype-ingressos-comissionados-table td:nth-child(9) { width: 120px; }
+
+@media (max-width: 900px) {
+  .prototype-ingressos-comissionados-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.prototype-ingresso-header-breadcrumb {
+  margin-bottom: 14px !important;
+}
