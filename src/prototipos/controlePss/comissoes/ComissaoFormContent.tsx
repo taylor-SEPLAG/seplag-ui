@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA } from "../constants";
+import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA, CONTROLE_PSS_USUARIO_LOGADO } from "../constants";
 import { comissoesStore, useComissoes } from "./comissoesStore";
 import { CARGOS_MEMBRO_COMISSAO, LOCAIS_PUBLICACAO_ATO, SERVIDORES_CADASTRADOS, STATUS_COMISSAO, TIPOS_ATO_NOMEACAO, TIPOS_COMISSAO, iniciaisNome, orgaoDoServidor } from "./dominios";
 import { ORGAOS_CERTAME } from "../certame/dominios";
 import { certamesMock } from "../certame/mock";
-import type { AtoNomeacaoMembro, ArquivoAtoNomeacao, CargoMembroComissao, Comissao, LocalPublicacaoAto, MembroComissao, StatusComissao, TipoAtoNomeacao, TipoComissao } from "./types";
+import type { AtoNomeacaoMembro, ArquivoAtoNomeacao, CargoMembroComissao, Comissao, HistoricoAlteracaoMembro, LocalPublicacaoAto, MembroComissao, StatusComissao, TipoAtoNomeacao, TipoComissao, TipoEventoHistoricoMembro } from "./types";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoAdicionarSeplag, BotaoFecharSeplag, BotaoIconSeplag, BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
@@ -105,6 +105,9 @@ export function ComissaoFormContent() {
  const valores = watch();
  const [aba, setAba] = useState<"IDENTIFICACAO" | "COMPOSICAO">("IDENTIFICACAO");
  const [membros, setMembros] = useState<MembroComissao[]>(existente ? [...existente.membros] : []);
+ // Histórico da composição (ver HistoricoMembrosComissaoModal) — como `membros`, fica só em memória
+ // do formulário até "Salvar", quando é gravado junto com o resto (ver `salvar` abaixo).
+ const [historicoMembros, setHistoricoMembros] = useState<HistoricoAlteracaoMembro[]>(existente ? [...existente.historicoMembros] : []);
  const [erro, setErro] = useState<string | null>(null);
  // Documento que institui a comissão (ex.: Portaria/Decreto de criação) — mesmo padrão de anexo
  // (.pdf, único arquivo) do Ato de nomeação de cada membro.
@@ -140,12 +143,12 @@ export function ComissaoFormContent() {
    orgao:dados.orgao, vinculoResponsavelId:dados.vinculoResponsavelId || undefined, arquivo:arquivoComissaoPendente,
   };
   if (existente) {
-   comissoesStore.update(existente.id, { ...dadosComuns, membros, atualizadoEm:agora });
+   comissoesStore.update(existente.id, { ...dadosComuns, membros, historicoMembros, atualizadoEm:agora });
    navigate(`${BASE}/comissoes/${existente.id}`);
    return;
   }
   const novoId = `COM-${Date.now()}`;
-  const nova:Comissao = { id:novoId, numero:numeroForm, ...dadosComuns, status:"RASCUNHO", membros, criadoEm:agora, atualizadoEm:agora };
+  const nova:Comissao = { id:novoId, numero:numeroForm, ...dadosComuns, status:"RASCUNHO", membros, historicoMembros, criadoEm:agora, atualizadoEm:agora };
   comissoesStore.create(nova);
   navigate(`${BASE}/comissoes/${novoId}`);
  });
@@ -191,6 +194,29 @@ export function ComissaoFormContent() {
  const visualizarMembro = (membro:MembroComissao) => abrirMembroExistente(membro, true);
  const fecharModalMembro = () => setModalMembroAberto(false);
 
+ // Histórico da composição: registra um evento append-only por alteração real (nunca edita um
+ // evento já gravado) — inclusão, troca de cargo e substituição do arquivo do ato de nomeação são
+ // eventos distintos, e as duas últimas podem acontecer juntas na mesma confirmação do modal.
+ const registrarEventosMembro = (membroSalvo:MembroComissao, membroAnterior:MembroComissao | undefined) => {
+  const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
+  const registradoEm = `${agora} ${new Date().toTimeString().slice(0, 5)}`;
+  const eventos:HistoricoAlteracaoMembro[] = [];
+  const criarEvento = (tipo:TipoEventoHistoricoMembro, descricao:string) => eventos.push({ id:`HIST-${Date.now()}-${eventos.length}`, membroId:membroSalvo.id, membroNome:membroSalvo.nome, tipo, descricao, registradoEm, usuario:CONTROLE_PSS_USUARIO_LOGADO });
+  if (!membroAnterior) {
+   criarEvento("MEMBRO_ADICIONADO", `Incluído na comissão como ${cargoLabel[membroSalvo.cargo]}.`);
+  } else {
+   if (membroAnterior.cargo !== membroSalvo.cargo) criarEvento("CARGO_ALTERADO", `Cargo alterado de ${cargoLabel[membroAnterior.cargo]} para ${cargoLabel[membroSalvo.cargo]}.`);
+   const arquivoAnterior = membroAnterior.atoNomeacao.arquivo?.nome;
+   const arquivoNovo = membroSalvo.atoNomeacao.arquivo?.nome;
+   if (arquivoAnterior !== arquivoNovo) {
+    if (!arquivoAnterior) criarEvento("ARQUIVO_ATO_ALTERADO", `Arquivo do ato de nomeação anexado (${arquivoNovo}).`);
+    else if (!arquivoNovo) criarEvento("ARQUIVO_ATO_ALTERADO", `Arquivo do ato de nomeação removido (era ${arquivoAnterior}).`);
+    else criarEvento("ARQUIVO_ATO_ALTERADO", `Arquivo do ato de nomeação substituído (${arquivoAnterior} → ${arquivoNovo}).`);
+   }
+  }
+  if (eventos.length > 0) setHistoricoMembros((atuais) => [...atuais, ...eventos]);
+ };
+
  const confirmarMembro = () => {
   const servidor = servidorSelecionado;
   if (!servidor) { setErro("Selecione um servidor para compor a comissão."); return; }
@@ -199,12 +225,23 @@ export function ComissaoFormContent() {
   const dados = membroForm.getValues();
   const atoNomeacao:AtoNomeacaoMembro = { tipoAto:dados.tipoAto || undefined, numeroAto:dados.numeroAto || undefined, dataPublicacao:dados.dataPublicacao || undefined, localPublicacao:dados.localPublicacao || undefined, arquivo:arquivoAtoPendente };
   const membroSalvo:MembroComissao = { id:membroEmEdicaoId ?? `MBR-${Date.now()}`, servidorId:servidor.id, nome:servidor.nome, matricula:servidor.matricula, lotacao:servidor.lotacao, cargo:dados.cargo, inicio:dados.inicio || undefined, fim:dados.fim || undefined, atoNomeacao };
+  registrarEventosMembro(membroSalvo, membroEmEdicaoId ? membros.find((item) => item.id === membroEmEdicaoId) : undefined);
   setMembros((atuais) => membroEmEdicaoId ? atuais.map((item) => item.id === membroEmEdicaoId ? membroSalvo : item) : [...atuais, membroSalvo]);
   setModalMembroAberto(false);
  };
 
  const [membroExcluirId, setMembroExcluirId] = useState<string | null>(null);
- const confirmarRemocaoMembro = () => { if (membroExcluirId) setMembros((atuais) => atuais.filter((item) => item.id !== membroExcluirId)); setMembroExcluirId(null); };
+ const confirmarRemocaoMembro = () => {
+  if (membroExcluirId) {
+   const membroRemovido = membros.find((item) => item.id === membroExcluirId);
+   if (membroRemovido) {
+    const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
+    setHistoricoMembros((atuais) => [...atuais, { id:`HIST-${Date.now()}`, membroId:membroRemovido.id, membroNome:membroRemovido.nome, tipo:"MEMBRO_REMOVIDO", descricao:`Removido da comissão (era ${cargoLabel[membroRemovido.cargo]}).`, registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`, usuario:CONTROLE_PSS_USUARIO_LOGADO }]);
+   }
+   setMembros((atuais) => atuais.filter((item) => item.id !== membroExcluirId));
+  }
+  setMembroExcluirId(null);
+ };
 
  // Ato de nomeação tem uma única vaga de arquivo (o PDF do próprio ato) — anexar substitui o
  // arquivo anterior, mesmo padrão de validação (.pdf, até 2MB) do DocumentosCertameTabela.
@@ -221,6 +258,13 @@ export function ComissaoFormContent() {
   reader.readAsDataURL(selecionado);
  };
 
+ // Histórico: registra a troca do documento único da comissão (aba Identificação) — mesma ideia de
+ // registrarEventosMembro, mas sem membro associado (ver DOCUMENTO_COMISSAO_ALTERADO em types.ts).
+ const registrarEventoDocumentoComissao = (descricao:string) => {
+  const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
+  setHistoricoMembros((atuais) => [...atuais, { id:`HIST-${Date.now()}`, tipo:"DOCUMENTO_COMISSAO_ALTERADO", descricao, registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`, usuario:CONTROLE_PSS_USUARIO_LOGADO }]);
+ };
+
  // Documento da comissão tem uma única vaga de arquivo — anexar substitui o arquivo anterior,
  // mesmo padrão de validação (.pdf, até 2MB) do Ato de nomeação.
  const onSelecionarArquivoComissao = (event:React.ChangeEvent<HTMLInputElement>) => {
@@ -229,11 +273,18 @@ export function ComissaoFormContent() {
   if (!selecionado) return;
   if (!arquivoDocumentoCertameValido(selecionado)) { setErro("Arquivo inválido: formato aceito .pdf, com até 2MB."); return; }
   setErro(null);
+  const arquivoAnterior = arquivoComissaoPendente?.nome;
   const reader = new FileReader();
   reader.onload = () => {
    setArquivoComissaoPendente({ id:`ARQ-${Date.now()}`, nome:selecionado.name, extensao:"pdf", contentType:selecionado.type, conteudoEmBase64:String(reader.result).split(",")[1] ?? "", tamanho:selecionado.size });
+   registrarEventoDocumentoComissao(arquivoAnterior ? `Documento da comissão substituído (${arquivoAnterior} → ${selecionado.name}).` : `Documento da comissão anexado (${selecionado.name}).`);
   };
   reader.readAsDataURL(selecionado);
+ };
+
+ const removerArquivoComissao = () => {
+  if (arquivoComissaoPendente) registrarEventoDocumentoComissao(`Documento da comissão removido (era ${arquivoComissaoPendente.nome}).`);
+  setArquivoComissaoPendente(undefined);
  };
 
  const voltar = () => navigate(`${BASE}/comissoes`);
@@ -266,10 +317,10 @@ export function ComissaoFormContent() {
      <div className="prototype-certame-bloco">
       <BlocoHeader icone="pi-id-card" titulo="Identificação" subtitulo="Dados que identificam a comissão no sistema." />
       <div className="grid">
-       <RotuloSeplag nome="Número" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{numeroForm}</div></RotuloSeplag>
+       <RotuloSeplag nome="Código" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{numeroForm}</div></RotuloSeplag>
        <DropdownFieldSeplag name="tipo" control={control} label="Tipo" required cols="12 6 4" options={TIPOS_COMISSAO} optionLabel="label" optionValue="value" showClear={false} disabled={modoVisualizar} getFormErrorMessage={() => null} />
        <DropdownFieldSeplag name="certameId" control={control} label="Edital" cols="12 6 4" options={opcoesConcurso} optionLabel="label" optionValue="value" placeholder="Nenhum edital vinculado" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <TextFieldSeplag name="nome" control={control} label="Nome" required cols="12" placeholder="Nome da comissão" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+       <TextFieldSeplag name="nome" control={control} label="Nome da Comissão" required cols="12" placeholder="Nome da comissão" disabled={modoVisualizar} getFormErrorMessage={() => null} />
        <TextAreaFieldSeplag name="observacoes" control={control} label="Observações" cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
       </div>
      </div>
@@ -287,8 +338,8 @@ export function ComissaoFormContent() {
      <div className="prototype-certame-bloco">
       <BlocoHeader icone="pi-building" titulo="Responsabilidade" subtitulo="Unidades e servidor responsáveis pela comissão." />
       <div className="grid">
-       <DropdownFieldSeplag name="orgao" control={control} label="Órgão" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <DropdownFieldSeplag name="vinculoResponsavelId" control={control} label="Vínc. responsável" cols="12 6" options={servidoresDoOrgao.map((item) => ({ label:item.nome, value:item.id, matricula:item.matricula }))} optionLabel="label" optionValue="value" filterBy="label,matricula" itemTemplate={(option) => <span>{option.matricula} — {option.label}</span>} placeholder={valores.orgao ? "Selecione o servidor responsável" : "Selecione o Órgão primeiro"} disabled={modoVisualizar || !valores.orgao} getFormErrorMessage={() => null} />
+       <DropdownFieldSeplag name="orgao" control={control} label="Órgão do Servidor Responsável" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} disabled={modoVisualizar} getFormErrorMessage={() => null} />
+       <DropdownFieldSeplag name="vinculoResponsavelId" control={control} label="Servidor responsável" cols="12 6" options={servidoresDoOrgao.map((item) => ({ label:item.nome, value:item.id, matricula:item.matricula }))} optionLabel="label" optionValue="value" filterBy="label,matricula" itemTemplate={(option) => <span>{option.matricula} — {option.label}</span>} placeholder={valores.orgao ? "Selecione o servidor responsável" : "Selecione o Órgão primeiro"} disabled={modoVisualizar || !valores.orgao} getFormErrorMessage={() => null} />
       </div>
      </div>
 
@@ -306,7 +357,7 @@ export function ComissaoFormContent() {
           <div className="flex gap-2 justify-content-end">
            {!modoVisualizar && <BotaoIconSeplag type="button" icon="pi pi-cloud-upload" tooltip={arquivoComissaoPendente ? "Substituir arquivo" : "Anexar arquivo"} onClick={() => document.getElementById("comissao-arquivo-upload")?.click()} />}
            <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar arquivo" disabled={!arquivoComissaoPendente} onClick={() => setVisualizarArquivoComissao(true)} />
-           {!modoVisualizar && <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover arquivo" disabled={!arquivoComissaoPendente} onClick={() => setArquivoComissaoPendente(undefined)} />}
+           {!modoVisualizar && <BotaoIconSeplag type="button" icon="pi pi-trash" severity="danger" tooltip="Remover arquivo" disabled={!arquivoComissaoPendente} onClick={removerArquivoComissao} />}
           </div>
          </td>
         </tr>

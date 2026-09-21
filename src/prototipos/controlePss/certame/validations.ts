@@ -52,6 +52,19 @@ export function situacaoAtualDoHistorico(historico:readonly SituacaoHistoricoCer
  return historico.length > 0 ? historico[historico.length - 1].tipo : "ABERTO";
 }
 
+// RN010/CA06 (US218 - Identificação): uma vez que o certame atinge Homologação ou Homologação
+// Parcial, a aba Identificação vira somente leitura em definitivo — mesmo que a situação atual
+// depois avance para Prorrogação da Validade, Cancelamento/Anulação etc. A trava só é suspensa
+// enquanto a situação atual for uma das três retificações (Edital, Homologação ou Homologação
+// Parcial); qualquer avanço posterior a partir dali reaplica o bloqueio.
+export function identificacaoTravadaPorHistorico(historico:readonly SituacaoHistoricoCertame[]):boolean {
+ const jaHomologou = historico.some((item) => item.tipo === "HOMOLOGADO" || item.tipo === "HOMOLOGACAO_PARCIAL");
+ if (!jaHomologou) return false;
+ const atual = situacaoAtualDoHistorico(historico);
+ const emRetificacao = atual === "RETIFICACAO_EDITAL" || atual === "RETIFICACAO_HOMOLOGACAO" || atual === "RETIFICACAO_HOMOLOGACAO_PARCIAL";
+ return !emRetificacao;
+}
+
 // RN001 (Listagem de Certames): o atalho "Editar" só fica disponível enquanto a situação atual do
 // certame é Abertura ou Retificação de Edital — depois que o certame avança (Paralisação,
 // Homologação, Prorrogação, Cancelamento etc.), o cadastro deixa de ser editável por aqui e as

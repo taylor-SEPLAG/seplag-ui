@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CONTROLE_PSS_BASE_PATH as BASE } from "../constants";
 import { useControlePssStore } from "../controlePssStore";
 import { SpecArea, SpecificationMode } from "../../shared/visualizationModes";
@@ -15,6 +15,7 @@ import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoAdicionarSeplag, BotaoLimparFiltroSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
 import { ModalSeplag } from "@componentes/Modal";
+import { MensagemSeplag } from "@componentes/Mensagem";
 import "./certame.css";
 
 const abaLabel:Record<RascunhoCertame["aba"], string> = { IDENTIFICACAO:"Identificação", CRONOGRAMA:"Cronograma", FINANCEIRO:"Contrato e Custos", VAGAS_COTAS:"Vagas", DOCUMENTOS:"Documentos" };
@@ -33,11 +34,20 @@ const situacaoEstilo:Record<SituacaoCertame,{ color:string; bg:string }> = {
 };
 const tipoLabel:Record<TipoCertame,string> = Object.fromEntries(TIPOS_CERTAME.map((item) => [item.value, item.label])) as Record<TipoCertame,string>;
 
-const ITENS_POR_PAGINA_OPCOES = [10, 20, 50];
+const ITENS_POR_PAGINA_OPCOES = [10, 20, 30];
 
 export function CertamesListContent() {
  const { certames } = useControlePssStore();
  const navigate = useNavigate();
+ const location = useLocation();
+ // CA01 (Novo Certame): quem tenta acessar /certames/novo direto pela URL é redirecionado para cá
+ // com este aviso (ver CertameFormContent) — exibido uma vez, some ao ser fechado ou ao navegar de novo.
+ const [avisoTipoCertame, setAvisoTipoCertame] = useState<string | null>((location.state as { avisoTipoCertame?:string } | null)?.avisoTipoCertame ?? null);
+ useEffect(() => {
+  if (!avisoTipoCertame) return undefined;
+  const temporizador = setTimeout(() => setAvisoTipoCertame(null), 6000);
+  return () => clearTimeout(temporizador);
+ }, [avisoTipoCertame]);
  const [orgaoFiltro, setOrgaoFiltro] = useState("");
  const [exercicioFiltro, setExercicioFiltro] = useState("");
  const [nomeEditalFiltro, setNomeEditalFiltro] = useState("");
@@ -102,6 +112,7 @@ export function CertamesListContent() {
    <CardSeplag title="Cadastro de Certames" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card">
     <div className="col-12"><div className="prototype-ingressos-teste-content">
      <SpecArea metadata={certamesListBlockSpecifications.aviso}><p className="prototype-ingressos-teste-support">Concursos Públicos e Processos Seletivos Simplificados cadastrados no SIGEP com base no edital publicado, para fins de vínculo do candidato e prestação de contas ao TCE-MT.</p></SpecArea>
+     {avisoTipoCertame && <MensagemSeplag severity="warning" message={avisoTipoCertame} cols="12" />}
      <hr className="prototype-ingressos-teste-header-divider" />
 
      <section className="prototype-ingressos-teste-indicators prototype-certames-list-indicators" aria-label="Indicadores de certames">
@@ -171,10 +182,10 @@ export function CertamesListContent() {
        </thead>
        <tbody>
         {rascunhos.map((rascunho) => <tr key={rascunho.id} className="prototype-certames-rascunho-linha">
-         <td>{rascunho.valores.numeroConcurso || "_"}</td>
-         <td>{rascunho.valores.anoConcurso || "_"}</td>
+         <td>{rascunho.valores.numeroConcurso || "-"}</td>
+         <td>{rascunho.valores.anoConcurso || "-"}</td>
          <td>{rascunho.valores.nomeEdital || "Novo certame"}</td>
-         <td>{rascunho.valores.setor || "_"}</td>
+         <td>{rascunho.valores.setor || "-"}</td>
          <td>{tipoLabel[rascunho.valores.tipoCertame] ?? "_"}</td>
          <td><BadgeSeplag label="Em andamento" color="#8a5c00" bg="#fff1cf" border="transparent" size="sm" /></td>
          <td>
