@@ -134,7 +134,7 @@ export function TextFieldSeplag<T extends FieldValues = any>(
         maxLength={maxLength}
         aria-invalid={isInvalid || undefined}
         aria-describedby={hasErrorMessage ? errorElementId : undefined}
-        style={{ height: "40px" }}
+        style={{ height: "40px", width: "100%" }}
       />
     );
 

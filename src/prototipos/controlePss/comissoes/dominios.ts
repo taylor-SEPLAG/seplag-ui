@@ -43,6 +43,12 @@ export const SERVIDORES_CADASTRADOS:readonly ServidorCadastrado[] = [
  { id:"SRV-0008", nome:"Henrique Oliveira Dias", matricula:"890123-8", lotacao:"SETASC — Assistência Social" },
 ];
 
+// A lotação sempre começa com a sigla do órgão ("SEPLAG — Gestão de Pessoas") — usado para
+// restringir o "Vínc. responsável" da comissão aos servidores lotados no órgão escolhido.
+export function orgaoDoServidor(servidor:ServidorCadastrado):string {
+ return servidor.lotacao.split(" — ")[0];
+}
+
 export function iniciaisNome(nome:string):string {
  const partes = nome.trim().split(/\s+/).filter(Boolean);
  if (partes.length === 0) return "";

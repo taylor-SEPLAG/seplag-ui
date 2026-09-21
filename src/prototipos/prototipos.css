@@ -3724,6 +3724,41 @@
   background: #f8f9fb;
 }
 
+.prototype-perfil-requisitos-table .p-multiselect {
+  width: 100%;
+  min-width: 14rem;
+}
+
+.prototype-perfil-requisitos-table td:has(.p-field) {
+  padding: 8px 12px;
+}
+
+.prototype-perfil-requisito-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #26364a;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.prototype-perfil-requisito-switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: #2f80ed;
+}
+
+.prototype-perfil-registro-cell {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.prototype-perfil-registro-cell select {
+  min-width: 13rem;
+}
+
 .prototype-cargo-teste-table .p-datatable-wrapper {
   max-width: 100%;
   overflow-x: hidden;
@@ -10826,6 +10861,40 @@
   color: #52616b;
   font-size: 0.85rem;
   line-height: 1.35;
+}
+
+.prototype-cargo-controle-vagas {
+  grid-column: 1 / -1;
+  padding: 12px;
+  border: 1px solid #d6e4f0;
+  border-radius: 4px;
+  background: #f8fbff;
+}
+
+.prototype-cargo-controle-vagas-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+.prototype-cargo-controle-vagas-header strong {
+  color: #183b63;
+}
+
+.prototype-cargo-controle-vagas-header span {
+  color: #52616b;
+  font-size: 0.875rem;
+}
+
+.prototype-cargo-controle-vagas-opcoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.prototype-cargo-controle-vagas-opcoes .prototype-shared-criterio-item {
+  min-height: 76px;
 }
 
 

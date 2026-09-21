@@ -38,6 +38,7 @@ import {
   PrototiposComponentesPage,
   PrototiposGestaoDocumentosPage,
   PrototiposGestaoDocumentosCadastroPage,
+  PrototiposCadastroGeralPage,
   PrototiposControleVagasRegrasPage,
   PrototiposControleVagasGeralPage,
   PrototiposVagasTemporariosPage,
@@ -56,6 +57,8 @@ import {
   PrototiposControleVagasVagasPage,
   PrototiposControleVagasCessoesPage,
   PrototiposControleVagasProjecoesPage,
+  PrototiposControleCertameGeralPage,
+  PrototiposVinculosFuncionaisGeralPage,
   PrototiposControlePssPainelPage,
   PrototiposControlePssProcessosPage,
   PrototiposControlePssVagasPage,
@@ -1521,6 +1524,7 @@ function App() {
         element={<PrototiposSicadChamadoDetalhePage />}
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
+      <Route path="/prototipos/sigep/cadastro" element={<PrototiposCadastroGeralPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma" element={<PrototiposOrganogramaPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" element={<PrototiposTiposUnidadesPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades/cadastrar" element={<PrototiposTipoUnidadeCadastroPage />} />
@@ -1767,6 +1771,8 @@ function App() {
       <Route path="/prototipos/sigep/movimentacao/cessoes/:id/corrigir" element={<PrototiposCorrecaoCessaoPage />} />
       <Route path="/prototipos/sigep/movimentacao/cessoes/nova/interna" element={<PrototiposNovaCessaoInternaPage />} />
       <Route path="/prototipos/sigep/movimentacao/cessoes/nova/externa" element={<PrototiposNovaCessaoExternaPage />} />
+      <Route path="/prototipos/sigep/controle-pss" element={<PrototiposControleCertameGeralPage />} />
+      <Route path="/prototipos/sigep/vinculos-funcionais" element={<PrototiposVinculosFuncionaisGeralPage />} />
       <Route
         path="/prototipos/sigep/controle-pss/painel"
         element={<PrototiposControlePssPainelPage />}

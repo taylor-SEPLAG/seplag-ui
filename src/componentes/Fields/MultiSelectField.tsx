@@ -26,6 +26,7 @@ export function MultiSelectFieldSeplag<T extends FieldValues = any>(
     selectedItemsLabel,
     readOnly = false,
     onChange,
+    optionDisabled,
     getFormErrorMessage,
   } = props;
 
@@ -55,7 +56,7 @@ export function MultiSelectFieldSeplag<T extends FieldValues = any>(
                 field.onChange(e.target.value);
                 onChange?.(e.target.value);
               }}
-              optionDisabled={readOnly ? () => true : undefined}
+              optionDisabled={readOnly ? () => true : optionDisabled}
               disabled={disabled}
               loading={isLoading}
               placeholder={placeholder}

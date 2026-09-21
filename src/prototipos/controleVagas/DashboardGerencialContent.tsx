@@ -1,632 +1,101 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MultiSelect } from "primereact/multiselect";
-import { Paginator, type PaginatorPageChangeEvent } from "primereact/paginator";
-import { CONTROLE_VAGAS_BASE_PATH as BASE } from "./constants";
 import { useControleVagasStore } from "./controleVagasStore";
-import {
-  construirDashboard,
-  situacoesLegais,
-  type DashboardFiltros,
-} from "./dashboardSelectors";
-import { orgaosBaseTemporaria } from "./baseTemporaria";
-import { SpecArea, SpecificationMode } from "../shared/visualizationModes";
-import {
-  dashboardAlertSpecifications,
-  dashboardBlockSpecifications,
-  dashboardBusinessItems,
-  dashboardFilterSpecifications,
-  dashboardKpiSpecifications,
-  dashboardScreenSpecification,
-} from "./DashboardSpecifications";
-import "./dashboardControleVagas.css";
-import "./dashboardGerencial.css";
+import { useControleVagasStore as useBolsistasStore } from "../controleVagasResidentes/controleVagasStore";
+import { listarCargosBolsistas } from "../controleVagasResidentes/cargosBolsistasStore";
+import { listarQuadrosComissionados, type ItemEstruturaComissionadaSalvo } from "../controleVagasComissionados/novoQuadroComissionadoStore";
+import { listarQuadrosTemporarios } from "../controleVagasTemporarios/novoQuadroTemporarioStore";
+import { listarCargosControleVagasTemporarias } from "../controleVagasTemporarios/cargosTemporariosStore";
+import "./dashboardConsolidado.css";
 
-const hoje = "2026-07-21";
-const legalLabel = {
-  REGULAR: "Regular",
-  EM_EXTINCAO: "Em extincao",
-  EXTINTA: "Extinta",
-  EM_TRANSFORMACAO: "Em transformacao",
-} as const;
-const filtrosIniciais: DashboardFiltros = {
-  dataReferencia: hoje,
-  orgao: [],
-  tipo: [],
-  carreira: [],
-  cargo: [],
-  situacaoLegal: [],
+type Tipo = "EFETIVOS" | "COMISSIONADOS" | "TEMPORARIOS" | "BOLSISTAS";
+type Situacao = "ATIVO" | "EXTINTO" | "ENCERRADO";
+type Resumo = { id: Tipo; nome: string; rota: string; quadros: number; ativos: number; extintos: number; encerrados: number; previstas: number; reais?: number; disponiveis: number; emOcupacao: number; ocupadas: number; pendentes?: number; orgaos: string[]; cargos?: number };
+
+const tipos: { id: Tipo; nome: string }[] = [
+  { id: "EFETIVOS", nome: "Vagas Efetivos" }, { id: "COMISSIONADOS", nome: "Vagas Comissionados" },
+  { id: "TEMPORARIOS", nome: "Vagas Temporários" }, { id: "BOLSISTAS", nome: "Vagas Bolsistas" },
+];
+const rotas: Record<Tipo, string> = {
+  EFETIVOS: "/prototipos/sigep/controle-vagas/efetivos/quadro-autorizado",
+  COMISSIONADOS: "/prototipos/sigep/controle-vagas/comissionados/quadro-autorizado",
+  TEMPORARIOS: "/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado",
+  BOLSISTAS: "/prototipos/sigep/controle-vagas/bolsistas/quadro-autorizado",
 };
-const indicadoresDashboardIds = [
-  "Cargos legais",
-  "Quadros vigentes",
-  "Vagas legais",
-  "Ocupadas",
-  "Disponiveis",
-  "Em ocupação",
-  "Pendente de ato de distribuicao",
-  "Situacoes legais especiais",
-] as const;
-type IndicadorDashboardId = (typeof indicadoresDashboardIds)[number];
+const n = (v: number) => v.toLocaleString("pt-BR");
+const status = (q: { situacaoVigencia?: string; situacao?: string }): Situacao => {
+  const v = q.situacaoVigencia ?? q.situacao ?? "ATIVO";
+  return v === "EXTINTO" || v === "Extinto" ? "EXTINTO" : v === "ENCERRADO" || v === "Encerrada" || v === "Encerrado" ? "ENCERRADO" : "ATIVO";
+};
+function statusQuadros(qs: Array<{ situacaoVigencia?: string; situacao?: string }>) {
+  return qs.reduce((a, q) => { a[status(q).toLowerCase() as "ativo" | "extinto" | "encerrado"] += 1; return a; }, { ativo: 0, extinto: 0, encerrado: 0 });
+}
+function dotacoes(itens: ItemEstruturaComissionadaSalvo[]): { vagas: number; cargos: number } {
+  return itens.reduce((a, item) => {
+    const local = item.dotacoes.reduce((s, d) => ({ vagas: s.vagas + d.cargos + d.funcoes, cargos: s.cargos + d.cargos + d.funcoes }), { vagas: 0, cargos: 0 });
+    const filhos = dotacoes(item.subitens);
+    return { vagas: a.vagas + local.vagas + filhos.vagas, cargos: a.cargos + local.cargos + filhos.cargos };
+  }, { vagas: 0, cargos: 0 });
+}
 
 export function DashboardGerencialContent() {
-  const state = useControleVagasStore();
+  const efetivos = useControleVagasStore();
+  const bolsistas = useBolsistasStore();
   const navigate = useNavigate();
-  const [filtros, setFiltros] = useState(filtrosIniciais);
-  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
-  const [paginaGrupos, setPaginaGrupos] = useState(1);
-  const [porPaginaGrupos, setPorPaginaGrupos] = useState(10);
-  const [indicadoresVisiveis, setIndicadoresVisiveis] = useState<
-    Record<IndicadorDashboardId, boolean>
-  >(
-    () =>
-      Object.fromEntries(indicadoresDashboardIds.map((id) => [id, true])) as Record<
-        IndicadorDashboardId,
-        boolean
-      >,
-  );
+  const [selecionados, setSelecionados] = useState<Tipo[]>(tipos.map((t) => t.id));
+  const [orgao, setOrgao] = useState("");
+  const [situacao, setSituacao] = useState<Situacao | "">("");
 
-  const dados = useMemo(() => construirDashboard(state, filtros), [state, filtros]);
-  const totalPaginasGrupos = Math.max(
-    1,
-    Math.ceil(dados.grupos.length / porPaginaGrupos),
-  );
-  const paginaAtualGrupos = Math.min(paginaGrupos, totalPaginasGrupos);
-  const gruposPaginados = dados.grupos.slice(
-    (paginaAtualGrupos - 1) * porPaginaGrupos,
-    paginaAtualGrupos * porPaginaGrupos,
-  );
+  const dados = useMemo<Resumo[]>(() => {
+    const qe = efetivos.quadros.filter((q) => q.tipoQuadro === "Efetivo");
+    const ide = new Set(qe.map((q) => q.id)); const ve = efetivos.vagas.filter((v) => ide.has(v.quadroAutorizadoId));
+    const idsVagasEfetivas = new Set(ve.map((v) => v.id));
+    const ce = new Set(efetivos.comprometimentos.filter((x) => x.situacao === "ATIVO" && idsVagasEfetivas.has(x.vagaId)).map((x) => x.vagaId));
+    const oe = new Set(efetivos.ocupacoes.filter((x) => x.situacao === "ATIVA" && idsVagasEfetivas.has(x.vagaId)).map((x) => x.vagaId)); const se = statusQuadros(qe);
+    const qb = bolsistas.quadros.filter((q) => q.codigo.startsWith("QAB-"));
+    const idb = new Set(qb.map((q) => q.id)); const vb = bolsistas.vagas.filter((v) => idb.has(v.quadroAutorizadoId));
+    const idsVagasBolsistas = new Set(vb.map((v) => v.id));
+    const cb = new Set(bolsistas.comprometimentos.filter((x) => x.situacao === "ATIVO" && idsVagasBolsistas.has(x.vagaId)).map((x) => x.vagaId));
+    const ob = new Set(bolsistas.ocupacoes.filter((x) => x.situacao === "ATIVA" && idsVagasBolsistas.has(x.vagaId)).map((x) => x.vagaId)); const sb = statusQuadros(qb);
+    const qc = listarQuadrosComissionados(); const sc = statusQuadros(qc);
+    const tc = qc.reduce((a, q) => { const x = dotacoes(q.niveis.flatMap((nivel) => nivel.itens)); return { vagas: a.vagas + x.vagas, cargos: a.cargos + x.cargos }; }, { vagas: 0, cargos: 0 });
+    const qt = listarQuadrosTemporarios(); const st = statusQuadros(qt);
+    const pt = qt.reduce((a, q) => a + q.cargos.reduce((s, c) => s + c.quantidadeVagas, 0), 0);
+    return [
+      { id: "EFETIVOS", nome: "Efetivos", rota: rotas.EFETIVOS, quadros: qe.length, ativos: se.ativo, extintos: se.extinto, encerrados: se.encerrado, previstas: qe.reduce((a, q) => a + q.autorizadas, 0), disponiveis: ve.filter((v) => v.estado === "DISPONIVEL" && !ce.has(v.id)).length, emOcupacao: ce.size, ocupadas: oe.size, pendentes: ve.filter((v) => !v.orgaoDistribuicaoInicial && v.orgaoTitular === "ESTADO DE MATO GROSSO").length, orgaos: [...new Set(qe.map((q) => q.orgao).filter(Boolean))] },
+      { id: "COMISSIONADOS", nome: "Comissionados", rota: rotas.COMISSIONADOS, quadros: qc.length, ativos: sc.ativo, extintos: sc.extinto, encerrados: sc.encerrado, previstas: tc.vagas, disponiveis: tc.vagas, emOcupacao: 0, ocupadas: 0, orgaos: [...new Set(qc.map((q) => q.orgao).filter(Boolean))], cargos: tc.cargos },
+      { id: "TEMPORARIOS", nome: "Temporários", rota: rotas.TEMPORARIOS, quadros: qt.length, ativos: st.ativo, extintos: st.extinto, encerrados: st.encerrado, previstas: pt, reais: qt.reduce((a, q) => a + q.vagasReais, 0), disponiveis: pt, emOcupacao: 0, ocupadas: 0, orgaos: [...new Set(qt.map((q) => String((q.certame as { orgaoResponsavel?: string; orgao?: string }).orgaoResponsavel ?? (q.certame as { orgao?: string }).orgao ?? "")).filter(Boolean))], cargos: listarCargosControleVagasTemporarias().length },
+      { id: "BOLSISTAS", nome: "Bolsistas", rota: rotas.BOLSISTAS, quadros: qb.length, ativos: sb.ativo, extintos: sb.extinto, encerrados: sb.encerrado, previstas: qb.reduce((a, q) => a + q.autorizadas, 0), disponiveis: vb.filter((v) => v.estado === "DISPONIVEL" && !cb.has(v.id)).length, emOcupacao: cb.size, ocupadas: ob.size, pendentes: vb.filter((v) => !v.orgaoDistribuicaoInicial && v.orgaoTitular === "ESTADO DE MATO GROSSO").length, orgaos: [...new Set(qb.map((q) => q.orgao).filter(Boolean))], cargos: listarCargosBolsistas().length },
+    ];
+  }, [efetivos, bolsistas]);
 
-  useEffect(() => {
-    setPaginaGrupos(1);
-  }, [filtros]);
-  const orgaos = orgaosBaseTemporaria
-    .map((item) => item.nome)
-    .sort((a, b) => a.localeCompare(b, "pt-BR"));
-  const carreiras = [...new Set(state.vagas.map((vaga) => vaga.carreira))].sort();
-  const cargos = [...new Set(state.vagas.map((vaga) => vaga.cargo))].sort();
-  const eventos = state.movimentos
-    .filter((item) => ["DISTRIBUICAO", "REDISTRIBUICAO"].includes(item.tipo))
-    .sort((a, b) => b.registradoEm.localeCompare(a.registradoEm))
-    .slice(0, 5);
+  const orgaos = [...new Set(dados.flatMap((d) => d.orgaos))].sort();
+  const visiveis = dados.filter((d) => selecionados.includes(d.id) && (!orgao || d.orgaos.includes(orgao)) && (!situacao || d[situacao.toLowerCase() as "ativos" | "extintos" | "encerrados"] > 0));
+  const soma = (campo: keyof Pick<Resumo, "quadros" | "previstas" | "reais" | "disponiveis" | "emOcupacao" | "ocupadas" | "pendentes">) => visiveis.reduce((a, d) => a + (d[campo] ?? 0), 0);
+  const total = soma("previstas"); const pendentes = visiveis.some((d) => d.pendentes !== undefined); const temporarios = visiveis.some((d) => d.id === "TEMPORARIOS");
+  const alternar = (tipo: Tipo) => setSelecionados((atual) => atual.includes(tipo) ? atual.length === 1 ? atual : atual.filter((x) => x !== tipo) : [...atual, tipo]);
+  const limpar = () => { setSelecionados(tipos.map((t) => t.id)); setOrgao(""); setSituacao(""); };
 
-  const resumoAlertas = useMemo(() => {
-    const porQuadro = new Map<string, { livres: number; ocupadas: number }>();
-    dados.grupos.forEach((grupo) => {
-      const atual = porQuadro.get(grupo.quadroCodigo) ?? { livres: 0, ocupadas: 0 };
-      atual.livres += grupo.disponiveisLivres;
-      atual.ocupadas += grupo.ocupadas;
-      porQuadro.set(grupo.quadroCodigo, atual);
-    });
-
-    const idsFiltrados = new Set(dados.grupos.map((grupo) => grupo.quadroId));
-    const quadrosEmEncerramento = new Set(
-      state.quadros
-        .filter(
-          (quadro) =>
-            idsFiltrados.has(quadro.id) &&
-            (quadro.situacaoVigencia === "ENCERRADO" ||
-              quadro.extincaoProgressivaEmAndamento) &&
-            (porQuadro.get(quadro.codigo)?.ocupadas ?? 0) > 0,
-        )
-        .map((quadro) => quadro.codigo),
-    ).size;
-
-    return {
-      quadrosSemVagasLivres: [...porQuadro.values()].filter(
-        (quadro) => quadro.livres === 0,
-      ).length,
-      quadrosEmEncerramento,
-    };
-  }, [dados.grupos, state.quadros]);
-  const indicadores = [
-    {
-      label: "Cargos legais",
-      valor: dados.resumo.cargos,
-      hint: "Cargos distintos",
-      icon: "pi pi-briefcase",
-      cor: "blue",
-      onClick: () => navigate(`${BASE}/quadro-autorizado`),
-    },
-    {
-      label: "Quadros vigentes",
-      valor: dados.resumo.quadros,
-      hint: "Origens legais",
-      icon: "pi pi-file-check",
-      cor: "blue",
-      onClick: () => navigate(`${BASE}/quadro-autorizado`),
-    },
-    {
-      label: "Vagas legais",
-      valor: dados.resumo.vagasLegais,
-      hint: "Limite vigente",
-      icon: "pi pi-balance-scale",
-      cor: "blue",
-      onClick: () => navigate(`${BASE}/vagas`),
-    },
-    {
-      label: "Ocupadas",
-      valor: dados.resumo.ocupadas,
-      hint: `${dados.resumo.vagasLegais ? Math.round((dados.resumo.ocupadas / dados.resumo.vagasLegais) * 100) : 0}% do quadro`,
-      icon: "pi pi-users",
-      cor: "green",
-      onClick: () => navigate(`${BASE}/vagas?estado=OCUPADA`),
-    },
-    {
-      label: "Disponiveis",
-      valor: dados.resumo.disponiveis,
-      hint: `${dados.resumo.livres} livres`,
-      icon: "pi pi-check-circle",
-      cor: "cyan",
-      onClick: () => navigate(`${BASE}/vagas?estado=DISPONIVEL`),
-    },
-    {
-      label: "Em ocupação",
-      valor: dados.resumo.comprometidas,
-      hint: "Disponiveis vinculadas a ingressos ativos",
-      icon: "pi pi-flag",
-      cor: "purple",
-      onClick: () => navigate(`${BASE}/vagas?comprometimento=OCUPACAO`),
-    },
-{
-      label: "Pendente de ato de distribuicao",
-      valor: dados.resumo.naoDistribuidas,
-      hint: `${dados.resumo.disponiveisNaoDistribuidas} disponiveis`,
-      icon: "pi pi-sitemap",
-      cor: "orange",
-      onClick: () => navigate(`${BASE}/quadro-autorizado`),
-    },
-    {
-      label: "Situacoes legais especiais",
-      valor: dados.resumo.situacoesLegaisEspeciais,
-      hint: "Extincao ou transformacao",
-      icon: "pi pi-exclamation-triangle",
-      cor: "red",
-      onClick: () => navigate(`${BASE}/vagas?legal=ESPECIAL`),
-    },
-  ] satisfies {
-    label: IndicadorDashboardId;
-    valor: number;
-    hint: string;
-    icon: string;
-    cor: string;
-    onClick: () => void;
-  }[];
-
-  const alertas = [
-    {
-      icon: "pi pi-exclamation-triangle",
-      kind: "critical",
-      titulo: "Quadros sem vagas livres",
-      descricao: "Sem vaga livre para novo ingresso",
-      valor: resumoAlertas.quadrosSemVagasLivres,
-      rota: "quadro-autorizado?saldo=SEM_VAGAS_LIVRES",
-    },
-    {
-      icon: "pi pi-clock",
-      kind: "warning",
-      titulo: "Pendentes de ato de distribuição",
-      descricao: "Vagas que aguardam distribuição formal",
-      valor: dados.resumo.naoDistribuidas,
-      rota: "quadro-autorizado",
-    },
-    {
-      icon: "pi pi-ban",
-      kind: "warning",
-      titulo: "Quadros em encerramento",
-      descricao: "Extinção progressiva com ocupações remanescentes",
-      valor: resumoAlertas.quadrosEmEncerramento,
-      rota: "quadro-autorizado?situacao=ENCERRADO",
-    },
-  ];
-
-  return (
-    <SpecificationMode
-      screen={dashboardScreenSpecification}
-      businessItems={dashboardBusinessItems}
-    >
-      <div className="prototype-dash-page prototype-management-dashboard">
-        <header className="prototype-dash-header">
-          <div>
-            <h1>Dashboard Gerencial</h1>
-          </div>
-          <div className="prototype-dash-header-actions">
-            <small>
-              Dados consolidados em
-              <br />
-              <strong>21/07/2026 08:15</strong>
-            </small>
-            <button onClick={() => window.print()}>
-              <i className="pi pi-download" /> Exportar visao
-            </button>
-          </div>
-        </header>
-
-        <section className="prototype-management-filter-accordion">
-          <SpecArea metadata={dashboardBlockSpecifications.filters}>
-            <button
-              className="prototype-management-filter-trigger"
-              onClick={() => setFiltrosAbertos((aberto) => !aberto)}
-              aria-expanded={filtrosAbertos}
-            >
-              <span>
-                <i className="pi pi-filter" />
-                <strong>Filtros da consulta</strong>
-                <small>Orgaos, carreira, cargo e situacao legal</small>
-              </span>
-              <i className={`pi ${filtrosAbertos ? "pi-chevron-up" : "pi-chevron-down"}`} />
-            </button>
-          </SpecArea>
-          {filtrosAbertos && (
-            <div className="prototype-dash-filters management">
-              <Filtro
-                label="Órgão"
-                metadata={dashboardFilterSpecifications["Órgão"]}
-              >
-                <MultiSelect
-                  value={filtros.orgao}
-                  onChange={(event) => setFiltros({ ...filtros, orgao: event.value ?? [] })}
-                  options={orgaos.map((valor) => ({ label: valor, value: valor }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Todos"
-                  display="chip"
-                  filter
-                  showClear
-                  maxSelectedLabels={2}
-                  selectedItemsLabel="{0} órgãos selecionados"
-                />
-              </Filtro>
-              <Filtro label="Tipo" metadata={dashboardFilterSpecifications["Tipo"]}>
-                <MultiSelect
-                  value={filtros.tipo}
-                  onChange={(event) => setFiltros({ ...filtros, tipo: event.value ?? [] })}
-                  options={[{ label: "Efetivo", value: "EFETIVO" }, { label: "Comissionado", value: "COMISSIONADO" }]}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Efetivos e comissionados"
-                  display="chip"
-                  showClear
-                />
-              </Filtro>
-              <Filtro label="Carreira" metadata={dashboardFilterSpecifications["Carreira"]}>
-                <MultiSelect
-                  value={filtros.carreira}
-                  onChange={(event) => setFiltros({ ...filtros, carreira: event.value ?? [] })}
-                  options={carreiras.map((valor) => ({ label: valor, value: valor }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Todas"
-                  display="chip"
-                  filter
-                  showClear
-                  maxSelectedLabels={2}
-                  selectedItemsLabel="{0} carreiras selecionadas"
-                />
-              </Filtro>
-              <Filtro label="Cargo" metadata={dashboardFilterSpecifications["Cargo"]}>
-                <MultiSelect
-                  value={filtros.cargo}
-                  onChange={(event) => setFiltros({ ...filtros, cargo: event.value ?? [] })}
-                  options={cargos.map((valor) => ({ label: valor, value: valor }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Todos"
-                  display="chip"
-                  filter
-                  showClear
-                  maxSelectedLabels={2}
-                  selectedItemsLabel="{0} cargos selecionados"
-                />
-              </Filtro>
-              <Filtro
-                label="Situacao legal"
-                metadata={dashboardFilterSpecifications["Situacao legal"]}
-              >
-                <MultiSelect
-                  value={filtros.situacaoLegal}
-                  onChange={(event) => setFiltros({ ...filtros, situacaoLegal: event.value ?? [] })}
-                  options={situacoesLegais.map((valor) => ({ label: legalLabel[valor], value: valor }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Todas"
-                  display="chip"
-                  showClear
-                  maxSelectedLabels={2}
-                  selectedItemsLabel="{0} situações selecionadas"
-                />
-              </Filtro>
-              <SpecArea metadata={dashboardFilterSpecifications["Indicadores exibidos"]}>
-                <fieldset className="prototype-dashboard-indicator-controls">
-                  <legend>Indicadores exibidos</legend>
-                  <p>Escolha quais quadros aparecem no Dashboard.</p>
-                  <div>
-                    {indicadoresDashboardIds.map((id) => (
-                      <label key={id} className="prototype-dashboard-switch">
-                        <input
-                          type="checkbox"
-                          checked={indicadoresVisiveis[id]}
-                          onChange={() =>
-                            setIndicadoresVisiveis((atuais) => ({
-                              ...atuais,
-                              [id]: !atuais[id],
-                            }))
-                          }
-                        />
-                        <span aria-hidden="true">
-                          <i />
-                        </span>
-                        <strong>{id}</strong>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              </SpecArea>
-              <div className="prototype-management-filter-actions">
-                <SpecArea metadata={dashboardFilterSpecifications["Limpar"]}>
-                  <button
-                    className="prototype-management-clear-filter"
-                    onClick={() => setFiltros(filtrosIniciais)}
-                  >
-                    <i className="pi pi-filter-slash" /> Limpar
-                  </button>
-                </SpecArea>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="prototype-dash-kpis management unified">
-          {indicadores
-            .filter((item) => indicadoresVisiveis[item.label])
-            .map((item) => (
-              <Kpi key={item.label} {...item} />
-            ))}
-        </section>
-
-        <div className="prototype-dash-grid controle-vagas-management-top">
-          <SpecArea metadata={dashboardBlockSpecifications.composition}>
-            <section className="prototype-dash-card management-status">
-              <CardHeader
-                titulo="Composicao do quadro"
-                subtitulo={`Posicao em ${filtros.dataReferencia.split("-").reverse().join("/")}`}
-              />
-              <div className="prototype-management-composition">
-                <div
-                  className="ring"
-                  style={{
-                    background: `conic-gradient(#278bc4 0 ${
-                      dados.resumo.vagasLegais
-                        ? (dados.resumo.ocupadas / dados.resumo.vagasLegais) * 100
-                        : 0
-                    }%,#31a565 0)`,
-                  }}
-                >
-                  <span>
-                    <strong>{dados.resumo.vagasLegais}</strong>
-                    <small>vagas legais</small>
-                  </span>
-                </div>
-                <ul>
-                  <li>
-                    <i className="occupied" />
-                    <span>Ocupadas</span>
-                    <strong>{dados.resumo.ocupadas}</strong>
-                  </li>
-                  <li>
-                    <i className="available" />
-                    <span>Disponiveis livres</span>
-                    <strong>{dados.resumo.livres}</strong>
-                  </li>
-                  <li>
-                    <i className="committed" />
-                    <span>Em ocupação</span>
-                    <strong>{dados.resumo.comprometidas}</strong>
-                  </li>
-                </ul>
-              </div>
-            </section>
-          </SpecArea>
-          <section className="prototype-dash-card alerts">
-            <CardHeader
-              titulo="Alertas gerenciais"
-              subtitulo="Situacoes que exigem analise"
-            />
-            <div className="prototype-dash-alert-list">
-              {alertas.map((alerta) => (
-                <SpecArea
-                  key={alerta.titulo}
-                  metadata={dashboardAlertSpecifications[alerta.titulo]}
-                >
-                  <button
-                    className={alerta.kind}
-                    onClick={() => navigate(`${BASE}/${alerta.rota}`)}
-                  >
-                    <i className={alerta.icon} />
-                    <div>
-                      <strong>{alerta.titulo}</strong>
-                      <span>{alerta.descricao}</span>
-                    </div>
-                    <b>{alerta.valor}</b>
-                    <i className="pi pi-chevron-right" />
-                  </button>
-                </SpecArea>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        <SpecArea metadata={dashboardBlockSpecifications.table}>
-          <section className="prototype-dash-card management-table">
-            <CardHeader
-              titulo="Situação das vagas por quadro e órgão"
-              subtitulo="Ocupação e saldo disponível em cada quadro e órgão"
-            >
-              <button onClick={() => navigate(`${BASE}/vagas`)}>
-                Ver vagas <i className="pi pi-arrow-right" />
-              </button>
-            </CardHeader>
-            <div className="prototype-dash-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Quadro</th>
-                    <th>Cargo</th>
-                    <th>Órgão</th>
-                    <th className="num">Autorizadas</th>
-                    <th className="num">Ocupadas</th>
-                    <th className="num">Livres</th>
-                    <th className="num">Em ocupação</th>
-                    <th className="num">Ocupação</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {gruposPaginados.map((grupo) => (
-                    <tr key={grupo.chave}>
-                      <td>
-                        <strong>{grupo.quadroCodigo}</strong>
-                      </td>
-                      <td><strong>{grupo.cargo}</strong></td>
-                      <td><strong>{grupo.orgao}</strong></td>
-                      <td className="num">{grupo.vagasLegais}</td>
-                      <td className="num">{grupo.ocupadas}</td>
-                      <td
-                        className={`num ${grupo.disponiveisLivres === 0 ? "danger" : "positive"}`}
-                      >
-                        <strong>{grupo.disponiveisLivres}</strong>
-                      </td>
-                      <td className="num">{grupo.disponiveisComprometidas}</td>
-                      <td className="num"><strong>{grupo.percentualOcupacao}%</strong></td>
-                      <td>
-                        <button
-                          aria-label={`Ver vagas do quadro ${grupo.quadroCodigo}`}
-                          title="Ver vagas do quadro"
-                          onClick={() =>
-                            navigate(
-                              `${BASE}/vagas?quadro=${encodeURIComponent(grupo.quadroCodigo)}`,
-                            )
-                          }
-                        >
-                          <i className="pi pi-chevron-right" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <footer className="prototype-management-pagination">
-              <Paginator
-                first={(paginaAtualGrupos - 1) * porPaginaGrupos}
-                rows={porPaginaGrupos}
-                totalRecords={dados.grupos.length}
-                rowsPerPageOptions={[10, 20, 50]}
-                onPageChange={(event: PaginatorPageChangeEvent) => {
-                  setPaginaGrupos(event.page + 1);
-                  setPorPaginaGrupos(event.rows);
-                }}
-                template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-              />
-            </footer>
-          </section>
-        </SpecArea>
-
-        <div className="prototype-dash-grid management-bottom">
-          <SpecArea metadata={dashboardBlockSpecifications.recent}>
-            <section className="prototype-dash-card">
-              <CardHeader
-                titulo="Distribuicoes recentes"
-                subtitulo="Distribuicao inicial e redistribuicao"
-              />
-              <div className="prototype-dash-recent-list">
-                {eventos.map((movimento) => (
-                  <article key={movimento.id}>
-                    <i className="pi pi-history blue" />
-                    <div>
-                      <span>{movimento.tipo.replaceAll("_", " ")}</span>
-                      <strong>{movimento.vagaId}</strong>
-                      <small>
-                        {movimento.dataEfeito} | {movimento.ato}
-                      </small>
-                    </div>
-                    {movimento.retroativo && <b className="orange">Retroativo</b>}
-                  </article>
-                ))}
-              </div>
-            </section>
-          </SpecArea>
-        </div>
-      </div>
-    </SpecificationMode>
-  );
+  return <main className="controle-vagas-dashboard">
+    <section className="controle-vagas-dashboard-header"><h1>Dashboard de vagas</h1><p>Acompanhe os quadros e as vagas das modalidades selecionadas.</p></section>
+    <section className="controle-vagas-dashboard-card controle-vagas-dashboard-filters">
+      <div className="controle-vagas-dashboard-field controle-vagas-dashboard-types"><span>Tipos de vagas</span><div>{tipos.map((tipo) => <label key={tipo.id}><input type="checkbox" checked={selecionados.includes(tipo.id)} onChange={() => alternar(tipo.id)} /><span>{tipo.nome}</span></label>)}</div></div>
+      <label className="controle-vagas-dashboard-field"><span>Órgão</span><select value={orgao} onChange={(e) => setOrgao(e.target.value)}><option value="">Todos</option>{orgaos.map((x) => <option key={x}>{x}</option>)}</select></label>
+      <label className="controle-vagas-dashboard-field"><span>Situação do quadro</span><select value={situacao} onChange={(e) => setSituacao(e.target.value as Situacao | "")}><option value="">Todas</option><option value="ATIVO">Ativo</option><option value="EXTINTO">Extinto</option><option value="ENCERRADO">Encerrado</option></select></label>
+      <button type="button" className="controle-vagas-dashboard-clear" onClick={limpar}><i className="pi pi-refresh" /> Limpar</button>
+    </section>
+    <section className="controle-vagas-dashboard-kpis"><Kpi label="Quadros cadastrados" value={soma("quadros")} icon="pi pi-file" tone="blue" /><Kpi label="Vagas previstas/autorizadas" value={total} icon="pi pi-verified" tone="blue" /><Kpi label="Vagas disponíveis" value={soma("disponiveis")} icon="pi pi-check-circle" tone="green" /><Kpi label="Vagas em ocupação" value={soma("emOcupacao")} icon="pi pi-user-plus" tone="orange" /><Kpi label="Vagas ocupadas" value={soma("ocupadas")} icon="pi pi-users" tone="purple" />{pendentes && <Kpi label="Pendentes de distribuição" value={soma("pendentes")} icon="pi pi-share-alt" tone="orange" />}{temporarios && <Kpi label="Vagas temporárias reais" value={soma("reais")} icon="pi pi-list" tone="blue" />}</section>
+    <section className="controle-vagas-dashboard-grid">
+      <article className="controle-vagas-dashboard-card controle-vagas-dashboard-distribution"><header><div><h2>Distribuição das vagas</h2><p>Composição das vagas previstas ou autorizadas.</p></div></header><div className="controle-vagas-dashboard-ring"><strong>{n(total)}</strong><span>vagas</span></div><ul><Legenda label="Disponíveis" value={soma("disponiveis")} tone="green" /><Legenda label="Em ocupação" value={soma("emOcupacao")} tone="orange" /><Legenda label="Ocupadas" value={soma("ocupadas")} tone="purple" /></ul></article>
+      <article className="controle-vagas-dashboard-card controle-vagas-dashboard-bars"><header><div><h2>Vagas por modalidade</h2><p>Compare os quantitativos dentro da seleção.</p></div></header>{visiveis.length ? visiveis.map((d) => <button type="button" key={d.id} onClick={() => navigate(d.rota)}><span>{d.nome}<small>{n(d.quadros)} quadro(s)</small></span><i><b style={{ width: total ? Math.max(d.previstas / total * 100, 2) + "%" : "0%" }} /></i><strong>{n(d.previstas)}</strong></button>) : <p className="controle-vagas-dashboard-empty">Nenhuma modalidade atende aos filtros selecionados.</p>}</article>
+    </section>
+    <section className="controle-vagas-dashboard-card controle-vagas-dashboard-table-card"><header><div><h2>Resumo por modalidade</h2><p>Os indicadores respeitam os tipos, órgão e situação selecionados.</p></div></header><div className="controle-vagas-dashboard-table-wrap"><table><thead><tr><th>Modalidade</th><th>Quadros</th><th>Previstas / autorizadas</th><th>Disponíveis</th><th>Em ocupação</th><th>Ocupadas</th><th>Pendentes de distribuição</th><th>Ações</th></tr></thead><tbody>{visiveis.map((d) => <tr key={d.id}><td><strong>{d.nome}</strong><small>{d.cargos === undefined ? "Quadros autorizados" : n(d.cargos) + " cargo(s) vinculado(s)"}</small></td><td>{n(d.quadros)}</td><td>{n(d.previstas)}</td><td className="positive">{n(d.disponiveis)}</td><td>{n(d.emOcupacao)}</td><td>{n(d.ocupadas)}</td><td>{d.pendentes === undefined ? "—" : n(d.pendentes)}</td><td><button type="button" aria-label={"Abrir " + d.nome} onClick={() => navigate(d.rota)}><i className="pi pi-arrow-right" /></button></td></tr>)}{!visiveis.length && <tr><td colSpan={8} className="controle-vagas-dashboard-empty">Nenhuma informação encontrada.</td></tr>}</tbody></table></div></section>
+    <section className="controle-vagas-dashboard-card controle-vagas-dashboard-alerts"><header><div><h2>Pontos de atenção</h2><p>Leitura operacional da seleção atual.</p></div></header><div><Alerta icon="pi pi-share-alt" title="Vagas pendentes de distribuição" value={pendentes ? soma("pendentes") : 0} description="Aplicável aos quadros efetivos e bolsistas." /><Alerta icon="pi pi-user-plus" title="Vagas em processo de ocupação" value={soma("emOcupacao")} description="Há processos de ingresso ou ocupação em andamento." /><Alerta icon="pi pi-times-circle" title="Quadros extintos ou encerrados" value={visiveis.reduce((a, d) => a + d.extintos + d.encerrados, 0)} description="As vagas sem ocupante desses quadros não ficam disponíveis." /></div></section>
+  </main>;
 }
+function Kpi({ label, value, icon, tone }: { label: string; value: number; icon: string; tone: string }) { return <article className={"controle-vagas-dashboard-kpi " + tone}><i className={icon} /><div><span>{label}</span><strong>{n(value)}</strong></div></article>; }
+function Legenda({ label, value, tone }: { label: string; value: number; tone: string }) { return <li><i className={tone} /><span>{label}</span><strong>{n(value)}</strong></li>; }
+function Alerta({ icon, title, value, description }: { icon: string; title: string; value: number; description: string }) { return <article><i className={icon} /><div><strong>{title}</strong><span>{description}</span></div><b>{n(value)}</b></article>; }
 
-function Filtro({
-  label,
-  metadata,
-  children,
-}: {
-  label: string;
-  metadata: import("../shared/visualizationModes").SpecificationMetadata;
-  children: React.ReactNode;
-}) {
-  return (
-    <SpecArea metadata={metadata}>
-      <label>
-        <span>{label}</span>
-        {children}
-      </label>
-    </SpecArea>
-  );
-}
 
-function Kpi({
-  label,
-  valor,
-  hint,
-  icon,
-  cor,
-  onClick,
-}: {
-  label: string;
-  valor: number;
-  hint: string;
-  icon: string;
-  cor: string;
-  onClick: () => void;
-}) {
-  return (
-    <SpecArea metadata={dashboardKpiSpecifications[label]}>
-      <button className={`prototype-dash-kpi ${cor}`} onClick={onClick}>
-        <i className={icon} />
-        <div>
-          <span>{label}</span>
-          <strong>{valor.toLocaleString("pt-BR")}</strong>
-          <small>{hint}</small>
-        </div>
-        <i className="pi pi-arrow-right arrow" />
-      </button>
-    </SpecArea>
-  );
-}
 
-function CardHeader({
-  titulo,
-  subtitulo,
-  children,
-}: {
-  titulo: string;
-  subtitulo: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <header>
-      <div>
-        <h2>{titulo}</h2>
-        <p>{subtitulo}</p>
-      </div>
-      {children}
-    </header>
-  );
-}

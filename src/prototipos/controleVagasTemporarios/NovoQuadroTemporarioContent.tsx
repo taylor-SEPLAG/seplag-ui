@@ -1,43 +1,46 @@
 import { useForm } from "react-hook-form";
 import { DateFieldSeplag } from "../../componentes/Fields";
-import { BadgeSeplag } from "../../componentes/Badge";
-import { calcularStatusOperacionalVigenciaSeplag, validarSituacaoVigenciaSeplag } from "../../componentes/SituacaoVigencia";
+
 import { BotaoSalvarSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dropdown } from "primereact/dropdown";
 import { useControlePssStore } from "../controlePss/controlePssStore";
 import { REGIMES_JURIDICOS, TIPOS_VINCULO, SITUACOES_CERTAME } from "../controlePss/certame/dominios";
-import { salvarQuadroTemporario, seletivoTemporario, type QuadroTemporarioCadastro } from "./novoQuadroTemporarioStore";
+import { listarQuadrosTemporarios, salvarQuadroTemporario, seletivoTemporario } from "./novoQuadroTemporarioStore";
 import "./novoQuadroTemporario.css";
 
 export function NovoQuadroTemporarioContent() {
  const navigate = useNavigate();
  const { control, watch, reset } = useForm<{ dataAtivacao:string }>({ defaultValues:{ dataAtivacao:"" } });
  const dataAtivacao = watch("dataAtivacao");
- const agendado = calcularStatusOperacionalVigenciaSeplag({ situacao:"ATIVO", dataAtivacao }).startsWith("AGENDADO");
  const { certames } = useControlePssStore();
  const [certameId, setCertameId] = useState<string>("");
  const [erro, setErro] = useState("");
- const [salvo, setSalvo] = useState<QuadroTemporarioCadastro | null>(null);
+ const [quadrosExistentes] = useState(() => listarQuadrosTemporarios());
  const seletivos = certames.filter(seletivoTemporario);
+ const quadrosPorCertame = new Map(quadrosExistentes.map((quadro) => [quadro.certameId, quadro]));
+ const opcoesSeletivo = seletivos.map((item) => {
+  const quadroExistente = quadrosPorCertame.get(item.id);
+  return { value: item.id, label: [item.numeroConcurso + "/" + item.anoConcurso, item.nomeEdital, item.setor].join(" — "), indisponivel: Boolean(quadroExistente), quadroCodigo: quadroExistente?.codigo };
+ });
  const certame = seletivos.find(item => item.id === certameId);
  const cargos = certame?.cargos ?? [];
  const voltar = () => navigate("/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado");
  const salvar = (event: FormEvent) => {
   event.preventDefault();
   if (!certame || !cargos.length) { setErro("Selecione um processo seletivo com cargos cadastrados para criar o quadro."); return; }
-  const errosVigencia = validarSituacaoVigenciaSeplag({ situacao:"ATIVO", dataAtivacao });
-  if (!dataAtivacao || errosVigencia.length) { setErro(errosVigencia.join(" ") || "Informe a data de início."); return; }
-  try { setSalvo(salvarQuadroTemporario(certame, "", dataAtivacao)); setErro(""); }
+  if (!dataAtivacao) { setErro("Informe a data de início."); return; }
+  if (dataFutura(dataAtivacao)) { setErro("A data de início não pode ser futura."); return; }
+  try { salvarQuadroTemporario(certame, "", dataAtivacao); setErro(""); navigate("/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado"); }
   catch (error) { setErro(error instanceof Error ? error.message : "Não foi possível salvar o quadro. Tente novamente."); }
  };
  return <main className="novo-quadro-temporario">
   <header><h1>Novo Quadro Temporário</h1><p>Vincule o quadro às vagas de um processo seletivo cadastrado.</p></header>
-  {salvo ? <section className="nqt-card" role="status"><h2>Quadro {salvo.codigo} criado com sucesso</h2><p>{salvo.certame.nomeEdital} · {salvo.cargos.length} cargo(s)</p><p>Todos os cargos do seletivo foram incluídos, com suas respectivas regras de vagas.</p><button type="button" onClick={() => { setSalvo(null); reset(); setCertameId(""); }}>Cadastrar outro quadro</button><button type="button" onClick={voltar}>Voltar</button></section> : <form onSubmit={salvar}>
+  <form onSubmit={salvar}>
    {erro && <p className="nqt-error" role="alert">{erro}</p>}
    <section className="nqt-card"><header className="nqt-section-header"><i className="pi pi-file" aria-hidden="true" /><div><h2>Seletivo de origem</h2><p>Selecione o processo seletivo que fundamenta o quadro temporário.</p></div></header><div className="nqt-section-body"><label htmlFor="nqt-seletivo">Processo Seletivo *</label>
-    <Dropdown inputId="nqt-seletivo" value={certameId} options={seletivos.map(item => ({ value:item.id, label:[item.numeroConcurso + "/" + item.anoConcurso, item.nomeEdital, item.setor].join(" — ") }))} filter showClear placeholder="Selecione o processo seletivo" emptyMessage="Nenhum PSS temporário cadastrado" emptyFilterMessage="Nenhum seletivo encontrado" onChange={event => { setCertameId(event.value ?? ""); setErro(""); }} />
+    <Dropdown inputId="nqt-seletivo" value={certameId} options={opcoesSeletivo} optionDisabled="indisponivel" filter showClear placeholder="Selecione o processo seletivo" emptyMessage="Nenhum PSS temporário cadastrado" emptyFilterMessage="Nenhum seletivo encontrado" itemTemplate={(option) => <span className={option.indisponivel ? "nqt-seletivo-indisponivel" : "nqt-seletivo-option"}><span>{option.label}</span>{option.quadroCodigo && <small>{option.quadroCodigo}</small>}</span>} onChange={event => { setCertameId(event.value ?? ""); setErro(""); }} />
     {!seletivos.length && <p>Nenhum processo seletivo com vínculo temporário está cadastrado no Controle de Certame.</p>}
     {certame && <dl className="nqt-grid"><Dado label="Edital" value={certame.nomeEdital} /><Dado label="Número do edital" value={certame.numeroEditalOrgao} /><Dado label="Órgão responsável" value={certame.setor} /><Dado label="Tipo de vínculo" value={TIPOS_VINCULO.find(item => item.value === certame.tipoVinculo)?.label} /><Dado label="Regime jurídico" value={REGIMES_JURIDICOS.find(item => item.value === certame.regimeJuridico)?.label} /><Dado label="Situação" value={SITUACOES_CERTAME.find(item => item.value === certame.situacaoAtual)?.label} /><Dado label="Publicação do edital" value={certame.dataPublicacaoEdital} /><Dado label="Validade do seletivo" value={certame.dataValidade} /></dl>}
    </div></section>
@@ -50,12 +53,22 @@ export function NovoQuadroTemporarioContent() {
    </div></section>
    <section className="nqt-card"><header className="nqt-section-header"><i className="pi pi-calendar" aria-hidden="true" /><div><h2>Vigência</h2><p>Informe a situação temporal da autorização utilizando o padrão do sistema.</p></div></header>
     <div className="nqt-section-body nqt-vigencia">
-     <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" required cols="12" getFormErrorMessage={() => null} />
-     <div className="nqt-situacao" aria-live="polite"><i className={"pi " + (agendado ? "pi-clock" : "pi-check-circle")} aria-hidden="true" /><div><span>Situação *</span><div><BadgeSeplag label={agendado ? "Agendado" : "Ativo"} color={agendado ? "#8a5a00" : "#00843d"} bg={agendado ? "#fff3d6" : "#dff3e8"} size="sm" fontWeight /></div><small>{agendado ? "A autorização ficará programada para a data informada." : "A autorização passa a valer a partir da data informada."}</small></div></div>
+     <DateFieldSeplag name="dataAtivacao" control={control} label="Data de início" required cols="12" maxDate={new Date()} customValidation={(value) => !value || !dataFutura(String(value)) || "A data de início não pode ser futura."} getFormErrorMessage={() => null} />
+     <div className="nqt-situacao" aria-live="polite"><i className="pi pi-check-circle" aria-hidden="true" /><div><span>Situação</span><div><strong>Ativo</strong></div><small>O quadro passa a valer na data informada.</small></div></div>
     </div>
    </section>
    <footer><BotaoVoltarSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={voltar} /><BotaoSalvarSeplag type="submit" label="Criar Quadro Temporário" disabled={!certame || !cargos.length} /></footer>
-  </form>}
+  </form>
  </main>;
 }
 function Dado({ label, value }: { label:string; value?:string | number }) { return <div><dt>{label}</dt><dd>{value === undefined || value === "" ? "Não informado" : value}</dd></div>; }
+
+function dataFutura(valor: string) {
+ const [dia, mes, ano] = valor.split("/").map(Number);
+ if (!dia || !mes || !ano) return false;
+ const informada = new Date(ano, mes - 1, dia);
+ informada.setHours(0, 0, 0, 0);
+ const hoje = new Date();
+ hoje.setHours(0, 0, 0, 0);
+ return informada > hoje;
+}

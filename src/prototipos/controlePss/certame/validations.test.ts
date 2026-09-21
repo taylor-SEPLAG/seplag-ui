@@ -19,6 +19,7 @@ import {
  situacaoAtualDoHistorico,
  podeCadastrarVagaNoCertame,
  deduzirTipoVaga,
+ orgaoParticipanteRemovidoComVaga,
 } from "./validations";
 
 function historico(...tipos:SituacaoHistoricoCertame["tipo"][]):SituacaoHistoricoCertame[] {
@@ -252,5 +253,27 @@ describe("Fluxo Órgão mandante/participante — deduzirTipoVaga", () => {
  it("com participantes e campo em branco, deduz Aproveitamento", () => {
   expect(deduzirTipoVaga("SEFAZ", ["SEPLAG"])).toBe("Aproveitamento");
   expect(deduzirTipoVaga("SEFAZ", ["SEPLAG"], "")).toBe("Aproveitamento");
+ });
+});
+
+describe("US220 (Vagas) — orgaoParticipanteRemovidoComVaga (bloqueia remoção de participante com vaga vinculada)", () => {
+ it("aponta o órgão removido que ainda tem vaga vinculada a ele", () => {
+  const cargos = [{ id:"1", orgaoDestino:"SEPLAG" }, { id:"2", orgaoDestino:"SEFAZ" }];
+  expect(orgaoParticipanteRemovidoComVaga(["SEPLAG"], cargos)).toBe("SEPLAG");
+ });
+
+ it("não bloqueia quando nenhum órgão removido tem vaga vinculada", () => {
+  const cargos = [{ id:"1", orgaoDestino:"SEFAZ" }];
+  expect(orgaoParticipanteRemovidoComVaga(["SEPLAG"], cargos)).toBeUndefined();
+ });
+
+ it("não bloqueia quando nenhum órgão foi removido", () => {
+  const cargos = [{ id:"1", orgaoDestino:"SEPLAG" }];
+  expect(orgaoParticipanteRemovidoComVaga([], cargos)).toBeUndefined();
+ });
+
+ it("ignora vagas de Aproveitamento (sem orgaoDestino) — nunca bloqueiam a remoção", () => {
+  const cargos = [{ id:"1", orgaoDestino:undefined }];
+  expect(orgaoParticipanteRemovidoComVaga(["SEPLAG"], cargos)).toBeUndefined();
  });
 });

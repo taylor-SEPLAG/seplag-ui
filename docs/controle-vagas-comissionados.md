@@ -262,3 +262,48 @@ O quadro da POLITEC foi incorporado a partir do Anexo I do Decreto nº 2.252/202
 4. Integrar vagas aos processos de ingresso e ocupação.
 5. Registrar histórico e auditoria de cada alteração.
 6. Expandir o modal do quadro para navegar pela árvore de níveis, itens, subitens e dotações.
+
+## Proposta pendente de aprovação: Importar estrutura de outro quadro
+
+**Status: aguardando aprovação do cliente.**
+
+A proposta acrescenta a ação **Importar estrutura** ao bloco **Estrutura organizacional** do cadastro e do versionamento de quadro comissionado.
+
+### Fluxo proposto
+
+1. O usuário aciona **Importar estrutura**, ao lado de **Adicionar nível**.
+2. O sistema abre um modal com os quadros comissionados salvos.
+3. O usuário seleciona o quadro de origem e consulta uma prévia com código QC, órgão, versão, níveis, itens, subitens e dotações.
+4. O usuário confirma a importação.
+5. O sistema substitui a estrutura em edição pela cópia importada.
+
+A origem sempre será a versão mais recente salva de cada quadro. Rascunhos não aparecerão na seleção.
+
+### Dados importados
+
+- Níveis.
+- Itens e subitens.
+- Nomes da estrutura.
+- Perfis profissionais.
+- Cargo ou DGA de cada dotação.
+
+### Dados zerados ou não importados
+
+| Tratamento | Dados |
+| --- | --- |
+| Zerados | Quantidade de cargos e quantidade de funções em cada dotação. |
+| Não importados | Nome do novo quadro, órgão, base legal, vigência, situação, versão e motivo de versionamento. |
+
+Exemplo: uma dotação de origem com perfil Diretor-Geral da POLITEC, DGA-2, zero cargos e uma função será importada com o mesmo perfil e DGA, mas com zero cargos e zero funções.
+
+### Proteção contra perda de dados
+
+Se já houver estrutura preenchida no formulário, o modal exibirá um aviso: a importação substituirá todos os níveis, itens, subitens e dotações atuais. A ação exigirá confirmação explícita.
+
+### Prévia da origem
+
+| Quadro | Órgão | Versão | Estrutura |
+| --- | --- | ---: | --- |
+| QC-0001 — Estrutura organizacional da POLITEC | POLITEC | 1 | 7 níveis, 136 itens e subitens |
+
+A implementação poderá registrar tecnicamente a origem, por exemplo: “Estrutura importada de QC-0001, versão 1”. Essa referência não cria vínculo de versionamento nem copia a base legal do quadro de origem.
