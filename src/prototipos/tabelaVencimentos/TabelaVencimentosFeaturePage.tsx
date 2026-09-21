@@ -1251,7 +1251,6 @@ function List({ batch = false }: { batch?: boolean }) {
                                         <th>Versão</th>
                                         <th>Ano</th>
                                         <th>Vigência</th>
-                                        <th>Incide RGA</th>
                                         <th>Situação</th>
                                         <th>Ações</th>
                                       </tr>
@@ -1292,13 +1291,6 @@ function List({ batch = false }: { batch?: boolean }) {
                                                 ? item.inicio +
                                                   " – " +
                                                   (item.fim || "Atual")
-                                                : "—"}
-                                            </td>
-                                            <td>
-                                              {item
-                                                ? incideRga
-                                                  ? "Sim"
-                                                  : "Não"
                                                 : "—"}
                                             </td>
                                             <td>
