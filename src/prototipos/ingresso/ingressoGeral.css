@@ -1,0 +1,104 @@
+.prototype-ingresso-geral {
+  min-height: 100%;
+  padding: 2rem 2.2rem 3rem;
+  background: #f5f7fb;
+  color: #17233c;
+}
+
+.prototype-ingresso-geral > header {
+  margin-bottom: 1.75rem;
+}
+
+.prototype-ingresso-geral > header > span {
+  color: #0868b8;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.prototype-ingresso-geral h1 {
+  margin: .45rem 0 .55rem;
+  font-size: 1.65rem;
+}
+
+.prototype-ingresso-geral > header p {
+  margin: 0;
+  color: #58677d;
+}
+
+.prototype-ingresso-geral > section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 1160px;
+}
+
+.prototype-ingresso-geral > section > a:first-child {
+  grid-column: 1 / -1;
+  min-height: 10.5rem;
+}
+
+.prototype-ingresso-geral a {
+  display: flex;
+  min-height: 14rem;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.75rem;
+  border: 1px solid #d7e1ed;
+  border-radius: .65rem;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.prototype-ingresso-geral a:hover,
+.prototype-ingresso-geral a:focus-visible {
+  border-color: #147bc4;
+  box-shadow: 0 .35rem 1rem rgba(17, 72, 119, .1);
+  outline: none;
+}
+
+.prototype-ingresso-geral a > i {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1.25rem;
+  place-items: center;
+  border-radius: .55rem;
+  background: #e7f3fc;
+  color: #0870b6;
+  font-size: 1.35rem;
+}
+
+.prototype-ingresso-geral h2 {
+  margin: 0;
+  color: #0f2745;
+  font-size: 1.1rem;
+}
+
+.prototype-ingresso-geral a > p {
+  margin: .65rem 0 1.2rem;
+  color: #56667d;
+  line-height: 1.55;
+}
+
+.prototype-ingresso-geral a > span {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin-top: auto;
+  color: #0870b6;
+  font-weight: 700;
+}
+
+.prototype-ingresso-geral a > span i {
+  font-size: .85rem;
+}
+
+@media (max-width: 640px) {
+  .prototype-ingresso-geral { padding: 1.25rem; }
+  .prototype-ingresso-geral > section { grid-template-columns: 1fr; }
+  .prototype-ingresso-geral > section > a:first-child { grid-column: auto; }
+}
