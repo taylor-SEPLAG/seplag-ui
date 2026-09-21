@@ -1,7 +1,7 @@
 export type TipoComissao = "PROCESSO_SELETIVO" | "CONCURSO";
 export type StatusComissao = "RASCUNHO" | "EM_ANDAMENTO" | "ENCERRADA";
 export type CargoMembroComissao = "MEMBRO" | "PRESIDENTE" | "SECRETARIO" | "SUPLENTE";
-export type TipoAtoNomeacao = "PORTARIA" | "DECRETO" | "RESOLUCAO";
+export type TipoAtoNomeacao = "PORTARIA" | "DECRETO" | "RESOLUCAO" | "LEI";
 export type LocalPublicacaoAto = "DOE" | "DOU";
 
 export interface ArquivoAtoNomeacao { readonly id:string; nome:string; extensao:string; contentType:string; conteudoEmBase64:string; tamanho?:number; }
