@@ -15,6 +15,7 @@ export const certameFormTabSpecifications: Record<string, SpecificationMetadata>
   "PSS-CERT-FRM-TAB-001", "Identificação",
   "Aba com o bloco \"Identificação do certame\": dados que identificam o certame perante o TCE-MT.",
   "RN-01 (tipo único Conc/PSS — RN-06.2), RN-02 (padrão de nomenclatura do edital), RN-03 (número TCE-MT sequencial e editável), RN-04 (numeração própria por órgão), RN-05 (órgão responsável/mandante sempre editável) e RN-06.4 (rótulo \"(selecione)\" em Órgãos participantes); Lei de contrato temporário e Lei de PSS ficam ocultas quando o tipo é Concurso (RN-06, seção 3). "
+  + "RN-25 — Órgãos participantes: o mandante nunca é uma opção de participante e um órgão com vaga(s) vinculada(s) não pode ser removido da lista (ver bloco \"Órgãos participantes\" abaixo). "
   + "RN-23 — ao salvar, bloqueia duplicidade de Número do certame (TCE-MT) para o mesmo Tipo e Ano do concurso.",
   "Certame (bloco 1).", "Certame", "formulário com bloco único",
  ),
@@ -61,6 +62,14 @@ export const certameFormBlockSpecifications = {
  fasesFixas: spec("PSS-CERT-FRM-BLC-003", "Fases do certame", "Bloco (com subtítulo) dentro da aba Cronograma, logo após Datas e execução, com a lista de fases do certame, iniciada com o catálogo padrão do TCE-MT.", "RN-09 — o usuário pode reordenar (arrastar e soltar pelo mouse), editar nome e datas de início/fim, remover e adicionar novas fases.", "Certame.fases.", "FaseCertame[]", "lista editável em linha, com reordenação por arraste"),
  quadroVagasVinculado: spec("PSS-CERT-FRM-BLC-005", "Quadro de Vagas vinculado ao cargo", "Buscar e exibir o Quadro de Vagas (código e versão) vinculado automaticamente ao cargo selecionado ou digitado.", "RN-17 — vínculo automático, somente leitura, sem escolha manual; garante rastreabilidade Edital → Quadro de Vagas → Gestão de Ingresso. Vínculo em Controle de Vagas > Quadro Autorizado.", "CARGOS_CADASTRADOS (quadroCodigo/quadroVersao) e CargoVagaCertame.", "string", "campo somente leitura, atualizado ao trocar o cargo/função"),
  cadastroReserva: spec("PSS-CERT-FRM-BLC-006", "Cadastro Reserva (CR) do cargo", "Indica se o cargo aceita formação de Cadastro Reserva e, quando sim, a quantidade de candidatos reservados para essa finalidade.", "Cadastro Reserva aplica-se somente às vagas de ampla concorrência do cargo (CargoVagaCertame.quantidadeVagas) — não se aplica às vagas reservadas por cota (reservasCota), que têm sua própria quantidade por tipo.", "CargoVagaCertame.aceitaCadastroReserva/quantidadeCadastroReserva.", "boolean/integer", "switch + campo numérico condicional"),
+ orgaosParticipantes: spec(
+  "PSS-CERT-FRM-BLC-007", "Órgãos participantes",
+  "Campo de múltipla seleção, no bloco \"Órgãos envolvidos\" (aba Identificação), com os demais órgãos que também participam do certame além do órgão responsável (mandante).",
+  "RN-25 — (a) o órgão mandante nunca aparece como opção de participante; trocar o mandante para um órgão já marcado como participante remove-o automaticamente da lista de participantes. "
+  + "(b) um órgão com vaga(s) vinculada(s) a ele (CargoVagaCertame.orgaoDestino) não pode ser removido dos participantes — a opção fica desabilitada na lista e qualquer tentativa de remoção (inclusive pelo \"x\" do chip) é revertida, com mensagem orientando a excluir ou reatribuir a vaga na aba Vagas antes de tentar de novo. "
+  + "(c) a lista de participantes controla o campo \"Órgão da vaga\" da aba Vagas: só aparece havendo ao menos um participante, e suas opções são sempre mandante + participantes; sem nenhum participante, toda vaga nova assume o mandante automaticamente (Aproveitamento). RN-06.4 — rótulo \"(selecione)\" exibido enquanto a lista está vazia.",
+  "Certame.setor, Certame.setoresParticipantes.", "string[]", "multiseleção com chips",
+ ),
 } satisfies Record<string, SpecificationMetadata>;
 
 export const certameFormActionSpecifications: Record<string, SpecificationMetadata> = {

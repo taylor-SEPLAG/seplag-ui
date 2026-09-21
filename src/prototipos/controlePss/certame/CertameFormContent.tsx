@@ -526,8 +526,8 @@ export function CertameFormContent() {
   if (dias !== undefined) setValue("validadeConcursoDias", dias);
  }, [valores.dataResultado, valores.dataValidade, setValue]);
 
- // O órgão mandante não pode também ser órgão participante — remove automaticamente se o usuário
- // trocar o mandante para um órgão já marcado como participante.
+ // RN-25a: o órgão mandante não pode também ser órgão participante — remove automaticamente se o
+ // usuário trocar o mandante para um órgão já marcado como participante.
  useEffect(() => {
   if (valores.setor && valores.setoresParticipantes.includes(valores.setor)) {
    setValue("setoresParticipantes", valores.setoresParticipantes.filter((item) => item !== valores.setor));
@@ -576,26 +576,37 @@ export function CertameFormContent() {
  const [taxasInscricao, setTaxasInscricao] = useState<TaxaInscricaoCertame[]>(rascunho?.taxasInscricao ? [...rascunho.taxasInscricao] : (existente?.taxasInscricao ? [...existente.taxasInscricao] : taxasLegadas));
  const [taxaRascunho, setTaxaRascunho] = useState<TaxaInscricaoRascunho | null>(null);
  const [taxaEmEdicaoId, setTaxaEmEdicaoId] = useState<string | null>(null);
+ const [taxaSomenteLeitura, setTaxaSomenteLeitura] = useState(false);
  const [errosTaxa, setErrosTaxa] = useState<Partial<Record<keyof TaxaInscricaoRascunho, string>>>({});
  const taxaValorRef = useRef<HTMLInputElement | null>(null);
  const adicionarTaxa = () => {
   if (taxaRascunho) return;
   setErrosTaxa({});
+  setTaxaEmEdicaoId(null);
+  setTaxaSomenteLeitura(false);
   setTaxaRascunho({ valor:"", inicioIsencao:"", fimIsencao:"", tipoIsencao:[], leiIsencao:"" });
   window.setTimeout(() => taxaValorRef.current?.focus(), 0);
  };
- const cancelarTaxa = () => { setTaxaRascunho(null); setTaxaEmEdicaoId(null); setErrosTaxa({}); };
+ const cancelarTaxa = () => { setTaxaRascunho(null); setTaxaEmEdicaoId(null); setTaxaSomenteLeitura(false); setErrosTaxa({}); };
  const editarTaxa = (taxa:TaxaInscricaoCertame) => {
   if (taxaRascunho) return;
   setErrosTaxa({});
   setTaxaEmEdicaoId(taxa.id);
+  setTaxaSomenteLeitura(false);
   setTaxaRascunho({ valor:String(taxa.valor), inicioIsencao:taxa.inicioIsencao ?? "", fimIsencao:taxa.fimIsencao ?? "", tipoIsencao:Array.isArray(taxa.tipoIsencao) ? [...taxa.tipoIsencao] : [], leiIsencao:taxa.leiIsencao ?? "" });
   window.setTimeout(() => taxaValorRef.current?.focus(), 0);
+ };
+ const visualizarTaxa = (taxa:TaxaInscricaoCertame) => {
+  if (taxaRascunho) return;
+  setErrosTaxa({});
+  setTaxaEmEdicaoId(taxa.id);
+  setTaxaSomenteLeitura(true);
+  setTaxaRascunho({ valor:String(taxa.valor), inicioIsencao:taxa.inicioIsencao ?? "", fimIsencao:taxa.fimIsencao ?? "", tipoIsencao:Array.isArray(taxa.tipoIsencao) ? [...taxa.tipoIsencao] : [], leiIsencao:taxa.leiIsencao ?? "" });
  };
  const dataComparavel = (valor:string) => { const partes = valor.split("/"); return partes.length === 3 ? `${partes[2]}${partes[1]}${partes[0]}` : valor; };
  const formatarDataTaxa = (valor?:string) => valor && /^\d{4}-\d{2}-\d{2}$/.test(valor) ? valor.split("-").reverse().join("/") : (valor || "—");
  const salvarTaxa = () => {
-  if (!taxaRascunho) return;
+  if (!taxaRascunho || taxaSomenteLeitura) return;
   const erros:Partial<Record<keyof TaxaInscricaoRascunho, string>> = {};
   const valor = Number(taxaRascunho.valor.replace(",", "."));
   if (!Number.isFinite(valor) || valor <= 0) erros.valor = "Informe um valor maior que zero.";
@@ -638,8 +649,8 @@ export function CertameFormContent() {
  // perguntada quando há ambiguidade a resolver; com uma única cidade ela é aplicada automaticamente.
  const cidadesDoPoloSelecionado = useMemo(() => polos.find((item) => item.nomeLocal === cargoValores.polo)?.cidade ?? [], [polos, cargoValores.polo]);
  const exibirCidadeVaga = cidadesDoPoloSelecionado.length > 1;
- // Fluxo Órgão mandante/participante da vaga: o campo "Órgão da vaga" só é exibido quando o certame
- // tem órgãos participantes — sem participante, todas as vagas assumem o órgão mandante
+ // RN-25c — Fluxo Órgão mandante/participante da vaga: o campo "Órgão da vaga" só é exibido quando
+ // o certame tem órgãos participantes — sem participante, todas as vagas assumem o órgão mandante
  // automaticamente e o campo nem aparece (nada a escolher). Opções = mandante + participantes,
  // preenchimento sempre opcional (em branco = vaga de Aproveitamento, ver deduzirTipoVaga).
  const exibirOrgaoVaga = valores.setoresParticipantes.length > 0;
@@ -765,7 +776,7 @@ export function CertameFormContent() {
   if (!erro) return;
   document.getElementById("certame-form-erro")?.scrollIntoView({ behavior:"smooth", block:"center" });
  }, [erro]);
- // RN (US220 — Vagas): não é permitido remover da lista de participantes um órgão que ainda tem
+ // RN-25b (US220 — Vagas): não é permitido remover da lista de participantes um órgão que ainda tem
  // vaga(s) vinculada(s) a ele (CargoVagaCertame.orgaoDestino) — a remoção é revertida e o usuário
  // é orientado a excluir (ou reatribuir) essas vagas na aba Vagas antes de tentar de novo.
  const setoresParticipantesAnteriorRef = useRef(valores.setoresParticipantes);
@@ -817,9 +828,11 @@ export function CertameFormContent() {
   } },
  ];
 
- const salvar = handleSubmit((dados) => {
+ const salvar = handleSubmit(async (dados) => {
   if (modoVisualizar) return;
   setErro(null);
+  if (!(await validarAbaIdentificacao())) return;
+  if (!(await validarAbaCronograma())) return;
   if (dados.cobraTaxaInscricao === "S" && taxaRascunho) { setErro("Salve ou cancele a nova taxa de inscrição antes de salvar o certame."); irParaBloco("FINANCEIRO", "bloco-taxa-inscricao"); return; }
   if (dados.cobraTaxaInscricao === "S" && taxasInscricao.length === 0) { setErro("Adicione ao menos uma taxa de inscrição."); irParaBloco("FINANCEIRO", "bloco-taxa-inscricao"); return; }
   // CA03/RN-23 (ER143): número do certame (TCE-MT) não pode se repetir para o mesmo tipo e exercício.
@@ -1006,27 +1019,23 @@ export function CertameFormContent() {
   }
   return valido;
  };
- // CA07/RN006 (US219 - Cronograma): sair da aba Cronograma com Data de publicação do edital, Data de
- // realização, Data de validade, Data do resultado, Início ou Fim das inscrições gerais vazios bloqueia
- // a navegação para Contrato e Custos.
+ // US219 - Cronograma: Data de publicação do edital, Data de realização, Data de validade, Data do
+ // resultado, Início e Fim das inscrições gerais são exigidas só no salvamento final.
  const camposObrigatoriosCronograma:(keyof CertameFormValues)[] = ["dataPublicacaoEdital", "dataRealizacao", "dataValidade", "dataResultado", "inicioInscricoesGerais", "fimInscricoesGerais"];
  const validarAbaCronograma = async () => {
   const valido = await trigger(camposObrigatoriosCronograma);
   if (!valido) { setErro("Preencha os campos obrigatórios desta aba antes de avançar."); irParaBloco("CRONOGRAMA", "bloco-datas-execucao"); }
   return valido;
  };
- // CA01/RN005/RN021 (US220 - Vagas): ao menos um cargo/vaga é obrigatório para sair da aba Vagas —
- // sem isso, o sistema bloqueia o avanço e rola até a lista de "Vagas adicionadas".
+ // CA01/RN005/RN021 (US220 - Vagas): ao menos um cargo/vaga é obrigatório no salvamento final — sem
+ // isso, o sistema bloqueia o salvamento e rola até a lista de "Vagas adicionadas".
  const validarAbaVagas = () => {
   if (cargos.length === 0) { setErro("Informe ao menos um cargo/vaga para salvar o certame (RN-14, Cenário 1)."); irParaBloco("VAGAS_COTAS", "bloco-cargos-vagas"); return false; }
   return true;
  };
- const validarAbaAtual = () => {
-  if (aba === "IDENTIFICACAO") return validarAbaIdentificacao();
-  if (aba === "CRONOGRAMA") return validarAbaCronograma();
-  if (aba === "VAGAS_COTAS") return Promise.resolve(validarAbaVagas());
-  return Promise.resolve(true);
- };
+ // Só a aba Identificação bloqueia a navegação entre abas; Cronograma, Contrato e Custos, Vagas e
+ // Documentos são livres e só são validados no salvamento final (ver `salvar`).
+ const validarAbaAtual = () => aba === "IDENTIFICACAO" ? validarAbaIdentificacao() : Promise.resolve(true);
  const mudarAba = async (novaAba:Aba) => {
   if (novaAba !== aba && !(await validarAbaAtual())) return;
   setAba(novaAba);
@@ -1111,6 +1120,8 @@ export function CertameFormContent() {
        <BlocoHeader icone="pi-building" titulo="Órgãos envolvidos" subtitulo="Órgão mandante e órgãos participantes do certame." />
        <div className="grid">
         <DropdownFieldSeplag name="setor" control={control} label="Órgão responsável (mandante)" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
+        {/* RN-25 (Órgãos participantes) — ver certameFormBlockSpecifications.orgaosParticipantes:
+            (a) exclui o mandante das opções, (b) trava a remoção de um órgão com vaga vinculada. */}
         <MultiSelectFieldSeplag name="setoresParticipantes" control={control} label="Órgãos participantes" cols="12 6" options={ORGAOS_CERTAME.filter((item) => item !== valores.setor).map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" optionDisabled={(item:{ value:string }) => cargos.some((cargo) => cargo.orgaoDestino === item.value)} placeholder="(selecione)" display="chip" disabled={modoVisualizar || identificacaoTravada} getFormErrorMessage={() => null} />
         {!modoVisualizar && valores.setoresParticipantes.some((orgao) => cargos.some((cargo) => cargo.orgaoDestino === orgao)) && <div className="col-12"><small className="text-color-secondary">Órgãos com vagas vinculadas (em cinza) não podem ser removidos — exclua a vaga na aba Vagas antes.</small></div>}
        </div>
@@ -1273,29 +1284,83 @@ export function CertameFormContent() {
        <div className="grid prototype-certame-taxa-toggle"><CheckboxFieldSeplag name="cobraTaxaInscricao" control={control} label=" " checkboxLabel="O certame cobra taxa de inscrição?" cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} /></div>
        {valores.cobraTaxaInscricao === "S" && <div className="prototype-certame-taxas-table-wrap">
         <table className="prototype-certame-taxas-table">
-         <thead><tr><th>Nº</th><th>Valor da inscrição <span className="required-marker">*</span></th><th>Início da inscrição com isenção <span className="required-marker">*</span></th><th>Fim da inscrição com isenção <span className="required-marker">*</span></th><th>Tipo da isenção <span className="required-marker">*</span></th><th>Lei de isenção <span className="required-marker">*</span></th><th>Ações</th></tr></thead>
+         <thead><tr><th>Nº</th><th>Valor da inscrição</th><th>Início da inscrição com isenção</th><th>Fim da inscrição com isenção</th><th>Tipo da isenção</th><th>Lei de isenção</th><th>Ações</th></tr></thead>
          <tbody>
-          {taxasInscricao.map((taxa, index) => taxaEmEdicaoId === taxa.id ? null : <tr key={taxa.id}>
+          {taxasInscricao.map((taxa, index) => <tr key={taxa.id}>
            <td>{index + 1}</td><td>{taxa.valor.toLocaleString("pt-BR", { style:"currency", currency:"BRL" })}</td><td>{formatarDataTaxa(taxa.inicioIsencao)}</td><td>{formatarDataTaxa(taxa.fimIsencao)}</td><td>{taxa.tipoIsencao.length ? <div className="prototype-certame-tipos-isencao">{taxa.tipoIsencao.map((tipo) => <span key={tipo}>{TIPOS_ISENCAO.find((item) => item.value === tipo)?.label ?? tipo}</span>)}</div> : "—"}</td><td>{opcoesLeis.find((lei) => lei.id === taxa.leiIsencao)?.titulo ?? "—"}</td>
-           <td><div className="prototype-certame-taxa-row-actions"><BotaoIconSeplag type="button" severity="warning" tooltip="Editar taxa" icon="pi pi-pencil" disabled={modoVisualizar || Boolean(taxaRascunho)} onClick={() => editarTaxa(taxa)} /><BotaoIconSeplag type="button" severity="danger" tooltip="Excluir taxa" icon="pi pi-trash" disabled={modoVisualizar || Boolean(taxaRascunho)} onClick={() => excluirTaxa(taxa.id)} /></div></td>
+           <td><div className="prototype-certame-taxa-row-actions">
+            <BotaoIconSeplag type="button" tooltip="Visualizar taxa" icon="pi pi-eye" disabled={Boolean(taxaRascunho)} onClick={() => visualizarTaxa(taxa)} />
+            {!modoVisualizar && <BotaoIconSeplag type="button" severity="warning" tooltip="Editar taxa" icon="pi pi-pencil" disabled={Boolean(taxaRascunho)} onClick={() => editarTaxa(taxa)} />}
+            {!modoVisualizar && <BotaoIconSeplag type="button" severity="danger" tooltip="Excluir taxa" icon="pi pi-trash" disabled={Boolean(taxaRascunho)} onClick={() => excluirTaxa(taxa.id)} />}
+           </div></td>
           </tr>)}
-          {taxaRascunho && <tr className="is-editing">
-           <td>{taxaEmEdicaoId ? taxasInscricao.findIndex((taxa) => taxa.id === taxaEmEdicaoId) + 1 : taxasInscricao.length + 1}</td>
-           <td><input ref={taxaValorRef} required aria-required="true" type="number" min="0.01" step="0.01" value={taxaRascunho.valor} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, valor:event.target.value })} placeholder="R$ 0,00" />{errosTaxa.valor && <small>{errosTaxa.valor}</small>}</td>
-           <td><input required aria-required="true" type="date" value={taxaRascunho.inicioIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, inicioIsencao:event.target.value })} placeholder="dd/mm/aaaa" />{errosTaxa.inicioIsencao && <small>{errosTaxa.inicioIsencao}</small>}</td>
-           <td><input required aria-required="true" type="date" value={taxaRascunho.fimIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, fimIsencao:event.target.value })} placeholder="dd/mm/aaaa" />{errosTaxa.fimIsencao && <small>{errosTaxa.fimIsencao}</small>}</td>
-           <td><MultiSelect required aria-required="true" value={taxaRascunho.tipoIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, tipoIsencao:event.value ?? [] })} options={TIPOS_ISENCAO} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" filter maxSelectedLabels={2} selectedItemsLabel="{0} tipos selecionados" />{errosTaxa.tipoIsencao && <small>{errosTaxa.tipoIsencao}</small>}</td>
-           <td><select required aria-required="true" value={taxaRascunho.leiIsencao} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, leiIsencao:event.target.value })}><option value="">Buscar lei</option>{opcoesLeis.map((lei) => <option key={lei.id} value={lei.id}>{lei.titulo}</option>)}</select>{errosTaxa.leiIsencao && <small>{errosTaxa.leiIsencao}</small>}</td>
-           <td><div className="prototype-certame-taxa-row-actions"><button type="button" className="is-save" title="Salvar taxa" aria-label="Salvar taxa" onClick={salvarTaxa}><i className="pi pi-check" /></button><button type="button" className="is-cancel" title="Cancelar inclusão" aria-label="Cancelar inclusão" onClick={cancelarTaxa}><i className="pi pi-times" /></button></div></td>
-          </tr>}
-          {!taxasInscricao.length && !taxaRascunho && <tr><td colSpan={7} className="prototype-certame-taxas-empty">Nenhuma taxa de inscrição adicionada.</td></tr>}
+          {!taxasInscricao.length && <tr><td colSpan={7} className="prototype-certame-taxas-empty">Nenhuma taxa de inscrição adicionada.</td></tr>}
          </tbody>
         </table>
-        <div className="prototype-certame-taxa-law-action"><BotaoSeplag type="button" label="Cadastrar nova lei" icon="pi pi-plus-circle" outlined onClick={() => irCadastrarLei("leiIsencao")} /></div>
        </div>}
       </div>
 
      </div></SpecArea>}
+
+     {taxaRascunho && <ModalSeplag
+      visible
+      titulo={taxaSomenteLeitura ? "Visualizar taxa de inscrição" : taxaEmEdicaoId ? "Editar taxa de inscrição" : "Adicionar taxa de inscrição"}
+      fechar={cancelarTaxa}
+      tamanho="760px"
+      closeOnEscape
+      customFooter={taxaSomenteLeitura
+       ? <div className="flex justify-content-end gap-2">
+         <BotaoFecharSeplag type="button" label="Fechar" icon="pi pi-times" onClick={cancelarTaxa} />
+        </div>
+       : <div className="flex justify-content-end gap-2">
+         <BotaoFecharSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={cancelarTaxa} />
+         <BotaoAdicionarSeplag type="button" label={taxaEmEdicaoId ? "Salvar taxa" : "Adicionar taxa"} icon="pi pi-check" onClick={salvarTaxa} />
+        </div>}
+     >
+      <div className="col-12 prototype-certame-taxa-form grid">
+       <div className={gridCss("12 6 4")}>
+        <label className="prototype-native-field">
+         <span>Valor da inscrição <span className="required-marker">*</span></span>
+         <input ref={taxaValorRef} required aria-required="true" type="number" min="0.01" step="0.01" value={taxaRascunho.valor} disabled={taxaSomenteLeitura} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, valor:event.target.value })} placeholder="R$ 0,00" />
+        </label>
+        {errosTaxa.valor && <small className="p-error">{errosTaxa.valor}</small>}
+       </div>
+       <div className={gridCss("12 6 4")}>
+        <label className="prototype-native-field">
+         <span>Início da isenção <span className="required-marker">*</span></span>
+         <input required aria-required="true" type="date" value={taxaRascunho.inicioIsencao} disabled={taxaSomenteLeitura} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, inicioIsencao:event.target.value })} />
+        </label>
+        {errosTaxa.inicioIsencao && <small className="p-error">{errosTaxa.inicioIsencao}</small>}
+       </div>
+       <div className={gridCss("12 6 4")}>
+        <label className="prototype-native-field">
+         <span>Fim da isenção <span className="required-marker">*</span></span>
+         <input required aria-required="true" type="date" value={taxaRascunho.fimIsencao} disabled={taxaSomenteLeitura} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, fimIsencao:event.target.value })} />
+        </label>
+        {errosTaxa.fimIsencao && <small className="p-error">{errosTaxa.fimIsencao}</small>}
+       </div>
+       <div className={gridCss("12")}>
+        <label className="prototype-native-field">
+         <span>Tipo da isenção <span className="required-marker">*</span></span>
+         <MultiSelect required aria-required="true" value={taxaRascunho.tipoIsencao} disabled={taxaSomenteLeitura} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, tipoIsencao:event.value ?? [] })} options={TIPOS_ISENCAO} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" filter maxSelectedLabels={3} selectedItemsLabel="{0} tipos selecionados" />
+        </label>
+        {errosTaxa.tipoIsencao && <small className="p-error">{errosTaxa.tipoIsencao}</small>}
+       </div>
+       <div className={gridCss("12 8")}>
+        <label className="prototype-native-field">
+         <span>Lei de isenção <span className="required-marker">*</span></span>
+         <select required aria-required="true" value={taxaRascunho.leiIsencao} disabled={taxaSomenteLeitura} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, leiIsencao:event.target.value })}>
+          <option value="">Buscar lei</option>
+          {opcoesLeis.map((lei) => <option key={lei.id} value={lei.id}>{lei.titulo}</option>)}
+         </select>
+        </label>
+        {errosTaxa.leiIsencao && <small className="p-error">{errosTaxa.leiIsencao}</small>}
+       </div>
+       {!taxaSomenteLeitura && <div className={`${gridCss("12 4")} flex align-items-end`}>
+        <BotaoSeplag type="button" label="Cadastrar nova lei" icon="pi pi-plus-circle" outlined onClick={() => irCadastrarLei("leiIsencao")} />
+       </div>}
+      </div>
+     </ModalSeplag>}
 
      {aba === "VAGAS_COTAS" && <SpecArea metadata={certameFormTabSpecifications["Vagas"]}><div className="col-12">
 
