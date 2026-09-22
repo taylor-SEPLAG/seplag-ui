@@ -99,3 +99,45 @@
 
 .nqc-fields .content-rotulo > .label-rotulo { align-self: flex-start; flex-direction: row; justify-content: flex-start; gap: .2rem; width: auto; text-align: left; }
 .nqc-fields .content-rotulo > .label-rotulo .obrigatorio { display: inline; }
+
+/* Redução de dotação abaixo das vagas já ocupadas. */
+.nqc-reducoes-pendencias { display: flex; gap: .8rem; margin: 0 0 1rem; padding: .9rem 1rem; border: 1px solid #efbd79; border-left: 4px solid #d88611; border-radius: .45rem; background: #fff8ec; color: #5f430b; }
+.nqc-reducoes-pendencias.is-progressive { border-color: #9ccce4; border-left-color: #1979ae; background: #f0f8fd; color: #174d6c; }
+.nqc-reducoes-pendencias > i { margin-top: .1rem; font-size: 1.1rem; }
+.nqc-reducoes-pendencias strong { display: block; font-size: .9rem; }
+.nqc-reducoes-pendencias p { margin: .25rem 0 .4rem; font-size: .8rem; }
+.nqc-reducoes-pendencias ul { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: 0; padding: 0; list-style: none; font-size: .78rem; }
+.nqc-reducoes-pendencias button, .nqc-reducao-alerta button { padding: 0; border: 0; background: transparent; color: #075f9f; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.nqc-dotacao--reducao { border-color: #e5a960; background: #fffdf9; }
+.nqc-reducao-alerta { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .45rem .65rem; align-items: start; margin-top: .1rem; padding: .7rem .75rem; border: 1px solid #efc38a; border-radius: .35rem; background: #fff8ed; color: #6b470c; font-size: .78rem; }
+.nqc-reducao-alerta.is-progressive { border-color: #a9d5ea; background: #f1f9fd; color: #1b506b; }
+.nqc-reducao-alerta > i { margin-top: .1rem; }
+.nqc-reducao-alerta strong { display: block; }
+.nqc-reducao-alerta p { margin: .2rem 0 .35rem; line-height: 1.35; }
+.nqc-reducao-alerta ul { margin: .4rem 0 0; padding-left: 1rem; }
+.nqc-extincao-progressiva { grid-column: 2; display: flex !important; align-items: flex-start; gap: .45rem; margin-top: .15rem; color: inherit !important; font-size: .78rem !important; font-weight: 700 !important; }
+.nqc-extincao-progressiva input { width: 1rem; min-height: 1rem; margin: .05rem 0 0; }
+@media (max-width: 900px) { .nqc-reducao-alerta { grid-column: 1 / -1; } .nqc-extincao-progressiva { grid-column: 2; } }
+@media (max-width: 650px) { .nqc-extincao-progressiva { grid-column: 1 / -1; } }
+
+.nqc-dotacao .nqc-extincao-progressiva {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: .45rem;
+}
+
+.nqc-dotacao .nqc-extincao-progressiva input[type="checkbox"] {
+  flex: 0 0 1rem;
+  width: 1rem;
+  min-width: 1rem;
+  height: 1rem;
+  min-height: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nqc-alteracao-validada { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: .65rem; margin-top: .1rem; padding: .7rem .75rem; border: 1px solid #a9d9bc; border-radius: .35rem; background: #eefaf2; color: #17683d; font-size: .78rem; }
+.nqc-alteracao-validada > i { margin-top: .1rem; }
+.nqc-alteracao-validada strong { display: block; }
+.nqc-alteracao-validada p { margin: .2rem 0 0; line-height: 1.35; }

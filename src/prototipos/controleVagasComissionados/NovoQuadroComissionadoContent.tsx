@@ -1,5 +1,5 @@
 import "./comissionadosVisual.css";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import {
@@ -22,7 +22,7 @@ import {
 import "./novoQuadroComissionado.css";
 import "../controleVagas/quadroAutorizado.css";
 
-type Dotacao = { id: string; perfil: string; simbologia: string; cargos: number; funcoes: number };
+type Dotacao = { id: string; perfil: string; simbologia: string; cargos: number; funcoes: number; extincaoProgressivaCargos?: boolean; extincaoProgressivaFuncoes?: boolean };
 type ItemEstrutura = { id: string; nome: string; dotacoes: Dotacao[]; subitens: ItemEstrutura[] };
 
 type Nivel = { id: string; nome: string; itens: ItemEstrutura[] };
@@ -32,6 +32,15 @@ const novaDotacao = (): Dotacao => ({ id: novoId(), perfil: "", simbologia: "", 
 const novoItem = (): ItemEstrutura => ({ id: novoId(), nome: "", dotacoes: [], subitens: [] });
 
 const novoNivel = (): Nivel => ({ id: novoId(), nome: "", itens: [] });
+
+type OcupacaoDaDotacao = { cargos: number; funcoes: number };
+type ReducaoComOcupacao = { dotacaoId: string; perfil: string; simbologia: string; natureza: "Cargos" | "Funções"; proposta: number; ocupadas: number; excedente: number; extincaoProgressiva: boolean };
+
+// Enquanto a integração de ocupações é concluída, este recorte representa as vagas já ocupadas
+// no quadro demonstrativo da POLITEC. A regra de validação usa a mesma chave imutável da dotação.
+const ocupacoesAtuaisPorDotacao: Record<string, OcupacaoDaDotacao> = {
+  "politec-apoio-5-2": { cargos: 0, funcoes: 4 },
+};
 
 const atualizarItem = (itens: ItemEstrutura[], id: string, atualizar: (item: ItemEstrutura) => ItemEstrutura): ItemEstrutura[] =>
   itens.map((item) => item.id === id ? atualizar(item) : { ...item, subitens: atualizarItem(item.subitens, id, atualizar) });
@@ -84,6 +93,9 @@ export function NovoQuadroComissionadoContent() {
   const [simbolosAbertos, setSimbolosAbertos] = useState<string[]>([]);
   const emVersionamento = Boolean(rascunhoInicial?.versao && rascunhoInicial.versao > 1);
   const [salvo, setSalvo] = useState(false);
+  const reducoesComOcupacao = emVersionamento ? listarReducoesComOcupacao(niveis) : [];
+  const reducoesPendentes = reducoesComOcupacao.filter((reducao) => !reducao.extincaoProgressiva);
+  const dotacoesOriginais = useMemo(() => indexarDotacoes(normalizarNiveis(rascunhoInicial?.niveis)), [rascunhoInicial]);
 
   const atualizarNivel = (id: string, atualizar: (nivel: Nivel) => Nivel) => setNiveis((atual) => atual.map((nivel) => nivel.id === id ? atualizar(nivel) : nivel));
   const total = niveis.reduce((soma, nivel) => soma + contarDotacoes(nivel.itens), 0);
@@ -107,7 +119,7 @@ export function NovoQuadroComissionadoContent() {
   }, [orgaoSelecionadoJaPossuiQuadro, orgao, setValorVigencia]);
 
   const salvarQuadro = () => {
-    if (dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro) return;
+    if (dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length) return;
     salvarRascunhoQuadroComissionado({
       id: idQuadro,
       nome,
@@ -129,6 +141,17 @@ export function NovoQuadroComissionadoContent() {
     </header>
 
     <MensagemSeplag visible={salvo} severity="success" message="Estrutura do quadro salva para o órgão selecionado." />
+
+    {emVersionamento && reducoesComOcupacao.length > 0 && <section className={`nqc-reducoes-pendencias ${reducoesPendentes.length ? "is-blocking" : "is-progressive"}`}>
+      <i className={reducoesPendentes.length ? "pi pi-exclamation-triangle" : "pi pi-info-circle"} />
+      <div>
+        <strong>{reducoesPendentes.length ? "Pendências para publicar a versão" : "Extinção progressiva configurada"}</strong>
+        <p>{reducoesPendentes.length
+          ? `${reducoesPendentes.length} dotação(ões) reduzida(s) abaixo das ocupações atuais. Defina a extinção progressiva ou mantenha o quantitativo ocupado.`
+          : "As posições excedentes permanecerão ocupadas até a vacância e não aceitarão novo ingresso."}</p>
+        <ul>{reducoesComOcupacao.map((reducao) => <li key={`${reducao.dotacaoId}-${reducao.natureza}`}><button type="button" onClick={() => document.getElementById(`dotacao-${reducao.dotacaoId}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}>Ver {reducao.excedente} vaga(s) afetada(s)</button> · {reducao.simbologia} — {reducao.perfil}</li>)}</ul>
+      </div>
+    </section>}
 
     <div className="prototype-quadro-form">
     <BaseLegalVinculada value={documentosLegaisIds} onChange={setDocumentosLegaisIds} />
@@ -160,7 +183,7 @@ export function NovoQuadroComissionadoContent() {
     <section className="nqc-card nqc-estrutura">
       <header><i className="pi pi-sitemap" /><div><h2>Estrutura organizacional</h2><p>Adicione os níveis da estrutura. Em cada nível, registre itens, subitens e suas dotações autorizadas.</p></div><BotaoAdicionarSeplag label="Adicionar nível" onClick={() => setNiveis((atual) => [...atual, novoNivel()])} /></header>
       {!niveis.length && <div className="nqc-empty"><i className="pi pi-sitemap" /><strong>Nenhum nível cadastrado</strong><span>Comece por um nível, como “Direção Superior” ou “Administração Sistêmica”.</span></div>}
-      <div className="nqc-niveis">{niveis.map((nivel, indice) => <NivelEditor key={nivel.id} nivel={nivel} indice={indice} onChange={(atualizar) => atualizarNivel(nivel.id, atualizar)} onRemove={() => setNiveis((atual) => atual.filter((item) => item.id !== nivel.id))} simbologias={simbologias} />)}</div>
+      <div className="nqc-niveis">{niveis.map((nivel, indice) => <NivelEditor key={nivel.id} nivel={nivel} indice={indice} onChange={(atualizar) => atualizarNivel(nivel.id, atualizar)} onRemove={() => setNiveis((atual) => atual.filter((item) => item.id !== nivel.id))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} />)}</div>
     </section>
 
     <section className="nqc-card nqc-resumo">
@@ -177,33 +200,87 @@ export function NovoQuadroComissionadoContent() {
         </Fragment>;
       })}</tbody><tfoot><tr><th>Subtotal</th><th>{totais.cargos}</th><th>{totais.funcoes}</th></tr><tr><th>Total</th><th colSpan={2}>{totais.cargos + totais.funcoes}</th></tr></tfoot></table></div>
     </section>
-    <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow"><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length || dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || (emVersionamento && !motivoVersionamento.trim())} onClick={salvarQuadro} /></div></footer>
+    <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow"><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length || dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length > 0 || (emVersionamento && !motivoVersionamento.trim())} onClick={salvarQuadro} /></div></footer>
     </div>
   </div>;
 }
 
-function NivelEditor({ nivel, indice, onChange, onRemove, simbologias }: { nivel: Nivel; indice: number; onChange: (atualizar: (nivel: Nivel) => Nivel) => void; onRemove: () => void; simbologias: string[] }) {
+function NivelEditor({ nivel, indice, onChange, onRemove, simbologias, emVersionamento, dotacoesOriginais }: { nivel: Nivel; indice: number; onChange: (atualizar: (nivel: Nivel) => Nivel) => void; onRemove: () => void; simbologias: string[]; emVersionamento: boolean; dotacoesOriginais: Record<string, Dotacao> }) {
   return <article className="nqc-nivel"><div className="nqc-nivel-title"><span>Nível {indice + 1}</span><input value={nivel.nome} onChange={(event) => onChange((atual) => ({ ...atual, nome: event.target.value }))} placeholder="Ex.: Nível de Administração Sistêmica" /><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir nível" tooltip="Excluir nível" onClick={onRemove} /></div>
-    <div className="nqc-nivel-itens">{nivel.itens.map((item) => <ItemEditor key={item.id} item={item} nivel={0} onChange={(atualizar) => onChange((atual) => ({ ...atual, itens: atualizarItem(atual.itens, item.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, itens: excluirItem(atual.itens, item.id) }))} simbologias={simbologias} />)}</div>
+    <div className="nqc-nivel-itens">{nivel.itens.map((item) => <ItemEditor key={item.id} item={item} nivel={0} onChange={(atualizar) => onChange((atual) => ({ ...atual, itens: atualizarItem(atual.itens, item.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, itens: excluirItem(atual.itens, item.id) }))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} />)}</div>
     <button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, itens: [...atual.itens, novoItem()] }))}><i className="pi pi-plus" />Adicionar item</button>
   </article>;
 }
-function ItemEditor({ item, nivel, onChange, onRemove, simbologias }: { item: ItemEstrutura; nivel: number; onChange: (atualizar: (item: ItemEstrutura) => ItemEstrutura) => void; onRemove: () => void; simbologias: string[] }) {
+function ItemEditor({ item, nivel, onChange, onRemove, simbologias, emVersionamento, dotacoesOriginais }: { item: ItemEstrutura; nivel: number; onChange: (atualizar: (item: ItemEstrutura) => ItemEstrutura) => void; onRemove: () => void; simbologias: string[]; emVersionamento: boolean; dotacoesOriginais: Record<string, Dotacao> }) {
   return <article className={"nqc-item nqc-item-" + nivel}><div className="nqc-item-title"><i className={nivel ? "pi pi-angle-right" : "pi pi-folder"} /><input value={item.nome} onChange={(event) => onChange((atual) => ({ ...atual, nome: event.target.value }))} placeholder={nivel ? "Nome do subitem" : "Nome do item"} /><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir item" tooltip="Excluir item" onClick={onRemove} /></div>
-    <div className="nqc-dotacoes">{item.dotacoes.map((dotacao) => <DotacaoEditor key={dotacao.id} dotacao={dotacao} onChange={(atualizar) => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.map((linha) => linha.id === dotacao.id ? atualizar(linha) : linha) }))} onRemove={() => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.filter((linha) => linha.id !== dotacao.id) }))} simbologias={simbologias} />)}</div>
+    <div className="nqc-dotacoes">{item.dotacoes.map((dotacao) => <DotacaoEditor key={dotacao.id} dotacao={dotacao} onChange={(atualizar) => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.map((linha) => linha.id === dotacao.id ? atualizar(linha) : linha) }))} onRemove={() => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.filter((linha) => linha.id !== dotacao.id) }))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} />)}</div>
     <div className="nqc-item-actions"><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, dotacoes: [...atual.dotacoes, novaDotacao()] }))}><i className="pi pi-plus" />Adicionar dotação</button><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, subitens: [...atual.subitens, novoItem()] }))}><i className="pi pi-plus" />Adicionar subitem</button></div>
-    {item.subitens.map((subitem) => <ItemEditor key={subitem.id} item={subitem} nivel={nivel + 1} onChange={(atualizar) => onChange((atual) => ({ ...atual, subitens: atualizarItem(atual.subitens, subitem.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, subitens: excluirItem(atual.subitens, subitem.id) }))} simbologias={simbologias} />)}
+    {item.subitens.map((subitem) => <ItemEditor key={subitem.id} item={subitem} nivel={nivel + 1} onChange={(atualizar) => onChange((atual) => ({ ...atual, subitens: atualizarItem(atual.subitens, subitem.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, subitens: excluirItem(atual.subitens, subitem.id) }))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} />)}
   </article>;
 }
 
-function DotacaoEditor({ dotacao, onChange, onRemove, simbologias }: { dotacao: Dotacao; onChange: (atualizar: (dotacao: Dotacao) => Dotacao) => void; onRemove: () => void; simbologias: string[] }) {
+function DotacaoEditor({ dotacao, onChange, onRemove, simbologias, emVersionamento, dotacoesOriginais }: { dotacao: Dotacao; onChange: (atualizar: (dotacao: Dotacao) => Dotacao) => void; onRemove: () => void; simbologias: string[]; emVersionamento: boolean; dotacoesOriginais: Record<string, Dotacao> }) {
+  const [mostrarVagasAfetadas, setMostrarVagasAfetadas] = useState(false);
   const atualizar = <K extends keyof Dotacao>(campo: K, valor: Dotacao[K]) => onChange((atual) => ({ ...atual, [campo]: valor }));
   const perfisDga = listarPerfisDgaControleVagasComissionadas();
   const perfisDisponiveis = [...new Set([...perfisDga.map((perfil) => perfil.nome), dotacao.perfil].filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  return <div className="nqc-dotacao"><label>Perfil Profissional<select value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)}><option value="">Selecione...</option>{perfisDisponiveis.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}</select></label><label>Cargo Comissionado<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{simbologias.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label><label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label><label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} /></div>;
+  const original = dotacoesOriginais[dotacao.id];
+  const houveAlteracao = Boolean(original && (original.cargos !== dotacao.cargos || original.funcoes !== dotacao.funcoes || original.perfil !== dotacao.perfil || original.simbologia !== dotacao.simbologia));
+  const ocupadas = ocupacoesAtuaisPorDotacao[dotacao.id] ?? { cargos: 0, funcoes: 0 };
+  const reducaoCargos = Math.max(0, ocupadas.cargos - dotacao.cargos);
+  const reducaoFuncoes = Math.max(0, ocupadas.funcoes - dotacao.funcoes);
+  const possuiReducaoComOcupacao = reducaoCargos > 0 || reducaoFuncoes > 0;
+  const excedente = reducaoCargos + reducaoFuncoes;
+  const extincaoProgressiva = (reducaoCargos === 0 || dotacao.extincaoProgressivaCargos) && (reducaoFuncoes === 0 || dotacao.extincaoProgressivaFuncoes);
+  const vagasAfetadas = Array.from({ length: excedente }, (_, indice) => `${dotacao.simbologia || "Vaga"}-${reducaoFuncoes ? "F" : "C"}-${String((dotacao.funcoes || dotacao.cargos) + indice + 1).padStart(3, "0")}`);
+
+  return <div id={`dotacao-${dotacao.id}`} className={`nqc-dotacao ${possuiReducaoComOcupacao ? "nqc-dotacao--reducao" : ""}`}>
+    <label>Perfil Profissional<select value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)}><option value="">Selecione...</option>{perfisDisponiveis.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}</select></label>
+    <label>Cargo Comissionado<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{simbologias.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label>
+    <label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label>
+    <label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label>
+    <BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} />
+    {emVersionamento && houveAlteracao && (possuiReducaoComOcupacao ? <div className={`nqc-reducao-alerta ${extincaoProgressiva ? "is-progressive" : ""}`}>
+      <i className={extincaoProgressiva ? "pi pi-info-circle" : "pi pi-exclamation-triangle"} />
+      <div><strong>{ocupadas.cargos + ocupadas.funcoes} vaga(s) ocupada(s) nesta dotação.</strong><p>A quantidade proposta deixa {excedente} posição(ões) excedente(s). Elas não podem ser extintas enquanto houver ocupação.</p>
+        <button type="button" onClick={() => setMostrarVagasAfetadas((atual) => !atual)}>{mostrarVagasAfetadas ? "Ocultar vagas afetadas" : `Ver ${excedente} vaga(s) afetada(s)`}</button>
+        {mostrarVagasAfetadas && <ul>{vagasAfetadas.map((vaga) => <li key={vaga}>{vaga} · Ocupada</li>)}</ul>}
+      </div>
+      <label className="nqc-extincao-progressiva"><input type="checkbox" checked={extincaoProgressiva} onChange={(event) => {
+        if (reducaoCargos) atualizar("extincaoProgressivaCargos", event.target.checked);
+        if (reducaoFuncoes) atualizar("extincaoProgressivaFuncoes", event.target.checked);
+      }} />Extinguir progressivamente {excedente} vaga(s) após a vacância</label>
+    </div> : <div className="nqc-alteracao-validada"><i className="pi pi-check-circle" /><div><strong>Alteração permitida.</strong><p>A dotação foi alterada e não há redução abaixo das vagas ocupadas.</p></div></div>)}
+  </div>;
 }
-
-
+function indexarDotacoes(niveis: Nivel[]): Record<string, Dotacao> {
+  const indice: Record<string, Dotacao> = {};
+  const visitarItens = (itens: ItemEstrutura[]) => itens.forEach((item) => {
+    item.dotacoes.forEach((dotacao) => { indice[dotacao.id] = structuredClone(dotacao); });
+    visitarItens(item.subitens);
+  });
+  niveis.forEach((nivel) => visitarItens(nivel.itens));
+  return indice;
+}
+function listarReducoesComOcupacao(niveis: Nivel[]): ReducaoComOcupacao[] {
+  const reducoes: ReducaoComOcupacao[] = [];
+  const verificarItens = (itens: ItemEstrutura[]) => itens.forEach((item) => {
+    item.dotacoes.forEach((dotacao) => {
+      const ocupadas = ocupacoesAtuaisPorDotacao[dotacao.id];
+      if (!ocupadas) return;
+      ([
+        { natureza: "Cargos" as const, proposta: dotacao.cargos, ocupadas: ocupadas.cargos, extincaoProgressiva: Boolean(dotacao.extincaoProgressivaCargos) },
+        { natureza: "Funções" as const, proposta: dotacao.funcoes, ocupadas: ocupadas.funcoes, extincaoProgressiva: Boolean(dotacao.extincaoProgressivaFuncoes) },
+      ]).forEach((linha) => {
+        const excedente = Math.max(0, linha.ocupadas - linha.proposta);
+        if (excedente) reducoes.push({ dotacaoId: dotacao.id, perfil: dotacao.perfil, simbologia: dotacao.simbologia, natureza: linha.natureza, proposta: linha.proposta, ocupadas: linha.ocupadas, excedente, extincaoProgressiva: linha.extincaoProgressiva });
+      });
+    });
+    verificarItens(item.subitens);
+  });
+  niveis.forEach((nivel) => verificarItens(nivel.itens));
+  return reducoes;
+}
 function perfisPorSimbologia(niveis: Nivel[], simbologia: string) {
   const perfis = new Map<string, { nome: string; cargos: number; funcoes: number }>();
   const visitarItens = (itens: ItemEstrutura[]) => itens.forEach((item) => {
@@ -234,6 +311,10 @@ function somarTotais(itens: ItemEstrutura[], acumulado = { cargos: 0, funcoes: 0
     funcoes: total.funcoes + item.dotacoes.reduce((soma, dotacao) => soma + dotacao.funcoes, 0) + somarTotais(item.subitens).funcoes,
   }), acumulado);
 }
+
+
+
+
 
 
 

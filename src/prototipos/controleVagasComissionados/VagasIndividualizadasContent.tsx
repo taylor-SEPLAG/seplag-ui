@@ -8,4 +8,44 @@ import { useMemo, useState } from "react";import { useForm } from "react-hook-fo
       : { color: "#5c50af", bg: "#eeebff" };
   return <BadgeSeplag label={situacao} color={configuracao.color} bg={configuracao.bg} size="xs" />;
 }
-function dataFormatada(data: string) {  if (!data) return "Não informada";  const [ano, mes, dia] = data.split("-");  return ano && mes && dia ? `${dia}/${mes}/${ano}` : data;}function DetalhePosicao({ posicao }: { posicao: PosicaoComissionada }) {  return <div className="prototype-comissionados-posicao-detail">    <section><header><i className="pi pi-list" /><div><h2>{posicao.identificador}</h2><p>Posição derivada automaticamente da dotação autorizada.</p></div></header><dl>      <div><dt>Quadro</dt><dd>{posicao.quadroCodigo} — versão {posicao.versao}</dd></div>      <div><dt>Órgão</dt><dd>{posicao.orgao}</dd></div>      <div className="is-full"><dt>Estrutura organizacional</dt><dd>{posicao.nivel} &gt; {posicao.estrutura}</dd></div>      <div><dt>Cargo Comissionado</dt><dd>{posicao.simbologia}</dd></div>      <div><dt>Perfil Profissional</dt><dd>{posicao.perfil}</dd></div>      <div><dt>Natureza</dt><dd><NaturezaBadge natureza={posicao.natureza} /></dd></div>      <div><dt>Situação</dt><dd><SituacaoBadge situacao={posicao.situacao} /></dd></div>      <div><dt>Início da vigência</dt><dd>{dataFormatada(posicao.dataVigencia)}</dd></div>      <div><dt>Base legal vinculada</dt><dd>{posicao.documentosLegaisIds.length ? posicao.documentosLegaisIds.join(", ") : "Não informada"}</dd></div>    </dl></section>  </div>;}
+function dataFormatada(data: string) {  if (!data) return "Não informada";  const [ano, mes, dia] = data.split("-");  return ano && mes && dia ? `${dia}/${mes}/${ano}` : data;}function DetalhePosicao({ posicao }: { posicao: PosicaoComissionada }) {
+  return (
+    <div className="prototype-comissionados-posicao-detail col-12">
+      <header className="prototype-comissionados-posicao-detail-intro">
+        <i className="pi pi-list" />
+        <div>
+          <h2>{posicao.identificador}</h2>
+          <p>Posição derivada automaticamente da dotação autorizada.</p>
+        </div>
+      </header>
+
+      <section className="prototype-comissionados-posicao-detail-section">
+        <h3>Identificação</h3>
+        <dl>
+          <div><dt>Quadro</dt><dd>{posicao.quadroCodigo} — versão {posicao.versao}</dd></div>
+          <div><dt>Órgão responsável</dt><dd>{posicao.orgao}</dd></div>
+          <div><dt>Nome da vaga</dt><dd>{posicao.identificador}</dd></div>
+          <div><dt>Situação de ocupação</dt><dd><SituacaoBadge situacao={posicao.situacao} /></dd></div>
+        </dl>
+      </section>
+
+      <section className="prototype-comissionados-posicao-detail-section">
+        <h3>Estrutura autorizada</h3>
+        <dl>
+          <div className="is-full"><dt>Estrutura organizacional</dt><dd>{posicao.nivel} &gt; {posicao.estrutura}</dd></div>
+          <div><dt>Cargo comissionado</dt><dd>{posicao.simbologia}</dd></div>
+          <div><dt>Perfil profissional</dt><dd>{posicao.perfil}</dd></div>
+          <div><dt>Natureza</dt><dd><NaturezaBadge natureza={posicao.natureza} /></dd></div>
+        </dl>
+      </section>
+
+      <section className="prototype-comissionados-posicao-detail-section">
+        <h3>Vigência e base legal</h3>
+        <dl>
+          <div><dt>Início da vigência</dt><dd>{dataFormatada(posicao.dataVigencia)}</dd></div>
+          <div><dt>Base legal vinculada</dt><dd>{posicao.documentosLegaisIds.length ? posicao.documentosLegaisIds.join(', ') : 'Não informada'}</dd></div>
+        </dl>
+      </section>
+    </div>
+  );
+}
