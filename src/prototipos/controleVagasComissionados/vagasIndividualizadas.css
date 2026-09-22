@@ -156,8 +156,8 @@
 @media (max-width: 1100px) { .prototype-comissionados-status-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 650px) { .prototype-comissionados-status-kpis { grid-template-columns: 1fr; } }
 
-.prototype-comissionados-posicoes-table .p-datatable-tbody > tr > td:nth-child(5) > span,
-.prototype-comissionados-posicoes-table .p-datatable-tbody > tr > td:nth-child(6) > span {
+.prototype-comissionados-posicoes-table .p-datatable-tbody > tr > td:nth-child(6) > span,
+.prototype-comissionados-posicoes-table .p-datatable-tbody > tr > td:nth-child(7) > span {
   display: inline-flex;
   width: 100%;
   justify-content: center !important;
@@ -236,3 +236,5 @@
   .prototype-comissionados-posicao-detail-section dl { grid-template-columns: 1fr; }
   .prototype-comissionados-posicao-detail-section dl > div.is-full { grid-column: auto; }
 }
+
+.prototype-comissionados-posicao-sem-ocupante { margin: 0; padding: .9rem 1rem 1rem; color: #65758a; font-size: .82rem; }

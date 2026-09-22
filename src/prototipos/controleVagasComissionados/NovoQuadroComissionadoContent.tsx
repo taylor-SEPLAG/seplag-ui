@@ -9,6 +9,7 @@ import {
   BotaoVoltarSeplag,
 } from "../../componentes/Botao";
 import { MensagemSeplag } from "../../componentes/Mensagem";
+import { ModalSeplag } from "../../componentes/Modal";
 import { DateFieldSeplag, DropdownFieldSeplag, TextFieldSeplag } from "../../componentes/Fields";
 import { BaseLegalVinculada } from "./BaseLegalVinculada";
 import { listarCargosControleVagasComissionadas } from "./cargosComissionadosStore";
@@ -77,6 +78,36 @@ function normalizarNiveis(niveis: NivelComissionadoSalvo[] | undefined): Nivel[]
     };
   });
 }
+
+function importarNiveisSemQuantitativos(niveis: NivelComissionadoSalvo[]): Nivel[] {
+  const copiarItem = (item: ItemEstrutura): ItemEstrutura => ({
+    id: novoId(),
+    nome: item.nome,
+    dotacoes: item.dotacoes.map((dotacao) => ({
+      id: novoId(),
+      perfil: "",
+      simbologia: "",
+      cargos: 0,
+      funcoes: 0,
+    })),
+    subitens: item.subitens.map(copiarItem),
+  });
+
+  return niveis.map((nivel) => ({ id: novoId(), nome: nivel.nome, itens: nivel.itens.map(copiarItem) }));
+}
+
+function resumirEstrutura(niveis: Nivel[]) {
+  let itensESubitens = 0;
+  let dotacoes = 0;
+  const visitar = (itens: ItemEstrutura[]) => itens.forEach((item) => {
+    itensESubitens += 1;
+    dotacoes += item.dotacoes.length;
+    visitar(item.subitens);
+  });
+  niveis.forEach((nivel) => visitar(nivel.itens));
+  return { niveis: niveis.length, itensESubitens, dotacoes };
+}
+
 export function NovoQuadroComissionadoContent() {
   const navigate = useNavigate();
   const [rascunhoInicial] = useState(lerRascunhoQuadroComissionado);
@@ -91,6 +122,8 @@ export function NovoQuadroComissionadoContent() {
   const [niveis, setNiveis] = useState<Nivel[]>(() => normalizarNiveis(rascunhoInicial?.niveis));
   const [motivoVersionamento, setMotivoVersionamento] = useState(() => rascunhoInicial?.motivoVersionamento ?? "");
   const [simbolosAbertos, setSimbolosAbertos] = useState<string[]>([]);
+  const [importadorAberto, setImportadorAberto] = useState(false);
+  const [quadroOrigemId, setQuadroOrigemId] = useState("");
   const emVersionamento = Boolean(rascunhoInicial?.versao && rascunhoInicial.versao > 1);
   const [salvo, setSalvo] = useState(false);
   const reducoesComOcupacao = emVersionamento ? listarReducoesComOcupacao(niveis) : [];
@@ -108,6 +141,16 @@ export function NovoQuadroComissionadoContent() {
   const quadroAtualId = rascunhoInicial?.quadroBaseId ?? rascunhoInicial?.id;
   const quadroExistenteDoOrgao = (valor: string) => quadrosCadastrados.find((quadro) => normalizarOrgao(quadro.orgao) === normalizarOrgao(valor) && (quadro.quadroBaseId ?? quadro.id) !== quadroAtualId);
   const orgaoSelecionadoJaPossuiQuadro = Boolean(orgao && quadroExistenteDoOrgao(orgao));
+  const quadrosDisponiveisParaImportacao = quadrosCadastrados.filter((quadro) => quadro.id !== rascunhoInicial?.id);
+  const quadroOrigem = quadrosDisponiveisParaImportacao.find((quadro) => quadro.id === quadroOrigemId);
+  const resumoOrigem = quadroOrigem ? resumirEstrutura(normalizarNiveis(quadroOrigem.niveis)) : null;
+  const importarEstrutura = () => {
+    if (!quadroOrigem) return;
+    setNiveis(importarNiveisSemQuantitativos(quadroOrigem.niveis));
+    setSimbolosAbertos([]);
+    setImportadorAberto(false);
+    setQuadroOrigemId("");
+  };
   const opcoesOrgao = orgaos.map((valor) => {
     const quadroExistente = quadroExistenteDoOrgao(valor);
     const codigo = quadroExistente?.codigo;
@@ -181,7 +224,7 @@ export function NovoQuadroComissionadoContent() {
     </section>
 
     <section className="nqc-card nqc-estrutura">
-      <header><i className="pi pi-sitemap" /><div><h2>Estrutura organizacional</h2><p>Adicione os níveis da estrutura. Em cada nível, registre itens, subitens e suas dotações autorizadas.</p></div><BotaoAdicionarSeplag label="Adicionar nível" onClick={() => setNiveis((atual) => [...atual, novoNivel()])} /></header>
+      <header><i className="pi pi-sitemap" /><div><h2>Estrutura organizacional</h2><p>Adicione os níveis da estrutura. Em cada nível, registre itens, subitens e suas dotações autorizadas.</p></div><div className="nqc-estrutura-acoes"><BotaoVoltarSeplag label="Importar estrutura" icon="pi pi-download" onClick={() => setImportadorAberto(true)} /><BotaoAdicionarSeplag label="Adicionar nível" onClick={() => setNiveis((atual) => [...atual, novoNivel()])} /></div></header>
       {!niveis.length && <div className="nqc-empty"><i className="pi pi-sitemap" /><strong>Nenhum nível cadastrado</strong><span>Comece por um nível, como “Direção Superior” ou “Administração Sistêmica”.</span></div>}
       <div className="nqc-niveis">{niveis.map((nivel, indice) => <NivelEditor key={nivel.id} nivel={nivel} indice={indice} onChange={(atualizar) => atualizarNivel(nivel.id, atualizar)} onRemove={() => setNiveis((atual) => atual.filter((item) => item.id !== nivel.id))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} />)}</div>
     </section>
@@ -200,6 +243,15 @@ export function NovoQuadroComissionadoContent() {
         </Fragment>;
       })}</tbody><tfoot><tr><th>Subtotal</th><th>{totais.cargos}</th><th>{totais.funcoes}</th></tr><tr><th>Total</th><th colSpan={2}>{totais.cargos + totais.funcoes}</th></tr></tfoot></table></div>
     </section>
+    <ModalSeplag visible={importadorAberto} titulo="Importar estrutura de outro quadro" fechar={() => { setImportadorAberto(false); setQuadroOrigemId(""); }} tamanho="min(58rem, 94vw)" labelFechar="Cancelar" labelAcao="Importar estrutura" iconAcao="pi pi-download" funcAcao={importarEstrutura} customFooter={<div className="nqc-importar-footer"><BotaoVoltarSeplag label="Cancelar" onClick={() => { setImportadorAberto(false); setQuadroOrigemId(""); }} /><BotaoSalvarSeplag label="Importar estrutura" icon="pi pi-download" disabled={!quadroOrigem} onClick={importarEstrutura} /></div>}>
+      <div className="nqc-importar-modal">
+        <p>Selecione o quadro de origem. Serão copiados apenas níveis, itens, subitens e dotações. Perfil Profissional, Cargo Comissionado, cargos e funções serão iniciados em branco ou zero.</p>
+        <label>Quadro de origem<select value={quadroOrigemId} onChange={(event) => setQuadroOrigemId(event.target.value)}><option value="">Selecione um quadro</option>{quadrosDisponiveisParaImportacao.map((quadro) => <option key={quadro.id} value={quadro.id}>{quadro.codigo ?? "Sem código"} — {quadro.nome} · {quadro.orgao} · versão {quadro.versao ?? 1}</option>)}</select></label>
+        {!quadrosDisponiveisParaImportacao.length && <div className="nqc-importar-vazio"><i className="pi pi-info-circle" />Nenhum outro quadro comissionado está disponível para importação.</div>}
+        {quadroOrigem && resumoOrigem && <div className="nqc-importar-previa"><strong>Prévia da estrutura selecionada</strong><dl><div><dt>Quadro</dt><dd>{quadroOrigem.codigo ?? "Sem código"}</dd></div><div><dt>Órgão</dt><dd>{quadroOrigem.orgao}</dd></div><div><dt>Versão</dt><dd>{quadroOrigem.versao ?? 1}</dd></div><div><dt>Níveis</dt><dd>{resumoOrigem.niveis}</dd></div><div><dt>Itens e subitens</dt><dd>{resumoOrigem.itensESubitens}</dd></div><div><dt>Dotações</dt><dd>{resumoOrigem.dotacoes}</dd></div></dl><span><i className="pi pi-info-circle" /> A estrutura atual do formulário será substituída.</span></div>}
+      </div>
+    </ModalSeplag>
+
     <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow"><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length || dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length > 0 || (emVersionamento && !motivoVersionamento.trim())} onClick={salvarQuadro} /></div></footer>
     </div>
   </div>;
