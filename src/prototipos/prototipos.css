@@ -15128,7 +15128,7 @@
 
 .prototype-ingressos-management-dashboard {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   width: 100%;
   margin: 0 0 24px;
@@ -15139,7 +15139,7 @@
 }
 
 .prototype-ingressos-management-dashboard--contest {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -16030,6 +16030,16 @@
   text-align: center;
 }
 
+.prototype-ingressos-status-two-lines {
+  display: inline-flex;
+}
+
+.prototype-ingressos-status-two-lines > * {
+  white-space: pre-line !important;
+  line-height: 1.15;
+  text-align: center;
+  justify-content: center;
+}
 .prototype-ingressos-operational-table--contest th:nth-child(6),
 .prototype-ingressos-operational-table--contest td:nth-child(6) {
   padding-right: 6px;

@@ -14536,6 +14536,7 @@ export function PrototiposIngressosTesteDetalhePage() {
     { id: "aguardando", label: "Aguardando análise", valor: contarSituacaoIngresso("Aguardando Analise"), subtitulo: "Ingressos pendentes de avaliação", icon: "pi pi-clock", tone: "amber", situacao: "Aguardando Analise" },
     { id: "analise", label: "Em análise", valor: contarSituacaoIngresso("Em analise"), subtitulo: "Ingressos em andamento", icon: "pi pi-search", tone: "blue", situacao: "Em analise" },
     { id: "aguardando-efetivo", label: "Aguardando Efetivo Exercício", valor: contarSituacaoIngresso("Aguardando Efetivo Exercicio"), subtitulo: "Aguardando início do exercício", icon: "pi pi-calendar-clock", tone: "pink", situacao: "Aguardando Efetivo Exercicio" },
+    { id: "aguardando-termo", label: "Aguardando Termo Assinado", valor: contarSituacaoIngresso("Aguardando Termo Assinado"), subtitulo: "Aguardando assinatura do documento", icon: "pi pi-file-edit", tone: "blue", situacao: "Aguardando Termo Assinado" },
     { id: "concluido", label: "Ingresso concluído", valor: contarSituacaoIngresso("Ingresso Concluído"), subtitulo: "Ingressos finalizados", icon: "pi pi-check-circle", tone: "green", situacao: "Ingresso Concluído" },
     { id: "posse-suspensa", label: "Posse Suspensa", valor: contarSituacaoIngresso("Posse Suspensa"), subtitulo: "Posses temporariamente suspensas", icon: "pi pi-pause-circle", tone: "purple", situacao: "Posse Suspensa" },
     { id: "posse-negada", label: "Posse Negada", valor: contarSituacaoIngresso("Posse Negada"), subtitulo: "Posses negadas", icon: "pi pi-ban", tone: "coral", situacao: "Posse Negada" },
@@ -14545,8 +14546,8 @@ export function PrototiposIngressosTesteDetalhePage() {
   ];
   const indicadoresSituacaoIngresso = indicadoresGestaoIngresso.filter((indicador) =>
     (concursoProcesso.tipo === "Concurso"
-      ? ["aguardando", "analise", "aguardando-efetivo", "concluido", "posse-suspensa", "posse-negada", "sem-efeito", "exoneracao-oficio"]
-      : ["aguardando", "analise", "aguardando-efetivo", "concluido", "cancelado"]
+      ? ["aguardando", "analise", "aguardando-efetivo", "aguardando-termo", "concluido", "posse-suspensa", "posse-negada", "sem-efeito", "exoneracao-oficio"]
+      : ["aguardando", "analise", "aguardando-efetivo", "aguardando-termo", "concluido", "cancelado"]
     ).includes(indicador.id),
   );
   const acessarIndicadorIngresso = (situacao?: IngressoSituacao) => {
@@ -14662,7 +14663,17 @@ export function PrototiposIngressosTesteDetalhePage() {
                 {concursoProcesso.tipo === "Processo Seletivo" ? <td>{concursoProcesso.orgao}</td> : null}
                 {concursoProcesso.tipo === "Concurso" ? <><td>{numeroIngresso}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorPosseGrid ? ` has-indicator is-${indicadorPosseGrid.tone}` : ""}`}><span>{candidato.dataPosse || "-"}</span>{indicadorPosseGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorPosseGrid.tone}`} tabIndex={0} aria-label={indicadorPosseGrid.tooltip} data-tooltip={indicadorPosseGrid.tooltip}><i className={indicadorPosseGrid.icon} aria-hidden="true" /></span> : null}</span></td><td>{orgaosEncaminhadosSalvos[String(candidato.id)] ?? "-"}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorEfetivoGrid ? ` has-indicator is-${indicadorEfetivoGrid.tone}` : ""}`}><span>{dataEfetivoExercicioExibida}</span>{indicadorEfetivoGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorEfetivoGrid.tone}`} tabIndex={0} aria-label={indicadorEfetivoGrid.tooltip} data-tooltip={indicadorEfetivoGrid.tooltip}><i className={indicadorEfetivoGrid.icon} aria-hidden="true" /></span> : null}</span></td></> : null}
                 {concursoProcesso.tipo === "Processo Seletivo" ? <><td>{numeroIngresso}</td><td>{dataEfetivoExercicio}</td><td>{setorLotacao}</td></> : null}
-                <td><BadgeSeplag label={formatarSituacaoIngresso(candidato.situacaoAtual)} color={situacaoBadge.color} bg={situacaoBadge.bg} border={situacaoBadge.border} size="sm" /></td>
+                <td>
+                  <span className={aguardandoTermoAssinado ? "prototype-ingressos-status-two-lines" : undefined}>
+                    <BadgeSeplag
+                      label={aguardandoTermoAssinado ? "Aguardando Termo" + "\n" + "Assinado" : formatarSituacaoIngresso(candidato.situacaoAtual)}
+                      color={situacaoBadge.color}
+                      bg={situacaoBadge.bg}
+                      border={situacaoBadge.border}
+                      size="sm"
+                    />
+                  </span>
+                </td>
                 <td>
                   <div className="prototype-ingresso-candidato-actions">
                     <div className="prototype-ingresso-actions-dropdown" data-candidate-actions={candidato.id}>
