@@ -3759,6 +3759,11 @@
   min-width: 13rem;
 }
 
+.prototype-cargo-natureza-ocupacao-help {
+  color: #52616b;
+  margin-top: -4px;
+}
+
 .prototype-cargo-teste-table .p-datatable-wrapper {
   max-width: 100%;
   overflow-x: hidden;

@@ -1,3 +1,4 @@
+import "./comissionadosVisual.css";
 import { Fragment, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -233,6 +234,7 @@ function somarTotais(itens: ItemEstrutura[], acumulado = { cargos: 0, funcoes: 0
     funcoes: total.funcoes + item.dotacoes.reduce((soma, dotacao) => soma + dotacao.funcoes, 0) + somarTotais(item.subitens).funcoes,
   }), acumulado);
 }
+
 
 
 
