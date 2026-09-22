@@ -1,0 +1,350 @@
+:root {
+  /* Cores de Fundo (claro, alinhado ao layout) */
+  --bg-deep: #f4f6f9;
+  --bg-surface: #ffffff;
+
+  /* Cores de Destaque (SEPLAG) */
+  --primary-glow: #005494; /* SEPLAG blue */
+  --secondary-glow: #60a5fa;
+  --accent: #2e60ff;
+
+  /* Cores de Texto */
+  --text-primary: #0f1724;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  /* Efeito Vidro */
+  --glass: blur(8px) saturate(150%);
+}
+
+/* Reset scoped apenas à Home — não contamina componentes PrimeReact */
+.app-container *,
+.app-container *::before,
+.app-container *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* --- Elementos de Glow de Fundo --- */
+.glow-1,
+.glow-2 {
+  position: fixed;
+  width: 40vw;
+  height: 40vh;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow-1 {
+  background: linear-gradient(90deg, var(--primary-glow), rgba(0, 0, 0, 0.02));
+  top: -8vh;
+  left: -8vw;
+}
+
+.glow-2 {
+  background: linear-gradient(90deg, var(--secondary-glow), rgba(0, 0, 0, 0.02));
+  bottom: -8vh;
+  right: -8vw;
+}
+
+/* --- Navbar (Efeito Vidro) --- */
+.main-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  border-bottom: 1px solid rgba(15, 23, 36, 0.06);
+  color: var(--text-primary);
+}
+
+.nav-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.logo-seplag {
+  font-size: 1.1rem;
+  color: var(--primary-glow);
+}
+
+.logo-divider {
+  color: var(--text-muted);
+  font-weight: 300;
+}
+
+.logo-ds {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.version-tag {
+  background: rgba(0, 84, 148, 0.06);
+  color: var(--primary-glow);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-family: monospace;
+  border: 1px solid rgba(0, 84, 148, 0.06);
+}
+
+/* --- Conteúdo Principal --- */
+.main-content {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 4rem 2rem;
+  z-index: 1;
+}
+
+/* --- Hero Section (Bem-vindo) --- */
+.welcome-hero {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 4rem;
+  align-items: center;
+  margin-bottom: 5rem;
+}
+
+/* Elemento Visual (Cubo Animado sutil) */
+.visual-element {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.cube {
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(135deg, var(--primary-glow), var(--secondary-glow));
+  border-radius: 20px;
+  transform: rotateX(45deg) rotateY(45deg);
+  box-shadow: 0 0 50px rgba(0, 124, 240, 0.3);
+  animation: cube-rotate 10s infinite linear;
+}
+
+@keyframes cube-rotate {
+  0% {
+    transform: rotateX(45deg) rotateY(45deg);
+  }
+  100% {
+    transform: rotateX(45deg) rotateY(405deg);
+  }
+}
+
+/* Texto do Hero */
+.text-element {
+  text-align: left;
+}
+
+/* Garantir contraste do título do hero */
+.welcome-hero .text-element h1 {
+  color: var(--primary-glow);
+  text-shadow: none;
+  z-index: 2;
+  position: relative;
+}
+
+.welcome-hero .visual-element {
+  z-index: 0;
+}
+
+.kicker {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 4.5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -1px;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+/* Se você usar a <span> com classe highlight (Opção 3) */
+.highlight {
+  background: linear-gradient(90deg, #007cf0, #00dfd8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+p {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+}
+
+/* Botões */
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background-color: var(--primary-glow);
+  color: white;
+  box-shadow: 0 6px 18px rgba(0, 84, 148, 0.12);
+}
+
+.btn-primary:hover {
+  background-color: #004170;
+  box-shadow: 0 10px 24px rgba(0, 84, 148, 0.18);
+}
+
+.btn-secondary {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid rgba(15, 23, 36, 0.06);
+}
+
+.btn-secondary:hover {
+  background-color: #f1f5f9;
+}
+
+/* --- Status Grid --- */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.status-card {
+  background-color: var(--bg-surface);
+  border: 1px solid rgba(15, 23, 36, 0.06);
+  padding: 2rem;
+  border-radius: 16px;
+  transition: border-color 0.2s;
+}
+
+.status-card:hover {
+  border-color: rgba(15, 23, 36, 0.12);
+}
+
+.card-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.8rem;
+}
+
+.status-card h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pkg-version {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-family: monospace;
+  color: var(--secondary-glow);
+  font-size: 0.9rem;
+}
+
+.registry-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-dot.online {
+  background-color: var(--secondary-glow);
+  box-shadow: 0 0 10px var(--secondary-glow);
+}
+
+.quick-code {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+code {
+  font-family: "Fira Code", "Courier New", monospace;
+  font-size: 0.95rem;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  margin-top: 0.5rem;
+  border: 1px solid rgba(15, 23, 36, 0.06);
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* --- Footer --- */
+.main-footer {
+  padding: 3rem 2rem;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  z-index: 1;
+}
+
+.main-footer p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.3rem 0;
+}

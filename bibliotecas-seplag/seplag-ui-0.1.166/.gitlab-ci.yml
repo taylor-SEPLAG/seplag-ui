@@ -1,0 +1,127 @@
+stages:
+  - build
+  - increment_version
+  - build-docker-image
+  - deploy
+
+variables:
+  DOCKER_IMAGE: "$registryIP/$CI_PROJECT_NAME"
+  PROFILE: "dev"
+  SWARM_PROFILE: "DESENV"
+  DEPLOY_IP: "$IP_SWARM_DESENV"
+  IMAGE_PROFILE: "Dev"
+
+image: docker:latest
+
+services:
+  - name: docker:dind
+
+build:
+  image: node:latest
+  stage: build
+  script:
+    - npm i
+    - npm run build
+    - npm run build:app
+  artifacts:
+    paths:
+      - dist
+      - dist-app
+
+  only:
+    - desenvolvimento
+
+  tags:
+    - Maven
+
+increment_version:
+  stage: increment_version
+  image: docker:latest
+  script:
+    - CURRENT_VERSION=$(cat VERSION)
+    - |
+      echo "Versão atual: $CURRENT_VERSION"
+
+    - echo "Incrementing the minor version"
+    - NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$4+=1; print}')
+    - |
+      echo "Nova versão: $NEW_VERSION"
+
+    - echo "Saving new version to VERSION file"
+    - echo $NEW_VERSION > VERSION
+
+    - echo "Configuring Git"
+    - git config --global user.email "gitlabci@pipeline.com"
+    - git config --global user.name "GitLab_CI"
+
+    - echo "Adding, committing, and pushing the VERSION file"
+    - git add VERSION
+    - git commit -m "Incrementa versão para $NEW_VERSION"
+
+    - git remote set-url origin http://gitlab-ci-token:$TOKEN_PIPELINE_PUSH@172.16.4.216/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME.git
+    - git push origin HEAD:$CI_COMMIT_REF_NAME -o ci.skip
+
+  artifacts:
+    paths:
+      - VERSION
+
+  only:
+    - desenvolvimento
+
+  tags:
+    - Maven
+
+build-docker-image:
+  stage: build-docker-image
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - update-ca-certificates
+    - echo "Logging in to Docker registry"
+    - docker login -u ${dockerUser} -p ${dockerPass} ${registryIP}
+    - NEW_VERSION=$(cat VERSION)
+    - unset DOCKER_HOST
+    - docker build -t $DOCKER_IMAGE:$IMAGE_PROFILE-$NEW_VERSION .
+    - docker tag $DOCKER_IMAGE:$IMAGE_PROFILE-$NEW_VERSION $DOCKER_IMAGE:$IMAGE_PROFILE-latest
+    - docker push $DOCKER_IMAGE:$IMAGE_PROFILE-latest
+    - docker push $DOCKER_IMAGE:$IMAGE_PROFILE-$NEW_VERSION
+
+  only:
+    - desenvolvimento
+
+  tags:
+    - dindT
+
+deploy:
+  image: node:latest
+  stage: deploy
+  script:
+    - npm publish
+
+  only:
+    - desenvolvimento
+
+  tags:
+    - Maven
+
+push:
+  stage: deploy
+  image: ubuntu:latest
+  before_script:
+    - NEW_VERSION=$(cat VERSION)
+    - SSH_KEY_VAR="KEY_SWARM_${SWARM_PROFILE}"
+    - echo "${!SSH_KEY_VAR}" > /tmp/my_ssh_key
+    - chmod 600 /tmp/my_ssh_key
+    - apt-get update && apt-get install -y openssh-client
+
+  script:
+    - ssh -i /tmp/my_ssh_key -o StrictHostKeyChecking=no deployer@$DEPLOY_IP "docker service update --force --image '$DOCKER_IMAGE:$IMAGE_PROFILE-$NEW_VERSION' --with-registry-auth --log-driver gelf --log-opt gelf-address=udp://172.16.4.113:12201 --log-opt tag='$CI_PROJECT_NAME-$IMAGE_PROFILE' doc_$CI_PROJECT_NAME"
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "desenvolvimento"'
+      when: on_success
+    - when: never
+
+  tags:
+    - Maven

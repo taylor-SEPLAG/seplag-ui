@@ -1,0 +1,786 @@
+/* ============================================================
+   SEPLAG Layout — Global CSS
+   Fornece as classes usadas pelos componentes de layout.
+   Importe este arquivo no entry-point do seu projeto:
+     import "@seplag/ui-lib-react-18/dist/layout.css";
+   ============================================================ */
+
+/* ── Reset de box-sizing para toda a árvore do layout ────── */
+.layout-wrapper *,
+.layout-wrapper *::before,
+.layout-wrapper *::after {
+  box-sizing: border-box;
+}
+
+/* ── Wrapper principal ───────────────────────────────────── */
+.layout-wrapper {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  background: #f4f6f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ── Topbar (fica dentro do layout-main) ─────────────────── */
+.layout-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  height: 60px;
+  background-color: var(--topbar-bg-color, #005494);
+  color: #ffffff;
+  font-family: inherit;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+/* ── Sidebar (posição fixa, fullheight) ──────────────────── */
+.layout-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition:
+    transform 0.5s ease-in-out,
+    width 0.3s ease-in-out;
+  z-index: 999;
+}
+
+/* ── Rail (colapsada, somente ícones) ────────────────────── */
+.layout-sidebar-collapsed {
+  width: 70px;
+}
+
+.layout-sidebar-collapsed .layout-logo img {
+  width: 32px;
+}
+
+.layout-sidebar-collapsed .layout-profile-name .username,
+.layout-sidebar-collapsed .layout-profile-vinculo,
+.layout-sidebar-collapsed .layout-menu li a span,
+.layout-sidebar-collapsed .layout-menu li > a span,
+.layout-sidebar-collapsed .menuitem-toggle-icon {
+  display: none;
+}
+
+.layout-sidebar-collapsed .layout-profile-name {
+  gap: 0;
+}
+
+.layout-sidebar-collapsed .layout-profile-name .pi-cog {
+  margin-left: 0;
+  font-size: 18px;
+}
+
+.layout-sidebar-collapsed .layout-profile {
+  padding: 12px 0;
+}
+
+.layout-sidebar-collapsed .layout-profile img {
+  width: 36px;
+  height: 36px;
+  margin: 0;
+}
+
+.layout-sidebar-collapsed .layout-profile-link {
+  padding: 0.4rem;
+  margin-top: 5px;
+}
+
+.layout-sidebar-collapsed .layout-menu li a,
+.layout-sidebar-collapsed .layout-menu li > a {
+  justify-content: center;
+  padding: 1em 0.5em;
+}
+
+.layout-menu-flyout.p-overlaypanel {
+  background-color: #005494;
+  color: #ffffff;
+  min-width: 220px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.layout-menu-flyout.p-overlaypanel:before,
+.layout-menu-flyout.p-overlaypanel:after {
+  display: none;
+}
+
+.layout-menu-flyout.p-overlaypanel .p-overlaypanel-content {
+  padding: 0.5rem 0;
+}
+
+.layout-menu-flyout .layout-menu-flyout-title {
+  display: block;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 0.25rem;
+}
+
+.layout-menu-flyout .layout-menu-flyout-subtitle {
+  display: block;
+  font-weight: 400;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 0.15rem;
+}
+
+.layout-menu-flyout .layout-menu,
+.layout-menu-flyout .layout-profile-expanded {
+  background: transparent;
+}
+
+.layout-menu-flyout .layout-menu > li > a {
+  border-top: none;
+}
+
+.layout-menu-flyout .layout-menu > li:last-child > a {
+  border-bottom: none;
+}
+
+.layout-menu-flyout .layout-menu li a,
+.layout-menu-flyout .layout-menu li > a,
+.layout-menu-flyout .layout-profile-expanded li .p-link {
+  padding: 0.6rem 1rem;
+  justify-content: flex-start;
+}
+
+.layout-menu-flyout .layout-menu li a span,
+.layout-menu-flyout .layout-menu li > a span {
+  display: inline;
+  margin-left: 0.5em;
+}
+
+.layout-menu-flyout .layout-menu li ul {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.layout-sidebar-dark {
+  background-color: #005494;
+  color: #ffffff;
+}
+
+.layout-sidebar-light {
+  background-color: #005494;
+  color: #ffffff;
+  border-right: 1px solid rgba(207, 211, 224, 0.6);
+}
+
+/* Logo */
+.layout-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  text-decoration: none;
+}
+
+.layout-logo img {
+  width: 75%;
+  max-width: 160px;
+}
+
+/* ── Profile ─────────────────────────────────────────────── */
+.layout-profile {
+  position: relative;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.layout-profile img {
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  margin: 10px;
+  object-fit: cover;
+}
+
+.layout-profile-link {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.25rem;
+  gap: 0.15rem;
+  margin-bottom: 0.75em;
+  margin-top: 10px !important;
+  transition: color 0.2s;
+}
+
+.layout-profile-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 1rem;
+  max-width: 100%;
+}
+
+.layout-profile-name .username {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.layout-profile-name .pi-cog {
+  flex-shrink: 0;
+  font-size: 16px;
+  margin-left: 0.5em;
+  opacity: 0.8;
+  vertical-align: middle;
+}
+
+.layout-profile-vinculo {
+  font-size: 0.875rem;
+  opacity: 0.7;
+  color: #ffffff;
+}
+
+.layout-profile-expanded {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: #005494;
+}
+
+.layout-profile-expanded li {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.layout-profile-expanded li .p-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: #ffffff;
+  font-size: 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition:
+    color 0.2s,
+    background 0.15s;
+  font-family: inherit;
+}
+
+.layout-profile-expanded li .p-link span {
+  margin-left: 0.25em;
+  vertical-align: middle;
+}
+
+.layout-profile-expanded li .p-link i {
+  vertical-align: middle;
+}
+
+.layout-profile-expanded li .p-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c3e8fb;
+}
+
+.layout-profile-expanded.layout-submenu-collapse-enter {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.layout-profile-expanded.layout-submenu-collapse-enter-active {
+  max-height: 320px;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+.layout-profile-expanded.layout-submenu-collapse-enter-done {
+  overflow: hidden;
+}
+
+.layout-profile-expanded.layout-submenu-collapse-exit {
+  max-height: 320px;
+  overflow: hidden;
+}
+
+.layout-profile-expanded.layout-submenu-collapse-exit-active {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+
+.layout-profile-expanded.layout-submenu-collapse-exit-done {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.layout-sidebar-light .layout-profile-link,
+.layout-sidebar-light .layout-profile-expanded li .p-link {
+  color: #ffffff;
+}
+
+.layout-sidebar-light .layout-profile-link:hover,
+.layout-sidebar-light .layout-profile-expanded li .p-link:hover {
+  color: #c3e8fb;
+}
+
+.layout-sidebar-light .layout-profile-expanded {
+  background-color: #005494;
+}
+
+/* ── Menu ────────────────────────────────────────────────── */
+.layout-menu-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+/* ── Versionamento (rodapé da sidebar) ───────────────────── */
+.layout-sidebar-version {
+  margin-top: auto;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  font-size: 0.8rem;
+  font-family: inherit;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.2s;
+}
+
+.layout-sidebar-version i {
+  font-size: 14px;
+}
+
+.layout-sidebar-version:hover {
+  color: #c3e8fb;
+}
+
+.layout-sidebar-version-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layout-sidebar-version-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  flex: 1 1 100%;
+  max-height: 55vh;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 0.75rem;
+}
+
+.layout-sidebar-version-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.25rem;
+  border-bottom: 1px solid #eef1f5;
+}
+
+.layout-sidebar-version-list li:nth-last-child(-n + 2) {
+  border-bottom: none;
+}
+
+.layout-sidebar-version-list li:nth-child(odd) {
+  border-right: 1px solid #eef1f5;
+  padding-right: 0.75rem;
+}
+
+.layout-sidebar-version-list li:nth-child(even) {
+  padding-left: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .layout-sidebar-version-list {
+    grid-template-columns: 1fr;
+  }
+
+  .layout-sidebar-version-list li:nth-last-child(-n + 2) {
+    border-bottom: 1px solid #eef1f5;
+  }
+
+  .layout-sidebar-version-list li:nth-child(odd) {
+    border-right: none;
+    padding-right: 0.25rem;
+  }
+
+  .layout-sidebar-version-list li:nth-child(even) {
+    padding-left: 0.25rem;
+  }
+
+  .layout-sidebar-version-list li:last-child {
+    border-bottom: none;
+  }
+}
+
+.layout-sidebar-version-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  border-radius: 50%;
+  background: #eaf2fb;
+  color: #005494;
+}
+
+.layout-sidebar-version-icon i {
+  font-size: 13px;
+}
+
+.layout-sidebar-version-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.layout-sidebar-version-nome {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #38414d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layout-sidebar-version-valores {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .layout-sidebar-version-valores {
+    gap: 0.4rem;
+  }
+}
+
+.layout-sidebar-version-dica {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.layout-sidebar-version-dica kbd {
+  padding: 0.05rem 0.35rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #f3f4f6;
+  font-size: 0.7rem;
+  font-family: inherit;
+}
+
+.layout-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.layout-menu > li > a {
+  border-top: 1px solid rgba(207, 211, 224, 0.6);
+  padding: 1em;
+}
+
+.layout-menu > li:last-child > a {
+  border-bottom: 1px solid rgba(207, 211, 224, 0.6);
+}
+
+.layout-menu li a,
+.layout-menu li > a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1rem;
+  line-height: 1.2;
+  transition: color 0.5s;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.layout-menu li a i,
+.layout-menu li > a i {
+  font-size: 16px;
+}
+
+.layout-menu li a span,
+.layout-menu li > a span {
+  margin-left: 0.5em;
+}
+
+.layout-menu li a:hover,
+.layout-menu li > a:hover {
+  color: #c3e8fb;
+}
+
+.layout-menu li a.active-route,
+.layout-menu li a.active-menuitem-routerlink {
+  background: transparent;
+  color: #1fa1fc;
+  font-weight: 600;
+}
+
+/* Sub-menu (nested) */
+.layout-menu li ul {
+  list-style: none;
+  padding: 0;
+  padding-left: 1.5em;
+  margin: 0;
+  background: #005494;
+}
+
+.layout-menu li ul li a {
+  padding: 0.75em 1em;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.layout-menu li ul li a span {
+  font-size: 13px;
+}
+
+.layout-menu li ul li:last-child {
+  padding-bottom: 1em;
+}
+
+/* Ícone de toggle (seta) */
+.menuitem-toggle-icon {
+  margin-left: auto;
+  font-size: 0.75rem;
+  transition: transform 0.2s;
+}
+
+.active-menuitem > a .menuitem-toggle-icon {
+  transform: none;
+}
+
+.layout-menu li.active-menuitem > a .menuitem-toggle-icon::before {
+  content: "\e933";
+}
+
+.layout-menu li.active-menuitem > a {
+  background-color: #005494;
+  color: #ffffff;
+}
+
+.layout-menu li.active-menuitem > a:hover {
+  color: #c3e8fb;
+}
+
+.layout-menu li.active-menuitem > ul {
+  background-color: #005494;
+}
+
+.layout-menu li.active-menuitem > a.active-route,
+.layout-menu li.active-menuitem > a.active-menuitem-routerlink {
+  color: #1fa1fc;
+}
+
+.layout-sidebar-light .layout-menu li a,
+.layout-sidebar-light .layout-menu li > a {
+  color: #ffffff;
+}
+
+.layout-sidebar-light .layout-menu li a.active-route,
+.layout-sidebar-light .layout-menu li a.active-menuitem-routerlink {
+  color: #1fa1fc;
+}
+
+.layout-sidebar-light .layout-menu li a:hover,
+.layout-sidebar-light .layout-menu li > a:hover {
+  color: #c3e8fb;
+}
+
+.layout-sidebar-light .layout-menu li.active-menuitem > a,
+.layout-sidebar-light .layout-menu li.active-menuitem > ul {
+  background-color: #005494;
+}
+
+/* Arrow decorator for root items with children */
+.arrow {
+  width: 0;
+  height: 0;
+}
+
+/* ── Main content (contém topbar + content + footer) ─────── */
+.layout-main {
+  margin-left: 270px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-width: 0;
+  transition: margin-left 0.5s ease-in-out;
+}
+
+.layout-content {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
+  background: #f4f6f9;
+  min-width: 0;
+}
+
+/* Cola o card de conteúdo direto abaixo do breadcrumb, sem gap, formando um
+   único bloco visual (breadcrumb = cabeçalho do card, com linha divisória). */
+.layout-content:has(> nav[aria-label="breadcrumb"]) > nav[aria-label="breadcrumb"] {
+  margin-bottom: 0 !important;
+}
+
+.layout-content:has(> nav[aria-label="breadcrumb"]) > nav[aria-label="breadcrumb"] + * {
+  margin-top: 0;
+}
+
+.layout-content:has(> nav[aria-label="breadcrumb"]) > nav[aria-label="breadcrumb"] + * .p-card {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  margin-top: 0;
+  box-shadow: none;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.layout-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  height: 40px;
+  background-color: #005494;
+  color: #ffffff;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ── Static layout ───────────────────────────────────────── */
+@media (min-width: 1025px) {
+  .layout-static .layout-sidebar {
+    transform: translateX(0);
+  }
+
+  .layout-static-sidebar-inactive .layout-sidebar {
+    transform: translateX(0);
+  }
+
+  .layout-static-sidebar-inactive .layout-main {
+    margin-left: 70px;
+  }
+}
+
+/* ── Overlay layout ──────────────────────────────────────── */
+.layout-overlay .layout-sidebar {
+  transform: translateX(-270px);
+  box-shadow: none;
+}
+
+.layout-overlay .layout-main {
+  margin-left: 0;
+}
+
+.layout-overlay-sidebar-active .layout-sidebar {
+  transform: translateX(0);
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .layout-main {
+    margin-left: 0 !important;
+  }
+
+  .layout-sidebar {
+    transform: translateX(-270px);
+  }
+
+  .layout-mobile-sidebar-active .layout-sidebar {
+    transform: translateX(0);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ── Submenu collapse animation ─────────────────────────── */
+.layout-submenu-collapse-enter {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.layout-submenu-collapse-enter-active {
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+.layout-submenu-collapse-enter-done {
+  overflow: hidden;
+}
+
+.layout-submenu-collapse-exit {
+  max-height: 500px;
+  overflow: hidden;
+}
+
+.layout-submenu-collapse-exit-active {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+
+.layout-submenu-collapse-exit-done {
+  max-height: 0;
+  overflow: hidden;
+}
+
+/* ── Overlay/Mobile backdrop (fecha ao clicar fora da sidebar) ─ */
+.layout-sidebar-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 998;
+  background: transparent;
+  cursor: default;
+}
+
+/* ── Utility ─────────────────────────────────────────────── */
+.p-link {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: inherit;
+}

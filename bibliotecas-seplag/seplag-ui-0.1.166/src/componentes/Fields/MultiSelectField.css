@@ -1,0 +1,58 @@
+.seplag-ms-root--confined {
+  position: relative;
+}
+
+.seplag-ms-panel--confined {
+  width: 100%;
+  max-width: 100%;
+}
+
+.seplag-ms-panel {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.seplag-ms-panel .p-multiselect-item {
+  min-width: 0;
+  position: relative;
+}
+
+.seplag-ms-panel .seplag-ms-option {
+  min-width: 0;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.seplag-ms-panel .seplag-ms-option-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+
+.seplag-ms-panel--truncate .seplag-ms-option {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.p-multiselect:has(.p-multiselect-clear-icon) .p-multiselect-label-container {
+  padding-right: 1.5rem;
+}
+
+.p-multiselect {
+  min-height: 2.5rem;
+}
+
+.p-multiselect .p-multiselect-label-container {
+  display: flex;
+  align-items: center;
+}
+
+.p-multiselect.seplag-ms-readonly,
+.p-multiselect.seplag-ms-readonly .p-multiselect-label,
+.p-multiselect.seplag-ms-readonly .p-multiselect-label * {
+  color: #6c757db4 !important;
+}

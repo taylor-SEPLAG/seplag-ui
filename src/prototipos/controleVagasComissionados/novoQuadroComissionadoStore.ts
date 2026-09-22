@@ -4,6 +4,8 @@ export interface DotacaoComissionadaSalva {
   simbologia: string;
   cargos: number;
   funcoes: number;
+  extincaoProgressivaCargos?: boolean;
+  extincaoProgressivaFuncoes?: boolean;
 }
 
 export interface ItemEstruturaComissionadaSalvo {
@@ -2234,6 +2236,8 @@ export function prepararEdicaoQuadroComissionado(id: string) {
   const quadro = listarQuadrosComissionados().find((item) => item.id === id);
   if (quadro) window.localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(quadro));
 }
+
+
 
 
 

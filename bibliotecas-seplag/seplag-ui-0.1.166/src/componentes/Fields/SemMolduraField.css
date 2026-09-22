@@ -1,0 +1,25 @@
+/*
+ * Largura dos campos em modo `semMoldura`.
+ *
+ * Sem a moldura, o campo perde o wrapper `.elemento` do RotuloSeplag e fica com a largura
+ * intrínseca do controle: `.p-inputnumber` é `display: inline-flex` sem largura, então o
+ * <input> interno assume o tamanho padrão do navegador (~177px) e estoura contêineres
+ * estreitos, como uma célula de tabela.
+ *
+ * O contrato de `semMoldura` é "o contexto controla a largura" — logo o campo precisa esticar
+ * para o que o contexto der, não impor um tamanho próprio. Para largura fixa, use `inputStyle`.
+ */
+
+.p-inputnumber.seplag-field-sem-moldura,
+.p-dropdown.seplag-field-sem-moldura {
+  width: 100%;
+}
+
+/*
+ * `min-width: 0` neutraliza a largura intrínseca do <input> (atributo `size` padrão), que de
+ * outro modo impede o encolhimento dentro de flex e de célula de tabela.
+ */
+.p-inputnumber.seplag-field-sem-moldura .p-inputnumber-input {
+  width: 100%;
+  min-width: 0;
+}

@@ -1,0 +1,156 @@
+import { CardSeplag, useToastSeplag, opcoesPaginacaoSeplag, ResultsSeplag } from "{{libPackageName}}";
+import { useEffect, useState } from "react";
+import { List{{pascalCase name}}Filter } from "./components/List{{pascalCase name}}Filter";
+import { List{{pascalCase name}}Table } from "./components/List{{pascalCase name}}Table";
+import { {{pascalCase name}}Request } from "@type/{{camelCase name}}/{{pascalCase name}}Request";
+import { useLazyGetBusca{{pascalCase name}}Query } from "@features/{{camelCase name}}/buscar{{pascalCase name}}";
+import { useNavigate } from "react-router-dom";
+import { {{pascalCase name}}Response } from "@type/{{camelCase name}}/{{pascalCase name}}Response";
+import { useHasPermissions } from "@hooks/useListPermissions";
+import { DataTableStateEvent } from "primereact/datatable";
+import { useLocalStorage } from "@hooks/useLocalStorage";
+import { LOCAL_STORAGE_KEYS } from "@type/Enuns/LocalStorage_enum";
+import { useDelete{{pascalCase name}}Mutation } from "@features/{{camelCase name}}/delete{{pascalCase name}}Slice";
+import { DefaultPermissions{{pascalCase name}} } from "@config/permissions/permission{{pascalCase name}}";
+
+const options: Options{{pascalCase name}}Filter = {
+  ...opcoesPaginacaoSeplag,
+  filtro: ""
+}
+
+export interface Options{{pascalCase name}}Filter extends {{pascalCase name}}Request {
+  rowsPerPage: number[],
+}
+
+// ⚠️  ATENÇÃO: REMOVER — altere para false quando o endpoint estiver disponível no backend.
+const IS_MOCK_MODE_{{constantCase name}} = true;
+
+// ⚠️  ATENÇÃO: REMOVER — dados de mock apenas para fins de teste.
+// Substitua pelo retorno real da API antes de publicar.
+const MOCK_DATA_{{constantCase name}}: ResultsSeplag<{{pascalCase name}}Response> = {
+  content: [
+    { id: 1, descricao: "[MOCK] Registro de exemplo 1", dataInicio: "2025-01-01", dataFim: "2025-12-31", observacao: "[MOCK] Observação 1" } as {{pascalCase name}}Response,
+    { id: 2, descricao: "[MOCK] Registro de exemplo 2", dataInicio: "2026-01-01", dataFim: undefined, observacao: undefined } as {{pascalCase name}}Response,
+  ],
+  totalRecords: 2,
+  totalPages: 1,
+  pageActual: 0,
+  sizePage: 10,
+  number: 0,
+  size: 10,
+  last: true,
+  first: true,
+  numberOfElements: 2,
+  empty: false,
+};
+// ⚠️  FIM DO MOCK
+
+export function List{{pascalCase name}}() {
+
+  const navigate = useNavigate()
+  const [textoFiltro, setTextoFiltro] = useState("");
+  const [triggerFetch, { data: listResutl, isFetching }] = useLazyGetBusca{{pascalCase name}}Query();
+  const [triggerDelete] = useDelete{{pascalCase name}}Mutation();
+  const { toastSucesso } = useToastSeplag()
+
+  const permissoes = useHasPermissions(DefaultPermissions{{pascalCase name}})
+  const flagPermiteAdicionar = permissoes.podeIncluir
+  const flagPermiteEditar = permissoes.podeEditar
+  const flagPermiteDeletar = permissoes.podeDeletar
+
+  const {
+    value: optionsJson,
+    updateLocalStorage } = useLocalStorage<Options{{pascalCase name}}Filter>(LOCAL_STORAGE_KEYS.FILTER_TELA_{{constantCase name}}, options)
+
+  useEffect(() => {
+    // ⚠️  ATENÇÃO: REMOVER a guarda IS_MOCK_MODE quando o endpoint estiver pronto.
+    if (optionsJson && !IS_MOCK_MODE_{{constantCase name}}) {
+      triggerFetch({
+        ...optionsJson,
+      });
+    }
+  }, [optionsJson]);
+
+  useEffect(() => {
+    if (textoFiltro.length === 0) {
+      updateLocalStorage({
+        ...optionsJson,
+        page: 0,
+        filtro: ""
+      });
+    } else if (textoFiltro.length >= 1) {
+      updateLocalStorage({
+        ...optionsJson,
+        page: 0,
+        filtro: textoFiltro
+      });
+    }
+  }, [textoFiltro]);
+
+
+  function handleFilterList{{pascalCase name}}(value: string) {
+    setTextoFiltro(value);
+  }
+
+  function handleResetFilter() {
+    setTextoFiltro("");
+    updateLocalStorage({
+      ...optionsJson,
+      page: 0,
+      filtro: ""
+    });
+  }
+
+  function handleOnPageChange(page: DataTableStateEvent) {
+    updateLocalStorage({
+      ...optionsJson,
+      page: page.page ? page.page : 0,
+      rows: page.rows ? page.rows : 5,
+    });
+  }
+
+  function handleAdicionar() {
+    navigate(`/app/cadastro/{{camelCase name}}/new`);
+  }
+
+  function handleView(arg: {{pascalCase name}}Response) {
+    navigate(`/app/cadastro/{{camelCase name}}/view/${arg.id}`);
+  }
+
+  function handleEdit(arg: {{pascalCase name}}Response) {
+    navigate(`/app/cadastro/{{camelCase name}}/edit/${arg.id}`);
+  }
+
+
+  function handleDuplicar(arg: {{pascalCase name}}Response) {
+    navigate(`/app/cadastro/{{camelCase name}}/new`, { state: { id: arg.id } });
+  }
+
+  function handleDelete(arg: {{pascalCase name}}Response) {
+    triggerDelete({ id: arg.id }).unwrap().then(() => {
+      toastSucesso("{{description}} removida com sucesso!")
+    })
+  }
+
+  return (
+    <CardSeplag title="{{description}}s">
+      <List{{pascalCase name}}Filter
+        onFilterList{{pascalCase name}}={handleFilterList{{pascalCase name}}}
+        onResetFilter={handleResetFilter}
+      />
+      {/* ⚠️  ATENÇÃO: REMOVER o mock — substituir por `data={listResutl}` com dados reais da API */}
+      <List{{pascalCase name}}Table
+        data={listResutl ?? MOCK_DATA_{{constantCase name}}}
+        isFetching={isFetching}
+        rows={optionsJson.rows || 10}
+        rowsPerPage={optionsJson.rowsPerPage}
+        handleOnPageChange={handleOnPageChange}
+        handleEdit={flagPermiteEditar ? handleEdit : null}
+        handleDuplicar={flagPermiteAdicionar ? handleDuplicar : null}
+        handleAdicionar={flagPermiteAdicionar ? handleAdicionar : null}
+        handleDelete={flagPermiteDeletar ? handleDelete : null}
+        handleView={handleView}
+      />
+    </CardSeplag>
+  );
+}

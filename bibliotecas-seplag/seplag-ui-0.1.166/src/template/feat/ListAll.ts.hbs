@@ -1,0 +1,20 @@
+import { apiSlice } from "@features/api";
+import { FetchArgs } from "@reduxjs/toolkit/query";
+
+function getListAll{{pascalCase name}}(): FetchArgs | string {
+    return {
+        url: `/v1/{{endpoint}}/all`
+    }
+}
+
+export const listAll{{pascalCase name}} = apiSlice.injectEndpoints({
+    endpoints: ({ query, mutation }) => ({
+        getListAll{{pascalCase name}}: query<string[], void>({
+            query: getListAll{{pascalCase name}},
+            providesTags: (['{{pascalCase name}}'] as unknown) as any,
+        }),
+
+    })
+})
+
+export const { useGetListAll{{pascalCase name}}Query } = listAll{{pascalCase name}};

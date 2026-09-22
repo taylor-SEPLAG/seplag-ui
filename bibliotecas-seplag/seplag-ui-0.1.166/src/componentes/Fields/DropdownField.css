@@ -1,0 +1,53 @@
+/*
+ * `width: 100%` só faz sentido enquanto o painel é filho do próprio dropdown (`appendTo="self"`),
+ * onde 100% é a largura do campo. Com o painel portalado para fora — necessário sempre que um
+ * ancestral recorta o overlay, como o wrapper rolável da TabelaEditavelSeplag — o bloco de
+ * contenção passa a ser o `<body>`, e a mesma regra faria o painel cobrir a tela inteira.
+ * Portalado, quem dimensiona é o PrimeReact, que aplica `min-width` igual à largura do campo.
+ */
+.seplag-dropdown-panel:not(.seplag-dropdown-panel--flutuante) {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.seplag-dropdown-panel {
+  box-sizing: border-box;
+}
+
+/*
+ * Sem o `width: 100%` o painel cresce até a maior opção, porque os itens são `nowrap`. O teto
+ * devolve o corte com reticências que os itens já preveem, sem deixar o painel estourar a tela.
+ */
+.seplag-dropdown-panel--flutuante {
+  width: min(28rem, calc(100vw - 2rem));
+  max-width: min(28rem, calc(100vw - 2rem));
+}
+
+.seplag-dropdown-panel .p-dropdown-item {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.p-dropdown .p-dropdown-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.seplag-option-inactive-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.seplag-option-inactive-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}

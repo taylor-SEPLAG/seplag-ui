@@ -1,0 +1,22 @@
+import Route from "@utils/RouteMixins"
+import { List{{pascalCase name}} } from "@pages/Cadastro/{{pascalCase name}}/List{{pascalCase name}}"
+import { Create{{pascalCase name}} } from "@pages/Cadastro/{{pascalCase name}}/Create{{pascalCase name}}"
+import { Edit{{pascalCase name}} } from "@pages/Cadastro/{{pascalCase name}}/Edit{{pascalCase name}}"
+import { View{{pascalCase name}} } from "@pages/Cadastro/{{pascalCase name}}/View{{pascalCase name}}"
+
+const BASE_PATH = "/app/cadastro/{{camelCase name}}"
+const PERMISSAO_ROOT = "{{constantCase name}}"
+
+const createRoute = (
+  label: string | null,
+  path: string,
+  component: any,
+  permissao: string[] | null = null,
+) => Route(PERMISSAO_ROOT, label, `${BASE_PATH}${path}`, component, permissao)
+
+export const {{pascalCase name}}Routes = [
+  createRoute("{{description}}", "", List{{pascalCase name}}),
+  createRoute(null, "/new", Create{{pascalCase name}}),
+  createRoute(null, "/edit/:id", Edit{{pascalCase name}}),
+  createRoute(null, "/view/:id", View{{pascalCase name}}),
+]

@@ -1,0 +1,24 @@
+import { apiSlice } from "@features/api";
+import { FetchArgs } from "@reduxjs/toolkit/query";
+import { {{pascalCase name}}Request } from "@type/{{camelCase name}}/{{pascalCase name}}Request";
+import { {{pascalCase name}}Response } from "@type/{{camelCase name}}/{{pascalCase name}}Response";
+
+function create{{pascalCase name}}(params: {{pascalCase name}}Request): FetchArgs | string {
+  return {
+    url: `/v1/{{endpoint}}`,
+    method: 'POST',
+    body: params
+  }
+}
+
+export const busca{{pascalCase name}} = apiSlice.injectEndpoints({
+  endpoints: ({ query, mutation }) => ({
+    create{{pascalCase name}}: mutation<{{pascalCase name}}Response, {{pascalCase name}}Request>({
+      query: create{{pascalCase name}},
+      invalidatesTags: (['{{pascalCase name}}'] as unknown) as any,
+    }),
+
+  })
+})
+
+export const { useCreate{{pascalCase name}}Mutation } = busca{{pascalCase name}};

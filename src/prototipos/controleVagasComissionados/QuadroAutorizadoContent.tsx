@@ -1,3 +1,4 @@
+import "./comissionadosVisual.css";
 import { useLocation } from "react-router-dom";
 import { NovoQuadroComissionadoContent } from "./NovoQuadroComissionadoContent";
 import { QuadroAutorizadoComissionadoLista } from "./QuadroAutorizadoComissionadoLista";
@@ -17,3 +18,4 @@ export function QuadroAutorizadoContent() {
     ? <NovoQuadroComissionadoContent />
     : <QuadroAutorizadoComissionadoLista />;
 }
+

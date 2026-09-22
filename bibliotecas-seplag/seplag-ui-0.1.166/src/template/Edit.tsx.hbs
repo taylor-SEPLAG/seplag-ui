@@ -1,0 +1,10 @@
+import { {{pascalCase name}}Container } from "./components/{{pascalCase name}}Container";
+
+export function Edit{{pascalCase name}}() {
+  return (
+    <{{pascalCase name}}Container 
+      title="Alterar - {{description}}"
+      isEdit={true}
+    />
+  );
+}
