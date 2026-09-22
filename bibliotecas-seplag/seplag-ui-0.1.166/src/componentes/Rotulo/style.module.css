@@ -1,0 +1,118 @@
+.label-rotulo {
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+}
+
+.elemento > input {
+  width: 100%;
+}
+
+.obrigatorio {
+  color: red;
+}
+
+.content-rotulo {
+  display: flex;
+  gap: 0.1rem;
+  align-items: flex-start;
+}
+
+.content-rotulo :global(.col),
+.content-rotulo .label-rotulo {
+  padding: 0;
+}
+
+.content-rotulo.rotulo-horizontal {
+  flex-direction: row;
+  align-items: center;
+}
+
+.content-rotulo.rotulo-vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.rotulo-vertical :global(.col) {
+  padding-top: 0.3em;
+}
+
+.rotulo-horizontal .label-rotulo {
+  padding-right: 0.3em;
+}
+
+.elemento {
+  display: block;
+}
+
+.elemento :global(.p-radiobutton),
+.elemento label,
+.elemento :global(.p-radiobutton-box) {
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+}
+
+.elemento :global(.p-radiobutton) :global(.p-radiobutton-icon) {
+  transform-origin: center;
+}
+
+.elemento label {
+  margin-left: 0.25rem;
+  margin-right: 0.75rem;
+  line-height: normal;
+  display: inline-flex;
+  align-items: center;
+}
+
+.elemento :global(.p-radiobutton) {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.elemento :global(.p-radiobutton) :global(.p-radiobutton-box) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.elemento :global(.p-radiobutton.p-highlight) :global(.p-radiobutton-box) {
+  background: #ffffff;
+  border-color: #5472d4;
+  box-shadow: none;
+}
+
+.elemento
+  :global(.p-radiobutton.p-highlight)
+  :global(.p-radiobutton-box)
+  :global(.p-radiobutton-icon) {
+  visibility: visible;
+  transform: translateZ(0) scale(1) !important;
+  background-color: #5472d4;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.elemento
+  :global(.p-radiobutton:not(.p-disabled)):has(:global(.p-radiobutton-input:hover)):global(
+    .p-highlight
+  )
+  :global(.p-radiobutton-box) {
+  border-color: #3b5fb0;
+}
+
+:global(.label-destaque) {
+  font-weight: 600;
+  color: rgb(110, 106, 106);
+}
+
+:global(.campoTamanhoCompleto) {
+  width: 100%;
+}
+
+:global(.margin-app-entre-button) {
+  margin-right: 0.5rem;
+}

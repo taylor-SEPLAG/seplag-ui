@@ -1,0 +1,143 @@
+.label-rotulo {
+  font-size: 1.1rem;
+}
+
+.elemento > input {
+  width: 100%;
+}
+
+.obrigatorio {
+  color: red;
+}
+
+.elemento .p-radiobutton .p-radiobutton-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.elemento .p-radiobutton {
+  vertical-align: middle !important;
+}
+
+[class*="col-"],
+.grid,
+.flex.flex-column {
+  min-width: 0;
+}
+
+.content-rotulo {
+  display: flex;
+  gap: 0.1rem;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.content-rotulo > .elemento,
+.content-rotulo > .col {
+  min-width: 0;
+}
+
+.content-rotulo .col,
+.content-rotulo .label-rotulo {
+  padding: 0;
+}
+
+.content-rotulo.rotulo-horizontal {
+  flex-direction: row;
+  align-items: center;
+}
+
+.content-rotulo.rotulo-vertical {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.rotulo-vertical .col {
+  padding-top: 0.3em;
+}
+
+.rotulo-horizontal .label-rotulo {
+  padding-right: 0.3em;
+}
+
+.label-rotulo {
+  display: flex;
+  align-items: center;
+}
+
+.elemento {
+  display: block;
+}
+
+.elemento .p-radiobutton,
+.elemento label,
+.elemento .p-radiobutton-box {
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+}
+
+.elemento .p-radiobutton .p-radiobutton-icon {
+  transform-origin: center;
+}
+
+.elemento label {
+  margin-left: 0.25rem;
+  margin-right: 0.75rem;
+  line-height: 1;
+}
+
+.elemento .p-radiobutton {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.elemento .p-radiobutton .p-radiobutton-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.elemento label {
+  line-height: normal;
+  display: inline-flex;
+  align-items: center;
+}
+
+.elemento .p-radiobutton.p-highlight .p-radiobutton-box {
+  background: #ffffff;
+  border-color: #5472d4;
+  box-shadow: none;
+}
+
+.elemento .p-radiobutton.p-highlight .p-radiobutton-box .p-radiobutton-icon {
+  visibility: visible;
+  transform: translateZ(0) scale(1) !important;
+  background-color: #5472d4;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.elemento
+  .p-radiobutton:not(.p-disabled):has(.p-radiobutton-input:hover).p-highlight
+  .p-radiobutton-box {
+  border-color: #3b5fb0;
+}
+
+.label-destaque {
+  font-weight: 600;
+  color: rgb(110, 106, 106);
+}
+
+.campoTamanhoCompleto {
+  width: 100%;
+}
+
+.margin-app-entre-button {
+  margin-right: 0.5rem;
+}

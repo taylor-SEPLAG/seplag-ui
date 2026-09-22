@@ -263,13 +263,13 @@ O quadro da POLITEC foi incorporado a partir do Anexo I do Decreto nº 2.252/202
 5. Registrar histórico e auditoria de cada alteração.
 6. Expandir o modal do quadro para navegar pela árvore de níveis, itens, subitens e dotações.
 
-## Proposta pendente de aprovação: Importar estrutura de outro quadro
+## Importar estrutura de outro quadro
 
-**Status: aguardando aprovação do cliente.**
+**Status: implementado.**
 
 A proposta acrescenta a ação **Importar estrutura** ao bloco **Estrutura organizacional** do cadastro e do versionamento de quadro comissionado.
 
-### Fluxo proposto
+### Fluxo
 
 1. O usuário aciona **Importar estrutura**, ao lado de **Adicionar nível**.
 2. O sistema abre um modal com os quadros comissionados salvos.
@@ -306,4 +306,4 @@ Se já houver estrutura preenchida no formulário, o modal exibirá um aviso: a 
 | --- | --- | ---: | --- |
 | QC-0001 — Estrutura organizacional da POLITEC | POLITEC | 1 | 7 níveis, 136 itens e subitens |
 
-A implementação poderá registrar tecnicamente a origem, por exemplo: “Estrutura importada de QC-0001, versão 1”. Essa referência não cria vínculo de versionamento nem copia a base legal do quadro de origem.
+A importação copia níveis, itens e subitens. Em cada dotação, Perfil Profissional e Cargo Comissionado ficam em branco e as quantidades de cargos e funções ficam zeradas; os identificadores técnicos são recriados e a estrutura atual do formulário é substituída. A ação não cria vínculo de versionamento nem copia a base legal do quadro de origem.

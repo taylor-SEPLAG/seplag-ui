@@ -1065,11 +1065,13 @@ interface CargoForm {
   especialidade?: string;
   perfisEspecialidades?: number[];
   naturezaVinculo?: string;
+  naturezaOcupacao?: "CARGO" | "FUNCAO";
   permiteAcumuloCargo?: "S" | "N";
   controleVagasEfetivos?: boolean;
   controleVagasBolsista?: boolean;
   controleVagasComissionadas?: boolean;
   controleVagasTemporarias?: boolean;
+  naturezaOcupacao?: "CARGO" | "FUNCAO";
   cargosAcumulaveis?: number[];
   cargoChefia?: "S" | "N";
   permiteSubstituicao?: "S" | "N";
@@ -9287,6 +9289,7 @@ export function PrototiposCargoFormPage({
       especialidade: "",
       perfisEspecialidades: [],
       naturezaVinculo: "",
+      naturezaOcupacao: "CARGO",
       permiteAcumuloCargo: "N",
       controleVagasEfetivos: false,
       controleVagasBolsista: false,
@@ -9321,6 +9324,7 @@ export function PrototiposCargoFormPage({
       jornadaTrabalho: cargoEmEdicao.jornadaTrabalho ?? "",
       jornadasPermitidas: cargoEmEdicao.jornadaPadrao.split(",").map((jornada) => jornada.trim()).filter((jornada) => cargoJornadaOptions.some((option) => option.value === jornada)),
       perfisEspecialidades: cargoEmEdicao.perfisEspecialidadesIds ?? [],
+      naturezaOcupacao: cargoEmEdicao.naturezaOcupacao ?? "CARGO",
       permiteAcumuloCargo: cargoEmEdicao.cargosAcumulaveis?.length ? "S" : "N",
       controleVagasEfetivos: cargoEmEdicao.controleVagasEfetivos === true,
       controleVagasBolsista: cargoEmEdicao.controleVagasBolsista === true,
@@ -9366,7 +9370,7 @@ export function PrototiposCargoFormPage({
       jornadaTrabalho: values.jornadaTrabalho,
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
-      vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO",
+      vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO", naturezaOcupacao: values.naturezaOcupacao ?? "CARGO",
       carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasEfetivos: values.controleVagasEfetivos === true, controleVagasBolsista: values.controleVagasBolsista === true, controleVagasComissionadas: values.controleVagasComissionadas === true, controleVagasTemporarias: values.controleVagasTemporarias === true,
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
@@ -9388,6 +9392,7 @@ export function PrototiposCargoFormPage({
   const carreirasPorTipoVinculo = watch("carreirasPorTipoVinculo") ?? {};
   const idsPerfisSelecionados = watch("perfisEspecialidades") ?? [];
   const perfisSelecionadosCargo = perfisEspecialidadesMock.filter((perfil) => idsPerfisSelecionados.includes(perfil.id));
+  const naturezaOcupacao = watch("naturezaOcupacao") ?? "CARGO";
   const permiteAcumuloCargo = watch("permiteAcumuloCargo") === "S";
   useEffect(() => {
     const codigosSelecionados = new Set(tiposVinculoSelecionados);
@@ -9544,6 +9549,23 @@ export function PrototiposCargoFormPage({
                 <p>Configure as regras operacionais aplicáveis a este cargo.</p>
               </div>
             </header>
+            <div className="grid prototype-carreira-register-fields">
+              <DropdownFieldSeplag
+                name="naturezaOcupacao"
+                control={control}
+                label="Natureza de ocupação"
+                cols="12"
+                required
+                options={[
+                  { label: "Cargo — admite efetivo ou comissionado", value: "CARGO" },
+                  { label: "Função — exclusiva de servidor efetivo", value: "FUNCAO" },
+                ]}
+                optionLabel="label"
+                optionValue="value"
+                getFormErrorMessage={() => null}
+              />
+              {naturezaOcupacao === "FUNCAO" ? <small className="col-12 prototype-cargo-natureza-ocupacao-help">Função: exercício exclusivo por servidor efetivo; não pode ser ocupada por pessoa exclusivamente comissionada.</small> : null}
+            </div>
             <div className="prototype-shared-criterios-list prototype-tipo-vinculo-comportamentos">
               <div className="prototype-shared-criterio-item">
                 <CheckboxFieldSeplag<CargoForm> name="permiteAcumuloCargo" control={control} checkboxLabel="Permite acúmulo de cargo?" cols="12" />

@@ -19,8 +19,9 @@ export const CARGOS_MEMBRO_COMISSAO:{ label:string; value:CargoMembroComissao }[
 ];
 
 export const TIPOS_ATO_NOMEACAO:{ label:string; value:TipoAtoNomeacao }[] = [
- { label:"Portaria", value:"PORTARIA" },
  { label:"Decreto", value:"DECRETO" },
+ { label:"Lei", value:"LEI" },
+ { label:"Portaria", value:"PORTARIA" },
  { label:"Resolução", value:"RESOLUCAO" },
 ];
 

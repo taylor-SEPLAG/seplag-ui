@@ -1,0 +1,50 @@
+/*
+ * Layout do ResumoValoresSeplag. As cores ficam fora daqui, aplicadas inline a partir de
+ * `tokens/colors` — um CSS Module não consegue importar as constantes de tema (RA-07).
+ */
+
+.resumo {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+/* Usado no `trailing` do PanelSeplag: não ocupa a linha inteira. */
+.inline {
+  display: inline-flex;
+}
+
+/* Faixa de totalizadores acima ou abaixo de uma tabela. */
+.barra {
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+.esquerda {
+  justify-content: flex-start;
+}
+
+.direita {
+  justify-content: flex-end;
+}
+
+.entre {
+  justify-content: space-between;
+}
+
+.item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.rotulo {
+  font-size: 0.8125rem;
+}
+
+.valor {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}

@@ -1,0 +1,3 @@
+.noRipple :global(.p-ink) {
+  display: none;
+}

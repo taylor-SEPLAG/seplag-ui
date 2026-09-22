@@ -1,0 +1,106 @@
+/*
+ * Sem `overflow: hidden` aqui: painéis flutuantes renderizados inline pelos
+ * campos filhos (ex.: DropdownBaseLegalSeplag) são `position: absolute` e
+ * seriam recortados pela borda da seção. Os cantos arredondados são obtidos
+ * arredondando o cabeçalho e o conteúdo individualmente.
+ */
+.colStretch {
+  display: flex;
+  min-width: 0;
+}
+
+.secao {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 8px;
+  background: var(--surface-0, #ffffff);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 0.4rem;
+  column-gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--surface-200, #e2e8f0);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: var(--primary-50, #eff6ff);
+  color: var(--primary-600, #2563eb);
+}
+
+.badge i {
+  font-size: 1.05rem;
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.titulo {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-color, #1e293b);
+  line-height: 1.2;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.descricao {
+  font-size: 0.78rem;
+  color: var(--text-color-secondary, #64748b);
+  line-height: 1.2;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/*
+ * `position: relative` sem `z-index` mantém o conteúdo (e os painéis flutuantes
+ * dos campos) acima do fundo das seções seguintes, sem criar um stacking
+ * context que os aprisione.
+ */
+.conteudo {
+  position: relative;
+  flex: 1;
+  /*
+   * `flex: 1` sozinho não limita o item ao espaço do pai — o `min-width` inicial de um flex
+   * item é `auto`, que respeita o `min-content` dos filhos. Um filho largo (ex.: uma tabela
+   * com largura mínima fixa) então empurra `.conteudo`, a seção e o `.p-dialog` do modal além
+   * do `width` configurado, em vez de ficar contido com scroll interno.
+   */
+  min-width: 0;
+  padding: 1rem;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.semPadding {
+  position: relative;
+  flex: 1;
+  padding: 0;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}

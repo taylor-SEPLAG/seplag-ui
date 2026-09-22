@@ -1,0 +1,224 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  width: 100%;
+  min-height: 100vh;
+  background: #eef4fb;
+  color: #0f1c2e;
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- left: institutional panel ---- */
+.panel {
+  position: relative;
+  background: linear-gradient(160deg, #0d3b66 0%, #123a63 52%, #1769aa 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.75rem 3rem;
+  overflow: hidden;
+  color: #eaf3ff;
+}
+
+@media (max-width: 860px) {
+  .panel {
+    padding: 2.25rem 1.75rem;
+    min-height: 260px;
+  }
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(200deg, black 0%, black 40%, transparent 78%);
+  pointer-events: none;
+}
+
+.brasao {
+  position: absolute;
+  right: -16%;
+  top: 48%;
+  transform: translateY(-50%);
+  width: 500px;
+  height: 500px;
+  object-fit: contain;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+@media (max-width: 860px) {
+  .brasao {
+    right: -30%;
+    width: 340px;
+    height: 340px;
+  }
+}
+
+.panelTop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #cfe4fb;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #64b5f6;
+  box-shadow: 0 0 0 4px rgba(100, 181, 246, 0.22);
+  flex-shrink: 0;
+}
+
+.panelMid {
+  position: relative;
+}
+
+.code {
+  position: relative;
+  display: inline-block;
+  font-weight: 800;
+  font-size: clamp(6.5rem, 14vw, 10rem);
+  line-height: 0.84;
+  letter-spacing: -0.045em;
+  margin: 0;
+  color: #ffffff;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4),
+    0 18px 40px rgba(3, 15, 33, 0.55);
+}
+
+.code::after {
+  content: "404";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(9, 27, 51, 0.55) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  pointer-events: none;
+}
+
+.codeRule {
+  width: 46px;
+  height: 3px;
+  border-radius: 2px;
+  background: #64b5f6;
+  margin: 1.35rem 0 1rem;
+}
+
+.codeSub {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #e3f0ff;
+  max-width: 19em;
+  line-height: 1.5;
+}
+
+.panelBottom {
+  position: relative;
+  font-size: 0.78rem;
+  color: #9dc3ec;
+  line-height: 1.6;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  padding-top: 1.1rem;
+}
+
+/* ---- right: content ---- */
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2.5rem;
+}
+
+@media (max-width: 860px) {
+  .content {
+    padding: 2.5rem 1.75rem 3rem;
+  }
+}
+
+.copy {
+  max-width: 26rem;
+  width: 100%;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1769aa;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 999px;
+  padding: 0.32rem 0.75rem 0.32rem 0.6rem;
+  margin: 0 0 1.1rem;
+}
+
+.eyebrow i {
+  font-size: 0.85rem;
+}
+
+.title {
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #52627e;
+  margin: 0 0 1.4rem;
+}
+
+.path {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.82rem;
+  color: #8898b4;
+  background: #eef4fb;
+  border: 1px solid #d3e2f2;
+  border-radius: 8px;
+  padding: 0.55rem 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.path i {
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.sep {
+  color: #2196f3;
+  opacity: 0.7;
+  margin: 0 0.15rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}

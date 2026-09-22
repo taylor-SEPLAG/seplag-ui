@@ -1,0 +1,12 @@
+.bar {
+  border-radius: 999px;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.segment {
+  flex: 0 0 auto;
+  height: 100%;
+}

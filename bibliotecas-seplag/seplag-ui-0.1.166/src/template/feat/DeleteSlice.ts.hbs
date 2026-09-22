@@ -1,0 +1,33 @@
+import { apiSlice } from "@features/api";
+import { FetchArgs } from "@reduxjs/toolkit/query";
+
+interface Request {
+  id: number,
+}
+
+function delete{{pascalCase name}}Fn(params: Request): FetchArgs | string {
+
+  if (!params.id) {
+    throw new Error("Id não pode ser vazio")
+  }
+
+  return {
+    url: `/v1/{{endpoint}}/${params.id}`,
+    method: 'DELETE',
+  }
+}
+
+export const delete{{pascalCase name}}Slice = apiSlice.injectEndpoints({
+  endpoints: ({ query, mutation }) => ({
+    delete{{pascalCase name}}: mutation<string, Request>({
+      query: delete{{pascalCase name}}Fn,
+      invalidatesTags: (['{{pascalCase name}}'] as unknown) as any,
+    }),
+
+  })
+})
+
+export const {
+  useDelete{{pascalCase name}}Mutation,
+
+} = delete{{pascalCase name}}Slice;

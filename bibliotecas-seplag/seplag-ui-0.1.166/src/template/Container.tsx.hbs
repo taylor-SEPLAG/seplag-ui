@@ -1,0 +1,141 @@
+import { {{pascalCase name}}Request } from "@type/{{camelCase name}}/{{pascalCase name}}Request"
+import { useEffect } from "react"
+import { {{pascalCase name}}Form, type IForm{{pascalCase name}} } from "./{{pascalCase name}}Form"
+import { CardSeplag, GroupActionsSeplag, useToastSeplag } from "{{libPackageName}}";
+import { useForm } from "react-hook-form"
+import { useNavigate, useParams, useLocation } from "react-router-dom"
+import { useGetBuscar{{pascalCase name}}PorIdQuery } from "@features/{{camelCase name}}/buscar{{pascalCase name}}PorId"
+import { useCreate{{pascalCase name}}Mutation } from "@features/{{camelCase name}}/create{{pascalCase name}}Slice"
+import { useUpdate{{pascalCase name}}Mutation } from "@features/{{camelCase name}}/update{{pascalCase name}}Slice"
+import { IPageState } from "@type/IPageState"
+import { useHasPermissions } from "@hooks/useListPermissions"
+import { DefaultPermissions{{pascalCase name}} } from "@config/permissions/permission{{pascalCase name}}"
+import { useDelete{{pascalCase name}}Mutation } from "@features/{{camelCase name}}/delete{{pascalCase name}}Slice"
+
+interface {{pascalCase name}}ContainerProps {
+  readonly isEdit?: boolean
+  readonly isView?: boolean
+  readonly title: string
+}
+
+export function {{pascalCase name}}Container({
+  isEdit = false,
+  isView = false,
+  title,
+}: {{pascalCase name}}ContainerProps) {
+  const { toastSucesso } = useToastSeplag()
+  const navigate = useNavigate()
+  const { id } = useParams()
+
+  const { state }: { state: IPageState } = useLocation()
+  const stateId = state?.id
+  const isDuplicating = !isEdit && !isView && !!stateId
+  const permissions = useHasPermissions(DefaultPermissions{{pascalCase name}});
+
+  const [create{{pascalCase name}}, statusCreate] = useCreate{{pascalCase name}}Mutation()
+  const [update{{pascalCase name}}, statusUpdate] = useUpdate{{pascalCase name}}Mutation()
+  const [triggerDelete, statusDelete] = useDelete{{pascalCase name}}Mutation()
+
+  let resolvedId: number | undefined
+  if (isEdit || isView) {
+    resolvedId = Number(id)
+  } else if (isDuplicating) {
+    resolvedId = Number(stateId)
+  } else {
+    resolvedId = undefined
+  }
+
+  // ⚠️  ATENÇÃO: REMOVER — altere para false quando o endpoint estiver disponível no backend.
+  const IS_MOCK_MODE_{{constantCase name}} = true;
+
+  // ⚠️  ATENÇÃO: REMOVER — valores de mock para pré-popular o formulário em teste.
+  // Substitua pelo reset real partindo de `entityQuery` (já implementado abaixo).
+  const MOCK_FORM_VALUES_{{constantCase name}}: Partial<IForm{{pascalCase name}}> = {
+    descricao: "[MOCK] Descrição de exemplo",
+    dataInicio: "2025-01-01",
+    dataFim: "2025-12-31",
+    observacao: "[MOCK] Observação de exemplo",
+  };
+  // ⚠️  FIM DO MOCK
+
+  const { data: entityQuery } = useGetBuscar{{pascalCase name}}PorIdQuery(
+    {
+      id: resolvedId,
+    },
+    {
+      // ⚠️  ATENÇÃO: REMOVER a guarda IS_MOCK_MODE quando o endpoint estiver pronto.
+      skip: IS_MOCK_MODE_{{constantCase name}} || !statusDelete.isUninitialized || !(isEdit || isView || isDuplicating),
+    }
+  )
+
+  const {
+    reset,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors },
+  } = useForm<IForm{{pascalCase name}}>({
+    defaultValues: MOCK_FORM_VALUES_{{constantCase name}},
+  })
+
+  useEffect(() => {
+    if ((isEdit || isView) && entityQuery) {
+      reset({ ...entityQuery })
+    } else if (isDuplicating && entityQuery) {
+      reset({
+        ...entityQuery,
+        id: undefined,
+      })
+    }
+  }, [entityQuery, isEdit, isView, isDuplicating, reset])
+
+  const onGoBack = () => navigate(-1)
+
+  const onSubmit = (data: IForm{{pascalCase name}}) => {
+    const payload: {{pascalCase name}}Request = { ...data, filtro: "" }
+    const action = isEdit
+      ? update{{pascalCase name}}({ ...payload, id: Number(id) })
+      : create{{pascalCase name}}(payload)
+
+    action
+      .unwrap()
+      .then(() => {
+        toastSucesso(isEdit ? "{{description}} alterado com sucesso" : "{{description}} criado com sucesso")
+        onGoBack()
+      })
+  }
+
+  function handleEdit() { navigate(`/app/cadastro/{{camelCase name}}/edit/${entityQuery?.id}`); }
+  function handleDuplicar() { navigate(`/app/cadastro/{{camelCase name}}/new`, { state: { id: entityQuery?.id }, replace: true }); }
+  function handleDelete() { 
+    triggerDelete({ id: entityQuery?.id! }).unwrap().then(() => {
+      toastSucesso("{{description}} removida com sucesso!")
+      navigate(`/app/cadastro/{{camelCase name}}`, { replace: true })
+    })
+  }
+
+  return (
+    <CardSeplag 
+      title={title}
+      actions={isView 
+        ? <GroupActionsSeplag
+            permissions={permissions} 
+            onEdit={handleEdit} 
+            onDuplicate={handleDuplicar} 
+            onDelete={handleDelete}
+          /> 
+        : null}
+    >
+      <{{pascalCase name}}Form
+        onSubmit={handleSubmit(onSubmit)}
+        control={control}
+        isLoading={isEdit ? statusUpdate.isLoading : statusCreate.isLoading}
+        onGoBack={onGoBack}
+        errors={errors}
+        isView={isView}
+        isEdit={isEdit}
+        watch={watch}
+      />
+    </CardSeplag>
+  )
+}

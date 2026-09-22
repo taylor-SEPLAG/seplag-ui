@@ -1,0 +1,29 @@
+import { apiSlice } from "@features/api";
+import { FetchArgs } from "@reduxjs/toolkit/query";
+import { {{pascalCase name}}Request } from "@type/{{camelCase name}}/{{pascalCase name}}Request";
+import { {{pascalCase name}}Response } from "@type/{{camelCase name}}/{{pascalCase name}}Response";
+
+function update{{pascalCase name}}Fn(params: {{pascalCase name}}Request): FetchArgs | string {
+
+  if (!params.id) {
+    throw new Error("Id não pode ser vazio")
+  }
+
+  return {
+    url: `/v1/{{endpoint}}/${params.id}`,
+    method: 'PUT',
+    body: params
+  }
+}
+
+export const update{{pascalCase name}}Slice = apiSlice.injectEndpoints({
+  endpoints: ({ query, mutation }) => ({
+    update{{pascalCase name}}: mutation<{{pascalCase name}}Response, {{pascalCase name}}Request>({
+      query: update{{pascalCase name}}Fn,
+      invalidatesTags: (['{{pascalCase name}}'] as unknown) as any,
+    }),
+
+  })
+})
+
+export const { useUpdate{{pascalCase name}}Mutation } = update{{pascalCase name}}Slice;

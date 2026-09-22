@@ -1,0 +1,84 @@
+import { DateFieldSeplag, TextAreaFieldSeplag, TextFieldSeplag, FormActionsSeplag }  from "{{libPackageName}}";
+import { getErrorMessageInObject } from "@utils/getErrorMessageInObject"
+import React, { useRef } from "react"
+import { Control, FieldErrors, UseFormWatch, useWatch } from "react-hook-form"
+
+export interface IForm{{pascalCase name}} {
+  id?: number;
+  descricao?: string;
+  observacao?: string;
+  dataInicio?: string;
+  dataFim?: string;
+}
+
+interface {{pascalCase name}}FormProps {
+  readonly onSubmit?: React.FormEventHandler<HTMLFormElement>
+  readonly isView?: boolean
+  readonly isEdit?: boolean
+  readonly control: Control<IForm{{pascalCase name}}, any>
+  readonly isLoading: boolean
+  readonly errors: FieldErrors<IForm{{pascalCase name}}>
+  readonly onGoBack: () => void
+  readonly watch?: UseFormWatch<IForm{{pascalCase name}}>
+}
+
+export function {{pascalCase name}}Form({ errors, onSubmit, control, isView, isEdit, isLoading, onGoBack, watch }: {{pascalCase name}}FormProps) {
+
+  const formRef = useRef<HTMLFormElement>(null);
+
+  return (
+    <form className="grid p-fluid col-12" onSubmit={onSubmit} ref={formRef}>
+
+      <TextFieldSeplag
+        name="descricao"
+        control={control}
+        label="Descrição"
+        cols="12 8"
+        maxLength={120}
+        required={true}
+        rules={{
+          maxLength: { value: 120, message: "Máximo 120 caracteres" },
+        }}
+        disabled={isView}
+      />
+
+      <DateFieldSeplag
+        name="dataInicio"
+        control={control}
+        label="Data Início"
+        cols="12 6 2"
+        required={true}
+        disabled={isView}
+      />
+
+      <DateFieldSeplag
+        name="dataFim"
+        control={control}
+        label="Data Fim"
+        cols="12 6 2"
+        getFormErrorMessage={getFormErrorMessage}
+        disabled={isView}
+        validateAfterDate={useWatch({ control, name: "dataInicio" })}
+        validateAfterMessage="A Data Fim deve ser maior que a Data Início"
+      />
+
+      <TextAreaFieldSeplag
+        name="observacao"
+        control={control}
+        label="Observação"
+        cols="12"
+        maxLength={200}
+        rules={{
+          maxLength: { value: 200, message: "Máximo 200 caracteres" },
+        }}
+        disabled={isView}
+      />
+
+      <FormActionsSeplag
+        onGoBack={onGoBack}
+        showSave={!!onSubmit && !isView}
+        isLoading={isLoading}
+      />
+    </form>
+  )
+}

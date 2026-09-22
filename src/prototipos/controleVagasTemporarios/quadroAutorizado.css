@@ -2837,3 +2837,14 @@
 .prototype-temporarios-quadro-page-current .prototype-temporarios-quadro-list-filters {
   grid-template-columns: minmax(18rem, 1.55fr) minmax(14rem, 1.2fr) minmax(12rem, 1fr) minmax(12rem, 1fr) auto !important;
 }
+
+.prototype-temporarios-detail-backdrop{position:fixed;z-index:1200;inset:0;display:grid;place-items:center;padding:1rem;background:rgb(16 38 65 / .42)}
+.prototype-temporarios-detail{width:min(46rem,100%);overflow:hidden;border-radius:.65rem;background:#fff;box-shadow:0 1.5rem 4rem rgb(8 31 55 / .28)}
+.prototype-temporarios-detail>header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.25rem 1.35rem;border-bottom:1px solid #e0e7ee}
+.prototype-temporarios-detail-topline{display:flex;align-items:center;gap:.55rem;margin-bottom:.55rem}.prototype-temporarios-detail-topline>span{color:#4d6078;font-size:.8rem;font-weight:700}
+.prototype-temporarios-detail h2{margin:0 0 .4rem;color:#1c2d49;font-size:1.45rem}.prototype-temporarios-detail header p{margin:0;color:#51657e;font-size:.86rem}
+.prototype-temporarios-detail-close{display:grid;flex:0 0 2.35rem;width:2.35rem;height:2.35rem;place-items:center;border:1px solid #cbd7e2;border-radius:.35rem;background:#fff;color:#34465c;font-size:1rem;cursor:pointer}.prototype-temporarios-detail-close:hover{background:#f2f7fb;color:#075f9f}
+.prototype-temporarios-detail-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;padding:1rem 1.35rem;background:#f8fbfe}.prototype-temporarios-detail-summary article{display:flex;flex-direction:column;gap:.22rem;padding:.7rem .8rem;border:1px solid #dce7ef;border-radius:.4rem;background:#fff}.prototype-temporarios-detail-summary span{color:#637892;font-size:.72rem}.prototype-temporarios-detail-summary strong{color:#173653;font-size:1.05rem}
+.prototype-temporarios-detail-body{padding:1.25rem 1.35rem}.prototype-temporarios-detail-body h3{margin:0 0 .75rem;color:#203451;font-size:1rem}.prototype-temporarios-detail-body article{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.25rem 1rem;padding:.85rem 0;border-bottom:1px solid #e0e7ee}.prototype-temporarios-detail-body article:last-child{border-bottom:0}.prototype-temporarios-detail-body strong{color:#21344f;font-size:.9rem}.prototype-temporarios-detail-body span{text-align:right;color:#31435c;font-size:.86rem}.prototype-temporarios-detail-body small{grid-column:1/-1;color:#687d95;font-size:.74rem}
+@media(max-width:600px){.prototype-temporarios-detail>header,.prototype-temporarios-detail-body{padding:1rem}.prototype-temporarios-detail-summary{padding:1rem;grid-template-columns:1fr}.prototype-temporarios-detail-body article{grid-template-columns:1fr}.prototype-temporarios-detail-body span{text-align:left}}
+

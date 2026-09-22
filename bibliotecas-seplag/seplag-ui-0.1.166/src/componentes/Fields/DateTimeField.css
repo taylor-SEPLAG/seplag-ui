@@ -1,0 +1,120 @@
+.seplag-date-time-field {
+  width: 100%;
+}
+
+.seplag-date-time-field .p-inputtext {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #b8c7d9;
+  border-right: 0;
+  border-radius: 6px 0 0 6px;
+  color: #092b4f;
+  background: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.seplag-date-time-field .p-inputtext::placeholder {
+  color: #7f91a8;
+  font-weight: 400;
+}
+
+.seplag-date-time-field .p-inputtext:enabled:focus {
+  border-color: #2f80c7;
+  box-shadow: 0 0 0 2px rgba(47, 128, 199, 0.14);
+}
+
+.seplag-date-time-field .p-datepicker-trigger {
+  width: 34px;
+  min-width: 34px;
+  border: 1px solid #2f80c7;
+  border-radius: 0 6px 6px 0;
+  background: #edf6ff;
+  color: #1d5f96;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.seplag-date-time-field .p-datepicker-trigger:enabled:hover {
+  border-color: #1d6fae;
+  background: #dceeff;
+  color: #154e7b;
+}
+
+.seplag-date-time-field.p-disabled .p-inputtext,
+.seplag-date-time-field.p-calendar-disabled .p-inputtext {
+  background: #eef2f6;
+  color: #6d7f95;
+}
+
+.seplag-date-time-field.p-disabled .p-datepicker-trigger,
+.seplag-date-time-field.p-calendar-disabled .p-datepicker-trigger {
+  border-color: #c8d3df;
+  background: #eef2f6;
+  color: #7c8da2;
+}
+
+.seplag-date-time-panel {
+  width: 260px;
+  max-width: calc(100vw - 24px);
+  max-height: 340px;
+  overflow: auto;
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(9, 43, 79, 0.18);
+}
+
+.seplag-date-time-panel .p-datepicker-header {
+  padding: 8px 10px;
+}
+
+.seplag-date-time-panel .p-datepicker-group-container {
+  width: 100%;
+}
+
+.seplag-date-time-panel .p-datepicker-calendar {
+  font-size: 0.78rem;
+}
+
+.seplag-date-time-panel .p-datepicker-calendar th {
+  padding: 3px 0;
+}
+
+.seplag-date-time-panel .p-datepicker-calendar td {
+  padding: 2px;
+}
+
+.seplag-date-time-panel .p-datepicker-calendar td > span {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.seplag-date-time-panel .p-timepicker {
+  gap: 6px;
+  padding: 6px 0;
+  border-top: 1px solid #e3eaf2;
+}
+
+.seplag-date-time-panel .p-timepicker button {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.seplag-date-time-panel .p-timepicker span {
+  font-size: 0.82rem;
+}
+
+.seplag-date-time-panel .p-datepicker-buttonbar {
+  padding: 8px 10px;
+  border-top: 1px solid #e3eaf2;
+}
+
+.seplag-date-time-panel .p-datepicker-buttonbar button {
+  padding: 5px 8px;
+  font-size: 0.78rem;
+}

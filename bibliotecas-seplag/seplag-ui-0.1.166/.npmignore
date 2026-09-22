@@ -1,0 +1,14 @@
+# Código-fonte e arquivos de desenvolvimento — não incluir na instalação
+src/
+public/
+node_modules/
+
+# Configurações de build e tooling
+vite.config.ts
+tsconfig*.json
+eslint.config.js
+index.html
+
+# Outros
+.gitignore
+README.md

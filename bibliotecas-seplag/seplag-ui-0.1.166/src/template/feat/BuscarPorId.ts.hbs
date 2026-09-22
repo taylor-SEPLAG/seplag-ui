@@ -1,0 +1,29 @@
+import { apiSlice } from "@features/api";
+import { FetchArgs } from "@reduxjs/toolkit/query";
+import { {{pascalCase name}}Response } from "@type/{{camelCase name}}/{{pascalCase name}}Response";
+
+interface Request {
+  id: number | undefined
+}
+
+function getBuscar{{pascalCase name}}PorIdFn({ id }: Request): FetchArgs | string {
+  if (id === undefined) {
+    throw new Error("Id não pode ser vazio")
+  }
+  
+  return {
+    url: `/v1/{{endpoint}}/${id}`
+  }
+}
+
+export const buscar{{pascalCase name}}PorId = apiSlice.injectEndpoints({
+  endpoints: ({ query, mutation }) => ({
+    getBuscar{{pascalCase name}}PorId: query<{{pascalCase name}}Response, Request>({
+      query: getBuscar{{pascalCase name}}PorIdFn,
+      providesTags: (['{{pascalCase name}}'] as unknown) as any,
+    }),
+
+  })
+})
+
+export const { useGetBuscar{{pascalCase name}}PorIdQuery } = buscar{{pascalCase name}}PorId;
