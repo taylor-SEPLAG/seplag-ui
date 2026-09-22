@@ -1,0 +1,7 @@
+.noPadding :global(.p-card-body) {
+  padding: 0;
+}
+
+.no-box-shadow {
+  box-shadow: none;
+}

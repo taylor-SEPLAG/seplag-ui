@@ -1,0 +1,66 @@
+.radioCardGroup {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+.radioCard {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 4.25rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--accent-border, #dde5ee);
+  border-left: 4px solid var(--accent-border, #dde5ee);
+  border-radius: 0.6rem;
+  background: var(--accent-bg, #fff);
+  color: #25344a;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+
+.radioCard:hover,
+.radioCard:focus-visible {
+  box-shadow: 0 8px 18px -12px var(--accent-color, #1769aa);
+  transform: scale(1.015);
+}
+
+.radioCardSelected {
+  box-shadow: 0 0 0 2px var(--accent-color, #1769aa);
+}
+
+.radioCardIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--accent-color, #1769aa);
+  font-size: 1.5rem;
+}
+
+.radioCardText {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.radioCard strong {
+  font-size: 0.9rem;
+  color: #1c2a3a;
+}
+
+.radioCard small {
+  color: #68758a;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+}

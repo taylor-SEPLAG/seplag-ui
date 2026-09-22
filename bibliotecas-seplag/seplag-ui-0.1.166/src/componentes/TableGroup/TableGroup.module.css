@@ -1,0 +1,85 @@
+.header {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.toggleSurface {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trailing {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkbox {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  margin: 0;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.checkbox:disabled {
+  cursor: not-allowed;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #68758a;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.footerCell {
+  padding: 8px 12px !important;
+  background: #fbfcfe;
+  text-align: center;
+}
+
+.showAll {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.showAll:hover,
+.showAll:focus-visible {
+  text-decoration: underline;
+}
+
+.showAll:disabled {
+  color: #94a3b8;
+  cursor: wait;
+}
+
+.noRipple :global(.p-ink) {
+  display: none;
+}

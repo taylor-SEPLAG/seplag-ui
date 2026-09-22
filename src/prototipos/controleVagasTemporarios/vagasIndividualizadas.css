@@ -1233,3 +1233,18 @@
 .temporarios-vagas-detail { display: grid; gap: 1rem; }.temporarios-vagas-detail section { border: 1px solid #dce4ed; border-radius: .4rem; overflow: hidden; }.temporarios-vagas-detail h3 { margin: 0; padding: .85rem 1rem; border-bottom:1px solid #dce4ed; font-size:.95rem; }.temporarios-vagas-detail dl { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:1rem; padding:1rem; margin:0; }.temporarios-vagas-detail dt { color:#64748b; font-size:.75rem; }.temporarios-vagas-detail dd { margin:.25rem 0 0; font-size:.86rem; }.temporarios-vagas-detail-badges, .temporarios-vagas-detail section > p { margin: 1rem; }
 @media (max-width: 1180px) { .temporarios-vagas-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); } }.temporarios-vagas-kpis-status { grid-template-columns: repeat(4, minmax(0,1fr)); }
 @media (max-width: 800px) { .temporarios-vagas-page { padding:1rem; }.temporarios-vagas-kpis, .temporarios-vagas-kpis-status, .temporarios-vagas-filters, .temporarios-vagas-detail dl { grid-template-columns: 1fr; } }
+
+.temporarios-vagas-table-wrap th:nth-child(5),
+.temporarios-vagas-table-wrap td:nth-child(5),
+.temporarios-vagas-table-wrap th:nth-child(6),
+.temporarios-vagas-table-wrap td:nth-child(6),
+.temporarios-vagas-table-wrap th:nth-child(7),
+.temporarios-vagas-table-wrap td:nth-child(7) {
+  text-align: center;
+}
+.temporarios-vagas-table-wrap td:nth-child(5),
+.temporarios-vagas-table-wrap td:nth-child(6),
+.temporarios-vagas-table-wrap td:nth-child(7) {
+  vertical-align: middle;
+}
+

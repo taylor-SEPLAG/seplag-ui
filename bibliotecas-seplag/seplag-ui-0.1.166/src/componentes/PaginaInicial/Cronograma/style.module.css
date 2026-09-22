@@ -1,0 +1,466 @@
+.panel,
+.configPanel {
+  overflow: hidden;
+  border: 1px solid var(--surface-border, #dee2e6);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.panel {
+  min-height: 760px;
+}
+
+.configPanel {
+  min-height: 840px;
+  overflow: visible;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 68px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--surface-border, #dee2e6);
+}
+
+.configHeader {
+  display: flex;
+  align-items: center;
+  min-height: 68px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--surface-border, #dee2e6);
+}
+
+.panelTitleGroup h1 {
+  overflow: hidden;
+  margin: 0;
+  color: rgb(110, 106, 106);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.configHeader h1 {
+  margin: 0;
+  color: rgb(110, 106, 106);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.panelTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: #2196f3;
+}
+
+.panelTitleGroup i {
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+}
+
+.panelBody {
+  padding: 20px 24px 28px;
+}
+
+.configBody {
+  padding: 20px 24px 28px;
+}
+
+.configureButton {
+  position: relative;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 3px;
+}
+
+.configureButton :global(.p-button-icon) {
+  position: absolute;
+  left: 1rem;
+}
+
+.configureButton :global(.p-button-label) {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.timeline {
+  margin-top: 26px;
+}
+
+.emptyTimeline {
+  margin: 0;
+  border: 1px dashed var(--surface-border, #dee2e6);
+  border-radius: 6px;
+  color: var(--text-color-secondary, #6c757d);
+  font-size: 0.95rem;
+  padding: 18px;
+  text-align: center;
+}
+
+.timelineSection {
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--surface-border, #dee2e6);
+}
+
+.timelineSection + .timelineSection {
+  padding-top: 22px;
+}
+
+.timelineSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.marker {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.laranja {
+  background: #ff9800;
+}
+
+.azul {
+  background: #2196f3;
+}
+
+.timelineSectionHeader h2 {
+  margin: 0;
+  color: rgb(110, 106, 106);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.timelineRow {
+  display: grid;
+  grid-template-columns: 210px minmax(280px, 1fr) 96px;
+  gap: 16px;
+  align-items: center;
+  min-height: 52px;
+  border-bottom: 1px solid var(--surface-border, #dee2e6);
+  color: var(--text-color-secondary, #6c757d);
+  font-size: 0.96rem;
+}
+
+.timelineRow strong {
+  color: rgb(110, 106, 106);
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.statusBadge {
+  justify-self: end;
+}
+
+.timelineRowEmpty {
+  border-bottom: 0;
+}
+
+.timelineRowEmpty strong,
+.timelineRowEmpty span {
+  min-height: 1px;
+}
+
+.titleLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: rgb(110, 106, 106);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.cycleTitleInput,
+.sectionTitleInput,
+.eventEditorRow input {
+  border: 1px solid var(--surface-border, #dee2e6);
+  border-radius: 4px;
+  background: #ffffff;
+  color: rgb(110, 106, 106);
+  font: inherit;
+  font-weight: 400;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cycleTitleInput:focus,
+.sectionTitleInput:focus,
+.eventEditorRow input:focus {
+  border-color: #2196f3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+  outline: none;
+}
+
+.cycleTitleInput {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.sectionsEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.editorSection {
+  overflow: visible;
+  border: 1px solid var(--surface-border, #dee2e6);
+  border-radius: 6px;
+  background: #fbfdff;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.sectionEditorHeader {
+  display: grid;
+  grid-template-columns: 18px minmax(180px, 1fr) auto 34px;
+  gap: 8px;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--surface-border, #dee2e6);
+}
+
+.dragHandleButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-color-secondary, #6c757d);
+  cursor: grab;
+  font-size: 0.95rem;
+  user-select: none;
+}
+
+.dragHandleButton:active {
+  cursor: grabbing;
+}
+
+.dragHandleButton:focus-visible {
+  border-radius: 3px;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.16);
+  outline: none;
+}
+
+.dragHandleButton :global(.p-ink) {
+  display: none;
+}
+
+.dragging {
+  opacity: 0.64;
+  border-color: #64b5f6;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+  outline: 2px dashed #90caf9;
+  outline-offset: -2px;
+  transform: scale(0.995);
+}
+
+.sectionTitleInput {
+  min-height: 32px;
+  padding: 0 10px;
+  font-weight: 600;
+}
+
+.addEventButton {
+  min-height: 40px;
+}
+
+.deleteSectionButton {
+  width: 40px;
+  height: 40px;
+}
+
+.eventsHeader {
+  display: grid;
+  grid-template-columns: 18px 200px 200px minmax(200px, 1fr) 40px;
+  gap: 8px;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--surface-border, #dee2e6);
+  color: var(--text-color-secondary, #6c757d);
+  font-size: 0.74rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.eventsHeader span:first-child {
+  grid-column: 2;
+}
+
+.eventEditorRow {
+  display: grid;
+  grid-template-columns: 18px 200px 200px minmax(200px, 1fr) 40px;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--surface-border, #dee2e6);
+  transition:
+    transform 0.16s ease,
+    opacity 0.16s ease,
+    background 0.16s ease;
+}
+
+.eventEditorRow input {
+  width: 100%;
+  min-height: 30px;
+  padding: 0 8px;
+  font-size: 0.78rem;
+}
+
+.eventEditorRow > input {
+  height: 40px;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.eventEditorRow input::placeholder {
+  color: var(--text-color-secondary, #6c757d);
+}
+
+.dateFieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fieldErrorMessage {
+  color: #f44336;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.removeEventButton {
+  width: 40px;
+  height: 40px;
+}
+
+.addSectionButton {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 10px;
+}
+
+.configFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 0 24px;
+  padding: 14px 0 16px;
+  border-top: 1px solid var(--surface-border, #dee2e6);
+}
+
+.deleteCycleButton {
+  margin-right: auto;
+}
+
+@media (max-width: 1180px) {
+  .panel,
+  .configPanel {
+    min-height: auto;
+  }
+
+  .timelineRow {
+    grid-template-columns: minmax(140px, 0.35fr) minmax(220px, 1fr) 96px;
+  }
+}
+
+@media (max-width: 760px) {
+  .panelHeader,
+  .configHeader,
+  .panelBody,
+  .configBody {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .panelHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .panelTitleGroup h1,
+  .configHeader h1 {
+    white-space: normal;
+    font-size: 1.08rem;
+  }
+
+  .timelineRow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 10px 0;
+  }
+
+  .statusBadge {
+    justify-self: start;
+  }
+
+  .sectionEditorHeader,
+  .eventsHeader,
+  .eventEditorRow {
+    grid-template-columns: 18px 1fr 1fr 40px;
+  }
+
+  .sectionTitleInput,
+  .addEventButton {
+    grid-column: 2 / -1;
+  }
+
+  .deleteSectionButton {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  .eventsHeader span:first-child {
+    grid-column: 2;
+  }
+
+  .eventsHeader span:nth-child(3) {
+    grid-column: 2 / -1;
+  }
+
+  .eventEditorRow input:nth-of-type(3) {
+    grid-column: 2 / -2;
+  }
+
+  .removeEventButton {
+    grid-column: 4;
+    grid-row: 2;
+  }
+
+  .configFooter {
+    flex-direction: column-reverse;
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
+  .deleteCycleButton,
+  .backButton,
+  .saveButton {
+    width: 100%;
+  }
+}

@@ -1,0 +1,48 @@
+import { ButtonSeplagLimparFiltro } from "@components/ButtonSeplag";
+import { RotuloSeplag, FilterActionsSeplag, FilterFormSeplag } from "{{libPackageName}}";
+import { InputText } from "primereact/inputtext";
+import { useEffect, useState, SyntheticEvent } from "react";
+
+interface Props {
+  readonly onFilterList{{pascalCase name}}: (value: string) => void;
+  readonly onResetFilter: () => void;
+}
+
+function onSubmit(event: SyntheticEvent) {
+  event.preventDefault();
+}
+
+export function List{{pascalCase name}}Filter({ onFilterList{{pascalCase name}}, onResetFilter }: Props) {
+  const [textoFiltro, setTextoFiltro] = useState("");
+
+  useEffect(() => {
+    onFilterList{{pascalCase name}}(textoFiltro);
+  }, [textoFiltro, onFilterList{{pascalCase name}}]);
+
+  function resetFilter(event: SyntheticEvent) {
+    event.preventDefault();
+    setTextoFiltro("");
+    onResetFilter();
+  }
+
+  return (
+    <FilterFormSeplag onSubmit={onSubmit}>
+      <RotuloSeplag nome="{{description}} (Código, Descrição)" cols="12 4">
+        <InputText
+          value={textoFiltro}
+          onChange={(e) => setTextoFiltro(e.target.value)}
+          placeholder="Filtro"
+          style={{ height: '40px' }}
+        />
+      </RotuloSeplag>
+     <FilterActionsSeplag>
+        <BotaoLimparFiltroSeplag
+        label="Limpar Filtro"
+        icon="pi pi-undo"
+        onClick={resetFilter}
+        type="button"
+      />
+      </FilterActionsSeplag>
+    </FilterFormSeplag>
+  );
+}

@@ -1,0 +1,34 @@
+import { apiSlice } from "@features/api";
+import { FetchArgs } from "@reduxjs/toolkit/query";
+import { ResultsSeplag } from "{{libPackageName}}";
+import { {{pascalCase name}}Response } from "@type/{{camelCase name}}/{{pascalCase name}}Response";
+import { {{pascalCase name}}Request } from "@type/{{camelCase name}}/{{pascalCase name}}Request";
+
+function getBusca{{pascalCase name}}(params: {{pascalCase name}}Request): FetchArgs | string {
+  const query = new URLSearchParams();
+
+  query.append("page", params.page ? params.page.toString() : "0");
+  query.append("sizePage", params.rows ? params.rows.toString() : "10");
+  
+  return {
+    url: `/v1/{{endpoint}}/filtro?${query.toString()}`,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    body: JSON.stringify({
+      filtro: params.filtro
+    })
+  }
+}
+
+export const busca{{pascalCase name}} = apiSlice.injectEndpoints({
+  endpoints: ({ query, mutation }) => ({
+    getBusca{{pascalCase name}}: query<ResultsSeplag<{{pascalCase name}}Response>, {{pascalCase name}}Request>({
+      query: getBusca{{pascalCase name}},
+      providesTags: (['{{pascalCase name}}'] as unknown) as any,
+    }),
+  })
+})
+
+export const { useLazyGetBusca{{pascalCase name}}Query } = busca{{pascalCase name}};

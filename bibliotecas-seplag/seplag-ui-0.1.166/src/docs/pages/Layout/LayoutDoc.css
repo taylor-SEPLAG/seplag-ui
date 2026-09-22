@@ -1,0 +1,133 @@
+/* ── Área de conteúdo no playground ────────────────── */
+.layout-playground-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.layout-playground-preview .layout-wrapper,
+.layout-playground-preview .layout-sidebar,
+.layout-playground-preview .layout-main {
+  height: 100%;
+}
+
+/* ── Menu Editor ────────────────────────────────────── */
+.menu-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.menu-editor-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.menu-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.menu-editor-child {
+  padding-left: 0.5rem;
+}
+
+.menu-editor-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #dee2e6;
+  color: #495057;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.menu-editor-child-arrow {
+  color: #adb5bd;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.menu-editor-icon-select {
+  max-width: 110px !important;
+  flex: 0 0 110px !important;
+  font-size: 0.78rem !important;
+}
+
+.menu-editor-label-input {
+  flex: 1 !important;
+  max-width: none !important;
+}
+
+.menu-editor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  border: 1px solid;
+  cursor: pointer;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.menu-editor-btn--add {
+  background: #d1e7dd;
+  border-color: #a3cfbb;
+  color: #0f5132;
+}
+
+.menu-editor-btn--add:hover {
+  background: #a3cfbb;
+}
+
+.menu-editor-btn--remove {
+  background: #f8d7da;
+  border-color: #f5c2c7;
+  color: #842029;
+}
+
+.menu-editor-btn--remove:hover {
+  background: #f5c2c7;
+}
+
+.menu-editor-btn--add-root {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 5px 12px;
+  border-radius: 5px;
+  border: 1px dashed #adb5bd;
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.8rem;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.menu-editor-btn--add-root:hover {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}

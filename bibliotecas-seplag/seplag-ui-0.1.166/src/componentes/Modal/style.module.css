@@ -1,0 +1,61 @@
+.quebrar-texto {
+  word-wrap: break-word !important;
+}
+
+.margin-superior-simples {
+  margin-top: 1vw;
+}
+
+@media screen and (max-width: 40em) {
+  .margin-superior-simples {
+    margin-top: 5vw;
+  }
+
+  :global(.p-component) {
+    width: 100%;
+  }
+
+  .margin-app-entre-button {
+    margin-top: 10px !important;
+  }
+}
+
+.modalSeplag-botoes-footer {
+  text-align: left;
+}
+
+.modalSeplag-botoes-footer-right {
+  text-align: right;
+}
+
+.modalSeplag-footer-divider {
+  border-top: 1px solid var(--surface-border);
+  padding-top: 0.5rem;
+}
+
+.modalSeplag-header-border :global(.p-dialog-header) {
+  position: relative;
+}
+
+.modalSeplag-header-border :global(.p-dialog-header)::after {
+  content: "";
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 0;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+/* Align content with Dialog header by adding horizontal padding */
+.modalSeplag-wrapper {
+  /* Match Dialog header left offset so title and content align */
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+@media screen and (max-width: 40em) {
+  .modalSeplag-wrapper {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

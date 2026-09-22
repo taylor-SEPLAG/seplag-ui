@@ -261,7 +261,7 @@ function QuadrosContratosTemporariosLista() {
           {filtrados.length === 0 && <div className="prototype-temporarios-quadro-list-empty"><p>Nenhum quadro de contrato temporário cadastrado.</p></div>}
         </div>
       </section>
-      {quadroCargos && <CargosQuadroTemporarioModal quadro={quadroCargos} onClose={() => setCargosSelecionado(null)} />}      {detalhe && <div className="prototype-temporarios-detail-backdrop" onMouseDown={() => setSelecionado(null)}><section className="prototype-temporarios-detail" role="dialog" aria-label={`Detalhes ${detalhe.codigo}`} onMouseDown={(e) => e.stopPropagation()}><header><div><span>{detalhe.codigo}</span><h2>{detalhe.certame.nomeEdital}</h2><p>{detalhe.certame.numeroEditalOrgao} · {detalhe.certame.setor}</p></div><button aria-label="Fechar" onClick={() => setSelecionado(null)}><i className="pi pi-times" /></button></header><div className="prototype-temporarios-detail-body"><h3>Cargos e vagas do seletivo</h3>{detalhe.cargos.map((c) => <article key={c.id}><strong>{c.cargoNome}</strong><span>{c.quantidadeVagas} vagas · {c.aceitaCadastroReserva ? "Sem limite quantitativo" : `Limite de ${c.quantidadeVagas}`}</span></article>)}</div></section></div>}
+      {quadroCargos && <CargosQuadroTemporarioModal quadro={quadroCargos} onClose={() => setCargosSelecionado(null)} />}      {detalhe && <QuadroTemporarioDetalheModal quadro={detalhe} onClose={() => setSelecionado(null)} />}
     </div>
   );
 }
@@ -269,10 +269,46 @@ function CargosQuadroTemporarioModal({ quadro, onClose }: { quadro: QuadroTempor
   return <ModalSeplag visible titulo={`Cargos do quadro ${quadro.codigo}`} ariaLabel={`Cargos do quadro ${quadro.codigo}`} tamanho="min(880px, 94vw)" fechar={onClose} customFooter={<BotaoVoltarSeplag type="button" label="Fechar" icon="pi pi-times" onClick={onClose} />}>
     <div className="prototype-temporarios-quadro-cargos-modal">
       <p>{quadro.certame.nomeEdital} · {quadro.cargos.length} cargo(s) vinculado(s).</p>
-      <table><thead><tr><th>Cargo</th><th>Vagas previstas</th><th>Cadastro reserva</th><th>Controle de vagas</th></tr></thead><tbody>{quadro.cargos.map((cargo) => <tr key={cargo.id}><td><strong>{cargo.cargoNome}</strong><small>{cargo.orgaoDestino || "Órgão de destino não informado"}</small></td><td>{cargo.quantidadeVagas}</td><td>{cargo.aceitaCadastroReserva ? "Sim" : "Não"}</td><td>{cargo.aceitaCadastroReserva ? "Sem limite quantitativo" : `Limitado a ${cargo.quantidadeVagas} vagas`}</td></tr>)}</tbody></table>
+      <table><thead><tr><th>Cargo</th><th>Vagas previstas</th><th>Cadastro reserva</th><th>Controle de vagas</th></tr></thead><tbody>{quadro.cargos.map((cargo) => <tr key={cargo.id}><td><strong>{cargo.cargoNome}</strong><small>{cargo.orgaoDestino || "Órgão de destino não informado"}</small></td><td>{cargo.quantidadeVagas}</td><td>{cargo.aceitaCadastroReserva ? "Sim" : "Não"}</td><td>{cargo.aceitaCadastroReserva ? "Pode exceder a previsão via CR" : `Limitado a ${cargo.quantidadeVagas} vagas`}</td></tr>)}</tbody></table>
     </div>
   </ModalSeplag>;
 }
+
+function QuadroTemporarioDetalheModal({
+  quadro,
+  onClose,
+}: {
+  quadro: QuadroTemporarioCadastro;
+  onClose: () => void;
+}) {
+  const vagasPrevistas = quadro.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0);
+  const possuiCadastroReserva = quadro.cargos.some((cargo) => cargo.aceitaCadastroReserva);
+
+  return (
+    <div className="prototype-temporarios-detail-backdrop" onMouseDown={onClose}>
+      <section className="prototype-temporarios-detail" role="dialog" aria-modal="true" aria-label={'Detalhes ' + quadro.codigo} onMouseDown={(event) => event.stopPropagation()}>
+        <header>
+          <div>
+            <div className="prototype-temporarios-detail-topline"><span>{quadro.codigo}</span><SituacaoTemporarioBadge situacao={quadro.situacao} /></div>
+            <h2>{quadro.certame.nomeEdital}</h2>
+            <p>Órgão responsável: {quadro.certame.setor} · Vigência: {quadro.dataAtivacao ?? "Não informada"}</p>
+          </div>
+          <button type="button" className="prototype-temporarios-detail-close" aria-label="Fechar" onClick={onClose}><i className="pi pi-times" /></button>
+        </header>
+        <div className="prototype-temporarios-detail-summary">
+          <article><span>Cargos</span><strong>{quadro.cargos.length}</strong></article>
+          <article><span>Vagas previstas</span><strong>{vagasPrevistas}{possuiCadastroReserva ? " + CR" : ""}</strong></article>
+          <article><span>Vagas reais</span><strong>{quadro.vagasReais}</strong></article>
+        </div>
+        <div className="prototype-temporarios-detail-body">
+          <h3>Cargos e vagas do seletivo</h3>
+          {quadro.cargos.map((cargo) => <article key={cargo.id}><strong>{cargo.cargoNome}</strong><span>{cargo.quantidadeVagas} vagas{cargo.aceitaCadastroReserva ? " + CR" : " · Limite de " + cargo.quantidadeVagas}</span>{cargo.aceitaCadastroReserva && <small>Novas vagas reais podem surgir conforme os ingressos.</small>}</article>)}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function SituacaoTemporarioBadge({ situacao }: { situacao: "ATIVO" | "EXTINTO" | "ENCERRADO" }) {
   const meta = situacao === "EXTINTO"
     ? { label: "Extinto", color: "#b42318", bg: "#fee4e2" }
@@ -2549,3 +2585,5 @@ function QuadroAutorizadoDetalhe({
     </div>
   );
 }
+
+

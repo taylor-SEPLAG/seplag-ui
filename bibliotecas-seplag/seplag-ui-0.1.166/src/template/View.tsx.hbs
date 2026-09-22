@@ -1,0 +1,10 @@
+import { {{pascalCase name}}Container } from "./components/{{pascalCase name}}Container";
+
+export function View{{pascalCase name}}() {
+  return (
+    <{{pascalCase name}}Container 
+      title="Visualizar - {{description}}"
+      isView={true}
+    />
+  );
+}

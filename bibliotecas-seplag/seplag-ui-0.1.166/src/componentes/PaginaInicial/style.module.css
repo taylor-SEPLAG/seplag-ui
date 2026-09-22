@@ -1,0 +1,28 @@
+.page {
+  min-height: calc(100vh - 96px);
+  background: #f3f6fa;
+  color: #16324f;
+  font-family: inherit;
+}
+
+.homeGrid {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.52fr) minmax(420px, 1fr);
+  gap: 24px;
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+.configGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1180px) {
+  .homeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+

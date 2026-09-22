@@ -1,0 +1,71 @@
+/*
+ * Layout da TabelaEditavelSeplag. Usa as variáveis de tema do PrimeReact em vez de literais,
+ * como o ListaSimplesSeplag — assim a tabela acompanha o tema sem depender de tokens/.
+ */
+
+/* Contêiner de rolagem: tabela larga rola sozinha em vez de estourar o painel. */
+.wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  /*
+   * `auto`, não `fixed`. Com `fixed`, quando a soma dos `width` declarados passa da largura
+   * disponível, as colunas SEM `width` são espremidas até ~zero e o conteúdo colide. Com `auto`
+   * o `width` continua sendo respeitado como preferência forte, nenhuma coluna colapsa, e o
+   * excedente vira rolagem horizontal no `.wrapper`.
+   */
+  table-layout: auto;
+}
+
+.cabecalho {
+  background: var(--surface-50, #fafafa);
+}
+
+.th {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-color-secondary, #6b7280);
+  border-bottom: 1px solid var(--surface-border, #e5e7eb);
+  white-space: nowrap;
+}
+
+.td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--surface-border, #e5e7eb);
+}
+
+/* Última linha sem borda: o contorno do painel já fecha a tabela. */
+.tabela tbody tr:last-child .td {
+  border-bottom: none;
+}
+
+.rodape .td {
+  border-top: 1px solid var(--surface-border, #e5e7eb);
+  border-bottom: none;
+  font-weight: 600;
+}
+
+.vazio {
+  padding: 1rem 0.75rem;
+  text-align: center;
+  color: var(--text-color-secondary, #6b7280);
+  border-bottom: none;
+}
+
+.left {
+  text-align: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.right {
+  text-align: right;
+}

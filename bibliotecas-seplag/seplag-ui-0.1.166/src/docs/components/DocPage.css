@@ -1,0 +1,428 @@
+.doc-page {
+  color: #212529;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.doc-page-header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.doc-page-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.doc-page-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #cfe2ff;
+  color: #084298;
+  border: 1px solid #9ec5fe;
+}
+
+.doc-page-since {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.doc-page-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1.15;
+  color: #212529;
+  margin-bottom: 0.75rem;
+}
+
+.doc-page-description {
+  font-size: 1rem;
+  color: #6c757d;
+  line-height: 1.7;
+  max-width: 680px;
+  margin: 0;
+}
+
+/* ── Section ─────────────────────────────────────────────── */
+.doc-section {
+  margin-bottom: 3rem;
+}
+
+.doc-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.5px;
+}
+
+.doc-section-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+/* ── Preview ─────────────────────────────────────────────────── */
+.doc-preview {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 80px;
+}
+
+/* ── Code Block ───────────────────────────────────────────── */
+.doc-code-block {
+  position: relative;
+  background: #1e1e2e;
+  border: 1px solid #dee2e6;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.doc-code-block pre {
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  color: #cdd6f4;
+}
+
+.doc-code-copy-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cdd6f4;
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.doc-code-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* standalone code block (no preview above it) */
+.doc-code-block.standalone {
+  border-radius: 8px;
+  border-top: 1px solid #dee2e6;
+}
+
+/* ── Props Table ──────────────────────────────────────────── */
+.doc-props-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+}
+
+.doc-props-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.doc-props-table th {
+  background: #f8f9fa;
+  color: #6c757d;
+  text-align: left;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.doc-props-table td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid #f1f3f5;
+  color: #212529;
+  vertical-align: top;
+}
+
+.doc-props-table tr:last-child td {
+  border-bottom: none;
+}
+
+.doc-props-table tr:hover td {
+  background: #f8f9fa;
+}
+
+.doc-prop-name {
+  font-family: "Cascadia Code", "Fira Code", monospace;
+  color: #0d6efd;
+  font-size: 0.82rem;
+}
+
+.doc-prop-type {
+  font-family: "Cascadia Code", "Fira Code", monospace;
+  color: #6f42c1;
+  font-size: 0.82rem;
+}
+
+.doc-prop-default {
+  font-family: "Cascadia Code", "Fira Code", monospace;
+  color: #6c757d;
+  font-size: 0.82rem;
+}
+
+.doc-prop-required {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
+}
+
+.doc-prop-optional {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #e9ecef;
+  color: #495057;
+  border: 1px solid #ced4da;
+}
+
+/* Deprecated badge styling */
+.doc-prop-deprecated {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #fff3cd; /* light warning */
+  color: #664d03; /* dark amber */
+  border: 1px solid #ffecb5;
+  font-weight: 700;
+}
+
+.doc-prop-deprecation-message {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #664d03;
+  background: #fff8e1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #fff3cd;
+}
+
+/* ── Playground ──────────────────────────────────────────── */
+.botao-playground {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.875rem;
+}
+
+.botao-playground-preview {
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.botao-playground-controls {
+  background: #ffffff;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pg-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.pg-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: "Cascadia Code", "Fira Code", monospace;
+  color: #6f42c1;
+  min-width: 90px;
+  padding-top: 5px;
+  flex-shrink: 0;
+}
+
+.pg-input,
+.pg-select {
+  flex: 1;
+  max-width: 280px;
+  padding: 4px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  color: #212529;
+  background: #fff;
+  outline: none;
+  height: 30px;
+}
+
+.pg-input:focus,
+.pg-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+}
+
+.pg-radio-group,
+.pg-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pg-radio-btn,
+.pg-checkbox-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 3px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: #495057;
+  background: #fff;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
+  user-select: none;
+}
+
+.pg-radio-btn input,
+.pg-checkbox-btn input {
+  display: none;
+}
+
+.pg-radio-btn:hover,
+.pg-checkbox-btn:hover {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.pg-radio-btn.selected,
+.pg-checkbox-btn.selected {
+  background: #e7f1ff;
+  border-color: #0d6efd;
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+.botao-playground-code {
+  background: #1e1e2e;
+  padding: 1rem 1.5rem;
+}
+
+.botao-playground-code pre {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  color: #cdd6f4;
+  overflow-x: auto;
+}
+
+/* ── PlaygroundCode toggle ───────────────────────────────── */
+.pg-code-wrapper {
+  border-top: 1px solid #dee2e6;
+}
+
+.pg-code-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.55rem 1.25rem;
+  background: #f1f3f5;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #495057;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.pg-code-toggle:hover {
+  background: #e2e6ea;
+  color: #212529;
+}
+
+.pg-code-body {
+  margin: 0;
+  padding: 1rem 1.5rem;
+  background: #1e1e2e;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  color: #cdd6f4;
+  overflow-x: auto;
+}
+
+/* ── Import block ────────────────────────────────────────── */
+.doc-import-block {
+  margin-top: 1.25rem;
+  background: #1e1e2e;
+  border-radius: 8px;
+  overflow: hidden;
+  display: inline-block;
+  min-width: 300px;
+  max-width: 100%;
+}
+
+.doc-import-label {
+  display: block;
+  padding: 0.3rem 1rem;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: rgba(205, 214, 244, 0.55);
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+}
+
+.doc-import-block pre {
+  margin: 0;
+  padding: 0.6rem 1rem 0.9rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  color: #cdd6f4;
+  overflow-x: auto;
+}

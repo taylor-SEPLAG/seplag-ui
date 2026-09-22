@@ -1,0 +1,26 @@
+.seplag-calendar-panel {
+  width: 280px !important;
+  min-width: 280px !important;
+  font-size: 0.8rem !important;
+  visibility: hidden;
+}
+
+.seplag-calendar-panel.seplag-calendar-panel-ready {
+  visibility: visible;
+}
+
+.seplag-calendar-panel .p-datepicker-header {
+  padding: 0.25rem 0.5rem;
+}
+
+.seplag-calendar-panel table th,
+.seplag-calendar-panel table td {
+  padding: 0.15rem;
+}
+
+.seplag-calendar-panel table td > span,
+.seplag-calendar-panel table th > span {
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
+}

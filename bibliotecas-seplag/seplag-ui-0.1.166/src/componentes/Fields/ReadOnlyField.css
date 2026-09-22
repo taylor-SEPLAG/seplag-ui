@@ -1,0 +1,25 @@
+/*
+ * Aparência compartilhada dos campos em modo somente-leitura (`readOnly`).
+ *
+ * Reproduz o fundo esmaecido do estado `disabled` do PrimeReact, mas sem as consequências
+ * dele: o campo continua focável pelo teclado, é anunciado por leitores de tela e permanece
+ * no estado do formulário. Usado por NumberFieldSeplag e DropdownFieldSeplag.
+ */
+
+.p-inputnumber.seplag-field-readonly .p-inputnumber-input,
+.p-dropdown.seplag-field-readonly {
+  background: var(--surface-200, #e9ecef);
+  cursor: default;
+}
+
+.p-dropdown.seplag-field-readonly .p-dropdown-label {
+  cursor: default;
+}
+
+/*
+ * `visibility` em vez de `display: none` para o painel não abrir sem que a seta some do
+ * fluxo — assim a largura do rótulo não muda entre o modo editável e o somente-leitura.
+ */
+.p-dropdown.seplag-field-readonly .p-dropdown-trigger {
+  visibility: hidden;
+}

@@ -1,0 +1,57 @@
+import { {{pascalCase name}}Response } from "@type/{{camelCase name}}/{{pascalCase name}}Response";
+import { ResultsSeplag, ColumnMetaSeplag, TablePaginadoSeplag } from "{{libPackageName}}";
+import { DataTableStateEvent } from "primereact/datatable";
+
+type Props = Readonly<{
+  data: ResultsSeplag<{{pascalCase name}}Response> | undefined;
+  rows: number;
+  rowsPerPage: number[];
+  isFetching: boolean;
+
+  handleOnPageChange: (page: DataTableStateEvent) => void;
+  handleDelete?: ((arg: {{pascalCase name}}Response) => void) | null;
+  handleEdit?: ((arg: {{pascalCase name}}Response) => void) | null;
+  handleDuplicar?: ((arg: {{pascalCase name}}Response) => void) | null;
+  handleView?: ((arg: {{pascalCase name}}Response) => void) | null;
+  handleAdicionar?: (() => void) | null;
+}>;
+
+export function List{{pascalCase name}}Table({
+  data,
+  rows,
+  rowsPerPage,
+  isFetching,
+  handleOnPageChange,
+  handleDelete,
+  handleEdit,
+  handleDuplicar,
+  handleView,
+  handleAdicionar
+}: Props) {
+
+  const columns: ColumnMetaSeplag<{{pascalCase name}}Response>[] = [
+    { header: "Código", field: "id", },
+    { header: "Descrição", field: "descricao", },
+    { header: "Data Início", field: "dataInicio", },
+    { header: "Data Fim", field: "dataFim", },
+    { header: "Observação", field: "observacao", },
+  ];
+  
+  return (
+    <div className="col-12">
+      <TablePaginadoSeplag
+        data={data}
+        columns={columns}
+        isFetching={isFetching}
+        handleDelete={handleDelete}
+        handleEdit={handleEdit}
+        handleDuplicar={handleDuplicar}
+        handleView={handleView}
+        handleOnPageChange={handleOnPageChange}
+        rows={rows}
+        rowsPerPage={rowsPerPage}
+        handleAdicionar={handleAdicionar}
+        hasEventoAcao
+      />
+    </div>);
+}

@@ -1,0 +1,11 @@
+import { {{pascalCase name}}Container } from "./components/{{pascalCase name}}Container";
+
+export function Create{{pascalCase name}}() {
+  return (
+    <{{pascalCase name}}Container
+      title="Cadastrar - {{description}}"
+      isEdit={false}
+      isView={false}
+    />
+  );
+}
