@@ -40,7 +40,7 @@ export const comissoesMock:Comissao[] = [
   orgao:"SEPLAG", vinculoResponsavelId:undefined, status:"RASCUNHO",
   membros:[],
   historicoMembros:[],
-  criadoEm:"10/09/2026", atualizadoEm:"10/09/2026",
+  criadoEm:"15/07/2026", atualizadoEm:"15/07/2026",
  },
  {
   id:"COM-2490", numero:"2490", tipo:"CONCURSO", certameId:"CERT-2024-001",
@@ -57,25 +57,32 @@ export const comissoesMock:Comissao[] = [
  {
   id:"COM-2504", numero:"2504", tipo:"PROCESSO_SELETIVO", certameId:"CERT-2026-004",
   nome:"Comissão de PSS — Assistente Social", observacoes:"",
-  previsaoInicio:"10/08/2026", inicio:"10/08/2026", previsaoTermino:"10/02/2027", termino:undefined,
+  // Início ainda está no futuro em relação a hoje (CONTROLE_PSS_DATA_REFERENCIA, ver constants.ts):
+  // esta comissão foi finalizada antes de a vigência começar, então virou Em andamento pela regra de
+  // "Finalizar cadastro" (aplicarStatusFinalizacao em ComissaoFormContent), não pela vigência —
+  // exemplo desse caminho específico. Ajuste o Início para depois de "hoje" se a data de referência
+  // do módulo avançar de novo, senão deixa de demonstrar esse caso (vira Em andamento pela vigência
+  // normal de qualquer forma, mas sem exercitar a regra de finalização antecipada).
+  previsaoInicio:"10/10/2026", inicio:"10/10/2026", previsaoTermino:"10/04/2027", termino:undefined,
   orgao:"SEPLAG", vinculoResponsavelId:"SRV-0001", status:"EM_ANDAMENTO",
   membros:[
-   { id:"MBR-5", servidorId:"SRV-0001", nome:"Ana Paula Ferreira Lima", matricula:"123456-1", lotacao:"SEPLAG — Gestão de Pessoas", cargo:"PRESIDENTE", inicio:"10/08/2026", fim:undefined,
-    atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/08/2026", localPublicacao:"DOE", arquivo:{ id:"ARQ-1", nome:"portaria_078_2026_seplag.pdf", extensao:"pdf", contentType:"application/pdf", conteudoEmBase64:"", tamanho:184320 } } },
-   { id:"MBR-6", servidorId:"SRV-0002", nome:"Bruno Henrique Costa Silva", matricula:"234567-2", lotacao:"SEPLAG — Planejamento", cargo:"SECRETARIO", inicio:"10/08/2026", fim:undefined,
-    atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/08/2026", localPublicacao:"DOE" } },
-   { id:"MBR-7", servidorId:"SRV-0005", nome:"Elaine Cristina Barbosa", matricula:"567890-5", lotacao:"SES — Vigilância Sanitária", cargo:"SUPLENTE", inicio:"10/08/2026", fim:undefined,
-    atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/08/2026", localPublicacao:"DOE" } },
+   { id:"MBR-5", servidorId:"SRV-0001", nome:"Ana Paula Ferreira Lima", matricula:"123456-1", lotacao:"SEPLAG — Gestão de Pessoas", cargo:"PRESIDENTE", inicio:"10/10/2026", fim:undefined,
+    atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/09/2026", localPublicacao:"DOE", arquivo:{ id:"ARQ-1", nome:"portaria_078_2026_seplag.pdf", extensao:"pdf", contentType:"application/pdf", conteudoEmBase64:"", tamanho:184320 } } },
+   { id:"MBR-6", servidorId:"SRV-0002", nome:"Bruno Henrique Costa Silva", matricula:"234567-2", lotacao:"SEPLAG — Planejamento", cargo:"SECRETARIO", inicio:"10/10/2026", fim:undefined,
+    atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/09/2026", localPublicacao:"DOE" } },
+   { id:"MBR-7", servidorId:"SRV-0005", nome:"Elaine Cristina Barbosa", matricula:"567890-5", lotacao:"SES — Vigilância Sanitária", cargo:"SUPLENTE", inicio:"10/10/2026", fim:undefined,
+    atoNomeacao:{ tipoAto:"PORTARIA", numeroAto:"078/2026/SEPLAG", dataPublicacao:"07/09/2026", localPublicacao:"DOE" } },
   ],
   historicoMembros:[
-   { id:"HIST-5", membroId:"MBR-5", membroNome:"Ana Paula Ferreira Lima", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Presidente.", registradoEm:"01/08/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
-   { id:"HIST-6", membroId:"MBR-6", membroNome:"Bruno Henrique Costa Silva", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Secretário.", registradoEm:"01/08/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
-   { id:"HIST-7", tipo:"DOCUMENTO_COMISSAO_ALTERADO", descricao:"Documento da comissão anexado (portaria_078_2026_seplag.pdf).", registradoEm:"01/08/2026 09:05", usuario:"Roberto Junior — SUGP/SEPLAG" },
-   { id:"HIST-8", membroId:"MBR-7", membroNome:"Elaine Cristina Barbosa", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Suplente.", registradoEm:"10/08/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
-   { id:"HIST-9", membroId:"MBR-5", membroNome:"Ana Paula Ferreira Lima", tipo:"ARQUIVO_ATO_ALTERADO", descricao:"Arquivo do ato de nomeação anexado (portaria_078_2026_seplag.pdf).", registradoEm:"10/08/2026 09:10", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-5", membroId:"MBR-5", membroNome:"Ana Paula Ferreira Lima", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Presidente.", registradoEm:"10/09/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-6", membroId:"MBR-6", membroNome:"Bruno Henrique Costa Silva", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Secretário.", registradoEm:"10/09/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-7", tipo:"DOCUMENTO_COMISSAO_ALTERADO", descricao:"Documento da comissão anexado (portaria_078_2026_seplag.pdf).", registradoEm:"10/09/2026 09:05", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-8", membroId:"MBR-7", membroNome:"Elaine Cristina Barbosa", tipo:"MEMBRO_ADICIONADO", descricao:"Incluído na comissão como Suplente.", registradoEm:"15/09/2026 09:00", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-9", membroId:"MBR-5", membroNome:"Ana Paula Ferreira Lima", tipo:"ARQUIVO_ATO_ALTERADO", descricao:"Arquivo do ato de nomeação anexado (portaria_078_2026_seplag.pdf).", registradoEm:"22/09/2026 09:10", usuario:"Roberto Junior — SUGP/SEPLAG" },
+   { id:"HIST-14", tipo:"STATUS_ALTERADO", descricao:"Status alterado de Rascunho para Em andamento.", registradoEm:"22/09/2026 09:15", usuario:"Roberto Junior — SUGP/SEPLAG" },
   ],
   arquivo:{ id:"ARQ-2", nome:"portaria_078_2026_seplag.pdf", extensao:"pdf", contentType:"application/pdf", conteudoEmBase64:"", tamanho:184320 },
-  criadoEm:"01/08/2026", atualizadoEm:"10/08/2026",
+  criadoEm:"10/09/2026", atualizadoEm:"22/09/2026",
  },
  {
   id:"COM-2505", numero:"2505", tipo:"CONCURSO", certameId:"CERT-2026-005",
@@ -84,7 +91,7 @@ export const comissoesMock:Comissao[] = [
   orgao:"SEFAZ", vinculoResponsavelId:undefined, status:"RASCUNHO",
   membros:[],
   historicoMembros:[],
-  criadoEm:"12/09/2026", atualizadoEm:"12/09/2026",
+  criadoEm:"18/07/2026", atualizadoEm:"18/07/2026",
  },
  {
   id:"COM-2470", numero:"2470", tipo:"PROCESSO_SELETIVO", certameId:"CERT-2025-014",
@@ -112,6 +119,6 @@ export const comissoesMock:Comissao[] = [
   orgao:"SEJUS", vinculoResponsavelId:undefined, status:"RASCUNHO",
   membros:[],
   historicoMembros:[],
-  criadoEm:"14/09/2026", atualizadoEm:"14/09/2026",
+  criadoEm:"22/07/2026", atualizadoEm:"22/07/2026",
  },
 ];

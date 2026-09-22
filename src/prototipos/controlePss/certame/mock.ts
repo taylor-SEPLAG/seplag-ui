@@ -16,7 +16,7 @@ export const certamesMock: Certame[] = [
   abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG",
   validadeConcursoDias:365, existePrevisaoRecursos:true,
   diasPrazoExercicio:15, diasPrazoPosse:30,
-  houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
+  houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, taxasInscricao:[],
   cotas:[{ id:"COTA-1", tipo:"PCD", lei:["LEI-6752-1995"] }],
   // Exemplo de certame com múltiplos cargos/vagas — 3 cargos, somando 47 vagas no total.
   cargos:[
@@ -61,7 +61,7 @@ export const certamesMock: Certame[] = [
   houveContratacaoBanca:true, numeroEmpenho:"2026NE000123", anoEmpenho:2026,
   tipoContrato:"BANCA_ORGANIZADORA", numeroContrato:"014/2026", anoContrato:2026,
   codigoUo:"18101", codigoUg:"180101", numeroAditivo:"001/2026", anoAditivo:2026,
-  gerouDespesas:true, cobraTaxaInscricao:true, valorInscricao:120,
+  gerouDespesas:true, cobraTaxaInscricao:true, valorInscricao:120, taxasInscricao:[],
   cotas:[
    { id:"COTA-2", tipo:"PCD", lei:["LEI-6752-1995"] },
    { id:"COTA-3", tipo:"INDIGENAS", lei:["LC-600-2017"] },
@@ -105,7 +105,7 @@ export const certamesMock: Certame[] = [
   dataPublicacaoEdital:"02/09/2025", dataRealizacao:"05/10/2025", dataValidade:"02/09/2026",
   abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG",
   validadeConcursoDias:365, existePrevisaoRecursos:false,
-  houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
+  houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, taxasInscricao:[],
   cotas:[], cargos:[{ id:"CGV-3", vinculo:"NOVO", cargoNome:"Enfermeiro", codigoReferenciaTce:"001", quantidadeVagas:12, reservasCota:[], aceitaCadastroReserva:false, quadroCodigo:"QA-0009", quadroVersao:1 }],
   fases:[...FASES_TCE_FIXAS],
   documentos:[
@@ -140,7 +140,7 @@ export const certamesMock: Certame[] = [
   inicioInscricoesGerais:"12/03/2026", fimInscricoesGerais:"28/03/2026", dataCancelamento:"15/05/2026",
   abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG",
   validadeConcursoDias:365, existePrevisaoRecursos:false,
-  houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
+  houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, taxasInscricao:[],
   cotas:[{ id:"COTA-4", tipo:"PPP", lei:["LC-600-2017"] }],
   cargos:[{ id:"CGV-4", vinculo:"NOVO", cargoNome:"Técnico Administrativo", codigoReferenciaTce:"001", quantidadeVagas:10, reservasCota:[], aceitaCadastroReserva:false }],
   fases:[...FASES_TCE_FIXAS],
@@ -176,7 +176,7 @@ export const certamesMock: Certame[] = [
   inicioInscricoesGerais:"05/07/2026", fimInscricoesGerais:"20/08/2026",
   abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG",
   validadeConcursoDias:365, existePrevisaoRecursos:true,
-  houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false,
+  houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, taxasInscricao:[],
   cotas:[
    { id:"COTA-5", tipo:"PCD", lei:["LEI-6752-1995"] },
    { id:"COTA-6", tipo:"INDIGENAS", lei:["LC-600-2017"] },
@@ -217,7 +217,7 @@ export const certamesMock: Certame[] = [
   houveContratacaoBanca:true, numeroEmpenho:"2026NE000456", anoEmpenho:2026,
   tipoContrato:"BANCA_ORGANIZADORA", numeroContrato:"022/2026", anoContrato:2026,
   codigoUo:"25101", codigoUg:"250101", numeroAditivo:"002/2026", anoAditivo:2026,
-  gerouDespesas:true, cobraTaxaInscricao:true, valorInscricao:95,
+  gerouDespesas:true, cobraTaxaInscricao:true, valorInscricao:95, taxasInscricao:[],
   cotas:[{ id:"COTA-7", tipo:"PCD", lei:["LEI-6752-1995"] }],
   cargos:[{ id:"CGV-6", vinculo:"NOVO", cargoNome:"Fiscal de Rendas", codigoReferenciaTce:"001", quantidadeVagas:8, reservasCota:[{ id:"RSV-5", tipo:"PCD", quantidade:1 }], aceitaCadastroReserva:false }],
   fases:[...FASES_TCE_FIXAS],
@@ -243,7 +243,7 @@ export const certamesMock: Certame[] = [
   criadoEm:"02/01/2026", atualizadoEm:"20/07/2026", responsavel:"SUGP/SEPLAG",
  },
  {
-  id:"CERT-2026-006", tipoCertame:"PSS", tipoConcursoAplic:"4", leiProcessoSeletivoSimplificado:["LC-600-2017"], regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO", setor:"SES", setoresParticipantes:[], objetivo:"Contratação temporária multiprofissional para as unidades estaduais de urgência e emergência.", numeroConcurso:"00000000006", anoConcurso:2026, nomeEdital:"PSS 006/2026/SES — Rede de Urgência", numeroEditalOrgao:"006/2026/SES", dataPublicacaoEdital:"12/08/2026", dataRealizacao:"20/09/2026", dataValidade:"12/08/2027", inicioInscricoesGerais:"15/08/2026", fimInscricoesGerais:"31/08/2026", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG", validadeConcursoDias:365, existePrevisaoRecursos:true, houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, cotas:[{ id:"COTA-8", tipo:"PCD", lei:["LEI-6752-1995"] }],
+  id:"CERT-2026-006", tipoCertame:"PSS", tipoConcursoAplic:"4", leiProcessoSeletivoSimplificado:["LC-600-2017"], regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO", setor:"SES", setoresParticipantes:[], objetivo:"Contratação temporária multiprofissional para as unidades estaduais de urgência e emergência.", numeroConcurso:"00000000006", anoConcurso:2026, nomeEdital:"PSS 006/2026/SES — Rede de Urgência", numeroEditalOrgao:"006/2026/SES", dataPublicacaoEdital:"12/08/2026", dataRealizacao:"20/09/2026", dataValidade:"12/08/2027", inicioInscricoesGerais:"15/08/2026", fimInscricoesGerais:"31/08/2026", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG", validadeConcursoDias:365, existePrevisaoRecursos:true, houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, taxasInscricao:[], cotas:[{ id:"COTA-8", tipo:"PCD", lei:["LEI-6752-1995"] }],
   cargos:[
    { id:"CGV-10", vinculo:"NOVO", cargoNome:"Enfermeiro", cidades:["CUIABA","RONDONOPOLIS"], jornada:"40H", codigoReferenciaTce:"001", quantidadeVagas:24, reservasCota:[{ id:"RSV-8", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:20 },
    { id:"CGV-11", vinculo:"NOVO", cargoNome:"Técnico de Enfermagem", cidades:["CUIABA","SINOP"], jornada:"40H", codigoReferenciaTce:"001", quantidadeVagas:36, reservasCota:[{ id:"RSV-9", tipo:"PCD", quantidade:3 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:30 },
@@ -251,7 +251,7 @@ export const certamesMock: Certame[] = [
   ], fases:[...FASES_TCE_FIXAS], documentos:[], situacaoAtual:"ABERTO", historicoSituacoes:[{ id:"SIT-11", certameId:"CERT-2026-006", tipo:"ABERTO", dataEfeito:"12/08/2026", registradoEm:"12/08/2026 09:00", usuario:"SES", prazoPrestacaoContas:"14/08/2026" }], criadoEm:"05/08/2026", atualizadoEm:"12/08/2026", responsavel:"SES",
  },
  {
-  id:"CERT-2026-007", tipoCertame:"PSS", tipoConcursoAplic:"4", leiProcessoSeletivoSimplificado:["LC-600-2017"], regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO", setor:"SEMA", setoresParticipantes:[], objetivo:"Contratação temporária para reforço das equipes de licenciamento e fiscalização ambiental.", numeroConcurso:"00000000007", anoConcurso:2026, nomeEdital:"PSS 007/2026/SEMA — Fiscalização Ambiental", numeroEditalOrgao:"007/2026/SEMA", dataPublicacaoEdital:"18/08/2026", dataRealizacao:"25/09/2026", dataValidade:"18/08/2027", inicioInscricoesGerais:"20/08/2026", fimInscricoesGerais:"06/09/2026", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG", validadeConcursoDias:365, existePrevisaoRecursos:true, houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, cotas:[],
+  id:"CERT-2026-007", tipoCertame:"PSS", tipoConcursoAplic:"4", leiProcessoSeletivoSimplificado:["LC-600-2017"], regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO", setor:"SEMA", setoresParticipantes:[], objetivo:"Contratação temporária para reforço das equipes de licenciamento e fiscalização ambiental.", numeroConcurso:"00000000007", anoConcurso:2026, nomeEdital:"PSS 007/2026/SEMA — Fiscalização Ambiental", numeroEditalOrgao:"007/2026/SEMA", dataPublicacaoEdital:"18/08/2026", dataRealizacao:"25/09/2026", dataValidade:"18/08/2027", inicioInscricoesGerais:"20/08/2026", fimInscricoesGerais:"06/09/2026", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG", validadeConcursoDias:365, existePrevisaoRecursos:true, houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, taxasInscricao:[], cotas:[],
   cargos:[
    { id:"CGV-13", vinculo:"NOVO", cargoNome:"Analista Ambiental", cidades:["CUIABA","BARRA-DO-GARCAS"], jornada:"40H", codigoReferenciaTce:"001", quantidadeVagas:18, reservasCota:[], aceitaCadastroReserva:true, quantidadeCadastroReserva:18 },
    { id:"CGV-14", vinculo:"NOVO", cargoNome:"Técnico Ambiental", cidades:["CUIABA","SINOP"], jornada:"40H", codigoReferenciaTce:"001", quantidadeVagas:22, reservasCota:[], aceitaCadastroReserva:true, quantidadeCadastroReserva:15 },
@@ -259,12 +259,12 @@ export const certamesMock: Certame[] = [
   ], fases:[...FASES_TCE_FIXAS], documentos:[], situacaoAtual:"ABERTO", historicoSituacoes:[{ id:"SIT-12", certameId:"CERT-2026-007", tipo:"ABERTO", dataEfeito:"18/08/2026", registradoEm:"18/08/2026 10:10", usuario:"SEMA", prazoPrestacaoContas:"20/08/2026" }], criadoEm:"11/08/2026", atualizadoEm:"18/08/2026", responsavel:"SEMA",
  },
  {
-  id:"CERT-2026-008", tipoCertame:"PSS", tipoConcursoAplic:"4", leiProcessoSeletivoSimplificado:["LC-600-2017"], regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO", setor:"SETASC", setoresParticipantes:[], objetivo:"Contratação temporária de equipe técnica para a rede estadual de proteção social.", numeroConcurso:"00000000008", anoConcurso:2026, nomeEdital:"PSS 008/2026/SETASC — Proteção Social", numeroEditalOrgao:"008/2026/SETASC", dataPublicacaoEdital:"25/08/2026", dataRealizacao:"04/10/2026", dataValidade:"25/08/2027", inicioInscricoesGerais:"28/08/2026", fimInscricoesGerais:"14/09/2026", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG", validadeConcursoDias:365, existePrevisaoRecursos:false, houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, cotas:[{ id:"COTA-9", tipo:"PPP", lei:["LC-600-2017"] }],
+  id:"CERT-2026-008", tipoCertame:"PSS", tipoConcursoAplic:"4", leiProcessoSeletivoSimplificado:["LC-600-2017"], regimeJuridico:"REGIME_ESPECIAL", tipoVinculo:"CONTRATO_TEMPORARIO", setor:"SETASC", setoresParticipantes:[], objetivo:"Contratação temporária de equipe técnica para a rede estadual de proteção social.", numeroConcurso:"00000000008", anoConcurso:2026, nomeEdital:"PSS 008/2026/SETASC — Proteção Social", numeroEditalOrgao:"008/2026/SETASC", dataPublicacaoEdital:"25/08/2026", dataRealizacao:"04/10/2026", dataValidade:"25/08/2027", inicioInscricoesGerais:"28/08/2026", fimInscricoesGerais:"30/09/2026", abrangencia:"ESTADUAL", tipoContratacaoExecucao:"PROPRIA_UG", validadeConcursoDias:365, existePrevisaoRecursos:false, houveContratacaoBanca:false, gerouDespesas:false, cobraTaxaInscricao:false, taxasInscricao:[], cotas:[{ id:"COTA-9", tipo:"PPP", lei:["LC-600-2017"] }],
   cargos:[
    { id:"CGV-16", vinculo:"NOVO", cargoNome:"Assistente Social", cidades:["CUIABA","CACERES"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:16, reservasCota:[{ id:"RSV-10", tipo:"PPP", quantidade:3 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:12 },
    { id:"CGV-17", vinculo:"NOVO", cargoNome:"Psicólogo", cidades:["CUIABA","RONDONOPOLIS"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:14, reservasCota:[{ id:"RSV-11", tipo:"PPP", quantidade:2 }], aceitaCadastroReserva:true, quantidadeCadastroReserva:10 },
    { id:"CGV-18", vinculo:"NOVO", cargoNome:"Pedagogo", cidades:["CUIABA","SINOP"], jornada:"30H", codigoReferenciaTce:"001", quantidadeVagas:12, reservasCota:[], aceitaCadastroReserva:false },
-  ], fases:[...FASES_TCE_FIXAS], documentos:[], situacaoAtual:"ABERTO", historicoSituacoes:[{ id:"SIT-13", certameId:"CERT-2026-008", tipo:"ABERTO", dataEfeito:"25/08/2026", registradoEm:"25/08/2026 08:30", usuario:"SETASC", prazoPrestacaoContas:"27/08/2026" }], criadoEm:"18/08/2026", atualizadoEm:"25/08/2026", responsavel:"SETASC",
+  ], fases:[...FASES_TCE_FIXAS], documentos:[], situacaoAtual:"RETIFICACAO_EDITAL", historicoSituacoes:[{ id:"SIT-13", certameId:"CERT-2026-008", tipo:"ABERTO", dataEfeito:"25/08/2026", registradoEm:"25/08/2026 08:30", usuario:"SETASC", prazoPrestacaoContas:"27/08/2026" }, { id:"SIT-16", certameId:"CERT-2026-008", tipo:"RETIFICACAO_EDITAL", dataEfeito:"20/09/2026", registradoEm:"20/09/2026 09:00", usuario:"SETASC", prazoPrestacaoContas:"22/09/2026" }], criadoEm:"18/08/2026", atualizadoEm:"20/09/2026", responsavel:"SETASC",
  },
  // Certame de 2024 já homologado — referenciado pela comissão COM-2490 (Comissão do Concurso —
  // Fiscal de Rendas (2024)), encerrada.
@@ -283,7 +283,7 @@ export const certamesMock: Certame[] = [
   houveContratacaoBanca:true, numeroEmpenho:"2024NE000098", anoEmpenho:2024,
   tipoContrato:"BANCA_ORGANIZADORA", numeroContrato:"005/2024", anoContrato:2024,
   codigoUo:"25101", codigoUg:"250101",
-  gerouDespesas:true, cobraTaxaInscricao:true, valorInscricao:90,
+  gerouDespesas:true, cobraTaxaInscricao:true, valorInscricao:90, taxasInscricao:[],
   cotas:[{ id:"COTA-10", tipo:"PCD", lei:["LEI-6752-1995"] }],
   cargos:[{ id:"CGV-19", vinculo:"NOVO", cargoNome:"Fiscal de Rendas", codigoReferenciaTce:"001", quantidadeVagas:20, reservasCota:[{ id:"RSV-12", tipo:"PCD", quantidade:2 }], aceitaCadastroReserva:false }],
   fases:[...FASES_TCE_FIXAS],

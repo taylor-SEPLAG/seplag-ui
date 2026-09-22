@@ -13,7 +13,10 @@ import {
  totalVagasPcd,
 } from "./painelSelectors";
 
-const HOJE = new Date(2026, 6, 29); // 29/07/2026 — mesma data de CONTROLE_PSS_DATA_REFERENCIA
+// Cenário fixo, independente de CONTROLE_PSS_DATA_REFERENCIA (constants.ts) — os testes fixam a
+// própria "referência" para não quebrar sempre que a constante do app avançar; os certames/prazos
+// citados nos it() abaixo são só exemplos válidos dentro dessa janela de 29/07/2026, não do "hoje" atual.
+const HOJE = new Date(2026, 6, 29); // 29/07/2026
 
 function certame(id:string) {
  const item = certamesMock.find((c) => c.id === id);

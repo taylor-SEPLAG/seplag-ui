@@ -1,3 +1,5 @@
+import { stringToDateSeplag } from "@uteis/manipulaData";
+import { CONTROLE_PSS_DATA_REFERENCIA } from "../constants";
 import type { CargoMembroComissao, LocalPublicacaoAto, StatusComissao, TipoAtoNomeacao, TipoComissao } from "./types";
 
 export const TIPOS_COMISSAO:{ label:string; value:TipoComissao }[] = [
@@ -9,6 +11,7 @@ export const STATUS_COMISSAO:{ label:string; value:StatusComissao }[] = [
  { label:"Rascunho", value:"RASCUNHO" },
  { label:"Em andamento", value:"EM_ANDAMENTO" },
  { label:"Encerrada", value:"ENCERRADA" },
+ { label:"Cancelada", value:"CANCELADA" },
 ];
 
 export const CARGOS_MEMBRO_COMISSAO:{ label:string; value:CargoMembroComissao }[] = [
@@ -48,6 +51,27 @@ export const SERVIDORES_CADASTRADOS:readonly ServidorCadastrado[] = [
 // restringir o "Vínc. responsável" da comissão aos servidores lotados no órgão escolhido.
 export function orgaoDoServidor(servidor:ServidorCadastrado):string {
  return servidor.lotacao.split(" — ")[0];
+}
+
+// Status automático pela vigência (Início/Término): "quando o sistema verificar a validade da
+// data" — chamado a cada salvamento da comissão (ComissaoFormContent), tanto na criação quanto na
+// edição. Nunca mexe numa comissão Cancelada — esse é um cancelamento manual e antecipado (ação
+// "Cancelar" da listagem, com justificativa, deixa a comissão inativa); só a ação "Reabrir" desfaz.
+// Sem Início definido, o status também não é mexido (fica Rascunho até alguém informar quando a
+// comissão de fato começou). Com Início no futuro (hoje < início), também não mexe — só passa a
+// vigorar quando a data chega; na prática Início é preenchido só quando a comissão já começou, mas
+// a guarda evita marcar como Encerrada algo que ainda nem começou. Dentro do período (hoje >= início
+// e, se houver Término, hoje <= término) vira Em andamento; depois do Término, Encerrada — inclusive
+// voltando de Encerrada para Em andamento sozinha se o Término for removido ou adiado para uma data
+// futura. Isso substitui a necessidade de uma ação manual "Ativar": Rascunho -> Em andamento
+// acontece sozinho assim que a comissão é salva com uma data de Início já vencida.
+export function calcularStatusPorVigencia(inicio:string | undefined, termino:string | undefined, statusAtual:StatusComissao):StatusComissao {
+ if (statusAtual === "CANCELADA" || !inicio) return statusAtual;
+ const hoje = stringToDateSeplag(CONTROLE_PSS_DATA_REFERENCIA);
+ const dataInicio = stringToDateSeplag(inicio);
+ const dataTermino = termino ? stringToDateSeplag(termino) : null;
+ if (!hoje || !dataInicio || hoje < dataInicio) return statusAtual;
+ return dataTermino && hoje > dataTermino ? "ENCERRADA" : "EM_ANDAMENTO";
 }
 
 export function iniciaisNome(nome:string):string {

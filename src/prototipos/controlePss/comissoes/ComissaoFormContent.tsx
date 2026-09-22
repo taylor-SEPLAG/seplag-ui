@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { CONTROLE_PSS_BASE_PATH as BASE, CONTROLE_PSS_DATA_REFERENCIA, CONTROLE_PSS_USUARIO_LOGADO } from "../constants";
 import { comissoesStore, useComissoes } from "./comissoesStore";
-import { CARGOS_MEMBRO_COMISSAO, LOCAIS_PUBLICACAO_ATO, SERVIDORES_CADASTRADOS, STATUS_COMISSAO, TIPOS_ATO_NOMEACAO, TIPOS_COMISSAO, iniciaisNome, orgaoDoServidor } from "./dominios";
+import { CARGOS_MEMBRO_COMISSAO, LOCAIS_PUBLICACAO_ATO, SERVIDORES_CADASTRADOS, STATUS_COMISSAO, TIPOS_ATO_NOMEACAO, TIPOS_COMISSAO, calcularStatusPorVigencia, iniciaisNome, orgaoDoServidor } from "./dominios";
 import { ORGAOS_CERTAME } from "../certame/dominios";
 import { certamesMock } from "../certame/mock";
 import type { AtoNomeacaoMembro, ArquivoAtoNomeacao, CargoMembroComissao, Comissao, HistoricoAlteracaoMembro, LocalPublicacaoAto, MembroComissao, StatusComissao, TipoAtoNomeacao, TipoComissao, TipoEventoHistoricoMembro } from "./types";
@@ -24,9 +24,10 @@ import "./comissoes.css";
 const statusLabel:Record<StatusComissao,string> = Object.fromEntries(STATUS_COMISSAO.map((item) => [item.value, item.label])) as Record<StatusComissao,string>;
 const cargoLabel:Record<CargoMembroComissao,string> = Object.fromEntries(CARGOS_MEMBRO_COMISSAO.map((item) => [item.value, item.label])) as Record<CargoMembroComissao,string>;
 const statusEstilo:Record<StatusComissao,{ color:string; bg:string }> = {
- RASCUNHO: { color:"#55637a", bg:"#eef1f5" },
+ RASCUNHO: { color:"#8a5c00", bg:"#fff1cf" },
  EM_ANDAMENTO: { color:"#0b6199", bg:"#e9f3fc" },
  ENCERRADA: { color:"#147441", bg:"#e2f5e8" },
+ CANCELADA: { color:"#ad3039", bg:"#ffe3e5" },
 };
 // Certame.tipoCertame ("PSS"/"CONCURSO_PUBLICO") não usa os mesmos valores de TipoComissao — a
 // tela de Comissão só precisa listar, no campo "Concurso", os certames compatíveis com o tipo
@@ -142,15 +143,37 @@ export function ComissaoFormContent() {
    previsaoInicio:dados.previsaoInicio || undefined, inicio:dados.inicio || undefined, previsaoTermino:dados.previsaoTermino || undefined, termino:dados.termino || undefined,
    orgao:dados.orgao, vinculoResponsavelId:dados.vinculoResponsavelId || undefined, arquivo:arquivoComissaoPendente,
   };
+  // "Finalizar cadastro" (aba Composição) encerra o fluxo e volta para a listagem, com uma mensagem
+  // de confirmação; "Salvar comissão" (aba Identificação) só grava o progresso e mantém o usuário no
+  // formulário, agora já com o registro salvo, para seguir compondo a comissão.
+  const finalizando = aba === "COMPOSICAO";
+  // Finalizar o cadastro é o que tira a comissão do rascunho: se a vigência ainda não resolveu o
+  // status sozinha (sem Início preenchido, ou Início no futuro — calcularStatusPorVigencia devolve
+  // RASCUNHO nesses casos), finalizar força Em andamento. Uma comissão já Encerrada pela vigência
+  // (fim do período já passado) continua Encerrada mesmo ao finalizar de novo.
+  const aplicarStatusFinalizacao = (status:StatusComissao):StatusComissao => finalizando && status === "RASCUNHO" ? "EM_ANDAMENTO" : status;
+  // Toda troca automática de status (vigência e/ou finalização) também vira um evento no histórico,
+  // igual à troca manual pelo Cancelar/Reabrir da listagem (ver comissoesStore.alterarStatus).
+  const registrarMudancaStatus = (statusAnterior:StatusComissao, statusNovo:StatusComissao, historico:readonly HistoricoAlteracaoMembro[]):HistoricoAlteracaoMembro[] =>
+   statusNovo === statusAnterior ? [...historico] : [...historico, {
+    id:`HIST-${Date.now()}`, tipo:"STATUS_ALTERADO", descricao:`Status alterado de ${statusLabel[statusAnterior]} para ${statusLabel[statusNovo]}.`,
+    registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`, usuario:CONTROLE_PSS_USUARIO_LOGADO,
+   }];
   if (existente) {
-   comissoesStore.update(existente.id, { ...dadosComuns, membros, historicoMembros, atualizadoEm:agora });
-   navigate(`${BASE}/comissoes/${existente.id}`);
+   const status = aplicarStatusFinalizacao(calcularStatusPorVigencia(dadosComuns.inicio, dadosComuns.termino, existente.status));
+   const historico = registrarMudancaStatus(existente.status, status, historicoMembros);
+   comissoesStore.update(existente.id, { ...dadosComuns, status, membros, historicoMembros:historico, atualizadoEm:agora });
+   if (finalizando) navigate(`${BASE}/comissoes`, { state:{ comissaoSalva:`Comissão ${existente.numero} atualizada com sucesso.` } });
+   else navigate(`${BASE}/comissoes/${existente.id}`);
    return;
   }
   const novoId = `COM-${Date.now()}`;
-  const nova:Comissao = { id:novoId, numero:numeroForm, ...dadosComuns, status:"RASCUNHO", membros, historicoMembros, criadoEm:agora, atualizadoEm:agora };
+  const status = aplicarStatusFinalizacao(calcularStatusPorVigencia(dadosComuns.inicio, dadosComuns.termino, "RASCUNHO"));
+  const historico = registrarMudancaStatus("RASCUNHO", status, historicoMembros);
+  const nova:Comissao = { id:novoId, numero:numeroForm, ...dadosComuns, status, membros, historicoMembros:historico, criadoEm:agora, atualizadoEm:agora };
   comissoesStore.create(nova);
-  navigate(`${BASE}/comissoes/${novoId}`);
+  if (finalizando) navigate(`${BASE}/comissoes`, { state:{ comissaoSalva:`Comissão ${numeroForm} cadastrada com sucesso.` } });
+  else navigate(`${BASE}/comissoes/${novoId}`);
  });
 
  // --- Modal "Adicionar/Editar membro" ---
@@ -201,17 +224,17 @@ export function ComissaoFormContent() {
   const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
   const registradoEm = `${agora} ${new Date().toTimeString().slice(0, 5)}`;
   const eventos:HistoricoAlteracaoMembro[] = [];
-  const criarEvento = (tipo:TipoEventoHistoricoMembro, descricao:string) => eventos.push({ id:`HIST-${Date.now()}-${eventos.length}`, membroId:membroSalvo.id, membroNome:membroSalvo.nome, tipo, descricao, registradoEm, usuario:CONTROLE_PSS_USUARIO_LOGADO });
+  const criarEvento = (tipo:TipoEventoHistoricoMembro, descricao:string, arquivo?:ArquivoAtoNomeacao) => eventos.push({ id:`HIST-${Date.now()}-${eventos.length}`, membroId:membroSalvo.id, membroNome:membroSalvo.nome, tipo, descricao, registradoEm, usuario:CONTROLE_PSS_USUARIO_LOGADO, arquivo });
   if (!membroAnterior) {
    criarEvento("MEMBRO_ADICIONADO", `Incluído na comissão como ${cargoLabel[membroSalvo.cargo]}.`);
   } else {
    if (membroAnterior.cargo !== membroSalvo.cargo) criarEvento("CARGO_ALTERADO", `Cargo alterado de ${cargoLabel[membroAnterior.cargo]} para ${cargoLabel[membroSalvo.cargo]}.`);
    const arquivoAnterior = membroAnterior.atoNomeacao.arquivo?.nome;
-   const arquivoNovo = membroSalvo.atoNomeacao.arquivo?.nome;
-   if (arquivoAnterior !== arquivoNovo) {
-    if (!arquivoAnterior) criarEvento("ARQUIVO_ATO_ALTERADO", `Arquivo do ato de nomeação anexado (${arquivoNovo}).`);
+   const arquivoNovo = membroSalvo.atoNomeacao.arquivo;
+   if (arquivoAnterior !== arquivoNovo?.nome) {
+    if (!arquivoAnterior) criarEvento("ARQUIVO_ATO_ALTERADO", `Arquivo do ato de nomeação anexado (${arquivoNovo?.nome}).`, arquivoNovo);
     else if (!arquivoNovo) criarEvento("ARQUIVO_ATO_ALTERADO", `Arquivo do ato de nomeação removido (era ${arquivoAnterior}).`);
-    else criarEvento("ARQUIVO_ATO_ALTERADO", `Arquivo do ato de nomeação substituído (${arquivoAnterior} → ${arquivoNovo}).`);
+    else criarEvento("ARQUIVO_ATO_ALTERADO", `Arquivo do ato de nomeação substituído (${arquivoAnterior} → ${arquivoNovo.nome}).`, arquivoNovo);
    }
   }
   if (eventos.length > 0) setHistoricoMembros((atuais) => [...atuais, ...eventos]);
@@ -260,9 +283,9 @@ export function ComissaoFormContent() {
 
  // Histórico: registra a troca do documento único da comissão (aba Identificação) — mesma ideia de
  // registrarEventosMembro, mas sem membro associado (ver DOCUMENTO_COMISSAO_ALTERADO em types.ts).
- const registrarEventoDocumentoComissao = (descricao:string) => {
+ const registrarEventoDocumentoComissao = (descricao:string, arquivo?:ArquivoAtoNomeacao) => {
   const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
-  setHistoricoMembros((atuais) => [...atuais, { id:`HIST-${Date.now()}`, tipo:"DOCUMENTO_COMISSAO_ALTERADO", descricao, registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`, usuario:CONTROLE_PSS_USUARIO_LOGADO }]);
+  setHistoricoMembros((atuais) => [...atuais, { id:`HIST-${Date.now()}`, tipo:"DOCUMENTO_COMISSAO_ALTERADO", descricao, registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`, usuario:CONTROLE_PSS_USUARIO_LOGADO, arquivo }]);
  };
 
  // Documento da comissão tem uma única vaga de arquivo — anexar substitui o arquivo anterior,
@@ -276,8 +299,9 @@ export function ComissaoFormContent() {
   const arquivoAnterior = arquivoComissaoPendente?.nome;
   const reader = new FileReader();
   reader.onload = () => {
-   setArquivoComissaoPendente({ id:`ARQ-${Date.now()}`, nome:selecionado.name, extensao:"pdf", contentType:selecionado.type, conteudoEmBase64:String(reader.result).split(",")[1] ?? "", tamanho:selecionado.size });
-   registrarEventoDocumentoComissao(arquivoAnterior ? `Documento da comissão substituído (${arquivoAnterior} → ${selecionado.name}).` : `Documento da comissão anexado (${selecionado.name}).`);
+   const novoArquivo:ArquivoAtoNomeacao = { id:`ARQ-${Date.now()}`, nome:selecionado.name, extensao:"pdf", contentType:selecionado.type, conteudoEmBase64:String(reader.result).split(",")[1] ?? "", tamanho:selecionado.size };
+   setArquivoComissaoPendente(novoArquivo);
+   registrarEventoDocumentoComissao(arquivoAnterior ? `Documento da comissão substituído (${arquivoAnterior} → ${selecionado.name}).` : `Documento da comissão anexado (${selecionado.name}).`, novoArquivo);
   };
   reader.readAsDataURL(selecionado);
  };
