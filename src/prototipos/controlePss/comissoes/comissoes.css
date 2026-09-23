@@ -1,5 +1,30 @@
 .prototype-comissoes-erro{color:#ad3039;font-weight:700}
 
+/* Justificativa do encerramento (modal Encerrar comissão, ComissoesListContent) — .prototype-native-field
+   só estiliza select/input globalmente; textarea entra aqui no mesmo padrão visual. */
+.prototype-native-field textarea{width:100%;min-height:90px;padding:.5rem .75rem;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:var(--text-color);font:inherit;resize:vertical}
+.prototype-native-field textarea:focus{outline:0;border-color:#0072bc;box-shadow:0 0 0 2px rgba(0,114,188,.15)}
+
+/* Modal de Histórico da comissão: duas colunas — linha do tempo clicável à esquerda, detalhe do
+   evento selecionado à direita — mesmo padrão visual do Histórico de situações do Certame
+   (certame/HistoricoSituacoesCertameModal), adaptado para eventos de composição/documento/status. */
+.prototype-comissoes-historico-layout{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:1rem;align-items:start}
+@media(max-width:720px){.prototype-comissoes-historico-layout{grid-template-columns:minmax(0,1fr)}}
+.prototype-comissoes-historico-lista-bloco{max-height:560px;display:flex;flex-direction:column}
+.prototype-comissoes-historico-lista{margin:0;padding:0;list-style:none;overflow-y:auto;display:flex;flex-direction:column;gap:.35rem}
+.prototype-comissoes-historico-item{display:flex;align-items:flex-start;gap:.6rem;width:100%;padding:.55rem .65rem;border:1px solid transparent;border-radius:8px;background:transparent;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.prototype-comissoes-historico-item:hover{background:var(--surface-50)}
+.prototype-comissoes-historico-item.is-selected{background:#e9f3fc;border-color:#bcdefc}
+.prototype-comissoes-historico-icone{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:50%;background:var(--primary-100);color:var(--primary-color);font-size:.82rem}
+.prototype-comissoes-historico-item-texto{display:flex;flex-direction:column;min-width:0}
+.prototype-comissoes-historico-item-texto strong{font-size:.85rem;color:var(--text-color);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prototype-comissoes-historico-item-texto small{color:var(--text-color-secondary);font-size:.72rem}
+.prototype-comissoes-historico-detalhe{display:flex;flex-direction:column;gap:1rem}
+.prototype-comissoes-historico-tipo{margin:0 0 .35rem;font-weight:700;color:var(--text-color);font-size:.85rem}
+.prototype-comissoes-historico-doc-table{margin-top:.5rem}
+.prototype-comissoes-historico-doc-table th:last-child,
+.prototype-comissoes-historico-doc-table td:last-child{width:80px;text-align:right}
+
 /* O modal "Adicionar/editar membro" é renderizado pelo Dialog do PrimeReact via portal (fora de
    .prototype-certame-form-page na árvore do DOM), então os campos não herdam o padrão compacto do
    restante do formulário (certame.css) — replica aqui as mesmas regras para não ficar campo "fora
@@ -41,7 +66,7 @@
 .prototype-comissoes-arquivo-table td:nth-child(3){width:150px}
 
 /* Os seis indicadores da listagem ocupam toda a largura disponível. */
-.prototype-comissoes-list-indicators{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.prototype-comissoes-list-indicators{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .prototype-comissoes-list-indicators>.prototype-ingressos-teste-indicator{grid-column:span 1}
 @media(max-width:1050px){.prototype-comissoes-list-indicators{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:640px){.prototype-comissoes-list-indicators{grid-template-columns:repeat(2,minmax(0,1fr))}}

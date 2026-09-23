@@ -1342,7 +1342,7 @@ export function CertameFormContent() {
        <div className={gridCss("12")}>
         <label className="prototype-native-field">
          <span>Tipo da isenção <span className="required-marker">*</span></span>
-         <MultiSelect required aria-required="true" value={taxaRascunho.tipoIsencao} disabled={taxaSomenteLeitura} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, tipoIsencao:event.value ?? [] })} options={TIPOS_ISENCAO} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" filter maxSelectedLabels={3} selectedItemsLabel="{0} tipos selecionados" />
+         <MultiSelect required aria-required="true" value={taxaRascunho.tipoIsencao} disabled={taxaSomenteLeitura} onChange={(event) => setTaxaRascunho({ ...taxaRascunho, tipoIsencao:event.value ?? [] })} options={[...TIPOS_ISENCAO]} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" filter maxSelectedLabels={3} selectedItemsLabel="{0} tipos selecionados" />
         </label>
         {errosTaxa.tipoIsencao && <small className="p-error">{errosTaxa.tipoIsencao}</small>}
        </div>

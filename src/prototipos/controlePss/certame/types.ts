@@ -118,6 +118,11 @@ export interface Certame {
  anoAditivo?:number;
  cobraTaxaInscricao:boolean;
  valorInscricao?:number;
+ // Uma ou mais taxas de inscrição (cada uma com seu valor e regra de isenção própria) — ver bloco
+ // "Taxa de inscrição" em CertameFormContent.tsx. Os campos legados acima (valorInscricao e as
+ // isenções em "4. Isenção") continuam só para migrar certames salvos antes desse modelo (ver
+ // taxasLegadas em CertameFormContent.tsx).
+ taxasInscricao:readonly TaxaInscricaoCertame[];
  // 6. Cotas (1:N)
  cotas:readonly CotaCertame[];
  // 7. Cargo/Vagas + Fases do Concurso
