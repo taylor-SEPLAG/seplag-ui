@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { Comissao, MembroComissao } from "./types";
+import type { Comissao, HistoricoAlteracaoMembro, MembroComissao, StatusComissao } from "./types";
 import { comissoesMock } from "./mock";
 
 let comissoes:Comissao[] = [...comissoesMock];
@@ -17,6 +17,16 @@ export const comissoesStore = {
  },
  update(id:string, atualizacoes:Partial<Comissao>) {
   comissoes = comissoes.map((comissao) => comissao.id === id ? { ...comissao, ...atualizacoes } : comissao);
+  emit();
+ },
+ // Muda o status e grava o evento STATUS_ALTERADO na mesma atualização — usado pelo Cancelar/Reabrir
+ // manual da listagem (ver ComissoesListContent). A troca automática pela vigência acontece dentro
+ // do próprio salvamento do formulário (ComissaoFormContent), junto com o resto dos dados da comissão.
+ alterarStatus(id:string, status:StatusComissao, evento:Omit<HistoricoAlteracaoMembro, "id" | "tipo">) {
+  comissoes = comissoes.map((comissao) => comissao.id !== id ? comissao : {
+   ...comissao, status,
+   historicoMembros:[...comissao.historicoMembros, { ...evento, id:`HIST-${Date.now()}`, tipo:"STATUS_ALTERADO" }],
+  });
   emit();
  },
  remove(id:string) {
