@@ -6,6 +6,7 @@ import { useDocumentosLegais } from "../../documentosLegais/documentosLegaisStor
 import { tiposCotaStore, useTiposCota, type TipoCota } from "./tiposCotaStore";
 import { CardSeplag } from "@componentes/Card";
 import { BotaoAdicionarSeplag, BotaoLimparFiltroSeplag } from "@componentes/Botao";
+import { MensagemSeplag } from "@componentes/Mensagem";
 
 const normalizar = (valor:string) => valor.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("pt-BR");
 
@@ -21,6 +22,17 @@ export function TiposCotaListContent() {
  const [pagina, setPagina] = useState(1);
  const [itensPorPagina, setItensPorPagina] = useState(10);
  const [acoesMenuAbertoId, setAcoesMenuAbertoId] = useState<string | null>(null);
+ const [erro, setErro] = useState<string | null>(null);
+
+ // RN-TipoCota: um Tipo de cota em uso (Certame.cotas ou reserva de cargo/vaga em qualquer certame)
+ // não pode ser inativado. toggleSituacao só retorna false nesse caso — reativar nunca é bloqueado.
+ const tentarAlternarSituacao = (tipo:TipoCota) => {
+  if (!tiposCotaStore.toggleSituacao(tipo.id)) {
+   setErro(`Não é possível inativar o tipo de cota "${tipo.label}": existem cotas vinculadas a ele em certames. Remova ou reatribua essas cotas antes de inativar.`);
+   return;
+  }
+  setErro(null);
+ };
 
  // Mesma fonte de leis do formulário (LEIS_CERTAME + Documentos Legais cadastrados), só para
  // resolver o título exibido na coluna "Lei".
@@ -47,6 +59,7 @@ export function TiposCotaListContent() {
   <CardSeplag title="Tipos de Cota" cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card">
    <div className="col-12"><div className="prototype-ingressos-teste-content">
     <p className="prototype-ingressos-teste-support">Consulte, cadastre e gerencie os tipos de cota previstos em lei para os certames.</p>
+    {erro && <MensagemSeplag severity="error" message={erro} cols="12" />}
     <hr className="prototype-ingressos-teste-header-divider" />
 
     <div className="prototype-category-filters prototype-ingressos-filters grid">
@@ -96,7 +109,7 @@ export function TiposCotaListContent() {
               <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); navigate(`${BASE}/tipos-cota/${row.id}`); }}>
                <i className="pi pi-pencil" aria-hidden="true" /><span>Editar</span>
               </button>
-              <button type="button" role="menuitem" className={row.situacao === "ATIVO" ? "is-danger" : undefined} onClick={() => { setAcoesMenuAbertoId(null); tiposCotaStore.toggleSituacao(row.id); }}>
+              <button type="button" role="menuitem" className={row.situacao === "ATIVO" ? "is-danger" : undefined} onClick={() => { setAcoesMenuAbertoId(null); tentarAlternarSituacao(row); }}>
                <i className={row.situacao === "ATIVO" ? "pi pi-ban" : "pi pi-check"} aria-hidden="true" /><span>{row.situacao === "ATIVO" ? "Inativar" : "Ativar"}</span>
               </button>
              </div>}
