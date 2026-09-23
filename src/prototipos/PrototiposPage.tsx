@@ -16551,7 +16551,7 @@ export function PrototiposNovoIngressoPage() {
             ? ["SEPLAG"]
             : [],
   );
-  const [cargoFuncaoEdital, setCargoFuncaoEdital] = useState("");
+
   const [orgaosIngressoDropdownAberto, setOrgaosIngressoDropdownAberto] = useState(false);
   const [orgaosEfetivoSelecionados, setOrgaosEfetivoSelecionados] = useState<string[]>(
     rascunhoAnaliseInicial?.orgaosEfetivoSelecionados ?? (orgaoInicial ? [orgaoInicial] : ["SEPLAG"]),
@@ -16987,11 +16987,6 @@ export function PrototiposNovoIngressoPage() {
     tipoIngresso === "Processo Seletivo"
       ? ["Processo Seletivo SES 2026", "Processo Seletivo SEDUC 2026", "Processo Seletivo SEFAZ 2026", "Processo Seletivo SEPLAG 2027"]
       : ["Concurso SES 2026", "Concurso SEDUC 2026", "Concurso SEFAZ 2026"];
-  const cargosFuncaoEditalOptions = [...new Set([
-    ...(ingressoConcursosProcessosMock.find((processo) => processo.titulo === concursoSelecionado)?.candidatos ?? [])
-      .map((candidato) => candidato.cargo),
-    ...(cargoInicial ? [cargoInicial] : []),
-  ])];
   const getConcursoOrigemLabel = (titulo: string) => {
     const concurso = ingressoConcursosProcessosMock.find((processo) => processo.titulo === titulo);
     if (!concurso) return titulo;
@@ -17129,9 +17124,7 @@ export function PrototiposNovoIngressoPage() {
           !escolaridadeEstagio ||
           !cursoEstagio.trim() ||
           (escolaridadeEstagio === "Pós-graduação" && !posGraduacaoEstagio.trim()))) ||
-      (tipoIngresso === "Concurso" && !categoriaSelecionada) ||
-      (tipoIngresso === "Processo Seletivo" && !ingressoOrigemLista &&
-        !cargoFuncaoEdital.trim())
+      (tipoIngresso === "Concurso" && !categoriaSelecionada)
     )) ||
     (activeTab === "documentacao" &&
       vinculoEstagiario &&
@@ -18531,7 +18524,6 @@ export function PrototiposNovoIngressoPage() {
                 setOrgaoSelecionado(processoSelecionado?.orgao ?? "");
                 setOrgaosIngressoSelecionados(processoSelecionado?.orgao ? [processoSelecionado.orgao] : []);
                 setOrgaosParticipantesSelecionados(processo ? orgaosParticipantesPorProcesso[processo] ?? [] : []);
-                setCargoFuncaoEdital("");
               }}
             >
               <option value="">Selecione...</option>
@@ -18596,20 +18588,9 @@ export function PrototiposNovoIngressoPage() {
           <h4>Enquadramento</h4>
         </header>
         <div className="prototype-ingresso-concurso-fields">
+
           <label className="prototype-ingresso-field">
-            <span>Cargo/Função no edital<em>*</em></span>
-            <select
-              value={ingressoOrigemLista ? cargoInicial : cargoFuncaoEdital}
-              required
-              disabled={ingressoOrigemLista || !concursoSelecionado}
-              onChange={(event) => setCargoFuncaoEdital(event.target.value)}
-            >
-              <option value="">Selecione...</option>
-              {cargosFuncaoEditalOptions.map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>)}
-            </select>
-          </label>
-          <label className="prototype-ingresso-field">
-            <span>Cargo/Função no SIGEP<em>*</em></span>
+            <span>Cargo/Função<em>*</em></span>
             <select value={cargoSigepEqualizado} disabled={ingressoOrigemLista} onChange={(event) => selecionarCargoSigep(event.target.value)}>
               <option value="">Selecione...</option>
               {Object.keys(dadosCargoEqualizado).map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>)}
@@ -18863,7 +18844,6 @@ export function PrototiposNovoIngressoPage() {
                   setOrgaoSelecionado(processoSelecionado?.orgao ?? "");
                   setOrgaosIngressoSelecionados(processoSelecionado?.orgao ? [processoSelecionado.orgao] : []);
                   setOrgaosParticipantesSelecionados(processo ? orgaosParticipantesPorProcesso[processo] ?? [] : []);
-                  setCargoFuncaoEdital("");
                 }
               }}
             >
@@ -18896,16 +18876,9 @@ export function PrototiposNovoIngressoPage() {
               <option value="Temporário">Temporário</option>
             </select>
           </label> : null}
-          {tipoIngresso === "Processo Seletivo" ? <label className="prototype-ingresso-field">
-            <span>{ingressoOrigemLista ? "Cargo/Função recebido via integração" : "Cargo/Função no edital"}<em>*</em></span>
-            {ingressoOrigemLista ? (
-              <input type="text" value={cargoInicial} readOnly />
-            ) : (
-              <input type="text" value={cargoFuncaoEdital} required onChange={(event) => setCargoFuncaoEdital(event.target.value)} />
-            )}
-          </label> : null}
+
           <label className="prototype-ingresso-field">
-            <span>{tipoIngresso === "Processo Seletivo" ? "Cargo/Função no SIGEP" : "Cargo/Função"}<em>*</em></span>
+            <span>Cargo/Função<em>*</em></span>
             <select
               value={tipoIngresso === "Processo Seletivo" ? cargoSigepEqualizado : cargoSelecionado}
               disabled={ingressoOrigemLista}
@@ -19449,7 +19422,6 @@ export function PrototiposNovoIngressoPage() {
                   setOrgaoSelecionado("");
                   setOrgaosIngressoSelecionados([]);
                   setOrgaosParticipantesSelecionados([]);
-                  setCargoFuncaoEdital("");
                   setOrgaosIngressoDropdownAberto(false);
                   setCargoSelecionado("");
                   setCategoriaSelecionada("");
@@ -20722,7 +20694,6 @@ export function PrototiposNovoIngressoPage() {
         hideFooter
       >
         <div className="prototype-efetivo-registrado-modal">
-          <div className="prototype-efetivo-registrado-success" aria-hidden="true"><i className="pi pi-check-circle" /></div>
           <p>O sistema registrou os dados do efetivo exercício e gerou automaticamente a matrícula, o vínculo funcional e o {nomeDocumentoEfetivo}.</p>
           <dl className="prototype-efetivo-gerado-info">
             <div><dt>Matrícula gerada</dt><dd>{dadosEfetivoGerados?.matricula ?? "-"}</dd></div>
@@ -33188,7 +33159,7 @@ export function PrototiposFolhaCatalogoRubricasPage() {
           : rubrica
       );
       setCatalogoRubricasMockState(rubricaAtualizada);
-      
+
       // Fechar modal e resetar
       setVisibleModalInativar(false);
       resetInativar();

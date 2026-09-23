@@ -20440,18 +20440,6 @@
   line-height: 1.5;
 }
 
-.prototype-efetivo-registrado-success {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  justify-self: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: #e2f3e8;
-  color: #00843d;
-  font-size: 1.45rem;
-}
 
 .prototype-efetivo-gerado-info,
 .prototype-finalizar-efetivo-info {
