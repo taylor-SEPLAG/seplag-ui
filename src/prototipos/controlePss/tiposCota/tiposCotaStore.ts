@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { controlePssStore } from "../controlePssStore";
 
 export type SituacaoTipoCota = "ATIVO" | "INATIVO";
 
@@ -70,9 +71,20 @@ export const tiposCotaStore = {
   tiposCota = tiposCota.map((item) => item.id === id ? { ...item, label:input.label.trim(), lei:input.lei } : item);
   emit();
  },
+ // RN-TipoCota — um Tipo de cota em uso (Certame.cotas ou CargoVagaCertame.reservasCota, ambos por
+ // `value`/código, em qualquer certame) não pode ser inativado; a reativação nunca é bloqueada.
+ estaEmUso(value:string) {
+  return controlePssStore.getState().certames.some((certame) =>
+   certame.cotas.some((cota) => cota.tipo === value) ||
+   certame.cargos.some((cargo) => cargo.reservasCota.some((reserva) => reserva.tipo === value)),
+  );
+ },
  toggleSituacao(id:string) {
+  const tipo = tiposCota.find((item) => item.id === id);
+  if (tipo?.situacao === "ATIVO" && this.estaEmUso(tipo.value)) return false;
   tiposCota = tiposCota.map((item) => item.id === id ? { ...item, situacao: item.situacao === "ATIVO" ? "INATIVO" : "ATIVO" } : item);
   emit();
+  return true;
  },
 };
 

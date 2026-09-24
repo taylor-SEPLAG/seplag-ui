@@ -662,11 +662,13 @@ export function CertameFormContent() {
   if (!exibirOrgaoVaga) cargoForm.setValue("orgaoDestino", undefined);
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [valores.setoresParticipantes]);
- const mostrarCarreiraCargo = valores.tipoCertame === "CONCURSO_PUBLICO";
- const usaCargoDoQuadro = mostrarCarreiraCargo || cargoValores.vinculo === "EXISTENTE";
+ // PSS passou a seguir o mesmo cadastro de vaga do Concurso Público quanto ao cargo: sempre usa
+ // cargo do quadro cadastrado, sem alternativa de "Vínculo da vaga" (Nova/Existente) nem cargo em
+ // texto livre. "Carreira" continua exclusiva do Concurso Público — PSS não tem esse conceito.
+ const exibirCarreira = valores.tipoCertame === "CONCURSO_PUBLICO";
+ const usaCargoDoQuadro = true;
  const cargoExistenteSelecionado = usaCargoDoQuadro ? CARGOS_CADASTRADOS.find((item) => item.id === cargoValores.cargoExistenteId) : undefined;
  const cargoNomeAtual = usaCargoDoQuadro ? cargoExistenteSelecionado?.nome ?? "" : cargoValores.cargoNome;
- const quadroVinculado = cargoExistenteSelecionado ?? buscarQuadroPorCargo(cargoNomeAtual ?? "");
  // Id da vaga sendo editada (ver editarCargo) — null quando o modal está adicionando uma vaga nova.
  // Declarado antes de cargoJornadaRepetida, que já o referencia (TDZ: usar antes de declarar um
  // const de useState quebra em runtime assim que o `some` abaixo chega a rodar).
@@ -680,7 +682,6 @@ export function CertameFormContent() {
  // "Resumo da vaga" — pills com o que já foi preenchido no formulário, exibidas antes de confirmar
  // a inclusão na lista (bloco "Cargos e vagas").
  const resumoVagaPills = [
-  !mostrarCarreiraCargo ? (cargoValores.vinculo === "EXISTENTE" ? "Vaga existente" : "Vaga nova") : undefined,
   cargoNomeAtual?.trim() || undefined,
   cargoValores.carreira ? (CARREIRAS_CONCURSO.find((item) => item.value === cargoValores.carreira)?.label ?? cargoValores.carreira) : undefined,
   cargoValores.polo || undefined,
@@ -703,14 +704,14 @@ export function CertameFormContent() {
  const [reservasCotaPendentes, setReservasCotaPendentes] = useState<ReservaCotaCargo[]>([]);
  const reservasCotaAtivas = cargoValores.possuiCotas === "S" ? reservasCotaPendentes : [];
  const opcoesTipoCotaDisponiveis = useMemo(() => opcoesTipoCotaReserva.filter((opcao) => !reservasCotaPendentes.some((reserva) => reserva.tipo === opcao.value)), [opcoesTipoCotaReserva, reservasCotaPendentes]);
+ // Polo não é obrigatório para adicionar a vaga (RN014) — só Cidade é, e apenas quando exibida
+ // (exibirCidadeVaga, RN015).
  const dadosPrincipaisVagaValidos = Boolean(
   cargoNomeAtual.trim()
   && cargoValores.quantidadeVagas > 0
-  && cargoValores.polo
   && cargoValores.jornada
   && (!exibirCidadeVaga || cargoValores.cidades.length > 0)
-  && (!mostrarCarreiraCargo || cargoValores.carreira)
-  && (mostrarCarreiraCargo || cargoValores.vinculo),
+  && (!exibirCarreira || cargoValores.carreira),
  );
  const cadastroReservaValido = cargoValores.aceitaCadastroReserva === "N"
   || Boolean(cargoValores.quantidadeCadastroReserva && cargoValores.quantidadeCadastroReserva > 0);
@@ -809,8 +810,7 @@ export function CertameFormContent() {
 
  const colunasCargos:ColumnMetaSeplag<CargoVagaCertame>[] = [
   { header:"", body:(cargo) => <BotaoIconSeplag type="button" className="prototype-certame-cargo-expand" tooltip={cargoExpandidoId === cargo.id ? "Recolher distribuição" : "Exibir distribuição de vagas"} icon={cargoExpandidoId === cargo.id ? "pi pi-chevron-down" : "pi pi-chevron-right"} onClick={() => alternarCargoExpandido(cargo.id)} /> },
-  ...(!mostrarCarreiraCargo ? [{ header:"Vínculo", body:(cargo:CargoVagaCertame) => <BadgeSeplag label={cargo.vinculo === "EXISTENTE" ? "Vaga existente" : "Vaga nova"} color="#0b6199" bg="#e9f3fc" border="transparent" size="sm" /> }] : []),
-  ...(mostrarCarreiraCargo ? [{ header:"Carreira", body:(cargo:CargoVagaCertame) => cargo.carreira ? (CARREIRAS_CONCURSO.find((item) => item.value === cargo.carreira)?.label ?? cargo.carreira) : "—" }] : []),
+  ...(exibirCarreira ? [{ header:"Carreira", body:(cargo:CargoVagaCertame) => cargo.carreira ? (CARREIRAS_CONCURSO.find((item) => item.value === cargo.carreira)?.label ?? cargo.carreira) : "—" }] : []),
   { header:"Cargo/função", body:(cargo) => <strong>{cargo.cargoNome}</strong> },
   { header:"Qtd. vagas", body:(cargo) => cargo.quantidadeVagas },
   { header:"Polo", body:(cargo) => cargo.polo || "—" },
@@ -900,20 +900,22 @@ export function CertameFormContent() {
   // desatualizado.
   if (!podeCadastrarVaga) { setErro("Defina o órgão responsável (mandante) na aba Identificação antes de cadastrar vagas."); return false; }
   const dados = cargoForm.getValues();
-  const vinculoEfetivo = mostrarCarreiraCargo ? "EXISTENTE" : dados.vinculo;
+  const vinculoEfetivo = usaCargoDoQuadro ? "EXISTENTE" : dados.vinculo;
   const cargoExistente = vinculoEfetivo === "EXISTENTE" ? CARGOS_CADASTRADOS.find((item) => item.id === dados.cargoExistenteId) : undefined;
   const cargoNome = vinculoEfetivo === "EXISTENTE" ? cargoExistente?.nome ?? "" : dados.cargoNome;
-  const camposObrigatorios:(keyof CargoFormValues)[] = [...(!mostrarCarreiraCargo ? ["vinculo" as const] : []), vinculoEfetivo === "EXISTENTE" ? "cargoExistenteId" : "cargoNome", "quantidadeVagas", "polo", "jornada", ...(exibirCidadeVaga ? ["cidades" as const] : []), ...(mostrarCarreiraCargo ? ["carreira" as const] : []), ...(dados.aceitaCadastroReserva === "S" ? ["quantidadeCadastroReserva" as const] : [])];
+  // Polo (RN014) não entra na lista — não é campo obrigatório da vaga.
+  const camposObrigatorios:(keyof CargoFormValues)[] = [vinculoEfetivo === "EXISTENTE" ? "cargoExistenteId" : "cargoNome", "quantidadeVagas", "jornada", ...(exibirCidadeVaga ? ["cidades" as const] : []), ...(exibirCarreira ? ["carreira" as const] : []), ...(dados.aceitaCadastroReserva === "S" ? ["quantidadeCadastroReserva" as const] : [])];
   const formularioValido = await cargoForm.trigger(camposObrigatorios);
   // CA15/RN020 (US220 - Vagas): mensagem literal da US, listando os campos obrigatórios da vaga.
-  if (!formularioValido || !cargoNome || dados.quantidadeVagas <= 0 || !dados.polo || !dados.jornada || (exibirCidadeVaga && !dados.cidades.length) || (mostrarCarreiraCargo && !dados.carreira)) { setErro("Preencha os campos obrigatórios da vaga (Vínculo, Carreira, Cargo/função, Qtd. vagas, Polo e Jornada) antes de adicionar."); return false; }
+  const camposObrigatoriosLabel = exibirCarreira ? "Carreira, Cargo/função, Qtd. vagas e Jornada" : "Cargo/função, Qtd. vagas e Jornada";
+  if (!formularioValido || !cargoNome || dados.quantidadeVagas <= 0 || !dados.jornada || (exibirCidadeVaga && !dados.cidades.length) || (exibirCarreira && !dados.carreira)) { setErro(`Preencha os campos obrigatórios da vaga (${camposObrigatoriosLabel}) antes de adicionar.`); return false; }
   if (cargoJornadaRepetida) { setErro("Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Ajuste o cargo ou a jornada para continuar."); return false; }
   const totalReservado = reservasCotaAtivas.reduce((total, item) => total + item.quantidade, 0);
   if (totalReservado > dados.quantidadeVagas) { setErro("A soma das cotas reservadas não pode exceder a quantidade de vagas do cargo."); return false; }
   if (dados.aceitaCadastroReserva === "S" && !(dados.quantidadeCadastroReserva && dados.quantidadeCadastroReserva > 0)) { setErro("Informe a quantidade de Cadastro Reserva (CR) para as vagas de ampla concorrência."); return false; }
   setErro(null);
   const quadro = cargoExistente ?? buscarQuadroPorCargo(cargoNome);
-  const cargoSalvo:CargoVagaCertame = { id:cargoEmEdicaoId ?? `CGV-${Date.now()}`, vinculo:vinculoEfetivo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:valores.tipoCertame === "CONCURSO_PUBLICO" ? dados.carreira : undefined, polo:dados.polo.trim(), cidades:exibirCidadeVaga ? dados.cidades : cidadesDoPoloSelecionado, jornada:dados.jornada, orgaoDestino:exibirOrgaoVaga ? dados.orgaoDestino : undefined, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaAtivas, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao };
+  const cargoSalvo:CargoVagaCertame = { id:cargoEmEdicaoId ?? `CGV-${Date.now()}`, vinculo:vinculoEfetivo, cargoExistenteId:cargoExistente?.id, cargoNome, carreira:exibirCarreira ? dados.carreira : undefined, polo:(dados.polo ?? "").trim(), cidades:exibirCidadeVaga ? dados.cidades : cidadesDoPoloSelecionado, jornada:dados.jornada, orgaoDestino:exibirOrgaoVaga ? dados.orgaoDestino : undefined, codigoReferenciaTce:"001", quantidadeVagas:dados.quantidadeVagas, reservasCota:reservasCotaAtivas, aceitaCadastroReserva:dados.aceitaCadastroReserva === "S", quantidadeCadastroReserva:dados.aceitaCadastroReserva === "S" ? dados.quantidadeCadastroReserva : undefined, quadroCodigo:quadro?.quadroCodigo, quadroVersao:quadro?.quadroVersao };
   // Edição (cargoEmEdicaoId setado por editarCargo): substitui a vaga existente no lugar, preservando
   // a posição na lista; sem isso, seria tratado como uma vaga nova e duplicaria a linha.
   setCargos((atuais) => cargoEmEdicaoId ? atuais.map((item) => item.id === cargoEmEdicaoId ? cargoSalvo : item) : [...atuais, cargoSalvo]);
@@ -1412,22 +1414,18 @@ export function CertameFormContent() {
          <section className="prototype-certame-vaga-area prototype-certame-vaga-dados">
           <SecaoVagaHeader icone="pi-briefcase" titulo="Dados da vaga" />
           <div className="grid align-items-end">
-           {!mostrarCarreiraCargo && <DropdownFieldSeplag name="vinculo" control={cargoForm.control} label="Vínculo da vaga" required cols="12 6 4" options={[{ label:"Vaga nova do certame", value:"NOVO" }, { label:"Vaga existente no quadro", value:"EXISTENTE" }]} optionLabel="label" optionValue="value" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
-           {mostrarCarreiraCargo && <DropdownFieldSeplag name="carreira" control={cargoForm.control} label="Carreira" required cols="12 6 4" options={[...CARREIRAS_CONCURSO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
-          {usaCargoDoQuadro
-             ? <DropdownFieldSeplag name="cargoExistenteId" control={cargoForm.control} label="Cargo/função" required cols="12 6 4" options={CARGOS_CADASTRADOS.map((item) => ({ label:item.nome, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Buscar cargo cadastrado" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-             : <TextFieldSeplag name="cargoNome" control={cargoForm.control} label="Cargo/função" required cols="12 6 4" placeholder="Nome do novo cargo" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+           {exibirCarreira && <DropdownFieldSeplag name="carreira" control={cargoForm.control} label="Carreira" required cols="12 6 4" options={[...CARREIRAS_CONCURSO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
+           <DropdownFieldSeplag name="cargoExistenteId" control={cargoForm.control} label="Cargo/função" required cols="12 6 4" options={CARGOS_CADASTRADOS.map((item) => ({ label:item.nome, value:item.id }))} optionLabel="label" optionValue="value" placeholder="Buscar cargo cadastrado" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
            {exibirOrgaoVaga && <DropdownFieldSeplag name="orgaoDestino" control={cargoForm.control} label="Órgão da vaga" cols="12 6 4" options={orgaosVagaOptions} optionLabel="label" optionValue="value" placeholder="(opcional)" showClear panelClassName="prototype-certame-dropdown-panel" itemTemplate={(option) => <div className="flex align-items-center justify-content-between gap-2 w-full">
             <span>{option.label}</span>
             {option.value === valores.setor && <BadgeSeplag label="Mandante" color="#0b6199" bg="#e9f3fc" border="transparent" size="xs" />}
            </div>} disabled={modoVisualizar} getFormErrorMessage={() => null} />}
            {exibirOrgaoVaga && <div className="col-12"><p className="text-sm text-color-secondary">Deixe em branco para tratar a vaga como Aproveitamento — sem vínculo com um órgão específico.</p></div>}
-           <RotuloSeplag nome="Quadro de vagas" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{quadroVinculado?.quadroCodigo ?? "—"}</div></RotuloSeplag>
            <NumberFieldSeplag name="quantidadeVagas" control={cargoForm.control} label="Quantidade de vagas" required min={1} cols="12 6 4" inputStyle={{ width:"100%" }} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-           <DropdownFieldSeplag name="polo" control={cargoForm.control} label="Polo" required cols="12 6 4" options={polosOptions} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+           <DropdownFieldSeplag name="polo" control={cargoForm.control} label="Polo" cols="12 6 4" options={polosOptions} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
            {exibirCidadeVaga && <MultiSelectFieldSeplag name="cidades" control={cargoForm.control} label="Cidade" required cols="12 6 4" options={cidadesDoPoloSelecionado.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" display="chip" disabled={modoVisualizar} getFormErrorMessage={() => null} />}
            <DropdownFieldSeplag name="jornada" control={cargoForm.control} label="Jornada" required cols="12 6 4" options={[...JORNADAS_TRABALHO]} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} panelClassName="prototype-certame-dropdown-panel" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-           {cargoJornadaRepetida && <div className="col-12"><MensagemSeplag severity="warning" message="Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Altere o vínculo, o cargo ou a jornada para continuar." cols="12" /></div>}
+           {cargoJornadaRepetida && <div className="col-12"><MensagemSeplag severity="warning" message="Já existe uma vaga cadastrada para este Cargo/função com a mesma Jornada. Altere o cargo ou a jornada para continuar." cols="12" /></div>}
           </div>
          </section>
          <section className="prototype-certame-vaga-area prototype-certame-vaga-cr">
