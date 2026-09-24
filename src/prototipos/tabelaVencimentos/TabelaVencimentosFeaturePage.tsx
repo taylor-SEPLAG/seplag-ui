@@ -14,6 +14,7 @@ import { DropdownFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { DocumentosLegaisAssociadosSeplag } from "@componentes/DocumentosLegaisAssociados";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
+import { cargosComissionadosIniciais } from "../controleVagasComissionados/cargosComissionadosStore";
 import "./tabelaVencimentos.css";
 import "./tabelaVencimentosSpacing.css";
 import { RgaLotePage } from "./RgaLotePage";
@@ -31,15 +32,30 @@ type AbrangenciaTabela =
 type Cargo = {
   id: number;
   nome: string;
+  comissionado?: boolean;
   carreira: string;
   abrangencia: AbrangenciaTabela;
   perfis: string[];
   jornadas: string[];
+  jornadasNaoProporcionais?: string[];
   vigentes: number;
   tabelas: number;
   semTabelaVigente?: boolean;
   incideRga?: boolean;
   alteracao: string;
+};
+type ProportionalMetadata = {
+  jornadaReferencia: string;
+  versaoReferencia: string;
+  percentual: number;
+  ajustadaManualmente: boolean;
+  valoresCalculados: MatrixData;
+};
+type RemuneracaoCargoComissionado = {
+  subsidio: string;
+  percentual: string;
+  valorCalculado: string;
+  baseCalculo: "SUBSIDIO";
 };
 export type Versao = {
   numero?: string;
@@ -65,11 +81,23 @@ export type Versao = {
   status: Status;
   alteracao: string;
   usuario: string;
+  registradoEm?: string;
+  remuneracaoComissionado?: RemuneracaoCargoComissionado;
   matrix?: MatrixData;
   baseLegal?: string;
   observacao?: string;
-  origem?: "Cadastro inicial" | "Versionamento" | "RGA";
+  origem?:
+    | "Cadastro inicial"
+    | "Versionamento"
+    | "RGA"
+    | "Referência"
+    | "Manual"
+    | "Ajustada manualmente"
+    | "Proporcional 20h"
+    | "Proporcional 30h"
+    | "Proporcional 40h";
   percentualRga?: string;
+  proporcional?: ProportionalMetadata;
 };
 export type MatrixData = {
   columns: string[];
@@ -84,6 +112,7 @@ export type TabelaSalva = {
   baseLegal?: string;
   observacao?: string;
   incideRga?: boolean;
+  proporcional?: ProportionalMetadata;
   rga?: {
     percentual: string;
     ano: string;
@@ -252,6 +281,21 @@ const CARGOS: Cargo[] = [
     incideRga: false,
     alteracao: "11/09/2026",
   },
+  ...cargosComissionadosIniciais.map(
+    (cargo): Cargo => ({
+      id: cargo.id,
+      nome: cargo.nome,
+      comissionado: true,
+      carreira: "-",
+      abrangencia: "Sem tabela",
+      perfis: [],
+      jornadas: ["40 horas"],
+      vigentes: 0,
+      tabelas: 0,
+      incideRga: false,
+      alteracao: "23/09/2026",
+    }),
+  ),
 ];
 const MATRIZ_HISTORICO_FAKE: MatrixData = {
   columns: ["A", "B", "C", "D", "E"],
@@ -669,6 +713,72 @@ function Matrix({
     </div>
   );
 }
+const formatCommissionCurrencyInput = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 15);
+  if (!digits) return "";
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(Number(digits) / 100);
+};
+const commissionCurrencyValue = (value: string) =>
+  Number(value.replace(/\D/g, "")) / 100 || 0;
+const formatCommissionPercentageInput = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 3);
+  if (!digits) return "";
+  return Math.min(100, Number(digits)) + "%";
+};
+const commissionPercentageValue = (value: string) =>
+  Number(value.replace("%", "").replace(",", ".")) || 0;
+const commissionCalculatedValue = (subsidio: string, percentual: string) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(
+    Math.round(
+      commissionCurrencyValue(subsidio) *
+        (commissionPercentageValue(percentual) / 100) *
+        100,
+    ) / 100,
+  );
+function CommissionedValuesSummary({
+  data,
+}: {
+  data: RemuneracaoCargoComissionado;
+}) {
+  return (
+    <div className="tv-commission-summary">
+      <h4>Resumo dos valores</h4>
+      <div className="tv-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Forma de ocupação</th>
+              <th>Regra</th>
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Exclusivamente Comissionado</td>
+              <td>Subsídio integral</td>
+              <td>
+                <strong>{data.subsidio || "R$ 0,00"}</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>Nomeado Efetivo</td>
+              <td>Gratificação de {data.percentual || "0%"}</td>
+              <td>
+                <strong>{data.valorCalculado || "R$ 0,00"}</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 const rgaDate = (value?: string) => {
   if (!value) return "—";
   return value.includes("-") ? formatDate(value) : value;
@@ -704,6 +814,48 @@ const applyRgaToMatrix = (matrix: MatrixData, percentual: string): MatrixData =>
       name: row.name,
       values: row.values.map((value) =>
         rgaCurrency(Math.round(rgaMoney(value) * (1 + rate / 100) * 100) / 100),
+      ),
+    })),
+  };
+};
+const journeyHours = (value: string) => Number(value.match(/\d+/)?.[0] || 0);
+const proportionalMatrix = (
+  matrix: MatrixData,
+  sourceJourney: string,
+  targetJourney: string,
+): MatrixData => {
+  const source = journeyHours(sourceJourney);
+  const target = journeyHours(targetJourney);
+  const ratio = source ? target / source : 0;
+  return {
+    columns: [...matrix.columns],
+    rows: matrix.rows.map((row) => ({
+      name: row.name,
+      values: row.values.map((value) =>
+        rgaCurrency(Math.round(rgaMoney(value) * ratio * 100) / 100),
+      ),
+    })),
+  };
+};
+type ProportionalReview = {
+  jornada: string;
+  percentual: number;
+  matrix: MatrixData;
+  calculatedMatrix: MatrixData;
+  status: "Aguardando revisão" | "Revisada" | "Ajustada manualmente";
+  editing: boolean;
+};
+const matrixFromFormData = (data: FormData): MatrixData => {
+  const columns = data.getAll("matrixColumnName").map(String);
+  const rowNames = data.getAll("matrixRowName").map(String);
+  const values = data.getAll("matrixValue").map(String);
+  return {
+    columns,
+    rows: rowNames.map((name, rowIndex) => ({
+      name,
+      values: columns.map(
+        (_, columnIndex) =>
+          values[rowIndex * columns.length + columnIndex] || "",
       ),
     })),
   };
@@ -866,7 +1018,7 @@ function Modal({
           </span>
           <span>
             <small>Última alteração</small>
-            <b>{item.alteracao} às 14:32</b>
+            <b>{item.registradoEm ? rgaDateTime(item.registradoEm) : item.alteracao + " às 14:32"}</b>
           </span>
           <span>
             <small>Alterado por</small>
@@ -878,7 +1030,9 @@ function Modal({
             className={tab === "valores" ? "active" : ""}
             onClick={() => setTab("valores")}
           >
-            Tabela de valores
+            {item.remuneracaoComissionado
+              ? "Parâmetros remuneratórios"
+              : "Tabela de valores"}
           </button>
           <button
             className={tab === "info" ? "active" : ""}
@@ -888,12 +1042,18 @@ function Modal({
           </button>
         </nav>
         {tab === "valores" ? (
-          <Matrix />
+          item.remuneracaoComissionado ? (
+            <CommissionedValuesSummary
+              data={item.remuneracaoComissionado}
+            />
+          ) : (
+            <Matrix data={item.matrix} />
+          )
         ) : (
           <div className="tv-info">
             <span>
               <small>Fundamento legal</small>
-              <b>Lei Complementar nº 600/2017</b>
+              <b>{item.baseLegal || "Lei Complementar nº 600/2017"}</b>
             </span>
             <span>
               <small>Ato normativo</small>
@@ -909,7 +1069,7 @@ function Modal({
             </span>
             <span>
               <small>Observação</small>
-              <b>Valores definidos conforme a estrutura vigente da carreira.</b>
+              <b>{item.observacao || "Valores definidos conforme a estrutura vigente da carreira."}</b>
             </span>
             <span>
               <small>Usuário responsável pela criação</small>
@@ -934,6 +1094,7 @@ function List({ batch = false }: { batch?: boolean }) {
   const savedTables = readSavedTables();
   const [, setDataRevision] = useState(0);
   const [expandedCargo, setExpandedCargo] = useState<number | null>(null);
+  const [comissionadoSort, setComissionadoSort] = useState<"asc" | "desc" | null>(null);
   const [viewTable, setViewTable] = useState<{
     cargo: Cargo;
     item: Versao;
@@ -953,13 +1114,29 @@ function List({ batch = false }: { batch?: boolean }) {
   >(null);
   const [historyTab, setHistoryTab] = useState<"valores" | "info" | "rga">("valores");
   const [legalPreview, setLegalPreview] = useState(false);
+  const [createJourney, setCreateJourney] = useState<{
+    cargo: Cargo;
+    jornada: string;
+  }>();
+  const [createMode, setCreateMode] = useState<"manual" | "proportional">(
+    "manual",
+  );
   const { control, reset, watch } = useForm<{ cargo: string }>({
     defaultValues: { cargo: "" },
   });
   const cargoFiltro = watch("cargo");
+  const comissionadoLabel = (cargo: Cargo) =>
+    cargo.comissionado ? "Comissionado" : "Não comissionado";
   const rows = CARGOS.filter(
     (x) => !cargoFiltro || String(x.id) === cargoFiltro,
-  );
+  ).sort((a, b) => {
+    if (!comissionadoSort) return 0;
+    const comparison = comissionadoLabel(a).localeCompare(
+      comissionadoLabel(b),
+      "pt-BR",
+    );
+    return comissionadoSort === "asc" ? comparison : -comparison;
+  });
   const cargoTables = (cargo: Cargo) => {
     const history = [VERSOES[1], VERSOES[2], VERSOES[3]];
     return cargo.jornadas.map((jornada, index) => {
@@ -974,6 +1151,7 @@ function List({ batch = false }: { batch?: boolean }) {
         matrix: table.matrix,
         baseLegal: table.baseLegal,
         observacao: table.observacao,
+        proporcional: table.proporcional,
       }));
       const firstCargoVersions =
         index === 0 ? history : index === 2 ? [VERSOES[2]] : [];
@@ -992,12 +1170,9 @@ function List({ batch = false }: { batch?: boolean }) {
               ? [VERSOES[2]]
               : history.slice(0, historySize)
             : [];
-      const rawVersions =
-        cargo.id === 1
-          ? staticVersions
-          : savedVersions.length
-          ? savedVersions
-          : staticVersions;
+      const rawVersions = savedVersions.length
+        ? savedVersions
+        : staticVersions;
       return {
         item: resolveJourneyVersions(rawVersions, localIsoDate()).find(
           isVersionCurrent,
@@ -1025,6 +1200,24 @@ function List({ batch = false }: { batch?: boolean }) {
       };
     });
   };
+  const openCreateJourney = (cargo: Cargo, jornada: string) => {
+    const reference = readSavedTables().find(
+      (table) =>
+        table.cargoId === cargo.id &&
+        table.versao.origem === "Referência" &&
+        isVersionCurrent(table.versao),
+    );
+    setCreateMode(reference ? "proportional" : "manual");
+    setCreateJourney({ cargo, jornada });
+  };
+  const referenceForCreation = createJourney
+    ? readSavedTables().find(
+        (table) =>
+          table.cargoId === createJourney.cargo.id &&
+          table.versao.origem === "Referência" &&
+          isVersionCurrent(table.versao),
+      )
+    : undefined;
   const openRgaApplication = (
     cargo: Cargo,
     jornada: string,
@@ -1097,7 +1290,7 @@ function List({ batch = false }: { batch?: boolean }) {
     return (
       <RgaLotePage
         getJourneys={() =>
-          CARGOS.flatMap((cargo) =>
+          CARGOS.filter((cargo) => !cargo.comissionado).flatMap((cargo) =>
             cargoTables(cargo).map((table) => ({
               ...table,
               cargoId: cargo.id,
@@ -1192,6 +1385,32 @@ function List({ batch = false }: { batch?: boolean }) {
                     <th>
                       Cargo <i className="pi pi-sort-alt" />
                     </th>
+                    <th
+                      aria-sort={
+                        comissionadoSort === "asc"
+                          ? "ascending"
+                          : comissionadoSort === "desc"
+                            ? "descending"
+                            : "none"
+                      }
+                    >
+                      <button
+                        type="button"
+                        className="tv-cargo-sort-button"
+                        onClick={() =>
+                          setComissionadoSort((current) =>
+                            current === null
+                              ? "asc"
+                              : current === "asc"
+                                ? "desc"
+                                : null,
+                          )
+                        }
+                      >
+                        <span>Comissionado</span>
+                        <i className="pi pi-sort-alt" aria-hidden="true" />
+                      </button>
+                    </th>
                     <th>Jornadas</th>
                     <th>Ação</th>
                   </tr>
@@ -1206,6 +1425,18 @@ function List({ batch = false }: { batch?: boolean }) {
                       >
                         <td>{String(cargo.id).padStart(4, "0")}</td>
                         <td>{cargo.nome}</td>
+                        <td>
+                          <span
+                            className={
+                              "tv-cargo-commission-tag " +
+                              (cargo.comissionado
+                                ? "is-commissioned"
+                                : "is-not-commissioned")
+                            }
+                          >
+                            {comissionadoLabel(cargo)}
+                          </span>
+                        </td>
                         <td>
                           <span className="tv-profile-count-tag">
                             {cargo.jornadas.length}{" "}
@@ -1240,7 +1471,7 @@ function List({ batch = false }: { batch?: boolean }) {
                       </tr>
                       {expanded && (
                         <tr className="tv-cargo-expanded-row">
-                          <td colSpan={4}>
+                          <td colSpan={5}>
                             <div className="tv-cargo-expanded-content">
                               {tables.length ? (
                                 <div className="tv-scroll">
@@ -1252,6 +1483,7 @@ function List({ batch = false }: { batch?: boolean }) {
                                         <th>Ano</th>
                                         <th>Vigência</th>
                                         <th>Situação</th>
+                                        <th>Origem</th>
                                         <th>Ações</th>
                                       </tr>
                                     </thead>
@@ -1306,6 +1538,29 @@ function List({ batch = false }: { batch?: boolean }) {
                                                 <span className="tv-status sem-tabela">
                                                   Sem tabela cadastrada
                                                 </span>
+                                              )}
+                                            </td>
+                                            <td>
+                                              {item ? (
+                                                <span
+                                                  className={
+                                                    "tv-origin-tag " +
+                                                    (item.origem === "Referência"
+                                                      ? "is-reference"
+                                                      : item.origem?.startsWith("Proporcional")
+                                                        ? "is-proportional"
+                                                        : item.origem === "Ajustada manualmente"
+                                                          ? "is-adjusted"
+                                                          : "is-manual")
+                                                  }
+                                                >
+                                                  {item.origem === "Cadastro inicial" ||
+                                                  item.origem === "Versionamento"
+                                                    ? "Manual"
+                                                    : item.origem || "Manual"}
+                                                </span>
+                                              ) : (
+                                                "—"
                                               )}
                                             </td>
                                             <td>
@@ -1462,12 +1717,9 @@ function List({ batch = false }: { batch?: boolean }) {
                                                     title="Cadastrar nova tabela"
                                                     aria-label="Cadastrar nova tabela"
                                                     onClick={() =>
-                                                      nav(
-                                                        BASE +
-                                                          "/novo?cargo=" +
-                                                          cargo.id +
-                                                          "&jornada=" +
-                                                          encodeURIComponent(jornada),
+                                                      openCreateJourney(
+                                                        cargo,
+                                                        jornada,
                                                       )
                                                     }
                                                   >
@@ -1498,14 +1750,9 @@ function List({ batch = false }: { batch?: boolean }) {
                                                   title="Cadastrar tabela"
                                                   aria-label="Cadastrar tabela"
                                                   onClick={() =>
-                                                    nav(
-                                                      BASE +
-                                                        "/novo?cargo=" +
-                                                        cargo.id +
-                                                        "&jornada=" +
-                                                        encodeURIComponent(
-                                                          jornada,
-                                                        ),
+                                                    openCreateJourney(
+                                                      cargo,
+                                                      jornada,
                                                     )
                                                   }
                                                 >
@@ -1562,6 +1809,107 @@ function List({ batch = false }: { batch?: boolean }) {
           </div>
         </div>
       </CardSeplag>
+      {createJourney && (
+        <div className="tv-profile-list-overlay" role="presentation">
+          <section
+            className="tv-create-journey-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tv-create-journey-title"
+          >
+            <header>
+              <div>
+                <h2 id="tv-create-journey-title">
+                  Criar tabela para {createJourney.jornada}
+                </h2>
+                <p>Como deseja criar esta tabela?</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={() => setCreateJourney(undefined)}
+              >
+                <i className="pi pi-times" />
+              </button>
+            </header>
+            <div className="tv-create-journey-options">
+              <label className={createMode === "manual" ? "selected" : ""}>
+                <input
+                  type="radio"
+                  name="createJourneyMode"
+                  checked={createMode === "manual"}
+                  onChange={() => setCreateMode("manual")}
+                />
+                <span className="tv-create-journey-option-icon">
+                  <i className="pi pi-pencil" />
+                </span>
+                <span>
+                  <strong>Cadastrar manualmente</strong>
+                  <small>
+                    Informe os valores diretamente para esta jornada.
+                  </small>
+                </span>
+              </label>
+              <label
+                className={
+                  createMode === "proportional" && referenceForCreation
+                    ? "selected"
+                    : ""
+                }
+                aria-disabled={!referenceForCreation}
+              >
+                <input
+                  type="radio"
+                  name="createJourneyMode"
+                  disabled={!referenceForCreation}
+                  checked={createMode === "proportional"}
+                  onChange={() => setCreateMode("proportional")}
+                />
+                <span className="tv-create-journey-option-icon">
+                  <i className="pi pi-calculator" />
+                </span>
+                <span>
+                  <strong>
+                    {referenceForCreation
+                      ? "Gerar proporcionalmente a partir de " +
+                        referenceForCreation.jornada
+                      : "Gerar proporcionalmente"}
+                  </strong>
+                  <small>
+                    {referenceForCreation
+                      ? "Utiliza os valores da tabela de referência e calcula automaticamente os valores proporcionais desta jornada."
+                      : "Nenhuma tabela de referência vigente está disponível."}
+                  </small>
+                </span>
+              </label>
+            </div>
+            <footer>
+              <BotaoVoltarSeplag
+                type="button"
+                label="Cancelar"
+                onClick={() => setCreateJourney(undefined)}
+              />
+              <BotaoSalvarSeplag
+                type="button"
+                label="Continuar"
+                onClick={() => {
+                  const query = new URLSearchParams({
+                    cargo: String(createJourney.cargo.id),
+                    jornada: createJourney.jornada,
+                  });
+                  if (createMode === "proportional" && referenceForCreation) {
+                    query.set("proporcionalDe", referenceForCreation.jornada);
+                    if (referenceForCreation.id) {
+                      query.set("referenciaRegistro", referenceForCreation.id);
+                    }
+                  }
+                  nav(BASE + "/novo?" + query.toString());
+                }}
+              />
+            </footer>
+          </section>
+        </div>
+      )}
       {viewTable && (
         <Modal
           cargo={viewTable.cargo}
@@ -1663,7 +2011,9 @@ function List({ batch = false }: { batch?: boolean }) {
                           <td>
                             {version.auditoriaRga
                               ? rgaDateTime(version.auditoriaRga.aplicadaEm)
-                              : version.alteracao + " às 14:32"}
+                              : version.registradoEm
+                                ? rgaDateTime(version.registradoEm)
+                                : version.alteracao + " às 14:32"}
                           </td>
                           <td>
                             <button
@@ -1717,7 +2067,9 @@ function List({ batch = false }: { batch?: boolean }) {
                                     }
                                     onClick={() => setHistoryTab("valores")}
                                   >
-                                    Tabela de valores
+                                    {version.remuneracaoComissionado
+                                      ? "Parâmetros remuneratórios"
+                                      : "Tabela de valores"}
                                   </button>
                                   <button
                                     type="button"
@@ -1739,9 +2091,15 @@ function List({ batch = false }: { batch?: boolean }) {
                                   )}
                                 </nav>
                                 {historyTab === "valores" ? (
-                                  <div className="tv-history-matrix">
-                                    <Matrix data={version.matrix} />
-                                  </div>
+                                  version.remuneracaoComissionado ? (
+                                    <CommissionedValuesSummary
+                                      data={version.remuneracaoComissionado}
+                                    />
+                                  ) : (
+                                    <div className="tv-history-matrix">
+                                      <Matrix data={version.matrix} />
+                                    </div>
+                                  )
                                 ) : historyTab === "info" ? (
                                   <div className="tv-history-additional-info">
                                     <div className="tv-history-info-grid">
@@ -1764,7 +2122,11 @@ function List({ batch = false }: { batch?: boolean }) {
                                             ? rgaDateTime(
                                                 version.auditoriaRga.aplicadaEm,
                                               )
-                                            : version.alteracao + " às 14:32"}
+                                            : version.registradoEm
+                                              ? rgaDateTime(
+                                                  version.registradoEm,
+                                                )
+                                              : version.alteracao + " às 14:32"}
                                         </strong>
                                       </div>
                                       <div className="tv-history-data-item">
@@ -1775,6 +2137,36 @@ function List({ batch = false }: { batch?: boolean }) {
                                             : version.origem || "Cadastro inicial"}
                                         </strong>
                                       </div>
+                                      {version.proporcional && (
+                                        <>
+                                          <div className="tv-history-data-item">
+                                            <small>Tabela de referência utilizada</small>
+                                            <strong>
+                                              {version.proporcional.jornadaReferencia} ·{" "}
+                                              {version.proporcional.versaoReferencia}
+                                            </strong>
+                                          </div>
+                                          <div className="tv-history-data-item">
+                                            <small>Percentual aplicado</small>
+                                            <strong>
+                                              {version.proporcional.percentual.toLocaleString(
+                                                "pt-BR",
+                                                { maximumFractionDigits: 2 },
+                                              )}
+                                              %
+                                            </strong>
+                                          </div>
+                                          <div className="tv-history-data-item">
+                                            <small>Ajuste manual</small>
+                                            <strong>
+                                              {version.proporcional
+                                                .ajustadaManualmente
+                                                ? "Sim"
+                                                : "Não"}
+                                            </strong>
+                                          </div>
+                                        </>
+                                      )}
                                       <div className="tv-history-data-item">
                                         <small>Base legal</small>
                                         <div className="tv-legal-file">
@@ -2242,6 +2634,24 @@ function Form({
   const savedRecord = readSavedTables().find(
     (table) => table.id === params.get("registro"),
   );
+  const proportionalSourceRecord = readSavedTables().find(
+    (table) => table.id === params.get("referenciaRegistro"),
+  );
+  const initialIsReferenceTable =
+    savedRecord?.versao.origem === "Referência";
+  const linkedJourneyDefaults = initialIsReferenceTable
+    ? Array.from(
+        new Set(
+          readSavedTables()
+            .filter(
+              (table) =>
+                table.cargoId === savedRecord?.cargoId &&
+                table.proporcional?.jornadaReferencia === initialJornada,
+            )
+            .map((table) => table.jornada),
+        ),
+      )
+    : [];
   const initialInicio = toInputDate(
     rgaOnly
       ? params.get("inicio") || savedRecord?.versao.inicio || ""
@@ -2271,8 +2681,31 @@ function Form({
         }
       : undefined;
   const rgaInfo = savedRecord?.rga || rgaViewDefaults;
+  const rgaCommissionedBase =
+    savedRecord?.versao.valorBase ||
+    (savedRecord?.versao.remuneracaoComissionado
+      ? {
+          columns: [
+            "Exclusivamente Comissionado",
+            "Nomeado Efetivo",
+          ],
+          rows: [
+            {
+              name: "000",
+              values: [
+                savedRecord.versao.remuneracaoComissionado.subsidio,
+                savedRecord.versao.remuneracaoComissionado.valorCalculado,
+              ],
+            },
+          ],
+        }
+      : undefined);
   const rgaViewBase = rgaContextEnabled
-    ? savedRecord?.versao.valorBase || savedRecord?.matrix || defaultMatrixData()
+    ? initialCargo?.comissionado
+      ? rgaCommissionedBase
+      : savedRecord?.versao.valorBase ||
+        savedRecord?.matrix ||
+        defaultMatrixData()
     : undefined;
   const rgaViewApplied = rgaViewBase
     ? savedRecord?.versao.origem === "RGA" && savedRecord?.matrix
@@ -2302,9 +2735,28 @@ function Form({
           "Valores definidos conforme a estrutura vigente da carreira."
       : "",
   );
+  const initialRemuneracaoComissionado =
+    savedRecord?.versao.remuneracaoComissionado;
+  const [subsidioComissionado, setSubsidioComissionado] = useState(
+    initialRemuneracaoComissionado?.subsidio || "",
+  );
+  const [percentualComissionado, setPercentualComissionado] = useState(
+    initialRemuneracaoComissionado?.percentual || "",
+  );
   const [activeTab, setActiveTab] = useState<
-    "identificacao" | "valores" | "rga"
+    "identificacao" | "valores" | "revisao" | "confirmacao" | "rga"
   >(rgaOnly ? "rga" : "identificacao");
+  const [isReferenceTable, setIsReferenceTable] = useState(
+    initialIsReferenceTable,
+  );
+  const [selectedJourneys, setSelectedJourneys] = useState<string[]>(
+    linkedJourneyDefaults,
+  );
+  const [proportionalReviews, setProportionalReviews] = useState<
+    ProportionalReview[]
+  >([]);
+  const [referenceMatrix, setReferenceMatrix] = useState<MatrixData>();
+  const [activeReviewJourney, setActiveReviewJourney] = useState("");
   const [rgaPercentual, setRgaPercentual] = useState(
     rgaInfo?.percentual || "",
   );
@@ -2324,7 +2776,7 @@ function Form({
     rgaInfo?.observacao || "",
   );
   const [rgaSimulation, setRgaSimulation] = useState<MatrixData | undefined>(
-    rgaViewApplied,
+    viewRgaEnabled ? rgaViewApplied : undefined,
   );
   const [rgaBaseMatrix, setRgaBaseMatrix] = useState<MatrixData | undefined>(
     rgaViewBase,
@@ -2340,6 +2792,66 @@ function Form({
   const [rgaError, setRgaError] = useState("");
   const opcoesDocumentosLegais = useDocumentosLegaisAssociaveis();
   const cargo = CARGOS.find((x) => String(x.id) === cargoId);
+  const isCargoComissionado = cargo?.comissionado === true;
+  const journeyHasConflict = (targetJourney: string) => {
+    if (!cargo) return false;
+    const savedConflict = readSavedTables().some(
+      (table) =>
+        table.cargoId === cargo.id &&
+        table.jornada === targetJourney &&
+        (isVersionCurrent(table.versao) || table.versao.status === "Futura") &&
+        !(
+          edit &&
+          initialIsReferenceTable &&
+          table.proporcional?.jornadaReferencia === jornada
+        ),
+    );
+    const targetIndex = cargo.jornadas.indexOf(targetJourney);
+    const staticConflict =
+      !readSavedTables().some(
+        (table) =>
+          table.cargoId === cargo.id && table.jornada === targetJourney,
+      ) &&
+      targetIndex >= 0 &&
+      targetIndex < cargo.vigentes;
+    return savedConflict || staticConflict;
+  };
+  const proportionalTargetJourneys = (cargo?.jornadas || [])
+    .filter((targetJourney) => targetJourney !== jornada)
+    .map((targetJourney) => ({
+      jornada: targetJourney,
+      percentual: journeyHours(jornada)
+        ? (journeyHours(targetJourney) / journeyHours(jornada)) * 100
+        : 0,
+      conflict: journeyHasConflict(targetJourney),
+      allowed: !cargo?.jornadasNaoProporcionais?.includes(targetJourney),
+    }));
+  const activeProportionalReview = proportionalReviews.find(
+    (review) => review.jornada === activeReviewJourney,
+  );
+  const displayedReviewMatrix =
+    activeReviewJourney === jornada
+      ? referenceMatrix
+      : activeProportionalReview?.matrix;
+  const updateProportionalReview = (
+    targetJourney: string,
+    update: (review: ProportionalReview) => ProportionalReview,
+  ) =>
+    setProportionalReviews((current) =>
+      current.map((review) =>
+        review.jornada === targetJourney ? update(review) : review,
+      ),
+    );
+  const valorCalculadoComissionado = commissionCalculatedValue(
+    subsidioComissionado,
+    percentualComissionado,
+  );
+  const remuneracaoComissionadoAtual: RemuneracaoCargoComissionado = {
+    subsidio: subsidioComissionado,
+    percentual: percentualComissionado,
+    valorCalculado: valorCalculadoComissionado,
+    baseCalculo: "SUBSIDIO",
+  };
   const jornadaIndex = cargo?.jornadas.indexOf(jornada) ?? -1;
   const hasPreviousTable = Boolean(
     cargo &&
@@ -2405,26 +2917,6 @@ function Form({
     setRgaSuccess(false);
     const form = formRef.current;
     if (!form) return;
-    const formData = new FormData(form);
-    const matrixColumns = formData.getAll("matrixColumnName").map(String);
-    const matrixRowNames = formData.getAll("matrixRowName").map(String);
-    const matrixValues = formData.getAll("matrixValue").map(String);
-    if (!matrixColumns.length || !matrixRowNames.length) {
-      setRgaError(
-        "Informe os níveis, classes e valores da nova versão antes de simular a RGA.",
-      );
-      return;
-    }
-    const matrixBase: MatrixData = {
-      columns: matrixColumns,
-      rows: matrixRowNames.map((name, rowIndex) => ({
-        name,
-        values: matrixColumns.map(
-          (_, columnIndex) =>
-            matrixValues[rowIndex * matrixColumns.length + columnIndex] || "",
-        ),
-      })),
-    };
     if (
       !isRgaVigenciaWithinTable(
         vigenciaInicio,
@@ -2436,25 +2928,9 @@ function Form({
       setRgaError(RGA_VIGENCIA_FORA_TABELA);
       return;
     }
-    const matrixIncomplete =
-      matrixBase.columns.some((column) => !column.trim()) ||
-      matrixBase.rows.some(
-        (row) =>
-          !row.name.trim() ||
-          row.values.some(
-            (value) =>
-              !String(value)
-                .replace(/\D/g, "")
-                .replace(/^0+/, "").length,
-          ),
-      );
-    if (matrixIncomplete) {
-      setRgaError(
-        "Preencha todos os níveis, classes e valores da matriz antes de simular a RGA.",
-      );
-      return;
-    }
-    const percentual = Number(rgaPercentual.replace("%", "").replace(",", "."));
+    const percentual = Number(
+      rgaPercentual.replace("%", "").replace(",", "."),
+    );
     if (
       !percentual ||
       percentual <= 0 ||
@@ -2468,24 +2944,94 @@ function Form({
       );
       return;
     }
-    const parseMoney = (value: string) =>
-      Number(value.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
-    const formatMoney = (value: number) =>
-      new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }).format(value);
-    setRgaSimulation({
-      columns: [...matrixBase.columns],
-      rows: matrixBase.rows.map((row) => ({
-        name: row.name,
-        values: row.values.map((value) =>
-          formatMoney(
-            Math.round(parseMoney(value) * (1 + percentual / 100) * 100) / 100,
+    let matrixBase: MatrixData;
+    if (isCargoComissionado) {
+      if (commissionCurrencyValue(subsidioComissionado) <= 0) {
+        setRgaError(
+          "A tabela vigente não possui um subsídio válido para aplicação da RGA.",
+        );
+        return;
+      }
+      matrixBase = {
+        columns: ["Exclusivamente Comissionado", "Nomeado Efetivo"],
+        rows: [
+          {
+            name: "000",
+            values: [subsidioComissionado, valorCalculadoComissionado],
+          },
+        ],
+      };
+    } else {
+      const formData = new FormData(form);
+      const matrixColumns = formData
+        .getAll("matrixColumnName")
+        .map(String);
+      const matrixRowNames = formData
+        .getAll("matrixRowName")
+        .map(String);
+      const matrixValues = formData.getAll("matrixValue").map(String);
+      if (!matrixColumns.length || !matrixRowNames.length) {
+        setRgaError(
+          "Informe os níveis, classes e valores da nova versão antes de simular a RGA.",
+        );
+        return;
+      }
+      matrixBase = {
+        columns: matrixColumns,
+        rows: matrixRowNames.map((name, rowIndex) => ({
+          name,
+          values: matrixColumns.map(
+            (_, columnIndex) =>
+              matrixValues[rowIndex * matrixColumns.length + columnIndex] ||
+              "",
           ),
-        ),
-      })),
-    });
+        })),
+      };
+      const matrixIncomplete =
+        matrixBase.columns.some((column) => !column.trim()) ||
+        matrixBase.rows.some(
+          (row) =>
+            !row.name.trim() ||
+            row.values.some(
+              (value) =>
+                !String(value)
+                  .replace(/\D/g, "")
+                  .replace(/^0+/, "").length,
+            ),
+        );
+      if (matrixIncomplete) {
+        setRgaError(
+          "Preencha todos os níveis, classes e valores da matriz antes de simular a RGA.",
+        );
+        return;
+      }
+    }
+    if (isCargoComissionado) {
+      const subsidioAtualizado = rgaCurrency(
+        Math.round(
+          commissionCurrencyValue(subsidioComissionado) *
+            (1 + percentual / 100) *
+            100,
+        ) / 100,
+      );
+      setRgaSimulation({
+        columns: ["Exclusivamente Comissionado", "Nomeado Efetivo"],
+        rows: [
+          {
+            name: "000",
+            values: [
+              subsidioAtualizado,
+              commissionCalculatedValue(
+                subsidioAtualizado,
+                percentualComissionado,
+              ),
+            ],
+          },
+        ],
+      });
+    } else {
+      setRgaSimulation(applyRgaToMatrix(matrixBase, rgaPercentual));
+    }
     setRgaBaseMatrix(matrixBase);
     setRgaSimulationSignature(rgaSimulationSignatureFor(matrixBase));
     setRgaApplied(false);
@@ -2494,27 +3040,42 @@ function Form({
   const confirmRgaApplication = () => {
     const form = formRef.current;
     if (!form || !rgaSimulation || !rgaSimulationSignature) return;
-    const formData = new FormData(form);
-    const matrixColumns = formData.getAll("matrixColumnName").map(String);
-    const matrixRowNames = formData.getAll("matrixRowName").map(String);
-    const matrixValues = formData.getAll("matrixValue").map(String);
-    const currentMatrix: MatrixData = {
-      columns: matrixColumns,
-      rows: matrixRowNames.map((name, rowIndex) => ({
-        name,
-        values: matrixColumns.map(
-          (_, columnIndex) =>
-            matrixValues[rowIndex * matrixColumns.length + columnIndex] || "",
-        ),
-      })),
-    };
+    let currentMatrix: MatrixData | undefined;
+    if (isCargoComissionado) {
+      currentMatrix = rgaBaseMatrix;
+    } else {
+      const formData = new FormData(form);
+      const matrixColumns = formData
+        .getAll("matrixColumnName")
+        .map(String);
+      const matrixRowNames = formData
+        .getAll("matrixRowName")
+        .map(String);
+      const matrixValues = formData.getAll("matrixValue").map(String);
+      currentMatrix = {
+        columns: matrixColumns,
+        rows: matrixRowNames.map((name, rowIndex) => ({
+          name,
+          values: matrixColumns.map(
+            (_, columnIndex) =>
+              matrixValues[rowIndex * matrixColumns.length + columnIndex] ||
+              "",
+          ),
+        })),
+      };
+    }
     if (
+      !currentMatrix ||
       rgaSimulationStale ||
       rgaSimulationSignature !== rgaSimulationSignatureFor(currentMatrix)
     ) {
       invalidateRgaSimulation();
       setRgaApplyConfirmation(false);
       return;
+    }
+    if (isCargoComissionado) {
+      const subsidioAtualizado = rgaSimulation.rows[0]?.values[0];
+      if (subsidioAtualizado) setSubsidioComissionado(subsidioAtualizado);
     }
     setRgaAppliedMatrix(rgaSimulation);
     setRgaApplied(true);
@@ -2542,42 +3103,110 @@ function Form({
       setActiveTab("valores");
       return;
     }
-    if (Number(d.get("matrixRowCount")) < 1) {
-      setError("Adicione pelo menos uma linha à matriz de valores.");
-      return;
-    }
-    if (Number(d.get("matrixColumnCount")) < 1) {
-      setError("Adicione pelo menos uma coluna à matriz de valores.");
-      return;
-    }
-    const hasDuplicates = (values: FormDataEntryValue[]) => {
-      const normalized = values.map((value) =>
-        String(value).trim().toLocaleLowerCase("pt-BR"),
-      );
-      return new Set(normalized).size !== normalized.length;
-    };
-    if (hasDuplicates(d.getAll("matrixRowName"))) {
-      setError("Não é permitido repetir o nome de uma linha na mesma tabela.");
-      return;
-    }
-    if (hasDuplicates(d.getAll("matrixColumnName"))) {
-      setError("Não é permitido repetir o nome de uma coluna na mesma tabela.");
-      return;
-    }
-    const hasMatrixValue = d
-      .getAll("matrixValue")
-      .some(
-        (value) =>
-          String(value).replace(/\D/g, "").replace(/^0+/, "").length > 0,
-      );
-    if (!hasMatrixValue) {
-      setError(
-        "Informe ao menos um valor para uma combinação de nível e classe antes de salvar a tabela.",
-      );
-      return;
+    if (isCargoComissionado) {
+      const subsidioValido = commissionCurrencyValue(subsidioComissionado) > 0;
+      const percentual = commissionPercentageValue(percentualComissionado);
+      if (!subsidioValido) {
+        setError(
+          "Informe um valor válido para Subsídio — Exclusivamente Comissionado.",
+        );
+        return;
+      }
+      if (
+        !percentualComissionado ||
+        percentual < 0 ||
+        percentual > 100
+      ) {
+        setError(
+          "Informe um percentual válido entre 0% e 100% para Nomeado Efetivo.",
+        );
+        return;
+      }
+    } else {
+      if (Number(d.get("matrixRowCount")) < 1) {
+        setError("Adicione pelo menos uma linha à matriz de valores.");
+        return;
+      }
+      if (Number(d.get("matrixColumnCount")) < 1) {
+        setError("Adicione pelo menos uma coluna à matriz de valores.");
+        return;
+      }
+      const hasDuplicates = (values: FormDataEntryValue[]) => {
+        const normalized = values.map((value) =>
+          String(value).trim().toLocaleLowerCase("pt-BR"),
+        );
+        return new Set(normalized).size !== normalized.length;
+      };
+      if (hasDuplicates(d.getAll("matrixRowName"))) {
+        setError("Não é permitido repetir o nome de uma linha na mesma tabela.");
+        return;
+      }
+      if (hasDuplicates(d.getAll("matrixColumnName"))) {
+        setError("Não é permitido repetir o nome de uma coluna na mesma tabela.");
+        return;
+      }
+      const hasMatrixValue = d
+        .getAll("matrixValue")
+        .some(
+          (value) =>
+            String(value).replace(/\D/g, "").replace(/^0+/, "").length > 0,
+        );
+      if (!hasMatrixValue) {
+        setError(
+          "Informe ao menos um valor para uma combinação de nível e classe antes de salvar a tabela.",
+        );
+        return;
+      }
     }
     if (d.get("fim") && String(d.get("fim")) < String(d.get("inicio"))) {
       setError("A data final da vigência deve ser posterior à data inicial.");
+      return;
+    }
+    if (activeTab === "valores" && isReferenceTable) {
+      if (!selectedJourneys.length) {
+        setError(
+          "Selecione ao menos uma jornada elegível para o cálculo proporcional.",
+        );
+        return;
+      }
+      const baseMatrix = matrixFromFormData(d);
+      const reviews = selectedJourneys.map((targetJourney) => {
+        const calculated = proportionalMatrix(
+          baseMatrix,
+          jornada,
+          targetJourney,
+        );
+        return {
+          jornada: targetJourney,
+          percentual: journeyHours(jornada)
+            ? (journeyHours(targetJourney) / journeyHours(jornada)) * 100
+            : 0,
+          matrix: calculated,
+          calculatedMatrix: structuredClone(calculated),
+          status: "Aguardando revisão" as const,
+          editing: false,
+        };
+      });
+      setReferenceMatrix(baseMatrix);
+      setProportionalReviews(reviews);
+      setActiveReviewJourney(jornada);
+      setError("");
+      setActiveTab("revisao");
+      return;
+    }
+    if (activeTab === "revisao" && isReferenceTable) {
+      if (
+        proportionalReviews.some(
+          (review) => review.status === "Aguardando revisão",
+        )
+      ) {
+        setError(
+          "Revise e aprove o cálculo de todas as jornadas selecionadas para continuar.",
+        );
+        return;
+      }
+      setError("");
+      setActiveTab("confirmacao");
       return;
     }
     if (!edit && cargo && jornada) {
@@ -2588,6 +3217,20 @@ function Form({
       const salvasDaJornada = readSavedTables().filter(
         (table) => table.cargoId === cargo.id && table.jornada === jornada,
       );
+      const novaDataFim = fim || "9999-12-31";
+      const existeConflitoDePeriodo = salvasDaJornada.some((table) => {
+        const inicioExistente = toInputDate(table.versao.inicio);
+        const fimExistente = table.versao.fim
+          ? toInputDate(table.versao.fim)
+          : "9999-12-31";
+        return inicio <= fimExistente && inicioExistente <= novaDataFim;
+      });
+      if (existeConflitoDePeriodo) {
+        setError(
+          "Já existe uma tabela de vencimentos para esta jornada no período informado. Revise as datas de vigência para continuar.",
+        );
+        return;
+      }
       const existeVigenteSalva = salvasDaJornada.some((table) =>
         isVersionCurrent(table.versao),
       );
@@ -2602,7 +3245,7 @@ function Form({
         return;
       }
     }
-    if (!edit && d.get("inicio") === "2026-01-01") {
+    if (!edit && !isCargoComissionado && d.get("inicio") === "2026-01-01") {
       setError(
         "Já existe uma tabela de vencimentos para esta jornada no período informado. Revise as datas de vigência para continuar.",
       );
@@ -2626,11 +3269,34 @@ function Form({
         return;
       }
       versionConfirmed.current = false;
-      const inicioInformado = String(d.get("inicio") || "");
-      const fim = String(d.get("fim") || "");
+      const inicioInformado = String(
+        d.get("inicio") || vigenciaInicio || rgaInicio || "",
+      );
+      const fim = String(d.get("fim") || vigenciaFim || rgaFim || "");
       const matrixColumns = d.getAll("matrixColumnName").map(String);
       const matrixRowNames = d.getAll("matrixRowName").map(String);
       const matrixValues = d.getAll("matrixValue").map(String);
+      const currentMatrix: MatrixData = {
+        columns: matrixColumns,
+        rows: matrixRowNames.map((name, rowIndex) => ({
+          name,
+          values: matrixColumns.map(
+            (_, columnIndex) =>
+              matrixValues[rowIndex * matrixColumns.length + columnIndex] || "",
+          ),
+        })),
+      };
+      const calculatedFromSource =
+        proportionalSourceRecord?.matrix
+          ? proportionalMatrix(
+              proportionalSourceRecord.matrix,
+              proportionalSourceRecord.jornada,
+              jornada,
+            )
+          : undefined;
+      const proportionalWasAdjusted =
+        Boolean(calculatedFromSource) &&
+        JSON.stringify(currentMatrix) !== JSON.stringify(calculatedFromSource);
       const saved = readSavedTables();
       const inicio = inicioInformado;
       const record: TabelaSalva = {
@@ -2638,17 +3304,32 @@ function Form({
         cargoId: cargo.id,
         jornada,
         versao: {
+          numero: "V" + editingVersionNumber,
           ano: Number(inicio.slice(0, 4)) || new Date().getFullYear(),
           inicio: formatDate(inicio),
           fim: edit ? undefined : fim ? formatDate(fim) : undefined,
           status: inicio > todayIso ? "Futura" : "Vigente",
           alteracao: new Date().toLocaleDateString("pt-BR"),
           usuario: "Roberto Junior",
+          registradoEm: new Date().toISOString(),
+          remuneracaoComissionado: isCargoComissionado
+            ? remuneracaoComissionadoAtual
+            : undefined,
           origem: rgaApplied
             ? "RGA"
             : edit
-              ? "Versionamento"
-              : "Cadastro inicial",
+              ? initialIsReferenceTable
+                ? "Referência"
+                : "Versionamento"
+              : isReferenceTable
+                ? "Referência"
+                : proportionalSourceRecord
+                  ? proportionalWasAdjusted
+                    ? "Ajustada manualmente"
+                    : (("Proporcional " +
+                        journeyHours(proportionalSourceRecord.jornada) +
+                        "h") as Versao["origem"])
+                  : "Manual",
           percentualRga: rgaApplied ? rgaPercentual : undefined,
           valorBase:
             rgaApplied && rgaBaseMatrix
@@ -2673,17 +3354,21 @@ function Form({
               }
             : undefined,
         },
-        matrix: {
-          columns: matrixColumns,
-          rows: matrixRowNames.map((name, rowIndex) => ({
-            name,
-            values: matrixColumns.map(
-              (_, columnIndex) =>
-                matrixValues[rowIndex * matrixColumns.length + columnIndex] ||
-                "",
-            ),
-          })),
-        },
+        matrix: isCargoComissionado ? undefined : currentMatrix,
+        proporcional: proportionalSourceRecord?.matrix
+          ? {
+              jornadaReferencia: proportionalSourceRecord.jornada,
+              versaoReferencia:
+                proportionalSourceRecord.versao.numero || "V1",
+              percentual: journeyHours(proportionalSourceRecord.jornada)
+                ? (journeyHours(jornada) /
+                    journeyHours(proportionalSourceRecord.jornada)) *
+                  100
+                : 0,
+              ajustadaManualmente: proportionalWasAdjusted,
+              valoresCalculados: calculatedFromSource || currentMatrix,
+            }
+          : undefined,
         baseLegal:
           documentosLegais.join(", ") || "Lei Complementar nº 600/2017",
         observacao,
@@ -2739,6 +3424,69 @@ function Form({
       } else {
         saved.push(record);
       }
+      if (isReferenceTable && referenceMatrix) {
+          proportionalReviews.forEach((review, reviewIndex) => {
+            const targetVersion =
+              readSavedTables().filter(
+                (table) =>
+                  table.cargoId === cargo.id &&
+                  table.jornada === review.jornada,
+              ).length + 1;
+            if (edit) {
+              const previousTargetIndex = saved.findIndex(
+                (table) =>
+                  table.cargoId === cargo.id &&
+                  table.jornada === review.jornada &&
+                  isVersionCurrent(table.versao),
+              );
+              if (previousTargetIndex >= 0) {
+                saved[previousTargetIndex] = {
+                  ...saved[previousTargetIndex],
+                  versao: {
+                    ...saved[previousTargetIndex].versao,
+                    fim: previousDay,
+                    status: "Encerrada",
+                    alteracao: today,
+                  },
+                };
+              }
+            }
+            saved.push({
+              id: Date.now().toString() + "-proporcional-" + reviewIndex,
+              cargoId: cargo.id,
+              jornada: review.jornada,
+              versao: {
+                numero: "V" + targetVersion,
+                ano: Number(inicio.slice(0, 4)) || new Date().getFullYear(),
+                inicio: formatDate(inicio),
+                fim: fim ? formatDate(fim) : undefined,
+                status: inicio > todayIso ? "Futura" : "Vigente",
+                alteracao: new Date().toLocaleDateString("pt-BR"),
+                usuario: "Roberto Junior",
+                registradoEm: new Date().toISOString(),
+                origem: review.status === "Ajustada manualmente"
+                  ? "Ajustada manualmente"
+                  : (("Proporcional " +
+                      journeyHours(jornada) +
+                      "h") as Versao["origem"]),
+              },
+              matrix: review.matrix,
+              baseLegal:
+                documentosLegais.join(", ") ||
+                "Lei Complementar nº 600/2017",
+              observacao,
+              incideRga,
+              proporcional: {
+                jornadaReferencia: jornada,
+                versaoReferencia: record.versao.numero || "V1",
+                percentual: review.percentual,
+                ajustadaManualmente:
+                  review.status === "Ajustada manualmente",
+                valoresCalculados: review.calculatedMatrix,
+              },
+            });
+          });
+        }
       window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
     }
     nav(BASE + "?salvo=1" + (activeTab === "rga" ? "&rga=1" : ""));
@@ -2784,8 +3532,15 @@ function Form({
           invalidateRgaSimulation();
         }}
       >
+
         <nav
-          className={`tv-form-tabs ${rgaOnly ? "tv-form-tabs--rga-only" : "tv-form-tabs--two"}`}
+          className={`tv-form-tabs ${
+            rgaOnly
+              ? "tv-form-tabs--rga-only"
+              : isReferenceTable
+                ? "tv-form-tabs--proportional"
+                : "tv-form-tabs--two"
+          }`}
           aria-label="Etapas da tabela de vencimentos"
         >
           <button
@@ -2800,8 +3555,37 @@ function Form({
             className={activeTab === "valores" ? "active" : ""}
             onClick={() => setActiveTab("valores")}
           >
-            Valores por Nível e Classe
+            {isCargoComissionado
+              ? "Valores de cargo comissionado"
+              : isReferenceTable
+                ? "Valores da tabela de referência"
+                : "Valores por Nível e Classe"}
           </button>
+          {isReferenceTable && !rgaOnly ? (
+            <>
+              <button
+                type="button"
+                className={activeTab === "revisao" ? "active" : ""}
+                disabled={!proportionalReviews.length}
+                onClick={() => setActiveTab("revisao")}
+              >
+                Revisão das jornadas
+              </button>
+              <button
+                type="button"
+                className={activeTab === "confirmacao" ? "active" : ""}
+                disabled={
+                  !proportionalReviews.length ||
+                  proportionalReviews.some(
+                    (review) => review.status === "Aguardando revisão",
+                  )
+                }
+                onClick={() => setActiveTab("confirmacao")}
+              >
+                Confirmação
+              </button>
+            </>
+          ) : null}
           {rgaOnly ? (
             <button
               type="button"
@@ -2834,6 +3618,9 @@ function Form({
                   setCarreira(e.target.value);
                   setCargoId("");
                   setJornada("");
+                  setIsReferenceTable(false);
+                  setSelectedJourneys([]);
+                  setProportionalReviews([]);
                 }}
               >
                 <option value="">Selecione</option>
@@ -2853,6 +3640,9 @@ function Form({
                 onChange={(e) => {
                   setCargoId(e.target.value);
                   setJornada("");
+                  setIsReferenceTable(false);
+                  setSelectedJourneys([]);
+                  setProportionalReviews([]);
                 }}
               >
                 <option value="">Selecione</option>
@@ -2874,7 +3664,23 @@ function Form({
                 name="jornada"
                 disabled={view || edit || !!initialJornada}
                 value={jornada}
-                onChange={(e) => setJornada(e.target.value)}
+                onChange={(e) => {
+                  const nextJourney = e.target.value;
+                  setJornada(nextJourney);
+                  setProportionalReviews([]);
+                  if (isReferenceTable && cargo) {
+                    setSelectedJourneys(
+                      cargo.jornadas.filter(
+                        (targetJourney) =>
+                          targetJourney !== nextJourney &&
+                          !journeyHasConflict(targetJourney) &&
+                          !cargo.jornadasNaoProporcionais?.includes(
+                            targetJourney,
+                          ),
+                      ),
+                    );
+                  }
+                }}
               >
                 <option value="">Selecione</option>
                 {(cargo?.jornadas || []).map((x) => (
@@ -2942,11 +3748,514 @@ function Form({
               )}
             </div>
           </div>
+          {!view &&
+            !rgaOnly &&
+            !isCargoComissionado &&
+            (!edit || initialIsReferenceTable) && (
+            <div className="tv-reference-choice">
+              <div>
+                <strong>
+                  {edit
+                    ? "Esta tabela é referência para outras " +
+                      linkedJourneyDefaults.length +
+                      " jornadas. Deseja gerar novas versões proporcionais para revisão?"
+                    : "Esta será a tabela de referência para cálculo proporcional das demais jornadas deste cargo?"}
+                  <em>*</em>
+                </strong>
+                <small>
+                  {edit
+                    ? "As versões vigentes não serão sobrescritas antes da confirmação."
+                    : "Ao selecionar Sim, o sistema calcula as jornadas elegíveis com base na carga horária informada."}
+                </small>
+              </div>
+              <div className="tv-reference-radios">
+                <label>
+                  <input
+                    type="radio"
+                    name="isReferenceTable"
+                    checked={isReferenceTable}
+                    onChange={() => {
+                      setIsReferenceTable(true);
+                      setSelectedJourneys(
+                        edit && linkedJourneyDefaults.length
+                          ? linkedJourneyDefaults
+                          : proportionalTargetJourneys
+                              .filter(
+                            (target) => !target.conflict && target.allowed,
+                          )
+                              .map((target) => target.jornada),
+                      );
+                    }}
+                  />
+                  {edit ? "Gerar novas versões para revisão" : "Sim"}
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="isReferenceTable"
+                    checked={!isReferenceTable}
+                    onChange={() => {
+                      setIsReferenceTable(false);
+                      setSelectedJourneys([]);
+                      setProportionalReviews([]);
+                    }}
+                  />
+                  Não
+                </label>
+              </div>
+              {isReferenceTable && jornada && (
+                <>
+                  <div className="tv-reference-info" role="note">
+                    <i className="pi pi-info-circle" />
+                    <span>
+                      {cargo?.jornadas.length || 0} jornadas identificadas.{" "}
+                      {selectedJourneys.length} tabelas proporcionais serão
+                      geradas a partir da jornada de {jornada}.
+                    </span>
+                  </div>
+                  <div className="tv-reference-journeys">
+                    <div className="tv-reference-journeys-head">
+                      <span>Jornada</span>
+                      <span>Tipo</span>
+                      <span>Proporção</span>
+                      <span>Gerar</span>
+                    </div>
+                    <div className="tv-reference-journey-source">
+                      <span>{jornada}</span>
+                      <span>Referência</span>
+                      <span>100%</span>
+                      <span>—</span>
+                    </div>
+                    {proportionalTargetJourneys.map((target) => (
+                      <label
+                        key={target.jornada}
+                        className={
+                          target.conflict || !target.allowed
+                            ? "has-conflict"
+                            : ""
+                        }
+                      >
+                        <span>{target.jornada}</span>
+                        <span>
+                          {target.conflict
+                            ? "Já possui tabela vigente/futura"
+                            : !target.allowed
+                              ? "Cálculo proporcional não disponível"
+                              : "Proporcional"}
+                        </span>
+                        <span>
+                          {target.percentual.toLocaleString("pt-BR", {
+                            maximumFractionDigits: 2,
+                          })}
+                          %
+                        </span>
+                        <input
+                          type="checkbox"
+                          disabled={target.conflict || !target.allowed}
+                          checked={selectedJourneys.includes(target.jornada)}
+                          onChange={(event) =>
+                            setSelectedJourneys((current) =>
+                              event.target.checked
+                                ? [...current, target.jornada]
+                                : current.filter(
+                                    (item) => item !== target.jornada,
+                                  ),
+                            )
+                          }
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </section>
         <section
           className={
+            "prototype-novo-ingresso-panel tv-values-panel tv-tab-panel " +
+            (activeTab === "valores" ? "active" : "")
+          }
+        >
+          <h3>
+            <span className="prototype-novo-ingresso-panel-icon">
+              <i className="pi pi-dollar" aria-hidden="true" />
+            </span>
+            <div>
+              <span>
+                {isCargoComissionado
+                  ? "Valores do cargo comissionado"
+                  : isReferenceTable
+                    ? "Valores da tabela de referência — " + jornada
+                    : "Valores por Nível e Classe"}
+              </span>
+              {isCargoComissionado ? (
+                <small>
+                  Informe o valor de referência e o percentual de gratificação
+                  aplicável ao cargo comissionado.
+                </small>
+              ) : null}
+            </div>
+          </h3>
+          {isCargoComissionado ? (
+            <div className="tv-commission-values-content">
+              <div className="tv-commission-fields">
+                <label className="tv-commission-reference-field">
+                  <span>Referência</span>
+                  <input
+                    type="text"
+                    value="000"
+                    readOnly
+                    disabled
+                    aria-label="Referência"
+                  />
+                </label>
+                <label>
+                  <span>
+                    Subsídio — Exclusivamente Comissionado<em>*</em>
+                  </span>
+                  <input
+                    required
+                    name="subsidioComissionado"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="R$ 0,00"
+                    disabled={view || rgaOnly}
+                    value={subsidioComissionado}
+                    onChange={(event) =>
+                      setSubsidioComissionado(
+                        formatCommissionCurrencyInput(event.target.value),
+                      )
+                    }
+                  />
+                  <small>
+                    Valor devido quando o cargo for ocupado por servidor
+                    exclusivamente comissionado.
+                  </small>
+                </label>
+                <label>
+                  <span>
+                    Percentual — Nomeado Efetivo<em>*</em>
+                  </span>
+                  <input
+                    required
+                    name="percentualComissionado"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0%"
+                    disabled={view || rgaOnly}
+                    value={percentualComissionado}
+                    onChange={(event) =>
+                      setPercentualComissionado(
+                        formatCommissionPercentageInput(event.target.value),
+                      )
+                    }
+                  />
+                  <small>
+                    Percentual de gratificação aplicável ao servidor ou
+                    empregado de carreira nomeado para o cargo comissionado.
+                  </small>
+                </label>
+              </div>
+              <CommissionedValuesSummary data={remuneracaoComissionadoAtual} />
+              <div className="tv-commission-info" role="note">
+                <i className="pi pi-info-circle" aria-hidden="true" />
+                <span>
+                  O cargo {cargo?.nome} possui dois parâmetros de remuneração:
+                  subsídio para Exclusivamente Comissionado e percentual de
+                  gratificação para Nomeado Efetivo.
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="tv-values-content">
+              <div className="tv-section-head">
+                <p>
+                  Matriz gerada conforme a estrutura do cargo e da carreira.
+                </p>
+                {!view && !rgaOnly && (
+                  <BotaoSeplag
+                    type="button"
+                    label="Copiar valores da tabela anterior"
+                    icon="pi pi-copy"
+                    disabled={!hasPreviousTable}
+                    onClick={() => setCopy(true)}
+                  />
+                )}
+              </div>
+              <Matrix
+                key={String(copy) + String(Boolean(rgaAppliedMatrix))}
+                edit={!view && !rgaOnly}
+                copy={
+                  view ||
+                  rgaOnly ||
+                  copy ||
+                  Boolean(rgaAppliedMatrix) ||
+                  Boolean(rgaSimulationStale && rgaBaseMatrix)
+                }
+                data={
+                  rgaAppliedMatrix ||
+                  (rgaSimulationStale ? rgaBaseMatrix : undefined) ||
+                  (proportionalSourceRecord?.matrix
+                    ? proportionalMatrix(
+                        proportionalSourceRecord.matrix,
+                        proportionalSourceRecord.jornada,
+                        jornada,
+                      )
+                    : view || edit
+                      ? savedRecord?.matrix
+                      : undefined)
+                }
+                onStructureChange={invalidateRgaSimulation}
+              />
+            </div>
+          )}
+        </section>
+        {isReferenceTable && (
+          <section
+            className={
+              "prototype-novo-ingresso-panel tv-proportional-review tv-tab-panel " +
+              (activeTab === "revisao" ? "active" : "")
+            }
+          >
+            <h3>
+              <span className="prototype-novo-ingresso-panel-icon">
+                <i className="pi pi-check-square" aria-hidden="true" />
+              </span>
+              <div>
+                <span>Revisão das jornadas proporcionais</span>
+                <small>
+                  Confira os valores calculados e aprove cada jornada antes de
+                  salvar.
+                </small>
+              </div>
+            </h3>
+            <div className="tv-review-chips">
+              <button
+                type="button"
+                className={activeReviewJourney === jornada ? "active" : ""}
+                onClick={() => setActiveReviewJourney(jornada)}
+              >
+                <span>{jornada}</span>
+                <small>Referência · 100%</small>
+              </button>
+              {proportionalReviews.map((review) => (
+                <button
+                  type="button"
+                  key={review.jornada}
+                  className={
+                    (activeReviewJourney === review.jornada ? "active " : "") +
+                    (review.status === "Revisada"
+                      ? "is-reviewed"
+                      : review.status === "Ajustada manualmente"
+                        ? "is-adjusted"
+                        : "is-pending")
+                  }
+                  onClick={() => setActiveReviewJourney(review.jornada)}
+                >
+                  <span>{review.jornada}</span>
+                  <small>
+                    {review.percentual.toLocaleString("pt-BR", {
+                      maximumFractionDigits: 2,
+                    })}
+                    % · {review.status}
+                  </small>
+                </button>
+              ))}
+            </div>
+            <div className="tv-review-summary">
+              <span>
+                <small>Tabela base</small>
+                <strong>{jornada}</strong>
+              </span>
+              <span>
+                <small>Jornada visualizada</small>
+                <strong>{activeReviewJourney || "—"}</strong>
+              </span>
+              <span>
+                <small>Proporção aplicada</small>
+                <strong>
+                  {activeReviewJourney === jornada
+                    ? "100%"
+                    : activeProportionalReview
+                      ? activeProportionalReview.percentual.toLocaleString(
+                          "pt-BR",
+                          { maximumFractionDigits: 2 },
+                        ) + "%"
+                      : "—"}
+                </strong>
+              </span>
+              <span>
+                <small>Status</small>
+                <strong>
+                  {activeReviewJourney === jornada
+                    ? "Referência"
+                    : activeProportionalReview?.status || "—"}
+                </strong>
+              </span>
+            </div>
+            {displayedReviewMatrix && (
+              <div className="tv-scroll tv-review-matrix">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nível</th>
+                      {displayedReviewMatrix.columns.map((column, index) => (
+                        <th key={column + index}>{column}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayedReviewMatrix.rows.map((row, rowIndex) => (
+                      <tr key={row.name + rowIndex}>
+                        <th>{row.name}</th>
+                        {row.values.map((value, columnIndex) => (
+                          <td key={columnIndex}>
+                            {activeProportionalReview?.editing ? (
+                              <input
+                                value={value}
+                                aria-label={
+                                  row.name +
+                                  " " +
+                                  displayedReviewMatrix.columns[columnIndex]
+                                }
+                                onChange={(event) =>
+                                  updateProportionalReview(
+                                    activeProportionalReview.jornada,
+                                    (review) => ({
+                                      ...review,
+                                      status: "Ajustada manualmente",
+                                      matrix: {
+                                        ...review.matrix,
+                                        rows: review.matrix.rows.map(
+                                          (matrixRow, currentRowIndex) =>
+                                            currentRowIndex === rowIndex
+                                              ? {
+                                                  ...matrixRow,
+                                                  values:
+                                                    matrixRow.values.map(
+                                                      (
+                                                        matrixValue,
+                                                        currentColumnIndex,
+                                                      ) =>
+                                                        currentColumnIndex ===
+                                                        columnIndex
+                                                          ? event.target.value
+                                                          : matrixValue,
+                                                    ),
+                                                }
+                                              : matrixRow,
+                                        ),
+                                      },
+                                    }),
+                                  )
+                                }
+                              />
+                            ) : (
+                              value
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {activeProportionalReview && (
+              <div className="tv-review-actions">
+                <BotaoSeplag
+                  type="button"
+                  label={
+                    activeProportionalReview.editing
+                      ? "Concluir ajuste"
+                      : "Ajustar manualmente"
+                  }
+                  icon="pi pi-pencil"
+                  onClick={() =>
+                    updateProportionalReview(
+                      activeProportionalReview.jornada,
+                      (review) => ({
+                        ...review,
+                        editing: !review.editing,
+                        status: review.status,
+                      }),
+                    )
+                  }
+                />
+                <BotaoSalvarSeplag
+                  type="button"
+                  label="Aprovar cálculo"
+                  onClick={() =>
+                    updateProportionalReview(
+                      activeProportionalReview.jornada,
+                      (review) => ({
+                        ...review,
+                        matrix: structuredClone(review.calculatedMatrix),
+                        status: "Revisada",
+                        editing: false,
+                      }),
+                    )
+                  }
+                />
+              </div>
+            )}
+          </section>
+        )}
+        {isReferenceTable && (
+          <section
+            className={
+              "prototype-novo-ingresso-panel tv-proportional-confirm tv-tab-panel " +
+              (activeTab === "confirmacao" ? "active" : "")
+            }
+          >
+            <h3>
+              <span className="prototype-novo-ingresso-panel-icon">
+                <i className="pi pi-verified" aria-hidden="true" />
+              </span>
+              <div>
+                <span>Confirmação das tabelas</span>
+                <small>
+                  Cada jornada será registrada como uma tabela independente.
+                </small>
+              </div>
+            </h3>
+            <div className="tv-confirm-summary">
+              <div className="tv-confirm-reference">
+                <span>{jornada}</span>
+                <strong>Tabela de referência</strong>
+                <small>Versão e histórico próprios</small>
+              </div>
+              {proportionalReviews.map((review) => (
+                <div key={review.jornada}>
+                  <span>{review.jornada}</span>
+                  <strong>
+                    {review.percentual.toLocaleString("pt-BR", {
+                      maximumFractionDigits: 2,
+                    })}
+                    % da referência
+                  </strong>
+                  <small>{review.status} · versão independente</small>
+                </div>
+              ))}
+            </div>
+            <div className="tv-reference-info" role="note">
+              <i className="pi pi-info-circle" />
+              <span>
+                Ao confirmar, a tabela de referência e as tabelas proporcionais
+                serão salvas separadamente e permanecerão vinculadas para
+                rastreabilidade.
+              </span>
+            </div>
+          </section>
+        )}
+        <section
+          className={
             "prototype-novo-ingresso-panel tv-observation-card tv-tab-panel " +
-            (activeTab === "identificacao" ? "active" : "")
+            (activeTab ===
+            (isCargoComissionado ? "valores" : "identificacao")
+              ? "active"
+              : "")
           }
         >
           <h3>
@@ -2973,50 +4282,6 @@ function Form({
               onChange={(event) => setObservacao(event.target.value)}
             />
             <small>{observacao.length}/2000</small>
-          </div>
-        </section>
-        <section
-          className={
-            "prototype-novo-ingresso-panel tv-values-panel tv-tab-panel " +
-            (activeTab === "valores" ? "active" : "")
-          }
-        >
-          <h3>
-            <span className="prototype-novo-ingresso-panel-icon">
-              <i className="pi pi-dollar" aria-hidden="true" />
-            </span>
-            <span>Valores por Nível e Classe</span>
-          </h3>
-          <div className="tv-values-content">
-            <div className="tv-section-head">
-              <p>Matriz gerada conforme a estrutura do cargo e da carreira.</p>
-              {!view && !rgaOnly && (
-                <BotaoSeplag
-                  type="button"
-                  label="Copiar valores da tabela anterior"
-                  icon="pi pi-copy"
-                  disabled={!hasPreviousTable}
-                  onClick={() => setCopy(true)}
-                />
-              )}
-            </div>
-            <Matrix
-              key={String(copy) + String(Boolean(rgaAppliedMatrix))}
-              edit={!view && !rgaOnly}
-              copy={
-                view ||
-                rgaOnly ||
-                copy ||
-                Boolean(rgaAppliedMatrix) ||
-                Boolean(rgaSimulationStale && rgaBaseMatrix)
-              }
-              data={
-                rgaAppliedMatrix ||
-                (rgaSimulationStale ? rgaBaseMatrix : undefined) ||
-                (view || edit ? savedRecord?.matrix : undefined)
-              }
-              onStructureChange={invalidateRgaSimulation}
-            />
           </div>
         </section>
         {rgaOnly && (
@@ -3060,8 +4325,9 @@ function Form({
             <div className="tv-rga-info">
               <i className="pi pi-info-circle" />
               <span>
-                O RGA será calculado sobre os valores atualmente informados na
-                seção Valores por Nível e Classe desta versão.
+                {isCargoComissionado
+                  ? "O RGA será aplicado sobre o subsídio vigente e refletido no valor do Nomeado Efetivo conforme o percentual de gratificação cadastrado."
+                  : "O RGA será calculado sobre os valores atualmente informados na seção Valores por Nível e Classe desta versão."}
               </span>
             </div>
             <div className="tv-rga-main-grid">
@@ -3202,7 +4468,7 @@ function Form({
                     </dd>
                   </div>
                   <div>
-                    <dt>Quantidade de valores da matriz</dt>
+                    <dt>{isCargoComissionado ? "Valores reajustados" : "Quantidade de valores da matriz"}</dt>
                     <dd>
                       {rgaSimulation
                         ? rgaSimulation.rows.length *
@@ -3268,13 +4534,13 @@ function Form({
               </div>
             )}
             <div className="tv-rga-preview">
-              <h4>{view || (edit && rgaContextEnabled) ? "Valores aplicados pelo RGA" : "Pré-visualização dos novos valores"}</h4>
+              <h4>{view || (edit && rgaContextEnabled && !rgaOnly) ? "Valores aplicados pelo RGA" : "Pré-visualização dos novos valores"}</h4>
               <div className="tv-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>Nível</th>
-                      <th>Classe</th>
+                      <th>{isCargoComissionado ? "Referência" : "Nível"}</th>
+                      <th>{isCargoComissionado ? "Tipo de vínculo" : "Classe"}</th>
                       <th>Valor base</th>
                       <th>Percentual RGA</th>
                       <th>Valor com RGA</th>
@@ -3334,9 +4600,9 @@ function Form({
                 <p>
                   <i className="pi pi-users" aria-hidden="true" />
                   <span>
-                    Todos os servidores vinculados a esta tabela terão o reflexo
-                    automático em sua remuneração-base conforme o respectivo
-                    Nível e Classe.
+                    {isCargoComissionado
+                      ? "O subsídio do Exclusivamente Comissionado será reajustado e o valor do Nomeado Efetivo será recalculado pelo percentual de gratificação vigente."
+                      : "Todos os servidores vinculados a esta tabela terão o reflexo automático em sua remuneração-base conforme o respectivo Nível e Classe."}
                   </span>
                 </p>
                 <p>
@@ -3358,14 +4624,25 @@ function Form({
               <BotaoSalvarSeplag
                 type="submit"
                 label={
-                  activeTab === "identificacao"
-                    ? "Avançar"
-                    : activeTab === "rga"
-                      ? "Finalizar"
-                      : "Salvar tabela"
+                  activeTab === "rga"
+                    ? "Finalizar"
+                    : activeTab === "identificacao"
+                      ? "Avançar"
+                      : activeTab === "valores" && isReferenceTable
+                        ? "Calcular jornadas"
+                        : activeTab === "revisao"
+                          ? "Avançar para confirmação"
+                          : activeTab === "confirmacao"
+                            ? "Confirmar tabelas"
+                            : "Salvar tabela"
                 }
                 disabled={
-                  activeTab === "rga" && (!rgaApplied || rgaSimulationStale)
+                  (activeTab === "rga" &&
+                    (!rgaApplied || rgaSimulationStale)) ||
+                  (activeTab === "revisao" &&
+                    proportionalReviews.some(
+                      (review) => review.status === "Aguardando revisão",
+                    ))
                 }
               />
             </div>
@@ -3457,10 +4734,9 @@ function Form({
             </header>
             <div className="tv-version-confirm-content">
               <p>
-                O RGA será aplicado aos valores desta versão da tabela de
-                vencimentos. Os valores calculados substituirão os valores
-                atualmente informados na matriz desta nova versão. A versão
-                anterior permanecerá inalterada. Deseja continuar?
+                {isCargoComissionado
+                  ? "O RGA será aplicado ao subsídio vigente do cargo comissionado. O valor de Nomeado Efetivo será recalculado automaticamente e a versão anterior permanecerá inalterada. Deseja continuar?"
+                  : "O RGA será aplicado aos valores desta versão da tabela de vencimentos. Os valores calculados substituirão os valores atualmente informados na matriz desta nova versão. A versão anterior permanecerá inalterada. Deseja continuar?"}
               </p>
             </div>
             <footer>
