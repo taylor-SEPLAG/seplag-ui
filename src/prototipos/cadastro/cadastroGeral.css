@@ -29,7 +29,8 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
-.prototype-cadastro-geral > section > a {
+.prototype-cadastro-geral > section > a,
+.prototype-cadastro-geral > section > .prototype-menu-card--unavailable {
   background: #fff;
   border: 1px solid #d9e2ec;
   border-radius: 8px;
@@ -49,7 +50,8 @@
   transform: translateY(-2px);
 }
 
-.prototype-cadastro-geral > section > a > i:first-child {
+.prototype-cadastro-geral > section > a > i:first-child,
+.prototype-cadastro-geral > section > .prototype-menu-card--unavailable > i:first-child {
   color: #0067a5;
   font-size: 1.5rem;
 }
@@ -82,4 +84,20 @@
 
 @media (max-width: 640px) {
   .prototype-cadastro-geral { padding: 1rem; }
+}
+
+.prototype-cadastro-geral .prototype-menu-card--unavailable {
+  background: var(--surface-50, #f8fafc);
+  border-style: dashed;
+  color: inherit;
+  cursor: not-allowed;
+  opacity: .72;
+}
+
+.prototype-cadastro-geral section .prototype-menu-card--unavailable > span {
+  color: #526579;
+  font-size: .875rem;
+  font-weight: 700;
+  margin-top: auto;
+  padding-top: 1rem;
 }

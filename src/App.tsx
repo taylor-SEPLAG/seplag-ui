@@ -39,6 +39,13 @@ import {
   PrototiposGestaoDocumentosPage,
   PrototiposGestaoDocumentosCadastroPage,
   PrototiposCadastroGeralPage,
+  PrototiposPessoasGeralPage,
+  PrototiposEstruturaOrganizacionalGeralPage,
+  PrototiposCargoConcursoGeralPage,
+  PrototiposMovimentacaoGeralPage,
+  PrototiposDocumentacaoGeralPage,
+  PrototiposAposentadoriaBeneficiosGeralPage,
+  PrototiposParametrizacaoGeralPage,
   PrototiposControleVagasRegrasPage,
   PrototiposControleVagasGeralPage,
   PrototiposVagasTemporariosPage,
@@ -1525,6 +1532,13 @@ function App() {
       />
       <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
       <Route path="/prototipos/sigep/cadastro" element={<PrototiposCadastroGeralPage />} />
+      <Route path="/prototipos/sigep/pessoas" element={<PrototiposPessoasGeralPage />} />
+      <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional" element={<PrototiposEstruturaOrganizacionalGeralPage />} />
+      <Route path="/prototipos/sigep/cargo-concurso" element={<PrototiposCargoConcursoGeralPage />} />
+      <Route path="/prototipos/sigep/movimentacao" element={<PrototiposMovimentacaoGeralPage />} />
+      <Route path="/prototipos/sigep/documentacao" element={<PrototiposDocumentacaoGeralPage />} />
+      <Route path="/prototipos/sigep/aposentadoria-beneficios" element={<PrototiposAposentadoriaBeneficiosGeralPage />} />
+      <Route path="/prototipos/sigep/parametrizacao" element={<PrototiposParametrizacaoGeralPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma" element={<PrototiposOrganogramaPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" element={<PrototiposTiposUnidadesPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades/cadastrar" element={<PrototiposTipoUnidadeCadastroPage />} />
