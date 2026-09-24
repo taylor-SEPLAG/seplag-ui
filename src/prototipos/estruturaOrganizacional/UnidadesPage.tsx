@@ -13,6 +13,7 @@ import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePa
 import type { ResultsSeplag } from "@interfaces/Results";
 import { menuGestaoPessoas, PrototypeSystemPage } from "../PrototiposPage";
 import { criarNovaVersaoEstrutural, excluirUnidadeDaEstrutura, extinguirUnidadeDaEstrutura, gravarUnidadesDaEstrutura, lerEstruturaOrganizacional, type SituacaoUnidadeEstrutural, type UnidadeEstrutural } from "./estruturaOrganizacionalStore";
+import { tiposUnidadesAtivos } from "./tiposUnidadesStore";
 import "./unidadesList.css";
 
 type SituacaoUnidade = SituacaoUnidadeEstrutural;
@@ -69,14 +70,15 @@ function UnidadeCadastroPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const unidadeSelecionada = (location.state as { unidade?: UnidadeRow } | null)?.unidade;
+  const contextoOrganograma = (location.state as { contextoOrganograma?: { orgao: string; superior: { id: number; nome: string } | null } } | null)?.contextoOrganograma;
   const modoVisualizacao = new URLSearchParams(location.search).get("modo") === "visualizar";
   const modoEdicao = new URLSearchParams(location.search).get("modo") === "editar";
   const unidadeExtinta = unidadeSelecionada?.situacao === "EXTINTA";
   const { control, watch, setValue } = useForm<UnidadeCadastroForm>({
     defaultValues: {
-      orgao: unidadeSelecionada ? (unidadeSelecionada.orgao === "SEPLAG" ? "SEPLAG - Secretaria de Estado de Planejamento e Gestão" : "SEDUC - Secretaria de Estado de Educação") : "",
-      formaVinculacao: unidadeSelecionada ? (unidadeSelecionada.unidadeSuperior ? "SETOR" : "ORGAO") : "",
-      setorSuperior: unidadeSelecionada?.unidadeSuperior ?? "",
+      orgao: unidadeSelecionada ? (unidadeSelecionada.orgao === "SEPLAG" ? "SEPLAG - Secretaria de Estado de Planejamento e Gestão" : "SEDUC - Secretaria de Estado de Educação") : contextoOrganograma?.orgao ?? "",
+      formaVinculacao: unidadeSelecionada ? (unidadeSelecionada.unidadeSuperior ? "SETOR" : "ORGAO") : contextoOrganograma?.superior ? "SETOR" : contextoOrganograma ? "ORGAO" : "",
+      setorSuperior: unidadeSelecionada?.unidadeSuperior ?? contextoOrganograma?.superior?.nome ?? "",
       tipo: unidadeSelecionada?.tipo ?? "",
       nivelOrganizacional: unidadeSelecionada?.nivelOrganizacional ?? "",
       nome: unidadeSelecionada?.nome ?? "",
@@ -283,7 +285,7 @@ function UnidadeCadastroPage() {
             <PanelSeplag title="Identificação da unidade" description="Selecione o órgão e informe os dados básicos da unidade." className="unidades-register-panel">
               <div className="grid unidades-register-fields">
                 <DropdownFieldSeplag name="orgao" control={control} label="Órgão/Entidade" placeholder="Selecione..." cols="12 12 4" options={options(["SEPLAG - Secretaria de Estado de Planejamento e Gestão", "SEDUC - Secretaria de Estado de Educação"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
-                <DropdownFieldSeplag name="tipo" control={control} label="Tipo de unidade" placeholder="Selecione..." cols="12 12 4" options={options(["Gabinete", "Secretaria Adjunta", "Superintendência", "Coordenadoria", "Gerência", "Núcleo", "Unidade", "Conselho", "Comissão", "Ouvidoria", "Diretoria"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
+                <DropdownFieldSeplag name="tipo" control={control} label="Tipo de unidade" placeholder="Selecione..." cols="12 12 4" options={options(tiposUnidadesAtivos())} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
                 <DropdownFieldSeplag name="nivelOrganizacional" control={control} label="Nível organizacional" placeholder="Selecione..." cols="12 12 4" options={options(["Nível de Decisão Colegiada", "Nível de Direção Superior", "Nível de Assessoramento Superior", "Nível Assessoramento Estratégico e Especializado", "Nível de Administração Sistêmica", "Nível de Execução Programática", "Nível de Administração Regionalizada", "Nível de Administração Desconcentrada", "Nível de Administração Descentralizada"])} optionLabel="label" optionValue="value" required getFormErrorMessage={noError} />
                 <div className="col-12 unidades-register-field-help">UF e Município serão preenchidos automaticamente conforme o órgão selecionado.</div>
                 <TextFieldSeplag name="codigo" control={control} label="Código" placeholder="Gerado automaticamente" cols="12 12 2" disabled getFormErrorMessage={noError} />

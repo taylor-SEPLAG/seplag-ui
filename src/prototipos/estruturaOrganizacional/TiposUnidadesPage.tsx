@@ -11,36 +11,17 @@ import { ModalSeplag } from "@componentes/Modal";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "@interfaces/Results";
 import { menuGestaoPessoas, PrototypeSystemPage } from "../PrototiposPage";
+import { gravarTiposUnidades, lerTiposUnidades, type SituacaoTipoUnidadeEstrutural, type TipoUnidadeEstrutural } from "./tiposUnidadesStore";
 import "./tiposUnidades.css";
 import "./tiposUnidadesList.css";
 
-type SituacaoTipoUnidade = "ATIVO" | "INATIVO";
-
-interface TipoUnidadeRow {
-  id: number;
-  nome: string;
-  descricao: string;
-  situacao: SituacaoTipoUnidade;
-}
+type SituacaoTipoUnidade = SituacaoTipoUnidadeEstrutural;
+type TipoUnidadeRow = TipoUnidadeEstrutural;
 
 interface TipoUnidadeFiltro {
   pesquisa: string;
   situacao?: SituacaoTipoUnidade;
 }
-
-const tiposUnidades: TipoUnidadeRow[] = [
-  { id: 1, nome: "Gabinete", descricao: "Unidade de apoio e direção vinculada às estruturas de gestão.", situacao: "ATIVO" },
-  { id: 2, nome: "Secretaria Adjunta", descricao: "Estrutura de direção adjunta do órgão.", situacao: "ATIVO" },
-  { id: 3, nome: "Superintendência", descricao: "Unidade organizacional de coordenação e supervisão.", situacao: "ATIVO" },
-  { id: 4, nome: "Coordenadoria", descricao: "Unidade responsável pela coordenação de atividades específicas.", situacao: "ATIVO" },
-  { id: 5, nome: "Gerência", descricao: "Unidade responsável pela execução e gestão de atividades operacionais.", situacao: "ATIVO" },
-  { id: 6, nome: "Núcleo", descricao: "Unidade de apoio ou execução especializada.", situacao: "ATIVO" },
-  { id: 7, nome: "Unidade", descricao: "Classificação genérica para unidades administrativas específicas.", situacao: "ATIVO" },
-  { id: 8, nome: "Conselho", descricao: "Estrutura colegiada prevista na organização institucional.", situacao: "ATIVO" },
-  { id: 9, nome: "Comissão", descricao: "Estrutura colegiada de natureza específica ou temporária.", situacao: "ATIVO" },
-  { id: 10, nome: "Ouvidoria", descricao: "Unidade responsável por atividades de ouvidoria.", situacao: "ATIVO" },
-  { id: 11, nome: "Diretoria", descricao: "Unidade de direção prevista na estrutura do órgão.", situacao: "ATIVO" },
-];
 
 const situacaoOptions = [
   { label: "Ativo", value: "ATIVO" },
@@ -48,7 +29,7 @@ const situacaoOptions = [
 ];
 
 export function PrototiposTiposUnidadesPage() {
-  const [registros, setRegistros] = useState(tiposUnidades);
+  const [registros, setRegistros] = useState(lerTiposUnidades);
   const [modalCadastro, setModalCadastro] = useState(false);
   const [pagina, setPagina] = useState(0);
   const registrosPorPagina = 10;
@@ -65,12 +46,16 @@ export function PrototiposTiposUnidadesPage() {
   const cadastrarTipo = handleSubmit((form) => {
     const nome = form.nome.trim();
     if (!nome) return;
-    setRegistros((atuais) => [...atuais, {
+    setRegistros((atuais) => {
+      const atualizados = [...atuais, {
       id: Math.max(0, ...atuais.map((item) => item.id)) + 1,
       nome,
       descricao: form.descricao.trim(),
       situacao: form.situacao,
-    }]);
+      }];
+      gravarTiposUnidades(atualizados);
+      return atualizados;
+    });
     fecharCadastro();
   });
   const filtros = watch();
