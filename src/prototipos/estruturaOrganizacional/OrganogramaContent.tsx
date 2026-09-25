@@ -23,6 +23,7 @@ type Filtros = {
   documentoLegal: string;
   busca: string;
   nivel: string;
+  situacao: string;
   versaoComparacaoId: string;
 };
 type AdicionarUnidadeForm = { unidadeExistenteId: string; tipo: string; codigo: string; nivel: string; nome: string; documentoLegalId: string; dataCriacao: string; outraLocalidade: "NAO" | "SIM"; cep: string; estado: string; cidade: string; bairro: string; tipoLogradouro: string; logradouro: string; numero: string; complemento: string };
@@ -51,6 +52,7 @@ function OrganogramaDetalheContent() {
       documentoLegal: "Decreto nº 2.185, de 03/07/2026",
       busca: "",
       nivel: "Todos os níveis",
+      situacao: "",
       versaoComparacaoId: "",
     },
   });
@@ -63,6 +65,8 @@ function OrganogramaDetalheContent() {
   const [modalAdicionar, setModalAdicionar] = useState<{ referencia: Unidade | null; acao: "ABAIXO" | "IRMA" } | null>(null);
   const [modoAdicionar, setModoAdicionar] = useState<"EXISTENTE" | "NOVA">("EXISTENTE");
   const [abaModalAdicionar, setAbaModalAdicionar] = useState<"DADOS" | "HISTORICO">("DADOS");
+  const [abaModalVisualizacao, setAbaModalVisualizacao] = useState<"DADOS" | "HISTORICO">("DADOS");
+  const [abaEdicao, setAbaEdicao] = useState<"GRAFICA" | "LISTA">("GRAFICA");
   const [erroAdicionar, setErroAdicionar] = useState("");
   const { control: controlAdicionar, watch: watchAdicionar, reset: resetAdicionar } = useForm<AdicionarUnidadeForm>({ defaultValues: { unidadeExistenteId: "", tipo: "", codigo: "", nivel: "", nome: "", documentoLegalId: "", dataCriacao: "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" } });
   const orgaosDisponiveis = [...new Set(estrutura.versoes.map((versao) => versao.orgao))];
@@ -78,6 +82,7 @@ function OrganogramaDetalheContent() {
   const unidadesComparacao = useMemo(() => versaoComparacao ? obterUnidadesDaVersao(estrutura, versaoComparacao.id) : [], [estrutura, versaoComparacao]);
   const busca = watch("busca");
   const nivel = watch("nivel");
+  const situacao = watch("situacao");
 
   useEffect(() => {
     if (versaoVigente && !versoesDoOrgao.some((versao) => versao.id === versaoIdForm)) setValue("versaoId", versaoVigente.id);
@@ -89,11 +94,12 @@ function OrganogramaDetalheContent() {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
     return unidades.filter((unidade) =>
       (nivel === "Todos os níveis" || unidade.nivelOrganizacional === nivel) &&
+      (!situacao || unidade.situacao === situacao) &&
       (!termo || `${unidade.codigo} ${unidade.nome} ${unidade.tipo} ${unidade.nivelOrganizacional}`
         .toLocaleLowerCase("pt-BR")
         .includes(termo)),
     );
-  }, [busca, nivel]);
+  }, [busca, nivel, situacao, unidades]);
 
   const idsVisiveis = useMemo(() => {
     if (!busca.trim() && nivel === "Todos os níveis") return new Set(unidades.map((unidade) => unidade.id));
@@ -192,6 +198,7 @@ function OrganogramaDetalheContent() {
     }
     setModalAdicionar(null); setErroAdicionar("");
   };
+  const abrirVisualizacao = (unidade: Unidade) => { setSelecionada(unidade); setAbaModalVisualizacao("DADOS"); };
 
   const NoMontagem = ({ unidade }: { unidade: Unidade }) => {
     const filhos = filhosDe(unidade.id);
@@ -199,7 +206,7 @@ function OrganogramaDetalheContent() {
       <div className="organograma-builder-branch">
         <div className="organograma-builder-node-wrap">
           <article className="organograma-builder-node">
-            <button type="button" className="organograma-builder-node-content" onClick={() => setSelecionada(unidade)} title="Ver detalhes da unidade">
+            <button type="button" className="organograma-builder-node-content" onClick={() => abrirVisualizacao(unidade)} title="Visualizar cadastro da unidade">
               <small>{indices.get(unidade.id)} · {unidade.codigo}</small>
               <strong>{unidade.nome}</strong>
               <span>Nível da unidade: {unidade.nivelOrganizacional.replace("Nível de ", "")}</span>
@@ -222,7 +229,11 @@ function OrganogramaDetalheContent() {
         headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organogramas" }, { label: "Organograma" }]} />}
       >
         <PanelSeplag title={orgao} description="Área de montagem da estrutura organizacional." className="organograma-panel">
-          <div className="organograma-clean-canvas organograma-root-stage" aria-label="Área de montagem do organograma">
+          <div className="organograma-editor-tabs" role="tablist" aria-label="Visualizações do organograma">
+            <button type="button" role="tab" aria-selected={abaEdicao === "GRAFICA"} className={abaEdicao === "GRAFICA" ? "is-active" : ""} onClick={() => setAbaEdicao("GRAFICA")}><i className="pi pi-sitemap" /> Visão gráfica (Árvore)</button>
+            <button type="button" role="tab" aria-selected={abaEdicao === "LISTA"} className={abaEdicao === "LISTA" ? "is-active" : ""} onClick={() => setAbaEdicao("LISTA")}><i className="pi pi-list" /> Lista de Unidades <span>{unidades.length}</span></button>
+          </div>
+          {abaEdicao === "GRAFICA" ? <div className="organograma-clean-canvas organograma-root-stage" aria-label="Área de montagem do organograma">
             <div className="organograma-root-level">Nível 1 — Órgão</div>
             <div className="organograma-root-wrap">
               <span className="organograma-root-index">1</span>
@@ -236,7 +247,16 @@ function OrganogramaDetalheContent() {
               <button type="button" className="organograma-root-add is-bottom" aria-label="Cadastrar unidade abaixo" title="Cadastrar unidade abaixo" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
             </div>
             {raizes.length > 0 && <div className="organograma-builder-children organograma-builder-root-children">{raizes.map((unidade) => <NoMontagem key={unidade.id} unidade={unidade} />)}</div>}
-          </div>
+          </div> : <section className="organograma-units-list">
+            <div className="grid organograma-units-filters">
+              <TextFieldSeplag name="busca" control={control} label="Pesquisar na estrutura" placeholder="Nome da unidade, sigla ou código" cols="12 6 3" getFormErrorMessage={semErro} />
+              <DropdownFieldSeplag name="nivel" control={control} label="Nível organizacional" placeholder="Todos os níveis" cols="12 6 3" options={opcoes(["Todos os níveis", ...new Set(unidades.map((unidade) => unidade.nivelOrganizacional))])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
+              <DropdownFieldSeplag name="situacao" control={control} label="Situação" placeholder="Todas" cols="12 6 3" options={opcoes(["ATIVA", "INATIVA", "EXTINTA"])} optionLabel="label" optionValue="value" showClear getFormErrorMessage={semErro} />
+              <div className="col-12 md:col-6 lg:col-3 organograma-units-clear"><BotaoLimparFiltroSeplag label="Limpar" icon="pi pi-refresh" onClick={() => { setValue("busca", ""); setValue("nivel", "Todos os níveis"); setValue("situacao", ""); }} /></div>
+            </div>
+            <div className="organograma-units-table-wrap"><table className="organograma-units-table"><thead><tr><th>Código</th><th>Unidade</th><th>Órgão/Entidade</th><th>Tipo</th><th>Nível Organizacional</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{filtradas.map((unidade) => <tr key={unidade.id}><td>{indices.get(unidade.id)}</td><td><strong>{unidade.nome}</strong><small>{unidade.sigla ? `${unidade.sigla} · ` : ""}{unidade.codigo}</small></td><td>{orgaoSelecionado}</td><td><span className="organograma-list-type">{unidade.tipo}</span></td><td>{unidade.nivelOrganizacional}</td><td><BadgeSeplag label={unidade.situacao === "ATIVA" ? "Ativa" : unidade.situacao === "INATIVA" ? "Inativa" : "Extinta"} color={unidade.situacao === "ATIVA" ? "#00843d" : "#64748b"} bg={unidade.situacao === "ATIVA" ? "#e2f3e8" : "#f1f5f9"} border="transparent" size="sm" /></td><td><button type="button" className="organograma-units-view" title="Visualizar unidade" onClick={() => abrirVisualizacao(unidade)}><i className="pi pi-eye" /></button></td></tr>)}{filtradas.length === 0 && <tr><td colSpan={7} className="organograma-units-empty">Nenhuma unidade encontrada.</td></tr>}</tbody></table></div>
+            <p className="organograma-units-summary">Exibindo {filtradas.length} {filtradas.length === 1 ? "unidade" : "unidades"} da estrutura.</p>
+          </section>}
         </PanelSeplag>
       </CardSeplag>
       <ModalSeplag visible={Boolean(modalAdicionar)} titulo="Incluir unidade na estrutura" fechar={() => setModalAdicionar(null)} labelFechar="Cancelar" labelAcao="Cadastrar unidade" funcAcao={salvarAdicao} tamanho="min(1420px, calc(100vw - 32px))">
@@ -259,6 +279,16 @@ function OrganogramaDetalheContent() {
           </section>
           </>}
           {abaModalAdicionar === "HISTORICO" && <section className="col-12 organograma-add-history"><header><div><strong>Histórico de Alterações</strong><span>Registro cronológico de alterações e documentos vinculados a esta unidade.</span></div><small>0 registros encontrados</small></header><div className="organograma-add-history-empty"><i className="pi pi-history" /><strong>Nenhum histórico disponível</strong><span>O registro de criação será gerado automaticamente quando a unidade for cadastrada.</span></div></section>}
+        </div>}
+      </ModalSeplag>
+      <ModalSeplag visible={Boolean(selecionada)} titulo="Cadastro da unidade" fechar={() => setSelecionada(null)} tamanho="min(1120px, calc(100vw - 32px))" customFooter={<BotaoSeplag label="Fechar" icon="pi pi-times" outlined onClick={() => setSelecionada(null)} />}>
+        {selecionada && <div className="grid organograma-read-modal">
+          <div className="col-12 organograma-add-context"><span>Órgão/Entidade</span><strong>{orgao}</strong><small>Unidade superior: {nomeSuperior(selecionada)}</small></div>
+          <div className="col-12 organograma-add-tabs" role="tablist" aria-label="Seções do cadastro da unidade">
+            <button type="button" role="tab" aria-selected={abaModalVisualizacao === "DADOS"} className={abaModalVisualizacao === "DADOS" ? "is-active" : ""} onClick={() => setAbaModalVisualizacao("DADOS")}><i className="pi pi-id-card" /> Dados da Unidade</button>
+            <button type="button" role="tab" aria-selected={abaModalVisualizacao === "HISTORICO"} className={abaModalVisualizacao === "HISTORICO" ? "is-active" : ""} onClick={() => setAbaModalVisualizacao("HISTORICO")}><i className="pi pi-history" /> Histórico de Alterações <span>2</span></button>
+          </div>
+          {abaModalVisualizacao === "DADOS" ? <section className="col-12 organograma-read-data"><div><span>Código</span><strong>{selecionada.codigo}</strong></div><div><span>Tipo de unidade</span><strong>{selecionada.tipo}</strong></div><div><span>Nível organizacional</span><strong>{selecionada.nivelOrganizacional}</strong></div><div className="is-wide"><span>Nome da unidade</span><strong>{selecionada.nome}</strong></div><div><span>Data de criação</span><strong>{selecionada.dataInicio}</strong></div><div><span>Documento legal de criação</span><strong>{versaoSelecionada?.documentoLegal ?? "Não informado"}</strong></div><div><span>Localização</span><strong>{selecionada.localizacao}</strong></div></section> : <section className="col-12 organograma-add-history"><header><div><strong>Histórico de Alterações</strong><span>Registro cronológico de alterações e documentos vinculados a esta unidade.</span></div><small>2 registros encontrados</small></header><article className="organograma-history-record"><div className="organograma-history-record-title"><span>v2.0</span><strong>Alteração da classificação organizacional</strong><small>25/09/2026 às 10:14 por Administrador SIGEP</small></div><table><thead><tr><th>Campo alterado</th><th>Valor anterior</th><th>Valor novo</th></tr></thead><tbody><tr><td>Nível organizacional</td><td>Nível de Direção Superior</td><td>{selecionada.nivelOrganizacional}</td></tr><tr><td>Documento legal de criação</td><td>Decreto nº 1.050/2024</td><td>{versaoSelecionada?.documentoLegal ?? "Não informado"}</td></tr></tbody></table></article><article className="organograma-history-record"><div className="organograma-history-record-title"><span className="is-created">v1.0</span><strong>Criação da Unidade no Organograma</strong><small>{selecionada.dataInicio} por Sistema</small></div></article></section>}
         </div>}
       </ModalSeplag>
     </div>
