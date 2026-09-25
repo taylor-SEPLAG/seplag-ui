@@ -25,10 +25,17 @@ type Filtros = {
   nivel: string;
   versaoComparacaoId: string;
 };
-type AdicionarUnidadeForm = { unidadeExistenteId: string; nivel: string; nome: string; documentoLegalId: string; dataCriacao: string; outraLocalidade: "NAO" | "SIM"; cep: string; estado: string; cidade: string; bairro: string; tipoLogradouro: string; logradouro: string; numero: string; complemento: string };
+type AdicionarUnidadeForm = { unidadeExistenteId: string; tipo: string; codigo: string; nivel: string; nome: string; documentoLegalId: string; dataCriacao: string; outraLocalidade: "NAO" | "SIM"; cep: string; estado: string; cidade: string; bairro: string; tipoLogradouro: string; logradouro: string; numero: string; complemento: string };
 
 const opcoes = (valores: string[]) => valores.map((valor) => ({ label: valor, value: valor }));
 const semErro = () => null;
+const cidadesPorEstado: Record<string, string[]> = {
+  MT: ["Cuiabá", "Rondonópolis", "Sinop", "Várzea Grande", "Cáceres", "Tangará da Serra"],
+  GO: ["Goiânia", "Anápolis", "Aparecida de Goiânia", "Rio Verde"],
+  MS: ["Campo Grande", "Dourados", "Três Lagoas", "Corumbá"],
+  RO: ["Porto Velho", "Ji-Paraná", "Ariquemes", "Vilhena"],
+  SP: ["São Paulo", "Campinas", "Santos", "Ribeirão Preto"],
+};
 
 function OrganogramaDetalheContent() {
   const navigate = useNavigate();
@@ -55,8 +62,9 @@ function OrganogramaDetalheContent() {
   const [estrutura, setEstrutura] = useState(lerEstruturaOrganizacional);
   const [modalAdicionar, setModalAdicionar] = useState<{ referencia: Unidade | null; acao: "ABAIXO" | "IRMA" } | null>(null);
   const [modoAdicionar, setModoAdicionar] = useState<"EXISTENTE" | "NOVA">("EXISTENTE");
+  const [abaModalAdicionar, setAbaModalAdicionar] = useState<"DADOS" | "HISTORICO">("DADOS");
   const [erroAdicionar, setErroAdicionar] = useState("");
-  const { control: controlAdicionar, watch: watchAdicionar, reset: resetAdicionar } = useForm<AdicionarUnidadeForm>({ defaultValues: { unidadeExistenteId: "", nivel: "", nome: "", documentoLegalId: "", dataCriacao: "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" } });
+  const { control: controlAdicionar, watch: watchAdicionar, reset: resetAdicionar } = useForm<AdicionarUnidadeForm>({ defaultValues: { unidadeExistenteId: "", tipo: "", codigo: "", nivel: "", nome: "", documentoLegalId: "", dataCriacao: "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" } });
   const orgaosDisponiveis = [...new Set(estrutura.versoes.map((versao) => versao.orgao))];
   const orgao = watch("orgao");
   const orgaoSelecionado = orgao.split(" - ")[0];
@@ -109,7 +117,7 @@ function OrganogramaDetalheContent() {
     const preencher = (superiorId: number | null, prefixo: string) => filhosDe(superiorId).forEach((unidade, indice) => { const codigo = `${prefixo}.${indice + 1}`; resultado.set(unidade.id, codigo); preencher(unidade.id, codigo); });
     preencher(null, "1"); return resultado;
   }, [unidades]);
-  const abrirAdicionar = (acao: "ABAIXO" | "IRMA", referencia: Unidade | null = null) => { resetAdicionar({ unidadeExistenteId: "", nivel: "", nome: "", documentoLegalId: versaoSelecionada?.documentoLegalId ?? "", dataCriacao: versaoSelecionada?.inicio ?? "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" }); setModoAdicionar("NOVA"); setErroAdicionar(""); setModalAdicionar({ referencia, acao }); };
+  const abrirAdicionar = (acao: "ABAIXO" | "IRMA", referencia: Unidade | null = null) => { resetAdicionar({ unidadeExistenteId: "", tipo: "", codigo: "", nivel: "", nome: "", documentoLegalId: versaoSelecionada?.documentoLegalId ?? "", dataCriacao: versaoSelecionada?.inicio ?? "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" }); setModoAdicionar("NOVA"); setAbaModalAdicionar("DADOS"); setErroAdicionar(""); setModalAdicionar({ referencia, acao }); };
 
   const profundidade = (unidade: Unidade) => {
     let valor = 0;
@@ -177,10 +185,10 @@ function OrganogramaDetalheContent() {
       if (!unidadeId) { setErroAdicionar("Selecione uma Unidade existente."); return; }
       setEstrutura(vincularUnidadeAoOrganograma(versaoSelecionada.id, unidadeId, contextoAdicionar.superiorId, contextoAdicionar.ordem));
     } else {
-      if (!watchAdicionar("nome").trim() || !watchAdicionar("nivel") || !watchAdicionar("documentoLegalId") || !watchAdicionar("dataCriacao")) { setErroAdicionar("Informe nível organizacional, nome, data de criação e documento legal."); return; }
-      if (watchAdicionar("outraLocalidade") === "SIM" && (!watchAdicionar("cep") || !watchAdicionar("estado") || !watchAdicionar("cidade") || !watchAdicionar("bairro") || !watchAdicionar("logradouro") || !watchAdicionar("numero"))) { setErroAdicionar("Informe os dados obrigatórios do endereço próprio da unidade."); return; }
+      if (!watchAdicionar("tipo") || !watchAdicionar("nome").trim() || !watchAdicionar("nivel") || !watchAdicionar("documentoLegalId") || !watchAdicionar("dataCriacao")) { setErroAdicionar("Informe tipo, nível organizacional, nome, data de criação e documento legal."); return; }
+      if (watchAdicionar("outraLocalidade") === "SIM" && (!watchAdicionar("estado") || !watchAdicionar("cidade"))) { setErroAdicionar("Informe o estado e a cidade da localização própria da unidade."); return; }
       const possuiEnderecoProprio = watchAdicionar("outraLocalidade") === "SIM";
-      setEstrutura(cadastrarUnidadeNoOrganograma(versaoSelecionada.id, { codigo: "", nome: watchAdicionar("nome").trim(), sigla: "", orgao: orgaoSelecionado, tipo: "Unidade", nivelOrganizacional: watchAdicionar("nivel"), localizacao: possuiEnderecoProprio ? `${watchAdicionar("cidade")}/ ${watchAdicionar("estado")}` : "Cuiabá/MT", situacao: "ATIVA", dataInicio: watchAdicionar("dataCriacao"), documentoCriacaoId: watchAdicionar("documentoLegalId"), documentosLegaisCriacaoIds: [watchAdicionar("documentoLegalId")], outraLocalidade: possuiEnderecoProprio, endereco: possuiEnderecoProprio ? { cep: watchAdicionar("cep"), estado: watchAdicionar("estado"), municipio: watchAdicionar("cidade"), bairro: watchAdicionar("bairro"), tipoLogradouro: watchAdicionar("tipoLogradouro"), logradouro: watchAdicionar("logradouro"), numero: watchAdicionar("numero"), complemento: watchAdicionar("complemento") } : undefined }, contextoAdicionar.superiorId, contextoAdicionar.ordem));
+      setEstrutura(cadastrarUnidadeNoOrganograma(versaoSelecionada.id, { codigo: "", nome: watchAdicionar("nome").trim(), sigla: "", orgao: orgaoSelecionado, tipo: watchAdicionar("tipo"), nivelOrganizacional: watchAdicionar("nivel"), localizacao: possuiEnderecoProprio ? `${watchAdicionar("cidade")}/ ${watchAdicionar("estado")}` : "Cuiabá/MT", situacao: "ATIVA", dataInicio: watchAdicionar("dataCriacao"), documentoCriacaoId: watchAdicionar("documentoLegalId"), documentosLegaisCriacaoIds: [watchAdicionar("documentoLegalId")], outraLocalidade: possuiEnderecoProprio, endereco: possuiEnderecoProprio ? { cep: watchAdicionar("cep"), estado: watchAdicionar("estado"), municipio: watchAdicionar("cidade"), bairro: watchAdicionar("bairro"), tipoLogradouro: watchAdicionar("tipoLogradouro"), logradouro: watchAdicionar("logradouro"), numero: watchAdicionar("numero"), complemento: watchAdicionar("complemento") } : undefined }, contextoAdicionar.superiorId, contextoAdicionar.ordem));
     }
     setModalAdicionar(null); setErroAdicionar("");
   };
@@ -231,20 +239,26 @@ function OrganogramaDetalheContent() {
           </div>
         </PanelSeplag>
       </CardSeplag>
-      <ModalSeplag visible={Boolean(modalAdicionar)} titulo="Incluir unidade na estrutura" fechar={() => setModalAdicionar(null)} labelFechar="Cancelar" labelAcao={modoAdicionar === "NOVA" ? "Cadastrar unidade" : "Inserir unidade"} funcAcao={salvarAdicao} tamanho="min(1420px, calc(100vw - 32px))">
+      <ModalSeplag visible={Boolean(modalAdicionar)} titulo="Incluir unidade na estrutura" fechar={() => setModalAdicionar(null)} labelFechar="Cancelar" labelAcao="Cadastrar unidade" funcAcao={salvarAdicao} tamanho="min(1420px, calc(100vw - 32px))">
         {modalAdicionar && contextoAdicionar && <div className="grid organograma-add-modal">
           <div className="col-12 organograma-add-context"><span>Órgão/Entidade</span><strong>{orgao}</strong><small>Unidade superior: {contextoAdicionar.superiorNome}</small></div>
-          <div className="col-12 organograma-add-choice" role="group" aria-label="Forma de inclusão"><button type="button" className={modoAdicionar === "NOVA" ? "is-selected" : ""} onClick={() => { setModoAdicionar("NOVA"); setErroAdicionar(""); }}><i className="pi pi-plus" /> Cadastrar nova unidade</button><button type="button" className={modoAdicionar === "EXISTENTE" ? "is-selected" : ""} onClick={() => { setModoAdicionar("EXISTENTE"); setErroAdicionar(""); }}><i className="pi pi-link" /> Selecionar unidade existente</button></div>
+          <div className="col-12 organograma-add-tabs" role="tablist" aria-label="Seções da unidade">
+            <button type="button" role="tab" aria-selected={abaModalAdicionar === "DADOS"} className={abaModalAdicionar === "DADOS" ? "is-active" : ""} onClick={() => setAbaModalAdicionar("DADOS")}><i className="pi pi-id-card" /> Dados da Unidade</button>
+            <button type="button" role="tab" aria-selected={abaModalAdicionar === "HISTORICO"} className={abaModalAdicionar === "HISTORICO" ? "is-active" : ""} onClick={() => setAbaModalAdicionar("HISTORICO")}><i className="pi pi-history" /> Histórico de Alterações <span>0</span></button>
+          </div>
+          {abaModalAdicionar === "DADOS" && <>
           {erroAdicionar && <p className="col-12 organograma-new-error">{erroAdicionar}</p>}
-          {modoAdicionar === "EXISTENTE" ? <DropdownFieldSeplag name="unidadeExistenteId" control={controlAdicionar} label="Unidade já cadastrada" placeholder="Selecione a unidade..." cols="12" required options={unidadesDisponiveis.map((unidade) => ({ label: `${unidade.codigo} — ${unidade.nome}`, value: String(unidade.id) }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /> : <>
           <DropdownFieldSeplag name="nivel" control={controlAdicionar} label="Nível organizacional" placeholder="Selecione..." cols="12 6" required options={opcoes(["Nível de Decisão Colegiada", "Nível de Direção Superior", "Nível de Assessoramento Superior", "Nível Assessoramento Estratégico e Especializado", "Nível de Administração Sistêmica", "Nível de Execução Programática", "Nível de Administração Regionalizada", "Nível de Administração Desconcentrada", "Nível de Administração Descentralizada"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
           <DateFieldSeplag name="dataCriacao" control={controlAdicionar} label="Data de criação" cols="12 6" required getFormErrorMessage={semErro} />
-          <TextFieldSeplag name="nome" control={controlAdicionar} label="Nome da unidade" placeholder="Ex.: Gabinete do Secretário" cols="12" required getFormErrorMessage={semErro} />
+          <DropdownFieldSeplag name="tipo" control={controlAdicionar} label="Tipo de unidade" placeholder="Selecione..." cols="12 4" required options={opcoes(tiposUnidadesAtivos())} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
+          <TextFieldSeplag name="codigo" control={controlAdicionar} label="Código" placeholder="Gerado automaticamente" cols="12 2" disabled getFormErrorMessage={semErro} />
+          <TextFieldSeplag name="nome" control={controlAdicionar} label="Nome da unidade" placeholder="Ex.: Gabinete do Secretário" cols="12 6" required getFormErrorMessage={semErro} />
           <DropdownFieldSeplag name="documentoLegalId" control={controlAdicionar} label="Documento legal de criação" placeholder="Selecione..." cols="12" required options={estrutura.documentosLegais.filter((documento) => documento.ativo).map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
           <section className="col-12 organograma-modal-location"><h4>Localização</h4><p>UF e Município são herdados do órgão. Informe endereço próprio somente quando a unidade funcionar em outra localidade.</p><RadioButtonFieldSeplag name="outraLocalidade" control={controlAdicionar} label="A unidade funciona em outra localidade?" cols="12" options={[{ label: "Não", value: "NAO" }, { label: "Sim", value: "SIM" }]} getFormErrorMessage={semErro} />
-            {watchAdicionar("outraLocalidade") === "NAO" ? <div className="organograma-location-inherited"><div><span>UF</span><strong>MT</strong><small>Herdado do órgão</small></div><div><span>Município</span><strong>Cuiabá</strong><small>Herdado do órgão</small></div></div> : <div className="grid organograma-location-fields"><TextFieldSeplag name="cep" control={controlAdicionar} label="CEP" placeholder="00000-000" cols="12 6" required getFormErrorMessage={semErro} /><DropdownFieldSeplag name="estado" control={controlAdicionar} label="Estado" placeholder="Selecione..." cols="12 6" required options={opcoes(["MT", "GO", "MS", "RO", "SP"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><TextFieldSeplag name="cidade" control={controlAdicionar} label="Cidade" placeholder="Informe a cidade" cols="12 4" required getFormErrorMessage={semErro} /><TextFieldSeplag name="bairro" control={controlAdicionar} label="Bairro/Distrito" placeholder="Informe o bairro ou distrito" cols="12 4" required getFormErrorMessage={semErro} /><DropdownFieldSeplag name="tipoLogradouro" control={controlAdicionar} label="Tipo de Logradouro" placeholder="Selecione..." cols="12 4" options={opcoes(["Avenida", "Rua", "Rodovia", "Praça", "Travessa", "Estrada"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><TextFieldSeplag name="logradouro" control={controlAdicionar} label="Logradouro" placeholder="Informe o logradouro" cols="12 8" required getFormErrorMessage={semErro} /><TextFieldSeplag name="numero" control={controlAdicionar} label="Número" placeholder="Número" cols="12 4" required getFormErrorMessage={semErro} /><TextFieldSeplag name="complemento" control={controlAdicionar} label="Complemento" placeholder="Informe o complemento" cols="12" getFormErrorMessage={semErro} /></div>}
+            {watchAdicionar("outraLocalidade") === "NAO" ? <div className="organograma-location-inherited"><div><span>UF</span><strong>MT</strong><small>Herdado do órgão</small></div><div><span>Município</span><strong>Cuiabá</strong><small>Herdado do órgão</small></div></div> : <div className="grid organograma-location-fields"><DropdownFieldSeplag name="estado" control={controlAdicionar} label="Estado" placeholder="Selecione..." cols="12 4" required options={opcoes(["MT", "GO", "MS", "RO", "SP"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="cidade" control={controlAdicionar} label="Cidade" placeholder={watchAdicionar("estado") ? "Selecione..." : "Selecione o estado primeiro"} cols="12 4" required disabled={!watchAdicionar("estado")} options={opcoes(cidadesPorEstado[watchAdicionar("estado")] ?? [])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><TextFieldSeplag name="complemento" control={controlAdicionar} label="Complemento" placeholder="Informe o complemento" cols="12 4" getFormErrorMessage={semErro} /></div>}
           </section>
           </>}
+          {abaModalAdicionar === "HISTORICO" && <section className="col-12 organograma-add-history"><header><div><strong>Histórico de Alterações</strong><span>Registro cronológico de alterações e documentos vinculados a esta unidade.</span></div><small>0 registros encontrados</small></header><div className="organograma-add-history-empty"><i className="pi pi-history" /><strong>Nenhum histórico disponível</strong><span>O registro de criação será gerado automaticamente quando a unidade for cadastrada.</span></div></section>}
         </div>}
       </ModalSeplag>
     </div>
@@ -434,7 +448,7 @@ function OrganogramaDetalheContent() {
 }
 
 type FiltrosListagem = { codigo: string; nome: string; situacao: string };
-type NovoOrganogramaForm = { orgao: string; codigoOrgao: string; inicio: string; documentoLegalId: string; nome: string };
+type NovoOrganogramaForm = { orgao: string; inicio: string; documentoLegalId: string; nome: string };
 const nomeOrgao = (sigla: string) => sigla === "SEPLAG" ? "Secretaria de Estado de Planejamento e Gestão" : sigla === "SEDUC" ? "Secretaria de Estado de Educação" : sigla;
 
 function OrganogramasListagem() {
@@ -445,7 +459,22 @@ function OrganogramasListagem() {
   const [erroCadastro, setErroCadastro] = useState("");
   const registrosPorPagina = 10;
   const { control, watch, reset } = useForm<FiltrosListagem>({ defaultValues: { codigo: "", nome: "", situacao: "" } });
-  const { control: controlNovo, watch: watchNovo, reset: resetNovo } = useForm<NovoOrganogramaForm>({ defaultValues: { orgao: "", codigoOrgao: "", inicio: "", documentoLegalId: "", nome: "" } });
+  const { control: controlNovo, watch: watchNovo, reset: resetNovo } = useForm<NovoOrganogramaForm>({ defaultValues: { orgao: "", inicio: "", documentoLegalId: "", nome: "" } });
+  const orgaosParaCadastro = useMemo(() => {
+    const base = [
+      { sigla: "SEPLAG", codigo: "001", nome: "Secretaria de Estado de Planejamento e Gestão" },
+      { sigla: "SEDUC", codigo: "002", nome: "Secretaria de Estado de Educação" },
+      { sigla: "CGE", codigo: "003", nome: "Controladoria Geral do Estado" },
+      { sigla: "DETRAN-MT", codigo: "004", nome: "Departamento Estadual de Trânsito" },
+      { sigla: "MTI", codigo: "005", nome: "Empresa Mato-grossense de Tecnologia da Informação" },
+    ];
+    estrutura.versoes.forEach((versao) => {
+      const existente = base.find((orgao) => orgao.sigla === versao.orgao);
+      if (existente) { existente.codigo = versao.codigoOrgao ?? existente.codigo; existente.nome = nomeOrgao(versao.orgao); }
+      else base.push({ sigla: versao.orgao, codigo: versao.codigoOrgao ?? versao.orgao, nome: nomeOrgao(versao.orgao) });
+    });
+    return base.map((orgao) => ({ ...orgao, label: `${orgao.codigo} — ${orgao.nome} (${orgao.sigla})`, value: orgao.sigla }));
+  }, [estrutura.versoes]);
   const filtros = watch();
   const codigo = filtros.codigo.trim().toLocaleLowerCase("pt-BR");
   const nome = filtros.nome.trim().toLocaleLowerCase("pt-BR");
@@ -462,8 +491,9 @@ function OrganogramasListagem() {
     { header: "Situação", body: (versao) => <BadgeSeplag label={versao.situacao === "VIGENTE" ? "Vigente" : versao.situacao === "RASCUNHO" ? "Rascunho" : "Encerrada"} color={versao.situacao === "VIGENTE" ? "#00843d" : versao.situacao === "RASCUNHO" ? "#9a6700" : "#64748b"} bg={versao.situacao === "VIGENTE" ? "#e2f3e8" : versao.situacao === "RASCUNHO" ? "#fff3cd" : "#f1f5f9"} border="transparent" size="md" /> },
   ];
   const cadastrar = () => {
-    if (!watchNovo("orgao") || !watchNovo("codigoOrgao").trim() || !watchNovo("inicio") || !watchNovo("documentoLegalId")) { setErroCadastro("Informe o código, órgão/entidade, data de início e documento legal."); return; }
-    const resultado = cadastrarOrganograma(watchNovo("orgao"), watchNovo("codigoOrgao").trim(), watchNovo("inicio"), watchNovo("documentoLegalId"), watchNovo("nome"));
+    const orgaoSelecionado = orgaosParaCadastro.find((orgao) => orgao.value === watchNovo("orgao"));
+    if (!orgaoSelecionado || !watchNovo("inicio") || !watchNovo("documentoLegalId")) { setErroCadastro("Informe o órgão/entidade, data de início e documento legal."); return; }
+    const resultado = cadastrarOrganograma(orgaoSelecionado.value, orgaoSelecionado.codigo, watchNovo("inicio"), watchNovo("documentoLegalId"), watchNovo("nome"));
     if (!resultado.criado || !resultado.versao) { setErroCadastro("Este órgão já possui um organograma em rascunho. Conclua ou publique essa estrutura antes de criar outro rascunho."); return; }
     setEstrutura(resultado.estrutura); setModalCadastro(false); setErroCadastro(""); navigate(`?modo=detalhe&orgao=${encodeURIComponent(resultado.versao.orgao)}&versao=${encodeURIComponent(resultado.versao.id)}`);
   };
@@ -471,8 +501,8 @@ function OrganogramasListagem() {
     <p className="organograma-intro">Consulte e mantenha as estruturas organizacionais cadastradas por órgão ou entidade.</p>
     <div className="prototype-category-filters prototype-cargo-filters grid"><TextFieldSeplag name="codigo" control={control} label="Código do órgão" placeholder="Digite o código" cols="12 6 3" getFormErrorMessage={semErro} /><TextFieldSeplag name="nome" control={control} label="Nome do órgão/entidade" placeholder="Digite o nome ou sigla" cols="12 6 4" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="situacao" control={control} label="Situação" placeholder="Todas" cols="12 6 2" options={[{ label: "Rascunho", value: "RASCUNHO" }, { label: "Vigente", value: "VIGENTE" }, { label: "Encerrada", value: "ENCERRADA" }]} optionLabel="label" optionValue="value" showClear getFormErrorMessage={semErro} /><div className="prototype-category-clear col-12 md:col-6 lg:col-3"><BotaoLimparFiltroSeplag type="button" label="Limpar" icon="pi pi-refresh" onClick={() => { reset({ codigo: "", nome: "", situacao: "" }); setPagina(0); }} /></div></div>
     <div className="organograma-list-summary">{filtrados.length} {filtrados.length === 1 ? "organograma encontrado" : "organogramas encontrados"}</div>
-    <div className="prototype-cargo-table organograma-list-table"><TablePaginadoSeplag dataKey="id" data={data} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} columns={columns} lazy paginator selectionMode={null} hasEventoAcao handleAdicionar={() => { resetNovo({ orgao: "", codigoOrgao: "", inicio: "", documentoLegalId: "", nome: "" }); setErroCadastro(""); setModalCadastro(true); }} handleView={abrir} handleEdit={(versao) => navigate(`?modo=detalhe&orgao=${encodeURIComponent(versao.orgao)}&versao=${encodeURIComponent(versao.id)}&editar=true`)} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
-  </CardSeplag><ModalSeplag visible={modalCadastro} titulo="Cadastrar organograma" fechar={() => setModalCadastro(false)} labelFechar="Cancelar" labelAcao="Criar organograma" funcAcao={cadastrar} tamanho="760px"><div className="grid organograma-new-form">{erroCadastro && <p className="col-12 organograma-new-error">{erroCadastro}</p>}<TextFieldSeplag name="codigoOrgao" control={controlNovo} label="Código do órgão" placeholder="Ex.: 003" cols="12 6" required getFormErrorMessage={semErro} /><DropdownFieldSeplag name="orgao" control={controlNovo} label="Órgão/Entidade" placeholder="Selecione..." cols="12 6" required options={opcoes(["SEPLAG", "SEDUC", "CGE", "DETRAN-MT", "MTI"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><TextFieldSeplag name="nome" control={controlNovo} label="Nome do organograma" placeholder="Ex.: Estrutura Organizacional CGE - 2026" cols="12" getFormErrorMessage={semErro} /><DateFieldSeplag name="inicio" control={controlNovo} label="Data de início da vigência" cols="12 6" required getFormErrorMessage={semErro} /><DropdownFieldSeplag name="documentoLegalId" control={controlNovo} label="Documento legal" placeholder="Selecione..." cols="12 6" required options={estrutura.documentosLegais.filter((documento) => documento.ativo).map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /></div></ModalSeplag></div>;
+    <div className="prototype-cargo-table organograma-list-table"><TablePaginadoSeplag dataKey="id" data={data} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} columns={columns} lazy paginator selectionMode={null} hasEventoAcao handleAdicionar={() => { resetNovo({ orgao: "", inicio: "", documentoLegalId: "", nome: "" }); setErroCadastro(""); setModalCadastro(true); }} handleView={abrir} handleEdit={(versao) => navigate(`?modo=detalhe&orgao=${encodeURIComponent(versao.orgao)}&versao=${encodeURIComponent(versao.id)}&editar=true`)} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
+  </CardSeplag><ModalSeplag visible={modalCadastro} titulo="Cadastrar organograma" fechar={() => setModalCadastro(false)} labelFechar="Cancelar" labelAcao="Criar organograma" funcAcao={cadastrar} tamanho="760px"><div className="grid organograma-new-form">{erroCadastro && <p className="col-12 organograma-new-error">{erroCadastro}</p>}<DropdownFieldSeplag name="orgao" control={controlNovo} label="Órgão/Entidade" placeholder="Pesquise por código ou nome..." cols="12" required options={orgaosParaCadastro} optionLabel="label" optionValue="value" filter filterBy="label,codigo,nome,sigla" filterPlaceholder="Pesquisar por código ou nome" showClear getFormErrorMessage={semErro} /><TextFieldSeplag name="nome" control={controlNovo} label="Nome do organograma" placeholder="Ex.: Estrutura Organizacional CGE - 2026" cols="12" getFormErrorMessage={semErro} /><DateFieldSeplag name="inicio" control={controlNovo} label="Data de início da vigência" cols="12 6" required getFormErrorMessage={semErro} /><DropdownFieldSeplag name="documentoLegalId" control={controlNovo} label="Documento legal" placeholder="Selecione..." cols="12 6" required options={estrutura.documentosLegais.filter((documento) => documento.ativo).map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /></div></ModalSeplag></div>;
 }
 
 export function OrganogramaContent() {

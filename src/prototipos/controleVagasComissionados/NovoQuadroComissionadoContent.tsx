@@ -230,7 +230,7 @@ export function NovoQuadroComissionadoContent() {
     </section>
 
     <section className="nqc-card nqc-resumo">
-      <header><i className="pi pi-chart-bar" /><div><h2>Resumo das dotações</h2><p>Quantitativos autorizados por cargo comissionado.</p></div></header>
+      <header><i className="pi pi-chart-bar" /><div><h2>Resumo</h2><p>Quantitativos autorizados por cargo comissionado.</p></div></header>
       <div className="nqc-resumo-table-wrap"><table><thead><tr><th>Cargo Comissionado</th><th>Cargo</th><th>Função</th></tr></thead><tbody>{resumoSimbologias.map((linha) => {
         const aberto = simbolosAbertos.includes(linha.simbologia);
         const alternar = () => setSimbolosAbertos((atuais) => aberto ? atuais.filter((simbolo) => simbolo !== linha.simbologia) : [...atuais, linha.simbologia]);

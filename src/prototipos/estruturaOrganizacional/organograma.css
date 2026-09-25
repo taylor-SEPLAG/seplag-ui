@@ -82,3 +82,14 @@
 .organograma-builder-add.is-bottom{bottom:-43px}
 .organograma-builder-branch>.organograma-builder-children{margin-top:4rem}
 @media(max-width:700px){.organograma-builder-children{gap:1.75rem}.organograma-builder-children::before{left:110px;right:110px}}
+
+/* Abas do modal de inclusão. */
+.organograma-add-tabs{display:flex;gap:.15rem;margin-top:-.5rem;border-bottom:1px solid #dbe3e9}
+.organograma-add-tabs button{display:inline-flex;align-items:center;gap:.4rem;padding:.65rem .85rem;border:0;border-bottom:3px solid transparent;background:transparent;color:#526d82;font-size:.78rem;cursor:pointer}
+.organograma-add-tabs button:hover{color:#006aa6}
+.organograma-add-tabs button.is-active{border-bottom-color:#168bd1;color:#006aa6;font-weight:700}
+.organograma-add-tabs button span{display:inline-grid;min-width:18px;height:18px;place-items:center;border-radius:999px;background:#e8f1ff;color:#2563b8;font-size:.65rem}
+.organograma-add-history{margin-top:.25rem;padding:1rem;border:1px solid #dbe3e9;border-radius:5px;background:#fbfdff}
+.organograma-add-history header{display:flex;justify-content:space-between;gap:1rem;padding-bottom:.75rem;border-bottom:1px solid #e1e8ed}
+.organograma-add-history header strong,.organograma-add-history header span{display:block}.organograma-add-history header strong{color:#26455c;font-size:.82rem}.organograma-add-history header span{margin-top:.25rem;color:#63798b;font-size:.72rem}.organograma-add-history header small{height:max-content;padding:.25rem .5rem;border-radius:3px;background:#f1f5f8;color:#60758a;font-size:.68rem;white-space:nowrap}
+.organograma-add-history-empty{display:flex;min-height:150px;flex-direction:column;align-items:center;justify-content:center;gap:.45rem;color:#657b8d;text-align:center}.organograma-add-history-empty i{font-size:1.4rem;color:#82a8c1}.organograma-add-history-empty strong{font-size:.82rem}.organograma-add-history-empty span{font-size:.74rem}
