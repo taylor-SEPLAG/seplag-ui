@@ -29,7 +29,56 @@
 
 .organograma-node-actions{position:absolute;right:-35px;bottom:-11px;display:flex;gap:4px}.organograma-node-actions .organograma-add-child{position:static}.organograma-add-sibling{display:grid;width:25px;height:25px;place-items:center;border:2px solid #fff;border-radius:50%;background:#496f8a;color:#fff;cursor:pointer;box-shadow:0 1px 4px #0003}.organograma-add-modal{padding-top:.25rem}.organograma-add-context{display:grid;grid-template-columns:auto 1fr;gap:.25rem .7rem;padding:.8rem 1rem;border:1px solid #b9dcef;border-radius:5px;background:#eef8fe;color:#38627a;font-size:.74rem}.organograma-add-context strong{color:#183b5b}.organograma-add-context small{grid-column:1/-1;margin-top:.35rem;color:#5b7284}.organograma-add-choice{display:flex;gap:.5rem;flex-wrap:wrap}.organograma-add-help{margin:0;color:#607786;font-size:.73rem}@media(max-width:600px){.organograma-node-actions{right:2px;bottom:-31px}.organograma-add-modal .organograma-add-choice>*{flex:1}}
 
+.organograma-builder-reset .organograma-panel{min-height:620px}.organograma-clean-canvas{min-height:500px;border:1px solid #dbe3e9;border-radius:5px;background:#fff}
+.organograma-root-stage{position:relative;display:flex;justify-content:center;align-items:flex-start;padding-top:74px;background:#fbfdff}.organograma-root-level{position:absolute;top:16px;padding:.25rem .6rem;border-radius:999px;background:#edf3f7;color:#718397;font-size:.68rem}.organograma-root-wrap{position:relative;width:330px}.organograma-root-card{display:flex;flex-direction:column;gap:.4rem;min-height:90px;padding:.85rem 1rem;border-radius:7px;background:#0068a8;color:#fff;box-shadow:0 2px 5px #0057892b}.organograma-root-card small{font-size:.66rem;font-weight:700}.organograma-root-card strong{font-size:.8rem;line-height:1.25}.organograma-root-card span{font-size:.66rem}.organograma-root-index{position:absolute;top:-10px;left:-15px;z-index:1;display:grid;width:30px;height:30px;place-items:center;border:2px solid #fff;border-radius:50%;background:#0768a9;color:#fff;font-size:.78rem;font-weight:700;box-shadow:0 1px 3px #0002}.organograma-root-add{position:absolute;display:grid;width:27px;height:27px;place-items:center;border:0;border-radius:50%;background:#168bd1;color:#fff;font-size:.78rem;cursor:pointer;box-shadow:0 2px 4px #00578940}.organograma-root-add:hover{background:#0068a8;transform:scale(1.06)}.organograma-root-add.is-left{top:50%;left:-43px}.organograma-root-add.is-right{top:50%;right:-43px}.organograma-root-add.is-bottom{bottom:-14px;left:calc(50% - 14px)}
+.organograma-root-stage{padding-top:46px}.organograma-root-level{top:12px}.organograma-root-wrap{width:330px}.organograma-root-card{min-height:96px;padding:.8rem 1rem .9rem;border-radius:6px}.organograma-root-index{top:-12px;left:-13px;width:29px;height:29px}.organograma-root-add{z-index:2;width:25px;height:25px;border:2px solid #fff}.organograma-root-add.is-left{top:calc(50% - 13px);left:-13px}.organograma-root-add.is-right{top:calc(50% - 13px);right:-13px}.organograma-root-add.is-bottom{bottom:-13px;left:calc(50% - 13px)}
+.organograma-root-add i{display:block;line-height:1;transform:translateY(-.5px)}
+.organograma-root-add{width:30px;height:30px;border:0;background:transparent;box-shadow:none}.organograma-root-add:hover{background:transparent;transform:none}.organograma-root-add i{font-size:28px;color:#168bd1;text-shadow:0 1px 2px #0057892b}.organograma-root-add.is-left::after,.organograma-root-add.is-right::after{z-index:-1}.organograma-root-add.is-left::after{left:27px}.organograma-root-add.is-right::after{right:27px}.organograma-root-add.is-bottom::after{bottom:27px}
+.organograma-root-add::after{display:none}.organograma-root-add.is-bottom{bottom:-38px}
+.organograma-modal-location{margin-top:.25rem;padding:1rem;border:1px solid #dbe3e9;border-radius:5px;background:#fbfcfd}.organograma-modal-location h4{margin:0;color:#173d5c;font-size:.9rem}.organograma-modal-location>p{margin:.35rem 0 .85rem;color:#607786;font-size:.72rem}.organograma-location-inherited{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:.25rem}.organograma-location-inherited>div{display:grid;grid-template-columns:1fr auto;gap:.25rem;padding:.65rem .75rem;border:1px solid #d4dee6;border-radius:4px;background:#f3f6f8;color:#465d6d;font-size:.75rem}.organograma-location-inherited strong{color:#243f54}.organograma-location-inherited small{grid-column:1/-1;color:#0874b9;font-size:.65rem}.organograma-location-fields{margin-top:.35rem}@media(max-width:600px){.organograma-location-inherited{grid-template-columns:1fr}}
+.organograma-add-modal{padding-top:0}.organograma-add-modal>.organograma-add-context{margin-top:0;margin-bottom:1.25rem}
+.organograma-add-context{font-size:.84rem}.organograma-add-context strong{font-size:.86rem;line-height:1.35}.organograma-add-context small{font-size:.78rem;line-height:1.35}
+.organograma-root-index{top:-13px;left:-15px}.organograma-root-add.is-left{left:-40px}.organograma-root-add.is-right{right:-40px}.organograma-root-add.is-left::after,.organograma-root-add.is-right::after{content:"";position:absolute;top:50%;width:14px;height:1px;background:#8eb4ce}.organograma-root-add.is-left::after{left:23px}.organograma-root-add.is-right::after{right:23px}.organograma-root-add.is-bottom::after{content:"";position:absolute;bottom:23px;left:50%;width:1px;height:10px;background:#8eb4ce}
+
 /* Código e nome do órgão têm filtros próprios e a tabela passa a ter seis colunas. */
 .organogramas-list-page .prototype-category-filters>div:nth-child(1){flex:0 1 20%;max-width:20%}.organogramas-list-page .prototype-category-filters>div:nth-child(2){flex:0 1 32%;max-width:32%}.organogramas-list-page .prototype-category-filters>div:nth-child(3){flex:0 1 18%;max-width:18%}.organogramas-list-page .organograma-list-table .p-datatable-thead>tr>th:nth-child(1){width:11%}.organogramas-list-page .organograma-list-table .p-datatable-thead>tr>th:nth-child(2){width:25%}.organogramas-list-page .organograma-list-table .p-datatable-thead>tr>th:nth-child(3){width:26%}.organogramas-list-page .organograma-list-table .p-datatable-thead>tr>th:nth-child(4){width:16%}.organogramas-list-page .organograma-list-table .p-datatable-thead>tr>th:nth-child(5){width:11%}.organogramas-list-page .organograma-list-table .p-datatable-thead>tr>th:nth-child(6){width:11%}
 
 .organogramas-list-page .prototype-category-filters>div:nth-child(1){flex:1 1 0;max-width:none}.organogramas-list-page .prototype-category-filters>div:nth-child(2){flex:1.55 1 0;max-width:none}.organogramas-list-page .prototype-category-filters>div:nth-child(3){flex:1 1 0;max-width:none}.organogramas-list-page .prototype-category-filters>div:nth-child(4){flex:0 0 auto;max-width:none}
+
+/* Área de montagem: cada unidade inserida passa a compor a árvore imediatamente. */
+.organograma-root-stage{display:block;overflow:auto;padding:46px 2rem 4.5rem;text-align:center}
+.organograma-root-wrap{margin:0 auto;text-align:left}
+.organograma-builder-children{display:flex;justify-content:center;align-items:flex-start;gap:2.25rem;min-width:max-content;margin:4.5rem auto 0;text-align:left}
+.organograma-builder-root-children{padding:0 1rem}
+.organograma-builder-branch{display:flex;flex:0 0 auto;flex-direction:column;align-items:center;min-width:250px}
+.organograma-builder-node-wrap{position:relative;width:270px}
+.organograma-builder-node{position:relative;min-height:112px;border:1px solid #b8cddd;border-radius:7px;background:#fff;box-shadow:0 2px 5px #1a5e881f}
+.organograma-builder-node:hover{border-color:#0874b9;box-shadow:0 3px 10px #0874b92b}
+.organograma-builder-node-content{display:flex;width:100%;min-height:112px;flex-direction:column;gap:.34rem;padding:.8rem .9rem;border:0;border-radius:7px;background:transparent;color:#183b5b;text-align:left;cursor:pointer}
+.organograma-builder-node-content small{color:#657b8d;font-size:.67rem}
+.organograma-builder-node-content strong{font-size:.79rem;line-height:1.28}
+.organograma-builder-node-content span{font-size:.66rem;line-height:1.25}
+.organograma-builder-add{position:absolute;z-index:3;width:30px;height:30px;padding:0;border:0;background:transparent;color:#168bd1;cursor:pointer}
+.organograma-builder-add i{font-size:28px;line-height:1;text-shadow:0 1px 2px #0057892b}
+.organograma-builder-add.is-left{top:calc(50% - 15px);left:-16px}
+.organograma-builder-add.is-right{top:calc(50% - 15px);right:-16px}
+.organograma-builder-add.is-bottom{bottom:-38px;left:calc(50% - 15px)}
+.organograma-builder-branch>.organograma-builder-children{margin-top:4rem}
+.organograma-add-choice{margin-top:-.35rem}
+.organograma-add-choice button{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem .8rem;border:1px solid #b9cbd8;border-radius:4px;background:#fff;color:#3f5d73;font-size:.78rem;font-weight:600;cursor:pointer}
+.organograma-add-choice button:hover,.organograma-add-choice button.is-selected{border-color:#0874b9;background:#eef8fe;color:#006aa6}
+@media(max-width:700px){.organograma-root-stage{padding-right:1rem;padding-left:1rem}.organograma-builder-children{justify-content:flex-start;gap:1.25rem}.organograma-builder-node-wrap{width:250px}.organograma-builder-node,.organograma-builder-node-content{min-height:104px}}
+
+/* Conectores e pontos de inclusão: uma única ação entre unidades irmãs. */
+.organograma-builder-children{position:relative;gap:3rem;margin-top:4rem}
+.organograma-builder-root-children{margin-top:4rem}
+.organograma-builder-children::before{content:"";position:absolute;top:-27px;left:125px;right:125px;border-top:1px solid #9bb7c9}
+.organograma-builder-children::after{content:"";position:absolute;top:-64px;left:50%;width:1px;height:37px;background:#9bb7c9}
+.organograma-builder-children>.organograma-builder-branch{position:relative}
+.organograma-builder-children>.organograma-builder-branch::before{content:"";position:absolute;top:-27px;left:50%;width:1px;height:27px;background:#9bb7c9}
+.organograma-builder-children>.organograma-builder-branch:only-child::before{top:-64px;height:64px}
+.organograma-builder-children:has(>.organograma-builder-branch:only-child)::before{display:none}
+.organograma-builder-add.is-right{right:-44px}
+.organograma-builder-add.is-bottom{bottom:-43px}
+.organograma-builder-branch>.organograma-builder-children{margin-top:4rem}
+@media(max-width:700px){.organograma-builder-children{gap:1.75rem}.organograma-builder-children::before{left:110px;right:110px}}

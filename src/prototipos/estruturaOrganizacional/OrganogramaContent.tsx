@@ -5,7 +5,7 @@ import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoLimparFiltroSeplag, BotaoSeplag } from "@componentes/Botao";
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { CardSeplag } from "@componentes/Card";
-import { DateFieldSeplag, DropdownFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
+import { DateFieldSeplag, DropdownFieldSeplag, RadioButtonFieldSeplag, TextFieldSeplag } from "@componentes/Fields";
 import { ModalSeplag } from "@componentes/Modal";
 import { PanelSeplag } from "@componentes/PanelSeplag";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
@@ -25,7 +25,7 @@ type Filtros = {
   nivel: string;
   versaoComparacaoId: string;
 };
-type AdicionarUnidadeForm = { unidadeExistenteId: string; tipo: string; nivel: string; nome: string; sigla: string; documentoLegalId: string };
+type AdicionarUnidadeForm = { unidadeExistenteId: string; nivel: string; nome: string; documentoLegalId: string; dataCriacao: string; outraLocalidade: "NAO" | "SIM"; cep: string; estado: string; cidade: string; bairro: string; tipoLogradouro: string; logradouro: string; numero: string; complemento: string };
 
 const opcoes = (valores: string[]) => valores.map((valor) => ({ label: valor, value: valor }));
 const semErro = () => null;
@@ -56,7 +56,7 @@ function OrganogramaDetalheContent() {
   const [modalAdicionar, setModalAdicionar] = useState<{ referencia: Unidade | null; acao: "ABAIXO" | "IRMA" } | null>(null);
   const [modoAdicionar, setModoAdicionar] = useState<"EXISTENTE" | "NOVA">("EXISTENTE");
   const [erroAdicionar, setErroAdicionar] = useState("");
-  const { control: controlAdicionar, watch: watchAdicionar, reset: resetAdicionar } = useForm<AdicionarUnidadeForm>({ defaultValues: { unidadeExistenteId: "", tipo: "", nivel: "", nome: "", sigla: "", documentoLegalId: "" } });
+  const { control: controlAdicionar, watch: watchAdicionar, reset: resetAdicionar } = useForm<AdicionarUnidadeForm>({ defaultValues: { unidadeExistenteId: "", nivel: "", nome: "", documentoLegalId: "", dataCriacao: "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" } });
   const orgaosDisponiveis = [...new Set(estrutura.versoes.map((versao) => versao.orgao))];
   const orgao = watch("orgao");
   const orgaoSelecionado = orgao.split(" - ")[0];
@@ -109,7 +109,7 @@ function OrganogramaDetalheContent() {
     const preencher = (superiorId: number | null, prefixo: string) => filhosDe(superiorId).forEach((unidade, indice) => { const codigo = `${prefixo}.${indice + 1}`; resultado.set(unidade.id, codigo); preencher(unidade.id, codigo); });
     preencher(null, "1"); return resultado;
   }, [unidades]);
-  const abrirAdicionar = (acao: "ABAIXO" | "IRMA", referencia: Unidade | null = null) => { resetAdicionar({ unidadeExistenteId: "", tipo: "", nivel: "", nome: "", sigla: "", documentoLegalId: versaoSelecionada?.documentoLegalId ?? "" }); setModoAdicionar("EXISTENTE"); setErroAdicionar(""); setModalAdicionar({ referencia, acao }); };
+  const abrirAdicionar = (acao: "ABAIXO" | "IRMA", referencia: Unidade | null = null) => { resetAdicionar({ unidadeExistenteId: "", nivel: "", nome: "", documentoLegalId: versaoSelecionada?.documentoLegalId ?? "", dataCriacao: versaoSelecionada?.inicio ?? "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" }); setModoAdicionar("NOVA"); setErroAdicionar(""); setModalAdicionar({ referencia, acao }); };
 
   const profundidade = (unidade: Unidade) => {
     let valor = 0;
@@ -177,11 +177,78 @@ function OrganogramaDetalheContent() {
       if (!unidadeId) { setErroAdicionar("Selecione uma Unidade existente."); return; }
       setEstrutura(vincularUnidadeAoOrganograma(versaoSelecionada.id, unidadeId, contextoAdicionar.superiorId, contextoAdicionar.ordem));
     } else {
-      if (!watchAdicionar("nome").trim() || !watchAdicionar("tipo") || !watchAdicionar("nivel") || !watchAdicionar("documentoLegalId")) { setErroAdicionar("Informe tipo, nível organizacional, nome e documento legal."); return; }
-      setEstrutura(cadastrarUnidadeNoOrganograma(versaoSelecionada.id, { codigo: "", nome: watchAdicionar("nome").trim(), sigla: watchAdicionar("sigla").trim(), orgao: orgaoSelecionado, tipo: watchAdicionar("tipo"), nivelOrganizacional: watchAdicionar("nivel"), localizacao: "Cuiabá/MT", situacao: "ATIVA", dataInicio: versaoSelecionada.inicio, documentoCriacaoId: watchAdicionar("documentoLegalId"), documentosLegaisCriacaoIds: [watchAdicionar("documentoLegalId")], outraLocalidade: false }, contextoAdicionar.superiorId, contextoAdicionar.ordem));
+      if (!watchAdicionar("nome").trim() || !watchAdicionar("nivel") || !watchAdicionar("documentoLegalId") || !watchAdicionar("dataCriacao")) { setErroAdicionar("Informe nível organizacional, nome, data de criação e documento legal."); return; }
+      if (watchAdicionar("outraLocalidade") === "SIM" && (!watchAdicionar("cep") || !watchAdicionar("estado") || !watchAdicionar("cidade") || !watchAdicionar("bairro") || !watchAdicionar("logradouro") || !watchAdicionar("numero"))) { setErroAdicionar("Informe os dados obrigatórios do endereço próprio da unidade."); return; }
+      const possuiEnderecoProprio = watchAdicionar("outraLocalidade") === "SIM";
+      setEstrutura(cadastrarUnidadeNoOrganograma(versaoSelecionada.id, { codigo: "", nome: watchAdicionar("nome").trim(), sigla: "", orgao: orgaoSelecionado, tipo: "Unidade", nivelOrganizacional: watchAdicionar("nivel"), localizacao: possuiEnderecoProprio ? `${watchAdicionar("cidade")}/ ${watchAdicionar("estado")}` : "Cuiabá/MT", situacao: "ATIVA", dataInicio: watchAdicionar("dataCriacao"), documentoCriacaoId: watchAdicionar("documentoLegalId"), documentosLegaisCriacaoIds: [watchAdicionar("documentoLegalId")], outraLocalidade: possuiEnderecoProprio, endereco: possuiEnderecoProprio ? { cep: watchAdicionar("cep"), estado: watchAdicionar("estado"), municipio: watchAdicionar("cidade"), bairro: watchAdicionar("bairro"), tipoLogradouro: watchAdicionar("tipoLogradouro"), logradouro: watchAdicionar("logradouro"), numero: watchAdicionar("numero"), complemento: watchAdicionar("complemento") } : undefined }, contextoAdicionar.superiorId, contextoAdicionar.ordem));
     }
     setModalAdicionar(null); setErroAdicionar("");
   };
+
+  const NoMontagem = ({ unidade }: { unidade: Unidade }) => {
+    const filhos = filhosDe(unidade.id);
+    return (
+      <div className="organograma-builder-branch">
+        <div className="organograma-builder-node-wrap">
+          <article className="organograma-builder-node">
+            <button type="button" className="organograma-builder-node-content" onClick={() => setSelecionada(unidade)} title="Ver detalhes da unidade">
+              <small>{indices.get(unidade.id)} · {unidade.codigo}</small>
+              <strong>{unidade.nome}</strong>
+              <span>Nível da unidade: {unidade.nivelOrganizacional.replace("Nível de ", "")}</span>
+            </button>
+            <button type="button" className="organograma-builder-add is-right" aria-label="Adicionar unidade no mesmo nível" title="Adicionar unidade no mesmo nível" onClick={() => abrirAdicionar("IRMA", unidade)}><i className="pi pi-plus-circle" /></button>
+            <button type="button" className="organograma-builder-add is-bottom" aria-label="Adicionar unidade abaixo" title="Adicionar unidade abaixo" onClick={() => abrirAdicionar("ABAIXO", unidade)}><i className="pi pi-plus-circle" /></button>
+          </article>
+        </div>
+        {filhos.length > 0 && <div className="organograma-builder-children">{filhos.map((filho) => <NoMontagem key={filho.id} unidade={filho} />)}</div>}
+      </div>
+    );
+  };
+
+  return (
+    <div className="organograma-page organograma-builder-reset">
+      <CardSeplag
+        title="Organograma"
+        cols="12"
+        cardHeaderClassNames="prototype-carreira-card organograma-card"
+        headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organogramas" }, { label: "Organograma" }]} />}
+      >
+        <PanelSeplag title={orgao} description="Área de montagem da estrutura organizacional." className="organograma-panel">
+          <div className="organograma-clean-canvas organograma-root-stage" aria-label="Área de montagem do organograma">
+            <div className="organograma-root-level">Nível 1 — Órgão</div>
+            <div className="organograma-root-wrap">
+              <span className="organograma-root-index">1</span>
+              <article className="organograma-root-card">
+                <small>Cód. {versaoSelecionada?.codigoOrgao ?? orgaoSelecionado}</small>
+                <strong>{orgao}</strong>
+                <span>Nível da unidade: Órgão/Entidade</span>
+              </article>
+              <button type="button" className="organograma-root-add is-left" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
+              <button type="button" className="organograma-root-add is-right" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
+              <button type="button" className="organograma-root-add is-bottom" aria-label="Cadastrar unidade abaixo" title="Cadastrar unidade abaixo" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
+            </div>
+            {raizes.length > 0 && <div className="organograma-builder-children organograma-builder-root-children">{raizes.map((unidade) => <NoMontagem key={unidade.id} unidade={unidade} />)}</div>}
+          </div>
+        </PanelSeplag>
+      </CardSeplag>
+      <ModalSeplag visible={Boolean(modalAdicionar)} titulo="Incluir unidade na estrutura" fechar={() => setModalAdicionar(null)} labelFechar="Cancelar" labelAcao={modoAdicionar === "NOVA" ? "Cadastrar unidade" : "Inserir unidade"} funcAcao={salvarAdicao} tamanho="min(1420px, calc(100vw - 32px))">
+        {modalAdicionar && contextoAdicionar && <div className="grid organograma-add-modal">
+          <div className="col-12 organograma-add-context"><span>Órgão/Entidade</span><strong>{orgao}</strong><small>Unidade superior: {contextoAdicionar.superiorNome}</small></div>
+          <div className="col-12 organograma-add-choice" role="group" aria-label="Forma de inclusão"><button type="button" className={modoAdicionar === "NOVA" ? "is-selected" : ""} onClick={() => { setModoAdicionar("NOVA"); setErroAdicionar(""); }}><i className="pi pi-plus" /> Cadastrar nova unidade</button><button type="button" className={modoAdicionar === "EXISTENTE" ? "is-selected" : ""} onClick={() => { setModoAdicionar("EXISTENTE"); setErroAdicionar(""); }}><i className="pi pi-link" /> Selecionar unidade existente</button></div>
+          {erroAdicionar && <p className="col-12 organograma-new-error">{erroAdicionar}</p>}
+          {modoAdicionar === "EXISTENTE" ? <DropdownFieldSeplag name="unidadeExistenteId" control={controlAdicionar} label="Unidade já cadastrada" placeholder="Selecione a unidade..." cols="12" required options={unidadesDisponiveis.map((unidade) => ({ label: `${unidade.codigo} — ${unidade.nome}`, value: String(unidade.id) }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /> : <>
+          <DropdownFieldSeplag name="nivel" control={controlAdicionar} label="Nível organizacional" placeholder="Selecione..." cols="12 6" required options={opcoes(["Nível de Decisão Colegiada", "Nível de Direção Superior", "Nível de Assessoramento Superior", "Nível Assessoramento Estratégico e Especializado", "Nível de Administração Sistêmica", "Nível de Execução Programática", "Nível de Administração Regionalizada", "Nível de Administração Desconcentrada", "Nível de Administração Descentralizada"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
+          <DateFieldSeplag name="dataCriacao" control={controlAdicionar} label="Data de criação" cols="12 6" required getFormErrorMessage={semErro} />
+          <TextFieldSeplag name="nome" control={controlAdicionar} label="Nome da unidade" placeholder="Ex.: Gabinete do Secretário" cols="12" required getFormErrorMessage={semErro} />
+          <DropdownFieldSeplag name="documentoLegalId" control={controlAdicionar} label="Documento legal de criação" placeholder="Selecione..." cols="12" required options={estrutura.documentosLegais.filter((documento) => documento.ativo).map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
+          <section className="col-12 organograma-modal-location"><h4>Localização</h4><p>UF e Município são herdados do órgão. Informe endereço próprio somente quando a unidade funcionar em outra localidade.</p><RadioButtonFieldSeplag name="outraLocalidade" control={controlAdicionar} label="A unidade funciona em outra localidade?" cols="12" options={[{ label: "Não", value: "NAO" }, { label: "Sim", value: "SIM" }]} getFormErrorMessage={semErro} />
+            {watchAdicionar("outraLocalidade") === "NAO" ? <div className="organograma-location-inherited"><div><span>UF</span><strong>MT</strong><small>Herdado do órgão</small></div><div><span>Município</span><strong>Cuiabá</strong><small>Herdado do órgão</small></div></div> : <div className="grid organograma-location-fields"><TextFieldSeplag name="cep" control={controlAdicionar} label="CEP" placeholder="00000-000" cols="12 6" required getFormErrorMessage={semErro} /><DropdownFieldSeplag name="estado" control={controlAdicionar} label="Estado" placeholder="Selecione..." cols="12 6" required options={opcoes(["MT", "GO", "MS", "RO", "SP"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><TextFieldSeplag name="cidade" control={controlAdicionar} label="Cidade" placeholder="Informe a cidade" cols="12 4" required getFormErrorMessage={semErro} /><TextFieldSeplag name="bairro" control={controlAdicionar} label="Bairro/Distrito" placeholder="Informe o bairro ou distrito" cols="12 4" required getFormErrorMessage={semErro} /><DropdownFieldSeplag name="tipoLogradouro" control={controlAdicionar} label="Tipo de Logradouro" placeholder="Selecione..." cols="12 4" options={opcoes(["Avenida", "Rua", "Rodovia", "Praça", "Travessa", "Estrada"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><TextFieldSeplag name="logradouro" control={controlAdicionar} label="Logradouro" placeholder="Informe o logradouro" cols="12 8" required getFormErrorMessage={semErro} /><TextFieldSeplag name="numero" control={controlAdicionar} label="Número" placeholder="Número" cols="12 4" required getFormErrorMessage={semErro} /><TextFieldSeplag name="complemento" control={controlAdicionar} label="Complemento" placeholder="Informe o complemento" cols="12" getFormErrorMessage={semErro} /></div>}
+          </section>
+          </>}
+        </div>}
+      </ModalSeplag>
+    </div>
+  );
 
   return (
     <div className="organograma-page">
