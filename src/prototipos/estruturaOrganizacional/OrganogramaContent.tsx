@@ -22,8 +22,12 @@ type Filtros = {
   nomeOrganograma: string;
   documentoLegal: string;
   busca: string;
+  codigoUnidade: string;
+  nomeUnidade: string;
+  tipoFiltro: string;
   nivel: string;
   situacao: string;
+  competencia: string;
   versaoComparacaoId: string;
 };
 type AdicionarUnidadeForm = { unidadeExistenteId: string; tipo: string; codigo: string; nivel: string; nome: string; documentoLegalId: string; dataCriacao: string; outraLocalidade: "NAO" | "SIM"; cep: string; estado: string; cidade: string; bairro: string; tipoLogradouro: string; logradouro: string; numero: string; complemento: string };
@@ -51,8 +55,12 @@ function OrganogramaDetalheContent() {
       nomeOrganograma: "Estrutura Organizacional SEPLAG - 2026",
       documentoLegal: "Decreto nº 2.185, de 03/07/2026",
       busca: "",
+      codigoUnidade: "",
+      nomeUnidade: "",
+      tipoFiltro: "",
       nivel: "Todos os níveis",
       situacao: "",
+      competencia: "",
       versaoComparacaoId: "",
     },
   });
@@ -81,8 +89,12 @@ function OrganogramaDetalheContent() {
   const unidades = useMemo(() => versaoSelecionada ? obterUnidadesDaVersao(estrutura, versaoSelecionada.id) : [], [estrutura, versaoSelecionada]);
   const unidadesComparacao = useMemo(() => versaoComparacao ? obterUnidadesDaVersao(estrutura, versaoComparacao.id) : [], [estrutura, versaoComparacao]);
   const busca = watch("busca");
+  const codigoUnidade = watch("codigoUnidade");
+  const nomeUnidade = watch("nomeUnidade");
+  const tipoFiltro = watch("tipoFiltro");
   const nivel = watch("nivel");
   const situacao = watch("situacao");
+  const competencia = watch("competencia");
 
   useEffect(() => {
     if (versaoVigente && !versoesDoOrgao.some((versao) => versao.id === versaoIdForm)) setValue("versaoId", versaoVigente.id);
@@ -92,17 +104,23 @@ function OrganogramaDetalheContent() {
 
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
+    const codigoFiltro = codigoUnidade.trim().toLocaleLowerCase("pt-BR");
+    const nomeFiltro = nomeUnidade.trim().toLocaleLowerCase("pt-BR");
     return unidades.filter((unidade) =>
+      (!codigoFiltro || unidade.codigo.toLocaleLowerCase("pt-BR").includes(codigoFiltro)) &&
+      (!nomeFiltro || unidade.nome.toLocaleLowerCase("pt-BR").includes(nomeFiltro)) &&
+      (!tipoFiltro || unidade.tipo === tipoFiltro) &&
       (nivel === "Todos os níveis" || unidade.nivelOrganizacional === nivel) &&
-      (!situacao || unidade.situacao === situacao) &&
+      (!situacao || (situacao === "EM_EXTINCAO" ? unidade.situacao === "INATIVA" : unidade.situacao === situacao)) &&
+      (!competencia || unidade.dataInicio === competencia) &&
       (!termo || `${unidade.codigo} ${unidade.nome} ${unidade.tipo} ${unidade.nivelOrganizacional}`
         .toLocaleLowerCase("pt-BR")
         .includes(termo)),
     );
-  }, [busca, nivel, situacao, unidades]);
+  }, [busca, codigoUnidade, nomeUnidade, tipoFiltro, nivel, situacao, competencia, unidades]);
 
   const idsVisiveis = useMemo(() => {
-    if (!busca.trim() && nivel === "Todos os níveis") return new Set(unidades.map((unidade) => unidade.id));
+    if (!busca.trim() && !codigoUnidade.trim() && !nomeUnidade.trim() && !tipoFiltro && nivel === "Todos os níveis" && !situacao && !competencia) return new Set(unidades.map((unidade) => unidade.id));
     const ids = new Set(filtradas.map((unidade) => unidade.id));
     filtradas.forEach((unidade) => {
       let superior = unidade.superiorId;
@@ -112,7 +130,7 @@ function OrganogramaDetalheContent() {
       }
     });
     return ids;
-  }, [busca, filtradas, nivel]);
+  }, [busca, codigoUnidade, nomeUnidade, tipoFiltro, nivel, situacao, competencia, filtradas]);
 
   const nomeSuperior = (unidade: Unidade) =>
     unidades.find((item) => item.id === unidade.superiorId)?.nome ?? "Órgão/Entidade";
@@ -228,6 +246,17 @@ function OrganogramaDetalheContent() {
         cardHeaderClassNames="prototype-carreira-card organograma-card"
         headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organogramas" }, { label: "Organograma" }]} />}
       >
+        <section className="organograma-global-filters" aria-label="Filtros da estrutura organizacional">
+          <div className="grid">
+            <TextFieldSeplag name="codigoUnidade" control={control} label="Código" placeholder="Digite o código" cols="12 6 2" getFormErrorMessage={semErro} />
+            <TextFieldSeplag name="nomeUnidade" control={control} label="Nome da unidade" placeholder="Digite o nome" cols="12 6 3" getFormErrorMessage={semErro} />
+            <DropdownFieldSeplag name="tipoFiltro" control={control} label="Tipo" placeholder="Todos" cols="12 6 2" options={opcoes([...new Set(unidades.map((unidade) => unidade.tipo))])} optionLabel="label" optionValue="value" showClear getFormErrorMessage={semErro} />
+            <DropdownFieldSeplag name="nivel" control={control} label="Nível organizacional" placeholder="Todos" cols="12 6 2" options={opcoes(["Todos os níveis", ...new Set(unidades.map((unidade) => unidade.nivelOrganizacional))])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
+            <DropdownFieldSeplag name="situacao" control={control} label="Situação" placeholder="Todas" cols="12 6 2" options={[{ label: "Ativa", value: "ATIVA" }, { label: "Em Extinção", value: "EM_EXTINCAO" }, { label: "Extinta", value: "EXTINTA" }]} optionLabel="label" optionValue="value" showClear getFormErrorMessage={semErro} />
+            <DateFieldSeplag name="competencia" control={control} label="Competência" cols="12 6 2" getFormErrorMessage={semErro} />
+            <div className="col-12 organograma-global-filter-clear"><BotaoLimparFiltroSeplag label="Limpar filtros" icon="pi pi-refresh" onClick={() => { setValue("codigoUnidade", ""); setValue("nomeUnidade", ""); setValue("tipoFiltro", ""); setValue("nivel", "Todos os níveis"); setValue("situacao", ""); setValue("competencia", ""); setValue("busca", ""); }} /></div>
+          </div>
+        </section>
         <PanelSeplag title={orgao} description="Área de montagem da estrutura organizacional." className="organograma-panel">
           <div className="organograma-editor-tabs" role="tablist" aria-label="Visualizações do organograma">
             <button type="button" role="tab" aria-selected={abaEdicao === "GRAFICA"} className={abaEdicao === "GRAFICA" ? "is-active" : ""} onClick={() => setAbaEdicao("GRAFICA")}><i className="pi pi-sitemap" /> Visão gráfica (Árvore)</button>
@@ -248,12 +277,6 @@ function OrganogramaDetalheContent() {
             </div>
             {raizes.length > 0 && <div className="organograma-builder-children organograma-builder-root-children">{raizes.map((unidade) => <NoMontagem key={unidade.id} unidade={unidade} />)}</div>}
           </div> : <section className="organograma-units-list">
-            <div className="grid organograma-units-filters">
-              <TextFieldSeplag name="busca" control={control} label="Pesquisar na estrutura" placeholder="Nome da unidade, sigla ou código" cols="12 6 3" getFormErrorMessage={semErro} />
-              <DropdownFieldSeplag name="nivel" control={control} label="Nível organizacional" placeholder="Todos os níveis" cols="12 6 3" options={opcoes(["Todos os níveis", ...new Set(unidades.map((unidade) => unidade.nivelOrganizacional))])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
-              <DropdownFieldSeplag name="situacao" control={control} label="Situação" placeholder="Todas" cols="12 6 3" options={opcoes(["ATIVA", "INATIVA", "EXTINTA"])} optionLabel="label" optionValue="value" showClear getFormErrorMessage={semErro} />
-              <div className="col-12 md:col-6 lg:col-3 organograma-units-clear"><BotaoLimparFiltroSeplag label="Limpar" icon="pi pi-refresh" onClick={() => { setValue("busca", ""); setValue("nivel", "Todos os níveis"); setValue("situacao", ""); }} /></div>
-            </div>
             <div className="organograma-units-table-wrap"><table className="organograma-units-table"><thead><tr><th>Código</th><th>Unidade</th><th>Órgão/Entidade</th><th>Tipo</th><th>Nível Organizacional</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{filtradas.map((unidade) => <tr key={unidade.id}><td>{indices.get(unidade.id)}</td><td><strong>{unidade.nome}</strong><small>{unidade.sigla ? `${unidade.sigla} · ` : ""}{unidade.codigo}</small></td><td>{orgaoSelecionado}</td><td><span className="organograma-list-type">{unidade.tipo}</span></td><td>{unidade.nivelOrganizacional}</td><td><BadgeSeplag label={unidade.situacao === "ATIVA" ? "Ativa" : unidade.situacao === "INATIVA" ? "Inativa" : "Extinta"} color={unidade.situacao === "ATIVA" ? "#00843d" : "#64748b"} bg={unidade.situacao === "ATIVA" ? "#e2f3e8" : "#f1f5f9"} border="transparent" size="sm" /></td><td><button type="button" className="organograma-units-view" title="Visualizar unidade" onClick={() => abrirVisualizacao(unidade)}><i className="pi pi-eye" /></button></td></tr>)}{filtradas.length === 0 && <tr><td colSpan={7} className="organograma-units-empty">Nenhuma unidade encontrada.</td></tr>}</tbody></table></div>
             <p className="organograma-units-summary">Exibindo {filtradas.length} {filtradas.length === 1 ? "unidade" : "unidades"} da estrutura.</p>
           </section>}
