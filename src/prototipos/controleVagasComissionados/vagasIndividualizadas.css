@@ -1,3 +1,8 @@
+
+/* Quatro indicadores gerais ocupam integralmente a largura da tela. */
+.prototype-comissionados-posicoes-page .prototype-quadro-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
 .prototype-comissionados-posicoes-page .prototype-quadro-header {
   padding-top: 0;
 }
@@ -235,3 +240,4 @@
 }
 
 .prototype-comissionados-posicao-sem-ocupante { margin: 0; padding: .9rem 1rem 1rem; color: #65758a; font-size: .82rem; }
+

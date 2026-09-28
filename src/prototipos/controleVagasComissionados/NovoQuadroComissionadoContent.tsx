@@ -209,7 +209,7 @@ export function NovoQuadroComissionadoContent() {
       <header><i className="pi pi-building" /><div><h2>Identificação do quadro</h2><p>Selecione o órgão a que pertence o quadro. A fundamentação é informada na Base legal.</p></div></header>
       <div className="nqc-fields">
         <TextFieldSeplag name="nome" control={vigenciaControl} label="Nome do quadro" required cols="12" placeholder="Ex.: Estrutura organizacional da SESP" getFormErrorMessage={() => null} />
-        <DropdownFieldSeplag name="orgao" control={vigenciaControl} label="Órgão" required cols="12" options={opcoesOrgao} optionLabel="label" optionValue="value" onChange={(orgaoSelecionado) => { if (orgaoSelecionado && quadroExistenteDoOrgao(String(orgaoSelecionado))) setValorVigencia("orgao", "", { shouldDirty: true, shouldValidate: true }); }} itemTemplate={(option) => <span className={option.indisponivel ? "prototype-quadro-cargo-indisponivel nqc-orgao-indisponivel" : undefined} aria-label={option.motivoIndisponibilidade || undefined}><span className="prototype-quadro-cargo-indisponivel-label">{option.label}</span>{option.quadroCodigo && <span className="prototype-quadro-cargo-indisponivel-badge">{option.quadroCodigo}</span>}</span>} placeholder="Selecione" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="orgao" control={vigenciaControl} label="Órgão" required cols="12" options={opcoesOrgao} optionLabel="label" optionValue="value" optionDisabled="indisponivel" onChange={(orgaoSelecionado) => { if (orgaoSelecionado && quadroExistenteDoOrgao(String(orgaoSelecionado))) setValorVigencia("orgao", "", { shouldDirty: true, shouldValidate: true }); }} itemTemplate={(option) => option.indisponivel ? <span className="nqc-orgao-com-quadro" aria-label={option.motivoIndisponibilidade}><span>{option.label}</span><small>{option.quadroCodigo}</small></span> : <span>{option.label}</span>} panelClassName="nqc-orgao-dropdown-panel" placeholder="Selecione" getFormErrorMessage={() => null} />
       </div>
     </section>
 
@@ -363,6 +363,7 @@ function somarTotais(itens: ItemEstrutura[], acumulado = { cargos: 0, funcoes: 0
     funcoes: total.funcoes + item.dotacoes.reduce((soma, dotacao) => soma + dotacao.funcoes, 0) + somarTotais(item.subitens).funcoes,
   }), acumulado);
 }
+
 
 
 
