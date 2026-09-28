@@ -10,7 +10,7 @@ import { ModalSeplag } from "@componentes/Modal";
 import { PanelSeplag } from "@componentes/PanelSeplag";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "@interfaces/Results";
-import { cadastrarOrganograma, cadastrarUnidadeNoOrganograma, lerEstruturaOrganizacional, obterUnidadesDaVersao, obterVersaoVigente, publicarOrganograma, vincularUnidadeAoOrganograma, type VersaoOrganograma, type UnidadeNoOrganograma } from "./estruturaOrganizacionalStore";
+import { cadastrarOrganograma, cadastrarUnidadeNoOrganograma, extinguirUnidadeDaEstrutura, gravarUnidadesDaEstrutura, lerEstruturaOrganizacional, obterUnidadesDaVersao, obterVersaoVigente, publicarOrganograma, vincularUnidadeAoOrganograma, type VersaoOrganograma, type UnidadeNoOrganograma } from "./estruturaOrganizacionalStore";
 import { tiposUnidadesAtivos } from "./tiposUnidadesStore";
 import "./organograma.css";
 
@@ -31,6 +31,8 @@ type Filtros = {
   versaoComparacaoId: string;
 };
 type AdicionarUnidadeForm = { unidadeExistenteId: string; tipo: string; codigo: string; nivel: string; nome: string; documentoLegalId: string; dataCriacao: string; outraLocalidade: "NAO" | "SIM"; cep: string; estado: string; cidade: string; bairro: string; tipoLogradouro: string; logradouro: string; numero: string; complemento: string };
+type ExtincaoUnidadeForm = { dataFim: string; documentoLegalId: string; justificativa: string };
+type EdicaoUnidadeForm = { nome: string; tipo: string; nivel: string; dataCriacao: string; documentoLegalId: string };
 
 const opcoes = (valores: string[]) => valores.map((valor) => ({ label: valor, value: valor }));
 const semErro = () => null;
@@ -75,8 +77,12 @@ function OrganogramaDetalheContent() {
   const [abaModalAdicionar, setAbaModalAdicionar] = useState<"DADOS" | "HISTORICO">("DADOS");
   const [abaModalVisualizacao, setAbaModalVisualizacao] = useState<"DADOS" | "HISTORICO">("DADOS");
   const [abaEdicao, setAbaEdicao] = useState<"GRAFICA" | "LISTA">("GRAFICA");
+  const [modalExtincao, setModalExtincao] = useState(false);
+  const [erroExtincao, setErroExtincao] = useState("");
   const [erroAdicionar, setErroAdicionar] = useState("");
   const { control: controlAdicionar, watch: watchAdicionar, reset: resetAdicionar } = useForm<AdicionarUnidadeForm>({ defaultValues: { unidadeExistenteId: "", tipo: "", codigo: "", nivel: "", nome: "", documentoLegalId: "", dataCriacao: "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" } });
+  const { control: controlExtincao, watch: watchExtincao, reset: resetExtincao } = useForm<ExtincaoUnidadeForm>({ defaultValues: { dataFim: "", documentoLegalId: "", justificativa: "" } });
+  const { control: controlEdicao, watch: watchEdicao, reset: resetEdicao } = useForm<EdicaoUnidadeForm>({ defaultValues: { nome: "", tipo: "", nivel: "", dataCriacao: "", documentoLegalId: "" } });
   const orgaosDisponiveis = [...new Set(estrutura.versoes.map((versao) => versao.orgao))];
   const orgao = watch("orgao");
   const orgaoSelecionado = orgao.split(" - ")[0];
@@ -216,7 +222,20 @@ function OrganogramaDetalheContent() {
     }
     setModalAdicionar(null); setErroAdicionar("");
   };
-  const abrirVisualizacao = (unidade: Unidade) => { setSelecionada(unidade); setAbaModalVisualizacao("DADOS"); };
+  const abrirVisualizacao = (unidade: Unidade) => { resetEdicao({ nome: unidade.nome, tipo: unidade.tipo, nivel: unidade.nivelOrganizacional, dataCriacao: unidade.dataInicio, documentoLegalId: unidade.documentoCriacaoId ?? versaoSelecionada?.documentoLegalId ?? "" }); setSelecionada(unidade); setAbaModalVisualizacao("DADOS"); };
+  const salvarEdicaoUnidade = () => {
+    if (!selecionada || !watchEdicao("nome").trim() || !watchEdicao("tipo") || !watchEdicao("nivel") || !watchEdicao("dataCriacao") || !watchEdicao("documentoLegalId")) return;
+    const atualizada = gravarUnidadesDaEstrutura(estrutura.unidades.map((unidade) => unidade.id === selecionada.id ? { ...unidade, nome: watchEdicao("nome").trim(), tipo: watchEdicao("tipo"), nivelOrganizacional: watchEdicao("nivel"), dataInicio: watchEdicao("dataCriacao"), documentoCriacaoId: watchEdicao("documentoLegalId"), documentosLegaisCriacaoIds: [watchEdicao("documentoLegalId")] } : unidade), "EDICAO");
+    setEstrutura(atualizada); setSelecionada(null);
+  };
+  const abrirExtincao = () => { resetExtincao({ dataFim: "", documentoLegalId: "", justificativa: "" }); setErroExtincao(""); setModalExtincao(true); };
+  const confirmarExtincao = () => {
+    if (!selecionada) return;
+    if (filhosDe(selecionada.id).some((unidade) => unidade.situacao === "ATIVA")) { setErroExtincao("Não é possível extinguir esta unidade enquanto houver unidades subordinadas ativas."); return; }
+    if (!watchExtincao("dataFim") || !watchExtincao("documentoLegalId") || !watchExtincao("justificativa").trim()) { setErroExtincao("Informe a data de encerramento, o documento legal e a justificativa."); return; }
+    setEstrutura(extinguirUnidadeDaEstrutura(selecionada.id, watchExtincao("dataFim"), watchExtincao("documentoLegalId"), watchExtincao("justificativa").trim()));
+    setModalExtincao(false); setSelecionada(null); setErroExtincao("");
+  };
 
   const NoMontagem = ({ unidade }: { unidade: Unidade }) => {
     const filhos = filhosDe(unidade.id);
@@ -246,7 +265,7 @@ function OrganogramaDetalheContent() {
         cardHeaderClassNames="prototype-carreira-card organograma-card"
         headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organogramas" }, { label: "Organograma" }]} />}
       >
-        <section className="organograma-global-filters" aria-label="Filtros da estrutura organizacional">
+        {modo !== "editar" && <section className="organograma-global-filters" aria-label="Filtros da estrutura organizacional">
           <div className="grid">
             <TextFieldSeplag name="codigoUnidade" control={control} label="Código" placeholder="Digite o código" cols="12 6 2" getFormErrorMessage={semErro} />
             <TextFieldSeplag name="nomeUnidade" control={control} label="Nome da unidade" placeholder="Digite o nome" cols="12 6 3" getFormErrorMessage={semErro} />
@@ -256,7 +275,7 @@ function OrganogramaDetalheContent() {
             <DateFieldSeplag name="competencia" control={control} label="Competência" cols="12 6 2" getFormErrorMessage={semErro} />
             <div className="col-12 organograma-global-filter-clear"><BotaoLimparFiltroSeplag label="Limpar filtros" icon="pi pi-refresh" onClick={() => { setValue("codigoUnidade", ""); setValue("nomeUnidade", ""); setValue("tipoFiltro", ""); setValue("nivel", "Todos os níveis"); setValue("situacao", ""); setValue("competencia", ""); setValue("busca", ""); }} /></div>
           </div>
-        </section>
+        </section>}
         <PanelSeplag title={orgao} description="Área de montagem da estrutura organizacional." className="organograma-panel">
           <div className="organograma-editor-tabs" role="tablist" aria-label="Visualizações do organograma">
             <button type="button" role="tab" aria-selected={abaEdicao === "GRAFICA"} className={abaEdicao === "GRAFICA" ? "is-active" : ""} onClick={() => setAbaEdicao("GRAFICA")}><i className="pi pi-sitemap" /> Visão gráfica (Árvore)</button>
@@ -304,14 +323,26 @@ function OrganogramaDetalheContent() {
           {abaModalAdicionar === "HISTORICO" && <section className="col-12 organograma-add-history"><header><div><strong>Histórico de Alterações</strong><span>Registro cronológico de alterações e documentos vinculados a esta unidade.</span></div><small>0 registros encontrados</small></header><div className="organograma-add-history-empty"><i className="pi pi-history" /><strong>Nenhum histórico disponível</strong><span>O registro de criação será gerado automaticamente quando a unidade for cadastrada.</span></div></section>}
         </div>}
       </ModalSeplag>
-      <ModalSeplag visible={Boolean(selecionada)} titulo="Cadastro da unidade" fechar={() => setSelecionada(null)} tamanho="min(1120px, calc(100vw - 32px))" customFooter={<BotaoSeplag label="Fechar" icon="pi pi-times" outlined onClick={() => setSelecionada(null)} />}>
+      <ModalSeplag visible={Boolean(selecionada)} titulo={modo === "editar" ? "Editar Unidade Administrativa" : "Cadastro da unidade"} fechar={() => setSelecionada(null)} tamanho="min(1120px, calc(100vw - 32px))" customFooter={<div className="organograma-read-footer">{selecionada?.situacao === "ATIVA" && <button type="button" className="organograma-extinguish-button" onClick={abrirExtincao}><i className="pi pi-ban" /> Extinguir Unidade</button>}<div className="organograma-read-footer-actions"><BotaoSeplag label={modo === "editar" ? "Cancelar" : "Fechar"} icon="pi pi-times" outlined onClick={() => setSelecionada(null)} />{modo === "editar" && <BotaoSeplag label="Salvar Alterações" icon="pi pi-save" onClick={salvarEdicaoUnidade} />}</div></div>}>
         {selecionada && <div className="grid organograma-read-modal">
           <div className="col-12 organograma-add-context"><span>Órgão/Entidade</span><strong>{orgao}</strong><small>Unidade superior: {nomeSuperior(selecionada)}</small></div>
           <div className="col-12 organograma-add-tabs" role="tablist" aria-label="Seções do cadastro da unidade">
             <button type="button" role="tab" aria-selected={abaModalVisualizacao === "DADOS"} className={abaModalVisualizacao === "DADOS" ? "is-active" : ""} onClick={() => setAbaModalVisualizacao("DADOS")}><i className="pi pi-id-card" /> Dados da Unidade</button>
             <button type="button" role="tab" aria-selected={abaModalVisualizacao === "HISTORICO"} className={abaModalVisualizacao === "HISTORICO" ? "is-active" : ""} onClick={() => setAbaModalVisualizacao("HISTORICO")}><i className="pi pi-history" /> Histórico de Alterações <span>2</span></button>
           </div>
-          {abaModalVisualizacao === "DADOS" ? <section className="col-12 organograma-read-data"><div><span>Código</span><strong>{selecionada.codigo}</strong></div><div><span>Tipo de unidade</span><strong>{selecionada.tipo}</strong></div><div><span>Nível organizacional</span><strong>{selecionada.nivelOrganizacional}</strong></div><div className="is-wide"><span>Nome da unidade</span><strong>{selecionada.nome}</strong></div><div><span>Data de criação</span><strong>{selecionada.dataInicio}</strong></div><div><span>Documento legal de criação</span><strong>{versaoSelecionada?.documentoLegal ?? "Não informado"}</strong></div><div><span>Localização</span><strong>{selecionada.localizacao}</strong></div></section> : <section className="col-12 organograma-add-history"><header><div><strong>Histórico de Alterações</strong><span>Registro cronológico de alterações e documentos vinculados a esta unidade.</span></div><small>2 registros encontrados</small></header><article className="organograma-history-record"><div className="organograma-history-record-title"><span>v2.0</span><strong>Alteração da classificação organizacional</strong><small>25/09/2026 às 10:14 por Administrador SIGEP</small></div><table><thead><tr><th>Campo alterado</th><th>Valor anterior</th><th>Valor novo</th></tr></thead><tbody><tr><td>Nível organizacional</td><td>Nível de Direção Superior</td><td>{selecionada.nivelOrganizacional}</td></tr><tr><td>Documento legal de criação</td><td>Decreto nº 1.050/2024</td><td>{versaoSelecionada?.documentoLegal ?? "Não informado"}</td></tr></tbody></table></article><article className="organograma-history-record"><div className="organograma-history-record-title"><span className="is-created">v1.0</span><strong>Criação da Unidade no Organograma</strong><small>{selecionada.dataInicio} por Sistema</small></div></article></section>}
+          {abaModalVisualizacao === "DADOS" && modo === "editar" && <section className="col-12 grid organograma-edit-data"><TextFieldSeplag name="nome" control={controlEdicao} label="Nome da unidade" cols="12 8" required getFormErrorMessage={semErro} /><div className="col-12 md:col-4 organograma-edit-code"><span>Código</span><strong>{selecionada.codigo}</strong></div><DropdownFieldSeplag name="tipo" control={controlEdicao} label="Tipo de unidade" cols="12 6" required options={opcoes(tiposUnidadesAtivos())} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="nivel" control={controlEdicao} label="Nível organizacional" cols="12 6" required options={opcoes(["Nível de Decisão Colegiada", "Nível de Direção Superior", "Nível de Assessoramento Superior", "Nível Assessoramento Estratégico e Especializado", "Nível de Administração Sistêmica", "Nível de Execução Programática", "Nível de Administração Regionalizada", "Nível de Administração Desconcentrada", "Nível de Administração Descentralizada"])} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DateFieldSeplag name="dataCriacao" control={controlEdicao} label="Data de criação" cols="12 6" required getFormErrorMessage={semErro} /><DropdownFieldSeplag name="documentoLegalId" control={controlEdicao} label="Documento legal de criação" cols="12 6" required options={estrutura.documentosLegais.filter((documento) => documento.ativo).map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><div className="col-12 organograma-edit-location"><span>Localização</span><strong>{selecionada.localizacao}</strong><small>Para alterar a localização, use o cadastro de Unidades.</small></div></section>}
+          {abaModalVisualizacao === "DADOS" && modo !== "editar" ? <section className="col-12 organograma-read-data"><div><span>Código</span><strong>{selecionada.codigo}</strong></div><div><span>Tipo de unidade</span><strong>{selecionada.tipo}</strong></div><div><span>Nível organizacional</span><strong>{selecionada.nivelOrganizacional}</strong></div><div className="is-wide"><span>Nome da unidade</span><strong>{selecionada.nome}</strong></div><div><span>Data de criação</span><strong>{selecionada.dataInicio}</strong></div><div><span>Documento legal de criação</span><strong>{versaoSelecionada?.documentoLegal ?? "Não informado"}</strong></div><div><span>Localização</span><strong>{selecionada.localizacao}</strong></div></section> : abaModalVisualizacao === "HISTORICO" ? <section className="col-12 organograma-add-history"><header><div><strong>Histórico de Alterações</strong><span>Registro cronológico de alterações e documentos vinculados a esta unidade.</span></div><small>2 registros encontrados</small></header><article className="organograma-history-record"><div className="organograma-history-record-title"><span>v2.0</span><strong>Alteração da classificação organizacional</strong><small>25/09/2026 às 10:14 por Administrador SIGEP</small></div><table><thead><tr><th>Campo alterado</th><th>Valor anterior</th><th>Valor novo</th></tr></thead><tbody><tr><td>Nível organizacional</td><td>Nível de Direção Superior</td><td>{selecionada.nivelOrganizacional}</td></tr><tr><td>Documento legal de criação</td><td>Decreto nº 1.050/2024</td><td>{versaoSelecionada?.documentoLegal ?? "Não informado"}</td></tr></tbody></table></article><article className="organograma-history-record"><div className="organograma-history-record-title"><span className="is-created">v1.0</span><strong>Criação da Unidade no Organograma</strong><small>{selecionada.dataInicio} por Sistema</small></div></article></section> : null}
+        </div>}
+      </ModalSeplag>
+      <ModalSeplag visible={modalExtincao} titulo="Extinguir Unidade Organizacional" fechar={() => setModalExtincao(false)} labelFechar="Cancelar" labelAcao="Confirmar Extinção" funcAcao={confirmarExtincao} tamanho="680px">
+        {selecionada && <div className="grid organograma-extincao-modal">
+          <section className="col-12 organograma-extincao-warning"><i className="pi pi-exclamation-triangle" /><div><strong>Verificação de pendências</strong><span>Certifique-se de que não existam servidores ou unidades vinculadas que dependam desta unidade.</span></div></section>
+          <div className="col-12 organograma-extincao-selected"><span>Unidade selecionada</span><strong>{selecionada.codigo} — {selecionada.nome}</strong></div>
+          {erroExtincao && <p className="col-12 organograma-new-error">{erroExtincao}</p>}
+          <DropdownFieldSeplag name="documentoLegalId" control={controlExtincao} label="Fundamentação legal" placeholder="Selecione..." cols="12" required options={estrutura.documentosLegais.filter((documento) => documento.ativo).map((documento) => ({ label: documento.titulo, value: documento.id }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} />
+          <DateFieldSeplag name="dataFim" control={controlExtincao} label="Data fim da vigência (Encerramento)" cols="12" required getFormErrorMessage={semErro} />
+          <TextFieldSeplag name="justificativa" control={controlExtincao} label="Justificativa da extinção" placeholder="Descreva os motivos da extinção da unidade..." cols="12" required getFormErrorMessage={semErro} />
+          <section className="col-12 organograma-extincao-note"><strong>Atenção sobre a irreversibilidade</strong><span>Uma vez extinta, esta unidade não poderá ser reativada.</span></section>
         </div>}
       </ModalSeplag>
     </div>
