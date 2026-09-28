@@ -287,8 +287,8 @@ function DotacaoEditor({ dotacao, onChange, onRemove, simbologias, emVersionamen
   const vagasAfetadas = Array.from({ length: excedente }, (_, indice) => `${dotacao.simbologia || "Vaga"}-${reducaoFuncoes ? "F" : "C"}-${String((dotacao.funcoes || dotacao.cargos) + indice + 1).padStart(3, "0")}`);
 
   return <div id={`dotacao-${dotacao.id}`} className={`nqc-dotacao ${possuiReducaoComOcupacao ? "nqc-dotacao--reducao" : ""}`}>
-    <label>Perfil Profissional<select value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)}><option value="">Selecione...</option>{perfisDisponiveis.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}</select></label>
     <label>Cargo Comissionado<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{simbologias.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label>
+    <label>Perfil Profissional<select value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)}><option value="">Selecione...</option>{perfisDisponiveis.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}</select></label>
     <label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label>
     <label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label>
     <BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} />
@@ -363,6 +363,7 @@ function somarTotais(itens: ItemEstrutura[], acumulado = { cargos: 0, funcoes: 0
     funcoes: total.funcoes + item.dotacoes.reduce((soma, dotacao) => soma + dotacao.funcoes, 0) + somarTotais(item.subitens).funcoes,
   }), acumulado);
 }
+
 
 
 

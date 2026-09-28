@@ -50,7 +50,8 @@ export function MultiSelectFieldSeplag<T extends FieldValues = any>(
               filter
               optionValue={optionValue}
               optionLabel={optionLabel}
-              className={classNames({ "p-invalid": fieldState.error })}
+              className={classNames("w-full", { "p-invalid": fieldState.error })}
+              style={{ width: "100%", height: "40px" }}
               onChange={(e) => {
                 if (readOnly) return;
                 field.onChange(e.target.value);
@@ -74,3 +75,5 @@ export function MultiSelectFieldSeplag<T extends FieldValues = any>(
 }
 
 export default MultiSelectFieldSeplag;
+
+

@@ -50,7 +50,7 @@
 .nqc-item-title input { border: 0; background: transparent; font-size: .85rem; font-weight: 650; }
 .nqc-item-title input:focus { outline: 1px solid #8cc4e6; border-radius: .2rem; background: #fff; }
 .nqc-dotacoes { padding: 0 .7rem; }
-.nqc-dotacao { display: grid; grid-template-columns: minmax(12rem, 1.6fr) minmax(11rem, 1.1fr) 6rem 6rem 2.35rem; gap: .65rem; align-items: end; margin-top: .55rem; padding: .7rem; border: 1px solid #dce6ed; border-radius: .35rem; background: #fff; }
+.nqc-dotacao { display: grid; grid-template-columns: minmax(11rem, 1.1fr) minmax(12rem, 1.6fr) 6rem 6rem 2.35rem; gap: .65rem; align-items: end; margin-top: .55rem; padding: .7rem; border: 1px solid #dce6ed; border-radius: .35rem; background: #fff; }
 .nqc-dotacao .p-button, .nqc-item-title .p-button, .nqc-unidade-title .p-button, .nqc-nivel-title .p-button { min-width: 2.25rem; width: 2.25rem; height: 2.25rem; padding: 0; border: 1px solid #d7e1e9; border-radius: .25rem; background: #fff; color: #b42318 !important; }
 .nqc-dotacao .p-button .p-button-icon, .nqc-item-title .p-button .p-button-icon, .nqc-nivel-title .p-button .p-button-icon { color: #b42318 !important; font-size: 1rem; }
 .nqc-item-actions { display: flex; flex-wrap: wrap; gap: .7rem; padding: .65rem .8rem; }
@@ -161,3 +161,4 @@
 .nqc-importar-previa > span { display: flex; align-items: flex-start; gap: .4rem; color: #5a6d83; font-size: .78rem; }
 .nqc-importar-footer { display: flex; justify-content: flex-end; gap: .6rem; }
 @media (max-width: 650px) { .nqc-estrutura-acoes { width: 100%; flex-wrap: wrap; margin-left: 0; } .nqc-importar-previa dl { grid-template-columns: repeat(2, 1fr); } .nqc-importar-footer { flex-wrap: wrap; } }
+

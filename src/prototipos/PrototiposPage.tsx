@@ -224,7 +224,6 @@ const menuCardsPessoas: readonly MenuCardItem[] = [
 const menuCardsEstrutura: readonly MenuCardItem[] = [
   { titulo: "Órgão Entidade", descricao: "Cadastre e consulte órgãos e entidades.", icone: "pi pi-building", destino: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade" },
   { titulo: "Tipos de Unidades", descricao: "Configure os tipos de unidades organizacionais.", icone: "pi pi-sitemap", destino: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" },
-  { titulo: "Unidades", descricao: "Gerencie as unidades da estrutura organizacional.", icone: "pi pi-share-alt", destino: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades" },
 ];
 const menuCardsCargoConcurso: readonly MenuCardItem[] = [
   { titulo: "Regimes Jurídicos", descricao: "Consulte e mantenha os regimes jurídicos.", icone: "pi pi-book", destino: "/prototipos/sigep/regime-juridico" },
@@ -290,7 +289,6 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Órgão Entidade", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/orgao-entidade", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tipos de Unidades", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Unidades", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades", activeRoutes: ["/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo"], visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -464,6 +462,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
+          { label: "Unidades", icon: "pi pi-sitemap", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades", activeRoutes: ["/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo"], visibleOnMenu: true, visibleOnRouter: true },
           {
             label: "Controle de Vagas 1.0",
             icon: "pi pi-chart-bar",
