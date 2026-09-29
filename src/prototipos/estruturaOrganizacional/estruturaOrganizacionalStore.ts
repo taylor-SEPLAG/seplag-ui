@@ -1,3 +1,5 @@
+import { unidadesPolitecSeed } from "./politecEstruturaSeed";
+
 export type SituacaoUnidadeEstrutural = "ATIVA" | "INATIVA" | "EXTINTA";
 
 export interface UnidadeEstrutural {
@@ -92,7 +94,25 @@ const documentosPadrao: DocumentoLegalEstrutural[] = [
   { id: "decreto-2185-2026", titulo: "Decreto nº 2.185, de 03/07/2026", categoria: "Decreto", ativo: true },
   { id: "lc-612-2019", titulo: "Lei Complementar nº 612, de 28/01/2019", categoria: "Lei Complementar", ativo: true },
   { id: "lei-10052-2014", titulo: "Lei nº 10.052, de 15/01/2014", categoria: "Lei", ativo: true },
+  { id: "decreto-2252-2026", titulo: "Decreto nº 2.252/2026", categoria: "Decreto", ativo: true },
 ];
+
+const criarUnidadesPolitec = (primeiroId: number): UnidadeEstrutural[] => unidadesPolitecSeed.map((unidade, indice) => ({
+  id: primeiroId + indice,
+  codigo: unidade.codigo,
+  nome: unidade.nome,
+  sigla: "",
+  orgao: "POLITEC",
+  tipo: unidade.tipo,
+  nivelOrganizacional: unidade.nivelOrganizacional,
+  localizacao: "Cuiabá/MT",
+  situacao: "ATIVA",
+  dataInicio: "11/09/2026",
+  documentoCriacaoId: "decreto-2252-2026",
+  documentosLegaisCriacaoIds: ["decreto-2252-2026"],
+  unidadeSuperior: unidade.unidadeSuperior ?? undefined,
+  ordem: unidade.ordem,
+}));
 
 const unidadesPadrao: UnidadeEstrutural[] = [
   { id: 1, codigo: "U0001", nome: "Gabinete do Secretário de Estado de Planejamento e Gestão", sigla: "GAB", orgao: "SEPLAG", tipo: "Gabinete", nivelOrganizacional: "Nível de Direção Superior", localizacao: "Cuiabá/MT", situacao: "ATIVA", dataInicio: "01/01/2020", documentoCriacaoId: "decreto-2185-2026", ordem: 1 },
@@ -104,6 +124,7 @@ const unidadesPadrao: UnidadeEstrutural[] = [
   { id: 7, codigo: "U0101", nome: "Gabinete do Secretário de Estado de Educação", sigla: "GAB", orgao: "SEDUC", tipo: "Gabinete", nivelOrganizacional: "Nível de Direção Superior", localizacao: "Cuiabá/MT", situacao: "ATIVA", dataInicio: "01/01/2020", documentoCriacaoId: "decreto-2185-2026", ordem: 1 },
   { id: 8, codigo: "U0102", nome: "Superintendência de Gestão de Pessoas", sigla: "SGP", orgao: "SEDUC", tipo: "Superintendência", nivelOrganizacional: "Nível de Execução Programática", localizacao: "Cuiabá/MT", situacao: "ATIVA", dataInicio: "01/01/2020", documentoCriacaoId: "decreto-2185-2026", unidadeSuperior: "Gabinete do Secretário de Estado de Educação", ordem: 1 },
   { id: 9, codigo: "U0103", nome: "Coordenadoria Regional", sigla: "COR", orgao: "SEDUC", tipo: "Coordenadoria", nivelOrganizacional: "Nível de Administração Regionalizada", localizacao: "Rondonópolis/MT", situacao: "ATIVA", dataInicio: "01/01/2020", documentoCriacaoId: "decreto-2185-2026", unidadeSuperior: "Superintendência de Gestão de Pessoas", ordem: 1 },
+  ...criarUnidadesPolitec(10),
 ];
 
 const criarPosicoes = (unidades: UnidadeEstrutural[], versoes: VersaoOrganograma[]) => unidades.map((unidade) => {
@@ -116,6 +137,7 @@ const criarEstruturaInicial = (unidades = unidadesPadrao): EstruturaOrganizacion
   const versoes: VersaoOrganograma[] = [
     { id: "organograma-seplag-2026", orgao: "SEPLAG", codigoOrgao: "001", nome: "Estrutura Organizacional SEPLAG - 2026", documentoLegalId: "decreto-2185-2026", documentoLegal: "Decreto nº 2.185, de 03/07/2026", inicio: "03/07/2026", situacao: "VIGENTE" },
     { id: "organograma-seduc-2026", orgao: "SEDUC", codigoOrgao: "002", nome: "Estrutura Organizacional SEDUC - 2026", documentoLegalId: "decreto-2185-2026", documentoLegal: "Decreto nº 2.185, de 03/07/2026", inicio: "03/07/2026", situacao: "VIGENTE" },
+    { id: "organograma-politec-2026", orgao: "POLITEC", codigoOrgao: "003", nome: "Estrutura Organizacional da POLITEC - 2026", documentoLegalId: "decreto-2252-2026", documentoLegal: "Decreto nº 2.252/2026", inicio: "11/09/2026", situacao: "VIGENTE" },
   ];
   return { schemaVersion: 1, unidades, versoes, posicoes: criarPosicoes(unidades, versoes), documentosLegais: documentosPadrao, auditoria: [] };
 };
@@ -139,11 +161,28 @@ const normalizarUnidade = (unidade: Partial<UnidadeEstrutural>, indice: number):
   ordem: unidade.ordem ?? indice + 1,
 });
 
+const garantirEstruturaPolitec = (estrutura: EstruturaOrganizacionalState): EstruturaOrganizacionalState => {
+  const documentosLegais = estrutura.documentosLegais.some((documento) => documento.id === "decreto-2252-2026")
+    ? estrutura.documentosLegais
+    : [...estrutura.documentosLegais, documentosPadrao.find((documento) => documento.id === "decreto-2252-2026")!];
+  if (estrutura.versoes.some((versao) => versao.orgao === "POLITEC")) {
+    return documentosLegais === estrutura.documentosLegais ? estrutura : { ...estrutura, documentosLegais };
+  }
+  const unidades = criarUnidadesPolitec(Math.max(0, ...estrutura.unidades.map((unidade) => unidade.id)) + 1);
+  const versao: VersaoOrganograma = { id: "organograma-politec-2026", orgao: "POLITEC", codigoOrgao: "003", nome: "Estrutura Organizacional da POLITEC - 2026", documentoLegalId: "decreto-2252-2026", documentoLegal: "Decreto nº 2.252/2026", inicio: "11/09/2026", situacao: "VIGENTE" };
+  return { ...estrutura, documentosLegais, unidades: [...estrutura.unidades, ...unidades], versoes: [...estrutura.versoes, versao], posicoes: [...estrutura.posicoes, ...criarPosicoes(unidades, [versao])], auditoria: [...estrutura.auditoria, { id: "auditoria-politec-2026", data: new Date().toISOString(), acao: "CADASTRO", descricao: "Cadastro manual da estrutura organizacional da POLITEC com referência no Decreto nº 2.252/2026" }] };
+};
+
 export const lerEstruturaOrganizacional = (): EstruturaOrganizacionalState => {
   if (typeof window === "undefined") return criarEstruturaInicial();
   try {
     const salva = window.localStorage.getItem(CHAVE_ESTRUTURA);
-    if (salva) return JSON.parse(salva) as EstruturaOrganizacionalState;
+    if (salva) {
+      const estruturaLida = JSON.parse(salva) as EstruturaOrganizacionalState;
+      const estrutura = garantirEstruturaPolitec(estruturaLida);
+      if (estrutura !== estruturaLida) window.localStorage.setItem(CHAVE_ESTRUTURA, JSON.stringify(estrutura));
+      return estrutura;
+    }
     const legado = window.localStorage.getItem(CHAVE_LEGADA_UNIDADES);
     const unidades = legado ? (JSON.parse(legado) as Partial<UnidadeEstrutural>[]).map(normalizarUnidade) : unidadesPadrao;
     const estrutura = criarEstruturaInicial(unidades);

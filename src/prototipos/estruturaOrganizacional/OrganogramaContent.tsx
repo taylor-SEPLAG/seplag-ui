@@ -52,7 +52,7 @@ function OrganogramaDetalheContent() {
   const versaoInicial = parametros.get("versao") ?? "";
   const { control, watch, setValue } = useForm<Filtros>({
     defaultValues: {
-      orgao: orgaoInicial === "SEPLAG" ? "SEPLAG - Secretaria de Estado de Planejamento e Gestão" : orgaoInicial === "SEDUC" ? "SEDUC - Secretaria de Estado de Educação" : orgaoInicial,
+      orgao: orgaoInicial === "SEPLAG" ? "SEPLAG - Secretaria de Estado de Planejamento e Gestão" : orgaoInicial === "SEDUC" ? "SEDUC - Secretaria de Estado de Educação" : orgaoInicial === "POLITEC" ? "POLITEC - Perícia Oficial e Identificação Técnica" : orgaoInicial,
       versaoId: versaoInicial,
       nomeOrganograma: "Estrutura Organizacional SEPLAG - 2026",
       documentoLegal: "Decreto nº 2.185, de 03/07/2026",
@@ -533,7 +533,7 @@ function OrganogramaDetalheContent() {
 
 type FiltrosListagem = { codigo: string; nome: string; situacao: string };
 type NovoOrganogramaForm = { orgao: string; inicio: string; documentoLegalId: string; nome: string };
-const nomeOrgao = (sigla: string) => sigla === "SEPLAG" ? "Secretaria de Estado de Planejamento e Gestão" : sigla === "SEDUC" ? "Secretaria de Estado de Educação" : sigla;
+const nomeOrgao = (sigla: string) => sigla === "SEPLAG" ? "Secretaria de Estado de Planejamento e Gestão" : sigla === "SEDUC" ? "Secretaria de Estado de Educação" : sigla === "POLITEC" ? "Perícia Oficial e Identificação Técnica" : sigla;
 
 function OrganogramasListagem() {
   const navigate = useNavigate();
@@ -548,6 +548,7 @@ function OrganogramasListagem() {
     const base = [
       { sigla: "SEPLAG", codigo: "001", nome: "Secretaria de Estado de Planejamento e Gestão" },
       { sigla: "SEDUC", codigo: "002", nome: "Secretaria de Estado de Educação" },
+      { sigla: "POLITEC", codigo: "003", nome: "Perícia Oficial e Identificação Técnica" },
       { sigla: "CGE", codigo: "003", nome: "Controladoria Geral do Estado" },
       { sigla: "DETRAN-MT", codigo: "004", nome: "Departamento Estadual de Trânsito" },
       { sigla: "MTI", codigo: "005", nome: "Empresa Mato-grossense de Tecnologia da Informação" },
