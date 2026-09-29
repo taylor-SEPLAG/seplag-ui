@@ -1,0 +1,4 @@
+.organograma-canvas-autosave{display:flex;justify-content:flex-end;align-items:center;gap:.35rem;margin-top:.55rem;color:#16844f;font-size:.75rem}
+.organograma-canvas-workspace:fullscreen{width:100vw;height:100vh;grid-template-columns:19rem minmax(0,1fr);border:0;border-radius:0}
+.organograma-canvas-workspace:fullscreen .organograma-canvas-viewport{height:100vh}
+.organograma-canvas-workspace:fullscreen .organograma-canvas-surface{min-width:2200px}

@@ -172,6 +172,7 @@ import { PrototiposCorrecaoCessaoPage } from "./prototipos/cessoes/CorrecaoCessa
 import { PrototiposNovaCessaoExternaPage, PrototiposNovaCessaoInternaPage } from "./prototipos/cessoes/NovaCessaoPages";
 import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
 import { PrototiposOrganogramaPage } from "./prototipos/estruturaOrganizacional/OrganogramaPage";
+import { PrototiposOrganogramaCanvasPage } from "./prototipos/estruturaOrganizacional/OrganogramaCanvasPage";
 import { PrototiposLimitesDgaPage } from "./prototipos/estruturaOrganizacional/LimitesDgaPage";
 import { PrototiposNovoLimiteDgaPage } from "./prototipos/controleVagasComissionados/NovoLimiteDgaPage";
 import { PrototiposUnidadesPage } from "./prototipos/estruturaOrganizacional/UnidadesPage";
@@ -1542,6 +1543,7 @@ function App() {
       <Route path="/prototipos/sigep/aposentadoria-beneficios" element={<PrototiposAposentadoriaBeneficiosGeralPage />} />
       <Route path="/prototipos/sigep/parametrizacao" element={<PrototiposParametrizacaoGeralPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma" element={<PrototiposOrganogramaPage />} />
+      <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma-canvas" element={<PrototiposOrganogramaCanvasPage />} />
       <Route path="/prototipos/sigep/controle-vagas/comissionados/limites-dga" element={<PrototiposLimitesDgaPage />} />
       <Route path="/prototipos/sigep/controle-vagas/comissionados/limites-dga/novo" element={<PrototiposNovoLimiteDgaPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" element={<PrototiposTiposUnidadesPage />} />
