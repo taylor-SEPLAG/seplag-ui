@@ -6,7 +6,7 @@ import { ModalSeplag } from "@componentes/Modal";
 import { SplitButton } from "primereact/splitbutton";
 import type { MenuItem } from "primereact/menuitem";
 import { obterUnidadesDaVersao } from "./estruturaOrganizacionalStore";
-import { adicionarUnidadeNoCanvas, lerOrganogramaCanvas, reorganizarCanvas, salvarOrganogramaCanvas, type CoordenadaNoOrganograma } from "./organogramaCanvasStore";
+import { adicionarUnidadeNoCanvas, ajustarDobraConexaoNoCanvas, lerOrganogramaCanvas, reorganizarCanvas, salvarOrganogramaCanvas, type CoordenadaNoOrganograma } from "./organogramaCanvasStore";
 import "./organogramaCanvas.css";
 import "./organogramaCanvasFullscreen.css";
 
@@ -19,6 +19,7 @@ export function OrganogramaCanvasContent() {
   const [versaoId, setVersaoId] = useState(() => estado.estrutura.versoes.find((versao) => versao.orgao === "POLITEC")?.id ?? estado.estrutura.versoes[0]?.id ?? "");
   const unidades = useMemo(() => obterUnidadesDaVersao(estado.estrutura, versaoId), [estado.estrutura, versaoId]);
   const coordenadas = estado.coordenadas[versaoId] ?? {};
+  const dobrasConexoes = estado.dobrasConexoes?.[versaoId] ?? {};
   const [selecionadasIds, setSelecionadasIds] = useState<number[]>([]);
   const [adicionando, setAdicionando] = useState(false);
   const [nomeNova, setNomeNova] = useState("");
@@ -32,6 +33,8 @@ export function OrganogramaCanvasContent() {
   const [pontoAutoPan, setPontoAutoPan] = useState({ x: 0, y: 0 });
   const [painelAberto, setPainelAberto] = useState(true);
   const [caixaSelecao, setCaixaSelecao] = useState<{ x: number; y: number; largura: number; altura: number } | null>(null);
+  const [guiasAlinhamento, setGuiasAlinhamento] = useState<{ x?: number; y?: number } | null>(null);
+  const [conexaoSelecionada, setConexaoSelecionada] = useState<number | null>(null);
   const [telaCheia, setTelaCheia] = useState(false);
   const selecionada = selecionadasIds.length === 1 ? unidades.find((unidade) => unidade.id === selecionadasIds[0]) ?? null : null;
   const porId = new Map(unidades.map((unidade) => [unidade.id, unidade]));
@@ -115,11 +118,28 @@ export function OrganogramaCanvasContent() {
     arrastouRef.current = false;
     const mover = (movimento: globalThis.PointerEvent) => {
       arrastouRef.current = true;
-      setEstado((atual) => salvarOrganogramaCanvas({ ...atual, coordenadas: { ...atual.coordenadas, [versaoId]: { ...atual.coordenadas[versaoId], ...Object.fromEntries(idsParaMover.map((id) => { const inicial = iniciais[id]; const proxima: CoordenadaNoOrganograma = { x: Math.max(12, inicial.x + movimento.clientX - pontoInicial.x), y: Math.max(12, inicial.y + movimento.clientY - pontoInicial.y) }; return [id, proxima]; })) } } }));
+      const posicaoBase = iniciais[unidadeId];
+      const posicaoArrastada = { x: Math.max(12, posicaoBase.x + movimento.clientX - pontoInicial.x), y: Math.max(12, posicaoBase.y + movimento.clientY - pontoInicial.y) };
+      const idsEmMovimento = new Set(idsParaMover);
+      const referencias = unidades.filter((unidade) => !idsEmMovimento.has(unidade.id)).map((unidade) => coordenadas[unidade.id]).filter((posicao): posicao is CoordenadaNoOrganograma => Boolean(posicao));
+      const encontrarEncaixe = (alvos: number[], valores: number[]) => {
+        let melhor: { ajuste: number; guia: number } | null = null;
+        alvos.forEach((alvo) => valores.forEach((valor) => {
+          const ajuste = valor - alvo;
+          if (Math.abs(ajuste) > 12 || (melhor && Math.abs(ajuste) >= Math.abs(melhor.ajuste))) return;
+          melhor = { ajuste, guia: valor };
+        }));
+        return melhor;
+      };
+      const encaixeX = encontrarEncaixe([posicaoArrastada.x, posicaoArrastada.x + 112, posicaoArrastada.x + 224], referencias.flatMap((posicao) => [posicao.x, posicao.x + 112, posicao.x + 224]));
+      const encaixeY = encontrarEncaixe([posicaoArrastada.y, posicaoArrastada.y + 56, posicaoArrastada.y + 112], referencias.flatMap((posicao) => [posicao.y, posicao.y + 56, posicao.y + 112]));
+      setGuiasAlinhamento(encaixeX || encaixeY ? { x: encaixeX?.guia, y: encaixeY?.guia } : null);
+      setEstado((atual) => salvarOrganogramaCanvas({ ...atual, coordenadas: { ...atual.coordenadas, [versaoId]: { ...atual.coordenadas[versaoId], ...Object.fromEntries(idsParaMover.map((id) => { const inicial = iniciais[id]; const proxima: CoordenadaNoOrganograma = { x: Math.max(12, inicial.x + movimento.clientX - pontoInicial.x + (encaixeX?.ajuste ?? 0)), y: Math.max(12, inicial.y + movimento.clientY - pontoInicial.y + (encaixeY?.ajuste ?? 0)) }; return [id, proxima]; })) } } }));
     };
     const soltar = () => {
       window.removeEventListener("pointermove", mover);
       window.removeEventListener("pointerup", soltar);
+      setGuiasAlinhamento(null);
     };
     window.addEventListener("pointermove", mover);
     window.addEventListener("pointerup", soltar, { once: true });
@@ -176,6 +196,28 @@ export function OrganogramaCanvasContent() {
     window.addEventListener("pointerup", soltar, { once: true });
   };
 
+  const iniciarAjusteConexao = (event: PointerEvent<SVGPathElement>, unidadeId: number) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const unidade = porId.get(unidadeId);
+    const origem = unidade?.superiorId ? coordenadas[unidade.superiorId] : undefined;
+    const destino = coordenadas[unidadeId];
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!origem || !destino || !svg) return;
+    setConexaoSelecionada(unidadeId);
+    const mover = (movimento: globalThis.PointerEvent) => {
+      const area = svg.getBoundingClientRect();
+      const minimo = Math.min(origem.y + 112, destino.y) + 12;
+      const maximo = Math.max(origem.y + 112, destino.y) - 12;
+      const y = Math.max(minimo, Math.min(maximo, movimento.clientY - area.top));
+      setEstado((atual) => ajustarDobraConexaoNoCanvas(atual, versaoId, unidadeId, y));
+    };
+    const soltar = () => { window.removeEventListener("pointermove", mover); window.removeEventListener("pointerup", soltar); };
+    window.addEventListener("pointermove", mover);
+    window.addEventListener("pointerup", soltar, { once: true });
+  };
+
   return <div className="organograma-canvas-page">
     <CardSeplag title="Organograma em canvas" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organograma Canvas" }]} />}>
       <div className="organograma-canvas-intro"><i className="pi pi-sitemap" /><div><strong>Área experimental independente</strong><span>Esta cópia possui dados e posicionamento próprios. O Organograma original não será alterado.</span></div></div>
@@ -188,8 +230,10 @@ export function OrganogramaCanvasContent() {
         <aside className="organograma-canvas-panel"><header><h2>Propriedades</h2><button type="button" className="organograma-canvas-panel-toggle" onClick={() => setPainelAberto(false)} title="Ocultar propriedades" aria-label="Ocultar propriedades"><i className="pi pi-bars" /></button></header>{selecionada ? <><strong>{selecionada.nome}</strong><dl><div><dt>Código</dt><dd>{selecionada.codigo}</dd></div><div><dt>Tipo</dt><dd>{selecionada.tipo}</dd></div><div><dt>Nível</dt><dd>{selecionada.nivelOrganizacional}</dd></div><div><dt>Unidade superior</dt><dd>{selecionada.superiorId ? porId.get(selecionada.superiorId)?.nome ?? "Não encontrada" : "Órgão/Entidade"}</dd></div></dl><p><i className="pi pi-info-circle" /> Arraste o bloco para mudar apenas o posicionamento visual. A conexão é preservada.</p></> : selecionadasIds.length > 1 ? <p><strong>{selecionadasIds.length} unidades selecionadas.</strong><br />Arraste qualquer bloco selecionado para mover o conjunto.</p> : <p>Selecione uma unidade para consultar seus dados ou use-a como referência ao adicionar uma unidade abaixo.</p>}</aside>
         {!painelAberto && <button type="button" className="organograma-canvas-panel-reveal" onClick={() => setPainelAberto(true)} title="Exibir propriedades" aria-label="Exibir propriedades"><i className="pi pi-bars" /></button>}
         <div className="organograma-canvas-viewport" onContextMenu={(event) => event.preventDefault()} onClick={() => { if (bloqueiaCliqueCanvasRef.current) { bloqueiaCliqueCanvasRef.current = false; return; } setSelecionadasIds([]); }}><div className="organograma-canvas-surface" onPointerDown={(event) => { iniciarNavegacaoCanvas(event); iniciarSelecaoPorArea(event); }} style={{ minWidth: dimensoesCanvas.largura, minHeight: dimensoesCanvas.altura }}>
-          <svg className="organograma-canvas-edges" aria-hidden="true">{unidades.filter((unidade) => unidade.superiorId && coordenadas[unidade.id] && coordenadas[unidade.superiorId]).map((unidade) => { const origem = coordenadas[unidade.superiorId!]; const destino = coordenadas[unidade.id]; const meioY = Math.round((origem.y + 112 + destino.y) / 2); return <path key={unidade.id} d={`M ${origem.x + 112} ${origem.y + 112} V ${meioY} H ${destino.x + 112} V ${destino.y}`} />; })}</svg>
+          <svg className="organograma-canvas-edges" aria-label="Conexões ajustáveis entre unidades">{unidades.filter((unidade) => unidade.superiorId && coordenadas[unidade.id] && coordenadas[unidade.superiorId]).map((unidade) => { const origem = coordenadas[unidade.superiorId!]; const destino = coordenadas[unidade.id]; const meioY = dobrasConexoes[unidade.id] ?? Math.round((origem.y + 112 + destino.y) / 2); const caminho = `M ${origem.x + 112} ${origem.y + 112} V ${meioY} H ${destino.x + 112} V ${destino.y}`; return <g key={unidade.id}><path className="organograma-canvas-edge-hit" d={caminho} onPointerDown={(event) => iniciarAjusteConexao(event, unidade.id)} /><path className={`organograma-canvas-edge-visible ${conexaoSelecionada === unidade.id ? "is-selected" : ""}`} d={caminho} /></g>; })}</svg>
           {autoPanAtivo && <span className="organograma-canvas-autopan" style={{ transform: `translate(${pontoAutoPan.x}px, ${pontoAutoPan.y}px)` }}><i className="pi pi-arrows-alt" /></span>}
+          {guiasAlinhamento?.x !== undefined && <span className="organograma-canvas-guide is-vertical" style={{ transform: `translateX(${guiasAlinhamento.x}px)` }} />}
+          {guiasAlinhamento?.y !== undefined && <span className="organograma-canvas-guide is-horizontal" style={{ transform: `translateY(${guiasAlinhamento.y}px)` }} />}
           {caixaSelecao && <div className="organograma-canvas-selection-box" style={{ transform: `translate(${caixaSelecao.x}px, ${caixaSelecao.y}px)`, width: caixaSelecao.largura, height: caixaSelecao.altura }} />}
           {unidades.map((unidade) => { const posicao = coordenadas[unidade.id] ?? { x: 24, y: 24 }; return <button type="button" key={unidade.id} className={`organograma-canvas-node ${selecionadasIds.includes(unidade.id) ? "is-selected" : ""} ${unidade.tipo === "Diretoria" ? "is-directoria" : ""}`} style={{ transform: `translate(${posicao.x}px, ${posicao.y}px)` }} onPointerDown={(event) => { if (event.button === 0) iniciarArraste(event, unidade.id); }} onClick={(event) => { event.stopPropagation(); if (arrastouRef.current) { arrastouRef.current = false; return; } if (event.ctrlKey || event.metaKey || event.shiftKey) setSelecionadasIds((atuais) => atuais.includes(unidade.id) ? atuais.filter((id) => id !== unidade.id) : [...atuais, unidade.id]); else setSelecionadasIds([unidade.id]); }}><span>{unidade.codigo}</span><strong>{unidade.nome}</strong><small>{unidade.tipo} · {unidade.nivelOrganizacional.replace("NÍVEL DE ", "")}</small><i className="pi pi-bars" aria-hidden="true" /></button>; })}
         </div></div>

@@ -10,7 +10,7 @@ import { ModalSeplag } from "@componentes/Modal";
 import { PanelSeplag } from "@componentes/PanelSeplag";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "@interfaces/Results";
-import { cadastrarOrganograma, cadastrarUnidadeNoOrganograma, extinguirUnidadeDaEstrutura, gravarUnidadesDaEstrutura, lerEstruturaOrganizacional, obterUnidadesDaVersao, obterVersaoVigente, publicarOrganograma, vincularUnidadeAoOrganograma, type VersaoOrganograma, type UnidadeNoOrganograma } from "./estruturaOrganizacionalStore";
+import { cadastrarOrganograma, cadastrarUnidadeNoOrganograma, extinguirUnidadeDaEstrutura, gravarUnidadesDaEstrutura, lerEstruturaOrganizacional, obterUnidadesDaVersao, obterVersaoVigente, publicarNovaVersaoOrganograma, publicarOrganograma, vincularUnidadeAoOrganograma, type VersaoOrganograma, type UnidadeNoOrganograma } from "./estruturaOrganizacionalStore";
 import { tiposUnidadesAtivos } from "./tiposUnidadesStore";
 import "./organograma.css";
 
@@ -33,6 +33,7 @@ type Filtros = {
 type AdicionarUnidadeForm = { unidadeExistenteId: string; tipo: string; codigo: string; nivel: string; nome: string; documentoLegalId: string; dataCriacao: string; outraLocalidade: "NAO" | "SIM"; cep: string; estado: string; cidade: string; bairro: string; tipoLogradouro: string; logradouro: string; numero: string; complemento: string };
 type ExtincaoUnidadeForm = { dataFim: string; documentoLegalId: string; justificativa: string };
 type EdicaoUnidadeForm = { nome: string; tipo: string; nivel: string; dataCriacao: string; documentoLegalId: string };
+type PublicacaoOrganogramaForm = { documentoLegal: string; inicio: string };
 
 const opcoes = (valores: string[]) => valores.map((valor) => ({ label: valor, value: valor }));
 const semErro = () => null;
@@ -78,11 +79,15 @@ function OrganogramaDetalheContent() {
   const [abaModalVisualizacao, setAbaModalVisualizacao] = useState<"DADOS" | "HISTORICO">("DADOS");
   const [abaEdicao, setAbaEdicao] = useState<"GRAFICA" | "LISTA">("GRAFICA");
   const [modalExtincao, setModalExtincao] = useState(false);
+  const [modalPublicacao, setModalPublicacao] = useState(false);
+  const [erroPublicacao, setErroPublicacao] = useState("");
+  const [rascunhoSalvo, setRascunhoSalvo] = useState(false);
   const [erroExtincao, setErroExtincao] = useState("");
   const [erroAdicionar, setErroAdicionar] = useState("");
   const { control: controlAdicionar, watch: watchAdicionar, reset: resetAdicionar } = useForm<AdicionarUnidadeForm>({ defaultValues: { unidadeExistenteId: "", tipo: "", codigo: "", nivel: "", nome: "", documentoLegalId: "", dataCriacao: "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" } });
   const { control: controlExtincao, watch: watchExtincao, reset: resetExtincao } = useForm<ExtincaoUnidadeForm>({ defaultValues: { dataFim: "", documentoLegalId: "", justificativa: "" } });
   const { control: controlEdicao, watch: watchEdicao, reset: resetEdicao } = useForm<EdicaoUnidadeForm>({ defaultValues: { nome: "", tipo: "", nivel: "", dataCriacao: "", documentoLegalId: "" } });
+  const { control: controlPublicacao, watch: watchPublicacao, reset: resetPublicacao } = useForm<PublicacaoOrganogramaForm>({ defaultValues: { documentoLegal: "", inicio: "" } });
   const orgaosDisponiveis = [...new Set(estrutura.versoes.map((versao) => versao.orgao))];
   const orgao = watch("orgao");
   const orgaoSelecionado = orgao.split(" - ")[0];
@@ -236,6 +241,16 @@ function OrganogramaDetalheContent() {
     setEstrutura(extinguirUnidadeDaEstrutura(selecionada.id, watchExtincao("dataFim"), watchExtincao("documentoLegalId"), watchExtincao("justificativa").trim()));
     setModalExtincao(false); setSelecionada(null); setErroExtincao("");
   };
+  const abrirPublicacao = () => { resetPublicacao({ documentoLegal: "", inicio: "" }); setErroPublicacao(""); setModalPublicacao(true); };
+  const salvarRascunho = () => { setRascunhoSalvo(true); window.setTimeout(() => setRascunhoSalvo(false), 2500); };
+  const confirmarPublicacao = () => {
+    if (!versaoSelecionada) return;
+    if (!watchPublicacao("documentoLegal").trim() || !watchPublicacao("inicio")) { setErroPublicacao("Informe o novo ato legal e a data de início da vigência."); return; }
+    const resultado = publicarNovaVersaoOrganograma(versaoSelecionada.id, watchPublicacao("documentoLegal"), watchPublicacao("inicio"));
+    if (!resultado.versao) { setErroPublicacao("Não foi possível publicar esta estrutura."); return; }
+    setEstrutura(resultado.estrutura); setModalPublicacao(false); setModo("consulta"); setValue("versaoId", resultado.versao.id);
+    navigate(`?modo=detalhe&orgao=${encodeURIComponent(resultado.versao.orgao)}&versao=${encodeURIComponent(resultado.versao.id)}`);
+  };
 
   const NoMontagem = ({ unidade }: { unidade: Unidade }) => {
     const filhos = filhosDe(unidade.id);
@@ -300,7 +315,18 @@ function OrganogramaDetalheContent() {
             <p className="organograma-units-summary">Exibindo {filtradas.length} {filtradas.length === 1 ? "unidade" : "unidades"} da estrutura.</p>
           </section>}
         </PanelSeplag>
+        {modo === "editar" && <footer className="organograma-edit-actions"><div>{rascunhoSalvo && <span className="organograma-draft-saved"><i className="pi pi-check-circle" /> Rascunho salvo</span>}</div><div className="organograma-edit-actions-buttons"><BotaoSeplag label="Voltar" icon="pi pi-arrow-left" outlined severity="secondary" onClick={() => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma")} /><BotaoSeplag label="Salvar Rascunho" icon="pi pi-save" onClick={salvarRascunho} /><BotaoSeplag label="Publicar Estrutura" icon="pi pi-check-circle" severity="success" onClick={abrirPublicacao} /></div></footer>}
       </CardSeplag>
+      <ModalSeplag visible={modalPublicacao} titulo="Publicar Nova Versão da Estrutura" fechar={() => setModalPublicacao(false)} tamanho="min(35rem, calc(100vw - 32px))" customFooter={<div className="organograma-publicar-footer"><BotaoSeplag label="Cancelar" outlined severity="secondary" onClick={() => setModalPublicacao(false)} /><BotaoSeplag label="Salvar e Aplicar Versionamento" icon="pi pi-check" onClick={confirmarPublicacao} /></div>}>
+        <div className="grid organograma-publicar-modal">
+          <p className="col-12">As alterações realizadas nas unidades criarão uma nova versão deste organograma. Informe o novo ato legal para revogar a versão anterior.</p>
+          <div className="col-12 organograma-publicar-warning"><i className="pi pi-exclamation-triangle" /><span><strong>Atenção:</strong> ao confirmar, <b>{versaoSelecionada?.documentoLegal ?? "o ato legal vigente"}</b> terá sua vigência encerrada na data de início do novo ato.</span></div>
+          {erroPublicacao && <p className="col-12 organograma-new-error">{erroPublicacao}</p>}
+          <TextFieldSeplag name="documentoLegal" control={controlPublicacao} label="Nº do Novo Decreto / Ato Legal" placeholder="Ex.: Decreto nº 5.678/2026" cols="12" required getFormErrorMessage={semErro} />
+          <DateFieldSeplag name="inicio" control={controlPublicacao} label="Data de Início da Nova Vigência" cols="12" required getFormErrorMessage={semErro} />
+          <div className="col-12 organograma-publicar-revogado"><span>Decreto Revogado</span><strong>{versaoSelecionada?.documentoLegal ?? "Não informado"} <em>(Automático)</em></strong></div>
+        </div>
+      </ModalSeplag>
       <ModalSeplag visible={Boolean(modalAdicionar)} titulo="Incluir unidade na estrutura" fechar={() => setModalAdicionar(null)} labelFechar="Cancelar" labelAcao="Cadastrar unidade" funcAcao={salvarAdicao} tamanho="min(1420px, calc(100vw - 32px))">
         {modalAdicionar && contextoAdicionar && <div className="grid organograma-add-modal">
           <div className="col-12 organograma-add-context"><span>Órgão/Entidade</span><strong>{orgao}</strong><small>Unidade superior: {contextoAdicionar.superiorNome}</small></div>
@@ -398,7 +424,7 @@ function OrganogramaDetalheContent() {
               <BotaoSeplag label="Organograma" icon="pi pi-sitemap" outlined={visao !== "arvore"} onClick={() => setVisao("arvore")} />
               <BotaoSeplag label="Árvore / Lista" icon="pi pi-list" outlined={visao !== "lista"} onClick={() => setVisao("lista")} />
               <BotaoSeplag label={modo === "editar" ? "Concluir edição" : "Editar estrutura"} icon={modo === "editar" ? "pi pi-check" : "pi pi-pencil"} outlined={modo !== "editar"} disabled={versaoSelecionada?.situacao === "ENCERRADA"} onClick={() => setModo((valor) => valor === "editar" ? "consulta" : "editar")} />
-              {versaoSelecionada?.situacao === "RASCUNHO" && <BotaoSeplag label="Publicar organograma" icon="pi pi-check-circle" onClick={() => { const atualizada = publicarOrganograma(versaoSelecionada.id); setEstrutura(atualizada); setModo("consulta"); }} />}
+              {versaoSelecionada?.situacao === "RASCUNHO" && <BotaoSeplag label="Publicar organograma" icon="pi pi-check-circle" onClick={abrirPublicacao} />}
               <BotaoSeplag label={expandido ? "Fechar tela cheia" : "Expandir"} icon={expandido ? "pi pi-times" : "pi pi-window-maximize"} outlined onClick={() => setExpandido((valor) => !valor)} />
               <BotaoSeplag label="Exportar PDF" icon="pi pi-file-pdf" outlined onClick={exportarPdf} />
             </div>
@@ -580,7 +606,7 @@ function OrganogramasListagem() {
     if (!orgaoSelecionado || !watchNovo("inicio") || !watchNovo("documentoLegalId")) { setErroCadastro("Informe o órgão/entidade, data de início e documento legal."); return; }
     const resultado = cadastrarOrganograma(orgaoSelecionado.value, orgaoSelecionado.codigo, watchNovo("inicio"), watchNovo("documentoLegalId"), watchNovo("nome"));
     if (!resultado.criado || !resultado.versao) { setErroCadastro("Este órgão já possui um organograma em rascunho. Conclua ou publique essa estrutura antes de criar outro rascunho."); return; }
-    setEstrutura(resultado.estrutura); setModalCadastro(false); setErroCadastro(""); navigate(`?modo=detalhe&orgao=${encodeURIComponent(resultado.versao.orgao)}&versao=${encodeURIComponent(resultado.versao.id)}`);
+    setEstrutura(resultado.estrutura); setModalCadastro(false); setErroCadastro(""); navigate(`?modo=detalhe&orgao=${encodeURIComponent(resultado.versao.orgao)}&versao=${encodeURIComponent(resultado.versao.id)}&editar=true`);
   };
   return <div className="organograma-page organogramas-list-page"><CardSeplag title="Organogramas" cols="12" cardHeaderClassNames="prototype-carreira-card organograma-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organogramas" }]} />}>
     <p className="organograma-intro">Consulte e mantenha as estruturas organizacionais cadastradas por órgão ou entidade.</p>

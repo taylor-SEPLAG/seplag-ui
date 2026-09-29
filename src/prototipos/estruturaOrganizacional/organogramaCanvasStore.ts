@@ -11,6 +11,7 @@ export type CoordenadaNoOrganograma = { x: number; y: number };
 export interface OrganogramaCanvasState {
   estrutura: EstruturaOrganizacionalState;
   coordenadas: Record<string, Record<number, CoordenadaNoOrganograma>>;
+  dobrasConexoes?: Record<string, Record<number, number>>;
 }
 
 const chave = "sigep-prototipo-organograma-canvas-v1";
@@ -100,6 +101,7 @@ function criarEstado(): OrganogramaCanvasState {
   return {
     estrutura,
     coordenadas: Object.fromEntries(estrutura.versoes.map((versao) => [versao.id, organizarVersao(estrutura, versao.id)])),
+    dobrasConexoes: {},
   };
 }
 
@@ -122,7 +124,11 @@ export function moverNoCanvas(estado: OrganogramaCanvasState, versaoId: string, 
 }
 
 export function reorganizarCanvas(estado: OrganogramaCanvasState, versaoId: string) {
-  return salvarOrganogramaCanvas({ ...estado, coordenadas: { ...estado.coordenadas, [versaoId]: organizarVersao(estado.estrutura, versaoId) } });
+  return salvarOrganogramaCanvas({ ...estado, coordenadas: { ...estado.coordenadas, [versaoId]: organizarVersao(estado.estrutura, versaoId) }, dobrasConexoes: { ...estado.dobrasConexoes, [versaoId]: {} } });
+}
+
+export function ajustarDobraConexaoNoCanvas(estado: OrganogramaCanvasState, versaoId: string, unidadeId: number, y: number) {
+  return salvarOrganogramaCanvas({ ...estado, dobrasConexoes: { ...estado.dobrasConexoes, [versaoId]: { ...estado.dobrasConexoes?.[versaoId], [unidadeId]: y } } });
 }
 
 export function adicionarUnidadeNoCanvas(estado: OrganogramaCanvasState, versaoId: string, dados: Pick<UnidadeEstrutural, "nome" | "tipo" | "nivelOrganizacional">, superiorId: number | null) {

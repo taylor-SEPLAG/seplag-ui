@@ -267,6 +267,35 @@ export const publicarOrganograma = (versaoId: string) => {
   return estrutura;
 };
 
+export const publicarNovaVersaoOrganograma = (versaoId: string, documentoLegal: string, inicio: string) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  const versaoBase = estruturaAtual.versoes.find((versao) => versao.id === versaoId);
+  if (!versaoBase || !documentoLegal.trim() || !inicio) return { estrutura: estruturaAtual, versao: null };
+  const identificador = Date.now();
+  const ano = inicio.split("/").at(-1) ?? new Date().getFullYear().toString();
+  const documentoLegalId = `ato-organograma-${identificador}`;
+  const novaVersao: VersaoOrganograma = {
+    ...versaoBase,
+    id: `organograma-${versaoBase.orgao.toLowerCase()}-${ano}-v${estruturaAtual.versoes.filter((versao) => versao.orgao === versaoBase.orgao).length + 1}`,
+    documentoLegalId,
+    documentoLegal: documentoLegal.trim(),
+    inicio,
+    fim: undefined,
+    situacao: "VIGENTE",
+  };
+  const versoes = estruturaAtual.versoes.map((versao) => versao.orgao !== versaoBase.orgao ? versao : versao.situacao === "VIGENTE" || versao.id === versaoBase.id ? { ...versao, situacao: "ENCERRADA" as const, fim: inicio } : versao);
+  const posicoes = estruturaAtual.posicoes.filter((posicao) => posicao.versaoId === versaoBase.id).map((posicao) => ({ ...posicao, id: `posicao-${novaVersao.id}-${posicao.unidadeId}`, versaoId: novaVersao.id, inicio, fim: undefined }));
+  const estrutura = {
+    ...estruturaAtual,
+    versoes: [...versoes, novaVersao],
+    posicoes: [...estruturaAtual.posicoes, ...posicoes],
+    documentosLegais: [...estruturaAtual.documentosLegais, { id: documentoLegalId, titulo: documentoLegal.trim(), categoria: "Ato legal", ativo: true }],
+    auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${identificador}`, data: new Date().toISOString(), acao: "ESTRUTURA" as const, descricao: `Publicação da nova versão ${novaVersao.nome} — ${documentoLegal.trim()}` }],
+  };
+  gravarEstruturaOrganizacional(estrutura);
+  return { estrutura, versao: novaVersao };
+};
+
 export const obterUnidadesDaVersao = (estrutura: EstruturaOrganizacionalState, versaoId: string): UnidadeNoOrganograma[] => {
   return estrutura.posicoes
     .filter((posicao) => posicao.versaoId === versaoId)
