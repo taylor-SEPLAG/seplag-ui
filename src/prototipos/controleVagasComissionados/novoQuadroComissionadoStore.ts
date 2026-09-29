@@ -40,6 +40,7 @@ export interface QuadroComissionadoSalvo {
   versionamentoConfirmado?: boolean;
   versionamentoOrigem?: "fluxo-confirmado-v2";
   versionamentoModelo?: 2;
+  limiteDgaSnapshot?: { vigenciaId: string; documentoLegal: string; inicio: string; fim?: string; limites: { simbologia: string; cargos: number; funcoes: number }[] };
 }
 
 const CHAVE_RASCUNHO = "sigep:quadros-comissionados:rascunho:v1";

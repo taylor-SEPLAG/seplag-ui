@@ -89,6 +89,7 @@
 .nqc-resumo-perfis table { background: #fff; }
 .nqc-resumo-perfis table th { background: #edf5fc; font-size: .78rem; text-transform: none; }
 .nqc-resumo-perfis table td:first-child, .nqc-resumo-perfis table th:first-child { text-align: left; }
+.nqc-resumo-linha-dga.is-excedido { background: #fff2f2; }.nqc-resumo td small { display:block; margin-top:.12rem; color:#5f6e80; font-size:.7rem; }.nqc-resumo-linha-dga.is-excedido td small { color:#b42318; font-weight:700; }.nqc-limite-dga-feedback { display:flex; gap:.5rem; align-items:center; margin:1rem 1.15rem 0; padding:.7rem .8rem; border:1px solid #a9d7ee; border-radius:.35rem; background:#f2faff; color:#245270; font-size:.8rem; }.nqc-limite-dga-feedback.is-blocking { border-color:#efb5aa; background:#fff4f2; color:#9d3023; }.nqc-dotacao--limite-excedido { border-color:#e69a90; background:#fff9f8; }.nqc-dotacao-limite { grid-column:1 / -1; display:flex; gap:.45rem; padding:.55rem .65rem; border:1px solid #b7dcec; border-radius:.3rem; background:#f2faff; color:#285775; font-size:.76rem; }.nqc-dotacao-limite.is-blocking { border-color:#e9afa8; background:#fff3f1; color:#a02f23; }
 
 .nqc-orgao-com-quadro { display: inline-flex; align-items: center; gap: .5rem; min-width: 0; color: #5d6878; }
 .nqc-orgao-com-quadro > span { overflow: visible; text-decoration: line-through; }
