@@ -15,6 +15,9 @@ import { DocumentosLegaisAssociadosSeplag } from "@componentes/DocumentosLegaisA
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
 import { cargosComissionadosIniciais } from "../controleVagasComissionados/cargosComissionadosStore";
+import { estruturaOrganizacionalNiveis } from "../estruturaOrganizacionalCatalogo";
+import { lerEstruturaOrganizacional } from "../estruturaOrganizacional/estruturaOrganizacionalStore";
+import { exceptionStatus, persistExceptions, readExceptions, saveException, visibleExceptions, type ExceptionRecord } from "./exceptionStore";
 import "./tabelaVencimentos.css";
 import "./tabelaVencimentosSpacing.css";
 import { RgaLotePage } from "./RgaLotePage";
@@ -126,7 +129,7 @@ export type TabelaSalva = {
   };
 };
 const BASE = "/prototipos/sigep/tabelas-vencimentos";
-const STORAGE_KEY = "sigep-tabelas-vencimentos-salvas";
+const STORAGE_KEY = "sigep-tabelas-vencimentos-salvas-v2";
 const readSavedTables = (): TabelaSalva[] => {
   if (typeof window === "undefined") return [];
   try {
@@ -157,6 +160,12 @@ const previousIsoDate = (reference = localIsoDate()) => {
   date.setDate(date.getDate() - 1);
   return localIsoDate(date);
 };
+const nextIsoDate = (reference: string) => {
+  const [year, month, day] = reference.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + 1);
+  return localIsoDate(date);
+};
 const isVersionCurrent = (version: Versao) => {
   const today = localIsoDate();
   const start = toInputDate(version.inicio);
@@ -177,7 +186,7 @@ const CARGOS: Cargo[] = [
     id: 1,
     nome: "Auditor Fiscal",
     carreira: "Administração Tributária",
-    abrangencia: "Aplicada a todos os perfis",
+    abrangencia: "Sem tabela",
     perfis: [
       "Auditoria",
       "Fiscalização",
@@ -187,15 +196,15 @@ const CARGOS: Cargo[] = [
       "Planejamento",
     ],
     jornadas: ["20 horas", "30 horas", "40 horas"],
-    vigentes: 1,
-    tabelas: 3,
+    vigentes: 0,
+    tabelas: 0,
     alteracao: "10/08/2026",
   },
   {
     id: 2,
     nome: "Analista Administrativo",
     carreira: "Gestão Governamental",
-    abrangencia: "Por perfil profissional",
+    abrangencia: "Sem tabela",
     perfis: [
       "Administração",
       "Contabilidade",
@@ -203,15 +212,15 @@ const CARGOS: Cargo[] = [
       "Planejamento",
     ],
     jornadas: ["20 horas", "30 horas", "40 horas"],
-    vigentes: 2,
-    tabelas: 2,
+    vigentes: 0,
+    tabelas: 0,
     alteracao: "08/08/2026",
   },
   {
     id: 3,
     nome: "Professor da Educação Básica",
     carreira: "Educação Básica",
-    abrangencia: "Aplicada a todos os perfis",
+    abrangencia: "Sem tabela",
     perfis: [
       "Pedagogia",
       "Língua Portuguesa",
@@ -220,30 +229,30 @@ const CARGOS: Cargo[] = [
       "Ciências",
     ],
     jornadas: ["20 horas", "40 horas"],
-    vigentes: 3,
-    tabelas: 3,
+    vigentes: 0,
+    tabelas: 0,
     alteracao: "02/08/2026",
   },
   {
     id: 4,
     nome: "Médico",
     carreira: "Saúde Pública",
-    abrangencia: "Por perfil profissional",
+    abrangencia: "Sem tabela",
     perfis: ["Clínica Médica", "Cardiologia", "Medicina do Trabalho"],
     jornadas: ["20 horas", "24 horas", "40 horas"],
-    vigentes: 1,
-    tabelas: 1,
+    vigentes: 0,
+    tabelas: 0,
     alteracao: "28/07/2026",
   },
   {
     id: 5,
     nome: "Assistente Administrativo",
     carreira: "-",
-    abrangencia: "Aplicada a todos os perfis",
+    abrangencia: "Sem tabela",
     perfis: ["Apoio Administrativo", "Atendimento ao Público"],
     jornadas: ["30 horas", "40 horas"],
-    vigentes: 1,
-    tabelas: 1,
+    vigentes: 0,
+    tabelas: 0,
     alteracao: "22/07/2026",
   },
   {
@@ -261,23 +270,22 @@ const CARGOS: Cargo[] = [
     id: 7,
     nome: "Auxiliar de Serviços Gerais",
     carreira: "-",
-    abrangencia: "Por perfil profissional",
+    abrangencia: "Sem tabela",
     perfis: ["Serviços Gerais"],
     jornadas: ["40 horas"],
-    vigentes: 1,
-    tabelas: 1,
+    vigentes: 0,
+    tabelas: 0,
     alteracao: "08/07/2026",
   },
   {
     id: 8,
     nome: "Gestor Governamental",
     carreira: "Gestão Governamental",
-    abrangencia: "Aplicada a todos os perfis",
+    abrangencia: "Sem tabela",
     perfis: ["Gestão de Políticas Públicas"],
     jornadas: ["40 horas"],
-    vigentes: 1,
-    tabelas: 1,
-    semTabelaVigente: true,
+    vigentes: 0,
+    tabelas: 0,
     incideRga: false,
     alteracao: "11/09/2026",
   },
@@ -1088,12 +1096,48 @@ function Modal({
     </div>
   );
 }
+type ExceptionLocation = { id: string; label: string; display: string; group: string };
+
+const getExceptionLocations = (): ExceptionLocation[] => {
+  const orgaos = estruturaOrganizacionalNiveis
+    .find((nivel) => nivel.id === "orgaos")
+    ?.itens.map((item) => ({
+      id: "org:" + item.id,
+      label: item.nome,
+      display: item.id.toUpperCase(),
+      group: "Órgãos",
+    })) || [];
+  const unidades = lerEstruturaOrganizacional().unidades.filter(
+    (item) => item.situacao === "ATIVA",
+  );
+  const unitOptions = unidades.map((item) => ({
+    id: "unit:" + item.id,
+    label: item.nome + " — " + item.orgao,
+    display: item.nome,
+    group: "Unidades",
+  }));
+  const cities = Array.from(
+    new Set(unidades.map((item) => item.localizacao).filter(Boolean)),
+  ).map((city) => ({
+    id: "city:" + city,
+    label: city,
+    display: city.replace(/\/MT$/, ""),
+    group: "Localidades",
+  }));
+  return [...orgaos, ...unitOptions, ...cities];
+};
+
+const exceptionLocationName = (id: string, locations: ExceptionLocation[]) =>
+  locations.find((item) => item.id === id)?.display || id;
+
 function List({ batch = false }: { batch?: boolean }) {
   const nav = useNavigate();
   const [listParams] = useSearchParams();
   const savedTables = readSavedTables();
+  const exceptions = readExceptions();
+  const locations = getExceptionLocations();
   const [, setDataRevision] = useState(0);
-  const [expandedCargo, setExpandedCargo] = useState<number | null>(null);
+  const [expandedCargo, setExpandedCargo] = useState<number | null>(Number(listParams.get("cargo")) || null);
   const [comissionadoSort, setComissionadoSort] = useState<"asc" | "desc" | null>(null);
   const [viewTable, setViewTable] = useState<{
     cargo: Cargo;
@@ -1109,6 +1153,7 @@ function List({ batch = false }: { batch?: boolean }) {
   const [journeyActionMenu, setJourneyActionMenu] = useState<string | null>(
     null,
   );
+  const [historyException, setHistoryException] = useState<ExceptionRecord | null>(null);
   const [historyExpandedVersion, setHistoryExpandedVersion] = useState<
     string | null
   >(null);
@@ -1122,7 +1167,7 @@ function List({ batch = false }: { batch?: boolean }) {
     "manual",
   );
   const { control, reset, watch } = useForm<{ cargo: string }>({
-    defaultValues: { cargo: "" },
+    defaultValues: { cargo: listParams.get("cargo") || "" },
   });
   const cargoFiltro = watch("cargo");
   const comissionadoLabel = (cargo: Cargo) =>
@@ -1138,7 +1183,6 @@ function List({ batch = false }: { batch?: boolean }) {
     return comissionadoSort === "asc" ? comparison : -comparison;
   });
   const cargoTables = (cargo: Cargo) => {
-    const history = [VERSOES[1], VERSOES[2], VERSOES[3]];
     return cargo.jornadas.map((jornada, index) => {
       const savedForJourney = savedTables
         .filter(
@@ -1153,26 +1197,7 @@ function List({ batch = false }: { batch?: boolean }) {
         observacao: table.observacao,
         proporcional: table.proporcional,
       }));
-      const firstCargoVersions =
-        index === 0 ? history : index === 2 ? [VERSOES[2]] : [];
-      const hasStaticTable =
-        cargo.id === 1 ? firstCargoVersions.length > 0 : index < cargo.vigentes;
-      const historySize = hasStaticTable
-        ? cargo.id === 1
-          ? firstCargoVersions.length
-          : Math.max(1, Math.min(history.length, cargo.tabelas - index))
-        : 0;
-      const staticVersions =
-        cargo.id === 1
-          ? firstCargoVersions
-          : hasStaticTable
-            ? cargo.semTabelaVigente
-              ? [VERSOES[2]]
-              : history.slice(0, historySize)
-            : [];
-      const rawVersions = savedVersions.length
-        ? savedVersions
-        : staticVersions;
+      const rawVersions = savedVersions;
       return {
         item: resolveJourneyVersions(rawVersions, localIsoDate()).find(
           isVersionCurrent,
@@ -1192,11 +1217,7 @@ function List({ batch = false }: { batch?: boolean }) {
             )?.inicio,
         )?.id,
         sourceSavedId: saved?.id,
-        incideRga:
-          cargo.incideRga ??
-          (cargo.id === 1
-            ? true
-            : (saved?.incideRga ?? hasStaticTable)),
+        incideRga: saved?.incideRga ?? cargo.incideRga ?? false,
       };
     });
   };
@@ -1418,6 +1439,7 @@ function List({ batch = false }: { batch?: boolean }) {
                 {rows.map((cargo) => {
                   const expanded = expandedCargo === cargo.id;
                   const tables = cargoTables(cargo);
+                  const exceptionRows = visibleExceptions(exceptions, cargo.id, localIsoDate());
                   return (
                     <tbody key={cargo.id}>
                       <tr
@@ -1473,6 +1495,7 @@ function List({ batch = false }: { batch?: boolean }) {
                         <tr className="tv-cargo-expanded-row">
                           <td colSpan={5}>
                             <div className="tv-cargo-expanded-content">
+                              <h3 className="tv-inner-section-title">Tabelas por Jornada</h3>
                               {tables.length ? (
                                 <div className="tv-scroll">
                                   <table className="tv-cargo-history-table">
@@ -1772,6 +1795,90 @@ function List({ batch = false }: { batch?: boolean }) {
                                   este cargo.
                                 </div>
                               )}
+                              <div className="tv-exception-register-action">
+                                <button
+                                  type="button"
+                                  className="tv-exception-create"
+                                  title="Cadastrar Tabela de Exceção para este Cargo"
+                                  onClick={() => nav(BASE + "/excecao/nova?cargo=" + cargo.id)}
+                                >
+                                  <i className="pi pi-plus" aria-hidden="true" />
+                                  Cadastrar Exceção
+                                </button>
+                              </div>
+                              <section className="tv-exceptions-section" aria-label="Exceções cadastradas">
+                                <h3>Exceções cadastradas</h3>
+                                {exceptionRows.length ? (
+                                  <div className="tv-scroll">
+                                    <table className="tv-cargo-history-table tv-exception-table">
+                                      <thead>
+                                        <tr>
+                                          <th>Perfil Profissional</th>
+                                          <th>Local de Lotação</th>
+                                          <th>Horas trabalhadas</th>
+                                          <th>Versão</th>
+                                          <th>Ano</th>
+                                          <th>Vigência</th>
+                                          <th>Situação</th>
+                                          <th>Ações</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {exceptionRows.map((record) => (
+                                          <tr key={record.id}>
+                                            <td>{record.perfil || "Todos"}</td>
+                                            <td>{record.localId ? exceptionLocationName(record.localId, locations) : "Todos"}</td>
+                                            <td>{record.horasTrabalhadas || "Todas"}</td>
+                                            <td>{"V" + record.version}</td>
+                                            <td>{record.start.slice(0, 4)}</td>
+                                            <td>
+                                              {formatDate(record.start)} –{" "}
+                                              {record.end ? formatDate(record.end) : "Atual"}
+                                            </td>
+                                            <td><StatusTag value={exceptionStatus(record, localIsoDate())} /></td>
+                                            <td>
+                                              <div className="tv-journey-actions tv-journey-split-actions">
+                                                <button type="button" className="tv-journey-view-button"
+                                                  title="Visualizar exceção" aria-label="Visualizar exceção"
+                                                  onClick={() => nav(BASE + "/excecao/visualizar?cargo=" + cargo.id + "&registro=" + record.id)}
+                                                ><i className="pi pi-eye" /></button>
+                                                <button type="button" className="tv-journey-history-button"
+                                                  title="Mais ações" aria-label="Mais ações"
+                                                  aria-expanded={journeyActionMenu === "excecao-" + record.id}
+                                                  onClick={() => {
+                                                    const key = "excecao-" + record.id;
+                                                    setJourneyActionMenu(journeyActionMenu === key ? null : key);
+                                                  }}
+                                                ><i className="pi pi-chevron-down" /></button>
+                                                {journeyActionMenu === "excecao-" + record.id && (
+                                                  <div className="tv-journey-action-menu">
+                                                    {exceptionStatus(record, localIsoDate()) === "Vigente" && (
+                                                      <button type="button" onClick={() => {
+                                                        setJourneyActionMenu(null);
+                                                        nav(BASE + "/excecao/versionar?cargo=" + cargo.id + "&registro=" + record.id);
+                                                      }}>
+                                                        <i className="pi pi-copy" /> Versionar
+                                                      </button>
+                                                    )}
+                                                    <button type="button" onClick={() => {
+                                                      setJourneyActionMenu(null);
+                                                      setHistoryException(record);
+                                                    }}>
+                                                      <i className="pi pi-history" /> Histórico
+                                                    </button>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                ) : (
+                                  <p className="tv-exception-empty">Nenhuma exceção cadastrada para este cargo.</p>
+                                )}
+                              </section>
                             </div>
                           </td>
                         </tr>
@@ -1809,6 +1916,15 @@ function List({ batch = false }: { batch?: boolean }) {
           </div>
         </div>
       </CardSeplag>
+      {historyException && (
+        <ExceptionHistoryModal
+          record={historyException}
+          records={exceptions}
+          cargo={CARGOS.find((item) => item.id === historyException.cargoId)!}
+          locations={locations}
+          close={() => setHistoryException(null)}
+        />
+      )}
       {createJourney && (
         <div className="tv-profile-list-overlay" role="presentation">
           <section
@@ -4757,12 +4873,454 @@ function Form({
     </CardSeplag>
   );
 }
+function ExceptionForm({
+  cargo,
+  record,
+  view = false,
+}: {
+  cargo: Cargo;
+  record?: ExceptionRecord;
+  view?: boolean;
+}) {
+  const nav = useNavigate();
+  const formRef = useRef<HTMLFormElement>(null);
+  const legalOptions = useDocumentosLegaisAssociaveis();
+  const locations = getExceptionLocations();
+  const initialStart = record
+    ? view
+      ? record.start
+      : record.start >= localIsoDate()
+        ? nextIsoDate(record.start)
+        : localIsoDate()
+    : "";
+  const initialEnd = record?.end && record.end >= initialStart ? record.end : "";
+
+  const [step, setStep] = useState(0);
+  const [perfil, setPerfil] = useState(record?.perfil || "");
+  const [localId, setLocalId] = useState(record?.localId || "");
+  const [horasTrabalhadas, setHorasTrabalhadas] = useState(record?.horasTrabalhadas || "");
+  const [inicio, setInicio] = useState(initialStart);
+  const [fim, setFim] = useState(initialEnd);
+  const [baseLegal, setBaseLegal] = useState<string[]>(record?.baseLegal || []);
+  const [observacao, setObservacao] = useState(record?.observacao || "");
+  const [matrix, setMatrix] = useState<MatrixData>(
+    record?.matrix || { columns: [], rows: [] },
+  );
+  const [error, setError] = useState("");
+  const steps = [
+    "Identificação e vigência",
+    "Valores por Nível e Classe",
+  ];
+
+  const captureMatrix = () => {
+    if (view || !formRef.current) return matrix;
+    const current = matrixFromFormData(new FormData(formRef.current));
+    setMatrix(current);
+    return current;
+  };
+
+  const identificationValid = () =>
+    (!perfil || cargo.perfis.includes(perfil)) &&
+    (!localId || locations.some((item) => item.id === localId)) &&
+    Boolean(inicio) &&
+    Boolean(baseLegal.length) &&
+    (!fim || fim >= inicio);
+
+  const matrixValid = (data: MatrixData) => {
+    const rows = data.rows.map((row) => row.name.trim().toLocaleLowerCase("pt-BR"));
+    const columns = data.columns.map((name) => name.trim().toLocaleLowerCase("pt-BR"));
+    return rows.length > 0 &&
+      columns.length > 0 &&
+      rows.every(Boolean) &&
+      columns.every(Boolean) &&
+      new Set(rows).size === rows.length &&
+      new Set(columns).size === columns.length &&
+      data.rows.some((row) =>
+        row.values.some((value) => Number(value.replace(/\D/g, "")) > 0),
+      );
+  };
+
+  const next = () => {
+    setError("");
+    if (step === 0 && !identificationValid()) {
+      setError(
+        "Preencha Cargo, Data início da vigência e Base Legal. Confira também o período informado.",
+      );
+      return;
+    }
+    setStep(step + 1);
+  };
+
+  const save = () => {
+    const currentMatrix = captureMatrix();
+    if (!identificationValid()) {
+      setStep(0);
+      setError("Revise os campos obrigatórios e a vigência.");
+      return;
+    }
+    if (!matrixValid(currentMatrix)) {
+      setStep(1);
+      setError("Revise as referências e os valores da matriz.");
+      return;
+    }
+    const result = saveException(
+      readExceptions(),
+      {
+        cargoId: cargo.id,
+        perfil,
+        localId,
+        horasTrabalhadas: horasTrabalhadas || undefined,
+        start: inicio,
+        end: fim || undefined,
+        matrix: currentMatrix,
+        baseLegal,
+        observacao,
+      },
+      "Roberto Junior",
+      record?.id,
+    );
+    if (!result.ok) {
+      setError(result.message);
+      return;
+    }
+    persistExceptions(result.records);
+    nav(BASE + "?cargo=" + cargo.id + "&salvo=1");
+  };
+
+  return (
+    <CardSeplag
+      title={
+        view
+          ? "Tabela de Vencimentos — Exceção"
+          : record
+            ? "Versionar Tabela de Vencimentos — Exceção"
+            : "Nova Tabela de Vencimentos — Exceção"
+      }
+      breadcrumb={
+        <BreadcrumbSeplag
+          divided
+          items={[
+            { label: "Cadastro" },
+            { label: "Cargo e Concurso" },
+            { label: "Tabela de Vencimentos", to: BASE },
+            { label: view ? "Visualizar Exceção" : record ? "Versionar Exceção" : "Cadastrar Exceção" },
+          ]}
+        />
+      }
+    >
+      <form
+        ref={formRef}
+        className="tv-form col-12"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (step === 1) save();
+          else next();
+        }}
+      >
+        <nav className="tv-form-tabs tv-exception-steps" aria-label="Etapas da Tabela de Exceção">
+          {steps.map((label, index) => (
+            <button
+              key={label}
+              type="button"
+              className={step === index ? "active" : ""}
+              disabled={!view && index > step}
+              onClick={() => {
+                captureMatrix();
+                setStep(index);
+                setError("");
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <section className={"prototype-novo-ingresso-panel tv-tab-panel " + (step === 0 ? "active" : "")}>
+          <h3>
+            <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-id-card" /></span>
+            Identificação e vigência
+          </h3>
+          <div className="prototype-ingresso-import-grid tv-form-grid">
+            <label className="prototype-ingresso-field">
+              <span>Carreira</span>
+              <input value={cargo.carreira} readOnly />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Cargo*</span>
+              <input value={cargo.nome} readOnly />
+            </label>
+            <div className="prototype-ingresso-field">
+              <span>Tipo de cadastro</span>
+              <span className="tv-exception-tag">Exceção</span>
+            </div>
+            <label className="prototype-ingresso-field">
+              <span>Perfil Profissional</span>
+              <select value={perfil} disabled={view || Boolean(record)} onChange={(event) => setPerfil(event.target.value)}>
+                <option value="">Selecione</option>
+                {cargo.perfis.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Local de Lotação</span>
+              <select value={localId} disabled={view || Boolean(record)} onChange={(event) => setLocalId(event.target.value)}>
+                <option value="">Selecione o Local de Lotação</option>
+                {["Órgãos", "Unidades", "Localidades"].map((group) => (
+                  <optgroup key={group} label={group}>
+                    {locations.filter((item) => item.group === group).map((item) => (
+                      <option key={item.id} value={item.id}>{item.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Horas trabalhadas</span>
+              <select value={horasTrabalhadas} disabled={view || Boolean(record)} onChange={(event) => setHorasTrabalhadas(event.target.value as "" | "6h" | "4h" | "17h")}>
+                <option value="">Selecione</option>
+                <option value="6h">6 horas</option>
+                <option value="4h">4 horas</option>
+                <option value="17h">17 horas</option>
+              </select>
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Data início da vigência*</span>
+              <input type="date" value={inicio} readOnly={view} required={!view} onChange={(event) => setInicio(event.target.value)} />
+            </label>
+            <label className="prototype-ingresso-field">
+              <span>Data fim da vigência</span>
+              <input type="date" value={fim} readOnly={view} onChange={(event) => setFim(event.target.value)} />
+            </label>
+            <div className="prototype-ingresso-field tv-base-legal-field">
+              {view ? (
+                <label className="prototype-ingresso-field">
+                  <span>Base Legal</span>
+                  <input value={baseLegal.join(", ")} readOnly />
+                </label>
+              ) : (
+                <DocumentosLegaisAssociadosSeplag
+                  label="Base legal"
+                  required
+                  options={legalOptions}
+                  value={baseLegal}
+                  onChange={setBaseLegal}
+                  onVisualizar={(documento) => nav("/prototipos/sigep/documentos-legais/" + documento.id)}
+                  placeholder="Buscar documentos legais..."
+                  exibirNovoCadastro={false}
+                  compact
+                  expandirAoAbrir
+                />
+              )}
+            </div>
+          </div>
+          <div className="tv-exception-info">
+            Esta tabela será aplicada ao Cargo {cargo.nome}
+            {perfil ? " e ao Perfil Profissional " + perfil : ""}
+            {localId ? " no Local de Lotação " + exceptionLocationName(localId, locations) : ""}
+            {horasTrabalhadas ? " com " + horasTrabalhadas + " trabalhadas" : ""}.
+            Os critérios não informados abrangem todos os valores correspondentes.
+          </div>
+          <label className="prototype-ingresso-field tv-exception-observation">
+            <strong>Observação</strong>
+            <span>Registre informações complementares sobre esta exceção da Tabela de Vencimentos.</span>
+            <textarea value={observacao} readOnly={view} onChange={(event) => setObservacao(event.target.value)} />
+          </label>
+        </section>
+
+        <section className={"prototype-novo-ingresso-panel tv-tab-panel " + (step === 1 ? "active" : "")}>
+          <h3>
+            <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-table" /></span>
+            Valores por Nível e Classe — Exceção
+          </h3>
+          <p>Informe os valores da tabela para os critérios de exceção selecionados.</p>
+          <Matrix edit={!view} data={record?.matrix} />
+          <div className="tv-exception-info">
+            A Tabela de Exceção terá prioridade sobre a Tabela por Jornada quando os critérios
+            informados corresponderem ao servidor. Entre exceções aplicáveis, prevalece a mais específica.
+          </div>
+        </section>
+
+        {error && <div className="tv-error" role="alert">{error}</div>}
+        <div className="tv-form-actions">
+          <BotaoVoltarSeplag
+            type="button"
+            label="Voltar"
+            onClick={() => step ? setStep(step - 1) : nav(BASE + "?cargo=" + cargo.id)}
+          />
+          {!view && <BotaoSalvarSeplag type="submit" label={step === 1 ? "Salvar tabela" : "Avançar"} />}
+        </div>
+      </form>
+    </CardSeplag>
+  );
+}
+
+function ExceptionHistoryModal({
+  record,
+  records,
+  cargo,
+  locations,
+  close,
+}: {
+  record: ExceptionRecord;
+  records: ExceptionRecord[];
+  cargo: Cargo;
+  locations: ExceptionLocation[];
+  close: () => void;
+}) {
+  const [expandedVersion, setExpandedVersion] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"valores" | "info">("valores");
+  const versions = records
+    .filter(
+      (item) =>
+        item.cargoId === record.cargoId &&
+        item.perfil === record.perfil &&
+        item.localId === record.localId &&
+        (item.horasTrabalhadas || "") === (record.horasTrabalhadas || ""),
+    )
+    .sort((a, b) => b.version - a.version);
+
+  return (
+    <div className="tv-profile-list-overlay" role="presentation">
+      <section className="tv-journey-history-modal tv-exception-history-modal"
+        role="dialog" aria-modal="true" aria-labelledby="tv-exception-history-title">
+        <header>
+          <div>
+            <h2 id="tv-exception-history-title">Histórico da exceção</h2>
+            <p>
+              <strong>{cargo.nome}</strong> · {record.perfil || "Todos os perfis"} ·{" "}
+              {record.localId ? exceptionLocationName(record.localId, locations) : "Todos os locais"} ·{" "}
+              {record.horasTrabalhadas || "Todas as horas"}
+            </p>
+          </div>
+          <button type="button" aria-label="Fechar" onClick={close}>
+            <i className="pi pi-times" />
+          </button>
+        </header>
+        <div className="tv-journey-history-divider" />
+        <div className="tv-journey-history-toolbar">
+          <strong>Versões</strong>
+          <span>{versions.length} {versions.length === 1 ? "registro" : "registros"}</span>
+        </div>
+        <div className="tv-scroll tv-journey-history-grid-wrap">
+          <table className="tv-journey-history-grid">
+            <thead>
+              <tr>
+                <th>Versão</th>
+                <th>Ano</th>
+                <th>Início da vigência</th>
+                <th>Fim da vigência</th>
+                <th>Origem da alteração</th>
+                <th>Situação</th>
+                <th>Alterado por</th>
+                <th>Última alteração</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {versions.map((version) => {
+                const expanded = expandedVersion === version.id;
+                const origin = version.previousId ? "Alteração manual" : "Cadastro inicial";
+                return (
+                  <Fragment key={version.id}>
+                    <tr className={expanded ? "tv-history-version-open" : undefined}>
+                      <td><span className="tv-history-version-label">{"V" + version.version}</span></td>
+                      <td>{version.start.slice(0, 4)}</td>
+                      <td>{formatDate(version.start)}</td>
+                      <td>{version.end ? formatDate(version.end) : "—"}</td>
+                      <td><span className="tv-history-origin-tag">{origin}</span></td>
+                      <td><StatusTag value={exceptionStatus(version, localIsoDate())} /></td>
+                      <td>{version.responsavel}</td>
+                      <td>{rgaDateTime(version.registradoEm)}</td>
+                      <td>
+                        <button type="button" className="tv-history-expand-button"
+                          title={expanded ? "Recolher tabela" : "Expandir tabela"}
+                          aria-label={expanded ? "Recolher tabela" : "Expandir tabela"}
+                          aria-expanded={expanded}
+                          onClick={() => {
+                            setExpandedVersion(expanded ? null : version.id);
+                            setActiveTab("valores");
+                          }}>
+                          <i className={"pi " + (expanded ? "pi-chevron-up" : "pi-chevron-down")} />
+                        </button>
+                      </td>
+                    </tr>
+                    {expanded && (
+                      <tr className="tv-history-version-detail-row">
+                        <td colSpan={9}>
+                          <section className="tv-history-version-detail">
+                            <header>
+                              <h3>Tabela de vencimentos — {version.start.slice(0, 4)}</h3>
+                              <div className="tv-history-detail-tags">
+                                <StatusTag value={exceptionStatus(version, localIsoDate())} />
+                              </div>
+                            </header>
+                            <nav className="tv-tabs" aria-label={"Detalhes da versão V" + version.version}>
+                              <button type="button" className={activeTab === "valores" ? "active" : ""}
+                                onClick={() => setActiveTab("valores")}>Tabela de valores</button>
+                              <button type="button" className={activeTab === "info" ? "active" : ""}
+                                onClick={() => setActiveTab("info")}>Informações adicionais</button>
+                            </nav>
+                            {activeTab === "valores" ? (
+                              <div className="tv-history-matrix"><Matrix data={version.matrix} /></div>
+                            ) : (
+                              <div className="tv-history-additional-info">
+                                <div className="tv-history-info-grid">
+                                  <div className="tv-history-data-item"><small>Cargo</small><strong>{cargo.nome}</strong></div>
+                                  <div className="tv-history-data-item"><small>Perfil Profissional</small><strong>{version.perfil || "Todos"}</strong></div>
+                                  <div className="tv-history-data-item"><small>Local de Lotação</small><strong>{version.localId ? exceptionLocationName(version.localId, locations) : "Todos"}</strong></div>
+                                  <div className="tv-history-data-item"><small>Horas trabalhadas</small><strong>{version.horasTrabalhadas || "Todas"}</strong></div>
+                                  <div className="tv-history-data-item"><small>Data início da vigência</small><strong>{formatDate(version.start)}</strong></div>
+                                  <div className="tv-history-data-item"><small>Data fim da vigência</small><strong>{version.end ? formatDate(version.end) : "—"}</strong></div>
+                                  <div className="tv-history-data-item"><small>Responsável pela última alteração</small><strong>{version.responsavel}</strong></div>
+                                  <div className="tv-history-data-item"><small>Data e hora da última alteração</small><strong>{rgaDateTime(version.registradoEm)}</strong></div>
+                                  <div className="tv-history-data-item"><small>Origem da alteração</small><strong>{origin}</strong></div>
+                                  <div className="tv-history-data-item"><small>Base legal</small><strong>{version.baseLegal.join(", ")}</strong></div>
+                                </div>
+                                <div className="tv-history-info-observation">
+                                  <small>Observação</small>
+                                  <p>{version.observacao || "—"}</p>
+                                </div>
+                              </div>
+                            )}
+                          </section>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+          <div className="tv-journey-history-pager" aria-label="Paginação do histórico">
+            <button type="button" disabled aria-label="Primeira página"><i className="pi pi-angle-double-left" /></button>
+            <button type="button" disabled aria-label="Página anterior"><i className="pi pi-angle-left" /></button>
+            <span aria-current="page">1</span>
+            <button type="button" disabled aria-label="Próxima página"><i className="pi pi-angle-right" /></button>
+            <button type="button" disabled aria-label="Última página"><i className="pi pi-angle-double-right" /></button>
+            <select aria-label="Itens por página" defaultValue="10">
+              <option value="10">10</option><option value="20">20</option><option value="50">50</option>
+            </select>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export function TabelaVencimentosFeaturePage() {
   const loc = useLocation();
   const id = loc.pathname.match(/cargo\/(\d+)/)?.[1];
   const cargo = CARGOS.find((x) => String(x.id) === id);
   let content = <List />;
-  if (loc.pathname.endsWith("/aplicar-rga-em-lote")) content = <List batch />;
+  if (loc.pathname.includes("/excecao/")) {
+    const params = new URLSearchParams(loc.search);
+    const exceptionCargo = CARGOS.find((item) => String(item.id) === params.get("cargo"));
+    const exceptionRecord = readExceptions().find(
+      (item) => item.id === params.get("registro") && item.cargoId === exceptionCargo?.id,
+    );
+    if (exceptionCargo && (loc.pathname.endsWith("/nova") || exceptionRecord)) {
+      content = <ExceptionForm cargo={exceptionCargo} record={exceptionRecord} view={loc.pathname.endsWith("/visualizar")} />;
+    }
+  } else if (loc.pathname.endsWith("/aplicar-rga-em-lote")) content = <List batch />;
   else if (loc.pathname.endsWith("/novo")) content = <Form edit={false} />;
   else if (loc.pathname.endsWith("/visualizar"))
     content = <Form edit={false} view />;

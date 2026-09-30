@@ -8,6 +8,7 @@ import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTe
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
 import { ControleVagasGeralContent } from "./controleVagas/ControleVagasGeralContent";
 import { IngressoGeralContent } from "./ingresso/IngressoGeralContent";
+import { getOrgaoAtuacaoIngresso, getPerfilVariacaoIngresso, podeAnalisarIngresso, podeConsultarIngresso, podeRegistrarEfetivo, SeletorPerfilVariacaoIngresso, usePerfilVariacaoIngresso } from "./ingresso/perfilVariacao";
 import { CadastroGeralContent } from "./cadastro/CadastroGeralContent";
 import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
 import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
@@ -74,9 +75,9 @@ import {
 } from "@componentes/SituacaoVigencia";
 import {
   SeletorEstruturaOrganizacionalSeplag,
-  type EstruturaOrganizacionalNivelSeplag,
   type SeletorEstruturaOrganizacionalValueSeplag,
 } from "@componentes/SeletorEstruturaOrganizacional";
+import { estruturaOrganizacionalNiveis } from "./estruturaOrganizacionalCatalogo";
 import {
   TablePaginadoSeplag,
   type ColumnMetaSeplag,
@@ -231,6 +232,7 @@ const menuCardsCargoConcurso: readonly MenuCardItem[] = [
   { titulo: "Cargo", descricao: "Cadastre e consulte os cargos.", icone: "pi pi-briefcase", destino: "/prototipos/sigep/cargo" },
   { titulo: "Perfil Profissional", descricao: "Gerencie perfis e especialidades profissionais.", icone: "pi pi-id-card", destino: "/prototipos/sigep/perfil-profissional" },
   { titulo: "Tabelas de Vencimentos", descricao: "Consulte as tabelas de vencimentos.", icone: "pi pi-table", destino: "/prototipos/sigep/tabelas-vencimentos" },
+  { titulo: "Tabela V2", descricao: "Acesse o módulo Tabela V2.", icone: "pi pi-table", destino: "/prototipos/sigep/tabela-v2" },
 ];
 const menuCardsMovimentacao: readonly MenuCardItem[] = [{ titulo: "Cessão", descricao: "Registre e acompanhe as cessões de servidores.", icone: "pi pi-sync", destino: "/prototipos/sigep/movimentacao/cessoes" }];
 const menuCardsDocumentacao: readonly MenuCardItem[] = [
@@ -310,6 +312,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Cargo", icon: "pi pi-circle-on", to: "/prototipos/sigep/cargo", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Perfil Profissional", icon: "pi pi-circle-on", to: "/prototipos/sigep/perfil-profissional", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tabelas de Vencimentos", icon: "pi pi-circle-on", to: "/prototipos/sigep/tabelas-vencimentos", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Tabela V2", icon: "pi pi-circle-on", to: "/prototipos/sigep/tabela-v2", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -881,81 +884,7 @@ const documentosLegaisMock: DocumentoLegalAssociadoSeplag[] = [
   },
 ];
 
-const estruturaOrganizacionalNiveis: EstruturaOrganizacionalNivelSeplag[] = [
-  {
-    id: "instituicoes",
-    titulo: "Instituições",
-    disponiveisTitulo: "Instituições disponíveis",
-    selecionadosTitulo: "Instituições selecionadas",
-    filtroPlaceholder: "Procurar por instituição",
-    itens: [
-      { id: "govmt", nome: "Governo do Estado de Mato Grosso" },
-      {
-        id: "empaer",
-        nome: "Empresa Mato-grossense de Pesquisa Assistência e Extensão Rural",
-      },
-      {
-        id: "mtitec",
-        nome: "Empresa Mato-grossense de Tecnologia da Informação",
-      },
-      { id: "mtgas", nome: "Companhia Mato-grossense de Gás" },
-      {
-        id: "sanemat",
-        nome: "Companhia de Saneamento do Estado de Mato Grosso",
-      },
-      { id: "mtpar", nome: "MT Participações e Projetos S.A." },
-      { id: "metamat", nome: "Companhia Mato-grossense de Mineração" },
-    ],
-  },
-  {
-    id: "orgaos",
-    titulo: "Órgãos do GOVMT",
-    disponiveisTitulo: "Órgãos disponíveis",
-    selecionadosTitulo: "Órgãos selecionados",
-    filtroPlaceholder: "Procurar por órgão",
-    parentLevelId: "instituicoes",
-    itens: [
-      { id: "casa-civil", parentId: "govmt", nome: "Casa Civil do Estado de Mato Grosso" },
-      { id: "cge", parentId: "govmt", nome: "Controladoria Geral do Estado (CGE-MT)" },
-      { id: "pge", parentId: "govmt", nome: "Procuradoria Geral do Estado (PGE-MT)" },
-      { id: "sefaz", parentId: "govmt", nome: "Secretaria de Estado de Fazenda (SEFAZ-MT)" },
-      { id: "setasc", parentId: "govmt", nome: "Secretaria de Estado de Assistência Social e Cidadania (SETASC-MT)" },
-      { id: "detran", parentId: "govmt", nome: "Departamento Estadual de Trânsito (DETRAN-MT)" },
-      { id: "sesp", parentId: "govmt", nome: "Secretaria de Estado de Segurança Pública (SESP-MT)" },
-      { id: "pmmt", parentId: "govmt", nome: "Polícia Militar do Estado de Mato Grosso" },
-      { id: "pjc", parentId: "govmt", nome: "Polícia Judiciária Civil (PJC-MT)" },
-      { id: "cbm", parentId: "govmt", nome: "Corpo de Bombeiros Militar (CBM-MT)" },
-      { id: "seaf", parentId: "govmt", nome: "Secretaria de Estado de Agricultura Familiar (SEAF-MT)" },
-      { id: "intermat", parentId: "govmt", nome: "Instituto de Terras de Mato Grosso (INTERMAT)" },
-      { id: "indea", parentId: "govmt", nome: "Instituto de Defesa Agropecuária do Estado de MT (INDEA-MT)" },
-      { id: "seduc", parentId: "govmt", nome: "Secretaria de Estado de Educação (SEDUC-MT)" },
-      { id: "seciteci", parentId: "govmt", nome: "Secretaria de Estado de Ciência, Tecnologia e Inovação (SECITECI-MT)" },
-      { id: "ses", parentId: "govmt", nome: "Secretaria de Estado de Saúde (SES-MT)" },
-      { id: "seplag", parentId: "govmt", nome: "Secretaria de Estado de Planejamento e Gestão (SEPLAG-MT)" },
-      { id: "sema", parentId: "govmt", nome: "Secretaria de Estado de Meio Ambiente (SEMA-MT)" },
-      { id: "secom", parentId: "govmt", nome: "Secretaria de Estado de Comunicação (SECOM-MT)" },
-      { id: "politec", parentId: "govmt", nome: "Perícia Oficial e Identificação Técnica (POLITEC-MT)" },
-    ],
-  },
-  {
-    id: "unidades",
-    titulo: "Unidades da SEPLAG",
-    disponiveisTitulo: "Unidades disponíveis",
-    selecionadosTitulo: "Unidades selecionadas",
-    filtroPlaceholder: "Procurar por unidade",
-    parentLevelId: "orgaos",
-    itens: [{ id: "sapgd", parentId: "seplag", nome: "SAPGD" }],
-  },
-  {
-    id: "setores",
-    titulo: "Setores da SAPGD",
-    disponiveisTitulo: "Setores disponíveis",
-    selecionadosTitulo: "Setores selecionados",
-    filtroPlaceholder: "Procurar por setor",
-    parentLevelId: "unidades",
-    itens: [{ id: "cppti", parentId: "sapgd", nome: "CPPTI" }],
-  },
-];
+
 
 interface PrototypeSystemPageProps {
   nomeSistema: string;
@@ -1464,6 +1393,7 @@ interface EfetivoExercicioHistoricoEvento {
   matricula?: string;
   vinculo?: string;
   arquivo?: string;
+  orgaoAtuacao?: string;
 }
 
 interface IngressoConcursoProcessoRow {
@@ -1535,6 +1465,7 @@ interface IngressosTesteGridRow {
 type IngressoTesteSituacao = "Não iniciado" | "Em andamento" | "Concluído" | "Sem nomeados";
 
 interface IngressoTesteTabelaRow extends IngressosTesteGridRow {
+  processoTitulo: string;
   pendentes: number;
   encerradosSemIngresso: number;
   possesSuspensas: number;
@@ -11917,6 +11848,8 @@ export function PrototiposTipoVinculoTesteFormPage({
 
 export function PrototiposEfetivoExercicioPage() {
   const navigate = useNavigate();
+  const [perfilVariacao, setPerfilVariacao] = usePerfilVariacaoIngresso();
+  const [orgaoAtuacaoPerfil, setOrgaoAtuacaoPerfil] = useState(getOrgaoAtuacaoIngresso);
   const [searchParams] = useSearchParams();
   const finalizacaoSolicitada = searchParams.get("finalizar");
   const { control, reset, watch } = useForm<IngressoEfetivoExercicioFiltroForm>({
@@ -12077,8 +12010,9 @@ export function PrototiposEfetivoExercicioPage() {
       situacoesEfetivoExercicio.includes(registro.situacao) &&
       (registro.situacao !== "Ingresso Cancelado" || registro.cancelamentoEstagioPorNaoComparecimento),
     );
+  const registrosEfetivoAutorizados = todosRegistrosEfetivoExercicio.filter((registro) => perfilVariacao === "CENTRAL" || registro.orgaoEncaminhado === orgaoAtuacaoPerfil);
   useEffect(() => {
-    if (finalizacaoSolicitada && registrosEfetivoGerados[finalizacaoSolicitada]) {
+    if (perfilVariacao === "SETORIAL" && finalizacaoSolicitada && registrosEfetivoGerados[finalizacaoSolicitada] && registrosEfetivoAutorizados.some((registro) => registro.chaveRegistro === finalizacaoSolicitada)) {
       setTermoEfetivoAssinado(null);
       setErroTermoEfetivoAssinado("");
       setFinalizacaoEfetivoChave(finalizacaoSolicitada);
@@ -12086,7 +12020,7 @@ export function PrototiposEfetivoExercicioPage() {
   }, [finalizacaoSolicitada]);
   const opcoesEditalEfetivo = Array.from(
     new Map(
-      todosRegistrosEfetivoExercicio.map((registro) => {
+      registrosEfetivoAutorizados.map((registro) => {
         const codigoEdital = registro.edital.replace(/^Edital\s*/i, "");
         const value = `${registro.edital}|${registro.orgao}`;
         return [value, { value, label: `${codigoEdital}/${registro.orgao}` }];
@@ -12094,7 +12028,7 @@ export function PrototiposEfetivoExercicioPage() {
     ).values(),
   );
   const registrosEditalSelecionado = editalFiltro
-    ? todosRegistrosEfetivoExercicio.filter((registro) => `${registro.edital}|${registro.orgao}` === editalFiltro)
+    ? registrosEfetivoAutorizados.filter((registro) => `${registro.edital}|${registro.orgao}` === editalFiltro)
     : [];
   const opcoesCargoPoloEfetivo = Array.from(
     new Map(
@@ -12107,19 +12041,19 @@ export function PrototiposEfetivoExercicioPage() {
   const totalEfetivoExercicioPorSituacao = situacoesEfetivoExercicio.reduce(
     (acc, situacao) => ({
       ...acc,
-      [situacao]: todosRegistrosEfetivoExercicio.filter((registro) => registro.situacao === situacao).length,
+      [situacao]: registrosEfetivoAutorizados.filter((registro) => registro.situacao === situacao).length,
     }),
     {} as Record<IngressoSituacao, number>,
   );
   const indicadoresEfetivoExercicio = [
-    { label: "Total de Registros", value: todosRegistrosEfetivoExercicio.length, icon: "pi pi-users", tone: "blue" },
+    { label: "Total de Registros", value: registrosEfetivoAutorizados.length, icon: "pi pi-users", tone: "blue" },
     { label: "Aguardando Efetivo Exercício", value: totalEfetivoExercicioPorSituacao["Aguardando Efetivo Exercicio"], icon: "pi pi-calendar-clock", tone: "amber" },
     { label: "Aguardando Termo Assinado", value: totalEfetivoExercicioPorSituacao["Aguardando Termo Assinado"], icon: "pi pi-file-edit", tone: "blue" },
     { label: "Ingressos Concluídos", value: totalEfetivoExercicioPorSituacao["Ingresso Concluído"], icon: "pi pi-check-circle", tone: "green" },
     { label: "Ingresso cancelado", value: totalEfetivoExercicioPorSituacao["Ingresso Cancelado"], icon: "pi pi-times-circle", tone: "red" },
     { label: "Exoneração de oficio", value: totalEfetivoExercicioPorSituacao["Exoneração de oficio"], icon: "pi pi-minus-circle", tone: "red" },
   ];
-  const registrosEfetivoExercicio = todosRegistrosEfetivoExercicio.filter((registro) => {
+  const registrosEfetivoExercicio = registrosEfetivoAutorizados.filter((registro) => {
       const atendeTermo =
         !termoBusca ||
         registro.nome.toLowerCase().includes(termoBusca) ||
@@ -12235,12 +12169,12 @@ export function PrototiposEfetivoExercicioPage() {
             {evento.arquivo ? <div><dt>Arquivo</dt><dd>{evento.arquivo}</dd></div> : null}
           </dl>
         ) : null}
-        <span className="prototype-ingressos-candidate-history-owner">Responsável: {evento.responsavel}</span>
+        <span className="prototype-ingressos-candidate-history-owner">Responsável: {evento.responsavel}{evento.orgaoAtuacao ? " — " + evento.orgaoAtuacao : ""}</span>
       </div>
     </li>
   ));
   const registroFinalizacaoSelecionado = finalizacaoEfetivoChave
-    ? todosRegistrosEfetivoExercicio.find((registro) => registro.chaveRegistro === finalizacaoEfetivoChave)
+    ? registrosEfetivoAutorizados.find((registro) => registro.chaveRegistro === finalizacaoEfetivoChave)
     : undefined;
   const dadosEfetivoFinalizacao = finalizacaoEfetivoChave
     ? registrosEfetivoGerados[finalizacaoEfetivoChave]
@@ -12292,6 +12226,7 @@ export function PrototiposEfetivoExercicioPage() {
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   const finalizarEfetivoExercicio = () => {
+    if (perfilVariacao !== "SETORIAL" || registroFinalizacaoSelecionado?.orgaoEncaminhado !== orgaoAtuacaoPerfil) return;
     if (!termoEfetivoAssinado) {
       setErroTermoEfetivoAssinado(
         "Para finalizar o Efetivo Exercício, é obrigatório anexar o " + nomeDocumentoFinalizacao + " assinado.",
@@ -12307,7 +12242,7 @@ export function PrototiposEfetivoExercicioPage() {
       "prototype-ingresso-termos-efetivo-assinados",
       JSON.stringify({
         ...anexosSalvos,
-        [finalizacaoEfetivoChave]: { nome: termoEfetivoAssinado.name, tamanho: termoEfetivoAssinado.size, anexadoEm: agora, responsavel: "ROBERTO JUNIOR" },
+        [finalizacaoEfetivoChave]: { nome: termoEfetivoAssinado.name, tamanho: termoEfetivoAssinado.size, anexadoEm: agora, responsavel: "Patrícia Lima - Setorial", orgaoAtuacao: orgaoAtuacaoPerfil },
       }),
     );
     const historicosAtualizados = JSON.parse(
@@ -12315,8 +12250,8 @@ export function PrototiposEfetivoExercicioPage() {
     ) as Record<string, EfetivoExercicioHistoricoEvento[]>;
     const eventosAtuais = historicosAtualizados[finalizacaoEfetivoChave] ?? [];
     const novosEventos: EfetivoExercicioHistoricoEvento[] = [
-      { titulo: nomeDocumentoFinalizacao + " assinado anexado", descricao: "O documento assinado foi vinculado ao ingresso.", responsavel: "ROBERTO JUNIOR", dataHora: agora, arquivo: termoEfetivoAssinado.name },
-      { titulo: "Efetivo Exercício finalizado", descricao: "Situação alterada para Ingresso Concluído.", responsavel: "ROBERTO JUNIOR", dataHora: agora },
+      { titulo: nomeDocumentoFinalizacao + " assinado anexado", descricao: "O documento assinado foi vinculado ao ingresso.", responsavel: "Patrícia Lima - Setorial", orgaoAtuacao: orgaoAtuacaoPerfil, dataHora: agora, arquivo: termoEfetivoAssinado.name },
+      { titulo: "Efetivo Exercício finalizado", descricao: "Situação alterada para Ingresso Concluído.", responsavel: "Patrícia Lima - Setorial", orgaoAtuacao: orgaoAtuacaoPerfil, dataHora: agora },
     ];
     localStorage.setItem(
       "prototype-ingresso-historico-efetivo-exercicio",
@@ -12372,7 +12307,7 @@ export function PrototiposEfetivoExercicioPage() {
           }
         >
           <div className="prototype-ingressos-teste-content prototype-efetivo-exercicio-content">
-            <p className="prototype-ingressos-teste-support">Acompanhe os candidatos que aguardam o registro do efetivo exercício.</p>
+            <div className="prototype-ingresso-profile-heading"><p className="prototype-ingressos-teste-support">Acompanhe os candidatos que aguardam o registro do efetivo exercício.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} /></div>
             {feedbackFinalizacaoEfetivo ? (
               <div className="prototype-efetivo-finalizacao-feedback" role="status">
                 <i className="pi pi-check-circle" aria-hidden="true" />
@@ -12474,9 +12409,9 @@ export function PrototiposEfetivoExercicioPage() {
                     registro.limiteEfetivoExercicio,
                   );
                   const registroMenuId = `${registro.nomeConcurso}-${registro.id}`;
-                  const podeAtuarEfetivoExercicio = registro.situacao === "Aguardando Efetivo Exercicio";
+                  const podeAtuarEfetivoExercicio = perfilVariacao === "SETORIAL" && registro.orgaoEncaminhado === orgaoAtuacaoPerfil && registro.situacao === "Aguardando Efetivo Exercicio";
                   const podeFinalizarEfetivoExercicio =
-                    registro.situacao === "Aguardando Termo Assinado" &&
+                    perfilVariacao === "SETORIAL" && registro.orgaoEncaminhado === orgaoAtuacaoPerfil && registro.situacao === "Aguardando Termo Assinado" &&
                     registro.aplicaFinalizacaoEfetivo &&
                     Boolean(registrosEfetivoGerados[registro.chaveRegistro]);
                   const parametrosAtuacaoIngresso = `candidato=${registro.id}&tipo=${encodeURIComponent(
@@ -12623,7 +12558,7 @@ export function PrototiposEfetivoExercicioPage() {
           </div>
 
           <ModalSeplag
-            visible={Boolean(finalizacaoEfetivoChave)}
+            visible={Boolean(finalizacaoEfetivoChave) && perfilVariacao === "SETORIAL" && registroFinalizacaoSelecionado?.orgaoEncaminhado === orgaoAtuacaoPerfil}
             titulo="Finalizar Efetivo Exercício"
             fechar={() => {
               setFinalizacaoEfetivoChave(null);
@@ -12701,7 +12636,7 @@ export function PrototiposEfetivoExercicioPage() {
           </ModalSeplag>
 
           <ModalSeplag
-            visible={Boolean(historicoIngressoSelecionadoId)}
+            visible={Boolean(historicoIngressoSelecionadoId && registrosEfetivoAutorizados.some((registro) => registro.id === historicoIngressoSelecionadoId && (!historicoConcursoSelecionado || registro.nomeConcurso === historicoConcursoSelecionado)))}
             titulo="Histórico do Ingresso"
             fechar={() => {
               setHistoricoIngressoSelecionadoId(null);
@@ -13427,7 +13362,8 @@ interface IngressoEfetivoExercicioFiltroForm {
 
 export function PrototiposIngressosTestePage() {
   const navigate = useNavigate();
-  const [modalNovoIngressoAberto, setModalNovoIngressoAberto] = useState(false);
+  const [perfilVariacao, setPerfilVariacao] = usePerfilVariacaoIngresso();
+  const [orgaoAtuacaoPerfil, setOrgaoAtuacaoPerfil] = useState(getOrgaoAtuacaoIngresso);
   const [historicoIntegracaoAberto, setHistoricoIntegracaoAberto] = useState(false);
   const [execucaoSelecionada, setExecucaoSelecionada] = useState<IntegracaoExecucaoRow | null>(null);
   const [filtrosIntegracao, setFiltrosIntegracao] = useState({ periodoInicio: "", periodoFim: "", sistema: "", situacao: "", edital: "", tipo: "" });
@@ -13457,13 +13393,19 @@ export function PrototiposIngressosTestePage() {
     const registrosCriadosPorConcurso = JSON.parse(
       localStorage.getItem("prototype-ingresso-registros-concursos") ?? "{}",
     ) as Record<string, IngressoCandidatoRow[]>;
-    const concursosProcessos = ingressoConcursosProcessosMock.map((concursoProcesso) => {
+    const direcionamentos = JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, { responsavelAnalise: string }>;
+    const orgaosEfetivo = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
+    const candidatoAutorizado = (concursoProcesso: (typeof ingressoConcursosProcessosMock)[number], candidato: IngressoCandidatoRow) =>
+      podeConsultarIngresso(perfilVariacao, orgaoAtuacaoPerfil, concursoProcesso.orgao, concursoProcesso.tipo === "Processo Seletivo" ? direcionamentos[String(candidato.id)]?.responsavelAnalise : undefined, orgaosEfetivo[String(candidato.id)]);
+    const concursosProcessos = ingressoConcursosProcessosMock.filter((concursoProcesso) =>
+      perfilVariacao === "CENTRAL" || [...concursoProcesso.candidatos, ...(registrosCriadosPorConcurso[concursoProcesso.titulo] ?? [])].some((candidato) => candidatoAutorizado(concursoProcesso, candidato))
+    ).map((concursoProcesso) => {
       const candidatosCriados = registrosCriadosPorConcurso[concursoProcesso.titulo] ?? [];
       const idsCriados = new Set(candidatosCriados.map((candidato) => candidato.id));
       const candidatosConcurso = [
         ...concursoProcesso.candidatos.filter((candidato) => !idsCriados.has(candidato.id)),
         ...candidatosCriados,
-      ];
+      ].filter((candidato) => candidatoAutorizado(concursoProcesso, candidato));
       const situacoesDemonstracaoConcurso: Partial<Record<number, IngressoSituacao>> = {
         1: "Tornado sem efeito", 2: "Tornado sem efeito", 3: "Tornado sem efeito", 4: "Tornado sem efeito",
         5: "Tornado sem efeito", 6: "Exoneração de oficio", 7: "Posse Negada",
@@ -13530,6 +13472,7 @@ export function PrototiposIngressosTestePage() {
       return {
         id: `${concursoProcesso.tipo}-${concursoProcesso.id}`,
         titulo: nomeEdital,
+        processoTitulo: concursoProcesso.titulo,
         tipo: concursoProcesso.tipo,
         orgao: concursoProcesso.orgao,
         edital: `${prefixoEdital} ${nomeEdital} — ${descricaoPorEdital[`${concursoProcesso.tipo}-${concursoProcesso.orgao}`] ?? concursoProcesso.titulo}`,
@@ -13548,7 +13491,7 @@ export function PrototiposIngressosTestePage() {
     });
 
     return concursosProcessos;
-  }, []);
+  }, [perfilVariacao, orgaoAtuacaoPerfil]);
 
   const registrosFiltrados = registrosIngressoTeste.filter((registro) => {
     if (filtros.tipo && registro.tipo !== filtros.tipo) return false;
@@ -13646,6 +13589,8 @@ export function PrototiposIngressosTestePage() {
       header: "Ações",
       body: (row) => (
         <div className="prototype-ingressos-grid-actions">
+          {(perfilVariacao === "CENTRAL" || row.orgao === orgaoAtuacaoPerfil) ? <BotaoIconSeplag type="button" icon="pi pi-user-plus" tooltip="Novo ingresso" aria-label="Novo ingresso"
+            onClick={() => navigate("/prototipos/sigep/ingressos/novo?" + new URLSearchParams({ tipo: row.tipo, concurso: row.processoTitulo, orgao: row.orgao, origem: "edital" }).toString())} /> : null}
           <BotaoIconSeplag type="button" icon="pi pi-users" tooltip="Gerenciar ingressos" aria-label="Gerenciar ingressos" onClick={() => navigate(row.rotaIngresso)} />
           <BotaoIconSeplag type="button" icon="pi pi-history" tooltip="Histórico de Integração" aria-label="Histórico de Integração" onClick={() => { setFiltrosIntegracao((atual) => ({ ...atual, edital: row.titulo })); setExecucaoSelecionada(null); setHistoricoIntegracaoAberto(true); }} />
         </div>
@@ -13738,7 +13683,7 @@ export function PrototiposIngressosTestePage() {
           }
         >
           <div className="prototype-ingressos-teste-content">
-          <p className="prototype-ingressos-teste-support">Acompanhe concursos e processos seletivos disponíveis para ingresso.</p>
+          <div className="prototype-ingresso-profile-heading"><p className="prototype-ingressos-teste-support">Acompanhe concursos e processos seletivos disponíveis para ingresso.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} /></div>
           <hr className="prototype-ingressos-teste-header-divider" />
           <section className="prototype-ingressos-teste-indicators" aria-label="Indicadores da gestão de ingresso">
             {indicadoresIngressoTeste.map((indicador) => (
@@ -13814,12 +13759,6 @@ export function PrototiposIngressosTestePage() {
 
           <div className="prototype-ingressos-teste-table-shell">
           <div className="prototype-ingressos-teste-table-actions">
-            <BotaoSeplag
-              type="button"
-              label="Novo Ingresso"
-              icon="pi pi-plus"
-              onClick={() => setModalNovoIngressoAberto(true)}
-            />
             <div className="prototype-integration-last-update">
               <i className="pi pi-check-circle" aria-hidden="true" />
               <span>Última atualização dos nomeados: <strong>05/08/2026 às 15:40</strong></span>
@@ -13845,44 +13784,6 @@ export function PrototiposIngressosTestePage() {
             />
           </div>
 
-          <ModalSeplag
-            visible={modalNovoIngressoAberto}
-            titulo="Novo Ingresso"
-            fechar={() => setModalNovoIngressoAberto(false)}
-            tamanho="600px"
-            closeOnEscape
-            hideFooter
-          >
-            <div className="prototype-novo-ingresso-type-gate">
-              <p>Selecione a origem do ingresso para iniciar.</p>
-              <div className="prototype-novo-ingresso-type-options">
-                <button
-                  type="button"
-                  className="prototype-novo-ingresso-type-option is-concurso"
-                  onClick={() => navigate("/prototipos/sigep/ingressos/novo?tipo=Concurso")}
-                >
-                  <span className="prototype-novo-ingresso-type-icon"><i className="pi pi-verified" aria-hidden="true" /></span>
-                  <span><strong>Concurso Público</strong><small>Provimento efetivo, vinculado a um plano de carreira.</small></span>
-                </button>
-                <button
-                  type="button"
-                  className="prototype-novo-ingresso-type-option is-pss"
-                  onClick={() => navigate("/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo")}
-                >
-                  <span className="prototype-novo-ingresso-type-icon"><i className="pi pi-clock" aria-hidden="true" /></span>
-                  <span><strong>Processo Seletivo Simplificado (PSS)</strong><small>Contratação temporária, sem vínculo de carreira.</small></span>
-                </button>
-                <button
-                  type="button"
-                  className="prototype-novo-ingresso-type-option is-comissionado"
-                  onClick={() => navigate("/prototipos/sigep/ingressos/novo?tipo=Exclusivo%20Comissionado")}
-                >
-                  <span className="prototype-novo-ingresso-type-icon"><i className="pi pi-briefcase" aria-hidden="true" /></span>
-                  <span><strong>Exclusivamente Comissionado</strong><small>Ingresso para exercício exclusivo de cargo comissionado, sem ocupação de cargo efetivo.</small></span>
-                </button>
-              </div>
-            </div>
-          </ModalSeplag>
           <ModalSeplag visible={historicoIntegracaoAberto} titulo={execucaoSelecionada ? <span className="prototype-integration-modal-title"><button type="button" title="Voltar para execuções" aria-label="Voltar para execuções" onClick={() => { setExecucaoSelecionada(null); setLogTecnicoAberto(false); }}><i className="pi pi-arrow-left" /></button><span>Detalhes da execução</span></span> : "Histórico de Integrações"} fechar={() => { setHistoricoIntegracaoAberto(false); setExecucaoSelecionada(null); }} tamanho="min(1380px, calc(100vw - 32px))" hideFooter>
             <div className="prototype-integration-modal">
               {execucaoSelecionada ? (
@@ -14040,6 +13941,7 @@ export function PrototiposIngressosTestePage() {
 }
 export function PrototiposIngressosTesteDetalhePage() {
   const navigate = useNavigate();
+  const [perfilVariacao, setPerfilVariacao] = usePerfilVariacaoIngresso();
   const [painelDetalhesAberto, setPainelDetalhesAberto] = useState(false);
   const [historicoIntegracaoAberto, setHistoricoIntegracaoAberto] = useState(false);
   const [execucaoIntegracaoSelecionada, setExecucaoIntegracaoSelecionada] = useState<IntegracaoExecucaoRow | null>(null);
@@ -14049,6 +13951,8 @@ export function PrototiposIngressosTesteDetalhePage() {
   const [filtrosConsultaPendentes, setFiltrosConsultaPendentes] = useState({ nomeCpf: "", cargo: "", polo: "", tipoVaga: "", situacao: "" });
   const [paginaPendentes, setPaginaPendentes] = useState(1);
   const [itensPorPaginaPendentes, setItensPorPaginaPendentes] = useState(10);
+  const [orgaoAtuacaoAnalise, setOrgaoAtuacaoAnalise] = useState(() => localStorage.getItem("prototype-ingresso-orgao-atuacao") || "SEPLAG");
+  const direcionamentosAnalise = JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, { orgaoOrigem: string; responsavelAnalise: string; operador: string; dataHora: string }>;
   const [historicoCandidatoSelecionadoId, setHistoricoCandidatoSelecionadoId] = useState<number | null>(null);
   const [menuAcoesCandidatoAbertoId, setMenuAcoesCandidatoAbertoId] = useState<number | null>(null);
   const [candidatoConcursoExpandidoId, setCandidatoConcursoExpandidoId] = useState<number | null>(null);
@@ -14468,9 +14372,13 @@ export function PrototiposIngressosTesteDetalhePage() {
   const candidatosExcluidosIds = new Set(
     exclusoesIngressoPorConcurso[concursoProcesso.titulo] ?? [],
   );
+  const orgaosEfetivoExercicioPerfil = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
   const candidatosGestaoIngresso = (
     aguardandoListaCandidatos ? [] : concursoProcesso.candidatos
-  ).filter((candidato) => !candidatosExcluidosIds.has(candidato.id));
+  ).filter((candidato) => !candidatosExcluidosIds.has(candidato.id) &&
+    podeConsultarIngresso(perfilVariacao, orgaoAtuacaoAnalise, concursoProcesso.orgao,
+      concursoProcesso.tipo === "Processo Seletivo" ? direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise : undefined,
+      orgaosEfetivoExercicioPerfil[String(candidato.id)]));
   const grupos = agruparCandidatosIngressoPorVaga(candidatosGestaoIngresso);
   const novosCandidatosIds = new Set(ultimaIntegracaoBemSucedida?.candidatoIdsIncluidos ?? []);
   const quantidadeNovosCandidatos = ultimaIntegracaoBemSucedida?.incluidos;
@@ -14505,6 +14413,10 @@ export function PrototiposIngressosTesteDetalhePage() {
       return classificacaoA - classificacaoB
         || candidatoA.nome.localeCompare(candidatoB.nome, "pt-BR");
     });
+  const direcionamentoHistoricoSelecionado = historicoCandidatoSelecionadoId ? direcionamentosAnalise[String(historicoCandidatoSelecionadoId)] : undefined;
+  const historicoDocumentacaoSelecionado = historicoCandidatoSelecionadoId
+    ? (JSON.parse(localStorage.getItem("prototype-ingresso-historico-documentacao") ?? "{}") as Record<string, Array<{ dataHora: string; responsavel: string; orgaoAtuacao?: string; parecerSelecionado: string }>>)[String(historicoCandidatoSelecionadoId)] ?? []
+    : [];
   const historicoCandidatoSelecionado = candidatosGestaoIngresso.find(
     (candidato) => candidato.id === historicoCandidatoSelecionadoId,
   );
@@ -14661,12 +14573,15 @@ export function PrototiposIngressosTesteDetalhePage() {
             const situacaoBadge = getSituacaoBadge(candidato.situacaoAtual);
             const ingressoIniciado = candidato.situacaoAtual !== "Aguardando Analise";
             const aguardandoTermoAssinado = candidato.situacaoAtual === "Aguardando Termo Assinado";
+            const podeAnalisarCandidato = podeAnalisarIngresso(perfilVariacao, concursoProcesso.tipo, orgaoAtuacaoAnalise, direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise || concursoProcesso.orgao);
+            const podeAtuarEfetivo = podeRegistrarEfetivo(perfilVariacao, orgaoAtuacaoAnalise, orgaosEfetivoExercicioPerfil[String(candidato.id)] || concursoProcesso.orgao);
             const podeIngressarCandidato =
-              !(concursoProcesso.tipo === "Concurso" && candidato.situacaoAtual === "Aguardando Efetivo Exercicio") &&
-              !["Aguardando Termo Assinado", "Posse Negada", "Tornado sem efeito", "Exoneração de oficio", "Ingresso Concluído", "Encerrado por desistência", "Ingresso Cancelado"].includes(candidato.situacaoAtual);
-            const atuarEfetivoProcessoSeletivo = concursoProcesso.tipo === "Processo Seletivo" && candidato.situacaoAtual === "Aguardando Efetivo Exercicio";
+              (candidato.situacaoAtual === "Aguardando Analise" && (perfilVariacao === "CENTRAL" || concursoProcesso.orgao === orgaoAtuacaoAnalise)) ||
+              (candidato.situacaoAtual === "Em analise" && podeAnalisarCandidato) ||
+              (candidato.situacaoAtual === "Aguardando Efetivo Exercicio" && podeAtuarEfetivo);
+            const atuarEfetivoProcessoSeletivo = candidato.situacaoAtual === "Aguardando Efetivo Exercicio" && podeAtuarEfetivo;
             const continuarIngresso = candidato.situacaoAtual === "Em analise";
-            const podeCancelarIngresso = ingressoIniciado && podeIngressarCandidato;
+            const podeCancelarIngresso = perfilVariacao === "CENTRAL" && ingressoIniciado && podeIngressarCandidato;
             const parametrosIngresso = `candidato=${candidato.id}&tipo=${encodeURIComponent(concursoProcesso.tipo)}&concurso=${encodeURIComponent(concursoProcesso.titulo)}&orgao=${encodeURIComponent(concursoProcesso.orgao)}&cargo=${encodeURIComponent(candidato.cargo)}&classificacao=${encodeURIComponent(candidato.classificacao)}&tipoVaga=${encodeURIComponent(candidato.tipoVaga)}`;
             const concursoExpandido = concursoProcesso.tipo === "Concurso" && candidatoConcursoExpandidoId === candidato.id;
             const numeroIngresso = ingressoIniciado ? `2026/${String(candidato.id).padStart(4, "0")}` : "-";
@@ -14712,7 +14627,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                 <td><span className="prototype-ingressos-candidate-name"><span>{candidato.nome}</span>{novosCandidatosIds.has(candidato.id) ? <span className="prototype-ingressos-new-tag" tabIndex={0} aria-label={`Novo. Incluído na atualização de ${ultimaIntegracaoBemSucedida?.dataHora.replace(" ", " às ")}.`} data-tooltip={`Incluído na atualização de ${ultimaIntegracaoBemSucedida?.dataHora.replace(" ", " às ")}.`}>Novo</span> : null}</span></td>
                 <td><span className="prototype-ingressos-cargo-polo"><span>{candidato.cargo}</span><small>{candidato.polo}</small></span></td>
                 <td><BadgeSeplag label={candidato.tipoVaga} color={tipoVagaBadge.color} bg={tipoVagaBadge.bg} border="transparent" size="sm" /></td>
-                {concursoProcesso.tipo === "Processo Seletivo" ? <td>{concursoProcesso.orgao}</td> : null}
+                {concursoProcesso.tipo === "Processo Seletivo" ? <td>{direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise || concursoProcesso.orgao}</td> : null}
                 {concursoProcesso.tipo === "Concurso" ? <><td>{numeroIngresso}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorPosseGrid ? ` has-indicator is-${indicadorPosseGrid.tone}` : ""}`}><span>{candidato.dataPosse || "-"}</span>{indicadorPosseGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorPosseGrid.tone}`} tabIndex={0} aria-label={indicadorPosseGrid.tooltip} data-tooltip={indicadorPosseGrid.tooltip}><i className={indicadorPosseGrid.icon} aria-hidden="true" /></span> : null}</span></td><td>{orgaosEncaminhadosSalvos[String(candidato.id)] ?? "-"}</td><td><span className={`prototype-ingressos-deadline-cell${indicadorEfetivoGrid ? ` has-indicator is-${indicadorEfetivoGrid.tone}` : ""}`}><span>{dataEfetivoExercicioExibida}</span>{indicadorEfetivoGrid ? <span className={`prototype-ingressos-deadline-icon is-${indicadorEfetivoGrid.tone}`} tabIndex={0} aria-label={indicadorEfetivoGrid.tooltip} data-tooltip={indicadorEfetivoGrid.tooltip}><i className={indicadorEfetivoGrid.icon} aria-hidden="true" /></span> : null}</span></td></> : null}
                 {concursoProcesso.tipo === "Processo Seletivo" ? <><td>{numeroIngresso}</td><td>{dataEfetivoExercicio}</td><td>{setorLotacao}</td></> : null}
                 <td>
@@ -14774,7 +14689,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                             }
                           }}
                         >
-                          {aguardandoTermoAssinado ? (
+                          {aguardandoTermoAssinado && podeAtuarEfetivo ? (
                             <button
                               type="button"
                               role="menuitem"
@@ -14786,7 +14701,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                               <i className="pi pi-check-circle" aria-hidden="true" />
                               <span>Finalizar Efetivo Exercício</span>
                             </button>
-                          ) : (
+                          ) : podeIngressarCandidato ? (
                             <button
                               type="button"
                               role="menuitem"
@@ -14796,14 +14711,14 @@ export function PrototiposIngressosTesteDetalhePage() {
                               onClick={() => {
                                 if (!podeIngressarCandidato) return;
                                 setMenuAcoesCandidatoAbertoId(null);
-                                navigate(`/prototipos/sigep/ingressos/novo?${parametrosIngresso}${atuarEfetivoProcessoSeletivo ? "&etapa=efetivo-exercicio" : ""}`);
+                                navigate(`/prototipos/sigep/ingressos/novo?${parametrosIngresso}${atuarEfetivoProcessoSeletivo ? "&etapa=efetivo-exercicio&perfil=setorial" : continuarIngresso ? "&etapa=" + (concursoProcesso.tipo === "Concurso" ? "analise-provimento" : "documentacao") : ""}`);
                               }}
                             >
                               <i className={`pi ${atuarEfetivoProcessoSeletivo ? "pi-briefcase" : "pi-sign-in"}`} aria-hidden="true" />
                               <span>{atuarEfetivoProcessoSeletivo ? "Atuar efetivo exercício" : continuarIngresso ? "Continuar ingresso" : "Ingressar candidato"}</span>
                             </button>
-                          )}
-                          {concursoProcesso.tipo === "Processo Seletivo" && !aguardandoTermoAssinado ? (
+                          ) : null}
+                          {concursoProcesso.tipo === "Processo Seletivo" && perfilVariacao === "CENTRAL" && !aguardandoTermoAssinado ? (
                             <button
                               type="button"
                               role="menuitem"
@@ -14823,7 +14738,7 @@ export function PrototiposIngressosTesteDetalhePage() {
                               <span>Cancelar ingresso</span>
                             </button>
                           ) : null}
-                          {candidato.situacaoAtual === "Em analise" ? (
+                          {candidato.situacaoAtual === "Em analise" && perfilVariacao === "CENTRAL" ? (
                             <button
                               type="button"
                               role="menuitem"
@@ -14895,13 +14810,14 @@ export function PrototiposIngressosTesteDetalhePage() {
           )}
           actions={(
             <div className="prototype-ingressos-integration-notice-actions">
-              {concursoProcesso.tipo === "Concurso" ? <BotaoSeplag type="button" label="Gerar ato em lote" icon="pi pi-file-export" onClick={() => navigate("/prototipos/sigep/ingressos-teste/" + concursoProcesso.id + "/gerar-ato-lote")} /> : null}
+              {concursoProcesso.tipo === "Concurso" && perfilVariacao === "CENTRAL" ? <BotaoSeplag type="button" label="Gerar ato em lote" icon="pi pi-file-export" onClick={() => navigate("/prototipos/sigep/ingressos-teste/" + concursoProcesso.id + "/gerar-ato-lote")} /> : null}
               <BotaoSeplag type="button" label="Ver detalhes" icon="pi pi-info-circle" outlined className="prototype-ingressos-teste-info-details-button" onClick={() => setPainelDetalhesAberto(true)} />
             </div>
           )}
           cols="12"
           cardHeaderClassNames="prototype-regime-card prototype-ingressos-card prototype-ingressos-card--pss"
         >
+          <div className="prototype-ingresso-profile-heading"><span /><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoAnalise} onOrgaoChange={setOrgaoAtuacaoAnalise} /></div>
           {(
             <section className={`prototype-ingressos-integration-notice ${houveFalhaNaUltimaTentativa ? "is-error" : ultimaIntegracaoBemSucedida && !quantidadeNovosCandidatos ? "is-no-new" : ultimaIntegracaoBemSucedida ? "is-updated" : "is-waiting"}`} aria-live="polite" aria-label="Resumo da integração de candidatos">
               <span className="prototype-ingressos-integration-notice-icon" aria-hidden="true"><i className={`pi ${houveFalhaNaUltimaTentativa ? "pi-exclamation-triangle" : ultimaIntegracaoBemSucedida ? "pi-info-circle" : "pi-clock"}`} /></span>
@@ -15377,6 +15293,28 @@ export function PrototiposIngressosTesteDetalhePage() {
                 </details>
               </li>
               ) : null}
+              {direcionamentoHistoricoSelecionado ? (
+                <li>
+                  <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-share-alt" aria-hidden="true" /></span>
+                  <div className="prototype-ingressos-candidate-history-card">
+                    <small>{direcionamentoHistoricoSelecionado.dataHora}</small>
+                    <strong>{direcionamentoHistoricoSelecionado.orgaoOrigem === direcionamentoHistoricoSelecionado.responsavelAnalise ? "Definição da análise da documentação" : "Encaminhamento da análise da documentação"}</strong>
+                    <p>Órgão de origem: {direcionamentoHistoricoSelecionado.orgaoOrigem}. Órgão responsável pela análise: {direcionamentoHistoricoSelecionado.responsavelAnalise}.</p>
+                    <span className="prototype-ingressos-candidate-history-owner">Responsável: {direcionamentoHistoricoSelecionado.operador}</span>
+                  </div>
+                </li>
+              ) : null}
+              {historicoDocumentacaoSelecionado.map((evento, indice) => (
+                <li key={"documentacao-" + indice}>
+                  <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
+                  <div className="prototype-ingressos-candidate-history-card">
+                    <small>{evento.dataHora}</small>
+                    <strong>Análise da documentação concluída</strong>
+                    <p>{evento.parecerSelecionado}</p>
+                    <span className="prototype-ingressos-candidate-history-owner">Responsável: {evento.responsavel}{evento.orgaoAtuacao ? " — " + evento.orgaoAtuacao : ""}</span>
+                  </div>
+                </li>
+              ))}
               {historicoIngressoEmAnalise ? (
               <>
               <li>
@@ -15699,11 +15637,12 @@ export function PrototiposAtoTornarSemEfeitoLotePage() {
  const navigate=useNavigate(); const {id}=useParams(); const concurso=ingressoConcursosProcessosMock.find(x=>x.id===Number(id));
  const chave="prototype-atos-lote-v2-"+(id??""); const [atos,setAtos]=useState<AtoLoteRegistro[]>(()=>JSON.parse(localStorage.getItem(chave)??"[]"));
  const [selecionados,setSelecionados]=useState<number[]>([]); const [filtros,setFiltros]=useState(false); const [detalhesEditalAberto,setDetalhesEditalAberto]=useState(false); const [atoVisualizacao,setAtoVisualizacao]=useState<AtoLoteRegistro|null>(null); const [busca,setBusca]=useState(""); const [feedback,setFeedback]=useState(""); const [pagina,setPagina]=useState(1); const [itensPorPagina,setItensPorPagina]=useState(10);
+ if(getPerfilVariacaoIngresso()==="SETORIAL") return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-page-content"><CardSeplag title="Ação indisponível" cols="12"><p>A geração de atos em lote é exclusiva do Órgão Central.</p></CardSeplag></div></PrototypeSystemPage>;
  if(!concurso||concurso.tipo!=="Concurso") return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-page-content"><CardSeplag title="Gerar Ato de Tornar sem Efeito em Lote" cols="12"><div className="prototype-empty-table-cell">Funcionalidade disponível apenas para concursos.</div></CardSeplag></div></PrototypeSystemPage>;
  const situacoes=JSON.parse(localStorage.getItem("prototype-ingresso-situacoes-concursos")??"{}") as Record<string,Record<string,IngressoSituacao>>;
  const gerados=new Set(atos.flatMap(a=>a.ids)); const servidores=concurso.candidatos.filter(c=>concurso.id===1?[1,2,3,4,5].includes(c.id):(situacoes[concurso.titulo]?.[String(c.id)]??"")==="Tornado sem efeito").map(c=>({...c,cpf:ingressosMock.find(i=>i.id===c.id)?.cpf??"-",gerado:gerados.has(c.id)}));
  const visiveis=servidores.filter(s=>!busca||(s.nome+" "+s.cpf).toLowerCase().includes(busca.toLowerCase())); const disponiveis=servidores.filter(s=>!s.gerado); const totalPaginas=Math.max(1,Math.ceil(visiveis.length/itensPorPagina)); const paginaAtual=Math.min(pagina,totalPaginas); const paginados=visiveis.slice((paginaAtual-1)*itensPorPagina,paginaAtual*itensPorPagina); const inicio=visiveis.length?(paginaAtual-1)*itensPorPagina+1:0; const fim=Math.min(paginaAtual*itensPorPagina,visiveis.length);
- const gerar=()=>{const lista=disponiveis.filter(s=>selecionados.includes(s.id));if(!lista.length)return;const agora=new Date();const numero="ATO "+String(atos.length+1).padStart(3,"0")+"/"+agora.getFullYear()+"/"+concurso.orgao;const documento=numero+"\nConcurso: "+concurso.titulo+"\n\n"+lista.map(s=>s.nome+" | CPF: "+s.cpf+" | Ingresso: 2026/"+String(s.id).padStart(4,"0")).join("\n");const novos=[...atos,{numero,data:agora.toLocaleString("pt-BR"),ids:lista.map(s=>s.id),documento}];localStorage.setItem(chave,JSON.stringify(novos));setAtos(novos);setSelecionados([]);setFeedback("Ato gerado com sucesso.");};
+ const gerar=()=>{if(getPerfilVariacaoIngresso()!=="CENTRAL")return;const lista=disponiveis.filter(s=>selecionados.includes(s.id));if(!lista.length)return;const agora=new Date();const numero="ATO "+String(atos.length+1).padStart(3,"0")+"/"+agora.getFullYear()+"/"+concurso.orgao;const documento=numero+"\nConcurso: "+concurso.titulo+"\n\n"+lista.map(s=>s.nome+" | CPF: "+s.cpf+" | Ingresso: 2026/"+String(s.id).padStart(4,"0")).join("\n");const novos=[...atos,{numero,data:agora.toLocaleString("pt-BR"),ids:lista.map(s=>s.id),documento}];localStorage.setItem(chave,JSON.stringify(novos));setAtos(novos);setSelecionados([]);setFeedback("Ato gerado com sucesso.");};
  const abrir=(ato:AtoLoteRegistro,baixar:boolean)=>{const url=URL.createObjectURL(new Blob([ato.documento],{type:"text/plain;charset=utf-8"}));if(baixar){const a=document.createElement("a");a.href=url;a.download=ato.numero.replaceAll("/","-")+".txt";a.click();}else window.open(url,"_blank","noopener,noreferrer");window.setTimeout(()=>URL.revokeObjectURL(url),30000);};
  return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}><div className="prototype-page-content prototype-page-content--white prototype-ingressos-teste-detail-page prototype-ato-lote-page"><CardSeplag title="Gerar Ato de Tornar sem Efeito em Lote" subtitle="Selecione os servidores que estão na situação “Tornado sem efeito” para gerar o ato em lote." subtitlePosition="below" headerNavigation={<nav className="prototype-ingressos-page-navigation"><button onClick={()=>navigate("/prototipos/sigep/ingressos-teste/"+concurso.id)}><i className="pi pi-arrow-left"/> Voltar para Gestão de Candidatos do Concurso</button></nav>} actions={<BotaoSeplag type="button" label="Ver detalhes" icon="pi pi-info-circle" outlined className="prototype-ato-lote-details-button prototype-ingressos-teste-info-details-button" onClick={()=>setDetalhesEditalAberto(true)}/>} cols="12" cardHeaderClassNames="prototype-regime-card prototype-ingressos-card prototype-ingressos-card--pss">
  {feedback&&<div className="prototype-ato-lote-success"><i className="pi pi-check-circle"/>{feedback}</div>}
@@ -15728,7 +15667,12 @@ export function PrototiposIngressosPage() {
       concursoProcessoSeletivo: "",
     },
   });
-  const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
+  const [perfilVariacao, setPerfilVariacao] = usePerfilVariacaoIngresso();
+  const [orgaoAtuacaoAnalise, setOrgaoAtuacaoAnalise] = useState(() => localStorage.getItem("prototype-ingresso-orgao-atuacao") || "SEPLAG");
+  const direcionamentosAnalise = JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, { orgaoOrigem: string; responsavelAnalise: string; operador: string; dataHora: string }>;
+  const orgaosEfetivoPerfil = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
+  const candidatoVisivelPerfil = (candidato: IngressoCandidatoRow, concursoProcesso: (typeof ingressoConcursosProcessosMock)[number]) =>
+    podeConsultarIngresso(perfilVariacao, orgaoAtuacaoAnalise, concursoProcesso.orgao, concursoProcesso.tipo === "Processo Seletivo" ? direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise : undefined, orgaosEfetivoPerfil[String(candidato.id)]);
   const [historicoIngressoSelecionadoId, setHistoricoIngressoSelecionadoId] = useState<number | null>(null);
   const [acoesIngressoMenuAbertoId, setAcoesIngressoMenuAbertoId] = useState<number | null>(null);
   const [filtrosAccordionIngresso, setFiltrosAccordionIngresso] = useState<
@@ -15745,7 +15689,7 @@ export function PrototiposIngressosPage() {
       concursoProcesso.orgao.toLowerCase().includes(concursoProcessoSeletivoBusca) ||
       concursoProcesso.edital.toLowerCase().includes(concursoProcessoSeletivoBusca);
 
-    return atendeConcursoProcessoSeletivo;
+    return atendeConcursoProcessoSeletivo && (perfilVariacao === "CENTRAL" || concursoProcesso.candidatos.some((candidato) => candidatoVisivelPerfil(candidato, concursoProcesso)));
   });
   const situacoesIngressosSalvas = JSON.parse(
     localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
@@ -15774,7 +15718,9 @@ export function PrototiposIngressosPage() {
   const getHistoricoCandidatoIngresso = (candidatoId: number) => {
     const ingresso = ingressosMock.find((item) => item.id === candidatoId);
 
-    return ingresso ? getHistoricoIngressoMock(ingresso, getSituacaoCandidatoIngresso(candidatoId)) : [];
+    const etapas = ingresso ? getHistoricoIngressoMock(ingresso, getSituacaoCandidatoIngresso(candidatoId)) : [];
+    const direcionamento = direcionamentosAnalise[String(candidatoId)];
+    return direcionamento?.orgaoOrigem !== direcionamento?.responsavelAnalise && direcionamento ? [...etapas, { id: 900000 + candidatoId, ingressoId: candidatoId, etapa: "Encaminhamento da análise", dataHora: direcionamento.dataHora, operador: direcionamento.operador, resultado: "Apto" as const, observacao: "Órgão de origem: " + direcionamento.orgaoOrigem + ". Responsável pela análise: " + direcionamento.responsavelAnalise + "." }] : etapas;
   };
   const getResumoCandidatosConcursoProcesso = (candidatos: IngressoCandidatoRow[]) => {
     const totalIngressados = candidatos.filter(
@@ -15874,7 +15820,7 @@ export function PrototiposIngressosPage() {
     "Exoneração de oficio",
   ];
   const candidatosDashboard = ingressoConcursosProcessosMock.flatMap(
-    (concursoProcesso) => concursoProcesso.candidatos,
+    (concursoProcesso) => concursoProcesso.candidatos.filter((candidato) => candidatoVisivelPerfil(candidato, concursoProcesso)),
   );
   const totalIngressosPorSituacao = situacoesDashboard.reduce(
     (acc, situacao) => ({
@@ -15885,8 +15831,8 @@ export function PrototiposIngressosPage() {
     }),
     {} as Record<IngressoSituacao, number>,
   );
-  const isPerfilIngressosProvimento = perfilIngressos === "PROVIMENTO";
-  const isPerfilIngressosSetorial = perfilIngressos === "SETORIAL";
+  const isPerfilIngressosProvimento = perfilVariacao === "CENTRAL";
+  const isPerfilIngressosSetorial = perfilVariacao === "SETORIAL";
   const podeIngressarCandidato = (situacao: IngressoSituacao) =>
     isPerfilIngressosProvimento &&
     ![
@@ -16015,7 +15961,8 @@ export function PrototiposIngressosPage() {
       const atendeNome = !nomeBusca || candidato.nome.toLowerCase().includes(nomeBusca);
       const atendeSituacao = !filtro.situacao || getSituacaoCandidatoIngresso(candidato.id) === filtro.situacao;
 
-      return atendeNome && atendeSituacao;
+      const processo = ingressoConcursosProcessosMock.find((item) => item.candidatos.some((registro) => registro.id === candidato.id));
+      return atendeNome && atendeSituacao && Boolean(processo && candidatoVisivelPerfil(candidato, processo));
     });
   };
 
@@ -16027,6 +15974,7 @@ export function PrototiposIngressosPage() {
     >
       <div className="prototype-page-content prototype-page-content--white">
         <CardSeplag title="Gestão de Ingresso" cols="12" cardHeaderClassNames="prototype-ingressos-card">
+          <div className="prototype-ingresso-profile-heading"><span /><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={(perfil) => { setHistoricoIngressoSelecionadoId(null); setPerfilVariacao(perfil); }} orgao={orgaoAtuacaoAnalise} onOrgaoChange={(orgao) => { setHistoricoIngressoSelecionadoId(null); setOrgaoAtuacaoAnalise(orgao); }} /></div>
           <section className="prototype-ingressos-dashboard">
             <div className="prototype-ingressos-dashboard-grid">
               {situacoesDashboard.map((situacao) => {
@@ -16070,14 +16018,14 @@ export function PrototiposIngressosPage() {
           </div>
 
           <div className="prototype-ingressos-accordion-list">
-            {isPerfilIngressosProvimento ? (
+            {(isPerfilIngressosProvimento || isPerfilIngressosSetorial) ? (
               <div className="prototype-ingressos-list-header">
                 <BotaoSeplag
                   type="button"
                   label="Novo Ingresso"
                   icon="pi pi-plus"
                   tooltip="Novo Ingresso"
-                  onClick={() => navigate("/prototipos/sigep/ingressos/novo")}
+                  onClick={() => navigate("/prototipos/sigep/ingressos/novo" + (isPerfilIngressosSetorial ? "?orgao=" + encodeURIComponent(orgaoAtuacaoAnalise) : ""))}
                 />
               </div>
             ) : null}
@@ -16208,10 +16156,10 @@ export function PrototiposIngressosPage() {
                                   candidatosFiltradosGrupo.map((candidato) => {
                                   const tipoVagaBadge = getTipoVagaIngressoBadge(candidato.tipoVaga);
                                   const situacaoCandidato = getSituacaoCandidatoIngresso(candidato.id);
-                                  const podeIngressar = podeIngressarCandidato(situacaoCandidato);
+                                  const podeIngressar = podeIngressarCandidato(situacaoCandidato) || (isPerfilIngressosSetorial && ((situacaoCandidato === "Aguardando Analise" && concursoProcesso.orgao === orgaoAtuacaoAnalise) || (concursoProcesso.tipo === "Processo Seletivo" && situacaoCandidato === "Em analise" && (direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise || concursoProcesso.orgao) === orgaoAtuacaoAnalise)));
                                   const podeAtuarEfetivoExercicio =
-                                    podeAtuarEfetivoExercicioSetorial(situacaoCandidato);
-                                  const podeFinalizarEfetivoExercicio = situacaoCandidato === "Aguardando Termo Assinado";
+                                    podeAtuarEfetivoExercicioSetorial(situacaoCandidato) && (orgaosEfetivoPerfil[String(candidato.id)] || concursoProcesso.orgao) === orgaoAtuacaoAnalise;
+                                  const podeFinalizarEfetivoExercicio = isPerfilIngressosSetorial && situacaoCandidato === "Aguardando Termo Assinado" && (orgaosEfetivoPerfil[String(candidato.id)] || concursoProcesso.orgao) === orgaoAtuacaoAnalise;
                                   const parametrosAtuacaoIngresso = `candidato=${candidato.id}&tipo=${encodeURIComponent(
                                     concursoProcesso.tipo,
                                   )}&concurso=${encodeURIComponent(
@@ -16229,7 +16177,7 @@ export function PrototiposIngressosPage() {
                                       <td>{candidato.classificacao}</td>
                                       <td>{candidato.nome}</td>
                                       <td>{candidato.cargo}</td>
-                                      <td>{concursoProcesso.orgao}</td>
+                                      <td>{direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise || concursoProcesso.orgao}</td>
                                       <td>
                                         <BadgeSeplag
                                           label={candidato.tipoVaga}
@@ -16298,7 +16246,7 @@ export function PrototiposIngressosPage() {
                                                     role="menuitem"
                                                     onClick={() => {
                                                       setAcoesIngressoMenuAbertoId(null);
-                                                      navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacaoIngresso}&etapa=${getEtapaInicialProvimento(situacaoCandidato)}`);
+                                                      navigate(`/prototipos/sigep/ingressos/novo?${parametrosAtuacaoIngresso}&etapa=${isPerfilIngressosSetorial && situacaoCandidato === "Em analise" ? "documentacao" : getEtapaInicialProvimento(situacaoCandidato)}`);
                                                     }}
                                                   >
                                                     <i className="pi pi-sign-in" aria-hidden="true" />
@@ -16499,14 +16447,17 @@ export function PrototiposNovoIngressoPage() {
     ? ingressosMock.find((ingresso) => String(ingresso.id) === candidatoParam)
     : undefined;
   const tipoParam = searchParams.get("tipo");
-  const tipoInicial: IngressoTipo | "" =
-    tipoParam && tipoParam in ingressoTipoVinculoMap
-      ? (tipoParam as IngressoTipo)
-      : ingressoOrigemDados?.tipoIngresso ?? "";
   const concursoInicial = searchParams.get("concurso") ?? "";
   const processoOrigemDados = ingressoConcursosProcessosMock.find(
     (processo) => processo.titulo === concursoInicial,
   );
+  const ingressoOrigemEdital = searchParams.get("origem") === "edital" && Boolean(processoOrigemDados);
+  const origemIngressoBloqueada = ingressoOrigemLista || ingressoOrigemEdital;
+  const tipoInicial: IngressoTipo | "" = ingressoOrigemEdital
+    ? processoOrigemDados!.tipo
+    : tipoParam && tipoParam in ingressoTipoVinculoMap
+      ? (tipoParam as IngressoTipo)
+      : ingressoOrigemDados?.tipoIngresso ?? "";
   const caminhoRetornoNovoIngresso = searchParams.get("perfil") === "setorial"
     ? "/prototipos/sigep/ingressos/efetivo-exercicio"
     : processoOrigemDados
@@ -16531,12 +16482,11 @@ export function PrototiposNovoIngressoPage() {
     (candidatoProcessoOrigem
       ? `${String(candidatoProcessoOrigem.id).padStart(3, "0")}.444.444-44`
       : ingressoOrigemDados?.cpf ?? "");
-  const orgaoInicial = searchParams.get("orgao") ?? ingressoOrigemDados?.orgao ?? "";
+  const orgaoInicial = ingressoOrigemEdital ? processoOrigemDados!.orgao : searchParams.get("orgao") ?? ingressoOrigemDados?.orgao ?? "";
   const cargoInicial = searchParams.get("cargo") ?? ingressoOrigemDados?.cargo ?? candidatoProcessoOrigem?.cargo ?? "";
   const classificacaoInicial = searchParams.get("classificacao") ?? candidatoProcessoOrigem?.classificacao ?? "";
   const tipoVagaInicial = searchParams.get("tipoVaga") ?? candidatoProcessoOrigem?.tipoVaga ?? "";
-  const perfilParam = searchParams.get("perfil");
-  const perfilNovoIngresso: IngressoPerfil = perfilParam === "setorial" ? "SETORIAL" : "PROVIMENTO";
+  const perfilNovoIngresso: IngressoPerfil = getPerfilVariacaoIngresso() === "SETORIAL" ? "SETORIAL" : "PROVIMENTO";
   const situacoesIngressosSalvasNovo = JSON.parse(
     localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
   ) as Partial<Record<string, IngressoSituacao>>;
@@ -16580,11 +16530,11 @@ export function PrototiposNovoIngressoPage() {
   const [dataTerminoEstagio, setDataTerminoEstagio] = useState("");
   const [supervisorEstagio, setSupervisorEstagio] = useState("");
   const [activeTab, setActiveTab] = useState<NovoIngressoTab>(
-    perfilNovoIngresso === "SETORIAL"
-      ? "efetivo-exercicio"
-      : etapaInicialParam ?? "tipo-ingresso",
+    etapaInicialParam ?? (perfilNovoIngresso === "SETORIAL" && candidatoParam && ["Aguardando Efetivo Exercicio", "Aguardando Termo Assinado"].includes(situacaoInicialIngresso) ? "efetivo-exercicio" : "tipo-ingresso"),
   );
   const [candidatoCpf, setCandidatoCpf] = useState(candidatoOrigemCpf);
+  const [cpfListaAberta, setCpfListaAberta] = useState(false);
+  const [cpfFiltroLista, setCpfFiltroLista] = useState("");
   const [candidatoNome, setCandidatoNome] = useState(
     ingressoOrigemDados?.nome ?? candidatoProcessoOrigem?.nome ?? "",
   );
@@ -16592,8 +16542,15 @@ export function PrototiposNovoIngressoPage() {
   const [concursoSelecionado, setConcursoSelecionado] = useState(concursoInicial);
   const [orgaoSelecionado, setOrgaoSelecionado] = useState(orgaoInicial);
   const [orgaosIngressoSelecionados, setOrgaosIngressoSelecionados] = useState<string[]>(orgaoInicial ? [orgaoInicial] : []);
+  const [direcionamentoAnalise, setDirecionamentoAnalise] = useState<"atual" | "outro">("atual");
+  const [orgaoDestinoAnalise, setOrgaoDestinoAnalise] = useState("");
+  const [sucessoDirecionamentoAnalise, setSucessoDirecionamentoAnalise] = useState("");
+  const [direcionamentoEfetivo, setDirecionamentoEfetivo] = useState<"atual" | "outro">("atual");
+  const [orgaoDestinoEfetivo, setOrgaoDestinoEfetivo] = useState("");
+  const [sucessoDirecionamentoEfetivo, setSucessoDirecionamentoEfetivo] = useState("");
+  const [candidatoRegistradoId, setCandidatoRegistradoId] = useState(candidatoParam || "");
   const [orgaosParticipantesSelecionados, setOrgaosParticipantesSelecionados] = useState<string[]>(
-    concursoInicial === "Processo Seletivo SES 2026"
+    processoOrigemDados?.orgaosParticipantes ?? (concursoInicial === "Processo Seletivo SES 2026"
       ? ["SES", "SEPLAG"]
       : concursoInicial === "Processo Seletivo SEDUC 2026"
         ? ["SEDUC", "SEPLAG"]
@@ -16601,7 +16558,7 @@ export function PrototiposNovoIngressoPage() {
           ? ["SEFAZ", "SEPLAG"]
           : concursoInicial === "Processo Seletivo SEPLAG 2027"
             ? ["SEPLAG"]
-            : [],
+            : ingressoOrigemEdital && orgaoInicial ? [orgaoInicial] : []),
   );
 
   const [orgaosIngressoDropdownAberto, setOrgaosIngressoDropdownAberto] = useState(false);
@@ -16647,7 +16604,7 @@ export function PrototiposNovoIngressoPage() {
       ? "Sem Vínculo Empregatício"
       : tipoInicial === "Exclusivo Comissionado"
         ? "Regime Misto"
-        : ingressoOrigemLista && (tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo") ? "Estatutário Civil" : "",
+        : origemIngressoBloqueada && (tipoInicial === "Concurso" || tipoInicial === "Processo Seletivo") ? "Estatutário Civil" : "",
   );
   const [perfilEspecialidade, setPerfilEspecialidade] = useState(modoVisualizacao ? "Perfil Geral" : ingressoOrigemLista && cargoInicial ? getPerfilEspecialidadeIngresso(cargoInicial) : "");
   const [dataNomeacao, setDataNomeacao] = useState(
@@ -16931,7 +16888,21 @@ export function PrototiposNovoIngressoPage() {
         : novoIngressoEtapaInicial;
   const isPerfilSetorial = perfilNovoIngresso === "SETORIAL";
   const isEtapaEfetivoExercicio = activeTab === "efetivo-exercicio";
-  const isEtapaSomenteLeituraSetorial = isPerfilSetorial && !isEtapaEfetivoExercicio;
+  const isEtapaSomenteLeituraCentral = !isPerfilSetorial && isEtapaEfetivoExercicio;
+  const orgaoAtuacaoNovoIngresso = getOrgaoAtuacaoIngresso();
+  const orgaosEfetivoNovoIngresso = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
+  const orgaoResponsavelEfetivoNovoIngresso = (candidatoParam ? orgaosEfetivoNovoIngresso[candidatoParam] : undefined) || (sucessoDirecionamentoEfetivo && direcionamentoEfetivo === "outro" ? orgaoDestinoEfetivo : "") || orgaoInicial;
+  const isEtapaEfetivoOutroOrgao = isPerfilSetorial && isEtapaEfetivoExercicio && Boolean(orgaoResponsavelEfetivoNovoIngresso) && orgaoResponsavelEfetivoNovoIngresso !== orgaoAtuacaoNovoIngresso;
+  const direcionamentoAnaliseSalvo = candidatoParam
+    ? (JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, { responsavelAnalise: string }>)[candidatoParam]
+    : undefined;
+  const orgaoResponsavelAnalise = direcionamentoAnaliseSalvo?.responsavelAnalise || (sucessoDirecionamentoAnalise && direcionamentoAnalise === "outro" ? orgaoDestinoAnalise : "") || orgaoInicial;
+  const isAnaliseDocumentalOutroOrgao = isPerfilSetorial && activeTab === "documentacao" && tipoIngresso === "Processo Seletivo" &&
+    Boolean(orgaoResponsavelAnalise) &&
+    orgaoResponsavelAnalise !== orgaoAtuacaoNovoIngresso;
+  const orgaoCadastroAtual = ingressoConcursosProcessosMock.find((processo) => processo.titulo === concursoSelecionado)?.orgao || orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
+  const isCadastroForaDaSetorial = isPerfilSetorial && activeTab === "tipo-ingresso" && Boolean(orgaoCadastroAtual) && orgaoCadastroAtual !== orgaoAtuacaoNovoIngresso;
+  const isEtapaSomenteLeituraSetorial = isPerfilSetorial && !isEtapaEfetivoExercicio && !(activeTab === "tipo-ingresso" && !isCadastroForaDaSetorial) && !(activeTab === "documentacao" && tipoIngresso === "Processo Seletivo" && orgaoResponsavelAnalise === orgaoAtuacaoNovoIngresso);
   const cpfNormalizado = candidatoCpf.replace(/\D/g, "");
   const pessoaFisicaEncontrada = pessoasFisicasIngressoMock.find(
     (pessoa) => pessoa.cpf.replace(/\D/g, "") === cpfNormalizado,
@@ -16942,7 +16913,7 @@ export function PrototiposNovoIngressoPage() {
   const exibirResumoIngresso = activeTabIndex > 0;
   const resumoIngressoNome = candidatoNome || pessoaFisicaEncontrada?.nome || "João Silva";
   const resumoIngressoCpf = candidatoCpf || pessoaFisicaEncontrada?.cpf || "000.000.000-00";
-  const numeroIngressoAtual = `2026/${String(candidatoParam ?? 1).padStart(4, "0")}`;
+  const numeroIngressoAtual = `2026/${String(candidatoRegistradoId || 1).padStart(4, "0")}`;
   const documentosObrigatoriosIngresso = vinculoEstagiario
     ? ingressoDocumentacaoEstagiarioMock
     : ingressoDocumentacaoObrigatoriaMock;
@@ -16950,13 +16921,13 @@ export function PrototiposNovoIngressoPage() {
   const selecionarArquivoDecisaoJudicial = (arquivo?: File) => {
     if (!arquivo) return;
     const extensao = arquivo.name.split(".").pop()?.toLowerCase();
-    const formatoValido = ["pdf", "jpg", "jpeg", "png"].includes(extensao ?? "");
+    const formatoValido = ["pdf", "doc", "docx"].includes(extensao ?? "");
     if (!formatoValido) {
-      setErroArquivoDecisaoJudicial("Formato inválido. Selecione um arquivo PDF, JPG, JPEG ou PNG.");
+      setErroArquivoDecisaoJudicial("Formato inválido. Selecione um arquivo PDF, DOC ou DOCX.");
       return;
     }
-    if (arquivo.size > 10 * 1024 * 1024) {
-      setErroArquivoDecisaoJudicial("O arquivo excede o tamanho máximo permitido de 10 MB.");
+    if (arquivo.size > 2 * 1024 * 1024) {
+      setErroArquivoDecisaoJudicial("O arquivo excede o tamanho máximo permitido de 2 MB.");
       return;
     }
     setArquivoDecisaoJudicial(arquivo);
@@ -17039,6 +17010,7 @@ export function PrototiposNovoIngressoPage() {
     tipoIngresso === "Processo Seletivo"
       ? ["Processo Seletivo SES 2026", "Processo Seletivo SEDUC 2026", "Processo Seletivo SEFAZ 2026", "Processo Seletivo SEPLAG 2027"]
       : ["Concurso SES 2026", "Concurso SEDUC 2026", "Concurso SEFAZ 2026"];
+  const processoOrigemOptionsPerfil = processoOrigemOptions.filter((titulo) => !isPerfilSetorial || ingressoConcursosProcessosMock.find((processo) => processo.titulo === titulo)?.orgao === orgaoAtuacaoNovoIngresso);
   const getConcursoOrigemLabel = (titulo: string) => {
     const concurso = ingressoConcursosProcessosMock.find((processo) => processo.titulo === titulo);
     if (!concurso) return titulo;
@@ -17120,9 +17092,12 @@ export function PrototiposNovoIngressoPage() {
     );
   };
   const orgaosEfetivoOptions = ["SEPLAG", "SES", "SEDUC", "SEFAZ"];
-  const orgaoEncaminhamentoAprovacaoLabel = orgaosEstadoOptions.find(
-    (orgao) => orgao.value === orgaoEncaminhamentoAprovacao,
-  )?.label ?? orgaoEncaminhamentoAprovacao;
+  const orgaoEfetivoSelecionadoCard = direcionamentoEfetivo === "outro" ? orgaoDestinoEfetivo : orgaoInicial;
+  const orgaoEncaminhamentoAprovacaoExibido = tipoIngresso === "Processo Seletivo" ? orgaoEfetivoSelecionadoCard : orgaoEncaminhamentoAprovacao;
+  const orgaoEncaminhamentoAprovacaoLabel = (estruturaOrganizacionalNiveis.find((nivel) => nivel.id === "orgaos")?.itens ?? [])
+    .find((item) => item.id.toUpperCase() === orgaoEncaminhamentoAprovacaoExibido)?.nome ??
+    orgaosEstadoOptions.find((orgao) => orgao.value === orgaoEncaminhamentoAprovacaoExibido)?.label ??
+    orgaoEncaminhamentoAprovacaoExibido;
   const orgaosEfetivoResumo = vinculoEstagiario
     ? orgaoEncaminhamentoAprovacaoLabel || "Não informado"
     : orgaosEfetivoSelecionados.length === 0
@@ -17162,8 +17137,13 @@ export function PrototiposNovoIngressoPage() {
   );
   const confirmarActionDisabled =
     isEtapaSomenteLeituraSetorial ||
+    (isPerfilSetorial && activeTab === "tipo-ingresso" && !orgaoCadastroAtual) ||
+    isEtapaSomenteLeituraCentral ||
+    isEtapaEfetivoOutroOrgao ||
+    isAnaliseDocumentalOutroOrgao ||
     (activeTab === "tipo-ingresso" && (
       !tipoIngresso ||
+      (tipoIngresso === "Processo Seletivo" && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || orgaoDestinoAnalise === (orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial))) ||
       !perfilEspecialidade ||
       ((!vinculoExigeDadosEducacionais || vinculoEstagiario) && tipoIngresso !== "Exclusivo Comissionado" &&
         (!categoriaTipoVaga || (categoriaTipoVaga === "COTISTA" && !tipoCotaSelecionada))) ||
@@ -17178,10 +17158,11 @@ export function PrototiposNovoIngressoPage() {
           (escolaridadeEstagio === "Pós-graduação" && !posGraduacaoEstagio.trim()))) ||
       (tipoIngresso === "Concurso" && !categoriaSelecionada)
     )) ||
+    (activeTab === "documentacao" && documentacaoEtapa === "analise" && decisaoDocumentacao === "aprovar" && direcionamentoEfetivo === "outro" && (!orgaoDestinoEfetivo || orgaoDestinoEfetivo === orgaoInicial)) ||
     (activeTab === "documentacao" &&
       vinculoEstagiario &&
       decisaoDocumentacao === "aprovar" &&
-      (!orgaoEncaminhamentoAprovacao || !dataInicioEstagio || !dataTerminoEstagio)) ||
+      (!dataInicioEstagio || !dataTerminoEstagio)) ||
     (activeTab === "efetivo-exercicio" &&
       (!servidorCompareceu ||
         (servidorCompareceu === "Sim" &&
@@ -17208,7 +17189,7 @@ export function PrototiposNovoIngressoPage() {
     situacao: IngressoSituacao,
     dataConclusaoEtapa2?: string,
   ) => {
-    if (tipoIngresso !== "Concurso" || !concursoSelecionado) return;
+    if (!["Concurso", "Processo Seletivo"].includes(tipoIngresso) || !concursoSelecionado) return;
 
     const concurso = ingressoConcursosProcessosMock.find(
       (item) => item.titulo === concursoSelecionado,
@@ -17270,9 +17251,11 @@ export function PrototiposNovoIngressoPage() {
       "prototype-ingresso-situacoes",
       JSON.stringify({ ...situacoesSalvas, [String(novoId)]: situacao }),
     );
+    return novoId;
   };
   const persistirSituacaoIngressoAtual = (situacao: IngressoSituacao) => {
-    if (!candidatoParam) return;
+    const candidatoIdAtual = candidatoRegistradoId || candidatoParam;
+    if (!candidatoIdAtual) return;
 
     const situacoesSalvas = JSON.parse(
       localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
@@ -17281,7 +17264,7 @@ export function PrototiposNovoIngressoPage() {
       "prototype-ingresso-situacoes",
       JSON.stringify({
         ...situacoesSalvas,
-        [candidatoParam]: situacao,
+        [candidatoIdAtual]: situacao,
       }),
     );
 
@@ -17295,7 +17278,7 @@ export function PrototiposNovoIngressoPage() {
           ...situacoesPorConcurso,
           [concursoSelecionado]: {
             ...situacoesPorConcurso[concursoSelecionado],
-            [candidatoParam]: situacao,
+            [candidatoIdAtual]: situacao,
           },
         }),
       );
@@ -17320,15 +17303,16 @@ export function PrototiposNovoIngressoPage() {
     localStorage.setItem("prototype-ingresso-analises-negadas", JSON.stringify(analisesSalvas));
   };
   const persistirOrgaoEncaminhadoAtual = (orgao: string) => {
-    if (!candidatoParam) return;
+    const idIngresso = candidatoRegistradoId || candidatoParam;
+    if (!idIngresso) return;
 
     const orgaosSalvos = JSON.parse(
       localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}",
     ) as Record<string, string>;
     if (orgao) {
-      orgaosSalvos[candidatoParam] = orgao;
+      orgaosSalvos[idIngresso] = orgao;
     } else {
-      delete orgaosSalvos[candidatoParam];
+      delete orgaosSalvos[idIngresso];
     }
     localStorage.setItem("prototype-ingresso-orgaos-encaminhados", JSON.stringify(orgaosSalvos));
   };
@@ -17835,17 +17819,22 @@ export function PrototiposNovoIngressoPage() {
   };
 
   const finalizarParecerDocumentacao = (destino: "efetivo" | "gestao") => {
+    if (isEtapaSomenteLeituraSetorial || isAnaliseDocumentalOutroOrgao) return;
     if (finalizandoParecerRef.current) return;
     if (decisaoDocumentacao === "cancelar" && destino === "efetivo") return;
+    const orgaoOrigemEfetivo = orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
+    const orgaoEfetivoFinal = direcionamentoEfetivo === "outro" ? orgaoDestinoEfetivo : orgaoOrigemEfetivo;
+    if (decisaoDocumentacao === "aprovar" && (!orgaoEfetivoFinal || (direcionamentoEfetivo === "outro" && orgaoEfetivoFinal === orgaoOrigemEfetivo))) return;
 
     finalizandoParecerRef.current = true;
     setFinalizandoParecer(true);
     try {
-      const chaveIngresso = candidatoParam ?? concursoSelecionado ?? "novo";
+      const chaveIngresso = candidatoRegistradoId || candidatoParam || concursoSelecionado || "novo";
       const historicos = JSON.parse(localStorage.getItem("prototype-ingresso-historico-documentacao") ?? "{}");
       const registro = {
         dataHora: new Date().toLocaleString("pt-BR"),
-        responsavel: "ROBERTO JUNIOR",
+        responsavel: isPerfilSetorial ? "Patrícia Lima - Setorial" : "Roberto Junior - Órgão Central",
+        orgaoAtuacao: orgaoAtuacaoNovoIngresso,
         parecerSelecionado: decisaoDocumentacao === "aprovar" ? "Aprovar documentação" : "Cancelar ingresso",
         parecer: parecerDocumentacao.trim(),
         motivo: decisaoDocumentacao === "cancelar" ? motivoCancelamentoDocumentacao : "",
@@ -17853,6 +17842,8 @@ export function PrototiposNovoIngressoPage() {
         etapa: "Documentação",
         conclusao: "Concluída",
         destino,
+        orgaoEfetivo: decisaoDocumentacao === "aprovar" ? orgaoEfetivoFinal : "",
+        direcionamentoEfetivo: decisaoDocumentacao === "aprovar" ? direcionamentoEfetivo : "",
       };
       localStorage.setItem("prototype-ingresso-historico-documentacao", JSON.stringify({
         ...historicos,
@@ -17865,11 +17856,18 @@ export function PrototiposNovoIngressoPage() {
       setSituacaoIngresso(situacaoFinal);
       persistirSituacaoIngressoAtual(situacaoFinal);
 
-      if (decisaoDocumentacao === "cancelar" && candidatoParam) {
+      if (decisaoDocumentacao === "aprovar") {
+        persistirOrgaoEncaminhadoAtual(orgaoEfetivoFinal);
+        setOrgaosEfetivoSelecionados([orgaoEfetivoFinal]);
+        setOrgaoEncaminhamentoAprovacao(orgaoEfetivoFinal);
+        setSucessoDirecionamentoEfetivo(direcionamentoEfetivo === "outro" ? "O ingresso foi encaminhado ao órgão " + orgaoEfetivoFinal + " para efetivo exercício." : "");
+      }
+
+      if (decisaoDocumentacao === "cancelar" && (candidatoRegistradoId || candidatoParam)) {
         const cancelamentos = JSON.parse(localStorage.getItem("prototype-ingresso-cancelamentos") ?? "{}");
         localStorage.setItem("prototype-ingresso-cancelamentos", JSON.stringify({
           ...cancelamentos,
-          [candidatoParam]: {
+          [candidatoRegistradoId || candidatoParam!]: {
             motivo: motivoCancelamentoDocumentacao,
             justificativa: justificativaCancelamentoDocumentacao.trim(),
           },
@@ -17918,6 +17916,7 @@ export function PrototiposNovoIngressoPage() {
     navigate(tipoIngresso === "Processo Seletivo" ? caminhoRetornoNovoIngresso : tipoIngresso === "Exclusivo Comissionado" ? "/prototipos/sigep/ingressos/comissionados" : "/prototipos/sigep/ingressos/efetivo-exercicio", { replace: true });
   };
   const handleConfirmarNovoIngresso = () => {
+    if (isEtapaSomenteLeituraSetorial || isEtapaSomenteLeituraCentral || isEtapaEfetivoOutroOrgao || isAnaliseDocumentalOutroOrgao || (isPerfilSetorial && activeTab === "tipo-ingresso" && !orgaoCadastroAtual)) return;
     if (activeTab === "efetivo-exercicio") {
       if (situacaoInicialIngresso !== "Aguardando Efetivo Exercicio") return;
       if (servidorCompareceu === "Sim" && aplicaFinalizacaoEfetivo) {
@@ -17930,7 +17929,7 @@ export function PrototiposNovoIngressoPage() {
           vinculo: "1",
           termoNome: prefixoArquivoDocumentoEfetivo + "_" + numeroIngressoAtual.replace("/", "_") + ".pdf",
           registradoEm: agora,
-          responsavel: "ROBERTO JUNIOR",
+          responsavel: "Patrícia Lima - Setorial",
         };
         const registrosGerados = JSON.parse(
           localStorage.getItem("prototype-ingresso-efetivo-gerado") ?? "{}",
@@ -17943,7 +17942,7 @@ export function PrototiposNovoIngressoPage() {
           localStorage.getItem("prototype-ingresso-historico-efetivo-exercicio") ?? "{}",
         ) as Record<string, EfetivoExercicioHistoricoEvento[]>;
         const eventos: EfetivoExercicioHistoricoEvento[] = [
-          { titulo: "Dados do Efetivo Exercício confirmados", descricao: "Os dados do exercício foram registrados.", responsavel: "ROBERTO JUNIOR", dataHora: agora },
+          { titulo: "Dados do Efetivo Exercício confirmados", descricao: "Os dados do exercício foram registrados.", responsavel: "Patrícia Lima - Setorial", orgaoAtuacao: orgaoAtuacaoNovoIngresso, dataHora: agora },
           { titulo: "Matrícula e vínculo gerados", descricao: "Matrícula e vínculo funcional gerados automaticamente pelo sistema.", responsavel: "Sistema SIGEP", dataHora: agora, matricula: dadosGerados.matricula, vinculo: dadosGerados.vinculo },
           { titulo: nomeDocumentoEfetivo + " gerado", descricao: "O " + nomeDocumentoEfetivo + " foi gerado e está disponível para download.", responsavel: "Sistema SIGEP", dataHora: agora, arquivo: dadosGerados.termoNome },
         ];
@@ -18045,6 +18044,23 @@ export function PrototiposNovoIngressoPage() {
     }
 
     if (activeTab !== "documentacao") {
+      if (activeTab === "tipo-ingresso" && tipoIngresso === "Concurso" && !candidatoParam) {
+        const idCandidato = registrarIngressoNoConcursoSelecionado("Em analise");
+        if (idCandidato) setCandidatoRegistradoId(String(idCandidato));
+      }
+      if (activeTab === "tipo-ingresso" && tipoIngresso === "Processo Seletivo") {
+        const orgaoOrigem = orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
+        const orgaoAnalise = direcionamentoAnalise === "outro" ? orgaoDestinoAnalise : orgaoOrigem;
+        if (!orgaoOrigem || !orgaoAnalise || direcionamentoAnalise === "outro" && orgaoAnalise === orgaoOrigem) return;
+        const idCandidato = String(candidatoParam || registrarIngressoNoConcursoSelecionado("Em analise") || candidatoCpf.replace(/\D/g, ""));
+        setCandidatoRegistradoId(idCandidato);
+        if (idCandidato) {
+          const armazenados = JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, { orgaoOrigem: string; responsavelAnalise: string; operador: string; dataHora: string }>;
+          armazenados[idCandidato] = { orgaoOrigem, responsavelAnalise: orgaoAnalise, operador: "Roberto Junior", dataHora: new Date().toLocaleString("pt-BR") };
+          localStorage.setItem("prototype-ingresso-direcionamentos-analise", JSON.stringify(armazenados));
+        }
+        setSucessoDirecionamentoAnalise(direcionamentoAnalise === "outro" ? "O ingresso foi encaminhado ao órgão " + orgaoAnalise + " para análise da documentação." : "");
+      }
       setSituacaoIngresso("Em analise");
       persistirSituacaoIngressoAtual("Em analise");
       goNext();
@@ -18080,6 +18096,8 @@ export function PrototiposNovoIngressoPage() {
 
   const handleCpfCandidatoChange = (value: string) => {
     setCandidatoCpf(value);
+    setCpfFiltroLista(value);
+    setCpfListaAberta(true);
     const cpfBusca = value.replace(/\D/g, "");
     const pessoa = pessoasFisicasIngressoMock.find(
       (item) => item.cpf.replace(/\D/g, "") === cpfBusca,
@@ -18093,6 +18111,19 @@ export function PrototiposNovoIngressoPage() {
 
     setCandidatoNome("");
     setCandidatoNascimento("");
+  };
+
+  const pessoasCpfFiltradas = pessoasFisicasIngressoMock.filter((pessoa) => {
+    const filtro = cpfFiltroLista.trim().toLocaleLowerCase("pt-BR");
+    const numeros = filtro.replace(/\D/g, "");
+    return !filtro || pessoa.cpf.includes(filtro) || (Boolean(numeros) && pessoa.cpf.replace(/\D/g, "").includes(numeros)) || pessoa.nome.toLocaleLowerCase("pt-BR").includes(filtro);
+  });
+  const selecionarPessoaCpf = (pessoa: (typeof pessoasFisicasIngressoMock)[number]) => {
+    setCandidatoCpf(pessoa.cpf);
+    setCandidatoNome(pessoa.nome);
+    setCandidatoNascimento(pessoa.dataNascimento);
+    setCpfListaAberta(false);
+    setCpfFiltroLista("");
   };
 
   const renderBadgeEqualizacao = (
@@ -18116,14 +18147,37 @@ export function PrototiposNovoIngressoPage() {
       <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-candidato-section">
         <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-user" aria-hidden="true" /></span><span>Dados do Servidor</span></h3>
         <div className="prototype-novo-ingresso-candidato-grid">
-          <label className="prototype-ingresso-field">
-            <span>CPF<em>*</em></span>
-            <input
-              value={candidatoCpf}
-              placeholder="Digite o CPF ou Nome"
-              readOnly={ingressoOrigemLista}
-              onChange={(event) => handleCpfCandidatoChange(event.target.value)}
-            />
+          <div className="prototype-ingresso-field">
+            <label htmlFor="cpf-ingresso">CPF<em>*</em></label>
+            <div className="prototype-ingresso-cpf-picker" onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node)) setCpfListaAberta(false);
+            }}>
+              <input
+                id="cpf-ingresso"
+                value={candidatoCpf}
+                placeholder="Digite o CPF ou Nome"
+                readOnly={ingressoOrigemLista}
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={!ingressoOrigemLista && cpfListaAberta}
+                aria-controls="cpf-ingresso-lista"
+                onFocus={() => { if (!ingressoOrigemLista) { setCpfFiltroLista(""); setCpfListaAberta(true); } }}
+                onClick={() => { if (!ingressoOrigemLista) { setCpfFiltroLista(""); setCpfListaAberta(true); } }}
+                onChange={(event) => handleCpfCandidatoChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") setCpfListaAberta(false);
+                  if (event.key === "ArrowDown" && cpfListaAberta) {
+                    event.preventDefault();
+                    document.querySelector<HTMLButtonElement>("#cpf-ingresso-lista button")?.focus();
+                  }
+                }}
+              />
+              {!ingressoOrigemLista && cpfListaAberta ? <div id="cpf-ingresso-lista" className="prototype-ingresso-cpf-options" role="listbox" aria-label="CPFs cadastrados">
+                {pessoasCpfFiltradas.length ? pessoasCpfFiltradas.map((pessoa) => <button key={pessoa.cpf} type="button" role="option" aria-selected={candidatoCpf === pessoa.cpf} onClick={() => selecionarPessoaCpf(pessoa)}>
+                  <strong>{pessoa.cpf}</strong><span>{pessoa.nome}</span>
+                </button>) : <div className="prototype-ingresso-cpf-empty">Nenhum CPF cadastrado encontrado.</div>}
+              </div> : null}
+            </div>
             {!ingressoOrigemLista ? (
               <button
                 type="button"
@@ -18137,13 +18191,12 @@ export function PrototiposNovoIngressoPage() {
                 Cadastrar Pessoa Física
               </button>
             ) : null}
-          </label>
+          </div>
           <label className="prototype-ingresso-field">
             <span>Nome Completo<em>*</em></span>
             <input
               value={candidatoNome}
-              readOnly={ingressoOrigemLista}
-              onChange={(event) => setCandidatoNome(event.target.value)}
+              readOnly
             />
           </label>
           <label className="prototype-ingresso-field">
@@ -18151,8 +18204,7 @@ export function PrototiposNovoIngressoPage() {
             <input
               type="text"
               value={candidatoNascimento}
-              readOnly={ingressoOrigemLista}
-              onChange={(event) => setCandidatoNascimento(event.target.value)}
+              readOnly
             />
           </label>
         </div>
@@ -18242,7 +18294,7 @@ export function PrototiposNovoIngressoPage() {
             <span>Concurso<em>*</em></span>
             <select
               value={concursoSelecionado}
-              disabled={ingressoOrigemLista}
+              disabled={origemIngressoBloqueada}
               onChange={(event) => {
                 const concurso = event.target.value;
                 setConcursoSelecionado(concurso);
@@ -18269,6 +18321,10 @@ export function PrototiposNovoIngressoPage() {
               </button>
             </div>
           </div>
+          {ingressoOrigemEdital && <div className="prototype-ingresso-field prototype-multiselect-field">
+            <span>Órgãos Participantes</span>
+            <div className="prototype-multiselect"><button type="button" className="prototype-multiselect-trigger" disabled aria-disabled aria-expanded="false"><span>{orgaosParticipantesResumo}</span><i className="pi pi-chevron-down" aria-hidden="true" /></button></div>
+          </div>}
           <label className="prototype-ingresso-field">
             <span>Tipo de Vínculo<em>*</em></span>
             <input type="text" value={tipoVinculo} readOnly />
@@ -18429,17 +18485,17 @@ export function PrototiposNovoIngressoPage() {
             </label>
             <div className="prototype-ingresso-field prototype-judicial-document-field prototype-ingresso-concurso-wide-field">
               <span>Documento da Decisão Judicial<em>*</em></span>
-              <input id="arquivo-decisao-judicial-concurso" className="prototype-judicial-upload-input" type="file" accept=".pdf,.jpg,.jpeg,.png" required={!arquivoDecisaoJudicial} aria-invalid={Boolean(erroArquivoDecisaoJudicial)} aria-label="Anexar documento da decisão judicial" onChange={(event) => { selecionarArquivoDecisaoJudicial(event.target.files?.[0]); event.target.value = ""; }} />
+              <input id="arquivo-decisao-judicial-concurso" className="prototype-judicial-upload-input" type="file" accept=".pdf,.doc,.docx" required={!arquivoDecisaoJudicial} aria-invalid={Boolean(erroArquivoDecisaoJudicial)} aria-label="Anexar documento da decisão judicial" onChange={(event) => { selecionarArquivoDecisaoJudicial(event.target.files?.[0]); event.target.value = ""; }} />
               <label htmlFor="arquivo-decisao-judicial-concurso" className={`prototype-judicial-upload-area${erroArquivoDecisaoJudicial ? " is-invalid" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); selecionarArquivoDecisaoJudicial(event.dataTransfer.files?.[0]); }}>
                 <span className="prototype-judicial-upload-button"><i className="pi pi-upload" aria-hidden="true" /> Escolher arquivo</span>
                 <span className="prototype-judicial-upload-prompt">Arraste e solte o arquivo aqui ou clique para selecionar</span>
-                <small>Formatos aceitos: PDF, JPG, PNG (Máx. 10MB)</small>
+                <small>Formatos aceitos: PDF, DOC, DOCX (Máx. 2MB)</small>
               </label>
               {erroArquivoDecisaoJudicial ? <small className="prototype-judicial-upload-error" role="alert">{erroArquivoDecisaoJudicial}</small> : null}
               <div className="prototype-judicial-attachments">
                 <strong>Arquivos anexados ({arquivoDecisaoJudicial ? 1 : 0})</strong>
                 {arquivoDecisaoJudicial ? <div className="prototype-judicial-attachment-row">
-                  <span className="prototype-judicial-attachment-icon"><i className={`pi ${arquivoDecisaoJudicial.type === "application/pdf" ? "pi-file-pdf" : "pi-image"}`} aria-hidden="true" /></span>
+                  <span className="prototype-judicial-attachment-icon"><i className={`pi ${arquivoDecisaoJudicial.name.toLowerCase().endsWith(".pdf") ? "pi-file-pdf" : "pi-file-word"}`} aria-hidden="true" /></span>
                   <span className="prototype-judicial-attachment-info"><strong>{arquivoDecisaoJudicial.name}</strong><small>{formatarTamanhoArquivo(arquivoDecisaoJudicial.size)}</small></span>
                   <div className="prototype-judicial-attachment-actions"><BotaoIconSeplag type="button" icon="pi pi-download" tooltip={`Baixar ${arquivoDecisaoJudicial.name}`} onClick={baixarArquivoDecisaoJudicial} /><BotaoIconSeplag type="button" icon="pi pi-trash" tooltip={`Remover ${arquivoDecisaoJudicial.name}`} severity="danger" onClick={() => { setArquivoDecisaoJudicial(null); setErroArquivoDecisaoJudicial(""); }} /></div>
                 </div> : <p>Nenhum arquivo anexado</p>}
@@ -18494,7 +18550,7 @@ export function PrototiposNovoIngressoPage() {
                   id="arquivo-decisao-judicial-processo-temporario"
                   className="prototype-judicial-upload-input"
                   type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
+                  accept=".pdf,.doc,.docx"
                   required={!arquivoDecisaoJudicial}
                   aria-invalid={Boolean(erroArquivoDecisaoJudicial)}
                   aria-label="Anexar documento da decisão judicial"
@@ -18514,14 +18570,14 @@ export function PrototiposNovoIngressoPage() {
                 >
                   <span className="prototype-judicial-upload-button"><i className="pi pi-upload" aria-hidden="true" /> Escolher arquivo</span>
                   <span className="prototype-judicial-upload-prompt">Arraste e solte o arquivo aqui ou clique para selecionar</span>
-                  <small>Formatos aceitos: PDF, JPG, PNG (Máx. 10MB)</small>
+                  <small>Formatos aceitos: PDF, DOC, DOCX (Máx. 2MB)</small>
                 </label>
                 {erroArquivoDecisaoJudicial ? <small className="prototype-judicial-upload-error" role="alert">{erroArquivoDecisaoJudicial}</small> : null}
                 <div className="prototype-judicial-attachments">
                   <strong>Arquivos anexados ({arquivoDecisaoJudicial ? 1 : 0})</strong>
                   {arquivoDecisaoJudicial ? (
                     <div className="prototype-judicial-attachment-row">
-                      <span className="prototype-judicial-attachment-icon"><i className={"pi " + (arquivoDecisaoJudicial.type === "application/pdf" ? "pi-file-pdf" : "pi-image")} aria-hidden="true" /></span>
+                      <span className="prototype-judicial-attachment-icon"><i className={"pi " + (arquivoDecisaoJudicial.name.toLowerCase().endsWith(".pdf") ? "pi-file-pdf" : "pi-file-word")} aria-hidden="true" /></span>
                       <span className="prototype-judicial-attachment-info"><strong>{arquivoDecisaoJudicial.name}</strong><small>{formatarTamanhoArquivo(arquivoDecisaoJudicial.size)}</small></span>
                       <div className="prototype-judicial-attachment-actions">
                         <BotaoIconSeplag type="button" icon="pi pi-download" tooltip={"Baixar " + arquivoDecisaoJudicial.name} onClick={baixarArquivoDecisaoJudicial} />
@@ -18548,7 +18604,7 @@ export function PrototiposNovoIngressoPage() {
             <span>Processo Seletivo<em>*</em></span>
             <select
               value={concursoSelecionado}
-              disabled={ingressoOrigemLista}
+              disabled={origemIngressoBloqueada}
               onChange={(event) => {
                 const processo = event.target.value;
                 const processoSelecionado = ingressoConcursosProcessosMock.find((item) => item.titulo === processo);
@@ -18579,7 +18635,7 @@ export function PrototiposNovoIngressoPage() {
               }}
             >
               <option value="">Selecione...</option>
-              {processoOrigemOptions.map((option) => (
+              {processoOrigemOptionsPerfil.map((option) => (
                 <option key={option} value={option}>
                   {option === "Processo Seletivo SES 2026"
                     ? "PSS 004/2026/SES — Enfermagem"
@@ -18761,6 +18817,66 @@ export function PrototiposNovoIngressoPage() {
       {exibirInformacoesComplementares ? renderInformacoesComplementaresProcessoSeletivo() : null}
     </div>
   );
+  const renderDirecionamentoEfetivo = () => {
+    const orgaoAtual = orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
+    const destinos = (estruturaOrganizacionalNiveis.find((nivel) => nivel.id === "orgaos")?.itens ?? [])
+      .filter((item) => item.id !== "politec" && item.id.toUpperCase() !== orgaoAtual)
+      .map((item) => ({ value: item.id.toUpperCase(), label: item.nome }));
+    return <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-direcionamento-analise">
+      <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-share-alt" aria-hidden="true" /></span><span>Direcionamento do Efetivo Exercício</span></h3>
+      <div className="prototype-direcionamento-analise-body">
+        <fieldset className="prototype-direcionamento-analise-options">
+          <legend>Quem realizará o registro do efetivo exercício?<em>*</em></legend>
+          <label><input type="radio" name="direcionamento-efetivo" value="atual" checked={direcionamentoEfetivo === "atual"} onChange={() => { setDirecionamentoEfetivo("atual"); setOrgaoDestinoEfetivo(""); }} />
+            <span><strong>Continuar com o órgão atual</strong><small>O efetivo exercício será registrado pelo órgão responsável pelo cadastro do ingresso.</small></span></label>
+          <label><input type="radio" name="direcionamento-efetivo" value="outro" checked={direcionamentoEfetivo === "outro"} onChange={() => setDirecionamentoEfetivo("outro")} />
+            <span><strong>Encaminhar para outro órgão</strong><small>Transferir a responsabilidade pelo registro do efetivo exercício.</small></span></label>
+        </fieldset>
+        {direcionamentoEfetivo === "outro" && <label className="prototype-ingresso-field prototype-direcionamento-analise-destino">
+          <span>Encaminhar para<em>*</em></span>
+          <select aria-label="Encaminhar para" value={orgaoDestinoEfetivo} required onChange={event => setOrgaoDestinoEfetivo(event.target.value)}>
+            <option value="">Selecione o órgão...</option>
+            {destinos.map((orgao) => <option key={orgao.value} value={orgao.value}>{orgao.label}</option>)}
+          </select>
+        </label>}
+        <div className="prototype-direcionamento-analise-alert" role="status"><i className="pi pi-info-circle" aria-hidden="true" /><span>{
+          direcionamentoEfetivo === "atual" ? "O ingresso permanecerá sob responsabilidade do órgão atual para registro do efetivo exercício." :
+          orgaoDestinoEfetivo ? "Após a confirmação, o ingresso será encaminhado ao órgão selecionado para efetivo exercício." :
+          "Selecione o órgão que receberá o ingresso para registro do efetivo exercício."
+        }</span></div>
+      </div>
+    </section>;
+  };
+  const renderDirecionamentoAnalise = () => {
+    const orgaoAtual = orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
+    const destinos = (estruturaOrganizacionalNiveis.find((nivel) => nivel.id === "orgaos")?.itens ?? [])
+      .filter((item) => item.id !== "politec" && item.id.toUpperCase() !== orgaoAtual)
+      .map((item) => ({ value: item.id.toUpperCase(), label: item.nome }));
+    return <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-direcionamento-analise">
+      <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-share-alt" aria-hidden="true" /></span><span>Direcionamento da Análise</span></h3>
+      <div className="prototype-direcionamento-analise-body">
+        <fieldset className="prototype-direcionamento-analise-options">
+          <legend>Quem realizará a análise da documentação?<em>*</em></legend>
+          <label><input type="radio" name="direcionamento-analise" value="atual" checked={direcionamentoAnalise === "atual"} onChange={() => { setDirecionamentoAnalise("atual"); setOrgaoDestinoAnalise(""); }} />
+            <span><strong>Continuar com o órgão atual</strong><small>A análise será realizada pelo próprio órgão responsável pelo cadastro do ingresso.</small></span></label>
+          <label><input type="radio" name="direcionamento-analise" value="outro" checked={direcionamentoAnalise === "outro"} onChange={() => setDirecionamentoAnalise("outro")} />
+            <span><strong>Encaminhar para outro órgão</strong><small>Transferir a responsabilidade pela análise da documentação.</small></span></label>
+        </fieldset>
+        {direcionamentoAnalise === "outro" && <label className="prototype-ingresso-field prototype-direcionamento-analise-destino">
+          <span>Encaminhar para<em>*</em></span>
+          <select aria-label="Encaminhar para" value={orgaoDestinoAnalise} required onChange={event => setOrgaoDestinoAnalise(event.target.value)}>
+            <option value="">Selecione o órgão...</option>
+            {destinos.map((orgao) => <option key={orgao.value} value={orgao.value}>{orgao.label}</option>)}
+          </select>
+        </label>}
+        <div className="prototype-direcionamento-analise-alert" role="status"><i className="pi pi-info-circle" aria-hidden="true" /><span>{
+          direcionamentoAnalise === "atual" ? "O ingresso permanecerá sob responsabilidade do órgão atual para análise da documentação." :
+          orgaoDestinoAnalise ? "Após a confirmação, o ingresso será encaminhado ao órgão selecionado." :
+          "Selecione o órgão que receberá o ingresso para análise da documentação."
+        }</span></div>
+      </div>
+    </section>;
+  };
   const renderDadosIngresso = () => (
     <div className="prototype-novo-ingresso-dados-grid">
       {tipoIngresso === "Processo Seletivo" && ingressoOrigemLista ? renderEqualizacaoSies() : null}
@@ -18824,7 +18940,7 @@ export function PrototiposNovoIngressoPage() {
               </button>
               {orgaosIngressoDropdownAberto ? (
                 <div className="prototype-multiselect-panel">
-                  {orgaosIngressoOptions.map((orgao) => (
+                  {orgaosIngressoOptions.filter((orgao) => !isPerfilSetorial || orgao === orgaoAtuacaoNovoIngresso).map((orgao) => (
                     <label key={orgao} className="prototype-multiselect-option">
                       <input
                         type="checkbox"
@@ -18863,7 +18979,7 @@ export function PrototiposNovoIngressoPage() {
             <span>{processoOrigemLabel}<em>*</em></span>
             <select
               value={concursoSelecionado}
-              disabled={ingressoOrigemLista}
+              disabled={origemIngressoBloqueada}
               onChange={(event) => {
                 const processo = event.target.value;
                 setConcursoSelecionado(processo);
@@ -18900,7 +19016,7 @@ export function PrototiposNovoIngressoPage() {
               }}
             >
               <option value="">Selecione...</option>
-              {processoOrigemOptions.map((option) => (
+              {processoOrigemOptionsPerfil.map((option) => (
                 <option key={option} value={option}>
                   {tipoIngresso === "Processo Seletivo"
                     ? option === "Processo Seletivo SES 2026"
@@ -19177,7 +19293,7 @@ export function PrototiposNovoIngressoPage() {
                   id="arquivo-decisao-judicial"
                   className="prototype-judicial-upload-input"
                   type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
+                  accept=".pdf,.doc,.docx"
                   required={!arquivoDecisaoJudicial}
                   aria-invalid={Boolean(erroArquivoDecisaoJudicial)}
                   aria-label="Anexar documento da decisão judicial"
@@ -19197,14 +19313,14 @@ export function PrototiposNovoIngressoPage() {
                 >
                   <span className="prototype-judicial-upload-button"><i className="pi pi-upload" aria-hidden="true" /> Escolher arquivo</span>
                   <span className="prototype-judicial-upload-prompt">Arraste e solte o arquivo aqui ou clique para selecionar</span>
-                  <small>Formatos aceitos: PDF, JPG, PNG (Máx. 10MB)</small>
+                  <small>Formatos aceitos: PDF, DOC, DOCX (Máx. 2MB)</small>
                 </label>
                 {erroArquivoDecisaoJudicial ? <small className="prototype-judicial-upload-error" role="alert">{erroArquivoDecisaoJudicial}</small> : null}
                 <div className="prototype-judicial-attachments">
                   <strong>Arquivos anexados ({arquivoDecisaoJudicial ? 1 : 0})</strong>
                   {arquivoDecisaoJudicial ? (
                     <div className="prototype-judicial-attachment-row">
-                      <span className="prototype-judicial-attachment-icon"><i className={`pi ${arquivoDecisaoJudicial.type === "application/pdf" ? "pi-file-pdf" : "pi-image"}`} aria-hidden="true" /></span>
+                      <span className="prototype-judicial-attachment-icon"><i className={`pi ${arquivoDecisaoJudicial.name.toLowerCase().endsWith(".pdf") ? "pi-file-pdf" : "pi-file-word"}`} aria-hidden="true" /></span>
                       <span className="prototype-judicial-attachment-info"><strong>{arquivoDecisaoJudicial.name}</strong><small>{formatarTamanhoArquivo(arquivoDecisaoJudicial.size)}</small></span>
                       <div className="prototype-judicial-attachment-actions">
                         <BotaoIconSeplag type="button" icon="pi pi-download" tooltip={`Baixar ${arquivoDecisaoJudicial.name}`} onClick={baixarArquivoDecisaoJudicial} />
@@ -19317,6 +19433,7 @@ export function PrototiposNovoIngressoPage() {
           </div>
         ) : null}
       </section>
+      {tipoIngresso === "Processo Seletivo" ? renderDirecionamentoAnalise() : null}
     </div>
   );
 
@@ -19455,12 +19572,12 @@ export function PrototiposNovoIngressoPage() {
               <button
                 key={option.value}
                 type="button"
-                disabled={ingressoOrigemLista}
+                disabled={origemIngressoBloqueada}
                 className={`prototype-ingresso-type-card ${
                   tipoIngresso === option.value ? "is-selected" : ""
-                } ${ingressoOrigemLista ? "is-locked" : ""}`}
+                } ${origemIngressoBloqueada ? "is-locked" : ""}`}
                 onClick={() => {
-                  if (ingressoOrigemLista) return;
+                  if (origemIngressoBloqueada) return;
                   setTipoIngresso(tipoIngresso === option.value ? "" : option.value);
                   setTipoVinculoEditavel("");
                   setInstituicaoEnsino("");
@@ -19797,19 +19914,6 @@ export function PrototiposNovoIngressoPage() {
                                 onChange={(event) => setDataTerminoEstagio(event.target.value)}
                               />
                             </label>
-                            <label className="prototype-ingresso-field">
-                              <span>Encaminhar para<em>*</em></span>
-                              <select
-                                required
-                                value={orgaoEncaminhamentoAprovacao}
-                                onChange={(event) => setOrgaoEncaminhamentoAprovacao(event.target.value)}
-                              >
-                                <option value="">Selecione...</option>
-                                {orgaosEstadoOptions.map((orgao) => (
-                                  <option key={orgao.value} value={orgao.value}>{orgao.label}</option>
-                                ))}
-                              </select>
-                            </label>
                           </div>
                         </section>
                       ) : null}
@@ -19838,8 +19942,15 @@ export function PrototiposNovoIngressoPage() {
                     </>
                   )}
                 </div>
+                {tipoIngresso === "Processo Seletivo" && decisaoDocumentacao === "aprovar" ? renderDirecionamentoEfetivo() : null}
                 {vinculoEstagiario && decisaoDocumentacao === "aprovar" ? (
                   <>
+                    {renderDocumentosGerados([
+                      {
+                        nomeArquivo: "Termo de Compromisso",
+                        modeloArquivo: "modelo_termo_compromisso_estagio.pdf",
+                      },
+                    ], false)}
                     <div className="prototype-estagio-formalizacao-alert" role="status">
                       <div className="prototype-estagio-formalizacao-alert-icon">
                         <i className="pi pi-info-circle" aria-hidden="true" />
@@ -19849,12 +19960,6 @@ export function PrototiposNovoIngressoPage() {
                         <p>O Termo de Compromisso deve ser entregue até o dia 15 do mês de referência da contratação.</p>
                       </div>
                     </div>
-                    {renderDocumentosGerados([
-                      {
-                        nomeArquivo: "Termo de Compromisso",
-                        modeloArquivo: "modelo_termo_compromisso_estagio.pdf",
-                      },
-                    ], false)}
                   </>
                 ) : null}
               </div>
@@ -20611,7 +20716,7 @@ export function PrototiposNovoIngressoPage() {
                     <span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-user" aria-hidden="true" /></span>
                     <span>Supervisor do estágio</span>
                   </h3>
-                  <div className="prototype-ingresso-import-grid prototype-novo-ingresso-select-grid">
+                  <div className="prototype-ingresso-import-grid">
                     <label className="prototype-ingresso-field">
                       <span>CPF ou nome<em>*</em></span>
                       <select
@@ -20633,10 +20738,6 @@ export function PrototiposNovoIngressoPage() {
                       <span>Cargo</span>
                       <input type="text" value={dadosSupervisorEstagio?.cargo ?? ""} readOnly />
                     </label>
-                    <label className="prototype-ingresso-field">
-                      <span>Formação</span>
-                      <input type="text" value={dadosSupervisorEstagio?.formacao ?? ""} readOnly />
-                    </label>
                   </div>
                 </section>
               ) : null}
@@ -20649,6 +20750,20 @@ export function PrototiposNovoIngressoPage() {
     }
     return null;
   };
+
+  const orgaoOrigemConsulta = processoOrigemDados?.orgao || ingressoOrigemDados?.orgao || orgaoInicial;
+  const ingressoPermitidoAoPerfil = !candidatoParam || podeConsultarIngresso(
+    getPerfilVariacaoIngresso(), orgaoAtuacaoNovoIngresso, orgaoOrigemConsulta,
+    direcionamentoAnaliseSalvo?.responsavelAnalise,
+    orgaosEfetivoNovoIngresso[candidatoParam],
+  );
+  if (!ingressoPermitidoAoPerfil) {
+    return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+      <div className="prototype-page-content prototype-page-content--white prototype-novo-ingresso-page">
+        <CardSeplag title="Ingresso indisponível" cols="12"><p>Este ingresso não pertence à abrangência do órgão em atuação.</p></CardSeplag>
+      </div>
+    </PrototypeSystemPage>;
+  }
 
   return (
     <PrototypeSystemPage
@@ -20667,9 +20782,12 @@ export function PrototiposNovoIngressoPage() {
               ? renderNovoIngressoStepper()
               : null}
 
+            {sucessoDirecionamentoAnalise && <div className="prototype-direcionamento-analise-success" role="status"><i className="pi pi-check-circle" aria-hidden="true" />{sucessoDirecionamentoAnalise}</div>}
+            {sucessoDirecionamentoEfetivo && <div className="prototype-direcionamento-analise-success" role="status"><i className="pi pi-check-circle" aria-hidden="true" />{sucessoDirecionamentoEfetivo}</div>}
             {exibirResumoIngresso ? renderResumoIngressoBloqueado() : null}
 
-            {isEtapaSomenteLeituraSetorial || modoVisualizacao ? (
+            {isAnaliseDocumentalOutroOrgao ? <div className="prototype-direcionamento-analise-success" role="status"><i className="pi pi-info-circle" aria-hidden="true" />A análise da documentação está atribuída ao órgão {orgaoResponsavelAnalise}.</div> : null}
+            {isEtapaSomenteLeituraSetorial || isEtapaEfetivoOutroOrgao || isAnaliseDocumentalOutroOrgao || modoVisualizacao ? (
               <fieldset className="prototype-novo-ingresso-readonly" disabled>
                 {renderNovoIngressoTab()}
               </fieldset>
@@ -20714,7 +20832,7 @@ export function PrototiposNovoIngressoPage() {
                   className="prototype-footer-back-button"
                   onClick={goBack}
                 />
-                {["documentacao", "analise-provimento", "efetivo-exercicio"].includes(activeTab) ? (
+                {["documentacao", "analise-provimento", "efetivo-exercicio"].includes(activeTab) && !isEtapaSomenteLeituraSetorial && !isEtapaSomenteLeituraCentral && !isEtapaEfetivoOutroOrgao && !isAnaliseDocumentalOutroOrgao ? (
                   <BotaoSeplag
                     type="button"
                     label="Salvar rascunho"
@@ -21331,6 +21449,17 @@ export function PrototiposIngressoDetalhePage() {
       </section>
     );
   };
+  const orgaoAnaliseDetalhe = id
+    ? (JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, { responsavelAnalise: string }>)[id]?.responsavelAnalise
+    : undefined;
+  const orgaoEfetivoDetalhe = id
+    ? (JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>)[id]
+    : undefined;
+  if (!podeConsultarIngresso(getPerfilVariacaoIngresso(), getOrgaoAtuacaoIngresso(), ingresso.orgao, orgaoAnaliseDetalhe, orgaoEfetivoDetalhe)) {
+    return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+      <div className="prototype-page-content prototype-page-content--white"><CardSeplag title="Ingresso indisponível" cols="12"><p>Este ingresso não pertence à abrangência do órgão em atuação.</p></CardSeplag></div>
+    </PrototypeSystemPage>;
+  }
 
   return (
     <PrototypeSystemPage
