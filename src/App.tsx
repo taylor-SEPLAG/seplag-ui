@@ -160,6 +160,7 @@ import {
   PrototiposVinculosPage,
 } from "./prototipos/vinculos/VinculosPages";
 import { TabelaVencimentosFeaturePage } from "./prototipos/tabelaVencimentos/TabelaVencimentosFeaturePage";
+import { TabelaV2Page } from "./prototipos/tabelaV2/TabelaV2Page";
 import {
   PrototiposDocumentoLegalFormPage,
   PrototiposDocumentosLegaisPage,
@@ -1957,6 +1958,10 @@ function App() {
       <Route
         path={"/prototipos/sigep/tabelas-vencimentos/*"}
         element={<TabelaVencimentosFeaturePage />}
+      />
+      <Route
+        path="/prototipos/sigep/tabela-v2/*"
+        element={<TabelaV2Page />}
       />
       <Route
         path="/prototipos/sigep/cargo/novo"

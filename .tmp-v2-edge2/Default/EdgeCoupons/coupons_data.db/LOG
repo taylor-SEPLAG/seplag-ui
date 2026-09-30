@@ -1,0 +1,5 @@
+2026/09/25-16:45:31.416 593c Creating DB C:\Users\isabelioliveira\Documents\seplag-ui\.tmp-v2-edge2\Default\EdgeCoupons/coupons_data.db since it was missing.
+2026/09/25-16:45:31.428 593c Reusing MANIFEST C:\Users\isabelioliveira\Documents\seplag-ui\.tmp-v2-edge2\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/09/25-16:45:32.306 4f8c Level-0 table #5: started
+2026/09/25-16:45:32.312 4f8c Level-0 table #5: 683284 bytes OK
+2026/09/25-16:45:32.314 4f8c Delete type=0 #3
