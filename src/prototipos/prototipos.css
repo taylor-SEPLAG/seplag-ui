@@ -11051,6 +11051,10 @@
   line-height: 1.35;
 }
 
+.prototype-perfil-dga-orgaos {
+  margin-top: 12px;
+}
+
 .prototype-cargo-controle-vagas {
   grid-column: 1 / -1;
   padding: 12px;

@@ -1,3 +1,8 @@
+
+/* Quatro indicadores ocupam integralmente a largura da página. */
+.prototype-comissionados-quadro-page .prototype-quadro-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
 .prototype-comissionados-quadro-page .prototype-quadro-header {
   padding-top: 0;
 }
@@ -184,3 +189,4 @@
   .prototype-quadro-library-filters.prototype-comissionados-quadro-filters > .prototype-quadro-spec-control:nth-child(3) { grid-column: 3 !important; }
   .prototype-quadro-library-filters.prototype-comissionados-quadro-filters > .prototype-quadro-spec-control:nth-child(4) { grid-column: 4 !important; grid-row: 1 !important; align-self: end; }
 }
+

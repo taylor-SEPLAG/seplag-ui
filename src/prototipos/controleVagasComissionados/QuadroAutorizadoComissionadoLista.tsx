@@ -87,7 +87,7 @@ export function QuadroAutorizadoComissionadoLista() {
 
   return <main className="prototype-quadro-page prototype-quadro-page-current prototype-comissionados-quadro-page">
     <header className="prototype-quadro-header"><div><h1>Quadro de Vagas Comissionados</h1><p>Estruturas organizacionais e dotações autorizadas por órgão.</p></div></header>
-    <section className="prototype-quadro-kpis"><Kpi label="Quadros cadastrados" value={quadrosAtuais.length} icon="pi pi-file" /><Kpi label="Órgãos vinculados" value={orgaos.length} icon="pi pi-building" /><Kpi label="Cargos em comissão autorizados" value={totais.cargos} icon="pi pi-briefcase" /><Kpi label="Funções de confiança autorizadas" value={totais.funcoes} icon="pi pi-users" /><Kpi label="Total de vagas comissionadas" value={totais.cargos + totais.funcoes} icon="pi pi-sitemap" /></section>
+    <section className="prototype-quadro-kpis"><Kpi label="Quadros/Órgãos cadastrados" value={quadrosAtuais.length} icon="pi pi-building" /><Kpi label="Cargos em comissão autorizados" value={totais.cargos} icon="pi pi-briefcase" /><Kpi label="Funções de confiança autorizadas" value={totais.funcoes} icon="pi pi-users" /><Kpi label="Total de vagas comissionadas" value={totais.cargos + totais.funcoes} icon="pi pi-sitemap" /></section>
     <section className="prototype-quadro-card">
       <div className="prototype-quadro-filters prototype-quadro-library-filters prototype-comissionados-quadro-filters">
         <div className="prototype-quadro-spec-control"><TextFieldSeplag name="busca" control={control} label="Quadro" cols="12" icon="pi pi-search" placeholder="Nome ou código do quadro" /></div>

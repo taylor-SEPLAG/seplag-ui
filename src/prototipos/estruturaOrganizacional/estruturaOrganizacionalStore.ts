@@ -1,3 +1,5 @@
+import { unidadesPolitecSeed } from "./politecEstruturaSeed";
+
 export type SituacaoUnidadeEstrutural = "ATIVA" | "INATIVA" | "EXTINTA";
 
 export interface UnidadeEstrutural {
@@ -37,12 +39,13 @@ export interface UnidadeEstrutural {
 export interface VersaoOrganograma {
   id: string;
   orgao: string;
+  codigoOrgao?: string;
   nome: string;
   documentoLegalId: string;
   documentoLegal: string;
   inicio: string;
   fim?: string;
-  situacao: "VIGENTE" | "ENCERRADA";
+  situacao: "RASCUNHO" | "VIGENTE" | "ENCERRADA";
   justificativa?: string;
 }
 
@@ -91,7 +94,25 @@ const documentosPadrao: DocumentoLegalEstrutural[] = [
   { id: "decreto-2185-2026", titulo: "Decreto nº 2.185, de 03/07/2026", categoria: "Decreto", ativo: true },
   { id: "lc-612-2019", titulo: "Lei Complementar nº 612, de 28/01/2019", categoria: "Lei Complementar", ativo: true },
   { id: "lei-10052-2014", titulo: "Lei nº 10.052, de 15/01/2014", categoria: "Lei", ativo: true },
+  { id: "decreto-2252-2026", titulo: "Decreto nº 2.252/2026", categoria: "Decreto", ativo: true },
 ];
+
+const criarUnidadesPolitec = (primeiroId: number): UnidadeEstrutural[] => unidadesPolitecSeed.map((unidade, indice) => ({
+  id: primeiroId + indice,
+  codigo: unidade.codigo,
+  nome: unidade.nome,
+  sigla: "",
+  orgao: "POLITEC",
+  tipo: unidade.tipo,
+  nivelOrganizacional: unidade.nivelOrganizacional,
+  localizacao: "Cuiabá/MT",
+  situacao: "ATIVA",
+  dataInicio: "11/09/2026",
+  documentoCriacaoId: "decreto-2252-2026",
+  documentosLegaisCriacaoIds: ["decreto-2252-2026"],
+  unidadeSuperior: unidade.unidadeSuperior ?? undefined,
+  ordem: unidade.ordem,
+}));
 
 const unidadesPadrao: UnidadeEstrutural[] = [
   { id: 1, codigo: "U0001", nome: "Gabinete do Secretário de Estado de Planejamento e Gestão", sigla: "GAB", orgao: "SEPLAG", tipo: "Gabinete", nivelOrganizacional: "Nível de Direção Superior", localizacao: "Cuiabá/MT", situacao: "ATIVA", dataInicio: "01/01/2020", documentoCriacaoId: "decreto-2185-2026", ordem: 1 },
@@ -103,6 +124,7 @@ const unidadesPadrao: UnidadeEstrutural[] = [
   { id: 7, codigo: "U0101", nome: "Gabinete do Secretário de Estado de Educação", sigla: "GAB", orgao: "SEDUC", tipo: "Gabinete", nivelOrganizacional: "Nível de Direção Superior", localizacao: "Cuiabá/MT", situacao: "ATIVA", dataInicio: "01/01/2020", documentoCriacaoId: "decreto-2185-2026", ordem: 1 },
   { id: 8, codigo: "U0102", nome: "Superintendência de Gestão de Pessoas", sigla: "SGP", orgao: "SEDUC", tipo: "Superintendência", nivelOrganizacional: "Nível de Execução Programática", localizacao: "Cuiabá/MT", situacao: "ATIVA", dataInicio: "01/01/2020", documentoCriacaoId: "decreto-2185-2026", unidadeSuperior: "Gabinete do Secretário de Estado de Educação", ordem: 1 },
   { id: 9, codigo: "U0103", nome: "Coordenadoria Regional", sigla: "COR", orgao: "SEDUC", tipo: "Coordenadoria", nivelOrganizacional: "Nível de Administração Regionalizada", localizacao: "Rondonópolis/MT", situacao: "ATIVA", dataInicio: "01/01/2020", documentoCriacaoId: "decreto-2185-2026", unidadeSuperior: "Superintendência de Gestão de Pessoas", ordem: 1 },
+  ...criarUnidadesPolitec(10),
 ];
 
 const criarPosicoes = (unidades: UnidadeEstrutural[], versoes: VersaoOrganograma[]) => unidades.map((unidade) => {
@@ -113,8 +135,9 @@ const criarPosicoes = (unidades: UnidadeEstrutural[], versoes: VersaoOrganograma
 
 const criarEstruturaInicial = (unidades = unidadesPadrao): EstruturaOrganizacionalState => {
   const versoes: VersaoOrganograma[] = [
-    { id: "organograma-seplag-2026", orgao: "SEPLAG", nome: "Estrutura Organizacional SEPLAG - 2026", documentoLegalId: "decreto-2185-2026", documentoLegal: "Decreto nº 2.185, de 03/07/2026", inicio: "03/07/2026", situacao: "VIGENTE" },
-    { id: "organograma-seduc-2026", orgao: "SEDUC", nome: "Estrutura Organizacional SEDUC - 2026", documentoLegalId: "decreto-2185-2026", documentoLegal: "Decreto nº 2.185, de 03/07/2026", inicio: "03/07/2026", situacao: "VIGENTE" },
+    { id: "organograma-seplag-2026", orgao: "SEPLAG", codigoOrgao: "001", nome: "Estrutura Organizacional SEPLAG - 2026", documentoLegalId: "decreto-2185-2026", documentoLegal: "Decreto nº 2.185, de 03/07/2026", inicio: "03/07/2026", situacao: "VIGENTE" },
+    { id: "organograma-seduc-2026", orgao: "SEDUC", codigoOrgao: "002", nome: "Estrutura Organizacional SEDUC - 2026", documentoLegalId: "decreto-2185-2026", documentoLegal: "Decreto nº 2.185, de 03/07/2026", inicio: "03/07/2026", situacao: "VIGENTE" },
+    { id: "organograma-politec-2026", orgao: "POLITEC", codigoOrgao: "003", nome: "Estrutura Organizacional da POLITEC - 2026", documentoLegalId: "decreto-2252-2026", documentoLegal: "Decreto nº 2.252/2026", inicio: "11/09/2026", situacao: "VIGENTE" },
   ];
   return { schemaVersion: 1, unidades, versoes, posicoes: criarPosicoes(unidades, versoes), documentosLegais: documentosPadrao, auditoria: [] };
 };
@@ -138,11 +161,28 @@ const normalizarUnidade = (unidade: Partial<UnidadeEstrutural>, indice: number):
   ordem: unidade.ordem ?? indice + 1,
 });
 
+const garantirEstruturaPolitec = (estrutura: EstruturaOrganizacionalState): EstruturaOrganizacionalState => {
+  const documentosLegais = estrutura.documentosLegais.some((documento) => documento.id === "decreto-2252-2026")
+    ? estrutura.documentosLegais
+    : [...estrutura.documentosLegais, documentosPadrao.find((documento) => documento.id === "decreto-2252-2026")!];
+  if (estrutura.versoes.some((versao) => versao.orgao === "POLITEC")) {
+    return documentosLegais === estrutura.documentosLegais ? estrutura : { ...estrutura, documentosLegais };
+  }
+  const unidades = criarUnidadesPolitec(Math.max(0, ...estrutura.unidades.map((unidade) => unidade.id)) + 1);
+  const versao: VersaoOrganograma = { id: "organograma-politec-2026", orgao: "POLITEC", codigoOrgao: "003", nome: "Estrutura Organizacional da POLITEC - 2026", documentoLegalId: "decreto-2252-2026", documentoLegal: "Decreto nº 2.252/2026", inicio: "11/09/2026", situacao: "VIGENTE" };
+  return { ...estrutura, documentosLegais, unidades: [...estrutura.unidades, ...unidades], versoes: [...estrutura.versoes, versao], posicoes: [...estrutura.posicoes, ...criarPosicoes(unidades, [versao])], auditoria: [...estrutura.auditoria, { id: "auditoria-politec-2026", data: new Date().toISOString(), acao: "CADASTRO", descricao: "Cadastro manual da estrutura organizacional da POLITEC com referência no Decreto nº 2.252/2026" }] };
+};
+
 export const lerEstruturaOrganizacional = (): EstruturaOrganizacionalState => {
   if (typeof window === "undefined") return criarEstruturaInicial();
   try {
     const salva = window.localStorage.getItem(CHAVE_ESTRUTURA);
-    if (salva) return JSON.parse(salva) as EstruturaOrganizacionalState;
+    if (salva) {
+      const estruturaLida = JSON.parse(salva) as EstruturaOrganizacionalState;
+      const estrutura = garantirEstruturaPolitec(estruturaLida);
+      if (estrutura !== estruturaLida) window.localStorage.setItem(CHAVE_ESTRUTURA, JSON.stringify(estrutura));
+      return estrutura;
+    }
     const legado = window.localStorage.getItem(CHAVE_LEGADA_UNIDADES);
     const unidades = legado ? (JSON.parse(legado) as Partial<UnidadeEstrutural>[]).map(normalizarUnidade) : unidadesPadrao;
     const estrutura = criarEstruturaInicial(unidades);
@@ -170,6 +210,91 @@ export const gravarUnidadesDaEstrutura = (unidades: UnidadeEstrutural[], acao: E
 
 export const obterVersaoVigente = (estrutura: EstruturaOrganizacionalState, orgao: string) =>
   estrutura.versoes.find((versao) => versao.orgao === orgao && versao.situacao === "VIGENTE");
+
+export const cadastrarOrganograma = (orgao: string, codigoOrgao: string, inicio: string, documentoLegalId: string, nome?: string) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  if (estruturaAtual.versoes.some((versao) => versao.orgao === orgao && versao.situacao === "RASCUNHO")) return { estrutura: estruturaAtual, criado: false };
+  const documento = estruturaAtual.documentosLegais.find((item) => item.id === documentoLegalId);
+  const versao: VersaoOrganograma = {
+    id: `organograma-${orgao.toLowerCase()}-${Date.now()}`,
+    orgao,
+    codigoOrgao,
+    nome: nome?.trim() || `Estrutura Organizacional ${orgao}`,
+    documentoLegalId,
+    documentoLegal: documento?.titulo ?? "Documento legal não informado",
+    inicio,
+    situacao: "RASCUNHO",
+  };
+  const estrutura = { ...estruturaAtual, versoes: [...estruturaAtual.versoes, versao], auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "CADASTRO" as const, descricao: `Cadastro do organograma do órgão ${orgao}` }] };
+  gravarEstruturaOrganizacional(estrutura);
+  return { estrutura, criado: true, versao };
+};
+
+const inserirPosicao = (estrutura: EstruturaOrganizacionalState, versaoId: string, unidadeId: number, superiorId: number | null, ordem: number) => {
+  const irmas = estrutura.posicoes.filter((posicao) => posicao.versaoId === versaoId && posicao.superiorId === superiorId);
+  const ordemInsercao = Math.max(1, Math.min(ordem, irmas.length + 1));
+  const posicoes = estrutura.posicoes.map((posicao) => posicao.versaoId === versaoId && posicao.superiorId === superiorId && posicao.ordem >= ordemInsercao ? { ...posicao, ordem: posicao.ordem + 1 } : posicao);
+  return [...posicoes, { id: `posicao-${versaoId}-${unidadeId}`, versaoId, unidadeId, superiorId, ordem: ordemInsercao, inicio: estrutura.versoes.find((versao) => versao.id === versaoId)?.inicio ?? "" }];
+};
+
+export const vincularUnidadeAoOrganograma = (versaoId: string, unidadeId: number, superiorId: number | null, ordem: number) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  if (estruturaAtual.posicoes.some((posicao) => posicao.versaoId === versaoId && posicao.unidadeId === unidadeId)) return estruturaAtual;
+  const unidade = estruturaAtual.unidades.find((item) => item.id === unidadeId);
+  if (!unidade) return estruturaAtual;
+  const estrutura = { ...estruturaAtual, posicoes: inserirPosicao(estruturaAtual, versaoId, unidadeId, superiorId, ordem), auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "ESTRUTURA" as const, unidadeId, descricao: `Unidade ${unidade.nome} vinculada ao organograma` }] };
+  gravarEstruturaOrganizacional(estrutura);
+  return estrutura;
+};
+
+export const cadastrarUnidadeNoOrganograma = (versaoId: string, dados: Omit<UnidadeEstrutural, "id" | "ordem" | "unidadeSuperior">, superiorId: number | null, ordem: number) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  const id = Math.max(0, ...estruturaAtual.unidades.map((unidade) => unidade.id)) + 1;
+  const unidade: UnidadeEstrutural = { ...dados, id, ordem, codigo: dados.codigo || `U${String(id).padStart(4, "0")}` };
+  const estruturaParcial = { ...estruturaAtual, unidades: [...estruturaAtual.unidades, unidade] };
+  const estrutura = { ...estruturaParcial, posicoes: inserirPosicao(estruturaParcial, versaoId, id, superiorId, ordem), auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "CADASTRO" as const, unidadeId: id, descricao: `Unidade ${unidade.nome} cadastrada no organograma` }] };
+  gravarEstruturaOrganizacional(estrutura);
+  return estrutura;
+};
+
+export const publicarOrganograma = (versaoId: string) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  const rascunho = estruturaAtual.versoes.find((versao) => versao.id === versaoId && versao.situacao === "RASCUNHO");
+  if (!rascunho) return estruturaAtual;
+  const versoes = estruturaAtual.versoes.map((versao) => versao.orgao !== rascunho.orgao ? versao : versao.id === versaoId ? { ...versao, situacao: "VIGENTE" as const } : versao.situacao === "VIGENTE" ? { ...versao, situacao: "ENCERRADA" as const, fim: rascunho.inicio } : versao);
+  const estrutura = { ...estruturaAtual, versoes, auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "ESTRUTURA" as const, descricao: `Publicação do organograma ${rascunho.nome}` }] };
+  gravarEstruturaOrganizacional(estrutura);
+  return estrutura;
+};
+
+export const publicarNovaVersaoOrganograma = (versaoId: string, documentoLegal: string, inicio: string) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  const versaoBase = estruturaAtual.versoes.find((versao) => versao.id === versaoId);
+  if (!versaoBase || !documentoLegal.trim() || !inicio) return { estrutura: estruturaAtual, versao: null };
+  const identificador = Date.now();
+  const ano = inicio.split("/").at(-1) ?? new Date().getFullYear().toString();
+  const documentoLegalId = `ato-organograma-${identificador}`;
+  const novaVersao: VersaoOrganograma = {
+    ...versaoBase,
+    id: `organograma-${versaoBase.orgao.toLowerCase()}-${ano}-v${estruturaAtual.versoes.filter((versao) => versao.orgao === versaoBase.orgao).length + 1}`,
+    documentoLegalId,
+    documentoLegal: documentoLegal.trim(),
+    inicio,
+    fim: undefined,
+    situacao: "VIGENTE",
+  };
+  const versoes = estruturaAtual.versoes.map((versao) => versao.orgao !== versaoBase.orgao ? versao : versao.situacao === "VIGENTE" || versao.id === versaoBase.id ? { ...versao, situacao: "ENCERRADA" as const, fim: inicio } : versao);
+  const posicoes = estruturaAtual.posicoes.filter((posicao) => posicao.versaoId === versaoBase.id).map((posicao) => ({ ...posicao, id: `posicao-${novaVersao.id}-${posicao.unidadeId}`, versaoId: novaVersao.id, inicio, fim: undefined }));
+  const estrutura = {
+    ...estruturaAtual,
+    versoes: [...versoes, novaVersao],
+    posicoes: [...estruturaAtual.posicoes, ...posicoes],
+    documentosLegais: [...estruturaAtual.documentosLegais, { id: documentoLegalId, titulo: documentoLegal.trim(), categoria: "Ato legal", ativo: true }],
+    auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${identificador}`, data: new Date().toISOString(), acao: "ESTRUTURA" as const, descricao: `Publicação da nova versão ${novaVersao.nome} — ${documentoLegal.trim()}` }],
+  };
+  gravarEstruturaOrganizacional(estrutura);
+  return { estrutura, versao: novaVersao };
+};
 
 export const obterUnidadesDaVersao = (estrutura: EstruturaOrganizacionalState, versaoId: string): UnidadeNoOrganograma[] => {
   return estrutura.posicoes

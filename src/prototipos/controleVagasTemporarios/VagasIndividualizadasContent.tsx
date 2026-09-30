@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ModalSeplag, BotaoLimparFiltroSeplag, BotaoVoltarSeplag } from "../../componentes";
+import { TablePaginadoSeplag, type ColumnMetaSeplag } from "../../componentes/TablePaginado";
+import type { ResultsSeplag } from "../../interfaces/Results";
 import { listarQuadrosTemporarios, seletivoTemporario, type QuadroTemporarioCadastro } from "./novoQuadroTemporarioStore";
 import { listarCargosControleVagasTemporarias } from "./cargosTemporariosStore";
 import { useControlePssStore } from "../controlePss/controlePssStore";
@@ -22,6 +24,8 @@ const rotuloOcupacao: Record<SituacaoOcupacao, string> = {
   EM_OCUPACAO: "Em ocupação",
   OCUPADA: "Ocupada",
 };
+const ITENS_POR_PAGINA = 10;
+
 const rotuloLegal: Record<SituacaoLegal, string> = {
   ATIVA: "Ativa",
   EXTINTA: "Extinta",
@@ -38,6 +42,7 @@ export function VagasIndividualizadasContent() {
   const [ocupacao, setOcupacao] = useState("");
   const [situacaoLegal, setSituacaoLegal] = useState("");
   const [selecionada, setSelecionada] = useState<VagaTemporaria | null>(null);
+  const [pagina, setPagina] = useState(0);
 
   const quadro = quadros.find((item) => item.id === quadroId);
   const vagas = useMemo(() => quadro ? gerarVagas(quadro) : [], [quadro]);
@@ -54,7 +59,31 @@ export function VagasIndividualizadasContent() {
   const disponiveis = vagas.filter((vaga) => vaga.situacaoOcupacao === "DISPONIVEL").length;
   const emOcupacao = vagas.filter((vaga) => vaga.situacaoOcupacao === "EM_OCUPACAO").length;
   const ocupadas = vagas.filter((vaga) => vaga.situacaoOcupacao === "OCUPADA").length;
-  const limpar = () => { setOrgao(""); setCodigo(""); setOcupante(""); setOcupacao(""); setSituacaoLegal(""); };
+  const limpar = () => { setOrgao(""); setCodigo(""); setOcupante(""); setOcupacao(""); setSituacaoLegal(""); setPagina(0); };
+  useEffect(() => { setPagina(0); }, [quadroId, orgao, codigo, ocupante, ocupacao, situacaoLegal]);
+  const totalPaginas = Math.max(1, Math.ceil(filtradas.length / ITENS_POR_PAGINA));
+  const paginaAtual = Math.min(pagina, totalPaginas - 1);
+  const resultadoVagas: ResultsSeplag<VagaTemporaria> = {
+    content: filtradas,
+    last: paginaAtual === totalPaginas - 1,
+    totalPages: totalPaginas,
+    pageActual: paginaAtual,
+    sizePage: ITENS_POR_PAGINA,
+    totalRecords: filtradas.length,
+    size: filtradas.length,
+    number: paginaAtual,
+    first: paginaAtual === 0,
+    numberOfElements: filtradas.length,
+    empty: filtradas.length === 0,
+  };
+  const colunas: ColumnMetaSeplag<VagaTemporaria>[] = [
+    { header: "Nome da vaga", field: "codigo", sortable: true, body: (vaga) => <button type="button" className="temporarios-vagas-link" onClick={() => setSelecionada(vaga)}>{vaga.codigo}</button> },
+    { header: "Cargo", field: "cargo", sortable: true, body: () => <><span className="temporarios-vagas-muted">Não definido</span><small>Definido pelo ingresso</small></> },
+    { header: "Órgão de destino", field: "orgaoDestino", sortable: true, body: (vaga) => vaga.orgaoDestino || <span className="temporarios-vagas-muted">Não definido</span> },
+    { header: "Ocupante atual", sortable: false, body: () => <span className="temporarios-vagas-muted">Sem ocupante atual</span> },
+    { header: "Ingresso/ocupação", field: "situacaoOcupacao", sortable: true, body: (vaga) => <OcupacaoBadge situacao={vaga.situacaoOcupacao} /> },
+    { header: "Situação legal", field: "situacaoLegal", sortable: true, body: (vaga) => <LegalBadge situacao={vaga.situacaoLegal} /> },
+  ];
 
   return <main className="temporarios-vagas-page">
     <header className="temporarios-vagas-header">
@@ -77,7 +106,7 @@ export function VagasIndividualizadasContent() {
 
     <section className="temporarios-vagas-card temporarios-vagas-filters-card">
       <div className="temporarios-vagas-filters">
-        <Campo label="Quadro Contratos Temporários"><select value={quadroId} onChange={(event) => { setQuadroId(event.target.value); limpar(); }}><option value="">Selecione</option>{quadros.map((item) => <option key={item.id} value={item.id}>{item.codigo} — {item.certame.nomeEdital}</option>)}</select></Campo>
+        <Campo label="Quadro Contratos Temporários"><select value={quadroId} onChange={(event) => { setQuadroId(event.target.value); limpar(); setPagina(0); }}><option value="">Selecione</option>{quadros.map((item) => <option key={item.id} value={item.id}>{item.codigo} — {item.certame.nomeEdital}</option>)}</select></Campo>
         <Campo label="Órgão de destino"><select value={orgao} disabled={!quadro} onChange={(event) => setOrgao(event.target.value)}><option value="">Todos</option>{orgaos.map((item) => <option key={item}>{item}</option>)}</select></Campo>
         <Campo label="Nome da vaga"><span className="temporarios-vagas-search"><input value={codigo} disabled={!quadro} onChange={(event) => setCodigo(event.target.value)} placeholder="Ex.: QT-00001-001" /><i className="pi pi-search" /></span></Campo>
         <Campo label="Ocupante atual"><span className="temporarios-vagas-search"><input value={ocupante} disabled={!quadro} onChange={(event) => setOcupante(event.target.value)} placeholder="Nome, matrícula ou CPF" /><i className="pi pi-search" /></span></Campo>
@@ -88,7 +117,23 @@ export function VagasIndividualizadasContent() {
     </section>
 
     <section className="temporarios-vagas-card temporarios-vagas-list-card">
-      {!quadro ? <div className="temporarios-vagas-empty" role="status"><i className="pi pi-list" /><div><strong>Selecione um Quadro Contratos Temporários</strong><span>As vagas individualizadas serão apresentadas após a seleção.</span></div></div> : <div className="temporarios-vagas-table-wrap"><table><thead><tr><th>Nome da vaga</th><th>Cargo</th><th>Órgão de destino</th><th>Ocupante atual</th><th>Ingresso/ocupação</th><th>Situação legal</th><th>Ações</th></tr></thead><tbody>{filtradas.map((vaga) => <tr key={vaga.id}><td><button type="button" className="temporarios-vagas-link" onClick={() => setSelecionada(vaga)}>{vaga.codigo}</button></td><td><span className="temporarios-vagas-muted">Não definido</span><small>Definido pelo ingresso</small></td><td>{vaga.orgaoDestino || <span className="temporarios-vagas-muted">Não definido</span>}</td><td><span className="temporarios-vagas-muted">Sem ocupante atual</span></td><td><OcupacaoBadge situacao={vaga.situacaoOcupacao} /></td><td><LegalBadge situacao={vaga.situacaoLegal} /></td><td><button className="temporarios-vagas-view" type="button" aria-label={`Visualizar ${vaga.codigo}`} onClick={() => setSelecionada(vaga)}><i className="pi pi-eye" /></button></td></tr>)}</tbody></table>{!filtradas.length && <p className="temporarios-vagas-no-results">Nenhuma vaga encontrada com os filtros informados.</p>}</div>}
+      {!quadro ? <div className="temporarios-vagas-empty" role="status"><i className="pi pi-list" /><div><strong>Selecione um Quadro Contratos Temporários</strong><span>As vagas individualizadas serão apresentadas após a seleção.</span></div></div> : <TablePaginadoSeplag<VagaTemporaria>
+        id="temporarios-vagas-table"
+        dataKey="id"
+        data={resultadoVagas}
+        rows={ITENS_POR_PAGINA}
+        lazy={false}
+        selectionMode={null}
+        columns={colunas}
+        hasEventoAcao
+        actionHeader="Ações"
+        handleView={setSelecionada}
+        handleEdit={null}
+        handleDelete={null}
+        handleAdicionar={null}
+        handleOnPageChange={(event) => setPagina(event.page ?? 0)}
+        emptyMessage="Nenhuma vaga encontrada com os filtros informados."
+      />}
     </section>
     {selecionada && <DetalheVaga vaga={selecionada} onClose={() => setSelecionada(null)} />}
   </main>;

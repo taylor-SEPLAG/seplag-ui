@@ -72,7 +72,7 @@ export function DropdownFieldSeplag<T extends FieldValues = any>(
               className={classNames("w-full", {
                 "p-invalid": fieldState.error,
               })}
-              style={{ width: "100%" }}
+              style={{ width: "100%", height: "40px" }}
               onChange={(e) => {
                 field.onChange(e.value);
                 onChange?.(e.value);
@@ -93,3 +93,4 @@ export function DropdownFieldSeplag<T extends FieldValues = any>(
 }
 
 export default DropdownFieldSeplag;
+

@@ -14,6 +14,7 @@ import { DateFieldSeplag, DropdownFieldSeplag, TextFieldSeplag } from "../../com
 import { BaseLegalVinculada } from "./BaseLegalVinculada";
 import { listarCargosControleVagasComissionadas } from "./cargosComissionadosStore";
 import { listarPerfisDgaControleVagasComissionadas } from "./perfisDgaStore";
+import { criarSnapshotLimiteDga, obterVigenciaLimiteDga } from "../estruturaOrganizacional/limitesDgaStore";
 import {
   lerRascunhoQuadroComissionado,
   salvarRascunhoQuadroComissionado,
@@ -135,6 +136,9 @@ export function NovoQuadroComissionadoContent() {
   const totais = niveis.reduce((soma, nivel) => somarTotais(nivel.itens, soma), { cargos: 0, funcoes: 0 });
   const simbologias = listarCargosControleVagasComissionadas().map((cargo) => cargo.codigo);
   const resumoSimbologias = simbologias.map((simbologia) => ({ simbologia, ...somarPorSimbologia(niveis, simbologia), perfis: perfisPorSimbologia(niveis, simbologia) }));
+  const vigenciaLimiteDga = useMemo(() => obterVigenciaLimiteDga(orgao, dataVigencia), [orgao, dataVigencia]);
+  const limitePorSimbologia = useMemo(() => new Map(vigenciaLimiteDga?.limites.map((limite) => [limite.simbologia, limite]) ?? []), [vigenciaLimiteDga]);
+  const excessosDga = resumoSimbologias.filter((linha) => { const limite = limitePorSimbologia.get(linha.simbologia); return limite && (linha.cargos > limite.cargos || linha.funcoes > limite.funcoes); });
   const orgaos = ["SEPLAG", "POLITEC", "SESP", "SES", "SEDUC", "SEMA"];
   const quadrosCadastrados = listarQuadrosComissionados();
   const normalizarOrgao = (valor: string) => valor.trim().toLocaleLowerCase("pt-BR");
@@ -162,7 +166,7 @@ export function NovoQuadroComissionadoContent() {
   }, [orgaoSelecionadoJaPossuiQuadro, orgao, setValorVigencia]);
 
   const salvarQuadro = () => {
-    if (dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length) return;
+    if (dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length || !vigenciaLimiteDga || excessosDga.length) return;
     salvarRascunhoQuadroComissionado({
       id: idQuadro,
       nome,
@@ -174,6 +178,7 @@ export function NovoQuadroComissionadoContent() {
       versao: rascunhoInicial?.versao ?? 1,
       versaoAnteriorId: rascunhoInicial?.versaoAnteriorId,
       motivoVersionamento: emVersionamento ? motivoVersionamento.trim() : undefined,
+      limiteDgaSnapshot: criarSnapshotLimiteDga(vigenciaLimiteDga),
       salvoEm: new Date().toISOString(),
     });
     setSalvo(true);
@@ -209,7 +214,7 @@ export function NovoQuadroComissionadoContent() {
       <header><i className="pi pi-building" /><div><h2>Identificação do quadro</h2><p>Selecione o órgão a que pertence o quadro. A fundamentação é informada na Base legal.</p></div></header>
       <div className="nqc-fields">
         <TextFieldSeplag name="nome" control={vigenciaControl} label="Nome do quadro" required cols="12" placeholder="Ex.: Estrutura organizacional da SESP" getFormErrorMessage={() => null} />
-        <DropdownFieldSeplag name="orgao" control={vigenciaControl} label="Órgão" required cols="12" options={opcoesOrgao} optionLabel="label" optionValue="value" onChange={(orgaoSelecionado) => { if (orgaoSelecionado && quadroExistenteDoOrgao(String(orgaoSelecionado))) setValorVigencia("orgao", "", { shouldDirty: true, shouldValidate: true }); }} itemTemplate={(option) => <span className={option.indisponivel ? "prototype-quadro-cargo-indisponivel nqc-orgao-indisponivel" : undefined} aria-label={option.motivoIndisponibilidade || undefined}><span className="prototype-quadro-cargo-indisponivel-label">{option.label}</span>{option.quadroCodigo && <span className="prototype-quadro-cargo-indisponivel-badge">{option.quadroCodigo}</span>}</span>} placeholder="Selecione" getFormErrorMessage={() => null} />
+        <DropdownFieldSeplag name="orgao" control={vigenciaControl} label="Órgão" required cols="12" options={opcoesOrgao} optionLabel="label" optionValue="value" optionDisabled="indisponivel" onChange={(orgaoSelecionado) => { if (orgaoSelecionado && quadroExistenteDoOrgao(String(orgaoSelecionado))) setValorVigencia("orgao", "", { shouldDirty: true, shouldValidate: true }); }} itemTemplate={(option) => option.indisponivel ? <span className="nqc-orgao-com-quadro" aria-label={option.motivoIndisponibilidade}><span>{option.label}</span><small>{option.quadroCodigo}</small></span> : <span>{option.label}</span>} panelClassName="nqc-orgao-dropdown-panel" placeholder="Selecione" getFormErrorMessage={() => null} />
       </div>
     </section>
 
@@ -226,18 +231,21 @@ export function NovoQuadroComissionadoContent() {
     <section className="nqc-card nqc-estrutura">
       <header><i className="pi pi-sitemap" /><div><h2>Estrutura organizacional</h2><p>Adicione os níveis da estrutura. Em cada nível, registre itens, subitens e suas dotações autorizadas.</p></div><div className="nqc-estrutura-acoes"><BotaoVoltarSeplag label="Importar estrutura" icon="pi pi-download" onClick={() => setImportadorAberto(true)} /><BotaoAdicionarSeplag label="Adicionar nível" onClick={() => setNiveis((atual) => [...atual, novoNivel()])} /></div></header>
       {!niveis.length && <div className="nqc-empty"><i className="pi pi-sitemap" /><strong>Nenhum nível cadastrado</strong><span>Comece por um nível, como “Direção Superior” ou “Administração Sistêmica”.</span></div>}
-      <div className="nqc-niveis">{niveis.map((nivel, indice) => <NivelEditor key={nivel.id} nivel={nivel} indice={indice} onChange={(atualizar) => atualizarNivel(nivel.id, atualizar)} onRemove={() => setNiveis((atual) => atual.filter((item) => item.id !== nivel.id))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} />)}</div>
+      <div className="nqc-niveis">{niveis.map((nivel, indice) => <NivelEditor key={nivel.id} nivel={nivel} indice={indice} onChange={(atualizar) => atualizarNivel(nivel.id, atualizar)} onRemove={() => setNiveis((atual) => atual.filter((item) => item.id !== nivel.id))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} limitesPorSimbologia={limitePorSimbologia} resumoPorSimbologia={resumoSimbologias} />)}</div>
     </section>
 
     <section className="nqc-card nqc-resumo">
-      <header><i className="pi pi-chart-bar" /><div><h2>Resumo das dotações</h2><p>Quantitativos autorizados por cargo comissionado.</p></div></header>
+      <header><i className="pi pi-chart-bar" /><div><h2>Resumo</h2><p>Quantitativos autorizados por cargo comissionado.</p></div></header>
+      {!orgao || !dataVigencia ? <div className="nqc-limite-dga-feedback"><i className="pi pi-info-circle" />Selecione o órgão e a data de vigência para consultar os Limites DGA aplicáveis.</div> : !vigenciaLimiteDga ? <div className="nqc-limite-dga-feedback is-blocking"><i className="pi pi-exclamation-triangle" />Não existe uma vigência de Limites DGA para este órgão e competência. O quadro não pode ser salvo.</div> : <div className={`nqc-limite-dga-feedback ${excessosDga.length ? "is-blocking" : ""}`}><i className={excessosDga.length ? "pi pi-exclamation-triangle" : "pi pi-check-circle"} />Limites aplicados: <strong>{vigenciaLimiteDga.documentoLegal}</strong> · vigência desde {vigenciaLimiteDga.inicio}{vigenciaLimiteDga.fim ? ` até ${vigenciaLimiteDga.fim}` : ""}.{excessosDga.length ? ` ${excessosDga.length} DGA(s) excederam o teto legal.` : ""}</div>}
       <div className="nqc-resumo-table-wrap"><table><thead><tr><th>Cargo Comissionado</th><th>Cargo</th><th>Função</th></tr></thead><tbody>{resumoSimbologias.map((linha) => {
         const aberto = simbolosAbertos.includes(linha.simbologia);
+        const limite = limitePorSimbologia.get(linha.simbologia);
+        const excedido = Boolean(limite && (linha.cargos > limite.cargos || linha.funcoes > limite.funcoes));
         const alternar = () => setSimbolosAbertos((atuais) => aberto ? atuais.filter((simbolo) => simbolo !== linha.simbologia) : [...atuais, linha.simbologia]);
         return <Fragment key={linha.simbologia}>
-          <tr className="nqc-resumo-linha-dga">
+          <tr className={`nqc-resumo-linha-dga ${excedido ? "is-excedido" : ""}`}>
             <td><button type="button" className="nqc-resumo-accordion-trigger" onClick={alternar} aria-expanded={aberto} aria-controls={`perfis-${linha.simbologia}`}><i className={aberto ? "pi pi-chevron-down" : "pi pi-chevron-right"} />{linha.simbologia}</button></td>
-            <td>{linha.cargos || "-"}</td><td>{linha.funcoes || "-"}</td>
+            <td><strong>{linha.cargos} / {limite?.cargos ?? "—"}</strong>{limite && <small>{Math.max(0, limite.cargos - linha.cargos) ? `Restam ${Math.max(0, limite.cargos - linha.cargos)}` : "Limite atingido"}</small>}</td><td><strong>{linha.funcoes} / {limite?.funcoes ?? "—"}</strong>{limite && <small>{Math.max(0, limite.funcoes - linha.funcoes) ? `Restam ${Math.max(0, limite.funcoes - linha.funcoes)}` : "Limite atingido"}</small>}</td>
           </tr>
           {aberto && <tr id={`perfis-${linha.simbologia}`} className="nqc-resumo-perfis"><td colSpan={3}>{linha.perfis.length ? <table><thead><tr><th>Perfil Profissional</th><th>Cargo</th><th>Função</th></tr></thead><tbody>{linha.perfis.map((perfil) => <tr key={perfil.nome}><td>{perfil.nome}</td><td>{perfil.cargos || "-"}</td><td>{perfil.funcoes || "-"}</td></tr>)}</tbody></table> : <span>Nenhum perfil associado a este cargo comissionado.</span>}</td></tr>}
         </Fragment>;
@@ -252,26 +260,26 @@ export function NovoQuadroComissionadoContent() {
       </div>
     </ModalSeplag>
 
-    <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow"><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length || dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length > 0 || (emVersionamento && !motivoVersionamento.trim())} onClick={salvarQuadro} /></div></footer>
+    <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow"><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length || dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length > 0 || !vigenciaLimiteDga || excessosDga.length > 0 || (emVersionamento && !motivoVersionamento.trim())} onClick={salvarQuadro} /></div></footer>
     </div>
   </div>;
 }
 
-function NivelEditor({ nivel, indice, onChange, onRemove, simbologias, emVersionamento, dotacoesOriginais }: { nivel: Nivel; indice: number; onChange: (atualizar: (nivel: Nivel) => Nivel) => void; onRemove: () => void; simbologias: string[]; emVersionamento: boolean; dotacoesOriginais: Record<string, Dotacao> }) {
+function NivelEditor({ nivel, indice, onChange, onRemove, simbologias, emVersionamento, dotacoesOriginais, limitesPorSimbologia, resumoPorSimbologia }: { nivel: Nivel; indice: number; onChange: (atualizar: (nivel: Nivel) => Nivel) => void; onRemove: () => void; simbologias: string[]; emVersionamento: boolean; dotacoesOriginais: Record<string, Dotacao>; limitesPorSimbologia: Map<string, { cargos: number; funcoes: number }>; resumoPorSimbologia: { simbologia: string; cargos: number; funcoes: number }[] }) {
   return <article className="nqc-nivel"><div className="nqc-nivel-title"><span>Nível {indice + 1}</span><input value={nivel.nome} onChange={(event) => onChange((atual) => ({ ...atual, nome: event.target.value }))} placeholder="Ex.: Nível de Administração Sistêmica" /><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir nível" tooltip="Excluir nível" onClick={onRemove} /></div>
-    <div className="nqc-nivel-itens">{nivel.itens.map((item) => <ItemEditor key={item.id} item={item} nivel={0} onChange={(atualizar) => onChange((atual) => ({ ...atual, itens: atualizarItem(atual.itens, item.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, itens: excluirItem(atual.itens, item.id) }))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} />)}</div>
+    <div className="nqc-nivel-itens">{nivel.itens.map((item) => <ItemEditor key={item.id} item={item} nivel={0} onChange={(atualizar) => onChange((atual) => ({ ...atual, itens: atualizarItem(atual.itens, item.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, itens: excluirItem(atual.itens, item.id) }))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} limitesPorSimbologia={limitesPorSimbologia} resumoPorSimbologia={resumoPorSimbologia} />)}</div>
     <button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, itens: [...atual.itens, novoItem()] }))}><i className="pi pi-plus" />Adicionar item</button>
   </article>;
 }
-function ItemEditor({ item, nivel, onChange, onRemove, simbologias, emVersionamento, dotacoesOriginais }: { item: ItemEstrutura; nivel: number; onChange: (atualizar: (item: ItemEstrutura) => ItemEstrutura) => void; onRemove: () => void; simbologias: string[]; emVersionamento: boolean; dotacoesOriginais: Record<string, Dotacao> }) {
+function ItemEditor({ item, nivel, onChange, onRemove, simbologias, emVersionamento, dotacoesOriginais, limitesPorSimbologia, resumoPorSimbologia }: { item: ItemEstrutura; nivel: number; onChange: (atualizar: (item: ItemEstrutura) => ItemEstrutura) => void; onRemove: () => void; simbologias: string[]; emVersionamento: boolean; dotacoesOriginais: Record<string, Dotacao>; limitesPorSimbologia: Map<string, { cargos: number; funcoes: number }>; resumoPorSimbologia: { simbologia: string; cargos: number; funcoes: number }[] }) {
   return <article className={"nqc-item nqc-item-" + nivel}><div className="nqc-item-title"><i className={nivel ? "pi pi-angle-right" : "pi pi-folder"} /><input value={item.nome} onChange={(event) => onChange((atual) => ({ ...atual, nome: event.target.value }))} placeholder={nivel ? "Nome do subitem" : "Nome do item"} /><BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir item" tooltip="Excluir item" onClick={onRemove} /></div>
-    <div className="nqc-dotacoes">{item.dotacoes.map((dotacao) => <DotacaoEditor key={dotacao.id} dotacao={dotacao} onChange={(atualizar) => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.map((linha) => linha.id === dotacao.id ? atualizar(linha) : linha) }))} onRemove={() => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.filter((linha) => linha.id !== dotacao.id) }))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} />)}</div>
+    <div className="nqc-dotacoes">{item.dotacoes.map((dotacao) => <DotacaoEditor key={dotacao.id} dotacao={dotacao} onChange={(atualizar) => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.map((linha) => linha.id === dotacao.id ? atualizar(linha) : linha) }))} onRemove={() => onChange((atual) => ({ ...atual, dotacoes: atual.dotacoes.filter((linha) => linha.id !== dotacao.id) }))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} limitesPorSimbologia={limitesPorSimbologia} resumoPorSimbologia={resumoPorSimbologia} />)}</div>
     <div className="nqc-item-actions"><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, dotacoes: [...atual.dotacoes, novaDotacao()] }))}><i className="pi pi-plus" />Adicionar dotação</button><button className="nqc-add-link" type="button" onClick={() => onChange((atual) => ({ ...atual, subitens: [...atual.subitens, novoItem()] }))}><i className="pi pi-plus" />Adicionar subitem</button></div>
-    {item.subitens.map((subitem) => <ItemEditor key={subitem.id} item={subitem} nivel={nivel + 1} onChange={(atualizar) => onChange((atual) => ({ ...atual, subitens: atualizarItem(atual.subitens, subitem.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, subitens: excluirItem(atual.subitens, subitem.id) }))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} />)}
+    {item.subitens.map((subitem) => <ItemEditor key={subitem.id} item={subitem} nivel={nivel + 1} onChange={(atualizar) => onChange((atual) => ({ ...atual, subitens: atualizarItem(atual.subitens, subitem.id, atualizar) }))} onRemove={() => onChange((atual) => ({ ...atual, subitens: excluirItem(atual.subitens, subitem.id) }))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} limitesPorSimbologia={limitesPorSimbologia} resumoPorSimbologia={resumoPorSimbologia} />)}
   </article>;
 }
 
-function DotacaoEditor({ dotacao, onChange, onRemove, simbologias, emVersionamento, dotacoesOriginais }: { dotacao: Dotacao; onChange: (atualizar: (dotacao: Dotacao) => Dotacao) => void; onRemove: () => void; simbologias: string[]; emVersionamento: boolean; dotacoesOriginais: Record<string, Dotacao> }) {
+function DotacaoEditor({ dotacao, onChange, onRemove, simbologias, emVersionamento, dotacoesOriginais, limitesPorSimbologia, resumoPorSimbologia }: { dotacao: Dotacao; onChange: (atualizar: (dotacao: Dotacao) => Dotacao) => void; onRemove: () => void; simbologias: string[]; emVersionamento: boolean; dotacoesOriginais: Record<string, Dotacao>; limitesPorSimbologia: Map<string, { cargos: number; funcoes: number }>; resumoPorSimbologia: { simbologia: string; cargos: number; funcoes: number }[] }) {
   const [mostrarVagasAfetadas, setMostrarVagasAfetadas] = useState(false);
   const atualizar = <K extends keyof Dotacao>(campo: K, valor: Dotacao[K]) => onChange((atual) => ({ ...atual, [campo]: valor }));
   const perfisDga = listarPerfisDgaControleVagasComissionadas();
@@ -285,13 +293,17 @@ function DotacaoEditor({ dotacao, onChange, onRemove, simbologias, emVersionamen
   const excedente = reducaoCargos + reducaoFuncoes;
   const extincaoProgressiva = (reducaoCargos === 0 || dotacao.extincaoProgressivaCargos) && (reducaoFuncoes === 0 || dotacao.extincaoProgressivaFuncoes);
   const vagasAfetadas = Array.from({ length: excedente }, (_, indice) => `${dotacao.simbologia || "Vaga"}-${reducaoFuncoes ? "F" : "C"}-${String((dotacao.funcoes || dotacao.cargos) + indice + 1).padStart(3, "0")}`);
+  const limite = limitesPorSimbologia.get(dotacao.simbologia);
+  const distribuido = resumoPorSimbologia.find((linha) => linha.simbologia === dotacao.simbologia);
+  const excedeuLimite = Boolean(limite && distribuido && (distribuido.cargos > limite.cargos || distribuido.funcoes > limite.funcoes));
 
-  return <div id={`dotacao-${dotacao.id}`} className={`nqc-dotacao ${possuiReducaoComOcupacao ? "nqc-dotacao--reducao" : ""}`}>
-    <label>Perfil Profissional<select value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)}><option value="">Selecione...</option>{perfisDisponiveis.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}</select></label>
+  return <div id={`dotacao-${dotacao.id}`} className={`nqc-dotacao ${possuiReducaoComOcupacao ? "nqc-dotacao--reducao" : ""} ${excedeuLimite ? "nqc-dotacao--limite-excedido" : ""}`}>
     <label>Cargo Comissionado<select value={dotacao.simbologia} onChange={(event) => atualizar("simbologia", event.target.value)}><option value="">Selecione...</option>{simbologias.map((simbolo) => <option key={simbolo}>{simbolo}</option>)}</select></label>
+    <label>Perfil Profissional<select value={dotacao.perfil} onChange={(event) => atualizar("perfil", event.target.value)}><option value="">Selecione...</option>{perfisDisponiveis.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}</select></label>
     <label>Cargos<input type="number" min="0" value={dotacao.cargos} onChange={(event) => atualizar("cargos", Number(event.target.value))} /></label>
     <label>Funções<input type="number" min="0" value={dotacao.funcoes} onChange={(event) => atualizar("funcoes", Number(event.target.value))} /></label>
     <BotaoIconSeplag icon="pi pi-trash" aria-label="Excluir dotação" tooltip="Excluir dotação" onClick={onRemove} />
+    {limite && distribuido && <div className={`nqc-dotacao-limite ${excedeuLimite ? "is-blocking" : ""}`}><i className={excedeuLimite ? "pi pi-exclamation-triangle" : "pi pi-info-circle"} /><span><strong>{dotacao.simbologia}</strong> · Cargo {distribuido.cargos}/{limite.cargos} · Função {distribuido.funcoes}/{limite.funcoes}{excedeuLimite ? " — distribuição acima do limite legal." : ` · Saldo: ${Math.max(0, limite.cargos - distribuido.cargos)} cargo(s) e ${Math.max(0, limite.funcoes - distribuido.funcoes)} função(ões).`}</span></div>}
     {emVersionamento && houveAlteracao && (possuiReducaoComOcupacao ? <div className={`nqc-reducao-alerta ${extincaoProgressiva ? "is-progressive" : ""}`}>
       <i className={extincaoProgressiva ? "pi pi-info-circle" : "pi pi-exclamation-triangle"} />
       <div><strong>{ocupadas.cargos + ocupadas.funcoes} vaga(s) ocupada(s) nesta dotação.</strong><p>A quantidade proposta deixa {excedente} posição(ões) excedente(s). Elas não podem ser extintas enquanto houver ocupação.</p>
@@ -363,6 +375,8 @@ function somarTotais(itens: ItemEstrutura[], acumulado = { cargos: 0, funcoes: 0
     funcoes: total.funcoes + item.dotacoes.reduce((soma, dotacao) => soma + dotacao.funcoes, 0) + somarTotais(item.subitens).funcoes,
   }), acumulado);
 }
+
+
 
 
 

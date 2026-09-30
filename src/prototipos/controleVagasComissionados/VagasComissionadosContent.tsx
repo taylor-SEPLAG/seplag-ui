@@ -23,6 +23,12 @@ export function VagasComissionadosContent() {
           <p>Acompanhe a situação, a ocupação e o histórico de cada vaga.</p>
           <span>Acessar vagas <i className="pi pi-arrow-right" aria-hidden="true" /></span>
         </Link>
+        <Link to={`${BASE}/limites-dga`}>
+          <i className="pi pi-chart-bar" aria-hidden="true" />
+          <h2>Limites de DGA</h2>
+          <p>Gerencie os quantitativos legais por órgão, vigência, cargo em comissão e função de confiança.</p>
+          <span>Acessar limites <i className="pi pi-arrow-right" aria-hidden="true" /></span>
+        </Link>
       </nav>
     </main>
   );
