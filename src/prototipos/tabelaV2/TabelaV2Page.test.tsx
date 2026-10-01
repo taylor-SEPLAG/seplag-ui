@@ -70,6 +70,9 @@ it("cadastra uma exceção compartilhada com perfil e local próprios", () => {
   fireEvent.change(screen.getByLabelText("Perfil Profissional *"), { target: { value: "Auditoria" } });
   expect(screen.queryByPlaceholderText("Buscar lotação")).toBeNull();
   fireEvent.change(screen.getByLabelText("Local de Lotação *"), { target: { value: "Secretaria de Estado de Fazenda (SEFAZ-MT)" } });
+  const horas = screen.getByLabelText("Horas trabalhadas") as HTMLSelectElement;
+  expect([...horas.options].map((option) => option.textContent)).toEqual(["Selecione", "6 horas", "4 horas", "17 horas"]);
+  fireEvent.change(horas, { target: { value: "6h" } });
   fireEvent.change(screen.getByLabelText("Data início da vigência *"), { target: { value: "2026-10-01" } });
   fireEvent.click(screen.getByPlaceholderText("Buscar documentos legais..."));
   fireEvent.click(screen.getByRole("checkbox", { name: /LC.*500/ }));
@@ -81,8 +84,8 @@ it("cadastra uma exceção compartilhada com perfil e local próprios", () => {
   fireEvent.click(screen.getByRole("button", { name: "Salvar Exceção" }));
   fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar cadastro da Exceção" })).getByRole("button", { name: "Confirmar cadastro" }));
   const saved = JSON.parse(window.sessionStorage.getItem("sigep-tabela-v2-v1") || "[]");
-  expect(saved.some((record: { kind: string; perfil: string; local: string; links: unknown[] }) =>
-    record.kind === "excecao" && record.perfil === "Auditoria" && record.local === "Secretaria de Estado de Fazenda (SEFAZ-MT)" && record.links.length === 2)).toBe(true);
+  expect(saved.some((record: { kind: string; perfil: string; local: string; horasTrabalhadas?: string; links: unknown[] }) =>
+    record.kind === "excecao" && record.perfil === "Auditoria" && record.local === "Secretaria de Estado de Fazenda (SEFAZ-MT)" && record.horasTrabalhadas === "6h" && record.links.length === 2)).toBe(true);
 });
 
 it("aplica RGA em lote somente ao vínculo elegível após confirmação", () => {
@@ -399,20 +402,10 @@ it("recalcula a cobertura após alteração dos registros sem recarregar a pági
   expect(within(firstRow).getByText("Pendente")).toBeTruthy();
 });
 
-it("permite expandir os três cenários demonstrativos sem modificar registros", () => {
+it("oculta a demonstração de cobertura e mantém a ação de RGA em lote", () => {
   render(<MemoryRouter initialEntries={[V2_BASE]}><TabelaV2Page /></MemoryRouter>);
-  fireEvent.click(screen.getByRole("button", { name: "Ver demonstração de cobertura" }));
-  const dialog = screen.getByRole("dialog", { name: "Demonstração de cobertura" });
-  expect(within(dialog).getByText("4 de 4 combinações")).toBeTruthy();
-  expect(within(dialog).getByText("3 de 4 combinações")).toBeTruthy();
-  expect(within(dialog).getByText("0 de 6 combinações")).toBeTruthy();
-  for (const name of ["Auditor Fiscal", "Analista Administrativo", "Técnico de Desenvolvimento Econômico"]) {
-    fireEvent.click(within(dialog).getByRole("button", { name: "Expandir demonstração de " + name }));
-    expect(within(dialog).getByRole("region", { name: "Cobertura de " + name })).toBeTruthy();
-  }
-  fireEvent.click(within(dialog).getByRole("button", { name: "Fechar demonstração" }));
-  expect(screen.queryByRole("dialog")).toBeNull();
-  expect(window.sessionStorage.getItem("sigep-tabela-v2-v1")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Ver demonstração de cobertura" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Aplicar RGA em lote" })).toBeTruthy();
 });
 
 it("abre a segunda aba diretamente e preserva os valores ao voltar", () => {

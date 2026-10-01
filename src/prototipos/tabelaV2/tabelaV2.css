@@ -334,7 +334,6 @@
 .v2-page .v2-coverage-details { margin-top: 16px; }
 .v2-page .v2-coverage-demo .v2-coverage-panel { margin: 0; }
 .v2-page .v2-coverage-demo { width: min(1200px, 100%); }
-.v2-page .v2-filter-buttons .v2-coverage-demo-button { margin-left: auto; }
 @media (max-width: 1050px) {
   .v2-page .v2-filter-buttons { flex-wrap: wrap; }
 }

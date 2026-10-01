@@ -63,7 +63,7 @@ export function V2HistoryModal({ record, records, cargo, onClose }: {
             const reference = records.find((item) => item.id === version.proporcional?.referenciaId);
             const info = [
               ["Cargo", cargo.nome], ["Carreira", cargo.carreira], ["Identificador da tabela", v2TableDisplayId(version)],
-              ...(version.kind === "padrao" ? [["Jornada", version.jornada || "—"]] : [["Perfil Profissional", version.perfil || "Todos"], ["Local de Lotação", version.local || "Todos"]]),
+              ...(version.kind === "padrao" ? [["Jornada", version.jornada || "—"]] : [["Perfil Profissional", version.perfil || "Todos"], ["Local de Lotação", version.local || "Todos"], ["Horas trabalhadas", version.horasTrabalhadas || "Todas"]]),
               ["Tipo(s) de Vínculo", version.links.map((link) => link.tipo).join(", ")],
               ["Edital / Processo Seletivo", v2EditalNames(version.editais || []) || "—"],
               ...(cargo.comissionado ? [["Estrutura de Vencimento", v2Structure(version) === "fixo" ? "Valor Fixo" : "Tabela por Nível e Classe"]] : []),

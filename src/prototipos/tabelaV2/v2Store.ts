@@ -29,6 +29,7 @@ export type V2Record = {
   editais?: string[];
   perfil?: string;
   local?: string;
+  horasTrabalhadas?: string;
   inicio: string;
   fim?: string;
   links: V2Link[];
@@ -382,7 +383,7 @@ export const v2Conflicts = (records: V2Record[], input: V2Input, skip?: { record
   input.links.forEach((link) => records.forEach((record) => {
     if (record.kind !== input.kind || record.cargoId !== input.cargoId) return;
     if (input.kind === "padrao" && record.jornada !== input.jornada) return;
-    if (input.kind === "excecao" && (record.perfil || "") !== (input.perfil || "") || input.kind === "excecao" && (record.local || "") !== (input.local || "")) return;
+    if (input.kind === "excecao" && ((record.perfil || "") !== (input.perfil || "") || (record.local || "") !== (input.local || "") || (record.horasTrabalhadas || "") !== (input.horasTrabalhadas || ""))) return;
     record.links.forEach((existing) => {
       if (existing.tipo !== link.tipo) return;
       if (link.tipo === "Contrato Temporário") {
@@ -447,7 +448,7 @@ export const v2Version = (
   if (input.links.length !== selected.length || input.links.some((link) => !selected.includes(link.tipo))) return { ok: false, message: "Os vínculos da nova versão devem coincidir com a seleção." };
   if (!selected.length || selected.some((tipo) => !v2VisibleLinks(source).some((link) => link.tipo === tipo))) return { ok: false, message: "Selecione os vínculos da nova versão." };
   if (input.inicio <= source.inicio) return { ok: false, message: "A nova vigência deve começar após a versão anterior." };
-  if (input.cargoId !== source.cargoId || input.kind !== source.kind || input.jornada !== source.jornada || input.perfil !== source.perfil || input.local !== source.local) return { ok: false, message: "Mantenha a identificação da tabela de origem." };
+  if (input.cargoId !== source.cargoId || input.kind !== source.kind || input.jornada !== source.jornada || input.perfil !== source.perfil || input.local !== source.local || input.horasTrabalhadas !== source.horasTrabalhadas) return { ok: false, message: "Mantenha a identificação da tabela de origem." };
   const error = validateInput(input);
   if (error) return { ok: false, message: error };
   const conflicts = v2Conflicts(records, input, { recordId: source.id, tipos: selected });
@@ -484,17 +485,17 @@ export const v2Version = (
   return { ok: true, records: [...records.map((item) => item.id === source.id ? updatedSource : item), record], record };
 };
 export const v2Applicable = (
-  records: V2Record[], criteria: { cargoId: number; jornada: string; tipo: string; perfil?: string; local?: string }, on: string,
+  records: V2Record[], criteria: { cargoId: number; jornada: string; tipo: string; perfil?: string; local?: string; horasTrabalhadas?: string }, on: string,
 ): V2Record | undefined => {
   const matches = records.filter((record) =>
     record.cargoId === criteria.cargoId &&
     (record.kind === "excecao"
-      ? (!record.perfil || record.perfil === criteria.perfil) && (!record.local || record.local === criteria.local)
+      ? (!record.perfil || record.perfil === criteria.perfil) && (!record.local || record.local === criteria.local) && (!record.horasTrabalhadas || record.horasTrabalhadas === criteria.horasTrabalhadas)
       : record.jornada === criteria.jornada) &&
     record.links.some((link) => link.tipo === criteria.tipo && link.inicio <= on && (!link.fim || link.fim >= on)) &&
     record.inicio <= on && (!record.fim || record.fim >= on));
   return matches.sort((a, b) => {
-    const specificity = (record: V2Record) => record.kind === "padrao" ? 0 : 1 + Number(Boolean(record.perfil)) + Number(Boolean(record.local));
+    const specificity = (record: V2Record) => record.kind === "padrao" ? 0 : 1 + Number(Boolean(record.perfil)) + Number(Boolean(record.local)) + Number(Boolean(record.horasTrabalhadas));
     return specificity(b) - specificity(a) || b.inicio.localeCompare(a.inicio);
   })[0];
 };
