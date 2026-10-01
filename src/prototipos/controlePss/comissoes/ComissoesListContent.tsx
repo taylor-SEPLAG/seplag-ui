@@ -210,7 +210,7 @@ export function ComissoesListContent() {
              <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setComissaoHistoricoId(row.id); }}>
               <i className="pi pi-history" aria-hidden="true" /><span>Histórico</span>
              </button>
-             {podeAlternarStatus && <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setComissaoAlternarStatus(row); }}>
+             {podeAlternarStatus && <button type="button" role="menuitem" className={row.status === "CANCELADA" ? undefined : "is-danger"} onClick={() => { setAcoesMenuAbertoId(null); setComissaoAlternarStatus(row); }}>
               <i className={row.status === "CANCELADA" ? "pi pi-refresh" : "pi pi-ban"} aria-hidden="true" /><span>{row.status === "CANCELADA" ? "Reabrir" : "Cancelar"}</span>
              </button>}
              {row.status === "RASCUNHO" && <button type="button" role="menuitem" className="is-danger" onClick={() => { setAcoesMenuAbertoId(null); setComissaoExcluirId(row.id); }}>
