@@ -277,10 +277,10 @@ function OrganogramaDetalheContent() {
   return (
     <div className="organograma-page organograma-builder-reset">
       <CardSeplag
-        title="Organograma"
+        title="Estrutura e Unidades"
         cols="12"
         cardHeaderClassNames="prototype-carreira-card organograma-card"
-        headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organogramas" }, { label: "Organograma" }]} />}
+        headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Estruturas e Unidades" }, { label: "Estrutura e Unidades" }]} />}
       >
         {modo !== "editar" && <section className="organograma-global-filters" aria-label="Filtros da estrutura organizacional">
           <div className="grid">
@@ -375,7 +375,7 @@ function OrganogramaDetalheContent() {
   return (
     <div className="organograma-page">
       <CardSeplag
-        title="Organograma"
+        title="Estrutura e Unidades"
         cols="12"
         cardHeaderClassNames="prototype-carreira-card organograma-card"
         headerNavigation={
@@ -384,7 +384,7 @@ function OrganogramaDetalheContent() {
             items={[
               { label: "Cadastro" },
               { label: "Estrutura Organizacional" },
-              { label: "Organograma" },
+              { label: "Estrutura e Unidades" },
             ]}
           />
         }
@@ -606,7 +606,7 @@ function OrganogramasListagem() {
     if (!resultado.criado || !resultado.versao) { setErroCadastro("Este órgão já possui um organograma em rascunho. Conclua ou publique essa estrutura antes de criar outro rascunho."); return; }
     setEstrutura(resultado.estrutura); setModalCadastro(false); setErroCadastro(""); navigate(`?modo=detalhe&orgao=${encodeURIComponent(resultado.versao.orgao)}&versao=${encodeURIComponent(resultado.versao.id)}&editar=true`);
   };
-  return <div className="organograma-page organogramas-list-page"><CardSeplag title="Organogramas" cols="12" cardHeaderClassNames="prototype-carreira-card organograma-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organogramas" }]} />}>
+  return <div className="organograma-page organogramas-list-page"><CardSeplag title="Estrutura e Unidades" cols="12" cardHeaderClassNames="prototype-carreira-card organograma-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Estrutura e Unidades" }]} />}>
     <p className="organograma-intro">Consulte e mantenha as estruturas organizacionais cadastradas por órgão ou entidade.</p>
     <div className="prototype-category-filters prototype-cargo-filters grid"><TextFieldSeplag name="codigo" control={control} label="Código do órgão" placeholder="Digite o código" cols="12 6 3" getFormErrorMessage={semErro} /><TextFieldSeplag name="nome" control={control} label="Nome do órgão/entidade" placeholder="Digite o nome ou sigla" cols="12 6 4" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="situacao" control={control} label="Situação" placeholder="Todas" cols="12 6 2" options={[{ label: "Rascunho", value: "RASCUNHO" }, { label: "Vigente", value: "VIGENTE" }, { label: "Encerrada", value: "ENCERRADA" }]} optionLabel="label" optionValue="value" showClear getFormErrorMessage={semErro} /><div className="prototype-category-clear col-12 md:col-6 lg:col-3"><BotaoLimparFiltroSeplag type="button" label="Limpar" icon="pi pi-refresh" onClick={() => { reset({ codigo: "", nome: "", situacao: "" }); setPagina(0); }} /></div></div>
     <div className="organograma-list-summary">{filtrados.length} {filtrados.length === 1 ? "organograma encontrado" : "organogramas encontrados"}</div>
