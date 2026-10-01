@@ -29,6 +29,11 @@ let locais:Local[] = [
  criar("local-010", "2º BATALHÃO BOMBEIRO MILITAR", "Várzea Grande"),
  criar("local-011", "3º BATALHÃO BOMBEIRO MILITAR", "Rondonópolis"),
  criar("local-012", "4º BATALHÃO BOMBEIRO MILITAR", "Sinop"),
+ // Polos com mais de uma cidade — mesmo cenário usado para validar RN015 (campo "Cidade" só
+ // aparece, obrigatório, quando o Polo selecionado tem mais de uma cidade cadastrada).
+ { id:"local-013", nomeLocal:"5º BATALHÃO BOMBEIRO MILITAR", cidade:["Sinop", "Sorriso", "Cláudia", "Itaúba", "Ipiranga do Norte"], estado:"MT", situacao:"ATIVO" },
+ { id:"local-014", nomeLocal:"6º BATALHÃO BOMBEIRO MILITAR", cidade:["Tangará da Serra", "Campo Novo do Parecis", "Comodoro", "Campos de Júlio"], estado:"MT", situacao:"ATIVO" },
+ { id:"local-015", nomeLocal:"7º BATALHÃO BOMBEIRO MILITAR", cidade:["Rondonópolis", "Primavera do Leste", "Jaciara", "Campo Verde", "Guiratinga"], estado:"MT", situacao:"ATIVO" },
 ];
 
 const listeners = new Set<() => void>();
