@@ -272,8 +272,7 @@ function OrganogramaDetalheContent() {
               <strong>{unidade.nome}</strong>
               <span>Nível da unidade: {unidade.nivelOrganizacional.replace("Nível de ", "")}</span>
             </button>
-            <button type="button" className="organograma-builder-add is-right" aria-label="Adicionar unidade no mesmo nível" title="Adicionar unidade no mesmo nível" onClick={() => abrirAdicionar("IRMA", unidade)}><i className="pi pi-plus-circle" /></button>
-            <button type="button" className="organograma-builder-add is-bottom" aria-label="Adicionar unidade abaixo" title="Adicionar unidade abaixo" onClick={() => abrirAdicionar("ABAIXO", unidade)}><i className="pi pi-plus-circle" /></button>
+            {modo === "editar" && <><button type="button" className="organograma-builder-add is-right" aria-label="Adicionar unidade no mesmo nível" title="Adicionar unidade no mesmo nível" onClick={() => abrirAdicionar("IRMA", unidade)}><i className="pi pi-plus-circle" /></button><button type="button" className="organograma-builder-add is-bottom" aria-label="Adicionar unidade abaixo" title="Adicionar unidade abaixo" onClick={() => abrirAdicionar("ABAIXO", unidade)}><i className="pi pi-plus-circle" /></button></>}
           </article>
         </div>
         {filhos.length > 0 && <div className="organograma-builder-children">{filhos.map((filho) => <NoMontagem key={filho.id} unidade={filho} />)}</div>}
@@ -319,9 +318,7 @@ function OrganogramaDetalheContent() {
                 <strong>{orgao}</strong>
                 <span>Nível da unidade: Órgão/Entidade</span>
               </article>
-              <button type="button" className="organograma-root-add is-left" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
-              <button type="button" className="organograma-root-add is-right" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
-              <button type="button" className="organograma-root-add is-bottom" aria-label="Cadastrar unidade abaixo" title="Cadastrar unidade abaixo" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
+              {modo === "editar" && <><button type="button" className="organograma-root-add is-left" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button><button type="button" className="organograma-root-add is-right" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button><button type="button" className="organograma-root-add is-bottom" aria-label="Cadastrar unidade abaixo" title="Cadastrar unidade abaixo" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button></>}
             </div>
             {raizes.length > 0 && <div className="organograma-builder-children organograma-builder-root-children">{raizes.map((unidade) => <NoMontagem key={unidade.id} unidade={unidade} />)}</div>}
           </div> : <section className="organograma-units-list">
