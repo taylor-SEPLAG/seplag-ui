@@ -505,3 +505,22 @@
 .prototype-certame-lei-aplicavel-remover{flex:0 0 auto;align-self:center;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;background:none;color:var(--text-color-secondary);cursor:pointer}
 .prototype-certame-lei-aplicavel-remover:hover,.prototype-certame-lei-aplicavel-remover:focus-visible{color:#d32f2f;outline:0}
 .prototype-certame-lei-aplicavel-remover:focus-visible{outline:2px solid var(--primary-color);outline-offset:-2px;border-radius:4px}
+
+/* Histórico de situações do certame (HistoricoSituacoesCertameModal) — duas colunas, mesmo padrão
+   visual do Histórico de membros da Comissão (ver comissoes.css .prototype-comissoes-historico-*). */
+.prototype-certame-historico-layout{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:1rem;align-items:start}
+@media(max-width:720px){.prototype-certame-historico-layout{grid-template-columns:minmax(0,1fr)}}
+.prototype-certame-historico-lista-bloco{max-height:560px;display:flex;flex-direction:column}
+.prototype-certame-historico-lista{margin:0;padding:0;list-style:none;overflow-y:auto;display:flex;flex-direction:column;gap:.35rem}
+.prototype-certame-historico-item{display:flex;align-items:flex-start;gap:.6rem;width:100%;padding:.55rem .65rem;border:1px solid transparent;border-radius:8px;background:transparent;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.prototype-certame-historico-item:hover{background:var(--surface-50)}
+.prototype-certame-historico-item.is-selected{background:#e9f3fc;border-color:#bcdefc}
+.prototype-certame-historico-icone{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:50%;background:var(--primary-100);color:var(--primary-color);font-size:.82rem;margin-top:.1rem}
+.prototype-certame-historico-item-texto{display:flex;flex-direction:column;min-width:0;gap:.1rem}
+.prototype-certame-historico-item-texto strong{font-size:.85rem;color:var(--text-color)}
+.prototype-certame-historico-item-texto small{color:var(--text-color-secondary);font-size:.72rem}
+.prototype-certame-historico-detalhe{display:flex;flex-direction:column;gap:1rem}
+.prototype-certame-historico-empty{padding:1rem!important;color:var(--text-color-secondary)!important;text-align:center!important}
+.prototype-certame-historico-doc-table{margin-top:.5rem}
+.prototype-certame-historico-doc-table th:last-child,
+.prototype-certame-historico-doc-table td:last-child{width:80px;text-align:right}

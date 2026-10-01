@@ -6,7 +6,7 @@ import { calcularPrazoPrestacaoContas, dataEfeitoAnteriorPublicacao, homologacao
 import { DOCUMENTOS_POR_SITUACAO, SITUACOES_CERTAME } from "./dominios";
 import { BlocoHeader } from "./CertameFormContent";
 import { DocumentosCertameTabela, type DocumentoCertameCatalogoItem, TAMANHO_MAXIMO_DOCUMENTO_CERTAME, arquivoDocumentoCertameValido } from "./DocumentosCertameTabela";
-import type { Certame, DocumentoCertame, SituacaoCertame, TipoDocumentoCertame } from "./types";
+import type { Certame, DocumentoCertame, DocumentoSituacaoCertame, SituacaoCertame, TipoDocumentoCertame } from "./types";
 import { ModalSeplag } from "@componentes/Modal";
 import { MensagemSeplag } from "@componentes/Mensagem";
 import { BotaoSeplag } from "@componentes/Botao";
@@ -91,10 +91,15 @@ export function RegistrarSituacaoCertameModal({ certameId, onClose }:{ certameId
   setErro(null);
   const prazo = calcularPrazoPrestacaoContas(dados.data);
   const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
-  const totalAnexados = catalogoDocumentos?.filter((item) => documentosSituacao[item.tipo as TipoDocumentoCertame]).length ?? 0;
-  const documentoAnexadoResumo = catalogoDocumentos
-   ? (totalAnexados > 0 ? `${totalAnexados} de ${catalogoDocumentos.length} documentos anexados` : undefined)
-   : arquivoSituacao?.nome;
+  // Snapshot dos arquivos desta situação para o Histórico (ver DocumentoSituacaoCertame em types.ts)
+  // — documentos do catálogo que já existiam no certame antes desta sessão (semeados por
+  // arquivosDoCatalogo com conteudoEmBase64 vazio) entram sem conteúdo, só com o nome.
+  const documentosAnexados:readonly DocumentoSituacaoCertame[] = catalogoDocumentos
+   ? catalogoDocumentos
+      .map((item) => documentosSituacao[item.tipo as TipoDocumentoCertame])
+      .filter((arquivo):arquivo is NonNullable<typeof arquivo> => Boolean(arquivo))
+      .map((arquivo) => ({ nome:arquivo.nome, conteudoEmBase64:arquivo.conteudoEmBase64 || undefined }))
+   : (arquivoSituacao ? [{ nome:arquivoSituacao.nome, conteudoEmBase64:arquivoSituacao.conteudoEmBase64 }] : []);
   const documentosAtualizados:readonly DocumentoCertame[] = catalogoDocumentos
    ? (() => {
       const mapa = new Map(certame.documentos.map((doc) => [doc.tipo, doc]));
@@ -105,7 +110,7 @@ export function RegistrarSituacaoCertameModal({ certameId, onClose }:{ certameId
       return Array.from(mapa.values());
      })()
    : certame.documentos;
-  const registro = { id:`SIT-${certame.id}-${certame.historicoSituacoes.length + 1}`, certameId:certame.id, tipo:dados.tipo, dataEfeito:dados.data, registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`, usuario:CONTROLE_PSS_USUARIO_LOGADO, prazoPrestacaoContas:prazo, documentoAnexado:documentoAnexadoResumo, justificativa:catalogoDocumentos ? undefined : dados.justificativa };
+  const registro = { id:`SIT-${certame.id}-${certame.historicoSituacoes.length + 1}`, certameId:certame.id, tipo:dados.tipo, dataEfeito:dados.data, registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`, usuario:CONTROLE_PSS_USUARIO_LOGADO, prazoPrestacaoContas:prazo, documentosAnexados:documentosAnexados.length > 0 ? documentosAnexados : undefined, justificativa:dados.justificativa?.trim() || undefined };
   controlePssStore.set("certames", (atuais) => atuais.map((item) => item.id === certame.id ? { ...item, situacaoAtual:dados.tipo, historicoSituacoes:[...item.historicoSituacoes, registro], documentos:documentosAtualizados, atualizadoEm:dados.data! } : item));
   situacaoForm.reset({ tipo:"HOMOLOGADO", data:"", justificativa:"" });
   setArquivoSituacao(null);
@@ -123,7 +128,7 @@ export function RegistrarSituacaoCertameModal({ certameId, onClose }:{ certameId
      <DropdownFieldSeplag name="tipo" control={situacaoForm.control} label="Nova situação" cols="12 6 6" options={[...OPCOES_NOVA_SITUACAO]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
      <DateFieldSeplag name="data" control={situacaoForm.control} label="Data de efeito" cols="12 6 3" getFormErrorMessage={() => null} />
      {!catalogoDocumentos && <AnexarDocumentoSeplag cols="12 6 3" label="Documento de apoio *" arquivoBase64={arquivoSituacao ?? undefined} onUploadDocument={uploadArquivoSituacao} onRemoveArquivo={() => setArquivoSituacao(null)} handleViewArquivo={() => {}} canView={false} accept="application/pdf" maxFileSize={TAMANHO_MAXIMO_DOCUMENTO_CERTAME} helpText="" chooseIconOnly />}
-     {!catalogoDocumentos && <TextAreaFieldSeplag name="justificativa" control={situacaoForm.control} label="Justificativa" cols="12" rows={3} required getFormErrorMessage={() => null} />}
+     <TextAreaFieldSeplag name="justificativa" control={situacaoForm.control} label="Justificativa" cols="12" rows={3} required={!catalogoDocumentos} getFormErrorMessage={() => null} />
      {catalogoDocumentos && <div className="col-12 prototype-certame-situacao-documentos">
       <span className="prototype-certame-situacao-documentos-titulo">Documentos de {situacaoLabel[tipoSelecionado]}</span>
       <DocumentosCertameTabela key={documentosSituacaoVersao} documentos={catalogoDocumentos} arquivos={documentosSituacao} onChangeArquivo={onChangeArquivoSituacao} documentoObrigatorio={(_tipo, obrigatorioSempre) => obrigatorioSempre} onError={setErro} />
