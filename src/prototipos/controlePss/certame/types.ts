@@ -56,8 +56,14 @@ export interface FaseCertame { readonly ordem:number; nome:string; dataInicio?:s
 export interface DocumentoCertame { readonly tipo:TipoDocumentoCertame; readonly nomeArquivo:string; readonly anexadoEm:string; }
 
 // RN-16: a homologação é o marco do prazo de prestação de contas, distinto da publicação do resultado.
-// documentoAnexado: nome do arquivo anexado quando a situação é alterada manualmente (aba Situações).
-export interface SituacaoHistoricoCertame { readonly id:string; readonly certameId:string; readonly tipo:SituacaoCertame; readonly dataEfeito:string; readonly registradoEm:string; readonly usuario:string; readonly prazoPrestacaoContas?:string; readonly documentoAnexado?:string; readonly justificativa?:string; }
+// Cópia do(s) arquivo(s) anexados no momento desta situação — mesmo padrão de snapshot do Histórico
+// de membros da Comissão (ver comissoes/types.ts HistoricoAlteracaoMembro.arquivo): "Visualizar" no
+// Histórico de situações sempre abre o arquivo como ele estava naquele momento. Documentos vindos do
+// catálogo (Abertura/Retificação de Edital/Homologação/Retificação de Homologação) que já existiam
+// no certame antes desta sessão não têm conteúdo (o protótipo não guarda base64 retroativo) — a
+// linha "Documentos da situação" aparece, mas sem "Visualizar" disponível.
+export interface DocumentoSituacaoCertame { readonly nome:string; readonly conteudoEmBase64?:string; }
+export interface SituacaoHistoricoCertame { readonly id:string; readonly certameId:string; readonly tipo:SituacaoCertame; readonly dataEfeito:string; readonly registradoEm:string; readonly usuario:string; readonly prazoPrestacaoContas?:string; readonly documentosAnexados?:readonly DocumentoSituacaoCertame[]; readonly justificativa?:string; }
 
 export interface Certame {
  readonly id:string;

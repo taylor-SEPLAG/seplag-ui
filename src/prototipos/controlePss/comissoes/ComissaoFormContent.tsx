@@ -190,10 +190,12 @@ export function ComissaoFormContent() {
  // escolhidos de novo na busca — evita duplicar a mesma pessoa na composição.
  const membrosJaAdicionadosIds = useMemo(() => membros.filter((item) => item.id !== membroEmEdicaoId).map((item) => item.servidorId), [membros, membroEmEdicaoId]);
  const servidorSelecionado = servidorSelecionadoId ? SERVIDORES_CADASTRADOS.find((item) => item.id === servidorSelecionadoId) : undefined;
- // Ato de nomeação (Tipo de ato, Número do ato, Data da publicação e Local da publicação) é
- // obrigatório para incluir o membro — é o instrumento legal que formaliza a designação.
- const atoNomeacaoValido = Boolean(membroValores.tipoAto && membroValores.numeroAto.trim() && membroValores.dataPublicacao && membroValores.localPublicacao);
- const podeConfirmarMembro = Boolean(servidorSelecionado) && atoNomeacaoValido;
+ // Início e Fim do mandato são obrigatórios para incluir o membro.
+ const mandatoValido = Boolean(membroValores.inicio && membroValores.fim);
+ // Ato de nomeação (Tipo de ato, Número do ato, Data da publicação, Local da publicação e o PDF do
+ // ato) é obrigatório para incluir o membro — é o instrumento legal que formaliza a designação.
+ const atoNomeacaoValido = Boolean(membroValores.tipoAto && membroValores.numeroAto.trim() && membroValores.dataPublicacao && membroValores.localPublicacao && arquivoAtoPendente);
+ const podeConfirmarMembro = Boolean(servidorSelecionado) && mandatoValido && atoNomeacaoValido;
 
  const abrirNovoMembro = () => {
   setErro(null);
@@ -243,7 +245,8 @@ export function ComissaoFormContent() {
  const confirmarMembro = () => {
   const servidor = servidorSelecionado;
   if (!servidor) { setErro("Selecione um servidor para compor a comissão."); return; }
-  if (!atoNomeacaoValido) { setErro("Preencha os campos obrigatórios do Ato de nomeação (Tipo de ato, Número do ato, Data da publicação e Local da publicação)."); return; }
+  if (!mandatoValido) { setErro("Informe o Início e o Fim do mandato do membro."); return; }
+  if (!atoNomeacaoValido) { setErro("Preencha os campos obrigatórios do Ato de nomeação (Tipo de ato, Número do ato, Data da publicação, Local da publicação e Arquivo do ato de nomeação)."); return; }
   setErro(null);
   const dados = membroForm.getValues();
   const atoNomeacao:AtoNomeacaoMembro = { tipoAto:dados.tipoAto || undefined, numeroAto:dados.numeroAto || undefined, dataPublicacao:dados.dataPublicacao || undefined, localPublicacao:dados.localPublicacao || undefined, arquivo:arquivoAtoPendente };
@@ -343,9 +346,9 @@ export function ComissaoFormContent() {
       <div className="grid">
        <RotuloSeplag nome="Código" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{numeroForm}</div></RotuloSeplag>
        <DropdownFieldSeplag name="tipo" control={control} label="Tipo" required cols="12 6 4" options={TIPOS_COMISSAO} optionLabel="label" optionValue="value" showClear={false} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <DropdownFieldSeplag name="certameId" control={control} label="Edital" cols="12 6 4" options={opcoesConcurso} optionLabel="label" optionValue="value" placeholder="Nenhum edital vinculado" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+       <DropdownFieldSeplag name="certameId" control={control} label="Edital" required cols="12 6 4" options={opcoesConcurso} optionLabel="label" optionValue="value" placeholder="Nenhum edital vinculado" disabled={modoVisualizar} getFormErrorMessage={() => null} />
        <TextFieldSeplag name="nome" control={control} label="Nome da Comissão" required cols="12" placeholder="Nome da comissão" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <TextAreaFieldSeplag name="observacoes" control={control} label="Observações" cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+       <TextAreaFieldSeplag name="observacoes" control={control} label="Observações" required cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
       </div>
      </div>
 
@@ -363,7 +366,7 @@ export function ComissaoFormContent() {
       <BlocoHeader icone="pi-building" titulo="Responsabilidade" subtitulo="Unidades e servidor responsáveis pela comissão." />
       <div className="grid">
        <DropdownFieldSeplag name="orgao" control={control} label="Órgão do Servidor Responsável" required cols="12 6" options={ORGAOS_CERTAME.map((item) => ({ label:item, value:item }))} optionLabel="label" optionValue="value" placeholder="Selecione" showClear={false} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <DropdownFieldSeplag name="vinculoResponsavelId" control={control} label="Servidor responsável" cols="12 6" options={servidoresDoOrgao.map((item) => ({ label:item.nome, value:item.id, matricula:item.matricula }))} optionLabel="label" optionValue="value" filterBy="label,matricula" itemTemplate={(option) => <span>{option.matricula} — {option.label}</span>} placeholder={valores.orgao ? "Selecione o servidor responsável" : "Selecione o Órgão primeiro"} disabled={modoVisualizar || !valores.orgao} getFormErrorMessage={() => null} />
+       <DropdownFieldSeplag name="vinculoResponsavelId" control={control} label="Servidor responsável" required cols="12 6" options={servidoresDoOrgao.map((item) => ({ label:item.nome, value:item.id, matricula:item.matricula }))} optionLabel="label" optionValue="value" filterBy="label,matricula" itemTemplate={(option) => <span>{option.matricula} — {option.label}</span>} placeholder={valores.orgao ? "Selecione o servidor responsável" : "Selecione o Órgão primeiro"} disabled={modoVisualizar || !valores.orgao} getFormErrorMessage={() => null} />
       </div>
      </div>
 
@@ -452,8 +455,8 @@ export function ComissaoFormContent() {
        </>}
      <div className="grid">
       <DropdownFieldSeplag name="cargo" control={membroForm.control} label="Cargo na comissão" required cols="12 4" options={CARGOS_MEMBRO_COMISSAO} optionLabel="label" optionValue="value" showClear={false} disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="inicio" control={membroForm.control} label="Início" cols="12 4" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
-      <DateFieldSeplag name="fim" control={membroForm.control} label="Fim" cols="12 4" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
+      <DateFieldSeplag name="inicio" control={membroForm.control} label="Início" required cols="12 4" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
+      <DateFieldSeplag name="fim" control={membroForm.control} label="Fim" required cols="12 4" disabled={membroSomenteLeitura} getFormErrorMessage={() => null} />
      </div>
     </section>
 
@@ -471,7 +474,7 @@ export function ComissaoFormContent() {
      <small className="prototype-comissoes-kicker">Arquivos</small>
      <div className="prototype-efetivo-exercicio-table-wrap">
      <table className="prototype-simple-table prototype-comissoes-arquivo-table">
-      <thead><tr><th>Arquivo anexado</th><th>Tamanho</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Arquivo anexado <span className="prototype-required-marker">*</span></th><th>Tamanho</th><th>Ações</th></tr></thead>
       <tbody>
        <tr>
         <td>{arquivoAtoPendente?.nome ?? "Nenhum arquivo anexado"}</td>
