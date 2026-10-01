@@ -6,7 +6,7 @@ import { V2HistoryModal } from "./V2History";
 import { V2PageFrame, V2RecordStatus, V2Status, V2Tags } from "./V2Shared";
 import { V2_BASE, V2_CARGOS, v2Date, v2Hours, v2EditalNames, v2TableDisplayId, v2Latest, v2CanVersion, v2Read, v2RecordTypes, v2Status, type V2Cargo, type V2Record } from "./v2Store";
 
-import { V2CoverageDemo, V2CoveragePanel, V2CoverageSummary } from "./V2Coverage";
+import { V2CoveragePanel, V2CoverageSummary } from "./V2Coverage";
 import { v2Coverage, V2_COVERAGE_TOOLTIP } from "./v2CoverageModel";
 
 
@@ -15,7 +15,6 @@ export function V2List() {
   const [params] = useSearchParams();
   const [records, setRecords] = useState(v2Read);
   const [createTable, setCreateTable] = useState<{ cargo: V2Cargo; jornada?: string } | null>(null);
-  const [demoOpen, setDemoOpen] = useState(false);
   useEffect(() => {
     const refresh = () => setRecords(v2Read());
     window.addEventListener("v2-records-updated", refresh);
@@ -73,7 +72,6 @@ export function V2List() {
         <button type="button" className="v2-button-primary v2-clear-filters" onClick={() => setCargoFilter("")}><i className="pi pi-refresh" aria-hidden="true" /> Limpar filtros</button>
       </div>
       <div className="v2-filter-buttons">
-        <button type="button" className="v2-button-secondary v2-coverage-demo-button" onClick={() => setDemoOpen(true)}>Ver demonstração de cobertura</button>
         <button type="button" className="v2-button-primary v2-rga-lote" onClick={() => nav(V2_BASE + "/rga-em-lote")}><i className="pi pi-percentage" /> Aplicar RGA em lote</button>
       </div>
     </div>
@@ -109,12 +107,12 @@ export function V2List() {
             {!rows(cargo, "padrao").length && !missingJourneys(cargo).length && <tr><td colSpan={cargo.comissionado ? 9 : 10} className="v2-empty">{cargo.comissionado ? "Nenhuma tabela encontrada para os filtros informados." : "Sem tabela cadastrada."}</td></tr>}</tbody></table></div>
           <div className="v2-exception-create tv-exception-register-action"><button type="button" className="v2-button-secondary tv-exception-create" onClick={() => nav(V2_BASE + "/excecao/nova?cargo=" + cargo.id)}><i className="pi pi-plus" /> Cadastrar Exceção</button></div>
           <div className="v2-section-head"><h3>Exceções cadastradas</h3></div>
-          <div className="v2-table-wrap"><table className="v2-table v2-inner"><thead><tr><th className="v2-id-cell">ID</th><th>Tipo(s) de Vínculo</th>{!cargo.comissionado && <th>Edital</th>}<th>Perfil Profissional</th><th>Local de Lotação</th><th>Versão</th><th>Ano</th><th>Vigência</th><th>Situação</th><th>Ações</th></tr></thead>
+          <div className="v2-table-wrap"><table className="v2-table v2-inner"><thead><tr><th className="v2-id-cell">ID</th><th>Tipo(s) de Vínculo</th>{!cargo.comissionado && <th>Edital</th>}<th>Perfil Profissional</th><th>Local de Lotação</th><th>Horas trabalhadas</th><th>Versão</th><th>Ano</th><th>Vigência</th><th>Situação</th><th>Ações</th></tr></thead>
             <tbody>{rows(cargo, "excecao").map((record) => <tr key={record.id}><td className="v2-id-cell">{v2TableDisplayId(record)}</td>
-              <td><V2Tags tipos={v2RecordTypes(record)} /></td>{!cargo.comissionado && <td>{record.editais?.length ? <V2Tags tipos={record.editais.map((id) => v2EditalNames([id]))} itemLabel="editais" /> : "—"}</td>}<td>{record.perfil || "Todos"}</td><td>{record.local || "Todos"}</td>
+              <td><V2Tags tipos={v2RecordTypes(record)} /></td>{!cargo.comissionado && <td>{record.editais?.length ? <V2Tags tipos={record.editais.map((id) => v2EditalNames([id]))} itemLabel="editais" /> : "—"}</td>}<td>{record.perfil || "Todos"}</td><td>{record.local || "Todos"}</td><td>{record.horasTrabalhadas || "Todas"}</td>
               <td>{"V" + record.version}</td><td>{record.inicio.slice(0, 4)}</td><td>{v2Date(record.inicio)} – {record.fim ? v2Date(record.fim) : "Atual"}</td>
               <td><V2RecordStatus record={record} /></td><td>{actions(record)}</td>
-            </tr>)}{!rows(cargo, "excecao").length && <tr><td colSpan={cargo.comissionado ? 9 : 10} className="v2-empty">Nenhuma exceção cadastrada.</td></tr>}</tbody></table></div>
+            </tr>)}{!rows(cargo, "excecao").length && <tr><td colSpan={cargo.comissionado ? 10 : 11} className="v2-empty">Nenhuma exceção cadastrada.</td></tr>}</tbody></table></div>
         </div></td></tr>}
       </Fragment>)}</tbody></table></div>
     {!cargos.length && <p className="v2-empty">Nenhum cargo encontrado para os filtros informados.</p>}
@@ -123,7 +121,6 @@ export function V2List() {
       if (referenceId) query.set("referencia", referenceId);
       nav(V2_BASE + "/novo?" + query.toString());
     }} />}
-    {demoOpen && <V2CoverageDemo onClose={() => setDemoOpen(false)} />}
     {modal && <V2HistoryModal record={modal.record} records={records} cargo={V2_CARGOS.find((item) => item.id === modal.record.cargoId)!} onClose={() => setModal(null)} />}
   </V2PageFrame>;
 }

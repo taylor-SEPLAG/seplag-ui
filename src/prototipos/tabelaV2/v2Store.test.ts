@@ -73,6 +73,15 @@ describe("Tabela V2", () => {
     expect(v2Applicable(created.records, { cargoId: 1, jornada: "40 horas", tipo: "Nomeado Efetivo", perfil: "Fiscalização", local: "SEFAZ" }, "2026-11-01")?.kind).toBe("padrao");
   });
 
+  it("aplica exceção com horas trabalhadas somente às horas correspondentes", () => {
+    const exception: V2Input = { ...input, kind: "excecao", cargoId: 1, jornada: undefined, perfil: "Auditoria", local: "SEFAZ", horasTrabalhadas: "6h" };
+    const created = v2Create(v2Seed(), exception);
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(v2Applicable(created.records, { cargoId: 1, jornada: "20 horas", tipo: "Nomeado Efetivo", perfil: "Auditoria", local: "SEFAZ", horasTrabalhadas: "6h" }, "2026-11-01")?.id).toBe(created.record.id);
+    expect(v2Applicable(created.records, { cargoId: 1, jornada: "20 horas", tipo: "Nomeado Efetivo", perfil: "Auditoria", local: "SEFAZ", horasTrabalhadas: "4h" }, "2026-11-01")?.kind).toBe("padrao");
+  });
+
   it("mantém a versão vigente consultável quando já existe uma versão futura", () => {
     const source = v2Seed()[1];
     const future: V2Input = {

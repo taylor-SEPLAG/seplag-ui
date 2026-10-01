@@ -57,3 +57,33 @@ it("permite alterar a origem quando o cadastro não foi aberto pelo ícone do ed
   expect(process.classList.contains("is-selected")).toBe(true);
   expect((screen.getByRole("combobox", { name: /^Processo Seletivo/ }) as HTMLSelectElement).disabled).toBe(false);
 });
+
+
+it("preenche o quadro de vaga do estagiário pelo cargo e impede edição direta", () => {
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo&concurso=Processo%20Seletivo%20SEPLAG%202027&orgao=SEPLAG&origem=edital"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  const cargo = screen.getByRole("combobox", { name: /^Cargo\/Função/ }) as HTMLSelectElement;
+  const quadro = screen.getByRole("textbox", { name: /^Quadro de vaga/ }) as HTMLInputElement;
+  expect(quadro.value).toBe("");
+  expect(quadro.readOnly).toBe(true);
+  fireEvent.change(cargo, { target: { value: "Analista Administrativo - SES" } });
+  expect(quadro.value).toBe("QA-0012");
+  fireEvent.change(cargo, { target: { value: "Analista de Gestão - SES" } });
+  expect(quadro.value).toBe("QA-0013");
+  fireEvent.change(cargo, { target: { value: "" } });
+  expect(quadro.value).toBe("");
+});
+
+it("preenche o quadro de vagas do contrato temporário ao selecionar o processo seletivo", () => {
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  const processo = screen.getByRole("combobox", { name: /^Processo Seletivo/ }) as HTMLSelectElement;
+  expect((screen.getByRole("textbox", { name: /^Quadro de vagas/ }) as HTMLInputElement).value).toBe("");
+  fireEvent.change(processo, { target: { value: "Processo Seletivo SES 2026" } });
+  const quadro = screen.getByRole("textbox", { name: /^Quadro de vagas/ }) as HTMLInputElement;
+  expect(quadro.value).toBe("QA-0012");
+  expect(quadro.readOnly).toBe(true);
+  expect(quadro.closest("section")?.textContent).toContain("Informação do Edital");
+  fireEvent.change(processo, { target: { value: "Processo Seletivo SEDUC 2026" } });
+  expect(quadro.value).toBe("QA-0013");
+  fireEvent.change(processo, { target: { value: "Processo Seletivo SEPLAG 2027" } });
+  expect(screen.queryByRole("textbox", { name: /^Quadro de vagas/ })).toBeNull();
+});

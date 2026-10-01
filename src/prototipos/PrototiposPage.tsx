@@ -13228,7 +13228,7 @@ export function PrototiposIngressosComissionadosPage() {
                       <td>{["Aguardando termo assinado", "Ingresso concluído"].includes(registro.situacao) ? registro.setorLotacao : "-"}</td>
                       <td className="prototype-efetivo-exercicio-situacao-cell">
                         <span className="prototype-efetivo-exercicio-situacao-badge" title={registro.situacao}>
-                          <BadgeSeplag label={registro.situacao} color={badge.color} bg={badge.bg} border="transparent" size="md" />
+                          <BadgeSeplag label={registro.situacao} color={badge.color} bg={badge.bg} border={badge.border} size="md" />
                         </span>
                       </td>
                       <td>
@@ -16839,6 +16839,20 @@ export function PrototiposNovoIngressoPage() {
     "Analista de Gestão - SES": { categoria: "Servidor Público", perfil: "Gestão Administrativa", cbo: "2521-05" },
     "Técnico Administrativo - SES": { categoria: "Servidor Público", perfil: "Não se aplica", cbo: "4110-10" },
   };
+  const quadroVagasPorProcessoSeletivo: Record<string, string> = {
+    "Processo Seletivo SES 2026": "QA-0012",
+    "Processo Seletivo SEDUC 2026": "QA-0013",
+    "Processo Seletivo SEFAZ 2026": "QA-0014",
+  };
+  const quadroVagasContratoTemporario = tipoIngresso === "Processo Seletivo" && tipoVinculoEditavel === "Contrato Temporário"
+    ? quadroVagasPorProcessoSeletivo[concursoSelecionado] ?? ""
+    : "";
+  const quadroVagaEstagioPorCargo: Record<string, string> = {
+    "Analista Administrativo - SES": "QA-0012",
+    "Analista de Gestão - SES": "QA-0013",
+    "Técnico Administrativo - SES": "QA-0014",
+  };
+  const quadroVagaEstagio = vinculoTipoEstagiario ? quadroVagaEstagioPorCargo[cargoSigepEqualizado] ?? "" : "";
   const dadosCargoSigep = cargoSigepEqualizado ? dadosCargoEqualizado[cargoSigepEqualizado] : undefined;
   const cargoPerfilSelecionado =
     tipoIngresso === "Processo Seletivo"
@@ -17143,6 +17157,7 @@ export function PrototiposNovoIngressoPage() {
     isAnaliseDocumentalOutroOrgao ||
     (activeTab === "tipo-ingresso" && (
       !tipoIngresso ||
+      (vinculoTipoEstagiario && !quadroVagaEstagio) ||
       (tipoIngresso === "Processo Seletivo" && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || orgaoDestinoAnalise === (orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial))) ||
       !perfilEspecialidade ||
       ((!vinculoExigeDadosEducacionais || vinculoEstagiario) && tipoIngresso !== "Exclusivo Comissionado" &&
@@ -18669,6 +18684,10 @@ export function PrototiposNovoIngressoPage() {
               <option value="Bolsista">Bolsista</option>
             </select>
           </label>
+          {tipoVinculoEditavel === "Contrato Temporário" ? <label className="prototype-ingresso-field prototype-ingresso-reference-field">
+            <span>Quadro de vagas<em>*</em></span>
+            <input type="text" value={quadroVagasContratoTemporario} readOnly aria-readonly="true" required />
+          </label> : null}
           <div className="prototype-ingresso-field prototype-multiselect-field">
             <span>Órgão Responsável<em>*</em></span>
             <div className="prototype-multiselect">
@@ -18711,6 +18730,10 @@ export function PrototiposNovoIngressoPage() {
               {perfisProfissionaisOptions.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}
             </select>
           </label>
+          {vinculoTipoEstagiario ? <label className="prototype-ingresso-field prototype-ingresso-reference-field">
+            <span>Quadro de vaga<em>*</em></span>
+            <input type="text" value={quadroVagaEstagio} readOnly aria-readonly="true" />
+          </label> : null}
         </div>
       </section>
 
