@@ -1,6 +1,6 @@
 import { unidadesPolitecSeed } from "./politecEstruturaSeed";
 
-export type SituacaoUnidadeEstrutural = "ATIVA" | "INATIVA" | "EXTINTA";
+export type SituacaoUnidadeEstrutural = "ATIVA" | "EM_EXTINCAO" | "INATIVA" | "EXTINTA";
 
 export interface UnidadeEstrutural {
   id: number;
@@ -151,7 +151,7 @@ const normalizarUnidade = (unidade: Partial<UnidadeEstrutural>, indice: number):
   tipo: unidade.tipo ?? "Unidade",
   nivelOrganizacional: unidade.nivelOrganizacional ?? "Nível de Execução Programática",
   localizacao: unidade.localizacao ?? "Cuiabá/MT",
-  situacao: unidade.situacao === "EXTINTA" ? "EXTINTA" : unidade.situacao === "INATIVA" ? "INATIVA" : "ATIVA",
+  situacao: unidade.situacao === "EXTINTA" ? "EXTINTA" : unidade.situacao === "EM_EXTINCAO" ? "EM_EXTINCAO" : unidade.situacao === "INATIVA" ? "INATIVA" : "ATIVA",
   dataInicio: unidade.dataInicio ?? "01/01/2026",
   documentoCriacaoId: unidade.documentoCriacaoId ?? "decreto-2185-2026",
   documentosLegaisCriacaoIds: unidade.documentosLegaisCriacaoIds ?? (unidade.documentoCriacaoId ? [unidade.documentoCriacaoId] : ["decreto-2185-2026"]),
