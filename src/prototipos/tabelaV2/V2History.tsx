@@ -82,7 +82,7 @@ export function V2HistoryModal({ record, records, cargo, onClose }: {
               </tr>
               {expanded && <tr className="tv-history-version-detail-row"><td colSpan={9}><section className="tv-history-version-detail">
                 <header><h3>Tabela de vencimentos — {version.inicio.slice(0, 4)}</h3><div className="tv-history-detail-tags">
-                  {rga && <span className="tv-history-origin-tag rga">RGA · {rga.percent?.toLocaleString("pt-BR") || "—"}%</span>}<V2Status value={v2Status(version)} />
+                  {rga && <span className="tv-history-origin-tag rga">{version.origem === "RGA em lote" ? "RGA em lote" : "RGA"} · {rga.percent?.toLocaleString("pt-BR") || "—"}%</span>}<V2Status value={v2Status(version)} />
                 </div></header>
                 <nav className="tv-tabs" aria-label={"Detalhes da versão " + "V" + version.version}>
                   <button type="button" className={tab === "valores" ? "active" : ""} onClick={() => setTab("valores")}>{version.remuneracao ? "Parâmetros remuneratórios" : "Tabela de valores"}</button>

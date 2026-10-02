@@ -2,7 +2,7 @@ import { cargosComissionadosIniciais } from "../controleVagasComissionados/cargo
 export type V2Remuneracao = { tipo: "subsidio" | "gratificacao"; valor: string; baseCalculo?: string; valorCalculado?: string };
 export type V2Matrix = { columns: string[]; rows: { name: string; values: string[] }[] };
 export type V2Kind = "padrao" | "excecao";
-export type V2Origin = "Manual" | "Referência" | "Proporcional" | "Ajustada manualmente" | "RGA";
+export type V2Origin = "Manual" | "Referência" | "Proporcional" | "Ajustada manualmente" | "RGA" | "RGA em lote";
 export type V2Link = { tipo: string; inicio: string; fim?: string; incideRga: boolean; percentualRga?: string };
 export type V2Event = {
   id: string;
@@ -402,10 +402,11 @@ export const v2Conflicts = (records: V2Record[], input: V2Input, skip?: { record
 };
 const conflictMessage = (tipos: string[]) =>
   "Já existe uma tabela cadastrada para o período informado. Tipo(s) de Vínculo em conflito: " + tipos.join(", ") + ". Revise a seleção ou utilize o versionamento da tabela existente.";
-const validateInput = (input: V2Input): string | null => {
+const validateInput = (input: V2Input, allowMissingInheritedEditais = false): string | null => {
   if (!input.cargoId || !input.links.length || !input.inicio || !input.baseLegal.trim()) return "Preencha os campos obrigatórios.";
   if (input.kind === "padrao" && !input.jornada) return "Selecione a Jornada.";
   if (input.kind === "excecao" && (!input.perfil || !input.local)) return "Selecione Perfil Profissional e Local de Lotação.";
+  if (input.origem !== "RGA" && input.origem !== "RGA em lote" && input.links.some((link) => link.tipo === "Contrato Temporário") && !input.editais?.length && !allowMissingInheritedEditais) return "Selecione ao menos um Edital / Processo Seletivo.";
   if (input.editais?.length && !input.links.some((link) => link.tipo === "Contrato Temporário")) return "Selecione Contrato Temporário para associar editais.";
   if (input.editais && (new Set(input.editais).size !== input.editais.length || input.editais.some((id) => !V2_EDITAIS.some((edital) => edital.id === id && edital.situacao === "Em homologação")))) return "Selecione somente editais em homologação.";
   if (input.fim && input.fim < input.inicio) return "A data de término deve ser posterior à data de início.";
@@ -449,7 +450,7 @@ export const v2Version = (
   if (!selected.length || selected.some((tipo) => !v2VisibleLinks(source).some((link) => link.tipo === tipo))) return { ok: false, message: "Selecione os vínculos da nova versão." };
   if (input.inicio <= source.inicio) return { ok: false, message: "A nova vigência deve começar após a versão anterior." };
   if (input.cargoId !== source.cargoId || input.kind !== source.kind || input.jornada !== source.jornada || input.perfil !== source.perfil || input.local !== source.local || input.horasTrabalhadas !== source.horasTrabalhadas) return { ok: false, message: "Mantenha a identificação da tabela de origem." };
-  const error = validateInput(input);
+  const error = validateInput(input, !source.editais?.length && !input.editais?.length);
   if (error) return { ok: false, message: error };
   const conflicts = v2Conflicts(records, input, { recordId: source.id, tipos: selected });
   if (conflicts.length) return { ok: false, message: conflictMessage(conflicts) };
@@ -500,30 +501,50 @@ export const v2Applicable = (
   })[0];
 };
 export const v2RgaCandidates = (records: V2Record[], on = today()) =>
-  v2Latest(records, "padrao").filter((record) => v2Status(record, on) === "Vigente" &&
-    v2VisibleLinks(record, on).some((link) => link.incideRga));
+  v2Latest(records, "padrao").filter((record) => v2Status(record, on) === "Vigente");
+
 export const v2ApplyRga = (
   records: V2Record[], ids: string[], percent: number, start: string, baseLegal: string, observation: string,
   actor = "Roberto Junior",
 ): { ok: true; records: V2Record[]; created: V2Record[] } | { ok: false; message: string } => {
-  if (!Number.isFinite(percent) || percent <= 0 || !start || !baseLegal.trim() || !ids.length) return { ok: false, message: "Preencha o percentual, a vigência, a Base Legal e selecione ao menos uma tabela." };
+  if (!Number.isFinite(percent) || percent <= 0 || !start || !baseLegal.trim() || !ids.length)
+    return { ok: false, message: "Preencha o percentual, a vigência, a Base Legal e selecione ao menos uma tabela." };
+  if (new Set(ids).size !== ids.length) return { ok: false, message: "Há tabelas selecionadas em duplicidade." };
+  const selectable = new Set(v2RgaCandidates(records).map((record) => record.id));
+  if (ids.some((recordId) => !selectable.has(recordId)))
+    return { ok: false, message: "Uma tabela selecionada não está mais vigente. Revise a seleção." };
   let next = records;
   const created: V2Record[] = [];
   for (const recordId of ids) {
     const source = next.find((record) => record.id === recordId);
-    if (!source || source.kind !== "padrao") return { ok: false, message: "Uma tabela selecionada foi alterada. Revise a seleção." };
-    const eligible = v2VisibleLinks(source).filter((link) => link.incideRga && link.inicio <= start && (!link.fim || link.fim >= start));
-    if (!eligible.length) return { ok: false, message: "A tabela " + source.tableId + " não possui vínculos elegíveis." };
+    if (!source || source.kind !== "padrao" || v2Status(source) !== "Vigente")
+      return { ok: false, message: "Uma tabela selecionada não está mais vigente. Revise a seleção." };
+    const links = v2VisibleLinks(source);
+    if (!links.length || links.some((link) => start < link.inicio || start > (link.fim || source.fim || "9999-12-31")))
+      return { ok: false, message: "A vigência do RGA está fora do período da tabela " + source.tableId + "." };
+    const adjustedAmount = (value: string) => money(Math.round(cents(value) * (1 + percent / 100)));
+    const remuneration = source.remuneracao;
+    const base = remuneration?.baseCalculo ? adjustedAmount(remuneration.baseCalculo) : undefined;
+    const nextRemuneration = remuneration ? remuneration.tipo === "subsidio"
+      ? { ...remuneration, valor: adjustedAmount(remuneration.valor) }
+      : { ...remuneration, baseCalculo: base, valorCalculado: base ? v2CommissionCalculatedValue(base, remuneration.valor) : undefined } : undefined;
+    const matrix = v2RgaMatrix(source.matrix, percent);
+    if (nextRemuneration && matrix.rows[0]?.values.length)
+      matrix.rows[0].values[0] = nextRemuneration.tipo === "subsidio" ? nextRemuneration.valor : nextRemuneration.valorCalculado || matrix.rows[0].values[0];
     const input: V2Input = {
       kind: "padrao", cargoId: source.cargoId, jornada: source.jornada,
-      estrutura: v2Structure(source),
-      editais: eligible.some((link) => link.tipo === "Contrato Temporário") ? source.editais : [],
-      inicio: start, links: eligible.map((link) => ({ ...link, inicio: start, fim: undefined })),
-      matrix: v2RgaMatrix(source.matrix, percent), baseLegal, observacao: observation,
-      origem: "RGA", referencia: source.tableId + " V" + source.version,
+      estrutura: v2Structure(source), editais: source.editais,
+      inicio: start, fim: source.fim,
+      links: links.map((link) => ({ ...link, inicio: start })),
+      matrix, remuneracao: nextRemuneration,
+      baseLegal, observacao: observation, origem: "RGA em lote",
+      referencia: source.tableId + " V" + source.version,
     };
-    const result = v2Version(next, source.id, eligible.map((link) => link.tipo), input, actor, { percent, applicationType: "Em lote" });
+    const result = v2Version(next, source.id, links.map((link) => link.tipo), input, actor, { percent, applicationType: "Em lote" });
     if (!result.ok) return result;
+    result.record.events[0].detail += " Cargo: " + (V2_CARGOS.find((cargo) => cargo.id === source.cargoId)?.nome || source.cargoId) +
+      "; jornada: " + source.jornada + "; vínculos: " + links.map((link) => link.tipo).join(", ") +
+      "; base legal: " + baseLegal + "; observação: " + (observation || "—") + ".";
     next = result.records;
     created.push(result.record);
   }
@@ -575,10 +596,17 @@ export const blankV2Matrix = (): V2Matrix => ({
   rows: ["001", "002"].map((name) => ({ name, values: ["", ""] })),
 });
 
+export const v2UncoveredJourneyTypes = (records: V2Record[], cargo: V2Cargo, jornada: string): string[] => {
+  const covered = new Set(v2Latest(records, "padrao")
+    .filter((record) => record.cargoId === cargo.id && record.jornada === jornada && v2Status(record) !== "Encerrada")
+    .flatMap((record) => record.links.filter((link) => !link.fim || link.fim >= v2Today()).map((link) => link.tipo)));
+  return cargo.vinculos.filter((link) => link.jornadas.includes(jornada) && !covered.has(link.tipo)).map((link) => link.tipo);
+};
+
 export const v2ReferenceCandidates = (records: V2Record[], cargo: V2Cargo, jornada: string) =>
   v2Latest(records, "padrao").filter((record) => {
     if (record.cargoId !== cargo.id || record.origem !== "Referência" || v2Status(record) !== "Vigente" ||
-        !record.jornada || record.jornada === jornada || !cargo.jornadas.includes(jornada)) return false;
+        !record.jornada || !cargo.jornadas.includes(jornada) || !v2UncoveredJourneyTypes(records, cargo, jornada).length) return false;
     const links = v2VisibleLinks(record).filter((link) => link.inicio <= v2Today() && (!link.fim || link.fim >= v2Today()));
     if (!links.length || links.some((link) => !cargo.vinculos.some((item) => item.tipo === link.tipo))) return false;
     return !links.some((link) => link.tipo === "Contrato Temporário") || !record.editais?.some((edital) =>

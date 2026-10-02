@@ -424,3 +424,19 @@
 .v2-page .v2-history-commission-summary td:last-child { text-align: center; }
 .v2-page .v2-history-commission-summary th, .v2-page .v2-history-commission-summary td { padding: 12px; border: 1px solid #dbe3ec; }
 
+
+.v2-status.cálculo-aprovado { border-color: #a8dbc4; background: #edf9f2; color: #21754b; }
+.v2-review-info { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; }
+.v2-review-info i { margin-top: 2px; flex: none; }
+.v2-review-info p { margin: 0; color: inherit; line-height: 1.45; }
+.v2-review-info p + p { margin-top: 5px; }
+.v2-review-section .v2-tag-list { margin: 10px 0 12px; }
+.v2-review-section .v2-draft-actions { margin: 14px 0 0; }
+
+.v2-rga-selection-count { margin: 12px 0 0; font-size: .82rem; font-weight: 700; color: #24435f !important; }
+.v2-rga-preview-values { display: grid; gap: 10px; margin-top: 16px; }
+.v2-rga-preview-values details { border: 1px solid #d6e1ec; border-radius: 4px; background: #fff; }
+.v2-rga-preview-values summary { padding: 11px 13px; cursor: pointer; color: #173451; font-size: .82rem; font-weight: 700; }
+.v2-rga-preview-values details > .v2-table-wrap { margin: 0 12px 12px; width: calc(100% - 24px); }
+
+.v2-page .tv-origin-tag.rga { border-color: #b9d8f4; background: #eaf5ff; color: #066dab; }

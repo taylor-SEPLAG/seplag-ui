@@ -82,9 +82,11 @@ it("exibe aplicação em lote, percentual e diferenças no formato do módulo or
   if (!result.ok) return;
   const version = result.created[0];
   expect(version.events[0].applicationType).toBe("Em lote");
+  expect(version.origem).toBe("RGA em lote");
   render(<V2HistoryModal record={version} records={result.records} cargo={V2_CARGOS[0]} onClose={() => {}} />);
   showHistoryDetails(screen.getAllByRole("button", { name: /detalhes da versão/ })[0]);
   fireEvent.click(screen.getByRole("button", { name: "RGA" }));
+  expect(screen.getByText("Aplicação de RGA em lote")).toBeTruthy();
   expect(screen.getByText("Em lote")).toBeTruthy();
   expect(screen.getAllByText("5,40%").length).toBeGreaterThan(0);
   expect(screen.getByText("Reajuste em lote")).toBeTruthy();
