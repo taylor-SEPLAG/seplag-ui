@@ -44,6 +44,20 @@ it("consulta as versões anteriores e os valores antes e depois da RGA sem alter
   expect(close).toHaveBeenCalledOnce();
 });
 
+it("exibe e permite visualizar a base legal nas informações adicionais", () => {
+  const record = v2Seed()[0];
+  render(<V2HistoryModal record={record} records={[record]} cargo={V2_CARGOS[0]} onClose={() => {}} />);
+  fireEvent.click(screen.getByRole("button", { name: "Expandir detalhes da versão V1" }));
+  fireEvent.click(screen.getByRole("button", { name: "Informações adicionais" }));
+  const legal = screen.getByText("Base legal").parentElement!;
+  expect(within(legal).getByText(record.baseLegal)).toBeTruthy();
+  fireEvent.click(within(legal).getByRole("button", { name: "Visualizar arquivo" }));
+  const preview = screen.getByRole("dialog", { name: "Visualização da Base legal" });
+  expect(within(preview).getAllByText(record.baseLegal).length).toBeGreaterThan(0);
+  fireEvent.click(within(preview).getByRole("button", { name: "Fechar visualização" }));
+  expect(screen.queryByRole("dialog", { name: "Visualização da Base legal" })).toBeNull();
+});
+
 it("pagina as versões e redefine a expansão ao trocar de página", () => {
   const base = v2Seed()[0];
   const records = Array.from({ length: 12 }, (_, index) => ({

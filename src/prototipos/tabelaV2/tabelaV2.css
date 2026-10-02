@@ -440,3 +440,5 @@
 .v2-rga-preview-values details > .v2-table-wrap { margin: 0 12px 12px; width: calc(100% - 24px); }
 
 .v2-page .tv-origin-tag.rga { border-color: #b9d8f4; background: #eaf5ff; color: #066dab; }
+
+.v2-legal-pdf-preview { width: 100%; height: min(70vh, 560px); border: 0; background: #f7f9fb; }

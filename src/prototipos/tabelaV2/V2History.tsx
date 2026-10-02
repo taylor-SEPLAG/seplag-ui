@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState } from "react";
 import { V2RgaHistoryDetails } from "./V2RgaHistoryDetails";
 import { V2CommissionedValuesSummary } from "./V2CommissionedValues";
 import { V2MatrixEditor } from "./V2Fields";
+import { useDocumentosLegais } from "../documentosLegais/documentosLegaisStore";
 import { V2Status } from "./V2Shared";
 import { v2Date, v2CommissionedViewValues, v2TableDisplayId, v2EditalNames, v2Structure, v2Status, v2Versions, type V2Cargo, type V2Record } from "./v2Store";
 import "../tabelaVencimentos/tabelaVencimentosSpacing.css";
@@ -19,6 +20,7 @@ function Values({ record, records }: { record: V2Record; records: V2Record[] }) 
 export function V2HistoryModal({ record, records, cargo, onClose }: {
   record: V2Record; records: V2Record[]; cargo: V2Cargo; onClose: () => void;
 }) {
+  const legalDocuments = useDocumentosLegais();
   const ownVersions = v2Versions(records, record.tableId);
   const priorVersions: V2Record[] = [];
   const visited = new Set(ownVersions.map((item) => item.id));
@@ -34,6 +36,10 @@ export function V2HistoryModal({ record, records, cargo, onClose }: {
   const [tab, setTab] = useState<"valores" | "info" | "rga">("valores");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const [legalPreviewId, setLegalPreviewId] = useState<string | null>(null);
+  const previewVersion = versions.find((version) => version.id === legalPreviewId);
+  const previewDocument = legalDocuments.find((document) => document.id === previewVersion?.baseLegalId);
+  const previewFile = previewDocument?.arquivos[0] || previewDocument?.arquivo;
   const pages = Math.max(1, Math.ceil(versions.length / pageSize));
   useEffect(() => {
     const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { onClose(); } };
@@ -90,7 +96,7 @@ export function V2HistoryModal({ record, records, cargo, onClose }: {
                   {rga && <button type="button" className={tab === "rga" ? "active" : ""} onClick={() => setTab("rga")}>RGA</button>}
                 </nav>
                 {tab === "valores" ? <div className="tv-history-matrix"><Values record={version} records={records} /></div> : tab === "info" ? <div className="tv-history-additional-info">
-                  <div className="tv-history-info-grid">{info.map(([label, value]) => <div key={label} className="tv-history-data-item"><small>{label}</small><strong>{value}</strong></div>)}</div>
+                  <div className="tv-history-info-grid">{info.map(([label, value]) => <div key={label} className="tv-history-data-item"><small>{label}</small>{label === "Base legal" ? <div className="tv-legal-file"><i className="pi pi-file-pdf" aria-hidden="true" /><span>{value}</span>{version.baseLegal && <button type="button" title="Visualizar arquivo" aria-label="Visualizar arquivo" onClick={() => setLegalPreviewId(version.id)}><i className="pi pi-eye" /></button>}</div> : <strong>{value}</strong>}</div>)}</div>
                   <div className="tv-history-info-observation"><small>Observação</small><p>{version.observacao || "—"}</p></div>
                 </div> : rga && <V2RgaHistoryDetails version={version} previous={records.find((item) => item.id === version.previousId)} audit={rga} />}
               </section></td></tr>}
@@ -106,7 +112,13 @@ export function V2HistoryModal({ record, records, cargo, onClose }: {
           <select aria-label="Itens por página" value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); changePage(0); }}>{[10, 20, 50].map((size) => <option key={size}>{size}</option>)}</select>
         </div>
       </div>
-
+      {previewVersion && <div className="tv-legal-preview-overlay" role="presentation" onMouseDown={() => setLegalPreviewId(null)}>
+        <section className="tv-legal-preview" role="dialog" aria-modal="true" aria-label="Visualização da Base legal" onMouseDown={(event) => event.stopPropagation()}>
+          <header><div><h3>Base legal</h3><p>{previewFile?.nome || previewVersion.baseLegal}</p></div><button type="button" aria-label="Fechar visualização" onClick={() => setLegalPreviewId(null)}><i className="pi pi-times" /></button></header>
+          {previewFile?.conteudoEmBase64 ? <iframe className="v2-legal-pdf-preview" title={previewFile.nome} src={"data:" + (previewFile.contentType || "application/pdf") + ";base64," + previewFile.conteudoEmBase64} /> : <div className="tv-legal-preview-content"><i className="pi pi-file-pdf" aria-hidden="true" /><strong>{previewDocument?.titulo || previewVersion.baseLegal}</strong><span>{previewDocument?.descricao || "Pré-visualização do documento de Base legal."}</span></div>}
+          <footer><button type="button" className="v2-button-primary" onClick={() => setLegalPreviewId(null)}>Fechar</button></footer>
+        </section>
+      </div>}
     </section>
   </div>;
 }
