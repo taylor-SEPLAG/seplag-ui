@@ -10,7 +10,7 @@ import { ModalSeplag } from "@componentes/Modal";
 import { PanelSeplag } from "@componentes/PanelSeplag";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "@interfaces/Results";
-import { cadastrarOrganograma, cadastrarUnidadeNoOrganograma, gravarUnidadesDaEstrutura, lerEstruturaOrganizacional, obterUnidadesDaVersao, obterVersaoVigente, publicarNovaVersaoOrganograma, publicarOrganograma, vincularUnidadeAoOrganograma, type VersaoOrganograma, type UnidadeNoOrganograma } from "./estruturaOrganizacionalStore";
+import { cadastrarOrganograma, cadastrarUnidadeNoOrganograma, excluirVersaoOrganograma, gravarUnidadesDaEstrutura, lerEstruturaOrganizacional, obterUnidadesDaVersao, obterVersaoVigente, publicarNovaVersaoOrganograma, publicarOrganograma, vincularUnidadeAoOrganograma, type VersaoOrganograma, type UnidadeNoOrganograma } from "./estruturaOrganizacionalStore";
 import { tiposUnidadesAtivos } from "./tiposUnidadesStore";
 import "./organograma.css";
 import "./organogramaVersion.css";
@@ -88,6 +88,8 @@ function OrganogramaDetalheContent() {
   const [abaEdicao, setAbaEdicao] = useState<"GRAFICA" | "LISTA">("GRAFICA");
   const [modalPublicacao, setModalPublicacao] = useState(false);
   const [modalHistoricoVersoes, setModalHistoricoVersoes] = useState(false);
+  const [modalExcluirEstrutura, setModalExcluirEstrutura] = useState(false);
+  const [acoesUnidadeAbertaId, setAcoesUnidadeAbertaId] = useState<number | null>(null);
   const [erroPublicacao, setErroPublicacao] = useState("");
   const [rascunhoSalvo, setRascunhoSalvo] = useState(false);
   const [erroAdicionar, setErroAdicionar] = useState("");
@@ -245,6 +247,12 @@ function OrganogramaDetalheContent() {
   };
   const abrirPublicacao = () => { resetPublicacao({ documentoLegal: "", inicio: "" }); setErroPublicacao(""); setModalPublicacao(true); };
   const salvarRascunho = () => { setRascunhoSalvo(true); window.setTimeout(() => setRascunhoSalvo(false), 2500); };
+  const confirmarExclusaoEstrutura = () => {
+    if (!versaoSelecionada) return;
+    excluirVersaoOrganograma(versaoSelecionada.id);
+    setModalExcluirEstrutura(false);
+    navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma");
+  };
   const confirmarPublicacao = () => {
     if (!versaoSelecionada) return;
     if (!watchPublicacao("documentoLegal").trim() || !watchPublicacao("inicio")) { setErroPublicacao("Informe o novo ato legal e a data de início da vigência."); return; }
@@ -265,8 +273,7 @@ function OrganogramaDetalheContent() {
               <strong>{unidade.nome}</strong>
               <span>Nível da unidade: {unidade.nivelOrganizacional.replace("Nível de ", "")}</span>
             </button>
-            <button type="button" className="organograma-builder-add is-right" aria-label="Adicionar unidade no mesmo nível" title="Adicionar unidade no mesmo nível" onClick={() => abrirAdicionar("IRMA", unidade)}><i className="pi pi-plus-circle" /></button>
-            <button type="button" className="organograma-builder-add is-bottom" aria-label="Adicionar unidade abaixo" title="Adicionar unidade abaixo" onClick={() => abrirAdicionar("ABAIXO", unidade)}><i className="pi pi-plus-circle" /></button>
+            {modo === "editar" && <><button type="button" className="organograma-builder-add is-right" aria-label="Adicionar unidade no mesmo nível" title="Adicionar unidade no mesmo nível" onClick={() => abrirAdicionar("IRMA", unidade)}><i className="pi pi-plus-circle" /></button><button type="button" className="organograma-builder-add is-bottom" aria-label="Adicionar unidade abaixo" title="Adicionar unidade abaixo" onClick={() => abrirAdicionar("ABAIXO", unidade)}><i className="pi pi-plus-circle" /></button></>}
           </article>
         </div>
         {filhos.length > 0 && <div className="organograma-builder-children">{filhos.map((filho) => <NoMontagem key={filho.id} unidade={filho} />)}</div>}
@@ -277,11 +284,16 @@ function OrganogramaDetalheContent() {
   return (
     <div className="organograma-page organograma-builder-reset">
       <CardSeplag
-        title="Organograma"
+        title={<div className="organograma-page-title"><button type="button" className="organograma-page-back" aria-label="Voltar para Estrutura e Unidades" title="Voltar" onClick={() => navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma")}><i className="pi pi-arrow-left" /></button><span>{modo === "editar" ? "Editar - Estrutura e Unidades" : "Visualizar - Estrutura e Unidades"}</span></div>}
         cols="12"
         cardHeaderClassNames="prototype-carreira-card organograma-card"
-        headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organogramas" }, { label: "Organograma" }]} />}
+        headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Estruturas e Unidades" }, { label: "Estrutura e Unidades" }]} />}
+        actions={modo === "consulta" ? <div className="organograma-page-header-actions"><button type="button" className="organograma-page-action is-history" aria-label="Ver histórico de versões" title="Ver histórico de versões" onClick={() => setModalHistoricoVersoes(true)}><i className="pi pi-history" /></button><button type="button" className="organograma-page-action is-edit" aria-label="Editar estrutura" title="Editar estrutura" onClick={() => setModo("editar")}><i className="pi pi-pencil" /></button><button type="button" className="organograma-page-action is-delete" aria-label="Excluir estrutura" title="Excluir estrutura" onClick={() => setModalExcluirEstrutura(true)}><i className="pi pi-trash" /></button></div> : undefined}
       >
+        <section className="organograma-version-card" aria-label="Versão do organograma">
+          <header><div><strong>{orgao}</strong><span className="organograma-version-mode"><i className={modo === "editar" ? "pi pi-pencil" : "pi pi-eye"} /> {modo === "editar" ? "Modo edição" : "Modo visualização"}</span><label className="organograma-version-select"><i className="pi pi-sitemap" /><select aria-label="Selecionar versão do organograma" value={versaoId} onChange={(event) => { setValue("versaoId", event.target.value); setSelecionada(null); }}>{versoesHistorico.map((versao) => <option key={versao.id} value={versao.id}>{rotuloVersao(versao).replace(" (Atual / Vigente)", " (Vigente)")}</option>)}</select></label></div></header>
+          <div className="organograma-version-actions"><span className="organograma-version-validity"><i className="pi pi-calendar" /> <b>Vigência:</b> {versaoSelecionada?.inicio ?? "Não informada"}{versaoSelecionada?.fim ? ` a ${versaoSelecionada.fim}` : " a Atual"}</span><span className="organograma-version-legal"><i className="pi pi-file" /> {versaoSelecionada?.documentoLegal ?? "Não informado"}</span></div>
+        </section>
         {modo !== "editar" && <section className="organograma-global-filters" aria-label="Filtros da estrutura organizacional">
           <div className="grid">
             <TextFieldSeplag name="codigoUnidade" control={control} label="Código" placeholder="Digite o código" cols="12 6 2" getFormErrorMessage={semErro} />
@@ -293,14 +305,10 @@ function OrganogramaDetalheContent() {
             <div className="col-12 organograma-global-filter-clear"><BotaoLimparFiltroSeplag label="Limpar filtros" icon="pi pi-refresh" onClick={() => { setValue("codigoUnidade", ""); setValue("nomeUnidade", ""); setValue("tipoFiltro", ""); setValue("nivel", "Todos os níveis"); setValue("situacao", ""); setValue("competencia", ""); setValue("busca", ""); }} /></div>
           </div>
         </section>}
-        <section className="organograma-version-card" aria-label="Versão do organograma">
-          <header><div><strong>{orgao}</strong><span className="organograma-version-mode"><i className="pi pi-eye" /> {modo === "editar" ? "Modo edição" : "Modo visualização"}</span><p>Consulte a estrutura organizacional, suas unidades, amparo legal e histórico de versões.</p></div></header>
-          <div className="organograma-version-actions"><label>Versão:<select value={versaoId} onChange={(event) => { setValue("versaoId", event.target.value); setSelecionada(null); }}>{versoesHistorico.map((versao) => <option key={versao.id} value={versao.id}>{rotuloVersao(versao)}</option>)}</select></label><span className="organograma-version-legal"><i className="pi pi-file" /> <b>Amparo legal:</b> {versaoSelecionada?.documentoLegal ?? "Não informado"}</span><BotaoSeplag label="Ver Histórico de Versões" icon="pi pi-history" outlined severity="secondary" onClick={() => setModalHistoricoVersoes(true)} /></div>
-        </section>
-        <PanelSeplag className="organograma-panel">
+        <PanelSeplag className={`organograma-panel ${expandido ? "is-expanded" : ""}`}>
           <div className="organograma-editor-tabs" role="tablist" aria-label="Visualizações do organograma">
-            <button type="button" role="tab" aria-selected={abaEdicao === "GRAFICA"} className={abaEdicao === "GRAFICA" ? "is-active" : ""} onClick={() => setAbaEdicao("GRAFICA")}><i className="pi pi-sitemap" /> Visão gráfica (Árvore)</button>
-            <button type="button" role="tab" aria-selected={abaEdicao === "LISTA"} className={abaEdicao === "LISTA" ? "is-active" : ""} onClick={() => setAbaEdicao("LISTA")}><i className="pi pi-list" /> Lista de Unidades <span>{unidades.length}</span></button>
+            <div className="organograma-editor-tab-list"><button type="button" role="tab" aria-selected={abaEdicao === "GRAFICA"} className={abaEdicao === "GRAFICA" ? "is-active" : ""} onClick={() => setAbaEdicao("GRAFICA")}><i className="pi pi-sitemap" /> Visão gráfica (Árvore)</button><button type="button" role="tab" aria-selected={abaEdicao === "LISTA"} className={abaEdicao === "LISTA" ? "is-active" : ""} onClick={() => setAbaEdicao("LISTA")}><i className="pi pi-list" /> Lista de Unidades <span>{unidades.length}</span></button></div>
+            <div className="organograma-editor-actions"><BotaoSeplag label="Exportar PDF" icon="pi pi-file-pdf" outlined severity="secondary" onClick={exportarPdf} /><BotaoSeplag label={expandido ? "Fechar tela cheia" : "Tela Cheia"} icon={expandido ? "pi pi-times" : "pi pi-window-maximize"} outlined severity="secondary" onClick={() => setExpandido((valor) => !valor)} /></div>
           </div>
           {abaEdicao === "GRAFICA" ? <div className="organograma-clean-canvas organograma-root-stage" aria-label="Área de montagem do organograma">
             <div className="organograma-root-level">Nível 1 — Órgão</div>
@@ -311,13 +319,11 @@ function OrganogramaDetalheContent() {
                 <strong>{orgao}</strong>
                 <span>Nível da unidade: Órgão/Entidade</span>
               </article>
-              <button type="button" className="organograma-root-add is-left" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
-              <button type="button" className="organograma-root-add is-right" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
-              <button type="button" className="organograma-root-add is-bottom" aria-label="Cadastrar unidade abaixo" title="Cadastrar unidade abaixo" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button>
+              {modo === "editar" && <><button type="button" className="organograma-root-add is-left" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button><button type="button" className="organograma-root-add is-right" aria-label="Cadastrar unidade" title="Cadastrar unidade" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button><button type="button" className="organograma-root-add is-bottom" aria-label="Cadastrar unidade abaixo" title="Cadastrar unidade abaixo" onClick={() => { abrirAdicionar("ABAIXO"); setModoAdicionar("NOVA"); }}><i className="pi pi-plus-circle" /></button></>}
             </div>
             {raizes.length > 0 && <div className="organograma-builder-children organograma-builder-root-children">{raizes.map((unidade) => <NoMontagem key={unidade.id} unidade={unidade} />)}</div>}
           </div> : <section className="organograma-units-list">
-            <div className="organograma-units-table-wrap"><table className="organograma-units-table"><thead><tr><th>Código</th><th>Unidade</th><th>Órgão/Entidade</th><th>Tipo</th><th>Nível Organizacional</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{filtradas.map((unidade) => <tr key={unidade.id}><td>{indices.get(unidade.id)}</td><td><strong>{unidade.nome}</strong><small>{unidade.sigla ? `${unidade.sigla} · ` : ""}{unidade.codigo}</small></td><td>{orgaoSelecionado}</td><td><span className="organograma-list-type">{unidade.tipo}</span></td><td>{unidade.nivelOrganizacional}</td><td><BadgeSeplag label={unidade.situacao === "ATIVA" ? "Ativa" : unidade.situacao === "INATIVA" ? "Inativa" : "Extinta"} color={unidade.situacao === "ATIVA" ? "#00843d" : "#64748b"} bg={unidade.situacao === "ATIVA" ? "#e2f3e8" : "#f1f5f9"} border="transparent" size="sm" /></td><td><button type="button" className="organograma-units-view" title="Visualizar unidade" onClick={() => abrirVisualizacao(unidade)}><i className="pi pi-eye" /></button></td></tr>)}{filtradas.length === 0 && <tr><td colSpan={7} className="organograma-units-empty">Nenhuma unidade encontrada.</td></tr>}</tbody></table></div>
+            <div className="organograma-units-table-wrap"><table className="organograma-units-table"><thead><tr><th>Código</th><th>Unidade</th><th>Órgão/Entidade</th><th>Tipo</th><th>Nível Organizacional</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{filtradas.map((unidade) => <tr key={unidade.id}><td>{indices.get(unidade.id)}</td><td><strong>{unidade.nome}</strong><small>{unidade.sigla ? `${unidade.sigla} · ` : ""}{unidade.codigo}</small></td><td>{orgaoSelecionado}</td><td><span className="organograma-list-type">{unidade.tipo}</span></td><td>{unidade.nivelOrganizacional}</td><td><BadgeSeplag label={unidade.situacao === "ATIVA" ? "Ativa" : unidade.situacao === "INATIVA" ? "Inativa" : "Extinta"} color={unidade.situacao === "ATIVA" ? "#00843d" : "#64748b"} bg={unidade.situacao === "ATIVA" ? "#e2f3e8" : "#f1f5f9"} border="transparent" size="sm" /></td><td><div className="organograma-unit-actions"><button type="button" className="organograma-units-view" title="Visualizar unidade" onClick={() => abrirVisualizacao(unidade)}><i className="pi pi-eye" /></button><button type="button" className="organograma-units-more" title="Ações da unidade" aria-label="Ações da unidade" aria-expanded={acoesUnidadeAbertaId === unidade.id} onClick={() => setAcoesUnidadeAbertaId((atual) => atual === unidade.id ? null : unidade.id)}><i className="pi pi-chevron-down" /></button>{acoesUnidadeAbertaId === unidade.id && <div className="organograma-unit-actions-menu" role="menu"><button type="button" role="menuitem" onClick={() => { abrirVisualizacao(unidade); setAcoesUnidadeAbertaId(null); }}><i className="pi pi-eye" /> Visualizar unidade</button>{modo === "editar" && <><button type="button" role="menuitem" onClick={() => { abrirAdicionar("ABAIXO", unidade); setAcoesUnidadeAbertaId(null); }}><i className="pi pi-arrow-down" /> Adicionar unidade abaixo</button><button type="button" role="menuitem" onClick={() => { abrirAdicionar("IRMA", unidade); setAcoesUnidadeAbertaId(null); }}><i className="pi pi-arrows-h" /> Adicionar no mesmo nível</button></>}</div>}</div></td></tr>)}{filtradas.length === 0 && <tr><td colSpan={7} className="organograma-units-empty">Nenhuma unidade encontrada.</td></tr>}</tbody></table></div>
             <p className="organograma-units-summary">Exibindo {filtradas.length} {filtradas.length === 1 ? "unidade" : "unidades"} da estrutura.</p>
           </section>}
         </PanelSeplag>
@@ -325,6 +331,9 @@ function OrganogramaDetalheContent() {
       </CardSeplag>
       <ModalSeplag visible={modalHistoricoVersoes} titulo="Histórico de Versões do Organograma" fechar={() => setModalHistoricoVersoes(false)} hideFooter tamanho="min(920px, calc(100vw - 32px))">
         <section className="organograma-version-history"><table><thead><tr><th>Versão</th><th>Situação</th><th>Amparo Legal da Estrutura</th><th>Vigência</th></tr></thead><tbody>{versoesHistorico.map((versao) => <tr key={versao.id}><td><strong>{rotuloVersao(versao).replace(" (Atual / Vigente)", "")}</strong></td><td><span className={`organograma-version-status is-${versao.situacao.toLowerCase()}`}>{versao.situacao === "VIGENTE" ? "Vigente" : versao.situacao === "RASCUNHO" ? "Rascunho" : "Histórico"}</span></td><td>{versao.documentoLegal}</td><td>{versao.inicio}{versao.fim ? ` — ${versao.fim}` : " — Atual"}</td></tr>)}{versoesHistorico.length === 0 && <tr><td colSpan={4}>Nenhuma versão cadastrada para este órgão.</td></tr>}</tbody></table><footer><BotaoSeplag label="Fechar" outlined severity="secondary" onClick={() => setModalHistoricoVersoes(false)} /></footer></section>
+      </ModalSeplag>
+      <ModalSeplag visible={modalExcluirEstrutura} titulo="Excluir estrutura e unidades" fechar={() => setModalExcluirEstrutura(false)} labelFechar="Cancelar" labelAcao="Excluir estrutura" funcAcao={confirmarExclusaoEstrutura} tamanho="min(34rem, calc(100vw - 32px))">
+        <section className="organograma-delete-structure"><i className="pi pi-exclamation-triangle" /><div><strong>Confirma a exclusão desta estrutura?</strong><p>A versão <b>{versaoSelecionada ? rotuloVersao(versaoSelecionada) : ""}</b> e o posicionamento de suas unidades serão removidos. O cadastro-base das unidades continuará disponível.</p></div></section>
       </ModalSeplag>
       <ModalSeplag visible={modalPublicacao} titulo="Publicar Nova Versão da Estrutura" fechar={() => setModalPublicacao(false)} tamanho="min(35rem, calc(100vw - 32px))" customFooter={<div className="organograma-publicar-footer"><BotaoSeplag label="Cancelar" outlined severity="secondary" onClick={() => setModalPublicacao(false)} /><BotaoSeplag label="Salvar e Aplicar Versionamento" icon="pi pi-check" onClick={confirmarPublicacao} /></div>}>
         <div className="grid organograma-publicar-modal">
@@ -375,7 +384,7 @@ function OrganogramaDetalheContent() {
   return (
     <div className="organograma-page">
       <CardSeplag
-        title="Organograma"
+        title="Estrutura e Unidades"
         cols="12"
         cardHeaderClassNames="prototype-carreira-card organograma-card"
         headerNavigation={
@@ -384,7 +393,7 @@ function OrganogramaDetalheContent() {
             items={[
               { label: "Cadastro" },
               { label: "Estrutura Organizacional" },
-              { label: "Organograma" },
+              { label: "Estrutura e Unidades" },
             ]}
           />
         }
@@ -606,7 +615,7 @@ function OrganogramasListagem() {
     if (!resultado.criado || !resultado.versao) { setErroCadastro("Este órgão já possui um organograma em rascunho. Conclua ou publique essa estrutura antes de criar outro rascunho."); return; }
     setEstrutura(resultado.estrutura); setModalCadastro(false); setErroCadastro(""); navigate(`?modo=detalhe&orgao=${encodeURIComponent(resultado.versao.orgao)}&versao=${encodeURIComponent(resultado.versao.id)}&editar=true`);
   };
-  return <div className="organograma-page organogramas-list-page"><CardSeplag title="Organogramas" cols="12" cardHeaderClassNames="prototype-carreira-card organograma-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Organogramas" }]} />}>
+  return <div className="organograma-page organogramas-list-page"><CardSeplag title="Estrutura e Unidades" cols="12" cardHeaderClassNames="prototype-carreira-card organograma-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Estrutura e Unidades" }]} />}>
     <p className="organograma-intro">Consulte e mantenha as estruturas organizacionais cadastradas por órgão ou entidade.</p>
     <div className="prototype-category-filters prototype-cargo-filters grid"><TextFieldSeplag name="codigo" control={control} label="Código do órgão" placeholder="Digite o código" cols="12 6 3" getFormErrorMessage={semErro} /><TextFieldSeplag name="nome" control={control} label="Nome do órgão/entidade" placeholder="Digite o nome ou sigla" cols="12 6 4" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="situacao" control={control} label="Situação" placeholder="Todas" cols="12 6 2" options={[{ label: "Rascunho", value: "RASCUNHO" }, { label: "Vigente", value: "VIGENTE" }, { label: "Encerrada", value: "ENCERRADA" }]} optionLabel="label" optionValue="value" showClear getFormErrorMessage={semErro} /><div className="prototype-category-clear col-12 md:col-6 lg:col-3"><BotaoLimparFiltroSeplag type="button" label="Limpar" icon="pi pi-refresh" onClick={() => { reset({ codigo: "", nome: "", situacao: "" }); setPagina(0); }} /></div></div>
     <div className="organograma-list-summary">{filtrados.length} {filtrados.length === 1 ? "organograma encontrado" : "organogramas encontrados"}</div>

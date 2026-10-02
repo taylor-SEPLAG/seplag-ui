@@ -296,7 +296,10 @@ const versaoAnteriorDoQuadro = (
   id: item.id,
   versao: item.versao,
   cargo: item.cargo,
-  orgao: item.orgao,
+  orgao:
+    item.formaDestinacaoLegal === "DISTRIBUICAO_POSTERIOR"
+      ? "Distribuição posterior"
+      : resumoOrgaos(item),
   autorizadas: item.autorizadas,
   vigencia: formatarVigenciaVersao(item),
   encerradaEm:
@@ -972,7 +975,7 @@ function QuadroAutorizadoLista() {
                     <tr>
                       <th>Versão</th>
                       <th>Cargo</th>
-                      <th>Órgão</th>
+                    <th>Destinação legal</th>
                       <th>Vigência</th>
                       <th>Autorizadas</th>
                       <th>Evolução</th>

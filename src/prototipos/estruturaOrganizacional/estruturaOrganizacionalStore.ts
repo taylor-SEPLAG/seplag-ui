@@ -230,6 +230,29 @@ export const cadastrarOrganograma = (orgao: string, codigoOrgao: string, inicio:
   return { estrutura, criado: true, versao };
 };
 
+export const excluirVersaoOrganograma = (versaoId: string) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  const versao = estruturaAtual.versoes.find((item) => item.id === versaoId);
+  if (!versao) return estruturaAtual;
+
+  const estrutura = {
+    ...estruturaAtual,
+    versoes: estruturaAtual.versoes.filter((item) => item.id !== versaoId),
+    posicoes: estruturaAtual.posicoes.filter((posicao) => posicao.versaoId !== versaoId),
+    auditoria: [
+      ...estruturaAtual.auditoria,
+      {
+        id: `auditoria-${Date.now()}`,
+        data: new Date().toISOString(),
+        acao: "ESTRUTURA" as const,
+        descricao: `Exclusão da estrutura ${versao.nome}`,
+      },
+    ],
+  };
+  gravarEstruturaOrganizacional(estrutura);
+  return estrutura;
+};
+
 const inserirPosicao = (estrutura: EstruturaOrganizacionalState, versaoId: string, unidadeId: number, superiorId: number | null, ordem: number) => {
   const irmas = estrutura.posicoes.filter((posicao) => posicao.versaoId === versaoId && posicao.superiorId === superiorId);
   const ordemInsercao = Math.max(1, Math.min(ordem, irmas.length + 1));
