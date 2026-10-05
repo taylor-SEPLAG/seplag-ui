@@ -1060,7 +1060,6 @@ interface TipoVinculoForm {
   geraVinculoFuncional?: "S" | "N";
   exigeCargo?: "S" | "N";
   exigeVaga?: "S" | "N";
-  permiteControleVagas?: "S" | "N";
   permiteAcumuloVinculo?: "S" | "N";
   vinculosAcumulaveis?: number[];
   exigeCarreira?: "S" | "N";
@@ -1300,7 +1299,6 @@ interface TipoVinculoTesteRow {
   instituicao: string;
   instituicoesVinculadas: number;
   comportamentos: string[];
-  tipoControleVagas?: string;
   vinculosAcumulaveis?: number[];
   regimesJuridicos: string[];
   vigencia: string;
@@ -9393,7 +9391,6 @@ export function PrototiposCargoFormPage({
   const carreirasPorTipoVinculo = watch("carreirasPorTipoVinculo") ?? {};
   const idsPerfisSelecionados = watch("perfisEspecialidades") ?? [];
   const perfisSelecionadosCargo = perfisEspecialidadesMock.filter((perfil) => idsPerfisSelecionados.includes(perfil.id));
-  const permiteAcumuloCargo = watch("permiteAcumuloCargo") === "S";
   useEffect(() => {
     const codigosSelecionados = new Set(tiposVinculoSelecionados);
     const carreirasAtualizadas = Object.fromEntries(Object.entries(carreirasPorTipoVinculo).filter(([codigoVinculo]) => codigosSelecionados.has(codigoVinculo)));
@@ -9555,25 +9552,6 @@ export function PrototiposCargoFormPage({
                 <span>Permite definir os cargos que podem ser acumulados com este cargo.</span>
               </div>
             </div>
-            {permiteAcumuloCargo ? (
-              <div className="grid prototype-carreira-register-fields">
-                <MultiSelectFieldSeplag
-                  name="cargosAcumulaveis"
-                  control={control}
-                  label="Cargos permitidos para acúmulo"
-                  placeholder="Selecione um ou mais cargos"
-                  cols="12"
-                  required
-                  options={cargosTesteMock
-                    .filter((cargo) => cargo.id !== cargoEmEdicao?.id)
-                    .map((cargo) => ({ label: cargo.cargo, value: cargo.id }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  getFormErrorMessage={() => null}
-                />
-                <small className="col-12">A permissão é bidirecional: o cargo selecionado também passará a permitir acúmulo com este cargo.</small>
-              </div>
-            ) : null}
           </section>
 
           <section className="prototype-carreira-register-section">
@@ -11619,7 +11597,6 @@ export function PrototiposTipoVinculoTesteFormPage({
       geraVinculoFuncional: "S",
       exigeCargo: "S",
       exigeVaga: "N",
-      permiteControleVagas: tipoEmEdicao?.comportamentos.some((item) => item === "Permite controle de vagas" || item === "Permite controle de Vagas Efetivos") ? "S" : "N",
       permiteAcumuloVinculo: tipoEmEdicao?.comportamentos.includes("Permite acúmulo de vínculo") ? "S" : "N",
       vinculosAcumulaveis: tipoEmEdicao?.vinculosAcumulaveis ?? [],
       exigeCarreira: tipoEmEdicao?.comportamentos.includes("Exige Carreira") ? "S" : "N",
@@ -11645,11 +11622,6 @@ export function PrototiposTipoVinculoTesteFormPage({
     descricao: string;
   }> = [
     {
-      name: "permiteControleVagas",
-      titulo: "Permite controle de Vagas Efetivos?",
-      descricao: "Habilita o tipo de vínculo no controle de vagas de servidores efetivos.",
-    },
-    {
       name: "permiteAcumuloVinculo",
       titulo: "Permite acúmulo de vínculo?",
       descricao: "Permite definir os tipos de vínculo que podem ser acumulados com este vínculo.",
@@ -11672,7 +11644,6 @@ export function PrototiposTipoVinculoTesteFormPage({
   ];
   const inicioVigencia = watch("dataAtivacao") ?? "";
   const dataEncerramento = watch("dataEncerramento") ?? "";
-  const permiteAcumuloVinculo = watch("permiteAcumuloVinculo") === "S";
   const inicioVigenciaIso = carreiraDataParaIso(inicioVigencia);
   const encerramentoIso = carreiraDataParaIso(dataEncerramento);
   const hojeIso = new Date().toISOString().slice(0, 10);
@@ -11703,7 +11674,6 @@ export function PrototiposTipoVinculoTesteFormPage({
       instituicao: tipoEmEdicao?.instituicao ?? "govmt",
       instituicoesVinculadas: tipoEmEdicao?.instituicoesVinculadas ?? 1,
       comportamentos: comportamentosSelecionados,
-      tipoControleVagas: values.permiteControleVagas === "S" ? "VAGAS_EFETIVOS" : "",
       vinculosAcumulaveis,
       regimesJuridicos: values.regimesJuridicos ?? [],
       vigencia: `${values.dataAtivacao ?? ""} - ${values.dataEncerramento ?? ""}`.trim(),
@@ -11801,25 +11771,6 @@ export function PrototiposTipoVinculoTesteFormPage({
                 </div>
               ))}
             </div>
-            {permiteAcumuloVinculo ? (
-              <div className="grid prototype-carreira-register-fields">
-                <MultiSelectFieldSeplag
-                  name="vinculosAcumulaveis"
-                  control={control}
-                  label="Tipos de vínculo permitidos para acúmulo"
-                  placeholder="Selecione um ou mais tipos de vínculo"
-                  cols="12"
-                  required
-                  options={tiposVinculoTesteMock
-                    .filter((item) => item.id !== tipoEmEdicao?.id)
-                    .map((item) => ({ label: item.nome, value: item.id }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  getFormErrorMessage={() => null}
-                />
-                <small className="col-12">A permissão é bidirecional: o vínculo selecionado também passará a permitir acúmulo com este tipo.</small>
-              </div>
-            ) : null}
           </section>
 
           <section className="prototype-carreira-register-section">

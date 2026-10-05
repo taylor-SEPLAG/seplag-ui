@@ -149,6 +149,18 @@ Nome | Tipo | Editável | Obrigatório | Tamanho | Orientações/Observações
 
 Preencher somente o conteúdo das linhas editáveis. Não alterar os cabeçalhos.
 
+### Regra obrigatória de formato
+
+A seção **Descrição da tela** deve ser sempre apresentada e atualizada em formato de tabela. Não descrever campos, blocos ou comportamentos dessa seção como lista de tópicos ou texto corrido, mesmo quando a atualização for solicitada apenas no chat.
+
+Ao propor uma alteração de US no chat, apresentar somente as linhas que devem ser incluídas, removidas ou substituídas na tabela do grupo correspondente, usando as mesmas colunas do modelo:
+
+```text
+Nome | Tipo | Editável | Obrigatório | Tamanho | Orientações/Observações
+```
+
+Se a alteração criar um novo bloco, informar o título `Descrição da tela - Grupo: [Nome do Grupo]` e fornecer a tabela completa desse novo grupo. Se a alteração atingir um bloco existente, identificar a linha atual e a linha substituta, sem converter a seção para narrativa.
+
 ## Mensagens e confirmações
 
 O grupo deve manter o nome:
