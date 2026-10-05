@@ -15,6 +15,16 @@ export function V2List() {
   const [params] = useSearchParams();
   const [records, setRecords] = useState(v2Read);
   const [createTable, setCreateTable] = useState<{ cargo: V2Cargo; jornada?: string } | null>(null);
+  const openCreateTable = (cargo: V2Cargo, jornada?: string) => {
+    if (cargo.comissionado) {
+      const query = new URLSearchParams({ cargo: String(cargo.id) });
+      const selectedJourney = jornada || cargo.jornadas[0];
+      if (selectedJourney) query.set("jornada", selectedJourney);
+      nav(V2_BASE + "/novo?" + query.toString());
+      return;
+    }
+    setCreateTable({ cargo, jornada });
+  };
   useEffect(() => {
     const refresh = () => setRecords(v2Read());
     window.addEventListener("v2-records-updated", refresh);
@@ -44,7 +54,7 @@ export function V2List() {
       records.find((item) => record.referencia === item.tableId + " V" + item.version);
     const hours = v2Hours(reference?.jornada || record.referencia?.match(/\d+\s*(?:horas|h)\b/)?.[0] || "");
     const proportional = record.origem === "Proporcional";
-    const tone = record.origem === "Referência" ? " is-reference" : proportional ? " is-proportional" : record.origem === "Ajustada manualmente" ? " is-adjusted" : "";
+    const tone = record.origem === "Referência" ? " is-reference" : proportional ? " is-proportional" : record.origem === "Ajustada manualmente" ? " is-adjusted" : record.origem === "RGA em lote" ? " rga" : "";
     return <span className={"tv-origin-tag" + tone} title={record.referencia}>
       {proportional && hours ? "Proporcional " + hours + "h" : record.origem}
     </span>;
@@ -65,7 +75,7 @@ export function V2List() {
   </div>;
   return <V2PageFrame>
     {params.get("salvo") && <p className="v2-success tv-save-success" role="status"><i className="pi pi-check-circle" /> Tabela de Vencimentos cadastrada com sucesso.</p>}
-    {params.get("rga") && <p className="v2-success tv-save-success" role="status"><i className="pi pi-check-circle" /> RGA aplicado com sucesso.</p>}
+    {params.get("rga") && <p className="v2-success tv-save-success" role="status"><i className="pi pi-check-circle" /> RGA aplicado com sucesso.{params.get("quantidade") && " " + params.get("quantidade") + " nova(s) versão(ões) foram geradas."}</p>}
     <div className="v2-list-actions">
       <div className="v2-filters">
         <label>Código do Cargo ou Nome do Cargo<select value={cargoFilter} onChange={(event) => setCargoFilter(event.target.value)}><option value="">Todos</option>{V2_CARGOS.map((cargo) => <option key={cargo.id} value={cargo.id}>{String(cargo.id).padStart(4, "0") + " - " + cargo.nome}</option>)}</select></label>
@@ -89,7 +99,7 @@ export function V2List() {
         </tr>
         {expanded === cargo.id && <tr className="v2-expanded-row"><td colSpan={8}><div className="v2-expanded">
           <V2CoveragePanel cargo={cargo} records={records} />
-          <div className="v2-section-head"><h3>Tabelas cadastradas para o cargo</h3><button type="button" className="v2-button-primary" onClick={() => setCreateTable({ cargo })}><i className="pi pi-plus" /> Cadastrar Tabela</button></div>
+          <div className="v2-section-head"><h3>Tabelas cadastradas para o cargo</h3><button type="button" className="v2-button-primary" onClick={() => openCreateTable(cargo)}><i className="pi pi-plus" /> Cadastrar Tabela</button></div>
           <div className="v2-table-wrap"><table className="v2-table v2-inner" aria-label={"Tabelas cadastradas para " + cargo.nome}><thead><tr><th className="v2-id-cell">ID</th><th>Jornada</th><th>Tipo(s) de Vínculo</th>{!cargo.comissionado && <th>Edital</th>}<th>Versão</th><th>Ano</th><th>Vigência</th><th>Situação</th><th>Origem</th><th>Ações</th></tr></thead>
             <tbody>{cargo.jornadas.map((availableJourney) => <Fragment key={availableJourney}>{rows(cargo, "padrao").filter((record) => record.jornada === availableJourney).map((record) => <tr key={record.id}><td className="v2-id-cell">{v2TableDisplayId(record)}</td>
               <td><span className={"tv-journey-tag " + (record.jornada === "20 horas" ? "tone-0" : record.jornada === "30 horas" ? "tone-1" : record.jornada === "40 horas" ? "tone-2" : "tone-3")}>{record.jornada}</span></td><td><V2Tags tipos={v2RecordTypes(record)} /></td>{!cargo.comissionado && <td>{record.editais?.length ? <V2Tags tipos={record.editais.map((id) => v2EditalNames([id]))} itemLabel="editais" /> : "—"}</td>}<td>{"V" + record.version}</td><td>{record.inicio.slice(0, 4)}</td>
@@ -101,7 +111,7 @@ export function V2List() {
               <td>—</td>{!cargo.comissionado && <td>—</td>}<td>—</td><td>—</td><td>—</td><td><V2Status value="Sem tabela cadastrada" /></td><td>—</td>
               <td><button type="button" className="v2-button-primary v2-journey-create" title="Cadastrar Tabela"
                 aria-label={"Cadastrar tabela para " + item + " do cargo " + cargo.nome}
-                onClick={() => setCreateTable({ cargo, jornada: item })}><i className="pi pi-plus" /></button></td>
+                onClick={() => openCreateTable(cargo, item)}><i className="pi pi-plus" /></button></td>
             </tr>)}
             </Fragment>)}
             {!rows(cargo, "padrao").length && !missingJourneys(cargo).length && <tr><td colSpan={cargo.comissionado ? 9 : 10} className="v2-empty">{cargo.comissionado ? "Nenhuma tabela encontrada para os filtros informados." : "Sem tabela cadastrada."}</td></tr>}</tbody></table></div>

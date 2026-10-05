@@ -62,6 +62,21 @@ it("cadastra uma tabela compartilhada para um cargo sem tabela inicial", () => {
     record.cargoId === 2 && record.jornada === "40 horas" && record.links.length === 2)).toBe(true);
 });
 
+it("exige Edital / Processo Seletivo ao cadastrar tabela de Contrato Temporário", () => {
+  render(<MemoryRouter initialEntries={[V2_BASE + "/novo?cargo=5&jornada=20%20horas"]}><TabelaV2Page /></MemoryRouter>);
+  const editalLabel = screen.getByText((_, element) => element?.tagName === "LABEL" && element.textContent?.includes("Edital / Processo Seletivo") === true);
+  expect(editalLabel.querySelector(".v2-required")?.textContent).toBe("*");
+  fireEvent.change(screen.getByLabelText("Data início da vigência *"), { target: { value: "2026-10-01" } });
+  fireEvent.click(screen.getByPlaceholderText("Buscar documentos legais..."));
+  fireEvent.click(screen.getByRole("checkbox", { name: /LC.*500/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+  expect(screen.getByRole("alert").textContent).toContain("Selecione ao menos um Edital / Processo Seletivo.");
+  fireEvent.click(screen.getByRole("button", { name: "Selecionar editais" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: V2_EDITAIS[0].nome }));
+  fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+  expect(screen.queryByRole("alert")).toBeNull();
+});
+
 it("cadastra uma exceção compartilhada com perfil e local próprios", () => {
   render(<MemoryRouter initialEntries={[V2_BASE + "/excecao/nova?cargo=1"]}><TabelaV2Page /></MemoryRouter>);
   fireEvent.click(screen.getByRole("button", { name: "Selecionar Tipos de Vínculo" }));
@@ -73,6 +88,8 @@ it("cadastra uma exceção compartilhada com perfil e local próprios", () => {
   const horas = screen.getByLabelText("Horas trabalhadas") as HTMLSelectElement;
   expect([...horas.options].map((option) => option.textContent)).toEqual(["Selecione", "6 horas", "4 horas", "17 horas"]);
   fireEvent.change(horas, { target: { value: "6h" } });
+  fireEvent.click(screen.getByRole("button", { name: "Selecionar editais" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: V2_EDITAIS[0].nome }));
   fireEvent.change(screen.getByLabelText("Data início da vigência *"), { target: { value: "2026-10-01" } });
   fireEvent.click(screen.getByPlaceholderText("Buscar documentos legais..."));
   fireEvent.click(screen.getByRole("checkbox", { name: /LC.*500/ }));
@@ -88,43 +105,63 @@ it("cadastra uma exceção compartilhada com perfil e local próprios", () => {
     record.kind === "excecao" && record.perfil === "Auditoria" && record.local === "Secretaria de Estado de Fazenda (SEFAZ-MT)" && record.horasTrabalhadas === "6h" && record.links.length === 2)).toBe(true);
 });
 
-it("aplica RGA em lote somente ao vínculo elegível após confirmação", () => {
+it("seleciona tabela vigente inteira, pré-visualiza valores e confirma RGA em lote", () => {
   render(<MemoryRouter initialEntries={[V2_BASE + "/rga-em-lote"]}><TabelaV2Page /></MemoryRouter>);
-  fireEvent.change(screen.getByLabelText("Percentual de RGA (%) *"), { target: { value: "5.4" } });
-  fireEvent.change(screen.getByLabelText("Data início da vigência *"), { target: { value: "2026-10-01" } });
+  const table = screen.getByRole("table", { name: "Tabelas vigentes para RGA em lote" });
+  expect(within(table).getAllByRole("row")).toHaveLength(5);
+  expect(within(table).queryByRole("columnheader", { name: /Incide RGA/ })).toBeNull();
+  expect((screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.click(screen.getByRole("checkbox", { name: "Selecionar todas as tabelas vigentes" }));
+  expect(screen.getByText("4 Tabelas selecionadas")).toBeTruthy();
+  fireEvent.click(screen.getByRole("checkbox", { name: "Selecionar todas as tabelas vigentes" }));
+  expect(screen.getByText("0 Tabelas selecionadas")).toBeTruthy();
+  fireEvent.click(screen.getByRole("checkbox", { name: "Selecionar TV2-001" }));
+  expect(screen.getByText("1 Tabela selecionada")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
+  fireEvent.change(screen.getByLabelText("Percentual do RGA *"), { target: { value: "5.4" } });
+  fireEvent.change(screen.getByLabelText("Data de início da vigência *"), { target: { value: "2026-10-01" } });
   fireEvent.change(screen.getByLabelText("Base Legal *"), { target: { value: "Lei 999/2026" } });
   fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
-  fireEvent.click(screen.getByRole("checkbox", { name: "Selecionar TV2-001" }));
-  fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
-  expect(screen.getByRole("heading", { name: "Resumo da aplicação" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Confirmar Aplicação" }));
-  const dialog = screen.getByRole("dialog", { name: "Confirmar aplicação de RGA" });
-  fireEvent.click(within(dialog).getByRole("button", { name: "Confirmar Aplicação" }));
+  const preview = screen.getByRole("table", { name: "Pré-visualização do RGA em lote" });
+  expect(within(preview).getByText("RGA em lote")).toBeTruthy();
+  expect(within(preview).getByText("Contrato Temporário")).toBeTruthy();
+  fireEvent.click(screen.getByText(/Auditor Fiscal · 20 horas · V1/));
+  expect(screen.getByRole("table", { name: "Valores simulados de TV2-001" }).textContent).toContain("4.743,00");
+  fireEvent.click(screen.getByRole("button", { name: "Confirmar aplicação" }));
+  const dialog = screen.getByRole("dialog", { name: "Confirmar aplicação de RGA em lote" });
+  expect(within(dialog).getByText(/Todas as Tabelas selecionadas terão uma nova versão/)).toBeTruthy();
+  fireEvent.click(within(dialog).getByRole("button", { name: "Confirmar aplicação" }));
+  expect(screen.getByRole("status").textContent).toContain("1 nova(s) versão(ões)");
+  fireEvent.click(screen.getAllByRole("button", { name: "Expandir cargo" })[0]);
+  expect(within(screen.getByRole("table", { name: "Tabelas cadastradas para Auditor Fiscal" })).getByText("RGA em lote")).toBeTruthy();
   const saved = JSON.parse(window.sessionStorage.getItem("sigep-tabela-v2-v1") || "[]");
   const revised = saved.find((record: { origem: string; referencia: string }) =>
-    record.origem === "RGA" && record.referencia === "TV2-001 V1");
-  expect(revised.links.map((link: { tipo: string }) => link.tipo)).toEqual(["Nomeado Efetivo"]);
+    record.origem === "RGA em lote" && record.referencia === "TV2-001 V1");
+  expect(revised.links.map((link: { tipo: string }) => link.tipo)).toEqual(["Nomeado Efetivo", "Contrato Temporário"]);
   expect(revised.events[0].before.rows[0].values[0]).toBe("R$ 4.500,00");
 });
 
-it("versiona apenas um vínculo de uma tabela compartilhada e preserva o outro", () => {
+it("bloqueia a identificação herdada e versiona todos os vínculos da tabela", () => {
   render(<MemoryRouter initialEntries={[V2_BASE + "/versionar?registro=TV2-001-v1"]}><TabelaV2Page /></MemoryRouter>);
-  fireEvent.click(screen.getByRole("button", { name: "Remover Contrato Temporário" }));
+  expect((screen.getByLabelText("Carreira") as HTMLInputElement).readOnly).toBe(true);
+  expect((screen.getByLabelText("Cargo *") as HTMLInputElement).readOnly).toBe(true);
+  expect((screen.getByLabelText("Jornada *") as HTMLSelectElement).disabled).toBe(true);
+  expect(screen.queryByRole("button", { name: "Selecionar Tipos de Vínculo" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Remover Contrato Temporário" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Selecionar editais" })).toBeNull();
   fireEvent.change(screen.getByLabelText("Data início da vigência *"), { target: { value: "2026-10-01" } });
   fireEvent.click(screen.getByPlaceholderText("Buscar documentos legais..."));
   fireEvent.click(screen.getByRole("checkbox", { name: /LC.*500/ }));
   fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
   fireEvent.change(screen.getByRole("textbox", { name: "001 / A" }), { target: { value: "4750,00" } });
-  expect(screen.queryByRole("button", { name: "Confirmação do versionamento" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Confirmar versionamento" }));
-  expect(within(screen.getByRole("dialog", { name: "Confirmar versionamento" })).getByText("Contrato Temporário", { selector: "strong" })).toBeTruthy();
   fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar versionamento" })).getByRole("button", { name: "Confirmar versionamento" }));
   const saved = JSON.parse(window.sessionStorage.getItem("sigep-tabela-v2-v1") || "[]");
-  const split = saved.find((record: { previousId?: string }) => record.previousId === "TV2-001-v1");
-  expect(split.tableId).not.toBe("TV2-001");
-  expect(split.links.map((link: { tipo: string }) => link.tipo)).toEqual(["Nomeado Efetivo"]);
-  expect(split.links[0].incideRga).toBe(true);
-  expect(saved.find((record: { id: string }) => record.id === "TV2-001-v1").links.find((link: { tipo: string }) => link.tipo === "Contrato Temporário").fim).toBeUndefined();
+  const version = saved.find((record: { previousId?: string }) => record.previousId === "TV2-001-v1");
+  expect(version.tableId).toBe("TV2-001");
+  expect(version.links.map((link: { tipo: string }) => link.tipo)).toEqual(["Nomeado Efetivo", "Contrato Temporário"]);
+  expect(version.editais).toEqual([]);
+  expect(saved.find((record: { id: string }) => record.id === "TV2-001-v1").links.every((link: { fim?: string }) => link.fim === "2026-09-30")).toBe(true);
 });
 
 it("gera e aprova tabela proporcional com valores por nível e classe", () => {
@@ -141,15 +178,38 @@ it("gera e aprova tabela proporcional com valores por nível e classe", () => {
   fireEvent.click(screen.getByRole("checkbox", { name: "Gerar 40 horas para Nomeado Efetivo" }));
   fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
   screen.getAllByPlaceholderText("R$ 0,00").forEach(cell => fireEvent.change(cell, { target: { value: "4500,00" } }));
-  fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
+  fireEvent.click(screen.getByRole("button", { name: "Salvar tabela" }));
   expect(screen.getByRole("heading", { name: "Revisão das Jornadas" })).toBeTruthy();
+  expect((screen.getByRole("button", { name: "Salvar tabela" }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.queryByRole("button", { name: "Ajustar valores manualmente" })).toBeNull();
+  expect(screen.getByText("Proporção: 100%")).toBeTruthy();
+  expect(screen.getByText("Aguardando revisão")).toBeTruthy();
+  expect(screen.getByText(/Os valores apresentados foram calculados automaticamente/)).toBeTruthy();
+  expect(document.querySelector(".v2-review-section .v2-matrix input")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Aprovar cálculo" }));
+  expect(document.querySelector(".v2-review-section .v2-status")?.textContent).toBe("Cálculo aprovado");
+  expect((screen.getByRole("button", { name: "Salvar tabela" }) as HTMLButtonElement).disabled).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "001 / A" }), { target: { value: "5000,00" } });
+  fireEvent.click(screen.getByRole("button", { name: "Salvar tabela" }));
+  expect(screen.getByText("Aguardando revisão")).toBeTruthy();
+  expect((screen.getByRole("button", { name: "Salvar tabela" }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByText("R$ 10.000,00")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Aprovar cálculo" }));
   fireEvent.click(screen.getByRole("button", { name: "Salvar tabela" }));
-  fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar cadastro da tabela" })).getByRole("button", { name: "Confirmar cadastro" }));
+  fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar cadastro das Tabelas de Vencimentos" })).getByRole("button", { name: "Confirmar cadastro" }));
   const saved = JSON.parse(window.sessionStorage.getItem("sigep-tabela-v2-v1") || "[]");
   const generated = saved.find((record: { cargoId: number; origem: string }) => record.cargoId === 3 && record.origem === "Proporcional");
   expect(generated.links.map((link: { tipo: string }) => link.tipo)).toEqual(["Nomeado Efetivo"]);
-  expect(generated.matrix.rows[0].values[0]).toContain("9.000,00");
+  expect(generated.matrix.rows[0].values[0]).toContain("10.000,00");
+});
+
+it("abre o cadastro comissionado pelo botão do cabeçalho sem modal", () => {
+  render(<MemoryRouter initialEntries={[V2_BASE + "?cargo=101"]}><TabelaV2Page /></MemoryRouter>);
+  fireEvent.click(screen.getByRole("button", { name: "Cadastrar Tabela" }));
+  expect(screen.queryByRole("dialog", { name: /Criar tabela para/ })).toBeNull();
+  expect(screen.getByRole("heading", { name: "Identificação e vigência" })).toBeTruthy();
+  expect((screen.getByLabelText("Jornada *") as HTMLSelectElement).value).toBe("40 horas");
 });
 
 it("cria duas tabelas comissionadas com subsídio e gratificação sem matriz de níveis", () => {
@@ -159,7 +219,8 @@ it("cria duas tabelas comissionadas com subsídio e gratificação sem matriz de
   expect(within(journeysTable).getByText("Sem tabela cadastrada")).toBeTruthy();
   expect(within(journeysTable).getAllByRole("row")).toHaveLength(2);
   fireEvent.click(screen.getByRole("button", { name: /Cadastrar tabela para 40 horas do cargo/ }));
-  fireEvent.click(within(screen.getByRole("dialog", { name: "Criar tabela para 40 horas" })).getByRole("button", { name: "Continuar" }));
+  expect(screen.queryByRole("dialog", { name: "Criar tabela para 40 horas" })).toBeNull();
+  expect(screen.getByRole("heading", { name: "Identificação e vigência" })).toBeTruthy();
   expect((screen.getByLabelText("Jornada *") as HTMLSelectElement).value).toBe("40 horas");
   expect(screen.queryByRole("button", { name: "Selecionar Tipos de Vínculo" })).toBeNull();
   expect(screen.queryByLabelText("Estrutura remuneratória *")).toBeNull();
@@ -187,28 +248,18 @@ it("cria duas tabelas comissionadas com subsídio e gratificação sem matriz de
   expect(pair[0].tableNumber).not.toBe(pair[1].tableNumber);
 });
 
-it("versiona exceção compartilhada para um vínculo sem afetar o outro", () => {
+it("mantém os vínculos e editais bloqueados no versionamento da exceção", () => {
   const original = v2Seed()[0];
   const exception = { ...original, id: "exception-test-v1", tableId: "EX2-TEST", kind: "excecao" as const,
     jornada: undefined, perfil: "Auditoria", local: "Secretaria de Estado de Fazenda (SEFAZ-MT)",
     baseLegalId: "lc-500-2026", baseLegal: "LC nº 500/2026" };
   window.sessionStorage.setItem("sigep-tabela-v2-v1", JSON.stringify([...v2Seed(), exception]));
   render(<MemoryRouter initialEntries={[V2_BASE + "/versionar?registro=" + exception.id]}><TabelaV2Page /></MemoryRouter>);
-  fireEvent.click(screen.getByRole("button", { name: "Remover Contrato Temporário" }));
-  fireEvent.change(screen.getByLabelText("Data início da vigência *"), { target: { value: "2026-10-01" } });
-  fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
-  fireEvent.change(screen.getByRole("textbox", { name: "001 / A" }), { target: { value: "4750,00" } });
-  expect(screen.queryByRole("button", { name: "Confirmação do versionamento" })).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "Confirmar versionamento" }));
-  expect(within(screen.getByRole("dialog", { name: "Confirmar versionamento" })).getByText("Contrato Temporário", { selector: "strong" })).toBeTruthy();
-  fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar versionamento" })).getByRole("button", { name: "Confirmar versionamento" }));
-  const saved = JSON.parse(window.sessionStorage.getItem("sigep-tabela-v2-v1") || "[]");
-  const split = saved.find((record: { previousId?: string }) => record.previousId === exception.id);
-  expect(split.kind).toBe("excecao");
-  expect(split.perfil).toBe("Auditoria");
-  expect(split.links.map((link: { tipo: string }) => link.tipo)).toEqual(["Nomeado Efetivo"]);
-  expect(split.links[0].incideRga).toBe(true);
-  expect(saved.find((record: { id: string }) => record.id === exception.id).links.find((link: { tipo: string }) => link.tipo === "Contrato Temporário").fim).toBeUndefined();
+  expect(screen.queryByRole("button", { name: "Selecionar Tipos de Vínculo" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Remover Contrato Temporário" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Selecionar editais" })).toBeNull();
+  expect((screen.getByLabelText("Carreira") as HTMLInputElement).readOnly).toBe(true);
+  expect((screen.getByLabelText("Cargo *") as HTMLInputElement).readOnly).toBe(true);
 });
 
 it("bloqueia versionamento direto de Nomeado Efetivo comissionado", () => {
@@ -475,6 +526,7 @@ it("permite todas as jornadas proporcionais para os vínculos selecionados", () 
   expect((screen.getByRole("checkbox", { name: "Gerar 30 horas para Nomeado Efetivo, Contrato Temporário" }) as HTMLInputElement).disabled).toBe(false);
   expect((screen.getByRole("checkbox", { name: "Gerar 40 horas para Nomeado Efetivo, Contrato Temporário" }) as HTMLInputElement).disabled).toBe(false);
   expect(within(generation).queryByText("Jornada incompatível com os vínculos da referência.")).toBeNull();
+  expect(within(generation).getAllByRole("row").slice(1).map((row) => within(row).getAllByRole("cell")[2].textContent)).toEqual(["50%", "75%", "100%"]);
 });
 
 it("cadastra referência e duas proporcionais com os mesmos três vínculos e editais", () => {
@@ -494,12 +546,12 @@ it("cadastra referência e duas proporcionais com os mesmos três vínculos e ed
   }
   fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
   screen.getAllByPlaceholderText("R$ 0,00").forEach((cell) => fireEvent.change(cell, { target: { value: "4000,00" } }));
-  fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
+  fireEvent.click(screen.getByRole("button", { name: "Salvar tabela" }));
   fireEvent.click(screen.getByRole("button", { name: "Aprovar cálculo" }));
-  fireEvent.click(screen.getByRole("button", { name: "30 horas — " + types.join(", ") }));
+  fireEvent.click(screen.getByRole("button", { name: "30 horas — 3 vínculos" }));
   fireEvent.click(screen.getByRole("button", { name: "Aprovar cálculo" }));
   fireEvent.click(screen.getByRole("button", { name: "Salvar tabela" }));
-  fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar cadastro da tabela" })).getByRole("button", { name: "Confirmar cadastro" }));
+  fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar cadastro das Tabelas de Vencimentos" })).getByRole("button", { name: "Confirmar cadastro" }));
   const records = JSON.parse(window.sessionStorage.getItem("sigep-tabela-v2-v1") || "[]");
   const created = records.filter((record: { cargoId: number }) => record.cargoId === 8);
   expect(created).toHaveLength(3);
@@ -565,17 +617,14 @@ it("risca e bloqueia editais usados no cargo e cadastra outra tabela com edital 
   expect(records[1].editais).toEqual([V2_EDITAIS[1].id]);
 });
 
-it("permite manter o edital da própria tabela no versionamento", () => {
+it("exibe o edital herdado sem permitir alterações no versionamento", () => {
   const source = { ...structuredClone(v2Seed()[0]), id: "edital-version-v1", tableId: "EDITAL-VERSION", cargoId: 5,
     editais: [V2_EDITAIS[0].id], links: [{ tipo: "Contrato Temporário", inicio: "2026-01-01", incideRga: false }] };
-  const another = { ...source, id: "another-edital-v1", tableId: "ANOTHER-EDITAL", editais: [V2_EDITAIS[1].id] };
-  window.sessionStorage.setItem("sigep-tabela-v2-v1", JSON.stringify([source, another]));
+  window.sessionStorage.setItem("sigep-tabela-v2-v1", JSON.stringify([source]));
   render(<MemoryRouter initialEntries={[V2_BASE + "/versionar?registro=" + source.id]}><TabelaV2Page /></MemoryRouter>);
-  fireEvent.click(screen.getByRole("button", { name: "Selecionar editais" }));
-  const own = screen.getByRole("checkbox", { name: V2_EDITAIS[0].nome }) as HTMLInputElement;
-  expect(own.checked).toBe(true);
-  expect(own.disabled).toBe(false);
-  expect((screen.getByRole("checkbox", { name: V2_EDITAIS[1].nome }) as HTMLInputElement).disabled).toBe(true);
+  expect(screen.getByText(V2_EDITAIS[0].nome)).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Selecionar editais" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Remover edital " + V2_EDITAIS[0].nome })).toBeNull();
 });
 
 it("mantém a cobertura recolhida, sem repetições, e conta tabelas sem contar versões", () => {
@@ -701,6 +750,7 @@ it("abre o modal de criação com cadastro manual e referência indisponível", 
   render(<MemoryRouter initialEntries={[V2_BASE + "?cargo=2"]}><TabelaV2Page /></MemoryRouter>);
   fireEvent.click(screen.getByRole("button", { name: "Cadastrar Tabela" }));
   let dialog = screen.getByRole("dialog", { name: "Criar tabela para 20 horas" });
+  expect((within(dialog).getByLabelText("Jornada *") as HTMLSelectElement).required).toBe(true);
   expect((within(dialog).getByRole("radio", { name: "Cadastrar manualmente" }) as HTMLInputElement).checked).toBe(true);
   expect((within(dialog).getByRole("radio", { name: "Gerar proporcionalmente" }) as HTMLInputElement).disabled).toBe(true);
   expect(within(dialog).getByText("Nenhuma tabela de referência vigente está disponível.")).toBeTruthy();
@@ -715,6 +765,33 @@ it("abre o modal de criação com cadastro manual e referência indisponível", 
   expect(screen.getByRole("textbox", { name: "001 / A" })).toBeTruthy();
 });
 
+it("habilita a geração proporcional com referência de 20 horas para vínculos ainda descobertos", () => {
+  const reference = { ...structuredClone(v2Seed()[0]), cargoId: 7, jornada: "20 horas", origem: "Referência" as const,
+    links: [{ tipo: "Residente Técnico", inicio: "2026-01-01", incideRga: false }] };
+  window.sessionStorage.setItem("sigep-tabela-v2-v1", JSON.stringify([reference]));
+  render(<MemoryRouter initialEntries={[V2_BASE + "?cargo=7"]}><TabelaV2Page /></MemoryRouter>);
+  fireEvent.click(screen.getByRole("button", { name: "Cadastrar Tabela" }));
+  const dialog = screen.getByRole("dialog", { name: "Criar tabela para 20 horas" });
+  const proportional = within(dialog).getByRole("radio", { name: "Gerar proporcionalmente" }) as HTMLInputElement;
+  expect(proportional.disabled).toBe(false);
+  fireEvent.click(proportional);
+  expect((within(dialog).getByLabelText("Tabela de referência *") as HTMLSelectElement).required).toBe(true);
+  expect((within(dialog).getByLabelText("Tabela de referência *") as HTMLSelectElement).value).toBe(reference.id);
+  fireEvent.click(within(dialog).getByRole("button", { name: "Continuar" }));
+  const links = document.querySelector(".v2-links-select .v2-selected-links");
+  expect(links?.textContent).toContain("Bolsista");
+  expect(links?.textContent).toContain("Estagiário");
+  expect(links?.textContent).not.toContain("Residente Técnico");
+  fireEvent.click(screen.getByPlaceholderText("Buscar documentos legais..."));
+  fireEvent.click(screen.getByRole("checkbox", { name: /LC.*500/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+  fireEvent.click(screen.getByRole("button", { name: "Salvar tabela" }));
+  fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar cadastro da tabela" })).getByRole("button", { name: "Confirmar cadastro" }));
+  const saved = JSON.parse(window.sessionStorage.getItem("sigep-tabela-v2-v1") || "[]");
+  const generated = saved.find((record: { origem: string; cargoId: number; links: { tipo: string }[] }) => record.origem === "Proporcional" && record.cargoId === 7);
+  expect(generated.links.map((link: { tipo: string }) => link.tipo)).toEqual(["Bolsista", "Estagiário"]);
+});
+
 it.each(["matriz", "fixo"] as const)("cadastra a jornada proporcional usando a referência vigente e os mesmos vínculos e editais (%s)", (structure) => {
   const reference = { ...structuredClone(v2Seed()[0]), id: "creation-reference", tableId: "CREATION-REF",
     cargoId: 5, jornada: "40 horas", origem: "Referência" as const, estrutura: structure, baseLegalId: "",
@@ -727,7 +804,7 @@ it.each(["matriz", "fixo"] as const)("cadastra a jornada proporcional usando a r
   fireEvent.click(screen.getByRole("button", { name: "Cadastrar tabela para 20 horas do cargo Assistente de Apoio Temporário" }));
   const dialog = screen.getByRole("dialog", { name: "Criar tabela para 20 horas" });
   fireEvent.click(within(dialog).getByRole("radio", { name: "Gerar proporcionalmente" }));
-  expect((within(dialog).getByLabelText("Tabela de referência") as HTMLSelectElement).value).toBe(reference.id);
+  expect((within(dialog).getByLabelText("Tabela de referência *") as HTMLSelectElement).value).toBe(reference.id);
   fireEvent.click(within(dialog).getByRole("button", { name: "Continuar" }));
   expect(screen.getByText(/Tabela proporcional à referência TV-0001/)).toBeTruthy();
   expect((screen.getByLabelText("Jornada *") as HTMLSelectElement).value).toBe("20 horas");

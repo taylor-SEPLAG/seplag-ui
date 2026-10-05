@@ -10,10 +10,10 @@ import { V2CommissionedValues, V2CommissionedValuesSummary } from "./V2Commissio
 import { V2PageFrame, V2Status, V2Tags } from "./V2Shared";
 import {
   V2_BASE, V2_CARGOS, blankV2Matrix, v2Today, v2Conflicts, v2Currency, v2CommissionCalculatedValue, v2Create, v2CommissionedInputs, v2CreateCommissionedPair, v2Date, v2Hours, v2MatrixValid,
-  v2EditalNames, v2ReferenceCandidates, v2TableDisplayId, v2Persist, v2ProportionalMatrix, v2Read, v2Structure, v2ValuesValid, v2Version, v2CanVersion, v2CommissionedCompanion, v2CommissionedViewValues, v2VersionCommissionedPair, v2VisibleLinks,
+  v2EditalNames, v2ReferenceCandidates, v2UncoveredJourneyTypes, v2TableDisplayId, v2Persist, v2ProportionalMatrix, v2Read, v2Structure, v2ValuesValid, v2Version, v2CanVersion, v2CommissionedCompanion, v2CommissionedViewValues, v2VersionCommissionedPair, v2VisibleLinks,
   type V2Input, type V2Link, type V2Matrix,
 } from "./v2Store";
-type Draft = { key: string; jornada: string; tipos: string[]; matrix: V2Matrix; original: V2Matrix; approved: boolean; adjusted: boolean };
+type Draft = { key: string; jornada: string; tipos: string[]; matrix: V2Matrix; original: V2Matrix; approved: boolean };
 export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, view = false, embedded = false, viewStep }: { kind: "padrao" | "excecao"; sourceId?: string; cargoId?: number; initialJourney?: string; referenceId?: string; view?: boolean; embedded?: boolean; viewStep?: 0 | 1 }) {
   const nav = useNavigate();
   const legalDocuments = useDocumentosLegaisAssociaveis();
@@ -29,10 +29,12 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
   const inherited = source || referenceSource;
   const referenceMatrix = referenceSource ? v2ProportionalMatrix(referenceSource.matrix, v2Hours(referenceSource.jornada || ""), v2Hours(initialJourney || "")) : undefined;
   const originalLinks = source ? view ? source.links : v2VisibleLinks(source) : referenceSource ? v2VisibleLinks(referenceSource).filter((link) => link.inicio <= v2Today() && (!link.fim || link.fim >= v2Today())) : [];
+  const referenceTargetTypes = referenceSource ? v2UncoveredJourneyTypes(records, cargo, initialJourney || "") : [];
+  const inheritedReferenceTypes = originalLinks.map((link) => link.tipo).filter((tipo) => referenceTargetTypes.includes(tipo));
   const [formStep, setStep] = useState(0);
   const step = view && viewStep !== undefined ? viewStep : formStep;
   const [jornada, setJornada] = useState(source?.jornada || (initialJourney && cargo.jornadas.includes(initialJourney) ? initialJourney : ""));
-  const [tipos, setTipos] = useState(inherited ? originalLinks.map((link) => link.tipo) : createCommissionPair ? ["Exclusivamente Comissionado", "Nomeado Efetivo"] : cargo.comissionado ? ["Exclusivamente Comissionado"] : cargo.vinculos.length === 1 ? [cargo.vinculos[0].tipo] : []);
+  const [tipos, setTipos] = useState(referenceSource ? inheritedReferenceTypes.length ? inheritedReferenceTypes : referenceTargetTypes : inherited ? originalLinks.map((link) => link.tipo) : createCommissionPair ? ["Exclusivamente Comissionado", "Nomeado Efetivo"] : cargo.comissionado ? ["Exclusivamente Comissionado"] : cargo.vinculos.length === 1 ? [cargo.vinculos[0].tipo] : []);
   const [editais, setEditais] = useState<string[]>(inherited?.editais || []);
   const [structure, setStructure] = useState<"fixo" | "matriz">(cargo.comissionado ? inherited ? v2Structure(inherited) : "fixo" : "matriz");
   const [fixedValue, setFixedValue] = useState(inherited && v2Structure(inherited) === "fixo" ? (referenceMatrix || inherited.matrix).rows[0]?.values[0] || "" : "");
@@ -60,12 +62,19 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
   const title = view ? "Visualizar Tabela de Vencimentos" + (kind === "excecao" ? " — Exceção" : "") : source ? kind === "excecao" ? "Nova versão da Tabela de Vencimentos — Exceção" : "Nova versão da Tabela de Vencimentos" : kind === "excecao" ? "Nova Tabela de Vencimentos — Exceção" : "Nova tabela de vencimentos";
   const options = cargo.vinculos.map((link) => link.tipo);
   const journeys = cargo.jornadas;
+  const maxJourneyHours = Math.max(0, ...journeys.map(v2Hours));
+  const journeyProportion = (value: string) => value && maxJourneyHours ? Math.round(v2Hours(value) / maxJourneyHours * 100) + "%" : "—";
   const targets = kind === "padrao" && reference === "Sim" && jornada
     ? cargo.jornadas.filter((item) => item !== jornada && (!view || records.some((record) => record.proporcional?.referenciaId === source?.id && record.jornada === item))).map((item) => ({
       key: item + "-same-links", jornada: item, tipos: [...tipos],
       compatible: tipos.length > 0,
     })) : [];
   const valueMatrix: V2Matrix = structure === "fixo" ? { columns: ["Valor"], rows: [{ name: "Fixo", values: [fixedValue] }] } : matrix;
+  const recalculateDrafts = (nextMatrix: V2Matrix) => setDrafts((current) => current.map((draft) => {
+    const calculated = v2ProportionalMatrix(nextMatrix, v2Hours(jornada), v2Hours(draft.jornada));
+    return { ...draft, matrix: calculated, original: calculated, approved: false };
+  }));
+  const reviewLabel = (draft: Draft) => draft.jornada + " — " + (draft.tipos.length === 1 ? draft.tipos[0] : draft.tipos.length + " vínculos");
   const commissionFixed = cargo.comissionado && structure === "fixo";
   const blockedEditaisFor = (selectedJourney: string) => [...new Set(records
     .filter((record) => record.cargoId === cargo.id && record.kind === kind &&
@@ -73,11 +82,11 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
     .flatMap((record) => record.editais || []))].filter((id) => !source?.editais?.includes(id));
   const blockedEditais = blockedEditaisFor(jornada);
   const previousTable = source || records.filter((record) => record.cargoId === cargo.id && record.kind === kind && v2Structure(record) === "matriz" && (kind === "padrao" ? Boolean(jornada) && record.jornada === jornada : record.perfil === perfil && record.local === local)).slice(-1)[0];
-  const makeInput = (target?: { jornada: string; tipos: string[]; matrix: V2Matrix; adjusted?: boolean }): V2Input => ({
+  const makeInput = (target?: { jornada: string; tipos: string[]; matrix: V2Matrix }): V2Input => ({
     kind, cargoId: cargo.id, jornada: kind === "padrao" ? target?.jornada || jornada : undefined,
     perfil: kind === "excecao" ? perfil : undefined, local: kind === "excecao" ? local : undefined, horasTrabalhadas: kind === "excecao" ? horasTrabalhadas || undefined : undefined,
     inicio: start, fim: end || undefined, baseLegal: baseLegal.trim(), baseLegalId: legalId, observacao: observation.trim(),
-    origem: target ? target.adjusted ? "Ajustada manualmente" : "Proporcional" : referenceSource ? "Proporcional" : reference === "Sim" && kind === "padrao" ? "Referência" : "Manual",
+    origem: target ? "Proporcional" : referenceSource ? "Proporcional" : reference === "Sim" && kind === "padrao" ? "Referência" : "Manual",
     referencia: target ? (source?.tableId || "Tabela de referência") + " · " + jornada : referenceSource ? referenceSource.tableId + " V" + referenceSource.version : undefined,
     proporcional: referenceSource && referenceMatrix ? { referenciaId: referenceSource.id, percentual: v2Hours(jornada) / v2Hours(referenceSource.jornada || "") * 100, calculada: referenceMatrix } : undefined,
     estrutura: structure, matrix: target?.matrix || valueMatrix,
@@ -93,6 +102,7 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
     if (versionCommissionPair && !commissionCompanion) return "Não foi possível identificar a tabela de Nomeado Efetivo associada.";
     if (!cargoId && !source) return "Selecione um Cargo pela consulta.";
     if (!tipos.length || !start || !legalId || (kind === "padrao" && !jornada)) return "Preencha os campos obrigatórios da identificação e vigência.";
+    if (!source && tipos.includes("Contrato Temporário") && !editais.length) return "Selecione ao menos um Edital / Processo Seletivo.";
     if (kind === "excecao" && (!perfil || !local)) return "Selecione Perfil Profissional e Local de Lotação.";
     if (end && end < start) return "A data de término deve ser posterior à data de início.";
     if (tipos.some((tipo) => !options.includes(tipo))) return "Há Tipos de Vínculo inválidos para este Cargo.";
@@ -148,7 +158,7 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
         if (selected.length && !drafts.length) {
           setDrafts(selected.map((target) => ({
             ...target, matrix: v2ProportionalMatrix(valueMatrix, v2Hours(jornada), v2Hours(target.jornada)),
-            original: v2ProportionalMatrix(valueMatrix, v2Hours(jornada), v2Hours(target.jornada)), approved: false, adjusted: false,
+            original: v2ProportionalMatrix(valueMatrix, v2Hours(jornada), v2Hours(target.jornada)), approved: false,
           })));
           setReviewIndex(0);
           return;
@@ -166,10 +176,11 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
       if (kind === "excecao") { setStep(2); return; }
       const selected = targets.filter((target) => target.compatible && generate.includes(target.key));
       if (selected.length) {
-        setDrafts(selected.map((target) => ({
+        if (!drafts.length) setDrafts(selected.map((target) => ({
           ...target, matrix: v2ProportionalMatrix(valueMatrix, v2Hours(jornada), v2Hours(target.jornada)),
-          original: v2ProportionalMatrix(valueMatrix, v2Hours(jornada), v2Hours(target.jornada)), approved: false, adjusted: false,
+          original: v2ProportionalMatrix(valueMatrix, v2Hours(jornada), v2Hours(target.jornada)), approved: false,
         })));
+        setReviewIndex(0);
         setStep(2); return;
       }
       setConfirmOpen(true); return;
@@ -177,12 +188,12 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
     if (drafts.some((draft) => !draft.approved || !v2MatrixValid(draft.matrix))) { setError("Aprove e valide todas as tabelas proporcionais."); return; }
     setConfirmOpen(true);
   };
-  const updateDraft = (index: number, update: Partial<Draft>) =>
-    setDrafts((current) => current.map((draft, position) => position === index ? { ...draft, ...update } : draft));
   const hasProportionalReview = kind === "padrao" && targets.some((target) => generate.includes(target.key));
   const sourceTypes = originalLinks.map((link) => link.tipo);
   const changedValues = source ? valueMatrix.rows.flatMap((row, rowIndex) => row.values.map((value, columnIndex) => ({ nivel: row.name, classe: valueMatrix.columns[columnIndex], before: source.matrix.rows[rowIndex]?.values[columnIndex] || "", after: value }))).filter((item) => item.before !== item.after) : [];
   const changedCommission = source?.remuneracao?.valor !== remuneracaoValor || source?.remuneracao?.baseCalculo !== (commissionBase || undefined);
+  const isReviewStep = kind === "padrao" && !source && drafts.length > 0 && (step === 2 || structure === "fixo" && step === 0);
+  const reviewPending = isReviewStep && drafts.some((draft) => !draft.approved);
   const isLastStep = structure === "fixo" || step === 2 || step === 1 && (Boolean(source) || kind === "padrao" && !hasProportionalReview);
   if (referenceId && !referenceSource) return <V2PageFrame title={title}><p role="alert" className="v2-error">A tabela de referência não está disponível para esta jornada. Volte à consulta e selecione outra opção de cadastro.</p><button type="button" className="v2-button-secondary" onClick={() => nav(V2_BASE + "?cargo=" + cargo.id)}>Voltar</button></V2PageFrame>;
   if (source && versionCommissionPair && !v2CanVersion(source)) return <V2PageFrame title={title}><p className="v2-error" role="alert">Versione o cargo comissionado pela tabela de Exclusivamente Comissionado. A tabela de Nomeado Efetivo será versionada automaticamente.</p><button type="button" className="v2-button-secondary" onClick={() => nav(V2_BASE + "?cargo=" + cargo.id)}>Voltar</button></V2PageFrame>;
@@ -202,16 +213,15 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
           {kind === "padrao" && <label><span>Jornada <span className="v2-required">*</span></span><select value={jornada} disabled={Boolean(source || referenceSource)} onChange={(event) => changeJornada(event.target.value)}>
             <option value="">Selecione</option>{journeys.map((item) => <option key={item}>{item}</option>)}</select></label>}
           {!cargo.comissionado && <>
-          <div className="v2-select-field"><label><span>Tipo(s) de Vínculo <span className="v2-required">*</span></span></label><V2LinksSelect readOnly={view || Boolean(referenceSource)} cargo={cargo} value={tipos} allowed={source ? sourceTypes : undefined}
+          <div className="v2-select-field"><label><span>Tipo(s) de Vínculo <span className="v2-required">*</span></span></label><V2LinksSelect readOnly={view || Boolean(source || referenceSource)} cargo={cargo} value={tipos} allowed={source ? sourceTypes : undefined}
             onChange={(value) => { setTipos(value); if (!value.includes("Contrato Temporário")) setEditais([]); setGenerate([]); setDrafts([]); }} />
-            <small>Selecione um ou vários vínculos que utilizarão os mesmos valores de vencimento.</small>
-            {!view && source && sourceTypes.length > 1 && <small>Selecione todos para versionar a tabela compartilhada ou apenas alguns para criar uma tabela independente.</small>}
+            {!source && <small>Selecione um ou vários vínculos que utilizarão os mesmos valores de vencimento.</small>}
           </div>
           </>}
           {tipos.includes("Contrato Temporário") && <div className="v2-select-field">
-            <label>Edital / Processo Seletivo</label>
-            <V2EditaisSelect readOnly={view || Boolean(referenceSource)} value={editais} blocked={blockedEditais} onChange={(value) => { setEditais(value); setDrafts([]); }} />
-            <small>Selecione um ou mais editais em homologação. Editais já utilizados para este cargo e jornada estão riscados e indisponíveis.</small>
+            <label><span>Edital / Processo Seletivo <span className="v2-required">*</span></span></label>
+            <V2EditaisSelect readOnly={view || Boolean(source || referenceSource?.editais?.length)} value={editais} blocked={blockedEditais} onChange={(value) => { setEditais(value); setDrafts([]); }} />
+            {!source && <small>Selecione um ou mais editais em homologação. Editais já utilizados para este cargo e jornada estão riscados e indisponíveis.</small>}
           </div>}
           {kind === "excecao" && <>
             <label><span>Perfil Profissional <span className="v2-required">*</span></span><select value={perfil} disabled={Boolean(source || referenceSource)} onChange={(event) => setPerfil(event.target.value)}><option value="">Selecione</option>{cargo.perfis.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -270,8 +280,8 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
             <select disabled={view} value={reference} onChange={(event) => { setReference(event.target.value); setGenerate([]); setDrafts([]); }}><option>Não</option><option>Sim</option></select></label>
           <p>Ao selecionar Sim, o sistema calculará as demais jornadas compatíveis com os mesmos Tipos de Vínculo da tabela de referência.</p>
           {reference === "Sim" && <><h4>Jornadas para geração proporcional</h4><div className="v2-table-wrap"><table className="v2-table"><thead><tr><th>Jornada</th><th>Tipo(s) de Vínculo</th><th>Proporção</th><th>Gerar</th></tr></thead><tbody>
-            <tr><td>{jornada || "Selecione a Jornada"}</td><td><V2Tags tipos={tipos} /></td><td>100%</td><td>Referência</td></tr>
-            {targets.map((target) => <tr key={target.key}><td>{target.jornada}</td><td>{target.tipos.length ? <V2Tags tipos={target.tipos} /> : <span className="v2-muted">Selecione os Tipos de Vínculo</span>}</td><td>{Math.round(v2Hours(target.jornada) / v2Hours(jornada) * 100)}%</td><td><input readOnly={view} type="checkbox" aria-label={"Gerar " + target.jornada + " para " + target.tipos.join(", ")} disabled={view || !target.compatible} title={!tipos.length ? "Selecione os Tipos de Vínculo da referência." : undefined} checked={generate.includes(target.key)} onChange={(event) => { setGenerate(event.target.checked ? [...generate, target.key] : generate.filter((item) => item !== target.key)); setDrafts([]); }} /></td></tr>)}
+            <tr><td>{jornada || "Selecione a Jornada"}</td><td><V2Tags tipos={tipos} /></td><td>{journeyProportion(jornada)}</td><td>Referência</td></tr>
+            {targets.map((target) => <tr key={target.key}><td>{target.jornada}</td><td>{target.tipos.length ? <V2Tags tipos={target.tipos} /> : <span className="v2-muted">Selecione os Tipos de Vínculo</span>}</td><td>{journeyProportion(target.jornada)}</td><td><input readOnly={view} type="checkbox" aria-label={"Gerar " + target.jornada + " para " + target.tipos.join(", ")} disabled={view || !target.compatible} title={!tipos.length ? "Selecione os Tipos de Vínculo da referência." : undefined} checked={generate.includes(target.key)} onChange={(event) => { setGenerate(event.target.checked ? [...generate, target.key] : generate.filter((item) => item !== target.key)); setDrafts([]); }} /></td></tr>)}
             {!targets.length && <tr><td colSpan={4} className="v2-empty">Não há outras jornadas associadas a este cargo.</td></tr>}
           </tbody></table></div></>}
         </section>}
@@ -284,10 +294,10 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
     {step === 1 && <section className="v2-panel v2-form-section v2-values-section"><h2><span className="v2-section-icon"><i className="pi pi-dollar" /></span>{structure === "fixo" ? "Valores de Vencimento" : "Valores por Nível e Classe"}</h2>
       <div className="v2-values-toolbar">
         <p>Matriz gerada conforme a estrutura do cargo e da carreira.</p>
-        {!view && !referenceSource && <BotaoSeplag type="button" label="Copiar valores da tabela anterior" icon="pi pi-copy" disabled={!previousTable || v2Structure(previousTable) !== "matriz"} onClick={() => { if (previousTable) { setMatrix(structuredClone(previousTable.matrix)); setDrafts([]); } }} />}
+        {!view && !referenceSource && <BotaoSeplag type="button" label="Copiar valores da tabela anterior" icon="pi pi-copy" disabled={!previousTable || v2Structure(previousTable) !== "matriz"} onClick={() => { if (previousTable) { setMatrix(structuredClone(previousTable.matrix)); recalculateDrafts(previousTable.matrix); } }} />}
       </div>
       {commissionFixed ? <div className="v2-commission-fields">{tipos[0] === "Exclusivamente Comissionado" ? <label><span>Subsídio <span className="v2-required">*</span></span><input readOnly={view} inputMode="decimal" value={remuneracaoValor} placeholder="R$ 0,00" onChange={(event) => setRemuneracaoValor(event.target.value.replace(/[^0-9.,]/g, ""))} onBlur={() => !view && remuneracaoValor && setRemuneracaoValor(v2Currency(remuneracaoValor))} /></label> : <><label><span>Base de cálculo — subsídio do cargo (R$) <span className="v2-required">*</span></span><input readOnly={view} inputMode="decimal" value={commissionBase} placeholder="R$ 0,00" onChange={(event) => setCommissionBase(event.target.value.replace(/[^0-9.,]/g, ""))} onBlur={() => !view && commissionBase && setCommissionBase(v2Currency(commissionBase))} /></label><label><span>Percentual de gratificação para servidores e empregados de carreira <span className="v2-required">*</span></span><input readOnly={view} type="number" min="0" max="100" step="0.01" value={remuneracaoValor} onChange={(event) => setRemuneracaoValor(event.target.value)} /></label><div className="v2-note">Valor calculado: {commissionBase && remuneracaoValor ? v2CommissionCalculatedValue(commissionBase, remuneracaoValor) : "R$ 0,00"}</div></>}
-        {source && changedCommission && <p>Valor anterior: {source.remuneracao?.valor || "—"} · Novo valor: {remuneracaoValor}</p>}</div> : structure === "fixo" ? <div className="v2-commission-fields"><label><span>Valor de Referência <span className="v2-required">*</span></span><input readOnly={view} inputMode="decimal" value={fixedValue} placeholder="R$ 0,00" onChange={(event) => { setFixedValue(event.target.value.replace(/[^0-9.,]/g, "")); setDrafts([]); }} onBlur={() => !view && fixedValue && setFixedValue(v2Currency(fixedValue))} /></label></div> : <V2MatrixEditor readOnly={view || Boolean(referenceSource)} matrix={matrix} previous={source?.matrix} onChange={(value) => { setMatrix(value); setDrafts([]); }} />}
+        {source && changedCommission && <p>Valor anterior: {source.remuneracao?.valor || "—"} · Novo valor: {remuneracaoValor}</p>}</div> : structure === "fixo" ? <div className="v2-commission-fields"><label><span>Valor de Referência <span className="v2-required">*</span></span><input readOnly={view} inputMode="decimal" value={fixedValue} placeholder="R$ 0,00" onChange={(event) => { const nextValue = event.target.value.replace(/[^0-9.,]/g, ""); setFixedValue(nextValue); recalculateDrafts({ columns: ["Valor"], rows: [{ name: "Fixo", values: [nextValue] }] }); }} onBlur={() => !view && fixedValue && setFixedValue(v2Currency(fixedValue))} /></label></div> : <V2MatrixEditor readOnly={view || Boolean(referenceSource)} matrix={matrix} previous={source?.matrix} onChange={(value) => { setMatrix(value); recalculateDrafts(value); }} />}
       {source && changedValues.length > 0 && <div className="v2-value-changes"><h3>{changedValues.length} valor(es) alterado(s)</h3>
         <div className="v2-table-wrap"><table className="v2-table"><thead><tr><th>Nível</th><th>Classe</th><th>Valor anterior</th><th>Novo valor</th></tr></thead><tbody>{changedValues.map((item) =>
           <tr key={item.nivel + item.classe}><td>{item.nivel}</td><td>{item.classe}</td><td>{item.before}</td><td>{item.after}</td></tr>)}</tbody></table></div>
@@ -304,25 +314,34 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
       <h3>Valores</h3>{commissionFixed ? <div className="v2-info-grid"><div><small>Estrutura</small><strong>{tipos[0] === "Exclusivamente Comissionado" ? "Subsídio" : "Gratificação"}</strong></div><div><small>Valor</small><strong>{remuneracaoValor}{tipos[0] === "Exclusivamente Comissionado" ? "" : "%"}</strong></div>{tipos[0] !== "Exclusivamente Comissionado" && <><div><small>Base de cálculo</small><strong>{commissionBase}</strong></div><div><small>Gratificação calculada</small><strong>{v2CommissionCalculatedValue(commissionBase, remuneracaoValor)}</strong></div></>}</div> : structure === "fixo" ? <div className="v2-commission-readonly"><strong>Valor Fixo</strong><span>{v2Currency(fixedValue)}</span></div> : <V2MatrixEditor matrix={matrix} readOnly />}
       {!source && tipos.length > 1 && <div className="v2-note">Os Tipos de Vínculo selecionados utilizarão os mesmos valores de vencimento desta exceção durante sua vigência.</div>}
     </section>}
-    {(step === 2 || structure === "fixo" && step === 0 && drafts.length > 0) && kind === "padrao" && !source && <section className="v2-panel"><h2>Revisão das Jornadas</h2><p>Revise cada tabela proporcional antes de confirmar o cadastro.</p>
-      <div className="v2-review-tabs">{drafts.map((draft, index) => <button type="button" key={draft.key} className={reviewIndex === index ? "active" : ""} onClick={() => setReviewIndex(index)}>{draft.jornada} — {draft.tipos.join(", ")}</button>)}</div>
+    {(step === 2 || structure === "fixo" && step === 0 && drafts.length > 0) && kind === "padrao" && !source && <section className="v2-panel v2-review-section"><h2>Revisão das Jornadas</h2>
+      <div className="v2-note v2-review-info" role="note"><i className="pi pi-info-circle" aria-hidden="true" /><div>
+        <p>Os valores apresentados foram calculados automaticamente a partir da Tabela de referência. Revise os valores de cada Jornada antes de concluir o cadastro.</p>
+        <p>Caso seja necessário alterar algum valor, retorne à etapa <strong>Valores por Nível e Classe</strong> e ajuste os valores da Tabela de referência. As Jornadas proporcionais serão recalculadas automaticamente.</p>
+      </div></div>
+      <div className="v2-review-tabs">{drafts.map((draft, index) => <button type="button" key={draft.key} className={reviewIndex === index ? "active" : ""} onClick={() => setReviewIndex(index)}>{reviewLabel(draft)}</button>)}</div>
       {drafts.map((draft, index) => index === reviewIndex && <div className="v2-draft" key={draft.key}>
-        <div className="v2-section-head"><h3>{draft.jornada} · {draft.tipos.join(", ")}</h3><V2Status value={draft.approved ? "Aprovada para salvar" : "Aguardando revisão"} /></div>
-        <div className="v2-context"><span>Referência: {cargo.nome} · {jornada}</span><span>Proporção: {Math.round(v2Hours(draft.jornada) / v2Hours(jornada) * 100)}%</span><span>{draft.adjusted ? "Proporcional — Ajustada manualmente" : "Proporcional"}</span></div>
-        <div className="v2-draft-actions"><button type="button" className="v2-button-secondary" onClick={() => updateDraft(index, { adjusted: !draft.adjusted, matrix: !draft.adjusted ? draft.matrix : draft.original, approved: false })}>{draft.adjusted ? "Usar cálculo proporcional" : "Ajustar valores manualmente"}</button>
-          <button type="button" className="v2-button-primary" onClick={() => { if (v2MatrixValid(draft.matrix)) updateDraft(index, { approved: true }); else setError("Preencha todos os valores da Jornada."); }}><i className="pi pi-check" /> Aprovar cálculo</button></div>
-        <V2MatrixEditor matrix={draft.matrix} previous={draft.original} readOnly={!draft.adjusted} onChange={(value) => updateDraft(index, { matrix: value, approved: false })} />
+        <div className="v2-section-head"><h3>{reviewLabel(draft)}</h3><V2Status value={draft.approved ? "Cálculo aprovado" : "Aguardando revisão"} /></div>
+        <div className="v2-context"><span>Referência: {cargo.nome} · {jornada}</span><span>Proporção: {journeyProportion(draft.jornada)}</span><span>Proporcional</span></div>
+        <V2Tags tipos={draft.tipos} />
+        <V2MatrixEditor matrix={draft.matrix} readOnly />
+        <div className="v2-draft-actions"><button type="button" className="v2-button-primary" disabled={draft.approved} onClick={() => {
+          if (!v2MatrixValid(draft.matrix)) { setError("Preencha todos os valores da Jornada."); return; }
+          setDrafts((current) => current.map((item, position) => position === index ? { ...item, approved: true } : item));
+        }}><i className="pi pi-check" /> {draft.approved ? "Cálculo aprovado" : "Aprovar cálculo"}</button></div>
       </div>)}
     </section>}
     {error && <p role="alert" className="v2-error">{error}</p>}
     {!embedded && <div className={"v2-footer" + (step === 1 ? " v2-values-footer" : "")}><button type="button" className="v2-button-secondary" onClick={() => view ? nav(V2_BASE + "?cargo=" + cargo.id) : step ? setStep(step - 1) : nav(V2_BASE)}><i className="pi pi-arrow-left" /> Voltar</button>
-      {!view && <button type="button" className="v2-button-primary" onClick={advance}><i className="pi pi-save" /> {step === 0 && !source && kind === "padrao" ? "Confirmar" : !isLastStep ? "Avançar" : source ? "Confirmar versionamento" : kind === "excecao" ? "Salvar Exceção" : "Salvar tabela"}</button>}</div>}
+      {!view && <button type="button" className="v2-button-primary" disabled={reviewPending} onClick={advance}><i className="pi pi-save" /> {step === 0 && !source && kind === "padrao" ? "Confirmar" : step === 1 && !source && kind === "padrao" ? "Salvar tabela" : !isLastStep ? "Avançar" : source ? "Confirmar versionamento" : kind === "excecao" ? "Salvar Exceção" : "Salvar tabela"}</button>}</div>}
     {confirmOpen && <div className="v2-overlay" role="presentation" onMouseDown={() => setConfirmOpen(false)}><section className="v2-modal v2-confirm" role="dialog" aria-modal="true" aria-labelledby="v2-confirm-form-title" onMouseDown={(event) => event.stopPropagation()}>
-      <header><h2 id="v2-confirm-form-title">{source ? "Confirmar versionamento" : kind === "excecao" ? "Confirmar cadastro da Exceção" : "Confirmar cadastro da tabela"}</h2>
+      <header><h2 id="v2-confirm-form-title">{source ? "Confirmar versionamento" : kind === "excecao" ? "Confirmar cadastro da Exceção" : drafts.length ? "Confirmar cadastro das Tabelas de Vencimentos" : "Confirmar cadastro da tabela"}</h2>
         <button type="button" className="v2-icon-plain" aria-label="Fechar" onClick={() => setConfirmOpen(false)}><i className="pi pi-times" /></button></header>
       <div className="v2-confirm-body">
-        <p>{versionCommissionPair ? "Ao confirmar, a tabela de Exclusivamente Comissionado e a tabela de Nomeado Efetivo serão versionadas automaticamente. A gratificação será recalculada com o subsídio e o percentual informados. Deseja continuar?" : createCommissionPair ? "Serão criadas duas tabelas: uma para Exclusivamente Comissionado com o subsídio integral e outra para Nomeado Efetivo com a gratificação calculada. Deseja continuar?" : cargo.comissionado ? "Deseja confirmar os valores e a vigência desta tabela de cargo comissionado?" : source ? tipos.length < sourceTypes.length ? "Deseja confirmar a separação dos Tipos de Vínculo? Será criada uma nova tabela para os vínculos selecionados, preservando a tabela anterior para os demais." : "Deseja confirmar a nova versão? Os novos valores serão aplicados aos Tipos de Vínculo selecionados a partir da vigência informada." : "Deseja confirmar o cadastro da tabela de vencimentos? Os Tipos de Vínculo selecionados compartilharão os valores informados."}</p>
-        <div className="v2-info-grid"><div><small>Cargo</small><strong>{cargo.nome}</strong></div><div><small>Jornada ou abrangência</small><strong>{kind === "padrao" ? jornada : perfil + " · " + local}</strong></div>
+        <p>{drafts.length ? "As Tabelas proporcionais foram revisadas e serão criadas com base nos valores da Tabela de referência. Deseja continuar?" : versionCommissionPair ? "Ao confirmar, a tabela de Exclusivamente Comissionado e a tabela de Nomeado Efetivo serão versionadas automaticamente. A gratificação será recalculada com o subsídio e o percentual informados. Deseja continuar?" : createCommissionPair ? "Serão criadas duas tabelas: uma para Exclusivamente Comissionado com o subsídio integral e outra para Nomeado Efetivo com a gratificação calculada. Deseja continuar?" : cargo.comissionado ? "Deseja confirmar os valores e a vigência desta tabela de cargo comissionado?" : source ? tipos.length < sourceTypes.length ? "Deseja confirmar a separação dos Tipos de Vínculo? Será criada uma nova tabela para os vínculos selecionados, preservando a tabela anterior para os demais." : "Deseja confirmar a nova versão? Os novos valores serão aplicados aos Tipos de Vínculo selecionados a partir da vigência informada." : "Deseja confirmar o cadastro da tabela de vencimentos? Os Tipos de Vínculo selecionados compartilharão os valores informados."}</p>
+        <div className="v2-info-grid"><div><small>Cargo</small><strong>{cargo.nome}</strong></div>
+          {!!drafts.length && <div><small>Tabela de referência</small><strong>{cargo.nome} · {jornada}</strong></div>}
+          <div><small>{drafts.length ? "Jornada de referência" : "Jornada ou abrangência"}</small><strong>{kind === "padrao" ? jornada : perfil + " · " + local}</strong></div>
           {!cargo.comissionado && <div><small>Tipos de Vínculo</small><strong>{tipos.join(", ")}</strong></div>}<div><small>Vigência</small><strong>{v2Date(start)} – {end ? v2Date(end) : "Atual"}</strong></div>
           {tipos.includes("Contrato Temporário") && <div><small>Edital / Processo Seletivo</small><strong>{v2EditalNames(editais) || "Nenhum edital selecionado"}</strong></div>}
           {cargo.comissionado && <div><small>Estrutura de Vencimento</small><strong>{structure === "fixo" ? "Valor Fixo" : "Tabela por Nível e Classe"}</strong></div>}
@@ -332,7 +351,7 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
         {createCommissionPair && <V2CommissionedValuesSummary subsidy={commissionSubsidy} percent={commissionPercent} />}
         {versionCommissionPair && commissionCompanion && <><div className="v2-note">Tabelas: {v2TableDisplayId(source!)} e {v2TableDisplayId(commissionCompanion)} · Nova vigência: {v2Date(start)}</div><V2CommissionedValuesSummary subsidy={commissionSubsidy} percent={commissionPercent} /></>}
         {source && !cargo.comissionado && <div className="v2-info-grid"><div><small>Receberão os novos valores</small><strong>{tipos.join(", ")}</strong></div><div><small>Permanecerão na tabela anterior</small><strong>{sourceTypes.filter((tipo) => !tipos.includes(tipo)).join(", ") || "Nenhum"}</strong></div></div>}
-        {!!drafts.length && <div><strong>Tabelas proporcionais</strong>{drafts.map((draft) => <p key={draft.key}>{draft.jornada}: {draft.tipos.join(", ")}</p>)}</div>}
+        {!!drafts.length && <div className="v2-info-grid"><div><small>Quantidade de Tabelas proporcionais</small><strong>{drafts.length}</strong></div><div><small>Jornadas que serão criadas</small><strong>{drafts.map((draft) => draft.jornada).join(", ")}</strong></div></div>}
       </div>
       <div className="v2-footer"><button type="button" className="v2-button-secondary" onClick={() => setConfirmOpen(false)}>Cancelar</button><button type="button" className="v2-button-primary" onClick={save}>{source ? "Confirmar versionamento" : "Confirmar cadastro"}</button></div>
     </section></div>}

@@ -43,7 +43,7 @@ export function V2RgaHistoryDetails({ version, previous, audit }: { version: V2R
       </div>
     </section>
     <section className="tv-history-rga-section">
-      <h4>Valores aplicados pelo RGA</h4><div className="tv-scroll">
+      <h4>{version.origem === "RGA em lote" ? "Aplicação de RGA em lote" : "Valores aplicados pelo RGA"}</h4><div className="tv-scroll">
         <table className="tv-history-rga-values" aria-label="Valores aplicados pelo RGA">
           <thead><tr>{["Nível", "Classe", "Valor base", "Percentual RGA", "Valor com RGA", "Diferença"].map((label) => <th key={label}>{label}</th>)}</tr></thead>
           <tbody>{rows.map((row, index) => {

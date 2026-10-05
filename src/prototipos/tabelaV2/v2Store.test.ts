@@ -49,17 +49,42 @@ describe("Tabela V2", () => {
     expect(v2Applicable(result.records, { cargoId: 1, jornada: "20 horas", tipo: "Contrato Temporário" }, "2026-11-01")?.tableId).toBe(source.tableId);
     expect(v2Applicable(result.records, { cargoId: 1, jornada: "20 horas", tipo: "Nomeado Efetivo" }, "2026-11-01")?.tableId).toBe(result.record.tableId);
   });
-  it("aplica RGA apenas ao vínculo elegível e registra os valores anteriores", () => {
+  it("aplica RGA em lote à tabela inteira e preserva todos os vínculos", () => {
     const source = v2Seed()[0];
     expect(v2RgaCandidates(v2Seed(), "2026-09-25").some((record) => record.id === source.id)).toBe(true);
     const result = v2ApplyRga(v2Seed(), [source.id], 5.4, "2026-10-01", "Lei 999/2026", "RGA anual");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.created[0].links.map((link) => link.tipo)).toEqual(["Nomeado Efetivo"]);
+    expect(result.created[0].links.map((link) => link.tipo)).toEqual(["Nomeado Efetivo", "Contrato Temporário"]);
+    expect(result.created[0].links.map((link) => link.incideRga)).toEqual(source.links.map((link) => link.incideRga));
+    expect(result.created[0].tableId).toBe(source.tableId);
+    expect(result.created[0].version).toBe(source.version + 1);
+    expect(result.created[0].origem).toBe("RGA em lote");
     expect(result.created[0].matrix.rows[0].values[0]).toBe("R$ 4.743,00");
     expect(result.created[0].events[0].percent).toBe(5.4);
     expect(result.created[0].events[0].before?.rows[0].values[0]).toBe("R$ 4.500,00");
-    expect(v2Status(result.records.find((record) => record.id === source.id)!, "2026-11-01")).toBe("Vigente");
+    expect(v2Status(result.records.find((record) => record.id === source.id)!, "2026-11-01")).toBe("Encerrada");
+  });
+  it("omite versões futuras e encerradas da seleção do lote", () => {
+    const current = structuredClone(v2Seed()[0]);
+    const future = { ...structuredClone(current), id: "future-rga", tableId: "TV2-FUT",
+      inicio: "2026-11-01", links: current.links.map((link) => ({ ...link, inicio: "2026-11-01" })) };
+    const ended = { ...structuredClone(current), id: "ended-rga", tableId: "TV2-END", fim: "2026-08-31" };
+    expect(v2RgaCandidates([current, future, ended], "2026-09-25").map((record) => record.id)).toEqual([current.id]);
+  });
+  it("lista tabelas vigentes sem consultar incidência e versiona registros distintos", () => {
+    const seed = v2Seed();
+    const candidates = v2RgaCandidates(seed, "2026-09-25");
+    expect(candidates.map((record) => record.id)).toEqual(seed.map((record) => record.id));
+    const two = seed.filter((record) => record.jornada === "30 horas");
+    const result = v2ApplyRga(seed, two.map((record) => record.id), 5, "2026-10-01", "Lei 999/2026", "");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.created).toHaveLength(2);
+    expect(result.created.map((record) => record.tableId)).toEqual(two.map((record) => record.tableId));
+    expect(result.created.every((record) => record.origem === "RGA em lote" && record.version === 2)).toBe(true);
+    expect(result.records.filter((record) => !seed.some((original) => original.id === record.id))).toHaveLength(2);
+    expect(seed.every((record) => record.version === 1)).toBe(true);
   });
   it("faz a exceção prevalecer para vínculos, perfil e local correspondentes", () => {
     const exception: V2Input = {
@@ -80,6 +105,14 @@ describe("Tabela V2", () => {
     if (!created.ok) return;
     expect(v2Applicable(created.records, { cargoId: 1, jornada: "20 horas", tipo: "Nomeado Efetivo", perfil: "Auditoria", local: "SEFAZ", horasTrabalhadas: "6h" }, "2026-11-01")?.id).toBe(created.record.id);
     expect(v2Applicable(created.records, { cargoId: 1, jornada: "20 horas", tipo: "Nomeado Efetivo", perfil: "Auditoria", local: "SEFAZ", horasTrabalhadas: "4h" }, "2026-11-01")?.kind).toBe("padrao");
+  });
+
+  it("rejeita cadastro temporário sem edital e aceita após seleção", () => {
+    const temporary: V2Input = { ...input, cargoId: 5, links: [{ tipo: "Contrato Temporário", inicio: input.inicio, incideRga: false }] };
+    const missing = v2Create([], temporary);
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) expect(missing.message).toContain("Edital / Processo Seletivo");
+    expect(v2Create([], { ...temporary, editais: [V2_EDITAIS[0].id] }).ok).toBe(true);
   });
 
   it("mantém a versão vigente consultável quando já existe uma versão futura", () => {
@@ -114,6 +147,29 @@ describe("Tabela V2", () => {
     });
     expect(incompatible.ok).toBe(false);
   });
+});
+
+it("versiona cada tabela comissionada selecionada sem alterar a configuração dos vínculos", () => {
+  const pair = v2CreateCommissionedPair([], {
+    ...input, cargoId: 101, jornada: "40 horas", inicio: "2026-01-01",
+    links: [
+      { tipo: "Exclusivamente Comissionado", inicio: "2026-01-01", incideRga: false },
+      { tipo: "Nomeado Efetivo", inicio: "2026-01-01", incideRga: false },
+    ],
+  }, "7000", "85");
+  expect(pair.ok).toBe(true);
+  if (!pair.ok) return;
+  expect(v2RgaCandidates(pair.records, "2026-09-25")).toHaveLength(2);
+  const result = v2ApplyRga(pair.records, pair.created.map((record) => record.id), 5, "2026-10-01", "Lei 999/2026", "");
+  expect(result.ok).toBe(true);
+  if (!result.ok) return;
+  expect(result.created).toHaveLength(2);
+  expect(result.created.every((record) => record.origem === "RGA em lote")).toBe(true);
+  expect(result.created.map((record) => record.links[0].incideRga)).toEqual([false, false]);
+  expect(result.created[0].remuneracao?.valor).toContain("7.350,00");
+  expect(result.created[1].remuneracao?.baseCalculo).toContain("7.350,00");
+  expect(result.created[1].remuneracao?.valorCalculado).toContain("6.247,50");
+  expect(result.created[1].matrix.rows[0].values[0]).toContain("6.247,50");
 });
 
 it("aplica RGA individual à base da gratificação e mantém o percentual remuneratório", () => {
@@ -273,6 +329,14 @@ it("oferece apenas referências vigentes e compatíveis com a jornada e seus edi
   expect(v2ReferenceCandidates([incompatible], V2_CARGOS.find((item) => item.id === 3)!, "40 horas")).toHaveLength(1);
 });
 
+it("oferece referência da mesma jornada quando faltam vínculos e evita duplicar a cobertura", () => {
+  const cargo = V2_CARGOS.find((item) => item.id === 7)!;
+  const reference: V2Record = { ...structuredClone(v2Seed()[0]), cargoId: 7, jornada: "20 horas", origem: "Referência", links: [{ tipo: "Residente Técnico", inicio: "2026-01-01", incideRga: false }] };
+  expect(v2ReferenceCandidates([reference], cargo, "20 horas")).toHaveLength(1);
+  const occupied = ["Bolsista", "Estagiário"].map((tipo, index): V2Record => ({ ...reference, id: "other-" + index, tableId: "other-" + index, tableNumber: index + 20, origem: "Manual", links: [{ tipo, inicio: "2026-01-01", incideRga: false }] }));
+  expect(v2ReferenceCandidates([reference, ...occupied], cargo, "20 horas")).toHaveLength(0);
+});
+
 it("cria o par comissionado com IDs distintos e calcula a gratificação", () => {
   const result = v2CreateCommissionedPair([], { ...input, cargoId: 101, jornada: "40 horas" }, "7000", "85");
   expect(result.ok).toBe(true);
@@ -337,7 +401,7 @@ it("visualiza o percentual da época sem misturar versões comissionadas", () =>
 });
 
 it("aceita todos os vínculos nas jornadas do cargo e rejeita jornadas fora do cargo", () => {
-  const candidate = { ...input, cargoId: 3, jornada: "40 horas",
+  const candidate = { ...input, cargoId: 3, jornada: "40 horas", editais: [V2_EDITAIS[0].id],
     links: [{ tipo: "Contrato Temporário", inicio: input.inicio, incideRga: false }] };
   expect(v2Create([], candidate).ok).toBe(true);
   expect(v2Create([], { ...candidate, jornada: "99 horas" }).ok).toBe(false);
