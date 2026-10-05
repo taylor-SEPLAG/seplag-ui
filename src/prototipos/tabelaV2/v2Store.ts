@@ -129,6 +129,7 @@ export const V2_CARGOS: V2Cargo[] = [
     "carreira": "Gestão Governamental",
     "comissionado": false,
     "jornadas": [
+      "10 horas",
       "20 horas",
       "30 horas",
       "40 horas"
@@ -137,6 +138,7 @@ export const V2_CARGOS: V2Cargo[] = [
       {
         "tipo": "Nomeado Efetivo",
         "jornadas": [
+          "10 horas",
           "20 horas",
           "30 horas",
           "40 horas"

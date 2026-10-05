@@ -3440,6 +3440,13 @@
 .prototype-novo-ingresso-panel-icon i {
   line-height: 1;
 }
+.prototype-comissionado-enquadramento-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
 .prototype-novo-ingresso-panel > .prototype-novo-ingresso-candidato-grid,
 .prototype-novo-ingresso-panel > .prototype-ingresso-import-grid,
 .prototype-novo-ingresso-panel > .prototype-ingresso-type-grid {
@@ -17161,23 +17168,20 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.prototype-efetivo-exercicio-apolice-row {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px 18px;
-}
-
 .prototype-efetivo-exercicio-orgao-row {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.prototype-efetivo-exercicio-orgao-row--estagio {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 
 @media (max-width: 900px) {
   .prototype-efetivo-exercicio-top-row,
   .prototype-efetivo-exercicio-orgao-row,
-  .prototype-efetivo-exercicio-datas-row,
-  .prototype-efetivo-exercicio-apolice-row {
+  .prototype-efetivo-exercicio-orgao-row--estagio,
+  .prototype-efetivo-exercicio-datas-row {
     grid-template-columns: 1fr;
   }
 }

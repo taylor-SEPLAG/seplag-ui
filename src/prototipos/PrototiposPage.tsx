@@ -12949,12 +12949,58 @@ interface IngressoComissionadoRow {
 }
 
 const ingressosComissionadosMock: IngressoComissionadoRow[] = [
-  { id: 1, nome: "João Silva", cpf: "000.000.000-00", atoNomeacao: "0001/2026", orgao: "SEPLAG", cargo: "Assessor Especial", dataEfetivoExercicio: "-", setorLotacao: "Gabinete do Secretário", situacao: "Em análise" },
-  { id: 2, nome: "Maria Souza", cpf: "111.111.111-11", atoNomeacao: "0002/2026", orgao: "SEDUC", cargo: "Assessora Técnica", dataEfetivoExercicio: "-", setorLotacao: "Coordenadoria Administrativa", situacao: "Em análise" },
-  { id: 3, nome: "Carlos Pereira", cpf: "222.222.222-22", atoNomeacao: "0003/2026", orgao: "SES", cargo: "Diretor de Unidade", dataEfetivoExercicio: "-", setorLotacao: "Diretoria de Gestão", situacao: "Aguardando efetivo exercício" },
+  { id: 1, nome: "João Silva", cpf: "000.000.000-00", atoNomeacao: "0001/2026", orgao: "SEPLAG", cargo: "Assessor Especial", dataEfetivoExercicio: "-", setorLotacao: "-", situacao: "Em análise" },
+  { id: 2, nome: "Maria Souza", cpf: "111.111.111-11", atoNomeacao: "0002/2026", orgao: "SEDUC", cargo: "Assessora Técnica", dataEfetivoExercicio: "-", setorLotacao: "-", situacao: "Aguardando efetivo exercício" },
+  { id: 3, nome: "Carlos Pereira", cpf: "222.222.222-22", atoNomeacao: "0003/2026", orgao: "SES", cargo: "Diretor de Unidade", dataEfetivoExercicio: "18/09/2026", setorLotacao: "Diretoria de Gestão", situacao: "Aguardando termo assinado" },
   { id: 4, nome: "Ana Costa", cpf: "333.333.333-33", atoNomeacao: "0004/2026", orgao: "SEFAZ", cargo: "Chefe de Gabinete", dataEfetivoExercicio: "10/09/2026", setorLotacao: "Gabinete", situacao: "Ingresso concluído" },
-  { id: 5, nome: "Fernanda Rocha", cpf: "444.444.444-44", atoNomeacao: "0005/2026", orgao: "SEPLAG", cargo: "Coordenadora", dataEfetivoExercicio: "-", setorLotacao: "Coordenadoria de Pessoas", situacao: "Ingresso cancelado" },
+  { id: 5, nome: "Fernanda Rocha", cpf: "444.444.444-44", atoNomeacao: "0005/2026", orgao: "SEPLAG", cargo: "Coordenadora", dataEfetivoExercicio: "-", setorLotacao: "-", situacao: "Ingresso cancelado" },
 ];
+
+const chaveRegistrosComissionadosCriados = "prototype-ingressos-comissionados-registros";
+const chaveHistoricoEfetivoComissionado = "prototype-ingresso-historico-efetivo-exercicio";
+const eventoComissionado = (titulo: string, descricao: string, dataHora: string, arquivo?: string): EfetivoExercicioHistoricoEvento =>
+  ({ titulo, descricao, dataHora, responsavel: "Roberto Junior — Provimento", arquivo });
+const historicosComissionadosMock: Record<number, EfetivoExercicioHistoricoEvento[]> = {
+  1: [eventoComissionado("Ingresso comissionado criado", "Situação atribuída: Em análise.", "01/09/2026 às 09:00")],
+  2: [
+    eventoComissionado("Ingresso comissionado criado", "Situação atribuída: Em análise.", "02/09/2026 às 09:00"),
+    eventoComissionado("Análise do ingresso concluída", "Situação atribuída: Aguardando Efetivo Exercício.", "03/09/2026 às 14:10"),
+  ],
+  3: [
+    eventoComissionado("Ingresso comissionado criado", "Situação atribuída: Em análise.", "04/09/2026 às 09:00"),
+    eventoComissionado("Análise do ingresso concluída", "Situação atribuída: Aguardando Efetivo Exercício.", "05/09/2026 às 14:10"),
+    eventoComissionado("Efetivo Exercício confirmado", "Servidor compareceu. Situação atribuída: Aguardando Termo Assinado.", "18/09/2026 às 10:30"),
+    eventoComissionado("Termo de Efetivo Exercício gerado", "Modelo disponível para download e assinatura.", "18/09/2026 às 10:31", "termo_efetivo_2026_0003.pdf"),
+  ],
+  4: [
+    eventoComissionado("Ingresso comissionado criado", "Situação atribuída: Em análise.", "01/09/2026 às 09:00"),
+    eventoComissionado("Análise do ingresso concluída", "Situação atribuída: Aguardando Efetivo Exercício.", "03/09/2026 às 14:10"),
+    eventoComissionado("Efetivo Exercício confirmado", "Servidor compareceu. Situação atribuída: Aguardando Termo Assinado.", "10/09/2026 às 10:30"),
+    eventoComissionado("Termo de Efetivo Exercício gerado", "Modelo disponível para download e assinatura.", "10/09/2026 às 10:31", "termo_efetivo_2026_0004.pdf"),
+    eventoComissionado("Termo de Efetivo Exercício assinado anexado", "Documento assinado vinculado ao ingresso.", "11/09/2026 às 09:20", "termo_efetivo_2026_0004_assinado.pdf"),
+    eventoComissionado("Efetivo Exercício finalizado", "Situação atribuída: Ingresso Concluído.", "11/09/2026 às 09:25"),
+  ],
+  5: [
+    eventoComissionado("Ingresso comissionado criado", "Situação atribuída: Em análise.", "02/09/2026 às 09:00"),
+    eventoComissionado("Ingresso cancelado", "Processo encerrado pela ação Cancelar Ingresso. Situação atribuída: Ingresso Cancelado.", "03/09/2026 às 11:45"),
+  ],
+};
+const lerRegistrosComissionadosCriados = (): IngressoComissionadoRow[] => {
+  try {
+    const registros = JSON.parse(localStorage.getItem(chaveRegistrosComissionadosCriados) ?? "[]");
+    return Array.isArray(registros) ? registros as IngressoComissionadoRow[] : [];
+  } catch {
+    return [];
+  }
+};
+const adicionarHistoricoComissionado = (id: string | number, evento: EfetivoExercicioHistoricoEvento) => {
+  const historicos = JSON.parse(localStorage.getItem(chaveHistoricoEfetivoComissionado) ?? "{}") as Record<string, EfetivoExercicioHistoricoEvento[]>;
+  const chave = "Exclusivo Comissionado|" + id;
+  localStorage.setItem(chaveHistoricoEfetivoComissionado, JSON.stringify({
+    ...historicos,
+    [chave]: [...(historicos[chave] ?? []), evento],
+  }));
+};
 
 export function PrototiposIngressosComissionadosPage() {
   const navigate = useNavigate();
@@ -12963,7 +13009,7 @@ export function PrototiposIngressosComissionadosPage() {
     const situacoesSalvas = JSON.parse(localStorage.getItem("prototype-ingresso-situacoes") ?? "{}") as Record<string, IngressoSituacao>;
     const datasSalvas = JSON.parse(localStorage.getItem("prototype-ingresso-datas-efetivo-exercicio") ?? "{}") as Record<string, string>;
     const setoresSalvos = JSON.parse(localStorage.getItem("prototype-ingresso-setores-lotacao") ?? "{}") as Record<string, string>;
-    return ingressosComissionadosMock.map((registro) => {
+    return [...ingressosComissionadosMock, ...lerRegistrosComissionadosCriados()].map((registro) => {
       const situacaoSalva = situacoesSalvas[String(registro.id)];
       const situacaoMapeada: IngressoComissionadoSituacao = situacaoSalva === "Aguardando Termo Assinado"
         ? "Aguardando termo assinado"
@@ -12978,7 +13024,7 @@ export function PrototiposIngressosComissionadosPage() {
         ...registro,
         situacao: situacaoMapeada,
         dataEfetivoExercicio: datasSalvas[String(registro.id)]
-          ? datasSalvas[String(registro.id)].split("-").reverse().join("/")
+          ? datasSalvas[String(registro.id)].includes("-") ? datasSalvas[String(registro.id)].split("-").reverse().join("/") : datasSalvas[String(registro.id)]
           : registro.dataEfetivoExercicio,
         setorLotacao: setoresSalvos[String(registro.id)] ?? registro.setorLotacao,
       };
@@ -12994,9 +13040,10 @@ export function PrototiposIngressosComissionadosPage() {
   const [erroTermoAssinadoComissionado, setErroTermoAssinadoComissionado] = useState("");
   const [feedbackComissionado, setFeedbackComissionado] = useState("");
   const termo = watch("termo")?.trim().toLowerCase() ?? "";
-  const registrosEfetivoComissionado = JSON.parse(
-    localStorage.getItem("prototype-ingresso-efetivo-gerado") ?? "{}",
-  ) as Record<string, EfetivoExercicioGeradoRegistro>;
+  const registrosEfetivoComissionado = {
+    "Exclusivo Comissionado|3": { matricula: "327303", vinculo: "1", termoNome: "termo_efetivo_2026_0003.pdf", registradoEm: "18/09/2026 às 10:31", responsavel: "Sistema SIGEP" },
+    ...JSON.parse(localStorage.getItem("prototype-ingresso-efetivo-gerado") ?? "{}") as Record<string, EfetivoExercicioGeradoRegistro>,
+  };
   const chaveFinalizacaoComissionado = finalizacaoSelecionada
     ? "Exclusivo Comissionado|" + finalizacaoSelecionada.id
     : "";
@@ -13007,7 +13054,7 @@ export function PrototiposIngressosComissionadosPage() {
     localStorage.getItem("prototype-ingresso-historico-efetivo-exercicio") ?? "{}",
   ) as Record<string, EfetivoExercicioHistoricoEvento[]>;
   const eventosHistoricoComissionado = historicoSelecionado
-    ? historicosEfetivoComissionado["Exclusivo Comissionado|" + historicoSelecionado.id] ?? []
+    ? [...(historicosComissionadosMock[historicoSelecionado.id] ?? []), ...(historicosEfetivoComissionado["Exclusivo Comissionado|" + historicoSelecionado.id] ?? [])]
     : [];
   const situacoes: IngressoComissionadoSituacao[] = [
     "Em análise",
@@ -13061,6 +13108,15 @@ export function PrototiposIngressosComissionadosPage() {
       etapa,
     });
     navigate(`/prototipos/sigep/ingressos/novo?${parametros.toString()}`);
+  };
+  const cancelarIngressoComissionado = (registro: IngressoComissionadoRow) => {
+    if (registro.situacao !== "Em análise") return;
+    const situacoes = JSON.parse(localStorage.getItem("prototype-ingresso-situacoes") ?? "{}") as Record<string, IngressoSituacao>;
+    localStorage.setItem("prototype-ingresso-situacoes", JSON.stringify({ ...situacoes, [String(registro.id)]: "Ingresso Cancelado" }));
+    adicionarHistoricoComissionado(registro.id, eventoComissionado("Ingresso cancelado", "Processo encerrado pela ação Cancelar Ingresso. Situação atribuída: Ingresso Cancelado.", new Date().toLocaleString("pt-BR")));
+    setRegistros((atuais) => atuais.map((item) => item.id === registro.id ? { ...item, situacao: "Ingresso cancelado" } : item));
+    setMenuAbertoId(null);
+    setFeedbackComissionado("Ingresso cancelado.");
   };
   const visualizarIngresso = (registro: IngressoComissionadoRow) => {
     const parametros = new URLSearchParams({
@@ -13155,7 +13211,7 @@ export function PrototiposIngressosComissionadosPage() {
     <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
       <div className="prototype-page-content prototype-page-content--white prototype-ingressos-teste-list-page">
         <CardSeplag
-          title="Gestão de Ingresso de Comissonados"
+          title="Gestão de Ingresso de Comissionados"
           cols="12"
           cardHeaderClassNames="prototype-regime-card prototype-ingressos-card"
           headerNavigation={
@@ -13215,9 +13271,9 @@ export function PrototiposIngressosComissionadosPage() {
                 <tbody>
                   {registrosPaginados.length === 0 ? <tr><td colSpan={9} className="prototype-empty-table-cell">Nenhum ingresso comissionado encontrado para os filtros informados.</td></tr> : registrosPaginados.map((registro) => {
                     const badge = getBadge(registro.situacao);
+                    const emAnalise = registro.situacao === "Em análise";
+                    const aguardandoEfetivo = registro.situacao === "Aguardando efetivo exercício";
                     const aguardandoTermo = registro.situacao === "Aguardando termo assinado";
-                    const encerrado = ["Ingresso concluído", "Ingresso cancelado"].includes(registro.situacao);
-                    const podeExcluir = registro.situacao === "Em análise";
                     return <tr key={registro.id}>
                       <td>{`2026/${String(registro.id).padStart(4, "0")}`}</td>
                       <td>{registro.nome}</td>
@@ -13238,13 +13294,12 @@ export function PrototiposIngressosComissionadosPage() {
                             <button type="button" className="prototype-ingresso-actions-arrow" title="Mais ações" aria-label="Mais ações" aria-expanded={menuAbertoId === registro.id} onClick={() => setMenuAbertoId((atual) => atual === registro.id ? null : registro.id)}><i className="pi pi-chevron-down" aria-hidden="true" /></button>
                           </div>
                           {menuAbertoId === registro.id ? <div className="prototype-ingresso-actions-menu" role="menu">
-                            {aguardandoTermo ? (
-                              <button type="button" role="menuitem" onClick={() => { setMenuAbertoId(null); setTermoAssinadoComissionado(null); setErroTermoAssinadoComissionado(""); setFinalizacaoSelecionada(registro); }}><i className="pi pi-check-circle" aria-hidden="true" /><span>Finalizar Efetivo Exercício</span></button>
-                            ) : (
-                              <button type="button" role="menuitem" className={encerrado ? "is-disabled" : undefined} aria-disabled={encerrado} onClick={() => { if (encerrado) return; setMenuAbertoId(null); continuarIngresso(registro); }}><i className="pi pi-sign-in" aria-hidden="true" /><span>Continuar ingresso</span></button>
-                            )}
-                            {!aguardandoTermo ? <button type="button" role="menuitem" className={encerrado ? "is-disabled" : "is-danger"} aria-disabled={encerrado} onClick={() => { if (encerrado) return; setMenuAbertoId(null); setRegistros((atuais) => atuais.map((item) => item.id === registro.id ? { ...item, situacao: "Ingresso cancelado" } : item)); }}><i className="pi pi-times-circle" aria-hidden="true" /><span>Cancelar ingresso</span></button> : null}
-                            {podeExcluir ? <button type="button" role="menuitem" className="is-danger" onClick={() => { setMenuAbertoId(null); setRegistros((atuais) => atuais.filter((item) => item.id !== registro.id)); }}><i className="pi pi-trash" aria-hidden="true" /><span>Excluir ingresso</span></button> : null}
+                            {emAnalise ? <>
+                              <button type="button" role="menuitem" onClick={() => { setMenuAbertoId(null); continuarIngresso(registro); }}><i className="pi pi-sign-in" aria-hidden="true" /><span>Continuar análise do ingresso</span></button>
+                              <button type="button" role="menuitem" className="is-danger" onClick={() => cancelarIngressoComissionado(registro)}><i className="pi pi-times-circle" aria-hidden="true" /><span>Cancelar ingresso</span></button>
+                            </> : null}
+                            {aguardandoEfetivo ? <button type="button" role="menuitem" onClick={() => { setMenuAbertoId(null); continuarIngresso(registro); }}><i className="pi pi-sign-in" aria-hidden="true" /><span>Atuar no Efetivo Exercício</span></button> : null}
+                            {aguardandoTermo ? <button type="button" role="menuitem" onClick={() => { setMenuAbertoId(null); setTermoAssinadoComissionado(null); setErroTermoAssinadoComissionado(""); setFinalizacaoSelecionada(registro); }}><i className="pi pi-check-circle" aria-hidden="true" /><span>Finalizar Efetivo Exercício</span></button> : null}
                             <button type="button" role="menuitem" onClick={() => { setMenuAbertoId(null); setHistoricoSelecionado(registro); }}><i className="pi pi-history" aria-hidden="true" /><span>Histórico do ingresso</span></button>
                           </div> : null}
                         </div></div>
@@ -16458,7 +16513,9 @@ export function PrototiposNovoIngressoPage() {
     : tipoParam && tipoParam in ingressoTipoVinculoMap
       ? (tipoParam as IngressoTipo)
       : ingressoOrigemDados?.tipoIngresso ?? "";
-  const caminhoRetornoNovoIngresso = searchParams.get("perfil") === "setorial"
+  const caminhoRetornoNovoIngresso = tipoInicial === "Exclusivo Comissionado"
+    ? "/prototipos/sigep/ingressos/comissionados"
+    : searchParams.get("perfil") === "setorial"
     ? "/prototipos/sigep/ingressos/efetivo-exercicio"
     : processoOrigemDados
       ? `/prototipos/sigep/ingressos-teste/${processoOrigemDados.id}`
@@ -16477,21 +16534,34 @@ export function PrototiposNovoIngressoPage() {
   const atualizacaoDocumentosIntegracao = integracoesIngressoMock.find(
     (execucao) => execucao.edital === identificadorEditalOrigem && execucao.situacao !== "Falha",
   )?.dataHora ?? "05/08/2026 15:40";
+  const ingressoComissionadoOrigem = tipoInicial === "Exclusivo Comissionado" && candidatoParam
+    ? [...ingressosComissionadosMock, ...lerRegistrosComissionadosCriados()].find((registro) => registro.id === Number(candidatoParam))
+    : undefined;
   const candidatoOrigemCpf =
     candidatoProcessoOrigem?.cpf ??
     (candidatoProcessoOrigem
       ? `${String(candidatoProcessoOrigem.id).padStart(3, "0")}.444.444-44`
-      : ingressoOrigemDados?.cpf ?? "");
-  const orgaoInicial = ingressoOrigemEdital ? processoOrigemDados!.orgao : searchParams.get("orgao") ?? ingressoOrigemDados?.orgao ?? "";
-  const cargoInicial = searchParams.get("cargo") ?? ingressoOrigemDados?.cargo ?? candidatoProcessoOrigem?.cargo ?? "";
+      : ingressoComissionadoOrigem?.cpf ?? ingressoOrigemDados?.cpf ?? "");
+  const orgaoInicial = ingressoOrigemEdital ? processoOrigemDados!.orgao : searchParams.get("orgao") ?? ingressoComissionadoOrigem?.orgao ?? ingressoOrigemDados?.orgao ?? "";
+  const cargoInicial = searchParams.get("cargo") ?? ingressoComissionadoOrigem?.cargo ?? ingressoOrigemDados?.cargo ?? candidatoProcessoOrigem?.cargo ?? "";
   const classificacaoInicial = searchParams.get("classificacao") ?? candidatoProcessoOrigem?.classificacao ?? "";
   const tipoVagaInicial = searchParams.get("tipoVaga") ?? candidatoProcessoOrigem?.tipoVaga ?? "";
   const perfilNovoIngresso: IngressoPerfil = getPerfilVariacaoIngresso() === "SETORIAL" ? "SETORIAL" : "PROVIMENTO";
   const situacoesIngressosSalvasNovo = JSON.parse(
     localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
   ) as Partial<Record<string, IngressoSituacao>>;
+  const situacaoComissionadoInicial: Partial<Record<IngressoComissionadoSituacao, IngressoSituacao>> = {
+    "Em análise": "Em analise",
+    "Aguardando efetivo exercício": "Aguardando Efetivo Exercicio",
+    "Aguardando termo assinado": "Aguardando Termo Assinado",
+    "Ingresso concluído": "Ingresso Concluído",
+    "Ingresso cancelado": "Ingresso Cancelado",
+  };
+  const situacaoSalvaCandidato = candidatoParam ? situacoesIngressosSalvasNovo[candidatoParam] : undefined;
   const situacaoInicialIngresso: IngressoSituacao = candidatoParam
-    ? situacoesIngressosSalvasNovo[candidatoParam] ?? ingressoOrigemDados?.situacao ?? "Aguardando Analise"
+    ? (tipoInicial === "Exclusivo Comissionado" && situacaoSalvaCandidato === "Aguardando Analise" ? "Em analise" : situacaoSalvaCandidato)
+      ?? (ingressoComissionadoOrigem ? situacaoComissionadoInicial[ingressoComissionadoOrigem.situacao] : ingressoOrigemDados?.situacao)
+      ?? "Aguardando Analise"
     : "Aguardando Analise";
   const chaveRascunhoAnalise = `prototype-analise-provimento-rascunho-${candidatoParam ?? concursoInicial ?? "novo"}`;
   const rascunhoAnaliseInicial = (() => {
@@ -16526,17 +16596,22 @@ export function PrototiposNovoIngressoPage() {
   const [escolaridadeEstagio, setEscolaridadeEstagio] = useState("");
   const [cursoEstagio, setCursoEstagio] = useState("");
   const [posGraduacaoEstagio, setPosGraduacaoEstagio] = useState("");
-  const [dataInicioEstagio, setDataInicioEstagio] = useState("");
-  const [dataTerminoEstagio, setDataTerminoEstagio] = useState("");
+  const datasEstagioSalvas = JSON.parse(localStorage.getItem("prototype-ingresso-datas-estagio") ?? "{}") as Record<string, { inicio: string; termino: string }>;
+  const [dataInicioEstagio, setDataInicioEstagio] = useState(candidatoParam ? datasEstagioSalvas[candidatoParam]?.inicio ?? "" : "");
+  const [dataTerminoEstagio, setDataTerminoEstagio] = useState(candidatoParam ? datasEstagioSalvas[candidatoParam]?.termino ?? "" : "");
   const [supervisorEstagio, setSupervisorEstagio] = useState("");
+  const documentacaoComissionadoConcluida = tipoInicial === "Exclusivo Comissionado" && Boolean(candidatoParam)
+    && ["Aguardando Efetivo Exercicio", "Aguardando Termo Assinado", "Ingresso Concluído"].includes(situacaoInicialIngresso);
   const [activeTab, setActiveTab] = useState<NovoIngressoTab>(
-    etapaInicialParam ?? (perfilNovoIngresso === "SETORIAL" && candidatoParam && ["Aguardando Efetivo Exercicio", "Aguardando Termo Assinado"].includes(situacaoInicialIngresso) ? "efetivo-exercicio" : "tipo-ingresso"),
+    documentacaoComissionadoConcluida
+      ? "efetivo-exercicio"
+      : etapaInicialParam ?? (perfilNovoIngresso === "SETORIAL" && candidatoParam && ["Aguardando Efetivo Exercicio", "Aguardando Termo Assinado"].includes(situacaoInicialIngresso) ? "efetivo-exercicio" : "tipo-ingresso"),
   );
   const [candidatoCpf, setCandidatoCpf] = useState(candidatoOrigemCpf);
   const [cpfListaAberta, setCpfListaAberta] = useState(false);
   const [cpfFiltroLista, setCpfFiltroLista] = useState("");
   const [candidatoNome, setCandidatoNome] = useState(
-    ingressoOrigemDados?.nome ?? candidatoProcessoOrigem?.nome ?? "",
+    ingressoComissionadoOrigem?.nome ?? ingressoOrigemDados?.nome ?? candidatoProcessoOrigem?.nome ?? "",
   );
   const [candidatoNascimento, setCandidatoNascimento] = useState(nascimentoInicial);
   const [concursoSelecionado, setConcursoSelecionado] = useState(concursoInicial);
@@ -16614,7 +16689,7 @@ export function PrototiposNovoIngressoPage() {
   );
   const [atoNomeacao, setAtoNomeacao] = useState(
     tipoInicial === "Exclusivo Comissionado" && candidatoParam
-      ? ingressosComissionadosMock.find((registro) => registro.id === Number(candidatoParam))?.atoNomeacao ?? ""
+      ? ingressoComissionadoOrigem?.atoNomeacao ?? ""
       : "",
   );
   const [dataPosseIngresso, setDataPosseIngresso] = useState(
@@ -16842,8 +16917,8 @@ export function PrototiposNovoIngressoPage() {
   const quadroVagasPorProcessoSeletivo: Record<string, string> = {
     "Processo Seletivo SES 2026": "QA-0012",
     "Processo Seletivo SEDUC 2026": "QA-0013",
-    "Processo Seletivo SEFAZ 2026": "QA-0014",
   };
+  const semQuadroVagasPssSefaz = tipoIngresso === "Processo Seletivo" && concursoSelecionado === "Processo Seletivo SEFAZ 2026";
   const quadroVagasContratoTemporario = tipoIngresso === "Processo Seletivo" && tipoVinculoEditavel === "Contrato Temporário"
     ? quadroVagasPorProcessoSeletivo[concursoSelecionado] ?? ""
     : "";
@@ -16853,6 +16928,7 @@ export function PrototiposNovoIngressoPage() {
     "Técnico Administrativo - SES": "QA-0014",
   };
   const quadroVagaEstagio = vinculoTipoEstagiario ? quadroVagaEstagioPorCargo[cargoSigepEqualizado] ?? "" : "";
+  const quadroVagasComissionado = tipoIngresso === "Exclusivo Comissionado" && cargoSelecionado ? "QC-0001" : "";
   const dadosCargoSigep = cargoSigepEqualizado ? dadosCargoEqualizado[cargoSigepEqualizado] : undefined;
   const cargoPerfilSelecionado =
     tipoIngresso === "Processo Seletivo"
@@ -16902,7 +16978,10 @@ export function PrototiposNovoIngressoPage() {
         : novoIngressoEtapaInicial;
   const isPerfilSetorial = perfilNovoIngresso === "SETORIAL";
   const isEtapaEfetivoExercicio = activeTab === "efetivo-exercicio";
-  const isEtapaSomenteLeituraCentral = !isPerfilSetorial && isEtapaEfetivoExercicio;
+  const isEtapaSomenteLeituraCentral = !isPerfilSetorial && isEtapaEfetivoExercicio
+    && tipoIngresso !== "Concurso" && tipoIngresso !== "Exclusivo Comissionado"
+    && !vinculoContratoTemporario && !vinculoTipoEstagiario;
+  const isIngressoComissionadoSomenteConsulta = tipoIngresso === "Exclusivo Comissionado" && ["Aguardando Termo Assinado", "Ingresso Concluído", "Ingresso Cancelado"].includes(situacaoIngresso);
   const orgaoAtuacaoNovoIngresso = getOrgaoAtuacaoIngresso();
   const orgaosEfetivoNovoIngresso = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
   const orgaoResponsavelEfetivoNovoIngresso = (candidatoParam ? orgaosEfetivoNovoIngresso[candidatoParam] : undefined) || (sucessoDirecionamentoEfetivo && direcionamentoEfetivo === "outro" ? orgaoDestinoEfetivo : "") || orgaoInicial;
@@ -16910,13 +16989,13 @@ export function PrototiposNovoIngressoPage() {
   const direcionamentoAnaliseSalvo = candidatoParam
     ? (JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, { responsavelAnalise: string }>)[candidatoParam]
     : undefined;
-  const orgaoResponsavelAnalise = direcionamentoAnaliseSalvo?.responsavelAnalise || (sucessoDirecionamentoAnalise && direcionamentoAnalise === "outro" ? orgaoDestinoAnalise : "") || orgaoInicial;
-  const isAnaliseDocumentalOutroOrgao = isPerfilSetorial && activeTab === "documentacao" && tipoIngresso === "Processo Seletivo" &&
+  const orgaoResponsavelAnalise = direcionamentoAnaliseSalvo?.responsavelAnalise || (sucessoDirecionamentoAnalise && direcionamentoAnalise === "outro" ? orgaoDestinoAnalise : "") || orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
+  const isAnaliseDocumentalOutroOrgao = isPerfilSetorial && activeTab === "documentacao" && ["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) &&
     Boolean(orgaoResponsavelAnalise) &&
     orgaoResponsavelAnalise !== orgaoAtuacaoNovoIngresso;
   const orgaoCadastroAtual = ingressoConcursosProcessosMock.find((processo) => processo.titulo === concursoSelecionado)?.orgao || orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
   const isCadastroForaDaSetorial = isPerfilSetorial && activeTab === "tipo-ingresso" && Boolean(orgaoCadastroAtual) && orgaoCadastroAtual !== orgaoAtuacaoNovoIngresso;
-  const isEtapaSomenteLeituraSetorial = isPerfilSetorial && !isEtapaEfetivoExercicio && !(activeTab === "tipo-ingresso" && !isCadastroForaDaSetorial) && !(activeTab === "documentacao" && tipoIngresso === "Processo Seletivo" && orgaoResponsavelAnalise === orgaoAtuacaoNovoIngresso);
+  const isEtapaSomenteLeituraSetorial = isPerfilSetorial && !isEtapaEfetivoExercicio && !(activeTab === "tipo-ingresso" && !isCadastroForaDaSetorial) && !(activeTab === "documentacao" && ["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) && orgaoResponsavelAnalise === orgaoAtuacaoNovoIngresso);
   const cpfNormalizado = candidatoCpf.replace(/\D/g, "");
   const pessoaFisicaEncontrada = pessoasFisicasIngressoMock.find(
     (pessoa) => pessoa.cpf.replace(/\D/g, "") === cpfNormalizado,
@@ -17006,7 +17085,7 @@ export function PrototiposNovoIngressoPage() {
     documentosObrigatoriosIngresso.every((documento) => documento.situacao === "Validado");
   const confirmarActionLabel =
     isPerfilSetorial && isEtapaEfetivoExercicio
-      ? aplicaFinalizacaoEfetivo ? "Confirmar" : "Concluir"
+      ? aplicaFinalizacaoEfetivo || vinculoTipoEstagiario ? "Confirmar" : "Concluir"
       : activeTab === "documentacao" && documentacaoEtapa === "analise"
         ? tipoIngresso === "Processo Seletivo" ? "Finalizar parecer" : "Continuar Ingresso"
         : activeTab === "analise-provimento"
@@ -17153,12 +17232,16 @@ export function PrototiposNovoIngressoPage() {
     isEtapaSomenteLeituraSetorial ||
     (isPerfilSetorial && activeTab === "tipo-ingresso" && !orgaoCadastroAtual) ||
     isEtapaSomenteLeituraCentral ||
+    isIngressoComissionadoSomenteConsulta ||
     isEtapaEfetivoOutroOrgao ||
     isAnaliseDocumentalOutroOrgao ||
     (activeTab === "tipo-ingresso" && (
       !tipoIngresso ||
+      (tipoIngresso === "Exclusivo Comissionado" && !candidatoParam && (!candidatoCpf || !candidatoNome || !candidatoNascimento)) ||
       (vinculoTipoEstagiario && !quadroVagaEstagio) ||
-      (tipoIngresso === "Processo Seletivo" && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || orgaoDestinoAnalise === (orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial))) ||
+      semQuadroVagasPssSefaz ||
+      (["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || orgaoDestinoAnalise === (orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial))) ||
+      (!jornadaEfetivo || !referenciaEfetivo) ||
       !perfilEspecialidade ||
       ((!vinculoExigeDadosEducacionais || vinculoEstagiario) && tipoIngresso !== "Exclusivo Comissionado" &&
         (!categoriaTipoVaga || (categoriaTipoVaga === "COTISTA" && !tipoCotaSelecionada))) ||
@@ -17179,12 +17262,12 @@ export function PrototiposNovoIngressoPage() {
       decisaoDocumentacao === "aprovar" &&
       (!dataInicioEstagio || !dataTerminoEstagio)) ||
     (activeTab === "efetivo-exercicio" &&
-      (!servidorCompareceu ||
+      ((tipoIngresso === "Exclusivo Comissionado" && servidorCompareceu === "Não") || !servidorCompareceu ||
         (servidorCompareceu === "Sim" &&
-          (!setorLotacaoEfetivo || !jornadaEfetivo || !referenciaEfetivo || !dataEfetivoExercicio ||
+          (!setorLotacaoEfetivo ||
+            !dataEfetivoExercicio ||
             (tipoIngresso === "Processo Seletivo" && !dataFimEfetivoExercicio) ||
-            (vinculoEstagiario &&
-              (!numeroApoliceSeguro.trim() || !supervisorEstagio)))))) ||
+            (vinculoEstagiario && (!numeroApoliceSeguro.trim() || !supervisorEstagio)))))) ||
     (activeTab === "analise-provimento" &&
       (!parecerProvimentoSalvo ||
         (parecerProvimento !== "sem-efeito" &&
@@ -17268,8 +17351,17 @@ export function PrototiposNovoIngressoPage() {
     );
     return novoId;
   };
-  const persistirSituacaoIngressoAtual = (situacao: IngressoSituacao) => {
-    const candidatoIdAtual = candidatoRegistradoId || candidatoParam;
+  const obterIdIngressoParaEfetivo = () => {
+    const idExistente = candidatoRegistradoId || candidatoParam;
+    if (idExistente) return idExistente;
+    const idCriado = registrarIngressoNoConcursoSelecionado("Aguardando Efetivo Exercicio");
+    if (!idCriado) return "";
+    const id = String(idCriado);
+    setCandidatoRegistradoId(id);
+    return id;
+  };
+  const persistirSituacaoIngressoAtual = (situacao: IngressoSituacao, idRegistro?: string) => {
+    const candidatoIdAtual = idRegistro || candidatoRegistradoId || candidatoParam;
     if (!candidatoIdAtual) return;
 
     const situacoesSalvas = JSON.parse(
@@ -17317,8 +17409,8 @@ export function PrototiposNovoIngressoPage() {
     analisesSalvas[candidatoParam] = { motivo, justificativa };
     localStorage.setItem("prototype-ingresso-analises-negadas", JSON.stringify(analisesSalvas));
   };
-  const persistirOrgaoEncaminhadoAtual = (orgao: string) => {
-    const idIngresso = candidatoRegistradoId || candidatoParam;
+  const persistirOrgaoEncaminhadoAtual = (orgao: string, idRegistro?: string) => {
+    const idIngresso = idRegistro || candidatoRegistradoId || candidatoParam;
     if (!idIngresso) return;
 
     const orgaosSalvos = JSON.parse(
@@ -17335,8 +17427,9 @@ export function PrototiposNovoIngressoPage() {
     const data = parseDataIsoLocal(value);
     return data ? formatarDataPtBr(data) : value;
   };
-  const persistirDataEfetivoExercicioAtual = (dataIso: string) => {
-    if (!candidatoParam) return;
+  const persistirDataEfetivoExercicioAtual = (dataIso: string, idRegistro?: string) => {
+    const candidatoIdAtual = idRegistro || candidatoRegistradoId || candidatoParam;
+    if (!candidatoIdAtual) return;
 
     const datasSalvas = JSON.parse(
       localStorage.getItem("prototype-ingresso-datas-efetivo-exercicio") ?? "{}",
@@ -17345,19 +17438,20 @@ export function PrototiposNovoIngressoPage() {
       "prototype-ingresso-datas-efetivo-exercicio",
       JSON.stringify({
         ...datasSalvas,
-        [candidatoParam]: formatarDataIsoParaPtBr(dataIso),
+        [candidatoIdAtual]: formatarDataIsoParaPtBr(dataIso),
       }),
     );
   };
-  const persistirSetorLotacaoEfetivoAtual = (setorLotacao: string) => {
-    if (!candidatoParam || !setorLotacao) return;
+  const persistirSetorLotacaoEfetivoAtual = (setorLotacao: string, idRegistro?: string) => {
+    const candidatoIdAtual = idRegistro || candidatoRegistradoId || candidatoParam;
+    if (!candidatoIdAtual || !setorLotacao) return;
 
     const setoresSalvos = JSON.parse(
       localStorage.getItem("prototype-ingresso-setores-lotacao") ?? "{}",
     ) as Record<string, string>;
     localStorage.setItem(
       "prototype-ingresso-setores-lotacao",
-      JSON.stringify({ ...setoresSalvos, [candidatoParam]: setorLotacao }),
+      JSON.stringify({ ...setoresSalvos, [candidatoIdAtual]: setorLotacao }),
     );
   };
   const salvarParecerProvimento = () => {
@@ -17786,9 +17880,11 @@ export function PrototiposNovoIngressoPage() {
       setActiveTab("tipo-ingresso");
       return;
     }
-    const destino = !ingressoOrigemLista && !modoVisualizacao
-      ? "/prototipos/sigep/ingressos-teste"
-      : caminhoRetornoNovoIngresso;
+    const destino = tipoIngresso === "Exclusivo Comissionado"
+      ? caminhoRetornoNovoIngresso
+      : !ingressoOrigemLista && !modoVisualizacao
+        ? "/prototipos/sigep/ingressos-teste"
+        : caminhoRetornoNovoIngresso;
     solicitarSaidaAnalise(destino);
   };
 
@@ -17835,6 +17931,21 @@ export function PrototiposNovoIngressoPage() {
 
   const finalizarParecerDocumentacao = (destino: "efetivo" | "gestao") => {
     if (isEtapaSomenteLeituraSetorial || isAnaliseDocumentalOutroOrgao) return;
+    if (tipoIngresso === "Exclusivo Comissionado") {
+      if (!["Em analise", "Aguardando Analise"].includes(situacaoIngresso)) return;
+      const idRegistro = candidatoRegistradoId || candidatoParam;
+      if (!idRegistro) return;
+      setSituacaoIngresso("Aguardando Efetivo Exercicio");
+      persistirSituacaoIngressoAtual("Aguardando Efetivo Exercicio", idRegistro);
+      adicionarHistoricoComissionado(idRegistro, eventoComissionado("Análise do ingresso concluída", "Etapa de Documentação finalizada. Situação atribuída: Aguardando Efetivo Exercício.", new Date().toLocaleString("pt-BR")));
+      setModalFinalizarParecerAberto(false);
+      if (destino === "efetivo") {
+        setActiveTab("efetivo-exercicio");
+      } else {
+        navigate("/prototipos/sigep/ingressos/comissionados", { replace: true });
+      }
+      return;
+    }
     if (finalizandoParecerRef.current) return;
     if (decisaoDocumentacao === "cancelar" && destino === "efetivo") return;
     const orgaoOrigemEfetivo = orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
@@ -17844,7 +17955,9 @@ export function PrototiposNovoIngressoPage() {
     finalizandoParecerRef.current = true;
     setFinalizandoParecer(true);
     try {
-      const chaveIngresso = candidatoRegistradoId || candidatoParam || concursoSelecionado || "novo";
+      const idIngresso = candidatoRegistradoId || candidatoParam || (tipoIngresso === "Processo Seletivo" ? String(registrarIngressoNoConcursoSelecionado("Em analise") || "") : "");
+      if (idIngresso && !candidatoRegistradoId) setCandidatoRegistradoId(idIngresso);
+      const chaveIngresso = idIngresso || concursoSelecionado || "novo";
       const historicos = JSON.parse(localStorage.getItem("prototype-ingresso-historico-documentacao") ?? "{}");
       const registro = {
         dataHora: new Date().toLocaleString("pt-BR"),
@@ -17864,15 +17977,19 @@ export function PrototiposNovoIngressoPage() {
         ...historicos,
         [chaveIngresso]: [...(historicos[chaveIngresso] ?? []), registro],
       }));
+      if (vinculoTipoEstagiario && decisaoDocumentacao === "aprovar" && dataInicioEstagio && dataTerminoEstagio) {
+        const datasEstagio = JSON.parse(localStorage.getItem("prototype-ingresso-datas-estagio") ?? "{}") as Record<string, { inicio: string; termino: string }>;
+        localStorage.setItem("prototype-ingresso-datas-estagio", JSON.stringify({ ...datasEstagio, [chaveIngresso]: { inicio: dataInicioEstagio, termino: dataTerminoEstagio } }));
+      }
 
       const situacaoFinal: IngressoSituacao = decisaoDocumentacao === "cancelar"
         ? "Ingresso Cancelado"
         : "Aguardando Efetivo Exercicio";
       setSituacaoIngresso(situacaoFinal);
-      persistirSituacaoIngressoAtual(situacaoFinal);
+      persistirSituacaoIngressoAtual(situacaoFinal, idIngresso);
 
       if (decisaoDocumentacao === "aprovar") {
-        persistirOrgaoEncaminhadoAtual(orgaoEfetivoFinal);
+        persistirOrgaoEncaminhadoAtual(orgaoEfetivoFinal, idIngresso);
         setOrgaosEfetivoSelecionados([orgaoEfetivoFinal]);
         setOrgaoEncaminhamentoAprovacao(orgaoEfetivoFinal);
         setSucessoDirecionamentoEfetivo(direcionamentoEfetivo === "outro" ? "O ingresso foi encaminhado ao órgão " + orgaoEfetivoFinal + " para efetivo exercício." : "");
@@ -17928,17 +18045,68 @@ export function PrototiposNovoIngressoPage() {
   };
   const fecharModalEfetivoRegistrado = () => {
     setModalEfetivoRegistradoAberto(false);
+    if (vinculoTipoEstagiario) {
+      setSituacaoIngresso("Ingresso Concluído");
+      persistirSituacaoIngressoAtual("Ingresso Concluído");
+      const idRegistro = candidatoRegistradoId || candidatoParam;
+      if (idRegistro) {
+        const chaveEfetivo = (concursoSelecionado || concursoInicial || tipoIngresso) + "|" + idRegistro;
+        const historicos = JSON.parse(localStorage.getItem("prototype-ingresso-historico-efetivo-exercicio") ?? "{}") as Record<string, EfetivoExercicioHistoricoEvento[]>;
+        localStorage.setItem("prototype-ingresso-historico-efetivo-exercicio", JSON.stringify({
+          ...historicos,
+          [chaveEfetivo]: [...(historicos[chaveEfetivo] ?? []), { titulo: "Ingresso concluído", descricao: "Efetivo Exercício do estagiário finalizado.", responsavel: "Sistema SIGEP", dataHora: new Date().toLocaleString("pt-BR") }],
+        }));
+      }
+      navigate("/prototipos/sigep/ingressos-teste", { replace: true });
+      return;
+    }
     navigate(tipoIngresso === "Processo Seletivo" ? caminhoRetornoNovoIngresso : tipoIngresso === "Exclusivo Comissionado" ? "/prototipos/sigep/ingressos/comissionados" : "/prototipos/sigep/ingressos/efetivo-exercicio", { replace: true });
   };
   const handleConfirmarNovoIngresso = () => {
-    if (isEtapaSomenteLeituraSetorial || isEtapaSomenteLeituraCentral || isEtapaEfetivoOutroOrgao || isAnaliseDocumentalOutroOrgao || (isPerfilSetorial && activeTab === "tipo-ingresso" && !orgaoCadastroAtual)) return;
+    if (activeTab === "tipo-ingresso" && tipoIngresso === "Exclusivo Comissionado" && !candidatoParam && (!candidatoCpf || !candidatoNome || !candidatoNascimento)) return;
+    if (activeTab === "tipo-ingresso" && semQuadroVagasPssSefaz) return;
+    if (isEtapaSomenteLeituraSetorial || isEtapaSomenteLeituraCentral || isIngressoComissionadoSomenteConsulta || isEtapaEfetivoOutroOrgao || isAnaliseDocumentalOutroOrgao || (isPerfilSetorial && activeTab === "tipo-ingresso" && !orgaoCadastroAtual)) return;
     if (activeTab === "efetivo-exercicio") {
-      if (situacaoInicialIngresso !== "Aguardando Efetivo Exercicio") return;
-      if (servidorCompareceu === "Sim" && aplicaFinalizacaoEfetivo) {
-        if (!candidatoParam) return;
+      if (tipoIngresso === "Exclusivo Comissionado" && servidorCompareceu !== "Sim") return;
+      const situacaoEfetivoAtual = situacaoIngresso;
+      const podeRegistrarEfetivo = situacaoEfetivoAtual === "Aguardando Efetivo Exercicio"
+        || (tipoIngresso === "Concurso" && ["Aguardando Analise", "Em analise"].includes(situacaoEfetivoAtual));
+      if (!podeRegistrarEfetivo) return;
+      if (servidorCompareceu === "Sim" && vinculoTipoEstagiario) {
+        const candidatoIdAtual = obterIdIngressoParaEfetivo();
+        if (!candidatoIdAtual || !setorLotacaoEfetivo || !dataEfetivoExercicio || !dataFimEfetivoExercicio || !numeroApoliceSeguro.trim() || !supervisorEstagio) return;
         const agora = new Date().toLocaleString("pt-BR");
-        const chaveEfetivo = (concursoSelecionado || concursoInicial || tipoIngresso) + "|" + candidatoParam;
-        const matriculaGerada = String(327000 + Number(candidatoParam || 1));
+        const chaveEfetivo = (concursoSelecionado || concursoInicial || tipoIngresso) + "|" + candidatoIdAtual;
+        const dadosGerados: EfetivoExercicioGeradoRegistro = {
+          matricula: String(327000 + Number(candidatoIdAtual)),
+          vinculo: "1",
+          termoNome: "",
+          registradoEm: agora,
+          responsavel: "Sistema SIGEP",
+        };
+        const registrosGerados = JSON.parse(localStorage.getItem("prototype-ingresso-efetivo-gerado") ?? "{}") as Record<string, EfetivoExercicioGeradoRegistro>;
+        localStorage.setItem("prototype-ingresso-efetivo-gerado", JSON.stringify({ ...registrosGerados, [chaveEfetivo]: dadosGerados }));
+        const historicosEfetivo = JSON.parse(localStorage.getItem("prototype-ingresso-historico-efetivo-exercicio") ?? "{}") as Record<string, EfetivoExercicioHistoricoEvento[]>;
+        localStorage.setItem("prototype-ingresso-historico-efetivo-exercicio", JSON.stringify({
+          ...historicosEfetivo,
+          [chaveEfetivo]: [...(historicosEfetivo[chaveEfetivo] ?? []),
+            { titulo: "Efetivo Exercício registrado", descricao: "Servidor compareceu. Dados do estágio registrados.", responsavel: "Patrícia Lima - Setorial", orgaoAtuacao: orgaoAtuacaoNovoIngresso, dataHora: agora },
+            { titulo: "Matrícula e vínculo gerados", descricao: "Matrícula e vínculo funcional gerados automaticamente pelo sistema.", responsavel: "Sistema SIGEP", dataHora: agora, matricula: dadosGerados.matricula, vinculo: dadosGerados.vinculo },
+          ],
+        }));
+        persistirDataEfetivoExercicioAtual(dataEfetivoExercicio, candidatoIdAtual);
+        persistirSetorLotacaoEfetivoAtual(setorLotacaoEfetivo, candidatoIdAtual);
+        setDadosEfetivoGerados(dadosGerados);
+        setAlteracoesAnalisePendentes(false);
+        setModalEfetivoRegistradoAberto(true);
+        return;
+      }
+      if (servidorCompareceu === "Sim" && aplicaFinalizacaoEfetivo) {
+        const candidatoIdAtual = obterIdIngressoParaEfetivo();
+        if (!candidatoIdAtual) return;
+        const agora = new Date().toLocaleString("pt-BR");
+        const chaveEfetivo = (concursoSelecionado || concursoInicial || tipoIngresso) + "|" + candidatoIdAtual;
+        const matriculaGerada = String(327000 + Number(candidatoIdAtual || 1));
         const dadosGerados: EfetivoExercicioGeradoRegistro = {
           matricula: matriculaGerada,
           vinculo: "1",
@@ -17963,15 +18131,15 @@ export function PrototiposNovoIngressoPage() {
         ];
         localStorage.setItem(
           "prototype-ingresso-historico-efetivo-exercicio",
-          JSON.stringify({ ...historicosEfetivo, [chaveEfetivo]: eventos }),
+          JSON.stringify({ ...historicosEfetivo, [chaveEfetivo]: [...(historicosEfetivo[chaveEfetivo] ?? []), ...eventos] }),
         );
-        persistirDataEfetivoExercicioAtual(dataEfetivoExercicio);
-        persistirSetorLotacaoEfetivoAtual(setorLotacaoEfetivo);
-        persistirOrgaoEncaminhadoAtual(orgaosEfetivoSelecionados[0] || orgaoEncaminhamentoAprovacao || orgaoInicial);
+        persistirDataEfetivoExercicioAtual(dataEfetivoExercicio, candidatoIdAtual);
+        persistirSetorLotacaoEfetivoAtual(setorLotacaoEfetivo, candidatoIdAtual);
+        persistirOrgaoEncaminhadoAtual(orgaosEfetivoSelecionados[0] || orgaoEncaminhamentoAprovacao || orgaoInicial, candidatoIdAtual);
         setTermoEfetivoExercicioGerado(true);
         setDadosEfetivoGerados(dadosGerados);
         setSituacaoIngresso("Aguardando Termo Assinado");
-        persistirSituacaoIngressoAtual("Aguardando Termo Assinado");
+        persistirSituacaoIngressoAtual("Aguardando Termo Assinado", candidatoIdAtual);
         setAlteracoesAnalisePendentes(false);
         setModalEfetivoRegistradoAberto(true);
         return;
@@ -18063,12 +18231,22 @@ export function PrototiposNovoIngressoPage() {
         const idCandidato = registrarIngressoNoConcursoSelecionado("Em analise");
         if (idCandidato) setCandidatoRegistradoId(String(idCandidato));
       }
-      if (activeTab === "tipo-ingresso" && tipoIngresso === "Processo Seletivo") {
+      if (activeTab === "tipo-ingresso" && ["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso)) {
         const orgaoOrigem = orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
         const orgaoAnalise = direcionamentoAnalise === "outro" ? orgaoDestinoAnalise : orgaoOrigem;
         if (!orgaoOrigem || !orgaoAnalise || direcionamentoAnalise === "outro" && orgaoAnalise === orgaoOrigem) return;
-        const idCandidato = String(candidatoParam || registrarIngressoNoConcursoSelecionado("Em analise") || candidatoCpf.replace(/\D/g, ""));
+        const novoIdComissionado = tipoIngresso === "Exclusivo Comissionado" && !candidatoParam
+          ? Math.max(...[...ingressosComissionadosMock, ...lerRegistrosComissionadosCriados()].map((registro) => registro.id)) + 1
+          : undefined;
+        const idCandidato = String(candidatoParam || (tipoIngresso === "Processo Seletivo" ? registrarIngressoNoConcursoSelecionado("Em analise") : novoIdComissionado) || candidatoCpf.replace(/\D/g, ""));
         setCandidatoRegistradoId(idCandidato);
+        if (tipoIngresso === "Exclusivo Comissionado" && novoIdComissionado) {
+          const registrosCriados = lerRegistrosComissionadosCriados();
+          const novoRegistro: IngressoComissionadoRow = { id: novoIdComissionado, nome: candidatoNome, cpf: candidatoCpf, atoNomeacao, orgao: orgaoOrigem, cargo: cargoSelecionado, dataEfetivoExercicio: "-", setorLotacao: "-", situacao: "Em análise" };
+          localStorage.setItem(chaveRegistrosComissionadosCriados, JSON.stringify([...registrosCriados, novoRegistro]));
+          adicionarHistoricoComissionado(novoIdComissionado, eventoComissionado("Ingresso comissionado criado", "Situação atribuída: Em análise. Órgão responsável pela análise: " + orgaoAnalise + ".", new Date().toLocaleString("pt-BR")));
+        }
+        persistirSituacaoIngressoAtual("Em analise", idCandidato);
         if (idCandidato) {
           const armazenados = JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, { orgaoOrigem: string; responsavelAnalise: string; operador: string; dataHora: string }>;
           armazenados[idCandidato] = { orgaoOrigem, responsavelAnalise: orgaoAnalise, operador: "Roberto Junior", dataHora: new Date().toLocaleString("pt-BR") };
@@ -18084,7 +18262,8 @@ export function PrototiposNovoIngressoPage() {
 
     if (documentacaoEtapa === "analise") {
       if (tipoIngresso === "Exclusivo Comissionado") {
-        goNext();
+        if (!["Em analise", "Aguardando Analise"].includes(situacaoIngresso)) return;
+        setModalFinalizarParecerAberto(true);
         return;
       }
       if (decisaoDocumentacao === "cancelar") {
@@ -18400,6 +18579,18 @@ export function PrototiposNovoIngressoPage() {
             <span>Quadro de vaga<em>*</em></span>
             <input type="text" value={concursoSelecionado && cargoSelecionado ? "QA-0012" : ""} required aria-required="true" readOnly />
           </div>
+          <label className="prototype-ingresso-field"><span>Jornada<em>*</em></span>
+            <select required value={jornadaEfetivo} onChange={(event) => setJornadaEfetivo(event.target.value)}>
+              <option value="">Selecione...</option>
+              {["20 horas", "30 horas", "40 horas"].map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
+          <label className="prototype-ingresso-field"><span>Referência<em>*</em></span>
+            <select required value={referenciaEfetivo} onChange={(event) => setReferenciaEfetivo(event.target.value)}>
+              <option value="">Selecione...</option>
+              {["001A", "001B", "001C", "002A", "002B", "002C", "003A", "003B", "003C"].map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
         </div>
       </section>
 
@@ -18684,10 +18875,6 @@ export function PrototiposNovoIngressoPage() {
               <option value="Bolsista">Bolsista</option>
             </select>
           </label>
-          {tipoVinculoEditavel === "Contrato Temporário" ? <label className="prototype-ingresso-field prototype-ingresso-reference-field">
-            <span>Quadro de vagas<em>*</em></span>
-            <input type="text" value={quadroVagasContratoTemporario} readOnly aria-readonly="true" required />
-          </label> : null}
           <div className="prototype-ingresso-field prototype-multiselect-field">
             <span>Órgão Responsável<em>*</em></span>
             <div className="prototype-multiselect">
@@ -18730,10 +18917,22 @@ export function PrototiposNovoIngressoPage() {
               {perfisProfissionaisOptions.map((perfil) => <option key={perfil} value={perfil}>{perfil}</option>)}
             </select>
           </label>
-          {vinculoTipoEstagiario ? <label className="prototype-ingresso-field prototype-ingresso-reference-field">
-            <span>Quadro de vaga<em>*</em></span>
-            <input type="text" value={quadroVagaEstagio} readOnly aria-readonly="true" />
+          {(tipoVinculoEditavel === "Contrato Temporário" || vinculoTipoEstagiario) ? <label className="prototype-ingresso-field prototype-ingresso-reference-field">
+            <span>Quadro de vagas<em>*</em></span>
+            <input type="text" value={vinculoTipoEstagiario ? quadroVagaEstagio : quadroVagasContratoTemporario} readOnly aria-readonly="true" required />
           </label> : null}
+          <label className="prototype-ingresso-field"><span>Jornada<em>*</em></span>
+            <select required value={jornadaEfetivo} onChange={(event) => setJornadaEfetivo(event.target.value)}>
+              <option value="">Selecione...</option>
+              {["20 horas", "30 horas", "40 horas"].map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
+          <label className="prototype-ingresso-field"><span>Referência<em>*</em></span>
+            <select required value={referenciaEfetivo} onChange={(event) => setReferenciaEfetivo(event.target.value)}>
+              <option value="">Selecione...</option>
+              {["001A", "001B", "001C", "002A", "002B", "002C", "003A", "003B", "003C"].map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
         </div>
       </section>
 
@@ -18900,9 +19099,234 @@ export function PrototiposNovoIngressoPage() {
       </div>
     </section>;
   };
+  const renderDadosIngressoComissionado = () => (
+    <>
+      <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-dados-ingresso">
+        <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-id-card" aria-hidden="true" /></span><span>Dados do Ingresso</span></h3>
+        <div className="prototype-ingresso-import-grid">
+          <label className="prototype-ingresso-field">
+            <span>Regime Jurídico<em>*</em></span>
+            <select
+              value={regimeJuridicoSelecionado}
+              disabled={tipoIngresso === "Concurso" || tipoIngresso === "Processo Seletivo"}
+              onChange={(event) => setRegimeJuridicoSelecionado(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              <option value="Estatutário Civil">Estatutário Civil</option>
+              <option value="Estatutário">Estatutário</option>
+              <option value="Celetista">Celetista</option>
+              <option value="Regime Especial">Regime Especial</option>
+              <option value="Regime Misto">Regime Misto</option>
+              <option value="Sem Vínculo Empregatício">Sem Vínculo Empregatício</option>
+            </select>
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Tipo de Vínculo<em>*</em></span>
+            <input type="text" value={tipoVinculo} readOnly />
+          </label>
+          <div className="prototype-ingresso-field prototype-multiselect-field">
+            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão" : "Órgão Responsável"}<em>*</em></span>
+            <div className="prototype-multiselect">
+              <button
+                type="button"
+                className="prototype-multiselect-trigger"
+                disabled={tipoIngresso === "Concurso" || tipoIngresso === "Processo Seletivo"}
+                onClick={() => setOrgaosIngressoDropdownAberto((dropdownAberto) => !dropdownAberto)}
+                aria-expanded={orgaosIngressoDropdownAberto}
+              >
+                <span>{orgaosIngressoResumo}</span>
+                <i className={`pi ${orgaosIngressoDropdownAberto ? "pi-chevron-up" : "pi-chevron-down"}`} />
+              </button>
+              {orgaosIngressoDropdownAberto ? (
+                <div className="prototype-multiselect-panel">
+                  {orgaosIngressoOptions.filter((orgao) => !isPerfilSetorial || orgao === orgaoAtuacaoNovoIngresso).map((orgao) => (
+                    <label key={orgao} className="prototype-multiselect-option">
+                      <input
+                        type="checkbox"
+                        checked={orgaosIngressoSelecionados.includes(orgao)}
+                        onChange={() => toggleOrgaoIngresso(orgao)}
+                      />
+                      <span>{orgao}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="prototype-ingresso-section prototype-novo-ingresso-panel">
+        <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-briefcase" aria-hidden="true" /></span><span>Enquadramento Funcional</span></h3>
+        <div className="prototype-comissionado-enquadramento-body">
+          <div className="prototype-ingresso-two-columns">
+          <label className="prototype-ingresso-field">
+            <span>Cargo/Função<em>*</em></span>
+            <select
+              value={tipoIngresso === "Processo Seletivo" ? cargoSigepEqualizado : cargoSelecionado}
+              disabled={ingressoOrigemLista}
+              onChange={(event) => tipoIngresso === "Processo Seletivo" ? selecionarCargoSigep(event.target.value) : selecionarCargoIngresso(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              {tipoIngresso === "Processo Seletivo" ? Object.keys(dadosCargoEqualizado).map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>) : <><option value="Analista Administrativo">Analista Administrativo</option><option value="Professor">Professor</option><option value="Gestor Governamental">Gestor Governamental</option><option value="Técnico Administrativo Educacional">Técnico Administrativo Educacional</option><option value="Enfermeiro">Enfermeiro</option><option value="Técnico de Enfermagem">Técnico de Enfermagem</option><option value="Analista Fazendário">Analista Fazendário</option></>}
+            </select>
+          </label>
+          <label className="prototype-ingresso-field">
+            <span>Perfil Profissional<em>*</em></span>
+            <select
+              value={perfilEspecialidade}
+              required
+              disabled={tipoIngresso !== "Exclusivo Comissionado" && (ingressoOrigemLista || !cargoPerfilSelecionado)}
+              onChange={(event) => setPerfilEspecialidade(event.target.value)}
+            >
+              <option value="">Selecione...</option>
+              {perfisProfissionaisOptions.map((perfil) => (
+                <option key={perfil} value={perfil}>{perfil}</option>
+              ))}
+            </select>
+          </label>
+          </div>
+          <div className="prototype-ingresso-import-grid">
+          {tipoIngresso === "Exclusivo Comissionado" ? <label className="prototype-ingresso-field">
+            <span>Quadro de vagas<em>*</em></span>
+            <input type="text" value={quadroVagasComissionado} readOnly aria-readonly="true" required />
+          </label> : null}
+          {tipoIngresso === "Exclusivo Comissionado" ? <>
+            <label className="prototype-ingresso-field"><span>Jornada<em>*</em></span>
+              <select required value={jornadaEfetivo} onChange={(event) => setJornadaEfetivo(event.target.value)}>
+                <option value="">Selecione...</option>{["20 horas", "30 horas", "40 horas"].map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+            <label className="prototype-ingresso-field"><span>Referência<em>*</em></span>
+              <select required value={referenciaEfetivo} onChange={(event) => setReferenciaEfetivo(event.target.value)}>
+                <option value="">Selecione...</option>
+                {["001A", "001B", "001C", "002A", "002B", "002C", "003A", "003B", "003C"].map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+          </> : null}
+          </div>
+        </div>
+      </section>
+      <section className="prototype-ingresso-section prototype-novo-ingresso-panel">
+        <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-calendar" aria-hidden="true" /></span><span>Informações da Nomeação</span></h3>
+        <div className="prototype-ingresso-import-grid">
+          <label className="prototype-ingresso-field">
+            <span>{tipoIngresso === "Processo Seletivo" ? "Data da Convocação" : "Data da Nomeação"}<em>*</em></span>
+            <input
+              type="date"
+              value={dataNomeacao}
+              disabled={ingressoOrigemLista}
+              onChange={(event) => setDataNomeacao(event.target.value)}
+            />
+          </label>
+          {tipoIngresso === "Exclusivo Comissionado" ? (
+            <label className="prototype-ingresso-field">
+              <span>Ato de Nomeação<em>*</em></span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="0000/0000"
+                maxLength={9}
+                pattern="[0-9]{4}/[0-9]{4}"
+                title="Informe o ato no formato 0000/0000"
+                required
+                value={atoNomeacao}
+                onChange={(event) => {
+                  const numeros = event.target.value.replace(/\D/g, "").slice(0, 8);
+                  setAtoNomeacao(numeros.length > 4 ? `${numeros.slice(0, 4)}/${numeros.slice(4)}` : numeros);
+                }}
+              />
+            </label>
+          ) : null}
+          <label className="prototype-ingresso-field">
+            <span>Decisão Judicial<em>*</em></span>
+            <select
+              value={decisaoJudicial}
+              onChange={(event) => {
+                const novaDecisao = event.target.value as "Não" | "Sim";
+                setDecisaoJudicial(novaDecisao);
+                if (novaDecisao === "Não") {
+                  setArquivoDecisaoJudicial(null);
+                  setErroArquivoDecisaoJudicial("");
+                }
+              }}>
+              <option value="Não">Não</option>
+              <option value="Sim">Sim</option>
+            </select>
+          </label>
+          {decisaoJudicial === "Sim" ? (
+            <>
+              <label className="prototype-ingresso-field">
+                <span>Tipo de Ação Judicial<em>*</em></span>
+                <select
+                  value={tipoAcaoJudicial}
+                  onChange={(event) => setTipoAcaoJudicial(event.target.value)}
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Coletivo">Coletivo</option>
+                  <option value="Individual">Individual</option>
+                </select>
+              </label>
+              <label className="prototype-ingresso-field">
+                <span>N° Processo<em>*</em></span>
+                <input
+                  type="text"
+                  value={numeroProcessoJudicial}
+                  onChange={(event) => setNumeroProcessoJudicial(event.target.value)}
+                />
+              </label>
+              <div className="prototype-ingresso-field prototype-judicial-document-field">
+                <span>Documento da Decisão Judicial<em>*</em></span>
+                <input
+                  id="arquivo-decisao-judicial"
+                  className="prototype-judicial-upload-input"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  required={!arquivoDecisaoJudicial}
+                  aria-invalid={Boolean(erroArquivoDecisaoJudicial)}
+                  aria-label="Anexar documento da decisão judicial"
+                  onChange={(event) => {
+                    selecionarArquivoDecisaoJudicial(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
+                <label
+                  htmlFor="arquivo-decisao-judicial"
+                  className={`prototype-judicial-upload-area${erroArquivoDecisaoJudicial ? " is-invalid" : ""}`}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    selecionarArquivoDecisaoJudicial(event.dataTransfer.files?.[0]);
+                  }}
+                >
+                  <span className="prototype-judicial-upload-button"><i className="pi pi-upload" aria-hidden="true" /> Escolher arquivo</span>
+                  <span className="prototype-judicial-upload-prompt">Arraste e solte o arquivo aqui ou clique para selecionar</span>
+                  <small>Formatos aceitos: PDF, DOC, DOCX (Máx. 2MB)</small>
+                </label>
+                {erroArquivoDecisaoJudicial ? <small className="prototype-judicial-upload-error" role="alert">{erroArquivoDecisaoJudicial}</small> : null}
+                <div className="prototype-judicial-attachments">
+                  <strong>Arquivos anexados ({arquivoDecisaoJudicial ? 1 : 0})</strong>
+                  {arquivoDecisaoJudicial ? (
+                    <div className="prototype-judicial-attachment-row">
+                      <span className="prototype-judicial-attachment-icon"><i className={`pi ${arquivoDecisaoJudicial.name.toLowerCase().endsWith(".pdf") ? "pi-file-pdf" : "pi-file-word"}`} aria-hidden="true" /></span>
+                      <span className="prototype-judicial-attachment-info"><strong>{arquivoDecisaoJudicial.name}</strong><small>{formatarTamanhoArquivo(arquivoDecisaoJudicial.size)}</small></span>
+                      <div className="prototype-judicial-attachment-actions">
+                        <BotaoIconSeplag type="button" icon="pi pi-download" tooltip={`Baixar ${arquivoDecisaoJudicial.name}`} onClick={baixarArquivoDecisaoJudicial} />
+                        <BotaoIconSeplag type="button" icon="pi pi-trash" tooltip={`Remover ${arquivoDecisaoJudicial.name}`} severity="danger" onClick={() => { setArquivoDecisaoJudicial(null); setErroArquivoDecisaoJudicial(""); }} />
+                      </div>
+                    </div>
+                  ) : <p>Nenhum arquivo anexado</p>}
+                </div>
+              </div>
+            </>
+          ) : null}
+        </div>
+      </section>
+    </>
+  );
   const renderDadosIngresso = () => (
     <div className="prototype-novo-ingresso-dados-grid">
       {tipoIngresso === "Processo Seletivo" && ingressoOrigemLista ? renderEqualizacaoSies() : null}
+      {tipoIngresso === "Exclusivo Comissionado" ? renderDadosIngressoComissionado() : (
       <section className={`prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-dados-ingresso ${tipoIngresso === "Processo Seletivo" && ingressoOrigemLista ? "is-sies" : ""}`}>
         <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-id-card" aria-hidden="true" /></span><span>Dados do Ingresso</span></h3>
         {tipoIngresso === "Concurso" ? renderDadosIngressoConcurso() : tipoIngresso === "Processo Seletivo" ? renderDadosIngressoProcessoSeletivo(tipoVinculoEditavel !== "Estagiário") : (
@@ -18949,7 +19373,7 @@ export function PrototiposNovoIngressoPage() {
             ) : <input type="text" value={tipoVinculo} readOnly />}
           </label>
           <div className="prototype-ingresso-field prototype-multiselect-field">
-            <span>Órgão Responsável<em>*</em></span>
+            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão" : "Órgão Responsável"}<em>*</em></span>
             <div className="prototype-multiselect">
               <button
                 type="button"
@@ -19093,6 +19517,23 @@ export function PrototiposNovoIngressoPage() {
               ))}
             </select>
           </label>
+          {tipoIngresso === "Exclusivo Comissionado" ? <label className="prototype-ingresso-field">
+            <span>Quadro de vagas<em>*</em></span>
+            <input type="text" value={quadroVagasComissionado} readOnly aria-readonly="true" required />
+          </label> : null}
+          {tipoIngresso === "Exclusivo Comissionado" ? <>
+            <label className="prototype-ingresso-field"><span>Jornada<em>*</em></span>
+              <select required value={jornadaEfetivo} onChange={(event) => setJornadaEfetivo(event.target.value)}>
+                <option value="">Selecione...</option>{["20 horas", "30 horas", "40 horas"].map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+            <label className="prototype-ingresso-field"><span>Referência<em>*</em></span>
+              <select required value={referenciaEfetivo} onChange={(event) => setReferenciaEfetivo(event.target.value)}>
+                <option value="">Selecione...</option>
+                {["001A", "001B", "001C", "002A", "002B", "002C", "003A", "003B", "003C"].map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+          </> : null}
           {tipoIngresso === "Concurso" ? <div className="prototype-ingresso-field prototype-ingresso-reference-field">
             <span>Quadro de vaga<em>*</em></span>
             <input type="text" value={concursoSelecionado && cargoSelecionado ? "QA-0012" : ""} required aria-required="true" readOnly />
@@ -19456,7 +19897,12 @@ export function PrototiposNovoIngressoPage() {
           </div>
         ) : null}
       </section>
-      {tipoIngresso === "Processo Seletivo" ? renderDirecionamentoAnalise() : null}
+      )}
+      {semQuadroVagasPssSefaz ? <div className="prototype-parecer-alerta prototype-documentacao-pending-alert" role="alert">
+        <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+        Não existe Quadro de Vagas disponível para o Cargo/Função e Perfil Profissional selecionados. Cadastre o Quadro de Vagas para prosseguir.
+      </div> : null}
+      {["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) ? renderDirecionamentoAnalise() : null}
     </div>
   );
 
@@ -19616,6 +20062,8 @@ export function PrototiposNovoIngressoPage() {
                   setOrgaosParticipantesSelecionados([]);
                   setOrgaosIngressoDropdownAberto(false);
                   setCargoSelecionado("");
+                  setJornadaEfetivo("");
+                  setReferenciaEfetivo("");
                   setCategoriaSelecionada("");
                   setPerfilEspecialidade("");
                   setPoloSelecionado("");
@@ -20540,7 +20988,7 @@ export function PrototiposNovoIngressoPage() {
                       </select>
                     </label>
 
-                    {servidorCompareceu === "Sim" && !aplicaFinalizacaoEfetivo ? (
+                    {servidorCompareceu === "Sim" && !aplicaFinalizacaoEfetivo && !vinculoTipoEstagiario ? (
                       <>
                         <label className="prototype-ingresso-field prototype-efetivo-exercicio-matricula-field">
                           <span>Matrícula</span>
@@ -20556,7 +21004,7 @@ export function PrototiposNovoIngressoPage() {
 
                   {servidorCompareceu === "Sim" ? (
                     <>
-                      <div className="prototype-efetivo-exercicio-orgao-row">
+                      <div className={`prototype-efetivo-exercicio-orgao-row${vinculoEstagiario ? " prototype-efetivo-exercicio-orgao-row--estagio" : ""}`}>
                         <div className="prototype-ingresso-field prototype-multiselect-field">
                           <span>Órgão<em>*</em></span>
                           <div className="prototype-multiselect">
@@ -20601,28 +21049,21 @@ export function PrototiposNovoIngressoPage() {
                             <option value="Núcleo Administrativo">Núcleo Administrativo</option>
                           </select>
                         </label>
-                        <label className="prototype-ingresso-field">
-                          <span>Jornada<em>*</em></span>
-                          <select required value={jornadaEfetivo} onChange={(event) => setJornadaEfetivo(event.target.value)}>
-                            <option value="">Selecione...</option>
-                            <option value="20 horas">20 horas</option>
-                            <option value="30 horas">30 horas</option>
-                            <option value="40 horas">40 horas</option>
-                          </select>
-                        </label>
-
                       </div>
 
                       <div className="prototype-efetivo-exercicio-datas-row">
-                        <label className="prototype-ingresso-field">
-                          <span>Referência<em>*</em></span>
-                          <select required value={referenciaEfetivo} onChange={(event) => setReferenciaEfetivo(event.target.value)}>
-                            <option value="">Selecione...</option>
-                            {["001A", "001B", "001C", "002A", "002B", "002C", "003A", "003B", "003C"].map((referencia) => (
-                              <option key={referencia} value={referencia}>{referencia}</option>
-                            ))}
-                          </select>
-                        </label>
+                        {vinculoEstagiario ? (
+                          <label className="prototype-ingresso-field">
+                            <span>Número da apólice de seguro<em>*</em></span>
+                            <input
+                              type="text"
+                              required
+                              value={numeroApoliceSeguro}
+                              onChange={(event) => setNumeroApoliceSeguro(event.target.value)}
+                              placeholder="Informe o número da apólice"
+                            />
+                          </label>
+                        ) : null}
                         <label className="prototype-ingresso-field prototype-efetivo-exercicio-data-field">
                           <span>Data do Efetivo Exercício<em>*</em></span>
                           <input
@@ -20644,21 +21085,6 @@ export function PrototiposNovoIngressoPage() {
                           />
                         </label>
                       </div>
-
-                      {vinculoEstagiario ? (
-                        <div className="prototype-efetivo-exercicio-apolice-row">
-                          <label className="prototype-ingresso-field">
-                            <span>Número da apólice de seguro<em>*</em></span>
-                            <input
-                              type="text"
-                              required
-                              value={numeroApoliceSeguro}
-                              onChange={(event) => setNumeroApoliceSeguro(event.target.value)}
-                              placeholder="Informe o número da apólice"
-                            />
-                          </label>
-                        </div>
-                      ) : null}
 
                       <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
                         <span>Observação</span>
@@ -20810,7 +21236,7 @@ export function PrototiposNovoIngressoPage() {
             {exibirResumoIngresso ? renderResumoIngressoBloqueado() : null}
 
             {isAnaliseDocumentalOutroOrgao ? <div className="prototype-direcionamento-analise-success" role="status"><i className="pi pi-info-circle" aria-hidden="true" />A análise da documentação está atribuída ao órgão {orgaoResponsavelAnalise}.</div> : null}
-            {isEtapaSomenteLeituraSetorial || isEtapaEfetivoOutroOrgao || isAnaliseDocumentalOutroOrgao || modoVisualizacao ? (
+            {isEtapaSomenteLeituraSetorial || isEtapaEfetivoOutroOrgao || isAnaliseDocumentalOutroOrgao || modoVisualizacao || isIngressoComissionadoSomenteConsulta ? (
               <fieldset className="prototype-novo-ingresso-readonly" disabled>
                 {renderNovoIngressoTab()}
               </fieldset>
@@ -20825,7 +21251,7 @@ export function PrototiposNovoIngressoPage() {
                   <span>{feedbackRascunhoAnalise}</span>
                 </div>
               ) : null}
-              {modoVisualizacao ? (
+              {modoVisualizacao || isIngressoComissionadoSomenteConsulta ? (
                 <div className="prototype-form-actions prototype-novo-ingresso-actions">
                   <BotaoVoltarSeplag
                     type="button"
@@ -20855,7 +21281,7 @@ export function PrototiposNovoIngressoPage() {
                   className="prototype-footer-back-button"
                   onClick={goBack}
                 />
-                {["documentacao", "analise-provimento", "efetivo-exercicio"].includes(activeTab) && !isEtapaSomenteLeituraSetorial && !isEtapaSomenteLeituraCentral && !isEtapaEfetivoOutroOrgao && !isAnaliseDocumentalOutroOrgao ? (
+                {["analise-provimento", "efetivo-exercicio"].includes(activeTab) && !isEtapaSomenteLeituraSetorial && !isEtapaSomenteLeituraCentral && !isEtapaEfetivoOutroOrgao && !isAnaliseDocumentalOutroOrgao ? (
                   <BotaoSeplag
                     type="button"
                     label="Salvar rascunho"
@@ -20887,12 +21313,12 @@ export function PrototiposNovoIngressoPage() {
         hideFooter
       >
         <div className="prototype-efetivo-registrado-modal">
-          <p>O sistema registrou os dados do efetivo exercício e gerou automaticamente a matrícula, o vínculo funcional e o {nomeDocumentoEfetivo}.</p>
+          <p>{vinculoTipoEstagiario ? "O sistema registrou os dados do efetivo exercício e gerou automaticamente a matrícula e o vínculo funcional." : <>O sistema registrou os dados do efetivo exercício e gerou automaticamente a matrícula, o vínculo funcional e o {nomeDocumentoEfetivo}.</>}</p>
           <dl className="prototype-efetivo-gerado-info">
             <div><dt>Matrícula gerada</dt><dd>{dadosEfetivoGerados?.matricula ?? "-"}</dd></div>
             <div><dt>Vínculo gerado</dt><dd>{dadosEfetivoGerados?.vinculo ?? "-"}</dd></div>
           </dl>
-          <p className="prototype-efetivo-registrado-hint">O {nomeDocumentoEfetivo} foi gerado com sucesso. Faça o download do documento, providencie a assinatura e anexe-o posteriormente para concluir o ingresso.</p>
+          {!vinculoTipoEstagiario ? <p className="prototype-efetivo-registrado-hint">O {nomeDocumentoEfetivo} foi gerado com sucesso. Faça o download do documento, providencie a assinatura e anexe-o posteriormente para concluir o ingresso.</p> : null}
           <div className="prototype-efetivo-modal-actions">
             <BotaoVoltarSeplag
               type="button"
@@ -20900,19 +21326,19 @@ export function PrototiposNovoIngressoPage() {
               icon="pi pi-times"
               onClick={fecharModalEfetivoRegistrado}
             />
-            <BotaoSeplag
+            {!vinculoTipoEstagiario ? <BotaoSeplag
               type="button"
               label={vinculoContratoTemporario ? "Baixar contrato" : "Baixar termo"}
               icon="pi pi-download"
               onClick={() => baixarTermoEfetivoGerado()}
-            />
+            /> : null}
           </div>
         </div>
       </ModalSeplag>
 
       <ModalSeplag
         visible={modalFinalizarParecerAberto}
-        titulo="Finalizar parecer"
+        titulo={tipoIngresso === "Exclusivo Comissionado" ? "Finalizar etapa de Documentação" : "Finalizar parecer"}
         fechar={() => {
           if (!finalizandoParecer) setModalFinalizarParecerAberto(false);
         }}
@@ -20920,18 +21346,18 @@ export function PrototiposNovoIngressoPage() {
         hideFooter
       >
         <div className="prototype-finalizar-parecer-modal">
-          <p>Deseja prosseguir para a realização do Efetivo Exercício ou finalizar esta etapa e voltar para a Gestão de Ingresso?</p>
+          <p>Deseja prosseguir para a realização do Efetivo Exercício ou finalizar esta etapa e voltar para a {tipoIngresso === "Exclusivo Comissionado" ? "Gestão de Ingresso de Comissionados" : "Gestão de Ingresso"}?</p>
           <div className="prototype-finalizar-parecer-options">
-            {decisaoDocumentacao === "aprovar" ? (
+            {tipoIngresso === "Exclusivo Comissionado" || decisaoDocumentacao === "aprovar" ? (
               <button type="button" disabled={finalizandoParecer} onClick={() => finalizarParecerDocumentacao("efetivo")}>
                 <span className="prototype-finalizar-parecer-option-icon"><i className="pi pi-user-plus" aria-hidden="true" /></span>
-                <span><strong>Prosseguir para Efetivo Exercício</strong><small>Finaliza o parecer e avança diretamente para a etapa 3.</small></span>
+                <span><strong>Prosseguir para Efetivo Exercício</strong><small>{tipoIngresso === "Exclusivo Comissionado" ? "Finaliza a etapa de Documentação e avança diretamente para Efetivo Exercício." : "Finaliza o parecer e avança diretamente para a etapa 3."}</small></span>
                 <i className="pi pi-arrow-right" aria-hidden="true" />
               </button>
             ) : null}
             <button type="button" disabled={finalizandoParecer} onClick={() => finalizarParecerDocumentacao("gestao")}>
               <span className="prototype-finalizar-parecer-option-icon"><i className="pi pi-briefcase" aria-hidden="true" /></span>
-              <span><strong>Finalizar etapa e voltar para Gestão de Ingresso</strong><small>Conclui a etapa atual e retorna para a gestão.</small></span>
+              <span><strong>{tipoIngresso === "Exclusivo Comissionado" ? "Finalizar etapa e voltar para Gestão de Ingresso de Comissionados" : "Finalizar etapa e voltar para Gestão de Ingresso"}</strong><small>{tipoIngresso === "Exclusivo Comissionado" ? "Finaliza a etapa de Documentação e mantém o ingresso disponível para continuidade posterior." : "Conclui a etapa atual e retorna para a gestão."}</small></span>
               <i className="pi pi-arrow-right" aria-hidden="true" />
             </button>
           </div>

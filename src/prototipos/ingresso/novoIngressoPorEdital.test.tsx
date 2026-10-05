@@ -81,9 +81,49 @@ it("preenche o quadro de vagas do contrato temporário ao selecionar o processo 
   const quadro = screen.getByRole("textbox", { name: /^Quadro de vagas/ }) as HTMLInputElement;
   expect(quadro.value).toBe("QA-0012");
   expect(quadro.readOnly).toBe(true);
-  expect(quadro.closest("section")?.textContent).toContain("Informação do Edital");
+  expect(quadro.closest("section")?.textContent).toContain("Enquadramento");
+  expect((screen.getByRole("combobox", { name: /^Jornada/ }) as HTMLSelectElement).required).toBe(true);
+  expect((screen.getByRole("combobox", { name: /^Refer/ }) as HTMLSelectElement).required).toBe(true);
   fireEvent.change(processo, { target: { value: "Processo Seletivo SEDUC 2026" } });
   expect(quadro.value).toBe("QA-0013");
   fireEvent.change(processo, { target: { value: "Processo Seletivo SEPLAG 2027" } });
-  expect(screen.queryByRole("textbox", { name: /^Quadro de vagas/ })).toBeNull();
+  expect((screen.getByRole("textbox", { name: /^Quadro de vagas/ }) as HTMLInputElement).value).toBe("");
+});
+
+it("remove jornada e referência da última aba do processo seletivo", () => {
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo&concurso=Processo%20Seletivo%20SES%202026&orgao=SES&etapa=efetivo-exercicio"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  fireEvent.change(screen.getByRole("combobox", { name: /Servidor compareceu/ }), { target: { value: "Sim" } });
+  const card = document.querySelector(".prototype-efetivo-exercicio-card") as HTMLElement;
+  expect(card.textContent).toContain("Setor/Lotação");
+  expect(card.textContent).not.toContain("Jornada");
+  expect(card.textContent).not.toContain("Referência");
+});
+
+it("exige jornada e referência no Enquadramento do concurso", () => {
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Concurso&concurso=Concurso%20SES%202026&orgao=SES"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  const jornada = screen.getByRole("combobox", { name: /^Jornada/ }) as HTMLSelectElement;
+  const referencia = screen.getByRole("combobox", { name: /^Refer/ }) as HTMLSelectElement;
+  expect(jornada.closest("section")?.textContent).toContain("Enquadramento");
+  expect(referencia.closest("section")?.textContent).toContain("Enquadramento");
+  expect(jornada.required).toBe(true);
+  expect(referencia.required).toBe(true);
+});
+
+it("não repete jornada e referência na última aba do concurso", () => {
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Concurso&concurso=Concurso%20SES%202026&orgao=SES&etapa=efetivo-exercicio"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  fireEvent.change(screen.getByRole("combobox", { name: /Servidor compareceu/ }), { target: { value: "Sim" } });
+  const card = document.querySelector(".prototype-efetivo-exercicio-card") as HTMLElement;
+  expect(card.textContent).toContain("Setor/Lotação");
+  expect(card.textContent).not.toContain("Jornada");
+  expect(card.textContent).not.toContain("Referência");
+});
+
+it("bloqueia o ingresso do PSS 006/2026/SEFAZ sem quadro de vagas", () => {
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo&concurso=Processo%20Seletivo%20SEFAZ%202026&orgao=SEFAZ"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  expect(screen.getByRole("alert").textContent).toContain("Não existe Quadro de Vagas disponível para o Cargo/Função e Perfil Profissional selecionados. Cadastre o Quadro de Vagas para prosseguir.");
+  expect((screen.getByRole("textbox", { name: /^Quadro de vagas/ }) as HTMLInputElement).value).toBe("");
+  expect((screen.getByRole("button", { name: "Confirmar" }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.change(screen.getByRole("combobox", { name: /^Processo Seletivo/ }), { target: { value: "Processo Seletivo SES 2026" } });
+  expect(screen.queryByText(/Não existe Quadro de Vagas disponível/)).toBeNull();
+  expect((screen.getByRole("textbox", { name: /^Quadro de vagas/ }) as HTMLInputElement).value).toBe("QA-0012");
 });
