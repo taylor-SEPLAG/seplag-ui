@@ -155,6 +155,12 @@ Nome | Tipo | Editável | Obrigatório | Tamanho | Orientações/Observações
 
 A coluna `Orientações/Observações` deve explicar tanto o comportamento quanto a origem funcional do dado. Não basta escrever “exibe o total”; registrar de qual tela ou entidade o total é obtido.
 
+### Atualização de US existente
+
+Em atualizações de US, a seção **Descrição da tela** não pode ser reescrita como lista ou narrativa. Toda inclusão, exclusão ou substituição deve indicar as linhas da tabela afetadas e preservar as colunas `Nome`, `Tipo`, `Editável`, `Obrigatório`, `Tamanho` e `Orientações/Observações`.
+
+Para um novo grupo de tela, apresentar o título do grupo e uma tabela completa. Para um grupo já existente, apresentar somente as linhas alteradas, identificando se cada uma deve ser incluída, removida ou substituída.
+
 ### Padrão de origem
 
 Usar textos no formato:
