@@ -350,6 +350,19 @@ export const atualizarUnidadeNoRascunho = (versaoId: string, unidadeId: number, 
   return { estrutura, erro: null };
 };
 
+/** Corrige atributos cadastrais sem modificar posição, hierarquia ou versionamento. */
+export const corrigirInformacoesUnidade = (versaoId: string, unidadeId: number, dados: Partial<UnidadeEstrutural>) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  const versao = estruturaAtual.versoes.find((item) => item.id === versaoId);
+  const unidade = estruturaAtual.unidades.find((item) => item.id === unidadeId);
+  if (!versao || !unidade) return estruturaAtual;
+  const situacao = dados.dataFim ? "EM_EXTINCAO" as const : (dados.situacao ?? unidade.situacao);
+  const unidades = estruturaAtual.unidades.map((item) => item.id === unidadeId ? { ...item, ...dados, situacao } : item);
+  const estrutura = { ...estruturaAtual, unidades, auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "EDICAO" as const, unidadeId, descricao: `Correção de informações cadastrais da unidade ${unidade.nome}`, campo: Object.keys(dados).join(", "), anterior: unidade.nome, atual: dados.nome ?? unidade.nome }] };
+  gravarEstruturaOrganizacional(estrutura);
+  return estrutura;
+};
+
 export const excluirUnidadeDoRascunho = (versaoId: string, unidadeId: number) => {
   const estruturaAtual = lerEstruturaOrganizacional();
   const versao = estruturaAtual.versoes.find((item) => item.id === versaoId);
