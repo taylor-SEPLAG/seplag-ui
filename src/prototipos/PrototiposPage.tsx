@@ -1031,10 +1031,10 @@ interface CargoForm {
   naturezaVinculo?: string;
   naturezaOcupacao?: "CARGO" | "FUNCAO";
   permiteAcumuloCargo?: "S" | "N";
-  controleVagasEfetivos?: boolean;
-  controleVagasBolsista?: boolean;
-  controleVagasComissionadas?: boolean;
-  controleVagasTemporarias?: boolean;
+  controleVagasEfetivos?: "S" | "N";
+  controleVagasBolsista?: "S" | "N";
+  controleVagasComissionadas?: "S" | "N";
+  controleVagasTemporarias?: "S" | "N";
   naturezaOcupacao?: "CARGO" | "FUNCAO";
   cargosAcumulaveis?: number[];
   cargoChefia?: "S" | "N";
@@ -9290,10 +9290,10 @@ export function PrototiposCargoFormPage({
       naturezaVinculo: "",
       naturezaOcupacao: "CARGO",
       permiteAcumuloCargo: "N",
-      controleVagasEfetivos: false,
-      controleVagasBolsista: false,
-      controleVagasComissionadas: false,
-      controleVagasTemporarias: false,
+      controleVagasEfetivos: "N",
+      controleVagasBolsista: "N",
+      controleVagasComissionadas: "N",
+      controleVagasTemporarias: "N",
       cargosAcumulaveis: [],
       cargoChefia: "N",
       permiteSubstituicao: "N",
@@ -9325,10 +9325,10 @@ export function PrototiposCargoFormPage({
       perfisEspecialidades: cargoEmEdicao.perfisEspecialidadesIds ?? [],
       naturezaOcupacao: cargoEmEdicao.naturezaOcupacao ?? "CARGO",
       permiteAcumuloCargo: cargoEmEdicao.cargosAcumulaveis?.length ? "S" : "N",
-      controleVagasEfetivos: cargoEmEdicao.controleVagasEfetivos === true,
-      controleVagasBolsista: cargoEmEdicao.controleVagasBolsista === true,
-      controleVagasComissionadas: cargoEmEdicao.controleVagasComissionadas === true,
-      controleVagasTemporarias: cargoEmEdicao.controleVagasTemporarias === true,
+      controleVagasEfetivos: cargoEmEdicao.controleVagasEfetivos === true ? "S" : "N",
+      controleVagasBolsista: cargoEmEdicao.controleVagasBolsista === true ? "S" : "N",
+      controleVagasComissionadas: cargoEmEdicao.controleVagasComissionadas === true ? "S" : "N",
+      controleVagasTemporarias: cargoEmEdicao.controleVagasTemporarias === true ? "S" : "N",
       cargosAcumulaveis: cargoEmEdicao.cargosAcumulaveis ?? [],
       cargoChefia: "N",
       permiteSubstituicao: "N",
@@ -9370,7 +9370,7 @@ export function PrototiposCargoFormPage({
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
       vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO", naturezaOcupacao: values.naturezaOcupacao ?? "CARGO",
-      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasEfetivos: values.controleVagasEfetivos === true, controleVagasBolsista: values.controleVagasBolsista === true, controleVagasComissionadas: values.controleVagasComissionadas === true, controleVagasTemporarias: values.controleVagasTemporarias === true,
+      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasEfetivos: values.controleVagasEfetivos === "S", controleVagasBolsista: values.controleVagasBolsista === "S", controleVagasComissionadas: values.controleVagasComissionadas === "S", controleVagasTemporarias: values.controleVagasTemporarias === "S",
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     atualizarControleVagasBolsistas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasBolsista === true);
@@ -9390,12 +9390,30 @@ export function PrototiposCargoFormPage({
   const tiposVinculoSelecionados = watch("tiposVinculo") ?? [];
   const carreirasPorTipoVinculo = watch("carreirasPorTipoVinculo") ?? {};
   const idsPerfisSelecionados = watch("perfisEspecialidades") ?? [];
+  const controlaVagasEfetivos = watch("controleVagasEfetivos") === "S";
+  const controlaVagasTemporarias = watch("controleVagasTemporarias") === "S";
+  const controlaVagasComissionadas = watch("controleVagasComissionadas") === "S";
+  const controlaVagasBolsista = watch("controleVagasBolsista") === "S";
   const perfisSelecionadosCargo = perfisEspecialidadesMock.filter((perfil) => idsPerfisSelecionados.includes(perfil.id));
   useEffect(() => {
     const codigosSelecionados = new Set(tiposVinculoSelecionados);
     const carreirasAtualizadas = Object.fromEntries(Object.entries(carreirasPorTipoVinculo).filter(([codigoVinculo]) => codigosSelecionados.has(codigoVinculo)));
     if (Object.keys(carreirasAtualizadas).length !== Object.keys(carreirasPorTipoVinculo).length) setValue("carreirasPorTipoVinculo", carreirasAtualizadas);
   }, [carreirasPorTipoVinculo, setValue, tiposVinculoSelecionados]);
+  useEffect(() => {
+    if (controlaVagasComissionadas) {
+      setValue("controleVagasEfetivos", "N");
+      setValue("controleVagasTemporarias", "N");
+      setValue("controleVagasBolsista", "N");
+      setValue("escolaridadeMinima", "");
+      return;
+    }
+    if (controlaVagasBolsista) {
+      setValue("controleVagasEfetivos", "N");
+      setValue("controleVagasTemporarias", "N");
+      setValue("controleVagasComissionadas", "N");
+    }
+  }, [controlaVagasBolsista, controlaVagasComissionadas, setValue]);
   const inicioVigenciaCargo = watch("dataAtivacao") ?? "";
   const dataEncerramentoCargo = watch("dataEncerramento") ?? "";
   const inicioVigenciaCargoIso = carreiraDataParaIso(inicioVigenciaCargo);
@@ -9519,29 +9537,6 @@ export function PrototiposCargoFormPage({
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>
               <div>
-                <h2>Características do cargo</h2>
-                <p>Configure jornada, escolaridade, CBO e perfis profissionais vinculados.</p>
-              </div>
-            </header>
-            <div className="grid prototype-carreira-register-fields">
-              <MultiSelectFieldSeplag name="jornadasPermitidas" control={control} label="Jornadas permitidas" placeholder="Selecione uma ou mais jornadas" cols="12 12 3" options={cargoJornadaOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
-              <DropdownFieldSeplag name="escolaridadeMinima" control={control} label="Escolaridade Mínima" placeholder="Selecione..." cols="12 12 3" options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
-              <MultiSelectFieldSeplag name="perfisEspecialidades" control={control} label="Perfil Profissional" placeholder="Selecione um ou mais perfis" cols="12 12 6" options={perfisEspecialidadesMock.filter((perfil) => perfil.situacao === "ATIVO" || idsPerfisSelecionados.includes(perfil.id)).map((perfil) => ({ label: perfil.nome, value: perfil.id }))} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
-              {perfisSelecionadosCargo.length ? (
-                <div className="col-12 prototype-cargo-profile-table-wrapper">
-                  <table className="prototype-cargo-profile-table">
-                    <thead><tr><th>Perfil Profissional</th><th>Área de formação</th><th>CBO</th><th>CBO eSocial</th></tr></thead>
-                    <tbody>{perfisSelecionadosCargo.map((perfil) => <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td><td>{perfil.cbo.replace(/\D/g, "")}</td></tr>)}</tbody>
-                  </table>
-                </div>
-              ) : null}
-            </div>
-          </section>
-
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>
-              <div>
                 <h2>Comportamentos do cargo</h2>
                 <p>Configure as regras operacionais aplicáveis a este cargo.</p>
               </div>
@@ -9565,22 +9560,45 @@ export function PrototiposCargoFormPage({
             <div className="prototype-cargo-controle-vagas">
               <div className="prototype-cargo-controle-vagas-opcoes">
                 <div className="prototype-shared-criterio-item">
-                  <CheckboxFieldSeplag<CargoForm> name="controleVagasEfetivos" control={control} checkboxLabel="Controla vagas de efetivos?" cols="12" />
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasEfetivos" control={control} checkboxLabel="Controla vagas de efetivos?" cols="12" disabled={controlaVagasComissionadas || controlaVagasBolsista} />
                   <span>Disponibiliza este cargo no Quadro de Vagas Efetivos.</span>
                 </div>
                 <div className="prototype-shared-criterio-item">
-                  <CheckboxFieldSeplag<CargoForm> name="controleVagasTemporarias" control={control} checkboxLabel="Controla vagas temporárias?" cols="12" />
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasTemporarias" control={control} checkboxLabel="Controla vagas temporárias?" cols="12" disabled={controlaVagasComissionadas || controlaVagasBolsista} />
                   <span>Disponibiliza este cargo para o controle de vagas dos processos seletivos temporários.</span>
                 </div>
                 <div className="prototype-shared-criterio-item">
-                  <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" />
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" disabled={controlaVagasEfetivos || controlaVagasTemporarias || controlaVagasBolsista} />
                   <span>Disponibiliza este cargo como Cargo Comissionado no Quadro de Vagas Comissionados.</span>
                 </div>
                 <div className="prototype-shared-criterio-item">
-                  <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" />
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" disabled={controlaVagasEfetivos || controlaVagasTemporarias || controlaVagasComissionadas} />
                   <span>Disponibiliza este cargo no Quadro de Vagas Bolsistas.</span>
                 </div>
               </div>
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>
+              <div>
+                <h2>Características do cargo</h2>
+                <p>Configure jornada, escolaridade, CBO e perfis profissionais vinculados.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <MultiSelectFieldSeplag name="jornadasPermitidas" control={control} label="Jornadas permitidas" placeholder="Selecione uma ou mais jornadas" cols="12 12 3" options={cargoJornadaOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              <DropdownFieldSeplag name="escolaridadeMinima" control={control} label="Escolaridade Mínima" placeholder="Selecione..." cols="12 12 3" options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" required={!controlaVagasComissionadas} disabled={controlaVagasComissionadas} getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="perfisEspecialidades" control={control} label="Perfil Profissional" placeholder="Selecione um ou mais perfis" cols="12 12 6" options={perfisEspecialidadesMock.filter((perfil) => perfil.situacao === "ATIVO" || idsPerfisSelecionados.includes(perfil.id)).map((perfil) => ({ label: perfil.nome, value: perfil.id }))} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              {perfisSelecionadosCargo.length ? (
+                <div className="col-12 prototype-cargo-profile-table-wrapper">
+                  <table className="prototype-cargo-profile-table">
+                    <thead><tr><th>Perfil Profissional</th><th>Área de formação</th><th>CBO</th><th>CBO eSocial</th></tr></thead>
+                    <tbody>{perfisSelecionadosCargo.map((perfil) => <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td><td>{perfil.cbo.replace(/\D/g, "")}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              ) : null}
             </div>
           </section>
 
