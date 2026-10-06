@@ -90,6 +90,7 @@ function OrganogramaDetalheContent() {
   const [modalPublicacao, setModalPublicacao] = useState(false);
   const [modalHistoricoVersoes, setModalHistoricoVersoes] = useState(false);
   const [modalExcluirEstrutura, setModalExcluirEstrutura] = useState(false);
+  const [movimentacaoPendente, setMovimentacaoPendente] = useState<{ unidade: Unidade; subordinadas: Unidade[] } | null>(null);
   const [acoesUnidadeAbertaId, setAcoesUnidadeAbertaId] = useState<number | null>(null);
   const [erroPublicacao, setErroPublicacao] = useState("");
   const [rascunhoSalvo, setRascunhoSalvo] = useState(false);
@@ -164,6 +165,12 @@ function OrganogramaDetalheContent() {
     unidades.find((item) => item.id === unidade.superiorId)?.nome ?? "Órgão/Entidade";
 
   const filhosDe = (superiorId: number | null, itens = unidades) => itens.filter((item) => item.superiorId === superiorId).sort((a, b) => a.ordem - b.ordem);
+  const subordinadasDe = (unidadeId: number) => {
+    const resultado: Unidade[] = [];
+    const incluir = (superiorId: number) => filhosDe(superiorId).forEach((filha) => { resultado.push(filha); incluir(filha.id); });
+    incluir(unidadeId);
+    return resultado;
+  };
   const indices = useMemo(() => {
     const resultado = new Map<number, string>();
     const preencher = (superiorId: number | null, prefixo: string) => filhosDe(superiorId).forEach((unidade, indice) => { const codigo = `${prefixo}.${indice + 1}`; resultado.set(unidade.id, codigo); preencher(unidade.id, codigo); });
@@ -248,7 +255,7 @@ function OrganogramaDetalheContent() {
     setModalAdicionar(null); setErroAdicionar("");
   };
   const abrirVisualizacao = (unidade: Unidade) => { resetEdicao({ nome: unidade.nome, tipo: unidade.tipo, nivel: unidade.nivelOrganizacional, dataCriacao: unidade.dataInicio, dataExtincao: unidade.dataFim ?? "", documentoLegalId: unidade.documentoCriacaoId ?? versaoSelecionada?.documentoLegalId ?? "", unidadeSuperiorId: unidade.superiorId?.toString() ?? "" }); setSelecionada(unidade); setAbaModalVisualizacao("DADOS"); };
-  const salvarEdicaoUnidade = () => {
+  const salvarEdicaoUnidade = (confirmarMovimentacao = false) => {
     if (!selecionada || !watchEdicao("nome").trim() || !watchEdicao("tipo") || !watchEdicao("nivel") || !watchEdicao("dataCriacao")) return;
     const dataExtincao = watchEdicao("dataExtincao");
     if (dataExtincao && paraData(dataExtincao) < paraData(watchEdicao("dataCriacao"))) return;
@@ -256,8 +263,11 @@ function OrganogramaDetalheContent() {
     const dados = { nome: watchEdicao("nome").trim(), tipo: watchEdicao("tipo"), nivelOrganizacional: watchEdicao("nivel"), dataInicio: watchEdicao("dataCriacao"), dataFim: dataExtincao || undefined };
     if (modo === "correcao") { setEstrutura(corrigirInformacoesUnidade(versaoSelecionada.id, selecionada.id, dados)); setSelecionada(null); return; }
     if (versaoSelecionada.situacao !== "RASCUNHO") return;
-    const resultado = atualizarUnidadeNoRascunho(versaoSelecionada.id, selecionada.id, dados, watchEdicao("unidadeSuperiorId") ? Number(watchEdicao("unidadeSuperiorId")) : null);
-    if (!resultado.erro) { setEstrutura(resultado.estrutura); setSelecionada(null); }
+    const novaSuperiorId = watchEdicao("unidadeSuperiorId") ? Number(watchEdicao("unidadeSuperiorId")) : null;
+    const subordinadas = subordinadasDe(selecionada.id);
+    if (!confirmarMovimentacao && novaSuperiorId !== selecionada.superiorId && subordinadas.length > 0) { setMovimentacaoPendente({ unidade: selecionada, subordinadas }); return; }
+    const resultado = atualizarUnidadeNoRascunho(versaoSelecionada.id, selecionada.id, dados, novaSuperiorId);
+    if (!resultado.erro) { setEstrutura(resultado.estrutura); setMovimentacaoPendente(null); setSelecionada(null); }
   };
   const abrirPublicacao = () => { resetPublicacao({ documentoLegal: "", inicio: "" }); setErroPublicacao(""); setModalPublicacao(true); };
   const salvarRascunho = () => { setRascunhoSalvo(true); window.setTimeout(() => setRascunhoSalvo(false), 2500); };
@@ -401,6 +411,9 @@ function OrganogramaDetalheContent() {
           {abaModalVisualizacao === "DADOS" && modo === "elaboracao" && <section className="col-12 grid organograma-edit-data"><DropdownFieldSeplag name="unidadeSuperiorId" control={controlEdicao} label="Unidade superior" cols="12" showClear options={unidades.filter((item) => item.id !== selecionada.id && item.situacao === "ATIVA").map((item) => ({ label: `${item.codigo} — ${item.nome}`, value: String(item.id) }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="nivel" control={controlEdicao} label="Nível organizacional" cols="12 6" required options={opcoesNivelOrganizacional} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="tipo" control={controlEdicao} label="Tipo de unidade" cols="12 6" required options={opcoes(tiposUnidadesAtivos())} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><div className="col-12 md:col-4 organograma-edit-code"><span>Código</span><strong>{selecionada.codigo}</strong></div><TextFieldSeplag name="nome" control={controlEdicao} label="Nome da unidade" cols="12 8" required getFormErrorMessage={semErro} /><DateFieldSeplag name="dataCriacao" control={controlEdicao} label="Data de criação" cols="12 6" required getFormErrorMessage={semErro} /><DateFieldSeplag name="dataExtincao" control={controlEdicao} label="Data de extinção" cols="12 6" getFormErrorMessage={semErro} /><div className="col-12 organograma-edit-location"><span>Localização</span><strong>{selecionada.localizacao}</strong><small>Para alterar a localização, use o cadastro de Unidades.</small></div></section>}
           {abaModalVisualizacao === "DADOS" && modo === "consulta" ? <section className="col-12 organograma-read-data"><div><span>Código</span><strong>{selecionada.codigo}</strong></div><div><span>Tipo de unidade</span><strong>{selecionada.tipo}</strong></div><div><span>Nível organizacional</span><strong>{selecionada.nivelOrganizacional}</strong></div><div className="is-wide"><span>Nome da unidade</span><strong>{selecionada.nome}</strong></div><div><span>Data de criação</span><strong>{selecionada.dataInicio}</strong></div><div><span>Data de extinção</span><strong>{selecionada.dataFim ?? "Não informada"}</strong></div><div><span>Situação</span><strong>{selecionada.situacao === "EM_EXTINCAO" ? "Em extinção" : selecionada.situacao === "ATIVA" ? "Ativa" : selecionada.situacao}</strong></div><div><span>Localização</span><strong>{selecionada.localizacao}</strong></div></section> : abaModalVisualizacao === "HISTORICO" ? <section className="col-12 organograma-add-history"><header><div><strong>Histórico de Alterações</strong><span>Registro cronológico de alterações e documentos vinculados a esta unidade.</span></div><small>2 registros encontrados</small></header><article className="organograma-history-record"><div className="organograma-history-record-title"><span>v2.0</span><strong>Alteração da classificação organizacional</strong><small>25/09/2026 às 10:14 por Administrador SIGEP</small></div><table><thead><tr><th>Campo alterado</th><th>Valor anterior</th><th>Valor novo</th></tr></thead><tbody><tr><td>Nível organizacional</td><td><span>Informação anterior</span></td><td>{selecionada.nivelOrganizacional}</td></tr></tbody></table></article></section> : null}
         </div>}
+      </ModalSeplag>
+      <ModalSeplag visible={Boolean(movimentacaoPendente)} titulo="Confirmar mudança de estrutura" fechar={() => setMovimentacaoPendente(null)} tamanho="min(520px, calc(100vw - 32px))" customFooter={<div className="organograma-move-footer"><BotaoSeplag label="Voltar e revisar" outlined severity="secondary" onClick={() => setMovimentacaoPendente(null)} /><BotaoSeplag label="Sim, Mover e Salvar" icon="pi pi-check" onClick={() => salvarEdicaoUnidade(true)} /></div>}>
+        {movimentacaoPendente && <section className="organograma-move-confirmation"><p>Você está alterando a Unidade Superior de <strong>{movimentacaoPendente.unidade.nome}</strong>.</p><div className="organograma-move-impact"><strong><i className="pi pi-exclamation-triangle" /> Impacto nas unidades subordinadas</strong><span>Esta unidade possui <b>{movimentacaoPendente.subordinadas.length}</b> {movimentacaoPendente.subordinadas.length === 1 ? "subordinada" : "subordinadas"}. Ao confirmar, as seguintes unidades serão movidas juntas para a nova Unidade Superior:</span><ul>{movimentacaoPendente.subordinadas.map((unidade) => <li key={unidade.id}>{unidade.nome}</li>)}</ul></div><p>Deseja confirmar a alteração e reorganizar a árvore hierárquica?</p></section>}
       </ModalSeplag>
     </div>
   );

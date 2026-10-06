@@ -118,3 +118,12 @@
 .organograma-mode-elaboracao .organograma-read-data {
   display: none;
 }
+
+.organograma-move-confirmation { display:flex; flex-direction:column; gap:1rem; color:#536575; line-height:1.45; }
+.organograma-move-confirmation p { margin:0; }
+.organograma-move-confirmation > p:first-child { font-size:.95rem; }
+.organograma-move-impact { display:flex; flex-direction:column; gap:.55rem; padding:1rem; border:1px solid #f0ce76; border-radius:7px; background:#fff3cc; color:#644500; }
+.organograma-move-impact strong { color:#5c4200; }
+.organograma-move-impact i { margin-right:.35rem; color:#e2a100; }
+.organograma-move-impact ul { margin:0; padding-left:1.25rem; color:#536575; }
+.organograma-move-footer { display:flex; justify-content:flex-end; gap:.65rem; }
