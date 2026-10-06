@@ -16567,7 +16567,9 @@ export function PrototiposNovoIngressoPage() {
   const [candidatoNascimento, setCandidatoNascimento] = useState(nascimentoInicial);
   const [concursoSelecionado, setConcursoSelecionado] = useState(concursoInicial);
   const [orgaoSelecionado, setOrgaoSelecionado] = useState(orgaoInicial);
-  const [orgaosIngressoSelecionados, setOrgaosIngressoSelecionados] = useState<string[]>(orgaoInicial ? [orgaoInicial] : []);
+  const [orgaosIngressoSelecionados, setOrgaosIngressoSelecionados] = useState<string[]>(
+    orgaoInicial ? [orgaoInicial] : tipoInicial === "Exclusivo Comissionado" ? [getOrgaoAtuacaoIngresso()] : [],
+  );
   const [direcionamentoAnalise, setDirecionamentoAnalise] = useState<"atual" | "outro">("atual");
   const [orgaoDestinoAnalise, setOrgaoDestinoAnalise] = useState("");
   const [sucessoDirecionamentoAnalise, setSucessoDirecionamentoAnalise] = useState("");
@@ -17189,6 +17191,7 @@ export function PrototiposNovoIngressoPage() {
     (activeTab === "tipo-ingresso" && (
       !tipoIngresso ||
       (tipoIngresso === "Exclusivo Comissionado" && !candidatoParam && (!candidatoCpf || !candidatoNome || !candidatoNascimento)) ||
+      (tipoIngresso === "Exclusivo Comissionado" && orgaosIngressoSelecionados.length === 0) ||
       (vinculoTipoEstagiario && !quadroVagaEstagio) ||
       semQuadroVagasPssSefaz ||
       (["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || orgaoDestinoAnalise === (orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial))) ||
@@ -20009,7 +20012,7 @@ export function PrototiposNovoIngressoPage() {
                   );
                   setConcursoSelecionado("");
                   setOrgaoSelecionado("");
-                  setOrgaosIngressoSelecionados([]);
+                  setOrgaosIngressoSelecionados(option.value === "Exclusivo Comissionado" && tipoIngresso !== option.value ? [getOrgaoAtuacaoIngresso()] : []);
                   setOrgaosParticipantesSelecionados([]);
                   setOrgaosIngressoDropdownAberto(false);
                   setCargoSelecionado("");

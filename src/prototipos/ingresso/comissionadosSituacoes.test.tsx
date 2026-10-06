@@ -123,7 +123,7 @@ it("mantém Aguardando Termo Assinado após confirmar comparecimento e gerar o t
 });
 
 it("cria um comissionado em análise e o inclui na lista com histórico", () => {
-  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Exclusivo%20Comissionado&orgao=SEPLAG"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Exclusivo%20Comissionado"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
   expect((screen.getByRole("button", { name: "Confirmar" }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.click(screen.getByRole("combobox", { name: /^CPF/ }));
   fireEvent.click(within(screen.getByRole("listbox", { name: "CPFs cadastrados" })).getByRole("option", { name: /555\.555\.555-55/ }));
@@ -134,6 +134,7 @@ it("cria um comissionado em análise e o inclui na lista com histórico", () => 
   fireEvent.change(screen.getByLabelText(/Data da Nomeação/) as HTMLInputElement, { target: { value: "2026-10-05" } });
   fireEvent.change(screen.getByLabelText(/Ato de Nomeação/) as HTMLInputElement, { target: { value: "0006/2026" } });
   fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+  expect(document.querySelector(".prototype-novo-ingresso-step[aria-current=\"step\"]")?.textContent).toContain("Documentação");
   const criados = JSON.parse(localStorage.getItem("prototype-ingressos-comissionados-registros") ?? "[]");
   expect(criados).toHaveLength(1);
   expect(criados[0].situacao).toBe("Em análise");
