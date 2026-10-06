@@ -256,8 +256,8 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
   const abas: { id: Aba; label: string; descricao: string }[] = [
     {
       id: "identificacao",
-      label: "Identificação Institucional",
-      descricao: "Classificação, dados cadastrais e eSocial.",
+      label: "Dados Cadastrais",
+      descricao: "Classificação e dados cadastrais.",
     },
     {
       id: "localizacao",
@@ -271,8 +271,8 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
     },
     {
       id: "integracoes",
-      label: "Integrações",
-      descricao: "Códigos externos e conclusão.",
+      label: "eSocial e Integrações",
+      descricao: "Dados do eSocial e códigos externos.",
     },
   ];
   return (
@@ -286,28 +286,13 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
       </header>
       {mensagemVigencia && <div className="orgao-vigencia-feedback" role="status">{mensagemVigencia}</div>}
       <div className="prototype-carreira-register-form orgao-cadastro-form">
-        <nav
-          className="orgao-stepper"
-          style={{
-            boxSizing: "border-box",
-            gridColumn: "1 / -1",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            maxWidth: "none",
-            width: "100%",
-          }}
-          aria-label="Etapas do cadastro"
-        >
-          {abas.map((item, index) => {
-            const atual = abas.findIndex((etapa) => etapa.id === aba);
-            return (
-              <button type="button" key={item.id} className={index === atual ? "active" : index < atual ? "done" : ""} aria-current={index === atual ? "step" : undefined} onClick={() => setAba(item.id)}>
-                <span className="orgao-step-number">{index + 1}</span>
-                <strong>{item.label}</strong>
-                <small>{item.descricao}</small>
-              </button>
-            );
-          })}
+        <nav className="orgao-form-tabs" aria-label="Abas do cadastro">
+          {abas.map((item) => <button type="button" key={item.id} className={aba === item.id ? "active" : ""} aria-current={aba === item.id ? "page" : undefined} onClick={() => setAba(item.id)}>{item.label}</button>)}
         </nav>
+        <section className="orgao-institution-summary" aria-label="Vínculo institucional">
+          <div><strong>Ente federativo:</strong> <span>{tipoInicial === "ente" ? dados.razao : dados.enteFederativo || "Não informado"} — {tipoInicial === "ente" ? dados.cnpj || "CNPJ não informado" : dados.cnpjEfr || "CNPJ não informado"}</span></div>
+          <div><strong>Órgão/Entidade:</strong> <span>{dados.razao || "Órgão/Entidade"} — {dados.cnpj || "CNPJ não informado"}</span></div>
+        </section>
         {aba === "identificacao" && (
           <div className="orgao-tab-content">
             <PanelSeplag title="Identificação cadastral" description="Dados oficiais de identificação do órgão ou entidade." className="orgao-form-section">
@@ -347,7 +332,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
                 <DropdownFieldSeplag name="estabelecimento" label={tipoInicial === "ente" ? autoLabel("Tipo de Estabelecimento") : "Tipo de Estabelecimento"} required disabled={tipoInicial === "ente" || disabled} options={opts(["Matriz", "Filial"])} optionLabel="label" optionValue="value" {...common} />
               </div>
             </PanelSeplag>
-            <PanelSeplag title="Informações para o eSocial" description="Dados utilizados nas obrigações do eSocial." className="orgao-form-section">
+            <PanelSeplag title="Informações para o eSocial" description="Dados utilizados nas obrigações do eSocial." className="orgao-form-section orgao-esocial-original">
               <div className="orgao-fields-grid cols-3">
                 <DropdownFieldSeplag name="situacao" label="Situação cadastral" disabled={disabled} options={opts(["Ativa", "Baixada"])} optionLabel="label" optionValue="value" {...common} />
                 <DropdownFieldSeplag name="classificacaoTributaria" label={autoLabel("Classificação Tributária")} disabled options={opts(tipoInicial === "ente" ? ["85 - Ente Federativo"] : Object.values(classificacaoPorTipo))} optionLabel="label" optionValue="value" {...common} />
@@ -429,6 +414,20 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
         )}
         {aba === "integracoes" && (
           <div className="orgao-tab-content">
+            <PanelSeplag title="Informações para o eSocial" description="Dados utilizados nas obrigações do eSocial." className="orgao-form-section">
+              <div className="orgao-fields-grid cols-3">
+                <DropdownFieldSeplag name="situacao" label="Situação cadastral" disabled={disabled} options={opts(["Ativa", "Baixada"])} optionLabel="label" optionValue="value" {...common} />
+                <DropdownFieldSeplag name="classificacaoTributaria" label={autoLabel("Classificação Tributária")} disabled options={opts(tipoInicial === "ente" ? ["85 - Ente Federativo"] : Object.values(classificacaoPorTipo))} optionLabel="label" optionValue="value" {...common} />
+                {tipoInicial !== "ente" && <TextFieldSeplag name="siafi" label="Número SIAFI" disabled={disabled} {...common} />}
+                <DropdownFieldSeplag name="aliquotaRat" label="Alíquota RAT / GILRAT" disabled={disabled} options={opts(["1%", "2%", "3%"]) } optionLabel="label" optionValue="value" placeholder="Selecione..." {...common} />
+                <NumberFieldSeplag name="fap" label="FAP (Fator Acidentário)" disabled={disabled} min={0.5} max={2} inputStyle={{ width: "100%" }} {...common} />
+                <DropdownFieldSeplag name="codigoFpas" label="Código FPAS" disabled={disabled} options={opts(["515 - Comércio e serviços", "523 - Órgãos do poder público", "582 - Órgãos federais, estaduais e municipais", "604 - Produtor rural"])} optionLabel="label" optionValue="value" placeholder="Selecione..." {...common} />
+                <DropdownFieldSeplag name="tipoLotacaoTributaria" label="Tipo de Lotação Tributária" disabled={disabled} options={opts(["01 - Classificação da atividade econômica", "02 - Obra de construção civil", "03 - Pessoa física tomadora de serviços", "21 - Escritório administrativo"])} optionLabel="label" optionValue="value" placeholder="Selecione..." {...common} />
+                <DropdownFieldSeplag name="registroEletronico" label="Registro Eletrônico Empregados" disabled={disabled} options={opts(["Não aplicável", "Sim", "Não"])} optionLabel="label" optionValue="value" placeholder="Selecione..." {...common} />
+                <DropdownFieldSeplag name="desoneracao" label="Desoneração da Folha" disabled={disabled} options={opts(["Não aplicável", "Sim", "Não"])} optionLabel="label" optionValue="value" placeholder="Selecione..." {...common} />
+                {tipoInicial !== "ente" && <CNPJFieldSeplag name="cnpjEfr" label={autoLabel("CNPJ do EFR")} validarCNPJ={false} disabled {...common} />}
+              </div>
+            </PanelSeplag>
             <PanelSeplag title="Integrações" description="Preenchimento opcional." className="orgao-form-section">
               <div className="orgao-fields-grid cols-4">
                 <TextFieldSeplag name="codigoArh" control={control} label="Código ARH" getFormErrorMessage={noError} />
