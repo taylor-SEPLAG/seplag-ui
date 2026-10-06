@@ -10,7 +10,7 @@ import { ModalSeplag } from "@componentes/Modal";
 import { PanelSeplag } from "@componentes/PanelSeplag";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "@componentes/TablePaginado";
 import type { ResultsSeplag } from "@interfaces/Results";
-import { cadastrarOrganograma, cadastrarUnidadeNoOrganograma, excluirVersaoOrganograma, gravarUnidadesDaEstrutura, lerEstruturaOrganizacional, obterUnidadesDaVersao, obterVersaoVigente, publicarNovaVersaoOrganograma, publicarOrganograma, vincularUnidadeAoOrganograma, type VersaoOrganograma, type UnidadeNoOrganograma } from "./estruturaOrganizacionalStore";
+import { cadastrarOrganograma, cadastrarUnidadeNoOrganograma, criarRascunhoDaVersao, excluirVersaoOrganograma, atualizarUnidadeNoRascunho, lerEstruturaOrganizacional, obterUnidadesDaVersao, obterVersaoVigente, publicarNovaVersaoOrganograma, publicarOrganograma, vincularUnidadeAoOrganograma, type VersaoOrganograma, type UnidadeNoOrganograma } from "./estruturaOrganizacionalStore";
 import { tiposUnidadesAtivos } from "./tiposUnidadesStore";
 import "./organograma.css";
 import "./organogramaVersion.css";
@@ -32,11 +32,12 @@ type Filtros = {
   versaoComparacaoId: string;
 };
 type AdicionarUnidadeForm = { unidadeExistenteId: string; tipo: string; codigo: string; nivel: string; nome: string; documentoLegalId: string; dataCriacao: string; dataExtincao: string; outraLocalidade: "NAO" | "SIM"; cep: string; estado: string; cidade: string; bairro: string; tipoLogradouro: string; logradouro: string; numero: string; complemento: string };
-type EdicaoUnidadeForm = { nome: string; tipo: string; nivel: string; dataCriacao: string; dataExtincao: string; documentoLegalId: string };
+type EdicaoUnidadeForm = { nome: string; tipo: string; nivel: string; dataCriacao: string; dataExtincao: string; documentoLegalId: string; unidadeSuperiorId: string };
 type PublicacaoOrganogramaForm = { documentoLegal: string; inicio: string };
 
 const opcoes = (valores: string[]) => valores.map((valor) => ({ label: valor, value: valor }));
 const semErro = () => null;
+const paraData = (valor: string) => { const [dia, mes, ano] = valor.split("/").map(Number); return new Date(ano || 0, (mes || 1) - 1, dia || 1).getTime(); };
 const NIVEL_ADMINISTRACAO_DESCENTRALIZADA = "Nível de Administração Descentralizada";
 const opcoesNivelOrganizacional = ["Nível de Decisão Colegiada", "Nível de Direção Superior", "Nível de Assessoramento Superior", "Nível Assessoramento Estratégico e Especializado", "Nível de Administração Sistêmica", "Nível de Execução Programática", "Nível de Administração Regionalizada", "Nível de Administração Desconcentrada"].map((value) => ({ label: value, value })).concat({ label: "IX. Nível de Administração Descentralizada", value: NIVEL_ADMINISTRACAO_DESCENTRALIZADA });
 const entidadesAdministracaoIndiretaAtivas = [
@@ -94,7 +95,7 @@ function OrganogramaDetalheContent() {
   const [rascunhoSalvo, setRascunhoSalvo] = useState(false);
   const [erroAdicionar, setErroAdicionar] = useState("");
   const { control: controlAdicionar, watch: watchAdicionar, reset: resetAdicionar } = useForm<AdicionarUnidadeForm>({ defaultValues: { unidadeExistenteId: "", tipo: "", codigo: "", nivel: "", nome: "", documentoLegalId: "", dataCriacao: "", dataExtincao: "", outraLocalidade: "NAO", cep: "", estado: "", cidade: "", bairro: "", tipoLogradouro: "", logradouro: "", numero: "", complemento: "" } });
-  const { control: controlEdicao, watch: watchEdicao, reset: resetEdicao } = useForm<EdicaoUnidadeForm>({ defaultValues: { nome: "", tipo: "", nivel: "", dataCriacao: "", dataExtincao: "", documentoLegalId: "" } });
+  const { control: controlEdicao, watch: watchEdicao, reset: resetEdicao } = useForm<EdicaoUnidadeForm>({ defaultValues: { nome: "", tipo: "", nivel: "", dataCriacao: "", dataExtincao: "", documentoLegalId: "", unidadeSuperiorId: "" } });
   const { control: controlPublicacao, watch: watchPublicacao, reset: resetPublicacao } = useForm<PublicacaoOrganogramaForm>({ defaultValues: { documentoLegal: "", inicio: "" } });
   const orgaosDisponiveis = [...new Set(estrutura.versoes.map((versao) => versao.orgao))];
   const orgao = watch("orgao");
@@ -122,6 +123,12 @@ function OrganogramaDetalheContent() {
     setValue("nomeOrganograma", versaoSelecionada?.nome ?? "Organograma não cadastrado");
     setValue("documentoLegal", versaoSelecionada?.documentoLegal ?? "Documento legal não informado");
   }, [setValue, versaoIdForm, versaoSelecionada, versaoVigente, versoesDoOrgao]);
+
+  useEffect(() => {
+    if (modo !== "editar" || !versaoSelecionada || versaoSelecionada.situacao === "RASCUNHO") return;
+    const resultado = criarRascunhoDaVersao(versaoSelecionada.id);
+    if (resultado.versao) { setEstrutura(resultado.estrutura); setValue("versaoId", resultado.versao.id); }
+  }, [modo, setValue, versaoSelecionada]);
 
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLocaleLowerCase("pt-BR");
@@ -225,6 +232,7 @@ function OrganogramaDetalheContent() {
   const unidadesDisponiveis = estrutura.unidades.filter((unidade) => unidade.orgao === orgaoSelecionado && unidade.situacao === "ATIVA" && !unidades.some((posicionada) => posicionada.id === unidade.id));
   const salvarAdicao = () => {
     if (!modalAdicionar || !contextoAdicionar || !versaoSelecionada) return;
+    if (versaoSelecionada.situacao !== "RASCUNHO") { setErroAdicionar("Crie ou selecione um rascunho para alterar a estrutura."); return; }
     if (modoAdicionar === "EXISTENTE") {
       const unidadeId = Number(watchAdicionar("unidadeExistenteId"));
       if (!unidadeId) { setErroAdicionar("Selecione uma Unidade existente."); return; }
@@ -234,24 +242,28 @@ function OrganogramaDetalheContent() {
       if (watchAdicionar("outraLocalidade") === "SIM" && (!watchAdicionar("estado") || !watchAdicionar("cidade"))) { setErroAdicionar("Informe o estado e a cidade da localização própria da unidade."); return; }
       const possuiEnderecoProprio = watchAdicionar("outraLocalidade") === "SIM";
       const dataExtincao = watchAdicionar("dataExtincao");
+      if (dataExtincao && paraData(dataExtincao) < paraData(watchAdicionar("dataCriacao"))) { setErroAdicionar("A data de extinção deve ser igual ou posterior à data de criação."); return; }
       setEstrutura(cadastrarUnidadeNoOrganograma(versaoSelecionada.id, { codigo: "", nome: watchAdicionar("nome").trim(), sigla: "", orgao: orgaoSelecionado, tipo: watchAdicionar("tipo"), nivelOrganizacional: watchAdicionar("nivel"), localizacao: possuiEnderecoProprio ? `${watchAdicionar("cidade")}/ ${watchAdicionar("estado")}` : "Cuiabá/MT", situacao: dataExtincao ? "EM_EXTINCAO" : "ATIVA", dataInicio: watchAdicionar("dataCriacao"), dataFim: dataExtincao || undefined, documentoCriacaoId: versaoSelecionada.documentoLegalId, documentosLegaisCriacaoIds: [versaoSelecionada.documentoLegalId], outraLocalidade: possuiEnderecoProprio, endereco: possuiEnderecoProprio ? { cep: watchAdicionar("cep"), estado: watchAdicionar("estado"), municipio: watchAdicionar("cidade"), bairro: watchAdicionar("bairro"), tipoLogradouro: watchAdicionar("tipoLogradouro"), logradouro: watchAdicionar("logradouro"), numero: watchAdicionar("numero"), complemento: watchAdicionar("complemento") } : undefined }, contextoAdicionar.superiorId, contextoAdicionar.ordem));
     }
     setModalAdicionar(null); setErroAdicionar("");
   };
-  const abrirVisualizacao = (unidade: Unidade) => { resetEdicao({ nome: unidade.nome, tipo: unidade.tipo, nivel: unidade.nivelOrganizacional, dataCriacao: unidade.dataInicio, dataExtincao: unidade.dataFim ?? "", documentoLegalId: unidade.documentoCriacaoId ?? versaoSelecionada?.documentoLegalId ?? "" }); setSelecionada(unidade); setAbaModalVisualizacao("DADOS"); };
+  const abrirVisualizacao = (unidade: Unidade) => { resetEdicao({ nome: unidade.nome, tipo: unidade.tipo, nivel: unidade.nivelOrganizacional, dataCriacao: unidade.dataInicio, dataExtincao: unidade.dataFim ?? "", documentoLegalId: unidade.documentoCriacaoId ?? versaoSelecionada?.documentoLegalId ?? "", unidadeSuperiorId: unidade.superiorId?.toString() ?? "" }); setSelecionada(unidade); setAbaModalVisualizacao("DADOS"); };
   const salvarEdicaoUnidade = () => {
     if (!selecionada || !watchEdicao("nome").trim() || !watchEdicao("tipo") || !watchEdicao("nivel") || !watchEdicao("dataCriacao")) return;
     const dataExtincao = watchEdicao("dataExtincao");
-    const atualizada = gravarUnidadesDaEstrutura(estrutura.unidades.map((unidade) => unidade.id === selecionada.id ? { ...unidade, nome: watchEdicao("nome").trim(), tipo: watchEdicao("tipo"), nivelOrganizacional: watchEdicao("nivel"), dataInicio: watchEdicao("dataCriacao"), dataFim: dataExtincao || undefined, situacao: dataExtincao ? "EM_EXTINCAO" : "ATIVA" } : unidade), "EDICAO");
-    setEstrutura(atualizada); setSelecionada(null);
+    if (dataExtincao && paraData(dataExtincao) < paraData(watchEdicao("dataCriacao"))) return;
+    if (!versaoSelecionada || versaoSelecionada.situacao !== "RASCUNHO") return;
+    const resultado = atualizarUnidadeNoRascunho(versaoSelecionada.id, selecionada.id, { nome: watchEdicao("nome").trim(), tipo: watchEdicao("tipo"), nivelOrganizacional: watchEdicao("nivel"), dataInicio: watchEdicao("dataCriacao"), dataFim: dataExtincao || undefined }, watchEdicao("unidadeSuperiorId") ? Number(watchEdicao("unidadeSuperiorId")) : null);
+    if (!resultado.erro) { setEstrutura(resultado.estrutura); setSelecionada(null); }
   };
   const abrirPublicacao = () => { resetPublicacao({ documentoLegal: "", inicio: "" }); setErroPublicacao(""); setModalPublicacao(true); };
   const salvarRascunho = () => { setRascunhoSalvo(true); window.setTimeout(() => setRascunhoSalvo(false), 2500); };
   const confirmarExclusaoEstrutura = () => {
     if (!versaoSelecionada) return;
-    excluirVersaoOrganograma(versaoSelecionada.id);
-    setModalExcluirEstrutura(false);
-    navigate("/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma");
+    const atualizada = excluirVersaoOrganograma(versaoSelecionada.id);
+    setEstrutura(atualizada); setModalExcluirEstrutura(false);
+    const vigente = obterVersaoVigente(atualizada, versaoSelecionada.orgao);
+    if (vigente) { setValue("versaoId", vigente.id); setModo("consulta"); }
   };
   const confirmarPublicacao = () => {
     if (!versaoSelecionada) return;
@@ -260,6 +272,12 @@ function OrganogramaDetalheContent() {
     if (!resultado.versao) { setErroPublicacao("Não foi possível publicar esta estrutura."); return; }
     setEstrutura(resultado.estrutura); setModalPublicacao(false); setModo("consulta"); setValue("versaoId", resultado.versao.id);
     navigate(`?modo=detalhe&orgao=${encodeURIComponent(resultado.versao.orgao)}&versao=${encodeURIComponent(resultado.versao.id)}`);
+  };
+  const iniciarEdicao = () => {
+    if (!versaoSelecionada) return;
+    if (versaoSelecionada.situacao === "RASCUNHO") { setModo("editar"); return; }
+    const resultado = criarRascunhoDaVersao(versaoSelecionada.id);
+    if (resultado.versao) { setEstrutura(resultado.estrutura); setValue("versaoId", resultado.versao.id); setModo("editar"); }
   };
 
   const NoMontagem = ({ unidade }: { unidade: Unidade }) => {
@@ -288,7 +306,7 @@ function OrganogramaDetalheContent() {
         cols="12"
         cardHeaderClassNames="prototype-carreira-card organograma-card"
         headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Estrutura Organizacional" }, { label: "Estruturas e Unidades" }, { label: "Estrutura e Unidades" }]} />}
-        actions={modo === "consulta" ? <div className="organograma-page-header-actions"><button type="button" className="organograma-page-action is-history" aria-label="Ver histórico de versões" title="Ver histórico de versões" onClick={() => setModalHistoricoVersoes(true)}><i className="pi pi-history" /></button><button type="button" className="organograma-page-action is-edit" aria-label="Editar estrutura" title="Editar estrutura" onClick={() => setModo("editar")}><i className="pi pi-pencil" /></button><button type="button" className="organograma-page-action is-delete" aria-label="Excluir estrutura" title="Excluir estrutura" onClick={() => setModalExcluirEstrutura(true)}><i className="pi pi-trash" /></button></div> : undefined}
+        actions={modo === "consulta" ? <div className="organograma-page-header-actions"><button type="button" className="organograma-page-action is-history" aria-label="Ver histórico de versões" title="Ver histórico de versões" onClick={() => setModalHistoricoVersoes(true)}><i className="pi pi-history" /></button><button type="button" className="organograma-page-action is-edit" aria-label="Editar estrutura" title="Criar ou continuar rascunho" onClick={iniciarEdicao}><i className="pi pi-pencil" /></button>{versaoSelecionada?.situacao === "RASCUNHO" && <button type="button" className="organograma-page-action is-delete" aria-label="Cancelar rascunho" title="Cancelar rascunho" onClick={() => setModalExcluirEstrutura(true)}><i className="pi pi-trash" /></button>}</div> : undefined}
       >
         <section className="organograma-version-card" aria-label="Versão do organograma">
           <header><div><strong>{orgao}</strong><span className="organograma-version-mode"><i className={modo === "editar" ? "pi pi-pencil" : "pi pi-eye"} /> {modo === "editar" ? "Modo edição" : "Modo visualização"}</span><label className="organograma-version-select"><i className="pi pi-sitemap" /><select aria-label="Selecionar versão do organograma" value={versaoId} onChange={(event) => { setValue("versaoId", event.target.value); setSelecionada(null); }}>{versoesHistorico.map((versao) => <option key={versao.id} value={versao.id}>{rotuloVersao(versao).replace(" (Atual / Vigente)", " (Vigente)")}</option>)}</select></label></div></header>
@@ -323,7 +341,7 @@ function OrganogramaDetalheContent() {
             </div>
             {raizes.length > 0 && <div className="organograma-builder-children organograma-builder-root-children">{raizes.map((unidade) => <NoMontagem key={unidade.id} unidade={unidade} />)}</div>}
           </div> : <section className="organograma-units-list">
-            <div className="organograma-units-table-wrap"><table className="organograma-units-table"><thead><tr><th>Código</th><th>Unidade</th><th>Órgão/Entidade</th><th>Tipo</th><th>Nível Organizacional</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{filtradas.map((unidade) => <tr key={unidade.id}><td>{indices.get(unidade.id)}</td><td><strong>{unidade.nome}</strong><small>{unidade.sigla ? `${unidade.sigla} · ` : ""}{unidade.codigo}</small></td><td>{orgaoSelecionado}</td><td><span className="organograma-list-type">{unidade.tipo}</span></td><td>{unidade.nivelOrganizacional}</td><td><BadgeSeplag label={unidade.situacao === "ATIVA" ? "Ativa" : unidade.situacao === "INATIVA" ? "Inativa" : "Extinta"} color={unidade.situacao === "ATIVA" ? "#00843d" : "#64748b"} bg={unidade.situacao === "ATIVA" ? "#e2f3e8" : "#f1f5f9"} border="transparent" size="sm" /></td><td><div className="organograma-unit-actions"><button type="button" className="organograma-units-view" title="Visualizar unidade" onClick={() => abrirVisualizacao(unidade)}><i className="pi pi-eye" /></button><button type="button" className="organograma-units-more" title="Ações da unidade" aria-label="Ações da unidade" aria-expanded={acoesUnidadeAbertaId === unidade.id} onClick={() => setAcoesUnidadeAbertaId((atual) => atual === unidade.id ? null : unidade.id)}><i className="pi pi-chevron-down" /></button>{acoesUnidadeAbertaId === unidade.id && <div className="organograma-unit-actions-menu" role="menu"><button type="button" role="menuitem" onClick={() => { abrirVisualizacao(unidade); setAcoesUnidadeAbertaId(null); }}><i className="pi pi-eye" /> Visualizar unidade</button>{modo === "editar" && <><button type="button" role="menuitem" onClick={() => { abrirAdicionar("ABAIXO", unidade); setAcoesUnidadeAbertaId(null); }}><i className="pi pi-arrow-down" /> Adicionar unidade abaixo</button><button type="button" role="menuitem" onClick={() => { abrirAdicionar("IRMA", unidade); setAcoesUnidadeAbertaId(null); }}><i className="pi pi-arrows-h" /> Adicionar no mesmo nível</button></>}</div>}</div></td></tr>)}{filtradas.length === 0 && <tr><td colSpan={7} className="organograma-units-empty">Nenhuma unidade encontrada.</td></tr>}</tbody></table></div>
+            <div className="organograma-units-table-wrap"><table className="organograma-units-table"><thead><tr><th>Código</th><th>Unidade</th><th>Órgão/Entidade</th><th>Tipo</th><th>Nível Organizacional</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{filtradas.map((unidade) => <tr key={unidade.id}><td>{indices.get(unidade.id)}</td><td><strong>{unidade.nome}</strong><small>{unidade.sigla ? `${unidade.sigla} · ` : ""}{unidade.codigo}</small></td><td>{orgaoSelecionado}</td><td><span className="organograma-list-type">{unidade.tipo}</span></td><td>{unidade.nivelOrganizacional}</td><td><BadgeSeplag label={unidade.situacao === "ATIVA" ? "Ativa" : unidade.situacao === "AGENDADA" ? "Agendada" : unidade.situacao === "EM_EXTINCAO" ? "Em extinção" : unidade.situacao === "INATIVA" ? "Inativa" : "Extinta"} color={unidade.situacao === "ATIVA" ? "#00843d" : unidade.situacao === "EM_EXTINCAO" ? "#a75c00" : "#64748b"} bg={unidade.situacao === "ATIVA" ? "#e2f3e8" : unidade.situacao === "EM_EXTINCAO" ? "#fff1dc" : "#f1f5f9"} border="transparent" size="sm" /></td><td><div className="organograma-unit-actions"><button type="button" className="organograma-units-view" title="Visualizar unidade" onClick={() => abrirVisualizacao(unidade)}><i className="pi pi-eye" /></button><button type="button" className="organograma-units-more" title="Ações da unidade" aria-label="Ações da unidade" aria-expanded={acoesUnidadeAbertaId === unidade.id} onClick={() => setAcoesUnidadeAbertaId((atual) => atual === unidade.id ? null : unidade.id)}><i className="pi pi-chevron-down" /></button>{acoesUnidadeAbertaId === unidade.id && <div className="organograma-unit-actions-menu" role="menu"><button type="button" role="menuitem" onClick={() => { abrirVisualizacao(unidade); setAcoesUnidadeAbertaId(null); }}><i className="pi pi-eye" /> Visualizar unidade</button>{modo === "editar" && <><button type="button" role="menuitem" onClick={() => { abrirAdicionar("ABAIXO", unidade); setAcoesUnidadeAbertaId(null); }}><i className="pi pi-arrow-down" /> Adicionar unidade abaixo</button><button type="button" role="menuitem" onClick={() => { abrirAdicionar("IRMA", unidade); setAcoesUnidadeAbertaId(null); }}><i className="pi pi-arrows-h" /> Adicionar no mesmo nível</button></>}</div>}</div></td></tr>)}{filtradas.length === 0 && <tr><td colSpan={7} className="organograma-units-empty">Nenhuma unidade encontrada.</td></tr>}</tbody></table></div>
             <p className="organograma-units-summary">Exibindo {filtradas.length} {filtradas.length === 1 ? "unidade" : "unidades"} da estrutura.</p>
           </section>}
         </PanelSeplag>
@@ -374,7 +392,7 @@ function OrganogramaDetalheContent() {
             <button type="button" role="tab" aria-selected={abaModalVisualizacao === "DADOS"} className={abaModalVisualizacao === "DADOS" ? "is-active" : ""} onClick={() => setAbaModalVisualizacao("DADOS")}><i className="pi pi-id-card" /> Dados da Unidade</button>
             <button type="button" role="tab" aria-selected={abaModalVisualizacao === "HISTORICO"} className={abaModalVisualizacao === "HISTORICO" ? "is-active" : ""} onClick={() => setAbaModalVisualizacao("HISTORICO")}><i className="pi pi-history" /> Histórico de Alterações <span>2</span></button>
           </div>
-          {abaModalVisualizacao === "DADOS" && modo === "editar" && <section className="col-12 grid organograma-edit-data">{watchEdicao("nivel") === NIVEL_ADMINISTRACAO_DESCENTRALIZADA ? <DropdownFieldSeplag name="nome" control={controlEdicao} label="Entidade" cols="12 8" required filter showClear options={entidadesAdministracaoIndiretaAtivas} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /> : <TextFieldSeplag name="nome" control={controlEdicao} label="Nome da unidade" cols="12 8" required getFormErrorMessage={semErro} />}<div className="col-12 md:col-4 organograma-edit-code"><span>Código</span><strong>{selecionada.codigo}</strong></div><DropdownFieldSeplag name="tipo" control={controlEdicao} label="Tipo de unidade" cols="12 6" required options={opcoes(tiposUnidadesAtivos())} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="nivel" control={controlEdicao} label="Nível organizacional" cols="12 6" required options={opcoesNivelOrganizacional} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DateFieldSeplag name="dataCriacao" control={controlEdicao} label="Data de criação" cols="12 6" required getFormErrorMessage={semErro} /><DateFieldSeplag name="dataExtincao" control={controlEdicao} label="Data de extinção" cols="12 6" getFormErrorMessage={semErro} /><div className="col-12 organograma-edit-location"><span>Localização</span><strong>{selecionada.localizacao}</strong><small>Para alterar a localização, use o cadastro de Unidades.</small></div></section>}
+          {abaModalVisualizacao === "DADOS" && modo === "editar" && <section className="col-12 grid organograma-edit-data">{watchEdicao("nivel") === NIVEL_ADMINISTRACAO_DESCENTRALIZADA ? <DropdownFieldSeplag name="nome" control={controlEdicao} label="Entidade" cols="12 8" required filter showClear options={entidadesAdministracaoIndiretaAtivas} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /> : <TextFieldSeplag name="nome" control={controlEdicao} label="Nome da unidade" cols="12 8" required getFormErrorMessage={semErro} />}<div className="col-12 md:col-4 organograma-edit-code"><span>Código</span><strong>{selecionada.codigo}</strong></div><DropdownFieldSeplag name="tipo" control={controlEdicao} label="Tipo de unidade" cols="12 6" required options={opcoes(tiposUnidadesAtivos())} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="nivel" control={controlEdicao} label="Nível organizacional" cols="12 6" required options={opcoesNivelOrganizacional} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DropdownFieldSeplag name="unidadeSuperiorId" control={controlEdicao} label="Unidade superior" cols="12 6" showClear options={unidades.filter((item) => item.id !== selecionada.id && item.situacao === "ATIVA").map((item) => ({ label: `${item.codigo} — ${item.nome}`, value: String(item.id) }))} optionLabel="label" optionValue="value" getFormErrorMessage={semErro} /><DateFieldSeplag name="dataCriacao" control={controlEdicao} label="Data de criação" cols="12 3" required getFormErrorMessage={semErro} /><DateFieldSeplag name="dataExtincao" control={controlEdicao} label="Data de extinção" cols="12 3" getFormErrorMessage={semErro} /><div className="col-12 organograma-edit-location"><span>Localização</span><strong>{selecionada.localizacao}</strong><small>Para alterar a localização, use o cadastro de Unidades.</small></div></section>}
           {abaModalVisualizacao === "DADOS" && modo !== "editar" ? <section className="col-12 organograma-read-data"><div><span>Código</span><strong>{selecionada.codigo}</strong></div><div><span>Tipo de unidade</span><strong>{selecionada.tipo}</strong></div><div><span>Nível organizacional</span><strong>{selecionada.nivelOrganizacional}</strong></div><div className="is-wide"><span>Nome da unidade</span><strong>{selecionada.nome}</strong></div><div><span>Data de criação</span><strong>{selecionada.dataInicio}</strong></div><div><span>Data de extinção</span><strong>{selecionada.dataFim ?? "Não informada"}</strong></div><div><span>Situação</span><strong>{selecionada.situacao === "EM_EXTINCAO" ? "Em extinção" : selecionada.situacao === "ATIVA" ? "Ativa" : selecionada.situacao}</strong></div><div><span>Localização</span><strong>{selecionada.localizacao}</strong></div></section> : abaModalVisualizacao === "HISTORICO" ? <section className="col-12 organograma-add-history"><header><div><strong>Histórico de Alterações</strong><span>Registro cronológico de alterações e documentos vinculados a esta unidade.</span></div><small>2 registros encontrados</small></header><article className="organograma-history-record"><div className="organograma-history-record-title"><span>v2.0</span><strong>Alteração da classificação organizacional</strong><small>25/09/2026 às 10:14 por Administrador SIGEP</small></div><table><thead><tr><th>Campo alterado</th><th>Valor anterior</th><th>Valor novo</th></tr></thead><tbody><tr><td>Nível organizacional</td><td>Nível de Direção Superior</td><td>{selecionada.nivelOrganizacional}</td></tr></tbody></table></article><article className="organograma-history-record"><div className="organograma-history-record-title"><span className="is-created">v1.0</span><strong>Criação da Unidade no Organograma</strong><small>{selecionada.dataInicio} por Sistema</small></div></article></section> : null}
         </div>}
       </ModalSeplag>

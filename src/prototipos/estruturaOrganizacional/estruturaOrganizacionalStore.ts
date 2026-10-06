@@ -1,6 +1,6 @@
 import { unidadesPolitecSeed } from "./politecEstruturaSeed";
 
-export type SituacaoUnidadeEstrutural = "ATIVA" | "EM_EXTINCAO" | "INATIVA" | "EXTINTA";
+export type SituacaoUnidadeEstrutural = "ATIVA" | "AGENDADA" | "EM_EXTINCAO" | "INATIVA" | "EXTINTA";
 
 export interface UnidadeEstrutural {
   id: number;
@@ -57,6 +57,9 @@ export interface PosicaoEstrutural {
   ordem: number;
   inicio: string;
   fim?: string;
+  /** Instantâneo da unidade na versão. Impede que a edição de um rascunho altere a versão publicada. */
+  dados?: Partial<UnidadeEstrutural>;
+  origem?: "COPIADA" | "NOVA";
 }
 
 export interface DocumentoLegalEstrutural {
@@ -72,6 +75,10 @@ export interface EventoAuditoriaEstrutural {
   acao: "CADASTRO" | "EDICAO" | "ORDENACAO" | "ESTRUTURA" | "EXTINCAO" | "EXCLUSAO";
   unidadeId?: number;
   descricao: string;
+  campo?: string;
+  anterior?: string;
+  atual?: string;
+  automatico?: boolean;
 }
 
 export interface EstruturaOrganizacionalState {
@@ -81,6 +88,7 @@ export interface EstruturaOrganizacionalState {
   posicoes: PosicaoEstrutural[];
   documentosLegais: DocumentoLegalEstrutural[];
   auditoria: EventoAuditoriaEstrutural[];
+  proximoCodigo?: number;
 }
 
 export interface UnidadeNoOrganograma extends UnidadeEstrutural {
@@ -151,7 +159,7 @@ const normalizarUnidade = (unidade: Partial<UnidadeEstrutural>, indice: number):
   tipo: unidade.tipo ?? "Unidade",
   nivelOrganizacional: unidade.nivelOrganizacional ?? "Nível de Execução Programática",
   localizacao: unidade.localizacao ?? "Cuiabá/MT",
-  situacao: unidade.situacao === "EXTINTA" ? "EXTINTA" : unidade.situacao === "EM_EXTINCAO" ? "EM_EXTINCAO" : unidade.situacao === "INATIVA" ? "INATIVA" : "ATIVA",
+  situacao: unidade.situacao === "EXTINTA" ? "EXTINTA" : unidade.situacao === "EM_EXTINCAO" ? "EM_EXTINCAO" : unidade.situacao === "AGENDADA" ? "AGENDADA" : unidade.situacao === "INATIVA" ? "INATIVA" : "ATIVA",
   dataInicio: unidade.dataInicio ?? "01/01/2026",
   documentoCriacaoId: unidade.documentoCriacaoId ?? "decreto-2185-2026",
   documentosLegaisCriacaoIds: unidade.documentosLegaisCriacaoIds ?? (unidade.documentoCriacaoId ? [unidade.documentoCriacaoId] : ["decreto-2185-2026"]),
@@ -233,7 +241,8 @@ export const cadastrarOrganograma = (orgao: string, codigoOrgao: string, inicio:
 export const excluirVersaoOrganograma = (versaoId: string) => {
   const estruturaAtual = lerEstruturaOrganizacional();
   const versao = estruturaAtual.versoes.find((item) => item.id === versaoId);
-  if (!versao) return estruturaAtual;
+  // Estruturas publicadas compõem o histórico e nunca são apagadas.
+  if (!versao || versao.situacao !== "RASCUNHO") return estruturaAtual;
 
   const estrutura = {
     ...estruturaAtual,
@@ -257,7 +266,7 @@ const inserirPosicao = (estrutura: EstruturaOrganizacionalState, versaoId: strin
   const irmas = estrutura.posicoes.filter((posicao) => posicao.versaoId === versaoId && posicao.superiorId === superiorId);
   const ordemInsercao = Math.max(1, Math.min(ordem, irmas.length + 1));
   const posicoes = estrutura.posicoes.map((posicao) => posicao.versaoId === versaoId && posicao.superiorId === superiorId && posicao.ordem >= ordemInsercao ? { ...posicao, ordem: posicao.ordem + 1 } : posicao);
-  return [...posicoes, { id: `posicao-${versaoId}-${unidadeId}`, versaoId, unidadeId, superiorId, ordem: ordemInsercao, inicio: estrutura.versoes.find((versao) => versao.id === versaoId)?.inicio ?? "" }];
+  return [...posicoes, { id: `posicao-${versaoId}-${unidadeId}`, versaoId, unidadeId, superiorId, ordem: ordemInsercao, inicio: estrutura.versoes.find((versao) => versao.id === versaoId)?.inicio ?? "", origem: "NOVA" }];
 };
 
 export const vincularUnidadeAoOrganograma = (versaoId: string, unidadeId: number, superiorId: number | null, ordem: number) => {
@@ -272,10 +281,13 @@ export const vincularUnidadeAoOrganograma = (versaoId: string, unidadeId: number
 
 export const cadastrarUnidadeNoOrganograma = (versaoId: string, dados: Omit<UnidadeEstrutural, "id" | "ordem" | "unidadeSuperior">, superiorId: number | null, ordem: number) => {
   const estruturaAtual = lerEstruturaOrganizacional();
+  const versao = estruturaAtual.versoes.find((item) => item.id === versaoId);
+  if (!versao || versao.situacao !== "RASCUNHO") return estruturaAtual;
   const id = Math.max(0, ...estruturaAtual.unidades.map((unidade) => unidade.id)) + 1;
-  const unidade: UnidadeEstrutural = { ...dados, id, ordem, codigo: dados.codigo || `U${String(id).padStart(4, "0")}` };
+  const sequencial = estruturaAtual.proximoCodigo ?? id;
+  const unidade: UnidadeEstrutural = { ...dados, id, ordem, codigo: dados.codigo || `U${String(sequencial).padStart(4, "0")}` };
   const estruturaParcial = { ...estruturaAtual, unidades: [...estruturaAtual.unidades, unidade] };
-  const estrutura = { ...estruturaParcial, posicoes: inserirPosicao(estruturaParcial, versaoId, id, superiorId, ordem), auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "CADASTRO" as const, unidadeId: id, descricao: `Unidade ${unidade.nome} cadastrada no organograma` }] };
+  const estrutura = { ...estruturaParcial, proximoCodigo: sequencial + 1, posicoes: inserirPosicao(estruturaParcial, versaoId, id, superiorId, ordem), auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "CADASTRO" as const, unidadeId: id, descricao: `Unidade ${unidade.nome} cadastrada no rascunho do organograma` }] };
   gravarEstruturaOrganizacional(estrutura);
   return estrutura;
 };
@@ -290,10 +302,78 @@ export const publicarOrganograma = (versaoId: string) => {
   return estrutura;
 };
 
+/** Cria uma cópia editável da versão vigente, mantendo a publicada intacta. */
+export const criarRascunhoDaVersao = (versaoId: string) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  const base = estruturaAtual.versoes.find((versao) => versao.id === versaoId);
+  if (!base) return { estrutura: estruturaAtual, versao: null };
+  const existente = estruturaAtual.versoes.find((versao) => versao.orgao === base.orgao && versao.situacao === "RASCUNHO");
+  if (existente) return { estrutura: estruturaAtual, versao: existente };
+  const identificador = Date.now();
+  const rascunho: VersaoOrganograma = { ...base, id: `rascunho-${base.orgao.toLowerCase()}-${identificador}`, nome: `${base.nome} — em elaboração`, situacao: "RASCUNHO", fim: undefined };
+  const posicoes = estruturaAtual.posicoes
+    .filter((posicao) => posicao.versaoId === base.id)
+    .map((posicao) => {
+      const unidade = estruturaAtual.unidades.find((item) => item.id === posicao.unidadeId);
+      return { ...posicao, id: `posicao-${rascunho.id}-${posicao.unidadeId}`, versaoId: rascunho.id, inicio: rascunho.inicio, fim: undefined, origem: "COPIADA" as const, dados: unidade ? { ...unidade } : undefined };
+    });
+  const estrutura = { ...estruturaAtual, versoes: [...estruturaAtual.versoes, rascunho], posicoes: [...estruturaAtual.posicoes, ...posicoes], auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${identificador}`, data: new Date().toISOString(), acao: "ESTRUTURA" as const, descricao: `Rascunho criado a partir da versão ${base.nome}` }] };
+  gravarEstruturaOrganizacional(estrutura);
+  return { estrutura, versao: rascunho };
+};
+
+const descendentesDaUnidade = (estrutura: EstruturaOrganizacionalState, versaoId: string, unidadeId: number) => {
+  const resultado = new Set<number>([unidadeId]);
+  let alterou = true;
+  while (alterou) {
+    alterou = false;
+    estrutura.posicoes.filter((item) => item.versaoId === versaoId && item.superiorId !== null && resultado.has(item.superiorId)).forEach((item) => {
+      if (!resultado.has(item.unidadeId)) { resultado.add(item.unidadeId); alterou = true; }
+    });
+  }
+  return resultado;
+};
+
+export const atualizarUnidadeNoRascunho = (versaoId: string, unidadeId: number, dados: Partial<UnidadeEstrutural>, superiorId?: number | null) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  const versao = estruturaAtual.versoes.find((item) => item.id === versaoId);
+  const posicao = estruturaAtual.posicoes.find((item) => item.versaoId === versaoId && item.unidadeId === unidadeId);
+  if (!versao || versao.situacao !== "RASCUNHO" || !posicao) return { estrutura: estruturaAtual, erro: "A versão publicada é somente leitura." };
+  if (superiorId !== undefined && superiorId !== null && descendentesDaUnidade(estruturaAtual, versaoId, unidadeId).has(superiorId)) return { estrutura: estruturaAtual, erro: "A unidade não pode ser vinculada a ela própria ou a uma de suas subordinadas." };
+  const unidadeAtual = { ...estruturaAtual.unidades.find((item) => item.id === unidadeId), ...posicao.dados } as UnidadeEstrutural;
+  const situacao = dados.dataFim ? "EM_EXTINCAO" as const : (dados.situacao ?? unidadeAtual.situacao);
+  const novosDados = { ...posicao.dados, ...dados, situacao };
+  const posicoes = estruturaAtual.posicoes.map((item) => item.id === posicao.id ? { ...item, dados: novosDados, ...(superiorId !== undefined ? { superiorId } : {}) } : item);
+  const campos = Object.keys(dados).filter((campo) => String((unidadeAtual as unknown as Record<string, unknown>)[campo]) !== String((dados as unknown as Record<string, unknown>)[campo]));
+  const estrutura = { ...estruturaAtual, posicoes, auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: dados.dataFim ? "EXTINCAO" as const : "EDICAO" as const, unidadeId, descricao: `Alteração da unidade ${unidadeAtual.nome}`, campo: campos.join(", ") || "posição hierárquica", anterior: unidadeAtual.nome, atual: novosDados.nome ?? unidadeAtual.nome, automatico: Boolean(dados.dataFim) }] };
+  gravarEstruturaOrganizacional(estrutura);
+  return { estrutura, erro: null };
+};
+
+export const excluirUnidadeDoRascunho = (versaoId: string, unidadeId: number) => {
+  const estruturaAtual = lerEstruturaOrganizacional();
+  const versao = estruturaAtual.versoes.find((item) => item.id === versaoId);
+  const posicao = estruturaAtual.posicoes.find((item) => item.versaoId === versaoId && item.unidadeId === unidadeId);
+  const possuiFilhos = estruturaAtual.posicoes.some((item) => item.versaoId === versaoId && item.superiorId === unidadeId);
+  if (!versao || versao.situacao !== "RASCUNHO" || !posicao || posicao.origem !== "NOVA" || possuiFilhos) return { estrutura: estruturaAtual, removida: false };
+  const estrutura = { ...estruturaAtual, posicoes: estruturaAtual.posicoes.filter((item) => item.id !== posicao.id), auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "EXCLUSAO" as const, unidadeId, descricao: "Exclusão física de unidade criada no rascunho" }] };
+  gravarEstruturaOrganizacional(estrutura);
+  return { estrutura, removida: true };
+};
+
 export const publicarNovaVersaoOrganograma = (versaoId: string, documentoLegal: string, inicio: string) => {
   const estruturaAtual = lerEstruturaOrganizacional();
   const versaoBase = estruturaAtual.versoes.find((versao) => versao.id === versaoId);
   if (!versaoBase || !documentoLegal.trim() || !inicio) return { estrutura: estruturaAtual, versao: null };
+  if (versaoBase.situacao === "RASCUNHO") {
+    const documentoLegalId = `ato-organograma-${Date.now()}`;
+    const versoes = estruturaAtual.versoes.map((versao) => versao.orgao !== versaoBase.orgao ? versao : versao.id === versaoBase.id ? { ...versao, documentoLegalId, documentoLegal: documentoLegal.trim(), inicio, situacao: "VIGENTE" as const } : versao.situacao === "VIGENTE" ? { ...versao, situacao: "ENCERRADA" as const, fim: inicio } : versao);
+    const posicoes = estruturaAtual.posicoes.map((posicao) => posicao.versaoId === versaoBase.id ? { ...posicao, inicio } : posicao);
+    const versao = versoes.find((item) => item.id === versaoBase.id) ?? null;
+    const estrutura = { ...estruturaAtual, versoes, posicoes, documentosLegais: [...estruturaAtual.documentosLegais, { id: documentoLegalId, titulo: documentoLegal.trim(), categoria: "Ato legal", ativo: true }], auditoria: [...estruturaAtual.auditoria, { id: `auditoria-${Date.now()}`, data: new Date().toISOString(), acao: "ESTRUTURA" as const, descricao: `Publicação do rascunho ${versaoBase.nome}` }] };
+    gravarEstruturaOrganizacional(estrutura);
+    return { estrutura, versao };
+  }
   const identificador = Date.now();
   const ano = inicio.split("/").at(-1) ?? new Date().getFullYear().toString();
   const documentoLegalId = `ato-organograma-${identificador}`;
@@ -324,7 +404,7 @@ export const obterUnidadesDaVersao = (estrutura: EstruturaOrganizacionalState, v
     .filter((posicao) => posicao.versaoId === versaoId)
     .map((posicao) => {
       const unidade = estrutura.unidades.find((item) => item.id === posicao.unidadeId);
-      return unidade ? { ...unidade, superiorId: posicao.superiorId, ordem: posicao.ordem, versaoId } : null;
+      return unidade ? { ...unidade, ...posicao.dados, superiorId: posicao.superiorId, ordem: posicao.ordem, versaoId } : null;
     })
     .filter((unidade): unidade is UnidadeNoOrganograma => unidade !== null)
     .sort((a, b) => a.ordem - b.ordem);
