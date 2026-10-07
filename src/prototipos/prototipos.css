@@ -461,6 +461,7 @@
 .prototype-recadastramento-document-group p { margin: 5px 0 0; color: #64788b; font-size: .82rem; }
 .prototype-recadastramento-group-badge { flex: 0 0 auto; padding: 5px 9px; border-radius: 13px; background: #e9f2ff; color: #0866c5; font-size: .73rem; font-weight: 700; }
 .prototype-recadastramento-document-group.is-secondary { opacity: .92; }
+.prototype-recadastramento-document-group.is-secondary > header::after { content: "Opcional · não bloqueia a conclusão"; flex: 0 0 auto; padding: 5px 9px; border: 1px solid #c8d4df; border-radius: 13px; background: #f2f5f8; color: #587086; font-size: .73rem; font-weight: 700; }
 .prototype-recadastramento-document-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; margin-top: 18px; }
 .prototype-recadastramento-document-grid > .col-12 { width: auto; padding: 0; }
 .prototype-recadastramento-document-card { position: relative; height: 100%; overflow: hidden; border: 1px solid #d3dfec; border-radius: 9px; box-shadow: 0 3px 9px rgba(21, 54, 91, .08); transition: transform 160ms ease, box-shadow 160ms ease; }
