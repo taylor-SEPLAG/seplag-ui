@@ -332,7 +332,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
                 <DropdownFieldSeplag name="estabelecimento" label={tipoInicial === "ente" ? autoLabel("Tipo de Estabelecimento") : "Tipo de Estabelecimento"} required disabled={tipoInicial === "ente" || disabled} options={opts(["Matriz", "Filial"])} optionLabel="label" optionValue="value" {...common} />
               </div>
             </PanelSeplag>
-            <PanelSeplag title="Informações para o eSocial" description="Dados utilizados nas obrigações do eSocial." className="orgao-form-section orgao-esocial-original">
+            {false && <PanelSeplag title="Informações para o eSocial" description="Dados utilizados nas obrigações do eSocial." className="orgao-form-section orgao-esocial-original">
               <div className="orgao-fields-grid cols-3">
                 <DropdownFieldSeplag name="situacao" label="Situação cadastral" disabled={disabled} options={opts(["Ativa", "Baixada"])} optionLabel="label" optionValue="value" {...common} />
                 <DropdownFieldSeplag name="classificacaoTributaria" label={autoLabel("Classificação Tributária")} disabled options={opts(tipoInicial === "ente" ? ["85 - Ente Federativo"] : Object.values(classificacaoPorTipo))} optionLabel="label" optionValue="value" {...common} />
@@ -345,7 +345,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
                 <DropdownFieldSeplag name="desoneracao" label="Desoneração da Folha" disabled={disabled} options={opts(["Não aplicável", "Sim", "Não"])} optionLabel="label" optionValue="value" {...common} />
                 {tipoInicial !== "ente" && <CNPJFieldSeplag name="cnpjEfr" label={autoLabel("CNPJ do EFR")} validarCNPJ={false} disabled {...common} />}
               </div>
-            </PanelSeplag>
+            </PanelSeplag>}
             <div className="orgao-step-actions">
               <BotaoSeplag type="button" label="Cancelar" outlined onClick={onBack} />
               <BotaoSeplag type="button" label="Avançar" icon="pi pi-arrow-right" iconPos="right" onClick={() => setAba("localizacao")} />

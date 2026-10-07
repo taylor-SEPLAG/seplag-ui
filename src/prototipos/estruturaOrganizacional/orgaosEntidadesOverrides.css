@@ -84,7 +84,7 @@
 }
 
 .orgao-cadastro-page .orgao-esocial-original {
-  display: none;
+  display: none !important;
 }
 
 .orgao-cadastro-form > .orgao-stepper {

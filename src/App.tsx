@@ -66,6 +66,7 @@ import {
   PrototiposControleVagasProjecoesPage,
   PrototiposControleCertameGeralPage,
   PrototiposVinculosFuncionaisGeralPage,
+  PrototiposVacanciaGeralPage,
   PrototiposControlePssPainelPage,
   PrototiposControlePssProcessosPage,
   PrototiposControlePssVagasPage,
@@ -141,6 +142,7 @@ import {
   PrototiposMatrizValidacaoTestePage,
   PrototiposNovoIngressoPage,
   PrototiposPage,
+  PrototiposRecadastramentoPage,
   PrototiposPessoaFisicaFormPage,
   PrototiposPessoaVinculosPage,
   PrototiposPerfilEspecialidadePage,
@@ -1469,6 +1471,7 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/calendario/*" element={<CalendarioPage />} />
       <Route path="/prototipos" element={<PrototiposPage />} />
+      <Route path="/prototipos/recadastramento" element={<PrototiposRecadastramentoPage />} />
       <Route path="/prototipos/sicad" element={<PrototiposSicadPage />} />
       <Route
         path="/prototipos/sicad/administrador/usuarios"
@@ -1794,6 +1797,8 @@ function App() {
       <Route path="/prototipos/sigep/movimentacao/cessoes/nova/externa" element={<PrototiposNovaCessaoExternaPage />} />
       <Route path="/prototipos/sigep/controle-pss" element={<PrototiposControleCertameGeralPage />} />
       <Route path="/prototipos/sigep/vinculos-funcionais" element={<PrototiposVinculosFuncionaisGeralPage />} />
+      <Route path="/prototipos/sigep/vacancia" element={<PrototiposVacanciaGeralPage />} />
+      <Route path="/prototipos/sigep/vacancia/:modalidade" element={<PrototiposVacanciaGeralPage />} />
       <Route
         path="/prototipos/sigep/controle-pss/painel"
         element={<PrototiposControlePssPainelPage />}
