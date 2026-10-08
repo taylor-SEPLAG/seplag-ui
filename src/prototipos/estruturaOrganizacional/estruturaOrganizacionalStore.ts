@@ -1,6 +1,6 @@
 import { unidadesPolitecSeed } from "./politecEstruturaSeed";
 
-export type SituacaoUnidadeEstrutural = "ATIVA" | "AGENDADA" | "EM_EXTINCAO" | "INATIVA" | "EXTINTA";
+export type SituacaoUnidadeEstrutural = "ATIVA" | "AGENDADA" | "A_DESATIVAR" | "EM_EXTINCAO" | "INATIVA" | "EXTINTA";
 
 export interface UnidadeEstrutural {
   id: number;

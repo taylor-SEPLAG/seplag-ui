@@ -87,6 +87,11 @@
   display: none !important;
 }
 
+/* A classificação define o enquadramento institucional e deve abrir a aba. */
+.orgao-cadastro-page .orgao-tab-content > div:has(.orgao-classificacao-primeira) {
+  order: -1;
+}
+
 .orgao-cadastro-form > .orgao-stepper {
   margin: 0;
   overflow: hidden;

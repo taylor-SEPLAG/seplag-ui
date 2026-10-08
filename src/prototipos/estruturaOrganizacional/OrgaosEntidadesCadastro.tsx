@@ -129,6 +129,9 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
       personalidade: "Não",
       tipoOrganizacao: registro?.tipoOrganizacao ?? "Secretaria",
       estabelecimento: "Matriz",
+      codigoOrgao: "",
+      amparoLegal: "Decreto nº 2.185/2026",
+      optanteSimples: "Não",
       cnpj: registro?.cnpj ?? (tipoInicial === "ente" ? "03.507.415/0001-00" : "03.507.415/0011-16"),
       razao: registro?.nome ?? (tipoInicial === "ente" ? "Estado de Mato Grosso" : "Secretaria de Estado de Planejamento e Gestão"),
       fantasia: registro?.sigla ?? (tipoInicial === "ente" ? "GOV" : "SEPLAG"),
@@ -295,41 +298,43 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
         </section>
         {aba === "identificacao" && (
           <div className="orgao-tab-content">
-            <PanelSeplag title="Identificação cadastral" description="Dados oficiais de identificação do órgão ou entidade." className="orgao-form-section">
+            <PanelSeplag title="Identificação Cadastral" description="Dados oficiais de identificação do órgão ou entidade." className="orgao-form-section">
               {usaEdicaoPorBloco && <AcoesSecao secao="identificacao" />}
               <div className={`orgao-fields-grid cols-4${tipoInicial === "ente" ? " ente-identification-grid" : ""}`}>
-                <DateFieldSeplag name="dataAbertura" label="Data de Abertura" disabled={disabled || bloqueado("identificacao")} {...common} />
+                <TextFieldSeplag name="codigoOrgao" label={autoLabel("Código do Órgão")} disabled placeholder="Gerado ao salvar" {...common} />
                 <CNPJFieldSeplag name="cnpj" required validarCNPJ={false} disabled={disabled || bloqueado("identificacao")} {...common} />
                 <TextFieldSeplag name="razao" label="Nome/Razão Social" required disabled={disabled || bloqueado("identificacao")} {...common} />
-                <TextFieldSeplag name="fantasia" label="Nome Fantasia" disabled={disabled || bloqueado("identificacao")} {...common} />
+                <TextFieldSeplag name="fantasia" label="Nome Fantasia" required disabled={disabled || bloqueado("identificacao")} {...common} />
                 <TextFieldSeplag name="sigla" label="Sigla" required disabled={disabled || bloqueado("identificacao")} {...common} />
-                {tipoInicial !== "ente" && <DateFieldSeplag name="dataExtincao" label="Data de Extinção" disabled={disabled} {...common} />}
-                <DropdownFieldSeplag name="natureza" label="Natureza Jurídica" disabled={disabled || bloqueado("identificacao")} options={opts(["Órgão Público do Poder Executivo Estadual", "Autarquia", "Empresa Pública"])} optionLabel="label" optionValue="value" {...common} />
-                <TextFieldSeplag name="cnae" label="CNAE principal" disabled={disabled || bloqueado("identificacao")} {...common} />
+                <DropdownFieldSeplag name="amparoLegal" label="Amparo Legal" disabled={disabled || bloqueado("identificacao")} options={opts(["Decreto nº 2.185/2026"])} optionLabel="label" optionValue="value" {...common} />
+                <DateFieldSeplag name="dataAbertura" label="Data de Abertura" disabled={disabled || bloqueado("identificacao")} {...common} />
+                <DateFieldSeplag name="dataExtincao" label="Data de Extinção" disabled={disabled || bloqueado("identificacao")} {...common} />
                 <TextFieldSeplag name="inscricaoEstadual" label="Inscrição Estadual" disabled={disabled || bloqueado("identificacao")} {...common} />
                 <TextFieldSeplag name="inscricaoMunicipal" label="Inscrição Municipal" disabled={disabled || bloqueado("identificacao")} {...common} />
-                {tipoInicial !== "ente" && <DropdownFieldSeplag name="aplic" label="Tipo do APLIC TCE/MT" disabled={disabled} options={opts(["Administração", "Gestão"])} optionLabel="label" optionValue="value" {...common} />}
+                <TextFieldSeplag name="optanteSimples" label={autoLabel("Optante pelo Simples Nacional")} disabled {...common} />
+                <DropdownFieldSeplag name="natureza" label="Natureza Jurídica" required disabled={disabled || bloqueado("identificacao")} options={opts(["Órgão Público do Poder Executivo Estadual", "Autarquia", "Empresa Pública"])} optionLabel="label" optionValue="value" {...common} />
+                <DropdownFieldSeplag name="cnae" label="Atividade Econômica (CNAE)" required disabled={disabled || bloqueado("identificacao")} options={opts(["8411-6/00 - Administração Pública"])} optionLabel="label" optionValue="value" {...common} />
               </div>
               {usaEdicaoPorBloco && <HistoricoSecao secao="identificacao" />}
             </PanelSeplag>
-            <PanelSeplag title="Classificação institucional" description="Defina o enquadramento institucional e os dados derivados do vínculo superior." className="orgao-form-section">
+            <PanelSeplag title="Classificação e Vinculação" description="Defina o enquadramento institucional e os dados derivados do vínculo superior." className="orgao-form-section orgao-classificacao-primeira">
               <div className="orgao-fields-grid cols-3">
                 {tipoInicial !== "ente" && (
                   <>
                     <DropdownFieldSeplag name="enteFederativo" label="Ente Federativo" required disabled={disabled} options={opts(["Estado de Mato Grosso - GOV"])} optionLabel="label" optionValue="value" {...common} />
-                    <DropdownFieldSeplag name="orgaoSuperior" label="Órgão superior" disabled={disabled} options={opts(["Governadoria do Estado", "Casa Civil", "Secretaria de Estado de Planejamento e Gestão - SEPLAG"])} optionLabel="label" optionValue="value" placeholder="Selecione, se houver" showClear {...common} />
                   </>
                 )}
                 {tipoInicial !== "ente" && <DropdownFieldSeplag name="tipoOrganizacao" label="Tipo de Organização" required disabled={disabled} options={opts(tiposOrganizacao)} optionLabel="label" optionValue="value" {...common} />}
-                <DropdownFieldSeplag name="esferaGoverno" label={autoLabel("Esfera de Governo")} disabled options={opts(["Estadual"])} optionLabel="label" optionValue="value" {...common} />
-                <DropdownFieldSeplag name="esferaPoder" label={autoLabel("Esfera de Poder")} disabled options={opts(["Executivo"])} optionLabel="label" optionValue="value" {...common} />
+                <DropdownFieldSeplag name="estabelecimento" label={tipoInicial === "ente" ? autoLabel("Tipo de Estabelecimento") : "Tipo de Estabelecimento"} required disabled={tipoInicial === "ente" || disabled} options={opts(["Matriz", "Filial"])} optionLabel="label" optionValue="value" {...common} />
                 {tipoInicial !== "ente" && (
                   <>
                     <DropdownFieldSeplag name="formaAdministracao" label="Forma de Administração" required disabled={disabled} options={opts(["Administração Direta", "Administração Indireta"])} optionLabel="label" optionValue="value" {...common} />
                     <TextFieldSeplag name="personalidade" label={autoLabel("Personalidade Jurídica Própria")} disabled {...common} />
                   </>
                 )}
-                <DropdownFieldSeplag name="estabelecimento" label={tipoInicial === "ente" ? autoLabel("Tipo de Estabelecimento") : "Tipo de Estabelecimento"} required disabled={tipoInicial === "ente" || disabled} options={opts(["Matriz", "Filial"])} optionLabel="label" optionValue="value" {...common} />
+                <DropdownFieldSeplag name="esferaGoverno" label={autoLabel("Esfera de Governo")} disabled options={opts(["Estadual"])} optionLabel="label" optionValue="value" {...common} />
+                <DropdownFieldSeplag name="esferaPoder" label={autoLabel("Esfera de Poder")} disabled options={opts(["Executivo"])} optionLabel="label" optionValue="value" {...common} />
+                {tipoInicial !== "ente" && <DropdownFieldSeplag name="orgaoSuperior" label="Órgão de Vinculação" disabled={disabled} options={opts(["Governadoria do Estado", "Casa Civil", "Secretaria de Estado de Planejamento e Gestão - SEPLAG"])} optionLabel="label" optionValue="value" placeholder="Selecione, se houver" showClear {...common} />}
               </div>
             </PanelSeplag>
             {false && <PanelSeplag title="Informações para o eSocial" description="Dados utilizados nas obrigações do eSocial." className="orgao-form-section orgao-esocial-original">
@@ -380,6 +385,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
               {usaEdicaoPorBloco && <HistoricoSecao secao="contato" />}
             </PanelSeplag>
             <div className="orgao-step-actions">
+              <BotaoSeplag type="button" label="Cancelar" outlined onClick={onBack} />
               <BotaoVoltarSeplag type="button" onClick={() => setAba("identificacao")} />
               <BotaoSeplag type="button" label="Avançar" icon="pi pi-arrow-right" iconPos="right" onClick={() => setAba("responsavel")} />
             </div>
@@ -407,6 +413,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
               {usaEdicaoPorBloco && <HistoricoSecao secao="banco" />}
             </PanelSeplag>
             <div className="orgao-step-actions">
+              <BotaoSeplag type="button" label="Cancelar" outlined onClick={onBack} />
               <BotaoVoltarSeplag type="button" onClick={() => setAba("localizacao")} />
               <BotaoSeplag type="button" label="Avançar" icon="pi pi-arrow-right" iconPos="right" onClick={() => setAba("integracoes")} />
             </div>
@@ -438,6 +445,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
               {!usaEdicaoPorBloco && <HistoricoSecao secao="integracoes" />}
             </PanelSeplag>
             <div className="orgao-step-actions">
+              <BotaoSeplag type="button" label="Cancelar" outlined onClick={onBack} />
               <BotaoVoltarSeplag type="button" onClick={() => setAba("responsavel")} />
               <BotaoSalvarSeplag type="button" label="Salvar cadastro" onClick={() => {}} />
             </div>
