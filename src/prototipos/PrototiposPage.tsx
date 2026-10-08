@@ -12,6 +12,7 @@ import { getOrgaoAtuacaoIngresso, getPerfilVariacaoIngresso, podeAnalisarIngress
 import { CadastroGeralContent } from "./cadastro/CadastroGeralContent";
 import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
 import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
+import { VacanciaGeralContent } from "./vacancia/VacanciaGeralContent";
 import { MenuCardsContent, type MenuCardItem } from "./MenuCardsContent";
 import { useTiposCotaAtivos } from "./controlePss/tiposCota/tiposCotaStore";
 import { VagasTemporariosContent } from "./controleVagasTemporarios/VagasTemporariosContent";
@@ -421,7 +422,24 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Tipos de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vacância", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+        ],
+      },
+      {
+        label: "Vacância",
+        icon: "pi pi-user-minus",
+        to: "/prototipos/sigep/vacancia",
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+        items: [
+          { label: "Exoneração", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/exoneracao", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Demissão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/demissao", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Ascensão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/ascensao", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Acesso", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/acesso", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Transferência", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/transferencia", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Readaptação", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/readaptacao", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Aposentadoria", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/aposentadoria", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Posse em outro cargo inacumulável", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/posse-outro-cargo-inacumulavel", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Falecimento", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/falecimento", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -690,7 +708,25 @@ const prototypeSystems = [
     icon: "pi pi-wallet",
     status: "Protótipo disponível",
   },
+  {
+    id: "recadastramento",
+    title: "Recadastramento",
+    description: "Sistema de Recadastramento",
+    path: "/prototipos/recadastramento",
+    icon: "pi pi-refresh",
+    status: "Protótipo disponível",
+  },
 ];
+
+const menuRecadastramento: IMenuSeplag[] = [
+  { label: "Tela Inicial", icon: "pi pi-home", to: "/prototipos/recadastramento", visibleOnMenu: true, visibleOnRouter: true },
+  { label: "Prefeitura de Cuiabá", icon: "pi pi-user-edit", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+  { label: "Relatórios", icon: "pi pi-file", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+  { label: "Validação Usuário", icon: "pi pi-users", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+  { label: "Parametrizações", icon: "pi pi-cog", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+];
+
+const etapasRecadastramento = ["Dados pessoais", "Documentos pessoais", "Endereço", "Vínculos", "Dependentes", "Escolaridade", "Contato", "Revisão", "Conclusão"];
 
 const sistemas: AppSystemItemSeplag[] = [
   { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: `#${SIGEP_PAINEL_INFORMATIVO_PATH}`, icon: "pi pi-users" },
@@ -976,6 +1012,210 @@ export function PrototiposPage() {
   );
 }
 
+export function PrototiposRecadastramentoPage() {
+  const [tela, setTela] = useState<"inicial" | "etapa">("inicial");
+  const [etapaAtual, setEtapaAtual] = useState(1);
+
+  if (tela === "etapa") {
+    return (
+      <PrototypeSystemPage nomeSistema="RECADASTRAMENTO" ambienteSistema="Protótipo" menuItems={menuRecadastramento}>
+        {etapaAtual === 1 ? <RecadastramentoDadosPessoais onVoltar={() => setTela("inicial")} onProximo={() => setEtapaAtual(2)} onSelecionarEtapa={setEtapaAtual} /> : etapaAtual === 2 ? <RecadastramentoDocumentos onVoltar={() => setEtapaAtual(1)} onSelecionarEtapa={setEtapaAtual} /> : <RecadastramentoEtapaPendente etapa={etapaAtual} onSelecionarEtapa={setEtapaAtual} />}
+      </PrototypeSystemPage>
+    );
+  }
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="RECADASTRAMENTO"
+      ambienteSistema="Protótipo"
+      menuItems={menuRecadastramento}
+    >
+      <main className="prototype-recadastramento-page">
+        <CardSeplag cols="12" cardHeaderClassNames="prototype-recadastramento-card">
+          <section className="prototype-recadastramento-hero" aria-labelledby="recadastramento-title">
+            <div className="prototype-recadastramento-brand" aria-label="Governo de Mato Grosso">
+              <div className="prototype-recadastramento-brand-symbol">
+                <img src={logoEstado} alt="" />
+              </div>
+              <div className="prototype-recadastramento-brand-name">
+                <span>Governo de</span>
+                <strong>Mato<br />Grosso</strong>
+              </div>
+              <span className="prototype-recadastramento-brand-divider" aria-hidden="true" />
+            </div>
+
+            <h1 id="recadastramento-title">Recadastramento 2026</h1>
+            <p className="prototype-recadastramento-description">
+              Os dados apresentados no Recadastramento 2026 são originados do SEAP ou do Recadastramento anterior.
+            </p>
+            <p className="prototype-recadastramento-period">22 de setembro de 2026 até 15 de dezembro de 2026</p>
+
+            <BotaoSeplag
+              type="button"
+              label="Continuar Recadastramento"
+              icon="pi pi-play"
+              className="prototype-recadastramento-action"
+              onClick={() => { setEtapaAtual(1); setTela("etapa"); }}
+            />
+          </section>
+        </CardSeplag>
+      </main>
+    </PrototypeSystemPage>
+  );
+}
+
+function RecadastramentoDadosPessoais({ onVoltar, onProximo, onSelecionarEtapa }: Readonly<{ onVoltar: () => void; onProximo: () => void; onSelecionarEtapa: (etapa: number) => void }>) {
+
+  return (
+    <main className="prototype-recadastramento-form-page">
+      <CardSeplag cols="12" cardHeaderClassNames="prototype-recadastramento-form-card">
+        <div className="prototype-recadastramento-form-header">
+          <div>
+            <span>Recadastramento 2026</span>
+            <h1>Dados pessoais</h1>
+          </div>
+          <button type="button" className="prototype-recadastramento-back" onClick={onVoltar}>
+            <i className="pi pi-arrow-left" aria-hidden="true" /> Voltar à tela inicial
+          </button>
+        </div>
+
+        <div className="prototype-recadastramento-legend" aria-label="Legenda das etapas">
+          <span><i className="pi pi-times-circle" /> Desabilitada</span>
+          <span><i className="pi pi-question-circle" /> Atual</span>
+          <span><i className="pi pi-exclamation-circle" /> Pendente</span>
+          <span><i className="pi pi-check-circle" /> Concluída</span>
+        </div>
+
+        <ol className="prototype-recadastramento-steps" aria-label="Etapas do recadastramento">
+          {etapasRecadastramento.map((etapa, index) => <li key={etapa} className={index === 0 ? "is-current" : index === 1 || index === 8 ? "is-pending" : "is-complete"}><button type="button" onClick={() => onSelecionarEtapa(index + 1)}><i className={index === 0 ? "pi pi-question-circle" : index === 1 || index === 8 ? "pi pi-exclamation-circle" : "pi pi-check-circle"} /> <span>Etapa {index + 1}</span><small>{etapa}</small></button></li>)}
+        </ol>
+
+        <section className="prototype-recadastramento-section">
+          <h2>Dados pessoais</h2>
+          <div className="prototype-recadastramento-notice"><strong>Orientações para esta etapa</strong><ol><li>Confira seus dados pessoais e atualize as informações necessárias.</li><li>Os campos marcados com asterisco são obrigatórios.</li><li>Ao concluir a conferência, salve ou avance para a próxima etapa.</li></ol></div>
+          <p className="prototype-recadastramento-required">* Campos obrigatórios</p>
+
+          <div className="prototype-recadastramento-photo"><div><i className="pi pi-user" aria-hidden="true" /></div><BotaoSeplag type="button" label="Anexar foto" icon="pi pi-upload" /></div>
+
+          <div className="prototype-recadastramento-fields">
+            <RecadastramentoInput label="Matrícula" value="804193" disabled />
+            <RecadastramentoInput label="CPF" value="418.726.935-08" disabled />
+            <RecadastramentoInput label="Nome" value="Mariana Lopes de Azevedo" className="span-2" />
+            <RecadastramentoChoice label="Seu nome está correto?" options={["Sim", "Não"]} />
+            <RecadastramentoChoice label="Possui nome social?" options={["Sim", "Não"]} selected={1} />
+            <RecadastramentoChoice label="Sexo" options={["Feminino", "Masculino"]} />
+            <RecadastramentoSelect label="Estado civil *" value="Casada" options={["Casada", "Solteira", "Divorciada"]} />
+            <RecadastramentoSelect label="Grupo sanguíneo" value="O+" options={["O+", "A+", "B+", "AB+"]} />
+            <RecadastramentoInput label="Data de nascimento *" value="14/08/1988" />
+            <RecadastramentoSelect label="País de nascimento *" value="Brasil" options={["Brasil"]} />
+            <RecadastramentoSelect label="UF *" value="MT" options={["MT", "MS", "GO"]} />
+            <RecadastramentoInput label="Cidade natal *" value="Rondonópolis" />
+            <RecadastramentoSelect label="Raça ou cor *" value="Parda" options={["Parda", "Branca", "Preta", "Amarela"]} />
+            <RecadastramentoSelect label="Escolaridade atual *" value="Ensino superior completo" options={["Ensino superior completo", "Especialização", "Mestrado"]} />
+            <RecadastramentoSelect label="Nacionalidade *" value="Brasileira" options={["Brasileira"]} />
+          </div>
+        </section>
+
+        <RecadastramentoBloco title="Deficiência"><RecadastramentoChoice label="Possui algum tipo de deficiência?" options={["Sim", "Não"]} selected={1} /></RecadastramentoBloco>
+        <RecadastramentoBloco title="Parentalidade"><div className="prototype-recadastramento-parent"><strong>Mãe</strong><div><RecadastramentoInput label="CPF" value="562.901.348-20" /><RecadastramentoInput label="Nome" value="Cláudia Lopes de Azevedo" /></div></div><div className="prototype-recadastramento-parent"><strong>Pai</strong><div><RecadastramentoInput label="CPF" value="" placeholder="Não informado" /><RecadastramentoInput label="Nome" value="" placeholder="Não informado" /></div></div></RecadastramentoBloco>
+
+        <div className="prototype-recadastramento-form-actions"><BotaoSeplag type="button" label="Salvar" icon="pi pi-save" /><div><BotaoSeplag type="button" label="Finalizar etapa" icon="pi pi-check" severity="success" /><BotaoSeplag type="button" label="Próximo" icon="pi pi-arrow-right" iconPos="right" onClick={onProximo} /></div></div>
+      </CardSeplag>
+    </main>
+  );
+}
+
+function RecadastramentoInput({ label, value, disabled, placeholder, className = "" }: Readonly<{ label: string; value: string; disabled?: boolean; placeholder?: string; className?: string }>) { return <label className={`prototype-recadastramento-control ${className}`}><span>{label}</span><input defaultValue={value} disabled={disabled} placeholder={placeholder} /></label>; }
+function RecadastramentoSelect({ label, value, options }: Readonly<{ label: string; value: string; options: string[] }>) { return <label className="prototype-recadastramento-control"><span>{label}</span><select defaultValue={value}>{options.map((option) => <option key={option}>{option}</option>)}</select></label>; }
+function RecadastramentoChoice({ label, options, selected = 0 }: Readonly<{ label: string; options: string[]; selected?: number }>) { return <fieldset className="prototype-recadastramento-choice"><legend>{label}</legend>{options.map((option, index) => <label key={option}><input type="radio" name={label} defaultChecked={index === selected} />{option}</label>)}</fieldset>; }
+function RecadastramentoBloco({ title, children }: Readonly<{ title: string; children: ReactNode }>) { return <section className="prototype-recadastramento-block"><h2>{title}</h2>{children}</section>; }
+
+function RecadastramentoDocumentos({ onVoltar, onSelecionarEtapa }: Readonly<{ onVoltar: () => void; onSelecionarEtapa: (etapa: number) => void }>) {
+  const documentos = [
+    { nome: "Carteira de Trabalho", status: "Não informado", classe: "is-warning", tipo: "livreto" },
+    { nome: "Documento Militar", status: "Não informado", classe: "is-warning", tipo: "certificado" },
+    { nome: "PIS/PASEP", status: "Não informado", classe: "is-warning", tipo: "pis" },
+    { nome: "Registro Geral", status: "Não informado", classe: "is-warning", tipo: "identidade" },
+    { nome: "Título de Eleitor", status: "Não informado", classe: "is-warning", tipo: "eleitor" },
+    { nome: "Carteira Nacional de Habilitação", status: "Não informado", classe: "is-warning", tipo: "cnh" },
+    { nome: "Passaporte", status: "Não informado", classe: "is-warning", tipo: "passaporte" },
+    { nome: "Identificação Profissional", status: "Não informado", classe: "is-warning", tipo: "cracha" },
+    { nome: "Documento Nacional de Identificação", status: "Não informado", classe: "is-warning", tipo: "dni" },
+  ] as const;
+  const obrigatorios = ["Registro Geral", "Título de Eleitor", "PIS/PASEP", "Documento Militar"];
+  const documentosComFoto = ["Registro Geral", "Carteira Nacional de Habilitação", "Identificação Profissional", "Documento Nacional de Identificação"];
+  const [documentosEnviados, setDocumentosEnviados] = useState<string[]>([]);
+  const [documentosEditados, setDocumentosEditados] = useState<string[]>([]);
+  const documentosComStatus = documentos.map((documento) => documentosEditados.includes(documento.nome) ? { ...documento, status: "Pendente de validação", classe: "is-warning" } : documentosEnviados.includes(documento.nome) ? { ...documento, status: "Pendente de edição", classe: "is-warning" } : documento);
+  const obrigatoriosValidos = documentosComStatus.filter((documento) => obrigatorios.includes(documento.nome) && (documento.status === "Pendente de validação" || documento.status === "Concluído")).length;
+  const fotosValidas = documentosComStatus.filter((documento) => documentosComFoto.includes(documento.nome) && (documento.status === "Pendente de validação" || documento.status === "Concluído")).length;
+  const documentosObrigatorios = documentosComStatus.filter((documento) => obrigatorios.includes(documento.nome));
+  const documentosFoto = documentosComStatus.filter((documento) => documentosComFoto.includes(documento.nome));
+  const documentosAdicionais = documentosComStatus.filter((documento) => !obrigatorios.includes(documento.nome) && !documentosComFoto.includes(documento.nome));
+  const documentoFotoPrincipal = documentosComStatus.find((documento) => documentosComFoto.includes(documento.nome) && (documento.status === "Pendente de validação" || documento.status === "Concluído"))?.nome;
+  return <main className="prototype-recadastramento-form-page">
+    <CardSeplag cols="12" cardHeaderClassNames="prototype-recadastramento-form-card">
+      <div className="prototype-recadastramento-form-header"><div><span>Recadastramento 2026</span><h1>Documentos pessoais</h1></div><button type="button" className="prototype-recadastramento-back" onClick={onVoltar}><i className="pi pi-arrow-left" /> Voltar para dados pessoais</button></div>
+      <div className="prototype-recadastramento-legend"><span><i className="pi pi-times-circle" /> Desabilitada</span><span><i className="pi pi-question-circle" /> Atual</span><span><i className="pi pi-exclamation-circle" /> Pendente</span><span><i className="pi pi-check-circle" /> Concluída</span></div>
+      <ol className="prototype-recadastramento-steps" aria-label="Etapas do recadastramento">{etapasRecadastramento.map((etapa, index) => <li key={etapa} className={index === 1 ? "is-current" : index === 8 ? "is-pending" : "is-complete"}><button type="button" onClick={() => onSelecionarEtapa(index + 1)}><i className={index === 1 ? "pi pi-question-circle" : index === 8 ? "pi pi-exclamation-circle" : "pi pi-check-circle"} /><span>Etapa {index + 1}</span><small>{etapa}</small></button></li>)}</ol>
+      <section className="prototype-recadastramento-section"><h2>Documentos pessoais</h2><div className="prototype-recadastramento-notice"><strong>Orientações para esta etapa</strong><ol><li>Atualize as informações documentais que estejam desatualizadas ou incorretas.</li><li>Ao incluir um documento, anexe uma cópia digitalizada em PDF ou imagem, com tamanho máximo de 2 MB.</li><li>Os documentos obrigatórios devem estar válidos e legíveis.</li><li>Quando todos os dados estiverem corretos, finalize esta etapa.</li></ol></div></section>
+      <section className="prototype-recadastramento-documents">
+        <h2><span className="prototype-recadastramento-documents-icon"><i className="pi pi-file" /></span>Documentos cadastrados</h2>
+        <div className="prototype-recadastramento-document-alert"><i className="pi pi-exclamation-triangle" /> Existem documentos pendentes de validação</div>
+        <div className="prototype-recadastramento-rule-summary">
+          <article className={fotosValidas > 0 ? "is-complete" : "is-pending"}><i className={fotosValidas > 0 ? "pi pi-check-circle" : "pi pi-exclamation-circle"} /><div><strong>Documento com foto obrigatório</strong><span>{fotosValidas > 0 ? `${fotosValidas} documento(s) com foto enviado(s).` : "Envie um documento com foto aceito."}</span></div></article>
+          <article className={obrigatoriosValidos === obrigatorios.length ? "is-complete" : "is-pending"}><i className={obrigatoriosValidos === obrigatorios.length ? "pi pi-check-circle" : "pi pi-exclamation-circle"} /><div><strong>Documentos obrigatórios</strong><span>{obrigatoriosValidos} de {obrigatorios.length} documentos obrigatórios enviados.</span></div></article>
+        </div>
+        <section className="prototype-recadastramento-document-group"><header><div><h3>1. Documento com foto obrigatório</h3><p>Envie ao menos um documento com foto: RG, CNH, Identidade Profissional ou DNI.</p></div><span className="prototype-recadastramento-group-badge">Obrigatório</span></header><RecadastramentoDocumentosCards documentos={documentosFoto} documentosComFoto={documentosComFoto} documentoFotoPrincipal={documentoFotoPrincipal} documentosEnviados={documentosEnviados} documentosEditados={documentosEditados} onDocumentoEnviado={(nome) => setDocumentosEnviados((atuais) => atuais.includes(nome) ? atuais : [...atuais, nome])} onDocumentoEditado={(nome) => setDocumentosEditados((atuais) => atuais.includes(nome) ? atuais : [...atuais, nome])} exibirOpcionais /></section>
+        <section className="prototype-recadastramento-document-group"><header><div><h3>2. Documentos obrigatórios</h3><p>Todos os quatro documentos abaixo precisam ser enviados e editados para concluir a etapa.</p></div><span className="prototype-recadastramento-group-badge">{obrigatoriosValidos} de {obrigatorios.length} enviados</span></header><RecadastramentoDocumentosCards documentos={documentosObrigatorios} documentosComFoto={documentosComFoto} documentosEnviados={documentosEnviados} documentosEditados={documentosEditados} onDocumentoEnviado={(nome) => setDocumentosEnviados((atuais) => atuais.includes(nome) ? atuais : [...atuais, nome])} onDocumentoEditado={(nome) => setDocumentosEditados((atuais) => atuais.includes(nome) ? atuais : [...atuais, nome])} /></section>
+        {documentosAdicionais.length > 0 ? <section className="prototype-recadastramento-document-group is-secondary"><header><div><h3>3. Outros documentos cadastrados</h3><p>Documentos complementares que não bloqueiam a conclusão desta etapa.</p></div></header><RecadastramentoDocumentosCards documentos={documentosAdicionais} documentosComFoto={documentosComFoto} documentoFotoPrincipal={documentoFotoPrincipal} documentosEnviados={documentosEnviados} documentosEditados={documentosEditados} onDocumentoEnviado={(nome) => setDocumentosEnviados((atuais) => atuais.includes(nome) ? atuais : [...atuais, nome])} onDocumentoEditado={(nome) => setDocumentosEditados((atuais) => atuais.includes(nome) ? atuais : [...atuais, nome])} exibirOpcionais /></section> : null}
+      </section>
+      <div className="prototype-recadastramento-document-actions"><BotaoSeplag type="button" label="Voltar" icon="pi pi-arrow-left" onClick={onVoltar} /><BotaoSeplag type="button" label="Finalizar etapa" icon="pi pi-check" severity="success" /><BotaoSeplag type="button" label="Próximo" icon="pi pi-arrow-right" iconPos="right" /></div>
+    </CardSeplag>
+  </main>;
+}
+
+function RecadastramentoEtapaPendente({ etapa, onSelecionarEtapa }: Readonly<{ etapa: number; onSelecionarEtapa: (etapa: number) => void }>) {
+  return <main className="prototype-recadastramento-form-page"><CardSeplag cols="12" cardHeaderClassNames="prototype-recadastramento-form-card"><div className="prototype-recadastramento-form-header"><div><span>Recadastramento 2026</span><h1>{etapasRecadastramento[etapa - 1]}</h1></div></div><ol className="prototype-recadastramento-steps" aria-label="Etapas do recadastramento">{etapasRecadastramento.map((nomeEtapa, index) => <li key={nomeEtapa} className={index === etapa - 1 ? "is-current" : index === 8 ? "is-pending" : "is-complete"}><button type="button" onClick={() => onSelecionarEtapa(index + 1)}><i className={index === etapa - 1 ? "pi pi-question-circle" : index === 8 ? "pi pi-exclamation-circle" : "pi pi-check-circle"} /><span>Etapa {index + 1}</span></button></li>)}</ol><section className="prototype-recadastramento-stage-placeholder"><i className="pi pi-file-edit" /><h2>Etapa {etapa} — {etapasRecadastramento[etapa - 1]}</h2><p>Esta etapa foi aberta pela navegação do recadastramento e está pronta para receber seu conteúdo específico.</p><BotaoSeplag type="button" label="Voltar para documentos" icon="pi pi-arrow-left" onClick={() => onSelecionarEtapa(2)} /></section></CardSeplag></main>;
+}
+
+function DocumentoMiniatura({ tipo }: Readonly<{ tipo: string }>) {
+  const icones: Record<string, string> = { livreto: "pi pi-book", certificado: "pi pi-shield", pis: "pi pi-wallet", identidade: "pi pi-id-card", eleitor: "pi pi-check-square", cnh: "pi pi-id-card", passaporte: "pi pi-book", cracha: "pi pi-id-card", dni: "pi pi-id-card" };
+  return <div className={`prototype-recadastramento-document-preview is-${tipo}`} aria-label="Prévia ilustrativa fictícia do documento"><div className="prototype-recadastramento-document-illustration"><i className={icones[tipo]} aria-hidden="true" /><span /><span /><span /><span /></div></div>;
+}
+
+function RecadastramentoDocumentosCards({ documentos, documentosComFoto, documentoFotoPrincipal, documentosEnviados, documentosEditados, onDocumentoEnviado, onDocumentoEditado, exibirOpcionais = false }: Readonly<{ documentos: readonly { nome: string; status: string; classe: string; tipo: string }[]; documentosComFoto: readonly string[]; documentoFotoPrincipal?: string; documentosEnviados: readonly string[]; documentosEditados: readonly string[]; onDocumentoEnviado: (nome: string) => void; onDocumentoEditado: (nome: string) => void; exibirOpcionais?: boolean }>) {
+  const [editarCarteiraTrabalho, setEditarCarteiraTrabalho] = useState(false);
+  const [editarRegistroGeral, setEditarRegistroGeral] = useState(false);
+  const [carteiraTrabalho, setCarteiraTrabalho] = useState({ numero: "21741", serie: "0812", uf: "MT" });
+  const [registroGeral, setRegistroGeral] = useState({ numero: "20463936", orgao: "SSP", uf: "MT", dataExpedicao: "25/01/2006" });
+  const [errosCarteiraTrabalho, setErrosCarteiraTrabalho] = useState<{ numero?: string; serie?: string; uf?: string }>({});
+  const [errosRegistroGeral, setErrosRegistroGeral] = useState<{ numero?: string; orgao?: string; uf?: string; dataExpedicao?: string }>({});
+  const atualizarDocumento = (nome: string) => document.getElementById(`recadastramento-upload-${nome.replaceAll(" ", "-")}`)?.click();
+  const salvarCarteiraTrabalho = () => {
+    const erros = { numero: carteiraTrabalho.numero.trim() ? undefined : "Informe o número.", serie: carteiraTrabalho.serie.trim() ? undefined : "Informe a série.", uf: carteiraTrabalho.uf ? undefined : "Selecione a UF." };
+    setErrosCarteiraTrabalho(erros);
+    if (Object.values(erros).some(Boolean)) return;
+    onDocumentoEditado("Carteira de Trabalho");
+    setEditarCarteiraTrabalho(false);
+  };
+  const salvarRegistroGeral = () => {
+    const erros = { numero: registroGeral.numero.trim() ? undefined : "Informe o número.", orgao: registroGeral.orgao ? undefined : "Selecione o órgão.", uf: registroGeral.uf ? undefined : "Selecione a UF.", dataExpedicao: registroGeral.dataExpedicao.trim() ? undefined : "Informe a data de expedição." };
+    setErrosRegistroGeral(erros);
+    if (Object.values(erros).some(Boolean)) return;
+    onDocumentoEditado("Registro Geral");
+    setEditarRegistroGeral(false);
+  };
+
+  return <div className="prototype-recadastramento-document-grid">{documentos.map((documento) => {
+    const foiAtualizado = documentosEnviados.includes(documento.nome);
+    const foiEditado = documentosEditados.includes(documento.nome);
+    const inputId = `recadastramento-upload-${documento.nome.replaceAll(" ", "-")}`;
+    const ehOpcional = exibirOpcionais && Boolean(documentoFotoPrincipal) && documento.nome !== documentoFotoPrincipal;
+    return <CardSeplag key={documento.nome} cols="12" title={documento.nome} cardHeaderClassNames="prototype-recadastramento-document-card"><div className="prototype-recadastramento-document-card-content">{ehOpcional ? <span className="prototype-recadastramento-optional-flag"><i className="pi pi-bookmark" /> Opcional</span> : null}<DocumentoMiniatura tipo={documento.tipo} /><div className="prototype-recadastramento-document-tags">{documentosComFoto.includes(documento.nome) ? <span className="prototype-recadastramento-photo-tag"><i className="pi pi-camera" /> Aceito como documento com foto</span> : null}<span className={`prototype-recadastramento-document-status ${foiAtualizado ? "is-warning" : documento.classe}`}><i className={foiAtualizado ? "pi pi-clock" : documento.classe === "is-success" ? "pi pi-check-circle" : "pi pi-clock"} />{foiEditado ? "Pendente de validação" : foiAtualizado ? "Pendente de edição" : documento.status}</span></div><div className="prototype-recadastramento-document-action"><input id={inputId} className="prototype-recadastramento-file-input" type="file" accept=".pdf,image/*" onChange={(event) => { if (event.target.files?.length) onDocumentoEnviado(documento.nome); }} /><BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar" /><BotaoIconSeplag type="button" icon="pi pi-upload" tooltip="Atualizar documento" onClick={() => atualizarDocumento(documento.nome)} />{foiAtualizado ? <BotaoIconSeplag type="button" icon="pi pi-pencil" tooltip="Editar dados" disabled={documento.nome !== "Carteira de Trabalho" && documento.nome !== "Registro Geral"} onClick={() => documento.nome === "Carteira de Trabalho" ? setEditarCarteiraTrabalho(true) : documento.nome === "Registro Geral" ? setEditarRegistroGeral(true) : undefined} /> : null}</div></div></CardSeplag>;
+  })}<ModalSeplag visible={editarCarteiraTrabalho} titulo="Editar Carteira de Trabalho" ariaLabel="Editar dados da Carteira de Trabalho" fechar={() => setEditarCarteiraTrabalho(false)} customFooter={<><BotaoSeplag type="button" label="Cancelar edição" icon="pi pi-times" severity="danger" onClick={() => setEditarCarteiraTrabalho(false)} /><BotaoSeplag type="button" label="Salvar edição" icon="pi pi-check" onClick={salvarCarteiraTrabalho} /></>}><div className="prototype-recadastramento-ctps-form"><label className="prototype-recadastramento-control"><span>Tipo de documento</span><input value="Carteira de Trabalho" disabled /></label><p>* Campos obrigatórios</p><div><label className="prototype-recadastramento-control"><span>Número *</span><input value={carteiraTrabalho.numero} onChange={(event) => setCarteiraTrabalho((atual) => ({ ...atual, numero: event.target.value }))} />{errosCarteiraTrabalho.numero ? <small>{errosCarteiraTrabalho.numero}</small> : null}</label><label className="prototype-recadastramento-control"><span>Série *</span><input value={carteiraTrabalho.serie} onChange={(event) => setCarteiraTrabalho((atual) => ({ ...atual, serie: event.target.value }))} />{errosCarteiraTrabalho.serie ? <small>{errosCarteiraTrabalho.serie}</small> : null}</label><label className="prototype-recadastramento-control"><span>UF *</span><select value={carteiraTrabalho.uf} onChange={(event) => setCarteiraTrabalho((atual) => ({ ...atual, uf: event.target.value }))}><option value="">Selecione</option><option>MT</option><option>MS</option><option>GO</option><option>SP</option></select>{errosCarteiraTrabalho.uf ? <small>{errosCarteiraTrabalho.uf}</small> : null}</label></div></div></ModalSeplag><ModalSeplag visible={editarRegistroGeral} titulo="Editar Registro Geral" ariaLabel="Editar dados do Registro Geral" fechar={() => setEditarRegistroGeral(false)} customFooter={<><BotaoSeplag type="button" label="Cancelar edição" icon="pi pi-times" severity="danger" onClick={() => setEditarRegistroGeral(false)} /><BotaoSeplag type="button" label="Salvar edição" icon="pi pi-check" onClick={salvarRegistroGeral} /></>}><div className="prototype-recadastramento-ctps-form prototype-recadastramento-rg-form"><label className="prototype-recadastramento-control"><span>Tipo de documento</span><input value="Registro Geral" disabled /></label><p>* Campos obrigatórios</p><div><label className="prototype-recadastramento-control"><span>Número *</span><input value={registroGeral.numero} onChange={(event) => setRegistroGeral((atual) => ({ ...atual, numero: event.target.value }))} />{errosRegistroGeral.numero ? <small>{errosRegistroGeral.numero}</small> : null}</label><label className="prototype-recadastramento-control"><span>Órgão *</span><select value={registroGeral.orgao} onChange={(event) => setRegistroGeral((atual) => ({ ...atual, orgao: event.target.value }))}><option value="">Selecione</option><option>SSP</option><option>PC</option><option>DETRAN</option></select>{errosRegistroGeral.orgao ? <small>{errosRegistroGeral.orgao}</small> : null}</label><label className="prototype-recadastramento-control"><span>UF *</span><select value={registroGeral.uf} onChange={(event) => setRegistroGeral((atual) => ({ ...atual, uf: event.target.value }))}><option value="">Selecione</option><option>MT</option><option>MS</option><option>GO</option><option>SP</option></select>{errosRegistroGeral.uf ? <small>{errosRegistroGeral.uf}</small> : null}</label><label className="prototype-recadastramento-control"><span>Data de expedição *</span><input value={registroGeral.dataExpedicao} placeholder="DD/MM/AAAA" onChange={(event) => setRegistroGeral((atual) => ({ ...atual, dataExpedicao: event.target.value }))} />{errosRegistroGeral.dataExpedicao ? <small>{errosRegistroGeral.dataExpedicao}</small> : null}</label></div></div></ModalSeplag></div>;
+}
+
 interface SituacaoVigenciaDemoForm extends SituacaoVigenciaValueSeplag {
   possuiVinculosOuDependencias: boolean;
 }
@@ -1031,10 +1271,10 @@ interface CargoForm {
   naturezaVinculo?: string;
   naturezaOcupacao?: "CARGO" | "FUNCAO";
   permiteAcumuloCargo?: "S" | "N";
-  controleVagasEfetivos?: boolean;
-  controleVagasBolsista?: boolean;
-  controleVagasComissionadas?: boolean;
-  controleVagasTemporarias?: boolean;
+  controleVagasEfetivos?: "S" | "N";
+  controleVagasBolsista?: "S" | "N";
+  controleVagasComissionadas?: "S" | "N";
+  controleVagasTemporarias?: "S" | "N";
   naturezaOcupacao?: "CARGO" | "FUNCAO";
   cargosAcumulaveis?: number[];
   cargoChefia?: "S" | "N";
@@ -7707,6 +7947,14 @@ export function PrototiposVinculosFuncionaisGeralPage() {
     </PrototypeSystemPage>
   );
 }
+
+export function PrototiposVacanciaGeralPage() {
+  return (
+    <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <VacanciaGeralContent />
+    </PrototypeSystemPage>
+  );
+}
 export function PrototiposControleVagasDashboardPage() {
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
@@ -9314,10 +9562,10 @@ export function PrototiposCargoFormPage({
       naturezaVinculo: "",
       naturezaOcupacao: "CARGO",
       permiteAcumuloCargo: "N",
-      controleVagasEfetivos: false,
-      controleVagasBolsista: false,
-      controleVagasComissionadas: false,
-      controleVagasTemporarias: false,
+      controleVagasEfetivos: "N",
+      controleVagasBolsista: "N",
+      controleVagasComissionadas: "N",
+      controleVagasTemporarias: "N",
       cargosAcumulaveis: [],
       cargoChefia: "N",
       permiteSubstituicao: "N",
@@ -9349,10 +9597,10 @@ export function PrototiposCargoFormPage({
       perfisEspecialidades: cargoEmEdicao.perfisEspecialidadesIds ?? [],
       naturezaOcupacao: cargoEmEdicao.naturezaOcupacao ?? "CARGO",
       permiteAcumuloCargo: cargoEmEdicao.cargosAcumulaveis?.length ? "S" : "N",
-      controleVagasEfetivos: cargoEmEdicao.controleVagasEfetivos === true,
-      controleVagasBolsista: cargoEmEdicao.controleVagasBolsista === true,
-      controleVagasComissionadas: cargoEmEdicao.controleVagasComissionadas === true,
-      controleVagasTemporarias: cargoEmEdicao.controleVagasTemporarias === true,
+      controleVagasEfetivos: cargoEmEdicao.controleVagasEfetivos === true ? "S" : "N",
+      controleVagasBolsista: cargoEmEdicao.controleVagasBolsista === true ? "S" : "N",
+      controleVagasComissionadas: cargoEmEdicao.controleVagasComissionadas === true ? "S" : "N",
+      controleVagasTemporarias: cargoEmEdicao.controleVagasTemporarias === true ? "S" : "N",
       cargosAcumulaveis: cargoEmEdicao.cargosAcumulaveis ?? [],
       cargoChefia: "N",
       permiteSubstituicao: "N",
@@ -9394,7 +9642,7 @@ export function PrototiposCargoFormPage({
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
       vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO", naturezaOcupacao: values.naturezaOcupacao ?? "CARGO",
-      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasEfetivos: values.controleVagasEfetivos === true, controleVagasBolsista: values.controleVagasBolsista === true, controleVagasComissionadas: values.controleVagasComissionadas === true, controleVagasTemporarias: values.controleVagasTemporarias === true,
+      carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasEfetivos: values.controleVagasEfetivos === "S", controleVagasBolsista: values.controleVagasBolsista === "S", controleVagasComissionadas: values.controleVagasComissionadas === "S", controleVagasTemporarias: values.controleVagasTemporarias === "S",
     };
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     atualizarControleVagasBolsistas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasBolsista === true);
@@ -9414,12 +9662,30 @@ export function PrototiposCargoFormPage({
   const tiposVinculoSelecionados = watch("tiposVinculo") ?? [];
   const carreirasPorTipoVinculo = watch("carreirasPorTipoVinculo") ?? {};
   const idsPerfisSelecionados = watch("perfisEspecialidades") ?? [];
+  const controlaVagasEfetivos = watch("controleVagasEfetivos") === "S";
+  const controlaVagasTemporarias = watch("controleVagasTemporarias") === "S";
+  const controlaVagasComissionadas = watch("controleVagasComissionadas") === "S";
+  const controlaVagasBolsista = watch("controleVagasBolsista") === "S";
   const perfisSelecionadosCargo = perfisEspecialidadesMock.filter((perfil) => idsPerfisSelecionados.includes(perfil.id));
   useEffect(() => {
     const codigosSelecionados = new Set(tiposVinculoSelecionados);
     const carreirasAtualizadas = Object.fromEntries(Object.entries(carreirasPorTipoVinculo).filter(([codigoVinculo]) => codigosSelecionados.has(codigoVinculo)));
     if (Object.keys(carreirasAtualizadas).length !== Object.keys(carreirasPorTipoVinculo).length) setValue("carreirasPorTipoVinculo", carreirasAtualizadas);
   }, [carreirasPorTipoVinculo, setValue, tiposVinculoSelecionados]);
+  useEffect(() => {
+    if (controlaVagasComissionadas) {
+      setValue("controleVagasEfetivos", "N");
+      setValue("controleVagasTemporarias", "N");
+      setValue("controleVagasBolsista", "N");
+      setValue("escolaridadeMinima", "");
+      return;
+    }
+    if (controlaVagasBolsista) {
+      setValue("controleVagasEfetivos", "N");
+      setValue("controleVagasTemporarias", "N");
+      setValue("controleVagasComissionadas", "N");
+    }
+  }, [controlaVagasBolsista, controlaVagasComissionadas, setValue]);
   const inicioVigenciaCargo = watch("dataAtivacao") ?? "";
   const dataEncerramentoCargo = watch("dataEncerramento") ?? "";
   const inicioVigenciaCargoIso = carreiraDataParaIso(inicioVigenciaCargo);
@@ -9543,29 +9809,6 @@ export function PrototiposCargoFormPage({
             <header>
               <span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>
               <div>
-                <h2>Características do cargo</h2>
-                <p>Configure jornada, escolaridade, CBO e perfis profissionais vinculados.</p>
-              </div>
-            </header>
-            <div className="grid prototype-carreira-register-fields">
-              <MultiSelectFieldSeplag name="jornadasPermitidas" control={control} label="Jornadas permitidas" placeholder="Selecione uma ou mais jornadas" cols="12 12 3" options={cargoJornadaOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
-              <DropdownFieldSeplag name="escolaridadeMinima" control={control} label="Escolaridade Mínima" placeholder="Selecione..." cols="12 12 3" options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
-              <MultiSelectFieldSeplag name="perfisEspecialidades" control={control} label="Perfil Profissional" placeholder="Selecione um ou mais perfis" cols="12 12 6" options={perfisEspecialidadesMock.filter((perfil) => perfil.situacao === "ATIVO" || idsPerfisSelecionados.includes(perfil.id)).map((perfil) => ({ label: perfil.nome, value: perfil.id }))} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
-              {perfisSelecionadosCargo.length ? (
-                <div className="col-12 prototype-cargo-profile-table-wrapper">
-                  <table className="prototype-cargo-profile-table">
-                    <thead><tr><th>Perfil Profissional</th><th>Área de formação</th><th>CBO</th><th>CBO eSocial</th></tr></thead>
-                    <tbody>{perfisSelecionadosCargo.map((perfil) => <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td><td>{perfil.cbo.replace(/\D/g, "")}</td></tr>)}</tbody>
-                  </table>
-                </div>
-              ) : null}
-            </div>
-          </section>
-
-          <section className="prototype-carreira-register-section">
-            <header>
-              <span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>
-              <div>
                 <h2>Comportamentos do cargo</h2>
                 <p>Configure as regras operacionais aplicáveis a este cargo.</p>
               </div>
@@ -9589,22 +9832,45 @@ export function PrototiposCargoFormPage({
             <div className="prototype-cargo-controle-vagas">
               <div className="prototype-cargo-controle-vagas-opcoes">
                 <div className="prototype-shared-criterio-item">
-                  <CheckboxFieldSeplag<CargoForm> name="controleVagasEfetivos" control={control} checkboxLabel="Controla vagas de efetivos?" cols="12" />
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasEfetivos" control={control} checkboxLabel="Controla vagas de efetivos?" cols="12" disabled={controlaVagasComissionadas || controlaVagasBolsista} />
                   <span>Disponibiliza este cargo no Quadro de Vagas Efetivos.</span>
                 </div>
                 <div className="prototype-shared-criterio-item">
-                  <CheckboxFieldSeplag<CargoForm> name="controleVagasTemporarias" control={control} checkboxLabel="Controla vagas temporárias?" cols="12" />
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasTemporarias" control={control} checkboxLabel="Controla vagas temporárias?" cols="12" disabled={controlaVagasComissionadas || controlaVagasBolsista} />
                   <span>Disponibiliza este cargo para o controle de vagas dos processos seletivos temporários.</span>
                 </div>
                 <div className="prototype-shared-criterio-item">
-                  <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" />
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasComissionadas" control={control} checkboxLabel="Controla vagas comissionadas?" cols="12" disabled={controlaVagasEfetivos || controlaVagasTemporarias || controlaVagasBolsista} />
                   <span>Disponibiliza este cargo como Cargo Comissionado no Quadro de Vagas Comissionados.</span>
                 </div>
                 <div className="prototype-shared-criterio-item">
-                  <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" />
+                  <CheckboxFieldSeplag<CargoForm> name="controleVagasBolsista" control={control} checkboxLabel="Controla vagas de bolsistas?" cols="12" disabled={controlaVagasEfetivos || controlaVagasTemporarias || controlaVagasComissionadas} />
                   <span>Disponibiliza este cargo no Quadro de Vagas Bolsistas.</span>
                 </div>
               </div>
+            </div>
+          </section>
+
+          <section className="prototype-carreira-register-section">
+            <header>
+              <span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" aria-hidden="true" /></span>
+              <div>
+                <h2>Características do cargo</h2>
+                <p>Configure jornada, escolaridade, CBO e perfis profissionais vinculados.</p>
+              </div>
+            </header>
+            <div className="grid prototype-carreira-register-fields">
+              <MultiSelectFieldSeplag name="jornadasPermitidas" control={control} label="Jornadas permitidas" placeholder="Selecione uma ou mais jornadas" cols="12 12 3" options={cargoJornadaOptions} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              <DropdownFieldSeplag name="escolaridadeMinima" control={control} label="Escolaridade Mínima" placeholder="Selecione..." cols="12 12 3" options={cargoEscolaridadeOptions} optionLabel="label" optionValue="value" required={!controlaVagasComissionadas} disabled={controlaVagasComissionadas} getFormErrorMessage={() => null} />
+              <MultiSelectFieldSeplag name="perfisEspecialidades" control={control} label="Perfil Profissional" placeholder="Selecione um ou mais perfis" cols="12 12 6" options={perfisEspecialidadesMock.filter((perfil) => perfil.situacao === "ATIVO" || idsPerfisSelecionados.includes(perfil.id)).map((perfil) => ({ label: perfil.nome, value: perfil.id }))} optionLabel="label" optionValue="value" required getFormErrorMessage={() => null} />
+              {perfisSelecionadosCargo.length ? (
+                <div className="col-12 prototype-cargo-profile-table-wrapper">
+                  <table className="prototype-cargo-profile-table">
+                    <thead><tr><th>Perfil Profissional</th><th>Área de formação</th><th>CBO</th><th>CBO eSocial</th></tr></thead>
+                    <tbody>{perfisSelecionadosCargo.map((perfil) => <tr key={perfil.id}><td>{perfil.nome}</td><td>{perfil.areaFormacao}</td><td>{perfil.cbo}</td><td>{perfil.cbo.replace(/\D/g, "")}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              ) : null}
             </div>
           </section>
 
