@@ -20804,8 +20804,10 @@
 .prototype-direcionamento-analise-options input { margin-top: 3px; accent-color: #0072bc; }
 .prototype-direcionamento-analise-options small { display: block; margin-top: 4px; color: #5d7288; font-size: .79rem; }
 .prototype-direcionamento-analise-destino { align-self: start; }
+.prototype-direcionamento-analise-destino small { color: #5d7288; font-size: .79rem; font-weight: 400; }
 .prototype-direcionamento-analise-alert, .prototype-direcionamento-analise-success { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border: 1px solid #b8dbf9; border-left: 3px solid #1683e2; border-radius: 3px; background: #eef7ff; color: #245278; font-size: .82rem; }
 .prototype-direcionamento-analise-alert { grid-column: 1 / -1; }
+.prototype-orgao-designado-alert { margin-top: 4px; font-weight: 400; }
 .prototype-direcionamento-analise-success { margin: 16px 0; border-color: #a8e0ba; border-left-color: #16a34a; background: #edfbf1; color: #17663e; }
 .prototype-direcionamento-analise-list-filter { min-width: 180px; }
 @media (max-width: 700px) { .prototype-direcionamento-analise-body, .prototype-direcionamento-analise-options { grid-template-columns: 1fr; } }

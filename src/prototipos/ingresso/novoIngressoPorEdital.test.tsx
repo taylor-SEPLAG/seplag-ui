@@ -127,3 +127,59 @@ it("bloqueia o ingresso do PSS 006/2026/SEFAZ sem quadro de vagas", () => {
   expect(screen.queryByText(/Não existe Quadro de Vagas disponível/)).toBeNull();
   expect((screen.getByRole("textbox", { name: /^Quadro de vagas/ }) as HTMLInputElement).value).toBe("QA-0012");
 });
+
+it("exige órgão designado e limita as opções aos órgãos do processo seletivo", () => {
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  const processo = screen.getByRole("combobox", { name: /^Processo Seletivo/ }) as HTMLSelectElement;
+  const orgaoDesignado = screen.getByRole("combobox", { name: /^Órgão Designado/ }) as HTMLSelectElement;
+  const convocacao = screen.getByLabelText(/^Data da Convocação/);
+  expect(convocacao.closest(".prototype-ingresso-concurso-fields")).toBe(orgaoDesignado.closest(".prototype-ingresso-concurso-fields"));
+  expect(orgaoDesignado.required).toBe(true);
+  expect(orgaoDesignado.disabled).toBe(true);
+
+  fireEvent.change(processo, { target: { value: "Processo Seletivo SES 2026" } });
+  expect(orgaoDesignado.disabled).toBe(false);
+  expect(Array.from(orgaoDesignado.options).map((option) => option.value)).toEqual(["", "SES", "SEPLAG"]);
+  fireEvent.change(orgaoDesignado, { target: { value: "SEPLAG" } });
+  expect(orgaoDesignado.value).toBe("SEPLAG");
+
+  fireEvent.change(processo, { target: { value: "Processo Seletivo SEDUC 2026" } });
+  expect(Array.from(orgaoDesignado.options).map((option) => option.value)).toEqual(["", "SEDUC", "SEPLAG"]);
+  expect(orgaoDesignado.value).toBe("");
+});
+
+it("restaura o órgão designado salvo ao reabrir o ingresso", () => {
+  localStorage.setItem("prototype-ingresso-registros-concursos", JSON.stringify({
+    "Processo Seletivo SES 2026": [{ id: 10, orgaoDesignado: "SEPLAG" }],
+  }));
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo&concurso=Processo%20Seletivo%20SES%202026&orgao=SES&candidato=10"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  expect((screen.getByRole("combobox", { name: /^Órgão Designado/ }) as HTMLSelectElement).value).toBe("SEPLAG");
+});
+
+it("exibe o órgão designado salvo em Dados do Ingresso na etapa de documentação", () => {
+  localStorage.setItem("prototype-ingresso-registros-concursos", JSON.stringify({
+    "Processo Seletivo SES 2026": [{ id: 10, orgaoDesignado: "SEPLAG" }],
+  }));
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo&concurso=Processo%20Seletivo%20SES%202026&orgao=SES&candidato=10&etapa=documentacao"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  const resumo = document.querySelector(".prototype-ingresso-readonly-grid") as HTMLElement;
+  const campo = Array.from(resumo.querySelectorAll("div")).find((item) => item.querySelector("dt")?.textContent === "Órgão Designado");
+  expect(campo?.querySelector("dd")?.textContent).toBe("SEPLAG");
+});
+it("mostra o órgão designado da etapa 1 sem edição no efetivo exercício do processo seletivo", () => {
+  localStorage.setItem("prototype-ingresso-registros-concursos", JSON.stringify({
+    "Processo Seletivo SES 2026": [{ id: 10, orgaoDesignado: "SEPLAG" }],
+  }));
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo&concurso=Processo%20Seletivo%20SES%202026&orgao=SES&candidato=10&etapa=efetivo-exercicio"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  fireEvent.change(screen.getByRole("combobox", { name: /Servidor compareceu/ }), { target: { value: "Sim" } });
+  const campo = document.querySelector(".prototype-efetivo-exercicio-orgao-row input") as HTMLInputElement;
+  expect(campo?.value).toBe("SEPLAG");
+  expect(campo.readOnly).toBe(true);
+  expect(campo.closest("label")?.textContent).toContain("Órgão Designado");
+});
+it("mostra o órgão do edital para ingresso antigo sem órgão designado salvo", () => {
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Processo%20Seletivo&concurso=Processo%20Seletivo%20SEPLAG%202027&orgao=SEPLAG&candidato=65&etapa=efetivo-exercicio"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  fireEvent.change(screen.getByRole("combobox", { name: /Servidor compareceu/ }), { target: { value: "Sim" } });
+  const campo = document.querySelector(".prototype-efetivo-exercicio-orgao-row input") as HTMLInputElement;
+  expect(campo?.value).toBe("SEPLAG");
+  expect(campo.readOnly).toBe(true);
+});
