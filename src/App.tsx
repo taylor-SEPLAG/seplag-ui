@@ -161,6 +161,7 @@ import {
   PrototiposVinculoVisualizacaoPage,
   PrototiposVinculosPage,
 } from "./prototipos/vinculos/VinculosPages";
+import { VinculoV2CadastroPage, VinculoV2ConsultaPage, VinculoV2DetalhesPage } from "./prototipos/vinculos/VinculoV2Page";
 import { TabelaVencimentosFeaturePage } from "./prototipos/tabelaVencimentos/TabelaVencimentosFeaturePage";
 import { TabelaV2Page } from "./prototipos/tabelaV2/TabelaV2Page";
 import {
@@ -1681,6 +1682,9 @@ function App() {
         path="/prototipos/sigep/vinculos"
         element={<PrototiposVinculosPage />}
       />
+      <Route path="/prototipos/sigep/vinculos-v2" element={<VinculoV2ConsultaPage />} />
+      <Route path="/prototipos/sigep/vinculos-v2/novo" element={<VinculoV2CadastroPage />} />
+      <Route path="/prototipos/sigep/vinculos-v2/:id" element={<VinculoV2DetalhesPage />} />
       <Route
         path="/prototipos/sigep/vinculos/novo"
         element={<PrototiposVinculoCadastroPage />}

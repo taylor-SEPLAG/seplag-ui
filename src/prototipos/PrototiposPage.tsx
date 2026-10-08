@@ -422,6 +422,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Tipos de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vínculo V2", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos-v2`, visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -1612,6 +1613,7 @@ interface IngressoCandidatoRow {
   tipoVaga: string;
   dataNomeacao: string;
   orgaoDesignado?: string;
+  tipoVinculo?: string;
   dataPosse: string;
   dataEfetivoExercicio: string;
 }
@@ -1621,6 +1623,7 @@ interface MovimentacaoResponsabilidadeAnalise {
   novoOrgaoResponsavel: string;
   operador: string;
   dataHora: string;
+  motivo?: string;
 }
 
 interface DirecionamentoAnaliseRegistro {
@@ -14252,6 +14255,10 @@ export function PrototiposIngressosTesteDetalhePage() {
   const [historicoCandidatoSelecionadoId, setHistoricoCandidatoSelecionadoId] = useState<number | null>(null);
   const [menuAcoesCandidatoAbertoId, setMenuAcoesCandidatoAbertoId] = useState<number | null>(null);
   const [candidatoConcursoExpandidoId, setCandidatoConcursoExpandidoId] = useState<number | null>(null);
+  const [candidatoEncaminhamento, setCandidatoEncaminhamento] = useState<{ id: number; nome: string } | null>(null);
+  const [orgaoDestinoEncaminhamento, setOrgaoDestinoEncaminhamento] = useState("");
+  const [motivoEncaminhamento, setMotivoEncaminhamento] = useState("");
+  const [erroEncaminhamento, setErroEncaminhamento] = useState("");
   const [candidatoCancelamento, setCandidatoCancelamento] = useState<{ id: number; nome: string } | null>(null);
   const [candidatoExclusao, setCandidatoExclusao] = useState<{ id: number; nome: string } | null>(null);
   const [exclusoesIngressoPorConcurso, setExclusoesIngressoPorConcurso] = useState<
@@ -14711,6 +14718,9 @@ export function PrototiposIngressosTesteDetalhePage() {
     });
   const direcionamentoHistoricoSelecionado = historicoCandidatoSelecionadoId ? direcionamentosAnalise[String(historicoCandidatoSelecionadoId)] : undefined;
   const movimentacoesHistoricoSelecionado = getMovimentacoesResponsabilidadeAnalise(direcionamentoHistoricoSelecionado);
+  const movimentacoesEfetivoHistorico = historicoCandidatoSelecionadoId
+    ? (JSON.parse(localStorage.getItem("prototype-ingresso-historico-encaminhamentos") ?? "{}") as Record<string, Array<MovimentacaoResponsabilidadeAnalise & { etapa: string }>>)[String(historicoCandidatoSelecionadoId)] ?? []
+    : [];
   const historicoDocumentacaoSelecionado = historicoCandidatoSelecionadoId
     ? (JSON.parse(localStorage.getItem("prototype-ingresso-historico-documentacao") ?? "{}") as Record<string, Array<{ dataHora: string; responsavel: string; orgaoAtuacao?: string; parecerSelecionado: string }>>)[String(historicoCandidatoSelecionadoId)] ?? []
     : [];
@@ -14860,7 +14870,73 @@ export function PrototiposIngressosTesteDetalhePage() {
     resultado[candidato.tipoVaga] = [...(resultado[candidato.tipoVaga] ?? []), candidato];
     return resultado;
   }, {});
-  const renderTabelaPendentes = (candidatos: typeof candidatosPendentesIngresso) => (
+  const situacoesEncaminhaveis: IngressoSituacao[] = ["Em analise", "Aguardando Efetivo Exercicio"];
+  const tipoVinculoExcluidoEncaminhamento = /estagi[aá]ri|bolsista|residente t[eé]cnico/i;
+  const orgaosParticipantesEncaminhamento = [...new Set([concursoProcesso.orgao, ...(concursoProcesso.orgaosParticipantes ?? [])])];
+  const orgaoResponsavelDaEtapa = (candidato: IngressoCandidatoRow, situacao: IngressoSituacao) =>
+    situacao === "Em analise"
+      ? direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise || concursoProcesso.orgao
+      : orgaosEfetivoExercicioPerfil[String(candidato.id)] || concursoProcesso.orgao;
+  const podeEncaminharCandidato = (candidato: IngressoCandidatoRow, situacao: IngressoSituacao) =>
+    concursoProcesso.tipo === "Processo Seletivo" &&
+    !tipoVinculoExcluidoEncaminhamento.test(candidato.cargo + " " + (candidato.tipoVinculo || "")) &&
+    situacoesEncaminhaveis.includes(situacao) &&
+    orgaosParticipantesEncaminhamento.some((orgao) => orgao !== orgaoResponsavelDaEtapa(candidato, situacao)) &&
+    (perfilVariacao === "CENTRAL" || orgaoResponsavelDaEtapa(candidato, situacao) === orgaoAtuacaoAnalise);  const candidatoParaEncaminhar = candidatoEncaminhamento
+    ? concursoProcesso.candidatos.find((candidato) => candidato.id === candidatoEncaminhamento.id)
+    : undefined;
+  const situacaoParaEncaminhar = candidatoParaEncaminhar ? getSituacaoCandidato(candidatoParaEncaminhar.id) : undefined;
+  const etapaEncaminhamento = situacaoParaEncaminhar === "Em analise" ? "Documentação" : "Efetivo Exercício";
+  const orgaoResponsavelAtualEncaminhamento = candidatoParaEncaminhar
+    ? etapaEncaminhamento === "Documentação"
+      ? direcionamentosAnalise[String(candidatoParaEncaminhar.id)]?.responsavelAnalise || concursoProcesso.orgao
+      : orgaosEfetivoExercicioPerfil[String(candidatoParaEncaminhar.id)] || concursoProcesso.orgao
+    : "";
+  const fecharEncaminhamento = () => {
+    setCandidatoEncaminhamento(null);
+    setOrgaoDestinoEncaminhamento("");
+    setMotivoEncaminhamento("");
+    setErroEncaminhamento("");
+  };
+  const confirmarEncaminhamento = () => {
+    if (!candidatoParaEncaminhar || !situacaoParaEncaminhar || !podeEncaminharCandidato(candidatoParaEncaminhar, situacaoParaEncaminhar)) {
+      fecharEncaminhamento();
+      return;
+    }
+    if (!orgaoDestinoEncaminhamento || orgaoDestinoEncaminhamento === orgaoResponsavelAtualEncaminhamento || !orgaosParticipantesEncaminhamento.includes(orgaoDestinoEncaminhamento)) {
+      setErroEncaminhamento("Selecione outro órgão participante para a etapa atual.");
+      return;
+    }
+    const motivo = motivoEncaminhamento.trim();
+    if (!motivo) {
+      setErroEncaminhamento("Informe o motivo do encaminhamento.");
+      return;
+    }
+    const dataHora = new Date().toLocaleString("pt-BR");
+    const movimento = { orgaoAnterior: orgaoResponsavelAtualEncaminhamento, novoOrgaoResponsavel: orgaoDestinoEncaminhamento, operador: "Roberto Junior", dataHora, motivo };
+    const chaveCandidato = String(candidatoParaEncaminhar.id);
+    if (etapaEncaminhamento === "Documentação") {
+      const armazenados = JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, DirecionamentoAnaliseRegistro>;
+      const anterior = armazenados[chaveCandidato];
+      armazenados[chaveCandidato] = {
+        orgaoOrigem: anterior?.orgaoOrigem || concursoProcesso.orgao,
+        responsavelAnalise: orgaoDestinoEncaminhamento,
+        operador: movimento.operador,
+        dataHora,
+        movimentacoes: [...getMovimentacoesResponsabilidadeAnalise(anterior), movimento],
+      };
+      localStorage.setItem("prototype-ingresso-direcionamentos-analise", JSON.stringify(armazenados));
+    } else {
+      const encaminhados = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
+      encaminhados[chaveCandidato] = orgaoDestinoEncaminhamento;
+      localStorage.setItem("prototype-ingresso-orgaos-encaminhados", JSON.stringify(encaminhados));
+      const historico = JSON.parse(localStorage.getItem("prototype-ingresso-historico-encaminhamentos") ?? "{}") as Record<string, Array<MovimentacaoResponsabilidadeAnalise & { etapa: string }>>;
+      historico[chaveCandidato] = [...(historico[chaveCandidato] ?? []), { ...movimento, etapa: etapaEncaminhamento }];
+      localStorage.setItem("prototype-ingresso-historico-encaminhamentos", JSON.stringify(historico));
+    }
+    setRevisaoSituacoesIngresso((revisao) => revisao + 1);
+    fecharEncaminhamento();
+  };  const renderTabelaPendentes = (candidatos: typeof candidatosPendentesIngresso) => (
     <div className="prototype-ingressos-operational-table-wrap">
       <table className={`prototype-simple-table prototype-ingressos-operational-table${concursoProcesso.tipo === "Concurso" ? " prototype-ingressos-operational-table--contest" : ""}`}>
         <thead>{concursoProcesso.tipo === "Concurso" ? <tr><th>Classif.</th><th>Nome</th><th>Cargo/Polo</th><th>Tipo de vaga</th><th>Nº do<br />Ingresso</th><th>Posse Agendada</th><th>Orgão encaminhado</th><th>Data do efetivo exercício</th><th>Situação</th><th>Ações</th></tr> : <tr><th>Classif.</th><th>Nome</th><th>Cargo/Polo</th><th>Tipo de vaga</th><th>Órgão Designado</th><th>Nº do<br />Ingresso</th><th>Data do efetivo exercício</th><th>Setor/Lotação</th><th>Situação</th><th>Ações</th></tr>}</thead>
@@ -15013,6 +15089,22 @@ export function PrototiposIngressosTesteDetalhePage() {
                             >
                               <i className={`pi ${atuarEfetivoProcessoSeletivo ? "pi-briefcase" : "pi-sign-in"}`} aria-hidden="true" />
                               <span>{atuarEfetivoProcessoSeletivo ? "Atuar efetivo exercício" : continuarIngresso ? "Continuar ingresso" : "Ingressar candidato"}</span>
+                            </button>
+                          ) : null}
+                          {podeEncaminharCandidato(candidato, candidato.situacaoAtual) ? (
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={() => {
+                                setMenuAcoesCandidatoAbertoId(null);
+                                setCandidatoEncaminhamento({ id: candidato.id, nome: candidato.nome });
+                                setOrgaoDestinoEncaminhamento("");
+                                setMotivoEncaminhamento("");
+                                setErroEncaminhamento("");
+                              }}
+                            >
+                              <i className="pi pi-share-alt" aria-hidden="true" />
+                              <span>Encaminhar Ingresso</span>
                             </button>
                           ) : null}
                           {concursoProcesso.tipo === "Processo Seletivo" && perfilVariacao === "CENTRAL" && !aguardandoTermoAssinado ? (
@@ -15417,6 +15509,63 @@ export function PrototiposIngressosTesteDetalhePage() {
         </div>
       </ModalSeplag>
       <ModalSeplag
+        visible={Boolean(candidatoParaEncaminhar && situacaoParaEncaminhar && podeEncaminharCandidato(candidatoParaEncaminhar, situacaoParaEncaminhar))}
+        titulo="Encaminhar Ingresso"
+        fechar={fecharEncaminhamento}
+        tamanho="680px"
+        customFooter={
+          <div className="prototype-encaminhamento-footer">
+            <button type="button" className="prototype-encaminhamento-cancelar" onClick={fecharEncaminhamento}>Cancelar</button>
+            <button
+              type="button"
+              className="prototype-encaminhamento-confirmar"
+              onClick={confirmarEncaminhamento}
+              disabled={!orgaoDestinoEncaminhamento || orgaoDestinoEncaminhamento === orgaoResponsavelAtualEncaminhamento || !motivoEncaminhamento.trim()}
+            >
+              <i className="pi pi-share-alt" aria-hidden="true" />Confirmar encaminhamento
+            </button>
+          </div>
+        }
+      >
+        <div className="prototype-encaminhamento-modal">
+          <div className="prototype-encaminhamento-info" role="note">
+            <i className="pi pi-info-circle" aria-hidden="true" />
+            <span>Esta funcionalidade permite encaminhar a responsabilidade da etapa atual do ingresso para outro órgão.<br /><strong>O Órgão Designado do candidato não será alterado.</strong></span>
+          </div>
+          <section className="prototype-encaminhamento-dados" aria-label="Dados do ingresso">
+            <h3><i className="pi pi-user" aria-hidden="true" />Dados do ingresso</h3>
+            <div className="prototype-encaminhamento-dados-grid">
+              <div><small>Candidato</small><span>{candidatoParaEncaminhar?.nome || "-"}</span></div>
+              <div><small>Classificação</small><span>{candidatoParaEncaminhar?.classificacao || "-"}</span></div>
+              <div><small>Cargo/Função</small><span>{candidatoParaEncaminhar?.cargo || "-"}</span></div>
+              <div><small>Polo</small><span>{candidatoParaEncaminhar ? getPoloCandidatoIngresso(candidatoParaEncaminhar.id) : "-"}</span></div>
+            </div>
+            <div className="prototype-encaminhamento-dados-grid prototype-encaminhamento-dados-grid--etapa">
+              <div><small>Etapa atual</small><span className="prototype-encaminhamento-tag is-stage">{etapaEncaminhamento}</span></div>
+              <div><small>Órgão responsável atual</small><span>{orgaoResponsavelAtualEncaminhamento || "-"}</span></div>
+              <div><small>Situação do ingresso</small><span className={`prototype-encaminhamento-tag ${situacaoParaEncaminhar === "Em analise" ? "is-analysis" : "is-effective"}`}>{situacaoParaEncaminhar === "Em analise" ? "Em análise" : "Aguardando Efetivo Exercício"}</span></div>
+            </div>
+          </section>
+          <label className="prototype-ingresso-field prototype-encaminhamento-field">
+            <span>Novo órgão responsável<em>*</em></span>
+            <select value={orgaoDestinoEncaminhamento} required onChange={(event) => { setOrgaoDestinoEncaminhamento(event.target.value); setErroEncaminhamento(""); }}>
+              <option value="">Selecione o órgão...</option>
+              {orgaosParticipantesEncaminhamento.filter((orgao) => orgao !== orgaoResponsavelAtualEncaminhamento).map((orgao) => <option key={orgao} value={orgao}>{orgao}</option>)}
+            </select>
+            <small>Selecione o órgão que assumirá a responsabilidade pela etapa atual do ingresso.</small>
+          </label>
+          <div className="prototype-encaminhamento-info" role="note">
+            <i className="pi pi-info-circle" aria-hidden="true" />
+            <span>O órgão selecionado ficará responsável pela etapa atual do ingresso.<br />O Órgão Designado do candidato permanecerá inalterado.</span>
+          </div>
+          <label className="prototype-ingresso-field prototype-encaminhamento-field">
+            <span>Motivo<em>*</em></span>
+            <textarea value={motivoEncaminhamento} required onChange={(event) => { setMotivoEncaminhamento(event.target.value); setErroEncaminhamento(""); }} placeholder="Informe o motivo do encaminhamento" />
+          </label>
+          {erroEncaminhamento ? <p className="prototype-ingresso-cancelamento-error" role="alert">{erroEncaminhamento}</p> : null}
+        </div>
+      </ModalSeplag>
+      <ModalSeplag
         visible={Boolean(candidatoCancelamento)}
         titulo="Cancelar ingresso"
         fechar={fecharModalCancelamento}
@@ -15597,11 +15746,23 @@ export function PrototiposIngressosTesteDetalhePage() {
                     <small>{movimentacao.dataHora}</small>
                     <strong>Órgão responsável pelo ingresso alterado</strong>
                     <p>Órgão anterior: {movimentacao.orgaoAnterior}. Novo órgão responsável: {movimentacao.novoOrgaoResponsavel}.</p>
+                    {movimentacao.motivo ? <p>Motivo: {movimentacao.motivo}</p> : null}
                     <span className="prototype-ingressos-candidate-history-owner">Responsável: {movimentacao.operador}</span>
                   </div>
                 </li>
               ))}
-              {historicoDocumentacaoSelecionado.map((evento, indice) => (
+              {movimentacoesEfetivoHistorico.map((movimentacao, indice) => (
+                <li key={"encaminhamento-efetivo-" + indice}>
+                  <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-share-alt" aria-hidden="true" /></span>
+                  <div className="prototype-ingressos-candidate-history-card">
+                    <small>{movimentacao.dataHora}</small>
+                    <strong>Ingresso encaminhado — {movimentacao.etapa}</strong>
+                    <p>Órgão anterior: {movimentacao.orgaoAnterior}. Novo órgão responsável: {movimentacao.novoOrgaoResponsavel}.</p>
+                    {movimentacao.motivo ? <p>Motivo: {movimentacao.motivo}</p> : null}
+                    <span className="prototype-ingressos-candidate-history-owner">Responsável: {movimentacao.operador}</span>
+                  </div>
+                </li>
+              ))}              {historicoDocumentacaoSelecionado.map((evento, indice) => (
                 <li key={"documentacao-" + indice}>
                   <span className="prototype-ingressos-candidate-history-icon"><i className="pi pi-file-check" aria-hidden="true" /></span>
                   <div className="prototype-ingressos-candidate-history-card">
@@ -16024,7 +16185,7 @@ export function PrototiposIngressosPage() {
       dataHora: movimentacao.dataHora,
       operador: movimentacao.operador,
       resultado: "Apto" as const,
-      observacao: "Órgão anterior: " + movimentacao.orgaoAnterior + ". Novo órgão responsável: " + movimentacao.novoOrgaoResponsavel + ".",
+      observacao: "Órgão anterior: " + movimentacao.orgaoAnterior + ". Novo órgão responsável: " + movimentacao.novoOrgaoResponsavel + "." + (movimentacao.motivo ? " Motivo: " + movimentacao.motivo + "." : ""),
     }))];
   };
   const getResumoCandidatosConcursoProcesso = (candidatos: IngressoCandidatoRow[]) => {
@@ -17593,6 +17754,9 @@ export function PrototiposNovoIngressoPage() {
           : tipoVagaInicial || candidatoExistente?.tipoVaga || "AC",
       dataNomeacao: formatarDataPrazoPosse(dataNomeacaoPrazoPosse),
       orgaoDesignado: tipoIngresso === "Processo Seletivo" ? orgaoDesignado : undefined,
+      tipoVinculo: tipoIngresso === "Processo Seletivo"
+        ? activeTab === "tipo-ingresso" ? tipoVinculoEditavel : registroExistente?.tipoVinculo || tipoVinculoEditavel
+        : undefined,
       dataPosse: dataConclusaoEtapa2
         ? formatarDataIsoParaPtBr(dataConclusaoEtapa2)
         : dataPosseIngresso
