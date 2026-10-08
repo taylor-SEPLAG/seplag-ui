@@ -142,4 +142,36 @@ it("cria um comissionado em análise e o inclui na lista com histórico", () => 
   expect(criados[0].cpf).toBe("555.555.555-55");
   expect(JSON.parse(localStorage.getItem("prototype-ingresso-situacoes") ?? "{}")[String(criados[0].id)]).toBe("Em analise");
   expect(JSON.parse(localStorage.getItem("prototype-ingresso-historico-efetivo-exercicio") ?? "{}")["Exclusivo Comissionado|" + criados[0].id][0].titulo).toBe("Ingresso comissionado criado");
+  expect(JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}")[String(criados[0].id)].movimentacoes).toEqual([]);
+});
+
+it("registra no histórico a troca do órgão responsável pela análise", () => {
+  render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Exclusivo%20Comissionado"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
+  fireEvent.click(screen.getByRole("combobox", { name: /^CPF/ }));
+  fireEvent.click(within(screen.getByRole("listbox", { name: "CPFs cadastrados" })).getByRole("option", { name: /555\.555\.555-55/ }));
+  fireEvent.change(screen.getByRole("combobox", { name: /Cargo\/Função/ }), { target: { value: "Analista Administrativo" } });
+  fireEvent.change(screen.getByRole("combobox", { name: /Perfil Profissional/ }), { target: { value: "Gestão de Pessoas" } });
+  fireEvent.change(screen.getByRole("combobox", { name: /^Jornada/ }), { target: { value: "20 horas" } });
+  fireEvent.change(screen.getByRole("combobox", { name: /^Referência/ }), { target: { value: "001A" } });
+  fireEvent.change(screen.getByLabelText(/Data da Nomeação/) as HTMLInputElement, { target: { value: "2026-10-05" } });
+  fireEvent.change(screen.getByLabelText(/Ato de Nomeação/) as HTMLInputElement, { target: { value: "0006/2026" } });
+  fireEvent.click(screen.getByRole("radio", { name: /Sim, direcionar para outro órgão/ }));
+  fireEvent.change(screen.getByRole("combobox", { name: "Órgão responsável" }), { target: { value: "SES" } });
+  fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+
+  const [criado] = JSON.parse(localStorage.getItem("prototype-ingressos-comissionados-registros") ?? "[]");
+  const direcionamento = JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}")[String(criado.id)];
+  expect(direcionamento.orgaoOrigem).toBe("SEPLAG");
+  expect(direcionamento.responsavelAnalise).toBe("SES");
+  expect(direcionamento.movimentacoes).toHaveLength(1);
+  expect(direcionamento.movimentacoes[0]).toMatchObject({
+    orgaoAnterior: "SEPLAG",
+    novoOrgaoResponsavel: "SES",
+    operador: "Roberto Junior",
+  });
+  expect(direcionamento.movimentacoes[0].dataHora).toBeTruthy();
+  const historico = JSON.parse(localStorage.getItem("prototype-ingresso-historico-efetivo-exercicio") ?? "{}")["Exclusivo Comissionado|" + criado.id];
+  expect(historico.some((evento: { titulo: string; descricao: string }) =>
+    evento.titulo === "Órgão responsável pelo ingresso alterado" &&
+    evento.descricao.includes("Órgão anterior: SEPLAG. Novo órgão responsável: SES."))).toBe(true);
 });
