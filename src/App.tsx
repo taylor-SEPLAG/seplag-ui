@@ -1684,6 +1684,7 @@ function App() {
       />
       <Route path="/prototipos/sigep/vinculos-v2" element={<VinculoV2ConsultaPage />} />
       <Route path="/prototipos/sigep/vinculos-v2/novo" element={<VinculoV2CadastroPage />} />
+      <Route path="/prototipos/sigep/vinculos-v2/:id/editar" element={<VinculoV2CadastroPage />} />
       <Route path="/prototipos/sigep/vinculos-v2/:id" element={<VinculoV2DetalhesPage />} />
       <Route
         path="/prototipos/sigep/vinculos/novo"
