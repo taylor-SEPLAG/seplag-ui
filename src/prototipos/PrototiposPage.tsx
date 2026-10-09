@@ -423,7 +423,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Tipos de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo V2", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos-v2`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vida Funcional do Servidor", icon: "", to: `${SIGEP_BASE_PATH}/vida-funcional`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vida Funcional do Servidor", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vida-funcional`, visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {

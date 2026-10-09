@@ -1,7 +1,6 @@
 .vf-page { color:#193451; }
 .vf-conteudo { padding:4px 8px 16px; }
 .vf-conteudo>p { margin:0 0 16px; line-height:1.5; }
-.prototype-shell .layout-menu a[href$="/vida-funcional"]>i { display:none; }
 .prototype-shell .layout-menu a[href$="/vida-funcional"]>span { text-align:left; line-height:1.4; }
 .vf-acoes { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 16px; background:#f5f7f9; border:1px solid #dbe3ec; margin-bottom:20px; }
 .vf-page button,.vf-botao { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border:1px solid #c8d6e5; border-radius:4px; background:white; color:#193451; font:inherit; cursor:pointer; text-decoration:none; }
