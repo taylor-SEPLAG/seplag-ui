@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import "../cadastro/cadastroGeral.css";
 
 const areas = [
+  { titulo: "Vida Funcional do Servidor", descricao: "Consulte os vínculos e a trajetória funcional dos servidores.", icone: "pi pi-history", destino: "/prototipos/sigep/vida-funcional" },
   { titulo: "Tipos de Vínculos", descricao: "Configure os tipos de vínculo funcional disponíveis.", icone: "pi pi-tags", destino: "/prototipos/sigep/tipo-vinculo" },
   { titulo: "Gestão de Ingresso", descricao: "Acompanhe os ingressos de pessoas no serviço público.", icone: "pi pi-user-plus", destino: "/prototipos/sigep/ingressos-teste" },
   { titulo: "Efetivo Exercício", descricao: "Registre e acompanhe o efetivo exercício dos ingressos.", icone: "pi pi-check-circle", destino: "/prototipos/sigep/ingressos/efetivo-exercicio" },

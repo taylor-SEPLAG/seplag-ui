@@ -18,6 +18,7 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import "./App.css";
+import { VidaFuncionalPage } from "./prototipos/vidaFuncional/VidaFuncionalPage";
 import pkg from "../package.json";
 import { DocsLayout, DocsRenderer } from "./docs/layout/DocsLayout";
 import {
@@ -1802,6 +1803,9 @@ function App() {
       <Route path="/prototipos/sigep/movimentacao/cessoes/nova/externa" element={<PrototiposNovaCessaoExternaPage />} />
       <Route path="/prototipos/sigep/controle-pss" element={<PrototiposControleCertameGeralPage />} />
       <Route path="/prototipos/sigep/vinculos-funcionais" element={<PrototiposVinculosFuncionaisGeralPage />} />
+      <Route path="/prototipos/sigep/vida-funcional" element={<VidaFuncionalPage />} />
+      <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos" element={<VidaFuncionalPage />} />
+      <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos/:vinculoId/historico" element={<VidaFuncionalPage />} />
       <Route path="/prototipos/sigep/vacancia" element={<PrototiposVacanciaGeralPage />} />
       <Route path="/prototipos/sigep/vacancia/:modalidade" element={<PrototiposVacanciaGeralPage />} />
       <Route
