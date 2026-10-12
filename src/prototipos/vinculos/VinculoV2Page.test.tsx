@@ -13,7 +13,43 @@ const montar = (inicio = "/prototipos/sigep/vinculos-v2") => render(<MemoryRoute
 beforeEach(() => localStorage.clear());
 afterEach(() => { cleanup(); localStorage.clear(); });
 
-it("lista os 20 tipos e mostra vínculos ativos, inativos e encerrados", () => {
+it("preenche matrícula ao digitar CPF completo e limpa ao trocar o CPF", () => {
+  montar("/prototipos/sigep/vinculos-v2/novo?tipo=Provis%C3%B3rio");
+  const cpf = screen.getByRole("combobox", { name: /CPF/ });
+  const matricula = screen.getByLabelText(/Matrícula/) as HTMLInputElement;
+  expect(matricula.readOnly).toBe(true);
+  fireEvent.change(cpf, { target: { value: "00000000000" } });
+  expect(matricula.value).toBe("327305");
+  expect(screen.getByDisplayValue("João Silva")).toBeTruthy();
+  fireEvent.change(cpf, { target: { value: "111" } });
+  expect(matricula.value).toBe("");
+  fireEvent.change(cpf, { target: { value: "11111111111" } });
+  expect(matricula.value).toBe("418920");
+  expect(screen.getByDisplayValue("Maria Souza")).toBeTruthy();
+  fireEvent.change(cpf, { target: { value: "99999999999" } });
+  expect(matricula.value).toBe("");
+  expect(screen.getByRole("button", { name: "Salvar" }).hasAttribute("disabled")).toBe(true);
+});
+
+it("busca nome ou CPF no mesmo campo, combina matrícula e limpa os filtros internos", () => {
+  montar();
+  const linha = screen.getByText("Nomeado Efetivo", { selector: "strong" }).closest("tr") as HTMLTableRowElement;
+  fireEvent.click(within(linha).getByRole("button", { name: "Visualizar" }));
+  const filtros = screen.getByRole("region", { name: "Filtros de servidores de Nomeado Efetivo" });
+  fireEvent.change(within(filtros).getByLabelText("Nome ou CPF"), { target: { value: "joao" } });
+  expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(1);
+  fireEvent.change(within(filtros).getByLabelText("Nome ou CPF"), { target: { value: "000.000.000-00" } });
+  fireEvent.change(within(filtros).getByLabelText("Matrícula"), { target: { value: "327305" } });
+  expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(1);
+  fireEvent.change(within(filtros).getByLabelText("Matrícula"), { target: { value: "800001" } });
+  expect(screen.queryByRole("button", { name: "Ver detalhes" })).toBeNull();
+  expect(screen.getByText("Nenhum vínculo encontrado para os filtros informados.")).toBeTruthy();
+  expect(within(linha).getAllByRole("cell")[2].textContent).toBe("6");
+  fireEvent.click(within(filtros).getByRole("button", { name: "Limpar filtro" }));
+  expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(6);
+});
+
+it("lista os 20 tipos e mostra apenas vínculos ativos e encerrados", () => {
   montar();
   const tabela = screen.getByRole("region", { name: "Tipos de vínculo" });
   expect(within(tabela).getAllByRole("button", { name: "Visualizar" })).toHaveLength(10);
@@ -26,8 +62,8 @@ it("lista os 20 tipos e mostra vínculos ativos, inativos e encerrados", () => {
   expect(within(tabela).getByText("Contrato Temporário Vínculo Único")).toBeTruthy();
   const kpis = screen.getByRole("region", { name: "Indicadores de vínculos" });
   expect(kpis.textContent).toContain("Vínculos Ativos64");
-  expect(kpis.textContent).toContain("Vínculos Inativos22");
-  expect(kpis.textContent).toContain("Vínculos Encerrados22");
+  expect(kpis.textContent).not.toContain("Vínculos Inativos");
+  expect(kpis.textContent).toContain("Vínculos Encerrados44");
 });
 
 it("conta vínculos de todas as situações na coluna por tipo", () => {
@@ -50,7 +86,7 @@ it("adiciona cinco registros por tipo com situações variadas", () => {
     expect(total).toBeGreaterThanOrEqual(5);
     fireEvent.click(within(linha as HTMLTableRowElement).getByRole("button", { name: "Visualizar" }));
     const expandida = linha.nextElementSibling as HTMLTableRowElement;
-    for (const situacao of ["Ativo", "Inativo", "Encerrado"]) {
+    for (const situacao of ["Ativo", "Encerrado"]) {
       expect(within(expandida).getAllByText(situacao, { selector: ".v2v-status" }).length).toBeGreaterThan(0);
     }
   }
@@ -61,9 +97,12 @@ it("cadastra no tipo escolhido e preserva o número funcional do próximo víncu
   fireEvent.click(within(linha).getByRole("button", { name: "Visualizar" }));
   fireEvent.click(screen.getByRole("button", { name: "Cadastrar Vínculo" }));
   expect((screen.getByRole("combobox", { name: /Tipo de Vínculo/ }) as HTMLSelectElement).value).toBe("Estabilizado Constitucionalmente");
+  expect((screen.getByRole("combobox", { name: /Tipo de Vínculo/ }) as HTMLSelectElement).disabled).toBe(true);
   fireEvent.change(screen.getByRole("combobox", { name: /CPF/ }), { target: { value: "000" } });
   fireEvent.click(screen.getByRole("option", { name: /000\.000\.000-00/ }));
   expect((screen.getByDisplayValue("João Silva") as HTMLInputElement).readOnly).toBe(true);
+  expect((screen.getByLabelText(/Matrícula/) as HTMLInputElement).readOnly).toBe(true);
+  expect((screen.getByLabelText(/Matrícula/) as HTMLInputElement).value).toBe("327305");
   expect((screen.getByDisplayValue("3") as HTMLInputElement).readOnly).toBe(true);
   fireEvent.change(screen.getByLabelText(/Órgão\/Entidade/), { target: { value: "SEPLAG" } });
   fireEvent.change(screen.getByLabelText(/Lotação/), { target: { value: "Gabinete" } });
@@ -101,15 +140,18 @@ it("exibe Órgão/Entidade antes de Lotação nos detalhes", () => {
 });
 it("aplica filtros e abre detalhes sem permitir edição", () => {
   montar();
-  fireEvent.change(screen.getByLabelText("Lotação"), { target: { value: "Hospital Regional" } });
-  expect(screen.getByRole("region", { name: "Tipos de vínculo" }).querySelectorAll("tbody > tr")).toHaveLength(7);
+  fireEvent.change(screen.getByLabelText("Tipo de Vínculo"), { target: { value: "Contrato Temporário" } });
+  expect(screen.getByRole("region", { name: "Tipos de vínculo" }).querySelectorAll("tbody > tr")).toHaveLength(1);
+  expect(screen.queryByLabelText("Lotação")).toBeNull();
+  expect(screen.queryByLabelText("Servidor / CPF / Matrícula")).toBeNull();
   expect(within(screen.getByRole("region", { name: "Filtros de consulta" })).queryByRole("button", { name: "Pesquisar" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Limpar filtro" }));
   expect(screen.getByRole("region", { name: "Tipos de vínculo" }).querySelectorAll("tbody > tr")).toHaveLength(10);
-  fireEvent.change(screen.getByLabelText("Lotação"), { target: { value: "Hospital Regional" } });
+  fireEvent.change(screen.getByLabelText("Tipo de Vínculo"), { target: { value: "Contrato Temporário" } });
   const linha = screen.getByText("Contrato Temporário", { selector: "strong" }).closest("tr") as HTMLTableRowElement;
   fireEvent.click(within(linha).getByRole("button", { name: "Visualizar" }));
-  fireEvent.click(screen.getByRole("button", { name: "Ver detalhes" }));
+  const servidor = screen.getByText("Maria Souza").closest("tr") as HTMLTableRowElement;
+  fireEvent.click(within(servidor).getByRole("button", { name: "Ver detalhes" }));
   expect(screen.getByRole("heading", { name: /Detalhes do Vínculo/ })).toBeTruthy();
   expect(screen.getByText("418920")).toBeTruthy();
   expect(screen.queryByRole("button", { name: "Salvar Vínculo" })).toBeNull();
@@ -160,8 +202,9 @@ it.each([
 it.each([
   { data: "2024-01-10", forma: "Exoneração", esperada: "Encerrado" },
   { data: "2024-01-10", forma: "Término de contrato", esperada: "Encerrado" },
-  { data: "2024-01-10", forma: "Aposentadoria", esperada: "Inativo" },
-  { data: "2999-01-10", forma: "Exoneração", esperada: "Ativo" },
+  { data: "2024-01-10", forma: "Aposentadoria", esperada: "Encerrado" },
+  { data: "2024-01-10", forma: "Falecimento", esperada: "Encerrado" },
+  { data: "2999-01-10", forma: "Exoneração", esperada: "Encerrado" },
 ])("calcula a situação $esperada para $forma em $data", ({ data, forma, esperada }) => {
   montar("/prototipos/sigep/vinculos-v2/demo-1/editar");
   fireEvent.change(screen.getByLabelText(/Data de Vacância/), { target: { value: data } });
@@ -177,9 +220,20 @@ it.each([
 it("exige data e forma de vacância juntas", () => {
   montar("/prototipos/sigep/vinculos-v2/demo-1/editar");
   fireEvent.change(screen.getByLabelText(/Data de Vacância/), { target: { value: "2024-01-10" } });
+  expect(screen.getByText("Ativo", { selector: ".v2v-status" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
   expect(screen.getByRole("alert").textContent).toContain("Informe a Data de Vacância e a Forma de Vacância juntas.");
   expect(localStorage.getItem("prototype-vinculos-v2")).toBeNull();
+});
+
+it("mantém ativo com apenas a forma de vacância e encerra quando a data também é preenchida", () => {
+  montar("/prototipos/sigep/vinculos-v2/demo-1/editar");
+  fireEvent.change(screen.getByLabelText(/Forma de Vacância/), { target: { value: "Aposentadoria" } });
+  expect(screen.getByText("Ativo", { selector: ".v2v-status" })).toBeTruthy();
+  fireEvent.change(screen.getByLabelText(/Data de Vacância/), { target: { value: "2999-01-10" } });
+  expect(screen.getByText("Encerrado", { selector: ".v2v-status" })).toBeTruthy();
+  fireEvent.change(screen.getByLabelText(/Data de Vacância/), { target: { value: "" } });
+  expect(screen.getByText("Ativo", { selector: ".v2v-status" })).toBeTruthy();
 });
 
 it("mantém vínculo encerrado acessível na Gestão de Vínculos", () => {
@@ -192,8 +246,8 @@ it("mantém vínculo encerrado acessível na Gestão de Vínculos", () => {
   expect(screen.getAllByText("Encerrado", { selector: ".v2v-status" }).length).toBeGreaterThan(0);
   const kpis = screen.getByRole("region", { name: "Indicadores de vínculos" });
   expect(kpis.textContent).toContain("Vínculos Ativos63");
-  expect(kpis.textContent).toContain("Vínculos Inativos22");
-  expect(kpis.textContent).toContain("Vínculos Encerrados23");
+  expect(kpis.textContent).not.toContain("Vínculos Inativos");
+  expect(kpis.textContent).toContain("Vínculos Encerrados45");
 });
 it("organiza o formulário e ajusta perfil e jornada ao cargo", () => {
   montar("/prototipos/sigep/vinculos-v2/demo-1/editar");
@@ -208,7 +262,7 @@ it("organiza o formulário e ajusta perfil e jornada ao cargo", () => {
   expect((screen.getByRole("combobox", { name: /Jornada de Trabalho/ }) as HTMLSelectElement).value).toBe("20 horas");
 });
 it.each([
-  { tipo: "Estabilizado Constitucionalmente", nome: "Helena Martins", situacao: "Inativo", forma: "Aposentadoria" },
+  { tipo: "Estabilizado Constitucionalmente", nome: "Helena Martins", situacao: "Encerrado", forma: "Aposentadoria" },
   { tipo: "Empossado em Cargo Eletivo", nome: "Carla Nunes", situacao: "Encerrado", forma: "Exoneração" },
 ])("consulta o vínculo $situacao de $nome", ({ tipo, nome, situacao, forma }) => {
   montar();

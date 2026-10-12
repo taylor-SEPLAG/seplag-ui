@@ -41,11 +41,27 @@ export const eventos: Evento[] = vinculos.flatMap(v => {
   if (v.fim) lista.push(evento(v, 'Encerramento', v.fim, v.relacionadoId ? 'Aposentadoria e encerramento do vínculo efetivo' : v.classificacao === 'Falecido' ? 'Encerramento por falecimento' : 'Encerramento do vínculo', 'Encerramento de Vínculos', { 'Dados do Encerramento': { 'Tipo de encerramento': v.relacionadoId ? 'Aposentadoria' : v.classificacao === 'Falecido' ? 'Falecimento' : v.tipo === 'Contrato Temporário' ? 'Término do contrato' : 'Exoneração', 'Motivo': v.relacionadoId ? 'Concessão de aposentadoria' : 'Conclusão do vínculo funcional', 'Data do encerramento': dataBR(v.fim), 'Classificação anterior': 'Ativo', 'Classificação final': v.classificacao, 'Situação anterior': 'Vigente', 'Situação final': 'Encerrado', 'Justificativa/Observações': 'Histórico integralmente preservado.', ...(v.relacionadoId ? { 'Novo vínculo de Aposentado': `${v.matricula} / 2 — início em 01/07/2025` } : {}) } }));
   return lista;
 });
-export interface Filtros { nome: string; cpf: string; matricula: string; tipo: string; situacao: string }
-export const filtrosVazios: Filtros = { nome: '', cpf: '', matricula: '', tipo: '', situacao: '' };
+export interface Filtros {
+  busca: string;
+  tipo: string;
+  situacao: string;
+  /** Campos legados mantidos somente para compatibilidade com URLs e integrações anteriores. */
+  nome?: string;
+  cpf?: string;
+  matricula?: string;
+}
+export const filtrosVazios: Filtros = { busca: '', tipo: '', situacao: '' };
 const normalizar = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 export function pesquisarPessoas(f: Filtros) {
-  return pessoas.filter(p => normalizar(p.nome).includes(normalizar(f.nome.trim())) && p.cpf.replace(/\D/g, '').includes(f.cpf.replace(/\D/g, '')) && vinculos.some(v => v.pessoaId === p.id && v.matricula.includes(f.matricula.trim()) && (!f.tipo || v.tipo === f.tipo) && (!f.situacao || situacao(v) === f.situacao)));
+  const busca = f.busca?.trim() ?? '';
+  const termo = normalizar(busca);
+  const digitos = busca.replace(/\D/g, '');
+  return pessoas.filter(p => {
+    const vinculosCompativeis = vinculos.filter(v => v.pessoaId === p.id && (!f.tipo || v.tipo === f.tipo) && (!f.situacao || situacao(v) === f.situacao));
+    const correspondeBusca = !busca || normalizar(p.nome).includes(termo) || (digitos.length > 0 && p.cpf.replace(/\D/g, '').includes(digitos)) || vinculosCompativeis.some(v => v.matricula.includes(busca));
+    const correspondeLegado = (!f.nome || normalizar(p.nome).includes(normalizar(f.nome.trim()))) && (!f.cpf || p.cpf.replace(/\D/g, '').includes(f.cpf.replace(/\D/g, ''))) && (!f.matricula || vinculosCompativeis.some(v => v.matricula.includes(f.matricula!.trim())));
+    return vinculosCompativeis.length > 0 && correspondeBusca && correspondeLegado;
+  });
 }
 export function pesquisarEventos(vinculoId: string, tipo = '', inicio = '', fim = '', antigo = false) {
   return eventos.filter(e => e.vinculoId === vinculoId && (!tipo || e.tipo === tipo) && (!inicio || e.data >= inicio) && (!fim || e.data <= fim)).sort((a, b) => (antigo ? 1 : -1) * a.data.localeCompare(b.data) || a.id.localeCompare(b.id));

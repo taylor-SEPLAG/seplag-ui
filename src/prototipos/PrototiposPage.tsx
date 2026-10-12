@@ -12,6 +12,7 @@ import { getOrgaoAtuacaoIngresso, getPerfilVariacaoIngresso, podeAnalisarIngress
 import { CadastroGeralContent } from "./cadastro/CadastroGeralContent";
 import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
 import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
+import { TIPOS_VINCULO } from "./vinculos/tiposVinculo";
 import { VacanciaGeralContent } from "./vacancia/VacanciaGeralContent";
 import { MenuCardsContent, type MenuCardItem } from "./MenuCardsContent";
 import { useTiposCotaAtivos } from "./controlePss/tiposCota/tiposCotaStore";
@@ -420,9 +421,9 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
+          { label: "Dashboard de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/dashboard-vinculos`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tipos de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vínculo V2", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos-v2`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos-v2`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vida Funcional do Servidor", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vida-funcional`, visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -2326,45 +2327,26 @@ const criarTipoVinculo = (
 
 // Carga oficial e relações Regime Jurídico x Tipo de Vínculo do modelo SIGEP.
 const tiposVinculoTesteMock: TipoVinculoTesteRow[] = [
-  criarTipoVinculo(1, "Nomeado Efetivo", "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Sem Vínculo Empregatício"]),
-  criarTipoVinculo(2, "Exclusivamente Comissionado", "Comissionado", ["Estatutário Civil", "Regime Misto"]),
-  criarTipoVinculo(3, "Contrato Temporário", "Temporário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial", "Militar Temporário"]),
-  criarTipoVinculo(4, "Contrato Temporário Vínculo Único", "Temporário", ["Regime Especial"]),
-  criarTipoVinculo(5, "Residente Técnico", "Temporário", ["Sem Vínculo Empregatício"]),
-  criarTipoVinculo(6, "Estagiário", "Temporário", ["Sem Vínculo Empregatício"]),
-  criarTipoVinculo(7, "Bolsista", "Temporário", ["Estatutário Civil", "Regime Especial", "Sem Vínculo Empregatício"]),
-  criarTipoVinculo(8, "Estabilizado Constitucionalmente", "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial"]),
-  {
-    ...criarTipoVinculo(21, "Contrato Emergencial Extinto", "Temporário", ["Regime Especial"]),
-    descricao: "Tipo de vínculo extinto por alteração da legislação aplicável.",
-    vigencia: "01/01/2020 - 31/12/2024",
-    situacao: "ENCERRADO",
-    dataInicio: "01/01/2020",
-    dataEncerramento: "31/12/2024",
-    motivoEncerramento: "Extinção determinada pela legislação aplicável ao vínculo.",
-  },
-  {
-    ...criarTipoVinculo(22, "Programa Especial Encerrado", "Especial", ["Regime Especial"]),
-    descricao: "Tipo de vínculo encerrado automaticamente após o fim dos vínculos vigentes.",
-    vigencia: "01/01/2018 - 31/12/2023",
-    situacao: "EXTINTO",
-    dataInicio: "01/01/2018",
-    dataEncerramento: "31/12/2023",
-    motivoEncerramento: "Vínculo extinto conforme a legislação do programa especial.",
-    dataExtincao: "30/06/2024",
-  },
-  criarTipoVinculo(9, "Empossado em Cargo Eletivo", "Eletivo", ["Estatutário Civil"]),
-  criarTipoVinculo(10, "Nomeado Conselheiro", "Comissionado", ["Regime Misto"]),
-  criarTipoVinculo(11, "Designação AVNM", "Militar", ["Estatutário Militar"]),
-  criarTipoVinculo(12, "Convocação ATO GOV", "Militar", ["Estatutário Militar"]),
-  criarTipoVinculo(13, "Designação PTTC", "Militar", ["Estatutário Militar"]),
-  criarTipoVinculo(14, "Pensão Especial", "Previdenciário", ["Estatutário Civil", "Outros"]),
-  criarTipoVinculo(15, "Beneficiário de Aposentado", "Previdenciário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto"]),
-  criarTipoVinculo(16, "Provisório", "Temporário", ["Estatutário Civil", "Outros"]),
-  criarTipoVinculo(17, "Terceirizados", "Terceirizado"),
-  criarTipoVinculo(18, "Empregado Público", "Permanente"),
-  criarTipoVinculo(19, "Servidor Permutado", "Permanente"),
-  criarTipoVinculo(20, "Decisão Judicial", "Especial"),
+  criarTipoVinculo(1, TIPOS_VINCULO[0], "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Sem Vínculo Empregatício"]),
+  criarTipoVinculo(2, TIPOS_VINCULO[1], "Comissionado", ["Estatutário Civil", "Regime Misto"]),
+  criarTipoVinculo(3, TIPOS_VINCULO[2], "Temporário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial", "Militar Temporário"]),
+  criarTipoVinculo(4, TIPOS_VINCULO[3], "Temporário", ["Regime Especial"]),
+  criarTipoVinculo(5, TIPOS_VINCULO[4], "Temporário", ["Sem Vínculo Empregatício"]),
+  criarTipoVinculo(6, TIPOS_VINCULO[5], "Temporário", ["Sem Vínculo Empregatício"]),
+  criarTipoVinculo(7, TIPOS_VINCULO[6], "Temporário", ["Estatutário Civil", "Regime Especial", "Sem Vínculo Empregatício"]),
+  criarTipoVinculo(8, TIPOS_VINCULO[7], "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial"]),
+  criarTipoVinculo(9, TIPOS_VINCULO[8], "Eletivo", ["Estatutário Civil"]),
+  criarTipoVinculo(10, TIPOS_VINCULO[9], "Comissionado", ["Regime Misto"]),
+  criarTipoVinculo(11, TIPOS_VINCULO[10], "Militar", ["Estatutário Militar"]),
+  criarTipoVinculo(12, TIPOS_VINCULO[11], "Militar", ["Estatutário Militar"]),
+  criarTipoVinculo(13, TIPOS_VINCULO[12], "Militar", ["Estatutário Militar"]),
+  criarTipoVinculo(14, TIPOS_VINCULO[13], "Previdenciário", ["Estatutário Civil", "Outros"]),
+  criarTipoVinculo(15, TIPOS_VINCULO[14], "Previdenciário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto"]),
+  criarTipoVinculo(16, TIPOS_VINCULO[15], "Temporário", ["Estatutário Civil", "Outros"]),
+  criarTipoVinculo(17, TIPOS_VINCULO[16], "Terceirizado"),
+  criarTipoVinculo(18, TIPOS_VINCULO[17], "Permanente"),
+  criarTipoVinculo(19, TIPOS_VINCULO[18], "Permanente"),
+  criarTipoVinculo(20, TIPOS_VINCULO[19], "Especial"),
 ];
 
 const ingressosMock: IngressoRow[] = [
@@ -11664,6 +11646,7 @@ export function PrototiposTipoVinculoTestePage({
   const navigate = useNavigate();
   const [tipoVinculoRegimes, setTipoVinculoRegimes] = useState<TipoVinculoTesteRow | null>(null);
   const [tipoVinculoParaEncerrar, setTipoVinculoParaEncerrar] = useState<TipoVinculoTesteRow | null>(null);
+  const [paginaTipoVinculo, setPaginaTipoVinculo] = useState(0);
   const [searchParams] = useSearchParams();
   const regimeJuridicoParam = searchParams.get("regimeJuridico") ?? "";
   const regimeJuridicoInicial = Array.from(
@@ -11679,6 +11662,9 @@ export function PrototiposTipoVinculoTestePage({
     },
   });
   const filtros = watch();
+  useEffect(() => {
+    setPaginaTipoVinculo(0);
+  }, [filtros.termo, filtros.regimeJuridico, filtros.situacao]);
   const termoBusca = filtros.termo?.trim().toLowerCase();
   const tiposFiltrados = tiposVinculoTesteMock.filter((tipo) => {
     const atendeTermo =
@@ -11698,9 +11684,15 @@ export function PrototiposTipoVinculoTestePage({
       atendeTermo && atendeRegime && atendeSituacao
     );
   });
+  const totalPaginasTipoVinculo = Math.max(1, Math.ceil(tiposFiltrados.length / 10));
+  const paginaTipoVinculoAtual = Math.min(paginaTipoVinculo, totalPaginasTipoVinculo - 1);
   const tipoVinculoResults = {
     ...createResults(tiposFiltrados),
-    totalPages: Math.max(1, Math.ceil(tiposFiltrados.length / 10)),
+    pageActual: paginaTipoVinculoAtual,
+    number: paginaTipoVinculoAtual,
+    first: paginaTipoVinculoAtual === 0,
+    last: paginaTipoVinculoAtual === totalPaginasTipoVinculo - 1,
+    totalPages: totalPaginasTipoVinculo,
     totalRecords: tiposFiltrados.length,
     size: 10,
     sizePage: 10,
@@ -11836,7 +11828,7 @@ export function PrototiposTipoVinculoTestePage({
               renderBotoes={(row) => row.situacao === "ATIVO" ? (
                 <BotaoIconSeplag type="button" icon="pi pi-ban" severity="danger" tooltip="Extinguir" aria-label={`Extinguir tipo de vínculo ${row.nome}`} onClick={() => setTipoVinculoParaEncerrar(row)} />
               ) : null}
-              handleOnPageChange={() => {}}
+              handleOnPageChange={(evento) => setPaginaTipoVinculo(Math.floor(evento.first / evento.rows))}
             />
           </div>
         </CardSeplag>
@@ -22479,7 +22471,7 @@ export function PrototiposPessoaVinculosPage() {
                   {row.map((cell) => <td key={cell}>{cell}</td>)}
                   <td>
                     <div className="prototype-ingresso-action-row">
-                      <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar" onClick={() => navigate(`/prototipos/sigep/vinculos/${row[0]}`)} />
+                      <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar" onClick={() => navigate(`/prototipos/sigep/vinculos-v2/${row[0] === "1" ? "demo-1" : "demo-3"}`)} />
                       <BotaoIconSeplag type="button" icon="pi pi-history" tooltip="Histórico" />
                       <BotaoIconSeplag type="button" icon="pi pi-times" tooltip="Encerrar vínculo" severity="danger" />
                     </div>

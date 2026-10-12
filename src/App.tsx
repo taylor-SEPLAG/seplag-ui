@@ -157,12 +157,8 @@ import {
   PrototiposTipoVinculoTesteFormPage,
   PrototiposTipoVinculoTestePage,
 } from "./prototipos/PrototiposPage";
-import {
-  PrototiposVinculoCadastroPage,
-  PrototiposVinculoVisualizacaoPage,
-  PrototiposVinculosPage,
-} from "./prototipos/vinculos/VinculosPages";
 import { VinculoV2CadastroPage, VinculoV2ConsultaPage, VinculoV2DetalhesPage } from "./prototipos/vinculos/VinculoV2Page";
+import { DashboardVinculosPage } from "./prototipos/vinculos/DashboardVinculosPage";
 import { TabelaVencimentosFeaturePage } from "./prototipos/tabelaVencimentos/TabelaVencimentosFeaturePage";
 import { TabelaV2Page } from "./prototipos/tabelaV2/TabelaV2Page";
 import {
@@ -1679,22 +1675,11 @@ function App() {
         path="/prototipos/sigep/pessoas/:matricula/vinculos"
         element={<PrototiposPessoaVinculosPage />}
       />
-      <Route
-        path="/prototipos/sigep/vinculos"
-        element={<PrototiposVinculosPage />}
-      />
       <Route path="/prototipos/sigep/vinculos-v2" element={<VinculoV2ConsultaPage />} />
+      <Route path="/prototipos/sigep/dashboard-vinculos" element={<DashboardVinculosPage />} />
       <Route path="/prototipos/sigep/vinculos-v2/novo" element={<VinculoV2CadastroPage />} />
       <Route path="/prototipos/sigep/vinculos-v2/:id/editar" element={<VinculoV2CadastroPage />} />
       <Route path="/prototipos/sigep/vinculos-v2/:id" element={<VinculoV2DetalhesPage />} />
-      <Route
-        path="/prototipos/sigep/vinculos/novo"
-        element={<PrototiposVinculoCadastroPage />}
-      />
-      <Route
-        path="/prototipos/sigep/vinculos/:id"
-        element={<PrototiposVinculoVisualizacaoPage />}
-      />
       <Route path="/prototipos/sigep/controle-vagas/temporarios" element={<PrototiposVagasTemporariosPage />} />
       <Route path="/prototipos/sigep/controle-vagas/temporarios/vagas" element={<PrototiposVagasTemporariosIndividualizadasPage />} />
       <Route path="/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado" element={<PrototiposVagasTemporariosQuadroPage />} />
