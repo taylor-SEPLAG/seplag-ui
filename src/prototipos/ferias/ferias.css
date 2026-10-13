@@ -29,42 +29,48 @@
 
 .prototype-ferias-tabs {
   display: flex;
-  gap: 4px;
-  border-bottom: 2px solid #e2e8f0;
-  margin-bottom: 16px;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 18px;
 }
 
 .prototype-ferias-tab {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
+  gap: 6px;
+  padding: 10px 2px;
+  background: none;
   border: none;
-  background: transparent;
-  color: #51657a;
+  border-bottom: 2px solid transparent;
+  color: #64748b;
   font-weight: 600;
+  font-size: 0.92rem;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
+}
+
+.prototype-ferias-tab:hover {
+  color: #1d4ed8;
+}
+
+.prototype-ferias-tab.is-active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
 }
 
 .prototype-ferias-tab-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
   border-radius: 999px;
-  background: #b91c1c;
+  background: #dc2626;
   color: #fff;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-}
-
-.prototype-ferias-tab.is-active {
-  color: #1d4ed8;
-  border-bottom-color: #2563eb;
 }
 
 .prototype-ferias-banner {
@@ -82,9 +88,15 @@
 
 .prototype-ferias-indicadores {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  gap: 14px;
   margin-bottom: 18px;
+}
+
+@media (max-width: 900px) {
+  .prototype-ferias-indicadores {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
 }
 
 .prototype-ferias-indicador {
@@ -163,56 +175,51 @@
   color: #1e293b;
 }
 
-.prototype-ferias-filtros {
-  display: grid;
-  grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) minmax(200px, 1fr) minmax(140px, 180px) max-content max-content;
-  align-items: end;
-  gap: 14px;
-  margin-bottom: 16px;
-}
-
-.prototype-ferias-btn-buscar {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 42px;
-  padding: 0 16px;
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.prototype-ferias-btn-buscar:hover {
-  background: #1d4ed8;
-}
-
-.prototype-ferias-filtros label {
+.prototype-ferias-filtros.grid {
   display: flex;
-  flex-direction: column;
-  gap: 7px;
-  color: #193451;
-  font-weight: 600;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  margin: 0 0 10px;
 }
 
-.prototype-ferias-filtros input,
-.prototype-ferias-filtros select {
-  min-height: 42px;
-  box-sizing: border-box;
-  padding: 9px 12px;
-  border: 1px solid #c8d6e5;
-  border-radius: 5px;
-  background: #fff;
-  color: #102a43;
-  font: inherit;
+.prototype-ferias-filtros.grid > [class*="col-"] {
+  flex: 1 1 240px;
+  width: auto;
+  max-width: none;
+  padding: 0;
+}
+
+.prototype-ferias-filtros .prototype-category-clear {
+  flex: 0 0 auto;
+  min-height: auto;
+}
+
+.prototype-ferias-filtros .prototype-category-clear .p-button {
+  white-space: nowrap;
+  padding: 0 16px;
+  height: 46px !important;
+}
+
+.prototype-ferias-filtros .p-dropdown,
+.prototype-ferias-filtros .p-inputtext {
+  height: 46px !important;
+  font-size: 1rem;
+}
+
+.prototype-ferias-filtros .p-dropdown .p-dropdown-label,
+.prototype-ferias-filtros .p-dropdown .p-dropdown-trigger {
+  height: 44px;
+}
+
+.prototype-ferias-filtros .label-rotulo {
+  font-size: 0.95rem;
 }
 
 .prototype-ferias-acoes-topo {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 14px;
+  justify-content: flex-start;
+  margin-bottom: 10px;
 }
 
 .prototype-ferias-btn-primario {
@@ -257,139 +264,45 @@
   font-weight: 700;
 }
 
-.prototype-ferias-badge {
-  display: inline-flex;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
+.prototype-ferias-content .prototype-efetivo-exercicio-table-wrap .prototype-simple-table th,
+.prototype-ferias-content .prototype-efetivo-exercicio-table-wrap .prototype-simple-table td {
+  padding: 8px 12px;
+  font-size: 0.88rem;
 }
 
-.prototype-ferias-badge.is-aguardando-validacao { background: #f5f3ff; color: #6d28d9; }
-.prototype-ferias-badge.is-em-aberto { background: #f0fdf4; color: #166534; }
-.prototype-ferias-badge.is-quitado { background: #eff6ff; color: #1d4ed8; }
-.prototype-ferias-badge.is-cancelado { background: #fef2f2; color: #b91c1c; }
-.prototype-ferias-badge.is-suspenso { background: #fffbeb; color: #9a3412; }
-
-.prototype-ferias-badge-chefia {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: 8px;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: #fffbeb;
-  color: #b45309;
-  font-size: 0.68rem;
-  font-weight: 700;
+.prototype-ferias-content .prototype-ingresso-actions-trigger {
+  height: 32px;
 }
 
-.prototype-ferias-badge-tipo {
-  display: inline-flex;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 0.74rem;
-  font-weight: 700;
+.prototype-ferias-content .prototype-ingresso-actions-trigger button {
+  height: 32px;
 }
 
-.prototype-ferias-badge-origem {
-  display: inline-flex;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.prototype-ferias-badge-origem.is-portalservidor { background: #f5f3ff; color: #6d28d9; }
-.prototype-ferias-badge-origem.is-sigep { background: #f0f9ff; color: #0369a1; }
-
-.prototype-ferias-acao-dropdown {
-  position: relative;
-  display: inline-flex;
-  gap: 4px;
-}
-
-.prototype-ferias-btn-acao {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.prototype-ferias-content .prototype-ingresso-actions-eye {
   width: 36px;
-  height: 34px;
-  border: none;
-  border-radius: 5px 0 0 5px;
-  background: #2563eb;
-  color: #fff;
-  cursor: pointer;
 }
 
-.prototype-ferias-btn-acao-caret {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.prototype-ferias-content .prototype-ingresso-actions-arrow {
   width: 26px;
-  height: 34px;
-  border: none;
-  border-left: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 0 5px 5px 0;
-  background: #2563eb;
-  color: #fff;
-  cursor: pointer;
 }
 
-.prototype-ferias-btn-acao:hover,
-.prototype-ferias-btn-acao-caret:hover {
-  background: #1d4ed8;
-}
 
-.prototype-ferias-menu-acoes {
-  position: absolute;
-  top: 38px;
-  right: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  min-width: 210px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
-  overflow: hidden;
-}
-
-.prototype-ferias-menu-acoes button {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 14px;
-  border: none;
-  background: #fff;
-  color: #334155;
-  text-align: left;
-  font-size: 0.86rem;
-  cursor: pointer;
-}
-
-.prototype-ferias-menu-acoes button:hover:not(:disabled) {
-  background: #f1f5f9;
-}
-
-.prototype-ferias-menu-acoes button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.prototype-ferias-menu-acoes button.is-acao-ambar {
+.prototype-ferias-content .prototype-ingresso-actions-menu button.is-acao-ambar {
   color: #92400e;
 }
 
-.prototype-ferias-menu-acoes button.is-acao-verde {
+.prototype-ferias-content .prototype-ingresso-actions-menu button.is-acao-verde {
   color: #15803d;
 }
 
-.prototype-ferias-menu-acoes button.is-acao-vermelha {
+.prototype-ferias-content .prototype-ingresso-actions-menu button.is-acao-vermelha {
   color: #b91c1c;
+}
+
+.prototype-ferias-content .prototype-ingresso-actions-menu button.is-acao-ambar i,
+.prototype-ferias-content .prototype-ingresso-actions-menu button.is-acao-verde i,
+.prototype-ferias-content .prototype-ingresso-actions-menu button.is-acao-vermelha i {
+  color: inherit;
 }
 
 .prototype-ferias-row-actions {
@@ -769,37 +682,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.prototype-ferias-btn-validar,
-.prototype-ferias-btn-rejeitar {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 36px;
-  padding: 0 14px;
-  border-radius: 5px;
-  font-weight: 600;
-  font-size: 0.82rem;
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-
-.prototype-ferias-btn-validar {
-  background: #15803d;
-  color: #fff;
-}
-.prototype-ferias-btn-validar:hover {
-  background: #116630;
-}
-
-.prototype-ferias-btn-rejeitar {
-  background: #fff;
-  border-color: #fecaca;
-  color: #b91c1c;
-}
-.prototype-ferias-btn-rejeitar:hover {
-  background: #fef2f2;
 }
 
 /* Autocomplete de servidor */
