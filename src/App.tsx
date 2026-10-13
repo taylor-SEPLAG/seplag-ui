@@ -189,6 +189,11 @@ import { PrototiposCorrecaoCessaoPage } from "./prototipos/cessoes/CorrecaoCessa
 import { PrototiposNovaCessaoExternaPage, PrototiposNovaCessaoInternaPage } from "./prototipos/cessoes/NovaCessaoPages";
 import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
 import { PrototiposOrganogramaPage } from "./prototipos/estruturaOrganizacional/OrganogramaPage";
+import { PrototiposFeriasPage } from "./prototipos/ferias/FeriasPages";
+import { FeriasIndividualPage } from "./prototipos/ferias/FeriasIndividualPage";
+import { FeriasColetivaPage } from "./prototipos/ferias/FeriasColetivaPage";
+import { FeriasLotePage } from "./prototipos/ferias/FeriasLotePage";
+import { FeriasRecessoPage } from "./prototipos/ferias/FeriasRecessoPage";
 import { PrototiposOrganogramaCanvasPage } from "./prototipos/estruturaOrganizacional/OrganogramaCanvasPage";
 import { PrototiposLimitesDgaPage } from "./prototipos/estruturaOrganizacional/LimitesDgaPage";
 import { PrototiposNovoLimiteDgaPage } from "./prototipos/controleVagasComissionados/NovoLimiteDgaPage";
@@ -1828,6 +1833,11 @@ function App() {
       <Route path="/prototipos/sigep/vida-funcional" element={<VidaFuncionalPage />} />
       <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos" element={<VidaFuncionalPage />} />
       <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos/:vinculoId/historico" element={<VidaFuncionalPage />} />
+      <Route path="/prototipos/sigep/ferias" element={<PrototiposFeriasPage />} />
+      <Route path="/prototipos/sigep/ferias/nova/individual" element={<FeriasIndividualPage />} />
+      <Route path="/prototipos/sigep/ferias/nova/coletiva" element={<FeriasColetivaPage />} />
+      <Route path="/prototipos/sigep/ferias/nova/lote" element={<FeriasLotePage />} />
+      <Route path="/prototipos/sigep/ferias/nova/recesso" element={<FeriasRecessoPage />} />
       <Route path="/prototipos/sigep/vacancia" element={<PrototiposVacanciaGeralPage />} />
       <Route path="/prototipos/sigep/vacancia/:modalidade" element={<PrototiposVacanciaGeralPage />} />
       <Route

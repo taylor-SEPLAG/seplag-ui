@@ -1,0 +1,997 @@
+.prototype-ferias-content {
+  padding: 4px 8px 16px;
+}
+
+.prototype-ferias-perfil-seletor {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.prototype-ferias-perfil-seletor label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #51657a;
+}
+
+.prototype-ferias-perfil-seletor select {
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #c8d6e5;
+  border-radius: 5px;
+  background: #fff;
+  font: inherit;
+  color: #102a43;
+}
+
+.prototype-ferias-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.prototype-ferias-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: #51657a;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.prototype-ferias-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.prototype-ferias-tab.is-active {
+  color: #1d4ed8;
+  border-bottom-color: #2563eb;
+}
+
+.prototype-ferias-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 0.92rem;
+}
+
+.prototype-ferias-indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.prototype-ferias-indicador {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.prototype-ferias-indicador.is-sucesso { background: #f0fdf4; border-color: #bbf7d0; }
+.prototype-ferias-indicador.is-info { background: #eff6ff; border-color: #bfdbfe; }
+.prototype-ferias-indicador.is-alerta { background: #fffbeb; border-color: #fde68a; }
+.prototype-ferias-indicador.is-roxo { background: #f5f3ff; border-color: #ddd6fe; }
+.prototype-ferias-indicador.is-vermelho { background: #fef2f2; border-color: #fecaca; }
+
+.prototype-ferias-sub-aba {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prototype-ferias-sub-titulo {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.prototype-ferias-sub-subtitulo {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.prototype-ferias-sub-filtros {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(160px, 220px) max-content;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.prototype-ferias-sub-filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #193451;
+  font-weight: 600;
+}
+
+.prototype-ferias-sub-filtros input,
+.prototype-ferias-sub-filtros select {
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid #c8d6e5;
+  border-radius: 5px;
+  background: #fff;
+  color: #102a43;
+  font: inherit;
+}
+
+.prototype-ferias-indicador-rotulo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #64748a;
+  text-transform: uppercase;
+}
+
+.prototype-ferias-indicador-valor {
+  font-size: 1.5rem;
+  color: #1e293b;
+}
+
+.prototype-ferias-filtros {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) minmax(200px, 1fr) minmax(140px, 180px) max-content max-content;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.prototype-ferias-btn-buscar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prototype-ferias-btn-buscar:hover {
+  background: #1d4ed8;
+}
+
+.prototype-ferias-filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #193451;
+  font-weight: 600;
+}
+
+.prototype-ferias-filtros input,
+.prototype-ferias-filtros select {
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid #c8d6e5;
+  border-radius: 5px;
+  background: #fff;
+  color: #102a43;
+  font: inherit;
+}
+
+.prototype-ferias-acoes-topo {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.prototype-ferias-btn-primario {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 18px;
+  min-height: 42px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prototype-ferias-btn-primario:hover {
+  background: #1d4ed8;
+}
+
+.prototype-ferias-table-wrap {
+  overflow-x: auto;
+}
+
+.prototype-ferias-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.prototype-ferias-table th,
+.prototype-ferias-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.prototype-ferias-table th {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 700;
+}
+
+.prototype-ferias-badge {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.prototype-ferias-badge.is-aguardando-validacao { background: #f5f3ff; color: #6d28d9; }
+.prototype-ferias-badge.is-em-aberto { background: #f0fdf4; color: #166534; }
+.prototype-ferias-badge.is-quitado { background: #eff6ff; color: #1d4ed8; }
+.prototype-ferias-badge.is-cancelado { background: #fef2f2; color: #b91c1c; }
+.prototype-ferias-badge.is-suspenso { background: #fffbeb; color: #9a3412; }
+
+.prototype-ferias-badge-chefia {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fffbeb;
+  color: #b45309;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.prototype-ferias-badge-tipo {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.prototype-ferias-badge-origem {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.prototype-ferias-badge-origem.is-portalservidor { background: #f5f3ff; color: #6d28d9; }
+.prototype-ferias-badge-origem.is-sigep { background: #f0f9ff; color: #0369a1; }
+
+.prototype-ferias-acao-dropdown {
+  position: relative;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.prototype-ferias-btn-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 34px;
+  border: none;
+  border-radius: 5px 0 0 5px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.prototype-ferias-btn-acao-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 0 5px 5px 0;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.prototype-ferias-btn-acao:hover,
+.prototype-ferias-btn-acao-caret:hover {
+  background: #1d4ed8;
+}
+
+.prototype-ferias-menu-acoes {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 210px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.prototype-ferias-menu-acoes button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border: none;
+  background: #fff;
+  color: #334155;
+  text-align: left;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.prototype-ferias-menu-acoes button:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.prototype-ferias-menu-acoes button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.prototype-ferias-menu-acoes button.is-acao-ambar {
+  color: #92400e;
+}
+
+.prototype-ferias-menu-acoes button.is-acao-verde {
+  color: #15803d;
+}
+
+.prototype-ferias-menu-acoes button.is-acao-vermelha {
+  color: #b91c1c;
+}
+
+.prototype-ferias-row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.prototype-ferias-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #c8d6e5;
+  border-radius: 5px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+}
+
+.prototype-ferias-icon-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.prototype-ferias-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.prototype-ferias-empty {
+  text-align: center;
+  color: #64748a;
+  padding: 24px 0;
+}
+
+.prototype-ferias-modal-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.prototype-ferias-modal-tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #c8d6e5;
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.prototype-ferias-modal-tab.is-active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.prototype-ferias-escolha-tipo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prototype-ferias-escolha-subtitulo {
+  margin: 0 0 4px;
+  color: #334155;
+  font-size: 0.92rem;
+}
+
+.prototype-ferias-opcao-tipo {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+
+.prototype-ferias-opcao-tipo:hover {
+  filter: brightness(0.98);
+}
+
+.prototype-ferias-opcao-icone {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 1rem;
+}
+
+.prototype-ferias-opcao-tipo div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prototype-ferias-opcao-tipo strong {
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.prototype-ferias-opcao-tipo span {
+  color: #51657a;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.prototype-ferias-opcao-tipo.is-azul {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+.prototype-ferias-opcao-tipo.is-azul .prototype-ferias-opcao-icone {
+  color: #2563eb;
+}
+
+.prototype-ferias-opcao-tipo.is-ambar {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+.prototype-ferias-opcao-tipo.is-ambar .prototype-ferias-opcao-icone {
+  color: #d97706;
+}
+
+.prototype-ferias-opcao-tipo.is-roxo {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+.prototype-ferias-opcao-tipo.is-roxo .prototype-ferias-opcao-icone {
+  color: #7c3aed;
+}
+
+.prototype-ferias-opcao-tipo.is-verde {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.prototype-ferias-opcao-tipo.is-verde .prototype-ferias-opcao-icone {
+  color: #15803d;
+}
+
+.prototype-ferias-btn-fechar-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  min-height: 40px;
+  background: #fff;
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prototype-ferias-btn-fechar-outline:hover {
+  background: #eff6ff;
+}
+
+.prototype-ferias-form-section {
+  margin-bottom: 18px;
+}
+
+.prototype-ferias-form-section h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  color: #193451;
+}
+
+.prototype-ferias-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.prototype-ferias-form-grid label,
+.prototype-ferias-form-section label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #193451;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.prototype-ferias-form-grid input,
+.prototype-ferias-form-grid select,
+.prototype-ferias-form-section input,
+.prototype-ferias-form-section select {
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #c8d6e5;
+  border-radius: 5px;
+  font: inherit;
+}
+
+.prototype-ferias-readonly-field {
+  background: #f1f5f9;
+  color: #51657a;
+}
+
+.prototype-ferias-parcelas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prototype-ferias-parcela-linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr max-content;
+  gap: 10px;
+  align-items: end;
+}
+
+.prototype-ferias-lote-filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.prototype-ferias-lote-table-wrap {
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.prototype-ferias-alerta-texto {
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.prototype-ferias-saldo-inconsistente {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.prototype-ferias-saldo-ok {
+  color: #15803d;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 0 0 12px;
+}
+
+.prototype-ferias-saldo-erro {
+  color: #b91c1c;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 0 0 12px;
+}
+
+.prototype-ferias-linha-desabilitada {
+  opacity: 0.55;
+}
+
+.prototype-ferias-erro-bloqueio {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+}
+
+.prototype-ferias-confirmacao {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+}
+
+.prototype-ferias-sub-grid {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+}
+
+.prototype-ferias-sub-grid th,
+.prototype-ferias-sub-grid td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.prototype-ferias-sub-nova-linha {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr max-content max-content;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+.prototype-ferias-sub-nova-linha label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #193451;
+}
+
+.prototype-ferias-sub-nova-linha input {
+  min-height: 38px;
+  padding: 7px 9px;
+  border: 1px solid #c8d6e5;
+  border-radius: 5px;
+  font: inherit;
+}
+
+.prototype-ferias-sub-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  border: 1px dashed #93c5fd;
+  color: #1d4ed8;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prototype-ferias-fila-aprovacao {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prototype-ferias-card-aprovacao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  flex-wrap: wrap;
+}
+
+.prototype-ferias-card-aprovacao-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.86rem;
+}
+
+.prototype-ferias-card-aprovacao-sub {
+  color: #51657a;
+  font-size: 0.8rem;
+}
+
+.prototype-ferias-card-aprovacao-prazo {
+  color: #6d28d9;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.prototype-ferias-card-aprovacao-acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prototype-ferias-btn-validar,
+.prototype-ferias-btn-rejeitar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.prototype-ferias-btn-validar {
+  background: #15803d;
+  color: #fff;
+}
+.prototype-ferias-btn-validar:hover {
+  background: #116630;
+}
+
+.prototype-ferias-btn-rejeitar {
+  background: #fff;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+.prototype-ferias-btn-rejeitar:hover {
+  background: #fef2f2;
+}
+
+/* Autocomplete de servidor */
+.prototype-ferias-servidor-encontrado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
+.prototype-ferias-input-autopreenchido {
+  background: #f0fdf4 !important;
+  border-color: #86efac !important;
+  color: #166534 !important;
+  cursor: default;
+}
+
+.prototype-ferias-btn-limpar-servidor {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #6b7280;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.prototype-ferias-btn-limpar-servidor:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.prototype-ferias-campo-servidor-matricula {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+}
+.prototype-ferias-campo-servidor-matricula label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+.prototype-ferias-campo-servidor-matricula label input {
+  height: 38px;
+}
+
+/* Painel carência */
+.prototype-ferias-carencia-painel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+}
+.prototype-ferias-carencia-linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.prototype-ferias-carencia-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.prototype-ferias-carencia-label {
+  font-size: 0.72rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.prototype-ferias-carencia-seta {
+  color: #94a3b8;
+  font-size: 1.1rem;
+}
+.prototype-ferias-carencia-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.prototype-ferias-carencia-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 20px;
+  padding: 4px 12px;
+  border: 1px solid transparent;
+}
+.prototype-ferias-carencia-badge.is-ok {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+.prototype-ferias-carencia-badge.is-erro {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+.prototype-ferias-carencia-badge.is-info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+select.prototype-ferias-input-autopreenchido {
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+}
+
+.prototype-ferias-form-grid select.prototype-ferias-input-autopreenchido,
+.prototype-ferias-form-grid select[disabled].prototype-ferias-input-autopreenchido {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: none !important;
+  pointer-events: none;
+}
+
+.prototype-ferias-form-grid select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none;
+}
+
+.prototype-ferias-form-grid input[readonly]:not(.prototype-ferias-input-autopreenchido) {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: default;
+  border-color: #e2e8f0;
+}
+
+/* ── Nova solicitação página dedicada ── */
+.prototype-ferias-nova-pagina {
+  padding: 8px 0;
+}
+
+.prototype-ferias-nova-pagina-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.prototype-ferias-nova-pagina-header h2 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+}
+
+.prototype-ferias-nova-pagina-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.prototype-ferias-btn-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #374151;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.prototype-ferias-btn-voltar:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
