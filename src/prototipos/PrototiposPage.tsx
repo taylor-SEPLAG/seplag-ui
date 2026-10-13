@@ -507,7 +507,19 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
               { label: "Demissão disciplinar", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/demissao-disciplinar", visibleOnMenu: true, visibleOnRouter: true },
             ],
           },
-          { label: "Exoneração/destituição", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao", visibleOnMenu: true, visibleOnRouter: true },
+          {
+            label: "Exoneração/destituição",
+            icon: "pi pi-circle-on",
+            to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao",
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+            items: [
+              { label: "Exoneração a pedido", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-pedido", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Livre exoneração", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-oficio-livre", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Não comparecimento ou ausências", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/nao-comparecimento-ausencias", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Destituição disciplinar", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/destituicao-disciplinar", visibleOnMenu: true, visibleOnRouter: true },
+            ],
+          },
           {
             label: "Encerramento Bolsa",
             icon: "pi pi-circle-on",
