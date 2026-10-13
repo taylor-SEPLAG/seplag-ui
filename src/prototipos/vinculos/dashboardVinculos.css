@@ -1,0 +1,241 @@
+.dv-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.dv-kpi-general > i {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+.dv-page .dv-filters {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+}
+.dv-filters .v2v-filter-actions {
+  align-self: end;
+}
+.dv-page h2 {
+  margin: 0 0 18px;
+  color: #123c65;
+  font-size: 1rem;
+}
+.dv-charts {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(300px, 1fr);
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+.dv-side-charts {
+  display: grid;
+  gap: 18px;
+}
+.dv-charts .v2v-panel {
+  margin: 0;
+}
+.dv-chart-legend {
+  display: flex;
+  gap: 22px;
+  margin-bottom: 22px;
+}
+.dv-chart-legend > span {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: #49627c;
+  font-size: 0.9rem;
+}
+.dv-chart-legend i,
+.dv-distribution-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.dv-chart-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+.dv-chart-scroll svg {
+  display: block;
+  max-width: none;
+}
+.dv-axis-label {
+  fill: #49627c;
+  font-size: 11px;
+}
+.dv-bar-value {
+  fill: #123354;
+  font-size: 12px;
+  font-weight: 600;
+}
+.dv-chart-scroll a:hover rect,
+.dv-chart-scroll a:focus-visible rect {
+  opacity: 0.75;
+}
+.dv-chart-scroll a:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 3px;
+}
+.dv-chart-hint,
+.dv-muted,
+.dv-info {
+  color: #60758a;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.dv-chart-hint {
+  margin: 20px 0 0;
+}
+.dv-donut {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 18px;
+}
+.dv-donut svg {
+  width: 100%;
+  height: 100%;
+}
+.dv-donut > div {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.dv-donut strong {
+  color: #123354;
+  font-size: 1.7rem;
+}
+.dv-donut span {
+  color: #60758a;
+  font-size: 0.8rem;
+}
+.dv-distribution-legend {
+  display: grid;
+  gap: 10px;
+}
+.dv-distribution-legend a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #243f5c;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.dv-distribution-legend strong {
+  margin-left: auto;
+  font-weight: 600;
+}
+.dv-vacancy-bar {
+  display: block;
+  color: #243f5c;
+  text-decoration: none;
+  margin-top: 16px;
+}
+.dv-vacancy-bar > span:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.84rem;
+}
+.dv-vacancy-bar strong {
+  white-space: nowrap;
+  font-weight: 600;
+}
+.dv-track {
+  display: block;
+  height: 7px;
+  margin-top: 7px;
+  border-radius: 3px;
+  background: #f5e7e9;
+  overflow: hidden;
+}
+.dv-track > span {
+  display: block;
+  height: 100%;
+  background: #c62828;
+  border-radius: 3px;
+}
+.dv-summary {
+  padding: 0;
+}
+.dv-summary h2 {
+  margin: 0;
+  padding: 16px;
+  border-bottom: 1px solid #dce5ee;
+}
+.dv-summary .v2v-table {
+  min-width: 920px;
+}
+.dv-summary .v2v-table td:last-child,
+.dv-summary .v2v-table th:last-child {
+  text-align: left;
+}
+.dv-summary .v2v-table tfoot {
+  background: #f7f8fa;
+  font-weight: 700;
+}
+.dv-summary a {
+  color: #1760a6;
+  text-decoration: none;
+}
+.dv-count {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 36px;
+  padding: 5px 9px;
+  border-radius: 4px;
+  background: #e3f2fd;
+}
+.dv-summary .dv-count-closed {
+  color: #c62828;
+  background: #ffebee;
+}
+.dv-page a:hover {
+  text-decoration: underline;
+}
+.dv-page a:focus-visible,
+.dv-chart-scroll:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 3px;
+}
+.dv-info {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  margin: 18px 0 0;
+}
+.dv-info i {
+  margin-top: 3px;
+}
+.dv-consulta-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  color: #49627c;
+  font-size: 0.9rem;
+}
+@media (max-width: 1100px) {
+  .dv-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dv-charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dv-side-charts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dv-page .dv-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .dv-kpis,
+  .dv-side-charts,
+  .dv-page .dv-filters {
+    grid-template-columns: 1fr;
+  }
+}

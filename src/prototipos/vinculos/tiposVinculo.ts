@@ -1,0 +1,23 @@
+// Catálogo compartilhado pela Gestão de Vínculos e pelo cadastro de tipos.
+export const TIPOS_VINCULO = [
+  "Nomeado Efetivo",
+  "Exclusivamente Comissionado",
+  "Contrato Temporário",
+  "Contrato Temporário Vínculo Único",
+  "Residente Técnico",
+  "Estagiário",
+  "Bolsista",
+  "Estabilizado Constitucionalmente",
+  "Empossado em Cargo Eletivo",
+  "Nomeado Conselheiro",
+  "Designação AVNM",
+  "Convocação ATO GOV",
+  "Designação PTTC",
+  "Pensão Especial",
+  "Beneficiário de Aposentado",
+  "Provisório",
+  "Terceirizados",
+  "Empregado Público",
+  "Servidor Permutado",
+  "Decisão Judicial",
+] as const;

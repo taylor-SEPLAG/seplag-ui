@@ -10,8 +10,11 @@ import { ControleVagasGeralContent } from "./controleVagas/ControleVagasGeralCon
 import { IngressoGeralContent } from "./ingresso/IngressoGeralContent";
 import { getOrgaoAtuacaoIngresso, getPerfilVariacaoIngresso, podeAnalisarIngresso, podeConsultarIngresso, podeRegistrarEfetivo, SeletorPerfilVariacaoIngresso, usePerfilVariacaoIngresso } from "./ingresso/perfilVariacao";
 import { CadastroGeralContent } from "./cadastro/CadastroGeralContent";
+import { listarInformativosPaginaInicial, atualizarInformativosPaginaInicial } from "./paginaInicial/informativos";
 import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
 import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
+import { TIPOS_VINCULO } from "./vinculos/tiposVinculo";
+import { incorporarDocumentoValidado } from "./pastaFuncional/pastaFuncionalStore";
 import { VacanciaGeralContent } from "./vacancia/VacanciaGeralContent";
 import { TerminoPrazoContent } from "./desligamento/TerminoPrazoContent";
 import { RescisaoIniciativaContratadoContent } from "./desligamento/RescisaoIniciativaContratadoContent";
@@ -181,6 +184,8 @@ import { TipoCotaFormContent as PssTipoCotaFormContent } from "./controlePss/tip
 import { FaseCertameFormContent as PssFaseCertameFormContent } from "./controlePss/fasesCertame/FaseCertameFormContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
+export const SIGEP_PAGINA_INICIAL_PATH = "/prototipos/sigep/pagina-inicial";
+export const USUARIO_SIGEP_LOGADO = { nome: "ROBERTO JUNIOR" };
 const SIGEP_PAINEL_INFORMATIVO_PATH =
   "/prototipos/sigep/gestao/painel-informativo";
 const SIGEP_CARGO_CONCURSO_TESTE_BASE_PATH =
@@ -291,6 +296,7 @@ interface CargoConcursoRouteProps {
 }
 
 export const menuGestaoPessoas: IMenuSeplag[] = [
+  { label: "Página Inicial", icon: "pi pi-home", to: SIGEP_PAGINA_INICIAL_PATH, visibleOnMenu: true, visibleOnRouter: true },
   {
     label: "Painel Informativo",
     icon: "pi pi-home",
@@ -456,9 +462,11 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
+          { label: "Dashboard de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/dashboard-vinculos`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tipos de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vínculo V2", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos-v2`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos-v2`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vida Funcional do Servidor", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vida-funcional`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Pasta Funcional do Servidor", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/pasta-funcional`, visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -802,7 +810,7 @@ const menuRecadastramento: IMenuSeplag[] = [
 const etapasRecadastramento = ["Dados pessoais", "Documentos pessoais", "Endereço", "Vínculos", "Dependentes", "Escolaridade", "Contato", "Revisão", "Conclusão"];
 
 const sistemas: AppSystemItemSeplag[] = [
-  { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: `#${SIGEP_PAINEL_INFORMATIVO_PATH}`, icon: "pi pi-users" },
+  { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: `#${SIGEP_PAGINA_INICIAL_PATH}`, icon: "pi pi-users" },
   { id: "folha", label: "FOLHA", url: `#${FOLHA_PAINEL_INFORMATIVO_PATH}`, icon: "pi pi-money-bill" },
   { id: "pericia", label: "PERÍCIA", url: "#/prototipos/pericia", icon: "pi pi-plus-circle" },
   { id: "consignado", label: "CONSIGNADO", url: "#/prototipos/consignado", icon: "pi pi-wallet" },
@@ -818,7 +826,7 @@ const sigepDashboardModules = [
     id: "gestao-pessoas",
     label: "Gestão de Pessoas",
     description: "Cadastros e estruturas funcionais do SIGEP.",
-    path: SIGEP_PAINEL_INFORMATIVO_PATH,
+    path: SIGEP_PAGINA_INICIAL_PATH,
     icon: "pi pi-users",
     status: "Disponível",
     featured: true,
@@ -1020,7 +1028,7 @@ export function PrototypeSystemPage({
         menuItems={menuItems}
         menuMode="static"
         footerText="SEPLAG - SSCPG - Superintendência de Sistemas Corporativos de Planejamento e Gestão"
-        nomeApresentacao="ROBERTO JUNIOR"
+        nomeApresentacao={USUARIO_SIGEP_LOGADO.nome}
         numrVinculoAtual={2}
         vinculos={vinculos}
         onLogout={() => {}}
@@ -2397,45 +2405,26 @@ const criarTipoVinculo = (
 
 // Carga oficial e relações Regime Jurídico x Tipo de Vínculo do modelo SIGEP.
 const tiposVinculoTesteMock: TipoVinculoTesteRow[] = [
-  criarTipoVinculo(1, "Nomeado Efetivo", "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Sem Vínculo Empregatício"]),
-  criarTipoVinculo(2, "Exclusivamente Comissionado", "Comissionado", ["Estatutário Civil", "Regime Misto"]),
-  criarTipoVinculo(3, "Contrato Temporário", "Temporário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial", "Militar Temporário"]),
-  criarTipoVinculo(4, "Contrato Temporário Vínculo Único", "Temporário", ["Regime Especial"]),
-  criarTipoVinculo(5, "Residente Técnico", "Temporário", ["Sem Vínculo Empregatício"]),
-  criarTipoVinculo(6, "Estagiário", "Temporário", ["Sem Vínculo Empregatício"]),
-  criarTipoVinculo(7, "Bolsista", "Temporário", ["Estatutário Civil", "Regime Especial", "Sem Vínculo Empregatício"]),
-  criarTipoVinculo(8, "Estabilizado Constitucionalmente", "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial"]),
-  {
-    ...criarTipoVinculo(21, "Contrato Emergencial Extinto", "Temporário", ["Regime Especial"]),
-    descricao: "Tipo de vínculo extinto por alteração da legislação aplicável.",
-    vigencia: "01/01/2020 - 31/12/2024",
-    situacao: "ENCERRADO",
-    dataInicio: "01/01/2020",
-    dataEncerramento: "31/12/2024",
-    motivoEncerramento: "Extinção determinada pela legislação aplicável ao vínculo.",
-  },
-  {
-    ...criarTipoVinculo(22, "Programa Especial Encerrado", "Especial", ["Regime Especial"]),
-    descricao: "Tipo de vínculo encerrado automaticamente após o fim dos vínculos vigentes.",
-    vigencia: "01/01/2018 - 31/12/2023",
-    situacao: "EXTINTO",
-    dataInicio: "01/01/2018",
-    dataEncerramento: "31/12/2023",
-    motivoEncerramento: "Vínculo extinto conforme a legislação do programa especial.",
-    dataExtincao: "30/06/2024",
-  },
-  criarTipoVinculo(9, "Empossado em Cargo Eletivo", "Eletivo", ["Estatutário Civil"]),
-  criarTipoVinculo(10, "Nomeado Conselheiro", "Comissionado", ["Regime Misto"]),
-  criarTipoVinculo(11, "Designação AVNM", "Militar", ["Estatutário Militar"]),
-  criarTipoVinculo(12, "Convocação ATO GOV", "Militar", ["Estatutário Militar"]),
-  criarTipoVinculo(13, "Designação PTTC", "Militar", ["Estatutário Militar"]),
-  criarTipoVinculo(14, "Pensão Especial", "Previdenciário", ["Estatutário Civil", "Outros"]),
-  criarTipoVinculo(15, "Beneficiário de Aposentado", "Previdenciário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto"]),
-  criarTipoVinculo(16, "Provisório", "Temporário", ["Estatutário Civil", "Outros"]),
-  criarTipoVinculo(17, "Terceirizados", "Terceirizado"),
-  criarTipoVinculo(18, "Empregado Público", "Permanente"),
-  criarTipoVinculo(19, "Servidor Permutado", "Permanente"),
-  criarTipoVinculo(20, "Decisão Judicial", "Especial"),
+  criarTipoVinculo(1, TIPOS_VINCULO[0], "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Sem Vínculo Empregatício"]),
+  criarTipoVinculo(2, TIPOS_VINCULO[1], "Comissionado", ["Estatutário Civil", "Regime Misto"]),
+  criarTipoVinculo(3, TIPOS_VINCULO[2], "Temporário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial", "Militar Temporário"]),
+  criarTipoVinculo(4, TIPOS_VINCULO[3], "Temporário", ["Regime Especial"]),
+  criarTipoVinculo(5, TIPOS_VINCULO[4], "Temporário", ["Sem Vínculo Empregatício"]),
+  criarTipoVinculo(6, TIPOS_VINCULO[5], "Temporário", ["Sem Vínculo Empregatício"]),
+  criarTipoVinculo(7, TIPOS_VINCULO[6], "Temporário", ["Estatutário Civil", "Regime Especial", "Sem Vínculo Empregatício"]),
+  criarTipoVinculo(8, TIPOS_VINCULO[7], "Permanente", ["Estatutário Civil", "Estatutário Militar", "Regime Misto", "Regime Especial"]),
+  criarTipoVinculo(9, TIPOS_VINCULO[8], "Eletivo", ["Estatutário Civil"]),
+  criarTipoVinculo(10, TIPOS_VINCULO[9], "Comissionado", ["Regime Misto"]),
+  criarTipoVinculo(11, TIPOS_VINCULO[10], "Militar", ["Estatutário Militar"]),
+  criarTipoVinculo(12, TIPOS_VINCULO[11], "Militar", ["Estatutário Militar"]),
+  criarTipoVinculo(13, TIPOS_VINCULO[12], "Militar", ["Estatutário Militar"]),
+  criarTipoVinculo(14, TIPOS_VINCULO[13], "Previdenciário", ["Estatutário Civil", "Outros"]),
+  criarTipoVinculo(15, TIPOS_VINCULO[14], "Previdenciário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto"]),
+  criarTipoVinculo(16, TIPOS_VINCULO[15], "Temporário", ["Estatutário Civil", "Outros"]),
+  criarTipoVinculo(17, TIPOS_VINCULO[16], "Terceirizado"),
+  criarTipoVinculo(18, TIPOS_VINCULO[17], "Permanente"),
+  criarTipoVinculo(19, TIPOS_VINCULO[18], "Permanente"),
+  criarTipoVinculo(20, TIPOS_VINCULO[19], "Especial"),
 ];
 
 const ingressosMock: IngressoRow[] = [
@@ -3751,6 +3740,8 @@ const pessoasFisicasIngressoMock = [
   { cpf: "234.234.234-23", nome: "Camila Teixeira", dataNascimento: "24/04/1992" },
   { cpf: "345.345.345-34", nome: "Henrique Lopes", dataNascimento: "02/10/1986" },
 ];
+
+export const listarPessoasFisicasPasta = () => pessoasFisicasIngressoMock.map(({ cpf, nome }) => ({ cpf, nome }));
 
 
 const ingressoDocumentosMock = [
@@ -11747,6 +11738,7 @@ export function PrototiposTipoVinculoTestePage({
   const navigate = useNavigate();
   const [tipoVinculoRegimes, setTipoVinculoRegimes] = useState<TipoVinculoTesteRow | null>(null);
   const [tipoVinculoParaEncerrar, setTipoVinculoParaEncerrar] = useState<TipoVinculoTesteRow | null>(null);
+  const [paginaTipoVinculo, setPaginaTipoVinculo] = useState(0);
   const [searchParams] = useSearchParams();
   const regimeJuridicoParam = searchParams.get("regimeJuridico") ?? "";
   const regimeJuridicoInicial = Array.from(
@@ -11762,6 +11754,9 @@ export function PrototiposTipoVinculoTestePage({
     },
   });
   const filtros = watch();
+  useEffect(() => {
+    setPaginaTipoVinculo(0);
+  }, [filtros.termo, filtros.regimeJuridico, filtros.situacao]);
   const termoBusca = filtros.termo?.trim().toLowerCase();
   const tiposFiltrados = tiposVinculoTesteMock.filter((tipo) => {
     const atendeTermo =
@@ -11781,9 +11776,15 @@ export function PrototiposTipoVinculoTestePage({
       atendeTermo && atendeRegime && atendeSituacao
     );
   });
+  const totalPaginasTipoVinculo = Math.max(1, Math.ceil(tiposFiltrados.length / 10));
+  const paginaTipoVinculoAtual = Math.min(paginaTipoVinculo, totalPaginasTipoVinculo - 1);
   const tipoVinculoResults = {
     ...createResults(tiposFiltrados),
-    totalPages: Math.max(1, Math.ceil(tiposFiltrados.length / 10)),
+    pageActual: paginaTipoVinculoAtual,
+    number: paginaTipoVinculoAtual,
+    first: paginaTipoVinculoAtual === 0,
+    last: paginaTipoVinculoAtual === totalPaginasTipoVinculo - 1,
+    totalPages: totalPaginasTipoVinculo,
     totalRecords: tiposFiltrados.length,
     size: 10,
     sizePage: 10,
@@ -11919,7 +11920,7 @@ export function PrototiposTipoVinculoTestePage({
               renderBotoes={(row) => row.situacao === "ATIVO" ? (
                 <BotaoIconSeplag type="button" icon="pi pi-ban" severity="danger" tooltip="Extinguir" aria-label={`Extinguir tipo de vínculo ${row.nome}`} onClick={() => setTipoVinculoParaEncerrar(row)} />
               ) : null}
-              handleOnPageChange={() => {}}
+              handleOnPageChange={(evento) => setPaginaTipoVinculo(Math.floor(evento.first / evento.rows))}
             />
           </div>
         </CardSeplag>
@@ -13320,6 +13321,16 @@ const lerRegistrosComissionadosCriados = (): IngressoComissionadoRow[] => {
     return [];
   }
 };
+export function listarIngressosConcluidosPasta() {
+  const ler = <T,>(chave: string): Record<string, T> => { try { return JSON.parse(localStorage.getItem(chave) ?? "{}"); } catch { return {}; } };
+  const situacoes = ler<IngressoSituacao>("prototype-ingresso-situacoes");
+  const dados = ler<EfetivoExercicioGeradoRegistro>("prototype-ingresso-efetivo-gerado");
+  const historicos = ler<EfetivoExercicioHistoricoEvento[]>(chaveHistoricoEfetivoComissionado);
+  return [...ingressosComissionadosMock, ...lerRegistrosComissionadosCriados()]
+    .filter((registro) => (situacoes[String(registro.id)] ?? registro.situacao) === "Ingresso Concluído" || (!situacoes[String(registro.id)] && registro.situacao === "Ingresso concluído"))
+    .map((registro) => ({ ...registro, dados: dados[`Exclusivo Comissionado|${registro.id}`], historico: [...(historicosComissionadosMock[registro.id] ?? []), ...(historicos[`Exclusivo Comissionado|${registro.id}`] ?? [])] }));
+}
+
 const adicionarHistoricoComissionado = (id: string | number, evento: EfetivoExercicioHistoricoEvento) => {
   const historicos = JSON.parse(localStorage.getItem(chaveHistoricoEfetivoComissionado) ?? "{}") as Record<string, EfetivoExercicioHistoricoEvento[]>;
   const chave = "Exclusivo Comissionado|" + id;
@@ -13530,6 +13541,14 @@ export function PrototiposIngressosComissionadosPage() {
     setRegistros((atuais) => atuais.map((registro) => registro.id === finalizacaoSelecionada.id
       ? { ...registro, situacao: "Ingresso concluído" }
       : registro));
+    void incorporarDocumentoValidado({
+      id: `ingresso-comissionado:${finalizacaoSelecionada.id}:${termoAssinadoComissionado.name}`,
+      cpf: finalizacaoSelecionada.cpf, nome: "Termo de Efetivo Exercício assinado anexado", categoria: "Ingresso", tipoDocumento: "Termo de Efetivo Exercício",
+      origem: "Efetivo Exercício", moduloOrigem: "Ingresso Comissionados", origemId: String(finalizacaoSelecionada.id), vinculoId: `ingresso-comissionado:${finalizacaoSelecionada.id}`,
+      numeroIngresso: String(finalizacaoSelecionada.id), evento: "Efetivo Exercício finalizado", anexadoEm: new Date().toISOString(), anexadoPor: "ROBERTO JUNIOR", orgaoResponsavel: finalizacaoSelecionada.orgao,
+      arquivoNome: termoAssinadoComissionado.name, arquivoTipo: termoAssinadoComissionado.type, arquivoTamanho: termoAssinadoComissionado.size,
+      observacao: "Arquivo assinado incorporado após a conclusão do ingresso.", validado: true,
+    }, termoAssinadoComissionado).catch(() => setFeedbackComissionado("Efetivo Exercício finalizado. Não foi possível sincronizar o arquivo com a Pasta Funcional local; o registro do ingresso foi preservado."));
     fecharFinalizacaoComissionado();
     setFeedbackComissionado("Efetivo Exercício finalizado com sucesso.");
   };
@@ -22562,7 +22581,7 @@ export function PrototiposPessoaVinculosPage() {
                   {row.map((cell) => <td key={cell}>{cell}</td>)}
                   <td>
                     <div className="prototype-ingresso-action-row">
-                      <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar" onClick={() => navigate(`/prototipos/sigep/vinculos/${row[0]}`)} />
+                      <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar" onClick={() => navigate(`/prototipos/sigep/vinculos-v2/${row[0] === "1" ? "demo-1" : "demo-3"}`)} />
                       <BotaoIconSeplag type="button" icon="pi pi-history" tooltip="Histórico" />
                       <BotaoIconSeplag type="button" icon="pi pi-times" tooltip="Encerrar vínculo" severity="danger" />
                     </div>
@@ -23257,7 +23276,7 @@ const cloneFolhaCronogramaState = (state: FolhaCronogramaState) => ({
   })),
 });
 
-const loadFolhaCronogramaState = (): FolhaCronogramaState => {
+export const loadFolhaCronogramaState = (): FolhaCronogramaState => {
   if (typeof window === "undefined") {
     return cloneFolhaCronogramaState(folhaCronogramaDefaultState);
   }
@@ -23273,7 +23292,7 @@ const loadFolhaCronogramaState = (): FolhaCronogramaState => {
           ? parsed.tituloCiclo
           : folhaCronogramaDefaultState.tituloCiclo,
       secoes:
-        Array.isArray(parsed.secoes) && parsed.secoes.length
+        Array.isArray(parsed.secoes)
           ? (parsed.secoes as FolhaCronogramaSecao[])
           : cloneFolhaCronogramaState(folhaCronogramaDefaultState).secoes,
     };
@@ -23285,6 +23304,7 @@ const loadFolhaCronogramaState = (): FolhaCronogramaState => {
 const saveFolhaCronogramaState = (state: FolhaCronogramaState) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(FOLHA_CRONOGRAMA_STORAGE_KEY, JSON.stringify(state));
+  window.dispatchEvent(new Event("sigep:cronograma-atualizado"));
 };
 
 interface PrototiposFolhaPageProps {
@@ -23317,35 +23337,8 @@ export function PrototiposFolhaPage({
   const [tituloCicloFolha, setTituloCicloFolha] = useState(
     () => loadFolhaCronogramaState().tituloCiclo,
   );
-  const [informativosFolha, setInformativosFolha] = useState([
-    {
-      id: 1,
-      icon: "pi pi-exclamation-triangle",
-      titulo: "Prazo Final para Ajustes",
-      dataPostagem: "15/06/2026",
-      texto:
-        "Prazo para lançamento de horas extras vence em 15/06/2026 às 23:59. Após essa data, não será possível fazer alterações no sistema.",
-      destaque: "is-warning",
-    },
-    {
-      id: 2,
-      icon: "pi pi-info-circle",
-      titulo: "Processamento em Andamento",
-      dataPostagem: "14/06/2026",
-      texto:
-        "Processamento da folha de junho iniciou em 16/06/2026. Você receberá notificação quando disponível para consulta.",
-      destaque: "is-info",
-    },
-    {
-      id: 3,
-      icon: "pi pi-thumbtack",
-      titulo: "Férias - saldo residual e intervalo mínimo",
-      dataPostagem: "09/06/2026",
-      texto:
-        "O sistema não permitirá mais o registro de gozos que resultem em um saldo final de 5 dias. Verifique suas solicitações pendentes.",
-      destaque: "is-pin",
-    },
-  ]);
+  const [informativosFolha, setInformativosFolha] = useState(listarInformativosPaginaInicial);
+  useEffect(() => { atualizarInformativosPaginaInicial(informativosFolha); }, [informativosFolha]);
 
   const informativoTipoMeta: Record<
     string,
@@ -23355,6 +23348,7 @@ export function PrototiposFolhaPage({
     Informação: { icon: "pi pi-info-circle", destaque: "is-info" },
     Aviso: { icon: "pi pi-thumbtack", destaque: "is-pin" },
     Importante: { icon: "pi pi-star", destaque: "is-warning" },
+    Atualização: { icon: "pi pi-refresh", destaque: "is-update" },
   };
 
   const [cronogramasFolha, setCronogramasFolha] = useState([
@@ -23808,7 +23802,7 @@ export function PrototiposFolhaPage({
                 </div>
               ) : null}
 
-              <div className="prototype-folha-home-info-list">
+              <div className="prototype-folha-home-info-list" id="informativos">
                 {informativosFolha.map((informativo) => (
                   <article
                     key={informativo.id}

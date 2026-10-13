@@ -18,6 +18,10 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import "./App.css";
+import { PaginaInicialPage } from "./prototipos/paginaInicial/PaginaInicialPage";
+import { CalendarioCronogramaPage } from "./prototipos/cronograma/CalendarioCronogramaPage";
+import { AvisosPage } from "./prototipos/avisos/AvisosPage";
+import { VidaFuncionalPage } from "./prototipos/vidaFuncional/VidaFuncionalPage";
 import pkg from "../package.json";
 import { DocsLayout, DocsRenderer } from "./docs/layout/DocsLayout";
 import {
@@ -160,7 +164,6 @@ import {
   PrototiposPerfilEspecialidadePage,
   PrototiposPerfilEspecialidadeFormPage,
   PrototiposPericiaPage,
-  PrototiposSigepPage,
   PrototiposSigepRegimeJuridicoNovoPage,
   PrototiposSigepRegimeJuridicoPage,
   PrototiposSigepRegimeJuridicoTesteNovoPage,
@@ -168,12 +171,9 @@ import {
   PrototiposTipoVinculoTesteFormPage,
   PrototiposTipoVinculoTestePage,
 } from "./prototipos/PrototiposPage";
-import {
-  PrototiposVinculoCadastroPage,
-  PrototiposVinculoVisualizacaoPage,
-  PrototiposVinculosPage,
-} from "./prototipos/vinculos/VinculosPages";
 import { VinculoV2CadastroPage, VinculoV2ConsultaPage, VinculoV2DetalhesPage } from "./prototipos/vinculos/VinculoV2Page";
+import { DashboardVinculosPage } from "./prototipos/vinculos/DashboardVinculosPage";
+import { PastaFuncionalPage } from "./prototipos/pastaFuncional/PastaFuncionalPage";
 import { TabelaVencimentosFeaturePage } from "./prototipos/tabelaVencimentos/TabelaVencimentosFeaturePage";
 import { TabelaV2Page } from "./prototipos/tabelaV2/TabelaV2Page";
 import {
@@ -1550,7 +1550,10 @@ function App() {
         path="/chamados/:id"
         element={<PrototiposSicadChamadoDetalhePage />}
       />
-      <Route path="/prototipos/sigep" element={<PrototiposSigepPage />} />
+      <Route path="/prototipos/sigep" element={<Navigate to="/prototipos/sigep/pagina-inicial" replace />} />
+      <Route path="/prototipos/sigep/pagina-inicial" element={<PaginaInicialPage />} />
+      <Route path="/prototipos/sigep/cronograma" element={<CalendarioCronogramaPage />} />
+      <Route path="/prototipos/sigep/avisos-importantes" element={<AvisosPage />} />
       <Route path="/prototipos/sigep/cadastro" element={<PrototiposCadastroGeralPage />} />
       <Route path="/prototipos/sigep/pessoas" element={<PrototiposPessoasGeralPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional" element={<PrototiposEstruturaOrganizacionalGeralPage />} />
@@ -1690,21 +1693,13 @@ function App() {
         path="/prototipos/sigep/pessoas/:matricula/vinculos"
         element={<PrototiposPessoaVinculosPage />}
       />
-      <Route
-        path="/prototipos/sigep/vinculos"
-        element={<PrototiposVinculosPage />}
-      />
       <Route path="/prototipos/sigep/vinculos-v2" element={<VinculoV2ConsultaPage />} />
+      <Route path="/prototipos/sigep/dashboard-vinculos" element={<DashboardVinculosPage />} />
+      <Route path="/prototipos/sigep/pasta-funcional" element={<PastaFuncionalPage />} />
+      <Route path="/prototipos/sigep/pasta-funcional/:servidorId" element={<PastaFuncionalPage />} />
       <Route path="/prototipos/sigep/vinculos-v2/novo" element={<VinculoV2CadastroPage />} />
+      <Route path="/prototipos/sigep/vinculos-v2/:id/editar" element={<VinculoV2CadastroPage />} />
       <Route path="/prototipos/sigep/vinculos-v2/:id" element={<VinculoV2DetalhesPage />} />
-      <Route
-        path="/prototipos/sigep/vinculos/novo"
-        element={<PrototiposVinculoCadastroPage />}
-      />
-      <Route
-        path="/prototipos/sigep/vinculos/:id"
-        element={<PrototiposVinculoVisualizacaoPage />}
-      />
       <Route path="/prototipos/sigep/controle-vagas/temporarios" element={<PrototiposVagasTemporariosPage />} />
       <Route path="/prototipos/sigep/controle-vagas/temporarios/vagas" element={<PrototiposVagasTemporariosIndividualizadasPage />} />
       <Route path="/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado" element={<PrototiposVagasTemporariosQuadroPage />} />
@@ -1825,6 +1820,9 @@ function App() {
       <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-contratado" element={<PrototiposRescisaoIniciativaContratadoPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-administracao" element={<PrototiposRescisaoIniciativaAdministracaoPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato/demissao-disciplinar" element={<PrototiposDemissaoDisciplinarPage />} />
+      <Route path="/prototipos/sigep/vida-funcional" element={<VidaFuncionalPage />} />
+      <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos" element={<VidaFuncionalPage />} />
+      <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos/:vinculoId/historico" element={<VidaFuncionalPage />} />
       <Route path="/prototipos/sigep/vacancia" element={<PrototiposVacanciaGeralPage />} />
       <Route path="/prototipos/sigep/vacancia/:modalidade" element={<PrototiposVacanciaGeralPage />} />
       <Route

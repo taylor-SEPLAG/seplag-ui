@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { ModuleNavigationCard } from "../navigation/ModuleNavigationCard";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import "./controleVagasGeral.css";
 
@@ -11,19 +11,22 @@ const destinos = [
   },
   {
     titulo: "Vagas Efetivos",
-    descricao: "Consulte e gerencie os quadros e vagas dos servidores efetivos.",
+    descricao:
+      "Consulte e gerencie os quadros e vagas dos servidores efetivos.",
     icone: "pi pi-users",
     destino: "/prototipos/sigep/controle-vagas/efetivos",
   },
   {
     titulo: "Vagas Temporários",
-    descricao: "Acompanhe os quadros vinculados a processos seletivos simplificados.",
+    descricao:
+      "Acompanhe os quadros vinculados a processos seletivos simplificados.",
     icone: "pi pi-briefcase",
     destino: "/prototipos/sigep/controle-vagas/temporarios",
   },
   {
     titulo: "Vagas Comissionados",
-    descricao: "Gerencie estruturas, cargos em comissão e funções de confiança.",
+    descricao:
+      "Gerencie estruturas, cargos em comissão e funções de confiança.",
     icone: "pi pi-sitemap",
     destino: "/prototipos/sigep/controle-vagas/comissionados",
   },
@@ -37,23 +40,31 @@ const destinos = [
 
 export function ControleVagasGeralContent() {
   return (
-    <main className="prototype-controle-vagas-geral">
+    <main className="sigep-module-navigation-page">
       <header>
         <h1>Controle de Vagas</h1>
-        <p>Selecione uma área para consultar e gerenciar os quadros e as vagas autorizadas.</p>
+        <p>
+          Selecione uma área para consultar e gerenciar os quadros e as vagas
+          autorizadas.
+        </p>
       </header>
 
-      <section aria-label="Áreas do Controle de Vagas">
+      <section
+        className="sigep-module-navigation-grid"
+        aria-label="Áreas do Controle de Vagas"
+      >
         {destinos.map((item) => (
-          <Link key={item.destino} to={item.destino}>
-            <i className={item.icone} aria-hidden="true" />
-            <h2>{item.titulo}</h2>
-            <p>{item.descricao}</p>
-            <span>Acessar <i className="pi pi-arrow-right" aria-hidden="true" /></span>
-          </Link>
+          <ModuleNavigationCard
+            key={item.titulo}
+            id={item.destino}
+            titulo={item.titulo}
+            descricao={item.descricao}
+            icone={item.icone}
+            destino={item.destino}
+            modulo="Controle de Vagas"
+          />
         ))}
       </section>
     </main>
   );
 }
-

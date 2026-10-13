@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { ModuleNavigationCard } from "../navigation/ModuleNavigationCard";
 import "./ingressoGeral.css";
 
 const destinosIngresso = [
@@ -10,13 +10,15 @@ const destinosIngresso = [
   },
   {
     titulo: "Efetivo Exercício",
-    descricao: "Registre e acompanhe o início do efetivo exercício dos servidores.",
+    descricao:
+      "Registre e acompanhe o início do efetivo exercício dos servidores.",
     icone: "pi pi-briefcase",
     destino: "/prototipos/sigep/ingressos/efetivo-exercicio",
   },
   {
     titulo: "Ingresso Comissionados",
-    descricao: "Gerencie os ingressos de servidores exclusivamente comissionados.",
+    descricao:
+      "Gerencie os ingressos de servidores exclusivamente comissionados.",
     icone: "pi pi-id-card",
     destino: "/prototipos/sigep/ingressos/comissionados",
   },
@@ -24,21 +26,30 @@ const destinosIngresso = [
 
 export function IngressoGeralContent() {
   return (
-    <main className="prototype-ingresso-geral">
+    <main className="sigep-module-navigation-page">
       <header>
         <span>Ingresso</span>
         <h1>Ingresso</h1>
-        <p>Selecione uma área para acompanhar e gerenciar os processos de ingresso.</p>
+        <p>
+          Selecione uma área para acompanhar e gerenciar os processos de
+          ingresso.
+        </p>
       </header>
 
-      <section aria-label="Áreas de Ingresso">
+      <section
+        className="sigep-module-navigation-grid"
+        aria-label="Áreas de Ingresso"
+      >
         {destinosIngresso.map((item) => (
-          <Link key={item.destino} to={item.destino}>
-            <i className={item.icone} aria-hidden="true" />
-            <h2>{item.titulo}</h2>
-            <p>{item.descricao}</p>
-            <span>Acessar <i className="pi pi-arrow-right" aria-hidden="true" /></span>
-          </Link>
+          <ModuleNavigationCard
+            key={item.titulo}
+            id={item.destino}
+            titulo={item.titulo}
+            descricao={item.descricao}
+            icone={item.icone}
+            destino={item.destino}
+            modulo="Ingresso"
+          />
         ))}
       </section>
     </main>

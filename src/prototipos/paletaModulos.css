@@ -1,0 +1,17 @@
+/* Identidade cromática compartilhada apenas pelos cards de navegação. */
+:root {
+  --sigep-modulo-painel: #2155d6;
+  --sigep-modulo-pessoas: #00a3e0;
+  --sigep-modulo-estrutura: #079455;
+  --sigep-modulo-cargo: #f0a000;
+  --sigep-modulo-vagas: #e93652;
+  --sigep-modulo-movimentacao: #8250d7;
+  --sigep-modulo-certame: #008d8b;
+  --sigep-modulo-ingresso: #ee5790;
+  --sigep-modulo-vinculos: #436cc4;
+  --sigep-modulo-vacancia: #a75dc1;
+  --sigep-modulo-documentacao: #009ac2;
+  --sigep-modulo-aposentadoria: #6652b8;
+  --sigep-modulo-parametrizacao: #566d80;
+  --sigep-modulo-backlog: #f58232;
+}

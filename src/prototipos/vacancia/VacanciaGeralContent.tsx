@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { ModuleNavigationCard } from "../navigation/ModuleNavigationCard";
 import { BotaoIconSeplag } from "../../componentes/Botao";
 import { ModalSeplag } from "../../componentes/Modal";
 import "../cadastro/cadastroGeral.css";
@@ -33,7 +34,7 @@ export function VacanciaGeralContent() {
 
   if (modalidade && modalidadeSelecionada) {
     return (
-      <main className="prototype-cadastro-geral">
+      <main className="sigep-module-navigation-page">
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
           <div>
             <h1>{modalidadeSelecionada.titulo}</h1>
@@ -59,13 +60,8 @@ export function VacanciaGeralContent() {
             />
           ) : null}
         </header>
-        <section aria-label={`Vacância por ${modalidadeSelecionada.titulo}`}>
-          <Link to={VACANCIA_BASE_PATH}>
-            <i className="pi pi-arrow-left" aria-hidden="true" />
-            <h2>Voltar para Vacância</h2>
-            <p>Selecione outra modalidade de vacância.</p>
-            <span>Voltar <i className="pi pi-arrow-right" aria-hidden="true" /></span>
-          </Link>
+        <section className="sigep-module-navigation-grid" aria-label={`Vacância por ${modalidadeSelecionada.titulo}`}>
+          <ModuleNavigationCard id="voltar-vacancia" titulo="Voltar para Vacância" descricao="Selecione outra modalidade de vacância." icone="pi pi-arrow-left" destino={VACANCIA_BASE_PATH} modulo="Vacância" textoAcao="Voltar" />
         </section>
         <ModalSeplag
           visible={informacoesExoneracaoAbertas}
@@ -603,19 +599,14 @@ export function VacanciaGeralContent() {
   }
 
   return (
-    <main className="prototype-cadastro-geral">
+    <main className="sigep-module-navigation-page">
       <header>
         <h1>Vacância</h1>
         <p>Selecione a modalidade de vacância que deseja registrar ou consultar.</p>
       </header>
-      <section aria-label="Modalidades de Vacância">
+      <section className="sigep-module-navigation-grid" aria-label="Modalidades de Vacância">
         {modalidades.map((modalidadeItem) => (
-          <Link key={modalidadeItem.slug} to={`${VACANCIA_BASE_PATH}/${modalidadeItem.slug}`}>
-            <i className={modalidadeItem.icone} aria-hidden="true" />
-            <h2>{modalidadeItem.titulo}</h2>
-            <p>{modalidadeItem.descricao}</p>
-            <span>Acessar <i className="pi pi-arrow-right" aria-hidden="true" /></span>
-          </Link>
+          <ModuleNavigationCard key={modalidadeItem.slug} id={modalidadeItem.slug} titulo={modalidadeItem.titulo} descricao={modalidadeItem.descricao} icone={modalidadeItem.icone} destino={`${VACANCIA_BASE_PATH}/${modalidadeItem.slug}`} modulo="Vacância" />
         ))}
       </section>
     </main>
