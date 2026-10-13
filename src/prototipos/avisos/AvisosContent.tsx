@@ -1,0 +1,226 @@
+import { useState, type CSSProperties } from "react";
+import { useNavigate } from "react-router-dom";
+import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
+import { BotaoSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
+import { ModalSeplag } from "../../componentes/Modal";
+import {
+  AVISOS_PATH,
+  HOME_PATH,
+  categorias,
+  categoriaAviso,
+  filtrarAvisos,
+  metaAviso,
+  type Categoria,
+  type Comunicado,
+} from "./model";
+import "../cronograma/cronograma.css";
+import "./avisos.css";
+
+const cores = (meta: (typeof categorias)[number]) =>
+  ({
+    "--aviso-cor": meta.cor,
+    "--aviso-fundo": meta.fundo,
+    "--aviso-icone-fundo": meta.iconeFundo,
+    "--aviso-icone-cor": "iconeCor" in meta ? meta.iconeCor : meta.textoCor,
+    "--aviso-texto-cor": meta.textoCor,
+  }) as CSSProperties;
+
+export function AvisosContent({ avisos }: { avisos: Comunicado[] }) {
+  const navigate = useNavigate();
+  const [busca, setBusca] = useState("");
+  const [categoria, setCategoria] = useState<Categoria>("todos");
+  const [leituraId, setLeituraId] = useState<number | null>(null);
+  const leitura = avisos.find((aviso) => aviso.id === leituraId);
+  const filtrados = filtrarAvisos(avisos, busca, categoria);
+  const fechar = () => setLeituraId(null);
+  return (
+    <main className="sigep-cronograma-page sigep-avisos-page">
+      <BreadcrumbSeplag
+        className="sigep-cronograma-breadcrumb"
+        divided
+        homeTo={HOME_PATH}
+        items={[
+          { label: "Página Inicial", to: HOME_PATH },
+          { label: "Avisos importantes", to: AVISOS_PATH },
+        ]}
+      />
+      <div>
+        <BotaoVoltarSeplag
+          type="button"
+          aria-label="Voltar"
+          className="sigep-cronograma-voltar-acao"
+          unstyled
+          raised={false}
+          onClick={() => navigate(HOME_PATH)}
+        />
+      </div>
+      <header className="sigep-cronograma-header">
+        <div className="sigep-cronograma-heading">
+          <span>
+            <i className="pi pi-megaphone" aria-hidden="true" />
+          </span>
+          <div>
+            <h1>Avisos importantes</h1>
+            <p>Consulte os comunicados cadastrados no Painel Informativo.</p>
+          </div>
+        </div>
+      </header>
+      <section
+        className="sigep-avisos-resumo"
+        aria-label="Categorias dos avisos"
+      >
+        {categorias.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            style={cores(item)}
+            className={`sigep-avisos-contador${categoria === item.id ? " is-active" : ""}`}
+            aria-pressed={categoria === item.id}
+            onClick={() => setCategoria(item.id)}
+          >
+            <span className="sigep-avisos-icone">
+              <i className={item.icon} aria-hidden="true" />
+            </span>
+            <span>
+              {item.nome}{" "}
+              <strong>
+                {
+                  avisos.filter(
+                    (aviso) =>
+                      item.id === "todos" || categoriaAviso(aviso) === item.id,
+                  ).length
+                }
+              </strong>
+            </span>
+          </button>
+        ))}
+      </section>
+      <section
+        className="sigep-cronograma-filtros sigep-avisos-filtros"
+        aria-label="Filtros dos avisos"
+      >
+        <label>
+          Buscar comunicado
+          <input
+            type="search"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar comunicado..."
+          />
+        </label>
+        <label>
+          Tipo de aviso
+          <select
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value as Categoria)}
+          >
+            {categorias.map((item) => (
+              <option value={item.id} key={item.id}>
+                {item.singular}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="sigep-cronograma-limpar"
+          onClick={() => {
+            setBusca("");
+            setCategoria("todos");
+          }}
+        >
+          <i className="pi pi-refresh" aria-hidden="true" /> Limpar filtro
+        </button>
+      </section>
+      <p className="sigep-avisos-resultados" role="status">
+        {filtrados.length} comunicado
+        {filtrados.length === 1 ? " encontrado" : "s encontrados"}
+      </p>
+      <section
+        className="sigep-avisos-grid"
+        aria-label="Comunicados disponíveis"
+      >
+        {filtrados.map((aviso) => {
+          const meta = metaAviso(aviso);
+          return (
+            <article
+              className="sigep-avisos-card"
+              style={cores(meta)}
+              key={aviso.id}
+            >
+              <header>
+                <span className="sigep-avisos-icone">
+                  <i className={meta.icon} aria-hidden="true" />
+                </span>
+                <h2 title={aviso.titulo}>{aviso.titulo}</h2>
+                <span className="sigep-avisos-tag">{meta.singular}</span>
+              </header>
+              <span className="sigep-avisos-data">
+                <i className="pi pi-calendar" aria-hidden="true" />
+                {aviso.dataPostagem || "Data não informada"}
+              </span>
+              <p className="sigep-avisos-preview">{aviso.texto}</p>
+              <button
+                type="button"
+                className="sigep-avisos-ler"
+                aria-label={`Ler comunicado: ${aviso.titulo}`}
+                onClick={() => setLeituraId(aviso.id)}
+              >
+                Ler comunicado{" "}
+                <i className="pi pi-arrow-right" aria-hidden="true" />
+              </button>
+            </article>
+          );
+        })}
+        {!filtrados.length && (
+          <div className="sigep-avisos-vazio">
+            <i className="pi pi-inbox" aria-hidden="true" />
+            <h2>
+              {avisos.length
+                ? "Nenhum comunicado encontrado."
+                : "Nenhum comunicado disponível."}
+            </h2>
+            <p>
+              {avisos.length
+                ? "Ajuste os filtros para consultar outros avisos."
+                : "Os comunicados publicados no Painel Informativo aparecerão aqui."}
+            </p>
+          </div>
+        )}
+      </section>
+      <ModalSeplag
+        visible={!!leitura}
+        titulo={leitura?.titulo}
+        ariaLabel={leitura ? `Comunicado: ${leitura.titulo}` : "Comunicado"}
+        fechar={fechar}
+        tamanho="min(720px, 94vw)"
+        customFooter={
+          <BotaoSeplag
+            type="button"
+            label="Fechar"
+            icon="pi pi-times"
+            onClick={fechar}
+          />
+        }
+      >
+        {leitura && (
+          <div
+            className="sigep-avisos-leitura"
+            style={cores(metaAviso(leitura))}
+          >
+            <div>
+              <span className="sigep-avisos-tag">
+                {metaAviso(leitura).singular}
+              </span>
+              <span className="sigep-avisos-data">
+                <i className="pi pi-calendar" aria-hidden="true" />
+                {leitura.dataPostagem || "Data não informada"}
+              </span>
+            </div>
+            <p>{leitura.texto}</p>
+          </div>
+        )}
+      </ModalSeplag>
+    </main>
+  );
+}

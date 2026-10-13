@@ -10,9 +10,11 @@ import { ControleVagasGeralContent } from "./controleVagas/ControleVagasGeralCon
 import { IngressoGeralContent } from "./ingresso/IngressoGeralContent";
 import { getOrgaoAtuacaoIngresso, getPerfilVariacaoIngresso, podeAnalisarIngresso, podeConsultarIngresso, podeRegistrarEfetivo, SeletorPerfilVariacaoIngresso, usePerfilVariacaoIngresso } from "./ingresso/perfilVariacao";
 import { CadastroGeralContent } from "./cadastro/CadastroGeralContent";
+import { listarInformativosPaginaInicial, atualizarInformativosPaginaInicial } from "./paginaInicial/informativos";
 import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
 import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
 import { TIPOS_VINCULO } from "./vinculos/tiposVinculo";
+import { incorporarDocumentoValidado } from "./pastaFuncional/pastaFuncionalStore";
 import { VacanciaGeralContent } from "./vacancia/VacanciaGeralContent";
 import { MenuCardsContent, type MenuCardItem } from "./MenuCardsContent";
 import { useTiposCotaAtivos } from "./controlePss/tiposCota/tiposCotaStore";
@@ -174,6 +176,8 @@ import { TipoCotaFormContent as PssTipoCotaFormContent } from "./controlePss/tip
 import { FaseCertameFormContent as PssFaseCertameFormContent } from "./controlePss/fasesCertame/FaseCertameFormContent";
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
+export const SIGEP_PAGINA_INICIAL_PATH = "/prototipos/sigep/pagina-inicial";
+export const USUARIO_SIGEP_LOGADO = { nome: "ROBERTO JUNIOR" };
 const SIGEP_PAINEL_INFORMATIVO_PATH =
   "/prototipos/sigep/gestao/painel-informativo";
 const SIGEP_CARGO_CONCURSO_TESTE_BASE_PATH =
@@ -256,6 +260,7 @@ interface CargoConcursoRouteProps {
 }
 
 export const menuGestaoPessoas: IMenuSeplag[] = [
+  { label: "Página Inicial", icon: "pi pi-home", to: SIGEP_PAGINA_INICIAL_PATH, visibleOnMenu: true, visibleOnRouter: true },
   {
     label: "Painel Informativo",
     icon: "pi pi-home",
@@ -425,6 +430,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Tipos de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos-v2`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vida Funcional do Servidor", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vida-funcional`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Pasta Funcional do Servidor", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/pasta-funcional`, visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -732,7 +738,7 @@ const menuRecadastramento: IMenuSeplag[] = [
 const etapasRecadastramento = ["Dados pessoais", "Documentos pessoais", "Endereço", "Vínculos", "Dependentes", "Escolaridade", "Contato", "Revisão", "Conclusão"];
 
 const sistemas: AppSystemItemSeplag[] = [
-  { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: `#${SIGEP_PAINEL_INFORMATIVO_PATH}`, icon: "pi pi-users" },
+  { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: `#${SIGEP_PAGINA_INICIAL_PATH}`, icon: "pi pi-users" },
   { id: "folha", label: "FOLHA", url: `#${FOLHA_PAINEL_INFORMATIVO_PATH}`, icon: "pi pi-money-bill" },
   { id: "pericia", label: "PERÍCIA", url: "#/prototipos/pericia", icon: "pi pi-plus-circle" },
   { id: "consignado", label: "CONSIGNADO", url: "#/prototipos/consignado", icon: "pi pi-wallet" },
@@ -748,7 +754,7 @@ const sigepDashboardModules = [
     id: "gestao-pessoas",
     label: "Gestão de Pessoas",
     description: "Cadastros e estruturas funcionais do SIGEP.",
-    path: SIGEP_PAINEL_INFORMATIVO_PATH,
+    path: SIGEP_PAGINA_INICIAL_PATH,
     icon: "pi pi-users",
     status: "Disponível",
     featured: true,
@@ -950,7 +956,7 @@ export function PrototypeSystemPage({
         menuItems={menuItems}
         menuMode="static"
         footerText="SEPLAG - SSCPG - Superintendência de Sistemas Corporativos de Planejamento e Gestão"
-        nomeApresentacao="ROBERTO JUNIOR"
+        nomeApresentacao={USUARIO_SIGEP_LOGADO.nome}
         numrVinculoAtual={2}
         vinculos={vinculos}
         onLogout={() => {}}
@@ -3662,6 +3668,8 @@ const pessoasFisicasIngressoMock = [
   { cpf: "234.234.234-23", nome: "Camila Teixeira", dataNascimento: "24/04/1992" },
   { cpf: "345.345.345-34", nome: "Henrique Lopes", dataNascimento: "02/10/1986" },
 ];
+
+export const listarPessoasFisicasPasta = () => pessoasFisicasIngressoMock.map(({ cpf, nome }) => ({ cpf, nome }));
 
 
 const ingressoDocumentosMock = [
@@ -13229,6 +13237,16 @@ const lerRegistrosComissionadosCriados = (): IngressoComissionadoRow[] => {
     return [];
   }
 };
+export function listarIngressosConcluidosPasta() {
+  const ler = <T,>(chave: string): Record<string, T> => { try { return JSON.parse(localStorage.getItem(chave) ?? "{}"); } catch { return {}; } };
+  const situacoes = ler<IngressoSituacao>("prototype-ingresso-situacoes");
+  const dados = ler<EfetivoExercicioGeradoRegistro>("prototype-ingresso-efetivo-gerado");
+  const historicos = ler<EfetivoExercicioHistoricoEvento[]>(chaveHistoricoEfetivoComissionado);
+  return [...ingressosComissionadosMock, ...lerRegistrosComissionadosCriados()]
+    .filter((registro) => (situacoes[String(registro.id)] ?? registro.situacao) === "Ingresso Concluído" || (!situacoes[String(registro.id)] && registro.situacao === "Ingresso concluído"))
+    .map((registro) => ({ ...registro, dados: dados[`Exclusivo Comissionado|${registro.id}`], historico: [...(historicosComissionadosMock[registro.id] ?? []), ...(historicos[`Exclusivo Comissionado|${registro.id}`] ?? [])] }));
+}
+
 const adicionarHistoricoComissionado = (id: string | number, evento: EfetivoExercicioHistoricoEvento) => {
   const historicos = JSON.parse(localStorage.getItem(chaveHistoricoEfetivoComissionado) ?? "{}") as Record<string, EfetivoExercicioHistoricoEvento[]>;
   const chave = "Exclusivo Comissionado|" + id;
@@ -13439,6 +13457,14 @@ export function PrototiposIngressosComissionadosPage() {
     setRegistros((atuais) => atuais.map((registro) => registro.id === finalizacaoSelecionada.id
       ? { ...registro, situacao: "Ingresso concluído" }
       : registro));
+    void incorporarDocumentoValidado({
+      id: `ingresso-comissionado:${finalizacaoSelecionada.id}:${termoAssinadoComissionado.name}`,
+      cpf: finalizacaoSelecionada.cpf, nome: "Termo de Efetivo Exercício assinado anexado", categoria: "Ingresso", tipoDocumento: "Termo de Efetivo Exercício",
+      origem: "Efetivo Exercício", moduloOrigem: "Ingresso Comissionados", origemId: String(finalizacaoSelecionada.id), vinculoId: `ingresso-comissionado:${finalizacaoSelecionada.id}`,
+      numeroIngresso: String(finalizacaoSelecionada.id), evento: "Efetivo Exercício finalizado", anexadoEm: new Date().toISOString(), anexadoPor: "ROBERTO JUNIOR", orgaoResponsavel: finalizacaoSelecionada.orgao,
+      arquivoNome: termoAssinadoComissionado.name, arquivoTipo: termoAssinadoComissionado.type, arquivoTamanho: termoAssinadoComissionado.size,
+      observacao: "Arquivo assinado incorporado após a conclusão do ingresso.", validado: true,
+    }, termoAssinadoComissionado).catch(() => setFeedbackComissionado("Efetivo Exercício finalizado. Não foi possível sincronizar o arquivo com a Pasta Funcional local; o registro do ingresso foi preservado."));
     fecharFinalizacaoComissionado();
     setFeedbackComissionado("Efetivo Exercício finalizado com sucesso.");
   };
@@ -23166,7 +23192,7 @@ const cloneFolhaCronogramaState = (state: FolhaCronogramaState) => ({
   })),
 });
 
-const loadFolhaCronogramaState = (): FolhaCronogramaState => {
+export const loadFolhaCronogramaState = (): FolhaCronogramaState => {
   if (typeof window === "undefined") {
     return cloneFolhaCronogramaState(folhaCronogramaDefaultState);
   }
@@ -23182,7 +23208,7 @@ const loadFolhaCronogramaState = (): FolhaCronogramaState => {
           ? parsed.tituloCiclo
           : folhaCronogramaDefaultState.tituloCiclo,
       secoes:
-        Array.isArray(parsed.secoes) && parsed.secoes.length
+        Array.isArray(parsed.secoes)
           ? (parsed.secoes as FolhaCronogramaSecao[])
           : cloneFolhaCronogramaState(folhaCronogramaDefaultState).secoes,
     };
@@ -23194,6 +23220,7 @@ const loadFolhaCronogramaState = (): FolhaCronogramaState => {
 const saveFolhaCronogramaState = (state: FolhaCronogramaState) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(FOLHA_CRONOGRAMA_STORAGE_KEY, JSON.stringify(state));
+  window.dispatchEvent(new Event("sigep:cronograma-atualizado"));
 };
 
 interface PrototiposFolhaPageProps {
@@ -23226,35 +23253,8 @@ export function PrototiposFolhaPage({
   const [tituloCicloFolha, setTituloCicloFolha] = useState(
     () => loadFolhaCronogramaState().tituloCiclo,
   );
-  const [informativosFolha, setInformativosFolha] = useState([
-    {
-      id: 1,
-      icon: "pi pi-exclamation-triangle",
-      titulo: "Prazo Final para Ajustes",
-      dataPostagem: "15/06/2026",
-      texto:
-        "Prazo para lançamento de horas extras vence em 15/06/2026 às 23:59. Após essa data, não será possível fazer alterações no sistema.",
-      destaque: "is-warning",
-    },
-    {
-      id: 2,
-      icon: "pi pi-info-circle",
-      titulo: "Processamento em Andamento",
-      dataPostagem: "14/06/2026",
-      texto:
-        "Processamento da folha de junho iniciou em 16/06/2026. Você receberá notificação quando disponível para consulta.",
-      destaque: "is-info",
-    },
-    {
-      id: 3,
-      icon: "pi pi-thumbtack",
-      titulo: "Férias - saldo residual e intervalo mínimo",
-      dataPostagem: "09/06/2026",
-      texto:
-        "O sistema não permitirá mais o registro de gozos que resultem em um saldo final de 5 dias. Verifique suas solicitações pendentes.",
-      destaque: "is-pin",
-    },
-  ]);
+  const [informativosFolha, setInformativosFolha] = useState(listarInformativosPaginaInicial);
+  useEffect(() => { atualizarInformativosPaginaInicial(informativosFolha); }, [informativosFolha]);
 
   const informativoTipoMeta: Record<
     string,
@@ -23264,6 +23264,7 @@ export function PrototiposFolhaPage({
     Informação: { icon: "pi pi-info-circle", destaque: "is-info" },
     Aviso: { icon: "pi pi-thumbtack", destaque: "is-pin" },
     Importante: { icon: "pi pi-star", destaque: "is-warning" },
+    Atualização: { icon: "pi pi-refresh", destaque: "is-update" },
   };
 
   const [cronogramasFolha, setCronogramasFolha] = useState([
@@ -23717,7 +23718,7 @@ export function PrototiposFolhaPage({
                 </div>
               ) : null}
 
-              <div className="prototype-folha-home-info-list">
+              <div className="prototype-folha-home-info-list" id="informativos">
                 {informativosFolha.map((informativo) => (
                   <article
                     key={informativo.id}

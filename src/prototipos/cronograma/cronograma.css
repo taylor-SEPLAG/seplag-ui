@@ -1,0 +1,676 @@
+.sigep-cronograma-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 12px;
+  background: #fff;
+  border: 1px solid #e1e8f2;
+  border-radius: 10px;
+  color: #102b56;
+}
+
+.sigep-cronograma-page .sigep-cronograma-breadcrumb {
+  margin: 0;
+  padding: 10px 2px;
+  min-height: 40px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.sigep-cronograma-topo {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.sigep-cronograma-voltar {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.sigep-cronograma-voltar-acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #0057b8;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sigep-cronograma-voltar-acao:hover {
+  color: #00448f;
+  text-decoration: underline;
+}
+
+.sigep-cronograma-header {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sigep-cronograma-heading {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+}
+
+.sigep-cronograma-heading > span {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  color: #2155d6;
+  background: #e2ecff;
+  flex-shrink: 0;
+}
+
+.sigep-cronograma-heading > span i {
+  font-size: 24px;
+}
+
+.sigep-cronograma-header h1 {
+  font-size: 24px;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.sigep-cronograma-header p {
+  font-size: 14px;
+  color: #52647d;
+  margin: 5px 0 0;
+  line-height: 1.4;
+}
+
+.sigep-cronograma-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #d1fae5;
+  color: #047857;
+  font-size: 13px;
+}
+
+.sigep-cronograma-sync i {
+  font-size: 14px;
+}
+
+.sigep-cronograma-filtros {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.sigep-cronograma-filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sigep-cronograma-filtros input,
+.sigep-cronograma-filtros select {
+  height: 43px;
+  width: 100%;
+  border: 1px solid #c4d5e8;
+  padding: 0 12px;
+  border-radius: 4px;
+  background: #fff;
+  color: #102b56;
+  font: inherit;
+  font-weight: 400;
+}
+
+.sigep-cronograma-limpar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 43px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 4px;
+  background: #3b7ef5;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sigep-cronograma-limpar i {
+  font-size: 14px;
+}
+
+.sigep-cronograma-painel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #d4e0ef;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #102b5608;
+}
+
+.sigep-cronograma-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.sigep-cronograma-meses {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sigep-cronograma-meses h2 {
+  margin: 0;
+  font-size: 20px;
+  text-transform: capitalize;
+  min-width: 175px;
+  text-align: center;
+}
+
+.sigep-cronograma-meses button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: #fff;
+  border: 1px solid #bfcfe9;
+  border-radius: 5px;
+  color: #0057b8;
+  cursor: pointer;
+}
+
+.sigep-cronograma-meses button i {
+  font-size: 14px;
+}
+
+.sigep-cronograma-modos {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid #bfcfe9;
+  border-radius: 4px;
+}
+.sigep-cronograma-modos button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 0;
+  background: #fff;
+  color: #52647d;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sigep-cronograma-modos button i {
+  font-size: 14px;
+}
+
+.sigep-cronograma-modos button[aria-pressed="true"] {
+  background: #0057b8;
+  color: #fff;
+}
+.sigep-cronograma-legenda {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  background: #fff;
+  font-size: 12px;
+  color: #52647d;
+}
+
+.sigep-cronograma-legenda > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  padding: 3px 8px;
+  border: 1px solid #e0e7f3;
+  border-radius: 12px;
+}
+
+.sigep-cronograma-legenda i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.sigep-cronograma-scroll {
+  overflow-x: auto;
+  padding: 0 6px 6px;
+}
+
+.sigep-cronograma-calendario {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 4px;
+  table-layout: fixed;
+}
+
+.sigep-cronograma-calendario th {
+  height: 28px;
+  padding: 4px 2px;
+  background: #e8f1fb;
+  border: 0;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.sigep-cronograma-semana-curta {
+  display: none;
+  text-decoration: none;
+}
+.sigep-cronograma-calendario td {
+  height: 74px;
+  position: relative;
+  border: 1px solid #dce5f0;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0;
+  vertical-align: top;
+  overflow: hidden;
+}
+
+.sigep-cronograma-calendario tr:nth-child(even) td {
+  background: #f8fafc;
+}
+.sigep-cronograma-calendario td.is-outro-mes {
+  background: #f2f4f8;
+}
+.sigep-cronograma-calendario td.is-outro-mes .sigep-cronograma-numero {
+  color: #8a97aa;
+}
+.sigep-cronograma-calendario td.is-selecionado {
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 2px #0875e1;
+}
+.sigep-cronograma-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  width: 100%;
+  height: 72px;
+  padding: 5px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #102b56;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sigep-cronograma-numero {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  align-self: flex-start;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sigep-cronograma-calendario td.is-hoje .sigep-cronograma-numero {
+  color: #0057b8;
+  background: #e1efff;
+  box-shadow: inset 0 0 0 1px #0057b8;
+}
+.sigep-cronograma-marco {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 18px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 1px 6px;
+  border-left: 3px solid;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.sigep-cronograma-marco > i {
+  width: 4px;
+  height: 4px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.sigep-cronograma-marco > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sigep-cronograma-mais {
+  position: absolute;
+  right: 5px;
+  top: 6px;
+  padding: 2px 5px;
+  background: #e9f1ff;
+  border-radius: 8px;
+  color: #0057b8;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+.sigep-cronograma-vazio {
+  color: #52647d;
+  padding: 12px 14px;
+  margin: 0;
+  background: #f4f6f9;
+  font-size: 14px;
+}
+
+.sigep-cronograma-aviso {
+  padding: 8px 14px;
+  margin: 0;
+  font-size: 13px;
+  background: #fff8e5;
+  color: #886619;
+}
+
+.sigep-cronograma-detalhes {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  overflow: visible;
+  border: 1px solid #cfdbec;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.sigep-cronograma-detalhes > h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 12px;
+  color: #174d95;
+  border-bottom: 1px solid #cfdbec;
+  font-size: 16px;
+  line-height: 20px;
+  flex-shrink: 0;
+}
+
+.sigep-cronograma-detalhes-conteudo {
+  overflow: visible;
+  padding: 8px 10px;
+  flex: 1;
+}
+
+.sigep-cronograma-detalhes > h2 > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sigep-cronograma-detalhes > h2 .pi-calendar {
+  color: #0056b8;
+  font-size: 24px;
+}
+
+.sigep-cronograma-contagem {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #e2edff;
+  color: #0056b8;
+  font-size: 13px;
+}
+
+.sigep-cronograma-evento {
+  display: grid;
+  grid-template-columns:
+    minmax(120px, 0.8fr) minmax(180px, 2fr) minmax(170px, 1fr)
+    80px auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #d5dfef;
+  border-left: 3px solid;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 6px;
+  min-width: 0;
+}
+
+.sigep-cronograma-evento-nome {
+  min-width: 0;
+}
+.sigep-cronograma-evento h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.sigep-cronograma-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sigep-cronograma-tipo i {
+  font-size: 6px;
+}
+.sigep-cronograma-periodo,
+.sigep-cronograma-horario {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.sigep-cronograma-periodo i,
+.sigep-cronograma-horario i {
+  font-size: 12px;
+  color: #52647d;
+}
+
+.sigep-cronograma-complementos {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #52647d;
+}
+
+.sigep-cronograma-complementos summary {
+  cursor: pointer;
+  width: fit-content;
+}
+.sigep-cronograma-complementos p {
+  margin: 4px 0;
+  line-height: 1.4;
+}
+.sigep-cronograma-tag {
+  display: inline-block;
+  width: fit-content;
+  white-space: nowrap;
+  color: #52647d;
+  background: #e9edf3;
+  border-radius: 12px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sigep-cronograma-tag.is-concluido {
+  color: #047857;
+  background: #d1fae5;
+}
+.sigep-cronograma-tag.is-andamento {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+.sigep-cronograma-tag.is-pendente,
+.sigep-cronograma-tag.is-proximo {
+  color: #92400e;
+  background: #fef3c7;
+}
+.sigep-cronograma-tag.is-atrasado {
+  color: #dc2626;
+  background: #fee2e2;
+}
+.sigep-cronograma-lista {
+  padding: 0 14px;
+  overflow-y: auto;
+  max-height: 460px;
+}
+
+.sigep-cronograma-lista-evento {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 0;
+  border: 0;
+  border-top: 1px solid #e1e8f2;
+  background: #fff;
+  color: #102b56;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sigep-cronograma-lista-evento:hover {
+  background: #edf4ff;
+}
+.sigep-cronograma-lista-data {
+  flex-shrink: 0;
+  width: 130px;
+  font-size: 14px;
+}
+
+.sigep-cronograma-lista-nome {
+  flex: 1;
+  min-width: 0;
+}
+.sigep-cronograma-lista-nome strong {
+  font-size: 14px;
+}
+
+.sigep-cronograma-lista-evento small {
+  display: block;
+  color: #52647d;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.sigep-cronograma-page button:focus-visible,
+.sigep-cronograma-page input:focus-visible,
+.sigep-cronograma-page select:focus-visible,
+.sigep-cronograma-detalhes-conteudo:focus-visible {
+  outline: 2px solid #2155d6;
+  outline-offset: -2px;
+}
+@media (max-width: 1100px) {
+  .sigep-cronograma-sync {
+    align-self: flex-start;
+  }
+  .sigep-cronograma-header {
+    flex-wrap: wrap;
+  }
+  .sigep-cronograma-evento {
+    grid-template-columns: 120px minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .sigep-cronograma-periodo {
+    grid-column: 1 / 3;
+  }
+  .sigep-cronograma-horario {
+    grid-column: 3;
+    justify-self: end;
+  }
+  .sigep-cronograma-evento > .sigep-cronograma-tag {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+@media (max-width: 700px) {
+  .sigep-cronograma-topo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sigep-cronograma-header {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sigep-cronograma-filtros {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sigep-cronograma-limpar {
+    justify-self: start;
+  }
+  .sigep-cronograma-toolbar {
+    flex-wrap: wrap;
+  }
+  .sigep-cronograma-calendario {
+    min-width: 650px;
+  }
+  .sigep-cronograma-semana-longa {
+    display: none;
+  }
+  .sigep-cronograma-semana-curta {
+    display: inline;
+  }
+  .sigep-cronograma-evento {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .sigep-cronograma-evento-nome {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .sigep-cronograma-evento h3 {
+    white-space: normal;
+  }
+  .sigep-cronograma-evento > .sigep-cronograma-tag {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .sigep-cronograma-periodo {
+    grid-column: 1;
+  }
+  .sigep-cronograma-horario {
+    grid-column: 2;
+  }
+  .sigep-cronograma-lista-evento {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .sigep-cronograma-lista-data {
+    width: 100%;
+  }
+}

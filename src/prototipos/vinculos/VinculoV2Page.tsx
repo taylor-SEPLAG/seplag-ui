@@ -137,7 +137,7 @@ function mascararCpf(value: string) {
 }
 const dataBr = (value: string) => value ? value.split("-").reverse().join("/") : "—";
 type PaginacaoV2Props = { nome: string; pagina: number; totalPaginas: number; porPagina: number; mudarPagina: (pagina: number) => void; mudarPorPagina: (quantidade: number) => void };
-function PaginacaoV2({ nome, pagina, totalPaginas, porPagina, mudarPagina, mudarPorPagina }: PaginacaoV2Props) {
+export function PaginacaoV2({ nome, pagina, totalPaginas, porPagina, mudarPagina, mudarPorPagina }: PaginacaoV2Props) {
   return <nav className="v2v-pagination" aria-label={`Paginação de ${nome}`}>
     <button type="button" aria-label={`Primeira página de ${nome}`} disabled={pagina === 1} onClick={() => mudarPagina(1)}><i className="pi pi-angle-double-left" aria-hidden="true" /></button>
     <button type="button" aria-label={`Página anterior de ${nome}`} disabled={pagina === 1} onClick={() => mudarPagina(pagina - 1)}><i className="pi pi-angle-left" aria-hidden="true" /></button>
