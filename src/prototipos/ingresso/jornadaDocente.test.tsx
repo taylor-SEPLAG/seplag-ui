@@ -7,18 +7,18 @@ import { JornadaDocente, jornadaDocenteVazia, calcularJornadaDocente, jornadaDoc
 import { PrototiposNovoIngressoPage } from '../PrototiposPage';
 beforeEach(() => {localStorage.clear();sessionStorage.clear();});
 afterEach(() => {cleanup();localStorage.clear();sessionStorage.clear();});
-it('mostra a flag apenas para 50 minutos, calcula um terço e limpa ao retornar para 60 minutos', () => {
-  function Formulario() {const [config,setConfig]=useState({...jornadaDocenteVazia,jornada:'30',inicio:'2026-10-01',fim:'2027-10-01'});return <JornadaDocente value={config} onChange={setConfig} />;}
+it('mantém hora-aula e hora-atividade e altera apenas os rótulos das datas', () => {
+  function Formulario() { const [config,setConfig]=useState({...jornadaDocenteVazia,jornada:'30',inicio:'2026-10-01',fim:'2027-10-01'}); return <JornadaDocente value={config} onChange={setConfig} />; }
   render(<Formulario />);
-  expect(screen.queryByLabelText(/Jornada docente \(horas semanais\)/)).toBeNull();
-  fireEvent.click(screen.getByRole('radio',{name:'60 minutos'}));
-  expect(screen.queryByRole('checkbox',{name:'Possui hora-atividade?'})).toBeNull();
+  expect(screen.getByLabelText(/Data início da vigência/)).toBeTruthy();
+  expect(screen.getByLabelText(/Data fim da vigência/)).toBeTruthy();
+  expect(screen.getAllByRole('radio')).toHaveLength(2);
+  expect(screen.queryByRole('checkbox')).toBeNull();
   fireEvent.click(screen.getByRole('radio',{name:'50 minutos'}));
-  expect(screen.getByRole('status').textContent).toContain('Hora-atividade não habilitada para esta configuração.');
   fireEvent.click(screen.getByRole('checkbox',{name:'Possui hora-atividade?'}));
-  expect(screen.getByRole('status').textContent).toContain('Hora-atividade habilitada. O cálculo será realizado conforme a jornada do professor.');
-
+  expect(screen.getByRole('status').textContent).toContain('Hora-atividade habilitada.');
   fireEvent.click(screen.getByRole('radio',{name:'60 minutos'}));
+  expect(screen.queryByRole('checkbox')).toBeNull();
   fireEvent.click(screen.getByRole('radio',{name:'50 minutos'}));
   expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false);
 });
@@ -38,11 +38,10 @@ it.each(['Processo Seletivo SEDUC 2026','Processo Seletivo SES 2026'])('restring
   expect(screen.getByRole('heading',{name:'Configuração da Jornada Docente'})).toBeTruthy();
   fireEvent.click(screen.getByRole('radio',{name:'50 minutos'}));
   fireEvent.click(screen.getByRole('checkbox',{name:'Possui hora-atividade?'}));
-  expect(screen.getByRole('status').textContent).toContain('Hora-atividade habilitada.');
   fireEvent.click(screen.getByRole('button',{name:'Salvar rascunho'}));
   const salvo=JSON.parse(localStorage.getItem('prototype-analise-provimento-rascunho-2')||'{}');
-  expect(salvo.campos['docente-duracao']).toBe('50');
-  expect(salvo.campos['docente-hora-atividade']).toBe(true);
+  expect(salvo.campos['docente-inicio']).toBe('2026-10-01');
+  expect(salvo.campos['docente-fim']).toBe('2027-10-01');
   fireEvent.change(screen.getByRole('combobox',{name:/Setor\/Lotação/}),{target:{value:'Unidade Central'}});
   fireEvent.click(screen.getByRole('button',{name:'Confirmar'}));
   const configuracoes=JSON.parse(localStorage.getItem('prototype-ingresso-jornada-docente')||'{}');
