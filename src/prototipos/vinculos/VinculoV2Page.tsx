@@ -2,6 +2,8 @@ import { Fragment, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
+import { ModalSeplag } from "../../componentes/Modal";
+import { BotaoSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import "./vinculoV2.css";
 import { filtrarVinculos, filtrosDaUrl, situacaoDoVinculo } from "./vinculosConsulta";
@@ -23,6 +25,7 @@ export type Vinculo = {
   id: string; tipo: Tipo; nome: string; cpf: string; nascimento: string; matricula: string; numero: string;
   regime: string; carreira: string; cargo: string; perfil: string; jornada: string; orgao: string; setor: string;
   inicio: string; termino: string; situacao: Situacao | "Inativo"; vacanciaData?: string; vacanciaForma?: string; observacao?: string;
+  criacao?: { titulo: string; responsavel: string; registradoEm: string; dados: Record<string, string> };
 };
 type Pessoa = Pick<Vinculo, "nome" | "cpf" | "nascimento" | "matricula">;
 type Campos = Pick<Vinculo, "regime" | "carreira" | "cargo" | "perfil" | "jornada" | "orgao" | "setor" | "inicio" | "termino" | "matricula"> & { vacanciaData: string; vacanciaForma: string; observacao: string };
@@ -88,7 +91,7 @@ function opcoesCargo(config: Config, cargo: string) {
 }
 const NOMES_DEMO = ["Adriana", "Bruno", "Camila", "Daniel", "Elisa", "Fábio", "Giovana", "Hugo", "Isabela", "Marcos"];
 const SOBRENOMES_DEMO = ["Almeida", "Barbosa", "Cardoso", "Dias", "Ferreira", "Gomes", "Lima", "Mendes", "Oliveira", "Ribeiro"];
-const REGISTROS_ADICIONAIS: Vinculo[] = TIPOS.flatMap((tipo, indiceTipo) =>
+const REGISTROS_ADICIONAIS: Vinculo[] = TIPOS.filter(tipo => tipo !== "Aposentado").flatMap((tipo, indiceTipo) =>
   Array.from({ length: 5 }, (_, indice) => {
     const sequencia = indiceTipo * 5 + indice;
     const config = configTipo(tipo);
@@ -255,20 +258,20 @@ export function VinculoV2CadastroPage() {
     observacao: existente?.observacao ?? "",
   }));
   const [erro, setErro] = useState("");
+  const [cadastrado, setCadastrado] = useState<Vinculo | null>(null);
   const [registros] = useState(todos);
   const candidatos: Pessoa[] = [...new Map([...registros, ...PESSOAS].map((registro) => [digitosCpf(registro.cpf), { nome: registro.nome, cpf: registro.cpf, nascimento: registro.nascimento, matricula: registro.matricula }])).values()];
   const consultaCpf = digitosCpf(cpf);
   const sugestoes = consultaCpf.length >= 3 ? candidatos.filter((candidato) => digitosCpf(candidato.cpf).includes(consultaCpf)) : candidatos;
-  const numeroVinculo = existente?.numero ?? (pessoa ? String(Math.max(0, ...registros.filter((v) => digitosCpf(v.cpf) === digitosCpf(pessoa.cpf)).map((v) => Number(v.numero) || 0)) + 1) : "");
   const situacao = situacaoDoVinculo(campos);
   const opcoesAtuais = opcoesCargo(config, campos.cargo);
   const atualizar = (campo: keyof Campos, valor: string) => setCampos((atual) => ({ ...atual, [campo]: valor }));
   const voltar = () => navigate(existente ? `${BASE}/${existente.id}?tipo=${encodeURIComponent(existente.tipo)}` : `${BASE}?expand=${encodeURIComponent(tipo)}`);
-  const matriculaDaPessoa = (selecionada: Pessoa) => {
-    const vinculada = registros.find((v) => digitosCpf(v.cpf) === digitosCpf(selecionada.cpf) && v.matricula.trim());
+  const matriculaDaPessoa = (selecionada: Pessoa, atuais: Vinculo[]) => {
+    const vinculada = atuais.find((v) => digitosCpf(v.cpf) === digitosCpf(selecionada.cpf) && v.matricula.trim());
     if (vinculada) return vinculada.matricula;
     if (selecionada.matricula.trim()) return selecionada.matricula;
-    const existentes = [...registros, ...PESSOAS].map((v) => Number(v.matricula)).filter(Number.isFinite);
+    const existentes = [...atuais, ...PESSOAS].map((v) => Number(v.matricula)).filter(Number.isFinite);
     return String(Math.max(0, ...existentes) + 1);
   };
   const preencherCpf = (valor: string) => {
@@ -278,7 +281,6 @@ export function VinculoV2CadastroPage() {
       : undefined;
     setCpf(cpfFormatado);
     setPessoa(correspondente ?? null);
-    setCampos((atual) => ({ ...atual, matricula: correspondente ? matriculaDaPessoa(correspondente) : "" }));
     setMostrarSugestoes(true);
     setIndiceAtivo(-1);
     setErro("");
@@ -289,13 +291,14 @@ export function VinculoV2CadastroPage() {
     setMostrarSugestoes(false);
     setIndiceAtivo(-1);
     setErro("");
-    atualizar("matricula", matriculaDaPessoa(selecionada));
   };
   const salvar = (evento: FormEvent) => {
     evento.preventDefault();
+    if (cadastrado) return;
+    setErro("");
     if (!existente && TIPOS_INGRESSO.has(tipo)) { setErro("Este Tipo de Vínculo é gerado pelo módulo de Ingresso e não permite cadastro manual."); return; }
     if (!pessoa) { setErro("Selecione um CPF da lista antes de salvar."); return; }
-    if (!campos.matricula.trim() || !campos.regime || !campos.cargo || !campos.perfil || !campos.jornada || !campos.orgao || !campos.setor || !campos.inicio || (config.carreiras.length > 0 && !campos.carreira)) {
+    if (!campos.regime || !campos.cargo || !campos.perfil || !campos.jornada || !campos.orgao || !campos.setor || !campos.inicio) {
       setErro("Preencha todos os campos obrigatórios do vínculo."); return;
     }
     if (Boolean(campos.vacanciaData) !== Boolean(campos.vacanciaForma)) {
@@ -307,14 +310,27 @@ export function VinculoV2CadastroPage() {
     if (TIPOS_FIM_EXERCICIO.has(tipo) && campos.termino && campos.termino < campos.inicio) {
       setErro("A Data de Fim do Exercício não pode ser anterior ao início do exercício."); return;
     }
+    try {
+    const atuais = todos();
     const novo: Vinculo = {
       ...existente,
       id: existente?.id ?? gerarId(), tipo, ...pessoa, ...campos,
-      matricula: campos.matricula.trim(), numero: numeroVinculo,
+      matricula: existente?.matricula || matriculaDaPessoa(pessoa, atuais),
+      numero: existente?.numero || String(Math.max(0, ...atuais.filter((v) => digitosCpf(v.cpf) === digitosCpf(pessoa.cpf)).map((v) => Number(v.numero) || 0)) + 1),
       situacao,
     };
+    if (!existente) novo.criacao = {
+      titulo: "Vínculo cadastrado", responsavel: "Roberto Junior", registradoEm: new Date().toISOString(),
+      dados: { "Tipo de Vínculo": tipo, "Matrícula gerada": novo.matricula, "Nº do Vínculo": novo.numero,
+        "Data de Início do Exercício": novo.inicio, "Órgão/Entidade": novo.orgao, "Lotação": novo.setor,
+        "Cargo": novo.cargo, "Perfil Profissional": novo.perfil, "Jornada": novo.jornada },
+    };
     localStorage.setItem(STORAGE, JSON.stringify([...salvos().filter((v) => v.id !== novo.id), novo]));
-    navigate(`${BASE}/${novo.id}?tipo=${encodeURIComponent(tipo)}`);
+    if (existente) navigate(`${BASE}/${novo.id}?tipo=${encodeURIComponent(tipo)}`);
+    else setCadastrado(novo);
+    } catch {
+      setErro("Não foi possível cadastrar o vínculo. Nenhum identificador foi confirmado. Tente novamente.");
+    }
   };
   if (id && !existente) return layout("Editar Vínculo", null, <div className="v2v-notice">Vínculo não encontrado.</div>);
   if (!existente && TIPOS_INGRESSO.has(tipoInicial)) return layout("Cadastrar Vínculo", null,
@@ -333,18 +349,18 @@ export function VinculoV2CadastroPage() {
       </div>
       {mostrarSugestoes && consultaCpf.length >= 3 && sugestoes.length === 0 && <div className="v2v-notice"><i className="pi pi-info-circle" aria-hidden="true" />CPF não encontrado no cadastro de Pessoa Física. <button type="button" className="v2v-link" onClick={() => navigate(`/prototipos/sigep/pessoa-fisica/novo?cpf=${encodeURIComponent(cpf)}`)}>Cadastrar Pessoa Física</button></div>}
     </section>
-    <section className="v2v-panel v2v-form-section" aria-labelledby="v2v-vinculo-title">
+    {existente && <section className="v2v-panel v2v-form-section" aria-labelledby="v2v-vinculo-title">
       <header className="v2v-section-header"><i className="pi pi-id-card" aria-hidden="true" /><div><h2 id="v2v-vinculo-title">Dados do Vínculo</h2><p>A matrícula e o número do vínculo são preenchidos automaticamente conforme o CPF.</p></div></header>
       <div className="v2v-section-body v2v-form-grid v2v-grid-two">
         <label>Matrícula <em>*</em><input value={campos.matricula} readOnly /></label>
-        <label>Nº do Vínculo <em>*</em><input value={numeroVinculo} readOnly /></label>
+        <label>Nº do Vínculo <em>*</em><input value={existente.numero} readOnly /></label>
       </div>
-    </section>
+    </section>}
     <section className="v2v-panel v2v-form-section" aria-labelledby="v2v-caracteristicas-title">
       <header className="v2v-section-header"><i className="pi pi-briefcase" aria-hidden="true" /><div><h2 id="v2v-caracteristicas-title">Características do Vínculo</h2><p>Informe as características funcionais e a vigência do vínculo.</p></div></header>
       <div className="v2v-section-body v2v-form-grid v2v-grid-four">
         <label>Regime Jurídico <em>*</em><select value={campos.regime} onChange={(e) => atualizar("regime", e.target.value)}>{config.regimes.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
-        <label>Carreira{config.carreiras.length > 0 && <em>*</em>}<select value={campos.carreira} disabled={!config.carreiras.length} onChange={(e) => atualizar("carreira", e.target.value)}>{!config.carreiras.length && <option value="">Não se aplica</option>}{config.carreiras.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
+        <label>Carreira<select value={campos.carreira} disabled={!config.carreiras.length} onChange={(e) => atualizar("carreira", e.target.value)}><option value="">{config.carreiras.length ? "Selecione..." : "Não se aplica"}</option>{config.carreiras.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
         <label>Cargo <em>*</em><select value={campos.cargo} onChange={(e) => { const proximas = opcoesCargo(config, e.target.value); setCampos((atual) => ({ ...atual, cargo: e.target.value, perfil: proximas.perfis[0] ?? "", jornada: proximas.jornadas[0] ?? "" })); }}>{config.cargos.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
         <label>Perfil Profissional <em>*</em><select value={campos.perfil} onChange={(e) => atualizar("perfil", e.target.value)}>{opcoesAtuais.perfis.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
         <label>Jornada de Trabalho <em>*</em><select value={campos.jornada} onChange={(e) => atualizar("jornada", e.target.value)}>{opcoesAtuais.jornadas.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
@@ -362,7 +378,15 @@ export function VinculoV2CadastroPage() {
       <div className="v2v-section-body"><label>Observação<textarea value={campos.observacao} maxLength={500} placeholder="Registre uma observação, se necessário." onChange={(e) => atualizar("observacao", e.target.value)} /></label><small className="v2v-character-count">{campos.observacao.length}/500</small></div>
     </section>
     {erro && <div className="v2v-error" role="alert">{erro}</div>}
-    <div className="v2v-form-actions"><button type="button" className="v2v-secondary" onClick={voltar}><i className="pi pi-arrow-left" aria-hidden="true" />Voltar</button><button type="submit" className="v2v-primary" disabled={!pessoa}><i className="pi pi-check" aria-hidden="true" />Salvar</button></div>
+    <div className="v2v-form-actions"><button type="button" className="v2v-secondary" onClick={voltar}>{existente ? "Voltar" : "Cancelar"}</button><button type="submit" className="v2v-primary" disabled={!pessoa || Boolean(cadastrado)}><i className="pi pi-check" aria-hidden="true" />{existente ? "Salvar" : "Cadastrar Vínculo"}</button></div>
+    <ModalSeplag visible={Boolean(cadastrado)} titulo="Vínculo cadastrado" fechar={voltar} hideFooter tamanho="700px">
+      {cadastrado && <div className="prototype-efetivo-registrado-modal">
+        <p>O vínculo foi cadastrado com sucesso. A Matrícula e o Nº do Vínculo foram gerados automaticamente pelo sistema.</p>
+        <dl className="prototype-efetivo-gerado-info"><div><dt>Matrícula gerada</dt><dd>{cadastrado.matricula}</dd></div><div><dt>Nº do Vínculo gerado</dt><dd>{cadastrado.numero}</dd></div></dl>
+        <p className="prototype-efetivo-registrado-hint">O novo vínculo já está disponível para consulta na Gestão de Vínculos e na Vida Funcional do Servidor.</p>
+        <div className="prototype-efetivo-modal-actions"><BotaoVoltarSeplag type="button" label="Fechar" icon="pi pi-times" onClick={voltar} /><BotaoSeplag type="button" label="Visualizar vínculo" icon="pi pi-eye" onClick={() => navigate(`${BASE}/${cadastrado.id}?tipo=${encodeURIComponent(tipo)}`)} /></div>
+      </div>}
+    </ModalSeplag>
   </form>);
 }
 

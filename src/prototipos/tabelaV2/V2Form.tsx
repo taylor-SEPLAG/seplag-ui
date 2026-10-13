@@ -174,7 +174,7 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
     if (step === 1) {
       if (!valuesValid()) { setError("Preencha todos os valores da estrutura remuneratória."); return; }
       if (source) { setConfirmOpen(true); return; }
-      if (kind === "excecao") { setStep(2); return; }
+      if (kind === "excecao") { const issue = validateIdentification(); if (issue) { setError(issue); return; } setConfirmOpen(true); return; }
       const selected = targets.filter((target) => target.compatible && generate.includes(target.key));
       if (selected.length) {
         if (!drafts.length) setDrafts(selected.map((target) => ({
@@ -195,12 +195,12 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
   const changedCommission = source?.remuneracao?.valor !== remuneracaoValor || source?.remuneracao?.baseCalculo !== (commissionBase || undefined);
   const isReviewStep = kind === "padrao" && !source && drafts.length > 0 && (step === 2 || structure === "fixo" && step === 0);
   const reviewPending = isReviewStep && drafts.some((draft) => !draft.approved);
-  const isLastStep = structure === "fixo" || step === 2 || step === 1 && (Boolean(source) || kind === "padrao" && !hasProportionalReview);
+  const isLastStep = structure === "fixo" || step === 2 || step === 1 && (Boolean(source) || kind === "excecao" || kind === "padrao" && !hasProportionalReview);
   if (referenceId && !referenceSource) return <V2PageFrame title={title}><p role="alert" className="v2-error">A tabela de referência não está disponível para esta jornada. Volte à consulta e selecione outra opção de cadastro.</p><button type="button" className="v2-button-secondary" onClick={() => nav(V2_BASE + "?cargo=" + cargo.id)}>Voltar</button></V2PageFrame>;
   if (source && versionCommissionPair && !v2CanVersion(source)) return <V2PageFrame title={title}><p className="v2-error" role="alert">Versione o cargo comissionado pela tabela de Exclusivamente Comissionado. A tabela de Nomeado Efetivo será versionada automaticamente.</p><button type="button" className="v2-button-secondary" onClick={() => nav(V2_BASE + "?cargo=" + cargo.id)}>Voltar</button></V2PageFrame>;
   const content = <>
     {!embedded && <div className={"v2-wizard-tabs" + (structure === "fixo" ? " v2-wizard-tabs-single" : "")}>
-      {(structure === "fixo" ? ["Identificação e vigência"] : ["Identificação e vigência", "Valores por Nível e Classe", ...(source ? [] : kind === "excecao" ? ["Confirmação"] : hasProportionalReview ? ["Revisão das Jornadas"] : [])]).map((label, index) =>
+      {(structure === "fixo" ? ["Identificação e vigência"] : ["Identificação e vigência", "Valores por Nível e Classe", ...(!source && kind === "padrao" && hasProportionalReview ? ["Revisão das Jornadas"] : [])]).map((label, index) =>
         <button key={label} type="button" className={step === index ? "active" : ""} disabled={index > step && index !== 1} onClick={() => { setStep(index); setError(""); }}>{label}</button>)}
     </div>}
     {referenceSource && <div className="v2-note">Tabela proporcional à referência {v2TableDisplayId(referenceSource)} · {referenceSource.jornada} · V{referenceSource.version} · {(v2Hours(jornada) / v2Hours(referenceSource.jornada || "") * 100).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%</div>}
@@ -305,18 +305,6 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
           <tr key={item.nivel + item.classe}><td>{item.nivel}</td><td>{item.classe}</td><td>{item.before}</td><td>{item.after}</td></tr>)}</tbody></table></div>
       </div>}
     </section>}
-    {step === 2 && kind === "excecao" && !source && <section className="v2-panel"><h2>Confirmação da Exceção</h2>
-      <h3>Identificação</h3><div className="v2-info-grid">
-        <div><small>Cargo</small><strong>{cargo.nome}</strong></div><div><small>Carreira</small><strong>{cargo.carreira}</strong></div>
-        <div><small>Tipo de cadastro</small><strong>{kind === "excecao" ? "Exceção" : "Tabela por Jornada"}</strong></div>
-        <div><small>Perfil Profissional</small><strong>{perfil || "Todos"}</strong></div><div><small>Local de Lotação</small><strong>{local || "Todos"}</strong></div><div><small>Horas trabalhadas</small><strong>{horasTrabalhadas || "Todas"}</strong></div>
-        {kind === "excecao" && <div><small>Dedicação exclusiva</small><strong>{dedicacaoExclusiva ? "Sim" : "Não"}</strong></div>}
-        {!cargo.comissionado && <div><small>Tipos de Vínculo contemplados</small><strong>{tipos.join(", ")}</strong></div>}<div><small>Vigência</small><strong>{v2Date(start)} – {end ? v2Date(end) : "Atual"}</strong></div>
-        <div><small>Base Legal</small><strong>{baseLegal}</strong></div><div><small>Observação</small><strong>{observation || "—"}</strong></div>
-      </div>
-      <h3>Valores</h3>{commissionFixed ? <div className="v2-info-grid"><div><small>Estrutura</small><strong>{tipos[0] === "Exclusivamente Comissionado" ? "Subsídio" : "Gratificação"}</strong></div><div><small>Valor</small><strong>{remuneracaoValor}{tipos[0] === "Exclusivamente Comissionado" ? "" : "%"}</strong></div>{tipos[0] !== "Exclusivamente Comissionado" && <><div><small>Base de cálculo</small><strong>{commissionBase}</strong></div><div><small>Gratificação calculada</small><strong>{v2CommissionCalculatedValue(commissionBase, remuneracaoValor)}</strong></div></>}</div> : structure === "fixo" ? <div className="v2-commission-readonly"><strong>Valor Fixo</strong><span>{v2Currency(fixedValue)}</span></div> : <V2MatrixEditor matrix={matrix} readOnly />}
-      {!source && tipos.length > 1 && <div className="v2-note">Os Tipos de Vínculo selecionados utilizarão os mesmos valores de vencimento desta exceção durante sua vigência.</div>}
-    </section>}
     {(step === 2 || structure === "fixo" && step === 0 && drafts.length > 0) && kind === "padrao" && !source && <section className="v2-panel v2-review-section"><h2>Revisão das Jornadas</h2>
       <div className="v2-note v2-review-info" role="note"><i className="pi pi-info-circle" aria-hidden="true" /><div>
         <p>Os valores apresentados foram calculados automaticamente a partir da Tabela de referência. Revise os valores de cada Jornada antes de concluir o cadastro.</p>
@@ -336,7 +324,7 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
     </section>}
     {error && <p role="alert" className="v2-error">{error}</p>}
     {!embedded && <div className={"v2-footer" + (step === 1 ? " v2-values-footer" : "")}><button type="button" className="v2-button-secondary" onClick={() => view ? nav(V2_BASE + "?cargo=" + cargo.id) : step ? setStep(step - 1) : nav(V2_BASE)}><i className="pi pi-arrow-left" /> Voltar</button>
-      {!view && <button type="button" className="v2-button-primary" disabled={reviewPending} onClick={advance}><i className="pi pi-save" /> {step === 0 && !source && kind === "padrao" ? "Confirmar" : step === 1 && !source && kind === "padrao" ? "Salvar tabela" : !isLastStep ? "Avançar" : source ? "Confirmar versionamento" : kind === "excecao" ? "Salvar Exceção" : "Salvar tabela"}</button>}</div>}
+      {!view && <button type="button" className="v2-button-primary" disabled={reviewPending} onClick={advance}><i className="pi pi-save" /> {step === 0 && !source && kind === "padrao" ? "Confirmar" : step === 1 && !source && kind === "padrao" ? "Salvar tabela" : !isLastStep ? "Avançar" : source ? "Confirmar versionamento" : "Salvar tabela"}</button>}</div>}
     {confirmOpen && <div className="v2-overlay" role="presentation" onMouseDown={() => setConfirmOpen(false)}><section className="v2-modal v2-confirm" role="dialog" aria-modal="true" aria-labelledby="v2-confirm-form-title" onMouseDown={(event) => event.stopPropagation()}>
       <header><h2 id="v2-confirm-form-title">{source ? "Confirmar versionamento" : kind === "excecao" ? "Confirmar cadastro da Exceção" : drafts.length ? "Confirmar cadastro das Tabelas de Vencimentos" : "Confirmar cadastro da tabela"}</h2>
         <button type="button" className="v2-icon-plain" aria-label="Fechar" onClick={() => setConfirmOpen(false)}><i className="pi pi-times" /></button></header>
@@ -344,7 +332,8 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
         <p>{drafts.length ? "As Tabelas proporcionais foram revisadas e serão criadas com base nos valores da Tabela de referência. Deseja continuar?" : versionCommissionPair ? "Ao confirmar, a tabela de Exclusivamente Comissionado e a tabela de Nomeado Efetivo serão versionadas automaticamente. A gratificação será recalculada com o subsídio e o percentual informados. Deseja continuar?" : createCommissionPair ? "Serão criadas duas tabelas: uma para Exclusivamente Comissionado com o subsídio integral e outra para Nomeado Efetivo com a gratificação calculada. Deseja continuar?" : cargo.comissionado ? "Deseja confirmar os valores e a vigência desta tabela de cargo comissionado?" : source ? tipos.length < sourceTypes.length ? "Deseja confirmar a separação dos Tipos de Vínculo? Será criada uma nova tabela para os vínculos selecionados, preservando a tabela anterior para os demais." : "Deseja confirmar a nova versão? Os novos valores serão aplicados aos Tipos de Vínculo selecionados a partir da vigência informada." : "Deseja confirmar o cadastro da tabela de vencimentos? Os Tipos de Vínculo selecionados compartilharão os valores informados."}</p>
         <div className="v2-info-grid"><div><small>Cargo</small><strong>{cargo.nome}</strong></div>
           {!!drafts.length && <div><small>Tabela de referência</small><strong>{cargo.nome} · {jornada}</strong></div>}
-          <div><small>{drafts.length ? "Jornada de referência" : "Jornada ou abrangência"}</small><strong>{kind === "padrao" ? jornada : perfil + " · " + local}</strong></div>
+          <div><small>{drafts.length ? "Jornada de referência" : "Jornada ou abrangência"}</small><strong>{kind === "padrao" ? jornada : (perfil || "Todos os perfis") + " · " + (local || "Todas as lotações")}</strong></div>
+          {kind === "excecao" && <><div><small>Horas trabalhadas</small><strong>{horasTrabalhadas || "Todas"}</strong></div><div><small>Observação</small><strong>{observation || "—"}</strong></div></>}
           {kind === "excecao" && <div><small>Dedicação exclusiva</small><strong>{dedicacaoExclusiva ? "Sim" : "Não"}</strong></div>}
           {!cargo.comissionado && <div><small>Tipos de Vínculo</small><strong>{tipos.join(", ")}</strong></div>}<div><small>Vigência</small><strong>{v2Date(start)} – {end ? v2Date(end) : "Atual"}</strong></div>
           {tipos.includes("Contrato Temporário") && <div><small>Edital / Processo Seletivo</small><strong>{v2EditalNames(editais) || "Nenhum edital selecionado"}</strong></div>}

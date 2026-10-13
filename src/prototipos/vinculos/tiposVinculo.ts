@@ -20,4 +20,5 @@ export const TIPOS_VINCULO = [
   "Empregado Público",
   "Servidor Permutado",
   "Decisão Judicial",
+  "Aposentado",
 ] as const;

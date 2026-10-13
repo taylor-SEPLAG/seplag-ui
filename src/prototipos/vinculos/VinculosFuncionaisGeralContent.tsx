@@ -3,17 +3,10 @@ import "../cadastro/cadastroGeral.css";
 
 const areas = [
   {
-    titulo: "Pasta Funcional do Servidor",
-    descricao:
-      "Consulte os documentos consolidados da vida funcional e anexe documentos complementares.",
-    icone: "pi pi-folder-open",
-    destino: "/prototipos/sigep/pasta-funcional",
-  },
-  {
-    titulo: "Vida Funcional do Servidor",
-    descricao: "Consulte os vínculos e a trajetória funcional dos servidores.",
-    icone: "pi pi-history",
-    destino: "/prototipos/sigep/vida-funcional",
+    titulo: "Dashboard de Vínculos",
+    descricao: "Acompanhe os indicadores e a distribuição dos vínculos funcionais.",
+    icone: "pi pi-chart-bar",
+    destino: "/prototipos/sigep/dashboard-vinculos",
   },
   {
     titulo: "Tipos de Vínculos",
@@ -22,16 +15,23 @@ const areas = [
     destino: "/prototipos/sigep/tipo-vinculo",
   },
   {
-    titulo: "Gestão de Ingresso",
-    descricao: "Acompanhe os ingressos de pessoas no serviço público.",
-    icone: "pi pi-user-plus",
-    destino: "/prototipos/sigep/ingressos-teste",
+    titulo: "Vínculo",
+    descricao: "Consulte e gerencie os vínculos funcionais dos servidores.",
+    icone: "pi pi-link",
+    destino: "/prototipos/sigep/vinculos-v2",
   },
   {
-    titulo: "Efetivo Exercício",
-    descricao: "Registre e acompanhe o efetivo exercício dos ingressos.",
-    icone: "pi pi-check-circle",
-    destino: "/prototipos/sigep/ingressos/efetivo-exercicio",
+    titulo: "Vida Funcional do Servidor",
+    descricao: "Consulte os vínculos e a trajetória funcional dos servidores.",
+    icone: "pi pi-history",
+    destino: "/prototipos/sigep/vida-funcional",
+  },
+  {
+    titulo: "Pasta Funcional do Servidor",
+    descricao:
+      "Consulte os documentos consolidados da vida funcional e anexe documentos complementares.",
+    icone: "pi pi-folder-open",
+    destino: "/prototipos/sigep/pasta-funcional",
   },
 ] as const;
 

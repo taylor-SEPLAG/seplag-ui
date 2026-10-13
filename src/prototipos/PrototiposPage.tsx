@@ -2437,6 +2437,7 @@ const tiposVinculoTesteMock: TipoVinculoTesteRow[] = [
   criarTipoVinculo(18, TIPOS_VINCULO[17], "Permanente"),
   criarTipoVinculo(19, TIPOS_VINCULO[18], "Permanente"),
   criarTipoVinculo(20, TIPOS_VINCULO[19], "Especial"),
+  criarTipoVinculo(21, TIPOS_VINCULO[20], "Previdenciário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto"]),
 ];
 
 const ingressosMock: IngressoRow[] = [

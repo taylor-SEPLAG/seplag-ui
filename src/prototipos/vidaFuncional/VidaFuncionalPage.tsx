@@ -19,6 +19,7 @@ import {
   pesquisarEventos,
   indicadores,
   filtrosVazios,
+  atualizarVinculosCadastrados,
   type Evento,
   type Filtros,
 } from "./model";
@@ -201,6 +202,7 @@ function Paginacao({
 }
 
 export function VidaFuncionalPage() {
+  atualizarVinculosCadastrados();
   const { pessoaId, vinculoId } = useParams();
   const [routeParams] = useSearchParams();
   if (pessoaId && !vinculoId) {

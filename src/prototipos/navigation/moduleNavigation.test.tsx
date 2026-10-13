@@ -158,7 +158,7 @@ it.each([
     "Vínculos Funcionais",
     VinculosFuncionaisGeralContent,
     5,
-    "/prototipos/sigep/pasta-funcional",
+    "/prototipos/sigep/dashboard-vinculos",
   ],
   [
     "Controle de Certame",

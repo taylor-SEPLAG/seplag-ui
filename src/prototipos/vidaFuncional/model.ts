@@ -1,3 +1,4 @@
+import { situacaoDoVinculo } from '../vinculos/vinculosConsulta';
 export interface Pessoa { id: string; nome: string; cpf: string; nascimento: string }
 export interface Vinculo { id: string; pessoaId: string; matricula: string; numero: number; tipo: string; cargo: string; orgao: string; unidade: string; inicio: string; fim?: string; classificacao: 'Ativo' | 'Inativo' | 'Falecido' | 'Extinto'; relacionadoId?: string }
 export interface Evento { id: string; vinculoId: string; data: string; tipo: string; titulo: string; descricao: string; origem: string; responsavel: string; registradoEm: string; documento: string; secoes: Record<string, Record<string, string>> }
@@ -41,6 +42,36 @@ export const eventos: Evento[] = vinculos.flatMap(v => {
   if (v.fim) lista.push(evento(v, 'Encerramento', v.fim, v.relacionadoId ? 'Aposentadoria e encerramento do vínculo efetivo' : v.classificacao === 'Falecido' ? 'Encerramento por falecimento' : 'Encerramento do vínculo', 'Encerramento de Vínculos', { 'Dados do Encerramento': { 'Tipo de encerramento': v.relacionadoId ? 'Aposentadoria' : v.classificacao === 'Falecido' ? 'Falecimento' : v.tipo === 'Contrato Temporário' ? 'Término do contrato' : 'Exoneração', 'Motivo': v.relacionadoId ? 'Concessão de aposentadoria' : 'Conclusão do vínculo funcional', 'Data do encerramento': dataBR(v.fim), 'Classificação anterior': 'Ativo', 'Classificação final': v.classificacao, 'Situação anterior': 'Vigente', 'Situação final': 'Encerrado', 'Justificativa/Observações': 'Histórico integralmente preservado.', ...(v.relacionadoId ? { 'Novo vínculo de Aposentado': `${v.matricula} / 2 — início em 01/07/2025` } : {}) } }));
   return lista;
 });
+const pessoasBase = [...pessoas];
+const vinculosBase = [...vinculos];
+const eventosBase = [...eventos];
+export function atualizarVinculosCadastrados() {
+  pessoas.splice(0, pessoas.length, ...pessoasBase);
+  vinculos.splice(0, vinculos.length, ...vinculosBase);
+  eventos.splice(0, eventos.length, ...eventosBase);
+  let registros: import('../vinculos/VinculoV2Page').Vinculo[];
+  try {
+    const dados = JSON.parse(localStorage.getItem('prototype-vinculos-v2') || '[]');
+    registros = Array.isArray(dados) ? dados : [];
+  } catch { return; }
+  for (const registro of registros) {
+    if (!registro.criacao) continue;
+    const cpf = registro.cpf.replace(/\D/g, '');
+    let pessoa = pessoas.find(item => item.cpf.replace(/\D/g, '') === cpf);
+    if (!pessoa) {
+      pessoa = { id: `cadastro-${cpf}`, nome: registro.nome, cpf: registro.cpf, nascimento: registro.nascimento };
+      pessoas.push(pessoa);
+    }
+    const fim = registro.vacanciaData || registro.termino || undefined;
+    vinculos.push({ id: registro.id, pessoaId: pessoa.id, matricula: registro.matricula, numero: Number(registro.numero),
+      tipo: registro.tipo, cargo: registro.cargo, orgao: registro.orgao, unidade: registro.setor, inicio: registro.inicio,
+      fim, classificacao: registro.vacanciaForma === 'Falecimento' ? 'Falecido' : situacaoDoVinculo(registro) === 'Encerrado' ? 'Extinto' : 'Ativo' });
+    eventos.push({ id: `${registro.id}-criacao`, vinculoId: registro.id, data: registro.inicio, tipo: 'Ingresso',
+      titulo: registro.criacao.titulo, descricao: registro.criacao.titulo, origem: 'Gestão de Vínculos',
+      responsavel: registro.criacao.responsavel, registradoEm: registro.criacao.registradoEm,
+      documento: '—', secoes: { 'Dados do Cadastro': registro.criacao.dados } });
+  }
+}
 export interface Filtros {
   busca: string;
   tipo: string;

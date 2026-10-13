@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, beforeEach, expect, it } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { atualizarVinculosCadastrados, vinculos as vidaVinculos, eventos as vidaEventos } from "../vidaFuncional/model";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { VinculoV2CadastroPage, VinculoV2ConsultaPage, VinculoV2DetalhesPage } from "./VinculoV2Page";
 
@@ -11,24 +12,22 @@ const montar = (inicio = "/prototipos/sigep/vinculos-v2") => render(<MemoryRoute
   <Route path="/prototipos/sigep/vinculos-v2/:id" element={<VinculoV2DetalhesPage />} />
 </Routes></MemoryRouter>);
 beforeEach(() => localStorage.clear());
-afterEach(() => { cleanup(); localStorage.clear(); });
+afterEach(() => { vi.restoreAllMocks(); cleanup(); localStorage.clear(); atualizarVinculosCadastrados(); });
 
-it("preenche matrícula ao digitar CPF completo e limpa ao trocar o CPF", () => {
+it("preenche apenas o nome pelo CPF e não exibe identificadores antes do cadastro", () => {
   montar("/prototipos/sigep/vinculos-v2/novo?tipo=Provis%C3%B3rio");
   const cpf = screen.getByRole("combobox", { name: /CPF/ });
-  const matricula = screen.getByLabelText(/Matrícula/) as HTMLInputElement;
-  expect(matricula.readOnly).toBe(true);
+  expect(screen.queryByLabelText(/Matrícula/)).toBeNull();
+  expect(screen.queryByLabelText(/Nº do Vínculo/)).toBeNull();
   fireEvent.change(cpf, { target: { value: "00000000000" } });
-  expect(matricula.value).toBe("327305");
   expect(screen.getByDisplayValue("João Silva")).toBeTruthy();
   fireEvent.change(cpf, { target: { value: "111" } });
-  expect(matricula.value).toBe("");
   fireEvent.change(cpf, { target: { value: "11111111111" } });
-  expect(matricula.value).toBe("418920");
   expect(screen.getByDisplayValue("Maria Souza")).toBeTruthy();
   fireEvent.change(cpf, { target: { value: "99999999999" } });
-  expect(matricula.value).toBe("");
-  expect(screen.getByRole("button", { name: "Salvar" }).hasAttribute("disabled")).toBe(true);
+  expect(screen.queryByLabelText(/Matrícula/)).toBeNull();
+  expect(localStorage.getItem("prototype-vinculos-v2")).toBeNull();
+  expect(screen.getByRole("button", { name: "Cadastrar Vínculo" }).hasAttribute("disabled")).toBe(true);
 });
 
 it("busca nome ou CPF no mesmo campo, combina matrícula e limpa os filtros internos", () => {
@@ -49,7 +48,7 @@ it("busca nome ou CPF no mesmo campo, combina matrícula e limpa os filtros inte
   expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(6);
 });
 
-it("lista os 20 tipos e mostra apenas vínculos ativos e encerrados", () => {
+it("lista os tipos, incluindo Aposentado, e mostra apenas vínculos ativos e encerrados", () => {
   montar();
   const tabela = screen.getByRole("region", { name: "Tipos de vínculo" });
   expect(within(tabela).getAllByRole("button", { name: "Visualizar" })).toHaveLength(10);
@@ -64,6 +63,10 @@ it("lista os 20 tipos e mostra apenas vínculos ativos e encerrados", () => {
   expect(kpis.textContent).toContain("Vínculos Ativos64");
   expect(kpis.textContent).not.toContain("Vínculos Inativos");
   expect(kpis.textContent).toContain("Vínculos Encerrados44");
+  fireEvent.click(screen.getByRole("button", { name: "Próxima página de tipos de vínculo" }));
+  const aposentado = within(tabela).getByText("Aposentado", { exact: true }).closest("tr") as HTMLTableRowElement;
+  fireEvent.click(within(aposentado).getByRole("button", { name: "Visualizar" }));
+  expect(screen.getByText("Nenhum vínculo encontrado para os filtros informados.")).toBeTruthy();
 });
 
 it("conta vínculos de todas as situações na coluna por tipo", () => {
@@ -101,19 +104,49 @@ it("cadastra no tipo escolhido e preserva o número funcional do próximo víncu
   fireEvent.change(screen.getByRole("combobox", { name: /CPF/ }), { target: { value: "000" } });
   fireEvent.click(screen.getByRole("option", { name: /000\.000\.000-00/ }));
   expect((screen.getByDisplayValue("João Silva") as HTMLInputElement).readOnly).toBe(true);
-  expect((screen.getByLabelText(/Matrícula/) as HTMLInputElement).readOnly).toBe(true);
-  expect((screen.getByLabelText(/Matrícula/) as HTMLInputElement).value).toBe("327305");
-  expect((screen.getByDisplayValue("3") as HTMLInputElement).readOnly).toBe(true);
+  expect(screen.queryByLabelText(/Matrícula/)).toBeNull();
+  expect(screen.queryByLabelText(/Nº do Vínculo/)).toBeNull();
+  const carreira = screen.getByRole("combobox", { name: "Carreira", exact: true });
+  fireEvent.change(carreira, { target: { value: "" } });
   fireEvent.change(screen.getByLabelText(/Órgão\/Entidade/), { target: { value: "SEPLAG" } });
   fireEvent.change(screen.getByLabelText(/Lotação/), { target: { value: "Gabinete" } });
 
   fireEvent.change(screen.getByLabelText(/Data de Início/), { target: { value: "2026-10-08" } });
-  fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
+  fireEvent.click(screen.getByRole("button", { name: "Cadastrar Vínculo" }));
   const salvos = JSON.parse(localStorage.getItem("prototype-vinculos-v2") ?? "[]");
-  expect(salvos[0]).toMatchObject({ tipo: "Estabilizado Constitucionalmente", cpf: "000.000.000-00", numero: "3", orgao: "SEPLAG", situacao: "Ativo" });
+  expect(salvos[0]).toMatchObject({ tipo: "Estabilizado Constitucionalmente", cpf: "000.000.000-00", numero: "3", orgao: "SEPLAG", situacao: "Ativo", carreira: "" });
+  expect(salvos[0].criacao.titulo).toBe("Vínculo cadastrado");
+  atualizarVinculosCadastrados();
+  expect(vidaVinculos.some(v => v.id === salvos[0].id && v.numero === 3)).toBe(true);
+  expect(vidaEventos.find(e => e.vinculoId === salvos[0].id)?.titulo).toBe("Vínculo cadastrado");
+  const sucesso = screen.getByRole("dialog", { name: "Vínculo cadastrado" });
+  expect(within(sucesso).getByText("327305")).toBeTruthy();
+  expect(within(sucesso).getByText("3", { exact: true })).toBeTruthy();
+  fireEvent.click(within(sucesso).getByRole("button", { name: "Visualizar vínculo" }));
   expect(screen.getByRole("heading", { name: /Detalhes do Vínculo/ })).toBeTruthy();
   expect(screen.queryByRole("button", { name: "Editar Vínculo" })).toBeNull();
   expect(screen.getByRole("button", { name: "Voltar" }).closest(".v2v-detail-actions")).toBeTruthy();
+});
+
+it.each(["Fechar", "Close"])("preserva o cadastro ao fechar o modal por %s, após uma falha de gravação", (acao) => {
+  montar("/prototipos/sigep/vinculos-v2/novo?tipo=Provis%C3%B3rio");
+  fireEvent.change(screen.getByRole("combobox", { name: /CPF/ }), { target: { value: "00000000000" } });
+  fireEvent.change(screen.getByLabelText(/Órgão\/Entidade/), { target: { value: "SEPLAG" } });
+  fireEvent.change(screen.getByLabelText(/Lotação/), { target: { value: "Gabinete" } });
+  fireEvent.change(screen.getByLabelText(/Data de Início/), { target: { value: "2026-10-08" } });
+  const gravacao = vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => { throw new Error("Falha de gravação"); });
+  fireEvent.click(screen.getByRole("button", { name: "Cadastrar Vínculo" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.getByRole("alert").textContent).toContain("Não foi possível cadastrar");
+  expect(localStorage.getItem("prototype-vinculos-v2")).toBeNull();
+  gravacao.mockRestore();
+  fireEvent.click(screen.getByRole("button", { name: "Cadastrar Vínculo" }));
+  const sucesso = screen.getByRole("dialog", { name: "Vínculo cadastrado" });
+  fireEvent.click(within(sucesso).getByRole("button", { name: acao, exact: true }));
+  expect(screen.getByRole("heading", { name: "Gestão de Vínculos" })).toBeTruthy();
+  const salvos = JSON.parse(localStorage.getItem("prototype-vinculos-v2") || "[]");
+  expect(salvos).toHaveLength(1);
+  expect(salvos[0].numero).toBe("3");
 });
 
 it("mostra Órgão/Entidade antes de Lotação e limita as lotações ao órgão", () => {

@@ -106,9 +106,10 @@ it.each([
   fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
   expect(screen.queryByRole("alert")?.textContent).toBeUndefined();
   screen.getAllByPlaceholderText("R$ 0,00").forEach((cell) => fireEvent.change(cell, { target: { value: "4500,00" } }));
-  fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
-  expect(screen.getByRole("heading", { name: "Confirmação da Exceção" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Salvar Exceção" }));
+  expect(screen.queryByRole("button", { name: "Confirmação", exact: true })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Avançar" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Salvar tabela" }));
+  expect(screen.getByRole("dialog", { name: "Confirmar cadastro da Exceção" })).toBeTruthy();
   fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar cadastro da Exceção" })).getByRole("button", { name: "Confirmar cadastro" }));
   const saved = JSON.parse(window.sessionStorage.getItem("sigep-tabela-v2-v1") || "[]");
   expect(saved.some((record: { kind: string; dedicacaoExclusiva?: boolean }) => record.kind === "excecao" && record.dedicacaoExclusiva === true)).toBe(true);
