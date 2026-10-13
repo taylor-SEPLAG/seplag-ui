@@ -13,6 +13,14 @@ import { CadastroGeralContent } from "./cadastro/CadastroGeralContent";
 import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
 import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
 import { VacanciaGeralContent } from "./vacancia/VacanciaGeralContent";
+import { TerminoPrazoContent } from "./desligamento/TerminoPrazoContent";
+import { RescisaoIniciativaContratadoContent } from "./desligamento/RescisaoIniciativaContratadoContent";
+import { RescisaoIniciativaAdministracaoContent } from "./desligamento/RescisaoIniciativaAdministracaoContent";
+import { DemissaoDisciplinarContent } from "./desligamento/DemissaoDisciplinarContent";
+import { ExoneracaoPedidoContent } from "./desligamento/ExoneracaoPedidoContent";
+import { ExoneracaoOficioLivreContent } from "./desligamento/ExoneracaoOficioLivreContent";
+import { ExoneracaoNaoComparecimentoContent } from "./desligamento/ExoneracaoNaoComparecimentoContent";
+import { DestituicaoDisciplinarContent } from "./desligamento/DestituicaoDisciplinarContent";
 import { MenuCardsContent, type MenuCardItem } from "./MenuCardsContent";
 import { useTiposCotaAtivos } from "./controlePss/tiposCota/tiposCotaStore";
 import { VagasTemporariosContent } from "./controleVagasTemporarios/VagasTemporariosContent";
@@ -215,6 +223,34 @@ const getFolhaValorReferenciaEditarVigenciaPath = (
   codigo: string,
   vigenciaId: number,
 ) => `/prototipos/folha/valores-referencia/${codigo}/vigencias/${vigenciaId}/editar`;
+
+const menuCardsDesligamentoVinculo: readonly MenuCardItem[] = [
+  { titulo: "Vacância", descricao: "Gerencie as hipóteses de vacância dos vínculos efetivos.", icone: "pi pi-user-minus", destino: "/prototipos/sigep/vacancia" },
+  { titulo: "Encerramento contrato", descricao: "Registre o encerramento dos vínculos temporários.", icone: "pi pi-file-excel", destino: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato" },
+  { titulo: "Exoneração/destituição", descricao: "Gerencie desligamentos de vínculos comissionados.", icone: "pi pi-user-minus", destino: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao" },
+  { titulo: "Encerramento Bolsa", descricao: "Registre o encerramento de bolsas, residências e estágios vinculados.", icone: "pi pi-graduation-cap", destino: "/prototipos/sigep/desligamento-vinculo/bolsa" },
+];
+
+const menuCardsBolsa: readonly MenuCardItem[] = [
+  { titulo: "Término da vigência", descricao: "Registre o encerramento da bolsa pelo fim do período previsto.", icone: "pi pi-calendar-times" },
+  { titulo: "Desistência a pedido", descricao: "Registre o encerramento solicitado pela pessoa beneficiária.", icone: "pi pi-user-minus" },
+  { titulo: "Encerramento pela Administração", descricao: "Registre o encerramento determinado pela Administração ou pelo programa.", icone: "pi pi-building" },
+  { titulo: "Substituição", descricao: "Registre a substituição da pessoa beneficiária em bolsa regularmente vacante.", icone: "pi pi-users" },
+];
+
+const menuCardsEncerramentoContrato: readonly MenuCardItem[] = [
+  { titulo: "Término do prazo", descricao: "Registre o encerramento do vínculo temporário pelo fim da vigência contratual.", icone: "pi pi-calendar-times", destino: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/termino-prazo" },
+  { titulo: "Rescisão por iniciativa do contratado", descricao: "Registre a rescisão solicitada pela pessoa contratada.", icone: "pi pi-user-minus", destino: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-contratado" },
+  { titulo: "Rescisão por iniciativa da Administração", descricao: "Registre a rescisão iniciada pela Administração Pública.", icone: "pi pi-building", destino: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-administracao" },
+  { titulo: "Demissão disciplinar", descricao: "Registre a demissão decorrente de procedimento disciplinar aplicável.", icone: "pi pi-times-circle", destino: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/demissao-disciplinar" },
+];
+
+const menuCardsExoneracaoDestituicao: readonly MenuCardItem[] = [
+  { titulo: "Exoneração a pedido", descricao: "Registre o desligamento solicitado pela pessoa ocupante do cargo em comissão.", icone: "pi pi-user-minus", destino: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-pedido" },
+  { titulo: "Livre exoneração", descricao: "Registre a exoneração decidida pela autoridade competente.", icone: "pi pi-briefcase", destino: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-oficio-livre" },
+  { titulo: "Exoneração por não comparecimento ou ausências", descricao: "Registre a exoneração de ofício pelos motivos de ausência previstos na norma.", icone: "pi pi-calendar-times", destino: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/nao-comparecimento-ausencias" },
+  { titulo: "Destituição disciplinar", descricao: "Registre a penalidade disciplinar aplicável ao vínculo exclusivamente comissionado.", icone: "pi pi-times-circle", destino: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/destituicao-disciplinar" },
+];
 
 const menuCardsPessoas: readonly MenuCardItem[] = [
   { titulo: "Pessoa Física", descricao: "Consulte dados cadastrais, vínculos e dependentes.", icone: "pi pi-user", destino: "/prototipos/sigep/pessoas/327305/vinculos" },
@@ -426,21 +462,57 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         ],
       },
       {
-        label: "Vacância",
-        icon: "pi pi-user-minus",
-        to: "/prototipos/sigep/vacancia",
+        label: "Desligamento de Vínculo",
+        icon: "pi pi-sign-out",
+        to: "/prototipos/sigep/desligamento-vinculo",
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
-          { label: "Exoneração", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/exoneracao", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Demissão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/demissao", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Ascensão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/ascensao", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Acesso", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/acesso", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Transferência", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/transferencia", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Readaptação", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/readaptacao", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Aposentadoria", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/aposentadoria", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Posse inacumulável", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/posse-outro-cargo-inacumulavel", visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Falecimento", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/falecimento", visibleOnMenu: true, visibleOnRouter: true },
+          {
+            label: "Vacância",
+            icon: "pi pi-circle-on",
+            to: "/prototipos/sigep/vacancia",
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+            items: [
+              { label: "Exoneração", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/exoneracao", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Demissão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/demissao", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Ascensão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/ascensao", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Acesso", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/acesso", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Transferência", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/transferencia", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Readaptação", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/readaptacao", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Aposentadoria", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/aposentadoria", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Posse inacumulável", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/posse-outro-cargo-inacumulavel", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Falecimento", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/falecimento", visibleOnMenu: true, visibleOnRouter: true },
+            ],
+          },
+          {
+            label: "Encerramento contrato",
+            icon: "pi pi-circle-on",
+            to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato",
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+            items: [
+              { label: "Término do prazo", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/termino-prazo", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Rescisão contratado", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-contratado", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Rescisão Administração", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-administracao", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Demissão disciplinar", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/demissao-disciplinar", visibleOnMenu: true, visibleOnRouter: true },
+            ],
+          },
+          { label: "Exoneração/destituição", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao", visibleOnMenu: true, visibleOnRouter: true },
+          {
+            label: "Encerramento Bolsa",
+            icon: "pi pi-circle-on",
+            to: "/prototipos/sigep/desligamento-vinculo/bolsa",
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+            items: [
+              { label: "Término da vigência", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Desistência a pedido", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Encerramento pela Administração", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
+              { label: "Substituição", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
+            ],
+          },
         ],
       },
       {
@@ -7905,6 +7977,18 @@ export function PrototiposControleVagasDistribuicaoSaldoPage() {
 function PrototiposMenuCardsPage({ titulo, descricao, itens }: Readonly<{ titulo: string; descricao: string; itens: readonly MenuCardItem[] }>) {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><MenuCardsContent titulo={titulo} descricao={descricao} itens={itens} /></PrototypeSystemPage>;
 }
+export function PrototiposDesligamentoVinculoPage() { return <PrototiposMenuCardsPage titulo="Desligamento de Vínculo" descricao="Selecione o tipo de desligamento que deseja gerenciar." itens={menuCardsDesligamentoVinculo} />; }
+export function PrototiposBolsaPage() { return <PrototiposMenuCardsPage titulo="Encerramento Bolsa" descricao="Selecione a forma de encerramento ou substituição da bolsa." itens={menuCardsBolsa} />; }
+export function PrototiposEncerramentoContratoPage() { return <PrototiposMenuCardsPage titulo="Encerramento contrato" descricao="Selecione a forma de encerramento do vínculo temporário." itens={menuCardsEncerramentoContrato} />; }
+export function PrototiposExoneracaoDestituicaoPage() { return <PrototiposMenuCardsPage titulo="Exoneração/destituição" descricao="Selecione a modalidade de desligamento do vínculo comissionado." itens={menuCardsExoneracaoDestituicao} />; }
+export function PrototiposExoneracaoPedidoPage() { return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><ExoneracaoPedidoContent /></PrototypeSystemPage>; }
+export function PrototiposExoneracaoOficioLivrePage() { return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><ExoneracaoOficioLivreContent /></PrototypeSystemPage>; }
+export function PrototiposExoneracaoNaoComparecimentoPage() { return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><ExoneracaoNaoComparecimentoContent /></PrototypeSystemPage>; }
+export function PrototiposDestituicaoDisciplinarPage() { return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><DestituicaoDisciplinarContent /></PrototypeSystemPage>; }
+export function PrototiposTerminoPrazoPage() { return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><TerminoPrazoContent /></PrototypeSystemPage>; }
+export function PrototiposRescisaoIniciativaContratadoPage() { return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><RescisaoIniciativaContratadoContent /></PrototypeSystemPage>; }
+export function PrototiposRescisaoIniciativaAdministracaoPage() { return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><RescisaoIniciativaAdministracaoContent /></PrototypeSystemPage>; }
+export function PrototiposDemissaoDisciplinarPage() { return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><DemissaoDisciplinarContent /></PrototypeSystemPage>; }
 export function PrototiposPessoasGeralPage() { return <PrototiposMenuCardsPage titulo="Pessoas" descricao="Selecione uma área para consultar e gerenciar os cadastros de pessoas." itens={menuCardsPessoas} />; }
 export function PrototiposEstruturaOrganizacionalGeralPage() { return <PrototiposMenuCardsPage titulo="Estrutura Organizacional" descricao="Selecione uma área para gerenciar órgãos, entidades e unidades." itens={menuCardsEstrutura} />; }
 export function PrototiposCargoConcursoGeralPage() { return <PrototiposMenuCardsPage titulo="Cargo e Concurso" descricao="Selecione uma área para consultar e manter carreiras, cargos e vencimentos." itens={menuCardsCargoConcurso} />; }

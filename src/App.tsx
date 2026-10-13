@@ -66,6 +66,18 @@ import {
   PrototiposControleVagasProjecoesPage,
   PrototiposControleCertameGeralPage,
   PrototiposVinculosFuncionaisGeralPage,
+  PrototiposDesligamentoVinculoPage,
+  PrototiposBolsaPage,
+  PrototiposEncerramentoContratoPage,
+  PrototiposExoneracaoDestituicaoPage,
+  PrototiposExoneracaoPedidoPage,
+  PrototiposExoneracaoOficioLivrePage,
+  PrototiposExoneracaoNaoComparecimentoPage,
+  PrototiposDestituicaoDisciplinarPage,
+  PrototiposTerminoPrazoPage,
+  PrototiposRescisaoIniciativaContratadoPage,
+  PrototiposRescisaoIniciativaAdministracaoPage,
+  PrototiposDemissaoDisciplinarPage,
   PrototiposVacanciaGeralPage,
   PrototiposControlePssPainelPage,
   PrototiposControlePssProcessosPage,
@@ -1801,6 +1813,18 @@ function App() {
       <Route path="/prototipos/sigep/movimentacao/cessoes/nova/externa" element={<PrototiposNovaCessaoExternaPage />} />
       <Route path="/prototipos/sigep/controle-pss" element={<PrototiposControleCertameGeralPage />} />
       <Route path="/prototipos/sigep/vinculos-funcionais" element={<PrototiposVinculosFuncionaisGeralPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo" element={<PrototiposDesligamentoVinculoPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/bolsa" element={<PrototiposBolsaPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato" element={<PrototiposEncerramentoContratoPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao" element={<PrototiposExoneracaoDestituicaoPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-pedido" element={<PrototiposExoneracaoPedidoPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-oficio-livre" element={<PrototiposExoneracaoOficioLivrePage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/nao-comparecimento-ausencias" element={<PrototiposExoneracaoNaoComparecimentoPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/destituicao-disciplinar" element={<PrototiposDestituicaoDisciplinarPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato/termino-prazo" element={<PrototiposTerminoPrazoPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-contratado" element={<PrototiposRescisaoIniciativaContratadoPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-administracao" element={<PrototiposRescisaoIniciativaAdministracaoPage />} />
+      <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato/demissao-disciplinar" element={<PrototiposDemissaoDisciplinarPage />} />
       <Route path="/prototipos/sigep/vacancia" element={<PrototiposVacanciaGeralPage />} />
       <Route path="/prototipos/sigep/vacancia/:modalidade" element={<PrototiposVacanciaGeralPage />} />
       <Route
