@@ -1,20 +1,31 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { DocumentosLegaisAssociadosSeplag } from "@componentes/DocumentosLegaisAssociados";
+import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
 import { V2PageFrame, V2Tags } from "./V2Shared";
 import {
   V2_BASE, V2_CARGOS, v2ApplyRga, v2Currency, v2Date, v2Persist, v2Read,
   v2RgaCandidates, v2VisibleLinks, type V2Record,
 } from "./v2Store";
 
-const rateLabel = (value: string) => Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 2 }) + "%";
+const rateValue = (value: string) => Number(value.replace("%", "").replace(",", "."));
+const rateLabel = (value: string) => rateValue(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+const formatPercent = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 5);
+  return digits ? (Number(digits) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%" : "";
+};
 
 export function V2RgaPage() {
   const nav = useNavigate();
+  const documents = useDocumentosLegaisAssociaveis();
   const [records] = useState(v2Read);
   const [step, setStep] = useState(0);
   const [percent, setPercent] = useState("");
+  const [year, setYear] = useState(String(new Date().getFullYear()));
   const [start, setStart] = useState("");
-  const [baseLegal, setBaseLegal] = useState("");
+  const [end, setEnd] = useState("");
+  const [legalId, setLegalId] = useState("");
+  const baseLegal = documents.find((document) => document.id === legalId)?.titulo || "";
   const [observation, setObservation] = useState("");
   const candidates = v2RgaCandidates(records);
   const [selected, setSelected] = useState<string[]>([]);
@@ -35,11 +46,11 @@ export function V2RgaPage() {
       setStep(1);
       return;
     }
-    if (!Number.isFinite(Number(percent)) || Number(percent) <= 0 || !start || !baseLegal.trim()) {
+    if (!Number.isFinite(rateValue(percent)) || rateValue(percent) <= 0 || !start || !legalId) {
       setError("Informe percentual, data de início da vigência e Base Legal.");
       return;
     }
-    const result = v2ApplyRga(records, selected, Number(percent), start, baseLegal, observation);
+    const result = v2ApplyRga(records, selected, rateValue(percent), start, baseLegal, observation.trim(), undefined, { year, end, baseLegalId: legalId });
     if (!result.ok) { setError(result.message); return; }
     setPreview(result.created);
     setPendingRecords(result.records);
@@ -82,17 +93,35 @@ export function V2RgaPage() {
       <p className="v2-rga-selection-count">{selected.length} {selected.length === 1 ? "Tabela selecionada" : "Tabelas selecionadas"}</p>
     </section>}
 
-    {step === 1 && <section className="v2-panel"><h2>Parâmetros do RGA</h2><div className="v2-form-grid">
-      <label><span>Percentual do RGA <span className="v2-required">*</span></span><input type="number" min="0" step="0.01" value={percent} onChange={(event) => setPercent(event.target.value)} /></label>
-      <label><span>Data de início da vigência <span className="v2-required">*</span></span><input type="date" value={start} onChange={(event) => setStart(event.target.value)} /></label>
-      <label><span>Base Legal <span className="v2-required">*</span></span><input value={baseLegal} onChange={(event) => setBaseLegal(event.target.value)} /></label>
-      <label className="v2-wide">Observação<textarea rows={3} value={observation} onChange={(event) => setObservation(event.target.value)} /></label>
-    </div></section>}
+    {step === 1 && <div className="v2-batch-parameters">
+      <section className="v2-panel v2-batch-card" aria-labelledby="v2-batch-parameters-title">
+        <header className="v2-batch-card-header"><i className="pi pi-percentage" aria-hidden="true" /><h2 id="v2-batch-parameters-title">Parâmetros do RGA</h2></header>
+        <div className="v2-batch-card-body">
+          <div className="v2-note v2-batch-info"><i className="pi pi-info-circle" aria-hidden="true" /><span>Os parâmetros informados nesta etapa serão aplicados a todos os cargos selecionados.</span></div>
+          <div className="v2-form-grid v2-batch-grid">
+            <label><span>Ano do RGA <span className="v2-required">*</span></span><input inputMode="numeric" maxLength={4} value={year} onChange={(event) => setYear(event.target.value.replace(/\D/g, "").slice(0, 4))} /></label>
+            <label><span>Percentual do RGA <span className="v2-required">*</span></span><input inputMode="numeric" placeholder="0,00%" value={percent} onChange={(event) => setPercent(formatPercent(event.target.value))} /></label>
+            <label><span>Data início da vigência do RGA <span className="v2-required">*</span></span><input type="date" value={start} onChange={(event) => setStart(event.target.value)} /></label>
+            <label><span>Data fim da vigência do RGA</span><input type="date" min={start || undefined} value={end} onChange={(event) => setEnd(event.target.value)} /></label>
+            <div className="v2-legal-field"><DocumentosLegaisAssociadosSeplag label="Base legal da RGA" required options={documents} value={legalId ? [legalId] : []}
+              onChange={(ids) => setLegalId(ids.find((id) => id !== legalId) || ids[0] || "")}
+              placeholder="Buscar documentos legais..." exibirNovoCadastro={false} compact expandirAoAbrir /></div>
+          </div>
+          <p className="v2-batch-help">Para percentuais diferentes, realize aplicações em lote distintas.</p>
+        </div>
+      </section>
+      <section className="v2-panel v2-batch-card" aria-labelledby="v2-batch-observation-title">
+        <header className="v2-batch-card-header"><i className="pi pi-comment" aria-hidden="true" /><div><h2 id="v2-batch-observation-title">Observação</h2><p>Registre informações complementares sobre a tabela de vencimentos.</p></div></header>
+        <div className="v2-batch-card-body v2-form-grid"><div className="v2-wide"><label htmlFor="v2-batch-observation">Observação</label><textarea id="v2-batch-observation" rows={6} maxLength={2000} value={observation} onChange={(event) => setObservation(event.target.value)} /><small className="v2-batch-counter">{observation.length}/2000</small></div></div>
+      </section>
+    </div>}
 
     {step === 2 && <section className="v2-panel"><h2>Pré-visualização</h2>
       <div className="v2-info-grid">
+        <div><small>Ano do RGA</small><strong>{year}</strong></div>
         <div><small>Percentual do RGA</small><strong>{rateLabel(percent)}</strong></div>
         <div><small>Início da vigência</small><strong>{v2Date(start)}</strong></div>
+        <div><small>Fim da vigência do RGA</small><strong>{end ? v2Date(end) : "Atual"}</strong></div>
         <div><small>Tabelas selecionadas</small><strong>{selected.length}</strong></div>
         <div><small>Novas versões</small><strong>{preview.length}</strong></div>
         <div><small>Base Legal</small><strong>{baseLegal}</strong></div>
@@ -127,6 +156,8 @@ export function V2RgaPage() {
     {confirm && <div className="v2-overlay" role="presentation" onMouseDown={() => setConfirm(false)}><section className="v2-modal v2-confirm" role="dialog" aria-modal="true" aria-labelledby="v2-confirm-title" onMouseDown={(event) => event.stopPropagation()}>
       <header><h2 id="v2-confirm-title">Confirmar aplicação de RGA em lote</h2><button type="button" className="v2-icon-plain" aria-label="Fechar" onClick={() => setConfirm(false)}><i className="pi pi-times" /></button></header>
       <div className="v2-confirm-body"><div className="v2-info-grid">
+        <div><small>Ano do RGA</small><strong>{year}</strong></div>
+        <div><small>Fim da vigência do RGA</small><strong>{end ? v2Date(end) : "Atual"}</strong></div>
         <div><small>Percentual do RGA</small><strong>{rateLabel(percent)}</strong></div>
         <div><small>Data de início da vigência</small><strong>{v2Date(start)}</strong></div>
         <div><small>Tabelas selecionadas</small><strong>{selected.length}</strong></div>

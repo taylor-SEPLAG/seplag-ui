@@ -77,17 +77,27 @@ it("exige Edital / Processo Seletivo ao cadastrar tabela de Contrato Temporário
   expect(screen.queryByRole("alert")).toBeNull();
 });
 
-it("cadastra uma exceção compartilhada com perfil e local próprios", () => {
+it.each([
+  ["Auditoria", "Secretaria de Estado de Fazenda (SEFAZ-MT)"],
+  ["", "Secretaria de Estado de Fazenda (SEFAZ-MT)"],
+  ["Auditoria", ""],
+  ["", ""],
+])("cadastra uma exceção compartilhada com perfil '%s' e local '%s' opcionais", (perfil, local) => {
   render(<MemoryRouter initialEntries={[V2_BASE + "/excecao/nova?cargo=1"]}><TabelaV2Page /></MemoryRouter>);
   fireEvent.click(screen.getByRole("button", { name: "Selecionar Tipos de Vínculo" }));
   fireEvent.click(screen.getByRole("checkbox", { name: "Nomeado Efetivo" }));
   fireEvent.click(screen.getByRole("checkbox", { name: "Contrato Temporário" }));
-  fireEvent.change(screen.getByLabelText("Perfil Profissional *"), { target: { value: "Auditoria" } });
+  expect(screen.queryByLabelText("Perfil Profissional *")).toBeNull();
+  fireEvent.change(screen.getByLabelText("Perfil Profissional"), { target: { value: perfil } });
   expect(screen.queryByPlaceholderText("Buscar lotação")).toBeNull();
-  fireEvent.change(screen.getByLabelText("Local de Lotação *"), { target: { value: "Secretaria de Estado de Fazenda (SEFAZ-MT)" } });
+  expect(screen.queryByLabelText("Local de Lotação *")).toBeNull();
+  fireEvent.change(screen.getByLabelText("Local de Lotação"), { target: { value: local } });
   const horas = screen.getByLabelText("Horas trabalhadas") as HTMLSelectElement;
-  expect([...horas.options].map((option) => option.textContent)).toEqual(["Selecione", "6 horas", "4 horas", "17 horas"]);
+  expect([...horas.options].map((option) => option.textContent)).toEqual(["Selecione", "4 horas", "6 horas", "8 horas", "12 horas", "24 horas", "1 hora", "50min"]);
   fireEvent.change(horas, { target: { value: "6h" } });
+  const dedication = screen.getByRole("checkbox", { name: "Possui dedicação exclusiva" }) as HTMLInputElement;
+  expect(dedication.checked).toBe(false);
+  fireEvent.click(dedication);
   fireEvent.click(screen.getByRole("button", { name: "Selecionar editais" }));
   fireEvent.click(screen.getByRole("checkbox", { name: V2_EDITAIS[0].nome }));
   fireEvent.change(screen.getByLabelText("Data início da vigência *"), { target: { value: "2026-10-01" } });
@@ -101,8 +111,9 @@ it("cadastra uma exceção compartilhada com perfil e local próprios", () => {
   fireEvent.click(screen.getByRole("button", { name: "Salvar Exceção" }));
   fireEvent.click(within(screen.getByRole("dialog", { name: "Confirmar cadastro da Exceção" })).getByRole("button", { name: "Confirmar cadastro" }));
   const saved = JSON.parse(window.sessionStorage.getItem("sigep-tabela-v2-v1") || "[]");
+  expect(saved.some((record: { kind: string; dedicacaoExclusiva?: boolean }) => record.kind === "excecao" && record.dedicacaoExclusiva === true)).toBe(true);
   expect(saved.some((record: { kind: string; perfil: string; local: string; horasTrabalhadas?: string; links: unknown[] }) =>
-    record.kind === "excecao" && record.perfil === "Auditoria" && record.local === "Secretaria de Estado de Fazenda (SEFAZ-MT)" && record.horasTrabalhadas === "6h" && record.links.length === 2)).toBe(true);
+    record.kind === "excecao" && record.perfil === perfil && record.local === local && record.horasTrabalhadas === "6h" && record.links.length === 2)).toBe(true);
 });
 
 it("seleciona tabela vigente inteira, pré-visualiza valores e confirma RGA em lote", () => {
@@ -118,9 +129,16 @@ it("seleciona tabela vigente inteira, pré-visualiza valores e confirma RGA em l
   fireEvent.click(screen.getByRole("checkbox", { name: "Selecionar TV2-001" }));
   expect(screen.getByText("1 Tabela selecionada")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
-  fireEvent.change(screen.getByLabelText("Percentual do RGA *"), { target: { value: "5.4" } });
-  fireEvent.change(screen.getByLabelText("Data de início da vigência *"), { target: { value: "2026-10-01" } });
-  fireEvent.change(screen.getByLabelText("Base Legal *"), { target: { value: "Lei 999/2026" } });
+  fireEvent.change(screen.getByLabelText("Ano do RGA *"), { target: { value: "2026" } });
+  fireEvent.change(screen.getByLabelText("Percentual do RGA *"), { target: { value: "540" } });
+  expect((screen.getByLabelText("Percentual do RGA *") as HTMLInputElement).value).toBe("5,40%");
+  fireEvent.change(screen.getByLabelText("Data início da vigência do RGA *"), { target: { value: "2026-10-01" } });
+  fireEvent.change(screen.getByLabelText("Data fim da vigência do RGA"), { target: { value: "2026-12-31" } });
+  expect((screen.getByRole("textbox", { name: "Observação" }) as HTMLTextAreaElement).maxLength).toBe(2000);
+  fireEvent.change(screen.getByRole("textbox", { name: "Observação" }), { target: { value: "Reajuste anual" } });
+  expect(screen.getByText("14/2000")).toBeTruthy();
+  fireEvent.click(screen.getByPlaceholderText("Buscar documentos legais..."));
+  fireEvent.click(screen.getByRole("checkbox", { name: /LC.*500/ }));
   fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
   const preview = screen.getByRole("table", { name: "Pré-visualização do RGA em lote" });
   expect(within(preview).getByText("RGA em lote")).toBeTruthy();
@@ -139,6 +157,11 @@ it("seleciona tabela vigente inteira, pré-visualiza valores e confirma RGA em l
     record.origem === "RGA em lote" && record.referencia === "TV2-001 V1");
   expect(revised.links.map((link: { tipo: string }) => link.tipo)).toEqual(["Nomeado Efetivo", "Contrato Temporário"]);
   expect(revised.events[0].before.rows[0].values[0]).toBe("R$ 4.500,00");
+  expect(revised.events[0].year).toBe("2026");
+  expect(revised.fim).toBe("2026-12-31");
+  expect(revised.links.every((link: { fim: string }) => link.fim === "2026-12-31")).toBe(true);
+  expect(revised.baseLegalId).toBeTruthy();
+  expect(revised.observacao).toBe("Reajuste anual");
 });
 
 it("bloqueia a identificação herdada e versiona todos os vínculos da tabela", () => {

@@ -70,6 +70,8 @@
 .v2-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; }
 .v2-form-grid .v2-wide { grid-column: 1 / -1; }
 .v2-form-grid textarea { resize: vertical; }
+.v2-page .v2-form-grid .v2-exclusive-dedication { flex-direction: row; align-items: center; gap: 8px; }
+.v2-page .v2-form-grid .v2-exclusive-dedication > input { width: 16px; height: 16px; flex: 0 0 16px; margin: 0; accent-color: #0085db; }
 .v2-wide > small { display: block; margin-top: 5px; font-size: .75rem; }
 .v2-links-select { position: relative; display: flex; min-height: 41px; border: 1px solid #c7d4e1; border-radius: 4px; }
 .v2-selected-links { display: flex; align-items: center; flex-wrap: wrap; flex: 1; gap: 5px; padding: 5px 8px; }
@@ -434,6 +436,21 @@
 .v2-review-section .v2-draft-actions { margin: 14px 0 0; }
 
 .v2-rga-selection-count { margin: 12px 0 0; font-size: .82rem; font-weight: 700; color: #24435f !important; }
+.v2-page .v2-batch-parameters { display: grid; gap: 16px; }
+.v2-page .v2-batch-card { padding: 0; overflow: visible; }
+.v2-page .v2-batch-card-header { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid #dbe4ed; }
+.v2-page .v2-batch-card-header > i { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 8px; background: #e5f3ff; color: #0076ce; font-size: 18px; }
+.v2-page .v2-batch-card-header h2 { margin: 0; padding: 0; border: 0; font-size: 1rem; }
+.v2-page .v2-batch-card-header p { margin: 3px 0 0; color: #6b839b; font-size: .78rem; }
+.v2-page .v2-batch-card-body { padding: 18px; }
+.v2-page .v2-batch-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
+.v2-page .v2-batch-info { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; border-left: 3px solid #0099ef; color: #0064ad; font-size: .9rem; }
+.v2-page .v2-batch-help { margin: 16px 0 0; color: #0064ad; font-size: .9rem; }
+.v2-page .v2-batch-card textarea { min-height: 136px; font-weight: 400; }
+.v2-page .v2-batch-card .v2-wide > textarea { display: block; width: 100%; margin-top: 6px; }
+.v2-page .v2-batch-card .v2-wide > small { display: block; margin-top: 5px; }
+.v2-page .v2-batch-counter { text-align: right; color: #6b839b; font-size: .75rem; font-weight: 400; }
+@media (max-width: 640px) { .v2-page .v2-batch-grid { grid-template-columns: 1fr; } }
 .v2-rga-preview-values { display: grid; gap: 10px; margin-top: 16px; }
 .v2-rga-preview-values details { border: 1px solid #d6e1ec; border-radius: 4px; background: #fff; }
 .v2-rga-preview-values summary { padding: 11px 13px; cursor: pointer; color: #173451; font-size: .82rem; font-weight: 700; }

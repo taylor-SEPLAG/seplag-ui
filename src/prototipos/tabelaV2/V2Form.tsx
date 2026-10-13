@@ -47,6 +47,7 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
   const [perfil, setPerfil] = useState(source?.perfil || "");
   const [local, setLocal] = useState(source?.local || "");
   const [horasTrabalhadas, setHorasTrabalhadas] = useState(source?.horasTrabalhadas || "");
+  const [dedicacaoExclusiva, setDedicacaoExclusiva] = useState(source?.dedicacaoExclusiva || false);
 
   const [reference, setReference] = useState(view && source?.origem === "Referência" ? "Sim" : "Não");
   const [generate, setGenerate] = useState<string[]>(view && source ? records.filter((record) => record.proporcional?.referenciaId === source.id).map((record) => record.jornada + "-same-links") : []);
@@ -85,6 +86,7 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
   const makeInput = (target?: { jornada: string; tipos: string[]; matrix: V2Matrix }): V2Input => ({
     kind, cargoId: cargo.id, jornada: kind === "padrao" ? target?.jornada || jornada : undefined,
     perfil: kind === "excecao" ? perfil : undefined, local: kind === "excecao" ? local : undefined, horasTrabalhadas: kind === "excecao" ? horasTrabalhadas || undefined : undefined,
+    dedicacaoExclusiva: kind === "excecao" ? dedicacaoExclusiva : undefined,
     inicio: start, fim: end || undefined, baseLegal: baseLegal.trim(), baseLegalId: legalId, observacao: observation.trim(),
     origem: target ? "Proporcional" : referenceSource ? "Proporcional" : reference === "Sim" && kind === "padrao" ? "Referência" : "Manual",
     referencia: target ? (source?.tableId || "Tabela de referência") + " · " + jornada : referenceSource ? referenceSource.tableId + " V" + referenceSource.version : undefined,
@@ -103,7 +105,6 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
     if (!cargoId && !source) return "Selecione um Cargo pela consulta.";
     if (!tipos.length || !start || !legalId || (kind === "padrao" && !jornada)) return "Preencha os campos obrigatórios da identificação e vigência.";
     if (!source && tipos.includes("Contrato Temporário") && !editais.length) return "Selecione ao menos um Edital / Processo Seletivo.";
-    if (kind === "excecao" && (!perfil || !local)) return "Selecione Perfil Profissional e Local de Lotação.";
     if (end && end < start) return "A data de término deve ser posterior à data de início.";
     if (tipos.some((tipo) => !options.includes(tipo))) return "Há Tipos de Vínculo inválidos para este Cargo.";
     if (kind === "padrao" && !journeys.includes(jornada)) return "A Jornada selecionada não está disponível para todos os Tipos de Vínculo selecionados.";
@@ -224,14 +225,15 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
             {!source && <small>Selecione um ou mais editais em homologação. Editais já utilizados para este cargo e jornada estão riscados e indisponíveis.</small>}
           </div>}
           {kind === "excecao" && <>
-            <label><span>Perfil Profissional <span className="v2-required">*</span></span><select value={perfil} disabled={Boolean(source || referenceSource)} onChange={(event) => setPerfil(event.target.value)}><option value="">Selecione</option>{cargo.perfis.map((item) => <option key={item}>{item}</option>)}</select></label>
-            <div className="v2-location-field"><label htmlFor="v2-location"><span>Local de Lotação <span className="v2-required">*</span></span></label>
+            <label><span>Perfil Profissional</span><select value={perfil} disabled={Boolean(source || referenceSource)} onChange={(event) => setPerfil(event.target.value)}><option value="">Selecione</option>{cargo.perfis.map((item) => <option key={item}>{item}</option>)}</select></label>
+            <div className="v2-location-field"><label htmlFor="v2-location"><span>Local de Lotação</span></label>
               <select id="v2-location" value={local} disabled={Boolean(source || referenceSource)} onChange={(event) => setLocal(event.target.value)}><option value="">Selecione a lotação</option>
                 {locations.map((item) => <option key={item} value={item}>{item}</option>)}
               </select></div>
             <label><span>Horas trabalhadas</span><select value={horasTrabalhadas} disabled={view || Boolean(source || referenceSource)} onChange={(event) => setHorasTrabalhadas(event.target.value)}>
-              <option value="">Selecione</option><option value="6h">6 horas</option><option value="4h">4 horas</option><option value="17h">17 horas</option>
+              <option value="">Selecione</option><option value="4h">4 horas</option><option value="6h">6 horas</option><option value="8h">8 horas</option><option value="12h">12 horas</option><option value="24h">24 horas</option><option value="1h">1 hora</option><option value="50min">50min</option>
             </select></label>
+            <label className="v2-wide v2-exclusive-dedication"><input type="checkbox" checked={dedicacaoExclusiva} disabled={view || Boolean(source || referenceSource)} onChange={(event) => setDedicacaoExclusiva(event.target.checked)} /><span>Possui dedicação exclusiva</span></label>
           </>}
           <label><span>Data início da vigência <span className="v2-required">*</span></span><input readOnly={view} type="date" value={start} onChange={(event) => setStart(event.target.value)} /></label>
           <label>Data fim da vigência<input readOnly={view} type="date" value={end} min={start || undefined} onChange={(event) => setEnd(event.target.value)} /></label>
@@ -239,7 +241,7 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
             onChange={(ids) => setLegalId(ids[ids.length - 1] || "")} onVisualizar={(document) => setLegalPreview(document.id)}
             placeholder="Buscar documentos legais..." exibirNovoCadastro={false} compact expandirAoAbrir />{view && !legalId && <span>{source?.baseLegal || "—"}</span>}</div>
         </div>
-        {kind === "excecao" && <div className="v2-note">Esta tabela será aplicada por Cargo, Tipo de Vínculo, Perfil Profissional, Local de Lotação e, quando informadas, pelas horas trabalhadas.</div>}
+        {kind === "excecao" && <div className="v2-note">Esta tabela será aplicada por Cargo e Tipo de Vínculo, considerando Perfil Profissional, Local de Lotação e horas trabalhadas quando informados. Os critérios não informados abrangem todos os valores correspondentes.</div>}
       </section>
       {createCommissionPair || versionCommissionPair || viewCommissionValues ? <V2CommissionedValues readOnly={view} cargoName={cargo.nome} subsidy={commissionSubsidy} percent={commissionPercent} onSubsidyChange={setCommissionSubsidy} onPercentChange={setCommissionPercent} /> : cargo.comissionado ? <section className="v2-panel v2-form-section" aria-labelledby="v2-structure-title">
         <h2 id="v2-structure-title"><span className="v2-section-icon"><i className="pi pi-table" /></span> Estrutura de Vencimento</h2>
@@ -307,7 +309,8 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
       <h3>Identificação</h3><div className="v2-info-grid">
         <div><small>Cargo</small><strong>{cargo.nome}</strong></div><div><small>Carreira</small><strong>{cargo.carreira}</strong></div>
         <div><small>Tipo de cadastro</small><strong>{kind === "excecao" ? "Exceção" : "Tabela por Jornada"}</strong></div>
-        <div><small>Perfil Profissional</small><strong>{perfil}</strong></div><div><small>Local de Lotação</small><strong>{local}</strong></div><div><small>Horas trabalhadas</small><strong>{horasTrabalhadas || "Todas"}</strong></div>
+        <div><small>Perfil Profissional</small><strong>{perfil || "Todos"}</strong></div><div><small>Local de Lotação</small><strong>{local || "Todos"}</strong></div><div><small>Horas trabalhadas</small><strong>{horasTrabalhadas || "Todas"}</strong></div>
+        {kind === "excecao" && <div><small>Dedicação exclusiva</small><strong>{dedicacaoExclusiva ? "Sim" : "Não"}</strong></div>}
         {!cargo.comissionado && <div><small>Tipos de Vínculo contemplados</small><strong>{tipos.join(", ")}</strong></div>}<div><small>Vigência</small><strong>{v2Date(start)} – {end ? v2Date(end) : "Atual"}</strong></div>
         <div><small>Base Legal</small><strong>{baseLegal}</strong></div><div><small>Observação</small><strong>{observation || "—"}</strong></div>
       </div>
@@ -342,6 +345,7 @@ export function V2Form({ kind, sourceId, cargoId, initialJourney, referenceId, v
         <div className="v2-info-grid"><div><small>Cargo</small><strong>{cargo.nome}</strong></div>
           {!!drafts.length && <div><small>Tabela de referência</small><strong>{cargo.nome} · {jornada}</strong></div>}
           <div><small>{drafts.length ? "Jornada de referência" : "Jornada ou abrangência"}</small><strong>{kind === "padrao" ? jornada : perfil + " · " + local}</strong></div>
+          {kind === "excecao" && <div><small>Dedicação exclusiva</small><strong>{dedicacaoExclusiva ? "Sim" : "Não"}</strong></div>}
           {!cargo.comissionado && <div><small>Tipos de Vínculo</small><strong>{tipos.join(", ")}</strong></div>}<div><small>Vigência</small><strong>{v2Date(start)} – {end ? v2Date(end) : "Atual"}</strong></div>
           {tipos.includes("Contrato Temporário") && <div><small>Edital / Processo Seletivo</small><strong>{v2EditalNames(editais) || "Nenhum edital selecionado"}</strong></div>}
           {cargo.comissionado && <div><small>Estrutura de Vencimento</small><strong>{structure === "fixo" ? "Valor Fixo" : "Tabela por Nível e Classe"}</strong></div>}

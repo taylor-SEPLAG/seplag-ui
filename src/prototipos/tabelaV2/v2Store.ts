@@ -30,6 +30,7 @@ export type V2Record = {
   perfil?: string;
   local?: string;
   horasTrabalhadas?: string;
+  dedicacaoExclusiva?: boolean;
   inicio: string;
   fim?: string;
   links: V2Link[];
@@ -407,7 +408,6 @@ const conflictMessage = (tipos: string[]) =>
 const validateInput = (input: V2Input, allowMissingInheritedEditais = false): string | null => {
   if (!input.cargoId || !input.links.length || !input.inicio || !input.baseLegal.trim()) return "Preencha os campos obrigatórios.";
   if (input.kind === "padrao" && !input.jornada) return "Selecione a Jornada.";
-  if (input.kind === "excecao" && (!input.perfil || !input.local)) return "Selecione Perfil Profissional e Local de Lotação.";
   if (input.origem !== "RGA" && input.origem !== "RGA em lote" && input.links.some((link) => link.tipo === "Contrato Temporário") && !input.editais?.length && !allowMissingInheritedEditais) return "Selecione ao menos um Edital / Processo Seletivo.";
   if (input.editais?.length && !input.links.some((link) => link.tipo === "Contrato Temporário")) return "Selecione Contrato Temporário para associar editais.";
   if (input.editais && (new Set(input.editais).size !== input.editais.length || input.editais.some((id) => !V2_EDITAIS.some((edital) => edital.id === id && edital.situacao === "Em homologação")))) return "Selecione somente editais em homologação.";
@@ -451,7 +451,7 @@ export const v2Version = (
   if (input.links.length !== selected.length || input.links.some((link) => !selected.includes(link.tipo))) return { ok: false, message: "Os vínculos da nova versão devem coincidir com a seleção." };
   if (!selected.length || selected.some((tipo) => !v2VisibleLinks(source).some((link) => link.tipo === tipo))) return { ok: false, message: "Selecione os vínculos da nova versão." };
   if (input.inicio <= source.inicio) return { ok: false, message: "A nova vigência deve começar após a versão anterior." };
-  if (input.cargoId !== source.cargoId || input.kind !== source.kind || input.jornada !== source.jornada || input.perfil !== source.perfil || input.local !== source.local || input.horasTrabalhadas !== source.horasTrabalhadas) return { ok: false, message: "Mantenha a identificação da tabela de origem." };
+  if (input.cargoId !== source.cargoId || input.kind !== source.kind || input.jornada !== source.jornada || input.perfil !== source.perfil || input.local !== source.local || input.horasTrabalhadas !== source.horasTrabalhadas || Boolean(input.dedicacaoExclusiva) !== Boolean(source.dedicacaoExclusiva)) return { ok: false, message: "Mantenha a identificação da tabela de origem." };
   const error = validateInput(input, !source.editais?.length && !input.editais?.length);
   if (error) return { ok: false, message: error };
   const conflicts = v2Conflicts(records, input, { recordId: source.id, tipos: selected });
@@ -508,10 +508,13 @@ export const v2RgaCandidates = (records: V2Record[], on = today()) =>
 export const v2ApplyRga = (
   records: V2Record[], ids: string[], percent: number, start: string, baseLegal: string, observation: string,
   actor = "Roberto Junior",
+  parameters?: { year: string; end: string; baseLegalId: string },
 ): { ok: true; records: V2Record[]; created: V2Record[] } | { ok: false; message: string } => {
   if (!Number.isFinite(percent) || percent <= 0 || !start || !baseLegal.trim() || !ids.length)
     return { ok: false, message: "Preencha o percentual, a vigência, a Base Legal e selecione ao menos uma tabela." };
   if (new Set(ids).size !== ids.length) return { ok: false, message: "Há tabelas selecionadas em duplicidade." };
+  if (parameters && !/^[0-9]{4}$/.test(parameters.year)) return { ok: false, message: "Informe o ano do RGA com quatro dígitos." };
+  if (parameters?.end && parameters.end < start) return { ok: false, message: "A data de término do RGA deve ser posterior à data de início." };
   const selectable = new Set(v2RgaCandidates(records).map((record) => record.id));
   if (ids.some((recordId) => !selectable.has(recordId)))
     return { ok: false, message: "Uma tabela selecionada não está mais vigente. Revise a seleção." };
@@ -522,6 +525,8 @@ export const v2ApplyRga = (
     if (!source || source.kind !== "padrao" || v2Status(source) !== "Vigente")
       return { ok: false, message: "Uma tabela selecionada não está mais vigente. Revise a seleção." };
     const links = v2VisibleLinks(source);
+    if (parameters?.end && (source.fim && parameters.end > source.fim || links.some((link) => link.fim && parameters.end > link.fim)))
+      return { ok: false, message: "A data de término do RGA deve estar dentro da vigência da tabela " + source.tableId + "." };
     if (!links.length || links.some((link) => start < link.inicio || start > (link.fim || source.fim || "9999-12-31")))
       return { ok: false, message: "A vigência do RGA está fora do período da tabela " + source.tableId + "." };
     const adjustedAmount = (value: string) => money(Math.round(cents(value) * (1 + percent / 100)));
@@ -536,14 +541,15 @@ export const v2ApplyRga = (
     const input: V2Input = {
       kind: "padrao", cargoId: source.cargoId, jornada: source.jornada,
       estrutura: v2Structure(source), editais: source.editais,
-      inicio: start, fim: source.fim,
-      links: links.map((link) => ({ ...link, inicio: start })),
+      inicio: start, fim: parameters?.end || source.fim,
+      links: links.map((link) => ({ ...link, inicio: start, fim: parameters?.end || link.fim || source.fim })),
       matrix, remuneracao: nextRemuneration,
-      baseLegal, observacao: observation, origem: "RGA em lote",
+      baseLegal, baseLegalId: parameters?.baseLegalId, observacao: observation, origem: "RGA em lote",
       referencia: source.tableId + " V" + source.version,
     };
     const result = v2Version(next, source.id, links.map((link) => link.tipo), input, actor, { percent, applicationType: "Em lote" });
     if (!result.ok) return result;
+    result.record.events[0].year = parameters?.year || start.slice(0, 4);
     result.record.events[0].detail += " Cargo: " + (V2_CARGOS.find((cargo) => cargo.id === source.cargoId)?.nome || source.cargoId) +
       "; jornada: " + source.jornada + "; vínculos: " + links.map((link) => link.tipo).join(", ") +
       "; base legal: " + baseLegal + "; observação: " + (observation || "—") + ".";
@@ -570,6 +576,7 @@ export const v2ApplyIndividualRga = (
     : { ...remuneration, baseCalculo: base, valorCalculado: base ? v2CommissionCalculatedValue(base, remuneration.valor) : undefined } : undefined;
   const input: V2Input = {
     kind: source.kind, cargoId: source.cargoId, jornada: source.jornada, perfil: source.perfil, local: source.local,
+    horasTrabalhadas: source.horasTrabalhadas, dedicacaoExclusiva: source.dedicacaoExclusiva,
     estrutura: v2Structure(source),
     editais: source.editais,
     inicio: start, fim: end || source.fim, links: links.map((link) => ({ ...link, inicio: start, fim: end || link.fim || source.fim })),
