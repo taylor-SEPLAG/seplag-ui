@@ -14,6 +14,7 @@ import { listarInformativosPaginaInicial, atualizarInformativosPaginaInicial } f
 import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
 import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
 import { TIPOS_VINCULO } from "./vinculos/tiposVinculo";
+import { JornadaDocente, jornadaDocenteVazia, jornadaDocenteValida, calcularJornadaDocente, type JornadaDocenteConfig } from "./ingresso/JornadaDocente";
 import { incorporarDocumentoValidado } from "./pastaFuncional/pastaFuncionalStore";
 import { VacanciaGeralContent } from "./vacancia/VacanciaGeralContent";
 import { TerminoPrazoContent } from "./desligamento/TerminoPrazoContent";
@@ -450,6 +451,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnRouter: true,
         items: [
           { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: false, visibleOnRouter: true },
+          { label: "Dashboard do Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/dashboard", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Gestão de Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Efetivo Exercício", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/efetivo-exercicio", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Ingresso Comissionados", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/comissionados", visibleOnMenu: true, visibleOnRouter: true },
@@ -465,7 +467,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Dashboard de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/dashboard-vinculos`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tipos de Vínculos", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/tipo-vinculo`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vínculo", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vinculos-v2`, visibleOnMenu: true, visibleOnRouter: true },
-          { label: "Vida Funcional do Servidor", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vida-funcional`, visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Histórico Funcional", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/vida-funcional`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Pasta Funcional do Servidor", icon: "pi pi-circle-on", to: `${SIGEP_BASE_PATH}/pasta-funcional`, visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
@@ -1363,6 +1365,7 @@ interface CargoForm {
   naturezaVinculo?: string;
   naturezaOcupacao?: "CARGO" | "FUNCAO";
   permiteAcumuloCargo?: "S" | "N";
+  cargoProfessor?: "S" | "N";
   controleVagasEfetivos?: "S" | "N";
   controleVagasBolsista?: "S" | "N";
   controleVagasComissionadas?: "S" | "N";
@@ -1586,6 +1589,7 @@ interface CarreiraRow {
 }
 
 interface CargoRow {
+  cargoProfessor?: boolean;
   id: number;
   cargo: string;
   categoria: string;
@@ -1642,7 +1646,7 @@ interface TipoVinculoTesteRow {
   motivoExtincao?: string;
 }
 
-type IngressoSituacao =
+export type IngressoSituacao =
   | "Aguardando Analise"
   | "Em analise"
   | "Posse Suspensa"
@@ -1694,7 +1698,7 @@ interface IngressoRow {
   dataIngresso: string;
 }
 
-interface IngressoCandidatoRow {
+export interface IngressoCandidatoRow {
   id: number;
   nome: string;
   cpf?: string;
@@ -1857,7 +1861,7 @@ const alteracoesHistoricoIntegracaoMock = [
   { campo: "Tipo de vaga", valorAnterior: "Ampla Concorrência", novoValor: "PCD" },
   { campo: "Data de agendamento da posse", valorAnterior: "10/08/2026", novoValor: "12/08/2026" },
 ];
-const integracoesIngressoMock: IntegracaoExecucaoRow[] = [
+export const integracoesIngressoMock: IntegracaoExecucaoRow[] = [
   { id: "INT-20270205-1015-PSS009", dataHora: "05/02/2027 10:15", sistema: "SIES", tipo: "Automática", situacao: "Concluída", recebidos: 2, incluidos: 2, atualizados: 0, semAlteracao: 0, erros: 0, edital: "009/2027/SEPLAG", inicio: "05/02/2027 às 10:15:02", fim: "05/02/2027 às 10:15:31", duracao: "29 segundos", candidatoIdsIncluidos: [65, 66] },
   { id: "INT-20260805-1542-PSS004", dataHora: "05/08/2026 15:40", sistema: "SIES", tipo: "Automática", situacao: "Concluída", recebidos: 12, incluidos: 2, atualizados: 1, semAlteracao: 9, erros: 0, edital: "004/2026/SES", inicio: "05/08/2026 às 15:40:02", fim: "05/08/2026 às 15:42:08", duracao: "2 minutos e 6 segundos", candidatoIdsIncluidos: [40, 41] },
   { id: "INT-20260805-1430-PSS005", dataHora: "05/08/2026 14:30", sistema: "SIES", tipo: "Automática", situacao: "Concluída", recebidos: 3, incluidos: 0, atualizados: 0, semAlteracao: 3, erros: 0, edital: "005/2026/SEDUC", inicio: "05/08/2026 às 14:30:01", fim: "05/08/2026 às 14:30:24", duracao: "23 segundos", candidatoIdsIncluidos: [] },
@@ -2440,7 +2444,7 @@ const tiposVinculoTesteMock: TipoVinculoTesteRow[] = [
   criarTipoVinculo(21, TIPOS_VINCULO[20], "Previdenciário", ["Estatutário Civil", "Estatutário Militar", "Regime Misto"]),
 ];
 
-const ingressosMock: IngressoRow[] = [
+export const ingressosMock: IngressoRow[] = [
   {
     id: 1,
     nome: "João Silva",
@@ -2855,7 +2859,7 @@ const getResultadoHistoricoIngressoBadge = (resultado: IngressoHistoricoEtapaRow
 
   return { color: "#8a5a00", bg: "#fff4d6" };
 };
-const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
+export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   {
     id: 1,
     titulo: "Concurso SES 2026",
@@ -9652,6 +9656,7 @@ export function PrototiposCargoFormPage({
       naturezaVinculo: "",
       naturezaOcupacao: "CARGO",
       permiteAcumuloCargo: "N",
+      cargoProfessor: "N",
       controleVagasEfetivos: "N",
       controleVagasBolsista: "N",
       controleVagasComissionadas: "N",
@@ -9687,6 +9692,7 @@ export function PrototiposCargoFormPage({
       perfisEspecialidades: cargoEmEdicao.perfisEspecialidadesIds ?? [],
       naturezaOcupacao: cargoEmEdicao.naturezaOcupacao ?? "CARGO",
       permiteAcumuloCargo: cargoEmEdicao.cargosAcumulaveis?.length ? "S" : "N",
+      cargoProfessor: cargoEmEdicao.cargoProfessor ? "S" : "N",
       controleVagasEfetivos: cargoEmEdicao.controleVagasEfetivos === true ? "S" : "N",
       controleVagasBolsista: cargoEmEdicao.controleVagasBolsista === true ? "S" : "N",
       controleVagasComissionadas: cargoEmEdicao.controleVagasComissionadas === true ? "S" : "N",
@@ -9734,6 +9740,7 @@ export function PrototiposCargoFormPage({
       vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO", naturezaOcupacao: values.naturezaOcupacao ?? "CARGO",
       carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasEfetivos: values.controleVagasEfetivos === "S", controleVagasBolsista: values.controleVagasBolsista === "S", controleVagasComissionadas: values.controleVagasComissionadas === "S", controleVagasTemporarias: values.controleVagasTemporarias === "S",
     };
+    atualizado.cargoProfessor = values.cargoProfessor === "S";
     if (cargoEmEdicao) Object.assign(cargoEmEdicao, atualizado); else cargosTesteMock.push(atualizado);
     atualizarControleVagasBolsistas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasBolsista === true);
     atualizarControleVagasComissionadas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasComissionadas === true);
@@ -9904,6 +9911,10 @@ export function PrototiposCargoFormPage({
               </div>
             </header>
             <div className="prototype-shared-criterios-list prototype-tipo-vinculo-comportamentos">
+              <div className="prototype-shared-criterio-item">
+                <CheckboxFieldSeplag<CargoForm> name="cargoProfessor" control={control} checkboxLabel="Cargo de Professor?" cols="12" />
+                <span>Habilita regras específicas de jornada docente e hora-aula no Efetivo Exercício.</span>
+              </div>
               <div className="prototype-shared-criterio-item">
                 <CheckboxFieldSeplag<CargoForm> name="permiteAcumuloCargo" control={control} checkboxLabel="Permite acúmulo de cargo?" cols="12" />
                 <span>Permite definir os cargos que podem ser acumulados com este cargo.</span>
@@ -14355,6 +14366,7 @@ export function PrototiposIngressosTestePage() {
 }
 export function PrototiposIngressosTesteDetalhePage() {
   const navigate = useNavigate();
+  const [dashboardParams] = useSearchParams();
   const [perfilVariacao, setPerfilVariacao] = usePerfilVariacaoIngresso();
   const [painelDetalhesAberto, setPainelDetalhesAberto] = useState(false);
   const [historicoIntegracaoAberto, setHistoricoIntegracaoAberto] = useState(false);
@@ -14793,7 +14805,7 @@ export function PrototiposIngressosTesteDetalhePage() {
   const orgaosEfetivoExercicioPerfil = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
   const candidatosGestaoIngresso = (
     aguardandoListaCandidatos ? [] : concursoProcesso.candidatos
-  ).filter((candidato) => !candidatosExcluidosIds.has(candidato.id) &&
+  ).filter((candidato) => (!dashboardParams.get("candidato") || String(candidato.id) === dashboardParams.get("candidato")) && !candidatosExcluidosIds.has(candidato.id) &&
     podeConsultarIngresso(perfilVariacao, orgaoAtuacaoAnalise, concursoProcesso.orgao,
       concursoProcesso.tipo === "Processo Seletivo" ? direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise : undefined,
       orgaosEfetivoExercicioPerfil[String(candidato.id)]));
@@ -17314,6 +17326,25 @@ export function PrototiposNovoIngressoPage() {
       ?? (candidatoParam ? setoresSalvos[candidatoParam] ?? (candidatoParam === "51" ? "Núcleo Administrativo" : "") : "");
   });
   const [jornadaEfetivo, setJornadaEfetivo] = useState(rascunhoAnaliseInicial?.jornadaEfetivo ?? "");
+  const exibirJornadaDocente = tipoIngresso === "Processo Seletivo" && concursoSelecionado === "Processo Seletivo SEDUC 2026";
+  const [jornadaDocente, setJornadaDocente] = useState<JornadaDocenteConfig>(() => {
+    let salva: JornadaDocenteConfig = jornadaDocenteVazia;
+    try { salva = JSON.parse(localStorage.getItem("prototype-ingresso-jornada-docente") || "{}")[`${concursoInicial}|${candidatoParam || candidatoRegistradoId || candidatoCpf}`] || jornadaDocenteVazia; } catch { /* Configuração inicial sem dados salvos. */ }
+    const camposDocentes = rascunhoAnaliseInicial?.campos || {};
+    return {
+      duracao: (camposDocentes["docente-duracao"] ?? salva.duracao) as JornadaDocenteConfig["duracao"],
+      possuiHoraAtividade: Boolean(camposDocentes["docente-hora-atividade"] ?? salva.possuiHoraAtividade),
+      jornada: String(camposDocentes["docente-jornada"] ?? (salva.jornada || (rascunhoAnaliseInicial?.jornadaEfetivo || "").match(/\d+/)?.[0] || "")),
+      inicio: String(camposDocentes["docente-inicio"] ?? salva.inicio),
+      fim: String(camposDocentes["docente-fim"] ?? salva.fim),
+    };
+  });
+  const jornadaDocenteAtual: JornadaDocenteConfig = {
+    ...jornadaDocente,
+    jornada: jornadaEfetivo.match(/\d+/)?.[0] || "",
+    inicio: jornadaDocente.inicio || dataEfetivoExercicio,
+    fim: jornadaDocente.fim || dataFimEfetivoExercicio,
+  };
   const [referenciaEfetivo, setReferenciaEfetivo] = useState(rascunhoAnaliseInicial?.referenciaEfetivo ?? "");
   const [servidorCompareceu, setServidorCompareceu] = useState<"" | "Sim" | "Não">("");
   const [termoEfetivoExercicioGerado, setTermoEfetivoExercicioGerado] = useState(false);
@@ -17772,6 +17803,7 @@ export function PrototiposNovoIngressoPage() {
       Boolean(arquivosDocumentosGerados[documento]),
   );
   const confirmarActionDisabled =
+    (activeTab === "efetivo-exercicio" && exibirJornadaDocente && servidorCompareceu === "Sim" && !jornadaDocenteValida(jornadaDocenteAtual)) ||
     isEtapaSomenteLeituraSetorial ||
     (isPerfilSetorial && activeTab === "tipo-ingresso" && !orgaoCadastroAtual) ||
     isEtapaSomenteLeituraCentral ||
@@ -18622,6 +18654,12 @@ export function PrototiposNovoIngressoPage() {
       const podeRegistrarEfetivo = situacaoEfetivoAtual === "Aguardando Efetivo Exercicio"
         || (tipoIngresso === "Concurso" && ["Aguardando Analise", "Em analise"].includes(situacaoEfetivoAtual));
       if (!podeRegistrarEfetivo) return;
+      if (exibirJornadaDocente && servidorCompareceu === "Sim") {
+        if (!jornadaDocenteValida(jornadaDocenteAtual) || !setorLotacaoEfetivo || !dataEfetivoExercicio || !dataFimEfetivoExercicio) return;
+        const chaveDocente = `${concursoSelecionado}|${candidatoParam || candidatoRegistradoId || candidatoCpf}`;
+        const configuracoes = JSON.parse(localStorage.getItem("prototype-ingresso-jornada-docente") || "{}");
+        localStorage.setItem("prototype-ingresso-jornada-docente", JSON.stringify({ ...configuracoes, [chaveDocente]: { ...jornadaDocenteAtual, ...calcularJornadaDocente(jornadaDocenteAtual) } }));
+      }
       if (servidorCompareceu === "Sim" && vinculoTipoEstagiario) {
         const candidatoIdAtual = obterIdIngressoParaEfetivo();
         if (!candidatoIdAtual || !setorLotacaoEfetivo || !dataEfetivoExercicio || !dataFimEfetivoExercicio || !numeroApoliceSeguro.trim() || !supervisorEstagio) return;
@@ -21693,6 +21731,7 @@ export function PrototiposNovoIngressoPage() {
                         </label>
                       </div>
 
+                      {exibirJornadaDocente && <JornadaDocente value={jornadaDocenteAtual} onChange={setJornadaDocente} />}
                       <label className="prototype-ingresso-field prototype-suspensao-prazo-full">
                         <span>Observação</span>
                         <textarea

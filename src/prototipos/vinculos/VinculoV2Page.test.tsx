@@ -14,6 +14,14 @@ const montar = (inicio = "/prototipos/sigep/vinculos-v2") => render(<MemoryRoute
 beforeEach(() => localStorage.clear());
 afterEach(() => { vi.restoreAllMocks(); cleanup(); localStorage.clear(); atualizarVinculosCadastrados(); });
 
+it("bloqueia o cadastro manual de Aposentado ao acessar a URL diretamente", () => {
+  montar("/prototipos/sigep/vinculos-v2/novo?tipo=Aposentado");
+  expect(screen.getByRole("alert").textContent).toContain("módulo de Aposentadoria e não permite cadastro manual");
+  expect(screen.queryByRole("button", { name: "Cadastrar Vínculo" })).toBeNull();
+  expect(screen.queryByRole("combobox", { name: /CPF/ })).toBeNull();
+  expect(localStorage.getItem("prototype-vinculos-v2")).toBeNull();
+});
+
 it("preenche apenas o nome pelo CPF e não exibe identificadores antes do cadastro", () => {
   montar("/prototipos/sigep/vinculos-v2/novo?tipo=Provis%C3%B3rio");
   const cpf = screen.getByRole("combobox", { name: /CPF/ });
@@ -66,6 +74,8 @@ it("lista os tipos, incluindo Aposentado, e mostra apenas vínculos ativos e enc
   fireEvent.click(screen.getByRole("button", { name: "Próxima página de tipos de vínculo" }));
   const aposentado = within(tabela).getByText("Aposentado", { exact: true }).closest("tr") as HTMLTableRowElement;
   fireEvent.click(within(aposentado).getByRole("button", { name: "Visualizar" }));
+  expect(screen.getByRole("note").textContent).toContain("O cadastro desse Vínculo ocorre pelo módulo de Aposentadoria. Não é permitido cadastrá-lo manualmente nesta tela.");
+  expect(screen.queryByRole("button", { name: "Cadastrar Vínculo" })).toBeNull();
   expect(screen.getByText("Nenhum vínculo encontrado para os filtros informados.")).toBeTruthy();
 });
 

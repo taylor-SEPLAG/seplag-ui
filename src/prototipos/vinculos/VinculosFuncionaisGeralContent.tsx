@@ -21,7 +21,7 @@ const areas = [
     destino: "/prototipos/sigep/vinculos-v2",
   },
   {
-    titulo: "Vida Funcional do Servidor",
+    titulo: "Histórico Funcional",
     descricao: "Consulte os vínculos e a trajetória funcional dos servidores.",
     icone: "pi pi-history",
     destino: "/prototipos/sigep/vida-funcional",

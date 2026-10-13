@@ -18,6 +18,7 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import "./App.css";
+import { DashboardIngressoPage } from "./prototipos/ingresso/DashboardIngressoPage";
 import { PaginaInicialPage } from "./prototipos/paginaInicial/PaginaInicialPage";
 import { CalendarioCronogramaPage } from "./prototipos/cronograma/CalendarioCronogramaPage";
 import { AvisosPage } from "./prototipos/avisos/AvisosPage";
@@ -1645,6 +1646,10 @@ function App() {
       <Route
         path="/prototipos/sigep/ingressos"
         element={<PrototiposIngressosPage />}
+      />
+      <Route
+        path="/prototipos/sigep/ingressos/dashboard"
+        element={<DashboardIngressoPage />}
       />
       <Route
         path="/prototipos/sigep/ingressos-teste"

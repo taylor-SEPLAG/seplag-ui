@@ -21273,3 +21273,18 @@
   .prototype-encaminhamento-dados-grid--etapa { grid-template-columns: 1fr; }
   .prototype-encaminhamento-footer { flex-wrap: wrap; }
 }
+
+.prototype-jornada-docente { grid-column: 1 / -1; width: 100%; min-width: 0; margin: 16px 0; }
+.prototype-jornada-docente-body { padding: 16px 18px; }
+.prototype-jornada-docente-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; align-items: start; }
+.prototype-jornada-docente-duration { min-width: 0; margin: 0; padding: 0; border: 0; }
+.prototype-jornada-docente-duration legend { margin-bottom: 10px; color: #183b56; font-weight: 600; }
+.prototype-jornada-docente-duration legend em { color: #dc2626; font-style: normal; }
+.prototype-jornada-docente-duration > div { display: flex; align-items: center; gap: 24px; }
+.prototype-jornada-docente-duration label { display: flex; align-items: center; gap: 8px; color: #183b56; }
+.prototype-jornada-docente-duration input[type="radio"] { width: 18px; height: 18px; margin: 0; accent-color: #3983f4; }
+.prototype-jornada-docente-activity-label { display: block; margin-bottom: 10px; color: #183b56; font-weight: 600; }
+.prototype-jornada-docente-flag { display: flex; align-items: center; gap: 8px; margin: 0; color: #183b56; }
+.prototype-jornada-docente-flag input { width: 18px; height: 18px; accent-color: #3983f4; }
+.prototype-jornada-docente-result { display: flex; align-items: center; gap: 8px; padding: 12px 14px; margin-top: 14px; border: 1px solid #cfe0f0; border-left: 3px solid #2f80ed; border-radius: 4px; background: #f5f9ff; color: #183b56; font-size: .85rem; }
+@media (max-width: 640px) { .prototype-jornada-docente-grid { grid-template-columns: 1fr; } .prototype-jornada-docente-activity:empty { display: none; } }

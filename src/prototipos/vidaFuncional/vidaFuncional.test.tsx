@@ -94,7 +94,7 @@ it("expande vários servidores, abre o histórico e preserva os accordions no re
   expect(screen.queryByText("Jornada anterior")).toBeNull();
   fireEvent.click(screen.getAllByRole("link", { name: "Voltar" }).at(-1)!);
   expect(
-    screen.getByRole("heading", { name: "Vida Funcional do Servidor" }),
+    screen.getByRole("heading", { name: "Histórico Funcional" }),
   ).toBeTruthy();
   expect(
     screen
@@ -163,7 +163,7 @@ it("redireciona a rota intermediária antiga para a consulta com o servidor expa
     </MemoryRouter>,
   );
   expect(
-    screen.getByRole("heading", { name: "Vida Funcional do Servidor" }),
+    screen.getByRole("heading", { name: "Histórico Funcional" }),
   ).toBeTruthy();
   expect(screen.getByText("Vínculos do Servidor")).toBeTruthy();
 });

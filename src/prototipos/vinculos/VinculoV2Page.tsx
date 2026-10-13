@@ -21,6 +21,7 @@ const TIPOS_INGRESSO = new Set<Tipo>([
   "Residente Técnico", "Estagiário", "Bolsista",
 ]);
 type Situacao = "Ativo" | "Encerrado";
+const moduloDeOrigem = (tipo: Tipo) => tipo === "Aposentado" ? "Aposentadoria" : TIPOS_INGRESSO.has(tipo) ? "Ingresso" : undefined;
 export type Vinculo = {
   id: string; tipo: Tipo; nome: string; cpf: string; nascimento: string; matricula: string; numero: string;
   regime: string; carreira: string; cargo: string; perfil: string; jornada: string; orgao: string; setor: string;
@@ -218,7 +219,7 @@ export function VinculoV2ConsultaPage() {
    (!filtroServidor.busca.trim() || normalizar(v.nome).includes(normalizar(filtroServidor.busca.trim())) || (cpfConsulta.length > 0 && digitosCpf(v.cpf).includes(cpfConsulta))) &&
    (!filtroServidor.matricula.trim() || v.matricula.includes(filtroServidor.matricula.trim()))
  ); const aberto = expandido === tipo; const totalPaginas = Math.max(1, Math.ceil(linhas.length / porPaginaServidores)); const paginaAtual = Math.min(paginaServidores, totalPaginas); return <Fragment key={tipo}><tr><td>{idx + 1}</td><td><strong>{tipo}</strong></td><td>{linhasTipo.length}</td><td><button type="button" className="v2v-icon-action" aria-label={aberto ? "Recolher" : "Visualizar"} title={aberto ? "Recolher" : "Visualizar"} aria-expanded={aberto} onClick={() => { setExpandido(aberto ? null : tipo); setPaginaServidores(1); }}><i className={`pi ${aberto ? "pi-chevron-up" : "pi-chevron-down"}`} aria-hidden="true" /></button></td></tr>
-        {aberto && <tr className="v2v-expanded-row"><td colSpan={4}><div className="v2v-expanded">{TIPOS_INGRESSO.has(tipo) && <div className="v2v-origin-notice" role="note"><i className="pi pi-info-circle" aria-hidden="true" /><div><strong>O cadastro desse Vínculo ocorre pelo módulo de Ingresso. Não é permitido cadastrá-lo manualmente nesta tela.</strong><span>Os vínculos ativos são gerados automaticamente durante a conclusão do processo de ingresso.</span></div></div>}<div className="v2v-expanded-head"><div><strong>Servidores com Vínculo</strong><span>{linhas.length} vínculo(s) neste tipo</span></div>{!TIPOS_INGRESSO.has(tipo) && <button type="button" className="v2v-primary" onClick={() => navigate(`${BASE}/novo?tipo=${encodeURIComponent(tipo)}`)}><i className="pi pi-plus" />Cadastrar Vínculo</button>}</div><section className="v2v-panel v2v-filters" aria-label={`Filtros de servidores de ${tipo}`}>
+        {aberto && <tr className="v2v-expanded-row"><td colSpan={4}><div className="v2v-expanded">{moduloDeOrigem(tipo) && <div className="v2v-origin-notice" role="note"><i className="pi pi-info-circle" aria-hidden="true" /><div><strong>O cadastro desse Vínculo ocorre pelo módulo de {moduloDeOrigem(tipo)}. Não é permitido cadastrá-lo manualmente nesta tela.</strong><span>{tipo === "Aposentado" ? "Os vínculos de aposentados são gerados automaticamente durante a conclusão do processo de aposentadoria." : "Os vínculos ativos são gerados automaticamente durante a conclusão do processo de ingresso."}</span></div></div>}<div className="v2v-expanded-head"><div><strong>Servidores com Vínculo</strong><span>{linhas.length} vínculo(s) neste tipo</span></div>{!moduloDeOrigem(tipo) && <button type="button" className="v2v-primary" onClick={() => navigate(`${BASE}/novo?tipo=${encodeURIComponent(tipo)}`)}><i className="pi pi-plus" />Cadastrar Vínculo</button>}</div><section className="v2v-panel v2v-filters" aria-label={`Filtros de servidores de ${tipo}`}>
   <label>Nome ou CPF<input value={filtroServidor.busca} placeholder="Buscar por nome ou CPF" onChange={(e) => atualizarFiltroServidor(tipo, "busca", e.target.value)} /></label>
   <label>Matrícula<input value={filtroServidor.matricula} placeholder="Buscar por matrícula" onChange={(e) => atualizarFiltroServidor(tipo, "matricula", e.target.value)} /></label>
   <div className="v2v-filter-actions"><button type="button" className="v2v-primary" onClick={() => { setFiltrosServidores((atual) => ({ ...atual, [tipo]: { busca: "", matricula: "" } })); setPaginaServidores(1); }}><i className="pi pi-refresh" aria-hidden="true" />Limpar filtro</button></div>
@@ -296,7 +297,7 @@ export function VinculoV2CadastroPage() {
     evento.preventDefault();
     if (cadastrado) return;
     setErro("");
-    if (!existente && TIPOS_INGRESSO.has(tipo)) { setErro("Este Tipo de Vínculo é gerado pelo módulo de Ingresso e não permite cadastro manual."); return; }
+    if (!existente && moduloDeOrigem(tipo)) { setErro(`Este Tipo de Vínculo é gerado pelo módulo de ${moduloDeOrigem(tipo)} e não permite cadastro manual.`); return; }
     if (!pessoa) { setErro("Selecione um CPF da lista antes de salvar."); return; }
     if (!campos.regime || !campos.cargo || !campos.perfil || !campos.jornada || !campos.orgao || !campos.setor || !campos.inicio) {
       setErro("Preencha todos os campos obrigatórios do vínculo."); return;
@@ -333,8 +334,8 @@ export function VinculoV2CadastroPage() {
     }
   };
   if (id && !existente) return layout("Editar Vínculo", null, <div className="v2v-notice">Vínculo não encontrado.</div>);
-  if (!existente && TIPOS_INGRESSO.has(tipoInicial)) return layout("Cadastrar Vínculo", null,
-    <div className="v2v-origin-notice" role="alert"><i className="pi pi-info-circle" aria-hidden="true" /><strong>Este Tipo de Vínculo é gerado pelo módulo de Ingresso e não permite cadastro manual.</strong></div>);
+  if (!existente && moduloDeOrigem(tipoInicial)) return layout("Cadastrar Vínculo", null,
+    <div className="v2v-origin-notice" role="alert"><i className="pi pi-info-circle" aria-hidden="true" /><strong>Este Tipo de Vínculo é gerado pelo módulo de {moduloDeOrigem(tipoInicial)} e não permite cadastro manual.</strong></div>);
   return layout(existente ? "Editar Vínculo" : "Cadastrar Vínculo", null, <form onSubmit={salvar} className="v2v-form">
     <section className="v2v-panel v2v-form-section v2v-server-section" aria-labelledby="v2v-servidor-title">
       <header className="v2v-section-header"><i className="pi pi-user" aria-hidden="true" /><div><h2 id="v2v-servidor-title">Dados do Servidor</h2><p>Identifique o servidor e o tipo de vínculo.</p></div></header>
@@ -383,7 +384,7 @@ export function VinculoV2CadastroPage() {
       {cadastrado && <div className="prototype-efetivo-registrado-modal">
         <p>O vínculo foi cadastrado com sucesso. A Matrícula e o Nº do Vínculo foram gerados automaticamente pelo sistema.</p>
         <dl className="prototype-efetivo-gerado-info"><div><dt>Matrícula gerada</dt><dd>{cadastrado.matricula}</dd></div><div><dt>Nº do Vínculo gerado</dt><dd>{cadastrado.numero}</dd></div></dl>
-        <p className="prototype-efetivo-registrado-hint">O novo vínculo já está disponível para consulta na Gestão de Vínculos e na Vida Funcional do Servidor.</p>
+        <p className="prototype-efetivo-registrado-hint">O novo vínculo já está disponível para consulta na Gestão de Vínculos e na Histórico Funcional.</p>
         <div className="prototype-efetivo-modal-actions"><BotaoVoltarSeplag type="button" label="Fechar" icon="pi pi-times" onClick={voltar} /><BotaoSeplag type="button" label="Visualizar vínculo" icon="pi pi-eye" onClick={() => navigate(`${BASE}/${cadastrado.id}?tipo=${encodeURIComponent(tipo)}`)} /></div>
       </div>}
     </ModalSeplag>

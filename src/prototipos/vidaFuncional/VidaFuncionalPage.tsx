@@ -284,7 +284,7 @@ function Conteudo({
   );
   const titulo = vinculoId
     ? "Histórico da Vida Funcional"
-    : "Vida Funcional do Servidor";
+    : "Histórico Funcional";
   const consultaUrl = `${base}${params.toString() ? `?${params}` : ""}`;
   const historicoUrl = (id: string, servidorId = pessoaId) =>
     `${base}/${servidorId}/vinculos/${id}/historico${params.toString() ? `?${params}` : ""}`;
@@ -410,7 +410,7 @@ function Conteudo({
           label: "Vínculos Funcionais",
           to: "/prototipos/sigep/vinculos-funcionais",
         },
-        { label: "Vida Funcional do Servidor", to: consultaUrl },
+        { label: "Histórico Funcional", to: consultaUrl },
         ...(vinculoId ? [{ label: "Histórico da Vida Funcional" }] : []),
       ]}
     />

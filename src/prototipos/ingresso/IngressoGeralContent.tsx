@@ -3,6 +3,12 @@ import "./ingressoGeral.css";
 
 const destinosIngresso = [
   {
+    titulo: "Dashboard de Ingresso",
+    descricao: "Consulte os indicadores e acompanhe o andamento dos ingressos.",
+    icone: "pi pi-chart-bar",
+    destino: "/prototipos/sigep/ingressos/dashboard",
+  },
+  {
     titulo: "Gestão de Ingresso",
     descricao: "Acompanhe e gerencie os processos de ingresso em andamento.",
     icone: "pi pi-users",

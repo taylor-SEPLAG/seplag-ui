@@ -126,7 +126,7 @@ export function carregarFontesPasta() {
       categoria,
       tipoDocumento: e.tipo,
       origem: e.origem,
-      moduloOrigem: "Vida Funcional do Servidor",
+      moduloOrigem: "Histórico Funcional",
       origemId: e.id,
       vinculoId: v.id,
       numeroIngresso,

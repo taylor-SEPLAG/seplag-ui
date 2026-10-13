@@ -28,7 +28,7 @@ const menu: IMenuSeplag[] = [
         icon: "",
         to: "/vinculos",
         items: [
-          { label: "Vida Funcional do Servidor", icon: "", to: "/vida" },
+          { label: "Histórico Funcional", icon: "", to: "/vida" },
           {
             label: "Pasta Funcional do Servidor",
             icon: "",
@@ -154,9 +154,9 @@ it("personaliza a saudação, ordena os módulos e não cria rota para agrupador
 it("pesquisa sem acentos e caixa, acessa a funcionalidade existente por teclado", () => {
   montar();
   const busca = screen.getByRole("combobox");
-  fireEvent.change(busca, { target: { value: "VIDA FUNCIONAL" } });
+  fireEvent.change(busca, { target: { value: "HISTORICO FUNCIONAL" } });
   expect(screen.getByRole("option").textContent).toContain(
-    "Vida Funcional do Servidor",
+    "Histórico Funcional",
   );
   fireEvent.keyDown(busca, { key: "Enter" });
   expect(screen.getByText("Destino Vida Funcional")).toBeTruthy();
