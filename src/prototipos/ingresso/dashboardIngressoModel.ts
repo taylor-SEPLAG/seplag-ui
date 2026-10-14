@@ -3,22 +3,23 @@ import { getPerfilVariacaoIngresso, getOrgaoAtuacaoIngresso, podeConsultarIngres
 
 export const BASE_DASHBOARD = '/prototipos/sigep/ingressos/dashboard';
 export const SITUACOES: { value: IngressoSituacao; label: string; color: string; icon: string; description: string; tipo?: string }[] = [
-  { value: 'Aguardando Analise', label: 'Aguardando Análise', color: '#df7908', icon: 'pi-clock', description: 'Documentação aguardando avaliação.' },
-  { value: 'Em analise', label: 'Em Análise', color: '#1976d2', icon: 'pi-search', description: 'Ingresso em avaliação pela equipe.' },
-  { value: 'Aguardando Efetivo Exercicio', label: 'Aguardando Efetivo Exercício', color: '#b32e98', icon: 'pi-briefcase', description: 'Aguardando o início do exercício.' },
-  { value: 'Aguardando Termo Assinado', label: 'Aguardando Termo Assinado', color: '#07849e', icon: 'pi-file-edit', description: 'Documento pendente de assinatura.' },
-  { value: 'Ingresso Concluído', label: 'Ingresso Concluído', color: '#15834f', icon: 'pi-check-circle', description: 'Ingresso finalizado no sistema.' },
-  { value: 'Posse Suspensa', label: 'Posse Suspensa', color: '#753ac4', icon: 'pi-pause-circle', description: 'Prazo pausado; processo pode continuar.', tipo: 'Concurso' },
-  { value: 'Posse Negada', label: 'Posse Negada', color: '#c92e42', icon: 'pi-ban', description: 'Posse negada; processo encerrado.', tipo: 'Concurso' },
-  { value: 'Tornado sem efeito', label: 'Tornado sem Efeito', color: '#63758a', icon: 'pi-minus-circle', description: 'Ato tornado sem efeito.', tipo: 'Concurso' },
-  { value: 'Exoneração de oficio', label: 'Exoneração de Ofício', color: '#43667d', icon: 'pi-sign-out', description: 'Encerrado por exoneração de ofício.', tipo: 'Concurso' },
-  { value: 'Ingresso Cancelado', label: 'Ingresso Cancelado', color: '#dc3545', icon: 'pi-times-circle', description: 'Ingresso encerrado por cancelamento.', tipo: 'Processo Seletivo' },
+  { value: 'Aguardando Analise', label: 'Aguardando Análise', color: '#FF6A00', icon: 'pi-clock', description: 'Documentação aguardando avaliação.' },
+  { value: 'Em analise', label: 'Em Análise', color: '#0D6EFD', icon: 'pi-search', description: 'Ingresso em avaliação pela equipe.' },
+  { value: 'Aguardando análise documento', label: 'Aguardando análise documento', color: '#7B1FE0', icon: 'pi-file-check', description: 'Aguardando análise da documentação do concurso.', tipo: 'Concurso' },
+  { value: 'Aguardando Efetivo Exercicio', label: 'Aguardando Efetivo Exercício', color: '#E6007E', icon: 'pi-briefcase', description: 'Aguardando o início do exercício.' },
+  { value: 'Aguardando Termo Assinado', label: 'Aguardando Termo Assinado', color: '#00A6B2', icon: 'pi-file-edit', description: 'Documento pendente de assinatura.' },
+  { value: 'Ingresso Concluído', label: 'Ingresso Concluído', color: '#0B6B3A', icon: 'pi-check-circle', description: 'Ingresso finalizado no sistema.' },
+  { value: 'Posse Suspensa', label: 'Posse Suspensa', color: '#7B2FD8', icon: 'pi-pause-circle', description: 'Prazo pausado; processo pode continuar.', tipo: 'Concurso' },
+  { value: 'Posse Negada', label: 'Posse Negada', color: '#DC3545', icon: 'pi-ban', description: 'Posse negada; processo encerrado.', tipo: 'Concurso' },
+  { value: 'Tornado sem efeito', label: 'Tornado sem Efeito', color: '#929AA3', icon: 'pi-minus-circle', description: 'Ato tornado sem efeito.', tipo: 'Concurso' },
+  { value: 'Exoneração de oficio', label: 'Exoneração de Ofício', color: '#344B63', icon: 'pi-sign-out', description: 'Encerrado por exoneração de ofício.', tipo: 'Concurso' },
+  { value: 'Ingresso Cancelado', label: 'Ingresso Cancelado', color: '#E63946', icon: 'pi-times-circle', description: 'Ingresso encerrado por cancelamento.', tipo: 'Processo Seletivo' },
   { value: 'Encerrado por desistência', label: 'Encerrado por desistência', color: '#995042', icon: 'pi-times', description: 'Processo encerrado por desistência.' },
 ];
 export interface RegistroDashboard {
   id: string; candidatoId: number; nome: string; cargo: string; orgao: string; edital: string; editalId: number;
   processo: string; tipo: 'Concurso' | 'Processo Seletivo'; situacao: IngressoSituacao;
-  inicio: string; conclusao: string; limitePosse: string; url: string;
+  inicio: string; conclusao: string; limitePosse: string; limiteEfetivoExercicio: string; url: string;
 }
 export type FiltrosDashboard = { tipo: string; edital: string; orgao: string; cargo: string; inicio: string; fim: string; situacao: string; pendentes: string };
 export const filtrosIniciais: FiltrosDashboard = { tipo: '', edital: '', orgao: '', cargo: '', inicio: '', fim: '', situacao: '', pendentes: '' };
@@ -62,9 +63,12 @@ export function lerDadosDashboard(): RegistroDashboard[] {
       const conclusao = situacao === 'Ingresso Concluído' ? dataIso(conclusaoHistorico?.dataHora) || dataIso(datas[c.id]) || dataIso(c.id === 40 ? '10/08/2026' : c.dataEfetivoExercicio) : '';
       const limite = inicio ? new Date(`${inicio}T12:00:00Z`) : null;
       if (limite) limite.setUTCDate(limite.getUTCDate() + 30);
+      const posse = dataIso(c.dataPosse);
+      const limiteEfetivo = posse ? new Date(`${posse}T12:00:00Z`) : null;
+      if (limiteEfetivo) limiteEfetivo.setUTCDate(limiteEfetivo.getUTCDate() + 15);
       return { id: `${processo.id}:${c.id}`, candidatoId: c.id, nome: c.nome, cargo: c.cargo, orgao: orgaos[c.id] || c.orgaoDesignado || processo.orgao,
         edital: `${processo.edital} · ${processo.orgao}`, editalId: processo.id, processo: processo.titulo, tipo: processo.tipo,
-        situacao, inicio, conclusao, limitePosse: limite?.toISOString().slice(0,10) || '',
+        situacao, inicio, conclusao, limitePosse: limite?.toISOString().slice(0,10) || '', limiteEfetivoExercicio: limiteEfetivo?.toISOString().slice(0,10) || '',
         url: `/prototipos/sigep/ingressos-teste/${processo.id}?candidato=${c.id}` };
     });
   });

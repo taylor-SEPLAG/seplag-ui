@@ -1656,11 +1656,30 @@ interface TipoVinculoTesteRow {
   motivoExtincao?: string;
 }
 
+export const estiloTagSituacaoIngresso = (situacao: IngressoSituacao) => {
+    const badgeMap: Record<IngressoSituacao, { color: string; bg: string; border: string }> = {
+      "Aguardando Analise": { color: "#8a5a00", bg: "#fff4d6", border: "#f3cf8c" },
+      "Em analise": { color: "#0057d9", bg: "#e7f1ff", border: "#b7d3f7" },
+      "Posse Suspensa": { color: "#6d28d9", bg: "#f1e8ff", border: "#d8c7f7" },
+      "Aguardando Efetivo Exercicio": { color: "#be185d", bg: "#fce7f3", border: "#f6bed8" },
+      "Aguardando análise documento": { color: "#6d28d9", bg: "#f1e8ff", border: "#d8c7f7" },
+      "Aguardando Termo Assinado": { color: "#175cd3", bg: "#eaf2ff", border: "#b8d2fa" },
+      "Tornado sem efeito": { color: "#6b7280", bg: "#f3f4f6", border: "#d1d5db" },
+      "Exoneração de oficio": { color: "#6b7280", bg: "#f3f4f6", border: "#d1d5db" },
+      "Posse Negada": { color: "#b42318", bg: "#fee4e2", border: "#f4b4af" },
+      "Encerrado por desistência": { color: "#b42318", bg: "#fee4e2", border: "#f4b4af" },
+      "Ingresso Cancelado": { color: "#b42318", bg: "#fee4e2", border: "#f4b4af" },
+      "Ingresso Concluído": { color: "#00843d", bg: "#e2f3e8", border: "#a7e0bc" },
+    };
+
+    return badgeMap[situacao] ?? { color: "#4b5563", bg: "#eef2f7", border: "#cbd5e1" };
+  };
 export type IngressoSituacao =
   | "Aguardando Analise"
   | "Em analise"
   | "Posse Suspensa"
   | "Aguardando Efetivo Exercicio"
+  | "Aguardando análise documento"
   | "Aguardando Termo Assinado"
   | "Tornado sem efeito"
   | "Exoneração de oficio"
@@ -14478,6 +14497,7 @@ export function PrototiposIngressosTesteDetalhePage() {
   const situacoesDisponiveis = ([
     "Aguardando Analise",
     "Em analise",
+    ...(concursoProcesso?.tipo === "Concurso" ? ["Aguardando análise documento"] : []),
     "Aguardando Efetivo Exercicio",
     "Aguardando Termo Assinado",
     "Ingresso Concluído",
@@ -14552,23 +14572,7 @@ export function PrototiposIngressosTesteDetalhePage() {
       datasEfetivoExercicioSalvas[String(candidato.id)],
       candidato.id === 40 ? "10/08/2026" : candidato.dataEfetivoExercicio,
     );
-  const getSituacaoBadge = (situacao: IngressoSituacao) => {
-    const badgeMap: Record<IngressoSituacao, { color: string; bg: string; border: string }> = {
-      "Aguardando Analise": { color: "#8a5a00", bg: "#fff4d6", border: "#f3cf8c" },
-      "Em analise": { color: "#0057d9", bg: "#e7f1ff", border: "#b7d3f7" },
-      "Posse Suspensa": { color: "#6d28d9", bg: "#f1e8ff", border: "#d8c7f7" },
-      "Aguardando Efetivo Exercicio": { color: "#be185d", bg: "#fce7f3", border: "#f6bed8" },
-      "Aguardando Termo Assinado": { color: "#175cd3", bg: "#eaf2ff", border: "#b8d2fa" },
-      "Tornado sem efeito": { color: "#6b7280", bg: "#f3f4f6", border: "#d1d5db" },
-      "Exoneração de oficio": { color: "#6b7280", bg: "#f3f4f6", border: "#d1d5db" },
-      "Posse Negada": { color: "#b42318", bg: "#fee4e2", border: "#f4b4af" },
-      "Encerrado por desistência": { color: "#b42318", bg: "#fee4e2", border: "#f4b4af" },
-      "Ingresso Cancelado": { color: "#b42318", bg: "#fee4e2", border: "#f4b4af" },
-      "Ingresso Concluído": { color: "#00843d", bg: "#e2f3e8", border: "#a7e0bc" },
-    };
-
-    return badgeMap[situacao] ?? { color: "#4b5563", bg: "#eef2f7", border: "#cbd5e1" };
-  };
+  const getSituacaoBadge = estiloTagSituacaoIngresso;
   const confirmarExclusaoIngresso = () => {
     if (
       !candidatoExclusao ||
@@ -14815,7 +14819,11 @@ export function PrototiposIngressosTesteDetalhePage() {
   const orgaosEfetivoExercicioPerfil = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
   const candidatosGestaoIngresso = (
     aguardandoListaCandidatos ? [] : concursoProcesso.candidatos
-  ).filter((candidato) => (!dashboardParams.get("candidato") || String(candidato.id) === dashboardParams.get("candidato")) && !candidatosExcluidosIds.has(candidato.id) &&
+  ).filter((candidato) =>
+    (!dashboardParams.get("cargo") || candidato.cargo === dashboardParams.get("cargo")) &&
+    (!dashboardParams.get("orgao") || (orgaosEfetivoExercicioPerfil[String(candidato.id)] || candidato.orgaoDesignado || concursoProcesso.orgao) === dashboardParams.get("orgao")) &&
+    (dashboardParams.get("pendentes") !== "1" || !["Ingresso Concluído", "Posse Negada", "Tornado sem efeito", "Exoneração de oficio", "Ingresso Cancelado", "Encerrado por desistência"].includes(getSituacaoCandidato(candidato.id))) &&
+    (!dashboardParams.get("candidato") || String(candidato.id) === dashboardParams.get("candidato")) && !candidatosExcluidosIds.has(candidato.id) &&
     podeConsultarIngresso(perfilVariacao, orgaoAtuacaoAnalise, concursoProcesso.orgao,
       concursoProcesso.tipo === "Processo Seletivo" ? direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise : undefined,
       orgaosEfetivoExercicioPerfil[String(candidato.id)]));
@@ -14943,6 +14951,7 @@ export function PrototiposIngressosTesteDetalhePage() {
   }[] = [
     { id: "aguardando", label: "Aguardando análise", valor: contarSituacaoIngresso("Aguardando Analise"), subtitulo: "Ingressos pendentes de avaliação", icon: "pi pi-clock", tone: "amber", situacao: "Aguardando Analise" },
     { id: "analise", label: "Em análise", valor: contarSituacaoIngresso("Em analise"), subtitulo: "Ingressos em andamento", icon: "pi pi-search", tone: "blue", situacao: "Em analise" },
+    { id: "aguardando-documento", label: "Aguardando análise documento", valor: contarSituacaoIngresso("Aguardando análise documento"), subtitulo: "Aguardando análise da documentação", icon: "pi pi-file-check", tone: "purple", situacao: "Aguardando análise documento" },
     { id: "aguardando-efetivo", label: "Aguardando Efetivo Exercício", valor: contarSituacaoIngresso("Aguardando Efetivo Exercicio"), subtitulo: "Aguardando início do exercício", icon: "pi pi-calendar-clock", tone: "pink", situacao: "Aguardando Efetivo Exercicio" },
     { id: "aguardando-termo", label: "Aguardando Termo Assinado", valor: contarSituacaoIngresso("Aguardando Termo Assinado"), subtitulo: "Aguardando assinatura do documento", icon: "pi pi-file-edit", tone: "blue", situacao: "Aguardando Termo Assinado" },
     { id: "concluido", label: "Ingresso concluído", valor: contarSituacaoIngresso("Ingresso Concluído"), subtitulo: "Ingressos finalizados", icon: "pi pi-check-circle", tone: "green", situacao: "Ingresso Concluído" },
@@ -14954,7 +14963,7 @@ export function PrototiposIngressosTesteDetalhePage() {
   ];
   const indicadoresSituacaoIngresso = indicadoresGestaoIngresso.filter((indicador) =>
     (concursoProcesso.tipo === "Concurso"
-      ? ["aguardando", "analise", "aguardando-efetivo", "aguardando-termo", "concluido", "posse-suspensa", "posse-negada", "sem-efeito", "exoneracao-oficio"]
+      ? ["aguardando", "analise", "aguardando-documento", "aguardando-efetivo", "aguardando-termo", "concluido", "posse-suspensa", "posse-negada", "sem-efeito", "exoneracao-oficio"]
       : ["aguardando", "analise", "aguardando-efetivo", "aguardando-termo", "concluido", "cancelado"]
     ).includes(indicador.id),
   );
