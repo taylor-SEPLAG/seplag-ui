@@ -259,7 +259,7 @@
 .dv-page .dv-kpis { gap: 12px; }
 .dv-page .dv-kpis article { position: relative; overflow: hidden; align-items: flex-start; padding: 16px 12px; min-height: 114px; border: 0; border-radius: 9px; background: var(--dv-color); color: #fff; box-shadow: 0 3px 12px #173a5b0d; }
 .dv-kpi-types { --dv-color: linear-gradient(120deg, #005996 0%, #183181 100%); }
-.dv-kpis .v2v-kpi-active { --dv-color: linear-gradient(120deg, #10B981 0%, #047857 100%); }
+.dv-page .dv-kpis .v2v-kpi-active { --dv-color: linear-gradient(120deg, #166534 0%, #15803D 100%); border-color: #166534; }
 .dv-kpis .v2v-kpi-closed { --dv-color: linear-gradient(120deg, #64748B 0%, #475569 100%); }
 .dv-kpi-total { --dv-color: linear-gradient(120deg, #245BFF 0%, #08B4F5 100%); }
 .dv-page .dv-kpis article > i:first-child { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; background: #ffffff26; color: #fff; position: relative; z-index: 1; }
