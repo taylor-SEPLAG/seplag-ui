@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
-import { CardSeplag } from "../../componentes/Card";
+
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { TIPOS, todos } from "./VinculoV2Page";
+import { exportarDashboardVinculos } from "./exportarDashboardVinculos";
 import { resumoVinculos } from "./dashboardVinculosModel";
 import {
   filtrarVinculos,
@@ -18,8 +19,8 @@ import "./dashboardVinculos.css";
 const numero = (valor: number) => valor.toLocaleString("pt-BR");
 const percentual = (parte: number, total: number) =>
   `${(total ? (parte / total) * 100 : 0).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
-const AZUL = "#1976D2";
-const VERMELHO = "#C62828";
+const VERDE = "#10B981";
+const CINZA = "#64748B";
 
 function linhasRotulo(texto: string) {
   const linhas = [""];
@@ -37,8 +38,12 @@ export function DashboardVinculosPage() {
   const [filtros, setFiltros] = useState<FiltrosVinculos>(
     filtrosVinculosVazios,
   );
+  const [exportando, setExportando] = useState(false);
+  const [erroExportacao, setErroExportacao] = useState("");
+  const [atualizado, setAtualizado] = useState(() => new Date());
+  const atualizar = () => { setRegistros(todos()); setAtualizado(new Date()); };
   useEffect(() => {
-    const atualizar = () => setRegistros(todos());
+
     window.addEventListener("focus", atualizar);
     window.addEventListener("storage", atualizar);
     return () => {
@@ -59,8 +64,13 @@ export function DashboardVinculosPage() {
     filtrarVinculos(registros, filtros),
     tiposContexto,
   );
+  const exportar = async () => {
+    setExportando(true); setErroExportacao("");
+    try { await exportarDashboardVinculos(registros, filtros, tiposContexto); }
+    catch { setErroExportacao("Não foi possível exportar o Excel. Tente novamente."); }
+    finally { setExportando(false); }
+  };
   const invalido =
-    filtros.situacao === "Encerrado" &&
     Boolean(filtros.inicio && filtros.fim && filtros.inicio > filtros.fim);
   const atualizarFiltro = (campo: keyof FiltrosVinculos, valor: string) => {
     setRegistros(todos());
@@ -82,8 +92,8 @@ export function DashboardVinculosPage() {
       tipo,
       situacao,
       forma: situacao === "Encerrado" ? forma : "",
-      inicio: situacao === "Encerrado" ? filtros.inicio : "",
-      fim: situacao === "Encerrado" ? filtros.fim : "",
+      inicio: filtros.inicio,
+      fim: filtros.fim,
     });
   const maximo = Math.max(
     1,
@@ -101,69 +111,27 @@ export function DashboardVinculosPage() {
       ambienteSistema="Teste"
       menuItems={menuGestaoPessoas}
     >
-      <main className="prototype-page-content prototype-page-content--white v2v-shell">
-        <CardSeplag
-          title="Dashboard de Vínculos"
-          cols="12"
-          cardHeaderClassNames="prototype-carreira-card v2v-card"
-          headerNavigation={
-            <BreadcrumbSeplag
-              divided
-              homeTo="/prototipos/sigep"
-              items={[
-                {
-                  label: "Vínculos Funcionais",
-                  to: "/prototipos/sigep/vinculos-funcionais",
-                },
-                { label: "Dashboard de Vínculos" },
-              ]}
-            />
-          }
-        >
+      <main className="dv-shell">
+        <div className="dv-frame">
+          <BreadcrumbSeplag divided homeTo="/prototipos/sigep" items={[
+            { label: "Vínculos Funcionais", to: "/prototipos/sigep/vinculos-funcionais" },
+            { label: "Dashboard" },
+          ]} />
           <div className="v2v-page dv-page">
-            <p className="v2v-description">
-              Acompanhe a quantidade de pessoas com vínculo vigente e encerrado
-              por Tipo de Vínculo.
-            </p>
-            <section
-              className="v2v-kpis dv-kpis"
-              aria-label="Indicadores de vínculos"
-            >
-              {[
-                {
-                  titulo: "Tipos de Vínculo",
-                  valor: tiposContexto.length,
-                  icone: "pi-tags",
-                  classe: "dv-kpi-general",
-                },
-                {
-                  titulo: "Pessoas com vínculo vigente",
-                  valor: resumo.pessoasVigentes,
-                  icone: "pi-user",
-                  classe: "v2v-kpi-active",
-                },
-                {
-                  titulo: "Pessoas com vínculo encerrado",
-                  valor: resumo.pessoasEncerradas,
-                  icone: "pi-user",
-                  classe: "v2v-kpi-closed",
-                },
-                {
-                  titulo: "Total de vínculos",
-                  valor: resumo.total,
-                  icone: "pi-link",
-                  classe: "dv-kpi-general",
-                },
-              ].map((card) => (
-                <article key={card.titulo} className={card.classe}>
-                  <i className={`pi ${card.icone}`} aria-hidden="true" />
-                  <div>
-                    <span>{card.titulo}</span>
-                    <strong>{numero(card.valor)}</strong>
-                  </div>
-                </article>
-              ))}
-            </section>
+            <header className="dv-heading">
+              <div>
+                <h1>Dashboard de Vínculos</h1>
+                <p>Acompanhe a quantidade de pessoas com vínculo vigente e encerrado por Tipo de Vínculo.</p>
+              </div>
+              <div className="dv-update">
+                <small>Última atualização: {atualizado.toLocaleString("pt-BR", { timeZone: "America/Cuiaba" })}</small>
+                <div className="dv-update-actions">
+                  <button type="button" onClick={atualizar}><i className="pi pi-refresh" aria-hidden="true" />Atualizar dados</button>
+                  <button type="button" className="dv-export-excel" disabled={exportando} aria-busy={exportando} onClick={exportar}><i className="pi pi-download" aria-hidden="true" />{exportando ? "Exportando..." : "Exportar Excel"}</button>
+                </div>
+              </div>
+            </header>
+            {erroExportacao && <p role="alert">{erroExportacao}</p>}
             <section
               className="v2v-panel v2v-filters dv-filters"
               aria-label="Filtros do dashboard"
@@ -217,8 +185,10 @@ export function DashboardVinculosPage() {
                       ))}
                     </select>
                   </label>
+                </>
+              )}
                   <label>
-                    Data inicial de vacância
+                    Período inicial
                     <input
                       type="date"
                       value={filtros.inicio}
@@ -228,19 +198,18 @@ export function DashboardVinculosPage() {
                     />
                   </label>
                   <label>
-                    Data final de vacância
+                    Período final
                     <input
                       type="date"
+                      min={filtros.inicio || undefined}
                       value={filtros.fim}
                       onChange={(e) => atualizarFiltro("fim", e.target.value)}
                     />
                   </label>
-                </>
-              )}
               <div className="v2v-filter-actions">
                 <button
                   type="button"
-                  className="v2v-primary"
+                  className="v2v-secondary"
                   onClick={() => {
                     setRegistros(todos());
                     setFiltros(filtrosVinculosVazios);
@@ -251,9 +220,50 @@ export function DashboardVinculosPage() {
                 </button>
               </div>
             </section>
+            <h2 className="dv-section-title">Visão geral</h2>
+            <section
+              className="v2v-kpis dv-kpis"
+              aria-label="Indicadores de vínculos"
+            >
+              {[
+                {
+                  titulo: "Tipos de Vínculo",
+                  valor: tiposContexto.length,
+                  icone: "pi-tags",
+                  classe: "dv-kpi-types",
+                },
+                {
+                  titulo: "Pessoas com vínculo vigente",
+                  valor: resumo.pessoasVigentes,
+                  icone: "pi-user",
+                  classe: "v2v-kpi-active",
+                },
+                {
+                  titulo: "Pessoas com vínculo encerrado",
+                  valor: resumo.pessoasEncerradas,
+                  icone: "pi-user",
+                  classe: "v2v-kpi-closed",
+                },
+                {
+                  titulo: "Total de vínculos",
+                  valor: resumo.total,
+                  icone: "pi-link",
+                  classe: "dv-kpi-total",
+                },
+              ].map((card) => (
+                <article key={card.titulo} className={card.classe}>
+                  <i className={`pi ${card.icone}`} aria-hidden="true" />
+                  <div>
+                    <span>{card.titulo}</span>
+                    <strong>{numero(card.valor)}</strong>
+                  </div>
+                  <i className={`pi ${card.icone} dv-kpi-background-icon`} aria-hidden="true" />
+                </article>
+              ))}
+            </section>
             {invalido && (
               <p className="v2v-error" role="alert">
-                A data final de vacância deve ser igual ou posterior à data
+                O período final deve ser igual ou posterior ao período
                 inicial.
               </p>
             )}
@@ -262,6 +272,7 @@ export function DashboardVinculosPage() {
                 Nenhum vínculo encontrado para os filtros informados.
               </p>
             )}
+            <h2 className="dv-section-title">Gráficos gerenciais</h2>
             <div className="dv-charts">
               <section
                 className="v2v-panel dv-bars-panel"
@@ -272,11 +283,11 @@ export function DashboardVinculosPage() {
                 </h2>
                 <div className="dv-chart-legend">
                   <span>
-                    <i style={{ background: AZUL }} />
+                    <i style={{ background: "linear-gradient(90deg,#10B981,#047857)" }} />
                     Vigentes
                   </span>
                   <span>
-                    <i style={{ background: VERMELHO }} />
+                    <i style={{ background: "linear-gradient(90deg,#64748B,#475569)" }} />
                     Encerrados
                   </span>
                 </div>
@@ -291,6 +302,10 @@ export function DashboardVinculosPage() {
                     role="group"
                     aria-label="Quantidade de vínculos vigentes e encerrados por tipo"
                   >
+                    <defs>
+                      <linearGradient id="dv-vigentes-gradient" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stopColor="#10B981" /><stop offset="100%" stopColor="#047857" /></linearGradient>
+                      <linearGradient id="dv-encerrados-gradient" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stopColor="#64748B" /><stop offset="100%" stopColor="#475569" /></linearGradient>
+                    </defs>
                     {Array.from({ length: 6 }, (_, i) => (
                       <g key={i}>
                         <line
@@ -318,13 +333,13 @@ export function DashboardVinculosPage() {
                             {
                               situacao: "Vigente",
                               quantidade: linha.vigentes,
-                              cor: AZUL,
+                              cor: VERDE,
                               offset: -27,
                             },
                             {
                               situacao: "Encerrado",
                               quantidade: linha.encerrados,
-                              cor: VERMELHO,
+                              cor: CINZA,
                               offset: 3,
                             },
                           ].map((barra) => (
@@ -343,7 +358,7 @@ export function DashboardVinculosPage() {
                                 width="24"
                                 height={(barra.quantidade / teto) * 240}
                                 rx="2"
-                                fill={barra.cor}
+                                fill={barra.situacao === "Vigente" ? "url(#dv-vigentes-gradient)" : "url(#dv-encerrados-gradient)"}
                               />
                               <text
                                 x={x + barra.offset + 12}
@@ -389,6 +404,10 @@ export function DashboardVinculosPage() {
                       role="img"
                       aria-label={`Distribuição: ${resumo.vigentes} vínculos vigentes e ${resumo.encerrados} encerrados`}
                     >
+                      <defs>
+                        <linearGradient id="dv-donut-vigentes" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#10B981" /><stop offset="100%" stopColor="#047857" /></linearGradient>
+                        <linearGradient id="dv-donut-encerrados" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#64748B" /><stop offset="100%" stopColor="#475569" /></linearGradient>
+                      </defs>
                       <circle
                         cx="100"
                         cy="100"
@@ -404,7 +423,7 @@ export function DashboardVinculosPage() {
                             cy="100"
                             r="76"
                             fill="none"
-                            stroke={AZUL}
+                            stroke="url(#dv-donut-vigentes)"
                             strokeWidth="20"
                             pathLength="100"
                             strokeDasharray={`${fracaoVigentes * 100} 100`}
@@ -414,7 +433,7 @@ export function DashboardVinculosPage() {
                             cy="100"
                             r="76"
                             fill="none"
-                            stroke={VERMELHO}
+                            stroke="url(#dv-donut-encerrados)"
                             strokeWidth="20"
                             pathLength="100"
                             strokeDasharray={`${(1 - fracaoVigentes) * 100} 100`}
@@ -430,7 +449,7 @@ export function DashboardVinculosPage() {
                   </div>
                   <div className="dv-distribution-legend">
                     <Link to={consulta(undefined, "Vigente")}>
-                      <i style={{ background: AZUL }} />
+                      <i style={{ background: "linear-gradient(90deg,#10B981,#047857)" }} />
                       <span>Vigentes</span>
                       <strong>
                         {numero(resumo.vigentes)} —{" "}
@@ -438,7 +457,7 @@ export function DashboardVinculosPage() {
                       </strong>
                     </Link>
                     <Link to={consulta(undefined, "Encerrado")}>
-                      <i style={{ background: VERMELHO }} />
+                      <i style={{ background: "linear-gradient(90deg,#64748B,#475569)" }} />
                       <span>Encerrados</span>
                       <strong>
                         {numero(resumo.encerrados)} —{" "}
@@ -563,7 +582,7 @@ export function DashboardVinculosPage() {
               um vínculo como encerrado.
             </p>
           </div>
-        </CardSeplag>
+        </div>
       </main>
     </PrototypeSystemPage>
   );

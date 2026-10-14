@@ -1,3 +1,4 @@
+import { criarExcelVinculos } from "./exportarDashboardVinculos";
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it } from "vitest";
 import {
@@ -219,7 +220,7 @@ it("recalcula cards e gráficos, aplica filtros na consulta e preserva contexto 
   fireEvent.change(screen.getByLabelText("Forma de Vacância"), {
     target: { value: "Exoneração" },
   });
-  fireEvent.change(screen.getByLabelText("Data inicial de vacância"), {
+  fireEvent.change(screen.getByLabelText("Período inicial"), {
     target: { value: "2026-01-01" },
   });
   expect(indicadores.textContent).toContain("Total de vínculos1");
@@ -278,4 +279,28 @@ it("limpa filtros de vacância ao escolher vigente e atualiza dados após retorn
   expect(
     screen.getByRole("region", { name: "Indicadores de vínculos" }).textContent,
   ).toContain("Total de vínculos1");
+});
+
+it("filtra períodos por início dos vigentes e vacância dos encerrados", () => {
+  const vigente=criar("periodo-vigente",{inicio:"2026-10-01"});
+  const encerrado=criar("periodo-encerrado",{inicio:"2020-01-01",vacanciaData:"2026-10-10",vacanciaForma:"Exoneração"});
+  const fora=criar("periodo-fora",{inicio:"2025-01-01"});
+  const filtros={...filtrosVinculosVazios,inicio:"2026-10-01",fim:"2026-10-14"};
+  expect(filtrarVinculos([vigente,encerrado,fora],filtros)).toEqual([vigente,encerrado]);
+  expect(filtrarVinculos([vigente,encerrado],{...filtros,situacao:"Vigente"})).toEqual([vigente]);
+  expect(filtrarVinculos([vigente,encerrado],{...filtros,inicio:"2026-11-01"})).toEqual([]);
+});
+it("exporta Excel com filtros, registros únicos e totais da consulta", async () => {
+  const a=criar("excel-a",{orgao:"SES",inicio:"2026-10-01"});
+  const b=criar("excel-b",{orgao:"SEDUC"});
+  const workbook=criarExcelVinculos([a,a,b],{...filtrosVinculosVazios,orgao:"SES"},[a.tipo]);
+  expect(workbook.worksheets.map(s => s.name)).toEqual(["Resumo Geral","Resumo por Tipo","Formas de Vacância","Vínculos"]);
+  const resumo=workbook.getWorksheet("Resumo Geral")!;
+  let total: unknown;
+  resumo.eachRow(row => { if(row.getCell(1).value==="Total de vínculos") total=row.getCell(2).value; });
+  expect(total).toBe(1);
+  const detalhes=workbook.getWorksheet("Vínculos")!;
+  expect(detalhes.lastRow!.getCell(2).value).toBe("SES");
+  expect(detalhes.autoFilter).toBeTruthy();
+  expect((await workbook.xlsx.writeBuffer()).byteLength).toBeGreaterThan(0);
 });
