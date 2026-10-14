@@ -1,12 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { Paginator } from "primereact/paginator";
 import { useNavigate } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
 import { ModalSeplag } from "../../componentes/Modal";
-import { BotaoLimparFiltroSeplag } from "../../componentes/Botao";
+import { BotaoLimparFiltroSeplag, BotaoVoltarSeplag, BotaoSalvarSeplag, BotaoSeplag } from "../../componentes/Botao";
+import { SeplagAutoComplete } from "../../componentes/AutoComplete";
+import { DropdownFieldSeplag, DateFieldSeplag } from "../../componentes/Fields";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import "./ferias.css";
+
+function brParaIso(valor: string) {
+  if (!valor) return "";
+  const [dia, mes, ano] = valor.split("/");
+  if (!dia || !mes || !ano) return "";
+  return `${ano}-${mes}-${dia}`;
+}
 
 function gerarId(): number {
   return Date.now();
@@ -14,7 +24,7 @@ function gerarId(): number {
 
 type OrgaoColetivo = "SEDUC" | "UNEMAT" | "OUTRO";
 type TipoSolicitacao = "Individual" | "Coletiva" | "Lote" | "Recesso";
-type SituacaoFerias = "AGUARDANDO VALIDAÇÃO" | "EM ABERTO" | "QUITADO" | "CANCELADO" | "SUSPENSO";
+type SituacaoFerias = "AGUARDANDO VALIDAÇÃO" | "EM ABERTO" | "QUITADO" | "CANCELADO" | "REPROVADO" | "SUSPENSO";
 type TipoVinculo = "Efetivo" | "Comissionado" | "Contrato Temporário" | "Residente Técnico" | "Bolsista" | "Estagiário";
 type TipoVinculoFiltro = "Todos" | TipoVinculo;
 type Origem = "PORTALSERVIDOR" | "SIGEP";
@@ -49,6 +59,9 @@ export interface FeriasRegistro {
   cargo: string;
   cargoGestao: boolean;
   tipoVinculo: TipoVinculo;
+  saldoFerias?: number;
+  saldoFeriasConfirmado?: boolean;
+  regraAquisitivo?: "PADRAO" | "USUFRUTO_ANTECIPADO";
   tipo: TipoSolicitacao;
   origem: Origem;
   periodoAquisitivoInicio: string;
@@ -81,20 +94,33 @@ interface LinhaSubstituicao {
 
 interface ProfessorLote {
   id: number;
+  orgao: "SEDUC" | "UNEMAT";
   nome: string;
   matricula: string;
+  cpf?: string;
+  cargo: string;
   vinculo: "Efetivo" | "Contrato Temporário";
   lotacaoNome: string;
-  situacaoLotacao: "Em escola" | "Fora da escola";
+  situacaoLotacao: "Em escola" | "Fora da escola" | "Em unidade universitária" | "Fora de unidade";
   saldo: 45 | 30;
   cargoGestao: boolean;
   ltsConcomitante: boolean;
+  cedido?: boolean;
+  remocaoRecentePendente?: boolean;
+  periodoAquisitivoFechado?: boolean;
+  afastamentoConcomitante?: string;
+  vinculoEncerrado?: boolean;
+  feriasConcomitante?: boolean;
+  saldoConfirmado?: boolean;
 }
+
+type PerfilLote = "SECRETARIO_SEDUC" | "DRE_SEDUC" | "GESTAO_UNEMAT";
 
 export const STORAGE_KEY = "prototype-ferias-registros-v3";
 
 interface ServidorMock {
   matricula: string;
+  cpf?: string;
   nome: string;
   orgao: string;
   setor: string;
@@ -113,27 +139,160 @@ const SERVIDORES_MOCK: ServidorMock[] = [
   { matricula: "249253", nome: "Claudia Moreira Arrais de Oliveira", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Assessora Técnica", tipoVinculo: "Comissionado", cargoGestao: false, periodoAquisitivoInicio: "2025-07-01", periodoAquisitivoFim: "2026-06-30", saldoDisponivel: 30 },
   { matricula: "327305", nome: "João Silva", orgao: "SEPLAG/MT", setor: "GABINETE", cargo: "Analista Administrativo", tipoVinculo: "Efetivo", cargoGestao: true, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 30 },
   { matricula: "418920", nome: "Marina Costa Alves", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Analista Técnico", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-15", periodoAquisitivoFim: "2026-01-14", saldoDisponivel: 30 },
-  { matricula: "778899", nome: "Rodrigo Nunes Ferraz", orgao: "SEDUC/MT", setor: "Escola Estadual Marechal Rondon", cargo: "Professor Substituto", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2026-05-01", periodoAquisitivoFim: "2027-04-30", saldoDisponivel: 30 },
+  { matricula: "778899", nome: "Rodrigo Nunes Ferraz", orgao: "SEDUC/MT", setor: "Escola Estadual Marechal Rondon", cargo: "Apoio", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2026-05-01", periodoAquisitivoFim: "2027-04-30", saldoDisponivel: 45 },
+  { matricula: "551023", nome: "Ana Lúcia Ferreira", orgao: "SEDUC/MT", setor: "Escola Estadual Antônio Ferreira", cargo: "Apoio", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 45 },
+  { matricula: "551044", nome: "Bruno Castanheira", orgao: "SEDUC/MT", setor: "Escola Estadual Antônio Ferreira", cargo: "Administração", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 30 },
+  { matricula: "551067", nome: "Cláudia Mendes", orgao: "SEDUC/MT", setor: "Escola Estadual Antônio Ferreira", cargo: "Apoio", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 45 },
+  { matricula: "512077", nome: "João Pedro Castanheira", orgao: "UNEMAT/MT", setor: "UNEMAT — Reitoria", cargo: "Administração", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 30 },
+  { matricula: "512104", nome: "Marina Costa Alves", orgao: "UNEMAT/MT", setor: "UNEMAT — Campus Sinop", cargo: "Apoio", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 30 },
   { matricula: "310021", nome: "Beatriz Andrade Correia", orgao: "SEPLAG/MT", setor: "Hospital Regional de Mato Grosso", cargo: "Residente Técnico — Enfermagem", tipoVinculo: "Residente Técnico", cargoGestao: false, periodoAquisitivoInicio: "2026-02-01", periodoAquisitivoFim: "", saldoDisponivel: 15 },
   { matricula: "320045", nome: "Igor Machado Nunes", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Bolsista", tipoVinculo: "Bolsista", cargoGestao: false, periodoAquisitivoInicio: "2026-07-10", periodoAquisitivoFim: "", saldoDisponivel: 15 },
   { matricula: "330078", nome: "Larissa Pacheco Teixeira", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Estagiária", tipoVinculo: "Estagiário", cargoGestao: false, periodoAquisitivoInicio: "2026-01-05", periodoAquisitivoFim: "", saldoDisponivel: 15 },
+  { matricula: "550099", nome: "Ricardo Farias Lima", orgao: "SES/MT", setor: "Unidade de Pronto Atendimento", cargo: "Médico Plantonista", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-09-01", periodoAquisitivoFim: "2026-08-31", saldoDisponivel: 20 },
+  { matricula: "550099", nome: "Ricardo Farias Lima", orgao: "SES/MT", setor: "Ambulatório de Cardiologia", cargo: "Médico Cardiologista", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2025-11-01", periodoAquisitivoFim: "2026-10-31", saldoDisponivel: 12 },
 ];
+
+function vinculosDoServidor(nome: string): ServidorMock[] {
+  return SERVIDORES_MOCK.filter((servidor) => servidor.nome === nome);
+}
 
 function buscarServidorMock(query: string): ServidorMock | undefined {
   const termo = query.trim().toLocaleLowerCase("pt-BR");
+  const cpfBusca = termo.replace(/\D/g, "");
   if (!termo) return undefined;
   return SERVIDORES_MOCK.find(
-    (servidor) => servidor.matricula === termo || servidor.nome.toLocaleLowerCase("pt-BR") === termo,
+    (servidor) =>
+      servidor.matricula === termo ||
+      servidor.nome.toLocaleLowerCase("pt-BR") === termo ||
+      Boolean(cpfBusca && servidor.cpf?.replace(/\D/g, "").includes(cpfBusca)),
   );
 }
 
-const professoresLote: ProfessorLote[] = [
-  { id: 1, nome: "Ana Lúcia Ferreira", matricula: "551023", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false },
-  { id: 2, nome: "Bruno Castanheira", matricula: "551044", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 30, cargoGestao: false, ltsConcomitante: false },
-  { id: 3, nome: "Cláudia Mendes", matricula: "551067", vinculo: "Contrato Temporário", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: true },
-  { id: 4, nome: "Diego Albuquerque", matricula: "551089", vinculo: "Efetivo", lotacaoNome: "Sede SEDUC", situacaoLotacao: "Fora da escola", saldo: 45, cargoGestao: false, ltsConcomitante: false },
-  { id: 5, nome: "Elisângela Rocha", matricula: "551102", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 30, cargoGestao: true, ltsConcomitante: false },
+function buscarServidorMockPorOrgao(query: string, orgao: string): ServidorMock | undefined {
+  const termo = query.trim().toLocaleLowerCase("pt-BR");
+  const cpfBusca = termo.replace(/\D/g, "");
+  if (!termo) return undefined;
+  return SERVIDORES_MOCK.find(
+    (servidor) =>
+      servidor.orgao === orgao &&
+      (servidor.matricula === termo ||
+        servidor.nome.toLocaleLowerCase("pt-BR") === termo ||
+        `${servidor.matricula} - ${servidor.nome}`.toLocaleLowerCase("pt-BR") === termo ||
+        Boolean(cpfBusca && servidor.cpf?.replace(/\D/g, "").includes(cpfBusca))),
+  );
+}
+
+function sugerirServidoresLote(query: string, orgao: string): string[] {
+  const termo = query.trim().toLocaleLowerCase("pt-BR");
+  const cpfBusca = termo.replace(/\D/g, "");
+  return SERVIDORES_MOCK
+    .filter((servidor) => servidor.orgao === orgao)
+    .filter(
+      (servidor) =>
+        !termo ||
+        servidor.matricula.includes(termo) ||
+        servidor.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
+        Boolean(cpfBusca && servidor.cpf?.replace(/\D/g, "").includes(cpfBusca)),
+    )
+    .map((servidor) => `${servidor.matricula} - ${servidor.nome}`);
+}
+
+function BotaoBuscarServidor({ onClick }: Readonly<{ onClick: () => void }>) {
+  return (
+    <button
+      type="button"
+      className="prototype-ferias-busca-servidor-botao"
+      aria-label="Buscar servidor"
+      title="Buscar servidor"
+      onClick={onClick}
+    >
+      <i className="pi pi-search" aria-hidden="true" />
+    </button>
+  );
+}
+
+const professoresLoteBase: ProfessorLote[] = [
+  { id: 1, orgao: "SEDUC", nome: "Ana Lúcia Ferreira", matricula: "551023", cargo: "Apoio", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false },
+  { id: 2, orgao: "SEDUC", nome: "Bruno Castanheira", matricula: "551044", cargo: "Administração", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 30, cargoGestao: false, ltsConcomitante: false },
+  { id: 3, orgao: "SEDUC", nome: "Cláudia Mendes", matricula: "551067", cargo: "Professor", vinculo: "Contrato Temporário", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: true, periodoAquisitivoFechado: false },
+  { id: 4, orgao: "SEDUC", nome: "Diego Albuquerque", matricula: "551089", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 30, cargoGestao: false, ltsConcomitante: false, cedido: true },
+  { id: 5, orgao: "SEDUC", nome: "Elisângela Rocha", matricula: "551102", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 30, cargoGestao: true, ltsConcomitante: false },
+  { id: 6, orgao: "SEDUC", nome: "Rodrigo Nunes Ferraz", matricula: "778899", cargo: "Professor", vinculo: "Contrato Temporário", lotacaoNome: "Escola Estadual Marechal Rondon", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false },
+  { id: 7, orgao: "SEDUC", nome: "Patrícia Nogueira Souza", matricula: "410033", cargo: "Administração", vinculo: "Contrato Temporário", lotacaoNome: "Escola Estadual Marechal Rondon", situacaoLotacao: "Em escola", saldo: 30, cargoGestao: false, ltsConcomitante: false },
+  { id: 8, orgao: "SEDUC", nome: "Cleber Augusto Dias", matricula: "400010", cargo: "Apoio", vinculo: "Efetivo", lotacaoNome: "EE Tiradentes", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false },
+  { id: 9, orgao: "SEDUC", nome: "Simone Aparecida Luz", matricula: "498231", cargo: "Administração", vinculo: "Efetivo", lotacaoNome: "EE Tiradentes", situacaoLotacao: "Em escola", saldo: 30, cargoGestao: false, ltsConcomitante: false },
+  { id: 10, orgao: "SEDUC", nome: "Wagner Correia Lima", matricula: "503399", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "EE Tiradentes", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false, remocaoRecentePendente: true },
+  { id: 11, orgao: "UNEMAT", nome: "João Pedro Castanheira", matricula: "512077", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "UNEMAT — Reitoria", situacaoLotacao: "Em unidade universitária", saldo: 45, saldoConfirmado: false, cargoGestao: false, ltsConcomitante: false },
+  { id: 12, orgao: "UNEMAT", nome: "Marina Costa Alves", matricula: "512104", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "UNEMAT — Campus Sinop", situacaoLotacao: "Em unidade universitária", saldo: 45, saldoConfirmado: false, cargoGestao: false, ltsConcomitante: false },
+  { id: 13, orgao: "SEDUC", nome: "Rafael Monteiro Costa", matricula: "551120", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Fora da escola", saldo: 45, cargoGestao: false, ltsConcomitante: false },
+  { id: 14, orgao: "SEDUC", nome: "Lívia Rodrigues Martins", matricula: "551138", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: true, periodoAquisitivoFechado: true },
+  { id: 15, orgao: "SEDUC", nome: "Marcos Vieira Souza", matricula: "551141", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false, afastamentoConcomitante: "Licença para acompanhamento de familiar" },
+  { id: 16, orgao: "SEDUC", nome: "Paulo Henrique Alves", matricula: "551155", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false, vinculoEncerrado: true },
+  { id: 17, orgao: "SEDUC", nome: "Sônia Maria Ribeiro", matricula: "551163", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false, feriasConcomitante: true },
 ];
+
+const lotacoesProfessores = [
+  { orgao: "SEDUC", nome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola" },
+  { orgao: "SEDUC", nome: "Sede SEDUC", situacaoLotacao: "Fora da escola" },
+  { orgao: "SEDUC", nome: "Escola Estadual Marechal Rondon", situacaoLotacao: "Em escola" },
+  { orgao: "SEDUC", nome: "EE Tiradentes", situacaoLotacao: "Em escola" },
+  { orgao: "UNEMAT", nome: "UNEMAT — Reitoria", situacaoLotacao: "Em unidade universitária" },
+  { orgao: "UNEMAT", nome: "UNEMAT — Campus Sinop", situacaoLotacao: "Em unidade universitária" },
+] as const;
+
+const nomesExemplo = [
+  "Adriana", "Alexandre", "Amanda", "André", "Camila",
+  "Carlos", "Daniel", "Eduarda", "Felipe", "Fernanda",
+  "Gabriel", "Helena", "Isabela", "João", "Juliana",
+  "Lucas", "Marcelo", "Mariana", "Paulo", "Renata",
+];
+const sobrenomesExemplo = ["Almeida", "Barbosa", "Carvalho", "Dias", "Lopes"];
+const sobrenomesUnidade = ["Moraes", "Ribeiro", "Nogueira", "Pereira", "Costa", "Oliveira"];
+
+const professoresLote: ProfessorLote[] = lotacoesProfessores.flatMap((lotacao, unidadeIndex) => {
+  const existentes = professoresLoteBase.filter(
+    (professor) => professor.orgao === lotacao.orgao && professor.lotacaoNome === lotacao.nome,
+  );
+  const nomesUsados = new Set(existentes.map((professor) => professor.nome));
+  const exemplos: ProfessorLote[] = [];
+
+  for (let indice = 0; existentes.length + exemplos.length < 100; indice += 1) {
+    const primeiroNome = nomesExemplo[indice % nomesExemplo.length];
+    const sobrenome = sobrenomesExemplo[Math.floor(indice / nomesExemplo.length) % sobrenomesExemplo.length];
+    const nome = `${primeiroNome} ${sobrenome} ${sobrenomesUnidade[unidadeIndex]}`;
+    if (nomesUsados.has(nome)) continue;
+    nomesUsados.add(nome);
+
+    const estaEmEscola = lotacao.situacaoLotacao === "Em escola";
+    const saldoEsperado: 45 | 30 = lotacao.orgao === "UNEMAT" || estaEmEscola ? 45 : 30;
+    const saldoInconsistente = indice % 10 === 0;
+    const saldo: 45 | 30 = saldoInconsistente
+      ? estaEmEscola ? 30 : 45
+      : saldoEsperado;
+    exemplos.push({
+      id: 100000 + unidadeIndex * 1000 + indice,
+      orgao: lotacao.orgao,
+      nome,
+      matricula: String(700000 + unidadeIndex * 1000 + indice),
+      cargo: "Professor",
+      vinculo: indice % 4 === 0 ? "Contrato Temporário" : "Efetivo",
+      lotacaoNome: lotacao.nome,
+      situacaoLotacao: lotacao.situacaoLotacao,
+      saldo,
+      saldoConfirmado: lotacao.orgao !== "UNEMAT",
+      cargoGestao: false,
+      ltsConcomitante: indice % 17 === 0,
+      cedido: false,
+      remocaoRecentePendente: false,
+      periodoAquisitivoFechado: indice % 8 === 0,
+      afastamentoConcomitante: indice % 23 === 0 ? "Afastamento de acompanhamento familiar" : undefined,
+      vinculoEncerrado: indice % 31 === 0,
+      feriasConcomitante: indice % 29 === 0,
+    });
+  }
+
+  return [...existentes, ...exemplos];
+});
 
 function registroBase(parcial: Partial<FeriasRegistro> & Pick<FeriasRegistro, "id" | "servidorNome" | "matricula" | "cargo" | "tipoVinculo" | "parcelas" | "situacao">): FeriasRegistro {
   return {
@@ -317,6 +476,10 @@ function tipoRegistroDe(tipoVinculo: TipoVinculo): TipoRegistro {
   return tipoVinculo === "Residente Técnico" || tipoVinculo === "Bolsista" || tipoVinculo === "Estagiário"
     ? "LICENÇA REMUNERADA"
     : "FÉRIAS";
+}
+
+function permiteSolicitacaoFerias(tipoVinculo: TipoVinculo): boolean {
+  return tipoVinculo === "Efetivo" || tipoVinculo === "Comissionado" || tipoVinculo === "Contrato Temporário";
 }
 
 function diasSolicitados(registro: FeriasRegistro) {
@@ -633,6 +796,7 @@ export function PrototiposFeriasPage() {
                     <option value="EM ABERTO">Em aberto</option>
                     <option value="QUITADO">Quitado</option>
                     <option value="CANCELADO">Cancelado</option>
+                    <option value="REPROVADO">Reprovado</option>
                     <option value="SUSPENSO">Suspenso</option>
                   </select>
                 </label>
@@ -860,7 +1024,12 @@ function TabelaRegistros({
                 <br />
                 <small>{registro.setor}</small>
               </td>
-              <td>{periodoAquisitivoLabel(registro)}</td>
+              <td>
+                {periodoAquisitivoLabel(registro)}
+                {registro.regraAquisitivo === "USUFRUTO_ANTECIPADO" ? (
+                  <small className="prototype-ferias-regra-unemat-status">Usufruto antecipado · saldo a conciliar</small>
+                ) : null}
+              </td>
               <td>{periodoUsufruto(registro)}</td>
               <td>
                 <span className="prototype-ferias-badge-tipo">{tipoRegistroDe(registro.tipoVinculo) === "FÉRIAS" ? "Férias" : "Licença remunerada"}</span>
@@ -1187,14 +1356,49 @@ export function FormularioIndividual({
   const [periodoAquisitivoInicio, setPeriodoAquisitivoInicio] = useState("");
   const [periodoAquisitivoFim, setPeriodoAquisitivoFim] = useState("");
   const [saldoDisponivel, setSaldoDisponivel] = useState<number | null>(null);
-  const [parcelas, setParcelas] = useState<ParcelaFerias[]>([{ id: 1, inicio: "", fim: "", dias: 30 }]);
+  const [parcelas, setParcelas] = useState<ParcelaFerias[]>([]);
   const [erro, setErro] = useState("");
   const [servidorEncontrado, setServidorEncontrado] = useState(false);
+  const [servidorBusca, setServidorBusca] = useState("");
+  const [sugestoesServidor, setSugestoesServidor] = useState<string[]>([]);
+  const [vinculosParaEscolher, setVinculosParaEscolher] = useState<ServidorMock[]>([]);
+  const [vinculoInfo, setVinculoInfo] = useState<{ indice: number; total: number } | null>(null);
+  const {
+    control: gozoControl,
+    watch: watchGozo,
+    setValue: setGozoValor,
+  } = useForm<{ duracao: number; dataInicio: string; terco: boolean }>({
+    defaultValues: { duracao: 30, dataInicio: "", terco: false },
+  });
+  const valoresGozo = watchGozo();
+  const draftDias = valoresGozo.duracao;
+  const draftInicio = brParaIso(valoresGozo.dataInicio);
+  const draftTerco = valoresGozo.terco;
 
   const totalParcelado = parcelas.reduce((total, parcela) => total + parcela.dias, 0);
   const saldoFecha = totalParcelado === saldoDisponivel;
+  const saldoRestante = (saldoDisponivel ?? 0) - totalParcelado;
+  const draftFim = calcularFim(draftInicio, draftDias);
+
+  const opcoesDuracao = useMemo(
+    () => [30, 20, 15, 10].filter((dias) => dias <= saldoRestante && dias >= 10),
+    [saldoRestante],
+  );
+
+  useEffect(() => {
+    if (opcoesDuracao.length && !opcoesDuracao.includes(draftDias)) {
+      setGozoValor("duracao", opcoesDuracao[0]);
+    }
+  }, [opcoesDuracao, draftDias, setGozoValor]);
+
+  const descricaoServidor = (servidor: ServidorMock) => `${servidor.matricula} - ${servidor.nome}`;
 
   const aplicarServidor = (servidor: ServidorMock) => {
+    if (!permiteSolicitacaoFerias(servidor.tipoVinculo)) {
+      setServidorEncontrado(false);
+      setErro("Férias individuais são permitidas somente para vínculos Efetivo, Comissionado e Contrato Temporário. Residentes técnicos, bolsistas e estagiários não podem solicitar férias.");
+      return;
+    }
     setServidorNome(servidor.nome);
     setMatricula(servidor.matricula);
     setOrgao(servidor.orgao);
@@ -1206,43 +1410,111 @@ export function FormularioIndividual({
     setPeriodoAquisitivoFim(servidor.periodoAquisitivoFim);
     setSaldoDisponivel(servidor.saldoDisponivel);
     setServidorEncontrado(true);
+    setServidorBusca(descricaoServidor(servidor));
+    const todosVinculos = vinculosDoServidor(servidor.nome);
+    const indice = todosVinculos.findIndex(
+      (vinculo) => vinculo.matricula === servidor.matricula && vinculo.tipoVinculo === servidor.tipoVinculo,
+    ) + 1;
+    setVinculoInfo({ indice: Math.max(indice, 1), total: todosVinculos.length });
   };
 
-  const buscarPorNome = (valor: string) => {
-    setServidorNome(valor);
-    setServidorEncontrado(false);
-    const encontrado = buscarServidorMock(valor);
-    if (encontrado) aplicarServidor(encontrado);
+  const completarBuscaServidor = (query: string) => {
+    const termo = query.trim().toLocaleLowerCase("pt-BR");
+    const cpfBusca = termo.replace(/\D/g, "");
+    const resultados = (!termo
+      ? SERVIDORES_MOCK
+      : SERVIDORES_MOCK.filter(
+          (servidor) =>
+            servidor.matricula.includes(termo) ||
+            servidor.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
+            Boolean(cpfBusca && servidor.cpf?.replace(/\D/g, "").includes(cpfBusca)),
+        )).filter(
+          (servidor, index, servidores) =>
+            servidores.findIndex(
+              (outro) => outro.matricula === servidor.matricula && outro.nome === servidor.nome,
+            ) === index,
+        );
+    setSugestoesServidor(resultados.map(descricaoServidor));
   };
 
-  const buscarPorMatricula = (valor: string) => {
-    setMatricula(valor);
-    setServidorEncontrado(false);
-    const encontrado = buscarServidorMock(valor);
-    if (encontrado) aplicarServidor(encontrado);
-  };
+  const selecionarServidor = (valor: string) => {
+    setServidorBusca(valor);
+    const encontrado = SERVIDORES_MOCK.find((servidor) => descricaoServidor(servidor) === valor);
 
-  const atualizarParcela = (id: number, campo: "inicio" | "dias" | "terco", valor: string | number | boolean) => {
-    setParcelas((atual) =>
-      atual.map((parcela) => {
-        if (parcela.id !== id) return parcela;
-        const proxima = { ...parcela, [campo]: valor } as ParcelaFerias;
-        proxima.fim = calcularFim(proxima.inicio, proxima.dias);
-        return proxima;
-      }),
+    if (!encontrado) {
+      setServidorEncontrado(false);
+      return;
+    }
+    const vinculos = SERVIDORES_MOCK.filter(
+      (servidor) => servidor.matricula === encontrado.matricula && servidor.nome === encontrado.nome,
     );
+    if (vinculos.length > 1) {
+      setServidorEncontrado(false);
+      setVinculosParaEscolher(vinculos);
+    } else {
+      aplicarServidor(encontrado);
+    }
   };
 
-  const adicionarParcela = () => {
-    if (parcelas.length >= 3) return;
-    setParcelas((atual) => [...atual, { id: gerarId(), inicio: "", fim: "", dias: 10 }]);
+  const buscarServidorIndividual = (valor: string) => {
+    const termo = valor.trim().toLocaleLowerCase("pt-BR");
+    const cpfBusca = termo.replace(/\D/g, "");
+    const encontrado = SERVIDORES_MOCK.find(
+      (servidor) =>
+        servidor.matricula.toLocaleLowerCase("pt-BR") === termo ||
+        servidor.nome.toLocaleLowerCase("pt-BR") === termo ||
+        Boolean(cpfBusca && servidor.cpf?.replace(/\D/g, "").includes(cpfBusca)) ||
+        descricaoServidor(servidor).toLocaleLowerCase("pt-BR") === termo,
+    );
+    if (!encontrado) {
+      completarBuscaServidor(valor);
+      setErro("Servidor não localizado. Selecione uma opção da lista ou informe matrícula/nome completo.");
+      return;
+    }
+    setErro("");
+    selecionarServidor(descricaoServidor(encontrado));
+  };
+
+  const escolherVinculo = (vinculo: ServidorMock) => {
+    setVinculosParaEscolher([]);
+    aplicarServidor(vinculo);
+  };
+
+  const adicionarParcelaDraft = () => {
+    if (parcelas.length >= 3) {
+      setErro("Limite de 3 parcelas atingido.");
+      return;
+    }
+    if (!draftInicio) {
+      setErro("Informe a data de início do gozo desta parcela.");
+      return;
+    }
+    if (draftDias < 10) {
+      setErro("Cada parcela precisa ter no mínimo 10 dias (Decreto 656/2020).");
+      return;
+    }
+    if (draftDias > saldoRestante) {
+      setErro(`A duração escolhida (${draftDias} dias) excede o saldo restante (${saldoRestante} dias).`);
+      return;
+    }
+    setParcelas((atual) => [
+      ...atual,
+      { id: gerarId(), inicio: draftInicio, fim: draftFim, dias: draftDias, terco: draftTerco },
+    ]);
+    setErro("");
+    setGozoValor("dataInicio", "");
+    setGozoValor("terco", false);
   };
 
   const removerParcela = (id: number) => {
-    setParcelas((atual) => (atual.length > 1 ? atual.filter((parcela) => parcela.id !== id) : atual));
+    setParcelas((atual) => atual.filter((parcela) => parcela.id !== id));
   };
 
   const salvar = () => {
+    if (!servidorEncontrado || !tipoVinculo || !permiteSolicitacaoFerias(tipoVinculo)) {
+      setErro("Férias individuais são permitidas somente para vínculos Efetivo, Comissionado e Contrato Temporário.");
+      return;
+    }
     if (!servidorNome.trim() || !matricula.trim() || !cargo.trim() || !tipoVinculo || !periodoAquisitivoInicio || !periodoAquisitivoFim) {
       setErro("Preencha servidor, matrícula, cargo, tipo de vínculo e período aquisitivo (início e fim).");
       return;
@@ -1286,7 +1558,7 @@ export function FormularioIndividual({
   };
 
   return (
-    <div>
+    <div className="prototype-ferias-individual-form">
       {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
 
       <div className="prototype-ferias-banner" style={{ background: "#eff6ff", borderColor: "#bfdbfe", color: "#1d4ed8" }}>
@@ -1298,159 +1570,194 @@ export function FormularioIndividual({
       </div>
 
       <div className="prototype-ferias-form-section">
-        <h3>
-          Servidor
+        <h3 className="prototype-ferias-secao-titulo">
+          <i className="pi pi-user" aria-hidden="true" />
+          1. Identificação do Servidor &amp; Saldo Aquisitivo
           {servidorEncontrado && (
             <span className="prototype-ferias-servidor-encontrado">
               <i className="pi pi-check-circle" /> Servidor encontrado — campos preenchidos automaticamente
             </span>
           )}
         </h3>
-        <datalist id="servidor-busca-lista">
-          {SERVIDORES_MOCK.map((s) => (
-            <option key={s.matricula} value={s.matricula}>{s.nome}</option>
-          ))}
-          {SERVIDORES_MOCK.map((s) => (
-            <option key={s.matricula + "_nome"} value={s.nome} />
-          ))}
-        </datalist>
-        <div className="prototype-ferias-form-grid">
-          <label style={{ gridColumn: "1 / -1" }}>
-            <span>Servidor * <em style={{ fontWeight: 400, color: "#6b7280", fontSize: "0.78rem" }}>— busque por nome ou matrícula</em></span>
-            <input
-              list="servidor-busca-lista"
-              value={servidorNome || matricula}
-              onChange={(event) => {
-                const val = event.target.value;
-                const porMatricula = /^\d+$/.test(val.trim());
-                if (porMatricula) {
-                  buscarPorMatricula(val);
-                } else {
-                  buscarPorNome(val);
-                }
-              }}
-              placeholder="Nome do servidor ou matrícula"
-              autoComplete="off"
-              className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""}
+        <label className="prototype-ferias-busca-servidor-label" htmlFor="ferias-individual-busca-servidor">
+          <span>Buscar Servidor (Matrícula, CPF ou Nome)</span>
+          <div className="prototype-ferias-busca-servidor-row">
+            <SeplagAutoComplete
+              inputId="ferias-individual-busca-servidor"
+              className="w-full"
+              value={servidorBusca}
+              suggestions={sugestoesServidor}
+              placeholder="Matrícula, CPF ou nome do servidor"
+              forceSelection={false}
+              completeMethod={completarBuscaServidor}
+              onChange={(event) => setServidorBusca(String(event.value ?? ""))}
+              onSelect={(event) => selecionarServidor(String(event.value ?? ""))}
             />
-          </label>
-          {servidorEncontrado && (
-            <label>
-              <span>Matrícula</span>
-              <input value={matricula} readOnly className="prototype-ferias-input-autopreenchido" />
-            </label>
-          )}
-          <label>
-            <span>Órgão *</span>
-            <input value={orgao} readOnly placeholder="" className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Setor</span>
-            <input value={setor} readOnly placeholder="" className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Cargo *</span>
-            <input value={cargo} readOnly placeholder="" className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Tipo de Vínculo *</span>
-            <input value={tipoVinculo} readOnly placeholder="" className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Cargo de chefia/direção</span>
-            <input value={cargoGestao === null ? "" : cargoGestao ? "Sim" : "Não"} readOnly placeholder="" className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Período Aquisitivo — início *</span>
-            <input value={servidorEncontrado ? formatarDataBr(periodoAquisitivoInicio) : ""} readOnly placeholder="" className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Período Aquisitivo — fim *</span>
-            <input value={servidorEncontrado ? formatarDataBr(periodoAquisitivoFim) : ""} readOnly placeholder="" className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Saldo disponível (dias) *</span>
-            <input value={saldoDisponivel ?? ""} readOnly placeholder="" className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-        </div>
+            <BotaoBuscarServidor onClick={() => buscarServidorIndividual(servidorBusca)} />
+          </div>
+        </label>
+
         {servidorEncontrado && (
-          <button
-            type="button"
-            className="prototype-ferias-btn-limpar-servidor"
-            onClick={() => {
-              setServidorNome("");
-              setMatricula("");
-              setOrgao("");
-              setSetor("");
-              setCargo("");
-              setTipoVinculo("Efetivo");
-              setCargoGestao(false);
-              setPeriodoAquisitivoInicio("");
-              setPeriodoAquisitivoFim("");
-              setSaldoDisponivel(null);
-              setServidorEncontrado(false);
-            }}
-          >
-            <i className="pi pi-times" /> Limpar servidor
-          </button>
+          <div className="prototype-ferias-servidor-resultado">
+            <div className="prototype-ferias-servidor-resultado-grid is-identificacao">
+              <div>
+                <span className="prototype-ferias-indicador-rotulo">Nome do Servidor</span>
+                <strong>{servidorNome}</strong>
+              </div>
+              <div>
+                <span className="prototype-ferias-indicador-rotulo">Matrícula / Vínculo</span>
+                <strong>
+                  {vinculoInfo ? (
+                    <span className="prototype-ferias-vinculo-ativo-badge">
+                      {matricula} · Vínculo {vinculoInfo.indice}
+                    </span>
+                  ) : (
+                    matricula
+                  )}
+                </strong>
+              </div>
+              <div>
+                <span className="prototype-ferias-indicador-rotulo">Cargo / Função</span>
+                <strong>{cargo}</strong>
+              </div>
+              <div>
+                <span className="prototype-ferias-indicador-rotulo">Lotação / Vínculo</span>
+                <strong>{orgao} · {tipoVinculo}</strong>
+              </div>
+              <hr className="prototype-ferias-servidor-resultado-divisor" />
+              <div className="prototype-ferias-servidor-resultado-periodo">
+                <span className="prototype-ferias-indicador-rotulo">Período Aquisitivo Ativo</span>
+                <strong>{formatarDataBr(periodoAquisitivoInicio)} a {formatarDataBr(periodoAquisitivoFim)}</strong>
+              </div>
+              <div className="prototype-ferias-servidor-resultado-saldo">
+                <span className="prototype-ferias-indicador-rotulo">Saldo de Férias</span>
+                <span className="prototype-ferias-badge-saldo">{saldoDisponivel ?? 0} dias restantes</span>
+              </div>
+            </div>
+            <BotaoLimparFiltroSeplag
+              type="button"
+              label="Limpar servidor"
+              icon="pi pi-times"
+              style={{ width: "auto", whiteSpace: "nowrap", height: 32, padding: "0 12px", fontSize: "0.82rem" }}
+              onClick={() => {
+                setServidorNome("");
+                setMatricula("");
+                setOrgao("");
+                setSetor("");
+                setCargo("");
+                setTipoVinculo("Efetivo");
+                setCargoGestao(false);
+                setPeriodoAquisitivoInicio("");
+                setPeriodoAquisitivoFim("");
+                setSaldoDisponivel(null);
+                setServidorEncontrado(false);
+                setServidorBusca("");
+                setSugestoesServidor([]);
+                setVinculosParaEscolher([]);
+                setVinculoInfo(null);
+              }}
+            />
+          </div>
         )}
       </div>
 
       <div className="prototype-ferias-form-section">
-        <h3>Parcelamento (até 3 parcelas, mínimo 10 dias cada; intervalo entre parcelas deve ser 0 ou 10 dias corridos; uma pode incluir o terço constitucional)</h3>
-        <p className={saldoFecha ? "prototype-ferias-saldo-ok" : "prototype-ferias-saldo-erro"}>
-          {totalParcelado} de {saldoDisponivel} dias parcelados
-          {saldoFecha ? " — saldo fecha corretamente." : " — a soma precisa fechar exatamente o saldo."}
-        </p>
-        <div className="prototype-ferias-parcelas">
-          {parcelas.map((parcela, indice) => (
-            <div className="prototype-ferias-parcela-linha" key={parcela.id}>
-              <label>
-                <span>Dias — parcela {indice + 1}</span>
-                <input
-                  type="number"
-                  min={10}
-                  max={30}
-                  value={parcela.dias}
-                  onChange={(event) => atualizarParcela(parcela.id, "dias", Number(event.target.value))}
-                />
-              </label>
-              <label>
-                <span>Início</span>
-                <input type="date" value={parcela.inicio} onChange={(event) => atualizarParcela(parcela.id, "inicio", event.target.value)} />
-              </label>
-              <label>
-                <span>Fim (calculado)</span>
-                <input className="prototype-ferias-readonly-field" value={formatarDataBr(parcela.fim)} readOnly />
-              </label>
-              <label>
+        <h3 className="prototype-ferias-secao-titulo">
+          <i className="pi pi-calendar" aria-hidden="true" />
+          2. Detalhes do Período de Gozo
+        </h3>
+
+        <div className="prototype-ferias-gozo-grid">
+          <div>
+            <DropdownFieldSeplag
+              name="duracao"
+              control={gozoControl}
+              label="Duração desta parcela"
+              cols="12"
+              disabled={parcelas.length >= 3 || !opcoesDuracao.length}
+              options={opcoesDuracao.map((dias) => ({
+                label: `${dias === saldoDisponivel ? "Integral" : "Parcela"} (${dias} dias)`,
+                value: dias,
+              }))}
+              optionLabel="label"
+              optionValue="value"
+              getFormErrorMessage={() => null}
+            />
+            <small className="prototype-ferias-gozo-ajuda">
+              Padrões: 3×10, 2×15, 1×10+1×20. Mínimo 10 dias/parcela.
+            </small>
+          </div>
+          <div>
+            <DateFieldSeplag
+              name="dataInicio"
+              control={gozoControl}
+              label="Data início do gozo"
+              cols="12"
+              disabled={parcelas.length >= 3 || !opcoesDuracao.length}
+              getFormErrorMessage={() => null}
+            />
+          </div>
+          <label>
+            <span>Data fim (calculada)</span>
+            <input className="prototype-ferias-readonly-field" value={formatarDataBr(draftFim)} readOnly />
+            <small className="prototype-ferias-gozo-ajuda">Calculado automaticamente.</small>
+          </label>
+        </div>
+
+        <div className="prototype-ferias-gozo-acoes">
+          <button
+            type="button"
+            className="prototype-ferias-sub-add"
+            disabled={parcelas.length >= 3 || !opcoesDuracao.length}
+            onClick={adicionarParcelaDraft}
+          >
+            <i className="pi pi-plus" aria-hidden="true" />
+            Adicionar esta parcela
+          </button>
+          <span className={saldoFecha ? "prototype-ferias-saldo-ok" : "prototype-ferias-saldo-erro"}>
+            {totalParcelado} de {saldoDisponivel ?? 0} dias parcelados
+          </span>
+        </div>
+
+        {parcelas.length > 0 && (
+          <div className="prototype-ferias-gozo-lista">
+            {parcelas.map((parcela) => (
+              <div className="prototype-ferias-gozo-item" key={parcela.id}>
                 <span>
-                  <input type="checkbox" checked={Boolean(parcela.terco)} onChange={(event) => atualizarParcela(parcela.id, "terco", event.target.checked)} />
-                  {" "}1/3 constitucional
+                  {formatarDataBr(parcela.inicio)} a {formatarDataBr(parcela.fim)} ({parcela.dias} dias)
+                  {parcela.terco ? <span className="prototype-ferias-badge-tipo"> + 1/3 constitucional</span> : null}
                 </span>
-                <button type="button" className="prototype-ferias-icon-btn" disabled={parcelas.length === 1} onClick={() => removerParcela(parcela.id)}>
+                <button type="button" className="prototype-ferias-icon-btn" title="Remover parcela" onClick={() => removerParcela(parcela.id)}>
                   <i className="pi pi-trash" aria-hidden="true" />
                 </button>
-              </label>
-            </div>
-          ))}
-          <button type="button" className="prototype-ferias-sub-add" disabled={parcelas.length >= 3} onClick={adicionarParcela}>
-            <i className="pi pi-plus" aria-hidden="true" />
-            Adicionar parcela
-          </button>
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <label className="prototype-ferias-gozo-terco">
+          <input type="checkbox" checked={draftTerco} onChange={(event) => setGozoValor("terco", event.target.checked)} />
+          Pagar o Adicional Constitucional de 1/3 nesta parcela (Art. 19, II)
+        </label>
       </div>
 
-      <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <button type="button" className="prototype-vinculo-back" onClick={onCancelar}>
-          <i className="pi pi-arrow-left" aria-hidden="true" />
-          Cancelar
-        </button>
-        <button type="button" className="prototype-ferias-btn-primario" onClick={salvar}>
-          <i className="pi pi-check" aria-hidden="true" />
-          Salvar solicitação
-        </button>
+      <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+        <BotaoVoltarSeplag type="button" label="Voltar" onClick={onCancelar} />
+        <BotaoSalvarSeplag type="button" label="Salvar solicitação" onClick={salvar} />
       </div>
+
+      {vinculosParaEscolher.length > 0 ? (
+        <ModalMultiplosVinculos
+          vinculos={vinculosParaEscolher}
+          onEscolher={escolherVinculo}
+          onFechar={() => {
+            setVinculosParaEscolher([]);
+            setServidorBusca("");
+            setSugestoesServidor([]);
+            setServidorEncontrado(false);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -1458,50 +1765,201 @@ export function FormularioIndividual({
 export function FormularioColetiva({
   onCancelar,
   onSalvar,
-}: Readonly<{ onCancelar: () => void; onSalvar: (registros: FeriasRegistro[]) => void }>) {
-  const [orgao, setOrgao] = useState<"SEDUC" | "UNEMAT">("SEDUC");
-  const [escola, setEscola] = useState("Escola Estadual Antônio Ferreira");
-  const [periodoAquisitivo, setPeriodoAquisitivo] = useState("2026");
-  const [tipoVinculoFiltro, setTipoVinculoFiltro] = useState<TipoVinculoFiltro>("Todos");
-  const [inicioJulho, setInicioJulho] = useState("2026-07-06");
-  const [inicioJaneiro, setInicioJaneiro] = useState("2027-01-04");
+  modoAgendamentoLote = false,
+}: Readonly<{ onCancelar: () => void; onSalvar: (registros: FeriasRegistro[]) => void; modoAgendamentoLote?: boolean }>) {
+  const anoAtual = new Date().getFullYear();
+  const anosDisponiveis = Array.from({ length: 6 }, (_, indice) => String(anoAtual + indice));
+  const [perfilLote, setPerfilLote] = useState<PerfilLote>("SECRETARIO_SEDUC");
+  const {
+    control: coletivaControl,
+    watch: watchColetiva,
+    setValue: setColetivaValue,
+  } = useForm<{
+    orgao: "SEDUC" | "UNEMAT";
+    escola: string;
+    periodoAquisitivo: string;
+    tipoVinculoFiltro: TipoVinculoFiltro;
+  }>({
+    defaultValues: {
+      orgao: "SEDUC",
+      escola: "Escola Estadual Antônio Ferreira",
+      periodoAquisitivo: String(anoAtual),
+      tipoVinculoFiltro: modoAgendamentoLote ? "Efetivo" : "Todos",
+    },
+  });
+  const [orgao, escola, periodoAquisitivo, tipoVinculoFiltro] = watchColetiva([
+    "orgao",
+    "escola",
+    "periodoAquisitivo",
+    "tipoVinculoFiltro",
+  ]);
+  const [inicioJulho, setInicioJulho] = useState(`${anoAtual}-07-06`);
+  const [inicioJaneiro, setInicioJaneiro] = useState(`${anoAtual + 1}-01-04`);
+  const [textoBusca, setTextoBusca] = useState("");
   const [buscaNome, setBuscaNome] = useState("");
-  const [selecionados, setSelecionados] = useState<Record<number, { incluido: boolean; julho: boolean; janeiro: boolean }>>({});
+  const [primeiroRegistro, setPrimeiroRegistro] = useState(0);
+  const [registrosPorPagina, setRegistrosPorPagina] = useState(10);
+  const [selecionados, setSelecionados] = useState<Record<number, {
+    incluido: boolean;
+    julho: boolean;
+    janeiro: boolean;
+  }>>({});
   const [erro, setErro] = useState<string[]>([]);
   const [confirmacao, setConfirmacao] = useState("");
+  const [registrosPersistidos, setRegistrosPersistidos] = useState<FeriasRegistro[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") ?? [];
+    } catch {
+      return [];
+    }
+  });
   const [soComAlerta, setSoComAlerta] = useState(false);
+  const [abaColetiva, setAbaColetiva] = useState<1 | 2>(1);
+  const [primeiroAba2, setPrimeiroAba2] = useState(0);
+  const [porPaginaAba2, setPorPaginaAba2] = useState(10);
+  const [buscaAba2, setBuscaAba2] = useState("");
+
+  useEffect(() => {
+    if (!modoAgendamentoLote) return;
+    const proximoOrgao = perfilLote === "GESTAO_UNEMAT" ? "UNEMAT" : "SEDUC";
+    const primeiraLotacao = professoresLote.find((professor) => professor.orgao === proximoOrgao)?.lotacaoNome ?? "";
+    setColetivaValue("orgao", proximoOrgao);
+    setColetivaValue("escola", primeiraLotacao);
+    setColetivaValue("tipoVinculoFiltro", "Efetivo");
+    setBuscaNome("");
+    setTextoBusca("");
+    setAbaColetiva(1);
+  }, [modoAgendamentoLote, perfilLote, setColetivaValue]);
+
+  useEffect(() => {
+    if (!modoAgendamentoLote || perfilLote !== "DRE_SEDUC") return;
+    try {
+      setRegistrosPersistidos(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") ?? []);
+    } catch {
+      setRegistrosPersistidos([]);
+    }
+  }, [modoAgendamentoLote, perfilLote]);
 
   const fimJulho = calcularFim(inicioJulho, 15);
   const fimJaneiro = calcularFim(inicioJaneiro, 30);
+  const usaRegraAquisitivoUnemat = orgao === "UNEMAT";
 
-  const alertasDe = (professor: ProfessorLote) => {
-    const alertas: string[] = [];
-    if (professor.cargoGestao) alertas.push("Cargo de gestão — não entra");
-    const deveriaSer45 = professor.situacaoLotacao === "Em escola";
-    if ((deveriaSer45 && professor.saldo !== 45) || (!deveriaSer45 && professor.saldo !== 30)) {
-      alertas.push("Saldo ≠ lotação");
+  /** Erros bloqueantes: o servidor não pode entrar no lote. */
+  const errosDe = useCallback((professor: ProfessorLote): string[] => {
+    const lista: string[] = [];
+    if (professor.cargoGestao) {
+      lista.push(modoAgendamentoLote
+        ? "Cargo de gestão — excluído do lote"
+        : "Cargo de gestão — requer agendamento individual");
     }
-    if (professor.ltsConcomitante) alertas.push("LTS concomitante");
-    return alertas;
-  };
+    if (professor.remocaoRecentePendente) lista.push("Remoção recente — aguarda análise de férias");
+    if (professor.vinculoEncerrado) lista.push("Vínculo encerrado — não pode receber novo lançamento");
+    if (professor.feriasConcomitante) lista.push("Já possui férias no período — possível duplicidade");
+    if (professor.cedido) {
+      lista.push(modoAgendamentoLote
+        ? "Servidor cedido — excluído do lote; saldo de referência: 30 dias"
+        : "Servidor cedido — confirmar lotação e saldo");
+    }
+    if (professor.vinculo === "Contrato Temporário" && orgao !== "UNEMAT" && professor.periodoAquisitivoFechado !== true) {
+      lista.push("Contrato temporário sem período aquisitivo fechado");
+    }
+    if (professor.situacaoLotacao === "Fora da escola" || professor.situacaoLotacao === "Fora de unidade") {
+      lista.push("Fora de unidade escolar/universitária — confirmar lotação");
+    }
+    const saldo = professor.saldo;
+    if ((professor.situacaoLotacao === "Fora da escola" || professor.situacaoLotacao === "Fora de unidade") && saldo === 45) {
+      lista.push("Saldo de 45 dias fora da escola — incompatível com a lotação");
+    }
+    if (professor.situacaoLotacao === "Em escola" && saldo === 30) {
+      lista.push("Saldo de 30 dias em escola — inconsistência cadastral");
+    }
+    if (orgao === "UNEMAT" && professor.situacaoLotacao === "Em unidade universitária" && saldo !== 45) {
+      lista.push("Saldo diferente de 45 dias — fora do critério do lote");
+    }
+    return lista;
+  }, [modoAgendamentoLote, orgao]);
+
+  /** Avisos não-bloqueantes: o operador deve analisar, mas pode prosseguir. */
+  const avisosDe = useCallback((professor: ProfessorLote): string[] => {
+    const lista: string[] = [];
+    if (professor.ltsConcomitante) lista.push("LTS concomitante ao período — decidir inclusão");
+    if (professor.afastamentoConcomitante) {
+      lista.push(`${professor.afastamentoConcomitante} no período — decidir inclusão`);
+    }
+    return lista;
+  }, []);
+
+  const alertasDe = useCallback(
+    (professor: ProfessorLote): string[] => [...errosDe(professor), ...avisosDe(professor)],
+    [errosDe, avisosDe],
+  );
+
+  const lotacoesDisponiveis = useMemo(
+    () => Array.from(new Set(professoresLote
+      .filter((professor) =>
+        professor.orgao === orgao &&
+        (professor.situacaoLotacao === "Em escola" || professor.situacaoLotacao === "Em unidade universitária"),
+      )
+      .map((professor) => professor.lotacaoNome))),
+    [orgao],
+  );
+  const professoresDaLotacao = useMemo(
+    () => professoresLote.filter(
+      (professor) =>
+        professor.cargo === "Professor" &&
+        professor.orgao === orgao &&
+        (modoAgendamentoLote && perfilLote === "GESTAO_UNEMAT" ? true : professor.lotacaoNome === escola),
+    ),
+    [modoAgendamentoLote, orgao, escola, perfilLote],
+  );
 
   const listaFiltrada = useMemo(() => {
     const buscaNormalizada = buscaNome.trim().toLocaleLowerCase("pt-BR");
-    return professoresLote.filter((professor) => {
+    const buscaCpf = buscaNormalizada.replace(/\D/g, "");
+    return professoresDaLotacao.filter((professor) => {
       if (tipoVinculoFiltro !== "Todos" && professor.vinculo !== tipoVinculoFiltro) return false;
-      if (soComAlerta && alertasDe(professor).length === 0) return false;
       if (
         buscaNormalizada &&
         !professor.nome.toLocaleLowerCase("pt-BR").includes(buscaNormalizada) &&
-        !professor.matricula.includes(buscaNormalizada)
+        !professor.matricula.includes(buscaNormalizada) &&
+        !(buscaCpf && professor.cpf?.replace(/\D/g, "").includes(buscaCpf))
       ) {
         return false;
       }
       return true;
     });
-  }, [buscaNome, tipoVinculoFiltro, soComAlerta]);
+  }, [professoresDaLotacao, buscaNome, tipoVinculoFiltro]);
+
+  const servidoresSelecionaveisFiltrados = listaFiltrada.filter((professor) =>
+    !modoAgendamentoLote || (!professor.cargoGestao && errosDe(professor).length === 0),
+  );
+
+  const listaPaginada = useMemo(
+    () => listaFiltrada.slice(primeiroRegistro, primeiroRegistro + registrosPorPagina),
+    [listaFiltrada, primeiroRegistro, registrosPorPagina],
+  );
+
+  useEffect(() => {
+    setPrimeiroRegistro(0);
+  }, [orgao, escola, buscaNome, tipoVinculoFiltro]);
 
   const estadoLinha = (id: number) => selecionados[id] ?? { incluido: false, julho: false, janeiro: false };
+
+  useEffect(() => {
+    if (!modoAgendamentoLote) return;
+    setSelecionados((atual) => {
+      const proximo = { ...atual };
+      professoresDaLotacao.forEach((professor) => {
+        if (proximo[professor.id]) return;
+        proximo[professor.id] = {
+          incluido: errosDe(professor).length === 0 && avisosDe(professor).length === 0,
+          julho: false,
+          janeiro: false,
+        };
+      });
+      return proximo;
+    });
+  }, [modoAgendamentoLote, professoresDaLotacao, errosDe, avisosDe]);
 
   const alternarLinha = (professor: ProfessorLote, campo: "incluido" | "julho" | "janeiro", valor: boolean) => {
     setSelecionados((atual) => ({
@@ -1514,40 +1972,89 @@ export function FormularioColetiva({
     setSelecionados((atual) => {
       const proximo = { ...atual };
       listaFiltrada.forEach((professor) => {
-        if (professor.cargoGestao) return;
+        if (modoAgendamentoLote && (
+          professor.cargoGestao ||
+          errosDe(professor).length > 0 ||
+          (campo === "incluido" && valor && avisosDe(professor).length > 0)
+        )) return;
         proximo[professor.id] = { ...estadoLinha(professor.id), [campo]: valor };
       });
       return proximo;
     });
   };
 
-  const inconsistencias = listaFiltrada.filter((professor) => {
-    const deveriaSer45 = professor.situacaoLotacao === "Em escola";
-    return (deveriaSer45 && professor.saldo !== 45) || (!deveriaSer45 && professor.saldo !== 30);
-  });
+  /** Professores com erros bloqueantes — usados para highlight na aba 1 e bloqueio no lançamento. */
+  const comErroNaLotacao = useMemo(
+    () => new Set(professoresDaLotacao.filter((professor) => errosDe(professor).length > 0).map((professor) => professor.id)),
+    [professoresDaLotacao, errosDe],
+  );
+
+  /** Professores com avisos (não-bloqueantes) — usados para highlight na aba 1. */
+  const comAvisoNaLotacao = useMemo(
+    () => new Set(professoresDaLotacao.filter((professor) => avisosDe(professor).length > 0).map((professor) => professor.id)),
+    [professoresDaLotacao, avisosDe],
+  );
+
+  const professoresIncluidos = useMemo(
+    () => professoresDaLotacao.filter((professor) =>
+      (!modoAgendamentoLote || (!professor.cargoGestao && errosDe(professor).length === 0)) &&
+      (selecionados[professor.id]?.incluido ?? false),
+    ),
+    [professoresDaLotacao, selecionados, modoAgendamentoLote, errosDe],
+  );
+
+  const listaFiltradaAba2 = useMemo(() => {
+    const termo = buscaAba2.trim().toLocaleLowerCase("pt-BR");
+    return professoresIncluidos.filter((professor) => {
+      if (soComAlerta && alertasDe(professor).length === 0) return false;
+      if (termo && !professor.nome.toLocaleLowerCase("pt-BR").includes(termo) && !professor.matricula.includes(termo)) return false;
+      return true;
+    });
+  }, [professoresIncluidos, buscaAba2, soComAlerta, alertasDe]);
+
+  const listaPaginadaAba2 = useMemo(
+    () => listaFiltradaAba2.slice(primeiroAba2, primeiroAba2 + porPaginaAba2),
+    [listaFiltradaAba2, primeiroAba2, porPaginaAba2],
+  );
+
+  useEffect(() => { setPrimeiroAba2(0); }, [buscaAba2, soComAlerta, orgao, escola, buscaNome, tipoVinculoFiltro]);
 
   const lancarLote = () => {
     const erros: string[] = [];
-    const incluidos = professoresLote.filter((professor) => !professor.cargoGestao && estadoLinha(professor.id).incluido);
+    const incluidos = professoresIncluidos;
+
+    if (modoAgendamentoLote && perfilLote === "DRE_SEDUC") {
+      setErro(["A DRE pode validar e tramitar lotes, mas não pode lançar férias."]);
+      return;
+    }
 
     if (!incluidos.length) {
-      erros.push("Selecione pelo menos um servidor incluído com alguma parcela marcada.");
+      erros.push("Selecione pelo menos um servidor na aba 1 antes de prosseguir.");
     }
 
-    const comInconsistencia = incluidos.filter((professor) => inconsistencias.includes(professor));
-    if (comInconsistencia.length) {
+    const comErro = incluidos.filter((professor) => errosDe(professor).length > 0);
+    if (modoAgendamentoLote && comErro.length) {
       erros.push(
-        `Inconsistência saldo × lotação para: ${comInconsistencia.map((professor) => professor.nome).join(", ")}.`,
+        `Servidor(es) com erro bloqueante — remova-os antes de prosseguir: ${comErro.map((professor) => professor.nome).join(", ")}.`,
       );
     }
-
     const marcadosJulho = incluidos.filter((professor) => estadoLinha(professor.id).julho);
     const marcadosJaneiro = incluidos.filter((professor) => estadoLinha(professor.id).janeiro);
+    const semParcela = incluidos.filter((professor) => !estadoLinha(professor.id).julho && !estadoLinha(professor.id).janeiro);
+    if (semParcela.length) {
+      erros.push(`Marque uma parcela para cada servidor incluído: ${semParcela.map((professor) => professor.nome).join(", ")}.`);
+    }
+    if (
+      modoAgendamentoLote &&
+      incluidos.some((professor) => estadoLinha(professor.id).julho && estadoLinha(professor.id).janeiro)
+    ) {
+      erros.push("No agendamento em lote, cada servidor deve receber a parcela de julho (15 dias) ou a de janeiro (30 dias), não ambas.");
+    }
 
     if (marcadosJulho.length && !inicioJulho) erros.push("Informe a data de início da parcela de julho.");
     if (marcadosJaneiro.length && !inicioJaneiro) erros.push("Informe a data de início da parcela de janeiro.");
     if (!marcadosJulho.length && !marcadosJaneiro.length) {
-      erros.push("Marque ao menos uma parcela (julho ou janeiro) para os servidores incluídos.");
+      erros.push("Marque ao menos uma parcela (julho ou janeiro) na aba 2 antes de lançar.");
     }
 
     if (erros.length) {
@@ -1559,7 +2066,7 @@ export function FormularioColetiva({
     setErro([]);
 
     const loteId = `LOTE-${orgao}-${gerarId()}`;
-    const anoAtual = new Date().getFullYear();
+    const anoAquisitivo = Number(periodoAquisitivo);
     const novosRegistros: FeriasRegistro[] = incluidos.map((professor) => {
       const parcelas: ParcelaFerias[] = [];
       if (estadoLinha(professor.id).julho) {
@@ -1575,17 +2082,20 @@ export function FormularioColetiva({
         cpf: "",
         orgao: orgao === "SEDUC" ? "SEDUC/MT" : "UNEMAT/MT",
         orgaoColetivo: orgao,
-        setor: orgao === "SEDUC" ? escola : "Sede UNEMAT",
-        cargo: "Professor",
+        setor: professor.lotacaoNome,
+        cargo: professor.cargo ?? "Professor",
         cargoGestao: false,
         tipoVinculo: professor.vinculo,
-        tipo: "Coletiva",
+        saldoFerias: professor.saldo,
+        saldoFeriasConfirmado: !usaRegraAquisitivoUnemat,
+        regraAquisitivo: usaRegraAquisitivoUnemat ? "USUFRUTO_ANTECIPADO" : "PADRAO",
+        tipo: modoAgendamentoLote ? "Lote" : "Coletiva",
         origem: "SIGEP",
-        periodoAquisitivoInicio: `${anoAtual}-01-01`,
-        periodoAquisitivoFim: `${anoAtual}-12-31`,
+        periodoAquisitivoInicio: `${anoAquisitivo}-01-01`,
+        periodoAquisitivoFim: `${anoAquisitivo}-12-31`,
         periodoAquisitivoLabel: periodoAquisitivo,
         parcelas,
-        situacao: "EM ABERTO",
+        situacao: modoAgendamentoLote && perfilLote === "SECRETARIO_SEDUC" ? "AGUARDANDO VALIDAÇÃO" : "EM ABERTO",
         substitutos: [],
         loteId,
         responsavelLancamento: "Usuário atual",
@@ -1604,6 +2114,39 @@ export function FormularioColetiva({
     onSalvar(novosRegistros);
   };
 
+  const lotesPendentesValidacao = useMemo(() => {
+    const lotes = new Map<string, FeriasRegistro[]>();
+    registrosPersistidos
+      .filter((registro) =>
+        registro.tipo === "Lote" &&
+        registro.orgaoColetivo === "SEDUC" &&
+        registro.situacao === "AGUARDANDO VALIDAÇÃO" &&
+        Boolean(registro.loteId),
+      )
+      .forEach((registro) => {
+        const loteId = registro.loteId!;
+        lotes.set(loteId, [...(lotes.get(loteId) ?? []), registro]);
+      });
+    return [...lotes.entries()];
+  }, [registrosPersistidos]);
+
+  const decidirLotePendente = (loteId: string, registroId?: number) => {
+    const registrosAtualizados = registrosPersistidos
+      .filter((registro) =>
+        registro.loteId === loteId &&
+        registro.situacao === "AGUARDANDO VALIDAÇÃO" &&
+        (registroId === undefined || registro.id === registroId),
+      )
+      .map((registro) => ({
+        ...registro,
+        situacao: registroId === undefined ? "EM ABERTO" as const : "REPROVADO" as const,
+      }));
+    if (!registrosAtualizados.length) return;
+    const porId = new Map(registrosAtualizados.map((registro) => [registro.id, registro]));
+    setRegistrosPersistidos((atual) => atual.map((registro) => porId.get(registro.id) ?? registro));
+    onSalvar(registrosAtualizados);
+  };
+
   return (
     <div>
       {erro.length ? (
@@ -1615,176 +2158,682 @@ export function FormularioColetiva({
       ) : null}
       {confirmacao ? <div className="prototype-ferias-confirmacao">{confirmacao}</div> : null}
 
-      <div className="prototype-ferias-form-section">
-        <h3>1. Órgão &amp; Servidores</h3>
-        <div className="prototype-ferias-lote-filtros">
+      {modoAgendamentoLote ? (
+        <section className="prototype-ferias-form-section prototype-ferias-lote-perfil">
           <label>
-            <span>Órgão</span>
-            <select value={orgao} onChange={(event) => setOrgao(event.target.value as "SEDUC" | "UNEMAT")}>
-              <option value="SEDUC">SEDUC</option>
-              <option value="UNEMAT">UNEMAT</option>
+            <span>Perfil de demonstração *</span>
+            <select value={perfilLote} onChange={(event) => setPerfilLote(event.target.value as PerfilLote)}>
+              <option value="SECRETARIO_SEDUC">Secretário escolar — SEDUC</option>
+              <option value="DRE_SEDUC">DRE — SEDUC (validação)</option>
+              <option value="GESTAO_UNEMAT">Gestão de Pessoas — UNEMAT</option>
             </select>
           </label>
-          {orgao === "SEDUC" ? (
-            <label>
-              <span>Escola/Lotação</span>
-              <input value={escola} onChange={(event) => setEscola(event.target.value)} />
+          <small>
+            {perfilLote === "SECRETARIO_SEDUC"
+              ? "Lança férias coletivas somente para a escola vinculada; o lote segue à DRE."
+              : perfilLote === "DRE_SEDUC"
+                ? "A DRE não lança férias: valida os lotes recebidos e pode reprovar servidores individualmente."
+                : "A Gestão de Pessoas da UNEMAT visualiza todas as unidades e lança/valida o lote."}
+          </small>
+        </section>
+      ) : null}
+
+      {modoAgendamentoLote && perfilLote === "DRE_SEDUC" ? (
+        <section className="prototype-ferias-form-section prototype-ferias-lote-secao">
+          <h3 className="prototype-ferias-secao-titulo">
+            <i className="pi pi-check-square" aria-hidden="true" />
+            Lotes pendentes de validação da DRE
+          </h3>
+          <div className="prototype-ferias-lote-secao-conteudo">
+            {lotesPendentesValidacao.length === 0 ? (
+              <p className="prototype-ferias-lote-vazio">Não há lotes SEDUC aguardando validação.</p>
+            ) : lotesPendentesValidacao.map(([loteId, registros]) => (
+              <section className="prototype-ferias-lote-validacao" key={loteId}>
+                <div className="prototype-ferias-lote-validacao-topo">
+                  <div>
+                    <strong>{loteId}</strong>
+                    <span>{registros.length} servidor(es) · {registros[0]?.setor || "Unidade não informada"}</span>
+                  </div>
+                  <button type="button" className="prototype-ferias-btn-primario" onClick={() => decidirLotePendente(loteId)}>
+                    <i className="pi pi-check" aria-hidden="true" />
+                    Aprovar e tramitar lote
+                  </button>
+                </div>
+                <div className="prototype-ferias-lote-table-wrap">
+                  <table className="prototype-ferias-table prototype-ferias-coletiva-table">
+                    <thead><tr><th>Servidor</th><th>Vínculo</th><th>Saldo</th><th>Parcelas</th><th>Ação</th></tr></thead>
+                    <tbody>
+                      {registros.map((registro) => (
+                        <tr key={registro.id}>
+                          <td>{registro.servidorNome}<small>{registro.matricula}</small></td>
+                          <td>{registro.tipoVinculo}</td>
+                          <td>{registro.saldoFerias ?? "—"} dias</td>
+                          <td>{registro.parcelas.map((parcela) => `${parcela.dias} dias a partir de ${formatarDataBr(parcela.inicio)}`).join(" · ")}</td>
+                          <td>
+                            <button type="button" className="prototype-ferias-icon-btn" title={`Reprovar ${registro.servidorNome}`} onClick={() => decidirLotePendente(loteId, registro.id)}>
+                              <i className="pi pi-times" aria-hidden="true" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ))}
+            <div className="prototype-ferias-coletiva-acoes">
+              <button type="button" className="prototype-ferias-coletiva-btn-voltar" onClick={onCancelar}>
+                <i className="pi pi-arrow-left" aria-hidden="true" />
+                Voltar
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : (
+      <>
+      <nav className="prototype-ferias-coletiva-stepper-card" aria-label={modoAgendamentoLote ? "Etapas do agendamento em lote" : "Etapas das férias coletivas"}>
+        <ol className="prototype-ferias-coletiva-stepper" role="tablist">
+          {[
+            { numero: 1, titulo: "Órgão & Servidores", painel: "ferias-coletivas-etapa-1" },
+            { numero: 2, titulo: "Parcelas & Alertas", painel: "ferias-coletivas-etapa-2" },
+          ].map((etapa) => (
+            <li
+              key={etapa.numero}
+              className={abaColetiva === etapa.numero ? "is-active" : abaColetiva > etapa.numero ? "is-complete" : ""}
+              aria-current={abaColetiva === etapa.numero ? "step" : undefined}
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={abaColetiva === etapa.numero}
+                aria-controls={etapa.painel}
+                onClick={() => setAbaColetiva(etapa.numero)}
+              >
+                <span className="prototype-ferias-coletiva-step-numero">{etapa.numero}</span>
+                <span className="prototype-ferias-coletiva-step-titulo">{etapa.titulo}</span>
+                {abaColetiva === etapa.numero && <small>Etapa atual</small>}
+              </button>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      {abaColetiva === 1 ? (
+      <div id="ferias-coletivas-etapa-1" role="tabpanel" className="prototype-ferias-coletiva-etapa-conteudo">
+        <section className="prototype-ferias-form-section prototype-ferias-coletiva-painel">
+          <h3 className="prototype-ferias-secao-titulo">
+            <i className="pi pi-users" aria-hidden="true" />
+            Órgão &amp; Servidores
+          </h3>
+          <div className="prototype-ferias-coletiva-painel-conteudo">
+        <div className="prototype-ferias-lote-filtros prototype-ferias-coletiva-filtros">
+          <DropdownFieldSeplag
+            name="orgao"
+            control={coletivaControl}
+            label="Órgão"
+            cols="12"
+            options={[
+              { label: "SEDUC", value: "SEDUC" },
+              { label: "UNEMAT", value: "UNEMAT" },
+            ]}
+            optionLabel="label"
+            optionValue="value"
+            showClear={false}
+            getFormErrorMessage={() => null}
+            disabled={modoAgendamentoLote}
+            onChange={(proximoOrgao: "SEDUC" | "UNEMAT") => {
+              const primeiraLotacao = professoresLote.find((professor) => professor.orgao === proximoOrgao)?.lotacaoNome ?? "";
+              setColetivaValue("escola", primeiraLotacao);
+              setBuscaNome("");
+            }}
+          />
+          {modoAgendamentoLote && perfilLote === "GESTAO_UNEMAT" ? (
+            <label className="prototype-ferias-unemat-escopo">
+              <span>Escopo do lançamento</span>
+              <strong>Todos os professores da UNEMAT — todas as lotações</strong>
             </label>
-          ) : null}
-          <label>
-            <span>Período Aquisitivo</span>
-            <input value={periodoAquisitivo} onChange={(event) => setPeriodoAquisitivo(event.target.value)} />
-          </label>
-          <label>
-            <span>Tipo de Vínculo</span>
-            <select value={tipoVinculoFiltro} onChange={(event) => setTipoVinculoFiltro(event.target.value as TipoVinculoFiltro)}>
-              <option value="Todos">Todos</option>
-              <option value="Efetivo">Efetivo</option>
-              <option value="Contrato Temporário">Contrato Temporário</option>
-            </select>
-          </label>
-          <label>
-            <span>Busca por nome ou matrícula</span>
-            <input value={buscaNome} onChange={(event) => setBuscaNome(event.target.value)} placeholder="Digite para buscar" />
+          ) : (
+            <DropdownFieldSeplag
+              name="escola"
+              control={coletivaControl}
+              label="Escola/Lotação"
+              cols="12"
+              options={(modoAgendamentoLote && perfilLote === "SECRETARIO_SEDUC"
+                ? ["Escola Estadual Antônio Ferreira"]
+                : lotacoesDisponiveis).map((lotacao) => ({ label: lotacao, value: lotacao }))}
+              optionLabel="label"
+              optionValue="value"
+              showClear={false}
+              getFormErrorMessage={() => null}
+              disabled={modoAgendamentoLote}
+              onChange={() => {
+                setBuscaNome("");
+                setTextoBusca("");
+              }}
+            />
+          )}
+          <DropdownFieldSeplag
+            name="periodoAquisitivo"
+            control={coletivaControl}
+            label="Período Aquisitivo"
+            cols="12"
+            options={anosDisponiveis.map((ano) => ({ label: ano, value: ano }))}
+            optionLabel="label"
+            optionValue="value"
+            showClear={false}
+            getFormErrorMessage={() => null}
+            onChange={(ano: string) => {
+              const anoSelecionado = Number(ano);
+              setInicioJulho(`${anoSelecionado}-07-06`);
+              setInicioJaneiro(`${anoSelecionado + 1}-01-04`);
+            }}
+          />
+          <DropdownFieldSeplag
+            name="tipoVinculoFiltro"
+            control={coletivaControl}
+            label="Tipo de Vínculo"
+            cols="12"
+            options={[
+              ...(!modoAgendamentoLote ? [{ label: "Todos", value: "Todos" as const }] : []),
+              { label: "Efetivo", value: "Efetivo" },
+              { label: "Contrato Temporário", value: "Contrato Temporário" },
+            ]}
+            optionLabel="label"
+            optionValue="value"
+            showClear={false}
+            getFormErrorMessage={() => null}
+          />
+        </div>
+        {usaRegraAquisitivoUnemat ? (
+          <div className="prototype-ferias-banner prototype-ferias-regra-unemat" role="note">
+            <i className="pi pi-info-circle" aria-hidden="true" />
+            <span>
+              <strong>Regra UNEMAT:</strong> o usufruto pode ocorrer antes do fechamento do período aquisitivo.
+              A inclusão não é bloqueada por saldo ainda não confirmado; saldo e pagamento devem ser conciliados
+              após o fechamento. O cálculo proporcional da Folha não é feito nesta tela.
+            </span>
+          </div>
+        ) : null}
+          </div>
+        </section>
+
+        <section className="prototype-ferias-coletiva-docentes" aria-labelledby="ferias-coletiva-docentes-titulo">
+        <h4 id="ferias-coletiva-docentes-titulo" className="prototype-ferias-coletiva-docentes-titulo">
+          <i className="pi pi-users" aria-hidden="true" />
+          {modoAgendamentoLote ? "Corpo docente do lote" : "Corpo docente da coletiva"}
+        </h4>
+        <div className="prototype-ferias-coletiva-lista-cabecalho">
+          <label className="prototype-ferias-busca-servidor-label">
+            <span>Buscar Servidor (Matrícula, CPF ou Nome)</span>
+            <div className="prototype-ferias-busca-servidor-row">
+              <input
+                aria-label="Buscar servidor por matrícula, CPF ou nome"
+                value={textoBusca}
+                onChange={(event) => setTextoBusca(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    setBuscaNome(textoBusca);
+                    setPrimeiroRegistro(0);
+                  }
+                }}
+                placeholder="Matrícula, CPF ou nome do servidor"
+              />
+              <BotaoBuscarServidor
+                onClick={() => {
+                  setBuscaNome(textoBusca);
+                  setPrimeiroRegistro(0);
+                }}
+              />
+            </div>
           </label>
         </div>
-
         <div className="prototype-ferias-lote-table-wrap">
-          <table className="prototype-ferias-table">
+          <table className={`prototype-ferias-table prototype-ferias-coletiva-table${modoAgendamentoLote ? " prototype-ferias-coletiva-table--lote" : ""}`}>
             <thead>
               <tr>
                 <th>
-                  <input type="checkbox" onChange={(event) => selecionarTodos("incluido", event.target.checked)} /> Incluir
+                  <input
+                    type="checkbox"
+                    aria-label="Incluir todos os servidores filtrados"
+                    checked={servidoresSelecionaveisFiltrados.length > 0 &&
+                      servidoresSelecionaveisFiltrados.every((professor) => estadoLinha(professor.id).incluido)}
+                    onChange={(event) => selecionarTodos("incluido", event.target.checked)}
+                  />
                 </th>
                 <th>Servidor</th>
                 <th>Vínculo</th>
+                {modoAgendamentoLote ? <th>Cargo / Função</th> : null}
                 <th>Lotação</th>
                 <th>Situação</th>
+                {modoAgendamentoLote ? <th>Alertas</th> : null}
                 <th>Saldo</th>
+                {!modoAgendamentoLote ? <th>Situação de validação</th> : null}
               </tr>
             </thead>
             <tbody>
-              {listaFiltrada.map((professor) => {
+              {listaPaginada.map((professor) => {
                 const estado = estadoLinha(professor.id);
-                const inconsistente = inconsistencias.includes(professor);
+                const temErro = comErroNaLotacao.has(professor.id);
+                const temAviso = comAvisoNaLotacao.has(professor.id);
+                const erros = errosDe(professor);
+                const avisos = avisosDe(professor);
+                const trClasse = modoAgendamentoLote && professor.cargoGestao
+                  ? "prototype-ferias-linha-desabilitada"
+                  : temErro
+                    ? "prototype-ferias-linha-com-erro"
+                    : "";
                 return (
-                  <tr key={professor.id} className={professor.cargoGestao ? "prototype-ferias-linha-desabilitada" : ""}>
+                  <tr key={professor.id} className={trClasse}>
                     <td>
                       <input
                         type="checkbox"
-                        disabled={professor.cargoGestao}
+                        disabled={modoAgendamentoLote && erros.length > 0}
                         checked={estado.incluido}
+                        title={temErro ? erros.join("; ") : undefined}
                         onChange={(event) => alternarLinha(professor, "incluido", event.target.checked)}
                       />
                     </td>
                     <td>
-                      {professor.nome}
-                      <br />
-                      <small>{professor.matricula}</small>
+                      <div className="prototype-ferias-servidor-identificacao">
+                        <strong>{professor.nome}</strong>
+                        <span>Matrícula {professor.matricula}</span>
+                      </div>
                     </td>
-                    <td>{professor.vinculo}</td>
+                    <td>
+                      {professor.vinculo}
+                      {professor.vinculo === "Contrato Temporário" ? (
+                        <span className="prototype-ferias-lote-badge-temporario" title="Regra de pagamento depende de validação da Folha">FOLHA</span>
+                      ) : null}
+                    </td>
+                    {modoAgendamentoLote ? <td>{professor.cargo}</td> : null}
                     <td>{professor.lotacaoNome}</td>
-                    <td>{professor.situacaoLotacao}</td>
-                    <td className={inconsistente ? "prototype-ferias-saldo-inconsistente" : ""}>{professor.saldo} dias</td>
+                    <td>
+                      {professor.situacaoLotacao}
+                    </td>
+                    {modoAgendamentoLote ? (
+                      <td className="prototype-ferias-lote-alertas-celula">
+                        {alertasDe(professor).length ? (
+                          <div className="prototype-ferias-lote-alertas-linha">
+                          {erros.map((mensagem) => (
+                            <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--erro">
+                              <i className="pi pi-times-circle" aria-hidden="true" />{mensagem}
+                            </span>
+                          ))}
+                          {avisos.map((mensagem) => (
+                            <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--aviso">
+                              <i className="pi pi-exclamation-triangle" aria-hidden="true" />{mensagem}
+                            </span>
+                          ))}
+                          </div>
+                        ) : <span className="prototype-ferias-lote-sem-alerta">Sem alertas</span>}
+                      </td>
+                    ) : null}
+                    <td>
+                      <span className={temErro ? "prototype-ferias-saldo-inconsistente" : temAviso ? "prototype-ferias-saldo-aviso" : ""}>
+                        {usaRegraAquisitivoUnemat && professor.saldoConfirmado === false
+                          ? `${professor.saldo} dias · a confirmar`
+                          : `${professor.saldo} dias`}
+                      </span>
+                    </td>
+                    {!modoAgendamentoLote ? (
+                      <td>
+                        {erros.map((mensagem) => (
+                          <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--erro">
+                            <i className="pi pi-times-circle" aria-hidden="true" />{mensagem}
+                          </span>
+                        ))}
+                        {avisos.map((mensagem) => (
+                          <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--aviso">
+                            <i className="pi pi-exclamation-triangle" aria-hidden="true" />{mensagem}
+                          </span>
+                        ))}
+                        {!erros.length && !avisos.length ? (
+                          <span className="prototype-ferias-lote-tag prototype-ferias-lote-tag--ok">
+                            <i className="pi pi-check" aria-hidden="true" />Ok
+                          </span>
+                        ) : null}
+                      </td>
+                    ) : null}
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="prototype-ferias-form-section">
-        <h3>2. Parcelas &amp; Alertas</h3>
-        <div className="prototype-ferias-lote-filtros">
-          <label>
-            <span>Parcela de julho (15 dias) — início</span>
-            <input type="date" value={inicioJulho} onChange={(event) => setInicioJulho(event.target.value)} />
-          </label>
-          <label>
-            <span>Parcela de julho — fim (calculado)</span>
-            <input className="prototype-ferias-readonly-field" value={formatarDataBr(fimJulho)} readOnly />
-          </label>
-          <label>
-            <span>Parcela de janeiro (30 dias) — início</span>
-            <input type="date" value={inicioJaneiro} onChange={(event) => setInicioJaneiro(event.target.value)} />
-          </label>
-          <label>
-            <span>Parcela de janeiro — fim (calculado)</span>
-            <input className="prototype-ferias-readonly-field" value={formatarDataBr(fimJaneiro)} readOnly />
-          </label>
-          <label>
-            <span>
-              <input type="checkbox" checked={soComAlerta} onChange={(event) => setSoComAlerta(event.target.checked)} /> Mostrar só quem tem alerta
-            </span>
-          </label>
-        </div>
-
-        <div className="prototype-ferias-lote-table-wrap">
-          <table className="prototype-ferias-table">
-            <thead>
-              <tr>
-                <th>Servidor</th>
-                <th>
-                  <input type="checkbox" onChange={(event) => selecionarTodos("julho", event.target.checked)} /> Julho
-                </th>
-                <th>
-                  <input type="checkbox" onChange={(event) => selecionarTodos("janeiro", event.target.checked)} /> Janeiro
-                </th>
-                <th>Alertas</th>
-              </tr>
-            </thead>
-            <tbody>
-              {listaFiltrada.map((professor) => {
-                const estado = estadoLinha(professor.id);
-                const alertas = alertasDe(professor);
-                return (
-                  <tr key={professor.id} className={professor.cargoGestao ? "prototype-ferias-linha-desabilitada" : ""}>
-                    <td>
-                      {professor.nome}
-                      <br />
-                      <small>{professor.matricula}</small>
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        disabled={professor.cargoGestao}
-                        checked={estado.julho}
-                        onChange={(event) => alternarLinha(professor, "julho", event.target.checked)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        disabled={professor.cargoGestao}
-                        checked={estado.janeiro}
-                        onChange={(event) => alternarLinha(professor, "janeiro", event.target.checked)}
-                      />
-                    </td>
-                    <td className="prototype-ferias-alerta-texto">{alertas.join(" · ") || "—"}</td>
-                  </tr>
-                );
-              })}
-              {!listaFiltrada.length ? (
+              {!listaPaginada.length ? (
                 <tr>
-                  <td colSpan={4} className="prototype-ferias-empty">Nenhum servidor com alerta no filtro atual.</td>
+                  <td colSpan={modoAgendamentoLote ? 8 : 7} className="prototype-ferias-empty">Nenhum servidor encontrado para os filtros informados.</td>
                 </tr>
               ) : null}
             </tbody>
           </table>
         </div>
+        <Paginator
+          className="prototype-efetivo-exercicio-pagination prototype-ferias-coletiva-pagination"
+          first={primeiroRegistro}
+          rows={registrosPorPagina}
+          totalRecords={listaFiltrada.length}
+          rowsPerPageOptions={[10, 20, 50]}
+          template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+          onPageChange={(event) => {
+            setPrimeiroRegistro(event.rows !== registrosPorPagina ? 0 : event.first);
+            setRegistrosPorPagina(event.rows);
+          }}
+        />
+        </section>
       </div>
+      ) : null}
 
-      <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <button type="button" className="prototype-vinculo-back" onClick={onCancelar}>
-          <i className="pi pi-arrow-left" aria-hidden="true" />
-          Cancelar
-        </button>
-        <button type="button" className="prototype-ferias-btn-primario" onClick={lancarLote}>
-          <i className="pi pi-check" aria-hidden="true" />
-          Lançar Férias Coletivas do Lote
-        </button>
+      {abaColetiva === 2 ? (
+      <div id="ferias-coletivas-etapa-2" role="tabpanel" className="prototype-ferias-coletiva-etapa-conteudo">
+        <section className="prototype-ferias-form-section prototype-ferias-coletiva-painel">
+          <h3 className="prototype-ferias-secao-titulo">
+            <i className="pi pi-calendar" aria-hidden="true" />
+            2. Parcelas &amp; Alertas
+          </h3>
+          <div className="prototype-ferias-coletiva-painel-conteudo is-parcelas">
+
+        {usaRegraAquisitivoUnemat ? (
+          <div className="prototype-ferias-banner prototype-ferias-regra-unemat" role="note">
+            <i className="pi pi-info-circle" aria-hidden="true" />
+            <span>
+              UNEMAT: usufruto antecipado ao fechamento do aquisitivo. O saldo será conciliado após o fechamento;
+              o cálculo proporcional e o pagamento dependem de validação da Folha.
+            </span>
+          </div>
+        ) : null}
+
+        {/* Configuração das datas das parcelas */}
+        <div className="prototype-ferias-coletiva-datas-config">
+          <div className="prototype-ferias-coletiva-parcelas-colunas">
+            <div className="prototype-ferias-coletiva-data-grupo">
+              <div className="prototype-ferias-coletiva-data-titulo">
+                PARCELA DE JULHO — 15 DIAS
+              </div>
+              <div className="prototype-ferias-coletiva-data-linha">
+                <label>
+                  <span>Início</span>
+                  <input type="date" value={inicioJulho} onChange={(event) => setInicioJulho(event.target.value)} />
+                </label>
+                <span className="prototype-ferias-coletiva-seta" aria-hidden="true">→</span>
+                <label>
+                  <span>Fim (calculado)</span>
+                  <input className="prototype-ferias-readonly-field" value={formatarDataBr(fimJulho)} readOnly />
+                </label>
+              </div>
+            </div>
+            <div className="prototype-ferias-coletiva-data-grupo">
+              <div className="prototype-ferias-coletiva-data-titulo">
+                PARCELA DE JANEIRO — 30 DIAS
+              </div>
+              <div className="prototype-ferias-coletiva-data-linha">
+                <label>
+                  <span>Início</span>
+                  <input type="date" value={inicioJaneiro} onChange={(event) => setInicioJaneiro(event.target.value)} />
+                </label>
+                <span className="prototype-ferias-coletiva-seta" aria-hidden="true">→</span>
+                <label>
+                  <span>Fim (calculado)</span>
+                  <input className="prototype-ferias-readonly-field" value={formatarDataBr(fimJaneiro)} readOnly />
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="prototype-ferias-coletiva-resumo-lateral">
+            <strong>{professoresIncluidos.length}</strong>
+            <span>servidor(es) incluído(s)</span>
+            <ul>
+              <li>{professoresIncluidos.filter((professor) => estadoLinha(professor.id).julho).length} com julho</li>
+              <li>{professoresIncluidos.filter((professor) => estadoLinha(professor.id).janeiro).length} com janeiro</li>
+            </ul>
+          </div>
+        </div>
+          </div>
+        </section>
+
+        <section className="prototype-ferias-coletiva-docentes" aria-labelledby="ferias-coletiva-incluidos-titulo">
+          <h4 id="ferias-coletiva-incluidos-titulo" className="prototype-ferias-coletiva-docentes-titulo">
+            <i className="pi pi-users" aria-hidden="true" />
+            Servidores incluídos no lote
+          </h4>
+
+          {/* Barra de filtros */}
+          <div className="prototype-ferias-coletiva-aba2-barra">
+          <div className="prototype-ferias-coletiva-aba2-filtros">
+            <div className="prototype-ferias-busca-servidor-row prototype-ferias-coletiva-filtro-busca">
+              <input
+                aria-label="Filtrar por matrícula ou nome"
+                value={buscaAba2}
+                placeholder="Filtrar por matrícula ou nome"
+                onChange={(event) => setBuscaAba2(event.target.value)}
+              />
+              <BotaoBuscarServidor onClick={() => {}} />
+            </div>
+            <label className="prototype-ferias-coletiva-alerta-check">
+              <input type="checkbox" checked={soComAlerta} onChange={(event) => setSoComAlerta(event.target.checked)} />
+              Só com alerta
+            </label>
+          </div>
+          </div>
+
+        {professoresIncluidos.length === 0 ? (
+          <div className="prototype-ferias-banner" style={{ margin: "0 16px 16px" }}>
+            <i className="pi pi-info-circle" aria-hidden="true" />
+            <span>
+              Nenhum servidor incluído corresponde aos filtros atuais. Ajuste os filtros em{" "}
+              <strong>1. Órgão &amp; Servidores</strong> ou marque os servidores correspondentes.
+            </span>
+          </div>
+        ) : (
+          <>
+            <div className="prototype-ferias-lote-table-wrap">
+              <table className="prototype-ferias-table prototype-ferias-parcelas-table">
+                <thead>
+                  <tr>
+                    <th>Servidor</th>
+                    <th>Saldo</th>
+                    <th>
+                      <div className="prototype-ferias-parcelas-th">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={professoresIncluidos.length > 0 && professoresIncluidos.every((professor) => estadoLinha(professor.id).julho)}
+                            onChange={(event) => {
+                              const valor = event.target.checked;
+                              setSelecionados((atual) => {
+                                const proximo = { ...atual };
+                                professoresIncluidos.forEach((professor) => {
+                                  proximo[professor.id] = { ...estadoLinha(professor.id), julho: valor };
+                                });
+                                return proximo;
+                              });
+                            }}
+                          />
+                          {" "}Julho (15 dias)
+                        </label>
+                        <small>{formatarDataBr(inicioJulho)} a {formatarDataBr(fimJulho)}</small>
+                      </div>
+                    </th>
+                    <th>
+                      <div className="prototype-ferias-parcelas-th">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={professoresIncluidos.length > 0 && professoresIncluidos.every((professor) => estadoLinha(professor.id).janeiro)}
+                            onChange={(event) => {
+                              const valor = event.target.checked;
+                              setSelecionados((atual) => {
+                                const proximo = { ...atual };
+                                professoresIncluidos.forEach((professor) => {
+                                  proximo[professor.id] = { ...estadoLinha(professor.id), janeiro: valor };
+                                });
+                                return proximo;
+                              });
+                            }}
+                          />
+                          {" "}Janeiro (30 dias)
+                        </label>
+                        <small>{formatarDataBr(inicioJaneiro)} a {formatarDataBr(fimJaneiro)}</small>
+                      </div>
+                    </th>
+                    <th>Alertas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listaPaginadaAba2.map((professor) => {
+                    const estado = estadoLinha(professor.id);
+                    const erros = errosDe(professor);
+                    const avisos = avisosDe(professor);
+                    return (
+                      <tr key={professor.id}>
+                        <td>
+                          <div className="prototype-ferias-servidor-identificacao">
+                            <strong>{professor.nome}</strong>
+                            <span>
+                              {professor.matricula}
+                              {professor.vinculo === "Contrato Temporário" ? (
+                                <span className="prototype-ferias-lote-badge-temporario" title="Regras de pagamento aguardam validação da Folha"> FOLHA</span>
+                              ) : null}
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={erros.some((e) => e.includes("45d fora")) ? "prototype-ferias-saldo-inconsistente" : avisos.some((a) => a.includes("30d em escola")) ? "prototype-ferias-saldo-aviso" : ""}>
+                            {professor.saldo} dias
+                          </span>
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <input
+                            type="checkbox"
+                            checked={estado.julho}
+                            onChange={(event) => alternarLinha(professor, "julho", event.target.checked)}
+                          />
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <input
+                            type="checkbox"
+                            checked={estado.janeiro}
+                            onChange={(event) => alternarLinha(professor, "janeiro", event.target.checked)}
+                          />
+                        </td>
+                        <td>
+                          {erros.map((mensagem) => (
+                            <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--erro">
+                              <i className="pi pi-times-circle" aria-hidden="true" /> {mensagem}
+                            </span>
+                          ))}
+                          {avisos.map((mensagem) => (
+                            <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--aviso">
+                              <i className="pi pi-exclamation-triangle" aria-hidden="true" /> {mensagem}
+                            </span>
+                          ))}
+                          {!erros.length && !avisos.length ? <span className="prototype-ferias-lote-tag prototype-ferias-lote-tag--ok"><i className="pi pi-check" aria-hidden="true" /> Ok</span> : null}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {!listaPaginadaAba2.length ? (
+                    <tr>
+                      <td colSpan={5} className="prototype-ferias-empty">Nenhum professor encontrado para o filtro informado.</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+            <Paginator
+              className="prototype-efetivo-exercicio-pagination prototype-ferias-coletiva-pagination"
+              first={primeiroAba2}
+              rows={porPaginaAba2}
+              totalRecords={listaFiltradaAba2.length}
+              rowsPerPageOptions={[10, 20, 50]}
+              template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              onPageChange={(event) => {
+                setPrimeiroAba2(event.rows !== porPaginaAba2 ? 0 : event.first);
+                setPorPaginaAba2(event.rows);
+              }}
+            />
+          </>
+        )}
+        </section>
       </div>
+      ) : null}
+
+      {abaColetiva === 2 && professoresIncluidos.length > 0 ? (
+        <div className="prototype-ferias-coletiva-resumo-validacao">
+          {(() => {
+            const comErro = professoresIncluidos.filter((professor) => errosDe(professor).length > 0);
+            const comAviso = professoresIncluidos.filter((professor) => avisosDe(professor).length > 0);
+            const temporarios = professoresIncluidos.filter((professor) => professor.vinculo === "Contrato Temporário");
+            return (
+              <>
+                {comErro.length > 0 ? (
+                  <div className="prototype-ferias-coletiva-resumo-item is-erro">
+                    <i className="pi pi-times-circle" aria-hidden="true" />
+                    <span><strong>{comErro.length}</strong> servidor(es) com erro bloqueante — remova-os antes de lançar.</span>
+                  </div>
+                ) : null}
+                {comAviso.length > 0 ? (
+                  <div className="prototype-ferias-coletiva-resumo-item is-aviso">
+                    <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+                    <span><strong>{comAviso.length}</strong> servidor(es) com aviso — analise antes de prosseguir.</span>
+                  </div>
+                ) : null}
+                {temporarios.length > 0 ? (
+                  <div className="prototype-ferias-coletiva-resumo-item is-info">
+                    <i className="pi pi-info-circle" aria-hidden="true" />
+                    <span>
+                      <strong>{temporarios.length}</strong> servidor(es) com Contrato Temporário incluído(s).{" "}
+                      {orgao === "UNEMAT"
+                        ? "O usufruto pode anteceder o fechamento do aquisitivo; saldo e pagamento serão conciliados depois. O cálculo proporcional não é feito nesta tela."
+                        : "A inclusão exige aquisitivo fechado. O pagamento proporcional e o abono dependem de validação da Folha."}
+                    </span>
+                  </div>
+                ) : null}
+                <div className="prototype-ferias-coletiva-resumo-item is-fluxo">
+                  <i className="pi pi-send" aria-hidden="true" />
+                  <span>
+                    {modoAgendamentoLote && perfilLote === "GESTAO_UNEMAT"
+                      ? "A Gestão de Pessoas da UNEMAT lança e valida o lote no mesmo fluxo."
+                      : orgao === "SEDUC"
+                        ? "Após lançar, o lote será encaminhado à DRE para validação — aprovação em bloco, com possibilidade de reprovação individual."
+                        : "Após lançar, o lote ficará disponível para validação pela Gestão de Pessoas da UNEMAT."}
+                  </span>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      ) : null}
+
+      <div className="prototype-ferias-coletiva-acoes">
+        {abaColetiva === 1 ? (
+          <>
+            <button type="button" className="prototype-ferias-coletiva-btn-voltar" onClick={onCancelar}>
+              <i className="pi pi-arrow-left" aria-hidden="true" />
+              Voltar
+            </button>
+            <button
+              type="button"
+              className="prototype-ferias-coletiva-btn-avancar"
+              disabled={!professoresIncluidos.length}
+              onClick={() => setAbaColetiva(2)}
+            >
+              Avançar
+              <i className="pi pi-arrow-right" aria-hidden="true" />
+            </button>
+          </>
+        ) : (
+          <>
+            <button type="button" className="prototype-ferias-coletiva-btn-voltar" onClick={() => setAbaColetiva(1)}>
+              <i className="pi pi-arrow-left" aria-hidden="true" />
+              Voltar
+            </button>
+            <button type="button" className="prototype-ferias-coletiva-btn-lancar" onClick={lancarLote}>
+              <i className="pi pi-check" aria-hidden="true" />
+              Lançar Férias Coletivas do Lote
+            </button>
+          </>
+        )}
+      </div>
+      </>
+      )}
     </div>
   );
 }
@@ -1802,32 +2851,58 @@ export function FormularioLote({
   onSalvar,
 }: Readonly<{ onCancelar: () => void; onSalvar: (registros: FeriasRegistro[]) => void }>) {
   const [orgao, setOrgao] = useState("SEPLAG/MT");
-  const [setor, setSetor] = useState("");
-  const [periodoAquisitivo, setPeriodoAquisitivo] = useState("");
+  const [periodoAquisitivo, setPeriodoAquisitivo] = useState(String(new Date().getFullYear()));
   const [dataInicio, setDataInicio] = useState("");
   const [dias, setDias] = useState(30);
   const [servidores, setServidores] = useState<ServidorLote[]>([]);
   const [buscaServidor, setBuscaServidor] = useState("");
-  const [novoNome, setNovoNome] = useState("");
-  const [novaMatricula, setNovaMatricula] = useState("");
-  const [novoCargo, setNovoCargo] = useState("");
-  const [novoVinculo, setNovoVinculo] = useState("");
+  const [sugestoesServidorLote, setSugestoesServidorLote] = useState<string[]>([]);
+  const [servidorEncontrado, setServidorEncontrado] = useState<ServidorMock | null>(null);
 
   const [erro, setErro] = useState("");
   const [confirmacao, setConfirmacao] = useState("");
 
   const fim = calcularFim(dataInicio, dias);
 
-  const adicionarServidor = () => {
-    if (!novoNome.trim() || !novaMatricula.trim()) {
-      setErro("Informe nome e matrícula do servidor antes de adicionar à lista.");
+  const pesquisarServidorLote = () => {
+    const encontrado = buscarServidorMockPorOrgao(buscaServidor, orgao);
+    if (!encontrado) {
+      setServidorEncontrado(null);
+      setErro("Nenhum servidor encontrado. Pesquise pela matrícula ou pelo nome completo.");
       return;
     }
-    setServidores((atual) => [...atual, { id: gerarId(), nome: novoNome.trim(), matricula: novaMatricula.trim(), cargo: novoCargo.trim(), vinculo: novoVinculo.trim() }]);
-    setNovoNome("");
-    setNovaMatricula("");
-    setNovoCargo("");
-    setNovoVinculo("");
+    setServidorEncontrado(encontrado);
+    setErro("");
+  };
+
+  const completarBuscaServidorLote = (query: string) => {
+    setSugestoesServidorLote(sugerirServidoresLote(query, orgao));
+  };
+
+  const selecionarServidorLote = (valor: string) => {
+    setBuscaServidor(valor);
+    const encontrado = buscarServidorMockPorOrgao(valor, orgao);
+    setServidorEncontrado(encontrado ?? null);
+    setErro(encontrado ? "" : "Nenhum servidor encontrado para o órgão selecionado.");
+  };
+
+  const adicionarServidor = () => {
+    if (!servidorEncontrado) {
+      setErro("Pesquise e selecione um servidor antes de adicioná-lo ao lote.");
+      return;
+    }
+    setServidores((atual) => [
+      ...atual,
+      {
+        id: gerarId(),
+        nome: servidorEncontrado.nome,
+        matricula: servidorEncontrado.matricula,
+        cargo: servidorEncontrado.cargo,
+        vinculo: servidorEncontrado.tipoVinculo,
+      },
+    ]);
+    setBuscaServidor("");
+    setServidorEncontrado(null);
     setErro("");
   };
 
@@ -1836,8 +2911,8 @@ export function FormularioLote({
   };
 
   const lancarLote = () => {
-    if (!orgao.trim() || !setor.trim() || !dataInicio || !dias) {
-      setErro("Preencha órgão, setor, data de início e dias do lote.");
+    if (!orgao.trim() || !dataInicio || !dias) {
+      setErro("Preencha órgão, data de início e dias do lote.");
       setConfirmacao("");
       return;
     }
@@ -1857,7 +2932,7 @@ export function FormularioLote({
       cpf: "",
       orgao,
       orgaoColetivo: "OUTRO",
-      setor,
+      setor: "",
       cargo: servidor.cargo || "—",
       cargoGestao: true,
       tipoVinculo: "Efetivo",
@@ -1880,24 +2955,28 @@ export function FormularioLote({
 
   return (
     <div>
-      <div className="prototype-ferias-banner" style={{ background: "#fffbeb", borderColor: "#fde68a", color: "#92400e" }}>
-        <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-        <span>
-          <strong>Não é férias coletivas.</strong> Este lançamento em lote é para cargos de gestão/apoio (ex.: equipe
-          de apoio que sai no recesso de fim de ano). Não tem a base legal nem as regras de 45/30 dias da coletiva de
-          professor SEDUC/UNEMAT — cada registro segue o regime normal de férias, só agendado em massa.
-        </span>
-      </div>
-
       {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
       {confirmacao ? <div className="prototype-ferias-confirmacao">{confirmacao}</div> : null}
 
-      <div className="prototype-ferias-form-section">
-        <h3>Dados do lote</h3>
-        <div className="prototype-ferias-lote-filtros">
+      <section className="prototype-ferias-form-section prototype-ferias-lote-secao">
+        <h3 className="prototype-ferias-secao-titulo">
+          <i className="pi pi-calendar" aria-hidden="true" />
+          1. Dados do lote
+        </h3>
+        <div className="prototype-ferias-lote-secao-conteudo">
+          <div className="prototype-ferias-lote-filtros prototype-ferias-lote-dados-grid">
           <label>
             <span>Órgão *</span>
-            <select value={orgao} onChange={(event) => setOrgao(event.target.value)}>
+            <select
+              value={orgao}
+              onChange={(event) => {
+                setOrgao(event.target.value);
+                setBuscaServidor("");
+                setSugestoesServidorLote([]);
+                setServidorEncontrado(null);
+                setErro("");
+              }}
+            >
               <option value="SEPLAG/MT">SEPLAG/MT</option>
               <option value="SEDUC/MT">SEDUC/MT</option>
               <option value="SESP/MT">SESP/MT</option>
@@ -1906,10 +2985,6 @@ export function FormularioLote({
               <option value="UNEMAT/MT">UNEMAT/MT</option>
               <option value="OUTRO">Outro</option>
             </select>
-          </label>
-          <label>
-            <span>Setor *</span>
-            <input value={setor} onChange={(event) => setSetor(event.target.value)} placeholder="Ex.: Apoio administrativo — Sede" />
           </label>
           <label>
             <span>Período Aquisitivo</span>
@@ -1927,67 +3002,100 @@ export function FormularioLote({
             <span>Fim (calculado)</span>
             <input className="prototype-ferias-readonly-field" value={formatarDataBr(fim)} readOnly />
           </label>
-        </div>
-      </div>
-
-      <div className="prototype-ferias-form-section">
-        <h3>Servidores do lote ({servidores.length})</h3>
-        <datalist id="lote-busca-lista">
-          {SERVIDORES_MOCK.map((s) => (
-            <option key={s.matricula} value={s.matricula}>{s.nome}</option>
-          ))}
-          {SERVIDORES_MOCK.map((s) => (
-            <option key={s.matricula + "_n"} value={s.nome} />
-          ))}
-        </datalist>
-        <div className="prototype-ferias-sub-nova-linha" style={{ gridTemplateColumns: "2fr 1fr 1fr max-content", alignItems: "flex-end" }}>
-          <label>
-            <span>Servidor <em style={{ fontWeight: 400, color: "#6b7280", fontSize: "0.78rem" }}>— nome ou matrícula</em></span>
-            <input
-              list="lote-busca-lista"
-              value={buscaServidor || novoNome}
-              onChange={(event) => {
-                const val = event.target.value;
-                setBuscaServidor(val);
-                setNovoNome(val);
-                const encontrado = buscarServidorMock(val);
-                if (encontrado) {
-                  setNovoNome(encontrado.nome);
-                  setNovaMatricula(encontrado.matricula);
-                  setNovoCargo(encontrado.cargo);
-                  setNovoVinculo(encontrado.tipoVinculo);
-                  setBuscaServidor("");
-                }
-              }}
-              placeholder="Nome ou matrícula"
-              autoComplete="off"
-            />
-          </label>
-          <label>
-            <span>Cargo</span>
-            <input value={novoCargo} onChange={(event) => setNovoCargo(event.target.value)} />
-          </label>
-          <label>
-            <span>Vínculo</span>
-            <select value={novoVinculo} onChange={(event) => setNovoVinculo(event.target.value)}>
-              <option value="" disabled />
-              <option value="Efetivo">Efetivo</option>
-              <option value="Comissionado">Comissionado</option>
-              <option value="Contrato Temporário">Contrato Temporário</option>
-              <option value="Residente Técnico">Residente Técnico</option>
-              <option value="Bolsista">Bolsista</option>
-              <option value="Estagiário">Estagiário</option>
-            </select>
-          </label>
-          <div style={{ display: "flex", alignItems: "flex-end" }}>
-            <button type="button" className="prototype-ferias-icon-btn" title="Adicionar à lista" onClick={adicionarServidor}>
-              <i className="pi pi-plus" aria-hidden="true" />
-            </button>
           </div>
         </div>
+      </section>
 
-        {servidores.length ? (
-          <table className="prototype-ferias-sub-grid">
+      <section className="prototype-ferias-form-section prototype-ferias-lote-secao">
+        <h3 className="prototype-ferias-secao-titulo">
+          <i className="pi pi-users" aria-hidden="true" />
+          2. Servidores do lote ({servidores.length})
+        </h3>
+        <div className="prototype-ferias-lote-secao-conteudo">
+        <label className="prototype-ferias-busca-servidor-label prototype-ferias-lote-busca">
+          <span>Buscar Servidor (Matrícula, CPF ou Nome)</span>
+          <div className="prototype-ferias-busca-servidor-row prototype-ferias-lote-busca-row">
+            <SeplagAutoComplete
+              inputId="ferias-lote-busca-servidor"
+              className="w-full"
+              value={buscaServidor}
+              suggestions={sugestoesServidorLote}
+              placeholder="Matrícula, CPF ou nome do servidor"
+              forceSelection={false}
+              completeMethod={completarBuscaServidorLote}
+              onChange={(event) => {
+                setBuscaServidor(String(event.value ?? ""));
+                setServidorEncontrado(null);
+                setErro("");
+              }}
+              onSelect={(event) => selecionarServidorLote(String(event.value ?? ""))}
+              emptyMessage="Nenhum servidor localizado para o órgão selecionado"
+              showEmptyMessage
+            />
+            <BotaoBuscarServidor onClick={pesquisarServidorLote} />
+          </div>
+        </label>
+
+        {servidorEncontrado ? (
+          <div className="prototype-ferias-lote-servidor-encontrado">
+            <div className="prototype-ferias-servidor-resultado">
+              <div className="prototype-ferias-servidor-resultado-grid is-identificacao">
+                <div>
+                  <span className="prototype-ferias-indicador-rotulo">Nome do Servidor</span>
+                  <strong>{servidorEncontrado.nome}</strong>
+                </div>
+                <div>
+                  <span className="prototype-ferias-indicador-rotulo">Matrícula / Vínculo</span>
+                  <strong>
+                    <span className="prototype-ferias-vinculo-ativo-badge">
+                      {servidorEncontrado.matricula} · Vínculo {vinculosDoServidor(servidorEncontrado.nome).findIndex(
+                        (vinculo) => vinculo.orgao === servidorEncontrado.orgao && vinculo.tipoVinculo === servidorEncontrado.tipoVinculo,
+                      ) + 1}
+                    </span>
+                  </strong>
+                </div>
+                <div>
+                  <span className="prototype-ferias-indicador-rotulo">Cargo / Função</span>
+                  <strong>{servidorEncontrado.cargo}</strong>
+                </div>
+                <div>
+                  <span className="prototype-ferias-indicador-rotulo">Lotação / Vínculo</span>
+                  <strong>{servidorEncontrado.orgao} · {servidorEncontrado.tipoVinculo}</strong>
+                </div>
+                <hr className="prototype-ferias-servidor-resultado-divisor" />
+                <div className="prototype-ferias-servidor-resultado-periodo">
+                  <span className="prototype-ferias-indicador-rotulo">Período Aquisitivo Ativo</span>
+                  <strong>
+                    {servidorEncontrado.periodoAquisitivoInicio && servidorEncontrado.periodoAquisitivoFim
+                      ? `${formatarDataBr(servidorEncontrado.periodoAquisitivoInicio)} a ${formatarDataBr(servidorEncontrado.periodoAquisitivoFim)}`
+                      : "—"}
+                  </strong>
+                </div>
+                <div className="prototype-ferias-servidor-resultado-saldo">
+                  <span className="prototype-ferias-indicador-rotulo">Saldo de Férias</span>
+                  <span className="prototype-ferias-badge-saldo">{servidorEncontrado.saldoDisponivel} dias restantes</span>
+                </div>
+              </div>
+              <div className="prototype-ferias-lote-servidor-acao">
+                <button type="button" className="prototype-ferias-btn-primario" onClick={adicionarServidor}>
+                  <i className="pi pi-plus" aria-hidden="true" />
+                  Adicionar ao lote
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+        </div>
+      </section>
+
+      <section className="prototype-ferias-form-section prototype-ferias-lote-secao">
+        <h3 className="prototype-ferias-secao-titulo">
+        <i className="pi pi-list" aria-hidden="true" />
+        3. Servidores em lote ({servidores.length})
+        </h3>
+        <div className="prototype-ferias-lote-secao-conteudo">
+        <div className="prototype-ferias-lote-lista">
+        <table className="prototype-ferias-sub-grid prototype-ferias-lote-grid">
             <thead>
               <tr>
                 <th>Servidor</th>
@@ -1999,7 +3107,7 @@ export function FormularioLote({
             <tbody>
               {servidores.map((servidor) => (
                 <tr key={servidor.id}>
-                  <td>{servidor.nome}<br /><small>{servidor.matricula}</small></td>
+                  <td><strong>{servidor.nome}</strong><small>{servidor.matricula}</small></td>
                   <td>{servidor.cargo || "—"}</td>
                   <td>{servidor.vinculo || "—"}</td>
                   <td>
@@ -2011,13 +3119,14 @@ export function FormularioLote({
               ))}
             </tbody>
           </table>
-        ) : null}
-      </div>
+        </div>
+        </div>
+      </section>
 
-      <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+      <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
         <button type="button" className="prototype-vinculo-back" onClick={onCancelar}>
           <i className="pi pi-arrow-left" aria-hidden="true" />
-          Cancelar
+          Voltar
         </button>
         <button type="button" className="prototype-ferias-btn-primario" onClick={lancarLote}>
           <i className="pi pi-check" aria-hidden="true" />
@@ -2047,6 +3156,7 @@ export function FormularioRecesso({
   const [emailChefia, setEmailChefia] = useState(true);
   const [erro, setErro] = useState("");
   const [servidorEncontrado, setServidorEncontrado] = useState(false);
+  const [textoBuscaRecesso, setTextoBuscaRecesso] = useState("");
 
   const calcularCarencia = (inicio: string) => {
     if (!inicio) return null;
@@ -2072,16 +3182,17 @@ export function FormularioRecesso({
   };
 
   const buscarServidorRecesso = (valor: string) => {
-    const porMatricula = /^\d+$/.test(valor.trim());
-    if (porMatricula) {
-      setMatricula(valor);
-      setServidorNome(valor);
-    } else {
-      setServidorNome(valor);
-    }
+    setTextoBuscaRecesso(valor);
     setServidorEncontrado(false);
     const encontrado = buscarServidorMock(valor);
-    if (encontrado) aplicarServidorRecesso(encontrado);
+    if (encontrado) {
+      aplicarServidorRecesso(encontrado);
+      setErro("");
+    } else {
+      setServidorNome(valor);
+      setMatricula("");
+      setErro("Nenhum servidor encontrado. Pesquise pela matrícula ou pelo nome completo.");
+    }
   };
 
   const fim = calcularFim(dataInicio, diasRecesso);
@@ -2160,25 +3271,25 @@ export function FormularioRecesso({
             </span>
           )}
         </h3>
-        <datalist id="recesso-busca-lista">
-          {SERVIDORES_MOCK.map((s) => (
-            <option key={s.matricula} value={s.matricula}>{s.nome}</option>
-          ))}
-          {SERVIDORES_MOCK.map((s) => (
-            <option key={s.matricula + "_n"} value={s.nome} />
-          ))}
-        </datalist>
         <div className="prototype-ferias-form-grid">
           <label style={{ gridColumn: "1 / -1" }}>
-            <span>Servidor * <em style={{ fontWeight: 400, color: "#6b7280", fontSize: "0.78rem" }}>— busque por nome ou matrícula</em></span>
-            <input
-              list="recesso-busca-lista"
-              value={servidorNome || matricula}
-              onChange={(event) => buscarServidorRecesso(event.target.value)}
-              placeholder="Nome do servidor ou matrícula"
-              autoComplete="off"
-              className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""}
-            />
+            <span>Buscar Servidor (Matrícula, CPF ou Nome)</span>
+            <div className="prototype-ferias-busca-servidor-row">
+              <input
+                value={servidorEncontrado ? servidorNome : textoBuscaRecesso}
+                onChange={(event) => {
+                  setServidorEncontrado(false);
+                  setTextoBuscaRecesso(event.target.value);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") buscarServidorRecesso(textoBuscaRecesso);
+                }}
+                placeholder="Matrícula, CPF ou nome do servidor"
+                autoComplete="off"
+                className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""}
+              />
+              <BotaoBuscarServidor onClick={() => buscarServidorRecesso(textoBuscaRecesso)} />
+            </div>
           </label>
           {servidorEncontrado && (
             <label>
@@ -2313,10 +3424,10 @@ export function FormularioRecesso({
         ) : null}
       </div>
 
-      <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+      <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
         <button type="button" className="prototype-vinculo-back" onClick={onCancelar}>
           <i className="pi pi-arrow-left" aria-hidden="true" />
-          Cancelar
+          Voltar
         </button>
         <button type="button" className="prototype-ferias-btn-primario" onClick={salvar}>
           <i className="pi pi-check" aria-hidden="true" />
@@ -2502,6 +3613,16 @@ function ModalVisualizarRegistro({ registro, onFechar }: Readonly<{ registro: Fe
             <input className="prototype-ferias-readonly-field" value={registro.situacao} readOnly />
           </label>
         </div>
+        {registro.regraAquisitivo === "USUFRUTO_ANTECIPADO" ? (
+          <div className="prototype-ferias-banner prototype-ferias-regra-unemat" role="note">
+            <i className="pi pi-info-circle" aria-hidden="true" />
+            <span>
+              Lançamento conforme regra institucional da UNEMAT: o usufruto pode anteceder o fechamento
+              do aquisitivo. Saldo confirmado: {registro.saldoFeriasConfirmado ? "sim" : "não"}.
+              A conciliação após o fechamento e o cálculo proporcional dependem da Folha.
+            </span>
+          </div>
+        ) : null}
         <h3>Parcelas</h3>
         <ul>
           {registro.parcelas.map((parcela) => (
@@ -2626,6 +3747,55 @@ function ModalConfirmarStatus({
   );
 }
 
+function ModalMultiplosVinculos({
+  vinculos,
+  onEscolher,
+  onFechar,
+}: Readonly<{
+  vinculos: ServidorMock[];
+  onEscolher: (vinculo: ServidorMock) => void;
+  onFechar: () => void;
+}>) {
+  return (
+    <ModalSeplag visible fechar={onFechar} titulo="Múltiplos vínculos encontrados" hideFooter tamanho="840px">
+      <div className="prototype-ferias-modal-vinculos">
+        <p className="prototype-ferias-vinculos-intro">
+          Este servidor possui mais de um vínculo. Selecione qual deseja usar para esta solicitação de férias.
+        </p>
+        <div className="prototype-ferias-vinculos-lista">
+          {vinculos.map((vinculo, indice) => {
+            const vinculoPermitido = permiteSolicitacaoFerias(vinculo.tipoVinculo);
+            const classeTipo = vinculo.tipoVinculo === "Efetivo"
+              ? "is-efetivo"
+              : vinculo.tipoVinculo === "Comissionado"
+                ? "is-comissionado"
+                : "is-contrato-temporario";
+            return (
+              <button
+                type="button"
+                key={`${vinculo.matricula}-${vinculo.tipoVinculo}-${vinculo.cargo}`}
+                className={`prototype-ferias-vinculo-opcao ${classeTipo}`}
+                disabled={!vinculoPermitido}
+                onClick={() => onEscolher(vinculo)}
+              >
+                <strong>{vinculo.cargo} — {vinculo.setor}</strong>
+                <span className="prototype-ferias-vinculo-detalhes">
+                  <span>
+                    Matrícula: {vinculo.matricula} · {vinculo.tipoVinculo} · Vínculo: {indice + 1}
+                  </span>
+                  <span className="prototype-ferias-vinculo-saldo">
+                    {vinculoPermitido ? `Saldo: ${vinculo.saldoDisponivel} dias` : "Não permitido para férias"}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </ModalSeplag>
+  );
+}
+
 export function ModalConfirmarCancelamento({
   onFechar,
   onConfirmar,
@@ -2635,13 +3805,13 @@ export function ModalConfirmarCancelamento({
       <div style={{ width: "100%" }} className="prototype-ferias-form-section">
         <p>Os dados preenchidos serão perdidos. Deseja realmente cancelar e voltar para a listagem?</p>
         <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
-          <button type="button" className="prototype-vinculo-back" onClick={onFechar}>
-            Continuar preenchendo
-          </button>
-          <button type="button" className="prototype-ferias-btn-primario" style={{ background: "#dc2626" }} onClick={onConfirmar}>
-            <i className="pi pi-times" aria-hidden="true" />
-            Sim, cancelar
-          </button>
+          <BotaoSeplag
+            type="button"
+            label="Sim, cancelar"
+            icon="pi pi-times"
+            style={{ backgroundColor: "#dc2626", color: "#fff" }}
+            onClick={onConfirmar}
+          />
         </div>
       </div>
     </ModalSeplag>

@@ -44,12 +44,6 @@ export function FeriasIndividualPage() {
         >
           <div className="col-12">
           <div className="prototype-ferias-nova-pagina">
-            <div className="prototype-ferias-nova-pagina-header">
-              <div>
-                <h2 style={{ color: "#3b82f6" }}><i className="pi pi-user" aria-hidden="true" style={{ marginRight: 8 }} />Individual</h2>
-                <p>Solicitação para um único servidor.</p>
-              </div>
-            </div>
             <FormularioIndividual onCancelar={() => setMostrarConfirmacaoCancelar(true)} onSalvar={salvar} />
           </div>
           </div>
