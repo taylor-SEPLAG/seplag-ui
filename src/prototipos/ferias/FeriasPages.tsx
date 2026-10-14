@@ -1,13 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Paginator } from "primereact/paginator";
-import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
 import { ModalSeplag } from "../../componentes/Modal";
-import { BotaoSeplag, BotaoLimparFiltroSeplag, BotaoAdicionarSeplag } from "../../componentes/Botao";
-import { BadgeSeplag } from "../../componentes/Badge";
-import { DropdownFieldSeplag, TextFieldSeplag } from "../../componentes/Fields";
+import { BotaoLimparFiltroSeplag } from "../../componentes/Botao";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import "./ferias.css";
 
@@ -345,21 +342,13 @@ function persistirRegistros(registros: FeriasRegistro[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(registros));
 }
 
-const SITUACAO_BADGE_ESTILO: Record<SituacaoFerias, { color: string; bg: string }> = {
-  "AGUARDANDO VALIDAÇÃO": { color: "#6d28d9", bg: "#f5f3ff" },
-  "EM ABERTO": { color: "#166534", bg: "#f0fdf4" },
-  QUITADO: { color: "#1d4ed8", bg: "#eff6ff" },
-  CANCELADO: { color: "#b91c1c", bg: "#fef2f2" },
-  SUSPENSO: { color: "#9a3412", bg: "#fffbeb" },
-};
-
-const ORIGEM_BADGE_ESTILO: Record<Origem, { color: string; bg: string }> = {
-  PORTALSERVIDOR: { color: "#6d28d9", bg: "#f5f3ff" },
-  SIGEP: { color: "#0369a1", bg: "#f0f9ff" },
-};
-
-const TIPO_BADGE_ESTILO = { color: "#1d4ed8", bg: "#eff6ff" };
-const CHEFIA_BADGE_ESTILO = { color: "#b45309", bg: "#fffbeb" };
+function classeSituacao(situacao: SituacaoFerias) {
+  return situacao
+    .toLocaleLowerCase("pt-BR")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/\s+/g, "-");
+}
 
 type AbaFerias = "gestao" | "aprovacoes" | "substituicoes";
 
@@ -376,19 +365,10 @@ export function PrototiposFeriasPage() {
   const [registros, setRegistros] = useState<FeriasRegistro[]>(carregarRegistros);
   const [perfil, setPerfil] = useState<PerfilAcesso>(carregarPerfil);
   const [aba, setAba] = useState<AbaFerias>("gestao");
-  const {
-    control: filtrosControl,
-    watch: watchFiltros,
-    reset: resetFiltros,
-    setValue: setFiltroValor,
-  } = useForm<{ orgao: string; setor: string; servidor: string; situacao: "" | SituacaoFerias }>({
-    defaultValues: { orgao: "", setor: "", servidor: "", situacao: "" },
-  });
-  const valoresFiltro = watchFiltros();
-  const filtroOrgao = valoresFiltro.orgao;
-  const filtroSetor = valoresFiltro.setor;
-  const filtroServidor = valoresFiltro.servidor;
-  const filtroSituacao = valoresFiltro.situacao;
+  const [filtroOrgao, setFiltroOrgao] = useState("");
+  const [filtroSetor, setFiltroSetor] = useState("");
+  const [filtroServidor, setFiltroServidor] = useState("");
+  const [filtroSituacao, setFiltroSituacao] = useState<"" | SituacaoFerias>("");
   const [fluxoNovaSolicitacao, setFluxoNovaSolicitacao] = useState<"escolha" | TipoSolicitacao | null>(null);
   const [registroSubstituicao, setRegistroSubstituicao] = useState<FeriasRegistro | null>(null);
   const [registroVisualizacao, setRegistroVisualizacao] = useState<FeriasRegistro | null>(null);
@@ -494,17 +474,27 @@ export function PrototiposFeriasPage() {
 
   const indicadores = useMemo(() => {
     const porSituacao = (situacao: SituacaoFerias) => registrosFiltrados.filter((registro) => registro.situacao === situacao).length;
+    const porVinculo = (vinculo: TipoVinculo) => registrosFiltrados.filter((registro) => registro.tipoVinculo === vinculo).length;
+    const porTipoRegistro = (tipo: TipoRegistro) => registrosFiltrados.filter((registro) => tipoRegistroDe(registro.tipoVinculo) === tipo).length;
     return {
       total: registrosFiltrados.length,
-      aguardandoValidacao: porSituacao("AGUARDANDO VALIDAÇÃO"),
       emAberto: porSituacao("EM ABERTO"),
       quitado: porSituacao("QUITADO"),
       suspenso: porSituacao("SUSPENSO"),
+      comissionado: porVinculo("Comissionado"),
+      contratoTemporario: porVinculo("Contrato Temporário"),
+      residenteTecnico: porVinculo("Residente Técnico"),
+      bolsista: porVinculo("Bolsista"),
+      ferias: porTipoRegistro("FÉRIAS"),
+      licencaRemunerada: porTipoRegistro("LICENÇA REMUNERADA"),
     };
   }, [registrosFiltrados]);
 
   const limparFiltros = () => {
-    resetFiltros({ orgao: "", setor: "", servidor: "", situacao: "" });
+    setFiltroOrgao("");
+    setFiltroSetor("");
+    setFiltroServidor("");
+    setFiltroSituacao("");
   };
 
   const podeEditar = (registro: FeriasRegistro) =>
@@ -591,80 +581,69 @@ export function PrototiposFeriasPage() {
             <>
               <div className="prototype-ferias-indicadores">
                 <IndicadorCard rotulo="TOTAL" valor={indicadores.total} />
-                <IndicadorCard rotulo="AGUARDANDO VALIDAÇÃO" valor={indicadores.aguardandoValidacao} tom="roxo" />
                 <IndicadorCard rotulo="EM ABERTO" valor={indicadores.emAberto} tom="sucesso" />
                 <IndicadorCard rotulo="QUITADO" valor={indicadores.quitado} tom="info" />
                 <IndicadorCard rotulo="SUSPENSO" valor={indicadores.suspenso} tom="alerta" />
+                <IndicadorCard rotulo="COMISSIONADO" valor={indicadores.comissionado} />
+                <IndicadorCard rotulo="CONTRATO TEMPORÁRIO" valor={indicadores.contratoTemporario} />
+                <IndicadorCard rotulo="RESIDENTE TÉCNICO" valor={indicadores.residenteTecnico} tom="roxo" />
+                <IndicadorCard rotulo="BOLSISTA" valor={indicadores.bolsista} tom="roxo" />
+                <IndicadorCard rotulo="FÉRIAS" valor={indicadores.ferias} tom="info" />
+                <IndicadorCard rotulo="LICENÇA REMUNERADA" valor={indicadores.licencaRemunerada} tom="roxo" />
               </div>
 
-              <div className="prototype-category-filters prototype-ferias-filtros grid">
-                <DropdownFieldSeplag
-                  name="orgao"
-                  control={filtrosControl}
-                  label="Órgão"
-                  placeholder="Todos"
-                  cols="12 6 2"
-                  options={[
-                    { label: "Todos", value: "" },
-                    ...orgaosDisponiveis.map((orgao) => ({ label: orgao, value: orgao })),
-                  ]}
-                  optionLabel="label"
-                  optionValue="value"
-                  getFormErrorMessage={() => null}
-                  onChange={() => setFiltroValor("setor", "")}
-                />
-                <DropdownFieldSeplag
-                  name="setor"
-                  control={filtrosControl}
-                  label="Setor"
-                  placeholder="Todos"
-                  cols="12 6 2"
-                  options={[
-                    { label: "Todos", value: "" },
-                    ...setoresDisponiveis.map((setor) => ({ label: setor, value: setor })),
-                  ]}
-                  optionLabel="label"
-                  optionValue="value"
-                  getFormErrorMessage={() => null}
-                />
-                <TextFieldSeplag
-                  name="servidor"
-                  control={filtrosControl}
-                  label="Servidor"
-                  placeholder="Matrícula ou nome"
-                  cols="12 6 2"
-                  getFormErrorMessage={() => null}
-                />
-                <DropdownFieldSeplag
-                  name="situacao"
-                  control={filtrosControl}
-                  label="Situação"
-                  placeholder="Todas"
-                  cols="12 6 2"
-                  options={[
-                    { label: "Todas", value: "" },
-                    { label: "Aguardando validação", value: "AGUARDANDO VALIDAÇÃO" },
-                    { label: "Em aberto", value: "EM ABERTO" },
-                    { label: "Quitado", value: "QUITADO" },
-                    { label: "Cancelado", value: "CANCELADO" },
-                    { label: "Suspenso", value: "SUSPENSO" },
-                  ]}
-                  optionLabel="label"
-                  optionValue="value"
-                  getFormErrorMessage={() => null}
-                />
-                <div className="prototype-category-clear col-12 md:col-6 lg:col-4">
-                  <BotaoLimparFiltroSeplag
-                    type="button"
-                    label="Limpar filtro" className="prototype-ferias-limpar-filtro"
-                    icon="pi pi-refresh"
-                    onClick={limparFiltros}
-                  />
-                </div>
+              <div className="prototype-ferias-filtros">
+                <label>
+                  <span>Órgão</span>
+                  <select
+                    value={filtroOrgao}
+                    onChange={(event) => {
+                      setFiltroOrgao(event.target.value);
+                      setFiltroSetor("");
+                    }}
+                  >
+                    <option value="">Todos</option>
+                    {orgaosDisponiveis.map((orgao) => (
+                      <option key={orgao} value={orgao}>
+                        {orgao}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Setor</span>
+                  <select value={filtroSetor} onChange={(event) => setFiltroSetor(event.target.value)}>
+                    <option value="">Todos</option>
+                    {setoresDisponiveis.map((setor) => (
+                      <option key={setor} value={setor}>
+                        {setor}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Servidor</span>
+                  <input value={filtroServidor} placeholder="Matrícula ou nome" onChange={(event) => setFiltroServidor(event.target.value)} />
+                </label>
+                <label>
+                  <span>Situação</span>
+                  <select value={filtroSituacao} onChange={(event) => setFiltroSituacao(event.target.value as "" | SituacaoFerias)}>
+                    <option value="">Todas</option>
+                    <option value="AGUARDANDO VALIDAÇÃO">Aguardando validação</option>
+                    <option value="EM ABERTO">Em aberto</option>
+                    <option value="QUITADO">Quitado</option>
+                    <option value="CANCELADO">Cancelado</option>
+                    <option value="SUSPENSO">Suspenso</option>
+                  </select>
+                </label>
+                <BotaoLimparFiltroSeplag type="button" label="Limpar filtro" className="prototype-ferias-limpar-filtro" onClick={limparFiltros} />
               </div>
 
               <div className="prototype-ferias-acoes-topo">
-                <BotaoAdicionarSeplag type="button" label="Nova solicitação de férias" onClick={() => setFluxoNovaSolicitacao("escolha")} />
+                <button type="button" className="prototype-ferias-btn-primario" onClick={() => setFluxoNovaSolicitacao("escolha")}>
+                  <i className="pi pi-plus" aria-hidden="true" />
+                  Nova solicitação de férias
+                </button>
               </div>
 
               <TabelaRegistros
@@ -716,10 +695,10 @@ export function PrototiposFeriasPage() {
                     <option value="Encerrada">Encerrada</option>
                   </select>
                 </label>
-                <BotaoSeplag unstyled type="button" className="prototype-ferias-btn-buscar">
+                <button type="button" className="prototype-ferias-btn-buscar">
                   <i className="pi pi-search" aria-hidden="true" />
                   Buscar
-                </BotaoSeplag>
+                </button>
               </div>
 
               <TabelaSubstituicoes linhas={linhasSubstituicao} />
@@ -877,17 +856,7 @@ function TabelaRegistros({
               <td>{registro.orgao}</td>
               <td>
                 <strong>{registro.servidorNome}</strong>
-                {registro.cargoGestao ? (
-                  <BadgeSeplag
-                    label="CHEFIA"
-                    icon="pi pi-star-fill"
-                    color={CHEFIA_BADGE_ESTILO.color}
-                    bg={CHEFIA_BADGE_ESTILO.bg}
-                    border="transparent"
-                    size="xs"
-                    customStyle={{ marginLeft: 8 }}
-                  />
-                ) : null}
+                {registro.cargoGestao ? <span className="prototype-ferias-badge-chefia"><i className="pi pi-star-fill" aria-hidden="true" /> CHEFIA</span> : null}
                 <br />
                 <small>{registro.setor}</small>
               </td>
@@ -909,13 +878,7 @@ function TabelaRegistros({
                 </small>
               </td>
               <td>
-                <BadgeSeplag
-                  label={registro.origem}
-                  color={ORIGEM_BADGE_ESTILO[registro.origem].color}
-                  bg={ORIGEM_BADGE_ESTILO[registro.origem].bg}
-                  border="transparent"
-                  size="sm"
-                />
+                <span className={"prototype-ferias-badge-origem is-" + registro.origem.toLowerCase()}>{registro.origem}</span>
               </td>
               <td>
                 <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{registro.situacao.charAt(0) + registro.situacao.slice(1).toLocaleLowerCase("pt-BR")}</span>
@@ -927,91 +890,80 @@ function TabelaRegistros({
                 ) : null}
               </td>
               <td>
-                <div className="prototype-ingresso-candidato-actions">
-                  <div className="prototype-ingresso-actions-dropdown">
-                    <div className="prototype-ingresso-actions-trigger" role="group" aria-label="Ações da solicitação">
-                      <button type="button" className="prototype-ingresso-actions-eye" title="Visualizar" aria-label="Visualizar" onClick={() => onVisualizar(registro)}>
-                        <i className="pi pi-eye" aria-hidden="true" />
+                <div className="prototype-ferias-acao-dropdown">
+                  <button type="button" className="prototype-ferias-btn-acao" onClick={() => onVisualizar(registro)} title="Visualizar">
+                    <i className="pi pi-eye" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="prototype-ferias-btn-acao-caret"
+                    title="Mais ações"
+                    onClick={() => setMenuAbertoId(menuAbertoId === registro.id ? null : registro.id)}
+                  >
+                    <i className="pi pi-chevron-down" aria-hidden="true" />
+                  </button>
+                  {menuAbertoId === registro.id ? (
+                    <div className="prototype-ferias-menu-acoes">
+                      <button type="button" onClick={() => { onVisualizar(registro); setMenuAbertoId(null); }}>
+                        <i className="pi pi-eye" aria-hidden="true" /> Visualizar
                       </button>
-                      <button
-                        type="button"
-                        className="prototype-ingresso-actions-arrow"
-                        title="Mais ações"
-                        aria-label="Mais ações"
-                        aria-expanded={menuAbertoId === registro.id}
-                        onClick={() => setMenuAbertoId(menuAbertoId === registro.id ? null : registro.id)}
-                      >
-                        <i className="pi pi-chevron-down" aria-hidden="true" />
-                      </button>
-                    </div>
-                    {menuAbertoId === registro.id ? (
-                      <div className="prototype-ingresso-actions-menu" role="menu">
-                        <button type="button" role="menuitem" onClick={() => { onVisualizar(registro); setMenuAbertoId(null); }}>
-                          <i className="pi pi-eye" aria-hidden="true" /><span>Visualizar</span>
+                      {podeGerenciarCompleto(perfil) && podeEditar(registro) ? (
+                        <button type="button" onClick={() => { onVisualizar(registro); setMenuAbertoId(null); }}>
+                          <i className="pi pi-pencil" aria-hidden="true" /> Editar
                         </button>
-                        {podeGerenciarCompleto(perfil) && podeEditar(registro) ? (
-                          <button type="button" role="menuitem" onClick={() => { onVisualizar(registro); setMenuAbertoId(null); }}>
-                            <i className="pi pi-pencil" aria-hidden="true" /><span>Editar</span>
-                          </button>
-                        ) : null}
-                        {podeGerenciarCompleto(perfil) && elegivelSubstituicao(registro) ? (
-                          <button type="button" role="menuitem" onClick={() => { onGerenciarSubstituicao(registro); setMenuAbertoId(null); }}>
-                            <i className="pi pi-users" aria-hidden="true" /><span>Gerenciar substituição</span>
-                          </button>
-                        ) : null}
-                        {podeAvaliar(perfil) && podeValidarChefia(registro) ? (
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="is-acao-verde"
-                            onClick={() => { onAlterarStatus(registro, "validar"); setMenuAbertoId(null); }}
-                          >
-                            <i className="pi pi-check-circle" aria-hidden="true" /><span>Validar (chefia)</span>
-                          </button>
-                        ) : null}
-                        {podeAvaliar(perfil) && podeRejeitar(registro) ? (
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="is-acao-vermelha"
-                            onClick={() => { onAlterarStatus(registro, "rejeitar"); setMenuAbertoId(null); }}
-                          >
-                            <i className="pi pi-times-circle" aria-hidden="true" /><span>Rejeitar</span>
-                          </button>
-                        ) : null}
-                        {podeGerenciarCompleto(perfil) && podeSuspender(registro) ? (
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="is-acao-ambar"
-                            onClick={() => { onAlterarStatus(registro, "suspender"); setMenuAbertoId(null); }}
-                          >
-                            <i className="pi pi-pause" aria-hidden="true" /><span>Suspender</span>
-                          </button>
-                        ) : null}
-                        {podeGerenciarCompleto(perfil) && podeReativar(registro) ? (
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="is-acao-verde"
-                            onClick={() => { onAlterarStatus(registro, "reativar"); setMenuAbertoId(null); }}
-                          >
-                            <i className="pi pi-play" aria-hidden="true" /><span>Reativar</span>
-                          </button>
-                        ) : null}
-                        {podeGerenciarCompleto(perfil) && podeCancelar(registro) ? (
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="is-acao-vermelha"
-                            onClick={() => { onAlterarStatus(registro, "cancelar"); setMenuAbertoId(null); }}
-                          >
-                            <i className="pi pi-ban" aria-hidden="true" /><span>Cancelar férias</span>
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
+                      ) : null}
+                      {podeGerenciarCompleto(perfil) && elegivelSubstituicao(registro) ? (
+                        <button type="button" onClick={() => { onGerenciarSubstituicao(registro); setMenuAbertoId(null); }}>
+                          <i className="pi pi-users" aria-hidden="true" /> Gerenciar substituição
+                        </button>
+                      ) : null}
+                      {podeAvaliar(perfil) && podeValidarChefia(registro) ? (
+                        <button
+                          type="button"
+                          className="is-acao-verde"
+                          onClick={() => { onAlterarStatus(registro, "validar"); setMenuAbertoId(null); }}
+                        >
+                          <i className="pi pi-check-circle" aria-hidden="true" /> Validar (chefia)
+                        </button>
+                      ) : null}
+                      {podeAvaliar(perfil) && podeRejeitar(registro) ? (
+                        <button
+                          type="button"
+                          className="is-acao-vermelha"
+                          onClick={() => { onAlterarStatus(registro, "rejeitar"); setMenuAbertoId(null); }}
+                        >
+                          <i className="pi pi-times-circle" aria-hidden="true" /> Rejeitar
+                        </button>
+                      ) : null}
+                      {podeGerenciarCompleto(perfil) && podeSuspender(registro) ? (
+                        <button
+                          type="button"
+                          className="is-acao-ambar"
+                          onClick={() => { onAlterarStatus(registro, "suspender"); setMenuAbertoId(null); }}
+                        >
+                          <i className="pi pi-pause" aria-hidden="true" /> Suspender
+                        </button>
+                      ) : null}
+                      {podeGerenciarCompleto(perfil) && podeReativar(registro) ? (
+                        <button
+                          type="button"
+                          className="is-acao-verde"
+                          onClick={() => { onAlterarStatus(registro, "reativar"); setMenuAbertoId(null); }}
+                        >
+                          <i className="pi pi-play" aria-hidden="true" /> Reativar
+                        </button>
+                      ) : null}
+                      {podeGerenciarCompleto(perfil) && podeCancelar(registro) ? (
+                        <button
+                          type="button"
+                          className="is-acao-vermelha"
+                          onClick={() => { onAlterarStatus(registro, "cancelar"); setMenuAbertoId(null); }}
+                        >
+                          <i className="pi pi-ban" aria-hidden="true" /> Cancelar férias
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               </td>
             </tr>
@@ -1057,15 +1009,7 @@ function AbaAprovacoes({
               <div className="prototype-ferias-card-aprovacao-info">
                 <strong>{registro.servidorNome}</strong>
                 {registro.cargoGestao ? (
-                  <BadgeSeplag
-                    label="CHEFIA"
-                    icon="pi pi-star-fill"
-                    color={CHEFIA_BADGE_ESTILO.color}
-                    bg={CHEFIA_BADGE_ESTILO.bg}
-                    border="transparent"
-                    size="xs"
-                    customStyle={{ marginLeft: 8 }}
-                  />
+                  <span className="prototype-ferias-badge-chefia"><i className="pi pi-star-fill" aria-hidden="true" /> CHEFIA</span>
                 ) : null}
                 <span className="prototype-ferias-card-aprovacao-sub">
                   {registro.matricula} · {registro.orgao} · {registro.setor}
@@ -1084,31 +1028,15 @@ function AbaAprovacoes({
                 )}
               </div>
               <div className="prototype-ferias-card-aprovacao-acoes">
-                <BotaoSeplag
-                  type="button"
-                  icon="pi pi-eye"
-                  outlined
-                  title="Visualizar"
-                  onClick={() => onVisualizar(registro)}
-                  style={{ border: undefined, minWidth: "auto", height: "40px", width: "40px", padding: 0 }}
-                />
-                <BotaoSeplag
-                  type="button"
-                  icon="pi pi-times-circle"
-                  label="Rejeitar"
-                  severity="danger"
-                  outlined
-                  onClick={() => onAlterarStatus(registro, "rejeitar")}
-                  style={{ border: undefined, minWidth: "auto", height: "40px" }}
-                />
-                <BotaoSeplag
-                  type="button"
-                  icon="pi pi-check-circle"
-                  label="Validar"
-                  severity="success"
-                  onClick={() => onAlterarStatus(registro, "validar")}
-                  style={{ border: undefined, minWidth: "auto", height: "40px" }}
-                />
+                <button type="button" className="prototype-ferias-icon-btn" title="Visualizar" onClick={() => onVisualizar(registro)}>
+                  <i className="pi pi-eye" aria-hidden="true" />
+                </button>
+                <button type="button" className="prototype-ferias-btn-rejeitar" onClick={() => onAlterarStatus(registro, "rejeitar")}>
+                  <i className="pi pi-times-circle" aria-hidden="true" /> Rejeitar
+                </button>
+                <button type="button" className="prototype-ferias-btn-validar" onClick={() => onAlterarStatus(registro, "validar")}>
+                  <i className="pi pi-check-circle" aria-hidden="true" /> Validar
+                </button>
               </div>
             </div>
           ))}
@@ -1150,34 +1078,18 @@ function TabelaSubstituicoes({ linhas }: Readonly<{ linhas: LinhaSubstituicao[] 
               <td>{linha.tipo}</td>
               <td>
                 {linha.portaria.trim() ? (
-                  <BadgeSeplag
-                    label={linha.portaria}
-                    color={ORIGEM_BADGE_ESTILO.SIGEP.color}
-                    bg={ORIGEM_BADGE_ESTILO.SIGEP.bg}
-                    border="transparent"
-                    size="sm"
-                  />
+                  <span className="prototype-ferias-badge-origem is-sigep">{linha.portaria}</span>
                 ) : (
-                  <BadgeSeplag
-                    label="PENDENTE"
-                    color={ORIGEM_BADGE_ESTILO.PORTALSERVIDOR.color}
-                    bg={ORIGEM_BADGE_ESTILO.PORTALSERVIDOR.bg}
-                    border="transparent"
-                    size="sm"
-                  />
+                  <span className="prototype-ferias-badge-origem is-portalservidor">PENDENTE</span>
                 )}
               </td>
               <td>
                 {linha.origem === "PORTALSERVIDOR" ? "Portal do Servidor" : "SIGEP"}
               </td>
               <td>
-                <BadgeSeplag
-                  label={linha.situacao.toUpperCase()}
-                  color={linha.situacao === "Vigente" ? SITUACAO_BADGE_ESTILO["EM ABERTO"].color : SITUACAO_BADGE_ESTILO.QUITADO.color}
-                  bg={linha.situacao === "Vigente" ? SITUACAO_BADGE_ESTILO["EM ABERTO"].bg : SITUACAO_BADGE_ESTILO.QUITADO.bg}
-                  border="transparent"
-                  size="sm"
-                />
+                <span className={"prototype-ferias-badge is-" + (linha.situacao === "Vigente" ? "em-aberto" : "quitado")}>
+                  {linha.situacao.toUpperCase()}
+                </span>
               </td>
             </tr>
           ))}
@@ -1207,17 +1119,17 @@ function ModalEscolhaTipoSolicitacao({
       tamanho="620px"
       customFooter={
         <div style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
-          <BotaoSeplag unstyled type="button" className="prototype-ferias-btn-fechar-outline" onClick={onFechar}>
+          <button type="button" className="prototype-ferias-btn-fechar-outline" onClick={onFechar}>
             <i className="pi pi-times" aria-hidden="true" />
             Fechar
-          </BotaoSeplag>
+          </button>
         </div>
       }
     >
       <div style={{ width: "100%" }} className="prototype-ferias-escolha-tipo">
         <p className="prototype-ferias-escolha-subtitulo">Selecione o tipo de solicitação que deseja cadastrar.</p>
 
-        <BotaoSeplag unstyled type="button" className="prototype-ferias-opcao-tipo is-azul" onClick={() => onEscolher("Individual")}>
+        <button type="button" className="prototype-ferias-opcao-tipo is-azul" onClick={() => onEscolher("Individual")}>
           <span className="prototype-ferias-opcao-icone">
             <i className="pi pi-user" aria-hidden="true" />
           </span>
@@ -1225,9 +1137,9 @@ function ModalEscolhaTipoSolicitacao({
             <strong>Individual</strong>
             <span>Solicitação para um único servidor.</span>
           </div>
-        </BotaoSeplag>
+        </button>
 
-        <BotaoSeplag unstyled type="button" className="prototype-ferias-opcao-tipo is-ambar" onClick={() => onEscolher("Coletiva")}>
+        <button type="button" className="prototype-ferias-opcao-tipo is-ambar" onClick={() => onEscolher("Coletiva")}>
           <span className="prototype-ferias-opcao-icone">
             <i className="pi pi-sitemap" aria-hidden="true" />
           </span>
@@ -1235,9 +1147,9 @@ function ModalEscolhaTipoSolicitacao({
             <strong>Coletiva (SEDUC/UNEMAT)</strong>
             <span>Exclusiva de professores em unidade escolar/universitária.</span>
           </div>
-        </BotaoSeplag>
+        </button>
 
-        <BotaoSeplag unstyled type="button" className="prototype-ferias-opcao-tipo is-roxo" onClick={() => onEscolher("Lote")}>
+        <button type="button" className="prototype-ferias-opcao-tipo is-roxo" onClick={() => onEscolher("Lote")}>
           <span className="prototype-ferias-opcao-icone">
             <i className="pi pi-users" aria-hidden="true" />
           </span>
@@ -1245,9 +1157,9 @@ function ModalEscolhaTipoSolicitacao({
             <strong>Agendamento em Lote</strong>
             <span>Lançamento em massa para cargos de gestão/apoio.</span>
           </div>
-        </BotaoSeplag>
+        </button>
 
-        <BotaoSeplag unstyled type="button" className="prototype-ferias-opcao-tipo is-verde" onClick={() => onEscolher("Recesso")}>
+        <button type="button" className="prototype-ferias-opcao-tipo is-verde" onClick={() => onEscolher("Recesso")}>
           <span className="prototype-ferias-opcao-icone">
             <i className="pi pi-sun" aria-hidden="true" />
           </span>
@@ -1255,7 +1167,7 @@ function ModalEscolhaTipoSolicitacao({
             <strong>Recesso Remunerado</strong>
             <span>Residente técnico, bolsista e estagiário — não é férias, instituto próprio (IN 05).</span>
           </div>
-        </BotaoSeplag>
+        </button>
       </div>
     </ModalSeplag>
   );
@@ -1462,7 +1374,7 @@ export function FormularioIndividual({
           </label>
         </div>
         {servidorEncontrado && (
-          <BotaoSeplag unstyled
+          <button
             type="button"
             className="prototype-ferias-btn-limpar-servidor"
             onClick={() => {
@@ -1480,7 +1392,7 @@ export function FormularioIndividual({
             }}
           >
             <i className="pi pi-times" /> Limpar servidor
-          </BotaoSeplag>
+          </button>
         )}
       </div>
 
@@ -1516,28 +1428,28 @@ export function FormularioIndividual({
                   <input type="checkbox" checked={Boolean(parcela.terco)} onChange={(event) => atualizarParcela(parcela.id, "terco", event.target.checked)} />
                   {" "}1/3 constitucional
                 </span>
-                <BotaoSeplag unstyled type="button" className="prototype-ferias-icon-btn" disabled={parcelas.length === 1} onClick={() => removerParcela(parcela.id)}>
+                <button type="button" className="prototype-ferias-icon-btn" disabled={parcelas.length === 1} onClick={() => removerParcela(parcela.id)}>
                   <i className="pi pi-trash" aria-hidden="true" />
-                </BotaoSeplag>
+                </button>
               </label>
             </div>
           ))}
-          <BotaoSeplag unstyled type="button" className="prototype-ferias-sub-add" disabled={parcelas.length >= 3} onClick={adicionarParcela}>
+          <button type="button" className="prototype-ferias-sub-add" disabled={parcelas.length >= 3} onClick={adicionarParcela}>
             <i className="pi pi-plus" aria-hidden="true" />
             Adicionar parcela
-          </BotaoSeplag>
+          </button>
         </div>
       </div>
 
       <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <BotaoSeplag unstyled type="button" className="prototype-vinculo-back" onClick={onCancelar}>
+        <button type="button" className="prototype-vinculo-back" onClick={onCancelar}>
           <i className="pi pi-arrow-left" aria-hidden="true" />
           Cancelar
-        </BotaoSeplag>
-        <BotaoSeplag unstyled type="button" className="prototype-ferias-btn-primario" onClick={salvar}>
+        </button>
+        <button type="button" className="prototype-ferias-btn-primario" onClick={salvar}>
           <i className="pi pi-check" aria-hidden="true" />
           Salvar solicitação
-        </BotaoSeplag>
+        </button>
       </div>
     </div>
   );
@@ -1864,14 +1776,14 @@ export function FormularioColetiva({
       </div>
 
       <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <BotaoSeplag unstyled type="button" className="prototype-vinculo-back" onClick={onCancelar}>
+        <button type="button" className="prototype-vinculo-back" onClick={onCancelar}>
           <i className="pi pi-arrow-left" aria-hidden="true" />
           Cancelar
-        </BotaoSeplag>
-        <BotaoSeplag unstyled type="button" className="prototype-ferias-btn-primario" onClick={lancarLote}>
+        </button>
+        <button type="button" className="prototype-ferias-btn-primario" onClick={lancarLote}>
           <i className="pi pi-check" aria-hidden="true" />
           Lançar Férias Coletivas do Lote
-        </BotaoSeplag>
+        </button>
       </div>
     </div>
   );
@@ -2068,9 +1980,9 @@ export function FormularioLote({
             </select>
           </label>
           <div style={{ display: "flex", alignItems: "flex-end" }}>
-            <BotaoSeplag unstyled type="button" className="prototype-ferias-icon-btn" title="Adicionar à lista" onClick={adicionarServidor}>
+            <button type="button" className="prototype-ferias-icon-btn" title="Adicionar à lista" onClick={adicionarServidor}>
               <i className="pi pi-plus" aria-hidden="true" />
-            </BotaoSeplag>
+            </button>
           </div>
         </div>
 
@@ -2091,9 +2003,9 @@ export function FormularioLote({
                   <td>{servidor.cargo || "—"}</td>
                   <td>{servidor.vinculo || "—"}</td>
                   <td>
-                    <BotaoSeplag unstyled type="button" className="prototype-ferias-icon-btn" title="Remover" onClick={() => removerServidor(servidor.id)}>
+                    <button type="button" className="prototype-ferias-icon-btn" title="Remover" onClick={() => removerServidor(servidor.id)}>
                       <i className="pi pi-trash" aria-hidden="true" />
-                    </BotaoSeplag>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -2103,14 +2015,14 @@ export function FormularioLote({
       </div>
 
       <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <BotaoSeplag unstyled type="button" className="prototype-vinculo-back" onClick={onCancelar}>
+        <button type="button" className="prototype-vinculo-back" onClick={onCancelar}>
           <i className="pi pi-arrow-left" aria-hidden="true" />
           Cancelar
-        </BotaoSeplag>
-        <BotaoSeplag unstyled type="button" className="prototype-ferias-btn-primario" onClick={lancarLote}>
+        </button>
+        <button type="button" className="prototype-ferias-btn-primario" onClick={lancarLote}>
           <i className="pi pi-check" aria-hidden="true" />
           Lançar Agendamento em Lote
-        </BotaoSeplag>
+        </button>
       </div>
     </div>
   );
@@ -2303,7 +2215,7 @@ export function FormularioRecesso({
           ) : null}
         </div>
         {servidorEncontrado && (
-          <BotaoSeplag unstyled
+          <button
             type="button"
             className="prototype-ferias-btn-limpar-servidor"
             onClick={() => {
@@ -2318,7 +2230,7 @@ export function FormularioRecesso({
             }}
           >
             <i className="pi pi-times" /> Limpar servidor
-          </BotaoSeplag>
+          </button>
         )}
       </div>
 
@@ -2402,14 +2314,14 @@ export function FormularioRecesso({
       </div>
 
       <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <BotaoSeplag unstyled type="button" className="prototype-vinculo-back" onClick={onCancelar}>
+        <button type="button" className="prototype-vinculo-back" onClick={onCancelar}>
           <i className="pi pi-arrow-left" aria-hidden="true" />
           Cancelar
-        </BotaoSeplag>
-        <BotaoSeplag unstyled type="button" className="prototype-ferias-btn-primario" onClick={salvar}>
+        </button>
+        <button type="button" className="prototype-ferias-btn-primario" onClick={salvar}>
           <i className="pi pi-check" aria-hidden="true" />
           Salvar solicitação
-        </BotaoSeplag>
+        </button>
       </div>
     </div>
   );
@@ -2490,9 +2402,9 @@ function ModalGerenciarSubstituicao({
                   <td>{formatarDataBr(substituto.fim)}</td>
                   <td>{substituto.portaria}</td>
                   <td>
-                    <BotaoSeplag unstyled type="button" className="prototype-ferias-icon-btn" title="Remover" onClick={() => removerConfirmado(substituto.id)}>
+                    <button type="button" className="prototype-ferias-icon-btn" title="Remover" onClick={() => removerConfirmado(substituto.id)}>
                       <i className="pi pi-trash" aria-hidden="true" />
-                    </BotaoSeplag>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -2518,10 +2430,10 @@ function ModalGerenciarSubstituicao({
               <span>Portaria (DOE)</span>
               <input value={linha.portaria} onChange={(event) => atualizarLinha(indice, "portaria", event.target.value)} />
             </label>
-            <BotaoSeplag unstyled type="button" className="prototype-ferias-icon-btn" title="Salvar esta linha" onClick={() => confirmarLinha(indice)}>
+            <button type="button" className="prototype-ferias-icon-btn" title="Salvar esta linha" onClick={() => confirmarLinha(indice)}>
               <i className="pi pi-check" aria-hidden="true" />
-            </BotaoSeplag>
-            <BotaoSeplag unstyled
+            </button>
+            <button
               type="button"
               className="prototype-ferias-icon-btn"
               title="Remover linha"
@@ -2529,23 +2441,23 @@ function ModalGerenciarSubstituicao({
               onClick={() => removerLinha(indice)}
             >
               <i className="pi pi-times" aria-hidden="true" />
-            </BotaoSeplag>
+            </button>
           </div>
         ))}
 
-        <BotaoSeplag unstyled type="button" className="prototype-ferias-sub-add" onClick={adicionarLinha}>
+        <button type="button" className="prototype-ferias-sub-add" onClick={adicionarLinha}>
           <i className="pi pi-plus" aria-hidden="true" />
           Adicionar substituto
-        </BotaoSeplag>
+        </button>
 
         <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
-          <BotaoSeplag unstyled type="button" className="prototype-vinculo-back" onClick={onFechar}>
+          <button type="button" className="prototype-vinculo-back" onClick={onFechar}>
             Fechar
-          </BotaoSeplag>
-          <BotaoSeplag unstyled type="button" className="prototype-ferias-btn-primario" onClick={() => onSalvar(confirmados)}>
+          </button>
+          <button type="button" className="prototype-ferias-btn-primario" onClick={() => onSalvar(confirmados)}>
             <i className="pi pi-check" aria-hidden="true" />
             Salvar substituição(ões)
-          </BotaoSeplag>
+          </button>
         </div>
       </div>
     </ModalSeplag>
@@ -2696,10 +2608,10 @@ function ModalConfirmarStatus({
         ) : null}
         {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
         <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
-          <BotaoSeplag unstyled type="button" className="prototype-vinculo-back" onClick={onFechar}>
+          <button type="button" className="prototype-vinculo-back" onClick={onFechar}>
             Cancelar
-          </BotaoSeplag>
-          <BotaoSeplag unstyled
+          </button>
+          <button
             type="button"
             className="prototype-ferias-btn-primario"
             style={{ background: meta.cor }}
@@ -2707,7 +2619,7 @@ function ModalConfirmarStatus({
           >
             <i className="pi pi-check" aria-hidden="true" />
             {meta.botao}
-          </BotaoSeplag>
+          </button>
         </div>
       </div>
     </ModalSeplag>
@@ -2723,13 +2635,13 @@ export function ModalConfirmarCancelamento({
       <div style={{ width: "100%" }} className="prototype-ferias-form-section">
         <p>Os dados preenchidos serão perdidos. Deseja realmente cancelar e voltar para a listagem?</p>
         <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
-          <BotaoSeplag unstyled type="button" className="prototype-vinculo-back" onClick={onFechar}>
+          <button type="button" className="prototype-vinculo-back" onClick={onFechar}>
             Continuar preenchendo
-          </BotaoSeplag>
-          <BotaoSeplag unstyled type="button" className="prototype-ferias-btn-primario" style={{ background: "#dc2626" }} onClick={onConfirmar}>
+          </button>
+          <button type="button" className="prototype-ferias-btn-primario" style={{ background: "#dc2626" }} onClick={onConfirmar}>
             <i className="pi pi-times" aria-hidden="true" />
             Sim, cancelar
-          </BotaoSeplag>
+          </button>
         </div>
       </div>
     </ModalSeplag>
