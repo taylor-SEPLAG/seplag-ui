@@ -24,8 +24,8 @@ const unique = (valores: string[]) => [...new Set(valores)].filter(Boolean).sort
 
 function LegendaTipos({ tipo, verde = false, azul = '#0D6EFD' }: { tipo: string; verde?: boolean; azul?: string }) {
   return <div className="di-chart-legend">
-    {tipo !== 'Processo Seletivo' && <span><i style={{background:verde ? '#0B6B3A' : azul}} />Concurso Público</span>}
-    {tipo !== 'Concurso' && <span><i style={{background:verde ? '#00A6B2' : '#7B1FE0'}} />Processo Seletivo</span>}
+    {tipo !== 'Processo Seletivo' && <span className="di-legend-concurso"><i style={{background:verde ? '#0B6B3A' : azul}} />Concurso Público</span>}
+    {tipo !== 'Concurso' && <span className="di-legend-seletivo"><i style={{background:verde ? '#00A6B2' : '#7B1FE0'}} />Processo Seletivo</span>}
   </div>;
 }
 function GraficoBarras({ titulo, registros, campo, filtros, verde = false }: { titulo: string; registros: RegistroDashboard[]; campo: 'cargo'|'orgao'|'edital'; filtros: FiltrosDashboard; verde?: boolean }) {
@@ -49,16 +49,16 @@ export function DashboardIngressoPage() {
   const [params] = useSearchParams();
   const [registros,setRegistros] = useState(lerDadosDashboard);
   const [atualizado,setAtualizado] = useState(() => new Date());
-  const [filtros,setFiltros] = useState<FiltrosDashboard>(() => ({ ...Object.fromEntries(Object.keys(filtrosIniciais).map(k => [k,params.get(k)||''])), tipo: params.get('tipo') || (params.get('view') === 'consulta' ? '' : 'Concurso') }) as FiltrosDashboard);
+  const [filtros,setFiltros] = useState<FiltrosDashboard>(() => ({ ...Object.fromEntries(Object.keys(filtrosIniciais).map(k => [k,params.get(k)||''])), tipo: params.get('tipo') ?? (params.get('view') === 'consulta' ? '' : 'Concurso') }) as FiltrosDashboard);
   const [pagina,setPagina] = useState(1);
   const [exportando,setExportando] = useState(false);
   const [erroExportacao,setErroExportacao] = useState('');
   const consulta = params.get('view') === 'consulta';
   const atualizar = () => { setRegistros(lerDadosDashboard()); setAtualizado(new Date()); };
   useEffect(() => { window.addEventListener('focus',atualizar); window.addEventListener('storage',atualizar); return () => { window.removeEventListener('focus',atualizar); window.removeEventListener('storage',atualizar); }; },[]);
-  useEffect(() => { setFiltros(({ ...Object.fromEntries(Object.keys(filtrosIniciais).map(k => [k,params.get(k)||''])), tipo: params.get('tipo') || (params.get('view') === 'consulta' ? '' : 'Concurso') }) as FiltrosDashboard); setPagina(1); },[params]);
+  useEffect(() => { setFiltros(({ ...Object.fromEntries(Object.keys(filtrosIniciais).map(k => [k,params.get(k)||''])), tipo: params.get('tipo') ?? (params.get('view') === 'consulta' ? '' : 'Concurso') }) as FiltrosDashboard); setPagina(1); },[params]);
   const alterar = (campo: keyof FiltrosDashboard, valor: string) => { setFiltros(f => ({...f,[campo]:valor})); setPagina(1); };
-  const tipoAtivo = filtros.tipo || 'Concurso';
+  const tipoAtivo = filtros.tipo;
   const dados = filtrarDados(registros,consulta ? filtros : {...filtros,tipo:tipoAtivo});
   const exportar = async () => {
     setExportando(true); setErroExportacao('');
@@ -94,7 +94,7 @@ export function DashboardIngressoPage() {
     <BreadcrumbSeplag divided items={[{label:'Ingresso',to:'/prototipos/sigep/ingresso'},{label:'Gestão de Ingresso',to:'/prototipos/sigep/ingressos-teste'},{label:consulta ? 'Consulta de ingressos' : 'Dashboard'}]} />
     <header className="di-heading"><div><h1>{consulta ? 'Consulta de ingressos' : 'Dashboard do Ingresso'}</h1><p>Visão geral dos concursos, processos seletivos e do andamento dos ingressos no sistema.</p></div><div className="di-update"><small>Última atualização: {atualizado.toLocaleString('pt-BR',{timeZone:'America/Cuiaba'})}</small><div className="di-update-actions"><button type="button" onClick={atualizar}><i className="pi pi-refresh" />Atualizar dados</button><button type="button" className="di-export-excel" onClick={exportar} disabled={exportando} aria-busy={exportando}><i className="pi pi-download" aria-hidden="true" />{exportando ? 'Exportando...' : 'Exportar Excel'}</button></div></div></header>{erroExportacao && <p role="alert">{erroExportacao}</p>}
     <section className="di-filters" aria-label="Filtros do dashboard">
-      <label>Tipo de Ingresso<select value={filtros.tipo} onChange={e => alterar('tipo',e.target.value)}>{consulta && <option value="">Todos</option>}<option value="Concurso">Concurso Público</option><option>Processo Seletivo</option></select></label>
+      <label>Tipo de Ingresso<select value={filtros.tipo} onChange={e => alterar('tipo',e.target.value)}><option value="">Todos</option><option value="Concurso">Concurso Público</option><option>Processo Seletivo</option></select></label>
       <label>Edital<select value={filtros.edital} onChange={e => alterar('edital',e.target.value)}><option value="">Todos</option>{[...new Map(registros.map(r => [r.editalId,r])).values()].map(r => <option key={r.editalId} value={r.editalId}>{r.edital} · {r.tipo}</option>)}</select></label>
       <label>Órgão/Entidade<select value={filtros.orgao} onChange={e => alterar('orgao',e.target.value)}><option value="">Todos</option>{unique(registros.map(r => r.orgao)).map(o => <option key={o}>{o}</option>)}</select></label>
       <label>Cargo/Especialidade<input list="di-cargos" placeholder="Pesquisar cargo..." value={filtros.cargo} onChange={e => alterar('cargo',e.target.value)} /><datalist id="di-cargos">{unique(registros.map(r => r.cargo)).map(c => <option key={c} value={c} />)}</datalist></label>
@@ -107,9 +107,9 @@ export function DashboardIngressoPage() {
     </section> : <>
     <h2 className="di-section-title">Visão geral</h2><section className="di-kpis" aria-label="Indicadores gerais">{labels.slice(0,5).map((label,i) => <article key={label} style={cor(cores[i])}><i className={`pi ${icons[i]}`} aria-hidden="true" /><div><strong>{n(resumo[i])}</strong><h3>{label}</h3><small>{descriptions[i]}</small></div><span className={`pi ${icons[i]} di-kpi-background-icon`} aria-hidden="true" /></article>)}</section>
     <div className="di-type-tabs" role="tablist" aria-label="Tipo de ingresso do dashboard">
-      {(['Concurso','Processo Seletivo'] as const).map(tipo => <button type="button" key={tipo} role="tab" id={tipo === 'Concurso' ? 'di-tab-concurso' : 'di-tab-seletivo'} aria-controls="di-type-panel" aria-selected={tipoAtivo === tipo} className={tipoAtivo === tipo ? 'active' : ''} onClick={() => alterar('tipo',tipo)}><i className={`pi ${tipo === 'Concurso' ? 'pi-building' : 'pi-users'}`} aria-hidden="true" />{tipo === 'Concurso' ? 'Concurso Público' : 'Processo Seletivo'}</button>)}
+      {(['','Concurso','Processo Seletivo'] as const).map(tipo => <button type="button" key={tipo} role="tab" id={tipo === '' ? 'di-tab-todos' : tipo === 'Concurso' ? 'di-tab-concurso' : 'di-tab-seletivo'} aria-controls="di-type-panel" aria-selected={tipoAtivo === tipo} className={tipoAtivo === tipo ? 'active' : ''} onClick={() => alterar('tipo',tipo)}><i className={`pi ${tipo === '' ? 'pi-th-large' : tipo === 'Concurso' ? 'pi-building' : 'pi-users'}`} aria-hidden="true" />{tipo === '' ? 'Todos' : tipo === 'Concurso' ? 'Concurso Público' : 'Processo Seletivo'}</button>)}
     </div>
-    <div id="di-type-panel" role="tabpanel" aria-labelledby={tipoAtivo === 'Concurso' ? 'di-tab-concurso' : 'di-tab-seletivo'}>
+    <div id="di-type-panel" role="tabpanel" aria-labelledby={tipoAtivo === '' ? 'di-tab-todos' : tipoAtivo === 'Concurso' ? 'di-tab-concurso' : 'di-tab-seletivo'}>
     <h2 className="di-section-title">Gráficos gerenciais</h2><div className="di-charts"><GraficoBarras titulo="Ingressados por Cargo/Especialidade" registros={concluidos} campo="cargo" filtros={filtros} /><GraficoBarras titulo="Ingressados por Órgão/Entidade" registros={concluidos} campo="orgao" filtros={filtros} verde />
       <section className="di-panel"><header><h2>Ingressados por Ano</h2><span>Data efetiva de conclusão</span></header>{!anos.length ? <p className="di-empty">Nenhum ingresso concluído com data informada.</p> : <div className="di-columns">{anos.map(a => <Link key={a.nome} to={urlConsulta(filtros,{situacao:'Ingresso Concluído',inicio:`${a.nome}-01-01`,fim:`${a.nome}-12-31`})} title={`${a.nome}: Concurso Público ${a.concurso}; Processo Seletivo ${a.seletivo}; total ${a.total}`}><strong>{n(a.total)}</strong><span className="di-column-stack" style={{height:`${a.total/maxAno*150}px`}}><i style={{flex:a.seletivo,background:'#7B1FE0'}} /><i style={{flex:a.concurso,background:'#0D6EFD'}} /></span><span>{a.nome}</span></Link>)}</div>}<LegendaTipos tipo={tipoAtivo} azul="#0D6EFD" /></section>
 
