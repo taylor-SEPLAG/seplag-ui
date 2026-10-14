@@ -472,6 +472,16 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         ],
       },
       {
+        label: "Direitos e Benefícios",
+        icon: "pi pi-sun",
+        to: "/prototipos/sigep/ferias",
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+        items: [
+          { label: "Concessão de Férias", icon: "pi pi-circle-on", to: "/prototipos/sigep/ferias", visibleOnMenu: true, visibleOnRouter: true },
+        ],
+      },
+      {
         label: "Desligamento de Vínculo",
         icon: "pi pi-sign-out",
         to: "/prototipos/sigep/desligamento-vinculo",
@@ -558,16 +568,6 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Tipo Aposentadoria", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Aposentadoria", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Tipo de Pensão", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-        ],
-      },
-      {
-        label: "Direitos e Benefícios",
-        icon: "pi pi-sun",
-        to: "/prototipos/sigep/ferias",
-        visibleOnMenu: true,
-        visibleOnRouter: true,
-        items: [
-          { label: "Concessão de Férias", icon: "pi pi-circle-on", to: "/prototipos/sigep/ferias", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {

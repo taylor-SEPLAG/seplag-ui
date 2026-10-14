@@ -27,15 +27,22 @@ export function FeriasIndividualPage() {
   return (
     <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
       <div className="prototype-page-content prototype-page-content--white prototype-ferias-content">
-        <CardSeplag title="Nova solicitação — Individual" cols="12">
+        <CardSeplag
+          title="Nova solicitação — Individual"
+          cols="12"
+          cardHeaderClassNames="prototype-carreira-card"
+          headerNavigation={
+            <BreadcrumbSeplag
+              divided
+              items={[
+                { label: "Gestão de Férias", to: "/prototipos/sigep/ferias" },
+                { label: "Nova solicitação" },
+                { label: "Individual" },
+              ]}
+            />
+          }
+        >
           <div className="col-12">
-          <BreadcrumbSeplag
-            items={[
-              { label: "Gestão de Férias", to: "/prototipos/sigep/ferias" },
-              { label: "Nova solicitação" },
-              { label: "Individual" },
-            ]}
-          />
           <div className="prototype-ferias-nova-pagina">
             <div className="prototype-ferias-nova-pagina-header">
               <div>
