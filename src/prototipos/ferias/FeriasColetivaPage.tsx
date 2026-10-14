@@ -43,15 +43,9 @@ export function FeriasColetivaPage() {
           }
         >
           <div className="col-12">
-          <div className="prototype-ferias-nova-pagina">
-            <div className="prototype-ferias-nova-pagina-header">
-              <div>
-                <h2 style={{ color: "#f59e0b" }}><i className="pi pi-sitemap" aria-hidden="true" style={{ marginRight: 8 }} />Coletiva (SEDUC/UNEMAT)</h2>
-                <p>Exclusiva de professores em unidade escolar/universitária.</p>
-              </div>
+            <div className="prototype-ferias-nova-pagina">
+              <FormularioColetiva onCancelar={() => setMostrarConfirmacaoCancelar(true)} onSalvar={salvar} />
             </div>
-            <FormularioColetiva onCancelar={() => setMostrarConfirmacaoCancelar(true)} onSalvar={salvar} />
-          </div>
           </div>
         </CardSeplag>
       </div>

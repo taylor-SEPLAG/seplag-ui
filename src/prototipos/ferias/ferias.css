@@ -67,6 +67,177 @@
   border-bottom-color: #2563eb;
 }
 
+.prototype-ferias-coletiva-stepper-card {
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 16px 20px;
+  border: 1px solid #d6e0ed;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.prototype-ferias-coletiva-stepper {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prototype-ferias-coletiva-stepper::before {
+  position: absolute;
+  top: 18px;
+  right: 25%;
+  left: 25%;
+  z-index: -1;
+  height: 1px;
+  background: #d6e0ed;
+  content: "";
+}
+
+.prototype-ferias-coletiva-stepper li {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  color: #69798b;
+  text-align: center;
+  font-size: 13px;
+}
+
+.prototype-ferias-coletiva-stepper li::before {
+  position: absolute;
+  top: 18px;
+  right: 50%;
+  z-index: -1;
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  content: "";
+}
+
+.prototype-ferias-coletiva-stepper li.is-complete::before {
+  background: #006db6;
+}
+
+.prototype-ferias-coletiva-stepper li:first-child::before {
+  display: none;
+}
+
+.prototype-ferias-coletiva-stepper button {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.prototype-ferias-coletiva-step-numero {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cbd8e7;
+  border-radius: 50%;
+  background: #fff;
+  color: #60758c;
+  font-size: 14px;
+}
+
+.prototype-ferias-coletiva-stepper li.is-active .prototype-ferias-coletiva-step-numero,
+.prototype-ferias-coletiva-stepper li.is-complete .prototype-ferias-coletiva-step-numero {
+  border-color: #006db6;
+  background: #006db6;
+  color: #fff;
+}
+
+.prototype-ferias-coletiva-stepper li.is-active .prototype-ferias-coletiva-step-titulo {
+  color: #006db6;
+  font-weight: 600;
+}
+
+.prototype-ferias-coletiva-stepper li small {
+  margin-top: -1px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8f4ff;
+  color: #006db6;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.prototype-ferias-coletiva-stepper button:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid #006db6;
+  outline-offset: 3px;
+}
+
+.prototype-ferias-coletiva-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 16px 0 0;
+  border-top: 1px solid #d6e0ed;
+}
+
+.prototype-ferias-coletiva-acoes button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-radius: 5px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prototype-ferias-coletiva-btn-voltar {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #2196f3;
+}
+
+.prototype-ferias-coletiva-btn-voltar:hover {
+  background: #f8fafc;
+}
+
+.prototype-ferias-lancamento-acoes .prototype-vinculo-back {
+  border-color: #b8c8d8;
+  color: #2196f3;
+}
+
+.prototype-ferias-coletiva-btn-avancar,
+.prototype-ferias-coletiva-btn-lancar {
+  border: 1px solid #2196f3;
+  background: #2196f3;
+  color: #fff;
+}
+
+.prototype-ferias-coletiva-btn-avancar:hover:not(:disabled),
+.prototype-ferias-coletiva-btn-lancar:hover {
+  border-color: #1769aa;
+  background: #1769aa;
+}
+
+.prototype-ferias-coletiva-btn-avancar:disabled {
+  border-color: #90caf9;
+  background: #90caf9;
+  cursor: not-allowed;
+}
+
 .prototype-ferias-banner {
   display: flex;
   align-items: flex-start;
@@ -78,6 +249,41 @@
   padding: 12px 14px;
   margin-bottom: 16px;
   font-size: 0.92rem;
+}
+
+.prototype-ferias-regra-unemat {
+  margin: 0 0 14px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.prototype-ferias-regra-unemat-status {
+  display: block;
+  margin-top: 3px;
+  color: #9a5b00;
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.prototype-ferias-unemat-escopo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  color: #193451;
+  font-size: 0.875rem;
+}
+
+.prototype-ferias-unemat-escopo strong {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid #c8d6e5;
+  border-radius: 5px;
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 400;
 }
 
 .prototype-ferias-indicadores {
@@ -163,6 +369,199 @@
   font-weight: 500;
   color: #50677d;
   line-height: 1.25;
+}
+
+.prototype-ferias-busca-servidor-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #193451;
+}
+
+.prototype-ferias-busca-servidor-row {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  width: 100%;
+}
+
+.prototype-ferias-busca-servidor-row > input,
+.prototype-ferias-busca-servidor-row > .p-autocomplete {
+  flex: 1;
+  min-width: 0;
+}
+
+.prototype-ferias-busca-servidor-row > .p-autocomplete,
+.prototype-ferias-busca-servidor-row > .p-autocomplete .p-autocomplete-input {
+  width: 100% !important;
+}
+
+.prototype-ferias-busca-servidor-row > .p-autocomplete .p-autocomplete-input {
+  flex: 1 1 auto;
+  min-height: 46px;
+}
+
+.prototype-ferias-busca-servidor-row > input {
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #c8d6e5;
+  border-radius: 5px 0 0 5px;
+  color: #334155;
+  font: inherit;
+  font-weight: 400;
+  text-transform: none;
+}
+
+.prototype-ferias-busca-servidor-row > .p-autocomplete .p-inputtext {
+  min-height: 46px;
+  border-radius: 5px 0 0 5px;
+}
+
+.prototype-ferias-busca-servidor-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 48px;
+  min-height: 46px;
+  border: 1px solid #3b82f6;
+  border-radius: 0 5px 5px 0;
+  background: #3b82f6;
+  color: #fff;
+  cursor: pointer;
+}
+
+.prototype-ferias-busca-servidor-botao:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.prototype-ferias-busca-servidor-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  min-height: 42px;
+  border: 1px solid #c8d6e5;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.prototype-ferias-busca-servidor-input:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.prototype-ferias-busca-servidor-input i {
+  color: #94a3b8;
+}
+
+.prototype-ferias-busca-servidor-input input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  color: #102a43;
+}
+
+.prototype-ferias-servidor-resultado {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.prototype-ferias-servidor-resultado-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.prototype-ferias-servidor-resultado-grid > div {
+  min-width: 0;
+}
+
+.prototype-ferias-servidor-resultado-grid > .prototype-ferias-servidor-resultado-divisor {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.prototype-ferias-servidor-resultado-saldo {
+  grid-column: 2;
+}
+
+.prototype-ferias-servidor-resultado > .p-button,
+.prototype-ferias-servidor-resultado > button {
+  margin-top: 44px;
+}
+
+.prototype-ferias-servidor-resultado-grid strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+.prototype-ferias-vinculo-ativo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.prototype-ferias-servidor-resultado-divisor {
+  margin: 14px 0;
+  border: none;
+  border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 900px) {
+  .prototype-ferias-servidor-resultado-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prototype-ferias-servidor-resultado-saldo {
+    grid-column: 2;
+  }
+
+  .prototype-ferias-servidor-resultado > .p-button,
+  .prototype-ferias-servidor-resultado > button {
+    margin-top: 28px;
+  }
+}
+
+@media (max-width: 520px) {
+  .prototype-ferias-servidor-resultado-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .prototype-ferias-servidor-resultado-saldo {
+    grid-column: auto;
+  }
+
+  .prototype-ferias-servidor-resultado > .p-button,
+  .prototype-ferias-servidor-resultado > button {
+    margin-top: 16px;
+  }
 }
 
 .prototype-ferias-indicador-valor {
@@ -277,7 +676,19 @@
 .prototype-ferias-badge.is-em-aberto { background: #f0fdf4; color: #166534; }
 .prototype-ferias-badge.is-quitado { background: #eff6ff; color: #1d4ed8; }
 .prototype-ferias-badge.is-cancelado { background: #fef2f2; color: #b91c1c; }
+.prototype-ferias-badge.is-reprovado { background: #fef2f2; color: #b91c1c; }
 .prototype-ferias-badge.is-suspenso { background: #fffbeb; color: #9a3412; }
+
+.prototype-ferias-badge-saldo {
+  display: inline-flex;
+  margin-top: 3px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f0fdf4;
+  color: #166534;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
 
 .prototype-ferias-badge-chefia {
   display: inline-flex;
@@ -386,6 +797,31 @@
 .prototype-ferias-menu-acoes button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .prototype-ferias-modal-vinculos {
+    padding: 0;
+  }
+
+  .prototype-ferias-vinculos-intro {
+    margin-bottom: 18px;
+    font-size: 1rem;
+  }
+
+  .prototype-ferias-vinculo-opcao {
+    padding: 14px 16px;
+  }
+
+  .prototype-ferias-vinculo-opcao strong {
+    font-size: 1rem;
+  }
+
+  .prototype-ferias-vinculo-opcao .prototype-ferias-vinculo-detalhes {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
 }
 
 .prototype-ferias-menu-acoes button.is-acao-ambar {
@@ -609,6 +1045,122 @@
   color: #51657a;
 }
 
+.prototype-ferias-secao-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #1d4ed8;
+}
+
+.prototype-ferias-secao-titulo i {
+  color: #2563eb;
+}
+
+.prototype-ferias-gozo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+  column-gap: 16px;
+  row-gap: 4px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 760px) {
+  .prototype-ferias-gozo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.prototype-ferias-gozo-grid label span:first-child,
+.prototype-ferias-gozo-grid .label-rotulo {
+  display: block;
+  min-height: 16px;
+  margin-bottom: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #50677d;
+}
+
+.prototype-ferias-gozo-grid input,
+.prototype-ferias-gozo-grid .p-dropdown,
+.prototype-ferias-gozo-grid .p-inputtext,
+.prototype-ferias-gozo-grid .p-calendar,
+.prototype-ferias-gozo-grid .p-calendar .p-inputtext,
+.prototype-ferias-gozo-grid .p-calendar .p-button,
+.prototype-ferias-gozo-grid .p-datepicker-trigger {
+  height: 42px !important;
+  box-sizing: border-box;
+}
+
+.prototype-ferias-gozo-grid .p-calendar {
+  display: flex;
+}
+
+.prototype-ferias-gozo-grid .p-calendar .p-inputtext {
+  flex: 1;
+  min-width: 0;
+}
+
+.prototype-ferias-gozo-grid > [class*="col-"] {
+  padding: 0;
+}
+
+.prototype-ferias-gozo-grid .content-rotulo.rotulo-vertical {
+  gap: 6px;
+}
+
+.prototype-ferias-gozo-ajuda {
+  font-weight: 400;
+  font-size: 0.74rem;
+  color: #94a3b8;
+}
+
+.prototype-ferias-gozo-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.prototype-ferias-gozo-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.prototype-ferias-gozo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  font-size: 0.88rem;
+  color: #334155;
+}
+
+.prototype-ferias-gozo-terco {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+}
+
 .prototype-ferias-parcelas {
   display: flex;
   flex-direction: column;
@@ -629,11 +1181,294 @@
   margin-bottom: 14px;
 }
 
-.prototype-ferias-lote-table-wrap {
-  max-height: 360px;
-  overflow: auto;
-  border: 1px solid #e2e8f0;
+.prototype-ferias-lote-secao {
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid #d6e0ed;
   border-radius: 6px;
+  background: #fff;
+}
+
+.prototype-ferias-lote-secao > .prototype-ferias-secao-titulo {
+  min-height: 44px;
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #d6e0ed;
+  background: #f5f9fc;
+  color: #183b56;
+  font-size: 0.82rem;
+}
+
+.prototype-ferias-lote-secao > .prototype-ferias-secao-titulo i {
+  color: #2563eb;
+}
+
+.prototype-ferias-lote-secao-conteudo {
+  padding: 16px;
+}
+
+.prototype-ferias-lote-perfil {
+  display: grid;
+  grid-template-columns: minmax(260px, 420px) minmax(0, 1fr);
+  align-items: end;
+  gap: 12px 18px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+}
+
+.prototype-ferias-lote-perfil label,
+.prototype-ferias-lote-perfil select {
+  width: 100%;
+}
+
+.prototype-ferias-lote-perfil label {
+  display: grid;
+  gap: 6px;
+  color: #193451;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.prototype-ferias-lote-perfil small {
+  padding-bottom: 10px;
+  color: #51657a;
+  font-size: 0.82rem;
+}
+
+.prototype-ferias-lote-ajuste-saldo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #92400e;
+  font-size: 0.7rem;
+}
+
+.prototype-ferias-lote-ajuste-saldo select {
+  min-width: 78px;
+  padding: 3px 5px;
+  border: 1px solid #d6a84f;
+  border-radius: 4px;
+  background: #fff;
+  color: #334155;
+}
+
+.prototype-ferias-lote-confirmar-inconsistencia {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #7c4a03;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.prototype-ferias-lote-vazio {
+  margin: 0;
+  color: #64748b;
+}
+
+.prototype-ferias-lote-validacao {
+  margin-bottom: 16px;
+  border: 1px solid #d7e2ed;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.prototype-ferias-lote-validacao-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f5f9fc;
+}
+
+.prototype-ferias-lote-validacao-topo > div {
+  display: grid;
+  gap: 4px;
+  color: #183b56;
+}
+
+.prototype-ferias-lote-validacao-topo span {
+  color: #51657a;
+  font-size: 0.8rem;
+}
+
+.prototype-ferias-lote-validacao td small {
+  display: block;
+  color: #647b90;
+}
+
+.prototype-ferias-lote-dados-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.prototype-ferias-lote-dados-grid label,
+.prototype-ferias-lote-busca {
+  min-width: 0;
+}
+
+.prototype-ferias-lote-busca {
+  width: min(100%, 486px);
+}
+
+.prototype-ferias-lote-busca-row > div:first-child {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.prototype-ferias-lote-busca-row > div:first-child > span,
+.prototype-ferias-lote-busca-row .p-autocomplete,
+.prototype-ferias-lote-busca-row .p-autocomplete-input {
+  width: 100% !important;
+}
+
+.prototype-ferias-lote-busca-row .p-autocomplete {
+  display: flex;
+}
+
+.prototype-ferias-lote-busca-row .p-autocomplete-input {
+  min-width: 0;
+  min-height: 46px;
+  border-radius: 5px 0 0 5px;
+}
+
+.prototype-ferias-lote-servidor-encontrado {
+  margin: 0 0 14px;
+}
+
+.prototype-ferias-lote-servidor-encontrado .prototype-ferias-servidor-resultado {
+  margin-top: 0;
+}
+
+.prototype-ferias-lote-servidor-acao {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.prototype-ferias-form-section h3.prototype-ferias-lote-lista-titulo {
+  margin: 4px 0 8px;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+}
+
+.prototype-ferias-lote-lista {
+  box-sizing: border-box;
+  width: 100%;
+  height: 215px;
+  overflow: auto;
+  padding: 0 10px;
+}
+
+.prototype-ferias-lote-lista .prototype-ferias-sub-grid {
+  margin: 0;
+  table-layout: fixed;
+}
+
+.prototype-ferias-lote-lista .prototype-ferias-sub-grid th,
+.prototype-ferias-lote-lista .prototype-ferias-sub-grid td {
+  padding: 8px 6px;
+  font-size: 0.76rem;
+}
+
+.prototype-ferias-lote-grid {
+  width: 100%;
+  min-width: 720px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  color: #183b56;
+  font-size: 0.875rem;
+}
+
+.prototype-ferias-lote-grid th,
+.prototype-ferias-lote-grid td {
+  padding: 9px 10px;
+  border: 1px solid #d7e2ed;
+  line-height: 1.25;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.prototype-ferias-lote-grid th {
+  background: #f5f8fb;
+  color: #183b56;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.prototype-ferias-lote-grid tbody tr:nth-child(even) {
+  background: #fbfcfe;
+}
+
+.prototype-ferias-lote-grid td:first-child {
+  width: 36%;
+  display: table-cell;
+  text-align: left;
+}
+
+.prototype-ferias-lote-grid td:first-child small {
+  display: block;
+  margin-top: 2px;
+  color: #647b90;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.prototype-ferias-lote-grid td:first-child strong {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.prototype-ferias-lote-grid th:nth-child(1) { width: 36%; }
+.prototype-ferias-lote-grid th:nth-child(2) { width: 29%; }
+.prototype-ferias-lote-grid th:nth-child(3) { width: 29%; }
+.prototype-ferias-lote-grid th:nth-child(4) { width: 6%; }
+
+.prototype-ferias-lote-lista .prototype-ferias-sub-grid {
+  margin: 0;
+}
+
+.prototype-ferias-lote-lista .prototype-ferias-sub-grid th,
+.prototype-ferias-lote-lista .prototype-ferias-sub-grid td {
+  padding: 8px 6px;
+  font-size: 0.76rem;
+}
+
+.prototype-ferias-lote-lista .prototype-ferias-icon-btn {
+  width: 30px;
+  height: 30px;
+}
+
+@media (max-width: 760px) {
+  .prototype-ferias-lote-dados-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prototype-ferias-lote-perfil {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prototype-ferias-lote-validacao-topo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.prototype-ferias-lote-table-wrap {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
 }
 
 .prototype-ferias-alerta-texto {
@@ -673,6 +1508,118 @@
   padding: 10px 12px;
   margin-bottom: 14px;
   font-size: 0.88rem;
+}
+
+.prototype-ferias-vinculos-aviso {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin: 12px 0 16px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.prototype-ferias-vinculos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.prototype-ferias-modal-vinculos {
+  width: 100%;
+  padding: 4px 8px 10px;
+}
+
+.prototype-ferias-vinculos-intro {
+  margin: 0 0 26px;
+  color: #526071;
+  font-size: 1.25rem;
+  line-height: 1.35;
+}
+
+.prototype-ferias-vinculo-opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  padding: 18px 24px;
+  border: 1px solid #bfdbfe;
+  border-left: 6px solid #3b82f6;
+  border-radius: 12px;
+  background: #eff6ff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+
+.prototype-ferias-vinculo-opcao:hover {
+  border-color: #60a5fa;
+  border-left-color: #2563eb;
+  background: #dbeafe;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+}
+
+.prototype-ferias-vinculo-opcao.is-comissionado {
+  border-color: #ddd6fe;
+  border-left-color: #8b5cf6;
+  background: #f5f3ff;
+}
+
+.prototype-ferias-vinculo-opcao.is-comissionado:hover {
+  border-color: #c4b5fd;
+  border-left-color: #7c3aed;
+  background: #ede9fe;
+}
+
+.prototype-ferias-vinculo-opcao.is-contrato-temporario {
+  border-color: #a7f3d0;
+  border-left-color: #10b981;
+  background: #ecfdf5;
+}
+
+.prototype-ferias-vinculo-opcao.is-contrato-temporario:hover {
+  border-color: #6ee7b7;
+  border-left-color: #059669;
+  background: #d1fae5;
+}
+
+.prototype-ferias-vinculo-opcao:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.prototype-ferias-vinculo-opcao:disabled {
+  border-color: #e2e8f0;
+  border-left-color: #94a3b8;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.prototype-ferias-vinculo-opcao strong {
+  font-size: 1.18rem;
+  line-height: 1.3;
+  color: #0f172a;
+}
+
+.prototype-ferias-vinculo-opcao span {
+  font-size: 0.98rem;
+  color: #51657a;
+}
+
+.prototype-ferias-vinculo-opcao .prototype-ferias-vinculo-detalhes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.prototype-ferias-vinculo-opcao .prototype-ferias-vinculo-saldo {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .prototype-ferias-confirmacao {
@@ -1032,3 +1979,786 @@ select.prototype-ferias-input-autopreenchido {
 
 .prototype-ferias-filtros .prototype-ferias-limpar-filtro { white-space: nowrap; width: auto !important; min-width: 156px; flex-shrink: 0; }
 .prototype-ferias-filtros .prototype-ferias-limpar-filtro .p-button-label { white-space: nowrap; }
+
+.prototype-ferias-coletiva-painel {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #dbe5ef;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.prototype-ferias-coletiva-etapa-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.prototype-ferias-coletiva-painel > .prototype-ferias-secao-titulo {
+  min-height: 44px;
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #dbe5ef;
+  background: #f5f9fc;
+  font-size: 0.86rem;
+}
+
+.prototype-ferias-coletiva-painel-conteudo {
+  padding: 16px;
+}
+
+.prototype-ferias-coletiva-painel-conteudo.is-parcelas {
+  padding: 0;
+}
+
+.prototype-ferias-coletiva-docentes {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dbe5ef;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.prototype-ferias-coletiva-docentes-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #dbe5ef;
+  background: #f7f9fb;
+  color: #193451;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.prototype-ferias-coletiva-docentes-titulo i {
+  color: #2563eb;
+}
+
+.prototype-ferias-coletiva-filtros {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.prototype-ferias-coletiva-filtros .label-rotulo {
+  color: #193451;
+  font-size: 0.875rem;
+}
+
+.prototype-ferias-coletiva-filtros .content-rotulo {
+  gap: 4px;
+}
+
+.prototype-ferias-coletiva-lista-cabecalho {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 12px 16px 8px;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.prototype-ferias-coletiva-lista-cabecalho .prototype-ferias-busca-servidor-label {
+  width: 100%;
+  max-width: 488px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.prototype-ferias-coletiva-docentes .prototype-ferias-lote-table-wrap {
+  border: 0;
+  border-top: 1px solid #dbe5ef;
+  border-radius: 0;
+}
+
+.prototype-ferias-coletiva-docentes .prototype-ferias-lote-table-wrap .prototype-ferias-table {
+  border: 0;
+}
+
+.prototype-ferias-coletiva-docentes .prototype-ferias-coletiva-pagination {
+  margin: 0;
+  padding: 10px 16px;
+  border-top: 1px solid #dbe5ef;
+}
+
+.prototype-ferias-lote-servidor-linha {
+  display: grid;
+  grid-template-columns: minmax(260px, 2fr) minmax(140px, 1fr) minmax(150px, 1fr) max-content;
+  align-items: end;
+  gap: 12px;
+}
+
+.prototype-ferias-lote-servidor-linha > label {
+  min-width: 0;
+}
+
+.prototype-ferias-coletiva-table {
+  width: 100%;
+  min-width: 720px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.prototype-ferias-coletiva-table th,
+.prototype-ferias-coletiva-table td {
+  padding: 9px 10px;
+  border: 1px solid #d7e2ed;
+  vertical-align: middle;
+  line-height: 1.25;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+.prototype-ferias-coletiva-table th {
+  background: #f5f8fb;
+  color: #183b56;
+  font-weight: 600;
+}
+
+.prototype-ferias-coletiva-table tbody tr:nth-child(even) {
+  background: #fbfcfe;
+}
+
+.prototype-ferias-coletiva-table th:first-child,
+.prototype-ferias-coletiva-table td:first-child {
+  width: 4.5%;
+  min-width: 42px;
+  padding-right: 8px;
+  padding-left: 8px;
+  text-align: center;
+}
+
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(1) { width: 4.5%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(2) { width: 18.5%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(3) { width: 11%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(4) { width: 18%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(5) { width: 13%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(6) { width: 8%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(7) { width: 27%; }
+
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:last-child,
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:last-child {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:nth-child(4),
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:nth-child(5) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.prototype-ferias-coletiva-table td {
+  font-size: 0.85rem;
+}
+
+.prototype-ferias-coletiva-table input[type="checkbox"] {
+  margin: 0;
+}
+
+.prototype-ferias-coletiva-table td:nth-child(2) {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.prototype-ferias-coletiva-table td:nth-child(2) small {
+  font-weight: 400;
+}
+
+.prototype-ferias-coletiva-table td:nth-child(5) {
+  color: #2563eb;
+}
+
+.prototype-ferias-coletiva-table--lote { min-width: 1250px; }
+.prototype-ferias-coletiva-table--lote th:nth-child(1) { width: 4.5%; }
+.prototype-ferias-coletiva-table--lote th:nth-child(2) { width: 17.5%; }
+.prototype-ferias-coletiva-table--lote th:nth-child(3) { width: 10%; }
+.prototype-ferias-coletiva-table--lote th:nth-child(4) { width: 11%; }
+.prototype-ferias-coletiva-table--lote th:nth-child(5) { width: 16%; }
+.prototype-ferias-coletiva-table--lote th:nth-child(6) { width: 9%; }
+.prototype-ferias-coletiva-table--lote th:nth-child(7) { width: 24%; }
+.prototype-ferias-coletiva-table--lote th:nth-child(8) { width: 8%; }
+
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) {
+  min-width: 1100px;
+}
+
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th,
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td,
+.prototype-ferias-coletiva-table--lote th,
+.prototype-ferias-coletiva-table--lote td {
+  padding: 10px 12px;
+  line-height: 1.35;
+  vertical-align: middle;
+}
+
+.prototype-ferias-coletiva-table--lote td:nth-child(5),
+.prototype-ferias-coletiva-table--lote td:nth-child(6),
+.prototype-ferias-coletiva-table--lote td:nth-child(7) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.prototype-ferias-lote-alertas-celula {
+  min-width: 220px;
+}
+
+.prototype-ferias-lote-sem-alerta {
+  color: #647b90;
+}
+
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:last-child,
+.prototype-ferias-coletiva-table--lote td:last-child {
+  color: inherit;
+  font-weight: 400;
+}
+
+.prototype-ferias-coletiva-pagination {
+  min-height: 64px;
+  padding-top: 10px;
+  background: transparent;
+}
+
+.prototype-ferias-coletiva-pagination .p-dropdown {
+  width: 78px;
+  height: 48px;
+  margin-left: 2px;
+  border-color: #c5d2df;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.prototype-ferias-coletiva-pagination .p-dropdown-label {
+  display: flex;
+  align-items: center;
+}
+
+.prototype-ferias-coletiva-parcelas-filtros {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.prototype-ferias-coletiva-parcelas-filtros label:last-child {
+  flex-direction: row;
+  align-items: center;
+}
+
+/* ── Aba 2 — Parcelas & Alertas (Coletiva SEDUC/UNEMAT) ── */
+.prototype-ferias-coletiva-datas-config {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: 20px;
+  align-items: center;
+  min-height: 122px;
+  box-sizing: border-box;
+  margin: 12px 14px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fcfcfd;
+}
+
+.prototype-ferias-coletiva-parcelas-colunas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  min-width: 0;
+}
+
+.prototype-ferias-coletiva-data-grupo {
+  min-width: 0;
+}
+
+.prototype-ferias-coletiva-data-titulo {
+  display: flex;
+  flex-direction: row !important;
+  align-items: center;
+  align-self: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 20px;
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #1d4ed8;
+  white-space: nowrap;
+}
+
+.prototype-ferias-coletiva-data-linha {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.prototype-ferias-coletiva-data-linha label {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.prototype-ferias-coletiva-data-linha input[type="date"],
+.prototype-ferias-coletiva-data-linha input[readonly] {
+  width: 100%;
+  height: 34px;
+  min-height: 0;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid #c8d6e5;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 0.82rem;
+  box-sizing: border-box;
+}
+
+.prototype-ferias-coletiva-seta {
+  flex: 0 0 auto;
+  padding-bottom: 7px;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.prototype-ferias-coletiva-resumo-lateral {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 20px;
+  border-left: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.78rem;
+}
+
+.prototype-ferias-coletiva-resumo-lateral > strong {
+  color: #0f172a;
+  font-size: 1.8rem;
+  line-height: 1.05;
+}
+
+.prototype-ferias-coletiva-resumo-lateral ul {
+  display: grid;
+  gap: 3px;
+  margin: 8px 0 0;
+  padding-left: 16px;
+}
+
+.prototype-ferias-coletiva-resumo-lateral li::marker {
+  color: #334155;
+}
+
+.prototype-ferias-coletiva-aba2-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 0;
+}
+
+.prototype-ferias-coletiva-aba2-resumo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.prototype-ferias-coletiva-aba2-filtros {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.prototype-ferias-coletiva-filtro-busca {
+  width: 488px;
+  max-width: 100%;
+}
+
+.prototype-ferias-coletiva-aba2-filtros .prototype-ferias-coletiva-alerta-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.prototype-ferias-coletiva-alerta-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  margin: 0;
+}
+
+.prototype-ferias-coletiva-alerta-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.prototype-ferias-parcelas-table {
+  width: 100%;
+  table-layout: fixed;
+  min-width: 580px;
+}
+
+.prototype-ferias-parcelas-table th {
+  padding: 14px 12px;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+
+.prototype-ferias-parcelas-table td {
+  padding: 9px 8px;
+  line-height: 1.25;
+  vertical-align: middle;
+}
+
+.prototype-ferias-servidor-identificacao {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.prototype-ferias-servidor-identificacao strong {
+  color: #172033;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.prototype-ferias-servidor-identificacao span {
+  color: #647b90;
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+
+.prototype-ferias-parcelas-table th:nth-child(1) { width: 36%; }
+.prototype-ferias-parcelas-table th:nth-child(2) { width: 10%; white-space: nowrap; }
+.prototype-ferias-parcelas-table th:nth-child(3),
+.prototype-ferias-parcelas-table th:nth-child(4) { width: 20%; }
+.prototype-ferias-parcelas-table th:nth-child(5) { width: 14%; }
+
+.prototype-ferias-parcelas-th {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.prototype-ferias-parcelas-th label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #183b56;
+  cursor: pointer;
+  text-align: center;
+}
+
+.prototype-ferias-parcelas-th small {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #647b90;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .prototype-ferias-servidor-identificacao strong {
+    font-size: 1rem;
+  }
+
+  .prototype-ferias-servidor-identificacao span {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .prototype-ferias-coletiva-datas-config {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .prototype-ferias-coletiva-parcelas-colunas {
+    grid-template-columns: 1fr;
+  }
+  .prototype-ferias-coletiva-resumo-lateral {
+    padding: 10px 0 0;
+    border-top: 1px solid #e2e8f0;
+    border-left: 0;
+  }
+  .prototype-ferias-coletiva-resumo-lateral ul {
+    grid-template-columns: repeat(2, max-content);
+    gap: 4px 16px;
+  }
+  .prototype-ferias-coletiva-data-titulo {
+    align-self: flex-start;
+    white-space: normal;
+  }
+  .prototype-ferias-coletiva-data-linha {
+    gap: 4px;
+  }
+  .prototype-ferias-coletiva-data-linha input[type="date"],
+  .prototype-ferias-coletiva-data-linha input[readonly] {
+    padding: 4px;
+    font-size: 0.7rem;
+  }
+  .prototype-ferias-coletiva-aba2-barra {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.prototype-ferias-individual-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #dbe5ef;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-secao-titulo {
+  min-height: 44px;
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #dbe5ef;
+  background: #f5f9fc;
+  font-size: 0.86rem;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-busca-servidor-label,
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-servidor-resultado,
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-grid,
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-acoes,
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-lista,
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-terco {
+  margin-right: 16px;
+  margin-left: 16px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-busca-servidor-label {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-servidor-resultado {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-grid {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-acoes {
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-lista {
+  margin-bottom: 14px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-terco {
+  margin-bottom: 16px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-busca-servidor-row > div {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-busca-servidor-label {
+  max-width: 488px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-busca-servidor-row .p-autocomplete {
+  display: flex;
+  flex: 1 1 0;
+  width: 100%;
+  height: 46px;
+}
+
+.prototype-ferias-individual-form .prototype-ferias-busca-servidor-row .p-autocomplete-input {
+  flex: 1 1 0 !important;
+  width: 100% !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  box-sizing: border-box;
+}
+
+.prototype-ferias-individual-form > .prototype-vinculo-form {
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  .prototype-ferias-coletiva-filtros,
+  .prototype-ferias-coletiva-parcelas-filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .prototype-ferias-coletiva-lista-cabecalho {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prototype-ferias-lote-servidor-linha {
+    grid-template-columns: 1fr;
+  }
+
+  .prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-secao-titulo {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-busca-servidor-label,
+  .prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-servidor-resultado,
+  .prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-grid,
+  .prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-acoes,
+  .prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-lista,
+  .prototype-ferias-individual-form .prototype-ferias-form-section > .prototype-ferias-gozo-terco {
+    margin-right: 12px;
+    margin-left: 12px;
+  }
+
+  .prototype-ferias-coletiva-lista-cabecalho input {
+    width: 100%;
+  }
+}
+
+/* ── Validação em lote — tags e badges ─────────────────────────────────── */
+.prototype-ferias-saldo-aviso {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.prototype-ferias-linha-com-erro {
+  background: #fff8f8 !important;
+}
+
+.prototype-ferias-lote-badge-temporario {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.prototype-ferias-lote-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin: 2px 0;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.prototype-ferias-lote-alertas-linha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.prototype-ferias-lote-tag--erro {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.prototype-ferias-lote-tag--aviso {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.prototype-ferias-lote-tag--ok {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+/* ── Resumo pré-lançamento ─────────────────────────────────────────────── */
+.prototype-ferias-coletiva-resumo-validacao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.prototype-ferias-coletiva-resumo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.prototype-ferias-coletiva-resumo-item.is-erro {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.prototype-ferias-coletiva-resumo-item.is-aviso {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.prototype-ferias-coletiva-resumo-item.is-info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.prototype-ferias-coletiva-resumo-item.is-fluxo {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #334155;
+}
