@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { agruparPendenciasPorEdital } from './IngressosPendentesPorEdital';
 import { DashboardIngressoPage } from './DashboardIngressoPage';
 import { BASE_DASHBOARD, SITUACOES, lerDadosDashboard, filtrarDados, filtrosIniciais, resumirDados, pendente, urlConsulta } from './dashboardIngressoModel';
 beforeEach(() => localStorage.clear());
@@ -47,10 +48,12 @@ it('limita a fonte à visibilidade do perfil setorial', () => {
 it('exibe os dez indicadores, gráficos, filtros automáticos, estados vazios e navegação por situação', () => {
   render(<MemoryRouter><DashboardIngressoPage /></MemoryRouter>);
   expect(screen.getByRole('heading',{name:'Dashboard do Ingresso'})).toBeTruthy();
-  expect(within(screen.getByRole('region',{name:'Indicadores gerais'})).getAllByRole('heading')).toHaveLength(10);
+  expect(within(screen.getByRole('region',{name:'Indicadores gerais'})).getAllByRole('heading')).toHaveLength(5);
   expect(screen.getByRole('heading',{name:'Ingressados por Ano'})).toBeTruthy();
   expect(screen.getByRole('heading',{name:'Alertas do Ingresso'})).toBeTruthy();
-  const andamento=screen.getByRole('region',{name:'Situações dos ingressos'});
+  expect(screen.getAllByText(/Prazo de efetivo exercício vencido/).length).toBeGreaterThan(0);
+  expect(screen.queryByRole('heading',{name:'Andamento do Ingresso'})).toBeNull();
+  const andamento=screen.getByRole('heading',{name:'Situação do Ingresso'}).closest('section')!;
   const link=within(andamento).getAllByRole('link').find(l => l.textContent?.includes('Ingresso Concluído'))!;
   expect(link.getAttribute('href')).toContain('situacao=Ingresso+Conclu');
   fireEvent.change(screen.getByLabelText('Cargo/Especialidade'),{target:{value:'Cargo inexistente'}});
@@ -59,6 +62,45 @@ it('exibe os dez indicadores, gráficos, filtros automáticos, estados vazios e 
   expect((screen.getByLabelText('Cargo/Especialidade') as HTMLInputElement).value).toBe('');
   fireEvent.click(screen.getByRole('button',{name:'Atualizar dados'}));
 });
+it('sincroniza abas e filtro de tipo sem alterar os cinco totais consolidados', () => {
+  render(<MemoryRouter><DashboardIngressoPage /></MemoryRouter>);
+  const indicadores = screen.getByRole('region',{name:'Indicadores gerais'});
+  const totais = [...indicadores.querySelectorAll('strong')].map(el => el.textContent);
+  expect(screen.getByRole('tab',{name:'Concurso Público'}).getAttribute('aria-selected')).toBe('true');
+  expect((screen.getByLabelText('Tipo de Ingresso') as HTMLSelectElement).value).toBe('Concurso');
+  expect(within(screen.getByRole('heading',{name:'Situação do Ingresso'}).closest('section')!).getAllByRole('link')).toHaveLength(10);
+  fireEvent.click(screen.getByRole('tab',{name:'Processo Seletivo'}));
+  expect((screen.getByLabelText('Tipo de Ingresso') as HTMLSelectElement).value).toBe('Processo Seletivo');
+  expect([...indicadores.querySelectorAll('strong')].map(el => el.textContent)).toEqual(totais);
+  const andamento = screen.getByRole('heading',{name:'Situação do Ingresso'}).closest('section')!;
+  expect(within(andamento).getAllByRole('link')).toHaveLength(6);
+  expect(within(andamento).queryByText('Posse Suspensa')).toBeNull();
+  expect(within(andamento).getByText('Ingresso Cancelado')).toBeTruthy();
+  expect(within(andamento).getAllByRole('link').every(link => link.getAttribute('href')?.includes('tipo=Processo+Seletivo'))).toBe(true);
+  fireEvent.change(screen.getByLabelText('Tipo de Ingresso'),{target:{value:'Concurso'}});
+  expect(screen.getByRole('tab',{name:'Concurso Público'}).getAttribute('aria-selected')).toBe('true');
+});
+it('preserva os filtros gerais ao alternar a aba e atualiza a visão geral pelo órgão', () => {
+  render(<MemoryRouter><DashboardIngressoPage /></MemoryRouter>);
+  fireEvent.change(screen.getByLabelText('Órgão/Entidade'),{target:{value:'SES'}});
+  const totais = [...screen.getByRole('region',{name:'Indicadores gerais'}).querySelectorAll('strong')].map(el => el.textContent);
+  const esperado=resumirDados(filtrarDados(lerDadosDashboard(),{...filtrosIniciais,orgao:'SES'})).slice(0,5).map(String);
+  expect(totais).toEqual(esperado);
+  fireEvent.click(screen.getByRole('tab',{name:'Processo Seletivo'}));
+  expect((screen.getByLabelText('Órgão/Entidade') as HTMLSelectElement).value).toBe('SES');
+  expect([...screen.getByRole('region',{name:'Indicadores gerais'}).querySelectorAll('strong')].map(el => el.textContent)).toEqual(totais);
+  const graficos=screen.getByRole('heading',{name:'Ingressados por Cargo/Especialidade'}).closest('section')!;
+  expect([...graficos.querySelectorAll('.di-bar-row')].every(link => link.getAttribute('href')?.includes('tipo=Processo+Seletivo'))).toBe(true);
+});
+it('consolida a tabela de pendências por edital e preserva o total de ingressos', () => {
+  render(<MemoryRouter><DashboardIngressoPage /></MemoryRouter>);
+  const tabela=screen.getByRole('table',{name:'Ingressos Pendentes por Edital'});
+  const linhas=within(tabela).getAllByRole('row').slice(1);
+  const esperados=filtrarDados(lerDadosDashboard(),{...filtrosIniciais,tipo:'Concurso'}).filter(pendente);
+  expect(linhas).toHaveLength(new Set(esperados.map(r => r.editalId)).size);
+  expect([...tabela.querySelectorAll('.di-pending-number')].reduce((total,item) => total+Number(item.textContent),0)).toBe(esperados.length);
+  expect(within(tabela).getAllByRole('columnheader').slice(0,2).map(item => item.textContent)).toEqual(['Edital','Tipo de Ingresso']);
+});
 it('abre a consulta com filtros preservados e links para os ingressos existentes', () => {
   const r=lerDadosDashboard().find(r => r.situacao==='Ingresso Concluído')!;
   const url=urlConsulta({...filtrosIniciais,cargo:r.cargo,edital:String(r.editalId)},{situacao:'Ingresso Concluído'});
@@ -66,4 +108,32 @@ it('abre a consulta com filtros preservados e links para os ingressos existentes
   render(<MemoryRouter initialEntries={[url]}><DashboardIngressoPage /></MemoryRouter>);
   expect(screen.getByRole('heading',{name:'Consulta de ingressos'})).toBeTruthy();
   expect(screen.getAllByRole('link',{name:'Consultar ingresso'}).some(l => l.getAttribute('href')===r.url)).toBe(true);
+});
+
+it('deduplica e consolida cargos e órgãos no mesmo edital, incluindo posse suspensa', () => {
+  const base=lerDadosDashboard().find(pendente)!;
+  const a={...base,id:'teste-a',cargo:'Analista',orgao:'SES',situacao:'Em analise' as const};
+  const b={...base,id:'teste-b',cargo:'Professor',orgao:'SEDUC',situacao:'Posse Suspensa' as const};
+  const encerrado={...base,id:'teste-c',situacao:'Ingresso Concluído' as const};
+  const grupos=agruparPendenciasPorEdital([a,a,b,encerrado]);
+  expect(grupos).toHaveLength(1);
+  expect(grupos[0].registros).toHaveLength(2);
+  expect(grupos[0].detalhes).toHaveLength(2);
+  expect(grupos[0].detalhes.reduce((total,r) => total+r.length,0)).toBe(2);
+});
+it('expande cargos com totais consistentes e envia os filtros para a gestão do edital', () => {
+  render(<MemoryRouter><DashboardIngressoPage /></MemoryRouter>);
+  const grupos=agruparPendenciasPorEdital(filtrarDados(lerDadosDashboard(),{...filtrosIniciais,tipo:'Concurso'}));
+  const grupo=grupos[0];
+  fireEvent.click(screen.getByRole('button',{name:`Expandir ${grupo.edital.edital}`}));
+  const tabela=screen.getByRole('table',{name:`Pendências por cargo do ${grupo.edital.edital}`});
+  expect([...tabela.querySelectorAll('.di-pending-number')].reduce((total,r) => total+Number(r.textContent),0)).toBe(grupo.registros.length);
+  const link=within(tabela).getAllByRole('link')[0];
+  const url=new URL(link.getAttribute('href')!,'http://localhost');
+  expect(url.pathname).toBe(`/prototipos/sigep/ingressos-teste/${grupo.edital.editalId}`);
+  expect(url.searchParams.get('cargo')).toBe(grupo.detalhes[0][0].cargo);
+  expect(url.searchParams.get('orgao')).toBe(grupo.detalhes[0][0].orgao);
+  expect(url.searchParams.get('pendentes')).toBe('1');
+  fireEvent.click(screen.getByRole('button',{name:`Recolher ${grupo.edital.edital}`}));
+  expect(screen.queryByRole('table',{name:`Pendências por cargo do ${grupo.edital.edital}`})).toBeNull();
 });

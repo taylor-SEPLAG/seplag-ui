@@ -191,6 +191,7 @@ import { PrototiposNovaCessaoExternaPage, PrototiposNovaCessaoInternaPage } from
 import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
 import { PrototiposOrganogramaPage } from "./prototipos/estruturaOrganizacional/OrganogramaPage";
 import { PrototiposFeriasPage } from "./prototipos/ferias/FeriasPages";
+import { DireitosBeneficiosPage } from "./prototipos/ferias/DireitosBeneficiosPage";
 import { FeriasIndividualPage } from "./prototipos/ferias/FeriasIndividualPage";
 import { FeriasColetivaPage } from "./prototipos/ferias/FeriasColetivaPage";
 import { FeriasLotePage } from "./prototipos/ferias/FeriasLotePage";
@@ -1835,6 +1836,7 @@ function App() {
       <Route path="/prototipos/sigep/vida-funcional" element={<VidaFuncionalPage />} />
       <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos" element={<VidaFuncionalPage />} />
       <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos/:vinculoId/historico" element={<VidaFuncionalPage />} />
+      <Route path="/prototipos/sigep/direitos-beneficios" element={<DireitosBeneficiosPage />} />
       <Route path="/prototipos/sigep/ferias" element={<PrototiposFeriasPage />} />
       <Route path="/prototipos/sigep/ferias/nova/individual" element={<FeriasIndividualPage />} />
       <Route path="/prototipos/sigep/ferias/nova/coletiva" element={<FeriasColetivaPage />} />

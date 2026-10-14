@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Paginator } from "primereact/paginator";
 import { useNavigate } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
 import { ModalSeplag } from "../../componentes/Modal";
+import { BotaoLimparFiltroSeplag } from "../../componentes/Botao";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import "./ferias.css";
 
@@ -634,14 +636,7 @@ export function PrototiposFeriasPage() {
                     <option value="SUSPENSO">Suspenso</option>
                   </select>
                 </label>
-                <button type="button" className="prototype-ferias-btn-buscar">
-                  <i className="pi pi-search" aria-hidden="true" />
-                  Buscar
-                </button>
-                <button type="button" className="prototype-vinculos-clear" onClick={limparFiltros}>
-                  <i className="pi pi-refresh" aria-hidden="true" />
-                  Limpar filtro
-                </button>
+                <BotaoLimparFiltroSeplag type="button" label="Limpar filtro" className="prototype-ferias-limpar-filtro" onClick={limparFiltros} />
               </div>
 
               <div className="prototype-ferias-acoes-topo">
@@ -797,10 +792,12 @@ function podeCancelar(registro: FeriasRegistro) {
 }
 
 function IndicadorCard({ rotulo, valor, tom }: Readonly<{ rotulo: string; valor: number; tom?: "sucesso" | "info" | "alerta" | "roxo" | "vermelho" }>) {
+  const icones: Record<string, string> = { TOTAL: "pi-chart-bar", "EM ABERTO": "pi-clock", QUITADO: "pi-check-circle", SUSPENSO: "pi-pause-circle", COMISSIONADO: "pi-id-card", "CONTRATO TEMPORÁRIO": "pi-file", "RESIDENTE TÉCNICO": "pi-briefcase", BOLSISTA: "pi-graduation-cap", FÉRIAS: "pi-calendar", "LICENÇA REMUNERADA": "pi-wallet", VIGENTE: "pi-check-circle", ENCERRADA: "pi-calendar-times", "SEM PORTARIA": "pi-exclamation-circle" };
+  const titulo = rotulo.charAt(0) + rotulo.slice(1).toLocaleLowerCase("pt-BR");
   return (
     <div className={"prototype-ferias-indicador" + (tom ? ` is-${tom}` : "")}>
-      <span className="prototype-ferias-indicador-rotulo">{rotulo}</span>
-      <strong className="prototype-ferias-indicador-valor">{valor}</strong>
+      <span className="prototype-ferias-indicador-icone" aria-hidden="true"><i className={`pi ${icones[rotulo] || "pi-chart-bar"}`} /></span>
+      <div><span className="prototype-ferias-indicador-rotulo">{titulo}</span><strong className="prototype-ferias-indicador-valor">{valor}</strong></div>
     </div>
   );
 }
@@ -826,7 +823,12 @@ function TabelaRegistros({
   menuAbertoId,
   setMenuAbertoId,
 }: Readonly<TabelaRegistrosProps>) {
+  const [primeiro, setPrimeiro] = useState(0);
+  const [porPagina, setPorPagina] = useState(10);
+  useEffect(() => { setPrimeiro(0); }, [registros]);
+  const primeiroAtual = Math.min(primeiro, Math.max(0, Math.ceil(registros.length / porPagina) - 1) * porPagina);
   return (
+    <>
     <div className="prototype-ferias-table-wrap">
       <table className="prototype-ferias-table">
         <thead>
@@ -840,11 +842,11 @@ function TabelaRegistros({
             <th>Dias Solicitados</th>
             <th>Origem</th>
             <th>Situação</th>
-            <th>Ação</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
-          {registros.map((registro) => (
+          {registros.slice(primeiroAtual, primeiroAtual + porPagina).map((registro) => (
             <tr key={registro.id}>
               <td>
                 {registro.matricula}
@@ -861,11 +863,10 @@ function TabelaRegistros({
               <td>{periodoAquisitivoLabel(registro)}</td>
               <td>{periodoUsufruto(registro)}</td>
               <td>
-                <span className="prototype-ferias-badge-tipo">{tipoRegistroDe(registro.tipoVinculo)}</span>
+                <span className="prototype-ferias-badge-tipo">{tipoRegistroDe(registro.tipoVinculo) === "FÉRIAS" ? "Férias" : "Licença remunerada"}</span>
               </td>
-              <td>
-                {diasSolicitados(registro)}
-                <br />
+              <td className="prototype-ferias-dias-solicitados">
+                {diasSolicitados(registro)}{" "}
                 <small>
                   {registro.tipo === "Coletiva"
                     ? "COLETIVA"
@@ -880,7 +881,7 @@ function TabelaRegistros({
                 <span className={"prototype-ferias-badge-origem is-" + registro.origem.toLowerCase()}>{registro.origem}</span>
               </td>
               <td>
-                <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{registro.situacao}</span>
+                <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{registro.situacao.charAt(0) + registro.situacao.slice(1).toLocaleLowerCase("pt-BR")}</span>
                 {prazoValidacaoExpirado(registro) ? (
                   <>
                     <br />
@@ -977,6 +978,8 @@ function TabelaRegistros({
         </tbody>
       </table>
     </div>
+    <Paginator first={primeiroAtual} rows={porPagina} totalRecords={registros.length} rowsPerPageOptions={[10, 20, 50]} template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" onPageChange={(event) => { setPrimeiro(event.rows !== porPagina ? 0 : event.first); setPorPagina(event.rows); setMenuAbertoId(null); }} />
+    </>
   );
 }
 

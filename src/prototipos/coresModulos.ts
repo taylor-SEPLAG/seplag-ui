@@ -12,6 +12,8 @@ const tokensPorModulo: Record<string, string> = {
   Ingresso: "ingresso",
   "Vínculos Funcionais": "vinculos",
   Vacância: "vacancia",
+  "Desligamento de Vínculo": "vacancia",
+  "Direitos e Benefícios": "direitos",
   Documentação: "documentacao",
   "Aposentadoria e Benefícios": "aposentadoria",
   Parametrização: "parametrizacao",

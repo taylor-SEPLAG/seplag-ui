@@ -44,6 +44,7 @@ export function formaVacanciaValida(v: {
 type DadosConsulta = {
   tipo: string;
   orgao: string;
+  inicio?: string;
   vacanciaData?: string;
   vacanciaForma?: string;
 };
@@ -65,21 +66,22 @@ export function filtrarVinculos<T extends DadosConsulta>(
   );
   return registros.filter((v) => {
     const encerrado = situacaoDoVinculo(v) === "Encerrado";
+    const data = encerrado ? v.vacanciaData : v.inicio;
     return (
+      !datasInvalidas &&
+      (!filtros.inicio || Boolean(data && data >= filtros.inicio)) &&
+      (!filtros.fim || Boolean(data && data <= filtros.fim)) &&
       (!filtros.tipo || v.tipo === filtros.tipo) &&
       (!filtros.orgao || v.orgao === filtros.orgao) &&
       (!filtros.situacao ||
         (filtros.situacao === "Encerrado" ? encerrado : !encerrado)) &&
       (filtros.situacao !== "Encerrado" ||
-        (!datasInvalidas &&
-          (!filtros.forma ||
+        (!filtros.forma ||
             (filtros.forma === FORMA_A_REVISAR
               ? !formaVacanciaValida(v)
               : formaVacanciaValida(v) &&
                 normalizarForma(v.vacanciaForma ?? "") ===
-                  normalizarForma(filtros.forma))) &&
-          (!filtros.inicio || (v.vacanciaData ?? "") >= filtros.inicio) &&
-          (!filtros.fim || (v.vacanciaData ?? "") <= filtros.fim)))
+                  normalizarForma(filtros.forma))))
     );
   });
 }
