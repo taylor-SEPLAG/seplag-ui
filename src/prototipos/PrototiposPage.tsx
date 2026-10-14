@@ -474,7 +474,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
       {
         label: "Direitos e Benefícios",
         icon: "pi pi-sun",
-        to: "/prototipos/sigep/ferias",
+        to: "/prototipos/sigep/direitos-beneficios",
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [

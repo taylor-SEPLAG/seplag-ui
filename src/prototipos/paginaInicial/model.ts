@@ -51,14 +51,20 @@ export const modulosPaginaInicial = [
   },
   {
     nome: "Vínculos Funcionais",
-    descricao: "Gerencie vínculos e a vida funcional.",
+    descricao: "Gerencie vínculos e consulte o histórico funcional.",
     icone: "pi pi-link",
     cor: "medio",
   },
   {
-    nome: "Vacância",
+    nome: "Direitos e Benefícios",
+    descricao: "Consulte e gerencie a concessão de férias e benefícios.",
+    icone: "pi pi-sun",
+    cor: "amarelo",
+  },
+  {
+    nome: "Desligamento de Vínculo",
     descricao: "Gerencie vacâncias e desligamentos.",
-    icone: "pi pi-user-minus",
+    icone: "pi pi-sign-out",
     cor: "roxo",
   },
   {
