@@ -4072,7 +4072,8 @@
 }
 
 .prototype-cargo-filters {
-  display: grid;
+  /* A classe utilitária .grid usa flexbox; este filtro precisa preservar a grade própria. */
+  display: grid !important;
   grid-template-columns: minmax(320px, 1fr) 280px auto;
   gap: 16px;
   align-items: end;
@@ -8721,6 +8722,54 @@
 .prototype-carreira-filters .prototype-category-clear .p-button-label {
   overflow: visible;
   text-overflow: clip;
+}
+
+/* Formas de Desligamento: distribuição definida pelo cadastro funcional. */
+.prototype-formas-desligamento-filters {
+  display: grid !important;
+  grid-template-columns: minmax(140px, 1fr) minmax(250px, 1.5fr) minmax(170px, 1fr) minmax(170px, 1fr) auto;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.prototype-formas-desligamento-filters > [class*="col-"] {
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0;
+  padding: 0 !important;
+}
+
+.prototype-formas-desligamento-filters .rotulo-vertical .col {
+  padding-top: 0.55em;
+}
+
+.prototype-formas-desligamento-filters > .prototype-category-clear {
+  width: auto !important;
+  max-width: none !important;
+  min-height: auto;
+  margin: 0;
+  padding: 0 !important;
+}
+
+.prototype-formas-desligamento-filters > .prototype-category-clear .p-button {
+  width: 150px !important;
+  min-width: 150px;
+}
+
+@media (max-width: 900px) {
+  .prototype-formas-desligamento-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .prototype-formas-desligamento-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prototype-formas-desligamento-filters > .prototype-category-clear .p-button {
+    width: 100% !important;
+  }
 }
 
 .prototype-carreira-card .prototype-category-table .p-datatable-header {

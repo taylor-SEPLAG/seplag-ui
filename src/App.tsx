@@ -72,6 +72,7 @@ import {
   PrototiposControleCertameGeralPage,
   PrototiposVinculosFuncionaisGeralPage,
   PrototiposDesligamentoVinculoPage,
+  PrototiposFormasDesligamentoPage,
   PrototiposBolsaPage,
   PrototiposEncerramentoContratoPage,
   PrototiposExoneracaoDestituicaoPage,
@@ -1819,6 +1820,7 @@ function App() {
       <Route path="/prototipos/sigep/controle-pss" element={<PrototiposControleCertameGeralPage />} />
       <Route path="/prototipos/sigep/vinculos-funcionais" element={<PrototiposVinculosFuncionaisGeralPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo" element={<PrototiposDesligamentoVinculoPage />} />
+      <Route path="/prototipos/sigep/backlog/desligamento-vinculo/formas-desligamento" element={<PrototiposFormasDesligamentoPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo/bolsa" element={<PrototiposBolsaPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato" element={<PrototiposEncerramentoContratoPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao" element={<PrototiposExoneracaoDestituicaoPage />} />

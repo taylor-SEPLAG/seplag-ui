@@ -472,68 +472,18 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         ],
       },
       {
-        label: "Desligamento de Vínculo",
+        label: "Encerramento de Vínculo",
         icon: "pi pi-sign-out",
-        to: "/prototipos/sigep/desligamento-vinculo",
+        url: "#",
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
           {
-            label: "Vacância",
-            icon: "pi pi-circle-on",
-            to: "/prototipos/sigep/vacancia",
+            label: "Formas de Desligamento",
+            icon: "pi pi-th-large",
+            to: "/prototipos/sigep/backlog/desligamento-vinculo/formas-desligamento",
             visibleOnMenu: true,
             visibleOnRouter: true,
-            items: [
-              { label: "Exoneração", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/exoneracao", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Demissão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/demissao", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Ascensão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/ascensao", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Acesso", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/acesso", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Transferência", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/transferencia", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Readaptação", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/readaptacao", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Aposentadoria", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/aposentadoria", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Posse inacumulável", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/posse-outro-cargo-inacumulavel", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Falecimento", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/falecimento", visibleOnMenu: true, visibleOnRouter: true },
-            ],
-          },
-          {
-            label: "Encerramento contrato",
-            icon: "pi pi-circle-on",
-            to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato",
-            visibleOnMenu: true,
-            visibleOnRouter: true,
-            items: [
-              { label: "Término do prazo", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/termino-prazo", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Rescisão contratado", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-contratado", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Rescisão Administração", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-administracao", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Demissão disciplinar", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/demissao-disciplinar", visibleOnMenu: true, visibleOnRouter: true },
-            ],
-          },
-          {
-            label: "Exoneração/destituição",
-            icon: "pi pi-circle-on",
-            to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao",
-            visibleOnMenu: true,
-            visibleOnRouter: true,
-            items: [
-              { label: "Exoneração a pedido", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-pedido", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Livre exoneração", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-oficio-livre", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Não comparecimento ou ausências", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/nao-comparecimento-ausencias", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Destituição disciplinar", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/destituicao-disciplinar", visibleOnMenu: true, visibleOnRouter: true },
-            ],
-          },
-          {
-            label: "Encerramento Bolsa",
-            icon: "pi pi-circle-on",
-            to: "/prototipos/sigep/desligamento-vinculo/bolsa",
-            visibleOnMenu: true,
-            visibleOnRouter: true,
-            items: [
-              { label: "Término da vigência", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Desistência a pedido", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Encerramento pela Administração", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
-              { label: "Substituição", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
-            ],
           },
         ],
       },
@@ -589,6 +539,72 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
+          {
+            label: "Desligamento de Vínculo",
+            icon: "pi pi-sign-out",
+            to: "/prototipos/sigep/desligamento-vinculo",
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+            items: [
+              {
+                label: "Vacância",
+                icon: "pi pi-circle-on",
+                to: "/prototipos/sigep/vacancia",
+                visibleOnMenu: true,
+                visibleOnRouter: true,
+                items: [
+                  { label: "Exoneração", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/exoneracao", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Demissão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/demissao", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Ascensão", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/ascensao", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Acesso", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/acesso", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Transferência", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/transferencia", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Readaptação", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/readaptacao", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Aposentadoria", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/aposentadoria", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Posse inacumulável", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/posse-outro-cargo-inacumulavel", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Falecimento", icon: "pi pi-circle-on", to: "/prototipos/sigep/vacancia/falecimento", visibleOnMenu: true, visibleOnRouter: true },
+                ],
+              },
+              {
+                label: "Encerramento contrato",
+                icon: "pi pi-circle-on",
+                to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato",
+                visibleOnMenu: true,
+                visibleOnRouter: true,
+                items: [
+                  { label: "Término do prazo", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/termino-prazo", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Rescisão contratado", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-contratado", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Rescisão Administração", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/rescisao-administracao", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Demissão disciplinar", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato/demissao-disciplinar", visibleOnMenu: true, visibleOnRouter: true },
+                ],
+              },
+              {
+                label: "Exoneração/destituição",
+                icon: "pi pi-circle-on",
+                to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao",
+                visibleOnMenu: true,
+                visibleOnRouter: true,
+                items: [
+                  { label: "Exoneração a pedido", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-pedido", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Livre exoneração", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/exoneracao-oficio-livre", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Não comparecimento ou ausências", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/nao-comparecimento-ausencias", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Destituição disciplinar", icon: "pi pi-circle-on", to: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao/destituicao-disciplinar", visibleOnMenu: true, visibleOnRouter: true },
+                ],
+              },
+              {
+                label: "Encerramento Bolsa",
+                icon: "pi pi-circle-on",
+                to: "/prototipos/sigep/desligamento-vinculo/bolsa",
+                visibleOnMenu: true,
+                visibleOnRouter: true,
+                items: [
+                  { label: "Término da vigência", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Desistência a pedido", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Encerramento pela Administração", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
+                  { label: "Substituição", icon: "pi pi-circle-on", visibleOnMenu: true, visibleOnRouter: true },
+                ],
+              },
+            ],
+          },
           { label: "Unidades", icon: "pi pi-sitemap", to: "/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades", activeRoutes: ["/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades/novo"], visibleOnMenu: true, visibleOnRouter: true },
           {
             label: "Controle de Vagas 1.0",
@@ -7996,6 +8012,65 @@ function PrototiposMenuCardsPage({ titulo, descricao, itens }: Readonly<{ titulo
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><MenuCardsContent titulo={titulo} descricao={descricao} itens={itens} /></PrototypeSystemPage>;
 }
 export function PrototiposDesligamentoVinculoPage() { return <PrototiposMenuCardsPage titulo="Desligamento de Vínculo" descricao="Selecione o tipo de desligamento que deseja gerenciar." itens={menuCardsDesligamentoVinculo} />; }
+type FormaDesligamentoRow = {
+  id: number;
+  codigo: number;
+  nome: string;
+  grupo: "Vacância" | "Encerramento de vínculo";
+  vinculos: string;
+  situacao: "ATIVA" | "INATIVA";
+};
+
+const formasDesligamentoMock: readonly FormaDesligamentoRow[] = [
+  { id: 1, codigo: 1, nome: "Exoneração", grupo: "Vacância", vinculos: "Efetivo e comissionado", situacao: "ATIVA" },
+  { id: 2, codigo: 2, nome: "Demissão", grupo: "Vacância", vinculos: "Efetivo", situacao: "ATIVA" },
+  { id: 3, codigo: 3, nome: "Aposentadoria", grupo: "Vacância", vinculos: "Efetivo", situacao: "ATIVA" },
+  { id: 4, codigo: 4, nome: "Posse em outro cargo inacumulável", grupo: "Vacância", vinculos: "Efetivo", situacao: "ATIVA" },
+  { id: 5, codigo: 5, nome: "Falecimento", grupo: "Vacância", vinculos: "Efetivo, temporário e comissionado", situacao: "ATIVA" },
+  { id: 6, codigo: 6, nome: "Término do prazo contratual", grupo: "Encerramento de vínculo", vinculos: "Temporário", situacao: "ATIVA" },
+  { id: 7, codigo: 7, nome: "Rescisão por iniciativa do contratado", grupo: "Encerramento de vínculo", vinculos: "Temporário", situacao: "ATIVA" },
+  { id: 8, codigo: 8, nome: "Encerramento de bolsa", grupo: "Encerramento de vínculo", vinculos: "Bolsista e estagiário", situacao: "ATIVA" },
+];
+
+export function PrototiposFormasDesligamentoPage() {
+  const [pagina, setPagina] = useState(0);
+  const { control, reset, watch } = useForm<{ codigo?: string; forma?: string; vinculo?: string; situacao?: string }>({ defaultValues: { codigo: "", forma: "", vinculo: "", situacao: "ATIVA" } });
+  const filtros = watch();
+  const codigo = filtros.codigo?.trim() ?? "";
+  const forma = filtros.forma?.trim().toLocaleLowerCase("pt-BR") ?? "";
+  const filtrados = formasDesligamentoMock.filter((registro) =>
+    (!codigo || String(registro.codigo).includes(codigo)) &&
+    (!forma || registro.nome.toLocaleLowerCase("pt-BR").includes(forma)) &&
+    (!filtros.vinculo || registro.vinculos.includes(filtros.vinculo)) &&
+    (!filtros.situacao || registro.situacao === filtros.situacao),
+  );
+  const registrosPorPagina = 10;
+  const paginados = filtrados.slice(pagina * registrosPorPagina, (pagina + 1) * registrosPorPagina);
+  const resultados = { ...createResults(paginados), pageActual: pagina, totalPages: Math.max(1, Math.ceil(filtrados.length / registrosPorPagina)), totalRecords: filtrados.length, sizePage: registrosPorPagina, size: registrosPorPagina };
+  const colunas: ColumnMetaSeplag<FormaDesligamentoRow>[] = [
+    { field: "codigo", header: "Código" },
+    { field: "nome", header: "Forma de desligamento" },
+    { field: "vinculos", header: "Tipos de vínculo aplicáveis" },
+    { header: "Situação", body: (row) => <BadgeSeplag label={row.situacao === "ATIVA" ? "Ativa" : "Inativa"} color={row.situacao === "ATIVA" ? "#087d3d" : "#596579"} bg={row.situacao === "ATIVA" ? "#eafbf1" : "#edf0f4"} border="transparent" size="md" /> },
+  ];
+
+  useEffect(() => setPagina(0), [filtros.codigo, filtros.forma, filtros.vinculo, filtros.situacao]);
+
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+    <div className="prototype-page-content prototype-page-content--white">
+      <CardSeplag title="Formas de Desligamento" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Encerramento de Vínculo" }, { label: "Formas de Desligamento" }]} />}>
+        <div className="prototype-category-filters prototype-carreira-filters prototype-formas-desligamento-filters grid">
+          <TextFieldSeplag name="codigo" control={control} label="Código" placeholder="Informe o código" cols="12 6 2" getFormErrorMessage={() => null} />
+          <TextFieldSeplag name="forma" control={control} label="Forma" placeholder="Informe a forma de desligamento" cols="12 6 4" getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="vinculo" control={control} label="Tipos de vínculo" placeholder="Todos" cols="12 6 2" options={[{ label: "Todos", value: "" }, { label: "Efetivo", value: "Efetivo" }, { label: "Temporário", value: "Temporário" }, { label: "Comissionado", value: "Comissionado" }, { label: "Bolsista e estagiário", value: "Bolsista e estagiário" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 2" options={[{ label: "Todas", value: "" }, { label: "Ativa", value: "ATIVA" }, { label: "Inativa", value: "INATIVA" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+          <div className="prototype-category-clear col-12"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ codigo: "", forma: "", vinculo: "", situacao: "ATIVA" })} /></div>
+        </div>
+        <div className="prototype-category-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} emptyMessage="Nenhuma forma de desligamento encontrada." handleAdicionar={() => undefined} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
+      </CardSeplag>
+    </div>
+  </PrototypeSystemPage>;
+}
 export function PrototiposBolsaPage() { return <PrototiposMenuCardsPage titulo="Encerramento Bolsa" descricao="Selecione a forma de encerramento ou substituição da bolsa." itens={menuCardsBolsa} />; }
 export function PrototiposEncerramentoContratoPage() { return <PrototiposMenuCardsPage titulo="Encerramento contrato" descricao="Selecione a forma de encerramento do vínculo temporário." itens={menuCardsEncerramentoContrato} />; }
 export function PrototiposExoneracaoDestituicaoPage() { return <PrototiposMenuCardsPage titulo="Exoneração/destituição" descricao="Selecione a modalidade de desligamento do vínculo comissionado." itens={menuCardsExoneracaoDestituicao} />; }
