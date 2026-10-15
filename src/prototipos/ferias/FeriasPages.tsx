@@ -73,6 +73,8 @@ export interface FeriasRegistro {
   loteId?: string;
   responsavelLancamento: string;
   lancadoEm: string;
+  avaliadoPor?: string;
+  avaliadoEm?: string;
   dataLimiteValidacaoChefia?: string;
   bloqueioAuxilioTransporte?: boolean;
   auxilioTransporteEfetivado?: boolean;
@@ -624,6 +626,7 @@ export function PrototiposFeriasPage() {
   const [registroSubstituicao, setRegistroSubstituicao] = useState<FeriasRegistro | null>(null);
   const [registroVisualizacao, setRegistroVisualizacao] = useState<FeriasRegistro | null>(null);
   const [registroEdicaoRecesso, setRegistroEdicaoRecesso] = useState<FeriasRegistro | null>(null);
+  const [registroEdicaoIndividual, setRegistroEdicaoIndividual] = useState<FeriasRegistro | null>(null);
   const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
   const [confirmacaoStatus, setConfirmacaoStatus] = useState<{ registro: FeriasRegistro; acao: AcaoStatus } | null>(null);
   const [subBusca, setSubBusca] = useState("");
@@ -749,10 +752,11 @@ export function PrototiposFeriasPage() {
     setFiltroSituacao("");
   };
 
+  // Só é possível editar enquanto aguarda validação da chefia — uma vez "Em Aberto",
+  // o servidor já está cumprindo o período, então a solicitação deixa de ser editável.
   const podeEditar = (registro: FeriasRegistro) =>
     (registro.tipo === "Individual" || registro.tipo === "Recesso") &&
-    registro.situacao !== "QUITADO" &&
-    registro.situacao !== "CANCELADO";
+    registro.situacao === "AGUARDANDO VALIDAÇÃO";
 
   const aplicarStatus = (registroId: number, novaSituacao: SituacaoFerias, acao?: AcaoStatus) => {
     const proximos = registros.map((registro) => {
@@ -763,10 +767,13 @@ export function PrototiposFeriasPage() {
         acao === "validar" &&
         registro.tipo === "Recesso" &&
         (registro.tipoVinculo === "Residente Técnico" || registro.tipoVinculo === "Bolsista");
+      // Registra quem avaliou (validou ou rejeitou) a solicitação, para exibir no "Visualizar".
+      const marcaAvaliacao = acao === "validar" || acao === "rejeitar";
       return {
         ...registro,
         situacao: novaSituacao,
         ...(efetivaBeneficiosRecesso ? { auxilioTransporteEfetivado: true, sigpasIntegrado: true } : {}),
+        ...(marcaAvaliacao ? { avaliadoPor: "Usuário atual", avaliadoEm: new Date().toLocaleString("pt-BR") } : {}),
       };
     });
     atualizarRegistros(proximos);
@@ -779,6 +786,14 @@ export function PrototiposFeriasPage() {
     );
     atualizarRegistros(proximos);
     setRegistroEdicaoRecesso(null);
+  };
+
+  const salvarEdicaoIndividual = (registroId: number, parcelas: ParcelaFerias[]) => {
+    const proximos = registros.map((registro) =>
+      registro.id === registroId ? { ...registro, parcelas } : registro,
+    );
+    atualizarRegistros(proximos);
+    setRegistroEdicaoIndividual(null);
   };
 
   const salvarSubstitutos = (registroId: number, substitutos: SubstitutoFerias[]) => {
@@ -922,7 +937,11 @@ export function PrototiposFeriasPage() {
                 registros={registrosFiltrados}
                 perfil={perfil}
                 onVisualizar={setRegistroVisualizacao}
-                onEditar={(registro) => (registro.tipo === "Recesso" ? setRegistroEdicaoRecesso(registro) : setRegistroVisualizacao(registro))}
+                onEditar={(registro) => {
+                  if (registro.tipo === "Recesso") setRegistroEdicaoRecesso(registro);
+                  else if (registro.tipo === "Individual") setRegistroEdicaoIndividual(registro);
+                  else setRegistroVisualizacao(registro);
+                }}
                 onGerenciarSubstituicao={setRegistroSubstituicao}
                 onAlterarStatus={(registro, acao) => setConfirmacaoStatus({ registro, acao })}
                 podeEditar={podeEditar}
@@ -1017,6 +1036,14 @@ export function PrototiposFeriasPage() {
           registro={registroEdicaoRecesso}
           onFechar={() => setRegistroEdicaoRecesso(null)}
           onSalvar={(parcelas) => salvarEdicaoRecesso(registroEdicaoRecesso.id, parcelas)}
+        />
+      ) : null}
+
+      {registroEdicaoIndividual ? (
+        <ModalAlterarIndividual
+          registro={registroEdicaoIndividual}
+          onFechar={() => setRegistroEdicaoIndividual(null)}
+          onSalvar={(parcelas) => salvarEdicaoIndividual(registroEdicaoIndividual.id, parcelas)}
         />
       ) : null}
 
@@ -1169,13 +1196,11 @@ function TabelaRegistros({
                 <span className={"prototype-ferias-badge-origem is-" + registro.origem.toLowerCase()}>{registro.origem}</span>
               </td>
               <td>
-                <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{registro.situacao.charAt(0) + registro.situacao.slice(1).toLocaleLowerCase("pt-BR")}</span>
                 {prazoValidacaoExpirado(registro) ? (
-                  <>
-                    <br />
-                    <small className="prototype-ferias-alerta-texto">PRAZO EXPIRADO</small>
-                  </>
-                ) : null}
+                  <span className="prototype-ferias-badge is-cancelado">Prazo expirado</span>
+                ) : (
+                  <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{registro.situacao.charAt(0) + registro.situacao.slice(1).toLocaleLowerCase("pt-BR")}</span>
+                )}
               </td>
               <td>
                 <div className="prototype-ferias-acao-dropdown">
@@ -4114,6 +4139,14 @@ function ModalVisualizarRegistro({ registro, onFechar }: Readonly<{ registro: Fe
         <p>
           Lançado por {registro.responsavelLancamento} em {registro.lancadoEm}.
         </p>
+        {registro.avaliadoPor ? (
+          <p>
+            {registro.situacao === "CANCELADO" || registro.situacao === "REPROVADO" ? "Reprovado" : "Aprovado"}
+            {" "}por {registro.avaliadoPor} em {registro.avaliadoEm}.
+          </p>
+        ) : (
+          <p className="prototype-ferias-gozo-ajuda">Ainda não avaliado pela chefia.</p>
+        )}
       </div>
     </ModalSeplag>
   );
@@ -4184,6 +4217,72 @@ function ModalAlterarRecesso({
           Alteração permitida enquanto estiver dentro do limite de usufruto — a nova data fim precisa ser
           anterior {ehEstagiario ? "ao fim da contratação" : "ao início do próximo período aquisitivo"}
           {limiteAlteracao ? ` (${formatarDataBr(limiteAlteracao)})` : ", sem limite conhecido para este servidor"}.
+        </p>
+        {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
+        {parcelas.map((parcela, indice) => (
+          <div className="prototype-ferias-form-grid" key={parcela.id}>
+            <label>
+              <span>Parcela {indice + 1} — {parcela.dias} dias</span>
+              <input type="date" value={parcela.inicio} onChange={(event) => atualizarInicio(parcela.id, event.target.value)} />
+            </label>
+            <label>
+              <span>Fim (calculado)</span>
+              <input className="prototype-ferias-readonly-field" value={formatarDataBr(parcela.fim)} readOnly />
+            </label>
+          </div>
+        ))}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
+          <button type="button" className="prototype-vinculo-back" onClick={onFechar}>
+            <i className="pi pi-arrow-left" aria-hidden="true" />
+            Cancelar
+          </button>
+          <button type="button" className="prototype-ferias-btn-primario" onClick={salvar}>
+            <i className="pi pi-check" aria-hidden="true" />
+            Salvar alteração
+          </button>
+        </div>
+      </div>
+    </ModalSeplag>
+  );
+}
+
+/** Edição de férias individuais já lançadas, ainda Aguardando Validação: permite ajustar as
+ * datas de início de cada parcela, mantendo a duração de cada uma e respeitando o intervalo
+ * de 0/10 dias entre parcelas (Decreto 656/2020). */
+function ModalAlterarIndividual({
+  registro,
+  onFechar,
+  onSalvar,
+}: Readonly<{ registro: FeriasRegistro; onFechar: () => void; onSalvar: (parcelas: ParcelaFerias[]) => void }>) {
+  const [parcelas, setParcelas] = useState<ParcelaFerias[]>(() => registro.parcelas.map((parcela) => ({ ...parcela })));
+  const [erro, setErro] = useState("");
+
+  const atualizarInicio = (id: number, novoInicio: string) => {
+    setParcelas((atual) =>
+      atual.map((parcela) => (parcela.id === id ? { ...parcela, inicio: novoInicio, fim: calcularFim(novoInicio, parcela.dias) } : parcela)),
+    );
+  };
+
+  const salvar = () => {
+    if (parcelas.some((parcela) => !parcela.inicio)) {
+      setErro("Informe a data de início de todas as parcelas.");
+      return;
+    }
+    const erroIntervalo = validarIntervaloParcelas(parcelas);
+    if (erroIntervalo) {
+      setErro(erroIntervalo);
+      return;
+    }
+    setErro("");
+    onSalvar(parcelas);
+  };
+
+  return (
+    <ModalSeplag visible fechar={onFechar} titulo="Alterar férias" hideFooter tamanho="560px">
+      <div style={{ width: "100%" }} className="prototype-ferias-form-section">
+        <p>
+          Edição permitida enquanto a solicitação estiver Aguardando Validação. O intervalo entre parcelas
+          continua valendo 0 ou 10 dias corridos (Decreto 656/2020).
         </p>
         {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
         {parcelas.map((parcela, indice) => (

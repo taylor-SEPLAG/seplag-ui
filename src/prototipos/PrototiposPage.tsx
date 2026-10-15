@@ -488,6 +488,16 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         ],
       },
       {
+        label: "Direitos e Benefícios",
+        icon: "pi pi-sun",
+        to: "/prototipos/sigep/direitos-beneficios",
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+        items: [
+          { label: "Concessão de Férias", icon: "pi pi-circle-on", to: "/prototipos/sigep/ferias", visibleOnMenu: true, visibleOnRouter: true },
+        ],
+      },
+      {
         label: "Encerramento de Vínculo",
         icon: "pi pi-sign-out",
         to: "/prototipos/sigep/encerramento-vinculo",
