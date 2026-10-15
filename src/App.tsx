@@ -23,6 +23,7 @@ import { PaginaInicialPage } from "./prototipos/paginaInicial/PaginaInicialPage"
 import { CalendarioCronogramaPage } from "./prototipos/cronograma/CalendarioCronogramaPage";
 import { AvisosPage } from "./prototipos/avisos/AvisosPage";
 import { VidaFuncionalPage } from "./prototipos/vidaFuncional/VidaFuncionalPage";
+import { EncerrarVinculoPage } from "./prototipos/encerramentoVinculo/EncerrarVinculoPage";
 import pkg from "../package.json";
 import { DocsLayout, DocsRenderer } from "./docs/layout/DocsLayout";
 import {
@@ -72,7 +73,11 @@ import {
   PrototiposControleCertameGeralPage,
   PrototiposVinculosFuncionaisGeralPage,
   PrototiposDesligamentoVinculoPage,
+  PrototiposEncerramentoVinculoPage,
   PrototiposFormasDesligamentoPage,
+  PrototiposFormaEncerramentoFormPage,
+  PrototiposFormaEncerramentoVisualizarPage,
+  PrototiposFormaEncerramentoEditarPage,
   PrototiposBolsaPage,
   PrototiposEncerramentoContratoPage,
   PrototiposExoneracaoDestituicaoPage,
@@ -1821,7 +1826,12 @@ function App() {
       <Route path="/prototipos/sigep/controle-pss" element={<PrototiposControleCertameGeralPage />} />
       <Route path="/prototipos/sigep/vinculos-funcionais" element={<PrototiposVinculosFuncionaisGeralPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo" element={<PrototiposDesligamentoVinculoPage />} />
+      <Route path="/prototipos/sigep/encerramento-vinculo" element={<PrototiposEncerramentoVinculoPage />} />
+      <Route path="/prototipos/sigep/encerramento-vinculo/encerrar-vinculo" element={<EncerrarVinculoPage />} />
       <Route path="/prototipos/sigep/backlog/desligamento-vinculo/formas-desligamento" element={<PrototiposFormasDesligamentoPage />} />
+      <Route path="/prototipos/sigep/backlog/desligamento-vinculo/formas-encerramento/nova" element={<PrototiposFormaEncerramentoFormPage />} />
+      <Route path="/prototipos/sigep/backlog/desligamento-vinculo/formas-encerramento/:id/visualizar" element={<PrototiposFormaEncerramentoVisualizarPage />} />
+      <Route path="/prototipos/sigep/backlog/desligamento-vinculo/formas-encerramento/:id/editar" element={<PrototiposFormaEncerramentoEditarPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo/bolsa" element={<PrototiposBolsaPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo/encerramento-contrato" element={<PrototiposEncerramentoContratoPage />} />
       <Route path="/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao" element={<PrototiposExoneracaoDestituicaoPage />} />

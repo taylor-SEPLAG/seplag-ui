@@ -14,6 +14,7 @@ import { listarInformativosPaginaInicial, atualizarInformativosPaginaInicial } f
 import { ControleCertameGeralContent } from "./controlePss/ControleCertameGeralContent";
 import { VinculosFuncionaisGeralContent } from "./vinculos/VinculosFuncionaisGeralContent";
 import { TIPOS_VINCULO } from "./vinculos/tiposVinculo";
+import { adicionarFormaEncerramento, atualizarFormaEncerramento, encerrarFormaEncerramento, listarFormasEncerramento, obterFormaEncerramento, type FormaEncerramento } from "./encerramentoVinculo/formasEncerramentoStore";
 import { JornadaDocente, jornadaDocenteVazia, jornadaDocenteValida, calcularJornadaDocente, type JornadaDocenteConfig } from "./ingresso/JornadaDocente";
 import { incorporarDocumentoValidado } from "./pastaFuncional/pastaFuncionalStore";
 import { VacanciaGeralContent } from "./vacancia/VacanciaGeralContent";
@@ -235,6 +236,21 @@ const menuCardsDesligamentoVinculo: readonly MenuCardItem[] = [
   { titulo: "Encerramento contrato", descricao: "Registre o encerramento dos vínculos temporários.", icone: "pi pi-file-excel", destino: "/prototipos/sigep/desligamento-vinculo/encerramento-contrato" },
   { titulo: "Exoneração/destituição", descricao: "Gerencie desligamentos de vínculos comissionados.", icone: "pi pi-user-minus", destino: "/prototipos/sigep/desligamento-vinculo/exoneracao-destituicao" },
   { titulo: "Encerramento Bolsa", descricao: "Registre o encerramento de bolsas, residências e estágios vinculados.", icone: "pi pi-graduation-cap", destino: "/prototipos/sigep/desligamento-vinculo/bolsa" },
+];
+
+const menuCardsEncerramentoVinculo: readonly MenuCardItem[] = [
+  {
+    titulo: "Encerrar Vínculo",
+    descricao: "Pesquise o servidor, consulte seus vínculos e selecione aquele que será encerrado.",
+    icone: "pi pi-sign-out",
+    destino: "/prototipos/sigep/encerramento-vinculo/encerrar-vinculo",
+  },
+  {
+    titulo: "Formas de Encerramento",
+    descricao: "Cadastre e mantenha as formas utilizadas nos processos de encerramento e vacância.",
+    icone: "pi pi-th-large",
+    destino: "/prototipos/sigep/backlog/desligamento-vinculo/formas-desligamento",
+  },
 ];
 
 const menuCardsBolsa: readonly MenuCardItem[] = [
@@ -474,12 +490,19 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
       {
         label: "Encerramento de Vínculo",
         icon: "pi pi-sign-out",
-        url: "#",
+        to: "/prototipos/sigep/encerramento-vinculo",
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
           {
-            label: "Formas de Desligamento",
+            label: "Encerrar Vínculo",
+            icon: "pi pi-sign-out",
+            to: "/prototipos/sigep/encerramento-vinculo/encerrar-vinculo",
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+          },
+          {
+            label: "Formas de Encerramento",
             icon: "pi pi-th-large",
             to: "/prototipos/sigep/backlog/desligamento-vinculo/formas-desligamento",
             visibleOnMenu: true,
@@ -8021,33 +8044,20 @@ function PrototiposMenuCardsPage({ titulo, descricao, itens }: Readonly<{ titulo
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}><MenuCardsContent titulo={titulo} descricao={descricao} itens={itens} /></PrototypeSystemPage>;
 }
 export function PrototiposDesligamentoVinculoPage() { return <PrototiposMenuCardsPage titulo="Desligamento de Vínculo" descricao="Selecione o tipo de desligamento que deseja gerenciar." itens={menuCardsDesligamentoVinculo} />; }
-type FormaDesligamentoRow = {
-  id: number;
-  codigo: number;
-  nome: string;
-  grupo: "Vacância" | "Encerramento de vínculo";
-  vinculos: string;
-  situacao: "ATIVA" | "INATIVA";
-};
-
-const formasDesligamentoMock: readonly FormaDesligamentoRow[] = [
-  { id: 1, codigo: 1, nome: "Exoneração", grupo: "Vacância", vinculos: "Efetivo e comissionado", situacao: "ATIVA" },
-  { id: 2, codigo: 2, nome: "Demissão", grupo: "Vacância", vinculos: "Efetivo", situacao: "ATIVA" },
-  { id: 3, codigo: 3, nome: "Aposentadoria", grupo: "Vacância", vinculos: "Efetivo", situacao: "ATIVA" },
-  { id: 4, codigo: 4, nome: "Posse em outro cargo inacumulável", grupo: "Vacância", vinculos: "Efetivo", situacao: "ATIVA" },
-  { id: 5, codigo: 5, nome: "Falecimento", grupo: "Vacância", vinculos: "Efetivo, temporário e comissionado", situacao: "ATIVA" },
-  { id: 6, codigo: 6, nome: "Término do prazo contratual", grupo: "Encerramento de vínculo", vinculos: "Temporário", situacao: "ATIVA" },
-  { id: 7, codigo: 7, nome: "Rescisão por iniciativa do contratado", grupo: "Encerramento de vínculo", vinculos: "Temporário", situacao: "ATIVA" },
-  { id: 8, codigo: 8, nome: "Encerramento de bolsa", grupo: "Encerramento de vínculo", vinculos: "Bolsista e estagiário", situacao: "ATIVA" },
-];
-
+export function PrototiposEncerramentoVinculoPage() { return <PrototiposMenuCardsPage titulo="Encerramento de Vínculo" descricao="Selecione uma funcionalidade para configurar os processos de encerramento de vínculo." itens={menuCardsEncerramentoVinculo} />; }
 export function PrototiposFormasDesligamentoPage() {
+  const navigate = useNavigate();
   const [pagina, setPagina] = useState(0);
+  const [formaParaEncerrar, setFormaParaEncerrar] = useState<FormaEncerramento | null>(null);
+  const [dataEncerramento, setDataEncerramento] = useState("");
+  const [motivoEncerramento, setMotivoEncerramento] = useState("");
+  const [erroEncerramento, setErroEncerramento] = useState("");
+  const [versao, setVersao] = useState(0);
   const { control, reset, watch } = useForm<{ codigo?: string; forma?: string; vinculo?: string; situacao?: string }>({ defaultValues: { codigo: "", forma: "", vinculo: "", situacao: "ATIVA" } });
   const filtros = watch();
   const codigo = filtros.codigo?.trim() ?? "";
   const forma = filtros.forma?.trim().toLocaleLowerCase("pt-BR") ?? "";
-  const filtrados = formasDesligamentoMock.filter((registro) =>
+  const filtrados = listarFormasEncerramento().filter((registro) =>
     (!codigo || String(registro.codigo).includes(codigo)) &&
     (!forma || registro.nome.toLocaleLowerCase("pt-BR").includes(forma)) &&
     (!filtros.vinculo || registro.vinculos.includes(filtros.vinculo)) &&
@@ -8056,30 +8066,128 @@ export function PrototiposFormasDesligamentoPage() {
   const registrosPorPagina = 10;
   const paginados = filtrados.slice(pagina * registrosPorPagina, (pagina + 1) * registrosPorPagina);
   const resultados = { ...createResults(paginados), pageActual: pagina, totalPages: Math.max(1, Math.ceil(filtrados.length / registrosPorPagina)), totalRecords: filtrados.length, sizePage: registrosPorPagina, size: registrosPorPagina };
-  const colunas: ColumnMetaSeplag<FormaDesligamentoRow>[] = [
+  const colunas: ColumnMetaSeplag<FormaEncerramento>[] = [
     { field: "codigo", header: "Código" },
     { field: "nome", header: "Forma de desligamento" },
-    { field: "vinculos", header: "Tipos de vínculo aplicáveis" },
+    { header: "Tipos de vínculo aplicáveis", body: (row) => row.vinculos.join(", ") },
     { header: "Situação", body: (row) => <BadgeSeplag label={row.situacao === "ATIVA" ? "Ativa" : "Inativa"} color={row.situacao === "ATIVA" ? "#087d3d" : "#596579"} bg={row.situacao === "ATIVA" ? "#eafbf1" : "#edf0f4"} border="transparent" size="md" /> },
   ];
+  const abrirEncerramento = (formaRegistro: FormaEncerramento) => {
+    setFormaParaEncerrar(formaRegistro);
+    setDataEncerramento(new Date().toISOString().slice(0, 10));
+    setMotivoEncerramento("");
+    setErroEncerramento("");
+  };
+  const confirmarEncerramento = () => {
+    if (!formaParaEncerrar) return;
+    try {
+      if (!dataEncerramento || !motivoEncerramento.trim()) throw new Error("Informe a data e o motivo do encerramento.");
+      encerrarFormaEncerramento(formaParaEncerrar.id, dataEncerramento, motivoEncerramento.trim());
+      setFormaParaEncerrar(null);
+      setVersao((atual) => atual + 1);
+    } catch (erro) {
+      setErroEncerramento(erro instanceof Error ? erro.message : "Não foi possível encerrar a forma.");
+    }
+  };
 
   useEffect(() => setPagina(0), [filtros.codigo, filtros.forma, filtros.vinculo, filtros.situacao]);
 
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
     <div className="prototype-page-content prototype-page-content--white">
-      <CardSeplag title="Formas de Desligamento" cols="12" cardHeaderClassNames="prototype-carreira-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Encerramento de Vínculo" }, { label: "Formas de Desligamento" }]} />}>
+      <CardSeplag title="Formas de Encerramento" cols="12" cardHeaderClassNames="prototype-carreira-card prototype-formas-encerramento-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Encerramento de Vínculo" }, { label: "Formas de Encerramento" }]} />}>
         <div className="prototype-category-filters prototype-carreira-filters prototype-formas-desligamento-filters grid">
           <TextFieldSeplag name="codigo" control={control} label="Código" placeholder="Informe o código" cols="12 6 2" getFormErrorMessage={() => null} />
-          <TextFieldSeplag name="forma" control={control} label="Forma" placeholder="Informe a forma de desligamento" cols="12 6 4" getFormErrorMessage={() => null} />
-          <DropdownFieldSeplag name="vinculo" control={control} label="Tipos de vínculo" placeholder="Todos" cols="12 6 2" options={[{ label: "Todos", value: "" }, { label: "Efetivo", value: "Efetivo" }, { label: "Temporário", value: "Temporário" }, { label: "Comissionado", value: "Comissionado" }, { label: "Bolsista e estagiário", value: "Bolsista e estagiário" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
+          <TextFieldSeplag name="forma" control={control} label="Forma" placeholder="Informe a forma de encerramento" cols="12 6 4" getFormErrorMessage={() => null} />
+          <DropdownFieldSeplag name="vinculo" control={control} label="Tipos de vínculo" placeholder="Todos" cols="12 6 2" options={[{ label: "Todos", value: "" }, ...TIPOS_VINCULO.map((tipo) => ({ label: tipo, value: tipo }))]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
           <DropdownFieldSeplag name="situacao" control={control} label="Situação" cols="12 6 2" options={[{ label: "Todas", value: "" }, { label: "Ativa", value: "ATIVA" }, { label: "Inativa", value: "INATIVA" }]} optionLabel="label" optionValue="value" getFormErrorMessage={() => null} />
           <div className="prototype-category-clear col-12"><BotaoLimparFiltroSeplag type="button" label="Limpar Filtro" icon="pi pi-refresh" onClick={() => reset({ codigo: "", forma: "", vinculo: "", situacao: "ATIVA" })} /></div>
         </div>
-        <div className="prototype-category-table"><TablePaginadoSeplag dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} emptyMessage="Nenhuma forma de desligamento encontrada." handleAdicionar={() => undefined} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
+        <div className="prototype-category-table"><TablePaginadoSeplag key={versao} dataKey="id" data={resultados} rows={registrosPorPagina} rowsPerPage={[registrosPorPagina]} paginator lazy selectionMode={null} columns={colunas} emptyMessage="Nenhuma forma de encerramento encontrada." hasEventoAcao handleAdicionar={() => navigate("/prototipos/sigep/backlog/desligamento-vinculo/formas-encerramento/nova")} handleView={(row) => navigate(`/prototipos/sigep/backlog/desligamento-vinculo/formas-encerramento/${row.id}/visualizar`)} extraAcoesSplit={(row) => [{ label: "Editar", icon: "pi pi-pencil", command: () => navigate(`/prototipos/sigep/backlog/desligamento-vinculo/formas-encerramento/${row.id}/editar`) }, { label: "Encerrar", icon: "pi pi-ban", command: () => abrirEncerramento(row) }]} handleOnPageChange={(event) => setPagina(Math.floor((event.first ?? 0) / (event.rows ?? registrosPorPagina)))} /></div>
+      </CardSeplag>
+      <ModalSeplag visible={Boolean(formaParaEncerrar)} titulo="Encerrar Forma de Encerramento" fechar={() => setFormaParaEncerrar(null)} tamanho="640px" customFooter={<div className="flex justify-content-end gap-2"><BotaoVoltarSeplag type="button" label="Fechar" icon="pi pi-times" onClick={() => setFormaParaEncerrar(null)} /><BotaoSeplag type="button" severity="danger" label="Encerrar" icon="pi pi-ban" onClick={confirmarEncerramento} /></div>}>
+        <div className="col-12"><p>Informe a data e o motivo do encerramento de <strong>{formaParaEncerrar?.nome}</strong>.</p></div>
+        <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="data-inicio-forma">Data de início</label><input id="data-inicio-forma" className="p-inputtext p-component w-full" type="text" value={formaParaEncerrar?.dataCriacao ? formaParaEncerrar.dataCriacao.split("-").reverse().join("/") : ""} disabled /></div>
+        <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="data-encerramento-forma">Data de encerramento *</label><input id="data-encerramento-forma" className="p-inputtext p-component w-full" type="date" min={formaParaEncerrar?.dataCriacao} max={new Date().toISOString().slice(0, 10)} value={dataEncerramento} onChange={(event) => setDataEncerramento(event.target.value)} /></div>
+        <div className="col-12"><label className="label-rotulo label-destaque" htmlFor="motivo-encerramento-forma">Motivo do encerramento *</label><textarea id="motivo-encerramento-forma" className="p-inputtextarea p-inputtext p-component w-full" rows={4} value={motivoEncerramento} onChange={(event) => setMotivoEncerramento(event.target.value)} /></div>
+        {erroEncerramento ? <div className="col-12"><small className="p-error">{erroEncerramento}</small></div> : null}
+      </ModalSeplag>
+    </div>
+  </PrototypeSystemPage>;
+}
+
+type FormaEncerramentoForm = {
+  codigo?: string;
+  dataInicio: string;
+  nome: string;
+  vinculos: string[];
+  exigeProcessoSigadoc: "S" | "N";
+  exigeProcessoLegal: "S" | "N";
+};
+
+function FormaEncerramentoFormPage({ modo = "novo" }: Readonly<{ modo?: "novo" | "visualizar" | "editar" }>) {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const registro = id ? obterFormaEncerramento(Number(id)) : undefined;
+  const somenteLeitura = modo === "visualizar";
+  const hoje = new Date();
+  const hojeIso = hoje.toISOString().slice(0, 10);
+  const hojeBr = hoje.toLocaleDateString("pt-BR");
+  const { control, handleSubmit, setError, watch, formState: { errors } } = useForm<FormaEncerramentoForm>({
+    defaultValues: { codigo: registro ? String(registro.codigo) : "", dataInicio: registro?.dataCriacao ? registro.dataCriacao.split("-").reverse().join("/") : hojeBr, nome: registro?.nome ?? "", vinculos: registro?.vinculos ?? [], exigeProcessoSigadoc: registro?.exigeProcessoSigadoc ? "S" : "N", exigeProcessoLegal: registro?.exigeProcessoLegal ? "S" : "N" },
+  });
+  const dataInicio = watch("dataInicio");
+  const exibirErro = (nome: keyof FormaEncerramentoForm) => errors[nome]?.message ? <small className="p-error">{errors[nome]?.message}</small> : null;
+  const salvar = (dados: FormaEncerramentoForm) => {
+    try {
+      const valores = {
+        nome: dados.nome,
+        vinculos: dados.vinculos,
+        exigeProcessoSigadoc: dados.exigeProcessoSigadoc === "S",
+        exigeProcessoLegal: dados.exigeProcessoLegal === "S",
+      };
+      if (modo === "editar" && registro) atualizarFormaEncerramento(registro.id, valores);
+      else adicionarFormaEncerramento({ ...valores, dataCriacao: dados.dataInicio.split("/").reverse().join("-") });
+      navigate("/prototipos/sigep/backlog/desligamento-vinculo/formas-desligamento");
+    } catch (erro) {
+      setError("nome", { type: "validate", message: erro instanceof Error ? erro.message : "Não foi possível salvar a forma de encerramento." });
+    }
+  };
+
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+    <div className="prototype-page-content prototype-page-content--white">
+      <CardSeplag title={somenteLeitura ? "Visualizar Forma de Encerramento" : modo === "editar" ? "Editar Forma de Encerramento" : "Adicionar Forma de Encerramento"} cols="12" cardHeaderClassNames="prototype-carreira-card" actions={somenteLeitura && registro ? <BotaoIconSeplag type="button" icon="pi pi-pencil" tooltip="Editar" aria-label="Editar forma de encerramento" onClick={() => navigate(`/prototipos/sigep/backlog/desligamento-vinculo/formas-encerramento/${registro.id}/editar`)} /> : null} headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Encerramento de Vínculo", to: "/prototipos/sigep/encerramento-vinculo" }, { label: "Formas de Encerramento", to: "/prototipos/sigep/backlog/desligamento-vinculo/formas-desligamento" }, { label: somenteLeitura ? "Visualizar" : modo === "editar" ? "Editar" : "Adicionar" }]} />}>
+        <form className="col-12 prototype-carreira-register-form prototype-forma-encerramento-form" onSubmit={handleSubmit(salvar)} noValidate>
+          <section className="prototype-carreira-register-section">
+            <header><span className="prototype-carreira-section-icon"><i className="pi pi-th-large" /></span><div><h2>Dados da Forma de Encerramento</h2><p>Defina o nome e os tipos de vínculo aos quais esta forma poderá ser aplicada.</p></div></header>
+            <div className="grid prototype-carreira-register-fields">
+              {registro ? <TextFieldSeplag name="codigo" control={control} label="Código" cols="12 2" disabled getFormErrorMessage={() => null} /> : null}
+              <TextFieldSeplag name="nome" control={control} label="Forma de Encerramento" placeholder="Informe o nome da forma de encerramento" cols={registro ? "12 5" : "12 7"} required maxLength={150} disabled={somenteLeitura} getFormErrorMessage={() => exibirErro("nome")} />
+              <MultiSelectFieldSeplag name="vinculos" control={control} label="Tipos de vínculo" placeholder="Selecione um ou mais tipos de vínculo" cols="12 5" required display="chip" readOnly={somenteLeitura} options={TIPOS_VINCULO.map((tipo) => ({ label: tipo, value: tipo }))} optionLabel="label" optionValue="value" getFormErrorMessage={() => exibirErro("vinculos")} />
+            </div>
+          </section>
+          {modo === "novo" ? <section className="prototype-carreira-register-section">
+            <header><span className="prototype-carreira-section-icon"><i className="pi pi-calendar" /></span><div><h2>Vigência</h2><p>Informe quando a forma passa a valer. A situação é calculada automaticamente.</p></div></header>
+            <div className="grid prototype-carreira-register-fields">
+              <DateFieldSeplag name="dataInicio" control={control} label="Data de início" cols="12 6" required maxDate={hoje} customValidation={(valor) => !valor || valor.split("/").reverse().join("-") <= hojeIso || "A data de início não pode ser futura."} getFormErrorMessage={() => exibirErro("dataInicio")} />
+              <div className="col-12 md:col-6"><div className="prototype-carreira-status-card"><span className="prototype-carreira-status-icon"><i className="pi pi-calendar" /></span><div><span>Situação</span><strong>{dataInicio ? "Ativa" : "A definir"}</strong><p>{dataInicio ? "A forma ficará ativa a partir da data de início informada." : "Informe a data para calcular a situação inicial."}</p></div></div></div>
+            </div>
+          </section> : null}
+          <section className="prototype-carreira-register-section">
+            <header><span className="prototype-carreira-section-icon"><i className="pi pi-sliders-h" /></span><div><h2>Exigências do processo</h2><p>Indique quais informações deverão ser obrigatórias ao encerrar um vínculo com esta forma.</p></div></header>
+            <div className="prototype-shared-criterios-list prototype-tipo-vinculo-comportamentos">
+              <div className="prototype-shared-criterio-item"><CheckboxFieldSeplag name="exigeProcessoSigadoc" control={control} checkboxLabel="Exige campo de processo SIGADOC" cols="12" disabled={somenteLeitura} getFormErrorMessage={() => null} /><span>Solicita o número do processo SIGADOC no encerramento do vínculo.</span></div>
+              <div className="prototype-shared-criterio-item"><CheckboxFieldSeplag name="exigeProcessoLegal" control={control} checkboxLabel="Exige campo de processo legal" cols="12" disabled={somenteLeitura} getFormErrorMessage={() => null} /><span>Solicita a identificação do processo legal relacionado ao encerramento.</span></div>
+            </div>
+          </section>
+          <footer className="prototype-carreira-register-actions"><Link className="prototype-profile-back-link" to="/prototipos/sigep/backlog/desligamento-vinculo/formas-desligamento"><i className="pi pi-arrow-left" aria-hidden="true" /><span>Voltar</span></Link>{!somenteLeitura ? <BotaoSalvarSeplag type="submit" label={modo === "editar" ? "Salvar alterações" : "Salvar forma"} /> : null}</footer>
+        </form>
       </CardSeplag>
     </div>
   </PrototypeSystemPage>;
 }
+export function PrototiposFormaEncerramentoFormPage() { return <FormaEncerramentoFormPage />; }
+export function PrototiposFormaEncerramentoVisualizarPage() { return <FormaEncerramentoFormPage modo="visualizar" />; }
+export function PrototiposFormaEncerramentoEditarPage() { return <FormaEncerramentoFormPage modo="editar" />; }
 export function PrototiposBolsaPage() { return <PrototiposMenuCardsPage titulo="Encerramento Bolsa" descricao="Selecione a forma de encerramento ou substituição da bolsa." itens={menuCardsBolsa} />; }
 export function PrototiposEncerramentoContratoPage() { return <PrototiposMenuCardsPage titulo="Encerramento contrato" descricao="Selecione a forma de encerramento do vínculo temporário." itens={menuCardsEncerramentoContrato} />; }
 export function PrototiposExoneracaoDestituicaoPage() { return <PrototiposMenuCardsPage titulo="Exoneração/destituição" descricao="Selecione a modalidade de desligamento do vínculo comissionado." itens={menuCardsExoneracaoDestituicao} />; }

@@ -8730,6 +8730,7 @@
   grid-template-columns: minmax(140px, 1fr) minmax(250px, 1.5fr) minmax(170px, 1fr) minmax(170px, 1fr) auto;
   gap: 12px;
   align-items: flex-end;
+  padding-inline: 12px !important;
 }
 
 .prototype-formas-desligamento-filters > [class*="col-"] {
@@ -8754,6 +8755,18 @@
 .prototype-formas-desligamento-filters > .prototype-category-clear .p-button {
   width: 150px !important;
   min-width: 150px;
+}
+
+.prototype-formas-encerramento-card .prototype-category-table .p-datatable-thead > tr > th:nth-child(4),
+.prototype-formas-encerramento-card .prototype-category-table .p-datatable-thead > tr > th:nth-child(5),
+.prototype-formas-encerramento-card .prototype-category-table .p-datatable-tbody > tr > td:nth-child(4),
+.prototype-formas-encerramento-card .prototype-category-table .p-datatable-tbody > tr > td:nth-child(5) {
+  text-align: center;
+}
+
+.prototype-formas-encerramento-card .prototype-category-table .p-datatable-thead > tr > th:nth-child(4) .p-column-header-content,
+.prototype-formas-encerramento-card .prototype-category-table .p-datatable-thead > tr > th:nth-child(5) .p-column-header-content {
+  justify-content: center;
 }
 
 @media (max-width: 900px) {
@@ -20549,6 +20562,7 @@
 .prototype-carreira-closing-section > header { background: #fffaf2; }
 .prototype-carreira-closing-section .prototype-carreira-section-icon { background: #fff0d5; color: #a45e00; }
 .prototype-carreira-register-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 18px; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; }
+.prototype-forma-encerramento-form .prototype-carreira-register-actions { padding-inline: 0; border: 0; background: transparent; }
 @media (max-width: 900px) { .prototype-carreira-register-page { padding: 16px; } .prototype-carreira-vigencia-grid, .prototype-carreira-vigencia-grid.has-encerramento, .prototype-carreira-vigencia-grid.has-extincao, .prototype-cargo-paired-sections, .prototype-tipo-vinculo-paired-sections, .prototype-perfil-paired-sections { grid-template-columns: 1fr; } }
 @media (max-width: 650px) { .prototype-cargo-paired-sections .prototype-carreira-vigencia-grid, .prototype-tipo-vinculo-paired-sections .prototype-carreira-vigencia-grid, .prototype-perfil-paired-sections .prototype-carreira-vigencia-grid { grid-template-columns: 1fr; } }
 
