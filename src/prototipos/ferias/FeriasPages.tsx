@@ -75,6 +75,8 @@ export interface FeriasRegistro {
   lancadoEm: string;
   dataLimiteValidacaoChefia?: string;
   bloqueioAuxilioTransporte?: boolean;
+  auxilioTransporteEfetivado?: boolean;
+  sigpasIntegrado?: boolean;
   emailChefiaEnviado?: boolean;
 }
 
@@ -145,12 +147,72 @@ const SERVIDORES_MOCK: ServidorMock[] = [
   { matricula: "551067", nome: "Cláudia Mendes", orgao: "SEDUC/MT", setor: "Escola Estadual Antônio Ferreira", cargo: "Apoio", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 45 },
   { matricula: "512077", nome: "João Pedro Castanheira", orgao: "UNEMAT/MT", setor: "UNEMAT — Reitoria", cargo: "Administração", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 30 },
   { matricula: "512104", nome: "Marina Costa Alves", orgao: "UNEMAT/MT", setor: "UNEMAT — Campus Sinop", cargo: "Apoio", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 30 },
-  { matricula: "310021", nome: "Beatriz Andrade Correia", orgao: "SEPLAG/MT", setor: "Hospital Regional de Mato Grosso", cargo: "Residente Técnico — Enfermagem", tipoVinculo: "Residente Técnico", cargoGestao: false, periodoAquisitivoInicio: "2026-02-01", periodoAquisitivoFim: "", saldoDisponivel: 15 },
+  { matricula: "310021", nome: "Beatriz Andrade Correia", orgao: "SEPLAG/MT", setor: "Hospital Regional de Mato Grosso", cargo: "Residente Técnico — Enfermagem", tipoVinculo: "Residente Técnico", cargoGestao: false, periodoAquisitivoInicio: "2026-02-01", periodoAquisitivoFim: "", saldoDisponivel: 30 },
   { matricula: "320045", nome: "Igor Machado Nunes", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Bolsista", tipoVinculo: "Bolsista", cargoGestao: false, periodoAquisitivoInicio: "2026-07-10", periodoAquisitivoFim: "", saldoDisponivel: 15 },
-  { matricula: "330078", nome: "Larissa Pacheco Teixeira", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Estagiária", tipoVinculo: "Estagiário", cargoGestao: false, periodoAquisitivoInicio: "2026-01-05", periodoAquisitivoFim: "", saldoDisponivel: 15 },
+  { matricula: "330078", nome: "Larissa Pacheco Teixeira", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Estagiária", tipoVinculo: "Estagiário", cargoGestao: false, periodoAquisitivoInicio: "2026-01-05", periodoAquisitivoFim: "", saldoDisponivel: 22 },
+  { matricula: "340099", nome: "Camila Rezende Borges", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Estagiária", tipoVinculo: "Estagiário", cargoGestao: false, periodoAquisitivoInicio: "2025-10-15", periodoAquisitivoFim: "", saldoDisponivel: 30 },
+  { matricula: "350011", nome: "Thiago Nunes Prado", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Estagiário", tipoVinculo: "Estagiário", cargoGestao: false, periodoAquisitivoInicio: "2026-08-01", periodoAquisitivoFim: "", saldoDisponivel: 5 },
+  { matricula: "360022", nome: "Patrícia Souza Lacerda", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Estagiária", tipoVinculo: "Estagiário", cargoGestao: false, periodoAquisitivoInicio: "2025-11-01", periodoAquisitivoFim: "", saldoDisponivel: 27 },
+  { matricula: "370033", nome: "Eduardo Lima Vasconcelos", orgao: "SEPLAG/MT", setor: "Hospital Regional de Mato Grosso", cargo: "Residente Técnico — Fisioterapia", tipoVinculo: "Residente Técnico", cargoGestao: false, periodoAquisitivoInicio: "2026-04-15", periodoAquisitivoFim: "", saldoDisponivel: 20 },
+  { matricula: "380044", nome: "Fernanda Alves Carneiro", orgao: "SEPLAG/MT", setor: "Hospital Regional de Mato Grosso", cargo: "Residente Técnico — Enfermagem", tipoVinculo: "Residente Técnico", cargoGestao: false, periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "", saldoDisponivel: 30 },
+  { matricula: "390055", nome: "Gabriel Teixeira Rocha", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Bolsista", tipoVinculo: "Bolsista", cargoGestao: false, periodoAquisitivoInicio: "2026-09-20", periodoAquisitivoFim: "", saldoDisponivel: 5 },
   { matricula: "550099", nome: "Ricardo Farias Lima", orgao: "SES/MT", setor: "Unidade de Pronto Atendimento", cargo: "Médico Plantonista", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-09-01", periodoAquisitivoFim: "2026-08-31", saldoDisponivel: 20 },
   { matricula: "550099", nome: "Ricardo Farias Lima", orgao: "SES/MT", setor: "Ambulatório de Cardiologia", cargo: "Médico Cardiologista", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2025-11-01", periodoAquisitivoFim: "2026-10-31", saldoDisponivel: 12 },
 ];
+
+interface PeriodoAquisitivoRecesso {
+  inicio: string;
+  saldo: number;
+}
+
+/** RN004/RN005 (US50/US51) — cada matrícula pode ter mais de um período aquisitivo de
+ * recesso com saldo; a tela precisa listar todos para o operador escolher, não assumir
+ * um único período fixo. */
+const PERIODOS_RECESSO_MOCK: Record<string, PeriodoAquisitivoRecesso[]> = {
+  "310021": [ // Beatriz Andrade Correia — Residente Técnico, dois anos completos (parcelamento livre)
+    { inicio: "2025-02-01", saldo: 30 },
+    { inicio: "2026-02-01", saldo: 30 },
+  ],
+  "320045": [ // Igor Machado Nunes — Bolsista, saldo não-múltiplo de 10 (parcelamento livre)
+    { inicio: "2026-01-10", saldo: 15 },
+    { inicio: "2026-07-10", saldo: 15 },
+  ],
+  "330078": [ // Larissa Pacheco Teixeira — Estagiária, saldo ainda formando (bloco integral); um período antes do corte de março/2018
+    { inicio: "2017-06-01", saldo: 15 },
+    { inicio: "2026-01-05", saldo: 22 },
+  ],
+  "340099": [ // Camila Rezende Borges — Estagiária com saldo no teto de 30 dias (padrão fixo IN 007/2022)
+    { inicio: "2025-10-15", saldo: 30 },
+  ],
+  "350011": [ // Thiago Nunes Prado — Estagiário ainda em carência (< 6 meses de vínculo)
+    { inicio: "2026-08-01", saldo: 5 },
+  ],
+  "360022": [ // Patrícia Souza Lacerda — Estagiária perto do fim do contrato (RN007)
+    { inicio: "2025-11-01", saldo: 27 },
+  ],
+  "370033": [ // Eduardo Lima Vasconcelos — Residente Técnico com saldo não-múltiplo de 30
+    { inicio: "2026-04-15", saldo: 20 },
+  ],
+  "380044": [ // Fernanda Alves Carneiro — Residente Técnico com dois períodos próximos (RN011 sem intercalar)
+    { inicio: "2026-01-01", saldo: 30 },
+    { inicio: "2026-11-01", saldo: 30 },
+  ],
+  "390055": [ // Gabriel Teixeira Rocha — Bolsista com saldo baixo (etapa única rápida)
+    { inicio: "2026-09-20", saldo: 5 },
+  ],
+};
+
+/** RN005 (US51) — períodos aquisitivos de estagiário anteriores a este marco são
+ * bloqueados na tela e direcionados à Gestão de Pessoas. Não se aplica a residente/bolsista (RN004/US50). */
+const MARCO_CORTE_ESTAGIARIO = "2018-03-01";
+
+/** RN007 (US51) — o agendamento do estagiário precisa ser anterior ao fim do contrato. */
+const FIM_CONTRATO_ESTAGIARIO_MOCK: Record<string, string> = {
+  "330078": "2026-12-04", // Larissa Pacheco Teixeira
+  "340099": "2027-10-14", // Camila Rezende Borges
+  "350011": "2027-07-31", // Thiago Nunes Prado
+  "360022": "2026-11-15", // Patrícia Souza Lacerda — contrato encerra em breve, demonstra RN007
+};
 
 function vinculosDoServidor(nome: string): ServidorMock[] {
   return SERVIDORES_MOCK.filter((servidor) => servidor.nome === nome);
@@ -163,7 +225,7 @@ function buscarServidorMock(query: string): ServidorMock | undefined {
   return SERVIDORES_MOCK.find(
     (servidor) =>
       servidor.matricula === termo ||
-      servidor.nome.toLocaleLowerCase("pt-BR") === termo ||
+      servidor.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
       Boolean(cpfBusca && servidor.cpf?.replace(/\D/g, "").includes(cpfBusca)),
   );
 }
@@ -224,7 +286,7 @@ const professoresLoteBase: ProfessorLote[] = [
   { id: 10, orgao: "SEDUC", nome: "Wagner Correia Lima", matricula: "503399", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "EE Tiradentes", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false, remocaoRecentePendente: true },
   { id: 11, orgao: "UNEMAT", nome: "João Pedro Castanheira", matricula: "512077", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "UNEMAT — Reitoria", situacaoLotacao: "Em unidade universitária", saldo: 45, saldoConfirmado: false, cargoGestao: false, ltsConcomitante: false },
   { id: 12, orgao: "UNEMAT", nome: "Marina Costa Alves", matricula: "512104", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "UNEMAT — Campus Sinop", situacaoLotacao: "Em unidade universitária", saldo: 45, saldoConfirmado: false, cargoGestao: false, ltsConcomitante: false },
-  { id: 13, orgao: "SEDUC", nome: "Rafael Monteiro Costa", matricula: "551120", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Fora da escola", saldo: 45, cargoGestao: false, ltsConcomitante: false },
+  { id: 13, orgao: "SEDUC", nome: "Rafael Monteiro Costa", matricula: "551120", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Fora da escola", saldo: 30, cargoGestao: false, ltsConcomitante: false },
   { id: 14, orgao: "SEDUC", nome: "Lívia Rodrigues Martins", matricula: "551138", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: true, periodoAquisitivoFechado: true },
   { id: 15, orgao: "SEDUC", nome: "Marcos Vieira Souza", matricula: "551141", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false, afastamentoConcomitante: "Licença para acompanhamento de familiar" },
   { id: 16, orgao: "SEDUC", nome: "Paulo Henrique Alves", matricula: "551155", cargo: "Professor", vinculo: "Efetivo", lotacaoNome: "Escola Estadual Antônio Ferreira", situacaoLotacao: "Em escola", saldo: 45, cargoGestao: false, ltsConcomitante: false, vinculoEncerrado: true },
@@ -264,17 +326,25 @@ const professoresLote: ProfessorLote[] = lotacoesProfessores.flatMap((lotacao, u
     nomesUsados.add(nome);
 
     const estaEmEscola = lotacao.situacaoLotacao === "Em escola";
-    const saldoEsperado: 45 | 30 = lotacao.orgao === "UNEMAT" || estaEmEscola ? 45 : 30;
-    const saldoInconsistente = indice % 10 === 0;
+    // ~1 em cada 5 registros gerados é cargo de apoio/gestão (público do Agendamento em Lote);
+    // os demais são professor (público da Coletiva).
+    const ehApoioOuGestao = indice % 5 === 4;
+    const cargo = ehApoioOuGestao ? (indice % 10 === 4 ? "Gestão" : "Apoio") : "Professor";
+    // Apoio/gestão não tem direito aos 45 dias (exclusivo de professor); saldo fixo em 30,
+    // com uma inconsistência cadastral demonstrativa de vez em quando.
+    const saldoEsperado: 45 | 30 = ehApoioOuGestao
+      ? 30
+      : lotacao.orgao === "UNEMAT" || estaEmEscola ? 45 : 30;
+    const saldoInconsistente = ehApoioOuGestao ? indice % 20 === 4 : indice % 10 === 0;
     const saldo: 45 | 30 = saldoInconsistente
-      ? estaEmEscola ? 30 : 45
+      ? (ehApoioOuGestao ? 45 : estaEmEscola ? 30 : 45)
       : saldoEsperado;
     exemplos.push({
       id: 100000 + unidadeIndex * 1000 + indice,
       orgao: lotacao.orgao,
       nome,
       matricula: String(700000 + unidadeIndex * 1000 + indice),
-      cargo: "Professor",
+      cargo,
       vinculo: indice % 4 === 0 ? "Contrato Temporário" : "Efetivo",
       lotacaoNome: lotacao.nome,
       situacaoLotacao: lotacao.situacaoLotacao,
@@ -422,6 +492,24 @@ function diasEntre(dataA: string, dataB: string) {
   return Math.round((b.getTime() - a.getTime()) / 86400000);
 }
 
+function calcularCarencia(inicio: string) {
+  if (!inicio) return null;
+  const hoje = new Date().toISOString().slice(0, 10);
+  const totalDias = diasEntre(inicio, hoje);
+  if (totalDias < 0) return null;
+  const meses = Math.floor(totalDias / 30.44);
+  const diasRestantes = Math.round(totalDias - meses * 30.44);
+  return {
+    totalDias,
+    meses,
+    diasRestantes,
+    hoje,
+    cumpre4: totalDias >= 120,
+    cumpre6: totalDias >= 182,
+    cumpre12: totalDias >= 365,
+  };
+}
+
 /** Decreto 656/2020: entre uma parcela e a próxima, o intervalo de folga só
  * pode ser zero (parcela seguinte começa no dia imediatamente após o fim da
  * anterior) ou 10 dias corridos — nenhum valor intermediário. */
@@ -535,6 +623,7 @@ export function PrototiposFeriasPage() {
   const [fluxoNovaSolicitacao, setFluxoNovaSolicitacao] = useState<"escolha" | TipoSolicitacao | null>(null);
   const [registroSubstituicao, setRegistroSubstituicao] = useState<FeriasRegistro | null>(null);
   const [registroVisualizacao, setRegistroVisualizacao] = useState<FeriasRegistro | null>(null);
+  const [registroEdicaoRecesso, setRegistroEdicaoRecesso] = useState<FeriasRegistro | null>(null);
   const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
   const [confirmacaoStatus, setConfirmacaoStatus] = useState<{ registro: FeriasRegistro; acao: AcaoStatus } | null>(null);
   const [subBusca, setSubBusca] = useState("");
@@ -665,12 +754,31 @@ export function PrototiposFeriasPage() {
     registro.situacao !== "QUITADO" &&
     registro.situacao !== "CANCELADO";
 
-  const aplicarStatus = (registroId: number, novaSituacao: SituacaoFerias) => {
-    const proximos = registros.map((registro) =>
-      registro.id === registroId ? { ...registro, situacao: novaSituacao } : registro,
-    );
+  const aplicarStatus = (registroId: number, novaSituacao: SituacaoFerias, acao?: AcaoStatus) => {
+    const proximos = registros.map((registro) => {
+      if (registro.id !== registroId) return registro;
+      // RN013 (US50): o bloqueio do auxílio-transporte e a integração com o SIGPAS só se
+      // efetivam quando a chefia valida o recesso do residente/bolsista — não no lançamento.
+      const efetivaBeneficiosRecesso =
+        acao === "validar" &&
+        registro.tipo === "Recesso" &&
+        (registro.tipoVinculo === "Residente Técnico" || registro.tipoVinculo === "Bolsista");
+      return {
+        ...registro,
+        situacao: novaSituacao,
+        ...(efetivaBeneficiosRecesso ? { auxilioTransporteEfetivado: true, sigpasIntegrado: true } : {}),
+      };
+    });
     atualizarRegistros(proximos);
     setConfirmacaoStatus(null);
+  };
+
+  const salvarEdicaoRecesso = (registroId: number, parcelas: ParcelaFerias[]) => {
+    const proximos = registros.map((registro) =>
+      registro.id === registroId ? { ...registro, parcelas } : registro,
+    );
+    atualizarRegistros(proximos);
+    setRegistroEdicaoRecesso(null);
   };
 
   const salvarSubstitutos = (registroId: number, substitutos: SubstitutoFerias[]) => {
@@ -814,6 +922,7 @@ export function PrototiposFeriasPage() {
                 registros={registrosFiltrados}
                 perfil={perfil}
                 onVisualizar={setRegistroVisualizacao}
+                onEditar={(registro) => (registro.tipo === "Recesso" ? setRegistroEdicaoRecesso(registro) : setRegistroVisualizacao(registro))}
                 onGerenciarSubstituicao={setRegistroSubstituicao}
                 onAlterarStatus={(registro, acao) => setConfirmacaoStatus({ registro, acao })}
                 podeEditar={podeEditar}
@@ -903,12 +1012,20 @@ export function PrototiposFeriasPage() {
         <ModalVisualizarRegistro registro={registroVisualizacao} onFechar={() => setRegistroVisualizacao(null)} />
       ) : null}
 
+      {registroEdicaoRecesso ? (
+        <ModalAlterarRecesso
+          registro={registroEdicaoRecesso}
+          onFechar={() => setRegistroEdicaoRecesso(null)}
+          onSalvar={(parcelas) => salvarEdicaoRecesso(registroEdicaoRecesso.id, parcelas)}
+        />
+      ) : null}
+
       {confirmacaoStatus ? (
         <ModalConfirmarStatus
           registro={confirmacaoStatus.registro}
           acao={confirmacaoStatus.acao}
           onFechar={() => setConfirmacaoStatus(null)}
-          onConfirmar={(novaSituacao) => aplicarStatus(confirmacaoStatus.registro.id, novaSituacao)}
+          onConfirmar={(novaSituacao) => aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao)}
         />
       ) : null}
     </PrototypeSystemPage>
@@ -970,6 +1087,7 @@ interface TabelaRegistrosProps {
   registros: FeriasRegistro[];
   perfil: PerfilAcesso;
   onVisualizar: (registro: FeriasRegistro) => void;
+  onEditar: (registro: FeriasRegistro) => void;
   onGerenciarSubstituicao: (registro: FeriasRegistro) => void;
   onAlterarStatus: (registro: FeriasRegistro, acao: AcaoStatus) => void;
   podeEditar: (registro: FeriasRegistro) => boolean;
@@ -981,6 +1099,7 @@ function TabelaRegistros({
   registros,
   perfil,
   onVisualizar,
+  onEditar,
   onGerenciarSubstituicao,
   onAlterarStatus,
   podeEditar,
@@ -1077,7 +1196,7 @@ function TabelaRegistros({
                         <i className="pi pi-eye" aria-hidden="true" /> Visualizar
                       </button>
                       {podeGerenciarCompleto(perfil) && podeEditar(registro) ? (
-                        <button type="button" onClick={() => { onVisualizar(registro); setMenuAbertoId(null); }}>
+                        <button type="button" onClick={() => { onEditar(registro); setMenuAbertoId(null); }}>
                           <i className="pi pi-pencil" aria-hidden="true" /> Editar
                         </button>
                       ) : null}
@@ -1334,7 +1453,7 @@ function ModalEscolhaTipoSolicitacao({
           </span>
           <div>
             <strong>Recesso Remunerado</strong>
-            <span>Residente técnico, bolsista e estagiário — não é férias, instituto próprio (IN 05).</span>
+            <span>Residente técnico e estagiário — não é férias, instituto próprio (IN 05).</span>
           </div>
         </button>
       </div>
@@ -1396,7 +1515,7 @@ export function FormularioIndividual({
   const aplicarServidor = (servidor: ServidorMock) => {
     if (!permiteSolicitacaoFerias(servidor.tipoVinculo)) {
       setServidorEncontrado(false);
-      setErro("Férias individuais são permitidas somente para vínculos Efetivo, Comissionado e Contrato Temporário. Residentes técnicos, bolsistas e estagiários não podem solicitar férias.");
+      setErro("Férias individuais são permitidas somente para vínculos Efetivo, Comissionado e Contrato Temporário. Residentes técnicos e estagiários não podem solicitar férias.");
       return;
     }
     setServidorNome(servidor.nome);
@@ -1661,6 +1780,41 @@ export function FormularioIndividual({
         )}
       </div>
 
+      {servidorEncontrado && (tipoVinculo === "Efetivo" || tipoVinculo === "Comissionado" || tipoVinculo === "Contrato Temporário") && (() => {
+        const carencia = calcularCarencia(periodoAquisitivoInicio);
+        if (!carencia) return null;
+        return (
+          <div className="prototype-ferias-form-section prototype-ferias-carencia-painel">
+            <h3 className="prototype-ferias-secao-titulo">
+              <i className="pi pi-calendar" aria-hidden="true" />
+              Período aquisitivo &amp; carência
+            </h3>
+            <div className="prototype-ferias-carencia-linha">
+              <div className="prototype-ferias-carencia-item">
+                <span className="prototype-ferias-carencia-label">Início do vínculo</span>
+                <strong>{formatarDataBr(periodoAquisitivoInicio)}</strong>
+              </div>
+              <div className="prototype-ferias-carencia-seta">→</div>
+              <div className="prototype-ferias-carencia-item">
+                <span className="prototype-ferias-carencia-label">Hoje</span>
+                <strong>{formatarDataBr(carencia.hoje)}</strong>
+              </div>
+              <div className="prototype-ferias-carencia-seta">→</div>
+              <div className="prototype-ferias-carencia-item">
+                <span className="prototype-ferias-carencia-label">Tempo de vínculo</span>
+                <strong>{carencia.meses} {carencia.meses === 1 ? "mês" : "meses"} e {carencia.diasRestantes} {carencia.diasRestantes === 1 ? "dia" : "dias"} ({carencia.totalDias} dias)</strong>
+              </div>
+            </div>
+            <div className="prototype-ferias-carencia-badges">
+              <span className={`prototype-ferias-carencia-badge ${carencia.cumpre12 ? "is-ok" : "is-erro"}`}>
+                <i className={`pi ${carencia.cumpre12 ? "pi-check" : "pi-times"}`} />
+                {" "}12 meses (365 dias) — {carencia.cumpre12 ? "período aquisitivo completo" : `faltam ${365 - carencia.totalDias} dias`}
+              </span>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="prototype-ferias-form-section">
         <h3 className="prototype-ferias-secao-titulo">
           <i className="pi pi-calendar" aria-hidden="true" />
@@ -1814,6 +1968,7 @@ export function FormularioColetiva({
     }
   });
   const [soComAlerta, setSoComAlerta] = useState(false);
+  const [soComAlertaAba1, setSoComAlertaAba1] = useState(false);
   const [abaColetiva, setAbaColetiva] = useState<1 | 2>(1);
   const [primeiroAba2, setPrimeiroAba2] = useState(0);
   const [porPaginaAba2, setPorPaginaAba2] = useState(10);
@@ -1847,34 +2002,43 @@ export function FormularioColetiva({
   /** Erros bloqueantes: o servidor não pode entrar no lote. */
   const errosDe = useCallback((professor: ProfessorLote): string[] => {
     const lista: string[] = [];
-    if (professor.cargoGestao) {
-      lista.push(modoAgendamentoLote
-        ? "Cargo de gestão — excluído do lote"
-        : "Cargo de gestão — requer agendamento individual");
+    // Cargo de gestão só é motivo de exclusão na Coletiva (regra exclusiva de professor);
+    // no Agendamento em Lote, cargos de gestão/apoio são o próprio público-alvo da tela.
+    if (professor.cargoGestao && !modoAgendamentoLote) {
+      lista.push("Cargo de gestão — requer agendamento individual");
     }
     if (professor.remocaoRecentePendente) lista.push("Remoção recente — aguarda análise de férias");
     if (professor.vinculoEncerrado) lista.push("Vínculo encerrado — não pode receber novo lançamento");
     if (professor.feriasConcomitante) lista.push("Já possui férias no período — possível duplicidade");
     if (professor.cedido) {
-      lista.push(modoAgendamentoLote
-        ? "Servidor cedido — excluído do lote; saldo de referência: 30 dias"
-        : "Servidor cedido — confirmar lotação e saldo");
+      if (orgao === "UNEMAT") {
+        lista.push("Servidor cedido — ajuste de saldo 45→30 pendente de parâmetro definido com a UNEMAT");
+      } else {
+        lista.push(modoAgendamentoLote
+          ? "Servidor cedido — excluído do lote; saldo de referência: 30 dias"
+          : "Servidor cedido — confirmar lotação e saldo");
+      }
     }
     if (professor.vinculo === "Contrato Temporário" && orgao !== "UNEMAT" && professor.periodoAquisitivoFechado !== true) {
       lista.push("Contrato temporário sem período aquisitivo fechado");
     }
-    if (professor.situacaoLotacao === "Fora da escola" || professor.situacaoLotacao === "Fora de unidade") {
-      lista.push("Fora de unidade escolar/universitária — confirmar lotação");
-    }
     const saldo = professor.saldo;
-    if ((professor.situacaoLotacao === "Fora da escola" || professor.situacaoLotacao === "Fora de unidade") && saldo === 45) {
-      lista.push("Saldo de 45 dias fora da escola — incompatível com a lotação");
-    }
-    if (professor.situacaoLotacao === "Em escola" && saldo === 30) {
-      lista.push("Saldo de 30 dias em escola — inconsistência cadastral");
-    }
-    if (orgao === "UNEMAT" && professor.situacaoLotacao === "Em unidade universitária" && saldo !== 45) {
-      lista.push("Saldo diferente de 45 dias — fora do critério do lote");
+    if (modoAgendamentoLote) {
+      // Cargos de gestão/apoio não têm direito aos 45 dias — benefício exclusivo de professor (LC 50/1998).
+      if (saldo === 45) {
+        lista.push("Saldo de 45 dias não se aplica a cargo de gestão/apoio — benefício exclusivo de professor");
+      }
+    } else {
+      // Fora da escola → direito a 30 dias; saldo 45 indica inconsistência cadastral
+      if ((professor.situacaoLotacao === "Fora da escola" || professor.situacaoLotacao === "Fora de unidade") && saldo === 45) {
+        lista.push("Saldo de 45 dias fora da escola — inconsistência cadastral; verifique antes de incluir");
+      }
+      if (professor.situacaoLotacao === "Em escola" && saldo === 30) {
+        lista.push("Saldo de 30 dias em escola — inconsistência cadastral");
+      }
+      if (orgao === "UNEMAT" && professor.situacaoLotacao === "Em unidade universitária" && saldo !== 45) {
+        lista.push("Saldo diferente de 45 dias — fora do critério do lote");
+      }
     }
     return lista;
   }, [modoAgendamentoLote, orgao]);
@@ -1886,8 +2050,16 @@ export function FormularioColetiva({
     if (professor.afastamentoConcomitante) {
       lista.push(`${professor.afastamentoConcomitante} no período — decidir inclusão`);
     }
+    // Fora da escola com saldo correto (30 dias) — regra de professor; não se aplica ao lote de apoio/gestão.
+    if (
+      !modoAgendamentoLote &&
+      (professor.situacaoLotacao === "Fora da escola" || professor.situacaoLotacao === "Fora de unidade") &&
+      professor.saldo === 30
+    ) {
+      lista.push("Fora da escola — gozo limitado a 30 dias (não 45)");
+    }
     return lista;
-  }, []);
+  }, [modoAgendamentoLote]);
 
   const alertasDe = useCallback(
     (professor: ProfessorLote): string[] => [...errosDe(professor), ...avisosDe(professor)],
@@ -1906,7 +2078,8 @@ export function FormularioColetiva({
   const professoresDaLotacao = useMemo(
     () => professoresLote.filter(
       (professor) =>
-        professor.cargo === "Professor" &&
+        // Coletiva: exclusiva de professor. Agendamento em Lote: cargos de gestão/apoio (não professor).
+        (modoAgendamentoLote ? professor.cargo !== "Professor" : professor.cargo === "Professor") &&
         professor.orgao === orgao &&
         (modoAgendamentoLote && perfilLote === "GESTAO_UNEMAT" ? true : professor.lotacaoNome === escola),
     ),
@@ -1926,12 +2099,15 @@ export function FormularioColetiva({
       ) {
         return false;
       }
+      if (soComAlertaAba1 && alertasDe(professor).length === 0) return false;
       return true;
     });
-  }, [professoresDaLotacao, buscaNome, tipoVinculoFiltro]);
+  }, [professoresDaLotacao, buscaNome, tipoVinculoFiltro, soComAlertaAba1, alertasDe]);
 
+  /** "Selecionáveis" para fins do cabeçalho "selecionar todos": sem erro bloqueante nem aviso.
+   * Quem tem erro/aviso continua podendo ser marcado manualmente, linha por linha. */
   const servidoresSelecionaveisFiltrados = listaFiltrada.filter((professor) =>
-    !modoAgendamentoLote || (!professor.cargoGestao && errosDe(professor).length === 0),
+    errosDe(professor).length === 0 && avisosDe(professor).length === 0,
   );
 
   const listaPaginada = useMemo(
@@ -1941,7 +2117,7 @@ export function FormularioColetiva({
 
   useEffect(() => {
     setPrimeiroRegistro(0);
-  }, [orgao, escola, buscaNome, tipoVinculoFiltro]);
+  }, [orgao, escola, buscaNome, tipoVinculoFiltro, soComAlertaAba1]);
 
   const estadoLinha = (id: number) => selecionados[id] ?? { incluido: false, julho: false, janeiro: false };
 
@@ -1972,11 +2148,9 @@ export function FormularioColetiva({
     setSelecionados((atual) => {
       const proximo = { ...atual };
       listaFiltrada.forEach((professor) => {
-        if (modoAgendamentoLote && (
-          professor.cargoGestao ||
-          errosDe(professor).length > 0 ||
-          (campo === "incluido" && valor && avisosDe(professor).length > 0)
-        )) return;
+        // "Selecionar todos" marca automaticamente só quem está OK (sem erro nem aviso);
+        // quem tem pendência continua selecionável manualmente, linha por linha.
+        if (valor && campo === "incluido" && (errosDe(professor).length > 0 || avisosDe(professor).length > 0)) return;
         proximo[professor.id] = { ...estadoLinha(professor.id), [campo]: valor };
       });
       return proximo;
@@ -2095,7 +2269,10 @@ export function FormularioColetiva({
         periodoAquisitivoFim: `${anoAquisitivo}-12-31`,
         periodoAquisitivoLabel: periodoAquisitivo,
         parcelas,
-        situacao: modoAgendamentoLote && perfilLote === "SECRETARIO_SEDUC" ? "AGUARDANDO VALIDAÇÃO" : "EM ABERTO",
+        // Todo lançamento de férias precisa passar por aprovação da chefia antes de ficar
+        // Em Aberto — inclusive Coletiva direta e o lote da Gestão de Pessoas da UNEMAT, que
+        // antes pulavam a validação.
+        situacao: "AGUARDANDO VALIDAÇÃO",
         substitutos: [],
         loteId,
         responsavelLancamento: "Usuário atual",
@@ -2173,7 +2350,7 @@ export function FormularioColetiva({
               ? "Lança férias coletivas somente para a escola vinculada; o lote segue à DRE."
               : perfilLote === "DRE_SEDUC"
                 ? "A DRE não lança férias: valida os lotes recebidos e pode reprovar servidores individualmente."
-                : "A Gestão de Pessoas da UNEMAT visualiza todas as unidades e lança/valida o lote."}
+                : "A Gestão de Pessoas da UNEMAT visualiza todas as unidades e lança o lote; a validação da chefia acontece à parte, na aba Avaliar e Aprovar."}
           </small>
         </section>
       ) : null}
@@ -2298,14 +2475,11 @@ export function FormularioColetiva({
               control={coletivaControl}
               label="Escola/Lotação"
               cols="12"
-              options={(modoAgendamentoLote && perfilLote === "SECRETARIO_SEDUC"
-                ? ["Escola Estadual Antônio Ferreira"]
-                : lotacoesDisponiveis).map((lotacao) => ({ label: lotacao, value: lotacao }))}
+              options={lotacoesDisponiveis.map((lotacao) => ({ label: lotacao, value: lotacao }))}
               optionLabel="label"
               optionValue="value"
               showClear={false}
               getFormErrorMessage={() => null}
-              disabled={modoAgendamentoLote}
               onChange={() => {
                 setBuscaNome("");
                 setTextoBusca("");
@@ -2360,7 +2534,7 @@ export function FormularioColetiva({
         <section className="prototype-ferias-coletiva-docentes" aria-labelledby="ferias-coletiva-docentes-titulo">
         <h4 id="ferias-coletiva-docentes-titulo" className="prototype-ferias-coletiva-docentes-titulo">
           <i className="pi pi-users" aria-hidden="true" />
-          {modoAgendamentoLote ? "Corpo docente do lote" : "Corpo docente da coletiva"}
+          {modoAgendamentoLote ? "Servidores do lote (gestão/apoio)" : "Corpo docente da coletiva"}
         </h4>
         <div className="prototype-ferias-coletiva-lista-cabecalho">
           <label className="prototype-ferias-busca-servidor-label">
@@ -2386,6 +2560,14 @@ export function FormularioColetiva({
               />
             </div>
           </label>
+          <label className="prototype-ferias-coletiva-alerta-check">
+            <input
+              type="checkbox"
+              checked={soComAlertaAba1}
+              onChange={(event) => setSoComAlertaAba1(event.target.checked)}
+            />
+            Só com alerta
+          </label>
         </div>
         <div className="prototype-ferias-lote-table-wrap">
           <table className={`prototype-ferias-table prototype-ferias-coletiva-table${modoAgendamentoLote ? " prototype-ferias-coletiva-table--lote" : ""}`}>
@@ -2402,7 +2584,7 @@ export function FormularioColetiva({
                 </th>
                 <th>Servidor</th>
                 <th>Vínculo</th>
-                {modoAgendamentoLote ? <th>Cargo / Função</th> : null}
+                <th>Cargo / Função</th>
                 <th>Lotação</th>
                 <th>Situação</th>
                 {modoAgendamentoLote ? <th>Alertas</th> : null}
@@ -2441,11 +2623,8 @@ export function FormularioColetiva({
                     </td>
                     <td>
                       {professor.vinculo}
-                      {professor.vinculo === "Contrato Temporário" ? (
-                        <span className="prototype-ferias-lote-badge-temporario" title="Regra de pagamento depende de validação da Folha">FOLHA</span>
-                      ) : null}
                     </td>
-                    {modoAgendamentoLote ? <td>{professor.cargo}</td> : null}
+                    <td>{professor.cargo}</td>
                     <td>{professor.lotacaoNome}</td>
                     <td>
                       {professor.situacaoLotacao}
@@ -2499,7 +2678,7 @@ export function FormularioColetiva({
               })}
               {!listaPaginada.length ? (
                 <tr>
-                  <td colSpan={modoAgendamentoLote ? 8 : 7} className="prototype-ferias-empty">Nenhum servidor encontrado para os filtros informados.</td>
+                  <td colSpan={8} className="prototype-ferias-empty">Nenhum servidor encontrado para os filtros informados.</td>
                 </tr>
               ) : null}
             </tbody>
@@ -2686,12 +2865,7 @@ export function FormularioColetiva({
                         <td>
                           <div className="prototype-ferias-servidor-identificacao">
                             <strong>{professor.nome}</strong>
-                            <span>
-                              {professor.matricula}
-                              {professor.vinculo === "Contrato Temporário" ? (
-                                <span className="prototype-ferias-lote-badge-temporario" title="Regras de pagamento aguardam validação da Folha"> FOLHA</span>
-                              ) : null}
-                            </span>
+                            <span>{professor.matricula}</span>
                           </div>
                         </td>
                         <td>
@@ -2790,7 +2964,7 @@ export function FormularioColetiva({
                   <i className="pi pi-send" aria-hidden="true" />
                   <span>
                     {modoAgendamentoLote && perfilLote === "GESTAO_UNEMAT"
-                      ? "A Gestão de Pessoas da UNEMAT lança e valida o lote no mesmo fluxo."
+                      ? "Após lançar, o lote fica aguardando validação da chefia na aba Avaliar e Aprovar."
                       : orgao === "SEDUC"
                         ? "Após lançar, o lote será encaminhado à DRE para validação — aprovação em bloco, com possibilidade de reprovação individual."
                         : "Após lançar, o lote ficará disponível para validação pela Gestão de Pessoas da UNEMAT."}
@@ -2942,7 +3116,7 @@ export function FormularioLote({
       periodoAquisitivoFim: periodoAquisitivo ? `${anoAtual}-12-31` : "",
       periodoAquisitivoLabel: periodoAquisitivo || undefined,
       parcelas: [{ id: 1, inicio: dataInicio, fim, dias }],
-      situacao: "EM ABERTO",
+      situacao: "AGUARDANDO VALIDAÇÃO",
       substitutos: [],
       loteId,
       responsavelLancamento: "Usuário atual",
@@ -3139,6 +3313,16 @@ export function FormularioLote({
 
 const VINCULOS_RECESSO: TipoVinculo[] = ["Residente Técnico", "Bolsista", "Estagiário"];
 
+/** RC04: o início do usufruto não pode ocorrer 2 dias antes de fim de semana (feriados não são
+ * verificados neste protótipo por falta de calendário). */
+function violaAntecedenciaFimDeSemana(dataInicio: string): boolean {
+  if (!dataInicio) return false;
+  const data = new Date(`${dataInicio}T00:00:00`);
+  data.setDate(data.getDate() + 2);
+  const diaSemana = data.getDay();
+  return diaSemana === 0 || diaSemana === 6;
+}
+
 export function FormularioRecesso({
   onCancelar,
   onSalvar,
@@ -3151,23 +3335,77 @@ export function FormularioRecesso({
   const [tipoVinculo, setTipoVinculo] = useState<TipoVinculo>("Residente Técnico");
   const [dataInicioVinculo, setDataInicioVinculo] = useState("");
   const [periodoAquisitivoInicio, setPeriodoAquisitivoInicio] = useState("");
+  const [periodosDisponiveis, setPeriodosDisponiveis] = useState<PeriodoAquisitivoRecesso[]>([]);
+  const [periodoAquisitivoSelecionado, setPeriodoAquisitivoSelecionado] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [diasRecesso, setDiasRecesso] = useState(15);
-  const [emailChefia, setEmailChefia] = useState(true);
+  const [parcelasResidente, setParcelasResidente] = useState<ParcelaFerias[]>([]);
+  const [draftDuracaoResidente, setDraftDuracaoResidente] = useState<number | null>(null);
+  const [draftInicioResidente, setDraftInicioResidente] = useState("");
   const [erro, setErro] = useState("");
   const [servidorEncontrado, setServidorEncontrado] = useState(false);
   const [textoBuscaRecesso, setTextoBuscaRecesso] = useState("");
+  const [sugestoesServidorRecesso, setSugestoesServidorRecesso] = useState<string[]>([]);
 
-  const calcularCarencia = (inicio: string) => {
-    if (!inicio) return null;
-    const hoje = new Date().toISOString().slice(0, 10);
-    const totalDias = diasEntre(inicio, hoje);
-    if (totalDias < 0) return null;
-    const meses = Math.floor(totalDias / 30.44);
-    const diasRestantes = Math.round(totalDias - meses * 30.44);
-    const cumpre6 = totalDias >= 182;
-    const cumpre4 = totalDias >= 120;
-    return { totalDias, meses, diasRestantes, cumpre6, cumpre4, hoje };
+  const ehEstagiario = tipoVinculo === "Estagiário";
+  const ehResidenteOuBolsista = tipoVinculo === "Residente Técnico" || tipoVinculo === "Bolsista";
+
+  // RN005 (US51 / IN 007/2022): só o estagiário tem corte de período aquisitivo em março/2018.
+  const periodoBloqueadoPorCorte = (periodo: PeriodoAquisitivoRecesso) =>
+    ehEstagiario && periodo.inicio < MARCO_CORTE_ESTAGIARIO;
+  const periodoSelecionado = periodosDisponiveis.find((periodo) => periodo.inicio === periodoAquisitivoSelecionado) ?? null;
+  const saldoDisponivel = periodoSelecionado?.saldo ?? null;
+
+  // IN 007/2022/SEPLAG, arts. 14-15: o estagiário forma o saldo a 2,5 dias/mês (teto de 30
+  // dias/ano) e só pode parcelar nos padrões fixos quando atinge os 30 dias; com saldo menor
+  // (ainda formando), usufrui tudo de uma vez, sem parcelamento.
+  const usaPadraoFixoEstagiario = ehEstagiario && saldoDisponivel === 30;
+  // Decreto 704/2024, art. 8º, II: o residente/bolsista parcela livremente em até 3 etapas,
+  // sem tamanho fixo por etapa — qualquer saldo, a soma das etapas precisa fechar o total.
+  const usaParcelamento = usaPadraoFixoEstagiario || ehResidenteOuBolsista;
+
+  const totalParceladoResidente = parcelasResidente.reduce((total, parcela) => total + parcela.dias, 0);
+  const saldoRestanteEtapas = (saldoDisponivel ?? 0) - totalParceladoResidente;
+
+  // Com o saldo no teto de 30 dias, cada etapa é de 10, 15 ou 20 dias (IN 007/2022, arts. 14-15,
+  // para o estagiário; mesmos tamanhos usados por analogia para residente/bolsista). Com saldo
+  // menor que 30, não há o que escolher: a etapa única é o próprio saldo restante.
+  const opcoesDuracaoResidente = saldoDisponivel === 30
+    ? [10, 15, 20].filter((dias) => dias <= saldoRestanteEtapas)
+    : (saldoRestanteEtapas > 0 ? [saldoRestanteEtapas] : []);
+  const duracaoSelecionadaResidente = opcoesDuracaoResidente.includes(draftDuracaoResidente ?? -1)
+    ? (draftDuracaoResidente as number)
+    : (opcoesDuracaoResidente[0] ?? null);
+  const draftFimResidente = calcularFim(draftInicioResidente, duracaoSelecionadaResidente ?? 0);
+
+  const adicionarParcelaResidente = () => {
+    if (parcelasResidente.length >= 3) {
+      setErro("Parcelável em até 3 etapas.");
+      return;
+    }
+    if (!duracaoSelecionadaResidente || duracaoSelecionadaResidente < 1) {
+      setErro("Nenhuma duração disponível para completar o parcelamento.");
+      return;
+    }
+    if (!draftInicioResidente) {
+      setErro("Informe a data de início desta etapa.");
+      return;
+    }
+    setParcelasResidente((atual) => [
+      ...atual,
+      {
+        id: gerarId(),
+        dias: duracaoSelecionadaResidente,
+        inicio: draftInicioResidente,
+        fim: calcularFim(draftInicioResidente, duracaoSelecionadaResidente),
+      },
+    ]);
+    setDraftInicioResidente("");
+    setDraftDuracaoResidente(null);
+    setErro("");
+  };
+
+  const removerParcelaResidente = (id: number) => {
+    setParcelasResidente((atual) => atual.filter((parcela) => parcela.id !== id));
   };
 
   const aplicarServidorRecesso = (servidor: ServidorMock) => {
@@ -3178,47 +3416,156 @@ export function FormularioRecesso({
     setCargo(servidor.cargo);
     setTipoVinculo(servidor.tipoVinculo);
     setPeriodoAquisitivoInicio(servidor.periodoAquisitivoInicio);
+    setDataInicioVinculo(servidor.periodoAquisitivoInicio);
+    const periodos = (PERIODOS_RECESSO_MOCK[servidor.matricula] ?? [
+      { inicio: servidor.periodoAquisitivoInicio, saldo: servidor.saldoDisponivel },
+    ]).slice().sort((a, b) => (a.inicio < b.inicio ? -1 : 1));
+    setPeriodosDisponiveis(periodos);
+    // RN004/RN005/RN011: seleciona automaticamente o período aquisitivo mais antigo com saldo
+    // (respeitando o corte de março/2018 do estagiário), sem exigir escolha manual na tela.
+    const primeiroValido = periodos.find(
+      (periodo) => periodo.saldo > 0 && !(servidor.tipoVinculo === "Estagiário" && periodo.inicio < MARCO_CORTE_ESTAGIARIO),
+    );
+    setPeriodoAquisitivoSelecionado(primeiroValido?.inicio ?? "");
+    setDataInicio("");
+    setParcelasResidente([]);
+    setDraftDuracaoResidente(null);
+    setDraftInicioResidente("");
     setServidorEncontrado(true);
   };
 
-  const buscarServidorRecesso = (valor: string) => {
+  const descricaoServidorRecesso = (servidor: ServidorMock) => `${servidor.matricula} - ${servidor.nome}`;
+
+  const completarBuscaServidorRecesso = (query: string) => {
+    const termo = query.trim().toLocaleLowerCase("pt-BR");
+    const cpfBusca = termo.replace(/\D/g, "");
+    const resultados = SERVIDORES_MOCK.filter(
+      (servidor) =>
+        VINCULOS_RECESSO.includes(servidor.tipoVinculo) &&
+        (!termo ||
+          servidor.matricula.includes(termo) ||
+          servidor.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
+          Boolean(cpfBusca && servidor.cpf?.replace(/\D/g, "").includes(cpfBusca))),
+    );
+    setSugestoesServidorRecesso(resultados.map(descricaoServidorRecesso));
+  };
+
+  const selecionarServidorRecesso = (valor: string) => {
     setTextoBuscaRecesso(valor);
-    setServidorEncontrado(false);
-    const encontrado = buscarServidorMock(valor);
+    const encontrado = SERVIDORES_MOCK.find(
+      (servidor) => VINCULOS_RECESSO.includes(servidor.tipoVinculo) && descricaoServidorRecesso(servidor) === valor,
+    );
     if (encontrado) {
       aplicarServidorRecesso(encontrado);
       setErro("");
     } else {
+      setServidorEncontrado(false);
+    }
+  };
+
+  const buscarServidorRecesso = (valor: string) => {
+    setServidorEncontrado(false);
+    const encontrado = buscarServidorMock(valor);
+    if (encontrado && VINCULOS_RECESSO.includes(encontrado.tipoVinculo)) {
+      aplicarServidorRecesso(encontrado);
+      setTextoBuscaRecesso(descricaoServidorRecesso(encontrado));
+      setErro("");
+    } else {
       setServidorNome(valor);
       setMatricula("");
+      completarBuscaServidorRecesso(valor);
       setErro("Nenhum servidor encontrado. Pesquise pela matrícula ou pelo nome completo.");
     }
   };
 
-  const fim = calcularFim(dataInicio, diasRecesso);
-  const bloqueioAuxilioTransporte = tipoVinculo === "Residente Técnico";
+  const parcelasCalculadas: ParcelaFerias[] = usaParcelamento
+    ? parcelasResidente.map((parcela) => ({ ...parcela, fim: calcularFim(parcela.inicio, parcela.dias) }))
+    : [{ id: 1, inicio: dataInicio, fim: calcularFim(dataInicio, saldoDisponivel ?? 0), dias: saldoDisponivel ?? 0 }];
+  const fim = parcelasCalculadas[0]?.fim ?? "";
+  // IN 007/2022 (estagiário) e Decreto 704/2024 (residente/bolsista): nenhum dos dois recebe
+  // auxílio-transporte durante o recesso, só a bolsa/vencimento normal.
+  const bloqueioAuxilioTransporte = ehEstagiario || ehResidenteOuBolsista;
 
   const salvar = () => {
-    if (!servidorNome.trim() || !matricula.trim() || !cargo.trim() || !dataInicio) {
-      setErro("Preencha servidor, matrícula, cargo e data de início do recesso.");
+    if (!servidorNome.trim() || !matricula.trim() || !cargo.trim()) {
+      setErro("Preencha servidor, matrícula e cargo.");
       return;
     }
     if (!VINCULOS_RECESSO.includes(tipoVinculo)) {
-      setErro("Recesso remunerado é exclusivo para Residente Técnico, Bolsista e Estagiário.");
+      setErro("Recesso remunerado é exclusivo para Residente Técnico e Estagiário.");
+      return;
+    }
+    if (!periodoSelecionado) {
+      setErro("Selecione um período aquisitivo.");
+      return;
+    }
+    // RN005 (US51): defesa adicional — a UI já bloqueia a seleção, mas garante no save também.
+    if (periodoBloqueadoPorCorte(periodoSelecionado)) {
+      setErro("Períodos aquisitivos anteriores a março de 2018 devem ser agendados pela Gestão de Pessoas.");
       return;
     }
     const hoje = new Date().toISOString().slice(0, 10);
-    if (diasEntre(hoje, dataInicio) < 15) {
-      setErro("O recesso exige no mínimo 15 dias de antecedência a partir de hoje.");
-      return;
+
+    if (usaParcelamento) {
+      if (!saldoDisponivel) {
+        setErro("Servidor sem saldo disponível para recesso.");
+        return;
+      }
+      if (totalParceladoResidente !== saldoDisponivel) {
+        setErro(`Adicione etapa(s) até completar o saldo do recesso (${totalParceladoResidente} de ${saldoDisponivel} dias).`);
+        return;
+      }
+      for (const parcela of parcelasCalculadas) {
+        if (diasEntre(hoje, parcela.inicio) < 15) {
+          setErro(`A etapa de ${formatarDataBr(parcela.inicio)} não respeita os 15 dias de antecedência.`);
+          return;
+        }
+        if (violaAntecedenciaFimDeSemana(parcela.inicio)) {
+          setErro(`A etapa de ${formatarDataBr(parcela.inicio)} não pode iniciar 2 dias antes de um fim de semana.`);
+          return;
+        }
+      }
+      const erroIntervalo = validarIntervaloParcelas(parcelasCalculadas);
+      if (erroIntervalo) {
+        setErro(erroIntervalo);
+        return;
+      }
+    } else {
+      // Bloco integral: estagiário com saldo ainda formando (< 30 dias) usufrui tudo de uma vez.
+      if (!dataInicio) {
+        setErro("Informe a data de início do recesso.");
+        return;
+      }
+      if (!saldoDisponivel) {
+        setErro("Servidor sem saldo disponível para recesso.");
+        return;
+      }
+      if (diasEntre(hoje, dataInicio) < 15) {
+        setErro("O recesso exige no mínimo 15 dias de antecedência a partir de hoje.");
+        return;
+      }
+      if (violaAntecedenciaFimDeSemana(dataInicio)) {
+        setErro("O início do recesso não pode ocorrer 2 dias antes de um fim de semana.");
+        return;
+      }
     }
-    if (tipoVinculo === "Estagiário") {
+
+    if (ehEstagiario) {
+      // IN 007/2022, art. 15: carência única de 6 meses ininterruptos de estágio.
       if (!dataInicioVinculo) {
         setErro("Informe a data de início do vínculo — estagiário exige carência de 6 meses.");
         return;
       }
-      if (diasEntre(dataInicioVinculo, dataInicio) < 182) {
+      const inicioRecesso = parcelasCalculadas[0]?.inicio ?? dataInicio;
+      if (diasEntre(dataInicioVinculo, inicioRecesso) < 182) {
         setErro("Estagiário: vínculo precisa ter pelo menos 6 meses (182 dias) desde o início até a data do recesso.");
+        return;
+      }
+      // RN007 (US51) / IN 007/2022: o recesso precisa ser usado dentro do contrato.
+      const fimContrato = FIM_CONTRATO_ESTAGIARIO_MOCK[matricula];
+      const fimRecesso = parcelasCalculadas[parcelasCalculadas.length - 1]?.fim ?? fim;
+      if (fimContrato && fimRecesso >= fimContrato) {
+        setErro(`O agendamento precisa ser anterior ao fim do contrato (${formatarDataBr(fimContrato)}).`);
         return;
       }
     }
@@ -3236,13 +3583,13 @@ export function FormularioRecesso({
       tipoVinculo,
       tipo: "Recesso",
       origem: "PORTALSERVIDOR",
-      periodoAquisitivoInicio: dataInicioVinculo,
+      periodoAquisitivoInicio: periodoAquisitivoSelecionado,
       periodoAquisitivoFim: "",
-      parcelas: [{ id: 1, inicio: dataInicio, fim, dias: diasRecesso }],
+      parcelas: parcelasCalculadas,
       situacao: "AGUARDANDO VALIDAÇÃO",
       dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(),
       bloqueioAuxilioTransporte,
-      emailChefiaEnviado: emailChefia,
+      emailChefiaEnviado: !ehEstagiario,
       substitutos: [],
       responsavelLancamento: "Usuário atual",
       lancadoEm: new Date().toLocaleString("pt-BR"),
@@ -3250,20 +3597,24 @@ export function FormularioRecesso({
   };
 
   return (
-    <div>
+    <div className="prototype-ferias-individual-form">
       <div className="prototype-ferias-banner" style={{ background: "#f0fdf4", borderColor: "#bbf7d0", color: "#166534" }}>
         <i className="pi pi-info-circle" aria-hidden="true" />
         <span>
-          <strong>Não é férias.</strong> Recesso remunerado é permissão de ausência remunerada (IN 05) — 15 dias
-          fixos, sem parcelamento, sem 1/3 constitucional e nunca gera substituição. Exige 15 dias de antecedência.
-          Carência de 6 meses de vínculo só se aplica ao estagiário.
+          <strong>Não é férias.</strong> Recesso remunerado é permissão de ausência remunerada, sem 1/3
+          constitucional. {ehEstagiario
+            ? "Estagiário: saldo formado a 2,5 dias/mês (teto de 30 dias/ano), parcelável nos padrões do art. 14 quando atinge o teto (IN 007/2022/SEPLAG)."
+            : "Residente técnico: 30 dias por ano de residência, parcelável em até 3 etapas se solicitado (Decreto 704/2024, art. 8º, II)."}
+          {" "}Exige 15 dias de antecedência. Carência única de 6 meses ininterruptos só se aplica ao estagiário
+          (IN 007/2022/SEPLAG, art. 15).
         </span>
       </div>
 
       {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
 
       <div className="prototype-ferias-form-section">
-        <h3>
+        <h3 className="prototype-ferias-secao-titulo">
+          <i className="pi pi-user" aria-hidden="true" />
           Servidor
           {servidorEncontrado && (
             <span className="prototype-ferias-servidor-encontrado">
@@ -3271,88 +3622,98 @@ export function FormularioRecesso({
             </span>
           )}
         </h3>
-        <div className="prototype-ferias-form-grid">
-          <label style={{ gridColumn: "1 / -1" }}>
-            <span>Buscar Servidor (Matrícula, CPF ou Nome)</span>
-            <div className="prototype-ferias-busca-servidor-row">
-              <input
-                value={servidorEncontrado ? servidorNome : textoBuscaRecesso}
-                onChange={(event) => {
-                  setServidorEncontrado(false);
-                  setTextoBuscaRecesso(event.target.value);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") buscarServidorRecesso(textoBuscaRecesso);
-                }}
-                placeholder="Matrícula, CPF ou nome do servidor"
-                autoComplete="off"
-                className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""}
-              />
-              <BotaoBuscarServidor onClick={() => buscarServidorRecesso(textoBuscaRecesso)} />
-            </div>
-          </label>
-          {servidorEncontrado && (
-            <label>
-              <span>Matrícula</span>
-              <input value={matricula} readOnly className="prototype-ferias-input-autopreenchido" />
-            </label>
-          )}
-          <label>
-            <span>Órgão *</span>
-            <input value={orgao} onChange={(event) => setOrgao(event.target.value)} readOnly={servidorEncontrado} className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Setor</span>
-            <input value={setor} onChange={(event) => setSetor(event.target.value)} readOnly={servidorEncontrado} className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Cargo/Função *</span>
-            <input value={cargo} onChange={(event) => setCargo(event.target.value)} readOnly={servidorEncontrado} className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""} />
-          </label>
-          <label>
-            <span>Tipo de Vínculo *</span>
-            <input
-              value={tipoVinculo}
-              readOnly
-              placeholder=""
-              className={servidorEncontrado ? "prototype-ferias-input-autopreenchido" : ""}
+        <label className="prototype-ferias-busca-servidor-label" htmlFor="ferias-recesso-busca-servidor">
+          <span>Buscar Servidor (Matrícula, CPF ou Nome)</span>
+          <div className="prototype-ferias-busca-servidor-row">
+            <SeplagAutoComplete
+              inputId="ferias-recesso-busca-servidor"
+              className="w-full"
+              value={textoBuscaRecesso}
+              suggestions={sugestoesServidorRecesso}
+              placeholder="Matrícula, CPF ou nome do servidor"
+              forceSelection={false}
+              completeMethod={completarBuscaServidorRecesso}
+              onChange={(event) => {
+                setServidorEncontrado(false);
+                setTextoBuscaRecesso(String(event.value ?? ""));
+              }}
+              onSelect={(event) => selecionarServidorRecesso(String(event.value ?? ""))}
             />
-          </label>
-          {tipoVinculo === "Estagiário" ? (
-            <label>
-              <span>Data de início do vínculo *</span>
-              <input type="date" value={dataInicioVinculo} onChange={(event) => setDataInicioVinculo(event.target.value)} />
-            </label>
-          ) : null}
-        </div>
+            <BotaoBuscarServidor onClick={() => buscarServidorRecesso(textoBuscaRecesso)} />
+          </div>
+        </label>
+
         {servidorEncontrado && (
-          <button
-            type="button"
-            className="prototype-ferias-btn-limpar-servidor"
-            onClick={() => {
-              setServidorNome("");
-              setMatricula("");
-              setOrgao("SEPLAG/MT");
-              setSetor("");
-              setCargo("");
-              setTipoVinculo("Residente Técnico");
-              setPeriodoAquisitivoInicio("");
-              setServidorEncontrado(false);
-            }}
-          >
-            <i className="pi pi-times" /> Limpar servidor
-          </button>
+          <div className="prototype-ferias-servidor-resultado">
+            <div className="prototype-ferias-servidor-resultado-grid is-identificacao">
+              <div>
+                <span className="prototype-ferias-indicador-rotulo">Nome do Servidor</span>
+                <strong>{servidorNome}</strong>
+              </div>
+              <div>
+                <span className="prototype-ferias-indicador-rotulo">Matrícula</span>
+                <strong>{matricula}</strong>
+              </div>
+              <div>
+                <span className="prototype-ferias-indicador-rotulo">Cargo / Função</span>
+                <strong>{cargo}</strong>
+              </div>
+              <div>
+                <span className="prototype-ferias-indicador-rotulo">Órgão / Vínculo</span>
+                <strong>{orgao} · {tipoVinculo}</strong>
+              </div>
+              <hr className="prototype-ferias-servidor-resultado-divisor" />
+              <div className="prototype-ferias-servidor-resultado-periodo">
+                <span className="prototype-ferias-indicador-rotulo">Setor</span>
+                <strong>{setor || "—"}</strong>
+              </div>
+              <div className="prototype-ferias-servidor-resultado-saldo">
+                <span className="prototype-ferias-indicador-rotulo">Saldo do Período Selecionado</span>
+                <span className="prototype-ferias-badge-saldo">
+                  {periodoSelecionado ? `${saldoDisponivel} dias` : "selecione abaixo"}
+                </span>
+              </div>
+            </div>
+            <BotaoLimparFiltroSeplag
+              type="button"
+              label="Limpar servidor"
+              icon="pi pi-times"
+              style={{ width: "auto", whiteSpace: "nowrap", height: 32, padding: "0 12px", fontSize: "0.82rem" }}
+              onClick={() => {
+                setServidorNome("");
+                setMatricula("");
+                setOrgao("SEPLAG/MT");
+                setSetor("");
+                setCargo("");
+                setTipoVinculo("Residente Técnico");
+                setPeriodoAquisitivoInicio("");
+                setPeriodosDisponiveis([]);
+                setPeriodoAquisitivoSelecionado("");
+                setDataInicio("");
+                setDataInicioVinculo("");
+                setTextoBuscaRecesso("");
+                setParcelasResidente([]);
+                setDraftDuracaoResidente(null);
+                setDraftInicioResidente("");
+                setServidorEncontrado(false);
+              }}
+            />
+          </div>
         )}
+
       </div>
 
-      {(servidorEncontrado || periodoAquisitivoInicio) && (() => {
-        const ref = periodoAquisitivoInicio;
+      {(servidorEncontrado || dataInicioVinculo) && (() => {
+        const ref = dataInicioVinculo || periodoAquisitivoInicio;
         const carencia = calcularCarencia(ref);
         if (!carencia) return null;
         const hoje = new Date().toISOString().slice(0, 10);
         return (
           <div className="prototype-ferias-form-section prototype-ferias-carencia-painel">
-            <h3>Período aquisitivo &amp; carência</h3>
+            <h3 className="prototype-ferias-secao-titulo">
+              <i className="pi pi-calendar" aria-hidden="true" />
+              Período aquisitivo &amp; carência
+            </h3>
             <div className="prototype-ferias-carencia-linha">
               <div className="prototype-ferias-carencia-item">
                 <span className="prototype-ferias-carencia-label">Início do vínculo</span>
@@ -3389,50 +3750,154 @@ export function FormularioRecesso({
       })()}
 
       <div className="prototype-ferias-form-section">
-        <h3>Recesso (15 dias fixos, sem parcelamento)</h3>
-        <div className="prototype-ferias-form-grid">
-          <label>
-            <span>Dias</span>
-            <input
-              type="number"
-              min={1}
-              max={15}
-              value={diasRecesso}
-              onChange={(event) => setDiasRecesso(Number(event.target.value))}
-            />
-          </label>
-          <label>
-            <span>Data de início *</span>
-            <input type="date" value={dataInicio} onChange={(event) => setDataInicio(event.target.value)} />
-          </label>
-          <label>
-            <span>Fim (calculado)</span>
-            <input className="prototype-ferias-readonly-field" value={formatarDataBr(fim)} readOnly />
-          </label>
-        </div>
+        <h3 className="prototype-ferias-secao-titulo">
+          <i className="pi pi-sun" aria-hidden="true" />
+          {ehEstagiario
+            ? "Recesso (2,5 dias/mês, teto de 30 dias/ano — IN 007/2022/SEPLAG)"
+            : "Recesso (30 dias/ano, até 3 etapas se solicitado — Decreto 704/2024)"}
+        </h3>
 
-        <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
-          <input type="checkbox" checked={emailChefia} onChange={(event) => setEmailChefia(event.target.checked)} />
-          <span>Enviar e-mail automático à chefia imediata com os dados do agendamento</span>
-        </label>
+        {!periodoSelecionado ? (
+          <div className="prototype-ferias-gozo-ajuda">Selecione um período aquisitivo acima para continuar.</div>
+        ) : !usaParcelamento ? (
+          <div className="prototype-ferias-form-grid">
+            <label>
+              <span>Dias (integral do saldo)</span>
+              <input className="prototype-ferias-readonly-field" value={saldoDisponivel ?? "—"} readOnly />
+              <small className="prototype-ferias-gozo-ajuda">
+                Saldo ainda formando a 2,5 dias/mês (teto de 30 dias/ano) — usufruído de uma vez até completar o teto.
+              </small>
+            </label>
+            <label>
+              <span>Data de início *</span>
+              <input type="date" value={dataInicio} onChange={(event) => setDataInicio(event.target.value)} />
+            </label>
+            <label>
+              <span>Fim (calculado)</span>
+              <input className="prototype-ferias-readonly-field" value={formatarDataBr(fim)} readOnly />
+            </label>
+          </div>
+        ) : (
+          <>
+            <small className="prototype-ferias-gozo-ajuda">
+              {saldoDisponivel === 30
+                ? "Saldo no teto de 30 dias: escolha etapas de 10, 15 ou 20 dias até fechar o total (até 3 etapas)."
+                : "Saldo abaixo do teto de 30 dias: usufruído em uma única etapa, igual ao saldo disponível."}
+            </small>
+            <div className="prototype-ferias-gozo-grid">
+              <div>
+                <label>
+                  <span>Dias desta etapa</span>
+                  <select
+                    disabled={!opcoesDuracaoResidente.length}
+                    value={duracaoSelecionadaResidente ?? ""}
+                    onChange={(event) => setDraftDuracaoResidente(Number(event.target.value))}
+                  >
+                    {opcoesDuracaoResidente.map((dias) => (
+                      <option key={dias} value={dias}>{dias} dias</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div>
+                <label>
+                  <span>Data início do gozo</span>
+                  <input
+                    type="date"
+                    disabled={!opcoesDuracaoResidente.length}
+                    value={draftInicioResidente}
+                    onChange={(event) => setDraftInicioResidente(event.target.value)}
+                  />
+                </label>
+              </div>
+              <label>
+                <span>Data fim (calculada)</span>
+                <input className="prototype-ferias-readonly-field" value={formatarDataBr(draftFimResidente)} readOnly />
+                <small className="prototype-ferias-gozo-ajuda">Calculado automaticamente.</small>
+              </label>
+            </div>
+
+            <div className="prototype-ferias-gozo-acoes">
+              <button
+                type="button"
+                className="prototype-ferias-sub-add"
+                disabled={!opcoesDuracaoResidente.length}
+                onClick={adicionarParcelaResidente}
+              >
+                <i className="pi pi-plus" aria-hidden="true" />
+                Adicionar esta etapa
+              </button>
+              <span className={totalParceladoResidente === (saldoDisponivel ?? 0) ? "prototype-ferias-saldo-ok" : "prototype-ferias-saldo-erro"}>
+                {totalParceladoResidente} de {saldoDisponivel ?? 0} dias parcelados
+              </span>
+            </div>
+
+            {parcelasResidente.length > 0 && (
+              <div className="prototype-ferias-gozo-lista">
+                {parcelasResidente.map((parcela) => (
+                  <div className="prototype-ferias-gozo-item" key={parcela.id}>
+                    <span>
+                      {formatarDataBr(parcela.inicio)} a {formatarDataBr(parcela.fim)} ({parcela.dias} dias)
+                    </span>
+                    <button
+                      type="button"
+                      className="prototype-ferias-icon-btn"
+                      title="Remover etapa"
+                      onClick={() => removerParcelaResidente(parcela.id)}
+                    >
+                      <i className="pi pi-trash" aria-hidden="true" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <small>Intervalo entre etapas do mesmo período aquisitivo: emendado (0 dias) ou no mínimo 10 dias corridos.</small>
+          </>
+        )}
+
+        {!ehEstagiario && parcelasResidente.length > 0 ? (() => {
+          const periodoInicio = parcelasResidente.reduce((min, p) => (!min || p.inicio < min ? p.inicio : min), "");
+          const periodoFim = parcelasResidente.reduce((max, p) => (!max || p.fim > max ? p.fim : max), "");
+          const hojeBr = formatarDataBr(new Date().toISOString().slice(0, 10));
+          return (
+            <div className="prototype-ferias-email-preview">
+              <strong>Prévia do e-mail à chefia (RN013/US50)</strong>
+              {`Prezado(a) [Chefia indicada pelo SEAP por integração],
+
+um residente técnico da sua equipe solicitou agendamento de RECESSO REMUNERADO.
+Seguem dados para vossa validação no Portal do Servidor.
+
+Nome do Residente: ${servidorNome || "—"} - Matrícula: ${matricula || "—"}
+Unidade de Lotação: ${setor || "—"}
+Tipo do Afastamento: RECESSO REMUNERADO
+Período solicitado: ${formatarDataBr(periodoInicio)} - ${formatarDataBr(periodoFim)} (${totalParceladoResidente} dias)
+Descrição: ${hojeBr} - Solicitação de agendamento feita pelo Portal do Servidor que está aguardando Validação
+
+Acesse o portal para validar.`}
+            </div>
+          );
+        })() : null}
 
         {bloqueioAuxilioTransporte ? (
           <div className="prototype-ferias-erro-bloqueio" style={{ marginTop: 12, background: "#fffbeb", borderColor: "#fde68a", color: "#92400e" }}>
-            Residente técnico: durante o usufruto recebe só a bolsa — o auxílio-transporte é <strong>bloqueado</strong>
-            {" "}automaticamente ao validar.
+            {ehEstagiario ? "Estagiário" : "Residente técnico"}: durante o usufruto a bolsa não é descontada, mas o
+            auxílio-transporte é <strong>bloqueado</strong> automaticamente ao validar.
           </div>
+        ) : null}
+
+        {ehEstagiario ? (
+          <small className="prototype-ferias-gozo-ajuda" style={{ display: "block", marginTop: 8 }}>
+            A gestão de pessoas deve controlar o saldo para evitar acúmulo de recesso não usufruído em caso de
+            prorrogação do contrato. Se o estagiário for desligado sem ter usufruído, recebe excepcionalmente o
+            proporcional em dinheiro na folha (IN 007/2022/SEPLAG).
+          </small>
         ) : null}
       </div>
 
       <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <button type="button" className="prototype-vinculo-back" onClick={onCancelar}>
-          <i className="pi pi-arrow-left" aria-hidden="true" />
-          Voltar
-        </button>
-        <button type="button" className="prototype-ferias-btn-primario" onClick={salvar}>
-          <i className="pi pi-check" aria-hidden="true" />
-          Salvar solicitação
-        </button>
+        <BotaoVoltarSeplag type="button" label="Voltar" onClick={onCancelar} />
+        <BotaoSalvarSeplag type="button" label="Salvar solicitação" onClick={salvar} />
       </div>
     </div>
   );
@@ -3623,6 +4088,20 @@ function ModalVisualizarRegistro({ registro, onFechar }: Readonly<{ registro: Fe
             </span>
           </div>
         ) : null}
+        {registro.tipo === "Recesso" ? (
+          <div className="prototype-ferias-banner" style={{ background: "#f0fdf4", borderColor: "#bbf7d0", color: "#166534" }} role="note">
+            <i className="pi pi-info-circle" aria-hidden="true" />
+            <span>
+              Recesso remunerado — não é férias, sem 1/3 constitucional.{" "}
+              {registro.bloqueioAuxilioTransporte ? (
+                registro.auxilioTransporteEfetivado
+                  ? "Auxílio-transporte bloqueado e integração com o SIGPAS efetivada na validação da chefia."
+                  : "Auxílio-transporte e integração com o SIGPAS serão efetivados quando a chefia validar."
+              ) : null}
+              {" "}E-mail à chefia: {registro.emailChefiaEnviado ? "enviado no agendamento." : "não enviado."}
+            </span>
+          </div>
+        ) : null}
         <h3>Parcelas</h3>
         <ul>
           {registro.parcelas.map((parcela) => (
@@ -3635,6 +4114,100 @@ function ModalVisualizarRegistro({ registro, onFechar }: Readonly<{ registro: Fe
         <p>
           Lançado por {registro.responsavelLancamento} em {registro.lancadoEm}.
         </p>
+      </div>
+    </ModalSeplag>
+  );
+}
+
+/** US50 3.5 (Cenário Alterar): permite editar um recesso já lançado, desde que a nova data
+ * fim seja anterior ao início do próximo período aquisitivo (residente/bolsista) ou ao fim
+ * da contratação (estagiário). */
+function ModalAlterarRecesso({
+  registro,
+  onFechar,
+  onSalvar,
+}: Readonly<{ registro: FeriasRegistro; onFechar: () => void; onSalvar: (parcelas: ParcelaFerias[]) => void }>) {
+  const ehEstagiario = registro.tipoVinculo === "Estagiário";
+  const [parcelas, setParcelas] = useState<ParcelaFerias[]>(() => registro.parcelas.map((parcela) => ({ ...parcela })));
+  const [erro, setErro] = useState("");
+
+  const periodos = PERIODOS_RECESSO_MOCK[registro.matricula] ?? [];
+  const indiceAtual = periodos.findIndex((periodo) => periodo.inicio === registro.periodoAquisitivoInicio);
+  const proximoPeriodo = indiceAtual >= 0 ? periodos[indiceAtual + 1] : undefined;
+  const fimContrato = FIM_CONTRATO_ESTAGIARIO_MOCK[registro.matricula];
+  const limiteAlteracao = ehEstagiario ? fimContrato : proximoPeriodo?.inicio;
+
+  const atualizarInicio = (id: number, novoInicio: string) => {
+    setParcelas((atual) =>
+      atual.map((parcela) => (parcela.id === id ? { ...parcela, inicio: novoInicio, fim: calcularFim(novoInicio, parcela.dias) } : parcela)),
+    );
+  };
+
+  const salvar = () => {
+    if (parcelas.some((parcela) => !parcela.inicio)) {
+      setErro("Informe a data de início de todas as parcelas.");
+      return;
+    }
+    const hoje = new Date().toISOString().slice(0, 10);
+    for (const parcela of parcelas) {
+      if (diasEntre(hoje, parcela.inicio) < 15) {
+        setErro(`A parcela de ${formatarDataBr(parcela.inicio)} não respeita os 15 dias de antecedência.`);
+        return;
+      }
+      if (violaAntecedenciaFimDeSemana(parcela.inicio)) {
+        setErro(`A parcela de ${formatarDataBr(parcela.inicio)} não pode iniciar 2 dias antes de um fim de semana.`);
+        return;
+      }
+      if (limiteAlteracao && parcela.fim >= limiteAlteracao) {
+        setErro(
+          `A data fim (${formatarDataBr(parcela.fim)}) precisa ser anterior a ${formatarDataBr(limiteAlteracao)} ` +
+          `(${ehEstagiario ? "fim do contrato" : "início do próximo período aquisitivo"}).`,
+        );
+        return;
+      }
+    }
+    if (!ehEstagiario) {
+      const erroIntervalo = validarIntervaloParcelas(parcelas);
+      if (erroIntervalo) {
+        setErro(erroIntervalo);
+        return;
+      }
+    }
+    setErro("");
+    onSalvar(parcelas);
+  };
+
+  return (
+    <ModalSeplag visible fechar={onFechar} titulo="Alterar recesso remunerado" hideFooter tamanho="560px">
+      <div style={{ width: "100%" }} className="prototype-ferias-form-section">
+        <p>
+          Alteração permitida enquanto estiver dentro do limite de usufruto — a nova data fim precisa ser
+          anterior {ehEstagiario ? "ao fim da contratação" : "ao início do próximo período aquisitivo"}
+          {limiteAlteracao ? ` (${formatarDataBr(limiteAlteracao)})` : ", sem limite conhecido para este servidor"}.
+        </p>
+        {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
+        {parcelas.map((parcela, indice) => (
+          <div className="prototype-ferias-form-grid" key={parcela.id}>
+            <label>
+              <span>Parcela {indice + 1} — {parcela.dias} dias</span>
+              <input type="date" value={parcela.inicio} onChange={(event) => atualizarInicio(parcela.id, event.target.value)} />
+            </label>
+            <label>
+              <span>Fim (calculado)</span>
+              <input className="prototype-ferias-readonly-field" value={formatarDataBr(parcela.fim)} readOnly />
+            </label>
+          </div>
+        ))}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
+          <button type="button" className="prototype-vinculo-back" onClick={onFechar}>
+            <i className="pi pi-arrow-left" aria-hidden="true" />
+            Cancelar
+          </button>
+          <button type="button" className="prototype-ferias-btn-primario" onClick={salvar}>
+            <i className="pi pi-check" aria-hidden="true" />
+            Salvar alteração
+          </button>
+        </div>
       </div>
     </ModalSeplag>
   );

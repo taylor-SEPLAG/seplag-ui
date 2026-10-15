@@ -44,12 +44,6 @@ export function FeriasRecessoPage() {
         >
           <div className="col-12">
           <div className="prototype-ferias-nova-pagina">
-            <div className="prototype-ferias-nova-pagina-header">
-              <div>
-                <h2 style={{ color: "#22c55e" }}><i className="pi pi-sun" aria-hidden="true" style={{ marginRight: 8 }} />Recesso Remunerado</h2>
-                <p>Residente técnico, bolsista e estagiário — não é férias, instituto próprio (IN 05).</p>
-              </div>
-            </div>
             <FormularioRecesso onCancelar={() => setMostrarConfirmacaoCancelar(true)} onSalvar={salvar} />
           </div>
           </div>
