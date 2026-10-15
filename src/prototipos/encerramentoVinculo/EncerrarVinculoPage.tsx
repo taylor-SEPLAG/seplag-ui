@@ -1,9 +1,13 @@
 import { Fragment, useMemo, useState } from "react";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
-import { BotaoIconSeplag } from "../../componentes/Botao";
+import { BotaoIconSeplag, BotaoSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
 import { CardSeplag } from "../../componentes/Card";
+import { ModalSeplag } from "../../componentes/Modal";
+import { Calendar } from "primereact/calendar";
+import "../../componentes/Fields/primeLocalePt";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
-import { dataBR, pessoas, situacao, vinculos } from "../vidaFuncional/model";
+import { listarFormasEncerramento, type FormaEncerramento } from "./formasEncerramentoStore";
+import { dataBR, pessoas, situacao, vinculos, type Vinculo } from "../vidaFuncional/model";
 import "../vinculos/vinculoV2.css";
 import "../vidaFuncional/vidaFuncional.css";
 
@@ -12,9 +16,28 @@ function SituacaoVinculo({ valor }: Readonly<{ valor: string }>) {
   return <span className={`v2v-status v2v-status-${classe}`}>{valor}</span>;
 }
 
+function isoParaData(data?: string) {
+  if (!data) return null;
+  const [ano, mes, dia] = data.split("-").map(Number);
+  return new Date(ano, mes - 1, dia);
+}
+
+function dataParaIso(data?: Date | null) {
+  if (!data) return "";
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+}
+
 export function EncerrarVinculoPage() {
   const [busca, setBusca] = useState("");
   const [expandidos, setExpandidos] = useState<string[]>([]);
+  const [vinculoParaEncerrar, setVinculoParaEncerrar] = useState<Vinculo | null>(null);
+  const [formaId, setFormaId] = useState("");
+  const [dataEncerramento, setDataEncerramento] = useState("");
+  const [justificativa, setJustificativa] = useState("");
+  const [processoSigadoc, setProcessoSigadoc] = useState("");
+  const [processoLegal, setProcessoLegal] = useState("");
+  const [erroEncerramento, setErroEncerramento] = useState("");
+  const [versao, setVersao] = useState(0);
   const termo = busca.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
   const digitos = busca.replace(/\D/g, "");
   const servidores = useMemo(() => pessoas.filter((pessoa) =>
@@ -24,6 +47,35 @@ export function EncerrarVinculoPage() {
   const alternarServidor = (id: string) => setExpandidos((atuais) =>
     atuais.includes(id) ? atuais.filter((item) => item !== id) : [...atuais, id],
   );
+  const formasDisponiveis = vinculoParaEncerrar
+    ? listarFormasEncerramento().filter((forma) => forma.situacao === "ATIVA" && forma.vinculos.includes(vinculoParaEncerrar.tipo))
+    : [];
+  const formaSelecionada: FormaEncerramento | undefined = formasDisponiveis.find((forma) => String(forma.id) === formaId);
+  const diaEncerramento = dataEncerramento ? Number(dataEncerramento.slice(-2)) : 0;
+  const foraDaJanelaFolha = Boolean(formaSelecionada?.regraFolha && diaEncerramento && (diaEncerramento < formaSelecionada.regraFolha.diaInicial || diaEncerramento > formaSelecionada.regraFolha.diaFinal));
+  const bloqueiaEncerramento = foraDaJanelaFolha && formaSelecionada?.regraFolha?.tratamento === "BLOQUEAR";
+  const mensagemRegraFolha = formaSelecionada?.regraFolha?.mensagem?.trim() || "A data de encerramento informada está fora do período permitido para esta forma de encerramento.";
+  const abrirEncerramento = (vinculo: Vinculo) => {
+    setVinculoParaEncerrar(vinculo);
+    setFormaId("");
+    setDataEncerramento(new Date().toISOString().slice(0, 10));
+    setJustificativa("");
+    setProcessoSigadoc("");
+    setProcessoLegal("");
+    setErroEncerramento("");
+  };
+  const confirmarEncerramento = () => {
+    if (!vinculoParaEncerrar || !formaSelecionada) { setErroEncerramento("Selecione a forma de encerramento."); return; }
+    if (!dataEncerramento || dataEncerramento < vinculoParaEncerrar.inicio) { setErroEncerramento("A data de encerramento não pode ser anterior ao início do vínculo."); return; }
+    if (!justificativa.trim()) { setErroEncerramento("Informe a justificativa do encerramento."); return; }
+    if (formaSelecionada.exigeProcessoSigadoc && !processoSigadoc.trim()) { setErroEncerramento("Informe o processo SIGADOC."); return; }
+    if (formaSelecionada.exigeProcessoLegal && !processoLegal.trim()) { setErroEncerramento("Informe o processo legal."); return; }
+    if (bloqueiaEncerramento) { setErroEncerramento(mensagemRegraFolha); return; }
+    vinculoParaEncerrar.fim = dataEncerramento;
+    vinculoParaEncerrar.classificacao = "Inativo";
+    setVinculoParaEncerrar(null);
+    setVersao((atual) => atual + 1);
+  };
 
   return (
     <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
@@ -69,7 +121,7 @@ export function EncerrarVinculoPage() {
                               <thead><tr>{["Matrícula", "Nº do Vínculo", "Tipo de Vínculo", "Cargo/Função", "Órgão/Entidade", "Data de Início", "Data de Encerramento", "Situação", "Ação"].map((coluna) => <th key={coluna}>{coluna}</th>)}</tr></thead>
                               <tbody>{lista.map((vinculo) => <tr key={vinculo.id}>
                                 <td>{vinculo.matricula}</td><td>{vinculo.numero}</td><td>{vinculo.tipo}</td><td>{vinculo.cargo}</td><td>{vinculo.orgao}</td><td>{dataBR(vinculo.inicio)}</td><td>{dataBR(vinculo.fim)}</td><td><SituacaoVinculo valor={situacao(vinculo)} /></td>
-                                <td><BotaoIconSeplag type="button" severity="danger" icon="pi pi-sign-out" tooltip="Encerrar vínculo" aria-label="Encerrar vínculo" onClick={() => undefined} style={{ width: 40, height: 40, borderRadius: 4 }} /></td>
+                                <td>{situacao(vinculo) === "Vigente" ? <BotaoIconSeplag type="button" severity="danger" icon="pi pi-sign-out" tooltip="Encerrar vínculo" aria-label="Encerrar vínculo" onClick={() => abrirEncerramento(vinculo)} style={{ width: 40, height: 40, borderRadius: 4 }} /> : null}</td>
                               </tr>)}</tbody>
                             </table></div>
                           </div>
@@ -81,6 +133,16 @@ export function EncerrarVinculoPage() {
                 </table>
               </div>
             </section>
+            <ModalSeplag visible={Boolean(vinculoParaEncerrar)} titulo="Encerrar Vínculo" fechar={() => setVinculoParaEncerrar(null)} tamanho="760px" customFooter={<div className="flex justify-content-end gap-2"><BotaoVoltarSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={() => setVinculoParaEncerrar(null)} /><BotaoSeplag type="button" severity="danger" label="Encerrar vínculo" icon="pi pi-sign-out" disabled={bloqueiaEncerramento} onClick={confirmarEncerramento} /></div>}>
+              <div className="col-12"><div className="prototype-forma-encerramento-alerta-folha"><i className="pi pi-user" aria-hidden="true" /><span><strong>{vinculoParaEncerrar && pessoas.find((pessoa) => pessoa.id === vinculoParaEncerrar.pessoaId)?.nome}</strong><br />Matrícula {vinculoParaEncerrar?.matricula} · Vínculo {vinculoParaEncerrar?.numero} · {vinculoParaEncerrar?.tipo}<br />{vinculoParaEncerrar?.cargo} · {vinculoParaEncerrar?.orgao}</span></div></div>
+              <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="forma-encerramento-vinculo">Forma de encerramento *</label><select id="forma-encerramento-vinculo" className="p-inputtext p-component w-full" value={formaId} onChange={(evento) => { setFormaId(evento.target.value); setErroEncerramento(""); }}><option value="">Selecione a forma</option>{formasDisponiveis.map((forma) => <option key={forma.id} value={forma.id}>{forma.nome}</option>)}</select>{vinculoParaEncerrar && !formasDisponiveis.length ? <small className="p-error">Não há forma de encerramento ativa para este tipo de vínculo.</small> : null}</div>
+              <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="data-encerramento-vinculo">Data de encerramento *</label><Calendar inputId="data-encerramento-vinculo" value={isoParaData(dataEncerramento)} onChange={(evento) => { setDataEncerramento(dataParaIso(evento.value as Date | null)); setErroEncerramento(""); }} minDate={isoParaData(vinculoParaEncerrar?.inicio) ?? undefined} locale="pt" dateFormat="dd/mm/yy" mask="99/99/9999" showIcon style={{ width: "100%" }} inputStyle={{ width: "100%" }} /></div>
+              {formaSelecionada?.regraFolha && foraDaJanelaFolha ? <div className={`col-12 prototype-forma-encerramento-alerta-folha${bloqueiaEncerramento ? " is-blocking" : ""}`}><i className={`pi ${bloqueiaEncerramento ? "pi-ban" : "pi-info-circle"}`} aria-hidden="true" /><span>{mensagemRegraFolha}{bloqueiaEncerramento ? " O encerramento foi bloqueado." : " O encerramento poderá continuar mediante alerta."}</span></div> : null}
+              <div className="col-12"><label className="label-rotulo label-destaque" htmlFor="justificativa-encerramento-vinculo">Justificativa *</label><textarea id="justificativa-encerramento-vinculo" className="p-inputtextarea p-inputtext p-component w-full" rows={3} value={justificativa} onChange={(evento) => setJustificativa(evento.target.value)} /></div>
+              {formaSelecionada?.exigeProcessoSigadoc ? <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="sigadoc-encerramento-vinculo">Processo SIGADOC *</label><input id="sigadoc-encerramento-vinculo" className="p-inputtext p-component w-full" value={processoSigadoc} onChange={(evento) => setProcessoSigadoc(evento.target.value)} /></div> : null}
+              {formaSelecionada?.exigeProcessoLegal ? <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="legal-encerramento-vinculo">Processo legal *</label><input id="legal-encerramento-vinculo" className="p-inputtext p-component w-full" value={processoLegal} onChange={(evento) => setProcessoLegal(evento.target.value)} /></div> : null}
+              {erroEncerramento ? <div className="col-12"><small className="p-error">{erroEncerramento}</small></div> : null}
+            </ModalSeplag>
           </div>
         </CardSeplag>
       </main>

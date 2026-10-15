@@ -20563,6 +20563,11 @@
 .prototype-carreira-closing-section .prototype-carreira-section-icon { background: #fff0d5; color: #a45e00; }
 .prototype-carreira-register-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 18px; border: 1px solid #ced9e5; border-radius: 6px; background: #fff; }
 .prototype-forma-encerramento-form .prototype-carreira-register-actions { padding-inline: 0; border: 0; background: transparent; }
+.prototype-forma-encerramento-regra-ajuda { display: flex; align-items: center; gap: 8px; margin-top: -4px; color: #52708c; font-size: .82rem; }
+.prototype-forma-encerramento-regra-ajuda i { color: #187fd1; }
+.prototype-forma-encerramento-alerta-folha { display: flex; align-items: flex-start; gap: 9px; padding: 10px 12px; border: 1px solid #f1cc7b; border-radius: 5px; background: #fff9e8; color: #825800; font-size: .84rem; line-height: 1.35; }
+.prototype-forma-encerramento-alerta-folha.is-blocking { border-color: #f0aaa5; background: #fff3f2; color: #ad342e; }
+.prototype-forma-encerramento-alerta-folha i { margin-top: 2px; }
 @media (max-width: 900px) { .prototype-carreira-register-page { padding: 16px; } .prototype-carreira-vigencia-grid, .prototype-carreira-vigencia-grid.has-encerramento, .prototype-carreira-vigencia-grid.has-extincao, .prototype-cargo-paired-sections, .prototype-tipo-vinculo-paired-sections, .prototype-perfil-paired-sections { grid-template-columns: 1fr; } }
 @media (max-width: 650px) { .prototype-cargo-paired-sections .prototype-carreira-vigencia-grid, .prototype-tipo-vinculo-paired-sections .prototype-carreira-vigencia-grid, .prototype-perfil-paired-sections .prototype-carreira-vigencia-grid { grid-template-columns: 1fr; } }
 
