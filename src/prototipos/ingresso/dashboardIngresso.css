@@ -222,8 +222,14 @@
 .di-update-actions { gap: 8px; }
 
 /* Gradientes da Visão geral, preservando cores das demais seções. */
-.di-kpis article:nth-child(1) { background: linear-gradient(120deg, #3B82F6 0%, #1E40AF 100%); border-color: #3B82F6; }
-.di-kpis article:nth-child(2) { background: linear-gradient(120deg, #8B5CF6 0%, #6D28D9 100%); border-color: #8B5CF6; }
-.di-kpis article:nth-child(3) { background: linear-gradient(120deg, #22C55E 0%, #15803D 100%); border-color: #22C55E; }
-.di-kpis article:nth-child(4) { background: linear-gradient(120deg, #F59E0B 0%, #D97706 100%); border-color: #F59E0B; }
-.di-kpis article:nth-child(5) { background: linear-gradient(120deg, #64748B 0%, #334155 100%); border-color: #64748B; }
+.di-kpis article:nth-child(1) { background: linear-gradient(120deg, #005996 0%, #183181 100%); border-color: #005996; }
+.di-kpis article:nth-child(2) { background: linear-gradient(120deg, #6D28D9 0%, #9333EA 100%); border-color: #6D28D9; }
+.di-kpis article:nth-child(3) { background: linear-gradient(120deg, #166534 0%, #15803D 100%); border-color: #166534; }
+.di-kpis article:nth-child(4) { background: linear-gradient(120deg, #D97706 0%, #EA580C 100%); border-color: #D97706; }
+.di-kpis article:nth-child(5) { background: linear-gradient(120deg, #64748B 0%, #475569 100%); border-color: #64748B; }
+.di-charts .di-bar-segment:first-child { background: linear-gradient(120deg, #005996, #183181) !important; }
+.di-charts .di-column-stack > i:last-child { background: linear-gradient(to top, #005996, #183181) !important; }
+.di-charts .di-legend-concurso i { background: linear-gradient(120deg, #005996, #183181) !important; }
+.di-charts .di-bar-segment:nth-child(2) { background: linear-gradient(120deg, #6D28D9, #9333EA) !important; }
+.di-charts .di-column-stack > i:first-child { background: linear-gradient(to top, #6D28D9, #9333EA) !important; }
+.di-charts .di-legend-seletivo i { background: linear-gradient(120deg, #6D28D9, #9333EA) !important; }

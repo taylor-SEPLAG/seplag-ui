@@ -137,3 +137,19 @@ it('expande cargos com totais consistentes e envia os filtros para a gestão do 
   fireEvent.click(screen.getByRole('button',{name:`Recolher ${grupo.edital.edital}`}));
   expect(screen.queryByRole('table',{name:`Pendências por cargo do ${grupo.edital.edital}`})).toBeNull();
 });
+it('reúne concurso e processo seletivo na aba Todos e preserva os filtros', () => {
+  render(<MemoryRouter><DashboardIngressoPage /></MemoryRouter>);
+  fireEvent.click(screen.getByRole('tab',{name:'Todos'}));
+  expect(screen.getByRole('tab',{name:'Todos'}).getAttribute('aria-selected')).toBe('true');
+  expect((screen.getByLabelText('Tipo de Ingresso') as HTMLSelectElement).value).toBe('');
+  const esperados=agruparPendenciasPorEdital(lerDadosDashboard());
+  const tabela=screen.getByRole('table',{name:'Ingressos Pendentes por Edital'});
+  expect(within(tabela).getAllByRole('row').slice(1)).toHaveLength(esperados.length);
+  expect(within(tabela).getAllByText('Processo Seletivo').length).toBeGreaterThan(0);
+  expect(within(tabela).getAllByText('Concurso Público').length).toBeGreaterThan(0);
+  fireEvent.change(screen.getByLabelText('Órgão/Entidade'),{target:{value:'SES'}});
+  expect(screen.getByRole('tab',{name:'Todos'}).getAttribute('aria-selected')).toBe('true');
+  expect((screen.getByLabelText('Órgão/Entidade') as HTMLSelectElement).value).toBe('SES');
+  fireEvent.click(screen.getByRole('button',{name:'Limpar filtros'}));
+  expect((screen.getByLabelText('Tipo de Ingresso') as HTMLSelectElement).value).toBe('');
+});
