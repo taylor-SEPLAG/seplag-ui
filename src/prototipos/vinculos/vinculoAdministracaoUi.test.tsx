@@ -45,8 +45,8 @@ it('bloqueia URL de edição sem perfil e preserva os campos protegidos para adm
   expect(screen.getByRole('alert').textContent).toContain('permissão');
   ui.unmount();alternarUsuarioVinculos('admin.vinculos');
   montar('/prototipos/sigep/vinculos-v2/demo-1/editar');
-  expect((screen.getByLabelText('Data de Vacância') as HTMLInputElement).readOnly).toBe(true);
-  expect((screen.getByLabelText('Forma de Vacância') as HTMLSelectElement).disabled).toBe(true);
+  expect((screen.getByLabelText('Data de Encerramento') as HTMLInputElement).readOnly).toBe(true);
+  expect((screen.getByLabelText('Formas de Encerramento') as HTMLSelectElement).disabled).toBe(true);
   expect((screen.getByLabelText('Classificação do Vínculo') as HTMLInputElement).readOnly).toBe(true);
 });
 it('gestor consulta dados e histórico sem botão Editar e não acessa a edição por URL', () => {

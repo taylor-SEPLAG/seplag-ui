@@ -491,8 +491,8 @@ export function PrototiposVinculoVisualizacaoPage() {
                     <label><span>Jornada de Trabalho</span><select value={registro.jornadaTrabalho} readOnly><option value={registro.jornadaTrabalho}>{registro.jornadaTrabalho || "Não informado"}</option></select></label>
                     <label><span>Lotação</span><select value={registro.lotacao} readOnly><option value={registro.lotacao}>{registro.lotacao || "Não informado"}</option></select></label>
                     <label><span>Data de Início do Exercício</span><input type="date" value={formatarDataInputVinculo(registro.dataExercicio)} readOnly /></label>
-                    <label><span>Data de Vacância</span><input type="date" value={formatarDataInputVinculo(registro.dataVacancia)} readOnly /></label>
-                    <label><span>Forma de Vacância</span><select value={registro.formaVacancia} readOnly><option value={registro.formaVacancia}>{registro.formaVacancia || "Não informado"}</option></select></label>
+                    <label><span>Data de Encerramento</span><input type="date" value={formatarDataInputVinculo(registro.dataVacancia)} readOnly /></label>
+                    <label><span>Formas de Encerramento</span><select value={registro.formaVacancia} readOnly><option value={registro.formaVacancia}>{registro.formaVacancia || "Não informado"}</option></select></label>
                   </div>
                 </section>
 
@@ -626,8 +626,8 @@ export function PrototiposVinculoCadastroPage() {
                 <label><span>Jornada de Trabalho <em>*</em></span><select required value={formulario.jornadaTrabalho} onChange={(event) => atualizar("jornadaTrabalho", event.target.value)}><option value="">Selecione...</option>{jornadaTrabalhoOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
                 <label><span>Lotação <em>*</em></span><select required value={formulario.lotacao} onChange={(event) => atualizar("lotacao", event.target.value)}><option value="">Selecione...</option>{lotacaoOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
                 <label><span>Data de Início do Exercício <em>*</em></span><input required type="date" value={formulario.dataExercicio} onChange={(event) => atualizar("dataExercicio", event.target.value)} /></label>
-                <label><span>Data de Vacância</span><input type="date" value={formulario.dataVacancia} min={formulario.dataExercicio || undefined} onChange={(event) => atualizar("dataVacancia", event.target.value)} /></label>
-                <label><span>Forma de Vacância</span><select value={formulario.formaVacancia} required={Boolean(formulario.dataVacancia)} onChange={(event) => atualizar("formaVacancia", event.target.value)}><option value="">Selecione...</option>{formaVacanciaOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
+                <label><span>Data de Encerramento</span><input type="date" value={formulario.dataVacancia} min={formulario.dataExercicio || undefined} onChange={(event) => atualizar("dataVacancia", event.target.value)} /></label>
+                <label><span>Formas de Encerramento</span><select value={formulario.formaVacancia} required={Boolean(formulario.dataVacancia)} onChange={(event) => atualizar("formaVacancia", event.target.value)}><option value="">Selecione...</option>{formaVacanciaOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
               </div>
             </section>
 

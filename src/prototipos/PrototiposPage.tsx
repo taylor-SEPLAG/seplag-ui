@@ -22877,8 +22877,8 @@ export function PrototiposVinculoDetalhePage() {
               { label: "Órgão", value: "SES" },
               { label: "Lotação", value: "Unidade Central" },
               { label: "Data de Exercício", value: "15/07/2026" },
-              { label: "Data de Vacância", value: "-" },
-              { label: "Forma de Vacância", value: "-" },
+              { label: "Data de Encerramento", value: "-" },
+              { label: "Formas de Encerramento", value: "-" },
             ]}
           />
           <div className="prototype-ingresso-static-tabs">
