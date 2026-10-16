@@ -62,8 +62,8 @@ export const modulosPaginaInicial = [
     cor: "amarelo",
   },
   {
-    nome: "Desligamento de Vínculo",
-    descricao: "Gerencie vacâncias e desligamentos.",
+    nome: "Encerramento de Vínculo",
+    descricao: "Gerencie o encerramento dos vínculos.",
     icone: "pi pi-sign-out",
     cor: "roxo",
   },
