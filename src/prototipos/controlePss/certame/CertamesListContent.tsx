@@ -10,6 +10,7 @@ import { lerRascunhosCertame, limparRascunhoCertame, type RascunhoCertame } from
 import { HistoricoSituacoesCertameModal } from "./HistoricoSituacoesCertameModal";
 import { RegistrarSituacaoCertameModal } from "./RegistrarSituacaoCertameModal";
 import { podeEditarCertame } from "./validations";
+import { localizarCertameIngresso } from '../../ingresso/certameIngresso';
 import { stringToDateSeplag } from "@uteis/manipulaData";
 import { CardSeplag } from "@componentes/Card";
 import { BadgeSeplag } from "@componentes/Badge";
@@ -37,7 +38,9 @@ const tipoLabel:Record<TipoCertame,string> = Object.fromEntries(TIPOS_CERTAME.ma
 const ITENS_POR_PAGINA_OPCOES = [10, 20, 30];
 
 export function CertamesListContent() {
- const { certames } = useControlePssStore();
+ const { certames, certamesBasicosIngresso } = useControlePssStore();
+ const basicos=certamesBasicosIngresso.filter(b => !localizarCertameIngresso({id:b.gestaoIngressoId,edital:b.numeroEditalOrgao,tipo:b.tipoCertame === 'CONCURSO_PUBLICO' ? 'Concurso' : 'Processo Seletivo',orgao:b.setor},certames));
+ const cadastros=[...certames,...basicos];
  const navigate = useNavigate();
  const location = useLocation();
  // CA01 (Novo Certame): quem tenta acessar /certames/novo direto pela URL é redirecionado para cá
@@ -75,17 +78,17 @@ export function CertamesListContent() {
   setRascunhos((atuais) => atuais.filter((item) => item.id !== id));
  };
 
- const exercicios = useMemo(() => Array.from(new Set(certames.map((item) => item.anoConcurso))).sort((a, b) => b - a).map((ano) => String(ano)), [certames]);
- const nomesEdital = useMemo(() => Array.from(new Set(certames.map((item) => item.nomeEdital))).sort((a, b) => a.localeCompare(b, "pt-BR")), [certames]);
+ const exercicios = useMemo(() => Array.from(new Set(cadastros.map((item) => item.anoConcurso))).sort((a, b) => b - a).map((ano) => String(ano)), [certames,certamesBasicosIngresso]);
+ const nomesEdital = useMemo(() => Array.from(new Set(cadastros.map((item) => item.nomeEdital))).sort((a, b) => a.localeCompare(b, "pt-BR")), [certames,certamesBasicosIngresso]);
 
  // Cards de indicadores acima do filtro — mesmo padrão de "Efetivo Exercício"/"Controle de Vagas"
  // (faixa de KPIs resumindo a lista antes de filtrar).
  const indicadores = useMemo(() => [
-  { label:"Total de certames", value:certames.length, icon:"pi pi-briefcase", tone:"blue" },
-  { label:"Em abertura", value:certames.filter((item) => item.situacaoAtual === "ABERTO").length, icon:"pi pi-hourglass", tone:"amber" },
-  { label:"Homologados", value:certames.filter((item) => item.situacaoAtual === "HOMOLOGADO").length, icon:"pi pi-check-circle", tone:"green" },
-  { label:"Cancelados/Paralisados", value:certames.filter((item) => item.situacaoAtual === "CANCELADO_ANULADO" || item.situacaoAtual === "PARALISADO").length, icon:"pi pi-ban", tone:"red" },
- ], [certames]);
+  { label:"Total de certames", value:cadastros.length, icon:"pi pi-briefcase", tone:"blue" },
+  { label:"Em abertura", value:cadastros.filter((item) => item.situacaoAtual === "ABERTO").length, icon:"pi pi-hourglass", tone:"amber" },
+  { label:"Homologados", value:cadastros.filter((item) => item.situacaoAtual === "HOMOLOGADO").length, icon:"pi pi-check-circle", tone:"green" },
+  { label:"Cancelados/Paralisados", value:cadastros.filter((item) => item.situacaoAtual === "CANCELADO_ANULADO" || item.situacaoAtual === "PARALISADO").length, icon:"pi pi-ban", tone:"red" },
+ ], [certames,certamesBasicosIngresso]);
 
  const lista = useMemo(() => {
   return certames.filter((certame) =>
@@ -97,6 +100,8 @@ export function CertamesListContent() {
   // RN011: ordenada por data de publicação do edital, mais recente primeiro.
   ).sort((a, b) => (stringToDateSeplag(b.dataPublicacaoEdital)?.getTime() ?? 0) - (stringToDateSeplag(a.dataPublicacaoEdital)?.getTime() ?? 0));
  }, [certames, orgaoFiltro, exercicioFiltro, nomeEditalFiltro, tipoFiltro, situacaoFiltro]);
+ const listaBasicos=basicos.filter(b => (!orgaoFiltro || b.setor===orgaoFiltro) && (!exercicioFiltro || String(b.anoConcurso)===exercicioFiltro)
+   && (!nomeEditalFiltro || b.nomeEdital===nomeEditalFiltro) && (!tipoFiltro || b.tipoCertame===tipoFiltro) && (!situacaoFiltro || b.situacaoAtual===situacaoFiltro));
 
  const totalPaginas = Math.max(1, Math.ceil(lista.length / itensPorPagina));
  const paginaAtual = Math.min(pagina, totalPaginas);
@@ -181,6 +186,17 @@ export function CertamesListContent() {
         </tr>
        </thead>
        <tbody>
+        {listaBasicos.map(b => <tr key={b.id}>
+          <td>Complementação pendente</td><td>{b.anoConcurso}</td><td>{b.nomeEdital}<small style={{display:'block'}}>Origem: Gestão de Ingresso · {b.numeroEditalOrgao}</small></td>
+          <td>{b.setor}</td><td>{tipoLabel[b.tipoCertame]}</td><td><BadgeSeplag label={situacaoLabel[b.situacaoAtual]} color="#147441" bg="#e2f5e8" size="sm" /><small style={{display:'block'}}>Cadastro básico pendente de complementação</small></td>
+          <td><details><summary>Ver detalhes</summary><dl>
+            <dt>Identificador</dt><dd>{b.id}</dd><dt>Edital de origem</dt><dd>{b.gestaoIngressoId}</dd>
+            <dt>Vagas imediatas</dt><dd>{b.vagasTotaisEdital ?? 'Não informado'}</dd><dt>Cadastro de reserva</dt><dd>{b.cadastroReservaEdital ?? 0}</dd>
+            <dt>Criado em</dt><dd>{new Date(b.criadoEm).toLocaleString('pt-BR',{timeZone:'America/Cuiaba'})}</dd>
+            <dt>Cargos/Funções conhecidos</dt><dd>{b.cargosConhecidos.map(c => [c.cargo,c.orgao,c.polo,c.tipoVaga].filter(Boolean).join(' · ')).join('; ') || 'Não informados'}</dd>
+            <dt>Pendências</dt><dd>{b.camposPendentes.join('; ')}</dd>
+          </dl></details></td>
+        </tr>)}
         {rascunhos.map((rascunho) => <tr key={rascunho.id} className="prototype-certames-rascunho-linha">
          <td>{rascunho.valores.numeroConcurso || "-"}</td>
          <td>{rascunho.valores.anoConcurso || "-"}</td>
@@ -203,7 +219,7 @@ export function CertamesListContent() {
           </div>
          </td>
         </tr>)}
-        {rascunhos.length === 0 && listaPaginada.length === 0
+        {rascunhos.length === 0 && listaPaginada.length === 0 && listaBasicos.length === 0
          ? <tr><td colSpan={7} className="prototype-empty-table-cell">Nenhum certame encontrado para os filtros informados.</td></tr>
          : listaPaginada.map((row:Certame) => {
           const menuId = row.id;

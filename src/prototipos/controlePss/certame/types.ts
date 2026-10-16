@@ -47,7 +47,7 @@ export interface ReservaCotaCargo { readonly id:string; tipo:string; quantidade:
 // cadastrar o cargo (ver dominios.JORNADAS_TRABALHO).
 // orgaoDestino: só relevante quando o certame tem mais de um órgão participante (Certame.setoresParticipantes)
 // — indica a qual órgão a vaga é direcionada, ou dominios.ORGAO_TODOS para todos eles.
-export interface CargoVagaCertame { readonly id:string; vinculo:VinculoCargoCertame; cargoExistenteId?:string; cargoNome:string; carreira?:string; polo?:string; cidades?:readonly string[]; jornada?:string; orgaoDestino?:string; readonly codigoReferenciaTce:"001"; quantidadeVagas:number; reservasCota:readonly ReservaCotaCargo[]; aceitaCadastroReserva:boolean; quantidadeCadastroReserva?:number; quadroCodigo?:string; quadroVersao?:number; }
+export interface CargoVagaCertame { readonly id:string; vinculo:VinculoCargoCertame; cargoExistenteId?:string; cargoNome:string; carreira?:string; polo?:string; tipoVaga?:string; cidades?:readonly string[]; jornada?:string; orgaoDestino?:string; readonly codigoReferenciaTce:"001"; quantidadeVagas:number; quantidadeCandidatosPrevistos?:number; reservasCota:readonly ReservaCotaCargo[]; aceitaCadastroReserva:boolean; quantidadeCadastroReserva?:number; quadroCodigo?:string; quadroVersao?:number; }
 
 // Fases do certame — lista editável (nome, ordem e quantidade livres) por certame; o catálogo em
 // dominios.FASES_TCE_FIXAS é usado apenas como sugestão inicial ao criar um novo certame.

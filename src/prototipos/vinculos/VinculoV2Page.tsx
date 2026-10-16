@@ -1,133 +1,22 @@
-import { Fragment, useMemo, useState, type FormEvent } from "react";
+import { Fragment, useState, type FormEvent } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
 import { ModalSeplag } from "../../componentes/Modal";
 import { BotaoSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
-import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
+import { VinculoAmbiente, AtalhoPerfisVinculos } from './VinculoAmbiente';
+import { VinculoExclusaoDialog } from './VinculoExclusaoDialog';
+import { VinculoAuditoria } from './VinculoAuditoria';
+import { useUsuarioVinculos } from './vinculoSessao';
+import { useAtualizacaoVinculos } from './vinculoPersistencia';
+import { prepararEdicaoVinculo, confirmarEdicaoVinculo } from './vinculoAdministracao';
 import "./vinculoV2.css";
 import { filtrarVinculos, filtrosDaUrl, situacaoDoVinculo } from "./vinculosConsulta";
 import { TIPOS_VINCULO as TIPOS } from "./tiposVinculo";
 export { TIPOS_VINCULO as TIPOS } from "./tiposVinculo";
 
-const BASE = "/prototipos/sigep/vinculos-v2";
-const STORAGE = "prototype-vinculos-v2";
-type Tipo = typeof TIPOS[number];
-const TIPOS_FIM_EXERCICIO = new Set<Tipo>([
-  "Contrato Temporário", "Contrato Temporário Vínculo Único", "Residente Técnico", "Estagiário", "Bolsista",
-]);
-const TIPOS_INGRESSO = new Set<Tipo>([
-  "Nomeado Efetivo", "Exclusivamente Comissionado", "Contrato Temporário", "Contrato Temporário Vínculo Único",
-  "Residente Técnico", "Estagiário", "Bolsista",
-]);
-type Situacao = "Ativo" | "Encerrado";
-const moduloDeOrigem = (tipo: Tipo) => tipo === "Aposentado" ? "Aposentadoria" : TIPOS_INGRESSO.has(tipo) ? "Ingresso" : undefined;
-export type Vinculo = {
-  id: string; tipo: Tipo; nome: string; cpf: string; nascimento: string; matricula: string; numero: string;
-  regime: string; carreira: string; cargo: string; perfil: string; jornada: string; orgao: string; setor: string;
-  inicio: string; termino: string; situacao: Situacao | "Inativo"; vacanciaData?: string; vacanciaForma?: string; observacao?: string;
-  criacao?: { titulo: string; responsavel: string; registradoEm: string; dados: Record<string, string> };
-};
-type Pessoa = Pick<Vinculo, "nome" | "cpf" | "nascimento" | "matricula">;
-type Campos = Pick<Vinculo, "regime" | "carreira" | "cargo" | "perfil" | "jornada" | "orgao" | "setor" | "inicio" | "termino" | "matricula"> & { vacanciaData: string; vacanciaForma: string; observacao: string };
-const PESSOAS: Pessoa[] = [
-  { nome: "João Silva", cpf: "000.000.000-00", nascimento: "12/04/1988", matricula: "327305" },
-  { nome: "Maria Souza", cpf: "111.111.111-11", nascimento: "03/09/1992", matricula: "418920" },
-  { nome: "Ana Costa", cpf: "333.333.333-33", nascimento: "21/06/1985", matricula: "529104" },
-  { nome: "Carlos Pereira", cpf: "222.222.222-22", nascimento: "17/11/1990", matricula: "621438" },
-  { nome: "Helena Martins", cpf: "444.444.444-44", nascimento: "08/02/1962", matricula: "738211" },
-  { nome: "Roberto Almeida", cpf: "555.555.555-55", nascimento: "19/07/1960", matricula: "815437" },
-  { nome: "Carla Nunes", cpf: "666.666.666-66", nascimento: "05/03/1981", matricula: "674208" },
-  { nome: "Pedro Lima", cpf: "777.777.777-77", nascimento: "22/10/1987", matricula: "902314" },
-];
-const BASE_REGISTROS: Vinculo[] = [
-  { id: "demo-1", tipo: "Nomeado Efetivo", ...PESSOAS[0], numero: "1", regime: "Estatutário Civil", carreira: "Gestão Governamental", cargo: "Analista Administrativo", perfil: "Gestão de Pessoas", jornada: "40 horas", orgao: "SEPLAG", setor: "Unidade Central", inicio: "2023-07-15", termino: "", situacao: "Ativo" },
-  { id: "demo-2", tipo: "Contrato Temporário", ...PESSOAS[1], numero: "1", regime: "Regime Especial", carreira: "Profissionais da Saúde", cargo: "Técnico de Enfermagem", perfil: "Saúde", jornada: "40 horas", orgao: "SES", setor: "Hospital Regional", inicio: "2026-09-02", termino: "2027-09-01", situacao: "Ativo" },
-  { id: "demo-3", tipo: "Exclusivamente Comissionado", ...PESSOAS[0], numero: "2", regime: "Regime Misto", carreira: "", cargo: "Assessor Especial", perfil: "Assessoria", jornada: "40 horas", orgao: "SEPLAG", setor: "Gabinete", inicio: "2026-02-12", termino: "", situacao: "Ativo" },
-  { id: "demo-4", tipo: "Estagiário", ...PESSOAS[2], numero: "1", regime: "Sem Vínculo Empregatício", carreira: "", cargo: "Estagiário", perfil: "Administração", jornada: "20 horas", orgao: "SEPLAG", setor: "Unidade Central", inicio: "2026-02-12", termino: "2027-02-12", situacao: "Ativo" },
-  { id: "demo-5", tipo: "Estabilizado Constitucionalmente", ...PESSOAS[4], numero: "1", regime: "Estatutário Civil", carreira: "Profissionais da Educação", cargo: "Professor", perfil: "Educação", jornada: "30 horas", orgao: "SEDUC", setor: "Escola Estadual", inicio: "2001-02-01", termino: "", situacao: "Inativo", vacanciaData: "2024-06-30", vacanciaForma: "Aposentadoria", observacao: "Aposentadoria registrada após o encerramento das atividades." },
-  { id: "demo-6", tipo: "Servidor Permutado", ...PESSOAS[5], numero: "1", regime: "Estatutário Civil", carreira: "Profissionais da Saúde", cargo: "Técnico de Enfermagem", perfil: "Saúde", jornada: "40 horas", orgao: "SES", setor: "Hospital Regional", inicio: "2003-08-15", termino: "", situacao: "Inativo", vacanciaData: "2025-12-31", vacanciaForma: "Aposentadoria" },
-  { id: "demo-7", tipo: "Empossado em Cargo Eletivo", ...PESSOAS[6], numero: "1", regime: "Regime Misto", carreira: "", cargo: "Chefe de Gabinete", perfil: "Assessoria", jornada: "40 horas", orgao: "SEPLAG", setor: "Gabinete", inicio: "2023-01-02", termino: "", situacao: "Encerrado", vacanciaData: "2025-04-15", vacanciaForma: "Exoneração" },
-  { id: "demo-8", tipo: "Designação AVNM", ...PESSOAS[7], numero: "1", regime: "Regime Especial", carreira: "", cargo: "Designação AVNM", perfil: "Assessoria", jornada: "30 horas", orgao: "SEFAZ", setor: "Unidade Fazendária", inicio: "2024-03-01", termino: "", situacao: "Encerrado", vacanciaData: "2026-03-01", vacanciaForma: "Término de contrato", observacao: "Designação encerrada pelo término da vigência." },
-];
-const ORGAOS = ["SEPLAG", "SES", "SEDUC", "SEFAZ"];
-const SETORES: Record<string, string[]> = {
-  SEPLAG: ["Unidade Central", "Gabinete", "Coordenadoria de Gestão de Pessoas"],
-  SES: ["Hospital Regional", "Gabinete", "Unidade Central"],
-  SEDUC: ["Escola Estadual", "Gabinete", "Unidade Central"],
-  SEFAZ: ["Unidade Fazendária", "Gabinete", "Unidade Central"],
-};
-type Config = { regimes: string[]; carreiras: string[]; cargos: string[]; perfis: string[]; jornadas: string[]; termino: boolean };
-function configTipo(tipo: Tipo): Config {
-  if (tipo === "Nomeado Efetivo" || tipo === "Estabilizado Constitucionalmente" || tipo === "Servidor Permutado")
-    return { regimes: ["Estatutário Civil"], carreiras: ["Gestão Governamental", "Profissionais da Educação", "Profissionais da Saúde"], cargos: ["Analista Administrativo", "Professor", "Técnico de Enfermagem"], perfis: ["Gestão de Pessoas", "Educação", "Saúde"], jornadas: ["20 horas", "30 horas", "40 horas"], termino: false };
-  if (tipo === "Contrato Temporário" || tipo === "Contrato Temporário Vínculo Único" || tipo === "Residente Técnico")
-    return { regimes: ["Regime Especial"], carreiras: ["Profissionais da Saúde", "Profissionais da Educação"], cargos: ["Técnico de Enfermagem", "Professor", "Residente Técnico"], perfis: ["Saúde", "Educação"], jornadas: ["20 horas", "30 horas", "40 horas"], termino: true };
-  if (tipo === "Estagiário" || tipo === "Bolsista" || tipo === "Beneficiário de Aposentado" || tipo === "Pensão Especial")
-    return { regimes: ["Sem Vínculo Empregatício"], carreiras: [], cargos: [tipo], perfis: ["Administração", "Educação", "Saúde"], jornadas: ["20 horas", "30 horas"], termino: true };
-  if (tipo === "Exclusivamente Comissionado" || tipo === "Nomeado Conselheiro" || tipo === "Empossado em Cargo Eletivo")
-    return { regimes: ["Regime Misto"], carreiras: [], cargos: ["Assessor Especial", "Chefe de Gabinete", tipo], perfis: ["Assessoria", "Gestão de Pessoas"], jornadas: ["40 horas", "Dedicação exclusiva"], termino: false };
-  return { regimes: ["Regime Especial", "Regime Misto"], carreiras: [], cargos: [tipo], perfis: ["Administração", "Assessoria"], jornadas: ["20 horas", "30 horas", "40 horas"], termino: true };
-}
-const PERFIS_POR_CARGO: Record<string, string[]> = {
-  "Analista Administrativo": ["Gestão de Pessoas", "Administração"],
-  "Professor": ["Educação"],
-  "Técnico de Enfermagem": ["Saúde"],
-  "Residente Técnico": ["Saúde"],
-  "Assessor Especial": ["Assessoria"],
-  "Chefe de Gabinete": ["Assessoria"],
-};
-const JORNADAS_POR_CARGO: Record<string, string[]> = {
-  "Analista Administrativo": ["40 horas"],
-  "Professor": ["20 horas", "30 horas", "40 horas"],
-  "Técnico de Enfermagem": ["30 horas", "40 horas"],
-  "Residente Técnico": ["20 horas", "30 horas", "40 horas"],
-  "Assessor Especial": ["40 horas", "Dedicação exclusiva"],
-  "Chefe de Gabinete": ["40 horas", "Dedicação exclusiva"],
-};
-function opcoesCargo(config: Config, cargo: string) {
-  const perfis = config.perfis.filter((perfil) => !PERFIS_POR_CARGO[cargo] || PERFIS_POR_CARGO[cargo].includes(perfil));
-  const jornadas = config.jornadas.filter((jornada) => !JORNADAS_POR_CARGO[cargo] || JORNADAS_POR_CARGO[cargo].includes(jornada));
-  return { perfis: perfis.length ? perfis : config.perfis, jornadas: jornadas.length ? jornadas : config.jornadas };
-}
-const NOMES_DEMO = ["Adriana", "Bruno", "Camila", "Daniel", "Elisa", "Fábio", "Giovana", "Hugo", "Isabela", "Marcos"];
-const SOBRENOMES_DEMO = ["Almeida", "Barbosa", "Cardoso", "Dias", "Ferreira", "Gomes", "Lima", "Mendes", "Oliveira", "Ribeiro"];
-const REGISTROS_ADICIONAIS: Vinculo[] = TIPOS.filter(tipo => tipo !== "Aposentado").flatMap((tipo, indiceTipo) =>
-  Array.from({ length: 5 }, (_, indice) => {
-    const sequencia = indiceTipo * 5 + indice;
-    const config = configTipo(tipo);
-    const cargo = config.cargos[indice % config.cargos.length];
-    const opcoes = opcoesCargo(config, cargo);
-    const orgao = ORGAOS[indiceTipo % ORGAOS.length];
-    const cpfNumerico = String(80000000000 + sequencia);
-    const situacao: Vinculo["situacao"] = indice === 3 ? "Inativo" : indice === 4 ? "Encerrado" : "Ativo";
-    return {
-      id: `demo-extra-${sequencia + 1}`, tipo,
-      nome: `${NOMES_DEMO[sequencia % NOMES_DEMO.length]} ${SOBRENOMES_DEMO[Math.floor(sequencia / NOMES_DEMO.length)]}`,
-      cpf: `${cpfNumerico.slice(0, 3)}.${cpfNumerico.slice(3, 6)}.${cpfNumerico.slice(6, 9)}-${cpfNumerico.slice(9)}`,
-      nascimento: `15/06/${1980 + (sequencia % 20)}`,
-      matricula: String(800001 + sequencia), numero: "1",
-      regime: config.regimes[0], carreira: config.carreiras[0] ?? "", cargo,
-      perfil: opcoes.perfis[0], jornada: opcoes.jornadas[0],
-      orgao, setor: SETORES[orgao][indice % SETORES[orgao].length],
-      inicio: "2022-01-10", termino: "", situacao,
-      vacanciaData: situacao === "Ativo" ? "" : situacao === "Inativo" ? "2024-06-30" : "2025-03-31",
-      vacanciaForma: situacao === "Ativo" ? "" : situacao === "Inativo" ? "Aposentadoria" : "Término de contrato",
-    };
-  }),
-);
-const emptyCampos: Campos = { matricula: "", regime: "", carreira: "", cargo: "", perfil: "", jornada: "", orgao: "", setor: "", inicio: "", termino: "", vacanciaData: "", vacanciaForma: "", observacao: "" };
-function salvos(): Vinculo[] {
-  try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(STORAGE) || "[]");
-    return Array.isArray(parsed) ? parsed as Vinculo[] : [];
-  } catch { return []; }
-}
-export function todos(): Vinculo[] {
-  const registros = salvos();
-  const exemplos = [...BASE_REGISTROS, ...REGISTROS_ADICIONAIS];
-  return [...exemplos.filter((v) => !registros.some((salvo) => salvo.id === v.id)), ...registros];
-}
+import { BASE, STORAGE, TIPOS_FIM_EXERCICIO, moduloDeOrigem, ORGAOS, SETORES, emptyCampos, PESSOAS, configTipo, opcoesCargo, salvos, todos, type Tipo, type Situacao, type Pessoa, type Campos, type Vinculo } from './vinculoDados';
+export { todos, type Vinculo } from './vinculoDados';
 function SituacaoTag({ situacao }: { situacao: Situacao }) {
   return <span className={`v2v-status v2v-status-${situacao.toLowerCase()}`}>{situacao}</span>;
 }
@@ -140,6 +29,8 @@ function mascararCpf(value: string) {
   return partes.join(".") + (digitos.length > 9 ? `-${digitos.slice(9)}` : "");
 }
 const dataBr = (value: string) => value ? value.split("-").reverse().join("/") : "—";
+const comOpcaoAtual = (opcoes: string[], atual: string) => atual && !opcoes.includes(atual) ? [atual,...opcoes] : opcoes;
+
 type PaginacaoV2Props = { nome: string; pagina: number; totalPaginas: number; porPagina: number; mudarPagina: (pagina: number) => void; mudarPorPagina: (quantidade: number) => void };
 export function PaginacaoV2({ nome, pagina, totalPaginas, porPagina, mudarPagina, mudarPorPagina }: PaginacaoV2Props) {
   return <nav className="v2v-pagination" aria-label={`Paginação de ${nome}`}>
@@ -152,7 +43,7 @@ export function PaginacaoV2({ nome, pagina, totalPaginas, porPagina, mudarPagina
   </nav>;
 }
 function layout(title: string, action: React.ReactNode, children: React.ReactNode, situacao?: Situacao) {
-  return <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
+  return <VinculoAmbiente>
     <main className="prototype-page-content prototype-page-content--white v2v-shell">
       <CardSeplag
         title={situacao ? <span className="v2v-title-status">{title}<SituacaoTag situacao={situacao} /></span> : title}
@@ -161,18 +52,24 @@ function layout(title: string, action: React.ReactNode, children: React.ReactNod
         headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Vínculos Funcionais" }, { label: "Vínculo", to: BASE }, ...(title === "Gestão de Vínculos" ? [] : [{ label: title }])]} />}
       >
         <div className="v2v-page">
+          <AtalhoPerfisVinculos />
           {title === "Gestão de Vínculos" && <p className="v2v-description">Consulte os vínculos cadastrados e a situação de cada servidor por tipo de vínculo.</p>}
           {action && <div className="v2v-toolbar">{action}</div>}
           {children}
         </div>
       </CardSeplag>
     </main>
-  </PrototypeSystemPage>;
+  </VinculoAmbiente>;
 }
 export function VinculoV2ConsultaPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [registros] = useState(todos);
+  const usuario = useUsuarioVinculos();
+  useAtualizacaoVinculos();
+  const registros = todos();
+  const [exclusao,setExclusao] = useState<Vinculo | null>(null);
+  const [mensagem,setMensagem] = useState('');
+  const solicitarExclusao = (v: Vinculo) => setExclusao(v);
   const [filtros, setFiltros] = useState({ tipo: params.get("tipo") ?? "" });
   const [expandido, setExpandido] = useState<string | null>(params.get("expand"));
   const [porPaginaTipos, setPorPaginaTipos] = useState(10);
@@ -203,6 +100,7 @@ export function VinculoV2ConsultaPage() {
   const paginaTiposAtual = Math.min(paginaTipos, totalPaginasTipos);
   const tiposPaginados = tiposVisiveis.slice((paginaTiposAtual - 1) * porPaginaTipos, paginaTiposAtual * porPaginaTipos);
   return layout("Gestão de Vínculos", null, <>
+    {mensagem && <p className="v2v-notice" role="status">{mensagem}</p>}
     <section className="v2v-kpis v2v-kpis-situacao" aria-label="Indicadores de vínculos">
       <article className="v2v-kpi-active"><i className="pi pi-check-circle" aria-hidden="true" /><div><span>Vínculos Ativos</span><strong>{ativos.length}</strong></div></article>
       <article className="v2v-kpi-closed"><i className="pi pi-times-circle" aria-hidden="true" /><div><span>Vínculos Encerrados</span><strong>{encerrados.length}</strong></div></article>
@@ -223,9 +121,10 @@ export function VinculoV2ConsultaPage() {
   <label>Nome ou CPF<input value={filtroServidor.busca} placeholder="Buscar por nome ou CPF" onChange={(e) => atualizarFiltroServidor(tipo, "busca", e.target.value)} /></label>
   <label>Matrícula<input value={filtroServidor.matricula} placeholder="Buscar por matrícula" onChange={(e) => atualizarFiltroServidor(tipo, "matricula", e.target.value)} /></label>
   <div className="v2v-filter-actions"><button type="button" className="v2v-primary" onClick={() => { setFiltrosServidores((atual) => ({ ...atual, [tipo]: { busca: "", matricula: "" } })); setPaginaServidores(1); }}><i className="pi pi-refresh" aria-hidden="true" />Limpar filtro</button></div>
-</section><div className="v2v-table-wrap"><table className="v2v-table v2v-inner-table"><thead><tr><th>Matrícula</th><th>Nº do Vínculo</th><th>Servidor</th><th>CPF</th><th>Lotação</th><th>Cargo/Função</th><th>Data de Início</th>{TIPOS_FIM_EXERCICIO.has(tipo) && <th>Data de Fim do Exercício</th>}<th>Situação</th><th>Ação</th></tr></thead><tbody>{linhas.slice((paginaAtual - 1) * porPaginaServidores, paginaAtual * porPaginaServidores).map((v) => <tr key={v.id}><td>{v.matricula}</td><td>{v.numero}</td><td>{v.nome}</td><td>{v.cpf}</td><td>{v.setor || "—"}</td><td>{v.cargo}</td><td>{dataBr(v.inicio)}</td>{TIPOS_FIM_EXERCICIO.has(tipo) && <td>{v.termino ? dataBr(v.termino) : "—"}</td>}<td><SituacaoTag situacao={situacaoDoVinculo(v)} /></td><td><button type="button" className="v2v-icon-action" aria-label="Ver detalhes" title="Ver detalhes" onClick={() => abrirDetalhes(v)}><i className="pi pi-eye" aria-hidden="true" /></button></td></tr>)}{linhas.length === 0 && <tr><td colSpan={TIPOS_FIM_EXERCICIO.has(tipo) ? 10 : 9} className="v2v-empty">Nenhum vínculo encontrado para os filtros informados.</td></tr>}</tbody></table></div><PaginacaoV2 nome="servidores" pagina={paginaAtual} totalPaginas={totalPaginas} porPagina={porPaginaServidores} mudarPagina={setPaginaServidores} mudarPorPagina={(quantidade) => { setPorPaginaServidores(quantidade); setPaginaServidores(1); }} /></div></td></tr>}</Fragment>; })}
+</section><div className="v2v-table-wrap"><table className="v2v-table v2v-inner-table"><thead><tr><th>Matrícula</th><th>Nº do Vínculo</th><th>Servidor</th><th>CPF</th><th>Lotação</th><th>Cargo/Função</th><th>Data de Início</th>{TIPOS_FIM_EXERCICIO.has(tipo) && <th>Data de Fim do Exercício</th>}<th>Situação</th><th>Ação</th></tr></thead><tbody>{linhas.slice((paginaAtual - 1) * porPaginaServidores, paginaAtual * porPaginaServidores).map((v) => <tr key={v.id}><td>{v.matricula}</td><td>{v.numero}</td><td>{v.nome}</td><td>{v.cpf}</td><td>{v.setor || "—"}</td><td>{v.cargo}</td><td>{dataBr(v.inicio)}</td>{TIPOS_FIM_EXERCICIO.has(tipo) && <td>{v.termino ? dataBr(v.termino) : "—"}</td>}<td><SituacaoTag situacao={situacaoDoVinculo(v)} /></td><td><div className="v2v-row-actions"><button type="button" className="v2v-icon-action" aria-label="Ver detalhes" title="Visualizar" onClick={() => abrirDetalhes(v)}><i className="pi pi-eye" aria-hidden="true" /></button>{usuario?.editar && <button type="button" className="v2v-icon-action v2v-action-edit" aria-label="Editar" title="Editar" onClick={() => navigate(`${BASE}/${v.id}/editar?tipo=${encodeURIComponent(v.tipo)}`)}><i className="pi pi-pencil" aria-hidden="true" /></button>}{usuario?.excluir && <button type="button" className="v2v-icon-action v2v-action-delete" aria-label="Excluir" title="Excluir" onClick={() => solicitarExclusao(v)}><i className="pi pi-trash" aria-hidden="true" /></button>}</div></td></tr>)}{linhas.length === 0 && <tr><td colSpan={TIPOS_FIM_EXERCICIO.has(tipo) ? 10 : 9} className="v2v-empty">Nenhum vínculo encontrado para os filtros informados.</td></tr>}</tbody></table></div><PaginacaoV2 nome="servidores" pagina={paginaAtual} totalPaginas={totalPaginas} porPagina={porPaginaServidores} mudarPagina={setPaginaServidores} mudarPorPagina={(quantidade) => { setPorPaginaServidores(quantidade); setPaginaServidores(1); }} /></div></td></tr>}</Fragment>; })}
       {tiposVisiveis.length === 0 && <tr><td colSpan={4} className="v2v-empty">Nenhum vínculo encontrado para os filtros informados.</td></tr>}
     </tbody></table></div><PaginacaoV2 nome="tipos de vínculo" pagina={paginaTiposAtual} totalPaginas={totalPaginasTipos} porPagina={porPaginaTipos} mudarPagina={(numero) => { setPaginaTipos(numero); setExpandido(null); setPaginaServidores(1); }} mudarPorPagina={(quantidade) => { setPorPaginaTipos(quantidade); setPaginaTipos(1); setExpandido(null); }} /></section>
+    {exclusao && <VinculoExclusaoDialog key={exclusao.id} vinculo={exclusao} fechar={() => setExclusao(null)} concluido={() => {setExclusao(null);setMensagem('Vínculo excluído com sucesso. Auditoria preservada.');}} />}
   </>);
 }
 
@@ -233,6 +132,10 @@ export function VinculoV2CadastroPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [params] = useSearchParams();
+  const usuario = useUsuarioVinculos();
+  const [confirmacao,setConfirmacao] = useState<ReturnType<typeof prepararEdicaoVinculo> | null>(null);
+  const [justificativa,setJustificativa] = useState('');
+  const [autorizacao,setAutorizacao] = useState('');
   const [existente] = useState(() => id ? todos().find((v) => v.id === id) : undefined);
   const tipoInicial = existente?.tipo ?? TIPOS.find((t) => t === params.get("tipo")) ?? TIPOS[0];
   const tipo = tipoInicial;
@@ -297,6 +200,11 @@ export function VinculoV2CadastroPage() {
     evento.preventDefault();
     if (cadastrado) return;
     setErro("");
+    if (existente) {
+      try {setConfirmacao(prepararEdicaoVinculo(existente.id,campos,autorizacao));setJustificativa('');}
+      catch (e) {setErro((e as Error).message);}
+      return;
+    }
     if (!existente && moduloDeOrigem(tipo)) { setErro(`Este Tipo de Vínculo é gerado pelo módulo de ${moduloDeOrigem(tipo)} e não permite cadastro manual.`); return; }
     if (!pessoa) { setErro("Selecione um CPF da lista antes de salvar."); return; }
     if (!campos.regime || !campos.cargo || !campos.perfil || !campos.jornada || !campos.orgao || !campos.setor || !campos.inicio) {
@@ -334,6 +242,7 @@ export function VinculoV2CadastroPage() {
     }
   };
   if (id && !existente) return layout("Editar Vínculo", null, <div className="v2v-notice">Vínculo não encontrado.</div>);
+  if (existente && !usuario?.editar) return layout("Editar Vínculo", null, <div className="v2v-error" role="alert">Seu perfil não possui permissão para editar vínculos.</div>);
   if (!existente && moduloDeOrigem(tipoInicial)) return layout("Cadastrar Vínculo", null,
     <div className="v2v-origin-notice" role="alert"><i className="pi pi-info-circle" aria-hidden="true" /><strong>Este Tipo de Vínculo é gerado pelo módulo de {moduloDeOrigem(tipoInicial)} e não permite cadastro manual.</strong></div>);
   return layout(existente ? "Editar Vínculo" : "Cadastrar Vínculo", null, <form onSubmit={salvar} className="v2v-form">
@@ -355,23 +264,26 @@ export function VinculoV2CadastroPage() {
       <div className="v2v-section-body v2v-form-grid v2v-grid-two">
         <label>Matrícula <em>*</em><input value={campos.matricula} readOnly /></label>
         <label>Nº do Vínculo <em>*</em><input value={existente.numero} readOnly /></label>
+        <label>Classificação do Vínculo<input value={['Aposentado','Beneficiário de Aposentado','Pensão Especial'].includes(tipo) ? 'Não Funcional' : 'Funcional'} readOnly /></label>
+        <label>Situação do Vínculo<input value={situacaoDoVinculo(existente) === 'Ativo' ? 'Vigente' : 'Encerrado'} readOnly /></label>
       </div>
     </section>}
     <section className="v2v-panel v2v-form-section" aria-labelledby="v2v-caracteristicas-title">
       <header className="v2v-section-header"><i className="pi pi-briefcase" aria-hidden="true" /><div><h2 id="v2v-caracteristicas-title">Características do Vínculo</h2><p>Informe as características funcionais e a vigência do vínculo.</p></div></header>
       <div className="v2v-section-body v2v-form-grid v2v-grid-four">
-        <label>Regime Jurídico <em>*</em><select value={campos.regime} onChange={(e) => atualizar("regime", e.target.value)}>{config.regimes.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
-        <label>Carreira<select value={campos.carreira} disabled={!config.carreiras.length} onChange={(e) => atualizar("carreira", e.target.value)}><option value="">{config.carreiras.length ? "Selecione..." : "Não se aplica"}</option>{config.carreiras.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
-        <label>Cargo <em>*</em><select value={campos.cargo} onChange={(e) => { const proximas = opcoesCargo(config, e.target.value); setCampos((atual) => ({ ...atual, cargo: e.target.value, perfil: proximas.perfis[0] ?? "", jornada: proximas.jornadas[0] ?? "" })); }}>{config.cargos.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
-        <label>Perfil Profissional <em>*</em><select value={campos.perfil} onChange={(e) => atualizar("perfil", e.target.value)}>{opcoesAtuais.perfis.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
-        <label>Jornada de Trabalho <em>*</em><select value={campos.jornada} onChange={(e) => atualizar("jornada", e.target.value)}>{opcoesAtuais.jornadas.map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
-        <label>Órgão/Entidade <em>*</em><select value={campos.orgao} onChange={(e) => setCampos((atual) => ({ ...atual, orgao: e.target.value, setor: "" }))}><option value="">Selecione...</option>{ORGAOS.map((orgao) => <option key={orgao} value={orgao}>{orgao}</option>)}</select></label>
-        <label>Lotação <em>*</em><select value={campos.setor} disabled={!campos.orgao} onChange={(e) => atualizar("setor", e.target.value)}><option value="">Selecione...</option>{(SETORES[campos.orgao] ?? []).map((setor) => <option key={setor} value={setor}>{setor}</option>)}</select></label>
+        <label>Regime Jurídico <em>*</em><select value={campos.regime} onChange={(e) => atualizar("regime", e.target.value)}>{comOpcaoAtual(config.regimes,campos.regime).map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
+        <label>Carreira<select value={campos.carreira} disabled={!config.carreiras.length} onChange={(e) => atualizar("carreira", e.target.value)}><option value="">{config.carreiras.length ? "Selecione..." : "Não se aplica"}</option>{comOpcaoAtual(config.carreiras,campos.carreira).map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
+        <label>Cargo <em>*</em><select value={campos.cargo} onChange={(e) => { const proximas = opcoesCargo(config, e.target.value); setCampos((atual) => ({ ...atual, cargo: e.target.value, perfil: proximas.perfis[0] ?? "", jornada: proximas.jornadas[0] ?? "" })); }}>{comOpcaoAtual(config.cargos,campos.cargo).map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
+        <label>Perfil Profissional <em>*</em><select value={campos.perfil} onChange={(e) => atualizar("perfil", e.target.value)}>{comOpcaoAtual(opcoesAtuais.perfis,campos.perfil).map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
+        <label>Jornada de Trabalho <em>*</em><select value={campos.jornada} onChange={(e) => atualizar("jornada", e.target.value)}>{comOpcaoAtual(opcoesAtuais.jornadas,campos.jornada).map((opcao) => <option key={opcao}>{opcao}</option>)}</select></label>
+        <label>Órgão/Entidade <em>*</em><select value={campos.orgao} onChange={(e) => setCampos((atual) => ({ ...atual, orgao: e.target.value, setor: "" }))}><option value="">Selecione...</option>{comOpcaoAtual(ORGAOS,campos.orgao).map((orgao) => <option key={orgao} value={orgao}>{orgao}</option>)}</select></label>
+        <label>Lotação <em>*</em><select value={campos.setor} disabled={!campos.orgao} onChange={(e) => atualizar("setor", e.target.value)}><option value="">Selecione...</option>{comOpcaoAtual(SETORES[campos.orgao] ?? [],campos.setor).map((setor) => <option key={setor} value={setor}>{setor}</option>)}</select></label>
         <label>Data de Início do Exercício <em>*</em><input type="date" value={campos.inicio} onChange={(e) => atualizar("inicio", e.target.value)} /></label>
         {TIPOS_FIM_EXERCICIO.has(tipo) && <label>Data de Fim do Exercício<input type="date" min={campos.inicio || undefined} value={campos.termino} onChange={(e) => atualizar("termino", e.target.value)} /></label>}
         <div className="v2v-status-field"><span>Situação do Vínculo</span><div><SituacaoTag situacao={situacao} /><small>Calculada automaticamente</small></div></div>
-        <label>Data de Vacância{campos.vacanciaForma && <em>*</em>}<input type="date" value={campos.vacanciaData} onChange={(e) => atualizar("vacanciaData", e.target.value)} /></label>
-        <label>Forma de Vacância{campos.vacanciaData && <em>*</em>}<select value={campos.vacanciaForma} onChange={(e) => atualizar("vacanciaForma", e.target.value)}><option value="">Selecione...</option><option>Exoneração</option><option>Término de contrato</option><option>Aposentadoria</option><option>Falecimento</option></select></label>
+        <label>Data de Vacância{campos.vacanciaForma && <em>*</em>}<input type="date" value={campos.vacanciaData} readOnly={Boolean(existente)} onChange={(e) => {if (!existente) atualizar("vacanciaData", e.target.value);}} /></label>
+        <label>Forma de Vacância{campos.vacanciaData && <em>*</em>}<select value={campos.vacanciaForma} disabled={Boolean(existente)} onChange={(e) => {if (!existente) atualizar("vacanciaForma", e.target.value);}}><option value="">Selecione...</option><option>Exoneração</option><option>Término de contrato</option><option>Aposentadoria</option><option>Falecimento</option></select></label>
+        {existente && campos.termino !== existente.termino && <label>Autorização da prorrogação <em>*</em><input value={autorizacao} onChange={e => setAutorizacao(e.target.value)} placeholder="Referência do ato ou processo autorizador" /></label>}
       </div>
     </section>
     <section className="v2v-panel v2v-form-section" aria-labelledby="v2v-observacao-title">
@@ -380,6 +292,12 @@ export function VinculoV2CadastroPage() {
     </section>
     {erro && <div className="v2v-error" role="alert">{erro}</div>}
     <div className="v2v-form-actions"><button type="button" className="v2v-secondary" onClick={voltar}>{existente ? "Voltar" : "Cancelar"}</button><button type="submit" className="v2v-primary" disabled={!pessoa || Boolean(cadastrado)}><i className="pi pi-check" aria-hidden="true" />{existente ? "Salvar" : "Cadastrar Vínculo"}</button></div>
+    <ModalSeplag visible={Boolean(confirmacao)} titulo="Confirmar Alterações do Vínculo" fechar={() => setConfirmacao(null)} hideFooter tamanho="750px">
+      {confirmacao && <><p>Confira os campos alterados antes de confirmar.</p><div className="v2v-table-wrap"><table className="v2v-table"><thead><tr><th>Campo Alterado</th><th>Valor Anterior</th><th>Novo Valor</th></tr></thead><tbody>{confirmacao.mudancas.map(m => <tr key={m.campo}><td>{m.rotulo}</td><td>{m.anterior || '—'}</td><td>{m.novo || '—'}</td></tr>)}</tbody></table></div><label className="v2v-justificativa">Justificativa da Alteração<textarea value={justificativa} onChange={e => setJustificativa(e.target.value)} required /></label>{erro && <p role="alert">{erro}</p>}<div className="v2v-form-actions"><button type="button" className="v2v-secondary" onClick={() => setConfirmacao(null)}>Cancelar</button><button type="button" className="v2v-primary" disabled={!justificativa.trim()} onClick={() => {
+        try {confirmarEdicaoVinculo(confirmacao.novo.id,confirmacao.novo,justificativa,confirmacao.versao,autorizacao);navigate(`${BASE}/${confirmacao.novo.id}?salvo=1&tipo=${encodeURIComponent(tipo)}`);}
+        catch (e) {setErro((e as Error).message);}
+      }}>Confirmar Alterações</button></div></>}
+    </ModalSeplag>
     <ModalSeplag visible={Boolean(cadastrado)} titulo="Vínculo cadastrado" fechar={voltar} hideFooter tamanho="700px">
       {cadastrado && <div className="prototype-efetivo-registrado-modal">
         <p>O vínculo foi cadastrado com sucesso. A Matrícula e o Nº do Vínculo foram gerados automaticamente pelo sistema.</p>
@@ -399,6 +317,10 @@ export function VinculoV2DetalhesPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [params] = useSearchParams();
+  const usuario = useUsuarioVinculos();
+  useAtualizacaoVinculos();
+  const [aba,setAba] = useState<'dados' | 'historico'>('dados');
+  const abaAtiva = usuario ? aba : 'dados';
   const vinculo = todos().find((v) => v.id === id);
   const voltar = () => {
     const consulta = new URLSearchParams(params);
@@ -409,10 +331,15 @@ export function VinculoV2DetalhesPage() {
   const situacao = situacaoDoVinculo(vinculo);
 
   return layout("Detalhes do Vínculo", null, <>
+    {params.get('salvo') === '1' && <p className="v2v-notice" role="status">Alterações do vínculo salvas com sucesso. Histórico registrado.</p>}
+    {usuario && <div className="v2v-tabs" role="tablist" aria-label="Informações do vínculo"><button type="button" role="tab" id="v2v-tab-dados" aria-controls="v2v-panel-dados" aria-selected={abaAtiva === 'dados'} onClick={() => setAba('dados')}>Dados do Vínculo</button><button type="button" role="tab" id="v2v-tab-historico" aria-controls="v2v-panel-historico" aria-selected={abaAtiva === 'historico'} onClick={() => setAba('historico')}>Histórico de Alterações</button></div>}
+    <div id="v2v-panel-dados" role={usuario ? 'tabpanel' : undefined} aria-labelledby={usuario ? 'v2v-tab-dados' : undefined} hidden={abaAtiva !== 'dados'}>
     <section className="v2v-panel v2v-form-section v2v-server-section" aria-labelledby="v2v-servidor-title"><header className="v2v-section-header"><i className="pi pi-user" aria-hidden="true" /><div><h2 id="v2v-servidor-title">Dados do Servidor</h2></div></header><div className="v2v-section-body v2v-detail-grid v2v-grid-three"><DadoDetalhe nome="Nome" valor={vinculo.nome} /><DadoDetalhe nome="CPF" valor={vinculo.cpf} /><DadoDetalhe nome="Tipo de Vínculo" valor={vinculo.tipo} /></div></section>
     <section className="v2v-panel v2v-form-section" aria-labelledby="v2v-vinculo-title"><header className="v2v-section-header"><i className="pi pi-id-card" aria-hidden="true" /><div><h2 id="v2v-vinculo-title">Dados do Vínculo</h2></div></header><div className="v2v-section-body v2v-detail-grid v2v-grid-two"><DadoDetalhe nome="Matrícula" valor={vinculo.matricula} /><DadoDetalhe nome="Nº do Vínculo" valor={vinculo.numero} /></div></section>
     <section className="v2v-panel v2v-form-section" aria-labelledby="v2v-caracteristicas-title"><header className="v2v-section-header"><i className="pi pi-briefcase" aria-hidden="true" /><div><h2 id="v2v-caracteristicas-title">Características do Vínculo</h2></div></header><div className="v2v-section-body v2v-detail-grid v2v-grid-four"><DadoDetalhe nome="Regime Jurídico" valor={vinculo.regime} /><DadoDetalhe nome="Carreira" valor={vinculo.carreira || "Não se aplica"} /><DadoDetalhe nome="Cargo" valor={vinculo.cargo} /><DadoDetalhe nome="Perfil Profissional" valor={vinculo.perfil} /><DadoDetalhe nome="Jornada de Trabalho" valor={vinculo.jornada} /><DadoDetalhe nome="Órgão/Entidade" valor={vinculo.orgao || "Não informado"} /><DadoDetalhe nome="Lotação" valor={vinculo.setor || "Não informada"} /><DadoDetalhe nome="Data de Início do Exercício" valor={dataBr(vinculo.inicio)} />{TIPOS_FIM_EXERCICIO.has(vinculo.tipo) && <DadoDetalhe nome="Data de Fim do Exercício" valor={vinculo.termino ? dataBr(vinculo.termino) : "Não informada"} />}<DadoDetalhe nome="Situação do Vínculo" valor={<SituacaoTag situacao={situacao} />} /><DadoDetalhe nome="Data de Vacância" valor={vinculo.vacanciaData ? dataBr(vinculo.vacanciaData) : "Não informada"} /><DadoDetalhe nome="Forma de Vacância" valor={vinculo.vacanciaForma || "Não informada"} /></div></section>
     <section className="v2v-panel v2v-form-section" aria-labelledby="v2v-observacao-title"><header className="v2v-section-header"><i className="pi pi-file-edit" aria-hidden="true" /><div><h2 id="v2v-observacao-title">Observação</h2></div></header><div className="v2v-section-body v2v-detail-grid"><DadoDetalhe nome="Observação" valor={vinculo.observacao || "Não informada"} /></div></section>
-    <div className="v2v-form-actions v2v-detail-actions"><button type="button" className="v2v-secondary" onClick={voltar}><i className="pi pi-arrow-left" aria-hidden="true" />Voltar</button></div>
+    </div>
+    {usuario && abaAtiva === 'historico' && <div id="v2v-panel-historico" role="tabpanel" aria-labelledby="v2v-tab-historico"><VinculoAuditoria id={vinculo.id} /></div>}
+    <div className="v2v-form-actions v2v-detail-actions"><button type="button" className="v2v-secondary" onClick={voltar}><i className="pi pi-arrow-left" aria-hidden="true" />Voltar</button>{usuario?.editar && <button type="button" className="v2v-primary" onClick={() => navigate(`${BASE}/${vinculo.id}/editar?tipo=${encodeURIComponent(vinculo.tipo)}`)}><i className="pi pi-pencil" />Editar Vínculo</button>}</div>
   </>, situacao);
 }

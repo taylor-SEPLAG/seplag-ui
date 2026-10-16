@@ -1,4 +1,5 @@
 import { situacaoDoVinculo } from '../vinculos/vinculosConsulta';
+import { todos } from '../vinculos/vinculoDados';
 export interface Pessoa { id: string; nome: string; cpf: string; nascimento: string }
 export interface Vinculo { id: string; pessoaId: string; matricula: string; numero: number; tipo: string; cargo: string; orgao: string; unidade: string; inicio: string; fim?: string; classificacao: 'Ativo' | 'Inativo' | 'Falecido' | 'Extinto'; relacionadoId?: string }
 export interface Evento { id: string; vinculoId: string; data: string; tipo: string; titulo: string; descricao: string; origem: string; responsavel: string; registradoEm: string; documento: string; secoes: Record<string, Record<string, string>> }
@@ -51,8 +52,7 @@ export function atualizarVinculosCadastrados() {
   eventos.splice(0, eventos.length, ...eventosBase);
   let registros: import('../vinculos/VinculoV2Page').Vinculo[];
   try {
-    const dados = JSON.parse(localStorage.getItem('prototype-vinculos-v2') || '[]');
-    registros = Array.isArray(dados) ? dados : [];
+    registros = todos();
   } catch { return; }
   for (const registro of registros) {
     if (!registro.criacao) continue;

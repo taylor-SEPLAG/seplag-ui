@@ -9,16 +9,21 @@ import { cargosSiesReferenciaMock, pendenciasControlePssMock, processosPssMock }
 import { vagasProcessoPssMock } from "./vagasProcessoMock";
 import { certamesMock } from "./certame/mock";
 import type { Certame } from "./certame/types";
+import { CHAVE_CERTAMES_BASICOS_INGRESSO, lerCertamesBasicosIngresso, type CertameBasicoIngresso } from './certame/certameBasicoIngresso';
 import type { CandidatoPss, CargoSiesReferencia, ConvocacaoPss, IngressoServidorPss, IntegracaoExterna, ProcessoPss, PublicacaoPss, RegistroDeParaPss, VagaProcessoPss } from "./types";
 
-export interface ControlePssState{processos:ProcessoPss[];vagas:VagaProcessoPss[];candidatos:CandidatoPss[];convocacoes:ConvocacaoPss[];publicacoes:PublicacaoPss[];integracoes:IntegracaoExterna[];cargosSies:CargoSiesReferencia[];pendencias:string[];registrosDePara:RegistroDeParaPss[];ingressos:IngressoServidorPss[];certames:Certame[]}
-let state:ControlePssState={processos:[...processosPssMock],vagas:[...vagasProcessoPssMock],candidatos:[...candidatosPssMock],convocacoes:[...convocacoesPssMock],publicacoes:[...publicacoesPssMock],integracoes:[...integracoesPssMock],cargosSies:[...cargosSiesReferenciaMock],pendencias:[...pendenciasControlePssMock],registrosDePara:[...registrosDeParaMock],ingressos:[...ingressosPssMock],certames:[...certamesMock]};
+export interface ControlePssState{processos:ProcessoPss[];vagas:VagaProcessoPss[];candidatos:CandidatoPss[];convocacoes:ConvocacaoPss[];publicacoes:PublicacaoPss[];integracoes:IntegracaoExterna[];cargosSies:CargoSiesReferencia[];pendencias:string[];registrosDePara:RegistroDeParaPss[];ingressos:IngressoServidorPss[];certames:Certame[];certamesBasicosIngresso:CertameBasicoIngresso[]}
+let state:ControlePssState={processos:[...processosPssMock],vagas:[...vagasProcessoPssMock],candidatos:[...candidatosPssMock],convocacoes:[...convocacoesPssMock],publicacoes:[...publicacoesPssMock],integracoes:[...integracoesPssMock],cargosSies:[...cargosSiesReferenciaMock],pendencias:[...pendenciasControlePssMock],registrosDePara:[...registrosDeParaMock],ingressos:[...ingressosPssMock],certames:[...certamesMock],certamesBasicosIngresso:lerCertamesBasicosIngresso()};
 const listeners=new Set<()=>void>();const emitir=()=>listeners.forEach((l)=>l());
 export const controlePssStore={
  getState:()=>state,
  subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}},
  update:(updater:(atual:ControlePssState)=>ControlePssState)=>{state=updater(state);emitir()},
- set<K extends keyof ControlePssState>(campo:K,valor:ControlePssState[K]|((atual:ControlePssState[K])=>ControlePssState[K])){state={...state,[campo]:typeof valor==="function"?(valor as (a:ControlePssState[K])=>ControlePssState[K])(state[campo]):valor};emitir()},
+ set<K extends keyof ControlePssState>(campo:K,valor:ControlePssState[K]|((atual:ControlePssState[K])=>ControlePssState[K])){
+  const proximo=typeof valor==="function"?(valor as (a:ControlePssState[K])=>ControlePssState[K])(state[campo]):valor;
+  if(campo === "certamesBasicosIngresso") localStorage.setItem(CHAVE_CERTAMES_BASICOS_INGRESSO,JSON.stringify(proximo));
+  state={...state,[campo]:proximo};emitir();
+ },
  divergencias:()=>calcularDivergenciasSies(state.vagas,state.processos,state.cargosSies),
  historico:()=>construirHistoricoTemporalPss(state),
  resumoSecretarias:()=>construirResumoPorSecretaria(state.vagas,state.ingressos,state.processos),
