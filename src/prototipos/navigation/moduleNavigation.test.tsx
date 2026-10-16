@@ -153,7 +153,7 @@ it.each([
     5,
     "/prototipos/sigep/controle-vagas/dashboard",
   ],
-  ["Ingresso", IngressoGeralContent, 4, "/prototipos/sigep/ingressos/dashboard"],
+  ["Ingresso", IngressoGeralContent, 5, "/prototipos/sigep/ingressos/dashboard"],
   [
     "Vínculos Funcionais",
     VinculosFuncionaisGeralContent,

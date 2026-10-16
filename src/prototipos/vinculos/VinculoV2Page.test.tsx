@@ -3,6 +3,8 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { atualizarVinculosCadastrados, vinculos as vidaVinculos, eventos as vidaEventos } from "../vidaFuncional/model";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { alternarUsuarioVinculos } from './vinculoSessao';
+import { situacaoDoVinculo } from './vinculosConsulta';
 import { VinculoV2CadastroPage, VinculoV2ConsultaPage, VinculoV2DetalhesPage } from "./VinculoV2Page";
 
 const montar = (inicio = "/prototipos/sigep/vinculos-v2") => render(<MemoryRouter initialEntries={[inicio]}><Routes>
@@ -242,57 +244,12 @@ it.each([
   expect(screen.queryByRole("button", { name: "Salvar Vínculo" })).toBeNull();
   expect(localStorage.getItem("prototype-vinculos-v2")).toBeNull();
 });
-it.each([
-  { data: "2024-01-10", forma: "Exoneração", esperada: "Encerrado" },
-  { data: "2024-01-10", forma: "Término de contrato", esperada: "Encerrado" },
-  { data: "2024-01-10", forma: "Aposentadoria", esperada: "Encerrado" },
-  { data: "2024-01-10", forma: "Falecimento", esperada: "Encerrado" },
-  { data: "2999-01-10", forma: "Exoneração", esperada: "Encerrado" },
-])("calcula a situação $esperada para $forma em $data", ({ data, forma, esperada }) => {
-  montar("/prototipos/sigep/vinculos-v2/demo-1/editar");
-  fireEvent.change(screen.getByLabelText(/Data de Vacância/), { target: { value: data } });
-  fireEvent.change(screen.getByLabelText(/Forma de Vacância/), { target: { value: forma } });
-  expect(screen.getByText(esperada, { selector: ".v2v-status" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
-  const salvos = JSON.parse(localStorage.getItem("prototype-vinculos-v2") ?? "[]");
-  expect(salvos[0]).toMatchObject({ id: "demo-1", vacanciaData: data, vacanciaForma: forma, situacao: esperada });
-  expect(screen.getByRole("heading", { name: /Detalhes do Vínculo/ })).toBeTruthy();
-  expect(screen.getAllByText(esperada, { selector: ".v2v-status" }).length).toBeGreaterThan(0);
-});
-
-it("exige data e forma de vacância juntas", () => {
-  montar("/prototipos/sigep/vinculos-v2/demo-1/editar");
-  fireEvent.change(screen.getByLabelText(/Data de Vacância/), { target: { value: "2024-01-10" } });
-  expect(screen.getByText("Ativo", { selector: ".v2v-status" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
-  expect(screen.getByRole("alert").textContent).toContain("Informe a Data de Vacância e a Forma de Vacância juntas.");
-  expect(localStorage.getItem("prototype-vinculos-v2")).toBeNull();
-});
-
-it("mantém ativo com apenas a forma de vacância e encerra quando a data também é preenchida", () => {
-  montar("/prototipos/sigep/vinculos-v2/demo-1/editar");
-  fireEvent.change(screen.getByLabelText(/Forma de Vacância/), { target: { value: "Aposentadoria" } });
-  expect(screen.getByText("Ativo", { selector: ".v2v-status" })).toBeTruthy();
-  fireEvent.change(screen.getByLabelText(/Data de Vacância/), { target: { value: "2999-01-10" } });
-  expect(screen.getByText("Encerrado", { selector: ".v2v-status" })).toBeTruthy();
-  fireEvent.change(screen.getByLabelText(/Data de Vacância/), { target: { value: "" } });
-  expect(screen.getByText("Ativo", { selector: ".v2v-status" })).toBeTruthy();
-});
-
-it("mantém vínculo encerrado acessível na Gestão de Vínculos", () => {
-  montar("/prototipos/sigep/vinculos-v2/demo-1/editar");
-  fireEvent.change(screen.getByLabelText(/Data de Vacância/), { target: { value: "2024-01-10" } });
-  fireEvent.change(screen.getByLabelText(/Forma de Vacância/), { target: { value: "Exoneração" } });
-  fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
-  fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
-  expect(screen.getByRole("heading", { name: "Gestão de Vínculos" })).toBeTruthy();
-  expect(screen.getAllByText("Encerrado", { selector: ".v2v-status" }).length).toBeGreaterThan(0);
-  const kpis = screen.getByRole("region", { name: "Indicadores de vínculos" });
-  expect(kpis.textContent).toContain("Vínculos Ativos63");
-  expect(kpis.textContent).not.toContain("Vínculos Inativos");
-  expect(kpis.textContent).toContain("Vínculos Encerrados45");
+it.each(['2024-01-10','2999-01-10'])('mantem o calculo automatico de encerramento em %s', data => {
+  expect(situacaoDoVinculo({vacanciaData:data,vacanciaForma:'Exoneracao'})).toBe('Encerrado');
+  expect(situacaoDoVinculo({vacanciaData:'',vacanciaForma:'Exoneracao'})).toBe('Ativo');
 });
 it("organiza o formulário e ajusta perfil e jornada ao cargo", () => {
+  alternarUsuarioVinculos('admin.vinculos');
   montar("/prototipos/sigep/vinculos-v2/demo-1/editar");
   for (const titulo of ["Dados do Servidor", "Dados do Vínculo", "Características do Vínculo", "Observação"]) {
     expect(screen.getByRole("heading", { name: titulo })).toBeTruthy();

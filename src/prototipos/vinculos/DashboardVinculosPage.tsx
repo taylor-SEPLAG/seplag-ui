@@ -46,9 +46,11 @@ export function DashboardVinculosPage() {
 
     window.addEventListener("focus", atualizar);
     window.addEventListener("storage", atualizar);
+    window.addEventListener("sigep:vinculos:atualizados", atualizar);
     return () => {
       window.removeEventListener("focus", atualizar);
       window.removeEventListener("storage", atualizar);
+      window.removeEventListener("sigep:vinculos:atualizados", atualizar);
     };
   }, []);
   const tipos = [

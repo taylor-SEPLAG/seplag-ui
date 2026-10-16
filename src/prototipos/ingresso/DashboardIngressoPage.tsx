@@ -1,3 +1,4 @@
+import { EVENTO_DADOS_INGRESSO } from "./ingressoDados";
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PrototypeSystemPage, menuGestaoPessoas, estiloTagSituacaoIngresso, type IngressoSituacao } from '../PrototiposPage';
@@ -55,7 +56,7 @@ export function DashboardIngressoPage() {
   const [erroExportacao,setErroExportacao] = useState('');
   const consulta = params.get('view') === 'consulta';
   const atualizar = () => { setRegistros(lerDadosDashboard()); setAtualizado(new Date()); };
-  useEffect(() => { window.addEventListener('focus',atualizar); window.addEventListener('storage',atualizar); return () => { window.removeEventListener('focus',atualizar); window.removeEventListener('storage',atualizar); }; },[]);
+  useEffect(() => { window.addEventListener(EVENTO_DADOS_INGRESSO,atualizar); window.addEventListener('focus',atualizar); window.addEventListener('storage',atualizar); return () => { window.removeEventListener(EVENTO_DADOS_INGRESSO,atualizar); window.removeEventListener('focus',atualizar); window.removeEventListener('storage',atualizar); }; },[]);
   useEffect(() => { setFiltros(({ ...Object.fromEntries(Object.keys(filtrosIniciais).map(k => [k,params.get(k)||''])), tipo: params.get('tipo') ?? (params.get('view') === 'consulta' ? '' : 'Concurso') }) as FiltrosDashboard); setPagina(1); },[params]);
   const alterar = (campo: keyof FiltrosDashboard, valor: string) => { setFiltros(f => ({...f,[campo]:valor})); setPagina(1); };
   const tipoAtivo = filtros.tipo;

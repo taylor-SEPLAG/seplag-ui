@@ -9,6 +9,12 @@ const destinosIngresso = [
     destino: "/prototipos/sigep/ingressos/dashboard",
   },
   {
+    titulo: "Dashboard Nomeados",
+    descricao: "Acompanhe vagas dos editais, nomeações e ingressos por cargo/função.",
+    icone: "pi pi-chart-bar",
+    destino: "/prototipos/sigep/ingressos/dashboard-nomeados",
+  },
+  {
     titulo: "Gestão de Ingresso",
     descricao: "Acompanhe e gerencie os processos de ingresso em andamento.",
     icone: "pi pi-users",

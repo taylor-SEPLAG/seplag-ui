@@ -1,3 +1,8 @@
+import type { SituacaoCertame } from "./controlePss/certame/types";
+import { useControlePssStore } from "./controlePss/controlePssStore";
+import { quantitativosEditalIngresso } from "./ingresso/certameIngresso";
+import { consultarCertamesIngresso } from "./ingresso/sincronizarCertamesIngresso";
+import { candidatosAtuaisEdital, categoriaIngresso, lerRegistrosIngresso, persistirDadoIngresso, persistirSituacaoDoEdital, quantitativosIngresso, situacaoAtualIngresso, useRevisaoDadosIngresso } from "./ingresso/ingressoDados";
 import { BreadcrumbVagas as BreadcrumbVagasResidentes } from "./controleVagasResidentes/BreadcrumbVagas";
 import { atualizarControleVagasBolsistas } from "./controleVagasResidentes/cargosBolsistasStore";
 import { atualizarControleVagasComissionadas, cargosComissionadosIniciais } from "./controleVagasComissionados/cargosComissionadosStore";
@@ -452,6 +457,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
         items: [
           { label: "Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos", visibleOnMenu: false, visibleOnRouter: true },
           { label: "Dashboard do Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/dashboard", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Dashboard Nomeados", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/dashboard-nomeados", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Gestão de Ingresso", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos-teste", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Efetivo Exercício", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/efetivo-exercicio", visibleOnMenu: true, visibleOnRouter: true },
           { label: "Ingresso Comissionados", icon: "pi pi-circle-on", to: "/prototipos/sigep/ingressos/comissionados", visibleOnMenu: true, visibleOnRouter: true },
@@ -1033,6 +1039,8 @@ interface PrototypeSystemPageProps {
   menuItems: IMenuSeplag[];
   message?: string;
   children?: ReactNode;
+  nomeApresentacao?: string;
+  profileExtraActions?: ReactNode;
 }
 
 export function PrototypeSystemPage({
@@ -1041,6 +1049,8 @@ export function PrototypeSystemPage({
   menuItems,
   message,
   children,
+  nomeApresentacao,
+  profileExtraActions,
 }: Readonly<PrototypeSystemPageProps>) {
   return (
     <div className="prototype-shell">
@@ -1052,7 +1062,8 @@ export function PrototypeSystemPage({
         menuItems={menuItems}
         menuMode="static"
         footerText="SEPLAG - SSCPG - Superintendência de Sistemas Corporativos de Planejamento e Gestão"
-        nomeApresentacao={USUARIO_SIGEP_LOGADO.nome}
+        nomeApresentacao={nomeApresentacao ?? USUARIO_SIGEP_LOGADO.nome}
+        profileExtraActions={profileExtraActions}
         numrVinculoAtual={2}
         vinculos={vinculos}
         onLogout={() => {}}
@@ -1728,6 +1739,14 @@ interface IngressoRow {
 }
 
 export interface IngressoCandidatoRow {
+  cargoId?: string;
+  cargoVagaCertameId?: string;
+  polo?: string;
+  vagaId?: string;
+  comprometimentoVagaId?: string;
+  vinculoId?: string;
+  posseConfirmada?: boolean;
+  situacao?: IngressoSituacao;
   id: number;
   nome: string;
   cpf?: string;
@@ -1786,6 +1805,9 @@ interface EfetivoExercicioHistoricoEvento {
 }
 
 interface IngressoConcursoProcessoRow {
+  certameId?: string;
+  situacaoCertame?: SituacaoCertame;
+  candidatosRecebidos?: boolean;
   id: number;
   titulo: string;
   tipo: "Concurso" | "Processo Seletivo";
@@ -1803,6 +1825,7 @@ interface IngressoConcursoProcessoRow {
   polos?: string[];
   quantidadeVagas?: number;
   quantidadeCadastroReserva?: number;
+  quantidadeCandidatosPrevistos?: number;
   candidatos: IngressoCandidatoRow[];
 }
 
@@ -2891,6 +2914,8 @@ const getResultadoHistoricoIngressoBadge = (resultado: IngressoHistoricoEtapaRow
 export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   {
     id: 1,
+    situacaoCertame: "HOMOLOGADO",
+    quantidadeVagas: 100,
     titulo: "Concurso SES 2026",
     tipo: "Concurso",
     orgao: "SES",
@@ -2903,11 +2928,11 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
     diasProrrogacaoExercicio: 0,
     cotas: ["PCD", "PPP"],
     polos: ["Cuiabá"],
-    quantidadeVagas: 15,
     quantidadeCadastroReserva: 5,
     candidatos: [
       {
         id: 1,
+        situacao: "Tornado sem efeito",
         nome: "João Silva",
         classificacao: "1º",
         cargo: "Analista Administrativo",
@@ -2918,6 +2943,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 2,
+        situacao: "Tornado sem efeito",
         nome: "Maria Souza",
         classificacao: "2º",
         cargo: "Professor",
@@ -2928,6 +2954,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 3,
+        situacao: "Tornado sem efeito",
         nome: "Carlos Pereira",
         classificacao: "3º",
         cargo: "Analista Administrativo",
@@ -2938,6 +2965,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 4,
+        situacao: "Tornado sem efeito",
         nome: "Ana Costa",
         classificacao: "4º",
         cargo: "Analista Administrativo",
@@ -2948,6 +2976,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 5,
+        situacao: "Tornado sem efeito",
         nome: "Fernanda Rocha",
         classificacao: "2º",
         cargo: "Analista Administrativo",
@@ -2958,6 +2987,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 6,
+        situacao: "Exoneração de oficio",
         nome: "Rafael Martins",
         classificacao: "6º",
         cargo: "Analista Administrativo",
@@ -2968,6 +2998,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 7,
+        situacao: "Posse Negada",
         nome: "Bruno Almeida",
         classificacao: "7º",
         cargo: "Analista Administrativo",
@@ -2978,6 +3009,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 8,
+        situacao: "Ingresso Concluído",
         nome: "Luciana Freitas",
         classificacao: "8º",
         cargo: "Analista Administrativo",
@@ -3000,6 +3032,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
 
       {
         id: 14,
+        situacao: "Posse Suspensa",
         nome: "Renata Lima",
         classificacao: "9º",
         cargo: "Analista Administrativo",
@@ -3010,6 +3043,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 15,
+        situacao: "Em analise",
         nome: "Paulo Henrique Santos",
         classificacao: "10º",
         cargo: "Analista Administrativo",
@@ -3020,6 +3054,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 16,
+        situacao: "Ingresso Concluído",
         nome: "Marcos Antônio Ribeiro",
         classificacao: "5º",
         cargo: "Analista Administrativo",
@@ -3030,6 +3065,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 17,
+        situacao: "Aguardando Analise",
         nome: "Gabriela Oliveira",
         classificacao: "11º",
         cargo: "Analista Administrativo",
@@ -3040,6 +3076,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 18,
+        situacao: "Aguardando Analise",
         nome: "Eduardo Mendes",
         classificacao: "12º",
         cargo: "Analista Administrativo",
@@ -3050,6 +3087,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 19,
+        situacao: "Aguardando Analise",
         nome: "Juliana Ferreira",
         classificacao: "13º",
         cargo: "Analista Administrativo",
@@ -3101,6 +3139,8 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   },
   {
     id: 2,
+    situacaoCertame: "HOMOLOGADO",
+    quantidadeVagas: 100,
     titulo: "Concurso SEDUC 2026",
     tipo: "Concurso",
     orgao: "SEDUC",
@@ -3108,6 +3148,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
     candidatos: [
       {
         id: 8,
+        situacao: "Ingresso Concluído",
         nome: "Luciana Freitas",
         classificacao: "1º",
         cargo: "Professor",
@@ -3130,6 +3171,8 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   },
   {
     id: 3,
+    situacaoCertame: "HOMOLOGADO",
+    quantidadeVagas: 100,
     titulo: "Concurso SEFAZ 2026",
     tipo: "Concurso",
     orgao: "SEFAZ",
@@ -3137,6 +3180,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
     candidatos: [
       {
         id: 4,
+        situacao: "Tornado sem efeito",
         nome: "Ana Costa",
         classificacao: "1º",
         cargo: "Gestor Governamental",
@@ -3147,6 +3191,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 7,
+        situacao: "Posse Negada",
         nome: "Bruno Almeida",
         classificacao: "4º",
         cargo: "Gestor Governamental",
@@ -3159,6 +3204,8 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   },
   {
     id: 4,
+    situacaoCertame: "HOMOLOGADO",
+    quantidadeVagas: 100,
     titulo: "Processo Seletivo SES 2026",
     tipo: "Processo Seletivo",
     orgao: "SES",
@@ -3188,6 +3235,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 40,
+        situacao: "Ingresso Concluído",
         nome: "Ana Beatriz Souza",
         cpf: "040.444.444-44",
         dataNascimento: "21/04/1993",
@@ -3314,6 +3362,7 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
       },
       {
         id: 52,
+        situacao: "Ingresso Cancelado",
         nome: "Renata Carvalho",
         cpf: "052.444.444-44",
         dataNascimento: "19/11/1992",
@@ -3328,6 +3377,8 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   },
   {
     id: 5,
+    situacaoCertame: "HOMOLOGADO",
+    quantidadeVagas: 100,
     titulo: "Processo Seletivo SEDUC 2026",
     tipo: "Processo Seletivo",
     orgao: "SEDUC",
@@ -3357,7 +3408,10 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   },
   {
     id: 6,
+    situacaoCertame: "HOMOLOGADO",
+    quantidadeVagas: 100,
     titulo: "Processo Seletivo SEFAZ 2026",
+    candidatosRecebidos: false,
     tipo: "Processo Seletivo",
     orgao: "SEFAZ",
     edital: "Edital 006/2026",
@@ -3386,6 +3440,8 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   },
   {
     id: 7,
+    situacaoCertame: "HOMOLOGADO",
+    quantidadeVagas: 100,
     titulo: "Concurso SES 2025",
     tipo: "Concurso",
     orgao: "SES",
@@ -3415,6 +3471,8 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   },
   {
     id: 8,
+    situacaoCertame: "HOMOLOGADO",
+    quantidadeVagas: 100,
     titulo: "Processo Seletivo SEDUC 2027",
     tipo: "Processo Seletivo",
     orgao: "SEDUC",
@@ -3444,6 +3502,8 @@ export const ingressoConcursosProcessosMock: IngressoConcursoProcessoRow[] = [
   },
   {
     id: 9,
+    situacaoCertame: "HOMOLOGADO",
+    quantidadeVagas: 100,
     titulo: "Processo Seletivo SEPLAG 2027",
     tipo: "Processo Seletivo",
     orgao: "SEPLAG",
@@ -11895,6 +11955,13 @@ export function PrototiposTipoVinculoTestePage({
             />
           }
         >
+          <section className="prototype-ingressos-integration-notice" role="note" aria-label="Orientação sobre Tipos de Vínculo">
+            <span className="prototype-ingressos-integration-notice-icon" aria-hidden="true"><i className="pi pi-info-circle" /></span>
+            <div className="prototype-ingressos-integration-notice-copy">
+              <strong>Os Tipos de Vínculo deverão ser destinados exclusivamente aos servidores que possuem relação funcional com o Estado.</strong>
+              <p>Pensionistas e demais beneficiários não deverão possuir Tipo de Vínculo próprio, pois sua relação com o Estado decorre da concessão de benefícios, e não de vínculo funcional. Esses beneficiários deverão ser cadastrados e relacionados ao servidor titular ou instituidor, quando aplicável, por meio de funcionalidade específica.</p>
+            </div>
+          </section>
           <div className="prototype-category-filters prototype-tipo-vinculo-filters grid">
             {regimeJuridicoInicial ? (
               <div className="col-12 prototype-carreira-register-alert" role="status">
@@ -12619,7 +12686,7 @@ export function PrototiposEfetivoExercicioPage() {
     const anexosSalvos = JSON.parse(
       localStorage.getItem("prototype-ingresso-termos-efetivo-assinados") ?? "{}",
     ) as Record<string, { nome: string; tamanho: number; anexadoEm: string; responsavel: string }>;
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-termos-efetivo-assinados",
       JSON.stringify({
         ...anexosSalvos,
@@ -12634,21 +12701,21 @@ export function PrototiposEfetivoExercicioPage() {
       { titulo: nomeDocumentoFinalizacao + " assinado anexado", descricao: "O documento assinado foi vinculado ao ingresso.", responsavel: "Patrícia Lima - Setorial", orgaoAtuacao: orgaoAtuacaoPerfil, dataHora: agora, arquivo: termoEfetivoAssinado.name },
       { titulo: "Efetivo Exercício finalizado", descricao: "Situação alterada para Ingresso Concluído.", responsavel: "Patrícia Lima - Setorial", orgaoAtuacao: orgaoAtuacaoPerfil, dataHora: agora },
     ];
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-historico-efetivo-exercicio",
       JSON.stringify({ ...historicosAtualizados, [finalizacaoEfetivoChave]: [...eventosAtuais, ...novosEventos] }),
     );
     const situacoesAtualizadas = JSON.parse(
       localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
     ) as Record<string, IngressoSituacao>;
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-situacoes",
       JSON.stringify({ ...situacoesAtualizadas, [String(registroFinalizacaoSelecionado.id)]: "Ingresso Concluído" }),
     );
     const situacoesPorConcursoAtualizadas = JSON.parse(
       localStorage.getItem("prototype-ingresso-situacoes-concursos") ?? "{}",
     ) as Record<string, Record<string, IngressoSituacao>>;
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-situacoes-concursos",
       JSON.stringify({
         ...situacoesPorConcursoAtualizadas,
@@ -13503,7 +13570,7 @@ export function PrototiposIngressosComissionadosPage() {
   const cancelarIngressoComissionado = (registro: IngressoComissionadoRow) => {
     if (registro.situacao !== "Em análise") return;
     const situacoes = JSON.parse(localStorage.getItem("prototype-ingresso-situacoes") ?? "{}") as Record<string, IngressoSituacao>;
-    localStorage.setItem("prototype-ingresso-situacoes", JSON.stringify({ ...situacoes, [String(registro.id)]: "Ingresso Cancelado" }));
+    persistirDadoIngresso("prototype-ingresso-situacoes", JSON.stringify({ ...situacoes, [String(registro.id)]: "Ingresso Cancelado" }));
     adicionarHistoricoComissionado(registro.id, eventoComissionado("Ingresso cancelado", "Processo encerrado pela ação Cancelar Ingresso. Situação atribuída: Ingresso Cancelado.", new Date().toLocaleString("pt-BR")));
     setRegistros((atuais) => atuais.map((item) => item.id === registro.id ? { ...item, situacao: "Ingresso cancelado" } : item));
     setMenuAbertoId(null);
@@ -13572,7 +13639,7 @@ export function PrototiposIngressosComissionadosPage() {
     if (!finalizacaoSelecionada || !chaveFinalizacaoComissionado || !dadosFinalizacaoComissionado) return;
     const agora = new Date().toLocaleString("pt-BR");
     const anexosSalvos = JSON.parse(localStorage.getItem("prototype-ingresso-termos-efetivo-assinados") ?? "{}") as Record<string, { nome: string; tamanho: number; anexadoEm: string; responsavel: string }>;
-    localStorage.setItem("prototype-ingresso-termos-efetivo-assinados", JSON.stringify({
+    persistirDadoIngresso("prototype-ingresso-termos-efetivo-assinados", JSON.stringify({
       ...anexosSalvos,
       [chaveFinalizacaoComissionado]: { nome: termoAssinadoComissionado.name, tamanho: termoAssinadoComissionado.size, anexadoEm: agora, responsavel: "ROBERTO JUNIOR" },
     }));
@@ -13582,12 +13649,12 @@ export function PrototiposIngressosComissionadosPage() {
       { titulo: "Termo de Efetivo Exercício assinado anexado", descricao: "O documento assinado foi vinculado ao ingresso.", responsavel: "ROBERTO JUNIOR", dataHora: agora, arquivo: termoAssinadoComissionado.name },
       { titulo: "Efetivo Exercício finalizado", descricao: "Situação alterada para Ingresso Concluído.", responsavel: "ROBERTO JUNIOR", dataHora: agora },
     ];
-    localStorage.setItem("prototype-ingresso-historico-efetivo-exercicio", JSON.stringify({
+    persistirDadoIngresso("prototype-ingresso-historico-efetivo-exercicio", JSON.stringify({
       ...historicosSalvos,
       [chaveFinalizacaoComissionado]: [...eventosAtuais, ...novosEventos],
     }));
     const situacoesSalvas = JSON.parse(localStorage.getItem("prototype-ingresso-situacoes") ?? "{}") as Record<string, IngressoSituacao>;
-    localStorage.setItem("prototype-ingresso-situacoes", JSON.stringify({
+    persistirDadoIngresso("prototype-ingresso-situacoes", JSON.stringify({
       ...situacoesSalvas,
       [String(finalizacaoSelecionada.id)]: "Ingresso Concluído",
     }));
@@ -13815,6 +13882,7 @@ interface IngressoEfetivoExercicioFiltroForm {
 }
 
 export function PrototiposIngressosTestePage() {
+  const revisaoDadosIngresso = useRevisaoDadosIngresso();
   const navigate = useNavigate();
   const [perfilVariacao, setPerfilVariacao] = usePerfilVariacaoIngresso();
   const [orgaoAtuacaoPerfil, setOrgaoAtuacaoPerfil] = useState(getOrgaoAtuacaoIngresso);
@@ -13838,78 +13906,23 @@ export function PrototiposIngressosTestePage() {
   const concursoProcessoSeletivoBusca = filtros.concursoProcessoSeletivo?.trim().toLowerCase();
 
   const registrosIngressoTeste: IngressoTesteTabelaRow[] = useMemo(() => {
-    const situacoesIngressosSalvas = JSON.parse(
-      localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
-    ) as Partial<Record<string, IngressoSituacao>>;
-    const situacoesIngressosPorConcurso = JSON.parse(
-      localStorage.getItem("prototype-ingresso-situacoes-concursos") ?? "{}",
-    ) as Record<string, Partial<Record<string, IngressoSituacao>>>;
-    const registrosCriadosPorConcurso = JSON.parse(
-      localStorage.getItem("prototype-ingresso-registros-concursos") ?? "{}",
-    ) as Record<string, IngressoCandidatoRow[]>;
-    const direcionamentos = JSON.parse(localStorage.getItem("prototype-ingresso-direcionamentos-analise") ?? "{}") as Record<string, { responsavelAnalise: string }>;
-    const orgaosEfetivo = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
-    const candidatoAutorizado = (concursoProcesso: (typeof ingressoConcursosProcessosMock)[number], candidato: IngressoCandidatoRow) =>
-      podeConsultarIngresso(perfilVariacao, orgaoAtuacaoPerfil, concursoProcesso.orgao, concursoProcesso.tipo === "Processo Seletivo" ? direcionamentos[String(candidato.id)]?.responsavelAnalise : undefined, orgaosEfetivo[String(candidato.id)]);
-    const concursosProcessos = ingressoConcursosProcessosMock.filter((concursoProcesso) =>
-      perfilVariacao === "CENTRAL" || [...concursoProcesso.candidatos, ...(registrosCriadosPorConcurso[concursoProcesso.titulo] ?? [])].some((candidato) => candidatoAutorizado(concursoProcesso, candidato))
+    const registros = lerRegistrosIngresso(perfilVariacao, orgaoAtuacaoPerfil);
+    const concursosProcessos = ingressoConcursosProcessosMock.filter((edital) =>
+      perfilVariacao === "CENTRAL" || registros.some(r => r.edital.id === edital.id)
     ).map((concursoProcesso) => {
-      const candidatosCriados = registrosCriadosPorConcurso[concursoProcesso.titulo] ?? [];
-      const idsCriados = new Set(candidatosCriados.map((candidato) => candidato.id));
-      const candidatosConcurso = [
-        ...concursoProcesso.candidatos.filter((candidato) => !idsCriados.has(candidato.id)),
-        ...candidatosCriados,
-      ].filter((candidato) => candidatoAutorizado(concursoProcesso, candidato));
-      const situacoesDemonstracaoConcurso: Partial<Record<number, IngressoSituacao>> = {
-        1: "Tornado sem efeito", 2: "Tornado sem efeito", 3: "Tornado sem efeito", 4: "Tornado sem efeito",
-        5: "Tornado sem efeito", 6: "Exoneração de oficio", 7: "Posse Negada",
-        8: "Ingresso Concluído", 14: "Posse Suspensa", 15: "Em analise", 16: "Ingresso Concluído",
-        17: "Aguardando Analise", 18: "Aguardando Analise", 19: "Aguardando Analise",
-      };
-      const getSituacaoSalvaCandidato = (candidatoId: number): IngressoSituacao | undefined => {
-        if (concursoProcesso.id === 1 && [1, 2, 3, 4, 5].includes(candidatoId)) return "Tornado sem efeito";
-        if (concursoProcesso.id === 1 && candidatoId === 14) return "Posse Suspensa";
-        const situacaoSalva = situacoesIngressosPorConcurso[concursoProcesso.titulo]?.[String(candidatoId)] ??
-          situacoesIngressosSalvas[String(candidatoId)] as string | undefined;
-        const situacaoNormalizada = situacaoSalva === "Ingresso cancelado"
-          ? "Ingresso Cancelado"
-          : situacaoSalva as IngressoSituacao | undefined;
-
-        return (concursoProcesso.tipo === "Processo Seletivo" && situacaoNormalizada === "Exoneração de oficio" ? "Ingresso Cancelado" : situacaoNormalizada) ??
-          (candidatoId === 52 ? "Ingresso Cancelado" : undefined) ??
-          (concursoProcesso.tipo === "Concurso" ? situacoesDemonstracaoConcurso[candidatoId] : undefined) ??
-          ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
-          (candidatoId === 40 ? "Ingresso Concluído" : undefined);
-      };
-      const contarSituacao = (situacao: IngressoSituacao) => candidatosConcurso.filter(
-        (candidato) => getSituacaoSalvaCandidato(candidato.id) === situacao,
-      ).length;
-      const ingressados = candidatosConcurso.filter(
-        (candidato) => getSituacaoSalvaCandidato(candidato.id) === "Ingresso Concluído",
-      ).length;
-      const possuiRegistroEmAnalise = candidatosConcurso.some(
-        (candidato) => getSituacaoSalvaCandidato(candidato.id) === "Em analise",
-      );
-
-      const nomeadosBase = candidatosConcurso.length;
-      const nomeados = concursoProcesso.titulo === "Processo Seletivo SEFAZ 2026" ? 0 : nomeadosBase;
-      const ingressadosAjustados = Math.min(ingressados, nomeados);
+      const candidatos = registros.filter(r => r.edital.id === concursoProcesso.id);
+      const { nomeados, pendentes, ingressados: ingressadosAjustados, encerradosSemIngresso } = quantitativosIngresso(candidatos);
+      const contarSituacao = (situacao: IngressoSituacao) => candidatos.filter(c => c.situacao === situacao).length;
       const possesSuspensas = contarSituacao("Posse Suspensa");
       const possesNegadas = contarSituacao("Posse Negada");
       const tornadosSemEfeito = contarSituacao("Tornado sem efeito");
       const exoneracoesOficio = contarSituacao("Exoneração de oficio");
       const cancelados = contarSituacao("Ingresso Cancelado");
-      const encerradosSemIngresso = concursoProcesso.tipo === "Concurso"
-        ? possesNegadas + tornadosSemEfeito + exoneracoesOficio
-        : cancelados;
-      const pendentes = Math.max(nomeados - ingressadosAjustados - encerradosSemIngresso, 0);
-      const situacao: IngressoTesteSituacao = nomeados === 0
-        ? "Sem nomeados"
-        : pendentes === 0
-            ? "Concluído"
-            : possuiRegistroEmAnalise || ingressadosAjustados > 0
-              ? "Em andamento"
-              : "Não iniciado";
+      const semInicio = candidatos.some(c => !categoriaIngresso(c.situacao));
+      const situacao: IngressoTesteSituacao = nomeados === 0 ? "Sem nomeados"
+        : pendentes === 0 && !semInicio ? "Concluído"
+        : candidatos.some(c => c.situacao === "Em analise") || ingressadosAjustados > 0 ? "Em andamento"
+        : "Não iniciado";
       const numeroEdital = concursoProcesso.edital.replace(/^Edital\s*/i, "");
       const nomeEdital = `${numeroEdital}/${concursoProcesso.orgao}`;
       const descricaoPorEdital: Record<string, string> = {
@@ -13945,7 +13958,7 @@ export function PrototiposIngressosTestePage() {
     });
 
     return concursosProcessos;
-  }, [perfilVariacao, orgaoAtuacaoPerfil]);
+  }, [perfilVariacao, orgaoAtuacaoPerfil, revisaoDadosIngresso]);
 
   const registrosFiltrados = registrosIngressoTeste.filter((registro) => {
     if (filtros.tipo && registro.tipo !== filtros.tipo) return false;
@@ -14394,6 +14407,7 @@ export function PrototiposIngressosTestePage() {
   );
 }
 export function PrototiposIngressosTesteDetalhePage() {
+  useControlePssStore();
   const navigate = useNavigate();
   const [dashboardParams] = useSearchParams();
   const [perfilVariacao, setPerfilVariacao] = usePerfilVariacaoIngresso();
@@ -14432,22 +14446,12 @@ export function PrototiposIngressosTesteDetalhePage() {
   const concursoProcessoBase = ingressoConcursosProcessosMock.find(
     (item) => item.id === Number(id),
   );
-  const registrosCriadosPorConcurso = JSON.parse(
-    localStorage.getItem("prototype-ingresso-registros-concursos") ?? "{}",
-  ) as Record<string, IngressoCandidatoRow[]>;
-  const candidatosCriadosConcurso = concursoProcessoBase
-    ? registrosCriadosPorConcurso[concursoProcessoBase.titulo] ?? []
-    : [];
-  const idsCandidatosCriados = new Set(candidatosCriadosConcurso.map((candidato) => candidato.id));
+  useRevisaoDadosIngresso();
   const concursoProcesso = concursoProcessoBase
-    ? {
-        ...concursoProcessoBase,
-        candidatos: [
-          ...concursoProcessoBase.candidatos.filter((candidato) => !idsCandidatosCriados.has(candidato.id)),
-          ...candidatosCriadosConcurso,
-        ],
-      }
+    ? { ...concursoProcessoBase, candidatos: candidatosAtuaisEdital(concursoProcessoBase) }
     : undefined;
+  const vagasEditalDetalhe = concursoProcessoBase ? quantitativosEditalIngresso(concursoProcessoBase,consultarCertamesIngresso())
+    : {vagas:undefined,cadastroReserva:undefined};
   const [filtrosGrupo, setFiltrosGrupo] = useState<
     Record<string, { nome: string; situacao: IngressoSituacao | "" }>
   >({});
@@ -14534,38 +14538,8 @@ export function PrototiposIngressosTesteDetalhePage() {
     }));
   };
   const getSituacaoCandidato = (candidatoId: number): IngressoSituacao => {
-    if (concursoProcesso?.id === 1 && [1, 2, 3, 4, 5].includes(candidatoId)) return "Tornado sem efeito";
-    if (concursoProcesso?.id === 1 && candidatoId === 14) return "Posse Suspensa";
-    const situacaoSalva = concursoProcesso
-      ? situacoesIngressosPorConcurso[concursoProcesso.titulo]?.[String(candidatoId)] ??
-        situacoesIngressosSalvas[String(candidatoId)]
-      : situacoesIngressosSalvas[String(candidatoId)];
-    const situacaoNormalizada = situacaoSalva === "Ingresso cancelado"
-      ? "Ingresso Cancelado"
-      : situacaoSalva as IngressoSituacao | undefined;
-    const situacoesDemonstracaoConcurso: Partial<Record<number, IngressoSituacao>> = {
-      1: "Tornado sem efeito",
-      2: "Tornado sem efeito",
-      3: "Tornado sem efeito",
-      5: "Tornado sem efeito",
-      8: "Ingresso Concluído",
-      4: "Tornado sem efeito",
-      7: "Posse Negada",
-      6: "Exoneração de oficio",
-      14: "Em analise",
-      15: "Em analise",
-      16: "Ingresso Concluído",
-      17: "Aguardando Analise",
-      18: "Aguardando Analise",
-      19: "Aguardando Analise",
-    };
-
-    return (concursoProcesso?.tipo === "Processo Seletivo" && situacaoNormalizada === "Exoneração de oficio" ? "Ingresso Cancelado" : situacaoNormalizada) ??
-      (candidatoId === 52 ? "Ingresso Cancelado" : undefined) ??
-      (concursoProcesso?.tipo === "Concurso" ? situacoesDemonstracaoConcurso[candidatoId] : undefined) ??
-      ingressosMock.find((ingresso) => ingresso.id === candidatoId)?.situacao ??
-      (candidatoId === 40 ? "Ingresso Concluído" : undefined) ??
-      "Aguardando Analise";
+    const candidato = concursoProcesso?.candidatos.find(c => c.id === candidatoId);
+    return concursoProcesso && candidato ? situacaoAtualIngresso(concursoProcesso, candidato) ?? "Aguardando Analise" : "Aguardando Analise";
   };
   const getDataEfetivoExercicio = (candidato: IngressoCandidatoRow) =>
     getDataEfetivoExercicioConcluido(
@@ -14593,7 +14567,7 @@ export function PrototiposIngressosTesteDetalhePage() {
       ...exclusoesIngressoPorConcurso,
       [concursoProcesso.titulo]: idsExcluidos,
     };
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-exclusoes-concursos",
       JSON.stringify(exclusoesAtualizadas),
     );
@@ -14616,7 +14590,7 @@ export function PrototiposIngressosTesteDetalhePage() {
     const situacoes = JSON.parse(
       localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
     ) as Record<string, IngressoSituacao>;
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-situacoes",
       JSON.stringify({
         ...situacoes,
@@ -14626,7 +14600,7 @@ export function PrototiposIngressosTesteDetalhePage() {
     const cancelamentos = JSON.parse(
       localStorage.getItem("prototype-ingresso-cancelamentos") ?? "{}",
     ) as Record<string, { motivo: string; justificativa: string }>;
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-cancelamentos",
       JSON.stringify({
         ...cancelamentos,
@@ -14636,6 +14610,7 @@ export function PrototiposIngressosTesteDetalhePage() {
         },
       }),
     );
+    if (concursoProcesso) persistirSituacaoDoEdital(concursoProcesso.titulo, candidatoCancelamento.id, "Ingresso Cancelado");
     setRevisaoSituacoesIngresso((revisao) => revisao + 1);
     fecharModalCancelamento();
   };
@@ -14818,11 +14793,13 @@ export function PrototiposIngressosTesteDetalhePage() {
   );
   const orgaosEfetivoExercicioPerfil = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
   const candidatosGestaoIngresso = (
-    aguardandoListaCandidatos ? [] : concursoProcesso.candidatos
+    concursoProcesso.candidatos
   ).filter((candidato) =>
     (!dashboardParams.get("cargo") || candidato.cargo === dashboardParams.get("cargo")) &&
+    (!dashboardParams.get("polo") || (candidato.polo || getPoloCandidatoIngresso(candidato.id)) === dashboardParams.get("polo")) &&
+    (!dashboardParams.get("tipoVaga") || candidato.tipoVaga === dashboardParams.get("tipoVaga")) &&
     (!dashboardParams.get("orgao") || (orgaosEfetivoExercicioPerfil[String(candidato.id)] || candidato.orgaoDesignado || concursoProcesso.orgao) === dashboardParams.get("orgao")) &&
-    (dashboardParams.get("pendentes") !== "1" || !["Ingresso Concluído", "Posse Negada", "Tornado sem efeito", "Exoneração de oficio", "Ingresso Cancelado", "Encerrado por desistência"].includes(getSituacaoCandidato(candidato.id))) &&
+    (dashboardParams.get("pendentes") !== "1" || categoriaIngresso(situacaoAtualIngresso(concursoProcesso, candidato)) === "pendente") &&
     (!dashboardParams.get("candidato") || String(candidato.id) === dashboardParams.get("candidato")) && !candidatosExcluidosIds.has(candidato.id) &&
     podeConsultarIngresso(perfilVariacao, orgaoAtuacaoAnalise, concursoProcesso.orgao,
       concursoProcesso.tipo === "Processo Seletivo" ? direcionamentosAnalise[String(candidato.id)]?.responsavelAnalise : undefined,
@@ -14939,7 +14916,7 @@ export function PrototiposIngressosTesteDetalhePage() {
   const paginaAtualPendentes = Math.min(paginaPendentes, totalPaginasPendentes);
   const candidatosPaginadosIngresso = candidatosPendentesIngresso.slice((paginaAtualPendentes - 1) * itensPorPaginaPendentes, paginaAtualPendentes * itensPorPaginaPendentes);
   const contarSituacaoIngresso = (situacao: IngressoSituacao) =>
-    candidatosGestaoIngresso.filter((candidato) => getSituacaoCandidato(candidato.id) === situacao).length;
+    candidatosGestaoIngresso.filter((candidato) => situacaoAtualIngresso(concursoProcesso, candidato) === situacao).length;
   const indicadoresGestaoIngresso: {
     id: string;
     label: string;
@@ -15071,15 +15048,16 @@ export function PrototiposIngressosTesteDetalhePage() {
         dataHora,
         movimentacoes: [...getMovimentacoesResponsabilidadeAnalise(anterior), movimento],
       };
-      localStorage.setItem("prototype-ingresso-direcionamentos-analise", JSON.stringify(armazenados));
+      persistirDadoIngresso("prototype-ingresso-direcionamentos-analise", JSON.stringify(armazenados));
     } else {
       const encaminhados = JSON.parse(localStorage.getItem("prototype-ingresso-orgaos-encaminhados") ?? "{}") as Record<string, string>;
       encaminhados[chaveCandidato] = orgaoDestinoEncaminhamento;
-      localStorage.setItem("prototype-ingresso-orgaos-encaminhados", JSON.stringify(encaminhados));
+      persistirDadoIngresso("prototype-ingresso-orgaos-encaminhados", JSON.stringify(encaminhados));
       const historico = JSON.parse(localStorage.getItem("prototype-ingresso-historico-encaminhamentos") ?? "{}") as Record<string, Array<MovimentacaoResponsabilidadeAnalise & { etapa: string }>>;
       historico[chaveCandidato] = [...(historico[chaveCandidato] ?? []), { ...movimento, etapa: etapaEncaminhamento }];
-      localStorage.setItem("prototype-ingresso-historico-encaminhamentos", JSON.stringify(historico));
+      persistirDadoIngresso("prototype-ingresso-historico-encaminhamentos", JSON.stringify(historico));
     }
+
     setRevisaoSituacoesIngresso((revisao) => revisao + 1);
     fecharEncaminhamento();
   };  const renderTabelaPendentes = (candidatos: typeof candidatosPendentesIngresso) => (
@@ -15797,8 +15775,8 @@ export function PrototiposIngressosTesteDetalhePage() {
             <div><dt>Data do resultado</dt><dd>{concursoProcesso.dataResultado ?? "Não informada"}</dd></div>
             <div><dt>Cotas</dt><dd className="prototype-ingressos-details-tags">{cotasEditalDetalhe.length ? cotasEditalDetalhe.map((cota) => <BadgeSeplag key={cota} label={cota} color="#087d3d" bg="#eafbf1" border="#69dc98" size="sm" />) : "Não possui"}</dd></div>
             <div><dt>Polo</dt><dd className="prototype-ingressos-details-tags">{polosEditalDetalhe.length ? polosEditalDetalhe.map((polo) => <BadgeSeplag key={polo} label={polo} color="#0b6199" bg="#e9f3fc" border="#8dc6ec" size="sm" />) : "Não informado"}</dd></div>
-            <div><dt>Quantidade de vagas totais no edital</dt><dd>{concursoProcesso.quantidadeVagas ?? concursoProcesso.candidatos.length}</dd></div>
-            <div><dt>Quantidade de cadastro de reserva</dt><dd>{concursoProcesso.quantidadeCadastroReserva ?? 0}</dd></div>
+            <div><dt>Quantidade de vagas totais no edital</dt><dd>{vagasEditalDetalhe.vagas ?? "Não informado no Controle de Certame"}</dd></div>
+            <div><dt>Quantidade de cadastro de reserva</dt><dd>{vagasEditalDetalhe.cadastroReserva ?? "Não informado no Controle de Certame"}</dd></div>
           </dl>
           ) : (
           <dl>
@@ -15815,8 +15793,8 @@ export function PrototiposIngressosTesteDetalhePage() {
             <div><dt>Dias — prorrogação do exercício</dt><dd>{concursoProcesso.diasProrrogacaoExercicio ?? 0} dias</dd></div>
             <div><dt>Cotas</dt><dd className="prototype-ingressos-details-tags">{cotasEditalDetalhe.length ? cotasEditalDetalhe.map((cota) => <BadgeSeplag key={cota} label={cota} color="#087d3d" bg="#eafbf1" border="#69dc98" size="sm" />) : "Não possui"}</dd></div>
             <div><dt>Polo</dt><dd className="prototype-ingressos-details-tags">{polosEditalDetalhe.length ? polosEditalDetalhe.map((polo) => <BadgeSeplag key={polo} label={polo} color="#0b6199" bg="#e9f3fc" border="#8dc6ec" size="sm" />) : "Não informado"}</dd></div>
-            <div><dt>Quantidade de vagas totais no edital</dt><dd>{concursoProcesso.quantidadeVagas ?? concursoProcesso.candidatos.length}</dd></div>
-            <div><dt>Quantidade de cadastro de reserva</dt><dd>{concursoProcesso.quantidadeCadastroReserva ?? 0}</dd></div>
+            <div><dt>Quantidade de vagas totais no edital</dt><dd>{vagasEditalDetalhe.vagas ?? "Não informado no Controle de Certame"}</dd></div>
+            <div><dt>Quantidade de cadastro de reserva</dt><dd>{vagasEditalDetalhe.cadastroReserva ?? "Não informado no Controle de Certame"}</dd></div>
           </dl>
           )}
         </div>
@@ -17114,7 +17092,9 @@ export function PrototiposNovoIngressoPage() {
     "Ingresso concluído": "Ingresso Concluído",
     "Ingresso cancelado": "Ingresso Cancelado",
   };
-  const situacaoSalvaCandidato = candidatoParam ? situacoesIngressosSalvasNovo[candidatoParam] : undefined;
+  const situacaoSalvaCandidato = candidatoParam
+    ? (processoOrigemDados && candidatoProcessoOrigem ? situacaoAtualIngresso(processoOrigemDados, candidatoProcessoOrigem) : situacoesIngressosSalvasNovo[candidatoParam])
+    : undefined;
   const situacaoInicialIngresso: IngressoSituacao = candidatoParam
     ? (tipoInicial === "Exclusivo Comissionado" && situacaoSalvaCandidato === "Aguardando Analise" ? "Em analise" : situacaoSalvaCandidato)
       ?? (ingressoComissionadoOrigem ? situacaoComissionadoInicial[ingressoComissionadoOrigem.situacao] : ingressoOrigemDados?.situacao)
@@ -17898,21 +17878,24 @@ export function PrototiposNovoIngressoPage() {
       ...ingressoConcursosProcessosMock.flatMap((item) => item.candidatos.map((candidato) => candidato.id)),
       ...Object.values(registrosPorConcurso).flatMap((candidatos) => candidatos.map((candidato) => candidato.id)),
     ];
+    const idRegistroExistente = candidatoRegistradoId || candidatoParam;
     const candidatoExistente = concurso.candidatos.find(
-      (candidato) => String(candidato.id) === candidatoParam || candidato.cpf === resumoIngressoCpf,
+      (candidato) => String(candidato.id) === idRegistroExistente,
     );
     const registroExistente = registrosAtuais.find(
-      (candidato) => String(candidato.id) === candidatoParam || candidato.cpf === resumoIngressoCpf,
+      (candidato) => String(candidato.id) === idRegistroExistente,
     );
-    const novoId = candidatoParam
-      ? Number(candidatoParam)
+    const novoId = idRegistroExistente
+      ? Number(idRegistroExistente)
       : candidatoExistente?.id ?? registroExistente?.id ?? Math.max(0, ...idsExistentes) + 1;
     const registro: IngressoCandidatoRow = {
+      ...candidatoExistente, ...registroExistente,
       id: novoId,
       nome: resumoIngressoNome || "Servidor não informado",
       cpf: resumoIngressoCpf || undefined,
       classificacao: classificacaoInicial || candidatoExistente?.classificacao || "-",
       cargo: cargoSelecionado || cargoInicial || candidatoExistente?.cargo || "-",
+      polo: poloSelecionado || candidatoExistente?.polo,
       tipoVaga: categoriaTipoVaga === "COTISTA"
         ? tipoCotaSelecionada
         : categoriaTipoVaga === "AMPLA"
@@ -17934,7 +17917,7 @@ export function PrototiposNovoIngressoPage() {
       ...registrosAtuais.filter((candidato) => candidato.id !== novoId),
       registro,
     ];
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-registros-concursos",
       JSON.stringify({
         ...registrosPorConcurso,
@@ -17945,10 +17928,12 @@ export function PrototiposNovoIngressoPage() {
     const situacoesSalvas = JSON.parse(
       localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
     ) as Record<string, IngressoSituacao>;
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-situacoes",
       JSON.stringify({ ...situacoesSalvas, [String(novoId)]: situacao }),
     );
+    persistirSituacaoDoEdital(concurso.titulo, novoId, situacao);
+    setCandidatoRegistradoId(String(novoId));
     return novoId;
   };
   const obterIdIngressoParaEfetivo = () => {
@@ -17964,10 +17949,11 @@ export function PrototiposNovoIngressoPage() {
     const candidatoIdAtual = idRegistro || candidatoRegistradoId || candidatoParam;
     if (!candidatoIdAtual) return;
 
+    if (concursoSelecionado) persistirSituacaoDoEdital(concursoSelecionado, candidatoIdAtual, situacao);
     const situacoesSalvas = JSON.parse(
       localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
     ) as Record<string, IngressoSituacao>;
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-situacoes",
       JSON.stringify({
         ...situacoesSalvas,
@@ -17975,21 +17961,6 @@ export function PrototiposNovoIngressoPage() {
       }),
     );
 
-    if (concursoSelecionado) {
-      const situacoesPorConcurso = JSON.parse(
-        localStorage.getItem("prototype-ingresso-situacoes-concursos") ?? "{}",
-      ) as Record<string, Record<string, IngressoSituacao>>;
-      localStorage.setItem(
-        "prototype-ingresso-situacoes-concursos",
-        JSON.stringify({
-          ...situacoesPorConcurso,
-          [concursoSelecionado]: {
-            ...situacoesPorConcurso[concursoSelecionado],
-            [candidatoIdAtual]: situacao,
-          },
-        }),
-      );
-    }
   };
   const persistirTornadoSemEfeitoAtual = (motivo: string, justificativa: string) => {
     if (!candidatoParam) return;
@@ -17998,7 +17969,7 @@ export function PrototiposNovoIngressoPage() {
       localStorage.getItem("prototype-ingresso-tornados-sem-efeito") ?? "{}",
     ) as Record<string, { motivo: string; justificativa: string }>;
     registrosSalvos[candidatoParam] = { motivo, justificativa };
-    localStorage.setItem("prototype-ingresso-tornados-sem-efeito", JSON.stringify(registrosSalvos));
+    persistirDadoIngresso("prototype-ingresso-tornados-sem-efeito", JSON.stringify(registrosSalvos));
   };
   const persistirAnaliseNegadaAtual = (motivo: string, justificativa: string) => {
     if (!candidatoParam) return;
@@ -18007,7 +17978,7 @@ export function PrototiposNovoIngressoPage() {
       localStorage.getItem("prototype-ingresso-analises-negadas") ?? "{}",
     ) as Record<string, { motivo: string; justificativa: string }>;
     analisesSalvas[candidatoParam] = { motivo, justificativa };
-    localStorage.setItem("prototype-ingresso-analises-negadas", JSON.stringify(analisesSalvas));
+    persistirDadoIngresso("prototype-ingresso-analises-negadas", JSON.stringify(analisesSalvas));
   };
   const persistirOrgaoEncaminhadoAtual = (orgao: string, idRegistro?: string) => {
     const idIngresso = idRegistro || candidatoRegistradoId || candidatoParam;
@@ -18021,7 +17992,7 @@ export function PrototiposNovoIngressoPage() {
     } else {
       delete orgaosSalvos[idIngresso];
     }
-    localStorage.setItem("prototype-ingresso-orgaos-encaminhados", JSON.stringify(orgaosSalvos));
+    persistirDadoIngresso("prototype-ingresso-orgaos-encaminhados", JSON.stringify(orgaosSalvos));
   };
   const formatarDataIsoParaPtBr = (value: string) => {
     const data = parseDataIsoLocal(value);
@@ -18034,7 +18005,7 @@ export function PrototiposNovoIngressoPage() {
     const datasSalvas = JSON.parse(
       localStorage.getItem("prototype-ingresso-datas-efetivo-exercicio") ?? "{}",
     ) as Record<string, string>;
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-datas-efetivo-exercicio",
       JSON.stringify({
         ...datasSalvas,
@@ -18049,7 +18020,7 @@ export function PrototiposNovoIngressoPage() {
     const setoresSalvos = JSON.parse(
       localStorage.getItem("prototype-ingresso-setores-lotacao") ?? "{}",
     ) as Record<string, string>;
-    localStorage.setItem(
+    persistirDadoIngresso(
       "prototype-ingresso-setores-lotacao",
       JSON.stringify({ ...setoresSalvos, [candidatoIdAtual]: setorLotacao }),
     );
@@ -18094,7 +18065,7 @@ export function PrototiposNovoIngressoPage() {
       const registrosSalvos = JSON.parse(
         localStorage.getItem("prototype-ingresso-processos-sigadoc-documentos") ?? "{}",
       ) as Record<string, Record<string, string>>;
-      localStorage.setItem(
+      persistirDadoIngresso(
         "prototype-ingresso-processos-sigadoc-documentos",
         JSON.stringify({
           ...registrosSalvos,
@@ -18573,13 +18544,13 @@ export function PrototiposNovoIngressoPage() {
         orgaoEfetivo: decisaoDocumentacao === "aprovar" ? orgaoEfetivoFinal : "",
         direcionamentoEfetivo: decisaoDocumentacao === "aprovar" ? direcionamentoEfetivo : "",
       };
-      localStorage.setItem("prototype-ingresso-historico-documentacao", JSON.stringify({
+      persistirDadoIngresso("prototype-ingresso-historico-documentacao", JSON.stringify({
         ...historicos,
         [chaveIngresso]: [...(historicos[chaveIngresso] ?? []), registro],
       }));
       if (vinculoTipoEstagiario && decisaoDocumentacao === "aprovar" && dataInicioEstagio && dataTerminoEstagio) {
         const datasEstagio = JSON.parse(localStorage.getItem("prototype-ingresso-datas-estagio") ?? "{}") as Record<string, { inicio: string; termino: string }>;
-        localStorage.setItem("prototype-ingresso-datas-estagio", JSON.stringify({ ...datasEstagio, [chaveIngresso]: { inicio: dataInicioEstagio, termino: dataTerminoEstagio } }));
+        persistirDadoIngresso("prototype-ingresso-datas-estagio", JSON.stringify({ ...datasEstagio, [chaveIngresso]: { inicio: dataInicioEstagio, termino: dataTerminoEstagio } }));
       }
 
       const situacaoFinal: IngressoSituacao = decisaoDocumentacao === "cancelar"
@@ -18597,7 +18568,7 @@ export function PrototiposNovoIngressoPage() {
 
       if (decisaoDocumentacao === "cancelar" && (candidatoRegistradoId || candidatoParam)) {
         const cancelamentos = JSON.parse(localStorage.getItem("prototype-ingresso-cancelamentos") ?? "{}");
-        localStorage.setItem("prototype-ingresso-cancelamentos", JSON.stringify({
+        persistirDadoIngresso("prototype-ingresso-cancelamentos", JSON.stringify({
           ...cancelamentos,
           [candidatoRegistradoId || candidatoParam!]: {
             motivo: motivoCancelamentoDocumentacao,
@@ -18652,7 +18623,7 @@ export function PrototiposNovoIngressoPage() {
       if (idRegistro) {
         const chaveEfetivo = (concursoSelecionado || concursoInicial || tipoIngresso) + "|" + idRegistro;
         const historicos = JSON.parse(localStorage.getItem("prototype-ingresso-historico-efetivo-exercicio") ?? "{}") as Record<string, EfetivoExercicioHistoricoEvento[]>;
-        localStorage.setItem("prototype-ingresso-historico-efetivo-exercicio", JSON.stringify({
+        persistirDadoIngresso("prototype-ingresso-historico-efetivo-exercicio", JSON.stringify({
           ...historicos,
           [chaveEfetivo]: [...(historicos[chaveEfetivo] ?? []), { titulo: "Ingresso concluído", descricao: "Efetivo Exercício do estagiário finalizado.", responsavel: "Sistema SIGEP", dataHora: new Date().toLocaleString("pt-BR") }],
         }));
@@ -18677,7 +18648,7 @@ export function PrototiposNovoIngressoPage() {
         if (!jornadaDocenteValida(jornadaDocenteAtual) || !setorLotacaoEfetivo || !dataEfetivoExercicio || !dataFimEfetivoExercicio) return;
         const chaveDocente = `${concursoSelecionado}|${candidatoParam || candidatoRegistradoId || candidatoCpf}`;
         const configuracoes = JSON.parse(localStorage.getItem("prototype-ingresso-jornada-docente") || "{}");
-        localStorage.setItem("prototype-ingresso-jornada-docente", JSON.stringify({ ...configuracoes, [chaveDocente]: { ...jornadaDocenteAtual, ...calcularJornadaDocente(jornadaDocenteAtual) } }));
+        persistirDadoIngresso("prototype-ingresso-jornada-docente", JSON.stringify({ ...configuracoes, [chaveDocente]: { ...jornadaDocenteAtual, ...calcularJornadaDocente(jornadaDocenteAtual) } }));
       }
       if (servidorCompareceu === "Sim" && vinculoTipoEstagiario) {
         const candidatoIdAtual = obterIdIngressoParaEfetivo();
@@ -18692,9 +18663,9 @@ export function PrototiposNovoIngressoPage() {
           responsavel: "Sistema SIGEP",
         };
         const registrosGerados = JSON.parse(localStorage.getItem("prototype-ingresso-efetivo-gerado") ?? "{}") as Record<string, EfetivoExercicioGeradoRegistro>;
-        localStorage.setItem("prototype-ingresso-efetivo-gerado", JSON.stringify({ ...registrosGerados, [chaveEfetivo]: dadosGerados }));
+        persistirDadoIngresso("prototype-ingresso-efetivo-gerado", JSON.stringify({ ...registrosGerados, [chaveEfetivo]: dadosGerados }));
         const historicosEfetivo = JSON.parse(localStorage.getItem("prototype-ingresso-historico-efetivo-exercicio") ?? "{}") as Record<string, EfetivoExercicioHistoricoEvento[]>;
-        localStorage.setItem("prototype-ingresso-historico-efetivo-exercicio", JSON.stringify({
+        persistirDadoIngresso("prototype-ingresso-historico-efetivo-exercicio", JSON.stringify({
           ...historicosEfetivo,
           [chaveEfetivo]: [...(historicosEfetivo[chaveEfetivo] ?? []),
             { titulo: "Efetivo Exercício registrado", descricao: "Servidor compareceu. Dados do estágio registrados.", responsavel: "Patrícia Lima - Setorial", orgaoAtuacao: orgaoAtuacaoNovoIngresso, dataHora: agora },
@@ -18724,7 +18695,7 @@ export function PrototiposNovoIngressoPage() {
         const registrosGerados = JSON.parse(
           localStorage.getItem("prototype-ingresso-efetivo-gerado") ?? "{}",
         ) as Record<string, EfetivoExercicioGeradoRegistro>;
-        localStorage.setItem(
+        persistirDadoIngresso(
           "prototype-ingresso-efetivo-gerado",
           JSON.stringify({ ...registrosGerados, [chaveEfetivo]: dadosGerados }),
         );
@@ -18736,7 +18707,7 @@ export function PrototiposNovoIngressoPage() {
           { titulo: "Matrícula e vínculo gerados", descricao: "Matrícula e vínculo funcional gerados automaticamente pelo sistema.", responsavel: "Sistema SIGEP", dataHora: agora, matricula: dadosGerados.matricula, vinculo: dadosGerados.vinculo },
           { titulo: nomeDocumentoEfetivo + " gerado", descricao: "O " + nomeDocumentoEfetivo + " foi gerado e está disponível para download.", responsavel: "Sistema SIGEP", dataHora: agora, arquivo: dadosGerados.termoNome },
         ];
-        localStorage.setItem(
+        persistirDadoIngresso(
           "prototype-ingresso-historico-efetivo-exercicio",
           JSON.stringify({ ...historicosEfetivo, [chaveEfetivo]: [...(historicosEfetivo[chaveEfetivo] ?? []), ...eventos] }),
         );
@@ -18756,6 +18727,10 @@ export function PrototiposNovoIngressoPage() {
         : "Ingresso Concluído";
       if (situacaoConclusaoEfetivo === "Ingresso Concluído" && !dataEfetivoExercicio) return;
       setSituacaoIngresso(situacaoConclusaoEfetivo);
+      if (servidorCompareceu === "Não" && (candidatoRegistradoId || candidatoParam) && concursoSelecionado) {
+        const registros = JSON.parse(localStorage.getItem("prototype-ingresso-cancelamentos") ?? "{}");
+        persistirDadoIngresso("prototype-ingresso-cancelamentos",JSON.stringify({...registros,[concursoSelecionado+"|"+(candidatoRegistradoId || candidatoParam)]:{motivo:"nao-comparecimento",justificativa:"Não comparecimento confirmado no Efetivo Exercício."}}));
+      }
       persistirSituacaoIngressoAtual(situacaoConclusaoEfetivo);
       if (candidatoParam && concursoSelecionado) {
         const cancelamentosEstagio = JSON.parse(
@@ -18767,7 +18742,7 @@ export function PrototiposNovoIngressoPage() {
         } else {
           delete cancelamentosEstagio[chaveCancelamentoEstagio];
         }
-        localStorage.setItem(
+        persistirDadoIngresso(
           "prototype-ingresso-cancelamentos-estagio-nao-comparecimento",
           JSON.stringify(cancelamentosEstagio),
         );
@@ -18872,7 +18847,7 @@ export function PrototiposNovoIngressoPage() {
             dataHora,
             movimentacoes: novaMovimentacao ? [...movimentacoes, novaMovimentacao] : movimentacoes,
           };
-          localStorage.setItem("prototype-ingresso-direcionamentos-analise", JSON.stringify(armazenados));
+          persistirDadoIngresso("prototype-ingresso-direcionamentos-analise", JSON.stringify(armazenados));
           if (novaMovimentacao && tipoIngresso === "Exclusivo Comissionado") {
             adicionarHistoricoComissionado(idCandidato, eventoComissionado(
               "Órgão responsável pelo ingresso alterado",
