@@ -2054,15 +2054,20 @@ select.prototype-ferias-input-autopreenchido {
 }
 
 .prototype-ferias-coletiva-lista-cabecalho {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
   margin: 0;
   padding: 12px 16px 8px;
   color: #334155;
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.prototype-ferias-coletiva-lista-cabecalho .prototype-ferias-coletiva-alerta-check {
+  margin-bottom: 9px;
 }
 
 .prototype-ferias-coletiva-lista-cabecalho .prototype-ferias-busca-servidor-label {
@@ -2138,12 +2143,13 @@ select.prototype-ferias-input-autopreenchido {
 }
 
 .prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(1) { width: 4.5%; }
-.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(2) { width: 18.5%; }
-.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(3) { width: 11%; }
-.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(4) { width: 18%; }
-.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(5) { width: 13%; }
-.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(6) { width: 8%; }
-.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(7) { width: 27%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(2) { width: 17.5%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(3) { width: 10%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(4) { width: 11%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(5) { width: 16%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(6) { width: 9%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(7) { width: 8%; }
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:nth-child(8) { width: 24%; }
 
 .prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th:last-child,
 .prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:last-child {
@@ -2151,8 +2157,8 @@ select.prototype-ferias-input-autopreenchido {
   overflow-wrap: anywhere;
 }
 
-.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:nth-child(4),
-.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:nth-child(5) {
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:nth-child(5),
+.prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:nth-child(6) {
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -2189,7 +2195,7 @@ select.prototype-ferias-input-autopreenchido {
 .prototype-ferias-coletiva-table--lote th:nth-child(8) { width: 8%; }
 
 .prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) {
-  min-width: 1100px;
+  min-width: 1250px;
 }
 
 .prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) th,
@@ -2628,7 +2634,8 @@ select.prototype-ferias-input-autopreenchido {
   }
 
   .prototype-ferias-coletiva-lista-cabecalho {
-    grid-template-columns: minmax(0, 1fr);
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .prototype-ferias-lote-servidor-linha {
@@ -2761,4 +2768,51 @@ select.prototype-ferias-input-autopreenchido {
   background: #f8fafc;
   border-color: #e2e8f0;
   color: #334155;
+}
+
+/* Recesso remunerado — seletor de período aquisitivo */
+.prototype-ferias-periodos-recesso {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.prototype-ferias-periodo-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #dbe5ef;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.prototype-ferias-periodo-item:has(input:disabled) {
+  cursor: not-allowed;
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.prototype-ferias-periodo-item input[type="radio"] {
+  margin: 0;
+}
+
+.prototype-ferias-email-preview {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px dashed #bfdbfe;
+  border-radius: 6px;
+  background: #eff6ff;
+  font-size: 0.82rem;
+  color: #1e3a8a;
+  white-space: pre-line;
+}
+
+.prototype-ferias-email-preview strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
