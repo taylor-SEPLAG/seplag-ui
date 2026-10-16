@@ -89,7 +89,7 @@ export const registrosBase: FeriasRegistro[] = [
     loteId: "LOTE-SEDUC-2026", responsavelLancamento: "Secretaria Escolar — E.E. Antônio Ferreira",
   }),
   registroBase({
-    id: 9, servidorNome: "Marina Costa Alves", matricula: "418920", cargo: "Analista Técnico",
+    id: 9, servidorNome: "Marina Costa Alves", matricula: "418920", numeroVinculo: "1", cargo: "Analista Técnico",
     tipoVinculo: "Efetivo", situacao: "AGUARDANDO VALIDAÇÃO", origem: "PORTALSERVIDOR",
     periodoAquisitivoInicio: "2025-01-15", periodoAquisitivoFim: "2026-01-14",
     parcelas: [{ id: 1, inicio: "2026-11-10", fim: "2026-11-24", dias: 15 }],
@@ -98,7 +98,7 @@ export const registrosBase: FeriasRegistro[] = [
     lancadoEm: "2026-10-11 14:20",
   }),
   registroBase({
-    id: 10, servidorNome: "Rodrigo Nunes Ferraz", matricula: "778899", cargo: "Professor Substituto",
+    id: 10, servidorNome: "Rodrigo Nunes Ferraz", matricula: "778899", numeroVinculo: "2", cargo: "Professor Substituto",
     tipoVinculo: "Contrato Temporário", situacao: "AGUARDANDO VALIDAÇÃO", origem: "PORTALSERVIDOR",
     orgao: "SEDUC/MT", setor: "Escola Estadual Marechal Rondon",
     periodoAquisitivoInicio: "2026-05-01", periodoAquisitivoFim: "2027-04-30",
@@ -108,7 +108,7 @@ export const registrosBase: FeriasRegistro[] = [
     lancadoEm: "2026-09-28 09:05",
   }),
   registroBase({
-    id: 11, servidorNome: "Beatriz Andrade Correia", matricula: "310021", cargo: "Residente Técnico — Enfermagem",
+    id: 11, servidorNome: "Beatriz Andrade Correia", matricula: "310021", numeroVinculo: "1", orgao: "SES/MT", cargo: "Residente Técnico — Enfermagem",
     tipoVinculo: "Residente Técnico", tipo: "Recesso", situacao: "AGUARDANDO VALIDAÇÃO", origem: "PORTALSERVIDOR",
     setor: "Hospital Regional de Mato Grosso",
     periodoAquisitivoInicio: "2026-02-01", periodoAquisitivoFim: "",
@@ -160,7 +160,12 @@ export const registrosBase: FeriasRegistro[] = [
 export function carregarRegistros(): FeriasRegistro[] {
   try {
     const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as FeriasRegistro[] | null;
-    return salvos ?? registrosBase;
+    return salvos?.map(registro => {
+      const original = registrosBase.find(base => base.id === registro.id && base.matricula === registro.matricula && base.servidorNome === registro.servidorNome);
+      return !registro.numeroVinculo && original?.numeroVinculo
+        ? { ...registro, numeroVinculo: original.numeroVinculo }
+        : registro;
+    }) ?? registrosBase;
   } catch {
     return registrosBase;
   }

@@ -12,6 +12,7 @@ import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { validarSolicitacaoRecesso } from "./validarSolicitacaoRecesso";
 import { STORAGE_KEY, registrosBase, carregarRegistros } from "./feriasMockDados";
 import "./ferias.css";
+import { AprovacoesFerias } from "./AprovacoesFerias";
 
 function brParaIso(valor: string) {
   if (!valor) return "";
@@ -60,6 +61,9 @@ export interface FeriasRegistro {
   id: number;
   servidorNome: string;
   matricula: string;
+  numeroVinculo?: string;
+  justificativaAvaliacao?: string;
+  resultadoAvaliacao?: 'Aprovada' | 'Rejeitada';
   cpf: string;
   orgao: string;
   orgaoColetivo: OrgaoColetivo;
@@ -651,7 +655,7 @@ export function PrototiposFeriasPage() {
   const [registroEdicaoRecesso, setRegistroEdicaoRecesso] = useState<FeriasRegistro | null>(null);
   const [registroEdicaoIndividual, setRegistroEdicaoIndividual] = useState<FeriasRegistro | null>(null);
   const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
-  const [confirmacaoStatus, setConfirmacaoStatus] = useState<{ registro: FeriasRegistro; acao: AcaoStatus } | null>(null);
+  const [confirmacaoStatus, setConfirmacaoStatus] = useState<{ registro: FeriasRegistro; acao: AcaoStatus; loteId?: string } | null>(null);
   const [subBusca, setSubBusca] = useState("");
   const [subSituacao, setSubSituacao] = useState<"" | "Vigente" | "Encerrada">("");
 
@@ -783,9 +787,11 @@ export function PrototiposFeriasPage() {
     (registro.situacao === "AGUARDANDO VALIDAÇÃO" ||
       (registro.situacao === "EM ABERTO" && !feriasEmAndamento(registro)));
 
-  const aplicarStatus = (registroId: number, novaSituacao: SituacaoFerias, acao?: AcaoStatus) => {
+  const aplicarStatus = (registroId: number, novaSituacao: SituacaoFerias, acao?: AcaoStatus, justificativa?: string) => {
+    if ((acao==="validar" || acao==="rejeitar") && !podeAvaliar(perfil)) return;
     const proximos = registros.map((registro) => {
       if (registro.id !== registroId) return registro;
+      if ((acao === 'validar' || acao === 'rejeitar') && registro.situacao !== 'AGUARDANDO VALIDAÇÃO') return registro;
       // RN013 (US50): o bloqueio do auxílio-transporte e a integração com o SIGPAS só se
       // efetivam quando a chefia valida o recesso do residente técnico — não no lançamento.
       const efetivaBeneficiosRecesso =
@@ -798,7 +804,7 @@ export function PrototiposFeriasPage() {
         ...registro,
         situacao: novaSituacao,
         ...(efetivaBeneficiosRecesso ? { auxilioTransporteEfetivado: true, sigpasIntegrado: true } : {}),
-        ...(marcaAvaliacao ? { avaliadoPor: "Usuário atual", avaliadoEm: new Date().toLocaleString("pt-BR") } : {}),
+        ...(marcaAvaliacao ? { avaliadoPor: "Usuário atual", avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
       };
     });
     atualizarRegistros(proximos);
@@ -807,7 +813,8 @@ export function PrototiposFeriasPage() {
 
   // RN (SEDUC/UNEMAT): lotes e coletivas desses órgãos são aprovados em bloco — o servidor
   // individual (orgaoColetivo OUTRO) continua sendo avaliado um a um.
-  const aplicarStatusLote = (loteId: string, novaSituacao: SituacaoFerias, acao: AcaoStatus) => {
+  const aplicarStatusLote = (loteId: string, novaSituacao: SituacaoFerias, acao: AcaoStatus, justificativa?: string) => {
+    if (!podeAvaliar(perfil)) return;
     const idsAfetados = new Set(
       registros
         .filter((registro) => registro.loteId === loteId && registro.situacao === "AGUARDANDO VALIDAÇÃO")
@@ -819,11 +826,12 @@ export function PrototiposFeriasPage() {
         ? {
             ...registro,
             situacao: novaSituacao,
-            ...(marcaAvaliacao ? { avaliadoPor: "Usuário atual", avaliadoEm: new Date().toLocaleString("pt-BR") } : {}),
+            ...(marcaAvaliacao ? { avaliadoPor: "Usuário atual", avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
           }
         : registro,
     );
     atualizarRegistros(proximos);
+    setConfirmacaoStatus(null);
   };
 
   const salvarEdicaoRecesso = (registroId: number, parcelas: ParcelaFerias[]) => {
@@ -993,13 +1001,14 @@ export function PrototiposFeriasPage() {
           ) : null}
 
           {aba === "aprovacoes" && podeAvaliar(perfil) ? (
-            <AbaAprovacoes
-              registros={registrosPendentesAprovacao}
+            <AprovacoesFerias
+              registros={registros}
               onVisualizar={setRegistroVisualizacao}
               onAlterarStatus={(registro, acao) => setConfirmacaoStatus({ registro, acao })}
-              onAlterarStatusLote={(loteId, acao) =>
-                aplicarStatusLote(loteId, acao === "validar" ? "EM ABERTO" : "REPROVADO", acao)
-              }
+              onAlterarStatusLote={(loteId, acao) => {
+                const registro=registros.find(r => r.loteId===loteId && r.situacao==='AGUARDANDO VALIDAÇÃO');
+                if (registro) setConfirmacaoStatus({registro,acao,loteId});
+              }}
             />
           ) : null}
 
@@ -1095,8 +1104,9 @@ export function PrototiposFeriasPage() {
         <ModalConfirmarStatus
           registro={confirmacaoStatus.registro}
           acao={confirmacaoStatus.acao}
+          loteId={confirmacaoStatus.loteId}
           onFechar={() => setConfirmacaoStatus(null)}
-          onConfirmar={(novaSituacao) => aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao)}
+          onConfirmar={(novaSituacao,justificativa) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa)}
         />
       ) : null}
     </PrototypeSystemPage>
@@ -1348,109 +1358,6 @@ function TabelaRegistros({
     </div>
     <Paginator first={primeiroAtual} rows={porPagina} totalRecords={registros.length} rowsPerPageOptions={[10, 20, 50]} template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" onPageChange={(event) => { setPrimeiro(event.rows !== porPagina ? 0 : event.first); setPorPagina(event.rows); setMenuAbertoId(null); }} />
     </>
-  );
-}
-
-function AbaAprovacoes({
-  registros,
-  onVisualizar,
-  onAlterarStatus,
-  onAlterarStatusLote,
-}: Readonly<{
-  registros: FeriasRegistro[];
-  onVisualizar: (registro: FeriasRegistro) => void;
-  onAlterarStatus: (registro: FeriasRegistro, acao: AcaoStatus) => void;
-  onAlterarStatusLote: (loteId: string, acao: AcaoStatus) => void;
-}>) {
-  // RN (SEDUC/UNEMAT): lote/coletiva desses órgãos tramitam como bloco fechado — valida/rejeita
-  // tudo de uma vez, sem precisar avaliar servidor por servidor. Individual continua um a um.
-  const ehLoteColetivoDoOrgao = (registro: FeriasRegistro) =>
-    (registro.tipo === "Lote" || registro.tipo === "Coletiva") &&
-    (registro.orgaoColetivo === "SEDUC" || registro.orgaoColetivo === "UNEMAT") &&
-    Boolean(registro.loteId);
-
-  const registrosIndividuais = registros.filter((registro) => !ehLoteColetivoDoOrgao(registro));
-  const lotes = useMemo(() => {
-    const mapa = new Map<string, FeriasRegistro[]>();
-    registros
-      .filter(ehLoteColetivoDoOrgao)
-      .forEach((registro) => {
-        const loteId = registro.loteId!;
-        mapa.set(loteId, [...(mapa.get(loteId) ?? []), registro]);
-      });
-    return [...mapa.entries()];
-  }, [registros]);
-
-  return (
-    <div className="prototype-ferias-sub-aba">
-      <h2 className="prototype-ferias-sub-titulo">Avaliar e Aprovar Férias</h2>
-      <p className="prototype-ferias-sub-subtitulo">
-        Fila de solicitações aguardando validação. A chefia imediata tem 8 dias corridos a partir do agendamento
-        para validar — sem validação no prazo, a solicitação é rejeitada automaticamente e o saldo é devolvido.
-        Lote e coletiva de SEDUC/UNEMAT são aprovados como bloco fechado, sem avaliação individual.
-      </p>
-
-      {!registros.length ? (
-        <div className="prototype-ferias-empty">Nenhuma solicitação aguardando aprovação no momento.</div>
-      ) : (
-        <div className="prototype-ferias-fila-aprovacao">
-          {lotes.map(([loteId, registrosDoLote]) => (
-            <div key={loteId} className="prototype-ferias-card-aprovacao">
-              <div className="prototype-ferias-card-aprovacao-info">
-                <strong>{loteId}</strong>
-                <span className="prototype-ferias-card-aprovacao-sub">
-                  {registrosDoLote[0]?.orgao} · {registrosDoLote[0]?.setor} · {registrosDoLote.length} servidor(es) · {registrosDoLote[0]?.tipo}
-                </span>
-              </div>
-              <div className="prototype-ferias-card-aprovacao-acoes">
-                <button type="button" className="prototype-ferias-btn-rejeitar" onClick={() => onAlterarStatusLote(loteId, "rejeitar")}>
-                  <i className="pi pi-times-circle" aria-hidden="true" /> Rejeitar lote
-                </button>
-                <button type="button" className="prototype-ferias-btn-validar" onClick={() => onAlterarStatusLote(loteId, "validar")}>
-                  <i className="pi pi-check-circle" aria-hidden="true" /> Validar lote
-                </button>
-              </div>
-            </div>
-          ))}
-          {registrosIndividuais.map((registro) => (
-            <div key={registro.id} className="prototype-ferias-card-aprovacao">
-              <div className="prototype-ferias-card-aprovacao-info">
-                <strong>{registro.servidorNome}</strong>
-                {registro.cargoGestao ? (
-                  <span className="prototype-ferias-badge-chefia"><i className="pi pi-star-fill" aria-hidden="true" /> CHEFIA</span>
-                ) : null}
-                <span className="prototype-ferias-card-aprovacao-sub">
-                  {registro.matricula} · {registro.orgao} · {registro.setor}
-                </span>
-                <span className="prototype-ferias-card-aprovacao-sub">
-                  Período: {periodoUsufruto(registro)} · {diasSolicitadosLabel(registro)} dia(s) · {registro.tipo}
-                </span>
-                {prazoValidacaoExpirado(registro) ? (
-                  <span className="prototype-ferias-alerta-texto">
-                    PRAZO EXPIRADO — limite era {formatarDataBr(registro.dataLimiteValidacaoChefia ?? "")}
-                  </span>
-                ) : (
-                  <span className="prototype-ferias-card-aprovacao-prazo">
-                    Validar até {formatarDataBr(registro.dataLimiteValidacaoChefia ?? "")}
-                  </span>
-                )}
-              </div>
-              <div className="prototype-ferias-card-aprovacao-acoes">
-                <button type="button" className="prototype-ferias-icon-btn" title="Visualizar" onClick={() => onVisualizar(registro)}>
-                  <i className="pi pi-eye" aria-hidden="true" />
-                </button>
-                <button type="button" className="prototype-ferias-btn-rejeitar" onClick={() => onAlterarStatus(registro, "rejeitar")}>
-                  <i className="pi pi-times-circle" aria-hidden="true" /> Rejeitar
-                </button>
-                <button type="button" className="prototype-ferias-btn-validar" onClick={() => onAlterarStatus(registro, "validar")}>
-                  <i className="pi pi-check-circle" aria-hidden="true" /> Validar
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -4557,6 +4464,7 @@ function ModalVisualizarRegistro({ registro, onFechar }: Readonly<{ registro: Fe
         ) : (
           <p className="prototype-ferias-gozo-ajuda">Ainda não avaliado pela chefia.</p>
         )}
+        {registro.justificativaAvaliacao && <p><strong>Justificativa da avaliação:</strong> {registro.justificativaAvaliacao}</p>}
       </div>
     </ModalSeplag>
   );
@@ -4798,11 +4706,13 @@ function ModalConfirmarStatus({
   acao,
   onFechar,
   onConfirmar,
+  loteId,
 }: Readonly<{
   registro: FeriasRegistro;
   acao: AcaoStatus;
   onFechar: () => void;
-  onConfirmar: (novaSituacao: SituacaoFerias) => void;
+  onConfirmar: (novaSituacao: SituacaoFerias, justificativa?: string) => void;
+  loteId?: string;
 }>) {
   const meta = STATUS_META[acao];
   const exigeJustificativa = acao === "rejeitar" || acao === "cancelar" || acao === "suspender";
@@ -4821,7 +4731,7 @@ function ModalConfirmarStatus({
       setErro("Informe a justificativa antes de confirmar.");
       return;
     }
-    onConfirmar(meta.novaSituacao);
+    onConfirmar(meta.novaSituacao,justificativa.trim());
   };
 
   return (
@@ -4834,6 +4744,7 @@ function ModalConfirmarStatus({
     >
       <div style={{ width: "100%" }} className="prototype-ferias-form-section">
         <p>{meta.descricao}</p>
+        {loteId && <p role="note">A decisão será aplicada ao lote completo <strong>{loteId}</strong>, preservando a avaliação em bloco.</p>}
         <p>
           <strong>{registro.servidorNome}</strong> · {registro.matricula}
         </p>
