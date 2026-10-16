@@ -486,6 +486,17 @@
   background: #f8fafc;
 }
 
+/** Visualizar (somente leitura): a tela reaproveita o mesmo layout do cadastro, mas tudo
+ * acinzentado e sem nenhuma interação possível. O rodapé de ações ("Voltar") fica fora deste
+ * wrapper no JSX — filter/pointer-events em CSS não "desfazem" o efeito do ancestral em um
+ * descendente, então ele precisa estar estruturalmente fora, não só com um seletor extra aqui. */
+.prototype-ferias-visualizacao-somente-leitura {
+  filter: grayscale(1);
+  opacity: 0.82;
+  pointer-events: none;
+  user-select: text;
+}
+
 .prototype-ferias-servidor-resultado-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
