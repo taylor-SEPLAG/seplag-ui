@@ -123,7 +123,7 @@ export function DashboardVinculosPage() {
             <header className="dv-heading">
               <div>
                 <h1>Dashboard de Vínculos</h1>
-                <p>Acompanhe a quantidade de pessoas com vínculo vigente e encerrado por Tipo de Vínculo.</p>
+                <p>Acompanhe a quantidade de pessoas com vínculo ativo e encerrado por Tipo de Vínculo.</p>
               </div>
               <div className="dv-update">
                 <small>Última atualização: {atualizado.toLocaleString("pt-BR", { timeZone: "America/Cuiaba" })}</small>
@@ -169,14 +169,14 @@ export function DashboardVinculosPage() {
                   onChange={(e) => atualizarFiltro("situacao", e.target.value)}
                 >
                   <option value="">Todas</option>
-                  <option>Vigente</option>
+                  <option>Ativo</option>
                   <option>Encerrado</option>
                 </select>
               </label>
               {filtros.situacao === "Encerrado" && (
                 <>
                   <label>
-                    Forma de Vacância
+                    Forma de Encerramento
                     <select
                       value={filtros.forma}
                       onChange={(e) => atualizarFiltro("forma", e.target.value)}
@@ -211,14 +211,14 @@ export function DashboardVinculosPage() {
               <div className="v2v-filter-actions">
                 <button
                   type="button"
-                  className="v2v-secondary"
+                  className="v2v-primary dv-clear-filters"
                   onClick={() => {
                     setRegistros(todos());
                     setFiltros(filtrosVinculosVazios);
                   }}
                 >
                   <i className="pi pi-refresh" aria-hidden="true" />
-                  Limpar filtros
+                  Limpar filtro
                 </button>
               </div>
             </section>
@@ -235,7 +235,7 @@ export function DashboardVinculosPage() {
                   classe: "dv-kpi-types",
                 },
                 {
-                  titulo: "Pessoas com vínculo vigente",
+                  titulo: "Pessoas com vínculo ativo",
                   valor: resumo.pessoasVigentes,
                   icone: "pi-user",
                   classe: "v2v-kpi-active",
@@ -281,12 +281,12 @@ export function DashboardVinculosPage() {
                 aria-labelledby="dv-bars-title"
               >
                 <h2 id="dv-bars-title">
-                  Vigentes x Encerrados por Tipo de Vínculo
+                  Ativos x Encerrados por Tipo de Vínculo
                 </h2>
                 <div className="dv-chart-legend">
                   <span>
                     <i style={{ background: "linear-gradient(90deg,#10B981,#047857)" }} />
-                    Vigentes
+                    Ativos
                   </span>
                   <span>
                     <i style={{ background: "linear-gradient(90deg,#64748B,#475569)" }} />
@@ -302,7 +302,7 @@ export function DashboardVinculosPage() {
                     width={larguraGrafico}
                     height="350"
                     role="group"
-                    aria-label="Quantidade de vínculos vigentes e encerrados por tipo"
+                    aria-label="Quantidade de vínculos ativos e encerrados por tipo"
                   >
                     <defs>
                       <linearGradient id="dv-vigentes-gradient" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stopColor="#10B981" /><stop offset="100%" stopColor="#047857" /></linearGradient>
@@ -333,7 +333,7 @@ export function DashboardVinculosPage() {
                         <g key={linha.tipo}>
                           {[
                             {
-                              situacao: "Vigente",
+                              situacao: "Ativo",
                               quantidade: linha.vigentes,
                               cor: VERDE,
                               offset: -27,
@@ -348,7 +348,7 @@ export function DashboardVinculosPage() {
                             <Link
                               key={barra.situacao}
                               to={consulta(linha.tipo, barra.situacao)}
-                              aria-label={`${linha.tipo}: ${numero(barra.quantidade)} ${barra.situacao === "Vigente" ? "vigentes" : "encerrados"}`}
+                              aria-label={`${linha.tipo}: ${numero(barra.quantidade)} ${barra.situacao === "Ativo" ? "ativos" : "encerrados"}`}
                             >
                               <title>
                                 {linha.tipo} — {barra.situacao}:{" "}
@@ -360,7 +360,7 @@ export function DashboardVinculosPage() {
                                 width="24"
                                 height={(barra.quantidade / teto) * 240}
                                 rx="2"
-                                fill={barra.situacao === "Vigente" ? "url(#dv-vigentes-gradient)" : "url(#dv-encerrados-gradient)"}
+                                fill={barra.situacao === "Ativo" ? "url(#dv-vigentes-gradient)" : "url(#dv-encerrados-gradient)"}
                               />
                               <text
                                 x={x + barra.offset + 12}
@@ -404,7 +404,7 @@ export function DashboardVinculosPage() {
                     <svg
                       viewBox="0 0 200 200"
                       role="img"
-                      aria-label={`Distribuição: ${resumo.vigentes} vínculos vigentes e ${resumo.encerrados} encerrados`}
+                      aria-label={`Distribuição: ${resumo.vigentes} vínculos ativos e ${resumo.encerrados} encerrados`}
                     >
                       <defs>
                         <linearGradient id="dv-donut-vigentes" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#10B981" /><stop offset="100%" stopColor="#047857" /></linearGradient>
@@ -450,9 +450,9 @@ export function DashboardVinculosPage() {
                     </div>
                   </div>
                   <div className="dv-distribution-legend">
-                    <Link to={consulta(undefined, "Vigente")}>
+                    <Link to={consulta(undefined, "Ativo")}>
                       <i style={{ background: "linear-gradient(90deg,#10B981,#047857)" }} />
-                      <span>Vigentes</span>
+                      <span>Ativos</span>
                       <strong>
                         {numero(resumo.vigentes)} —{" "}
                         {percentual(resumo.vigentes, resumo.total)}
@@ -472,7 +472,7 @@ export function DashboardVinculosPage() {
                   className="v2v-panel"
                   aria-labelledby="dv-formas-title"
                 >
-                  <h2 id="dv-formas-title">Formas de Vacância</h2>
+                  <h2 id="dv-formas-title">Forma de Encerramento</h2>
                   {resumo.formas.map((forma) => (
                     <Link
                       className="dv-vacancy-bar"
@@ -514,11 +514,11 @@ export function DashboardVinculosPage() {
                     <tr>
                       {[
                         "Tipo de Vínculo",
-                        "Vigentes",
+                        "Ativos",
                         "Encerrados",
                         "Total",
-                        "% Vigentes",
-                        "Principal Forma de Vacância",
+                        "% Ativos",
+                        "Principal Forma de Encerramento",
                       ].map((coluna) => (
                         <th key={coluna}>{coluna}</th>
                       ))}
@@ -533,8 +533,8 @@ export function DashboardVinculosPage() {
                         <td>
                           <Link
                             className="dv-count"
-                            to={consulta(linha.tipo, "Vigente")}
-                            aria-label={`Consultar ${linha.vigentes} vínculos vigentes de ${linha.tipo}`}
+                            to={consulta(linha.tipo, "Ativo")}
+                            aria-label={`Consultar ${linha.vigentes} vínculos ativos de ${linha.tipo}`}
                           >
                             {numero(linha.vigentes)}
                           </Link>
@@ -571,15 +571,15 @@ export function DashboardVinculosPage() {
               <p className="dv-info" role="status">
                 <i className="pi pi-exclamation-triangle" aria-hidden="true" />
                 {numero(resumo.formasARevisar)} vínculo(s) encerrado(s) possuem
-                Forma de Vacância incompatível com o tipo ou não cadastrada.
-                Estão incluídos nos totais e agrupados como “Forma de Vacância a
+                Forma de Encerramento incompatível com o tipo ou não cadastrada.
+                Estão incluídos nos totais e agrupados como “Forma de Encerramento a
                 revisar”.
               </p>
             )}
             <p className="dv-info">
               <i className="pi pi-info-circle" aria-hidden="true" />
-              Para vínculos encerrados, são consideradas a Data de Vacância e a
-              Forma de Vacância registrada no encerramento do vínculo. A
+              Para vínculos encerrados, são consideradas a Data de Encerramento e a
+              Forma de Encerramento registrada no encerramento do vínculo. A
               existência de uma Data Fim prevista não caracteriza, isoladamente,
               um vínculo como encerrado.
             </p>

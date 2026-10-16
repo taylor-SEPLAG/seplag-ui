@@ -309,3 +309,6 @@
 .dv-page .dv-update-actions button { background: #3b7df5; border-color: #3b7df5; }
 .dv-page .dv-update-actions .dv-export-excel { background: #fff; border-color: #80b0ff; color: #0066cc; }
 .dv-page .dv-update-actions button:disabled { opacity: .6; cursor: wait; }
+.dv-page .dv-filters .dv-clear-filters { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 14px; border: 1px solid #3b82f6; border-radius: 4px; background: #3b82f6; color: #fff; font-size: .95rem !important; font-weight: 600 !important; }
+.dv-page .dv-filters .dv-clear-filters:hover { background: #2563eb; border-color: #2563eb; }
+.dv-page .dv-filters .dv-clear-filters:focus-visible { outline: 2px solid #173b63; outline-offset: 2px; }

@@ -52,7 +52,7 @@ function layout(title: string, action: React.ReactNode, children: React.ReactNod
         headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Cadastro" }, { label: "Vínculos Funcionais" }, { label: "Vínculo", to: BASE }, ...(title === "Gestão de Vínculos" ? [] : [{ label: title }])]} />}
       >
         <div className="v2v-page">
-          <AtalhoPerfisVinculos />
+          {title !== "Cadastrar Vínculo" && <AtalhoPerfisVinculos />}
           {title === "Gestão de Vínculos" && <p className="v2v-description">Consulte os vínculos cadastrados e a situação de cada servidor por tipo de vínculo.</p>}
           {action && <div className="v2v-toolbar">{action}</div>}
           {children}

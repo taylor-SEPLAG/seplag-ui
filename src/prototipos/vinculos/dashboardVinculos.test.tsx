@@ -153,9 +153,9 @@ it("sinaliza formas incompatíveis sem mudar os totais ou indicar término de co
   ];
   const resumo = resumoVinculos(lista, ["Nomeado Efetivo"]);
   expect(resumo).toMatchObject({ encerrados: 1, total: 1, formasARevisar: 1 });
-  expect(resumo.linhas[0].principalForma).toBe("Forma de Vacância a revisar");
+  expect(resumo.linhas[0].principalForma).toBe("Forma de Encerramento a revisar");
   expect(resumo.formas).toEqual([
-    { nome: "Forma de Vacância a revisar", quantidade: 1 },
+    { nome: "Forma de Encerramento a revisar", quantidade: 1 },
   ]);
   expect(
     filtrarVinculos(lista, {
@@ -168,7 +168,7 @@ it("sinaliza formas incompatíveis sem mudar os totais ou indicar término de co
     filtrarVinculos(lista, {
       ...filtrosVinculosVazios,
       situacao: "Encerrado",
-      forma: "Forma de Vacância a revisar",
+      forma: "Forma de Encerramento a revisar",
     }),
   ).toHaveLength(1);
 });
@@ -210,14 +210,14 @@ it("recalcula cards e gráficos, aplica filtros na consulta e preserva contexto 
   const indicadores = screen.getByRole("region", {
     name: "Indicadores de vínculos",
   });
-  expect(indicadores.textContent).toContain("Pessoas com vínculo vigente1");
+  expect(indicadores.textContent).toContain("Pessoas com vínculo ativo1");
   expect(indicadores.textContent).toContain("Pessoas com vínculo encerrado1");
   expect(indicadores.textContent).toContain("Total de vínculos3");
-  expect(screen.queryByLabelText("Forma de Vacância")).toBeNull();
+  expect(screen.queryByRole("combobox", { name: "Forma de Encerramento" })).toBeNull();
   fireEvent.change(screen.getByLabelText("Situação"), {
     target: { value: "Encerrado" },
   });
-  fireEvent.change(screen.getByLabelText("Forma de Vacância"), {
+  fireEvent.change(screen.getByRole("combobox", { name: "Forma de Encerramento" }), {
     target: { value: "Exoneração" },
   });
   fireEvent.change(screen.getByLabelText("Período inicial"), {
@@ -261,13 +261,13 @@ it("limpa filtros de vacância ao escolher vigente e atualiza dados após retorn
   fireEvent.change(screen.getByLabelText("Situação"), {
     target: { value: "Encerrado" },
   });
-  fireEvent.change(screen.getByLabelText("Forma de Vacância"), {
+  fireEvent.change(screen.getByRole("combobox", { name: "Forma de Encerramento" }), {
     target: { value: "Falecimento" },
   });
   fireEvent.change(screen.getByLabelText("Situação"), {
-    target: { value: "Vigente" },
+    target: { value: "Ativo" },
   });
-  expect(screen.queryByLabelText("Forma de Vacância")).toBeNull();
+  expect(screen.queryByRole("combobox", { name: "Forma de Encerramento" })).toBeNull();
   localStorage.setItem(
     "prototype-vinculos-v2",
     JSON.stringify([criar("novo-registro")]),
@@ -287,14 +287,14 @@ it("filtra períodos por início dos vigentes e vacância dos encerrados", () =>
   const fora=criar("periodo-fora",{inicio:"2025-01-01"});
   const filtros={...filtrosVinculosVazios,inicio:"2026-10-01",fim:"2026-10-14"};
   expect(filtrarVinculos([vigente,encerrado,fora],filtros)).toEqual([vigente,encerrado]);
-  expect(filtrarVinculos([vigente,encerrado],{...filtros,situacao:"Vigente"})).toEqual([vigente]);
+  expect(filtrarVinculos([vigente,encerrado],{...filtros,situacao:"Ativo"})).toEqual([vigente]);
   expect(filtrarVinculos([vigente,encerrado],{...filtros,inicio:"2026-11-01"})).toEqual([]);
 });
 it("exporta Excel com filtros, registros únicos e totais da consulta", async () => {
   const a=criar("excel-a",{orgao:"SES",inicio:"2026-10-01"});
   const b=criar("excel-b",{orgao:"SEDUC"});
   const workbook=criarExcelVinculos([a,a,b],{...filtrosVinculosVazios,orgao:"SES"},[a.tipo]);
-  expect(workbook.worksheets.map(s => s.name)).toEqual(["Resumo Geral","Resumo por Tipo","Formas de Vacância","Vínculos"]);
+  expect(workbook.worksheets.map(s => s.name)).toEqual(["Resumo Geral","Resumo por Tipo","Forma de Encerramento","Vínculos"]);
   const resumo=workbook.getWorksheet("Resumo Geral")!;
   let total: unknown;
   resumo.eachRow(row => { if(row.getCell(1).value==="Total de vínculos") total=row.getCell(2).value; });

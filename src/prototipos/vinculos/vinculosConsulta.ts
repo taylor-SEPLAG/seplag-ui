@@ -26,7 +26,7 @@ export const FORMAS_VACANCIA = [
 export const normalizarForma = (valor: string) =>
   valor.trim().toLocaleLowerCase("pt-BR");
 
-export const FORMA_A_REVISAR = "Forma de Vacância a revisar";
+export const FORMA_A_REVISAR = "Forma de Encerramento a revisar";
 
 export function formaVacanciaValida(v: {
   tipo: string;

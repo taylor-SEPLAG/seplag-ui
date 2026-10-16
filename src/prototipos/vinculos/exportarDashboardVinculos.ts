@@ -10,7 +10,7 @@ export function criarExcelVinculos(registros: Vinculo[], filtros: FiltrosVinculo
   workbook.creator = 'SIGEP';
   const contexto = [
     ['Tipo de Vínculo', filtros.tipo || 'Todos'], ['Órgão/Entidade', filtros.orgao || 'Todos'],
-    ['Situação', filtros.situacao || 'Todas'], ['Forma de Vacância', filtros.forma || 'Todas'],
+    ['Situação', filtros.situacao || 'Todas'], ['Forma de Encerramento', filtros.forma || 'Todas'],
     ['Período inicial', filtros.inicio || 'Não aplicado'], ['Período final', filtros.fim || 'Não aplicado'],
   ];
   function aba(nome: string, colunas: string[], linhas: (string | number)[][]) {
@@ -29,13 +29,13 @@ export function criarExcelVinculos(registros: Vinculo[], filtros: FiltrosVinculo
     sheet.views = [{ state: 'frozen', ySplit: header.number }];
   }
   aba('Resumo Geral', ['Indicador', 'Quantidade'], [
-    ['Tipos de Vínculo', tipos.length], ['Pessoas com vínculo vigente', resumo.pessoasVigentes],
+    ['Tipos de Vínculo', tipos.length], ['Pessoas com vínculo ativo', resumo.pessoasVigentes],
     ['Pessoas com vínculo encerrado', resumo.pessoasEncerradas], ['Total de vínculos', resumo.total],
     ['Vínculos vigentes', resumo.vigentes], ['Vínculos encerrados', resumo.encerrados],
   ]);
-  aba('Resumo por Tipo', ['Tipo de Vínculo', 'Vigentes', 'Encerrados', 'Total', 'Principal Forma de Vacância'], resumo.linhas.map(v => [v.tipo, v.vigentes, v.encerrados, v.total, v.principalForma]));
-  aba('Formas de Vacância', ['Forma de Vacância', 'Quantidade'], resumo.formas.map(v => [v.nome, v.quantidade]));
-  aba('Vínculos', ['Tipo de Vínculo', 'Órgão/Entidade', 'Cargo', 'Situação', 'Data de início', 'Data de Vacância', 'Forma de Vacância'], dados.map(v => [v.tipo, v.orgao, v.cargo, situacaoDoVinculo(v) === 'Ativo' ? 'Vigente' : 'Encerrado', v.inicio, v.vacanciaData || '', v.vacanciaForma || '']));
+  aba('Resumo por Tipo', ['Tipo de Vínculo', 'Ativos', 'Encerrados', 'Total', 'Principal Forma de Encerramento'], resumo.linhas.map(v => [v.tipo, v.vigentes, v.encerrados, v.total, v.principalForma]));
+  aba('Forma de Encerramento', ['Forma de Encerramento', 'Quantidade'], resumo.formas.map(v => [v.nome, v.quantidade]));
+  aba('Vínculos', ['Tipo de Vínculo', 'Órgão/Entidade', 'Cargo', 'Situação', 'Data de início', 'Data de Encerramento', 'Forma de Encerramento'], dados.map(v => [v.tipo, v.orgao, v.cargo, situacaoDoVinculo(v) === 'Ativo' ? 'Ativo' : 'Encerrado', v.inicio, v.vacanciaData || '', v.vacanciaForma || '']));
   return workbook;
 }
 
