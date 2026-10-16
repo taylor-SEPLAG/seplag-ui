@@ -8078,7 +8078,7 @@ export function PrototiposFormasDesligamentoPage() {
   const resultados = { ...createResults(paginados), pageActual: pagina, totalPages: Math.max(1, Math.ceil(filtrados.length / registrosPorPagina)), totalRecords: filtrados.length, sizePage: registrosPorPagina, size: registrosPorPagina };
   const colunas: ColumnMetaSeplag<FormaEncerramento>[] = [
     { field: "codigo", header: "Código" },
-    { field: "nome", header: "Forma de desligamento" },
+    { field: "nome", header: "Forma de encerramento" },
     { header: "Tipos de vínculo aplicáveis", body: (row) => row.vinculos.join(", ") },
     { header: "Situação", body: (row) => <BadgeSeplag label={row.situacao === "ATIVA" ? "Ativa" : "Inativa"} color={row.situacao === "ATIVA" ? "#087d3d" : "#596579"} bg={row.situacao === "ATIVA" ? "#eafbf1" : "#edf0f4"} border="transparent" size="md" /> },
   ];
