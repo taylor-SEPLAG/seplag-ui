@@ -251,6 +251,12 @@
   font-size: 0.92rem;
 }
 
+.prototype-ferias-banner.is-alerta {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
 .prototype-ferias-regra-unemat {
   margin: 0 0 14px;
   font-size: 0.84rem;
@@ -2281,6 +2287,10 @@ select.prototype-ferias-input-autopreenchido {
   min-width: 0;
 }
 
+.prototype-ferias-coletiva-parcelas-colunas--lote {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .prototype-ferias-coletiva-data-grupo {
   min-width: 0;
 }
@@ -2461,11 +2471,20 @@ select.prototype-ferias-input-autopreenchido {
   line-height: 1.3;
 }
 
-.prototype-ferias-parcelas-table th:nth-child(1) { width: 36%; }
-.prototype-ferias-parcelas-table th:nth-child(2) { width: 10%; white-space: nowrap; }
-.prototype-ferias-parcelas-table th:nth-child(3),
-.prototype-ferias-parcelas-table th:nth-child(4) { width: 20%; }
-.prototype-ferias-parcelas-table th:nth-child(5) { width: 14%; }
+.prototype-ferias-parcelas-table:not(.prototype-ferias-parcelas-table--lote) th:nth-child(1) { width: 36%; }
+.prototype-ferias-parcelas-table:not(.prototype-ferias-parcelas-table--lote) th:nth-child(2) { width: 10%; white-space: nowrap; }
+.prototype-ferias-parcelas-table:not(.prototype-ferias-parcelas-table--lote) th:nth-child(3),
+.prototype-ferias-parcelas-table:not(.prototype-ferias-parcelas-table--lote) th:nth-child(4) { width: 20%; }
+.prototype-ferias-parcelas-table:not(.prototype-ferias-parcelas-table--lote) th:nth-child(5) { width: 14%; }
+
+.prototype-ferias-parcelas-table--lote { min-width: 900px; }
+.prototype-ferias-parcelas-table--lote th:nth-child(1) { width: 26%; }
+.prototype-ferias-parcelas-table--lote th:nth-child(2) { width: 9%; white-space: nowrap; }
+.prototype-ferias-parcelas-table--lote th:nth-child(3),
+.prototype-ferias-parcelas-table--lote th:nth-child(4),
+.prototype-ferias-parcelas-table--lote th:nth-child(5),
+.prototype-ferias-parcelas-table--lote th:nth-child(6) { width: 10%; }
+.prototype-ferias-parcelas-table--lote th:nth-child(7) { width: 15%; }
 
 .prototype-ferias-parcelas-th {
   display: flex;

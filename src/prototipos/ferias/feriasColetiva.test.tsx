@@ -14,6 +14,7 @@ it("mantém a grade coletiva distinta da grade de seleção do lote", () => {
   expect(screen.getByText("Corpo docente da coletiva")).toBeTruthy();
   expect(screen.getByRole("columnheader", { name: "Situação de validação" })).toBeTruthy();
   expect(screen.getAllByText(/Saldo de 30 dias em escola/).length).toBeGreaterThan(0);
+  // Apoio/gestão (público do Lote) nunca aparece na grade da Coletiva — exclusiva de professor.
   expect(screen.queryByText("Ana Lúcia Ferreira")).toBeNull();
   const gestoraColetiva = screen.getByText("Elisângela Rocha").closest("tr");
   expect(gestoraColetiva).toBeTruthy();
@@ -21,11 +22,12 @@ it("mantém a grade coletiva distinta da grade de seleção do lote", () => {
 
   rerender(<FormularioColetiva onCancelar={vi.fn()} onSalvar={vi.fn()} modoAgendamentoLote />);
 
-  expect(screen.getByText("Corpo docente do lote")).toBeTruthy();
-  expect(screen.queryByText("Ana Lúcia Ferreira")).toBeNull();
-  const gestoraLote = screen.getByText("Elisângela Rocha").closest("tr");
-  expect(gestoraLote).toBeTruthy();
-  expect((within(gestoraLote as HTMLTableRowElement).getByRole("checkbox") as HTMLInputElement).disabled).toBe(true);
+  expect(screen.getByText("Servidores do lote (gestão/apoio)")).toBeTruthy();
+  // Cargo "Professor" (ex.: Elisângela Rocha) é exclusivo da Coletiva — não aparece no Lote.
+  expect(screen.queryByText("Elisângela Rocha")).toBeNull();
+  const apoioComSaldoInvalido = screen.getByText("Ana Lúcia Ferreira").closest("tr");
+  expect(apoioComSaldoInvalido).toBeTruthy();
+  expect((within(apoioComSaldoInvalido as HTMLTableRowElement).getByRole("checkbox") as HTMLInputElement).disabled).toBe(true);
   expect(screen.getByRole("columnheader", { name: "Alertas" })).toBeTruthy();
   expect(screen.getAllByRole("columnheader").map((header) => header.textContent?.trim())).toEqual([
     "",
@@ -42,14 +44,14 @@ it("mantém a grade coletiva distinta da grade de seleção do lote", () => {
 it("separa alertas da situação de lotação na grade do lote", () => {
   render(<FormularioColetiva onCancelar={vi.fn()} onSalvar={vi.fn()} modoAgendamentoLote />);
 
-  const alerta = screen.getByText(/Servidor cedido — excluído do lote/);
+  // Apoio/gestão não tem direito aos 45 dias (benefício exclusivo de professor) — erro bloqueante.
+  const alerta = screen.getByText(/Saldo de 45 dias não se aplica a cargo de gestão\/apoio/);
   const linha = alerta.closest("tr");
   expect(linha).toBeTruthy();
 
   const celulas = within(linha as HTMLTableRowElement).getAllByRole("cell");
   expect(celulas[5].textContent).toBe("Em escola");
-  expect(celulas[6].textContent).toContain("Servidor cedido");
-  expect(celulas[6].textContent).toContain("Saldo de 30 dias em escola");
+  expect(celulas[6].textContent).toContain("Saldo de 45 dias não se aplica");
 });
 
 it("permite usufruto antecipado sem bloquear saldo não confirmado na UNEMAT", () => {
@@ -62,13 +64,14 @@ it("permite usufruto antecipado sem bloquear saldo não confirmado na UNEMAT", (
 
   expect(screen.getByText("Todos os professores da UNEMAT — todas as lotações")).toBeTruthy();
   expect(screen.getByText(/Regra UNEMAT:/)).toBeTruthy();
-  expect(screen.getAllByText(/45 dias · a confirmar/).length).toBeGreaterThan(0);
+  // Apoio/gestão não tem direito aos 45 dias — na UNEMAT o saldo varia (10 a 30) e fica "a confirmar".
+  expect(screen.getAllByText(/30 dias · a confirmar/).length).toBeGreaterThan(0);
 
   const primeiraLinha = screen.getAllByRole("row")[1];
   expect(within(primeiraLinha).getByRole("checkbox").hasAttribute("disabled")).toBe(false);
 
   fireEvent.click(screen.getByRole("tab", { name: /Parcelas & Alertas/ }));
-  fireEvent.click(screen.getByRole("checkbox", { name: /Julho \(15 dias\)/ }));
+  fireEvent.click(screen.getByRole("checkbox", { name: /30 dias/ }));
   fireEvent.click(screen.getByRole("button", { name: "Lançar Férias Coletivas do Lote" }));
 
   expect(onSalvar).toHaveBeenCalledTimes(1);
@@ -83,11 +86,11 @@ it("permite usufruto antecipado sem bloquear saldo não confirmado na UNEMAT", (
 it("desabilita inconsistências SEDUC e mantém decisão individual para LTS", () => {
   render(<FormularioColetiva onCancelar={vi.fn()} onSalvar={vi.fn()} modoAgendamentoLote />);
 
-  const saldoInconsistente = screen.getAllByText(/Saldo de 30 dias em escola/)[0].closest("tr");
+  const saldoInconsistente = screen.getAllByText(/Saldo de 45 dias não se aplica a cargo de gestão\/apoio/)[0].closest("tr");
   expect(saldoInconsistente).toBeTruthy();
   expect(within(saldoInconsistente as HTMLTableRowElement).getByRole("checkbox").hasAttribute("disabled")).toBe(true);
 
-  const lts = screen.getByText("Lívia Rodrigues Martins").closest("tr");
+  const lts = screen.getByText("Juliana Barbosa Moraes").closest("tr");
   expect(lts).toBeTruthy();
   const ltsCheckbox = within(lts as HTMLTableRowElement).getByRole("checkbox") as HTMLInputElement;
   expect(ltsCheckbox.disabled).toBe(false);
@@ -98,10 +101,7 @@ it("mantém visíveis e desabilitados os professores com bloqueios cadastrais", 
   render(<FormularioColetiva onCancelar={vi.fn()} onSalvar={vi.fn()} modoAgendamentoLote />);
 
   const bloqueios = [
-    /Servidor cedido/,
-    /Cargo de gestão/,
-    /Fora de unidade escolar/,
-    /Vínculo encerrado/,
+    /Saldo de 45 dias não se aplica a cargo de gestão\/apoio/,
     /Já possui férias no período/,
   ];
 

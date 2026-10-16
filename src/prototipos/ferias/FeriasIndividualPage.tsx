@@ -1,25 +1,22 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
-import { FormularioIndividual, ModalConfirmarCancelamento, STORAGE_KEY } from "./FeriasPages";
+import { FormularioIndividual, ModalConfirmarCancelamento } from "./FeriasPages";
 import type { FeriasRegistro } from "./FeriasPages";
+import { STORAGE_KEY, carregarRegistros } from "./feriasMockDados";
 import "./ferias.css";
-
-function carregarRegistros(): FeriasRegistro[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") ?? [];
-  } catch {
-    return [];
-  }
-}
 
 export function FeriasIndividualPage() {
   const navigate = useNavigate();
   const [mostrarConfirmacaoCancelar, setMostrarConfirmacaoCancelar] = useState(false);
+  // Evita duplicar o lançamento se o clique disparar duas vezes antes do navigate() sair da tela.
+  const salvandoRef = useRef(false);
 
   const salvar = (registro: FeriasRegistro) => {
+    if (salvandoRef.current) return;
+    salvandoRef.current = true;
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...carregarRegistros(), registro]));
     navigate("/prototipos/sigep/ferias");
   };
