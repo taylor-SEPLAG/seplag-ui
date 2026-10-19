@@ -26,13 +26,13 @@ function entradaEstagiarioBase(overrides: Partial<SolicitacaoRecessoInput> = {})
   const data_inicio_recesso = "2026-06-01";
   return {
     tipo_vinculo: "ESTAGIARIO",
-    data_inicio_contrato: subtrairDias(data_inicio_recesso, 150), // 5 meses -> saldo proporcional de 12,5 dias
+    data_inicio_contrato: '2025-12-01', // seis meses completos
     data_fim_contrato: "2027-01-01",
     data_inicio_recesso,
     data_solicitacao: subtrairDias(data_inicio_recesso, 35),
     quantidade_dias_solicitados: 10,
     numero_parcela: 1,
-    saldo_dias_disponivel: 15,
+    saldo_dias_disponivel: 30,
     ...overrides,
   };
 }
@@ -145,16 +145,17 @@ describe("validarSolicitacaoRecesso — ESTAGIÁRIO", () => {
     expect(resultado.erro_codigo).toBe("");
   });
 
-  it("não exige carência: aceita recesso logo no início do contrato, respeitando o saldo proporcional", () => {
+  it("exige seis meses de contrato mesmo quando há saldo proporcional", () => {
     const data_inicio_recesso = "2026-06-01";
     const resultado = validarSolicitacaoRecesso(
       entradaEstagiarioBase({
         data_inicio_contrato: subtrairDias(data_inicio_recesso, 60), // 2 meses -> saldo proporcional de 5 dias
-        quantidade_dias_solicitados: 5,
-        saldo_dias_disponivel: 10,
+        quantidade_dias_solicitados: 10,
+        saldo_dias_disponivel: 30,
       }),
     );
-    expect(resultado.sucesso).toBe(true);
+    expect(resultado.sucesso).toBe(false);
+    expect(resultado.erro_codigo).toBe(CodigoErroRecesso.CARENCIA_PERIODO_AQUISITIVO);
   });
 
   it("falha por parcela abaixo do mínimo (3 dias)", () => {
@@ -167,9 +168,9 @@ describe("validarSolicitacaoRecesso — ESTAGIÁRIO", () => {
     const data_inicio_recesso = "2026-06-01";
     const resultado = validarSolicitacaoRecesso(
       entradaEstagiarioBase({
-        data_inicio_contrato: subtrairDias(data_inicio_recesso, 60), // 2 meses -> saldo proporcional de 5 dias
-        quantidade_dias_solicitados: 10,
-        saldo_dias_disponivel: 30, // saldo da base é maior, mas o proporcional ao tempo decorrido é só 5
+        data_inicio_contrato: '2025-12-01', // seis meses -> saldo proporcional de 15 dias
+        quantidade_dias_solicitados: 20,
+        saldo_dias_disponivel: 30,
       }),
     );
     expect(resultado.sucesso).toBe(false);

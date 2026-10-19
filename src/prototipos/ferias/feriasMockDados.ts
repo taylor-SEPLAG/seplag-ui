@@ -21,10 +21,13 @@ function registroBase(parcial: Partial<FeriasRegistro> & Pick<FeriasRegistro, "i
     responsavelLancamento: "RH Setorial",
     lancadoEm: "2026-09-01 09:00",
     ...parcial,
+    dre: parcial.dre ?? (parcial.orgao?.includes('SEDUC') ? 'DRE de demonstração' : undefined),
   };
 }
 
 export const registrosBase: FeriasRegistro[] = [
+  registroBase({id:17, servidorNome:'Servidor SECITEC (demonstração)', matricula:'900017', cargo:'Técnico Administrativo', tipoVinculo:'Efetivo', origem:'SIGEP', situacao:'EM ABERTO', orgao:'SECITEC/MT', setor:'Escola Técnica — Unidade Cuiabá', unidade:'Unidade Cuiabá', periodoAquisitivoInicio:'2025-01-01', periodoAquisitivoFim:'2025-12-31', parcelas:[{id:1,inicio:'2026-12-01',fim:'2026-12-15',dias:15}]}),
+  registroBase({id:18, servidorNome:'Servidor UNEMAT (demonstração)', matricula:'900018', cargo:'Técnico Administrativo', tipoVinculo:'Contrato Temporário', origem:'SIGEP', situacao:'EM ABERTO', orgao:'UNEMAT/MT', setor:'Campus Sinop — Faculdade de Ciências', unidade:'Campus Sinop', periodoAquisitivoInicio:'2025-01-01', periodoAquisitivoFim:'2025-12-31', parcelas:[{id:1,inicio:'2026-12-01',fim:'2026-12-15',dias:15}]}),
   registroBase({
     id: 1, servidorNome: "Valeria da Silva Pinto", matricula: "241244", cargo: "Analista Administrativo",
     tipoVinculo: "Efetivo", situacao: "EM ABERTO", origem: "PORTALSERVIDOR",
@@ -160,7 +163,9 @@ export const registrosBase: FeriasRegistro[] = [
 export function carregarRegistros(): FeriasRegistro[] {
   try {
     const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as FeriasRegistro[] | null;
-    return salvos?.map(registro => {
+    return (salvos ?? registrosBase).map(registro => {
+      const hoje = new Date().toLocaleDateString("sv-SE", {timeZone:"America/Cuiaba"});
+      if (registro.situacao === "AGUARDANDO VALIDAÇÃO" && registro.dataLimiteValidacaoChefia && hoje > registro.dataLimiteValidacaoChefia) return {...registro, situacao:"REPROVADO" as const, expirado:true};
       const original = registrosBase.find(base => base.id === registro.id && base.matricula === registro.matricula && base.servidorNome === registro.servidorNome);
       return !registro.numeroVinculo && original?.numeroVinculo
         ? { ...registro, numeroVinculo: original.numeroVinculo }

@@ -174,7 +174,12 @@ function validarEstagiario(input: SolicitacaoRecessoInput): ResultadoValidacaoRe
     saldo_dias_disponivel,
   } = input;
 
-  // 1. Sem carência — saldo proporcional a 2,5 dias a cada 30 dias de contrato decorridos.
+  const marcoCarencia = adicionarMeses(data_inicio_contrato, 6);
+  if (paraData(data_inicio_recesso).getTime() < marcoCarencia.getTime()) {
+    return falha(CodigoErroRecesso.CARENCIA_PERIODO_AQUISITIVO,
+      `O estagiário só pode usufruir recesso após 6 meses de contrato, a partir de ${marcoCarencia.toISOString().slice(0, 10)}.`);
+  }
+  // Saldo proporcional, liberado após o cumprimento da carência.
   const diasDecorridos = diasEntre(data_inicio_contrato, data_inicio_recesso);
   const mesesDecorridos = Math.floor(diasDecorridos / ESTAGIARIO_DIAS_POR_MES_CONTRATO);
   const saldoProporcional = mesesDecorridos * ESTAGIARIO_DIAS_SALDO_POR_MES;
@@ -229,6 +234,12 @@ function validarEstagiario(input: SolicitacaoRecessoInput): ResultadoValidacaoRe
  * para RESIDENTE (Lei nº 15.400/2026) ou ESTAGIÁRIO (Lei nº 11.788/2008).
  */
 export function validarSolicitacaoRecesso(input: SolicitacaoRecessoInput): ResultadoValidacaoRecesso {
+  if (![10, 15, 20, 30].includes(input.quantidade_dias_solicitados)) {
+    return falha(input.quantidade_dias_solicitados > 30 ? CodigoErroRecesso.PARCELA_ACIMA_DO_MAXIMO : CodigoErroRecesso.PARCELA_ABAIXO_DO_MINIMO, 'Selecione blocos de 10, 15 ou 20 dias, ou integral de 30 dias.');
+  }
+  if (input.saldo_dias_disponivel - input.quantidade_dias_solicitados === 5) {
+    return falha(CodigoErroRecesso.SALDO_INSUFICIENTE, 'O parcelamento não pode deixar saldo residual de 5 dias.');
+  }
   if (input.tipo_vinculo === "RESIDENTE") return validarResidente(input);
   if (input.tipo_vinculo === "ESTAGIARIO") return validarEstagiario(input);
   return falha(

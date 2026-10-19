@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
+import 'fake-indexeddb/auto';
 import { afterEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import { FormularioColetiva } from "./FeriasPages";
+import type { FeriasRegistro } from './FeriasPages';
 
 afterEach(() => {
   cleanup();
@@ -54,7 +56,7 @@ it("separa alertas da situação de lotação na grade do lote", () => {
   expect(celulas[6].textContent).toContain("Saldo de 45 dias não se aplica");
 });
 
-it("permite usufruto antecipado sem bloquear saldo não confirmado na UNEMAT", () => {
+it("permite usufruto antecipado com portaria obrigatória na UNEMAT", async () => {
   const onSalvar = vi.fn();
   render(<FormularioColetiva onCancelar={vi.fn()} onSalvar={onSalvar} modoAgendamentoLote />);
 
@@ -73,9 +75,14 @@ it("permite usufruto antecipado sem bloquear saldo não confirmado na UNEMAT", (
   fireEvent.click(screen.getByRole("tab", { name: /Parcelas & Alertas/ }));
   fireEvent.click(screen.getByRole("checkbox", { name: /30 dias/ }));
   fireEvent.click(screen.getByRole("button", { name: "Lançar Férias Coletivas do Lote" }));
+  expect(onSalvar).not.toHaveBeenCalled();
+  expect(screen.getByText('Anexe a Portaria da Escala de Férias.')).toBeTruthy();
+  fireEvent.change(screen.getByLabelText(/Portaria da Escala de Férias/),{target:{files:[new File(['portaria'],'portaria.pdf',{type:'application/pdf'})]}});
+  await waitFor(() => expect(screen.queryByText('Armazenando documento...')).toBeNull());
+  fireEvent.click(screen.getByRole("button", { name: "Lançar Férias Coletivas do Lote" }));
 
   expect(onSalvar).toHaveBeenCalledTimes(1);
-  const registros = onSalvar.mock.calls[0][0];
+  const registros = onSalvar.mock.calls[0][0] as FeriasRegistro[];
   expect(registros.length).toBeGreaterThan(1);
   expect(registros.every((registro) =>
     registro.regraAquisitivo === "USUFRUTO_ANTECIPADO" && registro.saldoFeriasConfirmado === false,

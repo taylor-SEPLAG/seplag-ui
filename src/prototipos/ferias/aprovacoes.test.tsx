@@ -8,20 +8,22 @@ import { registrosBase, STORAGE_KEY } from './feriasMockDados';
 import { filtrosAprovacaoVazios, filtrarAprovacoes, ordenarAprovacoes } from './aprovacoesModel';
 import { criarExcelAprovacoes } from './exportarAprovacoes';
 
-beforeEach(() => localStorage.clear());
-afterEach(() => {cleanup();vi.restoreAllMocks();localStorage.clear();});
+beforeEach(() => {localStorage.clear();localStorage.setItem('prototype-ferias-perfil','Chefia Imediata');localStorage.setItem(STORAGE_KEY,JSON.stringify(registrosBase.map(r => r.id === 9 || r.id === 11 ? {...r,dataLimiteValidacaoChefia:'2099-11-15'} : r)));});
+afterEach(() => {cleanup();vi.useRealTimers();vi.restoreAllMocks();localStorage.clear();});
 const pendentes=registrosBase.filter(r => [9,10,11].includes(r.id));
 function montar() {render(<MemoryRouter><PrototiposFeriasPage /></MemoryRouter>);fireEvent.click(screen.getByRole('button',{name:/Aprovações/}));}
 it('mostra os três exemplos e as dez colunas na ordem solicitada, com alerta de validade', () => {
   montar();
   const tabela=screen.getByRole('table',{name:'Solicitações de férias para aprovação'});
   expect(within(tabela).getAllByRole('columnheader').map(c => c.textContent)).toEqual(['Servidor','Matrícula / Vínculo','Órgão / Entidade','Lotação','Período','Dias','Tipo','Situação atual','Validade da solicitação','Ações']);
-  expect(within(tabela).getAllByRole('row')).toHaveLength(4);
+  expect(within(tabela).getAllByRole('row')).toHaveLength(3);
   expect(within(tabela).getByText('Marina Costa Alves')).toBeTruthy();
+  expect(screen.getByText('Mostrando 2 de 2 solicitações')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button',{name:/Rejeitadas/}));
   const linha=within(tabela).getByText('Rodrigo Nunes Ferraz').closest('tr')!;
   expect(within(linha).getByText('778899 / 2')).toBeTruthy();
-  expect(within(linha).getByText('Prazo expirado')).toBeTruthy();
-  expect(screen.getByText('Mostrando 3 de 3 solicitações')).toBeTruthy();
+  expect(within(linha).queryByRole('button',{name:/Validar/})).toBeNull();
+  expect(within(linha).getByText('Rejeitada')).toBeTruthy();
 });
 it('aplica filtros automaticamente, combina critérios e limpa a pesquisa', () => {
   montar();
@@ -58,7 +60,8 @@ it('valida mediante confirmação e preserva a integração de benefícios do re
   expect(screen.queryByRole('button',{name:'Validar Beatriz Andrade Correia'})).toBeNull();
 });
 it('respeita a avaliação em bloco ao acionar uma linha de lote', () => {
-  const grupo=pendentes.slice(0,2).map(r => ({...r,tipo:'Lote' as const,loteId:'LOTE-TESTE',orgaoColetivo:'SEDUC' as const}));
+  const grupo=pendentes.slice(0,2).map(r => ({...r,tipo:'Lote' as const,loteId:'LOTE-TESTE',orgaoColetivo:'SEDUC' as const,dataLimiteValidacaoChefia:'2026-11-15'}));
+  localStorage.setItem('prototype-ferias-perfil','DRE / RH Central');
   localStorage.setItem(STORAGE_KEY,JSON.stringify(grupo));
   montar();
   fireEvent.click(screen.getByRole('button',{name:'Validar lote de Marina Costa Alves'}));
