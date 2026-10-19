@@ -622,6 +622,11 @@ function persistirRegistros(registros: FeriasRegistro[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(registros));
 }
 
+function rotuloSituacao(situacao: SituacaoFerias) {
+  if (situacao === "EM ABERTO") return "Agendada";
+  return situacao.charAt(0) + situacao.slice(1).toLocaleLowerCase("pt-BR");
+}
+
 function classeSituacao(situacao: SituacaoFerias) {
   return situacao
     .toLocaleLowerCase("pt-BR")
@@ -712,6 +717,7 @@ export function PrototiposFeriasPage() {
     const buscaNormalizada = subBusca.trim().toLocaleLowerCase("pt-BR");
     const linhas: LinhaSubstituicao[] = [];
     registros.forEach((registro) => {
+      if (!elegivelSubstituicao(registro)) return;
       registro.substitutos.forEach((substituto) => {
         const situacaoSub = situacaoSubstituicao(substituto.fim);
         linhas.push({
@@ -763,12 +769,14 @@ export function PrototiposFeriasPage() {
       emAberto: porSituacao("EM ABERTO"),
       quitado: porSituacao("QUITADO"),
       suspenso: porSituacao("SUSPENSO"),
+      aguardandoValidacao: porSituacao("AGUARDANDO VALIDAÇÃO"),
       comissionado: porVinculo("Comissionado"),
       contratoTemporario: porVinculo("Contrato Temporário"),
       residenteTecnico: porVinculo("Residente Técnico"),
       estagiario: porVinculo("Estagiário"),
       ferias: porTipoRegistro("FÉRIAS"),
       licencaRemunerada: porTipoRegistro("LICENÇA REMUNERADA"),
+      prazoExpirado: registrosFiltrados.filter(prazoValidacaoExpirado).length,
     };
   }, [registrosFiltrados]);
 
@@ -914,17 +922,14 @@ export function PrototiposFeriasPage() {
 
           {aba === "gestao" ? (
             <>
-              <div className="prototype-ferias-indicadores">
-                <IndicadorCard rotulo="TOTAL" valor={indicadores.total} />
-                <IndicadorCard rotulo="EM ABERTO" valor={indicadores.emAberto} tom="sucesso" />
+              <div className="prototype-ferias-indicadores prototype-ferias-indicadores--7col">
+                <IndicadorCard rotulo="FÉRIAS" valor={indicadores.ferias} tom="info" />
+                <IndicadorCard rotulo="RECESSO REMUNERADO" valor={indicadores.licencaRemunerada} tom="roxo" />
+                <IndicadorCard rotulo="AGENDADA" valor={indicadores.emAberto} tom="sucesso" />
+                <IndicadorCard rotulo="AGUARDANDO VALIDAÇÃO" valor={indicadores.aguardandoValidacao} tom="alerta" />
                 <IndicadorCard rotulo="QUITADO" valor={indicadores.quitado} tom="info" />
                 <IndicadorCard rotulo="SUSPENSO" valor={indicadores.suspenso} tom="alerta" />
-                <IndicadorCard rotulo="COMISSIONADO" valor={indicadores.comissionado} />
-                <IndicadorCard rotulo="CONTRATO TEMPORÁRIO" valor={indicadores.contratoTemporario} />
-                <IndicadorCard rotulo="RESIDENTE TÉCNICO" valor={indicadores.residenteTecnico} tom="roxo" />
-                <IndicadorCard rotulo="ESTAGIÁRIO" valor={indicadores.estagiario} tom="roxo" />
-                <IndicadorCard rotulo="FÉRIAS" valor={indicadores.ferias} tom="info" />
-                <IndicadorCard rotulo="LICENÇA REMUNERADA" valor={indicadores.licencaRemunerada} tom="roxo" />
+                <IndicadorCard rotulo="PRAZO EXPIRADO" valor={indicadores.prazoExpirado} tom="vermelho" />
               </div>
 
               <div className="prototype-ferias-filtros">
@@ -965,7 +970,7 @@ export function PrototiposFeriasPage() {
                   <select value={filtroSituacao} onChange={(event) => setFiltroSituacao(event.target.value as "" | SituacaoFerias)}>
                     <option value="">Todas</option>
                     <option value="AGUARDANDO VALIDAÇÃO">Aguardando validação</option>
-                    <option value="EM ABERTO">Em aberto</option>
+                    <option value="EM ABERTO">Agendada</option>
                     <option value="QUITADO">Quitado</option>
                     <option value="CANCELADO">Cancelado</option>
                     <option value="REPROVADO">Reprovado</option>
@@ -1020,7 +1025,7 @@ export function PrototiposFeriasPage() {
                 estagiário nunca geram substituição.
               </p>
 
-              <div className="prototype-ferias-indicadores">
+              <div className="prototype-ferias-indicadores prototype-ferias-indicadores--4col">
                 <IndicadorCard rotulo="TOTAL" valor={indicadoresSubstituicao.total} />
                 <IndicadorCard rotulo="VIGENTE" valor={indicadoresSubstituicao.vigente} tom="sucesso" />
                 <IndicadorCard rotulo="ENCERRADA" valor={indicadoresSubstituicao.encerrada} tom="info" />
@@ -1112,6 +1117,7 @@ export function PrototiposFeriasPage() {
 
 function elegivelSubstituicao(registro: FeriasRegistro) {
   return (
+    registro.tipoVinculo === "Comissionado" &&
     registro.cargoGestao &&
     registro.parcelas.some((parcela) => parcela.dias >= 10) &&
     registro.situacao !== "CANCELADO" &&
@@ -1151,7 +1157,7 @@ function podeCancelar(registro: FeriasRegistro) {
 }
 
 function IndicadorCard({ rotulo, valor, tom }: Readonly<{ rotulo: string; valor: number; tom?: "sucesso" | "info" | "alerta" | "roxo" | "vermelho" }>) {
-  const icones: Record<string, string> = { TOTAL: "pi-chart-bar", "EM ABERTO": "pi-clock", QUITADO: "pi-check-circle", SUSPENSO: "pi-pause-circle", COMISSIONADO: "pi-id-card", "CONTRATO TEMPORÁRIO": "pi-file", "RESIDENTE TÉCNICO": "pi-briefcase", ESTAGIÁRIO: "pi-graduation-cap", FÉRIAS: "pi-calendar", "LICENÇA REMUNERADA": "pi-wallet", VIGENTE: "pi-check-circle", ENCERRADA: "pi-calendar-times", "SEM PORTARIA": "pi-exclamation-circle" };
+  const icones: Record<string, string> = { TOTAL: "pi-chart-bar", AGENDADA: "pi-clock", QUITADO: "pi-check-circle", SUSPENSO: "pi-pause-circle", COMISSIONADO: "pi-id-card", "CONTRATO TEMPORÁRIO": "pi-file", "RESIDENTE TÉCNICO": "pi-briefcase", ESTAGIÁRIO: "pi-graduation-cap", FÉRIAS: "pi-calendar", "LICENÇA REMUNERADA": "pi-wallet", VIGENTE: "pi-check-circle", ENCERRADA: "pi-calendar-times", "SEM PORTARIA": "pi-exclamation-circle" };
   const titulo = rotulo.charAt(0) + rotulo.slice(1).toLocaleLowerCase("pt-BR");
   return (
     <div className={"prototype-ferias-indicador" + (tom ? ` is-${tom}` : "")}>
@@ -1194,7 +1200,7 @@ function TabelaRegistros({
       <table className="prototype-ferias-table">
         <thead>
           <tr>
-            <th>Matrícula</th>
+            <th>Matrícula/Vínculo</th>
             <th>Órgão</th>
             <th>Nome Servidor</th>
             <th>Período Aquisitivo</th>
@@ -1214,7 +1220,7 @@ function TabelaRegistros({
             return linhasParcela.map((parcela) => (
             <tr key={parcela ? `${registro.id}-${parcela.id}` : registro.id}>
               <td>
-                {registro.matricula}
+                {registro.matricula} / {registro.numeroVinculo ?? "1"}
                 <br />
                 <small>{registro.tipoVinculo}</small>
               </td>
@@ -1260,7 +1266,7 @@ function TabelaRegistros({
                 {prazoValidacaoExpirado(registro) ? (
                   <span className="prototype-ferias-badge is-cancelado">Prazo expirado</span>
                 ) : (
-                  <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{registro.situacao.charAt(0) + registro.situacao.slice(1).toLocaleLowerCase("pt-BR")}</span>
+                  <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{rotuloSituacao(registro.situacao)}</span>
                 )}
               </td>
               <td>
