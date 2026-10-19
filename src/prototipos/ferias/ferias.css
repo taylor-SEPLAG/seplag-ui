@@ -318,6 +318,9 @@
 .prototype-ferias-indicador.is-alerta .prototype-ferias-indicador-icone { background: #fff3e3; color: #b76b00; }
 .prototype-ferias-indicador.is-roxo .prototype-ferias-indicador-icone { background: #f1e8ff; color: #6d28d9; }
 .prototype-ferias-indicador.is-vermelho .prototype-ferias-indicador-icone { background: #fee4e2; color: #b42318; }
+.prototype-ferias-indicadores--4col { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.prototype-ferias-indicadores--6col { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.prototype-ferias-indicadores--7col { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 @media (max-width: 1200px) { .prototype-ferias-indicadores { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .prototype-ferias-indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) { .prototype-ferias-indicadores { grid-template-columns: 1fr; } }
@@ -484,6 +487,17 @@
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: #f8fafc;
+}
+
+/** Visualizar (somente leitura): a tela reaproveita o mesmo layout do cadastro, mas tudo
+ * acinzentado e sem nenhuma interação possível. O rodapé de ações ("Voltar") fica fora deste
+ * wrapper no JSX — filter/pointer-events em CSS não "desfazem" o efeito do ancestral em um
+ * descendente, então ele precisa estar estruturalmente fora, não só com um seletor extra aqui. */
+.prototype-ferias-visualizacao-somente-leitura {
+  filter: grayscale(1);
+  opacity: 0.82;
+  pointer-events: none;
+  user-select: text;
 }
 
 .prototype-ferias-servidor-resultado-grid {

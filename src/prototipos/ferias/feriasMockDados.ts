@@ -66,7 +66,7 @@ export const registrosBase: FeriasRegistro[] = [
   }),
   registroBase({
     id: 7, servidorNome: "João Silva", matricula: "327305", cargo: "Analista Administrativo",
-    tipoVinculo: "Efetivo", cargoGestao: true, situacao: "EM ABERTO", origem: "SIGEP",
+    tipoVinculo: "Comissionado", cargoGestao: true, situacao: "EM ABERTO", origem: "SIGEP",
     periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31",
     parcelas: [
       { id: 1, inicio: "2026-11-02", fim: "2026-11-21", dias: 20, terco: true },

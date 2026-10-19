@@ -622,6 +622,11 @@ function persistirRegistros(registros: FeriasRegistro[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(registros));
 }
 
+function rotuloSituacao(situacao: SituacaoFerias) {
+  if (situacao === "EM ABERTO") return "Agendada";
+  return situacao.charAt(0) + situacao.slice(1).toLocaleLowerCase("pt-BR");
+}
+
 function classeSituacao(situacao: SituacaoFerias) {
   return situacao
     .toLocaleLowerCase("pt-BR")
@@ -651,7 +656,7 @@ export function PrototiposFeriasPage() {
   const [filtroSituacao, setFiltroSituacao] = useState<"" | SituacaoFerias>("");
   const [fluxoNovaSolicitacao, setFluxoNovaSolicitacao] = useState<"escolha" | TipoSolicitacao | null>(null);
   const [registroSubstituicao, setRegistroSubstituicao] = useState<FeriasRegistro | null>(null);
-  const [registroVisualizacao, setRegistroVisualizacao] = useState<FeriasRegistro | null>(null);
+  const visualizarRegistro = (registro: FeriasRegistro) => navigate(`/prototipos/sigep/ferias/visualizar/${registro.id}`);
   const [registroEdicaoRecesso, setRegistroEdicaoRecesso] = useState<FeriasRegistro | null>(null);
   const [registroEdicaoIndividual, setRegistroEdicaoIndividual] = useState<FeriasRegistro | null>(null);
   const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
@@ -712,6 +717,7 @@ export function PrototiposFeriasPage() {
     const buscaNormalizada = subBusca.trim().toLocaleLowerCase("pt-BR");
     const linhas: LinhaSubstituicao[] = [];
     registros.forEach((registro) => {
+      if (!elegivelSubstituicao(registro)) return;
       registro.substitutos.forEach((substituto) => {
         const situacaoSub = situacaoSubstituicao(substituto.fim);
         linhas.push({
@@ -763,12 +769,14 @@ export function PrototiposFeriasPage() {
       emAberto: porSituacao("EM ABERTO"),
       quitado: porSituacao("QUITADO"),
       suspenso: porSituacao("SUSPENSO"),
+      aguardandoValidacao: porSituacao("AGUARDANDO VALIDAÇÃO"),
       comissionado: porVinculo("Comissionado"),
       contratoTemporario: porVinculo("Contrato Temporário"),
       residenteTecnico: porVinculo("Residente Técnico"),
       estagiario: porVinculo("Estagiário"),
       ferias: porTipoRegistro("FÉRIAS"),
       licencaRemunerada: porTipoRegistro("LICENÇA REMUNERADA"),
+      prazoExpirado: registrosFiltrados.filter(prazoValidacaoExpirado).length,
     };
   }, [registrosFiltrados]);
 
@@ -914,17 +922,14 @@ export function PrototiposFeriasPage() {
 
           {aba === "gestao" ? (
             <>
-              <div className="prototype-ferias-indicadores">
-                <IndicadorCard rotulo="TOTAL" valor={indicadores.total} />
-                <IndicadorCard rotulo="EM ABERTO" valor={indicadores.emAberto} tom="sucesso" />
+              <div className="prototype-ferias-indicadores prototype-ferias-indicadores--7col">
+                <IndicadorCard rotulo="FÉRIAS" valor={indicadores.ferias} tom="info" />
+                <IndicadorCard rotulo="RECESSO REMUNERADO" valor={indicadores.licencaRemunerada} tom="roxo" />
+                <IndicadorCard rotulo="AGENDADA" valor={indicadores.emAberto} tom="sucesso" />
+                <IndicadorCard rotulo="AGUARDANDO VALIDAÇÃO" valor={indicadores.aguardandoValidacao} tom="alerta" />
                 <IndicadorCard rotulo="QUITADO" valor={indicadores.quitado} tom="info" />
                 <IndicadorCard rotulo="SUSPENSO" valor={indicadores.suspenso} tom="alerta" />
-                <IndicadorCard rotulo="COMISSIONADO" valor={indicadores.comissionado} />
-                <IndicadorCard rotulo="CONTRATO TEMPORÁRIO" valor={indicadores.contratoTemporario} />
-                <IndicadorCard rotulo="RESIDENTE TÉCNICO" valor={indicadores.residenteTecnico} tom="roxo" />
-                <IndicadorCard rotulo="ESTAGIÁRIO" valor={indicadores.estagiario} tom="roxo" />
-                <IndicadorCard rotulo="FÉRIAS" valor={indicadores.ferias} tom="info" />
-                <IndicadorCard rotulo="LICENÇA REMUNERADA" valor={indicadores.licencaRemunerada} tom="roxo" />
+                <IndicadorCard rotulo="PRAZO EXPIRADO" valor={indicadores.prazoExpirado} tom="vermelho" />
               </div>
 
               <div className="prototype-ferias-filtros">
@@ -965,7 +970,7 @@ export function PrototiposFeriasPage() {
                   <select value={filtroSituacao} onChange={(event) => setFiltroSituacao(event.target.value as "" | SituacaoFerias)}>
                     <option value="">Todas</option>
                     <option value="AGUARDANDO VALIDAÇÃO">Aguardando validação</option>
-                    <option value="EM ABERTO">Em aberto</option>
+                    <option value="EM ABERTO">Agendada</option>
                     <option value="QUITADO">Quitado</option>
                     <option value="CANCELADO">Cancelado</option>
                     <option value="REPROVADO">Reprovado</option>
@@ -985,11 +990,11 @@ export function PrototiposFeriasPage() {
               <TabelaRegistros
                 registros={registrosFiltrados}
                 perfil={perfil}
-                onVisualizar={setRegistroVisualizacao}
+                onVisualizar={visualizarRegistro}
                 onEditar={(registro) => {
                   if (registro.tipo === "Recesso") setRegistroEdicaoRecesso(registro);
                   else if (registro.tipo === "Individual") setRegistroEdicaoIndividual(registro);
-                  else setRegistroVisualizacao(registro);
+                  else visualizarRegistro(registro);
                 }}
                 onGerenciarSubstituicao={setRegistroSubstituicao}
                 onAlterarStatus={(registro, acao) => setConfirmacaoStatus({ registro, acao })}
@@ -1003,7 +1008,7 @@ export function PrototiposFeriasPage() {
           {aba === "aprovacoes" && podeAvaliar(perfil) ? (
             <AprovacoesFerias
               registros={registros}
-              onVisualizar={setRegistroVisualizacao}
+              onVisualizar={visualizarRegistro}
               onAlterarStatus={(registro, acao) => setConfirmacaoStatus({ registro, acao })}
               onAlterarStatusLote={(loteId, acao) => {
                 const registro=registros.find(r => r.loteId===loteId && r.situacao==='AGUARDANDO VALIDAÇÃO');
@@ -1020,7 +1025,7 @@ export function PrototiposFeriasPage() {
                 estagiário nunca geram substituição.
               </p>
 
-              <div className="prototype-ferias-indicadores">
+              <div className="prototype-ferias-indicadores prototype-ferias-indicadores--4col">
                 <IndicadorCard rotulo="TOTAL" valor={indicadoresSubstituicao.total} />
                 <IndicadorCard rotulo="VIGENTE" valor={indicadoresSubstituicao.vigente} tom="sucesso" />
                 <IndicadorCard rotulo="ENCERRADA" valor={indicadoresSubstituicao.encerrada} tom="info" />
@@ -1080,9 +1085,6 @@ export function PrototiposFeriasPage() {
         />
       ) : null}
 
-      {registroVisualizacao ? (
-        <ModalVisualizarRegistro registro={registroVisualizacao} onFechar={() => setRegistroVisualizacao(null)} />
-      ) : null}
 
       {registroEdicaoRecesso ? (
         <ModalAlterarRecesso
@@ -1115,6 +1117,7 @@ export function PrototiposFeriasPage() {
 
 function elegivelSubstituicao(registro: FeriasRegistro) {
   return (
+    registro.tipoVinculo === "Comissionado" &&
     registro.cargoGestao &&
     registro.parcelas.some((parcela) => parcela.dias >= 10) &&
     registro.situacao !== "CANCELADO" &&
@@ -1154,7 +1157,7 @@ function podeCancelar(registro: FeriasRegistro) {
 }
 
 function IndicadorCard({ rotulo, valor, tom }: Readonly<{ rotulo: string; valor: number; tom?: "sucesso" | "info" | "alerta" | "roxo" | "vermelho" }>) {
-  const icones: Record<string, string> = { TOTAL: "pi-chart-bar", "EM ABERTO": "pi-clock", QUITADO: "pi-check-circle", SUSPENSO: "pi-pause-circle", COMISSIONADO: "pi-id-card", "CONTRATO TEMPORÁRIO": "pi-file", "RESIDENTE TÉCNICO": "pi-briefcase", ESTAGIÁRIO: "pi-graduation-cap", FÉRIAS: "pi-calendar", "LICENÇA REMUNERADA": "pi-wallet", VIGENTE: "pi-check-circle", ENCERRADA: "pi-calendar-times", "SEM PORTARIA": "pi-exclamation-circle" };
+  const icones: Record<string, string> = { TOTAL: "pi-chart-bar", AGENDADA: "pi-clock", QUITADO: "pi-check-circle", SUSPENSO: "pi-pause-circle", COMISSIONADO: "pi-id-card", "CONTRATO TEMPORÁRIO": "pi-file", "RESIDENTE TÉCNICO": "pi-briefcase", ESTAGIÁRIO: "pi-graduation-cap", FÉRIAS: "pi-calendar", "LICENÇA REMUNERADA": "pi-wallet", VIGENTE: "pi-check-circle", ENCERRADA: "pi-calendar-times", "SEM PORTARIA": "pi-exclamation-circle" };
   const titulo = rotulo.charAt(0) + rotulo.slice(1).toLocaleLowerCase("pt-BR");
   return (
     <div className={"prototype-ferias-indicador" + (tom ? ` is-${tom}` : "")}>
@@ -1197,7 +1200,7 @@ function TabelaRegistros({
       <table className="prototype-ferias-table">
         <thead>
           <tr>
-            <th>Matrícula</th>
+            <th>Matrícula/Vínculo</th>
             <th>Órgão</th>
             <th>Nome Servidor</th>
             <th>Período Aquisitivo</th>
@@ -1217,7 +1220,7 @@ function TabelaRegistros({
             return linhasParcela.map((parcela) => (
             <tr key={parcela ? `${registro.id}-${parcela.id}` : registro.id}>
               <td>
-                {registro.matricula}
+                {registro.matricula} / {registro.numeroVinculo ?? "1"}
                 <br />
                 <small>{registro.tipoVinculo}</small>
               </td>
@@ -1263,7 +1266,7 @@ function TabelaRegistros({
                 {prazoValidacaoExpirado(registro) ? (
                   <span className="prototype-ferias-badge is-cancelado">Prazo expirado</span>
                 ) : (
-                  <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{registro.situacao.charAt(0) + registro.situacao.slice(1).toLocaleLowerCase("pt-BR")}</span>
+                  <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{rotuloSituacao(registro.situacao)}</span>
                 )}
               </td>
               <td>
@@ -1491,26 +1494,38 @@ function ModalEscolhaTipoSolicitacao({
 export function FormularioIndividual({
   onCancelar,
   onSalvar,
-}: Readonly<{ onCancelar: () => void; onSalvar: (registro: FeriasRegistro) => void }>) {
-  const [servidorNome, setServidorNome] = useState("");
-  const [matricula, setMatricula] = useState("");
-  const [orgao, setOrgao] = useState("SEPLAG/MT");
-  const [setor, setSetor] = useState("");
-  const [cargo, setCargo] = useState("");
-  const [tipoVinculo, setTipoVinculo] = useState<TipoVinculo | "">("" as TipoVinculo);
-  const [cargoGestao, setCargoGestao] = useState<boolean | null>(null);
-  const [periodoAquisitivoInicio, setPeriodoAquisitivoInicio] = useState("");
-  const [periodoAquisitivoFim, setPeriodoAquisitivoFim] = useState("");
-  const [saldoDisponivel, setSaldoDisponivel] = useState<number | null>(null);
-  const [parcelas, setParcelas] = useState<ParcelaFerias[]>([]);
+  registroSomenteLeitura,
+}: Readonly<{
+  onCancelar: () => void;
+  onSalvar: (registro: FeriasRegistro) => void;
+  /** Quando informado, a tela abre com os dados desse registro já preenchidos e tudo
+   * desabilitado/acinzentado — reaproveita o mesmo layout do cadastro só para "Visualizar". */
+  registroSomenteLeitura?: FeriasRegistro;
+}>) {
+  const somenteLeitura = Boolean(registroSomenteLeitura);
+  const [servidorNome, setServidorNome] = useState(registroSomenteLeitura?.servidorNome ?? "");
+  const [matricula, setMatricula] = useState(registroSomenteLeitura?.matricula ?? "");
+  const [orgao, setOrgao] = useState(registroSomenteLeitura?.orgao ?? "SEPLAG/MT");
+  const [setor, setSetor] = useState(registroSomenteLeitura?.setor ?? "");
+  const [cargo, setCargo] = useState(registroSomenteLeitura?.cargo ?? "");
+  const [tipoVinculo, setTipoVinculo] = useState<TipoVinculo | "">(registroSomenteLeitura?.tipoVinculo ?? ("" as TipoVinculo));
+  const [cargoGestao, setCargoGestao] = useState<boolean | null>(registroSomenteLeitura?.cargoGestao ?? null);
+  const [periodoAquisitivoInicio, setPeriodoAquisitivoInicio] = useState(registroSomenteLeitura?.periodoAquisitivoInicio ?? "");
+  const [periodoAquisitivoFim, setPeriodoAquisitivoFim] = useState(registroSomenteLeitura?.periodoAquisitivoFim ?? "");
+  const [saldoDisponivel, setSaldoDisponivel] = useState<number | null>(
+    registroSomenteLeitura ? diasSolicitados(registroSomenteLeitura) : null,
+  );
+  const [parcelas, setParcelas] = useState<ParcelaFerias[]>(() => registroSomenteLeitura?.parcelas.map((parcela) => ({ ...parcela })) ?? []);
   const [erro, setErro] = useState("");
   const [alertaConcomitancia, setAlertaConcomitancia] = useState("");
   // RN-03: mensagem de ajuste de data por LTS vigente, persistente por parcela (sobrevive à
   // limpeza do rascunho após "Adicionar esta parcela" — diferente do alertaConcomitancia, que é
   // só uma prévia ao digitar e pode ser recalculado/limpo a qualquer momento).
   const [avisosAjusteLts, setAvisosAjusteLts] = useState<Record<number, string>>({});
-  const [servidorEncontrado, setServidorEncontrado] = useState(false);
-  const [servidorBusca, setServidorBusca] = useState("");
+  const [servidorEncontrado, setServidorEncontrado] = useState(somenteLeitura);
+  const [servidorBusca, setServidorBusca] = useState(
+    registroSomenteLeitura ? `${registroSomenteLeitura.matricula} - ${registroSomenteLeitura.servidorNome}` : "",
+  );
   const [sugestoesServidor, setSugestoesServidor] = useState<string[]>([]);
   const [vinculosParaEscolher, setVinculosParaEscolher] = useState<ServidorMock[]>([]);
   const [vinculoInfo, setVinculoInfo] = useState<{ indice: number; total: number } | null>(null);
@@ -1535,7 +1550,7 @@ export function FormularioIndividual({
   // clique em "Adicionar esta parcela") e também para as parcelas já adicionadas — senão o
   // alerta desaparece quando o rascunho é limpo após o "Adicionar".
   useEffect(() => {
-    if (!matricula) {
+    if (!matricula || somenteLeitura) {
       setAlertaConcomitancia("");
       return;
     }
@@ -1559,7 +1574,7 @@ export function FormularioIndividual({
       }
     }
     setAlertaConcomitancia("");
-  }, [matricula, draftInicio, draftFim, draftDias, parcelas]);
+  }, [matricula, draftInicio, draftFim, draftDias, parcelas, somenteLeitura]);
 
   const opcoesDuracao = useMemo(
     () => [30, 20, 15, 10].filter((dias) => dias <= saldoRestante && dias >= 10),
@@ -1783,14 +1798,17 @@ export function FormularioIndividual({
         </div>
       ) : null}
 
-      <div className="prototype-ferias-banner" style={{ background: "#eff6ff", borderColor: "#bfdbfe", color: "#1d4ed8" }}>
-        <i className="pi pi-info-circle" aria-hidden="true" />
-        <span>
-          Ao salvar, a solicitação entra como <strong>Aguardando Validação</strong>. A chefia imediata tem 8 dias
-          corridos para validar — sem validação no prazo, o sistema rejeita automaticamente.
-        </span>
-      </div>
+      {!somenteLeitura ? (
+        <div className="prototype-ferias-banner" style={{ background: "#eff6ff", borderColor: "#bfdbfe", color: "#1d4ed8" }}>
+          <i className="pi pi-info-circle" aria-hidden="true" />
+          <span>
+            Ao salvar, a solicitação entra como <strong>Aguardando Validação</strong>. A chefia imediata tem 8 dias
+            corridos para validar — sem validação no prazo, o sistema rejeita automaticamente.
+          </span>
+        </div>
+      ) : null}
 
+      <div className={somenteLeitura ? "prototype-ferias-visualizacao-somente-leitura" : undefined}>
       <div className="prototype-ferias-form-section">
         <h3 className="prototype-ferias-secao-titulo">
           <i className="pi pi-user" aria-hidden="true" />
@@ -1806,6 +1824,7 @@ export function FormularioIndividual({
               suggestions={sugestoesServidor}
               placeholder="Matrícula, CPF ou nome do servidor"
               forceSelection={false}
+              disabled={somenteLeitura}
               completeMethod={completarBuscaServidor}
               onChange={(event) => setServidorBusca(String(event.value ?? ""))}
               onSelect={(event) => selecionarServidor(String(event.value ?? ""))}
@@ -1851,29 +1870,31 @@ export function FormularioIndividual({
                 <span className="prototype-ferias-badge-saldo">{saldoDisponivel ?? 0} dias restantes</span>
               </div>
             </div>
-            <BotaoLimparFiltroSeplag
-              type="button"
-              label="Limpar servidor"
-              icon="pi pi-times"
-              style={{ width: "auto", whiteSpace: "nowrap", height: 32, padding: "0 12px", fontSize: "0.82rem" }}
-              onClick={() => {
-                setServidorNome("");
-                setMatricula("");
-                setOrgao("");
-                setSetor("");
-                setCargo("");
-                setTipoVinculo("Efetivo");
-                setCargoGestao(false);
-                setPeriodoAquisitivoInicio("");
-                setPeriodoAquisitivoFim("");
-                setSaldoDisponivel(null);
-                setServidorEncontrado(false);
-                setServidorBusca("");
-                setSugestoesServidor([]);
-                setVinculosParaEscolher([]);
-                setVinculoInfo(null);
-              }}
-            />
+            {!somenteLeitura ? (
+              <BotaoLimparFiltroSeplag
+                type="button"
+                label="Limpar servidor"
+                icon="pi pi-times"
+                style={{ width: "auto", whiteSpace: "nowrap", height: 32, padding: "0 12px", fontSize: "0.82rem" }}
+                onClick={() => {
+                  setServidorNome("");
+                  setMatricula("");
+                  setOrgao("");
+                  setSetor("");
+                  setCargo("");
+                  setTipoVinculo("Efetivo");
+                  setCargoGestao(false);
+                  setPeriodoAquisitivoInicio("");
+                  setPeriodoAquisitivoFim("");
+                  setSaldoDisponivel(null);
+                  setServidorEncontrado(false);
+                  setServidorBusca("");
+                  setSugestoesServidor([]);
+                  setVinculosParaEscolher([]);
+                  setVinculoInfo(null);
+                }}
+              />
+            ) : null}
           </div>
         )}
       </div>
@@ -1919,57 +1940,61 @@ export function FormularioIndividual({
           2. Detalhes do Período de Gozo
         </h3>
 
-        <div className="prototype-ferias-gozo-grid">
-          <div>
-            <DropdownFieldSeplag
-              name="duracao"
-              control={gozoControl}
-              label="Duração desta parcela"
-              cols="12"
-              disabled={parcelas.length >= 3 || !opcoesDuracao.length}
-              options={opcoesDuracao.map((dias) => ({
-                label: `${dias === saldoDisponivel ? "Integral" : "Parcela"} (${dias} dias)`,
-                value: dias,
-              }))}
-              optionLabel="label"
-              optionValue="value"
-              getFormErrorMessage={() => null}
-            />
-            <small className="prototype-ferias-gozo-ajuda">
-              Padrões: 3×10, 2×15, 1×10+1×20. Mínimo 10 dias/parcela.
-            </small>
-          </div>
-          <div>
-            <DateFieldSeplag
-              name="dataInicio"
-              control={gozoControl}
-              label="Data início do gozo"
-              cols="12"
-              disabled={parcelas.length >= 3 || !opcoesDuracao.length}
-              getFormErrorMessage={() => null}
-            />
-          </div>
-          <label>
-            <span>Data fim (calculada)</span>
-            <input className="prototype-ferias-readonly-field" value={formatarDataBr(draftFim)} readOnly />
-            <small className="prototype-ferias-gozo-ajuda">Calculado automaticamente.</small>
-          </label>
-        </div>
+        {!somenteLeitura ? (
+          <>
+            <div className="prototype-ferias-gozo-grid">
+              <div>
+                <DropdownFieldSeplag
+                  name="duracao"
+                  control={gozoControl}
+                  label="Duração desta parcela"
+                  cols="12"
+                  disabled={parcelas.length >= 3 || !opcoesDuracao.length}
+                  options={opcoesDuracao.map((dias) => ({
+                    label: `${dias === saldoDisponivel ? "Integral" : "Parcela"} (${dias} dias)`,
+                    value: dias,
+                  }))}
+                  optionLabel="label"
+                  optionValue="value"
+                  getFormErrorMessage={() => null}
+                />
+                <small className="prototype-ferias-gozo-ajuda">
+                  Padrões: 3×10, 2×15, 1×10+1×20. Mínimo 10 dias/parcela.
+                </small>
+              </div>
+              <div>
+                <DateFieldSeplag
+                  name="dataInicio"
+                  control={gozoControl}
+                  label="Data início do gozo"
+                  cols="12"
+                  disabled={parcelas.length >= 3 || !opcoesDuracao.length}
+                  getFormErrorMessage={() => null}
+                />
+              </div>
+              <label>
+                <span>Data fim (calculada)</span>
+                <input className="prototype-ferias-readonly-field" value={formatarDataBr(draftFim)} readOnly />
+                <small className="prototype-ferias-gozo-ajuda">Calculado automaticamente.</small>
+              </label>
+            </div>
 
-        <div className="prototype-ferias-gozo-acoes">
-          <button
-            type="button"
-            className="prototype-ferias-sub-add"
-            disabled={parcelas.length >= 3 || !opcoesDuracao.length}
-            onClick={adicionarParcelaDraft}
-          >
-            <i className="pi pi-plus" aria-hidden="true" />
-            Adicionar esta parcela
-          </button>
-          <span className={saldoFecha ? "prototype-ferias-saldo-ok" : "prototype-ferias-saldo-erro"}>
-            {totalParcelado} de {saldoDisponivel ?? 0} dias parcelados
-          </span>
-        </div>
+            <div className="prototype-ferias-gozo-acoes">
+              <button
+                type="button"
+                className="prototype-ferias-sub-add"
+                disabled={parcelas.length >= 3 || !opcoesDuracao.length}
+                onClick={adicionarParcelaDraft}
+              >
+                <i className="pi pi-plus" aria-hidden="true" />
+                Adicionar esta parcela
+              </button>
+              <span className={saldoFecha ? "prototype-ferias-saldo-ok" : "prototype-ferias-saldo-erro"}>
+                {totalParcelado} de {saldoDisponivel ?? 0} dias parcelados
+              </span>
+            </div>
+          </>
+        ) : null}
 
         {parcelas.length > 0 && (
           <div className="prototype-ferias-gozo-lista">
@@ -1985,23 +2010,43 @@ export function FormularioIndividual({
                     </div>
                   ) : null}
                 </span>
-                <button type="button" className="prototype-ferias-icon-btn" title="Remover parcela" onClick={() => removerParcela(parcela.id)}>
-                  <i className="pi pi-trash" aria-hidden="true" />
-                </button>
+                {!somenteLeitura ? (
+                  <button type="button" className="prototype-ferias-icon-btn" title="Remover parcela" onClick={() => removerParcela(parcela.id)}>
+                    <i className="pi pi-trash" aria-hidden="true" />
+                  </button>
+                ) : null}
               </div>
             ))}
           </div>
         )}
 
         <label className="prototype-ferias-gozo-terco">
-          <input type="checkbox" checked={draftTerco} onChange={(event) => setGozoValor("terco", event.target.checked)} />
+          <input type="checkbox" checked={draftTerco} disabled={somenteLeitura} onChange={(event) => setGozoValor("terco", event.target.checked)} />
           Pagar o Adicional Constitucional de 1/3 nesta parcela (Art. 19, II)
         </label>
       </div>
 
+      {registroSomenteLeitura ? (
+        <div className="prototype-ferias-form-section">
+          <p>Lançado por {registroSomenteLeitura.responsavelLancamento} em {registroSomenteLeitura.lancadoEm}.</p>
+          {registroSomenteLeitura.avaliadoPor ? (
+            <p>
+              {registroSomenteLeitura.resultadoAvaliacao ?? (registroSomenteLeitura.situacao === "CANCELADO" || registroSomenteLeitura.situacao === "REPROVADO" ? "Reprovada" : "Aprovada")}
+              {" "}por {registroSomenteLeitura.avaliadoPor} em {registroSomenteLeitura.avaliadoEm}.
+            </p>
+          ) : (
+            <p className="prototype-ferias-gozo-ajuda">Ainda não avaliado pela chefia.</p>
+          )}
+          {registroSomenteLeitura.justificativaAvaliacao ? (
+            <p><strong>Justificativa da avaliação:</strong> {registroSomenteLeitura.justificativaAvaliacao}</p>
+          ) : null}
+        </div>
+      ) : null}
+      </div>
+
       <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
         <BotaoVoltarSeplag type="button" label="Voltar" onClick={onCancelar} />
-        <BotaoSalvarSeplag type="button" label="Salvar solicitação" onClick={salvar} />
+        {!somenteLeitura ? <BotaoSalvarSeplag type="button" label="Salvar solicitação" onClick={salvar} /> : null}
       </div>
 
       {vinculosParaEscolher.length > 0 ? (
@@ -3606,19 +3651,31 @@ function violaAntecedenciaFimDeSemana(dataInicio: string): boolean {
 export function FormularioRecesso({
   onCancelar,
   onSalvar,
-}: Readonly<{ onCancelar: () => void; onSalvar: (registro: FeriasRegistro) => void }>) {
-  const [servidorNome, setServidorNome] = useState("");
-  const [matricula, setMatricula] = useState("");
-  const [orgao, setOrgao] = useState("SEPLAG/MT");
-  const [setor, setSetor] = useState("");
-  const [cargo, setCargo] = useState("");
-  const [tipoVinculo, setTipoVinculo] = useState<TipoVinculo>("Residente Técnico");
-  const [dataInicioVinculo, setDataInicioVinculo] = useState("");
-  const [periodoAquisitivoInicio, setPeriodoAquisitivoInicio] = useState("");
-  const [periodosDisponiveis, setPeriodosDisponiveis] = useState<PeriodoAquisitivoRecesso[]>([]);
-  const [periodoAquisitivoSelecionado, setPeriodoAquisitivoSelecionado] = useState("");
+  registroSomenteLeitura,
+}: Readonly<{
+  onCancelar: () => void;
+  onSalvar: (registro: FeriasRegistro) => void;
+  /** Quando informado, a tela abre com os dados desse registro já preenchidos e tudo
+   * desabilitado/acinzentado — reaproveita o mesmo layout do cadastro só para "Visualizar". */
+  registroSomenteLeitura?: FeriasRegistro;
+}>) {
+  const somenteLeitura = Boolean(registroSomenteLeitura);
+  const [servidorNome, setServidorNome] = useState(registroSomenteLeitura?.servidorNome ?? "");
+  const [matricula, setMatricula] = useState(registroSomenteLeitura?.matricula ?? "");
+  const [orgao, setOrgao] = useState(registroSomenteLeitura?.orgao ?? "SEPLAG/MT");
+  const [setor, setSetor] = useState(registroSomenteLeitura?.setor ?? "");
+  const [cargo, setCargo] = useState(registroSomenteLeitura?.cargo ?? "");
+  const [tipoVinculo, setTipoVinculo] = useState<TipoVinculo>(registroSomenteLeitura?.tipoVinculo ?? "Residente Técnico");
+  const [dataInicioVinculo, setDataInicioVinculo] = useState(registroSomenteLeitura?.periodoAquisitivoInicio ?? "");
+  const [periodoAquisitivoInicio, setPeriodoAquisitivoInicio] = useState(registroSomenteLeitura?.periodoAquisitivoInicio ?? "");
+  const [periodosDisponiveis, setPeriodosDisponiveis] = useState<PeriodoAquisitivoRecesso[]>(() =>
+    registroSomenteLeitura
+      ? [{ inicio: registroSomenteLeitura.periodoAquisitivoInicio, saldo: diasSolicitados(registroSomenteLeitura) }]
+      : [],
+  );
+  const [periodoAquisitivoSelecionado, setPeriodoAquisitivoSelecionado] = useState(registroSomenteLeitura?.periodoAquisitivoInicio ?? "");
   const [dataInicio, setDataInicio] = useState("");
-  const [parcelasResidente, setParcelasResidente] = useState<ParcelaFerias[]>([]);
+  const [parcelasResidente, setParcelasResidente] = useState<ParcelaFerias[]>(() => registroSomenteLeitura?.parcelas.map((parcela) => ({ ...parcela })) ?? []);
   const {
     control: recessoGozoControl,
     watch: watchRecessoGozo,
@@ -3632,8 +3689,10 @@ export function FormularioRecesso({
   const [erro, setErro] = useState("");
   const [alertaConcomitancia, setAlertaConcomitancia] = useState("");
   const [avisosAjusteLts, setAvisosAjusteLts] = useState<Record<number, string>>({});
-  const [servidorEncontrado, setServidorEncontrado] = useState(false);
-  const [textoBuscaRecesso, setTextoBuscaRecesso] = useState("");
+  const [servidorEncontrado, setServidorEncontrado] = useState(somenteLeitura);
+  const [textoBuscaRecesso, setTextoBuscaRecesso] = useState(
+    registroSomenteLeitura ? `${registroSomenteLeitura.matricula} - ${registroSomenteLeitura.servidorNome}` : "",
+  );
   const [sugestoesServidorRecesso, setSugestoesServidorRecesso] = useState<string[]>([]);
 
   const ehEstagiario = tipoVinculo === "Estagiário";
@@ -3650,11 +3709,12 @@ export function FormularioRecesso({
         registro.tipo === "Recesso" &&
         registro.matricula === matricula &&
         registro.periodoAquisitivoInicio === periodoAquisitivoSelecionado &&
+        registro.id !== registroSomenteLeitura?.id &&
         registro.situacao !== "CANCELADO" &&
         registro.situacao !== "REPROVADO",
       )
       .flatMap((registro) => registro.parcelas),
-    [matricula, periodoAquisitivoSelecionado],
+    [matricula, periodoAquisitivoSelecionado, registroSomenteLeitura?.id],
   );
   const diasJaAgendados = parcelasJaAgendadas.reduce((total, parcela) => total + parcela.dias, 0);
   const saldoDisponivel = saldoTotalPeriodo === null ? null : Math.max(0, saldoTotalPeriodo - diasJaAgendados);
@@ -3710,7 +3770,7 @@ export function FormularioRecesso({
   // clique em "Adicionar etapa") e também para as etapas já adicionadas — senão o alerta
   // desaparece quando o rascunho é limpo após o "Adicionar".
   useEffect(() => {
-    if (!matricula) {
+    if (!matricula || somenteLeitura) {
       setAlertaConcomitancia("");
       return;
     }
@@ -3736,7 +3796,7 @@ export function FormularioRecesso({
       }
     }
     setAlertaConcomitancia("");
-  }, [matricula, draftInicioResidente, draftFimResidente, draftDuracaoResidente, parcelasResidente]);
+  }, [matricula, draftInicioResidente, draftFimResidente, draftDuracaoResidente, parcelasResidente, somenteLeitura]);
 
   const adicionarParcelaResidente = () => {
     if (parcelasJaAgendadas.length + parcelasResidente.length >= 3) {
@@ -4002,6 +4062,7 @@ export function FormularioRecesso({
         </div>
       ) : null}
 
+      <div className={somenteLeitura ? "prototype-ferias-visualizacao-somente-leitura" : undefined}>
       <div className="prototype-ferias-form-section">
         <h3 className="prototype-ferias-secao-titulo">
           <i className="pi pi-user" aria-hidden="true" />
@@ -4022,6 +4083,7 @@ export function FormularioRecesso({
               suggestions={sugestoesServidorRecesso}
               placeholder="Matrícula, CPF ou nome do servidor"
               forceSelection={false}
+              disabled={somenteLeitura}
               completeMethod={completarBuscaServidorRecesso}
               onChange={(event) => {
                 setServidorEncontrado(false);
@@ -4064,30 +4126,32 @@ export function FormularioRecesso({
                 </span>
               </div>
             </div>
-            <BotaoLimparFiltroSeplag
-              type="button"
-              label="Limpar servidor"
-              icon="pi pi-times"
-              style={{ width: "auto", whiteSpace: "nowrap", height: 32, padding: "0 12px", fontSize: "0.82rem" }}
-              onClick={() => {
-                setServidorNome("");
-                setMatricula("");
-                setOrgao("SEPLAG/MT");
-                setSetor("");
-                setCargo("");
-                setTipoVinculo("Residente Técnico");
-                setPeriodoAquisitivoInicio("");
-                setPeriodosDisponiveis([]);
-                setPeriodoAquisitivoSelecionado("");
-                setDataInicio("");
-                setDataInicioVinculo("");
-                setTextoBuscaRecesso("");
-                setParcelasResidente([]);
-                setRecessoGozoValue("duracao", 30);
-                setRecessoGozoValue("dataInicio", "");
-                setServidorEncontrado(false);
-              }}
-            />
+            {!somenteLeitura ? (
+              <BotaoLimparFiltroSeplag
+                type="button"
+                label="Limpar servidor"
+                icon="pi pi-times"
+                style={{ width: "auto", whiteSpace: "nowrap", height: 32, padding: "0 12px", fontSize: "0.82rem" }}
+                onClick={() => {
+                  setServidorNome("");
+                  setMatricula("");
+                  setOrgao("SEPLAG/MT");
+                  setSetor("");
+                  setCargo("");
+                  setTipoVinculo("Residente Técnico");
+                  setPeriodoAquisitivoInicio("");
+                  setPeriodosDisponiveis([]);
+                  setPeriodoAquisitivoSelecionado("");
+                  setDataInicio("");
+                  setDataInicioVinculo("");
+                  setTextoBuscaRecesso("");
+                  setParcelasResidente([]);
+                  setRecessoGozoValue("duracao", 30);
+                  setRecessoGozoValue("dataInicio", "");
+                  setServidorEncontrado(false);
+                }}
+              />
+            ) : null}
           </div>
         )}
 
@@ -4142,70 +4206,74 @@ export function FormularioRecesso({
           <div className="prototype-ferias-gozo-ajuda">Selecione um período aquisitivo acima para continuar.</div>
         ) : (
           <>
-            <div className="prototype-ferias-gozo-grid">
-              <div>
-                <DropdownFieldSeplag
-                  name="duracao"
-                  control={recessoGozoControl}
-                  label="Duração desta parcela"
-                  cols="12"
-                  disabled={parcelasResidente.length >= 3 || !opcoesDuracaoRecesso.length}
-                  options={opcoesDuracaoRecesso.map((dias) => ({
-                    label: `${dias === saldoDisponivel ? "Integral" : "Parcela"} (${dias} dias)`,
-                    value: dias,
-                  }))}
-                  optionLabel="label"
-                  optionValue="value"
-                  getFormErrorMessage={() => null}
-                />
-                <small className="prototype-ferias-gozo-ajuda">
-                  Etapas de {diasMinimoEtapa} a {maxDuracaoDisponivel} dias.{" "}
-                  {ehEstagiario
-                    ? "Antecedência mínima de 30 dias."
-                    : `Antecedência mínima de ${antecedenciaMinimaProximaEtapa} dias para esta etapa.`}
-                </small>
-                {!ehEstagiario && saldoDisponivel !== null && saldoDisponivel > 0 &&
-                  opcoesDuracaoRecesso.length === 0 && parcelasResidente.length === 0 ? (
+            {!somenteLeitura ? (
+              <>
+                <div className="prototype-ferias-gozo-grid">
+                  <div>
+                    <DropdownFieldSeplag
+                      name="duracao"
+                      control={recessoGozoControl}
+                      label="Duração desta parcela"
+                      cols="12"
+                      disabled={parcelasResidente.length >= 3 || !opcoesDuracaoRecesso.length}
+                      options={opcoesDuracaoRecesso.map((dias) => ({
+                        label: `${dias === saldoDisponivel ? "Integral" : "Parcela"} (${dias} dias)`,
+                        value: dias,
+                      }))}
+                      optionLabel="label"
+                      optionValue="value"
+                      getFormErrorMessage={() => null}
+                    />
                     <small className="prototype-ferias-gozo-ajuda">
-                      Saldo de {saldoDisponivel} dias fora dos parcelamentos permitidos: integral 30, 15+15, 10+20 ou 10+10+10.
+                      Etapas de {diasMinimoEtapa} a {maxDuracaoDisponivel} dias.{" "}
+                      {ehEstagiario
+                        ? "Antecedência mínima de 30 dias."
+                        : `Antecedência mínima de ${antecedenciaMinimaProximaEtapa} dias para esta etapa.`}
                     </small>
-                  ) : null}
-              </div>
-              <div>
-                <DateFieldSeplag
-                  name="dataInicio"
-                  control={recessoGozoControl}
-                  label="Data início do gozo"
-                  cols="12"
-                  disabled={parcelasResidente.length >= 3 || saldoRestanteEtapas <= 0}
-                  minDate={new Date(`${dataMinimaProximaEtapa}T00:00:00`)}
-                  getFormErrorMessage={() => null}
-                />
-                <small className="prototype-ferias-gozo-ajuda">
-                  A partir de {formatarDataBr(dataMinimaProximaEtapa)} ({antecedenciaMinimaProximaEtapa} dias de antecedência).
-                </small>
-              </div>
-              <label>
-                <span>Data fim (calculada)</span>
-                <input className="prototype-ferias-readonly-field" value={formatarDataBr(draftFimResidente)} readOnly />
-                <small className="prototype-ferias-gozo-ajuda">Calculado automaticamente.</small>
-              </label>
-            </div>
+                    {!ehEstagiario && saldoDisponivel !== null && saldoDisponivel > 0 &&
+                      opcoesDuracaoRecesso.length === 0 && parcelasResidente.length === 0 ? (
+                        <small className="prototype-ferias-gozo-ajuda">
+                          Saldo de {saldoDisponivel} dias fora dos parcelamentos permitidos: integral 30, 15+15, 10+20 ou 10+10+10.
+                        </small>
+                      ) : null}
+                  </div>
+                  <div>
+                    <DateFieldSeplag
+                      name="dataInicio"
+                      control={recessoGozoControl}
+                      label="Data início do gozo"
+                      cols="12"
+                      disabled={parcelasResidente.length >= 3 || saldoRestanteEtapas <= 0}
+                      minDate={new Date(`${dataMinimaProximaEtapa}T00:00:00`)}
+                      getFormErrorMessage={() => null}
+                    />
+                    <small className="prototype-ferias-gozo-ajuda">
+                      A partir de {formatarDataBr(dataMinimaProximaEtapa)} ({antecedenciaMinimaProximaEtapa} dias de antecedência).
+                    </small>
+                  </div>
+                  <label>
+                    <span>Data fim (calculada)</span>
+                    <input className="prototype-ferias-readonly-field" value={formatarDataBr(draftFimResidente)} readOnly />
+                    <small className="prototype-ferias-gozo-ajuda">Calculado automaticamente.</small>
+                  </label>
+                </div>
 
-            <div className="prototype-ferias-gozo-acoes">
-              <button
-                type="button"
-                className="prototype-ferias-sub-add"
-                disabled={parcelasResidente.length >= 3 || saldoRestanteEtapas <= 0}
-                onClick={adicionarParcelaResidente}
-              >
-                <i className="pi pi-plus" aria-hidden="true" />
-                Adicionar esta etapa
-              </button>
-              <span className={totalParceladoResidente === (saldoDisponivel ?? 0) ? "prototype-ferias-saldo-ok" : "prototype-ferias-saldo-erro"}>
-                {totalParceladoResidente} de {saldoDisponivel ?? 0} dias parcelados
-              </span>
-            </div>
+                <div className="prototype-ferias-gozo-acoes">
+                  <button
+                    type="button"
+                    className="prototype-ferias-sub-add"
+                    disabled={parcelasResidente.length >= 3 || saldoRestanteEtapas <= 0}
+                    onClick={adicionarParcelaResidente}
+                  >
+                    <i className="pi pi-plus" aria-hidden="true" />
+                    Adicionar esta etapa
+                  </button>
+                  <span className={totalParceladoResidente === (saldoDisponivel ?? 0) ? "prototype-ferias-saldo-ok" : "prototype-ferias-saldo-erro"}>
+                    {totalParceladoResidente} de {saldoDisponivel ?? 0} dias parcelados
+                  </span>
+                </div>
+              </>
+            ) : null}
 
             {parcelasResidente.length > 0 && (
               <div className="prototype-ferias-gozo-lista">
@@ -4220,14 +4288,16 @@ export function FormularioRecesso({
                         </div>
                       ) : null}
                     </span>
-                    <button
-                      type="button"
-                      className="prototype-ferias-icon-btn"
-                      title="Remover etapa"
-                      onClick={() => removerParcelaResidente(parcela.id)}
-                    >
-                      <i className="pi pi-trash" aria-hidden="true" />
-                    </button>
+                    {!somenteLeitura ? (
+                      <button
+                        type="button"
+                        className="prototype-ferias-icon-btn"
+                        title="Remover etapa"
+                        onClick={() => removerParcelaResidente(parcela.id)}
+                      >
+                        <i className="pi pi-trash" aria-hidden="true" />
+                      </button>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -4252,9 +4322,27 @@ export function FormularioRecesso({
         ) : null}
       </div>
 
+      {registroSomenteLeitura ? (
+        <div className="prototype-ferias-form-section">
+          <p>Lançado por {registroSomenteLeitura.responsavelLancamento} em {registroSomenteLeitura.lancadoEm}.</p>
+          {registroSomenteLeitura.avaliadoPor ? (
+            <p>
+              {registroSomenteLeitura.resultadoAvaliacao ?? (registroSomenteLeitura.situacao === "CANCELADO" || registroSomenteLeitura.situacao === "REPROVADO" ? "Reprovada" : "Aprovada")}
+              {" "}por {registroSomenteLeitura.avaliadoPor} em {registroSomenteLeitura.avaliadoEm}.
+            </p>
+          ) : (
+            <p className="prototype-ferias-gozo-ajuda">Ainda não avaliado pela chefia.</p>
+          )}
+          {registroSomenteLeitura.justificativaAvaliacao ? (
+            <p><strong>Justificativa da avaliação:</strong> {registroSomenteLeitura.justificativaAvaliacao}</p>
+          ) : null}
+        </div>
+      ) : null}
+      </div>
+
       <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
         <BotaoVoltarSeplag type="button" label="Voltar" onClick={onCancelar} />
-        <BotaoSalvarSeplag type="button" label="Salvar solicitação" onClick={salvar} />
+        {!somenteLeitura ? <BotaoSalvarSeplag type="button" label="Salvar solicitação" onClick={salvar} /> : null}
       </div>
     </div>
   );
@@ -4397,78 +4485,6 @@ function ModalGerenciarSubstituicao({
   );
 }
 
-function ModalVisualizarRegistro({ registro, onFechar }: Readonly<{ registro: FeriasRegistro; onFechar: () => void }>) {
-  return (
-    <ModalSeplag visible fechar={onFechar} titulo="Detalhes da solicitação de férias" labelFechar="Fechar" hideFooter tamanho="640px">
-      <div style={{ width: "100%" }} className="prototype-ferias-form-section">
-        <div className="prototype-ferias-form-grid">
-          <label>
-            <span>Servidor</span>
-            <input className="prototype-ferias-readonly-field" value={registro.servidorNome} readOnly />
-          </label>
-          <label>
-            <span>Matrícula</span>
-            <input className="prototype-ferias-readonly-field" value={registro.matricula} readOnly />
-          </label>
-          <label>
-            <span>Órgão</span>
-            <input className="prototype-ferias-readonly-field" value={registro.orgao} readOnly />
-          </label>
-          <label>
-            <span>Setor</span>
-            <input className="prototype-ferias-readonly-field" value={registro.setor} readOnly />
-          </label>
-          <label>
-            <span>Cargo</span>
-            <input className="prototype-ferias-readonly-field" value={registro.cargo} readOnly />
-          </label>
-          <label>
-            <span>Tipo</span>
-            <input className="prototype-ferias-readonly-field" value={registro.tipo} readOnly />
-          </label>
-          <label>
-            <span>Período Aquisitivo</span>
-            <input className="prototype-ferias-readonly-field" value={periodoAquisitivoLabel(registro)} readOnly />
-          </label>
-          <label>
-            <span>Situação</span>
-            <input className="prototype-ferias-readonly-field" value={registro.situacao} readOnly />
-          </label>
-        </div>
-        {feriasEmAndamento(registro) ? (
-          <div className="prototype-ferias-banner" role="note">
-            <i className="pi pi-lock" aria-hidden="true" />
-            <span>
-              Férias em andamento (RN-03): não podem ser alteradas nem canceladas, salvo calamidade
-              pública ou convocação pela administração, mediante portaria/ofício (RN-04).
-            </span>
-          </div>
-        ) : null}
-        <h3>Parcelas</h3>
-        <ul>
-          {registro.parcelas.map((parcela) => (
-            <li key={parcela.id}>
-              {formatarDataBr(parcela.inicio)} a {formatarDataBr(parcela.fim)} — {parcela.dias} dia(s)
-              {parcela.terco ? " (com 1/3 constitucional)" : ""}
-            </li>
-          ))}
-        </ul>
-        <p>
-          Lançado por {registro.responsavelLancamento} em {registro.lancadoEm}.
-        </p>
-        {registro.avaliadoPor ? (
-          <p>
-            {registro.situacao === "CANCELADO" || registro.situacao === "REPROVADO" ? "Reprovado" : "Aprovado"}
-            {" "}por {registro.avaliadoPor} em {registro.avaliadoEm}.
-          </p>
-        ) : (
-          <p className="prototype-ferias-gozo-ajuda">Ainda não avaliado pela chefia.</p>
-        )}
-        {registro.justificativaAvaliacao && <p><strong>Justificativa da avaliação:</strong> {registro.justificativaAvaliacao}</p>}
-      </div>
-    </ModalSeplag>
-  );
-}
 
 /** US50 3.5 (Cenário Alterar): permite editar um recesso já lançado, desde que a nova data
  * fim seja anterior ao início do próximo período aquisitivo (residente técnico) ou ao fim
