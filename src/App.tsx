@@ -11,6 +11,7 @@ import {
 import { useMemo, useState } from "react";
 import {
   FiArrowLeft,
+  FiBookOpen,
   FiCalendar,
   FiChevronLeft,
   FiChevronRight,
@@ -19,6 +20,7 @@ import {
 } from "react-icons/fi";
 import "./App.css";
 import { OnboardingDev } from "./OnboardingDev";
+import { RedmineTutorial } from "./RedmineTutorial";
 import { DashboardNomeadosPage } from "./prototipos/ingresso/DashboardNomeadosPage";
 import { DashboardIngressoPage } from "./prototipos/ingresso/DashboardIngressoPage";
 import { PaginaInicialPage } from "./prototipos/paginaInicial/PaginaInicialPage";
@@ -504,6 +506,7 @@ function CalendarioPage() {
     { label: "Calendário", to: "/calendario", icon: FiCalendar },
     { label: "Processo", to: "/calendario/processo", icon: FiFileText },
     { label: "Onboarding DEV", to: "/calendario/onboarding-dev", icon: FiUsers },
+    { label: "Tutoriais", to: "/calendario/tutoriais", icon: FiBookOpen },
     { label: "Integrantes", to: "/calendario/integrantes", icon: FiUsers },
   ];
   const weekdays = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
@@ -663,6 +666,7 @@ function CalendarioPage() {
     ],
     [
       { start: 2, end: 2, track: 2, label: "Planning Sprint 22", type: "orange" },
+      { start: 4, end: 4, track: 1, label: "FERIADO", type: "holiday" },
       { start: 2, end: 7, track: 3, label: "SPRINT DEV 22", type: "blue" },
       { start: 2, end: 7, track: 4, label: "SPRINT TESTE 21", type: "lightBlue" },
     ],
@@ -674,14 +678,14 @@ function CalendarioPage() {
       { start: 1, end: 7, track: 4, label: "SPRINT TESTE 21", type: "lightBlue" },
     ],
     [
-      { start: 1, end: 3, track: 3, label: "SPRINT DEV 22", type: "blue" },
-      { start: 1, end: 3, track: 4, label: "SPRINT TESTE 21", type: "lightBlue" },
-      { start: 3, end: 3, track: 2, label: "REVIEW", type: "cyan" },
-      { start: 4, end: 4, track: 2, label: "Entrega Sprint 21", type: "red" },
-      { start: 4, end: 4, track: 3, label: "Refinamento Sprint 23", type: "rose" },
-      { start: 5, end: 5, track: 2, label: "Planning Sprint 23", type: "orange" },
-      { start: 5, end: 7, track: 3, label: "SPRINT DEV 23", type: "green" },
-      { start: 5, end: 7, track: 4, label: "SPRINT TESTE 22", type: "mint" },
+      { start: 1, end: 4, track: 3, label: "SPRINT DEV 22", type: "blue" },
+      { start: 1, end: 4, track: 4, label: "SPRINT TESTE 21", type: "lightBlue" },
+      { start: 4, end: 4, track: 2, label: "REVIEW", type: "cyan" },
+      { start: 5, end: 5, track: 2, label: "Entrega Sprint 21", type: "red" },
+      { start: 5, end: 5, track: 3, label: "Refinamento Sprint 23", type: "rose" },
+      { start: 6, end: 6, track: 2, label: "Planning Sprint 23", type: "orange" },
+      { start: 6, end: 7, track: 3, label: "SPRINT DEV 23", type: "green" },
+      { start: 6, end: 7, track: 4, label: "SPRINT TESTE 22", type: "mint" },
     ],
     [
       { start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" },
@@ -695,6 +699,9 @@ function CalendarioPage() {
     [
       { start: 2, end: 2, track: 2, label: "Entrega Sprint 22", type: "red" },
       { start: 2, end: 2, track: 3, label: "Refinamento Sprint 24", type: "rose" },
+      { start: 3, end: 3, track: 2, label: "Planning Sprint 24", type: "orange" },
+      { start: 3, end: 7, track: 3, label: "SPRINT DEV 24", type: "blue" },
+      { start: 3, end: 7, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
     ],
   ];
   const staticMonthData: Record<
@@ -706,6 +713,38 @@ function CalendarioPage() {
     "2026-09": { weeks: getCalendarWeeks(new Date(2026, 8, 1)), events: septemberEvents },
     "2026-10": { weeks: getCalendarWeeks(new Date(2026, 9, 1)), events: octoberEvents },
     "2026-11": { weeks: getCalendarWeeks(new Date(2026, 10, 1)), events: novemberEvents },
+    "2026-12": {
+      weeks: getCalendarWeeks(new Date(2026, 11, 1)),
+      events: [
+        [
+          { start: 3, end: 3, track: 2, label: "Planning Sprint 24", type: "orange" },
+          { start: 3, end: 7, track: 3, label: "SPRINT DEV 24", type: "blue" },
+          { start: 3, end: 7, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
+        ],
+        [
+          { start: 1, end: 7, track: 3, label: "SPRINT DEV 24", type: "blue" },
+          { start: 1, end: 7, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
+        ],
+        [
+          { start: 1, end: 3, track: 3, label: "SPRINT DEV 24", type: "blue" },
+          { start: 1, end: 3, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
+          { start: 3, end: 3, track: 2, label: "REVIEW", type: "cyan" },
+        ],
+        [{ start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" }],
+        [{ start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" }],
+      ],
+    },
+    "2027-01": {
+      weeks: getCalendarWeeks(new Date(2027, 0, 1)),
+      events: [
+        [{ start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" }],
+        [],
+        [],
+        [],
+        [],
+        [],
+      ],
+    },
   };
   const visibleMonthKey = getMonthKey(visibleMonthDate);
   const visibleWeeks =
@@ -1192,8 +1231,8 @@ function CalendarioPage() {
             const Icon = item.icon;
 
             return (
+              <div key={item.to}>
               <NavLink
-                key={item.to}
                 to={item.to}
                 end={item.to === "/calendario"}
                 className={({ isActive }) =>
@@ -1203,6 +1242,20 @@ function CalendarioPage() {
                 <Icon aria-hidden="true" />
                 <span>{item.label}</span>
               </NavLink>
+              {item.to === "/calendario/tutoriais" ? (
+                <nav className="calendar-sidebar-submenu" aria-label="Tutoriais">
+                  <NavLink
+                    to="/calendario/tutoriais/abertura-redmine"
+                    className={({ isActive }) =>
+                      `calendar-sidebar-link${isActive ? " is-active" : ""}`
+                    }
+                  >
+                    <FiFileText aria-hidden="true" />
+                    <span>Abertura de Redmine</span>
+                  </NavLink>
+                </nav>
+              ) : null}
+              </div>
             );
           })}
         </nav>
@@ -1390,6 +1443,23 @@ function CalendarioPage() {
         ) : null}
 
         {location.pathname === "/calendario/onboarding-dev" ? <OnboardingDev /> : null}
+        {location.pathname === "/calendario/tutoriais" ? (
+          <section className="calendar-main-panel">
+            <header className="calendar-panel-header">
+              <FiBookOpen aria-hidden="true" />
+              <h1>Tutoriais</h1>
+            </header>
+            <div className="calendar-process-content">
+              <Link className="redmine-index-link" to="/calendario/tutoriais/abertura-redmine">
+                <FiBookOpen aria-hidden="true" />
+                <span>Abertura de Redmine — Guia Prático</span>
+              </Link>
+            </div>
+          </section>
+        ) : null}
+        {location.pathname === "/calendario/tutoriais/abertura-redmine" ? (
+          <RedmineTutorial />
+        ) : null}
         {isProcessoRoute ? (
           <section className="calendar-main-panel">
             <header className="calendar-panel-header">

@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { SidebarNavigationContext } from '../layout/SidebarNavigationContext';
 import { useLocation } from "react-router-dom";
 
 import type { IMenuSeplag } from "../Config/menu";
 import { AppSubmenuItemSeplag } from "../AppSubmenuItem/AppSubmenuItem";
 
 interface AppSubmenuSeplagProps {
-  onMenuItemClick: (event: { originalEvent: any; item: IMenuSeplag[] }) => void;
+  onMenuItemClick: (event: { originalEvent: any; item: IMenuSeplag }) => void;
   items: IMenuSeplag[] | null | undefined;
   root?: boolean;
   className?: string;
 }
 export function AppSubmenuSeplag(props: AppSubmenuSeplagProps) {
+  const navigation = useContext(SidebarNavigationContext);
   const [activeMenu, setActiveMenu] = useState<IMenuSeplag | null>(null);
   const [collapsedMenus, setCollapsedMenus] = useState<string[]>([]);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const location = useLocation();
   const visibleItems = props.items?.filter(
     (item) => item.visibleOnMenu !== false && item.label !== null,
@@ -80,7 +83,7 @@ export function AppSubmenuSeplag(props: AppSubmenuSeplagProps) {
   }, [location.pathname]);
 
   const onMenuItemClick = (
-    event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+    event: React.MouseEvent<HTMLElement, MouseEvent>,
     item: IMenuSeplag,
   ) => {
     if (item.disabled) {
@@ -89,17 +92,28 @@ export function AppSubmenuSeplag(props: AppSubmenuSeplagProps) {
     }
 
     const key = item.label ?? "";
+    if (navigation.collapsed && item.items?.length) {
+      event.preventDefault();
+      navigation.expand();
+      setActiveMenu(item);
+      setExpandedMenus(current => current.includes(key) ? current : [...current, key]);
+      setCollapsedMenus(current => current.filter(label => label !== key));
+      return;
+    }
+    if (!item.items?.length) props.onMenuItemClick({originalEvent: event, item});
     const isActive =
       !collapsedMenus.includes(key) &&
-      (activeMenu?.label === item.label || hasActiveRoute(item));
+      ((navigation.compactNavigation ? expandedMenus.includes(key) : activeMenu?.label === item.label) || hasActiveRoute(item));
 
     if (isActive) {
       setActiveMenu(null);
+      setExpandedMenus(current => current.filter(label => label !== key));
       setCollapsedMenus((current) =>
         current.includes(key) ? current : [...current, key],
       );
     } else {
       setActiveMenu(item);
+      setExpandedMenus(current => current.includes(key) ? current : [...current, key]);
       setCollapsedMenus((current) => current.filter((label) => label !== key));
     }
   };
@@ -108,7 +122,7 @@ export function AppSubmenuSeplag(props: AppSubmenuSeplagProps) {
     const key = item.label ?? "";
     const active =
       !collapsedMenus.includes(key) &&
-      (activeMenu?.label === item.label || hasActiveRoute(item));
+      ((navigation.compactNavigation ? expandedMenus.includes(key) : activeMenu?.label === item.label) || hasActiveRoute(item));
     const styleClass = [
       item.badgeStyleClass,
       active && !item.to ? "active-menuitem" : "",
@@ -124,6 +138,7 @@ export function AppSubmenuSeplag(props: AppSubmenuSeplagProps) {
         onMenuClick={props.onMenuItemClick}
         onMenuItemClick={onMenuItemClick}
         active={active}
+        routeActive={hasActiveRoute(item)}
         root={props.root}
       />
     );

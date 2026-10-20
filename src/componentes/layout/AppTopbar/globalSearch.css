@@ -1,0 +1,28 @@
+.layout-compact-navigation .sigep-global-search { position:relative; flex:0 1 400px; width:clamp(180px,32vw,400px); min-width:140px; margin-right:auto; }
+.sigep-search-field { display:flex; align-items:center; gap:10px; height:38px; padding:0 12px; border:1px solid #ffffff35; border-radius:9px; background:#ffffff12; color:#e5f3ff; backdrop-filter:blur(8px); transition:background 180ms,border-color 180ms; }
+.sigep-search-field:focus-within { background:#ffffff20; border-color:#9bd7ff; box-shadow:0 0 0 2px #8ad3ff18; }
+.sigep-search-field > svg { flex-shrink:0; }
+.sigep-search-field input { width:100%; min-width:0; border:0; outline:none; background:transparent; color:#fff; font:inherit; font-size:13px; padding:0; }
+.sigep-search-field input::placeholder { color:#e0eef5; opacity:1; }
+.sigep-search-results { position:absolute; top:calc(100% + 8px); left:0; width:max(100%,320px); max-width:calc(100vw - 32px); z-index:1200; background:#07558f; border:1px solid #8fcfff66; border-radius:10px; box-shadow:0 12px 30px #102b4e40; overflow:hidden; color:white; }
+.sigep-search-results ul { list-style:none; margin:0; padding:6px; max-height:min(60vh,420px); overflow-y:auto; }
+.sigep-search-results li { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px; min-height:44px; border-radius:6px; cursor:pointer; }
+.sigep-search-results li[aria-selected="true"] { background:#06416f; color:#8ad3ff; }
+.sigep-search-results strong { font-size:13px; display:block; }
+.sigep-search-results small { display:block; color:#d0e5f4; font-size:11px; margin-top:4px; }
+.sigep-search-empty { padding:16px; font-size:13px; }
+.sigep-search-mobile-button { display:none; }
+.layout-compact-navigation .layout-topbar-compact { gap:24px; }
+.layout-compact-navigation .layout-topbar-compact > .layout-topbar-module { flex-shrink:0; max-width:60%; }
+@media(max-width:700px) {
+  .layout-compact-navigation .sigep-global-search { flex:0 0 36px; width:36px; min-width:36px; }
+  .sigep-global-search .sigep-search-field { display:none; }
+  .sigep-search-mobile-button { display:grid; place-items:center; width:36px; height:38px; border:1px solid #ffffff35; border-radius:8px; background:#ffffff12; color:white; cursor:pointer; }
+  .layout-compact-navigation .layout-topbar-compact { gap:12px; }
+  .layout-compact-navigation .layout-topbar-compact > .layout-topbar-module { flex:0 1 auto; max-width:calc(100% - 48px); }
+  .layout-compact-navigation .layout-topbar-module > span { font-size:14px !important; }
+  .layout-compact-navigation .sigep-global-search.is-mobile-open { position:absolute; left:60px; right:12px; top:10px; width:auto; z-index:1002; }
+  .sigep-global-search.is-mobile-open .sigep-search-field { display:flex; background:#1b6599; }
+  .sigep-global-search.is-mobile-open .sigep-search-mobile-button { display:none; }
+  .sigep-global-search.is-mobile-open .sigep-search-results { width:100%; min-width:0; }
+}

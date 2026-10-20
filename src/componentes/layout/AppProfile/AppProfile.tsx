@@ -1,4 +1,5 @@
-import React, { useState, type ReactNode } from "react";
+import React, { useContext, useState, type ReactNode } from "react";
+import { SidebarNavigationContext } from '../layout/SidebarNavigationContext';
 import { CSSTransition } from "primereact/csstransition";
 import { Password } from "primereact/password";
 import { Column } from "primereact/column";
@@ -34,6 +35,7 @@ export function AppProfileSeplag({
   extraActions,
 }: Readonly<AppProfileSeplagProps>) {
   const nodeRef = React.useRef(null);
+  const navigation = useContext(SidebarNavigationContext);
 
   const [expanded, setExpanded] = useState(false);
   const [confirmarSenha, setConfirmarSenha] = useState("");
@@ -44,6 +46,7 @@ export function AppProfileSeplag({
   const [vinculoSelected, setVinculoSelected] = useState<IVinculoSeplag>();
 
   const onClick = (event: React.MouseEvent) => {
+    if (navigation.collapsed) { navigation.expand(); setExpanded(true); event.preventDefault(); return; }
     setExpanded((prev) => !prev);
     event.preventDefault();
   };
@@ -66,13 +69,17 @@ export function AppProfileSeplag({
 
   return (
     <div className="layout-profile">
-      <div>
+      {navigation.compactNavigation ? <button type="button" className="layout-profile-avatar"
+        onClick={onClick} title={`${nomeApresentacao} — Vínculo ${numrVinculoAtual}`}
+        aria-label={`Configurações de ${nomeApresentacao} — Vínculo ${numrVinculoAtual}`} aria-expanded={expanded && !navigation.collapsed}>
+        <img src={avatarSrc ?? defaultAvatar} alt="" />
+      </button> : <div>
         <img
           style={{ borderRadius: "50%", width: "50px" }}
           src={avatarSrc ?? defaultAvatar}
           alt="Profile"
         />
-      </div>
+      </div>}
       <button
         type="button"
         className="p-link layout-profile-link"

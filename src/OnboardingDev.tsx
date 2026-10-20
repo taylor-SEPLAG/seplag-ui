@@ -1,6 +1,7 @@
-import { FiFileText, FiZap, FiLayers, FiUsers, FiTarget, FiAward, FiTool, FiBriefcase, FiUser, FiCreditCard, FiMonitor, FiShield, FiCode, FiSearch, FiCalendar, FiMessageCircle, FiFlag, FiDatabase } from 'react-icons/fi';
-import type { ReactNode } from 'react';
+import { FiArrowLeft, FiArrowRight, FiGrid, FiFileText, FiZap, FiLayers, FiUsers, FiTarget, FiAward, FiTool, FiBriefcase, FiUser, FiCreditCard, FiMonitor, FiShield, FiCode, FiSearch, FiCalendar, FiMessageCircle, FiFlag, FiDatabase } from 'react-icons/fi';
+import { Fragment, useState, type ReactNode } from 'react';
 import './onboarding-dev.css';
+import './redmine-tutorial.css';
 import boasVindasSigep from './assets/onboarding/boas-vindas-sigep.png';
 import encerramentoSigep from './assets/onboarding/encerramento-sigep.png';
 import conhecendoSigep from './assets/onboarding/conhecendo-sigep.png';
@@ -36,18 +37,20 @@ function Introducao({numero, titulo, children}: {numero: string; titulo: string;
   return <section className={`calendar-process-overview${/^\d/.test(numero) ? ' onboarding-numbered-section' : ''}`}><div><span>{numero}</span><strong>{titulo}</strong>{children}</div></section>;
 }
 
-export function OnboardingDev() {
-  return <section className="calendar-main-panel onboarding-dev-page">
-    <header className="calendar-panel-header"><FiFileText aria-hidden="true" /><h1>Onboarding DEV — SIGEP</h1></header>
-    <div className="calendar-process-content">
-      <Introducao numero="BOAS-VINDAS" titulo="Bem-vindos ao time SIGEP!"><p>Conheça nosso projeto, nossa equipe e a forma como trabalhamos para construir uma solução que vai transformar a gestão de pessoas e a folha de pagamento do Estado.</p><img className="onboarding-welcome-image" src={boasVindasSigep} alt="Capivara e onça do SIGEP representando a integração entre Gestão de Pessoas e Folha de Pagamento." width={1536} height={1024} /></Introducao>
-      <section className="calendar-process-overview onboarding-numbered-section onboarding-project-intro" aria-labelledby="onboarding-project-title"><div className="onboarding-project-layout"><div><span>01 · O PROJETO</span><strong id="onboarding-project-title">Conhecendo o SIGEP</strong><p>O Sistema Inteligente de Gestão de Pessoas e Folha de Pagamento foi criado para modernizar, integrar e automatizar os processos do Estado de Mato Grosso. Ele vai substituir o SEAP por uma solução mais moderna, integrada e eficiente.</p></div><img src={conhecendoSigep} alt="Tela inicial do SIGEP com os módulos de gestão de pessoas e os acessos rápidos do sistema." width={1911} height={953} loading="lazy" /></div></section>
+const secoesOnboarding = [
+  { titulo: "Bem-vindos ao time SIGEP!", conteudo: <>
+<Introducao numero="BOAS-VINDAS" titulo="Bem-vindos ao time SIGEP!"><p>Conheça nosso projeto, nossa equipe e a forma como trabalhamos para construir uma solução que vai transformar a gestão de pessoas e a folha de pagamento do Estado.</p><img className="onboarding-welcome-image" src={boasVindasSigep} alt="Capivara e onça do SIGEP representando a integração entre Gestão de Pessoas e Folha de Pagamento." width={1536} height={1024} /></Introducao>
+  </> },
+  { titulo: "Conhecendo o SIGEP", conteudo: <>
+<section className="calendar-process-overview onboarding-numbered-section onboarding-project-intro" aria-labelledby="onboarding-project-title"><div className="onboarding-project-layout"><div><span>01 · O PROJETO</span><strong id="onboarding-project-title">Conhecendo o SIGEP</strong><p>O Sistema Inteligente de Gestão de Pessoas e Folha de Pagamento foi criado para modernizar, integrar e automatizar os processos do Estado de Mato Grosso. Ele vai substituir o SEAP por uma solução mais moderna, integrada e eficiente.</p></div><img src={conhecendoSigep} alt="Tela inicial do SIGEP com os módulos de gestão de pessoas e os acessos rápidos do sistema." width={1911} height={953} loading="lazy" /></div></section>
       <Cards items={[
         ['Modernização', 'Evolução tecnológica dos processos de gestão de pessoas.'],
         ['Integração', 'Centralização e conexão das informações e funcionalidades.'],
         ['Eficiência', 'Automatização de processos e melhoria da gestão administrativa.'],
       ]} />
-      <Introducao numero="02 · OBJETIVO ATÉ O FINAL DO ANO" titulo="Processar uma folha de pagamento utilizando o SIGEP até o final de 2026"><p>Garantir uma entrega funcional, integrada e consistente, evoluindo o sistema de forma incremental.</p></Introducao>
+  </> },
+  { titulo: "Objetivo até o final de 2026", conteudo: <>
+<Introducao numero="02 · OBJETIVO ATÉ O FINAL DO ANO" titulo="Processar uma folha de pagamento utilizando o SIGEP até o final de 2026"><p>Garantir uma entrega funcional, integrada e consistente, evoluindo o sistema de forma incremental.</p></Introducao>
       <section className="onboarding-vinculos" aria-labelledby="onboarding-vinculos-title">
         <h2 id="onboarding-vinculos-title">Tipos de vínculo contemplados nesta entrega</h2>
         <div className="onboarding-vinculos-grid">{[
@@ -59,9 +62,13 @@ export function OnboardingDev() {
           {nome: 'Exclusivamente Comissionados', icon: FiBriefcase},
         ].map(({nome, icon: Icon}, index) => <article className="onboarding-vinculo-card" key={nome}><span className={`onboarding-icon onboarding-color-${index}`}><Icon aria-hidden="true" /></span><h3>{nome}</h3></article>)}</div>
       </section>
-      <Introducao numero="03 · METODOLOGIA" titulo="Como trabalhamos?"><p>Planejar, entregar, validar e evoluir continuamente.</p></Introducao>
+  </> },
+  { titulo: "Como trabalhamos?", conteudo: <>
+<Introducao numero="03 · METODOLOGIA" titulo="Como trabalhamos?"><p>Planejar, entregar, validar e evoluir continuamente.</p></Introducao>
       <Cards items={metodologia} />
-      <Introducao numero="04 · ESTRUTURA DE TRABALHO" titulo="Conheça nosso time"><p>Requisitos, desenvolvimento, DBAs e QA trabalham juntos em todas as etapas.</p></Introducao>
+  </> },
+  { titulo: "Conheça nosso time", conteudo: <>
+<Introducao numero="04 · ESTRUTURA DE TRABALHO" titulo="Conheça nosso time"><p>Requisitos, desenvolvimento, DBAs e QA trabalham juntos em todas as etapas.</p></Introducao>
       <section className="onboarding-org" aria-label="Estrutura do time SIGEP">
         <div className="onboarding-org-lead"><FiBriefcase aria-hidden="true" /><div><span>Gerente de Projetos</span><strong>Adriane</strong></div></div>
         <div className="onboarding-org-lead onboarding-org-po"><FiTarget aria-hidden="true" /><div><span>Líder de Projeto / Product Owner (PO)</span><strong>Isabeli</strong></div></div>
@@ -75,15 +82,21 @@ export function OnboardingDev() {
         </div>
         <p className="onboarding-org-caption"><FiUsers aria-hidden="true" />Frentes conectadas: requisitos, desenvolvimento, DBAs e QA trabalham juntos em todas as etapas.</p>
       </section>
-      <Introducao numero="05 · TIMES DE DESENVOLVIMENTO" titulo="Quatro times conectados"><p>Conheça os integrantes de cada time de desenvolvimento.</p></Introducao>
+  </> },
+  { titulo: "Quatro times conectados", conteudo: <>
+<Introducao numero="05 · TIMES DE DESENVOLVIMENTO" titulo="Quatro times conectados"><p>Conheça os integrantes de cada time de desenvolvimento.</p></Introducao>
       <div className="onboarding-teams">{times.map(([nome, lider, ...integrantes], index) => <article className={`onboarding-team onboarding-team-${index}`} key={nome}><h3>{nome}</h3><div className="onboarding-team-lead"><FiAward aria-hidden="true" /><span>TECH LEAD</span><strong>{lider}</strong></div><ul>{integrantes.map(integrante => <li key={integrante}><FiCode aria-hidden="true" />{integrante}</li>)}</ul></article>)}</div>
-      <Introducao numero="06 · NOSSO RITMO DE TRABALHO" titulo="Como funciona nossa sprint?"><p>Sprints de 15 dias corridos, com alinhamento diário e validação das entregas ao final do ciclo.</p></Introducao>
+  </> },
+  { titulo: "Como funciona nossa sprint?", conteudo: <>
+<Introducao numero="06 · NOSSO RITMO DE TRABALHO" titulo="Como funciona nossa sprint?"><p>Sprints de 15 dias corridos, com alinhamento diário e validação das entregas ao final do ciclo.</p></Introducao>
       <div className="onboarding-sprint-duration"><FiCalendar aria-hidden="true" />Sprints de <strong>15 dias corridos</strong></div>
       <ol className="onboarding-ceremonies" aria-label="Cerimônias da sprint">{etapas.map(([titulo, descricao, periodo], i) => {
         const Icon = [FiSearch, FiFileText, FiLayers, FiMessageCircle, FiFlag][i];
         return <li className={`onboarding-ceremony onboarding-stage-${i}`} key={titulo}><div className="onboarding-ceremony-heading"><span className="onboarding-stage-icon"><Icon aria-hidden="true" /></span><span className="onboarding-stage-number">{i+1}</span></div><h3>{titulo}</h3><p>{descricao}</p><span className="onboarding-stage-period">{periodo}</span></li>;
       })}</ol>
-      <Introducao numero="07 · CRONOGRAMA DA SPRINT" titulo="Nosso ciclo de desenvolvimento"><p>O ciclo de entrega tem 30 dias: 15 dias de desenvolvimento e 15 dias de teste. Ao concluir o ciclo, uma versão é liberada para homologação.</p></Introducao>
+  </> },
+  { titulo: "Nosso ciclo de desenvolvimento", conteudo: <>
+<Introducao numero="07 · CRONOGRAMA DA SPRINT" titulo="Nosso ciclo de desenvolvimento"><p>O ciclo de entrega tem 30 dias: 15 dias de desenvolvimento e 15 dias de teste. Ao concluir o ciclo, uma versão é liberada para homologação.</p></Introducao>
       <section className="onboarding-release-cycle" aria-label="Ciclo de 30 dias para homologação">
         <div className="onboarding-release-stages">
           <article><span className="onboarding-icon onboarding-color-0"><FiCode aria-hidden="true" /></span><div><h3>Desenvolvimento</h3><strong>15 dias</strong><p>Implementação das funcionalidades da sprint.</p></div></article>
@@ -98,7 +111,9 @@ export function OnboardingDev() {
         {titulo:'Desenvolvimento e acompanhamento', periodo:'Dias 1 a 15 · todos os dias', icon:FiCode, itens:['Desenvolvimento das funcionalidades.', 'Testes e validações.', 'Daily e alinhamentos.', 'Tratamento de impedimentos.'], cor:2},
         {titulo:'Sprint Review', periodo:'Último dia', icon:FiFlag, itens:['Demonstração das entregas.', 'Coleta de feedback.', 'Encerramento do ciclo.'], cor:4},
       ].map(({titulo,periodo,icon:Icon,itens,cor}) => <li className={`onboarding-timeline-step onboarding-stage-${cor}`} key={titulo}><span className="onboarding-timeline-period">{periodo}</span><div className="onboarding-timeline-node"><span className="onboarding-stage-icon"><Icon aria-hidden="true" /></span></div><article><h3>{titulo}</h3><ul>{itens.map(item => <li key={item}>{item}</li>)}</ul></article></li>)}</ol>
-      <Introducao numero="08 · ORGANIZAÇÃO NA SPRINT" titulo="Autonomia e colaboração no desenvolvimento"><p>Não há divisão fixa entre front-end e back-end. O próprio time distribui as demandas conforme a necessidade, decide quem assume cada atividade e compartilha a responsabilidade pela execução e pela qualidade da sprint.</p></Introducao>
+  </> },
+  { titulo: "Autonomia e colaboração", conteudo: <>
+<Introducao numero="08 · ORGANIZAÇÃO NA SPRINT" titulo="Autonomia e colaboração no desenvolvimento"><p>Não há divisão fixa entre front-end e back-end. O próprio time distribui as demandas conforme a necessidade, decide quem assume cada atividade e compartilha a responsabilidade pela execução e pela qualidade da sprint.</p></Introducao>
       <section className="onboarding-collaboration" aria-label="Colaboração nas atividades da sprint">
         <div className="onboarding-collaboration-visual">
           <p>No SIGEP, trabalhamos de forma colaborativa e não estabelecemos previamente uma divisão fixa entre desenvolvedores de front-end e back-end.</p>
@@ -116,7 +131,9 @@ export function OnboardingDev() {
           {titulo:'Responsabilidade conjunta', texto:'Todos contribuem para os objetivos e a qualidade da sprint.', icon:FiShield, cor:4},
         ].map(({titulo,texto,icon:Icon,cor}) => <article className="onboarding-collaboration-card" key={titulo}><span className={`onboarding-icon onboarding-color-${cor}`}><Icon aria-hidden="true" /></span><div><h3>{titulo}</h3><p>{texto}</p></div></article>)}</div>
       </section>
-      <Introducao numero="09 · NOSSA CULTURA" titulo="O que esperamos de você?"><p>Participação ativa e compromisso com o propósito e o impacto do SIGEP.</p></Introducao>
+  </> },
+  { titulo: "O que esperamos de você?", conteudo: <>
+<Introducao numero="09 · NOSSA CULTURA" titulo="O que esperamos de você?"><p>Participação ativa e compromisso com o propósito e o impacto do SIGEP.</p></Introducao>
       <Cards items={[
         ['Colaboração', 'Trabalhar em equipe, apoiar os colegas e compartilhar conhecimento.'],
         ['Proatividade', 'Ter iniciativa, identificar melhorias e contribuir com soluções.'],
@@ -125,7 +142,9 @@ export function OnboardingDev() {
         ['Aprendizado contínuo', 'Estar aberto a novos conhecimentos, tecnologias e regras de negócio.'],
         ['Senso de produto', 'Entender o propósito do SIGEP e o impacto do que desenvolvemos.'],
       ]} />
-      <section className="onboarding-closing" aria-labelledby="onboarding-closing-title">
+  </> },
+  { titulo: "Juntos, construímos o SIGEP!", conteudo: <>
+<section className="onboarding-closing" aria-labelledby="onboarding-closing-title">
         <div className="onboarding-closing-copy">
           <h2 id="onboarding-closing-title">Juntos, construímos o SIGEP!</h2>
           <p>Mais do que desenvolver funcionalidades, estamos construindo uma solução que vai modernizar a gestão de pessoas e a folha de pagamento do Estado.</p>
@@ -137,6 +156,27 @@ export function OnboardingDev() {
           <ul><li><FiUsers aria-hidden="true" />Colaboração</li><li><FiZap aria-hidden="true" />Iniciativa</li><li><FiShield aria-hidden="true" />Compromisso</li></ul>
         </div>
       </section>
+  </> }
+];
+
+export function OnboardingDev() {
+  const [etapa, setEtapa] = useState(0);
+  const [todas, setTodas] = useState(false);
+  return <section className="calendar-main-panel onboarding-dev-page">
+    <header className="calendar-panel-header"><FiFileText aria-hidden="true" /><h1>Onboarding DEV — SIGEP</h1></header>
+    <div className="redmine-toolbar redmine-tutorial">
+      <label>Etapa<select value={etapa} onChange={e => setEtapa(Number(e.target.value))}>
+        {secoesOnboarding.map((secao, i) => <option key={secao.titulo} value={i}>{String(i + 1).padStart(2, '0')} · {secao.titulo}</option>)}
+      </select></label>
+      <button type="button" aria-pressed={todas} onClick={() => setTodas(!todas)}><FiGrid aria-hidden="true" />{todas ? 'Ver apresentação' : 'Ver todas as etapas'}</button>
     </div>
+    <div className="calendar-process-content">
+      {(todas ? secoesOnboarding : [secoesOnboarding[etapa]]).map(secao => <Fragment key={secao.titulo}>{secao.conteudo}</Fragment>)}
+    </div>
+    {!todas && <nav className="redmine-navigation redmine-tutorial" aria-label="Navegação do Onboarding DEV">
+      <button type="button" disabled={etapa === 0} onClick={() => setEtapa(etapa - 1)}><FiArrowLeft aria-hidden="true" />Anterior</button>
+      <span role="status">Etapa {etapa + 1} de {secoesOnboarding.length}</span>
+      <button type="button" disabled={etapa === secoesOnboarding.length - 1} onClick={() => setEtapa(etapa + 1)}>Próxima<FiArrowRight aria-hidden="true" /></button>
+    </nav>}
   </section>;
 }

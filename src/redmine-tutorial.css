@@ -1,0 +1,83 @@
+.redmine-tutorial { color: #102b4e; }
+.redmine-print img { display:block; width:100%; height:auto; border:1px solid #dce6f0; border-radius:10px; }
+.redmine-print a { display:block; cursor:zoom-in; }
+.redmine-print a:focus-visible { outline:3px solid #0d9488; outline-offset:4px; }
+.redmine-print > small { display:block; margin-top:8px; color:#50677d; }
+.redmine-index-link { display:flex; align-items:center; gap:12px; padding:22px; color:#102b4e; background:#fff; border:1px solid #b7cde1; border-radius:12px; font-weight:700; text-decoration:none; }
+.redmine-index-link:hover { color:#0b7970; background:#e6f6f5; }
+.redmine-toolbar { display:flex; gap:16px; justify-content:space-between; align-items:end; padding:20px 24px; background:#f5f8fc; border-bottom:1px solid #dce6f0; }
+.redmine-toolbar label { display:grid; gap:6px; font-weight:600; min-width:0; }
+.redmine-toolbar select { padding:10px; border:1px solid #bbccdf; border-radius:8px; max-width:100%; color:#102b4e; background:white; font:inherit; }
+.redmine-tutorial button { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid #b7cde1; padding:10px 16px; border-radius:8px; font:inherit; font-weight:600; color:#102b4e; background:white; cursor:pointer; }
+.redmine-tutorial button:hover:not(:disabled) { background:#e6f5f6; border-color:#0d9488; }
+.redmine-tutorial button:disabled { opacity:.45; cursor:default; }
+.redmine-tutorial :is(button,select):focus-visible { outline:3px solid #0d9488; outline-offset:3px; }
+.redmine-slides { display:grid; gap:24px; padding:24px; background:#f5f8fc; }
+.redmine-slide { padding:clamp(20px,3vw,40px); border:1px solid #dce6f0; border-radius:16px; background:white; min-width:0; }
+.redmine-slide-heading { margin-bottom:28px; border-bottom:1px solid #e1e8f0; padding-bottom:20px; }
+.redmine-slide-heading > span,.redmine-eyebrow { color:#0d9488; font-size:12px; letter-spacing:.12em; font-weight:800; }
+.redmine-slide-heading h2 { font-size:clamp(22px,2.4vw,32px); margin:10px 0 0; line-height:1.25; }
+.redmine-cover { display:grid; text-align:center; justify-items:center; gap:22px; background:#102b4e; color:white; border-radius:14px; padding:32px; }
+.redmine-cover h2 { color:white; font-size:clamp(30px,4vw,52px); margin:0; line-height:1.15; }
+.redmine-cover .redmine-eyebrow,.redmine-cover > strong { color:#2dd4bf; }
+.redmine-cover img { width:min(100%,760px); max-height:420px; object-fit:contain; border-radius:12px; }
+.redmine-cover > strong { font-size:20px; max-width:680px; line-height:1.5; }
+.redmine-pills { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.redmine-pills span { padding:8px 18px; border:1px solid #66869f; border-radius:30px; }
+.redmine-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:16px; }
+.redmine-cards article,.redmine-channels article { padding:22px; background:#f8fbfe; border:1px solid #dce6f0; border-radius:12px; }
+.redmine-cards article > svg,.redmine-channels article > svg { font-size:26px; color:#0d9488; }
+.redmine-tutorial h3 { font-size:18px; margin:12px 0; }
+.redmine-tutorial li { line-height:1.6; }
+.redmine-cards ul,.redmine-channels ul { padding-left:18px; margin:0; color:#50677d; }
+.redmine-note { display:block; padding:18px 22px; background:#e6f6f5; border:1px solid #a5dbd5; border-left:5px solid #0d9488; border-radius:10px; margin:24px 0 0; font-weight:600; line-height:1.6; }
+.redmine-channels { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.redmine-hub-center { display:flex; flex-direction:column; align-items:center; gap:12px; padding:26px; margin:0 auto 24px; max-width:400px; border-radius:18px; background:#102b4e; color:white; }
+.redmine-hub-center svg { color:#2dd4bf; font-size:32px; }
+.redmine-hub-center strong { font-size:28px; }
+.redmine-task { --task-color:#102b4e; display:flex; flex-direction:column; gap:7px; border:1px solid #dce6f0; border-left:5px solid var(--task-color); padding:16px 20px; background:#f8fbfe; border-radius:10px; }
+.redmine-task strong { color:var(--task-color); }
+.redmine-task small { color:#50677d; font-size:13px; line-height:1.5; }
+.redmine-tutorial .is-concepcao { --task-color:#102b4e; }
+.redmine-tutorial .is-modelagem { --task-color:#8055ed; }
+.redmine-tutorial .is-implementacao { --task-color:#245cba; }
+.redmine-tutorial .is-teste { --task-color:#0d9488; }
+.redmine-tutorial .is-bug { --task-color:#c4511c; }
+.redmine-tree ul { list-style:none; margin:12px 0 0 18px; padding:0 0 0 24px; border-left:2px solid #c8d9e8; display:grid; gap:12px; }
+.redmine-tree li { position:relative; }
+.redmine-tree li::before { content:''; position:absolute; top:24px; left:-24px; width:24px; border-top:2px solid #c8d9e8; }
+.redmine-flow { display:flex; gap:28px; margin-bottom:24px; }
+.redmine-flow-item { position:relative; flex:1; min-width:0; }
+.redmine-flow-arrow { position:absolute; top:24px; left:-24px; color:#0d9488; font-size:20px; }
+.redmine-flow .redmine-task { height:100%; box-sizing:border-box; }
+.redmine-steps { display:grid; gap:10px; grid-template-columns:1fr 1fr; padding:0; list-style:none; margin:24px 0; }
+.redmine-steps li { display:flex; align-items:center; gap:14px; padding:14px; border:1px solid #e1e8f0; border-radius:10px; }
+.redmine-steps b { color:#0d9488; font-size:24px; }
+.redmine-tutorial figure { margin:24px 0; min-width:0; }
+.redmine-tutorial figcaption { font-size:13px; font-weight:700; margin-bottom:12px; color:#245cba; line-height:1.7; }
+.redmine-table-scroll { overflow-x:auto; max-width:100%; }
+.redmine-tutorial table { width:100%; border-collapse:collapse; font-size:13px; text-align:left; }
+.redmine-tutorial caption { text-align:left; padding:12px 0; font-weight:700; }
+.redmine-tutorial :is(th,td) { padding:14px 12px; border:1px solid #dce6f0; vertical-align:top; line-height:1.5; }
+.redmine-tutorial th { background:#102b4e; color:white; white-space:nowrap; }
+.redmine-sheet { min-width:1050px; }
+.redmine-sheet tbody tr:nth-child(3n+1) { background:#fff5d0; }
+.redmine-sheet tbody tr:nth-child(3n+2) { background:#e4f0de; }
+.redmine-sheet tbody tr:nth-child(3n) { background:#e3eff9; }
+.redmine-sheet-tabs { padding:12px; background:#edf4fb; color:#245cba; font-size:12px; overflow-wrap:anywhere; }
+.redmine-issues { min-width:850px; }
+.redmine-issues tbody { background:#ffffe2; }
+.redmine-tag { display:inline-block; color:white; background:var(--task-color,#102b4e); border-radius:5px; padding:3px 8px; font-size:11px; font-weight:700; white-space:nowrap; }
+.redmine-responsibilities { min-width:580px; }
+.redmine-responsibilities tbody tr:nth-child(even) { background:#f5f8fc; }
+.redmine-form-example { display:grid; grid-template-columns:1fr 1fr; border:1px solid #dce6f0; background:#f8fafc; padding:20px; gap:16px; border-radius:12px; }
+.redmine-form-example > div { min-width:0; }
+.redmine-form-example dt { font-weight:700; font-size:13px; margin-bottom:6px; }
+.redmine-form-example dd { margin:0; display:grid; gap:6px; }
+.redmine-form-example strong { padding:10px; border:1px solid #c8d9e8; background:white; border-radius:5px; font-size:13px; overflow-wrap:anywhere; }
+.redmine-form-example small { color:#0b7970; }
+.redmine-navigation { display:flex; justify-content:space-between; align-items:center; padding:20px 24px; gap:12px; }
+.redmine-navigation span { font-size:13px; }
+.redmine-footer { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; align-items:center; padding:18px; color:#50677d; background:#f5f8fc; font-size:12px; }
+@media(max-width:800px) { .redmine-toolbar { align-items:stretch; flex-direction:column; } .redmine-channels,.redmine-steps,.redmine-form-example { grid-template-columns:1fr; } .redmine-flow { flex-direction:column; gap:20px; } .redmine-flow-arrow { display:none; } .redmine-slides { padding:12px; } .redmine-cover { padding:22px; } .redmine-tree ul { margin-left:6px; padding-left:14px; } .redmine-tree li::before { left:-14px; width:14px; } }
+@media print { .redmine-toolbar,.redmine-navigation,.redmine-footer { display:none; } .redmine-slide { break-inside:avoid; } }

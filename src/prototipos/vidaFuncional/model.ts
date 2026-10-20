@@ -10,6 +10,8 @@ export const pessoas: Pessoa[] = [
   { id: '4', nome: 'José Antônio Ferreira', cpf: '000.000.004-00', nascimento: '1972-11-09' },
   { id: '5', nome: 'Beatriz Costa Lima', cpf: '000.000.005-00', nascimento: '1993-02-04' },
   { id: '6', nome: 'Rafael Oliveira Santos', cpf: '000.000.006-00', nascimento: '1984-07-19' },
+  { id: '7', nome: 'Camila Rodrigues Almeida', cpf: '000.000.007-00', nascimento: '1998-09-14' },
+  { id: '8', nome: 'Lucas Henrique Costa', cpf: '000.000.008-00', nascimento: '2004-04-22' },
 ];
 export const vinculos: Vinculo[] = [
   { id: 'ana-1', pessoaId: '1', matricula: '327305', numero: 1, tipo: 'Nomeado Efetivo', cargo: 'Analista Administrativo / Coordenadora', orgao: 'SEPLAG', unidade: 'Superintendência de Gestão de Pessoas', inicio: '2018-03-15', classificacao: 'Ativo' },
@@ -20,11 +22,43 @@ export const vinculos: Vinculo[] = [
   { id: 'jose-1', pessoaId: '4', matricula: '215670', numero: 1, tipo: 'Nomeado Efetivo', cargo: 'Professor', orgao: 'SEDUC', unidade: 'Escola Estadual Cuiabá', inicio: '2005-02-07', fim: '2024-11-20', classificacao: 'Falecido' },
   { id: 'beatriz-1', pessoaId: '5', matricula: '630218', numero: 1, tipo: 'Contrato Temporário', cargo: 'Professora', orgao: 'SEDUC', unidade: 'Escola Estadual Várzea Grande', inicio: '2025-02-03', classificacao: 'Ativo' },
   { id: 'rafael-1', pessoaId: '6', matricula: '372891', numero: 1, tipo: 'Nomeado Comissionado', cargo: 'Assessor Técnico', orgao: 'SEFAZ', unidade: 'Gabinete', inicio: '2022-01-10', fim: '2025-12-31', classificacao: 'Extinto' },
+  { id: 'camila-residente-1', pessoaId: '7', matricula: '710024', numero: 1, tipo: 'Residente Técnico', cargo: 'Residente Técnico — Tecnologia da Informação', orgao: 'SEPLAG', unidade: 'Coordenadoria de Tecnologia da Informação', inicio: '2025-02-03', classificacao: 'Ativo' },
+  { id: 'lucas-estagiario-1', pessoaId: '8', matricula: '810015', numero: 1, tipo: 'Estagiário', cargo: 'Estagiário — Administração', orgao: 'SEPLAG', unidade: 'Superintendência de Gestão de Pessoas', inicio: '2026-01-12', classificacao: 'Ativo' },
 ];
 export const dataBR = (data?: string) => data ? data.slice(0, 10).split('-').reverse().join('/') : '—';
-export const situacao = (v: Vinculo) => v.fim ? 'Encerrado' : 'Vigente';
+export const situacao = (v: Vinculo) => v.fim ? 'Encerrado' : 'Ativo';
 const evento = (v: Vinculo, tipo: string, data: string, titulo: string, origem: string, secoes: Evento['secoes'], registradoEm = `${data}T10:30:00`): Evento => ({ id: `${v.id}-${tipo}-${data}`, vinculoId: v.id, data, tipo, titulo, descricao: titulo, origem, secoes, responsavel: 'Luciana Mendes • Gestão de Pessoas', registradoEm, documento: `Ato demonstrativo ${data.slice(0, 4)}/${v.matricula}-${tipo}` });
 export const eventos: Evento[] = vinculos.flatMap(v => {
+  if (v.tipo === 'Residente Técnico') return [
+    evento(v, 'Ingresso', v.inicio, 'Início da residência técnica em Tecnologia da Informação', 'Gestão de Residência Técnica', {
+      'Dados da Residência': { 'Programa': 'Residência Técnica em Tecnologia da Informação', 'Termo de compromisso': 'Termo demonstrativo RT-024/2025', 'Instituição de ensino': 'UNEMAT — demonstração', 'Área de formação': 'Tecnologia da Informação', 'Supervisor': 'Marcos Paulo Ferreira — demonstração', 'Início da residência': dataBR(v.inicio), 'Término previsto': '02/02/2027', 'Situação': 'Em atividade' },
+      'Dados Funcionais': { 'Matrícula': v.matricula, 'Número do vínculo': String(v.numero), 'Tipo de vínculo': v.tipo, 'Órgão/Entidade': v.orgao, 'Unidade de lotação': v.unidade, 'Jornada': '30 horas semanais' },
+    }),
+    evento(v, 'Recesso remunerado', '2026-03-02', 'Concessão de recesso remunerado — 15 dias', 'Gestão de Recesso Remunerado', {
+      'Dados do Recesso': { 'Período de referência': '03/02/2025 a 02/02/2026', 'Data de início': '02/03/2026', 'Data de término': '16/03/2026', 'Quantidade de dias': '15', 'Situação': 'Concluído' },
+    }),
+    evento(v, 'Retorno ao exercício', '2026-03-17', 'Retorno às atividades da residência após recesso', 'Gestão de Residência Técnica', {
+      'Dados do Retorno': { 'Ocorrência de origem': 'Recesso remunerado de 02/03/2026 a 16/03/2026', 'Data do retorno': '17/03/2026', 'Situação': 'Em atividade', 'Unidade de retorno': v.unidade },
+    }),
+    evento(v, 'Alteração de supervisão', '2026-10-05', 'Alteração do supervisor da residência técnica', 'Gestão de Residência Técnica', {
+      'Dados da Supervisão': { 'Supervisor anterior': 'Marcos Paulo Ferreira — demonstração', 'Novo supervisor': 'Renata Alves Pereira — demonstração', 'Data de vigência': '05/10/2026', 'Motivo': 'Redistribuição das atividades de acompanhamento', 'Unidade de lotação': v.unidade },
+    }),
+  ];
+  if (v.tipo === 'Estagiário') return [
+    evento(v, 'Ingresso', v.inicio, 'Início do estágio em Administração', 'Gestão de Estágio', {
+      'Dados do Estágio': { 'Termo de compromisso': 'Termo demonstrativo EST-015/2026', 'Instituição de ensino': 'UFMT — demonstração', 'Curso': 'Administração', 'Semestre': '4º semestre', 'Supervisor': 'Luciana Mendes — demonstração', 'Início do estágio': dataBR(v.inicio), 'Término previsto inicial': '11/07/2026', 'Situação': 'Em atividade' },
+      'Dados Funcionais': { 'Matrícula': v.matricula, 'Número do vínculo': String(v.numero), 'Tipo de vínculo': v.tipo, 'Órgão/Entidade': v.orgao, 'Unidade de lotação': v.unidade, 'Jornada': '20 horas semanais' },
+    }),
+    evento(v, 'Prorrogação de contrato', '2026-07-12', 'Prorrogação do termo de compromisso de estágio', 'Gestão de Estágio', {
+      'Dados da Prorrogação': { 'Termo aditivo': 'Aditivo demonstrativo 01/2026', 'Término previsto anterior': '11/07/2026', 'Novo término previsto': '11/01/2027', 'Data de vigência': '12/07/2026', 'Motivo': 'Continuidade das atividades de estágio', 'Situação': 'Vigente' },
+    }),
+    evento(v, 'Recesso remunerado', '2026-07-13', 'Concessão de recesso remunerado — 15 dias', 'Gestão de Recesso Remunerado', {
+      'Dados do Recesso': { 'Período de referência': '12/01/2026 a 11/07/2026', 'Data de início': '13/07/2026', 'Data de término': '27/07/2026', 'Quantidade de dias': '15', 'Situação': 'Concluído' },
+    }),
+    evento(v, 'Retorno ao exercício', '2026-07-28', 'Retorno às atividades de estágio após recesso', 'Gestão de Estágio', {
+      'Dados do Retorno': { 'Ocorrência de origem': 'Recesso remunerado de 13/07/2026 a 27/07/2026', 'Data do retorno': '28/07/2026', 'Situação': 'Em atividade', 'Unidade de retorno': v.unidade },
+    }),
+  ];
   const aposentado = v.tipo === 'Aposentado';
   const lista = [evento(v, 'Ingresso', v.inicio, aposentado ? 'Criação do vínculo de aposentado' : 'Ingresso no serviço público', aposentado ? 'Aposentadoria e Benefícios' : 'Gestão de Ingresso', {
     'Dados do Ingresso': { 'Número do ingresso': `${v.inicio.slice(0, 4)}/${v.matricula}`, 'Meio de ingresso': aposentado ? 'Aposentadoria' : v.tipo === 'Contrato Temporário' ? 'Processo Seletivo' : v.tipo === 'Nomeado Comissionado' ? 'Nomeação' : 'Concurso', ...(!aposentado && v.tipo === 'Nomeado Efetivo' ? { 'Edital': `Edital 001/${Number(v.inicio.slice(0, 4)) - 1}`, 'Classificação no certame': '12º lugar' } : {}), 'Tipo de vínculo': v.tipo, 'Cargo/Função': v.id === 'ana-1' ? 'Analista Administrativo' : v.cargo, 'Situação do ingresso': 'Concluído' },

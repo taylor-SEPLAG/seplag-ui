@@ -40,6 +40,9 @@ const ESTILOS_OCORRENCIA: Record<
     icone: "pi-arrow-right-arrow-left",
   },
   Férias: { cor: "#B77900", fundo: "#FFF8E1", icone: "pi-calendar" },
+  "Recesso remunerado": { cor: "#B77900", fundo: "#FFF8E1", icone: "pi-calendar" },
+  "Prorrogação de contrato": { cor: "#1976D2", fundo: "#E3F2FD", icone: "pi-file-edit" },
+  "Alteração de supervisão": { cor: "#00838F", fundo: "#E0F7FA", icone: "pi-users" },
   Licença: { cor: "#EF6C00", fundo: "#FFF3E0", icone: "pi-file" },
   "Retorno ao exercício": {
     cor: "#2E7D32",
@@ -113,12 +116,16 @@ function download(
 }
 
 function detalhes(e: Evento) {
+  const secoes = Object.fromEntries(
+    Object.entries(e.secoes)
+      .map(([titulo, campos]) => [titulo, Object.fromEntries(
+        Object.entries(campos).filter(([campo]) => !/^documento(?:\b|\/)/i.test(campo)),
+      )] as const)
+      .filter(([, campos]) => Object.keys(campos).length > 0),
+  );
   return {
-    ...e.secoes,
-    "Documentação e Rastreabilidade": {
-      "Documento/Ato": e.documento,
-      "Origem do registro": e.origem,
-      "Responsável pelo registro": e.responsavel,
+    ...secoes,
+    "Registro da ocorrência": {
       "Data/hora do registro": `${dataBR(e.registradoEm)} ${e.registradoEm.slice(11, 19)}`,
     },
   };
@@ -445,7 +452,7 @@ function Conteudo({
           <article className="v2v-kpi-active">
             <i className="pi pi-check-circle" aria-hidden="true" />
             <div>
-              <span>Vínculos vigentes</span>
+              <span>Vínculos ativos</span>
               <strong>{valores[1]}</strong>
             </div>
           </article>
@@ -501,7 +508,7 @@ function Conteudo({
               }
             >
               <option value="">Todas</option>
-              <option>Vigente</option>
+              <option>Ativo</option>
               <option>Encerrado</option>
             </select>
           </label>
@@ -876,22 +883,6 @@ function Conteudo({
                                 </section>
                               ),
                             )}
-                            <button
-                              className="v2v-secondary"
-                              type="button"
-                              onClick={() =>
-                                download(
-                                  `documento-${evento.id}.txt`,
-                                  `SIGEP — DOCUMENTO\n${evento.documento}\n${evento.titulo}\nData efetiva: ${dataBR(evento.data)}\nOrigem: ${evento.origem}\nResponsável: ${evento.responsavel}`,
-                                )
-                              }
-                            >
-                              <i
-                                className="pi pi-download"
-                                aria-hidden="true"
-                              />
-                              Baixar documento
-                            </button>
                           </div>
                         )}
                       </article>

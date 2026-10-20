@@ -567,15 +567,6 @@ export function DashboardVinculosPage() {
                 </table>
               </div>
             </section>
-            {resumo.formasARevisar > 0 && (
-              <p className="dv-info" role="status">
-                <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-                {numero(resumo.formasARevisar)} vínculo(s) encerrado(s) possuem
-                Forma de Encerramento incompatível com o tipo ou não cadastrada.
-                Estão incluídos nos totais e agrupados como “Forma de Encerramento a
-                revisar”.
-              </p>
-            )}
             <p className="dv-info">
               <i className="pi pi-info-circle" aria-hidden="true" />
               Para vínculos encerrados, são consideradas a Data de Encerramento e a

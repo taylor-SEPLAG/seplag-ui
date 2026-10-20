@@ -1,6 +1,8 @@
 import type { IMenuSeplag } from "../Config/menu";
 import { CSSTransition } from "primereact/csstransition";
 import React from "react";
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { SidebarNavigationContext } from '../layout/SidebarNavigationContext';
 import { Link, useLocation } from "react-router-dom";
 import { AppSubmenuSeplag } from "../AppSubmenu/AppSubmenu";
 
@@ -9,9 +11,10 @@ interface AppSubmenuItemSeplagProps {
   item: IMenuSeplag;
   root?: boolean;
   active?: boolean;
-  onMenuClick: (event: { originalEvent: any; item: IMenuSeplag[] }) => void;
+  routeActive?: boolean;
+  onMenuClick: (event: { originalEvent: any; item: IMenuSeplag }) => void;
   onMenuItemClick: (
-    event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+    event: React.MouseEvent<HTMLElement, MouseEvent>,
     item: IMenuSeplag,
   ) => void;
 }
@@ -21,11 +24,18 @@ const AppSubmenuItemSeplag = ({
   item,
   root = false,
   active = false,
+  routeActive = false,
   onMenuClick,
   onMenuItemClick,
 }: AppSubmenuItemSeplagProps) => {
   const nodeRef = React.useRef(null);
   const location = useLocation();
+  const navigation = React.useContext(SidebarNavigationContext);
+  const linkAccessibility = navigation.compactNavigation ? {
+    title: item.label ?? undefined,
+    'aria-label': item.label ?? undefined,
+    'aria-expanded': item.items?.length ? active && !navigation.collapsed : undefined,
+  } : {};
 
   const isRouteActive = (target?: string) => {
     if (!target || target === "#") {
@@ -77,7 +87,7 @@ const AppSubmenuItemSeplag = ({
   };
 
   const renderLinkContent = (item: IMenuSeplag) => {
-    const submenuIcon = item.items && (
+    const submenuIcon = item.items && !navigation.compactNavigation && (
       <i className="pi pi-fw pi-angle-down menuitem-toggle-icon"></i>
     );
 
@@ -117,6 +127,7 @@ const AppSubmenuItemSeplag = ({
     if (item.disabled) {
       return (
         <a
+          {...linkAccessibility}
           href="#"
           aria-disabled="true"
           style={{ cursor: "not-allowed" }}
@@ -130,6 +141,7 @@ const AppSubmenuItemSeplag = ({
       const href = item.url && item.url !== "#" ? item.url : "#";
       return (
         <a
+          {...linkAccessibility}
           href={href}
           onClick={(e) => {
             if (item.items || !item.url || item.url === "#") {
@@ -146,6 +158,7 @@ const AppSubmenuItemSeplag = ({
     if (item.label != null && item?.visibleOnMenu) {
       return (
         <Link
+          {...linkAccessibility}
           className={linkClassName}
           to={item.to}
           onClick={(e) => onMenuItemClick(e, item)}
@@ -159,9 +172,16 @@ const AppSubmenuItemSeplag = ({
   };
 
   return (
-    <li className={className}>
+    <li className={className} data-route-active={navigation.compactNavigation && routeActive ? 'true' : undefined}>
       {item.items && root && <div className="arrow"></div>}
       {renderLink(item)}
+      {navigation.compactNavigation && Boolean(item.items?.length) && <button type="button" className="layout-submenu-toggle"
+        aria-label={`${active && !navigation.collapsed ? 'Recolher' : 'Expandir'} ${item.label}`}
+        title={`${active && !navigation.collapsed ? 'Recolher' : 'Expandir'} ${item.label}`}
+        aria-expanded={active && !navigation.collapsed} disabled={item.disabled}
+        onClick={event => onMenuItemClick(event,item)}>
+        {active ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+      </button>}
       <CSSTransition
         nodeRef={nodeRef}
         classNames="layout-submenu-collapse"

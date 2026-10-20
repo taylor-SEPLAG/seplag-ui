@@ -26,7 +26,7 @@ it("localiza matrícula encerrada e aplica filtros ao mesmo vínculo", () => {
     pesquisarPessoas({
       ...filtrosVazios,
       matricula: "418920",
-      situacao: "Vigente",
+      situacao: "Ativo",
     }),
   ).toEqual([]);
   expect(
@@ -49,7 +49,18 @@ it("separa aposentadoria e preserva eventos simultâneos e retroativos", () => {
   expect(
     pesquisarEventos("ana-1", "", "2024-04-01", "2024-04-01")[0].registradoEm,
   ).toContain("2024-05-14");
-  expect(indicadores(new Date("2026-10-09T12:00:00Z"))).toEqual([6, 4, 4, 2]);
+  expect(indicadores(new Date("2026-10-09T12:00:00Z"))).toEqual([8, 6, 4, 3]);
+});
+it('inclui históricos específicos de residência técnica e estágio nos filtros', () => {
+  expect(pesquisarPessoas({...filtrosVazios,tipo:'Residente Técnico'}).map(p=>p.nome)).toContain('Camila Rodrigues Almeida');
+  expect(pesquisarPessoas({...filtrosVazios,tipo:'Estagiário'}).map(p=>p.nome)).toContain('Lucas Henrique Costa');
+  const residente = pesquisarEventos('camila-residente-1');
+  const estagiario = pesquisarEventos('lucas-estagiario-1');
+  expect(residente.map(e=>e.tipo)).toEqual(['Alteração de supervisão','Retorno ao exercício','Recesso remunerado','Ingresso']);
+  expect(estagiario.map(e=>e.tipo)).toEqual(['Retorno ao exercício','Recesso remunerado','Prorrogação de contrato','Ingresso']);
+  expect(residente.find(e=>e.tipo==='Ingresso')?.secoes['Dados da Residência']).toBeTruthy();
+  expect(estagiario.find(e=>e.tipo==='Ingresso')?.secoes['Dados do Estágio']).toBeTruthy();
+  expect([...residente,...estagiario].some(e=>e.tipo==='Férias'||e.tipo==='Progressão funcional')).toBe(false);
 });
 it("expande vários servidores, abre o histórico e preserva os accordions no retorno", () => {
   render(
