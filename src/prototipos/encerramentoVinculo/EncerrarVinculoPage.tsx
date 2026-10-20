@@ -13,8 +13,12 @@ import "../vinculos/vinculoV2.css";
 import "../vidaFuncional/vidaFuncional.css";
 
 function SituacaoVinculo({ valor }: Readonly<{ valor: string }>) {
-  const classe = valor === "Vigente" ? "ativo" : valor === "Encerrado" ? "encerrado" : "inativo";
+  const classe = ["Vigente", "Ativo"].includes(valor) ? "ativo" : valor === "Encerrado" ? "encerrado" : "inativo";
   return <span className={`v2v-status v2v-status-${classe}`}>{valor}</span>;
+}
+
+function vinculoPodeSerEncerrado(vinculo: Vinculo) {
+  return ["Vigente", "Ativo"].includes(situacao(vinculo));
 }
 
 function isoParaData(data?: string) {
@@ -149,7 +153,7 @@ export function EncerrarVinculoPage() {
                               <thead><tr>{["Matrícula", "Nº do Vínculo", "Tipo de Vínculo", "Cargo/Função", "Órgão/Entidade", "Data de Início", "Data de Encerramento", "Situação", "Ação"].map((coluna) => <th key={coluna}>{coluna}</th>)}</tr></thead>
                               <tbody>{lista.map((vinculo) => <tr key={vinculo.id}>
                                 <td>{vinculo.matricula}</td><td>{vinculo.numero}</td><td>{vinculo.tipo}</td><td>{vinculo.cargo}</td><td>{vinculo.orgao}</td><td>{dataBR(vinculo.inicio)}</td><td>{dataBR(vinculo.fim)}</td><td><SituacaoVinculo valor={situacao(vinculo)} /></td>
-                                <td>{situacao(vinculo) === "Vigente" ? <BotaoIconSeplag type="button" severity="danger" icon="pi pi-sign-out" tooltip="Encerrar vínculo" aria-label="Encerrar vínculo" onClick={() => abrirEncerramento(vinculo)} style={{ width: 40, height: 40, borderRadius: 4 }} /> : null}</td>
+                                <td>{vinculoPodeSerEncerrado(vinculo) ? <BotaoIconSeplag type="button" severity="danger" icon="pi pi-sign-out" tooltip="Encerrar vínculo" aria-label="Encerrar vínculo" onClick={() => abrirEncerramento(vinculo)} style={{ width: 40, height: 40, borderRadius: 4 }} /> : null}</td>
                               </tr>)}</tbody>
                             </table></div>
                           </div>
