@@ -18,6 +18,7 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import "./App.css";
+import { OnboardingDev } from "./OnboardingDev";
 import { DashboardNomeadosPage } from "./prototipos/ingresso/DashboardNomeadosPage";
 import { DashboardIngressoPage } from "./prototipos/ingresso/DashboardIngressoPage";
 import { PaginaInicialPage } from "./prototipos/paginaInicial/PaginaInicialPage";
@@ -502,6 +503,7 @@ function CalendarioPage() {
   const menuItems = [
     { label: "Calendário", to: "/calendario", icon: FiCalendar },
     { label: "Processo", to: "/calendario/processo", icon: FiFileText },
+    { label: "Onboarding DEV", to: "/calendario/onboarding-dev", icon: FiUsers },
     { label: "Integrantes", to: "/calendario/integrantes", icon: FiUsers },
   ];
   const weekdays = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
@@ -1387,6 +1389,7 @@ function CalendarioPage() {
           </section>
         ) : null}
 
+        {location.pathname === "/calendario/onboarding-dev" ? <OnboardingDev /> : null}
         {isProcessoRoute ? (
           <section className="calendar-main-panel">
             <header className="calendar-panel-header">

@@ -9,6 +9,6 @@ it("renderiza a concessão de férias com registros, tags de situação e pagina
   localStorage.clear();
   render(<MemoryRouter><PrototiposFeriasPage /></MemoryRouter>);
   expect(screen.getAllByRole("table").length).toBeGreaterThan(0);
-  expect(screen.getAllByText("Em aberto", { selector: ".prototype-ferias-badge" }).length).toBeGreaterThan(0);
+  expect(screen.getAllByText("Agendada", { selector: ".prototype-ferias-badge" }).length).toBeGreaterThan(0);
   expect(document.querySelector(".p-paginator")).toBeTruthy();
 });

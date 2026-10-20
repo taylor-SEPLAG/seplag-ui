@@ -12,6 +12,8 @@ import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { validarSolicitacaoRecesso } from "./validarSolicitacaoRecesso";
 import { STORAGE_KEY, registrosBase, carregarRegistros } from "./feriasMockDados";
 import "./ferias.css";
+import { duracoesPermitidas, prazoFechamentoFolha, selecionarPeriodoMaisAntigo, type PeriodoComSaldo } from './regrasFerias';
+import { AnexoFerias, type DocumentoFerias } from './DocumentoFerias';
 import { AprovacoesFerias } from "./AprovacoesFerias";
 
 function brParaIso(valor: string) {
@@ -39,7 +41,7 @@ type TipoVinculoFiltro = "Todos" | TipoVinculo;
 type Origem = "PORTALSERVIDOR" | "SIGEP";
 type TipoRegistro = "FÉRIAS" | "LICENÇA REMUNERADA";
 type AcaoStatus = "validar" | "rejeitar" | "suspender" | "reativar" | "cancelar";
-type PerfilAcesso = "Servidor" | "Chefia Imediata" | "RH / Gestão de Pessoas";
+type PerfilAcesso = "Servidor" | "Chefia Imediata" | "RH / Gestão de Pessoas" | "DRE / RH Central";
 
 interface ParcelaFerias {
   id: number;
@@ -65,6 +67,10 @@ export interface FeriasRegistro {
   justificativaAvaliacao?: string;
   resultadoAvaliacao?: 'Aprovada' | 'Rejeitada';
   cpf: string;
+  documentos?: DocumentoFerias[];
+  expirado?: boolean;
+  dre?: string;
+  unidade?: string;
   orgao: string;
   orgaoColetivo: OrgaoColetivo;
   setor: string;
@@ -144,16 +150,17 @@ interface ServidorMock {
   periodoAquisitivoInicio: string;
   periodoAquisitivoFim: string;
   saldoDisponivel: number;
+  periodos?: PeriodoComSaldo[];
 }
 
 const SERVIDORES_MOCK: ServidorMock[] = [
   { matricula: "241244", nome: "Valeria da Silva Pinto", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Analista Administrativo", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-06-11", periodoAquisitivoFim: "2026-06-10", saldoDisponivel: 30 },
-  { matricula: "257812", nome: "Max Jorge Lacerda da Matta", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Técnico Administrativo", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2025-08-11", periodoAquisitivoFim: "2026-08-10", saldoDisponivel: 20 },
+  { matricula: "257812", nome: "Max Jorge Lacerda da Matta", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Técnico Administrativo", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2025-08-11", periodoAquisitivoFim: "2026-08-10", saldoDisponivel: 20, periodos:[{inicio:'2024-08-11',fim:'2025-08-10',saldo:20},{inicio:'2025-08-11',fim:'2026-08-10',saldo:30}] },
   { matricula: "243417", nome: "Claudio Luciano Capistrano de Camargo", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Coordenador de TI", tipoVinculo: "Comissionado", cargoGestao: true, periodoAquisitivoInicio: "2025-10-15", periodoAquisitivoFim: "2026-10-14", saldoDisponivel: 30 },
   { matricula: "249253", nome: "Claudia Moreira Arrais de Oliveira", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Assessora Técnica", tipoVinculo: "Comissionado", cargoGestao: false, periodoAquisitivoInicio: "2025-07-01", periodoAquisitivoFim: "2026-06-30", saldoDisponivel: 30 },
   { matricula: "327305", nome: "João Silva", orgao: "SEPLAG/MT", setor: "GABINETE", cargo: "Analista Administrativo", tipoVinculo: "Efetivo", cargoGestao: true, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 30 },
   { matricula: "418920", nome: "Marina Costa Alves", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Analista Técnico", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-15", periodoAquisitivoFim: "2026-01-14", saldoDisponivel: 30 },
-  { matricula: "778899", nome: "Rodrigo Nunes Ferraz", orgao: "SEDUC/MT", setor: "Escola Estadual Marechal Rondon", cargo: "Apoio", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2026-05-01", periodoAquisitivoFim: "2027-04-30", saldoDisponivel: 45 },
+  { matricula: "778899", nome: "Rodrigo Nunes Ferraz", orgao: "SEDUC/MT", setor: "Escola Estadual Marechal Rondon", cargo: "Professor Substituto", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2026-05-01", periodoAquisitivoFim: "2027-04-30", saldoDisponivel: 45 },
   { matricula: "551023", nome: "Ana Lúcia Ferreira", orgao: "SEDUC/MT", setor: "Escola Estadual Antônio Ferreira", cargo: "Apoio", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 45 },
   { matricula: "551044", nome: "Bruno Castanheira", orgao: "SEDUC/MT", setor: "Escola Estadual Antônio Ferreira", cargo: "Administração", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 30 },
   { matricula: "551067", nome: "Cláudia Mendes", orgao: "SEDUC/MT", setor: "Escola Estadual Antônio Ferreira", cargo: "Apoio", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2025-01-01", periodoAquisitivoFim: "2025-12-31", saldoDisponivel: 45 },
@@ -190,6 +197,14 @@ const SERVIDORES_MOCK: ServidorMock[] = [
   // 24/11/2026 (ver LTS_MOCK) — diversifica o vínculo testado (os demais exemplos são Efetivo).
   { matricula: "420033", nome: "Patrícia Helena Guimarães", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Técnica em Contratos", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2025-11-01", periodoAquisitivoFim: "2026-10-31", saldoDisponivel: 20 },
 ];
+
+function periodoDisponivelServidor(servidor: ServidorMock) {
+  const registros = carregarRegistros();
+  const periodos = servidor.periodos ?? [{ inicio: servidor.periodoAquisitivoInicio, fim: servidor.periodoAquisitivoFim, saldo: servidor.saldoDisponivel }];
+  return selecionarPeriodoMaisAntigo(periodos.map(periodo => ({...periodo,
+    saldo: Math.max(0, periodo.saldo - registros.filter(r => r.matricula === servidor.matricula && r.tipoVinculo === servidor.tipoVinculo && r.orgao === servidor.orgao && r.periodoAquisitivoInicio === periodo.inicio && !['CANCELADO','REPROVADO','SUSPENSO'].includes(r.situacao)).reduce((total,r) => total + diasSolicitados(r),0))
+  })));
+}
 
 interface PeriodoAquisitivoRecesso {
   inicio: string;
@@ -263,13 +278,6 @@ const FIM_CONTRATO_RECESSO_MOCK: Record<string, string> = {
   "399099": "2028-05-31", // Rafael Cunha Barbosa — Residente Técnico
 };
 
-const PARCELAMENTOS_RESIDENTE = [
-  [30],
-  [15, 15],
-  [10, 20],
-  [20, 10],
-  [10, 10, 10],
-] as const;
 
 function vinculosDoServidor(nome: string): ServidorMock[] {
   return SERVIDORES_MOCK.filter((servidor) => servidor.nome === nome);
@@ -547,12 +555,11 @@ function validarIntervaloParcelas(parcelas: ParcelaFerias[]): string {
   return "";
 }
 
-/** Chefia tem 8 dias corridos a partir do agendamento para validar
- *  (3 dias a mais que o servidor, que tem até o dia 5 do mês anterior). */
+/** Usa o calendário mensal da folha; dia 15 como referência do protótipo. */
 function calcularPrazoValidacaoChefia(): string {
-  const data = new Date();
-  data.setDate(data.getDate() + 8);
-  return data.toISOString().slice(0, 10);
+  let calendario: Record<string,string> = {};
+  try { calendario = JSON.parse(localStorage.getItem('ferias-calendario-folha') ?? '{}'); } catch { /* usa calendário padrão */ }
+  return prazoFechamentoFolha(dataLocalISO(), calendario);
 }
 
 function prazoValidacaoExpirado(registro: FeriasRegistro): boolean {
@@ -606,10 +613,6 @@ function diasSolicitados(registro: FeriasRegistro) {
 
 /** Mostra a composição das parcelas (ex.: "15 + 30") quando há mais de uma, em vez do total
  * somado — ajuda o usuário a enxergar de que etapas vem o total (ex.: COLETIVA 15+30). */
-function diasSolicitadosLabel(registro: FeriasRegistro) {
-  if (registro.parcelas.length <= 1) return String(diasSolicitados(registro));
-  return registro.parcelas.map((parcela) => parcela.dias).join(" + ");
-}
 
 function situacaoSubstituicao(fim: string): "Vigente" | "Encerrada" {
   if (!fim) return "Vigente";
@@ -620,6 +623,11 @@ function situacaoSubstituicao(fim: string): "Vigente" | "Encerrada" {
 
 function persistirRegistros(registros: FeriasRegistro[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(registros));
+}
+
+function rotuloSituacao(situacao: SituacaoFerias) {
+  if (situacao === "EM ABERTO") return "Agendada";
+  return situacao.charAt(0) + situacao.slice(1).toLocaleLowerCase("pt-BR");
 }
 
 function classeSituacao(situacao: SituacaoFerias) {
@@ -636,7 +644,7 @@ const PERFIL_STORAGE_KEY = "prototype-ferias-perfil";
 
 function carregarPerfil(): PerfilAcesso {
   const salvo = localStorage.getItem(PERFIL_STORAGE_KEY);
-  if (salvo === "Servidor" || salvo === "Chefia Imediata" || salvo === "RH / Gestão de Pessoas") return salvo;
+  if (salvo === "Servidor" || salvo === "Chefia Imediata" || salvo === "RH / Gestão de Pessoas" || salvo === "DRE / RH Central") return salvo;
   return "RH / Gestão de Pessoas";
 }
 
@@ -647,6 +655,8 @@ export function PrototiposFeriasPage() {
   const [aba, setAba] = useState<AbaFerias>("gestao");
   const [filtroOrgao, setFiltroOrgao] = useState("");
   const [filtroSetor, setFiltroSetor] = useState("");
+  const [filtroVinculo, setFiltroVinculo] = useState('');
+  const [filtroDre, setFiltroDre] = useState('');
   const [filtroServidor, setFiltroServidor] = useState("");
   const [filtroSituacao, setFiltroSituacao] = useState<"" | SituacaoFerias>("");
   const [fluxoNovaSolicitacao, setFluxoNovaSolicitacao] = useState<"escolha" | TipoSolicitacao | null>(null);
@@ -658,11 +668,37 @@ export function PrototiposFeriasPage() {
   const [confirmacaoStatus, setConfirmacaoStatus] = useState<{ registro: FeriasRegistro; acao: AcaoStatus; loteId?: string } | null>(null);
   const [subBusca, setSubBusca] = useState("");
   const [subSituacao, setSubSituacao] = useState<"" | "Vigente" | "Encerrada">("");
+  const [mesFolha, setMesFolha] = useState(calcularPrazoValidacaoChefia().slice(0, 7));
+  const [fechamentoFolha, setFechamentoFolha] = useState(calcularPrazoValidacaoChefia());
+  const [mensagemFolha, setMensagemFolha] = useState('');
+
+  const salvarCalendarioFolha = () => {
+    if (!mesFolha || !fechamentoFolha || fechamentoFolha.slice(0, 7) !== mesFolha) {
+      setMensagemFolha('Informe uma data de fechamento dentro da competência selecionada.'); return;
+    }
+    let calendario: Record<string,string> = {};
+    try { calendario = JSON.parse(localStorage.getItem('ferias-calendario-folha') ?? '{}'); } catch { /* calendário inicial */ }
+    localStorage.setItem('ferias-calendario-folha', JSON.stringify({...calendario,[mesFolha]:fechamentoFolha}));
+    const proximos = registros.map(r => r.situacao === 'AGUARDANDO VALIDAÇÃO' && r.dataLimiteValidacaoChefia?.startsWith(mesFolha)
+      ? {...r,dataLimiteValidacaoChefia:fechamentoFolha} : r);
+    atualizarRegistros(proximos);
+    setMensagemFolha('Fechamento salvo. O prazo das solicitações pendentes desta competência foi atualizado.');
+  };
 
   const atualizarRegistros = (proximos: FeriasRegistro[]) => {
     setRegistros(proximos);
     persistirRegistros(proximos);
   };
+
+  useEffect(() => {
+    const verificar = () => setRegistros(atuais => {
+      if (!atuais.some(prazoValidacaoExpirado)) return atuais;
+      const proximos = atuais.map(r => prazoValidacaoExpirado(r) ? {...r, situacao:'REPROVADO' as const, expirado:true} : r);
+      persistirRegistros(proximos); return proximos;
+    });
+    verificar(); const timer = window.setInterval(verificar, 30000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const alterarPerfil = (proximo: PerfilAcesso) => {
     setPerfil(proximo);
@@ -696,6 +732,8 @@ export function PrototiposFeriasPage() {
     return registros.filter((registro) => {
       if (filtroOrgao && registro.orgao !== filtroOrgao) return false;
       if (filtroSetor && registro.setor !== filtroSetor) return false;
+      if (filtroVinculo && registro.tipoVinculo !== filtroVinculo) return false;
+      if (filtroDre && registro.dre !== filtroDre) return false;
       if (filtroSituacao && registro.situacao !== filtroSituacao) return false;
       if (
         buscaNormalizada &&
@@ -706,12 +744,13 @@ export function PrototiposFeriasPage() {
       }
       return true;
     });
-  }, [registros, filtroOrgao, filtroSetor, filtroServidor, filtroSituacao]);
+  }, [registros, filtroOrgao, filtroSetor, filtroServidor, filtroSituacao, filtroVinculo, filtroDre]);
 
   const linhasSubstituicao = useMemo(() => {
     const buscaNormalizada = subBusca.trim().toLocaleLowerCase("pt-BR");
     const linhas: LinhaSubstituicao[] = [];
     registros.forEach((registro) => {
+      if (!elegivelSubstituicao(registro)) return;
       registro.substitutos.forEach((substituto) => {
         const situacaoSub = situacaoSubstituicao(substituto.fim);
         linhas.push({
@@ -752,7 +791,6 @@ export function PrototiposFeriasPage() {
     [linhasSubstituicao],
   );
 
-  const temColetivaNoFiltro = registrosFiltrados.some((registro) => registro.tipo === "Coletiva");
 
   const indicadores = useMemo(() => {
     const porSituacao = (situacao: SituacaoFerias) => registrosFiltrados.filter((registro) => registro.situacao === situacao).length;
@@ -763,17 +801,21 @@ export function PrototiposFeriasPage() {
       emAberto: porSituacao("EM ABERTO"),
       quitado: porSituacao("QUITADO"),
       suspenso: porSituacao("SUSPENSO"),
+      aguardandoValidacao: porSituacao("AGUARDANDO VALIDAÇÃO"),
       comissionado: porVinculo("Comissionado"),
       contratoTemporario: porVinculo("Contrato Temporário"),
       residenteTecnico: porVinculo("Residente Técnico"),
       estagiario: porVinculo("Estagiário"),
       ferias: porTipoRegistro("FÉRIAS"),
       licencaRemunerada: porTipoRegistro("LICENÇA REMUNERADA"),
+      prazoExpirado: registrosFiltrados.filter(r => r.expirado || prazoValidacaoExpirado(r)).length,
     };
   }, [registrosFiltrados]);
 
   const limparFiltros = () => {
     setFiltroOrgao("");
+    setFiltroVinculo("");
+    setFiltroDre("");
     setFiltroSetor("");
     setFiltroServidor("");
     setFiltroSituacao("");
@@ -787,8 +829,8 @@ export function PrototiposFeriasPage() {
     (registro.situacao === "AGUARDANDO VALIDAÇÃO" ||
       (registro.situacao === "EM ABERTO" && !feriasEmAndamento(registro)));
 
-  const aplicarStatus = (registroId: number, novaSituacao: SituacaoFerias, acao?: AcaoStatus, justificativa?: string) => {
-    if ((acao==="validar" || acao==="rejeitar") && !podeAvaliar(perfil)) return;
+  const aplicarStatus = (registroId: number, novaSituacao: SituacaoFerias, acao?: AcaoStatus, justificativa?: string, documento?: DocumentoFerias) => {
+    if ((acao==="validar" || acao==="rejeitar") && !registros.some(r => r.id === registroId && perfilPodeAvaliarRegistro(perfil,r))) return;
     const proximos = registros.map((registro) => {
       if (registro.id !== registroId) return registro;
       if ((acao === 'validar' || acao === 'rejeitar') && registro.situacao !== 'AGUARDANDO VALIDAÇÃO') return registro;
@@ -803,6 +845,7 @@ export function PrototiposFeriasPage() {
       return {
         ...registro,
         situacao: novaSituacao,
+        documentos: documento ? [...(registro.documentos ?? []), documento] : registro.documentos,
         ...(efetivaBeneficiosRecesso ? { auxilioTransporteEfetivado: true, sigpasIntegrado: true } : {}),
         ...(marcaAvaliacao ? { avaliadoPor: "Usuário atual", avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
       };
@@ -813,11 +856,11 @@ export function PrototiposFeriasPage() {
 
   // RN (SEDUC/UNEMAT): lotes e coletivas desses órgãos são aprovados em bloco — o servidor
   // individual (orgaoColetivo OUTRO) continua sendo avaliado um a um.
-  const aplicarStatusLote = (loteId: string, novaSituacao: SituacaoFerias, acao: AcaoStatus, justificativa?: string) => {
-    if (!podeAvaliar(perfil)) return;
+  const aplicarStatusLote = (loteId: string, novaSituacao: SituacaoFerias, acao: AcaoStatus, justificativa?: string, documento?: DocumentoFerias) => {
+    if (perfil !== 'DRE / RH Central') return;
     const idsAfetados = new Set(
       registros
-        .filter((registro) => registro.loteId === loteId && registro.situacao === "AGUARDANDO VALIDAÇÃO")
+        .filter((registro) => registro.loteId === loteId && registro.situacao === "AGUARDANDO VALIDAÇÃO" && perfilPodeAvaliarRegistro(perfil,registro))
         .map((registro) => registro.id),
     );
     const marcaAvaliacao = acao === "validar" || acao === "rejeitar";
@@ -826,6 +869,7 @@ export function PrototiposFeriasPage() {
         ? {
             ...registro,
             situacao: novaSituacao,
+            documentos: documento ? [...(registro.documentos ?? []), documento] : registro.documentos,
             ...(marcaAvaliacao ? { avaliadoPor: "Usuário atual", avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
           }
         : registro,
@@ -834,22 +878,23 @@ export function PrototiposFeriasPage() {
     setConfirmacaoStatus(null);
   };
 
-  const salvarEdicaoRecesso = (registroId: number, parcelas: ParcelaFerias[]) => {
+  const salvarEdicaoRecesso = (registroId: number, parcelas: ParcelaFerias[], documento: DocumentoFerias) => {
     const proximos = registros.map((registro) =>
-      registro.id === registroId ? { ...registro, parcelas } : registro,
+      registro.id === registroId ? { ...registro, parcelas, documentos:[...(registro.documentos ?? []), documento] } : registro,
     );
     atualizarRegistros(proximos);
     setRegistroEdicaoRecesso(null);
   };
 
-  const salvarEdicaoIndividual = (registroId: number, parcelas: ParcelaFerias[]) => {
+  const salvarEdicaoIndividual = (registroId: number, parcelas: ParcelaFerias[], documento: DocumentoFerias) => {
     const proximos = registros.map((registro) => {
       if (registro.id !== registroId) return registro;
       // Editar a quantidade de dias de férias já aprovadas (Em Aberto) retorna a solicitação
       // ao aprovador — alterar parcelamento após aprovação é bloqueado (não passa por aqui).
-      const retornaAoAprovador = registro.situacao === "EM ABERTO";
+      const retornaAoAprovador = registro.origem === "PORTALSERVIDOR";
       return {
         ...registro,
+        documentos: [...(registro.documentos ?? []), documento],
         parcelas,
         ...(retornaAoAprovador ? { situacao: "AGUARDANDO VALIDAÇÃO" as const, avaliadoPor: undefined, avaliadoEm: undefined } : {}),
       };
@@ -889,7 +934,7 @@ export function PrototiposFeriasPage() {
               <span>Visualizando como</span>
               <select value={perfil} onChange={(event) => alterarPerfil(event.target.value as PerfilAcesso)}>
                 <option value="Servidor">Servidor (somente leitura)</option>
-                <option value="Chefia Imediata">Chefia Imediata (avalia)</option>
+                <option value="DRE / RH Central">DRE / RH Central (aprova coletivo e lote)</option><option value="Chefia Imediata">Chefia Imediata (avalia)</option>
                 <option value="RH / Gestão de Pessoas">RH / Gestão de Pessoas (acesso completo)</option>
               </select>
             </label>
@@ -914,19 +959,25 @@ export function PrototiposFeriasPage() {
 
           {aba === "gestao" ? (
             <>
-              <div className="prototype-ferias-indicadores">
-                <IndicadorCard rotulo="TOTAL" valor={indicadores.total} />
-                <IndicadorCard rotulo="EM ABERTO" valor={indicadores.emAberto} tom="sucesso" />
+              <div className="prototype-ferias-indicadores prototype-ferias-indicadores--7col">
+                <IndicadorCard rotulo="FÉRIAS" valor={indicadores.ferias} tom="info" />
+                <IndicadorCard rotulo="RECESSO REMUNERADO" valor={indicadores.licencaRemunerada} tom="roxo" />
+                <IndicadorCard rotulo="AGENDADA" valor={indicadores.emAberto} tom="sucesso" />
+                <IndicadorCard rotulo="AGUARDANDO VALIDAÇÃO" valor={indicadores.aguardandoValidacao} tom="alerta" />
                 <IndicadorCard rotulo="QUITADO" valor={indicadores.quitado} tom="info" />
                 <IndicadorCard rotulo="SUSPENSO" valor={indicadores.suspenso} tom="alerta" />
-                <IndicadorCard rotulo="COMISSIONADO" valor={indicadores.comissionado} />
-                <IndicadorCard rotulo="CONTRATO TEMPORÁRIO" valor={indicadores.contratoTemporario} />
-                <IndicadorCard rotulo="RESIDENTE TÉCNICO" valor={indicadores.residenteTecnico} tom="roxo" />
-                <IndicadorCard rotulo="ESTAGIÁRIO" valor={indicadores.estagiario} tom="roxo" />
-                <IndicadorCard rotulo="FÉRIAS" valor={indicadores.ferias} tom="info" />
-                <IndicadorCard rotulo="LICENÇA REMUNERADA" valor={indicadores.licencaRemunerada} tom="roxo" />
+                <IndicadorCard rotulo="PRAZO EXPIRADO" valor={indicadores.prazoExpirado} tom="vermelho" />
               </div>
 
+              {podeGerenciarCompleto(perfil) && <details className="prototype-ferias-form-section">
+                <summary>Calendário de fechamento da folha</summary>
+                <div className="prototype-ferias-form-grid">
+                  <label>Competência<input type="month" value={mesFolha} onChange={e => {setMesFolha(e.target.value);setFechamentoFolha(e.target.value + '-15');setMensagemFolha('');}} /></label>
+                  <label>Data de fechamento<input type="date" value={fechamentoFolha} onChange={e => setFechamentoFolha(e.target.value)} /></label>
+                </div>
+                <button type="button" className="prototype-ferias-btn-primario" onClick={salvarCalendarioFolha}>Salvar fechamento</button>
+                {mensagemFolha && <p role="status">{mensagemFolha}</p>}
+              </details>}
               <div className="prototype-ferias-filtros">
                 <label>
                   <span>Órgão</span>
@@ -946,7 +997,7 @@ export function PrototiposFeriasPage() {
                   </select>
                 </label>
                 <label>
-                  <span>Setor</span>
+                  <span>{filtroOrgao.includes('SEDUC') ? 'Escola / Lotação' : /UNEMAT|SECITEC/.test(filtroOrgao) ? 'Campus / Faculdade / Unidade' : 'Setor / Lotação'}</span>
                   <select value={filtroSetor} onChange={(event) => setFiltroSetor(event.target.value)}>
                     <option value="">Todos</option>
                     {setoresDisponiveis.map((setor) => (
@@ -965,13 +1016,15 @@ export function PrototiposFeriasPage() {
                   <select value={filtroSituacao} onChange={(event) => setFiltroSituacao(event.target.value as "" | SituacaoFerias)}>
                     <option value="">Todas</option>
                     <option value="AGUARDANDO VALIDAÇÃO">Aguardando validação</option>
-                    <option value="EM ABERTO">Em aberto</option>
+                    <option value="EM ABERTO">Agendada</option>
                     <option value="QUITADO">Quitado</option>
                     <option value="CANCELADO">Cancelado</option>
                     <option value="REPROVADO">Reprovado</option>
                     <option value="SUSPENSO">Suspenso</option>
                   </select>
                 </label>
+                <label><span>Tipo de vínculo</span><select value={filtroVinculo} onChange={e => setFiltroVinculo(e.target.value)}><option value="">Todos</option>{['Efetivo','Comissionado','Contrato Temporário','Estagiário','Residente Técnico'].map(v => <option key={v}>{v}</option>)}</select></label>
+                {filtroOrgao.includes('SEDUC') && <label><span>DRE</span><select value={filtroDre} onChange={e => setFiltroDre(e.target.value)}><option value="">Todas</option>{[...new Set(registros.filter(r => r.orgao === filtroOrgao).map(r => r.dre).filter(Boolean))].map(d => <option key={d}>{d}</option>)}</select></label>}
                 <BotaoLimparFiltroSeplag type="button" label="Limpar filtro" className="prototype-ferias-limpar-filtro" onClick={limparFiltros} />
               </div>
 
@@ -1002,7 +1055,7 @@ export function PrototiposFeriasPage() {
 
           {aba === "aprovacoes" && podeAvaliar(perfil) ? (
             <AprovacoesFerias
-              registros={registros}
+              registros={registros.filter(r => (r.tipo === "Coletiva" || r.tipo === "Lote") ? perfil === "DRE / RH Central" : perfil === "Chefia Imediata" && (r.origem === "PORTALSERVIDOR" || r.tipo === "Recesso"))}
               onVisualizar={visualizarRegistro}
               onAlterarStatus={(registro, acao) => setConfirmacaoStatus({ registro, acao })}
               onAlterarStatusLote={(loteId, acao) => {
@@ -1020,7 +1073,7 @@ export function PrototiposFeriasPage() {
                 estagiário nunca geram substituição.
               </p>
 
-              <div className="prototype-ferias-indicadores">
+              <div className="prototype-ferias-indicadores prototype-ferias-indicadores--4col">
                 <IndicadorCard rotulo="TOTAL" valor={indicadoresSubstituicao.total} />
                 <IndicadorCard rotulo="VIGENTE" valor={indicadoresSubstituicao.vigente} tom="sucesso" />
                 <IndicadorCard rotulo="ENCERRADA" valor={indicadoresSubstituicao.encerrada} tom="info" />
@@ -1085,7 +1138,7 @@ export function PrototiposFeriasPage() {
         <ModalAlterarRecesso
           registro={registroEdicaoRecesso}
           onFechar={() => setRegistroEdicaoRecesso(null)}
-          onSalvar={(parcelas) => salvarEdicaoRecesso(registroEdicaoRecesso.id, parcelas)}
+          onSalvar={(parcelas, documento) => salvarEdicaoRecesso(registroEdicaoRecesso.id, parcelas, documento)}
         />
       ) : null}
 
@@ -1093,7 +1146,7 @@ export function PrototiposFeriasPage() {
         <ModalAlterarIndividual
           registro={registroEdicaoIndividual}
           onFechar={() => setRegistroEdicaoIndividual(null)}
-          onSalvar={(parcelas) => salvarEdicaoIndividual(registroEdicaoIndividual.id, parcelas)}
+          onSalvar={(parcelas, documento) => salvarEdicaoIndividual(registroEdicaoIndividual.id, parcelas, documento)}
         />
       ) : null}
 
@@ -1103,7 +1156,7 @@ export function PrototiposFeriasPage() {
           acao={confirmacaoStatus.acao}
           loteId={confirmacaoStatus.loteId}
           onFechar={() => setConfirmacaoStatus(null)}
-          onConfirmar={(novaSituacao,justificativa) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa)}
+          onConfirmar={(novaSituacao,justificativa,documento) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa,documento) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa)}
         />
       ) : null}
     </PrototypeSystemPage>
@@ -1112,6 +1165,7 @@ export function PrototiposFeriasPage() {
 
 function elegivelSubstituicao(registro: FeriasRegistro) {
   return (
+    registro.tipoVinculo === "Comissionado" &&
     registro.cargoGestao &&
     registro.parcelas.some((parcela) => parcela.dias >= 10) &&
     registro.situacao !== "CANCELADO" &&
@@ -1130,8 +1184,15 @@ function podeRejeitar(registro: FeriasRegistro) {
 /** Permissões por perfil: Servidor só visualiza; Chefia Imediata só avalia
  *  (valida/rejeita) as solicitações de sua equipe; RH/Gestão de Pessoas
  *  tem acesso completo (homologa, edita, suspende, cancela). */
+function perfilPodeAvaliarRegistro(perfil: PerfilAcesso, registro: FeriasRegistro) {
+  if (prazoValidacaoExpirado(registro)) return false;
+  return registro.tipo === 'Coletiva' || registro.tipo === 'Lote'
+    ? perfil === 'DRE / RH Central'
+    : perfil === 'Chefia Imediata' && (registro.origem === 'PORTALSERVIDOR' || registro.tipo === 'Recesso');
+}
+
 function podeAvaliar(perfil: PerfilAcesso) {
-  return perfil === "Chefia Imediata" || perfil === "RH / Gestão de Pessoas";
+  return perfil === "Chefia Imediata" || perfil === "DRE / RH Central";
 }
 
 function podeGerenciarCompleto(perfil: PerfilAcesso) {
@@ -1151,7 +1212,7 @@ function podeCancelar(registro: FeriasRegistro) {
 }
 
 function IndicadorCard({ rotulo, valor, tom }: Readonly<{ rotulo: string; valor: number; tom?: "sucesso" | "info" | "alerta" | "roxo" | "vermelho" }>) {
-  const icones: Record<string, string> = { TOTAL: "pi-chart-bar", "EM ABERTO": "pi-clock", QUITADO: "pi-check-circle", SUSPENSO: "pi-pause-circle", COMISSIONADO: "pi-id-card", "CONTRATO TEMPORÁRIO": "pi-file", "RESIDENTE TÉCNICO": "pi-briefcase", ESTAGIÁRIO: "pi-graduation-cap", FÉRIAS: "pi-calendar", "LICENÇA REMUNERADA": "pi-wallet", VIGENTE: "pi-check-circle", ENCERRADA: "pi-calendar-times", "SEM PORTARIA": "pi-exclamation-circle" };
+  const icones: Record<string, string> = { TOTAL: "pi-chart-bar", AGENDADA: "pi-clock", QUITADO: "pi-check-circle", SUSPENSO: "pi-pause-circle", COMISSIONADO: "pi-id-card", "CONTRATO TEMPORÁRIO": "pi-file", "RESIDENTE TÉCNICO": "pi-briefcase", ESTAGIÁRIO: "pi-graduation-cap", FÉRIAS: "pi-calendar", "LICENÇA REMUNERADA": "pi-wallet", VIGENTE: "pi-check-circle", ENCERRADA: "pi-calendar-times", "SEM PORTARIA": "pi-exclamation-circle" };
   const titulo = rotulo.charAt(0) + rotulo.slice(1).toLocaleLowerCase("pt-BR");
   return (
     <div className={"prototype-ferias-indicador" + (tom ? ` is-${tom}` : "")}>
@@ -1194,7 +1255,7 @@ function TabelaRegistros({
       <table className="prototype-ferias-table">
         <thead>
           <tr>
-            <th>Matrícula</th>
+            <th>Matrícula/Vínculo</th>
             <th>Órgão</th>
             <th>Nome Servidor</th>
             <th>Período Aquisitivo</th>
@@ -1214,7 +1275,7 @@ function TabelaRegistros({
             return linhasParcela.map((parcela) => (
             <tr key={parcela ? `${registro.id}-${parcela.id}` : registro.id}>
               <td>
-                {registro.matricula}
+                {registro.matricula} / {registro.numeroVinculo ?? "1"}
                 <br />
                 <small>{registro.tipoVinculo}</small>
               </td>
@@ -1260,7 +1321,7 @@ function TabelaRegistros({
                 {prazoValidacaoExpirado(registro) ? (
                   <span className="prototype-ferias-badge is-cancelado">Prazo expirado</span>
                 ) : (
-                  <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{registro.situacao.charAt(0) + registro.situacao.slice(1).toLocaleLowerCase("pt-BR")}</span>
+                  <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{rotuloSituacao(registro.situacao)}</span>
                 )}
               </td>
               <td>
@@ -1291,7 +1352,7 @@ function TabelaRegistros({
                           <i className="pi pi-users" aria-hidden="true" /> Gerenciar substituição
                         </button>
                       ) : null}
-                      {podeAvaliar(perfil) && podeValidarChefia(registro) ? (
+                      {perfilPodeAvaliarRegistro(perfil, registro) && podeValidarChefia(registro) ? (
                         <button
                           type="button"
                           className="is-acao-verde"
@@ -1300,7 +1361,7 @@ function TabelaRegistros({
                           <i className="pi pi-check-circle" aria-hidden="true" /> Validar (chefia)
                         </button>
                       ) : null}
-                      {podeAvaliar(perfil) && podeRejeitar(registro) ? (
+                      {perfilPodeAvaliarRegistro(perfil, registro) && podeRejeitar(registro) ? (
                         <button
                           type="button"
                           className="is-acao-vermelha"
@@ -1496,6 +1557,7 @@ export function FormularioIndividual({
    * desabilitado/acinzentado — reaproveita o mesmo layout do cadastro só para "Visualizar". */
   registroSomenteLeitura?: FeriasRegistro;
 }>) {
+  const [documento, setDocumento] = useState<DocumentoFerias | null>(null);
   const somenteLeitura = Boolean(registroSomenteLeitura);
   const [servidorNome, setServidorNome] = useState(registroSomenteLeitura?.servidorNome ?? "");
   const [matricula, setMatricula] = useState(registroSomenteLeitura?.matricula ?? "");
@@ -1571,8 +1633,8 @@ export function FormularioIndividual({
   }, [matricula, draftInicio, draftFim, draftDias, parcelas, somenteLeitura]);
 
   const opcoesDuracao = useMemo(
-    () => [30, 20, 15, 10].filter((dias) => dias <= saldoRestante && dias >= 10),
-    [saldoRestante],
+    () => duracoesPermitidas(saldoRestante, orgao, cargo),
+    [saldoRestante, orgao, cargo],
   );
 
   useEffect(() => {
@@ -1589,6 +1651,9 @@ export function FormularioIndividual({
       setErro("Férias individuais são permitidas somente para vínculos Efetivo, Comissionado e Contrato Temporário. Residentes técnicos e estagiários não podem solicitar férias.");
       return;
     }
+    const periodo = periodoDisponivelServidor(servidor);
+    if (!periodo) { setErro('Servidor sem período aquisitivo com saldo disponível.'); setServidorEncontrado(false); return; }
+    setParcelas([]);
     setServidorNome(servidor.nome);
     setMatricula(servidor.matricula);
     setOrgao(servidor.orgao);
@@ -1596,9 +1661,9 @@ export function FormularioIndividual({
     setCargo(servidor.cargo);
     setTipoVinculo(servidor.tipoVinculo);
     setCargoGestao(servidor.cargoGestao);
-    setPeriodoAquisitivoInicio(servidor.periodoAquisitivoInicio);
-    setPeriodoAquisitivoFim(servidor.periodoAquisitivoFim);
-    setSaldoDisponivel(servidor.saldoDisponivel);
+    setPeriodoAquisitivoInicio(periodo.inicio);
+    setPeriodoAquisitivoFim(periodo.fim);
+    setSaldoDisponivel(periodo.saldo);
     setServidorEncontrado(true);
     setServidorBusca(descricaoServidor(servidor));
     setAlertaConcomitancia("");
@@ -1672,6 +1737,7 @@ export function FormularioIndividual({
   };
 
   const adicionarParcelaDraft = () => {
+    if (!opcoesDuracao.includes(draftDias)) { setErro('Duração não permitida para este cargo ou deixaria saldo residual de 5 dias.'); return; }
     if (parcelas.length >= 3) {
       setErro("Limite de 3 parcelas atingido.");
       return;
@@ -1736,6 +1802,8 @@ export function FormularioIndividual({
   };
 
   const salvar = () => {
+    if (!documento) { setErro('Anexe o documento/despacho formal do SIGEP.'); return; }
+    if (!parcelas.length || parcelas.some(p => !duracoesPermitidas(saldoDisponivel ?? 0, orgao, cargo).includes(p.dias)) || saldoRestante === 5) { setErro('Parcelamento inválido para o cargo ou saldo residual de 5 dias.'); return; }
     if (!servidorEncontrado || !tipoVinculo || !permiteSolicitacaoFerias(tipoVinculo)) {
       setErro("Férias individuais são permitidas somente para vínculos Efetivo, Comissionado e Contrato Temporário.");
       return;
@@ -1753,8 +1821,8 @@ export function FormularioIndividual({
       setErro(erroIntervalo);
       return;
     }
-    if (totalParcelado !== saldoDisponivel) {
-      setErro(`A soma das parcelas (${totalParcelado} dias) precisa fechar exatamente o saldo disponível (${saldoDisponivel} dias).`);
+    if (totalParcelado > (saldoDisponivel ?? 0)) {
+      setErro(`A soma das parcelas (${totalParcelado} dias) excede o saldo disponível (${saldoDisponivel} dias).`);
       return;
     }
     setErro("");
@@ -1774,8 +1842,9 @@ export function FormularioIndividual({
       periodoAquisitivoInicio,
       periodoAquisitivoFim,
       parcelas,
-      situacao: "AGUARDANDO VALIDAÇÃO",
-      dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(),
+      situacao: "EM ABERTO",
+      saldoFerias: saldoDisponivel ?? 0,
+      documentos: [documento],
       substitutos: [],
       responsavelLancamento: "Usuário atual",
       lancadoEm: new Date().toLocaleString("pt-BR"),
@@ -1784,7 +1853,7 @@ export function FormularioIndividual({
 
   return (
     <div className="prototype-ferias-individual-form">
-      {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
+      {erro ? <div className="prototype-ferias-erro-bloqueio" role="alert">{erro}</div> : null}
       {alertaConcomitancia ? (
         <div className="prototype-ferias-banner is-alerta" role="note">
           <i className="pi pi-exclamation-triangle" aria-hidden="true" />
@@ -1796,17 +1865,17 @@ export function FormularioIndividual({
         <div className="prototype-ferias-banner" style={{ background: "#eff6ff", borderColor: "#bfdbfe", color: "#1d4ed8" }}>
           <i className="pi pi-info-circle" aria-hidden="true" />
           <span>
-            Ao salvar, a solicitação entra como <strong>Aguardando Validação</strong>. A chefia imediata tem 8 dias
-            corridos para validar — sem validação no prazo, o sistema rejeita automaticamente.
+            Lançamento individual SIGEP: status inicial <strong>Agendada</strong>, respaldado pelo documento/despacho formal obrigatório.
           </span>
         </div>
       ) : null}
 
+      {!somenteLeitura && <AnexoFerias label="Documento / despacho formal (SIGADOC)" onChange={setDocumento} />}
       <div className={somenteLeitura ? "prototype-ferias-visualizacao-somente-leitura" : undefined}>
       <div className="prototype-ferias-form-section">
         <h3 className="prototype-ferias-secao-titulo">
           <i className="pi pi-user" aria-hidden="true" />
-          1. Identificação do Servidor &amp; Saldo Aquisitivo
+          1. Identificação do Servidor &amp; Saldo Aquisitivo (seleção automática do mais antigo)
         </h3>
         <label className="prototype-ferias-busca-servidor-label" htmlFor="ferias-individual-busca-servidor">
           <span>Buscar Servidor (Matrícula, CPF ou Nome)</span>
@@ -2084,7 +2153,7 @@ export function FormularioColetiva({
       tipoVinculoFiltro: modoAgendamentoLote ? "Efetivo" : "Todos",
     },
   });
-  const [orgao, escola, periodoAquisitivo, tipoVinculoFiltro] = watchColetiva([
+  const [orgao, escola, , tipoVinculoFiltro] = watchColetiva([
     "orgao",
     "escola",
     "periodoAquisitivo",
@@ -2319,6 +2388,7 @@ export function FormularioColetiva({
   /** RN (Agendamento em Lote): soma das parcelas marcadas não pode exceder o saldo do servidor. */
   const erroSaldoLote = (professor: ProfessorLote): string | null => {
     const soma = somaDiasSelecionadosLote(professor);
+    if (professor.saldo - soma === 5) return 'Parcelamento deixaria saldo residual de 5 dias';
     if (soma > professor.saldo) {
       return `Parcelas somam ${soma} dias — saldo disponível é de apenas ${professor.saldo} dias`;
     }
@@ -2387,9 +2457,21 @@ export function FormularioColetiva({
 
   useEffect(() => { setPrimeiroAba2(0); }, [buscaAba2, soComAlerta, orgao, escola, buscaNome, tipoVinculoFiltro]);
 
+  const periodoDoProfessor = (professor: ProfessorLote) => periodoDisponivelServidor({
+    matricula:professor.matricula, nome:professor.nome, orgao:professor.orgao + '/MT', setor:professor.lotacaoNome,
+    cargo:professor.cargo, tipoVinculo:professor.vinculo, cargoGestao:false,
+    periodoAquisitivoInicio:'2025-01-01', periodoAquisitivoFim:'2025-12-31', saldoDisponivel:professor.saldo,
+  });
+  const [documentoLote, setDocumentoLote] = useState<DocumentoFerias | null>(null);
   const lancarLote = () => {
     const erros: string[] = [];
     const incluidos = professoresIncluidos;
+    if (!documentoLote) erros.push('Anexe a Portaria da Escala de Férias.');
+    incluidos.forEach(professor => {
+      const dias = modoAgendamentoLote ? somaDiasSelecionadosLote(professor) : (estadoLinha(professor.id).julho ? 15 : 0) + (estadoLinha(professor.id).janeiro ? 30 : 0);
+      if ((periodoDoProfessor(professor)?.saldo ?? 0) - dias === 5 || dias > (periodoDoProfessor(professor)?.saldo ?? 0)) erros.push(professor.nome + ': parcelamento excede o saldo ou deixa sobra de 5 dias.');
+      if (modoAgendamentoLote && /professor|docente/i.test(professor.cargo) && orgao === 'SEDUC' && [10,20].some(d => estadoLinha(professor.id).parcelasLote[d as DuracaoLote])) erros.push(professor.nome + ': professor SEDUC permite somente 15 ou 30 dias.');
+    });
 
     if (modoAgendamentoLote && perfilLote === "DRE_SEDUC") {
       setErro(["A DRE pode validar e tramitar lotes, mas não pode lançar férias."]);
@@ -2447,8 +2529,10 @@ export function FormularioColetiva({
     setErro([]);
 
     const loteId = `LOTE-${orgao}-${gerarId()}`;
-    const anoAquisitivo = Number(periodoAquisitivo);
-    const novosRegistros: FeriasRegistro[] = incluidos.map((professor) => {
+    const periodosSelecionados = incluidos.map(periodoDoProfessor);
+    if (periodosSelecionados.some((p,indice) => !p || p.saldo < (modoAgendamentoLote ? somaDiasSelecionadosLote(incluidos[indice]) : (estadoLinha(incluidos[indice].id).julho ? 15 : 0) + (estadoLinha(incluidos[indice].id).janeiro ? 30 : 0)))) { setErro(['Saldo do período mais antigo insuficiente. Revise os servidores selecionados.']); return; }
+    const novosRegistros: FeriasRegistro[] = incluidos.map((professor, indiceProfessor) => {
+      const periodo = periodosSelecionados[indiceProfessor]!;
       const parcelas: ParcelaFerias[] = [];
       if (modoAgendamentoLote) {
         DURACOES_LOTE.forEach((duracao, indice) => {
@@ -2471,6 +2555,8 @@ export function FormularioColetiva({
         cpf: "",
         orgao: orgao === "SEDUC" ? "SEDUC/MT" : "UNEMAT/MT",
         orgaoColetivo: orgao,
+        dre: orgao === 'SEDUC' ? 'DRE de demonstração' : undefined,
+        unidade: professor.lotacaoNome,
         setor: professor.lotacaoNome,
         cargo: professor.cargo ?? "Professor",
         cargoGestao: false,
@@ -2480,9 +2566,10 @@ export function FormularioColetiva({
         regraAquisitivo: usaRegraAquisitivoUnemat ? "USUFRUTO_ANTECIPADO" : "PADRAO",
         tipo: modoAgendamentoLote ? "Lote" : "Coletiva",
         origem: "SIGEP",
-        periodoAquisitivoInicio: `${anoAquisitivo}-01-01`,
-        periodoAquisitivoFim: `${anoAquisitivo}-12-31`,
-        periodoAquisitivoLabel: periodoAquisitivo,
+        periodoAquisitivoInicio: periodo.inicio,
+        periodoAquisitivoFim: periodo.fim,
+        documentos: documentoLote ? [documentoLote] : [],
+        dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(),
         parcelas,
         // Todo lançamento de férias precisa passar por aprovação da chefia antes de ficar
         // Em Aberto — inclusive Coletiva direta e o lote da Gestão de Pessoas da UNEMAT, que
@@ -2531,9 +2618,11 @@ export function FormularioColetiva({
   }, [registrosPersistidos]);
 
   const decidirLotePendente = (loteId: string, registroId?: number) => {
+    if (perfilLote !== 'DRE_SEDUC') return;
     const registrosAtualizados = registrosPersistidos
       .filter((registro) =>
         registro.loteId === loteId &&
+        !prazoValidacaoExpirado(registro) &&
         registro.situacao === "AGUARDANDO VALIDAÇÃO" &&
         (registroId === undefined || registro.id === registroId),
       )
@@ -2549,6 +2638,11 @@ export function FormularioColetiva({
 
   return (
     <div>
+      <AnexoFerias label="Portaria da Escala de Férias" onChange={setDocumentoLote} />
+      <details className="prototype-ferias-form-section"><summary>Períodos aquisitivos consumidos automaticamente</summary>{professoresIncluidos.map(p => {
+        const periodo = periodoDoProfessor(p);
+        return <p key={p.id}>{p.nome}: {periodo ? formatarDataBr(periodo.inicio) + ' a ' + formatarDataBr(periodo.fim) + ' · ' + periodo.saldo + ' dias disponíveis' : 'Sem saldo disponível'}</p>;
+      })}</details>
       {erro.length ? (
         <div className="prototype-ferias-erro-bloqueio">
           {erro.map((mensagem) => (
@@ -2647,7 +2741,7 @@ export function FormularioColetiva({
                 role="tab"
                 aria-selected={abaColetiva === etapa.numero}
                 aria-controls={etapa.painel}
-                onClick={() => setAbaColetiva(etapa.numero)}
+                onClick={() => setAbaColetiva(etapa.numero as 1 | 2)}
               >
                 <span className="prototype-ferias-coletiva-step-numero">{etapa.numero}</span>
                 <span className="prototype-ferias-coletiva-step-titulo">{etapa.titulo}</span>
@@ -2712,7 +2806,7 @@ export function FormularioColetiva({
           <DropdownFieldSeplag
             name="periodoAquisitivo"
             control={coletivaControl}
-            label="Período Aquisitivo"
+            label="Ano da escala (período aquisitivo automático por servidor)"
             cols="12"
             options={anosDisponiveis.map((ano) => ({ label: ano, value: ano }))}
             optionLabel="label"
@@ -3161,7 +3255,7 @@ export function FormularioColetiva({
                             const jaMarcada = estado.parcelasLote[duracao];
                             // Bloqueia marcar uma parcela nova cuja soma ultrapasse o saldo do
                             // servidor — desmarcar sempre é permitido.
-                            const excederiaSaldo = !jaMarcada && somaDiasSelecionadosLote(professor) + duracao > professor.saldo;
+                            const excederiaSaldo = !jaMarcada && (!duracoesPermitidas(professor.saldo - somaDiasSelecionadosLote(professor), professor.orgao, professor.cargo).includes(duracao));
                             return (
                               <td key={duracao} style={{ textAlign: "center" }}>
                                 <input
@@ -3343,6 +3437,7 @@ export function FormularioLote({
   onCancelar,
   onSalvar,
 }: Readonly<{ onCancelar: () => void; onSalvar: (registros: FeriasRegistro[]) => void }>) {
+  const [documento, setDocumento] = useState<DocumentoFerias | null>(null);
   const [orgao, setOrgao] = useState("SEPLAG/MT");
   const [periodoAquisitivo, setPeriodoAquisitivo] = useState(String(new Date().getFullYear()));
   const [dataInicio, setDataInicio] = useState("");
@@ -3404,6 +3499,7 @@ export function FormularioLote({
   };
 
   const lancarLote = () => {
+    if (!documento) { setErro('Anexe o documento formal do lote.'); return; }
     if (!orgao.trim() || !dataInicio || !dias) {
       setErro("Preencha órgão, data de início e dias do lote.");
       setConfirmacao("");
@@ -3417,8 +3513,12 @@ export function FormularioLote({
 
     setErro("");
     const loteId = `LOTE-GESTAO-${gerarId()}`;
-    const anoAtual = new Date().getFullYear();
-    const novosRegistros: FeriasRegistro[] = servidores.map((servidor) => ({
+    const periodos = servidores.map(servidor => {
+      const cadastro = SERVIDORES_MOCK.find(s => s.matricula === servidor.matricula && s.tipoVinculo === servidor.vinculo);
+      return cadastro ? periodoDisponivelServidor(cadastro) : undefined;
+    });
+    if (periodos.some((p,i) => !p || !duracoesPermitidas(p.saldo, orgao, servidores[i].cargo).includes(dias))) { setErro('Período sem saldo, duração inválida para o cargo ou sobra de 5 dias.'); return; }
+    const novosRegistros: FeriasRegistro[] = servidores.map((servidor, indice) => ({
       id: gerarId() + servidor.id,
       servidorNome: servidor.nome,
       matricula: servidor.matricula,
@@ -3428,12 +3528,14 @@ export function FormularioLote({
       setor: "",
       cargo: servidor.cargo || "—",
       cargoGestao: true,
-      tipoVinculo: "Efetivo",
+      tipoVinculo: servidor.vinculo as TipoVinculo,
       tipo: "Lote",
       origem: "SIGEP",
-      periodoAquisitivoInicio: periodoAquisitivo ? `${anoAtual}-01-01` : "",
-      periodoAquisitivoFim: periodoAquisitivo ? `${anoAtual}-12-31` : "",
-      periodoAquisitivoLabel: periodoAquisitivo || undefined,
+      periodoAquisitivoInicio: periodos[indice]!.inicio,
+      periodoAquisitivoFim: periodos[indice]!.fim,
+      saldoFerias: periodos[indice]!.saldo,
+      documentos:[documento],
+      dataLimiteValidacaoChefia:calcularPrazoValidacaoChefia(),
       parcelas: [{ id: 1, inicio: dataInicio, fim, dias }],
       situacao: "AGUARDANDO VALIDAÇÃO",
       substitutos: [],
@@ -3448,6 +3550,7 @@ export function FormularioLote({
 
   return (
     <div>
+      <AnexoFerias label="Documento formal do lote" onChange={setDocumento} />
       {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
       {confirmacao ? <div className="prototype-ferias-confirmacao">{confirmacao}</div> : null}
 
@@ -3668,7 +3771,7 @@ export function FormularioRecesso({
       : [],
   );
   const [periodoAquisitivoSelecionado, setPeriodoAquisitivoSelecionado] = useState(registroSomenteLeitura?.periodoAquisitivoInicio ?? "");
-  const [dataInicio, setDataInicio] = useState("");
+  const [, setDataInicio] = useState("");
   const [parcelasResidente, setParcelasResidente] = useState<ParcelaFerias[]>(() => registroSomenteLeitura?.parcelas.map((parcela) => ({ ...parcela })) ?? []);
   const {
     control: recessoGozoControl,
@@ -3716,36 +3819,14 @@ export function FormularioRecesso({
 
   // validarSolicitacaoRecesso: residente parcela de 10 a 30 dias (até 3 etapas); estagiário
   // de 5 a 30 dias, sem limite de etapas na norma — mantemos o teto de 3 só por usabilidade.
-  const diasMinimoEtapa = ehEstagiario ? 5 : 10;
+  const diasMinimoEtapa = 10;
   const diasMaximoEtapa = 30;
 
   const totalParceladoResidente = parcelasResidente.reduce((total, parcela) => total + parcela.dias, 0);
   const saldoRestanteEtapas = (saldoDisponivel ?? 0) - totalParceladoResidente;
-  const maxDuracaoDisponivel = Math.min(diasMaximoEtapa, saldoRestanteEtapas);
   const opcoesDuracaoRecesso = useMemo(
-    () => {
-      if (ehEstagiario) {
-        return Array.from(
-          { length: Math.max(0, maxDuracaoDisponivel - diasMinimoEtapa + 1) },
-          (_, indice) => maxDuracaoDisponivel - indice,
-        );
-      }
-
-      const duracoesAdicionadas = [
-        ...parcelasJaAgendadas.map((parcela) => parcela.dias),
-        ...parcelasResidente.map((parcela) => parcela.dias),
-      ];
-      return PARCELAMENTOS_RESIDENTE
-        .filter((parcelamento) =>
-          parcelamento.length > duracoesAdicionadas.length &&
-          parcelamento.reduce((total, dias) => total + dias, 0) === saldoTotalPeriodo &&
-          duracoesAdicionadas.every((dias, indice) => parcelamento[indice] === dias),
-        )
-        .map((parcelamento) => parcelamento[duracoesAdicionadas.length])
-        .filter((dias, indice, opcoes) => opcoes.indexOf(dias) === indice)
-        .sort((a, b) => b - a);
-    },
-    [ehEstagiario, maxDuracaoDisponivel, diasMinimoEtapa, parcelasJaAgendadas, parcelasResidente, saldoTotalPeriodo],
+    () => [30,20,15,10].filter(d => d <= saldoRestanteEtapas && saldoRestanteEtapas - d !== 5),
+    [saldoRestanteEtapas],
   );
   useEffect(() => {
     if (opcoesDuracaoRecesso.length && !opcoesDuracaoRecesso.includes(draftDuracaoResidente)) {
@@ -3951,7 +4032,6 @@ export function FormularioRecesso({
     ...parcela,
     fim: calcularFim(parcela.inicio, parcela.dias),
   }));
-  const fim = parcelasCalculadas[0]?.fim ?? "";
   // IN 007/2022 (estagiário) e Decreto 704/2024 (residente técnico): nenhum dos dois recebe
   // auxílio-transporte durante o recesso, só a bolsa/vencimento normal.
   const bloqueioAuxilioTransporte = ehEstagiario || ehResidenteTecnico;
@@ -3982,25 +4062,7 @@ export function FormularioRecesso({
       setErro("Adicione ao menos uma etapa do recesso.");
       return;
     }
-    if (ehEstagiario && totalParceladoResidente !== saldoDisponivel) {
-      setErro(`Adicione etapa(s) até completar o saldo do recesso (${totalParceladoResidente} de ${saldoDisponivel} dias).`);
-      return;
-    }
-    if (!ehEstagiario) {
-      const duracoesAgendadas = [
-        ...parcelasJaAgendadas.map((parcela) => parcela.dias),
-        ...parcelasCalculadas.map((parcela) => parcela.dias),
-      ];
-      const parcelamentoValido = PARCELAMENTOS_RESIDENTE.some((parcelamento) =>
-        parcelamento.reduce((total, dias) => total + dias, 0) === saldoTotalPeriodo &&
-        duracoesAgendadas.length <= parcelamento.length &&
-        duracoesAgendadas.every((dias, indice) => parcelamento[indice] === dias),
-      );
-      if (!parcelamentoValido) {
-        setErro("As etapas solicitadas não correspondem a um parcelamento permitido para o saldo deste período.");
-        return;
-      }
-    }
+    if (saldoDisponivel - totalParceladoResidente === 5) { setErro('O parcelamento não pode deixar saldo residual de 5 dias.'); return; }
     // Revalida cada etapa com a mesma função usada ao adicionar (defesa em profundidade).
     for (let indice = 0; indice < parcelasCalculadas.length; indice += 1) {
       const parcela = parcelasCalculadas[indice];
@@ -4178,7 +4240,7 @@ export function FormularioRecesso({
                 <strong>{carencia.meses} {carencia.meses === 1 ? "mês" : "meses"} e {carencia.diasRestantes} {carencia.diasRestantes === 1 ? "dia" : "dias"} ({carencia.totalDias} dias)</strong>
               </div>
             </div>
-            {!ehEstagiario && (
+            {ehEstagiario ? <p>Estagiário: carência mínima de 6 meses de contrato para liberar usufruto de 15 dias.</p> : (
               <div className="prototype-ferias-carencia-badges">
                 <span className={`prototype-ferias-carencia-badge ${carencia.cumpre12 ? "is-ok" : "is-erro"}`}>
                   <i className={`pi ${carencia.cumpre12 ? "pi-check" : "pi-times"}`} />
@@ -4219,7 +4281,7 @@ export function FormularioRecesso({
                       getFormErrorMessage={() => null}
                     />
                     <small className="prototype-ferias-gozo-ajuda">
-                      Etapas de {diasMinimoEtapa} a {maxDuracaoDisponivel} dias.{" "}
+                      Blocos de 10, 15 ou 20 dias; integral de 30 dias.{" "}
                       {ehEstagiario
                         ? "Antecedência mínima de 30 dias."
                         : `Antecedência mínima de ${antecedenciaMinimaProximaEtapa} dias para esta etapa.`}
@@ -4487,9 +4549,10 @@ function ModalAlterarRecesso({
   registro,
   onFechar,
   onSalvar,
-}: Readonly<{ registro: FeriasRegistro; onFechar: () => void; onSalvar: (parcelas: ParcelaFerias[]) => void }>) {
+}: Readonly<{ registro: FeriasRegistro; onFechar: () => void; onSalvar: (parcelas: ParcelaFerias[], documento: DocumentoFerias) => void }>) {
   const ehEstagiario = registro.tipoVinculo === "Estagiário";
   const [parcelas, setParcelas] = useState<ParcelaFerias[]>(() => registro.parcelas.map((parcela) => ({ ...parcela })));
+  const [documento, setDocumento] = useState<DocumentoFerias | null>(null);
   const [erro, setErro] = useState("");
 
   const periodos = PERIODOS_RECESSO_MOCK[registro.matricula] ?? [];
@@ -4508,6 +4571,7 @@ function ModalAlterarRecesso({
   };
 
   const salvar = () => {
+    if (!documento) { setErro('Anexe a justificativa formal da alteração.'); return; }
     if (parcelas.some((parcela) => !parcela.inicio)) {
       setErro("Informe a data de início de todas as parcelas.");
       return;
@@ -4538,7 +4602,7 @@ function ModalAlterarRecesso({
       }
     }
     setErro("");
-    onSalvar(parcelas);
+    onSalvar(parcelas, documento);
   };
 
   return (
@@ -4549,6 +4613,7 @@ function ModalAlterarRecesso({
           anterior {ehEstagiario ? "ao fim da contratação" : "ao início do próximo período aquisitivo"}
           {limiteAlteracao ? ` (${formatarDataBr(limiteAlteracao)})` : ", sem limite conhecido para este servidor"}.
         </p>
+        <AnexoFerias label="Justificativa formal da alteração" onChange={setDocumento} />
         {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
         {parcelas.map((parcela, indice) => (
           <div className="prototype-ferias-form-grid" key={parcela.id}>
@@ -4586,9 +4651,10 @@ function ModalAlterarIndividual({
   registro,
   onFechar,
   onSalvar,
-}: Readonly<{ registro: FeriasRegistro; onFechar: () => void; onSalvar: (parcelas: ParcelaFerias[]) => void }>) {
+}: Readonly<{ registro: FeriasRegistro; onFechar: () => void; onSalvar: (parcelas: ParcelaFerias[], documento: DocumentoFerias) => void }>) {
   const restrito = registro.situacao === "EM ABERTO";
   const [parcelas, setParcelas] = useState<ParcelaFerias[]>(() => registro.parcelas.map((parcela) => ({ ...parcela })));
+  const [documento, setDocumento] = useState<DocumentoFerias | null>(null);
   const [erro, setErro] = useState("");
 
   const atualizarInicio = (id: number, novoInicio: string) => {
@@ -4604,10 +4670,14 @@ function ModalAlterarIndividual({
   };
 
   const salvar = () => {
+    if (!documento) { setErro('Anexe a justificativa formal da alteração.'); return; }
     if (parcelas.some((parcela) => !parcela.inicio || parcela.dias < 1)) {
       setErro("Informe a data de início e ao menos 1 dia em todas as parcelas.");
       return;
     }
+    const saldo = registro.saldoFerias ?? diasSolicitados(registro);
+    const total = parcelas.reduce((n,p) => n+p.dias,0);
+    if (total > saldo || saldo-total === 5 || parcelas.some(p => !duracoesPermitidas(saldo,registro.orgao,registro.cargo).includes(p.dias))) { setErro('Parcelamento inválido: verifique saldo, cargo e sobra de 5 dias.'); return; }
     if (!restrito) {
       const erroIntervalo = validarIntervaloParcelas(parcelas);
       if (erroIntervalo) {
@@ -4616,7 +4686,7 @@ function ModalAlterarIndividual({
       }
     }
     setErro("");
-    onSalvar(parcelas);
+    onSalvar(parcelas, documento);
   };
 
   return (
@@ -4627,6 +4697,7 @@ function ModalAlterarIndividual({
             ? "Solicitação já aprovada: só a quantidade de dias de cada parcela pode ser alterada. Alterar o parcelamento (datas/divisão das parcelas) é bloqueado após a aprovação da chefia — a alteração devolve a solicitação ao aprovador."
             : "Edição permitida enquanto a solicitação estiver Aguardando Validação. O intervalo entre parcelas continua valendo 0 ou 10 dias corridos (Decreto 656/2020)."}
         </p>
+        <AnexoFerias label="Justificativa formal da alteração" onChange={setDocumento} />
         {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
         {parcelas.map((parcela, indice) => (
           <div className="prototype-ferias-form-grid" key={parcela.id}>
@@ -4721,7 +4792,7 @@ function ModalConfirmarStatus({
   registro: FeriasRegistro;
   acao: AcaoStatus;
   onFechar: () => void;
-  onConfirmar: (novaSituacao: SituacaoFerias, justificativa?: string) => void;
+  onConfirmar: (novaSituacao: SituacaoFerias, justificativa?: string, documento?: DocumentoFerias) => void;
   loteId?: string;
 }>) {
   const meta = STATUS_META[acao];
@@ -4729,10 +4800,12 @@ function ModalConfirmarStatus({
   // RN-04: férias já em andamento só podem ser suspensas/canceladas por calamidade pública ou
   // convocação pela administração — exige número de portaria/ofício em vez de justificativa livre.
   const exigePortaria = (acao === "cancelar" || acao === "suspender") && feriasEmAndamento(registro);
+  const [documento, setDocumento] = useState<DocumentoFerias | null>(null);
   const [justificativa, setJustificativa] = useState("");
   const [erro, setErro] = useState("");
 
   const confirmar = () => {
+    if ((acao === 'cancelar' || acao === 'suspender') && !documento) { setErro('Anexe a justificativa formal.'); return; }
     if (exigePortaria && !justificativa.trim()) {
       setErro("Informe o número da portaria/ofício de calamidade pública ou convocação.");
       return;
@@ -4741,7 +4814,7 @@ function ModalConfirmarStatus({
       setErro("Informe a justificativa antes de confirmar.");
       return;
     }
-    onConfirmar(meta.novaSituacao,justificativa.trim());
+    onConfirmar(meta.novaSituacao,justificativa.trim(),documento ?? undefined);
   };
 
   return (
@@ -4789,6 +4862,7 @@ function ModalConfirmarStatus({
             />
           </label>
         ) : null}
+        {(acao === 'cancelar' || acao === 'suspender') && <AnexoFerias label="Justificativa formal" onChange={setDocumento} />}
         {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
         <div className="prototype-vinculo-form" style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
           <button type="button" className="prototype-vinculo-back" onClick={onFechar}>
