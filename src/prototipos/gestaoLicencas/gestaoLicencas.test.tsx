@@ -179,15 +179,15 @@ it("o olho mostra os dados do registro selecionado sem alterar a base", () => {
     expect(modal.getByText(texto)).toBeTruthy();
   expect(JSON.stringify(registrosLicencas)).toBe(original);
 });
-it("mantém apenas Gestão ativa e desabilita os fluxos e a troca de perfil não definidos", () => {
+it("mantém Gestão ativa sem as abas e o seletor de perfil removidos", () => {
   montar();
   expect(
     screen.getByRole("tab", { name: "Gestão" }).getAttribute("aria-selected"),
   ).toBe("true");
   for (const nome of ["Perícia / Homologações", "Substituições"])
     expect(
-      (screen.getByRole("tab", { name: nome }) as HTMLButtonElement).disabled,
-    ).toBe(true);
+      screen.queryByRole("tab", { name: nome }),
+    ).toBeNull();
   expect(
     (
       screen.getByRole("button", {
@@ -196,8 +196,8 @@ it("mantém apenas Gestão ativa e desabilita os fluxos e a troca de perfil não
     ).disabled,
   ).toBe(false);
   expect(
-    (screen.getByLabelText("Visualizando como") as HTMLSelectElement).disabled,
-  ).toBe(true);
+    screen.queryByLabelText("Visualizando como"),
+  ).toBeNull();
   for (const botao of screen.getAllByRole("button", {
     name: /Ações adicionais de/,
   }))

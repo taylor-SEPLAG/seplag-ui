@@ -68,18 +68,6 @@ export function GestaoLicencasContent({
   };
   return (
     <div className="v2v-page gl-page">
-      <div className="gl-view-row">
-        <label>
-          Visualizando como
-          <select
-            disabled
-            title="Perfil disponível nesta demonstração"
-            value="rh"
-          >
-            <option value="rh">RH / Gestão de Pessoas (acesso completo)</option>
-          </select>
-        </label>
-      </div>
       <div
         className="gl-tabs"
         role="tablist"
@@ -94,18 +82,6 @@ export function GestaoLicencasContent({
         >
           Gestão
         </button>
-        {["Perícia / Homologações", "Substituições"].map((tab) => (
-          <button
-            type="button"
-            key={tab}
-            role="tab"
-            aria-selected="false"
-            disabled
-            title={indisponivel}
-          >
-            {tab}
-          </button>
-        ))}
       </div>
       <div role="tabpanel" id="gl-panel-gestao" aria-labelledby="gl-tab-gestao">
         <section
@@ -228,7 +204,6 @@ export function GestaoLicencasContent({
                   "Período do Afastamento",
                   "Tipo",
                   "Dias Concedidos",
-                  "Origem",
                   "Situação",
                   "Ações",
                 ].map((c) => (
@@ -265,13 +240,6 @@ export function GestaoLicencasContent({
                     {r.dias} {r.abrangencia}
                   </td>
                   <td>
-                    <span
-                      className={`gl-pill gl-origem-${r.origem === "SIGEP" ? "sigep" : "portal"}`}
-                    >
-                      {r.origem}
-                    </span>
-                  </td>
-                  <td>
                     <Situacao valor={r.situacao} />
                   </td>
                   <td>
@@ -298,7 +266,7 @@ export function GestaoLicencasContent({
               ))}
               {!filtrados.length && (
                 <tr>
-                  <td colSpan={9} className="v2v-empty" role="status">
+                  <td colSpan={8} className="v2v-empty" role="status">
                     Nenhum registro encontrado para os filtros informados.
                   </td>
                 </tr>
