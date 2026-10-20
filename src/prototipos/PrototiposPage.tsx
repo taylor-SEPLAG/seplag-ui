@@ -498,6 +498,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
     visibleOnRouter: true,
     items: [
       { label: "Concessão de Férias", icon: "pi pi-circle-on", to: "/prototipos/sigep/ferias", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Parametrização de Licenças", icon: "pi pi-circle-on", to: "/prototipos/sigep/parametrizacao-licencas", visibleOnMenu: true, visibleOnRouter: true },
     ],
   },
   {

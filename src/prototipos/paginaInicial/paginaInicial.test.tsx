@@ -151,34 +151,47 @@ it("personaliza a saudação, ordena os módulos e não cria rota para agrupador
   expect(screen.queryByText("Favoritos")).toBeNull();
 });
 
-it("pesquisa sem acentos e caixa, acessa a funcionalidade existente por teclado", () => {
+it("exibe a data atual e mantém somente a busca do cabeçalho global", () => {
   montar();
-  const busca = screen.getByRole("combobox");
-  fireEvent.change(busca, { target: { value: "HISTORICO FUNCIONAL" } });
-  expect(screen.getByRole("option").textContent).toContain(
-    "Histórico Funcional",
+  expect(screen.queryByRole("combobox")).toBeNull();
+  const data = document.querySelector("time")!;
+  expect(data.textContent).toContain(
+    new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "long",
+      timeZone: "America/Cuiaba",
+    }).format(new Date()),
   );
-  fireEvent.keyDown(busca, { key: "Enter" });
-  expect(screen.getByText("Destino Vida Funcional")).toBeTruthy();
 });
-
-it("não pesquisa módulos sem permissão, ocultos ou desabilitados e limpa a pesquisa", () => {
+it("prioriza favoritos sem navegar e restaura a ordem ao desmarcar", () => {
   montar();
-  const busca = screen.getByRole("combobox");
-  for (const value of ["pasta", "oculta", "desabilitada", "inexistente"]) {
-    fireEvent.change(busca, { target: { value } });
-    expect(screen.getByText("Nenhuma funcionalidade encontrada.")).toBeTruthy();
-  }
-  fireEvent.click(screen.getByRole("button", { name: "Limpar pesquisa" }));
-  expect((busca as HTMLInputElement).value).toBe("");
-  expect(screen.queryByRole("listbox")).toBeNull();
+  const acessos = () =>
+    screen
+      .getAllByRole("link")
+      .filter((link) => link.textContent?.includes("Acessar"))
+      .map((link) => link.getAttribute("href"));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Adicionar aos favoritos: Pessoas" }),
+  );
+  expect(acessos()).toEqual(["/pessoas", "/painel", "/vinculos"]);
+  expect(
+    screen
+      .getByRole("button", { name: "Remover dos favoritos: Pessoas" })
+      .getAttribute("aria-pressed"),
+  ).toBe("true");
+  expect(screen.getByRole("heading", { name: "Olá, Roberto!" })).toBeTruthy();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Remover dos favoritos: Pessoas" }),
+  );
+  expect(acessos()).toEqual(["/painel", "/pessoas", "/vinculos"]);
+  expect(
+    screen.queryByRole("button", { name: /favoritos: Pasta Funcional/ }),
+  ).toBeNull();
   expect(
     funcionalidades(menuDisponivel(menu, ["pasta"])).some(
       (item) => item.caminho === "/pasta",
     ),
   ).toBe(true);
 });
-
 it("mantém os dois cards em estado vazio e navega para seus detalhes", () => {
   montar(0, 0);
   expect(screen.queryByText("Nenhum comunicado ativo")).toBeNull();

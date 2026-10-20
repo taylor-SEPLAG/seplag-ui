@@ -201,6 +201,8 @@ import { SigepVisaoSistemaPage } from "./prototipos/SigepVisaoSistemaPage";
 import { PrototiposOrganogramaPage } from "./prototipos/estruturaOrganizacional/OrganogramaPage";
 import { PrototiposFeriasPage } from "./prototipos/ferias/FeriasPages";
 import { DireitosBeneficiosPage } from "./prototipos/ferias/DireitosBeneficiosPage";
+import { ParametrizacaoLicencasPage } from './prototipos/licencas/ParametrizacaoLicencasPage';
+import { ParametrizacaoLicencasFormPage } from './prototipos/licencas/FormularioLicenca';
 import { FeriasIndividualPage } from "./prototipos/ferias/FeriasIndividualPage";
 import { FeriasColetivaPage } from "./prototipos/ferias/FeriasColetivaPage";
 import { FeriasLotePage } from "./prototipos/ferias/FeriasLotePage";
@@ -1923,6 +1925,10 @@ function App() {
       <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos" element={<VidaFuncionalPage />} />
       <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos/:vinculoId/historico" element={<VidaFuncionalPage />} />
       <Route path="/prototipos/sigep/direitos-beneficios" element={<DireitosBeneficiosPage />} />
+      <Route path="/prototipos/sigep/parametrizacao-licencas" element={<ParametrizacaoLicencasPage />} />
+      <Route path="/prototipos/sigep/parametrizacao-licencas/novo" element={<ParametrizacaoLicencasFormPage />} />
+      <Route path="/prototipos/sigep/parametrizacao-licencas/:id/editar" element={<ParametrizacaoLicencasFormPage />} />
+      <Route path="/prototipos/sigep/parametrizacao-licencas/:id/clonar" element={<ParametrizacaoLicencasFormPage clonar />} />
       <Route path="/prototipos/sigep/ferias" element={<PrototiposFeriasPage />} />
       <Route path="/prototipos/sigep/ferias/nova/individual" element={<FeriasIndividualPage />} />
       <Route path="/prototipos/sigep/ferias/nova/coletiva" element={<FeriasColetivaPage />} />

@@ -1,11 +1,7 @@
-import { useId, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import type { IMenuSeplag } from "../../componentes/layout/Config/menu";
-import {
-  funcionalidades,
-  modulosPaginaInicial,
-  normalizarPesquisa,
-} from "./model";
+import { funcionalidades, modulosPaginaInicial } from "./model";
 import "./paginaInicial.css";
 import { ModuleNavigationCard } from "../navigation/ModuleNavigationCard";
 import { AVISOS_PATH } from "../avisos/model";
@@ -26,32 +22,22 @@ interface Props {
 export function PaginaInicialContent({
   menu,
   nomeUsuario,
-  cronogramas,
+
   proximo,
 }: Props) {
-  const navigate = useNavigate();
-  const [pesquisa, setPesquisa] = useState("");
-  const [aberta, setAberta] = useState(false);
-  const [selecionado, setSelecionado] = useState(0);
-  const input = useRef<HTMLInputElement>(null);
-  const listaId = useId();
+  const [favoritos, setFavoritos] = useState<string[]>([]);
+  const [agora, setAgora] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setAgora(new Date()), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
   const destinos = funcionalidades(menu);
-  const termo = normalizarPesquisa(pesquisa);
-  const resultados = destinos.filter((item) =>
-    normalizarPesquisa(item.nome).includes(termo),
-  );
-  const mostrar = aberta && !!termo;
   const primeiroNome = nomeUsuario.trim().split(/\s+/)[0];
   const nome = primeiroNome
     ? primeiroNome[0].toLocaleUpperCase("pt-BR") +
       primeiroNome.slice(1).toLocaleLowerCase("pt-BR")
     : "usuário";
   const painel = destinos.find((item) => item.nome === "Painel Informativo");
-  const navegar = (caminho: string) => {
-    setAberta(false);
-    navigate(caminho);
-  };
-
   const conteudoCronograma = (
     <>
       <span className="sigep-inicial-icone">
@@ -71,9 +57,6 @@ export function PaginaInicialContent({
           </>
         ) : (
           <>
-            {!!cronogramas && (
-              <strong>Nenhum prazo pendente disponível.</strong>
-            )}
             <p>Acompanhe o calendário e os eventos da folha.</p>
           </>
         )}
@@ -101,104 +84,18 @@ export function PaginaInicialContent({
             acompanhe os principais eventos.
           </p>
         </div>
-        <div
-          className="sigep-inicial-busca"
-          onBlur={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget))
-              setAberta(false);
-          }}
+        <time
+          className="sigep-inicial-data"
+          dateTime={new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/Cuiaba",
+          }).format(agora)}
         >
-          <div className="sigep-inicial-input">
-            <i className="pi pi-search" aria-hidden="true" />
-            <input
-              ref={input}
-              aria-label="Buscar funcionalidade"
-              placeholder="Buscar funcionalidade..."
-              value={pesquisa}
-              role="combobox"
-              aria-autocomplete="list"
-              aria-expanded={mostrar}
-              aria-controls={listaId}
-              aria-activedescendant={
-                mostrar && resultados.length
-                  ? `${listaId}-${selecionado}`
-                  : undefined
-              }
-              onFocus={() => setAberta(true)}
-              onChange={(event) => {
-                setPesquisa(event.target.value);
-                setAberta(true);
-                setSelecionado(0);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Escape") setAberta(false);
-                if (
-                  (event.key === "ArrowDown" || event.key === "ArrowUp") &&
-                  resultados.length
-                ) {
-                  event.preventDefault();
-                  setAberta(true);
-                  setSelecionado(
-                    (atual) =>
-                      (atual +
-                        (event.key === "ArrowDown" ? 1 : -1) +
-                        resultados.length) %
-                      resultados.length,
-                  );
-                }
-                if (
-                  event.key === "Enter" &&
-                  mostrar &&
-                  resultados[selecionado]
-                ) {
-                  event.preventDefault();
-                  navegar(resultados[selecionado].caminho);
-                }
-              }}
-            />
-            {pesquisa && (
-              <button
-                type="button"
-                aria-label="Limpar pesquisa"
-                onClick={() => {
-                  setPesquisa("");
-                  setSelecionado(0);
-                  input.current?.focus();
-                }}
-              >
-                <i className="pi pi-times" aria-hidden="true" />
-              </button>
-            )}
-          </div>
-          {mostrar && (
-            <div
-              className="sigep-inicial-sugestoes"
-              id={listaId}
-              role="listbox"
-              aria-label="Funcionalidades encontradas"
-            >
-              {resultados.length ? (
-                resultados.map((item, indice) => (
-                  <button
-                    type="button"
-                    key={item.caminho}
-                    role="option"
-                    id={`${listaId}-${indice}`}
-                    aria-selected={indice === selecionado}
-                    onMouseEnter={() => setSelecionado(indice)}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => navegar(item.caminho)}
-                  >
-                    <span>{item.nome}</span>
-                    <small>{item.contexto || "SIGEP"}</small>
-                  </button>
-                ))
-              ) : (
-                <p role="status">Nenhuma funcionalidade encontrada.</p>
-              )}
-            </div>
-          )}
-        </div>
+          <i className="pi pi-calendar" aria-hidden="true" />
+          {new Intl.DateTimeFormat("pt-BR", {
+            dateStyle: "long",
+            timeZone: "America/Cuiaba",
+          }).format(agora)}
+        </time>
       </header>
 
       <section
@@ -241,32 +138,63 @@ export function PaginaInicialContent({
           <p>Acesse os principais módulos do sistema.</p>
         </div>
         <div className="sigep-inicial-modulos">
-          {modulosPaginaInicial.flatMap((modulo) => {
-            const item = destinos.find(
-              (destino) => destino.nome === modulo.nome,
-            );
-            // Agrupadores disponíveis mas sem rota própria seguem o estado padrão Em definição.
-            const grupoDisponivel = (itens: IMenuSeplag[]): boolean =>
-              itens.some(
-                (entrada) =>
-                  entrada.label === modulo.nome ||
-                  grupoDisponivel(entrada.items ?? []),
+          {[...modulosPaginaInicial]
+            .sort(
+              (a, b) =>
+                Number(favoritos.includes(b.nome)) -
+                Number(favoritos.includes(a.nome)),
+            )
+            .flatMap((modulo) => {
+              const item = destinos.find(
+                (destino) => destino.nome === modulo.nome,
               );
-            if (!item && !grupoDisponivel(menu)) return [];
-            return [
-              <ModuleNavigationCard
-                key={modulo.nome}
-                id={modulo.nome}
-                titulo={modulo.nome}
-                descricao={modulo.descricao}
-                icone={modulo.icone}
-                destino={item?.caminho}
-                horizontal
-                tituloNivel="h3"
-                className="sigep-inicial-modulo"
-              />,
-            ];
-          })}
+              // Agrupadores disponíveis mas sem rota própria seguem o estado padrão Em definição.
+              const grupoDisponivel = (itens: IMenuSeplag[]): boolean =>
+                itens.some(
+                  (entrada) =>
+                    entrada.label === modulo.nome ||
+                    grupoDisponivel(entrada.items ?? []),
+                );
+              if (!item && !grupoDisponivel(menu)) return [];
+              return [
+                <div key={modulo.nome} className="sigep-inicial-card-wrapper">
+                  <ModuleNavigationCard
+                    key={modulo.nome}
+                    id={modulo.nome}
+                    titulo={modulo.nome}
+                    descricao={modulo.descricao}
+                    icone={modulo.icone}
+                    destino={item?.caminho}
+                    horizontal
+                    tituloNivel="h3"
+                    className="sigep-inicial-modulo"
+                  />
+                  <button
+                    type="button"
+                    className="sigep-inicial-favorito"
+                    aria-label={`${favoritos.includes(modulo.nome) ? "Remover dos favoritos" : "Adicionar aos favoritos"}: ${modulo.nome}`}
+                    title={
+                      favoritos.includes(modulo.nome)
+                        ? "Remover dos favoritos"
+                        : "Adicionar aos favoritos"
+                    }
+                    aria-pressed={favoritos.includes(modulo.nome)}
+                    onClick={() =>
+                      setFavoritos((atuais) =>
+                        atuais.includes(modulo.nome)
+                          ? atuais.filter((nome) => nome !== modulo.nome)
+                          : [...atuais, modulo.nome],
+                      )
+                    }
+                  >
+                    <i
+                      className={`pi ${favoritos.includes(modulo.nome) ? "pi-star-fill" : "pi-star"}`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>,
+              ];
+            })}
         </div>
       </section>
     </main>
