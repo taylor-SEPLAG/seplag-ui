@@ -30,9 +30,13 @@ function aparenciaTipo(cor: string) {
 export function CalendarioContent({
   calendario,
   agora = new Date(),
+  homePath = HOME,
+  cronogramaPath = CALENDARIO_CRONOGRAMA_PATH,
 }: {
   calendario: CalendarioFonte;
   agora?: Date;
+  homePath?: string;
+  cronogramaPath?: string;
 }) {
   const navigate = useNavigate();
   const [mes, setMes] = useState(calendario.competencia);
@@ -73,10 +77,10 @@ export function CalendarioContent({
       <BreadcrumbSeplag
         className="sigep-cronograma-breadcrumb"
         divided
-        homeTo={HOME}
+        homeTo={homePath}
         items={[
-          { label: "Página Inicial", to: HOME },
-          { label: "Cronograma", to: CALENDARIO_CRONOGRAMA_PATH },
+          { label: "Página Inicial", to: homePath },
+          { label: "Cronograma", to: cronogramaPath },
         ]}
       />
       <div className="sigep-cronograma-topo">
@@ -87,7 +91,7 @@ export function CalendarioContent({
             className="sigep-cronograma-voltar-acao"
             unstyled
             raised={false}
-            onClick={() => navigate(HOME)}
+            onClick={() => navigate(homePath)}
           />
         </div>
         <header className="sigep-cronograma-header">

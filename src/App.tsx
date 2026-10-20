@@ -204,6 +204,10 @@ import { DireitosBeneficiosPage } from "./prototipos/ferias/DireitosBeneficiosPa
 import { ParametrizacaoLicencasPage } from './prototipos/licencas/ParametrizacaoLicencasPage';
 import { ParametrizacaoLicencasFormPage } from './prototipos/licencas/FormularioLicenca';
 import { GestaoLicencasPage } from './prototipos/gestaoLicencas/GestaoLicencasPage';
+import { FolhaPaginaInicialPage, FolhaAvisosPage, FolhaCronogramaConsultaPage } from './prototipos/paginaInicial/FolhaPaginaInicialPage';
+import { FOLHA_PAGINA_INICIAL_PATH, FOLHA_AVISOS_PATH, FOLHA_CALENDARIO_PATH } from './prototipos/paginaInicial/folhaModel';
+import { FolhaAreaPage } from './prototipos/navigation/FolhaAreaPage';
+import { areasNavegacaoFolha, type AreaNavegacaoFolha } from './prototipos/navigation/folhaNavigation';
 import { FeriasIndividualPage } from "./prototipos/ferias/FeriasIndividualPage";
 import { FeriasColetivaPage } from "./prototipos/ferias/FeriasColetivaPage";
 import { FeriasLotePage } from "./prototipos/ferias/FeriasLotePage";
@@ -258,7 +262,7 @@ function HomePage() {
       titulo: "Folha de Pagamento",
       descricao: "Protótipos para grupos de cálculo, folhas por competência, rubricas e cálculos.",
       status: "Em evolução",
-      to: "/prototipos/sigep/folha/painel-informativo",
+      to: FOLHA_PAGINA_INICIAL_PATH,
       links: [
         { label: "Competências da Folha", to: "/prototipos/folha/processamento/competencias" },
         { label: "Processamento da Folha", to: "/prototipos/folha/processamento/processamento-folha" },
@@ -2215,8 +2219,13 @@ function App() {
       />
       <Route
         path="/prototipos/folha"
-        element={<Navigate to="/prototipos/sigep/folha/painel-informativo" replace />}
+        element={<Navigate to={FOLHA_PAGINA_INICIAL_PATH} replace />}
       />
+      <Route path={FOLHA_PAGINA_INICIAL_PATH} element={<FolhaPaginaInicialPage/>}/>
+      {(Object.keys(areasNavegacaoFolha) as AreaNavegacaoFolha[]).map(area=><Route key={area} path={areasNavegacaoFolha[area].rota} element={<FolhaAreaPage area={area}/>}/>)}
+      <Route path="/prototipos/folha/pagina-inicial" element={<Navigate to={FOLHA_PAGINA_INICIAL_PATH} replace/>}/>
+      <Route path={FOLHA_AVISOS_PATH} element={<FolhaAvisosPage/>}/>
+      <Route path={FOLHA_CALENDARIO_PATH} element={<FolhaCronogramaConsultaPage/>}/>
       <Route
         path="/prototipos/folha/painel-informativo"
         element={<Navigate to="/prototipos/sigep/folha/painel-informativo" replace />}

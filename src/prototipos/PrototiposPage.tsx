@@ -1,4 +1,6 @@
+import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
 import type { SituacaoCertame } from "./controlePss/certame/types";
+import { FOLHA_PAGINA_INICIAL_PATH } from './paginaInicial/folhaModel';
 import { useControlePssStore } from "./controlePss/controlePssStore";
 import { quantitativosEditalIngresso } from "./ingresso/certameIngresso";
 import { consultarCertamesIngresso } from "./ingresso/sincronizarCertamesIngresso";
@@ -682,7 +684,8 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
   },
 ];
 
-const menuFolha: IMenuSeplag[] = [
+export const menuFolha: IMenuSeplag[] = [
+  {label:'Página Inicial',icon:'pi pi-home',to:FOLHA_PAGINA_INICIAL_PATH,visibleOnMenu:true,visibleOnRouter:true},
   {
     label: "Painel Informativo",
     icon: "pi pi-home",
@@ -693,7 +696,7 @@ const menuFolha: IMenuSeplag[] = [
   {
     label: "Rubricas",
     icon: "pi pi-tag",
-    url: "#",
+    to: areasNavegacaoFolha.rubricas.rota,
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
@@ -704,7 +707,7 @@ const menuFolha: IMenuSeplag[] = [
   {
     label: "Cadastro",
     icon: "pi pi-list",
-    url: "#",
+    to: areasNavegacaoFolha.cadastro.rota,
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
@@ -732,7 +735,7 @@ const menuFolha: IMenuSeplag[] = [
   {
     label: "Folha",
     icon: "pi pi-cog",
-    url: "#",
+    to: areasNavegacaoFolha.folha.rota,
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
@@ -776,7 +779,7 @@ const menuFolha: IMenuSeplag[] = [
   {
     label: "Lançamento Financeiro",
     icon: "pi pi-money-bill",
-    url: "#",
+    to: areasNavegacaoFolha.financeiro.rota,
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
@@ -790,7 +793,7 @@ const menuFolha: IMenuSeplag[] = [
       {
         label: "Retenções Judiciais",
         icon: "pi pi-folder-open",
-        url: "#",
+        to: areasNavegacaoFolha.retencoes.rota,
         visibleOnMenu: true,
         visibleOnRouter: true,
         items: [
@@ -808,7 +811,7 @@ const menuFolha: IMenuSeplag[] = [
   {
     label: "Relatórios",
     icon: "pi pi-chart-bar",
-    url: "#",
+    to: areasNavegacaoFolha.relatorios.rota,
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
@@ -877,7 +880,7 @@ const etapasRecadastramento = ["Dados pessoais", "Documentos pessoais", "Endere�
 
 const sistemas: AppSystemItemSeplag[] = [
   { id: "gestao-pessoas", label: "GESTÃO DE PESSOAS", url: `#${SIGEP_PAGINA_INICIAL_PATH}`, icon: "pi pi-users" },
-  { id: "folha", label: "FOLHA", url: `#${FOLHA_PAINEL_INFORMATIVO_PATH}`, icon: "pi pi-money-bill" },
+  { id: "folha", label: "FOLHA", url: `#${FOLHA_PAGINA_INICIAL_PATH}`, icon: "pi pi-money-bill" },
   { id: "pericia", label: "PERÍCIA", url: "#/prototipos/pericia", icon: "pi pi-plus-circle" },
   { id: "consignado", label: "CONSIGNADO", url: "#/prototipos/consignado", icon: "pi pi-wallet" },
   { id: "contagem-tempo", label: "CONTAGEM DE TEMPO", url: "#/prototipos/contagem-tempo", icon: "pi pi-clock" },
@@ -901,7 +904,7 @@ const sigepDashboardModules = [
     id: "folha",
     label: "Folha",
     description: "Rubricas, grupos, processamento e lançamentos financeiros.",
-    path: FOLHA_PAINEL_INFORMATIVO_PATH,
+    path: FOLHA_PAGINA_INICIAL_PATH,
     icon: "pi pi-money-bill",
     status: "Em evolução",
   },
@@ -1088,20 +1091,21 @@ export function PrototypeSystemPage({
   nomeApresentacao,
   profileExtraActions,
 }: Readonly<PrototypeSystemPageProps>) {
+  const usarLayoutSigep = ["GESTÃO DE PESSOAS", "SIGEP", "FOLHA"].includes(nomeSistema);
   return (
     <div className="prototype-shell">
       <LayoutSeplag
         nomeSistema={nomeSistema}
         ambienteSistema={ambienteSistema}
         sistemas={sistemas}
-        logoSrc={nomeSistema === "GESTÃO DE PESSOAS" || nomeSistema === "SIGEP" ? logoSeplagSigep : logoSeplag}
+        logoSrc={usarLayoutSigep ? logoSeplagSigep : logoSeplag}
         menuItems={menuItems}
         menuMode="static"
-        compactNavigation={nomeSistema === "GESTÃO DE PESSOAS" || nomeSistema === "SIGEP"}
+        compactNavigation={usarLayoutSigep}
         compactLogoSrc={brasaoMt}
         footerText="SEPLAG - SSCPG - Superintendência de Sistemas Corporativos de Planejamento e Gestão"
         nomeApresentacao={nomeApresentacao ?? USUARIO_SIGEP_LOGADO.nome}
-        avatarSrc={nomeSistema === "GESTÃO DE PESSOAS" || nomeSistema === "SIGEP" ? avatarSigep : undefined}
+        avatarSrc={usarLayoutSigep ? avatarSigep : undefined}
         profileExtraActions={profileExtraActions}
         numrVinculoAtual={2}
         vinculos={vinculos}

@@ -12269,6 +12269,20 @@
 }
 
 .prototype-folha-home-info-list,
+.prototype-folha-home-panel--schedule .prototype-folha-home-panel-heading > .pi-calendar {
+  animation: sigep-folha-calendario 6s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes sigep-folha-calendario {
+  0%, 22%, 100% { transform: translateY(0) rotate(0); }
+  6%, 16% { transform: translateY(-3px) rotate(-5deg); }
+  11% { transform: translateY(0) rotate(5deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prototype-folha-home-panel--schedule .prototype-folha-home-panel-heading > .pi-calendar {
+    animation: none;
+  }
+}
 .prototype-folha-home-schedule-list {
   display: grid;
   gap: 18px;

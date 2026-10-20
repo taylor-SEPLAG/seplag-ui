@@ -12,6 +12,14 @@ import {
 } from "../cronograma/model";
 
 interface Props {
+  modulos?: readonly {
+    nome: string;
+    descricao: string;
+    icone: string;
+    corIcone?: string;
+  }[];
+  avisosDestino?: string;
+  cronogramaDestino?: string;
   menu: IMenuSeplag[];
   nomeUsuario: string;
   avisos: number;
@@ -24,6 +32,9 @@ export function PaginaInicialContent({
   nomeUsuario,
 
   proximo,
+  modulos = modulosPaginaInicial,
+  avisosDestino = AVISOS_PATH,
+  cronogramaDestino = CALENDARIO_CRONOGRAMA_PATH,
 }: Props) {
   const [favoritos, setFavoritos] = useState<string[]>([]);
   const [agora, setAgora] = useState(() => new Date());
@@ -110,7 +121,7 @@ export function PaginaInicialContent({
             <h2>Avisos importantes</h2>
             <p>Consulte os comunicados disponíveis para você.</p>
             {painel && (
-              <Link to={AVISOS_PATH}>
+              <Link to={avisosDestino}>
                 Ver detalhes{" "}
                 <i className="pi pi-arrow-right" aria-hidden="true" />
               </Link>
@@ -120,7 +131,7 @@ export function PaginaInicialContent({
         {painel ? (
           <Link
             className="sigep-inicial-informativo sigep-inicial-cronograma sigep-inicial-cor-laranja"
-            to={CALENDARIO_CRONOGRAMA_PATH}
+            to={cronogramaDestino}
             aria-label="Cronograma — Ver detalhes"
           >
             {conteudoCronograma}
@@ -138,7 +149,7 @@ export function PaginaInicialContent({
           <p>Acesse os principais módulos do sistema.</p>
         </div>
         <div className="sigep-inicial-modulos">
-          {[...modulosPaginaInicial]
+          {[...modulos]
             .sort(
               (a, b) =>
                 Number(favoritos.includes(b.nome)) -
@@ -164,6 +175,7 @@ export function PaginaInicialContent({
                     titulo={modulo.nome}
                     descricao={modulo.descricao}
                     icone={modulo.icone}
+                    cor={modulo.corIcone}
                     destino={item?.caminho}
                     horizontal
                     tituloNivel="h3"

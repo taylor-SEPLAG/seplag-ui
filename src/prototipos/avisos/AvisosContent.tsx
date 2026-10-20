@@ -25,7 +25,15 @@ const cores = (meta: (typeof categorias)[number]) =>
     "--aviso-texto-cor": meta.textoCor,
   }) as CSSProperties;
 
-export function AvisosContent({ avisos }: { avisos: Comunicado[] }) {
+export function AvisosContent({
+  avisos,
+  homePath = HOME_PATH,
+  avisosPath = AVISOS_PATH,
+}: {
+  avisos: Comunicado[];
+  homePath?: string;
+  avisosPath?: string;
+}) {
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState<Categoria>("todos");
@@ -38,10 +46,10 @@ export function AvisosContent({ avisos }: { avisos: Comunicado[] }) {
       <BreadcrumbSeplag
         className="sigep-cronograma-breadcrumb"
         divided
-        homeTo={HOME_PATH}
+        homeTo={homePath}
         items={[
-          { label: "Página Inicial", to: HOME_PATH },
-          { label: "Avisos importantes", to: AVISOS_PATH },
+          { label: "Página Inicial", to: homePath },
+          { label: "Avisos importantes", to: avisosPath },
         ]}
       />
       <div>
@@ -51,7 +59,7 @@ export function AvisosContent({ avisos }: { avisos: Comunicado[] }) {
           className="sigep-cronograma-voltar-acao"
           unstyled
           raised={false}
-          onClick={() => navigate(HOME_PATH)}
+          onClick={() => navigate(homePath)}
         />
       </div>
       <header className="sigep-cronograma-header">
