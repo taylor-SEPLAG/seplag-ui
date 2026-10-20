@@ -4,7 +4,7 @@ import type { FeriasRegistro } from "./FeriasPages";
 // (um arquivo de componentes) porque o Fast Refresh do Vite invalida o módulo inteiro sempre
 // que um arquivo de componente também exporta valores não-componente — isso já chegou a causar
 // renders com hooks fora de ordem (erro "useEffect changed size between renders") durante HMR.
-export const STORAGE_KEY = "prototype-ferias-registros-v10";
+export const STORAGE_KEY = "prototype-ferias-registros-v14";
 
 function registroBase(parcial: Partial<FeriasRegistro> & Pick<FeriasRegistro, "id" | "servidorNome" | "matricula" | "cargo" | "tipoVinculo" | "parcelas" | "situacao">): FeriasRegistro {
   return {
@@ -158,19 +158,211 @@ export const registrosBase: FeriasRegistro[] = [
     lancadoEm: "2026-09-18 09:00",
     avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-09-20 10:00",
   }),
+  // Reabertura-padrão habilitada: Suspenso, início do usufruto ainda no futuro, folha não homologada.
+  registroBase({
+    id: 15, servidorNome: "Patrícia Nogueira Souza", matricula: "410033", cargo: "Técnica Administrativa",
+    tipoVinculo: "Efetivo", situacao: "SUSPENSO", origem: "PORTALSERVIDOR",
+    periodoAquisitivoInicio: "2025-05-01", periodoAquisitivoFim: "2026-04-30",
+    parcelas: [{ id: 1, inicio: "2026-11-16", fim: "2026-11-30", dias: 15 }],
+    responsavelLancamento: "Patrícia Nogueira Souza (Portal do Servidor)",
+    lancadoEm: "2026-09-25 09:30",
+    avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-10-10 15:00",
+  }),
+  // Reabertura bloqueada pela folha homologada/paga (RN 3.3) — só Administrador RH forçaria.
+  registroBase({
+    id: 16, servidorNome: "Cleber Augusto Dias", matricula: "400010", cargo: "Apoio",
+    tipoVinculo: "Efetivo", situacao: "CANCELADO", origem: "PORTALSERVIDOR",
+    periodoAquisitivoInicio: "2025-04-01", periodoAquisitivoFim: "2026-03-31",
+    parcelas: [{ id: 1, inicio: "2026-12-07", fim: "2026-12-21", dias: 15 }],
+    folhaHomologada: true,
+    responsavelLancamento: "Cleber Augusto Dias (Portal do Servidor)",
+    lancadoEm: "2026-09-30 10:10",
+    avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-10-05 09:00",
+  }),
+  // Agendamento Coletivo — UNEMAT (professor, duas parcelas, ainda aguardando validação da DRE).
+  registroBase({
+    id: 19, servidorNome: "João Pedro Castanheira", matricula: "512077", cargo: "Professor",
+    tipoVinculo: "Efetivo", orgao: "UNEMAT/MT", orgaoColetivo: "UNEMAT", setor: "Câmpus Universitário de Cáceres (Jane Vanini)",
+    tipo: "Coletiva", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [
+      { id: 1, inicio: "2026-11-23", fim: "2026-12-07", dias: 15 },
+      { id: 2, inicio: "2027-02-08", fim: "2027-03-09", dias: 30 },
+    ],
+    loteId: "LOTE-UNEMAT-2026", dataLimiteValidacaoChefia: "2026-11-15",
+    responsavelLancamento: "Gestão de Pessoas — UNEMAT",
+    lancadoEm: "2026-10-05 09:00",
+  }),
+  // Mesmo lote do registro 19 (LOTE-UNEMAT-2026) — demonstra a aprovação agrupada por lote.
+  registroBase({
+    id: 23, servidorNome: "Marina Costa Alves", matricula: "512104", numeroVinculo: "1", cargo: "Professor",
+    tipoVinculo: "Efetivo", orgao: "UNEMAT/MT", orgaoColetivo: "UNEMAT", setor: "Câmpus Universitário de Sinop",
+    tipo: "Coletiva", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [
+      { id: 1, inicio: "2026-11-23", fim: "2026-12-07", dias: 15 },
+      { id: 2, inicio: "2027-02-08", fim: "2027-03-09", dias: 30 },
+    ],
+    loteId: "LOTE-UNEMAT-2026", dataLimiteValidacaoChefia: "2026-11-15",
+    responsavelLancamento: "Gestão de Pessoas — UNEMAT",
+    lancadoEm: "2026-10-05 09:00",
+  }),
+  // Agendamento Coletivo — SECITEC (professor, já validado).
+  registroBase({
+    id: 20, servidorNome: "Rosângela Prado Teixeira", matricula: "900020", cargo: "Professor",
+    tipoVinculo: "Efetivo", orgao: "SECITEC/MT", orgaoColetivo: "SECITEC", setor: "ETEC de Sinop",
+    tipo: "Coletiva", situacao: "EM ABERTO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [
+      { id: 1, inicio: "2026-07-06", fim: "2026-07-20", dias: 15 },
+      { id: 2, inicio: "2027-01-04", fim: "2027-02-02", dias: 30 },
+    ],
+    loteId: "LOTE-SECITEC-2026", responsavelLancamento: "Gestão de Pessoas — SECITEC",
+    lancadoEm: "2026-09-10 08:30",
+    avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-09-12 10:00",
+  }),
+  // Agendamento em Lote — SEDUC (cargo de apoio/gestão, duas parcelas, aguardando a DRE).
+  registroBase({
+    id: 21, servidorNome: "Simone Aparecida Luz", matricula: "498231", cargo: "Administração",
+    tipoVinculo: "Efetivo", orgao: "SEDUC/MT", orgaoColetivo: "SEDUC", setor: "EE Tiradentes",
+    tipo: "Lote", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [
+      { id: 1, inicio: "2026-11-09", fim: "2026-11-18", dias: 10 },
+      { id: 2, inicio: "2027-01-11", fim: "2027-01-30", dias: 20 },
+    ],
+    loteId: "LOTE-SEDUC-2026-APOIO", dataLimiteValidacaoChefia: "2026-11-02",
+    responsavelLancamento: "Secretaria Escolar — EE Tiradentes",
+    lancadoEm: "2026-10-02 11:15",
+  }),
+  // Mesmo lote do registro 21 (LOTE-SEDUC-2026-APOIO) — demonstra a aprovação agrupada por lote.
+  registroBase({
+    id: 24, servidorNome: "Cleber Augusto Dias", matricula: "400010", cargo: "Apoio",
+    tipoVinculo: "Efetivo", orgao: "SEDUC/MT", orgaoColetivo: "SEDUC", setor: "EE Tiradentes",
+    tipo: "Lote", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [
+      { id: 1, inicio: "2026-11-09", fim: "2026-11-18", dias: 10 },
+      { id: 2, inicio: "2027-01-11", fim: "2027-01-30", dias: 20 },
+    ],
+    loteId: "LOTE-SEDUC-2026-APOIO", dataLimiteValidacaoChefia: "2026-11-02",
+    responsavelLancamento: "Secretaria Escolar — EE Tiradentes",
+    lancadoEm: "2026-10-02 11:15",
+  }),
+  // Agendamento em Lote — UNEMAT (cargo de apoio/gestão, usufruto antecipado, já confirmado).
+  registroBase({
+    id: 22, servidorNome: "Marina Costa Alves", matricula: "512104", cargo: "Apoio",
+    tipoVinculo: "Efetivo", orgao: "UNEMAT/MT", orgaoColetivo: "UNEMAT", setor: "Câmpus Universitário de Sinop",
+    tipo: "Lote", situacao: "EM ABERTO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    regraAquisitivo: "USUFRUTO_ANTECIPADO", saldoFeriasConfirmado: false,
+    parcelas: [
+      { id: 1, inicio: "2026-11-30", fim: "2026-12-14", dias: 15 },
+      { id: 2, inicio: "2027-01-18", fim: "2027-02-01", dias: 15 },
+    ],
+    loteId: "LOTE-UNEMAT-2026-APOIO",
+    responsavelLancamento: "Gestão de Pessoas — UNEMAT",
+    lancadoEm: "2026-09-28 14:40",
+    avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-09-29 09:10",
+  }),
+  // 3º membro do lote UNEMAT (registros 19 e 23) — grupo com 3 servidores.
+  registroBase({
+    id: 25, servidorNome: "Rafael Monteiro Costa", matricula: "551120", cargo: "Professor",
+    tipoVinculo: "Efetivo", orgao: "UNEMAT/MT", orgaoColetivo: "UNEMAT", setor: "Câmpus Universitário de Cáceres (Jane Vanini)",
+    tipo: "Coletiva", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [
+      { id: 1, inicio: "2026-11-23", fim: "2026-12-07", dias: 15 },
+      { id: 2, inicio: "2027-02-08", fim: "2027-03-09", dias: 30 },
+    ],
+    loteId: "LOTE-UNEMAT-2026", dataLimiteValidacaoChefia: "2026-11-15",
+    responsavelLancamento: "Gestão de Pessoas — UNEMAT",
+    lancadoEm: "2026-10-05 09:00",
+  }),
+  // 3º membro do lote SEDUC/apoio (registros 21 e 24) — grupo com 3 servidores.
+  registroBase({
+    id: 26, servidorNome: "Patrícia Nogueira Souza", matricula: "410033", cargo: "Administração",
+    tipoVinculo: "Contrato Temporário", orgao: "SEDUC/MT", orgaoColetivo: "SEDUC", setor: "EE Tiradentes",
+    tipo: "Lote", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [
+      { id: 1, inicio: "2026-11-09", fim: "2026-11-18", dias: 10 },
+      { id: 2, inicio: "2027-01-11", fim: "2027-01-30", dias: 20 },
+    ],
+    loteId: "LOTE-SEDUC-2026-APOIO", dataLimiteValidacaoChefia: "2026-11-02",
+    responsavelLancamento: "Secretaria Escolar — EE Tiradentes",
+    lancadoEm: "2026-10-02 11:15",
+  }),
+  // Novo grupo — Agendamento Coletivo SECITEC pendente (2 professores, parcela integral).
+  registroBase({
+    id: 27, servidorNome: "Rosângela Prado Teixeira", matricula: "900020", cargo: "Professor",
+    tipoVinculo: "Efetivo", orgao: "SECITEC/MT", orgaoColetivo: "SECITEC", setor: "ETEC de Sinop",
+    tipo: "Coletiva", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [{ id: 1, inicio: "2026-12-14", fim: "2027-01-12", dias: 30 }],
+    loteId: "LOTE-SECITEC-2026-B", dataLimiteValidacaoChefia: "2026-12-05",
+    responsavelLancamento: "Gestão de Pessoas — SECITEC",
+    lancadoEm: "2026-10-18 10:00",
+  }),
+  registroBase({
+    id: 28, servidorNome: "Marcos Vieira Souza", matricula: "551141", cargo: "Professor",
+    tipoVinculo: "Efetivo", orgao: "SECITEC/MT", orgaoColetivo: "SECITEC", setor: "ETEC de Cuiabá",
+    tipo: "Coletiva", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [{ id: 1, inicio: "2026-12-14", fim: "2027-01-12", dias: 30 }],
+    loteId: "LOTE-SECITEC-2026-B", dataLimiteValidacaoChefia: "2026-12-05",
+    responsavelLancamento: "Gestão de Pessoas — SECITEC",
+    lancadoEm: "2026-10-18 10:00",
+  }),
+  // Novo grupo — Agendamento em Lote UNEMAT pendente (2 servidores de apoio, outra escala).
+  registroBase({
+    id: 29, servidorNome: "Lívia Rodrigues Martins", matricula: "551138", cargo: "Apoio",
+    tipoVinculo: "Efetivo", orgao: "UNEMAT/MT", orgaoColetivo: "UNEMAT", setor: "Câmpus Universitário de Sinop",
+    tipo: "Lote", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [
+      { id: 1, inicio: "2026-12-01", fim: "2026-12-15", dias: 15 },
+      { id: 2, inicio: "2027-01-19", fim: "2027-02-02", dias: 15 },
+    ],
+    loteId: "LOTE-UNEMAT-2026-APOIO-B", dataLimiteValidacaoChefia: "2026-11-24",
+    responsavelLancamento: "Gestão de Pessoas — UNEMAT",
+    lancadoEm: "2026-10-19 09:30",
+  }),
+  registroBase({
+    id: 30, servidorNome: "Paulo Henrique Alves", matricula: "551155", cargo: "Apoio",
+    tipoVinculo: "Efetivo", orgao: "UNEMAT/MT", orgaoColetivo: "UNEMAT", setor: "Câmpus Universitário de Sinop",
+    tipo: "Lote", situacao: "AGUARDANDO VALIDAÇÃO", origem: "SIGEP",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "2026-12-31",
+    parcelas: [
+      { id: 1, inicio: "2026-12-01", fim: "2026-12-15", dias: 15 },
+      { id: 2, inicio: "2027-01-19", fim: "2027-02-02", dias: 15 },
+    ],
+    loteId: "LOTE-UNEMAT-2026-APOIO-B", dataLimiteValidacaoChefia: "2026-11-24",
+    responsavelLancamento: "Gestão de Pessoas — UNEMAT",
+    lancadoEm: "2026-10-19 09:30",
+  }),
 ];
+
+/** Remove entradas com `id` repetido, mantendo a última ocorrência — defende contra
+ * duplicidade acumulada no localStorage (ex.: snapshots salvos em sessões de teste antigas
+ * que não acompanharam alterações posteriores nos dados base). */
+function semIdsDuplicados(lista: FeriasRegistro[]): FeriasRegistro[] {
+  const porId = new Map<number, FeriasRegistro>();
+  lista.forEach(registro => porId.set(registro.id, registro));
+  return [...porId.values()];
+}
 
 export function carregarRegistros(): FeriasRegistro[] {
   try {
     const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as FeriasRegistro[] | null;
-    return (salvos ?? registrosBase).map(registro => {
+    return semIdsDuplicados((salvos ?? registrosBase).map(registro => {
       const hoje = new Date().toLocaleDateString("sv-SE", {timeZone:"America/Cuiaba"});
       if (registro.situacao === "AGUARDANDO VALIDAÇÃO" && registro.dataLimiteValidacaoChefia && hoje > registro.dataLimiteValidacaoChefia) return {...registro, situacao:"REPROVADO" as const, expirado:true};
       const original = registrosBase.find(base => base.id === registro.id && base.matricula === registro.matricula && base.servidorNome === registro.servidorNome);
       return !registro.numeroVinculo && original?.numeroVinculo
         ? { ...registro, numeroVinculo: original.numeroVinculo }
         : registro;
-    }) ?? registrosBase;
+    }));
   } catch {
     return registrosBase;
   }

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
+import 'fake-indexeddb/auto';
 import { afterEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { FormularioRecesso } from "./FeriasPages";
 
 afterEach(() => {
@@ -48,7 +49,7 @@ it("oferece ao residente somente as durações dos parcelamentos permitidos", ()
   ]);
 });
 
-it("permite agendar 20 dias primeiro e os 10 dias restantes como segunda parcela", () => {
+it("permite agendar 20 dias primeiro e os 10 dias restantes como segunda parcela", async () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date(2027, 2, 1, 12));
   const onSalvar = vi.fn();
@@ -75,6 +76,12 @@ it("permite agendar 20 dias primeiro e os 10 dias restantes como segunda parcela
   fireEvent.input(screen.getByPlaceholderText("dd/mm/aaaa"), { target: { value: "01/07/2027" } });
   fireEvent.click(screen.getByRole("button", { name: "Adicionar esta etapa" }));
   expect(screen.getByText(/30 de 30 dias parcelados/)).toBeTruthy();
+
+  vi.useRealTimers();
+  fireEvent.change(screen.getByLabelText(/Documento \/ despacho formal do recesso/), {
+    target: { files: [new File(["despacho"], "despacho.pdf", { type: "application/pdf" })] },
+  });
+  await waitFor(() => expect(screen.getByText("despacho.pdf")).toBeTruthy());
 
   fireEvent.click(screen.getByRole("button", { name: "Salvar solicitação" }));
   expect(onSalvar).toHaveBeenCalledWith(expect.objectContaining({
