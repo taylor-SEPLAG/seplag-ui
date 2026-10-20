@@ -29,6 +29,10 @@
   grid-template-columns: 1.55fr 1fr 1fr auto;
 }
 
+.ev-consulta-filtros {
+  grid-template-columns: 1.55fr 1fr 1fr auto;
+}
+
 .vf-grid-panel {
   padding: 0;
   overflow: hidden;

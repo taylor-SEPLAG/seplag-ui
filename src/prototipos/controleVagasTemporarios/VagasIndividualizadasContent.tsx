@@ -54,7 +54,7 @@ export function VagasIndividualizadasContent() {
     (!ocupacao || vaga.situacaoOcupacao === ocupacao) &&
     (!situacaoLegal || vaga.situacaoLegal === situacaoLegal),
   );
-  const previstas = quadro ? quadro.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0) : 0;
+  const previstas = quadros.reduce((total, item) => total + item.cargos.reduce((subtotal, cargo) => subtotal + cargo.quantidadeVagas, 0), 0);
   const reais = vagas.length;
   const disponiveis = vagas.filter((vaga) => vaga.situacaoOcupacao === "DISPONIVEL").length;
   const emOcupacao = vagas.filter((vaga) => vaga.situacaoOcupacao === "EM_OCUPACAO").length;
@@ -141,17 +141,18 @@ export function VagasIndividualizadasContent() {
 
 function gerarVagas(quadro: QuadroTemporarioCadastro): VagaTemporaria[] {
   const legal: SituacaoLegal = quadro.situacao === "ATIVO" ? "ATIVA" : quadro.situacao === "EXTINTO" ? "EXTINTA" : "ENCERRADA";
-  let sequencial = 0;
-  return quadro.cargos.flatMap((cargo) => Array.from({ length: cargo.quantidadeVagas }, (_, indice) => {
-    sequencial += 1;
+  const cargoReferencia = quadro.cargos[0];
+  return Array.from({ length: quadro.totalAutorizado }, (_, indice) => {
+    const sequencial = indice + 1;
     return {
-    id: `${quadro.id}-${cargo.id}-${indice + 1}`,
+    id: `${quadro.id}-${sequencial}`,
     codigo: `${quadro.codigo}-${String(sequencial).padStart(3, "0")}`,
-    quadro, cargo,
+    quadro, cargo: cargoReferencia,
     orgaoDestino: "",
     situacaoOcupacao: legal === "ATIVA" ? "DISPONIVEL" : "DISPONIVEL",
     situacaoLegal: legal,
-  }; }));
+    };
+  });
 }
 function Campo({ label, children }: { label: string; children: React.ReactNode }) { return <label className="temporarios-vagas-field"><span>{label}</span>{children}</label>; }
 function Kpi({ label, value, icon, kind = "" }: { label: string; value: number; icon: string; kind?: string }) { return <article className={kind}><i className={icon} /><div><span>{label}</span><strong>{value.toLocaleString("pt-BR")}</strong></div></article>; }
