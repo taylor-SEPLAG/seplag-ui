@@ -306,7 +306,6 @@ function Conteudo({
           "Cargo/Função": vinculo.cargo,
           "Órgão/Entidade": vinculo.orgao,
           Unidade: vinculo.unidade,
-          Classificação: vinculo.classificacao,
           Situação: situacao(vinculo),
           "Data de início": dataBR(vinculo.inicio),
           "Data de encerramento": dataBR(vinculo.fim),
@@ -463,26 +462,19 @@ function Conteudo({
               <strong>{valores[2]}</strong>
             </div>
           </article>
-          <article className="v2v-kpi-inactive">
-            <i className="pi pi-calendar" aria-hidden="true" />
-            <div>
-              <span>Movimentações no mês</span>
-              <strong>{valores[3]}</strong>
-            </div>
-          </article>
         </section>
         <section
           className="v2v-panel v2v-filters vf-consulta-filtros"
           aria-label="Filtros de consulta"
         >
           <label>
-            Servidor / CPF / Matrícula
+            Nome, CPF ou matrícula
             <input
               value={rascunho.busca}
               onChange={(evento) =>
                 atualizarFiltro("busca", evento.target.value)
               }
-              placeholder="Buscar servidor, CPF ou matrícula"
+              placeholder="Nome, CPF ou matrícula"
             />
           </label>
           <label>

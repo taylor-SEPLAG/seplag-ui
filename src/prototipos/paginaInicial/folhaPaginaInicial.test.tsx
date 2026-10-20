@@ -51,7 +51,7 @@ function acessos() {
 
 it("exibe o modelo da página inicial com somente acessos da Folha e menu próprio", () => {
   montar();
-  expect(screen.getByRole("heading", { name: "Olá, Roberto!" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Olá, Sigepito!" })).toBeTruthy();
   expect(
     screen.getByRole("heading", { name: "Avisos importantes" }),
   ).toBeTruthy();
@@ -92,7 +92,7 @@ it("abre avisos e retorna à página inicial mantendo o contexto da Folha", () =
       .every((l) => l.getAttribute("href") === FOLHA_PAGINA_INICIAL_PATH),
   ).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
-  expect(screen.getByRole("heading", { name: "Olá, Roberto!" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Olá, Sigepito!" })).toBeTruthy();
 });
 it("abre a consulta de cronograma da Folha sem acessar a configuração ou trocar de módulo", () => {
   montar();
@@ -107,7 +107,7 @@ it("abre a consulta de cronograma da Folha sem acessar a configuração ou troca
       .every((l) => l.getAttribute("href") === FOLHA_PAGINA_INICIAL_PATH),
   ).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
-  expect(screen.getByRole("heading", { name: "Olá, Roberto!" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Olá, Sigepito!" })).toBeTruthy();
 });
 it("prioriza favoritos da Folha sem navegar nem inserir cards de Gestão de Pessoas", () => {
   montar();
@@ -119,7 +119,7 @@ it("prioriza favoritos da Folha sem navegar nem inserir cards de Gestão de Pess
   expect(acessos()[0].getAttribute("aria-label")).toBe(
     "Acessar Ficha Financeira",
   );
-  expect(screen.getByRole("heading", { name: "Olá, Roberto!" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Olá, Sigepito!" })).toBeTruthy();
   fireEvent.click(
     screen.getByRole("button", {
       name: "Remover dos favoritos: Ficha Financeira",

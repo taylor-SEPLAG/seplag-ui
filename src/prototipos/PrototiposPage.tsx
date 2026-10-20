@@ -198,7 +198,7 @@ import { FaseCertameFormContent as PssFaseCertameFormContent } from "./controleP
 
 const SIGEP_BASE_PATH = "/prototipos/sigep";
 export const SIGEP_PAGINA_INICIAL_PATH = "/prototipos/sigep/pagina-inicial";
-export const USUARIO_SIGEP_LOGADO = { nome: "ROBERTO JUNIOR" };
+export const USUARIO_SIGEP_LOGADO = { nome: "SIGEPITO JUNIOR" };
 const SIGEP_PAINEL_INFORMATIVO_PATH =
   "/prototipos/sigep/gestao/painel-informativo";
 const SIGEP_CARGO_CONCURSO_TESTE_BASE_PATH =
@@ -966,7 +966,7 @@ const sigepDashboardModules = [
   },
 ];
 
-const USUARIO_FOLHA_LOGADO = "ROBERTO JUNIOR";
+const USUARIO_FOLHA_LOGADO = USUARIO_SIGEP_LOGADO.nome;
 
 const componentPrototypeItems = [
   {
