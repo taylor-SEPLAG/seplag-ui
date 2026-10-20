@@ -12,7 +12,7 @@ export function situacaoAprovacao(r: FeriasRegistro): SituacaoAprovacao | null {
 export const dataBrAprovacao = (data?:string) => data ? data.slice(0,10).split('-').reverse().join('/') : '—';
 export const diasAprovacao = (r:FeriasRegistro) => r.parcelas.reduce((s,p) => s+p.dias,0);
 export const periodoAprovacao = (r:FeriasRegistro) => r.parcelas.map(p => `${dataBrAprovacao(p.inicio)} a ${dataBrAprovacao(p.fim)}`).join('; ') || '—';
-export const loteAprovacao = (r:FeriasRegistro) => (r.tipo==='Lote' || r.tipo==='Coletiva') && ['SEDUC','UNEMAT'].includes(r.orgaoColetivo) && !!r.loteId;
+export const loteAprovacao = (r:FeriasRegistro) => (r.tipo==='Lote' || r.tipo==='Coletiva') && ['SEDUC','UNEMAT','SECITEC'].includes(r.orgaoColetivo) && !!r.loteId;
 const normalizar=(s:string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 export function filtrarAprovacoes(registros:FeriasRegistro[],f:FiltrosAprovacao) {
   return registros.filter(r => situacaoAprovacao(r) && (!f.situacao || situacaoAprovacao(r)===f.situacao)

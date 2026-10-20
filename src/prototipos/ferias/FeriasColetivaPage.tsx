@@ -25,7 +25,7 @@ export function FeriasColetivaPage() {
     <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
       <div className="prototype-page-content prototype-page-content--white prototype-ferias-content">
         <CardSeplag
-          title="Nova solicitação — Coletiva (SEDUC/UNEMAT)"
+          title="Nova solicitação — Agendamento Coletivo (SEDUC/UNEMAT/SECITEC)"
           cols="12"
           cardHeaderClassNames="prototype-carreira-card"
           headerNavigation={
@@ -34,7 +34,7 @@ export function FeriasColetivaPage() {
               items={[
                 { label: "Gestão de Férias", to: "/prototipos/sigep/ferias" },
                 { label: "Nova solicitação" },
-                { label: "Coletiva (SEDUC/UNEMAT)" },
+                { label: "Agendamento Coletivo (SEDUC/UNEMAT/SECITEC)" },
               ]}
             />
           }
