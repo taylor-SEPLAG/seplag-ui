@@ -3,14 +3,18 @@ import { afterEach, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { certamesMock } from "../controlePss/certame/mock";
-import { salvarQuadroTemporario, listarQuadrosTemporarios, seletivoTemporario } from "./novoQuadroTemporarioStore";
+import { ampliarQuadroTemporario, salvarQuadroTemporario, listarQuadrosTemporarios, seletivoTemporario } from "./novoQuadroTemporarioStore";
 import { NovoQuadroTemporarioContent } from "./NovoQuadroTemporarioContent";
 afterEach(() => { cleanup(); localStorage.clear(); });
-it("usa cadastro reserva como ausência de limite e impede duplicidade", () => {
+it("usa cadastro reserva para permitir ampliação formal e impede duplicidade", () => {
  const certame = certamesMock.find(seletivoTemporario)!;
  const cargo = { ...certame.cargos[0], aceitaCadastroReserva:true, quantidadeCadastroReserva:10 };
  const registro = salvarQuadroTemporario({ ...certame, cargos:[cargo] }, " Observação ");
- expect(registro.cargos[0].modoControle).toBe("SEM_LIMITE"); expect(registro.cargos[0].limiteVagas).toBeUndefined();
+ expect(registro.cargos[0].modoControle).toBe("AMPLIAVEL"); expect(registro.cargos[0].limiteVagas).toBeUndefined();
+ expect(registro.totalAutorizado).toBe(cargo.quantidadeVagas);
+ const ampliado = ampliarQuadroTemporario(registro.id, 15, "2026-10-19", "Chamadas do cadastro reserva");
+ expect(ampliado.totalAutorizado).toBe(cargo.quantidadeVagas + 15);
+ expect(ampliado.versoes).toHaveLength(2);
  expect(registro.cargos[0].quantidadeVagas).toBe(cargo.quantidadeVagas);
  expect(() => salvarQuadroTemporario(certame, "")).toThrow(/Já existe/);
  expect(listarQuadrosTemporarios()).toHaveLength(1);
@@ -19,6 +23,7 @@ it("preserva o quantitativo como limite quando não há cadastro reserva", () =>
  const certame = certamesMock.find(seletivoTemporario)!;
  const registro = salvarQuadroTemporario({ ...certame, cargos:[{ ...certame.cargos[0], aceitaCadastroReserva:false }] }, "");
  expect(registro.cargos[0].modoControle).toBe("LIMITADO"); expect(registro.cargos[0].limiteVagas).toBe(certame.cargos[0].quantidadeVagas);
+ expect(() => ampliarQuadroTemporario(registro.id, 1, "2026-10-19", "")).toThrow(/não possui cadastro reserva/);
 });
 it("renderiza somente seleção de origem e desabilita criação sem cargo", () => {
  const view = render(<MemoryRouter><NovoQuadroTemporarioContent /></MemoryRouter>);

@@ -3,10 +3,11 @@ import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { BotaoIconSeplag, BotaoSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
 import { CardSeplag } from "../../componentes/Card";
 import { ModalSeplag } from "../../componentes/Modal";
+import { AnexarDocumentoSeplag, type ArquivoAnexadoSeplag } from "../../componentes/AnexarDocumento";
 import { Calendar } from "primereact/calendar";
 import "../../componentes/Fields/primeLocalePt";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
-import { listarFormasEncerramento, type FormaEncerramento } from "./formasEncerramentoStore";
+import { listarFormasEncerramento, registrarUsoFormaEncerramento, type FormaEncerramento } from "./formasEncerramentoStore";
 import { dataBR, pessoas, situacao, vinculos, type Vinculo } from "../vidaFuncional/model";
 import "../vinculos/vinculoV2.css";
 import "../vidaFuncional/vidaFuncional.css";
@@ -28,21 +29,27 @@ function dataParaIso(data?: Date | null) {
 }
 
 export function EncerrarVinculoPage() {
-  const [busca, setBusca] = useState("");
+  const [nomeBusca, setNomeBusca] = useState("");
+  const [cpfBusca, setCpfBusca] = useState("");
+  const [matriculaBusca, setMatriculaBusca] = useState("");
+  const [filtrosAplicados, setFiltrosAplicados] = useState({ nome: "", cpf: "", matricula: "" });
   const [expandidos, setExpandidos] = useState<string[]>([]);
   const [vinculoParaEncerrar, setVinculoParaEncerrar] = useState<Vinculo | null>(null);
   const [formaId, setFormaId] = useState("");
   const [dataEncerramento, setDataEncerramento] = useState("");
   const [justificativa, setJustificativa] = useState("");
   const [processoSigadoc, setProcessoSigadoc] = useState("");
-  const [processoLegal, setProcessoLegal] = useState("");
+  const [documentoSigadoc, setDocumentoSigadoc] = useState<ArquivoAnexadoSeplag | null>(null);
   const [erroEncerramento, setErroEncerramento] = useState("");
   const [versao, setVersao] = useState(0);
-  const termo = busca.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
-  const digitos = busca.replace(/\D/g, "");
+  const termo = filtrosAplicados.nome.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+  const cpfDigitos = filtrosAplicados.cpf.replace(/\D/g, "");
+  const matricula = filtrosAplicados.matricula.trim();
   const servidores = useMemo(() => pessoas.filter((pessoa) =>
-    !busca.trim() || pessoa.nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR").includes(termo) || (digitos.length > 0 && pessoa.cpf.replace(/\D/g, "").includes(digitos)),
-  ), [busca, digitos, termo]);
+    (!filtrosAplicados.nome.trim() || pessoa.nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR").includes(termo)) &&
+    (!cpfDigitos || pessoa.cpf.replace(/\D/g, "").includes(cpfDigitos)) &&
+    (!matricula || vinculos.some((vinculo) => vinculo.pessoaId === pessoa.id && vinculo.matricula.includes(matricula))),
+  ), [cpfDigitos, filtrosAplicados.nome, matricula, termo]);
 
   const alternarServidor = (id: string) => setExpandidos((atuais) =>
     atuais.includes(id) ? atuais.filter((item) => item !== id) : [...atuais, id],
@@ -51,30 +58,40 @@ export function EncerrarVinculoPage() {
     ? listarFormasEncerramento().filter((forma) => forma.situacao === "ATIVA" && forma.vinculos.includes(vinculoParaEncerrar.tipo))
     : [];
   const formaSelecionada: FormaEncerramento | undefined = formasDisponiveis.find((forma) => String(forma.id) === formaId);
-  const diaEncerramento = dataEncerramento ? Number(dataEncerramento.slice(-2)) : 0;
-  const foraDaJanelaFolha = Boolean(formaSelecionada?.regraFolha && diaEncerramento && (diaEncerramento < formaSelecionada.regraFolha.diaInicial || diaEncerramento > formaSelecionada.regraFolha.diaFinal));
-  const bloqueiaEncerramento = foraDaJanelaFolha && formaSelecionada?.regraFolha?.tratamento === "BLOQUEAR";
-  const mensagemRegraFolha = formaSelecionada?.regraFolha?.mensagem?.trim() || "A data de encerramento informada está fora do período permitido para esta forma de encerramento.";
   const abrirEncerramento = (vinculo: Vinculo) => {
     setVinculoParaEncerrar(vinculo);
     setFormaId("");
     setDataEncerramento(new Date().toISOString().slice(0, 10));
     setJustificativa("");
     setProcessoSigadoc("");
-    setProcessoLegal("");
+    setDocumentoSigadoc(null);
     setErroEncerramento("");
   };
   const confirmarEncerramento = () => {
     if (!vinculoParaEncerrar || !formaSelecionada) { setErroEncerramento("Selecione a forma de encerramento."); return; }
     if (!dataEncerramento || dataEncerramento < vinculoParaEncerrar.inicio) { setErroEncerramento("A data de encerramento não pode ser anterior ao início do vínculo."); return; }
     if (!justificativa.trim()) { setErroEncerramento("Informe a justificativa do encerramento."); return; }
-    if (formaSelecionada.exigeProcessoSigadoc && !processoSigadoc.trim()) { setErroEncerramento("Informe o processo SIGADOC."); return; }
-    if (formaSelecionada.exigeProcessoLegal && !processoLegal.trim()) { setErroEncerramento("Informe o processo legal."); return; }
-    if (bloqueiaEncerramento) { setErroEncerramento(mensagemRegraFolha); return; }
+    if (formaSelecionada.exigeProcessoSigadoc && !processoSigadoc.trim()) { setErroEncerramento("Informe o número do processo SIGADOC."); return; }
+    if (formaSelecionada.exigeAnexoProcessoSigadoc && !documentoSigadoc) { setErroEncerramento("Anexe o documento do processo SIGADOC."); return; }
     vinculoParaEncerrar.fim = dataEncerramento;
     vinculoParaEncerrar.classificacao = "Inativo";
+    registrarUsoFormaEncerramento(formaSelecionada.id);
     setVinculoParaEncerrar(null);
     setVersao((atual) => atual + 1);
+  };
+  const anexarDocumentoSigadoc = (evento: { files?: File[] }) => {
+    const arquivo = evento.files?.[0];
+    if (!arquivo) return;
+    const leitor = new FileReader();
+    leitor.onload = () => setDocumentoSigadoc({
+      nome: arquivo.name,
+      extensao: arquivo.name.split(".").pop() || "pdf",
+      contentType: arquivo.type || "application/pdf",
+      conteudoEmBase64: String(leitor.result).split(",")[1] ?? "",
+      tamanho: arquivo.size,
+    });
+    leitor.readAsDataURL(arquivo);
+    setErroEncerramento("");
   };
 
   return (
@@ -88,13 +105,24 @@ export function EncerrarVinculoPage() {
         >
           <div className="v2v-page vf-page">
             <p className="v2v-description">Pesquise o servidor para consultar seus vínculos e iniciar o encerramento do vínculo selecionado.</p>
-            <section className="v2v-panel v2v-filters vf-consulta-filtros" aria-label="Pesquisa de servidor">
+            <section className="v2v-panel v2v-filters vf-consulta-filtros ev-consulta-filtros" aria-label="Pesquisa de servidor">
               <label>
-                Servidor ou CPF
-                <input value={busca} onChange={(evento) => setBusca(evento.target.value)} placeholder="Buscar por nome ou CPF" />
+                Nome do servidor
+                <input value={nomeBusca} onChange={(evento) => setNomeBusca(evento.target.value)} placeholder="Informe o nome do servidor" />
+              </label>
+              <label>
+                CPF
+                <input value={cpfBusca} onChange={(evento) => setCpfBusca(evento.target.value)} placeholder="Informe o CPF" inputMode="numeric" />
+              </label>
+              <label>
+                Matrícula
+                <input value={matriculaBusca} onChange={(evento) => setMatriculaBusca(evento.target.value)} placeholder="Informe a matrícula" />
               </label>
               <div className="v2v-filter-actions">
-                <button className="v2v-primary" type="button" onClick={() => setBusca("")}>
+                <button className="v2v-primary" type="button" onClick={() => setFiltrosAplicados({ nome: nomeBusca, cpf: cpfBusca, matricula: matriculaBusca })}>
+                  <i className="pi pi-search" aria-hidden="true" /> Pesquisar
+                </button>
+                <button className="v2v-primary" type="button" onClick={() => { setNomeBusca(""); setCpfBusca(""); setMatriculaBusca(""); setFiltrosAplicados({ nome: "", cpf: "", matricula: "" }); }}>
                   <i className="pi pi-refresh" aria-hidden="true" /> Limpar filtro
                 </button>
               </div>
@@ -133,14 +161,13 @@ export function EncerrarVinculoPage() {
                 </table>
               </div>
             </section>
-            <ModalSeplag visible={Boolean(vinculoParaEncerrar)} titulo="Encerrar Vínculo" fechar={() => setVinculoParaEncerrar(null)} tamanho="760px" customFooter={<div className="flex justify-content-end gap-2"><BotaoVoltarSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={() => setVinculoParaEncerrar(null)} /><BotaoSeplag type="button" severity="danger" label="Encerrar vínculo" icon="pi pi-sign-out" disabled={bloqueiaEncerramento} onClick={confirmarEncerramento} /></div>}>
+            <ModalSeplag visible={Boolean(vinculoParaEncerrar)} titulo="Encerrar Vínculo" fechar={() => setVinculoParaEncerrar(null)} tamanho="760px" customFooter={<div className="flex justify-content-end gap-2"><BotaoVoltarSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={() => setVinculoParaEncerrar(null)} /><BotaoSeplag type="button" severity="danger" label="Encerrar vínculo" icon="pi pi-sign-out" onClick={confirmarEncerramento} /></div>}>
               <div className="col-12"><div className="prototype-forma-encerramento-alerta-folha"><i className="pi pi-user" aria-hidden="true" /><span><strong>{vinculoParaEncerrar && pessoas.find((pessoa) => pessoa.id === vinculoParaEncerrar.pessoaId)?.nome}</strong><br />Matrícula {vinculoParaEncerrar?.matricula} · Vínculo {vinculoParaEncerrar?.numero} · {vinculoParaEncerrar?.tipo}<br />{vinculoParaEncerrar?.cargo} · {vinculoParaEncerrar?.orgao}</span></div></div>
               <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="forma-encerramento-vinculo">Forma de encerramento *</label><select id="forma-encerramento-vinculo" className="p-inputtext p-component w-full" value={formaId} onChange={(evento) => { setFormaId(evento.target.value); setErroEncerramento(""); }}><option value="">Selecione a forma</option>{formasDisponiveis.map((forma) => <option key={forma.id} value={forma.id}>{forma.nome}</option>)}</select>{vinculoParaEncerrar && !formasDisponiveis.length ? <small className="p-error">Não há forma de encerramento ativa para este tipo de vínculo.</small> : null}</div>
               <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="data-encerramento-vinculo">Data de encerramento *</label><Calendar inputId="data-encerramento-vinculo" value={isoParaData(dataEncerramento)} onChange={(evento) => { setDataEncerramento(dataParaIso(evento.value as Date | null)); setErroEncerramento(""); }} minDate={isoParaData(vinculoParaEncerrar?.inicio) ?? undefined} locale="pt" dateFormat="dd/mm/yy" mask="99/99/9999" showIcon style={{ width: "100%" }} inputStyle={{ width: "100%" }} /></div>
-              {formaSelecionada?.regraFolha && foraDaJanelaFolha ? <div className={`col-12 prototype-forma-encerramento-alerta-folha${bloqueiaEncerramento ? " is-blocking" : ""}`}><i className={`pi ${bloqueiaEncerramento ? "pi-ban" : "pi-info-circle"}`} aria-hidden="true" /><span>{mensagemRegraFolha}{bloqueiaEncerramento ? " O encerramento foi bloqueado." : " O encerramento poderá continuar mediante alerta."}</span></div> : null}
               <div className="col-12"><label className="label-rotulo label-destaque" htmlFor="justificativa-encerramento-vinculo">Justificativa *</label><textarea id="justificativa-encerramento-vinculo" className="p-inputtextarea p-inputtext p-component w-full" rows={3} value={justificativa} onChange={(evento) => setJustificativa(evento.target.value)} /></div>
-              {formaSelecionada?.exigeProcessoSigadoc ? <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="sigadoc-encerramento-vinculo">Processo SIGADOC *</label><input id="sigadoc-encerramento-vinculo" className="p-inputtext p-component w-full" value={processoSigadoc} onChange={(evento) => setProcessoSigadoc(evento.target.value)} /></div> : null}
-              {formaSelecionada?.exigeProcessoLegal ? <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="legal-encerramento-vinculo">Processo legal *</label><input id="legal-encerramento-vinculo" className="p-inputtext p-component w-full" value={processoLegal} onChange={(evento) => setProcessoLegal(evento.target.value)} /></div> : null}
+              <div className="col-12 md:col-6"><label className="label-rotulo label-destaque" htmlFor="sigadoc-encerramento-vinculo">Número do processo SIGADOC{formaSelecionada?.exigeProcessoSigadoc ? " *" : ""}</label><input id="sigadoc-encerramento-vinculo" className="p-inputtext p-component w-full" value={processoSigadoc} onChange={(evento) => { setProcessoSigadoc(evento.target.value); setErroEncerramento(""); }} /></div>
+              <div className="col-12 md:col-6"><label className="label-rotulo label-destaque">Documento do processo SIGADOC{formaSelecionada?.exigeAnexoProcessoSigadoc ? " *" : ""}</label><AnexarDocumentoSeplag hideLabel className="w-full" arquivoBase64={documentoSigadoc ?? undefined} onUploadDocument={anexarDocumentoSigadoc} onRemoveArquivo={() => { setDocumentoSigadoc(null); setErroEncerramento(""); }} handleViewArquivo={() => undefined} canView={false} accept="application/pdf" helpText="Formato aceito: .pdf | Tamanho máximo: 10MB" /></div>
               {erroEncerramento ? <div className="col-12"><small className="p-error">{erroEncerramento}</small></div> : null}
             </ModalSeplag>
           </div>
