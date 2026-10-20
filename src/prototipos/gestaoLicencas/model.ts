@@ -18,7 +18,16 @@ export interface RegistroLicenca {
   tipo: string;
   categoria: "Licença" | "Afastamento" | "Ausência";
   dias: number;
-  abrangencia: "INTEGRAL";
+  abrangencia: "INTEGRAL" | "POR HORAS";
+  solicitacao?: {
+    eventoId: string;
+    cpf: string;
+    parentesco: string;
+    observacao: string;
+    horaInicio?: string;
+    horaFim?: string;
+    totalHoras?: string;
+  };
   origem: "SIGEP" | "PORTALSERVIDOR";
   situacao: SituacaoLicenca;
 }
