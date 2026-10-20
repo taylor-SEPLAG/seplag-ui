@@ -53,14 +53,14 @@ export function ParametrizacaoLicencasPage() {
     <section className="v2v-panel v2v-filters pl-filtros" aria-label="Filtros de consulta">
       <label>Código ou Nome do Evento<input value={filtros.busca} onChange={e=>alterar('busca',e.target.value)} placeholder="Buscar por código ou nome"/></label>
       <label>Categoria<select value={filtros.categoria} onChange={e=>alterar('categoria',e.target.value)}><option value="">Todas</option>{CATEGORIAS.map(c=><option key={c}>{c}</option>)}</select></label>
-      <label>Natureza<select value={filtros.natureza} onChange={e=>alterar('natureza',e.target.value)}><option value="">Todas</option>{NATUREZAS.map(n=><option key={n}>{n}</option>)}</select></label>
+      <label>Tipo<select value={filtros.natureza} onChange={e=>alterar('natureza',e.target.value)}><option value="">Todas</option>{NATUREZAS.map(n=><option key={n}>{n}</option>)}</select></label>
       <label>Situação<select value={filtros.situacao} onChange={e=>alterar('situacao',e.target.value)}><option value="">Todas</option><option>Ativo</option><option>Inativo</option></select></label>
       <button type="button" className="v2v-primary" onClick={()=>{setFiltros({...filtrosVazios});setPagina(1);}}><i className="pi pi-refresh" aria-hidden="true"/>Limpar filtro</button>
     </section>
     {mensagem&&<p className="v2v-notice" role="status">{mensagem}</p>}
     <div className="v2v-toolbar pl-table-toolbar"><button type="button" className="v2v-primary" onClick={()=>navigate(`${BASE}/novo`)}><i className="pi pi-plus" aria-hidden="true"/>Nova Parametrização</button></div>
 
-    <div className="pl-grid-scroll"><table className="v2v-table pl-table" aria-label="Eventos parametrizados"><thead><tr>{['Código','Nome do Evento / Descrição','Natureza','Categoria','Vínculos Autorizados','Duração Máxima','Parentesco?','Recorrência?','Situação','Ações'].map(c=><th scope="col" key={c}>{c}</th>)}</tr></thead><tbody>{visiveis.map(e=><tr key={e.id}>
+    <div className="pl-grid-scroll"><table className="v2v-table pl-table" aria-label="Eventos parametrizados"><thead><tr>{['Código','Nome do Evento / Descrição','Tipo','Categoria','Vínculos Autorizados','Duração Máxima','Parentesco?','Recorrência?','Situação','Ações'].map(c=><th scope="col" key={c}>{c}</th>)}</tr></thead><tbody>{visiveis.map(e=><tr key={e.id}>
       <td>{e.codigo}</td><td><span className="pl-nome">{e.nome}</span><small className="pl-descricao">{e.descricao}</small></td>
       <td><span className={`pl-tag pl-natureza-${NATUREZAS.indexOf(e.natureza)}`}>{e.natureza}</span></td><td>{e.categoria}</td>
       <td><button type="button" className="pl-vinculos-link" aria-label={`Ver vínculos autorizados do evento ${e.codigo}`} onClick={()=>setVinculosEvento(e)}>{e.vinculos.length} {e.vinculos.length===1?'Vínculo':'Vínculos'}</button></td>
@@ -70,7 +70,7 @@ export function ParametrizacaoLicencasPage() {
     <PaginacaoV2 nome="eventos" pagina={atual} totalPaginas={totalPaginas} porPagina={porPagina} mudarPagina={setPagina} mudarPorPagina={q=>{setPorPagina(q);setPagina(1);}}/>
     <ModalSeplag visible={Boolean(visualizacao)} titulo="Visualizar Evento" fechar={()=>setVisualizacao(null)} hideFooter tamanho="720px">
       {visualizacao&&<div className="v2v-page"><h3>{visualizacao.codigo} — {visualizacao.nome}</h3><p>{visualizacao.descricao}</p><dl className="pl-detalhes">
-        <div><dt>Natureza</dt><dd>{visualizacao.natureza}</dd></div><div><dt>Categoria</dt><dd>{visualizacao.categoria}</dd></div>
+        <div><dt>Tipo</dt><dd>{visualizacao.natureza}</dd></div><div><dt>Categoria</dt><dd>{visualizacao.categoria}</dd></div>
         <div><dt>Vínculos autorizados</dt><dd>{visualizacao.vinculos.join(', ')}</dd></div><div><dt>Duração máxima</dt><dd>{rotuloDuracao(visualizacao)}</dd></div>
         <div><dt>Parentesco?</dt><dd>{visualizacao.parentesco?'Sim':'Não'}</dd></div><div><dt>Recorrência?</dt><dd>{visualizacao.recorrencia||'Não'}</dd></div><div><dt>Situação</dt><dd><Situacao valor={visualizacao.situacao}/></dd></div>
       </dl></div>}

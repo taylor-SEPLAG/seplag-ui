@@ -12,7 +12,7 @@ import {
   screen,
   within,
 } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import { ParametrizacaoLicencasPage } from "./ParametrizacaoLicencasPage";
 import { ParametrizacaoLicencasFormPage } from "./FormularioLicenca";
 import {
@@ -31,12 +31,14 @@ import {
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  sessionStorage.clear();
   vi.restoreAllMocks();
 });
 function montar() {
   render(
     <MemoryRouter initialEntries={[BASE]}>
       <Routes>
+        <Route path="/prototipos/sigep/documentos-legais/novo" element={<RetornoDocumentoTeste/>}/>
         <Route path={BASE} element={<ParametrizacaoLicencasPage />} />
         <Route
           path={`${BASE}/novo`}
@@ -54,6 +56,22 @@ function montar() {
     </MemoryRouter>,
   );
 }
+function RetornoDocumentoTeste(){
+  const navigate=useNavigate(),location=useLocation();
+  return <button onClick={()=>navigate(new URLSearchParams(location.search).get('returnTo')!)}>Retornar à parametrização</button>;
+}
+it('preserva o preenchimento ao acessar o cadastro de amparo legal e retornar',()=>{
+  montar();
+  fireEvent.click(screen.getByRole('button',{name:'Nova Parametrização'}));
+  fireEvent.change(screen.getByLabelText('Nome do Evento (Exibido no Lançamento) *'),{target:{value:'Rascunho preservado'}});
+  selecionarAmparoLegal();
+  fireEvent.click(screen.getByRole('button',{name:'Novo Cadastro'}));
+  fireEvent.click(screen.getByRole('button',{name:'Retornar à parametrização'}));
+  expect((screen.getByLabelText('Nome do Evento (Exibido no Lançamento) *') as HTMLInputElement).value).toBe('Rascunho preservado');
+  expect(screen.getAllByRole('button',{name:'Remover LC nº 500/2026'}).length).toBeGreaterThan(0);
+  expect(screen.getByLabelText('Tipo *')).toBeTruthy();
+  expect(sessionStorage.getItem(`sigep-licencas-rascunho:${BASE}/novo`)).toBeNull();
+});
 it("migra códigos antigos preservando os dados e os códigos numéricos existentes", () => {
   const antigos = eventosIniciais.map((e, i) => ({
     ...e,
@@ -62,13 +80,7 @@ it("migra códigos antigos preservando os dados e os códigos numéricos existen
   }));
   localStorage.setItem(STORAGE_LICENCAS, JSON.stringify(antigos));
   const dados = carregarEventos();
-  expect(dados.map((e) => e.codigo)).toEqual([
-    "2",
-    "1",
-    "3",
-    "4",
-    "5",
-  ]);
+  expect(dados.map((e) => e.codigo)).toEqual(["2", "1", "3", "4", "5"]);
   expect(dados.map((e) => e.id)).toEqual(antigos.map((e) => e.id));
   expect(dados.every((e) => e.descricao === "Descrição preservada")).toBe(true);
   expect(carregarEventos()).toEqual(dados);
@@ -193,13 +205,18 @@ it("abre a clonagem preenchida e salva uma nova parametrização", async () => {
   fireEvent.change(screen.getByLabelText("Data Início Vigência *"), {
     target: { value: "2026-10-20" },
   });
+  selecionarAmparoLegal();
   fireEvent.click(screen.getByRole("button", { name: "Pai / Mãe" }));
   expect(
     (screen.getByLabelText("Código Interno *") as HTMLInputElement).readOnly,
   ).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
   expect(carregarEventos()).toHaveLength(6);
-  expect(within(screen.getByRole("table", {name:"Eventos parametrizados"})).getByText("6")).toBeTruthy();
+  expect(
+    within(
+      screen.getByRole("table", { name: "Eventos parametrizados" }),
+    ).getByText("6"),
+  ).toBeTruthy();
 });
 it("cadastra e edita um evento sem duplicar o registro existente", async () => {
   montar();
@@ -207,9 +224,7 @@ it("cadastra e edita um evento sem duplicar o registro existente", async () => {
   fireEvent.change(screen.getByLabelText("Data Início Vigência *"), {
     target: { value: "2026-10-20" },
   });
-  fireEvent.change(screen.getByLabelText("Fundamento Legal *"), {
-    target: { value: "Referência informada" },
-  });
+  selecionarAmparoLegal();
   fireEvent.change(
     screen.getByLabelText("Nome do Evento (Exibido no Lançamento) *"),
     { target: { value: "Evento de demonstração" } },
@@ -267,7 +282,7 @@ it("pagina os resultados e reinicia a página ao combinar filtros", () => {
       .getByRole("button", { name: "Página 1 de eventos" })
       .getAttribute("aria-current"),
   ).toBe("page");
-  fireEvent.change(screen.getByLabelText("Natureza"), {
+  fireEvent.change(screen.getByLabelText("Tipo"), {
     target: { value: "Ausência" },
   });
   expect(
@@ -283,9 +298,7 @@ async function acaoEvento(codigo: string, acao: string) {
 }
 it("visualiza os detalhes do registro sem alterar seus dados", () => {
   montar();
-  fireEvent.click(
-    screen.getByRole("button", { name: "Visualizar Evento 1" }),
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Visualizar Evento 1" }));
   const modal = within(
     screen.getByRole("dialog", { name: "Visualizar Evento" }),
   );
@@ -314,9 +327,7 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
   fireEvent.change(screen.getByLabelText("Data Fim Vigência"), {
     target: { value: "2027-10-20" },
   });
-  fireEvent.change(screen.getByLabelText("Fundamento Legal *"), {
-    target: { value: "Fundamento informado pelo operador" },
-  });
+  selecionarAmparoLegal();
   fireEvent.change(screen.getByLabelText("Categoria (Tabela de Domínio) *"), {
     target: { value: CATEGORIAS[2] },
   });
@@ -358,6 +369,7 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
   fireEvent.change(screen.getByLabelText("Exige Parentesco? *"), {
     target: { value: "true" },
   });
+  selecionarAmparoLegal();
   fireEvent.click(screen.getByRole("button", { name: "Pai / Mãe" }));
   fireEvent.click(screen.getByRole("button", { name: "Tio(a)" }));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
@@ -432,7 +444,14 @@ it("valida vigência, abrangência, recorrência e parentesco antes de publicar"
 });
 it("não exibe os controles de publicação e histórico no cabeçalho", () => {
   montar();
-  fireEvent.click(screen.getByRole("button", {name:"Nova Parametrização"}));
+  fireEvent.click(screen.getByRole("button", { name: "Nova Parametrização" }));
   expect(screen.queryByText("Nova publicação")).toBeNull();
-  expect(screen.queryByRole("button", {name:"Histórico"})).toBeNull();
+  expect(screen.queryByRole("button", { name: "Histórico" })).toBeNull();
 });
+function selecionarAmparoLegal() {
+  fireEvent.click(screen.getByLabelText("Buscar documentos legais associados"));
+  const doc = within(screen.getByRole("listbox")).getByRole("checkbox", {
+    name: /LC nº 500/,
+  });
+  if (!(doc as HTMLInputElement).checked) fireEvent.click(doc);
+}

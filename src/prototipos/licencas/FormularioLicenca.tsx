@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { DocumentosLegaisAssociadosSeplag } from "../../componentes/DocumentosLegaisAssociados";
+import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
 
 import { Ambiente } from "./AmbienteLicencas";
 import {
@@ -149,30 +151,51 @@ export function ParametrizacaoLicencasFormPage({
 }) {
   const { id } = useParams(),
     navigate = useNavigate();
+  const location = useLocation();
+  const documentosLegais = useDocumentosLegaisAssociaveis();
+  const chaveRascunho = `sigep-licencas-rascunho:${location.pathname}`;
+  const [rascunho] = useState<{
+    evento: EventoLicenca;
+    config: ConfiguracaoEvento;
+  } | null>(() => {
+    try {
+      const salvo = sessionStorage.getItem(chaveRascunho);
+      return salvo ? JSON.parse(salvo) : null;
+    } catch {
+      return null;
+    }
+  });
+  useEffect(() => {
+    sessionStorage.removeItem(chaveRascunho);
+  }, [chaveRascunho]);
   const [original] = useState(() =>
     id ? carregarEventos().find((e) => e.id === id) : undefined,
   );
-  const [evento, setEvento] = useState<EventoLicenca>(() =>
-    original
-      ? clonar
-        ? clonarEvento(original)
-        : structuredClone(original)
-      : {
-          id: crypto.randomUUID(),
-          codigo: proximoCodigo(),
-          nome: "",
-          descricao: "",
-          natureza: "Licença",
-          categoria: "",
-          vinculos: [],
-          duracao: "Dias corridos",
-          quantidade: 1,
-          parentesco: false,
-          recorrencia: "",
-          situacao: "Ativo",
-        },
+  const [evento, setEvento] = useState<EventoLicenca>(
+    () =>
+      rascunho?.evento ??
+      (original
+        ? clonar
+          ? clonarEvento(original)
+          : structuredClone(original)
+        : {
+            id: crypto.randomUUID(),
+            codigo: proximoCodigo(),
+            nome: "",
+            descricao: "",
+            natureza: "Licença",
+            categoria: "",
+            vinculos: [],
+            duracao: "Dias corridos",
+            quantidade: 1,
+            parentesco: false,
+            recorrencia: "",
+            situacao: "Ativo",
+          }),
   );
-  const [config, setConfig] = useState(() => configuracaoDoEvento(evento));
+  const [config, setConfig] = useState(
+    () => rascunho?.config ?? configuracaoDoEvento(evento),
+  );
   const [erro, setErro] = useState("");
   const titulo = clonar
     ? "Duplicar Parametrização"
@@ -204,6 +227,7 @@ export function ParametrizacaoLicencasFormPage({
           ...evento,
           configuracao: {
             ...config,
+            documentosLegaisIds: config.documentosLegaisIds ?? [],
             grausParentesco: evento.parentesco ? config.grausParentesco : [],
           },
           descricao: config.fundamentoLegal,
@@ -232,11 +256,6 @@ export function ParametrizacaoLicencasFormPage({
     );
   return (
     <Ambiente titulo={titulo}>
-      <div className="pl-form-heading">
-        <p className="v2v-description">
-          Cadastro e definição de regras operacionais para lançamento no SIGEP.
-        </p>
-      </div>
       {clonar && (
         <p className="v2v-description">
           Nova parametrização baseada em {original?.codigo}.
@@ -294,7 +313,7 @@ export function ParametrizacaoLicencasFormPage({
               />
               <small id="pl-fim-ajuda">Vazio = Vigência Aberta</small>
             </label>
-            <label className="pl-col-4">
+            <label className="pl-col-6">
               <span>
                 Categoria (Tabela de Domínio) <em>*</em>
               </span>
@@ -311,20 +330,10 @@ export function ParametrizacaoLicencasFormPage({
                 ))}
               </select>
             </label>
-            <label className="pl-col-4">
+
+            <label className="pl-col-6">
               <span>
-                Fundamento Legal <em>*</em>
-              </span>
-              <input
-                required
-                maxLength={500}
-                value={config.fundamentoLegal}
-                onChange={(e) => configurar("fundamentoLegal", e.target.value)}
-              />
-            </label>
-            <label className="pl-col-4">
-              <span>
-                Natureza <em>*</em>
+                Tipo <em>*</em>
               </span>
               <select
                 value={evento.natureza}
@@ -337,6 +346,42 @@ export function ParametrizacaoLicencasFormPage({
                 ))}
               </select>
             </label>
+            <div className="pl-col-12 pl-amparo-legal">
+              <DocumentosLegaisAssociadosSeplag
+                label="Amparo Legal"
+                required
+                options={documentosLegais}
+                value={config.documentosLegaisIds ?? []}
+                onChange={(ids) =>
+                  setConfig((c) => ({
+                    ...c,
+                    documentosLegaisIds: ids,
+                    fundamentoLegal: ids
+                      .map(
+                        (id) =>
+                          documentosLegais.find((d) => d.id === id)?.titulo ??
+                          "",
+                      )
+                      .filter(Boolean)
+                      .join("; "),
+                  }))
+                }
+                onNovoCadastro={() => {
+                  sessionStorage.setItem(
+                    chaveRascunho,
+                    JSON.stringify({ evento, config }),
+                  );
+                  navigate(
+                    `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`,
+                  );
+                }}
+                expandirAoAbrir
+              />
+              {!config.documentosLegaisIds?.length &&
+                config.fundamentoLegal && (
+                  <small>Referência anterior: {config.fundamentoLegal}</small>
+                )}
+            </div>
             <label className="pl-col-12">
               <span>Descrição Detalhada / Orientação Operacional</span>
               <textarea
@@ -551,7 +596,6 @@ export function ParametrizacaoLicencasFormPage({
           </button>
         </div>
       </form>
-
     </Ambiente>
   );
 }

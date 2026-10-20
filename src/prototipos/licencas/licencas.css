@@ -459,3 +459,7 @@
     align-items: flex-start;
   }
 }
+.pl-config-grid .pl-amparo-legal label { flex-direction:row; }
+.pl-config-grid .pl-amparo-legal input:not([type=checkbox]) { min-height:0; }
+.pl-config-grid .pl-amparo-legal > small { display:block; margin-top:8px; }
+.pl-page .pl-amparo-legal input[aria-label="Buscar documentos legais associados"] { border:0; box-shadow:none; outline:none; padding:0; height:32px; min-height:0; background:transparent; }

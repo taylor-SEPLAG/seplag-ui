@@ -39,6 +39,7 @@ export const GRAUS_PARENTESCO = [
   "Sogro(a)",
 ];
 export interface ConfiguracaoEvento {
+  documentosLegaisIds?: string[];
   inicioVigencia: string;
   fimVigencia: string;
   fundamentoLegal: string;
@@ -281,7 +282,11 @@ export function validarEvento(
       (!dataValida(c.fimVigencia) || c.fimVigencia < c.inicioVigencia)
     )
       return "O fim da vigência deve ser igual ou posterior ao início.";
-    if (!c.fundamentoLegal.trim()) return "Informe o fundamento legal.";
+    if (
+      !c.fundamentoLegal.trim() ||
+      (c.documentosLegaisIds !== undefined && !c.documentosLegaisIds.length)
+    )
+      return "Selecione ao menos um documento de amparo legal.";
     if (
       !c.abrangencias.length ||
       c.abrangencias.some((a) => !["Dia Integral", "Por Horas"].includes(a))
