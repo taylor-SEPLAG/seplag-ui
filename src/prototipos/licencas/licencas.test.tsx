@@ -34,6 +34,36 @@ afterEach(() => {
   sessionStorage.clear();
   vi.restoreAllMocks();
 });
+it('atualiza os cards financeiros por vínculo e preserva valores ao alterar a seleção', () => {
+  montar();
+  fireEvent.click(screen.getByRole('button', { name: 'Nova Parametrização' }));
+  expect(screen.queryByLabelText('Categoria (Tabela de Domínio) *')).toBeNull();
+  expect(screen.getByLabelText('Observação')).toBeTruthy();
+  expect(screen.getByText(/Selecione ao menos um tipo de vínculo na seção 2/)).toBeTruthy();
+  fireEvent.click(screen.getByText('Selecione uma ou mais opções'));
+  fireEvent.click(screen.getByLabelText('Contrato Temporário'));
+  fireEvent.click(screen.getByRole('tab', { name: 'Efeitos financeiros por tipo de vínculo' }));
+  let financeiro = within(screen.getByRole('region', { name: 'Efeitos financeiros: Contrato Temporário' }));
+  fireEvent.change(financeiro.getByLabelText(/A partir de qual dia/), { target: { value: '5' } });
+  fireEvent.click(screen.getByRole('tab', { name: 'Dados da parametrização' }));
+  expect(screen.queryByRole('region', { name: 'Efeitos financeiros: Contrato Temporário' })).toBeNull();
+  fireEvent.click(screen.getByLabelText('Residente Técnico'));
+  expect((financeiro.getByLabelText(/A partir de qual dia/) as HTMLInputElement).value).toBe('5');
+  fireEvent.click(screen.getByLabelText('Contrato Temporário'));
+  expect(screen.queryByRole('region', { name: 'Efeitos financeiros: Contrato Temporário' })).toBeNull();
+  fireEvent.click(screen.getByLabelText('Contrato Temporário'));
+  fireEvent.click(screen.getByRole('tab', { name: 'Efeitos financeiros por tipo de vínculo' }));
+  financeiro = within(screen.getByRole('region', { name: 'Efeitos financeiros: Contrato Temporário' }));
+  expect((financeiro.getByLabelText(/A partir de qual dia/) as HTMLInputElement).value).toBe('5');
+  fireEvent.click(within(financeiro.getByRole('group', { name: 'Suspende a remuneração do servidor? *' })).getByLabelText('Não'));
+  expect(financeiro.queryByLabelText(/A partir de qual dia/)).toBeNull();
+  expect((within(financeiro.getByRole('group', { name: 'Gera ônus remuneratório para o órgão de origem? *' })).getByLabelText('Não') as HTMLInputElement).checked).toBe(true);
+});
+it('valida o dia inicial da suspensão antes de publicar', () => {
+  const base = clonarEvento(eventosIniciais[1]);
+  const configuracao = { ...configuracaoDoEvento(base), inicioVigencia: '2026-10-20', efeitosFinanceiros: Object.fromEntries(base.vinculos.map(v => [v, { geraOnus: false, suspendeRemuneracao: true, diaInicioSuspensao: 0 }])) };
+  expect(() => salvarEvento({ ...base, configuracao }, carregarEventos())).toThrow(/dia inicial da suspensão/);
+});
 function montar() {
   render(
     <MemoryRouter initialEntries={[BASE]}>
@@ -229,14 +259,18 @@ it("cadastra e edita um evento sem duplicar o registro existente", async () => {
     screen.getByLabelText("Nome do Evento (Exibido no Lançamento) *"),
     { target: { value: "Evento de demonstração" } },
   );
-  fireEvent.change(screen.getByLabelText("Categoria (Tabela de Domínio) *"), {
-    target: { value: CATEGORIAS[0] },
-  });
   fireEvent.click(screen.getByLabelText("Nomeado Efetivo"));
+  fireEvent.click(screen.getByRole('tab', { name: 'Efeitos financeiros por tipo de vínculo' }));
+  const financeiro = within(screen.getByRole('region', { name: 'Efeitos financeiros: Nomeado Efetivo' }));
+  const suspensao = within(financeiro.getByRole('group', { name: 'Suspende a remuneração do servidor? *' }));
+  fireEvent.click(suspensao.getByLabelText('Sim'));
+  fireEvent.change(financeiro.getByLabelText(/A partir de qual dia/), { target: { value: '3' } });
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
   expect(carregarEventos()).toHaveLength(6);
   const id = carregarEventos().find((e) => e.codigo === "6")!.id;
+  expect(carregarEventos().find(e => e.id === id)?.configuracao?.efeitosFinanceiros?.Efetivo).toEqual({ geraOnus: true, suspendeRemuneracao: true, diaInicioSuspensao: 3 });
   await acaoEvento("6", "Editar");
+  expect((screen.getByLabelText(/A partir de qual dia/) as HTMLInputElement).value).toBe('3');
   fireEvent.change(
     screen.getByLabelText("Nome do Evento (Exibido no Lançamento) *"),
     { target: { value: "Evento revisado" } },
@@ -328,11 +362,8 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
     target: { value: "2027-10-20" },
   });
   selecionarAmparoLegal();
-  fireEvent.change(screen.getByLabelText("Categoria (Tabela de Domínio) *"), {
-    target: { value: CATEGORIAS[2] },
-  });
   fireEvent.change(
-    screen.getByLabelText("Descrição Detalhada / Orientação Operacional"),
+    screen.getByLabelText("Observação"),
     { target: { value: "Orientação de lançamento" } },
   );
   fireEvent.click(screen.getByText("Selecione uma ou mais opções"));

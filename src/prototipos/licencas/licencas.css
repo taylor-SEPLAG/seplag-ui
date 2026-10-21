@@ -463,3 +463,26 @@
 .pl-config-grid .pl-amparo-legal input:not([type=checkbox]) { min-height:0; }
 .pl-config-grid .pl-amparo-legal > small { display:block; margin-top:8px; }
 .pl-page .pl-amparo-legal input[aria-label="Buscar documentos legais associados"] { border:0; box-shadow:none; outline:none; padding:0; height:32px; min-height:0; background:transparent; }
+.pl-finance-card { padding: 16px; margin-bottom: 14px; border: 1px solid #dce5ee; border-radius: 6px; background: #fbfdff; }
+.pl-finance-card > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid #dce5ee; }
+.pl-finance-card h3 { margin: 0; font-size: .94rem; color: #123354; }
+.pl-finance-card > header > span { padding: 4px 8px; border: 1px solid #bfdbfe; border-radius: 20px; background: #eff6ff; color: #1760a6; font-size: .72rem; }
+.pl-finance-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
+.pl-finance-grid fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+.pl-finance-grid legend { font-size: .84rem; font-weight: 600; margin-bottom: 10px; }
+.pl-radio-options { display: flex; gap: 20px; }
+.pl-config-form .pl-radio-options label { display: flex; flex-direction: row; align-items: center; gap: 7px; font-weight: 400; }
+.pl-config-form .pl-radio-options input { width: 16px; min-height: 16px; margin: 0; accent-color: #347ff0; }
+.pl-config-form .pl-finance-dia { margin-top: 16px; max-width: 340px; }
+.pl-finance-dia small { color: #647c94; font-weight: 400; }
+.pl-finance-note { display: flex; align-items: start; gap: 10px; margin: 16px 0 0; padding: 12px; border: 1px solid #dce5ee; background: #f5f8fc; color: #536a81; font-size: .82rem; line-height: 1.5; border-radius: 5px; }
+.pl-finance-note i { margin-top: 3px; }
+.pl-finance-empty { padding: 20px; border: 1px dashed #bdcede; border-radius: 5px; color: #647c94; text-align: center; }
+@media(max-width:700px) { .pl-finance-grid { grid-template-columns: 1fr; } .pl-finance-card > header { align-items: start; flex-direction: column; } }
+.pl-col-8 { grid-column: span 8; }
+@media(max-width:1100px) { .pl-col-8 { grid-column: 1 / -1; } }
+.pl-config-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+.pl-config-form .pl-config-tabs button { flex: 1; min-width: 0; min-height: 44px; padding: 12px 16px; border: 0; border-radius: 0; background: #658491; color: #fff; font-weight: 700; text-align: center; justify-content: center; }
+.pl-config-form .pl-config-tabs button[aria-selected=true] { background: #2998e4; color: #fff; }
+.pl-config-tabs button:focus-visible { outline: 2px solid #123354; outline-offset: -4px; }
+@media(max-width:600px) { .pl-config-tabs { flex-direction: column; } }

@@ -179,11 +179,10 @@ it("o olho mostra os dados do registro selecionado sem alterar a base", () => {
     expect(modal.getByText(texto)).toBeTruthy();
   expect(JSON.stringify(registrosLicencas)).toBe(original);
 });
-it("mantém Gestão ativa sem as abas e o seletor de perfil removidos", () => {
+it("exibe a gestão sem abas nem seletor de perfil", () => {
   montar();
-  expect(
-    screen.getByRole("tab", { name: "Gestão" }).getAttribute("aria-selected"),
-  ).toBe("true");
+  expect(screen.queryByRole("tablist")).toBeNull();
+  expect(screen.queryByRole("tab", { name: "Gestão" })).toBeNull();
   for (const nome of ["Perícia / Homologações", "Substituições"])
     expect(
       screen.queryByRole("tab", { name: nome }),

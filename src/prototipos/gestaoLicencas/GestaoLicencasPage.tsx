@@ -76,22 +76,7 @@ export function GestaoLicencasContent({
           Lançamento salvo com sucesso.
         </p>
       )}
-      <div
-        className="gl-tabs"
-        role="tablist"
-        aria-label="Áreas de gestão de licenças"
-      >
-        <button
-          type="button"
-          role="tab"
-          id="gl-tab-gestao"
-          aria-selected="true"
-          aria-controls="gl-panel-gestao"
-        >
-          Gestão
-        </button>
-      </div>
-      <div role="tabpanel" id="gl-panel-gestao" aria-labelledby="gl-tab-gestao">
+      <div>
         <section
           className="v2v-kpis gl-kpis"
           aria-label="Resumo de licenças e afastamentos"

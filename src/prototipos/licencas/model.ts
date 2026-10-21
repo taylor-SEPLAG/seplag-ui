@@ -38,7 +38,13 @@ export const GRAUS_PARENTESCO = [
   "Sobrinho(a)",
   "Sogro(a)",
 ];
+export interface EfeitoFinanceiro {
+  geraOnus: boolean;
+  suspendeRemuneracao: boolean;
+  diaInicioSuspensao: number | null;
+}
 export interface ConfiguracaoEvento {
+  efeitosFinanceiros?: Record<string, EfeitoFinanceiro>;
   documentosLegaisIds?: string[];
   inicioVigencia: string;
   fimVigencia: string;
@@ -251,10 +257,11 @@ export function validarEvento(
   )
     return "Já existe um evento com este código. Informe um código único.";
   if (
-    !CATEGORIAS.some((c) => c === evento.categoria) ||
+    (Boolean(evento.categoria) &&
+      !CATEGORIAS.some((c) => c === evento.categoria)) ||
     !NATUREZAS.includes(evento.natureza)
   )
-    return "Selecione uma categoria e uma natureza válidas.";
+    return "Selecione um tipo válido.";
   if (
     !evento.vinculos.length ||
     evento.vinculos.some(
@@ -271,6 +278,23 @@ export function validarEvento(
     return "Informe uma duração máxima inteira maior que zero.";
   const c = evento.configuracao;
   if (c) {
+    if (c.efeitosFinanceiros !== undefined) {
+      for (const vinculo of evento.vinculos) {
+        const efeito = c.efeitosFinanceiros[vinculo];
+        if (
+          !efeito ||
+          typeof efeito.geraOnus !== "boolean" ||
+          typeof efeito.suspendeRemuneracao !== "boolean"
+        )
+          return "Configure os efeitos financeiros de todos os tipos de vínculo selecionados.";
+        if (
+          efeito.suspendeRemuneracao &&
+          (!Number.isInteger(efeito.diaInicioSuspensao) ||
+            Number(efeito.diaInicioSuspensao) < 1)
+        )
+          return "Informe o dia inicial da suspensão como um número inteiro maior que zero.";
+      }
+    }
     const dataValida = (data: string) =>
       /^\d{4}-\d{2}-\d{2}$/.test(data) &&
       !Number.isNaN(Date.parse(data)) &&

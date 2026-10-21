@@ -150,7 +150,7 @@ export function NovaSolicitacaoContent() {
   return (
     <form className="gl-solicitacao" onSubmit={salvar}>
       <Secao
-        titulo="1. Identificação do Servidor e Seleção de Vínculo Funcional"
+        titulo="Identificação do Servidor e Seleção de Vínculo Funcional"
         icone="pi-user"
       >
         <div className="gl-busca-servidor">
@@ -257,7 +257,7 @@ export function NovaSolicitacaoContent() {
         )}
       </Secao>
       <Secao
-        titulo="2. Dados da Licença, Afastamento ou Ausência"
+        titulo="Dados da Licença, Afastamento ou Ausência"
         icone="pi-calendar"
       >
         <div className="gl-solicitacao-grid">
