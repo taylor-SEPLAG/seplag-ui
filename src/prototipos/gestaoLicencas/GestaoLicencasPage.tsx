@@ -5,6 +5,8 @@ import { CardSeplag } from "../../componentes/Card";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { PaginacaoV2 } from "../vinculos/VinculoV2Page";
 import { ModalSeplag } from "../../componentes/Modal";
+import { AnexarDocumentoSeplag } from "../../componentes/AnexarDocumento";
+import { abrirDocumento } from "./documentosSolicitacao";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import {
   GESTAO_LICENCAS_PATH,
@@ -24,7 +26,7 @@ const indisponivel = "Funcionalidade indisponível nesta etapa.";
 function Situacao({ valor }: { valor: RegistroLicenca["situacao"] }) {
   return (
     <span
-      className={`gl-pill gl-status-${valor === "Vigente" ? "vigente" : valor === "Encerrado" ? "encerrado" : "inss"}`}
+      className={`gl-pill gl-status-${valor === "Em andamento" ? "vigente" : valor === "Encerrado" ? "encerrado" : "inss"}`}
     >
       {valor}
     </span>
@@ -139,7 +141,7 @@ export function GestaoLicencasContent({
                 onChange={(e) => alterar("situacao", e.target.value)}
               >
                 <option value="">Todas</option>
-                {["Vigente", "Encerrado", "Encaminhado p/ o INSS"].map((o) => (
+                {["Em andamento", "Encerrado", "Encaminhado p/ o INSS"].map((o) => (
                   <option key={o}>{o}</option>
                 ))}
               </select>
@@ -325,6 +327,15 @@ export function GestaoLicencasContent({
                 </dd>
               </div>
             </dl>
+            {!!selecionado.solicitacao?.documentos?.length && (
+              <AnexarDocumentoSeplag
+                cols="12"
+                label="Documentos anexados"
+                arquivosBase64={selecionado.solicitacao.documentos}
+                handleViewArquivo={(arquivo) => abrirDocumento(arquivo)}
+                onDownloadArquivo={(arquivo) => abrirDocumento(arquivo, true)}
+              />
+            )}
           </div>
         )}
       </ModalSeplag>

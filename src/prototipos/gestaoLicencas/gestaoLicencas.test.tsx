@@ -73,7 +73,7 @@ it("deriva os seis indicadores dos sete registros e preserva os valores do HTML"
     7, 0, 0, 5, 1, 1,
   ]);
   expect(registrosLicencas.find((r) => r.matricula === "241244")).toMatchObject(
-    { inicio: "2026-03-24", fim: "2026-04-07", dias: 8, situacao: "Vigente" },
+    { inicio: "2026-03-24", fim: "2026-04-07", dias: 8, situacao: "Em andamento" },
   );
   expect(indicadoresLicencas([]).map((k) => k.valor)).toEqual([
     0, 0, 0, 0, 0, 0,
@@ -95,7 +95,7 @@ it("combina os cinco filtros e pesquisa sem diferenciar acentos ou maiúsculas",
       orgao: "SES/MT",
       lotacao: "COORD. PLANEJ. E PROJETOS DE TI",
       servidor: " JOAO SILVA ",
-      situacao: "Vigente",
+      situacao: "Em andamento",
       tipoVinculo: "Residente Técnico",
     }).map((r) => r.matricula),
   ).toEqual(["327305"]);
@@ -110,7 +110,7 @@ it("combina os cinco filtros e pesquisa sem diferenciar acentos ou maiúsculas",
     target: { value: "JOAO" },
   });
   fireEvent.change(screen.getByLabelText("Situação"), {
-    target: { value: "Vigente" },
+    target: { value: "Em andamento" },
   });
   fireEvent.change(screen.getByLabelText("Tipo de vínculo"), {
     target: { value: "Residente Técnico" },

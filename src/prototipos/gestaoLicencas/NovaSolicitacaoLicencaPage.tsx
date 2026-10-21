@@ -1,6 +1,11 @@
-import { useState, type ReactNode, type FormEvent } from "react";
+import { useRef, useState, type ReactNode, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { CardSeplag } from "../../componentes/Card";
+import {
+  AnexarDocumentoSeplag,
+  type ArquivoAnexadoSeplag,
+} from "../../componentes/AnexarDocumento";
+import { abrirDocumento, lerDocumento } from "./documentosSolicitacao";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import {
@@ -61,6 +66,28 @@ export function NovaSolicitacaoContent() {
   const [parentesco, setParentesco] = useState(""),
     [observacao, setObservacao] = useState("");
   const [erro, setErro] = useState("");
+  const [documentos, setDocumentos] = useState<ArquivoAnexadoSeplag[]>([]);
+  const [lendoDocumentos, setLendoDocumentos] = useState(false);
+  const lendoRef = useRef(false);
+  async function anexarArquivos(files: File[]) {
+    if (lendoRef.current || !files.length) return;
+    lendoRef.current = true;
+    setLendoDocumentos(true);
+    setErro("");
+    try {
+      const novos = await Promise.all(files.map(lerDocumento));
+      setDocumentos((atuais) => [...atuais, ...novos]);
+    } catch (erro) {
+      setErro(
+        erro instanceof Error
+          ? erro.message
+          : "Não foi possível anexar o documento.",
+      );
+    } finally {
+      lendoRef.current = false;
+      setLendoDocumentos(false);
+    }
+  }
   const evento = parametrizacoes.find((e) => e.id === eventoId);
   const config = evento ? configuracaoDoEvento(evento) : null;
   const porHoras = evento?.duracao === "Por horas";
@@ -69,6 +96,7 @@ export function NovaSolicitacaoContent() {
   const dias = diasPeriodo(inicio, fim, config?.contagem === "Dias úteis");
   function salvar(e: FormEvent) {
     e.preventDefault();
+    if (lendoDocumentos) return;
     setErro("");
     if (!servidor || !selecionados.length)
       return setErro("Selecione o servidor e pelo menos um vínculo funcional.");
@@ -126,12 +154,13 @@ export function NovaSolicitacaoContent() {
       dias,
       abrangencia: porHoras ? "POR HORAS" : "INTEGRAL",
       origem: "SIGEP",
-      situacao: "Vigente",
+      situacao: "Em andamento",
       solicitacao: {
         eventoId: evento.id,
         cpf: servidor.cpf,
         parentesco: evento.parentesco ? parentesco : "",
         observacao,
+        documentos,
         ...(porHoras ? { horaInicio, horaFim, totalHoras } : {}),
       },
     }));
@@ -303,25 +332,35 @@ export function NovaSolicitacaoContent() {
               </select>
             </label>
           )}
-          <label>
-            Data de Início *
-            <input
-              type="date"
-              required
-              value={inicio}
-              onChange={(e) => setInicio(e.target.value)}
-            />
-          </label>
-          <label>
-            Data de Término *
-            <input
-              type="date"
-              required
-              min={inicio}
-              value={fim}
-              onChange={(e) => setFim(e.target.value)}
-            />
-          </label>
+          <div className="gl-periodo gl-span-full">
+            <label>
+              Data de Início *
+              <input
+                type="date"
+                required
+                value={inicio}
+                onChange={(e) => setInicio(e.target.value)}
+              />
+            </label>
+            <label>
+              Data de Término *
+              <input
+                type="date"
+                required
+                min={inicio}
+                value={fim}
+                onChange={(e) => setFim(e.target.value)}
+              />
+            </label>
+            <label>
+              Quantidade de dias
+              <input
+                type="number"
+                readOnly
+                value={inicio && fim && fim >= inicio ? dias : ""}
+              />
+            </label>
+          </div>
           {porHoras && (
             <div className="gl-horas gl-span-full">
               <label>
@@ -364,6 +403,55 @@ export function NovaSolicitacaoContent() {
               onChange={(e) => setObservacao(e.target.value)}
             />
           </label>
+          <div className="gl-span-full">
+            <span className="prototype-judicial-upload-label">
+              Documentos (opcional)
+            </span>
+            <label
+              className="gl-upload-area"
+              onDragOver={(e) => {
+                e.preventDefault();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                void anexarArquivos(Array.from(e.dataTransfer.files));
+              }}
+            >
+              <input
+                className="gl-upload-input"
+                type="file"
+                aria-label="Escolher arquivo"
+                accept=".pdf,.doc,.docx"
+                multiple
+                disabled={lendoDocumentos}
+                onChange={(e) => {
+                  void anexarArquivos(Array.from(e.target.files ?? []));
+                  e.target.value = "";
+                }}
+              />
+              <span className="prototype-judicial-upload-button">
+                <i className="pi pi-upload" aria-hidden="true" />
+                Escolher arquivo
+              </span>
+              <span className="prototype-judicial-upload-prompt">
+                Arraste e solte o arquivo aqui ou clique para selecionar
+              </span>
+              <small>Formatos aceitos: PDF, DOC, DOCX (Máx. 10MB)</small>
+            </label>
+            <AnexarDocumentoSeplag
+              cols="12"
+              hideLabel
+              className="gl-upload-list"
+              multiple
+              arquivosBase64={documentos}
+              onRemoveArquivo={(_, indice) =>
+                setDocumentos((atuais) => atuais.filter((_, i) => i !== indice))
+              }
+              handleViewArquivo={(arquivo) => abrirDocumento(arquivo)}
+              onDownloadArquivo={(arquivo) => abrirDocumento(arquivo, true)}
+            />
+            {lendoDocumentos && <p role="status">Carregando documentos...</p>}
+          </div>
         </div>
       </Secao>
       {erro && (
@@ -380,7 +468,11 @@ export function NovaSolicitacaoContent() {
           <i className="pi pi-arrow-left" aria-hidden="true" />
           Voltar
         </button>
-        <button type="submit" className="v2v-primary">
+        <button
+          type="submit"
+          className="v2v-primary"
+          disabled={lendoDocumentos}
+        >
           <i className="pi pi-check" aria-hidden="true" />
           Efetivar Lançamento
         </button>

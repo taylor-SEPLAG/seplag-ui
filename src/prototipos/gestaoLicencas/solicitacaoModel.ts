@@ -68,7 +68,7 @@ export function carregarSolicitacoes(): RegistroLicenca[] {
             typeof r.nome === "string" &&
             typeof r.inicio === "string" &&
             typeof r.fim === "string",
-        )
+        ).map(r => ({ ...r, situacao: r.situacao === 'Vigente' ? 'Em andamento' : r.situacao }))
       : [];
   } catch {
     return [];

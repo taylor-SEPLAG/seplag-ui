@@ -1,7 +1,7 @@
 export const GESTAO_LICENCAS_PATH =
   "/prototipos/sigep/gestao-licencas-afastamentos";
 export const TITULO_GESTAO_LICENCAS = "Gestão de Licenças e Afastamentos";
-export type SituacaoLicenca = "Vigente" | "Encerrado" | "Encaminhado p/ o INSS";
+export type SituacaoLicenca = "Em andamento" | "Encerrado" | "Encaminhado p/ o INSS";
 export interface RegistroLicenca {
   id: string;
   matricula: string;
@@ -24,6 +24,7 @@ export interface RegistroLicenca {
     cpf: string;
     parentesco: string;
     observacao: string;
+    documentos?: ArquivoAnexadoSeplag[];
     horaInicio?: string;
     horaFim?: string;
     totalHoras?: string;
@@ -51,7 +52,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
     dias: 15,
     abrangencia: "INTEGRAL",
     origem: "SIGEP",
-    situacao: "Vigente",
+    situacao: "Em andamento",
   },
   {
     id: "licenca-900018",
@@ -70,7 +71,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
     dias: 15,
     abrangencia: "INTEGRAL",
     origem: "SIGEP",
-    situacao: "Vigente",
+    situacao: "Em andamento",
   },
   {
     id: "licenca-241244",
@@ -89,7 +90,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
     dias: 8,
     abrangencia: "INTEGRAL",
     origem: "PORTALSERVIDOR",
-    situacao: "Vigente",
+    situacao: "Em andamento",
   },
   {
     id: "licenca-257812",
@@ -108,7 +109,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
     dias: 8,
     abrangencia: "INTEGRAL",
     origem: "SIGEP",
-    situacao: "Vigente",
+    situacao: "Em andamento",
   },
   {
     id: "licenca-243417",
@@ -146,7 +147,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
     dias: 7,
     abrangencia: "INTEGRAL",
     origem: "SIGEP",
-    situacao: "Vigente",
+    situacao: "Em andamento",
   },
   {
     id: "licenca-412809",
@@ -223,8 +224,8 @@ export function indicadoresLicencas(registros: readonly RegistroLicenca[]) {
       cor: "amarelo",
     },
     {
-      label: "Vigentes",
-      valor: registros.filter((r) => r.situacao === "Vigente").length,
+      label: "Em andamento",
+      valor: registros.filter((r) => r.situacao === "Em andamento").length,
       icone: "pi-check-circle",
       cor: "verde",
     },
@@ -247,3 +248,4 @@ export const dataLicenca = (data: string) =>
   data.split("-").reverse().join("/");
 export const opcoesUnicas = (valores: string[]) =>
   [...new Set(valores)].sort((a, b) => a.localeCompare(b, "pt-BR"));
+import type { ArquivoAnexadoSeplag } from "../../componentes/AnexarDocumento";
