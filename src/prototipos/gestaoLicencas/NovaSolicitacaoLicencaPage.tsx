@@ -1,0 +1,424 @@
+import { useState, type ReactNode, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { CardSeplag } from "../../componentes/Card";
+import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
+import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
+import {
+  carregarEventos,
+  configuracaoDoEvento,
+  GRAUS_PARENTESCO,
+} from "../licencas/model";
+import {
+  GESTAO_LICENCAS_PATH,
+  TITULO_GESTAO_LICENCAS,
+  type RegistroLicenca,
+} from "./model";
+import {
+  buscarServidores,
+  carregarSolicitacoes,
+  diasPeriodo,
+  servidoresSolicitacao,
+  STORAGE_SOLICITACOES,
+  totalMinutos,
+  type SolicitacaoLocal,
+} from "./solicitacaoModel";
+import "../vinculos/vinculoV2.css";
+import "./gestaoLicencas.css";
+import "./novaSolicitacao.css";
+
+function Secao({
+  titulo,
+  icone,
+  children,
+}: {
+  titulo: string;
+  icone: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="v2v-panel v2v-form-section">
+      <header className="v2v-section-header">
+        <i className={`pi ${icone}`} aria-hidden="true" />
+        <h2>{titulo}</h2>
+      </header>
+      <div className="v2v-section-body">{children}</div>
+    </section>
+  );
+}
+export function NovaSolicitacaoContent() {
+  const navigate = useNavigate();
+  const [parametrizacoes] = useState(carregarEventos);
+  const [servidor, setServidor] = useState<SolicitacaoLocal | null>(
+    servidoresSolicitacao[0],
+  );
+  const [busca, setBusca] = useState("");
+  const [selecionados, setSelecionados] = useState<number[]>([2]);
+  const [eventoId, setEventoId] = useState("");
+  const [inicio, setInicio] = useState(""),
+    [fim, setFim] = useState("");
+  const [horaInicio, setHoraInicio] = useState("08:00"),
+    [horaFim, setHoraFim] = useState("12:00");
+  const [parentesco, setParentesco] = useState(""),
+    [observacao, setObservacao] = useState("");
+  const [erro, setErro] = useState("");
+  const evento = parametrizacoes.find((e) => e.id === eventoId);
+  const config = evento ? configuracaoDoEvento(evento) : null;
+  const porHoras = evento?.duracao === "Por horas";
+  const minutos = totalMinutos(horaInicio, horaFim);
+  const totalHoras = `${String(Math.floor(minutos / 60)).padStart(2, "0")}:${String(minutos % 60).padStart(2, "0")} horas`;
+  const dias = diasPeriodo(inicio, fim, config?.contagem === "Dias úteis");
+  function salvar(e: FormEvent) {
+    e.preventDefault();
+    setErro("");
+    if (!servidor || !selecionados.length)
+      return setErro("Selecione o servidor e pelo menos um vínculo funcional.");
+    if (!evento || evento.situacao !== "Ativo")
+      return setErro("Selecione uma parametrização ativa.");
+    if (!inicio || !fim || fim < inicio)
+      return setErro(
+        "Informe um período válido. O término deve ser igual ou posterior ao início.",
+      );
+    if (porHoras && (inicio !== fim || !minutos))
+      return setErro(
+        "Para lançamento por horas, informe o mesmo dia e horário de término posterior ao início.",
+      );
+    if (evento.parentesco && !parentesco)
+      return setErro("Selecione o grau de parentesco.");
+    if (
+      (config?.inicioVigencia && inicio < config.inicioVigencia) ||
+      (config?.fimVigencia && fim > config.fimVigencia)
+    )
+      return setErro(
+        "O período deve estar dentro da vigência da parametrização.",
+      );
+    if (!porHoras && !config?.semLimite && dias > evento.quantidade)
+      return setErro(
+        `O período excede o limite de ${evento.quantidade} dias da parametrização.`,
+      );
+    const vinculos = servidor.vinculos.filter((v) =>
+      selecionados.includes(v.numero),
+    );
+    if (
+      vinculos.some(
+        (v) =>
+          !evento.vinculos.includes(
+            v.tipo === "Contrato Temporário" ? "Temporário" : v.tipo,
+          ),
+      )
+    )
+      return setErro(
+        "A parametrização não autoriza todos os tipos de vínculo selecionados.",
+      );
+    const novos: RegistroLicenca[] = vinculos.map((v) => ({
+      id: crypto.randomUUID(),
+      matricula: servidor.matricula,
+      vinculo: v.numero,
+      tipoVinculo: v.tipo,
+      orgao: v.orgao,
+      lotacao: v.lotacao,
+      nome: servidor.nome,
+      cargo: v.cargo,
+      chefia: false,
+      inicio,
+      fim,
+      tipo: evento.nome,
+      categoria: evento.natureza,
+      dias,
+      abrangencia: porHoras ? "POR HORAS" : "INTEGRAL",
+      origem: "SIGEP",
+      situacao: "Vigente",
+      solicitacao: {
+        eventoId: evento.id,
+        cpf: servidor.cpf,
+        parentesco: evento.parentesco ? parentesco : "",
+        observacao,
+        ...(porHoras ? { horaInicio, horaFim, totalHoras } : {}),
+      },
+    }));
+    try {
+      localStorage.setItem(
+        STORAGE_SOLICITACOES,
+        JSON.stringify([...novos, ...carregarSolicitacoes()]),
+      );
+      navigate(GESTAO_LICENCAS_PATH, { state: { solicitacaoSalva: true } });
+    } catch {
+      setErro(
+        "Não foi possível salvar o lançamento neste navegador. Tente novamente.",
+      );
+    }
+  }
+  return (
+    <form className="gl-solicitacao" onSubmit={salvar}>
+      <Secao
+        titulo="1. Identificação do Servidor e Seleção de Vínculo Funcional"
+        icone="pi-user"
+      >
+        <div className="gl-busca-servidor">
+          <label>
+            Buscar servidor
+            <input
+              value={busca}
+              placeholder="Buscar servidor por matrícula, CPF ou nome..."
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            className="v2v-secondary gl-limpar-servidor"
+            onClick={() => {
+              setServidor(null);
+              setSelecionados([]);
+              setBusca("");
+            }}
+          >
+            ✕ Limpar
+          </button>
+        </div>
+        {busca && (
+          <div className="gl-resultados" aria-label="Servidores encontrados">
+            {buscarServidores(busca).map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className="v2v-secondary"
+                onClick={() => {
+                  setServidor(s);
+                  setSelecionados([]);
+                  setBusca("");
+                }}
+              >
+                {s.nome} · {s.matricula} · {s.cpf}
+              </button>
+            ))}
+            {!buscarServidores(busca).length && (
+              <p role="status">Nenhum servidor encontrado.</p>
+            )}
+          </div>
+        )}
+        {servidor && (
+          <>
+            <div className="gl-servidor-resumo">
+              <div>
+                <small>Nome do servidor</small>
+                <strong>{servidor.nome}</strong>
+              </div>
+              <div>
+                <small>Matrícula única</small>
+                <strong>{servidor.matricula}</strong>
+              </div>
+              <div>
+                <small>CPF</small>
+                <strong>{servidor.cpf}</strong>
+              </div>
+              <div>
+                <small>Situação cadastral</small>
+                <span className="gl-pill gl-status-vigente">
+                  Ativo em Exercício
+                </span>
+              </div>
+            </div>
+            <fieldset className="gl-vinculos">
+              <legend>
+                Selecione os vínculos funcionais para o lançamento *
+              </legend>
+              <div>
+                {servidor.vinculos.map((v) => (
+                  <label
+                    key={v.numero}
+                    className={
+                      selecionados.includes(v.numero) ? "selecionado" : ""
+                    }
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selecionados.includes(v.numero)}
+                      onChange={() =>
+                        setSelecionados((s) =>
+                          s.includes(v.numero)
+                            ? s.filter((n) => n !== v.numero)
+                            : [...s, v.numero],
+                        )
+                      }
+                    />
+                    <span>
+                      <strong>
+                        Vínculo {v.numero} · {v.orgao} · {v.tipo}
+                      </strong>
+                      <span>{v.cargo}</span>
+                      <small>
+                        {v.jornada} · {v.lotacao}
+                      </small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </>
+        )}
+      </Secao>
+      <Secao
+        titulo="2. Dados da Licença, Afastamento ou Ausência"
+        icone="pi-calendar"
+      >
+        <div className="gl-solicitacao-grid">
+          <label className="gl-span-full">
+            Tipo de Licença, Afastamento ou Ausência *
+            <select
+              required
+              value={eventoId}
+              onChange={(e) => {
+                setEventoId(e.target.value);
+                setParentesco("");
+                setErro("");
+              }}
+            >
+              <option value="">Selecione...</option>
+              {parametrizacoes.map((e) => (
+                <option
+                  key={e.id}
+                  value={e.id}
+                  disabled={e.situacao !== "Ativo"}
+                >
+                  {e.codigo} - {e.nome} ({e.duracao}
+                  {e.situacao !== "Ativo" ? " · Inativo" : ""})
+                </option>
+              ))}
+            </select>
+          </label>
+          {evento?.parentesco && (
+            <label className="gl-span-full">
+              Grau de Parentesco do Familiar *
+              <select
+                required
+                value={parentesco}
+                onChange={(e) => setParentesco(e.target.value)}
+              >
+                <option value="">Selecione o familiar...</option>
+                {(config?.grausParentesco.length
+                  ? config.grausParentesco
+                  : GRAUS_PARENTESCO
+                ).map((g) => (
+                  <option key={g}>{g}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          <label>
+            Data de Início *
+            <input
+              type="date"
+              required
+              value={inicio}
+              onChange={(e) => setInicio(e.target.value)}
+            />
+          </label>
+          <label>
+            Data de Término *
+            <input
+              type="date"
+              required
+              min={inicio}
+              value={fim}
+              onChange={(e) => setFim(e.target.value)}
+            />
+          </label>
+          {porHoras && (
+            <div className="gl-horas gl-span-full">
+              <label>
+                Hora de Início *
+                <input
+                  type="time"
+                  required
+                  value={horaInicio}
+                  onChange={(e) => setHoraInicio(e.target.value)}
+                />
+              </label>
+              <label>
+                Hora de Término *
+                <input
+                  type="time"
+                  required
+                  value={horaFim}
+                  onChange={(e) => setHoraFim(e.target.value)}
+                />
+              </label>
+              <label>
+                Total de Horas Abatidas
+                <input readOnly value={totalHoras} />
+              </label>
+            </div>
+          )}
+          {evento?.recorrencia && (
+            <p className="v2v-notice gl-span-full">
+              <i className="pi pi-info-circle" aria-hidden="true" />
+              Recorrência configurada: {evento.recorrencia}. A conferência do
+              histórico deve ser realizada antes do lançamento.
+            </p>
+          )}
+          <label className="gl-span-full">
+            Observação / Documento de Respaldo
+            <textarea
+              rows={3}
+              placeholder="Informe o número do processo SIGADOC ou certidão de respaldo..."
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+            />
+          </label>
+        </div>
+      </Secao>
+      {erro && (
+        <p role="alert" className="v2v-error">
+          {erro}
+        </p>
+      )}
+      <div className="v2v-form-actions">
+        <button
+          type="button"
+          className="v2v-secondary"
+          onClick={() => navigate(GESTAO_LICENCAS_PATH)}
+        >
+          <i className="pi pi-arrow-left" aria-hidden="true" />
+          Voltar
+        </button>
+        <button type="submit" className="v2v-primary">
+          <i className="pi pi-check" aria-hidden="true" />
+          Efetivar Lançamento
+        </button>
+      </div>
+    </form>
+  );
+}
+export function NovaSolicitacaoLicencaPage() {
+  return (
+    <PrototypeSystemPage
+      nomeSistema="GESTÃO DE PESSOAS"
+      ambienteSistema="Teste"
+      menuItems={menuGestaoPessoas}
+    >
+      <main className="prototype-page-content prototype-page-content--white v2v-shell gl-shell">
+        <CardSeplag
+          title="Nova solicitação de licença"
+          cols="12"
+          cardHeaderClassNames="prototype-carreira-card v2v-card"
+          headerNavigation={
+            <BreadcrumbSeplag
+              divided
+              items={[
+                {
+                  label: "Direitos e Benefícios",
+                  to: "/prototipos/sigep/direitos-beneficios",
+                },
+                { label: TITULO_GESTAO_LICENCAS, to: GESTAO_LICENCAS_PATH },
+                { label: "Nova solicitação de licença" },
+              ]}
+            />
+          }
+        >
+          <div className="v2v-page gl-page">
+            <NovaSolicitacaoContent />
+          </div>
+        </CardSeplag>
+      </main>
+    </PrototypeSystemPage>
+  );
+}

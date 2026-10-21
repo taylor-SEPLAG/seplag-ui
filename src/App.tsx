@@ -203,6 +203,7 @@ import { PrototiposFeriasPage } from "./prototipos/ferias/FeriasPages";
 import { DireitosBeneficiosPage } from "./prototipos/ferias/DireitosBeneficiosPage";
 import { ParametrizacaoLicencasPage } from './prototipos/licencas/ParametrizacaoLicencasPage';
 import { ParametrizacaoLicencasFormPage } from './prototipos/licencas/FormularioLicenca';
+import { NovaSolicitacaoLicencaPage } from './prototipos/gestaoLicencas/NovaSolicitacaoLicencaPage';
 import { GestaoLicencasPage } from './prototipos/gestaoLicencas/GestaoLicencasPage';
 import { FolhaPaginaInicialPage, FolhaAvisosPage, FolhaCronogramaConsultaPage } from './prototipos/paginaInicial/FolhaPaginaInicialPage';
 import { FOLHA_PAGINA_INICIAL_PATH, FOLHA_AVISOS_PATH, FOLHA_CALENDARIO_PATH } from './prototipos/paginaInicial/folhaModel';
@@ -213,6 +214,8 @@ import { FeriasColetivaPage } from "./prototipos/ferias/FeriasColetivaPage";
 import { FeriasLotePage } from "./prototipos/ferias/FeriasLotePage";
 import { FeriasRecessoPage } from "./prototipos/ferias/FeriasRecessoPage";
 import { FeriasVisualizarPage } from "./prototipos/ferias/FeriasVisualizarPage";
+import { FeriasEditarIndividualPage } from "./prototipos/ferias/FeriasEditarIndividualPage";
+import { FeriasEditarRecessoPage } from "./prototipos/ferias/FeriasEditarRecessoPage";
 import { PrototiposOrganogramaCanvasPage } from "./prototipos/estruturaOrganizacional/OrganogramaCanvasPage";
 import { PrototiposLimitesDgaPage } from "./prototipos/estruturaOrganizacional/LimitesDgaPage";
 import { PrototiposNovoLimiteDgaPage } from "./prototipos/controleVagasComissionados/NovoLimiteDgaPage";
@@ -1931,6 +1934,7 @@ function App() {
       <Route path="/prototipos/sigep/vida-funcional/:pessoaId/vinculos/:vinculoId/historico" element={<VidaFuncionalPage />} />
       <Route path="/prototipos/sigep/direitos-beneficios" element={<DireitosBeneficiosPage />} />
       <Route path="/prototipos/sigep/parametrizacao-licencas" element={<ParametrizacaoLicencasPage />} />
+      <Route path="/prototipos/sigep/gestao-licencas-afastamentos/novo" element={<NovaSolicitacaoLicencaPage />} />
       <Route path="/prototipos/sigep/gestao-licencas-afastamentos" element={<GestaoLicencasPage />} />
       <Route path="/prototipos/sigep/parametrizacao-licencas/novo" element={<ParametrizacaoLicencasFormPage />} />
       <Route path="/prototipos/sigep/parametrizacao-licencas/:id/editar" element={<ParametrizacaoLicencasFormPage />} />
@@ -1941,6 +1945,8 @@ function App() {
       <Route path="/prototipos/sigep/ferias/nova/lote" element={<FeriasLotePage />} />
       <Route path="/prototipos/sigep/ferias/nova/recesso" element={<FeriasRecessoPage />} />
       <Route path="/prototipos/sigep/ferias/visualizar/:id" element={<FeriasVisualizarPage />} />
+      <Route path="/prototipos/sigep/ferias/editar/individual/:id" element={<FeriasEditarIndividualPage />} />
+      <Route path="/prototipos/sigep/ferias/editar/recesso/:id" element={<FeriasEditarRecessoPage />} />
       <Route path="/prototipos/sigep/vacancia" element={<PrototiposVacanciaGeralPage />} />
       <Route path="/prototipos/sigep/vacancia/:modalidade" element={<PrototiposVacanciaGeralPage />} />
       <Route

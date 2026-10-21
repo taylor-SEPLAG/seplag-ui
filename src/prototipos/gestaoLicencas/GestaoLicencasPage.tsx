@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { carregarGestaoLicencas } from "./solicitacaoModel";
 import { CardSeplag } from "../../componentes/Card";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { PaginacaoV2 } from "../vinculos/VinculoV2Page";
@@ -7,7 +9,6 @@ import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import {
   GESTAO_LICENCAS_PATH,
   TITULO_GESTAO_LICENCAS,
-  registrosLicencas,
   filtrosIniciais,
   filtrarLicencas,
   indicadoresLicencas,
@@ -38,8 +39,10 @@ function Chefia() {
 }
 
 export function GestaoLicencasContent({
-  registros = registrosLicencas,
+  registros = carregarGestaoLicencas(),
 }: { registros?: readonly RegistroLicenca[] } = {}) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [filtros, setFiltros] = useState<FiltrosGestaoLicencas>({
     ...filtrosIniciais,
   });
@@ -68,6 +71,11 @@ export function GestaoLicencasContent({
   };
   return (
     <div className="v2v-page gl-page">
+      {location.state?.solicitacaoSalva && (
+        <p role="status" className="v2v-notice">
+          Lançamento salvo com sucesso.
+        </p>
+      )}
       <div
         className="gl-tabs"
         role="tablist"
@@ -180,6 +188,7 @@ export function GestaoLicencasContent({
           <button
             type="button"
             className="v2v-primary"
+            onClick={() => navigate(`${GESTAO_LICENCAS_PATH}/novo`)}
           >
             <i className="pi pi-plus" aria-hidden="true" />
             Nova solicitação de licença
@@ -237,7 +246,7 @@ export function GestaoLicencasContent({
                     <span className="gl-pill gl-tipo">{r.tipo}</span>
                   </td>
                   <td>
-                    {r.dias} {r.abrangencia}
+                    {r.solicitacao?.totalHoras || `${r.dias} ${r.abrangencia}`}
                   </td>
                   <td>
                     <Situacao valor={r.situacao} />
@@ -307,8 +316,17 @@ export function GestaoLicencasContent({
                 "Cargo/Função": selecionado.cargo,
                 "Período do Afastamento": `${dataLicenca(selecionado.inicio)} a ${dataLicenca(selecionado.fim)}`,
                 Tipo: selecionado.tipo,
-                "Dias Concedidos": `${selecionado.dias} ${selecionado.abrangencia}`,
+                "Dias Concedidos":
+                  selecionado.solicitacao?.totalHoras ||
+                  `${selecionado.dias} ${selecionado.abrangencia}`,
                 Origem: selecionado.origem,
+                ...(selecionado.solicitacao
+                  ? {
+                      CPF: selecionado.solicitacao.cpf,
+                      Parentesco: selecionado.solicitacao.parentesco || "—",
+                      Observação: selecionado.solicitacao.observacao || "—",
+                    }
+                  : {}),
               }).map(([nome, valor]) => (
                 <div key={nome}>
                   <dt>{nome}</dt>

@@ -28,6 +28,15 @@ import "./vidaFuncional.css";
 
 const base = "/prototipos/sigep/vida-funcional";
 const OPCOES_POR_PAGINA = [10, 20, 50];
+const ICONES_SECOES_HISTORICO:Record<string,string> = {
+  'Dados do Ingresso':'pi-sign-in','Dados Funcionais':'pi-briefcase','Detalhes do Exercício':'pi-calendar',
+  'Origem e Registro':'pi-clipboard','Registro da ocorrência':'pi-clipboard','Origem':'pi-arrow-left','Destino':'pi-arrow-right',
+  'Dados da Movimentação':'pi-arrow-right-arrow-left','Dados das Férias':'pi-calendar','Dados do Recesso':'pi-calendar',
+  'Dados da Licença':'pi-file','Dados do Retorno':'pi-replay','Dados da Progressão':'pi-arrow-up',
+  'Dados da Jornada':'pi-clock','Dados do Cargo/Função':'pi-id-card','Dados do Encerramento':'pi-times-circle',
+  'Dados da Residência':'pi-graduation-cap','Dados do Estágio':'pi-graduation-cap',
+  'Dados da Prorrogação':'pi-file-edit','Dados da Supervisão':'pi-users',
+};
 
 const ESTILOS_OCORRENCIA: Record<
   string,
@@ -83,7 +92,7 @@ function Campos({ dados }: { dados: Record<string, string> }) {
       {Object.entries(dados).map(([campo, valor]) => (
         <div key={campo}>
           <dt>{campo}</dt>
-          <dd>{valor}</dd>
+          <dd>{campo === 'Situação do ingresso' && valor === 'Concluído' ? <span className="v2v-status v2v-status-ativo">{valor}</span> : valor}</dd>
         </div>
       ))}
     </dl>
@@ -115,7 +124,7 @@ function download(
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function detalhes(e: Evento) {
+function detalhes(e: Evento):Record<string,Record<string,string>> {
   const secoes = Object.fromEntries(
     Object.entries(e.secoes)
       .map(([titulo, campos]) => [titulo, Object.fromEntries(
@@ -123,6 +132,30 @@ function detalhes(e: Evento) {
       )] as const)
       .filter(([, campos]) => Object.keys(campos).length > 0),
   );
+  if(e.tipo==='Ingresso'&&secoes['Dados do Ingresso']) {
+    const ingresso={...secoes['Dados do Ingresso']};
+    if(ingresso['Meio de ingresso']==='Processo Seletivo'&&!ingresso['Data da convocação']) {
+      ingresso['Data da convocação']='—';
+    }
+    const funcionais=secoes['Dados Funcionais']??{};
+    const exercicio=['Jornada','Referência','Data da posse','Data de início do efetivo exercício'];
+    const origem=['Origem do novo vínculo','Vínculo anterior'];
+    const selecionar=(dados:Record<string,string>,chaves:string[])=>Object.fromEntries(chaves.filter(chave=>chave in dados).map(chave=>[chave,dados[chave]]));
+    return {
+      'Dados do Ingresso':Object.fromEntries(Object.entries(ingresso).filter(([chave])=>chave!=='Cargo/Função')),
+      'Dados Funcionais':{
+        ...selecionar(funcionais,['Matrícula','Número do vínculo']),
+        ...selecionar(ingresso,['Cargo/Função']),
+        ...Object.fromEntries(Object.entries(funcionais).filter(([chave])=>!['Matrícula','Número do vínculo',...exercicio,...origem].includes(chave))),
+      },
+      'Detalhes do Exercício':selecionar(funcionais,exercicio),
+      'Origem e Registro':{
+        ...selecionar(funcionais,origem),
+        'Data/hora do registro':`${dataBR(e.registradoEm)} ${e.registradoEm.slice(11,19)}`,
+      },
+      ...Object.fromEntries(Object.entries(secoes).filter(([titulo])=>!['Dados do Ingresso','Dados Funcionais'].includes(titulo))),
+    };
+  }
   return {
     ...secoes,
     "Registro da ocorrência": {
@@ -702,7 +735,7 @@ function Conteudo({
           className="v2v-panel vf-resumo"
           aria-labelledby="resumo-vinculo"
         >
-          <h2 id="resumo-vinculo">Resumo do Vínculo</h2>
+          <h2 id="resumo-vinculo"><i className="pi pi-briefcase" aria-hidden="true" />Resumo do Vínculo</h2>
           <Campos dados={resumo} />
           {vinculo?.relacionadoId && (
             <Link
@@ -865,12 +898,12 @@ function Conteudo({
                         {aberto && (
                           <div
                             id={`detalhe-${evento.id}`}
-                            className="vf-detalhes"
+                            className="vf-detalhes vf-detalhes--cards"
                           >
                             {Object.entries(detalhes(evento)).map(
                               ([secao, campos]) => (
-                                <section key={secao}>
-                                  <h3>{secao}</h3>
+                                <section key={secao} className={['Dados do Ingresso','Detalhes do Exercício','Origem e Registro','Registro da ocorrência'].includes(secao)?'vf-detalhe-linhas':undefined}>
+                                  <h3><i className={`pi ${ICONES_SECOES_HISTORICO[secao]??visual.icone}`} aria-hidden="true"/>{secao}</h3>
                                   <Campos dados={campos} />
                                 </section>
                               ),
