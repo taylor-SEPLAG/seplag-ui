@@ -219,18 +219,21 @@ export function ParametrizacaoLicencasFormPage({
   });
   const [erro, setErro] = useState("");
   const [aba, setAba] = useState<"dados" | "financeiros">("dados");
-  const [financeirosHabilitados, setFinanceirosHabilitados] = useState(visualizar);
+  const [financeirosHabilitados, setFinanceirosHabilitados] =
+    useState(visualizar);
   const avancar = () => {
     setFinanceirosHabilitados(true);
     setAba("financeiros");
     setErro("");
     document.getElementById("pl-aba-financeiros")?.focus();
   };
-  const titulo = visualizar ? "Visualizar Parametrização" : clonar
-    ? "Duplicar Parametrização"
-    : id
-      ? "Editar Parametrização"
-      : "Nova Parametrização";
+  const titulo = visualizar
+    ? "Visualizar Parametrização"
+    : clonar
+      ? "Duplicar Parametrização"
+      : id
+        ? "Editar Parametrização"
+        : "Nova Parametrização";
   const mudar = <K extends keyof EventoLicenca>(
     campo: K,
     valor: EventoLicenca[K],
@@ -322,8 +325,20 @@ export function ParametrizacaoLicencasFormPage({
           Nova parametrização baseada em {original?.codigo}.
         </p>
       )}
-      {original && !clonar && !visualizar && <button type="button" className="v2v-secondary" onClick={() => setHistoricoAberto(true)}><i className="pi pi-history" aria-hidden="true"/>Histórico</button>}
-      <HistoricoEvento evento={historicoAberto ? original ?? null : null} fechar={() => setHistoricoAberto(false)}/>
+      {original && !clonar && !visualizar && (
+        <button
+          type="button"
+          className="v2v-secondary"
+          onClick={() => setHistoricoAberto(true)}
+        >
+          <i className="pi pi-history" aria-hidden="true" />
+          Histórico
+        </button>
+      )}
+      <HistoricoEvento
+        evento={historicoAberto ? (original ?? null) : null}
+        fechar={() => setHistoricoAberto(false)}
+      />
       <form
         onSubmit={salvar}
         className="v2v-form pl-config-form"
@@ -368,7 +383,8 @@ export function ParametrizacaoLicencasFormPage({
                         : indice === 0
                           ? "financeiros"
                           : "dados";
-                  if (proxima === "financeiros" && !financeirosHabilitados) return;
+                  if (proxima === "financeiros" && !financeirosHabilitados)
+                    return;
                   setAba(proxima);
                   document.getElementById(`pl-aba-${proxima}`)?.focus();
                 }
@@ -380,447 +396,484 @@ export function ParametrizacaoLicencasFormPage({
             </button>
           ))}
         </div>
-        <fieldset disabled={visualizar} className="pl-config-fields" aria-label={visualizar ? 'Parametrização em modo de leitura' : 'Campos da parametrização'}>
-        <div
-          role="tabpanel"
-          id="pl-painel-dados"
-          aria-labelledby="pl-aba-dados"
-          hidden={aba !== "dados"}
+        <fieldset
+          disabled={visualizar}
+          className="pl-config-fields"
+          aria-label={
+            visualizar
+              ? "Parametrização em modo de leitura"
+              : "Campos da parametrização"
+          }
         >
-          <Secao
-            id="pl-identificacao"
-            icone="pi-file"
-            titulo="Identificação do Evento e Vigência"
-            descricao="Informe a identificação, a classificação e o período de validade do evento."
+          <div
+            role="tabpanel"
+            id="pl-painel-dados"
+            aria-labelledby="pl-aba-dados"
+            hidden={aba !== "dados"}
           >
-            <div className="pl-config-grid">
-              <label className="pl-col-2">
-                <span>
-                  Código Interno <em>*</em>
-                </span>
-                <input
-                  value={evento.codigo}
-                  readOnly
-                  aria-label="Código Interno *"
-                />
-              </label>
-              <label className="pl-col-6">
-                <span>
-                  Nome da Ocorrência (Exibido no Lançamento) <em>*</em>
-                </span>
-                <input
-                  required
-                  maxLength={200}
-                  value={evento.nome}
-                  onChange={(e) => mudar("nome", e.target.value)}
-                />
-              </label>
-              <label className="pl-col-2">
-                <span>
-                  Data Início Vigência <em>*</em>
-                </span>
-                <input
-                  type="date"
-                  required
-                  value={config.inicioVigencia}
-                  onChange={(e) => configurar("inicioVigencia", e.target.value)}
-                />
-              </label>
-              <label className="pl-col-2">
-                <span>Data Fim Vigência</span>
-                <input
-                  type="date"
-                  aria-label="Data Fim Vigência"
-                  aria-describedby="pl-fim-ajuda"
-                  min={config.inicioVigencia || undefined}
-                  value={config.fimVigencia}
-                  onChange={(e) => configurar("fimVigencia", e.target.value)}
-                />
-                <small id="pl-fim-ajuda">Vazio = Vigência Aberta</small>
-              </label>
-              <div className="pl-col-8 pl-amparo-legal">
-                <DocumentosLegaisAssociadosSeplag
-                  disabled={visualizar}
-                  label="Amparo Legal"
-                  required
-                  options={documentosLegais}
-                  value={config.documentosLegaisIds ?? []}
-                  onChange={(ids) =>
-                    setConfig((c) => ({
-                      ...c,
-                      documentosLegaisIds: ids,
-                      fundamentoLegal: ids
-                        .map(
-                          (id) =>
-                            documentosLegais.find((d) => d.id === id)?.titulo ??
-                            "",
-                        )
-                        .filter(Boolean)
-                        .join("; "),
-                    }))
-                  }
-                  onNovoCadastro={() => {
-                    sessionStorage.setItem(
-                      chaveRascunho,
-                      JSON.stringify({ evento, config }),
-                    );
-                    navigate(
-                      `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`,
-                    );
-                  }}
-                  expandirAoAbrir
-                />
-                {!config.documentosLegaisIds?.length &&
-                  config.fundamentoLegal && (
-                    <small>Referência anterior: {config.fundamentoLegal}</small>
-                  )}
-              </div>
-              <label className="pl-col-4">
-                <span>
-                  Tipo <em>*</em>
-                </span>
-                <select
-                  value={evento.natureza}
-                  onChange={(e) =>
-                    mudar(
-                      "natureza",
-                      e.target.value as EventoLicenca["natureza"],
-                    )
-                  }
-                >
-                  {NATUREZAS.map((n) => (
-                    <option key={n}>{n}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="pl-col-12">
-                <span>Observação</span>
-                <textarea
-                  rows={2}
-                  maxLength={2000}
-                  value={config.orientacao}
-                  onChange={(e) => configurar("orientacao", e.target.value)}
-                />
-              </label>
-            </div>
-          </Secao>
-          <Secao
-            id="pl-aplicabilidade"
-            icone="pi-users"
-            titulo="Aplicabilidade por Tipo de Vínculo Funcional"
-            descricao="Selecione um ou mais tipos de vínculo aos quais a parametrização se aplica."
-          >
-            <SelecaoMultipla
-              titulo="Tipos de Vínculo"
-              opcoes={OPCOES_VINCULOS}
-              valores={evento.vinculos}
-              alterar={(v) => {
-                mudar("vinculos", v);
-                setConfig((c) => ({
-                  ...c,
-                  efeitosFinanceiros: {
-                    ...c.efeitosFinanceiros,
-                    ...Object.fromEntries(
-                      v
-                        .filter((chave) => !c.efeitosFinanceiros?.[chave])
-                        .map((chave) => [chave, efeitoInicial(chave)]),
-                    ),
-                  },
-                }));
-              }}
-              pesquisavel
-            />
-          </Secao>
-          <Secao
-            id="pl-regras"
-            icone="pi-sliders-h"
-            titulo="Regras de Duração, Limites e Recorrência"
-            descricao="Defina a duração, a abrangência e as condições para o lançamento."
-          >
-            <div className="pl-config-grid">
-              <div className="pl-col-4">
-                <label>
+            <Secao
+              id="pl-identificacao"
+              icone="pi-file"
+              titulo="Identificação do Evento e Vigência"
+              descricao="Informe a identificação, a classificação e o período de validade do evento."
+            >
+              <div className="pl-config-grid">
+                <label className="pl-col-2">
                   <span>
-                    Dias Máximos Permitidos (Dias corridos) <em>*</em>
+                    Código Interno <em>*</em>
                   </span>
                   <input
-                    type="number"
-                    min={1}
-                    step={1}
-                    required={!config.semLimite}
-                    disabled={config.semLimite}
-                    value={config.semLimite ? "" : evento.quantidade}
-                    placeholder={config.semLimite ? "Sem Limite" : "Ex.: 8"}
+                    value={evento.codigo}
+                    readOnly
+                    aria-label="Código Interno *"
+                  />
+                </label>
+                <label className="pl-col-6">
+                  <span>
+                    Nome da Ocorrência (Exibido no Lançamento) <em>*</em>
+                  </span>
+                  <input
+                    required
+                    maxLength={200}
+                    value={evento.nome}
+                    onChange={(e) => mudar("nome", e.target.value)}
+                  />
+                </label>
+                <label className="pl-col-2">
+                  <span>
+                    Data Início Vigência <em>*</em>
+                  </span>
+                  <input
+                    type="date"
+                    required
+                    value={config.inicioVigencia}
                     onChange={(e) =>
-                      mudar("quantidade", Number(e.target.value))
+                      configurar("inicioVigencia", e.target.value)
                     }
                   />
                 </label>
-                <label className="pl-check-inline">
+                <label className="pl-col-2">
+                  <span>Data Fim Vigência</span>
                   <input
-                    type="checkbox"
-                    checked={config.semLimite}
-                    onChange={(e) => configurar("semLimite", e.target.checked)}
+                    type="date"
+                    aria-label="Data Fim Vigência"
+                    aria-describedby="pl-fim-ajuda"
+                    min={config.inicioVigencia || undefined}
+                    value={config.fimVigencia}
+                    onChange={(e) => configurar("fimVigencia", e.target.value)}
                   />
-                  Sem Limite de Dias
+                  <small id="pl-fim-ajuda">Vazio = Vigência Aberta</small>
                 </label>
-              </div>
-              <div className="pl-col-4">
-                <SelecaoMultipla
-                  titulo="Abrangência"
-                  opcoes={["Dia Integral", "Por Horas"].map((v) => ({
-                    label: v,
-                    value: v,
-                  }))}
-                  valores={config.abrangencias}
-                  alterar={(v) => configurar("abrangencias", v)}
-                />
-              </div>
-              <label className="pl-col-4">
-                <span>
-                  Possui Trava de Recorrência? <em>*</em>
-                </span>
-                <select
-                  value={String(config.travaRecorrencia)}
-                  onChange={(e) =>
-                    configurar("travaRecorrencia", e.target.value === "true")
-                  }
-                >
-                  <option value="false">Não</option>
-                  <option value="true">Sim</option>
-                </select>
-              </label>
-              {config.travaRecorrencia && (
-                <fieldset className="pl-col-12 pl-recurrence">
-                  <legend>Janela de Recorrência Configurada</legend>
-                  <div>
-                    <span>Permitir no máximo</span>
-                    <input
-                      aria-label="Quantidade de ocorrências"
-                      type="number"
-                      min={1}
-                      step={1}
-                      required
-                      value={config.recorrenciaQuantidade}
-                      onChange={(e) =>
-                        configurar(
-                          "recorrenciaQuantidade",
-                          Number(e.target.value),
-                        )
-                      }
-                    />
-                    <span>ocorrência(s) a cada</span>
-                    <input
-                      aria-label="Intervalo de recorrência"
-                      type="number"
-                      min={1}
-                      step={1}
-                      required
-                      value={config.recorrenciaIntervalo}
-                      onChange={(e) =>
-                        configurar(
-                          "recorrenciaIntervalo",
-                          Number(e.target.value),
-                        )
-                      }
-                    />
-                    <select
-                      aria-label="Unidade de recorrência"
-                      value={config.recorrenciaUnidade}
-                      onChange={(e) =>
-                        configurar(
-                          "recorrenciaUnidade",
-                          e.target
-                            .value as ConfiguracaoEvento["recorrenciaUnidade"],
-                        )
-                      }
-                    >
-                      {["Meses", "Dias", "Anos", "Ano Civil"].map((u) => (
-                        <option key={u}>{u}</option>
-                      ))}
-                    </select>
-                  </div>
-                </fieldset>
-              )}
-              <div className="pl-col-12 pl-parentesco-block">
-                <label>
+                <div className="pl-col-8 pl-amparo-legal">
+                  <DocumentosLegaisAssociadosSeplag
+                    disabled={visualizar}
+                    label="Amparo Legal"
+                    required
+                    options={documentosLegais}
+                    value={config.documentosLegaisIds ?? []}
+                    onChange={(ids) =>
+                      setConfig((c) => ({
+                        ...c,
+                        documentosLegaisIds: ids,
+                        fundamentoLegal: ids
+                          .map(
+                            (id) =>
+                              documentosLegais.find((d) => d.id === id)
+                                ?.titulo ?? "",
+                          )
+                          .filter(Boolean)
+                          .join("; "),
+                      }))
+                    }
+                    onNovoCadastro={() => {
+                      sessionStorage.setItem(
+                        chaveRascunho,
+                        JSON.stringify({ evento, config }),
+                      );
+                      navigate(
+                        `/prototipos/sigep/documentos-legais/novo?returnTo=${encodeURIComponent(location.pathname)}`,
+                      );
+                    }}
+                    expandirAoAbrir
+                  />
+                  {!config.documentosLegaisIds?.length &&
+                    config.fundamentoLegal && (
+                      <small>
+                        Referência anterior: {config.fundamentoLegal}
+                      </small>
+                    )}
+                </div>
+                <label className="pl-col-4">
                   <span>
-                    Exige Parentesco? <em>*</em>
+                    Tipo <em>*</em>
                   </span>
                   <select
-                    value={String(evento.parentesco)}
+                    value={evento.natureza}
                     onChange={(e) =>
-                      mudar("parentesco", e.target.value === "true")
+                      mudar(
+                        "natureza",
+                        e.target.value as EventoLicenca["natureza"],
+                      )
+                    }
+                  >
+                    {NATUREZAS.map((n) => (
+                      <option key={n}>{n}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="pl-col-12">
+                  <span>Observação</span>
+                  <textarea
+                    rows={2}
+                    maxLength={2000}
+                    value={config.orientacao}
+                    onChange={(e) => configurar("orientacao", e.target.value)}
+                  />
+                </label>
+              </div>
+            </Secao>
+            <Secao
+              id="pl-aplicabilidade"
+              icone="pi-users"
+              titulo="Aplicabilidade por Tipo de Vínculo Funcional"
+              descricao="Selecione um ou mais tipos de vínculo aos quais a parametrização se aplica."
+            >
+              <SelecaoMultipla
+                titulo="Tipos de Vínculo"
+                opcoes={OPCOES_VINCULOS}
+                valores={evento.vinculos}
+                alterar={(v) => {
+                  mudar("vinculos", v);
+                  setConfig((c) => ({
+                    ...c,
+                    efeitosFinanceiros: {
+                      ...c.efeitosFinanceiros,
+                      ...Object.fromEntries(
+                        v
+                          .filter((chave) => !c.efeitosFinanceiros?.[chave])
+                          .map((chave) => [chave, efeitoInicial(chave)]),
+                      ),
+                    },
+                  }));
+                }}
+                pesquisavel
+              />
+            </Secao>
+            <Secao
+              id="pl-regras"
+              icone="pi-sliders-h"
+              titulo="Regras de Duração, Limites e Recorrência"
+              descricao="Defina a duração, a abrangência e as condições para o lançamento."
+            >
+              <div className="pl-config-grid">
+                <div className="pl-col-4">
+                  <label>
+                    <span>
+                      Dias Máximos Permitidos (Dias corridos) <em>*</em>
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      step={1}
+                      required={!config.semLimite}
+                      disabled={config.semLimite}
+                      value={config.semLimite ? "" : evento.quantidade}
+                      placeholder={config.semLimite ? "Sem Limite" : "Ex.: 8"}
+                      onChange={(e) =>
+                        mudar("quantidade", Number(e.target.value))
+                      }
+                    />
+                  </label>
+                  <label className="pl-check-inline">
+                    <input
+                      type="checkbox"
+                      checked={config.semLimite}
+                      onChange={(e) =>
+                        configurar("semLimite", e.target.checked)
+                      }
+                    />
+                    Sem Limite de Dias
+                  </label>
+                </div>
+                <div className="pl-col-4">
+                  <SelecaoMultipla
+                    titulo="Abrangência"
+                    opcoes={["Dia Integral", "Por Horas"].map((v) => ({
+                      label: v,
+                      value: v,
+                    }))}
+                    valores={config.abrangencias}
+                    alterar={(v) => configurar("abrangencias", v)}
+                  />
+                </div>
+                <label className="pl-col-4">
+                  <span>
+                    Possui Trava de Recorrência? <em>*</em>
+                  </span>
+                  <select
+                    value={String(config.travaRecorrencia)}
+                    onChange={(e) =>
+                      configurar("travaRecorrencia", e.target.value === "true")
                     }
                   >
                     <option value="false">Não</option>
                     <option value="true">Sim</option>
                   </select>
                 </label>
-                {evento.parentesco && (
-                  <fieldset className="pl-parentesco">
-                    <legend>Graus de Parentesco Autorizados no Sistema</legend>
-                    <p>Marque os permitidos para esta licença:</p>
+                {config.travaRecorrencia && (
+                  <fieldset className="pl-col-12 pl-recurrence">
+                    <legend>Janela de Recorrência Configurada</legend>
                     <div>
-                      {GRAUS_PARENTESCO.map((g) => (
-                        <button
-                          type="button"
-                          key={g}
-                          aria-pressed={config.grausParentesco.includes(g)}
-                          onClick={() =>
-                            configurar(
-                              "grausParentesco",
-                              config.grausParentesco.includes(g)
-                                ? config.grausParentesco.filter((v) => v !== g)
-                                : [...config.grausParentesco, g],
-                            )
-                          }
-                        >
-                          {config.grausParentesco.includes(g) && (
-                            <i className="pi pi-check" aria-hidden="true" />
-                          )}
-                          {g}
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
-                )}
-              </div>
-            </div>
-          </Secao>
-          <Secao id="pl-documentacao" icone="pi-paperclip" titulo="Documentação Comprobatória" descricao="Defina se o servidor precisará anexar documentos para validar a ocorrência.">
-            <fieldset className="pl-documentacao">
-              <legend>Exigência de Documentos <em>*</em></legend>
-              <div className="pl-radio-options">
-                {[true, false].map(valor => <label key={String(valor)}>
-                  <input type="radio" name="documentosObrigatorios" checked={(config.documentosObrigatorios ?? false) === valor} onChange={() => configurar("documentosObrigatorios", valor)}/>
-                  {valor ? "Sim, obrigatório" : "Não é obrigatório"}
-                </label>)}
-              </div>
-            </fieldset>
-          </Secao>
-        </div>
-        <div
-          role="tabpanel"
-          id="pl-painel-financeiros"
-          aria-labelledby="pl-aba-financeiros"
-          hidden={aba !== "financeiros"}
-        >
-          <Secao
-            id="pl-financeiros"
-            icone="pi-wallet"
-            titulo="Efeitos financeiros por tipo de vínculo"
-            descricao="Configure o tratamento financeiro para cada tipo de vínculo selecionado."
-          >
-            {!evento.vinculos.length && (
-              <p className="pl-finance-empty">
-                Selecione ao menos um tipo de vínculo na seção 2 para configurar
-                os efeitos financeiros correspondentes.
-              </p>
-            )}
-            {evento.vinculos.map((vinculo) => {
-              const efeito =
-                config.efeitosFinanceiros?.[vinculo] ?? efeitoInicial(vinculo);
-              const nome =
-                OPCOES_VINCULOS.find((o) => o.value === vinculo)?.label ??
-                vinculo;
-              const ilustrativo =
-                !original?.configuracao?.efeitosFinanceiros?.[vinculo] &&
-                ["Efetivo", "Temporário"].includes(vinculo);
-              return (
-                <section
-                  key={vinculo}
-                  className="pl-finance-card"
-                  aria-label={`Efeitos financeiros: ${nome}`}
-                >
-                  <header>
-                    <h3>{nome}</h3>
-                    {ilustrativo && <span>Exemplo ilustrativo</span>}
-                  </header>
-                  <div className="pl-finance-grid">
-                    <fieldset>
-                      <legend>
-                        Gera ônus remuneratório para o órgão de origem? *
-                      </legend>
-                      <div className="pl-radio-options">
-                        {[true, false].map((valor) => (
-                          <label key={String(valor)}>
-                            <input
-                              type="radio"
-                              name={`onus-${vinculo}`}
-                              checked={efeito.geraOnus === valor}
-                              onChange={() =>
-                                mudarEfeito(vinculo, { geraOnus: valor })
-                              }
-                            />
-                            {valor ? "Sim" : "Não"}
-                          </label>
-                        ))}
-                      </div>
-                    </fieldset>
-                    <fieldset>
-                      <legend>Suspende a remuneração do servidor? *</legend>
-                      <div className="pl-radio-options">
-                        {[true, false].map((valor) => (
-                          <label key={String(valor)}>
-                            <input
-                              type="radio"
-                              name={`suspende-${vinculo}`}
-                              checked={efeito.suspendeRemuneracao === valor}
-                              onChange={() =>
-                                mudarEfeito(vinculo, {
-                                  suspendeRemuneracao: valor,
-                                  diaInicioSuspensao: valor
-                                    ? (efeito.diaInicioSuspensao ?? 1)
-                                    : null,
-                                })
-                              }
-                            />
-                            {valor ? "Sim" : "Não"}
-                          </label>
-                        ))}
-                      </div>
-                    </fieldset>
-                  </div>
-                  {efeito.suspendeRemuneracao && (
-                    <label className="pl-finance-dia">
-                      A partir de qual dia da ocorrência a remuneração será
-                      suspensa? *
+                      <span>Permitir no máximo</span>
                       <input
+                        aria-label="Quantidade de ocorrências"
                         type="number"
                         min={1}
                         step={1}
                         required
-                        value={efeito.diaInicioSuspensao ?? ""}
+                        value={config.recorrenciaQuantidade}
                         onChange={(e) =>
-                          mudarEfeito(vinculo, {
-                            diaInicioSuspensao:
-                              e.target.value === ""
-                                ? null
-                                : Number(e.target.value),
-                          })
+                          configurar(
+                            "recorrenciaQuantidade",
+                            Number(e.target.value),
+                          )
                         }
                       />
-                      <small>
-                        Informe o primeiro dia da ocorrência em que a
-                        remuneração deixa de ser paga.
-                      </small>
-                    </label>
+                      <span>ocorrência(s) a cada</span>
+                      <input
+                        aria-label="Intervalo de recorrência"
+                        type="number"
+                        min={1}
+                        step={1}
+                        required
+                        value={config.recorrenciaIntervalo}
+                        onChange={(e) =>
+                          configurar(
+                            "recorrenciaIntervalo",
+                            Number(e.target.value),
+                          )
+                        }
+                      />
+                      <select
+                        aria-label="Unidade de recorrência"
+                        value={config.recorrenciaUnidade}
+                        onChange={(e) =>
+                          configurar(
+                            "recorrenciaUnidade",
+                            e.target
+                              .value as ConfiguracaoEvento["recorrenciaUnidade"],
+                          )
+                        }
+                      >
+                        {["Meses", "Dias", "Anos", "Ano Civil"].map((u) => (
+                          <option key={u}>{u}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </fieldset>
+                )}
+                <div className="pl-col-12 pl-parentesco-block">
+                  <label>
+                    <span>
+                      Exige Parentesco? <em>*</em>
+                    </span>
+                    <select
+                      value={String(evento.parentesco)}
+                      onChange={(e) =>
+                        mudar("parentesco", e.target.value === "true")
+                      }
+                    >
+                      <option value="false">Não</option>
+                      <option value="true">Sim</option>
+                    </select>
+                  </label>
+                  {evento.parentesco && (
+                    <fieldset className="pl-parentesco">
+                      <legend>
+                        Graus de Parentesco Autorizados no Sistema
+                      </legend>
+                      <p>Marque os permitidos para esta licença:</p>
+                      <div>
+                        {GRAUS_PARENTESCO.map((g) => (
+                          <button
+                            type="button"
+                            key={g}
+                            aria-pressed={config.grausParentesco.includes(g)}
+                            onClick={() =>
+                              configurar(
+                                "grausParentesco",
+                                config.grausParentesco.includes(g)
+                                  ? config.grausParentesco.filter(
+                                      (v) => v !== g,
+                                    )
+                                  : [...config.grausParentesco, g],
+                              )
+                            }
+                          >
+                            {config.grausParentesco.includes(g) && (
+                              <i className="pi pi-check" aria-hidden="true" />
+                            )}
+                            {g}
+                          </button>
+                        ))}
+                      </div>
+                    </fieldset>
                   )}
-                </section>
-              );
-            })}
-            <p className="pl-finance-note">
-              <i className="pi pi-info-circle" aria-hidden="true" />
-              <span>
-                “Gerar ônus para o órgão de origem” e “suspender a remuneração
-                do servidor” são regras diferentes. A ausência de ônus para o
-                órgão de origem não significa, por si só, que o servidor ficará
-                sem remuneração.
-              </span>
-            </p>
-          </Secao>
-        </div>
+                </div>
+              </div>
+            </Secao>
+            <Secao
+              id="pl-documentacao"
+              icone="pi-paperclip"
+              titulo="Documentação Comprobatória"
+              descricao="Defina se o servidor precisará anexar documentos para validar a ocorrência."
+            >
+              <fieldset className="pl-documentacao">
+                <legend>
+                  Exigência de Documentos <em>*</em>
+                </legend>
+                <div className="pl-radio-options">
+                  {[true, false].map((valor) => (
+                    <label key={String(valor)}>
+                      <input
+                        type="radio"
+                        name="documentosObrigatorios"
+                        checked={
+                          (config.documentosObrigatorios ?? false) === valor
+                        }
+                        onChange={() =>
+                          configurar("documentosObrigatorios", valor)
+                        }
+                      />
+                      {valor ? "Sim, obrigatório" : "Não é obrigatório"}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </Secao>
+          </div>
+          <div
+            role="tabpanel"
+            id="pl-painel-financeiros"
+            aria-labelledby="pl-aba-financeiros"
+            hidden={aba !== "financeiros"}
+          >
+            <Secao
+              id="pl-financeiros"
+              icone="pi-wallet"
+              titulo="Efeitos financeiros por tipo de vínculo"
+              descricao="Configure o tratamento financeiro para cada tipo de vínculo selecionado."
+            >
+              {!evento.vinculos.length && (
+                <p className="pl-finance-empty">
+                  Selecione ao menos um tipo de vínculo na seção 2 para
+                  configurar os efeitos financeiros correspondentes.
+                </p>
+              )}
+              {evento.vinculos.map((vinculo) => {
+                const efeito =
+                  config.efeitosFinanceiros?.[vinculo] ??
+                  efeitoInicial(vinculo);
+                const nome =
+                  OPCOES_VINCULOS.find((o) => o.value === vinculo)?.label ??
+                  vinculo;
+                const ilustrativo =
+                  !original?.configuracao?.efeitosFinanceiros?.[vinculo] &&
+                  ["Efetivo", "Temporário"].includes(vinculo);
+                return (
+                  <section
+                    key={vinculo}
+                    className="pl-finance-card"
+                    aria-label={`Efeitos financeiros: ${nome}`}
+                  >
+                    <header>
+                      <h3>{nome}</h3>
+                      {ilustrativo && <span>Exemplo ilustrativo</span>}
+                    </header>
+                    <div className="pl-finance-grid">
+                      <fieldset>
+                        <legend>
+                          Gera ônus remuneratório para o órgão de origem? *
+                        </legend>
+                        <div className="pl-radio-options">
+                          {[true, false].map((valor) => (
+                            <label key={String(valor)}>
+                              <input
+                                type="radio"
+                                name={`onus-${vinculo}`}
+                                checked={efeito.geraOnus === valor}
+                                onChange={() =>
+                                  mudarEfeito(vinculo, { geraOnus: valor })
+                                }
+                              />
+                              {valor ? "Sim" : "Não"}
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+                      <fieldset>
+                        <legend>Suspende a remuneração do servidor? *</legend>
+                        <div className="pl-radio-options">
+                          {[true, false].map((valor) => (
+                            <label key={String(valor)}>
+                              <input
+                                type="radio"
+                                name={`suspende-${vinculo}`}
+                                checked={efeito.suspendeRemuneracao === valor}
+                                onChange={() =>
+                                  mudarEfeito(vinculo, {
+                                    suspendeRemuneracao: valor,
+                                    diaInicioSuspensao: valor
+                                      ? (efeito.diaInicioSuspensao ?? 1)
+                                      : null,
+                                  })
+                                }
+                              />
+                              {valor ? "Sim" : "Não"}
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+                    </div>
+                    {efeito.suspendeRemuneracao && (
+                      <label className="pl-finance-dia">
+                        A partir de qual dia da ocorrência a remuneração será
+                        suspensa? *
+                        <input
+                          type="number"
+                          min={1}
+                          step={1}
+                          required
+                          value={efeito.diaInicioSuspensao ?? ""}
+                          onChange={(e) =>
+                            mudarEfeito(vinculo, {
+                              diaInicioSuspensao:
+                                e.target.value === ""
+                                  ? null
+                                  : Number(e.target.value),
+                            })
+                          }
+                        />
+                        <small>
+                          Informe o primeiro dia da ocorrência em que a
+                          remuneração deixa de ser paga.
+                        </small>
+                      </label>
+                    )}
+                  </section>
+                );
+              })}
+              <p className="pl-finance-note">
+                <i className="pi pi-info-circle" aria-hidden="true" />
+                <span>
+                  “Gerar ônus para o órgão de origem” e “suspender a remuneração
+                  do servidor” são regras diferentes. A ausência de ônus para o
+                  órgão de origem não significa, por si só, que o servidor
+                  ficará sem remuneração.
+                </span>
+              </p>
+            </Secao>
+          </div>
         </fieldset>
         {erro && (
           <p className="v2v-error" role="alert">
@@ -836,13 +889,17 @@ export function ParametrizacaoLicencasFormPage({
             <i className="pi pi-arrow-left" aria-hidden="true" />
             Voltar
           </button>
-          {!visualizar && aba === "dados" && <button type="button" className="v2v-primary" onClick={avancar}>
-            Avançar <i className="pi pi-arrow-right" aria-hidden="true" />
-          </button>}
-          {!visualizar && aba === "financeiros" && <button type="submit" className="v2v-primary">
-            <i className="pi pi-check" aria-hidden="true" />
-            Salvar e Publicar
-          </button>}
+          {!visualizar && aba === "dados" && (
+            <button type="button" className="v2v-primary" onClick={avancar}>
+              Avançar <i className="pi pi-arrow-right" aria-hidden="true" />
+            </button>
+          )}
+          {!visualizar && aba === "financeiros" && (
+            <button type="submit" className="v2v-primary">
+              <i className="pi pi-check" aria-hidden="true" />
+              Salvar e Publicar
+            </button>
+          )}
         </div>
       </form>
     </Ambiente>

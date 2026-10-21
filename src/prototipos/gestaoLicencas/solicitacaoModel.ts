@@ -61,14 +61,21 @@ export function carregarSolicitacoes(): RegistroLicenca[] {
       localStorage.getItem(STORAGE_SOLICITACOES) || "[]",
     );
     return Array.isArray(dados)
-      ? dados.filter(
-          (r) =>
-            r &&
-            typeof r.id === "string" &&
-            typeof r.nome === "string" &&
-            typeof r.inicio === "string" &&
-            typeof r.fim === "string",
-        ).map(r => ({ ...r, situacao: ['Vigente', 'Encaminhado p/ o INSS'].includes(r.situacao) ? 'Em andamento' : r.situacao }))
+      ? dados
+          .filter(
+            (r) =>
+              r &&
+              typeof r.id === "string" &&
+              typeof r.nome === "string" &&
+              typeof r.inicio === "string" &&
+              typeof r.fim === "string",
+          )
+          .map((r) => ({
+            ...r,
+            situacao: ["Vigente", "Encaminhado p/ o INSS"].includes(r.situacao)
+              ? "Em andamento"
+              : r.situacao,
+          }))
       : [];
   } catch {
     return [];
