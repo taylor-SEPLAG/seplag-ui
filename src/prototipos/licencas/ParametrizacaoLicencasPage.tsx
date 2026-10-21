@@ -3,32 +3,25 @@ import { Menu } from 'primereact/menu';
 import { useNavigate } from 'react-router-dom';
 import { ModalSeplag } from '../../componentes/Modal';
 import { PaginacaoV2 } from '../vinculos/VinculoV2Page';
-import { BASE_LICENCAS as BASE, CATEGORIAS, NATUREZAS, filtrosVazios, carregarEventos, filtrarEventos, rotuloDuracao, type EventoLicenca, type FiltrosLicencas } from './model';
+import { BASE_LICENCAS as BASE, STORAGE_LICENCAS, CATEGORIAS, NATUREZAS, filtrosVazios, carregarEventos, filtrarEventos, rotuloDuracao, type EventoLicenca, type FiltrosLicencas } from './model';
 import '../vinculos/vinculoV2.css';
 import './licencas.css';
 import { Ambiente } from './AmbienteLicencas';
 import { HistoricoEvento } from './HistoricoEvento';
 
 function Situacao({valor}:{valor:EventoLicenca['situacao']}) {return <span className={`v2v-status v2v-status-${valor.toLocaleLowerCase('pt-BR')}`}>{valor}</span>;}
-<<<<<<< Updated upstream
 function AcoesEvento({evento,visualizar,alterarSituacao,historico}:{evento:EventoLicenca;visualizar:()=>void;alterarSituacao:()=>void;historico:()=>void}) {
-=======
-function AcoesEvento({evento,visualizar}:{evento:EventoLicenca;visualizar:()=>void}) {
->>>>>>> Stashed changes
   const menu=useRef<Menu>(null),navigate=useNavigate();
   const [aberto,setAberto]=useState(false);
+  const situacao=evento.situacao==='Ativo'?'Inativar':'Reativar';
   return <div className="pl-acoes-divididas">
     <button type="button" title="Visualizar" aria-label={`Visualizar Evento ${evento.codigo}`} onClick={visualizar}><i className="pi pi-eye" aria-hidden="true"/></button>
     <button type="button" title="Mais ações" aria-label={`Ações do evento ${evento.codigo}`} aria-haspopup="menu" aria-controls={`pl-acoes-${evento.id}`} aria-expanded={aberto} onClick={event=>menu.current?.toggle(event)}><i className="pi pi-chevron-down" aria-hidden="true"/></button>
     <Menu ref={menu} popup id={`pl-acoes-${evento.id}`} onShow={()=>setAberto(true)} onHide={()=>setAberto(false)} model={[
       {label:'Editar',icon:'pi pi-pencil',command:()=>navigate(`${BASE}/${evento.id}/editar`)},
       {label:'Duplicar',icon:'pi pi-copy',command:()=>navigate(`${BASE}/${evento.id}/clonar`)},
-<<<<<<< Updated upstream
       {label:'Histórico',icon:'pi pi-history',command:historico},
       ...(evento.situacao==='Inativo'?[{label:situacao,icon:'pi pi-refresh',command:alterarSituacao}]:[]),
-=======
-      {label:'Histórico',icon:'pi pi-history',command:()=>navigate(`${BASE}/${evento.id}/historico`)},
->>>>>>> Stashed changes
     ]}/>
   </div>;
 }
@@ -44,8 +37,8 @@ export function ParametrizacaoLicencasPage() {
   },[]);
   const [filtros,setFiltros]=useState<FiltrosLicencas>({...filtrosVazios});
   const [pagina,setPagina]=useState(1),[porPagina,setPorPagina]=useState(10);
+  const [confirmacao,setConfirmacao]=useState<EventoLicenca|null>(null);
   const [vinculosEvento,setVinculosEvento]=useState<EventoLicenca|null>(null);
-<<<<<<< Updated upstream
 
   const [historico,setHistorico]=useState<EventoLicenca|null>(null);
   const [mensagem,setMensagem]=useState(''),[erro,setErro]=useState('');
@@ -66,13 +59,6 @@ export function ParametrizacaoLicencasPage() {
       localStorage.setItem(STORAGE_LICENCAS,JSON.stringify(novos));setRegistros(novos);setMensagem(`Evento ${confirmacao.codigo} ${estado==='Ativo'?'reativado':'inativado'} com sucesso.`);setConfirmacao(null);setErro('');
     } catch {setErro('Não foi possível salvar a situação. Tente novamente.');}
   };
-=======
-  const [visualizacao,setVisualizacao]=useState<EventoLicenca|null>(null);
-  const filtrados=filtrarEventos(registros,filtros),totalPaginas=Math.max(1,Math.ceil(filtrados.length/porPagina)),atual=Math.min(pagina,totalPaginas);
-  const visiveis=filtrados.slice((atual-1)*porPagina,atual*porPagina);
-  const alterar=(campo:keyof FiltrosLicencas,valor:string)=>{setFiltros(f=>({...f,[campo]:valor}));setPagina(1);};
-  useEffect(()=>{const timer=window.setInterval(()=>setRegistros(carregarEventos()),30000);return ()=>window.clearInterval(timer);},[]);
->>>>>>> Stashed changes
   return <Ambiente titulo="Parametrização de Ocorrências">
     <p className="v2v-description">Gerencie os parâmetros de licenças, afastamentos e ausências aplicáveis aos servidores.</p>
     <section className="v2v-kpis pl-kpis" aria-label="Indicadores de eventos">
@@ -85,6 +71,7 @@ export function ParametrizacaoLicencasPage() {
       <label>Situação<select value={filtros.situacao} onChange={e=>alterar('situacao',e.target.value)}><option value="">Todas</option><option>Ativo</option><option>Inativo</option></select></label>
       <button type="button" className="v2v-primary" onClick={()=>{setFiltros({...filtrosVazios});setPagina(1);}}><i className="pi pi-refresh" aria-hidden="true"/>Limpar filtro</button>
     </section>
+    {mensagem&&<p className="v2v-notice" role="status">{mensagem}</p>}
     <div className="v2v-toolbar pl-table-toolbar"><button type="button" className="v2v-primary" onClick={()=>navigate(`${BASE}/novo`)}><i className="pi pi-plus" aria-hidden="true"/>Nova Parametrização</button></div>
 
     <div className="pl-grid-scroll"><table className="v2v-table pl-table" aria-label="Eventos parametrizados"><thead><tr>{['Código','Ocorrência','Tipo','Vínculos Autorizados','Duração Máxima','Parentesco?','Recorrência?','Situação','Ações'].map(c=><th scope="col" key={c}>{c}</th>)}</tr></thead><tbody>{visiveis.map(e=><tr key={e.id}>
@@ -92,13 +79,8 @@ export function ParametrizacaoLicencasPage() {
       <td><span className={`pl-tag pl-natureza-${NATUREZAS.indexOf(e.natureza)}`}>{e.natureza}</span></td>
       <td><button type="button" className="pl-vinculos-link" aria-label={`Ver vínculos autorizados do evento ${e.codigo}`} onClick={()=>setVinculosEvento(e)}>{e.vinculos.length} {e.vinculos.length===1?'Vínculo':'Vínculos'}</button></td>
       <td>{rotuloDuracao(e)}</td><td>{e.parentesco?'Sim':'Não'}</td><td>{e.recorrencia||'Não'}</td><td><Situacao valor={e.situacao}/></td>
-<<<<<<< Updated upstream
       <td><AcoesEvento evento={e} visualizar={()=>navigate(`${BASE}/${e.id}/visualizar`)} historico={()=>setHistorico(e)} alterarSituacao={()=>{setErro('');setConfirmacao(e);}}/></td>
     </tr>)}{!visiveis.length&&<tr><td colSpan={9} className="v2v-empty">Nenhum registro encontrado para os filtros informados.</td></tr>}</tbody></table></div>
-=======
-      <td><AcoesEvento evento={e} visualizar={()=>setVisualizacao(e)}/></td>
-    </tr>)}{!visiveis.length&&<tr><td colSpan={10} className="v2v-empty">Nenhum registro encontrado para os filtros informados.</td></tr>}</tbody></table></div>
->>>>>>> Stashed changes
     <PaginacaoV2 nome="eventos" pagina={atual} totalPaginas={totalPaginas} porPagina={porPagina} mudarPagina={setPagina} mudarPorPagina={q=>{setPorPagina(q);setPagina(1);}}/>
     <ModalSeplag visible={Boolean(vinculosEvento)} titulo={`Tipos de vínculo autorizados (${vinculosEvento?.vinculos.length??0})`} fechar={()=>setVinculosEvento(null)} hideFooter tamanho="620px">
       <div className="prototype-carreira-org-list prototype-tipo-vinculo-regimes-list">
@@ -106,14 +88,10 @@ export function ParametrizacaoLicencasPage() {
         <ul>{vinculosEvento?.vinculos.map((v,i)=><li key={v}><i className="pi pi-book" aria-hidden="true"/><strong>{i+1}.</strong> {v}</li>)}</ul>
       </div>
     </ModalSeplag>
-<<<<<<< Updated upstream
     <ModalSeplag visible={Boolean(confirmacao)} titulo={confirmacao?.situacao==='Ativo'?'Inativar Evento':'Reativar Evento'} fechar={()=>setConfirmacao(null)} hideFooter tamanho="480px">
       {confirmacao&&<div className="v2v-page"><p>Confirma {confirmacao.situacao==='Ativo'?'a inativação':'a reativação'} de <strong>{confirmacao.codigo} — {confirmacao.nome}</strong>?</p>{erro&&<p className="v2v-error" role="alert">{erro}</p>}<div className="v2v-form-actions"><button type="button" className="v2v-secondary" onClick={()=>setConfirmacao(null)}>Cancelar</button><button type="button" className="v2v-primary" onClick={confirmar}>Confirmar</button></div></div>}
     </ModalSeplag>
     <HistoricoEvento evento={historico} fechar={()=>setHistorico(null)}/>
-=======
-
->>>>>>> Stashed changes
   </Ambiente>;
 }
 
