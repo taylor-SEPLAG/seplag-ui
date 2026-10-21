@@ -28,11 +28,13 @@ export function podeSuspender(registro: FeriasRegistro) {
 }
 
 /** Reabertura-padrão (RN reabertura 3.1): exige as três condições ao mesmo tempo —
- * Cancelado/Suspenso, hoje estritamente anterior ao início original do usufruto, e folha
- * ainda não homologada/paga. Uma vez iniciado o período, a reativação direta deixa de valer
- * (3.2 trataria o saldo remanescente de uma suspensão em andamento — fora deste protótipo). */
+ * Suspenso, hoje estritamente anterior ao início original do usufruto, e folha ainda não
+ * homologada/paga. Cancelado é definitivo — não oferece reabertura (nem forçada): quem
+ * cancelou tem que lançar uma solicitação nova. Uma vez iniciado o período, a reativação
+ * direta deixa de valer (3.2 trataria o saldo remanescente de uma suspensão em andamento —
+ * fora deste protótipo). */
 export function elegivelParaReabertura(registro: FeriasRegistro) {
-  return registro.situacao === "SUSPENSO" || registro.situacao === "CANCELADO";
+  return registro.situacao === "SUSPENSO";
 }
 
 export function reaberturaDentroDoPrazo(registro: FeriasRegistro) {
@@ -69,4 +71,30 @@ export function podeCancelar(registro: FeriasRegistro) {
  * de simplesmente esconder a opção (mesmo padrão de reativarBloqueadaPelaFolha). */
 export function cancelarBloqueadoPelaFolha(registro: FeriasRegistro) {
   return elegivelParaCancelar(registro) && Boolean(registro.folhaHomologada);
+}
+
+/** Quitação automática: usufruto concluído integralmente sem interrupção — Em Aberto com
+ * hoje já após o fim de todas as parcelas. A folha homologada/paga não bloqueia a quitação
+ * em si (só cancelamento/reabertura direta, ver podeCancelar/podeReativar acima). */
+export function elegivelParaQuitacaoAutomatica(registro: FeriasRegistro) {
+  if (registro.situacao !== "EM ABERTO") return false;
+  const fim = fimUsufruto(registro);
+  return fim !== null && dataLocalISO() > fim;
+}
+
+/** Saldo restante do período aquisitivo na reabertura: cancelar/suspender já devolveu os dias
+ * deste registro ao saldo (periodoDisponivelServidor); enquanto ele ficou parado, outra
+ * solicitação pode ter consumido essa folga, então o saldo precisa ser reconferido antes de
+ * reaproveitar a mesma quantidade de dias — não dá para assumir que ainda está livre. */
+export function saldoRestanteParaReabertura(registro: FeriasRegistro, demaisRegistros: FeriasRegistro[]): number {
+  const saldoTotal = registro.saldoFerias ?? registro.parcelas.reduce((total, parcela) => total + parcela.dias, 0);
+  const diasComprometidos = demaisRegistros
+    .filter((r) =>
+      r.id !== registro.id &&
+      r.matricula === registro.matricula &&
+      r.periodoAquisitivoInicio === registro.periodoAquisitivoInicio &&
+      !["CANCELADO", "REPROVADO", "SUSPENSO"].includes(r.situacao),
+    )
+    .reduce((total, r) => total + r.parcelas.reduce((n, p) => n + p.dias, 0), 0);
+  return Math.max(0, saldoTotal - diasComprometidos);
 }
