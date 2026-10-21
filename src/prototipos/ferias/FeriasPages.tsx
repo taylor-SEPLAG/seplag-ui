@@ -691,23 +691,6 @@ export function PrototiposFeriasPage() {
   const [exclusaoSelecionada, setExclusaoSelecionada] = useState<FeriasRegistro | null>(null);
   const [subBusca, setSubBusca] = useState("");
   const [subSituacao, setSubSituacao] = useState<"" | "Vigente" | "Encerrada">("");
-  const [mesFolha, setMesFolha] = useState(calcularPrazoValidacaoChefia().slice(0, 7));
-  const [fechamentoFolha, setFechamentoFolha] = useState(calcularPrazoValidacaoChefia());
-  const [mensagemFolha, setMensagemFolha] = useState('');
-
-  const salvarCalendarioFolha = () => {
-    if (!mesFolha || !fechamentoFolha || fechamentoFolha.slice(0, 7) !== mesFolha) {
-      setMensagemFolha('Informe uma data de fechamento dentro da competência selecionada.'); return;
-    }
-    let calendario: Record<string,string> = {};
-    try { calendario = JSON.parse(localStorage.getItem('ferias-calendario-folha') ?? '{}'); } catch { /* calendário inicial */ }
-    localStorage.setItem('ferias-calendario-folha', JSON.stringify({...calendario,[mesFolha]:fechamentoFolha}));
-    const proximos = registros.map(r => r.situacao === 'AGUARDANDO VALIDAÇÃO' && r.dataLimiteValidacaoChefia?.startsWith(mesFolha)
-      ? {...r,dataLimiteValidacaoChefia:fechamentoFolha} : r);
-    atualizarRegistros(proximos);
-    setMensagemFolha('Fechamento salvo. O prazo das solicitações pendentes desta competência foi atualizado.');
-  };
-
   const atualizarRegistros = (proximos: FeriasRegistro[]) => {
     setRegistros(proximos);
     persistirRegistros(proximos);
@@ -994,15 +977,6 @@ export function PrototiposFeriasPage() {
                 <IndicadorCard rotulo="PRAZO EXPIRADO" valor={indicadores.prazoExpirado} tom="vermelho" />
               </div>
 
-              {podeGerenciarCompleto(perfil) && <details className="prototype-ferias-form-section">
-                <summary>Calendário de fechamento da folha</summary>
-                <div className="prototype-ferias-form-grid">
-                  <label>Competência<input type="month" value={mesFolha} onChange={e => {setMesFolha(e.target.value);setFechamentoFolha(e.target.value + '-15');setMensagemFolha('');}} /></label>
-                  <label>Data de fechamento<input type="date" value={fechamentoFolha} onChange={e => setFechamentoFolha(e.target.value)} /></label>
-                </div>
-                <button type="button" className="prototype-ferias-btn-primario" onClick={salvarCalendarioFolha}>Salvar fechamento</button>
-                {mensagemFolha && <p role="status">{mensagemFolha}</p>}
-              </details>}
               <div className="prototype-ferias-filtros">
                 <label>
                   <span>Órgão</span>
