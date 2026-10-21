@@ -4,9 +4,9 @@ import { carregarGestaoLicencas } from "./solicitacaoModel";
 import { CardSeplag } from "../../componentes/Card";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { PaginacaoV2 } from "../vinculos/VinculoV2Page";
-import { ModalSeplag } from "../../componentes/Modal";
-import { AnexarDocumentoSeplag } from "../../componentes/AnexarDocumento";
-import { abrirDocumento } from "./documentosSolicitacao";
+
+
+
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import {
   GESTAO_LICENCAS_PATH,
@@ -26,16 +26,9 @@ const indisponivel = "Funcionalidade indisponível nesta etapa.";
 function Situacao({ valor }: { valor: RegistroLicenca["situacao"] }) {
   return (
     <span
-      className={`gl-pill gl-status-${valor === "Em andamento" ? "vigente" : valor === "Encerrado" ? "encerrado" : "inss"}`}
+      className={`gl-pill gl-status-${valor === "Em andamento" ? "vigente" : "encerrado"}`}
     >
       {valor}
-    </span>
-  );
-}
-function Chefia() {
-  return (
-    <span className="gl-chefia">
-      <i className="pi pi-star-fill" aria-hidden="true" /> CHEFIA
     </span>
   );
 }
@@ -48,7 +41,7 @@ export function GestaoLicencasContent({
   const [filtros, setFiltros] = useState<FiltrosGestaoLicencas>({
     ...filtrosIniciais,
   });
-  const [selecionado, setSelecionado] = useState<RegistroLicenca | null>(null);
+
   const [pagina, setPagina] = useState(1),
     [porPagina, setPorPagina] = useState(10);
   const filtrados = filtrarLicencas(registros, filtros);
@@ -141,7 +134,7 @@ export function GestaoLicencasContent({
                 onChange={(e) => alterar("situacao", e.target.value)}
               >
                 <option value="">Todas</option>
-                {["Em andamento", "Encerrado", "Encaminhado p/ o INSS"].map((o) => (
+                {["Em andamento", "Encerrado"].map((o) => (
                   <option key={o}>{o}</option>
                 ))}
               </select>
@@ -223,7 +216,7 @@ export function GestaoLicencasContent({
                     <small>{r.lotacao}</small>
                   </td>
                   <td>
-                    {r.nome} {r.chefia && <Chefia />}
+                    {r.nome}
                     <small>{r.cargo}</small>
                   </td>
                   <td>
@@ -244,7 +237,7 @@ export function GestaoLicencasContent({
                         type="button"
                         aria-label={`Visualizar licença de ${r.nome}`}
                         title="Visualizar"
-                        onClick={() => setSelecionado(r)}
+                        onClick={() => navigate(`${GESTAO_LICENCAS_PATH}/${r.id}/visualizar`)}
                       >
                         <i className="pi pi-eye" aria-hidden="true" />
                       </button>
@@ -282,63 +275,7 @@ export function GestaoLicencasContent({
           setPagina(1);
         }}
       />
-      <ModalSeplag
-        visible={Boolean(selecionado)}
-        titulo="Detalhes da Licença / Afastamento"
-        fechar={() => setSelecionado(null)}
-        hideFooter
-        tamanho="800px"
-      >
-        {selecionado && (
-          <div className="gl-modal">
-            <p className="gl-demo">Registro de demonstração</p>
-            <h3>{selecionado.nome}</h3>
-            {selecionado.chefia && <Chefia />}
-            <dl>
-              {Object.entries({
-                "Matrícula/Vínculo": `${selecionado.matricula} / ${selecionado.vinculo}`,
-                "Tipo de vínculo": selecionado.tipoVinculo,
-                Órgão: selecionado.orgao,
-                "Setor / Lotação": selecionado.lotacao,
-                "Cargo/Função": selecionado.cargo,
-                "Período do Afastamento": `${dataLicenca(selecionado.inicio)} a ${dataLicenca(selecionado.fim)}`,
-                Tipo: selecionado.tipo,
-                "Dias Concedidos":
-                  selecionado.solicitacao?.totalHoras ||
-                  `${selecionado.dias} ${selecionado.abrangencia}`,
-                Origem: selecionado.origem,
-                ...(selecionado.solicitacao
-                  ? {
-                      CPF: selecionado.solicitacao.cpf,
-                      Parentesco: selecionado.solicitacao.parentesco || "—",
-                      Observação: selecionado.solicitacao.observacao || "—",
-                    }
-                  : {}),
-              }).map(([nome, valor]) => (
-                <div key={nome}>
-                  <dt>{nome}</dt>
-                  <dd>{valor}</dd>
-                </div>
-              ))}
-              <div>
-                <dt>Situação</dt>
-                <dd>
-                  <Situacao valor={selecionado.situacao} />
-                </dd>
-              </div>
-            </dl>
-            {!!selecionado.solicitacao?.documentos?.length && (
-              <AnexarDocumentoSeplag
-                cols="12"
-                label="Documentos anexados"
-                arquivosBase64={selecionado.solicitacao.documentos}
-                handleViewArquivo={(arquivo) => abrirDocumento(arquivo)}
-                onDownloadArquivo={(arquivo) => abrirDocumento(arquivo, true)}
-              />
-            )}
-          </div>
-        )}
-      </ModalSeplag>
+
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { CardSeplag } from "../../componentes/Card";
 import {
   AnexarDocumentoSeplag,
@@ -21,6 +21,7 @@ import {
 import {
   buscarServidores,
   carregarSolicitacoes,
+  carregarGestaoLicencas,
   diasPeriodo,
   servidoresSolicitacao,
   STORAGE_SOLICITACOES,
@@ -50,27 +51,28 @@ function Secao({
     </section>
   );
 }
-export function NovaSolicitacaoContent() {
+export function NovaSolicitacaoContent({registro}: {registro?: RegistroLicenca} = {}) {
+  const visualizar = Boolean(registro);
   const navigate = useNavigate();
   const [parametrizacoes] = useState(carregarEventos);
   const [servidor, setServidor] = useState<SolicitacaoLocal | null>(
-    servidoresSolicitacao[0],
+    registro ? {id: registro.matricula, nome: registro.nome, matricula: registro.matricula, cpf: registro.solicitacao?.cpf || 'Não informado', vinculos: [{numero: registro.vinculo, orgao: registro.orgao, tipo: registro.tipoVinculo, cargo: registro.cargo, lotacao: registro.lotacao, jornada: 'Não informada'}]} : servidoresSolicitacao[0],
   );
   const [busca, setBusca] = useState("");
-  const [selecionados, setSelecionados] = useState<number[]>([2]);
-  const [eventoId, setEventoId] = useState("");
-  const [inicio, setInicio] = useState(""),
-    [fim, setFim] = useState("");
-  const [horaInicio, setHoraInicio] = useState("08:00"),
-    [horaFim, setHoraFim] = useState("12:00");
-  const [parentesco, setParentesco] = useState(""),
-    [observacao, setObservacao] = useState("");
+  const [selecionados, setSelecionados] = useState<number[]>(registro ? [registro.vinculo] : [2]);
+  const [eventoId, setEventoId] = useState(registro?.solicitacao?.eventoId || "");
+  const [inicio, setInicio] = useState(registro?.inicio || ""),
+    [fimInformado, setFim] = useState(registro?.fim || "");
+  const [horaInicio, setHoraInicio] = useState(registro?.solicitacao?.horaInicio || "08:00"),
+    [horaFim, setHoraFim] = useState(registro?.solicitacao?.horaFim || "12:00");
+  const [parentesco, setParentesco] = useState(registro?.solicitacao?.parentesco || ""),
+    [observacao, setObservacao] = useState(registro?.solicitacao?.observacao || "");
   const [erro, setErro] = useState("");
-  const [documentos, setDocumentos] = useState<ArquivoAnexadoSeplag[]>([]);
+  const [documentos, setDocumentos] = useState<ArquivoAnexadoSeplag[]>(registro?.solicitacao?.documentos || []);
   const [lendoDocumentos, setLendoDocumentos] = useState(false);
   const lendoRef = useRef(false);
   async function anexarArquivos(files: File[]) {
-    if (lendoRef.current || !files.length) return;
+    if (visualizar || lendoRef.current || !files.length) return;
     lendoRef.current = true;
     setLendoDocumentos(true);
     setErro("");
@@ -90,18 +92,35 @@ export function NovaSolicitacaoContent() {
   }
   const evento = parametrizacoes.find((e) => e.id === eventoId);
   const config = evento ? configuracaoDoEvento(evento) : null;
-  const porHoras = evento?.duracao === "Por horas";
+  const porHoras = visualizar ? registro?.abrangencia === 'POR HORAS' : evento?.duracao === "Por horas";
+  const fimSomenteLeitura = Boolean(evento && !porHoras && !config?.semLimite && evento.quantidade > 0);
+  let fim = fimInformado;
+  if (fimSomenteLeitura && !visualizar) {
+    fim = "";
+    if (inicio && evento) {
+      const data = new Date(inicio + "T00:00:00Z");
+      let restantes = evento.quantidade;
+      while (restantes > 0) {
+        if (config?.contagem !== "Dias úteis" || ![0, 6].includes(data.getUTCDay())) restantes--;
+        if (restantes > 0) data.setUTCDate(data.getUTCDate() + 1);
+      }
+      fim = data.toISOString().slice(0, 10);
+    }
+  }
   const minutos = totalMinutos(horaInicio, horaFim);
   const totalHoras = `${String(Math.floor(minutos / 60)).padStart(2, "0")}:${String(minutos % 60).padStart(2, "0")} horas`;
-  const dias = diasPeriodo(inicio, fim, config?.contagem === "Dias úteis");
+  const dias = visualizar ? registro!.dias : diasPeriodo(inicio, fim, config?.contagem === "Dias úteis");
   function salvar(e: FormEvent) {
     e.preventDefault();
+    if (visualizar) return;
     if (lendoDocumentos) return;
     setErro("");
     if (!servidor || !selecionados.length)
       return setErro("Selecione o servidor e pelo menos um vínculo funcional.");
     if (!evento || evento.situacao !== "Ativo")
       return setErro("Selecione uma parametrização ativa.");
+    if (config?.documentosObrigatorios && !documentos.length)
+      return setErro("Anexe pelo menos um documento comprobatório.");
     if (!inicio || !fim || fim < inicio)
       return setErro(
         "Informe um período válido. O término deve ser igual ou posterior ao início.",
@@ -178,6 +197,7 @@ export function NovaSolicitacaoContent() {
   }
   return (
     <form className="gl-solicitacao" onSubmit={salvar}>
+      <fieldset disabled={visualizar} className="gl-solicitacao-fields" aria-label={visualizar ? 'Solicitação em modo de leitura' : 'Dados da solicitação'}>
       <Secao
         titulo="Identificação do Servidor e Seleção de Vínculo Funcional"
         icone="pi-user"
@@ -240,9 +260,9 @@ export function NovaSolicitacaoContent() {
                 <strong>{servidor.cpf}</strong>
               </div>
               <div>
-                <small>Situação cadastral</small>
-                <span className="gl-pill gl-status-vigente">
-                  Ativo em Exercício
+                <small>{visualizar ? 'Situação da solicitação' : 'Situação cadastral'}</small>
+                <span className={`gl-pill ${visualizar && registro?.situacao === 'Encerrado' ? 'gl-status-encerrado' : 'gl-status-vigente'}`}>
+                  {visualizar ? registro?.situacao : 'Ativo em Exercício'}
                 </span>
               </div>
             </div>
@@ -301,8 +321,9 @@ export function NovaSolicitacaoContent() {
                 setErro("");
               }}
             >
-              <option value="">Selecione...</option>
-              {parametrizacoes.map((e) => (
+              <option value="">{visualizar ? registro?.tipo : 'Selecione...'}</option>
+              {visualizar && eventoId && <option value={eventoId}>{registro?.tipo}</option>}
+              {!visualizar && parametrizacoes.map((e) => (
                 <option
                   key={e.id}
                   value={e.id}
@@ -314,7 +335,7 @@ export function NovaSolicitacaoContent() {
               ))}
             </select>
           </label>
-          {evento?.parentesco && (
+          {(evento?.parentesco || (visualizar && parentesco)) && (
             <label className="gl-span-full">
               Grau de Parentesco do Familiar *
               <select
@@ -323,7 +344,8 @@ export function NovaSolicitacaoContent() {
                 onChange={(e) => setParentesco(e.target.value)}
               >
                 <option value="">Selecione o familiar...</option>
-                {(config?.grausParentesco.length
+                {visualizar && parentesco && <option>{parentesco}</option>}
+                {!visualizar && (config?.grausParentesco.length
                   ? config.grausParentesco
                   : GRAUS_PARENTESCO
                 ).map((g) => (
@@ -348,6 +370,7 @@ export function NovaSolicitacaoContent() {
                 type="date"
                 required
                 min={inicio}
+                readOnly={fimSomenteLeitura}
                 value={fim}
                 onChange={(e) => setFim(e.target.value)}
               />
@@ -403,9 +426,9 @@ export function NovaSolicitacaoContent() {
               onChange={(e) => setObservacao(e.target.value)}
             />
           </label>
-          <div className="gl-span-full">
+          {!visualizar && <div className="gl-span-full">
             <span className="prototype-judicial-upload-label">
-              Documentos (opcional)
+              Documentos {config?.documentosObrigatorios ? "(obrigatório)" : "(opcional)"}
             </span>
             <label
               className="gl-upload-area"
@@ -451,9 +474,11 @@ export function NovaSolicitacaoContent() {
               onDownloadArquivo={(arquivo) => abrirDocumento(arquivo, true)}
             />
             {lendoDocumentos && <p role="status">Carregando documentos...</p>}
-          </div>
+          </div>}
         </div>
       </Secao>
+      </fieldset>
+      {visualizar && <AnexarDocumentoSeplag cols="12" label="Documentos anexados" arquivosBase64={documentos} handleViewArquivo={arquivo => abrirDocumento(arquivo)} onDownloadArquivo={arquivo => abrirDocumento(arquivo, true)}/>}
       {erro && (
         <p role="alert" className="v2v-error">
           {erro}
@@ -468,19 +493,22 @@ export function NovaSolicitacaoContent() {
           <i className="pi pi-arrow-left" aria-hidden="true" />
           Voltar
         </button>
-        <button
+        {!visualizar && <button
           type="submit"
           className="v2v-primary"
           disabled={lendoDocumentos}
         >
           <i className="pi pi-check" aria-hidden="true" />
           Efetivar Lançamento
-        </button>
+        </button>}
       </div>
     </form>
   );
 }
-export function NovaSolicitacaoLicencaPage() {
+export function NovaSolicitacaoLicencaPage({visualizar = false}: {visualizar?: boolean}) {
+  const {id} = useParams();
+  const [registro] = useState(() => visualizar ? carregarGestaoLicencas().find(r => r.id === id) : undefined);
+  const titulo = visualizar ? 'Visualizar solicitação de licença' : 'Nova solicitação de licença';
   return (
     <PrototypeSystemPage
       nomeSistema="GESTÃO DE PESSOAS"
@@ -489,7 +517,7 @@ export function NovaSolicitacaoLicencaPage() {
     >
       <main className="prototype-page-content prototype-page-content--white v2v-shell gl-shell">
         <CardSeplag
-          title="Nova solicitação de licença"
+          title={titulo}
           cols="12"
           cardHeaderClassNames="prototype-carreira-card v2v-card"
           headerNavigation={
@@ -501,13 +529,13 @@ export function NovaSolicitacaoLicencaPage() {
                   to: "/prototipos/sigep/direitos-beneficios",
                 },
                 { label: TITULO_GESTAO_LICENCAS, to: GESTAO_LICENCAS_PATH },
-                { label: "Nova solicitação de licença" },
+                { label: titulo },
               ]}
             />
           }
         >
           <div className="v2v-page gl-page">
-            <NovaSolicitacaoContent />
+            {visualizar && !registro ? <><p role="alert">Solicitação não encontrada.</p><a href={GESTAO_LICENCAS_PATH}>Voltar</a></> : <NovaSolicitacaoContent registro={registro}/>}
           </div>
         </CardSeplag>
       </main>

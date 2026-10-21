@@ -1,7 +1,7 @@
 export const GESTAO_LICENCAS_PATH =
   "/prototipos/sigep/gestao-licencas-afastamentos";
 export const TITULO_GESTAO_LICENCAS = "Gestão de Licenças e Afastamentos";
-export type SituacaoLicenca = "Em andamento" | "Encerrado" | "Encaminhado p/ o INSS";
+export type SituacaoLicenca = "Em andamento" | "Encerrado";
 export interface RegistroLicenca {
   id: string;
   matricula: string;
@@ -128,7 +128,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
     dias: 20,
     abrangencia: "INTEGRAL",
     origem: "PORTALSERVIDOR",
-    situacao: "Encaminhado p/ o INSS",
+    situacao: "Em andamento",
   },
   {
     id: "licenca-327305",
@@ -234,13 +234,6 @@ export function indicadoresLicencas(registros: readonly RegistroLicenca[]) {
       valor: registros.filter((r) => r.situacao === "Encerrado").length,
       icone: "pi-check",
       cor: "cinza",
-    },
-    {
-      label: "Encaminhado p/ INSS",
-      valor: registros.filter((r) => r.situacao === "Encaminhado p/ o INSS")
-        .length,
-      icone: "pi-pause",
-      cor: "vermelho",
     },
   ];
 }

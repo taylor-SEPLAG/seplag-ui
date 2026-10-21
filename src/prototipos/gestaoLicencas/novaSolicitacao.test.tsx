@@ -9,7 +9,7 @@ import {
   diasPeriodo,
   totalMinutos,
 } from "./solicitacaoModel";
-import { carregarEventos, STORAGE_LICENCAS } from "../licencas/model";
+import { carregarEventos, configuracaoDoEvento, STORAGE_LICENCAS } from "../licencas/model";
 afterEach(() => {
   cleanup();
   localStorage.clear();
@@ -106,4 +106,27 @@ it("calcula horas em parametrização ativa e rejeita horário invertido", () =>
   fireEvent.click(screen.getByRole("button", { name: "Efetivar Lançamento" }));
   expect(screen.getByRole("alert").textContent).toContain("horário de término");
   expect(carregarSolicitacoes()).toHaveLength(0);
+});
+
+it("calcula o termino pelo limite e bloqueia sua edicao", () => {
+  abrir();
+  fireEvent.change(screen.getByLabelText("Tipo de Licença, Afastamento ou Ausência *"), {target: {value: "lic-135"}});
+  fireEvent.change(screen.getByLabelText("Data de Início *"), {target: {value: "2026-10-20"}});
+  const fim = screen.getByLabelText("Data de Término *") as HTMLInputElement;
+  expect(fim.readOnly).toBe(true);
+  expect(fim.value).toBe("2026-10-27");
+  fireEvent.change(screen.getByLabelText("Tipo de Licença, Afastamento ou Ausência *"), {target: {value: "lic-101"}});
+  expect(fim.readOnly).toBe(false);
+});
+
+it("exige anexos quando a parametrizacao determina", () => {
+  const eventos = carregarEventos();
+  eventos[1].configuracao = {...configuracaoDoEvento(eventos[1]), documentosObrigatorios: true};
+  localStorage.setItem(STORAGE_LICENCAS, JSON.stringify(eventos));
+  abrir();
+  fireEvent.change(screen.getByLabelText("Tipo de Licença, Afastamento ou Ausência *"), {target: {value: "lic-101"}});
+  fireEvent.change(screen.getByLabelText("Data de Início *"), {target: {value: "2026-10-20"}});
+  fireEvent.change(screen.getByLabelText("Data de Término *"), {target: {value: "2026-10-21"}});
+  fireEvent.click(screen.getByRole("button", {name: "Efetivar Lançamento"}));
+  expect(screen.getByText("Anexe pelo menos um documento comprobatório.")).toBeTruthy();
 });

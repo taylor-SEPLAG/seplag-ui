@@ -32,8 +32,8 @@ export function Ambiente({
                   label: "Direitos e Benefícios",
                   to: "/prototipos/sigep/direitos-beneficios",
                 },
-                { label: "Parametrização de Licenças", to: BASE },
-                ...(titulo === "Parametrização de Licenças"
+                { label: "Parametrização de Ocorrências", to: BASE },
+                ...(titulo === "Parametrização de Ocorrências"
                   ? []
                   : [{ label: titulo }]),
               ]}

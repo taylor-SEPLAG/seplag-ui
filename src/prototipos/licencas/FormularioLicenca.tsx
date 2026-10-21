@@ -5,6 +5,7 @@ import { DocumentosLegaisAssociadosSeplag } from "../../componentes/DocumentosLe
 import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
 
 import { Ambiente } from "./AmbienteLicencas";
+import { HistoricoEvento } from "./HistoricoEvento";
 import {
   BASE_LICENCAS as BASE,
   NATUREZAS,
@@ -153,18 +154,22 @@ function Secao({
 
 export function ParametrizacaoLicencasFormPage({
   clonar = false,
+  visualizar = false,
 }: {
   clonar?: boolean;
+  visualizar?: boolean;
 }) {
   const { id } = useParams(),
     navigate = useNavigate();
   const location = useLocation();
+  const [historicoAberto, setHistoricoAberto] = useState(false);
   const documentosLegais = useDocumentosLegaisAssociaveis();
   const chaveRascunho = `sigep-licencas-rascunho:${location.pathname}`;
   const [rascunho] = useState<{
     evento: EventoLicenca;
     config: ConfiguracaoEvento;
   } | null>(() => {
+    if (visualizar) return null;
     try {
       const salvo = sessionStorage.getItem(chaveRascunho);
       return salvo ? JSON.parse(salvo) : null;
@@ -214,7 +219,14 @@ export function ParametrizacaoLicencasFormPage({
   });
   const [erro, setErro] = useState("");
   const [aba, setAba] = useState<"dados" | "financeiros">("dados");
-  const titulo = clonar
+  const [financeirosHabilitados, setFinanceirosHabilitados] = useState(visualizar);
+  const avancar = () => {
+    setFinanceirosHabilitados(true);
+    setAba("financeiros");
+    setErro("");
+    document.getElementById("pl-aba-financeiros")?.focus();
+  };
+  const titulo = visualizar ? "Visualizar Parametrização" : clonar
     ? "Duplicar Parametrização"
     : id
       ? "Editar Parametrização"
@@ -240,6 +252,11 @@ export function ParametrizacaoLicencasFormPage({
     }));
   const salvar = (e: React.FormEvent) => {
     e.preventDefault();
+    if (visualizar) return;
+    if (aba === "dados" || !financeirosHabilitados) {
+      avancar();
+      return;
+    }
     const recorrencia = config.travaRecorrencia
       ? `${config.recorrenciaQuantidade}x / ${config.recorrenciaIntervalo} ${config.recorrenciaUnidade}`
       : "";
@@ -248,13 +265,14 @@ export function ParametrizacaoLicencasFormPage({
       : config.abrangencias.length === 1 &&
           config.abrangencias[0] === "Por Horas"
         ? "Por horas"
-        : config.contagem;
+        : "Dias corridos";
     try {
       salvarEvento(
         {
           ...evento,
           configuracao: {
             ...config,
+            contagem: "Dias corridos",
             efeitosFinanceiros: Object.fromEntries(
               evento.vinculos.map((v) => {
                 const efeito =
@@ -304,6 +322,8 @@ export function ParametrizacaoLicencasFormPage({
           Nova parametrização baseada em {original?.codigo}.
         </p>
       )}
+      {original && !clonar && !visualizar && <button type="button" className="v2v-secondary" onClick={() => setHistoricoAberto(true)}><i className="pi pi-history" aria-hidden="true"/>Histórico</button>}
+      <HistoricoEvento evento={historicoAberto ? original ?? null : null} fechar={() => setHistoricoAberto(false)}/>
       <form
         onSubmit={salvar}
         className="v2v-form pl-config-form"
@@ -326,12 +346,15 @@ export function ParametrizacaoLicencasFormPage({
             <button
               type="button"
               role="tab"
+              disabled={valor === "financeiros" && !financeirosHabilitados}
               key={valor}
               id={`pl-aba-${valor}`}
               aria-selected={aba === valor}
               aria-controls={`pl-painel-${valor}`}
               tabIndex={aba === valor ? 0 : -1}
-              onClick={() => setAba(valor)}
+              onClick={() => {
+                if (valor === "dados" || financeirosHabilitados) setAba(valor);
+              }}
               onKeyDown={(e) => {
                 if (
                   ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
@@ -345,6 +368,7 @@ export function ParametrizacaoLicencasFormPage({
                         : indice === 0
                           ? "financeiros"
                           : "dados";
+                  if (proxima === "financeiros" && !financeirosHabilitados) return;
                   setAba(proxima);
                   document.getElementById(`pl-aba-${proxima}`)?.focus();
                 }
@@ -356,6 +380,7 @@ export function ParametrizacaoLicencasFormPage({
             </button>
           ))}
         </div>
+        <fieldset disabled={visualizar} className="pl-config-fields" aria-label={visualizar ? 'Parametrização em modo de leitura' : 'Campos da parametrização'}>
         <div
           role="tabpanel"
           id="pl-painel-dados"
@@ -381,7 +406,7 @@ export function ParametrizacaoLicencasFormPage({
               </label>
               <label className="pl-col-6">
                 <span>
-                  Nome do Evento (Exibido no Lançamento) <em>*</em>
+                  Nome da Ocorrência (Exibido no Lançamento) <em>*</em>
                 </span>
                 <input
                   required
@@ -415,6 +440,7 @@ export function ParametrizacaoLicencasFormPage({
               </label>
               <div className="pl-col-8 pl-amparo-legal">
                 <DocumentosLegaisAssociadosSeplag
+                  disabled={visualizar}
                   label="Amparo Legal"
                   required
                   options={documentosLegais}
@@ -512,10 +538,10 @@ export function ParametrizacaoLicencasFormPage({
             descricao="Defina a duração, a abrangência e as condições para o lançamento."
           >
             <div className="pl-config-grid">
-              <div className="pl-col-3">
+              <div className="pl-col-4">
                 <label>
                   <span>
-                    Dias Máximos Permitidos <em>*</em>
+                    Dias Máximos Permitidos (Dias corridos) <em>*</em>
                   </span>
                   <input
                     type="number"
@@ -539,24 +565,7 @@ export function ParametrizacaoLicencasFormPage({
                   Sem Limite de Dias
                 </label>
               </div>
-              <label className="pl-col-3">
-                <span>
-                  Tipo de Contagem <em>*</em>
-                </span>
-                <select
-                  value={config.contagem}
-                  onChange={(e) =>
-                    configurar(
-                      "contagem",
-                      e.target.value as ConfiguracaoEvento["contagem"],
-                    )
-                  }
-                >
-                  <option value="Dias corridos">Dias Corridos</option>
-                  <option value="Dias úteis">Dias Úteis</option>
-                </select>
-              </label>
-              <div className="pl-col-3">
+              <div className="pl-col-4">
                 <SelecaoMultipla
                   titulo="Abrangência"
                   opcoes={["Dia Integral", "Por Horas"].map((v) => ({
@@ -567,7 +576,7 @@ export function ParametrizacaoLicencasFormPage({
                   alterar={(v) => configurar("abrangencias", v)}
                 />
               </div>
-              <label className="pl-col-3">
+              <label className="pl-col-4">
                 <span>
                   Possui Trava de Recorrência? <em>*</em>
                 </span>
@@ -678,6 +687,17 @@ export function ParametrizacaoLicencasFormPage({
                 )}
               </div>
             </div>
+          </Secao>
+          <Secao id="pl-documentacao" icone="pi-paperclip" titulo="Documentação Comprobatória" descricao="Defina se o servidor precisará anexar documentos para validar a ocorrência.">
+            <fieldset className="pl-documentacao">
+              <legend>Exigência de Documentos <em>*</em></legend>
+              <div className="pl-radio-options">
+                {[true, false].map(valor => <label key={String(valor)}>
+                  <input type="radio" name="documentosObrigatorios" checked={(config.documentosObrigatorios ?? false) === valor} onChange={() => configurar("documentosObrigatorios", valor)}/>
+                  {valor ? "Sim, obrigatório" : "Não é obrigatório"}
+                </label>)}
+              </div>
+            </fieldset>
           </Secao>
         </div>
         <div
@@ -801,6 +821,7 @@ export function ParametrizacaoLicencasFormPage({
             </p>
           </Secao>
         </div>
+        </fieldset>
         {erro && (
           <p className="v2v-error" role="alert">
             {erro}
@@ -815,10 +836,13 @@ export function ParametrizacaoLicencasFormPage({
             <i className="pi pi-arrow-left" aria-hidden="true" />
             Voltar
           </button>
-          <button type="submit" className="v2v-primary">
+          {!visualizar && aba === "dados" && <button type="button" className="v2v-primary" onClick={avancar}>
+            Avançar <i className="pi pi-arrow-right" aria-hidden="true" />
+          </button>}
+          {!visualizar && aba === "financeiros" && <button type="submit" className="v2v-primary">
             <i className="pi pi-check" aria-hidden="true" />
             Salvar e Publicar
-          </button>
+          </button>}
         </div>
       </form>
     </Ambiente>
