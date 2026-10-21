@@ -80,7 +80,7 @@ export function criarExcelVinculos(
       ["Pessoas com vínculo ativo", resumo.pessoasVigentes],
       ["Pessoas com vínculo encerrado", resumo.pessoasEncerradas],
       ["Total de vínculos", resumo.total],
-      ["Vínculos vigentes", resumo.vigentes],
+      ["Vínculos ativos", resumo.vigentes],
       ["Vínculos encerrados", resumo.encerrados],
     ],
   );
@@ -131,7 +131,7 @@ export function criarExcelVinculos(
     contexto.push(...analise.contexto.map((l) => l.map(String)));
     aba(
       analise.nome.replace(/[\\/*?:\[\]]/g, " - ").slice(0, 31),
-      ["Agrupamento", "Vigentes", "Encerrados", "Total"],
+      ["Agrupamento", "Ativos", "Encerrados", "Total"],
       analise.linhas,
     );
   }

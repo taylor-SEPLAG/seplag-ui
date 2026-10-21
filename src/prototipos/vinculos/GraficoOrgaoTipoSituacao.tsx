@@ -1,3 +1,4 @@
+import { coresDashboard } from './dashboardTema';
 import { Link } from "react-router-dom";
 import { useState } from 'react';
 import type { Vinculo } from "./VinculoV2Page";
@@ -128,8 +129,8 @@ export function GraficoOrgaoTipoSituacao({
                 aria-label="Quantidade de vínculos por órgão, tipo e situação"
               >
                 <defs>
-                  <linearGradient id="dv-orgao-ativos" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stopColor="#10B981"/><stop offset="100%" stopColor="#047857"/></linearGradient>
-                  <linearGradient id="dv-orgao-encerrados" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stopColor="#64748B"/><stop offset="100%" stopColor="#475569"/></linearGradient>
+                  <linearGradient id="dv-orgao-ativos" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stopColor={coresDashboard.ativo}/><stop offset="100%" stopColor={coresDashboard.ativo}/></linearGradient>
+                  <linearGradient id="dv-orgao-encerrados" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stopColor={coresDashboard.encerrado}/><stop offset="100%" stopColor={coresDashboard.encerrado}/></linearGradient>
                 </defs>
                 <text x={margem} y={16} className="dv-axis-label">
                   Quantidade de vínculos

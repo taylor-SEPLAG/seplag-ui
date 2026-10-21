@@ -1,3 +1,5 @@
+import { corSexo, coresDashboard } from './dashboardTema';
+import { TiposVinculoPorSexo } from './TiposVinculoPorSexo';
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ModalSeplag } from "../../componentes/Modal";
@@ -27,14 +29,16 @@ function Comparativo({
   grupos: Grupo[];
   abrir: (titulo: string, itens: Vinculo[]) => void;
 }) {
+  const semEscolaridade = titulo === "Grau de Escolaridade" && grupos.length > 0 && grupos.every(g => g.nome === "Não informado");
   const max = Math.max(1, ...grupos.flatMap((g) => [g.vigentes, g.encerrados]));
   return (
     <section className="v2v-panel da-card">
       <h2>{titulo}</h2>
+      {semEscolaridade && <p className="dv-info">Os vínculos apresentados não possuem informação de escolaridade disponível no cadastro.</p>}
       <div className="dv-chart-legend">
         <span>
           <i className="da-key-vigente" />
-          Vigentes
+          Ativos
         </span>
         <span>
           <i className="da-key-encerrado" />
@@ -55,7 +59,7 @@ function Comparativo({
             <div className="da-bars">
               {[
                 {
-                  label: "Vigentes",
+                  label: "Ativos",
                   n: g.vigentes,
                   classe: "da-vigente",
                   status: "Ativo",
@@ -77,7 +81,7 @@ function Comparativo({
                     )
                   }
                   aria-label={`${g.nome}: ${s.n} ${s.label.toLowerCase()}`}
-                  title={`${g.nome} · ${s.label}: ${s.n} (${percentual(s.n, g.total)}) · Vigentes: ${g.vigentes} · Encerrados: ${g.encerrados} · Total: ${g.total}`}
+                  title={`${g.nome} · ${s.label}: ${s.n} (${percentual(s.n, g.total)}) · Ativos: ${g.vigentes} · Encerrados: ${g.encerrados} · Total: ${g.total}`}
                 >
                   <span
                     className={s.classe}
@@ -109,6 +113,7 @@ function Ranking({
   total: number;
   abrir: (titulo: string, itens: Vinculo[]) => void;
 }) {
+  const maxRanking = Math.max(1, ...grupos.map(g => g.total));
   return (
     <section className="v2v-panel da-card">
       <h2>{titulo}</h2>
@@ -139,11 +144,11 @@ function Ranking({
           <span className="dv-track da-ranking-track">
             <span
               className="da-vigente"
-              style={{ width: `${total ? (g.vigentes / total) * 100 : 0}%` }}
+              style={{ width: `${(g.vigentes / maxRanking) * 100}%` }}
             />
             <span
               className="da-encerrado"
-              style={{ width: `${total ? (g.encerrados / total) * 100 : 0}%` }}
+              style={{ width: `${(g.encerrados / maxRanking) * 100}%` }}
             />
           </span>
           <span className="da-ranking-counts">
@@ -264,10 +269,10 @@ export function DashboardAnalises({
                   cy="100"
                   r="76"
                   fill="none"
-                  stroke="#ebeff3"
+                  stroke={coresDashboard.trilha}
                   strokeWidth="20"
                 />
-                {sexos.map((g, i) => {
+                {sexos.map((g) => {
                   const parte = (g.total / Math.max(1, dados.length)) * 100;
                   const deslocamento = offset;
                   offset += parte;
@@ -294,7 +299,7 @@ export function DashboardAnalises({
                         cy="100"
                         r="76"
                         fill="none"
-                        stroke={`var(--da-perfil-${i % 4}, #64748b)`}
+                        stroke={corSexo(g.nome)}
                         strokeWidth="20"
                         pathLength="100"
                         strokeDasharray={`${parte} 100`}
@@ -310,7 +315,7 @@ export function DashboardAnalises({
                 <span>Total de vínculos</span>
               </div>
             </div>
-            {sexos.map((g, i) => (
+            {sexos.map((g) => (
               <button
                 type="button"
                 className="da-profile-key"
@@ -318,26 +323,25 @@ export function DashboardAnalises({
                 onClick={() => abrir(`Sexo: ${g.nome}`, g.itens)}
               >
                 <i
-                  style={{ background: `var(--da-perfil-${i % 4}, #64748b)` }}
+                  style={{ background: corSexo(g.nome) }}
                 />
-                {g.nome}
+                {g.nome === 'Não informado' && sexos.length === 1 ? `${g.nome} — 100%` : g.nome}
                 <strong>
-                  {g.total} · {percentual(g.total, dados.length)}
+                  {g.nome === 'Não informado' && sexos.length === 1 ? g.total : `${g.total} · ${percentual(g.total, dados.length)}`}
                 </strong>
               </button>
             ))}
             {!sexos.length && <p role="status">Nenhum vínculo encontrado.</p>}
           </section>
-          <Comparativo
-            titulo="Grau de Escolaridade"
-            grupos={grupos}
-            abrir={abrir}
-          />
+          <TiposVinculoPorSexo registros={dados} abrir={abrir} />
+          <div className="da-profile-schooling">
+            <Comparativo titulo="Grau de Escolaridade" grupos={grupos} abrir={abrir} />
+          </div>
         </div>
       ) : (
         <div className="da-grid">
           <Comparativo
-            titulo={`Vigentes x Encerrados por ${aba === "orgao" ? "Órgão" : "Carreira"}`}
+            titulo={`Ativos x Encerrados por ${aba === "orgao" ? "Órgão" : "Carreira"}`}
             grupos={grupos.slice(
               0,
               aba === "orgao" ? (filtros.todosOrgaos ? Infinity : 10) : limite,
@@ -426,7 +430,7 @@ export function DashboardAnalises({
                       <td>{cargoEspecialidade(v)}</td>
                       <td>
                         {situacaoDoVinculo(v) === "Ativo"
-                          ? "Vigente"
+                          ? "Ativo"
                           : "Encerrado"}
                       </td>
                       <td>

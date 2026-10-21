@@ -1,3 +1,4 @@
+import { coresDashboard } from './dashboardTema';
 import { useId } from "react";
 import type { Vinculo } from "./VinculoV2Page";
 import { situacaoDoVinculo } from "./vinculosConsulta";
@@ -88,8 +89,8 @@ export function GraficoTiposOrgaoColunas({
           >
             <defs>
               <linearGradient id={`${id}-ativo`} x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#047857" />
+                <stop offset="0%" stopColor={coresDashboard.ativo} />
+                <stop offset="100%" stopColor={coresDashboard.ativo} />
               </linearGradient>
               <linearGradient
                 id={`${id}-encerrado`}
@@ -98,8 +99,8 @@ export function GraficoTiposOrgaoColunas({
                 x2="0"
                 y2="0"
               >
-                <stop offset="0%" stopColor="#64748b" />
-                <stop offset="100%" stopColor="#475569" />
+                <stop offset="0%" stopColor={coresDashboard.encerrado} />
+                <stop offset="100%" stopColor={coresDashboard.encerrado} />
               </linearGradient>
             </defs>
             {Array.from({ length: 6 }, (_, i) => (
@@ -138,7 +139,7 @@ export function GraficoTiposOrgaoColunas({
                       key={s.nome}
                       role="button"
                       tabIndex={0}
-                      aria-label={`${g.nome}: ${s.n} ${s.nome === "Ativo" ? "vigentes" : "encerrados"}`}
+                      aria-label={`${g.nome}: ${s.n} ${s.nome === "Ativo" ? "ativos" : "encerrados"}`}
                       onClick={() =>
                         abrir(
                           `${g.nome} · ${s.nome}`,

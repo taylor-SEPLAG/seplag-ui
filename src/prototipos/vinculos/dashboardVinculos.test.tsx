@@ -210,7 +210,7 @@ it("recalcula cards e gráficos, aplica filtros na consulta e preserva contexto 
   const indicadores = screen.getByRole("region", {
     name: "Indicadores de vínculos",
   });
-  expect(indicadores.textContent).toContain("Vínculos Vigentes2");
+  expect(indicadores.textContent).toContain("Vínculos Ativos2");
   expect(indicadores.textContent).toContain("Vínculos Encerrados1");
   expect(indicadores.textContent).toContain("Total de vínculos3");
   expect(screen.queryByRole("combobox", { name: "Forma de Encerramento" })).toBeNull();
@@ -281,7 +281,7 @@ it("limpa filtros de vacância ao escolher vigente e atualiza dados após retorn
   ).toContain("Total de vínculos1");
 });
 
-it("filtra períodos por início dos vigentes e vacância dos encerrados", () => {
+it("filtra períodos por início dos ativos e vacância dos encerrados", () => {
   const vigente=criar("periodo-vigente",{inicio:"2026-10-01"});
   const encerrado=criar("periodo-encerrado",{inicio:"2020-01-01",vacanciaData:"2026-10-10",vacanciaForma:"Exoneração"});
   const fora=criar("periodo-fora",{inicio:"2025-01-01"});

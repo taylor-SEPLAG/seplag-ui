@@ -14,6 +14,20 @@ const montar = (inicio = "/prototipos/sigep/vinculos-v2") => render(<MemoryRoute
   <Route path="/prototipos/sigep/vinculos-v2/:id" element={<VinculoV2DetalhesPage />} />
 </Routes></MemoryRouter>);
 beforeEach(() => localStorage.clear());
+it('busca nome, CPF com ou sem máscara e matrícula junto ao tipo de vínculo', () => {
+  montar('/prototipos/sigep/vinculos-v2?tipo=Nomeado%20Efetivo&expand=Nomeado%20Efetivo');
+  const filtros = within(screen.getByRole('region', { name: 'Filtros de consulta' }));
+  for (const busca of ['joao', '000.000.000-00', '00000000000', '327305']) {
+    fireEvent.change(filtros.getByLabelText('Nome, CPF ou matrícula'), { target: { value: busca } });
+    expect(screen.getAllByRole('button', { name: 'Ver detalhes' })).toHaveLength(1);
+  }
+  fireEvent.change(filtros.getByLabelText('Nome, CPF ou matrícula'), { target: { value: 'Pessoa inexistente' } });
+  expect(screen.queryByRole('button', { name: 'Ver detalhes' })).toBeNull();
+  expect(screen.getByText('Nenhum vínculo encontrado para os filtros informados.')).toBeTruthy();
+  fireEvent.click(filtros.getByRole('button', { name: 'Limpar filtro' }));
+  expect((filtros.getByLabelText('Nome, CPF ou matrícula') as HTMLInputElement).value).toBe('');
+  expect(screen.getAllByRole('button', { name: 'Ver detalhes' })).toHaveLength(6);
+});
 afterEach(() => { vi.restoreAllMocks(); cleanup(); localStorage.clear(); atualizarVinculosCadastrados(); });
 
 it("bloqueia o cadastro manual de Aposentado ao acessar a URL diretamente", () => {

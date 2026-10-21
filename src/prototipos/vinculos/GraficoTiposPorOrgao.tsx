@@ -1,3 +1,4 @@
+import { coresCategorias as cores, coresDashboard } from './dashboardTema';
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
 import type { Vinculo } from "./VinculoV2Page";
@@ -25,29 +26,6 @@ export function agruparTiposPorOrgao(
       (a, b) => b.total - a.total || a.orgao.localeCompare(b.orgao, "pt-BR"),
     );
 }
-const cores = [
-  "#0877c9",
-  "#10b981",
-  "#f59e0b",
-  "#8b5cf6",
-  "#e45365",
-  "#06b6d4",
-  "#526582",
-  "#b45309",
-  "#4f46e5",
-  "#65a30d",
-  "#be185d",
-  "#0f766e",
-  "#9333ea",
-  "#ea580c",
-  "#0369a1",
-  "#a16207",
-  "#15803d",
-  "#c026d3",
-  "#475569",
-  "#d97706",
-  "#0e7490",
-];
 export function agruparTiposPorCargo(
   registros: Pick<Vinculo, "cargo" | "perfil" | "tipo">[],
 ) {
@@ -106,7 +84,7 @@ export function GraficoTiposPorOrgao({
       )
     : ["Ativo", "Encerrado"];
   const cor = (i: number) =>
-    porCargo ? cores[i % cores.length] : i === 0 ? "#10b981" : "#64748b";
+    porCargo ? cores[i % cores.length] : i === 0 ? coresDashboard.ativo : coresDashboard.encerrado;
   const teto = Math.max(1, ...grupos.map((g) => g.total));
   const largura = 1050,
     inicio = porCargo ? 360 : 180,

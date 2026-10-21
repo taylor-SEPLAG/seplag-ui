@@ -27,7 +27,7 @@ export const naoInformado = (s?: string) => s?.trim() || "Não informado";
 export const cargoEspecialidade = (v: Vinculo) =>
   [naoInformado(v.cargo), v.perfil?.trim()].filter(Boolean).join(" / ");
 export type VinculoPerfil = Vinculo & { sexo?: string; escolaridade?: string };
-// A base atual de pessoas não fornece sexo/escolaridade. Campos ausentes são contabilizados sem inferência.
+// Campos cadastrais ausentes são contabilizados sem inferência, inclusive nos exemplos.
 export const sexoVinculo = (v: VinculoPerfil) => naoInformado(v.sexo);
 export const escolaridadeVinculo = (v: VinculoPerfil) =>
   naoInformado(v.escolaridade);
@@ -165,6 +165,9 @@ export function linhasExportacaoAnalise(
         g.vigentes,
         g.encerrados,
         g.total,
+      ]),
+      ...agruparAnalise(dados, v => `${v.tipo} · ${sexoVinculo(v)}`).map(g => [
+        `Tipo de vínculo por sexo: ${g.nome}`, g.vigentes, g.encerrados, g.total,
       ]),
     );
   if (aba === "carreira")

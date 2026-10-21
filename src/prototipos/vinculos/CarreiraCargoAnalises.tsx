@@ -1,3 +1,4 @@
+import { coresCategorias as cores } from './dashboardTema';
 import { useState, type ReactNode } from "react";
 import "./carreiraCargoAnalises.css";
 import { Link } from "react-router-dom";
@@ -16,29 +17,6 @@ type Grupo = ReturnType<typeof agruparAnalise>[number];
 type Abrir = (titulo: string, itens: Vinculo[]) => void;
 const pct = (n: number, total: number) =>
   `${(total ? (n / total) * 100 : 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
-const cores = [
-  "#0877c9",
-  "#087f63",
-  "#9063c4",
-  "#d18a08",
-  "#dc5965",
-  "#0c91a5",
-  "#54698d",
-  "#b54d13",
-  "#583ba3",
-  "#56831b",
-  "#a52b65",
-  "#287d86",
-  "#ab6948",
-  "#6872bd",
-  "#963a39",
-  "#297eae",
-  "#9a7b23",
-  "#626943",
-  "#a94c98",
-  "#455c75",
-  "#246c43",
-];
 export function CarreiraCargoAnalises({
   registros,
   filtros,
@@ -101,16 +79,21 @@ export function CarreiraCargoAnalises({
     });
   }
   function ranking(titulo: string, grupos: Grupo[]) {
+    const maxRanking = Math.max(1, ...grupos.map(g => g.total));
     return (
       <section className="v2v-panel da-card cc-ranking">
         <h2>{titulo}</h2>
+        <div className="cc-rank-legend" aria-label="Legenda da situação dos vínculos">
+          <span><i className="cc-rank-vigentes" aria-hidden="true" />Ativos</span>
+          <span><i className="cc-rank-encerrados" aria-hidden="true" />Encerrados</span>
+        </div>
         <div className="cc-ranking-body">
           {grupos.slice(0, rankLimite).map((g, i) => (
             <button
               type="button"
               className="cc-rank-row"
               key={g.nome}
-              title={`${g.nome}: ${g.total} vínculos (${pct(g.total, dados.length)})`}
+              title={`${g.nome}: ${g.total} vínculos (${pct(g.total, dados.length)}) — ${g.vigentes} ativos e ${g.encerrados} encerrados`}
               onClick={() => abrir(g.nome, g.itens)}
             >
               <span className="cc-rank-position">{i + 1}</span>
@@ -121,13 +104,16 @@ export function CarreiraCargoAnalises({
                     {g.total} · {pct(g.total, dados.length)}
                   </strong>
                 </span>
-                <span className="cc-rank-track">
+                <span className="cc-rank-track" aria-hidden="true">
                   <span
+                    className="cc-rank-vigentes"
                     style={{
-                      width: `${dados.length ? (g.total / dados.length) * 100 : 0}%`,
+                      width: `${(g.vigentes / maxRanking) * 100}%`,
                     }}
                   />
+                  <span className="cc-rank-encerrados" style={{ width: `${(g.encerrados / maxRanking) * 100}%` }} />
                 </span>
+                <small className="cc-rank-counts">{g.vigentes} ativos · {g.encerrados} encerrados</small>
               </span>
             </button>
           ))}
@@ -213,7 +199,7 @@ export function CarreiraCargoAnalises({
         </h2>
         <div className="cc-pair">
           {comparativo(
-            "Vigentes x Encerrados por Carreira",
+            "Ativos x Encerrados por Carreira",
             carreiras.slice(0, limite),
             abrir,
           )}
@@ -227,7 +213,7 @@ export function CarreiraCargoAnalises({
         </h2>
         <div className="cc-pair">
           {comparativo(
-            "Vigentes x Encerrados por Cargo/Especialidade",
+            "Ativos x Encerrados por Cargo/Especialidade",
             cargos.slice(0, limite),
             abrir,
           )}
@@ -382,7 +368,7 @@ export function CarreiraCargoAnalises({
                       ? [
                           "Posição",
                           "Nome",
-                          "Vigentes",
+                          "Ativos",
                           "Encerrados",
                           "Total",
                           "Participação",
@@ -438,7 +424,7 @@ export function CarreiraCargoAnalises({
                             <td>{cargoEspecialidade(v)}</td>
                             <td>
                               {situacaoDoVinculo(v) === "Ativo"
-                                ? "Vigente"
+                                ? "Ativo"
                                 : "Encerrado"}
                             </td>
                             <td>

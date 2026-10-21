@@ -1,3 +1,4 @@
+import { coresDashboard } from './dashboardTema';
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
@@ -28,8 +29,8 @@ import "./dashboardVinculos.css";
 const numero = (valor: number) => valor.toLocaleString("pt-BR");
 const percentual = (parte: number, total: number) =>
   `${(total ? (parte / total) * 100 : 0).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
-const VERDE = "#10B981";
-const CINZA = "#64748B";
+const VERDE = coresDashboard.ativo;
+const CINZA = coresDashboard.encerrado;
 
 function linhasRotulo(texto: string) {
   const linhas = [""];
@@ -309,7 +310,7 @@ export function DashboardVinculosPage() {
                   classe: "dv-kpi-types",
                 },
                 {
-                  titulo: "Vínculos Vigentes",
+                  titulo: "Vínculos Ativos",
                   valor: resumo.vigentes,
                   icone: "pi-user",
                   classe: "v2v-kpi-active",
@@ -407,7 +408,7 @@ export function DashboardVinculosPage() {
                     <span>
                       <i
                         style={{
-                          background: "linear-gradient(90deg,#10B981,#047857)",
+                          background: coresDashboard.ativo,
                         }}
                       />
                       Ativos
@@ -415,7 +416,7 @@ export function DashboardVinculosPage() {
                     <span>
                       <i
                         style={{
-                          background: "linear-gradient(90deg,#64748B,#475569)",
+                          background: coresDashboard.encerrado,
                         }}
                       />
                       Encerrados
@@ -440,8 +441,8 @@ export function DashboardVinculosPage() {
                           x2="0"
                           y2="0"
                         >
-                          <stop offset="0%" stopColor="#10B981" />
-                          <stop offset="100%" stopColor="#047857" />
+                          <stop offset="0%" stopColor={coresDashboard.ativo} />
+                          <stop offset="100%" stopColor={coresDashboard.ativo} />
                         </linearGradient>
                         <linearGradient
                           id="dv-encerrados-gradient"
@@ -450,8 +451,8 @@ export function DashboardVinculosPage() {
                           x2="0"
                           y2="0"
                         >
-                          <stop offset="0%" stopColor="#64748B" />
-                          <stop offset="100%" stopColor="#475569" />
+                          <stop offset="0%" stopColor={coresDashboard.encerrado} />
+                          <stop offset="100%" stopColor={coresDashboard.encerrado} />
                         </linearGradient>
                       </defs>
                       {Array.from({ length: 6 }, (_, i) => (
@@ -564,8 +565,8 @@ export function DashboardVinculosPage() {
                             x2="1"
                             y2="1"
                           >
-                            <stop offset="0%" stopColor="#10B981" />
-                            <stop offset="100%" stopColor="#047857" />
+                            <stop offset="0%" stopColor={coresDashboard.ativo} />
+                            <stop offset="100%" stopColor={coresDashboard.ativo} />
                           </linearGradient>
                           <linearGradient
                             id="dv-donut-encerrados"
@@ -574,8 +575,8 @@ export function DashboardVinculosPage() {
                             x2="1"
                             y2="1"
                           >
-                            <stop offset="0%" stopColor="#64748B" />
-                            <stop offset="100%" stopColor="#475569" />
+                            <stop offset="0%" stopColor={coresDashboard.encerrado} />
+                            <stop offset="100%" stopColor={coresDashboard.encerrado} />
                           </linearGradient>
                         </defs>
                         <circle
@@ -622,7 +623,7 @@ export function DashboardVinculosPage() {
                         <i
                           style={{
                             background:
-                              "linear-gradient(90deg,#10B981,#047857)",
+                              coresDashboard.ativo,
                           }}
                         />
                         <span>Ativos</span>
@@ -635,7 +636,7 @@ export function DashboardVinculosPage() {
                         <i
                           style={{
                             background:
-                              "linear-gradient(90deg,#64748B,#475569)",
+                              coresDashboard.encerrado,
                           }}
                         />
                         <span>Encerrados</span>

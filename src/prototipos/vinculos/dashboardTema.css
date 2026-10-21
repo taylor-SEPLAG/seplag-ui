@@ -1,0 +1,20 @@
+:root {
+  --dv-ativo: #07966B;
+  --dv-encerrado: #596980;
+  --dv-destaque: #11558B;
+  --dv-trilha: #E8EEF5;
+  --dv-categoria: #0B72CE;
+  --dv-nao-informado: #A0AABA;
+  --dv-sexo-feminino: #C33865;
+  --dv-sexo-masculino: #2F6FED;
+  --dv-card-tipos: #153D86;
+  --dv-card-ativos: #13783D;
+  --dv-card-total: #1769E8;
+  --dv-texto: #234D72;
+  --dv-borda: #DBE5EF;
+  --dv-categoria-2: #6889B5;
+  --dv-categoria-3: #7D6AA5;
+  --dv-categoria-4: #328795;
+  --dv-categoria-5: #A08245;
+  --dv-categoria-6: #54718E;
+}

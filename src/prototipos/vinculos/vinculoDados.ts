@@ -17,6 +17,8 @@ export type Vinculo = {
   regime: string; carreira: string; cargo: string; perfil: string; jornada: string; orgao: string; setor: string;
   inicio: string; termino: string; situacao: Situacao | "Inativo"; vacanciaData?: string; vacanciaForma?: string; observacao?: string;
   criacao?: { titulo: string; responsavel: string; registradoEm: string; dados: Record<string, string> };
+  escolaridade?: string;
+  sexo?: string;
 };
 export type Pessoa = Pick<Vinculo, "nome" | "cpf" | "nascimento" | "matricula">;
 export type Campos = Pick<Vinculo, "regime" | "carreira" | "cargo" | "perfil" | "jornada" | "orgao" | "setor" | "inicio" | "termino" | "matricula"> & { vacanciaData: string; vacanciaForma: string; observacao: string };
@@ -82,6 +84,14 @@ export function opcoesCargo(config: Config, cargo: string) {
 }
 const NOMES_DEMO = ["Adriana", "Bruno", "Camila", "Daniel", "Elisa", "Fábio", "Giovana", "Hugo", "Isabela", "Marcos"];
 const SOBRENOMES_DEMO = ["Almeida", "Barbosa", "Cardoso", "Dias", "Ferreira", "Gomes", "Lima", "Mendes", "Oliveira", "Ribeiro"];
+// Dados fictícios explícitos para demonstrar a distribuição por escolaridade.
+const ESCOLARIDADES_DEMO = [
+  'Fundamental completo', 'Médio completo', 'Técnico completo',
+  'Superior incompleto', 'Superior completo', 'Especialização',
+  'Mestrado', 'Doutorado', undefined,
+];
+// Valores demonstrativos explícitos; não são inferidos pelo nome da pessoa.
+const SEXOS_DEMO = ['Feminino', 'Masculino', undefined];
 const REGISTROS_ADICIONAIS: Vinculo[] = TIPOS.filter(tipo => tipo !== "Aposentado").flatMap((tipo, indiceTipo) =>
   Array.from({ length: 5 }, (_, indice) => {
     const sequencia = indiceTipo * 5 + indice;
@@ -96,6 +106,8 @@ const REGISTROS_ADICIONAIS: Vinculo[] = TIPOS.filter(tipo => tipo !== "Aposentad
       nome: `${NOMES_DEMO[sequencia % NOMES_DEMO.length]} ${SOBRENOMES_DEMO[Math.floor(sequencia / NOMES_DEMO.length)]}`,
       cpf: `${cpfNumerico.slice(0, 3)}.${cpfNumerico.slice(3, 6)}.${cpfNumerico.slice(6, 9)}-${cpfNumerico.slice(9)}`,
       nascimento: `15/06/${1980 + (sequencia % 20)}`,
+      escolaridade: ESCOLARIDADES_DEMO[sequencia % ESCOLARIDADES_DEMO.length],
+      sexo: SEXOS_DEMO[sequencia % SEXOS_DEMO.length],
       matricula: String(800001 + sequencia), numero: "1",
       regime: config.regimes[0], carreira: config.carreiras[0] ?? "", cargo,
       perfil: opcoes.perfis[0], jornada: opcoes.jornadas[0],
@@ -118,5 +130,17 @@ export function todos(): Vinculo[] {
   const exemplos = [...BASE_REGISTROS, ...REGISTROS_ADICIONAIS];
   const estado=lerEstadoAdministrativo();
   const completos=[...exemplos.filter((v) => !registros.some((salvo) => salvo.id === v.id)), ...registros];
-  return completos.filter(v => !estado.excluidos.includes(v.id)).map(v => ({...v,...estado.alteracoes[v.id]}));
+  const exemplosPorId = new Map(exemplos.map(v => [v.id, v]));
+  return completos.filter(v => !estado.excluidos.includes(v.id)).map(v => {
+    const atual = {...v,...estado.alteracoes[v.id]};
+    const exemplo = exemplosPorId.get(atual.id);
+    if (!exemplo) return atual;
+    // Cópias antigas dos exemplos salvas no navegador ainda não têm esses campos.
+    // Completa apenas campos ausentes, preservando valores preenchidos ou limpos explicitamente.
+    return {
+      sexo: exemplo.sexo,
+      escolaridade: exemplo.escolaridade,
+      ...atual,
+    };
+  });
 }
