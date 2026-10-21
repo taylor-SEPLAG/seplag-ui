@@ -152,6 +152,7 @@ function detalhes(e: Evento):Record<string,Record<string,string>> {
       'Origem e Registro':{
         ...selecionar(funcionais,origem),
         'Data/hora do registro':`${dataBR(e.registradoEm)} ${e.registradoEm.slice(11,19)}`,
+        'Responsável': e.responsavel || '—',
       },
       ...Object.fromEntries(Object.entries(secoes).filter(([titulo])=>!['Dados do Ingresso','Dados Funcionais'].includes(titulo))),
     };
@@ -160,6 +161,7 @@ function detalhes(e: Evento):Record<string,Record<string,string>> {
     ...secoes,
     "Registro da ocorrência": {
       "Data/hora do registro": `${dataBR(e.registradoEm)} ${e.registradoEm.slice(11, 19)}`,
+      "Responsável": e.responsavel || "—",
     },
   };
 }
