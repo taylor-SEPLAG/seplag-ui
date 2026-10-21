@@ -117,7 +117,7 @@ export function AnexoFerias({ label, onChange }: { label: string; onChange: (doc
 
 export function DownloadDocumentoFerias({ documento }: { documento: DocumentoFerias }) {
   const [erro, setErro] = useState('');
-  return <><button type="button" onClick={async () => {
+  const baixar = async () => {
     try {
       const arquivo = await lerDocumento(documento.id);
       if (!arquivo) throw new Error('Ausente');
@@ -125,5 +125,9 @@ export function DownloadDocumentoFerias({ documento }: { documento: DocumentoFer
       const link = document.createElement('a'); link.href = url; link.download = documento.nome;
       link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setErro('');
     } catch { setErro('Documento indisponível neste navegador.'); }
-  }}>{documento.nome}</button>{erro && <span role="alert">{erro}</span>}</>;
+  };
+  return <>
+    <BotaoIconSeplag type="button" icon="pi pi-cloud-download" tooltip={`Baixar ${documento.nome}`} aria-label={`Baixar ${documento.nome}`} onClick={baixar} />
+    {erro && <span role="alert">{erro}</span>}
+  </>;
 }

@@ -93,7 +93,7 @@ export function saldoRestanteParaReabertura(registro: FeriasRegistro, demaisRegi
       r.id !== registro.id &&
       r.matricula === registro.matricula &&
       r.periodoAquisitivoInicio === registro.periodoAquisitivoInicio &&
-      !["CANCELADO", "REPROVADO", "SUSPENSO"].includes(r.situacao),
+      !["CANCELADO", "REPROVADO", "PRAZO EXPIRADO", "SUSPENSO"].includes(r.situacao),
     )
     .reduce((total, r) => total + r.parcelas.reduce((n, p) => n + p.dias, 0), 0);
   return Math.max(0, saldoTotal - diasComprometidos);

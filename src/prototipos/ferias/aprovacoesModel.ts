@@ -5,7 +5,7 @@ export type FiltrosAprovacao = {busca:string;inicio:string;fim:string;situacao:s
 export const filtrosAprovacaoVazios: FiltrosAprovacao = {busca:'',inicio:'',fim:'',situacao:'',orgao:'',tipo:''};
 export function situacaoAprovacao(r: FeriasRegistro): SituacaoAprovacao | null {
   if (r.situacao === 'AGUARDANDO VALIDAÇÃO') return 'Pendente';
-  if (r.situacao === 'REPROVADO' || (r.situacao === 'CANCELADO' && r.resultadoAvaliacao === 'Rejeitada')) return 'Rejeitada';
+  if (r.situacao === 'REPROVADO' || r.situacao === 'PRAZO EXPIRADO' || (r.situacao === 'CANCELADO' && r.resultadoAvaliacao === 'Rejeitada')) return 'Rejeitada';
   if (['EM ABERTO','QUITADO','SUSPENSO'].includes(r.situacao)) return 'Aprovada';
   return null;
 }

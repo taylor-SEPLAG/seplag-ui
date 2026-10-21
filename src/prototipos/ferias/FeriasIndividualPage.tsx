@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
+import { useToastSeplag } from "../../hooks/toast";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { FormularioIndividual, ModalConfirmarCancelamento } from "./FeriasPages";
 import type { FeriasRegistro } from "./FeriasPages";
@@ -10,6 +11,7 @@ import "./ferias.css";
 
 export function FeriasIndividualPage() {
   const navigate = useNavigate();
+  const { toastSucesso } = useToastSeplag();
   const [mostrarConfirmacaoCancelar, setMostrarConfirmacaoCancelar] = useState(false);
   // Evita duplicar o lançamento se o clique disparar duas vezes antes do navigate() sair da tela.
   const salvandoRef = useRef(false);
@@ -18,6 +20,7 @@ export function FeriasIndividualPage() {
     if (salvandoRef.current) return;
     salvandoRef.current = true;
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...carregarRegistros(), registro]));
+    toastSucesso("Solicitação de férias individual agendada com sucesso!");
     navigate("/prototipos/sigep/ferias");
   };
 

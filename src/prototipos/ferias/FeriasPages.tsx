@@ -7,13 +7,15 @@ import { CardSeplag } from "../../componentes/Card";
 import { ModalSeplag } from "../../componentes/Modal";
 import { BotaoLimparFiltroSeplag, BotaoVoltarSeplag, BotaoSalvarSeplag, BotaoSeplag } from "../../componentes/Botao";
 import { SeplagAutoComplete } from "../../componentes/AutoComplete";
+import { Dropdown } from "primereact/dropdown";
 import { DropdownFieldSeplag, DateFieldSeplag } from "../../componentes/Fields";
+import { RotuloSeplag } from "../../componentes/Rotulo";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { validarSolicitacaoRecesso } from "./validarSolicitacaoRecesso";
 import { STORAGE_KEY, registrosBase, carregarRegistros } from "./feriasMockDados";
 import "./ferias.css";
 import { duracoesPermitidas, prazoFechamentoFolha, selecionarPeriodoMaisAntigo, type PeriodoComSaldo } from './regrasFerias';
-import { AnexoFerias, type DocumentoFerias } from './DocumentoFerias';
+import { AnexoFerias, DownloadDocumentoFerias, type DocumentoFerias } from './DocumentoFerias';
 import { AprovacoesFerias } from "./AprovacoesFerias";
 import {
   inicioUsufruto,
@@ -21,8 +23,6 @@ import {
   podeSuspender,
   podeReativar,
   podeCancelar,
-  reativarBloqueadaPelaFolha,
-  cancelarBloqueadoPelaFolha,
   elegivelParaQuitacaoAutomatica,
   saldoRestanteParaReabertura,
 } from "./regrasReabertura";
@@ -46,12 +46,12 @@ function gerarId(): number {
 
 type OrgaoColetivo = "SEDUC" | "UNEMAT" | "SECITEC" | "OUTRO";
 type TipoSolicitacao = "Individual" | "Coletiva" | "Lote" | "Recesso";
-type SituacaoFerias = "AGUARDANDO VALIDAÇÃO" | "EM ABERTO" | "QUITADO" | "CANCELADO" | "REPROVADO" | "SUSPENSO";
+type SituacaoFerias = "AGUARDANDO VALIDAÇÃO" | "EM ABERTO" | "QUITADO" | "CANCELADO" | "REPROVADO" | "SUSPENSO" | "PRAZO EXPIRADO";
 type TipoVinculo = "Efetivo" | "Comissionado" | "Contrato Temporário" | "Residente Técnico" | "Estagiário";
 type TipoVinculoFiltro = "Todos" | TipoVinculo;
 type Origem = "PORTALSERVIDOR" | "SIGEP";
 type TipoRegistro = "FÉRIAS" | "LICENÇA REMUNERADA";
-type AcaoStatus = "validar" | "rejeitar" | "suspender" | "reativar" | "cancelar" | "forcarReabertura" | "forcarCancelamento";
+type AcaoStatus = "validar" | "rejeitar" | "suspender" | "reativar" | "cancelar";
 type PerfilAcesso = "Servidor" | "Chefia Imediata" | "RH / Gestão de Pessoas" | "DRE / RH Central";
 
 interface ParcelaFerias {
@@ -60,6 +60,19 @@ interface ParcelaFerias {
   fim: string;
   dias: number;
   terco?: boolean;
+}
+
+/** Um evento do histórico de situações do registro — usado pelo modal "Histórico". */
+interface HistoricoEventoFerias {
+  situacao: SituacaoFerias;
+  acao: string;
+  data: string;
+  responsavel: string;
+  /** Matrícula/vínculo de quem está logado realizando a ação (não do servidor da solicitação). */
+  responsavelMatricula?: string;
+  responsavelVinculo?: string;
+  justificativa?: string;
+  documentos?: DocumentoFerias[];
 }
 
 interface SubstitutoFerias {
@@ -79,7 +92,6 @@ export interface FeriasRegistro {
   resultadoAvaliacao?: 'Aprovada' | 'Rejeitada';
   cpf: string;
   documentos?: DocumentoFerias[];
-  expirado?: boolean;
   dre?: string;
   unidade?: string;
   orgao: string;
@@ -115,6 +127,9 @@ export interface FeriasRegistro {
   /** Preenchido quando o agendamento é reaberto com uma nova data (RN reabertura 3.1) —
    * mantém no histórico o período original que foi cancelado/suspenso. */
   historicoReabertura?: { inicioOriginal: string; fimOriginal: string; reabertoEm: string };
+  /** Linha do tempo completa do registro — um evento por mudança de situação, com quem
+   * lançou/decidiu, quando, a justificativa (se houver) e os anexos daquele momento. */
+  historico?: HistoricoEventoFerias[];
 }
 
 interface LinhaSubstituicao {
@@ -153,7 +168,7 @@ interface ProfessorLote {
   saldoConfirmado?: boolean;
 }
 
-type PerfilLote = "SECRETARIO_SEDUC" | "DRE_SEDUC" | "GESTAO_UNEMAT" | "GESTAO_SECITEC";
+type PerfilLote = "SECRETARIO_SEDUC" | "GESTAO_UNEMAT" | "GESTAO_SECITEC";
 
 interface ServidorMock {
   matricula: string;
@@ -219,7 +234,7 @@ function periodoDisponivelServidor(servidor: ServidorMock) {
   const registros = carregarRegistros();
   const periodos = servidor.periodos ?? [{ inicio: servidor.periodoAquisitivoInicio, fim: servidor.periodoAquisitivoFim, saldo: servidor.saldoDisponivel }];
   return selecionarPeriodoMaisAntigo(periodos.map(periodo => ({...periodo,
-    saldo: Math.max(0, periodo.saldo - registros.filter(r => r.matricula === servidor.matricula && r.tipoVinculo === servidor.tipoVinculo && r.orgao === servidor.orgao && r.periodoAquisitivoInicio === periodo.inicio && !['CANCELADO','REPROVADO','SUSPENSO'].includes(r.situacao)).reduce((total,r) => total + diasSolicitados(r),0))
+    saldo: Math.max(0, periodo.saldo - registros.filter(r => r.matricula === servidor.matricula && r.tipoVinculo === servidor.tipoVinculo && r.orgao === servidor.orgao && r.periodoAquisitivoInicio === periodo.inicio && !['CANCELADO','REPROVADO','PRAZO EXPIRADO','SUSPENSO'].includes(r.situacao)).reduce((total,r) => total + diasSolicitados(r),0))
   })));
 }
 
@@ -461,7 +476,7 @@ function registrosAtivosPersistidos(): FeriasRegistro[] {
   try {
     const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as FeriasRegistro[] | null;
     return (salvos ?? registrosBase).filter(
-      (registro) => registro.situacao !== "CANCELADO" && registro.situacao !== "REPROVADO",
+      (registro) => registro.situacao !== "CANCELADO" && registro.situacao !== "REPROVADO" && registro.situacao !== "PRAZO EXPIRADO",
     );
   } catch {
     return [];
@@ -476,6 +491,17 @@ function conflitoFeriasServidor(matricula: string, inicio: string, fim: string, 
       registro.id !== ignorarRegistroId &&
       registro.parcelas.some((parcela) => parcela.inicio && parcela.fim && parcela.inicio <= fim && inicio <= parcela.fim),
   ) ?? null;
+}
+
+/** RN003 (Validação de sobreposição de férias e recessos): qualquer sobreposição de datas com
+ * outro agendamento do mesmo servidor — rascunho/Aguardando Validação ou Em Aberto/homologado,
+ * não importa se já em andamento ou ainda futuro — bloqueia o lançamento com esta mensagem. */
+function mensagemConflitoAgendamento(conflito: FeriasRegistro): string {
+  const tipoLabel = conflito.tipo === "Recesso" ? "Recesso" : "Férias";
+  const inicio = inicioUsufruto(conflito);
+  const fim = fimUsufruto(conflito);
+  const periodo = inicio && fim ? `${formatarDataBr(inicio)} e ${formatarDataBr(fim)}` : periodoUsufruto(conflito);
+  return `Não é possível agendar o período informado. Já existe um agendamento de ${tipoLabel} cadastrado entre ${periodo}. Cancele ou altere o agendamento anterior para prosseguir.`;
 }
 
 /** RN-01/RN-02 (Regras de Bloqueio LTS × Férias): mock de LTS (licença para tratamento de saúde)
@@ -568,7 +594,7 @@ function validarIntervaloParcelas(parcelas: ParcelaFerias[]): string {
     const atual = ordenadas[i];
     const gap = diasEntre(anterior.fim, atual.inicio) - 1;
     if (gap !== 0 && gap !== 10) {
-      return `Intervalo entre parcelas inválido (${formatarDataBr(anterior.fim)} → ${formatarDataBr(atual.inicio)}): só é permitido 0 ou 10 dias corridos entre uma parcela e a próxima.`;
+      return `Intervalo entre parcelas inválido (${formatarDataBr(anterior.fim)} → ${formatarDataBr(atual.inicio)}): só é permitido intervalo de 0 ou 10 dias corridos entre uma parcela e a próxima.`;
     }
   }
   return "";
@@ -592,6 +618,32 @@ function formatarDataBr(iso: string) {
   const [ano, mes, dia] = iso.split("-");
   if (!ano || !mes || !dia) return iso;
   return `${dia}/${mes}/${ano}`;
+}
+
+/** Rótulo de ação exibido na linha do tempo do modal "Histórico", por tipo de ação/situação. */
+function rotuloAcaoHistorico(acao: string, situacao: SituacaoFerias): string {
+  const rotulos: Record<string, string> = {
+    lancamento: "Lançamento",
+    validar: "Validação",
+    rejeitar: "Rejeição",
+    suspender: "Suspensão",
+    reativar: "Reabertura",
+    cancelar: "Cancelamento",
+    expiracao: "Prazo expirado",
+    quitacao: "Quitação automática",
+  };
+  return rotulos[acao] ?? rotuloSituacao(situacao);
+}
+
+/** Acrescenta um evento à linha do tempo do registro (histórico de situações). */
+function comHistorico(
+  registro: FeriasRegistro,
+  evento: Omit<HistoricoEventoFerias, "data"> & { data?: string },
+): HistoricoEventoFerias[] {
+  return [
+    ...(registro.historico ?? []),
+    { data: new Date().toLocaleString("pt-BR"), ...evento },
+  ];
 }
 
 function periodoUsufruto(registro: FeriasRegistro) {
@@ -685,10 +737,10 @@ export function PrototiposFeriasPage() {
   const [filtroSituacao, setFiltroSituacao] = useState<"" | SituacaoFerias>("");
   const [fluxoNovaSolicitacao, setFluxoNovaSolicitacao] = useState<"escolha" | TipoSolicitacao | null>(null);
   const [registroSubstituicao, setRegistroSubstituicao] = useState<FeriasRegistro | null>(null);
+  const [registroHistorico, setRegistroHistorico] = useState<FeriasRegistro | null>(null);
   const visualizarRegistro = (registro: FeriasRegistro) => navigate(`/prototipos/sigep/ferias/visualizar/${registro.id}`);
   const [menuAbertoId, setMenuAbertoId] = useState<number | string | null>(null);
   const [confirmacaoStatus, setConfirmacaoStatus] = useState<{ registro: FeriasRegistro; acao: AcaoStatus; loteId?: string } | null>(null);
-  const [exclusaoSelecionada, setExclusaoSelecionada] = useState<FeriasRegistro | null>(null);
   const [subBusca, setSubBusca] = useState("");
   const [subSituacao, setSubSituacao] = useState<"" | "Vigente" | "Encerrada">("");
   const atualizarRegistros = (proximos: FeriasRegistro[]) => {
@@ -700,8 +752,8 @@ export function PrototiposFeriasPage() {
     const verificar = () => setRegistros(atuais => {
       if (!atuais.some(r => prazoValidacaoExpirado(r) || elegivelParaQuitacaoAutomatica(r))) return atuais;
       const proximos = atuais.map(r => {
-        if (prazoValidacaoExpirado(r)) return {...r, situacao:'REPROVADO' as const, expirado:true};
-        if (elegivelParaQuitacaoAutomatica(r)) return {...r, situacao:'QUITADO' as const};
+        if (prazoValidacaoExpirado(r)) return {...r, situacao:'PRAZO EXPIRADO' as const, historico: comHistorico(r, { situacao: 'PRAZO EXPIRADO', acao: 'expiracao', responsavel: 'Sistema (verificador automático)' })};
+        if (elegivelParaQuitacaoAutomatica(r)) return {...r, situacao:'QUITADO' as const, historico: comHistorico(r, { situacao: 'QUITADO', acao: 'quitacao', responsavel: 'Sistema (verificador automático)' })};
         return r;
       });
       persistirRegistros(proximos); return proximos;
@@ -818,7 +870,7 @@ export function PrototiposFeriasPage() {
       estagiario: porVinculo("Estagiário"),
       ferias: porTipoRegistro("FÉRIAS"),
       licencaRemunerada: porTipoRegistro("LICENÇA REMUNERADA"),
-      prazoExpirado: registrosFiltrados.filter(r => r.expirado || prazoValidacaoExpirado(r)).length,
+      prazoExpirado: registrosFiltrados.filter(r => r.situacao === "PRAZO EXPIRADO" || prazoValidacaoExpirado(r)).length,
     };
   }, [registrosFiltrados]);
 
@@ -849,7 +901,6 @@ export function PrototiposFeriasPage() {
     historicoReabertura?: { inicioOriginal: string; fimOriginal: string; reabertoEm: string },
   ) => {
     if ((acao==="validar" || acao==="rejeitar") && !registros.some(r => r.id === registroId && perfilPodeAvaliarRegistro(perfil,r))) return;
-    if ((acao === "forcarReabertura" || acao === "forcarCancelamento") && !podeForcarReabertura(perfil)) return;
     const proximos = registros.map((registro) => {
       if (registro.id !== registroId) return registro;
       if ((acao === 'validar' || acao === 'rejeitar') && registro.situacao !== 'AGUARDANDO VALIDAÇÃO') return registro;
@@ -864,16 +915,26 @@ export function PrototiposFeriasPage() {
       // RN reabertura 3.1: a reabertura entra num novo ciclo de validação — o prazo de aprovação
       // precisa ser recalculado a partir de hoje (o antigo já estava vencido/consumido),
       // respeitando o fechamento da folha do mês vigente.
-      const ehReaberturaAcao = acao === "reativar" || acao === "forcarReabertura";
+      const ehReaberturaAcao = acao === "reativar";
+      const ator = atorHistorico(perfil);
       return {
         ...registro,
         situacao: novaSituacao,
         parcelas: novasParcelas ?? registro.parcelas,
         historicoReabertura: historicoReabertura ?? registro.historicoReabertura,
         documentos: documento ? [...(registro.documentos ?? []), documento] : registro.documentos,
-        ...(ehReaberturaAcao ? { dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(), expirado: false } : {}),
+        historico: comHistorico(registro, {
+          situacao: novaSituacao,
+          acao: acao ?? "atualizacao",
+          responsavel: ator.rotulo,
+          responsavelMatricula: ator.matricula,
+          responsavelVinculo: ator.vinculo,
+          justificativa: justificativa?.trim() || undefined,
+          documentos: documento ? [documento] : undefined,
+        }),
+        ...(ehReaberturaAcao ? { dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia() } : {}),
         ...(efetivaBeneficiosRecesso ? { auxilioTransporteEfetivado: true, sigpasIntegrado: true } : {}),
-        ...(marcaAvaliacao ? { avaliadoPor: "Usuário atual", avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
+        ...(marcaAvaliacao ? { avaliadoPor: ator.rotulo, avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
       };
     });
     atualizarRegistros(proximos);
@@ -890,26 +951,28 @@ export function PrototiposFeriasPage() {
         .map((registro) => registro.id),
     );
     const marcaAvaliacao = acao === "validar" || acao === "rejeitar";
+    const ator = atorHistorico(perfil);
     const proximos = registros.map((registro) =>
       idsAfetados.has(registro.id)
         ? {
             ...registro,
             situacao: novaSituacao,
             documentos: documento ? [...(registro.documentos ?? []), documento] : registro.documentos,
-            ...(marcaAvaliacao ? { avaliadoPor: "Usuário atual", avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
+            historico: comHistorico(registro, {
+              situacao: novaSituacao,
+              acao,
+              responsavel: ator.rotulo,
+              responsavelMatricula: ator.matricula,
+              responsavelVinculo: ator.vinculo,
+              justificativa: justificativa?.trim() || undefined,
+              documentos: documento ? [documento] : undefined,
+            }),
+            ...(marcaAvaliacao ? { avaliadoPor: ator.rotulo, avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
           }
         : registro,
     );
     atualizarRegistros(proximos);
     setConfirmacaoStatus(null);
-  };
-
-  /** Excluir agendamento: exclusivo do Perfil Aprovador (podeExcluir) — remove o registro da
-   * listagem. Diferente de Cancelar/Reprovar, que só mudam a situação, isso apaga o registro. */
-  const excluirRegistro = () => {
-    if (!exclusaoSelecionada || !podeExcluir(perfil)) { setExclusaoSelecionada(null); return; }
-    atualizarRegistros(registros.filter((registro) => registro.id !== exclusaoSelecionada.id));
-    setExclusaoSelecionada(null);
   };
 
   const salvarSubstitutos = (registroId: number, substitutos: SubstitutoFerias[]) => {
@@ -1019,6 +1082,7 @@ export function PrototiposFeriasPage() {
                     <option value="QUITADO">Quitado</option>
                     <option value="CANCELADO">Cancelado</option>
                     <option value="REPROVADO">Reprovado</option>
+                    <option value="PRAZO EXPIRADO">Prazo expirado</option>
                     <option value="SUSPENSO">Suspenso</option>
                   </select>
                 </label>
@@ -1046,8 +1110,8 @@ export function PrototiposFeriasPage() {
                   else visualizarRegistro(registro);
                 }}
                 onGerenciarSubstituicao={setRegistroSubstituicao}
+                onVerHistorico={setRegistroHistorico}
                 onAlterarStatus={(registro, acao) => setConfirmacaoStatus({ registro, acao })}
-                onExcluir={setExclusaoSelecionada}
                 podeEditar={podeEditar}
                 menuAbertoId={menuAbertoId}
                 setMenuAbertoId={setMenuAbertoId}
@@ -1145,23 +1209,9 @@ export function PrototiposFeriasPage() {
           onConfirmar={(novaSituacao,justificativa,documento,novasParcelas,historicoReabertura) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa,documento) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa,documento,novasParcelas,historicoReabertura)}
         />
       ) : null}
-      {exclusaoSelecionada ? (
-        <ModalSeplag visible fechar={() => setExclusaoSelecionada(null)} titulo="Excluir agendamento" hideFooter tamanho="460px">
-          <div className="prototype-finalizar-efetivo-modal">
-            <p>Ação irreversível (Perfil Aprovador) — o registro é removido por completo da listagem, não apenas marcado como cancelado.</p>
-            <div className="prototype-finalizar-efetivo-info">
-              <div><span>Servidor</span><strong>{exclusaoSelecionada.servidorNome}</strong></div>
-              <div className="prototype-finalizar-efetivo-info-linha">
-                <div><span>Matrícula</span><strong>{exclusaoSelecionada.matricula}</strong></div>
-                <div><span>Vínculo</span><strong>{exclusaoSelecionada.numeroVinculo ?? "1"}</strong></div>
-              </div>
-            </div>
-            <div className="prototype-efetivo-modal-actions">
-              <BotaoVoltarSeplag type="button" label="Fechar" icon="pi pi-times" onClick={() => setExclusaoSelecionada(null)} />
-              <BotaoSeplag type="button" severity="danger" label="Excluir agendamento" icon="pi pi-trash" onClick={excluirRegistro} />
-            </div>
-          </div>
-        </ModalSeplag>
+
+      {registroHistorico ? (
+        <ModalHistoricoRegistro registro={registroHistorico} onFechar={() => setRegistroHistorico(null)} />
       ) : null}
     </PrototypeSystemPage>
   );
@@ -1173,7 +1223,9 @@ function elegivelSubstituicao(registro: FeriasRegistro) {
     registro.cargoGestao &&
     registro.parcelas.some((parcela) => parcela.dias >= 10) &&
     registro.situacao !== "CANCELADO" &&
-    registro.situacao !== "AGUARDANDO VALIDAÇÃO"
+    registro.situacao !== "AGUARDANDO VALIDAÇÃO" &&
+    registro.situacao !== "PRAZO EXPIRADO" &&
+    registro.situacao !== "REPROVADO"
   );
 }
 
@@ -1205,15 +1257,18 @@ function podeGerenciarCompleto(perfil: PerfilAcesso) {
   return perfil === "RH / Gestão de Pessoas";
 }
 
-/** Excluir agendamento: exclusivo do Perfil Aprovador, nas três modalidades. */
-function podeExcluir(perfil: PerfilAcesso) {
-  return podeAvaliar(perfil);
-}
+/** Usuário logado "de demonstração" por perfil — como o protótipo não tem autenticação real,
+ * cada perfil é representado por uma matrícula/vínculo fixos só para exibir no histórico quem
+ * fez a alteração (o servidor que está de fato operando a tela, não o servidor da solicitação). */
+const USUARIO_ATOR_MOCK: Record<"Gestor" | "Aprovador", { matricula: string; vinculo: TipoVinculo }> = {
+  Gestor: { matricula: "900017", vinculo: "Efetivo" },
+  Aprovador: { matricula: "900020", vinculo: "Efetivo" },
+};
 
-/** Forçar reabertura com financeiro pago: exclusivo do Perfil Aprovador — exige registrar
- * manualmente o estorno na folha do mês seguinte (nota exibida no próprio modal). */
-function podeForcarReabertura(perfil: PerfilAcesso) {
-  return podeAvaliar(perfil);
+/** Rótulo + matrícula/vínculo de quem agiu, para exibir no histórico de situações. */
+function atorHistorico(perfil: PerfilAcesso): { rotulo: "Gestor" | "Aprovador"; matricula: string; vinculo: TipoVinculo } {
+  const rotulo = podeGerenciarCompleto(perfil) ? "Gestor" : "Aprovador";
+  return { rotulo, ...USUARIO_ATOR_MOCK[rotulo] };
 }
 
 function IndicadorCard({ rotulo, valor, tom }: Readonly<{ rotulo: string; valor: number; tom?: "sucesso" | "info" | "alerta" | "roxo" | "vermelho" }>) {
@@ -1233,8 +1288,8 @@ interface TabelaRegistrosProps {
   onVisualizar: (registro: FeriasRegistro) => void;
   onEditar: (registro: FeriasRegistro) => void;
   onGerenciarSubstituicao: (registro: FeriasRegistro) => void;
+  onVerHistorico: (registro: FeriasRegistro) => void;
   onAlterarStatus: (registro: FeriasRegistro, acao: AcaoStatus) => void;
-  onExcluir: (registro: FeriasRegistro) => void;
   podeEditar: (registro: FeriasRegistro) => boolean;
   menuAbertoId: number | string | null;
   setMenuAbertoId: (id: number | string | null) => void;
@@ -1246,8 +1301,8 @@ function TabelaRegistros({
   onVisualizar,
   onEditar,
   onGerenciarSubstituicao,
+  onVerHistorico,
   onAlterarStatus,
-  onExcluir,
   podeEditar,
   menuAbertoId,
   setMenuAbertoId,
@@ -1336,11 +1391,15 @@ function TabelaRegistros({
                 <span className={"prototype-ferias-badge-origem is-" + registro.origem.toLowerCase()}>{registro.origem}</span>
               </td>
               <td>
-                {prazoValidacaoExpirado(registro) ? (
-                  <span className="prototype-ferias-badge is-cancelado">Prazo expirado</span>
-                ) : (
-                  <span className={`prototype-ferias-badge is-${classeSituacao(registro.situacao)}`}>{rotuloSituacao(registro.situacao)}</span>
-                )}
+                {(() => {
+                  // O verificador periódico roda a cada 30s — antes dele tickar, a situação ainda
+                  // pode estar "AGUARDANDO VALIDAÇÃO" mesmo já tendo passado o prazo. Nesse caso,
+                  // exibe "Prazo expirado" ao vivo sem esperar o próximo tick.
+                  const situacaoExibida: SituacaoFerias = prazoValidacaoExpirado(registro) ? "PRAZO EXPIRADO" : registro.situacao;
+                  return (
+                    <span className={`prototype-ferias-badge is-${classeSituacao(situacaoExibida)}`}>{rotuloSituacao(situacaoExibida)}</span>
+                  );
+                })()}
                 {registro.folhaHomologada ? (
                   <span className="prototype-ferias-badge is-cancelado" title="Folha de Pagamento Homologada/Paga — cancelamento e reabertura diretos bloqueados.">
                     <i className="pi pi-lock" aria-hidden="true" /> Folha homologada
@@ -1364,6 +1423,9 @@ function TabelaRegistros({
                     <div className="prototype-ferias-menu-acoes">
                       <button type="button" onClick={() => { onVisualizar(registro); setMenuAbertoId(null); }}>
                         <i className="pi pi-eye" aria-hidden="true" /> Visualizar
+                      </button>
+                      <button type="button" onClick={() => { onVerHistorico(registro); setMenuAbertoId(null); }}>
+                        <i className="pi pi-history" aria-hidden="true" /> Histórico
                       </button>
                       {podeGerenciarCompleto(perfil) && podeEditar(registro) ? (
                         <button type="button" onClick={() => { onEditar(registro); setMenuAbertoId(null); }}>
@@ -1410,18 +1472,6 @@ function TabelaRegistros({
                         >
                           <i className="pi pi-replay" aria-hidden="true" /> Reabrir agendamento
                         </button>
-                      ) : reativarBloqueadaPelaFolha(registro) && podeForcarReabertura(perfil) ? (
-                        <button
-                          type="button"
-                          className="is-acao-verde"
-                          onClick={() => { onAlterarStatus(registro, "forcarReabertura"); setMenuAbertoId(null); }}
-                        >
-                          <i className="pi pi-unlock" aria-hidden="true" /> Forçar reabertura (financeiro pago)
-                        </button>
-                      ) : reativarBloqueadaPelaFolha(registro) && podeGerenciarCompleto(perfil) ? (
-                        <button type="button" disabled title="Este agendamento já envolveu repasses financeiros. Apenas o Perfil Aprovador pode forçar a reabertura, registrando o estorno na folha do mês seguinte.">
-                          <i className="pi pi-lock" aria-hidden="true" /> Reabrir agendamento
-                        </button>
                       ) : null}
                       {podeGerenciarCompleto(perfil) && podeCancelar(registro) ? (
                         <button
@@ -1430,27 +1480,6 @@ function TabelaRegistros({
                           onClick={() => { onAlterarStatus(registro, "cancelar"); setMenuAbertoId(null); }}
                         >
                           <i className="pi pi-ban" aria-hidden="true" /> Cancelar férias
-                        </button>
-                      ) : cancelarBloqueadoPelaFolha(registro) && podeForcarReabertura(perfil) ? (
-                        <button
-                          type="button"
-                          className="is-acao-vermelha"
-                          onClick={() => { onAlterarStatus(registro, "forcarCancelamento"); setMenuAbertoId(null); }}
-                        >
-                          <i className="pi pi-unlock" aria-hidden="true" /> Forçar cancelamento (financeiro pago)
-                        </button>
-                      ) : cancelarBloqueadoPelaFolha(registro) && podeGerenciarCompleto(perfil) ? (
-                        <button type="button" disabled title="Este agendamento já envolveu repasses financeiros. Para cancelá-lo, entre em contato diretamente com o setor de Gestão de Pessoas.">
-                          <i className="pi pi-lock" aria-hidden="true" /> Cancelar férias
-                        </button>
-                      ) : null}
-                      {podeExcluir(perfil) ? (
-                        <button
-                          type="button"
-                          className="is-acao-vermelha"
-                          onClick={() => { onExcluir(registro); setMenuAbertoId(null); }}
-                        >
-                          <i className="pi pi-trash" aria-hidden="true" /> Excluir agendamento
                         </button>
                       ) : null}
                     </div>
@@ -1670,10 +1699,18 @@ export function FormularioIndividual({
   const saldoFecha = totalParcelado === saldoDisponivel;
   const saldoRestante = (saldoDisponivel ?? 0) - totalParcelado;
   const draftFim = calcularFim(draftInicio, draftDias);
+  // CA10(c): o Adicional de 1/3 só pode estar vinculado a uma parcela por período aquisitivo —
+  // se outra parcela já adicionada o tem, o checkbox do rascunho fica bloqueado e desmarcado.
+  const indiceParcelaComTerco = parcelas.findIndex((parcela) => parcela.terco);
+  const tercoBloqueadoPorDuplicidade = indiceParcelaComTerco !== -1;
 
-  // RN-01/RN-02/RN-03: concomitância verificada assim que a data é escolhida (sem esperar o
-  // clique em "Adicionar esta parcela") e também para as parcelas já adicionadas — senão o
-  // alerta desaparece quando o rascunho é limpo após o "Adicionar".
+  useEffect(() => {
+    if (tercoBloqueadoPorDuplicidade && draftTerco) setGozoValor("terco", false);
+  }, [tercoBloqueadoPorDuplicidade, draftTerco, setGozoValor]);
+
+  // RN003: concomitância verificada assim que a data é escolhida (sem esperar o clique em
+  // "Adicionar esta parcela") e também para as parcelas já adicionadas — senão o aviso
+  // desaparece quando o rascunho é limpo após o "Adicionar". Qualquer sobreposição bloqueia.
   useEffect(() => {
     if (!matricula || somenteLeitura) {
       setAlertaConcomitancia("");
@@ -1682,13 +1719,11 @@ export function FormularioIndividual({
     const candidatos = draftInicio && draftFim ? [{ inicio: draftInicio, fim: draftFim, dias: draftDias }, ...parcelas] : parcelas;
     for (const candidato of candidatos) {
       const conflito = conflitoFeriasServidor(matricula, candidato.inicio, candidato.fim, registroParaEditar?.id);
-      if (conflito && !feriasEmAndamento(conflito)) {
-        setAlertaConcomitancia(
-          `Servidor possui férias/recesso agendado de ${periodoUsufruto(conflito)}. Verifique a necessidade de reagendamento (RN-02).`,
-        );
+      if (conflito) {
+        setAlertaConcomitancia(mensagemConflitoAgendamento(conflito));
         return;
       }
-      if (!conflito) {
+      {
         const ajuste = ajustarInicioParaAposLts(candidato.inicio, candidato.dias, matricula);
         if (ajuste.ajustado) {
           setAlertaConcomitancia(
@@ -1745,14 +1780,12 @@ export function FormularioIndividual({
 
   const completarBuscaServidor = (query: string) => {
     const termo = query.trim().toLocaleLowerCase("pt-BR");
-    const cpfBusca = termo.replace(/\D/g, "");
     const resultados = (!termo
       ? SERVIDORES_MOCK
       : SERVIDORES_MOCK.filter(
           (servidor) =>
             servidor.matricula.includes(termo) ||
-            servidor.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
-            Boolean(cpfBusca && servidor.cpf?.replace(/\D/g, "").includes(cpfBusca)),
+            servidor.nome.toLocaleLowerCase("pt-BR").includes(termo),
         )).filter(
           (servidor, index, servidores) =>
             servidores.findIndex(
@@ -1783,12 +1816,10 @@ export function FormularioIndividual({
 
   const buscarServidorIndividual = (valor: string) => {
     const termo = valor.trim().toLocaleLowerCase("pt-BR");
-    const cpfBusca = termo.replace(/\D/g, "");
     const encontrado = SERVIDORES_MOCK.find(
       (servidor) =>
         servidor.matricula.toLocaleLowerCase("pt-BR") === termo ||
         servidor.nome.toLocaleLowerCase("pt-BR") === termo ||
-        Boolean(cpfBusca && servidor.cpf?.replace(/\D/g, "").includes(cpfBusca)) ||
         descricaoServidor(servidor).toLocaleLowerCase("pt-BR") === termo,
     );
     if (!encontrado) {
@@ -1823,24 +1854,13 @@ export function FormularioIndividual({
       setErro(`A duração escolhida (${draftDias} dias) excede o saldo restante (${saldoRestante} dias).`);
       return;
     }
-    // RN-01/RN-02/RN-03: concomitância com outra férias/recesso ativo do mesmo servidor.
+    // RN003: qualquer sobreposição com outro agendamento do mesmo servidor bloqueia o lançamento.
     const conflito = conflitoFeriasServidor(matricula, draftInicio, draftFim, registroParaEditar?.id);
     if (conflito) {
-      if (feriasEmAndamento(conflito)) {
-        setErro(
-          `Servidor possui férias/recesso em andamento (${periodoUsufruto(conflito)}). ` +
-            "Não é possível lançar período sobreposto a um usufruto já iniciado (RN-03).",
-        );
-        return;
-      }
-      setAlertaConcomitancia(
-        `Servidor possui férias/recesso agendado de ${periodoUsufruto(conflito)}. Verifique a necessidade de reagendamento (RN-02).`,
-      );
-      setParcelas((atual) => [
-        ...atual,
-        { id: gerarId(), inicio: draftInicio, fim: draftFim, dias: draftDias, terco: draftTerco },
-      ]);
-    } else {
+      setErro(mensagemConflitoAgendamento(conflito));
+      return;
+    }
+    {
       // RN-03: se a LTS já está vigente no período, a data de início é ajustada automaticamente
       // para o dia seguinte ao fim da LTS — não bloqueia o lançamento, mas não deixa sobrepor.
       const ajuste = ajustarInicioParaAposLts(draftInicio, draftDias, matricula);
@@ -1943,6 +1963,7 @@ export function FormularioIndividual({
       substitutos: [],
       responsavelLancamento: "Usuário atual",
       lancadoEm: new Date().toLocaleString("pt-BR"),
+      historico: [{ situacao: "EM ABERTO", acao: "lancamento", data: new Date().toLocaleString("pt-BR"), responsavel: "Gestor", responsavelMatricula: USUARIO_ATOR_MOCK.Gestor.matricula, responsavelVinculo: USUARIO_ATOR_MOCK.Gestor.vinculo, documentos: [documento] }],
     });
   };
 
@@ -1984,14 +2005,14 @@ export function FormularioIndividual({
         </h3>
         {!servidorTravado ? (
           <label className="prototype-ferias-busca-servidor-label" htmlFor="ferias-individual-busca-servidor">
-            <span>Buscar Servidor (Matrícula, CPF ou Nome)</span>
+            <span>Buscar Servidor (Matrícula ou Nome)</span>
             <div className="prototype-ferias-busca-servidor-row">
               <SeplagAutoComplete
                 inputId="ferias-individual-busca-servidor"
                 className="w-full"
                 value={servidorBusca}
                 suggestions={sugestoesServidor}
-                placeholder="Matrícula, CPF ou nome do servidor"
+                placeholder="Matrícula ou nome do servidor"
                 forceSelection={false}
                 completeMethod={completarBuscaServidor}
                 onChange={(event) => setServidorBusca(String(event.value ?? ""))}
@@ -2189,8 +2210,16 @@ export function FormularioIndividual({
           </div>
         )}
 
-        <label className="prototype-ferias-gozo-terco">
-          <input type="checkbox" checked={draftTerco} disabled={somenteLeitura} onChange={(event) => setGozoValor("terco", event.target.checked)} />
+        <label
+          className="prototype-ferias-gozo-terco"
+          title={tercoBloqueadoPorDuplicidade ? `O Adicional Constitucional de 1/3 já foi solicitado na Parcela ${indiceParcelaComTerco + 1}.` : undefined}
+        >
+          <input
+            type="checkbox"
+            checked={draftTerco}
+            disabled={somenteLeitura || tercoBloqueadoPorDuplicidade}
+            onChange={(event) => setGozoValor("terco", event.target.checked)}
+          />
           Pagar o Adicional Constitucional de 1/3 nesta parcela (Art. 19, II)
         </label>
       </div>
@@ -2217,7 +2246,7 @@ export function FormularioIndividual({
 
       <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
         <BotaoVoltarSeplag type="button" label="Voltar" onClick={onCancelar} />
-        {!somenteLeitura ? <BotaoSalvarSeplag type="button" label={ehEdicao ? "Salvar alteração" : "Salvar solicitação"} onClick={salvar} /> : null}
+        {!somenteLeitura ? <BotaoSalvarSeplag type="button" label={ehEdicao ? "Salvar alteração" : "Salvar Agendamento"} onClick={salvar} /> : null}
       </div>
 
       {vinculosParaEscolher.length > 0 ? (
@@ -2235,6 +2264,12 @@ export function FormularioIndividual({
     </div>
   );
 }
+
+/** Valor sentinela da opção "Todos" no dropdown Escola/Lotação — disponível para os três
+ * órgãos (SEDUC/UNEMAT/SECITEC), lista professores de todas as escolas/unidades/câmpus do
+ * órgão selecionado de uma só vez, combinável com os demais filtros (busca, situação de
+ * validação, tipo de vínculo). */
+const ESCOPO_TODAS_LOTACOES = "__todas__";
 
 export function FormularioColetiva({
   onCancelar,
@@ -2287,15 +2322,11 @@ export function FormularioColetiva({
   }>>({});
   const [erro, setErro] = useState<string[]>([]);
   const [confirmacao, setConfirmacao] = useState("");
-  const [registrosPersistidos, setRegistrosPersistidos] = useState<FeriasRegistro[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") ?? [];
-    } catch {
-      return [];
-    }
-  });
   const [soComAlerta, setSoComAlerta] = useState(false);
-  const [soComAlertaAba1, setSoComAlertaAba1] = useState(false);
+  const [filtroAlertaAba1, setFiltroAlertaAba1] = useState<"todos" | "alerta" | "ok">("todos");
+  // Órgão não é de livre escolha: é definido pelo perfil de lotação de quem está lançando —
+  // Secretário Escolar só lança para a SEDUC; Gestão de Pessoas só para a UNEMAT ou SECITEC.
+  const [perfilColetiva, setPerfilColetiva] = useState<PerfilLote>("SECRETARIO_SEDUC");
   const [abaColetiva, setAbaColetiva] = useState<1 | 2>(1);
   const [primeiroAba2, setPrimeiroAba2] = useState(0);
   const [porPaginaAba2, setPorPaginaAba2] = useState(10);
@@ -2304,7 +2335,10 @@ export function FormularioColetiva({
   useEffect(() => {
     if (!modoAgendamentoLote) return;
     const proximoOrgao = perfilLote === "GESTAO_UNEMAT" ? "UNEMAT" : perfilLote === "GESTAO_SECITEC" ? "SECITEC" : "SEDUC";
-    const primeiraLotacao = professoresLote.find((professor) => professor.orgao === proximoOrgao)?.lotacaoNome ?? "";
+    const gestaoOrgao = perfilLote === "GESTAO_UNEMAT" || perfilLote === "GESTAO_SECITEC";
+    const primeiraLotacao = gestaoOrgao
+      ? ESCOPO_TODAS_LOTACOES
+      : professoresLote.find((professor) => professor.orgao === proximoOrgao)?.lotacaoNome ?? "";
     setColetivaValue("orgao", proximoOrgao);
     setColetivaValue("escola", primeiraLotacao);
     setColetivaValue("tipoVinculoFiltro", "Efetivo");
@@ -2314,13 +2348,14 @@ export function FormularioColetiva({
   }, [modoAgendamentoLote, perfilLote, setColetivaValue]);
 
   useEffect(() => {
-    if (!modoAgendamentoLote || perfilLote !== "DRE_SEDUC") return;
-    try {
-      setRegistrosPersistidos(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") ?? []);
-    } catch {
-      setRegistrosPersistidos([]);
-    }
-  }, [modoAgendamentoLote, perfilLote]);
+    if (modoAgendamentoLote) return;
+    const proximoOrgao = perfilColetiva === "GESTAO_UNEMAT" ? "UNEMAT" : perfilColetiva === "GESTAO_SECITEC" ? "SECITEC" : "SEDUC";
+    const primeiraLotacao = professoresLote.find((professor) => professor.orgao === proximoOrgao)?.lotacaoNome ?? "";
+    setColetivaValue("orgao", proximoOrgao);
+    setColetivaValue("escola", primeiraLotacao);
+    setBuscaNome("");
+    setTextoBusca("");
+  }, [modoAgendamentoLote, perfilColetiva, setColetivaValue]);
 
   const fimJulho = calcularFim(inicioJulho, 15);
   const fimJaneiro = calcularFim(inicioJaneiro, 30);
@@ -2413,10 +2448,12 @@ export function FormularioColetiva({
       (professor) =>
         // Coletiva: exclusiva de professor. Agendamento em Lote: cargos de gestão/apoio (não professor).
         (modoAgendamentoLote ? professor.cargo !== "Professor" : professor.cargo === "Professor") &&
+        // CA01: cargo de gestão nunca aparece na Coletiva — não é um erro de linha, é exclusão da listagem.
+        !(professor.cargoGestao && !modoAgendamentoLote) &&
         professor.orgao === orgao &&
-        (modoAgendamentoLote && (perfilLote === "GESTAO_UNEMAT" || perfilLote === "GESTAO_SECITEC") ? true : professor.lotacaoNome === escola),
+        (escola === ESCOPO_TODAS_LOTACOES ? true : professor.lotacaoNome === escola),
     ),
-    [modoAgendamentoLote, orgao, escola, perfilLote],
+    [modoAgendamentoLote, orgao, escola],
   );
 
   const listaFiltrada = useMemo(() => {
@@ -2432,10 +2469,11 @@ export function FormularioColetiva({
       ) {
         return false;
       }
-      if (soComAlertaAba1 && alertasDe(professor).length === 0) return false;
+      if (filtroAlertaAba1 === "alerta" && alertasDe(professor).length === 0) return false;
+      if (filtroAlertaAba1 === "ok" && alertasDe(professor).length > 0) return false;
       return true;
     });
-  }, [professoresDaLotacao, buscaNome, tipoVinculoFiltro, soComAlertaAba1, alertasDe]);
+  }, [professoresDaLotacao, buscaNome, tipoVinculoFiltro, filtroAlertaAba1, alertasDe]);
 
   /** "Selecionáveis" para fins do cabeçalho "selecionar todos": sem erro bloqueante nem aviso.
    * Quem tem erro/aviso continua podendo ser marcado manualmente, linha por linha. */
@@ -2450,7 +2488,7 @@ export function FormularioColetiva({
 
   useEffect(() => {
     setPrimeiroRegistro(0);
-  }, [orgao, escola, buscaNome, tipoVinculoFiltro, soComAlertaAba1]);
+  }, [orgao, escola, buscaNome, tipoVinculoFiltro, filtroAlertaAba1]);
 
   const parcelasLoteVazias = (): Record<DuracaoLote, boolean> => ({ 10: false, 15: false, 20: false, 30: false });
   const estadoLinha = (id: number) =>
@@ -2581,17 +2619,12 @@ export function FormularioColetiva({
       if (modoAgendamentoLote && /professor|docente/i.test(professor.cargo) && orgao === 'SEDUC' && [10,20].some(d => estadoLinha(professor.id).parcelasLote[d as DuracaoLote])) erros.push(professor.nome + ': professor SEDUC permite somente 15 ou 30 dias.');
     });
 
-    if (modoAgendamentoLote && perfilLote === "DRE_SEDUC") {
-      setErro(["A DRE pode validar e tramitar lotes, mas não pode lançar férias."]);
-      return;
-    }
-
     if (!incluidos.length) {
       erros.push("Selecione pelo menos um servidor na aba 1 antes de prosseguir.");
     }
 
     const comErro = incluidos.filter((professor) => errosDe(professor).length > 0);
-    if (modoAgendamentoLote && comErro.length) {
+    if (comErro.length) {
       erros.push(
         `Servidor(es) com erro bloqueante — remova-os antes de prosseguir: ${comErro.map((professor) => professor.nome).join(", ")}.`,
       );
@@ -2687,6 +2720,7 @@ export function FormularioColetiva({
         loteId,
         responsavelLancamento: "Usuário atual",
         lancadoEm: new Date().toLocaleString("pt-BR"),
+        historico: [{ situacao: "AGUARDANDO VALIDAÇÃO" as const, acao: "lancamento", data: new Date().toLocaleString("pt-BR"), responsavel: "Gestor", responsavelMatricula: USUARIO_ATOR_MOCK.Gestor.matricula, responsavelVinculo: USUARIO_ATOR_MOCK.Gestor.vinculo, documentos: documentoLote ? [documentoLote] : undefined }],
       };
     });
 
@@ -2709,47 +2743,8 @@ export function FormularioColetiva({
     onSalvar(novosRegistros);
   };
 
-  const lotesPendentesValidacao = useMemo(() => {
-    const lotes = new Map<string, FeriasRegistro[]>();
-    registrosPersistidos
-      .filter((registro) =>
-        registro.tipo === "Lote" &&
-        registro.orgaoColetivo === "SEDUC" &&
-        registro.situacao === "AGUARDANDO VALIDAÇÃO" &&
-        Boolean(registro.loteId),
-      )
-      .forEach((registro) => {
-        const loteId = registro.loteId!;
-        lotes.set(loteId, [...(lotes.get(loteId) ?? []), registro]);
-      });
-    return [...lotes.entries()];
-  }, [registrosPersistidos]);
-
-  const decidirLotePendente = (loteId: string, registroId?: number) => {
-    if (perfilLote !== 'DRE_SEDUC') return;
-    const registrosAtualizados = registrosPersistidos
-      .filter((registro) =>
-        registro.loteId === loteId &&
-        !prazoValidacaoExpirado(registro) &&
-        registro.situacao === "AGUARDANDO VALIDAÇÃO" &&
-        (registroId === undefined || registro.id === registroId),
-      )
-      .map((registro) => ({
-        ...registro,
-        situacao: registroId === undefined ? "EM ABERTO" as const : "REPROVADO" as const,
-      }));
-    if (!registrosAtualizados.length) return;
-    const porId = new Map(registrosAtualizados.map((registro) => [registro.id, registro]));
-    setRegistrosPersistidos((atual) => atual.map((registro) => porId.get(registro.id) ?? registro));
-    onSalvar(registrosAtualizados);
-  };
-
   return (
     <div>
-      <details className="prototype-ferias-form-section"><summary>Períodos aquisitivos consumidos automaticamente</summary>{professoresIncluidos.map(p => {
-        const periodo = periodoDoProfessor(p);
-        return <p key={p.id}>{p.nome}: {periodo ? formatarDataBr(periodo.inicio) + ' a ' + formatarDataBr(periodo.fim) + ' · ' + periodo.saldo + ' dias disponíveis' : 'Sem saldo disponível'}</p>;
-      })}</details>
       {erro.length ? (
         <div className="prototype-ferias-erro-bloqueio">
           {erro.map((mensagem) => (
@@ -2759,81 +2754,40 @@ export function FormularioColetiva({
       ) : null}
       {confirmacao ? <div className="prototype-ferias-confirmacao">{confirmacao}</div> : null}
 
+      {!modoAgendamentoLote ? (
+        <section className="prototype-ferias-form-section prototype-ferias-lote-perfil">
+          <label>
+            <span>Perfil de demonstração *</span>
+            <select value={perfilColetiva} onChange={(event) => setPerfilColetiva(event.target.value as PerfilLote)}>
+              <option value="SECRETARIO_SEDUC">Secretário escolar — SEDUC</option>
+              <option value="GESTAO_UNEMAT">Gestão de Pessoas — UNEMAT</option>
+              <option value="GESTAO_SECITEC">Gestão de Pessoas — SECITEC</option>
+            </select>
+          </label>
+          <small>O Órgão da escala é definido automaticamente conforme este perfil de lotação.</small>
+        </section>
+      ) : null}
+
       {modoAgendamentoLote ? (
         <section className="prototype-ferias-form-section prototype-ferias-lote-perfil">
           <label>
             <span>Perfil de demonstração *</span>
             <select value={perfilLote} onChange={(event) => setPerfilLote(event.target.value as PerfilLote)}>
               <option value="SECRETARIO_SEDUC">Secretário escolar — SEDUC</option>
-              <option value="DRE_SEDUC">DRE — SEDUC (validação)</option>
               <option value="GESTAO_UNEMAT">Gestão de Pessoas — UNEMAT</option>
               <option value="GESTAO_SECITEC">Gestão de Pessoas — SECITEC</option>
             </select>
           </label>
           <small>
             {perfilLote === "SECRETARIO_SEDUC"
-              ? "Lança férias coletivas somente para a escola vinculada; o lote segue à DRE."
-              : perfilLote === "DRE_SEDUC"
-                ? "A DRE não lança férias: valida os lotes recebidos e pode reprovar servidores individualmente."
-                : perfilLote === "GESTAO_UNEMAT"
+              ? "Lança férias coletivas somente para a escola vinculada; a validação acontece na aba Aprovações."
+              : perfilLote === "GESTAO_UNEMAT"
                   ? "A Gestão de Pessoas da UNEMAT visualiza todas as unidades e lança o lote; a validação da chefia acontece à parte, na aba Avaliar e Aprovar."
                   : "A Gestão de Pessoas da SECITEC visualiza todas as escolas técnicas e lança o lote; a validação da chefia acontece à parte, na aba Avaliar e Aprovar."}
           </small>
         </section>
       ) : null}
 
-      {modoAgendamentoLote && perfilLote === "DRE_SEDUC" ? (
-        <section className="prototype-ferias-form-section prototype-ferias-lote-secao">
-          <h3 className="prototype-ferias-secao-titulo">
-            <i className="pi pi-check-square" aria-hidden="true" />
-            Lotes pendentes de validação da DRE
-          </h3>
-          <div className="prototype-ferias-lote-secao-conteudo">
-            {lotesPendentesValidacao.length === 0 ? (
-              <p className="prototype-ferias-lote-vazio">Não há lotes SEDUC aguardando validação.</p>
-            ) : lotesPendentesValidacao.map(([loteId, registros]) => (
-              <section className="prototype-ferias-lote-validacao" key={loteId}>
-                <div className="prototype-ferias-lote-validacao-topo">
-                  <div>
-                    <strong>{loteId}</strong>
-                    <span>{registros.length} servidor(es) · {registros[0]?.setor || "Unidade não informada"}</span>
-                  </div>
-                  <button type="button" className="prototype-ferias-btn-primario" onClick={() => decidirLotePendente(loteId)}>
-                    <i className="pi pi-check" aria-hidden="true" />
-                    Aprovar e tramitar lote
-                  </button>
-                </div>
-                <div className="prototype-ferias-lote-table-wrap">
-                  <table className="prototype-ferias-table prototype-ferias-coletiva-table">
-                    <thead><tr><th>Servidor</th><th>Vínculo</th><th>Saldo</th><th>Parcelas</th><th>Ação</th></tr></thead>
-                    <tbody>
-                      {registros.map((registro) => (
-                        <tr key={registro.id}>
-                          <td>{registro.servidorNome}<small>{registro.matricula}</small></td>
-                          <td>{registro.tipoVinculo}</td>
-                          <td>{registro.saldoFerias ?? "—"} dias</td>
-                          <td>{registro.parcelas.map((parcela) => `${parcela.dias} dias a partir de ${formatarDataBr(parcela.inicio)}`).join(" · ")}</td>
-                          <td>
-                            <button type="button" className="prototype-ferias-icon-btn" title={`Reprovar ${registro.servidorNome}`} onClick={() => decidirLotePendente(loteId, registro.id)}>
-                              <i className="pi pi-times" aria-hidden="true" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            ))}
-            <div className="prototype-ferias-coletiva-acoes">
-              <button type="button" className="prototype-ferias-coletiva-btn-voltar" onClick={onCancelar}>
-                <i className="pi pi-arrow-left" aria-hidden="true" />
-                Voltar
-              </button>
-            </div>
-          </div>
-        </section>
-      ) : (
       <>
       <nav className="prototype-ferias-coletiva-stepper-card" aria-label={modoAgendamentoLote ? "Etapas do agendamento em lote" : "Etapas das férias coletivas"}>
         <ol className="prototype-ferias-coletiva-stepper" role="tablist">
@@ -2885,39 +2839,35 @@ export function FormularioColetiva({
             optionValue="value"
             showClear={false}
             getFormErrorMessage={() => null}
-            disabled={modoAgendamentoLote}
+            disabled
             onChange={(proximoOrgao: "SEDUC" | "UNEMAT" | "SECITEC") => {
               const primeiraLotacao = professoresLote.find((professor) => professor.orgao === proximoOrgao)?.lotacaoNome ?? "";
               setColetivaValue("escola", primeiraLotacao);
               setBuscaNome("");
+              setTextoBusca("");
             }}
           />
-          {modoAgendamentoLote && (perfilLote === "GESTAO_UNEMAT" || perfilLote === "GESTAO_SECITEC") ? (
-            <label className="prototype-ferias-unemat-escopo">
-              <span>Escopo do lançamento</span>
-              <strong>
-                {perfilLote === "GESTAO_UNEMAT"
-                  ? "Todos os professores da UNEMAT — todas as lotações"
-                  : "Todos os servidores de apoio/gestão da SECITEC — todas as escolas técnicas"}
-              </strong>
-            </label>
-          ) : (
-            <DropdownFieldSeplag
-              name="escola"
-              control={coletivaControl}
-              label="Escola/Lotação"
-              cols="12"
-              options={lotacoesDisponiveis.map((lotacao) => ({ label: lotacao, value: lotacao }))}
-              optionLabel="label"
-              optionValue="value"
-              showClear={false}
-              getFormErrorMessage={() => null}
-              onChange={() => {
-                setBuscaNome("");
-                setTextoBusca("");
-              }}
-            />
-          )}
+          <DropdownFieldSeplag
+            name="escola"
+            control={coletivaControl}
+            label="Escola/Lotação"
+            cols="12"
+            options={[
+              // "Todos" permite avaliar/lançar para múltiplas unidades de uma vez — disponível
+              // para qualquer perfil, inclusive Secretário Escolar — SEDUC, que também pode
+              // escolher uma escola específica em vez de ficar travado em uma só.
+              { label: "Todos (todas as unidades)", value: ESCOPO_TODAS_LOTACOES },
+              ...lotacoesDisponiveis.map((lotacao) => ({ label: lotacao, value: lotacao })),
+            ]}
+            optionLabel="label"
+            optionValue="value"
+            showClear={false}
+            getFormErrorMessage={() => null}
+            onChange={() => {
+              setBuscaNome("");
+              setTextoBusca("");
+            }}
+          />
           <DropdownFieldSeplag
             name="periodoAquisitivo"
             control={coletivaControl}
@@ -2992,14 +2942,25 @@ export function FormularioColetiva({
               />
             </div>
           </label>
-          <label className="prototype-ferias-coletiva-alerta-check">
-            <input
-              type="checkbox"
-              checked={soComAlertaAba1}
-              onChange={(event) => setSoComAlertaAba1(event.target.checked)}
-            />
-            Só com alerta
-          </label>
+          <div className="prototype-ferias-coletiva-situacao-validacao">
+            <RotuloSeplag nome="Situação de validação" cols="12">
+              <Dropdown
+                value={filtroAlertaAba1}
+                onChange={(event) => setFiltroAlertaAba1(event.value)}
+                options={[
+                  { label: "Todos", value: "todos" },
+                  { label: "Só com alerta", value: "alerta" },
+                  { label: "Só OK (sem pendência)", value: "ok" },
+                ]}
+                optionLabel="label"
+                optionValue="value"
+                showClear={false}
+                filter={false}
+                className="w-full"
+                style={{ width: "100%", height: "46px" }}
+              />
+            </RotuloSeplag>
+          </div>
         </div>
         <div className="prototype-ferias-lote-table-wrap">
           <table className={`prototype-ferias-table prototype-ferias-coletiva-table${modoAgendamentoLote ? " prototype-ferias-coletiva-table--lote" : ""}`}>
@@ -3019,9 +2980,8 @@ export function FormularioColetiva({
                 <th>Cargo / Função</th>
                 <th>Lotação</th>
                 <th>Situação</th>
-                {modoAgendamentoLote ? <th>Alertas</th> : null}
                 <th>Saldo</th>
-                {!modoAgendamentoLote ? <th>Situação de validação</th> : null}
+                <th>Situação de validação</th>
               </tr>
             </thead>
             <tbody>
@@ -3061,24 +3021,6 @@ export function FormularioColetiva({
                     <td>
                       {professor.situacaoLotacao}
                     </td>
-                    {modoAgendamentoLote ? (
-                      <td className="prototype-ferias-lote-alertas-celula">
-                        {alertasDe(professor).length ? (
-                          <div className="prototype-ferias-lote-alertas-linha">
-                          {erros.map((mensagem) => (
-                            <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--erro">
-                              <i className="pi pi-times-circle" aria-hidden="true" />{mensagem}
-                            </span>
-                          ))}
-                          {avisos.map((mensagem) => (
-                            <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--aviso">
-                              <i className="pi pi-exclamation-triangle" aria-hidden="true" />{mensagem}
-                            </span>
-                          ))}
-                          </div>
-                        ) : <span className="prototype-ferias-lote-sem-alerta">Sem alertas</span>}
-                      </td>
-                    ) : null}
                     <td>
                       <span className={temErro ? "prototype-ferias-saldo-inconsistente" : temAviso ? "prototype-ferias-saldo-aviso" : ""}>
                         {usaRegraAquisitivoUnemat && professor.saldoConfirmado === false
@@ -3086,25 +3028,23 @@ export function FormularioColetiva({
                           : `${professor.saldo} dias`}
                       </span>
                     </td>
-                    {!modoAgendamentoLote ? (
-                      <td>
-                        {erros.map((mensagem) => (
-                          <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--erro">
-                            <i className="pi pi-times-circle" aria-hidden="true" />{mensagem}
-                          </span>
-                        ))}
-                        {avisos.map((mensagem) => (
-                          <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--aviso">
-                            <i className="pi pi-exclamation-triangle" aria-hidden="true" />{mensagem}
-                          </span>
-                        ))}
-                        {!erros.length && !avisos.length ? (
-                          <span className="prototype-ferias-lote-tag prototype-ferias-lote-tag--ok">
-                            <i className="pi pi-check" aria-hidden="true" />Ok
-                          </span>
-                        ) : null}
-                      </td>
-                    ) : null}
+                    <td>
+                      {erros.map((mensagem) => (
+                        <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--erro">
+                          <i className="pi pi-times-circle" aria-hidden="true" />{mensagem}
+                        </span>
+                      ))}
+                      {avisos.map((mensagem) => (
+                        <span key={mensagem} className="prototype-ferias-lote-tag prototype-ferias-lote-tag--aviso">
+                          <i className="pi pi-exclamation-triangle" aria-hidden="true" />{mensagem}
+                        </span>
+                      ))}
+                      {!erros.length && !avisos.length ? (
+                        <span className="prototype-ferias-lote-tag prototype-ferias-lote-tag--ok">
+                          <i className="pi pi-check" aria-hidden="true" />Ok
+                        </span>
+                      ) : null}
+                    </td>
                   </tr>
                 );
               })}
@@ -3496,7 +3436,7 @@ export function FormularioColetiva({
                     {modoAgendamentoLote && (perfilLote === "GESTAO_UNEMAT" || perfilLote === "GESTAO_SECITEC")
                       ? "Após lançar, o lote fica aguardando validação da chefia na aba Avaliar e Aprovar."
                       : orgao === "SEDUC"
-                        ? "Após lançar, o lote será encaminhado à DRE para validação — aprovação em bloco, com possibilidade de reprovação individual."
+                        ? "Após lançar, o lote ficará disponível para validação em bloco pelo Aprovador, com possibilidade de reprovação individual por servidor."
                         : orgao === "UNEMAT"
                           ? "Após lançar, o lote ficará disponível para validação pela Gestão de Pessoas da UNEMAT."
                           : "Após lançar, o lote ficará disponível para validação pela Gestão de Pessoas da SECITEC."}
@@ -3539,7 +3479,6 @@ export function FormularioColetiva({
         )}
       </div>
       </>
-      )}
     </div>
   );
 }
@@ -3661,6 +3600,7 @@ export function FormularioLote({
       loteId,
       responsavelLancamento: "Usuário atual",
       lancadoEm: new Date().toLocaleString("pt-BR"),
+      historico: [{ situacao: "AGUARDANDO VALIDAÇÃO" as const, acao: "lancamento", data: new Date().toLocaleString("pt-BR"), responsavel: "Gestor", responsavelMatricula: USUARIO_ATOR_MOCK.Gestor.matricula, responsavelVinculo: USUARIO_ATOR_MOCK.Gestor.vinculo, documentos: [documento] }],
     }));
 
     setConfirmacao(`Lote lançado: ${novosRegistros.length} servidor(es) agendado(s) em ${formatarDataBr(dataInicio)}.`);
@@ -3899,6 +3839,7 @@ export function FormularioRecesso({
       : [],
   );
   const [periodoAquisitivoSelecionado, setPeriodoAquisitivoSelecionado] = useState(registroBase?.periodoAquisitivoInicio ?? "");
+  const [vinculoInfo, setVinculoInfo] = useState<{ indice: number; total: number } | null>(null);
   const [, setDataInicio] = useState("");
   const [parcelasResidente, setParcelasResidente] = useState<ParcelaFerias[]>(() => registroBase?.parcelas.map((parcela) => ({ ...parcela })) ?? []);
   const {
@@ -3946,7 +3887,8 @@ export function FormularioRecesso({
         registro.periodoAquisitivoInicio === periodoAquisitivoSelecionado &&
         registro.id !== registroBase?.id &&
         registro.situacao !== "CANCELADO" &&
-        registro.situacao !== "REPROVADO",
+        registro.situacao !== "REPROVADO" &&
+        registro.situacao !== "PRAZO EXPIRADO",
       )
       .flatMap((registro) => registro.parcelas),
     [matricula, periodoAquisitivoSelecionado, registroBase?.id],
@@ -3955,15 +3897,15 @@ export function FormularioRecesso({
   const saldoDisponivel = saldoTotalPeriodo === null ? null : Math.max(0, saldoTotalPeriodo - diasJaAgendados);
   const fimContrato = FIM_CONTRATO_RECESSO_MOCK[matricula];
 
-  // validarSolicitacaoRecesso: residente parcela de 10 a 30 dias (até 3 etapas); estagiário
-  // de 5 a 30 dias, sem limite de etapas na norma — mantemos o teto de 3 só por usabilidade.
+  // validarSolicitacaoRecesso: residente e estagiário usam os mesmos blocos fechados de
+  // parcela (10/15/20/30 dias) — nenhum vínculo aceita valor contínuo.
   const diasMinimoEtapa = 10;
   const diasMaximoEtapa = 30;
 
   const totalParceladoResidente = parcelasResidente.reduce((total, parcela) => total + parcela.dias, 0);
   const saldoRestanteEtapas = (saldoDisponivel ?? 0) - totalParceladoResidente;
   const opcoesDuracaoRecesso = useMemo(
-    () => [30,20,15,10].filter(d => d <= saldoRestanteEtapas && saldoRestanteEtapas - d !== 5),
+    () => [30, 20, 15, 10].filter((d) => d <= saldoRestanteEtapas && saldoRestanteEtapas - d !== 5),
     [saldoRestanteEtapas],
   );
   useEffect(() => {
@@ -3973,15 +3915,14 @@ export function FormularioRecesso({
   }, [opcoesDuracaoRecesso, draftDuracaoResidente, setRecessoGozoValue]);
 
   const draftFimResidente = calcularFim(draftInicioResidente, draftDuracaoResidente ?? 0);
-  // Antecedência mínima da PRÓXIMA etapa: estagiário sempre 30 dias; residente técnico 60 dias
-  // para a 1ª etapa e 45 para a 2ª/3ª (validarSolicitacaoRecesso).
-  const numeroProximaParcela = parcelasJaAgendadas.length + parcelasResidente.length + 1;
-  const antecedenciaMinimaProximaEtapa = ehEstagiario ? 30 : (numeroProximaParcela === 1 ? 60 : 45);
+  // Antecedência mínima da PRÓXIMA etapa: estagiário 30 dias (IN 007/2022); residente técnico
+  // 15 dias para qualquer parcela (IN 002/2024/SEPLAG) — ver validarSolicitacaoRecesso.
+  const antecedenciaMinimaProximaEtapa = ehEstagiario ? 30 : 15;
   const dataMinimaProximaEtapa = adicionarDiasISO(dataLocalISO(), antecedenciaMinimaProximaEtapa);
 
-  // RN-01/RN-02/RN-03: concomitância verificada assim que a data é escolhida (sem esperar o
-  // clique em "Adicionar etapa") e também para as etapas já adicionadas — senão o alerta
-  // desaparece quando o rascunho é limpo após o "Adicionar".
+  // RN003: concomitância verificada assim que a data é escolhida (sem esperar o clique em
+  // "Adicionar etapa") e também para as etapas já adicionadas — senão o aviso desaparece
+  // quando o rascunho é limpo após o "Adicionar". Qualquer sobreposição bloqueia.
   useEffect(() => {
     if (!matricula || somenteLeitura) {
       setAlertaConcomitancia("");
@@ -3992,13 +3933,11 @@ export function FormularioRecesso({
       : parcelasResidente;
     for (const candidato of candidatos) {
       const conflito = conflitoFeriasServidor(matricula, candidato.inicio, candidato.fim);
-      if (conflito && !feriasEmAndamento(conflito)) {
-        setAlertaConcomitancia(
-          `Servidor possui férias/recesso agendado de ${periodoUsufruto(conflito)}. Verifique a necessidade de reagendamento (RN-02).`,
-        );
+      if (conflito) {
+        setAlertaConcomitancia(mensagemConflitoAgendamento(conflito));
         return;
       }
-      if (!conflito) {
+      {
         const ajuste = ajustarInicioParaAposLts(candidato.inicio, candidato.dias, matricula);
         if (ajuste.ajustado) {
           setAlertaConcomitancia(
@@ -4049,24 +3988,13 @@ export function FormularioRecesso({
       return;
     }
     const fimEtapa = calcularFim(draftInicioResidente, dias);
-    // RN-01/RN-02/RN-03: concomitância com outra férias/recesso ativo do mesmo servidor.
+    // RN003: qualquer sobreposição com outro agendamento do mesmo servidor bloqueia o lançamento.
     const conflito = conflitoFeriasServidor(matricula, draftInicioResidente, fimEtapa);
     if (conflito) {
-      if (feriasEmAndamento(conflito)) {
-        setErro(
-          `Servidor possui férias/recesso em andamento (${periodoUsufruto(conflito)}). ` +
-            "Não é possível lançar período sobreposto a um usufruto já iniciado (RN-03).",
-        );
-        return;
-      }
-      setAlertaConcomitancia(
-        `Servidor possui férias/recesso agendado de ${periodoUsufruto(conflito)}. Verifique a necessidade de reagendamento (RN-02).`,
-      );
-      setParcelasResidente((atual) => [
-        ...atual,
-        { id: gerarId(), dias, inicio: draftInicioResidente, fim: fimEtapa },
-      ]);
-    } else {
+      setErro(mensagemConflitoAgendamento(conflito));
+      return;
+    }
+    {
       // RN-03: se a LTS já está vigente no período, a data de início é ajustada automaticamente
       // para o dia seguinte ao fim da LTS — não bloqueia o lançamento, mas não deixa sobrepor.
       const ajuste = ajustarInicioParaAposLts(draftInicioResidente, dias, matricula);
@@ -4146,6 +4074,11 @@ export function FormularioRecesso({
     setRecessoGozoValue("dataInicio", "");
     setServidorEncontrado(true);
     setAlertaConcomitancia("");
+    const todosVinculos = vinculosDoServidor(servidor.nome);
+    const indice = todosVinculos.findIndex(
+      (vinculo) => vinculo.matricula === servidor.matricula && vinculo.tipoVinculo === servidor.tipoVinculo,
+    ) + 1;
+    setVinculoInfo({ indice: Math.max(indice, 1), total: todosVinculos.length });
   };
 
   const descricaoServidorRecesso = (servidor: ServidorMock) => `${servidor.matricula} - ${servidor.nome}`;
@@ -4295,18 +4228,20 @@ export function FormularioRecesso({
       cargoGestao: false,
       tipoVinculo,
       tipo: "Recesso",
-      origem: "PORTALSERVIDOR",
+      // Lançamento pelo SIGEP (RH/Gestão de Pessoas) nasce diretamente "Em Aberto" (Agendada),
+      // sem fila de validação — mesma regra do lançamento Individual.
+      origem: "SIGEP",
       periodoAquisitivoInicio: periodoAquisitivoSelecionado,
       periodoAquisitivoFim: "",
       parcelas: parcelasCalculadas,
-      situacao: "AGUARDANDO VALIDAÇÃO",
-      dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(),
+      situacao: "EM ABERTO",
       bloqueioAuxilioTransporte,
       emailChefiaEnviado: !ehEstagiario,
       substitutos: [],
       documentos: [documento],
       responsavelLancamento: "Usuário atual",
       lancadoEm: new Date().toLocaleString("pt-BR"),
+      historico: [{ situacao: "EM ABERTO" as const, acao: "lancamento", data: new Date().toLocaleString("pt-BR"), responsavel: "Gestor", responsavelMatricula: USUARIO_ATOR_MOCK.Gestor.matricula, responsavelVinculo: USUARIO_ATOR_MOCK.Gestor.vinculo, documentos: [documento] }],
     });
   };
 
@@ -4362,8 +4297,16 @@ export function FormularioRecesso({
                 <strong>{servidorNome}</strong>
               </div>
               <div>
-                <span className="prototype-ferias-indicador-rotulo">Matrícula</span>
-                <strong>{matricula}</strong>
+                <span className="prototype-ferias-indicador-rotulo">Matrícula / Vínculo</span>
+                <strong>
+                  {vinculoInfo ? (
+                    <span className="prototype-ferias-vinculo-ativo-badge">
+                      {matricula} · Vínculo {vinculoInfo.indice}
+                    </span>
+                  ) : (
+                    matricula
+                  )}
+                </strong>
               </div>
               <div>
                 <span className="prototype-ferias-indicador-rotulo">Cargo / Função</span>
@@ -4408,6 +4351,7 @@ export function FormularioRecesso({
                   setRecessoGozoValue("duracao", 30);
                   setRecessoGozoValue("dataInicio", "");
                   setServidorEncontrado(false);
+                  setVinculoInfo(null);
                 }}
               />
             ) : null}
@@ -4645,6 +4589,105 @@ export function FormularioRecesso({
   );
 }
 
+/** Ícone/cor da linha do tempo, por situação do evento — mesma paleta usada nos badges da tabela. */
+function iconeHistorico(situacao: SituacaoFerias): { icone: string; classe: string } {
+  if (situacao === "EM ABERTO" || situacao === "QUITADO") return { icone: "pi pi-check", classe: "is-sucesso" };
+  if (situacao === "AGUARDANDO VALIDAÇÃO") return { icone: "pi pi-clock", classe: "is-pendente" };
+  if (situacao === "SUSPENSO") return { icone: "pi pi-pause", classe: "is-aviso" };
+  return { icone: "pi pi-times", classe: "is-erro" };
+}
+
+function ModalHistoricoRegistro({
+  registro,
+  onFechar,
+}: Readonly<{ registro: FeriasRegistro; onFechar: () => void }>) {
+  const eventos = registro.historico?.length
+    ? registro.historico
+    : [{ situacao: registro.situacao, acao: "lancamento", data: registro.lancadoEm, responsavel: registro.responsavelLancamento, documentos: registro.documentos } as HistoricoEventoFerias];
+  const ordenados = [...eventos].reverse();
+  const [indiceSelecionado, setIndiceSelecionado] = useState(0);
+  const selecionado = ordenados[indiceSelecionado];
+
+  return (
+    <ModalSeplag
+      visible
+      fechar={onFechar}
+      titulo={`Histórico — ${registro.servidorNome} · Matrícula ${registro.matricula} / ${registro.numeroVinculo ?? "1"} · ${registro.tipoVinculo}`}
+      hideFooter
+      tamanho="920px"
+    >
+      <div className="prototype-ferias-historico-grid">
+        <section className="prototype-ferias-historico-coluna">
+          <h4>
+            <i className="pi pi-history" aria-hidden="true" /> Histórico de situações
+          </h4>
+          <p className="prototype-ferias-historico-legenda">Situações registradas ao longo do ciclo de vida da solicitação.</p>
+          <ol className="prototype-ferias-historico-linha-tempo">
+            {ordenados.map((evento, indice) => {
+              const { icone, classe } = iconeHistorico(evento.situacao);
+              return (
+                <li key={`${evento.data}-${indice}`}>
+                  <button
+                    type="button"
+                    className={`prototype-ferias-historico-item ${classe}${indice === indiceSelecionado ? " is-selecionado" : ""}`}
+                    onClick={() => setIndiceSelecionado(indice)}
+                  >
+                    <span className="prototype-ferias-historico-ponto"><i className={icone} aria-hidden="true" /></span>
+                    <span className="prototype-ferias-historico-texto">
+                      <strong>{rotuloAcaoHistorico(evento.acao, evento.situacao)}</strong>
+                      <small>Data do efeito {formatarDataBr(evento.data.slice(0, 10)) || evento.data}</small>
+                      <small className="prototype-ferias-historico-rodape">
+                        <span className="prototype-ferias-historico-ator">
+                          <i className="pi pi-user" aria-hidden="true" /> {evento.responsavel}
+                          {evento.responsavelMatricula ? ` · Matrícula ${evento.responsavelMatricula} / ${evento.responsavelVinculo}` : ""}
+                        </span>
+                        {" "}· registrado em {evento.data}
+                      </small>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+        <section className="prototype-ferias-historico-coluna">
+          <h4>
+            <i className="pi pi-comment" aria-hidden="true" /> Justificativa da situação
+          </h4>
+          <p className="prototype-ferias-historico-legenda">
+            {rotuloAcaoHistorico(selecionado.acao, selecionado.situacao)} · Data do efeito {selecionado.data}
+          </p>
+          <p className="prototype-ferias-historico-justificativa">
+            {selecionado.justificativa?.trim() || "Sem justificativa registrada para esta situação."}
+          </p>
+
+          <h4>
+            <i className="pi pi-folder" aria-hidden="true" /> Documentos da situação
+          </h4>
+          <p className="prototype-ferias-historico-legenda">
+            {rotuloAcaoHistorico(selecionado.acao, selecionado.situacao)} · Data do efeito {selecionado.data}
+          </p>
+          {selecionado.documentos?.length ? (
+            <table className="prototype-ferias-table prototype-ferias-historico-documentos">
+              <thead><tr><th>Documento</th><th>Ações</th></tr></thead>
+              <tbody>
+                {selecionado.documentos.map((documento) => (
+                  <tr key={documento.id}>
+                    <td>{documento.nome}</td>
+                    <td><DownloadDocumentoFerias documento={documento} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="prototype-ferias-historico-justificativa">Nenhum documento anexado nesta situação.</p>
+          )}
+        </section>
+      </div>
+    </ModalSeplag>
+  );
+}
+
 function ModalGerenciarSubstituicao({
   registro,
   onFechar,
@@ -4827,22 +4870,6 @@ const STATUS_META: Record<AcaoStatus, { titulo: string; descricao: string; sever
     botao: "Cancelar férias",
     novaSituacao: "CANCELADO",
   },
-  forcarReabertura: {
-    titulo: "Forçar reabertura (financeiro pago)",
-    descricao: "Este agendamento já envolveu repasses financeiros (folha homologada/paga). Ação exclusiva do Perfil Aprovador — ao confirmar, registre manualmente o estorno na folha do mês seguinte.",
-    severity: "warning",
-    icone: "pi pi-unlock",
-    botao: "Forçar reabertura",
-    novaSituacao: "AGUARDANDO VALIDAÇÃO",
-  },
-  forcarCancelamento: {
-    titulo: "Forçar cancelamento (financeiro pago)",
-    descricao: "Este agendamento já envolveu repasses financeiros (folha homologada/paga). Ação exclusiva do Perfil Aprovador — ao confirmar, registre manualmente o estorno na folha do mês seguinte.",
-    severity: "warning",
-    icone: "pi pi-unlock",
-    botao: "Forçar cancelamento",
-    novaSituacao: "CANCELADO",
-  },
 };
 
 function ModalConfirmarStatus({
@@ -4865,13 +4892,13 @@ function ModalConfirmarStatus({
   loteId?: string;
 }>) {
   const meta = STATUS_META[acao];
-  const exigeJustificativa = acao === "rejeitar" || acao === "cancelar" || acao === "suspender" || acao === "reativar" || acao === "forcarReabertura" || acao === "forcarCancelamento";
-  const exigeAnexo = acao === "cancelar" || acao === "suspender" || acao === "reativar" || acao === "forcarReabertura" || acao === "forcarCancelamento";
+  const exigeJustificativa = acao === "rejeitar" || acao === "cancelar" || acao === "suspender" || acao === "reativar";
+  const exigeAnexo = acao === "cancelar" || acao === "suspender" || acao === "reativar";
   // RN-04: suspensão já em andamento só por calamidade pública ou convocação pela administração
   // — exige número de portaria/ofício em vez de justificativa livre. Cancelamento (RN 1) não
   // chega mais a esse ponto: podeCancelar já exige hoje < início do usufruto.
   const exigePortaria = acao === "suspender" && feriasEmAndamento(registro);
-  const ehReabertura = acao === "reativar" || acao === "forcarReabertura";
+  const ehReabertura = acao === "reativar";
   const totalDiasOriginal = registro.parcelas.reduce((total, parcela) => total + parcela.dias, 0);
   const [documento, setDocumento] = useState<DocumentoFerias | null>(null);
   const [justificativa, setJustificativa] = useState("");
@@ -4899,11 +4926,11 @@ function ModalConfirmarStatus({
         setErro(`Saldo insuficiente para reabrir: restam ${saldoRestantePeriodo} dia(s) disponíveis no período aquisitivo — outras solicitações já consumiram parte do saldo liberado pelo cancelamento/suspensão —, mas o agendamento original tinha ${totalDiasOriginal} dia(s).`);
         return;
       }
-      // RN reabertura 3.1: a nova data não pode conflitar com outro agendamento ativo nem
-      // com LTS vigente do servidor (mesmas checagens do lançamento original).
+      // RN reabertura 3.1 / RN003: a nova data não pode conflitar com outro agendamento ativo
+      // nem com LTS vigente do servidor (mesmas checagens do lançamento original).
       const conflito = conflitoFeriasServidor(registro.matricula, novaDataInicioIso, novaDataFimIso, registro.id);
       if (conflito) {
-        setErro(`Servidor possui férias/recesso agendado de ${periodoUsufruto(conflito)}. Escolha outra data de início para a reabertura (RN-02).`);
+        setErro(mensagemConflitoAgendamento(conflito));
         return;
       }
       const conflitoLts = conflitoLtsServidor(registro.matricula, novaDataInicioIso, novaDataFimIso);

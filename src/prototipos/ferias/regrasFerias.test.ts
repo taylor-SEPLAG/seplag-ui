@@ -36,7 +36,9 @@ it('exige seis meses completos para estagiário e doze para residente', () => {
   expect(validarSolicitacaoRecesso({...base,tipo_vinculo:'RESIDENTE',data_inicio_recesso:'2027-01-09'}).erro_codigo).toBe('CARENCIA_PERIODO_AQUISITIVO');
   expect(validarSolicitacaoRecesso({...base,tipo_vinculo:'RESIDENTE',data_inicio_recesso:'2027-01-10'}).sucesso).toBe(true);
 });
-it('rejeita durações arbitrárias e sobra de cinco dias no recesso', () => {
-  expect(validarSolicitacaoRecesso({...base,quantidade_dias_solicitados:12}).sucesso).toBe(false);
+it('rejeita durações fora dos blocos permitidos e sobra de cinco dias no recesso', () => {
+  // Residente e Estagiário usam os mesmos blocos fechados (10/15/20/30) — nenhum valor contínuo.
+  expect(validarSolicitacaoRecesso({...base,quantidade_dias_solicitados:12}).erro_codigo).toBe('PARCELA_ABAIXO_DO_MINIMO');
+  expect(validarSolicitacaoRecesso({...base,quantidade_dias_solicitados:3}).erro_codigo).toBe('PARCELA_ABAIXO_DO_MINIMO');
   expect(validarSolicitacaoRecesso({...base,saldo_dias_disponivel:20}).sucesso).toBe(false);
 });
