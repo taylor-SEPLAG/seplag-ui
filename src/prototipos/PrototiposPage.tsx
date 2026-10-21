@@ -1,4 +1,5 @@
 import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
+import { PerfilVariacaoHeaderContext } from './PerfilVariacaoHeader';
 import type { SituacaoCertame } from "./controlePss/certame/types";
 import { FOLHA_PAGINA_INICIAL_PATH } from './paginaInicial/folhaModel';
 import { useControlePssStore } from "./controlePss/controlePssStore";
@@ -1091,8 +1092,10 @@ export function PrototypeSystemPage({
   nomeApresentacao,
   profileExtraActions,
 }: Readonly<PrototypeSystemPageProps>) {
+  const [perfilHeaderDestino, setPerfilHeaderDestino] = useState<HTMLDivElement | null>(null);
   const usarLayoutSigep = ["GESTÃO DE PESSOAS", "SIGEP", "FOLHA"].includes(nomeSistema);
   return (
+    <PerfilVariacaoHeaderContext.Provider value={perfilHeaderDestino}>
     <div className="prototype-shell">
       <LayoutSeplag
         nomeSistema={nomeSistema}
@@ -1107,6 +1110,7 @@ export function PrototypeSystemPage({
         nomeApresentacao={nomeApresentacao ?? USUARIO_SIGEP_LOGADO.nome}
         avatarSrc={usarLayoutSigep ? avatarSigep : undefined}
         profileExtraActions={profileExtraActions}
+        topbarExtraContent={usarLayoutSigep ? <div className="sigep-profile-slot" ref={setPerfilHeaderDestino} /> : undefined}
         numrVinculoAtual={2}
         vinculos={vinculos}
         onLogout={() => {}}
@@ -1121,6 +1125,7 @@ export function PrototypeSystemPage({
         )}
       </LayoutSeplag>
     </div>
+    </PerfilVariacaoHeaderContext.Provider>
   );
 }
 
@@ -12968,7 +12973,7 @@ export function PrototiposEfetivoExercicioPage() {
           }
         >
           <div className="prototype-ingressos-teste-content prototype-efetivo-exercicio-content">
-            <div className="prototype-ingresso-profile-heading"><p className="prototype-ingressos-teste-support">Acompanhe os candidatos que aguardam o registro do efetivo exercício.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} /></div>
+            <p className="prototype-ingressos-teste-support">Acompanhe os candidatos que aguardam o registro do efetivo exercício.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} />
             {feedbackFinalizacaoEfetivo ? (
               <div className="prototype-efetivo-finalizacao-feedback" role="status">
                 <i className="pi pi-check-circle" aria-hidden="true" />
@@ -14363,7 +14368,7 @@ export function PrototiposIngressosTestePage() {
           }
         >
           <div className="prototype-ingressos-teste-content">
-          <div className="prototype-ingresso-profile-heading"><p className="prototype-ingressos-teste-support">Acompanhe concursos e processos seletivos disponíveis para ingresso.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} /></div>
+          <p className="prototype-ingressos-teste-support">Acompanhe concursos e processos seletivos disponíveis para ingresso.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} />
           <hr className="prototype-ingressos-teste-header-divider" />
           <section className="prototype-ingressos-teste-indicators" aria-label="Indicadores da gestão de ingresso">
             {indicadoresIngressoTeste.map((indicador) => (
@@ -15543,7 +15548,7 @@ export function PrototiposIngressosTesteDetalhePage() {
           cols="12"
           cardHeaderClassNames="prototype-regime-card prototype-ingressos-card prototype-ingressos-card--pss"
         >
-          <div className="prototype-ingresso-profile-heading"><span /><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoAnalise} onOrgaoChange={setOrgaoAtuacaoAnalise} /></div>
+          <SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoAnalise} onOrgaoChange={setOrgaoAtuacaoAnalise} />
           {(
             <section className={`prototype-ingressos-integration-notice ${houveFalhaNaUltimaTentativa ? "is-error" : ultimaIntegracaoBemSucedida && !quantidadeNovosCandidatos ? "is-no-new" : ultimaIntegracaoBemSucedida ? "is-updated" : "is-waiting"}`} aria-live="polite" aria-label="Resumo da integração de candidatos">
               <span className="prototype-ingressos-integration-notice-icon" aria-hidden="true"><i className={`pi ${houveFalhaNaUltimaTentativa ? "pi-exclamation-triangle" : ultimaIntegracaoBemSucedida ? "pi-info-circle" : "pi-clock"}`} /></span>
@@ -16777,7 +16782,7 @@ export function PrototiposIngressosPage() {
     >
       <div className="prototype-page-content prototype-page-content--white">
         <CardSeplag title="Gestão de Ingresso" cols="12" cardHeaderClassNames="prototype-ingressos-card">
-          <div className="prototype-ingresso-profile-heading"><span /><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={(perfil) => { setHistoricoIngressoSelecionadoId(null); setPerfilVariacao(perfil); }} orgao={orgaoAtuacaoAnalise} onOrgaoChange={(orgao) => { setHistoricoIngressoSelecionadoId(null); setOrgaoAtuacaoAnalise(orgao); }} /></div>
+          <SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={(perfil) => { setHistoricoIngressoSelecionadoId(null); setPerfilVariacao(perfil); }} orgao={orgaoAtuacaoAnalise} onOrgaoChange={(orgao) => { setHistoricoIngressoSelecionadoId(null); setOrgaoAtuacaoAnalise(orgao); }} />
           <section className="prototype-ingressos-dashboard">
             <div className="prototype-ingressos-dashboard-grid">
               {situacoesDashboard.map((situacao) => {
