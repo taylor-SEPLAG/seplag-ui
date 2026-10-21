@@ -154,7 +154,7 @@ it("exibe os vínculos autorizados em uma lista no modal", () => {
   montar();
   fireEvent.click(
     screen.getByRole("button", {
-      name: "Ver vínculos autorizados do evento 1",
+      name: "Ver vínculos autorizados da ocorrência 1",
     }),
   );
   const modal = within(
@@ -214,7 +214,7 @@ it("clona com novo identificador, exige código único e preserva o original", (
 });
 it("remove a inativação manual das ações", () => {
   montar();
-  fireEvent.click(screen.getByRole("button", { name: "Ações do evento 1" }));
+  fireEvent.click(screen.getByRole("button", { name: "Ações da ocorrência 1" }));
   expect(screen.queryByText("Inativar")).toBeNull();
 });
 it("inativa ao atingir a data fim e preserva datas futuras", () => {
@@ -256,7 +256,7 @@ it("abre a clonagem preenchida e salva uma nova parametrização", async () => {
   expect(carregarEventos()).toHaveLength(6);
   expect(
     within(
-      screen.getByRole("table", { name: "Eventos parametrizados" }),
+      screen.getByRole("table", { name: "Ocorrências parametrizadas" }),
     ).getByText("6"),
   ).toBeTruthy();
 });
@@ -311,24 +311,28 @@ it("pagina os resultados e reinicia a página ao combinar filtros", () => {
   montar();
   expect(
     within(
-      screen.getByRole("table", { name: "Eventos parametrizados" }),
+      screen.getByRole("table", { name: "Ocorrências parametrizadas" }),
     ).getAllByRole("row"),
   ).toHaveLength(11);
   fireEvent.click(
-    screen.getByRole("button", { name: "Próxima página de eventos" }),
+    screen.getByRole("button", { name: "Próxima página de ocorrências" }),
   );
   expect(
     within(
-      screen.getByRole("table", { name: "Eventos parametrizados" }),
+      screen.getByRole("table", { name: "Ocorrências parametrizadas" }),
     ).getAllByRole("row"),
   ).toHaveLength(3);
-  fireEvent.change(screen.getByLabelText("Código ou Nome do Evento"), {
+  fireEvent.change(screen.getByLabelText("Código"), {
     target: { value: "311" },
   });
   expect(screen.getByText("311")).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Nome da Ocorrência"), { target: { value: "Exemplo 10" } });
+  expect(screen.getByText("Nenhum registro encontrado para os filtros informados.")).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Nome da Ocorrência"), { target: { value: "Exemplo 11" } });
+  expect(screen.getByText("311")).toBeTruthy();
   expect(
     screen
-      .getByRole("button", { name: "Página 1 de eventos" })
+      .getByRole("button", { name: "Página 1 de ocorrências" })
       .getAttribute("aria-current"),
   ).toBe("page");
   fireEvent.change(screen.getByLabelText("Tipo"), {
@@ -341,13 +345,13 @@ it("pagina os resultados e reinicia a página ao combinar filtros", () => {
 
 async function acaoEvento(codigo: string, acao: string) {
   fireEvent.click(
-    screen.getByRole("button", { name: "Ações do evento " + codigo }),
+    screen.getByRole("button", { name: "Ações da ocorrência " + codigo }),
   );
   fireEvent.click(await screen.findByRole("menuitem", { name: acao }));
 }
 it("visualiza os detalhes do registro sem alterar seus dados", () => {
   montar();
-  fireEvent.click(screen.getByRole("button", { name: "Visualizar Evento 1" }));
+  fireEvent.click(screen.getByRole("button", { name: "Visualizar Ocorrência 1" }));
   expect(screen.getAllByText('Visualizar Parametrização').length).toBeGreaterThan(0);
   const campos = screen.getByRole('group', {name: 'Parametrização em modo de leitura'}) as HTMLFieldSetElement;
   expect(campos.disabled).toBe(true);
@@ -359,11 +363,11 @@ it("visualiza os detalhes do registro sem alterar seus dados", () => {
   expect(screen.getByRole('region', {name: 'Efeitos financeiros: Nomeado Efetivo'})).toBeTruthy();
   expect(localStorage.getItem(STORAGE_LICENCAS)).toBeNull();
   fireEvent.click(screen.getByRole('button', {name: 'Voltar'}));
-  expect(screen.getByRole('table', {name: 'Eventos parametrizados'})).toBeTruthy();
+  expect(screen.getByRole('table', {name: 'Ocorrências parametrizadas'})).toBeTruthy();
 });
 it("mostra as ações correspondentes à situação de cada registro", async () => {
   montar();
-  fireEvent.click(screen.getByRole("button", { name: "Ações do evento 5" }));
+  fireEvent.click(screen.getByRole("button", { name: "Ações da ocorrência 5" }));
   expect(await screen.findByRole("menuitem", { name: "Editar" })).toBeTruthy();
   expect(screen.getByRole("menuitem", { name: "Duplicar" })).toBeTruthy();
   expect(screen.getByRole("menuitem", { name: "Reativar" })).toBeTruthy();

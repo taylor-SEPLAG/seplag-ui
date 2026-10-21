@@ -312,7 +312,7 @@ export function ParametrizacaoLicencasFormPage({
   if (id && !original)
     return (
       <Ambiente titulo={titulo}>
-        <p className="v2v-empty">Evento não encontrado.</p>
+        <p className="v2v-empty">Ocorrência não encontrada.</p>
         <Link className="v2v-secondary" to={BASE}>
           Voltar
         </Link>
@@ -414,8 +414,8 @@ export function ParametrizacaoLicencasFormPage({
             <Secao
               id="pl-identificacao"
               icone="pi-file"
-              titulo="Identificação do Evento e Vigência"
-              descricao="Informe a identificação, a classificação e o período de validade do evento."
+              titulo="Identificação da Ocorrência e Vigência"
+              descricao="Informe a identificação, a classificação e o período de validade da ocorrência."
             >
               <div className="pl-config-grid">
                 <label className="pl-col-2">

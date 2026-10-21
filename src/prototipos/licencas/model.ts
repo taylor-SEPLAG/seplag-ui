@@ -114,12 +114,16 @@ export function configuracaoDoEvento(
       };
 }
 export interface FiltrosLicencas {
+  codigo?: string;
+  nome?: string;
   busca: string;
   categoria: string;
   natureza: string;
   situacao: string;
 }
 export const filtrosVazios: FiltrosLicencas = {
+  codigo: "",
+  nome: "",
   busca: "",
   categoria: "",
   natureza: "",
@@ -205,6 +209,10 @@ const normalizar = (texto: string) =>
 export function filtrarEventos(registros: EventoLicenca[], f: FiltrosLicencas) {
   return registros.filter(
     (e) =>
+      (!f.codigo?.trim() ||
+        normalizar(e.codigo).includes(normalizar(f.codigo.trim()))) &&
+      (!f.nome?.trim() ||
+        normalizar(e.nome).includes(normalizar(f.nome.trim()))) &&
       (!f.busca.trim() ||
         normalizar(e.codigo + " " + e.nome).includes(
           normalizar(f.busca.trim()),

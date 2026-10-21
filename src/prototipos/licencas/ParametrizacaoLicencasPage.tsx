@@ -49,7 +49,7 @@ function AcoesEvento({
       <button
         type="button"
         title="Visualizar"
-        aria-label={`Visualizar Evento ${evento.codigo}`}
+        aria-label={`Visualizar Ocorrência ${evento.codigo}`}
         onClick={visualizar}
       >
         <i className="pi pi-eye" aria-hidden="true" />
@@ -57,7 +57,7 @@ function AcoesEvento({
       <button
         type="button"
         title="Mais ações"
-        aria-label={`Ações do evento ${evento.codigo}`}
+        aria-label={`Ações da ocorrência ${evento.codigo}`}
         aria-haspopup="menu"
         aria-controls={`pl-acoes-${evento.id}`}
         aria-expanded={aberto}
@@ -157,7 +157,7 @@ export function ParametrizacaoLicencasPage() {
       localStorage.setItem(STORAGE_LICENCAS, JSON.stringify(novos));
       setRegistros(novos);
       setMensagem(
-        `Evento ${confirmacao.codigo} ${estado === "Ativo" ? "reativado" : "inativado"} com sucesso.`,
+        `Ocorrência ${confirmacao.codigo} ${estado === "Ativo" ? "reativada" : "inativada"} com sucesso.`,
       );
       setConfirmacao(null);
       setErro("");
@@ -171,9 +171,12 @@ export function ParametrizacaoLicencasPage() {
         Gerencie os parâmetros de licenças, afastamentos e ausências aplicáveis
         aos servidores.
       </p>
-      <section className="v2v-kpis pl-kpis" aria-label="Indicadores de eventos">
+      <section
+        className="v2v-kpis pl-kpis"
+        aria-label="Indicadores de ocorrências"
+      >
         {[
-          "Total de Eventos Cadastrados",
+          "Total de Ocorrências Cadastradas",
           "Licenças",
           "Afastamentos",
           "Ausências",
@@ -210,11 +213,19 @@ export function ParametrizacaoLicencasPage() {
         aria-label="Filtros de consulta"
       >
         <label>
-          Código ou Nome do Evento
+          Código
           <input
-            value={filtros.busca}
-            onChange={(e) => alterar("busca", e.target.value)}
-            placeholder="Buscar por código ou nome"
+            value={filtros.codigo}
+            onChange={(e) => alterar("codigo", e.target.value)}
+            placeholder="Buscar por código"
+          />
+        </label>
+        <label>
+          Nome da Ocorrência
+          <input
+            value={filtros.nome}
+            onChange={(e) => alterar("nome", e.target.value)}
+            placeholder="Buscar por nome"
           />
         </label>
         <label>
@@ -283,7 +294,7 @@ export function ParametrizacaoLicencasPage() {
       <div className="pl-grid-scroll">
         <table
           className="v2v-table pl-table"
-          aria-label="Eventos parametrizados"
+          aria-label="Ocorrências parametrizadas"
         >
           <thead>
             <tr>
@@ -292,7 +303,7 @@ export function ParametrizacaoLicencasPage() {
                 "Ocorrência",
                 "Tipo",
                 "Vínculos Autorizados",
-                "Duração Máxima",
+                "Prazo Máximo",
                 "Parentesco?",
                 "Recorrência?",
                 "Situação",
@@ -323,7 +334,7 @@ export function ParametrizacaoLicencasPage() {
                   <button
                     type="button"
                     className="pl-vinculos-link"
-                    aria-label={`Ver vínculos autorizados do evento ${e.codigo}`}
+                    aria-label={`Ver vínculos autorizados da ocorrência ${e.codigo}`}
                     onClick={() => setVinculosEvento(e)}
                   >
                     {e.vinculos.length}{" "}
@@ -360,7 +371,7 @@ export function ParametrizacaoLicencasPage() {
         </table>
       </div>
       <PaginacaoV2
-        nome="eventos"
+        nome="ocorrências"
         pagina={atual}
         totalPaginas={totalPaginas}
         porPagina={porPagina}
@@ -396,8 +407,8 @@ export function ParametrizacaoLicencasPage() {
         visible={Boolean(confirmacao)}
         titulo={
           confirmacao?.situacao === "Ativo"
-            ? "Inativar Evento"
-            : "Reativar Evento"
+            ? "Inativar Ocorrência"
+            : "Reativar Ocorrência"
         }
         fechar={() => setConfirmacao(null)}
         hideFooter

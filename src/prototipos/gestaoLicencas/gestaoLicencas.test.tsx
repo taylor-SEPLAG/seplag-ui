@@ -196,8 +196,8 @@ it("exibe a gestão sem abas nem seletor de perfil", () => {
     screen.queryByLabelText("Visualizando como"),
   ).toBeNull();
   for (const botao of screen.getAllByRole("button", {
-    name: /Ações adicionais de/,
+    name: /Ações de/,
   }))
-    expect((botao as HTMLButtonElement).disabled).toBe(true);
+    expect((botao as HTMLButtonElement).disabled).toBe(false);
   expect(screen.queryByRole("button", { name: /Diretrizes/ })).toBeNull();
 });

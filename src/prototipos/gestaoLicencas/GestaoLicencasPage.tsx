@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Menu } from "primereact/menu";
 import { useNavigate, useLocation } from "react-router-dom";
 import { carregarGestaoLicencas } from "./solicitacaoModel";
 import { CardSeplag } from "../../componentes/Card";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { PaginacaoV2 } from "../vinculos/VinculoV2Page";
-
-
 
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import {
@@ -22,7 +21,51 @@ import {
 import "../vinculos/vinculoV2.css";
 import "./gestaoLicencas.css";
 
-const indisponivel = "Funcionalidade indisponível nesta etapa.";
+function AcoesLicenca({ registro }: { registro: RegistroLicenca }) {
+  const navigate = useNavigate();
+  const menu = useRef<Menu>(null);
+  const [aberto, setAberto] = useState(false);
+  return (
+    <div className="gl-actions">
+      <button
+        type="button"
+        aria-label={`Visualizar licença de ${registro.nome}`}
+        title="Visualizar"
+        onClick={() =>
+          navigate(`${GESTAO_LICENCAS_PATH}/${registro.id}/visualizar`)
+        }
+      >
+        <i className="pi pi-eye" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        aria-label={`Ações de ${registro.nome}`}
+        title="Mais ações"
+        aria-haspopup="menu"
+        aria-controls={`gl-acoes-${registro.id}`}
+        aria-expanded={aberto}
+        onClick={(e) => menu.current?.toggle(e)}
+      >
+        <i className="pi pi-chevron-down" aria-hidden="true" />
+      </button>
+      <Menu
+        ref={menu}
+        popup
+        id={`gl-acoes-${registro.id}`}
+        onShow={() => setAberto(true)}
+        onHide={() => setAberto(false)}
+        model={[
+          {
+            label: "Editar",
+            icon: "pi pi-pencil",
+            command: () =>
+              navigate(`${GESTAO_LICENCAS_PATH}/${registro.id}/editar`),
+          },
+        ]}
+      />
+    </div>
+  );
+}
 function Situacao({ valor }: { valor: RegistroLicenca["situacao"] }) {
   return (
     <span
@@ -232,24 +275,7 @@ export function GestaoLicencasContent({
                     <Situacao valor={r.situacao} />
                   </td>
                   <td>
-                    <div className="gl-actions">
-                      <button
-                        type="button"
-                        aria-label={`Visualizar licença de ${r.nome}`}
-                        title="Visualizar"
-                        onClick={() => navigate(`${GESTAO_LICENCAS_PATH}/${r.id}/visualizar`)}
-                      >
-                        <i className="pi pi-eye" aria-hidden="true" />
-                      </button>
-                      <button
-                        type="button"
-                        disabled
-                        aria-label={`Ações adicionais de ${r.nome} indisponíveis`}
-                        title={indisponivel}
-                      >
-                        <i className="pi pi-chevron-down" aria-hidden="true" />
-                      </button>
-                    </div>
+                    <AcoesLicenca registro={r} />
                   </td>
                 </tr>
               ))}
@@ -275,7 +301,6 @@ export function GestaoLicencasContent({
           setPagina(1);
         }}
       />
-
     </div>
   );
 }

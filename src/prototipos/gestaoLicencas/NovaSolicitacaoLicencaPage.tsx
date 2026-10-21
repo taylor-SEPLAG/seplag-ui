@@ -23,7 +23,6 @@ import {
   carregarSolicitacoes,
   carregarGestaoLicencas,
   diasPeriodo,
-  servidoresSolicitacao,
   STORAGE_SOLICITACOES,
   totalMinutos,
   type SolicitacaoLocal,
@@ -36,13 +35,15 @@ function Secao({
   titulo,
   icone,
   children,
+  className = "",
 }: {
   titulo: string;
   icone: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="v2v-panel v2v-form-section">
+    <section className={`v2v-panel v2v-form-section ${className}`}>
       <header className="v2v-section-header">
         <i className={`pi ${icone}`} aria-hidden="true" />
         <h2>{titulo}</h2>
@@ -53,8 +54,9 @@ function Secao({
 }
 export function NovaSolicitacaoContent({
   registro,
-}: { registro?: RegistroLicenca } = {}) {
-  const visualizar = Boolean(registro);
+  editar = false,
+}: { registro?: RegistroLicenca; editar?: boolean } = {}) {
+  const visualizar = Boolean(registro) && !editar;
   const navigate = useNavigate();
   const [parametrizacoes] = useState(carregarEventos);
   const [servidor, setServidor] = useState<SolicitacaoLocal | null>(
@@ -75,14 +77,23 @@ export function NovaSolicitacaoContent({
             },
           ],
         }
-      : servidoresSolicitacao[0],
+      : null,
   );
   const [busca, setBusca] = useState("");
+  const [buscaAberta, setBuscaAberta] = useState(false);
+  const resultados = buscarServidores(busca);
   const [selecionados, setSelecionados] = useState<number[]>(
-    registro ? [registro.vinculo] : [2],
+    registro ? [registro.vinculo] : [],
   );
   const [eventoId, setEventoId] = useState(
-    registro?.solicitacao?.eventoId || "",
+    registro?.solicitacao?.eventoId ||
+      parametrizacoes.find(
+        (e) =>
+          e.nome === registro?.tipo ||
+          (registro?.tipo.startsWith("LTS") && e.id === "lic-101") ||
+          (registro?.tipo === "Luto / Falecimento" && e.id === "lic-135"),
+      )?.id ||
+      "",
   );
   const [inicio, setInicio] = useState(registro?.inicio || ""),
     [fimInformado, setFim] = useState(registro?.fim || "");
@@ -198,7 +209,7 @@ export function NovaSolicitacaoContent({
         "A parametrização não autoriza todos os tipos de vínculo selecionados.",
       );
     const novos: RegistroLicenca[] = vinculos.map((v) => ({
-      id: crypto.randomUUID(),
+      id: editar && registro ? registro.id : crypto.randomUUID(),
       matricula: servidor.matricula,
       vinculo: v.numero,
       tipoVinculo: v.tipo,
@@ -206,15 +217,15 @@ export function NovaSolicitacaoContent({
       lotacao: v.lotacao,
       nome: servidor.nome,
       cargo: v.cargo,
-      chefia: false,
+      chefia: editar && registro ? registro.chefia : false,
       inicio,
       fim,
       tipo: evento.nome,
       categoria: evento.natureza,
       dias,
       abrangencia: porHoras ? "POR HORAS" : "INTEGRAL",
-      origem: "SIGEP",
-      situacao: "Em andamento",
+      origem: editar && registro ? registro.origem : "SIGEP",
+      situacao: editar && registro ? registro.situacao : "Em andamento",
       solicitacao: {
         eventoId: evento.id,
         cpf: servidor.cpf,
@@ -227,7 +238,12 @@ export function NovaSolicitacaoContent({
     try {
       localStorage.setItem(
         STORAGE_SOLICITACOES,
-        JSON.stringify([...novos, ...carregarSolicitacoes()]),
+        JSON.stringify([
+          ...novos,
+          ...carregarSolicitacoes().filter(
+            (r) => !novos.some((n) => n.id === r.id),
+          ),
+        ]),
       );
       navigate(GESTAO_LICENCAS_PATH, { state: { solicitacaoSalva: true } });
     } catch {
@@ -248,49 +264,107 @@ export function NovaSolicitacaoContent({
         <Secao
           titulo="Identificação do Servidor e Seleção de Vínculo Funcional"
           icone="pi-user"
+          className="v2v-server-section"
         >
-          <div className="gl-busca-servidor">
+          <div
+            className="gl-busca-servidor"
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget))
+                setBuscaAberta(false);
+            }}
+          >
             <label>
               Buscar servidor
               <input
                 value={busca}
+                disabled={editar}
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={buscaAberta}
+                aria-controls="gl-servidores-encontrados"
+                onFocus={() => setBuscaAberta(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setBuscaAberta(false);
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setBuscaAberta(true);
+                    requestAnimationFrame(() =>
+                      document
+                        .querySelector<HTMLButtonElement>(
+                          "#gl-servidores-encontrados button",
+                        )
+                        ?.focus(),
+                    );
+                  }
+                }}
                 placeholder="Buscar servidor por matrícula, CPF ou nome..."
-                onChange={(e) => setBusca(e.target.value)}
+                onChange={(e) => {
+                  setBusca(e.target.value);
+                  setBuscaAberta(true);
+                  setServidor(null);
+                  setSelecionados([]);
+                }}
               />
             </label>
             <button
               type="button"
               className="v2v-secondary gl-limpar-servidor"
+              disabled={editar}
               onClick={() => {
                 setServidor(null);
                 setSelecionados([]);
                 setBusca("");
+                setBuscaAberta(false);
               }}
             >
               ✕ Limpar
             </button>
+            {buscaAberta && (
+              <div
+                id="gl-servidores-encontrados"
+                className="gl-resultados"
+                role="listbox"
+                aria-label="Servidores encontrados"
+              >
+                {resultados.map((s, indice) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    role="option"
+                    aria-selected={servidor?.id === s.id}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setBuscaAberta(false);
+                      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                        e.preventDefault();
+                        const opcoes =
+                          e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>(
+                            "button",
+                          );
+                        opcoes?.[
+                          (indice +
+                            (e.key === "ArrowDown" ? 1 : -1) +
+                            resultados.length) %
+                            resultados.length
+                        ]?.focus();
+                      }
+                    }}
+                    className="v2v-secondary"
+                    onClick={() => {
+                      setServidor(s);
+                      setSelecionados([]);
+                      setBusca(s.nome);
+                      setBuscaAberta(false);
+                    }}
+                  >
+                    {s.nome} · {s.matricula} · {s.cpf}
+                  </button>
+                ))}
+                {!resultados.length && (
+                  <p role="status">Nenhum servidor encontrado.</p>
+                )}
+              </div>
+            )}
           </div>
-          {busca && (
-            <div className="gl-resultados" aria-label="Servidores encontrados">
-              {buscarServidores(busca).map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  className="v2v-secondary"
-                  onClick={() => {
-                    setServidor(s);
-                    setSelecionados([]);
-                    setBusca("");
-                  }}
-                >
-                  {s.nome} · {s.matricula} · {s.cpf}
-                </button>
-              ))}
-              {!buscarServidores(busca).length && (
-                <p role="status">Nenhum servidor encontrado.</p>
-              )}
-            </div>
-          )}
           {servidor && (
             <>
               <div className="gl-servidor-resumo">
@@ -333,6 +407,7 @@ export function NovaSolicitacaoContent({
                     >
                       <input
                         type="checkbox"
+                        disabled={editar}
                         checked={selecionados.includes(v.numero)}
                         onChange={() =>
                           setSelecionados((s) =>
@@ -574,7 +649,7 @@ export function NovaSolicitacaoContent({
             disabled={lendoDocumentos}
           >
             <i className="pi pi-check" aria-hidden="true" />
-            Efetivar Lançamento
+            {editar ? "Salvar alterações" : "Efetivar Lançamento"}
           </button>
         )}
       </div>
@@ -583,16 +658,22 @@ export function NovaSolicitacaoContent({
 }
 export function NovaSolicitacaoLicencaPage({
   visualizar = false,
+  editar = false,
 }: {
   visualizar?: boolean;
+  editar?: boolean;
 }) {
   const { id } = useParams();
   const [registro] = useState(() =>
-    visualizar ? carregarGestaoLicencas().find((r) => r.id === id) : undefined,
+    visualizar || editar
+      ? carregarGestaoLicencas().find((r) => r.id === id)
+      : undefined,
   );
   const titulo = visualizar
     ? "Visualizar solicitação de licença"
-    : "Nova solicitação de licença";
+    : editar
+      ? "Editar solicitação de licença"
+      : "Nova solicitação de licença";
   return (
     <PrototypeSystemPage
       nomeSistema="GESTÃO DE PESSOAS"
@@ -619,13 +700,13 @@ export function NovaSolicitacaoLicencaPage({
           }
         >
           <div className="v2v-page gl-page">
-            {visualizar && !registro ? (
+            {(visualizar || editar) && !registro ? (
               <>
                 <p role="alert">Solicitação não encontrada.</p>
                 <a href={GESTAO_LICENCAS_PATH}>Voltar</a>
               </>
             ) : (
-              <NovaSolicitacaoContent registro={registro} />
+              <NovaSolicitacaoContent registro={registro} editar={editar} />
             )}
           </div>
         </CardSeplag>

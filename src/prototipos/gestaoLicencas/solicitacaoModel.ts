@@ -47,13 +47,46 @@ export const normalizarBusca = (s: string) =>
     .toLowerCase()
     .replace(/[.\-/]/g, "")
     .trim();
+export function listarServidores(): SolicitacaoLocal[] {
+  const servidores = new Map(
+    servidoresSolicitacao.map((s) => [
+      s.matricula,
+      { ...s, vinculos: [...s.vinculos] },
+    ]),
+  );
+  for (const r of carregarGestaoLicencas()) {
+    let servidor = servidores.get(r.matricula);
+    if (!servidor) {
+      servidor = {
+        id: r.matricula,
+        nome: r.nome,
+        matricula: r.matricula,
+        cpf: r.solicitacao?.cpf || "Não informado",
+        vinculos: [],
+      };
+      servidores.set(r.matricula, servidor);
+    }
+    if (!servidor.vinculos.some((v) => v.numero === r.vinculo)) {
+      servidor.vinculos.push({
+        numero: r.vinculo,
+        orgao: r.orgao,
+        tipo: r.tipoVinculo,
+        cargo: r.cargo,
+        lotacao: r.lotacao,
+        jornada: "Jornada não informada",
+      });
+    }
+  }
+  return [...servidores.values()];
+}
 export function buscarServidores(busca: string) {
   const termo = normalizarBusca(busca);
+  const servidores = listarServidores();
   return termo
-    ? servidoresSolicitacao.filter((s) =>
+    ? servidores.filter((s) =>
         normalizarBusca(`${s.nome} ${s.cpf} ${s.matricula}`).includes(termo),
       )
-    : [];
+    : servidores;
 }
 export function carregarSolicitacoes(): RegistroLicenca[] {
   try {
@@ -81,10 +114,13 @@ export function carregarSolicitacoes(): RegistroLicenca[] {
     return [];
   }
 }
-export const carregarGestaoLicencas = () => [
-  ...carregarSolicitacoes(),
-  ...registrosLicencas,
-];
+export const carregarGestaoLicencas = () => {
+  const salvos = carregarSolicitacoes();
+  return [
+    ...salvos,
+    ...registrosLicencas.filter((r) => !salvos.some((s) => s.id === r.id)),
+  ];
+};
 export function totalMinutos(inicio: string, fim: string) {
   const minutos = (hora: string) => {
     const [h, m] = hora.split(":").map(Number);
