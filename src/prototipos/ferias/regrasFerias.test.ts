@@ -23,6 +23,12 @@ it('usa calendário mensal da folha, inclusive virada de ano', () => {
   expect(prazoFechamentoFolha('2026-10-16',{'2026-10':'2026-10-20'})).toBe('2026-10-20');
 });
 
+it('antecipa o fechamento de dezembro para o dia 5, salvo calendário manual', () => {
+  expect(prazoFechamentoFolha('2026-12-05')).toBe('2026-12-05');
+  expect(prazoFechamentoFolha('2026-12-06')).toBe('2027-01-15');
+  expect(prazoFechamentoFolha('2026-12-06',{'2026-12':'2026-12-10'})).toBe('2026-12-10');
+});
+
 const base: SolicitacaoRecessoInput = {tipo_vinculo:'ESTAGIARIO',data_inicio_contrato:'2026-01-10',data_fim_contrato:'2028-01-09',data_solicitacao:'2026-01-20',data_inicio_recesso:'2026-07-10',quantidade_dias_solicitados:15,numero_parcela:1,saldo_dias_disponivel:15};
 it('exige seis meses completos para estagiário e doze para residente', () => {
   expect(validarSolicitacaoRecesso({...base,data_inicio_recesso:'2026-07-09'}).erro_codigo).toBe('CARENCIA_PERIODO_AQUISITIVO');

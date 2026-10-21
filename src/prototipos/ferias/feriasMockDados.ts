@@ -26,8 +26,8 @@ function registroBase(parcial: Partial<FeriasRegistro> & Pick<FeriasRegistro, "i
 }
 
 export const registrosBase: FeriasRegistro[] = [
-  registroBase({id:17, servidorNome:'Servidor SECITEC (demonstração)', matricula:'900017', cargo:'Técnico Administrativo', tipoVinculo:'Efetivo', origem:'SIGEP', situacao:'EM ABERTO', orgao:'SECITEC/MT', setor:'Escola Técnica — Unidade Cuiabá', unidade:'Unidade Cuiabá', periodoAquisitivoInicio:'2025-01-01', periodoAquisitivoFim:'2025-12-31', parcelas:[{id:1,inicio:'2026-12-01',fim:'2026-12-15',dias:15}]}),
-  registroBase({id:18, servidorNome:'Servidor UNEMAT (demonstração)', matricula:'900018', cargo:'Técnico Administrativo', tipoVinculo:'Contrato Temporário', origem:'SIGEP', situacao:'EM ABERTO', orgao:'UNEMAT/MT', setor:'Campus Sinop — Faculdade de Ciências', unidade:'Campus Sinop', periodoAquisitivoInicio:'2025-01-01', periodoAquisitivoFim:'2025-12-31', parcelas:[{id:1,inicio:'2026-12-01',fim:'2026-12-15',dias:15}]}),
+  registroBase({id:17, servidorNome:'Marcelo Antunes Ribeiro', matricula:'900017', cargo:'Técnico Administrativo', tipoVinculo:'Efetivo', origem:'SIGEP', situacao:'EM ABERTO', orgao:'SECITEC/MT', setor:'Escola Técnica — Unidade Cuiabá', unidade:'Unidade Cuiabá', periodoAquisitivoInicio:'2025-01-01', periodoAquisitivoFim:'2025-12-31', parcelas:[{id:1,inicio:'2026-12-01',fim:'2026-12-15',dias:15}]}),
+  registroBase({id:18, servidorNome:'Renata Castilho Figueiredo', matricula:'900018', cargo:'Técnico Administrativo', tipoVinculo:'Contrato Temporário', origem:'SIGEP', situacao:'EM ABERTO', orgao:'UNEMAT/MT', setor:'Campus Sinop — Faculdade de Ciências', unidade:'Campus Sinop', periodoAquisitivoInicio:'2025-01-01', periodoAquisitivoFim:'2025-12-31', parcelas:[{id:1,inicio:'2026-12-01',fim:'2026-12-15',dias:15}]}),
   registroBase({
     id: 1, servidorNome: "Valeria da Silva Pinto", matricula: "241244", cargo: "Analista Administrativo",
     tipoVinculo: "Efetivo", situacao: "EM ABERTO", origem: "PORTALSERVIDOR",
@@ -168,16 +168,29 @@ export const registrosBase: FeriasRegistro[] = [
     lancadoEm: "2026-09-25 09:30",
     avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-10-10 15:00",
   }),
-  // Reabertura bloqueada pela folha homologada/paga (RN 3.3) — só Administrador RH forçaria.
+  // Reabertura bloqueada pela folha homologada/paga (RN 3.3) — só o Aprovador forçaria.
+  // Precisa ser Suspenso: Cancelado nunca reabre (nem forçado), ver elegivelParaReabertura.
   registroBase({
     id: 16, servidorNome: "Cleber Augusto Dias", matricula: "400010", cargo: "Apoio",
-    tipoVinculo: "Efetivo", situacao: "CANCELADO", origem: "PORTALSERVIDOR",
+    tipoVinculo: "Efetivo", situacao: "SUSPENSO", origem: "PORTALSERVIDOR",
     periodoAquisitivoInicio: "2025-04-01", periodoAquisitivoFim: "2026-03-31",
     parcelas: [{ id: 1, inicio: "2026-12-07", fim: "2026-12-21", dias: 15 }],
     folhaHomologada: true,
     responsavelLancamento: "Cleber Augusto Dias (Portal do Servidor)",
     lancadoEm: "2026-09-30 10:10",
     avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-10-05 09:00",
+  }),
+  // Cancelamento bloqueado pela folha homologada/paga (RN 1) — habilita "Forçar cancelamento"
+  // para o Aprovador; para o Gestor, "Cancelar férias" aparece desabilitado com o aviso de bloqueio.
+  registroBase({
+    id: 31, servidorNome: "Simone Aparecida Luz", matricula: "498231", cargo: "Administração",
+    tipoVinculo: "Efetivo", situacao: "EM ABERTO", origem: "PORTALSERVIDOR",
+    periodoAquisitivoInicio: "2025-09-01", periodoAquisitivoFim: "2026-08-31",
+    parcelas: [{ id: 1, inicio: "2026-10-10", fim: "2026-10-24", dias: 15 }],
+    folhaHomologada: true,
+    responsavelLancamento: "Simone Aparecida Luz (Portal do Servidor)",
+    lancadoEm: "2026-08-20 11:15",
+    avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-08-25 09:30",
   }),
   // Agendamento Coletivo — UNEMAT (professor, duas parcelas, ainda aguardando validação da DRE).
   registroBase({
