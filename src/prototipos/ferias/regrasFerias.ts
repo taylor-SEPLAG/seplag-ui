@@ -11,12 +11,18 @@ export function duracoesPermitidas(saldo: number, orgao = '', cargo = '') {
 }
 
 // Calendário do protótipo. Em produção, estas datas vêm do calendário da folha.
+// Regra geral de fechamento: dia 15; em dezembro, antecipado para o dia 5 (fechamento
+// antecipado da folha de fim de ano) — ambos sobrepostos pelo calendário manual, se configurado.
+function diaPadraoFechamento(mesChave: string) {
+  return mesChave.endsWith('-12') ? '05' : '15';
+}
+
 export function prazoFechamentoFolha(hoje: string, calendario: Record<string, string> = {}) {
   const mes = hoje.slice(0, 7);
-  const fechamento = calendario[mes] ?? `${mes}-15`;
+  const fechamento = calendario[mes] ?? `${mes}-${diaPadraoFechamento(mes)}`;
   if (hoje <= fechamento) return fechamento;
   const proximo = new Date(`${mes}-01T12:00:00Z`);
   proximo.setUTCMonth(proximo.getUTCMonth() + 1);
   const chave = proximo.toISOString().slice(0, 7);
-  return calendario[chave] ?? `${chave}-15`;
+  return calendario[chave] ?? `${chave}-${diaPadraoFechamento(chave)}`;
 }
