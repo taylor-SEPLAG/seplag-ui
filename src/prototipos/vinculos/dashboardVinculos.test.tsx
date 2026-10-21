@@ -210,8 +210,8 @@ it("recalcula cards e gráficos, aplica filtros na consulta e preserva contexto 
   const indicadores = screen.getByRole("region", {
     name: "Indicadores de vínculos",
   });
-  expect(indicadores.textContent).toContain("Pessoas com vínculo ativo1");
-  expect(indicadores.textContent).toContain("Pessoas com vínculo encerrado1");
+  expect(indicadores.textContent).toContain("Vínculos Vigentes2");
+  expect(indicadores.textContent).toContain("Vínculos Encerrados1");
   expect(indicadores.textContent).toContain("Total de vínculos3");
   expect(screen.queryByRole("combobox", { name: "Forma de Encerramento" })).toBeNull();
   fireEvent.change(screen.getByLabelText("Situação"), {
