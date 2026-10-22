@@ -1,6 +1,92 @@
 .gl-solicitacao .v2v-section-body {
   padding: 18px;
 }
+.gl-aviso-ferias {
+  margin-top: 16px;
+}
+.gl-bloqueio-recorrencia {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #fda4af;
+  border-left: 4px solid #ef4444;
+  border-radius: 4px;
+  background: #fff2f2;
+  color: #b91c1c;
+  font-size: .875rem;
+  line-height: 1.6;
+}
+.gl-bloqueio-recorrencia > i { color: #ef2424; margin-top: 4px; font-size: 1.1rem; }
+.gl-bloqueio-recorrencia p { margin: 4px 0 0; }
+.gl-servidor-card {
+  margin-top: 18px;
+  border: 1px solid #d8e3ee;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px #16395b0a;
+}
+.gl-servidor-card > header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px 28px;
+  background: #f0f5fa;
+  border-bottom: 1px solid #d8e3ee;
+}
+.gl-servidor-card > header > strong {
+  font-size: 1.25rem;
+}
+.gl-servidor-identificacao {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #ccd9e8;
+  border-radius: 24px;
+  font-size: 0.85rem;
+}
+.gl-servidor-card dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, .95fr);
+  gap: 22px;
+  padding: 28px;
+  margin: 0;
+}
+.gl-servidor-card dt {
+  text-transform: uppercase;
+  color: #647c94;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.gl-servidor-card .gl-tipo {
+  border-radius: 4px;
+  background: #e5e7ff;
+  border: 1px solid #c7ceff;
+  color: #3730a3;
+  padding: 6px 12px;
+}
+.gl-servidor-card dd {
+  margin: 0 0 16px;
+  overflow-wrap: anywhere;
+}
+.gl-servidor-card dd:last-child {
+  margin-bottom: 0;
+}
+@media (max-width: 800px) {
+  .gl-servidor-card dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 540px) {
+  .gl-servidor-card dl {
+    grid-template-columns: 1fr;
+  }
+}
 .gl-busca-servidor {
   position: relative;
   display: flex;
@@ -89,7 +175,7 @@
   background: #eff6ff;
   box-shadow: 0 0 0 1px #347ff0;
 }
-.gl-vinculos input[type="checkbox"] {
+.gl-vinculos input[type="radio"] {
   width: 18px;
   min-height: 18px;
   margin-top: 2px;

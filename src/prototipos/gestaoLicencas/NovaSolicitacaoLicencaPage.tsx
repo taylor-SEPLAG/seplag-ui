@@ -79,11 +79,41 @@ export function NovaSolicitacaoContent({
         }
       : null,
   );
-  const [busca, setBusca] = useState("");
+  const [busca, setBusca] = useState(
+    registro
+      ? `${registro.matricula}/${registro.vinculo} - ${registro.nome}`
+      : "",
+  );
   const [buscaAberta, setBuscaAberta] = useState(false);
-  const resultados = buscarServidores(busca);
-  const [selecionados, setSelecionados] = useState<number[]>(
-    registro ? [registro.vinculo] : [],
+  const opcoes = buscarServidores("").flatMap((servidor) =>
+    servidor.vinculos.map((vinculo) => ({
+      servidor,
+      vinculo,
+      rotulo: servidor.matricula + "/" + vinculo.numero + " - " + servidor.nome,
+    })),
+  );
+  const termo = busca
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+  const resultados = opcoes.filter(
+    (o) =>
+      !termo ||
+      [o.rotulo, o.servidor.cpf, o.servidor.cpf.replace(/\D/g, "")].some(
+        (valor) =>
+          valor
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .includes(termo),
+      ),
+  );
+  const [vinculoSelecionado, setVinculoSelecionado] = useState<number | null>(
+    registro?.vinculo ?? null,
+  );
+  const vinculoAtual = servidor?.vinculos.find(
+    (v) => v.numero === vinculoSelecionado,
   );
   const [eventoId, setEventoId] = useState(
     registro?.solicitacao?.eventoId ||
@@ -162,13 +192,15 @@ export function NovaSolicitacaoContent({
   const dias = visualizar
     ? registro!.dias
     : diasPeriodo(inicio, fim, config?.contagem === "Dias úteis");
+  const bloqueioRecorrencia = !registro && servidor?.matricula === "257812";
   function salvar(e: FormEvent) {
     e.preventDefault();
     if (visualizar) return;
+    if (bloqueioRecorrencia) return;
     if (lendoDocumentos) return;
     setErro("");
-    if (!servidor || !selecionados.length)
-      return setErro("Selecione o servidor e pelo menos um vínculo funcional.");
+    if (!servidor || vinculoSelecionado === null)
+      return setErro("Selecione o servidor e um vínculo funcional.");
     if (!evento || evento.situacao !== "Ativo")
       return setErro("Selecione uma parametrização ativa.");
     if (config?.documentosObrigatorios && !documentos.length)
@@ -194,8 +226,8 @@ export function NovaSolicitacaoContent({
       return setErro(
         `O período excede o limite de ${evento.quantidade} dias da parametrização.`,
       );
-    const vinculos = servidor.vinculos.filter((v) =>
-      selecionados.includes(v.numero),
+    const vinculos = servidor.vinculos.filter(
+      (v) => v.numero === vinculoSelecionado,
     );
     if (
       vinculos.some(
@@ -206,7 +238,7 @@ export function NovaSolicitacaoContent({
       )
     )
       return setErro(
-        "A parametrização não autoriza todos os tipos de vínculo selecionados.",
+        "A parametrização não autoriza o tipo de vínculo selecionado.",
       );
     const novos: RegistroLicenca[] = vinculos.map((v) => ({
       id: editar && registro ? registro.id : crypto.randomUUID(),
@@ -302,7 +334,7 @@ export function NovaSolicitacaoContent({
                   setBusca(e.target.value);
                   setBuscaAberta(true);
                   setServidor(null);
-                  setSelecionados([]);
+                  setVinculoSelecionado(null);
                 }}
               />
             </label>
@@ -312,7 +344,7 @@ export function NovaSolicitacaoContent({
               disabled={editar}
               onClick={() => {
                 setServidor(null);
-                setSelecionados([]);
+                setVinculoSelecionado(null);
                 setBusca("");
                 setBuscaAberta(false);
               }}
@@ -326,12 +358,15 @@ export function NovaSolicitacaoContent({
                 role="listbox"
                 aria-label="Servidores encontrados"
               >
-                {resultados.map((s, indice) => (
+                {resultados.map(({ servidor: s, vinculo, rotulo }, indice) => (
                   <button
-                    key={s.id}
+                    key={`${s.matricula}/${vinculo.numero}`}
                     type="button"
                     role="option"
-                    aria-selected={servidor?.id === s.id}
+                    aria-selected={
+                      servidor?.matricula === s.matricula &&
+                      vinculoSelecionado === vinculo.numero
+                    }
                     onKeyDown={(e) => {
                       if (e.key === "Escape") setBuscaAberta(false);
                       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
@@ -351,12 +386,12 @@ export function NovaSolicitacaoContent({
                     className="v2v-secondary"
                     onClick={() => {
                       setServidor(s);
-                      setSelecionados([]);
-                      setBusca(s.nome);
+                      setVinculoSelecionado(vinculo.numero);
+                      setBusca(rotulo);
                       setBuscaAberta(false);
                     }}
                   >
-                    {s.nome} · {s.matricula} · {s.cpf}
+                    {rotulo}
                   </button>
                 ))}
                 {!resultados.length && (
@@ -367,69 +402,77 @@ export function NovaSolicitacaoContent({
           </div>
           {servidor && (
             <>
-              <div className="gl-servidor-resumo">
-                <div>
-                  <small>Nome do servidor</small>
-                  <strong>{servidor.nome}</strong>
+              {vinculoAtual && (
+                <section
+                  className="gl-servidor-card"
+                  aria-label="Dados do servidor e vínculo selecionado"
+                >
+                  <header>
+                    <strong>{servidor.nome}</strong>
+                    <span className="gl-servidor-identificacao">
+                      Matrícula: <b>{servidor.matricula}</b>
+                    </span>
+                    <span className="gl-servidor-identificacao">
+                      Vínculo: <b>{vinculoAtual.numero}</b>
+                    </span>
+                  </header>
+                  <dl>
+                    <div>
+                      <dt>Órgão/Unidade de Lotação</dt>
+                      <dd>{vinculoAtual.orgao} / {vinculoAtual.lotacao}</dd>
+                    </div>
+                    <div>
+                      <dt>Cargo</dt>
+                      <dd>{vinculoAtual.cargo}</dd>
+                    </div>
+                    <div>
+                      <dt>Jornada</dt>
+                      <dd>{vinculoAtual.jornada}</dd>
+                    </div>
+                    <div>
+                      <dt>Tipo de vínculo</dt>
+                      <dd>
+                        <span className="gl-pill gl-tipo">
+                          {vinculoAtual.tipo}
+                        </span>
+                      </dd>
+                    </div>
+                  </dl>
+                </section>
+              )}
+              {bloqueioRecorrencia && (
+                <div className="gl-bloqueio-recorrencia" role="alert">
+                  <i className="pi pi-ban" aria-hidden="true" />
+                  <div>
+                    <strong>Bloqueio de Lançamento: Janela de Recorrência Excedida</strong>
+                    <p>
+                      O servidor já possui o lançamento da ocorrência <strong>"3 - Doação Voluntária de Sangue"</strong> realizado em <strong>15/05/2026</strong>. O limite parametrizado de <strong>1x a cada 12 meses</strong> foi atingido e uma nova concessão só será permitida a partir de <strong>16/05/2027</strong>.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <small>Matrícula única</small>
-                  <strong>{servidor.matricula}</strong>
-                </div>
-                <div>
-                  <small>CPF</small>
-                  <strong>{servidor.cpf}</strong>
-                </div>
-                <div>
-                  <small>
-                    {visualizar
-                      ? "Situação da solicitação"
-                      : "Situação cadastral"}
-                  </small>
-                  <span
-                    className={`gl-pill ${visualizar && registro?.situacao === "Encerrado" ? "gl-status-encerrado" : "gl-status-vigente"}`}
-                  >
-                    {visualizar ? registro?.situacao : "Ativo em Exercício"}
+              )}
+              {servidor.matricula === "241244" && !visualizar && (
+                <div
+                  className="prototype-vinculo-ativo-alert gl-aviso-ferias"
+                  role="status"
+                >
+                  <i
+                    className="pi pi-exclamation-triangle"
+                    aria-hidden="true"
+                  />
+                  <span>
+                    <strong>Conflito com Férias Agendadas</strong>
+                    <br />O servidor selecionado possui férias agendadas no
+                    período de 10/12/2026 a 20/12/2026 (Vínculo 1 - SEPLAG/MT).{" "}
+                    {inicio &&
+                    fim &&
+                    inicio <= "2026-12-20" &&
+                    fim >= "2026-12-10"
+                      ? "A licença informada coincide com este período. Verifique a necessidade de sobreposição ou altere as datas."
+                      : "Ao informar o período da licença, verifique se há sobreposição com as férias agendadas."}
                   </span>
                 </div>
-              </div>
-              <fieldset className="gl-vinculos">
-                <legend>
-                  Selecione os vínculos funcionais para o lançamento *
-                </legend>
-                <div>
-                  {servidor.vinculos.map((v) => (
-                    <label
-                      key={v.numero}
-                      className={
-                        selecionados.includes(v.numero) ? "selecionado" : ""
-                      }
-                    >
-                      <input
-                        type="checkbox"
-                        disabled={editar}
-                        checked={selecionados.includes(v.numero)}
-                        onChange={() =>
-                          setSelecionados((s) =>
-                            s.includes(v.numero)
-                              ? s.filter((n) => n !== v.numero)
-                              : [...s, v.numero],
-                          )
-                        }
-                      />
-                      <span>
-                        <strong>
-                          Vínculo {v.numero} · {v.orgao} · {v.tipo}
-                        </strong>
-                        <span>{v.cargo}</span>
-                        <small>
-                          {v.jornada} · {v.lotacao}
-                        </small>
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              )}
             </>
           )}
         </Secao>
@@ -646,7 +689,7 @@ export function NovaSolicitacaoContent({
           <button
             type="submit"
             className="v2v-primary"
-            disabled={lendoDocumentos}
+            disabled={lendoDocumentos || bloqueioRecorrencia}
           >
             <i className="pi pi-check" aria-hidden="true" />
             {editar ? "Salvar alterações" : "Efetivar Lançamento"}

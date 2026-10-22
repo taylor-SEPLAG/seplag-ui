@@ -37,8 +37,7 @@ function abrir(selecionar = true) {
   );
   if (selecionar) {
     fireEvent.focus(screen.getByLabelText("Buscar servidor"));
-    fireEvent.click(screen.getByRole("option", { name: /Ana Lúcia Ferreira/ }));
-    fireEvent.click(screen.getAllByRole("checkbox")[1]);
+    fireEvent.click(screen.getByRole("option", { name: "551023/1 - Ana Lúcia Ferreira" }));
   }
 }
 it("busca por nome sem acentos, CPF formatado ou matrícula", () => {
@@ -46,24 +45,45 @@ it("busca por nome sem acentos, CPF formatado ou matrícula", () => {
     expect(buscarServidores(termo)[0].nome).toBe("Ana Lúcia Ferreira");
   expect(buscarServidores("inexistente")).toHaveLength(0);
 });
+it("bloqueia nova solicitação para Max e remove o bloqueio ao trocar o servidor", () => {
+  abrir(false);
+  const busca = screen.getByLabelText("Buscar servidor");
+  fireEvent.change(busca, { target: { value: "257812" } });
+  fireEvent.click(screen.getByRole("option", { name: /257812\/1 - Max Jorge/ }));
+  expect(screen.getByRole("alert").textContent).toContain("Janela de Recorrência Excedida");
+  expect(screen.getByRole("alert").textContent).toContain("16/05/2027");
+  expect((screen.getByRole("button", { name: "Efetivar Lançamento" }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.submit(screen.getByRole("button", { name: "Efetivar Lançamento" }).closest("form")!);
+  expect(carregarSolicitacoes()).toHaveLength(0);
+  fireEvent.change(busca, { target: { value: "551023/1" } });
+  fireEvent.click(screen.getByRole("option", { name: "551023/1 - Ana Lúcia Ferreira" }));
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect((screen.getByRole("button", { name: "Efetivar Lançamento" }) as HTMLButtonElement).disabled).toBe(false);
+});
 it("lista servidores ao focar e só mostra os vínculos depois da seleção", () => {
   abrir(false);
-  expect(screen.queryByText("Nome do servidor")).toBeNull();
-  expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
+  expect(screen.queryByRole("region", { name: "Dados do servidor e vínculo selecionado" })).toBeNull();
+  expect(screen.queryAllByRole("radio")).toHaveLength(0);
   const busca = screen.getByRole("combobox", { name: "Buscar servidor" });
   fireEvent.focus(busca);
   expect(screen.getByRole("listbox", { name: "Servidores encontrados" })).toBeTruthy();
-  expect(screen.getByRole("option", { name: /Ana Lúcia Ferreira/ })).toBeTruthy();
+  expect(screen.getByRole("option", { name: "551023/1 - Ana Lúcia Ferreira" })).toBeTruthy();
   expect(screen.getByRole("option", { name: /Valeria da Silva Pinto/ })).toBeTruthy();
-  fireEvent.click(screen.getByRole("option", { name: /Ana Lúcia Ferreira/ }));
+  fireEvent.click(screen.getByRole("option", { name: "551023/1 - Ana Lúcia Ferreira" }));
   expect(screen.queryByRole("listbox")).toBeNull();
-  expect(screen.getByText("Nome do servidor")).toBeTruthy();
-  expect(screen.getAllByRole("checkbox")).toHaveLength(2);
-  fireEvent.click(screen.getAllByRole("checkbox")[0]);
-  fireEvent.change(busca, { target: { value: "inexistente" } });
-  expect(screen.queryByText("Nome do servidor")).toBeNull();
-  expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
-  expect(screen.getByRole("status").textContent).toContain("Nenhum servidor encontrado");
+  expect(screen.getByRole("region", { name: "Dados do servidor e vínculo selecionado" })).toBeTruthy();
+  expect((screen.getByLabelText("Buscar servidor") as HTMLInputElement).value).toBe("551023/1 - Ana Lúcia Ferreira");
+  expect(screen.getByText("SEDUC/MT", { exact: false })).toBeTruthy();
+  expect(screen.getByText("C. E. Pres. Médici", { exact: false })).toBeTruthy();
+  expect(screen.getByText("Técnico de Apoio Educacional")).toBeTruthy();
+  expect(screen.getByText("30h semanais")).toBeTruthy();
+  fireEvent.change(busca, { target: { value: "551023/2" } });
+  expect(screen.queryByRole("region", { name: "Dados do servidor e vínculo selecionado" })).toBeNull();
+  fireEvent.click(screen.getByRole("option", { name: "551023/2 - Ana Lúcia Ferreira" }));
+  expect(screen.getByText("SES/MT", { exact: false })).toBeTruthy();
+  expect(screen.queryByText("SEDUC/MT", { exact: false })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "✕ Limpar" }));
+  expect(screen.queryByRole("region", { name: "Dados do servidor e vínculo selecionado" })).toBeNull();
 });
 it("calcula horas e dias corridos ou úteis", () => {
   expect(totalMinutos("08:00", "12:30")).toBe(270);
@@ -83,23 +103,12 @@ it("edita um registro existente sem duplicar a listagem", () => {
   expect(salvos[0].solicitacao?.observacao).toBe("Dados revisados");
   expect(salvos[0].nome).toBe(registro.nome);
 });
-it("limpa o servidor e permite selecionar novamente pelo resultado da busca", () => {
+it("exibe parentesco e salva somente o vínculo selecionado", () => {
   abrir();
-  fireEvent.click(screen.getByRole("button", { name: "✕ Limpar" }));
-  expect(screen.queryByText("Ana Lúcia Ferreira")).toBeNull();
-  fireEvent.change(screen.getByLabelText("Buscar servidor"), {
-    target: { value: "551023" },
-  });
-  fireEvent.click(screen.getByRole("option", { name: /Ana Lúcia Ferreira/ }));
-  expect(
-    screen
-      .getAllByRole("checkbox")
-      .every((c) => !(c as HTMLInputElement).checked),
-  ).toBe(true);
-});
-it("exibe parentesco e salva um registro para cada vínculo selecionado", () => {
-  abrir();
-  fireEvent.click(screen.getAllByRole("checkbox")[0]);
+  fireEvent.change(screen.getByLabelText("Buscar servidor"), {target: {value: "551023/1"}});
+  fireEvent.click(screen.getByRole("option", {name: "551023/1 - Ana Lúcia Ferreira"}));
+  expect(screen.getByText("SEDUC/MT", { exact: false })).toBeTruthy();
+  expect(screen.queryByText("SES/MT", { exact: false })).toBeNull();
   fireEvent.change(
     screen.getByLabelText("Tipo de Licença, Afastamento ou Ausência *"),
     { target: { value: "lic-135" } },
@@ -115,7 +124,8 @@ it("exibe parentesco e salva um registro para cada vínculo selecionado", () => 
   });
   fireEvent.click(screen.getByRole("button", { name: "Efetivar Lançamento" }));
   expect(screen.getByText("Listagem")).toBeTruthy();
-  expect(carregarSolicitacoes()).toHaveLength(2);
+  expect(carregarSolicitacoes()).toHaveLength(1);
+  expect(carregarSolicitacoes()[0].vinculo).toBe(1);
   expect(carregarSolicitacoes()[0].solicitacao?.parentesco).toBe("Pai / Mãe");
 });
 it("calcula horas em parametrização ativa e rejeita horário invertido", () => {
