@@ -69,8 +69,16 @@ export function V2RgaPage() {
     nav(V2_BASE + "?rga=1&quantidade=" + preview.length);
   };
   return <V2PageFrame title="Aplicar RGA em lote">
-    <div className="v2-wizard-tabs">{["Seleção das Tabelas", "Parâmetros do RGA", "Pré-visualização"].map((label, index) =>
-      <button type="button" key={label} className={step === index ? "active" : ""} disabled={index > step} onClick={() => setStep(index)}>{label}</button>)}</div>
+    <ol className="v2-rga-steps" aria-label="Etapas da aplicação">
+      {["Seleção das Tabelas", "Parâmetros do RGA", "Pré-visualização"].map((label, index) =>
+        <li key={label} className={step === index ? "active" : index < step ? "complete" : ""} aria-current={step === index ? "step" : undefined}>
+          <button type="button" disabled={index > step} onClick={() => setStep(index)} aria-label={label}>
+            <span className="v2-rga-step-number" aria-hidden="true">{index + 1}</span>
+            <span>{label}</span>
+            {step === index && <small>Etapa atual</small>}
+          </button>
+        </li>)}
+    </ol>
 
     {step === 0 && <section className="v2-panel"><h2>Seleção das Tabelas</h2>
       <div className="v2-note">Selecione as Tabelas de Vencimentos vigentes que receberão a aplicação do RGA. Todas as Tabelas selecionadas terão uma nova versão gerada com os valores reajustados e origem “RGA em lote”.</div>

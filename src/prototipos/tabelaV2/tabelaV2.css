@@ -459,3 +459,14 @@
 .v2-page .tv-origin-tag.rga { border-color: #b9d8f4; background: #eaf5ff; color: #066dab; }
 
 .v2-legal-pdf-preview { width: 100%; height: min(70vh, 560px); border: 0; background: #f7f9fb; }
+.v2-rga-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none; margin: 0 0 24px; padding: 16px 20px; border: 1px solid #d0dfee; border-radius: 6px; background: #fff; }
+.v2-rga-steps li { position: relative; min-width: 0; }
+.v2-rga-steps li + li::before { content: ""; position: absolute; top: 18px; left: -50%; width: 100%; height: 1px; background: #d0dfee; }
+.v2-rga-steps button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 100%; min-height: 79px; padding: 0 4px; border: 0; background: transparent; color: #71869f; font: inherit; font-size: .85rem; cursor: pointer; }
+.v2-rga-steps button:disabled { opacity: 1; cursor: default; }
+.v2-rga-step-number { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #cbdced; border-radius: 50%; background: #fff; }
+.v2-rga-steps .active button { color: #006bb8; font-weight: 600; }
+.v2-rga-steps .active .v2-rga-step-number, .v2-rga-steps .complete .v2-rga-step-number { background: #006fb9; border-color: #006fb9; color: #fff; }
+.v2-rga-steps small { padding: 2px 8px; border-radius: 12px; background: #e5f2ff; color: #006bb8; font-size: .65rem; font-weight: 400; }
+.v2-rga-steps button:focus-visible { outline: 2px solid #006fb9; outline-offset: 3px; border-radius: 4px; }
+@media (max-width: 540px) { .v2-rga-steps { padding: 14px 6px; } .v2-rga-steps button { font-size: .75rem; } }
