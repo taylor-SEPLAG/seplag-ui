@@ -192,7 +192,7 @@ export function NovaSolicitacaoContent({
   const dias = visualizar
     ? registro!.dias
     : diasPeriodo(inicio, fim, config?.contagem === "Dias úteis");
-  const bloqueioRecorrencia = !registro && servidor?.matricula === "257812";
+  const bloqueioRecorrencia = !registro && servidor?.matricula === "257812" && evento?.codigo === "3";
   function salvar(e: FormEvent) {
     e.preventDefault();
     if (visualizar) return;
@@ -440,17 +440,6 @@ export function NovaSolicitacaoContent({
                   </dl>
                 </section>
               )}
-              {bloqueioRecorrencia && (
-                <div className="gl-bloqueio-recorrencia" role="alert">
-                  <i className="pi pi-ban" aria-hidden="true" />
-                  <div>
-                    <strong>Bloqueio de Lançamento: Janela de Recorrência Excedida</strong>
-                    <p>
-                      O servidor já possui o lançamento da ocorrência <strong>"3 - Doação Voluntária de Sangue"</strong> realizado em <strong>15/05/2026</strong>. O limite parametrizado de <strong>1x a cada 12 meses</strong> foi atingido e uma nova concessão só será permitida a partir de <strong>16/05/2027</strong>.
-                    </p>
-                  </div>
-                </div>
-              )}
               {servidor.matricula === "241244" && !visualizar && (
                 <div
                   className="prototype-vinculo-ativo-alert gl-aviso-ferias"
@@ -511,6 +500,17 @@ export function NovaSolicitacaoContent({
                   ))}
               </select>
             </label>
+              {bloqueioRecorrencia && (
+                <div className="gl-bloqueio-recorrencia gl-span-full" role="alert">
+                  <i className="pi pi-ban" aria-hidden="true" />
+                  <div>
+                    <strong>Bloqueio de Lançamento: Janela de Recorrência Excedida</strong>
+                    <p>
+                      O servidor já possui o lançamento da ocorrência <strong>"3 - Doação Voluntária de Sangue"</strong> realizado em <strong>15/05/2026</strong>. O limite parametrizado de <strong>1x a cada 12 meses</strong> foi atingido e uma nova concessão só será permitida a partir de <strong>16/05/2027</strong>.
+                    </p>
+                  </div>
+                </div>
+              )}
             {(evento?.parentesco || (visualizar && parentesco)) && (
               <label className="gl-span-full">
                 Grau de Parentesco do Familiar *
@@ -585,11 +585,22 @@ export function NovaSolicitacaoContent({
                 </label>
               </div>
             )}
-            {evento?.recorrencia && (
-              <p className="v2v-notice gl-span-full">
+            {config?.travaRecorrencia && (
+              <p className="v2v-notice gl-span-full" role="status">
                 <i className="pi pi-info-circle" aria-hidden="true" />
-                Recorrência configurada: {evento.recorrencia}. A conferência do
-                histórico deve ser realizada antes do lançamento.
+                <span>
+                  Recorrência parametrizada: Esta ocorrência possui limite de{" "}
+                  {config.recorrenciaQuantidade}{" "}
+                  {config.recorrenciaQuantidade === 1 ? "concessão" : "concessões"}{" "}
+                  a cada {config.recorrenciaIntervalo}{" "}
+                  {config.recorrenciaUnidade === "Meses"
+                    ? config.recorrenciaIntervalo === 1 ? "mês" : "meses"
+                    : config.recorrenciaUnidade === "Dias"
+                      ? config.recorrenciaIntervalo === 1 ? "dia" : "dias"
+                      : config.recorrenciaUnidade === "Anos"
+                        ? config.recorrenciaIntervalo === 1 ? "ano" : "anos"
+                        : config.recorrenciaIntervalo === 1 ? "ano civil" : "anos civis"}.
+                </span>
               </p>
             )}
             <label className="gl-span-full">

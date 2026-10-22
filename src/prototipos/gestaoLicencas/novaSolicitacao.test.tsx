@@ -45,16 +45,34 @@ it("busca por nome sem acentos, CPF formatado ou matrícula", () => {
     expect(buscarServidores(termo)[0].nome).toBe("Ana Lúcia Ferreira");
   expect(buscarServidores("inexistente")).toHaveLength(0);
 });
+it("exibe o limite parametrizado ao selecionar ocorrência com recorrência", () => {
+  abrir(false);
+  const tipo = screen.getByLabelText("Tipo de Licença, Afastamento ou Ausência *");
+  expect(screen.queryByText(/Recorrência parametrizada:/)).toBeNull();
+  fireEvent.change(tipo, { target: { value: "aus-002" } });
+  expect(screen.getByText("Recorrência parametrizada: Esta ocorrência possui limite de 1 concessão a cada 12 meses.")).toBeTruthy();
+  fireEvent.change(tipo, { target: { value: "lic-101" } });
+  expect(screen.queryByText(/Recorrência parametrizada:/)).toBeNull();
+});
 it("bloqueia nova solicitação para Max e remove o bloqueio ao trocar o servidor", () => {
   abrir(false);
   const busca = screen.getByLabelText("Buscar servidor");
   fireEvent.change(busca, { target: { value: "257812" } });
   fireEvent.click(screen.getByRole("option", { name: /257812\/1 - Max Jorge/ }));
+  const tipo = screen.getByLabelText("Tipo de Licença, Afastamento ou Ausência *");
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect((screen.getByRole("button", { name: "Efetivar Lançamento" }) as HTMLButtonElement).disabled).toBe(false);
+  fireEvent.change(tipo, { target: { value: "aus-002" } });
   expect(screen.getByRole("alert").textContent).toContain("Janela de Recorrência Excedida");
+  expect(tipo.closest("label")?.nextElementSibling).toBe(screen.getByRole("alert"));
   expect(screen.getByRole("alert").textContent).toContain("16/05/2027");
   expect((screen.getByRole("button", { name: "Efetivar Lançamento" }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.submit(screen.getByRole("button", { name: "Efetivar Lançamento" }).closest("form")!);
   expect(carregarSolicitacoes()).toHaveLength(0);
+  fireEvent.change(tipo, { target: { value: "lic-101" } });
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect((screen.getByRole("button", { name: "Efetivar Lançamento" }) as HTMLButtonElement).disabled).toBe(false);
+  fireEvent.change(tipo, { target: { value: "aus-002" } });
   fireEvent.change(busca, { target: { value: "551023/1" } });
   fireEvent.click(screen.getByRole("option", { name: "551023/1 - Ana Lúcia Ferreira" }));
   expect(screen.queryByRole("alert")).toBeNull();
