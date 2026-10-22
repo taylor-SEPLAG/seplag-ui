@@ -69,7 +69,7 @@ it("lista só os órgãos do edital no direcionamento do efetivo exercício", ()
   expect((screen.getByRole("combobox", { name: "Órgão responsável" }) as HTMLSelectElement).value).toBe("");
 });
 
-it("mostra direcionamento, jornada e referência na primeira etapa do ingresso comissionado", () => {
+it("mostra jornada e referência sem direcionamento na primeira etapa do ingresso comissionado", () => {
   render(<MemoryRouter initialEntries={["/prototipos/sigep/ingressos/novo?tipo=Exclusivo%20Comissionado&orgao=SEPLAG"]}><PrototiposNovoIngressoPage /></MemoryRouter>);
   const dados = document.querySelector(".prototype-novo-ingresso-dados-ingresso") as HTMLElement;
   const cards = (Array.from(document.querySelectorAll(".prototype-novo-ingresso-dados-grid > section")) as HTMLElement[])
@@ -90,11 +90,8 @@ it("mostra direcionamento, jornada e referência na primeira etapa do ingresso c
   expect(quadro.value).toBe("");
   fireEvent.change(screen.getByRole("combobox", { name: /Cargo\/Fun/ }), { target: { value: "Analista Administrativo" } });
   expect(quadro.value).toBe("QC-0001");
-  expect(screen.getByRole("heading", { name: "Direcionamento da Análise" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("radio", { name: /Sim, direcionar para outro órgão/ }));
-  const destino = screen.getByRole("combobox", { name: "Órgão responsável" }) as HTMLSelectElement;
-  expect(Array.from(destino.options).map((option) => option.value)).toEqual(["", "SEPLAG", "SES", "SEDUC", "SEFAZ"]);
-  expect(destino.options[1].disabled).toBe(true);
+  expect(screen.queryByRole("heading", { name: "Direcionamento da Análise" })).toBeNull();
+  expect(screen.queryByRole("radio", { name: /Sim, direcionar para outro órgão/ })).toBeNull();
 });
 
 it("mantém os campos da última etapa do ingresso comissionado sem jornada e referência", () => {

@@ -18034,7 +18034,7 @@ export function PrototiposNovoIngressoPage() {
       (tipoIngresso === "Processo Seletivo" && !orgaosDesignaveis.includes(orgaoDesignado)) ||
       (vinculoTipoEstagiario && !quadroVagaEstagio) ||
       semQuadroVagasPssSefaz ||
-      (["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || (orgaoDestinoAnalise === orgaoResponsavelAnalise || !(tipoIngresso === "Processo Seletivo" ? orgaosDesignaveis : orgaosIngressoOptions).includes(orgaoDestinoAnalise)))) ||
+      (tipoIngresso === "Processo Seletivo" && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || (orgaoDestinoAnalise === orgaoResponsavelAnalise || !orgaosDesignaveis.includes(orgaoDestinoAnalise)))) ||
       (!jornadaEfetivo || !referenciaEfetivo) ||
       !perfilEspecialidade ||
       ((!vinculoExigeDadosEducacionais || vinculoEstagiario) && tipoIngresso !== "Exclusivo Comissionado" &&
@@ -19034,8 +19034,9 @@ export function PrototiposNovoIngressoPage() {
       if (activeTab === "tipo-ingresso" && ["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso)) {
         const orgaoOrigem = orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
         const orgaoAtualAnalise = orgaoResponsavelAnalise || orgaoOrigem;
-        const orgaoAnalise = direcionamentoAnalise === "outro" ? orgaoDestinoAnalise : orgaoAtualAnalise;
-        if (!orgaoOrigem || !orgaoAnalise || direcionamentoAnalise === "outro" && orgaoAnalise === orgaoAtualAnalise) return;
+        const direcionarParaOutroOrgao = tipoIngresso === "Processo Seletivo" && direcionamentoAnalise === "outro";
+        const orgaoAnalise = direcionarParaOutroOrgao ? orgaoDestinoAnalise : orgaoAtualAnalise;
+        if (!orgaoOrigem || !orgaoAnalise || direcionarParaOutroOrgao && orgaoAnalise === orgaoAtualAnalise) return;
         const novoIdComissionado = tipoIngresso === "Exclusivo Comissionado" && !candidatoParam
           ? Math.max(...[...ingressosComissionadosMock, ...lerRegistrosComissionadosCriados()].map((registro) => registro.id)) + 1
           : undefined;
@@ -19074,7 +19075,7 @@ export function PrototiposNovoIngressoPage() {
             ));
           }
         }
-        setSucessoDirecionamentoAnalise(direcionamentoAnalise === "outro" ? "O ingresso foi encaminhado ao órgão " + orgaoAnalise + " para análise da documentação." : "");
+        setSucessoDirecionamentoAnalise(direcionarParaOutroOrgao ? "O ingresso foi encaminhado ao órgão " + orgaoAnalise + " para análise da documentação." : "");
       }
       setSituacaoIngresso("Em analise");
       persistirSituacaoIngressoAtual("Em analise");
@@ -19973,7 +19974,7 @@ export function PrototiposNovoIngressoPage() {
             <input type="text" value={tipoVinculo} readOnly />
           </label>
           <div className="prototype-ingresso-field prototype-multiselect-field">
-            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão" : "Órgão Responsável"}<em>*</em></span>
+            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão Designado" : "Órgão Responsável"}<em>*</em></span>
             <div className="prototype-multiselect">
               <button
                 type="button"
@@ -20221,7 +20222,7 @@ export function PrototiposNovoIngressoPage() {
             ) : <input type="text" value={tipoVinculo} readOnly />}
           </label>
           <div className="prototype-ingresso-field prototype-multiselect-field">
-            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão" : "Órgão Responsável"}<em>*</em></span>
+            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão Designado" : "Órgão Responsável"}<em>*</em></span>
             <div className="prototype-multiselect">
               <button
                 type="button"
@@ -20752,7 +20753,7 @@ export function PrototiposNovoIngressoPage() {
         <i className="pi pi-exclamation-triangle" aria-hidden="true" />
         Não existe Quadro de Vagas disponível para o Cargo/Função e Perfil Profissional selecionados. Cadastre o Quadro de Vagas para prosseguir.
       </div> : null}
-      {["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) ? renderDirecionamentoAnalise() : null}
+      {tipoIngresso === "Processo Seletivo" ? renderDirecionamentoAnalise() : null}
     </div>
   );
 
