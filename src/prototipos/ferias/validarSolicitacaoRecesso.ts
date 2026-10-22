@@ -29,20 +29,23 @@ export const CodigoErroRecesso = {
   LIMITE_CONTRATO_EXCEDIDO: "LIMITE_CONTRATO_EXCEDIDO",
 } as const;
 
-// --- Regras do Residente (Lei nº 15.400/2026 e normas do Executivo) ---
+// --- Regras do Residente (Lei nº 15.400/2026, Decreto nº 704/2024 e IN 002/2024/SEPLAG) ---
 const RESIDENTE_MESES_CARENCIA = 12;
-const RESIDENTE_ANTECEDENCIA_1A_PARCELA = 60;
-const RESIDENTE_ANTECEDENCIA_DEMAIS_PARCELAS = 45;
+const RESIDENTE_ANTECEDENCIA_MINIMA = 15;
 const RESIDENTE_DIAS_MIN_PARCELA = 10;
 const RESIDENTE_DIAS_MAX_PARCELA = 30;
 const RESIDENTE_PARCELAS_MAXIMAS = 3;
 
-// --- Regras do Estagiário (Lei nº 11.788/2008 e normas do Executivo) ---
+// --- Regras do Estagiário (Lei nº 11.788/2008 e IN 007/2022/SEPLAG) ---
 const ESTAGIARIO_ANTECEDENCIA_MINIMA = 30;
-const ESTAGIARIO_DIAS_MIN_PARCELA = 5;
+const ESTAGIARIO_DIAS_MIN_PARCELA = 10;
 const ESTAGIARIO_DIAS_MAX_PARCELA = 30;
 const ESTAGIARIO_DIAS_SALDO_POR_MES = 2.5;
 const ESTAGIARIO_DIAS_POR_MES_CONTRATO = 30;
+
+// Blocos de parcela válidos para os dois vínculos — nenhum deles aceita valor contínuo;
+// o parcelamento precisa fechar em 10, 15, 20 ou 30 dias (ex.: 10+10+10, 15+15, 10+20).
+const BLOCOS_PARCELA_PERMITIDOS = [10, 15, 20, 30] as const;
 
 function paraData(iso: string): Date {
   return new Date(`${iso}T00:00:00`);
@@ -109,10 +112,8 @@ function validarResidente(input: SolicitacaoRecessoInput): ResultadoValidacaoRec
     );
   }
 
-  // 2. Antecedência: 60 dias para integral/1ª parcela, 45 dias para a 2ª ou 3ª.
-  const antecedenciaMinima = numero_parcela === 1
-    ? RESIDENTE_ANTECEDENCIA_1A_PARCELA
-    : RESIDENTE_ANTECEDENCIA_DEMAIS_PARCELAS;
+  // 2. Antecedência (IN 002/2024/SEPLAG): 15 dias para qualquer parcela (1ª, 2ª ou 3ª).
+  const antecedenciaMinima = RESIDENTE_ANTECEDENCIA_MINIMA;
   const antecedenciaInformada = diasEntre(data_solicitacao, data_inicio_recesso);
   if (antecedenciaInformada < antecedenciaMinima) {
     return falha(
@@ -194,7 +195,8 @@ function validarEstagiario(input: SolicitacaoRecessoInput): ResultadoValidacaoRe
     );
   }
 
-  // 3. Tamanho da parcela: 5 a 30 dias.
+  // 3. Tamanho da parcela: blocos de 10, 15, 20 ou 30 dias (já filtrado pelo guard comum em
+  // validarSolicitacaoRecesso); min/max mantidos aqui como segunda camada de defesa.
   if (quantidade_dias_solicitados < ESTAGIARIO_DIAS_MIN_PARCELA) {
     return falha(
       CodigoErroRecesso.PARCELA_ABAIXO_DO_MINIMO,
@@ -234,8 +236,12 @@ function validarEstagiario(input: SolicitacaoRecessoInput): ResultadoValidacaoRe
  * para RESIDENTE (Lei nº 15.400/2026) ou ESTAGIÁRIO (Lei nº 11.788/2008).
  */
 export function validarSolicitacaoRecesso(input: SolicitacaoRecessoInput): ResultadoValidacaoRecesso {
-  if (![10, 15, 20, 30].includes(input.quantidade_dias_solicitados)) {
-    return falha(input.quantidade_dias_solicitados > 30 ? CodigoErroRecesso.PARCELA_ACIMA_DO_MAXIMO : CodigoErroRecesso.PARCELA_ABAIXO_DO_MINIMO, 'Selecione blocos de 10, 15 ou 20 dias, ou integral de 30 dias.');
+  // Residente e Estagiário usam os mesmos blocos fechados de parcela — nenhum valor contínuo.
+  if (!(BLOCOS_PARCELA_PERMITIDOS as readonly number[]).includes(input.quantidade_dias_solicitados)) {
+    return falha(
+      input.quantidade_dias_solicitados > 30 ? CodigoErroRecesso.PARCELA_ACIMA_DO_MAXIMO : CodigoErroRecesso.PARCELA_ABAIXO_DO_MINIMO,
+      'Selecione blocos de 10, 15 ou 20 dias, ou integral de 30 dias.',
+    );
   }
   if (input.saldo_dias_disponivel - input.quantidade_dias_solicitados === 5) {
     return falha(CodigoErroRecesso.SALDO_INSUFICIENTE, 'O parcelamento não pode deixar saldo residual de 5 dias.');
