@@ -29,10 +29,10 @@ export function camposHistorico(evento: EventoLicenca) {
 export function HistoricoEvento({evento, fechar}: {evento: EventoLicenca | null; fechar: () => void}) {
   const c = evento ? configuracaoDoEvento(evento) : null;
   const dataBR = (data: string) => data.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1');
-  return <ModalSeplag visible={Boolean(evento)} titulo="Histórico de Alterações" fechar={fechar} hideFooter tamanho="min(90vw, 1440px)">
-    {evento && <div className="pl-historico">
+  return <ModalSeplag visible={Boolean(evento)} titulo="Histórico de Alterações" fechar={fechar} hideFooter tamanho="min(94vw, 760px)">
+    {evento && <div className="pl-historico pl-history-cards">
+      <p className="pl-history-subtitle">Rastreabilidade da Parametrização de Ocorrências</p>
       <section className="pl-history-identificacao" aria-label="Identificação da ocorrência">
-      <h2>{evento.nome}</h2>
       <dl className="pl-history-resumo">
         <div><dt>Código Interno</dt><dd>{evento.codigo}</dd></div>
         <div><dt>Tipo de Ocorrência</dt><dd>{evento.natureza}</dd></div>
@@ -41,7 +41,7 @@ export function HistoricoEvento({evento, fechar}: {evento: EventoLicenca | null;
       </dl>
       </section>
       {!evento.historico?.length ? <p className="v2v-empty">Nenhuma alteração registrada para esta ocorrência.</p> :
-        <div className="pl-history-table-wrap"><table className="pl-history-table" aria-label="Histórico de alterações"><colgroup><col className="pl-history-meta-col"/><col/></colgroup><thead><tr><th scope="col">Data / Responsável</th><th scope="col">Detalhes das Alterações<div className="pl-history-columns"><span>Campo</span><span>Valor anterior</span><span>Novo valor</span></div></th></tr></thead><tbody>
+        <div className="pl-history-events" aria-label="Histórico de alterações">
           {[...evento.historico].reverse().map((versao, i) => {
             const anterior = versao.anteriores ?? evento.historico?.[evento.historico.length - i - 2]?.dados;
             const antes = anterior ? camposHistorico(anterior) : null;
@@ -56,9 +56,20 @@ export function HistoricoEvento({evento, fechar}: {evento: EventoLicenca | null;
                 {alterados.map(campo => <div className={`pl-history-change${!anterior ? ' pl-history-initial' : ''}`} key={campo}><strong>{campo}</strong>{anterior && <span className="pl-history-old" aria-label={`Valor anterior: ${antigos[campo] || 'Não informado'}`}>{antigos[campo] || 'Não informado'}</span>}<span className="pl-history-new" aria-label={`Novo valor: ${campos[campo] || 'Não informado'}`}>{campos[campo] || 'Não informado'}</span></div>)}
               </section>;
             });
-            return <tr key={versao.versao}><td className="pl-history-meta"><time dateTime={versao.publicadaEm}><strong>{new Date(versao.publicadaEm).toLocaleDateString('pt-BR')}</strong><span>{new Date(versao.publicadaEm).toLocaleTimeString('pt-BR')}</span></time><p>{versao.responsavel || 'Responsável não registrado'}</p><small>Versão {versao.versao}</small></td><td>{!anterior && <h3 className="pl-history-creation">Criação da Ocorrência (Registro Inicial)</h3>}{grupos}{quantidade === 0 && <p>Sem alterações nos campos da parametrização.</p>}</td></tr>;
+            return <article className="pl-history-event" key={versao.versao} aria-label={`${anterior ? 'Edição' : 'Criação'} — Versão ${versao.versao}`}>
+              <header><time dateTime={versao.publicadaEm}>{new Date(versao.publicadaEm).toLocaleDateString('pt-BR', { timeZone: 'America/Cuiaba' })} às {new Date(versao.publicadaEm).toLocaleTimeString('pt-BR', { timeZone: 'America/Cuiaba', hour: '2-digit', minute: '2-digit' })}</time>
+                <span className={`pl-history-operation ${anterior ? 'is-edit' : 'is-create'}`}>{anterior ? 'Edição' : 'Criação'}</span>
+                <span className="pl-history-person"><i className="pi pi-user" aria-hidden="true" />{versao.responsavel || 'Responsável não registrado'}</span>
+              </header>
+              <div className="pl-history-event-body">{anterior ? <>
+                <div className="pl-history-card-columns"><span>Campo</span><span>Valor anterior</span><span>Novo valor</span></div>
+                {grupos}{quantidade === 0 && <p>Sem alterações nos campos da parametrização.</p>}
+              </> : <><p>Ocorrência criada com {quantidade} campos preenchidos.</p>
+                <details><summary>Ver todos os detalhes da criação original</summary>{grupos}</details>
+              </>}</div>
+            </article>;
           })}
-        </tbody></table></div>}
+        </div>}
     </div>}
   </ModalSeplag>;
 }
