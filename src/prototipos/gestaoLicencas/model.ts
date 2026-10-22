@@ -31,12 +31,17 @@ export interface RegistroLicenca {
   };
   origem: "SIGEP" | "PORTALSERVIDOR";
   situacao: SituacaoLicenca;
+  criadoEm?: string;
+  criadoPor?: string;
+  fimOriginal?: string;
+  alteracoes?: { justificativa: string; documento: ArquivoAnexadoSeplag; data: string; responsavel?: string; descricao?: string }[];
 }
 
 // Exemplos fornecidos no HTML: datas, dias concedidos e situações são preservados.
 export const registrosLicencas: readonly RegistroLicenca[] = [
   {
     id: "licenca-900017",
+    criadoEm: "2026-10-19T14:30:00-04:00",
     matricula: "900017",
     vinculo: 1,
     tipoVinculo: "Efetivo",
@@ -56,6 +61,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
   },
   {
     id: "licenca-900018",
+    criadoEm: "2026-10-19T15:10:00-04:00",
     matricula: "900018",
     vinculo: 1,
     tipoVinculo: "Contrato Temporário",
@@ -75,6 +81,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
   },
   {
     id: "licenca-241244",
+    criadoEm: "2026-03-23T09:20:00-04:00",
     matricula: "241244",
     vinculo: 1,
     tipoVinculo: "Efetivo",
@@ -94,6 +101,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
   },
   {
     id: "licenca-257812",
+    criadoEm: "2026-10-20T10:45:00-04:00",
     matricula: "257812",
     vinculo: 1,
     tipoVinculo: "Contrato Temporário",
@@ -113,6 +121,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
   },
   {
     id: "licenca-243417",
+    criadoEm: "2026-01-26T14:00:00-04:00",
     matricula: "243417",
     vinculo: 1,
     tipoVinculo: "Comissionado",
@@ -132,6 +141,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
   },
   {
     id: "licenca-327305",
+    criadoEm: "2026-10-21T08:30:00-04:00",
     matricula: "327305",
     vinculo: 1,
     tipoVinculo: "Residente Técnico",
@@ -151,6 +161,7 @@ export const registrosLicencas: readonly RegistroLicenca[] = [
   },
   {
     id: "licenca-412809",
+    criadoEm: "2026-02-09T11:15:00-04:00",
     matricula: "412809",
     vinculo: 1,
     tipoVinculo: "Efetivo",

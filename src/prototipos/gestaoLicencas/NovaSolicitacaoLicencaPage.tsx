@@ -241,6 +241,10 @@ export function NovaSolicitacaoContent({
         "A parametrização não autoriza o tipo de vínculo selecionado.",
       );
     const novos: RegistroLicenca[] = vinculos.map((v) => ({
+      ...(editar && registro ? {
+        criadoEm: registro.criadoEm, criadoPor: registro.criadoPor,
+        fimOriginal: registro.fimOriginal || registro.fim, alteracoes: registro.alteracoes,
+      } : { criadoEm: new Date().toISOString(), fimOriginal: fim }),
       id: editar && registro ? registro.id : crypto.randomUUID(),
       matricula: servidor.matricula,
       vinculo: v.numero,

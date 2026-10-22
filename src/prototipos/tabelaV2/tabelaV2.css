@@ -461,7 +461,7 @@
 .v2-legal-pdf-preview { width: 100%; height: min(70vh, 560px); border: 0; background: #f7f9fb; }
 .v2-rga-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none; margin: 0 0 24px; padding: 16px 20px; border: 1px solid #d0dfee; border-radius: 6px; background: #fff; }
 .v2-rga-steps li { position: relative; min-width: 0; }
-.v2-rga-steps li + li::before { content: ""; position: absolute; top: 18px; left: -50%; width: 100%; height: 1px; background: #d0dfee; }
+.v2-rga-steps li + li::before { content: ""; position: absolute; top: 18px; left: calc(-50% + 18px); width: calc(100% - 36px); height: 1px; background: #d0dfee; }
 .v2-rga-steps button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 100%; min-height: 79px; padding: 0 4px; border: 0; background: transparent; color: #71869f; font: inherit; font-size: .85rem; cursor: pointer; }
 .v2-rga-steps button:disabled { opacity: 1; cursor: default; }
 .v2-rga-step-number { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #cbdced; border-radius: 50%; background: #fff; }

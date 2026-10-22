@@ -20,8 +20,10 @@ import {
 } from "./model";
 import "../vinculos/vinculoV2.css";
 import "./gestaoLicencas.css";
+import { EditarLancamentoModal } from "./EditarLancamentoModal";
+import { HistoricoLancamentoModal } from "./HistoricoLancamentoModal";
 
-function AcoesLicenca({ registro }: { registro: RegistroLicenca }) {
+function AcoesLicenca({ registro, onEditar, onHistorico }: { registro: RegistroLicenca; onEditar: (registro: RegistroLicenca) => void; onHistorico: (registro: RegistroLicenca) => void }) {
   const navigate = useNavigate();
   const menu = useRef<Menu>(null);
   const [aberto, setAberto] = useState(false);
@@ -58,8 +60,12 @@ function AcoesLicenca({ registro }: { registro: RegistroLicenca }) {
           {
             label: "Editar",
             icon: "pi pi-pencil",
-            command: () =>
-              navigate(`${GESTAO_LICENCAS_PATH}/${registro.id}/editar`),
+            command: () => onEditar(registro),
+          },
+          {
+            label: "Histórico",
+            icon: "pi pi-history",
+            command: () => onHistorico(registro),
           },
         ]}
       />
@@ -81,6 +87,9 @@ export function GestaoLicencasContent({
 }: { registros?: readonly RegistroLicenca[] } = {}) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [edicao, setEdicao] = useState<RegistroLicenca | null>(null);
+  const [historico, setHistorico] = useState<RegistroLicenca | null>(null);
+  const [alteracaoSalva, setAlteracaoSalva] = useState(false);
   const [filtros, setFiltros] = useState<FiltrosGestaoLicencas>({
     ...filtrosIniciais,
   });
@@ -109,7 +118,7 @@ export function GestaoLicencasContent({
   };
   return (
     <div className="v2v-page gl-page">
-      {location.state?.solicitacaoSalva && (
+      {(location.state?.solicitacaoSalva || alteracaoSalva) && (
         <p role="status" className="v2v-notice">
           Lançamento salvo com sucesso.
         </p>
@@ -275,7 +284,7 @@ export function GestaoLicencasContent({
                     <Situacao valor={r.situacao} />
                   </td>
                   <td>
-                    <AcoesLicenca registro={r} />
+                    <AcoesLicenca registro={r} onEditar={setEdicao} onHistorico={setHistorico} />
                   </td>
                 </tr>
               ))}
@@ -290,6 +299,8 @@ export function GestaoLicencasContent({
           </table>
         </div>
       </div>
+      {edicao && <EditarLancamentoModal registro={edicao} onClose={() => setEdicao(null)} onSaved={() => { setEdicao(null); setAlteracaoSalva(true); }} />}
+      {historico && <HistoricoLancamentoModal registro={historico} onClose={() => setHistorico(null)} />}
       <PaginacaoV2
         nome="licenças e afastamentos"
         pagina={paginaAtual}
