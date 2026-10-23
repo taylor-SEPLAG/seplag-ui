@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PerfilVariacaoHeader } from '../PerfilVariacaoHeader';
 
 export type PerfilVariacaoIngresso = "CENTRAL" | "SETORIAL";
 const PROFILE_KEY = "prototype-ingresso-perfil-variacao";
@@ -41,6 +42,7 @@ export function SeletorPerfilVariacaoIngresso({
 }) {
   const label = perfil === "CENTRAL" ? "Gestão de Pessoas - Órgão Central" : "Gestão de Pessoas - Setorial";
   return (
+    <PerfilVariacaoHeader resumo={`${label}${perfil === 'SETORIAL' && orgao ? ` · ${orgao}` : ''}`}>
     <div className="prototype-ingresso-profile">
       <label>
         Perfil da variação
@@ -52,5 +54,6 @@ export function SeletorPerfilVariacaoIngresso({
       <strong>{label}</strong>
       {perfil === "SETORIAL" && orgao && onOrgaoChange ? <label className="prototype-ingresso-profile-orgao">Órgão de atuação<select aria-label="Órgão de atuação" value={orgao} onChange={(event) => { localStorage.setItem("prototype-ingresso-orgao-atuacao", event.target.value); onOrgaoChange(event.target.value); }}><option value="SEPLAG">SEPLAG</option><option value="SES">SES</option><option value="SEDUC">SEDUC</option><option value="SEFAZ">SEFAZ</option></select></label> : null}
     </div>
+    </PerfilVariacaoHeader>
   );
 }

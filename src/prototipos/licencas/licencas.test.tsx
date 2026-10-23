@@ -34,6 +34,25 @@ afterEach(() => {
   sessionStorage.clear();
   vi.restoreAllMocks();
 });
+it('abre o histórico pela grid e informa quando não há alterações', async () => {
+  montar();
+  await acaoEvento('1', 'Histórico');
+  const modal = within(screen.getByRole('dialog', { name: 'Histórico de Alterações' }));
+  expect(modal.getByText('Nenhuma alteração registrada para esta ocorrência.')).toBeTruthy();
+});
+it('exibe valores anteriores e novos agrupados na publicação', async () => {
+  const original = eventosIniciais[1];
+  salvarEvento({...original, nome: 'Nome revisado', configuracao: {...configuracaoDoEvento(original), inicioVigencia: '2026-01-01'}}, carregarEventos());
+  const salvo = carregarEventos().find(e => e.id === original.id)!;
+  expect(salvo.historico![0].anteriores?.nome).toBe(original.nome);
+  montar();
+  await acaoEvento('2', 'Histórico');
+  const modal = within(screen.getByRole('dialog', { name: 'Histórico de Alterações' }));
+  expect(modal.getByText(original.nome)).toBeTruthy();
+  expect(modal.getAllByText('Nome revisado').length).toBeGreaterThan(0);
+  expect(modal.getByText('Valor anterior')).toBeTruthy();
+  expect(modal.getByText('Responsável não registrado')).toBeTruthy();
+});
 it('atualiza os cards financeiros por vínculo e preserva valores ao alterar a seleção', () => {
   montar();
   fireEvent.click(screen.getByRole('button', { name: 'Nova Parametrização' }));
@@ -42,6 +61,7 @@ it('atualiza os cards financeiros por vínculo e preserva valores ao alterar a s
   expect(screen.getByText(/Selecione ao menos um tipo de vínculo na seção 2/)).toBeTruthy();
   fireEvent.click(screen.getByText('Selecione uma ou mais opções'));
   fireEvent.click(screen.getByLabelText('Contrato Temporário'));
+  if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole('tab', { name: 'Efeitos financeiros por tipo de vínculo' }));
   let financeiro = within(screen.getByRole('region', { name: 'Efeitos financeiros: Contrato Temporário' }));
   fireEvent.change(financeiro.getByLabelText(/A partir de qual dia/), { target: { value: '5' } });
@@ -52,12 +72,26 @@ it('atualiza os cards financeiros por vínculo e preserva valores ao alterar a s
   fireEvent.click(screen.getByLabelText('Contrato Temporário'));
   expect(screen.queryByRole('region', { name: 'Efeitos financeiros: Contrato Temporário' })).toBeNull();
   fireEvent.click(screen.getByLabelText('Contrato Temporário'));
+  if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole('tab', { name: 'Efeitos financeiros por tipo de vínculo' }));
   financeiro = within(screen.getByRole('region', { name: 'Efeitos financeiros: Contrato Temporário' }));
   expect((financeiro.getByLabelText(/A partir de qual dia/) as HTMLInputElement).value).toBe('5');
   fireEvent.click(within(financeiro.getByRole('group', { name: 'Suspende a remuneração do servidor? *' })).getByLabelText('Não'));
   expect(financeiro.queryByLabelText(/A partir de qual dia/)).toBeNull();
   expect((within(financeiro.getByRole('group', { name: 'Gera ônus remuneratório para o órgão de origem? *' })).getByLabelText('Não') as HTMLInputElement).checked).toBe(true);
+});
+it('libera a segunda aba somente após avançar sem salvar o cadastro', () => {
+  montar();
+  fireEvent.click(screen.getByRole('button', {name: 'Nova Parametrização'}));
+  const aba = screen.getByRole('tab', {name: 'Efeitos financeiros por tipo de vínculo'}) as HTMLButtonElement;
+  expect(aba.disabled).toBe(true);
+  fireEvent.click(aba);
+  expect(screen.getByRole('tab', {name: 'Dados da parametrização'}).getAttribute('aria-selected')).toBe('true');
+  fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
+  expect(aba.disabled).toBe(false);
+  expect(aba.getAttribute('aria-selected')).toBe('true');
+  expect(screen.getByRole('button', {name: 'Salvar e Publicar'})).toBeTruthy();
+  expect(localStorage.getItem(STORAGE_LICENCAS)).toBeNull();
 });
 it('valida o dia inicial da suspensão antes de publicar', () => {
   const base = clonarEvento(eventosIniciais[1]);
@@ -78,6 +112,7 @@ function montar() {
           path={`${BASE}/:id/editar`}
           element={<ParametrizacaoLicencasFormPage />}
         />
+        <Route path={`${BASE}/:id/visualizar`} element={<ParametrizacaoLicencasFormPage visualizar />} />
         <Route
           path={`${BASE}/:id/clonar`}
           element={<ParametrizacaoLicencasFormPage clonar />}
@@ -93,11 +128,11 @@ function RetornoDocumentoTeste(){
 it('preserva o preenchimento ao acessar o cadastro de amparo legal e retornar',()=>{
   montar();
   fireEvent.click(screen.getByRole('button',{name:'Nova Parametrização'}));
-  fireEvent.change(screen.getByLabelText('Nome do Evento (Exibido no Lançamento) *'),{target:{value:'Rascunho preservado'}});
+  fireEvent.change(screen.getByLabelText('Nome da Ocorrência (Exibido no Lançamento) *'),{target:{value:'Rascunho preservado'}});
   selecionarAmparoLegal();
   fireEvent.click(screen.getByRole('button',{name:'Novo Cadastro'}));
   fireEvent.click(screen.getByRole('button',{name:'Retornar à parametrização'}));
-  expect((screen.getByLabelText('Nome do Evento (Exibido no Lançamento) *') as HTMLInputElement).value).toBe('Rascunho preservado');
+  expect((screen.getByLabelText('Nome da Ocorrência (Exibido no Lançamento) *') as HTMLInputElement).value).toBe('Rascunho preservado');
   expect(screen.getAllByRole('button',{name:'Remover LC nº 500/2026'}).length).toBeGreaterThan(0);
   expect(screen.getByLabelText('Tipo *')).toBeTruthy();
   expect(sessionStorage.getItem(`sigep-licencas-rascunho:${BASE}/novo`)).toBeNull();
@@ -119,7 +154,7 @@ it("exibe os vínculos autorizados em uma lista no modal", () => {
   montar();
   fireEvent.click(
     screen.getByRole("button", {
-      name: "Ver vínculos autorizados do evento 1",
+      name: "Ver vínculos autorizados da ocorrência 1",
     }),
   );
   const modal = within(
@@ -177,47 +212,23 @@ it("clona com novo identificador, exige código único e preserva o original", (
   expect(carregarEventos()).toHaveLength(6);
   expect(carregarEventos().find((e) => e.id === original.id)).toEqual(original);
 });
-it("inativa e reativa apenas após confirmação e mantém indicadores e filtros", async () => {
+it("remove a inativação manual das ações", () => {
   montar();
-  await acaoEvento("1", "Inativar");
-  expect(localStorage.getItem(STORAGE_LICENCAS)).toBeNull();
-  fireEvent.click(
-    within(screen.getByRole("dialog", { name: "Inativar Evento" })).getByRole(
-      "button",
-      { name: "Cancelar" },
-    ),
-  );
-  expect(
-    screen.getByRole("button", { name: "Ações do evento 1" }),
-  ).toBeTruthy();
-  await acaoEvento("1", "Inativar");
-  fireEvent.click(
-    within(screen.getByRole("dialog", { name: "Inativar Evento" })).getByRole(
-      "button",
-      { name: "Confirmar" },
-    ),
-  );
-  expect(carregarEventos().find((e) => e.codigo === "1")?.situacao).toBe(
-    "Inativo",
-  );
-  fireEvent.change(screen.getByLabelText("Situação"), {
-    target: { value: "Inativo" },
-  });
-  expect(
-    within(
-      screen.getByRole("table", { name: "Eventos parametrizados" }),
-    ).getAllByRole("row"),
-  ).toHaveLength(3);
-  await acaoEvento("1", "Reativar");
-  fireEvent.click(
-    within(screen.getByRole("dialog", { name: "Reativar Evento" })).getByRole(
-      "button",
-      { name: "Confirmar" },
-    ),
-  );
-  expect(carregarEventos().find((e) => e.codigo === "1")?.situacao).toBe(
-    "Ativo",
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Ações da ocorrência 1" }));
+  expect(screen.queryByText("Inativar")).toBeNull();
+});
+it("inativa ao atingir a data fim e preserva datas futuras", () => {
+  const base = eventosIniciais[1];
+  localStorage.setItem(STORAGE_LICENCAS, JSON.stringify([{...base, configuracao: {...configuracaoDoEvento(base), fimVigencia: '2000-01-01'}}]));
+  expect(carregarEventos()[0].situacao).toBe('Inativo');
+  localStorage.setItem(STORAGE_LICENCAS, JSON.stringify([{...base, configuracao: {...configuracaoDoEvento(base), fimVigencia: '2999-01-01'}}]));
+  expect(carregarEventos()[0].situacao).toBe('Ativo');
+});
+it("permite configurar a exigência de documentos", () => {
+  montar();
+  fireEvent.click(screen.getByRole('button', {name: 'Nova Parametrização'}));
+  fireEvent.click(screen.getByLabelText('Sim, obrigatório'));
+  expect((screen.getByLabelText('Sim, obrigatório') as HTMLInputElement).checked).toBe(true);
 });
 it("abre a clonagem preenchida e salva uma nova parametrização", async () => {
   montar();
@@ -225,7 +236,7 @@ it("abre a clonagem preenchida e salva uma nova parametrização", async () => {
   expect(
     (
       screen.getByLabelText(
-        "Nome do Evento (Exibido no Lançamento) *",
+        "Nome da Ocorrência (Exibido no Lançamento) *",
       ) as HTMLInputElement
     ).value,
   ).toContain("Luto");
@@ -240,11 +251,12 @@ it("abre a clonagem preenchida e salva uma nova parametrização", async () => {
   expect(
     (screen.getByLabelText("Código Interno *") as HTMLInputElement).readOnly,
   ).toBe(true);
+  if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
   expect(carregarEventos()).toHaveLength(6);
   expect(
     within(
-      screen.getByRole("table", { name: "Eventos parametrizados" }),
+      screen.getByRole("table", { name: "Ocorrências parametrizadas" }),
     ).getByText("6"),
   ).toBeTruthy();
 });
@@ -256,15 +268,17 @@ it("cadastra e edita um evento sem duplicar o registro existente", async () => {
   });
   selecionarAmparoLegal();
   fireEvent.change(
-    screen.getByLabelText("Nome do Evento (Exibido no Lançamento) *"),
+    screen.getByLabelText("Nome da Ocorrência (Exibido no Lançamento) *"),
     { target: { value: "Evento de demonstração" } },
   );
   fireEvent.click(screen.getByLabelText("Nomeado Efetivo"));
+  if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole('tab', { name: 'Efeitos financeiros por tipo de vínculo' }));
   const financeiro = within(screen.getByRole('region', { name: 'Efeitos financeiros: Nomeado Efetivo' }));
   const suspensao = within(financeiro.getByRole('group', { name: 'Suspende a remuneração do servidor? *' }));
   fireEvent.click(suspensao.getByLabelText('Sim'));
   fireEvent.change(financeiro.getByLabelText(/A partir de qual dia/), { target: { value: '3' } });
+  if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
   expect(carregarEventos()).toHaveLength(6);
   const id = carregarEventos().find((e) => e.codigo === "6")!.id;
@@ -272,9 +286,10 @@ it("cadastra e edita um evento sem duplicar o registro existente", async () => {
   await acaoEvento("6", "Editar");
   expect((screen.getByLabelText(/A partir de qual dia/) as HTMLInputElement).value).toBe('3');
   fireEvent.change(
-    screen.getByLabelText("Nome do Evento (Exibido no Lançamento) *"),
+    screen.getByLabelText("Nome da Ocorrência (Exibido no Lançamento) *"),
     { target: { value: "Evento revisado" } },
   );
+  if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
   expect(carregarEventos()).toHaveLength(6);
   expect(carregarEventos().find((e) => e.id === id)?.nome).toBe(
@@ -296,24 +311,28 @@ it("pagina os resultados e reinicia a página ao combinar filtros", () => {
   montar();
   expect(
     within(
-      screen.getByRole("table", { name: "Eventos parametrizados" }),
+      screen.getByRole("table", { name: "Ocorrências parametrizadas" }),
     ).getAllByRole("row"),
   ).toHaveLength(11);
   fireEvent.click(
-    screen.getByRole("button", { name: "Próxima página de eventos" }),
+    screen.getByRole("button", { name: "Próxima página de ocorrências" }),
   );
   expect(
     within(
-      screen.getByRole("table", { name: "Eventos parametrizados" }),
+      screen.getByRole("table", { name: "Ocorrências parametrizadas" }),
     ).getAllByRole("row"),
   ).toHaveLength(3);
-  fireEvent.change(screen.getByLabelText("Código ou Nome do Evento"), {
+  fireEvent.change(screen.getByLabelText("Código"), {
     target: { value: "311" },
   });
   expect(screen.getByText("311")).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Nome da Ocorrência"), { target: { value: "Exemplo 10" } });
+  expect(screen.getByText("Nenhum registro encontrado para os filtros informados.")).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Nome da Ocorrência"), { target: { value: "Exemplo 11" } });
+  expect(screen.getByText("311")).toBeTruthy();
   expect(
     screen
-      .getByRole("button", { name: "Página 1 de eventos" })
+      .getByRole("button", { name: "Página 1 de ocorrências" })
       .getAttribute("aria-current"),
   ).toBe("page");
   fireEvent.change(screen.getByLabelText("Tipo"), {
@@ -326,23 +345,29 @@ it("pagina os resultados e reinicia a página ao combinar filtros", () => {
 
 async function acaoEvento(codigo: string, acao: string) {
   fireEvent.click(
-    screen.getByRole("button", { name: "Ações do evento " + codigo }),
+    screen.getByRole("button", { name: "Ações da ocorrência " + codigo }),
   );
   fireEvent.click(await screen.findByRole("menuitem", { name: acao }));
 }
 it("visualiza os detalhes do registro sem alterar seus dados", () => {
   montar();
-  fireEvent.click(screen.getByRole("button", { name: "Visualizar Evento 1" }));
-  const modal = within(
-    screen.getByRole("dialog", { name: "Visualizar Evento" }),
-  );
-  expect(modal.getByText("1 — Licença por Falecimento / Luto")).toBeTruthy();
-  expect(modal.getByText("8 Dias Corridos")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Visualizar Ocorrência 1" }));
+  expect(screen.getAllByText('Visualizar Parametrização').length).toBeGreaterThan(0);
+  const campos = screen.getByRole('group', {name: 'Parametrização em modo de leitura'}) as HTMLFieldSetElement;
+  expect(campos.disabled).toBe(true);
+  expect((screen.getByLabelText('Nome da Ocorrência (Exibido no Lançamento) *') as HTMLInputElement).value).toBe('Licença por Falecimento / Luto');
+  expect(screen.queryByRole('button', {name: 'Salvar e Publicar'})).toBeNull();
+  expect(screen.queryByRole('button', {name: 'Novo Cadastro'})).toBeNull();
+  if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
+  fireEvent.click(screen.getByRole('tab', {name: 'Efeitos financeiros por tipo de vínculo'}));
+  expect(screen.getByRole('region', {name: 'Efeitos financeiros: Nomeado Efetivo'})).toBeTruthy();
   expect(localStorage.getItem(STORAGE_LICENCAS)).toBeNull();
+  fireEvent.click(screen.getByRole('button', {name: 'Voltar'}));
+  expect(screen.getByRole('table', {name: 'Ocorrências parametrizadas'})).toBeTruthy();
 });
 it("mostra as ações correspondentes à situação de cada registro", async () => {
   montar();
-  fireEvent.click(screen.getByRole("button", { name: "Ações do evento 5" }));
+  fireEvent.click(screen.getByRole("button", { name: "Ações da ocorrência 5" }));
   expect(await screen.findByRole("menuitem", { name: "Editar" })).toBeTruthy();
   expect(screen.getByRole("menuitem", { name: "Duplicar" })).toBeTruthy();
   expect(screen.getByRole("menuitem", { name: "Reativar" })).toBeTruthy();
@@ -352,7 +377,7 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
   montar();
   fireEvent.click(screen.getByRole("button", { name: "Nova Parametrização" }));
   fireEvent.change(
-    screen.getByLabelText("Nome do Evento (Exibido no Lançamento) *"),
+    screen.getByLabelText("Nome da Ocorrência (Exibido no Lançamento) *"),
     { target: { value: "Parametrização completa" } },
   );
   fireEvent.change(screen.getByLabelText("Data Início Vigência *"), {
@@ -378,7 +403,7 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
   fireEvent.click(screen.getByLabelText("Contrato Temporário Vínculo Único"));
   fireEvent.click(screen.getByLabelText("Sem Limite de Dias"));
   expect(
-    (screen.getByLabelText("Dias Máximos Permitidos *") as HTMLInputElement)
+    (screen.getByLabelText("Dias Máximos Permitidos (Dias corridos) *") as HTMLInputElement)
       .disabled,
   ).toBe(true);
   fireEvent.click(
@@ -403,6 +428,7 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
   selecionarAmparoLegal();
   fireEvent.click(screen.getByRole("button", { name: "Pai / Mãe" }));
   fireEvent.click(screen.getByRole("button", { name: "Tio(a)" }));
+  if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
   const salvo = carregarEventos().find((e) => e.codigo === "6")!;
   expect(salvo.vinculos).toEqual(["Residente", "Temporário Único"]);
@@ -419,9 +445,10 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
   await acaoEvento("6", "Editar");
 
   fireEvent.change(
-    screen.getByLabelText("Nome do Evento (Exibido no Lançamento) *"),
+    screen.getByLabelText("Nome da Ocorrência (Exibido no Lançamento) *"),
     { target: { value: "Parametrização revisada" } },
   );
+  if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
   const revisado = carregarEventos().find((e) => e.codigo === "6")!;
   expect(revisado.historico).toHaveLength(2);

@@ -22,7 +22,7 @@
 .v2v-panel { margin-bottom: 18px; padding: 16px; border: 1px solid #d8e3ee; border-radius: 6px; background: white; box-shadow: 0 1px 3px rgba(17, 49, 81, .04); }
 .v2v-panel h2 { margin: 0 0 16px; color: #123c65; font-size: 1rem; }
 .v2v-filters { display: grid; grid-template-columns: 1fr 1.4fr 1fr auto; gap: 12px; align-items: end; }
-.v2v-filters.v2v-type-filters { grid-template-columns: minmax(0, 400px) auto; justify-content: start; }
+.v2v-filters.v2v-type-filters { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto; }
 @media (max-width: 700px) { .v2v-filters.v2v-type-filters { grid-template-columns: 1fr; justify-content: stretch; } }
 .v2v-expanded .v2v-filters { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; }
 .v2v-expanded .v2v-filters label { text-align: left; }

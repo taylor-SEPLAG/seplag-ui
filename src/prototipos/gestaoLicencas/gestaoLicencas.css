@@ -53,7 +53,7 @@
   color: #798a9a;
 }
 .gl-page .gl-kpis {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
 }
 .gl-kpis article {
@@ -199,11 +199,13 @@
   border-color: #ddcdf9;
 }
 .gl-status-vigente {
+  white-space: nowrap;
   color: #008545;
   background: #e2f4e9;
   border-color: #b6e2ca;
 }
 .gl-status-encerrado {
+  white-space: nowrap;
   color: #475569;
   background: #edf1f5;
   border-color: #d0d9e2;
@@ -319,3 +321,55 @@
   }
 }
 .gl-page .v2v-pagination { justify-content:center; flex-wrap:wrap; max-width:100%; }
+.gl-editar-modal .p-dialog-header { padding: 20px 24px; border-bottom: 1px solid #dce4ee; }
+.gl-editar-modal .p-dialog-title { font-size: 14px; color: #111827; }
+.gl-editar-modal .p-dialog-content { padding: 0; }
+.gl-editar-body { padding: 24px; color: #243248; }
+.gl-editar-resumo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin: 0 0 16px; padding: 14px 12px; border: 1px solid #dce4ee; border-radius: 4px; background: #f7f9fb; }
+.gl-editar-servidor { grid-column: 1 / -1; }
+.gl-editar-resumo dt { color: #71839e; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.gl-editar-resumo dd { margin: 4px 0 0; font-size: 12px; overflow-wrap: anywhere; }
+.gl-editar-label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; }
+.gl-editar-label span, .gl-editar-erro { color: #c62828; }
+.gl-editar-body textarea { width: 100%; min-height: 100px; margin-bottom: 20px; padding: 12px; border: 1px solid #dce4ee; border-radius: 4px; font: inherit; font-size: 14px; resize: vertical; }
+.gl-editar-upload { padding: 16px 10px; border: 1px dashed #c7d7ec; border-radius: 5px; background: #f7f9fb; text-align: center; }
+.gl-editar-upload input { display: none; }
+.gl-editar-upload p { margin: 8px 0; color: #71839e; font-size: 11px; overflow-wrap: anywhere; }
+.gl-editar-upload small { color: #8a9ab1; font-size: 10px; }
+.gl-editar-erro { margin-bottom: 0; font-size: 12px; }
+.gl-editar-footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; padding: 16px 24px; border-top: 1px solid #dce4ee; background: #f7f9fb; }
+.gl-editar-modal button:disabled { opacity: .6; cursor: wait; }
+.gl-historico-modal .p-dialog-header { padding: 20px 24px; border-bottom: 1px solid #edf0f5; }
+.gl-historico-modal .p-dialog-title { font-size: 15px; color: #10243b; }
+.gl-historico-modal .p-dialog-content { padding: 20px 24px 8px; }
+.gl-historico-servidor { border: 1px solid #edf0f5; border-radius: 5px; overflow: hidden; color: #142e49; }
+.gl-historico-servidor header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 14px 16px; }
+.gl-historico-servidor header strong { font-size: 14px; }
+.gl-historico-servidor header span { border: 1px solid #e1e7ef; border-radius: 12px; padding: 3px 8px; background: #f1f5f9; color: #71839b; font-size: 10px; }
+.gl-historico-servidor header b { color: #183c61; }
+.gl-historico-servidor dl { display: grid; grid-template-columns: 1.6fr 1.2fr .8fr .9fr; gap: 16px; margin: 0; padding: 18px 16px; background: #f7f9fb; }
+.gl-historico-servidor dt, .gl-historico-detalhes h4 { margin: 0 0 5px; color: #62758f; font-size: 9px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+.gl-historico-servidor dd { margin: 0; font-size: 12px; overflow-wrap: anywhere; }
+.gl-historico-vinculo { display: inline-block; padding: 3px 7px; border: 1px solid #d1d9ff; border-radius: 3px; background: #e6ebff; color: #3045c8; font-size: 10px; }
+.gl-historico-heading { margin: 28px 0 20px; color: #132b45; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.gl-historico-timeline { list-style: none; margin: 0 0 0 5px; padding: 0; }
+.gl-historico-timeline > li { position: relative; padding: 0 0 28px 15px; border-left: 1px solid #dbe3ee; color: #18324f; }
+.gl-historico-timeline > li:last-child { border-left-color: transparent; padding-bottom: 8px; }
+.gl-historico-timeline > li::before { content: ""; position: absolute; top: 2px; left: -5px; width: 9px; height: 9px; border: 1px solid #536dfe; border-radius: 50%; background: #fff; }
+.gl-historico-timeline > .gl-historico-original::before { border-color: #10b981; }
+.gl-historico-evento { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.gl-historico-evento strong { font-size: 12px; }
+.gl-historico-evento time, .gl-historico-evento > span { color: #8a9ab1; font-size: 10px; }
+.gl-historico-timeline p { margin: 7px 0; color: #6b7c92; font-size: 11px; }
+.gl-historico-autor i { color: #7045a2; font-size: 10px; }
+.gl-historico-detalhes { margin-top: 14px; padding: 14px; border: 1px solid #dce4ef; border-left: 2px solid #536dfe; border-radius: 0 5px 5px 0; background: #f7f9fb; }
+.gl-historico-detalhes blockquote { margin: 8px 0 16px; color: #33465d; font-size: 12px; font-style: italic; white-space: pre-wrap; overflow-wrap: anywhere; }
+.gl-historico-documento { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; padding: 8px; border: 1px solid #cbd8eb; border-radius: 4px; background: #fff; color: #4055df; font: inherit; font-size: 11px; text-align: left; cursor: pointer; }
+.gl-historico-documento > i { padding: 6px; background: #f0edf8; color: #aa9cce; }
+.gl-historico-documento span { min-width: 0; overflow-wrap: anywhere; }
+.gl-historico-documento small { display: block; margin-top: 3px; color: #8a9ab1; font-size: 10px; }
+@media (max-width: 540px) {
+  .gl-historico-modal .p-dialog-content { padding: 16px 12px 8px; }
+  .gl-historico-servidor dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gl-historico-evento { flex-wrap: wrap; gap: 5px; }
+}

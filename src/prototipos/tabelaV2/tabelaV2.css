@@ -459,3 +459,30 @@
 .v2-page .tv-origin-tag.rga { border-color: #b9d8f4; background: #eaf5ff; color: #066dab; }
 
 .v2-legal-pdf-preview { width: 100%; height: min(70vh, 560px); border: 0; background: #f7f9fb; }
+.v2-rga-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none; margin: 0 0 24px; padding: 16px 20px; border: 1px solid #d0dfee; border-radius: 6px; background: #fff; }
+.v2-rga-steps li { position: relative; min-width: 0; }
+.v2-rga-steps li + li::before { content: ""; position: absolute; top: 18px; left: calc(-50% + 18px); width: calc(100% - 36px); height: 1px; background: #d0dfee; }
+.v2-rga-steps button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 100%; min-height: 79px; padding: 0 4px; border: 0; background: transparent; color: #71869f; font: inherit; font-size: .85rem; cursor: pointer; }
+.v2-rga-steps button:disabled { opacity: 1; cursor: default; }
+.v2-rga-step-number { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #cbdced; border-radius: 50%; background: #fff; }
+.v2-rga-steps .active button { color: #006bb8; font-weight: 600; }
+.v2-rga-steps .active .v2-rga-step-number, .v2-rga-steps .complete .v2-rga-step-number { background: #006fb9; border-color: #006fb9; color: #fff; }
+.v2-rga-steps small { padding: 2px 8px; border-radius: 12px; background: #e5f2ff; color: #006bb8; font-size: .65rem; font-weight: 400; }
+.v2-rga-steps button:focus-visible { outline: 2px solid #006fb9; outline-offset: 3px; border-radius: 4px; }
+@media (max-width: 540px) { .v2-rga-steps { padding: 14px 6px; } .v2-rga-steps button { font-size: .75rem; } }
+.v2-page .v2-rga-preview-panel > .v2-rga-summary-title { margin: 0 0 12px; padding: 0; border: 0; color: #24577e; font-size: .9rem; font-weight: 700; }
+.v2-rga-summary.v2-info-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 28px; margin: 0 0 24px; padding: 18px; border: 1px solid #d6e0ed; border-radius: 4px; background: #f5f7fa; }
+.v2-rga-summary.v2-info-grid > div { gap: 5px; }
+.v2-rga-summary.v2-info-grid small { color: #7a8da0; font-size: .75rem; }
+.v2-rga-summary.v2-info-grid strong { color: #24577e; font-size: .875rem; font-weight: 600; }
+@media (max-width: 640px) { .v2-rga-summary.v2-info-grid { grid-template-columns: 1fr; gap: 16px; padding: 16px; } }
+.v2-page .v2-filters.v2-rga-search { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; max-width: 980px; margin: 16px 0; }
+@media (max-width: 640px) { .v2-page .v2-filters.v2-rga-search { grid-template-columns: 1fr; } }
+.v2-rga-confirm.v2-confirm { width: min(560px, 100%); padding-bottom: 0; }
+.v2-rga-confirm > header { padding: 18px 22px; }
+.v2-rga-confirm > header h2 { font-size: 1rem; font-weight: 700; }
+.v2-rga-confirm .v2-confirm-body { color: #44698b; font-size: .85rem; line-height: 1.5; }
+.v2-rga-confirm-notice { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid #b9ddfa; border-left: 3px solid #399cfa; background: #eef8ff; color: #31658e; font-size: .78rem; }
+.v2-rga-confirm-notice i { color: #399cfa; }
+.v2-rga-confirm-summary.v2-info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 16px 0 0; padding: 14px; gap: 16px 24px; border: 1px solid #e1e8f0; background: #f7f9fb; }
+.v2-rga-confirm.v2-confirm > .v2-footer { justify-content: flex-end; gap: 10px; margin: 0; padding: 16px 22px; border-top: 1px solid #e1e8f0; }

@@ -29,14 +29,26 @@ export function V2RgaPage() {
   const [observation, setObservation] = useState("");
   const candidates = v2RgaCandidates(records);
   const [selected, setSelected] = useState<string[]>([]);
+  const [cargoFilter, setCargoFilter] = useState("");
+  const [tableFilter, setTableFilter] = useState("");
   const [preview, setPreview] = useState<V2Record[]>([]);
   const [pendingRecords, setPendingRecords] = useState<V2Record[]>([]);
   const [snapshot, setSnapshot] = useState("");
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState("");
-  const allSelected = candidates.length > 0 && candidates.every((record) => selected.includes(record.id));
+  const impactedCargoCount = new Set(preview.map((record) => record.cargoId)).size;
+  const totalValues = preview.reduce((total, record) => total + record.matrix.rows.reduce(
+    (count, row) => count + row.values.filter((value) => value.trim() !== "").length, 0,
+  ), 0);
   const sourceFor = (record: V2Record) => records.find((item) => item.id === record.previousId);
   const cargoFor = (record: V2Record) => V2_CARGOS.find((cargo) => cargo.id === record.cargoId)?.nome || "—";
+  const cargoOptions = [...new Map(candidates.map((record) => [String(record.cargoId), cargoFor(record)])).entries()]
+    .sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+  const tableOptions = [...new Set(candidates.filter((record) => !cargoFilter || String(record.cargoId) === cargoFilter)
+    .map((record) => record.tableId))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  const visibleCandidates = candidates.filter((record) =>
+    (!cargoFilter || String(record.cargoId) === cargoFilter) && (!tableFilter || record.tableId === tableFilter));
+  const allSelected = visibleCandidates.length > 0 && visibleCandidates.every((record) => selected.includes(record.id));
   const toggle = (id: string, checked: boolean) =>
     setSelected((current) => checked ? [...new Set([...current, id])] : current.filter((item) => item !== id));
   const next = () => {
@@ -69,25 +81,45 @@ export function V2RgaPage() {
     nav(V2_BASE + "?rga=1&quantidade=" + preview.length);
   };
   return <V2PageFrame title="Aplicar RGA em lote">
-    <div className="v2-wizard-tabs">{["Seleção das Tabelas", "Parâmetros do RGA", "Pré-visualização"].map((label, index) =>
-      <button type="button" key={label} className={step === index ? "active" : ""} disabled={index > step} onClick={() => setStep(index)}>{label}</button>)}</div>
+    <ol className="v2-rga-steps" aria-label="Etapas da aplicação">
+      {["Seleção das Tabelas", "Parâmetros do RGA", "Pré-visualização"].map((label, index) =>
+        <li key={label} className={step === index ? "active" : index < step ? "complete" : ""} aria-current={step === index ? "step" : undefined}>
+          <button type="button" disabled={index > step} onClick={() => setStep(index)} aria-label={label}>
+            <span className="v2-rga-step-number" aria-hidden="true">{index + 1}</span>
+            <span>{label}</span>
+            {step === index && <small>Etapa atual</small>}
+          </button>
+        </li>)}
+    </ol>
 
     {step === 0 && <section className="v2-panel"><h2>Seleção das Tabelas</h2>
       <div className="v2-note">Selecione as Tabelas de Vencimentos vigentes que receberão a aplicação do RGA. Todas as Tabelas selecionadas terão uma nova versão gerada com os valores reajustados e origem “RGA em lote”.</div>
+      <div className="v2-filters v2-rga-search">
+        <label>Cargo<select value={cargoFilter} onChange={(event) => { setCargoFilter(event.target.value); setTableFilter(""); }}>
+          <option value="">Todos os cargos</option>
+          {cargoOptions.map(([id, nome]) => <option key={id} value={id}>{id.padStart(4, "0")} - {nome}</option>)}
+        </select></label>
+        <label>ID da tabela<select value={tableFilter} onChange={(event) => setTableFilter(event.target.value)}>
+          <option value="">Todas as tabelas</option>
+          {tableOptions.map((id) => <option key={id} value={id}>{id}</option>)}
+        </select></label>
+      </div>
       <div className="v2-table-wrap"><table className="v2-table" aria-label="Tabelas vigentes para RGA em lote">
         <thead><tr>
-          <th><input type="checkbox" aria-label="Selecionar todas as tabelas vigentes" checked={allSelected} disabled={!candidates.length}
-            onChange={(event) => setSelected(event.target.checked ? candidates.map((record) => record.id) : [])} /></th>
-          <th>Código do Cargo</th><th>Cargo</th><th>Jornada</th><th>Tipo(s) de Vínculo</th><th>Versão vigente</th><th>Vigência</th>
+          <th><input type="checkbox" aria-label="Selecionar todas as tabelas vigentes" checked={allSelected} disabled={!visibleCandidates.length}
+            onChange={(event) => setSelected((current) => event.target.checked
+              ? [...new Set([...current, ...visibleCandidates.map((record) => record.id)])]
+              : current.filter((id) => !visibleCandidates.some((record) => record.id === id)))} /></th>
+          <th>Código do Cargo</th><th>Cargo</th><th>ID</th><th>Jornada</th><th>Tipo(s) de Vínculo</th><th>Versão vigente</th><th>Vigência</th>
         </tr></thead>
-        <tbody>{candidates.map((record) => <tr key={record.id}>
+        <tbody>{visibleCandidates.map((record) => <tr key={record.id}>
           <td><input type="checkbox" aria-label={"Selecionar " + record.tableId} checked={selected.includes(record.id)}
             onChange={(event) => toggle(record.id, event.target.checked)} /></td>
-          <td>{String(record.cargoId).padStart(4, "0")}</td><td>{cargoFor(record)}</td><td>{record.jornada}</td>
+          <td>{String(record.cargoId).padStart(4, "0")}</td><td>{cargoFor(record)}</td><td>{record.tableId}</td><td>{record.jornada}</td>
           <td><V2Tags tipos={v2VisibleLinks(record).map((link) => link.tipo)} /></td>
           <td>V{record.version}</td><td>{v2Date(record.inicio)} – {record.fim ? v2Date(record.fim) : "Atual"}</td>
         </tr>)}
-        {!candidates.length && <tr><td colSpan={7} className="v2-empty">Nenhuma tabela vigente disponível.</td></tr>}
+        {!visibleCandidates.length && <tr><td colSpan={8} className="v2-empty">{candidates.length ? "Nenhuma tabela encontrada para a busca informada." : "Nenhuma tabela vigente disponível."}</td></tr>}
         </tbody>
       </table></div>
       <p className="v2-rga-selection-count">{selected.length} {selected.length === 1 ? "Tabela selecionada" : "Tabelas selecionadas"}</p>
@@ -116,14 +148,13 @@ export function V2RgaPage() {
       </section>
     </div>}
 
-    {step === 2 && <section className="v2-panel"><h2>Pré-visualização</h2>
-      <div className="v2-info-grid">
-        <div><small>Ano do RGA</small><strong>{year}</strong></div>
-        <div><small>Percentual do RGA</small><strong>{rateLabel(percent)}</strong></div>
-        <div><small>Início da vigência</small><strong>{v2Date(start)}</strong></div>
-        <div><small>Fim da vigência do RGA</small><strong>{end ? v2Date(end) : "Atual"}</strong></div>
+    {step === 2 && <section className="v2-panel v2-rga-preview-panel"><h2 id="v2-rga-summary-title" className="v2-rga-summary-title">Resumo da aplicação</h2>
+      <div className="v2-info-grid v2-rga-summary" role="region" aria-labelledby="v2-rga-summary-title">
         <div><small>Tabelas selecionadas</small><strong>{selected.length}</strong></div>
-        <div><small>Novas versões</small><strong>{preview.length}</strong></div>
+        <div><small>Cargos impactados</small><strong>{impactedCargoCount}</strong></div>
+        <div><small>Total de valores a recalcular</small><strong>{totalValues}</strong></div>
+        <div><small>Percentual do RGA</small><strong>{rateLabel(percent)}</strong></div>
+        <div><small>Vigência das novas versões</small><strong>{v2Date(start)} a {end ? v2Date(end) : "Atual"}</strong></div>
         <div><small>Base Legal</small><strong>{baseLegal}</strong></div>
       </div>
       <div className="v2-table-wrap"><table className="v2-table" aria-label="Pré-visualização do RGA em lote">
@@ -153,19 +184,20 @@ export function V2RgaPage() {
       <button type="button" className="v2-button-primary" disabled={step === 0 && !selected.length}
         onClick={step === 2 ? () => setConfirm(true) : next}>{step === 2 ? "Confirmar aplicação" : "Avançar"}</button></div>
 
-    {confirm && <div className="v2-overlay" role="presentation" onMouseDown={() => setConfirm(false)}><section className="v2-modal v2-confirm" role="dialog" aria-modal="true" aria-labelledby="v2-confirm-title" onMouseDown={(event) => event.stopPropagation()}>
-      <header><h2 id="v2-confirm-title">Confirmar aplicação de RGA em lote</h2><button type="button" className="v2-icon-plain" aria-label="Fechar" onClick={() => setConfirm(false)}><i className="pi pi-times" /></button></header>
-      <div className="v2-confirm-body"><div className="v2-info-grid">
-        <div><small>Ano do RGA</small><strong>{year}</strong></div>
-        <div><small>Fim da vigência do RGA</small><strong>{end ? v2Date(end) : "Atual"}</strong></div>
-        <div><small>Percentual do RGA</small><strong>{rateLabel(percent)}</strong></div>
-        <div><small>Data de início da vigência</small><strong>{v2Date(start)}</strong></div>
+    {confirm && <div className="v2-overlay" role="presentation" onMouseDown={() => setConfirm(false)}><section className="v2-modal v2-confirm v2-rga-confirm" role="dialog" aria-modal="true" aria-labelledby="v2-confirm-title" onMouseDown={(event) => event.stopPropagation()}>
+      <header><h2 id="v2-confirm-title">Confirmar aplicação do RGA?</h2></header>
+      <div className="v2-confirm-body">
+        <p>A aplicação do RGA irá gerar novas versões das Tabelas de Vencimentos correspondentes {impactedCargoCount === 1 ? "ao cargo selecionado" : `aos ${impactedCargoCount} cargos selecionados`}, utilizando o percentual de {rateLabel(percent)}, com vigência a partir de {v2Date(start)}.</p>
+        <p>Os servidores enquadrados nas novas versões terão o reflexo automático conforme a vigência da nova tabela.</p>
+        <div className="v2-rga-confirm-notice"><i className="pi pi-info-circle" aria-hidden="true" /><span>As versões atualmente vigentes permanecerão inalteradas e disponíveis no histórico.</span></div>
+        <div className="v2-info-grid v2-rga-confirm-summary">
         <div><small>Tabelas selecionadas</small><strong>{selected.length}</strong></div>
-        <div><small>Novas versões</small><strong>{preview.length}</strong></div>
-        <div><small>Base Legal</small><strong>{baseLegal}</strong></div>
+        <div><small>Cargos impactados</small><strong>{impactedCargoCount}</strong></div>
+        <div><small>Percentual do RGA</small><strong>{rateLabel(percent)}</strong></div>
+        <div><small>Vigência</small><strong>{v2Date(start)}{end ? ` a ${v2Date(end)}` : ""}</strong></div>
       </div>
-      <p>Todas as Tabelas selecionadas terão uma nova versão criada com os valores reajustados pelo percentual informado e origem “RGA em lote”. Deseja continuar?</p></div>
-      <div className="v2-footer"><button type="button" className="v2-button-secondary" onClick={() => setConfirm(false)}>Cancelar</button>
+      </div>
+      <div className="v2-footer"><button type="button" className="v2-button-secondary" onClick={() => setConfirm(false)}><i className="pi pi-arrow-left" aria-hidden="true" /> Cancelar</button>
         <button type="button" className="v2-button-primary" onClick={apply}>Confirmar aplicação</button></div>
     </section></div>}
   </V2PageFrame>;

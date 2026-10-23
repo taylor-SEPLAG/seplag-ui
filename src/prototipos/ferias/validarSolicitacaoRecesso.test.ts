@@ -66,19 +66,19 @@ describe("validarSolicitacaoRecesso — RESIDENTE", () => {
     expect(resultado.erro_codigo).toBe(CodigoErroRecesso.PARCELA_ACIMA_DO_MAXIMO);
   });
 
-  it("falha por antecedência insuficiente na 1ª parcela (menos de 60 dias)", () => {
+  it("falha por antecedência insuficiente na 1ª parcela (menos de 15 dias, IN 002/2024/SEPLAG)", () => {
     const data_inicio_recesso = "2026-06-01";
     const resultado = validarSolicitacaoRecesso(
-      entradaResidenteBase({ data_inicio_recesso, data_solicitacao: subtrairDias(data_inicio_recesso, 59), numero_parcela: 1 }),
+      entradaResidenteBase({ data_inicio_recesso, data_solicitacao: subtrairDias(data_inicio_recesso, 14), numero_parcela: 1 }),
     );
     expect(resultado.sucesso).toBe(false);
     expect(resultado.erro_codigo).toBe(CodigoErroRecesso.ANTECEDENCIA_INSUFICIENTE);
   });
 
-  it("falha por antecedência insuficiente na 2ª parcela (menos de 45 dias)", () => {
+  it("falha por antecedência insuficiente na 2ª parcela (menos de 15 dias — regra única por parcela)", () => {
     const data_inicio_recesso = "2026-06-01";
     const resultado = validarSolicitacaoRecesso(
-      entradaResidenteBase({ data_inicio_recesso, data_solicitacao: subtrairDias(data_inicio_recesso, 44), numero_parcela: 2 }),
+      entradaResidenteBase({ data_inicio_recesso, data_solicitacao: subtrairDias(data_inicio_recesso, 14), numero_parcela: 2 }),
     );
     expect(resultado.sucesso).toBe(false);
     expect(resultado.erro_codigo).toBe(CodigoErroRecesso.ANTECEDENCIA_INSUFICIENTE);

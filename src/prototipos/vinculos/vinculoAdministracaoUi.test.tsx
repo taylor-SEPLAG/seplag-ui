@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { VinculoV2CadastroPage, VinculoV2ConsultaPage, VinculoV2DetalhesPage, todos } from './VinculoV2Page';
+import { USUARIO_SIGEP_LOGADO } from '../PrototiposPage';
 import { alternarUsuarioVinculos } from './vinculoSessao';
 import { consultarAuditoriaVinculos } from './vinculoAdministracao';
 
@@ -32,13 +33,13 @@ it('alterna os perfis pelo menu existente e atualiza as ações imediatamente', 
   montar();
   expect(screen.queryByRole('button',{name:'Editar'})).toBeNull();
   expect(screen.queryByRole('button',{name:'Excluir'})).toBeNull();
-  fireEvent.click(screen.getByRole('button',{name:/ROBERTO JUNIOR/}));
+  fireEvent.click(screen.getByRole('button',{name: new RegExp('^' + USUARIO_SIGEP_LOGADO.nome)}));
   fireEvent.change(screen.getByLabelText('Usuário de demonstração'),{target:{value:'gestor.vinculos'}});
   expect(screen.queryByRole('button',{name:'Editar'})).toBeNull();
   expect(screen.queryByRole('button',{name:'Excluir'})).toBeNull();
   fireEvent.change(screen.getByLabelText('Usuário de demonstração'),{target:{value:'admin.vinculos'}});
   expect(screen.getAllByRole('button',{name:'Excluir'}).length).toBeGreaterThan(0);
-  expect(screen.getByRole('button',{name:/Carlos Souza/})).toBeTruthy();
+  expect(screen.getByRole('button',{name:/^Carlos Souza/})).toBeTruthy();
 });
 it('bloqueia URL de edição sem perfil e preserva os campos protegidos para administrador', () => {
   const ui=montar('/prototipos/sigep/vinculos-v2/demo-1/editar');

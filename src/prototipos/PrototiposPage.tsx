@@ -1,4 +1,5 @@
 import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
+import { PerfilVariacaoHeaderContext } from './PerfilVariacaoHeader';
 import type { SituacaoCertame } from "./controlePss/certame/types";
 import { FOLHA_PAGINA_INICIAL_PATH } from './paginaInicial/folhaModel';
 import { useControlePssStore } from "./controlePss/controlePssStore";
@@ -514,7 +515,7 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
     visibleOnRouter: true,
     items: [
       { label: "Concessão de Férias", icon: "pi pi-circle-on", to: "/prototipos/sigep/ferias", visibleOnMenu: true, visibleOnRouter: true },
-      { label: "Parametrização de Licenças", icon: "pi pi-circle-on", to: "/prototipos/sigep/parametrizacao-licencas", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Parametrização de Ocorrências", icon: "pi pi-circle-on", to: "/prototipos/sigep/parametrizacao-licencas", visibleOnMenu: true, visibleOnRouter: true },
       { label: "Gestão de Licenças e Afastamentos", icon: "pi pi-circle-on", to: "/prototipos/sigep/gestao-licencas-afastamentos", visibleOnMenu: true, visibleOnRouter: true },
     ],
   },
@@ -1092,8 +1093,10 @@ export function PrototypeSystemPage({
   nomeApresentacao,
   profileExtraActions,
 }: Readonly<PrototypeSystemPageProps>) {
+  const [perfilHeaderDestino, setPerfilHeaderDestino] = useState<HTMLDivElement | null>(null);
   const usarLayoutSigep = ["GESTÃO DE PESSOAS", "SIGEP", "FOLHA"].includes(nomeSistema);
   return (
+    <PerfilVariacaoHeaderContext.Provider value={perfilHeaderDestino}>
     <div className="prototype-shell">
       <LayoutSeplag
         nomeSistema={nomeSistema}
@@ -1108,6 +1111,7 @@ export function PrototypeSystemPage({
         nomeApresentacao={nomeApresentacao ?? USUARIO_SIGEP_LOGADO.nome}
         avatarSrc={usarLayoutSigep ? avatarSigep : undefined}
         profileExtraActions={profileExtraActions}
+        topbarExtraContent={usarLayoutSigep ? <div className="sigep-profile-slot" ref={setPerfilHeaderDestino} /> : undefined}
         numrVinculoAtual={2}
         vinculos={vinculos}
         onLogout={() => {}}
@@ -1122,6 +1126,7 @@ export function PrototypeSystemPage({
         )}
       </LayoutSeplag>
     </div>
+    </PerfilVariacaoHeaderContext.Provider>
   );
 }
 
@@ -13060,7 +13065,7 @@ export function PrototiposEfetivoExercicioPage() {
           }
         >
           <div className="prototype-ingressos-teste-content prototype-efetivo-exercicio-content">
-            <div className="prototype-ingresso-profile-heading"><p className="prototype-ingressos-teste-support">Acompanhe os candidatos que aguardam o registro do efetivo exercício.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} /></div>
+            <p className="prototype-ingressos-teste-support">Acompanhe os candidatos que aguardam o registro do efetivo exercício.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} />
             {feedbackFinalizacaoEfetivo ? (
               <div className="prototype-efetivo-finalizacao-feedback" role="status">
                 <i className="pi pi-check-circle" aria-hidden="true" />
@@ -14455,7 +14460,7 @@ export function PrototiposIngressosTestePage() {
           }
         >
           <div className="prototype-ingressos-teste-content">
-          <div className="prototype-ingresso-profile-heading"><p className="prototype-ingressos-teste-support">Acompanhe concursos e processos seletivos disponíveis para ingresso.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} /></div>
+          <p className="prototype-ingressos-teste-support">Acompanhe concursos e processos seletivos disponíveis para ingresso.</p><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoPerfil} onOrgaoChange={setOrgaoAtuacaoPerfil} />
           <hr className="prototype-ingressos-teste-header-divider" />
           <section className="prototype-ingressos-teste-indicators" aria-label="Indicadores da gestão de ingresso">
             {indicadoresIngressoTeste.map((indicador) => (
@@ -15659,7 +15664,7 @@ export function PrototiposIngressosTesteDetalhePage() {
           cols="12"
           cardHeaderClassNames="prototype-regime-card prototype-ingressos-card prototype-ingressos-card--pss"
         >
-          <div className="prototype-ingresso-profile-heading"><span /><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoAnalise} onOrgaoChange={setOrgaoAtuacaoAnalise} /></div>
+          <SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={setPerfilVariacao} orgao={orgaoAtuacaoAnalise} onOrgaoChange={setOrgaoAtuacaoAnalise} />
           {(
             <section className={`prototype-ingressos-integration-notice ${houveFalhaNaUltimaTentativa ? "is-error" : ultimaIntegracaoBemSucedida && !quantidadeNovosCandidatos ? "is-no-new" : ultimaIntegracaoBemSucedida ? "is-updated" : "is-waiting"}`} aria-live="polite" aria-label="Resumo da integração de candidatos">
               <span className="prototype-ingressos-integration-notice-icon" aria-hidden="true"><i className={`pi ${houveFalhaNaUltimaTentativa ? "pi-exclamation-triangle" : ultimaIntegracaoBemSucedida ? "pi-info-circle" : "pi-clock"}`} /></span>
@@ -16893,7 +16898,7 @@ export function PrototiposIngressosPage() {
     >
       <div className="prototype-page-content prototype-page-content--white">
         <CardSeplag title="Gestão de Ingresso" cols="12" cardHeaderClassNames="prototype-ingressos-card">
-          <div className="prototype-ingresso-profile-heading"><span /><SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={(perfil) => { setHistoricoIngressoSelecionadoId(null); setPerfilVariacao(perfil); }} orgao={orgaoAtuacaoAnalise} onOrgaoChange={(orgao) => { setHistoricoIngressoSelecionadoId(null); setOrgaoAtuacaoAnalise(orgao); }} /></div>
+          <SeletorPerfilVariacaoIngresso perfil={perfilVariacao} onChange={(perfil) => { setHistoricoIngressoSelecionadoId(null); setPerfilVariacao(perfil); }} orgao={orgaoAtuacaoAnalise} onOrgaoChange={(orgao) => { setHistoricoIngressoSelecionadoId(null); setOrgaoAtuacaoAnalise(orgao); }} />
           <section className="prototype-ingressos-dashboard">
             <div className="prototype-ingressos-dashboard-grid">
               {situacoesDashboard.map((situacao) => {
@@ -18258,7 +18263,7 @@ export function PrototiposNovoIngressoPage() {
       (tipoIngresso === "Concurso" && Boolean(cargoSelecionado) && !quadroVagaEfetivoCompativel) ||
       (vinculoTipoEstagiario && !quadroVagaEstagio) ||
       semQuadroVagasPssSefaz ||
-      (["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || (orgaoDestinoAnalise === orgaoResponsavelAnalise || !(tipoIngresso === "Processo Seletivo" ? orgaosDesignaveis : orgaosIngressoOptions).includes(orgaoDestinoAnalise)))) ||
+      (tipoIngresso === "Processo Seletivo" && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || (orgaoDestinoAnalise === orgaoResponsavelAnalise || !orgaosDesignaveis.includes(orgaoDestinoAnalise)))) ||
       (!jornadaEfetivo || !referenciaEfetivo) ||
       !perfilEspecialidade ||
       ((!vinculoExigeDadosEducacionais || vinculoEstagiario) && tipoIngresso !== "Exclusivo Comissionado" &&
@@ -19335,8 +19340,9 @@ export function PrototiposNovoIngressoPage() {
       if (activeTab === "tipo-ingresso" && ["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso)) {
         const orgaoOrigem = orgaosIngressoSelecionados[0] || orgaoSelecionado || orgaoInicial;
         const orgaoAtualAnalise = orgaoResponsavelAnalise || orgaoOrigem;
-        const orgaoAnalise = direcionamentoAnalise === "outro" ? orgaoDestinoAnalise : orgaoAtualAnalise;
-        if (!orgaoOrigem || !orgaoAnalise || direcionamentoAnalise === "outro" && orgaoAnalise === orgaoAtualAnalise) return;
+        const direcionarParaOutroOrgao = tipoIngresso === "Processo Seletivo" && direcionamentoAnalise === "outro";
+        const orgaoAnalise = direcionarParaOutroOrgao ? orgaoDestinoAnalise : orgaoAtualAnalise;
+        if (!orgaoOrigem || !orgaoAnalise || direcionarParaOutroOrgao && orgaoAnalise === orgaoAtualAnalise) return;
         const novoIdComissionado = tipoIngresso === "Exclusivo Comissionado" && !candidatoParam
           ? Math.max(...[...ingressosComissionadosMock, ...lerRegistrosComissionadosCriados()].map((registro) => registro.id)) + 1
           : undefined;
@@ -19375,7 +19381,7 @@ export function PrototiposNovoIngressoPage() {
             ));
           }
         }
-        setSucessoDirecionamentoAnalise(direcionamentoAnalise === "outro" ? "O ingresso foi encaminhado ao órgão " + orgaoAnalise + " para análise da documentação." : "");
+        setSucessoDirecionamentoAnalise(direcionarParaOutroOrgao ? "O ingresso foi encaminhado ao órgão " + orgaoAnalise + " para análise da documentação." : "");
       }
       setSituacaoIngresso("Em analise");
       persistirSituacaoIngressoAtual("Em analise");
@@ -20286,7 +20292,7 @@ export function PrototiposNovoIngressoPage() {
             <input type="text" value={tipoVinculo} readOnly />
           </label>
           <div className="prototype-ingresso-field prototype-multiselect-field">
-            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão" : "Órgão Responsável"}<em>*</em></span>
+            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão Designado" : "Órgão Responsável"}<em>*</em></span>
             <div className="prototype-multiselect">
               <button
                 type="button"
@@ -20534,7 +20540,7 @@ export function PrototiposNovoIngressoPage() {
             ) : <input type="text" value={tipoVinculo} readOnly />}
           </label>
           <div className="prototype-ingresso-field prototype-multiselect-field">
-            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão" : "Órgão Responsável"}<em>*</em></span>
+            <span>{tipoIngresso === "Exclusivo Comissionado" ? "Órgão Designado" : "Órgão Responsável"}<em>*</em></span>
             <div className="prototype-multiselect">
               <button
                 type="button"
@@ -21066,7 +21072,7 @@ export function PrototiposNovoIngressoPage() {
         <i className="pi pi-exclamation-triangle" aria-hidden="true" />
         Não existe Quadro de Vagas disponível para o Cargo/Função e Perfil Profissional selecionados. Cadastre o Quadro de Vagas para prosseguir.
       </div> : null}
-      {["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) ? renderDirecionamentoAnalise() : null}
+      {tipoIngresso === "Processo Seletivo" ? renderDirecionamentoAnalise() : null}
     </div>
   );
 

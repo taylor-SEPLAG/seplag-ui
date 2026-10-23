@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FeriasRegistro } from './FeriasPages';
 import { ModalSeplag } from '../../componentes/Modal';
-import { tipoAprovacao, dataBrAprovacao, diasAprovacao, filtrosAprovacaoVazios, filtrarAprovacoes, loteAprovacao, ordenarAprovacoes, situacaoAprovacao, type FiltrosAprovacao, type OrdemAprovacao } from './aprovacoesModel';
+import { tipoAprovacao, dataBrAprovacao, diasAprovacao, periodoAprovacao, filtrosAprovacaoVazios, filtrarAprovacoes, loteAprovacao, ordenarAprovacoes, situacaoAprovacao, type FiltrosAprovacao, type OrdemAprovacao } from './aprovacoesModel';
 import './aprovacoes.css';
 
 export function AprovacoesFerias({registros,onVisualizar,onAlterarStatus,onAlterarStatusLote}: {
@@ -57,7 +57,7 @@ export function AprovacoesFerias({registros,onVisualizar,onAlterarStatus,onAlter
     <div className="fa-table-wrap"><table className="fa-table" aria-label="Solicitações de férias para aprovação"><thead><tr>{cabecalhos.map(c => <th key={c.rotulo} aria-sort={!c.campo ? undefined : ordem.campo===c.campo ? (ordem.desc ? 'descending':'ascending') : 'none'}>{c.campo ? <button type="button" onClick={() => mudarOrdem(c.campo!)}>{c.rotulo}<i className="pi pi-sort-alt" aria-hidden="true" /></button> : c.rotulo}</th>)}</tr></thead><tbody>{visiveis.map(linha => {
       const r=linha.tipo==='grupo' ? linha.membros[0] : linha.registro;
       const membros=linha.tipo==='grupo' ? linha.membros : [r];
-      const situacao=situacaoAprovacao(r)!,expirado=!!r.dataLimiteValidacaoChefia && hoje>r.dataLimiteValidacaoChefia && situacao==='Pendente';
+      const situacao=situacaoAprovacao(r)!,expirado=r.situacao==='PRAZO EXPIRADO' || (!!r.dataLimiteValidacaoChefia && hoje>r.dataLimiteValidacaoChefia && situacao==='Pendente');
       const ehGrupo=linha.tipo==='grupo';
       const rotuloAcao=ehGrupo ? `lote de ${r.servidorNome}` : r.servidorNome;
       const lotacoes=[...new Set(membros.map(m => m.setor))];
@@ -86,13 +86,14 @@ export function AprovacoesFerias({registros,onVisualizar,onAlterarStatus,onAlter
         <div className="fa-lote-membros">
           <p>{loteSelecionado.membros.length} servidor{loteSelecionado.membros.length===1 ? '' : 'es'} incluído{loteSelecionado.membros.length===1 ? '' : 's'} nesta avaliação em bloco.</p>
           <table className="fa-table fa-lote-membros-table">
-            <thead><tr><th>Servidor</th><th>Matrícula / Vínculo</th><th>Cargo</th><th>Lotação</th></tr></thead>
+            <thead><tr><th>Servidor</th><th>Matrícula / Vínculo</th><th>Cargo</th><th>Lotação</th><th>Parcela(s)</th></tr></thead>
             <tbody>{loteSelecionado.membros.map(m => (
               <tr key={m.id}>
                 <td><strong>{m.servidorNome}</strong></td>
                 <td>{m.matricula} / {m.numeroVinculo || '1'}</td>
                 <td>{m.cargo}</td>
                 <td>{m.setor}</td>
+                <td>{periodoAprovacao(m)} · {diasAprovacao(m)} dias</td>
               </tr>
             ))}</tbody>
           </table>

@@ -4,7 +4,7 @@ import type { FeriasRegistro } from "./FeriasPages";
 // (um arquivo de componentes) porque o Fast Refresh do Vite invalida o módulo inteiro sempre
 // que um arquivo de componente também exporta valores não-componente — isso já chegou a causar
 // renders com hooks fora de ordem (erro "useEffect changed size between renders") durante HMR.
-export const STORAGE_KEY = "prototype-ferias-registros-v14";
+export const STORAGE_KEY = "prototype-ferias-registros-v16";
 
 function registroBase(parcial: Partial<FeriasRegistro> & Pick<FeriasRegistro, "id" | "servidorNome" | "matricula" | "cargo" | "tipoVinculo" | "parcelas" | "situacao">): FeriasRegistro {
   return {
@@ -122,7 +122,7 @@ export const registrosBase: FeriasRegistro[] = [
     responsavelLancamento: "Beatriz Andrade Correia (Portal do Servidor)",
     lancadoEm: "2026-10-13 08:40",
   }),
-  // RN-03: já em andamento (cobre a data de hoje) — tentar lançar nova férias sobreposta para a
+  // RN003: já em andamento (cobre a data de hoje) — tentar lançar nova férias sobreposta para a
   // matrícula 260114 deve ser BLOQUEADO ao adicionar a parcela.
   registroBase({
     id: 12, servidorNome: "Fabiana Rezende Monteiro", matricula: "260114", cargo: "Técnica Administrativa",
@@ -133,8 +133,8 @@ export const registrosBase: FeriasRegistro[] = [
     lancadoEm: "2026-09-20 10:15",
     avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-09-22 11:00",
   }),
-  // RN-02: agendada no futuro (ainda não começou) — tentar lançar nova férias sobreposta para a
-  // matrícula 265530 deve apenas ALERTAR, sem bloquear.
+  // RN003: agendada no futuro (ainda não começou) — tentar lançar nova férias sobreposta para a
+  // matrícula 265530 também deve ser BLOQUEADO ao adicionar a parcela (qualquer sobreposição bloqueia).
   registroBase({
     id: 13, servidorNome: "Marcelo Augusto Vianna", matricula: "265530", cargo: "Assistente Administrativo",
     tipoVinculo: "Efetivo", situacao: "EM ABERTO", origem: "SIGEP",
@@ -144,7 +144,7 @@ export const registrosBase: FeriasRegistro[] = [
     lancadoEm: "2026-10-01 14:00",
     avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-10-03 09:20",
   }),
-  // RN-03: recesso de Residente Técnico já em andamento (cobre a data de hoje) — tentar lançar
+  // RN003: recesso de Residente Técnico já em andamento (cobre a data de hoje) — tentar lançar
   // novo recesso sobreposto para a matrícula 399088 deve ser BLOQUEADO ao adicionar a etapa.
   registroBase({
     id: 14, servidorNome: "Eduarda Martins Siqueira", matricula: "399088", cargo: "Residente Técnico — Fisioterapia",
@@ -370,7 +370,7 @@ export function carregarRegistros(): FeriasRegistro[] {
     const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as FeriasRegistro[] | null;
     return semIdsDuplicados((salvos ?? registrosBase).map(registro => {
       const hoje = new Date().toLocaleDateString("sv-SE", {timeZone:"America/Cuiaba"});
-      if (registro.situacao === "AGUARDANDO VALIDAÇÃO" && registro.dataLimiteValidacaoChefia && hoje > registro.dataLimiteValidacaoChefia) return {...registro, situacao:"REPROVADO" as const, expirado:true};
+      if (registro.situacao === "AGUARDANDO VALIDAÇÃO" && registro.dataLimiteValidacaoChefia && hoje > registro.dataLimiteValidacaoChefia) return {...registro, situacao:"PRAZO EXPIRADO" as const};
       const original = registrosBase.find(base => base.id === registro.id && base.matricula === registro.matricula && base.servidorNome === registro.servidorNome);
       return !registro.numeroVinculo && original?.numeroVinculo
         ? { ...registro, numeroVinculo: original.numeroVinculo }

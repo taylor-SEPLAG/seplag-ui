@@ -1,0 +1,60 @@
+.sigep-profile-slot:empty { display: none; }
+.sigep-profile-slot { flex: 0 1 auto; min-width: 0; margin-left: auto; }
+.sigep-profile-control { position: relative; min-width: 0; color: #fff; }
+.sigep-profile-control > summary { display: none; }
+.sigep-profile-control::details-content { content-visibility: visible; }
+.sigep-profile-fields { display: flex; align-items: center; gap: 10px; }
+.sigep-profile-fields .prototype-ingresso-profile {
+  display: flex; align-items: center; gap: 10px; width: auto; max-width: 100%;
+  padding: 0; border: 0; border-radius: 0; background: none; color: #fff;
+}
+.sigep-profile-fields .prototype-ingresso-profile label {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0; margin: 0;
+  color: #fff; font-size: 10px; font-weight: 500; line-height: 12px;
+}
+.sigep-profile-fields .prototype-ingresso-profile select {
+  display: block; width: 255px; max-width: 100%; height: 28px; margin: 0;
+  padding: 0 7px; border: 1px solid #4b83ad; border-radius: 4px;
+  background: #216798; color: #fff; font-size: 12px; font-weight: 600;
+  line-height: normal; color-scheme: dark; box-shadow: none;
+}
+.sigep-profile-fields .prototype-ingresso-profile select:focus-visible,
+.sigep-profile-control > summary:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.sigep-profile-fields .prototype-ingresso-profile-orgao select { width: 100px; }
+.sigep-profile-fields .prototype-ingresso-profile strong,
+.sigep-profile-fields .v2v-profile-demo { display: none; }
+.sigep-profile-fields .v2v-profile-variation { margin: 0; padding: 0; }
+
+/* As regras do header são aplicadas somente quando há um seletor montado. */
+.layout-topbar-compact:has(.sigep-profile-control) { gap: 14px; }
+.layout-topbar-compact:has(.sigep-profile-control) .sigep-global-search { flex: 0 1 400px; min-width: 100px; }
+.layout-topbar-compact:has(.sigep-profile-control) .layout-topbar-module { flex: 0 0 auto; margin-left: 0; white-space: nowrap; }
+
+@media (max-width: 1350px) {
+  .sigep-profile-control > summary {
+    display: flex; align-items: center; gap: 7px; max-width: 210px; height: 34px;
+    padding: 0 9px; border: 1px solid #4b83ad; border-radius: 4px;
+    background: #216798; color: #fff; font-size: 12px; cursor: pointer; list-style: none;
+  }
+  .sigep-profile-control > summary::-webkit-details-marker { display: none; }
+  .sigep-profile-control > summary span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sigep-profile-control:not([open]) > .sigep-profile-fields { display: none; }
+  .sigep-profile-control[open] > .sigep-profile-fields {
+    position: fixed; top: 58px; right: 16px; z-index: 1100;
+    width: min(390px, calc(100vw - 32px)); padding: 12px;
+    border: 1px solid #4b83ad; border-radius: 4px; background: #0d578b;
+  }
+  .sigep-profile-fields .prototype-ingresso-profile { width: 100%; flex-wrap: wrap; }
+  .sigep-profile-fields .prototype-ingresso-profile label { flex: 1 1 230px; }
+  .sigep-profile-fields .prototype-ingresso-profile select { width: 100%; }
+  .sigep-profile-fields .prototype-ingresso-profile-orgao { flex-basis: 80px !important; }
+}
+@media (max-width: 760px) {
+  .layout-topbar-compact:has(.sigep-profile-control) { gap: 6px; padding-right: 8px; }
+  .sigep-profile-control > summary { width: 34px; padding: 0; justify-content: center; }
+  .sigep-profile-control > summary span, .sigep-profile-control > summary .pi-chevron-down { display: none; }
+  .layout-topbar-compact:has(.sigep-profile-control) .layout-topbar-module { flex: 0 1 auto; min-width: 0; }
+}
+@media (max-width: 700px) {
+  .layout-topbar-compact:has(.sigep-profile-control) .sigep-global-search { flex: 0 0 36px; min-width: 36px; }
+}

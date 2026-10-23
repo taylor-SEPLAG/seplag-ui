@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { PerfilVariacaoHeader } from '../PerfilVariacaoHeader';
 import { PrototypeSystemPage, menuGestaoPessoas } from '../PrototiposPage';
 import { USUARIOS_VINCULOS, alternarUsuarioVinculos, useUsuarioVinculos } from './vinculoSessao';
 
@@ -14,7 +15,7 @@ export function VinculoAmbiente({children}: {children:ReactNode}) {
 export function AtalhoPerfisVinculos() {
   const usuario = useUsuarioVinculos();
   const perfil = usuario?.perfil || 'Usuário atual — acessos existentes';
-  return <div className="v2v-profile-variation">
+  return <PerfilVariacaoHeader resumo={perfil}><div className="v2v-profile-variation">
     <div className="prototype-ingresso-profile">
       <label>Perfil da variação
         <select aria-label="Perfil da variação" value={usuario?.login || ''} onChange={e => alternarUsuarioVinculos(e.target.value)}>
@@ -25,5 +26,5 @@ export function AtalhoPerfisVinculos() {
       <strong>{perfil}</strong>
       <small className="v2v-profile-demo">{usuario ? `Demonstração · ${usuario.nome} · ${usuario.login}` : 'Ambiente de demonstração'}</small>
     </div>
-  </div>;
+  </div></PerfilVariacaoHeader>;
 }

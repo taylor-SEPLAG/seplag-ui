@@ -15,6 +15,7 @@ export interface AppTopbarSeplagProps {
   systemas: AppSystemItemSeplag[];
   hideMenuToggle?: boolean;
   searchMenuItems?: IMenuSeplag[];
+  extraContent?: React.ReactNode;
 }
 export const AppTopbarSeplag = (props: AppTopbarSeplagProps) => {
   return (
@@ -37,6 +38,7 @@ export const AppTopbarSeplag = (props: AppTopbarSeplagProps) => {
         </div>
       </button>}
       {props.searchMenuItems && <GlobalSearch items={props.searchMenuItems} />}
+      {props.extraContent}
       <div className="layout-topbar-module" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
         <span
           style={{ fontSize: "18px", fontWeight: 600, marginRight: "10px" }}

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
+import { useToastSeplag } from "../../hooks/toast";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { FormularioIndividual, ModalConfirmarCancelamento } from "./FeriasPages";
 import type { FeriasRegistro } from "./FeriasPages";
@@ -14,6 +15,7 @@ import "./ferias.css";
  * de cada parcela muda quando já aprovada (Em Aberto) — ver FormularioIndividual.salvar(). */
 export function FeriasEditarIndividualPage() {
   const navigate = useNavigate();
+  const { toastSucesso } = useToastSeplag();
   const { id } = useParams();
   const registros = carregarRegistros();
   const registro = registros.find((item) => String(item.id) === id);
@@ -27,6 +29,11 @@ export function FeriasEditarIndividualPage() {
     salvandoRef.current = true;
     const atualizados = carregarRegistros().map((item) => (item.id === registroAtualizado.id ? registroAtualizado : item));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizados));
+    toastSucesso(
+      registroAtualizado.situacao === "AGUARDANDO VALIDAÇÃO"
+        ? "Alteração salva! A solicitação voltou para Aguardando Validação."
+        : "Alteração salva com sucesso!",
+    );
     navigate("/prototipos/sigep/ferias");
   };
 

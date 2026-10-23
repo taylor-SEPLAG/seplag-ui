@@ -44,6 +44,7 @@ export interface EfeitoFinanceiro {
   diaInicioSuspensao: number | null;
 }
 export interface ConfiguracaoEvento {
+  documentosObrigatorios?: boolean;
   efeitosFinanceiros?: Record<string, EfeitoFinanceiro>;
   documentosLegaisIds?: string[];
   inicioVigencia: string;
@@ -60,6 +61,8 @@ export interface ConfiguracaoEvento {
   grausParentesco: string[];
 }
 export interface PublicacaoEvento {
+  anteriores?: Omit<EventoLicenca, "historico">;
+  responsavel?: string;
   versao: number;
   publicadaEm: string;
   dados: Omit<EventoLicenca, "historico">;
@@ -111,12 +114,16 @@ export function configuracaoDoEvento(
       };
 }
 export interface FiltrosLicencas {
+  codigo?: string;
+  nome?: string;
   busca: string;
   categoria: string;
   natureza: string;
   situacao: string;
 }
 export const filtrosVazios: FiltrosLicencas = {
+  codigo: "",
+  nome: "",
   busca: "",
   categoria: "",
   natureza: "",
@@ -202,6 +209,10 @@ const normalizar = (texto: string) =>
 export function filtrarEventos(registros: EventoLicenca[], f: FiltrosLicencas) {
   return registros.filter(
     (e) =>
+      (!f.codigo?.trim() ||
+        normalizar(e.codigo).includes(normalizar(f.codigo.trim()))) &&
+      (!f.nome?.trim() ||
+        normalizar(e.nome).includes(normalizar(f.nome.trim()))) &&
       (!f.busca.trim() ||
         normalizar(e.codigo + " " + e.nome).includes(
           normalizar(f.busca.trim()),
@@ -210,6 +221,15 @@ export function filtrarEventos(registros: EventoLicenca[], f: FiltrosLicencas) {
       (!f.natureza || e.natureza === f.natureza) &&
       (!f.situacao || e.situacao === f.situacao),
   );
+}
+export function atualizarVigencia(
+  evento: EventoLicenca,
+  hoje = new Date().toLocaleDateString("sv-SE"),
+): EventoLicenca {
+  return evento.configuracao?.fimVigencia &&
+    evento.configuracao.fimVigencia <= hoje
+    ? { ...evento, situacao: "Inativo" }
+    : evento;
 }
 export function carregarEventos(): EventoLicenca[] {
   try {
@@ -231,12 +251,12 @@ export function carregarEventos(): EventoLicenca[] {
       });
       if (JSON.stringify(migrados) !== JSON.stringify(dados))
         localStorage.setItem(STORAGE_LICENCAS, JSON.stringify(migrados));
-      return migrados;
+      return migrados.map((e) => atualizarVigencia(e));
     }
   } catch {
     /* dados iniciais do protótipo */
   }
-  return structuredClone(eventosIniciais);
+  return structuredClone(eventosIniciais).map((e) => atualizarVigencia(e));
 }
 export function validarEvento(
   evento: EventoLicenca,
@@ -355,6 +375,13 @@ export function salvarEvento(
       {
         versao: (historico.at(-1)?.versao ?? 0) + 1,
         publicadaEm: new Date().toISOString(),
+        anteriores: (() => {
+          const anterior = registros.find((e) => e.id === evento.id);
+          if (!anterior) return undefined;
+          const { historico: _, ...dadosAnteriores } =
+            structuredClone(anterior);
+          return dadosAnteriores;
+        })(),
         dados,
       },
     ];

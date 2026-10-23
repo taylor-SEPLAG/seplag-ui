@@ -20,7 +20,7 @@ export const vinculos: Vinculo[] = [
   { id: 'mariana-1', pessoaId: '3', matricula: '418920', numero: 1, tipo: 'Contrato Temporário', cargo: 'Técnica de Enfermagem', orgao: 'SES', unidade: 'Hospital Regional', inicio: '2020-03-02', fim: '2022-03-01', classificacao: 'Extinto' },
   { id: 'mariana-2', pessoaId: '3', matricula: '529140', numero: 2, tipo: 'Nomeado Efetivo', cargo: 'Enfermeira', orgao: 'SES', unidade: 'Hospital Regional', inicio: '2023-04-10', classificacao: 'Ativo' },
   { id: 'jose-1', pessoaId: '4', matricula: '215670', numero: 1, tipo: 'Nomeado Efetivo', cargo: 'Professor', orgao: 'SEDUC', unidade: 'Escola Estadual Cuiabá', inicio: '2005-02-07', fim: '2024-11-20', classificacao: 'Falecido' },
-  { id: 'beatriz-1', pessoaId: '5', matricula: '630218', numero: 1, tipo: 'Contrato Temporário', cargo: 'Professora', orgao: 'SEDUC', unidade: 'Escola Estadual Várzea Grande', inicio: '2025-02-03', classificacao: 'Ativo' },
+  { id: 'beatriz-1', pessoaId: '5', matricula: '630218', numero: 1, tipo: 'Contrato Temporário', cargo: 'Professora', orgao: 'SEDUC', unidade: 'Escola Estadual Várzea Grande', inicio: '2025-02-03', fim: '2026-10-20', classificacao: 'Extinto' },
   { id: 'rafael-1', pessoaId: '6', matricula: '372891', numero: 1, tipo: 'Nomeado Comissionado', cargo: 'Assessor Técnico', orgao: 'SEFAZ', unidade: 'Gabinete', inicio: '2022-01-10', fim: '2025-12-31', classificacao: 'Extinto' },
   { id: 'camila-residente-1', pessoaId: '7', matricula: '710024', numero: 1, tipo: 'Residente Técnico', cargo: 'Residente Técnico — Tecnologia da Informação', orgao: 'SEPLAG', unidade: 'Coordenadoria de Tecnologia da Informação', inicio: '2025-02-03', classificacao: 'Ativo' },
   { id: 'lucas-estagiario-1', pessoaId: '8', matricula: '810015', numero: 1, tipo: 'Estagiário', cargo: 'Estagiário — Administração', orgao: 'SEPLAG', unidade: 'Superintendência de Gestão de Pessoas', inicio: '2026-01-12', classificacao: 'Ativo' },
@@ -75,6 +75,22 @@ export const eventos: Evento[] = vinculos.flatMap(v => {
     evento(v, 'Alteração de cargo/função', '2026-10-01', 'Designação para função de coordenação', 'Alterações Funcionais', { 'Dados do Cargo/Função': { 'Cargo/Função anterior': 'Analista Administrativo', 'Novo Cargo/Função': 'Analista Administrativo / Coordenadora', 'Data de vigência': '01/10/2026', 'Motivo': 'Designação para função de confiança' } }),
   );
   if (v.fim) lista.push(evento(v, 'Encerramento', v.fim, v.relacionadoId ? 'Aposentadoria e encerramento do vínculo efetivo' : v.classificacao === 'Falecido' ? 'Encerramento por falecimento' : 'Encerramento do vínculo', 'Encerramento de Vínculos', { 'Dados do Encerramento': { 'Forma de Encerramento': v.relacionadoId ? 'Aposentadoria' : v.classificacao === 'Falecido' ? 'Falecimento' : v.tipo === 'Contrato Temporário' ? 'Término do contrato' : 'Exoneração', 'Justificativa': v.relacionadoId ? 'Concessão de aposentadoria' : 'Conclusão do vínculo funcional', 'Número do processo SIGADOC': '—', 'Data do encerramento': dataBR(v.fim), 'Situação anterior': 'Ativo', 'Situação final': 'Encerrado', ...(v.relacionadoId ? { 'Novo vínculo de Aposentado': `${v.matricula} / 2 — início em 01/07/2025` } : {}) } }));
+  if (v.id === 'mariana-2') lista.push(
+    evento(v, 'Férias', '2025-05-05', 'Concessão de férias — 30 dias', 'Férias', {
+      'Dados das Férias': { 'Período aquisitivo': '10/04/2023 a 09/04/2024', 'Data de início': '05/05/2025', 'Data de término': '03/06/2025', 'Quantidade de dias': '30', 'Situação das férias': 'Quitado' },
+    }),
+    evento(v, 'Licença', '2026-08-10', 'Licença para tratamento de saúde', 'Licenças e Afastamentos', {
+      'Dados da Licença': { 'Tipo de licença ou afastamento': 'Tratamento de saúde', 'Motivo': 'Afastamento autorizado por perícia', 'Data de início': '10/08/2026', 'Data de término': '24/08/2026', 'Quantidade de dias': '15', 'Situação': 'Encerrado', 'Documento comprobatório': 'Laudo demonstrativo 2026/015' },
+    }),
+  );
+  if (v.id === 'beatriz-1') lista.push(
+    evento(v, 'Férias', '2026-07-01', 'Concessão de férias — 30 dias', 'Férias', {
+      'Dados das Férias': { 'Período aquisitivo': '03/02/2025 a 02/02/2026', 'Data de início': '01/07/2026', 'Data de término': '30/07/2026', 'Quantidade de dias': '30', 'Situação das férias': 'Quitado' },
+    }),
+    evento(v, 'Licença', '2026-09-01', 'Licença para tratamento de saúde', 'Licenças e Afastamentos', {
+      'Dados da Licença': { 'Tipo de licença ou afastamento': 'Tratamento de saúde', 'Motivo': 'Afastamento autorizado por perícia', 'Data de início': '01/09/2026', 'Data de término': '15/09/2026', 'Quantidade de dias': '15', 'Situação': 'Encerrado', 'Documento comprobatório': 'Laudo demonstrativo 2026/016' },
+    }),
+  );
   return lista;
 });
 const pessoasBase = [...pessoas];

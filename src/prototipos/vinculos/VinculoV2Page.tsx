@@ -70,7 +70,7 @@ export function VinculoV2ConsultaPage() {
   const [exclusao,setExclusao] = useState<Vinculo | null>(null);
   const [mensagem,setMensagem] = useState('');
   const solicitarExclusao = (v: Vinculo) => setExclusao(v);
-  const [filtros, setFiltros] = useState({ tipo: params.get("tipo") ?? "" });
+  const [filtros, setFiltros] = useState({ tipo: params.get("tipo") ?? "", busca: params.get("busca") ?? "" });
   const [expandido, setExpandido] = useState<string | null>(params.get("expand"));
   const [porPaginaTipos, setPorPaginaTipos] = useState(10);
   const [paginaTipos, setPaginaTipos] = useState(() => { const indice = TIPOS.findIndex((tipo) => tipo === params.get("expand")); return indice < 0 ? 1 : Math.floor(indice / 10) + 1; });
@@ -84,18 +84,29 @@ export function VinculoV2ConsultaPage() {
     }));
     setPaginaServidores(1);
   };
-  const atualizarFiltro = (campo: keyof typeof filtros, valor: string) => { setFiltros((atual) => ({ ...atual, [campo]: valor })); setPaginaTipos(1); setPaginaServidores(1); };
+  const atualizarFiltro = (campo: keyof typeof filtros, valor: string) => {
+    setFiltros((atual) => ({ ...atual, [campo]: valor }));
+    const consulta = new URLSearchParams(params);
+    if (valor) consulta.set(campo, valor); else consulta.delete(campo);
+    setParams(consulta, { replace: true });
+    setPaginaTipos(1); setPaginaServidores(1);
+  };
   const ativos = registros.filter((v) => situacaoDoVinculo(v) === "Ativo");
   const encerrados = registros.filter((v) => situacaoDoVinculo(v) === "Encerrado");
   const contexto = { ...filtrosDaUrl(params), tipo: filtros.tipo };
-  const filtrados = filtrarVinculos(registros, contexto);
+  const busca = normalizar(filtros.busca.trim());
+  const buscaNumerica = /^[\d\s()./-]+$/.test(filtros.busca.trim()) ? filtros.busca.replace(/\D/g, "") : "";
+  const filtrados = filtrarVinculos(registros, contexto).filter(v =>
+    !busca || normalizar(v.nome).includes(busca) || v.matricula.includes(filtros.busca.trim()) ||
+    (buscaNumerica.length > 0 && digitosCpf(v.cpf).includes(buscaNumerica))
+  );
   const contextoAtivo = Boolean(contexto.orgao || contexto.situacao);
   const abrirDetalhes = (v: Vinculo) => {
     const consulta = new URLSearchParams(params);
     consulta.set("tipo", v.tipo);
     navigate(`${BASE}/${v.id}?${consulta}`);
   };
-  const tiposVisiveis = TIPOS.filter((tipo) => !filtros.tipo || filtros.tipo === tipo);
+  const tiposVisiveis = TIPOS.filter((tipo) => (!filtros.tipo || filtros.tipo === tipo) && (!busca || filtrados.some(v => v.tipo === tipo)));
   const totalPaginasTipos = Math.max(1, Math.ceil(tiposVisiveis.length / porPaginaTipos));
   const paginaTiposAtual = Math.min(paginaTipos, totalPaginasTipos);
   const tiposPaginados = tiposVisiveis.slice((paginaTiposAtual - 1) * porPaginaTipos, paginaTiposAtual * porPaginaTipos);
@@ -107,8 +118,9 @@ export function VinculoV2ConsultaPage() {
     </section>
     {contextoAtivo && <p className="v2v-description" aria-label="Contexto da consulta">Consulta filtrada pelo dashboard: {[contexto.orgao, contexto.situacao, contexto.forma, contexto.inicio && `Vacância a partir de ${dataBr(contexto.inicio)}`, contexto.fim && `Vacância até ${dataBr(contexto.fim)}`].filter(Boolean).join(" · ")}</p>}
     <section className="v2v-panel v2v-filters v2v-type-filters" aria-label="Filtros de consulta">
+      <label>Nome, CPF ou matrícula<input value={filtros.busca} onChange={e => atualizarFiltro("busca", e.target.value)} placeholder="Nome, CPF ou matrícula" /></label>
       <label>Tipo de Vínculo<select value={filtros.tipo} onChange={(e) => atualizarFiltro("tipo", e.target.value)}><option value="">Todos</option>{TIPOS.map((t) => <option key={t}>{t}</option>)}</select></label>
-      <div className="v2v-filter-actions"><button className="v2v-primary" type="button" onClick={() => { setFiltros({ tipo: "" }); setParams({}); setPaginaTipos(1); setPaginaServidores(1); }}><i className="pi pi-refresh" aria-hidden="true" />Limpar filtro</button></div>
+      <div className="v2v-filter-actions"><button className="v2v-primary" type="button" onClick={() => { setFiltros({ tipo: "", busca: "" }); setParams({}); setPaginaTipos(1); setPaginaServidores(1); }}><i className="pi pi-refresh" aria-hidden="true" />Limpar filtro</button></div>
     </section>    <section className="v2v-panel" aria-label="Tipos de vínculo"><div className="v2v-table-wrap"><table className="v2v-table"><thead><tr><th>Código</th><th>Tipo de Vínculo</th><th>Quantidade de Vínculos</th><th>Ação</th></tr></thead><tbody>
       {tiposPaginados.map((tipo) => { const idx = TIPOS.indexOf(tipo); const linhasTipo = filtrados.filter((v) => v.tipo === tipo);
  const filtroServidor = filtrosServidores[tipo] ?? { busca: "", matricula: "" };
@@ -265,7 +277,7 @@ export function VinculoV2CadastroPage() {
         <label>Matrícula <em>*</em><input value={campos.matricula} readOnly /></label>
         <label>Nº do Vínculo <em>*</em><input value={existente.numero} readOnly /></label>
         <label>Classificação do Vínculo<input value={['Aposentado','Beneficiário de Aposentado','Pensão Especial'].includes(tipo) ? 'Não Funcional' : 'Funcional'} readOnly /></label>
-        <label>Situação do Vínculo<input value={situacaoDoVinculo(existente) === 'Ativo' ? 'Vigente' : 'Encerrado'} readOnly /></label>
+        <label>Situação do Vínculo<input value={situacaoDoVinculo(existente) === 'Ativo' ? 'Ativo' : 'Encerrado'} readOnly /></label>
       </div>
     </section>}
     <section className="v2v-panel v2v-form-section" aria-labelledby="v2v-caracteristicas-title">

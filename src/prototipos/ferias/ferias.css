@@ -725,6 +725,7 @@
 .prototype-ferias-badge.is-cancelado { background: #fef2f2; color: #b91c1c; }
 .prototype-ferias-badge.is-reprovado { background: #fef2f2; color: #b91c1c; }
 .prototype-ferias-badge.is-suspenso { background: #fffbeb; color: #9a3412; }
+.prototype-ferias-badge.is-prazo-expirado { background: #fef2f2; color: #b91c1c; }
 
 .prototype-ferias-badge-saldo {
   display: inline-flex;
@@ -2029,6 +2030,7 @@ select.prototype-ferias-input-autopreenchido {
 .prototype-ferias-table .prototype-ferias-badge.is-quitado, .prototype-ferias-table .prototype-ferias-badge-tipo { background: #eaf2ff; border-color: #b8d2fa; color: #175cd3; }
 .prototype-ferias-table .prototype-ferias-badge.is-cancelado { background: #fff1f0; border-color: #ffaaa6; color: #d92d20; }
 .prototype-ferias-table .prototype-ferias-badge.is-suspenso { background: #fff4d6; border-color: #f3cf8c; color: #8a5a00; }
+.prototype-ferias-table .prototype-ferias-badge.is-prazo-expirado { background: #fff1f0; border-color: #ffaaa6; color: #d92d20; }
 .prototype-ferias-table .prototype-ferias-badge-origem.is-portalservidor { border-color: #d8c7f7; }
 .prototype-ferias-table .prototype-ferias-badge-origem.is-sigep { border-color: #b8d2fa; }
 .prototype-ferias-acao-dropdown { gap: 0; }
@@ -2130,11 +2132,30 @@ select.prototype-ferias-input-autopreenchido {
 }
 
 .prototype-ferias-coletiva-lista-cabecalho .prototype-ferias-busca-servidor-label {
-  width: 100%;
+  flex: 1 1 320px;
   max-width: 488px;
   font-size: 0.875rem;
   font-weight: 700;
   text-transform: none;
+}
+
+.prototype-ferias-coletiva-lista-cabecalho .prototype-ferias-coletiva-situacao-validacao {
+  flex: 0 1 260px;
+  min-width: 220px;
+  margin: 0;
+}
+
+.prototype-ferias-coletiva-situacao-validacao .label-rotulo {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #193451;
+}
+
+.prototype-ferias-coletiva-situacao-validacao .p-dropdown {
+  min-height: 46px;
+  height: 46px;
 }
 
 .prototype-ferias-coletiva-docentes .prototype-ferias-lote-table-wrap {
@@ -2250,8 +2271,8 @@ select.prototype-ferias-input-autopreenchido {
 .prototype-ferias-coletiva-table--lote th:nth-child(4) { width: 11%; }
 .prototype-ferias-coletiva-table--lote th:nth-child(5) { width: 16%; }
 .prototype-ferias-coletiva-table--lote th:nth-child(6) { width: 9%; }
-.prototype-ferias-coletiva-table--lote th:nth-child(7) { width: 24%; }
-.prototype-ferias-coletiva-table--lote th:nth-child(8) { width: 8%; }
+.prototype-ferias-coletiva-table--lote th:nth-child(7) { width: 8%; }
+.prototype-ferias-coletiva-table--lote th:nth-child(8) { width: 24%; }
 
 .prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) {
   min-width: 1250px;
@@ -2268,18 +2289,11 @@ select.prototype-ferias-input-autopreenchido {
 
 .prototype-ferias-coletiva-table--lote td:nth-child(5),
 .prototype-ferias-coletiva-table--lote td:nth-child(6),
-.prototype-ferias-coletiva-table--lote td:nth-child(7) {
+.prototype-ferias-coletiva-table--lote td:nth-child(8) {
   white-space: normal;
   overflow-wrap: anywhere;
 }
 
-.prototype-ferias-lote-alertas-celula {
-  min-width: 220px;
-}
-
-.prototype-ferias-lote-sem-alerta {
-  color: #647b90;
-}
 
 .prototype-ferias-coletiva-table:not(.prototype-ferias-coletiva-table--lote) td:last-child,
 .prototype-ferias-coletiva-table--lote td:last-child {
@@ -2771,14 +2785,6 @@ select.prototype-ferias-input-autopreenchido {
   line-height: 1.3;
 }
 
-.prototype-ferias-lote-alertas-linha {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  margin-top: 5px;
-}
-
 .prototype-ferias-lote-tag--erro {
   background: #fef2f2;
   color: #b91c1c;
@@ -2935,4 +2941,111 @@ select.prototype-ferias-input-autopreenchido {
 @media (max-width: 640px) {
   .prototype-efetivo-modal-actions { flex-direction: column-reverse; }
   .prototype-efetivo-modal-actions > .p-button { width: 100%; }
+}
+
+/* ── Modal "Histórico" (linha do tempo de situações) ── */
+.prototype-ferias-historico-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+.prototype-ferias-historico-coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.prototype-ferias-historico-coluna h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 2px;
+  font-size: 0.9rem;
+  color: #193451;
+}
+.prototype-ferias-historico-coluna h4:first-child { margin-top: 0; }
+.prototype-ferias-historico-rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+.prototype-ferias-historico-ator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.prototype-ferias-historico-legenda {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  color: #647b90;
+}
+.prototype-ferias-historico-linha-tempo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.prototype-ferias-historico-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.prototype-ferias-historico-item.is-selecionado {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+.prototype-ferias-historico-ponto {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: #fff;
+}
+.prototype-ferias-historico-item.is-sucesso .prototype-ferias-historico-ponto { background: #16a34a; }
+.prototype-ferias-historico-item.is-pendente .prototype-ferias-historico-ponto { background: #2563eb; }
+.prototype-ferias-historico-item.is-aviso .prototype-ferias-historico-ponto { background: #d97706; }
+.prototype-ferias-historico-item.is-erro .prototype-ferias-historico-ponto { background: #dc2626; }
+.prototype-ferias-historico-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.prototype-ferias-historico-texto strong { color: #193451; font-size: 0.85rem; }
+.prototype-ferias-historico-texto small { color: #647b90; font-size: 0.74rem; }
+.prototype-ferias-historico-justificativa {
+  margin: 0 0 10px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 0.82rem;
+  color: #334155;
+}
+.prototype-ferias-historico-documentos td { font-size: 0.82rem; }
+@media (max-width: 760px) {
+  .prototype-ferias-historico-grid { grid-template-columns: 1fr; }
 }

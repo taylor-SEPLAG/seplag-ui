@@ -25,6 +25,7 @@ import {
 } from "./model";
 import "../vinculos/vinculoV2.css";
 import "./vidaFuncional.css";
+import { exportarHistoricoPdf } from "./exportarHistorico";
 
 const base = "/prototipos/sigep/vida-funcional";
 const OPCOES_POR_PAGINA = [10, 20, 50];
@@ -107,21 +108,6 @@ function Tag({ valor }: { valor: string }) {
         ? "encerrado"
         : "inativo";
   return <span className={`v2v-status v2v-status-${classe}`}>{valor}</span>;
-}
-
-function download(
-  nome: string,
-  conteudo: string,
-  tipo = "text/plain;charset=utf-8",
-) {
-  const url = URL.createObjectURL(
-    new Blob(["\uFEFF", conteudo], { type: tipo }),
-  );
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = nome;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function detalhes(e: Evento):Record<string,Record<string,string>> {
@@ -346,29 +332,19 @@ function Conteudo({
           "Data de encerramento": dataBR(vinculo.fim),
         }
       : {};
-  const exportar = () => {
+  const [exportando, setExportando] = useState(false);
+  const [erroExportacao, setErroExportacao] = useState('');
+  const exportar = async () => {
     if (!vinculo || !pessoa) return;
-    const todos = pesquisarEventos(vinculo.id);
-    download(
-      `vida-funcional-${vinculo.matricula}-${vinculo.numero}.txt`,
-      [
-        "SIGEP — Histórico da Vida Funcional",
-        ...Object.entries(resumo).map(([chave, valor]) => `${chave}: ${valor}`),
-        ...todos.map(
-          (evento) =>
-            `\n${dataBR(evento.data)} — ${evento.tipo}\n${evento.titulo}\n${Object.entries(
-              detalhes(evento),
-            )
-              .map(
-                ([secao, campos]) =>
-                  `${secao}\n${Object.entries(campos)
-                    .map(([chave, valor]) => `${chave}: ${valor}`)
-                    .join("\n")}`,
-              )
-              .join("\n")}`,
-        ),
-      ].join("\n"),
-    );
+    setExportando(true);
+    setErroExportacao('');
+    try {
+      await exportarHistoricoPdf(pessoa, vinculo, pesquisarEventos(vinculo.id), detalhes);
+    } catch {
+      setErroExportacao('Não foi possível gerar o PDF. Tente novamente.');
+    } finally {
+      setExportando(false);
+    }
   };
   const atualizarFiltro = (
     campo: keyof Pick<Filtros, "busca" | "tipo" | "situacao">,
@@ -832,9 +808,10 @@ function Conteudo({
                 <i className="pi pi-refresh" aria-hidden="true" />
                 Limpar filtro
               </button>
-              <button className="v2v-primary" type="button" onClick={exportar}>
+              {erroExportacao && <p role="alert">{erroExportacao}</p>}
+              <button className="v2v-primary" type="button" onClick={exportar} disabled={exportando} aria-busy={exportando}>
                 <i className="pi pi-download" aria-hidden="true" />
-                Exportar Histórico
+                {exportando ? "Gerando PDF..." : "Exportar Histórico"}
               </button>
             </div>
           </div>

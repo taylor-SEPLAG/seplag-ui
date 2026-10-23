@@ -7,7 +7,8 @@ import {
   screen,
   within,
 } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { NovaSolicitacaoLicencaPage } from './NovaSolicitacaoLicencaPage';
 import { GestaoLicencasContent } from "./GestaoLicencasPage";
 import { menuGestaoPessoas } from "../PrototiposPage";
 import {
@@ -47,19 +48,22 @@ it('pagina os resultados, altera o tamanho da página e reinicia ao filtrar',()=
 function montar() {
   render(
     <MemoryRouter>
-      <GestaoLicencasContent />
+      <Routes>
+        <Route path="/" element={<GestaoLicencasContent />}/>
+        <Route path={`${GESTAO_LICENCAS_PATH}/:id/visualizar`} element={<NovaSolicitacaoLicencaPage visualizar />}/>
+      </Routes>
     </MemoryRouter>,
   );
 }
 const tabela = () =>
   within(screen.getByRole("table", { name: "Licenças e afastamentos" }));
 
-it("inclui o novo menu imediatamente depois de Parametrização de Licenças", () => {
+it("inclui o novo menu imediatamente depois de Parametrização de Ocorrências", () => {
   const filhos = menuGestaoPessoas.find(
     (m) => m.label === "Direitos e Benefícios",
   )!.items!;
   const indice = filhos.findIndex(
-    (m) => m.label === "Parametrização de Licenças",
+    (m) => m.label === "Parametrização de Ocorrências",
   );
   expect(filhos[indice + 1]).toMatchObject({
     label: TITULO_GESTAO_LICENCAS,
@@ -68,15 +72,15 @@ it("inclui o novo menu imediatamente depois de Parametrização de Licenças", (
     visibleOnRouter: true,
   });
 });
-it("deriva os seis indicadores dos sete registros e preserva os valores do HTML", () => {
+it("deriva os cinco indicadores dos sete registros sem situação de encaminhamento ao INSS", () => {
   expect(indicadoresLicencas(registrosLicencas).map((k) => k.valor)).toEqual([
-    7, 0, 0, 5, 1, 1,
+    7, 0, 0, 6, 1,
   ]);
   expect(registrosLicencas.find((r) => r.matricula === "241244")).toMatchObject(
     { inicio: "2026-03-24", fim: "2026-04-07", dias: 8, situacao: "Em andamento" },
   );
   expect(indicadoresLicencas([]).map((k) => k.valor)).toEqual([
-    0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
   ]);
   montar();
   expect(tabela().getAllByRole("row")).toHaveLength(8);
@@ -165,18 +169,12 @@ it("o olho mostra os dados do registro selecionado sem alterar a base", () => {
       name: "Visualizar licença de Claudio Luciano Capistrano de Camargo",
     }),
   );
-  const modal = within(
-    screen.getByRole("dialog", { name: "Detalhes da Licença / Afastamento" }),
-  );
-  for (const texto of [
-    "Claudio Luciano Capistrano de Camargo",
-    "243417 / 1",
-    "Coordenador de TI",
-    "27/01/2026 a 16/02/2026",
-    "20 INTEGRAL",
-    "Encaminhado p/ o INSS",
-  ])
-    expect(modal.getByText(texto)).toBeTruthy();
+  expect(screen.getAllByText('Visualizar solicitação de licença').length).toBeGreaterThan(0);
+  expect((screen.getByRole('group', {name: 'Solicitação em modo de leitura'}) as HTMLFieldSetElement).disabled).toBe(true);
+  expect((screen.getByLabelText('Data de Início *') as HTMLInputElement).value).toBe('2026-01-27');
+  expect((screen.getByLabelText('Data de Término *') as HTMLInputElement).value).toBe('2026-02-16');
+  expect((screen.getByLabelText('Quantidade de dias') as HTMLInputElement).value).toBe('20');
+  expect(screen.queryByRole('button', {name: 'Efetivar Lançamento'})).toBeNull();
   expect(JSON.stringify(registrosLicencas)).toBe(original);
 });
 it("exibe a gestão sem abas nem seletor de perfil", () => {
@@ -198,8 +196,8 @@ it("exibe a gestão sem abas nem seletor de perfil", () => {
     screen.queryByLabelText("Visualizando como"),
   ).toBeNull();
   for (const botao of screen.getAllByRole("button", {
-    name: /Ações adicionais de/,
+    name: /Ações de/,
   }))
-    expect((botao as HTMLButtonElement).disabled).toBe(true);
+    expect((botao as HTMLButtonElement).disabled).toBe(false);
   expect(screen.queryByRole("button", { name: /Diretrizes/ })).toBeNull();
 });

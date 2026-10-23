@@ -18,9 +18,9 @@ it("mantém a grade coletiva distinta da grade de seleção do lote", () => {
   expect(screen.getAllByText(/Saldo de 30 dias em escola/).length).toBeGreaterThan(0);
   // Apoio/gestão (público do Lote) nunca aparece na grade da Coletiva — exclusiva de professor.
   expect(screen.queryByText("Ana Lúcia Ferreira")).toBeNull();
-  const gestoraColetiva = screen.getByText("Elisângela Rocha").closest("tr");
-  expect(gestoraColetiva).toBeTruthy();
-  expect((within(gestoraColetiva as HTMLTableRowElement).getByRole("checkbox") as HTMLInputElement).disabled).toBe(false);
+  // Professor com cargo de gestão também nunca aparece na Coletiva (CA01) — é exclusão da
+  // listagem, não um erro de linha.
+  expect(screen.queryByText("Elisângela Rocha")).toBeNull();
 
   rerender(<FormularioColetiva onCancelar={vi.fn()} onSalvar={vi.fn()} modoAgendamentoLote />);
 
@@ -30,7 +30,7 @@ it("mantém a grade coletiva distinta da grade de seleção do lote", () => {
   const apoioComSaldoInvalido = screen.getByText("Ana Lúcia Ferreira").closest("tr");
   expect(apoioComSaldoInvalido).toBeTruthy();
   expect((within(apoioComSaldoInvalido as HTMLTableRowElement).getByRole("checkbox") as HTMLInputElement).disabled).toBe(true);
-  expect(screen.getByRole("columnheader", { name: "Alertas" })).toBeTruthy();
+  expect(screen.getByRole("columnheader", { name: "Situação de validação" })).toBeTruthy();
   expect(screen.getAllByRole("columnheader").map((header) => header.textContent?.trim())).toEqual([
     "",
     "Servidor",
@@ -38,8 +38,8 @@ it("mantém a grade coletiva distinta da grade de seleção do lote", () => {
     "Cargo / Função",
     "Lotação",
     "Situação",
-    "Alertas",
     "Saldo",
+    "Situação de validação",
   ]);
 });
 
@@ -53,7 +53,7 @@ it("separa alertas da situação de lotação na grade do lote", () => {
 
   const celulas = within(linha as HTMLTableRowElement).getAllByRole("cell");
   expect(celulas[5].textContent).toBe("Em escola");
-  expect(celulas[6].textContent).toContain("Saldo de 45 dias não se aplica");
+  expect(celulas[7].textContent).toContain("Saldo de 45 dias não se aplica");
 });
 
 it("permite usufruto antecipado com portaria obrigatória na UNEMAT", async () => {
@@ -64,7 +64,7 @@ it("permite usufruto antecipado com portaria obrigatória na UNEMAT", async () =
     target: { value: "GESTAO_UNEMAT" },
   });
 
-  expect(screen.getByText("Todos os professores da UNEMAT — todas as lotações")).toBeTruthy();
+  expect(screen.getAllByText("Todos (todas as unidades)").length).toBeGreaterThan(0);
   expect(screen.getByText(/Regra UNEMAT:/)).toBeTruthy();
   // Apoio/gestão não tem direito aos 45 dias — na UNEMAT o saldo varia (10 a 30) e fica "a confirmar".
   expect(screen.getAllByText(/30 dias · a confirmar/).length).toBeGreaterThan(0);

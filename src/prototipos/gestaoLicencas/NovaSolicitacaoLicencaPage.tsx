@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { CardSeplag } from "../../componentes/Card";
 import {
   AnexarDocumentoSeplag,
@@ -21,8 +21,8 @@ import {
 import {
   buscarServidores,
   carregarSolicitacoes,
+  carregarGestaoLicencas,
   diasPeriodo,
-  servidoresSolicitacao,
   STORAGE_SOLICITACOES,
   totalMinutos,
   type SolicitacaoLocal,
@@ -35,13 +35,15 @@ function Secao({
   titulo,
   icone,
   children,
+  className = "",
 }: {
   titulo: string;
   icone: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="v2v-panel v2v-form-section">
+    <section className={`v2v-panel v2v-form-section ${className}`}>
       <header className="v2v-section-header">
         <i className={`pi ${icone}`} aria-hidden="true" />
         <h2>{titulo}</h2>
@@ -50,27 +52,99 @@ function Secao({
     </section>
   );
 }
-export function NovaSolicitacaoContent() {
+export function NovaSolicitacaoContent({
+  registro,
+  editar = false,
+}: { registro?: RegistroLicenca; editar?: boolean } = {}) {
+  const visualizar = Boolean(registro) && !editar;
   const navigate = useNavigate();
   const [parametrizacoes] = useState(carregarEventos);
   const [servidor, setServidor] = useState<SolicitacaoLocal | null>(
-    servidoresSolicitacao[0],
+    registro
+      ? {
+          id: registro.matricula,
+          nome: registro.nome,
+          matricula: registro.matricula,
+          cpf: registro.solicitacao?.cpf || "Não informado",
+          vinculos: [
+            {
+              numero: registro.vinculo,
+              orgao: registro.orgao,
+              tipo: registro.tipoVinculo,
+              cargo: registro.cargo,
+              lotacao: registro.lotacao,
+              jornada: "Não informada",
+            },
+          ],
+        }
+      : null,
   );
-  const [busca, setBusca] = useState("");
-  const [selecionados, setSelecionados] = useState<number[]>([2]);
-  const [eventoId, setEventoId] = useState("");
-  const [inicio, setInicio] = useState(""),
-    [fim, setFim] = useState("");
-  const [horaInicio, setHoraInicio] = useState("08:00"),
-    [horaFim, setHoraFim] = useState("12:00");
-  const [parentesco, setParentesco] = useState(""),
-    [observacao, setObservacao] = useState("");
+  const [busca, setBusca] = useState(
+    registro
+      ? `${registro.matricula}/${registro.vinculo} - ${registro.nome}`
+      : "",
+  );
+  const [buscaAberta, setBuscaAberta] = useState(false);
+  const opcoes = buscarServidores("").flatMap((servidor) =>
+    servidor.vinculos.map((vinculo) => ({
+      servidor,
+      vinculo,
+      rotulo: servidor.matricula + "/" + vinculo.numero + " - " + servidor.nome,
+    })),
+  );
+  const termo = busca
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+  const resultados = opcoes.filter(
+    (o) =>
+      !termo ||
+      [o.rotulo, o.servidor.cpf, o.servidor.cpf.replace(/\D/g, "")].some(
+        (valor) =>
+          valor
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .includes(termo),
+      ),
+  );
+  const [vinculoSelecionado, setVinculoSelecionado] = useState<number | null>(
+    registro?.vinculo ?? null,
+  );
+  const vinculoAtual = servidor?.vinculos.find(
+    (v) => v.numero === vinculoSelecionado,
+  );
+  const [eventoId, setEventoId] = useState(
+    registro?.solicitacao?.eventoId ||
+      parametrizacoes.find(
+        (e) =>
+          e.nome === registro?.tipo ||
+          (registro?.tipo.startsWith("LTS") && e.id === "lic-101") ||
+          (registro?.tipo === "Luto / Falecimento" && e.id === "lic-135"),
+      )?.id ||
+      "",
+  );
+  const [inicio, setInicio] = useState(registro?.inicio || ""),
+    [fimInformado, setFim] = useState(registro?.fim || "");
+  const [horaInicio, setHoraInicio] = useState(
+      registro?.solicitacao?.horaInicio || "08:00",
+    ),
+    [horaFim, setHoraFim] = useState(registro?.solicitacao?.horaFim || "12:00");
+  const [parentesco, setParentesco] = useState(
+      registro?.solicitacao?.parentesco || "",
+    ),
+    [observacao, setObservacao] = useState(
+      registro?.solicitacao?.observacao || "",
+    );
   const [erro, setErro] = useState("");
-  const [documentos, setDocumentos] = useState<ArquivoAnexadoSeplag[]>([]);
+  const [documentos, setDocumentos] = useState<ArquivoAnexadoSeplag[]>(
+    registro?.solicitacao?.documentos || [],
+  );
   const [lendoDocumentos, setLendoDocumentos] = useState(false);
   const lendoRef = useRef(false);
   async function anexarArquivos(files: File[]) {
-    if (lendoRef.current || !files.length) return;
+    if (visualizar || lendoRef.current || !files.length) return;
     lendoRef.current = true;
     setLendoDocumentos(true);
     setErro("");
@@ -90,18 +164,47 @@ export function NovaSolicitacaoContent() {
   }
   const evento = parametrizacoes.find((e) => e.id === eventoId);
   const config = evento ? configuracaoDoEvento(evento) : null;
-  const porHoras = evento?.duracao === "Por horas";
+  const porHoras = visualizar
+    ? registro?.abrangencia === "POR HORAS"
+    : evento?.duracao === "Por horas";
+  const fimSomenteLeitura = Boolean(
+    evento && !porHoras && !config?.semLimite && evento.quantidade > 0,
+  );
+  let fim = fimInformado;
+  if (fimSomenteLeitura && !visualizar) {
+    fim = "";
+    if (inicio && evento) {
+      const data = new Date(inicio + "T00:00:00Z");
+      let restantes = evento.quantidade;
+      while (restantes > 0) {
+        if (
+          config?.contagem !== "Dias úteis" ||
+          ![0, 6].includes(data.getUTCDay())
+        )
+          restantes--;
+        if (restantes > 0) data.setUTCDate(data.getUTCDate() + 1);
+      }
+      fim = data.toISOString().slice(0, 10);
+    }
+  }
   const minutos = totalMinutos(horaInicio, horaFim);
   const totalHoras = `${String(Math.floor(minutos / 60)).padStart(2, "0")}:${String(minutos % 60).padStart(2, "0")} horas`;
-  const dias = diasPeriodo(inicio, fim, config?.contagem === "Dias úteis");
+  const dias = visualizar
+    ? registro!.dias
+    : diasPeriodo(inicio, fim, config?.contagem === "Dias úteis");
+  const bloqueioRecorrencia = !registro && servidor?.matricula === "257812" && evento?.codigo === "3";
   function salvar(e: FormEvent) {
     e.preventDefault();
+    if (visualizar) return;
+    if (bloqueioRecorrencia) return;
     if (lendoDocumentos) return;
     setErro("");
-    if (!servidor || !selecionados.length)
-      return setErro("Selecione o servidor e pelo menos um vínculo funcional.");
+    if (!servidor || vinculoSelecionado === null)
+      return setErro("Selecione o servidor e um vínculo funcional.");
     if (!evento || evento.situacao !== "Ativo")
       return setErro("Selecione uma parametrização ativa.");
+    if (config?.documentosObrigatorios && !documentos.length)
+      return setErro("Anexe pelo menos um documento comprobatório.");
     if (!inicio || !fim || fim < inicio)
       return setErro(
         "Informe um período válido. O término deve ser igual ou posterior ao início.",
@@ -123,8 +226,8 @@ export function NovaSolicitacaoContent() {
       return setErro(
         `O período excede o limite de ${evento.quantidade} dias da parametrização.`,
       );
-    const vinculos = servidor.vinculos.filter((v) =>
-      selecionados.includes(v.numero),
+    const vinculos = servidor.vinculos.filter(
+      (v) => v.numero === vinculoSelecionado,
     );
     if (
       vinculos.some(
@@ -135,10 +238,14 @@ export function NovaSolicitacaoContent() {
       )
     )
       return setErro(
-        "A parametrização não autoriza todos os tipos de vínculo selecionados.",
+        "A parametrização não autoriza o tipo de vínculo selecionado.",
       );
     const novos: RegistroLicenca[] = vinculos.map((v) => ({
-      id: crypto.randomUUID(),
+      ...(editar && registro ? {
+        criadoEm: registro.criadoEm, criadoPor: registro.criadoPor,
+        fimOriginal: registro.fimOriginal || registro.fim, alteracoes: registro.alteracoes,
+      } : { criadoEm: new Date().toISOString(), fimOriginal: fim }),
+      id: editar && registro ? registro.id : crypto.randomUUID(),
       matricula: servidor.matricula,
       vinculo: v.numero,
       tipoVinculo: v.tipo,
@@ -146,15 +253,15 @@ export function NovaSolicitacaoContent() {
       lotacao: v.lotacao,
       nome: servidor.nome,
       cargo: v.cargo,
-      chefia: false,
+      chefia: editar && registro ? registro.chefia : false,
       inicio,
       fim,
       tipo: evento.nome,
       categoria: evento.natureza,
       dias,
       abrangencia: porHoras ? "POR HORAS" : "INTEGRAL",
-      origem: "SIGEP",
-      situacao: "Em andamento",
+      origem: editar && registro ? registro.origem : "SIGEP",
+      situacao: editar && registro ? registro.situacao : "Em andamento",
       solicitacao: {
         eventoId: evento.id,
         cpf: servidor.cpf,
@@ -167,7 +274,12 @@ export function NovaSolicitacaoContent() {
     try {
       localStorage.setItem(
         STORAGE_SOLICITACOES,
-        JSON.stringify([...novos, ...carregarSolicitacoes()]),
+        JSON.stringify([
+          ...novos,
+          ...carregarSolicitacoes().filter(
+            (r) => !novos.some((n) => n.id === r.id),
+          ),
+        ]),
       );
       navigate(GESTAO_LICENCAS_PATH, { state: { solicitacaoSalva: true } });
     } catch {
@@ -178,282 +290,402 @@ export function NovaSolicitacaoContent() {
   }
   return (
     <form className="gl-solicitacao" onSubmit={salvar}>
-      <Secao
-        titulo="Identificação do Servidor e Seleção de Vínculo Funcional"
-        icone="pi-user"
+      <fieldset
+        disabled={visualizar}
+        className="gl-solicitacao-fields"
+        aria-label={
+          visualizar ? "Solicitação em modo de leitura" : "Dados da solicitação"
+        }
       >
-        <div className="gl-busca-servidor">
-          <label>
-            Buscar servidor
-            <input
-              value={busca}
-              placeholder="Buscar servidor por matrícula, CPF ou nome..."
-              onChange={(e) => setBusca(e.target.value)}
-            />
-          </label>
-          <button
-            type="button"
-            className="v2v-secondary gl-limpar-servidor"
-            onClick={() => {
-              setServidor(null);
-              setSelecionados([]);
-              setBusca("");
+        <Secao
+          titulo="Identificação do Servidor e Seleção de Vínculo Funcional"
+          icone="pi-user"
+          className="v2v-server-section"
+        >
+          <div
+            className="gl-busca-servidor"
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget))
+                setBuscaAberta(false);
             }}
           >
-            ✕ Limpar
-          </button>
-        </div>
-        {busca && (
-          <div className="gl-resultados" aria-label="Servidores encontrados">
-            {buscarServidores(busca).map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                className="v2v-secondary"
-                onClick={() => {
-                  setServidor(s);
-                  setSelecionados([]);
-                  setBusca("");
+            <label>
+              Buscar servidor
+              <input
+                value={busca}
+                disabled={editar}
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={buscaAberta}
+                aria-controls="gl-servidores-encontrados"
+                onFocus={() => setBuscaAberta(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setBuscaAberta(false);
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setBuscaAberta(true);
+                    requestAnimationFrame(() =>
+                      document
+                        .querySelector<HTMLButtonElement>(
+                          "#gl-servidores-encontrados button",
+                        )
+                        ?.focus(),
+                    );
+                  }
                 }}
+                placeholder="Buscar servidor por matrícula, CPF ou nome..."
+                onChange={(e) => {
+                  setBusca(e.target.value);
+                  setBuscaAberta(true);
+                  setServidor(null);
+                  setVinculoSelecionado(null);
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="v2v-secondary gl-limpar-servidor"
+              disabled={editar}
+              onClick={() => {
+                setServidor(null);
+                setVinculoSelecionado(null);
+                setBusca("");
+                setBuscaAberta(false);
+              }}
+            >
+              ✕ Limpar
+            </button>
+            {buscaAberta && (
+              <div
+                id="gl-servidores-encontrados"
+                className="gl-resultados"
+                role="listbox"
+                aria-label="Servidores encontrados"
               >
-                {s.nome} · {s.matricula} · {s.cpf}
-              </button>
-            ))}
-            {!buscarServidores(busca).length && (
-              <p role="status">Nenhum servidor encontrado.</p>
+                {resultados.map(({ servidor: s, vinculo, rotulo }, indice) => (
+                  <button
+                    key={`${s.matricula}/${vinculo.numero}`}
+                    type="button"
+                    role="option"
+                    aria-selected={
+                      servidor?.matricula === s.matricula &&
+                      vinculoSelecionado === vinculo.numero
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setBuscaAberta(false);
+                      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                        e.preventDefault();
+                        const opcoes =
+                          e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>(
+                            "button",
+                          );
+                        opcoes?.[
+                          (indice +
+                            (e.key === "ArrowDown" ? 1 : -1) +
+                            resultados.length) %
+                            resultados.length
+                        ]?.focus();
+                      }
+                    }}
+                    className="v2v-secondary"
+                    onClick={() => {
+                      setServidor(s);
+                      setVinculoSelecionado(vinculo.numero);
+                      setBusca(rotulo);
+                      setBuscaAberta(false);
+                    }}
+                  >
+                    {rotulo}
+                  </button>
+                ))}
+                {!resultados.length && (
+                  <p role="status">Nenhum servidor encontrado.</p>
+                )}
+              </div>
             )}
           </div>
-        )}
-        {servidor && (
-          <>
-            <div className="gl-servidor-resumo">
-              <div>
-                <small>Nome do servidor</small>
-                <strong>{servidor.nome}</strong>
-              </div>
-              <div>
-                <small>Matrícula única</small>
-                <strong>{servidor.matricula}</strong>
-              </div>
-              <div>
-                <small>CPF</small>
-                <strong>{servidor.cpf}</strong>
-              </div>
-              <div>
-                <small>Situação cadastral</small>
-                <span className="gl-pill gl-status-vigente">
-                  Ativo em Exercício
-                </span>
-              </div>
-            </div>
-            <fieldset className="gl-vinculos">
-              <legend>
-                Selecione os vínculos funcionais para o lançamento *
-              </legend>
-              <div>
-                {servidor.vinculos.map((v) => (
-                  <label
-                    key={v.numero}
-                    className={
-                      selecionados.includes(v.numero) ? "selecionado" : ""
-                    }
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selecionados.includes(v.numero)}
-                      onChange={() =>
-                        setSelecionados((s) =>
-                          s.includes(v.numero)
-                            ? s.filter((n) => n !== v.numero)
-                            : [...s, v.numero],
-                        )
-                      }
-                    />
-                    <span>
-                      <strong>
-                        Vínculo {v.numero} · {v.orgao} · {v.tipo}
-                      </strong>
-                      <span>{v.cargo}</span>
-                      <small>
-                        {v.jornada} · {v.lotacao}
-                      </small>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          </>
-        )}
-      </Secao>
-      <Secao
-        titulo="Dados da Licença, Afastamento ou Ausência"
-        icone="pi-calendar"
-      >
-        <div className="gl-solicitacao-grid">
-          <label className="gl-span-full">
-            Tipo de Licença, Afastamento ou Ausência *
-            <select
-              required
-              value={eventoId}
-              onChange={(e) => {
-                setEventoId(e.target.value);
-                setParentesco("");
-                setErro("");
-              }}
-            >
-              <option value="">Selecione...</option>
-              {parametrizacoes.map((e) => (
-                <option
-                  key={e.id}
-                  value={e.id}
-                  disabled={e.situacao !== "Ativo"}
+          {servidor && (
+            <>
+              {vinculoAtual && (
+                <section
+                  className="gl-servidor-card"
+                  aria-label="Dados do servidor e vínculo selecionado"
                 >
-                  {e.codigo} - {e.nome} ({e.duracao}
-                  {e.situacao !== "Ativo" ? " · Inativo" : ""})
-                </option>
-              ))}
-            </select>
-          </label>
-          {evento?.parentesco && (
+                  <header>
+                    <strong>{servidor.nome}</strong>
+                    <span className="gl-servidor-identificacao">
+                      Matrícula: <b>{servidor.matricula}</b>
+                    </span>
+                    <span className="gl-servidor-identificacao">
+                      Vínculo: <b>{vinculoAtual.numero}</b>
+                    </span>
+                  </header>
+                  <dl>
+                    <div>
+                      <dt>Órgão/Unidade de Lotação</dt>
+                      <dd>{vinculoAtual.orgao} / {vinculoAtual.lotacao}</dd>
+                    </div>
+                    <div>
+                      <dt>Cargo</dt>
+                      <dd>{vinculoAtual.cargo}</dd>
+                    </div>
+                    <div>
+                      <dt>Jornada</dt>
+                      <dd>{vinculoAtual.jornada}</dd>
+                    </div>
+                    <div>
+                      <dt>Tipo de vínculo</dt>
+                      <dd>
+                        <span className="gl-pill gl-tipo">
+                          {vinculoAtual.tipo}
+                        </span>
+                      </dd>
+                    </div>
+                  </dl>
+                </section>
+              )}
+              {servidor.matricula === "241244" && !visualizar && (
+                <div
+                  className="prototype-vinculo-ativo-alert gl-aviso-ferias"
+                  role="status"
+                >
+                  <i
+                    className="pi pi-exclamation-triangle"
+                    aria-hidden="true"
+                  />
+                  <span>
+                    <strong>Conflito com Férias Agendadas</strong>
+                    <br />O servidor selecionado possui férias agendadas no
+                    período de 10/12/2026 a 20/12/2026 (Vínculo 1 - SEPLAG/MT).{" "}
+                    {inicio &&
+                    fim &&
+                    inicio <= "2026-12-20" &&
+                    fim >= "2026-12-10"
+                      ? "A licença informada coincide com este período. Verifique a necessidade de sobreposição ou altere as datas."
+                      : "Ao informar o período da licença, verifique se há sobreposição com as férias agendadas."}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+        </Secao>
+        <Secao
+          titulo="Dados da Licença, Afastamento ou Ausência"
+          icone="pi-calendar"
+        >
+          <div className="gl-solicitacao-grid">
             <label className="gl-span-full">
-              Grau de Parentesco do Familiar *
+              Tipo de Licença, Afastamento ou Ausência *
               <select
                 required
-                value={parentesco}
-                onChange={(e) => setParentesco(e.target.value)}
+                value={eventoId}
+                onChange={(e) => {
+                  setEventoId(e.target.value);
+                  setParentesco("");
+                  setErro("");
+                }}
               >
-                <option value="">Selecione o familiar...</option>
-                {(config?.grausParentesco.length
-                  ? config.grausParentesco
-                  : GRAUS_PARENTESCO
-                ).map((g) => (
-                  <option key={g}>{g}</option>
-                ))}
+                <option value="">
+                  {visualizar ? registro?.tipo : "Selecione..."}
+                </option>
+                {visualizar && eventoId && (
+                  <option value={eventoId}>{registro?.tipo}</option>
+                )}
+                {!visualizar &&
+                  parametrizacoes.map((e) => (
+                    <option
+                      key={e.id}
+                      value={e.id}
+                      disabled={e.situacao !== "Ativo"}
+                    >
+                      {e.codigo} - {e.nome} ({e.duracao}
+                      {e.situacao !== "Ativo" ? " · Inativo" : ""})
+                    </option>
+                  ))}
               </select>
             </label>
-          )}
-          <div className="gl-periodo gl-span-full">
-            <label>
-              Data de Início *
-              <input
-                type="date"
-                required
-                value={inicio}
-                onChange={(e) => setInicio(e.target.value)}
-              />
-            </label>
-            <label>
-              Data de Término *
-              <input
-                type="date"
-                required
-                min={inicio}
-                value={fim}
-                onChange={(e) => setFim(e.target.value)}
-              />
-            </label>
-            <label>
-              Quantidade de dias
-              <input
-                type="number"
-                readOnly
-                value={inicio && fim && fim >= inicio ? dias : ""}
-              />
-            </label>
-          </div>
-          {porHoras && (
-            <div className="gl-horas gl-span-full">
-              <label>
-                Hora de Início *
-                <input
-                  type="time"
+              {bloqueioRecorrencia && (
+                <div className="gl-bloqueio-recorrencia gl-span-full" role="alert">
+                  <i className="pi pi-ban" aria-hidden="true" />
+                  <div>
+                    <strong>Bloqueio de Lançamento: Janela de Recorrência Excedida</strong>
+                    <p>
+                      O servidor já possui o lançamento da ocorrência <strong>"3 - Doação Voluntária de Sangue"</strong> realizado em <strong>15/05/2026</strong>. O limite parametrizado de <strong>1x a cada 12 meses</strong> foi atingido e uma nova concessão só será permitida a partir de <strong>16/05/2027</strong>.
+                    </p>
+                  </div>
+                </div>
+              )}
+            {(evento?.parentesco || (visualizar && parentesco)) && (
+              <label className="gl-span-full">
+                Grau de Parentesco do Familiar *
+                <select
                   required
-                  value={horaInicio}
-                  onChange={(e) => setHoraInicio(e.target.value)}
+                  value={parentesco}
+                  onChange={(e) => setParentesco(e.target.value)}
+                >
+                  <option value="">Selecione o familiar...</option>
+                  {visualizar && parentesco && <option>{parentesco}</option>}
+                  {!visualizar &&
+                    (config?.grausParentesco.length
+                      ? config.grausParentesco
+                      : GRAUS_PARENTESCO
+                    ).map((g) => <option key={g}>{g}</option>)}
+                </select>
+              </label>
+            )}
+            <div className="gl-periodo gl-span-full">
+              <label>
+                Data de Início *
+                <input
+                  type="date"
+                  required
+                  value={inicio}
+                  onChange={(e) => setInicio(e.target.value)}
                 />
               </label>
               <label>
-                Hora de Término *
+                Data de Término *
                 <input
-                  type="time"
+                  type="date"
                   required
-                  value={horaFim}
-                  onChange={(e) => setHoraFim(e.target.value)}
+                  min={inicio}
+                  readOnly={fimSomenteLeitura}
+                  value={fim}
+                  onChange={(e) => setFim(e.target.value)}
                 />
               </label>
               <label>
-                Total de Horas Abatidas
-                <input readOnly value={totalHoras} />
+                Quantidade de dias
+                <input
+                  type="number"
+                  readOnly
+                  value={inicio && fim && fim >= inicio ? dias : ""}
+                />
               </label>
             </div>
-          )}
-          {evento?.recorrencia && (
-            <p className="v2v-notice gl-span-full">
-              <i className="pi pi-info-circle" aria-hidden="true" />
-              Recorrência configurada: {evento.recorrencia}. A conferência do
-              histórico deve ser realizada antes do lançamento.
-            </p>
-          )}
-          <label className="gl-span-full">
-            Observação / Documento de Respaldo
-            <textarea
-              rows={3}
-              placeholder="Informe o número do processo SIGADOC ou certidão de respaldo..."
-              value={observacao}
-              onChange={(e) => setObservacao(e.target.value)}
-            />
-          </label>
-          <div className="gl-span-full">
-            <span className="prototype-judicial-upload-label">
-              Documentos (opcional)
-            </span>
-            <label
-              className="gl-upload-area"
-              onDragOver={(e) => {
-                e.preventDefault();
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                void anexarArquivos(Array.from(e.dataTransfer.files));
-              }}
-            >
-              <input
-                className="gl-upload-input"
-                type="file"
-                aria-label="Escolher arquivo"
-                accept=".pdf,.doc,.docx"
-                multiple
-                disabled={lendoDocumentos}
-                onChange={(e) => {
-                  void anexarArquivos(Array.from(e.target.files ?? []));
-                  e.target.value = "";
-                }}
+            {porHoras && (
+              <div className="gl-horas gl-span-full">
+                <label>
+                  Hora de Início *
+                  <input
+                    type="time"
+                    required
+                    value={horaInicio}
+                    onChange={(e) => setHoraInicio(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Hora de Término *
+                  <input
+                    type="time"
+                    required
+                    value={horaFim}
+                    onChange={(e) => setHoraFim(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Total de Horas Abatidas
+                  <input readOnly value={totalHoras} />
+                </label>
+              </div>
+            )}
+            {config?.travaRecorrencia && (
+              <p className="v2v-notice gl-span-full" role="status">
+                <i className="pi pi-info-circle" aria-hidden="true" />
+                <span>
+                  Recorrência parametrizada: Esta ocorrência possui limite de{" "}
+                  {config.recorrenciaQuantidade}{" "}
+                  {config.recorrenciaQuantidade === 1 ? "concessão" : "concessões"}{" "}
+                  a cada {config.recorrenciaIntervalo}{" "}
+                  {config.recorrenciaUnidade === "Meses"
+                    ? config.recorrenciaIntervalo === 1 ? "mês" : "meses"
+                    : config.recorrenciaUnidade === "Dias"
+                      ? config.recorrenciaIntervalo === 1 ? "dia" : "dias"
+                      : config.recorrenciaUnidade === "Anos"
+                        ? config.recorrenciaIntervalo === 1 ? "ano" : "anos"
+                        : config.recorrenciaIntervalo === 1 ? "ano civil" : "anos civis"}.
+                </span>
+              </p>
+            )}
+            <label className="gl-span-full">
+              Observação / Documento de Respaldo
+              <textarea
+                rows={3}
+                placeholder="Informe o número do processo SIGADOC ou certidão de respaldo..."
+                value={observacao}
+                onChange={(e) => setObservacao(e.target.value)}
               />
-              <span className="prototype-judicial-upload-button">
-                <i className="pi pi-upload" aria-hidden="true" />
-                Escolher arquivo
-              </span>
-              <span className="prototype-judicial-upload-prompt">
-                Arraste e solte o arquivo aqui ou clique para selecionar
-              </span>
-              <small>Formatos aceitos: PDF, DOC, DOCX (Máx. 10MB)</small>
             </label>
-            <AnexarDocumentoSeplag
-              cols="12"
-              hideLabel
-              className="gl-upload-list"
-              multiple
-              arquivosBase64={documentos}
-              onRemoveArquivo={(_, indice) =>
-                setDocumentos((atuais) => atuais.filter((_, i) => i !== indice))
-              }
-              handleViewArquivo={(arquivo) => abrirDocumento(arquivo)}
-              onDownloadArquivo={(arquivo) => abrirDocumento(arquivo, true)}
-            />
-            {lendoDocumentos && <p role="status">Carregando documentos...</p>}
+            {!visualizar && (
+              <div className="gl-span-full">
+                <span className="prototype-judicial-upload-label">
+                  Documentos{" "}
+                  {config?.documentosObrigatorios
+                    ? "(obrigatório)"
+                    : "(opcional)"}
+                </span>
+                <label
+                  className="gl-upload-area"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    void anexarArquivos(Array.from(e.dataTransfer.files));
+                  }}
+                >
+                  <input
+                    className="gl-upload-input"
+                    type="file"
+                    aria-label="Escolher arquivo"
+                    accept=".pdf,.doc,.docx"
+                    multiple
+                    disabled={lendoDocumentos}
+                    onChange={(e) => {
+                      void anexarArquivos(Array.from(e.target.files ?? []));
+                      e.target.value = "";
+                    }}
+                  />
+                  <span className="prototype-judicial-upload-button">
+                    <i className="pi pi-upload" aria-hidden="true" />
+                    Escolher arquivo
+                  </span>
+                  <span className="prototype-judicial-upload-prompt">
+                    Arraste e solte o arquivo aqui ou clique para selecionar
+                  </span>
+                  <small>Formatos aceitos: PDF, DOC, DOCX (Máx. 10MB)</small>
+                </label>
+                <AnexarDocumentoSeplag
+                  cols="12"
+                  hideLabel
+                  className="gl-upload-list"
+                  multiple
+                  arquivosBase64={documentos}
+                  onRemoveArquivo={(_, indice) =>
+                    setDocumentos((atuais) =>
+                      atuais.filter((_, i) => i !== indice),
+                    )
+                  }
+                  handleViewArquivo={(arquivo) => abrirDocumento(arquivo)}
+                  onDownloadArquivo={(arquivo) => abrirDocumento(arquivo, true)}
+                />
+                {lendoDocumentos && (
+                  <p role="status">Carregando documentos...</p>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      </Secao>
+        </Secao>
+      </fieldset>
+      {visualizar && (
+        <AnexarDocumentoSeplag
+          cols="12"
+          label="Documentos anexados"
+          arquivosBase64={documentos}
+          handleViewArquivo={(arquivo) => abrirDocumento(arquivo)}
+          onDownloadArquivo={(arquivo) => abrirDocumento(arquivo, true)}
+        />
+      )}
       {erro && (
         <p role="alert" className="v2v-error">
           {erro}
@@ -468,19 +700,38 @@ export function NovaSolicitacaoContent() {
           <i className="pi pi-arrow-left" aria-hidden="true" />
           Voltar
         </button>
-        <button
-          type="submit"
-          className="v2v-primary"
-          disabled={lendoDocumentos}
-        >
-          <i className="pi pi-check" aria-hidden="true" />
-          Efetivar Lançamento
-        </button>
+        {!visualizar && (
+          <button
+            type="submit"
+            className="v2v-primary"
+            disabled={lendoDocumentos || bloqueioRecorrencia}
+          >
+            <i className="pi pi-check" aria-hidden="true" />
+            {editar ? "Salvar alterações" : "Efetivar Lançamento"}
+          </button>
+        )}
       </div>
     </form>
   );
 }
-export function NovaSolicitacaoLicencaPage() {
+export function NovaSolicitacaoLicencaPage({
+  visualizar = false,
+  editar = false,
+}: {
+  visualizar?: boolean;
+  editar?: boolean;
+}) {
+  const { id } = useParams();
+  const [registro] = useState(() =>
+    visualizar || editar
+      ? carregarGestaoLicencas().find((r) => r.id === id)
+      : undefined,
+  );
+  const titulo = visualizar
+    ? "Visualizar solicitação de licença"
+    : editar
+      ? "Editar solicitação de licença"
+      : "Nova solicitação de licença";
   return (
     <PrototypeSystemPage
       nomeSistema="GESTÃO DE PESSOAS"
@@ -489,7 +740,7 @@ export function NovaSolicitacaoLicencaPage() {
     >
       <main className="prototype-page-content prototype-page-content--white v2v-shell gl-shell">
         <CardSeplag
-          title="Nova solicitação de licença"
+          title={titulo}
           cols="12"
           cardHeaderClassNames="prototype-carreira-card v2v-card"
           headerNavigation={
@@ -501,13 +752,20 @@ export function NovaSolicitacaoLicencaPage() {
                   to: "/prototipos/sigep/direitos-beneficios",
                 },
                 { label: TITULO_GESTAO_LICENCAS, to: GESTAO_LICENCAS_PATH },
-                { label: "Nova solicitação de licença" },
+                { label: titulo },
               ]}
             />
           }
         >
           <div className="v2v-page gl-page">
-            <NovaSolicitacaoContent />
+            {(visualizar || editar) && !registro ? (
+              <>
+                <p role="alert">Solicitação não encontrada.</p>
+                <a href={GESTAO_LICENCAS_PATH}>Voltar</a>
+              </>
+            ) : (
+              <NovaSolicitacaoContent registro={registro} editar={editar} />
+            )}
           </div>
         </CardSeplag>
       </main>
