@@ -43,7 +43,17 @@ export interface EfeitoFinanceiro {
   suspendeRemuneracao: boolean;
   diaInicioSuspensao: number | null;
 }
+export interface RegraDuracaoVinculo {
+  quantidade: number;
+  abrangencias: string[];
+  semLimite: boolean;
+  travaRecorrencia: boolean;
+  recorrenciaQuantidade: number;
+  recorrenciaIntervalo: number;
+  recorrenciaUnidade: "Meses" | "Dias" | "Anos" | "Ano Civil";
+}
 export interface ConfiguracaoEvento {
+  regrasPorVinculo?: Record<string, RegraDuracaoVinculo>;
   documentosObrigatorios?: boolean;
   efeitosFinanceiros?: Record<string, EfeitoFinanceiro>;
   documentosLegaisIds?: string[];
@@ -112,6 +122,23 @@ export function configuracaoDoEvento(
         recorrenciaUnidade: "Meses",
         grausParentesco: [],
       };
+}
+export function regraDoVinculo(
+  evento: EventoLicenca,
+  vinculo: string,
+): RegraDuracaoVinculo {
+  const config = configuracaoDoEvento(evento);
+  return (
+    config.regrasPorVinculo?.[vinculo] ?? {
+      quantidade: evento.quantidade,
+      abrangencias: config.abrangencias,
+      semLimite: config.semLimite,
+      travaRecorrencia: config.travaRecorrencia,
+      recorrenciaQuantidade: config.recorrenciaQuantidade,
+      recorrenciaIntervalo: config.recorrenciaIntervalo,
+      recorrenciaUnidade: config.recorrenciaUnidade,
+    }
+  );
 }
 export interface FiltrosLicencas {
   codigo?: string;
@@ -298,6 +325,37 @@ export function validarEvento(
     return "Informe uma duração máxima inteira maior que zero.";
   const c = evento.configuracao;
   if (c) {
+    for (const vinculo of evento.vinculos) {
+      const regra = regraDoVinculo(evento, vinculo);
+      const nome =
+        OPCOES_VINCULOS.find((o) => o.value === vinculo)?.label ?? vinculo;
+      if (
+        !regra.semLimite &&
+        (!Number.isInteger(regra.quantidade) || regra.quantidade < 1)
+      )
+        return (
+          nome +
+          ": Informe uma dura\u00e7\u00e3o m\u00e1xima inteira maior que zero."
+        );
+      if (
+        !regra.abrangencias.length ||
+        regra.abrangencias.some(
+          (a) => !["Dia Integral", "Por Horas"].includes(a),
+        )
+      )
+        return nome + ": Selecione ao menos uma abrang\u00eancia v\u00e1lida.";
+      if (
+        regra.travaRecorrencia &&
+        (!Number.isInteger(regra.recorrenciaQuantidade) ||
+          regra.recorrenciaQuantidade < 1 ||
+          !Number.isInteger(regra.recorrenciaIntervalo) ||
+          regra.recorrenciaIntervalo < 1 ||
+          !["Meses", "Dias", "Anos", "Ano Civil"].includes(
+            regra.recorrenciaUnidade,
+          ))
+      )
+        return nome + ": Informe uma janela de recorr\u00eancia v\u00e1lida.";
+    }
     if (c.efeitosFinanceiros !== undefined) {
       for (const vinculo of evento.vinculos) {
         const efeito = c.efeitosFinanceiros[vinculo];

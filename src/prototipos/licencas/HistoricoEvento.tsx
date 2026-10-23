@@ -1,5 +1,5 @@
 import { ModalSeplag } from '../../componentes/Modal';
-import { configuracaoDoEvento, OPCOES_VINCULOS, type EventoLicenca } from './model';
+import { configuracaoDoEvento, regraDoVinculo, OPCOES_VINCULOS, type EventoLicenca } from './model';
 
 export function camposHistorico(evento: EventoLicenca) {
   const c = configuracaoDoEvento(evento);
@@ -19,7 +19,11 @@ export function camposHistorico(evento: EventoLicenca) {
   const financeiros: Record<string, string> = {};
   for (const vinculo of evento.vinculos) {
     const efeito = c.efeitosFinanceiros?.[vinculo];
+    const regra = regraDoVinculo(evento, vinculo);
     const nome = OPCOES_VINCULOS.find(o => o.value === vinculo)?.label ?? vinculo;
+    dados[`Dias Máximos Permitidos (${nome})`] = regra.semLimite ? 'Sem limite' : String(regra.quantidade);
+    dados[`Abrangência (${nome})`] = [...regra.abrangencias].sort().join(', ');
+    dados[`Trava de Recorrência (${nome})`] = regra.travaRecorrencia ? `${regra.recorrenciaQuantidade} ocorrência(s) a cada ${regra.recorrenciaIntervalo} ${regra.recorrenciaUnidade}` : 'Não';
     financeiros[`Gera ônus (${nome})`] = efeito ? efeito.geraOnus ? 'Sim' : 'Não' : 'Não configurado';
     financeiros[`Suspende remuneração (${nome})`] = efeito ? efeito.suspendeRemuneracao ? `Sim (a partir do ${efeito.diaInicioSuspensao}º dia)` : 'Não' : 'Não configurado';
   }

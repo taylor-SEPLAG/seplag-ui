@@ -27,6 +27,8 @@ import {
   clonarEvento,
   rotuloDuracao,
   configuracaoDoEvento,
+  regraDoVinculo,
+  validarEvento,
 } from "./model";
 afterEach(() => {
   cleanup();
@@ -401,25 +403,26 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
     target: { value: "" },
   });
   fireEvent.click(screen.getByLabelText("Contrato Temporário Vínculo Único"));
-  fireEvent.click(screen.getByLabelText("Sem Limite de Dias"));
+  const regras = within(screen.getByRole("region", { name: "Regras: Residente T\u00e9cnico" }));
+  fireEvent.click(regras.getByLabelText("Sem Limite de Dias"));
   expect(
-    (screen.getByLabelText("Dias Máximos Permitidos (Dias corridos) *") as HTMLInputElement)
+    (regras.getByLabelText("Dias Máximos Permitidos (Dias corridos) *") as HTMLInputElement)
       .disabled,
   ).toBe(true);
   fireEvent.click(
-    screen.getByText("Dia Integral", { selector: "summary span" }),
+    regras.getByText("Dia Integral", { selector: "summary span" }),
   );
-  fireEvent.click(screen.getByLabelText("Por Horas"));
-  fireEvent.change(screen.getByLabelText("Possui Trava de Recorrência? *"), {
+  fireEvent.click(regras.getByLabelText("Por Horas"));
+  fireEvent.change(regras.getByLabelText("Possui Trava de Recorrência? *"), {
     target: { value: "true" },
   });
-  fireEvent.change(screen.getByLabelText("Quantidade de ocorrências"), {
+  fireEvent.change(regras.getByLabelText("Quantidade de ocorrências"), {
     target: { value: "2" },
   });
-  fireEvent.change(screen.getByLabelText("Intervalo de recorrência"), {
+  fireEvent.change(regras.getByLabelText("Intervalo de recorrência"), {
     target: { value: "3" },
   });
-  fireEvent.change(screen.getByLabelText("Unidade de recorrência"), {
+  fireEvent.change(regras.getByLabelText("Unidade de recorrência"), {
     target: { value: "Anos" },
   });
   fireEvent.change(screen.getByLabelText("Exige Parentesco? *"), {
@@ -513,3 +516,46 @@ function selecionarAmparoLegal() {
   });
   if (!(doc as HTMLInputElement).checked) fireEvent.click(doc);
 }
+
+it('configura e preserva regras independentes por tipo de vinculo', async () => {
+  montar();
+  fireEvent.click(screen.getByRole('button', { name: 'Nova Parametriza\u00e7\u00e3o' }));
+  expect(screen.queryByRole('region', { name: 'Regras: Nomeado Efetivo' })).toBeNull();
+  fireEvent.change(screen.getByLabelText('Nome da Ocorr\u00eancia (Exibido no Lan\u00e7amento) *'), { target: { value: 'Regras por vinculo' } });
+  fireEvent.change(screen.getByLabelText('Data In\u00edcio Vig\u00eancia *'), { target: { value: '2026-10-20' } });
+  selecionarAmparoLegal();
+  fireEvent.click(screen.getByLabelText('Nomeado Efetivo'));
+  fireEvent.click(screen.getByLabelText('Contrato Tempor\u00e1rio'));
+  let efetivo = within(screen.getByRole('region', { name: 'Regras: Nomeado Efetivo' }));
+  const temporario = within(screen.getByRole('region', { name: 'Regras: Contrato Tempor\u00e1rio' }));
+  fireEvent.change(efetivo.getByLabelText(/Dias M\u00e1ximos/), { target: { value: '8' } });
+  fireEvent.change(temporario.getByLabelText(/Dias M\u00e1ximos/), { target: { value: '5' } });
+  fireEvent.change(temporario.getByLabelText(/Possui Trava/), { target: { value: 'true' } });
+  fireEvent.change(temporario.getByLabelText('Intervalo de recorr\u00eancia'), { target: { value: '12' } });
+  expect((efetivo.getByLabelText(/Possui Trava/) as HTMLSelectElement).value).toBe('false');
+  fireEvent.click(screen.getByLabelText('Nomeado Efetivo'));
+  expect(screen.queryByRole('region', { name: 'Regras: Nomeado Efetivo' })).toBeNull();
+  fireEvent.click(screen.getByLabelText('Nomeado Efetivo'));
+  efetivo = within(screen.getByRole('region', { name: 'Regras: Nomeado Efetivo' }));
+  expect((efetivo.getByLabelText(/Dias M\u00e1ximos/) as HTMLInputElement).value).toBe('8');
+  fireEvent.click(screen.getByRole('button', { name: 'Avan\u00e7ar' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Salvar e Publicar' }));
+  const salvo = carregarEventos().find(e => e.nome === 'Regras por vinculo')!;
+  expect(salvo.configuracao?.regrasPorVinculo?.Efetivo.quantidade).toBe(8);
+  expect(salvo.configuracao?.regrasPorVinculo?.['Tempor\u00e1rio']).toMatchObject({ quantidade: 5, travaRecorrencia: true, recorrenciaIntervalo: 12 });
+  await acaoEvento(salvo.codigo, 'Editar');
+  expect((within(screen.getByRole('region', { name: 'Regras: Nomeado Efetivo' })).getByLabelText(/Dias M\u00e1ximos/) as HTMLInputElement).value).toBe('8');
+  expect((within(screen.getByRole('region', { name: 'Regras: Contrato Tempor\u00e1rio' })).getByLabelText(/Dias M\u00e1ximos/) as HTMLInputElement).value).toBe('5');
+});
+
+it('valida o limite e a recorrencia de cada vinculo selecionado', () => {
+  const base = structuredClone(eventosIniciais[0]);
+  const regra = regraDoVinculo(base, 'Efetivo');
+  const evento = { ...base, vinculos: ['Efetivo', 'Comissionado'], configuracao: {
+    ...configuracaoDoEvento(base), inicioVigencia: '2026-01-01',
+    regrasPorVinculo: { Efetivo: regra, Comissionado: { ...regra, quantidade: 0 } },
+  } };
+  expect(validarEvento(evento, [])).toContain('Exclusivamente Comissionado');
+  evento.configuracao.regrasPorVinculo.Comissionado = { ...regra, travaRecorrencia: true, recorrenciaIntervalo: 0 };
+  expect(validarEvento(evento, [])).toContain('recorr');
+});

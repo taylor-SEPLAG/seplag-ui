@@ -14,6 +14,8 @@ import {
   carregarEventos,
   clonarEvento,
   configuracaoDoEvento,
+  regraDoVinculo,
+  type RegraDuracaoVinculo,
   proximoCodigo,
   salvarEvento,
   type EventoLicenca,
@@ -253,6 +255,22 @@ export function ParametrizacaoLicencasFormPage({
         },
       },
     }));
+  const regraAtual = (vinculo: string) =>
+    regraDoVinculo({ ...evento, configuracao: config }, vinculo);
+  const mudarRegra = (
+    vinculo: string,
+    alteracao: Partial<RegraDuracaoVinculo>,
+  ) =>
+    setConfig((atual) => ({
+      ...atual,
+      regrasPorVinculo: {
+        ...atual.regrasPorVinculo,
+        [vinculo]: {
+          ...regraDoVinculo({ ...evento, configuracao: atual }, vinculo),
+          ...alteracao,
+        },
+      },
+    }));
   const salvar = (e: React.FormEvent) => {
     e.preventDefault();
     if (visualizar) return;
@@ -260,21 +278,29 @@ export function ParametrizacaoLicencasFormPage({
       avancar();
       return;
     }
-    const recorrencia = config.travaRecorrencia
-      ? `${config.recorrenciaQuantidade}x / ${config.recorrenciaIntervalo} ${config.recorrenciaUnidade}`
+    const principal = evento.vinculos.length
+      ? regraAtual(evento.vinculos[0])
+      : { ...config, quantidade: evento.quantidade };
+    const recorrencia = principal.travaRecorrencia
+      ? `${principal.recorrenciaQuantidade}x / ${principal.recorrenciaIntervalo} ${principal.recorrenciaUnidade}`
       : "";
-    const duracao = config.semLimite
+    const duracao = principal.semLimite
       ? "Sem limite"
-      : config.abrangencias.length === 1 &&
-          config.abrangencias[0] === "Por Horas"
+      : principal.abrangencias.length === 1 &&
+          principal.abrangencias[0] === "Por Horas"
         ? "Por horas"
         : "Dias corridos";
     try {
       salvarEvento(
         {
           ...evento,
+          quantidade: principal.quantidade,
           configuracao: {
             ...config,
+            ...principal,
+            regrasPorVinculo: Object.fromEntries(
+              evento.vinculos.map((v) => [v, regraAtual(v)]),
+            ),
             contagem: "Dias corridos",
             efeitosFinanceiros: Object.fromEntries(
               evento.vinculos.map((v) => {
@@ -565,113 +591,169 @@ export function ParametrizacaoLicencasFormPage({
               titulo="Regras de Duração, Limites e Recorrência"
               descricao="Defina a duração, a abrangência e as condições para o lançamento."
             >
-              <div className="pl-config-grid">
-                <div className="pl-col-4">
-                  <label>
-                    <span>
-                      Dias Máximos Permitidos (Dias corridos) <em>*</em>
-                    </span>
-                    <input
-                      type="number"
-                      min={1}
-                      step={1}
-                      required={!config.semLimite}
-                      disabled={config.semLimite}
-                      value={config.semLimite ? "" : evento.quantidade}
-                      placeholder={config.semLimite ? "Sem Limite" : "Ex.: 8"}
-                      onChange={(e) =>
-                        mudar("quantidade", Number(e.target.value))
-                      }
-                    />
-                  </label>
-                  <label className="pl-check-inline">
-                    <input
-                      type="checkbox"
-                      checked={config.semLimite}
-                      onChange={(e) =>
-                        configurar("semLimite", e.target.checked)
-                      }
-                    />
-                    Sem Limite de Dias
-                  </label>
-                </div>
-                <div className="pl-col-4">
-                  <SelecaoMultipla
-                    titulo="Abrangência"
-                    opcoes={["Dia Integral", "Por Horas"].map((v) => ({
-                      label: v,
-                      value: v,
-                    }))}
-                    valores={config.abrangencias}
-                    alterar={(v) => configurar("abrangencias", v)}
-                  />
-                </div>
-                <label className="pl-col-4">
-                  <span>
-                    Possui Trava de Recorrência? <em>*</em>
-                  </span>
-                  <select
-                    value={String(config.travaRecorrencia)}
-                    onChange={(e) =>
-                      configurar("travaRecorrencia", e.target.value === "true")
-                    }
+              {!evento.vinculos.length && (
+                <p className="v2v-description">
+                  Selecione os tipos de vínculo para configurar suas regras.
+                </p>
+              )}
+              {evento.vinculos.map((vinculo) => {
+                const regra = regraAtual(vinculo);
+                const nome =
+                  OPCOES_VINCULOS.find((o) => o.value === vinculo)?.label ??
+                  vinculo;
+                return (
+                  <section
+                    className="pl-type-rules"
+                    key={vinculo}
+                    aria-label={"Regras: " + nome}
                   >
-                    <option value="false">Não</option>
-                    <option value="true">Sim</option>
-                  </select>
-                </label>
-                {config.travaRecorrencia && (
-                  <fieldset className="pl-col-12 pl-recurrence">
-                    <legend>Janela de Recorrência Configurada</legend>
-                    <div>
-                      <span>Permitir no máximo</span>
-                      <input
-                        aria-label="Quantidade de ocorrências"
-                        type="number"
-                        min={1}
-                        step={1}
-                        required
-                        value={config.recorrenciaQuantidade}
-                        onChange={(e) =>
-                          configurar(
-                            "recorrenciaQuantidade",
-                            Number(e.target.value),
-                          )
-                        }
-                      />
-                      <span>ocorrência(s) a cada</span>
-                      <input
-                        aria-label="Intervalo de recorrência"
-                        type="number"
-                        min={1}
-                        step={1}
-                        required
-                        value={config.recorrenciaIntervalo}
-                        onChange={(e) =>
-                          configurar(
-                            "recorrenciaIntervalo",
-                            Number(e.target.value),
-                          )
-                        }
-                      />
-                      <select
-                        aria-label="Unidade de recorrência"
-                        value={config.recorrenciaUnidade}
-                        onChange={(e) =>
-                          configurar(
-                            "recorrenciaUnidade",
-                            e.target
-                              .value as ConfiguracaoEvento["recorrenciaUnidade"],
-                          )
-                        }
-                      >
-                        {["Meses", "Dias", "Anos", "Ano Civil"].map((u) => (
-                          <option key={u}>{u}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </fieldset>
-                )}
+                    <details open>
+                      <summary>
+                        <strong>{nome}</strong>
+                        <span
+                          className={
+                            config.regrasPorVinculo?.[vinculo]
+                              ? "pl-rule-custom"
+                              : "pl-rule-inherited"
+                          }
+                        >
+                          {config.regrasPorVinculo?.[vinculo]
+                            ? "Regras Personalizadas"
+                            : "Herdando regra geral"}
+                        </span>
+                        <i className="pi pi-chevron-down" aria-hidden="true" />
+                      </summary>
+                      <div className="pl-type-rules-body">
+                        <div className="pl-config-grid">
+                          <div className="pl-col-4">
+                            <label>
+                              <span>
+                                Dias Máximos Permitidos (Dias corridos){" "}
+                                <em>*</em>
+                              </span>
+                              <input
+                                type="number"
+                                min={1}
+                                step={1}
+                                required={!regra.semLimite}
+                                disabled={regra.semLimite}
+                                value={regra.semLimite ? "" : regra.quantidade}
+                                placeholder={
+                                  regra.semLimite ? "Sem Limite" : "Ex.: 8"
+                                }
+                                onChange={(e) =>
+                                  mudarRegra(vinculo, {
+                                    quantidade: Number(e.target.value),
+                                  })
+                                }
+                              />
+                            </label>
+                            <label className="pl-check-inline">
+                              <input
+                                type="checkbox"
+                                checked={regra.semLimite}
+                                onChange={(e) =>
+                                  mudarRegra(vinculo, {
+                                    semLimite: e.target.checked,
+                                  })
+                                }
+                              />
+                              Sem Limite de Dias
+                            </label>
+                          </div>
+                          <div className="pl-col-4">
+                            <SelecaoMultipla
+                              titulo="Abrangência"
+                              opcoes={["Dia Integral", "Por Horas"].map(
+                                (v) => ({
+                                  label: v,
+                                  value: v,
+                                }),
+                              )}
+                              valores={regra.abrangencias}
+                              alterar={(v) =>
+                                mudarRegra(vinculo, { abrangencias: v })
+                              }
+                            />
+                          </div>
+                          <label className="pl-col-4">
+                            <span>
+                              Possui Trava de Recorrência? <em>*</em>
+                            </span>
+                            <select
+                              value={String(regra.travaRecorrencia)}
+                              onChange={(e) =>
+                                mudarRegra(vinculo, {
+                                  travaRecorrencia: e.target.value === "true",
+                                })
+                              }
+                            >
+                              <option value="false">Não</option>
+                              <option value="true">Sim</option>
+                            </select>
+                          </label>
+                          {regra.travaRecorrencia && (
+                            <fieldset className="pl-col-12 pl-recurrence">
+                              <legend>Janela de Recorrência Configurada</legend>
+                              <div>
+                                <span>Permitir no máximo</span>
+                                <input
+                                  aria-label="Quantidade de ocorrências"
+                                  type="number"
+                                  min={1}
+                                  step={1}
+                                  required
+                                  value={regra.recorrenciaQuantidade}
+                                  onChange={(e) =>
+                                    mudarRegra(vinculo, {
+                                      recorrenciaQuantidade: Number(
+                                        e.target.value,
+                                      ),
+                                    })
+                                  }
+                                />
+                                <span>ocorrência(s) a cada</span>
+                                <input
+                                  aria-label="Intervalo de recorrência"
+                                  type="number"
+                                  min={1}
+                                  step={1}
+                                  required
+                                  value={regra.recorrenciaIntervalo}
+                                  onChange={(e) =>
+                                    mudarRegra(vinculo, {
+                                      recorrenciaIntervalo: Number(
+                                        e.target.value,
+                                      ),
+                                    })
+                                  }
+                                />
+                                <select
+                                  aria-label="Unidade de recorrência"
+                                  value={regra.recorrenciaUnidade}
+                                  onChange={(e) =>
+                                    mudarRegra(vinculo, {
+                                      recorrenciaUnidade: e.target
+                                        .value as RegraDuracaoVinculo["recorrenciaUnidade"],
+                                    })
+                                  }
+                                >
+                                  {["Meses", "Dias", "Anos", "Ano Civil"].map(
+                                    (u) => (
+                                      <option key={u}>{u}</option>
+                                    ),
+                                  )}
+                                </select>
+                              </div>
+                            </fieldset>
+                          )}
+                        </div>
+                      </div>
+                    </details>
+                  </section>
+                );
+              })}
+              <div className="pl-config-grid">
                 <div className="pl-col-12 pl-parentesco-block">
                   <label>
                     <span>
