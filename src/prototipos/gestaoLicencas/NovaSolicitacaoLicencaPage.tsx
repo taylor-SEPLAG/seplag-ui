@@ -11,6 +11,7 @@ import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import {
   carregarEventos,
   configuracaoDoEvento,
+  regraDoVinculo,
   GRAUS_PARENTESCO,
 } from "../licencas/model";
 import {
@@ -163,19 +164,21 @@ export function NovaSolicitacaoContent({
     }
   }
   const evento = parametrizacoes.find((e) => e.id === eventoId);
-  const config = evento ? configuracaoDoEvento(evento) : null;
+  const regra = evento && vinculoAtual ? regraDoVinculo(evento, vinculoAtual.tipo === "Contrato Temporário" ? "Temporário" : vinculoAtual.tipo) : null;
+  const config = evento ? { ...configuracaoDoEvento(evento), ...regra } : null;
+  const quantidade = regra?.quantidade ?? evento?.quantidade ?? 0;
   const porHoras = visualizar
     ? registro?.abrangencia === "POR HORAS"
-    : evento?.duracao === "Por horas";
+    : regra ? regra.abrangencias.length === 1 && regra.abrangencias[0] === "Por Horas" : evento?.duracao === "Por horas";
   const fimSomenteLeitura = Boolean(
-    evento && !porHoras && !config?.semLimite && evento.quantidade > 0,
+    evento && !porHoras && !config?.semLimite && quantidade > 0,
   );
   let fim = fimInformado;
   if (fimSomenteLeitura && !visualizar) {
     fim = "";
     if (inicio && evento) {
       const data = new Date(inicio + "T00:00:00Z");
-      let restantes = evento.quantidade;
+      let restantes = quantidade;
       while (restantes > 0) {
         if (
           config?.contagem !== "Dias úteis" ||
@@ -222,9 +225,9 @@ export function NovaSolicitacaoContent({
       return setErro(
         "O período deve estar dentro da vigência da parametrização.",
       );
-    if (!porHoras && !config?.semLimite && dias > evento.quantidade)
+    if (!porHoras && !config?.semLimite && dias > quantidade)
       return setErro(
-        `O período excede o limite de ${evento.quantidade} dias da parametrização.`,
+        `O período excede o limite de ${quantidade} dias da parametrização.`,
       );
     const vinculos = servidor.vinculos.filter(
       (v) => v.numero === vinculoSelecionado,

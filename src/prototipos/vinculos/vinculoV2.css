@@ -186,3 +186,24 @@
 .v2v-delete-dialog .v2v-justificativa { width: 100%; }
 .v2v-delete-dialog .v2v-form-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
 .v2v-delete-dialog button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; height: 40px; width: auto; padding: 8px 16px; cursor: pointer; }
+
+.v2v-management-filters { grid-template-columns: minmax(260px, 2fr) minmax(200px, 1.4fr) minmax(140px, 1fr) auto; }
+.v2v-management-results { padding: 0; border: 0; border-radius: 0; }
+@media (max-width: 1050px) { .v2v-management-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .v2v-management-filters { grid-template-columns: 1fr; } }
+
+.v2v-grid-toolbar { display: flex; justify-content: flex-start; align-items: center; padding: 16px; border: 1px solid #dfe5ec; border-bottom: 0; background: #f7f8fa; }
+.v2v-grid-toolbar:empty { display: none; }
+
+
+
+.v2v-split-actions .p-button { height: 40px; background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.v2v-split-actions .p-splitbutton-defaultbutton { width: 40px; padding: 0; border-radius: 4px 0 0 4px; }
+.v2v-split-actions .p-splitbutton-menubutton { width: 36px; padding: 0; border-left: 1px solid rgba(255, 255, 255, .4); border-radius: 0 4px 4px 0; }
+.v2v-split-actions .p-button:hover { background: #2563eb; border-color: #2563eb; }
+
+.v2v-modal-type-dropdown { width: 100%; margin-top: 6px; min-height: 43px; }
+.v2v-modal-type-dropdown .p-dropdown-label { padding: 11px 14px; font-size: 1rem; }
+.v2v-modal-type-options .p-dropdown-items-wrapper { max-height: min(220px, 40vh) !important; overflow-y: auto; }
+.v2v-modal-type-options .p-dropdown-item { white-space: normal; overflow-wrap: anywhere; }
+.v2v-modal-type-options .p-dropdown-item.p-disabled { opacity: .55; cursor: not-allowed; }

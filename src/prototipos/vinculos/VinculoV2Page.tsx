@@ -1,3 +1,5 @@
+import { Dropdown } from "primereact/dropdown";
+import { SplitButton } from "primereact/splitbutton";
 import { Fragment, useState, type FormEvent } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
@@ -67,76 +69,96 @@ export function VinculoV2ConsultaPage() {
   const usuario = useUsuarioVinculos();
   useAtualizacaoVinculos();
   const registros = todos();
-  const [exclusao,setExclusao] = useState<Vinculo | null>(null);
-  const [mensagem,setMensagem] = useState('');
-  const solicitarExclusao = (v: Vinculo) => setExclusao(v);
-  const [filtros, setFiltros] = useState({ tipo: params.get("tipo") ?? "", busca: params.get("busca") ?? "" });
-  const [expandido, setExpandido] = useState<string | null>(params.get("expand"));
-  const [porPaginaTipos, setPorPaginaTipos] = useState(10);
-  const [paginaTipos, setPaginaTipos] = useState(() => { const indice = TIPOS.findIndex((tipo) => tipo === params.get("expand")); return indice < 0 ? 1 : Math.floor(indice / 10) + 1; });
-  const [porPaginaServidores, setPorPaginaServidores] = useState(10);
-  const [paginaServidores, setPaginaServidores] = useState(1);
-  const [filtrosServidores, setFiltrosServidores] = useState<Record<string, { busca: string; matricula: string }>>({});
-  const atualizarFiltroServidor = (tipo: Tipo, campo: "busca" | "matricula", valor: string) => {
-    setFiltrosServidores((atual) => ({
-      ...atual,
-      [tipo]: { busca: "", matricula: "", ...atual[tipo], [campo]: valor },
-    }));
-    setPaginaServidores(1);
-  };
-  const atualizarFiltro = (campo: keyof typeof filtros, valor: string) => {
-    setFiltros((atual) => ({ ...atual, [campo]: valor }));
+  const [exclusao, setExclusao] = useState<Vinculo | null>(null);
+  const [mensagem, setMensagem] = useState('');
+  const [escolherTipo, setEscolherTipo] = useState(false);
+  const [tipoCadastro, setTipoCadastro] = useState('');
+  const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
+  const [indiceAtivo, setIndiceAtivo] = useState(-1);
+  const [porPagina, setPorPagina] = useState(10);
+  const [pagina, setPagina] = useState(1);
+  const filtros = { ...filtrosDaUrl(params), busca: params.get('busca') ?? '' };
+  const atualizarFiltro = (campo: string, valor: string) => {
     const consulta = new URLSearchParams(params);
     if (valor) consulta.set(campo, valor); else consulta.delete(campo);
+    consulta.delete('expand');
     setParams(consulta, { replace: true });
-    setPaginaTipos(1); setPaginaServidores(1);
+    setPagina(1);
+    setIndiceAtivo(-1);
   };
-  const ativos = registros.filter((v) => situacaoDoVinculo(v) === "Ativo");
-  const encerrados = registros.filter((v) => situacaoDoVinculo(v) === "Encerrado");
-  const contexto = { ...filtrosDaUrl(params), tipo: filtros.tipo };
-  const busca = normalizar(filtros.busca.trim());
-  const buscaNumerica = /^[\d\s()./-]+$/.test(filtros.busca.trim()) ? filtros.busca.replace(/\D/g, "") : "";
-  const filtrados = filtrarVinculos(registros, contexto).filter(v =>
-    !busca || normalizar(v.nome).includes(busca) || v.matricula.includes(filtros.busca.trim()) ||
-    (buscaNumerica.length > 0 && digitosCpf(v.cpf).includes(buscaNumerica))
-  );
-  const contextoAtivo = Boolean(contexto.orgao || contexto.situacao);
-  const abrirDetalhes = (v: Vinculo) => {
-    const consulta = new URLSearchParams(params);
-    consulta.set("tipo", v.tipo);
-    navigate(`${BASE}/${v.id}?${consulta}`);
+  const corresponde = (v: Vinculo) => {
+    const busca = normalizar(filtros.busca.trim());
+    const numeros = /^[\d\s()./-]+$/.test(busca) ? busca.replace(/\D/g, '') : '';
+    return !busca || normalizar(v.nome).includes(busca) || v.matricula.includes(busca) || Boolean(numeros && digitosCpf(v.cpf).includes(numeros));
   };
-  const tiposVisiveis = TIPOS.filter((tipo) => (!filtros.tipo || filtros.tipo === tipo) && (!busca || filtrados.some(v => v.tipo === tipo)));
-  const totalPaginasTipos = Math.max(1, Math.ceil(tiposVisiveis.length / porPaginaTipos));
-  const paginaTiposAtual = Math.min(paginaTipos, totalPaginasTipos);
-  const tiposPaginados = tiposVisiveis.slice((paginaTiposAtual - 1) * porPaginaTipos, paginaTiposAtual * porPaginaTipos);
-  return layout("Gestão de Vínculos", null, <>
+  const sugestoes = [...new Map(registros.filter(corresponde).map(v => [v.cpf + v.matricula, v])).values()];
+  const selecionar = (v: Vinculo) => { atualizarFiltro('busca', v.matricula); setMostrarSugestoes(false); };
+  const filtrados = filtrarVinculos(registros, filtros).filter(corresponde);
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
+  const paginaAtual = Math.min(pagina, totalPaginas);
+  const abrirDetalhes = (v: Vinculo) => navigate(`${BASE}/${v.id}?${params}`);
+  const solicitarExclusao = (v: Vinculo) => setExclusao(v);
+  return layout('Gestão de Vínculos', null, <>
     {mensagem && <p className="v2v-notice" role="status">{mensagem}</p>}
     <section className="v2v-kpis v2v-kpis-situacao" aria-label="Indicadores de vínculos">
-      <article className="v2v-kpi-active"><i className="pi pi-check-circle" aria-hidden="true" /><div><span>Vínculos Ativos</span><strong>{ativos.length}</strong></div></article>
-      <article className="v2v-kpi-closed"><i className="pi pi-times-circle" aria-hidden="true" /><div><span>Vínculos Encerrados</span><strong>{encerrados.length}</strong></div></article>
+      <article className="v2v-kpi-active"><i className="pi pi-check-circle" aria-hidden="true" /><div><span>Vínculos Ativos</span><strong>{registros.filter(v => situacaoDoVinculo(v) === 'Ativo').length}</strong></div></article>
+      <article className="v2v-kpi-closed"><i className="pi pi-times-circle" aria-hidden="true" /><div><span>Vínculos Encerrados</span><strong>{registros.filter(v => situacaoDoVinculo(v) === 'Encerrado').length}</strong></div></article>
     </section>
-    {contextoAtivo && <p className="v2v-description" aria-label="Contexto da consulta">Consulta filtrada pelo dashboard: {[contexto.orgao, contexto.situacao, contexto.forma, contexto.inicio && `Vacância a partir de ${dataBr(contexto.inicio)}`, contexto.fim && `Vacância até ${dataBr(contexto.fim)}`].filter(Boolean).join(" · ")}</p>}
-    <section className="v2v-panel v2v-filters v2v-type-filters" aria-label="Filtros de consulta">
-      <label>Nome, CPF ou matrícula<input value={filtros.busca} onChange={e => atualizarFiltro("busca", e.target.value)} placeholder="Nome, CPF ou matrícula" /></label>
-      <label>Tipo de Vínculo<select value={filtros.tipo} onChange={(e) => atualizarFiltro("tipo", e.target.value)}><option value="">Todos</option>{TIPOS.map((t) => <option key={t}>{t}</option>)}</select></label>
-      <div className="v2v-filter-actions"><button className="v2v-primary" type="button" onClick={() => { setFiltros({ tipo: "", busca: "" }); setParams({}); setPaginaTipos(1); setPaginaServidores(1); }}><i className="pi pi-refresh" aria-hidden="true" />Limpar filtro</button></div>
-    </section>    <section className="v2v-panel" aria-label="Tipos de vínculo"><div className="v2v-table-wrap"><table className="v2v-table"><thead><tr><th>Código</th><th>Tipo de Vínculo</th><th>Quantidade de Vínculos</th><th>Ação</th></tr></thead><tbody>
-      {tiposPaginados.map((tipo) => { const idx = TIPOS.indexOf(tipo); const linhasTipo = filtrados.filter((v) => v.tipo === tipo);
- const filtroServidor = filtrosServidores[tipo] ?? { busca: "", matricula: "" };
- const cpfConsulta = filtroServidor.busca.replace(/\D/g, "");
- const linhas = linhasTipo.filter((v) =>
-   (!filtroServidor.busca.trim() || normalizar(v.nome).includes(normalizar(filtroServidor.busca.trim())) || (cpfConsulta.length > 0 && digitosCpf(v.cpf).includes(cpfConsulta))) &&
-   (!filtroServidor.matricula.trim() || v.matricula.includes(filtroServidor.matricula.trim()))
- ); const aberto = expandido === tipo; const totalPaginas = Math.max(1, Math.ceil(linhas.length / porPaginaServidores)); const paginaAtual = Math.min(paginaServidores, totalPaginas); return <Fragment key={tipo}><tr><td>{idx + 1}</td><td><strong>{tipo}</strong></td><td>{linhasTipo.length}</td><td><button type="button" className="v2v-icon-action" aria-label={aberto ? "Recolher" : "Visualizar"} title={aberto ? "Recolher" : "Visualizar"} aria-expanded={aberto} onClick={() => { setExpandido(aberto ? null : tipo); setPaginaServidores(1); }}><i className={`pi ${aberto ? "pi-chevron-up" : "pi-chevron-down"}`} aria-hidden="true" /></button></td></tr>
-        {aberto && <tr className="v2v-expanded-row"><td colSpan={4}><div className="v2v-expanded">{moduloDeOrigem(tipo) && <div className="v2v-origin-notice" role="note"><i className="pi pi-info-circle" aria-hidden="true" /><div><strong>O cadastro desse Vínculo ocorre pelo módulo de {moduloDeOrigem(tipo)}. Não é permitido cadastrá-lo manualmente nesta tela.</strong><span>{tipo === "Aposentado" ? "Os vínculos de aposentados são gerados automaticamente durante a conclusão do processo de aposentadoria." : "Os vínculos ativos são gerados automaticamente durante a conclusão do processo de ingresso."}</span></div></div>}<div className="v2v-expanded-head"><div><strong>Servidores com Vínculo</strong><span>{linhas.length} vínculo(s) neste tipo</span></div>{!moduloDeOrigem(tipo) && <button type="button" className="v2v-primary" onClick={() => navigate(`${BASE}/novo?tipo=${encodeURIComponent(tipo)}`)}><i className="pi pi-plus" />Cadastrar Vínculo</button>}</div><section className="v2v-panel v2v-filters" aria-label={`Filtros de servidores de ${tipo}`}>
-  <label>Nome ou CPF<input value={filtroServidor.busca} placeholder="Buscar por nome ou CPF" onChange={(e) => atualizarFiltroServidor(tipo, "busca", e.target.value)} /></label>
-  <label>Matrícula<input value={filtroServidor.matricula} placeholder="Buscar por matrícula" onChange={(e) => atualizarFiltroServidor(tipo, "matricula", e.target.value)} /></label>
-  <div className="v2v-filter-actions"><button type="button" className="v2v-primary" onClick={() => { setFiltrosServidores((atual) => ({ ...atual, [tipo]: { busca: "", matricula: "" } })); setPaginaServidores(1); }}><i className="pi pi-refresh" aria-hidden="true" />Limpar filtro</button></div>
-</section><div className="v2v-table-wrap"><table className="v2v-table v2v-inner-table"><thead><tr><th>Matrícula</th><th>Nº do Vínculo</th><th>Servidor</th><th>CPF</th><th>Lotação</th><th>Cargo/Função</th><th>Data de Início</th>{TIPOS_FIM_EXERCICIO.has(tipo) && <th>Data de Fim do Exercício</th>}<th>Situação</th><th>Ação</th></tr></thead><tbody>{linhas.slice((paginaAtual - 1) * porPaginaServidores, paginaAtual * porPaginaServidores).map((v) => <tr key={v.id}><td>{v.matricula}</td><td>{v.numero}</td><td>{v.nome}</td><td>{v.cpf}</td><td>{v.setor || "—"}</td><td>{v.cargo}</td><td>{dataBr(v.inicio)}</td>{TIPOS_FIM_EXERCICIO.has(tipo) && <td>{v.termino ? dataBr(v.termino) : "—"}</td>}<td><SituacaoTag situacao={situacaoDoVinculo(v)} /></td><td><div className="v2v-row-actions"><button type="button" className="v2v-icon-action" aria-label="Ver detalhes" title="Visualizar" onClick={() => abrirDetalhes(v)}><i className="pi pi-eye" aria-hidden="true" /></button>{usuario?.editar && <button type="button" className="v2v-icon-action v2v-action-edit" aria-label="Editar" title="Editar" onClick={() => navigate(`${BASE}/${v.id}/editar?tipo=${encodeURIComponent(v.tipo)}`)}><i className="pi pi-pencil" aria-hidden="true" /></button>}{usuario?.excluir && <button type="button" className="v2v-icon-action v2v-action-delete" aria-label="Excluir" title="Excluir" onClick={() => solicitarExclusao(v)}><i className="pi pi-trash" aria-hidden="true" /></button>}</div></td></tr>)}{linhas.length === 0 && <tr><td colSpan={TIPOS_FIM_EXERCICIO.has(tipo) ? 10 : 9} className="v2v-empty">Nenhum vínculo encontrado para os filtros informados.</td></tr>}</tbody></table></div><PaginacaoV2 nome="servidores" pagina={paginaAtual} totalPaginas={totalPaginas} porPagina={porPaginaServidores} mudarPagina={setPaginaServidores} mudarPorPagina={(quantidade) => { setPorPaginaServidores(quantidade); setPaginaServidores(1); }} /></div></td></tr>}</Fragment>; })}
-      {tiposVisiveis.length === 0 && <tr><td colSpan={4} className="v2v-empty">Nenhum vínculo encontrado para os filtros informados.</td></tr>}
-    </tbody></table></div><PaginacaoV2 nome="tipos de vínculo" pagina={paginaTiposAtual} totalPaginas={totalPaginasTipos} porPagina={porPaginaTipos} mudarPagina={(numero) => { setPaginaTipos(numero); setExpandido(null); setPaginaServidores(1); }} mudarPorPagina={(quantidade) => { setPorPaginaTipos(quantidade); setPaginaTipos(1); setExpandido(null); }} /></section>
-    {exclusao && <VinculoExclusaoDialog key={exclusao.id} vinculo={exclusao} fechar={() => setExclusao(null)} concluido={() => {setExclusao(null);setMensagem('Vínculo excluído com sucesso. Auditoria preservada.');}} />}
+    {(filtros.orgao || filtros.forma || filtros.inicio || filtros.fim) && <p className="v2v-description" aria-label="Contexto da consulta">Consulta filtrada pelo dashboard: {[filtros.orgao, filtros.situacao, filtros.forma, filtros.inicio && 'Vacância a partir de ' + dataBr(filtros.inicio), filtros.fim && 'Vacância até ' + dataBr(filtros.fim)].filter(Boolean).join(' · ')}</p>}
+    <section className="v2v-panel v2v-filters v2v-management-filters" aria-label="Filtros de consulta">
+      <label htmlFor="v2v-busca-pessoa">Nome, CPF ou matrícula<span className="v2v-cpf-dropdown">
+        <input id="v2v-busca-pessoa" aria-label="Nome, CPF ou matrícula" role="combobox" aria-autocomplete="list" aria-expanded={mostrarSugestoes} aria-controls="v2v-pessoas-consulta" aria-activedescendant={mostrarSugestoes && indiceAtivo >= 0 ? 'v2v-pessoa-' + indiceAtivo : undefined} value={filtros.busca} placeholder="Buscar por nome, CPF ou matrícula" onFocus={() => setMostrarSugestoes(true)} onBlur={() => setMostrarSugestoes(false)} onChange={e => { atualizarFiltro('busca', e.target.value); setMostrarSugestoes(true); }} onKeyDown={e => {
+          if (e.key === 'Escape') setMostrarSugestoes(false);
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); setMostrarSugestoes(true); setIndiceAtivo(atual => e.key === 'ArrowDown' ? Math.min(atual + 1, sugestoes.length - 1) : Math.max(atual - 1, 0)); }
+          if (e.key === 'Enter' && mostrarSugestoes && sugestoes[indiceAtivo]) { e.preventDefault(); selecionar(sugestoes[indiceAtivo]); }
+        }} /><i className="pi pi-chevron-down" aria-hidden="true" />
+        {mostrarSugestoes && <ul id="v2v-pessoas-consulta" role="listbox" aria-label="Servidores encontrados">{sugestoes.map((v, indice) => <li id={'v2v-pessoa-' + indice} role="option" aria-selected={indice === indiceAtivo} key={v.cpf + v.matricula} onMouseDown={e => e.preventDefault()} onClick={() => selecionar(v)}>{v.nome} · {v.cpf} · {v.matricula}</li>)}{sugestoes.length === 0 && <li role="presentation">Nenhum servidor encontrado.</li>}</ul>}
+      </span></label>
+      <label>Tipo de Vínculo<select value={filtros.tipo} onChange={e => atualizarFiltro('tipo', e.target.value)}><option value="">Todos</option>{TIPOS.map(tipo => <option key={tipo}>{tipo}</option>)}</select></label>
+      <label>Situação<select value={filtros.situacao} onChange={e => atualizarFiltro('situacao', e.target.value)}><option value="">Todas</option><option>Ativo</option><option>Encerrado</option></select></label>
+      <div className="v2v-filter-actions"><button className="v2v-primary" type="button" onClick={() => { setParams({}); setPagina(1); setMostrarSugestoes(false); }}><i className="pi pi-refresh" aria-hidden="true" />Limpar filtro</button></div>
+    </section>
+    {filtros.tipo && moduloDeOrigem(filtros.tipo as Tipo) && <div className="v2v-origin-notice" role="note">O cadastro desse Vínculo ocorre pelo módulo de {moduloDeOrigem(filtros.tipo as Tipo)}. Não é permitido cadastrá-lo manualmente nesta tela.</div>}
+    <section className="v2v-panel v2v-management-results" aria-label="Servidores com Vínculo">
+      <div className="v2v-grid-toolbar">{(!filtros.tipo || !moduloDeOrigem(filtros.tipo as Tipo)) && <button type="button" className="v2v-primary" onClick={() => filtros.tipo ? navigate(BASE + '/novo?tipo=' + encodeURIComponent(filtros.tipo)) : setEscolherTipo(true)}><i className="pi pi-plus" aria-hidden="true" />Cadastrar Vínculo</button>}</div>
+      <div className="v2v-table-wrap"><table className="v2v-table v2v-inner-table"><thead><tr><th>Matrícula</th><th>Nº do Vínculo</th><th>Servidor</th><th>CPF</th><th>Tipo de Vínculo</th><th>Lotação</th><th>Cargo/Função</th><th>Data de Início</th><th>Data de Encerramento</th><th>Situação</th><th>Ação</th></tr></thead><tbody>
+        {filtrados.slice((paginaAtual - 1) * porPagina, paginaAtual * porPagina).map(v => <tr key={v.id}><td>{v.matricula}</td><td>{v.numero}</td><td>{v.nome}</td><td>{v.cpf}</td><td>{v.tipo}</td><td>{v.setor || '—'}</td><td>{v.cargo}</td><td>{dataBr(v.inicio)}</td><td>{situacaoDoVinculo(v) === "Encerrado" ? dataBr(v.vacanciaData ?? "") : "—"}</td><td><SituacaoTag situacao={situacaoDoVinculo(v)} /></td><td><div className="v2v-row-actions">{usuario?.editar || usuario?.excluir ? <SplitButton
+  className="v2v-split-actions"
+  icon="pi pi-eye"
+  onClick={() => abrirDetalhes(v)}
+  buttonProps={{ 'aria-label': 'Ver detalhes', title: 'Visualizar' }}
+  menuButtonProps={{ 'aria-label': 'Mais ações' }}
+  model={[
+    ...(usuario?.editar ? [{ label: 'Editar', icon: 'pi pi-pencil', command: () => navigate(`${BASE}/${v.id}/editar?tipo=${encodeURIComponent(v.tipo)}`) }] : []),
+    ...(usuario?.excluir ? [{ label: 'Excluir', icon: 'pi pi-trash', command: () => solicitarExclusao(v) }] : []),
+  ]}
+/> : <button type="button" className="v2v-icon-action" aria-label="Ver detalhes" title="Visualizar" onClick={() => abrirDetalhes(v)}><i className="pi pi-eye" aria-hidden="true" /></button>}</div></td></tr>)}
+        {filtrados.length === 0 && <tr><td colSpan={11} className="v2v-empty">Nenhum vínculo encontrado para os filtros informados.</td></tr>}
+      </tbody></table></div>
+      <PaginacaoV2 nome="servidores" pagina={paginaAtual} totalPaginas={totalPaginas} porPagina={porPagina} mudarPagina={setPagina} mudarPorPagina={quantidade => { setPorPagina(quantidade); setPagina(1); }} />
+    </section>
+    {escolherTipo && <ModalSeplag visible titulo="Cadastrar Vínculo" fechar={() => setEscolherTipo(false)} hideFooter tamanho="550px">
+      <div className="v2v-page"><label htmlFor="v2v-tipo-cadastro">Tipo de Vínculo</label><Dropdown
+        inputId="v2v-tipo-cadastro"
+        className="v2v-modal-type-dropdown"
+        panelClassName="v2v-modal-type-options"
+        value={tipoCadastro}
+        options={TIPOS.map(tipo => ({ label: tipo, value: tipo, disabled: Boolean(moduloDeOrigem(tipo)) }))}
+        optionLabel="label"
+        optionValue="value"
+        optionDisabled="disabled"
+        placeholder="Selecione"
+        scrollHeight="220px"
+        filter
+        filterPlaceholder="Buscar tipo de vínculo"
+        emptyFilterMessage="Nenhum tipo encontrado."
+        aria-describedby="v2v-tipo-cadastro-info"
+        onChange={e => setTipoCadastro(e.value ?? '')}
+      />
+      <p id="v2v-tipo-cadastro-info" className="v2v-notice" role="note"><i className="pi pi-info-circle" aria-hidden="true" /><span>Tipos de Vínculo gerados automaticamente pelo Ingresso, Aposentadoria ou por outras funcionalidades do sistema não podem ser cadastrados manualmente.</span></p>
+      <div className="v2v-form-actions"><button type="button" className="v2v-secondary" onClick={() => setEscolherTipo(false)}>Cancelar</button><button type="button" className="v2v-primary" disabled={!tipoCadastro || Boolean(moduloDeOrigem(tipoCadastro as Tipo))} onClick={() => navigate(BASE + '/novo?tipo=' + encodeURIComponent(tipoCadastro))}>Continuar</button></div></div>
+    </ModalSeplag>}
+    {exclusao && <VinculoExclusaoDialog key={exclusao.id} vinculo={exclusao} fechar={() => setExclusao(null)} concluido={() => { setExclusao(null); setMensagem('Vínculo excluído com sucesso. Auditoria preservada.'); }} />}
   </>);
 }
 

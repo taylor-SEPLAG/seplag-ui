@@ -259,6 +259,7 @@ const cents = (value: string) => {
 };
 const money = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value / 100);
 export const v2Currency = (value: string) => money(cents(value));
+export const v2CurrencyDifference = (current: string, previous: string) => money(cents(current) - cents(previous));
 const normalizedMatrix = (matrix: V2Matrix): V2Matrix => ({
   columns: matrix.columns.map((name) => name.trim()),
   rows: matrix.rows.map((row) => ({ name: row.name.trim(), values: row.values.map((value) => value ? v2Currency(value) : "") })),
