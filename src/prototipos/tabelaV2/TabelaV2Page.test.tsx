@@ -160,6 +160,9 @@ it("seleciona tabela vigente inteira, pré-visualiza valores e confirma RGA em l
   expect(within(preview).getByText("Contrato Temporário")).toBeTruthy();
   fireEvent.click(screen.getByText(/Auditor Fiscal · 20 horas · V1/));
   expect(screen.getByRole("table", { name: "Valores simulados de TV2-001" }).textContent).toContain("4.743,00");
+  const simulated = within(screen.getByRole("table", { name: "Valores simulados de TV2-001" }));
+  expect(simulated.getByRole("columnheader", { name: "Diferença" })).toBeTruthy();
+  expect(simulated.getAllByRole("row")[1].lastElementChild?.textContent).toMatch(/243,00/);
   fireEvent.click(screen.getByRole("button", { name: "Confirmar aplicação" }));
   const dialog = screen.getByRole("dialog", { name: "Confirmar aplicação do RGA?" });
   expect(within(dialog).getByText(/A aplicação do RGA irá gerar novas versões/)).toBeTruthy();

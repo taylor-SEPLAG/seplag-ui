@@ -4,7 +4,7 @@ import { DocumentosLegaisAssociadosSeplag } from "@componentes/DocumentosLegaisA
 import { useDocumentosLegaisAssociaveis } from "../documentosLegais/documentosLegaisStore";
 import { V2PageFrame, V2Tags } from "./V2Shared";
 import {
-  V2_BASE, V2_CARGOS, v2ApplyRga, v2Currency, v2Date, v2Persist, v2Read,
+  V2_BASE, V2_CARGOS, v2ApplyRga, v2Currency, v2CurrencyDifference, v2Date, v2Persist, v2Read,
   v2RgaCandidates, v2VisibleLinks, type V2Record,
 } from "./v2Store";
 
@@ -169,11 +169,12 @@ export function V2RgaPage() {
         if (!source) return null;
         return <details key={record.id}><summary>{cargoFor(record)} · {record.jornada} · V{source.version} → V{record.version}</summary>
           <div className="v2-table-wrap"><table className="v2-table" aria-label={"Valores simulados de " + record.tableId}>
-            <thead><tr><th>Nível / Classe</th><th>Valor vigente</th><th>RGA</th><th>Novo valor</th></tr></thead>
+            <thead><tr><th>Nível / Classe</th><th>Valor vigente</th><th>RGA</th><th>Novo valor</th><th>Diferença</th></tr></thead>
             <tbody>{record.matrix.rows.flatMap((row, rowIndex) => row.values.map((value, columnIndex) =>
               <tr key={rowIndex + ":" + columnIndex}><td>{row.name} / {record.matrix.columns[columnIndex]}</td>
                 <td>{v2Currency(source.matrix.rows[rowIndex]?.values[columnIndex] || "")}</td>
-                <td>{rateLabel(percent)}</td><td>{v2Currency(value)}</td></tr>))}</tbody>
+                <td>{rateLabel(percent)}</td><td>{v2Currency(value)}</td>
+                <td>{v2CurrencyDifference(value, source.matrix.rows[rowIndex]?.values[columnIndex] || "")}</td></tr>))}</tbody>
           </table></div>
         </details>;
       })}</div>
