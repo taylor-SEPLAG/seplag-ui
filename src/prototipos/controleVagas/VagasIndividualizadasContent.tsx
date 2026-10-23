@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { DataTableStateEvent } from "primereact/datatable";
-import { useControleVagasStore } from "./controleVagasStore";
+import { controleVagasStore, useControleVagasStore } from "./controleVagasStore";
 import type {
   EstadoVaga,
   OcupacaoVaga,
@@ -41,7 +41,9 @@ import type { ResultsSeplag } from "../../interfaces/Results";
 
 const estadoLabel: Record<EstadoVaga, string> = {
   DISPONIVEL: "Disponível",
+  EM_OCUPACAO: "Em ocupação",
   OCUPADA: "Ocupada",
+  EM_DISPONIBILIZACAO: "Em disponibilização",
 };
 const legalLabel: Record<SituacaoLegalVaga, string> = {
   REGULAR: "Regular",
@@ -58,12 +60,9 @@ const legalClass: Record<SituacaoLegalVaga, string> = {
   EM_TRANSFORMACAO: "transformacao",
 };
 
-const fasesIngresso = [
-  "Aguardando análise",
-  "Em análise",
-  "Aguardando efetivo exercício",
-  "Posse suspensa",
-] as const;
+// A vaga só recebe reflexo do fluxo quando a análise foi aprovada e a reserva
+// é criada. As demais fases pertencem exclusivamente ao módulo de Ingresso.
+const fasesIngresso = ["Aguardando efetivo exercício"] as const;
 
 const faseAtualDoComprometimento = (compromisso: import("./types").ComprometimentoVaga | undefined) =>
   compromisso?.fases.find((fase) => fase.situacao === "EM_ANDAMENTO");
@@ -79,6 +78,7 @@ interface VagasIndividualizadasFiltros {
   orgao: string;
   identificador: string;
   ocupanteAtual: string;
+  estado: string;
   comprometimento: string;
   situacaoLegal: string;
 }
@@ -88,6 +88,7 @@ const filtrosIniciais: VagasIndividualizadasFiltros = {
   orgao: "",
   identificador: "",
   ocupanteAtual: "",
+  estado: "",
   comprometimento: "",
   situacaoLegal: "",
 };
@@ -120,6 +121,9 @@ const resultadoVagas = (
 export function VagasIndividualizadasContent() {
   const { vagas: todasVagas, quadros: todosQuadros, comprometimentos, ocupacoes, movimentos } =
     useControleVagasStore();
+  useEffect(() => {
+    controleVagasStore.reconciliarReservasDeIngressosExcluidos();
+  }, []);
   const vagas = useMemo(() => todasVagas.filter((vaga) => vaga.tipo === "EFETIVO"), [todasVagas]);
   const quadros = useMemo(() => todosQuadros.filter((quadro) => quadro.tipoQuadro === "Efetivo"), [todosQuadros]);
   const [searchParams] = useSearchParams();
@@ -133,11 +137,16 @@ export function VagasIndividualizadasContent() {
   const [vagaSelecionada, setVagaSelecionada] = useState<VagaIndividualizadaView | null>(null);
   const [pagina, setPagina] = useState(0);
   const [porPagina, setPorPagina] = useState(10);
+  const [ordenacao, setOrdenacao] = useState<{ campo: string; direcao: 1 | -1 }>({
+    campo: "nome",
+    direcao: 1,
+  });
 
   const quadroSelecionado = filtros.quadro ?? "";
   const orgao = filtros.orgao ?? "";
   const identificador = filtros.identificador ?? "";
   const ocupanteAtual = filtros.ocupanteAtual ?? "";
+  const estado = filtros.estado ?? "";
   const comprometimento = filtros.comprometimento ?? "";
   const situacaoLegal = filtros.situacaoLegal ?? "";
 
@@ -148,6 +157,7 @@ export function VagasIndividualizadasContent() {
     orgao,
     identificador,
     ocupanteAtual,
+    estado,
     comprometimento,
     situacaoLegal,
   ]);
@@ -233,7 +243,7 @@ export function VagasIndividualizadasContent() {
       );
       const faseAtual = faseAtualDoComprometimento(compromisso)?.nome;
       const situacaoAtual = compromisso
-        ? faseAtual ?? "Aguardando análise"
+        ? faseAtual === "Aguardando efetivo exercício" ? faseAtual : "OCUPACAO"
         : ocupacaoAtual
           ? "EM_EXERCICIO"
           : "LIVRE";
@@ -248,6 +258,7 @@ export function VagasIndividualizadasContent() {
 
       return (
         (!orgao || item.orgaoAtual === orgao) &&
+        (!estado || item.estado === estado) &&
         (!termo || item.identificadorExibicao.toLocaleLowerCase("pt-BR").includes(termo)) &&
         (!termoOcupante ||
           (Boolean(ocupacaoAtual) &&
@@ -267,6 +278,7 @@ export function VagasIndividualizadasContent() {
   }, [
     comprometimento,
     comprometimentos,
+    estado,
     identificador,
     ocupanteAtual,
     ocupacoes,
@@ -282,11 +294,12 @@ export function VagasIndividualizadasContent() {
           disponiveis:
             acumulado.disponiveis + (item.estado === "DISPONIVEL" ? 1 : 0),
           ocupadas: acumulado.ocupadas + (item.estado === "OCUPADA" ? 1 : 0),
-          emOcupacao: acumulado.emOcupacao + (comprometimentos.some((registro) => registro.vagaId === item.id && registro.situacao === "ATIVO" && registro.natureza === "OCUPACAO") ? 1 : 0),
+          emOcupacao: acumulado.emOcupacao + (item.estado === "EM_OCUPACAO" ? 1 : 0),
+          emDisponibilizacao: acumulado.emDisponibilizacao + (item.estado === "EM_DISPONIBILIZACAO" ? 1 : 0),
           excecoes:
             acumulado.excecoes + (item.situacaoLegal !== "REGULAR" ? 1 : 0),
         }),
-        { total: 0, disponiveis: 0, ocupadas: 0, emOcupacao: 0, excecoes: 0 },
+        { total: 0, disponiveis: 0, ocupadas: 0, emOcupacao: 0, emDisponibilizacao: 0, excecoes: 0 },
       ),
     [comprometimentos, vagasDistribuidasDoQuadro],
   );
@@ -296,10 +309,29 @@ export function VagasIndividualizadasContent() {
       (item) => item.vagaId === vagaId && item.situacao === "ATIVO" && item.natureza === "OCUPACAO",
     );
 
+  const vagasOrdenadas = useMemo(() => {
+    const valorParaOrdenacao = (item: VagaIndividualizadaView) => {
+      if (ordenacao.campo === "ocupanteOrdenacao") {
+        return ocupacoes.find((ocupacao) => ocupacao.vagaId === item.id && ocupacao.situacao === "ATIVA")?.pessoaNome
+          ?? getComprometimento(item.id)?.pessoaNome
+          ?? "";
+      }
+      if (ordenacao.campo === "ingressoOrdenacao") {
+        return faseAtualDoComprometimento(getComprometimento(item.id))?.descricao
+          ?? getComprometimento(item.id)?.pessoaNome
+          ?? "";
+      }
+      return String((item as Record<string, unknown>)[ordenacao.campo] ?? "");
+    };
+    return [...filtradas].sort((a, b) => valorParaOrdenacao(a).localeCompare(valorParaOrdenacao(b), "pt-BR", { numeric: true }) * ordenacao.direcao);
+  }, [filtradas, ocupacoes, comprometimentos, ordenacao]);
+
   const colunas = useMemo<ColumnMetaSeplag<VagaIndividualizadaView>[]>(
     () => [
       {
         header: "Nome da vaga",
+        field: "nome",
+        sortable: true,
         body: (item) => (
           <div className="prototype-vaga-primary-cell">
             <button
@@ -314,6 +346,8 @@ export function VagasIndividualizadasContent() {
       },
       {
         header: "Cargo/Função",
+        field: "cargo",
+        sortable: true,
         body: (item) => (
           <div className="prototype-vaga-primary-cell">
             <strong>{item.cargo}</strong>
@@ -321,20 +355,34 @@ export function VagasIndividualizadasContent() {
           </div>
         ),
       },
-      { header: "Órgão", field: "orgaoAtual" },
+      { header: "Órgão", field: "orgaoAtual", sortable: true },
+      {
+        header: "Estado",
+        field: "estado",
+        sortable: true,
+        body: (item) => <span className={`prototype-vaga-state ${item.estado.toLowerCase()}`}>{estadoLabel[item.estado]}</span>,
+      },
       {
         header: "Ocupante atual",
+        field: "ocupanteOrdenacao",
+        sortable: true,
         body: (item) => {
           const ocupacaoAtual = ocupacoes.find(
             (registro) =>
               registro.vagaId === item.id && registro.situacao === "ATIVA",
           );
+          const compromisso = getComprometimento(item.id);
           return ocupacaoAtual ? (
             <div className="prototype-vaga-primary-cell">
               <strong>{ocupacaoAtual.pessoaNome}</strong>
               <small>
                 {ocupacaoAtual.matricula} · {ocupacaoAtual.vinculoId}
               </small>
+            </div>
+          ) : compromisso?.pessoaNome ? (
+            <div className="prototype-vaga-primary-cell">
+              <strong>{compromisso.pessoaNome}</strong>
+              <small>Servidor em ingresso{compromisso.decisaoJudicial ? " · Decisão judicial" : ""}</small>
             </div>
           ) : (
             <span className="prototype-vaga-muted">Sem ocupante atual</span>
@@ -343,6 +391,8 @@ export function VagasIndividualizadasContent() {
       },
       {
         header: "Ingresso/ocupação",
+        field: "ingressoOrdenacao",
+        sortable: true,
         body: (item) => {
           const compromisso = getComprometimento(item.id);
           const faseAtual = faseAtualDoComprometimento(compromisso);
@@ -351,12 +401,16 @@ export function VagasIndividualizadasContent() {
             (registro) => registro.vagaId === item.id && registro.situacao === "ATIVA",
           );
 
-          return compromisso ? (
+          return item.estado === "EM_OCUPACAO" && compromisso ? (
             <span
               className={`prototype-vaga-commit ${compromisso.natureza.toLowerCase()}`}
             >
               <i className="pi pi-flag" />
-              {faseAtual?.nome ?? "Aguardando análise"}
+              {faseAtual?.nome === "Aguardando efetivo exercício" ? faseAtual.nome : "Com ingresso ativo"}
+            </span>
+          ) : item.estado === "EM_DISPONIBILIZACAO" ? (
+            <span className="prototype-vaga-state em_disponibilizacao">
+              <i className="pi pi-clock" /> Em disponibilização
             </span>
           ) : ocupacaoAtual ? (
             <span className="prototype-vaga-state ocupada">
@@ -368,7 +422,15 @@ export function VagasIndividualizadasContent() {
         },
       },
       {
+        header: "Lastro",
+        field: "situacaoLastro",
+        sortable: true,
+        body: (item) => <span className={item.situacaoLastro && item.situacaoLastro !== "REGULAR" ? "prototype-vaga-legal decisao" : "prototype-vaga-muted"}>{item.situacaoLastro === "PENDENTE_DISTRIBUICAO" ? "Pendente de distribuição" : item.situacaoLastro === "PENDENTE_CRIACAO" ? "Pendente de criação" : item.situacaoLastro === "PENDENTE_AMPLIACAO" ? "Pendente de ampliação" : "Regular"}</span>,
+      },
+      {
         header: "Situação legal",
+        field: "situacaoLegal",
+        sortable: true,
         body: (item) => (
           <span
             className={`prototype-vaga-legal ${legalClass[item.situacaoLegal]}`}
@@ -387,6 +449,11 @@ export function VagasIndividualizadasContent() {
   };
 
   const alterarPagina = (event: DataTableStateEvent) => {
+    if (event.sortField) {
+      setOrdenacao({ campo: String(event.sortField), direcao: event.sortOrder === -1 ? -1 : 1 });
+      setPagina(0);
+      return;
+    }
     setPagina(event.page ?? 0);
     setPorPagina(event.rows);
   };
@@ -443,6 +510,12 @@ export function VagasIndividualizadasContent() {
               value={totais.ocupadas}
               icon="pi pi-users"
               kind="occupied"
+            />
+            <Kpi
+              label="Em disponibilização"
+              value={totais.emDisponibilizacao}
+              icon="pi pi-clock"
+              kind="warning"
             />
             <Kpi
               label="Situação legal especial"
@@ -512,6 +585,21 @@ export function VagasIndividualizadasContent() {
             </div>
             <div className="prototype-vaga-seplag-field">
               <DropdownFieldSeplag<VagasIndividualizadasFiltros>
+                name="estado"
+                control={control}
+                label="Estado operacional"
+                cols="12"
+                options={Object.entries(estadoLabel).map(([value, label]) => ({ label, value }))}
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Todos"
+                showClear
+                disabled={!quadroSelecionado}
+                getFormErrorMessage={() => null}
+              />
+            </div>
+            <div className="prototype-vaga-seplag-field">
+              <DropdownFieldSeplag<VagasIndividualizadasFiltros>
                 name="comprometimento"
                 control={control}
                 label="Ingresso/ocupação"
@@ -561,11 +649,13 @@ export function VagasIndividualizadasContent() {
               <div className="prototype-vaga-library-table">
                 <TablePaginadoSeplag<VagaIndividualizadaView>
                   dataKey="id"
-                  data={resultadoVagas(filtradas, pagina, porPagina)}
+                  data={resultadoVagas(vagasOrdenadas, pagina, porPagina)}
                   rows={porPagina}
                   rowsPerPage={[10, 20, 50]}
                   columns={colunas}
                   lazy
+                  sortField={ordenacao.campo}
+                  sortOrder={ordenacao.direcao}
                   selectionMode={null}
                   hasEventoAcao
                   handleOnPageChange={alterarPagina}
@@ -1543,6 +1633,14 @@ function ComprometimentoDaVaga({ vagaId }: { vagaId: string }) {
       </header>
       <dl>
         <div>
+          <dt>Servidor em ingresso</dt>
+          <dd>{processo.pessoaNome ?? "Não informado"}</dd>
+        </div>
+        <div>
+          <dt>Ingresso</dt>
+          <dd>{processo.numeroEdital ? `${processo.numeroEdital}${processo.classificacao ? ` · ${processo.classificacao}` : ""}` : processo.ingressoId ?? "Não informado"}</dd>
+        </div>
+        <div>
           <dt>Processo</dt>
           <dd>{processo.processo}</dd>
         </div>
@@ -1561,6 +1659,10 @@ function ComprometimentoDaVaga({ vagaId }: { vagaId: string }) {
         <div>
           <dt>Previsão</dt>
           <dd>{processo.dataEfeitoPrevista ?? "Não informada"}</dd>
+        </div>
+        <div>
+          <dt>Decisão judicial</dt>
+          <dd>{processo.decisaoJudicial ? "Sim" : "Não"}</dd>
         </div>
         <div className="full">
           <dt>Motivo</dt>

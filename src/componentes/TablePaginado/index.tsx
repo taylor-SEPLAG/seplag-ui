@@ -44,6 +44,9 @@ export interface TablePaginadoSeplagProps<T extends DataTableValue> {
   readonly selectionMode?: "multiple" | "checkbox" | "single" | null;
   readonly handleSelectionChange?: (event: { value: T[] | null }) => void;
   readonly handleOnPageChange: (page: DataTableStateEvent) => void;
+  /** Campo e direção controlados quando a listagem implementa ordenação remota/lazy. */
+  readonly sortField?: string;
+  readonly sortOrder?: 1 | -1;
   readonly handleFilterChange?: (filterModel: DataTableStateEvent) => void;
   readonly onRowSelect?: (event: DataTableSelectEvent) => void;
   readonly onRowUnselect?: (event: DataTableUnselectEvent) => void;
@@ -102,6 +105,8 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
   selected = null,
   rowsPerPage,
   handleOnPageChange,
+  sortField,
+  sortOrder,
   handleFilterChange,
   handleDelete,
   handleEdit,
@@ -288,6 +293,10 @@ export function TablePaginadoSeplag<T extends DataTableValue>({
         emptyMessage={emptyMessage}
         onFilter={handleFilterChange}
         onPage={handleOnPageChange}
+        onSort={handleOnPageChange}
+        sortField={sortField}
+        sortOrder={sortOrder}
+        removableSort={false}
         onRowSelect={isDisabled ? undefined : onRowSelect}
         onRowUnselect={onRowUnselect}
         expandedRows={expandedRows}

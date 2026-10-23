@@ -9,17 +9,17 @@ import {
 } from "../../componentes/SituacaoVigencia";
 
 describe("integridade dos exemplos de quadros autorizados", () => {
-  it("mantém códigos únicos e sequenciais de QA-0001 a QA-0012", () => {
+  it("mantém códigos únicos e sequenciais de QA-0001 a QA-0014", () => {
     const codigos = quadrosAutorizadosMock
       .map((quadro) => quadro.codigo)
       .sort((a, b) => a.localeCompare(b));
     const esperados = Array.from(
-      { length: 12 },
+      { length: 14 },
       (_, indice) => `QA-${String(indice + 1).padStart(4, "0")}`,
     );
 
     expect(codigos).toEqual(esperados);
-    expect(new Set(codigos).size).toBe(12);
+    expect(new Set(codigos).size).toBe(14);
   });
 
   it("fecha autorizadas como ocupadas mais disponíveis", () => {

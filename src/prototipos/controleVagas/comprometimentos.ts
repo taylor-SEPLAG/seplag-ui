@@ -1,7 +1,7 @@
 import type { ComprometimentoVaga, EstadoVaga, FaseComprometimento, NaturezaComprometimento, Vaga } from "./types";
 
 export const fasesPadrao: Record<NaturezaComprometimento, string[]> = {
-  OCUPACAO: ["Aguardando análise", "Em análise", "Aguardando efetivo exercício", "Posse suspensa"],
+  OCUPACAO: ["Em análise", "Análise documental", "Aguardando efetivo exercício", "Aguardando termo assinado", "Posse suspensa"],
   DISPONIBILIZACAO: ["Solicitação registrada", "Instrução do processo", "Análise e validação", "Publicação do ato"],
 };
 

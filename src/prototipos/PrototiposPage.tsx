@@ -156,6 +156,7 @@ import { QuadroAutorizadoContent } from "./controleVagas/QuadroAutorizadoContent
 import { DistribuicaoSaldoContent } from "./controleVagas/DistribuicaoSaldoContent";
 import { DashboardGerencialContent } from "./controleVagas/DashboardGerencialContent";
 import { VagasIndividualizadasContent } from "./controleVagas/VagasIndividualizadasContent";
+import { controleVagasStore, useControleVagasStore } from "./controleVagas/controleVagasStore";
 import { VagasEfetivosContent } from "./controleVagas/VagasEfetivosContent";
 import { MovimentacoesContent } from "./controleVagas/MovimentacoesContent";
 import { ProjecoesVagasContent } from "./controleVagas/ProjecoesVagasContent";
@@ -1667,6 +1668,7 @@ interface CargoTesteRow extends CargoRow {
   subcategoria: string;
   jornadaTrabalho?: string;
   jornadaPadrao: string;
+  escolaridadeMinima?: string;
   regrasUso: number;
   vigencia: string;
   carreira?: string;
@@ -1683,6 +1685,7 @@ interface CargoTesteRow extends CargoRow {
   documentosIds?: string[];
   perfilDga?: boolean;
   perfisEspecialidadesIds?: number[];
+  referencias?: string[];
   cargosAcumulaveis?: number[];
   controleVagasEfetivos?: boolean;
   controleVagasBolsista?: boolean;
@@ -2454,6 +2457,78 @@ const cargosTesteMock: CargoTesteRow[] = [
     situacao: "ATIVO",
     tiposVinculo: ["TV005", "TV007"],
     controleVagasBolsista: true,
+  },
+  {
+    id: 9,
+    codigo: "ANL_ADM_EFE",
+    cargo: "Analista Administrativo",
+    categoria: "Profissionais da Administração",
+    subcategoria: "Administração",
+    jornadaPadrao: "40h, 30h, 20h",
+    escolaridadeMinima: "superior",
+    baseLegal: 1,
+    instituicoes: 1,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO",
+    tiposVinculo: ["TV001"],
+    carreira: "ADM",
+    carreirasPorTipoVinculo: { TV001: "ADM" },
+    perfisEspecialidadesIds: [2, 6],
+    referencias: ["001A", "001B", "001C", "002A", "002B", "002C", "003A", "003B", "003C"],
+    controleVagasEfetivos: true,
+  },
+  {
+    id: 10,
+    codigo: "TEC_ENF_EFE",
+    cargo: "Técnico em Enfermagem Efetivo",
+    categoria: "Profissionais da Saúde",
+    subcategoria: "Enfermagem",
+    jornadaPadrao: "30H",
+    baseLegal: 1,
+    instituicoes: 1,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO",
+    tiposVinculo: ["TV001"],
+    carreira: "SAUDE",
+    carreirasPorTipoVinculo: { TV001: "SAUDE" },
+    referencias: ["001A", "001B", "001C", "002A", "002B", "002C", "003A", "003B", "003C"],
+    controleVagasEfetivos: true,
+  },
+  {
+    id: 11,
+    codigo: "PROF_EDU_EFE",
+    cargo: "Professor da Educação Básica Efetivo",
+    categoria: "Profissionais da Educação",
+    subcategoria: "Docência",
+    jornadaPadrao: "30H",
+    baseLegal: 1,
+    instituicoes: 1,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO",
+    tiposVinculo: ["TV001"],
+    carreira: "EDU",
+    carreirasPorTipoVinculo: { TV001: "EDU" },
+    controleVagasEfetivos: true,
+  },
+  {
+    id: 12,
+    codigo: "ANL_TI_EFE",
+    cargo: "Analista de Tecnologia da Informação Efetivo",
+    categoria: "Profissionais de Tecnologia da Informação",
+    subcategoria: "Tecnologia da Informação",
+    jornadaPadrao: "40H",
+    baseLegal: 1,
+    instituicoes: 1,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO",
+    tiposVinculo: ["TV001"],
+    carreira: "TI",
+    carreirasPorTipoVinculo: { TV001: "TI" },
+    controleVagasEfetivos: true,
   },
   ...cargosComissionadosIniciais.map((item) => ({
     id: item.id,
@@ -3888,6 +3963,22 @@ const pessoasFisicasIngressoMock = [
   { cpf: "123.123.123-12", nome: "Diego Campos", dataNascimento: "11/12/1990" },
   { cpf: "234.234.234-23", nome: "Camila Teixeira", dataNascimento: "24/04/1992" },
   { cpf: "345.345.345-34", nome: "Henrique Lopes", dataNascimento: "02/10/1986" },
+  { cpf: "901.234.567-01", nome: "Aline Moraes", dataNascimento: "14/03/1991" },
+  { cpf: "901.234.567-02", nome: "Carlos Eduardo Lima", dataNascimento: "22/08/1988" },
+  { cpf: "901.234.567-03", nome: "Juliana Ferreira", dataNascimento: "06/01/1993" },
+  { cpf: "901.234.567-04", nome: "Mateus Ribeiro", dataNascimento: "19/11/1989" },
+  { cpf: "901.234.567-05", nome: "Renata Alves", dataNascimento: "27/05/1992" },
+];
+
+const vinculosAtivosIngressoMock = [
+  {
+    cpf: "000.000.000-00",
+    matricula: "327305",
+    vinculo: "1",
+    cargo: "Analista Administrativo",
+    orgao: "SES",
+    tipoVinculo: "Nomeado Efetivo",
+  },
 ];
 
 export const listarPessoasFisicasPasta = () => pessoasFisicasIngressoMock.map(({ cpf, nome }) => ({ cpf, nome }));
@@ -9991,6 +10082,7 @@ export function PrototiposCargoFormPage({
       descricao: cargoEmEdicao.descricao ?? "",
       jornadaTrabalho: cargoEmEdicao.jornadaTrabalho ?? "",
       jornadasPermitidas: cargoEmEdicao.jornadaPadrao.split(",").map((jornada) => jornada.trim()).filter((jornada) => cargoJornadaOptions.some((option) => option.value === jornada)),
+      escolaridadeMinima: cargoEmEdicao.escolaridadeMinima ?? "",
       perfisEspecialidades: cargoEmEdicao.perfisEspecialidadesIds ?? [],
       naturezaOcupacao: cargoEmEdicao.naturezaOcupacao ?? "CARGO",
       permiteAcumuloCargo: cargoEmEdicao.cargosAcumulaveis?.length ? "S" : "N",
@@ -10025,7 +10117,7 @@ export function PrototiposCargoFormPage({
       const vinculo = tiposVinculoTesteMock.find((item) => item.codigo === codigoVinculo);
       return ["Nomeado Efetivo", "Nomeado Conselheiro"].includes(vinculo?.nome ?? "") && !values.carreirasPorTipoVinculo?.[codigoVinculo];
     });
-    if (vinculosSemCarreira.length) return setErroComplementar("Selecione a carreira dos tipos de vínculo que exigem essa associação.");
+    if (vinculosSemCarreira.length) return setErroComplementar("Vínculo efetivo exige a seleção de uma carreira.");
     if (!documentosSelecionados.length) return setErroComplementar("Selecione ao menos um documento legal para o cargo.");
     const codigo = values.codigo?.trim().toUpperCase() ?? "";
     if (cargosTesteMock.some((item) => item.id !== cargoEmEdicao?.id && item.codigo.toUpperCase() === codigo)) return setErroComplementar("Já existe um cargo cadastrado com esse código/sigla.");
@@ -10039,7 +10131,7 @@ export function PrototiposCargoFormPage({
       jornadaTrabalho: values.jornadaTrabalho,
       jornadaPadrao: values.jornadasPermitidas?.join(", ") || "Conforme regra", baseLegal: documentosSelecionados.length,
       instituicoes: cargoEmEdicao?.instituicoes ?? 0, regrasUso: cargoEmEdicao?.regrasUso ?? 1,
-      vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO", naturezaOcupacao: values.naturezaOcupacao ?? "CARGO",
+      vigencia: `${values.dataAtivacao || "A definir"} - ${values.dataEncerramento ?? ""}`.trim(), situacao: cargoEmEdicao?.situacao === "EXTINTO" ? "EXTINTO" : values.dataEncerramento && carreiraDataParaIso(values.dataEncerramento) <= hojeCargoIso ? "ENCERRADO" : "ATIVO", naturezaOcupacao: values.naturezaOcupacao ?? "CARGO", escolaridadeMinima: values.escolaridadeMinima,
       carreira: tiposVinculoSelecionados.length === 1 ? values.carreirasPorTipoVinculo?.[tiposVinculoSelecionados[0]] : undefined, carreirasPorTipoVinculo: values.carreirasPorTipoVinculo ?? {}, tiposVinculo: tiposVinculoSelecionados, descricao: values.descricao?.trim(), dataInicio: values.dataAtivacao, dataEncerramento: isEdicao ? values.dataEncerramento : "", motivoEncerramento: isEdicao ? values.motivoEncerramento?.trim() : "", dataExtincao: isEdicao ? values.dataExtincao : "", motivoExtincao: isEdicao ? values.motivoExtincao?.trim() : "", documentosIds: documentosSelecionados, perfisEspecialidadesIds: values.perfisEspecialidades ?? [], cargosAcumulaveis, controleVagasEfetivos: values.controleVagasEfetivos === "S", controleVagasBolsista: values.controleVagasBolsista === "S", controleVagasComissionadas: values.controleVagasComissionadas === "S", controleVagasTemporarias: values.controleVagasTemporarias === "S",
     };
     atualizado.cargoProfessor = values.cargoProfessor === "S";
@@ -14760,6 +14852,12 @@ export function PrototiposIngressosTesteDetalhePage() {
       candidato.id === 40 ? "10/08/2026" : candidato.dataEfetivoExercicio,
     );
   const getSituacaoBadge = estiloTagSituacaoIngresso;
+  useEffect(() => {
+    if (!concursoProcesso || concursoProcesso.tipo !== "Concurso") return;
+    for (const candidatoId of exclusoesIngressoPorConcurso[concursoProcesso.titulo] ?? []) {
+      controleVagasStore.atualizarSituacaoReserva(`${concursoProcesso.id}:${candidatoId}`, "Exclusão de ingresso");
+    }
+  }, [concursoProcesso, exclusoesIngressoPorConcurso]);
   const confirmarExclusaoIngresso = () => {
     if (
       !candidatoExclusao ||
@@ -14784,6 +14882,21 @@ export function PrototiposIngressosTesteDetalhePage() {
       "prototype-ingresso-exclusoes-concursos",
       JSON.stringify(exclusoesAtualizadas),
     );
+    const situacoesAtualizadas = JSON.parse(
+      localStorage.getItem("prototype-ingresso-situacoes") ?? "{}",
+    ) as Record<string, IngressoSituacao>;
+    persistirDadoIngresso(
+      "prototype-ingresso-situacoes",
+      JSON.stringify({ ...situacoesAtualizadas, [String(candidatoExclusao.id)]: "Ingresso Cancelado" }),
+    );
+    persistirSituacaoDoEdital(
+      concursoProcesso.titulo,
+      candidatoExclusao.id,
+      "Ingresso Cancelado",
+    );
+    if (concursoProcesso.tipo === "Concurso") {
+      controleVagasStore.atualizarSituacaoReserva(`${concursoProcesso.id}:${candidatoExclusao.id}`, "Exclusão de ingresso");
+    }
     setExclusoesIngressoPorConcurso(exclusoesAtualizadas);
     setCandidatoExclusao(null);
     setMenuAcoesCandidatoAbertoId(null);
@@ -14824,6 +14937,9 @@ export function PrototiposIngressosTesteDetalhePage() {
       }),
     );
     if (concursoProcesso) persistirSituacaoDoEdital(concursoProcesso.titulo, candidatoCancelamento.id, "Ingresso Cancelado");
+    if (concursoProcesso?.tipo === "Concurso") {
+      controleVagasStore.atualizarSituacaoReserva(`${concursoProcesso.id}:${candidatoCancelamento.id}`, "Ingresso Cancelado");
+    }
     setRevisaoSituacoesIngresso((revisao) => revisao + 1);
     fecharModalCancelamento();
   };
@@ -17242,12 +17358,25 @@ type AnaliseProvimentoRascunho = {
 export function PrototiposNovoIngressoPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const controleVagasAtual = useControleVagasStore();
   const tiposCotaAtivos = useTiposCotaAtivos().filter((tipoCota) => tipoCota.value !== "AMPLA");
   const modoVisualizacao = searchParams.get("modo") === "visualizacao";
   const candidatoParam = searchParams.get("candidato");
   const ingressoOrigemLista = Boolean(candidatoParam);
+  const registrosConcursosPersistidos = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("prototype-ingresso-registros-concursos") ?? "{}") as Record<string, IngressoCandidatoRow[]>;
+    } catch {
+      return {} as Record<string, IngressoCandidatoRow[]>;
+    }
+  })();
+  const ingressoOrigemPersistido = candidatoParam
+    ? Object.values(registrosConcursosPersistidos).flat().find((ingresso) => String(ingresso.id) === candidatoParam)
+    : undefined;
   const ingressoOrigemDados = candidatoParam
-    ? ingressosMock.find((ingresso) => String(ingresso.id) === candidatoParam)
+    ? ingressoOrigemPersistido
+      ? { ...ingressosMock.find((ingresso) => String(ingresso.id) === candidatoParam), ...ingressoOrigemPersistido, tipoIngresso: "Concurso" as const }
+      : ingressosMock.find((ingresso) => String(ingresso.id) === candidatoParam)
     : undefined;
   const tipoParam = searchParams.get("tipo");
   const concursoInicial = searchParams.get("concurso") ?? "";
@@ -17397,6 +17526,15 @@ export function PrototiposNovoIngressoPage() {
     ? "Analista Administrativo - SES"
     : "";
   const [cargoSelecionado, setCargoSelecionado] = useState(cargoSigepInicial || cargoInicial);
+  const [carreiraIngressoSelecionada, setCarreiraIngressoSelecionada] = useState(() => {
+    const cargoInicialDoIngresso = cargoSigepInicial || cargoInicial;
+    const vinculoInicial = tipoInicial ? ingressoTipoVinculoMap[tipoInicial] : "";
+    const codigoVinculoInicial = tiposVinculoTesteMock.find((item) => item.nome === vinculoInicial)?.codigo;
+    const cargoCadastrado = cargosTesteMock.find((item) =>
+      item.cargo === cargoInicialDoIngresso && item.situacao === "ATIVO" && Boolean(codigoVinculoInicial && item.tiposVinculo?.includes(codigoVinculoInicial)),
+    );
+    return cargoCadastrado?.carreira ?? Object.values(cargoCadastrado?.carreirasPorTipoVinculo ?? {})[0] ?? "";
+  });
   const [cargoSigepEqualizado, setCargoSigepEqualizado] = useState(cargoSigepInicial);
   const [equalizacaoSiesValidada, setEqualizacaoSiesValidada] = useState(modoVisualizacao && Boolean(cargoSigepInicial));
   const [modalCorrespondenciaAberto, setModalCorrespondenciaAberto] = useState(false);
@@ -17537,7 +17675,7 @@ export function PrototiposNovoIngressoPage() {
     return rascunhoAnaliseInicial?.setorLotacaoEfetivo
       ?? (candidatoParam ? setoresSalvos[candidatoParam] ?? (candidatoParam === "51" ? "Núcleo Administrativo" : "") : "");
   });
-  const [jornadaEfetivo, setJornadaEfetivo] = useState(rascunhoAnaliseInicial?.jornadaEfetivo ?? "");
+  const [jornadaEfetivo, setJornadaEfetivo] = useState("");
   const exibirJornadaDocente = tipoIngresso === "Processo Seletivo" && concursoSelecionado === "Processo Seletivo SEDUC 2026";
   const [jornadaDocente, setJornadaDocente] = useState<JornadaDocenteConfig>(() => {
     let salva: JornadaDocenteConfig = jornadaDocenteVazia;
@@ -17557,7 +17695,7 @@ export function PrototiposNovoIngressoPage() {
     inicio: jornadaDocente.inicio || dataEfetivoExercicio,
     fim: jornadaDocente.fim || dataFimEfetivoExercicio,
   };
-  const [referenciaEfetivo, setReferenciaEfetivo] = useState(rascunhoAnaliseInicial?.referenciaEfetivo ?? "");
+  const [referenciaEfetivo, setReferenciaEfetivo] = useState("");
   const [servidorCompareceu, setServidorCompareceu] = useState<"" | "Sim" | "Não">("");
   const [termoEfetivoExercicioGerado, setTermoEfetivoExercicioGerado] = useState(false);
   const [modalEfetivoRegistradoAberto, setModalEfetivoRegistradoAberto] = useState(false);
@@ -17625,7 +17763,7 @@ export function PrototiposNovoIngressoPage() {
     data?.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) ?? "-";
   const formatarDataInput = (data: Date | null) => data ? `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}` : "";
   const tipoVinculo = concursoSelecionado && tipoIngresso === "Concurso"
-    ? "Nomeado Efetivo"
+    ? tipoVinculoEditavel
     : tipoIngresso === "Processo Seletivo"
       ? tipoVinculoEditavel || ingressoTipoVinculoMap[tipoIngresso]
       : tipoIngresso
@@ -17705,20 +17843,86 @@ export function PrototiposNovoIngressoPage() {
   };
   const quadroVagaEstagio = vinculoTipoEstagiario ? quadroVagaEstagioPorCargo[cargoSigepEqualizado] ?? "" : "";
   const quadroVagasComissionado = tipoIngresso === "Exclusivo Comissionado" && cargoSelecionado ? "QC-0001" : "";
+  const vinculoSelecionadoNoIngresso = tiposVinculoTesteMock.find((vinculo) => vinculo.nome === tipoVinculo);
+  const codigoVinculoSelecionadoNoIngresso = vinculoSelecionadoNoIngresso?.codigo;
+  const cargoAtivoCompativelComIngresso = (cargo: CargoTesteRow, carreira?: string) =>
+    cargo.situacao === "ATIVO" &&
+    Boolean(codigoVinculoSelecionadoNoIngresso && cargo.tiposVinculo?.includes(codigoVinculoSelecionadoNoIngresso)) &&
+    (!carreira || cargo.carreirasPorTipoVinculo?.[codigoVinculoSelecionadoNoIngresso ?? ""] === carreira);
+  const carreirasAtivasParaIngresso = carreirasMock.filter((carreira) =>
+    carreira.situacao === "ATIVO" && cargosTesteMock.some((cargo) => cargoAtivoCompativelComIngresso(cargo, carreira.sigla)),
+  );
+  const cargosDaCarreiraSelecionada = cargosTesteMock.filter((cargo) =>
+    cargoAtivoCompativelComIngresso(cargo, carreiraIngressoSelecionada),
+  );
+  const normalizarChaveQuadroIngresso = (valor?: string) => (valor ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
+  const normalizarVinculoQuadroIngresso = (valor?: string) => {
+    const vinculo = normalizarChaveQuadroIngresso(valor);
+    return vinculo === "NOMEADO EFETIVO" ? "SERVIDOR EFETIVO" : vinculo;
+  };
+  const quadroVagaEfetivoCompativel = tipoIngresso === "Concurso" && cargoSelecionado
+    ? controleVagasAtual.quadros.find((quadro) =>
+      quadro.tipoQuadro === "Efetivo" && quadro.situacao === "Vigente" &&
+      !["ENCERRADO", "EXTINTO"].includes(quadro.situacaoVigencia ?? "") &&
+      normalizarChaveQuadroIngresso(quadro.cargo) === normalizarChaveQuadroIngresso(cargoSelecionado) &&
+      normalizarVinculoQuadroIngresso(quadro.vinculo) === normalizarVinculoQuadroIngresso(tipoVinculoEditavel) &&
+      (normalizarChaveQuadroIngresso(quadro.orgao) === normalizarChaveQuadroIngresso(orgaoInicial) ||
+        normalizarChaveQuadroIngresso(quadro.abrangencia).includes(normalizarChaveQuadroIngresso(orgaoInicial)) ||
+        quadro.orgaosDefinidosLei?.some((orgao) => normalizarChaveQuadroIngresso(orgao) === normalizarChaveQuadroIngresso(orgaoInicial)) ||
+        quadro.quantitativosLegaisPorOrgao?.some(({ orgao, quantidade }) => quantidade > 0 && normalizarChaveQuadroIngresso(orgao) === normalizarChaveQuadroIngresso(orgaoInicial)))
+    )
+    : undefined;
+  const quadroVagaEfetivoMensagem = tipoIngresso === "Concurso" && cargoSelecionado && !quadroVagaEfetivoCompativel
+    ? "Não existe Quadro Autorizado vigente e compatível para o cargo, órgão e vínculo informados."
+    : "";
   const dadosCargoSigep = cargoSigepEqualizado ? dadosCargoEqualizado[cargoSigepEqualizado] : undefined;
   const cargoPerfilSelecionado =
     tipoIngresso === "Processo Seletivo"
       ? cargoSigepEqualizado
       : cargoSelecionado;
+  const cargoCadastradoSelecionado = cargosDaCarreiraSelecionada.find((cargo) => cargo.cargo === cargoSelecionado);
+  const jornadasDoCargoSelecionado = (cargoCadastradoSelecionado?.jornadaPadrao ?? "")
+    .split(",")
+    .map((jornada) => jornada.trim())
+    .filter(Boolean)
+    .map((jornada) => ({ "20h": "20 horas", "30h": "30 horas", "40h": "40 horas" }[jornada.toLowerCase()] ?? jornada));
+  const referenciasDoCargoSelecionado = cargoCadastradoSelecionado?.referencias ?? [];
+  const perfisDoCargoSelecionado = (cargoCadastradoSelecionado?.perfisEspecialidadesIds ?? [])
+    .map((id) => perfisEspecialidadesMock.find((perfil) => perfil.id === id))
+    .filter((perfil): perfil is PerfilEspecialidadeRow => Boolean(perfil && perfil.situacao === "ATIVO"))
+    .map((perfil) => perfil.nome);
   const perfisProfissionaisOptions =
     tipoIngresso === "Processo Seletivo"
       ? dadosCargoSigep
         ? [...new Set([dadosCargoSigep.perfil, "Não se aplica"])]
         : []
-      : ingressoPerfisProfissionaisPorCargo[cargoSelecionado] ?? [];
+      : perfisDoCargoSelecionado.length ? perfisDoCargoSelecionado : ingressoPerfisProfissionaisPorCargo[cargoSelecionado] ?? [];
+  useEffect(() => {
+    if (perfilEspecialidade && !perfisProfissionaisOptions.includes(perfilEspecialidade)) {
+      setPerfilEspecialidade("");
+    }
+  }, [perfilEspecialidade, perfisProfissionaisOptions]);
   const selecionarCargoIngresso = (cargo: string) => {
     setCargoSelecionado(cargo);
-    setPerfilEspecialidade(cargo ? getPerfilEspecialidadeIngresso(cargo) : "");
+    setPerfilEspecialidade("");
+    setJornadaEfetivo("");
+    setReferenciaEfetivo("");
+  };
+  const selecionarCarreiraIngresso = (sigla: string) => {
+    setCarreiraIngressoSelecionada(sigla);
+    setCategoriaSelecionada(sigla);
+    if (!cargosDaCarreiraSelecionada.some((cargo) => cargo.cargo === cargoSelecionado && (cargo.carreira === sigla || Object.values(cargo.carreirasPorTipoVinculo ?? {}).includes(sigla)))) {
+      selecionarCargoIngresso("");
+    }
+    setEqualizacaoSiesValidada(false);
+  };
+  const selecionarVinculoIngresso = (vinculo: string) => {
+    setTipoVinculoEditavel(vinculo);
+    setCarreiraIngressoSelecionada("");
+    setCargoSelecionado("");
+    setPerfilEspecialidade("");
+    setJornadaEfetivo("");
+    setReferenciaEfetivo("");
   };
   const selecionarCargoSigep = (cargo: string) => {
     setCargoSigepEqualizado(cargo);
@@ -17782,6 +17986,9 @@ export function PrototiposNovoIngressoPage() {
   const exibirResumoIngresso = activeTabIndex > 0;
   const resumoIngressoNome = candidatoNome || pessoaFisicaEncontrada?.nome || "João Silva";
   const resumoIngressoCpf = candidatoCpf || pessoaFisicaEncontrada?.cpf || "000.000.000-00";
+  const vinculosAtivosDoServidor = vinculosAtivosIngressoMock.filter(
+    (vinculo) => vinculo.cpf.replace(/\D/g, "") === resumoIngressoCpf.replace(/\D/g, ""),
+  );
   const numeroIngressoAtual = `2026/${String(candidatoRegistradoId || 1).padStart(4, "0")}`;
   const documentosObrigatoriosIngresso = vinculoEstagiario
     ? ingressoDocumentacaoEstagiarioMock
@@ -17974,6 +18181,27 @@ export function PrototiposNovoIngressoPage() {
     .find((item) => item.id.toUpperCase() === orgaoEncaminhamentoAprovacaoExibido)?.nome ??
     orgaosEstadoOptions.find((orgao) => orgao.value === orgaoEncaminhamentoAprovacaoExibido)?.label ??
     orgaoEncaminhamentoAprovacaoExibido;
+  const pendenciaVagaDoEncaminhamento = useMemo(() => {
+    if (tipoIngresso !== "Concurso" || !orgaoEncaminhamentoAprovacao || !cargoSelecionado) return null;
+    const estadoVagas = controleVagasStore.getState();
+    const normalizar = (valor: string) => valor.trim().toLocaleLowerCase("pt-BR");
+    const quadro = quadroVagaEfetivoCompativel;
+    if (!quadro) return "QUADRO_INEXISTENTE" as const;
+    const vagasDoQuadroNoOrgao = estadoVagas.vagas.filter((item) =>
+      item.quadroAutorizadoId === quadro.id && normalizar(item.orgaoTitular) === normalizar(orgaoEncaminhamentoAprovacao) && !item.provisoria,
+    );
+    if (vagasDoQuadroNoOrgao.some((item) => item.estado === "DISPONIVEL")) return null;
+    return vagasDoQuadroNoOrgao.length === 0 ? "DISTRIBUICAO" as const : "AMPLIACAO" as const;
+  }, [tipoIngresso, orgaoEncaminhamentoAprovacao, cargoSelecionado, quadroVagaEfetivoCompativel]);
+  const vagasDisponiveisNoEncaminhamento = useMemo(() => {
+    if (pendenciaVagaDoEncaminhamento || !orgaoEncaminhamentoAprovacao || !quadroVagaEfetivoCompativel) return 0;
+    const normalizar = (valor: string) => valor.trim().toLocaleLowerCase("pt-BR");
+    return controleVagasStore.getState().vagas.filter((item) =>
+      item.quadroAutorizadoId === quadroVagaEfetivoCompativel.id &&
+      normalizar(item.orgaoTitular) === normalizar(orgaoEncaminhamentoAprovacao) &&
+      item.estado === "DISPONIVEL",
+    ).length;
+  }, [pendenciaVagaDoEncaminhamento, orgaoEncaminhamentoAprovacao, quadroVagaEfetivoCompativel]);
   const orgaoDesignadoExibido = orgaoDesignado || processoSelecionadoParaIngresso?.orgao || "";
   const orgaosEfetivoResumo = tipoIngresso === "Processo Seletivo"
     ? orgaoDesignadoExibido || "Não informado"
@@ -18027,6 +18255,7 @@ export function PrototiposNovoIngressoPage() {
       (tipoIngresso === "Exclusivo Comissionado" && !candidatoParam && (!candidatoCpf || !candidatoNome || !candidatoNascimento)) ||
       (tipoIngresso === "Exclusivo Comissionado" && orgaosIngressoSelecionados.length === 0) ||
       (tipoIngresso === "Processo Seletivo" && !orgaosDesignaveis.includes(orgaoDesignado)) ||
+      (tipoIngresso === "Concurso" && Boolean(cargoSelecionado) && !quadroVagaEfetivoCompativel) ||
       (vinculoTipoEstagiario && !quadroVagaEstagio) ||
       semQuadroVagasPssSefaz ||
       (["Processo Seletivo", "Exclusivo Comissionado"].includes(tipoIngresso) && direcionamentoAnalise === "outro" && (!orgaoDestinoAnalise || (orgaoDestinoAnalise === orgaoResponsavelAnalise || !(tipoIngresso === "Processo Seletivo" ? orgaosDesignaveis : orgaosIngressoOptions).includes(orgaoDestinoAnalise)))) ||
@@ -18126,6 +18355,40 @@ export function PrototiposNovoIngressoPage() {
           : "-",
       dataEfetivoExercicio: candidatoExistente?.dataEfetivoExercicio || "-",
     };
+    // A confirmação do ingresso só valida o Quadro. A vaga é escolhida no
+    // parecer do provimento, quando o órgão de destino é definido.
+    if (tipoIngresso === "Concurso" && orgaoEncaminhamentoAprovacao && situacao !== "Em analise") {
+      const chaveIngresso = `${concurso.id}:${novoId}`;
+      const reserva = controleVagasStore.atribuirVagaAutomaticaAoIngresso({
+        chaveIngresso,
+        ingressoId: String(novoId),
+        editalId: String(concurso.id),
+        numeroEdital: concurso.edital,
+        tipoProcesso: "Concurso",
+        processo: `${concurso.edital}/${concurso.orgao}`,
+        pessoaId: `PES-${novoId}`,
+        pessoaNome: registro.nome,
+        cpf: registro.cpf,
+        classificacao: registro.classificacao,
+        cargo: registro.cargo,
+        orgao: orgaoEncaminhamentoAprovacao,
+        vinculo: "Nomeado Efetivo",
+        decisaoJudicial: decisaoJudicial === "Sim",
+        processoJudicial: numeroProcessoJudicial || undefined,
+        documentoDecisaoJudicial: arquivoDecisaoJudicial?.name,
+      }, situacao);
+      if (reserva.bloqueado) {
+        setFeedbackRascunhoAnalise(reserva.bloqueado);
+        return undefined;
+      }
+      const reservaDefinitiva = situacao === "Ingresso Concluído"
+        ? controleVagasStore.concluirIngressoEOcuparVaga(chaveIngresso, dataConclusaoEtapa2 || new Date().toLocaleDateString("en-CA"))
+        : ["Posse Negada", "Tornado sem efeito", "Exoneração de oficio", "Ingresso Cancelado", "Encerrado por desistência"].includes(situacao)
+          ? controleVagasStore.atualizarSituacaoReserva(chaveIngresso, situacao)
+          : reserva;
+      registro.vagaId = reservaDefinitiva.vagaId ?? reserva.vagaId;
+      registro.comprometimentoVagaId = reservaDefinitiva.comprometimentoId ?? reserva.comprometimentoId;
+    }
     const registrosAtualizados = [
       ...registrosAtuais.filter((candidato) => candidato.id !== novoId),
       registro,
@@ -18158,7 +18421,7 @@ export function PrototiposNovoIngressoPage() {
     setCandidatoRegistradoId(id);
     return id;
   };
-  const persistirSituacaoIngressoAtual = (situacao: IngressoSituacao, idRegistro?: string) => {
+  const persistirSituacaoIngressoAtual = (situacao: IngressoSituacao, idRegistro?: string, dataEfetivoExercicioConfirmada?: string) => {
     const candidatoIdAtual = idRegistro || candidatoRegistradoId || candidatoParam;
     if (!candidatoIdAtual) return;
 
@@ -18173,6 +18436,44 @@ export function PrototiposNovoIngressoPage() {
         [candidatoIdAtual]: situacao,
       }),
     );
+
+    // O Ingresso é a origem do comprometimento da vaga efetiva. A atribuição é
+    // automática e só ocorre para concursos, cujo vínculo é efetivo neste protótipo.
+    if (tipoIngresso === "Concurso" && concursoSelecionado && orgaoEncaminhamentoAprovacao) {
+      const concurso = ingressoConcursosProcessosMock.find((item) => item.titulo === concursoSelecionado);
+      if (concurso) {
+        const chaveIngresso = `${concurso.id}:${candidatoIdAtual}`;
+        const dadosIngresso = {
+          chaveIngresso,
+          ingressoId: String(candidatoIdAtual),
+          editalId: String(concurso.id),
+          numeroEdital: concurso.edital,
+          tipoProcesso: "Concurso" as const,
+          processo: `${concurso.edital}/${concurso.orgao}`,
+          pessoaId: `PES-${candidatoIdAtual}`,
+          pessoaNome: resumoIngressoNome,
+          cpf: resumoIngressoCpf || undefined,
+          classificacao: classificacaoInicial || undefined,
+          cargo: cargoSelecionado,
+          orgao: orgaoEncaminhamentoAprovacao,
+          vinculo: "Nomeado Efetivo",
+          decisaoJudicial: decisaoJudicial === "Sim",
+          processoJudicial: numeroProcessoJudicial || undefined,
+          documentoDecisaoJudicial: arquivoDecisaoJudicial?.name,
+        };
+        const reserva = controleVagasStore.atribuirVagaAutomaticaAoIngresso(dadosIngresso, situacao);
+        if (!reserva.bloqueado) {
+          const sincronizacao = situacao === "Ingresso Concluído"
+            ? controleVagasStore.concluirIngressoEOcuparVaga(chaveIngresso, dataEfetivoExercicioConfirmada || new Date().toLocaleDateString("en-CA"))
+            : controleVagasStore.atualizarSituacaoReserva(chaveIngresso, situacao);
+          const vinculacoes = JSON.parse(localStorage.getItem("prototype-ingresso-vinculos-vaga") ?? "{}") as Record<string, { vagaId: string; comprometimentoId?: string }>;
+          persistirDadoIngresso("prototype-ingresso-vinculos-vaga", JSON.stringify({ ...vinculacoes, [chaveIngresso]: { vagaId: sincronizacao.vagaId ?? reserva.vagaId!, comprometimentoId: sincronizacao.comprometimentoId ?? reserva.comprometimentoId } }));
+          if (reserva.alerta) setFeedbackRascunhoAnalise(reserva.alerta);
+        } else {
+          setFeedbackRascunhoAnalise(reserva.bloqueado);
+        }
+      }
+    }
 
   };
   const persistirTornadoSemEfeitoAtual = (motivo: string, justificativa: string) => {
@@ -18841,7 +19142,12 @@ export function PrototiposNovoIngressoPage() {
           [chaveEfetivo]: [...(historicos[chaveEfetivo] ?? []), { titulo: "Ingresso concluído", descricao: "Efetivo Exercício do estagiário finalizado.", responsavel: "Sistema SIGEP", dataHora: new Date().toLocaleString("pt-BR") }],
         }));
       }
-      navigate("/prototipos/sigep/ingressos-teste", { replace: true });
+      navigate(
+        parecerProvimento === "aprovar"
+          ? "/prototipos/sigep/ingressos/efetivo-exercicio"
+          : "/prototipos/sigep/ingressos-teste",
+        { replace: true },
+      );
       return;
     }
     navigate(tipoIngresso === "Processo Seletivo" ? caminhoRetornoNovoIngresso : tipoIngresso === "Exclusivo Comissionado" ? "/prototipos/sigep/ingressos/comissionados" : "/prototipos/sigep/ingressos/efetivo-exercicio", { replace: true });
@@ -18944,7 +19250,7 @@ export function PrototiposNovoIngressoPage() {
         const registros = JSON.parse(localStorage.getItem("prototype-ingresso-cancelamentos") ?? "{}");
         persistirDadoIngresso("prototype-ingresso-cancelamentos",JSON.stringify({...registros,[concursoSelecionado+"|"+(candidatoRegistradoId || candidatoParam)]:{motivo:"nao-comparecimento",justificativa:"Não comparecimento confirmado no Efetivo Exercício."}}));
       }
-      persistirSituacaoIngressoAtual(situacaoConclusaoEfetivo);
+      persistirSituacaoIngressoAtual(situacaoConclusaoEfetivo, undefined, dataEfetivoExercicio);
       if (candidatoParam && concursoSelecionado) {
         const cancelamentosEstagio = JSON.parse(
           localStorage.getItem("prototype-ingresso-cancelamentos-estagio-nao-comparecimento") ?? "{}",
@@ -19153,8 +19459,26 @@ export function PrototiposNovoIngressoPage() {
     return <BadgeSeplag label={label} color={styles.color} bg={styles.bg} border={withBorder ? styles.border : "transparent"} size="sm" />;
   };
 
+  const ingressoAtualIdParaVaga = String(candidatoRegistradoId || candidatoParam || "");
+  const comprometimentoIngressoAtual = controleVagasAtual.comprometimentos.find((item) =>
+    item.natureza === "OCUPACAO" && item.ingressoId === ingressoAtualIdParaVaga,
+  );
+  const vagaVinculadaAoIngresso = comprometimentoIngressoAtual
+    ? controleVagasAtual.vagas.find((item) => item.id === comprometimentoIngressoAtual.vagaId)
+    : undefined;
   const renderDadosServidorIngresso = () => (
     <div className="prototype-novo-ingresso-dados-grid">
+      {vagaVinculadaAoIngresso ? (
+        <div className="prototype-rascunho-feedback" role="status">
+          <i className={vagaVinculadaAoIngresso.provisoria ? "pi pi-exclamation-triangle" : "pi pi-check-circle"} aria-hidden="true" />
+          <span>
+            Vaga vinculada automaticamente: <strong>{vagaVinculadaAoIngresso.identificadorRegular || vagaVinculadaAoIngresso.nome || vagaVinculadaAoIngresso.id}</strong>
+            {vagaVinculadaAoIngresso.provisoria
+              ? ` — ${vagaVinculadaAoIngresso.situacaoLastro === "PENDENTE_DISTRIBUICAO" ? "pendente de distribuição" : vagaVinculadaAoIngresso.situacaoLastro === "PENDENTE_AMPLIACAO" ? "pendente de ampliação do quadro" : "pendente de criação"}.`
+              : "."}
+          </span>
+        </div>
+      ) : null}
       <section className="prototype-ingresso-section prototype-novo-ingresso-panel prototype-novo-ingresso-candidato-section">
         <h3><span className="prototype-novo-ingresso-panel-icon"><i className="pi pi-user" aria-hidden="true" /></span><span>Dados do Servidor</span></h3>
         <div className="prototype-novo-ingresso-candidato-grid">
@@ -19338,7 +19662,10 @@ export function PrototiposNovoIngressoPage() {
           </div>}
           <label className="prototype-ingresso-field">
             <span>Tipo de Vínculo<em>*</em></span>
-            <input type="text" value={tipoVinculo} readOnly />
+            <select value={tipoVinculo} required disabled aria-readonly="true">
+              <option value="">Selecione...</option>
+              {tiposVinculoTesteMock.filter((vinculo) => vinculo.situacao === "ATIVO").map((vinculo) => <option key={vinculo.codigo} value={vinculo.nome}>{vinculo.nome}</option>)}
+            </select>
           </label>
           <label className="prototype-ingresso-field">
             <span>Regime Jurídico<em>*</em></span>
@@ -19362,26 +19689,16 @@ export function PrototiposNovoIngressoPage() {
         <div className="prototype-ingresso-concurso-fields">
           <label className="prototype-ingresso-field">
             <span>Carreira<em>*</em></span>
-            <select value={categoriaSelecionada} required onChange={(event) => { setCategoriaSelecionada(event.target.value); setEqualizacaoSiesValidada(false); }}>
+            <select value={carreiraIngressoSelecionada} required onChange={(event) => selecionarCarreiraIngresso(event.target.value)}>
               <option value="">Selecione...</option>
-              <option value="Servidor Público">Servidor Público</option>
-              <option value="Profissional da Educação">Profissional da Educação</option>
-              <option value="Profissional da Saúde">Profissional da Saúde</option>
-              <option value="Gestor Governamental">Gestor Governamental</option>
-              <option value="Temporário">Temporário</option>
+              {carreirasAtivasParaIngresso.map((carreira) => <option key={carreira.id} value={carreira.sigla}>{carreira.sigla} — {carreira.nome}</option>)}
             </select>
           </label>
           <label className="prototype-ingresso-field">
             <span>Cargo/Função<em>*</em></span>
-            <select value={cargoSelecionado} disabled={ingressoOrigemLista} onChange={(event) => selecionarCargoIngresso(event.target.value)}>
+            <select value={cargoSelecionado} disabled={ingressoOrigemLista || !carreiraIngressoSelecionada} onChange={(event) => selecionarCargoIngresso(event.target.value)}>
               <option value="">Selecione...</option>
-              <option value="Analista Administrativo">Analista Administrativo</option>
-              <option value="Professor">Professor</option>
-              <option value="Gestor Governamental">Gestor Governamental</option>
-              <option value="Técnico Administrativo Educacional">Técnico Administrativo Educacional</option>
-              <option value="Enfermeiro">Enfermeiro</option>
-              <option value="Técnico de Enfermagem">Técnico de Enfermagem</option>
-              <option value="Analista Fazendário">Analista Fazendário</option>
+              {cargosDaCarreiraSelecionada.map((cargo) => <option key={cargo.id} value={cargo.cargo}>{cargo.cargo}</option>)}
             </select>
           </label>
 
@@ -19394,18 +19711,19 @@ export function PrototiposNovoIngressoPage() {
           </label>
           <div className="prototype-ingresso-field prototype-ingresso-reference-field">
             <span>Quadro de vaga<em>*</em></span>
-            <input type="text" value={concursoSelecionado && cargoSelecionado ? "QA-0012" : ""} required aria-required="true" readOnly />
+            <input type="text" value={quadroVagaEfetivoCompativel?.codigo ?? ""} required aria-required="true" readOnly aria-invalid={Boolean(quadroVagaEfetivoMensagem)} placeholder={cargoSelecionado ? "Quadro não encontrado" : "Selecione o cargo"} />
           </div>
+          {quadroVagaEfetivoMensagem ? <div className="prototype-parecer-alerta prototype-documentacao-pending-alert" role="alert"><i className="pi pi-exclamation-triangle" aria-hidden="true" />{quadroVagaEfetivoMensagem}</div> : null}
           <label className="prototype-ingresso-field"><span>Jornada<em>*</em></span>
-            <select required value={jornadaEfetivo} onChange={(event) => setJornadaEfetivo(event.target.value)}>
+            <select required value={jornadaEfetivo} disabled={!cargoCadastradoSelecionado} onChange={(event) => setJornadaEfetivo(event.target.value)}>
               <option value="">Selecione...</option>
-              {["20 horas", "30 horas", "40 horas"].map((value) => <option key={value} value={value}>{value}</option>)}
+              {jornadasDoCargoSelecionado.map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
           <label className="prototype-ingresso-field"><span>Referência<em>*</em></span>
-            <select required value={referenciaEfetivo} onChange={(event) => setReferenciaEfetivo(event.target.value)}>
+            <select required value={referenciaEfetivo} disabled={!cargoCadastradoSelecionado} onChange={(event) => setReferenciaEfetivo(event.target.value)}>
               <option value="">Selecione...</option>
-              {["001A", "001B", "001C", "002A", "002B", "002C", "003A", "003B", "003C"].map((value) => <option key={value} value={value}>{value}</option>)}
+              {referenciasDoCargoSelecionado.map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
         </div>
@@ -20381,8 +20699,9 @@ export function PrototiposNovoIngressoPage() {
           </> : null}
           {tipoIngresso === "Concurso" ? <div className="prototype-ingresso-field prototype-ingresso-reference-field">
             <span>Quadro de vaga<em>*</em></span>
-            <input type="text" value={concursoSelecionado && cargoSelecionado ? "QA-0012" : ""} required aria-required="true" readOnly />
+            <input type="text" value={quadroVagaEfetivoCompativel?.codigo ?? ""} required aria-required="true" readOnly aria-invalid={Boolean(quadroVagaEfetivoMensagem)} placeholder={cargoSelecionado ? "Quadro não encontrado" : "Selecione o cargo"} />
           </div> : null}
+          {tipoIngresso === "Concurso" && quadroVagaEfetivoMensagem ? <div className="prototype-parecer-alerta prototype-documentacao-pending-alert" role="alert"><i className="pi pi-exclamation-triangle" aria-hidden="true" />{quadroVagaEfetivoMensagem}</div> : null}
           {tipoIngresso !== "Exclusivo Comissionado" ? <>
           <label className="prototype-ingresso-field">
             <span>Polo</span>
@@ -21039,10 +21358,10 @@ export function PrototiposNovoIngressoPage() {
             </div>
           ) : null}
 
-          {!vinculoEstagiario ? (
+          {vinculosAtivosDoServidor.length ? (
             <div className="prototype-vinculo-ativo-alert" role="alert">
               <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-              <span>Este servidor já possui vínculo ativo. Matrícula: 327305 | Vínculo: 1. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
+              <span>Este servidor já possui vínculo ativo: {vinculosAtivosDoServidor.map((vinculo) => `Matrícula: ${vinculo.matricula} | Vínculo: ${vinculo.vinculo} | Cargo: ${vinculo.cargo} | Órgão: ${vinculo.orgao}`).join("; ")}. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
             </div>
           ) : null}
           <div className="prototype-analise-provimento-panel prototype-analise-provimento-panel--header-icon">
@@ -21301,10 +21620,10 @@ export function PrototiposNovoIngressoPage() {
           <div className="prototype-analise-provimento-layout prototype-analise-provimento-layout--prazo-horizontal">
             <div className="prototype-analise-provimento-main">
 
-              {!vinculoEstagiario ? (
+              {vinculosAtivosDoServidor.length ? (
                 <div className="prototype-vinculo-ativo-alert" role="alert">
                   <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-                  <span>Este servidor já possui vínculo ativo. Matrícula: 327305 | Vínculo: 1. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
+                  <span>Este servidor já possui vínculo ativo: {vinculosAtivosDoServidor.map((vinculo) => `Matrícula: ${vinculo.matricula} | Vínculo: ${vinculo.vinculo} | Cargo: ${vinculo.cargo} | Órgão: ${vinculo.orgao}`).join("; ")}. Verifique se o edital permite o acúmulo de vínculos antes de prosseguir.</span>
                 </div>
               ) : null}
               <div className="prototype-analise-provimento-panel prototype-analise-provimento-panel--header-icon">
@@ -21556,10 +21875,20 @@ export function PrototiposNovoIngressoPage() {
                         ))}
                       </select>
                     </label>
-                    {orgaoEncaminhamentoAprovacao ? (
+                    {pendenciaVagaDoEncaminhamento ? (
                       <div className="prototype-parecer-alerta prototype-documentacao-pending-alert prototype-vagas-orgao-alert" role="alert">
                         <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-                        Não foram identificadas vagas disponíveis para o órgão selecionado. Verifique o quadro de vagas antes de prosseguir.
+                        {pendenciaVagaDoEncaminhamento === "DISTRIBUICAO"
+                          ? "O órgão selecionado ainda não possui vagas distribuídas neste Quadro. Ao finalizar a análise, será criada uma vaga pendente de distribuição."
+                          : pendenciaVagaDoEncaminhamento === "AMPLIACAO"
+                            ? "Não há vagas disponíveis neste órgão para o Quadro selecionado. Ao finalizar a análise, será criada uma vaga pendente de ampliação."
+                            : "Não existe Quadro Autorizado compatível para o cargo e vínculo do ingresso. Corrija o enquadramento antes de prosseguir."}
+                      </div>
+                    ) : null}
+                    {orgaoEncaminhamentoAprovacao && !pendenciaVagaDoEncaminhamento && vagasDisponiveisNoEncaminhamento > 0 ? (
+                      <div className="prototype-direcionamento-analise-success" role="status">
+                        <i className="pi pi-check-circle" aria-hidden="true" />
+                        Há {vagasDisponiveisNoEncaminhamento} {vagasDisponiveisNoEncaminhamento === 1 ? "vaga disponível" : "vagas disponíveis"} para {cargoSelecionado} na {orgaoEncaminhamentoAprovacao.toUpperCase()}. Uma será reservada ao finalizar a análise.
                       </div>
                     ) : null}
                     <label className="prototype-ingresso-field">
