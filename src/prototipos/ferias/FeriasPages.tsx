@@ -2050,6 +2050,10 @@ export function FormularioIndividual({
                 <span className="prototype-ferias-indicador-rotulo">Lotação / Vínculo</span>
                 <strong>{orgao} · {tipoVinculo}</strong>
               </div>
+              <div>
+                <span className="prototype-ferias-indicador-rotulo">Setor</span>
+                <strong>{setor || "—"}</strong>
+              </div>
               <hr className="prototype-ferias-servidor-resultado-divisor" />
               <div className="prototype-ferias-servidor-resultado-periodo">
                 <span className="prototype-ferias-indicador-rotulo">Período Aquisitivo Ativo</span>
