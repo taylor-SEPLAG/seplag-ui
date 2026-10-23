@@ -1,3 +1,4 @@
+import { Dropdown } from "primereact/dropdown";
 import { SplitButton } from "primereact/splitbutton";
 import { Fragment, useState, type FormEvent } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -72,7 +73,6 @@ export function VinculoV2ConsultaPage() {
   const [mensagem, setMensagem] = useState('');
   const [escolherTipo, setEscolherTipo] = useState(false);
   const [tipoCadastro, setTipoCadastro] = useState('');
-  const [tiposAbertos, setTiposAbertos] = useState(false);
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
   const [indiceAtivo, setIndiceAtivo] = useState(-1);
   const [porPagina, setPorPagina] = useState(10);
@@ -103,15 +103,6 @@ export function VinculoV2ConsultaPage() {
     <section className="v2v-kpis v2v-kpis-situacao" aria-label="Indicadores de vínculos">
       <article className="v2v-kpi-active"><i className="pi pi-check-circle" aria-hidden="true" /><div><span>Vínculos Ativos</span><strong>{registros.filter(v => situacaoDoVinculo(v) === 'Ativo').length}</strong></div></article>
       <article className="v2v-kpi-closed"><i className="pi pi-times-circle" aria-hidden="true" /><div><span>Vínculos Encerrados</span><strong>{registros.filter(v => situacaoDoVinculo(v) === 'Encerrado').length}</strong></div></article>
-    </section>
-    <section className="v2v-type-summary" aria-label="Quantitativos por tipo de vínculo">
-      <h2><button type="button" className="v2v-type-toggle" aria-expanded={tiposAbertos} aria-controls="v2v-cards-por-tipo" onClick={() => setTiposAbertos(aberto => !aberto)}><span>Vínculos por tipo</span><i className={`pi ${tiposAbertos ? "pi-chevron-up" : "pi-chevron-down"}`} aria-hidden="true" /></button></h2>
-      <div id="v2v-cards-por-tipo" className="v2v-kpis v2v-kpis-tipos" hidden={!tiposAbertos}>
-        {TIPOS.map(tipo => <article className="v2v-kpi-type" key={tipo}>
-          <i className="pi pi-link" aria-hidden="true" />
-          <div><span>{tipo}</span><strong>{registros.filter(v => v.tipo === tipo).length}</strong></div>
-        </article>)}
-      </div>
     </section>
     {(filtros.orgao || filtros.forma || filtros.inicio || filtros.fim) && <p className="v2v-description" aria-label="Contexto da consulta">Consulta filtrada pelo dashboard: {[filtros.orgao, filtros.situacao, filtros.forma, filtros.inicio && 'Vacância a partir de ' + dataBr(filtros.inicio), filtros.fim && 'Vacância até ' + dataBr(filtros.fim)].filter(Boolean).join(' · ')}</p>}
     <section className="v2v-panel v2v-filters v2v-management-filters" aria-label="Filtros de consulta">
@@ -147,8 +138,25 @@ export function VinculoV2ConsultaPage() {
       <PaginacaoV2 nome="servidores" pagina={paginaAtual} totalPaginas={totalPaginas} porPagina={porPagina} mudarPagina={setPagina} mudarPorPagina={quantidade => { setPorPagina(quantidade); setPagina(1); }} />
     </section>
     {escolherTipo && <ModalSeplag visible titulo="Cadastrar Vínculo" fechar={() => setEscolherTipo(false)} hideFooter tamanho="550px">
-      <div className="v2v-page"><label>Tipo de Vínculo<select value={tipoCadastro} onChange={e => setTipoCadastro(e.target.value)}><option value="">Selecione</option>{TIPOS.filter(tipo => !moduloDeOrigem(tipo)).map(tipo => <option key={tipo}>{tipo}</option>)}</select></label>
-      <div className="v2v-form-actions"><button type="button" className="v2v-secondary" onClick={() => setEscolherTipo(false)}>Cancelar</button><button type="button" className="v2v-primary" disabled={!tipoCadastro} onClick={() => navigate(BASE + '/novo?tipo=' + encodeURIComponent(tipoCadastro))}>Continuar</button></div></div>
+      <div className="v2v-page"><label htmlFor="v2v-tipo-cadastro">Tipo de Vínculo</label><Dropdown
+        inputId="v2v-tipo-cadastro"
+        className="v2v-modal-type-dropdown"
+        panelClassName="v2v-modal-type-options"
+        value={tipoCadastro}
+        options={TIPOS.map(tipo => ({ label: tipo, value: tipo, disabled: Boolean(moduloDeOrigem(tipo)) }))}
+        optionLabel="label"
+        optionValue="value"
+        optionDisabled="disabled"
+        placeholder="Selecione"
+        scrollHeight="220px"
+        filter
+        filterPlaceholder="Buscar tipo de vínculo"
+        emptyFilterMessage="Nenhum tipo encontrado."
+        aria-describedby="v2v-tipo-cadastro-info"
+        onChange={e => setTipoCadastro(e.value ?? '')}
+      />
+      <p id="v2v-tipo-cadastro-info" className="v2v-notice" role="note"><i className="pi pi-info-circle" aria-hidden="true" /><span>Tipos de Vínculo gerados automaticamente pelo Ingresso, Aposentadoria ou por outras funcionalidades do sistema não podem ser cadastrados manualmente.</span></p>
+      <div className="v2v-form-actions"><button type="button" className="v2v-secondary" onClick={() => setEscolherTipo(false)}>Cancelar</button><button type="button" className="v2v-primary" disabled={!tipoCadastro || Boolean(moduloDeOrigem(tipoCadastro as Tipo))} onClick={() => navigate(BASE + '/novo?tipo=' + encodeURIComponent(tipoCadastro))}>Continuar</button></div></div>
     </ModalSeplag>}
     {exclusao && <VinculoExclusaoDialog key={exclusao.id} vinculo={exclusao} fechar={() => setExclusao(null)} concluido={() => { setExclusao(null); setMensagem('Vínculo excluído com sucesso. Auditoria preservada.'); }} />}
   </>);

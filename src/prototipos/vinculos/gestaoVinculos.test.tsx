@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, it } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
-import { TIPOS, todos, VinculoV2ConsultaPage } from './VinculoV2Page';
+import { VinculoV2ConsultaPage } from './VinculoV2Page';
 afterEach(() => { cleanup(); localStorage.clear(); });
 it('combines person, type and status filters in the main table', () => {
   render(<MemoryRouter><VinculoV2ConsultaPage /></MemoryRouter>);
@@ -24,7 +24,7 @@ it('combines person, type and status filters in the main table', () => {
   expect((person as HTMLInputElement).value).toBe('');
 });
 
-it('shows the create button with all types and opens type selection', () => {
+it('shows the create button with all types and opens type selection', async () => {
   render(<MemoryRouter><VinculoV2ConsultaPage /></MemoryRouter>);
   const button = screen.getByRole('button', { name: 'Cadastrar V\u00ednculo' });
   expect(button.closest('.v2v-grid-toolbar')).toBeTruthy();
@@ -32,27 +32,15 @@ it('shows the create button with all types and opens type selection', () => {
   const dialog = within(screen.getByRole('dialog', { name: 'Cadastrar V\u00ednculo' }));
   const type = dialog.getByRole('combobox');
   expect(dialog.getByRole('button', { name: 'Continuar' }).hasAttribute('disabled')).toBe(true);
-  expect(within(type).queryByRole('option', { name: 'Nomeado Efetivo' })).toBeNull();
-  fireEvent.change(type, { target: { value: 'Provis\u00f3rio' } });
+  fireEvent.click(type.closest('.p-dropdown')!);
+  const options = within(await screen.findByRole('listbox', { hidden: true }));
+  expect((options.getByRole('option', { hidden: true, name: 'Nomeado Efetivo' })).classList.contains('p-disabled')).toBe(true);
+  fireEvent.click(options.getByRole('option', { hidden: true, name: 'Nomeado Efetivo' }));
+  expect(dialog.getByRole('button', { name: 'Continuar' }).hasAttribute('disabled')).toBe(true);
+  expect(options.getByRole('option', { hidden: true, name: 'Aposentado' }).classList.contains('p-disabled')).toBe(true);
+  expect(options.getByRole('option', { hidden: true, name: 'Provis\u00f3rio' }).classList.contains('p-disabled')).toBe(false);
+  expect(dialog.getByRole('note').textContent).toBe('Tipos de V\u00ednculo gerados automaticamente pelo Ingresso, Aposentadoria ou por outras funcionalidades do sistema n\u00e3o podem ser cadastrados manualmente.');
+  fireEvent.click(options.getByRole('option', { hidden: true, name: 'Provis\u00f3rio' }));
   expect(dialog.getByRole('button', { name: 'Continuar' }).hasAttribute('disabled')).toBe(false);
 });
 
-it('counts all links by type, including types without records', () => {
-  render(<MemoryRouter><VinculoV2ConsultaPage /></MemoryRouter>);
-  const summary = within(screen.getByRole('region', { name: 'Quantitativos por tipo de v\u00ednculo' }));
-  const toggle = summary.getByRole('button', { name: 'V\u00ednculos por tipo' });
-  expect(toggle.getAttribute('aria-expanded')).toBe('false');
-  expect(summary.queryByRole('article')).toBeNull();
-  fireEvent.click(toggle);
-  expect(toggle.getAttribute('aria-expanded')).toBe('true');
-  const cards = summary.getAllByRole('article');
-  expect(cards).toHaveLength(TIPOS.length);
-  for (const tipo of TIPOS) {
-    const card = summary.getByText(tipo).closest('article')!;
-    expect(Number(card.querySelector('strong')?.textContent)).toBe(todos().filter(v => v.tipo === tipo).length);
-  }
-  expect(cards.reduce((sum, card) => sum + Number(card.querySelector('strong')?.textContent), 0)).toBe(todos().length);
-  fireEvent.click(toggle);
-  expect(toggle.getAttribute('aria-expanded')).toBe('false');
-  expect(summary.queryByRole('article')).toBeNull();
-});
