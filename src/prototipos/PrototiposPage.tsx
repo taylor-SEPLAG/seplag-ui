@@ -11,6 +11,7 @@ import { atualizarControleVagasBolsistas } from "./controleVagasResidentes/cargo
 import { atualizarControleVagasComissionadas, cargosComissionadosIniciais } from "./controleVagasComissionados/cargosComissionadosStore";
 import { atualizarPerfilDgaControleVagasComissionadas } from "./controleVagasComissionados/perfisDgaStore";
 import { atualizarControleVagasTemporarias } from "./controleVagasTemporarios/cargosTemporariosStore";
+import { atualizarConfiguracaoCargoEfetivo } from "./controleVagas/catalogoCargosEfetivos";
 import { BreadcrumbVagas as BreadcrumbVagasComissionados } from "./controleVagasComissionados/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasTemporarios } from "./controleVagasTemporarios/BreadcrumbVagas";
 import { BreadcrumbVagas as BreadcrumbVagasEfetivos } from "./controleVagas/BreadcrumbVagas";
@@ -875,7 +876,27 @@ const menuRecadastramento: IMenuSeplag[] = [
   { label: "Prefeitura de Cuiabá", icon: "pi pi-user-edit", url: "#", visibleOnMenu: true, visibleOnRouter: true },
   { label: "Relatórios", icon: "pi pi-file", url: "#", visibleOnMenu: true, visibleOnRouter: true },
   { label: "Validação Usuário", icon: "pi pi-users", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-  { label: "Parametrizações", icon: "pi pi-cog", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+  {
+    label: "Parametrizações",
+    icon: "pi pi-cog",
+    url: "#",
+    visibleOnMenu: true,
+    visibleOnRouter: true,
+    items: [
+      { label: "Usuários", icon: "pi pi-user", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Gerenciar Ciclo", icon: "pi pi-cog", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Cadastro de Exceção", icon: "pi pi-circle-fill", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Cadastro de Chefia", icon: "pi pi-circle-fill", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Cadastro UECMP", icon: "pi pi-circle-fill", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Resetar Cadastro", icon: "pi pi-circle-fill", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Cadastrar Assunto", icon: "pi pi-circle-fill", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Cadastrar E-mail", icon: "pi pi-circle-fill", to: "/prototipos/recadastramento/cadastrar-email", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Importar Base Externa", icon: "pi pi-circle-fill", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Órgãos Vinculados", icon: "pi pi-circle-fill", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Auditoria", icon: "pi pi-circle-fill", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Analisar Atualização", icon: "pi pi-circle-fill", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+    ],
+  },
 ];
 
 const etapasRecadastramento = ["Dados pessoais", "Documentos pessoais", "Endereço", "Vínculos", "Dependentes", "Escolaridade", "Contato", "Revisão", "Conclusão"];
@@ -1175,6 +1196,40 @@ export function PrototiposPage() {
       </section>
     </main>
   );
+}
+
+export function PrototiposRecadastramentoCadastrarEmailPage() {
+  const orgaos = ["93 - AGÊNCIA DE FOMENTO DO ESTADO DE MATO GROSSO S.A", "25 - AGÊNCIA ESTADUAL DE REGULAÇÃO DOS SERVIÇOS PÚBLICOS DELEGADOS", "101 - ASSEMBLEIA LEGISLATIVA DE MATO GROSSO", "59 - BANCO DO ESTADO DE MATO GROSSO", "126 - CASA CIVIL DO ESTADO DE MT"];
+  const assuntosDisponiveis = ["CADASTRO DE E-MAIL", "ETAPA 1", "ETAPA 2", "ETAPA 3", "ETAPA 4", "ETAPA 5", "ETAPA 6", "ETAPA 7", "ETAPA 8", "ETAPA 9", "OUTROS", "SETOR INCORRETO", "UPLOAD DE DOCUMENTOS"];
+  const perfis = ["SERVIDOR - RECADASTRO", "PREFEITURA - CBA", "ADMINISTRADOR CENTRAL - RECADASTRO", "RECAD_ADMIN_APOIO", "ADMINISTRADOR SETORIAL - RECADASTRO"];
+  const [orgaosSelecionados, setOrgaosSelecionados] = useState<string[]>([orgaos[0]]);
+  const [perfil, setPerfil] = useState(perfis[4]);
+  const [assuntos, setAssuntos] = useState(assuntosDisponiveis.slice(0, 10));
+  const [emailsPorOrgao, setEmailsPorOrgao] = useState<Record<string, string>>({});
+  const [aberto, setAberto] = useState<"orgao" | "assunto" | "perfil" | null>(null);
+  const [busca, setBusca] = useState("");
+  const [salvo, setSalvo] = useState(false);
+  const filtrar = (itens: string[]) => itens.filter((item) => item.toLocaleLowerCase().includes(busca.toLocaleLowerCase()));
+  const alternarOrgao = (orgao: string) => setOrgaosSelecionados((atuais) => atuais.includes(orgao) ? atuais.filter((item) => item !== orgao) : [...atuais, orgao]);
+  const alternarAssunto = (assunto: string) => setAssuntos((atuais) => atuais.includes(assunto) ? atuais.filter((item) => item !== assunto) : [...atuais, assunto]);
+  const limpar = () => { setOrgaosSelecionados([]); setEmailsPorOrgao({}); setPerfil(""); setAssuntos([]); setSalvo(false); };
+
+  return <PrototypeSystemPage nomeSistema="RECADASTRAMENTO" ambienteSistema="Protótipo" menuItems={menuRecadastramento}>
+    <main className="prototype-recadastramento-email-page">
+      <CardSeplag cols="12" cardHeaderClassNames="prototype-recadastramento-email-card">
+        <section className="prototype-recadastramento-email-form">
+          <h1>Cadastrar E-mail</h1>
+          <div className="prototype-recadastramento-email-fields">
+            <label className="prototype-recadastramento-email-field"><span>Órgão</span><button type="button" className="prototype-recadastramento-select-trigger" onClick={() => { setAberto(aberto === "orgao" ? null : "orgao"); setBusca(""); }}><span>{orgaosSelecionados.length ? `${orgaosSelecionados.length} órgão${orgaosSelecionados.length > 1 ? "s" : ""} selecionado${orgaosSelecionados.length > 1 ? "s" : ""}` : "Selecione"}</span><i className="pi pi-chevron-down" /></button>{aberto === "orgao" ? <div className="prototype-recadastramento-select-menu is-multiple"><div className="prototype-recadastramento-select-search"><input autoFocus value={busca} onChange={(event) => setBusca(event.target.value)} /><i className="pi pi-search" /></div><button type="button" className="prototype-recadastramento-select-all" onClick={() => setOrgaosSelecionados(orgaosSelecionados.length === orgaos.length ? [] : orgaos)}><i className={orgaosSelecionados.length === orgaos.length ? "pi pi-check-square" : "pi pi-stop"} />{orgaosSelecionados.length === orgaos.length ? "Desmarcar todos" : "Selecionar todos"}</button>{filtrar(orgaos).map((item) => <button type="button" key={item} className={orgaosSelecionados.includes(item) ? "is-selected" : ""} onClick={() => alternarOrgao(item)}><i className={orgaosSelecionados.includes(item) ? "pi pi-check-square" : "pi pi-square"} />{item}</button>)}</div> : null}</label>
+            <label className="prototype-recadastramento-email-field"><span>Assunto</span><button type="button" className="prototype-recadastramento-select-trigger" onClick={() => { setAberto(aberto === "assunto" ? null : "assunto"); setBusca(""); }}><span>{assuntos.length ? `${assuntos.slice(0, 5).join(", ")}${assuntos.length > 5 ? ", ..." : ""}` : "Selecione"}</span><i className="pi pi-chevron-down" /></button>{aberto === "assunto" ? <div className="prototype-recadastramento-select-menu is-multiple"><div className="prototype-recadastramento-select-search"><input autoFocus value={busca} onChange={(event) => setBusca(event.target.value)} /><i className="pi pi-search" /></div><button type="button" className="prototype-recadastramento-select-all" onClick={() => setAssuntos(assuntos.length === assuntosDisponiveis.length ? [] : assuntosDisponiveis)}><i className={assuntos.length === assuntosDisponiveis.length ? "pi pi-check-square" : "pi pi-stop"} />{assuntos.length === assuntosDisponiveis.length ? "Desmarcar todos" : "Selecionar todos"}</button>{filtrar(assuntosDisponiveis).map((item) => <button type="button" key={item} className={assuntos.includes(item) ? "is-selected" : ""} onClick={() => alternarAssunto(item)}><i className={assuntos.includes(item) ? "pi pi-check-square" : "pi pi-square"} />{item}</button>)}</div> : null}</label>
+            <label className="prototype-recadastramento-email-field"><span>Perfil que Recebe</span><button type="button" className="prototype-recadastramento-select-trigger" onClick={() => { setAberto(aberto === "perfil" ? null : "perfil"); setBusca(""); }}><span>{perfil || "Selecione"}</span><i className="pi pi-chevron-down" /></button>{aberto === "perfil" ? <div className="prototype-recadastramento-select-menu"><div className="prototype-recadastramento-select-search"><input autoFocus value={busca} onChange={(event) => setBusca(event.target.value)} /><i className="pi pi-search" /></div>{filtrar(perfis).map((item) => <button type="button" key={item} className={item === perfil ? "is-selected" : ""} onClick={() => { setPerfil(item); setAberto(null); }}>{item}</button>)}</div> : null}</label>
+          </div>
+          <section className="prototype-recadastramento-orgao-emails"><h2>E-mails por órgão</h2>{orgaosSelecionados.length > 0 ? orgaosSelecionados.map((orgao) => <label className="prototype-recadastramento-orgao-email-row" key={orgao}><strong>{orgao}</strong><input type="email" value={emailsPorOrgao[orgao] ?? ""} placeholder="Exemplo: recadastramento@seplag.mt.gov.br" onChange={(event) => { setEmailsPorOrgao((atuais) => ({ ...atuais, [orgao]: event.target.value })); setSalvo(false); }} /></label>) : <p className="prototype-recadastramento-orgao-email-empty">Selecione um ou mais órgãos para informar os respectivos e-mails.</p>}</section>
+          <div className="prototype-recadastramento-email-actions"><BotaoSeplag type="button" label="Limpar" onClick={limpar} /><BotaoSeplag type="button" label={salvo ? "E-mail salvo" : "Salvar"} icon={salvo ? "pi pi-check" : undefined} onClick={() => setSalvo(true)} /></div>
+        </section>
+      </CardSeplag>
+    </main>
+  </PrototypeSystemPage>;
 }
 
 export function PrototiposRecadastramentoPage() {
@@ -2535,6 +2590,46 @@ const cargosTesteMock: CargoTesteRow[] = [
     carreirasPorTipoVinculo: { TV001: "TI" },
     controleVagasEfetivos: true,
   },
+  ...[
+    [101, "Administrador Público Efetivo", "ADM", [1]],
+    [102, "Analista de Gestão de Pessoas Efetivo", "ADM", [1]],
+    [103, "Analista de Planejamento Efetivo", "ADM", [1, 2]],
+    [104, "Analista Orçamentário Efetivo", "ADM", [2]],
+    [105, "Contador Público Efetivo", "ADM", [2]],
+    [106, "Técnico Administrativo Efetivo", "ADM", [1]],
+    [107, "Técnico de Gestão de Pessoas Efetivo", "ADM", [1]],
+    [108, "Técnico Orçamentário Efetivo", "ADM", [2]],
+    [109, "Enfermeiro Efetivo", "SAUDE", [3]],
+    [110, "Farmacêutico Efetivo", "SAUDE", [5]],
+    [111, "Fisioterapeuta Efetivo", "SAUDE", [5]],
+    [112, "Médico Efetivo", "SAUDE", [5]],
+    [113, "Psicólogo Efetivo", "SAUDE", [5]],
+    [114, "Assistente Social Efetivo", "SAUDE", [1]],
+    [115, "Professor de Educação Especial Efetivo", "EDU", []],
+    [116, "Técnico Administrativo Educacional Efetivo", "EDU", [1]],
+    [117, "Analista de Sistemas Efetivo", "TI", [6]],
+    [118, "Desenvolvedor de Sistemas Efetivo", "TI", [6]],
+    [119, "Especialista em Segurança da Informação Efetivo", "TI", [6]],
+    [120, "Técnico de Suporte em Tecnologia Efetivo", "TI", [6]],
+  ].map(([id, cargo, carreira, perfisEspecialidadesIds]) => ({
+    id: id as number,
+    codigo: `EFE-${String(id).padStart(3, "0")}`,
+    cargo: cargo as string,
+    categoria: "Cargo efetivo",
+    subcategoria: "Não se aplica",
+    jornadaPadrao: "40H",
+    baseLegal: 1,
+    instituicoes: 1,
+    regrasUso: 1,
+    vigencia: "01/01/2026 -",
+    situacao: "ATIVO" as const,
+    tiposVinculo: ["TV001"],
+    carreira: carreira as string,
+    carreirasPorTipoVinculo: { TV001: carreira as string },
+    perfisEspecialidadesIds: perfisEspecialidadesIds as number[],
+    referencias: ["001A", "001B", "001C"],
+    controleVagasEfetivos: true,
+  })),
   ...cargosComissionadosIniciais.map((item) => ({
     id: item.id,
     codigo: item.codigo,
@@ -10144,6 +10239,18 @@ export function PrototiposCargoFormPage({
     atualizarControleVagasBolsistas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasBolsista === true);
     atualizarControleVagasComissionadas({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasComissionadas === true);
     atualizarControleVagasTemporarias({ id: atualizado.id, codigo: atualizado.codigo, nome: atualizado.cargo }, atualizado.controleVagasTemporarias === true);
+    atualizarConfiguracaoCargoEfetivo({
+      id: atualizado.id,
+      nome: atualizado.cargo,
+      situacao: atualizado.situacao,
+      controlaVagasEfetivos: atualizado.controleVagasEfetivos === true,
+      vinculos: (atualizado.tiposVinculo ?? []).map((tipoVinculo) => ({
+        tipoVinculo: tipoVinculo === "TV001" ? "Servidor efetivo" : tipoVinculo,
+        regimeJuridico: "Estatutário",
+        carreira: atualizado.carreirasPorTipoVinculo?.[tipoVinculo] ?? atualizado.carreira ?? "",
+      })).filter((item) => item.carreira),
+      perfisProfissionais: (atualizado.perfisEspecialidadesIds ?? []).map((id) => ({ 1: "Administração", 2: "Contabilidade", 3: "Enfermagem", 4: "Engenharia Civil", 5: "Medicina", 6: "Tecnologia da Informação" }[id] ?? "")).filter(Boolean),
+    });
     cargosTesteMock.forEach((cargo) => {
       if (cargo.id === registroId) return;
       const relacionados = new Set(cargo.cargosAcumulaveis ?? []);

@@ -35,6 +35,11 @@ import {
   perfisProfissionaisBaseTemporaria,
 } from "./baseTemporaria";
 import {
+  formatarCarreiraEfetiva,
+  listarCargosElegiveisParaQuadroEfetivo,
+  obterConfiguracaoCargoEfetivo,
+} from "./catalogoCargosEfetivos";
+import {
   BotaoAdicionarSeplag,
   BotaoIconSeplag,
   BotaoLimparFiltroSeplag,
@@ -475,12 +480,14 @@ const filtrosIniciais: QuadroFiltrosForm = {
 
 const resultadosQuadro = (
   content: QuadroListaRow[],
+  pagina: number,
+  tamanhoPagina: number,
 ): ResultsSeplag<QuadroListaRow> => ({
   content,
   last: true,
-  totalPages: Math.max(1, Math.ceil(content.length / 10)),
-  pageActual: 0,
-  sizePage: 10,
+  totalPages: Math.max(1, Math.ceil(content.length / tamanhoPagina)),
+  pageActual: pagina,
+  sizePage: tamanhoPagina,
   totalRecords: content.length,
   size: content.length,
   number: 0,
@@ -518,6 +525,14 @@ function QuadroAutorizadoLista() {
   const [paginasHistorico, setPaginasHistorico] = useState<
     Record<string, { first: number; rows: number }>
   >({});
+  const [paginacaoTabela, setPaginacaoTabela] = useState({
+    pagina: 0,
+    tamanhoPagina: 10,
+  });
+  const [ordenacaoTabela, setOrdenacaoTabela] = useState<{
+    campo: string;
+    direcao: 1 | -1;
+  }>({ campo: "id", direcao: -1 });
 
   const versoesAgendadasDoQuadro = (registro: QuadroAutorizadoRow) =>
     quadros
@@ -708,6 +723,44 @@ function QuadroAutorizadoLista() {
     },
   );
 
+  const filtradosOrdenados = useMemo(() => {
+    const collator = new Intl.Collator("pt-BR", {
+      numeric: true,
+      sensitivity: "base",
+    });
+    return [...filtrados].sort((a, b) => {
+      const valorA = (a as Record<string, unknown>)[ordenacaoTabela.campo];
+      const valorB = (b as Record<string, unknown>)[ordenacaoTabela.campo];
+      const comparacao =
+        typeof valorA === "number" && typeof valorB === "number"
+          ? valorA - valorB
+          : collator.compare(String(valorA ?? ""), String(valorB ?? ""));
+      return comparacao * ordenacaoTabela.direcao;
+    });
+  }, [filtrados, ordenacaoTabela]);
+
+  useEffect(() => {
+    setPaginacaoTabela((atual) =>
+      atual.pagina === 0 ? atual : { ...atual, pagina: 0 },
+    );
+  }, [
+    filtros.busca,
+    filtros.cargo,
+    filtros.orgao,
+    filtros.tipo,
+    filtros.situacao,
+  ]);
+
+  useEffect(() => {
+    const ultimaPagina = Math.max(
+      0,
+      Math.ceil(filtrados.length / paginacaoTabela.tamanhoPagina) - 1,
+    );
+    setPaginacaoTabela((atual) =>
+      atual.pagina > ultimaPagina ? { ...atual, pagina: ultimaPagina } : atual,
+    );
+  }, [filtrados.length, paginacaoTabela.tamanhoPagina]);
+
   const confirmarExclusao = () => {
     if (
       !exclusao ||
@@ -731,7 +784,7 @@ function QuadroAutorizadoLista() {
     metadata: SpecificationMetadata,
     content: ReactElement,
   ) =>
-    item.id === filtrados[0]?.id ? (
+    item.id === filtradosOrdenados[0]?.id ? (
       <SpecArea metadata={metadata}>
         <div className="prototype-quadro-spec-cell">{content}</div>
       </SpecArea>
@@ -1364,8 +1417,12 @@ function QuadroAutorizadoLista() {
             <div className="prototype-quadro-table prototype-quadro-library-table">
             <TablePaginadoSeplag<QuadroListaRow>
               dataKey="id"
-              data={resultadosQuadro(filtrados)}
-              rows={10}
+              data={resultadosQuadro(
+                filtradosOrdenados,
+                paginacaoTabela.pagina,
+                paginacaoTabela.tamanhoPagina,
+              )}
+              rows={paginacaoTabela.tamanhoPagina}
               rowsPerPage={[10, 20, 50]}
               lazy={false}
               selectionMode={null}
@@ -1380,7 +1437,24 @@ function QuadroAutorizadoLista() {
               }
               renderBotoes={renderAcoes}
               renderExpander={renderControleHistorico}
-              handleOnPageChange={() => undefined}
+              sortField={ordenacaoTabela.campo}
+              sortOrder={ordenacaoTabela.direcao}
+              handleOnPageChange={(evento) => {
+                const tamanhoPagina = evento.rows || 10;
+                const houveOrdenacao =
+                  Boolean(evento.sortField) &&
+                  (evento.sortOrder === 1 || evento.sortOrder === -1);
+                if (houveOrdenacao) {
+                  setOrdenacaoTabela({
+                    campo: String(evento.sortField),
+                    direcao: evento.sortOrder as 1 | -1,
+                  });
+                }
+                const pagina = houveOrdenacao
+                  ? 0
+                  : (evento.page ?? Math.floor((evento.first || 0) / tamanhoPagina));
+                setPaginacaoTabela({ pagina, tamanhoPagina });
+              }}
             />
             </div>
           </SpecArea>
@@ -1844,13 +1918,15 @@ function QuadroAutorizadoForm({
         normalizarCargo(quadro.cargo) === normalizarCargo(cargo) &&
         (!registro || quadro.codigo !== registro.codigo),
     );
-  const opcoesCargo = cargosBaseTemporaria.map((item) => {
+  const cargosElegiveis = listarCargosElegiveisParaQuadroEfetivo();
+  const usarCadastroDerivado = !registro;
+  const configuracaoCargoSelecionado = obterConfiguracaoCargoEfetivo(form.cargo);
+  const vinculosDoCargo = configuracaoCargoSelecionado?.vinculos ?? [];
+  const perfisDoCargo = configuracaoCargoSelecionado?.perfisProfissionais ?? [];
+  const opcoesCargo = cargosElegiveis.map((item) => {
     const quadroExistente = quadroExistenteDoCargo(item.nome);
     return {
-      label:
-        item.situacaoLegal === "EM_EXTINCAO"
-          ? item.nome + " — Em extinção"
-          : item.nome,
+      label: item.nome,
       value: item.nome,
       indisponivel: Boolean(quadroExistente),
       quadroCodigo: quadroExistente?.codigo,
@@ -1871,6 +1947,24 @@ function QuadroAutorizadoForm({
       shouldValidate: true,
     });
   }, [cargoSelecionadoJaPossuiQuadro, form.cargo, setValue]);
+
+  useEffect(() => {
+    if (!usarCadastroDerivado) return;
+    if (!configuracaoCargoSelecionado) return;
+    const [unicoVinculo] = vinculosDoCargo;
+    if (vinculosDoCargo.length === 1 && unicoVinculo) {
+      setValue("vinculo", unicoVinculo.tipoVinculo);
+      setValue("regime", unicoVinculo.regimeJuridico);
+      setValue("carreira", unicoVinculo.carreira);
+    } else if (!vinculosDoCargo.some((item) => item.tipoVinculo === form.vinculo)) {
+      setValue("vinculo", "");
+      setValue("regime", "");
+      setValue("carreira", "");
+    }
+    // Perfil profissional é definido no Ingresso. No Quadro ele é somente
+    // informativo, sem criar uma combinação adicional de vagas.
+    setValue("perfilProfissional", "");
+  }, [configuracaoCargoSelecionado, form.perfilProfissional, form.vinculo, perfisDoCargo, setValue, usarCadastroDerivado, vinculosDoCargo]);
 
   const formaDestinacao = "DISTRIBUICAO_POSTERIOR" as const;
   const vigenciaPrevia: VigenciaQuadroForm = {
@@ -1894,10 +1988,12 @@ function QuadroAutorizadoForm({
     };
     const errosVigencia = validarSituacaoVigenciaSeplag(vigencia);
     const novosErros = [
-      !form.vinculo && "Informe o tipo de vínculo.",
-      !form.regime && "Informe o regime jurídico.",
-      !form.carreira && "Informe a carreira.",
       !form.cargo && "Informe o cargo.",
+      usarCadastroDerivado && form.cargo && !configuracaoCargoSelecionado && "O cargo selecionado não está habilitado para o Controle de Vagas de Efetivos.",
+      !form.vinculo && (usarCadastroDerivado ? "Informe o tipo de vínculo disponível para o cargo." : "Informe o tipo de vínculo."),
+      !form.regime && (usarCadastroDerivado ? "Informe o regime jurídico vinculado ao cargo." : "Informe o regime jurídico."),
+      !form.carreira && (usarCadastroDerivado ? "Informe a carreira vinculada ao cargo." : "Informe a carreira."),
+      usarCadastroDerivado && form.cargo && !vinculosDoCargo.some((item) => item.tipoVinculo === form.vinculo && item.regimeJuridico === form.regime && item.carreira === form.carreira) && "A combinação de vínculo, regime e carreira não pertence ao cargo selecionado.",
       form.cargo &&
         quadroExistenteDoCargo(form.cargo) &&
         `Já existe um Quadro Autorizado para o cargo ${form.cargo}.`,
@@ -1992,7 +2088,7 @@ function QuadroAutorizadoForm({
     ? "Nova versão do quadro"
     : registro
       ? "Editar autorização"
-      : "Novo Quadro";
+      : "Novo Quadro - Efetivo";
   return (
     <div className="prototype-quadro-page">
       <header className="prototype-quadro-header">
@@ -2034,16 +2130,72 @@ function QuadroAutorizadoForm({
           </header>
           <div className="prototype-quadro-fields">
             <DropdownFieldSeplag
+              name="cargo"
+              control={control}
+              label="Cargo"
+              required
+              cols="12"
+              options={usarCadastroDerivado ? opcoesCargo : cargosBaseTemporaria.map((item) => ({ label: item.nome, value: item.nome }))}
+              optionLabel="label"
+              optionValue="value"
+              optionDisabled={usarCadastroDerivado ? "indisponivel" : undefined}
+              itemTemplate={usarCadastroDerivado ? (option) => (
+                <span
+                  className={option.indisponivel ? "prototype-quadro-cargo-indisponivel" : undefined}
+                  title={option.motivoIndisponibilidade}
+                >
+                  <span className="prototype-quadro-cargo-indisponivel-label">{option.label}</span>
+                  {option.quadroCodigo && (
+                    <span className="prototype-quadro-cargo-indisponivel-badge">
+                      Quadro {option.quadroCodigo}
+                    </span>
+                  )}
+                </span>
+              ) : undefined}
+              placeholder="Selecione"
+              getFormErrorMessage={() => null}
+            />
+            {usarCadastroDerivado ? (
+              configuracaoCargoSelecionado && (
+                <article className="prototype-quadro-cargo-resumo is-full" aria-live="polite">
+                  <header>
+                    <i className="pi pi-info-circle" aria-hidden="true" />
+                    <div>
+                      <h3>Informações vinculadas ao cargo</h3>
+                      <p>Dados cadastrados no cargo; o perfil profissional será informado no Ingresso.</p>
+                    </div>
+                  </header>
+                  <dl>
+                    <div>
+                      <dt>Tipo de vínculo</dt>
+                      <dd>{[...new Set(vinculosDoCargo.map((item) => item.tipoVinculo))].join(" • ")}</dd>
+                    </div>
+                    <div>
+                      <dt>Regime jurídico</dt>
+                      <dd>{[...new Set(vinculosDoCargo.map((item) => item.regimeJuridico))].join(" • ")}</dd>
+                    </div>
+                    <div>
+                      <dt>Carreira</dt>
+                      <dd>{[...new Set(vinculosDoCargo.map((item) => formatarCarreiraEfetiva(item.carreira)))].join(" • ")}</dd>
+                    </div>
+                    <div>
+                      <dt>Perfis profissionais</dt>
+                      <dd>{perfisDoCargo.length ? perfisDoCargo.join(" • ") : "Não se aplica"}</dd>
+                    </div>
+                  </dl>
+                </article>
+              )
+            ) : <>
+            <DropdownFieldSeplag
               name="vinculo"
               control={control}
               label="Tipo de vínculo"
               required
               cols="12"
-              options={[
-                { label: "Servidor efetivo", value: "Servidor efetivo" },
-              ]}
+              options={usarCadastroDerivado ? vinculosDoCargo.map((item) => ({ label: item.tipoVinculo, value: item.tipoVinculo })) : [{ label: "Servidor efetivo", value: "Servidor efetivo" }]}
               optionLabel="label"
               optionValue="value"
+              disabled={usarCadastroDerivado && (!configuracaoCargoSelecionado || vinculosDoCargo.length <= 1)}
               placeholder="Selecione"
               getFormErrorMessage={() => null}
             />
@@ -2053,11 +2205,10 @@ function QuadroAutorizadoForm({
               label="Regime jurídico"
               required
               cols="12"
-              options={["Estatutário", "Administrativo", "Celetista"].map(
-                (value) => ({ label: value, value }),
-              )}
+              options={usarCadastroDerivado ? vinculosDoCargo.filter((item) => item.tipoVinculo === form.vinculo).map((item) => ({ label: item.regimeJuridico, value: item.regimeJuridico })) : ["Estatutário", "Administrativo", "Celetista"].map((value) => ({ label: value, value }))}
               optionLabel="label"
               optionValue="value"
+              disabled={usarCadastroDerivado && (!configuracaoCargoSelecionado || vinculosDoCargo.length <= 1)}
               placeholder="Selecione"
               getFormErrorMessage={() => null}
             />
@@ -2067,57 +2218,10 @@ function QuadroAutorizadoForm({
               label="Carreira"
               required
               cols="12"
-              options={carreirasBaseTemporaria.map((item) => ({
-                label:
-                  item.situacaoLegal === "EM_EXTINCAO"
-                    ? item.nome + " — Em extinção"
-                    : item.nome,
-                value: item.nome,
-              }))}
+              options={usarCadastroDerivado ? vinculosDoCargo.filter((item) => item.tipoVinculo === form.vinculo && item.regimeJuridico === form.regime).map((item) => ({ label: item.carreira, value: item.carreira })) : carreirasBaseTemporaria.map((item) => ({ label: item.nome, value: item.nome }))}
               optionLabel="label"
               optionValue="value"
-              placeholder="Selecione"
-              getFormErrorMessage={() => null}
-            />
-            <DropdownFieldSeplag
-              name="cargo"
-              control={control}
-              label="Cargo"
-              required
-              cols="12"
-              options={opcoesCargo}
-              optionLabel="label"
-              optionValue="value"
-              onChange={(cargoSelecionado) => {
-                if (
-                  cargoSelecionado &&
-                  quadroExistenteDoCargo(String(cargoSelecionado))
-                ) {
-                  setValue("cargo", "", {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                }
-              }}
-              itemTemplate={(option) => (
-                <span
-                  className={
-                    option.indisponivel
-                      ? "prototype-quadro-cargo-indisponivel"
-                      : undefined
-                  }
-                  aria-label={option.motivoIndisponibilidade || undefined}
-                >
-                  <span className="prototype-quadro-cargo-indisponivel-label">
-                    {option.label}
-                  </span>
-                  {option.quadroCodigo && (
-                    <span className="prototype-quadro-cargo-indisponivel-badge">
-                      {option.quadroCodigo}
-                    </span>
-                  )}
-                </span>
-              )}
+              disabled={usarCadastroDerivado && (!configuracaoCargoSelecionado || vinculosDoCargo.length <= 1)}
               placeholder="Selecione"
               getFormErrorMessage={() => null}
             />
@@ -2126,15 +2230,14 @@ function QuadroAutorizadoForm({
               control={control}
               label="Perfil profissional"
               cols="12"
-              options={perfisProfissionaisBaseTemporaria.map((item) => ({
-                label: item.nome,
-                value: item.nome,
-              }))}
+              options={usarCadastroDerivado ? perfisDoCargo.map((perfil) => ({ label: perfil, value: perfil })) : perfisProfissionaisBaseTemporaria.map((item) => ({ label: item.nome, value: item.nome }))}
               optionLabel="label"
               optionValue="value"
+              disabled={usarCadastroDerivado && (!configuracaoCargoSelecionado || perfisDoCargo.length <= 1)}
               placeholder="Selecione um perfil"
               getFormErrorMessage={() => null}
             />
+            </>}
           </div>{" "}
         </section>{" "}
         <div className="prototype-quadro-form-paired">

@@ -17,6 +17,11 @@ export interface QuadroTemporarioCadastro {
 const chave = "sigep:quadros-temporarios:cadastros:v1";
 const totalPrevisto = (certame: Pick<Certame, "cargos">) => certame.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0);
 const hoje = () => new Date().toISOString().slice(0, 10);
+const normalizarData = (valor?: string) => {
+ if (!valor) return undefined;
+ const brasileira = valor.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+ return brasileira ? `${brasileira[3]}-${brasileira[2]}-${brasileira[1]}` : valor.slice(0, 10);
+};
 
 const normalizar = (item: Partial<QuadroTemporarioCadastro>): QuadroTemporarioCadastro => {
  const previsto = totalPrevisto(item.certame!);
@@ -41,11 +46,12 @@ export function seletivoTemporario(certame: Certame) {
 export const possuiCadastroReserva = (quadro: Pick<QuadroTemporarioCadastro, "cargos">) => quadro.cargos.some(cargo => cargo.aceitaCadastroReserva);
 export function salvarQuadroTemporario(certame: Certame, observacoes: string, dataAtivacao?: string) {
  if (!seletivoTemporario(certame) || !certame.cargos.length) throw new Error("Selecione um PSS temporário com cargos cadastrados.");
- if (dataAtivacao && dataAtivacao > hoje()) throw new Error("A data de início não pode ser futura.");
+ const dataInicio = normalizarData(dataAtivacao);
+ if (dataInicio && dataInicio > hoje()) throw new Error("A data de início não pode ser futura.");
  const quadros = listarQuadrosTemporarios();
  if (quadros.some(item => item.certameId === certame.id)) throw new Error("Já existe um quadro temporário para este seletivo.");
  const numero = quadros.reduce((max, item) => Math.max(max, Number(item.codigo.replace("QT-", "")) || 0), 0) + 1;
- const previsto = totalPrevisto(certame); const criadoEm = new Date().toISOString(); const inicio = dataAtivacao ?? hoje();
+ const previsto = totalPrevisto(certame); const criadoEm = new Date().toISOString(); const inicio = dataInicio ?? hoje();
  const registro: QuadroTemporarioCadastro = {
   id: crypto.randomUUID(), codigo: "QT-" + String(numero).padStart(5, "0"), certameId: certame.id, certame: structuredClone(certame),
   cargos: certame.cargos.map(cargo => ({ ...structuredClone(cargo), modoControle: cargo.aceitaCadastroReserva ? "AMPLIAVEL" : "LIMITADO", limiteVagas: cargo.aceitaCadastroReserva ? undefined : cargo.quantidadeVagas })),
@@ -57,13 +63,14 @@ export function salvarQuadroTemporario(certame: Certame, observacoes: string, da
 export function ampliarQuadroTemporario(id: string, quantidade: number, dataInicio: string, observacao: string, processoSigadoc = "", documentosLegaisIds: string[] = []) {
  if (!Number.isInteger(quantidade) || quantidade <= 0) throw new Error("Informe uma quantidade adicional maior que zero.");
  if (!dataInicio) throw new Error("Informe a data de início da ampliação.");
- if (dataInicio > hoje()) throw new Error("A data de início não pode ser futura.");
+ const dataInicioNormalizada = normalizarData(dataInicio);
+ if (dataInicioNormalizada! > hoje()) throw new Error("A data de início não pode ser futura.");
  const quadros = listarQuadrosTemporarios(); const quadro = quadros.find(item => item.id === id);
  if (!quadro) throw new Error("Quadro temporário não encontrado.");
  if (quadro.situacao !== "ATIVO") throw new Error("Somente quadros ativos podem receber ampliação.");
  if (!possuiCadastroReserva(quadro)) throw new Error("Este quadro não possui cadastro reserva e não pode receber ampliação.");
  const totalAutorizado = quadro.totalAutorizado + quantidade;
-  const versao: VersaoQuadroTemporario = { versao: quadro.versoes.length + 1, evolucao: "AMPLIACAO", quantidade, totalAutorizado, dataInicio, criadaEm: new Date().toISOString(), observacao: observacao.trim() || undefined, processoSigadoc: processoSigadoc.trim() || undefined, documentosLegaisIds: documentosLegaisIds.length ? documentosLegaisIds : undefined };
+ const versao: VersaoQuadroTemporario = { versao: quadro.versoes.length + 1, evolucao: "AMPLIACAO", quantidade, totalAutorizado, dataInicio: dataInicioNormalizada!, criadaEm: new Date().toISOString(), observacao: observacao.trim() || undefined, processoSigadoc: processoSigadoc.trim() || undefined, documentosLegaisIds: documentosLegaisIds.length ? documentosLegaisIds : undefined };
  const atualizado = { ...quadro, totalAutorizado, vagasReais: totalAutorizado, versoes: [...quadro.versoes, versao] };
  persistir(quadros.map(item => item.id === id ? atualizado : item)); return atualizado;
 }
