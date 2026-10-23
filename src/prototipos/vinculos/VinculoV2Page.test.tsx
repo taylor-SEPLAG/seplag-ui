@@ -26,7 +26,7 @@ it('busca nome, CPF com ou sem máscara e matrícula junto ao tipo de vínculo',
   expect(screen.getByText('Nenhum vínculo encontrado para os filtros informados.')).toBeTruthy();
   fireEvent.click(filtros.getByRole('button', { name: 'Limpar filtro' }));
   expect((filtros.getByLabelText('Nome, CPF ou matrícula') as HTMLInputElement).value).toBe('');
-  expect(screen.getAllByRole('button', { name: 'Ver detalhes' })).toHaveLength(6);
+  expect(screen.getAllByRole('button', { name: 'Ver detalhes' })).toHaveLength(10);
 });
 afterEach(() => { vi.restoreAllMocks(); cleanup(); localStorage.clear(); atualizarVinculosCadastrados(); });
 
@@ -54,76 +54,36 @@ it("preenche apenas o nome pelo CPF e não exibe identificadores antes do cadast
   expect(screen.getByRole("button", { name: "Cadastrar Vínculo" }).hasAttribute("disabled")).toBe(true);
 });
 
-it("busca nome ou CPF no mesmo campo, combina matrícula e limpa os filtros internos", () => {
+it("combina os filtros na tabela principal", () => {
   montar();
-  const linha = screen.getByText("Nomeado Efetivo", { selector: "strong" }).closest("tr") as HTMLTableRowElement;
-  fireEvent.click(within(linha).getByRole("button", { name: "Visualizar" }));
-  const filtros = screen.getByRole("region", { name: "Filtros de servidores de Nomeado Efetivo" });
-  fireEvent.change(within(filtros).getByLabelText("Nome ou CPF"), { target: { value: "joao" } });
-  expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(1);
-  fireEvent.change(within(filtros).getByLabelText("Nome ou CPF"), { target: { value: "000.000.000-00" } });
-  fireEvent.change(within(filtros).getByLabelText("Matrícula"), { target: { value: "327305" } });
-  expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(1);
-  fireEvent.change(within(filtros).getByLabelText("Matrícula"), { target: { value: "800001" } });
-  expect(screen.queryByRole("button", { name: "Ver detalhes" })).toBeNull();
-  expect(screen.getByText("Nenhum vínculo encontrado para os filtros informados.")).toBeTruthy();
-  expect(within(linha).getAllByRole("cell")[2].textContent).toBe("6");
-  fireEvent.click(within(filtros).getByRole("button", { name: "Limpar filtro" }));
-  expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(6);
+  const filtros = within(screen.getByRole('region', { name: 'Filtros de consulta' }));
+  fireEvent.change(filtros.getByLabelText('Nome, CPF ou matrícula'), { target: { value: '327305' } });
+  fireEvent.change(filtros.getByLabelText('Tipo de Vínculo'), { target: { value: 'Nomeado Efetivo' } });
+  expect(screen.getAllByRole('button', { name: 'Ver detalhes' })).toHaveLength(1);
 });
-
-it("lista os tipos, incluindo Aposentado, e mostra apenas vínculos ativos e encerrados", () => {
+it("lista os tipos no filtro e mostra os indicadores", () => {
   montar();
-  const tabela = screen.getByRole("region", { name: "Tipos de vínculo" });
-  expect(within(tabela).getAllByRole("button", { name: "Visualizar" })).toHaveLength(10);
-  expect((screen.getByRole("combobox", { name: "Registros por página de tipos de vínculo" }) as HTMLSelectElement).value).toBe("10");
-  fireEvent.click(screen.getByRole("button", { name: "Próxima página de tipos de vínculo" }));
-  expect(within(tabela).getAllByRole("button", { name: "Visualizar" })).toHaveLength(10);
-  fireEvent.click(screen.getByRole("button", { name: "Primeira página de tipos de vínculo" }));
-  fireEvent.change(screen.getByRole("combobox", { name: "Registros por página de tipos de vínculo" }), { target: { value: "20" } });
-  expect(within(tabela).getAllByRole("button", { name: "Visualizar" })).toHaveLength(20);
-  expect(within(tabela).getByText("Contrato Temporário Vínculo Único")).toBeTruthy();
-  const kpis = screen.getByRole("region", { name: "Indicadores de vínculos" });
-  expect(kpis.textContent).toContain("Vínculos Ativos64");
-  expect(kpis.textContent).not.toContain("Vínculos Inativos");
-  expect(kpis.textContent).toContain("Vínculos Encerrados44");
-  fireEvent.click(screen.getByRole("button", { name: "Próxima página de tipos de vínculo" }));
-  const aposentado = within(tabela).getByText("Aposentado", { exact: true }).closest("tr") as HTMLTableRowElement;
-  fireEvent.click(within(aposentado).getByRole("button", { name: "Visualizar" }));
-  expect(screen.getByRole("note").textContent).toContain("O cadastro desse Vínculo ocorre pelo módulo de Aposentadoria. Não é permitido cadastrá-lo manualmente nesta tela.");
-  expect(screen.queryByRole("button", { name: "Cadastrar Vínculo" })).toBeNull();
-  expect(screen.getByText("Nenhum vínculo encontrado para os filtros informados.")).toBeTruthy();
+  const tipos = screen.getByLabelText('Tipo de Vínculo');
+  expect(within(tipos).getByRole('option', { name: 'Aposentado' })).toBeTruthy();
+  const kpis = screen.getByRole('region', { name: 'Indicadores de vínculos' });
+  expect(kpis.textContent).toContain('Vínculos Ativos64');
+  expect(kpis.textContent).toContain('Vínculos Encerrados44');
 });
-
-it("conta vínculos de todas as situações na coluna por tipo", () => {
+it("exibe o tipo de cada registro na tabela principal", () => {
   montar();
-  const tabela = screen.getByRole("region", { name: "Tipos de vínculo" });
-  expect(within(tabela).getByRole("columnheader", { name: "Quantidade de Vínculos" })).toBeTruthy();
-  for (const tipo of ["Estabilizado Constitucionalmente", "Empossado em Cargo Eletivo"]) {
-    const linha = within(tabela).getByText(tipo, { selector: "strong" }).closest("tr") as HTMLTableRowElement;
-    expect(within(linha).getAllByRole("cell")[2].textContent).toBe("6");
-  }
+  expect(screen.getByRole('columnheader', { name: 'Tipo de Vínculo' })).toBeTruthy();
+  expect(screen.getAllByRole('button', { name: 'Ver detalhes' })).toHaveLength(10);
 });
-it("adiciona cinco registros por tipo com situações variadas", () => {
+it("consulta todos os registros de um tipo com situações variadas", () => {
   montar();
-  fireEvent.change(screen.getByRole("combobox", { name: "Registros por página de tipos de vínculo" }), { target: { value: "20" } });
-  const tabela = screen.getByRole("region", { name: "Tipos de vínculo" });
-  const linhas = Array.from(tabela.querySelectorAll("tbody > tr")).filter((linha) => linha.querySelector("button[aria-label='Visualizar']"));
-  expect(linhas).toHaveLength(20);
-  for (const linha of linhas) {
-    const total = Number(within(linha as HTMLTableRowElement).getAllByRole("cell")[2].textContent);
-    expect(total).toBeGreaterThanOrEqual(5);
-    fireEvent.click(within(linha as HTMLTableRowElement).getByRole("button", { name: "Visualizar" }));
-    const expandida = linha.nextElementSibling as HTMLTableRowElement;
-    for (const situacao of ["Ativo", "Encerrado"]) {
-      expect(within(expandida).getAllByText(situacao, { selector: ".v2v-status" }).length).toBeGreaterThan(0);
-    }
-  }
+  fireEvent.change(screen.getByLabelText('Tipo de Vínculo'), { target: { value: 'Estabilizado Constitucionalmente' } });
+  expect(screen.getAllByRole('button', { name: 'Ver detalhes' })).toHaveLength(6);
+  expect(screen.getAllByText('Ativo', { selector: '.v2v-status' }).length).toBeGreaterThan(0);
+  expect(screen.getAllByText('Encerrado', { selector: '.v2v-status' }).length).toBeGreaterThan(0);
 });
 it("cadastra no tipo escolhido e preserva o número funcional do próximo vínculo", () => {
   montar();
-  const linha = screen.getByText("Estabilizado Constitucionalmente", { selector: "strong" }).closest("tr") as HTMLTableRowElement;
-  fireEvent.click(within(linha).getByRole("button", { name: "Visualizar" }));
+  fireEvent.change(screen.getByLabelText("Tipo de Vínculo"), { target: { value: "Estabilizado Constitucionalmente" } });
   fireEvent.click(screen.getByRole("button", { name: "Cadastrar Vínculo" }));
   expect((screen.getByRole("combobox", { name: /Tipo de Vínculo/ }) as HTMLSelectElement).value).toBe("Estabilizado Constitucionalmente");
   expect((screen.getByRole("combobox", { name: /Tipo de Vínculo/ }) as HTMLSelectElement).disabled).toBe(true);
@@ -200,15 +160,14 @@ it("exibe Órgão/Entidade antes de Lotação nos detalhes", () => {
 it("aplica filtros e abre detalhes sem permitir edição", () => {
   montar();
   fireEvent.change(screen.getByLabelText("Tipo de Vínculo"), { target: { value: "Contrato Temporário" } });
-  expect(screen.getByRole("region", { name: "Tipos de vínculo" }).querySelectorAll("tbody > tr")).toHaveLength(1);
+  expect(screen.getByRole("region", { name: "Servidores com Vínculo" }).querySelectorAll("tbody > tr")).toHaveLength(6);
   expect(screen.queryByLabelText("Lotação")).toBeNull();
   expect(screen.queryByLabelText("Servidor / CPF / Matrícula")).toBeNull();
   expect(within(screen.getByRole("region", { name: "Filtros de consulta" })).queryByRole("button", { name: "Pesquisar" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Limpar filtro" }));
-  expect(screen.getByRole("region", { name: "Tipos de vínculo" }).querySelectorAll("tbody > tr")).toHaveLength(10);
+  expect(screen.getByRole("region", { name: "Servidores com Vínculo" }).querySelectorAll("tbody > tr")).toHaveLength(10);
   fireEvent.change(screen.getByLabelText("Tipo de Vínculo"), { target: { value: "Contrato Temporário" } });
-  const linha = screen.getByText("Contrato Temporário", { selector: "strong" }).closest("tr") as HTMLTableRowElement;
-  fireEvent.click(within(linha).getByRole("button", { name: "Visualizar" }));
+  fireEvent.change(screen.getByLabelText("Tipo de Vínculo"), { target: { value: "Contrato Temporário" } });
   const servidor = screen.getByText("Maria Souza").closest("tr") as HTMLTableRowElement;
   fireEvent.click(within(servidor).getByRole("button", { name: "Ver detalhes" }));
   expect(screen.getByRole("heading", { name: /Detalhes do Vínculo/ })).toBeTruthy();
@@ -222,9 +181,7 @@ it("pagina os servidores de um tipo sem confundir o número do vínculo com a po
   }));
   localStorage.setItem("prototype-vinculos-v2", JSON.stringify(extras));
   montar();
-  fireEvent.click(screen.getByRole("button", { name: "Próxima página de tipos de vínculo" }));
-  const tipo = screen.getByText("Provisório", { selector: "strong" }).closest("tr") as HTMLTableRowElement;
-  fireEvent.click(within(tipo).getByRole("button", { name: "Visualizar" }));
+  fireEvent.change(screen.getByLabelText('Tipo de Vínculo'), { target: { value: 'Provisório' } });
   expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(10);
   fireEvent.click(screen.getByRole("button", { name: "Próxima página de servidores" }));
   expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(6);
@@ -233,8 +190,7 @@ it("pagina os servidores de um tipo sem confundir o número do vínculo com a po
 });
 it("informa a origem pelo Ingresso sem bloquear a consulta dos vínculos", () => {
   montar();
-  const linha = screen.getByText("Nomeado Efetivo", { selector: "strong" }).closest("tr") as HTMLTableRowElement;
-  fireEvent.click(within(linha).getByRole("button", { name: "Visualizar" }));
+  fireEvent.change(screen.getByLabelText("Tipo de Vínculo"), { target: { value: "Nomeado Efetivo" } });
   expect(screen.getByRole("note").textContent).toContain("O cadastro desse Vínculo ocorre pelo módulo de Ingresso.");
   expect(screen.queryByRole("button", { name: "Cadastrar Vínculo" })).toBeNull();
   expect(screen.getAllByRole("button", { name: "Ver detalhes" }).length).toBeGreaterThan(0);
@@ -242,8 +198,7 @@ it("informa a origem pelo Ingresso sem bloquear a consulta dos vínculos", () =>
 
 it("mantém o aviso e mostra vínculos para tipo originado pelo Ingresso", () => {
   montar();
-  const linha = screen.getByText("Residente Técnico", { selector: "strong" }).closest("tr") as HTMLTableRowElement;
-  fireEvent.click(within(linha).getByRole("button", { name: "Visualizar" }));
+  fireEvent.change(screen.getByLabelText("Tipo de Vínculo"), { target: { value: "Residente Técnico" } });
   expect(screen.getByRole("note")).toBeTruthy();
   expect(screen.getAllByRole("button", { name: "Ver detalhes" })).toHaveLength(5);
   expect(screen.queryByRole("button", { name: "Cadastrar Vínculo" })).toBeNull();
@@ -280,8 +235,7 @@ it.each([
   { tipo: "Empossado em Cargo Eletivo", nome: "Carla Nunes", situacao: "Encerrado", forma: "Exoneração" },
 ])("consulta o vínculo $situacao de $nome", ({ tipo, nome, situacao, forma }) => {
   montar();
-  const linha = screen.getByText(tipo, { selector: "strong" }).closest("tr") as HTMLTableRowElement;
-  fireEvent.click(within(linha).getByRole("button", { name: "Visualizar" }));
+  fireEvent.change(screen.getByLabelText("Tipo de Vínculo"), { target: { value: tipo } });
   const servidor = screen.getByText(nome).closest("tr") as HTMLTableRowElement;
   expect(within(servidor).getByText(situacao)).toBeTruthy();
   fireEvent.click(within(servidor).getByRole("button", { name: "Ver detalhes" }));
