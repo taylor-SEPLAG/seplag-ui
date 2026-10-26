@@ -9,17 +9,16 @@ import {
 } from "../../componentes/SituacaoVigencia";
 
 describe("integridade dos exemplos de quadros autorizados", () => {
-  it("mantém códigos únicos e sequenciais de QA-0001 a QA-0014", () => {
+  it("mantém códigos únicos e 11 novos quadros efetivos", () => {
     const codigos = quadrosAutorizadosMock
       .map((quadro) => quadro.codigo)
       .sort((a, b) => a.localeCompare(b));
-    const esperados = Array.from(
-      { length: 14 },
-      (_, indice) => `QA-${String(indice + 1).padStart(4, "0")}`,
+    expect(new Set(codigos).size).toBe(codigos.length);
+    const efetivos = quadrosAutorizadosMock.filter((quadro) => quadro.tipoQuadro === "Efetivo");
+    expect(efetivos).toHaveLength(11);
+    expect(efetivos.map((quadro) => quadro.codigo)).toEqual(
+      Array.from({ length: 11 }, (_, indice) => `QA-${String(indice + 15).padStart(4, "0")}`),
     );
-
-    expect(codigos).toEqual(esperados);
-    expect(new Set(codigos).size).toBe(14);
   });
 
   it("fecha autorizadas como ocupadas mais disponíveis", () => {
@@ -35,7 +34,7 @@ describe("integridade dos exemplos de quadros autorizados", () => {
     });
   });
 
-  it("usa somente Agendado, Ativo, Encerrado e Extinto nos 12 quadros", () => {
+  it("mantém os novos quadros efetivos ativos", () => {
     const dataReferencia = new Date(2026, 7, 14);
     const statusPorCodigo = new Map(
       quadrosAutorizadosMock.map((quadro) => [
@@ -48,34 +47,13 @@ describe("integridade dos exemplos de quadros autorizados", () => {
       ]),
     );
 
-    expect(statusPorCodigo.get("QA-0008")).toBe(
-      STATUS_OPERACIONAL_VIGENCIA.AGENDADO,
-    );
-    expect(statusPorCodigo.get("QA-0003")).toBe(
-      STATUS_OPERACIONAL_VIGENCIA.ENCERRADO,
-    );
-    expect(statusPorCodigo.get("QA-0009")).toBe(
-      STATUS_OPERACIONAL_VIGENCIA.ENCERRADO,
-    );
-    expect(statusPorCodigo.get("QA-0010")).toBe(
-      STATUS_OPERACIONAL_VIGENCIA.EXTINTO,
-    );
-
     quadrosAutorizadosMock
-      .filter((quadro) => statusPorCodigo.get(quadro.codigo) === "ENCERRADO")
+      .filter((quadro) => quadro.tipoQuadro === "Efetivo")
       .forEach((quadro) => {
-        expect(quadro.autorizadas).toBe(quadro.ocupadas);
+        expect(statusPorCodigo.get(quadro.codigo)).toBe(STATUS_OPERACIONAL_VIGENCIA.ATIVO);
+        expect(quadro.ocupadas).toBe(0);
         expect(quadro.comprometidas).toBe(0);
       });
-
-    const extinto = quadrosAutorizadosMock.find(
-      (quadro) => statusPorCodigo.get(quadro.codigo) === "EXTINTO",
-    );
-    expect(extinto).toMatchObject({
-      autorizadas: 0,
-      ocupadas: 0,
-      comprometidas: 0,
-    });
   });
 
   it("não usa redistribuição para manter a vaga no mesmo órgão", () => {
@@ -88,10 +66,10 @@ describe("integridade dos exemplos de quadros autorizados", () => {
       });
   });
 
-  it("demonstra distribuição parcial, múltiplos órgãos, retroatividade e redistribuição no QA-0012", () => {
+  it("inicia os novos quadros efetivos sem distribuição formal", () => {
     const dataReferencia = "2026-07-23";
     const vagas = vagasIndividualizadasMock.filter(
-      (vaga) => vaga.quadroCodigo === "QA-0012",
+      (vaga) => vaga.tipo === "EFETIVO",
     );
     const idsVagas = new Set(vagas.map((vaga) => vaga.id));
     const posicoes = vagas.map((vaga) =>
@@ -104,23 +82,8 @@ describe("integridade dos exemplos de quadros autorizados", () => {
       (posicao) => posicao.situacaoDistribuicao === "PENDENTE_ATO",
     );
 
-    expect(distribuidas).toHaveLength(5);
-    expect(pendentes).toHaveLength(25);
-    expect(
-      new Set(distribuidas.map((posicao) => posicao.orgaoDistribuicao)),
-    ).toEqual(new Set(["SEMA", "SEPLAG", "SEFAZ"]));
-    expect(
-      movimentosVagasIndividuaisMock.some(
-        (movimento) =>
-          idsVagas.has(movimento.vagaId) && movimento.retroativo,
-      ),
-    ).toBe(true);
-    expect(
-      movimentosVagasIndividuaisMock.some(
-        (movimento) =>
-          idsVagas.has(movimento.vagaId) &&
-          movimento.tipo === "REDISTRIBUICAO",
-      ),
-    ).toBe(true);
+    expect(distribuidas).toHaveLength(0);
+    expect(pendentes).toHaveLength(vagas.length);
+    expect(movimentosVagasIndividuaisMock.some((movimento) => idsVagas.has(movimento.vagaId))).toBe(false);
   });
 });

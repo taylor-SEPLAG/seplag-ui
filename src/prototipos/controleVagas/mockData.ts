@@ -114,7 +114,7 @@ export const pendenciasRegrasMock = [
   "Periodicidade de homologação da metodologia e das taxas de projeção",
 ];
 
-export const quadrosAutorizadosMock: QuadroAutorizadoRow[] = [
+const quadrosAutorizadosLegadoMock: QuadroAutorizadoRow[] = [
   {
     id: 1,
     codigo: "QA-0001",
@@ -515,6 +515,64 @@ export const quadrosAutorizadosMock: QuadroAutorizadoRow[] = [
     atualizadoEm: "21/10/2026",
   },
 ];
+
+const criarQuadroEfetivoCenario = (
+  id: number,
+  cargo: string,
+  carreira: string,
+  autorizadas: number,
+  ato: string,
+  processo: string,
+  dataAtivacao: string,
+): QuadroAutorizadoRow => ({
+  id,
+  codigo: `QA-${String(id).padStart(4, "0")}`,
+  tipoQuadro: "Efetivo",
+  vinculo: "Servidor efetivo",
+  regime: "Estatutário",
+  carreira,
+  cargo,
+  perfilProfissional: "",
+  orgao: "ESTADO DE MATO GROSSO",
+  abrangencia: "Distribuição posterior pelo Estado",
+  formaDestinacaoLegal: "DISTRIBUICAO_POSTERIOR",
+  orgaosDefinidosLei: [],
+  quantitativosLegaisPorOrgao: [],
+  documentosLegaisIds: ["DL-001"],
+  situacaoVigencia: "ATIVO",
+  dataAtivacao,
+  autorizadas,
+  ocupadas: 0,
+  comprometidas: 0,
+  bloqueadas: 0,
+  inicioVigencia: dataAtivacao,
+  fimVigencia: "",
+  ato,
+  processo,
+  situacao: "Vigente",
+  versao: 1,
+  atualizadoEm: "23/10/2026",
+});
+
+const novosQuadrosEfetivosMock: QuadroAutorizadoRow[] = [
+  criarQuadroEfetivoCenario(15, "Administrador Público Efetivo", "ADM", 28, "Lei Complementar nº 801/2026", "SIGEP-2026-000101", "01/01/2026"),
+  criarQuadroEfetivoCenario(16, "Analista de Planejamento Efetivo", "ADM", 42, "Lei Complementar nº 805/2026", "SIGEP-2026-000102", "01/02/2026"),
+  criarQuadroEfetivoCenario(17, "Contador Público Efetivo", "ADM", 16, "Lei nº 8.412/2026", "SIGEP-2026-000103", "15/02/2026"),
+  criarQuadroEfetivoCenario(18, "Técnico de Gestão de Pessoas Efetivo", "ADM", 55, "Lei nº 8.418/2026", "SIGEP-2026-000104", "01/03/2026"),
+  criarQuadroEfetivoCenario(19, "Enfermeiro Efetivo", "SAUDE", 80, "Lei Complementar nº 812/2026", "SIGEP-2026-000105", "15/03/2026"),
+  criarQuadroEfetivoCenario(20, "Fisioterapeuta Efetivo", "SAUDE", 24, "Lei nº 8.426/2026", "SIGEP-2026-000106", "01/04/2026"),
+  criarQuadroEfetivoCenario(21, "Psicólogo Efetivo", "SAUDE", 31, "Lei nº 8.431/2026", "SIGEP-2026-000107", "15/04/2026"),
+  criarQuadroEfetivoCenario(22, "Professor de Educação Especial Efetivo", "EDU", 120, "Lei Complementar nº 819/2026", "SIGEP-2026-000108", "01/05/2026"),
+  criarQuadroEfetivoCenario(23, "Técnico Administrativo Educacional Efetivo", "EDU", 68, "Lei nº 8.440/2026", "SIGEP-2026-000109", "15/05/2026"),
+  criarQuadroEfetivoCenario(24, "Analista de Sistemas Efetivo", "TI", 36, "Lei nº 8.447/2026", "SIGEP-2026-000110", "01/06/2026"),
+  criarQuadroEfetivoCenario(25, "Especialista em Segurança da Informação Efetivo", "TI", 14, "Lei nº 8.451/2026", "SIGEP-2026-000111", "15/06/2026"),
+];
+
+export const quadrosAutorizadosMock: QuadroAutorizadoRow[] = [
+  ...quadrosAutorizadosLegadoMock.filter((quadro) => quadro.tipoQuadro !== "Efetivo"),
+  ...novosQuadrosEfetivosMock,
+];
+
 export const vagasIndividualizadasMock: Vaga[] = quadrosAutorizadosMock
   .filter(
     (quadro) =>

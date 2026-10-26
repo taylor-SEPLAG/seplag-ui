@@ -1,6 +1,6 @@
 import { vagasIndividualizadasMock } from "./mockData";
 import type { MovimentoVagaIndividual } from "./types";
-const v=(quadro:string,n:number)=>vagasIndividualizadasMock.find((item)=>item.quadroCodigo===quadro&&item.sequencial===n)!.id;
+const v=(quadro:string,n:number)=>vagasIndividualizadasMock.find((item)=>item.quadroCodigo===quadro&&item.sequencial===n)?.id??"";
 export const movimentosVagasIndividuaisMock:MovimentoVagaIndividual[]=[
  {id:"MVI-000101",vagaId:v("QA-0001",109),tipo:"DISTRIBUICAO",dataEfeito:"2025-01-01",registradoEm:"2025-01-02 08:00",retroativo:false,orgaoPosterior:"SEPLAG",unidadePosterior:"Gestão de Pessoas",situacaoLegalAnterior:"REGULAR",situacaoLegalPosterior:"REGULAR",ato:"Portaria nº 12/2025",processo:"SEPLAG-PRO-2025/00120",justificativa:"Distribuição inicial do quadro.",usuario:"Carga inicial"},
  {id:"MVI-000102",vagaId:v("QA-0001",110),tipo:"DISTRIBUICAO",dataEfeito:"2025-01-01",registradoEm:"2025-01-02 08:00",retroativo:false,orgaoPosterior:"SEPLAG",unidadePosterior:"Administração Sistêmica",situacaoLegalAnterior:"REGULAR",situacaoLegalPosterior:"REGULAR",ato:"Portaria nº 12/2025",processo:"SEPLAG-PRO-2025/00120",justificativa:"Distribuição inicial do quadro.",usuario:"Carga inicial"},
@@ -14,4 +14,4 @@ export const movimentosVagasIndividuaisMock:MovimentoVagaIndividual[]=[
  {id:"MVI-000111",vagaId:v("QA-0012",4),tipo:"DISTRIBUICAO",dataEfeito:"2026-07-20",registradoEm:"2026-07-20 09:00",retroativo:false,orgaoPosterior:"SEFAZ",situacaoLegalAnterior:"REGULAR",situacaoLegalPosterior:"REGULAR",ato:"Decreto nº 1.910/2026",processo:"SEMA-PRO-2026/03142",justificativa:"Distribuição inicial em lote para mais de um órgão.",usuario:"Carga inicial"},
  {id:"MVI-000112",vagaId:v("QA-0012",5),tipo:"DISTRIBUICAO",dataEfeito:"2026-07-02",registradoEm:"2026-07-15 14:00",retroativo:true,orgaoPosterior:"SEMA",situacaoLegalAnterior:"REGULAR",situacaoLegalPosterior:"REGULAR",ato:"Decreto nº 1.884/2026",processo:"SEMA-PRO-2026/02998",justificativa:"Exemplo de distribuição inicial registrada retroativamente.",usuario:"Carga inicial"},
  {id:"MVI-000113",vagaId:v("QA-0012",5),tipo:"REDISTRIBUICAO",dataEfeito:"2026-07-21",registradoEm:"2026-07-21 15:30",retroativo:false,orgaoAnterior:"SEMA",orgaoPosterior:"SEPLAG",situacaoLegalAnterior:"REGULAR",situacaoLegalPosterior:"REGULAR",ato:"Decreto nº 1.918/2026",processo:"SEPLAG-PRO-2026/02208",justificativa:"Redistribuição de vaga já distribuída para outro órgão permitido.",usuario:"Carga inicial"},
-];
+].filter((movimento)=>Boolean(movimento.vagaId));

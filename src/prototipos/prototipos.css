@@ -236,6 +236,41 @@
   background: #edf1f5;
 }
 
+.prototype-recadastramento-email-page { padding: 16px; }
+.prototype-recadastramento-email-form { width: 100%; flex: 0 0 100%; box-sizing: border-box; }
+.prototype-recadastramento-email-card { box-shadow: 0 2px 7px rgba(15, 41, 77, .12); }
+.prototype-recadastramento-email-card .p-card-body { padding: 14px 16px 28px; }
+.prototype-recadastramento-email-form h1 { margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid #d2d8df; color: #243545; font-size: 1.55rem; font-weight: 500; }
+.prototype-recadastramento-email-fields { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.prototype-recadastramento-email-field { position: relative; display: flex; min-width: 0; flex-direction: column; gap: 5px; color: #566474; font-size: .82rem; font-weight: 700; }
+.prototype-recadastramento-email-field b { color: #d23030; }
+.prototype-recadastramento-email-field input,
+.prototype-recadastramento-select-trigger { width: 100%; height: 38px; box-sizing: border-box; border: 1px solid #c9d3df; border-radius: 3px; background: white; color: #354a5f; font: inherit; font-weight: 400; }
+.prototype-recadastramento-email-field input { padding: 8px 10px; }
+.prototype-recadastramento-select-trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; text-align: left; cursor: pointer; }
+.prototype-recadastramento-select-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prototype-recadastramento-select-trigger:focus,
+.prototype-recadastramento-email-field input:focus { border-color: #1596ed; outline: 2px solid rgba(21, 150, 237, .2); }
+.prototype-recadastramento-email-full { margin-top: 14px; }
+.prototype-recadastramento-orgao-emails { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #d8e1ea; }
+.prototype-recadastramento-orgao-emails h2 { margin: 0 0 2px; color: #314f6e; font-size: 1rem; }
+.prototype-recadastramento-orgao-email-empty { margin: 0; padding: 12px; border: 1px dashed #cbd8e4; border-radius: 4px; background: #f8fafc; color: #64788b; font-size: .84rem; }
+.prototype-recadastramento-orgao-email-row { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(300px, 1fr); align-items: center; gap: 16px; padding: 10px 12px; border: 1px solid #d8e2eb; border-radius: 4px; background: #f9fbfd; color: #405c76; font-size: .84rem; }
+.prototype-recadastramento-orgao-email-row input { height: 38px; box-sizing: border-box; padding: 8px 10px; border: 1px solid #c9d3df; border-radius: 3px; color: #354a5f; font: inherit; }
+.prototype-recadastramento-orgao-email-row input:focus { border-color: #1596ed; outline: 2px solid rgba(21, 150, 237, .2); }
+.prototype-recadastramento-select-menu { position: absolute; z-index: 20; top: calc(100% + 3px); right: 0; left: 0; max-height: 264px; overflow-y: auto; border: 1px solid #c6d1dc; border-radius: 3px; background: white; box-shadow: 0 3px 8px rgba(20, 43, 68, .22); }
+.prototype-recadastramento-select-menu > button { display: flex; width: 100%; align-items: center; gap: 8px; padding: 9px 14px; border: 0; background: white; color: #334b63; font: inherit; font-size: .86rem; text-align: left; cursor: pointer; }
+.prototype-recadastramento-select-menu > button:hover,
+.prototype-recadastramento-select-menu > button.is-selected { background: #e1f1ff; }
+.prototype-recadastramento-select-menu.is-multiple > button.is-selected { background: #e1f1ff; }
+.prototype-recadastramento-select-menu.is-multiple > button i { color: #2498eb; font-size: 1.05rem; }
+.prototype-recadastramento-select-search { position: sticky; z-index: 1; top: 0; display: flex; align-items: center; margin: 7px; border: 2px solid #43a6ff; border-radius: 5px; background: white; }
+.prototype-recadastramento-select-search input { height: 32px; border: 0; outline: none; }
+.prototype-recadastramento-select-search i { padding-right: 9px; color: #51718b; }
+.prototype-recadastramento-select-all { border-bottom: 1px solid #d7e0e8 !important; color: #126db8 !important; font-weight: 700 !important; }
+.prototype-recadastramento-email-actions { display: grid; width: min(100%, 1060px); grid-template-columns: repeat(2, minmax(200px, 1fr)); gap: 14px; margin: 30px auto 0; }
+.prototype-recadastramento-email-actions .p-button { justify-content: center; }
+
 .prototype-recadastramento-card {
   min-height: 450px;
   border: 1px solid #dce2e9;

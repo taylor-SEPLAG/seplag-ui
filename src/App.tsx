@@ -170,6 +170,7 @@ import {
   PrototiposMatrizValidacaoTestePage,
   PrototiposNovoIngressoPage,
   PrototiposPage,
+  PrototiposRecadastramentoCadastrarEmailPage,
   PrototiposRecadastramentoPage,
   PrototiposPessoaFisicaFormPage,
   PrototiposPessoaVinculosPage,
@@ -1584,6 +1585,7 @@ function App() {
       <Route path="/calendario/*" element={<CalendarioPage />} />
       <Route path="/prototipos" element={<PrototiposPage />} />
       <Route path="/prototipos/recadastramento" element={<PrototiposRecadastramentoPage />} />
+      <Route path="/prototipos/recadastramento/cadastrar-email" element={<PrototiposRecadastramentoCadastrarEmailPage />} />
       <Route path="/prototipos/sicad" element={<PrototiposSicadPage />} />
       <Route
         path="/prototipos/sicad/administrador/usuarios"

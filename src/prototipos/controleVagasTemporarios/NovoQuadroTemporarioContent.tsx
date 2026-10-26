@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { DateFieldSeplag } from "../../componentes/Fields";
 
 import { BotaoSalvarSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dropdown } from "primereact/dropdown";
 import { useControlePssStore } from "../controlePss/controlePssStore";
@@ -27,6 +27,11 @@ export function NovoQuadroTemporarioContent() {
  const certame = seletivos.find(item => item.id === certameId);
  const cargos = certame?.cargos ?? [];
  const voltar = () => navigate("/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado");
+ useEffect(() => {
+  if (dataAtivacao && !dataFutura(dataAtivacao)) {
+   setErro((mensagem) => mensagem === "A data de início não pode ser futura." ? "" : mensagem);
+  }
+ }, [dataAtivacao]);
  const salvar = (event: FormEvent) => {
   event.preventDefault();
   if (!certame || !cargos.length) { setErro("Selecione um processo seletivo com cargos cadastrados para criar o quadro."); return; }
@@ -47,7 +52,7 @@ export function NovoQuadroTemporarioContent() {
    <section className="nqt-card"><header className="nqt-section-header"><i className="pi pi-briefcase" aria-hidden="true" /><div><h2>Cargos e vagas do seletivo</h2><p>Cargos e quantitativos registrados no edital selecionado.</p></div></header><div className="nqt-section-body"><p>Todos os cargos do seletivo integram este quadro. O cargo de cada pessoa será definido no ingresso.</p>
     {!certame ? <p>Selecione um processo seletivo para consultar seus cargos.</p> : !cargos.length ? <p role="status">Este seletivo ainda não possui cargos cadastrados.</p> : cargos.map(cargo => <article className="nqt-cargo" key={cargo.id}>
      <h3>{cargo.cargoNome}</h3>
-     <dl className="nqt-grid"><Dado label="Referência no seletivo" value={cargo.id} /><Dado label="Jornada" value={cargo.jornada} /><Dado label="Polo" value={cargo.polo} /><Dado label="Órgão de destino" value={cargo.orgaoDestino} /><Dado label="Municípios" value={cargo.cidades?.join(", ")} /><Dado label="Vagas ofertadas no edital" value={cargo.quantidadeVagas} /><Dado label="Possui cadastro reserva" value={cargo.aceitaCadastroReserva ? "Sim" : "Não"} /><Dado label="Quantidade de cadastro reserva" value={cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva : "Não se aplica"} /><Dado label="Forma de controle" value={cargo.aceitaCadastroReserva ? "Permite ampliação formal do quadro" : "Limitado a " + cargo.quantidadeVagas + " vagas"} /></dl>
+     <dl className="nqt-grid"><Dado label="Referência no seletivo" value={cargo.id} /><Dado label="Jornada" value={cargo.jornada} /><Dado label="Polo" value={cargo.polo} /><Dado label="Órgão de referência no edital" value={cargo.orgaoDestino} /><Dado label="Municípios" value={cargo.cidades?.join(", ")} /><Dado label="Vagas ofertadas no edital" value={cargo.quantidadeVagas} /><Dado label="Possui cadastro reserva" value={cargo.aceitaCadastroReserva ? "Sim" : "Não"} /><Dado label="Quantidade de cadastro reserva" value={cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva : "Não se aplica"} /><Dado label="Forma de controle" value={cargo.aceitaCadastroReserva ? "Permite ampliação formal do quadro" : "Limitado a " + cargo.quantidadeVagas + " vagas"} /></dl>
      <h4>Reservas por cota</h4>{cargo.reservasCota.length ? <ul>{cargo.reservasCota.map(item => <li key={item.id}>{item.tipo}: {item.quantidade} vagas</li>)}</ul> : <p>Não há reservas por cota cadastradas para este cargo.</p>}
     </article>)}
    </div></section>
