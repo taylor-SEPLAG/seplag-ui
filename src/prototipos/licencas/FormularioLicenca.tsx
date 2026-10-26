@@ -9,6 +9,7 @@ import { HistoricoEvento } from "./HistoricoEvento";
 import {
   BASE_LICENCAS as BASE,
   NATUREZAS,
+  OCORRENCIAS_POR_NATUREZA,
   OPCOES_VINCULOS,
   GRAUS_PARENTESCO,
   carregarEventos,
@@ -454,24 +455,50 @@ export function ParametrizacaoLicencasFormPage({
                     aria-label="Código Interno *"
                   />
                 </label>
+                <label className="pl-col-2">
+                  <span>
+                    Categoria da Ocorrência <em>*</em>
+                  </span>
+                  <select
+                    required
+                    value={evento.natureza}
+                    onChange={(e) => {
+                      const natureza = e.target
+                        .value as EventoLicenca["natureza"];
+                      setEvento((anterior) => ({
+                        ...anterior,
+                        natureza,
+                        nome: "",
+                      }));
+                    }}
+                  >
+                    {NATUREZAS.map((n) => (
+                      <option key={n}>{n}</option>
+                    ))}
+                  </select>
+                </label>
                 <label className="pl-col-4">
                   <span>
-                    Nome da Ocorrência (Exibido no Lançamento) <em>*</em>
+                    Ocorrência <em>*</em>
                   </span>
-                  <input
+                  <select
                     required
-                    maxLength={200}
                     value={evento.nome}
                     onChange={(e) => mudar("nome", e.target.value)}
-                  />
-                </label>
-                <label className="pl-col-2">
-                  <span>Sigla</span>
-                  <input
-                    type="text"
-                    value={evento.sigla ?? ""}
-                    onChange={(e) => mudar("sigla", e.target.value)}
-                  />
+                  >
+                    <option value="">-- Selecione uma Ocorrência --</option>
+                    {[
+                      ...new Set([
+                        ...OCORRENCIAS_POR_NATUREZA[evento.natureza],
+                        ...carregarEventos()
+                          .filter((e) => e.natureza === evento.natureza)
+                          .map((e) => e.nome),
+                        ...(evento.nome ? [evento.nome] : []),
+                      ]),
+                    ].map((nome) => (
+                      <option key={nome}>{nome}</option>
+                    ))}
+                  </select>
                 </label>
                 <label className="pl-col-2">
                   <span>
@@ -537,24 +564,6 @@ export function ParametrizacaoLicencasFormPage({
                       </small>
                     )}
                 </div>
-                <label className="pl-col-4">
-                  <span>
-                    Tipo <em>*</em>
-                  </span>
-                  <select
-                    value={evento.natureza}
-                    onChange={(e) =>
-                      mudar(
-                        "natureza",
-                        e.target.value as EventoLicenca["natureza"],
-                      )
-                    }
-                  >
-                    {NATUREZAS.map((n) => (
-                      <option key={n}>{n}</option>
-                    ))}
-                  </select>
-                </label>
                 <label className="pl-col-12">
                   <span>Observação</span>
                   <textarea
