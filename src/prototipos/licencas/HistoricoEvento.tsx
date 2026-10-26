@@ -4,7 +4,7 @@ import { configuracaoDoEvento, regraDoVinculo, OPCOES_VINCULOS, type EventoLicen
 export function camposHistorico(evento: EventoLicenca) {
   const c = configuracaoDoEvento(evento);
   const dados: Record<string, string> = {
-    'Código Interno': evento.codigo, 'Nome da Ocorrência': evento.nome, Tipo: evento.natureza,
+    'Código Interno': evento.codigo, 'Nome da Ocorrência': evento.nome, Sigla: evento.sigla ?? '', Tipo: evento.natureza,
     Categoria: evento.categoria, 'Data Início Vigência': c.inicioVigencia,
     'Data Fim Vigência': c.fimVigencia || 'Vigência Aberta', 'Amparo Legal': c.fundamentoLegal,
     Observação: c.orientacao, 'Tipos de Vínculo': [...evento.vinculos].sort().join(', '),

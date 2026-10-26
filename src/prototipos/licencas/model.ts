@@ -87,6 +87,7 @@ export interface EventoLicenca {
   id: string;
   codigo: string;
   nome: string;
+  sigla?: string;
   descricao: string;
   natureza: (typeof NATUREZAS)[number];
   categoria: string;
@@ -421,6 +422,7 @@ export function salvarEvento(
     ...evento,
     codigo: String(Number(evento.codigo)),
     nome: evento.nome.trim(),
+    sigla: evento.sigla?.trim() ?? "",
     descricao: evento.descricao.trim(),
     recorrencia: evento.recorrencia.trim(),
   };

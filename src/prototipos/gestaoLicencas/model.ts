@@ -185,14 +185,14 @@ export interface FiltrosGestaoLicencas {
   lotacao: string;
   servidor: string;
   situacao: string;
-  tipoVinculo: string;
+  tipo: string;
 }
 export const filtrosIniciais: FiltrosGestaoLicencas = {
   orgao: "",
   lotacao: "",
   servidor: "",
   situacao: "",
-  tipoVinculo: "",
+  tipo: "",
 };
 const normalizar = (texto: string) =>
   texto
@@ -209,7 +209,7 @@ export function filtrarLicencas(
       (!filtros.orgao || r.orgao === filtros.orgao) &&
       (!filtros.lotacao || r.lotacao === filtros.lotacao) &&
       (!filtros.situacao || r.situacao === filtros.situacao) &&
-      (!filtros.tipoVinculo || r.tipoVinculo === filtros.tipoVinculo) &&
+      (!filtros.tipo || r.tipo === filtros.tipo) &&
       (!busca ||
         normalizar(`${r.matricula} / ${r.vinculo} ${r.nome}`).includes(busca)),
   );

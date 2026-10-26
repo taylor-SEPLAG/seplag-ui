@@ -454,7 +454,7 @@ export function ParametrizacaoLicencasFormPage({
                     aria-label="Código Interno *"
                   />
                 </label>
-                <label className="pl-col-6">
+                <label className="pl-col-4">
                   <span>
                     Nome da Ocorrência (Exibido no Lançamento) <em>*</em>
                   </span>
@@ -463,6 +463,14 @@ export function ParametrizacaoLicencasFormPage({
                     maxLength={200}
                     value={evento.nome}
                     onChange={(e) => mudar("nome", e.target.value)}
+                  />
+                </label>
+                <label className="pl-col-2">
+                  <span>Sigla</span>
+                  <input
+                    type="text"
+                    value={evento.sigla ?? ""}
+                    onChange={(e) => mudar("sigla", e.target.value)}
                   />
                 </label>
                 <label className="pl-col-2">
