@@ -1,8 +1,9 @@
 import { NovoQuadroTemporarioContent } from "./NovoQuadroTemporarioContent";
-import { ampliarQuadroTemporario, listarQuadrosTemporarios, possuiCadastroReserva, seletivoTemporario, type QuadroTemporarioCadastro } from "./novoQuadroTemporarioStore";
+import { ampliarQuadroTemporario, listarQuadrosTemporarios, possuiCadastroReserva, saldosCadastroReservaPorCargo, seletivoTemporario, type QuadroTemporarioCadastro } from "./novoQuadroTemporarioStore";
 import { listarCargosControleVagasTemporarias } from "./cargosTemporariosStore";
 import { useControlePssStore } from "../controlePss/controlePssStore";
 import {
+  Fragment,
   useEffect,
   useMemo,
   useState,
@@ -222,6 +223,7 @@ function QuadrosContratosTemporariosLista() {
   const [situacao, setSituacao] = useState("");
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [cargosSelecionado, setCargosSelecionado] = useState<string | null>(null);
+  const [historicoExpandido, setHistoricoExpandido] = useState<string | null>(null);
   const termo = busca.trim().toLocaleLowerCase("pt-BR");
   const filtrados = quadros.filter((q) => (!termo || `${q.codigo} ${q.certame.nomeEdital} ${q.certame.numeroEditalOrgao}`.toLocaleLowerCase("pt-BR").includes(termo)) && (!cargo || q.cargos.some((item) => item.cargoNome === cargo)) && (!orgao || q.certame.setor === orgao) && (!situacao || q.situacao === situacao));
   const processosSeletivos = certames.filter(seletivoTemporario).length;
@@ -248,7 +250,7 @@ function QuadrosContratosTemporariosLista() {
         <article><i className="pi pi-file-check" /><div><span>Quadros temporários criados</span><strong>{quadros.length}</strong></div></article>
         <article><i className="pi pi-briefcase" /><div><span>Cargos com vagas temporárias</span><strong>{cargosControlados}</strong></div></article>
         <article><i className="pi pi-clock" /><div><span>Vagas temporárias previstas</span><strong>{vagasPrevistas}</strong></div></article>
-        <article><i className="pi pi-users" /><div><span>Vagas temporárias reais</span><strong>{vagasReais}</strong></div></article>
+        <article><i className="pi pi-users" /><div><span>Vagas temporárias autorizadas</span><strong>{vagasReais}</strong></div></article>
       </section>
       <section className="prototype-temporarios-quadro-card prototype-temporarios-quadro-filters-card">
         <div className="prototype-temporarios-quadro-filters prototype-temporarios-quadro-library-filters prototype-temporarios-quadro-list-filters">
@@ -262,7 +264,7 @@ function QuadrosContratosTemporariosLista() {
       <section className="prototype-temporarios-quadro-card prototype-temporarios-quadro-table-card">
         <div className="prototype-temporarios-quadro-table-toolbar"><BotaoAdicionarSeplag label="Novo Quadro" onClick={() => navigate(`${BASE_PATH}/novo`)} /></div>
         <div className="prototype-temporarios-quadro-table prototype-temporarios-quadro-list-table">
-          <table><thead><tr><th>Quadro <i className="pi pi-sort-alt" /></th><th>Processo seletivo <i className="pi pi-sort-alt" /></th><th>Órgão responsável <i className="pi pi-sort-alt" /></th><th>Vigência <i className="pi pi-sort-alt" /></th><th>Cargos <i className="pi pi-sort-alt" /></th><th>Vagas previstas <i className="pi pi-sort-alt" /></th><th>Vagas autorizadas <i className="pi pi-sort-alt" /></th><th>Situação <i className="pi pi-sort-alt" /></th><th>Ações</th></tr></thead><tbody>{filtrados.map((q) => <tr key={q.id}><td><button className="prototype-temporarios-quadro-link" onClick={() => setSelecionado(q.id)}>{q.codigo}</button><small>Versão {q.versoes.length}</small></td><td><strong>{q.certame.nomeEdital}</strong><small>{q.certame.situacaoAtual}</small></td><td>{q.certame.setor}</td><td>{q.dataAtivacao ?? "Não informada"}</td><td><button type="button" className="prototype-temporarios-quadro-cargos-action" aria-label={`Ver cargos do quadro ${q.codigo}`} onClick={() => setCargosSelecionado(q.id)}>{q.cargos.length}</button></td><td>{q.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0)}{q.cargos.some((cargo) => cargo.aceitaCadastroReserva) ? " + CR" : ""}</td><td>{q.totalAutorizado}</td><td><SituacaoTemporarioBadge situacao={q.situacao} /></td><td><div className="prototype-temporarios-quadro-actions"><BotaoIconSeplag className="prototype-temporarios-quadro-view-action" icon="pi pi-eye" tooltip="Visualizar quadro" aria-label={`Visualizar quadro ${q.codigo}`} style={{ width: 32, height: 32, padding: 0, border: 0, borderRadius: 4, backgroundColor: "#0784d3" }} onClick={() => setSelecionado(q.id)} />{q.situacao === "ATIVO" && possuiCadastroReserva(q) && <BotaoIconSeplag className="prototype-temporarios-quadro-expand-action" icon="pi pi-plus" tooltip="Registrar ampliação" aria-label={`Registrar ampliação do quadro ${q.codigo}`} style={{ width: 32, height: 32, padding: 0, border: 0, borderRadius: 4, backgroundColor: "#00b894" }} onClick={() => navigate(`${BASE_PATH}/${q.id}/nova-versao`)} />}</div></td></tr>)}</tbody></table>
+          <table><thead><tr><th>Quadro <i className="pi pi-sort-alt" /></th><th>Processo seletivo <i className="pi pi-sort-alt" /></th><th>Órgão responsável <i className="pi pi-sort-alt" /></th><th>Vigência <i className="pi pi-sort-alt" /></th><th>Cargos <i className="pi pi-sort-alt" /></th><th>Vagas previstas <i className="pi pi-sort-alt" /></th><th>Vagas autorizadas <i className="pi pi-sort-alt" /></th><th>Situação <i className="pi pi-sort-alt" /></th><th>Ações</th><th aria-label="Histórico" /></tr></thead><tbody>{filtrados.map((q) => <Fragment key={q.id}><tr><td><button className="prototype-temporarios-quadro-link" onClick={() => setSelecionado(q.id)}>{q.codigo}</button><small>Versão {q.versoes.length}</small></td><td><strong>{q.certame.nomeEdital}</strong><small>{q.certame.situacaoAtual}</small></td><td>{q.certame.setor}</td><td>{q.dataAtivacao ?? "Não informada"}</td><td><button type="button" className="prototype-temporarios-quadro-cargos-action" aria-label={`Ver cargos do quadro ${q.codigo}`} onClick={() => setCargosSelecionado(q.id)}>{q.cargos.length}</button></td><td>{q.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0)}{q.cargos.some((cargo) => cargo.aceitaCadastroReserva) ? " + CR" : ""}</td><td>{q.totalAutorizado}</td><td><SituacaoTemporarioBadge situacao={q.situacao} /></td><td><div className="prototype-temporarios-quadro-actions"><BotaoIconSeplag className="prototype-temporarios-quadro-view-action" icon="pi pi-eye" tooltip="Visualizar quadro" aria-label={`Visualizar quadro ${q.codigo}`} style={{ width: 32, height: 32, padding: 0, border: 0, borderRadius: 4, backgroundColor: "#0784d3" }} onClick={() => setSelecionado(q.id)} />{q.situacao === "ATIVO" && possuiCadastroReserva(q) && <BotaoIconSeplag className="prototype-temporarios-quadro-expand-action" icon="pi pi-plus" tooltip="Registrar ampliação" aria-label={`Registrar ampliação do quadro ${q.codigo}`} style={{ width: 32, height: 32, padding: 0, border: 0, borderRadius: 4, backgroundColor: "#00b894" }} onClick={() => navigate(`${BASE_PATH}/${q.id}/nova-versao`)} />}</div></td><td><button type="button" className="prototype-temporarios-quadro-history-toggle" aria-label={`Abrir histórico de versões do quadro ${q.codigo}`} onClick={() => setHistoricoExpandido((atual) => atual === q.id ? null : q.id)}><i className={`pi ${historicoExpandido === q.id ? "pi-chevron-up" : "pi-chevron-down"}`} /></button></td></tr>{historicoExpandido === q.id && <tr className="prototype-temporarios-quadro-history-row"><td colSpan={10}><HistoricoVersoesTemporario quadro={q} /></td></tr>}</Fragment>)}</tbody></table>
           {filtrados.length === 0 && <div className="prototype-temporarios-quadro-list-empty"><p>Nenhum quadro de contrato temporário cadastrado.</p></div>}
         </div>
       </section>
@@ -271,23 +273,35 @@ function QuadrosContratosTemporariosLista() {
   );
 }
 function CargosQuadroTemporarioModal({ quadro, onClose }: { quadro: QuadroTemporarioCadastro; onClose: () => void }) {
+  const saldos = saldosCadastroReservaPorCargo(quadro);
   return <ModalSeplag visible titulo={`Cargos do quadro ${quadro.codigo}`} ariaLabel={`Cargos do quadro ${quadro.codigo}`} tamanho="min(880px, 94vw)" fechar={onClose} customFooter={<BotaoVoltarSeplag type="button" label="Fechar" icon="pi pi-times" onClick={onClose} />}>
     <div className="prototype-temporarios-quadro-cargos-modal">
       <p>{quadro.certame.nomeEdital} · {quadro.cargos.length} cargo(s) vinculado(s).</p>
-      <table><thead><tr><th>Cargo</th><th>Vagas previstas</th><th>Cadastro reserva</th><th>Controle de vagas</th></tr></thead><tbody>{quadro.cargos.map((cargo) => <tr key={cargo.id}><td><strong>{cargo.cargoNome}</strong><small>{cargo.orgaoDestino || "Órgão de destino não informado"}</small></td><td>{cargo.quantidadeVagas}</td><td>{cargo.aceitaCadastroReserva ? "Sim" : "Não"}</td><td>{cargo.aceitaCadastroReserva ? "Permite ampliação formal do quadro" : `Limitado a ${cargo.quantidadeVagas} vagas`}</td></tr>)}</tbody></table>
+      <table><thead><tr><th>Cargo</th><th>Vagas previstas</th><th>Cadastro reserva</th><th>Já ampliadas</th><th>Autorizadas</th></tr></thead><tbody>{saldos.map((item) => <tr key={item.cargo.id}><td><strong>{item.cargo.cargoNome}</strong><small>{item.cargo.orgaoDestino || "Órgão de referência não informado"}</small></td><td>{item.cargo.quantidadeVagas}</td><td>{item.cargo.aceitaCadastroReserva ? item.cadastroReserva : "Não possui"}</td><td>{item.ampliadas || "—"}</td><td>{item.autorizado}</td></tr>)}</tbody></table>
     </div>
   </ModalSeplag>;
 }
 
+function HistoricoVersoesTemporario({ quadro }: { quadro: QuadroTemporarioCadastro }) {
+  const linhas = quadro.versoes.slice().reverse().flatMap((versao) => {
+    if (versao.evolucao === "CRIACAO") return quadro.cargos.map((cargo) => ({ versao, cargo: cargo.cargoNome, quantidade: cargo.quantidadeVagas }));
+    if (versao.ampliacoesPorCargo?.length) return versao.ampliacoesPorCargo.map((item) => ({ versao, cargo: quadro.cargos.find((cargo) => cargo.id === item.cargoId)?.cargoNome ?? "Cargo não informado", quantidade: item.quantidade }));
+    return [{ versao, cargo: "Ampliação legada sem cargo definido", quantidade: versao.quantidade }];
+  });
+  return <div className="prototype-temporarios-quadro-history-expanded"><table><thead><tr><th>Versão</th><th>Evolução</th><th>Cargo</th><th>Quantidade</th><th>Total autorizado</th><th>Data de efeito</th><th>Situação</th></tr></thead><tbody>{linhas.map(({ versao, cargo, quantidade }, index) => <tr key={`${versao.versao}-${cargo}-${index}`}><td>Versão {versao.versao}</td><td>{versao.evolucao === "CRIACAO" ? "Criação" : "Ampliação legal"}</td><td>{cargo}</td><td>{versao.evolucao === "AMPLIACAO" ? `+${quantidade}` : quantidade}</td><td>{versao.totalAutorizado}</td><td>{versao.dataInicio}</td><td><span className={versao.versao === quadro.versoes.length ? "is-current" : "is-history"}>{versao.versao === quadro.versoes.length ? "Vigente" : "Histórico"}</span></td></tr>)}</tbody></table></div>;
+}
+
 function NovaVersaoQuadroTemporario({ quadro, onBack }: { quadro: QuadroTemporarioCadastro; onBack: () => void }) {
   const navigate = useNavigate();
-  const [quantidade, setQuantidade] = useState("");
+  const [quantidadesPorCargo, setQuantidadesPorCargo] = useState<Record<string, string>>({});
   const [dataInicio, setDataInicio] = useState(new Date().toISOString().slice(0, 10));
   const [observacao, setObservacao] = useState("");
   const [processoSigadoc, setProcessoSigadoc] = useState("");
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>([]);
   const [erro, setErro] = useState("");
-  const adicionar = Number(quantidade) || 0;
+  const saldosPorCargo = useMemo(() => saldosCadastroReservaPorCargo(quadro), [quadro]);
+  const ampliacoes = saldosPorCargo.map((item) => ({ cargoId: item.cargo.id, quantidade: Number(quantidadesPorCargo[item.cargo.id]) || 0 })).filter((item) => item.quantidade > 0);
+  const adicionar = ampliacoes.reduce((total, item) => total + item.quantidade, 0);
   const novoTotal = quadro.totalAutorizado + adicionar;
   const disponiveis = quadro.totalAutorizado;
   const salvar = (event: FormEvent) => {
@@ -295,18 +309,18 @@ function NovaVersaoQuadroTemporario({ quadro, onBack }: { quadro: QuadroTemporar
     try {
       if (!processoSigadoc.trim()) throw new Error("Informe o processo SIGADOC.");
       if (!documentosLegaisIds.length) throw new Error("Vincule ao menos um documento legal.");
-      ampliarQuadroTemporario(quadro.id, adicionar, dataInicio, observacao, processoSigadoc, documentosLegaisIds);
+      ampliarQuadroTemporario(quadro.id, ampliacoes, dataInicio, observacao, processoSigadoc, documentosLegaisIds);
       navigate(BASE_PATH);
     } catch (reason) {
       setErro(reason instanceof Error ? reason.message : "Não foi possível registrar a ampliação.");
     }
   };
   return <main className="prototype-temporarios-quadro-page prototype-temporarios-quadro-page-current">
-    <header className="prototype-temporarios-quadro-header"><div><h1>Nova versão do quadro temporário</h1><p>Registre uma ampliação legal sem alterar a origem, os cargos de referência ou as versões já existentes.</p></div></header>
+    <header className="prototype-temporarios-quadro-header"><div><h1>Nova versão do quadro temporário</h1><p>Registre uma ampliação legal por cargo, preservando a origem e as versões já existentes.</p></div></header>
     <form className="prototype-temporarios-version-form" onSubmit={salvar}>
-      <section className="prototype-temporarios-version-context"><div className="prototype-temporarios-version-context-title"><span>Quadro que será versionado</span><strong>{quadro.codigo}</strong><b>{quadro.certame.nomeEdital}</b><em>Versão vigente {quadro.versoes.length}</em></div><div className="prototype-temporarios-version-context-kpis"><article><span>Autorizadas</span><strong>{quadro.totalAutorizado}</strong></article><article><span>Em ocupação</span><strong>0</strong></article><article><span>Ocupadas</span><strong>0</strong></article><article><span>Disponíveis</span><strong>{disponiveis}</strong></article></div><p><i className="pi pi-info-circle" /> A versão vigente será preservada. A ampliação cria vagas genéricas para futuros ingressos.</p></section>
+      <section className="prototype-temporarios-version-context"><div className="prototype-temporarios-version-context-title"><span>Quadro que será versionado</span><strong>{quadro.codigo}</strong><b>{quadro.certame.nomeEdital}</b><em>Versão vigente {quadro.versoes.length}</em></div><div className="prototype-temporarios-version-context-kpis"><article><span>Autorizadas</span><strong>{quadro.totalAutorizado}</strong></article><article><span>Em ocupação</span><strong>0</strong></article><article><span>Ocupadas</span><strong>0</strong></article><article><span>Disponíveis</span><strong>{disponiveis}</strong></article></div><p><i className="pi pi-info-circle" /> A versão vigente será preservada. Cada ampliação autoriza vagas somente para o cargo com cadastro reserva selecionado.</p></section>
       <BaseLegalVinculada value={documentosLegaisIds} onChange={setDocumentosLegaisIds} />
-      <section className="prototype-temporarios-version-card"><div className="prototype-temporarios-version-option is-selected"><i className="pi pi-plus-circle" /><div><strong>Ampliação legal</strong><span>Autoriza novas vagas no quadro. Cargo, órgão e jornada serão definidos no ingresso.</span></div></div><div className="prototype-temporarios-version-fields"><label><span>Data de efeito *</span><input type="date" max={new Date().toISOString().slice(0, 10)} value={dataInicio} onChange={(event) => setDataInicio(event.target.value)} required /></label><label><span>Processo SIGADOC *</span><input value={processoSigadoc} onChange={(event) => setProcessoSigadoc(event.target.value)} placeholder="Ex.: SEMA-PRO-2026/03081" required /></label><label><span>Quantidade adicional *</span><input type="number" min="1" value={quantidade} onChange={(event) => setQuantidade(event.target.value)} required /></label><label className="is-full"><span>Observação</span><textarea value={observacao} onChange={(event) => setObservacao(event.target.value)} placeholder="Informe uma observação, se necessário." rows={3} /></label></div><div className="prototype-temporarios-version-impact"><span>Total autorizado atual <strong>{quadro.totalAutorizado}</strong></span><i className="pi pi-arrow-right" /><span>Ampliação <strong>+{adicionar}</strong></span><i className="pi pi-arrow-right" /><span>Novo total autorizado <strong>{novoTotal}</strong></span></div></section>
+      <section className="prototype-temporarios-version-card"><div className="prototype-temporarios-version-option is-selected"><i className="pi pi-plus-circle" /><div><strong>Ampliação legal</strong><span>Informe as quantidades por cargo. Somente cargos com cadastro reserva podem ser ampliados.</span></div></div><div className="prototype-temporarios-version-fields"><label><span>Data de efeito *</span><input type="date" max={new Date().toISOString().slice(0, 10)} value={dataInicio} onChange={(event) => setDataInicio(event.target.value)} required /></label><label><span>Processo SIGADOC *</span><input value={processoSigadoc} onChange={(event) => setProcessoSigadoc(event.target.value)} placeholder="Ex.: SEMA-PRO-2026/03081" required /></label><label className="is-full"><span>Observação</span><textarea value={observacao} onChange={(event) => setObservacao(event.target.value)} placeholder="Informe uma observação, se necessário." rows={3} /></label></div><div className="prototype-temporarios-version-cargos"><table><thead><tr><th>Cargo</th><th>Vagas do edital</th><th>Cadastro reserva</th><th>Já ampliadas</th><th>Saldo de CR</th><th>Quantidade para ampliar</th></tr></thead><tbody>{saldosPorCargo.map((item) => <tr key={item.cargo.id}><td><strong>{item.cargo.cargoNome}</strong><small>{item.cargo.jornada || "Jornada definida no ingresso"}</small></td><td>{item.cargo.quantidadeVagas}</td><td>{item.cargo.aceitaCadastroReserva ? item.cadastroReserva : "Não possui"}</td><td>{item.ampliadas || "—"}</td><td>{item.cargo.aceitaCadastroReserva ? item.saldoCadastroReserva : "—"}</td><td>{item.cargo.aceitaCadastroReserva ? <input type="number" min="0" max={item.saldoCadastroReserva} value={quantidadesPorCargo[item.cargo.id] ?? ""} onChange={(event) => setQuantidadesPorCargo((atual) => ({ ...atual, [item.cargo.id]: event.target.value }))} disabled={!item.saldoCadastroReserva} aria-label={`Quantidade para ampliar ${item.cargo.cargoNome}`} /> : <span className="prototype-temporarios-version-no-cr">Sem CR</span>}</td></tr>)}</tbody></table></div><div className="prototype-temporarios-version-impact"><span>Total autorizado atual <strong>{quadro.totalAutorizado}</strong></span><i className="pi pi-arrow-right" /><span>Ampliação <strong>+{adicionar}</strong></span><i className="pi pi-arrow-right" /><span>Novo total autorizado <strong>{novoTotal}</strong></span></div></section>
       {erro && <MensagemSeplag visible severity="error" message={erro} />}
       <footer className="prototype-temporarios-version-actions"><BotaoVoltarSeplag type="button" label="Cancelar" icon="pi pi-times" onClick={onBack} /><BotaoSalvarSeplag type="submit" label="Registrar ampliação" icon="pi pi-plus" /></footer>
     </form>
@@ -322,6 +336,7 @@ function QuadroTemporarioDetalheModal({
 }) {
   const vagasPrevistas = quadro.cargos.reduce((total, cargo) => total + cargo.quantidadeVagas, 0);
   const possuiCadastroReserva = quadro.cargos.some((cargo) => cargo.aceitaCadastroReserva);
+  const saldos = saldosCadastroReservaPorCargo(quadro);
 
   return (
     <div className="prototype-temporarios-detail-backdrop" onMouseDown={onClose}>
@@ -341,9 +356,9 @@ function QuadroTemporarioDetalheModal({
         </div>
         <div className="prototype-temporarios-detail-body">
           <h3>Cargos e vagas do seletivo</h3>
-          {quadro.cargos.map((cargo) => <article key={cargo.id}><strong>{cargo.cargoNome}</strong><span>{cargo.quantidadeVagas} vagas{cargo.aceitaCadastroReserva ? " + CR" : " · Limite de " + cargo.quantidadeVagas}</span>{cargo.aceitaCadastroReserva && <small>Vagas adicionais dependem de uma ampliação formal do quadro.</small>}</article>)}
+          {saldos.map((item) => <article key={item.cargo.id}><strong>{item.cargo.cargoNome}</strong><span>{item.autorizado} autorizadas · {item.cargo.quantidadeVagas} no edital{item.cargo.aceitaCadastroReserva ? ` + CR ${item.cadastroReserva}` : ""}</span>{item.cargo.aceitaCadastroReserva && <small>{item.ampliadas} vagas ampliadas · saldo de CR: {item.saldoCadastroReserva}</small>}</article>)}
         </div>
-        <div className="prototype-temporarios-detail-body"><h3>Histórico de versões</h3>{quadro.versoes.map((versao) => <article key={versao.versao}><strong>Versão {versao.versao} · {versao.evolucao === "CRIACAO" ? "Criação" : "Ampliação"}</strong><span>{versao.evolucao === "AMPLIACAO" ? `+${versao.quantidade} vagas` : `${versao.quantidade} vagas iniciais`} · Total autorizado: {versao.totalAutorizado}</span><small>Início: {versao.dataInicio}{versao.observacao ? ` · ${versao.observacao}` : ""}</small></article>)}</div>
+        <div className="prototype-temporarios-detail-body"><h3>Histórico de versões</h3>{quadro.versoes.map((versao) => <article key={versao.versao}><strong>Versão {versao.versao} · {versao.evolucao === "CRIACAO" ? "Criação" : "Ampliação legal"}</strong><span>{versao.evolucao === "AMPLIACAO" ? `+${versao.quantidade} vagas` : `${versao.quantidade} vagas iniciais`} · Total autorizado: {versao.totalAutorizado}</span><small>Início: {versao.dataInicio}{versao.processoSigadoc ? ` · SIGADOC: ${versao.processoSigadoc}` : ""}{versao.ampliacoesPorCargo?.length ? ` · ${versao.ampliacoesPorCargo.map((item) => `${quadro.cargos.find((cargo) => cargo.id === item.cargoId)?.cargoNome ?? "Cargo"}: +${item.quantidade}`).join("; ")}` : ""}{versao.observacao ? ` · ${versao.observacao}` : ""}</small></article>)}</div>
       </section>
     </div>
   );
