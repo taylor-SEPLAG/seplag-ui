@@ -678,21 +678,30 @@ export function ParametrizacaoLicencasFormPage({
                               Sem Limite de Dias
                             </label>
                           </div>
-                          <div className="pl-col-4">
-                            <SelecaoMultipla
-                              titulo="Abrangência"
-                              opcoes={["Dia Integral", "Por Horas"].map(
-                                (v) => ({
-                                  label: v,
-                                  value: v,
-                                }),
-                              )}
-                              valores={regra.abrangencias}
-                              alterar={(v) =>
-                                mudarRegra(vinculo, { abrangencias: v })
+                          <label className="pl-col-4">
+                            <span>
+                              Abrangência <em>*</em>
+                            </span>
+                            <select
+                              required
+                              value={
+                                regra.abrangencias.length === 1
+                                  ? regra.abrangencias[0]
+                                  : ""
                               }
-                            />
-                          </div>
+                              onChange={(e) =>
+                                mudarRegra(vinculo, {
+                                  abrangencias: [e.target.value],
+                                })
+                              }
+                            >
+                              <option value="" disabled>
+                                Selecione uma opção
+                              </option>
+                              <option value="Dia Integral">Dia Integral</option>
+                              <option value="Por Horas">Por Horas</option>
+                            </select>
+                          </label>
                           <label className="pl-col-4">
                             <span>
                               Possui Trava de Recorrência? <em>*</em>
