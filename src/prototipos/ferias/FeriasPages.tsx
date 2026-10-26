@@ -21,10 +21,8 @@ import {
   inicioUsufruto,
   fimUsufruto,
   podeSuspender,
-  podeReativar,
   podeCancelar,
   elegivelParaQuitacaoAutomatica,
-  saldoRestanteParaReabertura,
 } from "./regrasReabertura";
 
 function brParaIso(valor: string) {
@@ -51,7 +49,7 @@ type TipoVinculo = "Efetivo" | "Comissionado" | "Contrato Temporário" | "Reside
 type TipoVinculoFiltro = "Todos" | TipoVinculo;
 type Origem = "PORTALSERVIDOR" | "SIGEP";
 type TipoRegistro = "FÉRIAS" | "LICENÇA REMUNERADA";
-type AcaoStatus = "validar" | "rejeitar" | "suspender" | "reativar" | "cancelar";
+type AcaoStatus = "validar" | "rejeitar" | "suspender" | "cancelar";
 type PerfilAcesso = "Servidor" | "Chefia Imediata" | "RH / Gestão de Pessoas" | "DRE / RH Central";
 
 interface ParcelaFerias {
@@ -67,6 +65,10 @@ interface HistoricoEventoFerias {
   situacao: SituacaoFerias;
   acao: string;
   data: string;
+  /** Data (ISO) em que a mudança de situação passa a valer de fato — editável pelo usuário em
+   * ações como Suspender; quando ausente, a tela usa a data de "registrado em" como data do
+   * efeito (mesmo comportamento anterior). */
+  dataEfeito?: string;
   responsavel: string;
   /** Matrícula/vínculo de quem está logado realizando a ação (não do servidor da solicitação). */
   responsavelMatricula?: string;
@@ -121,12 +123,9 @@ export interface FeriasRegistro {
   auxilioTransporteEfetivado?: boolean;
   sigpasIntegrado?: boolean;
   emailChefiaEnviado?: boolean;
-  /** Folha de Pagamento Homologada/Paga — enquanto true, bloqueia cancelamento e reativação
-   * direta (reabertura-padrão); só o perfil Administrador RH pode forçar, fora deste protótipo. */
+  /** Folha de Pagamento Homologada/Paga — enquanto true, bloqueia cancelamento direto;
+   * só o perfil Administrador RH pode forçar, fora deste protótipo. */
   folhaHomologada?: boolean;
-  /** Preenchido quando o agendamento é reaberto com uma nova data (RN reabertura 3.1) —
-   * mantém no histórico o período original que foi cancelado/suspenso. */
-  historicoReabertura?: { inicioOriginal: string; fimOriginal: string; reabertoEm: string };
   /** Linha do tempo completa do registro — um evento por mudança de situação, com quem
    * lançou/decidiu, quando, a justificativa (se houver) e os anexos daquele momento. */
   historico?: HistoricoEventoFerias[];
@@ -627,7 +626,6 @@ function rotuloAcaoHistorico(acao: string, situacao: SituacaoFerias): string {
     validar: "Validação",
     rejeitar: "Rejeição",
     suspender: "Suspensão",
-    reativar: "Reabertura",
     cancelar: "Cancelamento",
     expiracao: "Prazo expirado",
     quitacao: "Quitação automática",
@@ -714,7 +712,7 @@ type AbaFerias = "gestao" | "aprovacoes" | "substituicoes";
 const PERFIL_STORAGE_KEY = "prototype-ferias-perfil";
 
 // Seletor de perfil simplificado para os dois papéis de regras-perfis-ferias.md: Gestor
-// (lança/altera/cancela/suspende/reabre) e Aprovador (valida/reprova/exclui/força reabertura).
+// (lança/altera/cancela/suspende) e Aprovador (valida/reprova/exclui).
 // Internamente reaproveitamos "RH / Gestão de Pessoas" e "DRE / RH Central" como valores de
 // PerfilAcesso — "Servidor" e "Chefia Imediata" continuam existindo no tipo (perfilPodeAvaliarRegistro
 // trata qualquer aprovador via podeAvaliar), só não ficam mais selecionáveis na tela.
@@ -898,7 +896,7 @@ export function PrototiposFeriasPage() {
     justificativa?: string,
     documento?: DocumentoFerias,
     novasParcelas?: ParcelaFerias[],
-    historicoReabertura?: { inicioOriginal: string; fimOriginal: string; reabertoEm: string },
+    dataEfeito?: string,
   ) => {
     if ((acao==="validar" || acao==="rejeitar") && !registros.some(r => r.id === registroId && perfilPodeAvaliarRegistro(perfil,r))) return;
     const proximos = registros.map((registro) => {
@@ -912,27 +910,22 @@ export function PrototiposFeriasPage() {
         registro.tipoVinculo === "Residente Técnico";
       // Registra quem avaliou (validou ou rejeitou) a solicitação, para exibir no "Visualizar".
       const marcaAvaliacao = acao === "validar" || acao === "rejeitar";
-      // RN reabertura 3.1: a reabertura entra num novo ciclo de validação — o prazo de aprovação
-      // precisa ser recalculado a partir de hoje (o antigo já estava vencido/consumido),
-      // respeitando o fechamento da folha do mês vigente.
-      const ehReaberturaAcao = acao === "reativar";
       const ator = atorHistorico(perfil);
       return {
         ...registro,
         situacao: novaSituacao,
         parcelas: novasParcelas ?? registro.parcelas,
-        historicoReabertura: historicoReabertura ?? registro.historicoReabertura,
         documentos: documento ? [...(registro.documentos ?? []), documento] : registro.documentos,
         historico: comHistorico(registro, {
           situacao: novaSituacao,
           acao: acao ?? "atualizacao",
+          dataEfeito: dataEfeito || undefined,
           responsavel: ator.rotulo,
           responsavelMatricula: ator.matricula,
           responsavelVinculo: ator.vinculo,
           justificativa: justificativa?.trim() || undefined,
           documentos: documento ? [documento] : undefined,
         }),
-        ...(ehReaberturaAcao ? { dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia() } : {}),
         ...(efetivaBeneficiosRecesso ? { auxilioTransporteEfetivado: true, sigpasIntegrado: true } : {}),
         ...(marcaAvaliacao ? { avaliadoPor: ator.rotulo, avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
       };
@@ -943,7 +936,7 @@ export function PrototiposFeriasPage() {
 
   // RN (SEDUC/UNEMAT): lotes e coletivas desses órgãos são aprovados em bloco — o servidor
   // individual (orgaoColetivo OUTRO) continua sendo avaliado um a um.
-  const aplicarStatusLote = (loteId: string, novaSituacao: SituacaoFerias, acao: AcaoStatus, justificativa?: string, documento?: DocumentoFerias) => {
+  const aplicarStatusLote = (loteId: string, novaSituacao: SituacaoFerias, acao: AcaoStatus, justificativa?: string, documento?: DocumentoFerias, dataEfeito?: string) => {
     if (!podeAvaliar(perfil)) return;
     const idsAfetados = new Set(
       registros
@@ -961,6 +954,7 @@ export function PrototiposFeriasPage() {
             historico: comHistorico(registro, {
               situacao: novaSituacao,
               acao,
+              dataEfeito: dataEfeito || undefined,
               responsavel: ator.rotulo,
               responsavelMatricula: ator.matricula,
               responsavelVinculo: ator.vinculo,
@@ -1005,8 +999,8 @@ export function PrototiposFeriasPage() {
             <label>
               <span>Visualizando como</span>
               <select value={perfil} onChange={(event) => alterarPerfil(event.target.value as PerfilAcesso)}>
-                <option value="RH / Gestão de Pessoas">Gestor (lança, altera, cancela, suspende, reabre)</option>
-                <option value="DRE / RH Central">Aprovador (valida, reprova, exclui, força reabertura)</option>
+                <option value="RH / Gestão de Pessoas">Gestor (lança, altera, cancela, suspende)</option>
+                <option value="DRE / RH Central">Aprovador (valida, reprova, exclui)</option>
               </select>
             </label>
           </div>
@@ -1206,7 +1200,7 @@ export function PrototiposFeriasPage() {
           acao={confirmacaoStatus.acao}
           loteId={confirmacaoStatus.loteId}
           onFechar={() => setConfirmacaoStatus(null)}
-          onConfirmar={(novaSituacao,justificativa,documento,novasParcelas,historicoReabertura) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa,documento) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa,documento,novasParcelas,historicoReabertura)}
+          onConfirmar={(novaSituacao,justificativa,documento,novasParcelas,dataEfeito) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa,documento,dataEfeito) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa,documento,novasParcelas,dataEfeito)}
         />
       ) : null}
 
@@ -1245,14 +1239,13 @@ function perfilPodeAvaliarRegistro(perfil: PerfilAcesso, registro: FeriasRegistr
   return registro.tipo === 'Coletiva' || registro.tipo === 'Lote' || registro.origem === 'PORTALSERVIDOR' || registro.tipo === 'Recesso';
 }
 
-/** "Perfil Aprovador" (regras-perfis-ferias): valida/reprova submissões, exclui agendamentos
- * e é o único que pode forçar a reabertura de um agendamento com folha já homologada/paga. */
+/** "Perfil Aprovador" (regras-perfis-ferias): valida/reprova submissões e exclui agendamentos. */
 function podeAvaliar(perfil: PerfilAcesso) {
   return perfil === "Chefia Imediata" || perfil === "DRE / RH Central";
 }
 
-/** "Perfil Gestor" (regras-perfis-ferias): lança, altera, cancela, suspende e reabre
- * agendamentos — mas não aprova, não exclui e não força reabertura com financeiro pago. */
+/** "Perfil Gestor" (regras-perfis-ferias): lança, altera, cancela e suspende
+ * agendamentos — mas não aprova e não exclui. */
 function podeGerenciarCompleto(perfil: PerfilAcesso) {
   return perfil === "RH / Gestão de Pessoas";
 }
@@ -1401,7 +1394,7 @@ function TabelaRegistros({
                   );
                 })()}
                 {registro.folhaHomologada ? (
-                  <span className="prototype-ferias-badge is-cancelado" title="Folha de Pagamento Homologada/Paga — cancelamento e reabertura diretos bloqueados.">
+                  <span className="prototype-ferias-badge is-cancelado" title="Folha de Pagamento Homologada/Paga — cancelamento direto bloqueado.">
                     <i className="pi pi-lock" aria-hidden="true" /> Folha homologada
                   </span>
                 ) : null}
@@ -1462,15 +1455,6 @@ function TabelaRegistros({
                           onClick={() => { onAlterarStatus(registro, "suspender"); setMenuAbertoId(null); }}
                         >
                           <i className="pi pi-pause" aria-hidden="true" /> Suspender
-                        </button>
-                      ) : null}
-                      {podeGerenciarCompleto(perfil) && podeReativar(registro) ? (
-                        <button
-                          type="button"
-                          className="is-acao-verde"
-                          onClick={() => { onAlterarStatus(registro, "reativar"); setMenuAbertoId(null); }}
-                        >
-                          <i className="pi pi-replay" aria-hidden="true" /> Reabrir agendamento
                         </button>
                       ) : null}
                       {podeGerenciarCompleto(perfil) && podeCancelar(registro) ? (
@@ -4593,6 +4577,14 @@ export function FormularioRecesso({
   );
 }
 
+/** Data de efeito exibida no histórico: usa a data escolhida pelo usuário (ex.: data da
+ * suspensão) quando houver; senão cai para a data de registro do evento, só com a parte de
+ * data (mesmo comportamento anterior à existência de dataEfeito). */
+function dataEfeitoHistorico(evento: HistoricoEventoFerias): string {
+  if (evento.dataEfeito) return formatarDataBr(evento.dataEfeito);
+  return formatarDataBr(evento.data.slice(0, 10)) || evento.data;
+}
+
 /** Ícone/cor da linha do tempo, por situação do evento — mesma paleta usada nos badges da tabela. */
 function iconeHistorico(situacao: SituacaoFerias): { icone: string; classe: string } {
   if (situacao === "EM ABERTO" || situacao === "QUITADO") return { icone: "pi pi-check", classe: "is-sucesso" };
@@ -4639,7 +4631,7 @@ function ModalHistoricoRegistro({
                     <span className="prototype-ferias-historico-ponto"><i className={icone} aria-hidden="true" /></span>
                     <span className="prototype-ferias-historico-texto">
                       <strong>{rotuloAcaoHistorico(evento.acao, evento.situacao)}</strong>
-                      <small>Data do efeito {formatarDataBr(evento.data.slice(0, 10)) || evento.data}</small>
+                      <small>Data do efeito {dataEfeitoHistorico(evento)}</small>
                       <small className="prototype-ferias-historico-rodape">
                         <span className="prototype-ferias-historico-ator">
                           <i className="pi pi-user" aria-hidden="true" /> {evento.responsavel}
@@ -4659,7 +4651,7 @@ function ModalHistoricoRegistro({
             <i className="pi pi-comment" aria-hidden="true" /> Justificativa da situação
           </h4>
           <p className="prototype-ferias-historico-legenda">
-            {rotuloAcaoHistorico(selecionado.acao, selecionado.situacao)} · Data do efeito {selecionado.data}
+            {rotuloAcaoHistorico(selecionado.acao, selecionado.situacao)} · Data do efeito {dataEfeitoHistorico(selecionado)}
           </p>
           <p className="prototype-ferias-historico-justificativa">
             {selecionado.justificativa?.trim() || "Sem justificativa registrada para esta situação."}
@@ -4669,7 +4661,7 @@ function ModalHistoricoRegistro({
             <i className="pi pi-folder" aria-hidden="true" /> Documentos da situação
           </h4>
           <p className="prototype-ferias-historico-legenda">
-            {rotuloAcaoHistorico(selecionado.acao, selecionado.situacao)} · Data do efeito {selecionado.data}
+            {rotuloAcaoHistorico(selecionado.acao, selecionado.situacao)} · Data do efeito {dataEfeitoHistorico(selecionado)}
           </p>
           {selecionado.documentos?.length ? (
             <table className="prototype-ferias-table prototype-ferias-historico-documentos">
@@ -4855,17 +4847,6 @@ const STATUS_META: Record<AcaoStatus, { titulo: string; descricao: string; sever
     botao: "Suspender",
     novaSituacao: "SUSPENSO",
   },
-  reativar: {
-    titulo: "Reabrir agendamento",
-    descricao: "A data original não é restaurada automaticamente — informe a nova data de início abaixo. A data fim é recalculada com a mesma quantidade de dias do agendamento original, que fica preservado no histórico.",
-    severity: "success",
-    icone: "pi pi-replay",
-    botao: "Reabrir agendamento",
-    // Mapeamento do RN de reabertura: "Em Elaboração/Aguardando Homologação" não existem como
-    // status à parte neste protótipo — a nova data exige novo ciclo de validação da chefia,
-    // então reaproveitamos AGUARDANDO VALIDAÇÃO (mesma fila de Aprovações).
-    novaSituacao: "AGUARDANDO VALIDAÇÃO",
-  },
   cancelar: {
     titulo: "Cancelar férias",
     descricao: "Ação irreversível — o registro deixa de constar na listagem ativa.",
@@ -4891,27 +4872,22 @@ function ModalConfirmarStatus({
     justificativa?: string,
     documento?: DocumentoFerias,
     novasParcelas?: ParcelaFerias[],
-    historicoReabertura?: { inicioOriginal: string; fimOriginal: string; reabertoEm: string },
+    dataEfeito?: string,
   ) => void;
   loteId?: string;
 }>) {
   const meta = STATUS_META[acao];
-  const exigeJustificativa = acao === "rejeitar" || acao === "cancelar" || acao === "suspender" || acao === "reativar";
-  const exigeAnexo = acao === "cancelar" || acao === "suspender" || acao === "reativar";
+  const exigeJustificativa = acao === "rejeitar" || acao === "cancelar" || acao === "suspender";
+  const exigeAnexo = acao === "cancelar" || acao === "suspender";
   // RN-04: suspensão já em andamento só por calamidade pública ou convocação pela administração
   // — exige número de portaria/ofício em vez de justificativa livre. Cancelamento (RN 1) não
   // chega mais a esse ponto: podeCancelar já exige hoje < início do usufruto.
   const exigePortaria = acao === "suspender" && feriasEmAndamento(registro);
-  const ehReabertura = acao === "reativar";
-  const totalDiasOriginal = registro.parcelas.reduce((total, parcela) => total + parcela.dias, 0);
+  const ehSuspensao = acao === "suspender";
   const [documento, setDocumento] = useState<DocumentoFerias | null>(null);
   const [justificativa, setJustificativa] = useState("");
-  const [novaDataInicioIso, setNovaDataInicioIso] = useState("");
+  const [dataSuspensaoIso, setDataSuspensaoIso] = useState(dataLocalISO());
   const [erro, setErro] = useState("");
-  const novaDataFimIso = novaDataInicioIso ? calcularFim(novaDataInicioIso, totalDiasOriginal) : "";
-
-  const saldoTotalPeriodo = registro.saldoFerias ?? totalDiasOriginal;
-  const saldoRestantePeriodo = ehReabertura ? saldoRestanteParaReabertura(registro, carregarRegistros()) : saldoTotalPeriodo;
 
   const confirmar = () => {
     if (exigeAnexo && !documento) { setErro('Anexe a justificativa formal.'); return; }
@@ -4923,37 +4899,11 @@ function ModalConfirmarStatus({
       setErro("Informe a justificativa antes de confirmar.");
       return;
     }
-    if (ehReabertura) {
-      if (!novaDataInicioIso) { setErro("Informe a nova data de início do usufruto."); return; }
-      if (novaDataInicioIso <= dataLocalISO()) { setErro("A nova data de início precisa ser futura."); return; }
-      if (totalDiasOriginal > saldoRestantePeriodo) {
-        setErro(`Saldo insuficiente para reabrir: restam ${saldoRestantePeriodo} dia(s) disponíveis no período aquisitivo — outras solicitações já consumiram parte do saldo liberado pelo cancelamento/suspensão —, mas o agendamento original tinha ${totalDiasOriginal} dia(s).`);
-        return;
-      }
-      // RN reabertura 3.1 / RN003: a nova data não pode conflitar com outro agendamento ativo
-      // nem com LTS vigente do servidor (mesmas checagens do lançamento original).
-      const conflito = conflitoFeriasServidor(registro.matricula, novaDataInicioIso, novaDataFimIso, registro.id);
-      if (conflito) {
-        setErro(mensagemConflitoAgendamento(conflito));
-        return;
-      }
-      const conflitoLts = conflitoLtsServidor(registro.matricula, novaDataInicioIso, novaDataFimIso);
-      if (conflitoLts) {
-        setErro(`LTS vigente de ${formatarDataBr(conflitoLts.inicio)} a ${formatarDataBr(conflitoLts.fim)} no período escolhido. Selecione uma data de início após o fim da LTS.`);
-        return;
-      }
-      const inicioOriginal = inicioUsufruto(registro);
-      const fimOriginal = fimUsufruto(registro);
-      onConfirmar(
-        meta.novaSituacao,
-        justificativa.trim(),
-        documento ?? undefined,
-        [{ id: registro.parcelas[0]?.id ?? gerarId(), inicio: novaDataInicioIso, fim: novaDataFimIso, dias: totalDiasOriginal }],
-        inicioOriginal && fimOriginal ? { inicioOriginal, fimOriginal, reabertoEm: dataLocalISO() } : undefined,
-      );
+    if (ehSuspensao && !dataSuspensaoIso) {
+      setErro("Informe a data da suspensão.");
       return;
     }
-    onConfirmar(meta.novaSituacao,justificativa.trim(),documento ?? undefined);
+    onConfirmar(meta.novaSituacao,justificativa.trim(),documento ?? undefined,undefined,ehSuspensao ? dataSuspensaoIso : undefined);
   };
 
   return (
@@ -4974,37 +4924,17 @@ function ModalConfirmarStatus({
             <div><span>Matrícula</span><strong>{registro.matricula}</strong></div>
             <div><span>Vínculo</span><strong>{registro.numeroVinculo ?? "1"}</strong></div>
           </div>
-          {ehReabertura ? (
-            <div className="prototype-finalizar-efetivo-termo">
-              <span>Período original ({totalDiasOriginal} dias) — preservado no histórico</span>
-              <strong>{periodoUsufruto(registro)}</strong>
-            </div>
-          ) : null}
-          {ehReabertura ? (
-            <div className="prototype-finalizar-efetivo-termo">
-              <span>Saldo restante no período aquisitivo</span>
-              <strong style={saldoRestantePeriodo < totalDiasOriginal ? { color: "#b91c1c" } : undefined}>
-                {saldoRestantePeriodo} de {saldoTotalPeriodo} dia(s) disponível(is)
-                {saldoRestantePeriodo < totalDiasOriginal ? " — insuficiente para os " + totalDiasOriginal + " dias originais" : ""}
-              </strong>
-            </div>
-          ) : null}
         </div>
 
-        {ehReabertura ? (
+        {ehSuspensao ? (
           <div className="prototype-ferias-form-grid">
             <label>
-              <span>Nova data de início do usufruto<em>*</em></span>
+              <span>Data da suspensão<em>*</em></span>
               <input
                 type="date"
-                value={novaDataInicioIso}
-                onChange={(event) => setNovaDataInicioIso(event.target.value)}
-                min={dataLocalISO()}
+                value={dataSuspensaoIso}
+                onChange={(event) => setDataSuspensaoIso(event.target.value)}
               />
-            </label>
-            <label>
-              <span>Fim (recalculado, {totalDiasOriginal} dias)</span>
-              <input className="prototype-ferias-readonly-field" value={formatarDataBr(novaDataFimIso)} readOnly />
             </label>
           </div>
         ) : null}

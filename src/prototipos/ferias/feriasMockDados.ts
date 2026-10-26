@@ -168,8 +168,7 @@ export const registrosBase: FeriasRegistro[] = [
     lancadoEm: "2026-09-25 09:30",
     avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-10-10 15:00",
   }),
-  // Reabertura bloqueada pela folha homologada/paga (RN 3.3) — só o Aprovador forçaria.
-  // Precisa ser Suspenso: Cancelado nunca reabre (nem forçado), ver elegivelParaReabertura.
+  // Suspenso com folha homologada/paga — bloqueia o cancelamento direto (RN 1/1.1).
   registroBase({
     id: 16, servidorNome: "Cleber Augusto Dias", matricula: "400010", cargo: "Apoio",
     tipoVinculo: "Efetivo", situacao: "SUSPENSO", origem: "PORTALSERVIDOR",
