@@ -72,9 +72,16 @@ export function PaginaInicialContent({
           </>
         )}
         {painel && (
-          <span className="sigep-inicial-ver-detalhes">
-            Ver detalhes <i className="pi pi-arrow-right" aria-hidden="true" />
-          </span>
+          <div className="sigep-inicial-cronograma-acoes">
+            <Link
+              to={cronogramaDestino}
+              className="sigep-inicial-ver-detalhes"
+              aria-label="Cronograma — Ver detalhes"
+            >
+              Ver detalhes{" "}
+              <i className="pi pi-arrow-right" aria-hidden="true" />
+            </Link>
+          </div>
         )}
       </div>
     </>
@@ -128,19 +135,9 @@ export function PaginaInicialContent({
             )}
           </div>
         </article>
-        {painel ? (
-          <Link
-            className="sigep-inicial-informativo sigep-inicial-cronograma sigep-inicial-cor-laranja"
-            to={cronogramaDestino}
-            aria-label="Cronograma — Ver detalhes"
-          >
-            {conteudoCronograma}
-          </Link>
-        ) : (
-          <article className="sigep-inicial-informativo sigep-inicial-cronograma sigep-inicial-cor-laranja">
-            {conteudoCronograma}
-          </article>
-        )}
+        <article className="sigep-inicial-informativo sigep-inicial-cronograma sigep-inicial-cor-laranja">
+          {conteudoCronograma}
+        </article>
       </section>
 
       <section aria-labelledby="sigep-acesso-rapido">
@@ -150,6 +147,7 @@ export function PaginaInicialContent({
         </div>
         <div className="sigep-inicial-modulos">
           {[...modulos]
+            .filter((modulo) => modulo.nome !== "Painel Informativo")
             .sort(
               (a, b) =>
                 Number(favoritos.includes(b.nome)) -

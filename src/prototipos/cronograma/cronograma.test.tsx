@@ -167,11 +167,11 @@ it("aceita marcos de um dia e denuncia datas inválidas sem inventar datas", () 
 });
 
 it("monta a grade começando na segunda-feira e navega na virada do ano", () => {
-  expect(diasCalendario("2026-06")[0]).toBe("2026-06-01");
-  expect(diasCalendario("2026-07")[0]).toBe("2026-06-29");
+  expect(diasCalendario("2026-06")[0]).toBe("2026-05-31");
+  expect(diasCalendario("2026-07")[0]).toBe("2026-06-28");
   expect(diasCalendario("2026-06")).toHaveLength(35);
   expect(diasCalendario("2026-08")).toHaveLength(42);
-  expect(diasCalendario("2027-02")).toHaveLength(28);
+  expect(diasCalendario("2027-02")).toHaveLength(35);
   expect(mudarMes("2026-12", 1)).toBe("2027-01");
   expect(mudarMes("2026-01", -1)).toBe("2025-12");
 });
@@ -194,8 +194,8 @@ it("limita os marcos por célula e mostra todos os eventos nos detalhes do dia",
     5,
   );
   expect(within(detalhes).getByText("Conferir desligamentos")).toBeTruthy();
-  expect(within(detalhes).getByText("Concluído")).toBeTruthy();
-  expect(within(detalhes).getByText("Não informado")).toBeTruthy();
+  expect(within(detalhes).queryByText("Concluído")).toBeNull();
+  expect(within(detalhes).queryByText("Não informado")).toBeNull();
   expect(within(detalhes).getByText("5 eventos")).toBeTruthy();
   const linhas = Array.from(
     detalhes.querySelectorAll<HTMLElement>(".sigep-cronograma-evento"),
@@ -257,4 +257,10 @@ it("mês sem cronograma tem mensagem própria e a tela não permite nenhuma manu
   const vazio = adaptarCronograma({ tituloCiclo: "Junho/2026", secoes: [] });
   expect(vazio.eventos).toEqual([]);
   expect(dataBR("2026-06-01")).toBe("01/06/2026");
+});
+
+it("abre no mes e dia atuais mesmo com competencia anterior", () => {
+  render(<MemoryRouter><CalendarioContent calendario={calendario()} agora={new Date("2026-10-27T12:00:00-04:00")} /></MemoryRouter>);
+  expect(screen.getByRole("table", { name: /Outubro.*2026/i })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "27/10/2026 — 0 eventos" }).getAttribute("aria-pressed")).toBe("true");
 });

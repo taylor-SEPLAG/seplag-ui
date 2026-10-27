@@ -1,5 +1,15 @@
+import type { ArquivoAnexadoSeplag } from "../../componentes/AnexarDocumento";
+export interface Informativo {
+  id: number;
+  icon: string;
+  titulo: string;
+  dataPostagem: string;
+  texto: string;
+  destaque: string;
+  documentos?: ArquivoAnexadoSeplag[];
+}
 // Fonte compartilhada com o Painel Informativo. Mantém os dados demonstrativos originais.
-export const informativosIniciais = [
+export const informativosIniciais: Informativo[] = [
   {
     id: 1,
     icon: "pi pi-exclamation-triangle",

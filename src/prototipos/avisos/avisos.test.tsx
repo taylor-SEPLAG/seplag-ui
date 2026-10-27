@@ -161,3 +161,20 @@ it("reflete publicação, alteração e exclusão da mesma fonte compartilhada",
   act(() => atualizarInformativosPaginaInicial([]));
   expect(screen.getByText("Nenhum comunicado disponível.")).toBeTruthy();
 });
+
+it("exibe o novo comunicado na categoria correspondente após adicionar", () => {
+  atualizarInformativosPaginaInicial(informativosIniciais);
+  function Lista() { return <AvisosContent avisos={useInformativos()} />; }
+  render(<MemoryRouter><Lista /></MemoryRouter>);
+  fireEvent.change(screen.getByLabelText("Buscar comunicado"), { target: { value: "busca anterior" } });
+  fireEvent.click(screen.getByRole("button", { name: "Novo Informativo" }));
+  fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Nova atualização" } });
+  fireEvent.change(screen.getByLabelText("Texto"), { target: { value: "Atualização cadastrada agora" } });
+  fireEvent.click(screen.getByRole("button", { name: "Atualização", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+  expect((screen.getByLabelText("Tipo de aviso") as HTMLSelectElement).value).toBe("atualizacao");
+  expect((screen.getByLabelText("Buscar comunicado") as HTMLInputElement).value).toBe("");
+  expect(screen.getByRole("heading", { name: "Nova atualização" })).toBeTruthy();
+  expect(screen.getAllByRole("article")).toHaveLength(1);
+  expect(screen.queryByRole("dialog")).toBeNull();
+});

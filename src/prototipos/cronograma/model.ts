@@ -223,13 +223,13 @@ export function mudarMes(mes: string, deslocamento: number) {
 }
 export function diasCalendario(mes: string) {
   const primeiro = new Date(`${mes}-01T12:00:00Z`);
-  primeiro.setUTCDate(1 - ((primeiro.getUTCDay() + 6) % 7));
+  primeiro.setUTCDate(1 - primeiro.getUTCDay());
   const ultimo = new Date(
     Date.UTC(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)), 0),
   );
   const quantidade =
     Math.ceil(
-      (((new Date(`${mes}-01T12:00:00Z`).getUTCDay() + 6) % 7) +
+      (new Date(`${mes}-01T12:00:00Z`).getUTCDay() +
         ultimo.getUTCDate()) /
         7,
     ) * 7;

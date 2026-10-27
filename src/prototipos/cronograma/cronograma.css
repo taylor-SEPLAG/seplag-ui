@@ -674,3 +674,10 @@
     width: 100%;
   }
 }
+
+.sigep-cronograma-header-acoes { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+
+/* Dias uteis com fundo distinto dos finais de semana. */
+.sigep-cronograma-calendario tbody td:nth-child(n + 2):nth-child(-n + 6):not(.is-outro-mes):not(.is-selecionado) {
+  background: #edf5ff;
+}

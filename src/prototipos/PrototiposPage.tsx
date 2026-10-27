@@ -1127,7 +1127,7 @@ export function PrototypeSystemPage({
         ambienteSistema={ambienteSistema}
         sistemas={sistemas}
         logoSrc={usarLayoutSigep ? logoSeplagSigep : logoSeplag}
-        menuItems={menuItems}
+        menuItems={menuItems.map(item => item.label === "Painel Informativo" ? { ...item, visibleOnMenu: false } : item)}
         menuMode="static"
         compactNavigation={usarLayoutSigep}
         compactLogoSrc={brasaoMt}
@@ -23976,6 +23976,36 @@ const folhaCronogramaDefaultState: FolhaCronogramaState = {
   ],
 };
 
+// Eventos demonstrativos dos próximos ciclos, baseados no modelo de junho.
+const eventosDemonstrativosFimAno = folhaCronogramaDefaultState.secoes.map(secao => ({
+  ...secao,
+  eventos: [11, 12].flatMap(mes => secao.eventos.map(evento => ({
+    ...evento,
+    periodo: evento.periodo.replace(/\/06(?=\s|$)/g, "/" + mes + "/2026"),
+    descricao: evento.descricao.replace("até 14/05", "até 14/" + String(mes - 1).padStart(2, "0")),
+    status: "Agendado",
+    observacao: "Evento demonstrativo baseado no cronograma de junho/2026.",
+  }))),
+}));
+folhaCronogramaDefaultState.secoes.forEach(secao => {
+  secao.eventos.push(...(eventosDemonstrativosFimAno.find(item => item.id === secao.id)?.eventos ?? []));
+});
+
+const incluirDemonstrativosFimAno = (state: FolhaCronogramaState): FolhaCronogramaState => {
+  const chave = FOLHA_CRONOGRAMA_STORAGE_KEY + ".exemplos-nov-dez-2026";
+  if (typeof window === "undefined" || window.localStorage.getItem(chave)) return state;
+  const secoes = state.secoes.map(secao => {
+    const modelo = eventosDemonstrativosFimAno.find(item => item.titulo === secao.titulo);
+    if (!modelo) return secao;
+    const novos = modelo.eventos.filter(evento => !secao.eventos.some(atual => atual.periodo === evento.periodo && atual.descricao === evento.descricao));
+    return { ...secao, eventos: [...secao.eventos, ...novos] };
+  });
+  const atualizado = { ...state, secoes };
+  window.localStorage.setItem(FOLHA_CRONOGRAMA_STORAGE_KEY, JSON.stringify(atualizado));
+  window.localStorage.setItem(chave, "1");
+  return atualizado;
+};
+
 const cloneFolhaCronogramaState = (state: FolhaCronogramaState) => ({
   ...state,
   secoes: state.secoes.map((secao) => ({
@@ -23991,10 +24021,10 @@ export const loadFolhaCronogramaState = (): FolhaCronogramaState => {
 
   try {
     const stored = window.localStorage.getItem(FOLHA_CRONOGRAMA_STORAGE_KEY);
-    if (!stored) return cloneFolhaCronogramaState(folhaCronogramaDefaultState);
+    if (!stored) return incluirDemonstrativosFimAno(cloneFolhaCronogramaState(folhaCronogramaDefaultState));
 
     const parsed = JSON.parse(stored) as Partial<FolhaCronogramaState>;
-    return {
+    return incluirDemonstrativosFimAno({
       tituloCiclo:
         typeof parsed.tituloCiclo === "string" && parsed.tituloCiclo.trim()
           ? parsed.tituloCiclo
@@ -24003,7 +24033,7 @@ export const loadFolhaCronogramaState = (): FolhaCronogramaState => {
         Array.isArray(parsed.secoes)
           ? (parsed.secoes as FolhaCronogramaSecao[])
           : cloneFolhaCronogramaState(folhaCronogramaDefaultState).secoes,
-    };
+    });
   } catch {
     return cloneFolhaCronogramaState(folhaCronogramaDefaultState);
   }
@@ -24711,7 +24741,7 @@ export function PrototiposFolhaPage({
   );
 }
 
-export function PrototiposFolhaCronogramaPage() {
+export function PrototiposFolhaCronogramaPage({ sigep = false }: { sigep?: boolean } = {}) {
   const navigate = useNavigate();
   const cronogramaInicial = loadFolhaCronogramaState();
   const [tituloCiclo, setTituloCiclo] = useState(cronogramaInicial.tituloCiclo);
@@ -24910,12 +24940,23 @@ export function PrototiposFolhaCronogramaPage() {
 
   return (
     <PrototypeSystemPage
-      nomeSistema="FOLHA"
+      nomeSistema={sigep ? "GESTÃO DE PESSOAS" : "FOLHA"}
       ambienteSistema="Teste"
-      menuItems={menuFolha}
+      menuItems={sigep ? menuGestaoPessoas : menuFolha}
     >
       <div className="prototype-page-content prototype-page-content--white prototype-folha-cronograma-page">
         <CardSeplag
+          headerNavigation={
+            <BreadcrumbSeplag
+              divided
+              homeTo={sigep ? "/prototipos/sigep/pagina-inicial" : FOLHA_PAGINA_INICIAL_PATH}
+              items={[
+                { label: "Página Inicial", to: sigep ? "/prototipos/sigep/pagina-inicial" : FOLHA_PAGINA_INICIAL_PATH },
+                { label: "Cronograma", to: sigep ? "/prototipos/sigep/cronograma" : "/prototipos/sigep/folha/calendario" },
+                { label: "Configurar cronograma", to: sigep ? "/prototipos/sigep/cronograma/configurar" : "/prototipos/folha/cronograma" },
+              ]}
+            />
+          }
           title="Configurar cronograma"
           cols="12"
           cardHeaderClassNames="prototype-regime-card"
@@ -25123,7 +25164,7 @@ export function PrototiposFolhaCronogramaPage() {
               <BotaoVoltarSeplag
                 type="button"
                 label="Voltar"
-                onClick={() => navigate(FOLHA_PAINEL_INFORMATIVO_PATH)}
+                onClick={() => navigate(sigep ? "/prototipos/sigep/cronograma" : "/prototipos/sigep/folha/calendario")}
               />
               <BotaoSalvarSeplag
                 type="button"
@@ -25134,7 +25175,7 @@ export function PrototiposFolhaCronogramaPage() {
                     tituloCiclo,
                     secoes: cronogramasFolha,
                   });
-                  navigate(FOLHA_PAINEL_INFORMATIVO_PATH);
+                  navigate(sigep ? "/prototipos/sigep/cronograma" : "/prototipos/sigep/folha/calendario");
                 }}
               />
             </div>
