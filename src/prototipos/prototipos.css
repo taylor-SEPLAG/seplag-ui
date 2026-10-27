@@ -5928,6 +5928,107 @@
   font-weight: 700;
 }
 
+.prototype-folha-parametros-page {
+  min-height: calc(100vh - 9rem);
+}
+
+.prototype-folha-parametros-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 22rem));
+  gap: 1.25rem;
+  padding: 1.5rem 0;
+}
+
+.prototype-folha-parametros-option {
+  position: relative;
+  display: flex;
+  min-height: 15.75rem;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.5rem;
+  border: 1px solid #d9e1eb;
+  border-radius: .75rem;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(26, 55, 91, .06);
+  cursor: pointer;
+}
+
+.prototype-folha-parametros-option:hover {
+  border-color: #8ca8c2;
+  box-shadow: 0 5px 16px rgba(26, 55, 91, .12);
+}
+
+.prototype-folha-parametros-option:focus-visible {
+  outline: 3px solid #0069c7;
+  outline-offset: 3px;
+}
+
+.prototype-folha-parametros-option-icon {
+  display: grid;
+  width: 3.75rem;
+  height: 3.75rem;
+  margin-bottom: 1rem;
+  place-items: center;
+  border-radius: .75rem;
+  background: #5d778d;
+  color: #fff;
+  font-size: 1.7rem;
+}
+
+.prototype-folha-parametros-option h3 {
+  margin: 0;
+  color: #143766;
+  font-size: 1.05rem;
+}
+
+.prototype-folha-parametros-option p {
+  margin: .65rem 0 1.25rem;
+  color: #536b86;
+  line-height: 1.55;
+}
+
+.prototype-folha-parametros-option-link {
+  display: inline-flex;
+  gap: .6rem;
+  align-items: center;
+  margin-top: auto;
+  color: #0069c7;
+  font-weight: 600;
+}
+
+.prototype-folha-valores-referencia-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+}
+
+.prototype-folha-valores-referencia-filters label {
+  display: flex;
+  min-width: 13rem;
+  flex: 1 1 13rem;
+  flex-direction: column;
+  gap: .35rem;
+}
+
+.prototype-folha-valores-referencia-filters input,
+.prototype-folha-valores-referencia-filters select {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: .5rem .75rem;
+  border: 1px solid #b9c6d4;
+  border-radius: .25rem;
+  background: #fff;
+  color: #233c58;
+  font: inherit;
+}
+
+@media (max-width: 48rem) {
+  .prototype-folha-valores-referencia-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 .prototype-folha-referencia-page {
   display: flex;
   flex-direction: column;
@@ -5973,6 +6074,11 @@
 .prototype-folha-referencia-list {
   border: 1px solid #d6e4f0;
   background: #ffffff;
+}
+
+.prototype-folha-valores-referencia-list {
+  border: 0;
+  background: transparent;
 }
 
 .prototype-folha-referencia-list-head {

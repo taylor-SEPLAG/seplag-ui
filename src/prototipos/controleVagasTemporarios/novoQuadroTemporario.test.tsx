@@ -12,9 +12,10 @@ it("usa cadastro reserva para permitir ampliação formal e impede duplicidade",
  const registro = salvarQuadroTemporario({ ...certame, cargos:[cargo] }, " Observação ");
  expect(registro.cargos[0].modoControle).toBe("AMPLIAVEL"); expect(registro.cargos[0].limiteVagas).toBeUndefined();
  expect(registro.totalAutorizado).toBe(cargo.quantidadeVagas);
- const ampliado = ampliarQuadroTemporario(registro.id, 15, "2026-10-19", "Chamadas do cadastro reserva");
- expect(ampliado.totalAutorizado).toBe(cargo.quantidadeVagas + 15);
+ const ampliado = ampliarQuadroTemporario(registro.id, [{ cargoId: registro.cargos[0].id, quantidade: 10 }], "2026-10-19", "Chamadas do cadastro reserva");
+ expect(ampliado.totalAutorizado).toBe(cargo.quantidadeVagas + 10);
  expect(ampliado.versoes).toHaveLength(2);
+ expect(() => ampliarQuadroTemporario(ampliado.id, [{ cargoId: ampliado.cargos[0].id, quantidade: 1 }], "2026-10-19", "")).toThrow(/saldo de cadastro reserva/);
  expect(registro.cargos[0].quantidadeVagas).toBe(cargo.quantidadeVagas);
  expect(() => salvarQuadroTemporario(certame, "")).toThrow(/Já existe/);
  expect(listarQuadrosTemporarios()).toHaveLength(1);
@@ -23,7 +24,7 @@ it("preserva o quantitativo como limite quando não há cadastro reserva", () =>
  const certame = certamesMock.find(seletivoTemporario)!;
  const registro = salvarQuadroTemporario({ ...certame, cargos:[{ ...certame.cargos[0], aceitaCadastroReserva:false }] }, "");
  expect(registro.cargos[0].modoControle).toBe("LIMITADO"); expect(registro.cargos[0].limiteVagas).toBe(certame.cargos[0].quantidadeVagas);
- expect(() => ampliarQuadroTemporario(registro.id, 1, "2026-10-19", "")).toThrow(/não possui cadastro reserva/);
+ expect(() => ampliarQuadroTemporario(registro.id, [{ cargoId: registro.cargos[0].id, quantidade: 1 }], "2026-10-19", "")).toThrow(/não possui cadastro reserva/);
 });
 it("renderiza somente seleção de origem e desabilita criação sem cargo", () => {
  const view = render(<MemoryRouter><NovoQuadroTemporarioContent /></MemoryRouter>);
@@ -41,6 +42,16 @@ it("inclui todos os cargos com limites independentes e aceita cargo em outro sel
  expect(quadro.cargos[1].limiteVagas).toBe(7);
  expect(() => salvarQuadroTemporario({...certame, cargos:[certame.cargos[1]]}, "")).toThrow(/este seletivo/);
  salvarQuadroTemporario({ ...certame, id:"outro" }, "");
+ expect(listarQuadrosTemporarios()).toHaveLength(2);
+});
+it("permite o mesmo cargo em processos seletivos distintos com quantitativos próprios", () => {
+ const origem = certamesMock.find(seletivoTemporario)!;
+ const cargo = { ...origem.cargos[0], aceitaCadastroReserva:true, quantidadeCadastroReserva:5 };
+ const primeiro = salvarQuadroTemporario({ ...origem, id:"pss-enfermagem-a", cargos:[{ ...cargo, quantidadeVagas:12 }] }, "");
+ const segundo = salvarQuadroTemporario({ ...origem, id:"pss-enfermagem-b", cargos:[{ ...cargo, quantidadeVagas:24 }] }, "");
+ expect(primeiro.cargos[0].cargoNome).toBe(segundo.cargos[0].cargoNome);
+ expect(primeiro.totalAutorizado).toBe(12);
+ expect(segundo.totalAutorizado).toBe(24);
  expect(listarQuadrosTemporarios()).toHaveLength(2);
 });
 it("recusa seletivo sem cargos", () => {

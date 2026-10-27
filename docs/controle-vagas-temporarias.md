@@ -76,13 +76,15 @@ O sistema não pré-cria vagas infinitas e o ingresso não aumenta a capacidade 
 A ampliação cria uma nova versão do mesmo quadro `QT`; não cria outro quadro e não altera o PSS de origem.
 
 - Somente quadro **Ativo** com pelo menos um cargo de referência com CR pode ser ampliado.
-- A versão informa documento legal associado, processo SIGADOC, quantidade adicional, data de início atual ou passada e observação opcional.
+- A versão informa documento legal associado, processo SIGADOC, data de início atual ou passada e observação opcional.
+- A ampliação é informada por cargo: somente cargos que possuem CR recebem quantidade adicional.
+- A quantidade adicional de cada cargo não pode exceder seu saldo de CR, calculado pela quantidade de CR menos as ampliações anteriores daquele cargo.
 - A data futura é bloqueada.
-- As vagas adicionais são genéricas: não possuem cargo, órgão de destino, jornada ou ocupante previamente definidos.
-- No ingresso, cada vaga poderá ser usada para qualquer cargo previsto no PSS e para o órgão e a jornada definidos naquele ingresso.
+- As vagas adicionais pertencem ao cargo ampliado; órgão de destino, jornada operacional e ocupante continuam sem definição até o ingresso.
+- No ingresso, a vaga ampliada só poderá ser usada no cargo de referência que recebeu a ampliação.
 - O histórico preserva criação e cada ampliação, com total autorizado após a versão.
 
-Exemplo: `V1 — Criação: 40 vagas`; `V2 — Ampliação: +15 vagas`; total autorizado vigente: `55`.
+Exemplo: Enfermeiro tem 24 vagas e CR de 20. `V1 — Criação: 24 vagas`; `V2 — Ampliação de Enfermeiro: +15 vagas`; total autorizado para Enfermeiro: `39`.
 
 ## Quadro Contratos Temporários
 
@@ -96,7 +98,7 @@ Rota: `/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado`
 | Quadros temporários criados | Total de quadros QT criados. |
 | Cargos com vagas temporárias | Total de cargos habilitados para o controle de vagas temporárias. |
 | Vagas temporárias previstas | Soma das vagas indicadas nos editais dos quadros. |
-| Vagas temporárias reais | Total de vagas autorizadas pelas versões dos quadros. Pode superar a previsão original após ampliação com CR. |
+| Vagas temporárias autorizadas | Total de vagas autorizadas pelas versões dos quadros. Pode superar a previsão original após ampliação com CR. |
 
 ### Filtros
 
@@ -119,6 +121,8 @@ Rota: `/prototipos/sigep/controle-vagas/temporarios/quadro-autorizado`
 | Situação | Ativo, Extinto ou Encerrado. |
 | Ações | Visualizar o resumo e, quando houver CR em quadro ativo, registrar ampliação. |
 
+A seta ao final de cada linha abre o histórico das versões. A criação é apresentada por cargo; as ampliações mostram somente os cargos que receberam quantitativo adicional.
+
 ## Vagas Contratos Temporários
 
 Rota: `/prototipos/sigep/controle-vagas/temporarios/vagas`
@@ -133,7 +137,7 @@ A primeira linha exibe processos seletivos cadastrados, quadros temporários cri
 
 | Indicador | Regra |
 | --- | --- |
-| Vagas temporárias reais | Vagas individualizadas autorizadas pelas versões do quadro. |
+| Vagas temporárias autorizadas | Vagas individualizadas autorizadas pelas versões do quadro. |
 | Vagas disponíveis | Vagas sem ingresso ou ocupante. |
 | Vagas em ocupação | Vagas reservadas por ingresso em andamento. |
 | Vagas ocupadas | Vagas preenchidas após a conclusão do ingresso. |
@@ -162,6 +166,8 @@ A vaga recebe identificador sequencial como `QT-00001-001`. Antes do ingresso, a
 
 O ingresso é responsável por definir cargo, jornada e órgão de destino, escolhendo um dos cargos previstos no processo seletivo.
 
+Para controle de limite, cada vaga individualizada mantém internamente o cargo de referência autorizado pelo PSS. Antes do ingresso, o cargo operacional permanece não definido; o ingresso só pode consumir capacidade autorizada para o cargo correspondente.
+
 ## Situações
 
 ### Situação de ocupação
@@ -182,7 +188,7 @@ O ingresso é responsável por definir cargo, jornada e órgão de destino, esco
 
 ## Versionamento
 
-O versionamento de ampliação está disponível para quadros ativos com cadastro reserva. A versão inicial é **Versão 1 — Criação** e reproduz a quantidade prevista no edital. Cada ampliação mantém o código QT, acrescenta vagas genéricas e preserva as versões anteriores no histórico do quadro.
+O versionamento de ampliação está disponível para quadros ativos com cadastro reserva. A versão inicial é **Versão 1 — Criação** e reproduz a quantidade prevista por cargo no edital. Cada ampliação mantém o código QT, registra o cargo que recebeu vagas adicionais e preserva as versões anteriores no histórico do quadro.
 
 ## Persistência do protótipo
 
