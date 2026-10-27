@@ -100,7 +100,7 @@ it("combina os cinco filtros e pesquisa sem diferenciar acentos ou maiúsculas",
       lotacao: "COORD. PLANEJ. E PROJETOS DE TI",
       servidor: " JOAO SILVA ",
       situacao: "Em andamento",
-      tipoVinculo: "Residente Técnico",
+      tipo: registrosLicencas.find(r => r.matricula === "327305")!.tipo,
     }).map((r) => r.matricula),
   ).toEqual(["327305"]);
   montar();
@@ -116,8 +116,8 @@ it("combina os cinco filtros e pesquisa sem diferenciar acentos ou maiúsculas",
   fireEvent.change(screen.getByLabelText("Situação"), {
     target: { value: "Em andamento" },
   });
-  fireEvent.change(screen.getByLabelText("Tipo de vínculo"), {
-    target: { value: "Residente Técnico" },
+  fireEvent.change(screen.getByLabelText("Tipo"), {
+    target: { value: registrosLicencas.find(r => r.matricula === "327305")!.tipo },
   });
   expect(tabela().getAllByRole("row")).toHaveLength(2);
   expect(tabela().getByText("João Silva")).toBeTruthy();
@@ -139,7 +139,7 @@ it("combina os cinco filtros e pesquisa sem diferenciar acentos ou maiúsculas",
     "Setor / Lotação",
     "Servidor",
     "Situação",
-    "Tipo de vínculo",
+    "Tipo",
   ])
     expect((screen.getByLabelText(label) as HTMLInputElement).value).toBe("");
 });

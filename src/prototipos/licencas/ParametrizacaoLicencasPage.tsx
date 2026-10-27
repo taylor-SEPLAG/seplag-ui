@@ -1,24 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import { Menu } from "primereact/menu";
+import { Fragment, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ModalSeplag } from "../../componentes/Modal";
 import { PaginacaoV2 } from "../vinculos/VinculoV2Page";
 import {
   BASE_LICENCAS as BASE,
-  STORAGE_LICENCAS,
-  CATEGORIAS,
+  carregarEventos,
+  rotuloDuracao,
   NATUREZAS,
   filtrosVazios,
-  carregarEventos,
   filtrarEventos,
-  rotuloDuracao,
-  type EventoLicenca,
   type FiltrosLicencas,
+  type EventoLicenca,
 } from "./model";
-import "../vinculos/vinculoV2.css";
-import "./licencas.css";
 import { Ambiente } from "./AmbienteLicencas";
-import { HistoricoEvento } from "./HistoricoEvento";
+import { camposHistorico } from "./HistoricoEvento";
+import "./licencas.css";
 
 function Situacao({ valor }: { valor: EventoLicenca["situacao"] }) {
   return (
@@ -29,78 +25,25 @@ function Situacao({ valor }: { valor: EventoLicenca["situacao"] }) {
     </span>
   );
 }
-function AcoesEvento({
-  evento,
-  visualizar,
-  alterarSituacao,
-  historico,
-}: {
-  evento: EventoLicenca;
-  visualizar: () => void;
-  alterarSituacao: () => void;
-  historico: () => void;
-}) {
-  const menu = useRef<Menu>(null),
-    navigate = useNavigate();
-  const [aberto, setAberto] = useState(false);
-  const situacao = evento.situacao === "Ativo" ? "Inativar" : "Reativar";
-  return (
-    <div className="pl-acoes-divididas">
-      <button
-        type="button"
-        title="Visualizar"
-        aria-label={`Visualizar Ocorrência ${evento.codigo}`}
-        onClick={visualizar}
-      >
-        <i className="pi pi-eye" aria-hidden="true" />
-      </button>
-      <button
-        type="button"
-        title="Mais ações"
-        aria-label={`Ações da ocorrência ${evento.codigo}`}
-        aria-haspopup="menu"
-        aria-controls={`pl-acoes-${evento.id}`}
-        aria-expanded={aberto}
-        onClick={(event) => menu.current?.toggle(event)}
-      >
-        <i className="pi pi-chevron-down" aria-hidden="true" />
-      </button>
-      <Menu
-        ref={menu}
-        popup
-        id={`pl-acoes-${evento.id}`}
-        onShow={() => setAberto(true)}
-        onHide={() => setAberto(false)}
-        model={[
-          {
-            label: "Editar",
-            icon: "pi pi-pencil",
-            command: () => navigate(`${BASE}/${evento.id}/editar`),
-          },
-          {
-            label: "Duplicar",
-            icon: "pi pi-copy",
-            command: () => navigate(`${BASE}/${evento.id}/clonar`),
-          },
-          { label: "Histórico", icon: "pi pi-history", command: historico },
-          ...(evento.situacao === "Inativo"
-            ? [
-                {
-                  label: situacao,
-                  icon: "pi pi-refresh",
-                  command: alterarSituacao,
-                },
-              ]
-            : []),
-        ]}
-      />
-    </div>
-  );
-}
 
 export function ParametrizacaoLicencasPage() {
   const navigate = useNavigate();
   const [registros, setRegistros] = useState(carregarEventos);
+  const [expandidos, setExpandidos] = useState<Set<string>>(
+    () => new Set(registros[0] ? [registros[0].id] : []),
+  );
+  const [filtros, setFiltros] = useState<FiltrosLicencas>({ ...filtrosVazios });
+  const alterarFiltro = (campo: keyof FiltrosLicencas, valor: string) => {
+    setFiltros((anteriores) => ({ ...anteriores, [campo]: valor }));
+    setPagina(1);
+  };
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
+  const [vinculos, setVinculos] = useState<EventoLicenca | null>(null);
+  const [visualizacao, setVisualizacao] = useState<{
+    evento: EventoLicenca;
+    versao: number;
+  } | null>(null);
   useEffect(() => {
     const atualizar = () => setRegistros(carregarEventos());
     const timer = window.setInterval(atualizar, 30000);
@@ -110,344 +53,378 @@ export function ParametrizacaoLicencasPage() {
       window.removeEventListener("focus", atualizar);
     };
   }, []);
-  const [filtros, setFiltros] = useState<FiltrosLicencas>({ ...filtrosVazios });
-  const [pagina, setPagina] = useState(1),
-    [porPagina, setPorPagina] = useState(10);
-  const [confirmacao, setConfirmacao] = useState<EventoLicenca | null>(null);
-  const [vinculosEvento, setVinculosEvento] = useState<EventoLicenca | null>(
-    null,
-  );
-
-  const [historico, setHistorico] = useState<EventoLicenca | null>(null);
-  const [mensagem, setMensagem] = useState(""),
-    [erro, setErro] = useState("");
-  const filtrados = filtrarEventos(registros, filtros),
-    totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina)),
-    atual = Math.min(pagina, totalPaginas);
+  const filtrados = filtrarEventos(registros, filtros);
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
+  const atual = Math.min(pagina, totalPaginas);
   const visiveis = filtrados.slice((atual - 1) * porPagina, atual * porPagina);
-  const alterar = (campo: keyof FiltrosLicencas, valor: string) => {
-    setFiltros((f) => ({ ...f, [campo]: valor }));
-    setPagina(1);
-  };
-  const confirmar = () => {
-    if (!confirmacao) return;
-    try {
-      const estado = confirmacao.situacao === "Ativo" ? "Inativo" : "Ativo";
-      const atuais = carregarEventos();
-      const novos = atuais.map((e) => {
-        if (e.id !== confirmacao.id) return e;
-        const { historico = [], ...anteriores } = structuredClone(e);
-        const dados = {
-          ...anteriores,
-          situacao: estado as EventoLicenca["situacao"],
-        };
-        return {
-          ...dados,
-          historico: [
-            ...historico,
-            {
-              versao: (historico.at(-1)?.versao ?? 0) + 1,
-              publicadaEm: new Date().toISOString(),
-              anteriores,
-              dados,
-            },
-          ],
-        };
-      });
-      localStorage.setItem(STORAGE_LICENCAS, JSON.stringify(novos));
-      setRegistros(novos);
-      setMensagem(
-        `Ocorrência ${confirmacao.codigo} ${estado === "Ativo" ? "reativada" : "inativada"} com sucesso.`,
-      );
-      setConfirmacao(null);
-      setErro("");
-    } catch {
-      setErro("Não foi possível salvar a situação. Tente novamente.");
-    }
-  };
   return (
     <Ambiente titulo="Parametrização de Ocorrências">
-      <p className="v2v-description">
-        Gerencie os parâmetros de licenças, afastamentos e ausências aplicáveis
-        aos servidores.
-      </p>
-      <section
-        className="v2v-kpis pl-kpis"
-        aria-label="Indicadores de ocorrências"
-      >
-        {[
-          "Total de Ocorrências Cadastradas",
-          "Licenças",
-          "Afastamentos",
-          "Ausências",
-        ].map((label, i) => (
-          <article
-            className={
-              [
-                "pl-kpi-total",
-                "pl-kpi-licenca",
-                "pl-kpi-afastamento",
-                "pl-kpi-ausencia",
-              ][i]
-            }
-            key={label}
-          >
-            <i
-              className={`pi ${["pi-list", "pi-file", "pi-sign-out", "pi-calendar-minus"][i]}`}
-              aria-hidden="true"
+      <div className="pl-version-list">
+        <p className="v2v-description">
+          Gerencie os parâmetros de licenças, afastamentos e ausências
+          aplicáveis aos servidores.
+        </p>
+        <section
+          className="v2v-kpis pl-kpis"
+          aria-label="Indicadores de ocorrências"
+        >
+          {[
+            {
+              label: "Total de Ocorrências Cadastradas",
+              icone: "pi-list",
+              cor: "total",
+              valor: registros.length,
+            },
+            {
+              label: "Licenças",
+              icone: "pi-file",
+              cor: "licenca",
+              valor: registros.filter((e) => e.natureza === "Licença").length,
+            },
+            {
+              label: "Afastamentos",
+              icone: "pi-sign-out",
+              cor: "afastamento",
+              valor: registros.filter((e) => e.natureza === "Afastamento")
+                .length,
+            },
+            {
+              label: "Ausências",
+              icone: "pi-calendar-minus",
+              cor: "ausencia",
+              valor: registros.filter((e) => e.natureza === "Ausência").length,
+            },
+          ].map((item) => (
+            <article key={item.cor} className={`pl-kpi-${item.cor}`}>
+              <i className={`pi ${item.icone}`} aria-hidden="true" />
+              <div>
+                <span>{item.label}</span>
+                <strong>{item.valor}</strong>
+              </div>
+            </article>
+          ))}
+        </section>
+        <section
+          className="v2v-filters pl-filtros pl-version-filters"
+          aria-label="Filtros de consulta"
+        >
+          <label>
+            Código
+            <input
+              value={filtros.codigo ?? ""}
+              onChange={(e) => alterarFiltro("codigo", e.target.value)}
+              placeholder="Buscar por código"
             />
-            <div>
-              <span>{label}</span>
-              <strong>
-                {i === 0
-                  ? registros.length
-                  : registros.filter((e) => e.natureza === NATUREZAS[i - 1])
-                      .length}
-              </strong>
-            </div>
-          </article>
-        ))}
-      </section>
-      <section
-        className="v2v-panel v2v-filters pl-filtros"
-        aria-label="Filtros de consulta"
-      >
-        <label>
-          Código
-          <input
-            value={filtros.codigo}
-            onChange={(e) => alterar("codigo", e.target.value)}
-            placeholder="Buscar por código"
-          />
-        </label>
-        <label>
-          Nome da Ocorrência
-          <input
-            value={filtros.nome}
-            onChange={(e) => alterar("nome", e.target.value)}
-            placeholder="Buscar por nome"
-          />
-        </label>
-        <label>
-          Categoria
-          <select
-            value={filtros.categoria}
-            onChange={(e) => alterar("categoria", e.target.value)}
+          </label>
+          <label>
+            Nome da Ocorrência
+            <input
+              value={filtros.nome ?? ""}
+              onChange={(e) => alterarFiltro("nome", e.target.value)}
+              placeholder="Buscar por nome"
+            />
+          </label>
+          <label>
+            Tipo
+            <select
+              value={filtros.natureza}
+              onChange={(e) => alterarFiltro("natureza", e.target.value)}
+            >
+              <option value="">Todas</option>
+              {NATUREZAS.map((n) => (
+                <option key={n}>{n}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Situação
+            <select
+              value={filtros.situacao}
+              onChange={(e) => alterarFiltro("situacao", e.target.value)}
+            >
+              <option value="">Todas</option>
+              <option>Ativo</option>
+              <option>Inativo</option>
+            </select>
+          </label>
+          <button
+            type="button"
+            className="v2v-primary"
+            onClick={() => {
+              setFiltros({ ...filtrosVazios });
+              setPagina(1);
+            }}
           >
-            <option value="">Todas</option>
-            {CATEGORIAS.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Tipo
-          <select
-            value={filtros.natureza}
-            onChange={(e) => alterar("natureza", e.target.value)}
+            <i className="pi pi-refresh" aria-hidden="true" /> Limpar filtro
+          </button>
+        </section>
+        <div className="pl-version-toolbar">
+          <button
+            type="button"
+            className="v2v-primary"
+            onClick={() => navigate(`${BASE}/novo`)}
           >
-            <option value="">Todas</option>
-            {NATUREZAS.map((n) => (
-              <option key={n}>{n}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Situação
-          <select
-            value={filtros.situacao}
-            onChange={(e) => alterar("situacao", e.target.value)}
+            <i className="pi pi-plus" aria-hidden="true" /> Nova Parametrização
+          </button>
+        </div>
+        <div className="pl-grid-scroll">
+          <table
+            className="v2v-table pl-table pl-version-table"
+            aria-label="Ocorrências parametrizadas"
           >
-            <option value="">Todas</option>
-            <option>Ativo</option>
-            <option>Inativo</option>
-          </select>
-        </label>
-        <button
-          type="button"
-          className="v2v-primary"
-          onClick={() => {
-            setFiltros({ ...filtrosVazios });
+            <thead>
+              <tr>
+                {["Código", "Ocorrência", "Tipo", "Situação", "Ação"].map(
+                  (c) => (
+                    <th scope="col" key={c}>
+                      {c}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {visiveis.map((e) => {
+                const aberto = expandidos.has(e.id);
+                const publicacoes = [...(e.historico ?? [])].sort(
+                  (a, b) => b.versao - a.versao,
+                );
+                const versoes = publicacoes.length
+                  ? publicacoes.map((v, i) => ({
+                      numero: v.versao,
+                      dados: i === 0 ? e : v.dados,
+                      atual: i === 0,
+                    }))
+                  : [{ numero: 1, dados: e, atual: true }];
+                const primeira = publicacoes.at(-1);
+                if (primeira?.anteriores && primeira.versao > 1)
+                  versoes.push({
+                    numero: Math.max(1, primeira.versao - 1),
+                    dados: primeira.anteriores,
+                    atual: false,
+                  });
+                return (
+                  <Fragment key={e.id}>
+                    <tr>
+                      <td>{e.codigo}</td>
+                      <td>
+                        <span className="pl-nome">{e.nome}</span>
+                        <small className="pl-descricao">{e.descricao}</small>
+                      </td>
+                      <td>
+                        <span
+                          className={`pl-tag pl-natureza-${NATUREZAS.indexOf(e.natureza)}`}
+                        >
+                          {e.natureza}
+                        </span>
+                      </td>
+                      <td>
+                        <Situacao valor={e.situacao} />
+                      </td>
+                      <td>
+                        <button
+                          className="pl-version-toggle"
+                          type="button"
+                          aria-label={`${aberto ? "Recolher" : "Expandir"} versões da ocorrência ${e.codigo}`}
+                          aria-expanded={aberto}
+                          aria-controls={`versoes-${e.id}`}
+                          onClick={() =>
+                            setExpandidos((anteriores) => {
+                              const novos = new Set(anteriores);
+                              if (novos.has(e.id)) novos.delete(e.id);
+                              else novos.add(e.id);
+                              return novos;
+                            })
+                          }
+                        >
+                          <i
+                            className={`pi pi-chevron-${aberto ? "up" : "down"}`}
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </td>
+                    </tr>
+                    {aberto && (
+                      <tr
+                        className="pl-version-expanded"
+                        id={`versoes-${e.id}`}
+                      >
+                        <td colSpan={5}>
+                          <section
+                            className="pl-version-panel"
+                            aria-label={`Versões da ocorrência ${e.codigo}`}
+                          >
+                            <h3>
+                              <i className="pi pi-history" aria-hidden="true" />{" "}
+                              Histórico de Versões Cadastradas
+                            </h3>
+                            <table
+                              className="v2v-table pl-history-table"
+                              aria-label={`Histórico de versões de ${e.nome}`}
+                            >
+                              <thead>
+                                <tr>
+                                  {[
+                                    "Versão",
+                                    "Data de vigência",
+                                    "Prazo máximo",
+                                    "Vínculos autorizados",
+                                    "Situação",
+                                    "Ações",
+                                  ].map((c) => (
+                                    <th scope="col" key={c}>
+                                      {c}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {versoes.map((v, i) => (
+                                  <tr key={i}>
+                                    <td>
+                                      <strong>{`v${v.numero}${v.atual ? " (Atual)" : ""}`}</strong>
+                                    </td>
+                                    <td>
+                                      {v.dados.configuracao?.inicioVigencia?.replace(
+                                        /^(\d{4})-(\d{2})-(\d{2})$/,
+                                        "$3/$2/$1",
+                                      ) || "Não informada"}
+                                    </td>
+                                    <td>{rotuloDuracao(v.dados)}</td>
+                                    <td>
+                                      <button
+                                        type="button"
+                                        className="pl-vinculos-link"
+                                        onClick={() => setVinculos(v.dados)}
+                                      >
+                                        {v.dados.vinculos.length}{" "}
+                                        {v.dados.vinculos.length === 1
+                                          ? "Vínculo"
+                                          : "Vínculos"}
+                                      </button>
+                                    </td>
+                                    <td>
+                                      <Situacao
+                                        valor={v.atual ? e.situacao : "Inativo"}
+                                      />
+                                    </td>
+                                    <td>
+                                      <div className="pl-version-actions">
+                                        <button
+                                          type="button"
+                                          title="Visualizar versão"
+                                          aria-label={`Visualizar versão ${v.numero} da ocorrência ${e.codigo}`}
+                                          onClick={() =>
+                                            setVisualizacao({
+                                              evento: v.dados,
+                                              versao: v.numero,
+                                            })
+                                          }
+                                        >
+                                          <i
+                                            className="pi pi-eye"
+                                            aria-hidden="true"
+                                          />
+                                        </button>
+                                        {v.atual && (
+                                          <button
+                                            type="button"
+                                            title="Editar versão atual"
+                                            aria-label={`Editar ocorrência ${e.codigo}`}
+                                            onClick={() =>
+                                              navigate(`${BASE}/${e.id}/editar`)
+                                            }
+                                          >
+                                            <i
+                                              className="pi pi-pencil"
+                                              aria-hidden="true"
+                                            />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </section>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+              {!visiveis.length && (
+                <tr>
+                  <td colSpan={5} className="v2v-empty">
+                    Nenhum registro encontrado para os filtros informados.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <PaginacaoV2
+          nome="ocorrências"
+          pagina={atual}
+          totalPaginas={totalPaginas}
+          porPagina={porPagina}
+          mudarPagina={setPagina}
+          mudarPorPagina={(q) => {
+            setPorPagina(q);
             setPagina(1);
           }}
-        >
-          <i className="pi pi-refresh" aria-hidden="true" />
-          Limpar filtro
-        </button>
-      </section>
-      {mensagem && (
-        <p className="v2v-notice" role="status">
-          {mensagem}
-        </p>
-      )}
-      <div className="v2v-toolbar pl-table-toolbar">
-        <button
-          type="button"
-          className="v2v-primary"
-          onClick={() => navigate(`${BASE}/novo`)}
-        >
-          <i className="pi pi-plus" aria-hidden="true" />
-          Nova Parametrização
-        </button>
+        />
       </div>
-
-      <div className="pl-grid-scroll">
-        <table
-          className="v2v-table pl-table"
-          aria-label="Ocorrências parametrizadas"
-        >
-          <thead>
-            <tr>
-              {[
-                "Código",
-                "Ocorrência",
-                "Tipo",
-                "Vínculos Autorizados",
-                "Prazo Máximo",
-                "Parentesco?",
-                "Recorrência?",
-                "Situação",
-                "Ações",
-              ].map((c) => (
-                <th scope="col" key={c}>
-                  {c}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {visiveis.map((e) => (
-              <tr key={e.id}>
-                <td>{e.codigo}</td>
-                <td>
-                  <span className="pl-nome">{e.nome}</span>
-                  <small className="pl-descricao">{e.descricao}</small>
-                </td>
-                <td>
-                  <span
-                    className={`pl-tag pl-natureza-${NATUREZAS.indexOf(e.natureza)}`}
-                  >
-                    {e.natureza}
-                  </span>
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    className="pl-vinculos-link"
-                    aria-label={`Ver vínculos autorizados da ocorrência ${e.codigo}`}
-                    onClick={() => setVinculosEvento(e)}
-                  >
-                    {e.vinculos.length}{" "}
-                    {e.vinculos.length === 1 ? "Vínculo" : "Vínculos"}
-                  </button>
-                </td>
-                <td>{rotuloDuracao(e)}</td>
-                <td>{e.parentesco ? "Sim" : "Não"}</td>
-                <td>{e.recorrencia || "Não"}</td>
-                <td>
-                  <Situacao valor={e.situacao} />
-                </td>
-                <td>
-                  <AcoesEvento
-                    evento={e}
-                    visualizar={() => navigate(`${BASE}/${e.id}/visualizar`)}
-                    historico={() => setHistorico(e)}
-                    alterarSituacao={() => {
-                      setErro("");
-                      setConfirmacao(e);
-                    }}
-                  />
-                </td>
-              </tr>
-            ))}
-            {!visiveis.length && (
-              <tr>
-                <td colSpan={9} className="v2v-empty">
-                  Nenhum registro encontrado para os filtros informados.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      <PaginacaoV2
-        nome="ocorrências"
-        pagina={atual}
-        totalPaginas={totalPaginas}
-        porPagina={porPagina}
-        mudarPagina={setPagina}
-        mudarPorPagina={(q) => {
-          setPorPagina(q);
-          setPagina(1);
-        }}
-      />
       <ModalSeplag
-        visible={Boolean(vinculosEvento)}
-        titulo={`Tipos de vínculo autorizados (${vinculosEvento?.vinculos.length ?? 0})`}
-        fechar={() => setVinculosEvento(null)}
+        visible={Boolean(vinculos)}
+        titulo={`Tipos de vínculo autorizados (${vinculos?.vinculos.length ?? 0})`}
+        fechar={() => setVinculos(null)}
         hideFooter
         tamanho="620px"
       >
         <div className="prototype-carreira-org-list prototype-tipo-vinculo-regimes-list">
           <p>
-            <strong>Código {vinculosEvento?.codigo}</strong> —{" "}
-            {vinculosEvento?.nome}
+            <strong>Código {vinculos?.codigo}</strong> — {vinculos?.nome}
           </p>
           <ul>
-            {vinculosEvento?.vinculos.map((v, i) => (
+            {vinculos?.vinculos.map((v, i) => (
               <li key={v}>
                 <i className="pi pi-book" aria-hidden="true" />
-                <strong>{i + 1}.</strong> {v}
+                <strong>{i + 1}.</strong> <span>{v}</span>
               </li>
             ))}
           </ul>
         </div>
       </ModalSeplag>
       <ModalSeplag
-        visible={Boolean(confirmacao)}
-        titulo={
-          confirmacao?.situacao === "Ativo"
-            ? "Inativar Ocorrência"
-            : "Reativar Ocorrência"
-        }
-        fechar={() => setConfirmacao(null)}
+        visible={Boolean(visualizacao)}
+        titulo={`Visualizar versão v${visualizacao?.versao ?? ""}`}
+        fechar={() => setVisualizacao(null)}
         hideFooter
-        tamanho="480px"
+        tamanho="min(94vw, 760px)"
       >
-        {confirmacao && (
-          <div className="v2v-page">
-            <p>
-              Confirma{" "}
-              {confirmacao.situacao === "Ativo"
-                ? "a inativação"
-                : "a reativação"}{" "}
-              de{" "}
-              <strong>
-                {confirmacao.codigo} — {confirmacao.nome}
-              </strong>
-              ?
-            </p>
-            {erro && (
-              <p className="v2v-error" role="alert">
-                {erro}
-              </p>
+        {visualizacao && (
+          <div className="pl-version-details">
+            <h3>{visualizacao.evento.nome}</h3>
+            {Object.entries(camposHistorico(visualizacao.evento)).map(
+              ([grupo, campos]) => (
+                <section key={grupo}>
+                  <h4>{grupo}</h4>
+                  <dl>
+                    {Object.entries(campos).map(([campo, valor]) => (
+                      <div key={campo}>
+                        <dt>{campo}</dt>
+                        <dd>{valor || "Não informado"}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              ),
             )}
-            <div className="v2v-form-actions">
-              <button
-                type="button"
-                className="v2v-secondary"
-                onClick={() => setConfirmacao(null)}
-              >
-                Cancelar
-              </button>
-              <button type="button" className="v2v-primary" onClick={confirmar}>
-                Confirmar
-              </button>
-            </div>
           </div>
         )}
       </ModalSeplag>
-      <HistoricoEvento evento={historico} fechar={() => setHistorico(null)} />
     </Ambiente>
   );
 }

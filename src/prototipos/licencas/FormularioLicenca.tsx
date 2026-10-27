@@ -9,6 +9,7 @@ import { HistoricoEvento } from "./HistoricoEvento";
 import {
   BASE_LICENCAS as BASE,
   NATUREZAS,
+  OCORRENCIAS_POR_NATUREZA,
   OPCOES_VINCULOS,
   GRAUS_PARENTESCO,
   carregarEventos,
@@ -454,16 +455,50 @@ export function ParametrizacaoLicencasFormPage({
                     aria-label="Código Interno *"
                   />
                 </label>
-                <label className="pl-col-6">
+                <label className="pl-col-2">
                   <span>
-                    Nome da Ocorrência (Exibido no Lançamento) <em>*</em>
+                    Categoria da Ocorrência <em>*</em>
                   </span>
-                  <input
+                  <select
                     required
-                    maxLength={200}
+                    value={evento.natureza}
+                    onChange={(e) => {
+                      const natureza = e.target
+                        .value as EventoLicenca["natureza"];
+                      setEvento((anterior) => ({
+                        ...anterior,
+                        natureza,
+                        nome: "",
+                      }));
+                    }}
+                  >
+                    {NATUREZAS.map((n) => (
+                      <option key={n}>{n}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="pl-col-4">
+                  <span>
+                    Ocorrência <em>*</em>
+                  </span>
+                  <select
+                    required
                     value={evento.nome}
                     onChange={(e) => mudar("nome", e.target.value)}
-                  />
+                  >
+                    <option value="">-- Selecione uma Ocorrência --</option>
+                    {[
+                      ...new Set([
+                        ...OCORRENCIAS_POR_NATUREZA[evento.natureza],
+                        ...carregarEventos()
+                          .filter((e) => e.natureza === evento.natureza)
+                          .map((e) => e.nome),
+                        ...(evento.nome ? [evento.nome] : []),
+                      ]),
+                    ].map((nome) => (
+                      <option key={nome}>{nome}</option>
+                    ))}
+                  </select>
                 </label>
                 <label className="pl-col-2">
                   <span>
@@ -529,24 +564,6 @@ export function ParametrizacaoLicencasFormPage({
                       </small>
                     )}
                 </div>
-                <label className="pl-col-4">
-                  <span>
-                    Tipo <em>*</em>
-                  </span>
-                  <select
-                    value={evento.natureza}
-                    onChange={(e) =>
-                      mudar(
-                        "natureza",
-                        e.target.value as EventoLicenca["natureza"],
-                      )
-                    }
-                  >
-                    {NATUREZAS.map((n) => (
-                      <option key={n}>{n}</option>
-                    ))}
-                  </select>
-                </label>
                 <label className="pl-col-12">
                   <span>Observação</span>
                   <textarea
@@ -661,21 +678,30 @@ export function ParametrizacaoLicencasFormPage({
                               Sem Limite de Dias
                             </label>
                           </div>
-                          <div className="pl-col-4">
-                            <SelecaoMultipla
-                              titulo="Abrangência"
-                              opcoes={["Dia Integral", "Por Horas"].map(
-                                (v) => ({
-                                  label: v,
-                                  value: v,
-                                }),
-                              )}
-                              valores={regra.abrangencias}
-                              alterar={(v) =>
-                                mudarRegra(vinculo, { abrangencias: v })
+                          <label className="pl-col-4">
+                            <span>
+                              Abrangência <em>*</em>
+                            </span>
+                            <select
+                              required
+                              value={
+                                regra.abrangencias.length === 1
+                                  ? regra.abrangencias[0]
+                                  : ""
                               }
-                            />
-                          </div>
+                              onChange={(e) =>
+                                mudarRegra(vinculo, {
+                                  abrangencias: [e.target.value],
+                                })
+                              }
+                            >
+                              <option value="" disabled>
+                                Selecione uma opção
+                              </option>
+                              <option value="Dia Integral">Dia Integral</option>
+                              <option value="Por Horas">Por Horas</option>
+                            </select>
+                          </label>
                           <label className="pl-col-4">
                             <span>
                               Possui Trava de Recorrência? <em>*</em>

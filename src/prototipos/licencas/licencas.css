@@ -924,3 +924,267 @@
 .pl-rule-inherited { background: #eef3f8; color: #526c86; }
 .pl-type-rules-body { padding: 20px 18px; }
 @media (max-width: 600px) { .pl-type-rules summary { flex-wrap: wrap; } }
+
+/* Lista de ocorr?ncias com vers?es expans?veis. */
+.pl-version-list .pl-version-toolbar {
+  margin: 0 0 20px;
+}
+.pl-page .pl-version-table {
+  min-width: 850px;
+  width: 100%;
+}
+.pl-version-table > thead > tr > th {
+  background: #f1f5f9;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #526881;
+}
+.pl-version-table > tbody > tr > td {
+  border-bottom: 1px solid #dfe7f1;
+}
+.pl-version-table > tbody > tr > td:nth-child(2) {
+  width: 42%;
+}
+.pl-version-table > tbody > tr > td:nth-child(3) {
+  max-width: 180px;
+}
+.pl-version-toggle,
+.pl-version-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #dce5f0;
+  border-radius: 4px;
+  background: white;
+  color: #60758d;
+  cursor: pointer;
+}
+.pl-version-toggle[aria-expanded="true"] {
+  color: #245bff;
+}
+.pl-version-toggle:hover,
+.pl-version-actions button:hover {
+  background: #eef4ff;
+  color: #245bff;
+}
+.pl-version-toggle:focus-visible,
+.pl-version-actions button:focus-visible {
+  outline: 2px solid #245bff;
+  outline-offset: 2px;
+}
+.pl-page .pl-version-expanded > td {
+  padding: 0 16px 16px;
+  background: #f7f9fc;
+}
+.pl-version-panel {
+  padding: 16px;
+  border: 1px solid #dce5f0;
+  border-radius: 4px;
+  background: white;
+}
+.pl-version-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #334c65;
+}
+.pl-version-panel h3 i {
+  color: #245bff;
+}
+.pl-page .pl-history-table {
+  width: 100%;
+  min-width: 720px;
+  border: 1px solid #e1e8f1;
+}
+.pl-page .pl-history-table th {
+  background: #f7f9fc;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #60758d;
+}
+.pl-page .pl-history-table th,
+.pl-page .pl-history-table td {
+  padding: 10px 12px;
+}
+.pl-page .pl-history-table td:nth-child(2) {
+  min-width: 0;
+  width: auto;
+}
+.pl-page .pl-history-table td {
+  border-bottom: 1px solid #e1e8f1;
+  font-size: 0.85rem;
+}
+.pl-page .pl-history-table .pl-vinculos-link {
+  min-height: 28px;
+  text-decoration: none;
+  color: #245bff;
+}
+.pl-version-actions {
+  display: flex;
+  gap: 8px;
+}
+.pl-version-details dl > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e1e8f1;
+}
+.pl-version-details dt {
+  font-weight: 600;
+}
+.pl-version-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.pl-version-toolbar { margin-bottom: 20px; }
+.pl-page .pl-version-table { min-width: 850px; width: 100%; }
+.pl-version-table > thead > tr > th { background: #f1f5f9; text-transform: uppercase; font-size: .75rem; font-weight: 500; color: #526881; }
+.pl-version-table > tbody > tr > td { border-bottom: 1px solid #dfe7f1; }
+.pl-version-table > tbody > tr > td:nth-child(2) { width: 42%; }
+.pl-version-toggle, .pl-version-actions button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #dce5f0; border-radius: 4px; background: white; color: #60758d; cursor: pointer; }
+.pl-version-toggle[aria-expanded="true"] { color: #245bff; }
+.pl-version-toggle:hover, .pl-version-actions button:hover { background: #eef4ff; color: #245bff; }
+.pl-version-toggle:focus-visible, .pl-version-actions button:focus-visible { outline: 2px solid #245bff; outline-offset: 2px; }
+.pl-page .pl-version-expanded > td { padding: 0 16px 16px; background: #f7f9fc; }
+.pl-version-panel { padding: 16px; border: 1px solid #dce5f0; border-radius: 4px; background: white; }
+.pl-version-panel h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; font-size: .9rem; font-weight: 500; color: #334c65; }
+.pl-version-panel h3 i { color: #245bff; }
+.pl-page .pl-history-table { width: 100%; min-width: 720px; border: 1px solid #e1e8f1; }
+.pl-page .pl-history-table th { background: #f7f9fc; text-transform: uppercase; font-size: .7rem; font-weight: 500; color: #60758d; }
+.pl-page .pl-history-table th, .pl-page .pl-history-table td { padding: 10px 12px; }
+.pl-page .pl-history-table td:nth-child(2) { min-width: 0; width: auto; }
+.pl-page .pl-history-table td { border-bottom: 1px solid #e1e8f1; font-size: .85rem; }
+.pl-page .pl-history-table .pl-vinculos-link { min-height: 28px; text-decoration: none; color: #245bff; }
+.pl-version-actions { display: flex; gap: 8px; }
+.pl-version-details dl > div { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 10px 0; border-bottom: 1px solid #e1e8f1; }
+.pl-version-details dt { font-weight: 600; }
+.pl-version-details dd { margin: 0; overflow-wrap: anywhere; }
+
+.pl-version-list .pl-kpis { margin-bottom: 22px; }
+.pl-page .pl-version-filters { display: grid; align-items: end; gap: 12px; margin-bottom: 20px; }
+.pl-version-filters label { min-width: 0; }
+.pl-version-filters input { width: 100%; min-width: 0; }
+
+/* Acoes de consulta e edicao no padrao SIGEP. */
+.pl-page .pl-version-actions button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #d8e4f4;
+  border-radius: 4px;
+  background: #fff;
+  color: #55779b;
+}
+.pl-page .pl-version-actions button .pi {
+  font-size: 16px;
+  line-height: 1;
+}
+.pl-page .pl-version-actions button:hover {
+  background: #f0f6ff;
+  border-color: #b8cfea;
+  color: #356b9e;
+}
+
+/* Botoes de visualizar e editar conforme referencia. */
+.pl-page .pl-version-actions { gap: 5px; }
+.pl-page .pl-version-actions button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+  background: #3b82f6;
+  color: #fff;
+}
+.pl-page .pl-version-actions button:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.pl-page .pl-version-actions button + button {
+  background: #ff790f;
+  border-color: #ff790f;
+}
+.pl-page .pl-version-actions button + button:hover {
+  background: #e66500;
+  border-color: #e66500;
+}
+
+/* Tags de tipo e situacao da lista e de suas versoes. */
+.pl-version-list .pl-tag {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.pl-version-list .pl-natureza-0 { background: #f0eaff; color: #7945d6; }
+.pl-version-list .pl-natureza-1 { background: #e3f5fc; color: #0075b5; }
+.pl-version-list .pl-natureza-2 { background: #fff3d6; color: #b76a00; }
+.pl-version-list .v2v-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.pl-page .pl-version-list .v2v-status-ativo { background: #e2f3e8; color: #00854a; }
+.pl-page .pl-version-list .v2v-status-inativo { background: #fdebec; color: #df1236; }
+
+/* Controle de expansao das versoes. */
+.pl-page .pl-version-table > thead > tr > th:last-child,
+.pl-page .pl-version-table > tbody > tr:not(.pl-version-expanded) > td:last-child {
+  width: 84px;
+  text-align: center;
+}
+.pl-page .pl-version-table > thead > tr > th:last-child {
+  text-transform: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: #173b63;
+}
+.pl-page .pl-version-toggle,
+.pl-page .pl-version-toggle[aria-expanded="true"],
+.pl-page .pl-version-toggle:hover {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #0075e8;
+  box-shadow: none;
+}
+.pl-page .pl-version-toggle .pi {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.pl-page .pl-version-filters {
+  grid-template-columns: minmax(120px, .7fr) minmax(220px, 1.8fr) minmax(140px, 1fr) minmax(130px, .8fr) auto;
+}
+.pl-version-table > tbody > tr:not(.pl-version-expanded) > td:nth-child(3) { max-width: none; }
+@media (max-width: 1100px) {
+  .pl-page .pl-version-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .pl-page .pl-version-filters { grid-template-columns: minmax(0, 1fr); }
+}

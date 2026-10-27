@@ -192,13 +192,13 @@ export function GestaoLicencasContent({
               </select>
             </label>
             <label>
-              Tipo de vínculo
+              Tipo
               <select
-                value={filtros.tipoVinculo}
-                onChange={(e) => alterar("tipoVinculo", e.target.value)}
+                value={filtros.tipo}
+                onChange={(e) => alterar("tipo", e.target.value)}
               >
                 <option value="">Todos</option>
-                {opcoesUnicas(registros.map((r) => r.tipoVinculo)).map((o) => (
+                {opcoesUnicas(registros.map((r) => r.tipo)).map((o) => (
                   <option key={o}>{o}</option>
                 ))}
               </select>
@@ -244,7 +244,6 @@ export function GestaoLicencasContent({
                   "Nome Servidor",
                   "Período do Afastamento",
                   "Tipo",
-                  "Dias Concedidos",
                   "Situação",
                   "Ações",
                 ].map((c) => (
@@ -278,9 +277,6 @@ export function GestaoLicencasContent({
                     <span className="gl-pill gl-tipo">{r.tipo}</span>
                   </td>
                   <td>
-                    {r.solicitacao?.totalHoras || `${r.dias} ${r.abrangencia}`}
-                  </td>
-                  <td>
                     <Situacao valor={r.situacao} />
                   </td>
                   <td>
@@ -290,7 +286,7 @@ export function GestaoLicencasContent({
               ))}
               {!filtrados.length && (
                 <tr>
-                  <td colSpan={8} className="v2v-empty" role="status">
+                  <td colSpan={7} className="v2v-empty" role="status">
                     Nenhum registro encontrado para os filtros informados.
                   </td>
                 </tr>
