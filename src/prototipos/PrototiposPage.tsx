@@ -225,6 +225,9 @@ const FOLHA_SOLICITACOES_AJUSTES_BASE_PATH =
   "/prototipos/folha/processamento/solicitacoes-ajustes";
 const FOLHA_TABELAS_REFERENCIA_BASE_PATH =
   "/prototipos/folha/tabelas-referencia";
+const FOLHA_PARAMETROS_BASE_PATH = "/prototipos/folha/parametros";
+const FOLHA_VALORES_REFERENCIA_BASE_PATH =
+  "/prototipos/folha/valores-referencia";
 const FOLHA_CONFORMIDADE_BASE_PATH =
   "/prototipos/folha/relatorios/conformidade";
 const FOLHA_FICHA_FINANCEIRA_BASE_PATH =
@@ -242,11 +245,11 @@ const getFolhaTabelaReferenciaEditarVigenciaPath = (
   vigenciaId: number,
 ) => `${FOLHA_TABELAS_REFERENCIA_BASE_PATH}/${tabelaId}/vigencias/${vigenciaId}/editar`;
 const getFolhaValorReferenciaNovaVigenciaPath = (codigo: string) =>
-  `/prototipos/folha/valores-referencia/${codigo}/vigencias/novo`;
+  `${FOLHA_VALORES_REFERENCIA_BASE_PATH}/${codigo}/vigencias/novo`;
 const getFolhaValorReferenciaEditarVigenciaPath = (
   codigo: string,
   vigenciaId: number,
-) => `/prototipos/folha/valores-referencia/${codigo}/vigencias/${vigenciaId}/editar`;
+) => `${FOLHA_VALORES_REFERENCIA_BASE_PATH}/${codigo}/vigencias/${vigenciaId}/editar`;
 
 const menuCardsDesligamentoVinculo: readonly MenuCardItem[] = [
   { titulo: "Vacância", descricao: "Gerencie as hipóteses de vacância dos vínculos efetivos.", icone: "pi pi-user-minus", destino: "/prototipos/sigep/vacancia" },
@@ -729,9 +732,25 @@ export const menuFolha: IMenuSeplag[] = [
       {
         label: "Parâmetros de Folha",
         icon: "pi pi-circle-on",
-        to: FOLHA_TABELAS_REFERENCIA_BASE_PATH,
+        to: FOLHA_PARAMETROS_BASE_PATH,
         visibleOnMenu: true,
         visibleOnRouter: true,
+        items: [
+          {
+            label: "Tabelas de Referência",
+            icon: "pi pi-table",
+            to: FOLHA_TABELAS_REFERENCIA_BASE_PATH,
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+          },
+          {
+            label: "Valores de Referência",
+            icon: "pi pi-dollar",
+            to: FOLHA_VALORES_REFERENCIA_BASE_PATH,
+            visibleOnMenu: true,
+            visibleOnRouter: true,
+          },
+        ],
       },
       { label: "Pensão Alimentícia", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
       { label: "Pensão Especial", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
@@ -25145,6 +25164,71 @@ export function PrototiposFolhaCronogramaPage() {
   );
 }
 
+export function PrototiposFolhaParametrosPage() {
+  const navigate = useNavigate();
+
+  const opcoes = [
+    {
+      titulo: "Tabelas de Referência",
+      descricao:
+        "Gerencie regras, faixas e vigências aplicadas aos cálculos da folha.",
+      icone: "pi pi-table",
+      destino: FOLHA_TABELAS_REFERENCIA_BASE_PATH,
+    },
+    {
+      titulo: "Valores de Referência",
+      descricao:
+        "Gerencie valores monetários e parâmetros utilizados pelas tabelas de cálculo.",
+      icone: "pi pi-dollar",
+      destino: FOLHA_VALORES_REFERENCIA_BASE_PATH,
+    },
+  ];
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="FOLHA"
+      ambienteSistema="Teste"
+      menuItems={menuFolha}
+    >
+      <div className="prototype-page-content prototype-page-content--white prototype-folha-parametros-page">
+        <div className="prototype-folha-parametros-header">
+          <h2>Parâmetros de Folha</h2>
+          <p>
+            Selecione uma funcionalidade para configurar as referências utilizadas nos cálculos da folha.
+          </p>
+        </div>
+
+        <div className="prototype-folha-parametros-options">
+          {opcoes.map((opcao) => (
+            <article
+              className="prototype-folha-parametros-option"
+              key={opcao.titulo}
+              role="link"
+              tabIndex={0}
+              onClick={() => navigate(opcao.destino)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  navigate(opcao.destino);
+                }
+              }}
+            >
+              <div className="prototype-folha-parametros-option-icon" aria-hidden="true">
+                <i className={opcao.icone} />
+              </div>
+              <h3>{opcao.titulo}</h3>
+              <p>{opcao.descricao}</p>
+              <span className="prototype-folha-parametros-option-link">
+                Acessar <i className="pi pi-arrow-right" aria-hidden="true" />
+              </span>
+            </article>
+          ))}
+        </div>
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
 export function PrototiposFolhaTabelasReferenciaPage() {
   const navigate = useNavigate();
   const { control, reset, watch } = useForm<FolhaTabelaReferenciaFiltroForm>({
@@ -25153,7 +25237,6 @@ export function PrototiposFolhaTabelasReferenciaPage() {
     },
   });
   const [linhasExpandidas, setLinhasExpandidas] = useState<number[]>([]);
-  const [valoresExpandidos, setValoresExpandidos] = useState<string[]>([]);
   const [filtrosVigencia, setFiltrosVigencia] = useState<
     Record<number, { ano: string; status: "" | FolhaTabelaReferenciaVigenciaRow["situacao"] }>
   >({});
@@ -25184,14 +25267,6 @@ export function PrototiposFolhaTabelasReferenciaPage() {
       current.includes(id)
         ? current.filter((item) => item !== id)
         : [...current, id],
-    );
-  };
-
-  const toggleValorReferencia = (codigo: string) => {
-    setValoresExpandidos((current) =>
-      current.includes(codigo)
-        ? current.filter((item) => item !== codigo)
-        : [...current, codigo],
     );
   };
 
@@ -25239,31 +25314,6 @@ export function PrototiposFolhaTabelasReferenciaPage() {
     </div>
   );
 
-  const renderAcoesVigenciaValor = (
-    valor: FolhaValorReferenciaRow,
-    vigencia: FolhaValorReferenciaVigenciaRow,
-  ) => (
-    <div className="prototype-folha-referencia-actions">
-      <BotaoIconSeplag
-        type="button"
-        tooltip="Visualizar vigência"
-        icon="pi pi-eye"
-        onClick={() =>
-          setFeedback("Visualização de " + valor.codigo + " " + vigencia.ano + " selecionada.")
-        }
-      />
-      <BotaoIconSeplag
-        severity="warning"
-        type="button"
-        tooltip="Editar vigência"
-        icon="pi pi-pencil"
-        onClick={() =>
-          navigate(getFolhaValorReferenciaEditarVigenciaPath(valor.codigo, vigencia.id))
-        }
-      />
-    </div>
-  );
-
   return (
     <PrototypeSystemPage
       nomeSistema="FOLHA"
@@ -25276,17 +25326,13 @@ export function PrototiposFolhaTabelasReferenciaPage() {
         ) : null}
 
         <div className="prototype-folha-parametros-header">
-          <h2>Parâmetros de Folha</h2>
+          <h2>Tabelas de Referência</h2>
           <p>
-            Gerencie tabelas complexas e valores de referência utilizados nos cálculos da folha.
+            Gerencie regras, faixas e vigências utilizadas nos cálculos da folha.
           </p>
         </div>
 
-        <CardSeplag
-          title="Tabelas de Referência"
-          cols="12"
-          cardHeaderClassNames="prototype-regime-card"
-        >
+        <section className="prototype-folha-referencia-content">
           <div className="col-12 prototype-folha-referencia-filters">
             <TextFieldSeplag
               name="tabela"
@@ -25494,13 +25540,118 @@ export function PrototiposFolhaTabelasReferenciaPage() {
               </div>
             )}
           </div>
-        </CardSeplag>
+        </section>
 
-        <CardSeplag
-          title="Valores de Referência"
-          cols="12"
-          cardHeaderClassNames="prototype-regime-card"
-        >
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
+export function PrototiposFolhaValoresReferenciaPage() {
+  const navigate = useNavigate();
+  const [termoBusca, setTermoBusca] = useState("");
+  const [tipoSelecionado, setTipoSelecionado] = useState("");
+  const [valoresExpandidos, setValoresExpandidos] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState("");
+  const termoNormalizado = termoBusca.trim().toLowerCase();
+  const valoresFiltrados = folhaValoresReferenciaMock.filter((valor) => {
+    const correspondeAoTermo =
+      !termoNormalizado ||
+      `${valor.codigo} ${valor.nome}`.toLowerCase().includes(termoNormalizado);
+    return correspondeAoTermo && (!tipoSelecionado || valor.tipo === tipoSelecionado);
+  });
+  const tipos = [...new Set(folhaValoresReferenciaMock.map((valor) => valor.tipo))];
+
+  const toggleValorReferencia = (codigo: string) => {
+    setValoresExpandidos((current) =>
+      current.includes(codigo)
+        ? current.filter((item) => item !== codigo)
+        : [...current, codigo],
+    );
+  };
+
+  const renderSituacao = (situacao: FolhaValorReferenciaVigenciaRow["situacao"]) => (
+    <span
+      className={
+        situacao === "Ativo"
+          ? "prototype-badge prototype-badge--success"
+          : "prototype-badge prototype-badge--danger"
+      }
+    >
+      {situacao}
+    </span>
+  );
+
+  const renderAcoesVigencia = (
+    valor: FolhaValorReferenciaRow,
+    vigencia: FolhaValorReferenciaVigenciaRow,
+  ) => (
+    <div className="prototype-folha-referencia-actions">
+      <BotaoIconSeplag
+        type="button"
+        tooltip="Visualizar vigência"
+        icon="pi pi-eye"
+        onClick={() =>
+          setFeedback(`Visualização de ${valor.codigo} ${vigencia.ano} selecionada.`)
+        }
+      />
+      <BotaoIconSeplag
+        severity="warning"
+        type="button"
+        tooltip="Editar vigência"
+        icon="pi pi-pencil"
+        onClick={() =>
+          navigate(getFolhaValorReferenciaEditarVigenciaPath(valor.codigo, vigencia.id))
+        }
+      />
+    </div>
+  );
+
+  return (
+    <PrototypeSystemPage
+      nomeSistema="FOLHA"
+      ambienteSistema="Teste"
+      menuItems={menuFolha}
+    >
+      <div className="prototype-page-content prototype-page-content--white prototype-folha-referencia-page">
+        {feedback ? <div className="prototype-validation-panel">{feedback}</div> : null}
+
+        <div className="prototype-folha-parametros-header">
+          <h2>Valores de Referência</h2>
+          <p>Gerencie os valores utilizados como referência nos cálculos da folha.</p>
+        </div>
+
+        <section className="prototype-folha-referencia-content">
+          <div className="col-12 prototype-folha-referencia-filters prototype-folha-valores-referencia-filters">
+            <label>
+              <span>Valor de referência</span>
+              <input
+                type="search"
+                value={termoBusca}
+                placeholder="Código ou nome"
+                onChange={(event) => setTermoBusca(event.target.value)}
+              />
+            </label>
+            <label>
+              <span>Tipo</span>
+              <select value={tipoSelecionado} onChange={(event) => setTipoSelecionado(event.target.value)}>
+                <option value="">Todos</option>
+                {tipos.map((tipo) => <option key={tipo} value={tipo}>{tipo}</option>)}
+              </select>
+            </label>
+            <div className="prototype-category-clear">
+              <BotaoLimparFiltroSeplag
+                type="button"
+                label="Limpar"
+                icon="pi pi-refresh"
+                onClick={() => {
+                  setTermoBusca("");
+                  setTipoSelecionado("");
+                }}
+              />
+            </div>
+          </div>
+
           <div className="col-12 prototype-folha-referencia-list prototype-folha-valores-referencia-list">
             <table className="prototype-folha-valores-referencia-table">
               <thead>
@@ -25515,8 +25666,8 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                 </tr>
               </thead>
               <tbody>
-                {folhaValoresReferenciaMock.map((valor) => {
-                  const vigenciaAtual = valor.vigencias[0];
+                {valoresFiltrados.map((valor) => {
+                  const vigenciaAtual = valor.vigencias.find((vigencia) => vigencia.situacao === "Ativo") ?? valor.vigencias[0];
                   const isExpanded = valoresExpandidos.includes(valor.codigo);
 
                   return (
@@ -25527,51 +25678,14 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                         <td>{valor.tipo}</td>
                         <td>{vigenciaAtual.vigencia}</td>
                         <td>{vigenciaAtual.valor}</td>
-                        <td>{renderSituacaoTabelaReferencia(vigenciaAtual.situacao)}</td>
+                        <td>{renderSituacao(vigenciaAtual.situacao)}</td>
                         <td>
                           <div className="prototype-folha-referencia-actions">
-                            <BotaoIconSeplag
-                              type="button"
-                              tooltip="Nova vigência"
-                              icon="pi pi-plus"
-                              onClick={() =>
-                                navigate(getFolhaValorReferenciaNovaVigenciaPath(valor.codigo))
-                              }
-                            />
-                            <BotaoIconSeplag
-                              type="button"
-                              tooltip="Visualizar vigência atual"
-                              icon="pi pi-eye"
-                              onClick={() =>
-                                setFeedback("Visualização de " + valor.codigo + " selecionada.")
-                              }
-                            />
-                            <BotaoIconSeplag
-                              severity="warning"
-                              type="button"
-                              tooltip="Editar vigência atual"
-                              icon="pi pi-pencil"
-                              onClick={() =>
-                                navigate(
-                                  getFolhaValorReferenciaEditarVigenciaPath(
-                                    valor.codigo,
-                                    vigenciaAtual.id,
-                                  ),
-                                )
-                              }
-                            />
-                            <button
-                              type="button"
-                              className="prototype-folha-referencia-expand prototype-folha-referencia-expand--small"
-                              aria-label={
-                                isExpanded ? "Recolher vigências" : "Expandir vigências"
-                              }
-                              onClick={() => toggleValorReferencia(valor.codigo)}
-                            >
-                              <i
-                                className={"pi " + (isExpanded ? "pi-chevron-up" : "pi-chevron-down")}
-                                aria-hidden="true"
-                              />
+                            <BotaoIconSeplag type="button" tooltip="Nova vigência" icon="pi pi-plus" onClick={() => navigate(getFolhaValorReferenciaNovaVigenciaPath(valor.codigo))} />
+                            <BotaoIconSeplag type="button" tooltip="Visualizar vigência atual" icon="pi pi-eye" onClick={() => setFeedback(`Visualização de ${valor.codigo} selecionada.`)} />
+                            <BotaoIconSeplag severity="warning" type="button" tooltip="Editar vigência atual" icon="pi pi-pencil" onClick={() => navigate(getFolhaValorReferenciaEditarVigenciaPath(valor.codigo, vigenciaAtual.id))} />
+                            <button type="button" className="prototype-folha-referencia-expand prototype-folha-referencia-expand--small" aria-label={isExpanded ? "Recolher vigências" : "Expandir vigências"} onClick={() => toggleValorReferencia(valor.codigo)}>
+                              <i className={`pi ${isExpanded ? "pi-chevron-up" : "pi-chevron-down"}`} aria-hidden="true" />
                             </button>
                           </div>
                         </td>
@@ -25581,23 +25695,11 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                           <td colSpan={7}>
                             <div className="prototype-folha-referencia-vigencias prototype-folha-valores-referencia-vigencias">
                               <table>
-                                <thead>
-                                  <tr>
-                                    <th>Ano</th>
-                                    <th>Vigência</th>
-                                    <th>Valor</th>
-                                    <th>Situação</th>
-                                    <th>Ações</th>
-                                  </tr>
-                                </thead>
+                                <thead><tr><th>Ano</th><th>Vigência</th><th>Valor</th><th>Situação</th><th>Ações</th></tr></thead>
                                 <tbody>
                                   {valor.vigencias.map((vigencia) => (
                                     <tr key={vigencia.id}>
-                                      <td>{vigencia.ano}</td>
-                                      <td>{vigencia.vigencia}</td>
-                                      <td>{vigencia.valor}</td>
-                                      <td>{renderSituacaoTabelaReferencia(vigencia.situacao)}</td>
-                                      <td>{renderAcoesVigenciaValor(valor, vigencia)}</td>
+                                      <td>{vigencia.ano}</td><td>{vigencia.vigencia}</td><td>{vigencia.valor}</td><td>{renderSituacao(vigencia.situacao)}</td><td>{renderAcoesVigencia(valor, vigencia)}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -25609,10 +25711,11 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                     </Fragment>
                   );
                 })}
+                {!valoresFiltrados.length ? <tr><td colSpan={7} className="prototype-empty-table-cell">Nenhum valor de referência encontrado.</td></tr> : null}
               </tbody>
             </table>
           </div>
-        </CardSeplag>
+        </section>
       </div>
     </PrototypeSystemPage>
   );
@@ -26837,7 +26940,7 @@ export function PrototiposFolhaValorReferenciaVigenciaFormPage() {
                   <BotaoVoltarSeplag
                     type="button"
                     label="Voltar"
-                    onClick={() => navigate(FOLHA_TABELAS_REFERENCIA_BASE_PATH)}
+                    onClick={() => navigate(FOLHA_VALORES_REFERENCIA_BASE_PATH)}
                   />
                   <BotaoSalvarSeplag type="submit" label="Salvar" />
                 </div>
