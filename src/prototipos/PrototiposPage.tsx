@@ -121,7 +121,7 @@ import logoEstado from "../assets/img/Logo_Branco_Estado_MT.png";
 import logoSeplagMtExcel from "../assets/img/logo-seplag-mt-excel.png";
 import logoSeplag from "../assets/img/logo-seplag.png";
 import logoSeplagSigep from "../assets/img/logo-seplag-sigep.png";
-import avatarSigep from "../assets/img/avatar-sigep.png";
+import avatarUsuario from "../assets/img/avatar-usuario.svg";
 import brasaoMt from "../assets/img/brasao-mt.svg";
 import "../componentes/layout/layout/Layout.css";
 import "./prototipos.css";
@@ -1152,7 +1152,7 @@ export function PrototypeSystemPage({
         compactLogoSrc={brasaoMt}
         footerText="SEPLAG - SSCPG - Superintendência de Sistemas Corporativos de Planejamento e Gestão"
         nomeApresentacao={nomeApresentacao ?? USUARIO_SIGEP_LOGADO.nome}
-        avatarSrc={usarLayoutSigep ? avatarSigep : undefined}
+        avatarSrc={usarLayoutSigep ? avatarUsuario : undefined}
         profileExtraActions={profileExtraActions}
         topbarExtraContent={usarLayoutSigep ? <div className="sigep-profile-slot" ref={setPerfilHeaderDestino} /> : undefined}
         numrVinculoAtual={2}
