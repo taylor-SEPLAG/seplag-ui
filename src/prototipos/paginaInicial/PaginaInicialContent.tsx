@@ -86,7 +86,7 @@ export function PaginaInicialContent({
       <header className="sigep-inicial-cabecalho">
         <div>
           <h1>
-            Olá, Servidor!{" "}
+            Olá, Servidor(a)!{" "}
             <span className="sigep-inicial-saudacao" aria-hidden="true">
               👋
             </span>
