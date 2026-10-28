@@ -32,3 +32,11 @@ it("salva o conteúdo do documento opcional junto do comunicado", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Adicionar" }));
   expect(listarInformativosPaginaInicial()[0].documentos?.[0]).toMatchObject({ nome: "aviso.pdf", contentType: "application/pdf", conteudoEmBase64: btoa("conteudo") });
 });
+
+it("rejeita documentos acima de 2 MB", async () => {
+  render(<NovoInformativoModal fechar={vi.fn()} adicionado={vi.fn()} />);
+  const arquivo = new File([new Uint8Array(2_000_001)], "grande.pdf", { type: "application/pdf" });
+  fireEvent.change(screen.getByLabelText("Documentos (opcional)"), { target: { files: [arquivo] } });
+  await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("2 MB"));
+  expect(screen.queryByRole("button", { name: "Remover grande.pdf" })).toBeNull();
+});

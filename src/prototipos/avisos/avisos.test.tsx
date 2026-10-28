@@ -98,7 +98,7 @@ it("abre o conteúdo completo no modal existente, sem ações de cadastro", () =
     }),
   );
   const modal = screen.getByRole("dialog", {
-    name: "Atualização do cronograma",
+    name: /Atualização do cronograma/,
   });
   expect(within(modal).getByText(/Novos marcos publicados/).textContent).toBe(
     avisos[3].texto,

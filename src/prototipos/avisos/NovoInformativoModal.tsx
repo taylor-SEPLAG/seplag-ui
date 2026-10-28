@@ -41,6 +41,9 @@ export function NovoInformativoModal({
     setLendo(true);
     setErro("");
     try {
+      if (arquivos.some(arquivo => arquivo.size > 2_000_000)) {
+        throw new Error("O documento deve ter no máximo 2 MB.");
+      }
       const novos = await Promise.all(arquivos.map(lerDocumento));
       setDocumentos((atuais) => [...atuais, ...novos]);
     } catch (error) {
@@ -183,7 +186,7 @@ export function NovoInformativoModal({
               Arraste e solte o arquivo aqui ou clique para selecionar
             </button>
             <small id="informativo-anexos-ajuda">
-              Formatos aceitos: PDF, DOC, DOCX (Máx. 10MB)
+              Formatos aceitos: PDF, DOC, DOCX (Máx. 2MB)
             </small>
           </div>
         </div>
