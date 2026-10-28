@@ -29,7 +29,6 @@ interface Props {
 
 export function PaginaInicialContent({
   menu,
-  nomeUsuario,
 
   proximo,
   modulos = modulosPaginaInicial,
@@ -43,11 +42,6 @@ export function PaginaInicialContent({
     return () => window.clearInterval(timer);
   }, []);
   const destinos = funcionalidades(menu);
-  const primeiroNome = nomeUsuario.trim().split(/\s+/)[0];
-  const nome = primeiroNome
-    ? primeiroNome[0].toLocaleUpperCase("pt-BR") +
-      primeiroNome.slice(1).toLocaleLowerCase("pt-BR")
-    : "usuário";
   const painel = destinos.find((item) => item.nome === "Painel Informativo");
   const conteudoCronograma = (
     <>
@@ -92,7 +86,7 @@ export function PaginaInicialContent({
       <header className="sigep-inicial-cabecalho">
         <div>
           <h1>
-            Olá, {nome}!{" "}
+            Olá, Servidor!{" "}
             <span className="sigep-inicial-saudacao" aria-hidden="true">
               👋
             </span>
