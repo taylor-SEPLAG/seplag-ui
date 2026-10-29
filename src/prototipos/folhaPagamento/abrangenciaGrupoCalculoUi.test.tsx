@@ -42,8 +42,8 @@ it("exibe apenas os seis filtros na ordem solicitada e preserva as demais seçõ
   ).toEqual([
     "abrangenciaRegimeJuridico",
     "abrangenciaTipoVinculo",
-    "abrangenciaCarreiras",
     "abrangenciaOrgao",
+    "abrangenciaCarreiras",
     "abrangenciaUnidades",
     "abrangenciaCargos",
   ]);
@@ -52,7 +52,7 @@ it("exibe apenas os seis filtros na ordem solicitada e preserva as demais seçõ
     "Tipo de Vínculo",
     "Carreira",
     "Órgão/Entidade",
-    "Unidade",
+    "Unidade de Lotação",
     "Cargo",
   ])
     expect(within(secao).getByText(label)).toBeTruthy();

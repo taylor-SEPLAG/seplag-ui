@@ -235,8 +235,9 @@ it("filtra nas duas visualizações e retorna da lista ao dia correspondente", (
       .getAttribute("aria-pressed"),
   ).toBe("true");
   fireEvent.click(screen.getByRole("button", { name: "Limpar filtro" }));
-  fireEvent.change(screen.getByLabelText("Tipo de folha"), {
-    target: { value: "2" },
+  expect(screen.queryByRole("combobox")).toBeNull();
+  fireEvent.change(screen.getByLabelText("Buscar evento"), {
+    target: { value: "Cancelamento de pagamento" },
   });
   expect(
     screen.getByRole("button", { name: "14/06/2026 — 1 eventos" }),

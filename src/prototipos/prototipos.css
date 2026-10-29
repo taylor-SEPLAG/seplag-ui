@@ -21516,3 +21516,119 @@
 .prototype-jornada-docente-flag input { width: 18px; height: 18px; accent-color: #3983f4; }
 .prototype-jornada-docente-result { display: flex; align-items: center; gap: 8px; padding: 12px 14px; margin-top: 14px; border: 1px solid #cfe0f0; border-left: 3px solid #2f80ed; border-radius: 4px; background: #f5f9ff; color: #183b56; font-size: .85rem; }
 @media (max-width: 640px) { .prototype-jornada-docente-grid { grid-template-columns: 1fr; } .prototype-jornada-docente-activity:empty { display: none; } }
+
+/* Hierarquia visual do formulario de grupos de calculo. */
+.prototype-grupo-calculo-form .prototype-grupo-calculo-form-fields { display:flex; flex-direction:column; gap:20px; margin:16px 0 0; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card { width:100%; min-width:0; padding:20px; background:#fff; border:1px solid #d6e2ef; border-radius:8px; box-sizing:border-box; }
+.prototype-grupo-calculo-card-heading { display:flex; align-items:flex-start; justify-content:flex-start; gap:12px; margin-bottom:18px; }
+.prototype-grupo-calculo-card-heading > i { display:grid; place-items:center; flex:0 0 38px; width:38px; height:38px; border-radius:7px; background:#e8f1ff; color:#0875e1; font-size:18px; }
+.prototype-grupo-calculo-card-heading > div { min-width:0; }
+.prototype-grupo-calculo-card-heading h2 { margin:0 0 5px; color:#173b63; font-size:17px; line-height:1.4; font-weight:700; }
+.prototype-grupo-calculo-card-heading p, .prototype-grupo-calculo-card-heading div > span { margin:0; color:#647b95; font-size:13px; line-height:1.5; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-identificacao > [class*="col-"] { padding:0; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-rubricas-section { margin:0; padding:0; border:0; display:grid; gap:20px; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-abrangencia { margin:0; }
+.prototype-grupo-calculo-section-heading .prototype-grupo-calculo-card-heading { margin-bottom:0; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading { align-items:flex-start; margin-bottom:18px; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading .p-button { background:#edf5ff; border:1px solid #c9ddf8; color:#0875d1; flex-shrink:0; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading .p-button :is(.p-button-label,.p-button-icon) { color:#0875d1; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card [class*="content-rotulo"] { gap:8px; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-abrangencia > .grid { margin:0 -8px; row-gap:8px; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-abrangencia-hint { display:flex; align-items:center; gap:9px; padding:12px 14px; margin:16px 0 0; border:1px solid #d5e6fc; border-radius:5px; background:#f1f7ff; color:#35618c; font-size:13px; line-height:1.5; }
+.prototype-grupo-calculo-abrangencia-hint > i { color:#0875e1; flex-shrink:0; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-rubricas-list-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; min-height:150px; padding:24px; background:#fff; border:1px dashed #d6e2ef; border-radius:5px; color:#647b95; }
+.prototype-grupo-calculo-rubricas-list-empty > i { color:#82a1c2; font-size:28px; }
+@media(max-width:760px) {
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card { padding:16px; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading { flex-wrap:wrap; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-rubricas-controls { grid-template-columns:minmax(0,1fr); }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-rubricas-controls::before { display:none; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-rubricas-controls .p-button { grid-column:1; width:auto; justify-self:start; }
+}
+
+/* Mesmo padrao de secoes utilizado em Cadastrar Vinculo. */
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card {
+  padding: 14px 16px;
+  border-color: #d8e3ee;
+  border-radius: 6px;
+  box-shadow: none;
+}
+.prototype-grupo-calculo-form .prototype-grupo-calculo-form-fields,
+.prototype-grupo-calculo-form .prototype-grupo-calculo-rubricas-section { gap: 18px; }
+.prototype-grupo-calculo-identificacao > .prototype-grupo-calculo-card-heading,
+.prototype-grupo-calculo-rubricas-manager > .prototype-grupo-calculo-rubricas-header,
+.prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading {
+  width: calc(100% + 32px);
+  margin: -14px -16px 14px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #dce5ee;
+  box-sizing: border-box;
+  align-items: center;
+}
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card-heading { align-items: center; gap: 12px; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card-heading > i {
+  flex-basis: 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  background: #e6f3ff;
+  color: #087bd4;
+  font-size: 1.05rem;
+}
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card-heading h2 {
+  margin: 0;
+  color: #123354;
+  font-size: 1rem;
+  line-height: normal;
+}
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card-heading p,
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card-heading div > span {
+  display: block;
+  margin: 2px 0 0;
+  color: #647c94;
+  font-size: .82rem;
+  line-height: 1.4;
+}
+.prototype-grupo-calculo-form .prototype-grupo-calculo-card [class*="label-rotulo"] { font-size: 1rem; color: #123354; }
+.prototype-grupo-calculo-form .prototype-grupo-calculo-abrangencia > .grid { row-gap: 12px; }
+
+.prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading .p-button {
+  height: 38px;
+  padding: 0 14px;
+  background: #2f80ed;
+  border: 1px solid #2f80ed;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading .p-button :is(.p-button-label, .p-button-icon) {
+  color: #fff;
+}
+.prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading .p-button .p-button-icon {
+  font-size: 1rem;
+}
+.prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading .p-button:enabled:hover {
+  background: #256fd1;
+  border-color: #256fd1;
+}
+
+/* Listagem de grupos no padrao da Gestao de Vinculos. */
+.prototype-folha-grupos-calculo-page .prototype-grupos-calculo-management { width:100%; }
+.prototype-grupos-calculo-management .prototype-grupos-calculo-filters { display:grid; grid-template-columns:minmax(240px,2fr) minmax(180px,1fr) auto; gap:16px; align-items:end; padding:16px; margin:0 0 18px; }
+.prototype-grupos-calculo-management .prototype-grupos-calculo-filters > [class*="col-"] { width:auto; padding:0; }
+.prototype-grupos-calculo-management .prototype-grupos-calculo-filters .p-inputtext,
+.prototype-grupos-calculo-management .prototype-grupos-calculo-filters .p-dropdown { width:100%; height:43px; }
+.prototype-grupos-calculo-management .prototype-category-clear { margin:0; }
+.prototype-grupos-calculo-management .prototype-folha-grupos-calculo-table { width:100%; padding:0; overflow-x:auto; }
+.prototype-grupos-calculo-management .prototype-grupos-calculo-flat-table { border-radius:0; }
+.prototype-grupos-calculo-management .v2v-inner-table th { text-transform:none; background:#f1f5f9; color:#173b63; }
+.prototype-grupos-calculo-management .v2v-inner-table :is(th,td) { padding:12px; font-size:.95rem; }
+.prototype-grupos-calculo-management .v2v-inner-table tbody tr:nth-child(odd) { background:#eff6ff; }
+.prototype-grupos-calculo-management .v2v-inner-table tbody tr:nth-child(even) { background:#f7f8fa; }
+.prototype-grupos-calculo-management .v2v-grid-toolbar .p-button { margin:0; }
+@media(max-width:800px) { .prototype-grupos-calculo-management .prototype-grupos-calculo-filters { grid-template-columns:minmax(0,1fr); } }
+
+.prototype-grupos-calculo-management .prototype-grupos-calculo-filters [class*="content-rotulo"],
+.prototype-grupos-calculo-management .prototype-grupos-calculo-filters [class*="label-rotulo"] { text-align: left; align-items: flex-start; justify-content: flex-start; }
+
+.prototype-grupos-calculo-management .prototype-grupos-calculo-filters { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0; }

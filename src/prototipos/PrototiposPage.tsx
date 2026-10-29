@@ -1,3 +1,4 @@
+import "./vinculos/vinculoV2.css";
 import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
 import { abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, temAbrangencia, lerAbrangenciaGrupo, salvarAbrangenciaGrupo, filtrarVinculosElegiveis, type CriteriosAbrangencia, type CatalogoAbrangencia } from "./folhaPagamento/abrangenciaGrupoCalculo";
 import { lerEstruturaOrganizacional } from "./estruturaOrganizacional/estruturaOrganizacionalStore";
@@ -1153,6 +1154,8 @@ export function PrototypeSystemPage({
         footerText="SEPLAG - SSCPG - Superintendência de Sistemas Corporativos de Planejamento e Gestão"
         nomeApresentacao={nomeApresentacao ?? USUARIO_SIGEP_LOGADO.nome}
         avatarSrc={usarLayoutSigep ? avatarUsuario : undefined}
+        avatarDinamico={usarLayoutSigep}
+        mascotePerfil={nomeSistema === "FOLHA" ? "onca" : usarLayoutSigep ? "capivara" : undefined}
         profileExtraActions={profileExtraActions}
         topbarExtraContent={usarLayoutSigep ? <div className="sigep-profile-slot" ref={setPerfilHeaderDestino} /> : undefined}
         numrVinculoAtual={2}
@@ -34168,15 +34171,15 @@ export function PrototiposFolhaGruposCalculoPage() {
       ambienteSistema="Teste"
       menuItems={menuFolha}
     >
-      <div className="prototype-page-content prototype-page-content--white prototype-folha-grupos-calculo-page">
+      <div className="prototype-page-content prototype-page-content--white prototype-folha-grupos-calculo-page v2v-shell">
         <CardSeplag
           title="Gestão de Grupos de Cálculo"
           cols="12"
-          cardHeaderClassNames="prototype-regime-card"
-        />
-
-        <CardSeplag cols="12" cardHeaderClassNames="prototype-regime-card">
-          <div className="col-12 prototype-category-filters prototype-grupos-calculo-filters">
+          cardHeaderClassNames="prototype-carreira-card v2v-card"
+          headerNavigation={<BreadcrumbSeplag divided homeTo={FOLHA_PAGINA_INICIAL_PATH} items={[{ label: "Página Inicial", to: FOLHA_PAGINA_INICIAL_PATH }, { label: "Folha" }, { label: "Grupos de Cálculo da Folha", to: "/prototipos/folha/grupos-calculo" }]} />}
+        >
+          <div className="v2v-page prototype-grupos-calculo-management">
+          <div className="v2v-panel prototype-category-filters prototype-grupos-calculo-filters">
             <TextFieldSeplag
               name="nomeGrupo"
               control={control}
@@ -34198,7 +34201,7 @@ export function PrototiposFolhaGruposCalculoPage() {
             <div className="prototype-category-clear col-12 md:col-2">
               <BotaoLimparFiltroSeplag
                 type="button"
-                label="Limpar"
+                label="Limpar filtro"
                 icon="pi pi-refresh"
                 onClick={() =>
                   reset({
@@ -34208,21 +34211,20 @@ export function PrototiposFolhaGruposCalculoPage() {
                 }
               />
             </div>
-            <div className="prototype-category-clear col-12 md:col-2">
+
+          </div>
+          <section className="v2v-panel v2v-management-results" aria-label="Grupos de cálculo cadastrados">
+            <div className="v2v-grid-toolbar">            <div>
               <BotaoSeplag
                 type="button"
-                label="Adicionar"
+                label="Cadastrar Grupo de Cálculo"
                 icon="pi pi-plus"
                 onClick={() => navigate("/prototipos/folha/grupos-calculo/novo")}
               />
-            </div>
-          </div>
-        </CardSeplag>
-
-        <CardSeplag cols="12" cardHeaderClassNames="prototype-regime-card">
-          <div className="col-12 prototype-folha-grupos-calculo-table">
+            </div></div>
+          <div className="prototype-folha-grupos-calculo-table">
             <div className="prototype-grupos-calculo-accordion-table prototype-grupos-calculo-flat-table">
-              <table>
+              <table className="v2v-table v2v-inner-table">
                 <thead>
                   <tr>
                     <th>Nome do grupo</th>
@@ -34238,7 +34240,7 @@ export function PrototiposFolhaGruposCalculoPage() {
                   {gruposFiltrados.map((grupo) => (
                     <tr className="prototype-grupos-calculo-group-row" key={grupo.id}>
                       <td>
-                        <strong>{grupo.grupo}</strong>
+                        {grupo.grupo}
                       </td>
                       <td>{getGrupoCalculoVersao(grupo)}</td>
                       <td>{grupo.inicioVigencia}</td>
@@ -34258,6 +34260,8 @@ export function PrototiposFolhaGruposCalculoPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+          </section>
           </div>
         </CardSeplag>
 
@@ -34622,10 +34626,13 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
               </div>
             </div>
           )}
+          <section className="col-12 prototype-grupo-calculo-card prototype-grupo-calculo-identificacao" aria-labelledby="grupo-identificacao-titulo">
+            <header className="prototype-grupo-calculo-card-heading"><i className="pi pi-file-edit" aria-hidden="true" /><div><h2 id="grupo-identificacao-titulo">Identificação do Grupo</h2><p>Informe o nome do grupo de cálculo.</p></div></header>
           <TextFieldSeplag
             name="nome"
             control={control}
             label="Nome do Grupo"
+            placeholder="Digite o nome do grupo"
             cols="12 12 12"
             required
             disabled={formularioBloqueado}
@@ -34646,10 +34653,11 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
             </div>
           )}
 
+          </section>
           <div className="col-12 prototype-grupo-calculo-rubricas-section">
-            <section className="prototype-grupo-calculo-abrangencia" aria-label="Abrangência">
+            <section className="prototype-grupo-calculo-abrangencia prototype-grupo-calculo-card" aria-label="Abrangência">
               <div className="prototype-grupo-calculo-section-heading">
-                <div><strong>Abrangência<span style={{ color: "red" }}>*</span></strong><p>Defina os critérios de abrangência para identificar os vínculos funcionais que serão considerados neste Grupo de Cálculo.</p></div>
+                <div className="prototype-grupo-calculo-card-heading"><i className="pi pi-filter" aria-hidden="true" /><div><h2>Abrangência</h2><p>Defina os critérios de abrangência para identificar os vínculos funcionais que serão considerados neste Grupo de Cálculo.</p></div></div>
                 <BotaoLimparFiltroSeplag type="button" label="Limpar filtros" icon="pi pi-refresh" onClick={handleLimparAbrangencia} disabled={formularioBloqueado} />
               </div>
               <div className="grid prototype-category-form-fields">
@@ -34666,19 +34674,19 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, tipos: valores })} getFormErrorMessage={() => null}
                 />
                 <MultiSelectFieldSeplag
-                  name={camposAbrangencia.carreiras} control={control} label="Carreira" cols="12 12 6"
-                  disabled={formularioBloqueado || !opcoesDaAbrangencia.carreiraAtiva} options={opcoesDaAbrangencia.carreiras}
-                  optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} carreiras selecionadas"
-                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, carreiras: valores })} getFormErrorMessage={() => null}
-                />
-                <MultiSelectFieldSeplag
                   name={camposAbrangencia.orgaos} control={control} label="Órgão/Entidade" cols="12 12 6"
                   disabled={formularioBloqueado} options={opcoesDaAbrangencia.orgaos}
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} órgãos/entidades selecionados"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, orgaos: valores })} getFormErrorMessage={() => null}
                 />
                 <MultiSelectFieldSeplag
-                  name={camposAbrangencia.unidades} control={control} label="Unidade" cols="12 12 6"
+                  name={camposAbrangencia.carreiras} control={control} label="Carreira" cols="12 12 6"
+                  disabled={formularioBloqueado || !opcoesDaAbrangencia.carreiraAtiva} options={opcoesDaAbrangencia.carreiras}
+                  optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} carreiras selecionadas"
+                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, carreiras: valores })} getFormErrorMessage={() => null}
+                />
+                <MultiSelectFieldSeplag
+                  name={camposAbrangencia.unidades} control={control} label="Unidade de Lotação" cols="12 12 6"
                   disabled={formularioBloqueado} options={opcoesDaAbrangencia.unidades}
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} unidades selecionadas"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, unidades: valores })} getFormErrorMessage={() => null}
@@ -34690,14 +34698,15 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, cargos: valores })} getFormErrorMessage={() => null}
                 />
               </div>
-              <p className="prototype-grupo-calculo-abrangencia-hint">Ao menos um campo ativo de abrangência deve ser preenchido para aprovar.</p>
+              <p className="prototype-grupo-calculo-abrangencia-hint"><i className="pi pi-info-circle" aria-hidden="true" />Ao menos um campo ativo de abrangência deve ser preenchido para aprovar.</p>
               {erroAbrangencia && <p role="alert" style={{ color: "#b42318" }}>{erroAbrangencia}</p>}
             </section>
 
-            <div className="prototype-grupo-calculo-rubricas-manager">
-              <div className="prototype-grupo-calculo-rubricas-header">
+            <div className="prototype-grupo-calculo-rubricas-manager prototype-grupo-calculo-card" role="region" aria-labelledby="grupo-rubricas-titulo">
+              <div className="prototype-grupo-calculo-rubricas-header prototype-grupo-calculo-card-heading">
+                <i className="pi pi-calculator" aria-hidden="true" />
                 <div>
-                  <strong>Relacionar Rubricas</strong>
+                  <h2 id="grupo-rubricas-titulo">Relacionar Rubricas</h2>
                   <span>
                     {rubricasAtivasNoGrupo} rubrica(s) ativa(s) no grupo.
                     Rubricas herdadas não podem ser excluídas; apenas as adicionadas manualmente.
@@ -34862,7 +34871,8 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
                 })
                 ) : (
                   <div className="prototype-grupo-calculo-rubricas-list-empty">
-                    Nenhuma rubrica adicionada.
+                    <i className="pi pi-file" aria-hidden="true" />
+                    <span>Nenhuma rubrica adicionada.</span>
                   </div>
                 )}
               </div>
@@ -34880,6 +34890,18 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
       <form onSubmit={(event) => event.preventDefault()}>
         <div className="prototype-page-content prototype-page-content--white">
           <CardSeplag
+            headerNavigation={
+              <BreadcrumbSeplag
+                divided
+                homeTo={FOLHA_PAGINA_INICIAL_PATH}
+                items={[
+                  { label: "Página Inicial", to: FOLHA_PAGINA_INICIAL_PATH },
+                  { label: "Folha" },
+                  { label: "Grupos de Cálculo da Folha", to: "/prototipos/folha/grupos-calculo" },
+                  { label: modoVersionamento ? "Criar Nova Versão" : isEdit ? "Alterar" : "Cadastrar" },
+                ]}
+              />
+            }
             title={tituloFormularioGrupoCalculo}
             cols="12"
             cardHeaderClassNames="prototype-category-card"

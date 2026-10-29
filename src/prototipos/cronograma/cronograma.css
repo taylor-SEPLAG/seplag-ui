@@ -681,3 +681,6 @@
 .sigep-cronograma-calendario tbody td:nth-child(n + 2):nth-child(-n + 6):not(.is-outro-mes):not(.is-selecionado) {
   background: #edf5ff;
 }
+
+.sigep-cronograma-filtros.sigep-cronograma-filtros-busca { grid-template-columns: minmax(0, 1fr) auto; }
+@media (max-width: 700px) { .sigep-cronograma-filtros.sigep-cronograma-filtros-busca { grid-template-columns: minmax(0, 1fr); } }

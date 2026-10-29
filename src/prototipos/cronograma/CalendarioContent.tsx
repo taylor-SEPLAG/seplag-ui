@@ -46,11 +46,9 @@ export function CalendarioContent({
   const dia = diaEscolhido ?? hoje;
   const [modo, setModo] = useState<"mes" | "lista">("mes");
   const [busca, setBusca] = useState("");
-  const [tipo, setTipo] = useState("");
   const filtro = normalizar(busca.trim());
   const filtrados = calendario.eventos.filter(
     (evento) =>
-      (!tipo || evento.tipoId === tipo) &&
       normalizar(`${evento.nome} ${evento.descricao}`).includes(filtro),
   );
   const noMes = eventosDoMes(filtrados, mes);
@@ -119,7 +117,7 @@ export function CalendarioContent({
         </header>
       </div>
       <section
-        className="sigep-cronograma-filtros"
+        className="sigep-cronograma-filtros sigep-cronograma-filtros-busca"
         aria-label="Filtros do cronograma"
       >
         <label>
@@ -131,27 +129,12 @@ export function CalendarioContent({
             onChange={(event) => setBusca(event.target.value)}
           />
         </label>
-        <label>
-          Tipo de folha
-          <select
-            value={tipo}
-            onChange={(event) => setTipo(event.target.value)}
-          >
-            <option value="">Todas as folhas</option>
-            {calendario.tipos.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.nome}
-              </option>
-            ))}
-          </select>
-        </label>
         <button
           className="sigep-cronograma-limpar"
           type="button"
           aria-label="Limpar filtro"
           onClick={() => {
             setBusca("");
-            setTipo("");
           }}
         >
           <i className="pi pi-refresh" aria-hidden="true" />{" "}

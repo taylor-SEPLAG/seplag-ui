@@ -1,3 +1,4 @@
+import { MascoteAvatar } from "./MascoteAvatar";
 import React, { useContext, useState, type ReactNode } from "react";
 import { SidebarNavigationContext } from '../layout/SidebarNavigationContext';
 import { CSSTransition } from "primereact/csstransition";
@@ -14,6 +15,8 @@ export interface AppProfileSeplagProps {
   numrVinculoAtual: string | number;
   vinculos: IVinculoSeplag[];
   avatarSrc?: string;
+  avatarDinamico?: boolean;
+  mascotePerfil?: "capivara" | "onca";
   onLogout: () => void;
   onAlterarSenha: (
     senhaAtual: string,
@@ -29,6 +32,8 @@ export function AppProfileSeplag({
   numrVinculoAtual,
   vinculos,
   avatarSrc,
+  avatarDinamico = false,
+  mascotePerfil,
   onLogout,
   onAlterarSenha,
   onSelecionarVinculo,
@@ -72,7 +77,7 @@ export function AppProfileSeplag({
       {navigation.compactNavigation ? <button type="button" className="layout-profile-avatar"
         onClick={onClick} title={`${nomeApresentacao} — Vínculo ${numrVinculoAtual}`}
         aria-label={`Configurações de ${nomeApresentacao} — Vínculo ${numrVinculoAtual}`} aria-expanded={expanded && !navigation.collapsed}>
-        <img src={avatarSrc ?? defaultAvatar} alt="" />
+        {avatarDinamico ? <MascoteAvatar mascote={mascotePerfil} /> : <img src={avatarSrc ?? defaultAvatar} alt="" />}
       </button> : <div>
         <img
           style={{ borderRadius: "50%", width: "50px" }}
