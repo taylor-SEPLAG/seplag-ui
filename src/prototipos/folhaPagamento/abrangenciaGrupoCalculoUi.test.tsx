@@ -43,8 +43,8 @@ it("exibe apenas os seis filtros na ordem solicitada e preserva as demais seçõ
     "abrangenciaRegimeJuridico",
     "abrangenciaTipoVinculo",
     "abrangenciaOrgao",
-    "abrangenciaCarreiras",
     "abrangenciaUnidades",
+    "abrangenciaCarreiras",
     "abrangenciaCargos",
   ]);
   for (const label of [
@@ -93,9 +93,19 @@ it("filtra os tipos pelo regime, salva a abrangência e limpa somente os critér
 
 it("atualiza unidades quando o órgão é alterado", async () => {
   montar();
+  expect(
+    document
+      .getElementById("abrangenciaUnidades")
+      ?.classList.contains("p-disabled"),
+  ).toBe(true);
   let opcoes = await abrir("abrangenciaOrgao");
   fireEvent.click(opcoes.getByRole("option", { name: /^SEDUC —/ }));
   fechar("abrangenciaOrgao");
+  expect(
+    document
+      .getElementById("abrangenciaUnidades")
+      ?.classList.contains("p-disabled"),
+  ).toBe(false);
   opcoes = await abrir("abrangenciaUnidades");
   expect(
     opcoes.getByRole("option", {
@@ -114,6 +124,17 @@ it("atualiza unidades quando o órgão é alterado", async () => {
   );
   fechar("abrangenciaUnidades");
   fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+  expect(
+    document
+      .getElementById("abrangenciaUnidades")
+      ?.classList.contains("p-disabled"),
+  ).toBe(true);
+  expect(
+    document.getElementById("abrangenciaUnidades")?.textContent,
+  ).not.toContain("Gabinete do Secretário de Estado de Educação");
+  opcoes = await abrir("abrangenciaOrgao");
+  fireEvent.click(opcoes.getByRole("option", { name: /^SEPLAG —/ }));
+  fechar("abrangenciaOrgao");
   opcoes = await abrir("abrangenciaUnidades");
   expect(
     opcoes.getByRole("option", {

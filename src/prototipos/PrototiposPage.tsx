@@ -1,3 +1,5 @@
+import { AbrangenciaProcessamentoFolha } from "./folhaPagamento/AbrangenciaProcessamentoFolha";
+import type { ProcessamentoFolhaForm } from "./folhaPagamento/types";
 import { camposAbrangenciaFolha, criteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
 import "./vinculos/vinculoV2.css";
 import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
@@ -1634,20 +1636,6 @@ interface GrupoCalculoForm {
   abrangenciaCargos?: string[];
 }
 
-interface ProcessamentoFolhaForm {
-  numeroFolha?: string;
-  nomeFolha?: string;
-  competencia?: string;
-  tipoExecucao?: "PARCIAL" | "TOTAL";
-  orgaos?: string[];
-  setores?: string[];
-  regimesJuridicos?: string[];
-  tiposVinculo?: string[];
-  categorias?: string[];
-  subcategorias?: string[];
-  cargos?: string[];
-  grupoEleitos?: string;
-}
 
 interface GrupoEleitoForm {
   descricao?: string;
@@ -29165,26 +29153,7 @@ export function PrototiposFolhaPagamentoPage({
     cargos: ["Analista Administrativo"],
     grupoEleitos: "",
   };
-  const toUpperOptions = <T extends { label: string; value: unknown }>(
-    options: T[],
-  ) =>
-    options.map((option) => ({
-      ...option,
-      label: option.label.toUpperCase(),
-    }));
-  const processamentoOrgaoOptions = toUpperOptions(folhaPagamentoOrgaoOptions);
-  const processamentoRegimeOptions = toUpperOptions(
-    folhaPagamentoRegimeOptions.filter((option) => option.value),
-  );
-  const processamentoCategoriaOptions = toUpperOptions(
-    folhaPagamentoCategoriaOptions.filter((option) => option.value),
-  );
-  const processamentoCargoOptions = toUpperOptions(
-    folhaPagamentoCargoOptions.filter((option) => option.value),
-  );
-  const processamentoGrupoEleitosOptions = toUpperOptions(
-    folhaPagamentoGrupoEleitosOptions,
-  );
+  const catalogoProcessamento = useMemo(criarCatalogoAbrangenciaFolha, []);
   const {
     control: logControl,
     reset: resetLog,
@@ -29216,6 +29185,8 @@ export function PrototiposFolhaPagamentoPage({
       setores: [],
       regimesJuridicos: [],
       tiposVinculo: [],
+      carreiras: [],
+      unidades: [],
       categorias: [],
       subcategorias: [],
       cargos: [],
@@ -29524,6 +29495,9 @@ export function PrototiposFolhaPagamentoPage({
       data.orgaos?.length ||
         data.abrangenciaRegimeJuridico?.length ||
         data.abrangenciaTipoVinculo?.length ||
+        data.abrangenciaCarreiras?.length ||
+        data.abrangenciaUnidades?.length ||
+        data.abrangenciaCargos?.length ||
         data.abrangenciaInstituicao?.length ||
         data.abrangenciaSetores?.length ||
         data.abrangenciaSubcategorias?.length ||
@@ -29650,16 +29624,19 @@ export function PrototiposFolhaPagamentoPage({
       nomeFolha: folha.nome,
       competencia: formatMesAno(folha.competencia),
       tipoExecucao: "TOTAL",
+      carreiras: folha.abrangenciaCarreiras ?? [],
+      unidades: folha.abrangenciaUnidades ?? [],
+      tiposVinculo: folha.abrangenciaTipoVinculo ?? [],
       orgaos: folha.orgaos.length
         ? folha.orgaos
         : usuarioLogadoProcessamentoMock.orgaos,
-      regimesJuridicos: folha.regimeJuridico
+      regimesJuridicos: folha.abrangenciaRegimeJuridico?.length ? folha.abrangenciaRegimeJuridico : folha.regimeJuridico
         ? [folha.regimeJuridico]
         : usuarioLogadoProcessamentoMock.regimesJuridicos,
       categorias: folha.categoria
         ? [folha.categoria]
         : usuarioLogadoProcessamentoMock.categorias,
-      cargos: folha.cargo ? [folha.cargo] : usuarioLogadoProcessamentoMock.cargos,
+      cargos: folha.abrangenciaCargos?.length ? folha.abrangenciaCargos : folha.cargo ? [folha.cargo] : usuarioLogadoProcessamentoMock.cargos,
       grupoEleitos: folha.grupoEleitos || usuarioLogadoProcessamentoMock.grupoEleitos,
     });
     setModalProcessamentoAberto(true);
@@ -29691,11 +29668,10 @@ export function PrototiposFolhaPagamentoPage({
     if (data.tipoExecucao === "PARCIAL") {
       const possuiFiltro =
         Boolean(data.orgaos?.length) ||
-        Boolean(data.setores?.length) ||
+        Boolean(data.carreiras?.length) ||
         Boolean(data.regimesJuridicos?.length) ||
         Boolean(data.tiposVinculo?.length) ||
-        Boolean(data.categorias?.length) ||
-        Boolean(data.subcategorias?.length) ||
+        Boolean(data.unidades?.length) ||
         Boolean(data.cargos?.length) ||
         Boolean(data.grupoEleitos);
 
@@ -30759,65 +30735,7 @@ export function PrototiposFolhaPagamentoPage({
                 ]}
                 getFormErrorMessage={() => getProcessamentoErrorMessage("tipoExecucao")}
               />
-              <MultiSelectFieldSeplag
-                name="orgaos"
-                control={processamentoControl}
-                label="Órgãos"
-                cols="12 12 6"
-                options={processamentoOrgaoOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} órgãos selecionados"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("orgaos")}
-              />
-              <MultiSelectFieldSeplag
-                name="regimesJuridicos"
-                control={processamentoControl}
-                label="Regime jurídico"
-                cols="12 12 6"
-                options={processamentoRegimeOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} regimes selecionados"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("regimesJuridicos")}
-              />
-              <MultiSelectFieldSeplag
-                name="categorias"
-                control={processamentoControl}
-                label="Categoria"
-                cols="12 12 4"
-                options={processamentoCategoriaOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} categorias selecionadas"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("categorias")}
-              />
-              <MultiSelectFieldSeplag
-                name="cargos"
-                control={processamentoControl}
-                label="Cargo"
-                cols="12 12 4"
-                options={processamentoCargoOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} cargos selecionados"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("cargos")}
-              />
-              <DropdownFieldSeplag
-                name="grupoEleitos"
-                control={processamentoControl}
-                label="Grupo de eleitos"
-                cols="12 12 4"
-                options={processamentoGrupoEleitosOptions}
-                optionLabel="label"
-                optionValue="value"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("grupoEleitos")}
-              />
+              <AbrangenciaProcessamentoFolha control={processamentoControl} setValue={setValueProcessamento} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaPagamentoGrupoEleitosOptions} disabled={processamentoTotal} getError={getProcessamentoErrorMessage} />
             </div>
           </div>
         </ModalSeplag>
@@ -31435,13 +31353,7 @@ export function PrototiposFolhaProcessamentoFormPage() {
     grupoEleitos: "",
   };
 
-  const toUpperOptions = <T extends { label: string; value: unknown }>(
-    options: T[],
-  ) =>
-    options.map((option) => ({
-      ...option,
-      label: option.label.toUpperCase(),
-    }));
+  const catalogoProcessamento = useMemo(criarCatalogoAbrangenciaFolha, []);
 
   const formatMesAno = (value: string) => {
     if (!value) return "";
@@ -31479,19 +31391,21 @@ export function PrototiposFolhaProcessamentoFormPage() {
         folhaDisponivel?.competencia ?? competenciaVigente?.competencia ?? "",
       ),
       tipoExecucao: "TOTAL",
+      carreiras: folhaDisponivel?.abrangenciaCarreiras ?? [],
+      unidades: folhaDisponivel?.abrangenciaUnidades ?? [],
       orgaos: folhaDisponivel?.orgaos?.length
         ? folhaDisponivel.orgaos
         : usuarioLogadoProcessamentoMock.orgaos,
       setores: usuarioLogadoProcessamentoMock.setores,
-      regimesJuridicos: folhaDisponivel?.regimeJuridico
+      regimesJuridicos: folhaDisponivel?.abrangenciaRegimeJuridico?.length ? folhaDisponivel.abrangenciaRegimeJuridico : folhaDisponivel?.regimeJuridico
         ? [folhaDisponivel.regimeJuridico]
         : usuarioLogadoProcessamentoMock.regimesJuridicos,
-      tiposVinculo: usuarioLogadoProcessamentoMock.tiposVinculo,
+      tiposVinculo: folhaDisponivel?.abrangenciaTipoVinculo?.length ? folhaDisponivel.abrangenciaTipoVinculo : usuarioLogadoProcessamentoMock.tiposVinculo,
       categorias: folhaDisponivel?.categoria
         ? [folhaDisponivel.categoria]
         : usuarioLogadoProcessamentoMock.categorias,
       subcategorias: usuarioLogadoProcessamentoMock.subcategorias,
-      cargos: folhaDisponivel?.cargo
+      cargos: folhaDisponivel?.abrangenciaCargos?.length ? folhaDisponivel.abrangenciaCargos : folhaDisponivel?.cargo
         ? [folhaDisponivel.cargo]
         : usuarioLogadoProcessamentoMock.cargos,
       grupoEleitos:
@@ -31521,21 +31435,6 @@ export function PrototiposFolhaProcessamentoFormPage() {
       label: folha.nome.toUpperCase(),
       value: folha.nome,
     }));
-  const orgaoOptions = toUpperOptions(folhaPagamentoOrgaoOptions);
-  const setorOptions = toUpperOptions(grupoCalculoSetorOptions);
-  const regimeOptions = toUpperOptions(
-    folhaPagamentoRegimeOptions.filter((option) => option.value),
-  );
-  const tipoVinculoOptions = toUpperOptions(grupoCalculoTipoVinculoOptions);
-  const categoriaOptions = toUpperOptions(
-    folhaPagamentoCategoriaOptions.filter((option) => option.value),
-  );
-  const subcategoriaOptions = toUpperOptions(grupoCalculoSubcategoriaOptions);
-  const cargoOptions = toUpperOptions(
-    folhaPagamentoCargoOptions.filter((option) => option.value),
-  );
-  const grupoEleitosOptions = toUpperOptions(folhaPagamentoGrupoEleitosOptions);
-
   useEffect(() => {
     if (!numeroFolhaSelecionado) return;
 
@@ -31568,11 +31467,10 @@ export function PrototiposFolhaProcessamentoFormPage() {
     if (data.tipoExecucao === "PARCIAL") {
       const possuiFiltro =
         Boolean(data.orgaos?.length) ||
-        Boolean(data.setores?.length) ||
+        Boolean(data.carreiras?.length) ||
         Boolean(data.regimesJuridicos?.length) ||
         Boolean(data.tiposVinculo?.length) ||
-        Boolean(data.categorias?.length) ||
-        Boolean(data.subcategorias?.length) ||
+        Boolean(data.unidades?.length) ||
         Boolean(data.cargos?.length) ||
         Boolean(data.grupoEleitos);
 
@@ -31666,101 +31564,7 @@ export function PrototiposFolhaProcessamentoFormPage() {
                 ]}
                 getFormErrorMessage={() => getProcessamentoErrorMessage("tipoExecucao")}
               />
-              <MultiSelectFieldSeplag
-                name="orgaos"
-                control={control}
-                label="Órgãos"
-                cols="12 12 4"
-                options={orgaoOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} órgãos selecionados"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("orgaos")}
-              />
-              <MultiSelectFieldSeplag
-                name="setores"
-                control={control}
-                label="Setor"
-                cols="12 12 4"
-                options={setorOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} setores selecionados"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("setores")}
-              />
-              <MultiSelectFieldSeplag
-                name="regimesJuridicos"
-                control={control}
-                label="Regime jurídico"
-                cols="12 12 4"
-                options={regimeOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} regimes selecionados"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("regimesJuridicos")}
-              />
-              <MultiSelectFieldSeplag
-                name="tiposVinculo"
-                control={control}
-                label="Tipo de vínculo"
-                cols="12 12 4"
-                options={tipoVinculoOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} tipos selecionados"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("tiposVinculo")}
-              />
-              <MultiSelectFieldSeplag
-                name="categorias"
-                control={control}
-                label="Categoria"
-                cols="12 12 4"
-                options={categoriaOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} categorias selecionadas"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("categorias")}
-              />
-              <MultiSelectFieldSeplag
-                name="subcategorias"
-                control={control}
-                label="Subcategoria"
-                cols="12 12 4"
-                options={subcategoriaOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} subcategorias selecionadas"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("subcategorias")}
-              />
-              <MultiSelectFieldSeplag
-                name="cargos"
-                control={control}
-                label="Cargo"
-                cols="12 12 4"
-                options={cargoOptions}
-                optionLabel="label"
-                optionValue="value"
-                selectedItemsLabel="{0} cargos selecionados"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("cargos")}
-              />
-              <DropdownFieldSeplag
-                name="grupoEleitos"
-                control={control}
-                label="Grupo de eleitos"
-                cols="12 12 4"
-                options={grupoEleitosOptions}
-                optionLabel="label"
-                optionValue="value"
-                disabled={processamentoTotal}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("grupoEleitos")}
-              />
+              <AbrangenciaProcessamentoFolha control={control} setValue={setValue} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaPagamentoGrupoEleitosOptions} disabled={processamentoTotal} getError={getProcessamentoErrorMessage} />
             </div>
 
             <div className="prototype-processamento-folha-footer">
@@ -34418,7 +34222,7 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
   };
   const opcoesDaAbrangencia = opcoesAbrangencia(abrangenciaAtual, catalogoAbrangencia);
   const aplicarAbrangencia = (criterios: CriteriosAbrangencia) => {
-    const novos = ajustarAbrangencia(criterios, catalogoAbrangencia);
+    const novos = ajustarAbrangencia({ ...criterios, unidades: criterios.orgaos.length ? criterios.unidades : [] }, catalogoAbrangencia);
     for (const campo of Object.keys(camposAbrangencia) as (keyof CriteriosAbrangencia)[]) setValue(camposAbrangencia[campo], novos[campo], { shouldDirty: true });
     setErroAbrangencia("");
   };
@@ -34663,16 +34467,16 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, orgaos: valores })} getFormErrorMessage={() => null}
                 />
                 <MultiSelectFieldSeplag
+                  name={camposAbrangencia.unidades} control={control} label="Unidade de Lotação" cols="12 12 6"
+                  disabled={formularioBloqueado || !abrangenciaAtual.orgaos.length} options={opcoesDaAbrangencia.unidades}
+                  optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} unidades selecionadas"
+                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, unidades: valores })} getFormErrorMessage={() => null}
+                />
+                <MultiSelectFieldSeplag
                   name={camposAbrangencia.carreiras} control={control} label="Carreira" cols="12 12 6"
                   disabled={formularioBloqueado || !opcoesDaAbrangencia.carreiraAtiva} options={opcoesDaAbrangencia.carreiras}
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} carreiras selecionadas"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, carreiras: valores })} getFormErrorMessage={() => null}
-                />
-                <MultiSelectFieldSeplag
-                  name={camposAbrangencia.unidades} control={control} label="Unidade de Lotação" cols="12 12 6"
-                  disabled={formularioBloqueado} options={opcoesDaAbrangencia.unidades}
-                  optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} unidades selecionadas"
-                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, unidades: valores })} getFormErrorMessage={() => null}
                 />
                 <MultiSelectFieldSeplag
                   name={camposAbrangencia.cargos} control={control} label="Cargo" cols="12 12 6"
