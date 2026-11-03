@@ -180,6 +180,9 @@ export interface FolhaPagamentoForm {
   orgaos?: string[];
   abrangenciaRegimeJuridico?: string[];
   abrangenciaTipoVinculo?: string[];
+  abrangenciaCarreiras?: string[];
+  abrangenciaUnidades?: string[];
+  abrangenciaCargos?: string[];
   abrangenciaInstituicao?: string[];
   abrangenciaSetores?: string[];
   abrangenciaSubcategorias?: string[];

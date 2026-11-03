@@ -1,6 +1,8 @@
+import { camposAbrangenciaFolha, criteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
 import "./vinculos/vinculoV2.css";
 import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
 import { abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, temAbrangencia, lerAbrangenciaGrupo, salvarAbrangenciaGrupo, filtrarVinculosElegiveis, type CriteriosAbrangencia, type CatalogoAbrangencia } from "./folhaPagamento/abrangenciaGrupoCalculo";
+import { RevisaoImpactados, type ResultadoRevisao } from "./folhaPagamento/RevisaoImpactados";
 import { lerEstruturaOrganizacional } from "./estruturaOrganizacional/estruturaOrganizacionalStore";
 import { todos as vinculosParaGrupoCalculo } from "./vinculos/vinculoDados";
 import { PerfilVariacaoHeaderContext } from './PerfilVariacaoHeader';
@@ -2100,6 +2102,10 @@ interface GrupoEleitosRow {
 
 interface GrupoCalculoRow {
   abrangencia?: CriteriosAbrangencia;
+  criteriosProprios?: CriteriosAbrangencia;
+  composicaoRubricas?: { codigo: string; nomeRubrica: string }[];
+  rubricasProprias?: string[];
+  referenciaHeranca?: { grupo: string; versao: number };
   vinculosElegiveisIds?: string[];
   id: number;
   codigo: string;
@@ -6898,6 +6904,62 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     rubricas: 19,
     pendencias: 0,
   },
+  {
+    id: 11,
+    codigo: "G080",
+    grupo: "Professores Cuiabá",
+    nivel: 5,
+    herdaDe: "Professores SEDUC 40h",
+    orgaoSetor: "SEDUC",
+    tipoVinculo: "Nomeado Efetivo",
+    situacao: "ATIVO",
+    inicioVigencia: "01/03/2026",
+    fimVigencia: "-",
+    rubricas: 44,
+    pendencias: 0,
+  },
+  {
+    id: 12,
+    codigo: "G090",
+    grupo: "Professores Zona Urbana",
+    nivel: 6,
+    herdaDe: "Professores Cuiabá",
+    orgaoSetor: "SEDUC",
+    tipoVinculo: "Nomeado Efetivo",
+    situacao: "ATIVO",
+    inicioVigencia: "01/03/2026",
+    fimVigencia: "-",
+    rubricas: 44,
+    pendencias: 0,
+  },
+  {
+    id: 13,
+    codigo: "G100",
+    grupo: "Professores Escola Estadual",
+    nivel: 7,
+    herdaDe: "Professores Zona Urbana",
+    orgaoSetor: "SEDUC",
+    tipoVinculo: "Nomeado Efetivo",
+    situacao: "ATIVO",
+    inicioVigencia: "01/03/2026",
+    fimVigencia: "-",
+    rubricas: 44,
+    pendencias: 0,
+  },
+  {
+    id: 14,
+    codigo: "G110",
+    grupo: "Professores Ensino Médio",
+    nivel: 8,
+    herdaDe: "Professores Escola Estadual",
+    orgaoSetor: "SEDUC",
+    tipoVinculo: "Nomeado Efetivo",
+    situacao: "ATIVO",
+    inicioVigencia: "01/03/2026",
+    fimVigencia: "-",
+    rubricas: 44,
+    pendencias: 0,
+  },
 ];
 
 const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
@@ -6962,7 +7024,31 @@ const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
   8: [gruposCalculoMock[7]],
   9: [gruposCalculoMock[8]],
   10: [gruposCalculoMock[9]],
+  11: [gruposCalculoMock[10]],
+  12: [gruposCalculoMock[11]],
+  13: [gruposCalculoMock[12]],
+  14: [gruposCalculoMock[13]],
 };
+
+function aplicarRevisaoGruposCalculo(resultado: ResultadoRevisao & { criteriosPai: CriteriosAbrangencia; rubricasPai: { codigo: string; nomeRubrica: string }[] }) {
+  const pai = gruposCalculoMock.find(g => g.grupo === resultado.pai);
+  if (!pai) return;
+  const registros = [{ id: pai.id, criterios: resultado.criteriosPai, rubricas: resultado.rubricasPai }, ...resultado.grupos];
+  for (const registro of registros) {
+    const indice = gruposCalculoMock.findIndex(g => g.id === registro.id);
+    if (indice < 0) continue;
+    const anterior = gruposCalculoMock[indice];
+    const historico = gruposCalculoVersoesMock[registro.id] ?? [anterior];
+    const detalhes = resultado.grupos.find(g => g.id === registro.id);
+    const nova: GrupoCalculoRow = { ...anterior, abrangencia: registro.criterios, criteriosProprios: detalhes?.criteriosProprios, composicaoRubricas: registro.rubricas, rubricasProprias: detalhes?.rubricasProprias, referenciaHeranca: detalhes ? { grupo: detalhes.origem, versao: detalhes.versaoOrigem } : anterior.referenciaHeranca, rubricas: registro.rubricas.length, inicioVigencia: resultado.inicio, fimVigencia: "-", situacao: "ATIVO", pendencias: 0 };
+    gruposCalculoVersoesMock[registro.id] = [nova, { ...anterior, fimVigencia: resultado.fimAnterior, situacao: "ENCERRADO" }, ...historico.slice(1)];
+    gruposCalculoMock[indice] = nova;
+  }
+}
+try {
+  const revisoes = JSON.parse(localStorage.getItem("sigep:grupo-calculo:revisoes-aprovadas") ?? "[]");
+  if (Array.isArray(revisoes)) revisoes.filter(r => r.criteriosPai && r.rubricasPai && Array.isArray(r.grupos)).forEach(aplicarRevisaoGruposCalculo);
+} catch { /* Sem armazenamento, mantém o cenário inicial do protótipo. */ }
 
 const grupoEleitoParticipantesMock: GrupoEleitoParticipanteRow[] = [
   {
@@ -7099,10 +7185,7 @@ const grupoCalculoFiltroTipoVinculoOptions = [
 
 const grupoCalculoSuperiorOptions = [
   { label: "Nenhum", value: "nenhum" },
-  { label: "Geral", value: "Geral" },
-  { label: "Efetivos", value: "Efetivos" },
-  { label: "Contratados", value: "Contratados" },
-  { label: "Comissionados", value: "Comissionados" },
+  ...gruposCalculoMock.filter(g => g.situacao !== "ENCERRADO").map(g => ({ label: g.grupo, value: g.grupo })),
 ];
 
 const grupoCalculoRegimeJuridicoOptions = regimesJuridicosMock.map((regime) => ({
@@ -28144,6 +28227,31 @@ export function PrototiposFolhaCompetenciasPage() {
   );
 }
 
+function criarCatalogoAbrangenciaFolha(): CatalogoAbrangencia {
+    const unidades = lerEstruturaOrganizacional().unidades;
+    const orgaos = new Map<string, { value: string; label: string }>();
+    for (const nivel of estruturaOrganizacionalNiveis.filter(n => n.id === "orgaos" || n.id === "instituicoes")) {
+      for (const item of nivel.itens) {
+        if (item.id !== "govmt") orgaos.set(item.id, { value: item.id, label: item.nome });
+      }
+    }
+    for (const orgao of carreiraOrgaosCadastro) orgaos.set(orgao.id, { value: orgao.id, label: orgao.nome });
+    for (const unidade of unidades) {
+      const value = unidade.orgao.toLocaleLowerCase("pt-BR");
+      if (!orgaos.has(value)) orgaos.set(value, { value, label: unidade.orgao });
+    }
+    return {
+      regimes: regimesJuridicosMock.map(r => ({ value: r.nome, label: r.nome })),
+      tipos: tiposVinculoTesteMock.map(t => ({ value: t.codigo, label: t.nome, regimes: t.regimesJuridicos,
+        possuiCarreira: ["Nomeado Efetivo", "Nomeado Conselheiro"].includes(t.nome) || cargosTesteMock.some(c => Boolean(c.carreirasPorTipoVinculo?.[t.codigo]) || Boolean(c.tiposVinculo?.includes(t.codigo) && c.carreira)),
+      })),
+      carreiras: carreirasMock.map(c => ({ value: c.sigla, label: c.nome, orgaos: c.orgaosIds?.length ? c.orgaosIds : [c.orgao, ...carreiraOrgaosCadastro.filter(o => o.id !== c.orgao).slice(0, Math.max(0, c.orgaosVinculados - 1)).map(o => o.id)] })),
+      orgaos: [...orgaos.values()],
+      unidades: unidades.map(u => ({ value: u.codigo, label: u.nome, orgao: u.orgao.toLocaleLowerCase("pt-BR") })),
+      cargos: cargosTesteMock.map(c => ({ value: c.codigo, label: c.cargo, tipos: c.tiposVinculo ?? [], carreirasPorTipo: c.carreirasPorTipoVinculo ?? Object.fromEntries((c.tiposVinculo ?? []).filter(() => Boolean(c.carreira)).map(t => [t, c.carreira!])) })),
+    };
+}
+
 export function PrototiposFolhaPagamentoFormPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -28160,6 +28268,7 @@ export function PrototiposFolhaPagamentoFormPage() {
   );
   const isFolhaEdicao = Boolean(id && folhaEdicao);
   const isSomenteLeitura = isFolhaEdicao && location.pathname.endsWith("/visualizar");
+  const catalogoAbrangencia = useMemo(criarCatalogoAbrangenciaFolha, []);
   const situacoesComVersionamento: FolhaPagamentoSituacao[] = [
     "PROCESSO_COM_SUCESSO",
     "PROCESSO_COM_ERRO",
@@ -28174,6 +28283,7 @@ export function PrototiposFolhaPagamentoFormPage() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<FolhaPagamentoForm>({
     defaultValues: {
@@ -28186,6 +28296,9 @@ export function PrototiposFolhaPagamentoFormPage() {
       orgaos: [],
       abrangenciaRegimeJuridico: [],
       abrangenciaTipoVinculo: [],
+      abrangenciaCarreiras: [],
+      abrangenciaUnidades: [],
+      abrangenciaCargos: [],
       abrangenciaInstituicao: [],
       abrangenciaSetores: [],
       abrangenciaSubcategorias: [],
@@ -28197,6 +28310,19 @@ export function PrototiposFolhaPagamentoFormPage() {
       totalMesesRetroagir: 0,
     },
   });
+  const abrangenciaAtual: CriteriosAbrangencia = {
+    regimes: watch("abrangenciaRegimeJuridico") ?? [], tipos: watch("abrangenciaTipoVinculo") ?? [],
+    orgaos: watch("orgaos") ?? [], carreiras: watch("abrangenciaCarreiras") ?? [],
+    unidades: watch("abrangenciaUnidades") ?? [], cargos: watch("abrangenciaCargos") ?? [],
+  };
+  const opcoesDaAbrangencia = opcoesAbrangencia(abrangenciaAtual, catalogoAbrangencia);
+  const aplicarAbrangenciaFolha = (criterios: CriteriosAbrangencia) => {
+    const novos = ajustarAbrangencia(criterios, catalogoAbrangencia);
+    for (const campo of Object.keys(camposAbrangenciaFolha) as (keyof CriteriosAbrangencia)[]) setValue(camposAbrangenciaFolha[campo], novos[campo], { shouldDirty: true });
+    setValue("regimeJuridico", novos.regimes[0] ?? "");
+    setValue("cargo", catalogoAbrangencia.cargos.find(c => c.value === novos.cargos[0])?.label ?? "");
+    setFormFeedback("");
+  };
   const normalizeMesAno = (value?: string) => {
     const cleanValue = value?.trim() ?? "";
     const matchMesAno = cleanValue.match(/^(\d{2})\/(\d{4})$/);
@@ -28222,14 +28348,7 @@ export function PrototiposFolhaPagamentoFormPage() {
   };
 
   const isTextoPreenchido = (value?: string) => Boolean(value?.trim());
-  const temAbrangenciaFolha = (data: FolhaPagamentoForm) =>
-    Boolean(
-      data.orgaos?.length ||
-        data.regimeJuridico ||
-        data.categoria ||
-        data.cargo ||
-        data.grupoEleitos,
-    );
+  const temAbrangenciaFolha = (data: FolhaPagamentoForm) => temAbrangencia(criteriosDaFolha(data, catalogoAbrangencia)) || Boolean(data.grupoEleitos);
   const competenciaVigente = competenciasFolha.find(
     (competencia) => competencia.situacao === "ATIVA",
   );
@@ -28242,6 +28361,7 @@ export function PrototiposFolhaPagamentoFormPage() {
   useEffect(() => {
     if (!folhaEdicao) return;
 
+    const criterios = criteriosDaFolha(folhaEdicao, catalogoAbrangencia);
     reset({
       competenciaId: folhaEdicao.competenciaId,
       grupoFolhaId: folhaEdicao.grupoFolhaId,
@@ -28250,9 +28370,12 @@ export function PrototiposFolhaPagamentoFormPage() {
       mesAnoReferencia: formatMesAno(folhaEdicao.mesAnoReferencia),
       competencia: folhaEdicao.competencia,
       observacao: folhaEdicao.observacao,
-      orgaos: folhaEdicao.orgaos,
-      abrangenciaRegimeJuridico: folhaEdicao.abrangenciaRegimeJuridico,
-      abrangenciaTipoVinculo: folhaEdicao.abrangenciaTipoVinculo,
+      orgaos: criterios.orgaos,
+      abrangenciaRegimeJuridico: criterios.regimes,
+      abrangenciaTipoVinculo: criterios.tipos,
+      abrangenciaCarreiras: criterios.carreiras,
+      abrangenciaUnidades: criterios.unidades,
+      abrangenciaCargos: criterios.cargos,
       abrangenciaInstituicao: folhaEdicao.abrangenciaInstituicao,
       abrangenciaSetores: folhaEdicao.abrangenciaSetores,
       abrangenciaSubcategorias: folhaEdicao.abrangenciaSubcategorias,
@@ -28263,7 +28386,7 @@ export function PrototiposFolhaPagamentoFormPage() {
       totalMesesAdiantar: folhaEdicao.totalMesesAdiantar,
       totalMesesRetroagir: folhaEdicao.totalMesesRetroagir,
     });
-  }, [folhaEdicao, reset]);
+  }, [folhaEdicao, reset, catalogoAbrangencia]);
 
   const getFormErrorMessage = (name: keyof FolhaPagamentoForm) => {
     const message = errors[name]?.message;
@@ -28271,17 +28394,13 @@ export function PrototiposFolhaPagamentoFormPage() {
   };
 
   const handleLimparAbrangenciaFolha = () => {
+    aplicarAbrangenciaFolha(abrangenciaVazia());
     setValue("abrangenciaInstituicao", []);
-    setValue("orgaos", []);
-    setValue("abrangenciaTipoVinculo", []);
     setValue("abrangenciaSetores", []);
-    setValue("abrangenciaRegimeJuridico", []);
-    setValue("categoria", "");
     setValue("abrangenciaSubcategorias", []);
-    setValue("cargo", "");
+    setValue("categoria", "");
     setValue("grupoEleitos", "");
   };
-
   const validarObrigatoriosFolha = (data: FolhaPagamentoForm) => {
     if (!isTextoPreenchido(data.nome)) {
       return { tab: "dados", message: "Nome da folha é obrigatório." };
@@ -28334,7 +28453,7 @@ export function PrototiposFolhaPagamentoFormPage() {
       return;
     }
 
-    const orgaos = data.orgaos ?? [];
+    const orgaos = (data.orgaos ?? []).map(v => folhaPagamentoOrgaoOptions.find(o => o.value.toLowerCase() === v.toLowerCase())?.value ?? v);
     const totalMesesAdiantar = data.totalMesesAdiantar ?? 0;
     const totalMesesRetroagir = data.totalMesesRetroagir ?? 0;
     const competencia = normalizeMesAno(
@@ -28381,6 +28500,7 @@ export function PrototiposFolhaPagamentoFormPage() {
 
     const payload = {
       ...data,
+      abrangenciaInstituicao: [], abrangenciaSetores: [], abrangenciaSubcategorias: [], categoria: "",
       nome,
       numero,
       mesAnoReferencia,
@@ -28430,7 +28550,7 @@ export function PrototiposFolhaPagamentoFormPage() {
               </div>
             }
           >
-            <div className="col-12 prototype-folha-pagamento-form">
+            <div className="col-12 prototype-folha-pagamento-form prototype-folha-cadastro-secoes">
               {formFeedback ? (
                 <div className="prototype-validation-panel">{formFeedback}</div>
               ) : null}
@@ -28444,8 +28564,7 @@ export function PrototiposFolhaPagamentoFormPage() {
                   Visualização somente leitura.
                 </div>
               ) : null}
-              <section className="prototype-folha-form-section prototype-folha-form-section--boxed">
-                <h3>Dados da Folha</h3>
+              <section className="prototype-folha-cadastro-card" aria-labelledby="folha-dados-titulo"><header className="prototype-grupo-calculo-card-heading"><i className="pi pi-file-edit" aria-hidden="true" /><div><h2 id="folha-dados-titulo">Dados da Folha</h2><p>Informe o número e o nome da folha de pagamento.</p></div></header>
                   <div className="grid prototype-category-form-fields">
                   <TextFieldSeplag
                     name="numero"
@@ -28468,151 +28587,31 @@ export function PrototiposFolhaPagamentoFormPage() {
                   </div>
               </section>
 
-              <section className="prototype-folha-form-section prototype-folha-form-section--boxed prototype-folha-form-section--abrangencia">
-                <div className="prototype-grupo-calculo-section-heading">
-                  <div>
-                    <strong>Abrangência</strong>
-                    <p>Defina o público do grupo e adicione as rubricas manualmente.</p>
-                  </div>
-                  <BotaoLimparFiltroSeplag
-                    type="button"
-                    label="Limpar Filtro"
-                    icon="pi pi-refresh"
-                    onClick={handleLimparAbrangenciaFolha}
-                    disabled={isSomenteLeitura}
-                  />
-                </div>
+              <section className="prototype-folha-cadastro-card" aria-label="Abrangência">
+                <header className="prototype-grupo-calculo-section-heading">
+                  <div className="prototype-grupo-calculo-card-heading"><i className="pi pi-filter" aria-hidden="true" /><div><h2>Abrangência</h2><p>Defina os critérios para selecionar os vínculos da folha de pagamento.</p></div></div>
+                  <BotaoLimparFiltroSeplag type="button" label="Limpar filtros" icon="pi pi-refresh" onClick={handleLimparAbrangenciaFolha} disabled={isSomenteLeitura} />
+                </header>
                 <div className="grid prototype-category-form-fields">
-                  <MultiSelectFieldSeplag
-                    name="abrangenciaInstituicao"
-                    control={control}
-                    label="Instituição"
-                    cols="12 12 6"
-                    options={grupoCalculoInstituicaoOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    selectedItemsLabel="{0} instituições selecionadas"
-                    disabled={isSomenteLeitura}
-                    readOnly={isSomenteLeitura}
-                    getFormErrorMessage={() =>
-                      getFormErrorMessage("abrangenciaInstituicao")
-                    }
-                  />
-                  <MultiSelectFieldSeplag
-                    name="orgaos"
-                    control={control}
-                    label="Órgão"
-                    cols="12 12 6"
-                    options={folhaPagamentoOrgaoOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    selectedItemsLabel="{0} órgãos selecionados"
-                    disabled={isSomenteLeitura}
-                    readOnly={isSomenteLeitura}
-                    getFormErrorMessage={() => getFormErrorMessage("orgaos")}
-                  />
-                  <MultiSelectFieldSeplag
-                    name="abrangenciaTipoVinculo"
-                    control={control}
-                    label="Tipo de Vínculo"
-                    cols="12 12 6"
-                    options={grupoCalculoTipoVinculoOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    selectedItemsLabel="{0} vínculos selecionados"
-                    disabled={isSomenteLeitura}
-                    readOnly={isSomenteLeitura}
-                    getFormErrorMessage={() =>
-                      getFormErrorMessage("abrangenciaTipoVinculo")
-                    }
-                  />
-                  <MultiSelectFieldSeplag
-                    name="abrangenciaSetores"
-                    control={control}
-                    label="Setor"
-                    cols="12 12 6"
-                    options={grupoCalculoSetorOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    selectedItemsLabel="{0} setores selecionados"
-                    disabled={isSomenteLeitura}
-                    readOnly={isSomenteLeitura}
-                    getFormErrorMessage={() =>
-                      getFormErrorMessage("abrangenciaSetores")
-                    }
-                  />
-                  <MultiSelectFieldSeplag
-                    name="abrangenciaRegimeJuridico"
-                    control={control}
-                    label="Regime Jurídico"
-                    cols="12 12 6"
-                    options={grupoCalculoRegimeJuridicoOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    selectedItemsLabel="{0} regimes selecionados"
-                    disabled={isSomenteLeitura}
-                    readOnly={isSomenteLeitura}
-                    getFormErrorMessage={() =>
-                      getFormErrorMessage("abrangenciaRegimeJuridico")
-                    }
-                  />
-                  <DropdownFieldSeplag
-                    name="categoria"
-                    control={control}
-                    label="Categoria"
-                    cols="12 12 6"
-                    options={folhaPagamentoCategoriaOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    disabled={isSomenteLeitura}
-                    getFormErrorMessage={() =>
-                      getFormErrorMessage("categoria")
-                    }
-                  />
-                  <MultiSelectFieldSeplag
-                    name="abrangenciaSubcategorias"
-                    control={control}
-                    label="Subcategoria"
-                    cols="12 12 6"
-                    options={grupoCalculoSubcategoriaOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    selectedItemsLabel="{0} subcategorias selecionadas"
-                    disabled={isSomenteLeitura}
-                    readOnly={isSomenteLeitura}
-                    getFormErrorMessage={() =>
-                      getFormErrorMessage("abrangenciaSubcategorias")
-                    }
-                  />
-                  <DropdownFieldSeplag
-                    name="cargo"
-                    control={control}
-                    label="Cargo"
-                    cols="12 12 6"
-                    options={folhaPagamentoCargoOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    disabled={isSomenteLeitura}
-                    getFormErrorMessage={() => getFormErrorMessage("cargo")}
-                  />
-                  <DropdownFieldSeplag
-                    name="grupoEleitos"
-                    control={control}
-                    label="Grupo de eleitos"
-                    cols="12 12 6"
-                    options={folhaPagamentoGrupoEleitosOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                    disabled={isSomenteLeitura}
-                    getFormErrorMessage={() =>
-                      getFormErrorMessage("grupoEleitos")
-                    }
-                  />
+                  {([
+                    ["regimes", "Regime Jurídico"], ["tipos", "Tipo de Vínculo"],
+                    ["orgaos", "Órgão/Entidade"], ["carreiras", "Carreira"],
+                    ["unidades", "Unidade de Lotação"], ["cargos", "Cargo"],
+                  ] as const).map(([campo, label]) => <MultiSelectFieldSeplag key={campo}
+                    name={camposAbrangenciaFolha[campo]} control={control} label={label} cols="12 12 6"
+                    options={opcoesDaAbrangencia[campo]} optionLabel="label" optionValue="value" dataKey="value"
+                    placeholder="Selecione..." selectedItemsLabel="{0} selecionados"
+                    disabled={isSomenteLeitura || (campo === "carreiras" && !opcoesDaAbrangencia.carreiraAtiva)} readOnly={isSomenteLeitura}
+                    onChange={valores => aplicarAbrangenciaFolha({ ...abrangenciaAtual, [campo]: valores })}
+                    getFormErrorMessage={() => getFormErrorMessage(camposAbrangenciaFolha[campo])}
+                  />)}
+                  <DropdownFieldSeplag name="grupoEleitos" control={control} label="Grupo de eleitos" cols="12 12 6"
+                    options={folhaPagamentoGrupoEleitosOptions} optionLabel="label" optionValue="value" disabled={isSomenteLeitura}
+                    getFormErrorMessage={() => getFormErrorMessage("grupoEleitos")} />
                 </div>
               </section>
 
-              <section className="prototype-folha-form-section prototype-folha-form-section--boxed">
-                <h3>Observação</h3>
+              <section className="prototype-folha-cadastro-card" aria-labelledby="folha-observacao-titulo"><header className="prototype-grupo-calculo-card-heading"><i className="pi pi-align-left" aria-hidden="true" /><div><h2 id="folha-observacao-titulo">Observação</h2><p>Inclua informações complementares sobre a folha.</p></div></header>
                   <div className="grid prototype-category-form-fields">
                   <TextAreaFieldSeplag
                     name="observacao"
@@ -34337,16 +34336,16 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
   const grupoEstaPublicado =
     Boolean(grupo) && normalizeGrupoCalculoSituacao(grupo?.situacao) !== "RASCUNHO";
   const modoVersionamento = Boolean(isEdit && grupoEstaPublicado && isNovaVersao);
-  const versaoEmEdicao = modoVersionamento
+  const [versaoEmEdicao] = useState(() => modoVersionamento
     ? versoesGrupoAtual.length + 1
-    : Math.max(versoesGrupoAtual.length, 1);
+    : Math.max(versoesGrupoAtual.length, 1));
   const [publicacaoConcluida, setPublicacaoConcluida] = useState(false);
   const [rubricasGerenciadas, setRubricasGerenciadas] = useState<GrupoCalculoRubricaGerenciada[]>(
     () =>
       isEdit
-        ? catalogoRubricasMock.slice(0, 12).map((rubrica) => ({
+        ? (grupo?.composicaoRubricas ? grupo.composicaoRubricas.map(c => catalogoRubricasMock.find(r => r.codigo === c.codigo)).filter((r): r is RubricaRow => Boolean(r)) : catalogoRubricasMock.slice(0, 12)).map((rubrica) => ({
             ...rubrica,
-            origem: "filtro",
+            origem: grupo?.rubricasProprias?.includes(rubrica.codigo) ? "manual" : "filtro",
             paoe: grupoCalculoPaoeOptions[0].value,
           }))
         : [],
@@ -34354,6 +34353,7 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
   const [rubricaDragIndex, setRubricaDragIndex] = useState<number | null>(null);
   const [modalRubricasAberto, setModalRubricasAberto] = useState(false);
   const [modalPublicacaoAberto, setModalPublicacaoAberto] = useState(false);
+  const [modalRevisaoAberto, setModalRevisaoAberto] = useState(false);
   const [rubricaTermoBusca, setRubricaTermoBusca] = useState("");
   const [rubricasSelecionadasParaAdicionar, setRubricasSelecionadasParaAdicionar] =
     useState<number[]>([]);
@@ -34373,30 +34373,7 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
       dataInicioPublicacao.trim(),
   );
 
-  const catalogoAbrangencia = useMemo<CatalogoAbrangencia>(() => {
-    const unidades = lerEstruturaOrganizacional().unidades;
-    const orgaos = new Map<string, { value: string; label: string }>();
-    for (const nivel of estruturaOrganizacionalNiveis.filter(n => n.id === "orgaos" || n.id === "instituicoes")) {
-      for (const item of nivel.itens) {
-        if (item.id !== "govmt") orgaos.set(item.id, { value: item.id, label: item.nome });
-      }
-    }
-    for (const orgao of carreiraOrgaosCadastro) orgaos.set(orgao.id, { value: orgao.id, label: orgao.nome });
-    for (const unidade of unidades) {
-      const value = unidade.orgao.toLocaleLowerCase("pt-BR");
-      if (!orgaos.has(value)) orgaos.set(value, { value, label: unidade.orgao });
-    }
-    return {
-      regimes: regimesJuridicosMock.map(r => ({ value: r.nome, label: r.nome })),
-      tipos: tiposVinculoTesteMock.map(t => ({ value: t.codigo, label: t.nome, regimes: t.regimesJuridicos,
-        possuiCarreira: ["Nomeado Efetivo", "Nomeado Conselheiro"].includes(t.nome) || cargosTesteMock.some(c => Boolean(c.carreirasPorTipoVinculo?.[t.codigo]) || Boolean(c.tiposVinculo?.includes(t.codigo) && c.carreira)),
-      })),
-      carreiras: carreirasMock.map(c => ({ value: c.sigla, label: c.nome, orgaos: c.orgaosIds?.length ? c.orgaosIds : [c.orgao, ...carreiraOrgaosCadastro.filter(o => o.id !== c.orgao).slice(0, Math.max(0, c.orgaosVinculados - 1)).map(o => o.id)] })),
-      orgaos: [...orgaos.values()],
-      unidades: unidades.map(u => ({ value: u.codigo, label: u.nome, orgao: u.orgao.toLocaleLowerCase("pt-BR") })),
-      cargos: cargosTesteMock.map(c => ({ value: c.codigo, label: c.cargo, tipos: c.tiposVinculo ?? [], carreirasPorTipo: c.carreirasPorTipoVinculo ?? Object.fromEntries((c.tiposVinculo ?? []).filter(() => Boolean(c.carreira)).map(t => [t, c.carreira!])) })),
-    };
-  }, []);
+  const catalogoAbrangencia = useMemo(criarCatalogoAbrangenciaFolha, []);
   const chaveAbrangencia = modoVersionamento ? `${id}:v${versaoEmEdicao}` : id ?? "novo";
   const [abrangenciaInicial] = useState(() => ajustarAbrangencia(lerAbrangenciaGrupo(chaveAbrangencia, grupo?.abrangencia ?? (modoVersionamento ? lerAbrangenciaGrupo(id!) : abrangenciaVazia())), catalogoAbrangencia));
   const [erroAbrangencia, setErroAbrangencia] = useState("");
@@ -34554,6 +34531,12 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
     }
 
     if (!temAbrangencia(abrangenciaAtual)) { setErroAbrangencia("Ao menos um campo ativo de abrang\u00eancia deve ser preenchido para aprovar."); return; }
+    if (modoVersionamento && grupo && gruposCalculoMock.some(g => g.herdaDe === grupo.grupo)) {
+      setDataInicioPublicacao(dataInicioV2);
+      setModalPublicacaoAberto(false);
+      setModalRevisaoAberto(true);
+      return;
+    }
     salvarCriteriosAbrangencia();
     setValue("situacao", SITUACAO_VIGENCIA.ATIVO);
     setValue("dataAtivacao", dataInicioPublicacao);
@@ -34934,6 +34917,26 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
               </div>
             </div>
 
+            {modalRevisaoAberto && grupo && <RevisaoImpactados
+              pai={grupo} grupos={gruposCalculoMock.map(g => ({ ...g, versao: (gruposCalculoVersoesMock[g.id] ?? [g]).length }))} criteriosPai={abrangenciaAtual}
+              catalogo={catalogoAbrangencia} atuais={grupo.composicaoRubricas ?? catalogoRubricasMock.slice(0, 12)}
+              novas={rubricasGerenciadas.filter(r => !r.excluida)} versaoPai={versaoEmEdicao}
+              inicio={dataInicioV2} usuario={credenciaisPublicacao.usuario}
+              onCancel={() => setModalRevisaoAberto(false)}
+              onConfirm={(resultado: ResultadoRevisao) => {
+                // Um único registro preserva o histórico e publica toda a cadeia no protótipo.
+                const chave = "sigep:grupo-calculo:revisoes-aprovadas";
+                const historico = JSON.parse(localStorage.getItem(chave) ?? "[]");
+                const revisao = { ...resultado, rubricasPai: rubricasGerenciadas.filter(r => !r.excluida).map(r => ({ codigo: r.codigo, nomeRubrica: r.nomeRubrica })), criteriosAntes: resultado.grupos.map(d => ({ id: d.id, criterios: d.criteriosAntes })) };
+                localStorage.setItem(chave, JSON.stringify([...historico, revisao]));
+                aplicarRevisaoGruposCalculo(revisao);
+                for (const campo of Object.keys(camposAbrangencia) as (keyof CriteriosAbrangencia)[]) setValue(camposAbrangencia[campo], resultado.criteriosPai[campo]);
+                setValue("situacao", SITUACAO_VIGENCIA.ATIVO);
+                setValue("dataAtivacao", dataInicioV2);
+                setPublicacaoConcluida(true);
+                setModalRevisaoAberto(false);
+              }}
+            />}
             <ModalSeplag
               visible={modalPublicacaoAberto}
               titulo={modoVersionamento ? `Aprovar Versão V${versaoEmEdicao}` : "Aprovar Grupo de Cálculo"}

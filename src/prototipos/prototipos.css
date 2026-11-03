@@ -21632,3 +21632,61 @@
 .prototype-grupos-calculo-management .prototype-grupos-calculo-filters [class*="label-rotulo"] { text-align: left; align-items: flex-start; justify-content: flex-start; }
 
 .prototype-grupos-calculo-management .prototype-grupos-calculo-filters { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0; }
+
+/* Cadastro de folha: mesmas seções e densidade do grupo de cálculo. */
+.prototype-folha-cadastro-secoes {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.prototype-folha-cadastro-card {
+  min-width: 0;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #d8e3ee;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: none;
+}
+.prototype-folha-cadastro-card > .prototype-grupo-calculo-card-heading,
+.prototype-folha-cadastro-card > .prototype-grupo-calculo-section-heading {
+  width: calc(100% + 32px);
+  margin: -14px -16px 14px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #dce5ee;
+  box-sizing: border-box;
+  align-items: center;
+}
+.prototype-folha-cadastro-card .prototype-grupo-calculo-card-heading {
+  align-items: center;
+}
+.prototype-folha-cadastro-card .prototype-grupo-calculo-card-heading h2 {
+  margin: 0;
+  color: #123354;
+  font-size: 1rem;
+  line-height: normal;
+}
+.prototype-folha-cadastro-card .prototype-grupo-calculo-card-heading p {
+  margin-top: 2px;
+  font-size: .82rem;
+  line-height: 1.4;
+}
+.prototype-folha-cadastro-card .prototype-grupo-calculo-card-heading > i {
+  background: #e6f3ff;
+  color: #087bd4;
+  font-size: 1.05rem;
+}
+.prototype-folha-cadastro-card > .grid {
+  margin-top: 0;
+  row-gap: 12px;
+}
+.prototype-folha-cadastro-card [class*="label-rotulo"] {
+  font-size: 1rem;
+  color: #123354;
+}
+@media (max-width: 600px) {
+  .prototype-folha-cadastro-card > .prototype-grupo-calculo-section-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
