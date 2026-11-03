@@ -46,8 +46,8 @@ it("organiza os dados em seções e exibe os seis critérios na ordem solicitada
     "abrangenciaRegimeJuridico",
     "abrangenciaTipoVinculo",
     "orgaos",
-    "abrangenciaCarreiras",
     "abrangenciaUnidades",
+    "abrangenciaCarreiras",
     "abrangenciaCargos",
   ]);
   expect(within(abrangencia).getByText("Grupo de eleitos")).toBeTruthy();
@@ -84,9 +84,19 @@ it("salva a folha com regime como único critério de abrangência", async () =>
 
 it("atualiza as unidades conforme o órgão e limpa todos os critérios", async () => {
   montar();
+  expect(
+    document
+      .getElementById("abrangenciaUnidades")
+      ?.classList.contains("p-disabled"),
+  ).toBe(true);
   let opcoes = await abrir("orgaos");
   fireEvent.click(opcoes.getByRole("option", { name: /^SEDUC —/ }));
   fechar("orgaos");
+  expect(
+    document
+      .getElementById("abrangenciaUnidades")
+      ?.classList.contains("p-disabled"),
+  ).toBe(false);
   opcoes = await abrir("abrangenciaUnidades");
   expect(
     opcoes.getByRole("option", {
@@ -105,6 +115,17 @@ it("atualiza as unidades conforme o órgão e limpa todos os critérios", async 
   );
   fechar("abrangenciaUnidades");
   fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+  expect(
+    document
+      .getElementById("abrangenciaUnidades")
+      ?.classList.contains("p-disabled"),
+  ).toBe(true);
+  expect(
+    document.getElementById("abrangenciaUnidades")?.textContent,
+  ).not.toContain("Gabinete do Secretário de Estado de Educação");
+  opcoes = await abrir("orgaos");
+  fireEvent.click(opcoes.getByRole("option", { name: /^SEPLAG —/ }));
+  fechar("orgaos");
   opcoes = await abrir("abrangenciaUnidades");
   expect(
     opcoes.getByRole("option", {

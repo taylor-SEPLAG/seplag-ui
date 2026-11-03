@@ -28305,7 +28305,7 @@ export function PrototiposFolhaPagamentoFormPage() {
   };
   const opcoesDaAbrangencia = opcoesAbrangencia(abrangenciaAtual, catalogoAbrangencia);
   const aplicarAbrangenciaFolha = (criterios: CriteriosAbrangencia) => {
-    const novos = ajustarAbrangencia(criterios, catalogoAbrangencia);
+    const novos = ajustarAbrangencia({ ...criterios, unidades: criterios.orgaos.length ? criterios.unidades : [] }, catalogoAbrangencia);
     for (const campo of Object.keys(camposAbrangenciaFolha) as (keyof CriteriosAbrangencia)[]) setValue(camposAbrangenciaFolha[campo], novos[campo], { shouldDirty: true });
     setValue("regimeJuridico", novos.regimes[0] ?? "");
     setValue("cargo", catalogoAbrangencia.cargos.find(c => c.value === novos.cargos[0])?.label ?? "");
@@ -28583,13 +28583,13 @@ export function PrototiposFolhaPagamentoFormPage() {
                 <div className="grid prototype-category-form-fields">
                   {([
                     ["regimes", "Regime Jurídico"], ["tipos", "Tipo de Vínculo"],
-                    ["orgaos", "Órgão/Entidade"], ["carreiras", "Carreira"],
-                    ["unidades", "Unidade de Lotação"], ["cargos", "Cargo"],
+                    ["orgaos", "Órgão/Entidade"], ["unidades", "Unidade de Lotação"],
+                    ["carreiras", "Carreira"], ["cargos", "Cargo"],
                   ] as const).map(([campo, label]) => <MultiSelectFieldSeplag key={campo}
                     name={camposAbrangenciaFolha[campo]} control={control} label={label} cols="12 12 6"
                     options={opcoesDaAbrangencia[campo]} optionLabel="label" optionValue="value" dataKey="value"
                     placeholder="Selecione..." selectedItemsLabel="{0} selecionados"
-                    disabled={isSomenteLeitura || (campo === "carreiras" && !opcoesDaAbrangencia.carreiraAtiva)} readOnly={isSomenteLeitura}
+                    disabled={isSomenteLeitura || (campo === "unidades" && !abrangenciaAtual.orgaos.length) || (campo === "carreiras" && !opcoesDaAbrangencia.carreiraAtiva)} readOnly={isSomenteLeitura}
                     onChange={valores => aplicarAbrangenciaFolha({ ...abrangenciaAtual, [campo]: valores })}
                     getFormErrorMessage={() => getFormErrorMessage(camposAbrangenciaFolha[campo])}
                   />)}
