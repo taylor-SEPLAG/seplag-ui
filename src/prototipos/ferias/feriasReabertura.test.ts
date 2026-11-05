@@ -46,10 +46,16 @@ describe("Cancelamento (RN 1)", () => {
     expect(podeCancelar(registro({ situacao: "EM ABERTO" }))).toBe(true);
   });
 
-  it("permite cancelar também durante o usufruto (hoje entre início e fim)", () => {
+  it("NÃO permite cancelar durante o usufruto — nesse momento a interrupção é suspensão (nota RN-CAN)", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 10, 5, 12));
-    expect(podeCancelar(registro({ situacao: "EM ABERTO" }))).toBe(true);
+    expect(podeCancelar(registro({ situacao: "EM ABERTO" }))).toBe(false);
+  });
+
+  it("bloqueia cancelar no próprio dia de início do gozo (só antes do início)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 1, 12)); // 2026-11-01 = início da parcela
+    expect(podeCancelar(registro({ situacao: "EM ABERTO" }))).toBe(false);
   });
 
   it("bloqueia cancelar quando o usufruto já terminou", () => {
@@ -79,18 +85,42 @@ describe("Cancelamento (RN 1)", () => {
   });
 });
 
-describe("Suspensão (RN 2)", () => {
-  it("permite suspender antes ou durante o usufruto, enquanto Em Aberto e sem folha homologada", () => {
+describe("Suspensão (RN-SUS) — só durante o usufruto", () => {
+  it("NÃO permite suspender antes do início do gozo (nesse momento a ação é cancelar)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 1, 12)); // antes de 2026-11-01
+    expect(podeSuspender(registro({ situacao: "EM ABERTO" }))).toBe(false);
+  });
+
+  it("permite suspender durante o usufruto (hoje entre início e fim), Em Aberto e sem folha homologada", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 5, 12)); // 2026-11-05, dentro de 01–15/11
     expect(podeSuspender(registro({ situacao: "EM ABERTO" }))).toBe(true);
   });
 
-  it("bloqueia suspender quando a folha já foi homologada/paga", () => {
+  it("permite suspender no primeiro dia do gozo", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 1, 12)); // 2026-11-01 = início
+    expect(podeSuspender(registro({ situacao: "EM ABERTO" }))).toBe(true);
+  });
+
+  it("NÃO permite suspender depois que o usufruto terminou", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 20, 12)); // após 2026-11-15
+    expect(podeSuspender(registro({ situacao: "EM ABERTO" }))).toBe(false);
+  });
+
+  it("bloqueia suspender quando a folha já foi homologada/paga, mesmo durante o usufruto", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 5, 12));
     expect(podeSuspender(registro({ situacao: "EM ABERTO", folhaHomologada: true }))).toBe(false);
   });
 
   it("não permite suspender fora de Em Aberto", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 5, 12));
     expect(podeSuspender(registro({ situacao: "SUSPENSO" }))).toBe(false);
-    expect(podeSuspender(registro({ situacao: "CANCELADO" }))).toBe(false);
+    expect(podeSuspender(registro({ situacao: "REPROVADO" }))).toBe(false);
   });
 });
 
@@ -101,11 +131,11 @@ describe("Reabertura-padrão (RN 3.1 / 3.3)", () => {
     expect(podeReativar(registro({ situacao: "SUSPENSO" }))).toBe(true);
   });
 
-  it("nunca oferece reabertura (nem forçada) para registro Cancelado — cancelamento é definitivo", () => {
+  it("nunca oferece reabertura (nem forçada) para registro Reprovado — só Suspenso reabre", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 9, 1, 12));
-    expect(podeReativar(registro({ situacao: "CANCELADO" }))).toBe(false);
-    expect(reativarBloqueadaPelaFolha(registro({ situacao: "CANCELADO", folhaHomologada: true }))).toBe(false);
+    expect(podeReativar(registro({ situacao: "REPROVADO" }))).toBe(false);
+    expect(reativarBloqueadaPelaFolha(registro({ situacao: "REPROVADO", folhaHomologada: true }))).toBe(false);
   });
 
   it("bloqueia a reabertura assim que a data de início original chega", () => {
@@ -176,10 +206,10 @@ describe("Saldo restante na reabertura", () => {
     expect(saldoRestanteParaReabertura(original, [original, outra])).toBe(10);
   });
 
-  it("ignora solicitações Canceladas/Reprovadas/Suspensas de outros registros ao somar o comprometido", () => {
+  it("ignora solicitações Reprovadas/Suspensas de outros registros ao somar o comprometido", () => {
     const original = registro({ id: 1, situacao: "SUSPENSO", saldoFerias: 30, periodoAquisitivoInicio: "2026-01-01" });
-    const cancelada = registro({ id: 2, situacao: "CANCELADO", periodoAquisitivoInicio: "2026-01-01", parcelas: [{ id: 1, inicio: "2026-12-01", fim: "2026-12-20", dias: 20 }] });
-    expect(saldoRestanteParaReabertura(original, [original, cancelada])).toBe(30);
+    const reprovada = registro({ id: 2, situacao: "REPROVADO", periodoAquisitivoInicio: "2026-01-01", parcelas: [{ id: 1, inicio: "2026-12-01", fim: "2026-12-20", dias: 20 }] });
+    expect(saldoRestanteParaReabertura(original, [original, reprovada])).toBe(30);
   });
 
   it("ignora solicitações de outro período aquisitivo ou de outro servidor", () => {

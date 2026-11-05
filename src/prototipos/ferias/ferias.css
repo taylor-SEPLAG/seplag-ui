@@ -5,7 +5,47 @@
 .prototype-ferias-perfil-seletor {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 10px;
+}
+
+.prototype-ferias-btn-secundario {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid #0057d9;
+  border-radius: 5px;
+  background: #fff;
+  color: #0057d9;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prototype-ferias-btn-secundario:hover {
+  background: #e7f1ff;
+}
+
+.pff-fluxo-nivel {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #d9e2ec;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.pff-fluxo-impacto {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  color: #102a43;
 }
 
 .prototype-ferias-perfil-seletor label {
@@ -726,6 +766,25 @@
 .prototype-ferias-badge.is-reprovado { background: #fef2f2; color: #b91c1c; }
 .prototype-ferias-badge.is-suspenso { background: #fffbeb; color: #9a3412; }
 .prototype-ferias-badge.is-prazo-expirado { background: #fef2f2; color: #b91c1c; }
+
+/* Selo unificado de suspensão: ● Suspenso | Art. XX */
+.prototype-ferias-badge--suspensao {
+  align-items: center;
+  gap: 7px;
+}
+.prototype-ferias-badge--suspensao .prototype-ferias-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.prototype-ferias-badge--suspensao .prototype-ferias-badge-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 1px 1px;
+  background: currentColor;
+  opacity: 0.4;
+}
 
 .prototype-ferias-badge-saldo {
   display: inline-flex;
@@ -2923,7 +2982,17 @@ select.prototype-ferias-input-autopreenchido {
 .prototype-judicial-attachment-actions .p-button { width: 34px; min-width: 34px; height: 32px; padding: 0; }
 
 /* ── Modal de Suspender/Reativar/Cancelar (mesmo padrão do modal "Finalizar Efetivo Exercício") ── */
+/* Badges de situação na mesma linha (status + selo Art. 16/17). */
+.prototype-ferias-badges-linha { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; }
+
 .prototype-finalizar-efetivo-modal { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; flex: 1 1 100%; min-width: 0; box-sizing: border-box; gap: 18px; color: #183b56; }
+/* Variante compacta do modal de Suspensão (Art. 17): muitos campos — reduz espaçamentos para
+   caber sem rolagem. */
+.prototype-finalizar-efetivo-modal.is-compacto { gap: 10px; }
+.prototype-finalizar-efetivo-modal.is-compacto > p { font-size: .8rem; line-height: 1.35; }
+.prototype-finalizar-efetivo-modal.is-compacto .prototype-finalizar-efetivo-upload { gap: 5px; }
+.prototype-finalizar-efetivo-modal.is-compacto .prototype-ferias-banner { padding: 8px 10px; }
+.prototype-finalizar-efetivo-modal.is-compacto .prototype-finalizar-efetivo-termo { padding: 6px 0; }
 .prototype-finalizar-efetivo-modal > * { grid-column: 1; }
 .prototype-finalizar-efetivo-modal > p { margin: 0; color: #50677d; font-size: .84rem; line-height: 1.5; }
 .prototype-finalizar-efetivo-info { display: flex; flex-direction: column; gap: 10px; width: 100%; margin: 0; padding: 14px 16px; border: 1px solid #cfe0f0; border-radius: 7px; background: #f5f9ff; box-sizing: border-box; }
@@ -3036,6 +3105,32 @@ select.prototype-ferias-input-autopreenchido {
 }
 .prototype-ferias-historico-texto strong { color: #193451; font-size: 0.85rem; }
 .prototype-ferias-historico-texto small { color: #647b90; font-size: 0.74rem; }
+/* Detalhes da suspensão no histórico: cada informação em um badge (pílula). */
+.prototype-ferias-historico-suspensao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 4px 0;
+}
+.prototype-ferias-historico-suspensao small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.prototype-ferias-historico-suspensao small:empty { display: none; }
+.prototype-ferias-historico-suspensao small .pi { font-size: 0.8rem; flex: 0 0 auto; }
 .prototype-ferias-historico-justificativa {
   margin: 0 0 10px;
   padding: 10px;
@@ -3049,3 +3144,437 @@ select.prototype-ferias-input-autopreenchido {
 @media (max-width: 760px) {
   .prototype-ferias-historico-grid { grid-template-columns: 1fr; }
 }
+
+/* Lista de detalhes (ex.: suspensão) dentro do sub-card do histórico de férias, reaproveitando
+   o visual do "Histórico de Lançamento" (gl-historico-detalhes). */
+.gl-historico-detalhes-lista { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 0 0 14px; }
+.gl-historico-detalhes-lista div { display: flex; flex-direction: column; gap: 2px; }
+.gl-historico-detalhes-lista dt { margin: 0; color: #62758f; font-size: 9px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+.gl-historico-detalhes-lista dd { margin: 0; color: #33465d; font-size: 12px; overflow-wrap: anywhere; }
+
+/* O ModalSeplag embrulha o conteúdo em .grid.p-fluid (PrimeFlex). Para o histórico ocupar a
+   largura inteira e a linha do tempo alinhar à esquerda, o conteúdo fica num bloco col-12. */
+.gl-historico-conteudo { width: 100%; }
+.gl-historico-conteudo .gl-historico-heading { margin: 22px 0 16px; }
+.gl-historico-conteudo .gl-historico-timeline { margin-left: 5px; }
+
+/* Título composto do modal (sobretítulo + título), ex.: "SUSPENSÃO DE FÉRIAS / Superior
+   interesse público — Art. 17". */
+.gl-historico-titulo-composto { display: flex; flex-direction: column; gap: 2px; }
+.gl-historico-titulo-composto small { color: #2b6bb0; font-size: 10px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; }
+.gl-historico-titulo-composto > span { color: #10243b; font-size: 16px; font-weight: 700; }
+.gl-historico-titulo-composto em { color: #8a9ab1; font-style: normal; font-weight: 500; }
+
+/* Seções (cards) do modal de Suspensão de Férias — agrupam os campos em blocos com borda
+   arredondada, como o layout de referência. */
+.gl-suspensao-secao { margin: 4px 0 0; padding: 16px; border: 1px solid #dce4ef; border-radius: 8px; background: #fff; }
+.gl-suspensao-secao-titulo { margin: 0 0 12px; color: #1b3a5b; font-size: 13px; font-weight: 600; }
+.gl-suspensao-secao .prototype-ferias-form-grid { margin: 0 0 12px; }
+.gl-suspensao-secao .prototype-ferias-form-grid:last-child { margin-bottom: 0; }
+.gl-suspensao-destaque { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 6px; background: #f3f6fa; color: #33465d; font-size: 13px; }
+.gl-suspensao-destaque strong { color: #10243b; }
+.gl-suspensao-destaque-info b, .gl-suspensao-destaque b { color: #10243b; }
+.gl-suspensao-secao.is-destaque-azul { border-color: #bfdbfe; background: #eff6ff; }
+.gl-suspensao-secao.is-destaque-azul .gl-suspensao-destaque { background: transparent; padding: 0; color: #1d4ed8; }
+.gl-suspensao-destaque-rotulo { font-weight: 600; color: #1d4ed8; }
+.gl-suspensao-secao.is-destaque-azul .gl-suspensao-destaque strong { color: #1d4ed8; font-size: 15px; }
+.gl-suspensao-nota { margin: 8px 0 0; color: #3b6aa0; font-size: 12px; }
+
+/* O anexo (AnexoFerias) já traz seu próprio bloco com área tracejada; a seção que o envolve não
+   deve adicionar borda/fundo/padding extras — só padroniza o espaçamento entre as seções. */
+.gl-suspensao-anexo { padding: 0; border: 0; background: transparent; }
+.gl-suspensao-anexo .prototype-ferias-form-section { margin: 0; }
+
+/* ── Painel visual de impacto da suspensão (histórico) ── */
+.gl-suspensao-painel {
+  margin-top: 10px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
+.gl-suspensao-painel-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.gl-suspensao-painel-titulo i { font-size: 0.8rem; }
+
+.gl-suspensao-timeline {
+  margin-bottom: 10px;
+}
+
+.gl-suspensao-trilha {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  column-gap: 10px;
+  height: 26px;
+  margin-bottom: 5px;
+}
+
+.gl-suspensao-rotulo-trilha {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.gl-suspensao-trilha:nth-child(1) .gl-suspensao-rotulo-trilha { color: #475569; }
+.gl-suspensao-trilha:nth-child(2) .gl-suspensao-rotulo-trilha { color: #a16207; }
+.gl-suspensao-trilha:nth-child(3) .gl-suspensao-rotulo-trilha { color: #15803d; }
+
+/* Trilho da barra: ocupa a 2ª coluna, com fundo cinza em toda a largura; a barra é posicionada
+ * por % dentro dele. */
+.gl-suspensao-faixa {
+  grid-column: 2;
+  position: relative;
+  height: 22px;
+  border-radius: 999px;
+  background: #eef2f7;
+}
+
+.gl-suspensao-linha {
+  position: absolute;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 22px;
+  min-width: 52px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.gl-suspensao-linha.gl-is-original { background: #e2e8f0; color: #475569; }
+.gl-suspensao-linha.gl-is-suspensao { background: #f6c445; color: #7a4e00; }
+.gl-suspensao-linha.gl-is-novo { background: #86e0a6; color: #14532d; }
+
+/* Linha-resumo abaixo das barras (retorno e novo término). */
+.gl-suspensao-resumo {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0 !important;
+  padding-top: 8px;
+  border-top: 1px solid #eef2f7;
+  font-size: 0.78rem !important;
+  color: #334155 !important;
+}
+.gl-suspensao-resumo i { margin-top: 2px; color: #2563eb; }
+.gl-suspensao-resumo strong { color: #0f172a; }
+
+/* ── Painel visual de remanejamento de datas (histórico) ── */
+.gl-remanejo-painel {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #fbfdff;
+}
+
+.gl-remanejo-titulo {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.gl-remanejo-fluxo {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.gl-remanejo-card {
+  padding: 7px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.gl-remanejo-card.gl-is-anterior { background: #f8fafc; }
+.gl-remanejo-card.gl-is-novo { border-color: #bfdbfe; background: #eff6ff; }
+
+.gl-remanejo-card span {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.gl-remanejo-card strong {
+  display: block;
+  margin: 2px 0;
+  font-size: 0.86rem;
+  color: #0f172a;
+}
+
+.gl-remanejo-card.gl-is-anterior strong { color: #94a3b8; }
+.gl-remanejo-card.gl-is-novo strong { color: #1d4ed8; }
+
+.gl-remanejo-card small {
+  font-size: 0.66rem;
+  color: #64748b;
+}
+
+.gl-remanejo-seta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: #2563eb;
+}
+
+.gl-remanejo-seta i { font-size: 0.85rem; }
+
+.gl-remanejo-seta em {
+  font-style: normal;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #475569;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .gl-remanejo-fluxo { grid-template-columns: 1fr; }
+  .gl-remanejo-seta { flex-direction: row; }
+  .gl-remanejo-seta i { transform: rotate(90deg); }
+}
+
+/* ── Marcadores por tipo de evento na linha do tempo do Histórico de Férias ── */
+/* Afasta o conteúdo do marcador e esconde a bolinha padrão (::before) da timeline base. */
+.gl-historico-timeline > li.gl-historico-item { padding-left: 34px; }
+.gl-historico-timeline > li.gl-historico-item::before { display: none; }
+
+.gl-historico-marcador {
+  position: absolute;
+  top: -2px;
+  left: -13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #475569;
+  box-shadow: 0 0 0 3px #fff;
+}
+.gl-historico-marcador i { font-size: 12px; }
+
+.gl-historico-item.is-verde .gl-historico-marcador { border-color: #86efac; background: #ecfdf5; color: #15803d; }
+.gl-historico-item.is-vermelho .gl-historico-marcador { border-color: #fca5a5; background: #fef2f2; color: #b91c1c; }
+.gl-historico-item.is-ambar .gl-historico-marcador { border-color: #fcd34d; background: #fffbeb; color: #a16207; }
+.gl-historico-item.is-azul .gl-historico-marcador { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+.gl-historico-item.is-neutro .gl-historico-marcador { border-color: #cbd5e1; background: #f1f5f9; color: #475569; }
+
+/* Linha vertical da timeline tingida com o tom do evento. */
+.gl-historico-timeline > li.gl-historico-item.is-verde { border-left-color: #bbf7d0; }
+.gl-historico-timeline > li.gl-historico-item.is-vermelho { border-left-color: #fecaca; }
+.gl-historico-timeline > li.gl-historico-item.is-ambar { border-left-color: #fde68a; }
+.gl-historico-timeline > li.gl-historico-item.is-azul { border-left-color: #bfdbfe; }
+
+.gl-historico-situacao { margin: 8px 0 !important; }
+
+/* ── Cartão de documento comprobatório (histórico) ── */
+.gl-doc-cartao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 7px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.gl-doc-selo {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #fff;
+}
+
+.gl-doc-selo.is-pdf { background: #dc2626; }
+.gl-doc-selo.is-doc { background: #2563eb; }
+
+.gl-doc-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.gl-doc-info strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gl-doc-info small { font-size: 0.66rem; color: #64748b; }
+.gl-doc-erro { display: block; font-size: 0.66rem; color: #b91c1c; }
+
+.gl-doc-acoes {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+}
+
+.gl-doc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gl-doc-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+.gl-doc-btn i { font-size: 0.8rem; }
+
+@media (max-width: 620px) {
+  .gl-doc-cartao { flex-wrap: wrap; }
+  .gl-doc-acoes { width: 100%; }
+  .gl-doc-btn { flex: 1 1 0; justify-content: center; }
+}
+
+/* ── Cabeçalho rico de cada evento do histórico (avatar + ação + perfil) ── */
+.gl-historico-timeline > li.gl-historico-item .gl-historico-evento {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.gl-historico-timeline > li.gl-historico-item .gl-historico-evento strong { font-size: 13px; color: #0f172a; }
+.gl-historico-timeline > li.gl-historico-item .gl-historico-evento time { margin-left: auto; }
+
+.gl-historico-ator {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 8px 0 2px;
+}
+
+.gl-historico-avatar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.gl-historico-ator-dados { min-width: 0; }
+
+.gl-historico-ator-linha {
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  color: #334155 !important;
+  font-size: 12px !important;
+}
+.gl-historico-ator-acao { color: #64748b; }
+.gl-historico-ator-linha strong { color: #0f172a; font-size: 12.5px; }
+
+.gl-historico-perfil {
+  display: inline-flex;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+.gl-historico-perfil.is-gestor { background: #ede9fe; color: #6d28d9; }
+.gl-historico-perfil.is-aprovador { background: #dbeafe; color: #1d4ed8; }
+.gl-historico-perfil.is-servidor { background: #e0f2fe; color: #0369a1; }
+.gl-historico-perfil.is-sistema { background: #f1f5f9; color: #475569; }
+
+.gl-historico-ator-meta {
+  margin: 2px 0 0 !important;
+  color: #8a9ab1 !important;
+  font-size: 11px !important;
+}
+
+/* Card "Período de usufruto" do lançamento original. */
+.gl-periodo-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #bbf7d0;
+  border-radius: 7px;
+  background: #f0fdf4;
+}
+.gl-periodo-card i { color: #15803d; font-size: 1rem; }
+.gl-periodo-card span { display: block; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #15803d; }
+.gl-periodo-card strong { display: block; margin-top: 2px; font-size: 0.86rem; color: #14532d; }
+
+/* Bloco "Justificativa" do histórico: rótulo discreto e o texto num cartão âmbar (atenção),
+   alinhado à esquerda, sem itálico nem aspas. */
+.gl-historico-justificativa { margin: 10px 0 14px; }
+.gl-historico-justificativa-titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: #62758f;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.gl-historico-justificativa-titulo i { font-size: 11px; color: #d97706; }
+.gl-historico-justificativa p {
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid #fde68a;
+  border-left: 3px solid #f59e0b;
+  border-radius: 7px;
+  background: #fffbeb;
+  color: #78350f;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
