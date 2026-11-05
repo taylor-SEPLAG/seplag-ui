@@ -911,7 +911,6 @@ function solicitarSuspensaoPendente(
 ): FeriasRegistro {
   const ator = atorHistorico(perfil);
   const solicitadoPor = `${ator.rotulo} · Matrícula ${ator.matricula} / ${ator.vinculo}`;
-  const nivel = nivelDoProcesso(processo);
   return {
     ...registro,
     documentos: documento ? [...(registro.documentos ?? []), documento] : registro.documentos,
@@ -1711,7 +1710,7 @@ export function PrototiposFeriasPage() {
           onFechar={() => setConfirmacaoStatus(null)}
           fluxos={fluxos}
           parcelaId={confirmacaoStatus.parcelaId}
-          onConfirmar={(novaSituacao,justificativa,documento,novasParcelas,historicoReabertura,dadosSuspensao,entradaFluxo) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa,documento) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa,documento,novasParcelas,historicoReabertura,dadosSuspensao,entradaFluxo,confirmacaoStatus.parcelaId)}
+          onConfirmar={(novaSituacao,justificativa,documento,novasParcelas,historicoReabertura,dadosSuspensao,entradaFluxo) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa,documento) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa,documento,novasParcelas,historicoReabertura,dadosSuspensao,entradaFluxo)}
         />
       ) : null}
 
