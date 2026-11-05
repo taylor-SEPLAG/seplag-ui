@@ -149,7 +149,6 @@ export function ComissaoFormContent() {
    const comissaoConflitante = comissoes.find((item) =>
     item.id !== existente?.id && item.certameId === dados.certameId && item.status !== "CANCELADA");
    if (comissaoConflitante) {
-    const nomeEdital = certamesMock.find((certame) => certame.id === dados.certameId)?.nomeEdital ?? "selecionado";
     setErro(`Este edital já está vinculado à comissão ${comissaoConflitante.numero} — ${comissaoConflitante.nome} (${statusLabel[comissaoConflitante.status]}). O edital só pode ser reutilizado quando essa comissão estiver com o status Cancelada.`);
     return;
    }
