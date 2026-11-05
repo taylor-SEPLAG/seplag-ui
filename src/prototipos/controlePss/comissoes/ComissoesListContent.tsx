@@ -90,15 +90,12 @@ export function ComissoesListContent() {
  const fecharModalAlternarStatus = () => { setComissaoAlternarStatus(null); setJustificativaCancelamento(""); setErroJustificativa(null); };
  const confirmarAlternarStatus = () => {
   if (!comissaoAlternarStatus) return;
-  // Cancelar (manual, com justificativa) leva a Cancelada — Encerrada só é alcançada sozinha, pela
-  // vigência (ver calcularStatusPorVigencia). Reabrir só se aplica à Cancelada, de volta a Em andamento.
-  const proximo:StatusComissao = comissaoAlternarStatus.status === "CANCELADA" ? "EM_ANDAMENTO" : "CANCELADA";
-  if (proximo === "CANCELADA" && !justificativaCancelamento.trim()) { setErroJustificativa("Informe a justificativa do cancelamento."); return; }
+  // Cancelamento manual (com justificativa obrigatória) leva a Cancelada e é DEFINITIVO — não há
+  // reabertura. Encerrada só é alcançada sozinha, pela vigência (ver calcularStatusPorVigencia).
+  if (!justificativaCancelamento.trim()) { setErroJustificativa("Informe a justificativa do cancelamento."); return; }
   const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
-  const descricao = proximo === "CANCELADA"
-   ? `Status alterado de ${statusLabel[comissaoAlternarStatus.status]} para ${statusLabel[proximo]}. Justificativa: ${justificativaCancelamento.trim()}`
-   : `Status alterado de ${statusLabel[comissaoAlternarStatus.status]} para ${statusLabel[proximo]}.`;
-  comissoesStore.alterarStatus(comissaoAlternarStatus.id, proximo, {
+  const descricao = `Status alterado de ${statusLabel[comissaoAlternarStatus.status]} para ${statusLabel["CANCELADA"]}. Justificativa: ${justificativaCancelamento.trim()}`;
+  comissoesStore.alterarStatus(comissaoAlternarStatus.id, "CANCELADA", {
    descricao,
    registradoEm:`${agora} ${new Date().toTimeString().slice(0, 5)}`,
    usuario:CONTROLE_PSS_USUARIO_LOGADO,
@@ -181,9 +178,10 @@ export function ComissoesListContent() {
         : listaPaginada.map((row) => {
          const menuId = row.id;
          // Cancelar (manual, com justificativa) só se aplica a uma comissão Em andamento, e leva a
-         // Cancelada; Reabrir só se aplica à Cancelada, de volta a Em andamento. Encerrada (pela
-         // vigência) não tem ação manual — para reabri-la, edite o Término na aba Identificação.
-         const podeAlternarStatus = row.status === "EM_ANDAMENTO" || row.status === "CANCELADA";
+         // Cancelada. O cancelamento é DEFINITIVO: uma comissão Cancelada não pode ser reaberta
+         // (não há ação Reabrir). Encerrada (pela vigência) não tem ação manual — para reativá-la,
+         // edite o Término na aba Identificação (calcularStatusPorVigencia faz voltar a Em andamento).
+         const podeCancelar = row.status === "EM_ANDAMENTO";
          return <tr key={row.id}>
          <td>{row.numero}</td>
          <td>{nomeConcurso(row.certameId)}</td>
@@ -210,8 +208,8 @@ export function ComissoesListContent() {
              <button type="button" role="menuitem" onClick={() => { setAcoesMenuAbertoId(null); setComissaoHistoricoId(row.id); }}>
               <i className="pi pi-history" aria-hidden="true" /><span>Histórico</span>
              </button>
-             {podeAlternarStatus && <button type="button" role="menuitem" className={row.status === "CANCELADA" ? undefined : "is-danger"} onClick={() => { setAcoesMenuAbertoId(null); setComissaoAlternarStatus(row); }}>
-              <i className={row.status === "CANCELADA" ? "pi pi-refresh" : "pi pi-ban"} aria-hidden="true" /><span>{row.status === "CANCELADA" ? "Reabrir" : "Cancelar"}</span>
+             {podeCancelar && <button type="button" role="menuitem" className="is-danger" onClick={() => { setAcoesMenuAbertoId(null); setComissaoAlternarStatus(row); }}>
+              <i className="pi pi-ban" aria-hidden="true" /><span>Cancelar</span>
              </button>}
              {row.status === "RASCUNHO" && <button type="button" role="menuitem" className="is-danger" onClick={() => { setAcoesMenuAbertoId(null); setComissaoExcluirId(row.id); }}>
               <i className="pi pi-trash" aria-hidden="true" /><span>Excluir</span>
@@ -255,25 +253,23 @@ export function ComissoesListContent() {
 
   <ModalSeplag
    visible={comissaoAlternarStatus !== null}
-   titulo={comissaoAlternarStatus?.status === "CANCELADA" ? "Reabrir comissão" : "Cancelar comissão"}
+   titulo="Cancelar comissão"
    fechar={fecharModalAlternarStatus}
    tamanho="520px"
    closeOnEscape
    customFooter={<div className="flex justify-content-end gap-2">
-    <BotaoSeplag type="button" label={comissaoAlternarStatus?.status === "CANCELADA" ? "Cancelar" : "Voltar"} outlined onClick={fecharModalAlternarStatus} />
-    <BotaoSeplag type="button" label={comissaoAlternarStatus?.status === "CANCELADA" ? "Reabrir" : "Cancelar"} onClick={confirmarAlternarStatus} />
+    <BotaoSeplag type="button" label="Voltar" outlined onClick={fecharModalAlternarStatus} />
+    <BotaoSeplag type="button" label="Cancelar comissão" severity="danger" onClick={confirmarAlternarStatus} />
    </div>}
   >
-   {comissaoAlternarStatus?.status === "CANCELADA"
-    ? <p className="col-12">Deseja realmente reabrir esta comissão? Ela volta para o status "Em andamento".</p>
-    : <div className="col-12">
-      <p>Deseja realmente cancelar esta comissão? Ela fica Cancelada (vermelho) e deixa de aparecer como ativa.</p>
-      <label className="prototype-native-field">
-       <span>Justificativa do cancelamento <span className="required-marker">*</span></span>
-       <textarea rows={4} maxLength={1000} value={justificativaCancelamento} placeholder="Descreva o motivo do cancelamento desta comissão..." onChange={(event) => { setJustificativaCancelamento(event.target.value); if (erroJustificativa) setErroJustificativa(null); }} />
-      </label>
-      {erroJustificativa && <small className="p-error">{erroJustificativa}</small>}
-     </div>}
+   <div className="col-12">
+    <p>Deseja realmente cancelar esta comissão? O cancelamento é <strong>definitivo</strong>: a comissão fica Cancelada (vermelho), deixa de aparecer como ativa e <strong>não poderá ser reaberta</strong>.</p>
+    <label className="prototype-native-field">
+     <span>Justificativa do cancelamento <span className="required-marker">*</span></span>
+     <textarea rows={4} maxLength={1000} value={justificativaCancelamento} placeholder="Descreva o motivo do cancelamento desta comissão..." onChange={(event) => { setJustificativaCancelamento(event.target.value); if (erroJustificativa) setErroJustificativa(null); }} />
+    </label>
+    {erroJustificativa && <small className="p-error">{erroJustificativa}</small>}
+   </div>
   </ModalSeplag>
 
   {comissaoHistoricoId && <HistoricoMembrosComissaoModal comissaoId={comissaoHistoricoId} onClose={() => setComissaoHistoricoId(null)} />}
