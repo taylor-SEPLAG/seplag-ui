@@ -7,7 +7,7 @@ import { abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, temAbrangencia
 import { RevisaoImpactados, type ResultadoRevisao } from "./folhaPagamento/RevisaoImpactados";
 import { lerEstruturaOrganizacional } from "./estruturaOrganizacional/estruturaOrganizacionalStore";
 import { todos as vinculosParaGrupoCalculo } from "./vinculos/vinculoDados";
-import { PerfilVariacaoHeaderContext } from './PerfilVariacaoHeader';
+import { PerfilVariacaoHeader, PerfilVariacaoHeaderContext } from './PerfilVariacaoHeader';
 import type { SituacaoCertame } from "./controlePss/certame/types";
 import { FOLHA_PAGINA_INICIAL_PATH } from './paginaInicial/folhaModel';
 import { useControlePssStore } from "./controlePss/controlePssStore";
@@ -18394,8 +18394,8 @@ export function PrototiposNovoIngressoPage() {
     orgaosEstadoOptions.find((orgao) => orgao.value === orgaoEncaminhamentoAprovacaoExibido)?.label ??
     orgaoEncaminhamentoAprovacaoExibido;
   const pendenciaVagaDoEncaminhamento = useMemo(() => {
-    if (tipoIngresso !== "Concurso" || !orgaoEncaminhamentoAprovacao || !cargoSelecionado) return null;
-    const estadoVagas = controleVagasStore.getState();
+    if (tipoIngresso !== "Concurso" || !orgaoEncaminhamentoAprovacao) return null;
+    const estadoVagas = controleVagasAtual;
     const normalizar = (valor: string) => valor.trim().toLocaleLowerCase("pt-BR");
     const quadro = quadroVagaEfetivoCompativel;
     if (!quadro) return "QUADRO_INEXISTENTE" as const;
@@ -18404,7 +18404,7 @@ export function PrototiposNovoIngressoPage() {
     );
     if (vagasDoQuadroNoOrgao.some((item) => item.estado === "DISPONIVEL")) return null;
     return vagasDoQuadroNoOrgao.length === 0 ? "DISTRIBUICAO" as const : "AMPLIACAO" as const;
-  }, [tipoIngresso, orgaoEncaminhamentoAprovacao, cargoSelecionado, quadroVagaEfetivoCompativel]);
+  }, [tipoIngresso, orgaoEncaminhamentoAprovacao, quadroVagaEfetivoCompativel, controleVagasAtual]);
   const vagasDisponiveisNoEncaminhamento = useMemo(() => {
     if (pendenciaVagaDoEncaminhamento || !orgaoEncaminhamentoAprovacao || !quadroVagaEfetivoCompativel) return 0;
     const normalizar = (valor: string) => valor.trim().toLocaleLowerCase("pt-BR");
@@ -22088,16 +22088,17 @@ export function PrototiposNovoIngressoPage() {
                         ))}
                       </select>
                     </label>
-                    {pendenciaVagaDoEncaminhamento ? (
-                      <div className="prototype-parecer-alerta prototype-documentacao-pending-alert prototype-vagas-orgao-alert" role="alert">
+                    {pendenciaVagaDoEncaminhamento ? (pendenciaVagaDoEncaminhamento === "AMPLIACAO"
+                      ? ["Não há vagas disponíveis neste órgão para o Quadro selecionado. Ao finalizar a análise, será criada uma vaga pendente de ampliação."]
+                      : [
+                        "Este órgão não possui uma distribuição cadastrada. Ao prosseguir, o sistema criará uma distribuição automaticamente.",
+                        "Este órgão não possui vagas cadastradas. Ao prosseguir, o sistema criará uma vaga automaticamente.",
+                      ]).map(mensagem => (
+                      <div key={mensagem} className="prototype-parecer-alerta prototype-documentacao-pending-alert prototype-vagas-orgao-alert" role="alert">
                         <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-                        {pendenciaVagaDoEncaminhamento === "DISTRIBUICAO"
-                          ? "O órgão selecionado ainda não possui vagas distribuídas neste Quadro. Ao finalizar a análise, será criada uma vaga pendente de distribuição."
-                          : pendenciaVagaDoEncaminhamento === "AMPLIACAO"
-                            ? "Não há vagas disponíveis neste órgão para o Quadro selecionado. Ao finalizar a análise, será criada uma vaga pendente de ampliação."
-                            : "Não existe Quadro Autorizado compatível para o cargo e vínculo do ingresso. Corrija o enquadramento antes de prosseguir."}
+                        {mensagem}
                       </div>
-                    ) : null}
+                    )) : null}
                     {orgaoEncaminhamentoAprovacao && !pendenciaVagaDoEncaminhamento && vagasDisponiveisNoEncaminhamento > 0 ? (
                       <div className="prototype-direcionamento-analise-success" role="status">
                         <i className="pi pi-check-circle" aria-hidden="true" />
@@ -33014,10 +33015,12 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
           <div>
             <h1>Solicitações de Ajustes da Folha de Pagamento</h1>
           </div>
-          <div className="prototype-solicitacoes-ajustes-user">
+          <PerfilVariacaoHeader resumo={usuarioAtual}>
+          <div className="prototype-ingresso-profile">
             <label>
               Perfil da variação
               <select
+                aria-label="Perfil da variação"
                 value={perfil}
                 onChange={(event) =>
                   setPerfil(event.target.value as SolicitacaoAjusteFolhaPerfil)
@@ -33034,8 +33037,9 @@ export function PrototiposFolhaSolicitacoesAjustesPage() {
                 </option>
               </select>
             </label>
-            <span>{usuarioAtual}</span>
+            <strong>{usuarioAtual}</strong>
           </div>
+          </PerfilVariacaoHeader>
         </div>
 
         {feedback ? (
