@@ -14,16 +14,46 @@ import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { validarSolicitacaoRecesso } from "./validarSolicitacaoRecesso";
 import { STORAGE_KEY, registrosBase, carregarRegistros } from "./feriasMockDados";
 import "./ferias.css";
+// Reaproveita o layout da linha do tempo do "Histórico de Lançamento" da Gestão de Licenças
+// (classes gl-historico-*) no modal de Histórico de Férias.
+import "../gestaoLicencas/gestaoLicencas.css";
 import { duracoesPermitidas, prazoFechamentoFolha, selecionarPeriodoMaisAntigo, type PeriodoComSaldo } from './regrasFerias';
-import { AnexoFerias, DownloadDocumentoFerias, type DocumentoFerias } from './DocumentoFerias';
+import { AnexoFerias, CartaoDocumentoFerias, type DocumentoFerias } from './DocumentoFerias';
 import { AprovacoesFerias } from "./AprovacoesFerias";
 import {
   inicioUsufruto,
   fimUsufruto,
   podeSuspender,
-  podeCancelar,
   elegivelParaQuitacaoAutomatica,
+  elegivelParaRetornoSuspensao,
+  saldoRestanteParaReabertura,
 } from "./regrasReabertura";
+import {
+  validarAntecedencia,
+  validarPeriodoAquisitivoCompletado,
+  calcularAlertaConcessivo,
+} from "./regrasAgendamento";
+import { competenciaDoGozo } from "./regrasFolha";
+import {
+  validarSolicitacaoSuspensaoArt17,
+  calcularRetomadaArt16,
+  ehFimDeSemanaOuFeriado,
+  type FundamentoSuspensao,
+} from "./regrasSuspensao";
+import {
+  CHAVE_FLUXO_SUSPENSAO_ART17,
+  carregarFluxos,
+  fluxoExigeAprovacao,
+  iniciarProcesso,
+  nivelDoProcesso,
+  obterFluxo,
+  perfilPodeDecidir,
+  registrarDecisao,
+  registrarPublicacao,
+  type ConfiguracaoFluxo,
+  type ProcessoAprovacao,
+} from "./fluxoAprovacao";
+import { calcularImpactoSuspensao, type EventoFolhaSuspensao } from "./motorFolhaSuspensao";
 
 function brParaIso(valor: string) {
   if (!valor) return "";
@@ -44,12 +74,41 @@ function gerarId(): number {
 
 type OrgaoColetivo = "SEDUC" | "UNEMAT" | "SECITEC" | "OUTRO";
 type TipoSolicitacao = "Individual" | "Coletiva" | "Lote" | "Recesso";
-type SituacaoFerias = "AGUARDANDO VALIDAÇÃO" | "EM ABERTO" | "QUITADO" | "CANCELADO" | "REPROVADO" | "SUSPENSO" | "PRAZO EXPIRADO";
+type SituacaoFerias = "AGUARDANDO VALIDAÇÃO" | "EM ABERTO" | "QUITADO" | "REPROVADO" | "SUSPENSO" | "PRAZO EXPIRADO";
 type TipoVinculo = "Efetivo" | "Comissionado" | "Contrato Temporário" | "Residente Técnico" | "Estagiário";
 type TipoVinculoFiltro = "Todos" | TipoVinculo;
 type Origem = "PORTALSERVIDOR" | "SIGEP";
 type TipoRegistro = "FÉRIAS" | "LICENÇA REMUNERADA";
-type AcaoStatus = "validar" | "rejeitar" | "suspender" | "cancelar";
+type AcaoStatus = "validar" | "rejeitar" | "suspender" | "reativar" | "aprovar_suspensao" | "rejeitar_suspensao";
+
+/** Dados coletados no modal de suspensão, conforme o fundamento legal (RN-SUS, Arts. 16 e 17). */
+interface DadosSuspensao {
+  fundamento: FundamentoSuspensao;
+  /** Art. 16: data de término da licença que disparou a suspensão (para a retomada automática). */
+  licencaFim?: string;
+  /** Art. 17: chefia solicitante, causa detalhada, prazo estimado e autorização do dirigente. */
+  solicitante?: string;
+  causa?: string;
+  prazoEstimadoDias?: number;
+  autorizadoPeloDirigente?: boolean;
+  /** Período da suspensão e prorrogação resultante, para registrar no histórico. */
+  suspensaoInicio?: string;
+  suspensaoFim?: string;
+  novaDataTerminoFerias?: string;
+  /** Id da parcela suspensa, quando a suspensão incide sobre uma parcela específica do registro. */
+  parcelaId?: number;
+}
+
+/** Suspensão (Art. 17) registrada pela setorial e ainda não efetivada: aguarda a validação do
+ * órgão central conforme o fluxo de aprovação parametrizado. Enquanto existir, o registro
+ * continua "Agendada" e nada é recalculado na folha. */
+interface SuspensaoPendente {
+  dados: DadosSuspensao;
+  processo: ProcessoAprovacao;
+  solicitadoPor: string;
+  solicitadoEm: string;
+  documento?: DocumentoFerias;
+}
 type PerfilAcesso = "Servidor" | "Chefia Imediata" | "RH / Gestão de Pessoas" | "DRE / RH Central";
 
 interface ParcelaFerias {
@@ -65,16 +124,32 @@ interface HistoricoEventoFerias {
   situacao: SituacaoFerias;
   acao: string;
   data: string;
-  /** Data (ISO) em que a mudança de situação passa a valer de fato — editável pelo usuário em
-   * ações como Suspender; quando ausente, a tela usa a data de "registrado em" como data do
-   * efeito (mesmo comportamento anterior). */
-  dataEfeito?: string;
   responsavel: string;
   /** Matrícula/vínculo de quem está logado realizando a ação (não do servidor da solicitação). */
   responsavelMatricula?: string;
   responsavelVinculo?: string;
   justificativa?: string;
   documentos?: DocumentoFerias[];
+  /** RN-SUS: detalhes da suspensão, quando o evento é uma suspensão. */
+  dataRetomada?: string;
+  fundamentoSuspensao?: "ART_16" | "ART_17";
+  /** Período da suspensão (início/fim) e duração em dias. */
+  suspensaoInicio?: string;
+  suspensaoFim?: string;
+  suspensaoDias?: number;
+  /** Período de férias original (antes da suspensão), para exibir no histórico. */
+  feriasOriginalInicio?: string;
+  feriasOriginalFim?: string;
+  /** Nova data de término das férias após a prorrogação pelos dias suspensos (Art. 17). */
+  novaDataTerminoFerias?: string;
+  /** Causa motivadora informada na suspensão (Art. 17). */
+  causaSuspensao?: string;
+  /** Remanejamento de datas: período anterior e novo (para o painel visual do histórico). */
+  remanejamento?: { anteriorInicio: string; anteriorFim: string; anteriorDias: number; novoInicio: string; novoFim: string; novoDias: number };
+  /** Impacto na folha (em DIAS, por competência) gerado pela efetivação da suspensão. */
+  impactoFolha?: EventoFolhaSuspensao[];
+  /** Fluxo de aprovação: etapa registrada neste evento (nível, publicação no DO, documentação). */
+  aprovacaoEtapa?: string;
 }
 
 interface SubstitutoFerias {
@@ -123,9 +198,39 @@ export interface FeriasRegistro {
   auxilioTransporteEfetivado?: boolean;
   sigpasIntegrado?: boolean;
   emailChefiaEnviado?: boolean;
-  /** Folha de Pagamento Homologada/Paga — enquanto true, bloqueia cancelamento direto;
-   * só o perfil Administrador RH pode forçar, fora deste protótipo. */
+  /** Folha de Pagamento Homologada/Paga — enquanto true, bloqueia cancelamento e reativação
+   * direta (reabertura-padrão); só o perfil Administrador RH pode forçar, fora deste protótipo. */
   folhaHomologada?: boolean;
+  /** RN-FOL-02: o adiantamento (remuneração + 1/3) já foi processado em folha para este
+   * registro. Determina o impacto financeiro de cancelamento/suspensão. */
+  adiantamentoPago?: boolean;
+  /** RN-SUS: fundamento legal da suspensão, quando o registro está SUSPENSO —
+   * "ART_16" (licença gestante/adotante/paternidade) ou "ART_17" (superior interesse público). */
+  fundamentoSuspensao?: "ART_16" | "ART_17";
+  /** RN-SUS-02: data de retomada automática calculada para suspensão Art. 16. */
+  dataRetomadaArt16?: string;
+  /** RN-SUS: quantidade de dias que o registro ficou suspenso. */
+  diasSuspensos?: number;
+  /** RN-SUS: data em que o servidor volta a cumprir as férias (retorno). Ao chegar essa data,
+   * o verificador automático reativa o registro para "Agendada" (EM ABERTO). */
+  dataRetornoSuspensao?: string;
+  /** RN-SUS-05/07: dados da suspensão por interesse público (Art. 17). Registra os quatro
+   * requisitos do pedido: solicitante (chefia imediata), data (inicio), causa e prazo. */
+  suspensaoArt17?: { solicitante: string; causa: string; prazoEstimadoDias: number; autorizadoPeloDirigente: boolean; inicio: string };
+  /** Suspensão Art. 17 aguardando validação do órgão central (ver SuspensaoPendente). */
+  suspensaoPendente?: SuspensaoPendente;
+  /** Quando SUSPENSO por parcela, id da parcela suspensa (o selo marca só a linha dela). */
+  parcelaSuspensaId?: number;
+  /** Eventos de folha (em dias, por competência) calculados pelo motor na efetivação da suspensão. */
+  impactoFolha?: EventoFolhaSuspensao[];
+  /** RN-FOL-07/08: impacto funcional pendente de uma suspensão Art. 17 / cancelamento. O módulo
+   * de Férias fala de DIAS, nunca de valores — o impacto financeiro (R$) é exclusivo da Folha.
+   * `diasComprometidos` são os dias não usufruídos que serão cobrados (incluídos) na competência
+   * do novo gozo. `competenciaCobranca` fica indefinida até o reagendamento (compensação diferida). */
+  pendenciaSaldo?: { diasComprometidos: number; origem: "SUSPENSAO_ART17"; competenciaCobranca?: string };
+  /** Preenchido quando o agendamento é reaberto com uma nova data (RN reabertura 3.1) —
+   * mantém no histórico o período original que foi cancelado/suspenso. */
+  historicoReabertura?: { inicioOriginal: string; fimOriginal: string; reabertoEm: string };
   /** Linha do tempo completa do registro — um evento por mudança de situação, com quem
    * lançou/decidiu, quando, a justificativa (se houver) e os anexos daquele momento. */
   historico?: HistoricoEventoFerias[];
@@ -186,6 +291,9 @@ interface ServidorMock {
 
 const SERVIDORES_MOCK: ServidorMock[] = [
   { matricula: "241244", nome: "Valeria da Silva Pinto", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Analista Administrativo", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2025-06-11", periodoAquisitivoFim: "2026-06-10", saldoDisponivel: 30 },
+  // Servidor com débito de suspensão Art. 17 pendente (ver registro 32 em feriasMockDados):
+  // ao fazer um novo agendamento individual, aparece o aviso de compensação do débito (RN-SUS-10).
+  { matricula: "900032", nome: "Henrique Dias Moreira", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Técnico Administrativo", tipoVinculo: "Efetivo", cargoGestao: false, periodoAquisitivoInicio: "2024-01-01", periodoAquisitivoFim: "2024-12-31", saldoDisponivel: 30 },
   { matricula: "257812", nome: "Max Jorge Lacerda da Matta", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Técnico Administrativo", tipoVinculo: "Contrato Temporário", cargoGestao: false, periodoAquisitivoInicio: "2025-08-11", periodoAquisitivoFim: "2026-08-10", saldoDisponivel: 20, periodos:[{inicio:'2024-08-11',fim:'2025-08-10',saldo:20},{inicio:'2025-08-11',fim:'2026-08-10',saldo:30}] },
   { matricula: "243417", nome: "Claudio Luciano Capistrano de Camargo", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Coordenador de TI", tipoVinculo: "Comissionado", cargoGestao: true, periodoAquisitivoInicio: "2025-10-15", periodoAquisitivoFim: "2026-10-14", saldoDisponivel: 30 },
   { matricula: "249253", nome: "Claudia Moreira Arrais de Oliveira", orgao: "SEPLAG/MT", setor: "COORD. PLANEJ. E PROJETOS DE TI", cargo: "Assessora Técnica", tipoVinculo: "Comissionado", cargoGestao: false, periodoAquisitivoInicio: "2025-07-01", periodoAquisitivoFim: "2026-06-30", saldoDisponivel: 30 },
@@ -233,7 +341,7 @@ function periodoDisponivelServidor(servidor: ServidorMock) {
   const registros = carregarRegistros();
   const periodos = servidor.periodos ?? [{ inicio: servidor.periodoAquisitivoInicio, fim: servidor.periodoAquisitivoFim, saldo: servidor.saldoDisponivel }];
   return selecionarPeriodoMaisAntigo(periodos.map(periodo => ({...periodo,
-    saldo: Math.max(0, periodo.saldo - registros.filter(r => r.matricula === servidor.matricula && r.tipoVinculo === servidor.tipoVinculo && r.orgao === servidor.orgao && r.periodoAquisitivoInicio === periodo.inicio && !['CANCELADO','REPROVADO','PRAZO EXPIRADO','SUSPENSO'].includes(r.situacao)).reduce((total,r) => total + diasSolicitados(r),0))
+    saldo: Math.max(0, periodo.saldo - registros.filter(r => r.matricula === servidor.matricula && r.tipoVinculo === servidor.tipoVinculo && r.orgao === servidor.orgao && r.periodoAquisitivoInicio === periodo.inicio && !['REPROVADO','PRAZO EXPIRADO','SUSPENSO'].includes(r.situacao)).reduce((total,r) => total + diasSolicitados(r),0))
   })));
 }
 
@@ -475,11 +583,35 @@ function registrosAtivosPersistidos(): FeriasRegistro[] {
   try {
     const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as FeriasRegistro[] | null;
     return (salvos ?? registrosBase).filter(
-      (registro) => registro.situacao !== "CANCELADO" && registro.situacao !== "REPROVADO" && registro.situacao !== "PRAZO EXPIRADO",
+      (registro) => registro.situacao !== "REPROVADO" && registro.situacao !== "PRAZO EXPIRADO",
     );
   } catch {
     return [];
   }
+}
+
+/** Intervalos de datas ocupados por um registro para fins de sobreposição. Para um registro
+ * SUSPENSO por Art. 17, o direito é preservado e as férias têm retorno previsto (prorrogadas
+ * pelos dias suspensos) — então o período ocupado vai do início original até a NOVA data de
+ * término (fim original + dias suspensos). Um novo lançamento não pode cair nessa janela. */
+function intervalosOcupados(registro: FeriasRegistro): Array<{ inicio: string; fim: string }> {
+  const parcelas = registro.parcelas.filter((p) => p.inicio && p.fim);
+  if (registro.situacao === "SUSPENSO" && registro.fundamentoSuspensao === "ART_17") {
+    const inicioOriginal = parcelas.reduce<string | null>((menor, p) => (menor === null || p.inicio < menor ? p.inicio : menor), null);
+    const fimOriginal = parcelas.reduce<string | null>((maior, p) => (maior === null || p.fim > maior ? p.fim : maior), null);
+    const diasSuspensos = registro.suspensaoArt17?.prazoEstimadoDias ?? 0;
+    if (inicioOriginal && fimOriginal) {
+      // Nova data de término = fim original + dias suspensos (prorrogação do retorno).
+      return [{ inicio: inicioOriginal, fim: calcularFim(fimOriginal, diasSuspensos + 1) }];
+    }
+  }
+  return parcelas.map((p) => ({ inicio: p.inicio, fim: p.fim }));
+}
+
+/** Situação inicial do lançamento conforme a origem: SIGEP nasce "Agendada" (EM ABERTO) sem
+ * aprovação; Portal do Servidor nasce "Aguardando Validação" (a chefia imediata valida). */
+function situacaoInicialPorOrigem(origem: Origem): SituacaoFerias {
+  return origem === "PORTALSERVIDOR" ? "AGUARDANDO VALIDAÇÃO" : "EM ABERTO";
 }
 
 function conflitoFeriasServidor(matricula: string, inicio: string, fim: string, ignorarRegistroId?: number): FeriasRegistro | null {
@@ -488,8 +620,29 @@ function conflitoFeriasServidor(matricula: string, inicio: string, fim: string, 
     (registro) =>
       registro.matricula === matricula &&
       registro.id !== ignorarRegistroId &&
-      registro.parcelas.some((parcela) => parcela.inicio && parcela.fim && parcela.inicio <= fim && inicio <= parcela.fim),
+      intervalosOcupados(registro).some((periodo) => periodo.inicio <= fim && inicio <= periodo.fim),
   ) ?? null;
+}
+
+/** RN-FOL-08: localiza um registro do servidor que ficou SUSPENSO por superior interesse
+ * público (Art. 17) com dias pendentes de gozo. Ao fazer um NOVO agendamento, esses dias são
+ * incluídos (cobrados) na competência do novo gozo. O módulo de Férias trata apenas de dias. */
+function pendenciaArt17Pendente(matricula: string): FeriasRegistro | null {
+  if (!matricula) return null;
+  try {
+    const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as FeriasRegistro[] | null;
+    return (
+      (salvos ?? registrosBase).find(
+        (registro) =>
+          registro.matricula === matricula &&
+          registro.situacao === "SUSPENSO" &&
+          registro.fundamentoSuspensao === "ART_17" &&
+          registro.pendenciaSaldo?.origem === "SUSPENSAO_ART17",
+      ) ?? null
+    );
+  } catch {
+    return null;
+  }
 }
 
 /** RN003 (Validação de sobreposição de férias e recessos): qualquer sobreposição de datas com
@@ -497,10 +650,17 @@ function conflitoFeriasServidor(matricula: string, inicio: string, fim: string, 
  * não importa se já em andamento ou ainda futuro — bloqueia o lançamento com esta mensagem. */
 function mensagemConflitoAgendamento(conflito: FeriasRegistro): string {
   const tipoLabel = conflito.tipo === "Recesso" ? "Recesso" : "Férias";
+  // Registro suspenso por Art. 17: o direito é preservado e há retorno previsto (fim original +
+  // dias suspensos). Não cabe novo lançamento que colida com essa janela de retorno.
+  if (conflito.situacao === "SUSPENSO" && conflito.fundamentoSuspensao === "ART_17") {
+    const ocupado = intervalosOcupados(conflito)[0];
+    const periodoSuspenso = ocupado ? `${formatarDataBr(ocupado.inicio)} e ${formatarDataBr(ocupado.fim)}` : periodoUsufruto(conflito);
+    return `Não é possível realizar um novo lançamento. O servidor tem férias suspensas por interesse público (Art. 17) com retorno previsto entre ${periodoSuspenso} — o direito foi preservado e os dias serão retomados. Aguarde o retorno para um novo agendamento.`;
+  }
   const inicio = inicioUsufruto(conflito);
   const fim = fimUsufruto(conflito);
   const periodo = inicio && fim ? `${formatarDataBr(inicio)} e ${formatarDataBr(fim)}` : periodoUsufruto(conflito);
-  return `Não é possível agendar o período informado. Já existe um agendamento de ${tipoLabel} cadastrado entre ${periodo}. Cancele ou altere o agendamento anterior para prosseguir.`;
+  return `Não é possível agendar o período informado. Já existe um agendamento de ${tipoLabel} cadastrado entre ${periodo}. Altere o agendamento anterior para prosseguir.`;
 }
 
 /** RN-01/RN-02 (Regras de Bloqueio LTS × Férias): mock de LTS (licença para tratamento de saúde)
@@ -626,11 +786,89 @@ function rotuloAcaoHistorico(acao: string, situacao: SituacaoFerias): string {
     validar: "Validação",
     rejeitar: "Rejeição",
     suspender: "Suspensão",
-    cancelar: "Cancelamento",
+    solicitar_suspensao: "Suspensão solicitada (aguarda validação)",
+    aprovar_suspensao: "Suspensão aprovada (etapa)",
+    rejeitar_suspensao: "Suspensão rejeitada",
+    reativar: "Reabertura",
+    retorno_suspensao: "Retorno da suspensão",
     expiracao: "Prazo expirado",
     quitacao: "Quitação automática",
+    remanejamento: "Remanejamento de datas",
+    edicao: "Alteração da solicitação",
   };
   return rotulos[acao] ?? rotuloSituacao(situacao);
+}
+
+/** Ícone + tom (cor) de cada tipo de evento do histórico, para o marcador da linha do tempo. */
+function estiloAcaoHistorico(acao: string): { icone: string; tom: string } {
+  const mapa: Record<string, { icone: string; tom: string }> = {
+    lancamento: { icone: "pi-flag", tom: "neutro" },
+    validar: { icone: "pi-check-circle", tom: "verde" },
+    rejeitar: { icone: "pi-times-circle", tom: "vermelho" },
+    suspender: { icone: "pi-pause-circle", tom: "ambar" },
+    solicitar_suspensao: { icone: "pi-hourglass", tom: "ambar" },
+    aprovar_suspensao: { icone: "pi-verified", tom: "verde" },
+    rejeitar_suspensao: { icone: "pi-times-circle", tom: "vermelho" },
+    reativar: { icone: "pi-replay", tom: "azul" },
+    retorno_suspensao: { icone: "pi-undo", tom: "verde" },
+    expiracao: { icone: "pi-clock", tom: "vermelho" },
+    quitacao: { icone: "pi-check-square", tom: "azul" },
+    remanejamento: { icone: "pi-arrow-right-arrow-left", tom: "azul" },
+    edicao: { icone: "pi-pencil", tom: "neutro" },
+  };
+  return mapa[acao] ?? { icone: "pi-circle", tom: "neutro" };
+}
+
+/** Descreve, em texto, como as parcelas (datas/dias) mudaram entre a versão anterior e a nova —
+ * usado para registrar o remanejamento no histórico. Retorna null quando nada mudou. */
+function descreverAlteracaoParcelas(anteriores: ParcelaFerias[], novas: ParcelaFerias[]): string | null {
+  const resumo = (parcelas: ParcelaFerias[]) =>
+    [...parcelas]
+      .sort((a, b) => a.inicio.localeCompare(b.inicio))
+      .map((p) => `${formatarDataBr(p.inicio)} a ${formatarDataBr(p.fim)} (${p.dias} dia${p.dias === 1 ? "" : "s"})`)
+      .join("; ");
+  const antes = resumo(anteriores);
+  const depois = resumo(novas);
+  if (antes === depois) return null;
+  return `Período anterior: ${antes || "—"}. Novo período: ${depois || "—"}.`;
+}
+
+/** Monta o evento de histórico para uma edição de solicitação: distingue remanejamento de datas
+ * (parcelas alteradas) de uma alteração simples, anexando a justificativa/documento informados. */
+function eventoEdicao(
+  registro: FeriasRegistro,
+  novasParcelas: ParcelaFerias[],
+  situacaoFinal: SituacaoFerias,
+  documento?: DocumentoFerias,
+): HistoricoEventoFerias[] {
+  const mudancaDatas = descreverAlteracaoParcelas(registro.parcelas, novasParcelas);
+  // RN-FOL-02 / RN-CAN-03: remanejar com adiantamento já pago gera débito (estorno) na folha.
+  const avisoDebito = mudancaDatas && registro.adiantamentoPago
+    ? " Adiantamento já pago: o valor do período original torna-se indevido — gerado débito (estorno) a descontar na próxima folha."
+    : "";
+  // Período anterior × novo (consolidado em um intervalo) para o painel visual do remanejamento.
+  const extremos = (parcelas: ParcelaFerias[]) => {
+    const ini = parcelas.reduce<string | null>((m, p) => (m === null || p.inicio < m ? p.inicio : m), null);
+    const fim = parcelas.reduce<string | null>((m, p) => (m === null || p.fim > m ? p.fim : m), null);
+    const dias = parcelas.reduce((s, p) => s + p.dias, 0);
+    return { ini, fim, dias };
+  };
+  const antes = extremos(registro.parcelas);
+  const depois = extremos(novasParcelas);
+  const remanejamento =
+    mudancaDatas && antes.ini && antes.fim && depois.ini && depois.fim
+      ? { anteriorInicio: antes.ini, anteriorFim: antes.fim, anteriorDias: antes.dias, novoInicio: depois.ini, novoFim: depois.fim, novoDias: depois.dias }
+      : undefined;
+  return comHistorico(registro, {
+    situacao: situacaoFinal,
+    acao: mudancaDatas ? "remanejamento" : "edicao",
+    responsavel: "Gestor",
+    responsavelMatricula: USUARIO_ATOR_MOCK.Gestor.matricula,
+    responsavelVinculo: USUARIO_ATOR_MOCK.Gestor.vinculo,
+    justificativa: (mudancaDatas ?? "Alteração da solicitação de férias.") + avisoDebito,
+    documentos: documento ? [documento] : undefined,
+    remanejamento,
+  });
 }
 
 /** Acrescenta um evento à linha do tempo do registro (histórico de situações). */
@@ -638,10 +876,142 @@ function comHistorico(
   registro: FeriasRegistro,
   evento: Omit<HistoricoEventoFerias, "data"> & { data?: string },
 ): HistoricoEventoFerias[] {
+  // Registros do mock podem não ter histórico. Antes de acrescentar o novo evento, semeia o
+  // lançamento original, para a linha do tempo não ficar só com o último evento (ex.: quitação).
+  const base: HistoricoEventoFerias[] = registro.historico?.length
+    ? registro.historico
+    : [{
+        situacao: "EM ABERTO",
+        acao: "lancamento",
+        data: registro.lancadoEm,
+        responsavel: registro.responsavelLancamento,
+        documentos: registro.documentos,
+      }];
   return [
-    ...(registro.historico ?? []),
+    ...base,
     { data: new Date().toLocaleString("pt-BR"), ...evento },
   ];
+}
+
+/** Entrada da decisão do aprovador na tela (conferência documental e dados da publicação no DO). */
+interface EntradaFluxoUI {
+  documentacaoConferida?: boolean;
+  publicacao?: { numero: string; data: string };
+}
+
+/** Setorial registra a suspensão Art. 17: o registro continua "Agendada" e a suspensão fica
+ * pendente até a validação do órgão central. Nada é recalculado na folha nesta etapa. */
+function solicitarSuspensaoPendente(
+  registro: FeriasRegistro,
+  dados: DadosSuspensao,
+  processo: ProcessoAprovacao,
+  perfil: PerfilAcesso,
+  justificativa?: string,
+  documento?: DocumentoFerias,
+): FeriasRegistro {
+  const ator = atorHistorico(perfil);
+  const solicitadoPor = `${ator.rotulo} · Matrícula ${ator.matricula} / ${ator.vinculo}`;
+  return {
+    ...registro,
+    documentos: documento ? [...(registro.documentos ?? []), documento] : registro.documentos,
+    suspensaoPendente: {
+      dados: { ...dados, solicitante: solicitadoPor, autorizadoPeloDirigente: false },
+      processo,
+      solicitadoPor,
+      solicitadoEm: new Date().toLocaleString("pt-BR"),
+      documento,
+    },
+    historico: comHistorico(registro, {
+      situacao: registro.situacao,
+      acao: "solicitar_suspensao",
+      responsavel: ator.rotulo,
+      responsavelMatricula: ator.matricula,
+      responsavelVinculo: ator.vinculo,
+      justificativa: justificativa?.trim() || dados.causa,
+      documentos: documento ? [documento] : undefined,
+      fundamentoSuspensao: dados.fundamento,
+      suspensaoInicio: dados.suspensaoInicio,
+      suspensaoFim: dados.suspensaoFim,
+      suspensaoDias: dados.prazoEstimadoDias,
+      novaDataTerminoFerias: dados.novaDataTerminoFerias,
+      causaSuspensao: dados.causa,
+      feriasOriginalInicio: inicioUsufruto(registro) ?? undefined,
+      feriasOriginalFim: fimUsufruto(registro) ?? undefined,
+      aprovacaoEtapa: "Aguardando validação",
+    }),
+  };
+}
+
+/** Decisão do aprovador sobre a suspensão pendente. Quando a última etapa é aprovada, devolve
+ * `efetivar` com os dados guardados para o chamador efetivar a suspensão (e disparar o motor). */
+function decidirSuspensaoPendente(
+  registro: FeriasRegistro,
+  acao: "aprovar_suspensao" | "rejeitar_suspensao",
+  perfil: PerfilAcesso,
+  entrada: { justificativa?: string } & EntradaFluxoUI,
+): { registro: FeriasRegistro; efetivar?: DadosSuspensao; etapa?: string } {
+  const pendente = registro.suspensaoPendente;
+  if (!pendente) return { registro };
+  const ator = atorHistorico(perfil);
+  const quando = new Date().toLocaleString("pt-BR");
+  const identificacao = { responsavel: ator.rotulo, responsavelMatricula: ator.matricula, responsavelVinculo: ator.vinculo };
+  const nivel = nivelDoProcesso(pendente.processo);
+  const rotuloNivel = nivel?.rotulo ?? "órgão central";
+
+  if (acao === "rejeitar_suspensao") {
+    const r = registrarDecisao(pendente.processo, {
+      perfil, decisao: "REJEITADO", responsavel: ator.rotulo, matricula: ator.matricula, em: quando, justificativa: entrada.justificativa,
+    });
+    if (!r.sucesso) return { registro };
+    return {
+      registro: {
+        ...registro,
+        suspensaoPendente: undefined,
+        historico: comHistorico(registro, {
+          situacao: registro.situacao,
+          acao: "rejeitar_suspensao",
+          ...identificacao,
+          justificativa: entrada.justificativa?.trim(),
+          aprovacaoEtapa: `Suspensão rejeitada — ${rotuloNivel}. O usufruto segue normalmente.`,
+        }),
+      },
+    };
+  }
+
+  const aguardandoPublicacao = pendente.processo.status === "AGUARDANDO_PUBLICACAO";
+  const r = aguardandoPublicacao
+    ? registrarPublicacao(pendente.processo, perfil, entrada.publicacao ?? { numero: "", data: "" })
+    : registrarDecisao(pendente.processo, {
+        perfil, decisao: "APROVADO", responsavel: ator.rotulo, matricula: ator.matricula, em: quando, documentacaoConferida: entrada.documentacaoConferida,
+      });
+  if (!r.sucesso) return { registro };
+
+  const textoPublicacao = r.processo.publicacao
+    ? ` · DO nº ${r.processo.publicacao.numero} de ${formatarDataBr(r.processo.publicacao.data)}`
+    : "";
+  if (r.processo.status === "APROVADO") {
+    return {
+      registro: { ...registro, suspensaoPendente: undefined },
+      efetivar: { ...pendente.dados, autorizadoPeloDirigente: true },
+      etapa: `Validada por ${rotuloNivel}${textoPublicacao}`,
+    };
+  }
+  const proximo = nivelDoProcesso(r.processo);
+  return {
+    registro: {
+      ...registro,
+      suspensaoPendente: { ...pendente, processo: r.processo },
+      historico: comHistorico(registro, {
+        situacao: registro.situacao,
+        acao: "aprovar_suspensao",
+        ...identificacao,
+        aprovacaoEtapa:
+          r.processo.status === "AGUARDANDO_PUBLICACAO"
+            ? `Aprovada por ${rotuloNivel}; aguardando publicação no Diário Oficial`
+            : `Aprovada por ${rotuloNivel}; segue para ${proximo?.rotulo ?? "próximo nível"}`,
+      }),
+    },
+  };
 }
 
 function periodoUsufruto(registro: FeriasRegistro) {
@@ -712,7 +1082,7 @@ type AbaFerias = "gestao" | "aprovacoes" | "substituicoes";
 const PERFIL_STORAGE_KEY = "prototype-ferias-perfil";
 
 // Seletor de perfil simplificado para os dois papéis de regras-perfis-ferias.md: Gestor
-// (lança/altera/cancela/suspende) e Aprovador (valida/reprova/exclui).
+// (lança/altera/cancela/suspende/reabre) e Aprovador (valida/reprova/exclui/força reabertura).
 // Internamente reaproveitamos "RH / Gestão de Pessoas" e "DRE / RH Central" como valores de
 // PerfilAcesso — "Servidor" e "Chefia Imediata" continuam existindo no tipo (perfilPodeAvaliarRegistro
 // trata qualquer aprovador via podeAvaliar), só não ficam mais selecionáveis na tela.
@@ -738,9 +1108,10 @@ export function PrototiposFeriasPage() {
   const [registroHistorico, setRegistroHistorico] = useState<FeriasRegistro | null>(null);
   const visualizarRegistro = (registro: FeriasRegistro) => navigate(`/prototipos/sigep/ferias/visualizar/${registro.id}`);
   const [menuAbertoId, setMenuAbertoId] = useState<number | string | null>(null);
-  const [confirmacaoStatus, setConfirmacaoStatus] = useState<{ registro: FeriasRegistro; acao: AcaoStatus; loteId?: string } | null>(null);
+  const [confirmacaoStatus, setConfirmacaoStatus] = useState<{ registro: FeriasRegistro; acao: AcaoStatus; loteId?: string; parcelaId?: number } | null>(null);
   const [subBusca, setSubBusca] = useState("");
   const [subSituacao, setSubSituacao] = useState<"" | "Vigente" | "Encerrada">("");
+  const [fluxos] = useState<ConfiguracaoFluxo[]>(carregarFluxos);
   const atualizarRegistros = (proximos: FeriasRegistro[]) => {
     setRegistros(proximos);
     persistirRegistros(proximos);
@@ -748,9 +1119,23 @@ export function PrototiposFeriasPage() {
 
   useEffect(() => {
     const verificar = () => setRegistros(atuais => {
-      if (!atuais.some(r => prazoValidacaoExpirado(r) || elegivelParaQuitacaoAutomatica(r))) return atuais;
+      if (!atuais.some(r => prazoValidacaoExpirado(r) || elegivelParaQuitacaoAutomatica(r) || elegivelParaRetornoSuspensao(r))) return atuais;
       const proximos = atuais.map(r => {
         if (prazoValidacaoExpirado(r)) return {...r, situacao:'PRAZO EXPIRADO' as const, historico: comHistorico(r, { situacao: 'PRAZO EXPIRADO', acao: 'expiracao', responsavel: 'Sistema (verificador automático)' })};
+        // RN-SUS: chegou a data de retorno da suspensão — o registro volta para "Agendada"
+        // (EM ABERTO) com as parcelas prorrogadas pelos dias suspensos (direito preservado).
+        if (elegivelParaRetornoSuspensao(r)) {
+          const dias = r.diasSuspensos ?? 0;
+          const parcelasProrrogadas = r.parcelas.map(p => ({...p, inicio: calcularFim(p.inicio, dias + 1), fim: calcularFim(p.fim, dias + 1)}));
+          return {
+            ...r,
+            situacao: 'EM ABERTO' as const,
+            parcelas: parcelasProrrogadas,
+            fundamentoSuspensao: undefined,
+            dataRetornoSuspensao: undefined,
+            historico: comHistorico(r, { situacao: 'EM ABERTO', acao: 'retorno_suspensao', responsavel: 'Sistema (verificador automático)', justificativa: `Retorno da suspensão após ${dias} dia(s) — férias retomadas e reagendadas.` }),
+          };
+        }
         if (elegivelParaQuitacaoAutomatica(r)) return {...r, situacao:'QUITADO' as const, historico: comHistorico(r, { situacao: 'QUITADO', acao: 'quitacao', responsavel: 'Sistema (verificador automático)' })};
         return r;
       });
@@ -767,8 +1152,8 @@ export function PrototiposFeriasPage() {
   };
 
   const registrosPendentesAprovacao = useMemo(
-    () => registros.filter((registro) => registro.situacao === "AGUARDANDO VALIDAÇÃO"),
-    [registros],
+    () => registros.filter((registro) => registro.situacao === "AGUARDANDO VALIDAÇÃO" || perfilPodeDecidir(registro.suspensaoPendente?.processo, perfil)),
+    [registros, perfil],
   );
 
   const orgaosDisponiveis = useMemo(
@@ -885,22 +1270,48 @@ export function PrototiposFeriasPage() {
   // e ainda não iniciada: só a quantidade de dias, e a alteração retorna ao aprovador — alterar
   // parcelamento fica bloqueado. Uma vez iniciada (em andamento), não edita mais (RN-03).
   const podeEditar = (registro: FeriasRegistro) =>
-    (registro.tipo === "Individual" || registro.tipo === "Recesso") &&
+    (registro.tipo === "Individual" || registro.tipo === "Recesso" ||
+      registro.tipo === "Lote" || registro.tipo === "Coletiva") &&
     (registro.situacao === "AGUARDANDO VALIDAÇÃO" ||
       (registro.situacao === "EM ABERTO" && !feriasEmAndamento(registro)));
 
   const aplicarStatus = (
     registroId: number,
-    novaSituacao: SituacaoFerias,
-    acao?: AcaoStatus,
+    novaSituacaoSolicitada: SituacaoFerias,
+    acaoSolicitada?: AcaoStatus,
     justificativa?: string,
     documento?: DocumentoFerias,
     novasParcelas?: ParcelaFerias[],
-    dataEfeito?: string,
+    historicoReabertura?: { inicioOriginal: string; fimOriginal: string; reabertoEm: string },
+    dadosSuspensaoSolicitados?: DadosSuspensao,
+    entradaFluxo?: EntradaFluxoUI,
   ) => {
-    if ((acao==="validar" || acao==="rejeitar") && !registros.some(r => r.id === registroId && perfilPodeAvaliarRegistro(perfil,r))) return;
-    const proximos = registros.map((registro) => {
-      if (registro.id !== registroId) return registro;
+    if ((acaoSolicitada==="validar" || acaoSolicitada==="rejeitar") && !registros.some(r => r.id === registroId && perfilPodeAvaliarRegistro(perfil,r))) return;
+    const proximos = registros.map((registroOriginal) => {
+      if (registroOriginal.id !== registroId) return registroOriginal;
+      let registro = registroOriginal;
+      let acao = acaoSolicitada;
+      let novaSituacao = novaSituacaoSolicitada;
+      let dadosSuspensao = dadosSuspensaoSolicitados;
+      let etapaAprovacao: string | undefined;
+
+      // Fluxo de aprovação da suspensão Art. 17 (órgão central valida antes de efetivar).
+      if (acaoSolicitada === "aprovar_suspensao" || acaoSolicitada === "rejeitar_suspensao") {
+        if (!perfilPodeDecidir(registro.suspensaoPendente?.processo, perfil)) return registro;
+        const desfecho = decidirSuspensaoPendente(registro, acaoSolicitada, perfil, { justificativa, ...entradaFluxo });
+        if (!desfecho.efetivar) return desfecho.registro;
+        // Última etapa aprovada: efetiva a suspensão com os dados guardados na solicitação.
+        registro = desfecho.registro;
+        acao = "suspender";
+        novaSituacao = "SUSPENSO";
+        dadosSuspensao = desfecho.efetivar;
+        etapaAprovacao = desfecho.etapa;
+      } else if (acaoSolicitada === "suspender" && dadosSuspensao?.fundamento === "ART_17") {
+        const processo = iniciarProcesso(obterFluxo(fluxos, CHAVE_FLUXO_SUSPENSAO_ART17), new Date().toLocaleString("pt-BR"));
+        // Fluxo ligado: a setorial só registra; a suspensão fica pendente até a validação central.
+        if (processo) return solicitarSuspensaoPendente(registro, dadosSuspensao, processo, perfil, justificativa, documento);
+      }
+
       if ((acao === 'validar' || acao === 'rejeitar') && registro.situacao !== 'AGUARDANDO VALIDAÇÃO') return registro;
       // RN013 (US50): o bloqueio do auxílio-transporte e a integração com o SIGPAS só se
       // efetivam quando a chefia valida o recesso do residente técnico — não no lançamento.
@@ -910,23 +1321,118 @@ export function PrototiposFeriasPage() {
         registro.tipoVinculo === "Residente Técnico";
       // Registra quem avaliou (validou ou rejeitou) a solicitação, para exibir no "Visualizar".
       const marcaAvaliacao = acao === "validar" || acao === "rejeitar";
+      // RN reabertura 3.1: a reabertura entra num novo ciclo de validação — o prazo de aprovação
+      // precisa ser recalculado a partir de hoje (o antigo já estava vencido/consumido),
+      // respeitando o fechamento da folha do mês vigente.
+      const ehReaberturaAcao = acao === "reativar";
       const ator = atorHistorico(perfil);
+      // RN-FOL-07/08: o módulo de Férias registra apenas o impacto FUNCIONAL (dias). O valor
+      // financeiro (R$) é responsabilidade exclusiva da Folha de Pagamento e não trafega aqui.
+      const totalDias = (novasParcelas ?? registro.parcelas).reduce((s, p) => s + p.dias, 0);
+
+      // RN-SUS: ao suspender, grava o fundamento legal e os desdobramentos de cada artigo.
+      const ehSuspensao = acao === "suspender" && dadosSuspensao;
+      const diasJaUsufruidos = registro.parcelas
+        .filter((p) => p.inicio < dataLocalISO())
+        .reduce((s, p) => s + Math.min(p.dias, Math.max(0, diasEntre(p.inicio, dataLocalISO()))), 0);
+      // RN-SUS-02/03 (Art. 16): retomada automática no 1º dia útil e saldo remanescente.
+      const retomadaArt16 =
+        ehSuspensao && dadosSuspensao!.fundamento === "ART_16"
+          ? calcularRetomadaArt16(totalDias, diasJaUsufruidos, dadosSuspensao!.licencaFim ?? dataLocalISO())
+          : undefined;
+      // Nova data de término das férias no Art. 16: a partir da retomada, o servidor ainda cumpre
+      // o saldo remanescente de dias (direito preservado) — fim = retomada + (saldo - 1).
+      const novaDataTerminoArt16 =
+        retomadaArt16 && retomadaArt16.saldoRemanescente > 0
+          ? calcularFim(retomadaArt16.dataRetomada, retomadaArt16.saldoRemanescente)
+          : undefined;
+      // Motor de folha (RN-MOT): confronto por competência — estorno dos dias que saem de mês já
+      // adiantado, novo adiantamento dos que entram em outro mês, recálculo interno no mesmo mês.
+      // O módulo de Férias guarda só DIAS por competência; os valores (R$) são da Folha (RN-FOL-07/08).
+      // Parcela-alvo da suspensão (quando informada): o motor incide só sobre ela; as demais
+      // parcelas do registro permanecem inalteradas.
+      const idParcelaSuspensa = dadosSuspensao?.parcelaId;
+      const parcelasAlvoMotor = ehSuspensao && idParcelaSuspensa != null
+        ? registro.parcelas.filter((p) => p.id === idParcelaSuspensa)
+        : registro.parcelas;
+      const resultadoMotor = ehSuspensao
+        ? calcularImpactoSuspensao({
+            parcelas: parcelasAlvoMotor.map((p) => ({ inicio: p.inicio, fim: p.fim })),
+            fundamento: dadosSuspensao!.fundamento,
+            suspensaoInicio: dadosSuspensao!.suspensaoInicio ?? dataLocalISO(),
+            suspensaoFim: dadosSuspensao!.suspensaoFim,
+            licencaFim: dadosSuspensao!.licencaFim ?? dataLocalISO(),
+            competenciaFolhaCorrente: dataLocalISO().slice(0, 7),
+            adiantamentoPago: registro.adiantamentoPago,
+          })
+        : undefined;
+      const impactoFolha = resultadoMotor?.eventos;
+
       return {
         ...registro,
         situacao: novaSituacao,
         parcelas: novasParcelas ?? registro.parcelas,
+        historicoReabertura: historicoReabertura ?? registro.historicoReabertura,
         documentos: documento ? [...(registro.documentos ?? []), documento] : registro.documentos,
         historico: comHistorico(registro, {
           situacao: novaSituacao,
           acao: acao ?? "atualizacao",
-          dataEfeito: dataEfeito || undefined,
           responsavel: ator.rotulo,
           responsavelMatricula: ator.matricula,
           responsavelVinculo: ator.vinculo,
-          justificativa: justificativa?.trim() || undefined,
+          justificativa: justificativa?.trim() || (etapaAprovacao ? dadosSuspensao?.causa : undefined),
           documentos: documento ? [documento] : undefined,
+          ...(ehSuspensao
+            ? {
+                impactoFolha,
+                aprovacaoEtapa: etapaAprovacao,
+                fundamentoSuspensao: dadosSuspensao!.fundamento,
+                dataRetomada: retomadaArt16?.dataRetomada,
+                suspensaoInicio: dadosSuspensao!.suspensaoInicio,
+                suspensaoFim: dadosSuspensao!.suspensaoFim,
+                suspensaoDias: dadosSuspensao!.prazoEstimadoDias,
+                novaDataTerminoFerias: dadosSuspensao!.fundamento === "ART_16" ? novaDataTerminoArt16 : dadosSuspensao!.novaDataTerminoFerias,
+                causaSuspensao: dadosSuspensao!.causa,
+                // Período original da PARCELA suspensa (quando a suspensão é por parcela); senão, o do registro.
+                feriasOriginalInicio: parcelasAlvoMotor[0]?.inicio ?? inicioUsufruto(registro) ?? undefined,
+                feriasOriginalFim: parcelasAlvoMotor[parcelasAlvoMotor.length - 1]?.fim ?? fimUsufruto(registro) ?? undefined,
+              }
+            : {}),
         }),
+        ...(ehReaberturaAcao ? { dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia() } : {}),
         ...(efetivaBeneficiosRecesso ? { auxilioTransporteEfetivado: true, sigpasIntegrado: true } : {}),
+        ...(ehSuspensao
+          ? {
+              fundamentoSuspensao: dadosSuspensao!.fundamento,
+              diasSuspensos: dadosSuspensao!.prazoEstimadoDias,
+              // Data de retorno: Art. 16 = 1º dia útil após a licença; Art. 17 = dia seguinte ao
+              // fim da suspensão. Ao chegar essa data, o verificador reativa para "Agendada".
+              dataRetornoSuspensao:
+                dadosSuspensao!.fundamento === "ART_16"
+                  ? retomadaArt16?.dataRetomada
+                  : dadosSuspensao!.suspensaoFim
+                    ? calcularFim(dadosSuspensao!.suspensaoFim, 2)
+                    : undefined,
+              ...(retomadaArt16 ? { dataRetomadaArt16: retomadaArt16.dataRetomada } : {}),
+              ...(dadosSuspensao!.fundamento === "ART_17"
+                ? {
+                    suspensaoArt17: {
+                      // Registra automaticamente o perfil que realizou a ação (Gestor/Aprovador),
+                      // com matrícula/vínculo — sem campo manual de solicitante.
+                      solicitante: dadosSuspensao!.solicitante ?? `${ator.rotulo} · Matrícula ${ator.matricula} / ${ator.vinculo}`,
+                      causa: dadosSuspensao!.causa ?? "",
+                      prazoEstimadoDias: dadosSuspensao!.prazoEstimadoDias ?? 0,
+                      autorizadoPeloDirigente: dadosSuspensao!.autorizadoPeloDirigente ?? false,
+                      inicio: dadosSuspensao!.suspensaoInicio ?? dataLocalISO(),
+                    },
+                  }
+                : {}),
+              impactoFolha,
+              suspensaoPendente: undefined,
+              // Guarda qual parcela foi suspensa, para o selo "Suspenso" marcar só a linha dela.
+              parcelaSuspensaId: dadosSuspensao!.parcelaId,
+            }
+          : {}),
         ...(marcaAvaliacao ? { avaliadoPor: ator.rotulo, avaliadoEm: new Date().toLocaleString("pt-BR"), justificativaAvaliacao: justificativa?.trim() || '',resultadoAvaliacao:acao==='rejeitar' ? 'Rejeitada' as const : 'Aprovada' as const } : {}),
       };
     });
@@ -936,7 +1442,7 @@ export function PrototiposFeriasPage() {
 
   // RN (SEDUC/UNEMAT): lotes e coletivas desses órgãos são aprovados em bloco — o servidor
   // individual (orgaoColetivo OUTRO) continua sendo avaliado um a um.
-  const aplicarStatusLote = (loteId: string, novaSituacao: SituacaoFerias, acao: AcaoStatus, justificativa?: string, documento?: DocumentoFerias, dataEfeito?: string) => {
+  const aplicarStatusLote = (loteId: string, novaSituacao: SituacaoFerias, acao: AcaoStatus, justificativa?: string, documento?: DocumentoFerias) => {
     if (!podeAvaliar(perfil)) return;
     const idsAfetados = new Set(
       registros
@@ -954,7 +1460,6 @@ export function PrototiposFeriasPage() {
             historico: comHistorico(registro, {
               situacao: novaSituacao,
               acao,
-              dataEfeito: dataEfeito || undefined,
               responsavel: ator.rotulo,
               responsavelMatricula: ator.matricula,
               responsavelVinculo: ator.vinculo,
@@ -999,8 +1504,8 @@ export function PrototiposFeriasPage() {
             <label>
               <span>Visualizando como</span>
               <select value={perfil} onChange={(event) => alterarPerfil(event.target.value as PerfilAcesso)}>
-                <option value="RH / Gestão de Pessoas">Gestor (lança, altera, cancela, suspende)</option>
-                <option value="DRE / RH Central">Aprovador (valida, reprova, exclui)</option>
+                <option value="RH / Gestão de Pessoas">Gestor (lança, altera, cancela, suspende, reabre)</option>
+                <option value="DRE / RH Central">Aprovador (valida, reprova, exclui, força reabertura)</option>
               </select>
             </label>
           </div>
@@ -1074,7 +1579,6 @@ export function PrototiposFeriasPage() {
                     <option value="AGUARDANDO VALIDAÇÃO">Aguardando validação</option>
                     <option value="EM ABERTO">Agendada</option>
                     <option value="QUITADO">Quitado</option>
-                    <option value="CANCELADO">Cancelado</option>
                     <option value="REPROVADO">Reprovado</option>
                     <option value="PRAZO EXPIRADO">Prazo expirado</option>
                     <option value="SUSPENSO">Suspenso</option>
@@ -1098,14 +1602,14 @@ export function PrototiposFeriasPage() {
                 registros={registrosFiltrados}
                 perfil={perfil}
                 onVisualizar={visualizarRegistro}
-                onEditar={(registro) => {
+                onEditar={(registro, parcelaId) => {
                   if (registro.tipo === "Recesso") navigate(`/prototipos/sigep/ferias/editar/recesso/${registro.id}`);
-                  else if (registro.tipo === "Individual") navigate(`/prototipos/sigep/ferias/editar/individual/${registro.id}`);
+                  else if (registro.tipo === "Individual" || registro.tipo === "Lote" || registro.tipo === "Coletiva") navigate(`/prototipos/sigep/ferias/editar/individual/${registro.id}${parcelaId != null ? `?parcela=${parcelaId}` : ""}`);
                   else visualizarRegistro(registro);
                 }}
                 onGerenciarSubstituicao={setRegistroSubstituicao}
                 onVerHistorico={setRegistroHistorico}
-                onAlterarStatus={(registro, acao) => setConfirmacaoStatus({ registro, acao })}
+                onAlterarStatus={(registro, acao, parcelaId) => setConfirmacaoStatus({ registro, acao, parcelaId })}
                 podeEditar={podeEditar}
                 menuAbertoId={menuAbertoId}
                 setMenuAbertoId={setMenuAbertoId}
@@ -1115,7 +1619,11 @@ export function PrototiposFeriasPage() {
 
           {aba === "aprovacoes" && podeAvaliar(perfil) ? (
             <AprovacoesFerias
-              registros={registros.filter(r => podeAvaliar(perfil) && ((r.tipo === "Coletiva" || r.tipo === "Lote") || r.origem === "PORTALSERVIDOR" || r.tipo === "Recesso"))}
+              registros={registros.filter(r => podeAvaliar(perfil) && (
+                // Suspensão Art. 17 aguardando validação: aparece só para o perfil responsável pela etapa.
+                r.suspensaoPendente ? perfilPodeDecidir(r.suspensaoPendente.processo, perfil) :
+                (r.tipo === "Coletiva" || r.tipo === "Lote") || r.origem === "PORTALSERVIDOR"
+              ))}
               onVisualizar={visualizarRegistro}
               onAlterarStatus={(registro, acao) => setConfirmacaoStatus({ registro, acao })}
               onAlterarStatusLote={(loteId, acao) => {
@@ -1200,9 +1708,12 @@ export function PrototiposFeriasPage() {
           acao={confirmacaoStatus.acao}
           loteId={confirmacaoStatus.loteId}
           onFechar={() => setConfirmacaoStatus(null)}
-          onConfirmar={(novaSituacao,justificativa,documento,novasParcelas,dataEfeito) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa,documento,dataEfeito) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa,documento,novasParcelas,dataEfeito)}
+          fluxos={fluxos}
+          parcelaId={confirmacaoStatus.parcelaId}
+          onConfirmar={(novaSituacao,justificativa,documento,novasParcelas,historicoReabertura,dadosSuspensao,entradaFluxo) => confirmacaoStatus.loteId ? aplicarStatusLote(confirmacaoStatus.loteId,novaSituacao,confirmacaoStatus.acao,justificativa,documento) : aplicarStatus(confirmacaoStatus.registro.id, novaSituacao, confirmacaoStatus.acao,justificativa,documento,novasParcelas,historicoReabertura,dadosSuspensao,entradaFluxo)}
         />
       ) : null}
+
 
       {registroHistorico ? (
         <ModalHistoricoRegistro registro={registroHistorico} onFechar={() => setRegistroHistorico(null)} />
@@ -1216,7 +1727,6 @@ function elegivelSubstituicao(registro: FeriasRegistro) {
     registro.tipoVinculo === "Comissionado" &&
     registro.cargoGestao &&
     registro.parcelas.some((parcela) => parcela.dias >= 10) &&
-    registro.situacao !== "CANCELADO" &&
     registro.situacao !== "AGUARDANDO VALIDAÇÃO" &&
     registro.situacao !== "PRAZO EXPIRADO" &&
     registro.situacao !== "REPROVADO"
@@ -1232,20 +1742,22 @@ function podeRejeitar(registro: FeriasRegistro) {
 }
 
 /** Perfil Aprovador avalia (valida/rejeita) Coletivo e Lote sempre; Individual e Recesso só
- * quando vieram do Portal do Servidor (lançamento via SGP não passa por aprovação). */
+ * quando vieram do Portal do Servidor. Lançamento via SIGEP (inclusive Recesso) nasce Agendada
+ * e NÃO passa por aprovação. */
 function perfilPodeAvaliarRegistro(perfil: PerfilAcesso, registro: FeriasRegistro) {
   if (prazoValidacaoExpirado(registro)) return false;
   if (!podeAvaliar(perfil)) return false;
-  return registro.tipo === 'Coletiva' || registro.tipo === 'Lote' || registro.origem === 'PORTALSERVIDOR' || registro.tipo === 'Recesso';
+  return registro.tipo === 'Coletiva' || registro.tipo === 'Lote' || registro.origem === 'PORTALSERVIDOR';
 }
 
-/** "Perfil Aprovador" (regras-perfis-ferias): valida/reprova submissões e exclui agendamentos. */
+/** "Perfil Aprovador" (regras-perfis-ferias): valida/reprova submissões, exclui agendamentos
+ * e é o único que pode forçar a reabertura de um agendamento com folha já homologada/paga. */
 function podeAvaliar(perfil: PerfilAcesso) {
   return perfil === "Chefia Imediata" || perfil === "DRE / RH Central";
 }
 
-/** "Perfil Gestor" (regras-perfis-ferias): lança, altera, cancela e suspende
- * agendamentos — mas não aprova e não exclui. */
+/** "Perfil Gestor" (regras-perfis-ferias): lança, altera, cancela, suspende e reabre
+ * agendamentos — mas não aprova, não exclui e não força reabertura com financeiro pago. */
 function podeGerenciarCompleto(perfil: PerfilAcesso) {
   return perfil === "RH / Gestão de Pessoas";
 }
@@ -1253,10 +1765,57 @@ function podeGerenciarCompleto(perfil: PerfilAcesso) {
 /** Usuário logado "de demonstração" por perfil — como o protótipo não tem autenticação real,
  * cada perfil é representado por uma matrícula/vínculo fixos só para exibir no histórico quem
  * fez a alteração (o servidor que está de fato operando a tela, não o servidor da solicitação). */
-const USUARIO_ATOR_MOCK: Record<"Gestor" | "Aprovador", { matricula: string; vinculo: TipoVinculo }> = {
-  Gestor: { matricula: "900017", vinculo: "Efetivo" },
-  Aprovador: { matricula: "900020", vinculo: "Efetivo" },
+const USUARIO_ATOR_MOCK: Record<"Gestor" | "Aprovador", { nome: string; cargo: string; matricula: string; vinculo: TipoVinculo }> = {
+  Gestor: { nome: "Beatriz do Carmo Santos", cargo: "Analista de Gestão de Pessoas", matricula: "900017", vinculo: "Efetivo" },
+  Aprovador: { nome: "Cláudio Luciano Capistrano", cargo: "Diretor de Gestão de Pessoas", matricula: "900020", vinculo: "Efetivo" },
 };
+
+/** Iniciais (até 2 letras) para o avatar do histórico. */
+function iniciaisAtor(nome: string): string {
+  const partes = nome.trim().split(/\s+/).filter((p) => p.length > 2 || /[A-ZÁ-Ú]/.test(p[0]));
+  const base = partes.length ? partes : nome.trim().split(/\s+/);
+  return ((base[0]?.[0] ?? "") + (base[base.length - 1]?.[0] ?? "")).toUpperCase();
+}
+
+/** Verbo da ação no histórico, no particípio: "Agendado por", "Validado por"... */
+function verboAcaoHistorico(acao: string): string {
+  const verbos: Record<string, string> = {
+    lancamento: "Agendado por",
+    validar: "Validado por",
+    rejeitar: "Rejeitado por",
+    suspender: "Suspenso por",
+    solicitar_suspensao: "Suspensão solicitada por",
+    aprovar_suspensao: "Suspensão validada por",
+    rejeitar_suspensao: "Suspensão rejeitada por",
+    reativar: "Reaberto por",
+    retorno_suspensao: "Retomado por",
+    expiracao: "Expirado por",
+    quitacao: "Quitado por",
+    remanejamento: "Remanejado por",
+    edicao: "Alterado por",
+  };
+  return verbos[acao] ?? "Registrado por";
+}
+
+/** Perfil (Gestor/Aprovador/Servidor/Sistema) a partir do rótulo do responsável no evento. */
+function perfilDoResponsavel(responsavel?: string): { rotulo: string; classe: string } | null {
+  if (!responsavel) return null;
+  const r = responsavel.toLowerCase();
+  if (r.includes("sistema") || r.includes("automátic") || r.includes("automatic")) return { rotulo: "Automático", classe: "is-sistema" };
+  if (r.startsWith("gestor") || r.includes("gestão de pessoas") || r.includes("rh ")) return { rotulo: "Perfil Gestor", classe: "is-gestor" };
+  if (r.startsWith("aprovador") || r.includes("chefia") || r.includes("dre") || r.includes("rh central") || r.includes("órgão central")) return { rotulo: "Perfil Aprovador", classe: "is-aprovador" };
+  if (r.startsWith("servidor") || r.includes("portal do servidor")) return { rotulo: "Portal do Servidor", classe: "is-servidor" };
+  return null;
+}
+
+/** Perfil exibido no lançamento: deriva da origem do registro (SIGEP = Gestor; Portal = Servidor). */
+function perfilDoLancamento(registro: FeriasRegistro, responsavel?: string): { rotulo: string; classe: string } {
+  const pelo = perfilDoResponsavel(responsavel);
+  if (pelo) return pelo;
+  return registro.origem === "PORTALSERVIDOR"
+    ? { rotulo: "Portal do Servidor", classe: "is-servidor" }
+    : { rotulo: "Perfil Gestor", classe: "is-gestor" };
+}
 
 /** Rótulo + matrícula/vínculo de quem agiu, para exibir no histórico de situações. */
 function atorHistorico(perfil: PerfilAcesso): { rotulo: "Gestor" | "Aprovador"; matricula: string; vinculo: TipoVinculo } {
@@ -1279,10 +1838,10 @@ interface TabelaRegistrosProps {
   registros: FeriasRegistro[];
   perfil: PerfilAcesso;
   onVisualizar: (registro: FeriasRegistro) => void;
-  onEditar: (registro: FeriasRegistro) => void;
+  onEditar: (registro: FeriasRegistro, parcelaId?: number) => void;
   onGerenciarSubstituicao: (registro: FeriasRegistro) => void;
   onVerHistorico: (registro: FeriasRegistro) => void;
-  onAlterarStatus: (registro: FeriasRegistro, acao: AcaoStatus) => void;
+  onAlterarStatus: (registro: FeriasRegistro, acao: AcaoStatus, parcelaId?: number) => void;
   podeEditar: (registro: FeriasRegistro) => boolean;
   menuAbertoId: number | string | null;
   setMenuAbertoId: (id: number | string | null) => void;
@@ -1366,7 +1925,7 @@ function TabelaRegistros({
                 )}
               </td>
               <td>
-                <span className="prototype-ferias-badge-tipo">{tipoRegistroDe(registro.tipoVinculo) === "FÉRIAS" ? "Férias" : "Licença remunerada"}</span>
+                <span className="prototype-ferias-badge-tipo">{registro.tipo === "Recesso" ? "Recesso" : "Férias"}</span>
               </td>
               <td className="prototype-ferias-dias-solicitados">
                 {diasSolicitados(registro)}{" "}
@@ -1384,20 +1943,48 @@ function TabelaRegistros({
                 <span className={"prototype-ferias-badge-origem is-" + registro.origem.toLowerCase()}>{registro.origem}</span>
               </td>
               <td>
+                <div className="prototype-ferias-badges-linha">
                 {(() => {
                   // O verificador periódico roda a cada 30s — antes dele tickar, a situação ainda
                   // pode estar "AGUARDANDO VALIDAÇÃO" mesmo já tendo passado o prazo. Nesse caso,
                   // exibe "Prazo expirado" ao vivo sem esperar o próximo tick.
                   const situacaoExibida: SituacaoFerias = prazoValidacaoExpirado(registro) ? "PRAZO EXPIRADO" : registro.situacao;
+                  // Com suspensão aguardando validação, só o selo da suspensão aparece (sem "Agendada").
+                  // Vale só para o Art. 17: o Art. 16 não tem fluxo de aprovação.
+                  // Pendência de suspensão Art. 17: incide sobre UMA parcela. Marca só a linha da
+                  // parcela suspensa. Em dados antigos sem parcelaId, usa a primeira parcela como
+                  // alvo, para nunca marcar as parcelas juntas.
+                  const alvoPendente = registro.suspensaoPendente?.dados.parcelaId ?? registro.parcelas[0]?.id;
+                  const linhaEhPendente = registro.suspensaoPendente?.dados.fundamento === "ART_17" && (!parcela || alvoPendente === parcela.id);
+                  if (linhaEhPendente) return null;
+                  // Suspenso por parcela: só a linha da parcela suspensa esconde "Agendada" (o selo
+                  // "Suspenso" dela vem abaixo). As demais parcelas continuam AGENDADAS, intactas.
+                  const alvoSuspenso = registro.parcelaSuspensaId ?? registro.parcelas[0]?.id;
+                  if (situacaoExibida === "SUSPENSO") {
+                    if (!parcela || alvoSuspenso === parcela.id) return null;
+                    return <span className="prototype-ferias-badge is-em-aberto">{rotuloSituacao("EM ABERTO")}</span>;
+                  }
                   return (
                     <span className={`prototype-ferias-badge is-${classeSituacao(situacaoExibida)}`}>{rotuloSituacao(situacaoExibida)}</span>
                   );
                 })()}
-                {registro.folhaHomologada ? (
-                  <span className="prototype-ferias-badge is-cancelado" title="Folha de Pagamento Homologada/Paga — cancelamento direto bloqueado.">
-                    <i className="pi pi-lock" aria-hidden="true" /> Folha homologada
+                {registro.suspensaoPendente?.dados.fundamento === "ART_17" && (!parcela || (registro.suspensaoPendente.dados.parcelaId ?? registro.parcelas[0]?.id) === parcela.id) ? (
+                  <span
+                    className="prototype-ferias-badge is-suspenso"
+                    title={`Suspensão por interesse público (Art. 17) registrada por ${registro.suspensaoPendente.solicitadoPor} em ${registro.suspensaoPendente.solicitadoEm}; aguardando validação do órgão central.`}
+                  >
+                    Suspensão aguardando validação
                   </span>
                 ) : null}
+                {registro.situacao === "SUSPENSO" && (!parcela || (registro.parcelaSuspensaId ?? registro.parcelas[0]?.id) === parcela.id) ? (
+                  <span className="prototype-ferias-badge is-suspenso prototype-ferias-badge--suspensao" title={(registro.fundamentoSuspensao ?? "ART_17") === "ART_16" ? "Suspensão automática por licença (Art. 16)" : "Suspensão por superior interesse público (Art. 17)"}>
+                    <span className="prototype-ferias-badge-dot" aria-hidden="true" />
+                    Suspenso
+                    <span className="prototype-ferias-badge-sep" aria-hidden="true" />
+                    {(registro.fundamentoSuspensao ?? "ART_17") === "ART_16" ? "Art. 16" : "Art. 17"}
+                  </span>
+                ) : null}
+                </div>
               </td>
               <td>
                 <div className="prototype-ferias-acao-dropdown">
@@ -1421,7 +2008,7 @@ function TabelaRegistros({
                         <i className="pi pi-history" aria-hidden="true" /> Histórico
                       </button>
                       {podeGerenciarCompleto(perfil) && podeEditar(registro) ? (
-                        <button type="button" onClick={() => { onEditar(registro); setMenuAbertoId(null); }}>
+                        <button type="button" onClick={() => { onEditar(registro, parcela?.id); setMenuAbertoId(null); }}>
                           <i className="pi pi-pencil" aria-hidden="true" /> Editar
                         </button>
                       ) : null}
@@ -1452,20 +2039,12 @@ function TabelaRegistros({
                         <button
                           type="button"
                           className="is-acao-ambar"
-                          onClick={() => { onAlterarStatus(registro, "suspender"); setMenuAbertoId(null); }}
+                          onClick={() => { onAlterarStatus(registro, "suspender", parcela?.id); setMenuAbertoId(null); }}
                         >
                           <i className="pi pi-pause" aria-hidden="true" /> Suspender
                         </button>
                       ) : null}
-                      {podeGerenciarCompleto(perfil) && podeCancelar(registro) ? (
-                        <button
-                          type="button"
-                          className="is-acao-vermelha"
-                          onClick={() => { onAlterarStatus(registro, "cancelar"); setMenuAbertoId(null); }}
-                        >
-                          <i className="pi pi-ban" aria-hidden="true" /> Cancelar férias
-                        </button>
-                      ) : null}
+
                     </div>
                   ) : null}
                 </div>
@@ -1621,6 +2200,9 @@ export function FormularioIndividual({
   onSalvar,
   registroSomenteLeitura,
   registroParaEditar,
+  edicaoRestrita = false,
+  parcelaFocoId,
+  origemLancamento = "SIGEP",
 }: Readonly<{
   onCancelar: () => void;
   onSalvar: (registro: FeriasRegistro) => void;
@@ -1632,6 +2214,16 @@ export function FormularioIndividual({
    * está Em Aberto (aprovada), só a quantidade de dias de cada parcela pode mudar — alterar
    * parcelamento é bloqueado e a alteração devolve a solicitação ao aprovador (ver salvar()). */
   registroParaEditar?: FeriasRegistro;
+  /** Edição restrita (Lote/Coletiva): o servidor já foi lançado em massa e vira um registro
+   * individual, mas a alteração só permite REMANEJAR as datas de cada parcela já lançada — a
+   * quantidade de dias de cada parcela (ex.: 15, 30) é fixa, sem adicionar ou remover parcelas. */
+  edicaoRestrita?: boolean;
+  /** Edição de UMA parcela (a linha clicada na grid): o formulário mostra só essa parcela e o
+   * saldo dela (ex.: 15 dias ou 30 dias); as demais parcelas do registro são preservadas. */
+  parcelaFocoId?: number;
+  /** Origem do lançamento: "SIGEP" (RH/Gestão) nasce Agendada; "PORTALSERVIDOR" nasce
+   * Aguardando Validação. Default SIGEP, pois esta tela é a do SIGEP. */
+  origemLancamento?: Origem;
 }>) {
   const registroBase = registroSomenteLeitura ?? registroParaEditar;
   const [documento, setDocumento] = useState<DocumentoFerias | null>(null);
@@ -1648,12 +2240,20 @@ export function FormularioIndividual({
   const [cargoGestao, setCargoGestao] = useState<boolean | null>(registroBase?.cargoGestao ?? null);
   const [periodoAquisitivoInicio, setPeriodoAquisitivoInicio] = useState(registroBase?.periodoAquisitivoInicio ?? "");
   const [periodoAquisitivoFim, setPeriodoAquisitivoFim] = useState(registroBase?.periodoAquisitivoFim ?? "");
+  // Edição de uma única parcela de um registro com várias: só ela entra no formulário.
+  const parcelaFoco =
+    registroParaEditar && parcelaFocoId != null && registroParaEditar.parcelas.length > 1
+      ? registroParaEditar.parcelas.find((parcela) => parcela.id === parcelaFocoId)
+      : undefined;
   const [saldoDisponivel, setSaldoDisponivel] = useState<number | null>(() => {
     if (registroSomenteLeitura) return diasSolicitados(registroSomenteLeitura);
+    if (parcelaFoco) return parcelaFoco.dias;
     if (registroParaEditar) return registroParaEditar.saldoFerias ?? diasSolicitados(registroParaEditar);
     return null;
   });
-  const [parcelas, setParcelas] = useState<ParcelaFerias[]>(() => registroBase?.parcelas.map((parcela) => ({ ...parcela })) ?? []);
+  const [parcelas, setParcelas] = useState<ParcelaFerias[]>(() =>
+    parcelaFoco ? [{ ...parcelaFoco }] : registroBase?.parcelas.map((parcela) => ({ ...parcela })) ?? [],
+  );
   const [erro, setErro] = useState("");
   const [alertaConcomitancia, setAlertaConcomitancia] = useState("");
   // RN-03: mensagem de ajuste de data por LTS vigente, persistente por parcela (sobrevive à
@@ -1679,6 +2279,17 @@ export function FormularioIndividual({
   const draftInicio = brParaIso(valoresGozo.dataInicio);
   const draftTerco = valoresGozo.terco;
 
+  // Edição restrita (Lote/Coletiva): um campo "Data de início" por parcela já lançada, com os
+  // dias travados. Reaproveita o mesmo padrão do FormularioRecesso — cada etapa tem seu campo
+  // inicio_<id> e o fim é recalculado a partir de inicio + dias (quantidade de dias fixa).
+  const {
+    control: parcelasEdicaoControl,
+    watch: watchParcelasEdicao,
+  } = useForm<Record<string, string>>({
+    defaultValues: Object.fromEntries((registroParaEditar?.parcelas ?? []).map((parcela) => [`inicio_${parcela.id}`, formatarDataBr(parcela.inicio)])),
+  });
+  const valoresParcelasEdicao = watchParcelasEdicao();
+
   const totalParcelado = parcelas.reduce((total, parcela) => total + parcela.dias, 0);
   const saldoFecha = totalParcelado === saldoDisponivel;
   const saldoRestante = (saldoDisponivel ?? 0) - totalParcelado;
@@ -1691,6 +2302,18 @@ export function FormularioIndividual({
   useEffect(() => {
     if (tercoBloqueadoPorDuplicidade && draftTerco) setGozoValor("terco", false);
   }, [tercoBloqueadoPorDuplicidade, draftTerco, setGozoValor]);
+
+  // Edição restrita: ao mudar a data de início de uma parcela, mantém os dias e recalcula o fim.
+  useEffect(() => {
+    if (!edicaoRestrita) return;
+    setParcelas((atual) =>
+      atual.map((parcela) => {
+        const novoInicio = brParaIso(valoresParcelasEdicao[`inicio_${parcela.id}`] ?? "");
+        if (!novoInicio || novoInicio === parcela.inicio) return parcela;
+        return { ...parcela, inicio: novoInicio, fim: calcularFim(novoInicio, parcela.dias) };
+      }),
+    );
+  }, [edicaoRestrita, valoresParcelasEdicao]);
 
   // RN003: concomitância verificada assim que a data é escolhida (sem esperar o clique em
   // "Adicionar esta parcela") e também para as parcelas já adicionadas — senão o aviso
@@ -1881,22 +2504,50 @@ export function FormularioIndividual({
         setErro("Informe a data de início e ao menos 1 dia em todas as parcelas.");
         return;
       }
+      // Edição restrita (Lote/Coletiva): a quantidade de dias de cada parcela é fixa — só valida
+      // as DATAS remanejadas (sem checar durações/saldo/sobra, que não podem mudar aqui).
+      if (edicaoRestrita) {
+        if (parcelas.some((parcela) => parcela.inicio < dataLocalISO())) {
+          setErro("A data de início de cada parcela deve ser a partir de hoje — dias já usufruídos não podem ser remanejados.");
+          return;
+        }
+        for (const parcela of parcelas) {
+          const conflito = conflitoFeriasServidor(matricula, parcela.inicio, parcela.fim, registroParaEditar!.id);
+          if (conflito) { setErro(mensagemConflitoAgendamento(conflito)); return; }
+        }
+        const erroIntervaloRestrito = validarIntervaloParcelas(parcelas);
+        if (erroIntervaloRestrito) { setErro(erroIntervaloRestrito); return; }
+        setErro("");
+        onSalvar({
+          ...registroParaEditar!,
+          parcelas,
+          documentos: [...(registroParaEditar!.documentos ?? []), documento],
+          historico: eventoEdicao(registroParaEditar!, parcelas, registroParaEditar!.situacao, documento),
+        });
+        return;
+      }
       const saldo = saldoDisponivel ?? diasSolicitados(registroParaEditar!);
       const total = parcelas.reduce((soma, parcela) => soma + parcela.dias, 0);
-      if (total > saldo || saldo - total === 5 || parcelas.some((parcela) => !duracoesPermitidas(saldo, orgao, cargo).includes(parcela.dias))) {
+      if (total > saldo || (!parcelaFoco && saldo - total === 5) || parcelas.some((parcela) => !duracoesPermitidas(saldo, orgao, cargo).includes(parcela.dias) && !(parcelaFoco && parcela.dias === parcelaFoco.dias))) {
         setErro('Parcelamento inválido: verifique saldo, cargo e sobra de 5 dias.');
         return;
       }
-      const erroIntervalo = validarIntervaloParcelas(parcelas);
+      // Parcela única em edição: as demais parcelas do registro seguem intactas.
+      const parcelasFinais = parcelaFoco
+        ? registroParaEditar!.parcelas.flatMap((parcela) => (parcela.id === parcelaFoco.id ? parcelas : [parcela]))
+        : parcelas;
+      const erroIntervalo = validarIntervaloParcelas(parcelasFinais);
       if (erroIntervalo) { setErro(erroIntervalo); return; }
       setErro("");
       // Alterar uma solicitação já aprovada (Em Aberto) devolve a solicitação ao aprovador
       // quando veio do Portal do Servidor.
       const retornaAoAprovador = registroParaEditar!.origem === "PORTALSERVIDOR" && parcelamentoRestrito;
+      const situacaoFinal: SituacaoFerias = retornaAoAprovador ? "AGUARDANDO VALIDAÇÃO" : registroParaEditar!.situacao;
       onSalvar({
         ...registroParaEditar!,
-        parcelas,
+        parcelas: parcelasFinais,
         documentos: [...(registroParaEditar!.documentos ?? []), documento],
+        historico: eventoEdicao(registroParaEditar!, parcelasFinais, situacaoFinal, documento),
         ...(retornaAoAprovador ? { situacao: "AGUARDANDO VALIDAÇÃO" as const, avaliadoPor: undefined, avaliadoEm: undefined } : {}),
       });
       return;
@@ -1914,6 +2565,27 @@ export function FormularioIndividual({
     if (parcelas.some((parcela) => !parcela.inicio || parcela.dias < 10)) {
       setErro("Cada parcela precisa de data de início e no mínimo 10 dias (Decreto 656/2020).");
       return;
+    }
+    // RN-AGD-06: só é permitido agendar férias de período aquisitivo já completado.
+    const erroPeriodo = validarPeriodoAquisitivoCompletado(
+      { inicio: periodoAquisitivoInicio, fim: periodoAquisitivoFim },
+      dataLocalISO(),
+    );
+    if (!erroPeriodo.sucesso) {
+      setErro(erroPeriodo.mensagem);
+      return;
+    }
+    // RN-AGD-02: antecedência mínima de 30 dias corridos entre a solicitação (hoje) e o início
+    // do gozo (primeira parcela), aferida sobre a parcela mais antiga.
+    const inicioMaisAntigo = [...parcelas]
+      .filter((parcela) => parcela.inicio)
+      .sort((a, b) => a.inicio.localeCompare(b.inicio))[0]?.inicio;
+    if (inicioMaisAntigo) {
+      const erroAntecedencia = validarAntecedencia(dataLocalISO(), inicioMaisAntigo);
+      if (!erroAntecedencia.sucesso) {
+        setErro(erroAntecedencia.mensagem);
+        return;
+      }
     }
     const erroIntervalo = validarIntervaloParcelas(parcelas);
     if (erroIntervalo) {
@@ -1937,27 +2609,89 @@ export function FormularioIndividual({
       cargoGestao: cargoGestao === true,
       tipoVinculo: tipoVinculo as TipoVinculo,
       tipo: "Individual",
-      origem: "SIGEP",
+      origem: origemLancamento,
       periodoAquisitivoInicio,
       periodoAquisitivoFim,
       parcelas,
-      situacao: "EM ABERTO",
+      // Regra de origem: lançamento via SIGEP nasce "Agendada" (EM ABERTO), sem aprovação;
+      // lançamento via Portal do Servidor nasce "Aguardando Validação" (a chefia valida).
+      situacao: situacaoInicialPorOrigem(origemLancamento),
       saldoFerias: saldoDisponivel ?? 0,
       documentos: [documento],
       substitutos: [],
       responsavelLancamento: "Usuário atual",
       lancadoEm: new Date().toLocaleString("pt-BR"),
-      historico: [{ situacao: "EM ABERTO", acao: "lancamento", data: new Date().toLocaleString("pt-BR"), responsavel: "Gestor", responsavelMatricula: USUARIO_ATOR_MOCK.Gestor.matricula, responsavelVinculo: USUARIO_ATOR_MOCK.Gestor.vinculo, documentos: [documento] }],
+      // RN-FOL-08: se havia dias pendentes de suspensão Art. 17, eles são incluídos na competência
+      // deste novo gozo. Registramos apenas o impacto FUNCIONAL (dias) — nunca valores.
+      ...(pendenciaArt17?.pendenciaSaldo
+        ? {
+            pendenciaSaldo: {
+              diasComprometidos: pendenciaArt17.pendenciaSaldo.diasComprometidos,
+              origem: "SUSPENSAO_ART17" as const,
+              competenciaCobranca: competenciaNovoGozo ? competenciaDoGozo(competenciaNovoGozo) : undefined,
+            },
+          }
+        : {}),
+      historico: [
+        origemLancamento === "PORTALSERVIDOR"
+          ? { situacao: situacaoInicialPorOrigem(origemLancamento), acao: "lancamento", data: new Date().toLocaleString("pt-BR"), responsavel: "Servidor", responsavelMatricula: matricula, responsavelVinculo: tipoVinculo as TipoVinculo, documentos: [documento] }
+          : { situacao: situacaoInicialPorOrigem(origemLancamento), acao: "lancamento", data: new Date().toLocaleString("pt-BR"), responsavel: "Gestor", responsavelMatricula: USUARIO_ATOR_MOCK.Gestor.matricula, responsavelVinculo: USUARIO_ATOR_MOCK.Gestor.vinculo, documentos: [documento] },
+        ...(pendenciaArt17?.pendenciaSaldo
+          ? [{
+              situacao: "EM ABERTO" as const,
+              acao: "atualizacao",
+              data: new Date().toLocaleString("pt-BR"),
+              responsavel: "Sistema",
+              justificativa: `Inclusão de ${pendenciaArt17.pendenciaSaldo.diasComprometidos} dias pendentes da suspensão Art. 17 na competência deste novo gozo (RN-FOL-08).`,
+            }]
+          : []),
+      ],
     });
   };
+
+  // RN-AGD-07: alerta de período concessivo (12 meses após o fim do aquisitivo) próximo do
+  // vencimento. Só para lançamento novo, quando há um período aquisitivo selecionado.
+  const alertaConcessivo =
+    !somenteLeitura && !ehEdicao && periodoAquisitivoFim
+      ? calcularAlertaConcessivo(periodoAquisitivoFim, dataLocalISO())
+      : null;
+
+  // RN-FOL-08: se o servidor tem dias pendentes de uma suspensão Art. 17, o novo agendamento os
+  // inclui na competência do novo gozo. Alerta FUNCIONAL (dias) — sem valores, que são da Folha.
+  const pendenciaArt17 = !somenteLeitura && !ehEdicao ? pendenciaArt17Pendente(matricula) : null;
+  const competenciaNovoGozo = parcelas
+    .map((parcela) => parcela.inicio)
+    .filter(Boolean)
+    .sort()[0];
 
   return (
     <div className="prototype-ferias-individual-form">
       {erro ? <div className="prototype-ferias-erro-bloqueio" role="alert">{erro}</div> : null}
+      {pendenciaArt17?.pendenciaSaldo ? (
+        <div className="prototype-ferias-banner is-alerta" role="note">
+          <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+          <span>
+            Atenção: você possui <strong>{pendenciaArt17.pendenciaSaldo.diasComprometidos} dias de férias</strong>{" "}
+            referentes à suspensão por interesse público (Art. 17) pendentes de gozo. Ao confirmar este
+            agendamento, esses dias serão incluídos nesta competência
+            {competenciaNovoGozo ? ` (${competenciaDoGozo(competenciaNovoGozo)})` : ""}.
+          </span>
+        </div>
+      ) : null}
       {alertaConcomitancia ? (
         <div className="prototype-ferias-banner is-alerta" role="note">
           <i className="pi pi-exclamation-triangle" aria-hidden="true" />
           <span>{alertaConcomitancia}</span>
+        </div>
+      ) : null}
+      {alertaConcessivo?.alertar ? (
+        <div className="prototype-ferias-banner is-alerta" role="note">
+          <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+          <span>
+            {alertaConcessivo.vencido
+              ? `Período concessivo vencido em ${formatarDataBr(alertaConcessivo.fimConcessivo)}. As férias deveriam ter sido concedidas até essa data (RN-AGD-07).`
+              : `Período concessivo encerra em ${formatarDataBr(alertaConcessivo.fimConcessivo)} (faltam ${alertaConcessivo.diasRestantes} dias). Conceda as férias antes do vencimento (RN-AGD-07).`}
+          </span>
         </div>
       ) : null}
 
@@ -1974,9 +2708,26 @@ export function FormularioIndividual({
         <div className="prototype-ferias-banner" style={{ background: "#eff6ff", borderColor: "#bfdbfe", color: "#1d4ed8" }}>
           <i className="pi pi-info-circle" aria-hidden="true" />
           <span>
-            {parcelamentoRestrito
-              ? "Solicitação já aprovada: adicione, remova ou ajuste as parcelas normalmente — a alteração devolve a solicitação ao aprovador para nova validação."
-              : "Edição permitida enquanto a solicitação estiver Aguardando Validação. O intervalo entre parcelas continua valendo 0 ou 10 dias corridos (Decreto 656/2020)."}
+            {edicaoRestrita
+              ? "Solicitação originada de lançamento em massa (lote/coletiva). Você só pode remanejar as datas de cada parcela já lançada — a quantidade de dias de cada parcela é fixa e não é possível adicionar ou remover parcelas."
+              : parcelamentoRestrito
+                ? "Solicitação já aprovada: adicione, remova ou ajuste as parcelas normalmente — a alteração devolve a solicitação ao aprovador para nova validação."
+                : "Edição permitida enquanto a solicitação estiver Aguardando Validação. O intervalo entre parcelas continua valendo 0 ou 10 dias corridos (Decreto 656/2020)."}
+          </span>
+        </div>
+      ) : null}
+
+      {/* RN-FOL-02 / RN-CAN-03: se o adiantamento (remuneração + 1/3) já foi pago, remanejar as
+          datas torna o valor pago indevido para o período original — o motor da folha gera um
+          débito (estorno) que é descontado na próxima folha (fluxo "Cancelamento após pagamento"). */}
+      {ehEdicao && registroParaEditar!.adiantamentoPago ? (
+        <div className="prototype-ferias-banner is-alerta" role="note">
+          <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+          <span>
+            <strong>Adiantamento já pago.</strong> O adiantamento de férias (remuneração + 1/3) deste
+            período já foi processado em folha. Ao remanejar as datas, o valor pago torna-se indevido e o
+            sistema <strong>gera um débito (estorno do adiantamento), descontado automaticamente na próxima
+            folha subsequente</strong>. O novo período gera o adiantamento na competência correspondente.
           </span>
         </div>
       ) : null}
@@ -2118,7 +2869,7 @@ export function FormularioIndividual({
           2. Detalhes do Período de Gozo
         </h3>
 
-        {!somenteLeitura ? (
+        {!somenteLeitura && !edicaoRestrita ? (
           <>
             <div className="prototype-ferias-gozo-grid">
               <div>
@@ -2174,7 +2925,32 @@ export function FormularioIndividual({
           </>
         ) : null}
 
-        {parcelas.length > 0 && (
+        {edicaoRestrita && parcelas.length > 0 ? (
+          <div className="prototype-ferias-form-grid">
+            {parcelas.map((parcela, indice) => (
+              <div className="prototype-ferias-form-grid" key={parcela.id}>
+                <DateFieldSeplag
+                  name={`inicio_${parcela.id}`}
+                  control={parcelasEdicaoControl}
+                  label="Data início do gozo"
+                  cols="12"
+                  minDate={new Date(`${dataLocalISO()}T00:00:00`)}
+                  getFormErrorMessage={() => null}
+                />
+                <label>
+                  <span>Parcela {indice + 1} — {parcela.dias} dias</span>
+                  <input className="prototype-ferias-readonly-field" value={`${parcela.dias} dias`} readOnly />
+                </label>
+                <label>
+                  <span>Fim (calculado)</span>
+                  <input className="prototype-ferias-readonly-field" value={formatarDataBr(parcela.fim)} readOnly />
+                </label>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {!edicaoRestrita && parcelas.length > 0 && (
           <div className="prototype-ferias-gozo-lista">
             {parcelas.map((parcela) => (
               <div className="prototype-ferias-gozo-item" key={parcela.id}>
@@ -2198,6 +2974,7 @@ export function FormularioIndividual({
           </div>
         )}
 
+        {!edicaoRestrita ? (
         <label
           className="prototype-ferias-gozo-terco"
           title={tercoBloqueadoPorDuplicidade ? `O Adicional Constitucional de 1/3 já foi solicitado na Parcela ${indiceParcelaComTerco + 1}.` : undefined}
@@ -2210,26 +2987,11 @@ export function FormularioIndividual({
           />
           Pagar o Adicional Constitucional de 1/3 nesta parcela (Art. 19, II)
         </label>
+        ) : null}
       </div>
 
       {!somenteLeitura && <AnexoFerias label={ehEdicao ? "Justificativa formal da alteração" : "Documento / despacho formal (SIGADOC)"} onChange={setDocumento} />}
 
-      {registroSomenteLeitura ? (
-        <div className="prototype-ferias-form-section">
-          <p>Lançado por {registroSomenteLeitura.responsavelLancamento} em {registroSomenteLeitura.lancadoEm}.</p>
-          {registroSomenteLeitura.avaliadoPor ? (
-            <p>
-              {registroSomenteLeitura.resultadoAvaliacao ?? (registroSomenteLeitura.situacao === "CANCELADO" || registroSomenteLeitura.situacao === "REPROVADO" ? "Reprovada" : "Aprovada")}
-              {" "}por {registroSomenteLeitura.avaliadoPor} em {registroSomenteLeitura.avaliadoEm}.
-            </p>
-          ) : (
-            <p className="prototype-ferias-gozo-ajuda">Ainda não avaliado pela chefia.</p>
-          )}
-          {registroSomenteLeitura.justificativaAvaliacao ? (
-            <p><strong>Justificativa da avaliação:</strong> {registroSomenteLeitura.justificativaAvaliacao}</p>
-          ) : null}
-        </div>
-      ) : null}
       </div>
 
       <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
@@ -3874,7 +4636,6 @@ export function FormularioRecesso({
         registro.matricula === matricula &&
         registro.periodoAquisitivoInicio === periodoAquisitivoSelecionado &&
         registro.id !== registroBase?.id &&
-        registro.situacao !== "CANCELADO" &&
         registro.situacao !== "REPROVADO" &&
         registro.situacao !== "PRAZO EXPIRADO",
       )
@@ -4155,6 +4916,7 @@ export function FormularioRecesso({
         ...registroParaEditar!,
         parcelas: parcelasResidente,
         documentos: [...(registroParaEditar!.documentos ?? []), documento],
+        historico: eventoEdicao(registroParaEditar!, parcelasResidente, registroParaEditar!.situacao, documento),
       });
       return;
     }
@@ -4551,22 +5313,6 @@ export function FormularioRecesso({
 
       {!somenteLeitura && <AnexoFerias label={ehEdicao ? "Justificativa formal da alteração" : "Documento / despacho formal do recesso"} onChange={setDocumento} />}
 
-      {registroSomenteLeitura ? (
-        <div className="prototype-ferias-form-section">
-          <p>Lançado por {registroSomenteLeitura.responsavelLancamento} em {registroSomenteLeitura.lancadoEm}.</p>
-          {registroSomenteLeitura.avaliadoPor ? (
-            <p>
-              {registroSomenteLeitura.resultadoAvaliacao ?? (registroSomenteLeitura.situacao === "CANCELADO" || registroSomenteLeitura.situacao === "REPROVADO" ? "Reprovada" : "Aprovada")}
-              {" "}por {registroSomenteLeitura.avaliadoPor} em {registroSomenteLeitura.avaliadoEm}.
-            </p>
-          ) : (
-            <p className="prototype-ferias-gozo-ajuda">Ainda não avaliado pela chefia.</p>
-          )}
-          {registroSomenteLeitura.justificativaAvaliacao ? (
-            <p><strong>Justificativa da avaliação:</strong> {registroSomenteLeitura.justificativaAvaliacao}</p>
-          ) : null}
-        </div>
-      ) : null}
       </div>
 
       <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
@@ -4577,108 +5323,297 @@ export function FormularioRecesso({
   );
 }
 
-/** Data de efeito exibida no histórico: usa a data escolhida pelo usuário (ex.: data da
- * suspensão) quando houver; senão cai para a data de registro do evento, só com a parte de
- * data (mesmo comportamento anterior à existência de dataEfeito). */
-function dataEfeitoHistorico(evento: HistoricoEventoFerias): string {
-  if (evento.dataEfeito) return formatarDataBr(evento.dataEfeito);
-  return formatarDataBr(evento.data.slice(0, 10)) || evento.data;
+/** Detalhes extras de um evento de suspensão, para exibir no sub-card do histórico. */
+function detalhesSuspensaoHistorico(evento: HistoricoEventoFerias): { rotulo: string; valor: string }[] {
+  const itens: { rotulo: string; valor: string }[] = [];
+  if (evento.feriasOriginalInicio && evento.feriasOriginalFim) {
+    itens.push({ rotulo: "Período de férias original", valor: `${formatarDataBr(evento.feriasOriginalInicio)} a ${formatarDataBr(evento.feriasOriginalFim)}` });
+  }
+  if (evento.fundamentoSuspensao) {
+    itens.push({ rotulo: "Fundamento", valor: evento.fundamentoSuspensao === "ART_16" ? "Art. 16 — licença (gestante/adotante/paternidade)" : "Art. 17 — superior interesse público" });
+  }
+  // Início, fim e duração da suspensão numa única linha.
+  if (evento.suspensaoInicio || evento.suspensaoFim) {
+    const periodo = `${evento.suspensaoInicio ? formatarDataBr(evento.suspensaoInicio) : "—"} a ${evento.suspensaoFim ? formatarDataBr(evento.suspensaoFim) : "—"}`;
+    const duracao = evento.suspensaoDias ? ` (${evento.suspensaoDias} dia${evento.suspensaoDias === 1 ? "" : "s"})` : "";
+    itens.push({ rotulo: "Suspensão", valor: `${periodo}${duracao}` });
+  }
+  // Data em que o servidor VOLTA a gozar as férias (retorno ao usufruto):
+  // Art. 16 = 1º dia útil após a licença (dataRetomada); Art. 17 = dia seguinte ao fim da suspensão.
+  if (evento.dataRetomada) {
+    itens.push({ rotulo: "Retorno às férias", valor: `${formatarDataBr(evento.dataRetomada)} (1º dia útil após a licença — Art. 16)` });
+  } else if (evento.fundamentoSuspensao === "ART_17" && evento.suspensaoFim) {
+    itens.push({ rotulo: "Retorno às férias", valor: `${formatarDataBr(calcularFim(evento.suspensaoFim, 2))} (dia seguinte ao fim da suspensão — Art. 17)` });
+  }
+  // Data em que as férias TERMINAM depois de prorrogadas pelos dias suspensos (direito preservado).
+  if (evento.novaDataTerminoFerias) {
+    itens.push({ rotulo: "Nova data de término das férias", valor: `${formatarDataBr(evento.novaDataTerminoFerias)} (prorrogado pelos dias suspensos)` });
+  }
+  if (evento.aprovacaoEtapa) {
+    itens.push({ rotulo: "Fluxo de aprovação", valor: evento.aprovacaoEtapa });
+  }
+  // Impacto na folha (em dias, por competência) calculado pelo motor — sem valores (R$).
+  evento.impactoFolha?.forEach((impacto, indice) => {
+    itens.push({ rotulo: indice === 0 ? "Impacto na folha" : "", valor: impacto.descricao });
+  });
+  return itens;
 }
 
-/** Ícone/cor da linha do tempo, por situação do evento — mesma paleta usada nos badges da tabela. */
-function iconeHistorico(situacao: SituacaoFerias): { icone: string; classe: string } {
-  if (situacao === "EM ABERTO" || situacao === "QUITADO") return { icone: "pi pi-check", classe: "is-sucesso" };
-  if (situacao === "AGUARDANDO VALIDAÇÃO") return { icone: "pi pi-clock", classe: "is-pendente" };
-  if (situacao === "SUSPENSO") return { icone: "pi pi-pause", classe: "is-aviso" };
-  return { icone: "pi pi-times", classe: "is-erro" };
+/** Painel visual da suspensão: barra de tempo (férias originais × suspensão × novo gozo) e os
+ * três cards de resumo (suspensão, retorno, novo término). Substitui a lista de detalhes no
+ * histórico quando o evento tem o período da suspensão. */
+function PainelImpactoSuspensao({ evento }: Readonly<{ evento: HistoricoEventoFerias }>) {
+  const ini = evento.feriasOriginalInicio;
+  const fimOrig = evento.feriasOriginalFim;
+  const susIni = evento.suspensaoInicio;
+  const susFim = evento.suspensaoFim;
+  const retorno = evento.dataRetomada ?? (evento.fundamentoSuspensao === "ART_17" && susFim ? calcularFim(susFim, 2) : undefined);
+  const novoTermino = evento.novaDataTerminoFerias;
+  if (!ini || !fimOrig || !susIni || !susFim) return null;
+
+  // Escala da linha do tempo: do menor início ao maior fim entre os três períodos.
+  const datas = [ini, fimOrig, susIni, susFim, retorno, novoTermino].filter(Boolean) as string[];
+  const min = datas.reduce((a, b) => (a < b ? a : b));
+  const max = datas.reduce((a, b) => (a > b ? a : b));
+  const total = Math.max(1, diasEntre(min, max));
+  const pct = (d: string) => `${(diasEntre(min, d) / total) * 100}%`;
+  const faixa = (de: string, ate: string) => ({ left: pct(de), width: `calc(${pct(ate)} - ${pct(de)})` });
+  const art = evento.fundamentoSuspensao === "ART_16" ? "Art. 16" : "Art. 17";
+  // dd/mm nas faixas (compacto).
+  const curto = (d: string) => formatarDataBr(d).slice(0, 5);
+
+  return (
+    <div className="gl-suspensao-painel">
+      <span className="gl-suspensao-painel-titulo"><i className="pi pi-chart-bar" aria-hidden="true" /> Impacto no período</span>
+      <div className="gl-suspensao-timeline">
+        <div className="gl-suspensao-trilha">
+          <span className="gl-suspensao-rotulo-trilha">Férias originais</span>
+          <div className="gl-suspensao-faixa"><span className="gl-suspensao-linha gl-is-original" style={faixa(ini, fimOrig)}>{curto(ini)} a {curto(fimOrig)}</span></div>
+        </div>
+        <div className="gl-suspensao-trilha">
+          <span className="gl-suspensao-rotulo-trilha">Suspensão</span>
+          <div className="gl-suspensao-faixa"><span className="gl-suspensao-linha gl-is-suspensao" style={faixa(susIni, susFim)}>{curto(susIni)} a {curto(susFim)}</span></div>
+        </div>
+        {retorno && novoTermino ? (
+          <div className="gl-suspensao-trilha">
+            <span className="gl-suspensao-rotulo-trilha">Novo gozo</span>
+            <div className="gl-suspensao-faixa"><span className="gl-suspensao-linha gl-is-novo" style={faixa(retorno, novoTermino)}>{curto(retorno)} a {curto(novoTermino)}</span></div>
+          </div>
+        ) : null}
+      </div>
+      {retorno ? (
+        <p className="gl-suspensao-resumo">
+          <i className="pi pi-info-circle" aria-hidden="true" />
+          <span>
+            Retorno às férias dia <strong>{formatarDataBr(retorno)}</strong> ({art}).
+            {novoTermino ? <> Prorrogado pelos {evento.suspensaoDias ?? 0} dias suspensos — novo término <strong>{formatarDataBr(novoTermino)}</strong>.</> : null}
+          </span>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Dados do remanejamento para o painel: usa o campo estruturado quando existe; senão, extrai do
+ * texto da justificativa ("Período anterior: dd/mm/aaaa a dd/mm/aaaa (N dias). Novo período: ...")
+ * — garante o painel também para eventos antigos salvos antes do campo estruturado. */
+function dadosRemanejamento(evento: HistoricoEventoFerias): NonNullable<HistoricoEventoFerias["remanejamento"]> | null {
+  if (evento.remanejamento) return evento.remanejamento;
+  if (evento.acao !== "remanejamento" || !evento.justificativa) return null;
+  const trecho = (rotulo: string) => {
+    const m = evento.justificativa!.match(new RegExp(`${rotulo}:\\s*(\\d{2}/\\d{2}/\\d{4})\\s*a\\s*(\\d{2}/\\d{2}/\\d{4})\\s*\\((\\d+)`));
+    if (!m) return null;
+    const iso = (br: string) => br.split("/").reverse().join("-");
+    return { inicio: iso(m[1]), fim: iso(m[2]), dias: Number(m[3]) };
+  };
+  const antes = trecho("Período anterior");
+  const depois = trecho("Novo período");
+  if (!antes || !depois) return null;
+  return { anteriorInicio: antes.inicio, anteriorFim: antes.fim, anteriorDias: antes.dias, novoInicio: depois.inicio, novoFim: depois.fim, novoDias: depois.dias };
+}
+
+/** Painel visual do remanejamento de datas: período anterior (tachado) → novo período, com a
+ * diferença em dias ("X dias antes/depois") e a nota de duração mantida ou alterada. */
+function PainelRemanejamento({ dados }: Readonly<{ dados: NonNullable<HistoricoEventoFerias["remanejamento"]> }>) {
+  const diff = diasEntre(dados.anteriorInicio, dados.novoInicio);
+  const sentido = diff === 0 ? "mesma data de início" : `${Math.abs(diff)} dia${Math.abs(diff) === 1 ? "" : "s"} ${diff < 0 ? "antes" : "depois"}`;
+  const duracao = dados.novoDias === dados.anteriorDias ? "duração mantida" : `duração alterada (${dados.anteriorDias} → ${dados.novoDias} dias)`;
+  return (
+    <div className="gl-remanejo-painel">
+      <span className="gl-remanejo-titulo">Alteração do período</span>
+      <div className="gl-remanejo-fluxo">
+        <article className="gl-remanejo-card gl-is-anterior">
+          <span>Período anterior</span>
+          <strong><s>{formatarDataBr(dados.anteriorInicio)} – {formatarDataBr(dados.anteriorFim)}</s></strong>
+          <small>{dados.anteriorDias} dia{dados.anteriorDias === 1 ? "" : "s"}</small>
+        </article>
+        <div className="gl-remanejo-seta" aria-hidden="true">
+          <i className="pi pi-arrow-right" />
+          <em>{sentido}</em>
+        </div>
+        <article className="gl-remanejo-card gl-is-novo">
+          <span>Novo período</span>
+          <strong>{formatarDataBr(dados.novoInicio)} – {formatarDataBr(dados.novoFim)}</strong>
+          <small>{dados.novoDias} dia{dados.novoDias === 1 ? "" : "s"} · {duracao}</small>
+        </article>
+      </div>
+    </div>
+  );
 }
 
 function ModalHistoricoRegistro({
   registro,
   onFechar,
 }: Readonly<{ registro: FeriasRegistro; onFechar: () => void }>) {
+  // Fallback para registros sem histórico detalhado: o evento de lançamento sempre nasce em
+  // "EM ABERTO" (não na situação atual), para o ícone/rótulo ficarem coerentes com "Lançamento".
   const eventos = registro.historico?.length
     ? registro.historico
-    : [{ situacao: registro.situacao, acao: "lancamento", data: registro.lancadoEm, responsavel: registro.responsavelLancamento, documentos: registro.documentos } as HistoricoEventoFerias];
-  const ordenados = [...eventos].reverse();
-  const [indiceSelecionado, setIndiceSelecionado] = useState(0);
-  const selecionado = ordenados[indiceSelecionado];
+    : [{ situacao: "EM ABERTO" as const, acao: "lancamento", data: registro.lancadoEm, responsavel: registro.responsavelLancamento, documentos: registro.documentos } as HistoricoEventoFerias];
+  // Linha do tempo igual ao "Histórico de Lançamento" da Gestão de Licenças: eventos em ordem
+  // decrescente (mais recente no topo) e o lançamento original sempre por último (marcador verde).
+  // Se o histórico salvo não trouxer o lançamento (ex.: registros antigos quitados que gravaram só
+  // a quitação), reconstrói o lançamento a partir dos dados do registro, para a linha do tempo
+  // nunca ficar sem o ponto inicial.
+  const lancamento =
+    eventos.find((evento) => evento.acao === "lancamento") ??
+    ({ situacao: "EM ABERTO", acao: "lancamento", data: registro.lancadoEm, responsavel: registro.responsavelLancamento, documentos: registro.documentos } as HistoricoEventoFerias);
+  const alteracoes = [...eventos.filter((evento) => evento.acao !== "lancamento")].reverse();
 
   return (
     <ModalSeplag
       visible
       fechar={onFechar}
-      titulo={`Histórico — ${registro.servidorNome} · Matrícula ${registro.matricula} / ${registro.numeroVinculo ?? "1"} · ${registro.tipoVinculo}`}
+      titulo="Histórico de Lançamento"
       hideFooter
       tamanho="920px"
     >
-      <div className="prototype-ferias-historico-grid">
-        <section className="prototype-ferias-historico-coluna">
-          <h4>
-            <i className="pi pi-history" aria-hidden="true" /> Histórico de situações
-          </h4>
-          <p className="prototype-ferias-historico-legenda">Situações registradas ao longo do ciclo de vida da solicitação.</p>
-          <ol className="prototype-ferias-historico-linha-tempo">
-            {ordenados.map((evento, indice) => {
-              const { icone, classe } = iconeHistorico(evento.situacao);
-              return (
-                <li key={`${evento.data}-${indice}`}>
-                  <button
-                    type="button"
-                    className={`prototype-ferias-historico-item ${classe}${indice === indiceSelecionado ? " is-selecionado" : ""}`}
-                    onClick={() => setIndiceSelecionado(indice)}
-                  >
-                    <span className="prototype-ferias-historico-ponto"><i className={icone} aria-hidden="true" /></span>
-                    <span className="prototype-ferias-historico-texto">
-                      <strong>{rotuloAcaoHistorico(evento.acao, evento.situacao)}</strong>
-                      <small>Data do efeito {dataEfeitoHistorico(evento)}</small>
-                      <small className="prototype-ferias-historico-rodape">
-                        <span className="prototype-ferias-historico-ator">
-                          <i className="pi pi-user" aria-hidden="true" /> {evento.responsavel}
-                          {evento.responsavelMatricula ? ` · Matrícula ${evento.responsavelMatricula} / ${evento.responsavelVinculo}` : ""}
-                        </span>
-                        {" "}· registrado em {evento.data}
-                      </small>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-        <section className="prototype-ferias-historico-coluna">
-          <h4>
-            <i className="pi pi-comment" aria-hidden="true" /> Justificativa da situação
-          </h4>
-          <p className="prototype-ferias-historico-legenda">
-            {rotuloAcaoHistorico(selecionado.acao, selecionado.situacao)} · Data do efeito {dataEfeitoHistorico(selecionado)}
-          </p>
-          <p className="prototype-ferias-historico-justificativa">
-            {selecionado.justificativa?.trim() || "Sem justificativa registrada para esta situação."}
-          </p>
-
-          <h4>
-            <i className="pi pi-folder" aria-hidden="true" /> Documentos da situação
-          </h4>
-          <p className="prototype-ferias-historico-legenda">
-            {rotuloAcaoHistorico(selecionado.acao, selecionado.situacao)} · Data do efeito {dataEfeitoHistorico(selecionado)}
-          </p>
-          {selecionado.documentos?.length ? (
-            <table className="prototype-ferias-table prototype-ferias-historico-documentos">
-              <thead><tr><th>Documento</th><th>Ações</th></tr></thead>
-              <tbody>
-                {selecionado.documentos.map((documento) => (
-                  <tr key={documento.id}>
-                    <td>{documento.nome}</td>
-                    <td><DownloadDocumentoFerias documento={documento} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="prototype-ferias-historico-justificativa">Nenhum documento anexado nesta situação.</p>
-          )}
-        </section>
+      <div className="col-12 gl-historico-conteudo">
+      <section className="gl-historico-servidor" aria-label="Dados do registro">
+        <header>
+          <strong>{registro.servidorNome}</strong>
+          <span>Matrícula: <b>{registro.matricula}</b></span>
+          <span>Vínculo: <b>{registro.numeroVinculo ?? "1"}</b></span>
+        </header>
+        <dl>
+          <div><dt>Órgão/Unidade de lotação</dt><dd>{registro.orgao}{registro.setor ? ` / ${registro.setor}` : ""}</dd></div>
+          <div><dt>Cargo</dt><dd>{registro.cargo}</dd></div>
+          <div><dt>Período aquisitivo</dt><dd>{periodoAquisitivoLabel(registro)}</dd></div>
+          <div><dt>Tipo de vínculo</dt><dd><span className="gl-historico-vinculo">{registro.tipoVinculo}</span></dd></div>
+        </dl>
+      </section>
+      <h3 className="gl-historico-heading"><i className="pi pi-history" aria-hidden="true" /> Linha do tempo de alterações</h3>
+      <ol className="gl-historico-timeline">
+        {alteracoes.map((evento, indice) => {
+          const detalhes = detalhesSuspensaoHistorico(evento);
+          // Evento de suspensão com período completo: usa o painel visual (barra de tempo + cards).
+          const temPainel = Boolean(evento.suspensaoInicio && evento.suspensaoFim && evento.feriasOriginalInicio && evento.feriasOriginalFim);
+          const remanejo = dadosRemanejamento(evento);
+          const temRemanejo = Boolean(remanejo);
+          const temDetalhes = Boolean(evento.justificativa?.trim()) || detalhes.length > 0 || Boolean(evento.documentos?.length) || temPainel || temRemanejo;
+          const estilo = estiloAcaoHistorico(evento.acao);
+          // Nome e cargo do ator: no lançamento usa o servidor da solicitação; nos demais, o mock
+          // do perfil (Gestor/Aprovador). Sistema/automático não tem pessoa.
+          const perfilAtor = evento.acao === "lancamento" ? perfilDoLancamento(registro, evento.responsavel) : perfilDoResponsavel(evento.responsavel);
+          const mockAtor = evento.responsavel?.startsWith("Gestor") ? USUARIO_ATOR_MOCK.Gestor : evento.responsavel?.startsWith("Aprovador") ? USUARIO_ATOR_MOCK.Aprovador : null;
+          const nomeAtor = evento.acao === "lancamento" ? registro.servidorNome : mockAtor?.nome ?? (perfilAtor ? evento.responsavel : "Sistema");
+          const cargoAtor = evento.acao === "lancamento" ? registro.cargo : mockAtor?.cargo;
+          const matriculaAtor = evento.responsavelMatricula ?? (evento.acao === "lancamento" ? registro.matricula : undefined);
+          const vinculoAtor = evento.responsavelVinculo ?? (evento.acao === "lancamento" ? registro.tipoVinculo : undefined);
+          return (
+            <li key={`${evento.data}-${indice}`} className={`gl-historico-item is-${estilo.tom}`}>
+              <span className="gl-historico-marcador" aria-hidden="true"><i className={`pi ${estilo.icone}`} /></span>
+              <div className="gl-historico-evento">
+                <strong>{rotuloAcaoHistorico(evento.acao, evento.situacao)}</strong>
+                <span className={`prototype-ferias-badge is-${classeSituacao(evento.situacao)}`}>{rotuloSituacao(evento.situacao)}</span>
+                <time dateTime={evento.data}>{evento.data}</time>
+              </div>
+              <div className="gl-historico-ator">
+                <span className="gl-historico-avatar" aria-hidden="true">{iniciaisAtor(String(nomeAtor))}</span>
+                <div className="gl-historico-ator-dados">
+                  <p className="gl-historico-ator-linha">
+                    <span className="gl-historico-ator-acao">{verboAcaoHistorico(evento.acao)}</span>
+                    <strong>{nomeAtor}</strong>
+                    {perfilAtor ? <span className={`gl-historico-perfil ${perfilAtor.classe}`}>{perfilAtor.rotulo}</span> : null}
+                  </p>
+                  {(cargoAtor || matriculaAtor) ? (
+                    <p className="gl-historico-ator-meta">
+                      {[cargoAtor, matriculaAtor ? `Matrícula ${matriculaAtor}` : null, vinculoAtor].filter(Boolean).join(" · ")}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+              {temDetalhes ? (
+                <div className="gl-historico-detalhes">
+                  {remanejo ? <PainelRemanejamento dados={remanejo} /> : null}
+                  {evento.justificativa?.trim() && !temRemanejo ? (
+                    <div className="gl-historico-justificativa">
+                      <span className="gl-historico-justificativa-titulo"><i className="pi pi-comment" aria-hidden="true" /> Justificativa</span>
+                      <p>{evento.justificativa.trim()}</p>
+                    </div>
+                  ) : null}
+                  {temPainel ? <PainelImpactoSuspensao evento={evento} /> : null}
+                  {!temPainel && detalhes.length > 0 ? (
+                    <dl className="gl-historico-detalhes-lista">
+                      {detalhes.map((item) => (
+                        <div key={item.rotulo}><dt>{item.rotulo}</dt><dd>{item.valor}</dd></div>
+                      ))}
+                    </dl>
+                  ) : null}
+                  {evento.documentos?.length ? (
+                    <>
+                      <h4><i className="pi pi-paperclip" aria-hidden="true" /> Documento comprobatório</h4>
+                      {evento.documentos.map((documento) => (
+                        <CartaoDocumentoFerias key={documento.id} documento={documento} />
+                      ))}
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+        {lancamento ? (() => {
+          const inicio = inicioUsufruto(registro);
+          const fim = fimUsufruto(registro);
+          const dias = registro.parcelas.reduce((s, p) => s + p.dias, 0);
+          const perfilAtor = perfilDoLancamento(registro, lancamento.responsavel);
+          return (
+          <li className="gl-historico-item gl-historico-original is-verde">
+            <span className="gl-historico-marcador" aria-hidden="true"><i className="pi pi-flag-fill" /></span>
+            <div className="gl-historico-evento">
+              <strong>Lançamento original</strong>
+              <span className="prototype-ferias-badge is-em-aberto">Criado</span>
+              <time dateTime={lancamento.data}>{lancamento.data}</time>
+            </div>
+            <div className="gl-historico-ator">
+              <span className="gl-historico-avatar" aria-hidden="true">{iniciaisAtor(registro.servidorNome)}</span>
+              <div className="gl-historico-ator-dados">
+                <p className="gl-historico-ator-linha">
+                  <span className="gl-historico-ator-acao">Agendado por</span>
+                  <strong>{registro.servidorNome}</strong>
+                  <span className={`gl-historico-perfil ${perfilAtor.classe}`}>{perfilAtor.rotulo}</span>
+                </p>
+                <p className="gl-historico-ator-meta">
+                  {[registro.cargo, `Matrícula ${registro.matricula}`, registro.tipoVinculo].filter(Boolean).join(" · ")}
+                </p>
+              </div>
+            </div>
+            {inicio && fim ? (
+              <div className="gl-historico-detalhes">
+                <div className="gl-periodo-card">
+                  <i className="pi pi-calendar" aria-hidden="true" />
+                  <div>
+                    <span>Período de usufruto</span>
+                    <strong>{formatarDataBr(inicio)} a {formatarDataBr(fim)} · {dias} dia{dias === 1 ? "" : "s"}</strong>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </li>
+          );
+        })() : null}
+      </ol>
       </div>
     </ModalSeplag>
   );
@@ -4837,23 +5772,42 @@ const STATUS_META: Record<AcaoStatus, { titulo: string; descricao: string; sever
     severity: "danger",
     icone: "pi pi-times",
     botao: "Rejeitar",
-    novaSituacao: "CANCELADO",
+    novaSituacao: "REPROVADO",
   },
   suspender: {
-    titulo: "Suspender férias",
-    descricao: "A suspensão interrompe o usufruto; o saldo retorna disponível para novo agendamento.",
+    titulo: "Suspender férias — superior interesse público (Art. 17)",
+    descricao: "Suspensão por superior interesse público (Art. 17): interrompe o usufruto e devolve os dias ao saldo para novo agendamento. A suspensão por licença (Art. 16) não é lançada aqui — ela chega automaticamente da Gestão de Licenças e Afastamentos.",
     severity: "warning",
     icone: "pi pi-pause",
     botao: "Suspender",
     novaSituacao: "SUSPENSO",
   },
-  cancelar: {
-    titulo: "Cancelar férias",
-    descricao: "Ação irreversível — o registro deixa de constar na listagem ativa.",
+  reativar: {
+    titulo: "Reabrir agendamento",
+    descricao: "A data original não é restaurada automaticamente — informe a nova data de início abaixo. A data fim é recalculada com a mesma quantidade de dias do agendamento original, que fica preservado no histórico.",
+    severity: "success",
+    icone: "pi pi-replay",
+    botao: "Reabrir agendamento",
+    // Mapeamento do RN de reabertura: "Em Elaboração/Aguardando Homologação" não existem como
+    // status à parte neste protótipo — a nova data exige novo ciclo de validação da chefia,
+    // então reaproveitamos AGUARDANDO VALIDAÇÃO (mesma fila de Aprovações).
+    novaSituacao: "AGUARDANDO VALIDAÇÃO",
+  },
+  aprovar_suspensao: {
+    titulo: "Validar suspensão — superior interesse público (Art. 17)",
+    descricao: "O órgão central confere a documentação obrigatória e valida a suspensão. Ao concluir a última etapa, a suspensão é efetivada e o motor de folha recalcula o impacto por competência.",
+    severity: "success",
+    icone: "pi pi-check",
+    botao: "Validar suspensão",
+    novaSituacao: "SUSPENSO",
+  },
+  rejeitar_suspensao: {
+    titulo: "Rejeitar suspensão — superior interesse público (Art. 17)",
+    descricao: "A suspensão não é efetivada: o usufruto segue normalmente e nada muda na folha. A justificativa fica no histórico.",
     severity: "danger",
-    icone: "pi pi-trash",
-    botao: "Cancelar férias",
-    novaSituacao: "CANCELADO",
+    icone: "pi pi-times",
+    botao: "Rejeitar suspensão",
+    novaSituacao: "EM ABERTO",
   },
 };
 
@@ -4863,6 +5817,8 @@ function ModalConfirmarStatus({
   onFechar,
   onConfirmar,
   loteId,
+  parcelaId,
+  fluxos,
 }: Readonly<{
   registro: FeriasRegistro;
   acao: AcaoStatus;
@@ -4872,92 +5828,402 @@ function ModalConfirmarStatus({
     justificativa?: string,
     documento?: DocumentoFerias,
     novasParcelas?: ParcelaFerias[],
-    dataEfeito?: string,
+    historicoReabertura?: { inicioOriginal: string; fimOriginal: string; reabertoEm: string },
+    dadosSuspensao?: DadosSuspensao,
+    entradaFluxo?: EntradaFluxoUI,
   ) => void;
   loteId?: string;
+  parcelaId?: number;
+  fluxos: ConfiguracaoFluxo[];
 }>) {
   const meta = STATUS_META[acao];
-  const exigeJustificativa = acao === "rejeitar" || acao === "cancelar" || acao === "suspender";
-  const exigeAnexo = acao === "cancelar" || acao === "suspender";
-  // RN-04: suspensão já em andamento só por calamidade pública ou convocação pela administração
-  // — exige número de portaria/ofício em vez de justificativa livre. Cancelamento (RN 1) não
-  // chega mais a esse ponto: podeCancelar já exige hoje < início do usufruto.
-  const exigePortaria = acao === "suspender" && feriasEmAndamento(registro);
   const ehSuspensao = acao === "suspender";
+  // Parcela-alvo da suspensão: quando o registro tem mais de uma parcela, a suspensão incide
+  // apenas sobre a parcela selecionada na linha (não sobre o registro inteiro).
+  const parcelaAlvo = parcelaId != null ? registro.parcelas.find((p) => p.id === parcelaId) ?? null : null;
+  const ehDecisaoSuspensao = acao === "aprovar_suspensao" || acao === "rejeitar_suspensao";
+  const pendente = registro.suspensaoPendente;
+  const aguardandoPublicacao = pendente?.processo.status === "AGUARDANDO_PUBLICACAO";
+  const [documentacaoConferida, setDocumentacaoConferida] = useState(false);
+  const [publicacaoNumero, setPublicacaoNumero] = useState("");
+  const [publicacaoData, setPublicacaoData] = useState("");
+  const exigeJustificativa = acao === "rejeitar" || acao === "suspender" || acao === "reativar" || acao === "rejeitar_suspensao";
+  const exigeAnexo = acao === "suspender" || acao === "reativar";
+  const ehReabertura = acao === "reativar";
+  const totalDiasOriginal = registro.parcelas.reduce((total, parcela) => total + parcela.dias, 0);
   const [documento, setDocumento] = useState<DocumentoFerias | null>(null);
   const [justificativa, setJustificativa] = useState("");
-  const [dataSuspensaoIso, setDataSuspensaoIso] = useState(dataLocalISO());
+  const [novaDataInicioIso, setNovaDataInicioIso] = useState("");
+  // RN-SUS: a suspensão manual aqui é SEMPRE por superior interesse público (Art. 17). A
+  // suspensão por licença (Art. 16) chega automaticamente da Gestão de Licenças e Afastamentos
+  // e não é lançada neste modal.
+  const [inicioSuspensaoIso, setInicioSuspensaoIso] = useState(dataLocalISO());
+  const [fimSuspensaoIso, setFimSuspensaoIso] = useState("");
   const [erro, setErro] = useState("");
+  const novaDataFimIso = novaDataInicioIso ? calcularFim(novaDataInicioIso, totalDiasOriginal) : "";
+
+  // --- Derivados da suspensão (Art. 17) ---
+  // Duração = dias corridos entre início e término (inclusivo).
+  const duracaoSuspensao =
+    inicioSuspensaoIso && fimSuspensaoIso && fimSuspensaoIso >= inicioSuspensaoIso
+      ? diasEntre(inicioSuspensaoIso, fimSuspensaoIso) + 1
+      : 0;
+  // Período-base da suspensão: a parcela escolhida (se houver) ou o registro inteiro.
+  const inicioOriginalFerias = parcelaAlvo?.inicio ?? inicioUsufruto(registro) ?? "";
+  const fimOriginalFerias = parcelaAlvo?.fim ?? fimUsufruto(registro) ?? "";
+  const parcelasBase = parcelaAlvo ? [parcelaAlvo] : registro.parcelas;
+  // Saldo usufruído até o início da suspensão (dias já gozados), para exibição.
+  const diasUsufruidosAteSuspensao = parcelasBase
+    .filter((p) => p.inicio < inicioSuspensaoIso)
+    .reduce((s, p) => {
+      const ate = inicioSuspensaoIso < p.fim ? inicioSuspensaoIso : p.fim;
+      return s + Math.max(0, diasEntre(p.inicio, ate) + (ate >= p.fim ? 1 : 0));
+    }, 0);
+  // RN-SUS: as férias são prorrogadas pelos dias suspensos — nova data de término das férias =
+  // fim original + duração da suspensão. Mantém o saldo original de descanso.
+  const novaDataTerminoFerias =
+    ehSuspensao && fimOriginalFerias && duracaoSuspensao > 0
+      ? calcularFim(fimOriginalFerias, duracaoSuspensao + 1)
+      : "";
+  // Alerta não-bloqueante: retorno às férias caindo em fim de semana/feriado (decisão da reunião).
+  const retornoEmFimDeSemana = ehSuspensao && novaDataTerminoFerias
+    ? ehFimDeSemanaOuFeriado(calcularFim(novaDataTerminoFerias, 2))
+    : false;
+  // Prazo em dias (para validação RN-SUS-07) derivado das datas selecionadas.
+  const prazoArt17 = duracaoSuspensao;
+
+  const saldoTotalPeriodo = registro.saldoFerias ?? totalDiasOriginal;
+  const saldoRestantePeriodo = ehReabertura ? saldoRestanteParaReabertura(registro, carregarRegistros()) : saldoTotalPeriodo;
+
+  // Pré-visualização do impacto na folha (em dias, por competência) antes de registrar a suspensão.
+  const previaImpacto =
+    ehSuspensao && inicioSuspensaoIso && fimSuspensaoIso && fimSuspensaoIso >= inicioSuspensaoIso
+      ? calcularImpactoSuspensao({
+          parcelas: parcelasBase.map((p) => ({ inicio: p.inicio, fim: p.fim })),
+          fundamento: "ART_17",
+          suspensaoInicio: inicioSuspensaoIso,
+          suspensaoFim: fimSuspensaoIso,
+          competenciaFolhaCorrente: dataLocalISO().slice(0, 7),
+          adiantamentoPago: registro.adiantamentoPago,
+        })
+      : null;
+  const fluxoArt17 = obterFluxo(fluxos, CHAVE_FLUXO_SUSPENSAO_ART17);
+  const suspensaoExigeAprovacao = fluxoExigeAprovacao(fluxoArt17);
 
   const confirmar = () => {
-    if (exigeAnexo && !documento) { setErro('Anexe a justificativa formal.'); return; }
-    if (exigePortaria && !justificativa.trim()) {
-      setErro("Informe o número da portaria/ofício de calamidade pública ou convocação.");
+    if (ehDecisaoSuspensao) {
+      if (acao === "rejeitar_suspensao") {
+        if (!justificativa.trim()) { setErro("Informe a justificativa da rejeição."); return; }
+        onConfirmar(meta.novaSituacao, justificativa.trim());
+        return;
+      }
+      if (aguardandoPublicacao) {
+        if (!publicacaoNumero.trim() || !publicacaoData) { setErro("Informe o número e a data da publicação no Diário Oficial."); return; }
+        onConfirmar(meta.novaSituacao, undefined, undefined, undefined, undefined, undefined, { publicacao: { numero: publicacaoNumero.trim(), data: publicacaoData } });
+        return;
+      }
+      if (pendente?.processo.documentosObrigatorios.length && !documentacaoConferida) {
+        setErro("Confirme a conferência da documentação obrigatória antes de validar.");
+        return;
+      }
+      onConfirmar(meta.novaSituacao, undefined, undefined, undefined, undefined, undefined, { documentacaoConferida });
       return;
     }
-    if (!exigePortaria && exigeJustificativa && !justificativa.trim()) {
+    if (exigeAnexo && !documento) { setErro('Anexe a justificativa formal.'); return; }
+    if (ehSuspensao) {
+      const fundamento: FundamentoSuspensao = "ART_17";
+      // Registro com várias parcelas: a suspensão incide sobre UMA parcela. Exige a parcela-alvo —
+      // nunca suspende as parcelas juntas.
+      if (registro.parcelas.length > 1 && !parcelaAlvo) {
+        setErro("Este registro tem mais de uma parcela. Feche e use a ação \"Suspender\" na linha da parcela desejada.");
+        return;
+      }
+      if (!inicioSuspensaoIso || !fimSuspensaoIso) {
+        setErro("Informe as datas de início e término da suspensão.");
+        return;
+      }
+      if (inicioSuspensaoIso < dataLocalISO()) {
+        setErro("A suspensão só pode iniciar a partir de hoje — dias já usufruídos não podem ser suspensos.");
+        return;
+      }
+      if (fimSuspensaoIso < inicioSuspensaoIso) {
+        setErro("A data de término da suspensão não pode ser anterior ao início.");
+        return;
+      }
+      // RN-SUS-05/07: Art. 17 exige causa detalhada e prazo <= 60 dias. A autorização do dirigente
+      // (RN-SUS-06) NÃO é presumida: é conferida pelo órgão central na validação (fluxo de aprovação).
+      const validacao = validarSolicitacaoSuspensaoArt17({
+        causa: justificativa,
+        prazoEstimadoDias: prazoArt17,
+      });
+      if (!validacao.sucesso) { setErro(validacao.mensagem); return; }
+      const dadosSuspensao: DadosSuspensao =
+          {
+              fundamento,
+              // O solicitante é registrado automaticamente pelo perfil que realizou a ação —
+              // o histórico já grava o ator (Gestor/Aprovador) via atorHistorico.
+              causa: justificativa.trim(),
+              prazoEstimadoDias: prazoArt17,
+              // Sem fluxo de aprovação (validador desligado) a autorização é considerada dada; com
+              // fluxo, só passa a true quando o órgão central valida.
+              autorizadoPeloDirigente: !suspensaoExigeAprovacao,
+              suspensaoInicio: inicioSuspensaoIso,
+              suspensaoFim: fimSuspensaoIso,
+              novaDataTerminoFerias: novaDataTerminoFerias || undefined,
+              parcelaId: parcelaAlvo?.id,
+            };
+      onConfirmar(meta.novaSituacao, justificativa.trim(), documento ?? undefined, undefined, undefined, dadosSuspensao);
+      return;
+    }
+    if (exigeJustificativa && !justificativa.trim()) {
       setErro("Informe a justificativa antes de confirmar.");
       return;
     }
-    if (ehSuspensao && !dataSuspensaoIso) {
-      setErro("Informe a data da suspensão.");
+    if (ehReabertura) {
+      if (!novaDataInicioIso) { setErro("Informe a nova data de início do usufruto."); return; }
+      if (novaDataInicioIso <= dataLocalISO()) { setErro("A nova data de início precisa ser futura."); return; }
+      if (totalDiasOriginal > saldoRestantePeriodo) {
+        setErro(`Saldo insuficiente para reabrir: restam ${saldoRestantePeriodo} dia(s) disponíveis no período aquisitivo — outras solicitações já consumiram parte do saldo liberado pelo cancelamento/suspensão —, mas o agendamento original tinha ${totalDiasOriginal} dia(s).`);
+        return;
+      }
+      // RN reabertura 3.1 / RN003: a nova data não pode conflitar com outro agendamento ativo
+      // nem com LTS vigente do servidor (mesmas checagens do lançamento original).
+      const conflito = conflitoFeriasServidor(registro.matricula, novaDataInicioIso, novaDataFimIso, registro.id);
+      if (conflito) {
+        setErro(mensagemConflitoAgendamento(conflito));
+        return;
+      }
+      const conflitoLts = conflitoLtsServidor(registro.matricula, novaDataInicioIso, novaDataFimIso);
+      if (conflitoLts) {
+        setErro(`LTS vigente de ${formatarDataBr(conflitoLts.inicio)} a ${formatarDataBr(conflitoLts.fim)} no período escolhido. Selecione uma data de início após o fim da LTS.`);
+        return;
+      }
+      const inicioOriginal = inicioUsufruto(registro);
+      const fimOriginal = fimUsufruto(registro);
+      onConfirmar(
+        meta.novaSituacao,
+        justificativa.trim(),
+        documento ?? undefined,
+        [{ id: registro.parcelas[0]?.id ?? gerarId(), inicio: novaDataInicioIso, fim: novaDataFimIso, dias: totalDiasOriginal }],
+        inicioOriginal && fimOriginal ? { inicioOriginal, fimOriginal, reabertoEm: dataLocalISO() } : undefined,
+      );
       return;
     }
-    onConfirmar(meta.novaSituacao,justificativa.trim(),documento ?? undefined,undefined,ehSuspensao ? dataSuspensaoIso : undefined);
+    onConfirmar(meta.novaSituacao,justificativa.trim(),documento ?? undefined);
   };
 
   return (
     <ModalSeplag
       visible
       fechar={onFechar}
-      titulo={meta.titulo}
+      titulo={
+        ehSuspensao ? (
+          <span className="gl-historico-titulo-composto">
+            <small>SUSPENSÃO DE FÉRIAS</small>
+            <span>Superior interesse público <em>— Art. 17</em></span>
+          </span>
+        ) : (
+          meta.titulo
+        )
+      }
+      ariaLabel={meta.titulo}
       hideFooter
-      tamanho="640px"
+      tamanho={ehDecisaoSuspensao ? "940px" : ehSuspensao ? "760px" : "640px"}
     >
-      <div className="prototype-finalizar-efetivo-modal">
-        <p>{meta.descricao}</p>
+      <div className={`prototype-finalizar-efetivo-modal${ehSuspensao || ehDecisaoSuspensao ? " is-compacto" : ""}`}>
+        {!ehSuspensao ? <p>{meta.descricao}</p> : null}
         {loteId && <p role="note">A decisão será aplicada ao lote completo <strong>{loteId}</strong>, preservando a avaliação em bloco.</p>}
 
-        <div className="prototype-finalizar-efetivo-info">
-          <div><span>Servidor</span><strong>{registro.servidorNome}</strong></div>
-          <div className="prototype-finalizar-efetivo-info-linha">
-            <div><span>Matrícula</span><strong>{registro.matricula}</strong></div>
-            <div><span>Vínculo</span><strong>{registro.numeroVinculo ?? "1"}</strong></div>
-          </div>
-        </div>
-
         {ehSuspensao ? (
+          <div className="prototype-ferias-banner" role="note" style={{ background: "#eff6ff", borderColor: "#bfdbfe", color: "#1d4ed8" }}>
+            <i className="pi pi-info-circle" aria-hidden="true" />
+            <span>
+              Interrompe o usufruto e devolve os dias ao saldo para novo agendamento. A suspensão por
+              <strong> licença (Art. 16)</strong> não é lançada aqui — ela chega automaticamente da Gestão de
+              Licenças e Afastamentos.
+            </span>
+          </div>
+        ) : null}
+
+        <section className="gl-historico-servidor" aria-label="Dados do registro">
+          <header>
+            <strong>{registro.servidorNome}</strong>
+            <span>Matrícula: <b>{registro.matricula}</b></span>
+            <span>Vínculo: <b>{registro.numeroVinculo ?? "1"}</b></span>
+          </header>
+          <dl>
+            <div><dt>Órgão/Unidade de lotação</dt><dd>{registro.orgao}{registro.setor ? ` / ${registro.setor}` : ""}</dd></div>
+            <div><dt>Cargo</dt><dd>{registro.cargo}</dd></div>
+            <div><dt>Período aquisitivo</dt><dd>{periodoAquisitivoLabel(registro)}</dd></div>
+            <div><dt>Tipo de vínculo</dt><dd><span className="gl-historico-vinculo">{registro.tipoVinculo}</span></dd></div>
+          </dl>
+        </section>
+
+        {ehDecisaoSuspensao && pendente ? (
+          <section className="gl-suspensao-secao" aria-label="Suspensão solicitada">
+            <h4 className="gl-suspensao-secao-titulo">Suspensão solicitada pela setorial</h4>
+            {(() => {
+              // Evento sintético para reaproveitar os componentes ricos do histórico (painel de
+              // impacto e cabeçalho de ator) na tela de validação do aprovador.
+              const eventoPendente: HistoricoEventoFerias = {
+                situacao: "EM ABERTO",
+                acao: "solicitar_suspensao",
+                data: pendente.solicitadoEm,
+                responsavel: "Gestor",
+                responsavelMatricula: USUARIO_ATOR_MOCK.Gestor.matricula,
+                responsavelVinculo: USUARIO_ATOR_MOCK.Gestor.vinculo,
+                fundamentoSuspensao: pendente.dados.fundamento,
+                suspensaoInicio: pendente.dados.suspensaoInicio,
+                suspensaoFim: pendente.dados.suspensaoFim,
+                suspensaoDias: pendente.dados.prazoEstimadoDias,
+                novaDataTerminoFerias: pendente.dados.novaDataTerminoFerias,
+                causaSuspensao: pendente.dados.causa,
+                feriasOriginalInicio: inicioUsufruto(registro) ?? undefined,
+                feriasOriginalFim: fimUsufruto(registro) ?? undefined,
+              };
+              return (
+                <>
+                  <div className="gl-historico-ator" style={{ margin: "4px 0 10px" }}>
+                    <span className="gl-historico-avatar" aria-hidden="true">{iniciaisAtor(USUARIO_ATOR_MOCK.Gestor.nome)}</span>
+                    <div className="gl-historico-ator-dados">
+                      <p className="gl-historico-ator-linha">
+                        <span className="gl-historico-ator-acao">Registrada por</span>
+                        <strong>{USUARIO_ATOR_MOCK.Gestor.nome}</strong>
+                        <span className="gl-historico-perfil is-gestor">Perfil Gestor</span>
+                      </p>
+                      <p className="gl-historico-ator-meta">
+                        {[USUARIO_ATOR_MOCK.Gestor.cargo, `Matrícula ${pendente.solicitadoPor.match(/Matrícula\s+(\S+)/)?.[1] ?? USUARIO_ATOR_MOCK.Gestor.matricula}`, "em " + pendente.solicitadoEm].join(" · ")}
+                      </p>
+                    </div>
+                  </div>
+                  {eventoPendente.feriasOriginalInicio ? <PainelImpactoSuspensao evento={eventoPendente} /> : null}
+                  <div className="gl-historico-detalhes" style={{ marginTop: 10 }}>
+                    <h4><i className="pi pi-comment" aria-hidden="true" /> Causa motivadora</h4>
+                    <blockquote>“{pendente.dados.causa}”</blockquote>
+                  </div>
+                </>
+              );
+            })()}
+            {pendente.documento ? <CartaoDocumentoFerias documento={pendente.documento} /> : null}
+            {acao === "aprovar_suspensao" && aguardandoPublicacao ? (
+              <div className="prototype-ferias-form-grid">
+                <label>
+                  <span>Nº da publicação no Diário Oficial<em>*</em></span>
+                  <input value={publicacaoNumero} onChange={(e) => setPublicacaoNumero(e.target.value)} />
+                </label>
+                <label>
+                  <span>Data da publicação<em>*</em></span>
+                  <input type="date" value={publicacaoData} onChange={(e) => setPublicacaoData(e.target.value)} />
+                </label>
+              </div>
+            ) : null}
+            {acao === "aprovar_suspensao" && !aguardandoPublicacao && pendente.processo.documentosObrigatorios.length ? (
+              <label style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <input type="checkbox" checked={documentacaoConferida} onChange={(e) => setDocumentacaoConferida(e.target.checked)} />
+                <span>
+                  Conferi a documentação obrigatória: {pendente.processo.documentosObrigatorios.join("; ")}.
+                </span>
+              </label>
+            ) : null}
+          </section>
+        ) : null}
+
+        {ehReabertura ? (
+          <div className="prototype-finalizar-efetivo-termo">
+            <span>Período original ({totalDiasOriginal} dias) — preservado no histórico</span>
+            <strong>{periodoUsufruto(registro)}</strong>
+          </div>
+        ) : null}
+        {ehReabertura ? (
+          <div className="prototype-finalizar-efetivo-termo">
+            <span>Saldo restante no período aquisitivo</span>
+            <strong style={saldoRestantePeriodo < totalDiasOriginal ? { color: "#b91c1c" } : undefined}>
+              {saldoRestantePeriodo} de {saldoTotalPeriodo} dia(s) disponível(is)
+              {saldoRestantePeriodo < totalDiasOriginal ? " — insuficiente para os " + totalDiasOriginal + " dias originais" : ""}
+            </strong>
+          </div>
+        ) : null}
+
+        {ehReabertura ? (
           <div className="prototype-ferias-form-grid">
             <label>
-              <span>Data da suspensão<em>*</em></span>
+              <span>Nova data de início do usufruto<em>*</em></span>
               <input
                 type="date"
-                value={dataSuspensaoIso}
-                onChange={(event) => setDataSuspensaoIso(event.target.value)}
+                value={novaDataInicioIso}
+                onChange={(event) => setNovaDataInicioIso(event.target.value)}
+                min={dataLocalISO()}
               />
+            </label>
+            <label>
+              <span>Fim (recalculado, {totalDiasOriginal} dias)</span>
+              <input className="prototype-ferias-readonly-field" value={formatarDataBr(novaDataFimIso)} readOnly />
             </label>
           </div>
         ) : null}
 
-        {exigePortaria ? (
-          <div className="prototype-ferias-banner" role="note">
-            <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-            <span>
-              Férias em andamento (RN-03). Só podem ser suspensas/canceladas por calamidade pública
-              ou convocação pela administração (RN-04) — informe o número da portaria/ofício abaixo.
-            </span>
-          </div>
+        {ehSuspensao ? (
+          <section className="gl-suspensao-secao">
+            <h4 className="gl-suspensao-secao-titulo">{parcelaAlvo ? "Parcela a suspender" : "Período de férias original"}</h4>
+            <div className="gl-suspensao-destaque">
+              <strong>{inicioOriginalFerias && fimOriginalFerias ? `${formatarDataBr(inicioOriginalFerias)} a ${formatarDataBr(fimOriginalFerias)}` : periodoUsufruto(registro)}</strong>
+              <span className="gl-suspensao-destaque-info">
+                {parcelaAlvo ? `Parcela de ${parcelaAlvo.dias} dias · ` : ""}Saldo usufruído: <b>{diasUsufruidosAteSuspensao} dias</b>
+              </span>
+            </div>
+            {registro.parcelas.length > 1 && !parcelaAlvo ? (
+              <p className="gl-suspensao-nota" style={{ color: "#b45309" }}>
+                Este registro tem {registro.parcelas.length} parcelas. Selecione a ação "Suspender" na linha da parcela desejada para suspender apenas aquele período.
+              </p>
+            ) : null}
+          </section>
         ) : null}
-        {exigePortaria ? (
-          <label className="prototype-finalizar-efetivo-upload">
-            <strong>Número da portaria/ofício<em>*</em></strong>
-            <input
-              value={justificativa}
-              onChange={(event) => setJustificativa(event.target.value)}
-              placeholder="Ex.: Portaria 123/2026"
-              style={{ padding: "8px 10px", border: "1px solid #c8d6e5", borderRadius: 5, font: "inherit" }}
-            />
-          </label>
+
+        {ehSuspensao ? (
+          <section className="gl-suspensao-secao">
+            <div className="prototype-ferias-form-grid">
+              <label>
+                <span>Início da suspensão<em>*</em></span>
+                <input
+                  type="date"
+                  value={inicioSuspensaoIso}
+                  min={dataLocalISO()}
+                  onChange={(event) => setInicioSuspensaoIso(event.target.value)}
+                />
+              </label>
+              <label>
+                <span>Término da suspensão<em>*</em></span>
+                <input
+                  type="date"
+                  value={fimSuspensaoIso}
+                  min={inicioSuspensaoIso || dataLocalISO()}
+                  onChange={(event) => setFimSuspensaoIso(event.target.value)}
+                />
+              </label>
+            </div>
+
+            <div className="gl-suspensao-destaque">
+              <span>Duração da suspensão</span>
+              <strong style={duracaoSuspensao > 60 ? { color: "#b91c1c" } : undefined}>
+                {duracaoSuspensao} dia(s){duracaoSuspensao > 60 ? " — excede o máximo de 60 dias (Art. 17)" : ""}
+              </strong>
+            </div>
+          </section>
+        ) : null}
+
+        {ehSuspensao ? (
+          <section className="gl-suspensao-secao">
+            <label className="prototype-finalizar-efetivo-upload" style={{ margin: 0 }}>
+              <strong>Causa motivadora detalhada<em>*</em></strong>
+              <textarea
+                rows={3}
+                value={justificativa}
+                onChange={(event) => setJustificativa(event.target.value)}
+                placeholder="Descreva detalhadamente a causa de superior interesse público"
+                style={{ padding: "8px 10px", border: "1px solid #c8d6e5", borderRadius: 5, font: "inherit", resize: "vertical" }}
+              />
+            </label>
+          </section>
         ) : exigeJustificativa ? (
           <label className="prototype-finalizar-efetivo-upload">
             <strong>Justificativa<em>*</em></strong>
@@ -4970,11 +6236,71 @@ function ModalConfirmarStatus({
             />
           </label>
         ) : null}
-        {exigeAnexo && <AnexoFerias label="Justificativa formal" onChange={setDocumento} />}
+
+        {ehSuspensao && novaDataTerminoFerias ? (
+          <section className="gl-suspensao-secao is-destaque-azul">
+            <div className="gl-suspensao-destaque">
+              <span className="gl-suspensao-destaque-rotulo">Nova data de término das férias</span>
+              <strong>{formatarDataBr(novaDataTerminoFerias)}</strong>
+            </div>
+            <p className="gl-suspensao-nota">
+              As férias são retomadas ao fim da suspensão e prorrogadas pelos {duracaoSuspensao} dia(s) suspensos, mantendo o saldo original de descanso.
+            </p>
+          </section>
+        ) : null}
+        {ehSuspensao && retornoEmFimDeSemana ? (
+          <div className="prototype-ferias-banner is-alerta" role="note">
+            <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+            <span>
+              <strong>Atenção:</strong> o retorno das férias ({formatarDataBr(novaDataTerminoFerias)}) cai em um fim de semana ou feriado.
+              Isso é apenas um aviso — <strong>não bloqueia</strong> o retorno das férias (não há amparo legal para ajuste automático na suspensão).
+            </span>
+          </div>
+        ) : null}
+
+        {ehSuspensao && previaImpacto ? (
+          <section className="gl-suspensao-secao" aria-label="Impacto previsto na folha">
+            <h4 className="gl-suspensao-secao-titulo">Impacto previsto na folha (em dias, por competência)</h4>
+            {previaImpacto.eventos.length ? (
+              <ul className="pff-fluxo-impacto">
+                {previaImpacto.eventos.map((evento) => (
+                  <li key={`${evento.tipo}-${evento.competenciaUsufruto}`}>{evento.descricao}</li>
+                ))}
+              </ul>
+            ) : (
+              <small>Sem impacto: o usufruto permanece nas mesmas competências.</small>
+            )}
+            <p className="gl-suspensao-nota">
+              {suspensaoExigeAprovacao
+                ? "A suspensão ficará pendente até a validação do órgão central; o recálculo só ocorre ao efetivar."
+                : "O recálculo é lançado automaticamente no motor de folha ao confirmar."}
+            </p>
+          </section>
+        ) : null}
+
+        {exigeAnexo && ehSuspensao ? (
+          <section className="gl-suspensao-secao gl-suspensao-anexo">
+            <AnexoFerias label="Justificativa formal" onChange={setDocumento} />
+          </section>
+        ) : exigeAnexo ? (
+          <AnexoFerias label="Justificativa formal" onChange={setDocumento} />
+        ) : null}
         {erro ? <div className="prototype-ferias-erro-bloqueio">{erro}</div> : null}
         <div className="prototype-efetivo-modal-actions">
           <BotaoVoltarSeplag type="button" label="Fechar" icon="pi pi-times" onClick={onFechar} />
-          <BotaoSeplag type="button" severity={meta.severity} label={meta.botao} icon={meta.icone} onClick={confirmar} />
+          <BotaoSeplag
+            type="button"
+            severity={meta.severity}
+            label={
+              ehSuspensao && suspensaoExigeAprovacao
+                ? "Registrar suspensão (aguarda validação)"
+                : acao === "aprovar_suspensao" && aguardandoPublicacao
+                  ? "Registrar publicação"
+                  : meta.botao
+            }
+            icon={meta.icone}
+            onClick={confirmar}
+          />
         </div>
       </div>
     </ModalSeplag>

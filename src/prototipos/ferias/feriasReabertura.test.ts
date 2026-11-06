@@ -3,7 +3,10 @@ import {
   podeCancelar,
   cancelarBloqueadoPelaFolha,
   podeSuspender,
+  podeReativar,
+  reativarBloqueadaPelaFolha,
   elegivelParaQuitacaoAutomatica,
+  saldoRestanteParaReabertura,
 } from "./regrasReabertura";
 import type { FeriasRegistro } from "./FeriasPages";
 
@@ -43,10 +46,16 @@ describe("Cancelamento (RN 1)", () => {
     expect(podeCancelar(registro({ situacao: "EM ABERTO" }))).toBe(true);
   });
 
-  it("permite cancelar também durante o usufruto (hoje entre início e fim)", () => {
+  it("NÃO permite cancelar durante o usufruto — nesse momento a interrupção é suspensão (nota RN-CAN)", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 10, 5, 12));
-    expect(podeCancelar(registro({ situacao: "EM ABERTO" }))).toBe(true);
+    expect(podeCancelar(registro({ situacao: "EM ABERTO" }))).toBe(false);
+  });
+
+  it("bloqueia cancelar no próprio dia de início do gozo (só antes do início)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 1, 12)); // 2026-11-01 = início da parcela
+    expect(podeCancelar(registro({ situacao: "EM ABERTO" }))).toBe(false);
   });
 
   it("bloqueia cancelar quando o usufruto já terminou", () => {
@@ -76,18 +85,83 @@ describe("Cancelamento (RN 1)", () => {
   });
 });
 
-describe("Suspensão (RN 2)", () => {
-  it("permite suspender antes ou durante o usufruto, enquanto Em Aberto e sem folha homologada", () => {
+describe("Suspensão (RN-SUS) — só durante o usufruto", () => {
+  it("NÃO permite suspender antes do início do gozo (nesse momento a ação é cancelar)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 1, 12)); // antes de 2026-11-01
+    expect(podeSuspender(registro({ situacao: "EM ABERTO" }))).toBe(false);
+  });
+
+  it("permite suspender durante o usufruto (hoje entre início e fim), Em Aberto e sem folha homologada", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 5, 12)); // 2026-11-05, dentro de 01–15/11
     expect(podeSuspender(registro({ situacao: "EM ABERTO" }))).toBe(true);
   });
 
-  it("bloqueia suspender quando a folha já foi homologada/paga", () => {
+  it("permite suspender no primeiro dia do gozo", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 1, 12)); // 2026-11-01 = início
+    expect(podeSuspender(registro({ situacao: "EM ABERTO" }))).toBe(true);
+  });
+
+  it("NÃO permite suspender depois que o usufruto terminou", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 20, 12)); // após 2026-11-15
+    expect(podeSuspender(registro({ situacao: "EM ABERTO" }))).toBe(false);
+  });
+
+  it("bloqueia suspender quando a folha já foi homologada/paga, mesmo durante o usufruto", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 5, 12));
     expect(podeSuspender(registro({ situacao: "EM ABERTO", folhaHomologada: true }))).toBe(false);
   });
 
   it("não permite suspender fora de Em Aberto", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 5, 12));
     expect(podeSuspender(registro({ situacao: "SUSPENSO" }))).toBe(false);
-    expect(podeSuspender(registro({ situacao: "CANCELADO" }))).toBe(false);
+    expect(podeSuspender(registro({ situacao: "REPROVADO" }))).toBe(false);
+  });
+});
+
+describe("Reabertura-padrão (RN 3.1 / 3.3)", () => {
+  it("permite reabrir um registro Suspenso antes do início original, sem folha homologada", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 1, 12));
+    expect(podeReativar(registro({ situacao: "SUSPENSO" }))).toBe(true);
+  });
+
+  it("nunca oferece reabertura (nem forçada) para registro Reprovado — só Suspenso reabre", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 1, 12));
+    expect(podeReativar(registro({ situacao: "REPROVADO" }))).toBe(false);
+    expect(reativarBloqueadaPelaFolha(registro({ situacao: "REPROVADO", folhaHomologada: true }))).toBe(false);
+  });
+
+  it("bloqueia a reabertura assim que a data de início original chega", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 1, 12));
+    expect(podeReativar(registro({ situacao: "SUSPENSO" }))).toBe(false);
+  });
+
+  it("bloqueia a reabertura direta quando a folha já foi homologada/paga, mesmo antes do início", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 1, 12));
+    const registroComFolha = registro({ situacao: "SUSPENSO", folhaHomologada: true });
+    expect(podeReativar(registroComFolha)).toBe(false);
+    expect(reativarBloqueadaPelaFolha(registroComFolha)).toBe(true);
+  });
+
+  it("não sinaliza bloqueio por folha quando o motivo real é a data (usufruto já iniciado)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 5, 12));
+    const registroComFolha = registro({ situacao: "SUSPENSO", folhaHomologada: true });
+    expect(reativarBloqueadaPelaFolha(registroComFolha)).toBe(false);
+  });
+
+  it("não oferece reabertura para registros Em Aberto ou Quitado", () => {
+    expect(podeReativar(registro({ situacao: "EM ABERTO" }))).toBe(false);
+    expect(podeReativar(registro({ situacao: "QUITADO" }))).toBe(false);
   });
 });
 
@@ -113,9 +187,41 @@ describe("Quitação automática", () => {
     expect(elegivelParaQuitacaoAutomatica(registro({ situacao: "AGUARDANDO VALIDAÇÃO" }))).toBe(false);
   });
 
-  it("não é bloqueada pela folha homologada/paga — só o cancelamento é", () => {
+  it("não é bloqueada pela folha homologada/paga — só cancelar/reabrir são", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 10, 20, 12));
     expect(elegivelParaQuitacaoAutomatica(registro({ situacao: "EM ABERTO", folhaHomologada: true }))).toBe(true);
+  });
+});
+
+describe("Saldo restante na reabertura", () => {
+  it("usa o saldo total do período quando não há outras solicitações ativas", () => {
+    const original = registro({ situacao: "SUSPENSO", saldoFerias: 30 });
+    expect(saldoRestanteParaReabertura(original, [original])).toBe(30);
+  });
+
+  it("desconta dias já comprometidos por outra solicitação ativa do mesmo período", () => {
+    const original = registro({ id: 1, situacao: "SUSPENSO", saldoFerias: 30, periodoAquisitivoInicio: "2026-01-01" });
+    const outra = registro({ id: 2, situacao: "EM ABERTO", periodoAquisitivoInicio: "2026-01-01", parcelas: [{ id: 1, inicio: "2026-12-01", fim: "2026-12-20", dias: 20 }] });
+    expect(saldoRestanteParaReabertura(original, [original, outra])).toBe(10);
+  });
+
+  it("ignora solicitações Reprovadas/Suspensas de outros registros ao somar o comprometido", () => {
+    const original = registro({ id: 1, situacao: "SUSPENSO", saldoFerias: 30, periodoAquisitivoInicio: "2026-01-01" });
+    const reprovada = registro({ id: 2, situacao: "REPROVADO", periodoAquisitivoInicio: "2026-01-01", parcelas: [{ id: 1, inicio: "2026-12-01", fim: "2026-12-20", dias: 20 }] });
+    expect(saldoRestanteParaReabertura(original, [original, reprovada])).toBe(30);
+  });
+
+  it("ignora solicitações de outro período aquisitivo ou de outro servidor", () => {
+    const original = registro({ id: 1, matricula: "000001", situacao: "SUSPENSO", saldoFerias: 30, periodoAquisitivoInicio: "2026-01-01" });
+    const outroPeriodo = registro({ id: 2, matricula: "000001", situacao: "EM ABERTO", periodoAquisitivoInicio: "2027-01-01", parcelas: [{ id: 1, inicio: "2027-12-01", fim: "2027-12-20", dias: 20 }] });
+    const outroServidor = registro({ id: 3, matricula: "000002", situacao: "EM ABERTO", periodoAquisitivoInicio: "2026-01-01", parcelas: [{ id: 1, inicio: "2026-12-01", fim: "2026-12-20", dias: 20 }] });
+    expect(saldoRestanteParaReabertura(original, [original, outroPeriodo, outroServidor])).toBe(30);
+  });
+
+  it("nunca retorna negativo quando o comprometido excede o saldo total", () => {
+    const original = registro({ id: 1, situacao: "SUSPENSO", saldoFerias: 10, periodoAquisitivoInicio: "2026-01-01" });
+    const outra = registro({ id: 2, situacao: "EM ABERTO", periodoAquisitivoInicio: "2026-01-01", parcelas: [{ id: 1, inicio: "2026-12-01", fim: "2026-12-20", dias: 20 }] });
+    expect(saldoRestanteParaReabertura(original, [original, outra])).toBe(0);
   });
 });

@@ -4,18 +4,24 @@ export const tipoAprovacao = (r:FeriasRegistro) => r.tipo === 'Lote' ? 'Em lote'
 export type FiltrosAprovacao = {busca:string;inicio:string;fim:string;situacao:string;orgao:string;tipo:string};
 export const filtrosAprovacaoVazios: FiltrosAprovacao = {busca:'',inicio:'',fim:'',situacao:'',orgao:'',tipo:''};
 export function situacaoAprovacao(r: FeriasRegistro): SituacaoAprovacao | null {
+  // Suspensão Art. 17 registrada pela setorial e aguardando validação do órgão central.
+  if (r.suspensaoPendente) return 'Pendente';
   if (r.situacao === 'AGUARDANDO VALIDAÇÃO') return 'Pendente';
-  if (r.situacao === 'REPROVADO' || r.situacao === 'PRAZO EXPIRADO' || (r.situacao === 'CANCELADO' && r.resultadoAvaliacao === 'Rejeitada')) return 'Rejeitada';
+  if (r.situacao === 'REPROVADO' || r.situacao === 'PRAZO EXPIRADO') return 'Rejeitada';
   if (['EM ABERTO','QUITADO','SUSPENSO'].includes(r.situacao)) return 'Aprovada';
   return null;
 }
+/** Filtro do KPI "Suspensões aguardando validação" (Art. 17). É um recorte de "Pendente". */
+export const FILTRO_SUSPENSAO_PENDENTE = 'Suspensão aguardando validação';
+export const correspondeFiltroSituacao = (r: FeriasRegistro, situacao: string) =>
+  !!situacaoAprovacao(r) && (!situacao || (situacao === FILTRO_SUSPENSAO_PENDENTE ? !!r.suspensaoPendente : situacaoAprovacao(r) === situacao));
 export const dataBrAprovacao = (data?:string) => data ? data.slice(0,10).split('-').reverse().join('/') : '—';
 export const diasAprovacao = (r:FeriasRegistro) => r.parcelas.reduce((s,p) => s+p.dias,0);
 export const periodoAprovacao = (r:FeriasRegistro) => r.parcelas.map(p => `${dataBrAprovacao(p.inicio)} a ${dataBrAprovacao(p.fim)}`).join('; ') || '—';
 export const loteAprovacao = (r:FeriasRegistro) => (r.tipo==='Lote' || r.tipo==='Coletiva') && ['SEDUC','UNEMAT','SECITEC'].includes(r.orgaoColetivo) && !!r.loteId;
 const normalizar=(s:string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 export function filtrarAprovacoes(registros:FeriasRegistro[],f:FiltrosAprovacao) {
-  return registros.filter(r => situacaoAprovacao(r) && (!f.situacao || situacaoAprovacao(r)===f.situacao)
+  return registros.filter(r => correspondeFiltroSituacao(r,f.situacao)
     && (!f.busca.trim() || normalizar(`${r.servidorNome} ${r.matricula}`).includes(normalizar(f.busca.trim())))
     && (!f.orgao || r.orgao===f.orgao) && (!f.tipo || tipoAprovacao(r)===f.tipo)
     && (!(f.inicio || f.fim) || r.parcelas.some(p => (!f.inicio || p.fim>=f.inicio) && (!f.fim || p.inicio<=f.fim))));

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
 import { useToastSeplag } from "../../hooks/toast";
@@ -17,6 +17,9 @@ export function FeriasEditarIndividualPage() {
   const navigate = useNavigate();
   const { toastSucesso } = useToastSeplag();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const parcelaParam = searchParams.get("parcela");
+  const parcelaFocoId = parcelaParam != null && parcelaParam !== "" ? Number(parcelaParam) : undefined;
   const registros = carregarRegistros();
   const registro = registros.find((item) => String(item.id) === id);
   const voltar = () => navigate("/prototipos/sigep/ferias");
@@ -37,7 +40,8 @@ export function FeriasEditarIndividualPage() {
     navigate("/prototipos/sigep/ferias");
   };
 
-  if (!registro || registro.tipo !== "Individual") {
+  const tiposEditaveis = ["Individual", "Lote", "Coletiva"];
+  if (!registro || !tiposEditaveis.includes(registro.tipo)) {
     return (
       <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
         <div className="prototype-page-content prototype-page-content--white prototype-ferias-content">
@@ -51,11 +55,16 @@ export function FeriasEditarIndividualPage() {
     );
   }
 
+  // Lote/Coletiva: cada servidor é um registro individual e a edição usa o MESMO formulário da
+  // solicitação individual (adicionar/remover/ajustar parcelas). Sem edição restrita.
+  const edicaoRestrita = false;
+  const rotuloTipo = registro.tipo === "Lote" ? "Lote" : registro.tipo === "Coletiva" ? "Coletiva" : "Individual";
+
   return (
     <PrototypeSystemPage nomeSistema="GESTÃO DE PESSOAS" ambienteSistema="Teste" menuItems={menuGestaoPessoas}>
       <div className="prototype-page-content prototype-page-content--white prototype-ferias-content">
         <CardSeplag
-          title="Alterar solicitação — Individual"
+          title={`Alterar solicitação — ${rotuloTipo}`}
           cols="12"
           cardHeaderClassNames="prototype-carreira-card"
           headerNavigation={
@@ -64,7 +73,7 @@ export function FeriasEditarIndividualPage() {
               items={[
                 { label: "Gestão de Férias", to: "/prototipos/sigep/ferias" },
                 { label: "Alterar" },
-                { label: "Individual" },
+                { label: rotuloTipo },
               ]}
             />
           }
@@ -73,6 +82,8 @@ export function FeriasEditarIndividualPage() {
             <div className="prototype-ferias-nova-pagina">
               <FormularioIndividual
                 registroParaEditar={registro}
+                edicaoRestrita={edicaoRestrita}
+                parcelaFocoId={Number.isFinite(parcelaFocoId) ? parcelaFocoId : undefined}
                 onCancelar={() => setMostrarConfirmacaoCancelar(true)}
                 onSalvar={salvar}
               />

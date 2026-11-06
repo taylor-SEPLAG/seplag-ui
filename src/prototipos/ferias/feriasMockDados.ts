@@ -4,7 +4,7 @@ import type { FeriasRegistro } from "./FeriasPages";
 // (um arquivo de componentes) porque o Fast Refresh do Vite invalida o módulo inteiro sempre
 // que um arquivo de componente também exporta valores não-componente — isso já chegou a causar
 // renders com hooks fora de ordem (erro "useEffect changed size between renders") durante HMR.
-export const STORAGE_KEY = "prototype-ferias-registros-v16";
+export const STORAGE_KEY = "prototype-ferias-registros-v31";
 
 function registroBase(parcial: Partial<FeriasRegistro> & Pick<FeriasRegistro, "id" | "servidorNome" | "matricula" | "cargo" | "tipoVinculo" | "parcelas" | "situacao">): FeriasRegistro {
   return {
@@ -159,6 +159,7 @@ export const registrosBase: FeriasRegistro[] = [
     avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-09-20 10:00",
   }),
   // Reabertura-padrão habilitada: Suspenso, início do usufruto ainda no futuro, folha não homologada.
+  // Suspensão Art. 17 (origem Portal do Servidor) — histórico completo: Lançamento → Validação → Suspensão.
   registroBase({
     id: 15, servidorNome: "Patrícia Nogueira Souza", matricula: "410033", cargo: "Técnica Administrativa",
     tipoVinculo: "Efetivo", situacao: "SUSPENSO", origem: "PORTALSERVIDOR",
@@ -167,8 +168,17 @@ export const registrosBase: FeriasRegistro[] = [
     responsavelLancamento: "Patrícia Nogueira Souza (Portal do Servidor)",
     lancadoEm: "2026-09-25 09:30",
     avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-10-10 15:00",
+    fundamentoSuspensao: "ART_17",
+    suspensaoArt17: { solicitante: "Chefia Imediata — COORD. PLANEJ. E PROJETOS DE TI", causa: "Necessidade de serviço — substituição em período de recesso da equipe", prazoEstimadoDias: 20, autorizadoPeloDirigente: true, inicio: "2026-11-16" },
+    diasSuspensos: 20,
+    dataRetornoSuspensao: "2026-12-06",
+    historico: [
+      { situacao: "EM ABERTO", acao: "lancamento", data: "25/09/2026, 09:30:00", responsavel: "Servidor", responsavelMatricula: "410033", responsavelVinculo: "Efetivo" },
+      { situacao: "EM ABERTO", acao: "validar", data: "10/10/2026, 15:00:00", responsavel: "Aprovador", responsavelMatricula: "900020", responsavelVinculo: "Efetivo" },
+      { situacao: "SUSPENSO", acao: "suspender", data: "16/11/2026, 09:00:00", responsavel: "Gestor", responsavelMatricula: "900017", responsavelVinculo: "Efetivo", justificativa: "Necessidade de serviço — substituição em período de recesso da equipe", fundamentoSuspensao: "ART_17", suspensaoInicio: "2026-11-16", suspensaoFim: "2026-12-05", suspensaoDias: 20, novaDataTerminoFerias: "2026-12-20", causaSuspensao: "Necessidade de serviço — substituição em período de recesso da equipe", feriasOriginalInicio: "2026-11-16", feriasOriginalFim: "2026-11-30" },
+    ],
   }),
-  // Suspenso com folha homologada/paga — bloqueia o cancelamento direto (RN 1/1.1).
+  // Suspensão Art. 17 com folha homologada — histórico completo.
   registroBase({
     id: 16, servidorNome: "Cleber Augusto Dias", matricula: "400010", cargo: "Apoio",
     tipoVinculo: "Efetivo", situacao: "SUSPENSO", origem: "PORTALSERVIDOR",
@@ -178,6 +188,15 @@ export const registrosBase: FeriasRegistro[] = [
     responsavelLancamento: "Cleber Augusto Dias (Portal do Servidor)",
     lancadoEm: "2026-09-30 10:10",
     avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-10-05 09:00",
+    fundamentoSuspensao: "ART_17",
+    suspensaoArt17: { solicitante: "Chefia Imediata — EE Tiradentes", causa: "Convocação para comissão de processo seletivo", prazoEstimadoDias: 15, autorizadoPeloDirigente: true, inicio: "2026-12-07" },
+    diasSuspensos: 15,
+    dataRetornoSuspensao: "2026-12-23",
+    historico: [
+      { situacao: "EM ABERTO", acao: "lancamento", data: "30/09/2026, 10:10:00", responsavel: "Servidor", responsavelMatricula: "400010", responsavelVinculo: "Efetivo" },
+      { situacao: "EM ABERTO", acao: "validar", data: "05/10/2026, 09:00:00", responsavel: "Aprovador", responsavelMatricula: "900020", responsavelVinculo: "Efetivo" },
+      { situacao: "SUSPENSO", acao: "suspender", data: "07/12/2026, 08:30:00", responsavel: "Gestor", responsavelMatricula: "900017", responsavelVinculo: "Efetivo", justificativa: "Convocação para comissão de processo seletivo", fundamentoSuspensao: "ART_17", suspensaoInicio: "2026-12-07", suspensaoFim: "2026-12-21", suspensaoDias: 15, novaDataTerminoFerias: "2027-01-05", causaSuspensao: "Convocação para comissão de processo seletivo", feriasOriginalInicio: "2026-12-07", feriasOriginalFim: "2026-12-21" },
+    ],
   }),
   // Cancelamento bloqueado pela folha homologada/paga (RN 1) — habilita "Forçar cancelamento"
   // para o Aprovador; para o Gestor, "Cancelar férias" aparece desabilitado com o aviso de bloqueio.
@@ -352,6 +371,152 @@ export const registrosBase: FeriasRegistro[] = [
     loteId: "LOTE-UNEMAT-2026-APOIO-B", dataLimiteValidacaoChefia: "2026-11-24",
     responsavelLancamento: "Gestão de Pessoas — UNEMAT",
     lancadoEm: "2026-10-19 09:30",
+  }),
+  // RN-SUS Art. 16 — suspensão automática por licença, com retomada no 1º dia útil e sem
+  // impacto financeiro (adiantamento já cobria o período integral). Demonstra o badge Art. 16.
+  registroBase({
+    id: 31, servidorNome: "Larissa Gomes Vieira", matricula: "900031", cargo: "Analista Administrativo",
+    tipoVinculo: "Efetivo", origem: "SIGEP", situacao: "SUSPENSO", orgao: "SEPLAG/MT",
+    periodoAquisitivoInicio: "2024-01-01", periodoAquisitivoFim: "2024-12-31",
+    parcelas: [{ id: 1, inicio: "2026-11-02", fim: "2026-12-01", dias: 30 }],
+    adiantamentoPago: true,
+    fundamentoSuspensao: "ART_16",
+    dataRetomadaArt16: "2027-03-01",
+    diasSuspensos: 119,
+    dataRetornoSuspensao: "2027-03-01",
+    responsavelLancamento: "RH Setorial", lancadoEm: "2026-09-20 09:00",
+    historico: [
+      { situacao: "EM ABERTO", acao: "lancamento", data: "20/09/2026, 09:00:00", responsavel: "Gestor", responsavelMatricula: "900017", responsavelVinculo: "Efetivo" },
+      { situacao: "SUSPENSO", acao: "suspender", data: "02/11/2026, 10:30:00", responsavel: "Gestor", responsavelMatricula: "900017", responsavelVinculo: "Efetivo", justificativa: "Licença-maternidade concedida durante o gozo", fundamentoSuspensao: "ART_16", dataRetomada: "2027-03-01", novaDataTerminoFerias: "2027-03-30", suspensaoInicio: "2026-11-02", suspensaoFim: "2027-02-28", suspensaoDias: 119, causaSuspensao: "Licença-maternidade concedida durante o gozo", feriasOriginalInicio: "2026-11-02", feriasOriginalFim: "2026-12-01" },
+    ],
+  }),
+  // RN-SUS Art. 17 após o pagamento — suspensão por interesse público, com débito proporcional
+  // diferido para a competência do novo gozo (RN-SUS-10). Demonstra o badge Art. 17 + Débito.
+  registroBase({
+    id: 32, servidorNome: "Henrique Dias Moreira", matricula: "900032", cargo: "Técnico Administrativo",
+    tipoVinculo: "Efetivo", origem: "SIGEP", situacao: "SUSPENSO", orgao: "SEPLAG/MT",
+    periodoAquisitivoInicio: "2024-01-01", periodoAquisitivoFim: "2024-12-31",
+    parcelas: [{ id: 1, inicio: "2026-11-02", fim: "2026-12-01", dias: 30 }],
+    adiantamentoPago: true,
+    fundamentoSuspensao: "ART_17",
+    suspensaoArt17: { solicitante: "Chefia Imediata — COORD. PLANEJ. E PROJETOS DE TI", causa: "Convocação para força-tarefa de fiscalização emergencial", prazoEstimadoDias: 45, autorizadoPeloDirigente: true, inicio: "2026-11-05" },
+    diasSuspensos: 45,
+    dataRetornoSuspensao: "2026-12-20",
+    pendenciaSaldo: { diasComprometidos: 20, origem: "SUSPENSAO_ART17" },
+    responsavelLancamento: "RH Setorial", lancadoEm: "2026-09-25 10:00",
+    historico: [
+      { situacao: "EM ABERTO", acao: "lancamento", data: "25/09/2026, 10:00:00", responsavel: "Gestor", responsavelMatricula: "900017", responsavelVinculo: "Efetivo" },
+      { situacao: "SUSPENSO", acao: "suspender", data: "05/11/2026, 14:00:00", responsavel: "Gestor", responsavelMatricula: "900017", responsavelVinculo: "Efetivo", justificativa: "Convocação para força-tarefa de fiscalização emergencial", fundamentoSuspensao: "ART_17", suspensaoInicio: "2026-11-05", suspensaoFim: "2026-12-19", suspensaoDias: 45, novaDataTerminoFerias: "2027-01-15", causaSuspensao: "Convocação para força-tarefa de fiscalização emergencial", feriasOriginalInicio: "2026-11-02", feriasOriginalFim: "2026-12-01" },
+    ],
+  }),
+  // Férias individuais EM USUFRUTO (o período cobre a data de hoje) e folha ainda não
+  // homologada — habilita a ação "Suspender" (RN-SUS: suspensão só durante o gozo). Use estes
+  // para demonstrar o modal de Suspensão Art. 17.
+  registroBase({
+    id: 33, servidorNome: "Aline Ferreira Dantas", matricula: "900033", cargo: "Analista Administrativo",
+    tipoVinculo: "Efetivo", origem: "SIGEP", situacao: "EM ABERTO", orgao: "SEPLAG/MT",
+    setor: "COORD. PLANEJ. E PROJETOS DE TI",
+    periodoAquisitivoInicio: "2024-01-01", periodoAquisitivoFim: "2024-12-31",
+    parcelas: [{ id: 1, inicio: "2026-10-19", fim: "2026-11-17", dias: 30 }],
+    responsavelLancamento: "RH Setorial", lancadoEm: "2026-09-10 09:00",
+    avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-09-15 10:00",
+  }),
+  registroBase({
+    id: 34, servidorNome: "Gustavo Pereira Lima", matricula: "900034", cargo: "Técnico Administrativo",
+    tipoVinculo: "Efetivo", origem: "SIGEP", situacao: "EM ABERTO", orgao: "SEPLAG/MT",
+    setor: "COORD. PLANEJ. E PROJETOS DE TI",
+    periodoAquisitivoInicio: "2024-01-01", periodoAquisitivoFim: "2024-12-31",
+    parcelas: [{ id: 1, inicio: "2026-10-22", fim: "2026-11-10", dias: 20 }],
+    responsavelLancamento: "RH Setorial", lancadoEm: "2026-09-12 11:00",
+    avaliadoPor: "Claudio Luciano Capistrano de Camargo", avaliadoEm: "2026-09-16 09:00",
+  }),
+  // Solicitações INDIVIDUAIS do Portal do Servidor pendentes de validação — para demonstrar
+  // aprovar/rejeitar na aba Aprovações (perfil Aprovador). Origem Portal ⇒ Aguardando Validação.
+  registroBase({
+    id: 35, servidorNome: "Juliana Martins Rocha", matricula: "900035", cargo: "Analista Administrativo",
+    tipoVinculo: "Efetivo", origem: "PORTALSERVIDOR", situacao: "AGUARDANDO VALIDAÇÃO", orgao: "SEPLAG/MT",
+    setor: "COORD. PLANEJ. E PROJETOS DE TI",
+    periodoAquisitivoInicio: "2024-06-01", periodoAquisitivoFim: "2025-05-31",
+    parcelas: [{ id: 1, inicio: "2027-01-11", fim: "2027-02-09", dias: 30 }],
+    dataLimiteValidacaoChefia: "2026-12-15",
+    responsavelLancamento: "Juliana Martins Rocha (Portal do Servidor)", lancadoEm: "2026-10-20 08:40",
+    historico: [
+      { situacao: "AGUARDANDO VALIDAÇÃO", acao: "lancamento", data: "20/10/2026, 08:40:00", responsavel: "Servidor", responsavelMatricula: "900035", responsavelVinculo: "Efetivo" },
+    ],
+  }),
+  registroBase({
+    id: 36, servidorNome: "Ricardo Alves Pereira", matricula: "900036", cargo: "Assistente Administrativo",
+    tipoVinculo: "Contrato Temporário", origem: "PORTALSERVIDOR", situacao: "AGUARDANDO VALIDAÇÃO", orgao: "SEPLAG/MT",
+    setor: "GABINETE",
+    periodoAquisitivoInicio: "2024-03-01", periodoAquisitivoFim: "2025-02-28",
+    parcelas: [
+      { id: 1, inicio: "2026-12-07", fim: "2026-12-21", dias: 15 },
+      { id: 2, inicio: "2027-02-01", fim: "2027-02-15", dias: 15 },
+    ],
+    dataLimiteValidacaoChefia: "2026-11-20",
+    responsavelLancamento: "Ricardo Alves Pereira (Portal do Servidor)", lancadoEm: "2026-10-18 14:10",
+    historico: [
+      { situacao: "AGUARDANDO VALIDAÇÃO", acao: "lancamento", data: "18/10/2026, 14:10:00", responsavel: "Servidor", responsavelMatricula: "900036", responsavelVinculo: "Contrato Temporário" },
+    ],
+  }),
+  registroBase({
+    id: 37, servidorNome: "Fernanda Lopes Barreto", matricula: "900037", cargo: "Assessora Técnica",
+    tipoVinculo: "Comissionado", origem: "PORTALSERVIDOR", situacao: "AGUARDANDO VALIDAÇÃO", orgao: "SEPLAG/MT",
+    setor: "COORD. PLANEJ. E PROJETOS DE TI",
+    periodoAquisitivoInicio: "2024-01-01", periodoAquisitivoFim: "2024-12-31",
+    parcelas: [{ id: 1, inicio: "2026-12-01", fim: "2026-12-20", dias: 20 }],
+    dataLimiteValidacaoChefia: "2026-11-18",
+    responsavelLancamento: "Fernanda Lopes Barreto (Portal do Servidor)", lancadoEm: "2026-10-15 10:25",
+    historico: [
+      { situacao: "AGUARDANDO VALIDAÇÃO", acao: "lancamento", data: "15/10/2026, 10:25:00", responsavel: "Servidor", responsavelMatricula: "900037", responsavelVinculo: "Comissionado" },
+    ],
+  }),
+  registroBase({
+    id: 38, servidorNome: "Bruno Cardoso Freitas", matricula: "900038", cargo: "Analista Técnico",
+    tipoVinculo: "Efetivo", origem: "PORTALSERVIDOR", situacao: "AGUARDANDO VALIDAÇÃO", orgao: "SEPLAG/MT",
+    setor: "COORD. PLANEJ. E PROJETOS DE TI",
+    periodoAquisitivoInicio: "2024-08-01", periodoAquisitivoFim: "2025-07-31",
+    parcelas: [
+      { id: 1, inicio: "2027-01-05", fim: "2027-01-14", dias: 10 },
+      { id: 2, inicio: "2027-02-01", fim: "2027-02-10", dias: 10 },
+      { id: 3, inicio: "2027-03-01", fim: "2027-03-10", dias: 10 },
+    ],
+    dataLimiteValidacaoChefia: "2026-12-05",
+    responsavelLancamento: "Bruno Cardoso Freitas (Portal do Servidor)", lancadoEm: "2026-10-22 16:00",
+    historico: [
+      { situacao: "AGUARDANDO VALIDAÇÃO", acao: "lancamento", data: "22/10/2026, 16:00:00", responsavel: "Servidor", responsavelMatricula: "900038", responsavelVinculo: "Efetivo" },
+    ],
+  }),
+  // Recesso Remunerado lançado pelo SIGEP — nasce AGENDADA (EM ABERTO) e NÃO vai para aprovação.
+  registroBase({
+    id: 39, servidorNome: "Tatiane Moraes Prado", matricula: "900039", cargo: "Residente Técnico — Enfermagem",
+    tipoVinculo: "Residente Técnico", tipo: "Recesso", origem: "SIGEP", situacao: "EM ABERTO", orgao: "SES/MT",
+    setor: "Hospital Regional de Mato Grosso",
+    periodoAquisitivoInicio: "2026-01-01", periodoAquisitivoFim: "",
+    parcelas: [{ id: 1, inicio: "2027-01-11", fim: "2027-01-25", dias: 15 }],
+    bloqueioAuxilioTransporte: true,
+    responsavelLancamento: "RH Setorial (SIGEP)", lancadoEm: "2026-10-23 09:00",
+    historico: [
+      { situacao: "EM ABERTO", acao: "lancamento", data: "23/10/2026, 09:00:00", responsavel: "Gestor", responsavelMatricula: "900017", responsavelVinculo: "Efetivo" },
+    ],
+  }),
+  // RN-FOL-02 / RN-CAN-03 — Férias AGENDADA (EM ABERTO), ainda não iniciada, com o ADIANTAMENTO
+  // (remuneração + 1/3) JÁ PAGO em folha. Como o gozo está dentro da janela de adiantamento, o
+  // valor já foi antecipado. Ao editar/remanejar as datas, o valor pago torna-se indevido para o
+  // período original e o sistema gera um DÉBITO (estorno) descontado na próxima folha. Use este
+  // registro para demonstrar o aviso de débito ao remanejar (menu Ações → Editar).
+  registroBase({
+    id: 40, servidorNome: "Marcos Antunes Ribeiro", matricula: "900040", cargo: "Analista Administrativo",
+    tipoVinculo: "Efetivo", origem: "SIGEP", situacao: "EM ABERTO", orgao: "SEPLAG/MT",
+    setor: "COORD. PLANEJ. E PROJETOS DE TI",
+    periodoAquisitivoInicio: "2024-01-01", periodoAquisitivoFim: "2024-12-31",
+    parcelas: [{ id: 1, inicio: "2026-12-07", fim: "2027-01-05", dias: 30 }],
+    adiantamentoPago: true,
+    saldoFerias: 30,
+    responsavelLancamento: "RH Setorial (SIGEP)", lancadoEm: "2026-10-20 09:00",
+    historico: [
+      { situacao: "EM ABERTO", acao: "lancamento", data: "20/10/2026, 09:00:00", responsavel: "Gestor", responsavelMatricula: "900017", responsavelVinculo: "Efetivo" },
+    ],
   }),
 ];
 

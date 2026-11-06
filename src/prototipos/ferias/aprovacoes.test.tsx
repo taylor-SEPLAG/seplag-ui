@@ -12,17 +12,16 @@ beforeEach(() => {localStorage.clear();localStorage.setItem('prototype-ferias-pe
 afterEach(() => {cleanup();vi.useRealTimers();vi.restoreAllMocks();localStorage.clear();});
 const pendentes=registrosBase.filter(r => [9,10,11].includes(r.id));
 function montar() {render(<MemoryRouter><PrototiposFeriasPage /></MemoryRouter>);fireEvent.click(screen.getByRole('button',{name:/Aprovações/}));}
-it('mostra os três exemplos e as dez colunas na ordem solicitada, com alerta de validade', () => {
+it('mostra os três exemplos e as colunas na ordem solicitada, com alerta de validade', () => {
   montar();
   const tabela=screen.getByRole('table',{name:'Solicitações de férias para aprovação'});
-  expect(within(tabela).getAllByRole('columnheader').map(c => c.textContent)).toEqual(['Servidor','Matrícula / Vínculo','Órgão / Entidade','Lotação','Período','Dias','Tipo','Situação atual','Validade da solicitação','Ações']);
-  // Perfil Aprovador unificado (regras-perfis-ferias.md) agora vê Individual/Recesso (9, 11)
-  // e também os grupos de Coletivo/Lote pendentes dos exemplos de mock (cada loteId vira uma
+  expect(within(tabela).getAllByRole('columnheader').map(c => c.textContent)).toEqual(['Servidor','Matrícula / Vínculo','Órgão / Entidade','Lotação','Período','Dias','Tipo','Origem','Situação atual','Validade da solicitação','Ações']);
+  // Perfil Aprovador unificado (regras-perfis-ferias.md) vê Individual/Recesso do Portal
+  // (9, 11, 35, 36, 37, 38 = 6) e os grupos de Coletivo/Lote pendentes (cada loteId vira uma
   // única linha, agrupada): LOTE-UNEMAT-2026, LOTE-SEDUC-2026-APOIO, LOTE-SECITEC-2026-B,
-  // LOTE-UNEMAT-2026-APOIO-B — 2 individuais + 4 grupos = 6 linhas + cabeçalho.
-  expect(within(tabela).getAllByRole('row')).toHaveLength(7);
+  // LOTE-UNEMAT-2026-APOIO-B (4 grupos) = 10 solicitações. A grid pagina em 10 por página.
+  expect(within(tabela).getAllByRole('row')).toHaveLength(11);
   expect(within(tabela).getByText('Marina Costa Alves')).toBeTruthy();
-  expect(screen.getByText('Mostrando 6 de 6 solicitações')).toBeTruthy();
   fireEvent.click(screen.getByRole('button',{name:/Rejeitadas/}));
   const linha=within(tabela).getByText('Rodrigo Nunes Ferraz').closest('tr')!;
   expect(within(linha).getByText('778899 / 2')).toBeTruthy();
@@ -41,9 +40,13 @@ it('aplica filtros automaticamente, combina critérios e limpa a pesquisa', () =
   expect(within(tabela).getAllByRole('row')).toHaveLength(2);
   expect(within(tabela).getByText('Beatriz Andrade Correia')).toBeTruthy();
 });
+function abrirAcoes(linha:HTMLElement) { fireEvent.click(within(linha).getByRole('button',{name:'Mais ações'})); }
 it('rejeita com justificativa e mantém apenas Visualizar no resultado rejeitado', () => {
   montar();
-  fireEvent.click(screen.getByRole('button',{name:'Rejeitar Marina Costa Alves'}));
+  const tabela=screen.getByRole('table',{name:'Solicitações de férias para aprovação'});
+  const linhaMarina=within(tabela).getByText('Marina Costa Alves').closest('tr')! as HTMLElement;
+  abrirAcoes(linhaMarina);
+  fireEvent.click(within(linhaMarina).getByRole('button',{name:'Rejeitar'}));
   const modal=screen.getByRole('dialog',{name:'Rejeitar solicitação'});
   fireEvent.click(within(modal).getByRole('button',{name:'Rejeitar'}));
   expect(within(modal).getByText('Informe a justificativa antes de confirmar.')).toBeTruthy();
@@ -51,24 +54,33 @@ it('rejeita com justificativa e mantém apenas Visualizar no resultado rejeitado
   fireEvent.click(within(modal).getByRole('button',{name:'Rejeitar'}));
   expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).find((r:{id:number}) => r.id===9)).toMatchObject({justificativaAvaliacao:'Período não autorizado',resultadoAvaliacao:'Rejeitada'});
   fireEvent.click(screen.getByRole('button',{name:/Rejeitadas/}));
-  const linha=screen.getByRole('table',{name:'Solicitações de férias para aprovação'}).querySelector('tbody tr')!;
-  expect(within(linha as HTMLElement).getAllByRole('button')).toHaveLength(1);
-  expect(within(linha as HTMLElement).getByRole('button',{name:'Visualizar Marina Costa Alves'})).toBeTruthy();
+  const linha=screen.getByRole('table',{name:'Solicitações de férias para aprovação'}).querySelector('tbody tr')! as HTMLElement;
+  abrirAcoes(linha);
+  // No resultado rejeitado, o menu só oferece "Visualizar" (sem Validar/Rejeitar).
+  expect(within(linha).getByRole('button',{name:'Visualizar'})).toBeTruthy();
+  expect(within(linha).queryByRole('button',{name:'Validar'})).toBeNull();
+  expect(within(linha).queryByRole('button',{name:'Rejeitar'})).toBeNull();
 });
 it('valida mediante confirmação e preserva a integração de benefícios do recesso', () => {
   montar();
-  fireEvent.click(screen.getByRole('button',{name:'Validar Beatriz Andrade Correia'}));
+  const tabela=screen.getByRole('table',{name:'Solicitações de férias para aprovação'});
+  const linhaBeatriz=within(tabela).getByText('Beatriz Andrade Correia').closest('tr')! as HTMLElement;
+  abrirAcoes(linhaBeatriz);
+  fireEvent.click(within(linhaBeatriz).getByRole('button',{name:'Validar'}));
   const modal=screen.getByRole('dialog',{name:'Validar solicitação (chefia)'});
   fireEvent.click(within(modal).getByRole('button',{name:'Validar'}));
   expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).find((r:{id:number}) => r.id===11)).toMatchObject({situacao:'EM ABERTO',auxilioTransporteEfetivado:true,sigpasIntegrado:true});
-  expect(screen.queryByRole('button',{name:'Validar Beatriz Andrade Correia'})).toBeNull();
+  expect(within(screen.getByRole('table',{name:'Solicitações de férias para aprovação'})).queryByText('Beatriz Andrade Correia')).toBeNull();
 });
 it('respeita a avaliação em bloco ao acionar uma linha de lote', () => {
   const grupo=pendentes.slice(0,2).map(r => ({...r,tipo:'Lote' as const,loteId:'LOTE-TESTE',orgaoColetivo:'SEDUC' as const,dataLimiteValidacaoChefia:'2026-11-15'}));
   localStorage.setItem('prototype-ferias-perfil','DRE / RH Central');
   localStorage.setItem(STORAGE_KEY,JSON.stringify(grupo));
   montar();
-  fireEvent.click(screen.getByRole('button',{name:'Validar lote de Marina Costa Alves'}));
+  const tabela=screen.getByRole('table',{name:'Solicitações de férias para aprovação'});
+  const linhaLote=within(tabela).getByText(/Avaliação em bloco/).closest('tr')! as HTMLElement;
+  abrirAcoes(linhaLote);
+  fireEvent.click(within(linhaLote).getByRole('button',{name:'Validar lote'}));
   const modal=screen.getByRole('dialog',{name:'Validar solicitação (chefia)'});
   expect(within(modal).getByRole('note').textContent).toContain('lote completo');
   fireEvent.click(within(modal).getByRole('button',{name:'Validar'}));
@@ -77,9 +89,9 @@ it('respeita a avaliação em bloco ao acionar uma linha de lote', () => {
 it('exporta o recorte inteiro, mesmo quando a grid tem mais de uma página', () => {
   const registros=Array.from({length:23},(_,i) => ({...pendentes[0],id:900+i,servidorNome:`Pessoa ${i}`}));
   render(<AprovacoesFerias registros={registros} onVisualizar={vi.fn()} onAlterarStatus={vi.fn()} onAlterarStatusLote={vi.fn()} />);
-  expect(screen.getByText('Mostrando 10 de 23 solicitações')).toBeTruthy();
-  fireEvent.click(screen.getByRole('button',{name:'Próxima'}));
-  expect(screen.getByRole('button',{name:'2'}).getAttribute('aria-current')).toBe('page');
+  const botaoPagina2=screen.getByText('2',{selector:'.p-paginator-page'});
+  fireEvent.click(botaoPagina2);
+  expect(botaoPagina2.classList.contains('p-highlight')).toBe(true);
   const recorte=ordenarAprovacoes(filtrarAprovacoes(registros,{...filtrosAprovacaoVazios,situacao:'Pendente'}),'nome',false);
   const planilha=criarExcelAprovacoes(recorte).worksheets[0];
   expect(planilha.rowCount).toBe(24);
