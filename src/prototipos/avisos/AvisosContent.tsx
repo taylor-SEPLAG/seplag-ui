@@ -1,8 +1,11 @@
+import { AnexarDocumentoSeplag } from "../../componentes/AnexarDocumento";
+import { abrirDocumento } from "../gestaoLicencas/documentosSolicitacao";
+import { NovoInformativoModal } from "./NovoInformativoModal";
 import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { BotaoSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
-import { ModalSeplag } from "../../componentes/Modal";
+import { ModalMensagemSeplag } from "../../componentes/ModalMensagem";
 import {
   AVISOS_PATH,
   HOME_PATH,
@@ -35,6 +38,8 @@ export function AvisosContent({
   avisosPath?: string;
 }) {
   const navigate = useNavigate();
+  const [novoAberto, setNovoAberto] = useState(false);
+  const [mensagem, setMensagem] = useState("");
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState<Categoria>("todos");
   const [leituraId, setLeituraId] = useState<number | null>(null);
@@ -72,7 +77,28 @@ export function AvisosContent({
             <p>Consulte os comunicados cadastrados no Painel Informativo.</p>
           </div>
         </div>
+        <BotaoSeplag
+          type="button"
+          label="Novo Informativo"
+          icon="pi pi-plus"
+          onClick={() => {
+            setMensagem("");
+            setNovoAberto(true);
+          }}
+        />
       </header>
+      {mensagem && <p role="status">{mensagem}</p>}
+      {novoAberto && (
+        <NovoInformativoModal
+          fechar={() => setNovoAberto(false)}
+          adicionado={(aviso) => {
+            setNovoAberto(false);
+            setBusca("");
+            setCategoria(categoriaAviso(aviso));
+            setMensagem("Informativo cadastrado com sucesso.");
+          }}
+        />
+      )}
       <section
         className="sigep-avisos-resumo"
         aria-label="Categorias dos avisos"
@@ -196,39 +222,26 @@ export function AvisosContent({
           </div>
         )}
       </section>
-      <ModalSeplag
+      <ModalMensagemSeplag
         visible={!!leitura}
-        titulo={leitura?.titulo}
-        ariaLabel={leitura ? `Comunicado: ${leitura.titulo}` : "Comunicado"}
+        titulo={leitura?.titulo ?? "Comunicado"}
+        tipo={leitura ? categoriaAviso(leitura) : "informativo"}
+        data={leitura?.dataPostagem || "Data não informada"}
         fechar={fechar}
-        tamanho="min(720px, 94vw)"
-        customFooter={
-          <BotaoSeplag
-            type="button"
-            label="Fechar"
-            icon="pi pi-times"
-            onClick={fechar}
-          />
+        anexos={
+          leitura?.documentos?.length ? (
+            <AnexarDocumentoSeplag
+              cols="12"
+              label="Documentos anexados"
+              arquivosBase64={leitura.documentos}
+              handleViewArquivo={(arquivo) => abrirDocumento(arquivo)}
+              onDownloadArquivo={(arquivo) => abrirDocumento(arquivo, true)}
+            />
+          ) : undefined
         }
       >
-        {leitura && (
-          <div
-            className="sigep-avisos-leitura"
-            style={cores(metaAviso(leitura))}
-          >
-            <div>
-              <span className="sigep-avisos-tag">
-                {metaAviso(leitura).singular}
-              </span>
-              <span className="sigep-avisos-data">
-                <i className="pi pi-calendar" aria-hidden="true" />
-                {leitura.dataPostagem || "Data não informada"}
-              </span>
-            </div>
-            <p>{leitura.texto}</p>
-          </div>
-        )}
-      </ModalSeplag>
+        <p>{leitura?.texto}</p>
+      </ModalMensagemSeplag>
     </main>
   );
 }

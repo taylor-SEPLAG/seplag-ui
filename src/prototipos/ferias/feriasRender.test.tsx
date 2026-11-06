@@ -14,7 +14,7 @@ it("renderiza a concessão de férias com registros, tags de situação e pagina
 });
 
 // CA09: lançar uma nova solicitação é ação exclusiva do perfil Gestor — o Aprovador só
-// valida/reprova/exclui/força reabertura, nunca lança (mesma regra do painel de calendário).
+// valida/reprova/exclui, nunca lança (mesma regra do painel de calendário).
 it("CA09 — oculta 'Nova solicitação de férias' para o perfil Aprovador", () => {
   localStorage.clear();
   render(<MemoryRouter><PrototiposFeriasPage /></MemoryRouter>);

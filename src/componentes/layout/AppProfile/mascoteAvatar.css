@@ -1,0 +1,125 @@
+.sigep-mascote-avatar {
+  display: block;
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e6eff8;
+}
+.layout-compact-navigation .sigep-mascote-avatar {
+  width: 96px;
+  height: 96px;
+}
+.layout-compact-navigation.layout-navigation-collapsed .sigep-mascote-avatar {
+  width: 44px;
+  height: 44px;
+}
+.sigep-mascote-avatar > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.layout-profile .sigep-mascote-avatar img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: cover;
+  object-position: center 23%;
+  border-radius: 50%;
+}
+.sigep-mascote-avatar .sigep-mascote-anterior {
+  z-index: 1;
+}
+.sigep-mascote-avatar .sigep-mascote-atual {
+  z-index: 2;
+}
+.sigep-mascote-transicao .sigep-mascote-anterior {
+  animation: sigep-mascote-sair 150ms ease-out forwards;
+}
+.sigep-mascote-transicao .sigep-mascote-atual {
+  animation: sigep-mascote-entrar 300ms ease-in-out both;
+}
+@keyframes sigep-mascote-sair {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes sigep-mascote-entrar {
+  0%,
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sigep-mascote-transicao .sigep-mascote-anterior {
+    animation: none;
+    opacity: 0;
+  }
+  .sigep-mascote-transicao .sigep-mascote-atual {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.layout-profile .layout-profile-avatar .sigep-mascote-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sigep-mascote-avatar .sigep-mascote-quadro {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.sigep-mascote-piscada {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-size: 400% 300%;
+  background-repeat: no-repeat;
+  background-position-x: 0%;
+  z-index: 1;
+  pointer-events: none;
+  animation: sigep-piscar 3s steps(1, end) infinite;
+}
+@keyframes sigep-piscar {
+  0%,
+  14% {
+    background-position-x: 0%;
+  }
+  15% {
+    background-position-x: 33.333333%;
+  }
+  18% {
+    background-position-x: 66.666667%;
+  }
+  21% {
+    background-position-x: 33.333333%;
+  }
+  24%,
+  100% {
+    background-position-x: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sigep-mascote-piscada {
+    display: none;
+    animation: none;
+  }
+}

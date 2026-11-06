@@ -7,6 +7,23 @@ export type FolhaPagamentoSituacao =
   | "PROCESSO_COM_ERRO"
   | "PROCESSO_COM_FALHAS";
 
+export interface ProcessamentoFolhaForm {
+  numeroFolha?: string;
+  nomeFolha?: string;
+  competencia?: string;
+  tipoExecucao?: "PARCIAL" | "TOTAL";
+  orgaos?: string[];
+  setores?: string[];
+  regimesJuridicos?: string[];
+  tiposVinculo?: string[];
+  carreiras?: string[];
+  unidades?: string[];
+  categorias?: string[];
+  subcategorias?: string[];
+  cargos?: string[];
+  grupoEleitos?: string;
+}
+
 export type FolhaCompetenciaSituacao =
   | "ATIVA"
   | "PLANEJADA"
@@ -180,6 +197,9 @@ export interface FolhaPagamentoForm {
   orgaos?: string[];
   abrangenciaRegimeJuridico?: string[];
   abrangenciaTipoVinculo?: string[];
+  abrangenciaCarreiras?: string[];
+  abrangenciaUnidades?: string[];
+  abrangenciaCargos?: string[];
   abrangenciaInstituicao?: string[];
   abrangenciaSetores?: string[];
   abrangenciaSubcategorias?: string[];

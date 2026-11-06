@@ -1,0 +1,113 @@
+.sigep-modal-mensagem {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 35px #102b5626;
+}
+.sigep-modal-mensagem .p-dialog-header {
+  align-items: flex-start;
+  padding: 24px;
+  border-bottom: 1px solid #dce5f0;
+  background: #fff;
+}
+.sigep-modal-mensagem .p-dialog-title {
+  flex: 1;
+  min-width: 0;
+}
+.sigep-mensagem-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding-right: 12px;
+}
+.sigep-mensagem-icone {
+  display: grid;
+  place-items: center;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  color: var(--mensagem-cor);
+  background: var(--mensagem-fundo);
+}
+.sigep-mensagem-icone i {
+  font-size: 30px;
+}
+.sigep-mensagem-identificacao {
+  min-width: 0;
+}
+.sigep-mensagem-identificacao h2 {
+  margin: 0 0 10px;
+  font-size: 21px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: #173b63;
+  overflow-wrap: anywhere;
+}
+.sigep-mensagem-metadados {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 400;
+}
+.sigep-mensagem-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--mensagem-cor);
+  background: var(--mensagem-fundo);
+  font-weight: 600;
+}
+.sigep-mensagem-data {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #60758d;
+}
+.sigep-modal-mensagem .p-dialog-content {
+  padding: 24px;
+  background: #fff;
+}
+.sigep-mensagem-conteudo {
+  color: #234a73;
+  font-size: 15px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.sigep-mensagem-conteudo p {
+  margin: 0;
+}
+.sigep-mensagem-anexos {
+  margin-top: 20px;
+}
+.sigep-modal-mensagem .p-dialog-footer {
+  padding: 0 24px 24px;
+  background: #fff;
+}
+.sigep-mensagem-acoes {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.sigep-mensagem-acoes .p-button {
+  width: auto;
+}
+@media (max-width: 480px) {
+  .sigep-mensagem-cabecalho {
+    gap: 12px;
+  }
+  .sigep-mensagem-icone {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+  }
+  .sigep-mensagem-icone i {
+    font-size: 24px;
+  }
+  .sigep-mensagem-identificacao h2 {
+    font-size: 18px;
+  }
+}

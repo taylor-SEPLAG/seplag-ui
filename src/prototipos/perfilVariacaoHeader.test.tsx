@@ -2,9 +2,25 @@
 import { afterEach, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
-import { PrototypeSystemPage, PrototiposIngressosTestePage, PrototiposIngressoGeralPage } from './PrototiposPage';
+import { PrototypeSystemPage, PrototiposIngressosTestePage, PrototiposIngressoGeralPage, PrototiposFolhaSolicitacoesAjustesPage } from './PrototiposPage';
 
 afterEach(() => { cleanup(); localStorage.clear(); });
+
+it('usa o seletor do header nas solicitações de ajustes e mantém as ações de cada perfil', () => {
+  render(<MemoryRouter><PrototiposFolhaSolicitacoesAjustesPage /></MemoryRouter>);
+  const seletor = screen.getByLabelText('Perfil da variação');
+  const destino = document.querySelector('.sigep-profile-slot')!;
+  expect(destino.contains(seletor)).toBe(true);
+  expect(document.querySelector('.layout-content')!.contains(seletor)).toBe(false);
+  expect(screen.getAllByLabelText('Perfil da variação')).toHaveLength(1);
+  expect(screen.getByRole('button', { name: 'Nova Solicitação' })).toBeTruthy();
+  fireEvent.change(seletor, { target: { value: 'FOLHA' } });
+  expect(screen.getByLabelText('Perfil da variação: João Silva - Folha de Pagamento')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Nova Solicitação' })).toBeNull();
+  fireEvent.change(seletor, { target: { value: 'CONFORMIDADE' } });
+  expect(screen.getByLabelText('Perfil da variação: Maria de Souza - Conformidade')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Nova Solicitação' })).toBeTruthy();
+});
 
 it('coloca o seletor entre a busca e o sistema, sem duplicá-lo no conteúdo', () => {
   render(<MemoryRouter><PrototiposIngressosTestePage /></MemoryRouter>);

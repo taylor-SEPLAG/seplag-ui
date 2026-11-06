@@ -29,7 +29,6 @@ interface Props {
 
 export function PaginaInicialContent({
   menu,
-  nomeUsuario,
 
   proximo,
   modulos = modulosPaginaInicial,
@@ -43,11 +42,6 @@ export function PaginaInicialContent({
     return () => window.clearInterval(timer);
   }, []);
   const destinos = funcionalidades(menu);
-  const primeiroNome = nomeUsuario.trim().split(/\s+/)[0];
-  const nome = primeiroNome
-    ? primeiroNome[0].toLocaleUpperCase("pt-BR") +
-      primeiroNome.slice(1).toLocaleLowerCase("pt-BR")
-    : "usuário";
   const painel = destinos.find((item) => item.nome === "Painel Informativo");
   const conteudoCronograma = (
     <>
@@ -72,9 +66,16 @@ export function PaginaInicialContent({
           </>
         )}
         {painel && (
-          <span className="sigep-inicial-ver-detalhes">
-            Ver detalhes <i className="pi pi-arrow-right" aria-hidden="true" />
-          </span>
+          <div className="sigep-inicial-cronograma-acoes">
+            <Link
+              to={cronogramaDestino}
+              className="sigep-inicial-ver-detalhes"
+              aria-label="Cronograma — Ver detalhes"
+            >
+              Ver detalhes{" "}
+              <i className="pi pi-arrow-right" aria-hidden="true" />
+            </Link>
+          </div>
         )}
       </div>
     </>
@@ -85,7 +86,7 @@ export function PaginaInicialContent({
       <header className="sigep-inicial-cabecalho">
         <div>
           <h1>
-            Olá, {nome}!{" "}
+            Olá, Servidor(a)!{" "}
             <span className="sigep-inicial-saudacao" aria-hidden="true">
               👋
             </span>
@@ -128,19 +129,9 @@ export function PaginaInicialContent({
             )}
           </div>
         </article>
-        {painel ? (
-          <Link
-            className="sigep-inicial-informativo sigep-inicial-cronograma sigep-inicial-cor-laranja"
-            to={cronogramaDestino}
-            aria-label="Cronograma — Ver detalhes"
-          >
-            {conteudoCronograma}
-          </Link>
-        ) : (
-          <article className="sigep-inicial-informativo sigep-inicial-cronograma sigep-inicial-cor-laranja">
-            {conteudoCronograma}
-          </article>
-        )}
+        <article className="sigep-inicial-informativo sigep-inicial-cronograma sigep-inicial-cor-laranja">
+          {conteudoCronograma}
+        </article>
       </section>
 
       <section aria-labelledby="sigep-acesso-rapido">
@@ -150,6 +141,7 @@ export function PaginaInicialContent({
         </div>
         <div className="sigep-inicial-modulos">
           {[...modulos]
+            .filter((modulo) => modulo.nome !== "Painel Informativo")
             .sort(
               (a, b) =>
                 Number(favoritos.includes(b.nome)) -

@@ -25,7 +25,7 @@ import { RedmineTutorial } from "./RedmineTutorial";
 import { DashboardNomeadosPage } from "./prototipos/ingresso/DashboardNomeadosPage";
 import { DashboardIngressoPage } from "./prototipos/ingresso/DashboardIngressoPage";
 import { PaginaInicialPage } from "./prototipos/paginaInicial/PaginaInicialPage";
-import { CalendarioCronogramaPage } from "./prototipos/cronograma/CalendarioCronogramaPage";
+import { CalendarioCronogramaPage, ConfigurarCronogramaPage } from "./prototipos/cronograma/CalendarioCronogramaPage";
 import { AvisosPage } from "./prototipos/avisos/AvisosPage";
 import { VidaFuncionalPage } from "./prototipos/vidaFuncional/VidaFuncionalPage";
 import { EncerrarVinculoPage } from "./prototipos/encerramentoVinculo/EncerrarVinculoPage";
@@ -152,8 +152,10 @@ import {
   PrototiposFolhaPagamentoPage,
   PrototiposFolhaProcessamentoFormPage,
   PrototiposFolhaSolicitacoesAjustesPage,
+  PrototiposFolhaParametrosPage,
   PrototiposFolhaTabelaReferenciaVigenciaFormPage,
   PrototiposFolhaTabelasReferenciaPage,
+  PrototiposFolhaValoresReferenciaPage,
   PrototiposFolhaValorReferenciaVigenciaFormPage,
   PrototiposFolhaConformidadePage,
   PrototiposFolhaPenhoraJudicialPage,
@@ -678,7 +680,7 @@ function CalendarioPage() {
     ],
     [
       { start: 2, end: 2, track: 2, label: "Planning Sprint 22", type: "orange" },
-      { start: 4, end: 4, track: 1, label: "FERIADO", type: "holiday" },
+      { start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" },
       { start: 2, end: 7, track: 3, label: "SPRINT DEV 22", type: "blue" },
       { start: 2, end: 7, track: 4, label: "SPRINT TESTE 21", type: "lightBlue" },
     ],
@@ -1653,6 +1655,7 @@ function App() {
       />
       <Route path="/prototipos/sigep" element={<Navigate to="/prototipos/sigep/pagina-inicial" replace />} />
       <Route path="/prototipos/sigep/pagina-inicial" element={<PaginaInicialPage />} />
+      <Route path="/prototipos/sigep/cronograma/configurar" element={<ConfigurarCronogramaPage />} />
       <Route path="/prototipos/sigep/cronograma" element={<CalendarioCronogramaPage />} />
       <Route path="/prototipos/sigep/avisos-importantes" element={<AvisosPage />} />
       <Route path="/prototipos/sigep/cadastro" element={<PrototiposCadastroGeralPage />} />
@@ -2317,8 +2320,16 @@ function App() {
         element={<PrototiposFolhaGrupoEleitosPage />}
       />
       <Route
+        path="/prototipos/folha/parametros"
+        element={<PrototiposFolhaParametrosPage />}
+      />
+      <Route
         path="/prototipos/folha/tabelas-referencia"
         element={<PrototiposFolhaTabelasReferenciaPage />}
+      />
+      <Route
+        path="/prototipos/folha/valores-referencia"
+        element={<PrototiposFolhaValoresReferenciaPage />}
       />
       <Route
         path="/prototipos/folha/tabelas-referencia/:tabelaId/vigencias/novo"

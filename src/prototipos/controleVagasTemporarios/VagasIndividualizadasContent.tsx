@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ModalSeplag, BotaoLimparFiltroSeplag, BotaoVoltarSeplag } from "../../componentes";
 import { TablePaginadoSeplag, type ColumnMetaSeplag } from "../../componentes/TablePaginado";
 import type { ResultsSeplag } from "../../interfaces/Results";
-import { listarQuadrosTemporarios, seletivoTemporario, type QuadroTemporarioCadastro } from "./novoQuadroTemporarioStore";
+import { listarQuadrosTemporarios, saldosCadastroReservaPorCargo, seletivoTemporario, type QuadroTemporarioCadastro } from "./novoQuadroTemporarioStore";
 import { listarCargosControleVagasTemporarias } from "./cargosTemporariosStore";
 import { useControlePssStore } from "../controlePss/controlePssStore";
 import "./vagasIndividualizadas.css";
@@ -98,7 +98,7 @@ export function VagasIndividualizadasContent() {
       <Kpi label="Vagas temporárias previstas" value={previstas} icon="pi pi-clock" />
     </section>
     <section className="temporarios-vagas-kpis temporarios-vagas-kpis-status" aria-label="Indicadores do quadro selecionado">
-      <Kpi label="Vagas temporárias reais" value={reais} icon="pi pi-list" />
+      <Kpi label="Vagas temporárias autorizadas" value={reais} icon="pi pi-list" />
       <Kpi label="Vagas disponíveis" value={disponiveis} icon="pi pi-check-circle" kind="available" />
       <Kpi label="Vagas em ocupação" value={emOcupacao} icon="pi pi-user-plus" kind="warning" />
       <Kpi label="Vagas ocupadas" value={ocupadas} icon="pi pi-users" kind="occupied" />
@@ -141,22 +141,15 @@ export function VagasIndividualizadasContent() {
 
 function gerarVagas(quadro: QuadroTemporarioCadastro): VagaTemporaria[] {
   const legal: SituacaoLegal = quadro.situacao === "ATIVO" ? "ATIVA" : quadro.situacao === "EXTINTO" ? "EXTINTA" : "ENCERRADA";
-  const cargoReferencia = quadro.cargos[0];
-  return Array.from({ length: quadro.totalAutorizado }, (_, indice) => {
-    const sequencial = indice + 1;
-    return {
-    id: `${quadro.id}-${sequencial}`,
-    codigo: `${quadro.codigo}-${String(sequencial).padStart(3, "0")}`,
-    quadro, cargo: cargoReferencia,
-    orgaoDestino: "",
-    situacaoOcupacao: legal === "ATIVA" ? "DISPONIVEL" : "DISPONIVEL",
-    situacaoLegal: legal,
-    };
-  });
+  let sequencial = 0;
+  return saldosCadastroReservaPorCargo(quadro).flatMap(({ cargo, autorizado }) => Array.from({ length: autorizado }, (_, indice) => {
+    sequencial += 1;
+    return { id: `${quadro.id}-${cargo.id}-${indice + 1}`, codigo: `${quadro.codigo}-${String(sequencial).padStart(3, "0")}`, quadro, cargo, orgaoDestino: "", situacaoOcupacao: "DISPONIVEL", situacaoLegal: legal };
+  }));
 }
 function Campo({ label, children }: { label: string; children: React.ReactNode }) { return <label className="temporarios-vagas-field"><span>{label}</span>{children}</label>; }
 function Kpi({ label, value, icon, kind = "" }: { label: string; value: number; icon: string; kind?: string }) { return <article className={kind}><i className={icon} /><div><span>{label}</span><strong>{value.toLocaleString("pt-BR")}</strong></div></article>; }
 function OcupacaoBadge({ situacao }: { situacao: SituacaoOcupacao }) { return <span className={`temporarios-vagas-badge ${situacao.toLowerCase()}`}>{rotuloOcupacao[situacao]}</span>; }
 function LegalBadge({ situacao }: { situacao: SituacaoLegal }) { return <span className={`temporarios-vagas-badge legal ${situacao.toLowerCase()}`}>{rotuloLegal[situacao]}</span>; }
-function DetalheVaga({ vaga, onClose }: { vaga: VagaTemporaria; onClose: () => void }) { return <ModalSeplag visible titulo={`Detalhe da vaga ${vaga.codigo}`} ariaLabel={`Detalhe da vaga ${vaga.codigo}`} tamanho="min(900px, 94vw)" fechar={onClose} customFooter={<BotaoVoltarSeplag type="button" label="Fechar" icon="pi pi-times" onClick={onClose} />}><div className="temporarios-vagas-detail"><section><h3>Vinculação</h3><dl><Dado label="Quadro" value={vaga.quadro.codigo} /><Dado label="Processo seletivo" value={vaga.quadro.certame.nomeEdital} /><Dado label="Cargo" value="Será informado pelo ingresso" /><Dado label="Órgão de destino" value={vaga.orgaoDestino || "Será informado pelo ingresso"} /><Dado label="Jornada" value="Será informada pelo ingresso" /></dl></section><section><h3>Situação</h3><div className="temporarios-vagas-detail-badges"><OcupacaoBadge situacao={vaga.situacaoOcupacao} /><LegalBadge situacao={vaga.situacaoLegal} /></div><p>Não há ocupante ou processo de ingresso vinculado a esta vaga.</p></section></div></ModalSeplag>; }
+function DetalheVaga({ vaga, onClose }: { vaga: VagaTemporaria; onClose: () => void }) { return <ModalSeplag visible titulo={`Detalhe da vaga ${vaga.codigo}`} ariaLabel={`Detalhe da vaga ${vaga.codigo}`} tamanho="min(900px, 94vw)" fechar={onClose} customFooter={<BotaoVoltarSeplag type="button" label="Fechar" icon="pi pi-times" onClick={onClose} />}><div className="temporarios-vagas-detail"><section><h3>Vinculação</h3><dl><Dado label="Quadro" value={vaga.quadro.codigo} /><Dado label="Processo seletivo" value={vaga.quadro.certame.nomeEdital} /><Dado label="Cargo autorizado no edital" value={vaga.cargo.cargoNome} /><Dado label="Cargo do ingresso" value="Será informado pelo ingresso" /><Dado label="Órgão de destino" value={vaga.orgaoDestino || "Será informado pelo ingresso"} /><Dado label="Jornada" value="Será informada pelo ingresso" /></dl></section><section><h3>Situação</h3><div className="temporarios-vagas-detail-badges"><OcupacaoBadge situacao={vaga.situacaoOcupacao} /><LegalBadge situacao={vaga.situacaoLegal} /></div><p>Não há ocupante ou processo de ingresso vinculado a esta vaga.</p></section></div></ModalSeplag>; }
 function Dado({ label, value }: { label: string; value?: string }) { return <div><dt>{label}</dt><dd>{value || "Não informado"}</dd></div>; }

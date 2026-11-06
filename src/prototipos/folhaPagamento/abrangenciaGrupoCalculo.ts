@@ -173,6 +173,15 @@ export function lerAbrangenciaGrupo(
   fallback = abrangenciaVazia(),
 ): CriteriosAbrangencia {
   try {
+    if (!id.includes(":")) {
+      const revisoes = JSON.parse(localStorage.getItem("sigep:grupo-calculo:revisoes-aprovadas") ?? "[]");
+      if (Array.isArray(revisoes)) {
+        for (const revisao of [...revisoes].reverse()) {
+          const grupo = revisao.grupos?.find((g: { id: number }) => String(g.id) === id);
+          if (grupo?.criterios) return grupo.criterios;
+        }
+      }
+    }
     const valor = JSON.parse(
       localStorage.getItem(chave(id)) ?? "null",
     )?.criterios;

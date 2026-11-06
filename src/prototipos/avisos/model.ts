@@ -43,8 +43,8 @@ export const categorias = [
   },
   {
     id: "regra",
-    nome: "Regras",
-    singular: "Regra",
+    nome: "Avisos",
+    singular: "Aviso",
     icon: "pi pi-thumbtack",
     cor: "#ec2875",
     iconeFundo: "#fce0ec",

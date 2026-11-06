@@ -1,10 +1,14 @@
 import type { Certame, CargoVagaCertame } from "../controlePss/certame/types";
 
 export type SituacaoQuadroTemporario = "ATIVO" | "EXTINTO" | "ENCERRADO";
+export interface AmpliacaoCargoTemporario { cargoId: string; quantidade: number; }
 export interface VersaoQuadroTemporario {
   versao: number; evolucao: "CRIACAO" | "AMPLIACAO"; quantidade: number;
   totalAutorizado: number; dataInicio: string; criadaEm: string; observacao?: string;
   processoSigadoc?: string; documentosLegaisIds?: string[];
+  ampliacoesPorCargo?: AmpliacaoCargoTemporario[];
+  /** Ampliação registrada antes do controle individual por cargo. */
+  ampliacaoLegadaSemCargo?: boolean;
 }
 export interface QuadroTemporarioCadastro {
  id: string; codigo: string; certameId: string; certame: Certame;
@@ -29,10 +33,16 @@ const normalizar = (item: Partial<QuadroTemporarioCadastro>): QuadroTemporarioCa
  // Registros anteriores não tinham versões e gravavam vagasReais como zero;
  // a migração considera a previsão do edital como a autorização inicial.
  const autorizado = item.totalAutorizado ?? (item.versoes?.length ? item.vagasReais ?? previsto : previsto);
+ const cargos = item.cargos ?? item.certame!.cargos.map(cargo => ({ ...cargo, modoControle: cargo.aceitaCadastroReserva ? "AMPLIAVEL" as const : "LIMITADO" as const, limiteVagas: cargo.aceitaCadastroReserva ? undefined : cargo.quantidadeVagas }));
+ const cargosComCr = cargos.filter((cargo) => cargo.aceitaCadastroReserva);
+ const versoes = (item.versoes?.length ? item.versoes : [{ versao: 1, evolucao: "CRIACAO" as const, quantidade: previsto, totalAutorizado: previsto, dataInicio, criadaEm: item.criadoEm ?? new Date().toISOString() }]).map((versao) => {
+  if (versao.evolucao !== "AMPLIACAO" || versao.ampliacoesPorCargo?.length) return versao;
+  // Versões legadas só podem ser atribuídas automaticamente quando o PSS tinha um único cargo com CR.
+  return cargosComCr.length === 1 ? { ...versao, ampliacoesPorCargo: [{ cargoId: cargosComCr[0].id, quantidade: versao.quantidade }] } : { ...versao, ampliacaoLegadaSemCargo: true };
+ });
  return {
   ...item, vagasReais: autorizado, totalAutorizado: autorizado, situacao: item.situacao ?? "ATIVO",
-  versoes: item.versoes?.length ? item.versoes : [{ versao: 1, evolucao: "CRIACAO", quantidade: previsto, totalAutorizado: previsto, dataInicio, criadaEm: item.criadoEm ?? new Date().toISOString() }],
-  cargos: item.cargos ?? item.certame!.cargos.map(cargo => ({ ...cargo, modoControle: cargo.aceitaCadastroReserva ? "AMPLIAVEL" : "LIMITADO", limiteVagas: cargo.aceitaCadastroReserva ? undefined : cargo.quantidadeVagas })),
+  versoes, cargos,
  } as QuadroTemporarioCadastro;
 };
 export function listarQuadrosTemporarios(): QuadroTemporarioCadastro[] {
@@ -44,6 +54,13 @@ export function seletivoTemporario(certame: Certame) {
  return certame.tipoCertame === "PSS" && ["CONTRATO_TEMPORARIO", "CONTRATO_TEMPORARIO_VINCULO_UNICO"].includes(certame.tipoVinculo);
 }
 export const possuiCadastroReserva = (quadro: Pick<QuadroTemporarioCadastro, "cargos">) => quadro.cargos.some(cargo => cargo.aceitaCadastroReserva);
+export function saldosCadastroReservaPorCargo(quadro: QuadroTemporarioCadastro) {
+ return quadro.cargos.map((cargo) => {
+  const ampliadas = quadro.versoes.reduce((total, versao) => total + (versao.ampliacoesPorCargo ?? []).filter((item) => item.cargoId === cargo.id).reduce((subtotal, item) => subtotal + item.quantidade, 0), 0);
+  const cadastroReserva = cargo.aceitaCadastroReserva ? cargo.quantidadeCadastroReserva ?? 0 : 0;
+  return { cargo, ampliadas, cadastroReserva, saldoCadastroReserva: Math.max(0, cadastroReserva - ampliadas), autorizado: cargo.quantidadeVagas + ampliadas };
+ });
+}
 export function salvarQuadroTemporario(certame: Certame, observacoes: string, dataAtivacao?: string) {
  if (!seletivoTemporario(certame) || !certame.cargos.length) throw new Error("Selecione um PSS temporário com cargos cadastrados.");
  const dataInicio = normalizarData(dataAtivacao);
@@ -60,8 +77,9 @@ export function salvarQuadroTemporario(certame: Certame, observacoes: string, da
  };
  persistir([...quadros, registro]); return registro;
 }
-export function ampliarQuadroTemporario(id: string, quantidade: number, dataInicio: string, observacao: string, processoSigadoc = "", documentosLegaisIds: string[] = []) {
- if (!Number.isInteger(quantidade) || quantidade <= 0) throw new Error("Informe uma quantidade adicional maior que zero.");
+export function ampliarQuadroTemporario(id: string, ampliacoesPorCargo: AmpliacaoCargoTemporario[], dataInicio: string, observacao: string, processoSigadoc = "", documentosLegaisIds: string[] = []) {
+ const ampliacoesValidas = ampliacoesPorCargo.filter((item) => Number.isInteger(item.quantidade) && item.quantidade > 0);
+ if (!ampliacoesValidas.length) throw new Error("Informe uma quantidade adicional para ao menos um cargo com cadastro reserva.");
  if (!dataInicio) throw new Error("Informe a data de início da ampliação.");
  const dataInicioNormalizada = normalizarData(dataInicio);
  if (dataInicioNormalizada! > hoje()) throw new Error("A data de início não pode ser futura.");
@@ -69,8 +87,15 @@ export function ampliarQuadroTemporario(id: string, quantidade: number, dataInic
  if (!quadro) throw new Error("Quadro temporário não encontrado.");
  if (quadro.situacao !== "ATIVO") throw new Error("Somente quadros ativos podem receber ampliação.");
  if (!possuiCadastroReserva(quadro)) throw new Error("Este quadro não possui cadastro reserva e não pode receber ampliação.");
+ const saldos = saldosCadastroReservaPorCargo(quadro);
+ for (const ampliacao of ampliacoesValidas) {
+  const saldo = saldos.find((item) => item.cargo.id === ampliacao.cargoId);
+  if (!saldo?.cargo.aceitaCadastroReserva) throw new Error("Somente cargos com cadastro reserva podem receber ampliação.");
+  if (ampliacao.quantidade > saldo.saldoCadastroReserva) throw new Error(`A ampliação de ${saldo.cargo.cargoNome} não pode exceder o saldo de cadastro reserva (${saldo.saldoCadastroReserva}).`);
+ }
+ const quantidade = ampliacoesValidas.reduce((total, item) => total + item.quantidade, 0);
  const totalAutorizado = quadro.totalAutorizado + quantidade;
- const versao: VersaoQuadroTemporario = { versao: quadro.versoes.length + 1, evolucao: "AMPLIACAO", quantidade, totalAutorizado, dataInicio: dataInicioNormalizada!, criadaEm: new Date().toISOString(), observacao: observacao.trim() || undefined, processoSigadoc: processoSigadoc.trim() || undefined, documentosLegaisIds: documentosLegaisIds.length ? documentosLegaisIds : undefined };
+ const versao: VersaoQuadroTemporario = { versao: quadro.versoes.length + 1, evolucao: "AMPLIACAO", quantidade, totalAutorizado, dataInicio: dataInicioNormalizada!, criadaEm: new Date().toISOString(), observacao: observacao.trim() || undefined, processoSigadoc: processoSigadoc.trim() || undefined, documentosLegaisIds: documentosLegaisIds.length ? documentosLegaisIds : undefined, ampliacoesPorCargo: ampliacoesValidas };
  const atualizado = { ...quadro, totalAutorizado, vagasReais: totalAutorizado, versoes: [...quadro.versoes, versao] };
  persistir(quadros.map(item => item.id === id ? atualizado : item)); return atualizado;
 }

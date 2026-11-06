@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
-import { BotaoVoltarSeplag } from "../../componentes/Botao";
+import { BotaoSeplag, BotaoVoltarSeplag } from "../../componentes/Botao";
 import { useNavigate } from "react-router-dom";
 import {
   CALENDARIO_CRONOGRAMA_PATH,
@@ -39,20 +39,16 @@ export function CalendarioContent({
   cronogramaPath?: string;
 }) {
   const navigate = useNavigate();
-  const [mes, setMes] = useState(calendario.competencia);
-  const [dia, setDia] = useState(
-    calendario.eventos.find((evento) =>
-      evento.inicio.startsWith(calendario.competencia),
-    )?.inicio || `${calendario.competencia}-01`,
-  );
+  const hoje = diaCuiaba(agora);
+  const [mesEscolhido, setMes] = useState<string | null>(null);
+  const [diaEscolhido, setDia] = useState<string | null>(null);
+  const mes = mesEscolhido ?? hoje.slice(0, 7);
+  const dia = diaEscolhido ?? hoje;
   const [modo, setModo] = useState<"mes" | "lista">("mes");
   const [busca, setBusca] = useState("");
-  const [tipo, setTipo] = useState("");
-  const hoje = diaCuiaba(agora);
   const filtro = normalizar(busca.trim());
   const filtrados = calendario.eventos.filter(
     (evento) =>
-      (!tipo || evento.tipoId === tipo) &&
       normalizar(`${evento.nome} ${evento.descricao}`).includes(filtro),
   );
   const noMes = eventosDoMes(filtrados, mes);
@@ -104,14 +100,24 @@ export function CalendarioContent({
               <p>{calendario.titulo}</p>
             </div>
           </div>
-          <span className="sigep-cronograma-sync">
-            <i className="pi pi-check-circle" aria-hidden="true" /> Sincronizado
-            com a folha
-          </span>
+          <div className="sigep-cronograma-header-acoes">
+            <BotaoSeplag
+              type="button"
+              label="Configurar cronograma"
+              icon="pi pi-cog"
+              onClick={() =>
+                navigate(
+                  cronogramaPath.startsWith("/prototipos/sigep/folha/")
+                    ? "/prototipos/folha/cronograma"
+                    : "/prototipos/sigep/cronograma/configurar",
+                )
+              }
+            />
+          </div>
         </header>
       </div>
       <section
-        className="sigep-cronograma-filtros"
+        className="sigep-cronograma-filtros sigep-cronograma-filtros-busca"
         aria-label="Filtros do cronograma"
       >
         <label>
@@ -123,27 +129,12 @@ export function CalendarioContent({
             onChange={(event) => setBusca(event.target.value)}
           />
         </label>
-        <label>
-          Tipo de folha
-          <select
-            value={tipo}
-            onChange={(event) => setTipo(event.target.value)}
-          >
-            <option value="">Todas as folhas</option>
-            {calendario.tipos.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.nome}
-              </option>
-            ))}
-          </select>
-        </label>
         <button
           className="sigep-cronograma-limpar"
           type="button"
           aria-label="Limpar filtro"
           onClick={() => {
             setBusca("");
-            setTipo("");
           }}
         >
           <i className="pi pi-refresh" aria-hidden="true" />{" "}
@@ -225,13 +216,13 @@ export function CalendarioContent({
               <thead>
                 <tr>
                   {[
+                    "Domingo",
                     "Segunda",
                     "Terça",
                     "Quarta",
                     "Quinta",
                     "Sexta",
                     "Sábado",
-                    "Domingo",
                   ].map((nome) => (
                     <th key={nome} scope="col">
                       <span className="sigep-cronograma-semana-longa">
@@ -321,7 +312,6 @@ export function CalendarioContent({
                     {evento.tipo}
                   </small>
                 </span>
-                <Situacao evento={evento} agora={agora} />
                 <i className="pi pi-chevron-right" aria-hidden="true" />
               </button>
             ))}
@@ -392,7 +382,6 @@ export function CalendarioContent({
                     <i className="pi pi-clock" aria-hidden="true" />
                     {evento.horario || "Não informado"}
                   </span>
-                  <Situacao evento={evento} agora={agora} />
                 </article>
               ))
             )}
@@ -400,19 +389,5 @@ export function CalendarioContent({
         </section>
       )}
     </main>
-  );
-}
-function Situacao({
-  evento,
-  agora,
-}: {
-  evento: EventoCronograma;
-  agora: Date;
-}) {
-  const situacao = situacaoEvento(evento, agora);
-  return (
-    <span className={`sigep-cronograma-tag is-${situacao.classe}`}>
-      {situacao.nome}
-    </span>
   );
 }

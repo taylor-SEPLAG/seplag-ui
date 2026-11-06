@@ -84,7 +84,7 @@ afterEach(() => {
   atualizarInformativosPaginaInicial(informativosIniciais);
 });
 
-it("o card inteiro apresenta o próximo prazo da origem e abre o calendário de consulta", () => {
+it("o card apresenta o próximo prazo da origem e abre o calendário de consulta", () => {
   const proximo = adaptarCronograma({
     tituloCiclo: "Novembro/2026",
     secoes: [
@@ -125,7 +125,8 @@ it("o card inteiro apresenta o próximo prazo da origem e abre o calendário de 
   );
   expect(screen.getByText("Próximo evento: Prazo prioritário")).toBeTruthy();
   expect(screen.getByText("Prazo: 02/11/2026 às 18:00")).toBeTruthy();
-  fireEvent.click(screen.getByRole("heading", { name: "Cronograma" }));
+  expect(screen.queryByRole("link", { name: "Configurar cronograma" })).toBeNull();
+  fireEvent.click(screen.getByRole("link", { name: "Cronograma — Ver detalhes" }));
   expect(screen.getByText("Calendário de consulta")).toBeTruthy();
 });
 

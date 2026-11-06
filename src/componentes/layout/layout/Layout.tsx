@@ -36,6 +36,8 @@ export interface LayoutSeplagProps {
   numrVinculoAtual: string | number;
   vinculos: IVinculoSeplag[];
   avatarSrc?: string;
+  avatarDinamico?: boolean;
+  mascotePerfil?: "capivara" | "onca";
   onLogout: () => void;
   onAlterarSenha: (
     senhaAtual: string,
@@ -64,6 +66,8 @@ export function LayoutSeplag({
   numrVinculoAtual,
   vinculos,
   avatarSrc,
+  avatarDinamico,
+  mascotePerfil,
   onLogout,
   onAlterarSenha,
   onSelecionarVinculo,
@@ -195,6 +199,8 @@ export function LayoutSeplag({
           numrVinculoAtual={numrVinculoAtual}
           vinculos={vinculos}
           avatarSrc={avatarSrc}
+          avatarDinamico={avatarDinamico}
+          mascotePerfil={mascotePerfil}
           onLogout={onLogout}
           onAlterarSenha={onAlterarSenha}
           onSelecionarVinculo={onSelecionarVinculo}

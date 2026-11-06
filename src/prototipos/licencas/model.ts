@@ -11,6 +11,22 @@ export const CATEGORIAS = [
   "Outros Afastamentos Legais",
 ] as const;
 export const NATUREZAS = ["Licença", "Afastamento", "Ausência"] as const;
+export const OCORRENCIAS_POR_NATUREZA: Record<(typeof NATUREZAS)[number], readonly string[]> = {
+  Licença: [
+    "Licença à Gestante / Maternidade",
+    "Licença Adotante / Parental (Maior Duração)",
+    "Licença Paternidade / Co-genitor (Menor Duração)",
+    "Licença para Tratamento da Própria Saúde",
+    "Licença por Acidente em Serviço ou Doença Profissional",
+    "Licença por Motivo de Doença em Pessoa da Família",
+    "Licença para Tratar de Interesses Particulares (LTI)",
+    "Licença por Motivo de Afastamento do Cônjuge ou Companheiro",
+    "Licença para Atividade Política",
+    "Licença para Capacitação / Estudo no Exterior",
+  ],
+  Afastamento: ["Convocação para Serviço Militar"],
+  Ausência: ["Doação Voluntária de Sangue", "Consulta Médica / Odontológica (Horas)"],
+};
 export const VINCULOS_AUTORIZADOS = [
   "Efetivo",
   "Comissionado",
