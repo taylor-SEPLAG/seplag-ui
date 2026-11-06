@@ -74,12 +74,12 @@ it("permite usufruto antecipado com portaria obrigatória na UNEMAT", async () =
 
   fireEvent.click(screen.getByRole("tab", { name: /Parcelas & Alertas/ }));
   fireEvent.click(screen.getByRole("checkbox", { name: /30 dias/ }));
-  fireEvent.click(screen.getByRole("button", { name: "Lançar Férias Coletivas do Lote" }));
+  fireEvent.click(screen.getByRole("button", { name: "Lançar Agendamento em Lote" }));
   expect(onSalvar).not.toHaveBeenCalled();
   expect(screen.getByText('Anexe a Portaria da Escala de Férias.')).toBeTruthy();
   fireEvent.change(screen.getByLabelText(/Portaria da Escala de Férias/),{target:{files:[new File(['portaria'],'portaria.pdf',{type:'application/pdf'})]}});
   await waitFor(() => expect(screen.queryByText('Armazenando documento...')).toBeNull());
-  fireEvent.click(screen.getByRole("button", { name: "Lançar Férias Coletivas do Lote" }));
+  fireEvent.click(screen.getByRole("button", { name: "Lançar Agendamento em Lote" }));
 
   expect(onSalvar).toHaveBeenCalledTimes(1);
   const registros = onSalvar.mock.calls[0][0] as FeriasRegistro[];
@@ -125,5 +125,6 @@ it("mantém visíveis e desabilitados os professores com bloqueios cadastrais", 
   const contratoSemAquisitivo = screen.getByText(/Contrato temporário sem período aquisitivo fechado/);
   const linhaTemporario = contratoSemAquisitivo.closest("tr");
   expect(linhaTemporario).toBeTruthy();
-  expect((within(linhaTemporario as HTMLTableRowElement).getByRole("checkbox") as HTMLInputElement).disabled).toBe(false);
+  // Coletiva também desabilita a inclusão com erro bloqueante (o "Lançar" barraria de qualquer forma).
+  expect((within(linhaTemporario as HTMLTableRowElement).getByRole("checkbox") as HTMLInputElement).disabled).toBe(true);
 });

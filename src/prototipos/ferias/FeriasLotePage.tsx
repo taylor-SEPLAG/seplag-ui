@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
+import { useToastSeplag } from "../../hooks/toast";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
 import { FormularioColetiva, ModalConfirmarCancelamento } from "./FeriasPages";
 import type { FeriasRegistro } from "./FeriasPages";
@@ -10,6 +11,7 @@ import "./ferias.css";
 
 export function FeriasLotePage() {
   const navigate = useNavigate();
+  const { toastSucesso } = useToastSeplag();
   const [mostrarConfirmacaoCancelar, setMostrarConfirmacaoCancelar] = useState(false);
   // Evita duplicar o lançamento se o clique disparar duas vezes antes do navigate() sair da tela.
   const salvandoRef = useRef(false);
@@ -21,6 +23,14 @@ export function FeriasLotePage() {
     const atualizados = new Map(existentes.map((registro) => [registro.id, registro]));
     registros.forEach((registro) => atualizados.set(registro.id, registro));
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...atualizados.values()]));
+    // CA06: a confirmação com os totais por duração precisa sobreviver à navegação — por isso
+    // vai num toast (a mensagem dentro do formulário sumia ao voltar para a listagem).
+    const resumo = [10, 15, 20, 30]
+      .map((duracao) => ({ duracao, total: registros.filter((r) => r.parcelas.some((p) => p.dias === duracao)).length }))
+      .filter(({ total }) => total > 0)
+      .map(({ duracao, total }) => `${total} parcela(s) de ${duracao} dias`)
+      .join(", ");
+    toastSucesso(`Lote lançado: ${resumo} criada(s). Lançado por Usuário atual em ${new Date().toLocaleString("pt-BR")}.`);
     navigate("/prototipos/sigep/ferias");
   };
 

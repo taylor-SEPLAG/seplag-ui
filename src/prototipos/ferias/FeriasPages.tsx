@@ -3318,19 +3318,53 @@ export function FormularioColetiva({
 
   const professoresIncluidos = useMemo(
     () => professoresDaLotacao.filter((professor) =>
-      (!modoAgendamentoLote || (!professor.cargoGestao && errosDe(professor).length === 0)) &&
+      // Lote: erro bloqueante impede a inclusão; cargo de gestão/apoio entra normalmente (RN001).
+      (!modoAgendamentoLote || errosDe(professor).length === 0) &&
       (selecionados[professor.id]?.incluido ?? false),
     ),
     [professoresDaLotacao, selecionados, modoAgendamentoLote, errosDe],
   );
+
+  /** Coletiva: dias de julho (15) e janeiro (30) já marcados para o professor. */
+  const diasMarcadosColetiva = (professor: ProfessorLote) =>
+    (estadoLinha(professor.id).julho ? 15 : 0) + (estadoLinha(professor.id).janeiro ? 30 : 0);
+
+  /** Coletiva: motivo para não permitir marcar a parcela (mesma regra do Lote — não ultrapassa o
+   * saldo restante nem deixa resíduo de 5 dias). null = pode marcar. */
+  const motivoBloqueioParcelaColetiva = (professor: ProfessorLote, campo: "julho" | "janeiro"): string | null => {
+    const dias = campo === "julho" ? 15 : 30;
+    const saldoRestante = professor.saldo - diasMarcadosColetiva(professor);
+    if (duracoesPermitidas(saldoRestante, professor.orgao, professor.cargo).includes(dias)) return null;
+    if (dias > saldoRestante) return `Ultrapassaria o saldo restante de ${saldoRestante} dias`;
+    if (saldoRestante - dias === 5) return "Deixaria saldo residual de 5 dias";
+    return "Duração não permitida para este cargo/órgão";
+  };
+
+  /** Coletiva: marca/desmarca a parcela para todos os incluídos, pulando quem ficaria bloqueado. */
+  const selecionarTodosParcelaColetiva = (campo: "julho" | "janeiro", valor: boolean) => {
+    setSelecionados((atual) => {
+      const proximo = { ...atual };
+      professoresIncluidos.forEach((professor) => {
+        const estado = estadoLinha(professor.id);
+        if (valor && !estado[campo] && motivoBloqueioParcelaColetiva(professor, campo) !== null) return;
+        proximo[professor.id] = { ...estado, [campo]: valor };
+      });
+      return proximo;
+    });
+  };
 
   const selecionarTodosParcelaLote = (duracao: DuracaoLote, valor: boolean) => {
     setSelecionados((atual) => {
       const proximo = { ...atual };
       professoresIncluidos.forEach((professor) => {
         const estado = estadoLinha(professor.id);
-        // Não marca quem já ultrapassaria o saldo com essa parcela — igual ao bloqueio linha a linha.
-        if (valor && !estado.parcelasLote[duracao] && somaDiasSelecionadosLote(professor) + duracao > professor.saldo) return;
+        // Mesma regra do bloqueio linha a linha: não marca se ultrapassaria o saldo restante ou
+        // deixaria resíduo de 5 dias (duracoesPermitidas sobre o saldo que sobra).
+        if (
+          valor &&
+          !estado.parcelasLote[duracao] &&
+          !duracoesPermitidas(professor.saldo - somaDiasSelecionadosLote(professor), professor.orgao, professor.cargo).includes(duracao)
+        ) return;
         proximo[professor.id] = { ...estado, parcelasLote: { ...estado.parcelasLote, [duracao]: valor } };
       });
       return proximo;
@@ -3399,6 +3433,19 @@ export function FormularioColetiva({
           erros.push(`Informe a data de início da parcela de ${duracao} dias.`);
         }
       });
+      // Parcelas do mesmo servidor não podem se sobrepor (as 4 durações vêm com a mesma data
+      // padrão). O intervalo de 0 ou 10 dias da Individual NÃO é exigido na escala em lote —
+      // pendente de decisão (barraria escalas válidas, ex.: 10 dias em julho e 20 em janeiro).
+      incluidos.forEach((professor) => {
+        const parcelasServidor = DURACOES_LOTE
+          .filter((duracao) => estadoLinha(professor.id).parcelasLote[duracao] && iniciosParcelasLote[duracao])
+          .map((duracao) => ({ inicio: iniciosParcelasLote[duracao], fim: fimParcelasLote[duracao] }))
+          .sort((a, b) => a.inicio.localeCompare(b.inicio));
+        const sobreposta = parcelasServidor.find((parcela, i) => i > 0 && parcela.inicio <= parcelasServidor[i - 1].fim);
+        if (sobreposta) {
+          erros.push(`${professor.nome}: parcelas sobrepostas (${formatarDataBr(sobreposta.inicio)} começa antes do fim da parcela anterior) — ajuste as datas de início.`);
+        }
+      });
     } else {
       const semParcela = incluidos.filter((professor) => !estadoLinha(professor.id).julho && !estadoLinha(professor.id).janeiro);
       if (semParcela.length) {
@@ -3406,10 +3453,24 @@ export function FormularioColetiva({
       }
       if (marcadosJulho.length && !inicioJulho) erros.push("Informe a data de início da parcela de julho.");
       if (marcadosJaneiro.length && !inicioJaneiro) erros.push("Informe a data de início da parcela de janeiro.");
-      if (!marcadosJulho.length && !marcadosJaneiro.length) {
-        erros.push("Marque ao menos uma parcela (julho ou janeiro) na aba 2 antes de lançar.");
-      }
+      // (A mensagem "Marque ao menos uma parcela…" já cobre o caso de nenhuma parcela marcada.)
     }
+
+    // Concomitância com agendamento ativo já gravado para o servidor (Coletiva e Lote).
+    incluidos.forEach((professor) => {
+      const periodos = modoAgendamentoLote
+        ? DURACOES_LOTE
+            .filter((duracao) => estadoLinha(professor.id).parcelasLote[duracao] && iniciosParcelasLote[duracao])
+            .map((duracao) => ({ inicio: iniciosParcelasLote[duracao], fim: fimParcelasLote[duracao] }))
+        : [
+            ...(estadoLinha(professor.id).julho && inicioJulho ? [{ inicio: inicioJulho, fim: fimJulho }] : []),
+            ...(estadoLinha(professor.id).janeiro && inicioJaneiro ? [{ inicio: inicioJaneiro, fim: fimJaneiro }] : []),
+          ];
+      const conflito = periodos
+        .map((periodo) => conflitoFeriasServidor(professor.matricula, periodo.inicio, periodo.fim))
+        .find(Boolean);
+      if (conflito) erros.push(`${professor.nome}: ${mensagemConflitoAgendamento(conflito)}`);
+    });
 
     if (erros.length) {
       setErro(erros);
@@ -3530,10 +3591,10 @@ export function FormularioColetiva({
           </label>
           <small>
             {perfilLote === "SECRETARIO_SEDUC"
-              ? "Lança férias coletivas somente para a escola vinculada; a validação acontece na aba Aprovações."
+              ? "O Secretário escolar da SEDUC lança o lote para uma escola ou para todas; a validação acontece na aba Aprovações, pelo perfil Aprovador."
               : perfilLote === "GESTAO_UNEMAT"
-                  ? "A Gestão de Pessoas da UNEMAT visualiza todas as unidades e lança o lote; a validação da chefia acontece à parte, na aba Avaliar e Aprovar."
-                  : "A Gestão de Pessoas da SECITEC visualiza todas as escolas técnicas e lança o lote; a validação da chefia acontece à parte, na aba Avaliar e Aprovar."}
+                  ? "A Gestão de Pessoas da UNEMAT visualiza todas as unidades e lança o lote; a validação acontece na aba Aprovações, pelo perfil Aprovador."
+                  : "A Gestão de Pessoas da SECITEC visualiza todas as escolas técnicas e lança o lote; a validação acontece na aba Aprovações, pelo perfil Aprovador."}
           </small>
         </section>
       ) : null}
@@ -3555,6 +3616,9 @@ export function FormularioColetiva({
                 role="tab"
                 aria-selected={abaColetiva === etapa.numero}
                 aria-controls={etapa.painel}
+                // Mesma regra do botão "Avançar": a etapa 2 só abre com ao menos 1 servidor incluído.
+                disabled={etapa.numero === 2 && !professoresIncluidos.length}
+                title={etapa.numero === 2 && !professoresIncluidos.length ? "Inclua ao menos 1 servidor para avançar." : undefined}
                 onClick={() => setAbaColetiva(etapa.numero as 1 | 2)}
               >
                 <span className="prototype-ferias-coletiva-step-numero">{etapa.numero}</span>
@@ -3741,17 +3805,17 @@ export function FormularioColetiva({
                 const temAviso = comAvisoNaLotacao.has(professor.id);
                 const erros = errosDe(professor);
                 const avisos = avisosDe(professor);
-                const trClasse = modoAgendamentoLote && professor.cargoGestao
-                  ? "prototype-ferias-linha-desabilitada"
-                  : temErro
-                    ? "prototype-ferias-linha-com-erro"
-                    : "";
+                // RN001 (Lote): cargo de gestão/apoio é o próprio público-alvo — não fica
+                // desabilitado; só erro bloqueante destaca a linha.
+                const trClasse = temErro ? "prototype-ferias-linha-com-erro" : "";
                 return (
                   <tr key={professor.id} className={trClasse}>
                     <td>
                       <input
                         type="checkbox"
-                        disabled={modoAgendamentoLote && erros.length > 0}
+                        // Erro bloqueante desabilita a inclusão na Coletiva e no Lote: marcar não
+                        // teria efeito, pois o "Lançar" barra servidor com erro. Aviso continua selecionável.
+                        disabled={erros.length > 0}
                         checked={estado.incluido}
                         title={temErro ? erros.join("; ") : undefined}
                         onChange={(event) => alternarLinha(professor, "incluido", event.target.checked)}
@@ -3993,16 +4057,7 @@ export function FormularioColetiva({
                               <input
                                 type="checkbox"
                                 checked={professoresIncluidos.length > 0 && professoresIncluidos.every((professor) => estadoLinha(professor.id).julho)}
-                                onChange={(event) => {
-                                  const valor = event.target.checked;
-                                  setSelecionados((atual) => {
-                                    const proximo = { ...atual };
-                                    professoresIncluidos.forEach((professor) => {
-                                      proximo[professor.id] = { ...estadoLinha(professor.id), julho: valor };
-                                    });
-                                    return proximo;
-                                  });
-                                }}
+                                onChange={(event) => selecionarTodosParcelaColetiva("julho", event.target.checked)}
                               />
                               {" "}Julho (15 dias)
                             </label>
@@ -4015,16 +4070,7 @@ export function FormularioColetiva({
                               <input
                                 type="checkbox"
                                 checked={professoresIncluidos.length > 0 && professoresIncluidos.every((professor) => estadoLinha(professor.id).janeiro)}
-                                onChange={(event) => {
-                                  const valor = event.target.checked;
-                                  setSelecionados((atual) => {
-                                    const proximo = { ...atual };
-                                    professoresIncluidos.forEach((professor) => {
-                                      proximo[professor.id] = { ...estadoLinha(professor.id), janeiro: valor };
-                                    });
-                                    return proximo;
-                                  });
-                                }}
+                                onChange={(event) => selecionarTodosParcelaColetiva("janeiro", event.target.checked)}
                               />
                               {" "}Janeiro (30 dias)
                             </label>
@@ -4051,7 +4097,7 @@ export function FormularioColetiva({
                           </div>
                         </td>
                         <td>
-                          <span className={erroSaldo || erros.some((e) => e.includes("45d fora")) ? "prototype-ferias-saldo-inconsistente" : avisos.some((a) => a.includes("30d em escola")) ? "prototype-ferias-saldo-aviso" : ""}>
+                          <span className={erroSaldo || erros.length ? "prototype-ferias-saldo-inconsistente" : avisos.length ? "prototype-ferias-saldo-aviso" : ""}>
                             {professor.saldo} dias
                           </span>
                         </td>
@@ -4060,14 +4106,21 @@ export function FormularioColetiva({
                             const jaMarcada = estado.parcelasLote[duracao];
                             // Bloqueia marcar uma parcela nova cuja soma ultrapasse o saldo do
                             // servidor — desmarcar sempre é permitido.
-                            const excederiaSaldo = !jaMarcada && (!duracoesPermitidas(professor.saldo - somaDiasSelecionadosLote(professor), professor.orgao, professor.cargo).includes(duracao));
+                            const saldoRestante = professor.saldo - somaDiasSelecionadosLote(professor);
+                            const excederiaSaldo = !jaMarcada && (!duracoesPermitidas(saldoRestante, professor.orgao, professor.cargo).includes(duracao));
+                            // Motivo exibido na dica: passar do saldo restante ou deixar resíduo de 5 dias.
+                            const motivoBloqueio = duracao > saldoRestante
+                              ? `Ultrapassaria o saldo restante de ${saldoRestante} dias`
+                              : saldoRestante - duracao === 5
+                                ? "Deixaria saldo residual de 5 dias"
+                                : "Duração não permitida para este cargo/órgão";
                             return (
                               <td key={duracao} style={{ textAlign: "center" }}>
                                 <input
                                   type="checkbox"
                                   checked={jaMarcada}
                                   disabled={excederiaSaldo}
-                                  title={excederiaSaldo ? `Ultrapassaria o saldo de ${professor.saldo} dias` : undefined}
+                                  title={excederiaSaldo ? motivoBloqueio : undefined}
                                   onChange={(event) => alternarParcelaLote(professor, duracao, event.target.checked)}
                                 />
                               </td>
@@ -4075,20 +4128,21 @@ export function FormularioColetiva({
                           })
                         ) : (
                           <>
-                            <td style={{ textAlign: "center" }}>
-                              <input
-                                type="checkbox"
-                                checked={estado.julho}
-                                onChange={(event) => alternarLinha(professor, "julho", event.target.checked)}
-                              />
-                            </td>
-                            <td style={{ textAlign: "center" }}>
-                              <input
-                                type="checkbox"
-                                checked={estado.janeiro}
-                                onChange={(event) => alternarLinha(professor, "janeiro", event.target.checked)}
-                              />
-                            </td>
+                            {(["julho", "janeiro"] as const).map((campo) => {
+                              const marcada = estado[campo];
+                              const bloqueio = marcada ? null : motivoBloqueioParcelaColetiva(professor, campo);
+                              return (
+                                <td key={campo} style={{ textAlign: "center" }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={marcada}
+                                    disabled={bloqueio !== null}
+                                    title={bloqueio ?? undefined}
+                                    onChange={(event) => alternarLinha(professor, campo, event.target.checked)}
+                                  />
+                                </td>
+                              );
+                            })}
                           </>
                         )}
                         <td>
@@ -4114,7 +4168,7 @@ export function FormularioColetiva({
                   })}
                   {!listaPaginadaAba2.length ? (
                     <tr>
-                      <td colSpan={modoAgendamentoLote ? 7 : 5} className="prototype-ferias-empty">Nenhum professor encontrado para o filtro informado.</td>
+                      <td colSpan={modoAgendamentoLote ? 7 : 5} className="prototype-ferias-empty">{modoAgendamentoLote ? "Nenhum servidor encontrado para o filtro informado." : "Nenhum professor encontrado para o filtro informado."}</td>
                     </tr>
                   ) : null}
                 </tbody>
@@ -4183,13 +4237,9 @@ export function FormularioColetiva({
                 <div className="prototype-ferias-coletiva-resumo-item is-fluxo">
                   <i className="pi pi-send" aria-hidden="true" />
                   <span>
-                    {modoAgendamentoLote && (perfilLote === "GESTAO_UNEMAT" || perfilLote === "GESTAO_SECITEC")
-                      ? "Após lançar, o lote fica aguardando validação da chefia na aba Avaliar e Aprovar."
-                      : orgao === "SEDUC"
-                        ? "Após lançar, o lote ficará disponível para validação em bloco pelo Aprovador, com possibilidade de reprovação individual por servidor."
-                        : orgao === "UNEMAT"
-                          ? "Após lançar, o lote ficará disponível para validação pela Gestão de Pessoas da UNEMAT."
-                          : "Após lançar, o lote ficará disponível para validação pela Gestão de Pessoas da SECITEC."}
+                    {/* Todo lote (SEDUC, UNEMAT ou SECITEC) nasce Aguardando Validação e é avaliado
+                        pelo perfil Aprovador na aba Aprovações, sempre em bloco (RN006). */}
+                    Após lançar, o lote fica Aguardando Validação e é avaliado em bloco pelo perfil Aprovador, na aba Aprovações.
                   </span>
                 </div>
               </>
@@ -4223,7 +4273,7 @@ export function FormularioColetiva({
             </button>
             <button type="button" className="prototype-ferias-coletiva-btn-lancar" onClick={lancarLote}>
               <i className="pi pi-check" aria-hidden="true" />
-              Lançar Férias Coletivas do Lote
+              {modoAgendamentoLote ? "Lançar Agendamento em Lote" : "Lançar Férias Coletivas do Lote"}
             </button>
           </>
         )}
