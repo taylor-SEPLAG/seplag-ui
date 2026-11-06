@@ -101,6 +101,11 @@ export function ComissaoFormContent() {
  const modoNovo = !id || id === "novo";
  const existente = modoNovo ? undefined : comissoes.find((item) => item.id === id);
  const modoVisualizar = !modoNovo && searchParams.get("modo") === "visualizar";
+ // RN014 — Dados que identificam a comissão (Tipo, Edital e Nome) ficam travados (cinza) quando a
+ // comissão já está Em andamento ou Encerrada — nesses estados a identificação não muda mais. Em
+ // Rascunho continuam editáveis (a comissão ainda não "saiu do papel"). O Código já é fixo
+ // (gerado pelo sistema). Em visualização, tudo fica desabilitado de qualquer forma.
+ const identificacaoTravada = modoVisualizar || existente?.status === "EM_ANDAMENTO" || existente?.status === "ENCERRADA";
 
  const { control, handleSubmit, watch, setValue } = useForm<ComissaoFormValues>({ defaultValues:valoresIniciais(existente) });
  const valores = watch();
@@ -137,6 +142,17 @@ export function ComissaoFormContent() {
  const salvar = handleSubmit((dados) => {
   if (modoVisualizar) return;
   setErro(null);
+  // RN004 — Um mesmo edital não pode estar vinculado a mais de uma comissão ao mesmo tempo:
+  // o edital fica indisponível enquanto a comissão que o utiliza estiver em Rascunho, Em andamento
+  // ou Encerrada. Só é liberado para uma nova comissão quando a comissão anterior for Cancelada.
+  if (dados.certameId) {
+   const comissaoConflitante = comissoes.find((item) =>
+    item.id !== existente?.id && item.certameId === dados.certameId && item.status !== "CANCELADA");
+   if (comissaoConflitante) {
+    setErro(`Este edital já está vinculado à comissão ${comissaoConflitante.numero} — ${comissaoConflitante.nome} (${statusLabel[comissaoConflitante.status]}). O edital só pode ser reutilizado quando essa comissão estiver com o status Cancelada.`);
+    return;
+   }
+  }
   const agora = CONTROLE_PSS_DATA_REFERENCIA.split("-").reverse().join("/");
   const dadosComuns = {
    tipo:dados.tipo, certameId:dados.certameId || undefined, nome:dados.nome, observacoes:dados.observacoes || undefined,
@@ -345,9 +361,9 @@ export function ComissaoFormContent() {
       <BlocoHeader icone="pi-id-card" titulo="Identificação" subtitulo="Dados que identificam a comissão no sistema." />
       <div className="grid">
        <RotuloSeplag nome="Código" cols="12 6 4"><div className="prototype-certame-campo-fixo-valor">{numeroForm}</div></RotuloSeplag>
-       <DropdownFieldSeplag name="tipo" control={control} label="Tipo" required cols="12 6 4" options={TIPOS_COMISSAO} optionLabel="label" optionValue="value" showClear={false} disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <DropdownFieldSeplag name="certameId" control={control} label="Edital" required cols="12 6 4" options={opcoesConcurso} optionLabel="label" optionValue="value" placeholder="Nenhum edital vinculado" disabled={modoVisualizar} getFormErrorMessage={() => null} />
-       <TextFieldSeplag name="nome" control={control} label="Nome da Comissão" required cols="12" placeholder="Nome da comissão" disabled={modoVisualizar} getFormErrorMessage={() => null} />
+       <DropdownFieldSeplag name="tipo" control={control} label="Tipo" required cols="12 6 4" options={TIPOS_COMISSAO} optionLabel="label" optionValue="value" showClear={false} disabled={identificacaoTravada} getFormErrorMessage={() => null} />
+       <DropdownFieldSeplag name="certameId" control={control} label="Edital" cols="12 6 4" options={opcoesConcurso} optionLabel="label" optionValue="value" placeholder="Nenhum edital vinculado" showClear disabled={identificacaoTravada} getFormErrorMessage={() => null} />
+       <TextFieldSeplag name="nome" control={control} label="Nome da Comissão" required cols="12" placeholder="Nome da comissão" disabled={identificacaoTravada} getFormErrorMessage={() => null} />
        <TextAreaFieldSeplag name="observacoes" control={control} label="Observações" required cols="12" disabled={modoVisualizar} getFormErrorMessage={() => null} />
       </div>
      </div>
