@@ -820,6 +820,7 @@ export const menuFolha: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
+      { label: "Demonstrativo de Pagamento", icon: "pi pi-circle-on", to: "/prototipos/folha/lancamento-financeiro/ficha-financeira-v2", visibleOnMenu: true, visibleOnRouter: true },
       {
         label: "Retenções Judiciais",
         icon: "pi pi-folder-open",

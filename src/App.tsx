@@ -1,3 +1,4 @@
+import { FichaFinanceiraV2Page } from "./prototipos/fichaFinanceiraV2/FichaFinanceiraV2Page";
 import { HistoricoParametrizacaoPage } from './prototipos/licencas/HistoricoParametrizacaoPage';
 import {
   Routes,
@@ -2355,6 +2356,7 @@ function App() {
         path="/prototipos/folha/lancamento-financeiro/ficha-financeira"
         element={<PrototiposFolhaFichaFinanceiraPage />}
       />
+      <Route path="/prototipos/folha/lancamento-financeiro/ficha-financeira-v2" element={<FichaFinanceiraV2Page />} />
       <Route
         path="/prototipos/folha/grupo-eleitos/novo"
         element={<PrototiposFolhaGrupoEleitoFormPage />}
