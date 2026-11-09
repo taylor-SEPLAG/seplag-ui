@@ -1,4 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { ReceiptText, LoaderCircle } from "lucide-react";
+import { competenciasDisponiveis, folhasDisponiveis, recuperarDemonstrativo } from "./consultaAutomatica";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { AutoComplete } from "primereact/autocomplete";
 import { Sidebar } from "primereact/sidebar";
 import { Button } from "primereact/button";
@@ -27,7 +29,6 @@ const normalizar = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g,
 type Rubrica = { codigo: string; descricao: string; tipo: "Vantagem" | "Desconto"; referencia: string; valor: number; base: number; deducao: number; formula: string; parametro: string; disponivel: boolean };
 type Consulta = { pessoa: Pessoa; competencia: string; folha: string; rubricas: Rubrica[] };
 const folhas = [{ label: "1 — Folha Mensal", value: "1" }, { label: "2 — Folha Complementar", value: "2" }];
-const competencias = ["10/2026", "09/2026", "08/2026"];
 function gerarRubricas(p: Pessoa, competencia: string, folha: string): Rubrica[] {
   const fator = p.fator * (competencia === "08/2026" ? 0.95 : 1) * (folha === "2" ? 0.1 : 1);
   const valor = (v: number) => Math.round(v * fator * 100) / 100;
@@ -46,8 +47,8 @@ const pessoasFisicas: PessoaFisica[] = Array.from(new Set(pessoas.map(p=>p.pesso
 export function identificacaoAutocomplete(p: Pick<PessoaFisica, "cpf" | "nome" | "vinculos">) {
   const matriculas = [...new Set(p.vinculos.map(v=>v.identificacao.split("/")[0]).filter(Boolean))];
   return {
-    principal: [...(matriculas.length===1 ? matriculas : []), p.cpf, p.nome].join(" — "),
-    complemento: !matriculas.length ? "Beneficiária sem matrícula funcional" : matriculas.length>1 ? `${matriculas.length} matrículas cadastradas` : p.vinculos.length>1 ? `${p.vinculos.length} vínculos cadastrados` : "",
+    principal: [p.nome.toLocaleLowerCase("pt-BR").split(/\s+/).filter(Boolean).map((parte,i)=>i>0 && ["de","da","do","das","dos","e"].includes(parte) ? parte : parte.charAt(0).toLocaleUpperCase("pt-BR")+parte.slice(1)).join(" "), p.cpf, ...matriculas].filter(Boolean).join(" · "),
+    complemento: !matriculas.length ? "" : matriculas.length>1 ? `${matriculas.length} matrículas cadastradas` : p.vinculos.length>1 ? `${p.vinculos.length} vínculos cadastrados` : "",
   };
 }
 export function correspondePesquisaPessoa(p: Pick<PessoaFisica, "cpf" | "nome" | "vinculos">, termo: string) {
@@ -65,11 +66,6 @@ const layoutsVinculo = {
   efetivo: { icone: "pi-id-card", descricao: "Consulte os dados funcionais do vínculo efetivo selecionado.", regime: "Estatutário", inicioLabel: "Início do exercício" },
   temporario: { icone: "pi-briefcase", descricao: "Consulte os dados do contrato temporário selecionado.", regime: "Contrato administrativo temporário", inicioLabel: "Início do contrato" },
 } satisfies Record<PerfilLayoutVinculo, {icone: string; descricao: string; regime: string; inicioLabel: string}>;
-function layoutIdentificacao(p: Pessoa | null) {
-  if (p?.relacionamento) return { icone: "pi-users", descricao: "Consulte os dados do benefício e do servidor relacionado." };
-  if (p) return layoutsVinculo[p.perfil ?? "efetivo"];
-  return { icone: "pi-user", descricao: "Identifique o servidor ou beneficiário e selecione o vínculo, quando necessário." };
-}
 function CabecalhoSecao({id, titulo, icone, descricao, acao}: {id: string; titulo: string; icone: string; descricao: string; acao?: ReactNode}) {
   return <header className="ffv2-section-header"><i className={`pi ${icone}`} aria-hidden="true" /><div><h2 id={id}>{titulo}</h2><p>{descricao}</p></div>{acao && <div className="ffv2-section-header-action">{acao}</div>}</header>;
 }
@@ -88,17 +84,14 @@ function dadosIdentificacao(p: Pessoa): [string, string | undefined][] {
   ];
 }
 
-function iconeIdentificacao(label: string) {
-  if(label.startsWith('Regime')) return 'pi-verified';
-  if(label.startsWith('Cargo')) return 'pi-briefcase';
-  if(label.startsWith('Órgão')) return 'pi-building';
-  if(label.startsWith('Unidade')) return 'pi-map-marker';
-  if(label.startsWith('Situa')) return 'pi-heart';
-  if(label.startsWith('Início')) return 'pi-calendar';
-  if(label.startsWith('Servidor')) return 'pi-user';
-  if(label.startsWith('Vínculo')) return 'pi-id-card';
-  return 'pi-file';
+function resumoIdentificacao(p: Pessoa): [string, string | undefined][] {
+  const r=p.relacionamento;
+  return r ? [["CPF",p.cpf],["Relacionamento",r.descricao],["Benefício",p.identificacao],["Situação do benefício",r.situacao],["Órgão de origem",r.orgaoOrigem],["Vínculo do servidor relacionado",r.vinculoServidor],["Cargo do servidor relacionado",r.cargoServidor],["Início do benefício",r.inicio]] : [
+    ["CPF",p.cpf],["Matrícula/Vínculo",p.identificacao],["Tipo de Vínculo",p.tipo],["Regime Jurídico",layoutsVinculo[p.perfil??"efetivo"].regime],["Carreira",p.carreira],["Cargo",cargoDoVinculo(p)],["Órgão",p.orgao.split(" — ")[0]],
+    ["Unidade",p.id.startsWith("32274")?"Unidade Escolar Estadual":"Superintendência de Gestão de Pessoas"],[layoutsVinculo[p.perfil??"efetivo"].inicioLabel,"01/02/2018"],["Situação","Ativo"],
+  ];
 }
+
 export function FichaFinanceiraV2Content() {
   const [busca, setBusca] = useState<string | PessoaFisica>("");
   const [sugestoes, setSugestoes] = useState<PessoaFisica[]>([]);
@@ -107,18 +100,57 @@ export function FichaFinanceiraV2Content() {
   const [competencia, setCompetencia] = useState("");
   const [folha, setFolha] = useState("");
   const [consulta, setConsulta] = useState<Consulta | null>(null);
-  const [detalhes, setDetalhes] = useState(false);
+  const [detalhesVisiveis, setDetalhesVisiveis] = useState(true);
   const [tipo, setTipo] = useState("Todas");
   const [rubrica, setRubrica] = useState<Rubrica | null>(null);
   const [erro, setErro] = useState("");
-  const limpar = () => { setCompetencia(""); setFolha(""); setConsulta(null); setRubrica(null); setErro(""); setTipo("Todas"); };
-  const selecionarPessoa = (p: PessoaFisica) => {
-    limpar(); setPessoaFisica(p); setBusca(p); setDetalhes(false);
-    setPessoa(p.vinculos.length === 1 ? p.vinculos[0] : p.vinculos.length === 0 && p.relacionamentos.length === 1 ? p.relacionamentos[0] : null);
+  const [semResultados, setSemResultados] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+  const termoPesquisa = useRef("");
+  const requisicao = useRef<AbortController | null>(null);
+  const podeConsultar = !!pessoa && competenciasDisponiveis(pessoa).includes(competencia) && folhasDisponiveis(pessoa,competencia).includes(folha);
+  const invalidarResultado = () => { requisicao.current?.abort();requisicao.current=null;setConsulta(null);setRubrica(null);setErro("");setSemResultados(false);setCarregando(false); };
+  const opcoesRegistro = pessoaFisica?.vinculos ?? [];
+  const limpar = () => { invalidarResultado();setCompetencia("");setFolha("");setConsulta(null);setRubrica(null);setErro("");setTipo("Todas");setCarregando(false);setSemResultados(false); };
+  const selecionarRegistro = (r: Pessoa | null) => {
+    limpar();setPessoa(r);setDetalhesVisiveis(true);
+    const disponiveis=competenciasDisponiveis(r);
+    const unica=disponiveis.length===1 ? disponiveis[0] : "";
+    setCompetencia(unica);
+    const folhasDoRegistro=folhasDisponiveis(r,unica);
+    setFolha(folhasDoRegistro.length===1 ? folhasDoRegistro[0] : "");
   };
-  const consultar = () => {
-    if (!pessoa || !competencia || !folha) { setErro("Selecione a competência e o número da folha para consultar."); return; }
-    setErro(""); setTipo("Todas"); setConsulta({ pessoa, competencia, folha, rubricas: gerarRubricas(pessoa, competencia, folha) });
+  const selecionarPessoa = (p: PessoaFisica) => {
+    setPessoaFisica(p);setBusca(p);
+    const correspondentes=/^[\d\s.()/\-]+$/.test(termoPesquisa.current) ? p.vinculos.filter(v=>{
+      const q=termoPesquisa.current.replace(/\D/g,"");
+      return v.identificacao.replace(/\D/g,"")===q || v.identificacao.split("/")[0]===q;
+    }) : [];
+    const r=correspondentes.length===1 ? correspondentes[0] : p.vinculos.length===1 ? p.vinculos[0] : !p.vinculos.length && p.relacionamentos.length===1 ? p.relacionamentos[0] : null;
+    if(pessoaFisica?.id===p.id && pessoa?.id===r?.id)return;
+    selecionarRegistro(r);
+  };
+  const alterarCompetencia = (valor: string) => {
+    if(valor===competencia)return;
+    invalidarResultado();setCompetencia(valor);
+    const disponiveis=folhasDisponiveis(pessoa,valor);
+    setFolha(disponiveis.length===1 ? disponiveis[0] : "");
+  };
+  const limparFiltros = () => { limpar();setPessoa(null);setPessoaFisica(null);setBusca("");setSugestoes([]);termoPesquisa.current=""; };
+  useEffect(()=>()=>{requisicao.current?.abort();},[]);
+  const consultar = async () => {
+    if(!podeConsultar || !pessoa || requisicao.current)return;
+    const controller=new AbortController();requisicao.current=controller;
+    setCarregando(true);setSemResultados(false);setErro("");setConsulta(null);setRubrica(null);setTipo("Todas");
+    try {
+      const resultado=await recuperarDemonstrativo(()=>({pessoa,competencia,folha,rubricas:gerarRubricas(pessoa,competencia,folha)}),controller.signal);
+      if(requisicao.current!==controller || controller.signal.aborted)return;
+      setSemResultados(!resultado.rubricas.length);setConsulta(resultado.rubricas.length ? resultado : null);
+    } catch {
+      if(requisicao.current===controller && !controller.signal.aborted)setErro("N\u00e3o foi poss\u00edvel carregar o demonstrativo. Tente novamente.");
+    } finally {
+      if(requisicao.current===controller){requisicao.current=null;setCarregando(false);}
+    }
   };
   const vantagens = consulta?.rubricas.filter(r => r.tipo === "Vantagem").reduce((s,r) => s+r.valor,0) ?? 0;
   const descontos = consulta?.rubricas.filter(r => r.tipo === "Desconto").reduce((s,r) => s+r.valor,0) ?? 0;
@@ -148,51 +180,41 @@ export function FichaFinanceiraV2Content() {
   return <div className="prototype-page-content prototype-page-content--white ffv2">
     <CardSeplag title="Demonstrativo de Pagamento" cols="12" cardHeaderClassNames="prototype-carreira-card ffv2-card" headerNavigation={<BreadcrumbSeplag divided items={[{ label: "Lançamento Financeiro", to: "/prototipos/folha/lancamento-financeiro" }, { label: "Demonstrativo de Pagamento" }]} />}>
     <div className="ffv2-content">
-    <section className="ffv2-section" aria-labelledby="ffv2-pessoa"><CabecalhoSecao id="ffv2-pessoa" titulo="Identificação para Consulta" icone={layoutIdentificacao(pessoa).icone} descricao="Localize a pessoa que deseja consultar e selecione o vínculo, quando necessário." />
-    <div className="ffv2-section-body">
-      <div className="ffv2-search"><label htmlFor="ffv2-busca">Servidor / Beneficiário</label><span className="ffv2-search-control"><i className="pi pi-search" aria-hidden="true" /><AutoComplete inputId="ffv2-busca" value={busca} suggestions={sugestoes} field="nome" dropdown dropdownMode="blank" placeholder="Pesquise por matrícula, CPF ou nome..." forceSelection minLength={0} completeMethod={e => setSugestoes(pessoasFisicas.filter(p=>correspondePesquisaPessoa(p,e.query)))} onChange={e=>setBusca(e.value)} onSelect={e=>selecionarPessoa(e.value)} itemTemplate={(p:PessoaFisica)=>{const resultado=identificacaoAutocomplete(p);return <div className="ffv2-option"><strong>{resultado.principal}</strong>{resultado.complemento && <small>{resultado.complemento}</small>}</div>;}} dataKey="id" scrollHeight="280px" panelClassName="ffv2-person-options" emptyMessage="Nenhum resultado encontrado" /></span></div>
-      {pessoaFisica && <>
-        <div className="ffv2-person-band">
-          <div className="ffv2-band-name"><i className="pi pi-user" aria-hidden="true" /><div><small>Pessoa selecionada</small><strong>{pessoaFisica.nome}</strong></div></div>
-          <div className="ffv2-band-cpf"><small>CPF</small><strong>{pessoaFisica.cpf}</strong></div>
-          <Button label="Trocar pessoa" icon="pi pi-sync" text onClick={()=>{limpar();setPessoa(null);setPessoaFisica(null);setBusca("");setDetalhes(false);}} />
+    <section className="ffv2-section" aria-labelledby="ffv2-consultar"><CabecalhoSecao id="ffv2-consultar" titulo="Consultar Demonstrativo" icone="pi-search" descricao="Pesquise a pessoa e informe os filtros para consultar a ficha financeira." />
+      <div className="ffv2-section-body">
+        <div className="ffv2-query-grid">
+          <div className="ffv2-search"><label htmlFor="ffv2-busca">Nome, CPF ou matrícula</label><span className="ffv2-search-control"><AutoComplete inputId="ffv2-busca" value={busca} suggestions={sugestoes} field="nome" dropdown dropdownMode="blank" placeholder="Buscar por nome, CPF ou matrícula" forceSelection minLength={0} completeMethod={e=>setSugestoes(pessoasFisicas.filter(p=>correspondePesquisaPessoa(p,e.query)))} onChange={e=>{setBusca(e.value);if(typeof e.value==="string"){termoPesquisa.current=e.value;if(pessoaFisica){limpar();setPessoaFisica(null);setPessoa(null);}}}} onSelect={e=>selecionarPessoa(e.value)} itemTemplate={(p:PessoaFisica)=>{const r=identificacaoAutocomplete(p);return <div className="ffv2-option"><strong>{r.principal}</strong></div>;}} dataKey="id" scrollHeight="280px" panelClassName="ffv2-person-options" emptyMessage="Nenhum resultado encontrado" /></span></div>
+          <div><label htmlFor="ffv2-contexto">Vínculo{opcoesRegistro.length>1 && <> <span className="ffv2-required">*</span></>}</label>{pessoaFisica && !pessoaFisica.vinculos.length ? <input id="ffv2-contexto" className="p-inputtext p-component ffv2-no-functional-link" value="Não possui vínculo funcional" readOnly aria-readonly="true" tabIndex={-1} /> : <Dropdown inputId="ffv2-contexto" value={pessoa?.relacionamento ? null : pessoa?.id ?? null} options={opcoesRegistro.map(r=>({label:r.identificacao,value:r.id}))} disabled={!opcoesRegistro.length} placeholder={!pessoaFisica ? "Selecione após identificar a pessoa" : opcoesRegistro.length ? "Selecione o vínculo" : ""} onChange={e=>{const r=opcoesRegistro.find(v=>v.id===e.value)??null;if(r?.id!==pessoa?.id)selecionarRegistro(r);}} />}</div>
+          <div><label htmlFor="ffv2-competencia">Competência <span className="ffv2-required">*</span></label><Dropdown inputId="ffv2-competencia" value={competencia} options={competenciasDisponiveis(pessoa)} disabled={!pessoa || !competenciasDisponiveis(pessoa).length} placeholder="MM/AAAA" onChange={e=>alterarCompetencia(e.value)} /></div>
+          <div><label htmlFor="ffv2-folha">Número da Folha <span className="ffv2-required">*</span></label><Dropdown inputId="ffv2-folha" value={folha} options={folhas.filter(f=>folhasDisponiveis(pessoa,competencia).includes(f.value))} disabled={!pessoa || !folhasDisponiveis(pessoa,competencia).length} placeholder="Selecione a folha" onChange={e=>{if(e.value===folha)return;invalidarResultado();setFolha(e.value);}} /></div>
+        <div className="ffv2-query-actions">
+          <Button label="Limpar filtro" icon="pi pi-refresh" className="ffv2-query-clear" onClick={limparFiltros} />
+          <Button label="Consultar" icon="pi pi-search" className="ffv2-query-submit" disabled={!podeConsultar || carregando} onClick={consultar} />
         </div>
-        {pessoaFisica.vinculos.length>0 && <div className="ffv2-vinculo-area">
-          <div className="ffv2-vinculo-heading"><strong>Vínculo selecionado</strong><small>{pessoaFisica.vinculos.length} {pessoaFisica.vinculos.length===1 ? "vínculo disponível" : "vínculos disponíveis"}</small></div>
-          <label className="ffv2-sr-only" htmlFor="ffv2-vinculo">Vínculo *</label>
-          <div className={`ffv2-vinculo-control ${pessoa ? "is-selected" : ""}`}>
-            <Dropdown inputId="ffv2-vinculo" value={pessoa?.id ?? null} options={pessoaFisica.vinculos.map(v=>({label:v.identificacao,value:v.id}))} placeholder="Selecione o vínculo" onChange={e=>{limpar();setPessoa(pessoaFisica.vinculos.find(v=>v.id===e.value) ?? null);setDetalhes(false);}} />
-          </div>
+        </div>
+        {pessoaFisica && <div className="ffv2-query-identity ffv2-link-detail" aria-label="Resumo da identificação">
+          <div className="ffv2-link-detail-header"><i className="pi pi-user" aria-hidden="true" /><div><span className="ffv2-link-detail-title">{pessoa?.relacionamento || !pessoaFisica.vinculos.length ? "Identificação do beneficiário" : "Detalhes do vínculo"}</span><strong>{pessoaFisica.nome}</strong></div><Button className="ffv2-toggle-link-details" label={detalhesVisiveis ? "Ocultar detalhes" : "Exibir detalhes"} icon={detalhesVisiveis ? "pi pi-chevron-up" : "pi pi-chevron-down"} text aria-expanded={detalhesVisiveis} aria-controls="ffv2-link-details" onClick={()=>setDetalhesVisiveis(v=>!v)} /></div>
+          <dl id="ffv2-link-details" hidden={!detalhesVisiveis} className="ffv2-link-detail-grid">{(pessoa ? resumoIdentificacao(pessoa) : [["CPF",pessoaFisica.cpf],...pessoaFisica.relacionamentos.map(r=>["Relacionamento",r.relacionamento?.descricao])]).filter(([,valor])=>Boolean(valor)).map(([label,valor])=><div key={`${label}-${valor}`}><dt>{label}:</dt><dd>{label?.startsWith("Situação") ? <span className="ffv2-status">{valor}</span> : valor}</dd></div>)}</dl>
+
+          {!pessoa && pessoaFisica.vinculos.length>0 && <span>Selecione o vínculo para continuar.</span>}
         </div>}
-        {!pessoaFisica.vinculos.length && <div className="ffv2-relationship-area">
-          {pessoa && <p className="ffv2-context-summary">{pessoa.relacionamento?.descricao}</p>}
-          {pessoaFisica.relacionamentos.length>1 && <><div className="ffv2-vinculo-heading"><strong>Benefício / Relacionamento</strong><small>{pessoaFisica.relacionamentos.length} registros disponíveis</small></div><label className="ffv2-sr-only" htmlFor="ffv2-beneficio">Benefício / Relacionamento *</label><Dropdown inputId="ffv2-beneficio" value={pessoa?.id ?? null} options={pessoaFisica.relacionamentos.map(r=>({label:`${r.identificacao} — ${r.tipo} · ${r.relacionamento?.descricao}`,value:r.id}))} placeholder="Selecione o benefício ou relacionamento" onChange={e=>{limpar();setPessoa(pessoaFisica.relacionamentos.find(r=>r.id===e.value) ?? null);setDetalhes(false);}} /></>}
-        </div>}
-        {pessoa && <div className="ffv2-details-area">
-          {detalhes && <dl id="ffv2-detalhes" className="ffv2-icon-grid">{dadosIdentificacao(pessoa).filter(([label,valor])=>Boolean(valor) && (pessoa.relacionamento || !["Matrícula/número do vínculo","Tipo de vínculo"].includes(label))).map(([label,valor])=><div key={label} className="ffv2-detail-item"><i className={`pi ${iconeIdentificacao(label)}`} aria-hidden="true" /><div><dt>{label}</dt><dd>{label.startsWith("Situação") ? <span className="ffv2-status">{valor}</span> : valor}</dd></div></div>)}</dl>}
-          <Button label={detalhes ? "Ocultar detalhes" : "Ver detalhes"} aria-expanded={detalhes} aria-controls="ffv2-detalhes" icon={detalhes ? "pi pi-chevron-up" : "pi pi-chevron-down"} text onClick={()=>setDetalhes(!detalhes)} />
-        </div>}
-      </>}
-    </div>
+        {(pessoa && !competenciasDisponiveis(pessoa).length) && <p role="status" className="ffv2-empty">Nenhum registro financeiro encontrado para os filtros informados.</p>}
+        {erro && <div role="alert" className="ffv2-query-error"><span>{erro}</span><Button label="Tentar novamente" icon="pi pi-refresh" text onClick={consultar} /></div>}
+      </div>
     </section>
-    <section className={`ffv2-section ${!pessoa ? "ffv2-disabled" : ""}`} aria-labelledby="ffv2-consulta"><CabecalhoSecao id="ffv2-consulta" titulo="Consulta Financeira" icone="pi-search" descricao="Selecione a competência e a folha de pagamento que deseja consultar." />
+    <section className="ffv2-section" aria-labelledby="ffv2-demonstrativo"><CabecalhoSecao id="ffv2-demonstrativo" titulo="Demonstrativo de Pagamento" icone="pi-wallet" descricao="Confira os valores e a composição do pagamento consultado." acao={consulta ? <Button label="Holerite" icon="pi pi-file-pdf" outlined onClick={holerite} /> : undefined} />
     <div className="ffv2-section-body">
-      {!pessoa && <p className="ffv2-muted"><i className="pi pi-lock" /> Selecione uma pessoa ou vínculo para habilitar a consulta.</p>}
-      <form onSubmit={e=>{e.preventDefault();consultar();}}><div className="ffv2-fields"><div><label htmlFor="ffv2-competencia">Competência *</label><Dropdown inputId="ffv2-competencia" value={competencia} options={pessoa?.fator ? competencias : []} disabled={!pessoa || !pessoa.fator} placeholder="MM/AAAA" onChange={e=>{setCompetencia(e.value);setFolha("");setConsulta(null);setRubrica(null);setErro("");}} /></div><div><label htmlFor="ffv2-folha">Número da Folha *</label><Dropdown inputId="ffv2-folha" value={folha} options={competencia === "10/2026" && pessoa?.id === "358186-001" ? folhas : folhas.slice(0,1)} disabled={!competencia} placeholder="Selecione a folha" onChange={e=>{setFolha(e.value);setConsulta(null);setRubrica(null);setErro("");}} /></div><div className="ffv2-actions"><Button type="submit" label="Consultar Ficha Financeira" icon="pi pi-search" disabled={!pessoa || !pessoa.fator} /><Button type="button" label="Limpar Filtros" icon="pi pi-filter-slash" text disabled={!pessoa} onClick={limpar} /></div></div></form>
-      {erro && <p role="alert" className="ffv2-error">{erro}</p>}{pessoa && !pessoa.fator && <p role="status" className="ffv2-empty">Nenhum registro financeiro encontrado para os filtros informados.</p>}
-    </div>
-    </section>
-    {consulta && <section className="ffv2-section" aria-labelledby="ffv2-demonstrativo"><CabecalhoSecao id="ffv2-demonstrativo" titulo="Demonstrativo de Pagamento" icone="pi-wallet" descricao="Confira os valores e a composição do pagamento consultado." acao={<Button label="Holerite" icon="pi pi-file-pdf" outlined onClick={holerite} />} />
-    <div className="ffv2-section-body">
-        <div className="ffv2-statement-person" aria-label="Identificação do demonstrativo"><strong>{consulta.pessoa.nome}</strong><span>CPF · {consulta.pessoa.cpf}</span>{!consulta.pessoa.relacionamento && <span>Matrícula/Vínculo: {consulta.pessoa.identificacao}</span>}</div>
+        {!consulta ? <div className="ffv2-empty-statement" role={carregando || semResultados ? "status" : undefined} aria-live="polite" aria-busy={carregando}><span className="ffv2-empty-icon">{carregando ? <LoaderCircle size={30} strokeWidth={1.6} className="ffv2-empty-spinner" aria-hidden="true" /> : <ReceiptText size={30} strokeWidth={1.6} aria-hidden="true" />}</span><strong>{carregando ? "Carregando demonstrativo" : semResultados ? "Nenhum demonstrativo encontrado" : "Nenhum demonstrativo consultado"}</strong><p>{carregando ? "Aguarde enquanto os dados financeiros são recuperados." : semResultados ? "Não foram encontrados registros financeiros para os filtros informados." : "Preencha os filtros acima e clique em 'Consultar' para visualizar os dados financeiros."}</p></div> : <>
+        <div className="ffv2-statement-person" aria-label="Identificação do demonstrativo"><strong>{consulta.pessoa.nome}</strong><span>CPF · {consulta.pessoa.cpf}</span><span>{consulta.pessoa.relacionamento ? "Benefício/Relacionamento" : "Matrícula/Vínculo"}: {consulta.pessoa.identificacao}</span></div>
         <div className="ffv2-meta"><strong>Competência {consulta.competencia}</strong><span>{folhas.find(f=>f.value===consulta.folha)?.label}</span></div>
         <div className="ffv2-totals">{[["Vantagens",vantagens,"blue","pi pi-arrow-up-right"],["Descontos",descontos,"red","pi pi-arrow-down-right"],["Líquido",vantagens-descontos,"green","pi pi-wallet"]].map(([label,valor,cor,icone])=><div key={String(label)} className={`ffv2-total ffv2-${cor}`}><span>{label}<i className={String(icone)} /></span><strong>{moeda(Number(valor))}</strong></div>)}</div>
         <h3>Rubricas do Pagamento</h3><div className="ffv2-toolbar"><div className="ffv2-tabs" aria-label="Filtrar tipo de rubrica">{[["Todas","Todas"],["Vantagem","Vantagens"],["Desconto","Descontos"]].map(([valor,label])=><button key={valor} type="button" aria-pressed={tipo===valor} onClick={()=>setTipo(valor)}>{label}</button>)}</div></div>
         <div className="ffv2-table-wrap"><table className="ffv2-table"><thead><tr>{["Código da Rubrica","Descrição","Tipo","Complemento","Competência","Vantagens","Descontos","Percentual","Ação"].map(c=><th key={c}>{c}</th>)}</tr></thead><tbody>{visiveis.map(r=><tr key={r.codigo}><td data-label="Código">{r.codigo}</td><td data-label="Descrição"><strong>{r.descricao}</strong></td><td data-label="Tipo"><span className={`ffv2-tag ${r.tipo === "Desconto" ? "ffv2-tag-red" : ""}`}>{r.tipo}</span></td><td data-label="Complemento">{consulta.pessoa.pensionista && r.tipo === "Vantagem" ? "Cota do benefício" : "—"}</td><td data-label="Competência">{consulta.competencia}</td><td data-label="Vantagens" className="ffv2-money">{r.tipo === "Vantagem" ? moeda(r.valor) : "—"}</td><td data-label="Descontos" className="ffv2-money">{r.tipo === "Desconto" ? moeda(r.valor) : "—"}</td><td data-label="Percentual">{r.referencia.includes("%") ? r.referencia : "—"}</td><td><Button aria-label="Ver Cálculo" icon="pi pi-cog" tooltip="Ver cálculo" tooltipOptions={{position:"top"}} className="ffv2-calculation-action" onClick={()=>setRubrica(r)} /></td></tr>)}{!visiveis.length && <tr><td colSpan={9} className="ffv2-empty">Nenhuma rubrica encontrada.</td></tr>}</tbody><tfoot><tr><td colSpan={5}>Totais do demonstrativo</td><td className="ffv2-money">{moeda(vantagens)}</td><td className="ffv2-money">{moeda(descontos)}</td><td colSpan={2} /></tr></tfoot></table></div>
         <div className="ffv2-processing-timestamp"><span className="ffv2-processed-at"><i className="pi pi-check-circle" aria-hidden="true" /><span>Processado em: <strong>{consulta.competencia === "10/2026" ? "28/10/2026" : `28/${consulta.competencia}`} às 18:42</strong></span></span></div>
         <details className="ffv2-processing"><summary><i className="pi pi-cog" aria-hidden="true" /> Informações do Processamento</summary><dl className="ffv2-data">{[["Número da execução",`EX-${consulta.competencia.replace('/','')}-${consulta.folha}-${consulta.pessoa.id}`],["Data e hora",`28/${consulta.competencia} às 18:42`],["Rubricas processadas","3"],["Rubricas auxiliares","2"],["Registros retidos","0"],["Ocorrências","Nenhuma"],["Mensagens do processamento","Processamento concluído com sucesso."],["Informações de cálculo","Parâmetros registrados no processamento simulado."],["Correções de vantagens e descontos","Nenhuma correção registrada."]].map(([label,valor])=><div key={label}><dt>{label}</dt><dd>{valor}</dd></div>)}</dl></details>
+        </>}
     </div>
-    </section>}
+    </section>
     </div>
     </CardSeplag>
     <Sidebar visible={!!rubrica && !!consulta} position="right" onHide={()=>setRubrica(null)} className="ffv2-drawer" header={<strong>Memória de Cálculo</strong>}>

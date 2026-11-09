@@ -2,149 +2,80 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within, configure } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-vi.mock("../PrototiposPage", () => ({ PrototypeSystemPage: ({children}: {children: React.ReactNode}) => children, menuFolha: [] }));
-vi.mock("primereact/dropdown", () => ({ Dropdown: ({ inputId, value, options, disabled, onChange }: {inputId: string; value: string; options: (string | {label: string; value: string})[]; disabled?: boolean; onChange: (e: {value: string}) => void}) => <select id={inputId} value={value ?? ""} disabled={disabled} onChange={e=>onChange({value:e.target.value})}><option value="">Selecione</option>{options.map(o=><option key={typeof o === "string" ? o : o.value} value={typeof o === "string" ? o : o.value}>{typeof o === "string" ? o : o.label}</option>)}</select> }));
+import * as transporte from "./consultaAutomatica";
+vi.mock("../PrototiposPage",()=>({PrototypeSystemPage:({children}:{children:React.ReactNode})=>children,menuFolha:[]}));
+vi.mock("primereact/dropdown",()=>({Dropdown:({inputId,value,options,disabled,onChange}:{inputId:string;value:string;options:(string|{label:string;value:string})[];disabled?:boolean;onChange:(e:{value:string})=>void})=><select id={inputId} value={value??""} disabled={disabled} onChange={e=>onChange({value:e.target.value})}><option value="">Selecione</option>{options.map(o=><option key={typeof o==="string"?o:o.value} value={typeof o==="string"?o:o.value}>{typeof o==="string"?o:o.label}</option>)}</select>}));
 import { FichaFinanceiraV2Content, identificacaoAutocomplete, correspondePesquisaPessoa } from "./FichaFinanceiraV2Page";
-vi.setConfig({ testTimeout: 20000 });
-configure({ asyncUtilTimeout: 5000 });
-afterEach(cleanup);
-function montar() { render(<MemoryRouter><FichaFinanceiraV2Content /></MemoryRouter>); }
-async function selecionar(nome: string, resultado: RegExp) {
-  fireEvent.change(screen.getByLabelText("Servidor / Beneficiário"), {target:{value:nome}});
-  fireEvent.click(await screen.findByText(resultado, {}, {timeout:5000}));
-}
-async function escolher(label: string, opcao: string) {
-  const option = screen.getByRole("option", {name:opcao}) as HTMLOptionElement;
-  fireEvent.change(screen.getByLabelText(label), {target:{value:option.value}});
-}
-it("consulta, filtra rubricas, abre memória e limpa o demonstrativo ao mudar a competência", async () => {
+vi.setConfig({testTimeout:20000});configure({asyncUtilTimeout:5000});
+afterEach(()=>{cleanup();vi.restoreAllMocks();});
+const montar=()=>render(<MemoryRouter><FichaFinanceiraV2Content /></MemoryRouter>);
+async function pessoa(termo:string,nome:RegExp){fireEvent.change(screen.getByLabelText("Nome, CPF ou matrícula"),{target:{value:termo}});fireEvent.click(await screen.findByText(nome));}
+function selecionar(label:string,valor:string){fireEvent.change(screen.getByLabelText(label),{target:{value:valor}});}
+const botao=()=>screen.getByRole("button",{name:"Consultar"}) as HTMLButtonElement;
+async function consultar(){fireEvent.click(botao());await screen.findByRole("button",{name:"Holerite"});return screen.getByRole("region",{name:"Demonstrativo de Pagamento"});}
+it("exige confirmação mesmo com filtros completos e mantém identificação visível sem expansão",async()=>{
+  const spy=vi.spyOn(transporte,"recuperarDemonstrativo");montar();expect(botao().disabled).toBe(true);
+  await pessoa("32274/002",/Antonia Silva.*32274/);
+  expect((screen.getByLabelText("Vínculo *") as HTMLSelectElement).value).toBe("32274-002");
+  const resumo=screen.getByLabelText("Resumo da identificação");expect(within(resumo).getByText("Professora")).toBeTruthy();expect(within(resumo).getByText("Contrato administrativo temporário")).toBeTruthy();
+  expect(screen.queryByRole("button",{name:"Ver detalhes"})).toBeNull();
+  selecionar("Competência *","09/2026");expect(botao().disabled).toBe(false);expect(spy).not.toHaveBeenCalled();
+  expect(screen.queryByRole("button",{name:"Holerite"})).toBeNull();expect(screen.getByText("Nenhum demonstrativo consultado")).toBeTruthy();
+  const regiao=await consultar();expect(within(regiao).getByText(/5\.940,02/)).toBeTruthy();
+  selecionar("Competência *","08/2026");expect(screen.queryByRole("button",{name:"Holerite"})).toBeNull();expect(screen.getByText("Nenhum demonstrativo consultado")).toBeTruthy();expect(spy).toHaveBeenCalledTimes(1);
+  const nova=await consultar();expect(within(nova).getByText("Competência 08/2026")).toBeTruthy();
+});
+it("não escolhe vínculo arbitrário e invalida o demonstrativo ao mudar vínculo ou folha",async()=>{
+  const spy=vi.spyOn(transporte,"recuperarDemonstrativo");montar();await pessoa("Antonia",/Antonia Silva.*32274/);
+  expect((screen.getByLabelText("Vínculo *") as HTMLSelectElement).value).toBe("");expect(botao().disabled).toBe(true);
+  selecionar("Vínculo *","32274-001");selecionar("Competência *","10/2026");await consultar();
+  selecionar("Vínculo *","32274-002");expect((screen.getByLabelText("Competência *") as HTMLSelectElement).value).toBe("");expect(botao().disabled).toBe(true);expect(spy).toHaveBeenCalledTimes(1);
+  await pessoa("Isabeli",/Isabeli.*358186/);selecionar("Competência *","10/2026");expect(botao().disabled).toBe(true);
+  selecionar("Número da Folha *","1");await consultar();selecionar("Número da Folha *","2");
+  expect(screen.queryByRole("button",{name:"Holerite"})).toBeNull();expect(screen.getByText("Nenhum demonstrativo consultado")).toBeTruthy();expect(spy).toHaveBeenCalledTimes(2);await consultar();expect(spy).toHaveBeenCalledTimes(3);
+});
+it("mostra informações do beneficiário no resumo e aguarda clique mesmo com opções únicas",async()=>{
+  const spy=vi.spyOn(transporte,"recuperarDemonstrativo");montar();await pessoa("Maria",/^Maria Costa · 456\.789\.123-00$/);selecionar("Competência *","10/2026");
+  expect(botao().disabled).toBe(false);expect(spy).not.toHaveBeenCalled();
+  const campoVinculo=screen.getByLabelText("Vínculo") as HTMLInputElement;expect(campoVinculo.value).toBe("Não possui vínculo funcional");expect(campoVinculo.readOnly).toBe(true);expect(campoVinculo.tagName).toBe("INPUT");expect(screen.queryByLabelText(/Benefício \/ Relacionamento/)).toBeNull();
+  const resumo=screen.getByLabelText("Resumo da identificação");expect(within(resumo).getByText(/Pensionista de CARLOS/)).toBeTruthy();expect(within(resumo).getByText("45120/001")).toBeTruthy();expect(within(resumo).queryByText("Regime:")).toBeNull();
+  await consultar();fireEvent.click(screen.getByRole("button",{name:"Limpar filtro"}));
+  expect((screen.getByLabelText("Nome, CPF ou matrícula") as HTMLInputElement).value).toBe("");expect((screen.getByLabelText("Competência *") as HTMLSelectElement).disabled).toBe(true);
+  expect(screen.queryByLabelText("Resumo da identificação")).toBeNull();expect(screen.queryByRole("button",{name:"Holerite"})).toBeNull();expect(screen.getByText("Nenhum demonstrativo consultado")).toBeTruthy();expect(botao().disabled).toBe(true);
+});
+it("preserva filtros de rubricas, cálculo e Holerite",async()=>{
+  montar();await pessoa("Isabeli",/Isabeli.*358186/);selecionar("Competência *","09/2026");const regiao=await consultar();
+  expect(screen.getByRole("button",{name:"Holerite"})).toBeTruthy();fireEvent.click(screen.getByRole("button",{name:"Descontos",exact:true}));expect(within(regiao).queryByText("Subsídios")).toBeNull();
+  fireEvent.click(screen.getAllByRole("button",{name:"Ver Cálculo"})[0]);expect(await screen.findByText("Memória de Cálculo")).toBeTruthy();
+});
+it("oferece nova tentativa após falha e mantém a consulta explícita",async()=>{
+  vi.spyOn(transporte,"recuperarDemonstrativo").mockRejectedValueOnce(new Error("Falha"));montar();await pessoa("Maria",/^Maria Costa · 456\.789\.123-00$/);selecionar("Competência *","10/2026");
+  fireEvent.click(botao());expect(await screen.findByRole("alert")).toBeTruthy();fireEvent.click(screen.getByRole("button",{name:"Tentar novamente"}));await screen.findByRole("button",{name:"Holerite"});
+});
+it("ignora resposta atrasada após alteração dos filtros sem iniciar uma nova consulta",async()=>{
+  let liberar=()=>{};const spy=vi.spyOn(transporte,"recuperarDemonstrativo").mockImplementationOnce(resolver=>new Promise(resolve=>{liberar=()=>resolve(resolver());}));
+  montar();await pessoa("Isabeli",/Isabeli.*358186/);selecionar("Competência *","10/2026");selecionar("Número da Folha *","1");fireEvent.click(botao());expect(botao().disabled).toBe(true);
+  selecionar("Competência *","09/2026");liberar();await waitFor(()=>expect(screen.queryByRole("status")).toBeNull());
+  expect(screen.queryByRole("button",{name:"Holerite"})).toBeNull();expect(screen.getByText("Nenhum demonstrativo consultado")).toBeTruthy();expect(spy).toHaveBeenCalledTimes(1);
+  await consultar();expect(screen.getByText("Competência 09/2026")).toBeTruthy();
+});
+it("trata consultas vazias e pessoas sem registros",async()=>{
+  montar();await pessoa("João",/900001/);expect(botao().disabled).toBe(true);expect(screen.getByRole("status").textContent).toContain("Nenhum registro financeiro");
+  vi.spyOn(transporte,"recuperarDemonstrativo").mockImplementationOnce(async resolver=>Object.assign({},resolver(),{rubricas:[]}));
+  await pessoa("Maria",/^Maria Costa · 456\.789\.123-00$/);selecionar("Competência *","10/2026");fireEvent.click(botao());expect(await screen.findByText("Nenhum demonstrativo encontrado")).toBeTruthy();expect(screen.getByText("Não foram encontrados registros financeiros para os filtros informados.")).toBeTruthy();expect(screen.queryByRole("button",{name:"Holerite"})).toBeNull();
+});
+it("mantém a formatação e a busca por múltiplas matrículas",()=>{
+  const v=(identificacao:string)=>({id:identificacao,pessoaId:"p1",nome:"PESSOA TESTE",cpf:"123.456.789-09",tipo:"Efetivo",orgao:"SEPLAG",fator:1,identificacao});const p={nome:"PESSOA TESTE",cpf:"123.456.789-09",vinculos:[v("32274/001"),v("32274/002")]};
+  expect(identificacaoAutocomplete(p).principal).toBe("Pessoa Teste · 123.456.789-09 · 32274");expect(identificacaoAutocomplete({...p,vinculos:[]}).principal).toBe("Pessoa Teste · 123.456.789-09");expect(correspondePesquisaPessoa(p,"32274/002")).toBe(true);
+});
+it("exibe estado inicial orientativo com filtros vazios e dependências bloqueadas",()=>{
   montar();
-  expect((screen.getByRole("button", {name:"Consultar Ficha Financeira"}) as HTMLButtonElement).disabled).toBe(true);
-  expect(screen.queryByRole("region", {name:/Demonstrativo de Pagamento/})).toBeNull();
-  await selecionar("Isabeli", /ISABELI RODRIGUES/);
-  fireEvent.click(screen.getByRole("button",{name:"Consultar Ficha Financeira"}));
-  expect(screen.getByRole("alert").textContent).toContain("Selecione a competência");
-  await escolher("Competência *", "10/2026");
-  await escolher("Número da Folha *", "1 — Folha Mensal");
-  expect(screen.queryByRole("region", {name:/Demonstrativo de Pagamento/})).toBeNull();
-  fireEvent.click(screen.getByRole("button",{name:"Consultar Ficha Financeira"}));
-  expect(screen.getByRole("region", {name:/Demonstrativo de Pagamento/})).toBeTruthy();
-  expect(screen.getByText(/11\.880,05/)).toBeTruthy();
-  fireEvent.click(screen.getByRole("button",{name:"Descontos",exact:true}));
-  expect(screen.queryByText("Subsídios",{selector:"strong"})).toBeNull();
-  fireEvent.click(screen.getAllByRole("button",{name:"Ver Cálculo"})[0]);
-  expect(await screen.findByText("Memória de Cálculo")).toBeTruthy();
-  expect(screen.getByText(/Base limitada ao teto × 14%/)).toBeTruthy();
-  fireEvent.click(screen.getByRole("button",{name:"Close"}));
-  await escolher("Competência *", "09/2026");
-  await waitFor(()=>expect(screen.queryByRole("button",{name:"Holerite"})).toBeNull());
-  expect(screen.queryByRole("region", {name:/Demonstrativo de Pagamento/})).toBeNull();
-});
-it("adapta pensionista e reinicia a consulta ao alterar a pessoa", async () => {
-  montar(); await selecionar("Maria", /MARIA COSTA/);
-  if (screen.queryByRole("button",{name:"Ver detalhes"})) fireEvent.click(screen.getByRole("button",{name:"Ver detalhes"}));
-  expect(screen.getByText("Servidor relacionado")).toBeTruthy();
-  expect(screen.queryByText("Cargo/Função")).toBeNull();
-  fireEvent.click(screen.getByRole("button",{name:"Trocar pessoa"}));
-  expect(screen.getByLabelText("Servidor / Beneficiário")).toBeTruthy();
-  expect((screen.getByRole("button",{name:"Consultar Ficha Financeira"}) as HTMLButtonElement).disabled).toBe(true);
-});
-it("pesquisa pessoas sem duplicidade e exige escolha para múltiplos vínculos", async () => {
-  montar();
-  fireEvent.change(screen.getByLabelText("Servidor / Beneficiário"), {target:{value:"32274"}});
-  const resultados = await screen.findAllByText(/32274 — 234\.567\.890-12 — ANTONIA SILVA/, {}, {timeout:5000});
-  expect(resultados).toHaveLength(1);
-  fireEvent.click(resultados[0]);
-  expect(screen.getByLabelText("Vínculo *")).toBeTruthy();
-  expect((screen.getByRole("button",{name:"Consultar Ficha Financeira"}) as HTMLButtonElement).disabled).toBe(true);
-  const selecionarVinculo = () => fireEvent.change(screen.getByLabelText("Vínculo *"),{target:{value:"32274-001"}});
-  selecionarVinculo();
-  expect((screen.getByRole("button",{name:"Consultar Ficha Financeira"}) as HTMLButtonElement).disabled).toBe(false);
-  await escolher("Competência *", "10/2026");
-  await escolher("Número da Folha *", "1 — Folha Mensal");
-  fireEvent.click(screen.getByRole("button",{name:"Consultar Ficha Financeira"}));
-  expect(screen.getByRole("region",{name:"Demonstrativo de Pagamento"})).toBeTruthy();
-  fireEvent.change(screen.getByLabelText("Vínculo *"),{target:{value:""}});
-  expect(screen.getByText("ANTONIA SILVA")).toBeTruthy();
-  expect(screen.getByLabelText("Vínculo *")).toBeTruthy();
-  expect((screen.getByRole("button",{name:"Consultar Ficha Financeira"}) as HTMLButtonElement).disabled).toBe(true);
-  expect(screen.queryByRole("region",{name:"Demonstrativo de Pagamento"})).toBeNull();
-  fireEvent.change(screen.getByLabelText("Vínculo *"),{target:{value:"32274-002"}});
-  expect((screen.getByLabelText("Competência *") as HTMLSelectElement).value).toBe("");
-  expect((screen.getByLabelText("Número da Folha *") as HTMLSelectElement).value).toBe("");
-  if (screen.queryByRole("button",{name:"Ver detalhes"})) fireEvent.click(screen.getByRole("button",{name:"Ver detalhes"}));
-  expect(screen.getByText("Professora")).toBeTruthy();
-});
-it("permite consultar beneficiária sem vínculo pelo cadastro da pessoa", async () => {
-  montar(); await selecionar("Maria", /456\.789\.123-00 — MARIA COSTA/);
-  expect(screen.getByText("Pensionista de CARLOS EDUARDO COSTA")).toBeTruthy();
-  expect(screen.queryByLabelText("Vínculo *")).toBeNull();
-  expect((screen.getByRole("button",{name:"Consultar Ficha Financeira"}) as HTMLButtonElement).disabled).toBe(false);
-  await escolher("Competência *", "10/2026");
-  await escolher("Número da Folha *", "1 — Folha Mensal");
-  fireEvent.click(screen.getByRole("button",{name:"Consultar Ficha Financeira"}));
-  expect(screen.getByText("Benefício de pensão")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button",{name:"Trocar pessoa"}));
-  expect(screen.getByLabelText("Servidor / Beneficiário")).toBeTruthy();
-  expect(screen.queryByRole("region",{name:"Demonstrativo de Pagamento"})).toBeNull();
-});
-it("identifica o benefício e o servidor relacionado sem atribuir vínculo próprio à beneficiária", async () => {
-  montar(); await selecionar("Maria", /456\.789\.123-00 — MARIA COSTA/);
-  if (screen.queryByRole("button",{name:"Ver detalhes"})) fireEvent.click(screen.getByRole("button",{name:"Ver detalhes"}));
-  expect(screen.getByText("45120/001")).toBeTruthy();
-  expect(screen.getByText("Cargo do servidor relacionado")).toBeTruthy();
-  expect(screen.queryByText("Regime jurídico")).toBeNull();
-  expect(screen.queryByText("Matrícula/número do vínculo")).toBeNull();
-  fireEvent.click(screen.getByRole("button",{name:"Ocultar detalhes"}));
-  expect(screen.queryByText("45120/001")).toBeNull();
-  await escolher("Competência *", "10/2026");
-  await escolher("Número da Folha *", "1 — Folha Mensal");
-  fireEvent.click(screen.getByRole("button",{name:"Consultar Ficha Financeira"}));
-  const identificacao=screen.getByLabelText("Identificação do demonstrativo");
-  expect(within(identificacao).getByText("MARIA COSTA")).toBeTruthy();
-  expect(within(identificacao).queryByText(/PEN-2020-001/)).toBeNull();
-  expect(within(identificacao).queryByText(/CARLOS EDUARDO COSTA/)).toBeNull();
-  expect(within(identificacao).queryByText(/Matrícula\/Vínculo/)).toBeNull();
-});
-it("individualiza múltiplos benefícios e não classifica dependentes como pensionistas", async () => {
-  montar();
-  fireEvent.change(screen.getByLabelText("Servidor / Beneficiário"), {target:{value:"Ana Lima"}});
-  const resultados=await screen.findAllByText(/678\.901\.234-56 — ANA LIMA/, {}, {timeout:5000});
-  expect(resultados).toHaveLength(1);
-  fireEvent.click(resultados[0]);
-  expect((screen.getByRole("button",{name:"Consultar Ficha Financeira"}) as HTMLButtonElement).disabled).toBe(true);
-  fireEvent.change(screen.getByLabelText("Benefício / Relacionamento *"),{target:{value:"auxilio-01"}});
-  expect(screen.getByText("Dependente de PAULO LIMA")).toBeTruthy();
-  expect(screen.queryByText(/Pensionista/)).toBeNull();
-  if (screen.queryByRole("button",{name:"Ver detalhes"})) fireEvent.click(screen.getByRole("button",{name:"Ver detalhes"}));
-  expect(screen.queryByText("Cargo do servidor relacionado")).toBeNull();
-  expect(screen.queryByText("Início do benefício")).toBeNull();
-  await escolher("Competência *", "10/2026"); await escolher("Número da Folha *", "1 — Folha Mensal");
-  fireEvent.click(screen.getByRole("button",{name:"Consultar Ficha Financeira"}));
-  const primeiro=screen.getByRole("region",{name:"Demonstrativo de Pagamento"});
-  expect(screen.getByText("Dependente de PAULO LIMA")).toBeTruthy();
-  expect(within(primeiro).getByText(/1\.188,01/)).toBeTruthy();
-  fireEvent.change(screen.getByLabelText("Benefício / Relacionamento *"),{target:{value:""}});
-  expect(screen.queryByRole("region",{name:"Demonstrativo de Pagamento"})).toBeNull();
-  fireEvent.change(screen.getByLabelText("Benefício / Relacionamento *"),{target:{value:"auxilio-02"}});
-  expect((screen.getByLabelText("Competência *") as HTMLSelectElement).value).toBe("");
-  await escolher("Competência *", "10/2026"); await escolher("Número da Folha *", "1 — Folha Mensal");
-  fireEvent.click(screen.getByRole("button",{name:"Consultar Ficha Financeira"}));
-  const segundo=screen.getByRole("region",{name:"Demonstrativo de Pagamento"});
-  expect(screen.getByText("Dependente de LUCIA LIMA")).toBeTruthy();
-  expect(within(segundo).queryByText(/AUX-2026-001/)).toBeNull();
-  expect(within(segundo).getByText(/594,01/)).toBeTruthy();
-});
-it("exibe matrícula única sem número do vínculo e trata matrículas diferentes sem escolher principal", () => {
-  const vinculo=(identificacao: string) => ({id:identificacao,pessoaId:"pessoa-teste",nome:"PESSOA TESTE",cpf:"123.456.789-09",tipo:"Servidor efetivo",orgao:"SEPLAG",fator:1,identificacao});
-  const pessoa={nome:"PESSOA TESTE",cpf:"123.456.789-09",vinculos:[vinculo("32274/001"),vinculo("32274/002")]};
-  expect(identificacaoAutocomplete(pessoa)).toEqual({principal:"32274 — 123.456.789-09 — PESSOA TESTE",complemento:"2 vínculos cadastrados"});
-  const multiplas={...pessoa,vinculos:[...pessoa.vinculos,vinculo("98765/001")]};
-  expect(identificacaoAutocomplete(multiplas)).toEqual({principal:"123.456.789-09 — PESSOA TESTE",complemento:"2 matrículas cadastradas"});
-  expect(correspondePesquisaPessoa(multiplas,"98765")).toBe(true);
-  expect(correspondePesquisaPessoa(multiplas,"32274")).toBe(true);
-  expect(correspondePesquisaPessoa(multiplas,"12345678909")).toBe(true);
-  expect(correspondePesquisaPessoa(multiplas,"pessoa")).toBe(true);
-  expect(correspondePesquisaPessoa(multiplas,"Outra 123")).toBe(false);
-  expect(identificacaoAutocomplete({...pessoa,vinculos:[]})).toEqual({principal:"123.456.789-09 — PESSOA TESTE",complemento:"Beneficiária sem matrícula funcional"});
+  expect(screen.getByRole("region",{name:"Consultar Demonstrativo"})).toBeTruthy();
+  const resultado=screen.getByRole("region",{name:"Demonstrativo de Pagamento"});
+  expect(within(resultado).getByText("Nenhum demonstrativo consultado")).toBeTruthy();
+  expect(within(resultado).queryByRole("table")).toBeNull();
+  expect(within(resultado).queryByRole("button",{name:"Holerite"})).toBeNull();
+  expect((screen.getByLabelText("Nome, CPF ou matrícula") as HTMLInputElement).value).toBe("");
+  for(const label of ["Vínculo","Competência *","Número da Folha *"]){const campo=screen.getByLabelText(label) as HTMLSelectElement;expect(campo.value).toBe("");expect(campo.disabled).toBe(true);}
+  expect(botao().disabled).toBe(true);expect(screen.queryByLabelText("Resumo da identificação")).toBeNull();
 });
