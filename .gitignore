@@ -23,3 +23,6 @@ dist-ssr
 *.sw?
 .github/agents/*.agent.md
 .vs/
+
+# Temporários locais (perfis de navegador headless, saídas de verificação)
+.tmp-*
