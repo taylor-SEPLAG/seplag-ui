@@ -21690,3 +21690,126 @@
     gap: 12px;
   }
 }
+.prototype-folha-referencia-irrf-values {
+  margin-top: 0.5rem;
+}
+
+.prototype-folha-referencia-irrf-values > p {
+  margin: 0 0 0.75rem;
+  color: #526b8c;
+}
+
+.prototype-folha-referencia-irrf-values-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.prototype-folha-referencia-irrf-values-grid > div {
+  border: 1px solid #d7e3f0;
+  background: #f8fbff;
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.prototype-folha-referencia-irrf-values-grid span,
+.prototype-folha-referencia-irrf-values-grid strong {
+  display: block;
+}
+
+.prototype-folha-referencia-irrf-values-grid span {
+  color: #526b8c;
+  font-size: 0.8125rem;
+}
+
+.prototype-folha-referencia-irrf-values-grid strong {
+  margin-top: 0.25rem;
+  color: #082b54;
+}
+
+.prototype-folha-rpps-rule-summary {
+  border: 1px solid #9bc9f5;
+  border-radius: 5px;
+  background: #f2f8ff;
+  color: #163d67;
+  overflow: hidden;
+}
+
+.prototype-folha-rpps-rule-summary__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #c8e0f7;
+  background: #e7f3ff;
+}
+
+.prototype-folha-rpps-rule-summary__header > i {
+  padding-top: 0.1rem;
+  font-size: 1.1rem;
+  color: #0874cf;
+}
+
+.prototype-folha-rpps-rule-summary__header strong,
+.prototype-folha-rpps-rule-summary__header span {
+  display: block;
+}
+
+.prototype-folha-rpps-rule-summary__header strong {
+  color: #0b4177;
+  font-size: 1rem;
+}
+
+.prototype-folha-rpps-rule-summary__header span {
+  margin-top: 0.15rem;
+  color: #35698f;
+  font-size: 0.8125rem;
+}
+
+.prototype-folha-rpps-rule-summary__details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+}
+
+.prototype-folha-rpps-rule-summary__details > div {
+  min-height: 4.5rem;
+  padding: 0.75rem 1rem;
+  border-right: 1px solid #d7e8f8;
+  border-bottom: 1px solid #d7e8f8;
+}
+
+.prototype-folha-rpps-rule-summary__details > div:nth-child(3n) {
+  border-right: 0;
+}
+
+.prototype-folha-rpps-rule-summary__details span,
+.prototype-folha-rpps-rule-summary__details strong {
+  display: block;
+}
+
+.prototype-folha-rpps-rule-summary__details span {
+  color: #527594;
+  font-size: 0.75rem;
+}
+
+.prototype-folha-rpps-rule-summary__details strong {
+  margin-top: 0.25rem;
+  color: #163d67;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 900px) {
+  .prototype-folha-referencia-irrf-values-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prototype-folha-rpps-rule-summary__details {
+    grid-template-columns: 1fr;
+  }
+
+  .prototype-folha-rpps-rule-summary__details > div,
+  .prototype-folha-rpps-rule-summary__details > div:nth-child(3n) {
+    border-right: 0;
+  }
+}
