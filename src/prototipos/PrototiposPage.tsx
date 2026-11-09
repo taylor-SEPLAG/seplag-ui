@@ -5184,7 +5184,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
   {
     id: 1,
     sigla: "RGPS",
-    nome: "REGIME GERAL DE PREVIDÊNCIA SOCIAL",
+    nome: "Regime Geral de Previdência Social",
     vigencias: [
       {
         id: 101,
@@ -5231,7 +5231,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
   {
     id: 2,
     sigla: "IRRF",
-    nome: "IMPOSTO DE RENDA RETIDO NA FONTE",
+    nome: "Imposto de Renda Retido na Fonte",
     vigencias: [
       {
         id: 201,
@@ -5254,7 +5254,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
   {
     id: 3,
     sigla: "RPPS",
-    nome: "REGIME PRÓPRIO DE PREVIDÊNCIA SOCIAL",
+    nome: "Regime Próprio de Previdência Social",
     vigencias: [
       {
         id: 301,
@@ -25494,7 +25494,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
                 const titulo = isTabelaRppsListagem && tabela.tabelaBaseId
                   ? tabela.nome
                   : tabela.nome
-                    ? tabela.sigla + "- " + tabela.nome
+                    ? tabela.sigla + " - " + tabela.nome
                     : tabela.sigla;
 
                 return (
