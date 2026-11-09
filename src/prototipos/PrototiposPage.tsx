@@ -1110,6 +1110,18 @@ const documentosLegaisMock: DocumentoLegalAssociadoSeplag[] = [
     descricao: "Altera regras de contribuição previdenciária do RPPS.",
   },
   {
+    id: "lc-670-2020",
+    titulo: "Lei Complementar 670/2020",
+    categoria: "Lei Complementar",
+    descricao: "Institui o regime de previdência complementar dos servidores do Estado de Mato Grosso.",
+  },
+  {
+    id: "portaria-previc-821-2020",
+    titulo: "Portaria PREVIC 821/2020",
+    categoria: "Portaria",
+    descricao: "Aprova o plano de benefícios PREVCOM-MT.",
+  },
+  {
     id: "lc-700-2021",
     titulo: "Lei Complementar 700/2021",
     categoria: "Lei Complementar",
@@ -5305,7 +5317,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
         nome: "RPPS – Servidor Civil Ativo PREVCOM (até o teto do RGPS)",
         ano: "2026",
         aplicavelPara: "Servidor Civil",
-        condicaoEspecial: "Previdência complementar",
+        condicaoEspecial: "Ingresso a partir de 26/11/2020 ou opção pela PREVCOM",
         planoPrevidenciario: "PREVCOM",
         tipoCalculo: "Vínculo",
         regraIncidencia: "Até o teto do RGPS",
@@ -5323,7 +5335,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
         ],
         inicioVigencia: "02/01/2026",
         fimVigencia: "31/12/2026",
-        baseLegal: ["lc-202-2004", "lc-654-2020"],
+        baseLegal: ["lc-202-2004", "lc-654-2020", "lc-670-2020", "portaria-previc-821-2020"],
         vigencia: "02/01/2026 até 31/12/2026",
         situacao: calcularSituacaoVigenciaReferencia("02/01/2026", "31/12/2026"),
       },
@@ -5538,7 +5550,10 @@ const normalizarVigenciaTabelaReferencia = (
 
   const faixasNormalizadas =
     modeloRppsId === 302
-      ? getFaixasAutomaticasRppsPorRegra("ATE_TETO_RGPS", "14")
+      ? getFaixasAutomaticasRppsPorRegra(
+          "ATE_TETO_RGPS",
+          vigenciaComModelo.percentualContribuicao ?? "14",
+        )
       : vigenciaComModelo.faixasContribuicao;
 
   return {
@@ -5546,6 +5561,19 @@ const normalizarVigenciaTabelaReferencia = (
     modeloRppsId,
     nome: nomeNormalizado,
     aplicavelPara: vigenciaComModelo.aplicavelPara === "Ativo" ? "Servidor Civil" : vigenciaComModelo.aplicavelPara,
+    condicaoEspecial:
+      modeloRppsId === 302
+        ? modeloRpps?.condicaoEspecial ?? vigenciaComModelo.condicaoEspecial
+        : vigenciaComModelo.condicaoEspecial,
+    planoPrevidenciario:
+      modeloRppsId === 302
+        ? modeloRpps?.planoPrevidenciario ?? vigenciaComModelo.planoPrevidenciario
+        : vigenciaComModelo.planoPrevidenciario,
+    regraIncidencia:
+      modeloRppsId === 302
+        ? modeloRpps?.regraIncidencia ?? vigenciaComModelo.regraIncidencia
+        : vigenciaComModelo.regraIncidencia,
+    valorReferenciaId: modeloRppsId === 302 ? "TETO_RGPS" : vigenciaComModelo.valorReferenciaId,
     proventosAPartirDe:
       modeloRppsId === 303 ? "R$ 0,00" : vigenciaComModelo.proventosAPartirDe,
     tetoPrevidenciario: undefined,
@@ -26179,9 +26207,10 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const isRegraFaixasProgressivas = regraIncidenciaSelecionada === "FAIXAS_PROGRESSIVAS";
   const isRegraIsentoValorReferencia = regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA";
   const isModeloRppsLc700 = modeloRppsId === 303;
+  const isModeloRppsPrevcom = modeloRppsId === 302;
   const isModeloRppsSalarioMinimo = modeloRppsId === 305;
   const isModeloRppsMilitar = modeloRppsId === 307;
-  const isValorReferenciaFixoRpps = modeloRppsId === 302;
+  const isValorReferenciaFixoRpps = isModeloRppsPrevcom;
   const valorReferenciaFixoLabel =
     isValorReferenciaFixoRpps && vigenciaFormularioBase?.valorReferenciaId
       ? folhaTabelaReferenciaValorReferenciaOptions.find(
@@ -26347,8 +26376,10 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const abrirModalNovaFaixa = () => {
     setFaixaEditandoId(null);
     setNovaFaixaForm({
-      faixaFinal: tetoPrevidenciarioSelecionado || "Em aberto",
-      percentual: isTabelaRpps ? "14" : "",
+      faixaFinal: isModeloRppsPrevcom
+        ? getFolhaValorReferenciaAtual("TETO_RGPS") ?? "R$ 8.475,55"
+        : tetoPrevidenciarioSelecionado || "Em aberto",
+      percentual: isTabelaRpps ? percentualContribuicaoSelecionado || "14" : "",
     });
     setModalNovaFaixaAberto(true);
   };
@@ -26504,13 +26535,22 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         planoPrevidenciario: modeloRppsSalvo.planoPrevidenciario,
         tipoCalculo: modeloRppsSalvo.tipoCalculo,
         regraIncidencia: modeloRppsSalvo.regraIncidencia,
-        valorReferenciaId: data.valorReferenciaId || modeloRppsSalvo.valorReferenciaId,
+        valorReferenciaId: isModeloRppsPrevcom
+          ? "TETO_RGPS"
+          : data.valorReferenciaId || modeloRppsSalvo.valorReferenciaId,
         limiteProventos: data.limiteProventos,
         proventosAPartirDe: data.proventosAPartirDe || modeloRppsSalvo.proventosAPartirDe,
         proventosAte: data.proventosAte || modeloRppsSalvo.proventosAte,
         tetoPrevidenciario: undefined,
         percentualContribuicao: data.percentualContribuicao || modeloRppsSalvo.percentualContribuicao,
-        faixasContribuicao: faixasVigencia.length ? faixasVigencia : modeloRppsSalvo.faixasContribuicao,
+        faixasContribuicao: isModeloRppsPrevcom
+          ? getFaixasAutomaticasRppsPorRegra(
+              "ATE_TETO_RGPS",
+              data.percentualContribuicao || modeloRppsSalvo.percentualContribuicao || "14",
+            )
+          : faixasVigencia.length
+            ? faixasVigencia
+            : modeloRppsSalvo.faixasContribuicao,
         inicioVigencia: data.inicioVigencia,
         fimVigencia: data.fimVigencia,
         baseLegal: data.baseLegal,
@@ -26792,7 +26832,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                                 <div><span>Tipo de Cálculo</span><strong>{vigenciaFormularioBase?.tipoCalculo ?? "Vínculo"}</strong></div>
                                 <div><span>Regra de Incidência</span><strong>{vigenciaFormularioBase?.regraIncidencia ?? "-"}</strong></div>
                                 {valorReferenciaFixoLabel ? (
-                                  <div><span>Valor de Referência</span><strong>{valorReferenciaFixoLabel}</strong></div>
+                                  <div><span>{isModeloRppsPrevcom ? "Referência da Regra" : "Valor de Referência"}</span><strong>{valorReferenciaFixoLabel}</strong></div>
                                 ) : null}
                               </div>
                             </div>
@@ -27095,6 +27135,17 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                             <strong>{limitePrevidenciarioMilitarResumo}</strong>
                           </div>
                         </>
+                      ) : isModeloRppsPrevcom ? (
+                        <>
+                          <div>
+                            <span>Referência da Regra</span>
+                            <strong>Teto RGPS: {getFolhaValorReferenciaAtual("TETO_RGPS") ?? "Não informado"}</strong>
+                          </div>
+                          <div>
+                            <span>Base de cálculo</span>
+                            <strong>Remuneração contributiva limitada ao teto do RGPS</strong>
+                          </div>
+                        </>
                       ) : (
                         <div>
                           <span>{referenciaRegraTitulo}</span>
@@ -27252,6 +27303,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                   <input
                     type="text"
                     value={novaFaixaForm.faixaFinal}
+                    readOnly={isModeloRppsPrevcom}
                     onChange={(event) =>
                       setNovaFaixaForm((current) => ({
                         ...current,
@@ -27268,6 +27320,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                     type="text"
                     placeholder="Ex.: 14"
                     value={novaFaixaForm.percentual}
+                    readOnly={isModeloRppsPrevcom}
                     onChange={(event) =>
                       setNovaFaixaForm((current) => ({
                         ...current,
