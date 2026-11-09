@@ -233,6 +233,8 @@ const FOLHA_TABELAS_REFERENCIA_BASE_PATH =
 const FOLHA_PARAMETROS_BASE_PATH = "/prototipos/folha/parametros";
 const FOLHA_VALORES_REFERENCIA_BASE_PATH =
   "/prototipos/folha/valores-referencia";
+const FOLHA_VALORES_REFERENCIA_IRRF_PATH =
+  "/prototipos/folha/valores-referencia/irrf";
 const FOLHA_CONFORMIDADE_BASE_PATH =
   "/prototipos/folha/relatorios/conformidade";
 const FOLHA_FICHA_FINANCEIRA_BASE_PATH =
@@ -4958,6 +4960,20 @@ interface FolhaTabelaReferenciaVigenciaRow {
   inicioVigencia?: string;
   fimVigencia?: string;
   baseLegal?: string[];
+  observacoes?: string;
+  irrfReducaoMensal?: {
+    limiteImpostoZero: string;
+    reducaoMaxima: string;
+    inicioReducaoLinear: string;
+    fimReducaoLinear: string;
+    constante: string;
+    coeficiente: string;
+  };
+  irrfDeducoes?: {
+    dependente: string;
+    descontoSimplificado: string;
+    isencao65Anos: string;
+  };
 }
 
 interface FolhaTabelaReferenciaRow {
@@ -4987,6 +5003,15 @@ interface FolhaTabelaReferenciaVigenciaForm {
   fimVigencia: string;
   baseLegal: string[];
   observacoes: string;
+  irrfLimiteImpostoZero: string;
+  irrfReducaoMaxima: string;
+  irrfInicioReducaoLinear: string;
+  irrfFimReducaoLinear: string;
+  irrfConstanteReducao: string;
+  irrfCoeficienteReducao: string;
+  irrfDeducaoDependente: string;
+  irrfDescontoSimplificado: string;
+  irrfIsencao65Anos: string;
 }
 
 
@@ -5003,7 +5028,7 @@ interface FolhaValorReferenciaVigenciaRow {
 interface FolhaValorReferenciaRow {
   codigo: string;
   nome: string;
-  tipo: "Monetário";
+  tipo: "Monetário" | "Numérico";
   vigencias: FolhaValorReferenciaVigenciaRow[];
 }
 
@@ -5016,6 +5041,26 @@ interface FolhaValorReferenciaVigenciaForm {
   fimVigencia: string;
   observacoes: string;
 }
+
+interface FolhaParametrosIrrfRow {
+  id: number;
+  anoBase: string;
+  inicioVigencia: string;
+  fimVigencia: string;
+  baseLegal: string;
+  observacoes: string;
+  deducaoDependente: string;
+  descontoSimplificado: string;
+  isencao65Anos: string;
+  limiteImpostoZero: string;
+  reducaoMaxima: string;
+  inicioReducaoLinear: string;
+  fimReducaoLinear: string;
+  constanteReducao: string;
+  coeficienteReducao: string;
+}
+
+type FolhaParametrosIrrfForm = Omit<FolhaParametrosIrrfRow, "id">;
 interface FolhaTabelaReferenciaFaixaRow {
   id: number;
   ordem: number;
@@ -5232,24 +5277,7 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
     id: 2,
     sigla: "IRRF",
     nome: "Imposto de Renda Retido na Fonte",
-    vigencias: [
-      {
-        id: 201,
-        ano: "2026",
-        vigencia: (
-          <>
-            01/05/2026 até <em>vigente</em>
-          </>
-        ),
-        situacao: "Ativo",
-      },
-      {
-        id: 202,
-        ano: "2025",
-        vigencia: "01/01/2026 até 30/04/2026",
-        situacao: "Inativo",
-      },
-    ],
+    vigencias: [],
   },
   {
     id: 3,
@@ -5436,6 +5464,12 @@ const folhaTabelasReferenciaMock: FolhaTabelaReferenciaRow[] = [
 
 const FOLHA_TABELAS_REFERENCIA_RPPS_STORAGE_KEY =
   "sigep.prototipos.folha.tabelasReferencia.rpps.vigencias";
+const FOLHA_TABELAS_REFERENCIA_IRRF_STORAGE_KEY =
+  "sigep.prototipos.folha.tabelasReferencia.irrf.vigencias";
+const FOLHA_VALORES_REFERENCIA_IRRF_STORAGE_KEY =
+  "sigep.prototipos.folha.valoresReferencia.irrf.parametros";
+const FOLHA_VALORES_REFERENCIA_STORAGE_KEY =
+  "sigep.prototipos.folha.valoresReferencia.vigencias";
 const FOLHA_TABELA_REFERENCIA_RPPS_BASE_ID = 3;
 
 const folhaTabelaReferenciaRppsNomesPorId: Record<number, string> = {
@@ -5580,11 +5614,71 @@ const salvarFolhaTabelaReferenciaRppsVigencias = (
   );
 };
 
+const lerFolhaTabelaReferenciaIrrfVigencias = (): FolhaTabelaReferenciaVigenciaRow[] => {
+  if (typeof window === "undefined") return [];
+
+  const stored = window.localStorage.getItem(FOLHA_TABELAS_REFERENCIA_IRRF_STORAGE_KEY);
+  if (!stored) return [];
+
+  try {
+    const parsed = JSON.parse(stored) as FolhaTabelaReferenciaVigenciaRow[];
+    return Array.isArray(parsed)
+      ? parsed.filter((vigencia) => vigencia && typeof vigencia.id === "number")
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+const salvarFolhaTabelaReferenciaIrrfVigencias = (
+  vigencias: FolhaTabelaReferenciaVigenciaRow[],
+) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(FOLHA_TABELAS_REFERENCIA_IRRF_STORAGE_KEY, JSON.stringify(vigencias));
+};
+
+const salvarFolhaTabelaReferenciaIrrfVigencia = (
+  vigencia: FolhaTabelaReferenciaVigenciaRow,
+) => {
+  const vigenciasAtuais = lerFolhaTabelaReferenciaIrrfVigencias();
+  const jaExiste = vigenciasAtuais.some((item) => item.id === vigencia.id);
+  salvarFolhaTabelaReferenciaIrrfVigencias(
+    jaExiste
+      ? vigenciasAtuais.map((item) => (item.id === vigencia.id ? vigencia : item))
+      : [...vigenciasAtuais, vigencia],
+  );
+};
+
+const lerFolhaParametrosIrrf = (): FolhaParametrosIrrfRow[] => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const armazenados = JSON.parse(
+      window.localStorage.getItem(FOLHA_VALORES_REFERENCIA_IRRF_STORAGE_KEY) ?? "[]",
+    ) as FolhaParametrosIrrfRow[];
+    return Array.isArray(armazenados)
+      ? armazenados.filter((item) => item && typeof item.id === "number")
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+const salvarFolhaParametrosIrrf = (parametros: FolhaParametrosIrrfRow[]) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    FOLHA_VALORES_REFERENCIA_IRRF_STORAGE_KEY,
+    JSON.stringify(parametros),
+  );
+};
+
 const getFolhaTabelasReferenciaPersistidas = (): FolhaTabelaReferenciaRow[] =>
   folhaTabelasReferenciaMock.map((tabela) =>
     tabela.sigla === "RPPS"
       ? { ...tabela, vigencias: lerFolhaTabelaReferenciaRppsVigencias() }
-      : tabela,
+      : tabela.sigla === "IRRF"
+        ? { ...tabela, vigencias: lerFolhaTabelaReferenciaIrrfVigencias() }
+        : tabela,
   );
 
 const getFolhaTabelasReferenciaListagem = (
@@ -5708,7 +5802,7 @@ const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
   },
   {
     codigo: "DEDUCAO_DEP_IRRF",
-    nome: "Dedução Dependente IRRF",
+    nome: "Dedução por dependente",
     tipo: "Monetário",
     vigencias: [
       {
@@ -5724,7 +5818,7 @@ const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
   },
   {
     codigo: "DEDUCAO_SIMPL_IRRF",
-    nome: "Dedução Simplificada IRRF",
+    nome: "Desconto simplificado mensal",
     tipo: "Monetário",
     vigencias: [
       {
@@ -5740,7 +5834,7 @@ const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
   },
   {
     codigo: "ISENCAO_65_IRRF",
-    nome: "Isenção IRRF 65+",
+    nome: "Parcela isenta para 65 anos ou mais",
     tipo: "Monetário",
     vigencias: [
       {
@@ -5753,6 +5847,42 @@ const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
         situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
       },
     ],
+  },
+  {
+    codigo: "IRRF_LIMITE_IMPOSTO_ZERO",
+    nome: "Limite de renda com imposto zerado",
+    tipo: "Monetário",
+    vigencias: [{ id: 1010, ano: "2026", vigencia: "01/01/2026 até 31/12/2026", valor: "R$ 5.000,00", inicioVigencia: "01/01/2026", fimVigencia: "31/12/2026", situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026") }],
+  },
+  {
+    codigo: "IRRF_REDUCAO_MAXIMA",
+    nome: "Redução máxima mensal",
+    tipo: "Monetário",
+    vigencias: [{ id: 1011, ano: "2026", vigencia: "01/01/2026 até 31/12/2026", valor: "R$ 312,89", inicioVigencia: "01/01/2026", fimVigencia: "31/12/2026", situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026") }],
+  },
+  {
+    codigo: "IRRF_INICIO_REDUCAO_LINEAR",
+    nome: "Início da faixa de redução linear",
+    tipo: "Monetário",
+    vigencias: [{ id: 1012, ano: "2026", vigencia: "01/01/2026 até 31/12/2026", valor: "R$ 5.000,01", inicioVigencia: "01/01/2026", fimVigencia: "31/12/2026", situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026") }],
+  },
+  {
+    codigo: "IRRF_FIM_REDUCAO_LINEAR",
+    nome: "Fim da faixa de redução linear",
+    tipo: "Monetário",
+    vigencias: [{ id: 1013, ano: "2026", vigencia: "01/01/2026 até 31/12/2026", valor: "R$ 7.350,00", inicioVigencia: "01/01/2026", fimVigencia: "31/12/2026", situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026") }],
+  },
+  {
+    codigo: "IRRF_CONSTANTE_REDUCAO",
+    nome: "Constante da fórmula",
+    tipo: "Numérico",
+    vigencias: [{ id: 1014, ano: "2026", vigencia: "01/01/2026 até 31/12/2026", valor: "978,62", inicioVigencia: "01/01/2026", fimVigencia: "31/12/2026", situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026") }],
+  },
+  {
+    codigo: "IRRF_COEFICIENTE_REDUCAO",
+    nome: "Coeficiente da fórmula",
+    tipo: "Numérico",
+    vigencias: [{ id: 1015, ano: "2026", vigencia: "01/01/2026 até 31/12/2026", valor: "0,133145", inicioVigencia: "01/01/2026", fimVigencia: "31/12/2026", situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026") }],
   },
   {
     codigo: "SALARIO_FAMILIA",
@@ -5772,10 +5902,58 @@ const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
   },
 ];
 
+const getFolhaValoresReferenciaPersistidos = (): FolhaValorReferenciaRow[] => {
+  if (typeof window === "undefined") return folhaValoresReferenciaMock;
+
+  try {
+    const armazenados = JSON.parse(
+      window.localStorage.getItem(FOLHA_VALORES_REFERENCIA_STORAGE_KEY) ?? "[]",
+    ) as FolhaValorReferenciaRow[];
+    return Array.isArray(armazenados) && armazenados.length
+      ? armazenados
+      : folhaValoresReferenciaMock;
+  } catch {
+    return folhaValoresReferenciaMock;
+  }
+};
+
+const salvarFolhaValoresReferencia = (valores: FolhaValorReferenciaRow[]) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(FOLHA_VALORES_REFERENCIA_STORAGE_KEY, JSON.stringify(valores));
+};
+
 const getFolhaValorReferenciaAtual = (codigo?: string) =>
   codigo
-    ? folhaValoresReferenciaMock.find((valor) => valor.codigo === codigo)?.vigencias[0]?.valor
+    ? getFolhaValoresReferenciaPersistidos().find((valor) => valor.codigo === codigo)?.vigencias[0]?.valor
     : undefined;
+
+const folhaValoresReferenciaIrrfCodigos = new Set([
+  "DEDUCAO_DEP_IRRF",
+  "DEDUCAO_SIMPL_IRRF",
+  "ISENCAO_65_IRRF",
+  "IRRF_LIMITE_IMPOSTO_ZERO",
+  "IRRF_REDUCAO_MAXIMA",
+  "IRRF_INICIO_REDUCAO_LINEAR",
+  "IRRF_FIM_REDUCAO_LINEAR",
+  "IRRF_CONSTANTE_REDUCAO",
+  "IRRF_COEFICIENTE_REDUCAO",
+]);
+
+const getFolhaValoresIrrfVigentes = (dataReferencia?: string) => {
+  const data = dataReferencia ? new Date(dataReferencia.split("/").reverse().join("-")).getTime() : Date.now();
+  return getFolhaValoresReferenciaPersistidos()
+    .filter((valor) => folhaValoresReferenciaIrrfCodigos.has(valor.codigo))
+    .map((valor) => ({
+      valor,
+      vigencia: valor.vigencias.find((item) => {
+        const inicio = new Date(item.inicioVigencia.split("/").reverse().join("-")).getTime();
+        const fim = item.fimVigencia
+          ? new Date(item.fimVigencia.split("/").reverse().join("-")).getTime()
+          : Number.POSITIVE_INFINITY;
+        return Number.isFinite(data) && inicio <= data && data <= fim;
+      }),
+    }));
+};
 
 const folhaTabelaReferenciaFaixasMock: FolhaTabelaReferenciaFaixaRow[] = [
   {
@@ -5816,19 +5994,11 @@ const folhaTabelaReferenciaFaixasMock: FolhaTabelaReferenciaFaixaRow[] = [
   },
 ];
 
-const folhaTabelaReferenciaFaixasIrrfMock: FolhaTabelaReferenciaFaixaRow[] = [
-  { id: 1, ordem: 1, faixaInicial: "R$ 0,00", faixaFinal: "R$ 2.428,80", percentual: "Isento", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 0,00" },
-  { id: 2, ordem: 2, faixaInicial: "R$ 2.428,81", faixaFinal: "R$ 2.826,65", percentual: "7,5", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 182,16" },
-  { id: 3, ordem: 3, faixaInicial: "R$ 2.826,66", faixaFinal: "R$ 3.751,05", percentual: "15", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 394,16" },
-  { id: 4, ordem: 4, faixaInicial: "R$ 3.751,06", faixaFinal: "R$ 4.664,68", percentual: "22,5", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 675,49" },
-  { id: 5, ordem: 5, faixaInicial: "R$ 4.664,69", faixaFinal: "Em aberto", percentual: "27,5", contribuicaoFaixa: "Não se aplica", parcelaDeduzir: "R$ 908,73" },
-];
+const folhaTabelaReferenciaFaixasIrrfMock: FolhaTabelaReferenciaFaixaRow[] = [];
 
 const folhaTabelaReferenciaIrrfTabs: TabItemSeplag[] = [
   { label: "Dados Gerais", value: "dados-gerais" },
   { label: "Tabela Progressiva", value: "tabela-progressiva" },
-  { label: "Redução Mensal", value: "reducao-mensal" },
-  { label: "Deduções", value: "deducoes" },
 ];
 const folhaTabelaReferenciaVigenciaTabs: TabItemSeplag[] = [
   { label: "Dados Gerais", value: "dados-gerais" },
@@ -5878,6 +6048,8 @@ const calcularParcelaDeduzirIrrf = (
   faixaInicial: string,
   percentual: string,
 ) => {
+  const arredondarParaCimaCentavos = (valor: number) =>
+    Math.ceil((valor - Number.EPSILON) * 100) / 100;
   const limiteAnterior = Math.max(parseMoedaReferencia(faixaInicial) - 0.01, 0);
   const aliquota = Number(percentual.replace(",", "."));
   const impostoFaixasAnteriores = faixasAnteriores.reduce((total, faixa) => {
@@ -5885,10 +6057,12 @@ const calcularParcelaDeduzirIrrf = (
     const fim = parseMoedaReferencia(faixa.faixaFinal);
     const aliquotaFaixa = Number(faixa.percentual.replace(",", "."));
     const baseFaixa = Math.max(fim - Math.max(inicio - 0.01, 0), 0);
-    return total + baseFaixa * (Number.isFinite(aliquotaFaixa) ? aliquotaFaixa / 100 : 0);
+    return total + arredondarParaCimaCentavos(
+      baseFaixa * (Number.isFinite(aliquotaFaixa) ? aliquotaFaixa / 100 : 0),
+    );
   }, 0);
   const parcela = limiteAnterior * (Number.isFinite(aliquota) ? aliquota / 100 : 0) - impostoFaixasAnteriores;
-  return formatMoedaReferencia(Math.max(parcela, 0));
+  return formatMoedaReferencia(arredondarParaCimaCentavos(Math.max(parcela, 0)));
 };
 
 const getFaixasAutomaticasRppsPorRegra = (
@@ -25358,6 +25532,10 @@ export function PrototiposFolhaTabelasReferenciaPage() {
     Record<number, { ano: string; status: "" | FolhaTabelaReferenciaVigenciaRow["situacao"] }>
   >({});
   const [feedback, setFeedback] = useState("");
+  const [vigenciaVisualizada, setVigenciaVisualizada] = useState<{
+    tabela: FolhaTabelaReferenciaRow;
+    vigencia: FolhaTabelaReferenciaVigenciaRow;
+  } | null>(null);
   const [tabelasReferencia, setTabelasReferencia] = useState<
     FolhaTabelaReferenciaRow[]
   >(() => getFolhaTabelasReferenciaPersistidas());
@@ -25410,9 +25588,7 @@ export function PrototiposFolhaTabelasReferenciaPage() {
         type="button"
         tooltip="Visualizar vigência"
         icon="pi pi-eye"
-        onClick={() =>
-          setFeedback("Visualização da vigência " + vigencia.ano + " selecionada.")
-        }
+        onClick={() => setVigenciaVisualizada({ tabela, vigencia })}
       />
       <BotaoIconSeplag
         severity="warning"
@@ -25659,6 +25835,33 @@ export function PrototiposFolhaTabelasReferenciaPage() {
           </div>
         </section>
 
+        <ModalSeplag
+          visible={Boolean(vigenciaVisualizada)}
+          titulo="Visualizar vigência"
+          tamanho="760px"
+          fechar={() => setVigenciaVisualizada(null)}
+          labelFechar="Fechar"
+        >
+          {vigenciaVisualizada ? (
+            <div className="prototype-folha-referencia-vigencia-form">
+              <div className="prototype-folha-referencia-vigencia-panel-title"><h3>{vigenciaVisualizada.tabela.sigla} — {vigenciaVisualizada.tabela.nome}</h3></div>
+              <div className="prototype-folha-referencia-irrf-values-grid">
+                <div><span>Ano-base</span><strong>{vigenciaVisualizada.vigencia.ano}</strong></div>
+                <div><span>Vigência</span><strong>{String(vigenciaVisualizada.vigencia.vigencia)}</strong></div>
+                <div><span>Situação</span><strong>{vigenciaVisualizada.vigencia.situacao}</strong></div>
+                <div><span>Base legal</span><strong>{vigenciaVisualizada.vigencia.baseLegal?.join(", ") || "Não informada"}</strong></div>
+              </div>
+              {vigenciaVisualizada.tabela.sigla === "IRRF" ? (
+                <div className="prototype-folha-referencia-faixa-table prototype-folha-referencia-faixa-table--irrf">
+                  <table><thead><tr><th>Ordem</th><th>Base inicial</th><th>Base final</th><th>Alíquota</th><th>Parcela a deduzir</th></tr></thead>
+                    <tbody>{vigenciaVisualizada.vigencia.faixasContribuicao?.map((faixa) => <tr key={faixa.id}><td>{faixa.ordem}</td><td>{faixa.faixaInicial}</td><td>{faixa.faixaFinal}</td><td>{faixa.percentual}%</td><td>{faixa.parcelaDeduzir}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </ModalSeplag>
+
       </div>
     </PrototypeSystemPage>
   );
@@ -25670,14 +25873,17 @@ export function PrototiposFolhaValoresReferenciaPage() {
   const [tipoSelecionado, setTipoSelecionado] = useState("");
   const [valoresExpandidos, setValoresExpandidos] = useState<string[]>([]);
   const [feedback, setFeedback] = useState("");
+  const [valoresReferencia] = useState<FolhaValorReferenciaRow[]>(() =>
+    getFolhaValoresReferenciaPersistidos(),
+  );
   const termoNormalizado = termoBusca.trim().toLowerCase();
-  const valoresFiltrados = folhaValoresReferenciaMock.filter((valor) => {
+  const valoresFiltrados = valoresReferencia.filter((valor) => {
     const correspondeAoTermo =
       !termoNormalizado ||
       `${valor.codigo} ${valor.nome}`.toLowerCase().includes(termoNormalizado);
     return correspondeAoTermo && (!tipoSelecionado || valor.tipo === tipoSelecionado);
   });
-  const tipos = [...new Set(folhaValoresReferenciaMock.map((valor) => valor.tipo))];
+  const tipos = [...new Set(valoresReferencia.map((valor) => valor.tipo))];
 
   const toggleValorReferencia = (codigo: string) => {
     setValoresExpandidos((current) =>
@@ -25881,7 +26087,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
           : getFaixasAutomaticasRppsPorRegra(vigenciaFormularioBase?.regraIncidencia);
       }
 
-      if (isTabelaIrrf) return folhaTabelaReferenciaFaixasIrrfMock;
+      if (isTabelaIrrf) return vigenciaFormularioBase?.faixasContribuicao ?? folhaTabelaReferenciaFaixasIrrfMock;
       return isEditing ? folhaTabelaReferenciaFaixasMock : [];
     });
   const [novaFaixaForm, setNovaFaixaForm] =
@@ -25890,10 +26096,26 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       percentual: "",
     });
   const [modalNovaFaixaAberto, setModalNovaFaixaAberto] = useState(false);
+  const [faixaEditandoId, setFaixaEditandoId] = useState<number | null>(null);
+  const proximoInicioVigenciaIrrf = (() => {
+    if (!isTabelaIrrf || isEditing) return "";
+    const ultimaComFim = tabela.vigencias
+      .filter((vigencia) => vigencia.fimVigencia)
+      .sort((a, b) => {
+        const dataA = new Date((a.fimVigencia ?? "").split("/").reverse().join("-")).getTime();
+        const dataB = new Date((b.fimVigencia ?? "").split("/").reverse().join("-")).getTime();
+        return dataB - dataA;
+      })[0];
+    if (!ultimaComFim?.fimVigencia) return "";
+    const proximaData = new Date(
+      new Date(ultimaComFim.fimVigencia.split("/").reverse().join("-")).getTime() + 86400000,
+    );
+    return proximaData.toLocaleDateString("pt-BR");
+  })();
   const { control, handleSubmit, watch, setValue } = useForm<FolhaTabelaReferenciaVigenciaForm>({
     defaultValues: {
-      descricao: vigenciaFormularioBase?.nome ?? (isTabelaRpps ? "Nova regra RPPS" : isTabelaIrrf ? "Tabela mensal do IRRF" : isTabelaPrevcom ? "RPC 2026" : isEditing ? "testeddd" : ""),
-      anoBase: vigenciaFormularioBase?.ano ?? (isEditing || isTabelaRpps || isTabelaIrrf ? "2026" : ""),
+      descricao: vigenciaFormularioBase?.nome ?? (isTabelaRpps ? "Nova regra RPPS" : isTabelaPrevcom ? "RPC 2026" : isEditing ? "testeddd" : ""),
+      anoBase: vigenciaFormularioBase?.ano ?? (isEditing || isTabelaRpps ? "2026" : ""),
       aplicavelPara: isTabelaRpps
         ? folhaTabelaReferenciaValuesFromLabels(
             folhaTabelaReferenciaAplicavelParaOptions,
@@ -25931,16 +26153,29 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       proventosAte: vigenciaFormularioBase?.proventosAte ?? "",
       tetoPrevidenciario: vigenciaFormularioBase?.tetoPrevidenciario ?? (isTabelaRpps ? "" : isEditing ? "R$ 8.475,55" : ""),
       percentualContribuicao: vigenciaFormularioBase?.percentualContribuicao ?? (isTabelaRpps ? "14" : ""),
-      inicioVigencia: vigenciaFormularioBase?.inicioVigencia ?? (isTabelaRpps ? "02/01/2026" : isTabelaIrrf ? "01/01/2026" : isEditing ? "02/06/2026" : ""),
-      fimVigencia: vigenciaFormularioBase?.fimVigencia ?? (isTabelaRpps || isTabelaIrrf ? "31/12/2026" : ""),
+      inicioVigencia: vigenciaFormularioBase?.inicioVigencia ?? (isTabelaRpps ? "02/01/2026" : isEditing ? "02/06/2026" : proximoInicioVigenciaIrrf),
+      fimVigencia: vigenciaFormularioBase?.fimVigencia ?? (isTabelaRpps ? "31/12/2026" : ""),
       baseLegal: vigenciaFormularioBase?.baseLegal ?? [],
-      observacoes: "",
+      observacoes: vigenciaFormularioBase?.observacoes ?? "",
+      irrfLimiteImpostoZero: vigenciaFormularioBase?.irrfReducaoMensal?.limiteImpostoZero ?? "R$ 0,00",
+      irrfReducaoMaxima: vigenciaFormularioBase?.irrfReducaoMensal?.reducaoMaxima ?? "R$ 0,00",
+      irrfInicioReducaoLinear: vigenciaFormularioBase?.irrfReducaoMensal?.inicioReducaoLinear ?? "R$ 0,00",
+      irrfFimReducaoLinear: vigenciaFormularioBase?.irrfReducaoMensal?.fimReducaoLinear ?? "R$ 0,00",
+      irrfConstanteReducao: vigenciaFormularioBase?.irrfReducaoMensal?.constante ?? "R$ 0,00",
+      irrfCoeficienteReducao: vigenciaFormularioBase?.irrfReducaoMensal?.coeficiente ?? "0",
+      irrfDeducaoDependente: vigenciaFormularioBase?.irrfDeducoes?.dependente ?? "R$ 0,00",
+      irrfDescontoSimplificado: vigenciaFormularioBase?.irrfDeducoes?.descontoSimplificado ?? "R$ 0,00",
+      irrfIsencao65Anos: vigenciaFormularioBase?.irrfDeducoes?.isencao65Anos ?? "R$ 0,00",
     },
   });
   const regraIncidenciaSelecionada = watch("regraIncidencia");
   const valorReferenciaSelecionado = watch("valorReferenciaId");
   const tetoPrevidenciarioSelecionado = watch("tetoPrevidenciario");
   const percentualContribuicaoSelecionado = watch("percentualContribuicao");
+  const inicioVigenciaSelecionado = watch("inicioVigencia");
+  const valoresIrrfVigentes = isTabelaIrrf
+    ? getFolhaValoresIrrfVigentes(inicioVigenciaSelecionado)
+    : [];
   const isRegraFaixasProgressivas = regraIncidenciaSelecionada === "FAIXAS_PROGRESSIVAS";
   const isRegraIsentoValorReferencia = regraIncidenciaSelecionada === "ISENTO_ATE_VALOR_REFERENCIA";
   const isModeloRppsLc700 = modeloRppsId === 303;
@@ -26062,6 +26297,11 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       : `TABELA - ${tabela.sigla}${nomeTituloTabela ? ` - ${nomeTituloTabela}` : ""}`;
   const proximaOrdemFaixa = faixasVigencia.length + 1;
   const proximaFaixaInicial = getProximaFaixaInicialReferencia(faixasVigencia);
+  const faixaEditando = faixaEditandoId === null
+    ? undefined
+    : faixasVigencia.find((faixa) => faixa.id === faixaEditandoId);
+  const ordemFaixaModal = faixaEditando?.ordem ?? proximaOrdemFaixa;
+  const faixaInicialModal = faixaEditando?.faixaInicial ?? proximaFaixaInicial;
   const descontoMaximo = faixasVigencia.reduce(
     (total, faixa) => total + parseMoedaReferencia(faixa.contribuicaoFaixa),
     0,
@@ -26071,11 +26311,15 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const referenciaRegraTitulo =
     isTabelaRpps && valorReferenciaSelecionado === "TETO_RGPS"
       ? "Teto RGPS"
+      : isTabelaRpps && regraIncidenciaSelecionada === "REMUNERACAO_TOTAL"
+        ? "Base de cálculo"
       : isTabelaRpps
         ? "Referência da Regra"
         : "Teto Previdenciário";
   const referenciaRegraResumo = isTabelaRpps
-    ? valorReferenciaAtualResumo ||
+    ? regraIncidenciaSelecionada === "REMUNERACAO_TOTAL"
+      ? "Remuneração total"
+      : valorReferenciaAtualResumo ||
       (referenciaAutomaticaResumo === "Não informado"
         ? "Não se aplica"
         : referenciaAutomaticaResumo)
@@ -26101,16 +26345,35 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     return inicio1 <= fim2 && inicio2 <= fim1;
   };
   const abrirModalNovaFaixa = () => {
-    if (isTabelaRpps && !isRegraFaixasProgressivas) {
-      setFeedback("Use o campo Percentual de Contribuição para regras sem faixas progressivas.");
-      return;
-    }
-
+    setFaixaEditandoId(null);
     setNovaFaixaForm({
       faixaFinal: tetoPrevidenciarioSelecionado || "Em aberto",
       percentual: isTabelaRpps ? "14" : "",
     });
     setModalNovaFaixaAberto(true);
+  };
+
+  const abrirModalEditarFaixa = (faixa: FolhaTabelaReferenciaFaixaRow) => {
+    setFaixaEditandoId(faixa.id);
+    setNovaFaixaForm({
+      faixaFinal: faixa.faixaFinal,
+      percentual: faixa.percentual === "Isento" ? "0" : faixa.percentual,
+    });
+    setModalNovaFaixaAberto(true);
+  };
+
+  const removerFaixa = (faixa: FolhaTabelaReferenciaFaixaRow) => {
+    const ultimaFaixa = faixasVigencia[faixasVigencia.length - 1];
+
+    if (ultimaFaixa?.id !== faixa.id) {
+      setFeedback("Remova primeiro as faixas posteriores para preservar a sequência da tabela.");
+      return;
+    }
+
+    if (!window.confirm(`Deseja remover a faixa ${faixa.ordem}?`)) return;
+
+    setFaixasVigencia((current) => current.filter((item) => item.id !== faixa.id));
+    setFeedback("Faixa removida com sucesso!");
   };
 
   const salvarVigencia = (data: FolhaTabelaReferenciaVigenciaForm) => {
@@ -26276,6 +26539,25 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       return;
     }
 
+    if (isTabelaIrrf && activeTab === "dados-gerais" && !dadosGeraisSalvos) {
+      if (!data.descricao.trim() || !data.anoBase.trim() || !data.inicioVigencia.trim()) {
+        setFeedback("Informe Descrição, Ano Base e Início da Vigência.");
+        return;
+      }
+
+      if (!data.baseLegal?.length) {
+        setFeedback("Informe a Base Legal da vigência IRRF.");
+        return;
+      }
+
+      const inicio = parseDataVigenciaReferencia(data.inicioVigencia);
+      const fim = parseDataVigenciaReferencia(data.fimVigencia);
+      if (inicio === undefined || (data.fimVigencia.trim() && fim === undefined) || (inicio !== undefined && fim !== undefined && fim < inicio)) {
+        setFeedback("Informe um período de vigência válido.");
+        return;
+      }
+    }
+
     if (activeTab === "dados-gerais" && !dadosGeraisSalvos) {
       setDadosGeraisSalvos(true);
       setActiveTab(isTabelaIrrf ? "tabela-progressiva" : "faixa-contribuicao");
@@ -26287,6 +26569,78 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       return;
     }
 
+    if (isTabelaIrrf) {
+      if (!faixasVigencia.length) {
+        setFeedback("Inclua ao menos uma faixa na Tabela Progressiva.");
+        return;
+      }
+
+      const primeiraFaixa = faixasVigencia[0];
+      if (parseMoedaReferencia(primeiraFaixa.faixaInicial) !== 0) {
+        setFeedback("A primeira faixa da Tabela Progressiva deve iniciar em R$ 0,00.");
+        return;
+      }
+
+      const possuiLacunaOuSobreposicao = faixasVigencia.some((faixa, index) => {
+        if (index === 0) return false;
+        const anterior = faixasVigencia[index - 1];
+        if (isFaixaAberta(anterior)) return true;
+        return Math.abs(
+          parseMoedaReferencia(faixa.faixaInicial) - (parseMoedaReferencia(anterior.faixaFinal) + 0.01),
+        ) > 0.001;
+      });
+      if (possuiLacunaOuSobreposicao) {
+        setFeedback("As faixas da Tabela Progressiva não podem possuir lacunas ou sobreposição.");
+        return;
+      }
+
+      const vigenciaAtualId = Number(vigenciaId);
+      const vigenciasAtuais = lerFolhaTabelaReferenciaIrrfVigencias();
+      const temSobreposicao = vigenciasAtuais.some((vigencia) =>
+        vigencia.id !== vigenciaAtualId && vigenciasSobrepostas(
+          data.inicioVigencia,
+          data.fimVigencia,
+          vigencia.inicioVigencia,
+          vigencia.fimVigencia,
+        ),
+      );
+      if (temSobreposicao) {
+        setFeedback("Já existe vigência IRRF sobreposta para o período informado.");
+        return;
+      }
+
+      const inicioVigencia = parseDataVigenciaReferencia(data.inicioVigencia)!;
+      const vigenciaAnterior = vigenciasAtuais
+        .filter((vigencia) => vigencia.id !== vigenciaAtualId && vigencia.fimVigencia)
+        .filter((vigencia) => (parseDataVigenciaReferencia(vigencia.fimVigencia) ?? Number.POSITIVE_INFINITY) < inicioVigencia)
+        .sort((a, b) => (parseDataVigenciaReferencia(b.fimVigencia) ?? 0) - (parseDataVigenciaReferencia(a.fimVigencia) ?? 0))[0];
+      if (vigenciaAnterior?.fimVigencia) {
+        const fimAnterior = parseDataVigenciaReferencia(vigenciaAnterior.fimVigencia)!;
+        const inicioEsperado = new Date(fimAnterior + 86400000).toLocaleDateString("pt-BR");
+        if (data.inicioVigencia !== inicioEsperado) {
+          setFeedback(`A nova vigência deve iniciar em ${inicioEsperado}, dia seguinte ao término da vigência anterior.`);
+          return;
+        }
+      }
+
+      const novaVigencia: FolhaTabelaReferenciaVigenciaRow = {
+        id: Number.isFinite(vigenciaAtualId) && vigenciaAtualId > 0 ? vigenciaAtualId : Date.now(),
+        nome: data.descricao,
+        ano: data.anoBase,
+        inicioVigencia: data.inicioVigencia,
+        fimVigencia: data.fimVigencia,
+        baseLegal: data.baseLegal,
+        observacoes: data.observacoes,
+        faixasContribuicao: faixasVigencia,
+        vigencia: formatarPeriodoVigenciaReferencia(data.inicioVigencia, data.fimVigencia),
+        situacao: calcularSituacaoVigenciaReferencia(data.inicioVigencia, data.fimVigencia),
+      };
+      salvarFolhaTabelaReferenciaIrrfVigencia(novaVigencia);
+      setFeedback("Registro salvo com sucesso!");
+      window.setTimeout(() => navigate(FOLHA_TABELAS_REFERENCIA_BASE_PATH), 650);
+      return;
+    }
+
     setFeedback("Registro salvo com sucesso!");
   };
 
@@ -26295,12 +26649,11 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     const percentual = novaFaixaForm.percentual.trim();
     const faixaAberta = isFaixaAberta({ faixaFinal });
 
-    if (isTabelaRpps && !isRegraFaixasProgressivas) {
-      setFeedback("Use o campo Percentual de Contribuição para regras sem faixas progressivas.");
-      return;
-    }
-
-    if (faixasVigencia.length && isFaixaAberta(faixasVigencia[faixasVigencia.length - 1])) {
+    if (
+      faixaEditandoId === null &&
+      faixasVigencia.length &&
+      isFaixaAberta(faixasVigencia[faixasVigencia.length - 1])
+    ) {
       setFeedback("Não é possível adicionar faixa após uma faixa em aberto.");
       return;
     }
@@ -26315,31 +26668,56 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       return;
     }
 
-    const faixaInicial = getProximaFaixaInicialReferencia(faixasVigencia);
+    const faixaInicial = faixaInicialModal;
 
     if (!faixaAberta && parseMoedaReferencia(faixaFinal) < parseMoedaReferencia(faixaInicial)) {
       setFeedback("O Valor Final da faixa deve ser maior ou igual ao Valor Inicial.");
       return;
     }
 
-    setFaixasVigencia((current) => [
-      ...current,
-      {
-        id: Date.now(),
-        ordem: current.length + 1,
-        faixaInicial,
-        faixaFinal,
-        percentual,
-        contribuicaoFaixa: faixaAberta
-          ? "Calculada pelo motor"
-          : calcularContribuicaoFaixaReferencia(faixaInicial, faixaFinal, percentual),
-        parcelaDeduzir: isTabelaIrrf
-          ? calcularParcelaDeduzirIrrf(current, faixaInicial, percentual)
-          : undefined,
-      },
-    ]);
+    const novaFaixa: FolhaTabelaReferenciaFaixaRow = {
+      id: faixaEditando?.id ?? Date.now(),
+      ordem: faixaEditando?.ordem ?? proximaOrdemFaixa,
+      faixaInicial,
+      faixaFinal,
+      percentual,
+      contribuicaoFaixa: faixaAberta
+        ? "Calculada pelo motor"
+        : calcularContribuicaoFaixaReferencia(faixaInicial, faixaFinal, percentual),
+      parcelaDeduzir: isTabelaIrrf
+        ? calcularParcelaDeduzirIrrf(
+            faixaEditandoId === null ? faixasVigencia : faixasVigencia.filter((item) => item.id !== faixaEditandoId),
+            faixaInicial,
+            percentual,
+          )
+        : undefined,
+    };
+    const indiceFaixaEditada = faixaEditandoId === null
+      ? -1
+      : faixasVigencia.findIndex((item) => item.id === faixaEditandoId);
+    const faixaPosterior = indiceFaixaEditada >= 0 ? faixasVigencia[indiceFaixaEditada + 1] : undefined;
+
+    if (faixaPosterior && faixaAberta) {
+      setFeedback("Uma faixa em aberto só pode ser a última da tabela.");
+      return;
+    }
+
+    if (
+      faixaPosterior &&
+      parseMoedaReferencia(faixaPosterior.faixaInicial) !== parseMoedaReferencia(faixaFinal) + 0.01
+    ) {
+      setFeedback("O Valor Final deve manter a continuidade com a próxima faixa.");
+      return;
+    }
+
+    setFaixasVigencia((current) =>
+      faixaEditandoId === null
+        ? [...current, novaFaixa]
+        : current.map((item) => (item.id === faixaEditandoId ? novaFaixa : item)),
+    );
     setModalNovaFaixaAberto(false);
-    setFeedback("Faixa adicionada com sucesso!");
+    setFaixaEditandoId(null);
+    setFeedback(faixaEditandoId === null ? "Faixa adicionada com sucesso!" : "Faixa atualizada com sucesso!");
   };
 
   return (
@@ -26383,55 +26761,68 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                           getFormErrorMessage={() => null}
                         />
                       ) : null}
-                      <TextFieldSeplag
-                        name="anoBase"
-                        control={control}
-                        label="Ano Base"
-                        required
-                        cols="12 12 4"
-                        getFormErrorMessage={() => null}
-                      />
+                      {!isTabelaRpps ? (
+                        <TextFieldSeplag
+                          name="anoBase"
+                          control={control}
+                          label="Ano Base"
+                          required
+                          cols="12 12 4"
+                          getFormErrorMessage={() => null}
+                        />
+                      ) : null}
                       {isTabelaRpps ? (
                         <>
                           <div className="col-12">
-                            <div className="prototype-folha-referencia-vigencia-panel-title">
-                              <h3>Características da Regra</h3>
-                            </div>
-                            <div className="grid prototype-folha-referencia-vigencia-fields">
-                              <div className="col-12 md:col-6 lg:col-3">
-                                <strong>Aplicável para</strong>
-                                <p>{vigenciaFormularioBase?.aplicavelPara ?? "-"}</p>
-                              </div>
-                              {vigenciaFormularioBase?.situacoesFuncionaisMilitar ? (
-                                <div className="col-12 md:col-6 lg:col-3">
-                                  <strong>Situação Funcional</strong>
-                                  <p>{vigenciaFormularioBase.situacoesFuncionaisMilitar}</p>
+                            <div className="prototype-folha-rpps-rule-summary">
+                              <div className="prototype-folha-rpps-rule-summary__header">
+                                <i className="pi pi-shield" aria-hidden="true" />
+                                <div>
+                                  <strong>{vigenciaFormularioBase?.nome ?? "Regra RPPS"}</strong>
+                                  <span>Características informativas da regra previdenciária</span>
                                 </div>
-                              ) : null}
-                              <div className="col-12 md:col-6 lg:col-3">
-                                <strong>Condição Especial</strong>
-                                <p>{vigenciaFormularioBase?.condicaoEspecial ?? "Nenhuma"}</p>
                               </div>
-                              <div className="col-12 md:col-6 lg:col-3">
-                                <strong>Plano Previdenciário</strong>
-                                <p>{vigenciaFormularioBase?.planoPrevidenciario ?? "Geral"}</p>
+                              <div className="prototype-folha-rpps-rule-summary__details">
+                                <div><span>Aplicável para</span><strong>{vigenciaFormularioBase?.aplicavelPara ?? "-"}</strong></div>
+                                {vigenciaFormularioBase?.situacoesFuncionaisMilitar ? (
+                                  <div><span>Situação Funcional</span><strong>{vigenciaFormularioBase.situacoesFuncionaisMilitar}</strong></div>
+                                ) : null}
+                                <div><span>Condição Especial</span><strong>{vigenciaFormularioBase?.condicaoEspecial ?? "Nenhuma"}</strong></div>
+                                <div><span>Plano Previdenciário</span><strong>{vigenciaFormularioBase?.planoPrevidenciario ?? "Geral"}</strong></div>
+                                <div><span>Tipo de Cálculo</span><strong>{vigenciaFormularioBase?.tipoCalculo ?? "Vínculo"}</strong></div>
+                                <div><span>Regra de Incidência</span><strong>{vigenciaFormularioBase?.regraIncidencia ?? "-"}</strong></div>
+                                {valorReferenciaFixoLabel ? (
+                                  <div><span>Valor de Referência</span><strong>{valorReferenciaFixoLabel}</strong></div>
+                                ) : null}
                               </div>
-                              <div className="col-12 md:col-6 lg:col-3">
-                                <strong>Tipo de Cálculo</strong>
-                                <p>{vigenciaFormularioBase?.tipoCalculo ?? "Vínculo"}</p>
-                              </div>
-                              <div className="col-12 md:col-6 lg:col-3">
-                                <strong>Regra de Incidência</strong>
-                                <p>{vigenciaFormularioBase?.regraIncidencia ?? "-"}</p>
-                              </div>
-                              {valorReferenciaFixoLabel ? (
-                                <div className="col-12 md:col-6 lg:col-3">
-                                  <strong>Valor de Referência</strong>
-                                  <p>{valorReferenciaFixoLabel}</p>
-                                </div>
-                              ) : null}
                             </div>
                           </div>
+                          <Controller
+                            name="baseLegal"
+                            control={control}
+                            render={({ field }) => (
+                              <div className="col-12">
+                                <DocumentosLegaisAssociadosSeplag
+                                  label="Base Legal"
+                                  required
+                                  options={documentosLegaisMock}
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  placeholder="Selecione a lei da vigência"
+                                  filtroPlaceholder="Filtrar por lei, número ou descrição..."
+                                  onNovoCadastro={() => setFeedback("Novo cadastro de lei deve ser realizado no cadastro de documentos legais.")}
+                                  onVisualizar={(documento) => setFeedback(`Base legal selecionada: ${documento.titulo}`)}
+                                />
+                              </div>
+                            )}
+                          />
+                          <TextFieldSeplag name="anoBase" control={control} label="Ano Base" required cols="12 12 3" getFormErrorMessage={() => null} />
+                          {exibirPercentualRpps ? (
+                            <TextFieldSeplag name="percentualContribuicao" control={control} label="Percentual de Contribuição" required cols="12 12 3" getFormErrorMessage={() => null} />
+                          ) : null}
+                          <TextFieldSeplag name="inicioVigencia" control={control} label="Início da Vigência" required cols="12 12 3" getFormErrorMessage={() => null} />
+                          <TextFieldSeplag name="fimVigencia" control={control} label="Fim da Vigência" placeholder="dd/mm/aaaa" cols="12 12 3" getFormErrorMessage={() => null} />
+                          <TextAreaFieldSeplag name="observacoes" control={control} label="Observações" placeholder="Observações..." cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} />
                           {isModeloRppsLc700 ? (
                             <>
                               <div className="col-12 md:col-6 lg:col-3">
@@ -26481,16 +26872,6 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                               options={folhaTabelaReferenciaValorReferenciaOptions}
                               optionLabel="label"
                               optionValue="value"
-                              getFormErrorMessage={() => null}
-                            />
-                          ) : null}
-                          {exibirPercentualRpps ? (
-                            <TextFieldSeplag
-                              name="percentualContribuicao"
-                              control={control}
-                              label="Percentual de Contribuição"
-                              required
-                              cols="12 12 3"
                               getFormErrorMessage={() => null}
                             />
                           ) : null}
@@ -26561,57 +26942,77 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                           getFormErrorMessage={() => null}
                         />
                       ) : null}
-                      <TextFieldSeplag
-                        name="inicioVigencia"
-                        control={control}
-                        label="Início da Vigência"
-                        required
-                        cols="12 12 3"
-                        getFormErrorMessage={() => null}
-                      />
-                      <TextFieldSeplag
-                        name="fimVigencia"
-                        control={control}
-                        label="Fim da Vigência"
-                        placeholder="dd/mm/aaaa"
-                        cols="12 12 3"
-                        getFormErrorMessage={() => null}
-                      />
-                      <Controller
-                        name="baseLegal"
-                        control={control}
-                        render={({ field }) => (
-                          <div className="col-12">
-                            <DocumentosLegaisAssociadosSeplag
-                              label="Base Legal"
-                              required={isTabelaRpps}
-                              options={documentosLegaisMock}
-                              value={field.value}
-                              onChange={field.onChange}
-                              placeholder="Selecione a lei da vigência"
-                              filtroPlaceholder="Filtrar por lei, número ou descrição..."
-                              onNovoCadastro={() =>
-                                setFeedback(
-                                  "Novo cadastro de lei deve ser realizado no cadastro de documentos legais.",
-                                )
-                              }
-                              onVisualizar={(documento) =>
-                                setFeedback(`Base legal selecionada: ${documento.titulo}`)
-                              }
-                            />
+                      {!isTabelaRpps ? (
+                        <>
+                          <TextFieldSeplag
+                            name="inicioVigencia"
+                            control={control}
+                            label="Início da Vigência"
+                            required
+                            cols="12 12 3"
+                            getFormErrorMessage={() => null}
+                          />
+                          <TextFieldSeplag
+                            name="fimVigencia"
+                            control={control}
+                            label="Fim da Vigência"
+                            placeholder="dd/mm/aaaa"
+                            cols="12 12 3"
+                            getFormErrorMessage={() => null}
+                          />
+                          <Controller
+                            name="baseLegal"
+                            control={control}
+                            render={({ field }) => (
+                              <div className="col-12">
+                                <DocumentosLegaisAssociadosSeplag
+                                  label="Base Legal"
+                                  required={isTabelaRpps}
+                                  options={documentosLegaisMock}
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  placeholder="Selecione a lei da vigência"
+                                  filtroPlaceholder="Filtrar por lei, número ou descrição..."
+                                  onNovoCadastro={() =>
+                                    setFeedback(
+                                      "Novo cadastro de lei deve ser realizado no cadastro de documentos legais.",
+                                    )
+                                  }
+                                  onVisualizar={(documento) =>
+                                    setFeedback(`Base legal selecionada: ${documento.titulo}`)
+                                  }
+                                />
+                              </div>
+                            )}
+                          />
+                          <TextAreaFieldSeplag
+                            name="observacoes"
+                            control={control}
+                            label="Observações"
+                            placeholder="Observações..."
+                            cols="12"
+                            rows={4}
+                            maxLength={500}
+                            getFormErrorMessage={() => null}
+                          />
+                        </>
+                      ) : null}
+                      {isTabelaIrrf ? (
+                        <div className="col-12 prototype-folha-referencia-irrf-values">
+                          <div className="prototype-folha-referencia-vigencia-panel-title">
+                            <h3>Valores de Referência IRRF aplicáveis</h3>
                           </div>
-                        )}
-                      />
-                      <TextAreaFieldSeplag
-                        name="observacoes"
-                        control={control}
-                        label="Observações"
-                        placeholder="Observações..."
-                        cols="12"
-                        rows={4}
-                        maxLength={500}
-                        getFormErrorMessage={() => null}
-                      />
+                          <p>Valores consultados pela data de início da vigência da tabela.</p>
+                          <div className="prototype-folha-referencia-irrf-values-grid">
+                            {valoresIrrfVigentes.map(({ valor, vigencia }) => (
+                              <div key={valor.codigo}>
+                                <span>{valor.nome}</span>
+                                <strong>{vigencia?.valor ?? "Sem vigência aplicável"}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   </>
                 ) : isTabelaIrrf && activeTab === "reducao-mensal" ? (
@@ -26619,20 +27020,13 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                     <div className="prototype-folha-referencia-vigencia-panel-title">
                       <h3>Redução Mensal do IRRF</h3>
                     </div>
-                    <div className="prototype-folha-referencia-calculo-summary">
-                      <div><span>Isenção total até</span><strong>R$ 5.000,00</strong></div>
-                      <div><span>Redução decrescente até</span><strong>R$ 7.350,00</strong></div>
-                      <div><span>Vigência</span><strong>Janeiro de 2026</strong></div>
-                    </div>
-                    <div className="prototype-folha-referencia-irrf-table">
-                      <table>
-                        <thead><tr><th>Rendimento Inicial</th><th>Rendimento Final</th><th>Regra da Redução</th><th>Ações</th></tr></thead>
-                        <tbody>
-                          <tr><td>R$ 0,00</td><td>R$ 5.000,00</td><td>Redução limitada ao imposto devido, resultando em IRRF igual a zero</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar redução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
-                          <tr><td>R$ 5.000,01</td><td>R$ 7.350,00</td><td>R$ 978,62 − (0,133145 × rendimentos tributáveis)</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar redução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
-                          <tr><td>R$ 7.350,01</td><td>Em aberto</td><td>Sem redução mensal</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar redução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
-                        </tbody>
-                      </table>
+                    <div className="grid prototype-folha-referencia-vigencia-fields">
+                      <TextFieldSeplag name="irrfLimiteImpostoZero" control={control} label="Limite de Imposto Zero" cols="12 12 4" getFormErrorMessage={() => null} />
+                      <TextFieldSeplag name="irrfReducaoMaxima" control={control} label="Redução Máxima" cols="12 12 4" getFormErrorMessage={() => null} />
+                      <TextFieldSeplag name="irrfInicioReducaoLinear" control={control} label="Início da Redução Linear" cols="12 12 4" getFormErrorMessage={() => null} />
+                      <TextFieldSeplag name="irrfFimReducaoLinear" control={control} label="Fim da Redução Linear" cols="12 12 4" getFormErrorMessage={() => null} />
+                      <TextFieldSeplag name="irrfConstanteReducao" control={control} label="Constante da Fórmula" cols="12 12 4" getFormErrorMessage={() => null} />
+                      <TextFieldSeplag name="irrfCoeficienteReducao" control={control} label="Coeficiente da Fórmula" cols="12 12 4" getFormErrorMessage={() => null} />
                     </div>
                   </>
                 ) : isTabelaIrrf && activeTab === "deducoes" ? (
@@ -26640,20 +27034,10 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                     <div className="prototype-folha-referencia-vigencia-panel-title">
                       <h3>Deduções Mensais</h3>
                     </div>
-                    <div className="prototype-folha-referencia-calculo-summary">
-                      <div><span>Dedução por dependente</span><strong>R$ 189,59</strong></div>
-                      <div><span>Desconto simplificado</span><strong>R$ 607,20</strong></div>
-                      <div><span>Parcela isenta 65 anos ou mais</span><strong>R$ 1.903,98</strong></div>
-                    </div>
-                    <div className="prototype-folha-referencia-irrf-table">
-                      <table>
-                        <thead><tr><th>Parâmetro</th><th>Valor Mensal</th><th>Aplicação</th><th>Ações</th></tr></thead>
-                        <tbody>
-                          <tr><td>Dedução por dependente</td><td>R$ 189,59</td><td>Por dependente elegível</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar dedução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
-                          <tr><td>Desconto simplificado mensal</td><td>R$ 607,20</td><td>Substitui as deduções legais quando mais vantajoso</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar dedução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
-                          <tr><td>Parcela isenta para 65 anos ou mais</td><td>R$ 1.903,98</td><td>Aposentadoria e pensão, observados os requisitos</td><td><div className="prototype-folha-referencia-faixa-actions"><button type="button" aria-label="Visualizar dedução"><i className="pi pi-eye" aria-hidden="true" /></button></div></td></tr>
-                        </tbody>
-                      </table>
+                    <div className="grid prototype-folha-referencia-vigencia-fields">
+                      <TextFieldSeplag name="irrfDeducaoDependente" control={control} label="Dedução por Dependente" cols="12 12 4" getFormErrorMessage={() => null} />
+                      <TextFieldSeplag name="irrfDescontoSimplificado" control={control} label="Desconto Simplificado Mensal" cols="12 12 4" getFormErrorMessage={() => null} />
+                      <TextFieldSeplag name="irrfIsencao65Anos" control={control} label="Parcela Isenta para 65 Anos ou Mais" cols="12 12 4" getFormErrorMessage={() => null} />
                     </div>
                   </>
                 ) : (
@@ -26670,9 +27054,9 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                     >
                       {isTabelaIrrf ? (
                         <>
-                          <div><span>Limite da Faixa Isenta</span><strong>R$ 2.428,80</strong></div>
+                          <div><span>Limite da Faixa Isenta</span><strong>{faixasVigencia.find((faixa) => parseMoedaReferencia(faixa.percentual) === 0)?.faixaFinal ?? "R$ 0,00"}</strong></div>
                           <div><span>Total de Faixas</span><strong>{faixasVigencia.length}</strong></div>
-                          <div><span>Alíquota Máxima</span><strong>27,5%</strong></div>
+                          <div><span>Alíquota Máxima</span><strong>{faixasVigencia.length ? `${Math.max(...faixasVigencia.map((faixa) => parseMoedaReferencia(faixa.percentual)))}%` : "0%"}</strong></div>
                         </>
                       ) : isModeloRppsLc700 ? (
                         <>
@@ -26730,7 +27114,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                         </div>
                       ) : null}
                     </div>
-                    {!isModeloRppsMilitar && (!isTabelaRpps || isRegraFaixasProgressivas) ? (
+                    {!isModeloRppsMilitar && (!isTabelaRpps || isRegraFaixasProgressivas || faixasVigencia.length === 0) ? (
                       <div className="prototype-folha-referencia-faixa-toolbar">
                         <BotaoSeplag
                           type="button"
@@ -26775,14 +27159,17 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                                   </button>
                                   <button
                                     type="button"
-                                    aria-label="Abrir ações da faixa"
-                                    onClick={() =>
-                                      setFeedback(
-                                        `Ações da faixa ${faixa.ordem} abertas.`,
-                                      )
-                                    }
+                                    aria-label="Editar faixa"
+                                    onClick={() => abrirModalEditarFaixa(faixa)}
                                   >
-                                    <i className="pi pi-chevron-down" aria-hidden="true" />
+                                    <i className="pi pi-pencil" aria-hidden="true" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    aria-label="Remover faixa"
+                                    onClick={() => removerFaixa(faixa)}
+                                  >
+                                    <i className="pi pi-trash" aria-hidden="true" />
                                   </button>
                                 </div>
                               </td>
@@ -26825,7 +27212,10 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                     label="Voltar"
                     onClick={() => navigate(FOLHA_TABELAS_REFERENCIA_BASE_PATH)}
                   />
-                  <BotaoSalvarSeplag type="submit" label="Salvar" />
+                  <BotaoSalvarSeplag
+                    type="submit"
+                    label={isTabelaIrrf && activeTab === "dados-gerais" ? "Próximo" : "Salvar"}
+                  />
                 </div>
               </div>
             </div>
@@ -26833,9 +27223,12 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
 
           <ModalSeplag
             visible={modalNovaFaixaAberto}
-            titulo="Nova Faixa"
+            titulo={faixaEditando ? "Editar Faixa" : "Nova Faixa"}
             tamanho="calc(100vw - 96px)"
-            fechar={() => setModalNovaFaixaAberto(false)}
+            fechar={() => {
+              setModalNovaFaixaAberto(false);
+              setFaixaEditandoId(null);
+            }}
             labelFechar="Cancelar"
             iconFechar="pi pi-arrow-left"
             labelAcao="Salvar"
@@ -26846,11 +27239,11 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
               <div className="prototype-folha-referencia-nova-faixa-grid">
                 <label>
                   <span>Ordem</span>
-                  <input type="text" value={proximaOrdemFaixa} readOnly />
+                  <input type="text" value={ordemFaixaModal} readOnly />
                 </label>
                 <label>
                   <span>Faixa Inicial</span>
-                  <input type="text" value={proximaFaixaInicial} readOnly />
+                  <input type="text" value={faixaInicialModal} readOnly />
                 </label>
                 <label>
                   <span>
@@ -26892,16 +27285,209 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   );
 }
 
+export function PrototiposFolhaValoresReferenciaIrrfPage() {
+  const navigate = useNavigate();
+  const [parametros, setParametros] = useState<FolhaParametrosIrrfRow[]>(() => lerFolhaParametrosIrrf());
+  const [editandoId, setEditandoId] = useState<number | null>(null);
+  const [formularioAberto, setFormularioAberto] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const valoresIniciais: FolhaParametrosIrrfForm = {
+    anoBase: "",
+    inicioVigencia: "",
+    fimVigencia: "",
+    baseLegal: "",
+    observacoes: "",
+    deducaoDependente: "",
+    descontoSimplificado: "",
+    isencao65Anos: "",
+    limiteImpostoZero: "",
+    reducaoMaxima: "",
+    inicioReducaoLinear: "",
+    fimReducaoLinear: "",
+    constanteReducao: "",
+    coeficienteReducao: "",
+  };
+  const { control, handleSubmit, reset } = useForm<FolhaParametrosIrrfForm>({
+    defaultValues: valoresIniciais,
+  });
+
+  const abrirNovo = () => {
+    setEditandoId(null);
+    reset(valoresIniciais);
+    setFeedback("");
+    setFormularioAberto(true);
+  };
+  const abrirEdicao = (parametro: FolhaParametrosIrrfRow) => {
+    const { id: _id, ...dados } = parametro;
+    setEditandoId(parametro.id);
+    reset(dados);
+    setFeedback("");
+    setFormularioAberto(true);
+  };
+  const fecharFormulario = () => {
+    setFormularioAberto(false);
+    setEditandoId(null);
+    setFeedback("");
+  };
+  const salvar = (dados: FolhaParametrosIrrfForm) => {
+    const obrigatorios = [
+      dados.anoBase,
+      dados.inicioVigencia,
+      dados.baseLegal,
+      dados.deducaoDependente,
+      dados.descontoSimplificado,
+      dados.isencao65Anos,
+      dados.limiteImpostoZero,
+      dados.reducaoMaxima,
+      dados.inicioReducaoLinear,
+      dados.fimReducaoLinear,
+      dados.constanteReducao,
+      dados.coeficienteReducao,
+    ];
+    if (obrigatorios.some((valor) => !valor.trim())) {
+      setFeedback("Preencha todos os parâmetros obrigatórios do IRRF.");
+      return;
+    }
+
+    const data = (valor: string) => {
+      const [dia, mes, ano] = valor.split("/").map(Number);
+      return dia && mes && ano ? new Date(ano, mes - 1, dia).getTime() : undefined;
+    };
+    const inicio = data(dados.inicioVigencia);
+    const fim = dados.fimVigencia.trim() ? data(dados.fimVigencia) : undefined;
+    if (inicio === undefined || (dados.fimVigencia.trim() && fim === undefined) || (fim !== undefined && fim < inicio)) {
+      setFeedback("Informe um período de vigência válido.");
+      return;
+    }
+    if (parseMoedaReferencia(dados.limiteImpostoZero) > parseMoedaReferencia(dados.inicioReducaoLinear)) {
+      setFeedback("O Limite de Imposto Zero não pode ser maior que o Início da Redução Linear.");
+      return;
+    }
+    if (parseMoedaReferencia(dados.inicioReducaoLinear) > parseMoedaReferencia(dados.fimReducaoLinear)) {
+      setFeedback("O Início da Redução Linear não pode ser maior que o Fim da Redução Linear.");
+      return;
+    }
+
+    const sobrepoe = parametros.some((item) => {
+      if (item.id === editandoId) return false;
+      const inicioExistente = data(item.inicioVigencia);
+      const fimExistente = item.fimVigencia ? data(item.fimVigencia) : undefined;
+      return inicio <= (fimExistente ?? Number.POSITIVE_INFINITY) && (inicioExistente ?? 0) <= (fim ?? Number.POSITIVE_INFINITY);
+    });
+    if (sobrepoe) {
+      setFeedback("Já existe um conjunto de parâmetros IRRF sobreposto para este período.");
+      return;
+    }
+
+    const registro: FolhaParametrosIrrfRow = {
+      ...dados,
+      id: editandoId ?? Date.now(),
+    };
+    const atualizados = editandoId === null
+      ? [...parametros, registro]
+      : parametros.map((item) => (item.id === editandoId ? registro : item));
+    setParametros(atualizados);
+    salvarFolhaParametrosIrrf(atualizados);
+    setFeedback("Parâmetros IRRF salvos com sucesso!");
+    window.setTimeout(fecharFormulario, 500);
+  };
+
+  return (
+    <PrototypeSystemPage nomeSistema="FOLHA" ambienteSistema="Teste" menuItems={menuFolha}>
+      <div className="prototype-page-content prototype-page-content--white prototype-folha-referencia-page">
+        <div className="prototype-folha-parametros-header">
+          <h2>Valores de Referência — IRRF</h2>
+          <p>Gerencie, por vigência, as deduções e os parâmetros mensais aplicáveis ao cálculo do IRRF.</p>
+        </div>
+
+        {!formularioAberto ? (
+          <section className="prototype-folha-referencia-content">
+            <div className="prototype-folha-referencia-faixa-toolbar">
+              <BotaoSeplag type="button" label="Novo conjunto de parâmetros" icon="pi pi-plus" onClick={abrirNovo} />
+            </div>
+            <div className="col-12 prototype-folha-referencia-list prototype-folha-valores-referencia-list">
+              <table className="prototype-folha-valores-referencia-table">
+                <thead><tr><th>Vigência</th><th>Dedução por Dependente</th><th>Desconto Simplificado</th><th>Limite de Imposto Zero</th><th>Situação</th><th>Ações</th></tr></thead>
+                <tbody>
+                  {parametros.map((item) => (
+                    <tr key={item.id}>
+                      <td>{formatarPeriodoVigenciaReferencia(item.inicioVigencia, item.fimVigencia)}</td>
+                      <td>{item.deducaoDependente}</td><td>{item.descontoSimplificado}</td><td>{item.limiteImpostoZero}</td>
+                      <td>{calcularSituacaoVigenciaReferencia(item.inicioVigencia, item.fimVigencia)}</td>
+                      <td><button type="button" className="prototype-table-icon-button" aria-label="Editar parâmetros IRRF" onClick={() => abrirEdicao(item)}><i className="pi pi-pencil" aria-hidden="true" /></button></td>
+                    </tr>
+                  ))}
+                  {!parametros.length ? <tr><td colSpan={6} className="prototype-empty-table-cell">Nenhum conjunto de parâmetros IRRF cadastrado.</td></tr> : null}
+                </tbody>
+              </table>
+            </div>
+            <div className="prototype-category-form-footer prototype-folha-referencia-vigencia-footer">
+              <BotaoVoltarSeplag type="button" label="Voltar" onClick={() => navigate(FOLHA_VALORES_REFERENCIA_BASE_PATH)} />
+            </div>
+          </section>
+        ) : (
+          <form onSubmit={handleSubmit(salvar)}>
+            {feedback ? <div className="prototype-validation-panel">{feedback}</div> : null}
+            <CardSeplag title={editandoId === null ? "Novo conjunto de parâmetros IRRF" : "Editar conjunto de parâmetros IRRF"} cols="12" cardHeaderClassNames="prototype-regime-card">
+              <div className="col-12 prototype-folha-referencia-vigencia-form">
+                <div className="prototype-folha-referencia-vigencia-panel">
+                  <div className="prototype-folha-referencia-vigencia-panel-title"><h3>Dados Gerais</h3></div>
+                  <div className="grid prototype-folha-referencia-vigencia-fields">
+                    <TextFieldSeplag name="anoBase" control={control} label="Ano-base" required cols="12 12 3" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="inicioVigencia" control={control} label="Início da Vigência" required placeholder="dd/mm/aaaa" cols="12 12 3" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="fimVigencia" control={control} label="Fim da Vigência" placeholder="dd/mm/aaaa" cols="12 12 3" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="baseLegal" control={control} label="Base Legal" required cols="12 12 3" getFormErrorMessage={() => null} />
+                  </div>
+                  <div className="prototype-folha-referencia-vigencia-panel-title"><h3>Deduções Mensais</h3></div>
+                  <div className="grid prototype-folha-referencia-vigencia-fields">
+                    <TextFieldSeplag name="deducaoDependente" control={control} label="Dedução por Dependente" required cols="12 12 4" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="descontoSimplificado" control={control} label="Desconto Simplificado Mensal" required cols="12 12 4" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="isencao65Anos" control={control} label="Parcela Isenta para 65 Anos ou Mais" required cols="12 12 4" getFormErrorMessage={() => null} />
+                  </div>
+                  <div className="prototype-folha-referencia-vigencia-panel-title"><h3>Redução Mensal do IRRF</h3></div>
+                  <div className="grid prototype-folha-referencia-vigencia-fields">
+                    <TextFieldSeplag name="limiteImpostoZero" control={control} label="Limite de Imposto Zero" required cols="12 12 4" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="reducaoMaxima" control={control} label="Redução Máxima" required cols="12 12 4" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="inicioReducaoLinear" control={control} label="Início da Redução Linear" required cols="12 12 4" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="fimReducaoLinear" control={control} label="Fim da Redução Linear" required cols="12 12 4" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="constanteReducao" control={control} label="Constante da Fórmula" required cols="12 12 4" getFormErrorMessage={() => null} />
+                    <TextFieldSeplag name="coeficienteReducao" control={control} label="Coeficiente da Fórmula" required cols="12 12 4" getFormErrorMessage={() => null} />
+                    <TextAreaSeplag name="observacoes" control={control} label="Observações" cols="12" rows={3} maxLength={500} getFormErrorMessage={() => null} />
+                  </div>
+                  <div className="prototype-category-form-footer prototype-folha-referencia-vigencia-footer">
+                    <BotaoVoltarSeplag type="button" label="Cancelar" onClick={fecharFormulario} />
+                    <BotaoSalvarSeplag type="submit" label="Salvar" />
+                  </div>
+                </div>
+              </div>
+            </CardSeplag>
+          </form>
+        )}
+      </div>
+    </PrototypeSystemPage>
+  );
+}
+
 export function PrototiposFolhaValorReferenciaVigenciaFormPage() {
   const navigate = useNavigate();
   const { codigo, vigenciaId } = useParams();
   const valorReferencia =
-    folhaValoresReferenciaMock.find((item) => item.codigo === codigo) ??
-    folhaValoresReferenciaMock[0];
+    getFolhaValoresReferenciaPersistidos().find((item) => item.codigo === codigo) ??
+    getFolhaValoresReferenciaPersistidos()[0];
   const vigenciaAtual = valorReferencia.vigencias.find(
     (vigencia) => String(vigencia.id) === vigenciaId,
   ) ?? valorReferencia.vigencias[0];
   const isEditing = Boolean(vigenciaId);
+  const proximoInicioVigencia = (() => {
+    if (isEditing) return "";
+    const ultimaVigencia = [...valorReferencia.vigencias]
+      .filter((vigencia) => vigencia.fimVigencia)
+      .sort((a, b) => (b.fimVigencia ?? "").split("/").reverse().join("").localeCompare((a.fimVigencia ?? "").split("/").reverse().join("")))[0];
+    if (!ultimaVigencia?.fimVigencia) return "";
+    return new Date(
+      new Date(ultimaVigencia.fimVigencia.split("/").reverse().join("-")).getTime() + 86400000,
+    ).toLocaleDateString("pt-BR");
+  })();
   const [feedback, setFeedback] = useState("");
   const { control, handleSubmit } = useForm<FolhaValorReferenciaVigenciaForm>({
     defaultValues: {
@@ -26909,8 +27495,8 @@ export function PrototiposFolhaValorReferenciaVigenciaFormPage() {
       nome: valorReferencia.nome,
       tipo: valorReferencia.tipo,
       valor: isEditing ? vigenciaAtual.valor : "",
-      inicioVigencia: isEditing ? vigenciaAtual.inicioVigencia : "01/01/2026",
-      fimVigencia: isEditing ? vigenciaAtual.fimVigencia ?? "" : "31/12/2026",
+      inicioVigencia: isEditing ? vigenciaAtual.inicioVigencia : proximoInicioVigencia,
+      fimVigencia: isEditing ? vigenciaAtual.fimVigencia ?? "" : "",
       observacoes: "",
     },
   });
@@ -26966,7 +27552,45 @@ export function PrototiposFolhaValorReferenciaVigenciaFormPage() {
       return;
     }
 
+    const inicioVigencia = parseDataVigenciaValorReferencia(data.inicioVigencia)!;
+    const vigenciaAnterior = valorReferencia.vigencias
+      .filter((vigencia) => vigencia.id !== vigenciaAtualId && vigencia.fimVigencia)
+      .filter((vigencia) => (parseDataVigenciaValorReferencia(vigencia.fimVigencia) ?? Infinity) < inicioVigencia)
+      .sort((a, b) => (parseDataVigenciaValorReferencia(b.fimVigencia) ?? 0) - (parseDataVigenciaValorReferencia(a.fimVigencia) ?? 0))[0];
+    if (vigenciaAnterior?.fimVigencia) {
+      const inicioEsperado = new Date(
+        parseDataVigenciaValorReferencia(vigenciaAnterior.fimVigencia)! + 86400000,
+      ).toLocaleDateString("pt-BR");
+      if (data.inicioVigencia !== inicioEsperado) {
+        setFeedback(`A nova vigência deve iniciar em ${inicioEsperado}, dia seguinte ao término da vigência anterior.`);
+        return;
+      }
+    }
+
+    const novaVigencia: FolhaValorReferenciaVigenciaRow = {
+      id: Number.isFinite(vigenciaAtualId) && vigenciaAtualId > 0 ? vigenciaAtualId : Date.now(),
+      ano: data.inicioVigencia.split("/")[2],
+      vigencia: formatarPeriodoVigenciaReferencia(data.inicioVigencia, data.fimVigencia),
+      valor: data.valor,
+      inicioVigencia: data.inicioVigencia,
+      fimVigencia: data.fimVigencia,
+      situacao: calcularSituacaoVigenciaReferencia(data.inicioVigencia, data.fimVigencia),
+    };
+    const valoresAtualizados = getFolhaValoresReferenciaPersistidos().map((valor) =>
+      valor.codigo !== valorReferencia.codigo
+        ? valor
+        : {
+            ...valor,
+            vigencias: isEditing
+              ? valor.vigencias.map((vigencia) =>
+                  vigencia.id === vigenciaAtualId ? novaVigencia : vigencia,
+                )
+              : [...valor.vigencias, novaVigencia],
+          },
+    );
+    salvarFolhaValoresReferencia(valoresAtualizados);
     setFeedback("Registro salvo com sucesso!");
+    window.setTimeout(() => navigate(FOLHA_VALORES_REFERENCIA_BASE_PATH), 500);
   };
 
   return (
