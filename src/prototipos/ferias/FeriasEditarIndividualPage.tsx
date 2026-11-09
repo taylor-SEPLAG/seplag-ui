@@ -11,8 +11,8 @@ import "./ferias.css";
 
 /** Edição de uma solicitação Individual já lançada — mesma tela/padrão da US002 (Nova
  * solicitação — Individual), com o servidor fixo e pré-preenchido, em vez do modal compacto
- * "Alterar férias". Parcelamento livre enquanto Aguardando Validação; só a quantidade de dias
- * de cada parcela muda quando já aprovada (Em Aberto) — ver FormularioIndividual.salvar(). */
+ * "Alterar férias". Parcelas editáveis em Aguardando Validação e em Agendada; a alteração de uma
+ * Agendada do Portal do Servidor volta para Aguardando Validação — ver FormularioIndividual.salvar(). */
 export function FeriasEditarIndividualPage() {
   const navigate = useNavigate();
   const { toastSucesso } = useToastSeplag();
@@ -57,7 +57,6 @@ export function FeriasEditarIndividualPage() {
 
   // Lote/Coletiva: cada servidor é um registro individual e a edição usa o MESMO formulário da
   // solicitação individual (adicionar/remover/ajustar parcelas). Sem edição restrita.
-  const edicaoRestrita = false;
   const rotuloTipo = registro.tipo === "Lote" ? "Lote" : registro.tipo === "Coletiva" ? "Coletiva" : "Individual";
 
   return (
@@ -82,9 +81,8 @@ export function FeriasEditarIndividualPage() {
             <div className="prototype-ferias-nova-pagina">
               <FormularioIndividual
                 registroParaEditar={registro}
-                edicaoRestrita={edicaoRestrita}
                 parcelaFocoId={Number.isFinite(parcelaFocoId) ? parcelaFocoId : undefined}
-                onCancelar={() => setMostrarConfirmacaoCancelar(true)}
+                onCancelar={(temDadosPreenchidos) => (temDadosPreenchidos ? setMostrarConfirmacaoCancelar(true) : voltar())}
                 onSalvar={salvar}
               />
             </div>

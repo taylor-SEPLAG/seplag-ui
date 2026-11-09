@@ -646,7 +646,7 @@ function pendenciaArt17Pendente(matricula: string): FeriasRegistro | null {
 }
 
 /** RN003 (Validação de sobreposição de férias e recessos): qualquer sobreposição de datas com
- * outro agendamento do mesmo servidor — rascunho/Aguardando Validação ou Em Aberto/homologado,
+ * outro agendamento do mesmo servidor — rascunho/Aguardando Validação ou Agendada/homologado,
  * não importa se já em andamento ou ainda futuro — bloqueia o lançamento com esta mensagem. */
 function mensagemConflitoAgendamento(conflito: FeriasRegistro): string {
   const tipoLabel = conflito.tipo === "Recesso" ? "Recesso" : "Férias";
@@ -2200,24 +2200,21 @@ export function FormularioIndividual({
   onSalvar,
   registroSomenteLeitura,
   registroParaEditar,
-  edicaoRestrita = false,
   parcelaFocoId,
   origemLancamento = "SIGEP",
 }: Readonly<{
-  onCancelar: () => void;
+  /** Fluxo 5: recebe se há dados preenchidos/alterados — a página só abre o modal
+   * "Cancelar solicitação" nesse caso; sem dados, volta direto para a listagem. */
+  onCancelar: (temDadosPreenchidos: boolean) => void;
   onSalvar: (registro: FeriasRegistro) => void;
   /** Quando informado, a tela abre com os dados desse registro já preenchidos e tudo
    * desabilitado/acinzentado — reaproveita o mesmo layout do cadastro só para "Visualizar". */
   registroSomenteLeitura?: FeriasRegistro;
-  /** Edição de uma solicitação Individual já lançada — mesma tela/padrão da criação (servidor
-   * pré-preenchido e travado, parcelas editáveis), em vez do modal compacto. Se a solicitação já
-   * está Em Aberto (aprovada), só a quantidade de dias de cada parcela pode mudar — alterar
-   * parcelamento é bloqueado e a alteração devolve a solicitação ao aprovador (ver salvar()). */
+  /** Edição de uma solicitação já lançada (Individual, Lote ou Coletiva) — mesma tela/padrão da
+   * criação (servidor pré-preenchido e travado, parcelas editáveis). Se a solicitação já está
+   * Agendada (EM ABERTO), as parcelas seguem editáveis; a alteração só devolve a solicitação ao
+   * aprovador quando a origem é o Portal do Servidor (ver salvar()). */
   registroParaEditar?: FeriasRegistro;
-  /** Edição restrita (Lote/Coletiva): o servidor já foi lançado em massa e vira um registro
-   * individual, mas a alteração só permite REMANEJAR as datas de cada parcela já lançada — a
-   * quantidade de dias de cada parcela (ex.: 15, 30) é fixa, sem adicionar ou remover parcelas. */
-  edicaoRestrita?: boolean;
   /** Edição de UMA parcela (a linha clicada na grid): o formulário mostra só essa parcela e o
    * saldo dela (ex.: 15 dias ou 30 dias); as demais parcelas do registro são preservadas. */
   parcelaFocoId?: number;
@@ -2254,6 +2251,8 @@ export function FormularioIndividual({
   const [parcelas, setParcelas] = useState<ParcelaFerias[]>(() =>
     parcelaFoco ? [{ ...parcelaFoco }] : registroBase?.parcelas.map((parcela) => ({ ...parcela })) ?? [],
   );
+  // Fotografia das parcelas ao abrir a tela — na edição, "dados preenchidos" = parcelas alteradas.
+  const [parcelasIniciais] = useState(() => JSON.stringify(parcelas));
   const [erro, setErro] = useState("");
   const [alertaConcomitancia, setAlertaConcomitancia] = useState("");
   // RN-03: mensagem de ajuste de data por LTS vigente, persistente por parcela (sobrevive à
@@ -2279,41 +2278,25 @@ export function FormularioIndividual({
   const draftInicio = brParaIso(valoresGozo.dataInicio);
   const draftTerco = valoresGozo.terco;
 
-  // Edição restrita (Lote/Coletiva): um campo "Data de início" por parcela já lançada, com os
-  // dias travados. Reaproveita o mesmo padrão do FormularioRecesso — cada etapa tem seu campo
-  // inicio_<id> e o fim é recalculado a partir de inicio + dias (quantidade de dias fixa).
-  const {
-    control: parcelasEdicaoControl,
-    watch: watchParcelasEdicao,
-  } = useForm<Record<string, string>>({
-    defaultValues: Object.fromEntries((registroParaEditar?.parcelas ?? []).map((parcela) => [`inicio_${parcela.id}`, formatarDataBr(parcela.inicio)])),
-  });
-  const valoresParcelasEdicao = watchParcelasEdicao();
-
   const totalParcelado = parcelas.reduce((total, parcela) => total + parcela.dias, 0);
   const saldoFecha = totalParcelado === saldoDisponivel;
   const saldoRestante = (saldoDisponivel ?? 0) - totalParcelado;
   const draftFim = calcularFim(draftInicio, draftDias);
   // CA10(c): o Adicional de 1/3 só pode estar vinculado a uma parcela por período aquisitivo —
   // se outra parcela já adicionada o tem, o checkbox do rascunho fica bloqueado e desmarcado.
-  const indiceParcelaComTerco = parcelas.findIndex((parcela) => parcela.terco);
+  // Na edição de uma única parcela, as demais parcelas do registro também contam: o 1/3 já
+  // vinculado a qualquer outra parcela do mesmo período bloqueia o checkbox.
+  const parcelasDoRegistro = parcelaFoco
+    ? registroParaEditar!.parcelas.flatMap((parcela) => (parcela.id === parcelaFoco.id ? parcelas : [parcela]))
+    : parcelas;
+  const indiceParcelaComTerco = parcelasDoRegistro.findIndex((parcela) => parcela.terco);
   const tercoBloqueadoPorDuplicidade = indiceParcelaComTerco !== -1;
+  const mensagemTercoDuplicado = `O Adicional Constitucional de 1/3 já foi solicitado na Parcela ${indiceParcelaComTerco + 1}.`;
+  const [anexoKey, setAnexoKey] = useState(0);
 
   useEffect(() => {
     if (tercoBloqueadoPorDuplicidade && draftTerco) setGozoValor("terco", false);
   }, [tercoBloqueadoPorDuplicidade, draftTerco, setGozoValor]);
-
-  // Edição restrita: ao mudar a data de início de uma parcela, mantém os dias e recalcula o fim.
-  useEffect(() => {
-    if (!edicaoRestrita) return;
-    setParcelas((atual) =>
-      atual.map((parcela) => {
-        const novoInicio = brParaIso(valoresParcelasEdicao[`inicio_${parcela.id}`] ?? "");
-        if (!novoInicio || novoInicio === parcela.inicio) return parcela;
-        return { ...parcela, inicio: novoInicio, fim: calcularFim(novoInicio, parcela.dias) };
-      }),
-    );
-  }, [edicaoRestrita, valoresParcelasEdicao]);
 
   // RN003: concomitância verificada assim que a data é escolhida (sem esperar o clique em
   // "Adicionar esta parcela") e também para as parcelas já adicionadas — senão o aviso
@@ -2325,19 +2308,19 @@ export function FormularioIndividual({
     }
     const candidatos = draftInicio && draftFim ? [{ inicio: draftInicio, fim: draftFim, dias: draftDias }, ...parcelas] : parcelas;
     for (const candidato of candidatos) {
-      const conflito = conflitoFeriasServidor(matricula, candidato.inicio, candidato.fim, registroParaEditar?.id);
+      // CA08: ordem LTS → agendamento ativo → Art. 17. Primeiro ajusta pela LTS e só depois
+      // verifica sobreposição — sobre as datas já ajustadas, que são as que serão gravadas.
+      const ajuste = ajustarInicioParaAposLts(candidato.inicio, candidato.dias, matricula);
+      const conflito = conflitoFeriasServidor(matricula, ajuste.inicio, ajuste.fim, registroParaEditar?.id);
       if (conflito) {
         setAlertaConcomitancia(mensagemConflitoAgendamento(conflito));
         return;
       }
-      {
-        const ajuste = ajustarInicioParaAposLts(candidato.inicio, candidato.dias, matricula);
-        if (ajuste.ajustado) {
-          setAlertaConcomitancia(
-            `LTS está vigente no mesmo período. Data de início ajustada automaticamente para o dia seguinte ao fim da LTS vigente (${formatarDataBr(ajuste.inicio)}).`,
-          );
-          return;
-        }
+      if (ajuste.ajustado) {
+        setAlertaConcomitancia(
+          `LTS está vigente no mesmo período. Data de início ajustada automaticamente para o dia seguinte ao fim da LTS vigente (${formatarDataBr(ajuste.inicio)}).`,
+        );
+        return;
       }
     }
     setAlertaConcomitancia("");
@@ -2461,16 +2444,17 @@ export function FormularioIndividual({
       setErro(`A duração escolhida (${draftDias} dias) excede o saldo restante (${saldoRestante} dias).`);
       return;
     }
-    // RN003: qualquer sobreposição com outro agendamento do mesmo servidor bloqueia o lançamento.
-    const conflito = conflitoFeriasServidor(matricula, draftInicio, draftFim, registroParaEditar?.id);
-    if (conflito) {
-      setErro(mensagemConflitoAgendamento(conflito));
-      return;
-    }
     {
-      // RN-03: se a LTS já está vigente no período, a data de início é ajustada automaticamente
-      // para o dia seguinte ao fim da LTS — não bloqueia o lançamento, mas não deixa sobrepor.
+      // CA08 (ordem LTS → agendamento ativo → Art. 17). RN-03: se a LTS já está vigente no
+      // período, a data de início é ajustada automaticamente para o dia seguinte ao fim da LTS.
       const ajuste = ajustarInicioParaAposLts(draftInicio, draftDias, matricula);
+      // RN003: a sobreposição com outro agendamento do mesmo servidor é verificada sobre as datas
+      // já ajustadas pela LTS — são elas que serão gravadas.
+      const conflito = conflitoFeriasServidor(matricula, ajuste.inicio, ajuste.fim, registroParaEditar?.id);
+      if (conflito) {
+        setErro(mensagemConflitoAgendamento(conflito));
+        return;
+      }
       const novoId = gerarId();
       setAlertaConcomitancia("");
       if (ajuste.ajustado) {
@@ -2504,28 +2488,6 @@ export function FormularioIndividual({
         setErro("Informe a data de início e ao menos 1 dia em todas as parcelas.");
         return;
       }
-      // Edição restrita (Lote/Coletiva): a quantidade de dias de cada parcela é fixa — só valida
-      // as DATAS remanejadas (sem checar durações/saldo/sobra, que não podem mudar aqui).
-      if (edicaoRestrita) {
-        if (parcelas.some((parcela) => parcela.inicio < dataLocalISO())) {
-          setErro("A data de início de cada parcela deve ser a partir de hoje — dias já usufruídos não podem ser remanejados.");
-          return;
-        }
-        for (const parcela of parcelas) {
-          const conflito = conflitoFeriasServidor(matricula, parcela.inicio, parcela.fim, registroParaEditar!.id);
-          if (conflito) { setErro(mensagemConflitoAgendamento(conflito)); return; }
-        }
-        const erroIntervaloRestrito = validarIntervaloParcelas(parcelas);
-        if (erroIntervaloRestrito) { setErro(erroIntervaloRestrito); return; }
-        setErro("");
-        onSalvar({
-          ...registroParaEditar!,
-          parcelas,
-          documentos: [...(registroParaEditar!.documentos ?? []), documento],
-          historico: eventoEdicao(registroParaEditar!, parcelas, registroParaEditar!.situacao, documento),
-        });
-        return;
-      }
       const saldo = saldoDisponivel ?? diasSolicitados(registroParaEditar!);
       const total = parcelas.reduce((soma, parcela) => soma + parcela.dias, 0);
       if (total > saldo || (!parcelaFoco && saldo - total === 5) || parcelas.some((parcela) => !duracoesPermitidas(saldo, orgao, cargo).includes(parcela.dias) && !(parcelaFoco && parcela.dias === parcelaFoco.dias))) {
@@ -2538,8 +2500,14 @@ export function FormularioIndividual({
         : parcelas;
       const erroIntervalo = validarIntervaloParcelas(parcelasFinais);
       if (erroIntervalo) { setErro(erroIntervalo); return; }
+      // CA10/RN009: o 1/3 só pode estar em uma parcela do período aquisitivo (registro completo).
+      if (parcelasFinais.filter((parcela) => parcela.terco).length > 1) {
+        const indice = parcelasFinais.findIndex((parcela) => parcela.terco);
+        setErro(`O Adicional Constitucional de 1/3 já foi solicitado na Parcela ${indice + 1}.`);
+        return;
+      }
       setErro("");
-      // Alterar uma solicitação já aprovada (Em Aberto) devolve a solicitação ao aprovador
+      // Alterar uma solicitação já Agendada (EM ABERTO) devolve a solicitação ao aprovador
       // quando veio do Portal do Servidor.
       const retornaAoAprovador = registroParaEditar!.origem === "PORTALSERVIDOR" && parcelamentoRestrito;
       const situacaoFinal: SituacaoFerias = retornaAoAprovador ? "AGUARDANDO VALIDAÇÃO" : registroParaEditar!.situacao;
@@ -2555,7 +2523,7 @@ export function FormularioIndividual({
     if (!documento) { setErro('Anexe o documento/despacho formal do SIGEP.'); return; }
     if (!parcelas.length || parcelas.some(p => !duracoesPermitidas(saldoDisponivel ?? 0, orgao, cargo).includes(p.dias)) || saldoRestante === 5) { setErro('Parcelamento inválido para o cargo ou saldo residual de 5 dias.'); return; }
     if (!servidorEncontrado || !tipoVinculo || !permiteSolicitacaoFerias(tipoVinculo)) {
-      setErro("Férias individuais são permitidas somente para vínculos Efetivo, Comissionado e Contrato Temporário.");
+      setErro("Férias individuais são permitidas somente para vínculos Efetivo, Comissionado e Contrato Temporário. Residentes técnicos e estagiários não podem solicitar férias.");
       return;
     }
     if (!servidorNome.trim() || !matricula.trim() || !cargo.trim() || !tipoVinculo || !periodoAquisitivoInicio || !periodoAquisitivoFim) {
@@ -2591,6 +2559,15 @@ export function FormularioIndividual({
     if (erroIntervalo) {
       setErro(erroIntervalo);
       return;
+    }
+    // CA08/RN007: a concomitância é revalidada no salvar — outro agendamento pode ter sido
+    // gravado depois que a parcela foi adicionada.
+    for (const parcela of parcelas) {
+      const conflito = conflitoFeriasServidor(matricula, parcela.inicio, parcela.fim);
+      if (conflito) {
+        setErro(mensagemConflitoAgendamento(conflito));
+        return;
+      }
     }
     if (totalParcelado > (saldoDisponivel ?? 0)) {
       setErro(`A soma das parcelas (${totalParcelado} dias) excede o saldo disponível (${saldoDisponivel} dias).`);
@@ -2664,6 +2641,14 @@ export function FormularioIndividual({
     .filter(Boolean)
     .sort()[0];
 
+  // Fluxo 5: o "Voltar" só pede confirmação quando há algo a perder. Criação: servidor buscado,
+  // parcela, data em rascunho ou anexo. Edição: parcelas alteradas, data em rascunho ou anexo.
+  const temDadosPreenchidos = somenteLeitura
+    ? false
+    : ehEdicao
+      ? Boolean(documento) || Boolean(valoresGozo.dataInicio) || JSON.stringify(parcelas) !== parcelasIniciais
+      : Boolean(servidorBusca.trim()) || servidorEncontrado || parcelas.length > 0 || Boolean(documento) || Boolean(valoresGozo.dataInicio);
+
   return (
     <div className="prototype-ferias-individual-form">
       {erro ? <div className="prototype-ferias-erro-bloqueio" role="alert">{erro}</div> : null}
@@ -2689,8 +2674,8 @@ export function FormularioIndividual({
           <i className="pi pi-exclamation-triangle" aria-hidden="true" />
           <span>
             {alertaConcessivo.vencido
-              ? `Período concessivo vencido em ${formatarDataBr(alertaConcessivo.fimConcessivo)}. As férias deveriam ter sido concedidas até essa data (RN-AGD-07).`
-              : `Período concessivo encerra em ${formatarDataBr(alertaConcessivo.fimConcessivo)} (faltam ${alertaConcessivo.diasRestantes} dias). Conceda as férias antes do vencimento (RN-AGD-07).`}
+              ? `Período concessivo vencido em ${formatarDataBr(alertaConcessivo.fimConcessivo)}. As férias deveriam ter sido concedidas até essa data.`
+              : `Período concessivo encerra em ${formatarDataBr(alertaConcessivo.fimConcessivo)} (faltam ${alertaConcessivo.diasRestantes} dias). Conceda as férias antes do vencimento.`}
           </span>
         </div>
       ) : null}
@@ -2708,11 +2693,12 @@ export function FormularioIndividual({
         <div className="prototype-ferias-banner" style={{ background: "#eff6ff", borderColor: "#bfdbfe", color: "#1d4ed8" }}>
           <i className="pi pi-info-circle" aria-hidden="true" />
           <span>
-            {edicaoRestrita
-              ? "Solicitação originada de lançamento em massa (lote/coletiva). Você só pode remanejar as datas de cada parcela já lançada — a quantidade de dias de cada parcela é fixa e não é possível adicionar ou remover parcelas."
-              : parcelamentoRestrito
+            {parcelamentoRestrito
+              ? registroParaEditar!.origem === "PORTALSERVIDOR"
                 ? "Solicitação já aprovada: adicione, remova ou ajuste as parcelas normalmente — a alteração devolve a solicitação ao aprovador para nova validação."
-                : "Edição permitida enquanto a solicitação estiver Aguardando Validação. O intervalo entre parcelas continua valendo 0 ou 10 dias corridos (Decreto 656/2020)."}
+                // RN014: lançamento SIGEP permanece Agendada após a alteração (ver salvar()).
+                : "Solicitação já agendada: adicione, remova ou ajuste as parcelas normalmente — a alteração mantém a solicitação Agendada."
+              : "Edição permitida enquanto a solicitação estiver Aguardando Validação. O intervalo entre parcelas continua valendo 0 ou 10 dias corridos (Decreto 656/2020)."}
           </span>
         </div>
       ) : null}
@@ -2768,7 +2754,8 @@ export function FormularioIndividual({
               <div>
                 <span className="prototype-ferias-indicador-rotulo">Matrícula / Vínculo</span>
                 <strong>
-                  {vinculoInfo ? (
+                  {/* O número do vínculo só aparece quando o servidor tem mais de um. */}
+                  {vinculoInfo && vinculoInfo.total > 1 ? (
                     <span className="prototype-ferias-vinculo-ativo-badge">
                       {matricula} · Vínculo {vinculoInfo.indice}
                     </span>
@@ -2806,13 +2793,14 @@ export function FormularioIndividual({
                 icon="pi pi-times"
                 style={{ width: "auto", whiteSpace: "nowrap", height: 32, padding: "0 12px", fontSize: "0.82rem" }}
                 onClick={() => {
+                  // RN013: reseta a seleção do servidor e o formulário (parcelas, rascunho, anexo e avisos).
                   setServidorNome("");
                   setMatricula("");
                   setOrgao("");
                   setSetor("");
                   setCargo("");
-                  setTipoVinculo("Efetivo");
-                  setCargoGestao(false);
+                  setTipoVinculo("");
+                  setCargoGestao(null);
                   setPeriodoAquisitivoInicio("");
                   setPeriodoAquisitivoFim("");
                   setSaldoDisponivel(null);
@@ -2821,6 +2809,14 @@ export function FormularioIndividual({
                   setSugestoesServidor([]);
                   setVinculosParaEscolher([]);
                   setVinculoInfo(null);
+                  setParcelas([]);
+                  setAvisosAjusteLts({});
+                  setErro("");
+                  setAlertaConcomitancia("");
+                  setGozoValor("dataInicio", "");
+                  setGozoValor("terco", false);
+                  setDocumento(null);
+                  setAnexoKey((atual) => atual + 1);
                 }}
               />
             ) : null}
@@ -2869,7 +2865,7 @@ export function FormularioIndividual({
           2. Detalhes do Período de Gozo
         </h3>
 
-        {!somenteLeitura && !edicaoRestrita ? (
+        {!somenteLeitura ? (
           <>
             <div className="prototype-ferias-gozo-grid">
               <div>
@@ -2925,32 +2921,7 @@ export function FormularioIndividual({
           </>
         ) : null}
 
-        {edicaoRestrita && parcelas.length > 0 ? (
-          <div className="prototype-ferias-form-grid">
-            {parcelas.map((parcela, indice) => (
-              <div className="prototype-ferias-form-grid" key={parcela.id}>
-                <DateFieldSeplag
-                  name={`inicio_${parcela.id}`}
-                  control={parcelasEdicaoControl}
-                  label="Data início do gozo"
-                  cols="12"
-                  minDate={new Date(`${dataLocalISO()}T00:00:00`)}
-                  getFormErrorMessage={() => null}
-                />
-                <label>
-                  <span>Parcela {indice + 1} — {parcela.dias} dias</span>
-                  <input className="prototype-ferias-readonly-field" value={`${parcela.dias} dias`} readOnly />
-                </label>
-                <label>
-                  <span>Fim (calculado)</span>
-                  <input className="prototype-ferias-readonly-field" value={formatarDataBr(parcela.fim)} readOnly />
-                </label>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {!edicaoRestrita && parcelas.length > 0 && (
+        {parcelas.length > 0 && (
           <div className="prototype-ferias-gozo-lista">
             {parcelas.map((parcela) => (
               <div className="prototype-ferias-gozo-item" key={parcela.id}>
@@ -2974,10 +2945,9 @@ export function FormularioIndividual({
           </div>
         )}
 
-        {!edicaoRestrita ? (
         <label
           className="prototype-ferias-gozo-terco"
-          title={tercoBloqueadoPorDuplicidade ? `O Adicional Constitucional de 1/3 já foi solicitado na Parcela ${indiceParcelaComTerco + 1}.` : undefined}
+          title={tercoBloqueadoPorDuplicidade ? mensagemTercoDuplicado : undefined}
         >
           <input
             type="checkbox"
@@ -2987,15 +2957,15 @@ export function FormularioIndividual({
           />
           Pagar o Adicional Constitucional de 1/3 nesta parcela (Art. 19, II)
         </label>
-        ) : null}
       </div>
 
-      {!somenteLeitura && <AnexoFerias label={ehEdicao ? "Justificativa formal da alteração" : "Documento / despacho formal (SIGADOC)"} onChange={setDocumento} />}
+      {/* key: "Limpar servidor" remonta o anexo para descartar o arquivo escolhido. */}
+      {!somenteLeitura && <AnexoFerias key={anexoKey} label={ehEdicao ? "Justificativa formal da alteração" : "Documento / despacho formal (SIGADOC)"} onChange={setDocumento} />}
 
       </div>
 
       <div className="prototype-vinculo-form prototype-ferias-lancamento-acoes" style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <BotaoVoltarSeplag type="button" label="Voltar" onClick={onCancelar} />
+        <BotaoVoltarSeplag type="button" label="Voltar" onClick={() => onCancelar(temDadosPreenchidos)} />
         {!somenteLeitura ? <BotaoSalvarSeplag type="button" label={ehEdicao ? "Salvar alteração" : "Salvar Agendamento"} onClick={salvar} /> : null}
       </div>
 
@@ -3071,7 +3041,6 @@ export function FormularioColetiva({
     parcelasLote: Record<DuracaoLote, boolean>;
   }>>({});
   const [erro, setErro] = useState<string[]>([]);
-  const [confirmacao, setConfirmacao] = useState("");
   const [soComAlerta, setSoComAlerta] = useState(false);
   const [filtroAlertaAba1, setFiltroAlertaAba1] = useState<"todos" | "alerta" | "ok">("todos");
   // Órgão não é de livre escolha: é definido pelo perfil de lotação de quem está lançando —
@@ -3329,22 +3298,43 @@ export function FormularioColetiva({
   const diasMarcadosColetiva = (professor: ProfessorLote) =>
     (estadoLinha(professor.id).julho ? 15 : 0) + (estadoLinha(professor.id).janeiro ? 30 : 0);
 
-  /** Coletiva: motivo para não permitir marcar a parcela (mesma regra do Lote — não ultrapassa o
-   * saldo restante nem deixa resíduo de 5 dias). null = pode marcar. */
+  const periodoDoProfessor = (professor: ProfessorLote) => periodoDisponivelServidor({
+    matricula:professor.matricula, nome:professor.nome, orgao:professor.orgao + '/MT', setor:professor.lotacaoNome,
+    cargo:professor.cargo, tipoVinculo:professor.vinculo, cargoGestao:false,
+    periodoAquisitivoInicio:'2025-01-01', periodoAquisitivoFim:'2025-12-31', saldoDisponivel:professor.saldo,
+  });
+
+  /** Coletiva (RN001): base única de saldo — o do período aquisitivo mais antigo com saldo, já
+   * descontados os outros lançamentos da matrícula. Usada na coluna Saldo, no checkbox e no "Lançar". */
+  const saldoBaseColetiva = (professor: ProfessorLote) => periodoDoProfessor(professor)?.saldo ?? 0;
+
+  /** Coletiva: motivo para não permitir marcar a parcela (não ultrapassa o saldo restante nem
+   * deixa resíduo de 5 dias). null = pode marcar. As durações 15 e 30 sempre são permitidas
+   * para o cargo/órgão da Coletiva, então só saldo e resíduo bloqueiam. */
   const motivoBloqueioParcelaColetiva = (professor: ProfessorLote, campo: "julho" | "janeiro"): string | null => {
     const dias = campo === "julho" ? 15 : 30;
-    const saldoRestante = professor.saldo - diasMarcadosColetiva(professor);
-    if (duracoesPermitidas(saldoRestante, professor.orgao, professor.cargo).includes(dias)) return null;
+    const saldoRestante = saldoBaseColetiva(professor) - diasMarcadosColetiva(professor);
     if (dias > saldoRestante) return `Ultrapassaria o saldo restante de ${saldoRestante} dias`;
     if (saldoRestante - dias === 5) return "Deixaria saldo residual de 5 dias";
-    return "Duração não permitida para este cargo/órgão";
+    return null;
   };
 
-  /** Coletiva: marca/desmarca a parcela para todos os incluídos, pulando quem ficaria bloqueado. */
+  /** Coletiva: elegíveis do cabeçalho = servidores da lista filtrada que já têm a parcela ou
+   * podem recebê-la (quem está bloqueado fica de fora). */
+  const elegiveisParcelaColetiva = (campo: "julho" | "janeiro") =>
+    listaFiltradaAba2.filter((professor) => estadoLinha(professor.id)[campo] || motivoBloqueioParcelaColetiva(professor, campo) === null);
+
+  /** Coletiva: o cabeçalho age sobre a lista filtrada; marcado = todos os elegíveis marcados. */
+  const cabecalhoParcelaColetivaMarcado = (campo: "julho" | "janeiro") => {
+    const elegiveis = elegiveisParcelaColetiva(campo);
+    return elegiveis.length > 0 && elegiveis.every((professor) => estadoLinha(professor.id)[campo]);
+  };
+
+  /** Coletiva: marca/desmarca a parcela para os servidores filtrados, pulando quem ficaria bloqueado. */
   const selecionarTodosParcelaColetiva = (campo: "julho" | "janeiro", valor: boolean) => {
     setSelecionados((atual) => {
       const proximo = { ...atual };
-      professoresIncluidos.forEach((professor) => {
+      listaFiltradaAba2.forEach((professor) => {
         const estado = estadoLinha(professor.id);
         if (valor && !estado[campo] && motivoBloqueioParcelaColetiva(professor, campo) !== null) return;
         proximo[professor.id] = { ...estado, [campo]: valor };
@@ -3387,11 +3377,6 @@ export function FormularioColetiva({
 
   useEffect(() => { setPrimeiroAba2(0); }, [buscaAba2, soComAlerta, orgao, escola, buscaNome, tipoVinculoFiltro]);
 
-  const periodoDoProfessor = (professor: ProfessorLote) => periodoDisponivelServidor({
-    matricula:professor.matricula, nome:professor.nome, orgao:professor.orgao + '/MT', setor:professor.lotacaoNome,
-    cargo:professor.cargo, tipoVinculo:professor.vinculo, cargoGestao:false,
-    periodoAquisitivoInicio:'2025-01-01', periodoAquisitivoFim:'2025-12-31', saldoDisponivel:professor.saldo,
-  });
   const [documentoLote, setDocumentoLote] = useState<DocumentoFerias | null>(null);
   const lancarLote = () => {
     const erros: string[] = [];
@@ -3399,7 +3384,10 @@ export function FormularioColetiva({
     if (!documentoLote) erros.push('Anexe a Portaria da Escala de Férias.');
     incluidos.forEach(professor => {
       const dias = modoAgendamentoLote ? somaDiasSelecionadosLote(professor) : (estadoLinha(professor.id).julho ? 15 : 0) + (estadoLinha(professor.id).janeiro ? 30 : 0);
-      if ((periodoDoProfessor(professor)?.saldo ?? 0) - dias === 5 || dias > (periodoDoProfessor(professor)?.saldo ?? 0)) erros.push(professor.nome + ': parcelamento excede o saldo ou deixa sobra de 5 dias.');
+      const saldoBase = periodoDoProfessor(professor)?.saldo ?? 0;
+      // Sem parcela marcada não há parcelamento a conferir — o caso já é coberto por
+      // "Marque uma parcela…" (evita falso positivo de "sobra de 5 dias" com saldo 5).
+      if (dias > 0 && (saldoBase - dias === 5 || dias > saldoBase)) erros.push(professor.nome + ': parcelamento excede o saldo ou deixa sobra de 5 dias.');
       if (modoAgendamentoLote && /professor|docente/i.test(professor.cargo) && orgao === 'SEDUC' && [10,20].some(d => estadoLinha(professor.id).parcelasLote[d as DuracaoLote])) erros.push(professor.nome + ': professor SEDUC permite somente 15 ou 30 dias.');
     });
 
@@ -3474,15 +3462,15 @@ export function FormularioColetiva({
 
     if (erros.length) {
       setErro(erros);
-      setConfirmacao("");
       return;
     }
 
     setErro([]);
 
     const loteId = `LOTE-${orgao}-${gerarId()}`;
+    // O saldo do período já foi conferido acima ("parcelamento excede o saldo..."): todo incluído
+    // com parcela chega aqui com período válido e saldo suficiente.
     const periodosSelecionados = incluidos.map(periodoDoProfessor);
-    if (periodosSelecionados.some((p,indice) => !p || p.saldo < (modoAgendamentoLote ? somaDiasSelecionadosLote(incluidos[indice]) : (estadoLinha(incluidos[indice].id).julho ? 15 : 0) + (estadoLinha(incluidos[indice].id).janeiro ? 30 : 0)))) { setErro(['Saldo do período mais antigo insuficiente. Revise os servidores selecionados.']); return; }
     const novosRegistros: FeriasRegistro[] = incluidos.map((professor, indiceProfessor) => {
       const periodo = periodosSelecionados[indiceProfessor]!;
       const parcelas: ParcelaFerias[] = [];
@@ -3524,7 +3512,7 @@ export function FormularioColetiva({
         dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(),
         parcelas,
         // Todo lançamento de férias precisa passar por aprovação da chefia antes de ficar
-        // Em Aberto — inclusive Coletiva direta e o lote da Gestão de Pessoas da UNEMAT, que
+        // Agendada — inclusive Coletiva direta e o lote da Gestão de Pessoas da UNEMAT, que
         // antes pulavam a validação.
         situacao: "AGUARDANDO VALIDAÇÃO",
         substitutos: [],
@@ -3535,22 +3523,8 @@ export function FormularioColetiva({
       };
     });
 
-    if (modoAgendamentoLote) {
-      const resumoPorDuracao = DURACOES_LOTE
-        .map((duracao) => ({ duracao, total: novosRegistros.filter((registro) => registro.parcelas.some((parcela) => parcela.dias === duracao)).length }))
-        .filter(({ total }) => total > 0)
-        .map(({ duracao, total }) => `${total} parcela(s) de ${duracao} dias`)
-        .join(", ");
-      setConfirmacao(`Lote lançado: ${resumoPorDuracao} criada(s). Lançado por Usuário atual em ${new Date().toLocaleString("pt-BR")}.`);
-    } else {
-      const totalJulho = novosRegistros.filter((registro) => registro.parcelas.some((parcela) => parcela.dias === 15)).length;
-      const totalJaneiro = novosRegistros.filter((registro) => registro.parcelas.some((parcela) => parcela.dias === 30)).length;
-      setConfirmacao(
-        `Lote lançado: ${totalJulho} parcela(s) de 15 dias e ${totalJaneiro} parcela(s) de 30 dias criadas. ` +
-          `Lançado por Usuário atual em ${new Date().toLocaleString("pt-BR")}.`,
-      );
-    }
-
+    // A confirmação (CA05) é o toast exibido pela página após a navegação — o formulário sai da
+    // tela logo em seguida, então não mantém banner próprio de confirmação.
     onSalvar(novosRegistros);
   };
 
@@ -3563,7 +3537,6 @@ export function FormularioColetiva({
           ))}
         </div>
       ) : null}
-      {confirmacao ? <div className="prototype-ferias-confirmacao">{confirmacao}</div> : null}
 
       {!modoAgendamentoLote ? (
         <section className="prototype-ferias-form-section prototype-ferias-lote-perfil">
@@ -4008,7 +3981,6 @@ export function FormularioColetiva({
                 placeholder="Filtrar por matrícula ou nome"
                 onChange={(event) => setBuscaAba2(event.target.value)}
               />
-              <BotaoBuscarServidor onClick={() => {}} />
             </div>
             <label className="prototype-ferias-coletiva-alerta-check">
               <input type="checkbox" checked={soComAlerta} onChange={(event) => setSoComAlerta(event.target.checked)} />
@@ -4017,15 +3989,7 @@ export function FormularioColetiva({
           </div>
           </div>
 
-        {professoresIncluidos.length === 0 ? (
-          <div className="prototype-ferias-banner" style={{ margin: "0 16px 16px" }}>
-            <i className="pi pi-info-circle" aria-hidden="true" />
-            <span>
-              Nenhum servidor incluído corresponde aos filtros atuais. Ajuste os filtros em{" "}
-              <strong>1. Órgão &amp; Servidores</strong> ou marque os servidores correspondentes.
-            </span>
-          </div>
-        ) : (
+        {/* A etapa 2 só é alcançável com ao menos 1 servidor incluído (Premissa 1). */}
           <>
             <div className="prototype-ferias-lote-table-wrap">
               <table className={`prototype-ferias-table prototype-ferias-parcelas-table${modoAgendamentoLote ? " prototype-ferias-parcelas-table--lote" : ""}`}>
@@ -4056,7 +4020,7 @@ export function FormularioColetiva({
                             <label>
                               <input
                                 type="checkbox"
-                                checked={professoresIncluidos.length > 0 && professoresIncluidos.every((professor) => estadoLinha(professor.id).julho)}
+                                checked={cabecalhoParcelaColetivaMarcado("julho")}
                                 onChange={(event) => selecionarTodosParcelaColetiva("julho", event.target.checked)}
                               />
                               {" "}Julho (15 dias)
@@ -4069,7 +4033,7 @@ export function FormularioColetiva({
                             <label>
                               <input
                                 type="checkbox"
-                                checked={professoresIncluidos.length > 0 && professoresIncluidos.every((professor) => estadoLinha(professor.id).janeiro)}
+                                checked={cabecalhoParcelaColetivaMarcado("janeiro")}
                                 onChange={(event) => selecionarTodosParcelaColetiva("janeiro", event.target.checked)}
                               />
                               {" "}Janeiro (30 dias)
@@ -4098,7 +4062,7 @@ export function FormularioColetiva({
                         </td>
                         <td>
                           <span className={erroSaldo || erros.length ? "prototype-ferias-saldo-inconsistente" : avisos.length ? "prototype-ferias-saldo-aviso" : ""}>
-                            {professor.saldo} dias
+                            {modoAgendamentoLote ? professor.saldo : saldoBaseColetiva(professor)} dias
                           </span>
                         </td>
                         {modoAgendamentoLote ? (
@@ -4187,7 +4151,6 @@ export function FormularioColetiva({
               }}
             />
           </>
-        )}
         </section>
 
         <AnexoFerias label="Portaria da Escala de Férias" onChange={setDocumentoLote} />
@@ -4238,7 +4201,7 @@ export function FormularioColetiva({
                   <i className="pi pi-send" aria-hidden="true" />
                   <span>
                     {/* Todo lote (SEDUC, UNEMAT ou SECITEC) nasce Aguardando Validação e é avaliado
-                        pelo perfil Aprovador na aba Aprovações, sempre em bloco (RN006). */}
+                        pelo perfil Aprovador na aba Aprovações, sempre em bloco (RN004). */}
                     Após lançar, o lote fica Aguardando Validação e é avaliado em bloco pelo perfil Aprovador, na aba Aprovações.
                   </span>
                 </div>
@@ -5810,7 +5773,7 @@ function ModalGerenciarSubstituicao({
 const STATUS_META: Record<AcaoStatus, { titulo: string; descricao: string; severity: "success" | "danger" | "warning"; icone: string; botao: string; novaSituacao: SituacaoFerias }> = {
   validar: {
     titulo: "Validar solicitação (chefia)",
-    descricao: "A chefia confirma o agendamento e marca o abono constitucional quando aplicável. O registro passa para Em Aberto e libera a substituição, quando cabível.",
+    descricao: "A chefia confirma o agendamento e marca o abono constitucional quando aplicável. O registro passa para Agendada e libera a substituição, quando cabível.",
     severity: "success",
     icone: "pi pi-check",
     botao: "Validar",
@@ -6394,7 +6357,9 @@ function ModalMultiplosVinculos({
                     Matrícula: {vinculo.matricula} · {vinculo.tipoVinculo} · Vínculo: {indice + 1}
                   </span>
                   <span className="prototype-ferias-vinculo-saldo">
-                    {vinculoPermitido ? `Saldo: ${vinculo.saldoDisponivel} dias` : "Não permitido para férias"}
+                    {/* Mesmo saldo que o formulário exibe após a escolha: período mais antigo com
+                        saldo, já descontados os lançamentos existentes do vínculo. */}
+                    {vinculoPermitido ? `Saldo: ${periodoDisponivelServidor(vinculo)?.saldo ?? 0} dias` : "Não permitido para férias"}
                   </span>
                 </span>
               </button>
