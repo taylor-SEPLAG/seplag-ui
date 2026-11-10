@@ -68,3 +68,19 @@ it('corrige a carga antiga sem substituir grupos editados ou restaurar exclusoes
  salvarGrupoCompetencia('2026-05',{...dados.grupos[0],situacao:'ATIVO',grupo:'Editado'},true);
  expect(carregar().grupos[0]).toMatchObject({situacao:'ATIVO',grupo:'Editado',versao:2});
 });
+
+it('remove uma única vez o Grupo teste de maio sem afetar outros grupos ou competências',()=>{
+ const teste={...base[0],id:900,grupo:'Grupo teste'};
+ const outro={...base[0],id:901,grupo:'Grupo teste adicional'};
+ const maio={grupos:[base[0],teste,outro],versoes:{1:[base[0]],900:[teste],901:[outro]}};
+ const abril={grupos:[teste],versoes:{900:[teste]}};
+ localStorage.setItem('sigep:grupos-calculo:competencias:v1',JSON.stringify({'2026-05':maio,'2026-04':abril}));
+ const dados=carregar('2026-05');
+ expect(dados.grupos.map(g=>g.grupo)).not.toContain('Grupo teste');
+ expect(dados.grupos.map(g=>g.grupo)).toContain('Efetivos');
+ expect(dados.grupos.map(g=>g.grupo)).toContain('Grupo teste adicional');
+ expect(dados.versoes[900]).toBeUndefined();
+ expect(carregar('2026-04').grupos).toEqual([teste]);
+ salvarGrupoCompetencia('2026-05',teste);
+ expect(carregar('2026-05').grupos.some(g=>g.id===900)).toBe(true);
+});

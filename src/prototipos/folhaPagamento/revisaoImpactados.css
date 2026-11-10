@@ -7,9 +7,17 @@
 .ri-modal .p-dialog-header {
   border-bottom: 1px solid #dce4ed;
 }
+.ri-modal .p-dialog-header-close .pi-times {
+  font-size: 16px;
+  color: #1764ac;
+  line-height: 1;
+}
 .ri-modal .p-dialog-content {
   padding: 0;
   overflow: hidden;
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 .ri-modal .p-dialog-footer {
   border-top: 1px solid #dce4ed;
@@ -40,11 +48,13 @@
 }
 .ri-corpo {
   display: flex;
-  height: 60vh;
-  min-height: 360px;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 .ri-corpo aside {
-  width: 270px;
+  width: clamp(320px, 28%, 450px);
   flex-shrink: 0;
   border-right: 1px solid #dce4ed;
   padding: 22px 14px;
@@ -474,7 +484,6 @@
 @media (max-width: 560px) {
   .ri-corpo {
     flex-direction: column;
-    height: 65vh;
   }
   .ri-corpo aside {
     width: 100%;
@@ -641,4 +650,193 @@
   font-size: 12px;
   color: #697a8c;
   margin: 12px 0 0;
+}
+
+/* Revisão individual de impactos: preserva a árvore e a listagem do grupo. */
+.ri-abas {
+  display: flex;
+  gap: 18px;
+  border-bottom: 1px solid #dce4ed;
+  margin-top: 18px;
+}
+.ri-modal .ri-abas button {
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: white;
+  padding: 12px 8px;
+  color: #65768a;
+  font-weight: 600;
+}
+.ri-modal .ri-abas button.ativo {
+  color: #1764ac;
+  border-bottom-color: #1764ac;
+}
+.ri-impactos-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.ri-impactos-tabela th,
+.ri-impactos-tabela td {
+  padding: 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #e1e7ed;
+}
+.ri-impactos-tabela thead {
+  background: #f2f6fa;
+  color: #173d64;
+}
+.ri-impactos-tabela tbody th {
+  min-width: 130px;
+  font-weight: 600;
+}
+.ri-proposta {
+  display: block;
+  margin-top: 6px;
+  color: #697a8c;
+}
+.ri-escolhas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.ri-modal .ri-escolhas button {
+  padding: 6px 9px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.ri-modal .ri-escolhas button[aria-pressed="true"] {
+  background: #eaf3ff;
+  border-color: #438bc7;
+  color: #155b96;
+  font-weight: 700;
+}
+.ri-sem-impacto {
+  color: #697a8c;
+  background: #f7f9fc;
+  border: 1px solid #e1e7ed;
+  padding: 14px;
+  border-radius: 5px;
+}
+.ri-lista-resumo {
+  color: #65768a;
+  font-size: 12px;
+}
+.ri-rubricas-lista {
+  overflow-x: auto;
+  width: 100%;
+}
+.ri-rubricas-lista .prototype-grupo-calculo-rubricas-list-head,
+.ri-rubricas-lista .prototype-grupo-calculo-rubrica-row {
+  display: grid;
+  grid-template-columns: 28px 36px 60px minmax(220px, 1fr) 130px minmax(150px, auto);
+  min-width: 740px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+.ri-rubricas-lista .prototype-grupo-calculo-rubricas-list-head {
+  background: #f2f6fa;
+  font-size: 12px;
+  font-weight: 700;
+  border-bottom: 1px solid #dce4ed;
+}
+.ri-rubricas-lista .prototype-grupo-calculo-rubrica-row {
+  min-height: 44px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.ri-rubricas-lista .ri-ordem-acoes {
+  display: flex;
+  align-items: center;
+}
+.ri-modal .ri-ordem-acoes button {
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+}
+.ri-rubrica-indicadores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 0;
+}
+.ri-rubricas-lista .prototype-grupo-calculo-rubrica-name {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.ri-rubricas-lista .prototype-grupo-calculo-origem-tag {
+  min-height: 18px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.ri-rubricas-lista .ri-nova-herdada {
+  color: #b45309;
+  background: #fef3c7;
+}
+.ri-rubricas-lista .prototype-grupo-calculo-rubrica-row:has(.ri-nova-herdada) {
+  border-left-color: #d97706;
+  background: #eff6ff;
+}
+.ri-rubricas-lista .ri-tipo-desconto {
+  color: #ef4444;
+  border-color: #fca5a5;
+  background: #fff5f5;
+}
+.ri-rubricas-lista .prototype-grupo-calculo-rubricas-list-head > :nth-child(5) {
+  text-align: center;
+}
+.ri-rubricas-lista .prototype-grupo-calculo-tipo-pill {
+  width: 110px;
+  min-height: 24px;
+  justify-self: center;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+}
+.ri-rubricas-lista .ri-tipo-provento {
+  color: #00a65a;
+  border-color: #a7f3c4;
+  background: #d9fbe8;
+}
+.ri-revisar-grupo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #e1e7ed;
+  font-size: 12px;
+  color: #65768a;
+}
+.ri-validacao-escolha {
+  border: 1px solid #efcf98;
+  background: #fff8e8;
+  color: #88591b;
+  padding: 12px;
+  border-radius: 5px;
+  margin-top: 16px;
+}
+.ri-navegacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  font-size: 12px;
+  color: #65768a;
+}
+@media (max-width: 850px) {
+  .ri-revisar-grupo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .ri-resumo {
+    flex-wrap: wrap;
+  }
 }
