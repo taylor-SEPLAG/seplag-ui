@@ -49,6 +49,15 @@ function acessos() {
   ).getAllByRole("link");
 }
 
+it("exibe cards dos sete menus principais da Folha com destinos disponíveis", () => {
+  montar();
+  const regiao = within(screen.getByRole("region", { name: "Acesso rápido" }));
+  expect(regiao.getAllByRole("heading", { level: 3 }).map((titulo) => titulo.textContent)).toEqual(acessosPaginaInicialFolha.map((modulo) => modulo.nome));
+  expect(acessos()).toHaveLength(7);
+  expect(regiao.getByRole("link", { name: "Acessar Pensões" }).getAttribute("href")).toBe("/prototipos/folha/pensoes");
+  expect(regiao.queryByRole("heading", { name: "Ficha Financeira" })).toBeNull();
+});
+
 it("exibe o modelo da página inicial com somente acessos da Folha e menu próprio", () => {
   montar();
   expect(screen.getByRole("heading", { name: "Olá, Sigepito!" })).toBeTruthy();

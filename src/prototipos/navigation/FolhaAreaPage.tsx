@@ -4,7 +4,7 @@ import {
   type IMenuSeplag,
 } from "../../componentes/layout/Config/menu";
 import { menuDisponivel } from "../paginaInicial/model";
-import { acessosPaginaInicialFolha } from "../paginaInicial/folhaModel";
+import { detalhesPaginaInicialFolha } from "../paginaInicial/folhaModel";
 import { ModuleNavigationCard } from "./ModuleNavigationCard";
 import {
   areasNavegacaoFolha,
@@ -75,7 +75,7 @@ export function FolhaAreaPage({ area }: { area: AreaNavegacaoFolha }) {
             {(grupo.items ?? []).map((item) => {
               const nome = item.label ?? "";
               const dados =
-                acessosPaginaInicialFolha.find((a) => a.nome === nome) ??
+                detalhesPaginaInicialFolha.find((a) => a.nome === nome) ??
                 complementos[nome];
               return (
                 <ModuleNavigationCard

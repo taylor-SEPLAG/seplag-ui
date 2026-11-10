@@ -5,6 +5,52 @@ export const FOLHA_CALENDARIO_PATH = "/prototipos/sigep/folha/calendario";
 
 export const acessosPaginaInicialFolha = [
   {
+    nome: "Rubricas",
+    descricao: "Acesse o catálogo e as solicitações de rubricas.",
+    icone: "pi pi-tag",
+    corIcone: "var(--sigep-modulo-pessoas)",
+  },
+  {
+    nome: "Cadastro",
+    descricao: "Gerencie eventos, tipos de evento e grupos de eleitos.",
+    icone: "pi pi-list",
+    corIcone: "var(--sigep-modulo-estrutura)",
+  },
+  {
+    nome: "Parâmetros de Folha",
+    descricao: "Consulte tabelas e parâmetros da folha.",
+    icone: "pi pi-sliders-h",
+    corIcone: "var(--sigep-modulo-cargo)",
+  },
+  {
+    nome: "Pensões",
+    descricao: "Acesse pensão alimentícia, especial e por morte.",
+    icone: "pi pi-users",
+    corIcone: "var(--sigep-modulo-vagas)",
+  },
+  {
+    nome: "Folha",
+    descricao:
+      "Gerencie competências, grupos de cálculo e processamento da folha.",
+    icone: "pi pi-cog",
+    corIcone: "var(--sigep-modulo-movimentacao)",
+  },
+  {
+    nome: "Lançamento Financeiro",
+    descricao: "Consulte fichas financeiras e retenções judiciais.",
+    icone: "pi pi-money-bill",
+    corIcone: "var(--sigep-modulo-direitos)",
+  },
+  {
+    nome: "Relatórios",
+    descricao: "Acesse os relatórios e informações da folha.",
+    icone: "pi pi-chart-bar",
+    corIcone: "var(--sigep-modulo-documentacao)",
+  },
+];
+
+export const detalhesPaginaInicialFolha = [
+  {
     nome: "Painel Informativo",
     descricao: "Consulte comunicados e o cronograma da folha.",
     icone: "pi pi-th-large",

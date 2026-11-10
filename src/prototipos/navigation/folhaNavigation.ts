@@ -1,4 +1,10 @@
 export const areasNavegacaoFolha = {
+  pensoes: {
+    nome: "Pensões",
+    rota: "/prototipos/folha/pensoes",
+    descricao: "Selecione uma área para consultar os cadastros de pensões.",
+    cor: "var(--sigep-modulo-vagas)",
+  },
   rubricas: {
     nome: "Rubricas",
     rota: "/prototipos/folha/rubricas",
