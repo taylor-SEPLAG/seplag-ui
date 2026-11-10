@@ -1,12 +1,22 @@
 import type { FeriasRegistro } from "./FeriasPages";
+import { prazosAgendamento } from "./regrasAgendamento";
 
 // Dados mock e chave de persistência do protótipo de férias. Ficam fora de FeriasPages.tsx
 // (um arquivo de componentes) porque o Fast Refresh do Vite invalida o módulo inteiro sempre
 // que um arquivo de componente também exporta valores não-componente — isso já chegou a causar
 // renders com hooks fora de ordem (erro "useEffect changed size between renders") durante HMR.
-export const STORAGE_KEY = "prototype-ferias-registros-v31";
+// v32: o prazo de validação da chefia dos mocks passou a seguir a RN017 (dia 09 do mês anterior ao
+// usufruto) — a nova chave descarta os registros salvos com os prazos antigos.
+export const STORAGE_KEY = "prototype-ferias-registros-v32";
 
 function registroBase(parcial: Partial<FeriasRegistro> & Pick<FeriasRegistro, "id" | "servidorNome" | "matricula" | "cargo" | "tipoVinculo" | "parcelas" | "situacao">): FeriasRegistro {
+  // RN017: férias aguardando validação têm como prazo da chefia o dia 09 do mês anterior ao início
+  // do usufruto (parcela mais antiga). Recesso mantém o prazo próprio informado no mock.
+  const inicioUsufruto = parcial.parcelas.map((p) => p.inicio).filter(Boolean).sort()[0];
+  const prazoRn017 =
+    parcial.situacao === "AGUARDANDO VALIDAÇÃO" && parcial.tipo !== "Recesso" && parcial.dataLimiteValidacaoChefia && inicioUsufruto
+      ? { dataLimiteValidacaoChefia: prazosAgendamento(inicioUsufruto).limiteValidacao }
+      : {};
   return {
     cpf: "",
     orgao: "SEPLAG/MT",
@@ -21,6 +31,7 @@ function registroBase(parcial: Partial<FeriasRegistro> & Pick<FeriasRegistro, "i
     responsavelLancamento: "RH Setorial",
     lancadoEm: "2026-09-01 09:00",
     ...parcial,
+    ...prazoRn017,
     dre: parcial.dre ?? (parcial.orgao?.includes('SEDUC') ? 'DRE de demonstração' : undefined),
   };
 }

@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
 import { CardSeplag } from "../../componentes/Card";
 import { PrototypeSystemPage, menuGestaoPessoas } from "../PrototiposPage";
@@ -10,6 +10,10 @@ import { DownloadDocumentoFerias } from './DocumentoFerias';
 export function FeriasVisualizarPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  // "Visualizar" na linha de uma parcela (registro com várias parcelas) mostra só aquela parcela.
+  const [searchParams] = useSearchParams();
+  const parcelaParam = searchParams.get("parcela");
+  const parcelaFocoId = parcelaParam != null && parcelaParam !== "" ? Number(parcelaParam) : undefined;
   const registros = carregarRegistros();
   const registro = registros.find((item) => String(item.id) === id);
   const voltar = () => navigate("/prototipos/sigep/ferias");
@@ -28,7 +32,11 @@ export function FeriasVisualizarPage() {
     );
   }
 
-  const titulo = `Visualizar solicitação — ${registro.tipo}`;
+  const parcelaFoco =
+    parcelaFocoId != null && Number.isFinite(parcelaFocoId) && registro.parcelas.length > 1
+      ? registro.parcelas.find((parcela) => parcela.id === parcelaFocoId)
+      : undefined;
+  const titulo = `Visualizar solicitação — ${registro.tipo}${parcelaFoco ? ` · parcela de ${parcelaFoco.dias} dias` : ""}`;
   const documentosFuncionais = [...new Map(registros.filter(r => r.matricula === registro.matricula)
     .flatMap(r => r.documentos ?? []).map(d => [d.id,d])).values()];
 
@@ -46,6 +54,7 @@ export function FeriasVisualizarPage() {
                 { label: "Gestão de Férias", to: "/prototipos/sigep/ferias" },
                 { label: "Visualizar" },
                 { label: registro.tipo },
+                ...(parcelaFoco ? [{ label: `Parcela de ${parcelaFoco.dias} dias` }] : []),
               ]}
             />
           }
@@ -59,7 +68,7 @@ export function FeriasVisualizarPage() {
               {registro.tipo === "Recesso" ? (
                 <FormularioRecesso registroSomenteLeitura={registro} onCancelar={voltar} onSalvar={voltar} />
               ) : (
-                <FormularioIndividual registroSomenteLeitura={registro} onCancelar={voltar} onSalvar={voltar} />
+                <FormularioIndividual registroSomenteLeitura={registro} parcelaFocoId={parcelaFoco?.id} onCancelar={voltar} onSalvar={voltar} />
               )}
             </div>
           </div>

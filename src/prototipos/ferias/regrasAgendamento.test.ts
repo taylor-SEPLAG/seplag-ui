@@ -6,7 +6,29 @@ import {
   validarPeriodoAquisitivoCompletado,
   calcularAlertaConcessivo,
   validarSemSobreposicao,
+  prazosAgendamento,
+  validarPrazoRegistroFerias,
 } from "./regrasAgendamento";
+
+describe("RN017 — Prazos do agendamento pelo mês do usufruto", () => {
+  it("registro até o dia 05 e validação até o dia 09 do mês anterior ao usufruto", () => {
+    expect(prazosAgendamento("2026-12-01")).toEqual({ limiteRegistro: "2026-11-05", limiteValidacao: "2026-11-09" });
+  });
+
+  it("usufruto em janeiro: prazos caem em dezembro do ano anterior", () => {
+    expect(prazosAgendamento("2027-01-15")).toEqual({ limiteRegistro: "2026-12-05", limiteValidacao: "2026-12-09" });
+  });
+
+  it("aceita registro no próprio dia 05", () => {
+    expect(validarPrazoRegistroFerias("2026-11-05", "2026-12-01").sucesso).toBe(true);
+  });
+
+  it("bloqueia registro a partir do dia 06 do mês anterior", () => {
+    const r = validarPrazoRegistroFerias("2026-11-06", "2026-12-20");
+    expect(r.erro_codigo).toBe(CodigoErroAgendamento.PRAZO_REGISTRO_ENCERRADO);
+    expect(r.mensagem).toContain("05/11/2026");
+  });
+});
 
 describe("RN-AGD-01 — Fracionamento", () => {
   it("aceita etapa única de 30 dias", () => {

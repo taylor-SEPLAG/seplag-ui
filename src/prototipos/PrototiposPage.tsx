@@ -5568,7 +5568,16 @@ const normalizarVigenciaTabelaReferencia = (
         )
       : modeloRppsId === 303
         ? getFaixasAutomaticasRppsLc700(
-            vigenciaComModelo.percentualContribuicao ?? "14",
+            vigenciaComModelo.faixasContribuicao?.find(
+              (faixa) => faixa.ordem === 2,
+            )?.percentual ??
+              vigenciaComModelo.percentualContribuicao ??
+              "14",
+          )
+      : modeloRppsId === 305
+        ? getFaixasRppsSalarioMinimo(
+            vigenciaComModelo.faixasContribuicao?.find((faixa) => faixa.ordem === 2)?.percentual ?? vigenciaComModelo.percentualContribuicao ?? "14",
+            vigenciaComModelo.inicioVigencia,
           )
       : vigenciaComModelo.faixasContribuicao;
 
@@ -5978,6 +5987,28 @@ const getFolhaValorReferenciaAtual = (codigo?: string) =>
   codigo
     ? getFolhaValoresReferenciaPersistidos().find((valor) => valor.codigo === codigo)?.vigencias[0]?.valor
     : undefined;
+
+const getFolhaValorReferenciaNaData = (codigo: string, dataReferencia?: string) => {
+  const data = parseDataFolhaTabelaReferencia(dataReferencia);
+  if (data === undefined) return undefined;
+  return getFolhaValoresReferenciaPersistidos()
+    .find((valor) => valor.codigo === codigo)?.vigencias
+    .filter((vigencia) => {
+      const inicio = parseDataFolhaTabelaReferencia(vigencia.inicioVigencia);
+      const fim = parseDataFolhaTabelaReferencia(vigencia.fimVigencia) ?? Infinity;
+      return inicio !== undefined && inicio <= data && data <= fim && vigencia.situacao !== "Inativo";
+    })
+    .sort((a, b) => (parseDataFolhaTabelaReferencia(b.inicioVigencia) ?? 0) - (parseDataFolhaTabelaReferencia(a.inicioVigencia) ?? 0))[0]?.valor;
+};
+
+const getFaixasRppsSalarioMinimo = (percentual: string, dataReferencia?: string): FolhaTabelaReferenciaFaixaRow[] => {
+  const salarioMinimo = getFolhaValorReferenciaNaData("SALARIO_MINIMO", dataReferencia);
+  if (!salarioMinimo) return [];
+  return [
+    { id: 1, ordem: 1, faixaInicial: "R$ 0,00", faixaFinal: salarioMinimo, percentual: "0", contribuicaoFaixa: "Isento" },
+    { id: 2, ordem: 2, faixaInicial: formatMoedaReferencia(parseMoedaReferencia(salarioMinimo) + 0.01), faixaFinal: "Em aberto", percentual, contribuicaoFaixa: "Calculada pelo motor" },
+  ];
+};
 
 const folhaValoresReferenciaIrrfCodigos = new Set([
   "DEDUCAO_DEP_IRRF",
@@ -26160,9 +26191,19 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const [faixasVigencia, setFaixasVigencia] =
     useState<FolhaTabelaReferenciaFaixaRow[]>(() => {
       if (isTabelaRpps) {
+        if (modeloRppsId === 305) {
+          return getFaixasRppsSalarioMinimo(
+            vigenciaFormularioBase?.faixasContribuicao?.find((faixa) => faixa.ordem === 2)?.percentual ?? vigenciaFormularioBase?.percentualContribuicao ?? "14",
+            vigenciaFormularioBase?.inicioVigencia,
+          );
+        }
         if (modeloRppsId === 303) {
           return getFaixasAutomaticasRppsLc700(
-            vigenciaFormularioBase?.percentualContribuicao ?? "14",
+            vigenciaFormularioBase?.faixasContribuicao?.find(
+              (faixa) => faixa.ordem === 2,
+            )?.percentual ??
+              vigenciaFormularioBase?.percentualContribuicao ??
+              "14",
           );
         }
 
@@ -26276,8 +26317,10 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const faixaIsencaoLc700Resumo = getFolhaValorReferenciaAtual("ISENCAO_LC700") ?? "R$ 4.318,01";
   const limiteProventosLc700Resumo =
     getFolhaValorReferenciaAtual("LIMITE_PROVENTOS_LC700") ?? vigenciaFormularioBase?.proventosAte ?? "R$ 11.776,34";
-  const salarioMinimoResumo = getFolhaValorReferenciaAtual("SALARIO_MINIMO") ?? "R$ 1.621,00";
-  const enquadramentoSalarioMinimoResumo = `Proventos superiores a ${limiteProventosLc700Resumo}`;
+  const salarioMinimoNaData = getFolhaValorReferenciaNaData("SALARIO_MINIMO", inicioVigenciaSelecionado);
+  const limiteProventosNaData = getFolhaValorReferenciaNaData("LIMITE_PROVENTOS_LC700", inicioVigenciaSelecionado);
+  const salarioMinimoResumo = isModeloRppsSalarioMinimo ? salarioMinimoNaData ?? "Sem referência vigente" : getFolhaValorReferenciaAtual("SALARIO_MINIMO") ?? "R$ 1.621,00";
+  const enquadramentoSalarioMinimoResumo = limiteProventosNaData ? `Proventos superiores a ${limiteProventosNaData}` : "Sem limite de proventos vigente";
   const limitePrevidenciarioMilitarResumo = getFolhaValorReferenciaAtual("LIMITE_PREV_PM_BM") ?? "R$ 11.005,95";
   const percentualLc700Resumo =
     vigenciaFormularioBase?.faixasContribuicao?.find((faixa) => faixa.percentual && faixa.percentual !== "0")?.percentual ?? "14";
@@ -26292,7 +26335,9 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     isTabelaRpps &&
     modeloRppsId !== 301 &&
     !isModeloRppsPrevcom &&
-    (isModeloRppsLc700 || (!isRegraFaixasProgressivas && !isRegraIsentoValorReferencia));
+    !isModeloRppsLc700 &&
+    !isModeloRppsSalarioMinimo &&
+    (!isRegraFaixasProgressivas && !isRegraIsentoValorReferencia);
   const exibirEnquadramentoProventosRpps = false;
   const exibirTetoPrevidenciario = !isTabelaRpps && !isTabelaIrrf;
 
@@ -26335,7 +26380,8 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       }
 
       if (isModeloRppsLc700) {
-        const percentual = percentualContribuicaoSelecionado || "14";
+        const percentual =
+          current.find((faixa) => faixa.ordem === 2)?.percentual || "14";
         const faixasLc700 = getFaixasAutomaticasRppsLc700(percentual);
 
         return JSON.stringify(current) === JSON.stringify(faixasLc700)
@@ -26344,23 +26390,9 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       }
 
       if (isModeloRppsSalarioMinimo) {
-        const percentual = percentualContribuicaoSelecionado || "14";
-        const faixaSalarioMinimo = {
-          id: 1,
-          ordem: 1,
-          faixaInicial: "R$ 11.776,34",
-          faixaFinal: "Em aberto",
-          percentual,
-          contribuicaoFaixa: "Sobre excedente do salário mínimo",
-        };
-
-        return current.length === 1 &&
-          current[0].faixaInicial === faixaSalarioMinimo.faixaInicial &&
-          current[0].faixaFinal === faixaSalarioMinimo.faixaFinal &&
-          current[0].percentual === faixaSalarioMinimo.percentual &&
-          current[0].contribuicaoFaixa === faixaSalarioMinimo.contribuicaoFaixa
-          ? current
-          : [faixaSalarioMinimo];
+        const percentual = current.find((faixa) => faixa.ordem === 2)?.percentual ?? percentualContribuicaoSelecionado ?? "14";
+        const faixas = getFaixasRppsSalarioMinimo(percentual, inicioVigenciaSelecionado);
+        return JSON.stringify(current) === JSON.stringify(faixas) ? current : faixas;
       }
 
       const possuiFaixaUnicaAberta =
@@ -26391,6 +26423,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     isModeloRppsLc700,
     isModeloRppsPrevcom,
     isModeloRppsSalarioMinimo,
+    inicioVigenciaSelecionado,
     isRegraFaixasProgressivas,
     isTabelaRpps,
     percentualContribuicaoSelecionado,
@@ -26536,6 +26569,8 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       if (
         modeloRppsId !== 301 &&
         !isModeloRppsPrevcom &&
+        !isModeloRppsLc700 &&
+        !isModeloRppsSalarioMinimo &&
         data.regraIncidencia !== "FAIXAS_PROGRESSIVAS" &&
         data.regraIncidencia !== "ISENTO_ATE_VALOR_REFERENCIA"
       ) {
@@ -26574,6 +26609,29 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
 
         if (!faixaUnica.percentual.trim() || parseMoedaReferencia(faixaUnica.percentual) <= 0) {
           setFeedback("Informe um percentual de contribuição válido na faixa.");
+          return;
+        }
+      }
+
+      if (isModeloRppsSalarioMinimo) {
+        if (!salarioMinimoNaData || !limiteProventosNaData) {
+          setFeedback(`Não existe valor vigente para ${!salarioMinimoNaData ? "Salário Mínimo" : "Limite de Proventos LC 700"} na data inicial informada. Regularize o Valor de Referência antes de salvar.`);
+          return;
+        }
+        if (parseMoedaReferencia(limiteProventosNaData) <= parseMoedaReferencia(salarioMinimoNaData)) {
+          setFeedback("O Limite de Proventos LC 700 deve ser superior ao Salário Mínimo.");
+          return;
+        }
+      }
+
+      if (isModeloRppsLc700 || isModeloRppsSalarioMinimo) {
+        const faixaTributavel = faixasVigencia.find((faixa) => faixa.ordem === 2);
+        if (
+          !faixaTributavel ||
+          !faixaTributavel.percentual.trim() ||
+          parseMoedaReferencia(faixaTributavel.percentual) <= 0
+        ) {
+          setFeedback("Informe um percentual de contribuição válido na faixa tributável.");
           return;
         }
       }
@@ -26663,19 +26721,21 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
           ? "TETO_RGPS"
           : data.valorReferenciaId || modeloRppsSalvo.valorReferenciaId,
         limiteProventos: data.limiteProventos,
-        proventosAPartirDe: data.proventosAPartirDe || modeloRppsSalvo.proventosAPartirDe,
+        proventosAPartirDe: isModeloRppsSalarioMinimo
+          ? formatMoedaReferencia(parseMoedaReferencia(limiteProventosNaData) + 0.01)
+          : data.proventosAPartirDe || modeloRppsSalvo.proventosAPartirDe,
         proventosAte: data.proventosAte || modeloRppsSalvo.proventosAte,
         tetoPrevidenciario: undefined,
         percentualContribuicao:
           modeloRppsId === 301 || isModeloRppsPrevcom
             ? faixasVigencia[0]?.percentual ?? ""
+            : isModeloRppsLc700 || isModeloRppsSalarioMinimo
+              ? faixasVigencia.find((faixa) => faixa.ordem === 2)?.percentual ?? ""
             : data.percentualContribuicao || modeloRppsSalvo.percentualContribuicao,
         faixasContribuicao: isModeloRppsPrevcom
           ? faixasVigencia
           : isModeloRppsLc700
-            ? getFaixasAutomaticasRppsLc700(
-                data.percentualContribuicao || modeloRppsSalvo.percentualContribuicao || "14",
-              )
+            ? faixasVigencia
           : faixasVigencia.length
             ? faixasVigencia
             : modeloRppsSalvo.faixasContribuicao,
@@ -26817,6 +26877,14 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     const percentual = novaFaixaForm.percentual.trim();
     const faixaAberta = isFaixaAberta({ faixaFinal });
 
+    if (isModeloRppsSalarioMinimo) {
+      const aliquota = Number(percentual.replace(",", "."));
+      if (!faixaEditando || faixaEditando.ordem !== 2 || !Number.isFinite(aliquota) || aliquota <= 0) {
+        setFeedback("Informe um percentual de contribuição válido na faixa tributável.");
+        return;
+      }
+    }
+
     if (
       faixaEditandoId === null &&
       faixasVigencia.length &&
@@ -26849,7 +26917,9 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       faixaInicial,
       faixaFinal,
       percentual,
-      contribuicaoFaixa: faixaAberta
+      contribuicaoFaixa: isModeloRppsLc700 || isModeloRppsSalarioMinimo
+        ? "Calculada pelo motor"
+        : faixaAberta
         ? "Calculada pelo motor"
         : calcularContribuicaoFaixaReferencia(faixaInicial, faixaFinal, percentual),
       parcelaDeduzir: isTabelaIrrf
@@ -26991,22 +27061,6 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                           <TextFieldSeplag name="inicioVigencia" control={control} label="Início da Vigência" required cols="12 12 3" getFormErrorMessage={() => null} />
                           <TextFieldSeplag name="fimVigencia" control={control} label="Fim da Vigência" placeholder="dd/mm/aaaa" cols="12 12 3" getFormErrorMessage={() => null} />
                           <TextAreaFieldSeplag name="observacoes" control={control} label="Observações" placeholder="Observações..." cols="12" rows={4} maxLength={500} getFormErrorMessage={() => null} />
-                          {isModeloRppsSalarioMinimo ? (
-                            <>
-                              <div className="col-12 md:col-6 lg:col-3">
-                                <strong>Referência de Cálculo</strong>
-                                <p>Salário Mínimo</p>
-                              </div>
-                              <div className="col-12 md:col-6 lg:col-3">
-                                <strong>Valor da Referência</strong>
-                                <p>{salarioMinimoResumo}</p>
-                              </div>
-                              <div className="col-12 md:col-6 lg:col-3">
-                                <strong>Enquadramento da Regra</strong>
-                                <p>{enquadramentoSalarioMinimoResumo}</p>
-                              </div>
-                            </>
-                          ) : null}
                           {isModeloRppsMilitar ? (
                             <>
                               <div className="col-12 md:col-6 lg:col-3">
@@ -27201,6 +27255,9 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                     <div className="prototype-folha-referencia-vigencia-panel-title">
                       <h3>{isTabelaIrrf ? "Tabela Progressiva Mensal" : "Faixas de Contribuição"}</h3>
                     </div>
+                    {isModeloRppsSalarioMinimo && (!salarioMinimoNaData || !limiteProventosNaData) ? (
+                      <p role="alert">Não existe referência vigente para {!salarioMinimoNaData ? "Salário Mínimo" : "Limite de Proventos LC 700"} na data inicial informada. Regularize os Valores de Referência para salvar a tabela.</p>
+                    ) : null}
                     <div
                       className={`prototype-folha-referencia-calculo-summary${
                         isModeloRppsLc700 || isModeloRppsSalarioMinimo || isModeloRppsMilitar
@@ -27244,8 +27301,12 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                             <strong>{salarioMinimoResumo}</strong>
                           </div>
                           <div>
-                            <span>Enquadramento</span>
+                            <span>Enquadramento da Regra</span>
                             <strong>{enquadramentoSalarioMinimoResumo}</strong>
+                          </div>
+                          <div>
+                            <span>Base de cálculo</span>
+                            <strong>Proventos menos o salário mínimo vigente</strong>
                           </div>
                         </>
                       ) : isModeloRppsMilitar ? (
@@ -27276,7 +27337,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                           <strong>{referenciaRegraResumo}</strong>
                         </div>
                       )}
-                      {!isTabelaIrrf && !isModeloRppsSalarioMinimo ? (
+                      {!isTabelaIrrf ? (
                         <div>
                           <span>Total de Faixas</span>
                           <strong>{faixasVigencia.length}</strong>
@@ -27289,7 +27350,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                         </div>
                       ) : null}
                     </div>
-                    {!isModeloRppsLc700 && !isModeloRppsMilitar && (!isTabelaRpps || isRegraFaixasProgressivas || faixasVigencia.length === 0) ? (
+                    {!isModeloRppsLc700 && !isModeloRppsSalarioMinimo && !isModeloRppsMilitar && (!isTabelaRpps || isRegraFaixasProgressivas || faixasVigencia.length === 0) ? (
                       <div className="prototype-folha-referencia-faixa-toolbar">
                         <BotaoSeplag
                           type="button"
@@ -27307,7 +27368,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                             <th>{isTabelaIrrf ? "Base Inicial" : "Faixa Inicial"}</th>
                             <th>{isTabelaIrrf ? "Base Final" : "Faixa Final"}</th>
                             <th>Percentual (%)</th>
-                            {!isTabelaIrrf ? <th>{modeloRppsId === 301 || isModeloRppsPrevcom ? "Cálculo" : "Contribuição Máxima da Faixa"}</th> : null}
+                            {!isTabelaIrrf ? <th>{modeloRppsId === 301 || isModeloRppsPrevcom || isModeloRppsLc700 || isModeloRppsSalarioMinimo ? "Cálculo" : "Contribuição Máxima da Faixa"}</th> : null}
                             <th>Parcela a Deduzir</th>
                             <th>Ações</th>
                           </tr>
@@ -27336,7 +27397,17 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                                   >
                                     <i className="pi pi-eye" aria-hidden="true" />
                                   </button>
-                                  {!isModeloRppsLc700 ? (
+                                  {isModeloRppsLc700 || isModeloRppsSalarioMinimo ? (
+                                    faixa.ordem === 2 ? (
+                                      <button
+                                        type="button"
+                                        aria-label="Editar percentual da faixa tributável"
+                                        onClick={() => abrirModalEditarFaixa(faixa)}
+                                      >
+                                        <i className="pi pi-pencil" aria-hidden="true" />
+                                      </button>
+                                    ) : null
+                                  ) : (
                                     <>
                                       <button
                                         type="button"
@@ -27353,7 +27424,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                                         <i className="pi pi-trash" aria-hidden="true" />
                                       </button>
                                     </>
-                                  ) : null}
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -27430,12 +27501,16 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                 </label>
                 <label>
                   <span>
-                    {isModeloRppsPrevcom ? "Faixa Final — Teto RGPS" : "Faixa Final"} <strong>*</strong>
+                    {isModeloRppsPrevcom
+                      ? "Faixa Final — Teto RGPS"
+                      : isModeloRppsLc700
+                        ? "Faixa Final — Limite de Proventos"
+                        : "Faixa Final"} <strong>*</strong>
                   </span>
                   <input
                     type="text"
                     value={novaFaixaForm.faixaFinal}
-                    readOnly={isModeloRppsPrevcom || modeloRppsId === 301}
+                    readOnly={isModeloRppsPrevcom || isModeloRppsLc700 || isModeloRppsSalarioMinimo || modeloRppsId === 301}
                     title={isModeloRppsPrevcom ? "Valor obtido automaticamente em Valores de Referência." : undefined}
                     onChange={(event) =>
                       setNovaFaixaForm((current) => ({

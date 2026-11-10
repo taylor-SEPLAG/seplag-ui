@@ -44,7 +44,12 @@ export function FeriasIndividualPage() {
         >
           <div className="col-12">
           <div className="prototype-ferias-nova-pagina">
-            <FormularioIndividual onCancelar={() => setMostrarConfirmacaoCancelar(true)} onSalvar={salvar} />
+            <FormularioIndividual
+              onCancelar={(temDadosPreenchidos) =>
+                temDadosPreenchidos ? setMostrarConfirmacaoCancelar(true) : navigate("/prototipos/sigep/ferias")
+              }
+              onSalvar={salvar}
+            />
           </div>
           </div>
         </CardSeplag>

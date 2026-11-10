@@ -166,8 +166,41 @@ export function componentesAdiantamento(remuneracaoMensal: number, dias: number)
   return { valorRemuneracao, valorTerco: arredondar(total - valorRemuneracao), valor: total };
 }
 
+const dataBr = (isoData: string) => `${isoData.slice(8, 10)}/${isoData.slice(5, 7)}/${isoData.slice(0, 4)}`;
+
+/** Mensagens da validação de entrada do motor (RN-MOT-09). */
+export const MENSAGENS_ENTRADA_MOTOR = {
+  fimObrigatorioArt17: "Informe a data de fim da suspensão. Sem ela não é possível efetivar a suspensão nem calcular o retorno às férias.",
+  fimObrigatorioArt16: "Informe a data de fim da licença. Sem ela não é possível efetivar a suspensão (Art. 16) nem calcular o retorno às férias.",
+  fimAnteriorAoInicio: "A data de término da suspensão não pode ser anterior ao início.",
+  inicioForaDaParcela: (inicio: string, fim: string) =>
+    `A data de início da suspensão precisa estar dentro do período da parcela (${dataBr(inicio)} a ${dataBr(fim)}).`,
+} as const;
+
+/**
+ * RN-MOT-09 — Valida a entrada antes de calcular/efetivar: data de fim obrigatória (Art. 17:
+ * fim da suspensão; Art. 16: fim da licença), fim ≥ início e início dentro do período das
+ * parcelas informadas. Retorna a mensagem do primeiro problema ou null quando a entrada é válida.
+ * O sistema não efetiva a suspensão com entrada inválida.
+ */
+export function validarEntradaSuspensao(
+  entrada: Pick<EntradaMotorSuspensao, "parcelas" | "fundamento" | "suspensaoInicio" | "suspensaoFim" | "licencaFim">,
+): string | null {
+  const fim = entrada.fundamento === "ART_17" ? entrada.suspensaoFim : entrada.licencaFim;
+  if (!fim) {
+    return entrada.fundamento === "ART_17" ? MENSAGENS_ENTRADA_MOTOR.fimObrigatorioArt17 : MENSAGENS_ENTRADA_MOTOR.fimObrigatorioArt16;
+  }
+  if (!entrada.suspensaoInicio || fim < entrada.suspensaoInicio) return MENSAGENS_ENTRADA_MOTOR.fimAnteriorAoInicio;
+  const dias = expandirDias(entrada.parcelas);
+  if (dias.length && (entrada.suspensaoInicio < dias[0] || entrada.suspensaoInicio > dias[dias.length - 1])) {
+    return MENSAGENS_ENTRADA_MOTOR.inicioForaDaParcela(dias[0], dias[dias.length - 1]);
+  }
+  return null;
+}
+
 /**
  * Calcula o novo calendário de gozo e o impacto na folha, competência a competência.
+ * A entrada deve ter sido validada por `validarEntradaSuspensao` (RN-MOT-09).
  */
 export function calcularImpactoSuspensao(entrada: EntradaMotorSuspensao): ResultadoMotorSuspensao {
   const diasOriginais = expandirDias(entrada.parcelas);
@@ -181,8 +214,8 @@ export function calcularImpactoSuspensao(entrada: EntradaMotorSuspensao): Result
       ? adicionarDiasIso(fimSuspensao, 1)
       : proximoDiaUtilIso(fimSuspensao, entrada.feriados);
 
-  // RN-MOT-01: cada dia restante é deslocado pelo mesmo intervalo (suspensão + eventual espera até
-  // o dia útil), preservando eventuais intervalos entre parcelas. Dias usufruídos não se movem.
+  // RN-MOT-01: o motor recebe só a parcela suspensa; cada dia restante dela é deslocado pelo mesmo
+  // intervalo (suspensão + eventual espera até o dia útil). Dias usufruídos não se movem.
   const deslocamento = Math.max(0, diferencaDiasIso(entrada.suspensaoInicio, retorno));
   const novosRestantes = restantes.map((d) => adicionarDiasIso(d, deslocamento));
   const diasNovos = [...usufruidos, ...novosRestantes];

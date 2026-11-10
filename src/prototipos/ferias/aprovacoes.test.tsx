@@ -13,6 +13,11 @@ afterEach(() => {cleanup();vi.useRealTimers();vi.restoreAllMocks();localStorage.
 const pendentes=registrosBase.filter(r => [9,10,11].includes(r.id));
 function montar() {render(<MemoryRouter><PrototiposFeriasPage /></MemoryRouter>);fireEvent.click(screen.getByRole('button',{name:/Aprovações/}));}
 it('mostra os três exemplos e as colunas na ordem solicitada, com alerta de validade', () => {
+  // Relógio fixo: os prazos dos mocks seguem a RN017 (dia 09 do mês anterior ao usufruto) e a
+  // contagem de pendentes depende da data de hoje.
+  // 08/10/2026: lotes com usufruto em novembro ainda dentro do prazo (09/10); Rodrigo (usufruto em
+  // 01/10, prazo 09/09) já expirado.
+  vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 9, 8, 12) });
   montar();
   const tabela=screen.getByRole('table',{name:'Solicitações de férias para aprovação'});
   expect(within(tabela).getAllByRole('columnheader').map(c => c.textContent)).toEqual(['Servidor','Matrícula / Vínculo','Órgão / Entidade','Lotação','Período','Dias','Tipo','Origem','Situação atual','Validade da solicitação','Ações']);
