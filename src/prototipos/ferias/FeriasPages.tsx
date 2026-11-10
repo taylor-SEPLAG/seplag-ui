@@ -29,14 +29,14 @@ import {
   saldoRestanteParaReabertura,
 } from "./regrasReabertura";
 import {
-  validarAntecedencia,
+  validarPrazoRegistroFerias,
+  prazosAgendamento,
   validarPeriodoAquisitivoCompletado,
   calcularAlertaConcessivo,
 } from "./regrasAgendamento";
 import { competenciaDoGozo } from "./regrasFolha";
 import {
   validarSolicitacaoSuspensaoArt17,
-  calcularRetomadaArt16,
   ehFimDeSemanaOuFeriado,
   type FundamentoSuspensao,
 } from "./regrasSuspensao";
@@ -53,7 +53,12 @@ import {
   type ConfiguracaoFluxo,
   type ProcessoAprovacao,
 } from "./fluxoAprovacao";
-import { calcularImpactoSuspensao, type EventoFolhaSuspensao } from "./motorFolhaSuspensao";
+import {
+  calcularImpactoSuspensao,
+  validarEntradaSuspensao,
+  type EventoFolhaSuspensao,
+  type IntervaloGozo,
+} from "./motorFolhaSuspensao";
 
 function brParaIso(valor: string) {
   if (!valor) return "";
@@ -221,6 +226,10 @@ export interface FeriasRegistro {
   suspensaoPendente?: SuspensaoPendente;
   /** Quando SUSPENSO por parcela, id da parcela suspensa (o selo marca só a linha dela). */
   parcelaSuspensaId?: number;
+  /** RN-MOT-01/RN023: parcelas do registro após o retorno — a parcela suspensa substituída pelo
+   * novo calendário do motor (dias usufruídos nas datas originais + restantes deslocados); as
+   * demais parcelas inalteradas. Calculado na efetivação e aplicado pelo retorno automático. */
+  parcelasAposRetorno?: ParcelaFerias[];
   /** Eventos de folha (em dias, por competência) calculados pelo motor na efetivação da suspensão. */
   impactoFolha?: EventoFolhaSuspensao[];
   /** RN-FOL-07/08: impacto funcional pendente de uma suspensão Art. 17 / cancelamento. O módulo
@@ -598,11 +607,10 @@ function intervalosOcupados(registro: FeriasRegistro): Array<{ inicio: string; f
   const parcelas = registro.parcelas.filter((p) => p.inicio && p.fim);
   if (registro.situacao === "SUSPENSO" && registro.fundamentoSuspensao === "ART_17") {
     const inicioOriginal = parcelas.reduce<string | null>((menor, p) => (menor === null || p.inicio < menor ? p.inicio : menor), null);
-    const fimOriginal = parcelas.reduce<string | null>((maior, p) => (maior === null || p.fim > maior ? p.fim : maior), null);
-    const diasSuspensos = registro.suspensaoArt17?.prazoEstimadoDias ?? 0;
-    if (inicioOriginal && fimOriginal) {
-      // Nova data de término = fim original + dias suspensos (prorrogação do retorno).
-      return [{ inicio: inicioOriginal, fim: calcularFim(fimOriginal, diasSuspensos + 1) }];
+    // Nova data de término = último dia do calendário do motor aplicado no retorno (RN031).
+    const fimNovo = parcelasNoRetornoSuspensao(registro).reduce<string | null>((maior, p) => (maior === null || p.fim > maior ? p.fim : maior), null);
+    if (inicioOriginal && fimNovo) {
+      return [{ inicio: inicioOriginal, fim: fimNovo }];
     }
   }
   return parcelas.map((p) => ({ inicio: p.inicio, fim: p.fim }));
@@ -677,6 +685,69 @@ function conflitoLtsServidor(matricula: string, inicio: string, fim: string): { 
   if (!matricula || !inicio || !fim) return null;
   const lts = LTS_MOCK[matricula] ?? [];
   return lts.find((periodo) => periodo.inicio <= fim && inicio <= periodo.fim) ?? null;
+}
+
+/** RN-MOT-01: substitui SOMENTE as parcelas-alvo da suspensão pelo novo calendário do motor
+ * (blocos de dias consecutivos). As demais parcelas do registro ficam inalteradas. O 1/3 da
+ * parcela suspensa fica no primeiro bloco. */
+function parcelasComNovoCalendario(parcelas: ParcelaFerias[], idsAlvo: Set<number>, novas: IntervaloGozo[]): ParcelaFerias[] {
+  const alvo = parcelas.filter((parcela) => idsAlvo.has(parcela.id));
+  if (!alvo.length || !novas.length) return parcelas;
+  const blocos: ParcelaFerias[] = novas.map((bloco, indice) => ({
+    id: alvo[indice]?.id ?? gerarId(),
+    inicio: bloco.inicio,
+    fim: bloco.fim,
+    dias: diasEntre(bloco.inicio, bloco.fim) + 1,
+    ...(indice === 0 && alvo.some((parcela) => parcela.terco) ? { terco: true } : {}),
+  }));
+  const demais = parcelas.filter((parcela) => !idsAlvo.has(parcela.id));
+  return [...demais, ...blocos].sort((a, b) => a.inicio.localeCompare(b.inicio));
+}
+
+/** RN023: parcelas aplicadas no retorno automático. Usa o calendário gravado na efetivação; para
+ * registros antigos (sem esse campo), recalcula pelo motor com o início e o retorno gravados. */
+function parcelasNoRetornoSuspensao(registro: FeriasRegistro): ParcelaFerias[] {
+  if (registro.parcelasAposRetorno?.length) return registro.parcelasAposRetorno;
+  const retorno = registro.dataRetornoSuspensao;
+  if (!retorno) return registro.parcelas;
+  const idsAlvo = new Set(registro.parcelaSuspensaId != null ? [registro.parcelaSuspensaId] : registro.parcelas.map((parcela) => parcela.id));
+  const alvo = registro.parcelas.filter((parcela) => idsAlvo.has(parcela.id));
+  const inicio = registro.suspensaoArt17?.inicio ?? adicionarDiasISO(retorno, -(registro.diasSuspensos ?? 0));
+  const resultado = calcularImpactoSuspensao({
+    parcelas: alvo.map((parcela) => ({ inicio: parcela.inicio, fim: parcela.fim })),
+    fundamento: "ART_17",
+    suspensaoInicio: inicio,
+    suspensaoFim: adicionarDiasISO(retorno, -1),
+    competenciaFolhaCorrente: dataLocalISO().slice(0, 7),
+  });
+  return parcelasComNovoCalendario(registro.parcelas, idsAlvo, resultado.novasParcelas);
+}
+
+/** RN033 (PD05): o novo período da parcela suspensa (a partir do retorno) não pode sobrepor outra
+ * parcela do mesmo registro, outro agendamento ativo do servidor nem LTS. Retorna a mensagem do
+ * primeiro conflito ou null. */
+function conflitoNovoCalendarioSuspensao(
+  registro: FeriasRegistro,
+  idsAlvo: Set<number>,
+  novas: IntervaloGozo[],
+  retorno: string,
+): string | null {
+  const outrasParcelas = registro.parcelas.filter((parcela) => !idsAlvo.has(parcela.id));
+  for (const bloco of novas.filter((intervalo) => intervalo.fim >= retorno)) {
+    const inicio = bloco.inicio < retorno ? retorno : bloco.inicio;
+    const periodo = `${formatarDataBr(inicio)} a ${formatarDataBr(bloco.fim)}`;
+    const parcela = outrasParcelas.find((outra) => outra.inicio <= bloco.fim && inicio <= outra.fim);
+    if (parcela) {
+      return `O novo período da parcela suspensa (${periodo}) sobrepõe a parcela de ${formatarDataBr(parcela.inicio)} a ${formatarDataBr(parcela.fim)} deste registro. Ajuste a data de fim da suspensão.`;
+    }
+    const conflito = conflitoFeriasServidor(registro.matricula, inicio, bloco.fim, registro.id);
+    if (conflito) return mensagemConflitoAgendamento(conflito);
+    const lts = conflitoLtsServidor(registro.matricula, inicio, bloco.fim);
+    if (lts) {
+      return `O novo período da parcela suspensa (${periodo}) coincide com a LTS de ${formatarDataBr(lts.inicio)} a ${formatarDataBr(lts.fim)}. Ajuste a data de fim da suspensão.`;
+    }
+  }
+  return null;
 }
 
 /** RN-03 (adaptada): se o período escolhido cair em cima de uma LTS vigente do servidor, a data
@@ -759,11 +830,28 @@ function validarIntervaloParcelas(parcelas: ParcelaFerias[]): string {
   return "";
 }
 
-/** Usa o calendário mensal da folha; dia 15 como referência do protótipo. */
-function calcularPrazoValidacaoChefia(): string {
+/** RN017: prazo de validação da chefia = dia 09 do mês anterior ao início do usufruto (parcela
+ * mais antiga). A partir do dia 10, o verificador encerra a solicitação ainda pendente. Sem
+ * data de usufruto, usa o calendário de fechamento da folha (referência anterior do protótipo). */
+function calcularPrazoValidacaoChefia(inicioUsufruto?: string | null): string {
+  if (inicioUsufruto) return prazosAgendamento(inicioUsufruto).limiteValidacao;
   let calendario: Record<string,string> = {};
   try { calendario = JSON.parse(localStorage.getItem('ferias-calendario-folha') ?? '{}'); } catch { /* usa calendário padrão */ }
   return prazoFechamentoFolha(dataLocalISO(), calendario);
+}
+
+/** RN017: primeiro dia de usufruto que ainda pode ser registrado hoje — dia 01 do mês seguinte
+ * se hoje ≤ dia 05; senão, dia 01 do mês subsequente. */
+function primeiroInicioUsufrutoPermitido(hoje: string): string {
+  const [ano, mes, dia] = hoje.split("-").map(Number);
+  const avanco = dia <= 5 ? 1 : 2;
+  const data = new Date(ano, mes - 1 + avanco, 1);
+  return dataLocalISO(data);
+}
+
+/** Início do usufruto (parcela mais antiga) de uma lista de parcelas. */
+function inicioMaisAntigoParcelas(parcelas: Array<{ inicio: string }>): string | null {
+  return parcelas.map((p) => p.inicio).filter(Boolean).sort()[0] ?? null;
 }
 
 function prazoValidacaoExpirado(registro: FeriasRegistro): boolean {
@@ -1106,7 +1194,9 @@ export function PrototiposFeriasPage() {
   const [fluxoNovaSolicitacao, setFluxoNovaSolicitacao] = useState<"escolha" | TipoSolicitacao | null>(null);
   const [registroSubstituicao, setRegistroSubstituicao] = useState<FeriasRegistro | null>(null);
   const [registroHistorico, setRegistroHistorico] = useState<FeriasRegistro | null>(null);
-  const visualizarRegistro = (registro: FeriasRegistro) => navigate(`/prototipos/sigep/ferias/visualizar/${registro.id}`);
+  // Registro com várias parcelas: "Visualizar" na linha abre só aquela parcela (?parcela=).
+  const visualizarRegistro = (registro: FeriasRegistro, parcelaId?: number) =>
+    navigate(`/prototipos/sigep/ferias/visualizar/${registro.id}${parcelaId != null ? `?parcela=${parcelaId}` : ""}`);
   const [menuAbertoId, setMenuAbertoId] = useState<number | string | null>(null);
   const [confirmacaoStatus, setConfirmacaoStatus] = useState<{ registro: FeriasRegistro; acao: AcaoStatus; loteId?: string; parcelaId?: number } | null>(null);
   const [subBusca, setSubBusca] = useState("");
@@ -1121,19 +1211,21 @@ export function PrototiposFeriasPage() {
     const verificar = () => setRegistros(atuais => {
       if (!atuais.some(r => prazoValidacaoExpirado(r) || elegivelParaQuitacaoAutomatica(r) || elegivelParaRetornoSuspensao(r))) return atuais;
       const proximos = atuais.map(r => {
-        if (prazoValidacaoExpirado(r)) return {...r, situacao:'PRAZO EXPIRADO' as const, historico: comHistorico(r, { situacao: 'PRAZO EXPIRADO', acao: 'expiracao', responsavel: 'Sistema (verificador automático)' })};
-        // RN-SUS: chegou a data de retorno da suspensão — o registro volta para "Agendada"
-        // (EM ABERTO) com as parcelas prorrogadas pelos dias suspensos (direito preservado).
+        if (prazoValidacaoExpirado(r)) return {...r, situacao:'PRAZO EXPIRADO' as const, historico: comHistorico(r, { situacao: 'PRAZO EXPIRADO', acao: 'expiracao', responsavel: 'Sistema (verificador automático)', justificativa: justificativaExpiracao(r.dataLimiteValidacaoChefia) })};
+        // RN023: chegou a data de retorno da suspensão — o registro volta para "Agendada" e só a
+        // parcela suspensa recebe o novo calendário do motor (dias usufruídos nas datas originais,
+        // restantes deslocados). As demais parcelas do registro não mudam.
         if (elegivelParaRetornoSuspensao(r)) {
           const dias = r.diasSuspensos ?? 0;
-          const parcelasProrrogadas = r.parcelas.map(p => ({...p, inicio: calcularFim(p.inicio, dias + 1), fim: calcularFim(p.fim, dias + 1)}));
           return {
             ...r,
             situacao: 'EM ABERTO' as const,
-            parcelas: parcelasProrrogadas,
+            parcelas: parcelasNoRetornoSuspensao(r),
             fundamentoSuspensao: undefined,
             dataRetornoSuspensao: undefined,
-            historico: comHistorico(r, { situacao: 'EM ABERTO', acao: 'retorno_suspensao', responsavel: 'Sistema (verificador automático)', justificativa: `Retorno da suspensão após ${dias} dia(s) — férias retomadas e reagendadas.` }),
+            parcelaSuspensaId: undefined,
+            parcelasAposRetorno: undefined,
+            historico: comHistorico(r, { situacao: 'EM ABERTO', acao: 'retorno_suspensao', responsavel: 'Sistema (verificador automático)', justificativa: `Retorno da suspensão após ${dias} dia(s) — férias retomadas; somente a parcela suspensa foi reagendada.` }),
           };
         }
         if (elegivelParaQuitacaoAutomatica(r)) return {...r, situacao:'QUITADO' as const, historico: comHistorico(r, { situacao: 'QUITADO', acao: 'quitacao', responsavel: 'Sistema (verificador automático)' })};
@@ -1266,14 +1358,20 @@ export function PrototiposFeriasPage() {
     setFiltroSituacao("");
   };
 
-  // Antes da aprovação da chefia: edição livre (dias e parcelamento). Após aprovada (Em Aberto)
-  // e ainda não iniciada: só a quantidade de dias, e a alteração retorna ao aprovador — alterar
-  // parcelamento fica bloqueado. Uma vez iniciada (em andamento), não edita mais (RN-03).
-  const podeEditar = (registro: FeriasRegistro) =>
-    (registro.tipo === "Individual" || registro.tipo === "Recesso" ||
-      registro.tipo === "Lote" || registro.tipo === "Coletiva") &&
-    (registro.situacao === "AGUARDANDO VALIDAÇÃO" ||
-      (registro.situacao === "EM ABERTO" && !feriasEmAndamento(registro)));
+  // Editar é por parcela (RN005): em "Aguardando Validação" a edição é livre; em "Agendada", a
+  // parcela da linha pode ser editada enquanto ainda não iniciou — mesmo que outra parcela do
+  // mesmo registro já esteja em usufruto. Parcela em usufruto ou já usufruída não é editável.
+  // Sem parcela (registro de parcela única), vale o registro todo: não pode estar em andamento.
+  const podeEditar = (registro: FeriasRegistro, parcela?: ParcelaFerias | null) => {
+    const tipoEditavel =
+      registro.tipo === "Individual" || registro.tipo === "Recesso" ||
+      registro.tipo === "Lote" || registro.tipo === "Coletiva";
+    if (!tipoEditavel) return false;
+    if (registro.situacao === "AGUARDANDO VALIDAÇÃO") return true;
+    if (registro.situacao !== "EM ABERTO") return false;
+    if (parcela) return parcela.inicio > dataLocalISO();
+    return !feriasEmAndamento(registro);
+  };
 
   const aplicarStatus = (
     registroId: number,
@@ -1326,26 +1424,8 @@ export function PrototiposFeriasPage() {
       // respeitando o fechamento da folha do mês vigente.
       const ehReaberturaAcao = acao === "reativar";
       const ator = atorHistorico(perfil);
-      // RN-FOL-07/08: o módulo de Férias registra apenas o impacto FUNCIONAL (dias). O valor
-      // financeiro (R$) é responsabilidade exclusiva da Folha de Pagamento e não trafega aqui.
-      const totalDias = (novasParcelas ?? registro.parcelas).reduce((s, p) => s + p.dias, 0);
-
       // RN-SUS: ao suspender, grava o fundamento legal e os desdobramentos de cada artigo.
       const ehSuspensao = acao === "suspender" && dadosSuspensao;
-      const diasJaUsufruidos = registro.parcelas
-        .filter((p) => p.inicio < dataLocalISO())
-        .reduce((s, p) => s + Math.min(p.dias, Math.max(0, diasEntre(p.inicio, dataLocalISO()))), 0);
-      // RN-SUS-02/03 (Art. 16): retomada automática no 1º dia útil e saldo remanescente.
-      const retomadaArt16 =
-        ehSuspensao && dadosSuspensao!.fundamento === "ART_16"
-          ? calcularRetomadaArt16(totalDias, diasJaUsufruidos, dadosSuspensao!.licencaFim ?? dataLocalISO())
-          : undefined;
-      // Nova data de término das férias no Art. 16: a partir da retomada, o servidor ainda cumpre
-      // o saldo remanescente de dias (direito preservado) — fim = retomada + (saldo - 1).
-      const novaDataTerminoArt16 =
-        retomadaArt16 && retomadaArt16.saldoRemanescente > 0
-          ? calcularFim(retomadaArt16.dataRetomada, retomadaArt16.saldoRemanescente)
-          : undefined;
       // Motor de folha (RN-MOT): confronto por competência — estorno dos dias que saem de mês já
       // adiantado, novo adiantamento dos que entram em outro mês, recálculo interno no mesmo mês.
       // O módulo de Férias guarda só DIAS por competência; os valores (R$) são da Folha (RN-FOL-07/08).
@@ -1355,18 +1435,26 @@ export function PrototiposFeriasPage() {
       const parcelasAlvoMotor = ehSuspensao && idParcelaSuspensa != null
         ? registro.parcelas.filter((p) => p.id === idParcelaSuspensa)
         : registro.parcelas;
-      const resultadoMotor = ehSuspensao
-        ? calcularImpactoSuspensao({
+      const entradaMotor = ehSuspensao
+        ? {
             parcelas: parcelasAlvoMotor.map((p) => ({ inicio: p.inicio, fim: p.fim })),
             fundamento: dadosSuspensao!.fundamento,
-            suspensaoInicio: dadosSuspensao!.suspensaoInicio ?? dataLocalISO(),
+            suspensaoInicio: dadosSuspensao!.suspensaoInicio ?? "",
             suspensaoFim: dadosSuspensao!.suspensaoFim,
-            licencaFim: dadosSuspensao!.licencaFim ?? dataLocalISO(),
+            licencaFim: dadosSuspensao!.licencaFim,
             competenciaFolhaCorrente: dataLocalISO().slice(0, 7),
             adiantamentoPago: registro.adiantamentoPago,
-          })
+          }
         : undefined;
+      // RN-MOT-09 / CA20: sem data de fim (ou com início fora da parcela) a suspensão NÃO é
+      // efetivada — o registro permanece como estava. A tela mostra a mensagem antes de chegar aqui.
+      if (entradaMotor && validarEntradaSuspensao(entradaMotor)) return registroOriginal;
+      // RN031/RN032: resultado do motor é a fonte única de retorno, nova data de término e dias
+      // suspensos, para os dois artigos.
+      const resultadoMotor = entradaMotor ? calcularImpactoSuspensao(entradaMotor) : undefined;
       const impactoFolha = resultadoMotor?.eventos;
+      const retornoMotor = resultadoMotor?.retorno;
+      const ehArt16 = ehSuspensao && dadosSuspensao!.fundamento === "ART_16";
 
       return {
         ...registro,
@@ -1387,11 +1475,11 @@ export function PrototiposFeriasPage() {
                 impactoFolha,
                 aprovacaoEtapa: etapaAprovacao,
                 fundamentoSuspensao: dadosSuspensao!.fundamento,
-                dataRetomada: retomadaArt16?.dataRetomada,
+                dataRetomada: ehArt16 ? retornoMotor : undefined,
                 suspensaoInicio: dadosSuspensao!.suspensaoInicio,
-                suspensaoFim: dadosSuspensao!.suspensaoFim,
+                suspensaoFim: dadosSuspensao!.suspensaoFim ?? (ehArt16 ? dadosSuspensao!.licencaFim : undefined),
                 suspensaoDias: dadosSuspensao!.prazoEstimadoDias,
-                novaDataTerminoFerias: dadosSuspensao!.fundamento === "ART_16" ? novaDataTerminoArt16 : dadosSuspensao!.novaDataTerminoFerias,
+                novaDataTerminoFerias: resultadoMotor?.novaDataTermino || undefined,
                 causaSuspensao: dadosSuspensao!.causa,
                 // Período original da PARCELA suspensa (quando a suspensão é por parcela); senão, o do registro.
                 feriasOriginalInicio: parcelasAlvoMotor[0]?.inicio ?? inicioUsufruto(registro) ?? undefined,
@@ -1399,21 +1487,21 @@ export function PrototiposFeriasPage() {
               }
             : {}),
         }),
-        ...(ehReaberturaAcao ? { dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia() } : {}),
+        ...(ehReaberturaAcao ? { dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(inicioMaisAntigoParcelas(novasParcelas ?? registro.parcelas)) } : {}),
         ...(efetivaBeneficiosRecesso ? { auxilioTransporteEfetivado: true, sigpasIntegrado: true } : {}),
         ...(ehSuspensao
           ? {
               fundamentoSuspensao: dadosSuspensao!.fundamento,
-              diasSuspensos: dadosSuspensao!.prazoEstimadoDias,
-              // Data de retorno: Art. 16 = 1º dia útil após a licença; Art. 17 = dia seguinte ao
-              // fim da suspensão. Ao chegar essa data, o verificador reativa para "Agendada".
-              dataRetornoSuspensao:
-                dadosSuspensao!.fundamento === "ART_16"
-                  ? retomadaArt16?.dataRetomada
-                  : dadosSuspensao!.suspensaoFim
-                    ? calcularFim(dadosSuspensao!.suspensaoFim, 2)
-                    : undefined,
-              ...(retomadaArt16 ? { dataRetomadaArt16: retomadaArt16.dataRetomada } : {}),
+              // Dias suspensos = deslocamento calculado pelo motor (início da suspensão → retorno).
+              diasSuspensos: resultadoMotor?.diasSuspensos,
+              // Data de retorno às férias calculada pelo motor: Art. 16 = 1º dia útil após a
+              // licença; Art. 17 = dia seguinte ao fim. Ao chegar, o verificador reativa "Agendada".
+              dataRetornoSuspensao: retornoMotor,
+              ...(ehArt16 ? { dataRetomadaArt16: retornoMotor } : {}),
+              // Calendário aplicado no retorno: só a parcela suspensa muda (RN-MOT-01/RN023).
+              parcelasAposRetorno: resultadoMotor
+                ? parcelasComNovoCalendario(registro.parcelas, new Set(parcelasAlvoMotor.map((p) => p.id)), resultadoMotor.novasParcelas)
+                : undefined,
               ...(dadosSuspensao!.fundamento === "ART_17"
                 ? {
                     suspensaoArt17: {
@@ -1837,12 +1925,12 @@ function IndicadorCard({ rotulo, valor, tom }: Readonly<{ rotulo: string; valor:
 interface TabelaRegistrosProps {
   registros: FeriasRegistro[];
   perfil: PerfilAcesso;
-  onVisualizar: (registro: FeriasRegistro) => void;
+  onVisualizar: (registro: FeriasRegistro, parcelaId?: number) => void;
   onEditar: (registro: FeriasRegistro, parcelaId?: number) => void;
   onGerenciarSubstituicao: (registro: FeriasRegistro) => void;
   onVerHistorico: (registro: FeriasRegistro) => void;
   onAlterarStatus: (registro: FeriasRegistro, acao: AcaoStatus, parcelaId?: number) => void;
-  podeEditar: (registro: FeriasRegistro) => boolean;
+  podeEditar: (registro: FeriasRegistro, parcela?: ParcelaFerias | null) => boolean;
   menuAbertoId: number | string | null;
   setMenuAbertoId: (id: number | string | null) => void;
 }
@@ -1988,7 +2076,7 @@ function TabelaRegistros({
               </td>
               <td>
                 <div className="prototype-ferias-acao-dropdown">
-                  <button type="button" className="prototype-ferias-btn-acao" onClick={() => onVisualizar(registro)} title="Visualizar">
+                  <button type="button" className="prototype-ferias-btn-acao" onClick={() => onVisualizar(registro, parcela?.id)} title="Visualizar">
                     <i className="pi pi-eye" aria-hidden="true" />
                   </button>
                   <button
@@ -2001,13 +2089,13 @@ function TabelaRegistros({
                   </button>
                   {menuAbertoId === chaveLinha ? (
                     <div className="prototype-ferias-menu-acoes">
-                      <button type="button" onClick={() => { onVisualizar(registro); setMenuAbertoId(null); }}>
+                      <button type="button" onClick={() => { onVisualizar(registro, parcela?.id); setMenuAbertoId(null); }}>
                         <i className="pi pi-eye" aria-hidden="true" /> Visualizar
                       </button>
                       <button type="button" onClick={() => { onVerHistorico(registro); setMenuAbertoId(null); }}>
                         <i className="pi pi-history" aria-hidden="true" /> Histórico
                       </button>
-                      {podeGerenciarCompleto(perfil) && podeEditar(registro) ? (
+                      {podeGerenciarCompleto(perfil) && podeEditar(registro, parcela) ? (
                         <button type="button" onClick={() => { onEditar(registro, parcela?.id); setMenuAbertoId(null); }}>
                           <i className="pi pi-pencil" aria-hidden="true" /> Editar
                         </button>
@@ -2238,13 +2326,14 @@ export function FormularioIndividual({
   const [periodoAquisitivoInicio, setPeriodoAquisitivoInicio] = useState(registroBase?.periodoAquisitivoInicio ?? "");
   const [periodoAquisitivoFim, setPeriodoAquisitivoFim] = useState(registroBase?.periodoAquisitivoFim ?? "");
   // Edição de uma única parcela de um registro com várias: só ela entra no formulário.
+  // Vale para Editar e para Visualizar: a linha clicada na grid abre só a sua parcela.
   const parcelaFoco =
-    registroParaEditar && parcelaFocoId != null && registroParaEditar.parcelas.length > 1
-      ? registroParaEditar.parcelas.find((parcela) => parcela.id === parcelaFocoId)
+    registroBase && parcelaFocoId != null && registroBase.parcelas.length > 1
+      ? registroBase.parcelas.find((parcela) => parcela.id === parcelaFocoId)
       : undefined;
   const [saldoDisponivel, setSaldoDisponivel] = useState<number | null>(() => {
-    if (registroSomenteLeitura) return diasSolicitados(registroSomenteLeitura);
     if (parcelaFoco) return parcelaFoco.dias;
+    if (registroSomenteLeitura) return diasSolicitados(registroSomenteLeitura);
     if (registroParaEditar) return registroParaEditar.saldoFerias ?? diasSolicitados(registroParaEditar);
     return null;
   });
@@ -2286,8 +2375,9 @@ export function FormularioIndividual({
   // se outra parcela já adicionada o tem, o checkbox do rascunho fica bloqueado e desmarcado.
   // Na edição de uma única parcela, as demais parcelas do registro também contam: o 1/3 já
   // vinculado a qualquer outra parcela do mesmo período bloqueia o checkbox.
-  const parcelasDoRegistro = parcelaFoco
-    ? registroParaEditar!.parcelas.flatMap((parcela) => (parcela.id === parcelaFoco.id ? parcelas : [parcela]))
+  // registroBase: vale tanto para Editar quanto para Visualizar com parcela em foco.
+  const parcelasDoRegistro = parcelaFoco && registroBase
+    ? registroBase.parcelas.flatMap((parcela) => (parcela.id === parcelaFoco.id ? parcelas : [parcela]))
     : parcelas;
   const indiceParcelaComTerco = parcelasDoRegistro.findIndex((parcela) => parcela.terco);
   const tercoBloqueadoPorDuplicidade = indiceParcelaComTerco !== -1;
@@ -2488,6 +2578,18 @@ export function FormularioIndividual({
         setErro("Informe a data de início e ao menos 1 dia em todas as parcelas.");
         return;
       }
+      // RN005: só parcela ainda não iniciada pode ser alterada — a parcela nova ou ajustada precisa
+      // começar depois de hoje. Parcelas mantidas sem alteração não são reavaliadas.
+      const hojeEdicao = dataLocalISO();
+      const parcelaAlteradaNoPassado = parcelas.find((parcela) => {
+        const original = registroParaEditar!.parcelas.find((p) => p.id === parcela.id);
+        const inalterada = original && original.inicio === parcela.inicio && original.fim === parcela.fim;
+        return !inalterada && parcela.inicio <= hojeEdicao;
+      });
+      if (parcelaAlteradaNoPassado) {
+        setErro(`A parcela de ${formatarDataBr(parcelaAlteradaNoPassado.inicio)} não pode ser gravada: a data de início deve ser posterior a hoje (parcela em usufruto ou já usufruída não pode ser alterada).`);
+        return;
+      }
       const saldo = saldoDisponivel ?? diasSolicitados(registroParaEditar!);
       const total = parcelas.reduce((soma, parcela) => soma + parcela.dias, 0);
       if (total > saldo || (!parcelaFoco && saldo - total === 5) || parcelas.some((parcela) => !duracoesPermitidas(saldo, orgao, cargo).includes(parcela.dias) && !(parcelaFoco && parcela.dias === parcelaFoco.dias))) {
@@ -2543,15 +2645,13 @@ export function FormularioIndividual({
       setErro(erroPeriodo.mensagem);
       return;
     }
-    // RN-AGD-02: antecedência mínima de 30 dias corridos entre a solicitação (hoje) e o início
-    // do gozo (primeira parcela), aferida sobre a parcela mais antiga.
-    const inicioMaisAntigo = [...parcelas]
-      .filter((parcela) => parcela.inicio)
-      .sort((a, b) => a.inicio.localeCompare(b.inicio))[0]?.inicio;
+    // RN017: a solicitação deve ser registrada até o dia 05 do mês anterior ao início do usufruto
+    // (parcela mais antiga). Substitui a antiga antecedência mínima de 30 dias corridos.
+    const inicioMaisAntigo = inicioMaisAntigoParcelas(parcelas);
     if (inicioMaisAntigo) {
-      const erroAntecedencia = validarAntecedencia(dataLocalISO(), inicioMaisAntigo);
-      if (!erroAntecedencia.sucesso) {
-        setErro(erroAntecedencia.mensagem);
+      const erroPrazo = validarPrazoRegistroFerias(dataLocalISO(), inicioMaisAntigo);
+      if (!erroPrazo.sucesso) {
+        setErro(erroPrazo.mensagem);
         return;
       }
     }
@@ -2593,6 +2693,10 @@ export function FormularioIndividual({
       // Regra de origem: lançamento via SIGEP nasce "Agendada" (EM ABERTO), sem aprovação;
       // lançamento via Portal do Servidor nasce "Aguardando Validação" (a chefia valida).
       situacao: situacaoInicialPorOrigem(origemLancamento),
+      // RN017: lançamento do Portal aguarda a chefia até o dia 09 do mês anterior ao usufruto.
+      ...(origemLancamento === "PORTALSERVIDOR" && inicioMaisAntigo
+        ? { dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(inicioMaisAntigo) }
+        : {}),
       saldoFerias: saldoDisponivel ?? 0,
       documentos: [documento],
       substitutos: [],
@@ -3024,11 +3128,11 @@ export function FormularioColetiva({
   ]);
   const [inicioJulho, setInicioJulho] = useState(`${anoAtual}-07-06`);
   const [inicioJaneiro, setInicioJaneiro] = useState(`${anoAtual + 1}-01-04`);
-  const [iniciosParcelasLote, setIniciosParcelasLote] = useState<Record<DuracaoLote, string>>({
-    10: `${anoAtual}-07-06`,
-    15: `${anoAtual}-07-06`,
-    20: `${anoAtual}-07-06`,
-    30: `${anoAtual}-07-06`,
+  // RN017: data padrão das parcelas do Lote = primeiro início ainda permitido hoje (registro até o
+  // dia 05 do mês anterior ao usufruto); o usuário ajusta cada data depois.
+  const [iniciosParcelasLote, setIniciosParcelasLote] = useState<Record<DuracaoLote, string>>(() => {
+    const inicio = primeiroInicioUsufrutoPermitido(dataLocalISO());
+    return { 10: inicio, 15: inicio, 20: inicio, 30: inicio };
   });
   const [textoBusca, setTextoBusca] = useState("");
   const [buscaNome, setBuscaNome] = useState("");
@@ -3460,6 +3564,22 @@ export function FormularioColetiva({
       if (conflito) erros.push(`${professor.nome}: ${mensagemConflitoAgendamento(conflito)}`);
     });
 
+    // RN017: cada parcela usada no lote precisa ser registrada até o dia 05 do mês anterior ao
+    // início dela (a mensagem sai uma vez por parcela, não por servidor).
+    const hojeLote = dataLocalISO();
+    const parcelasUsadas: Array<{ rotulo: string; inicio: string }> = modoAgendamentoLote
+      ? DURACOES_LOTE
+          .filter((duracao) => incluidos.some((professor) => estadoLinha(professor.id).parcelasLote[duracao]) && iniciosParcelasLote[duracao])
+          .map((duracao) => ({ rotulo: `de ${duracao} dias`, inicio: iniciosParcelasLote[duracao] }))
+      : [
+          ...(marcadosJulho.length && inicioJulho ? [{ rotulo: "de julho", inicio: inicioJulho }] : []),
+          ...(marcadosJaneiro.length && inicioJaneiro ? [{ rotulo: "de janeiro", inicio: inicioJaneiro }] : []),
+        ];
+    parcelasUsadas.forEach(({ rotulo, inicio }) => {
+      const prazo = validarPrazoRegistroFerias(hojeLote, inicio);
+      if (!prazo.sucesso) erros.push(`Parcela ${rotulo}: ${prazo.mensagem}`);
+    });
+
     if (erros.length) {
       setErro(erros);
       return;
@@ -3509,7 +3629,8 @@ export function FormularioColetiva({
         periodoAquisitivoInicio: periodo.inicio,
         periodoAquisitivoFim: periodo.fim,
         documentos: documentoLote ? [documentoLote] : [],
-        dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(),
+        // RN017: chefia aprova até o dia 09 do mês anterior ao início do usufruto do servidor.
+        dataLimiteValidacaoChefia: calcularPrazoValidacaoChefia(inicioMaisAntigoParcelas(parcelas)),
         parcelas,
         // Todo lançamento de férias precisa passar por aprovação da chefia antes de ficar
         // Agendada — inclusive Coletiva direta e o lote da Gestão de Pessoas da UNEMAT, que
@@ -4356,7 +4477,7 @@ export function FormularioLote({
       periodoAquisitivoFim: periodos[indice]!.fim,
       saldoFerias: periodos[indice]!.saldo,
       documentos:[documento],
-      dataLimiteValidacaoChefia:calcularPrazoValidacaoChefia(),
+      dataLimiteValidacaoChefia:calcularPrazoValidacaoChefia(dataInicio),
       parcelas: [{ id: 1, inicio: dataInicio, fim, dias }],
       situacao: "AGUARDANDO VALIDAÇÃO",
       substitutos: [],
@@ -5474,15 +5595,89 @@ function PainelRemanejamento({ dados }: Readonly<{ dados: NonNullable<HistoricoE
   );
 }
 
+/** Texto do evento de expiração: a chefia não avaliou até a data limite e o sistema encerrou a
+ * solicitação; os dias voltam ao saldo do período aquisitivo (registro expirado não consome saldo). */
+function justificativaExpiracao(dataLimite?: string): string {
+  const limite = dataLimite ? ` em ${formatarDataBr(dataLimite)}` : "";
+  return `Prazo de validação pela chefia encerrado${limite} sem avaliação. A solicitação foi encerrada automaticamente e os dias voltaram ao saldo do período aquisitivo.`;
+}
+
+/** Evento "Prazo expirado" para a linha do tempo de um registro expirado (data = dia seguinte ao
+ * prazo de validação). null quando o registro não está expirado. */
+function eventoExpiracaoHistorico(registro: FeriasRegistro): HistoricoEventoFerias | null {
+  const expirado = registro.situacao === "PRAZO EXPIRADO" || prazoValidacaoExpirado(registro);
+  if (!expirado) return null;
+  const limite = registro.dataLimiteValidacaoChefia;
+  return {
+    situacao: "PRAZO EXPIRADO",
+    acao: "expiracao",
+    data: limite ? formatarDataBr(adicionarDiasISO(limite, 1)) : "",
+    responsavel: "Sistema (verificador automático)",
+    justificativa: justificativaExpiracao(limite),
+  };
+}
+
+/** Data (dd/mm/aaaa) de um carimbo do registro, aceitando "AAAA-MM-DD hh:mm" e "dd/mm/aaaa, hh:mm:ss". */
+function dataDoCarimbo(carimbo?: string): string {
+  if (!carimbo) return "—";
+  const iso = carimbo.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (iso) return formatarDataBr(iso[1]);
+  const br = carimbo.match(/^(\d{2}\/\d{2}\/\d{4})/);
+  return br ? br[1] : carimbo;
+}
+
+/** Card do evento "Prazo expirado" no histórico: o que aconteceu (chefia não avaliou até a data
+ * limite, sistema encerrou e devolveu os dias ao saldo) e as três etapas — solicitada, sem
+ * avaliação da chefia e encerrada automaticamente. */
+function PainelPrazoExpirado({ registro, evento }: Readonly<{ registro: FeriasRegistro; evento: HistoricoEventoFerias }>) {
+  const limite = registro.dataLimiteValidacaoChefia;
+  const dias = diasSolicitados(registro);
+  const encerradaEm = limite ? formatarDataBr(adicionarDiasISO(limite, 1)) : dataDoCarimbo(evento.data);
+  return (
+    <section className="gl-expirado-painel" aria-label="Solicitação encerrada por prazo expirado">
+      <span className="gl-expirado-icone" aria-hidden="true"><i className="pi pi-clock" /></span>
+      <div className="gl-expirado-conteudo">
+        <strong className="gl-expirado-titulo">Solicitação encerrada por prazo expirado</strong>
+        <p className="gl-expirado-texto">
+          A chefia não avaliou a solicitação{limite ? <> até <strong>{formatarDataBr(limite)}</strong></> : null}
+          {registro.tipo !== "Recesso" ? " (prazo máximo: dia 09 do mês anterior ao início do usufruto)" : ""}. O sistema
+          encerrou o lançamento e devolveu os <strong>{dias} dias</strong> ao saldo do período aquisitivo.
+        </p>
+        <ol className="gl-expirado-etapas">
+          <li className="is-ok">
+            <span className="gl-expirado-etapa-marcador" aria-hidden="true"><i className="pi pi-check" /></span>
+            <span><strong>Solicitada</strong><small>{dataDoCarimbo(registro.lancadoEm)}</small></span>
+          </li>
+          <li className="is-erro">
+            <span className="gl-expirado-etapa-marcador" aria-hidden="true"><i className="pi pi-times" /></span>
+            <span><strong>Sem avaliação da chefia</strong><small>{limite ? `Prazo até ${formatarDataBr(limite)}` : "Prazo não informado"}</small></span>
+          </li>
+          <li className="is-fim">
+            <span className="gl-expirado-etapa-marcador" aria-hidden="true"><i className="pi pi-stop" /></span>
+            <span><strong>Encerrada automaticamente</strong><small>{encerradaEm}</small></span>
+          </li>
+        </ol>
+      </div>
+    </section>
+  );
+}
+
 function ModalHistoricoRegistro({
   registro,
   onFechar,
 }: Readonly<{ registro: FeriasRegistro; onFechar: () => void }>) {
   // Fallback para registros sem histórico detalhado: o evento de lançamento sempre nasce em
   // "EM ABERTO" (não na situação atual), para o ícone/rótulo ficarem coerentes com "Lançamento".
-  const eventos = registro.historico?.length
+  const eventosRegistrados = registro.historico?.length
     ? registro.historico
     : [{ situacao: "EM ABERTO" as const, acao: "lancamento", data: registro.lancadoEm, responsavel: registro.responsavelLancamento, documentos: registro.documentos } as HistoricoEventoFerias];
+  // Prazo expirado: a expiração pode ter sido aplicada ao carregar os registros (sem gravar evento).
+  // Nesse caso, a linha do tempo mostra o evento "Prazo expirado" reconstruído a partir da data limite.
+  const eventoExpiracao = eventoExpiracaoHistorico(registro);
+  const eventos =
+    eventoExpiracao && !eventosRegistrados.some((evento) => evento.acao === "expiracao")
+      ? [...eventosRegistrados, eventoExpiracao]
+      : eventosRegistrados;
   // Linha do tempo igual ao "Histórico de Lançamento" da Gestão de Licenças: eventos em ordem
   // decrescente (mais recente no topo) e o lançamento original sempre por último (marcador verde).
   // Se o histórico salvo não trouxer o lançamento (ex.: registros antigos quitados que gravaram só
@@ -5523,7 +5718,7 @@ function ModalHistoricoRegistro({
           const temPainel = Boolean(evento.suspensaoInicio && evento.suspensaoFim && evento.feriasOriginalInicio && evento.feriasOriginalFim);
           const remanejo = dadosRemanejamento(evento);
           const temRemanejo = Boolean(remanejo);
-          const temDetalhes = Boolean(evento.justificativa?.trim()) || detalhes.length > 0 || Boolean(evento.documentos?.length) || temPainel || temRemanejo;
+          const temDetalhes = evento.acao === "expiracao" || Boolean(evento.justificativa?.trim()) || detalhes.length > 0 || Boolean(evento.documentos?.length) || temPainel || temRemanejo;
           const estilo = estiloAcaoHistorico(evento.acao);
           // Nome e cargo do ator: no lançamento usa o servidor da solicitação; nos demais, o mock
           // do perfil (Gestor/Aprovador). Sistema/automático não tem pessoa.
@@ -5559,7 +5754,8 @@ function ModalHistoricoRegistro({
               {temDetalhes ? (
                 <div className="gl-historico-detalhes">
                   {remanejo ? <PainelRemanejamento dados={remanejo} /> : null}
-                  {evento.justificativa?.trim() && !temRemanejo ? (
+                  {evento.acao === "expiracao" ? <PainelPrazoExpirado registro={registro} evento={evento} /> : null}
+                  {evento.justificativa?.trim() && !temRemanejo && evento.acao !== "expiracao" ? (
                     <div className="gl-historico-justificativa">
                       <span className="gl-historico-justificativa-titulo"><i className="pi pi-comment" aria-hidden="true" /> Justificativa</span>
                       <p>{evento.justificativa.trim()}</p>
@@ -5892,34 +6088,35 @@ function ModalConfirmarStatus({
       const ate = inicioSuspensaoIso < p.fim ? inicioSuspensaoIso : p.fim;
       return s + Math.max(0, diasEntre(p.inicio, ate) + (ate >= p.fim ? 1 : 0));
     }, 0);
-  // RN-SUS: as férias são prorrogadas pelos dias suspensos — nova data de término das férias =
-  // fim original + duração da suspensão. Mantém o saldo original de descanso.
-  const novaDataTerminoFerias =
-    ehSuspensao && fimOriginalFerias && duracaoSuspensao > 0
-      ? calcularFim(fimOriginalFerias, duracaoSuspensao + 1)
-      : "";
-  // Alerta não-bloqueante: retorno às férias caindo em fim de semana/feriado (decisão da reunião).
-  const retornoEmFimDeSemana = ehSuspensao && novaDataTerminoFerias
-    ? ehFimDeSemanaOuFeriado(calcularFim(novaDataTerminoFerias, 2))
-    : false;
   // Prazo em dias (para validação RN-SUS-07) derivado das datas selecionadas.
   const prazoArt17 = duracaoSuspensao;
 
   const saldoTotalPeriodo = registro.saldoFerias ?? totalDiasOriginal;
   const saldoRestantePeriodo = ehReabertura ? saldoRestanteParaReabertura(registro, carregarRegistros()) : saldoTotalPeriodo;
 
-  // Pré-visualização do impacto na folha (em dias, por competência) antes de registrar a suspensão.
-  const previaImpacto =
-    ehSuspensao && inicioSuspensaoIso && fimSuspensaoIso && fimSuspensaoIso >= inicioSuspensaoIso
-      ? calcularImpactoSuspensao({
-          parcelas: parcelasBase.map((p) => ({ inicio: p.inicio, fim: p.fim })),
-          fundamento: "ART_17",
-          suspensaoInicio: inicioSuspensaoIso,
-          suspensaoFim: fimSuspensaoIso,
-          competenciaFolhaCorrente: dataLocalISO().slice(0, 7),
-          adiantamentoPago: registro.adiantamentoPago,
-        })
-      : null;
+  // Entrada do motor para a prévia: só a parcela escolhida (ou a única parcela do registro).
+  const entradaPrevia = {
+    parcelas: parcelasBase.map((p) => ({ inicio: p.inicio, fim: p.fim })),
+    fundamento: "ART_17" as const,
+    suspensaoInicio: inicioSuspensaoIso,
+    suspensaoFim: fimSuspensaoIso || undefined,
+    competenciaFolhaCorrente: dataLocalISO().slice(0, 7),
+    adiantamentoPago: registro.adiantamentoPago,
+  };
+  // RN-MOT-09: a prévia só é calculada com a entrada válida (fim informado, fim ≥ início e
+  // início dentro da parcela). Sem gravar eventos.
+  const erroEntradaPrevia = ehSuspensao ? validarEntradaSuspensao(entradaPrevia) : null;
+  const previaImpacto = ehSuspensao && !erroEntradaPrevia ? calcularImpactoSuspensao(entradaPrevia) : null;
+  // RN031: nova data de término e retorno às férias vêm do motor (fonte única).
+  const novaDataTerminoFerias = previaImpacto?.novaDataTermino ?? "";
+  const retornoFerias = previaImpacto?.retorno ?? "";
+  // RN-SUS-09: alerta não bloqueante quando o RETORNO ÀS FÉRIAS (dia seguinte ao fim da
+  // suspensão) cai em fim de semana/feriado — não há ajuste automático no Art. 17.
+  const retornoEmFimDeSemana = Boolean(retornoFerias) && ehFimDeSemanaOuFeriado(retornoFerias);
+  // RN033: o novo período da parcela suspensa não pode sobrepor outra parcela, agendamento ou LTS.
+  const conflitoPrevia = previaImpacto
+    ? conflitoNovoCalendarioSuspensao(registro, new Set(parcelasBase.map((p) => p.id)), previaImpacto.novasParcelas, previaImpacto.retorno)
+    : null;
   const fluxoArt17 = obterFluxo(fluxos, CHAVE_FLUXO_SUSPENSAO_ART17);
   const suspensaoExigeAprovacao = fluxoExigeAprovacao(fluxoArt17);
 
@@ -5938,6 +6135,26 @@ function ModalConfirmarStatus({
       if (pendente?.processo.documentosObrigatorios.length && !documentacaoConferida) {
         setErro("Confirme a conferência da documentação obrigatória antes de validar.");
         return;
+      }
+      // RN-MOT-09 / RN033: revalida a entrada do motor antes de efetivar — sem data de fim, com
+      // início fora da parcela ou com sobreposição do novo período, a suspensão não é efetivada.
+      if (pendente) {
+        const idsAlvo = new Set(
+          pendente.dados.parcelaId != null ? [pendente.dados.parcelaId] : registro.parcelas.map((p) => p.id),
+        );
+        const entradaEfetivacao = {
+          parcelas: registro.parcelas.filter((p) => idsAlvo.has(p.id)).map((p) => ({ inicio: p.inicio, fim: p.fim })),
+          fundamento: pendente.dados.fundamento,
+          suspensaoInicio: pendente.dados.suspensaoInicio ?? "",
+          suspensaoFim: pendente.dados.suspensaoFim,
+          licencaFim: pendente.dados.licencaFim,
+          competenciaFolhaCorrente: dataLocalISO().slice(0, 7),
+        };
+        const erroEntrada = validarEntradaSuspensao(entradaEfetivacao);
+        if (erroEntrada) { setErro(erroEntrada); return; }
+        const resultado = calcularImpactoSuspensao(entradaEfetivacao);
+        const conflito = conflitoNovoCalendarioSuspensao(registro, idsAlvo, resultado.novasParcelas, resultado.retorno);
+        if (conflito) { setErro(conflito); return; }
       }
       onConfirmar(meta.novaSituacao, undefined, undefined, undefined, undefined, undefined, { documentacaoConferida });
       return;
@@ -5963,6 +6180,10 @@ function ModalConfirmarStatus({
         setErro("A data de término da suspensão não pode ser anterior ao início.");
         return;
       }
+      // RN-MOT-09: início dentro da parcela (fim e fim ≥ início já conferidos acima).
+      if (erroEntradaPrevia) { setErro(erroEntradaPrevia); return; }
+      // RN033: novo período da parcela sem sobreposição.
+      if (conflitoPrevia) { setErro(conflitoPrevia); return; }
       // RN-SUS-05/07: Art. 17 exige causa detalhada e prazo <= 60 dias. A autorização do dirigente
       // (RN-SUS-06) NÃO é presumida: é conferida pelo órgão central na validação (fluxo de aprovação).
       const validacao = validarSolicitacaoSuspensaoArt17({
@@ -6257,7 +6478,7 @@ function ModalConfirmarStatus({
               <strong>{formatarDataBr(novaDataTerminoFerias)}</strong>
             </div>
             <p className="gl-suspensao-nota">
-              As férias são retomadas ao fim da suspensão e prorrogadas pelos {duracaoSuspensao} dia(s) suspensos, mantendo o saldo original de descanso.
+              Retorno às férias em {formatarDataBr(retornoFerias)}. Só esta parcela é prorrogada pelos {previaImpacto?.diasSuspensos ?? duracaoSuspensao} dia(s) suspensos; os dias já usufruídos e as demais parcelas não mudam.
             </p>
           </section>
         ) : null}
@@ -6265,8 +6486,8 @@ function ModalConfirmarStatus({
           <div className="prototype-ferias-banner is-alerta" role="note">
             <i className="pi pi-exclamation-triangle" aria-hidden="true" />
             <span>
-              <strong>Atenção:</strong> o retorno das férias ({formatarDataBr(novaDataTerminoFerias)}) cai em um fim de semana ou feriado.
-              Isso é apenas um aviso — <strong>não bloqueia</strong> o retorno das férias (não há amparo legal para ajuste automático na suspensão).
+              <strong>Atenção:</strong> o retorno às férias ({formatarDataBr(retornoFerias)}, dia seguinte ao fim da suspensão) cai em um fim de semana ou feriado.
+              Isso é apenas um aviso — <strong>não bloqueia</strong> o retorno às férias (não há ajuste automático no Art. 17).
             </span>
           </div>
         ) : null}
