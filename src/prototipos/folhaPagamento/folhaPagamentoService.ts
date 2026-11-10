@@ -1,3 +1,4 @@
+import { replicarGruposNovaCompetencia } from "./gruposCalculoCompetencia";
 import type {
   CreateFolhaCompetenciaRequest,
   CreateFolhaPagamentoRequest,
@@ -1148,6 +1149,7 @@ export const folhaPagamentoMockRepository = {
     };
 
     competenciasFolhaMock.unshift(novaCompetencia);
+    if(novaCompetencia.situacao === "ATIVA")replicarGruposNovaCompetencia(novaCompetencia.competencia);
     return structuredClone(novaCompetencia);
   },
   listarFolhas: (): FolhaPagamentoRow[] => structuredClone(folhasPagamentoMock),
@@ -1407,6 +1409,11 @@ export const folhaPagamentoService = {
     folhaPagamentoMockRepository.listarVersoesGrupoFolha,
   // TODO backend: GET /folhas-competencias
   listarCompetencias: folhaPagamentoMockRepository.listarCompetencias,
+  salvarCompetencias: (registros: FolhaCompetenciaRow[]) => {
+    competenciasFolhaMock.splice(0, competenciasFolhaMock.length, ...structuredClone(registros));
+    const vigente = registros.filter(c => c.situacao === "ATIVA").sort((a,b) => b.competencia.localeCompare(a.competencia))[0];
+    if(vigente)replicarGruposNovaCompetencia(vigente.competencia);
+  },
   // TODO backend: GET /folhas-competencias/{id}
   buscarCompetenciaPorId: (id: number) =>
     folhaPagamentoMockRepository

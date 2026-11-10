@@ -1,3 +1,4 @@
+import { carregarGruposCompetencia, salvarGrupoCompetencia, excluirGrupoCompetencia, salvarConjuntoCompetencia, formatarCompetenciaGrupo } from "./folhaPagamento/gruposCalculoCompetencia";
 import { AbrangenciaProcessamentoFolha } from "./folhaPagamento/AbrangenciaProcessamentoFolha";
 import type { ProcessamentoFolhaForm } from "./folhaPagamento/types";
 import { camposAbrangenciaFolha, criteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
@@ -79,6 +80,7 @@ import { CardSeplag } from "@componentes/Card";
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { ModalSeplag } from "@componentes/Modal";
 import { Sidebar } from "primereact/sidebar";
+import { Paginator } from "primereact/paginator";
 import { SeplagAutoComplete } from "@componentes/AutoComplete";
 import {
   DocumentosLegaisAssociadosSeplag,
@@ -1630,6 +1632,7 @@ interface GrupoCalculoFiltroForm {
 }
 
 interface GrupoCalculoForm {
+  competencia: string;
   abrangenciaCarreiras?: string[];
   abrangenciaUnidades?: string[];
   nome?: string;
@@ -2104,6 +2107,9 @@ interface GrupoEleitosRow {
 }
 
 interface GrupoCalculoRow {
+  competencia?: string;
+  versao?: number;
+  responsavel?: string;
   abrangencia?: CriteriosAbrangencia;
   criteriosProprios?: CriteriosAbrangencia;
   composicaoRubricas?: { codigo: string; nomeRubrica: string }[];
@@ -7061,8 +7067,8 @@ const gruposCalculoMock: GrupoCalculoRow[] = [
     herdaDe: "Geral",
     orgaoSetor: "Todos",
     tipoVinculo: "Comissionado",
-    situacao: STATUS_OPERACIONAL_VIGENCIA.AGENDADO,
-    inicioVigencia: "01/06/2026",
+    situacao: "RASCUNHO",
+    inicioVigencia: "01/05/2026",
     fimVigencia: "-",
     rubricas: 18,
     pendencias: 2,
@@ -7263,24 +7269,24 @@ const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
   14: [gruposCalculoMock[13]],
 };
 
-function aplicarRevisaoGruposCalculo(resultado: ResultadoRevisao & { criteriosPai: CriteriosAbrangencia; rubricasPai: { codigo: string; nomeRubrica: string }[] }) {
-  const pai = gruposCalculoMock.find(g => g.grupo === resultado.pai);
+function aplicarRevisaoGruposCalculo(resultado: ResultadoRevisao & { criteriosPai: CriteriosAbrangencia; rubricasPai: { codigo: string; nomeRubrica: string }[] }, alvos = gruposCalculoMock, historicos = gruposCalculoVersoesMock) {
+  const pai = alvos.find(g => g.grupo === resultado.pai);
   if (!pai) return;
   const registros = [{ id: pai.id, criterios: resultado.criteriosPai, rubricas: resultado.rubricasPai }, ...resultado.grupos];
   for (const registro of registros) {
-    const indice = gruposCalculoMock.findIndex(g => g.id === registro.id);
+    const indice = alvos.findIndex(g => g.id === registro.id);
     if (indice < 0) continue;
-    const anterior = gruposCalculoMock[indice];
-    const historico = gruposCalculoVersoesMock[registro.id] ?? [anterior];
+    const anterior = alvos[indice];
+    const historico = historicos[registro.id] ?? [anterior];
     const detalhes = resultado.grupos.find(g => g.id === registro.id);
-    const nova: GrupoCalculoRow = { ...anterior, abrangencia: registro.criterios, criteriosProprios: detalhes?.criteriosProprios, composicaoRubricas: registro.rubricas, rubricasProprias: detalhes?.rubricasProprias, referenciaHeranca: detalhes ? { grupo: detalhes.origem, versao: detalhes.versaoOrigem } : anterior.referenciaHeranca, rubricas: registro.rubricas.length, inicioVigencia: resultado.inicio, fimVigencia: "-", situacao: "ATIVO", pendencias: 0 };
-    gruposCalculoVersoesMock[registro.id] = [nova, { ...anterior, fimVigencia: resultado.fimAnterior, situacao: "ENCERRADO" }, ...historico.slice(1)];
-    gruposCalculoMock[indice] = nova;
+    const nova: GrupoCalculoRow = { ...anterior, versao: (anterior.versao ?? historico.length) + 1, abrangencia: registro.criterios, criteriosProprios: detalhes?.criteriosProprios, composicaoRubricas: registro.rubricas, rubricasProprias: detalhes?.rubricasProprias, referenciaHeranca: detalhes ? { grupo: detalhes.origem, versao: detalhes.versaoOrigem } : anterior.referenciaHeranca, rubricas: registro.rubricas.length, inicioVigencia: resultado.inicio, fimVigencia: "-", situacao: "ATIVO", pendencias: 0 };
+    historicos[registro.id] = [nova, { ...anterior, fimVigencia: resultado.fimAnterior, situacao: "ENCERRADO" }, ...historico.slice(1)];
+    alvos[indice] = nova;
   }
 }
 try {
   const revisoes = JSON.parse(localStorage.getItem("sigep:grupo-calculo:revisoes-aprovadas") ?? "[]");
-  if (Array.isArray(revisoes)) revisoes.filter(r => r.criteriosPai && r.rubricasPai && Array.isArray(r.grupos)).forEach(aplicarRevisaoGruposCalculo);
+  if (Array.isArray(revisoes)) revisoes.filter(r => r.criteriosPai && r.rubricasPai && Array.isArray(r.grupos)).forEach(revisao => aplicarRevisaoGruposCalculo(revisao));
 } catch { /* Sem armazenamento, mantém o cenário inicial do protótipo. */ }
 
 const grupoEleitoParticipantesMock: GrupoEleitoParticipanteRow[] = [
@@ -28660,6 +28666,7 @@ export function PrototiposFolhaCompetenciasPage() {
       return;
     }
 
+    lerGruposCalculoCompetencia(contextoCompetenciasGrupos().vigente);
     const novaCompetencia = folhaPagamentoService.criarCompetencia({
       ...data,
       codigo: `COMP-${competencia}`,
@@ -28699,7 +28706,8 @@ export function PrototiposFolhaCompetenciasPage() {
         competencia.competencia === proximaCompetencia.competencia,
     );
 
-    setCompetencias((current) => {
+    lerGruposCalculoCompetencia(competenciaParaFechar.competencia);
+    const proximasCompetencias = ((current: FolhaCompetenciaRow[]) => {
       const currentFechadas = current.map((competencia) =>
         competencia.id === competenciaParaFechar.id
           ? {
@@ -28738,7 +28746,9 @@ export function PrototiposFolhaCompetenciasPage() {
       };
 
       return [novaCompetencia, ...currentFechadas];
-    });
+    })(competencias);
+    folhaPagamentoService.salvarCompetencias(proximasCompetencias);
+    setCompetencias(proximasCompetencias);
 
     setFeedback("Competência encerrada com sucesso. A competência do próximo mês foi aberta automaticamente.");
     setCompetenciaParaFechar(null);
@@ -34588,8 +34598,23 @@ export function PrototiposFolhaFichaFinanceiraPage() {
   );
 }
 
+function contextoCompetenciasGrupos() {
+  const competencias=folhaPagamentoService.listarCompetencias();
+  const vigente=competencias.filter(c=>c.situacao==="ATIVA").sort((a,b)=>b.competencia.localeCompare(a.competencia))[0]?.competencia ?? new Intl.DateTimeFormat("sv-SE",{year:"numeric",month:"2-digit",timeZone:"America/Cuiaba"}).format(new Date());
+  return {vigente,periodos:competencias.map(c=>c.competencia).filter(c=>c<=vigente),opcoes:[...new Set([vigente,...competencias.map(c=>c.competencia).filter(c=>c<=vigente)])].sort().reverse()};
+}
+function lerGruposCalculoCompetencia(competencia: string) {
+  return carregarGruposCompetencia(competencia,gruposCalculoMock,gruposCalculoVersoesMock,contextoCompetenciasGrupos().periodos);
+}
+
 export function PrototiposFolhaGruposCalculoPage() {
   const navigate = useNavigate();
+  const [searchParams,setSearchParams]=useSearchParams();
+  const contexto=contextoCompetenciasGrupos();
+  const competenciaSelecionada=contexto.opcoes.includes(searchParams.get("competencia")??"") ? searchParams.get("competencia")! : contexto.vigente;
+  const [revisaoCompetencia,setRevisaoCompetencia]=useState(0);
+  const {grupos:gruposCalculoMock,versoes:gruposCalculoVersoesMock}=useMemo(()=>lerGruposCalculoCompetencia(competenciaSelecionada),[competenciaSelecionada,revisaoCompetencia]);
+  const rotaCompetencia=(rota:string)=>rota+(rota.includes("?")?"&":"?")+"competencia="+competenciaSelecionada;
   const [grupoHistoricoSelecionado, setGrupoHistoricoSelecionado] =
     useState<GrupoCalculoRow | null>(null);
   const [versaoHistoricoAberta, setVersaoHistoricoAberta] = useState<string | null>(null);
@@ -34601,7 +34626,9 @@ export function PrototiposFolhaGruposCalculoPage() {
   });
 
   const [perfilIngressos, setPerfilIngressos] = useState<IngressoPerfil>("PROVIMENTO");
+  const [paginacao,setPaginacao]=useState({first:0,rows:10});
   const filtros = watch();
+  useEffect(()=>{setPaginacao(atual=>({...atual,first:0}));},[competenciaSelecionada,filtros.nomeGrupo,filtros.situacao]);
   const termoBusca = filtros.nomeGrupo?.trim().toLowerCase() ?? "";
   const gruposFiltrados = gruposCalculoMock.filter((grupo) => {
     const atendeTermo =
@@ -34614,8 +34641,10 @@ export function PrototiposFolhaGruposCalculoPage() {
     return atendeTermo && atendeSituacao;
   });
 
+  const primeiroRegistro=Math.min(paginacao.first,Math.max(0,Math.ceil(gruposFiltrados.length/paginacao.rows)-1)*paginacao.rows);
+  const gruposPaginados=gruposFiltrados.slice(primeiroRegistro,primeiroRegistro+paginacao.rows);
   const getGrupoCalculoVersao = (grupo: GrupoCalculoRow) =>
-    `V${gruposCalculoVersoesMock[grupo.id]?.length ?? 1}`;
+    `V${grupo.versao ?? gruposCalculoVersoesMock[grupo.id]?.length ?? 1}`;
 
   const abrirHistoricoGrupoCalculo = (grupo: GrupoCalculoRow) => {
     const versoes = gruposCalculoVersoesMock[grupo.id] ?? [grupo];
@@ -34720,7 +34749,7 @@ export function PrototiposFolhaGruposCalculoPage() {
         type="button"
         className="prototype-grupos-calculo-action prototype-grupos-calculo-action--view"
         aria-label={`Visualizar ${row.grupo}`}
-        onClick={() => navigate(`/prototipos/folha/grupos-calculo/${row.id}/editar`)}
+        onClick={() => navigate(rotaCompetencia(`/prototipos/folha/grupos-calculo/${row.id}/editar?modo=visualizar`))}
       >
         <i className="pi pi-eye" aria-hidden="true" />
       </button>
@@ -34732,7 +34761,7 @@ export function PrototiposFolhaGruposCalculoPage() {
           title="Nova versão"
           onClick={() =>
             navigate(
-              `/prototipos/folha/grupos-calculo/${row.id}/editar?modo=nova-versao`,
+              rotaCompetencia(`/prototipos/folha/grupos-calculo/${row.id}/editar?modo=nova-versao`),
             )
           }
         >
@@ -34745,7 +34774,7 @@ export function PrototiposFolhaGruposCalculoPage() {
           className="prototype-grupos-calculo-action prototype-grupos-calculo-action--edit"
           aria-label={`Editar ${row.grupo}`}
           title="Editar"
-          onClick={() => navigate(`/prototipos/folha/grupos-calculo/${row.id}/editar`)}
+          onClick={() => navigate(rotaCompetencia(`/prototipos/folha/grupos-calculo/${row.id}/editar`))}
         >
           <i className="pi pi-pencil" aria-hidden="true" />
         </button>
@@ -34761,6 +34790,7 @@ export function PrototiposFolhaGruposCalculoPage() {
       <button
         type="button"
         className="prototype-grupos-calculo-action prototype-grupos-calculo-action--delete"
+        onClick={()=>{excluirGrupoCompetencia(competenciaSelecionada,row.id);setRevisaoCompetencia(v=>v+1);}}
         aria-label={`Excluir ${row.grupo}`}
         disabled={normalizeGrupoCalculoSituacao(row.situacao) !== "RASCUNHO"}
         title={
@@ -34783,6 +34813,7 @@ export function PrototiposFolhaGruposCalculoPage() {
       <div className="prototype-page-content prototype-page-content--white prototype-folha-grupos-calculo-page v2v-shell">
         <CardSeplag
           title="Gestão de Grupos de Cálculo"
+          actions={<div className="prototype-grupos-competencia-header"><label htmlFor="grupos-competencia">Competência:<select title="Filtrar grupos por competência" id="grupos-competencia" value={competenciaSelecionada} onChange={e=>{setSearchParams({competencia:e.target.value});fecharHistoricoGrupoCalculo();}}>{contexto.opcoes.map(c=><option key={c} value={c}>{formatarCompetenciaGrupo(c)}</option>)}</select></label><div className="prototype-grupos-competencia-vigente">Competência vigente: <strong>{formatarCompetenciaGrupo(contexto.vigente)}</strong></div></div>}
           cols="12"
           cardHeaderClassNames="prototype-carreira-card v2v-card"
           headerNavigation={<BreadcrumbSeplag divided homeTo={FOLHA_PAGINA_INICIAL_PATH} items={[{ label: "Página Inicial", to: FOLHA_PAGINA_INICIAL_PATH }, { label: "Folha" }, { label: "Grupos de Cálculo da Folha", to: "/prototipos/folha/grupos-calculo" }]} />}
@@ -34822,13 +34853,14 @@ export function PrototiposFolhaGruposCalculoPage() {
             </div>
 
           </div>
+          <div role="note" className="prototype-grupos-competencia-info"><i className="pi pi-info-circle" aria-hidden="true" /><span>Os grupos de cálculo são organizados por competência. Ao avançar para uma nova competência, o sistema replica automaticamente os grupos ativos da competência anterior, iniciando-os na versão V1, sem necessidade de novo cadastro.</span></div>
           <section className="v2v-panel v2v-management-results" aria-label="Grupos de cálculo cadastrados">
             <div className="v2v-grid-toolbar">            <div>
               <BotaoSeplag
                 type="button"
                 label="Cadastrar Grupo de Cálculo"
                 icon="pi pi-plus"
-                onClick={() => navigate("/prototipos/folha/grupos-calculo/novo")}
+                onClick={() => navigate(rotaCompetencia("/prototipos/folha/grupos-calculo/novo"))}
               />
             </div></div>
           <div className="prototype-folha-grupos-calculo-table">
@@ -34838,6 +34870,7 @@ export function PrototiposFolhaGruposCalculoPage() {
                   <tr>
                     <th>Nome do grupo</th>
                     <th>Versão</th>
+                    <th>Competência</th>
                     <th>Data início</th>
                     <th>Data fim</th>
                     <th>Situação</th>
@@ -34846,22 +34879,23 @@ export function PrototiposFolhaGruposCalculoPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {gruposFiltrados.map((grupo) => (
+                  {gruposPaginados.map((grupo) => (
                     <tr className="prototype-grupos-calculo-group-row" key={grupo.id}>
                       <td>
                         {grupo.grupo}
                       </td>
                       <td>{getGrupoCalculoVersao(grupo)}</td>
+                      <td>{formatarCompetenciaGrupo(competenciaSelecionada)}</td>
                       <td>{grupo.inicioVigencia}</td>
                       <td>{grupo.fimVigencia}</td>
                       <td>{renderGrupoCalculoStatusBadge(grupo.situacao)}</td>
-                      <td>Admin User</td>
+                      <td>{grupo.responsavel ?? "Admin User"}</td>
                       <td>{renderGrupoCalculoAction(grupo)}</td>
                     </tr>
                   ))}
                   {!gruposFiltrados.length && (
                     <tr>
-                      <td colSpan={7} className="prototype-grupos-calculo-empty">
+                      <td colSpan={8} className="prototype-grupos-calculo-empty">
                         Nenhum grupo encontrado para os filtros informados.
                       </td>
                     </tr>
@@ -34870,6 +34904,8 @@ export function PrototiposFolhaGruposCalculoPage() {
               </table>
             </div>
           </div>
+          <Paginator className="prototype-grupos-calculo-paginator" first={primeiroRegistro} rows={paginacao.rows} totalRecords={gruposFiltrados.length} rowsPerPageOptions={[10,20,50]}
+            onPageChange={evento=>setPaginacao({first:evento.first,rows:evento.rows})} />
           </section>
           </div>
         </CardSeplag>
@@ -34912,7 +34948,7 @@ export function PrototiposFolhaGruposCalculoPage() {
                     onClick={() => setVersaoHistoricoAberta(isAberta ? null : key)}
                   >
                     <span>{versao.grupo}</span>
-                    <span>{`V${versoes.length - index}`}</span>
+                    <span>{`V${versao.versao ?? versoes.length - index}`}</span>
                     <span>{versao.inicioVigencia}</span>
                     <span>{versao.fimVigencia}</span>
                     {renderGrupoCalculoHistoricoStatus(versao, index)}
@@ -34934,21 +34970,35 @@ export function PrototiposFolhaGruposCalculoPage() {
 }
 
 export function PrototiposFolhaGrupoCalculoFormPage() {
+ const {id}=useParams();const [parametros]=useSearchParams();
+ return <PrototiposFolhaGrupoCalculoFormContent key={id ? id+":"+parametros.toString() : "novo"} />;
+}
+function PrototiposFolhaGrupoCalculoFormContent() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const isEdit = Boolean(id);
   const isNovaVersao = searchParams.get("modo") === "nova-versao";
+  const somenteLeitura = searchParams.get("modo") === "visualizar";
+  const contextoCompetencias=contextoCompetenciasGrupos();
+  const competenciaInicial=contextoCompetencias.opcoes.includes(searchParams.get("competencia")??"") ? searchParams.get("competencia")! : contextoCompetencias.vigente;
+  const [competenciaSelecionada,setCompetenciaSelecionada]=useState(competenciaInicial);
+  const [erroCompetencia,setErroCompetencia]=useState("");
+  const competenciaValida=contextoCompetencias.opcoes.includes(competenciaSelecionada);
+  const dadosCompetencia=useMemo(()=>lerGruposCalculoCompetencia(competenciaSelecionada || competenciaInicial),[competenciaSelecionada,competenciaInicial]);
+  const {grupos:gruposCalculoMock,versoes:gruposCalculoVersoesMock}=dadosCompetencia;
+  const voltarCompetencia="/prototipos/folha/grupos-calculo?competencia="+competenciaSelecionada;
   const grupo = gruposCalculoMock.find((item) => String(item.id) === id);
-  const amanha = getAmanhaDate();
+  const [anoCompetencia,mesCompetencia]=(competenciaSelecionada || competenciaInicial).split("-").map(Number);
+  const amanha = new Date(anoCompetencia,mesCompetencia-1,1);
   const dataInicioV2 = formatDatePtBr(amanha);
   const versoesGrupoAtual = grupo ? gruposCalculoVersoesMock[grupo.id] ?? [grupo] : [];
   const grupoEstaPublicado =
     Boolean(grupo) && normalizeGrupoCalculoSituacao(grupo?.situacao) !== "RASCUNHO";
   const modoVersionamento = Boolean(isEdit && grupoEstaPublicado && isNovaVersao);
   const [versaoEmEdicao] = useState(() => modoVersionamento
-    ? versoesGrupoAtual.length + 1
-    : Math.max(versoesGrupoAtual.length, 1));
+    ? (grupo?.versao ?? versoesGrupoAtual.length) + 1
+    : Math.max(grupo?.versao ?? versoesGrupoAtual.length, 1));
   const [publicacaoConcluida, setPublicacaoConcluida] = useState(false);
   const [rubricasGerenciadas, setRubricasGerenciadas] = useState<GrupoCalculoRubricaGerenciada[]>(
     () =>
@@ -34973,22 +35023,23 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
   });
   const [dataInicioPublicacao, setDataInicioPublicacao] = useState(dataInicioV2);
   const [publicacaoFeedback, setPublicacaoFeedback] = useState("");
-  const tituloFormularioGrupoCalculo = modoVersionamento
+  const tituloFormularioGrupoCalculo = somenteLeitura ? "Visualizar Grupo de Cálculo" : modoVersionamento
     ? "Criar Nova Versão do Grupo"
     : `${isEdit ? "Alterar" : "Cadastrar"} - Grupos de Cálculo de Folha`;
-  const formularioBloqueado = publicacaoConcluida;
+  const formularioBloqueado = publicacaoConcluida || somenteLeitura;
   const credenciaisPublicacaoValidas = Boolean(
-    credenciaisPublicacao.usuario.trim() &&
+    competenciaValida && credenciaisPublicacao.usuario.trim() &&
       credenciaisPublicacao.senha.trim() &&
-      dataInicioPublicacao.trim(),
+      dataInicioPublicacao.trim() && dataInicioPublicacao.slice(3)===formatarCompetenciaGrupo(competenciaSelecionada),
   );
 
   const catalogoAbrangencia = useMemo(criarCatalogoAbrangenciaFolha, []);
-  const chaveAbrangencia = modoVersionamento ? `${id}:v${versaoEmEdicao}` : id ?? "novo";
-  const [abrangenciaInicial] = useState(() => ajustarAbrangencia(lerAbrangenciaGrupo(chaveAbrangencia, grupo?.abrangencia ?? (modoVersionamento ? lerAbrangenciaGrupo(id!) : abrangenciaVazia())), catalogoAbrangencia));
+  const chaveAbrangencia = `${competenciaSelecionada}:${modoVersionamento ? `${id}:v${versaoEmEdicao}` : id ?? "novo"}`;
+  const [abrangenciaInicial] = useState(() => ajustarAbrangencia(lerAbrangenciaGrupo(chaveAbrangencia, grupo?.abrangencia ?? (modoVersionamento ? lerAbrangenciaGrupo(`${competenciaSelecionada}:${id}`) : abrangenciaVazia())), catalogoAbrangencia));
   const [erroAbrangencia, setErroAbrangencia] = useState("");
   const { control, setValue, watch } = useForm<GrupoCalculoForm>({
     defaultValues: {
+      competencia: competenciaInicial,
       nome: grupo?.grupo ?? "",
       descricao: grupo
         ? `Configuração de cálculo para ${grupo.grupo.toLowerCase()}.`
@@ -35020,6 +35071,17 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
     },
   });
 
+  const validarCompetencia = () => {
+    if(competenciaValida){setErroCompetencia("");return true;}
+    setErroCompetencia("Selecione a compet\u00eancia para salvar ou aprovar o grupo.");return false;
+  };
+  const alterarCompetencia = (valor:string|null) => {
+    const competencia=valor??"";setCompetenciaSelecionada(competencia);setErroCompetencia("");
+    if(competencia){
+      const inicio="01/"+formatarCompetenciaGrupo(competencia);setDataInicioPublicacao(inicio);setValue("dataAtivacao",inicio);
+      if(isEdit){const parametros=new URLSearchParams(searchParams);parametros.set("competencia",competencia);navigate({search:parametros.toString()},{replace:true});}
+    }
+  };
   const camposAbrangencia = { regimes: "abrangenciaRegimeJuridico", tipos: "abrangenciaTipoVinculo", carreiras: "abrangenciaCarreiras", orgaos: "abrangenciaOrgao", unidades: "abrangenciaUnidades", cargos: "abrangenciaCargos" } as const;
   const abrangenciaAtual: CriteriosAbrangencia = {
     regimes: watch("abrangenciaRegimeJuridico") ?? [], tipos: watch("abrangenciaTipoVinculo") ?? [],
@@ -35036,6 +35098,21 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
     const criterios = ajustarAbrangencia(abrangenciaAtual, catalogoAbrangencia);
     const elegiveis = filtrarVinculosElegiveis(vinculosParaGrupoCalculo(), criterios, catalogoAbrangencia).map(v => v.id);
     salvarAbrangenciaGrupo(chaveAbrangencia, criterios, elegiveis);
+  };
+  const persistirRegistro = (situacao: "RASCUNHO" | "ATIVO") => {
+    if(!validarCompetencia())return false;
+    const nome=(watch("nome")??"").trim();if(!nome){setErroAbrangencia("Informe o nome do grupo.");return false;}
+    const criterios=ajustarAbrangencia(abrangenciaAtual,catalogoAbrangencia);
+    const ativas=rubricasGerenciadas.filter(r=>!r.excluida);
+    const registro: GrupoCalculoRow = {
+      ...grupo,id:grupo?.id??Date.now(),codigo:grupo?.codigo??("G"+Date.now()),grupo:nome,nivel:grupo?.nivel??1,
+      herdaDe:watch("abrangenciaHerdarDe")==="nenhum" ? "-" : watch("abrangenciaHerdarDe")??"-",
+      orgaoSetor:criterios.orgaos.join(", ")||"Todos",tipoVinculo:criterios.tipos.join(", ")||"Todos",
+      situacao,inicioVigencia:situacao==="ATIVO"?dataInicioPublicacao:grupo?.inicioVigencia??("01/"+formatarCompetenciaGrupo(competenciaSelecionada)),fimVigencia:"-",
+      rubricas:ativas.length,pendencias:0,abrangencia:criterios,composicaoRubricas:ativas.map(r=>({codigo:r.codigo,nomeRubrica:r.nomeRubrica})),
+      rubricasProprias:ativas.filter(r=>r.origem==="manual").map(r=>r.codigo),responsavel:credenciaisPublicacao.usuario||grupo?.responsavel||"Admin User",
+    };
+    salvarGrupoCompetencia(competenciaSelecionada,registro,modoVersionamento);return true;
   };
   const handleMoverRubricaGerenciada = (fromIndex: number, toIndex: number) => {
     setRubricasGerenciadas((current) => {
@@ -35127,6 +35204,7 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
   const handleLimparAbrangencia = () => aplicarAbrangencia(abrangenciaVazia());
 
   const handleAbrirModalPublicacao = () => {
+    if(!validarCompetencia())return;
     if (!temAbrangencia(abrangenciaAtual)) { setErroAbrangencia("Ao menos um campo ativo de abrang\u00eancia deve ser preenchido para aprovar."); return; }
     setCredenciaisPublicacao({ usuario: "", senha: "" });
     setDataInicioPublicacao(dataInicioV2);
@@ -35135,6 +35213,7 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
   };
 
   const handleConfirmarPublicacao = () => {
+    if(!validarCompetencia())return;
     if (!credenciaisPublicacaoValidas) {
       setPublicacaoFeedback("Informe Data Início, usuário e senha para aprovar o grupo de cálculo.");
       return;
@@ -35147,6 +35226,7 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
       setModalRevisaoAberto(true);
       return;
     }
+    if(!persistirRegistro("ATIVO"))return;
     salvarCriteriosAbrangencia();
     setValue("situacao", SITUACAO_VIGENCIA.ATIVO);
     setValue("dataAtivacao", dataInicioPublicacao);
@@ -35214,7 +35294,7 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
                     ? modoVersionamento
                       ? `Versão V${versaoEmEdicao} aprovada como ativa. A versão anterior foi marcada como inativa e esta edição foi bloqueada.`
                       : "Versão V1 aprovada como ativa. A edição desta versão foi bloqueada; novas alterações devem ser feitas por versionamento."
-                    : `Este grupo já foi aprovado. Você está criando a versão V${versaoEmEdicao}; a Data Início foi sugerida como ${dataInicioV2} e deve ser uma data futura.`}
+                    : `Este grupo já foi aprovado. Você está criando a versão V${versaoEmEdicao}; a Data Início foi sugerida como ${dataInicioV2} e deve pertencer à competência selecionada.`}
                 </span>
               </div>
             </div>
@@ -35241,11 +35321,20 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
                 required
                 disabled={formularioBloqueado}
                 minDate={amanha}
+                maxDate={new Date(anoCompetencia,mesCompetencia,0)}
                 getFormErrorMessage={() => null}
               />
             </div>
           )}
 
+          </section>
+          <section className="col-12 prototype-grupo-calculo-card prototype-grupo-calculo-competencia" aria-labelledby="grupo-competencia-titulo">
+            <header className="prototype-grupo-calculo-card-heading"><i className="pi pi-calendar" aria-hidden="true" /><div><h2 id="grupo-competencia-titulo">Competência</h2><p>Selecione a competência (mês/ano) para a qual o grupo de cálculo será válido.</p></div></header>
+            <div className="grid prototype-category-form-fields">
+              <DropdownFieldSeplag name="competencia" control={control} label="Competência" cols="12 12 6" required disabled={formularioBloqueado}
+                options={contextoCompetencias.opcoes.map(value=>({label:formatarCompetenciaGrupo(value),value}))} optionLabel="label" optionValue="value" placeholder="MM/AAAA"
+                onChange={alterarCompetencia} getFormErrorMessage={()=>erroCompetencia ? <small role="alert" className="p-error">{erroCompetencia}</small> : null} />
+            </div>
           </section>
           <div className="col-12 prototype-grupo-calculo-rubricas-section">
             <section className="prototype-grupo-calculo-abrangencia prototype-grupo-calculo-card" aria-label="Abrangência">
@@ -35490,7 +35579,7 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
                 items={[
                   { label: "Página Inicial", to: FOLHA_PAGINA_INICIAL_PATH },
                   { label: "Folha" },
-                  { label: "Grupos de Cálculo da Folha", to: "/prototipos/folha/grupos-calculo" },
+                  { label: "Grupos de Cálculo da Folha", to: voltarCompetencia },
                   { label: modoVersionamento ? "Criar Nova Versão" : isEdit ? "Alterar" : "Cadastrar" },
                 ]}
               />
@@ -35505,15 +35594,15 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
               <div className="prototype-category-form-footer">
                 <BotaoVoltarSeplag
                   type="button"
-                  onClick={() => navigate("/prototipos/folha/grupos-calculo")}
+                  onClick={() => navigate(voltarCompetencia)}
                 />
-                {!publicacaoConcluida && (
+                {!publicacaoConcluida && !somenteLeitura && (
                   <>
                     {!modoVersionamento && (
                       <BotaoSalvarSeplag
                         type="submit"
                         label="Salvar Rascunho"
-                        onClick={salvarCriteriosAbrangencia}
+                        onClick={()=>{if(persistirRegistro("RASCUNHO")){salvarCriteriosAbrangencia();navigate(voltarCompetencia);}}}
                       />
                     )}
                     <BotaoSalvarSeplag
@@ -35535,11 +35624,13 @@ export function PrototiposFolhaGrupoCalculoFormPage() {
               onCancel={() => setModalRevisaoAberto(false)}
               onConfirm={(resultado: ResultadoRevisao) => {
                 // Um único registro preserva o histórico e publica toda a cadeia no protótipo.
-                const chave = "sigep:grupo-calculo:revisoes-aprovadas";
+                const chave = `sigep:grupo-calculo:revisoes-aprovadas:${competenciaSelecionada}`;
                 const historico = JSON.parse(localStorage.getItem(chave) ?? "[]");
                 const revisao = { ...resultado, rubricasPai: rubricasGerenciadas.filter(r => !r.excluida).map(r => ({ codigo: r.codigo, nomeRubrica: r.nomeRubrica })), criteriosAntes: resultado.grupos.map(d => ({ id: d.id, criterios: d.criteriosAntes })) };
                 localStorage.setItem(chave, JSON.stringify([...historico, revisao]));
-                aplicarRevisaoGruposCalculo(revisao);
+                aplicarRevisaoGruposCalculo(revisao,gruposCalculoMock,gruposCalculoVersoesMock);
+
+                salvarConjuntoCompetencia(competenciaSelecionada,dadosCompetencia);
                 for (const campo of Object.keys(camposAbrangencia) as (keyof CriteriosAbrangencia)[]) setValue(camposAbrangencia[campo], resultado.criteriosPai[campo]);
                 setValue("situacao", SITUACAO_VIGENCIA.ATIVO);
                 setValue("dataAtivacao", dataInicioV2);

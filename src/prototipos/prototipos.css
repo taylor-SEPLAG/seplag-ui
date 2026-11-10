@@ -4997,7 +4997,9 @@
 
 .prototype-grupos-calculo-flat-table > table > thead > tr > th:nth-child(5),
 .prototype-grupos-calculo-flat-table > table > tbody > tr > td:nth-child(5) {
-  min-width: 240px;
+  width: 112px;
+  min-width: 112px;
+  white-space: nowrap;
   text-align: center;
 }
 
@@ -21556,6 +21558,7 @@
 .prototype-grupo-calculo-form .prototype-grupo-calculo-form-fields,
 .prototype-grupo-calculo-form .prototype-grupo-calculo-rubricas-section { gap: 18px; }
 .prototype-grupo-calculo-identificacao > .prototype-grupo-calculo-card-heading,
+.prototype-grupo-calculo-competencia > .prototype-grupo-calculo-card-heading,
 .prototype-grupo-calculo-rubricas-manager > .prototype-grupo-calculo-rubricas-header,
 .prototype-grupo-calculo-form .prototype-grupo-calculo-section-heading {
   width: calc(100% + 32px);
@@ -21813,3 +21816,14 @@
     border-right: 0;
   }
 }
+
+.prototype-grupos-competencia-header { display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding-left:16px; }
+.prototype-grupos-competencia-header label { display:flex; align-items:center; gap:8px; margin:0; font-size:.86rem; color:#344f6c; font-weight:600; }
+.prototype-grupos-competencia-header select { min-height:38px; padding:7px 30px 7px 10px; border:1px solid #c8d7e6; border-radius:4px; background:#fff; color:#173754; font:inherit; }
+.prototype-grupos-competencia-vigente { padding:9px 12px; border:1px solid #c9def4; border-radius:5px; background:#eff6fd; color:#536e88; font-size:.83rem; white-space:nowrap; }
+.prototype-grupos-competencia-vigente strong { color:#1264ad; font-weight:700; }
+.prototype-grupos-competencia-info { display:flex; align-items:flex-start; gap:10px; width:100%; margin:0 0 16px; padding:12px 14px; border:1px solid #c9def4; border-radius:5px; background:#eff6fd; color:#315c83; font-size:.88rem; line-height:1.5; }
+.prototype-grupos-competencia-info > i { color:#2670d5; margin-top:3px; }
+@media(max-width:800px){.prototype-grupos-competencia-header{padding-left:0;gap:8px;justify-content:flex-end;}.prototype-grupos-competencia-header label{flex-wrap:wrap;}}
+
+.prototype-grupos-calculo-management .prototype-grupos-calculo-paginator { justify-content: center; flex-wrap: wrap; width: 100%; }

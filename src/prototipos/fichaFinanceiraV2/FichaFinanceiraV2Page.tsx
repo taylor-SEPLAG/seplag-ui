@@ -188,8 +188,8 @@ export function FichaFinanceiraV2Content() {
           <div><label htmlFor="ffv2-competencia">Competência <span className="ffv2-required">*</span></label><Dropdown inputId="ffv2-competencia" value={competencia} options={competenciasDisponiveis(pessoa)} disabled={!pessoa || !competenciasDisponiveis(pessoa).length} placeholder="MM/AAAA" onChange={e=>alterarCompetencia(e.value)} /></div>
           <div><label htmlFor="ffv2-folha">Número da Folha <span className="ffv2-required">*</span></label><Dropdown inputId="ffv2-folha" value={folha} options={folhas.filter(f=>folhasDisponiveis(pessoa,competencia).includes(f.value))} disabled={!pessoa || !folhasDisponiveis(pessoa,competencia).length} placeholder="Selecione a folha" onChange={e=>{if(e.value===folha)return;invalidarResultado();setFolha(e.value);}} /></div>
         <div className="ffv2-query-actions">
-          <Button label="Limpar filtro" icon="pi pi-refresh" className="ffv2-query-clear" onClick={limparFiltros} />
           <Button label="Consultar" icon="pi pi-search" className="ffv2-query-submit" disabled={!podeConsultar || carregando} onClick={consultar} />
+          <Button label="Limpar filtro" icon="pi pi-refresh" className="ffv2-query-clear" onClick={limparFiltros} />
         </div>
         </div>
         {pessoaFisica && <div className="ffv2-query-identity ffv2-link-detail" aria-label="Resumo da identificação">

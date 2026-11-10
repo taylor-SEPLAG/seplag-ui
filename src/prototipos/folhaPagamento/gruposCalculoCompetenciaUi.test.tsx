@@ -1,0 +1,43 @@
+﻿// @vitest-environment jsdom
+import { afterEach, expect, it } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { PrototiposFolhaGruposCalculoPage } from '../PrototiposPage';
+afterEach(()=>{cleanup();localStorage.clear();});
+it('altera a competencia consultada preservando a vigente e o contexto do cadastro',()=>{
+ localStorage.clear();
+ render(<MemoryRouter><PrototiposFolhaGruposCalculoPage /></MemoryRouter>);
+ const campo=screen.getByLabelText('Compet\u00eancia:') as HTMLSelectElement;
+ expect(campo.value).toBe('2026-05');
+ expect(screen.getAllByRole('cell',{name:'Encerrado'}).length).toBeGreaterThan(0);
+ expect(screen.getAllByRole('cell',{name:'Aguardando Aprova\u00e7\u00e3o'}).length).toBeGreaterThan(0);
+ expect(document.querySelector('.prototype-grupos-competencia-vigente strong')?.textContent).toBe('05/2026');
+ fireEvent.change(campo,{target:{value:'2026-04'}});
+ expect(campo.value).toBe('2026-04');
+ expect(document.querySelector('.prototype-grupos-competencia-vigente strong')?.textContent).toBe('05/2026');
+ expect(screen.getByRole('columnheader',{name:'Compet\u00eancia'})).toBeTruthy();
+ expect(screen.getAllByRole('cell',{name:'04/2026'}).length).toBeGreaterThan(0);
+ expect(screen.getByRole('note').textContent).toContain('vers\u00e3o V1');
+ fireEvent.change(screen.getByPlaceholderText('Nome do grupo...'),{target:{value:'zzzz-inexistente'}});
+ expect(screen.queryAllByRole('cell',{name:'04/2026'})).toHaveLength(0);
+ fireEvent.change(campo,{target:{value:'2026-03'}});
+ expect(screen.queryAllByRole('cell',{name:'03/2026'})).toHaveLength(0);
+ fireEvent.change(screen.getByPlaceholderText('Nome do grupo...'),{target:{value:''}});
+ expect(screen.getAllByRole('cell',{name:'03/2026'}).length).toBeGreaterThan(0);
+ expect(screen.queryByRole('button',{name:'Copiar da Compet\u00eancia Anterior'})).toBeNull();
+});
+it('pagina os grupos e retorna ao inicio quando os filtros mudam',()=>{
+ localStorage.clear();
+ const grupos=Array.from({length:14},(_,i)=>({id:1000+i,codigo:'G'+i,grupo:'Grupo teste '+String(i+1).padStart(2,'0'),nivel:1,herdaDe:'-',orgaoSetor:'Todos',tipoVinculo:'Todos',situacao:'ATIVO',inicioVigencia:'01/05/2026',fimVigencia:'-',rubricas:0,pendencias:0,versao:1,competencia:'2026-05'}));
+ localStorage.setItem('sigep:grupos-calculo:competencias:v1',JSON.stringify({'2026-05':{grupos,versoes:Object.fromEntries(grupos.map(g=>[g.id,[g]]))}}));
+ render(<MemoryRouter><PrototiposFolhaGruposCalculoPage /></MemoryRouter>);
+ expect(screen.getAllByRole('cell',{name:/^Grupo teste/})).toHaveLength(10);
+ fireEvent.click(document.querySelector('.prototype-grupos-calculo-paginator .p-paginator-next')!);
+ expect(screen.getAllByRole('cell',{name:/^Grupo teste/})).toHaveLength(4);
+ expect(screen.getByRole('cell',{name:'Grupo teste 11'})).toBeTruthy();
+ fireEvent.change(screen.getByPlaceholderText('Nome do grupo...'),{target:{value:'Grupo teste 01'}});
+ expect(screen.getAllByRole('cell',{name:/^Grupo teste/})).toHaveLength(1);
+ expect((document.querySelector('.prototype-grupos-calculo-paginator .p-paginator-prev') as HTMLButtonElement).disabled).toBe(true);
+ fireEvent.change(screen.getByPlaceholderText('Nome do grupo...'),{target:{value:''}});
+ expect(screen.getAllByRole('cell',{name:/^Grupo teste/})).toHaveLength(10);
+});
