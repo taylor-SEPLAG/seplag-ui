@@ -26,6 +26,7 @@ export const CodigoErroAgendamento = {
   SALDO_INSUFICIENTE: "SALDO_INSUFICIENTE",
   AGENDAMENTO_SOBREPOSTO: "AGENDAMENTO_SOBREPOSTO",
   PERIODO_AQUISITIVO_EM_CURSO: "PERIODO_AQUISITIVO_EM_CURSO",
+  PRAZO_REGISTRO_ENCERRADO: "PRAZO_REGISTRO_ENCERRADO",
 } as const;
 
 export type CodigoErroAgendamento =
@@ -133,6 +134,8 @@ export function validarFracionamento(parcelas: ParcelaAgendamento[]): ResultadoR
 /**
  * RN-AGD-02 — Antecedência mínima de 30 dias corridos entre a solicitação e o início do gozo,
  * salvo autorização expressa da chefia (quando `autorizacaoChefia` é true, a regra é dispensada).
+ * Substituída nas telas de Férias pela RN017 (registro até o dia 05 do mês anterior ao usufruto,
+ * `validarPrazoRegistroFerias`); mantida apenas como referência e para os testes existentes.
  */
 export function validarAntecedencia(
   dataSolicitacao: string,
@@ -146,6 +149,52 @@ export function validarAntecedencia(
       CodigoErroAgendamento.ANTECEDENCIA_INSUFICIENTE,
       `O agendamento exige antecedência mínima de ${ANTECEDENCIA_MINIMA_PADRAO} dias corridos ` +
         `(informados: ${antecedencia} dias), salvo autorização expressa da chefia.`,
+    );
+  }
+  return sucesso();
+}
+
+// --- RN017 (US302 — Tela Inicial): prazos do agendamento pelo mês do usufruto ---
+const DIA_LIMITE_REGISTRO = 5; // registro até o dia 05 do mês anterior ao início do usufruto
+const DIA_LIMITE_VALIDACAO = 9; // chefia aprova até o dia 09 desse mesmo mês
+
+const doisDigitos = (n: number) => String(n).padStart(2, "0");
+const dataBrIso = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
+
+/** Mês (AAAA-MM) anterior ao mês da data ISO informada. */
+function mesAnterior(iso: string): string {
+  const [ano, mes] = iso.split("-").map(Number);
+  return mes === 1 ? `${ano - 1}-12` : `${ano}-${doisDigitos(mes - 1)}`;
+}
+
+export interface PrazosAgendamento {
+  /** Último dia para registrar a solicitação: dia 05 do mês anterior ao início do usufruto. */
+  limiteRegistro: string;
+  /** Último dia para a chefia aprovar: dia 09 do mês anterior ao início do usufruto. A partir do
+   * dia 10, a solicitação ainda "Aguardando Validação" é encerrada automaticamente. */
+  limiteValidacao: string;
+}
+
+/** RN017 — Prazos do agendamento calculados a partir do início do usufruto (parcela mais antiga). */
+export function prazosAgendamento(inicioUsufruto: string): PrazosAgendamento {
+  const mes = mesAnterior(inicioUsufruto);
+  return {
+    limiteRegistro: `${mes}-${doisDigitos(DIA_LIMITE_REGISTRO)}`,
+    limiteValidacao: `${mes}-${doisDigitos(DIA_LIMITE_VALIDACAO)}`,
+  };
+}
+
+/**
+ * RN017 — A solicitação de férias deve ser registrada até o dia 05 do mês anterior ao início do
+ * usufruto. Ex.: usufruto a partir de 01/12 → registro até 05/11.
+ */
+export function validarPrazoRegistroFerias(hoje: string, inicioUsufruto: string): ResultadoRegra {
+  const { limiteRegistro } = prazosAgendamento(inicioUsufruto);
+  if (hoje > limiteRegistro) {
+    return falha(
+      CodigoErroAgendamento.PRAZO_REGISTRO_ENCERRADO,
+      `A solicitação de férias deve ser registrada até o dia 05 do mês anterior ao início do usufruto. ` +
+        `Para início em ${dataBrIso(inicioUsufruto)}, o prazo terminou em ${dataBrIso(limiteRegistro)}.`,
     );
   }
   return sucesso();
