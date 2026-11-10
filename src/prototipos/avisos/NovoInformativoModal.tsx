@@ -24,16 +24,22 @@ const opcoes = [
 export function NovoInformativoModal({
   fechar,
   adicionado,
+  aviso,
 }: {
   fechar: () => void;
   adicionado: (aviso: Comunicado) => void;
+  aviso?: Comunicado;
 }) {
   const arquivoRef = useRef<HTMLInputElement>(null);
   const [arrastando, setArrastando] = useState(false);
-  const [titulo, setTitulo] = useState("");
-  const [texto, setTexto] = useState("");
-  const [tipo, setTipo] = useState("Informação");
-  const [documentos, setDocumentos] = useState<ArquivoAnexadoSeplag[]>([]);
+  const [titulo, setTitulo] = useState(aviso?.titulo ?? "");
+  const [texto, setTexto] = useState(aviso?.texto ?? "");
+  const [tipo, setTipo] = useState(
+    opcoes.find((o) => o.icon === aviso?.icon)?.nome ?? "Informação",
+  );
+  const [documentos, setDocumentos] = useState<ArquivoAnexadoSeplag[]>(
+    aviso?.documentos ?? [],
+  );
   const [lendo, setLendo] = useState(false);
   const [erro, setErro] = useState("");
   const anexar = async (arquivos: File[]) => {
@@ -41,7 +47,7 @@ export function NovoInformativoModal({
     setLendo(true);
     setErro("");
     try {
-      if (arquivos.some(arquivo => arquivo.size > 2_000_000)) {
+      if (arquivos.some((arquivo) => arquivo.size > 2_000_000)) {
         throw new Error("O documento deve ter no máximo 2 MB.");
       }
       const novos = await Promise.all(arquivos.map(lerDocumento));
@@ -66,23 +72,30 @@ export function NovoInformativoModal({
     const meta = opcoes.find((o) => o.nome === tipo)!;
     const atuais = listarInformativosPaginaInicial();
     const novo = {
-      id: Math.max(0, ...atuais.map((a) => a.id)) + 1,
+      ...aviso,
+      id: aviso?.id ?? Math.max(0, ...atuais.map((a) => a.id)) + 1,
       documentos,
       titulo: titulo.trim(),
       texto: texto.trim(),
       icon: meta.icon,
       destaque: meta.destaque,
-      dataPostagem: new Intl.DateTimeFormat("pt-BR", {
-        timeZone: "America/Cuiaba",
-      }).format(new Date()),
+      dataPostagem:
+        aviso?.dataPostagem ??
+        new Intl.DateTimeFormat("pt-BR", {
+          timeZone: "America/Cuiaba",
+        }).format(new Date()),
     };
-    atualizarInformativosPaginaInicial([novo, ...atuais]);
+    atualizarInformativosPaginaInicial(
+      aviso
+        ? atuais.map((atual) => (atual.id === aviso.id ? novo : atual))
+        : [novo, ...atuais],
+    );
     adicionado(novo);
   };
   return (
     <ModalSeplag
       visible
-      titulo="Novo Informativo"
+      titulo={aviso ? "Editar Informativo" : "Novo Informativo"}
       fechar={fechar}
       tamanho="min(620px, 94vw)"
       hideFooter
@@ -218,7 +231,7 @@ export function NovoInformativoModal({
           <BotaoVoltarSeplag type="button" label="Cancelar" onClick={fechar} />
           <BotaoSalvarSeplag
             type="submit"
-            label="Adicionar"
+            label={aviso ? "Salvar alterações" : "Adicionar"}
             disabled={lendo}
             icon="pi pi-check"
           />

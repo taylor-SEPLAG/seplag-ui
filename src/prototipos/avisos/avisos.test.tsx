@@ -19,6 +19,7 @@ import {
 import {
   atualizarInformativosPaginaInicial,
   informativosIniciais,
+  listarInformativosPaginaInicial,
 } from "../paginaInicial/informativos";
 
 const avisos: Comunicado[] = [
@@ -50,6 +51,67 @@ afterEach(() => {
   atualizarInformativosPaginaInicial(informativosIniciais);
 });
 
+it("edita um aviso sem duplicar o registro e permite cancelar ou confirmar sua exclusão", () => {
+  atualizarInformativosPaginaInicial(informativosIniciais);
+  function Lista() {
+    return <AvisosContent avisos={useInformativos()} />;
+  }
+  render(
+    <MemoryRouter>
+      <Lista />
+    </MemoryRouter>,
+  );
+  const original = informativosIniciais[0];
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: `Editar comunicado: ${original.titulo}`,
+    }),
+  );
+  expect((screen.getByLabelText("Texto") as HTMLTextAreaElement).value).toBe(
+    original.texto,
+  );
+  fireEvent.change(screen.getByLabelText("Título"), {
+    target: { value: "Prazo atualizado" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
+  expect(
+    screen.getByRole("heading", { name: "Prazo atualizado" }),
+  ).toBeTruthy();
+  expect(listarInformativosPaginaInicial()).toHaveLength(3);
+  expect(listarInformativosPaginaInicial()[0]).toMatchObject({
+    id: original.id,
+    dataPostagem: original.dataPostagem,
+    titulo: "Prazo atualizado",
+  });
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "Excluir comunicado: Prazo atualizado",
+    }),
+  );
+  fireEvent.click(
+    within(screen.getByRole("dialog")).getByRole("button", {
+      name: "Cancelar",
+    }),
+  );
+  expect(listarInformativosPaginaInicial()).toHaveLength(3);
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "Excluir comunicado: Prazo atualizado",
+    }),
+  );
+  fireEvent.click(
+    within(screen.getByRole("dialog")).getByRole("button", { name: "Excluir" }),
+  );
+  expect(
+    listarInformativosPaginaInicial().some((aviso) => aviso.id === original.id),
+  ).toBe(false);
+  expect(
+    screen.queryByRole("heading", { name: "Prazo atualizado" }),
+  ).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Limpar filtro" }));
+  expect(screen.getAllByRole("article")).toHaveLength(2);
+});
+
 it("classifica pelos metadados registrados, preserva a fonte e filtra título e conteúdo", () => {
   expect(avisos.map(categoriaAviso)).toEqual([
     "urgente",
@@ -69,7 +131,7 @@ it("mostra contadores e combina resumo, busca e dropdown", () => {
   montar();
   const lista = screen.getByRole("region", { name: "Comunicados disponíveis" });
   expect(within(lista).getAllByRole("article")).toHaveLength(4);
-  fireEvent.click(screen.getByRole("button", { name: "Regras 1" }));
+  fireEvent.click(screen.getByRole("button", { name: "Avisos 1" }));
   expect(
     (screen.getByLabelText("Tipo de aviso") as HTMLSelectElement).value,
   ).toBe("regra");
@@ -106,7 +168,7 @@ it("abre o conteúdo completo no modal existente, sem ações de cadastro", () =
   expect(within(modal).getByText("17/06/2026")).toBeTruthy();
   expect(within(modal).getByText("Atualização")).toBeTruthy();
   expect(
-    screen.queryByRole("button", {
+    within(modal).queryByRole("button", {
       name: /Salvar|Enviar|Editar|Excluir|Cadastrar/,
     }),
   ).toBeNull();
@@ -164,17 +226,37 @@ it("reflete publicação, alteração e exclusão da mesma fonte compartilhada",
 
 it("exibe o novo comunicado na categoria correspondente após adicionar", () => {
   atualizarInformativosPaginaInicial(informativosIniciais);
-  function Lista() { return <AvisosContent avisos={useInformativos()} />; }
-  render(<MemoryRouter><Lista /></MemoryRouter>);
-  fireEvent.change(screen.getByLabelText("Buscar comunicado"), { target: { value: "busca anterior" } });
+  function Lista() {
+    return <AvisosContent avisos={useInformativos()} />;
+  }
+  render(
+    <MemoryRouter>
+      <Lista />
+    </MemoryRouter>,
+  );
+  fireEvent.change(screen.getByLabelText("Buscar comunicado"), {
+    target: { value: "busca anterior" },
+  });
   fireEvent.click(screen.getByRole("button", { name: "Novo Informativo" }));
-  fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Nova atualização" } });
-  fireEvent.change(screen.getByLabelText("Texto"), { target: { value: "Atualização cadastrada agora" } });
-  fireEvent.click(screen.getByRole("button", { name: "Atualização", exact: true }));
+  fireEvent.change(screen.getByLabelText("Título"), {
+    target: { value: "Nova atualização" },
+  });
+  fireEvent.change(screen.getByLabelText("Texto"), {
+    target: { value: "Atualização cadastrada agora" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Atualização", exact: true }),
+  );
   fireEvent.click(screen.getByRole("button", { name: "Adicionar" }));
-  expect((screen.getByLabelText("Tipo de aviso") as HTMLSelectElement).value).toBe("atualizacao");
-  expect((screen.getByLabelText("Buscar comunicado") as HTMLInputElement).value).toBe("");
-  expect(screen.getByRole("heading", { name: "Nova atualização" })).toBeTruthy();
+  expect(
+    (screen.getByLabelText("Tipo de aviso") as HTMLSelectElement).value,
+  ).toBe("atualizacao");
+  expect(
+    (screen.getByLabelText("Buscar comunicado") as HTMLInputElement).value,
+  ).toBe("");
+  expect(
+    screen.getByRole("heading", { name: "Nova atualização" }),
+  ).toBeTruthy();
   expect(screen.getAllByRole("article")).toHaveLength(1);
   expect(screen.queryByRole("dialog")).toBeNull();
 });

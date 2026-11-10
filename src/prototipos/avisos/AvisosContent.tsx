@@ -1,6 +1,11 @@
 import { AnexarDocumentoSeplag } from "../../componentes/AnexarDocumento";
 import { abrirDocumento } from "../gestaoLicencas/documentosSolicitacao";
 import { NovoInformativoModal } from "./NovoInformativoModal";
+import { ModalSeplag } from "../../componentes/Modal";
+import {
+  atualizarInformativosPaginaInicial,
+  listarInformativosPaginaInicial,
+} from "../paginaInicial/informativos";
 import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { BreadcrumbSeplag } from "../../componentes/Breadcrumb";
@@ -39,6 +44,8 @@ export function AvisosContent({
 }) {
   const navigate = useNavigate();
   const [novoAberto, setNovoAberto] = useState(false);
+  const [edicao, setEdicao] = useState<Comunicado>();
+  const [exclusao, setExclusao] = useState<Comunicado>();
   const [mensagem, setMensagem] = useState("");
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState<Categoria>("todos");
@@ -83,6 +90,7 @@ export function AvisosContent({
           icon="pi pi-plus"
           onClick={() => {
             setMensagem("");
+            setEdicao(undefined);
             setNovoAberto(true);
           }}
         />
@@ -90,12 +98,17 @@ export function AvisosContent({
       {mensagem && <p role="status">{mensagem}</p>}
       {novoAberto && (
         <NovoInformativoModal
+          aviso={edicao}
           fechar={() => setNovoAberto(false)}
           adicionado={(aviso) => {
             setNovoAberto(false);
             setBusca("");
             setCategoria(categoriaAviso(aviso));
-            setMensagem("Informativo cadastrado com sucesso.");
+            setMensagem(
+              edicao
+                ? "Informativo atualizado com sucesso."
+                : "Informativo cadastrado com sucesso.",
+            );
           }}
         />
       )}
@@ -203,6 +216,27 @@ export function AvisosContent({
                 Ler comunicado{" "}
                 <i className="pi pi-arrow-right" aria-hidden="true" />
               </button>
+              <div className="sigep-avisos-acoes">
+                <button
+                  type="button"
+                  aria-label={`Editar comunicado: ${aviso.titulo}`}
+                  onClick={() => {
+                    setEdicao(aviso);
+                    setMensagem("");
+                    setNovoAberto(true);
+                  }}
+                >
+                  <i className="pi pi-pencil" aria-hidden="true" /> Editar
+                </button>
+                <button
+                  type="button"
+                  className="sigep-avisos-excluir"
+                  aria-label={`Excluir comunicado: ${aviso.titulo}`}
+                  onClick={() => setExclusao(aviso)}
+                >
+                  <i className="pi pi-trash" aria-hidden="true" /> Excluir
+                </button>
+              </div>
             </article>
           );
         })}
@@ -222,6 +256,37 @@ export function AvisosContent({
           </div>
         )}
       </section>
+      <ModalSeplag
+        visible={!!exclusao}
+        titulo="Excluir informativo"
+        fechar={() => setExclusao(undefined)}
+        hideFooter
+        tamanho="min(480px, 94vw)"
+      >
+        <p>
+          Deseja excluir o comunicado <strong>{exclusao?.titulo}</strong>?
+        </p>
+        <div className="sigep-informativo-acoes">
+          <BotaoVoltarSeplag
+            label="Cancelar"
+            onClick={() => setExclusao(undefined)}
+          />
+          <BotaoSeplag
+            label="Excluir"
+            icon="pi pi-trash"
+            onClick={() => {
+              if (!exclusao) return;
+              atualizarInformativosPaginaInicial(
+                listarInformativosPaginaInicial().filter(
+                  (aviso) => aviso.id !== exclusao.id,
+                ),
+              );
+              setExclusao(undefined);
+              setMensagem("Informativo excluído com sucesso.");
+            }}
+          />
+        </div>
+      </ModalSeplag>
       <ModalMensagemSeplag
         visible={!!leitura}
         titulo={leitura?.titulo ?? "Comunicado"}
