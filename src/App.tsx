@@ -703,6 +703,7 @@ function CalendarioPage() {
       { start: 6, end: 7, track: 4, label: "SPRINT TESTE 22", type: "mint" },
     ],
     [
+      { start: 1, end: 1, track: 1, label: "FERIADO", type: "holiday" },
       { start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" },
       { start: 1, end: 7, track: 3, label: "SPRINT DEV 23", type: "green" },
       { start: 1, end: 7, track: 4, label: "SPRINT TESTE 22", type: "mint" },
@@ -744,8 +745,13 @@ function CalendarioPage() {
           { start: 1, end: 3, track: 3, label: "SPRINT DEV 24", type: "blue" },
           { start: 1, end: 3, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
           { start: 3, end: 3, track: 2, label: "REVIEW", type: "cyan" },
+          { start: 4, end: 4, track: 2, label: "Entrega Sprint 23", type: "red" },
+          { start: 4, end: 7, track: 3, label: "Entrega Final sprint 24", type: "red" },
         ],
-        [{ start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" }],
+        [
+          { start: 1, end: 5, track: 3, label: "Entrega Final sprint 24", type: "red" },
+          { start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" },
+        ],
         [{ start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" }],
       ],
     },
