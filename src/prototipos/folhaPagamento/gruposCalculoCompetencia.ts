@@ -1,4 +1,4 @@
-export type GrupoPorCompetencia = { id:number; situacao:string; inicioVigencia:string; fimVigencia:string; versao?:number; competencia?:string; responsavel?:string };
+export type GrupoPorCompetencia = { id:number; situacao:string; inicioVigencia:string; fimVigencia:string; versao?:number; competencia?:string; responsavel?:string; grupo?:string };
 export type DadosGrupos<T extends GrupoPorCompetencia> = { grupos:T[]; versoes:Record<number,T[]> };
 const chave="sigep:grupos-calculo:competencias:v1";
 const clonar=<T,>(valor:T):T=>JSON.parse(JSON.stringify(valor));
@@ -50,10 +50,21 @@ export function carregarGruposCompetencia<T extends GrupoPorCompetencia>(compete
     }
     localStorage.setItem(migracao,"1");
   }
+  // Exclusão pontual do registro de demonstração solicitada pelo usuário.
+  const chaveRemocaoTeste="sigep:grupos-calculo:remocao-grupo-teste-2026-05:v1";
+  const aplicarRemocaoTeste=!localStorage.getItem(chaveRemocaoTeste) && Boolean(banco["2026-05"]);
+  if(aplicarRemocaoTeste){
+    const dados=banco["2026-05"];
+    const ids=new Set(dados.grupos.filter(g=>g.grupo?.trim().toLocaleLowerCase("pt-BR")==="grupo teste").map(g=>g.id));
+    dados.grupos=dados.grupos.filter(g=>!ids.has(g.id));
+    for(const id of ids)delete dados.versoes[id];
+  }
   if(!banco[competencia]){
     replicarNoBanco(banco, competencia);
   }
-  gravar(banco);return clonar(banco[competencia]);
+  gravar(banco);
+  if(aplicarRemocaoTeste)localStorage.setItem(chaveRemocaoTeste,"1");
+  return clonar(banco[competencia]);
 }
 
 function replicarNoBanco<T extends GrupoPorCompetencia>(banco:Record<string,DadosGrupos<T>>,competencia:string){

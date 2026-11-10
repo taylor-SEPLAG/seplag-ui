@@ -37,6 +37,7 @@
 
 /* ── Sidebar (posição absoluta, fullheight) ──────────────── */
 .layout-sidebar {
+  isolation: isolate;
   position: absolute;
   left: 0;
   top: 0;
@@ -48,6 +49,23 @@
   overflow-x: hidden;
   transition: transform 0.5s ease-in-out;
   z-index: 999;
+}
+
+.layout-sidebar::before {
+  content: "";
+  position: absolute;
+  right: -74px;
+  bottom: -28px;
+  width: 300px;
+  height: 300px;
+  background: url("../../../assets/img/brasao-mt.svg") center / contain no-repeat;
+  opacity: 0.07;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.layout-navigation-collapsed .layout-sidebar::before {
+  display: none;
 }
 
 .layout-sidebar-dark {

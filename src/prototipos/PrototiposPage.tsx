@@ -1,5 +1,7 @@
 import { carregarGruposCompetencia, salvarGrupoCompetencia, excluirGrupoCompetencia, salvarConjuntoCompetencia, formatarCompetenciaGrupo } from "./folhaPagamento/gruposCalculoCompetencia";
 import { AbrangenciaProcessamentoFolha } from "./folhaPagamento/AbrangenciaProcessamentoFolha";
+import { AlertaConflitoAbrangencia } from "./folhaPagamento/AlertaConflitoAbrangencia";
+import { abrangenciaLegadaGrupo, identificarConflitosAbrangencia } from "./folhaPagamento/conflitosAbrangenciaGrupo";
 import type { ProcessamentoFolhaForm } from "./folhaPagamento/types";
 import { camposAbrangenciaFolha, criteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
 import "./vinculos/vinculoV2.css";
@@ -34911,8 +34913,14 @@ function PrototiposFolhaGrupoCalculoFormContent() {
 
   const catalogoAbrangencia = useMemo(criarCatalogoAbrangenciaFolha, []);
   const chaveAbrangencia = `${competenciaSelecionada}:${modoVersionamento ? `${id}:v${versaoEmEdicao}` : id ?? "novo"}`;
-  const [abrangenciaInicial] = useState(() => ajustarAbrangencia(lerAbrangenciaGrupo(chaveAbrangencia, grupo?.abrangencia ?? (modoVersionamento ? lerAbrangenciaGrupo(`${competenciaSelecionada}:${id}`) : abrangenciaVazia())), catalogoAbrangencia));
+  const [abrangenciaInicial] = useState(() => {
+    const base = grupo ? abrangenciaLegadaGrupo(grupo, catalogoAbrangencia) : abrangenciaVazia();
+    const anterior = modoVersionamento ? lerAbrangenciaGrupo(`${competenciaSelecionada}:${id}`, base) : base;
+    const salva = lerAbrangenciaGrupo(chaveAbrangencia, anterior);
+    return ajustarAbrangencia(abrangenciaLegadaGrupo({ abrangencia: salva }, catalogoAbrangencia), catalogoAbrangencia);
+  });
   const [erroAbrangencia, setErroAbrangencia] = useState("");
+  const [validacaoConflitosSolicitada, setValidacaoConflitosSolicitada] = useState(false);
   const { control, setValue, watch } = useForm<GrupoCalculoForm>({
     defaultValues: {
       competencia: competenciaInicial,
@@ -34969,6 +34977,26 @@ function PrototiposFolhaGrupoCalculoFormContent() {
     const novos = ajustarAbrangencia({ ...criterios, unidades: criterios.orgaos.length ? criterios.unidades : [] }, catalogoAbrangencia);
     for (const campo of Object.keys(camposAbrangencia) as (keyof CriteriosAbrangencia)[]) setValue(camposAbrangencia[campo], novos[campo], { shouldDirty: true });
     setErroAbrangencia("");
+  };
+  const verificarConflitosAbrangencia = (criterios = abrangenciaAtual, revisados?: ResultadoRevisao["grupos"]) => {
+    if (!competenciaValida || !temAbrangencia(criterios)) return [];
+    const outros = gruposCalculoMock.map(g => {
+      const fallback = abrangenciaLegadaGrupo(g, catalogoAbrangencia);
+      const salva = revisados?.find(r => r.id === g.id)?.criterios ?? lerAbrangenciaGrupo(`${competenciaSelecionada}:${g.id}`, fallback);
+      return { ...g, abrangencia: abrangenciaLegadaGrupo({ abrangencia: salva }, catalogoAbrangencia) };
+    });
+    return identificarConflitosAbrangencia({
+      id: grupo?.id ?? "novo", grupo: watch("nome")?.trim() || grupo?.grupo || "Grupo em edição",
+      herdaDe: watch("abrangenciaHerdarDe"), competencia: competenciaSelecionada, abrangencia: criterios,
+    }, outros, competenciaSelecionada, catalogoAbrangencia);
+  };
+  const conflitosAbrangencia = verificarConflitosAbrangencia();
+  const validarConflitosAbrangencia = () => {
+    setValidacaoConflitosSolicitada(true);
+    if (!verificarConflitosAbrangencia().length) return true;
+    setModalPublicacaoAberto(false);
+    setModalRevisaoAberto(false);
+    return false;
   };
   const salvarCriteriosAbrangencia = () => {
     const criterios = ajustarAbrangencia(abrangenciaAtual, catalogoAbrangencia);
@@ -35082,6 +35110,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
   const handleAbrirModalPublicacao = () => {
     if(!validarCompetencia())return;
     if (!temAbrangencia(abrangenciaAtual)) { setErroAbrangencia("Ao menos um campo ativo de abrang\u00eancia deve ser preenchido para aprovar."); return; }
+    if (!validarConflitosAbrangencia()) return;
     setCredenciaisPublicacao({ usuario: "", senha: "" });
     setDataInicioPublicacao(dataInicioV2);
     setPublicacaoFeedback("");
@@ -35090,6 +35119,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
 
   const handleConfirmarPublicacao = () => {
     if(!validarCompetencia())return;
+    if (!validarConflitosAbrangencia()) return;
     if (!credenciaisPublicacaoValidas) {
       setPublicacaoFeedback("Informe Data Início, usuário e senha para aprovar o grupo de cálculo.");
       return;
@@ -35161,6 +35191,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
 
   const renderGrupoCalculoContent = () => (
     <div className="grid prototype-category-form-fields prototype-grupo-calculo-form-fields">
+          {validacaoConflitosSolicitada && conflitosAbrangencia.length > 0 && <div className="col-12"><AlertaConflitoAbrangencia conflitos={conflitosAbrangencia} catalogo={catalogoAbrangencia} /></div>}
           {(modoVersionamento || publicacaoConcluida) && (
             <div className="col-12">
               <div className="prototype-grupo-calculo-version-alert">
@@ -35474,17 +35505,16 @@ function PrototiposFolhaGrupoCalculoFormContent() {
                 />
                 {!publicacaoConcluida && !somenteLeitura && (
                   <>
-                    {!modoVersionamento && (
                       <BotaoSalvarSeplag
                         type="submit"
                         label="Salvar Rascunho"
                         onClick={()=>{if(persistirRegistro("RASCUNHO")){salvarCriteriosAbrangencia();navigate(voltarCompetencia);}}}
                       />
-                    )}
                     <BotaoSalvarSeplag
                       type="button"
                       label={modoVersionamento ? `Aprovar V${versaoEmEdicao}` : "Aprovar"}
                       icon="pi pi-send"
+                      disabled={validacaoConflitosSolicitada && conflitosAbrangencia.length > 0}
                       onClick={handleAbrirModalPublicacao}
                     />
                   </>
@@ -35493,12 +35523,19 @@ function PrototiposFolhaGrupoCalculoFormContent() {
             </div>
 
             {modalRevisaoAberto && grupo && <RevisaoImpactados
-              pai={grupo} grupos={gruposCalculoMock.map(g => ({ ...g, versao: (gruposCalculoVersoesMock[g.id] ?? [g]).length }))} criteriosPai={abrangenciaAtual}
+              pai={grupo} grupos={gruposCalculoMock.map(g => ({ ...g, versao: g.versao ?? (gruposCalculoVersoesMock[g.id] ?? [g]).length }))} criteriosPai={abrangenciaAtual}
               catalogo={catalogoAbrangencia} atuais={grupo.composicaoRubricas ?? catalogoRubricasMock.slice(0, 12)}
               novas={rubricasGerenciadas.filter(r => !r.excluida)} versaoPai={versaoEmEdicao}
+              catalogoRubricas={catalogoRubricasMock}
               inicio={dataInicioV2} usuario={credenciaisPublicacao.usuario}
               onCancel={() => setModalRevisaoAberto(false)}
               onConfirm={(resultado: ResultadoRevisao) => {
+                if (verificarConflitosAbrangencia(resultado.criteriosPai, resultado.grupos).length) {
+                  aplicarAbrangencia(resultado.criteriosPai);
+                  setValidacaoConflitosSolicitada(true);
+                  setModalRevisaoAberto(false);
+                  return;
+                }
                 // Um único registro preserva o histórico e publica toda a cadeia no protótipo.
                 const chave = `sigep:grupo-calculo:revisoes-aprovadas:${competenciaSelecionada}`;
                 const historico = JSON.parse(localStorage.getItem(chave) ?? "[]");
