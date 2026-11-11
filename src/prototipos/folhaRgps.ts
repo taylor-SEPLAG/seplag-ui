@@ -1,5 +1,6 @@
-// Regras exclusivas da manutenção RGPS. Datas finais da tabela são exclusivas;
-// as referências monetárias continuam usando seus períodos inclusivos.
+import { consultarValorReferencia } from "./valoresReferencia.ts";
+// Regras exclusivas da manutenção RGPS. A consulta monetária compartilha o
+// contrato temporal das referências, inclusive a migração dos períodos legados.
 export const rgpsData = (texto?: string): number | undefined => {
   if (!texto || !/^\d{2}\/\d{2}\/\d{4}$/.test(texto)) return undefined;
   const [dia, mes, ano] = texto.split("/").map(Number);
@@ -14,20 +15,15 @@ export const rgpsNumero = (texto: string): number => {
   return Number(valor.replace(/\./g, "").replace(",", "."));
 };
 
-type ReferenciaRgps = { valor: string; inicioVigencia?: string; fimVigencia?: string; situacao: string };
+type ReferenciaRgps = { valor: string; inicioVigencia?: string; fimVigencia?: string; fimVigenciaExclusivo?: boolean; situacao: string };
 export const consultarTetoRgps = (referencias: ReferenciaRgps[], dataReferencia?: string) => {
   const data = rgpsData(dataReferencia);
   if (data === undefined) return { erro: "Informe uma data inicial válida para consultar o Teto RGPS." };
-  const validas = referencias.filter((item) => {
-    const inicio = rgpsData(item.inicioVigencia);
-    const fim = item.fimVigencia ? rgpsData(item.fimVigencia) : Infinity;
-    return item.situacao !== "Inativo" && inicio !== undefined && fim !== undefined && inicio <= data && data <= fim;
-  });
-  if (validas.length > 1) return { erro: "Existe mais de um Teto RGPS válido para a data informada. Regularize Valores de Referência." };
-  const referencia = validas[0];
-  if (!referencia || !Number.isFinite(rgpsNumero(referencia.valor)) || rgpsNumero(referencia.valor) <= 0)
+  const consulta = consultarValorReferencia([{ codigo: "TETO_RGPS", tipo: "Monetário", vigencias: referencias }], "TETO_RGPS", dataReferencia);
+  if (consulta.estado === "conflito") return { erro: "Existe mais de um Teto RGPS válido para a data informada. Regularize Valores de Referência." };
+  if (consulta.estado !== "ok")
     return { erro: "Não existe Teto RGPS válido para a data informada. Verifique Valores de Referência." };
-  return { referencia, valor: referencia.valor };
+  return { referencia: consulta.vigencia, valor: consulta.valor };
 };
 
 export type FaixaRgps = { ordem: number; faixaInicial: string; faixaFinal: string; percentual: string };

@@ -1,5 +1,7 @@
 import { consultarTetoRgps, encadearVigenciasRgps, rgpsData, rgpsNumero, situacaoRgps, validarFaixasRgps } from "./folhaRgps";
 import { consultarReferenciasIrrf, encadearVigenciasIrrf, irrfAberta, irrfData, irrfMoeda, irrfNumero, migrarPeriodoIrrf, periodoIrrf, situacaoIrrf, sugerirParcelaIrrf, validarDadosIrrf, validarFaixaIrrf, validarTabelaIrrf } from "./folhaIrrf";
+import { consultarValorReferencia, normalizarPeriodoReferencia } from "./valoresReferencia";
+import { ValoresReferenciaListagem, ValoresReferenciaFormulario } from "./ValoresReferenciaViews";
 import { SigepAppearanceScope, SigepAppearanceMenu } from "./aparencia/SigepAppearanceControls";
 import { carregarGruposCompetencia, salvarGrupoCompetencia, excluirGrupoCompetencia, salvarConjuntoCompetencia, formatarCompetenciaGrupo } from "./folhaPagamento/gruposCalculoCompetencia";
 import { AbrangenciaProcessamentoFolha } from "./folhaPagamento/AbrangenciaProcessamentoFolha";
@@ -258,12 +260,6 @@ const getFolhaTabelaReferenciaEditarVigenciaPath = (
   tabelaId: number,
   vigenciaId: number,
 ) => `${FOLHA_TABELAS_REFERENCIA_BASE_PATH}/${tabelaId}/vigencias/${vigenciaId}/editar`;
-const getFolhaValorReferenciaNovaVigenciaPath = (codigo: string) =>
-  `${FOLHA_VALORES_REFERENCIA_BASE_PATH}/${codigo}/vigencias/novo`;
-const getFolhaValorReferenciaEditarVigenciaPath = (
-  codigo: string,
-  vigenciaId: number,
-) => `${FOLHA_VALORES_REFERENCIA_BASE_PATH}/${codigo}/vigencias/${vigenciaId}/editar`;
 
 const menuCardsDesligamentoVinculo: readonly MenuCardItem[] = [
   { titulo: "Vacância", descricao: "Gerencie as hipóteses de vacância dos vínculos efetivos.", icone: "pi pi-user-minus", destino: "/prototipos/sigep/vacancia" },
@@ -5057,6 +5053,9 @@ interface FolhaValorReferenciaVigenciaRow {
   situacao: FolhaTabelaReferenciaVigenciaRow["situacao"];
   inicioVigencia: string;
   fimVigencia?: string;
+  fimVigenciaExclusivo?: boolean;
+  observacoes?: string;
+  baseLegal?: string[];
 }
 
 interface FolhaValorReferenciaRow {
@@ -5066,15 +5065,7 @@ interface FolhaValorReferenciaRow {
   vigencias: FolhaValorReferenciaVigenciaRow[];
 }
 
-interface FolhaValorReferenciaVigenciaForm {
-  codigo: string;
-  nome: string;
-  tipo: string;
-  valor: string;
-  inicioVigencia: string;
-  fimVigencia: string;
-  observacoes: string;
-}
+
 
 interface FolhaParametrosIrrfRow {
   id: number;
@@ -5582,6 +5573,7 @@ const normalizarVigenciaTabelaReferencia = (
           vigenciaComModelo.faixasContribuicao?.[0]?.percentual ??
             vigenciaComModelo.percentualContribuicao ??
             "14",
+          vigenciaComModelo.inicioVigencia,
         )
       : modeloRppsId === 303
         ? getFaixasAutomaticasRppsLc700(
@@ -5590,6 +5582,7 @@ const normalizarVigenciaTabelaReferencia = (
             )?.percentual ??
               vigenciaComModelo.percentualContribuicao ??
               "14",
+            vigenciaComModelo.inicioVigencia,
           )
       : modeloRppsId === 305
         ? getFaixasRppsSalarioMinimo(
@@ -5626,10 +5619,10 @@ const normalizarVigenciaTabelaReferencia = (
       modeloRppsId === 303 ? "R$ 0,00" : vigenciaComModelo.proventosAPartirDe,
     proventosAte:
       modeloRppsId === 303
-        ? getFolhaValorReferenciaAtual("LIMITE_PROVENTOS_LC700") ?? "R$ 11.776,34"
+        ? getFolhaValorReferenciaNaData("LIMITE_PROVENTOS_LC700", vigenciaComModelo.inicioVigencia)
         : vigenciaComModelo.proventosAte,
     tetoPrevidenciario: undefined,
-    faixasContribuicao: faixasNormalizadas,
+    faixasContribuicao: vigenciaComModelo.faixasContribuicao?.length ? vigenciaComModelo.faixasContribuicao : faixasNormalizadas,
     vigencia:
       typeof vigencia.vigencia === "string"
         ? vigencia.vigencia
@@ -5989,42 +5982,28 @@ const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
   },
 ];
 
-const getFolhaValoresReferenciaPersistidos = (): FolhaValorReferenciaRow[] => {
-  if (typeof window === "undefined") return folhaValoresReferenciaMock;
-
+const carregarFolhaValoresReferencia = (): { valores: FolhaValorReferenciaRow[]; erro?: string } => {
   try {
-    const armazenados = JSON.parse(
-      window.localStorage.getItem(FOLHA_VALORES_REFERENCIA_STORAGE_KEY) ?? "[]",
-    ) as FolhaValorReferenciaRow[];
-    return Array.isArray(armazenados) && armazenados.length
-      ? armazenados
-      : folhaValoresReferenciaMock;
+    const texto = typeof window === "undefined" ? null : window.localStorage.getItem(FOLHA_VALORES_REFERENCIA_STORAGE_KEY);
+    const valores = texto === null ? folhaValoresReferenciaMock : JSON.parse(texto);
+    if (!Array.isArray(valores) || !valores.every((item) => item && typeof item.codigo === "string" && typeof item.nome === "string" && ["Monetário", "Numérico"].includes(item.tipo) && Array.isArray(item.vigencias) && item.vigencias.every((vigencia: FolhaValorReferenciaVigenciaRow) => vigencia && typeof vigencia.id === "number" && typeof vigencia.valor === "string"))) {
+      throw new Error("Dados inválidos");
+    }
+    return { valores: valores.map((item: FolhaValorReferenciaRow) => ({ ...item, vigencias: item.vigencias.map((vigencia) => normalizarPeriodoReferencia(vigencia)) })) };
   } catch {
-    return folhaValoresReferenciaMock;
+    return { valores: [], erro: "Não foi possível carregar os Valores de Referência. Os dados armazenados foram preservados. Tente novamente." };
   }
 };
+const getFolhaValoresReferenciaPersistidos = (): FolhaValorReferenciaRow[] => carregarFolhaValoresReferencia().valores;
 
 const salvarFolhaValoresReferencia = (valores: FolhaValorReferenciaRow[]) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(FOLHA_VALORES_REFERENCIA_STORAGE_KEY, JSON.stringify(valores));
 };
 
-const getFolhaValorReferenciaAtual = (codigo?: string) =>
-  codigo
-    ? getFolhaValoresReferenciaPersistidos().find((valor) => valor.codigo === codigo)?.vigencias[0]?.valor
-    : undefined;
-
 const getFolhaValorReferenciaNaData = (codigo: string, dataReferencia?: string) => {
-  const data = parseDataFolhaTabelaReferencia(dataReferencia);
-  if (data === undefined) return undefined;
-  return getFolhaValoresReferenciaPersistidos()
-    .find((valor) => valor.codigo === codigo)?.vigencias
-    .filter((vigencia) => {
-      const inicio = parseDataFolhaTabelaReferencia(vigencia.inicioVigencia);
-      const fim = parseDataFolhaTabelaReferencia(vigencia.fimVigencia) ?? Infinity;
-      return inicio !== undefined && inicio <= data && data <= fim && vigencia.situacao !== "Inativo";
-    })
-    .sort((a, b) => (parseDataFolhaTabelaReferencia(b.inicioVigencia) ?? 0) - (parseDataFolhaTabelaReferencia(a.inicioVigencia) ?? 0))[0]?.valor;
+  const consulta = consultarValorReferencia(getFolhaValoresReferenciaPersistidos(), codigo, dataReferencia);
+  return consulta.estado === "ok" ? consulta.valor : undefined;
 };
 
 const getFaixasRppsSalarioMinimo = (percentual: string, dataReferencia?: string): FolhaTabelaReferenciaFaixaRow[] => {
@@ -6142,17 +6121,20 @@ const calcularContribuicaoFaixaReferencia = (
 const getFaixasAutomaticasRppsPorRegra = (
   regraIncidencia?: string,
   percentual = "14",
+  dataReferencia?: string,
 ): FolhaTabelaReferenciaFaixaRow[] => {
   if (
     regraIncidencia === "ATE_TETO_RGPS" ||
     regraIncidencia === "Até o teto do RGPS"
   ) {
+    const teto = getFolhaValorReferenciaNaData("TETO_RGPS", dataReferencia);
+    if (!teto) return [];
     return [
       {
         id: 1,
         ordem: 1,
         faixaInicial: "R$ 0,00",
-        faixaFinal: getFolhaValorReferenciaAtual("TETO_RGPS") ?? "R$ 8.475,55",
+        faixaFinal: teto,
         percentual,
         contribuicaoFaixa: "Calculada pelo motor",
       },
@@ -6163,24 +6145,7 @@ const getFaixasAutomaticasRppsPorRegra = (
     regraIncidencia === "EXCEDENTE_SALARIO_MINIMO" ||
     regraIncidencia === "Sobre excedente do salário mínimo"
   ) {
-    return [
-      {
-        id: 1,
-        ordem: 1,
-        faixaInicial: "R$ 0,00",
-        faixaFinal: "R$ 1.621,00",
-        percentual: "0",
-        contribuicaoFaixa: "Isento",
-      },
-      {
-        id: 2,
-        ordem: 2,
-        faixaInicial: "R$ 1.621,01",
-        faixaFinal: "Em aberto",
-        percentual,
-        contribuicaoFaixa: "Calculada pelo motor",
-      },
-    ];
+    return getFaixasRppsSalarioMinimo(percentual, dataReferencia);
   }
 
   return [
@@ -6195,11 +6160,12 @@ const getFaixasAutomaticasRppsPorRegra = (
   ];
 };
 
-const getFaixasAutomaticasRppsLc700 = (percentual = "14"): FolhaTabelaReferenciaFaixaRow[] => {
+const getFaixasAutomaticasRppsLc700 = (percentual = "14", dataReferencia?: string): FolhaTabelaReferenciaFaixaRow[] => {
   const faixaIsenta =
-    getFolhaValorReferenciaAtual("ISENCAO_LC700") ?? "R$ 4.318,01";
+    getFolhaValorReferenciaNaData("ISENCAO_LC700", dataReferencia);
   const limiteProventos =
-    getFolhaValorReferenciaAtual("LIMITE_PROVENTOS_LC700") ?? "R$ 11.776,34";
+    getFolhaValorReferenciaNaData("LIMITE_PROVENTOS_LC700", dataReferencia);
+  if (!faixaIsenta || !limiteProventos || parseMoedaReferencia(limiteProventos) <= parseMoedaReferencia(faixaIsenta)) return [];
 
   return [
     {
@@ -25991,180 +25957,9 @@ export function PrototiposFolhaTabelasReferenciaPage() {
 }
 
 export function PrototiposFolhaValoresReferenciaPage() {
-  const navigate = useNavigate();
-  const [termoBusca, setTermoBusca] = useState("");
-  const [tipoSelecionado, setTipoSelecionado] = useState("");
-  const [valoresExpandidos, setValoresExpandidos] = useState<string[]>([]);
-  const [feedback, setFeedback] = useState("");
-  const [valoresReferencia] = useState<FolhaValorReferenciaRow[]>(() =>
-    getFolhaValoresReferenciaPersistidos(),
-  );
-  const termoNormalizado = termoBusca.trim().toLowerCase();
-  const valoresFiltrados = valoresReferencia.filter((valor) => {
-    const correspondeAoTermo =
-      !termoNormalizado ||
-      `${valor.codigo} ${valor.nome}`.toLowerCase().includes(termoNormalizado);
-    return correspondeAoTermo && (!tipoSelecionado || valor.tipo === tipoSelecionado);
-  });
-  const tipos = [...new Set(valoresReferencia.map((valor) => valor.tipo))];
-
-  const toggleValorReferencia = (codigo: string) => {
-    setValoresExpandidos((current) =>
-      current.includes(codigo)
-        ? current.filter((item) => item !== codigo)
-        : [...current, codigo],
-    );
-  };
-
-  const renderSituacao = (situacao: FolhaValorReferenciaVigenciaRow["situacao"]) => (
-    <span
-      className={
-        situacao === "Ativo"
-          ? "prototype-badge prototype-badge--success"
-          : "prototype-badge prototype-badge--danger"
-      }
-    >
-      {situacao}
-    </span>
-  );
-
-  const renderAcoesVigencia = (
-    valor: FolhaValorReferenciaRow,
-    vigencia: FolhaValorReferenciaVigenciaRow,
-  ) => (
-    <div className="prototype-folha-referencia-actions">
-      <BotaoIconSeplag
-        type="button"
-        tooltip="Visualizar vigência"
-        icon="pi pi-eye"
-        onClick={() =>
-          setFeedback(`Visualização de ${valor.codigo} ${vigencia.ano} selecionada.`)
-        }
-      />
-      <BotaoIconSeplag
-        severity="warning"
-        type="button"
-        tooltip="Editar vigência"
-        icon="pi pi-pencil"
-        onClick={() =>
-          navigate(getFolhaValorReferenciaEditarVigenciaPath(valor.codigo, vigencia.id))
-        }
-      />
-    </div>
-  );
-
-  return (
-    <PrototypeSystemPage
-      nomeSistema="FOLHA"
-      ambienteSistema="Teste"
-      menuItems={menuFolha}
-    >
-      <div className="prototype-page-content prototype-page-content--white prototype-folha-referencia-page">
-        {feedback ? <div className="prototype-validation-panel">{feedback}</div> : null}
-
-        <div className="prototype-folha-parametros-header">
-          <h2>Valores de Referência</h2>
-          <p>Gerencie os valores utilizados como referência nos cálculos da folha.</p>
-        </div>
-
-        <section className="prototype-folha-referencia-content">
-          <div className="col-12 prototype-folha-referencia-filters prototype-folha-valores-referencia-filters">
-            <label>
-              <span>Valor de referência</span>
-              <input
-                type="search"
-                value={termoBusca}
-                placeholder="Código ou nome"
-                onChange={(event) => setTermoBusca(event.target.value)}
-              />
-            </label>
-            <label>
-              <span>Tipo</span>
-              <select value={tipoSelecionado} onChange={(event) => setTipoSelecionado(event.target.value)}>
-                <option value="">Todos</option>
-                {tipos.map((tipo) => <option key={tipo} value={tipo}>{tipo}</option>)}
-              </select>
-            </label>
-            <div className="prototype-category-clear">
-              <BotaoLimparFiltroSeplag
-                type="button"
-                label="Limpar"
-                icon="pi pi-refresh"
-                onClick={() => {
-                  setTermoBusca("");
-                  setTipoSelecionado("");
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="col-12 prototype-folha-referencia-list prototype-folha-valores-referencia-list">
-            <table className="prototype-folha-valores-referencia-table">
-              <thead>
-                <tr>
-                  <th>Código</th>
-                  <th>Nome</th>
-                  <th>Tipo</th>
-                  <th>Vigência Atual</th>
-                  <th>Valor Atual</th>
-                  <th>Situação</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {valoresFiltrados.map((valor) => {
-                  const vigenciaAtual = valor.vigencias.find((vigencia) => vigencia.situacao === "Ativo") ?? valor.vigencias[0];
-                  const isExpanded = valoresExpandidos.includes(valor.codigo);
-
-                  return (
-                    <Fragment key={valor.codigo}>
-                      <tr>
-                        <td>{valor.codigo}</td>
-                        <td>{valor.nome}</td>
-                        <td>{valor.tipo}</td>
-                        <td>{vigenciaAtual.vigencia}</td>
-                        <td>{vigenciaAtual.valor}</td>
-                        <td>{renderSituacao(vigenciaAtual.situacao)}</td>
-                        <td>
-                          <div className="prototype-folha-referencia-actions">
-                            <BotaoIconSeplag type="button" tooltip="Nova vigência" icon="pi pi-plus" onClick={() => navigate(getFolhaValorReferenciaNovaVigenciaPath(valor.codigo))} />
-                            <BotaoIconSeplag type="button" tooltip="Visualizar vigência atual" icon="pi pi-eye" onClick={() => setFeedback(`Visualização de ${valor.codigo} selecionada.`)} />
-                            <BotaoIconSeplag severity="warning" type="button" tooltip="Editar vigência atual" icon="pi pi-pencil" onClick={() => navigate(getFolhaValorReferenciaEditarVigenciaPath(valor.codigo, vigenciaAtual.id))} />
-                            <button type="button" className="prototype-folha-referencia-expand prototype-folha-referencia-expand--small" aria-label={isExpanded ? "Recolher vigências" : "Expandir vigências"} onClick={() => toggleValorReferencia(valor.codigo)}>
-                              <i className={`pi ${isExpanded ? "pi-chevron-up" : "pi-chevron-down"}`} aria-hidden="true" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                      {isExpanded ? (
-                        <tr className="prototype-folha-valores-referencia-expanded-row">
-                          <td colSpan={7}>
-                            <div className="prototype-folha-referencia-vigencias prototype-folha-valores-referencia-vigencias">
-                              <table>
-                                <thead><tr><th>Ano</th><th>Vigência</th><th>Valor</th><th>Situação</th><th>Ações</th></tr></thead>
-                                <tbody>
-                                  {valor.vigencias.map((vigencia) => (
-                                    <tr key={vigencia.id}>
-                                      <td>{vigencia.ano}</td><td>{vigencia.vigencia}</td><td>{vigencia.valor}</td><td>{renderSituacao(vigencia.situacao)}</td><td>{renderAcoesVigencia(valor, vigencia)}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : null}
-                    </Fragment>
-                  );
-                })}
-                {!valoresFiltrados.length ? <tr><td colSpan={7} className="prototype-empty-table-cell">Nenhum valor de referência encontrado.</td></tr> : null}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
-    </PrototypeSystemPage>
-  );
+  return <PrototypeSystemPage nomeSistema="FOLHA" ambienteSistema="Teste" menuItems={menuFolha}>
+    <ValoresReferenciaListagem carregarValores={carregarFolhaValoresReferencia} documentos={documentosLegaisMock} />
+  </PrototypeSystemPage>;
 }
 
 export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
@@ -26222,12 +26017,13 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
             )?.percentual ??
               vigenciaFormularioBase?.percentualContribuicao ??
               "14",
+            vigenciaFormularioBase?.inicioVigencia,
           );
         }
 
         return vigenciaFormularioBase?.faixasContribuicao?.length
           ? vigenciaFormularioBase.faixasContribuicao
-          : getFaixasAutomaticasRppsPorRegra(vigenciaFormularioBase?.regraIncidencia);
+          : getFaixasAutomaticasRppsPorRegra(vigenciaFormularioBase?.regraIncidencia, vigenciaFormularioBase?.percentualContribuicao ?? "14", vigenciaFormularioBase?.inicioVigencia);
       }
 
       if (isTabelaIrrf) return vigenciaFormularioBase?.faixasContribuicao ?? folhaTabelaReferenciaFaixasIrrfMock;
@@ -26303,7 +26099,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const tetoPrevidenciarioSelecionado = watch("tetoPrevidenciario");
   const percentualContribuicaoSelecionado = watch("percentualContribuicao");
   const inicioVigenciaSelecionado = watch("inicioVigencia");
-  const referenciasTetoRgps = getFolhaValoresReferenciaPersistidos().find((valor) => valor.codigo === "TETO_RGPS")?.vigencias ?? [];
+  const referenciasTetoRgps = getFolhaValoresReferenciaPersistidos().filter((valor) => valor.codigo === "TETO_RGPS").flatMap((valor) => valor.vigencias);
   const tetoRgpsConsultado = consultarTetoRgps(referenciasTetoRgps, inicioVigenciaSelecionado);
   const tetoRgpsNaData = tetoRgpsConsultado.valor;
   const proximaVigenciaRgps = isTabelaRgps ? tabela.vigencias
@@ -26364,17 +26160,17 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
           (option) => option.value === vigenciaFormularioBase.valorReferenciaId,
         )?.label ?? vigenciaFormularioBase.valorReferenciaId
       : undefined;
-  const faixaIsencaoLc700Resumo = getFolhaValorReferenciaAtual("ISENCAO_LC700") ?? "R$ 4.318,01";
+  const faixaIsencaoLc700NaData = getFolhaValorReferenciaNaData("ISENCAO_LC700", inicioVigenciaSelecionado);
+  const faixaIsencaoLc700Resumo = faixaIsencaoLc700NaData ?? "Sem referência vigente";
   const limiteProventosLc700Resumo =
-    getFolhaValorReferenciaAtual("LIMITE_PROVENTOS_LC700") ?? vigenciaFormularioBase?.proventosAte ?? "R$ 11.776,34";
+    getFolhaValorReferenciaNaData("LIMITE_PROVENTOS_LC700", inicioVigenciaSelecionado) ?? "Sem referência vigente";
   const salarioMinimoNaData = getFolhaValorReferenciaNaData("SALARIO_MINIMO", inicioVigenciaSelecionado);
   const limiteProventosNaData = getFolhaValorReferenciaNaData("LIMITE_PROVENTOS_LC700", inicioVigenciaSelecionado);
-  const salarioMinimoResumo = isModeloRppsSalarioMinimo ? salarioMinimoNaData ?? "Sem referência vigente" : getFolhaValorReferenciaAtual("SALARIO_MINIMO") ?? "R$ 1.621,00";
+  const salarioMinimoResumo = salarioMinimoNaData ?? "Sem referência vigente";
+  const tetoRppsNaData = getFolhaValorReferenciaNaData("TETO_RGPS", inicioVigenciaSelecionado);
   const enquadramentoSalarioMinimoResumo = limiteProventosNaData ? `Proventos superiores a ${limiteProventosNaData}` : "Sem limite de proventos vigente";
   const limiteMilitarNaData = getFolhaValorReferenciaNaData("LIMITE_PREV_PM_BM", inicioVigenciaSelecionado);
   const limitePrevidenciarioMilitarResumo = limiteMilitarNaData ?? "Sem referência vigente";
-  const percentualLc700Resumo =
-    vigenciaFormularioBase?.faixasContribuicao?.find((faixa) => faixa.percentual && faixa.percentual !== "0")?.percentual ?? "14";
   const exibirValorReferenciaSeparadoRpps =
     isTabelaRpps &&
     !isValorReferenciaFixoRpps &&
@@ -26392,6 +26188,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const exibirEnquadramentoProventosRpps = false;
   const exibirTetoPrevidenciario = !isTabelaRpps && !isTabelaIrrf;
 
+  const percentuaisRppsPreservados = useRef<Record<number, string>>({});
   useEffect(() => {
     if (!isTabelaRpps) return;
 
@@ -26413,8 +26210,10 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     }
 
     setFaixasVigencia((current) => {
+      current.forEach((faixa) => { percentuaisRppsPreservados.current[faixa.ordem] = faixa.percentual; });
       if (isModeloRppsMilitar) {
-        const faixas = getFaixasRppsMilitar(current, inicioVigenciaSelecionado);
+        const preservadas = [1, 2].map((ordem) => ({ id: ordem, ordem, faixaInicial: "", faixaFinal: "", contribuicaoFaixa: "", percentual: percentuaisRppsPreservados.current[ordem] ?? (ordem === 1 ? "10,5" : "14") }));
+        const faixas = getFaixasRppsMilitar(preservadas, inicioVigenciaSelecionado);
         return JSON.stringify(current) === JSON.stringify(faixas) ? current : faixas;
       }
       if (modeloRppsId === 301) {
@@ -26422,11 +26221,10 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       }
 
       if (isModeloRppsPrevcom) {
-        if (!current.length) return current;
-
         const faixaPrevcom = getFaixasAutomaticasRppsPorRegra(
           "ATE_TETO_RGPS",
-          current[0].percentual || "14",
+          current[0]?.percentual || percentuaisRppsPreservados.current[1] || vigenciaFormularioBase?.faixasContribuicao?.[0]?.percentual || "14",
+          inicioVigenciaSelecionado,
         );
 
         return JSON.stringify(current) === JSON.stringify(faixaPrevcom)
@@ -26436,8 +26234,8 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
 
       if (isModeloRppsLc700) {
         const percentual =
-          current.find((faixa) => faixa.ordem === 2)?.percentual || "14";
-        const faixasLc700 = getFaixasAutomaticasRppsLc700(percentual);
+          current.find((faixa) => faixa.ordem === 2)?.percentual || percentuaisRppsPreservados.current[2] || "14";
+        const faixasLc700 = getFaixasAutomaticasRppsLc700(percentual, inicioVigenciaSelecionado);
 
         return JSON.stringify(current) === JSON.stringify(faixasLc700)
           ? current
@@ -26445,7 +26243,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       }
 
       if (isModeloRppsSalarioMinimo) {
-        const percentual = current.find((faixa) => faixa.ordem === 2)?.percentual ?? percentualContribuicaoSelecionado ?? "14";
+        const percentual = current.find((faixa) => faixa.ordem === 2)?.percentual ?? percentuaisRppsPreservados.current[2] ?? percentualContribuicaoSelecionado ?? "14";
         const faixas = getFaixasRppsSalarioMinimo(percentual, inicioVigenciaSelecionado);
         return JSON.stringify(current) === JSON.stringify(faixas) ? current : faixas;
       }
@@ -26462,6 +26260,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       const faixasAutomaticas = getFaixasAutomaticasRppsPorRegra(
         regraIncidenciaSelecionada,
         percentual,
+        inicioVigenciaSelecionado,
       );
 
       if (
@@ -26513,7 +26312,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     0,
   );
   const referenciaAutomaticaResumo = getReferenciaAutomaticaRppsLabel(regraIncidenciaSelecionada);
-  const valorReferenciaAtualResumo = getFolhaValorReferenciaAtual(valorReferenciaSelecionado);
+  const valorReferenciaAtualResumo = getFolhaValorReferenciaNaData(valorReferenciaSelecionado, inicioVigenciaSelecionado);
   const referenciaRegraTitulo =
     isTabelaRpps && valorReferenciaSelecionado === "TETO_RGPS"
       ? "Teto RGPS"
@@ -26525,10 +26324,10 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
   const referenciaRegraResumo = isTabelaRpps
     ? regraIncidenciaSelecionada === "REMUNERACAO_TOTAL"
       ? "Remuneração total"
-      : valorReferenciaAtualResumo ||
+      : valorReferenciaAtualResumo || (valorReferenciaSelecionado ? "Sem referência vigente" :
       (referenciaAutomaticaResumo === "Não informado"
         ? "Não se aplica"
-        : referenciaAutomaticaResumo)
+        : referenciaAutomaticaResumo))
     : isTabelaRgps ? tetoRgpsNaData ?? "Sem referência vigente" : "R$ 8.475,55";
 
   const isFaixaAberta = (faixa: Pick<FolhaTabelaReferenciaFaixaRow, "faixaFinal">) =>
@@ -26554,7 +26353,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
     setFaixaEditandoId(null);
     setNovaFaixaForm({
       faixaFinal: isModeloRppsPrevcom
-        ? getFolhaValorReferenciaAtual("TETO_RGPS") ?? "R$ 8.475,55"
+        ? tetoRppsNaData ?? ""
         : tetoPrevidenciarioSelecionado || "Em aberto",
       percentual: isTabelaRpps
         ? faixasVigencia[0]?.percentual || "14"
@@ -26610,7 +26409,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         setFeedback("As observações devem possuir no máximo 500 caracteres.");
         return;
       }
-      const referencias = getFolhaValoresReferenciaPersistidos().find((valor) => valor.codigo === "TETO_RGPS")?.vigencias ?? [];
+      const referencias = getFolhaValoresReferenciaPersistidos().filter((valor) => valor.codigo === "TETO_RGPS").flatMap((valor) => valor.vigencias);
       const consulta = consultarTetoRgps(referencias, data.inicioVigencia);
       if (!consulta.valor) {
         setFeedback(consulta.erro ?? "Teto RGPS indisponível.");
@@ -26689,6 +26488,21 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
       return;
     }
     if (isTabelaRpps) {
+      const codigosExigidos = isModeloRppsLc700 ? ["ISENCAO_LC700", "LIMITE_PROVENTOS_LC700"]
+        : isModeloRppsSalarioMinimo ? ["SALARIO_MINIMO", "LIMITE_PROVENTOS_LC700"]
+        : isModeloRppsMilitar ? ["LIMITE_PREV_PM_BM"]
+        : isModeloRppsPrevcom ? ["TETO_RGPS"] : data.valorReferenciaId ? [data.valorReferenciaId] : [];
+      for (const codigo of codigosExigidos) {
+        const consulta = consultarValorReferencia(getFolhaValoresReferenciaPersistidos(), codigo, data.inicioVigencia);
+        if (consulta.estado !== "ok") {
+          setFeedback(`${codigo}: ${consulta.erro} Regularize os Valores de Referência antes de salvar.`);
+          return;
+        }
+      }
+      if (isModeloRppsLc700 && parseMoedaReferencia(getFolhaValorReferenciaNaData("LIMITE_PROVENTOS_LC700", data.inicioVigencia)!) <= parseMoedaReferencia(getFolhaValorReferenciaNaData("ISENCAO_LC700", data.inicioVigencia)!)) {
+        setFeedback("O Limite de Proventos LC 700 deve ser superior à faixa de isenção.");
+        return;
+      }
       if (!data.aplicavelPara?.length) {
         setFeedback("Informe ao menos um público em Aplicável para.");
         return;
@@ -26759,7 +26573,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
         if (
           isModeloRppsPrevcom &&
           faixaUnica.faixaFinal !==
-            (getFolhaValorReferenciaAtual("TETO_RGPS") ?? "R$ 8.475,55")
+            tetoRppsNaData
         ) {
           setFeedback("A faixa final deve corresponder ao Teto RGPS vigente.");
           return;
@@ -26899,7 +26713,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
           : data.valorReferenciaId || modeloRppsSalvo.valorReferenciaId,
         limiteProventos: data.limiteProventos,
         proventosAPartirDe: isModeloRppsSalarioMinimo
-          ? formatMoedaReferencia(parseMoedaReferencia(limiteProventosNaData) + 0.01)
+          ? formatMoedaReferencia(parseMoedaReferencia(limiteProventosNaData!) + 0.01)
           : data.proventosAPartirDe || modeloRppsSalvo.proventosAPartirDe,
         proventosAte: data.proventosAte || modeloRppsSalvo.proventosAte,
         tetoPrevidenciario: undefined,
@@ -27471,7 +27285,7 @@ export function PrototiposFolhaTabelaReferenciaVigenciaFormPage() {
                         <>
                           <div>
                             <span>Referência da Regra</span>
-                            <strong>Teto RGPS: {getFolhaValorReferenciaAtual("TETO_RGPS") ?? "Não informado"}</strong>
+                            <strong>Teto RGPS: {tetoRppsNaData ?? "Sem referência vigente"}</strong>
                           </div>
                           <div>
                             <span>Base de cálculo</span>
@@ -27896,230 +27710,12 @@ export function PrototiposFolhaValoresReferenciaIrrfPage() {
 }
 
 export function PrototiposFolhaValorReferenciaVigenciaFormPage() {
-  const navigate = useNavigate();
-  const { codigo, vigenciaId } = useParams();
-  const valorReferencia =
-    getFolhaValoresReferenciaPersistidos().find((item) => item.codigo === codigo) ??
-    getFolhaValoresReferenciaPersistidos()[0];
-  const vigenciaAtual = valorReferencia.vigencias.find(
-    (vigencia) => String(vigencia.id) === vigenciaId,
-  ) ?? valorReferencia.vigencias[0];
-  const isEditing = Boolean(vigenciaId);
-  const proximoInicioVigencia = (() => {
-    if (isEditing) return "";
-    const ultimaVigencia = [...valorReferencia.vigencias]
-      .filter((vigencia) => vigencia.fimVigencia)
-      .sort((a, b) => (b.fimVigencia ?? "").split("/").reverse().join("").localeCompare((a.fimVigencia ?? "").split("/").reverse().join("")))[0];
-    if (!ultimaVigencia?.fimVigencia) return "";
-    return new Date(
-      new Date(ultimaVigencia.fimVigencia.split("/").reverse().join("-")).getTime() + 86400000,
-    ).toLocaleDateString("pt-BR");
-  })();
-  const [feedback, setFeedback] = useState("");
-  const { control, handleSubmit } = useForm<FolhaValorReferenciaVigenciaForm>({
-    defaultValues: {
-      codigo: valorReferencia.codigo,
-      nome: valorReferencia.nome,
-      tipo: valorReferencia.tipo,
-      valor: isEditing ? vigenciaAtual.valor : "",
-      inicioVigencia: isEditing ? vigenciaAtual.inicioVigencia : proximoInicioVigencia,
-      fimVigencia: isEditing ? vigenciaAtual.fimVigencia ?? "" : "",
-      observacoes: "",
-    },
-  });
-
-  const parseDataVigenciaValorReferencia = (valor?: string) => {
-    if (!valor) return undefined;
-    const [dia, mes, ano] = valor.split("/").map(Number);
-    if (!dia || !mes || !ano) return undefined;
-    return new Date(ano, mes - 1, dia).getTime();
-  };
-
-  const vigenciasValorSobrepostas = (
-    inicioA?: string,
-    fimA?: string,
-    inicioB?: string,
-    fimB?: string,
-  ) => {
-    const inicio1 = parseDataVigenciaValorReferencia(inicioA);
-    const fim1 = parseDataVigenciaValorReferencia(fimA) ?? Number.POSITIVE_INFINITY;
-    const inicio2 = parseDataVigenciaValorReferencia(inicioB);
-    const fim2 = parseDataVigenciaValorReferencia(fimB) ?? Number.POSITIVE_INFINITY;
-
-    if (inicio1 === undefined || inicio2 === undefined) return false;
-    return inicio1 <= fim2 && inicio2 <= fim1;
-  };
-
-  const salvarValorReferencia = (data: FolhaValorReferenciaVigenciaForm) => {
-    if (!data.valor?.trim()) {
-      setFeedback("Informe o Valor.");
-      return;
-    }
-
-    if (!data.inicioVigencia?.trim()) {
-      setFeedback("Informe o Início da Vigência.");
-      return;
-    }
-
-    const vigenciaAtualId = Number(vigenciaId);
-    const temSobreposicao = valorReferencia.vigencias.some((vigencia) => {
-      if (vigencia.id === vigenciaAtualId) return false;
-      return vigenciasValorSobrepostas(
-        data.inicioVigencia,
-        data.fimVigencia,
-        vigencia.inicioVigencia,
-        vigencia.fimVigencia,
-      );
-    });
-
-    if (temSobreposicao) {
-      setFeedback(
-        "Já existe vigência sobreposta para o valor de referência " + valorReferencia.codigo + ".",
-      );
-      return;
-    }
-
-    const inicioVigencia = parseDataVigenciaValorReferencia(data.inicioVigencia)!;
-    const vigenciaAnterior = valorReferencia.vigencias
-      .filter((vigencia) => vigencia.id !== vigenciaAtualId && vigencia.fimVigencia)
-      .filter((vigencia) => (parseDataVigenciaValorReferencia(vigencia.fimVigencia) ?? Infinity) < inicioVigencia)
-      .sort((a, b) => (parseDataVigenciaValorReferencia(b.fimVigencia) ?? 0) - (parseDataVigenciaValorReferencia(a.fimVigencia) ?? 0))[0];
-    if (vigenciaAnterior?.fimVigencia) {
-      const inicioEsperado = new Date(
-        parseDataVigenciaValorReferencia(vigenciaAnterior.fimVigencia)! + 86400000,
-      ).toLocaleDateString("pt-BR");
-      if (data.inicioVigencia !== inicioEsperado) {
-        setFeedback(`A nova vigência deve iniciar em ${inicioEsperado}, dia seguinte ao término da vigência anterior.`);
-        return;
-      }
-    }
-
-    const novaVigencia: FolhaValorReferenciaVigenciaRow = {
-      id: Number.isFinite(vigenciaAtualId) && vigenciaAtualId > 0 ? vigenciaAtualId : Date.now(),
-      ano: data.inicioVigencia.split("/")[2],
-      vigencia: formatarPeriodoVigenciaReferencia(data.inicioVigencia, data.fimVigencia),
-      valor: data.valor,
-      inicioVigencia: data.inicioVigencia,
-      fimVigencia: data.fimVigencia,
-      situacao: calcularSituacaoVigenciaReferencia(data.inicioVigencia, data.fimVigencia),
-    };
-    const valoresAtualizados = getFolhaValoresReferenciaPersistidos().map((valor) =>
-      valor.codigo !== valorReferencia.codigo
-        ? valor
-        : {
-            ...valor,
-            vigencias: isEditing
-              ? valor.vigencias.map((vigencia) =>
-                  vigencia.id === vigenciaAtualId ? novaVigencia : vigencia,
-                )
-              : [...valor.vigencias, novaVigencia],
-          },
-    );
-    salvarFolhaValoresReferencia(valoresAtualizados);
-    setFeedback("Registro salvo com sucesso!");
-    window.setTimeout(() => navigate(FOLHA_VALORES_REFERENCIA_BASE_PATH), 500);
-  };
-
-  return (
-    <PrototypeSystemPage
-      nomeSistema="FOLHA"
-      ambienteSistema="Teste"
-      menuItems={menuFolha}
-    >
-      <form onSubmit={handleSubmit(salvarValorReferencia)}>
-        <div className="prototype-page-content prototype-page-content--white prototype-folha-referencia-form-page">
-          {feedback ? (
-            <div className="prototype-validation-panel">{feedback}</div>
-          ) : null}
-
-          <CardSeplag
-            title={"VALOR DE REFERÊNCIA - " + valorReferencia.codigo}
-            cols="12"
-            cardHeaderClassNames="prototype-regime-card"
-          >
-            <div className="col-12 prototype-folha-referencia-vigencia-form">
-              <div className="prototype-folha-referencia-vigencia-panel">
-                <div className="prototype-folha-referencia-vigencia-panel-title">
-                  <h3>{isEditing ? "Editar Vigência" : "Nova Vigência"}</h3>
-                </div>
-                <div className="grid prototype-folha-referencia-vigencia-fields">
-                  <TextFieldSeplag
-                    name="codigo"
-                    control={control}
-                    label="Código do Valor de Referência"
-                    disabled
-                    cols="12 12 4"
-                    getFormErrorMessage={() => null}
-                  />
-                  <TextFieldSeplag
-                    name="nome"
-                    control={control}
-                    label="Nome do Valor de Referência"
-                    disabled
-                    cols="12 12 5"
-                    getFormErrorMessage={() => null}
-                  />
-                  <TextFieldSeplag
-                    name="tipo"
-                    control={control}
-                    label="Tipo"
-                    disabled
-                    cols="12 12 3"
-                    getFormErrorMessage={() => null}
-                  />
-                  <TextFieldSeplag
-                    name="valor"
-                    control={control}
-                    label="Valor"
-                    required
-                    placeholder="Ex.: R$ 1.621,00"
-                    cols="12 12 4"
-                    getFormErrorMessage={() => null}
-                  />
-                  <TextFieldSeplag
-                    name="inicioVigencia"
-                    control={control}
-                    label="Início da Vigência"
-                    required
-                    cols="12 12 4"
-                    getFormErrorMessage={() => null}
-                  />
-                  <TextFieldSeplag
-                    name="fimVigencia"
-                    control={control}
-                    label="Fim da Vigência"
-                    placeholder="dd/mm/aaaa"
-                    cols="12 12 4"
-                    getFormErrorMessage={() => null}
-                  />
-                  <TextAreaFieldSeplag
-                    name="observacoes"
-                    control={control}
-                    label="Observações"
-                    placeholder="Observações..."
-                    cols="12"
-                    rows={4}
-                    maxLength={500}
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-
-                <div className="prototype-category-form-footer prototype-folha-referencia-vigencia-footer">
-                  <BotaoVoltarSeplag
-                    type="button"
-                    label="Voltar"
-                    onClick={() => navigate(FOLHA_VALORES_REFERENCIA_BASE_PATH)}
-                  />
-                  <BotaoSalvarSeplag type="submit" label="Salvar" />
-                </div>
-              </div>
-            </div>
-          </CardSeplag>
-        </div>
-      </form>
-    </PrototypeSystemPage>
-  );
+  const location = useLocation();
+  return <PrototypeSystemPage nomeSistema="FOLHA" ambienteSistema="Teste" menuItems={menuFolha}>
+    <ValoresReferenciaFormulario key={location.pathname} carregarValores={carregarFolhaValoresReferencia} salvarValores={salvarFolhaValoresReferencia} documentos={documentosLegaisMock} />
+  </PrototypeSystemPage>;
 }
+
 export function PrototiposFolhaGruposFolhaPage() {
   const navigate = useNavigate();
   const [grupos] = useState<GrupoFolhaRow[]>(() =>

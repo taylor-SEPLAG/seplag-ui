@@ -1,3 +1,5 @@
+import { consultarValorReferencia } from "./valoresReferencia.ts";
+
 export const irrfData = (texto?: string): number | undefined => {
   if (!texto || !/^\d{2}\/\d{2}\/\d{4}$/.test(texto)) return undefined;
   const [dia, mes, ano] = texto.split("/").map(Number);
@@ -126,23 +128,13 @@ const referenciasIrrf = [
   ["IRRF_CONSTANTE_REDUCAO", "Constante da fórmula"],
   ["IRRF_COEFICIENTE_REDUCAO", "Coeficiente da fórmula"],
 ] as const;
-type ValorIrrf = { codigo: string; nome: string; vigencias: { inicioVigencia: string; fimVigencia?: string; situacao: string; valor: string }[] };
+type ValorIrrf = { codigo: string; nome: string; tipo?: string; vigencias: { inicioVigencia: string; fimVigencia?: string; fimVigenciaExclusivo?: boolean; situacao: string; valor: string }[] };
 export const consultarReferenciasIrrf = (valores: ValorIrrf[], dataReferencia?: string) => {
   const data = irrfData(dataReferencia);
   return referenciasIrrf.map(([codigo, nome]) => {
     const valor = { codigo, nome };
     if (data === undefined) return { valor, erro: "Informe uma data inicial válida para consultar." };
-    const candidatas = valores.filter((item) => item.codigo === codigo).flatMap((item) => item.vigencias)
-      .filter((registro) => {
-        const inicio = irrfData(registro.inicioVigencia);
-        const fim = registro.fimVigencia ? irrfData(registro.fimVigencia) : Infinity;
-        return registro.situacao !== "Inativo" && inicio !== undefined && fim !== undefined && inicio <= data && data <= fim;
-      });
-    if (candidatas.length > 1) return { valor, erro: "Conflito: mais de uma vigência aplicável." };
-    const vigencia = candidatas[0];
-    if (!vigencia) return { valor, erro: "Sem vigência aplicável." };
-    const numero = irrfNumero(vigencia.valor, codigo === "IRRF_COEFICIENTE_REDUCAO" ? 6 : 2);
-    if (!Number.isFinite(numero) || numero < 0) return { valor, erro: "Valor de referência inválido." };
-    return { valor, vigencia };
+    const consulta = consultarValorReferencia(valores, codigo, dataReferencia);
+    return consulta.estado === "ok" ? { valor, vigencia: consulta.vigencia } : { valor, erro: consulta.erro };
   });
 };
