@@ -1,3 +1,4 @@
+import { SigepAppearanceScope, SigepAppearanceMenu } from "./aparencia/SigepAppearanceControls";
 import { carregarGruposCompetencia, salvarGrupoCompetencia, excluirGrupoCompetencia, salvarConjuntoCompetencia, formatarCompetenciaGrupo } from "./folhaPagamento/gruposCalculoCompetencia";
 import { AbrangenciaProcessamentoFolha } from "./folhaPagamento/AbrangenciaProcessamentoFolha";
 import { AlertaConflitoAbrangencia } from "./folhaPagamento/AlertaConflitoAbrangencia";
@@ -1173,7 +1174,7 @@ export function PrototypeSystemPage({
   const usarLayoutSigep = ["GESTÃO DE PESSOAS", "SIGEP", "FOLHA"].includes(nomeSistema);
   return (
     <PerfilVariacaoHeaderContext.Provider value={perfilHeaderDestino}>
-    <div className="prototype-shell">
+    <SigepAppearanceScope enabled={usarLayoutSigep}>
       <LayoutSeplag
         nomeSistema={nomeSistema}
         ambienteSistema={ambienteSistema}
@@ -1190,6 +1191,7 @@ export function PrototypeSystemPage({
         mascotePerfil={nomeSistema === "FOLHA" ? "onca" : usarLayoutSigep ? "capivara" : undefined}
         profileExtraActions={profileExtraActions}
         topbarExtraContent={usarLayoutSigep ? <div className="sigep-profile-slot" ref={setPerfilHeaderDestino} /> : undefined}
+        topbarAppearanceControl={usarLayoutSigep ? <SigepAppearanceMenu /> : undefined}
         numrVinculoAtual={2}
         vinculos={vinculos}
         onLogout={() => {}}
@@ -1203,7 +1205,7 @@ export function PrototypeSystemPage({
           </div>
         )}
       </LayoutSeplag>
-    </div>
+    </SigepAppearanceScope>
     </PerfilVariacaoHeaderContext.Provider>
   );
 }

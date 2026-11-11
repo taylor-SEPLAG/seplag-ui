@@ -130,16 +130,15 @@ it("o card apresenta o próximo prazo da origem e abre o calendário de consulta
   expect(screen.getByText("Calendário de consulta")).toBeTruthy();
 });
 
-it("personaliza a saudação, ordena os módulos e não cria rota para agrupador indisponível", () => {
+it("apresenta a saudação atual, ordena os módulos e não cria rota para agrupador indisponível", () => {
   montar();
-  const saudacao = screen.getByRole("heading", { name: "Olá, Roberto!" });
+  const saudacao = screen.getByRole("heading", { name: "Olá, Servidor(a)!" });
   expect(saudacao.textContent).toContain("👋");
   expect(saudacao.querySelector('[aria-hidden="true"]')).toBeTruthy();
   const acessos = screen
     .getAllByRole("link")
     .filter((link) => link.textContent?.includes("Acessar"));
   expect(acessos.map((link) => link.getAttribute("href"))).toEqual([
-    "/painel",
     "/pessoas",
     "/vinculos",
   ]);
@@ -171,19 +170,19 @@ it("prioriza favoritos sem navegar e restaura a ordem ao desmarcar", () => {
       .filter((link) => link.textContent?.includes("Acessar"))
       .map((link) => link.getAttribute("href"));
   fireEvent.click(
-    screen.getByRole("button", { name: "Adicionar aos favoritos: Pessoas" }),
+    screen.getByRole("button", { name: "Adicionar aos favoritos: Vínculos Funcionais" }),
   );
-  expect(acessos()).toEqual(["/pessoas", "/painel", "/vinculos"]);
+  expect(acessos()).toEqual(["/vinculos", "/pessoas"]);
   expect(
     screen
-      .getByRole("button", { name: "Remover dos favoritos: Pessoas" })
+      .getByRole("button", { name: "Remover dos favoritos: Vínculos Funcionais" })
       .getAttribute("aria-pressed"),
   ).toBe("true");
-  expect(screen.getByRole("heading", { name: "Olá, Roberto!" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Olá, Servidor(a)!" })).toBeTruthy();
   fireEvent.click(
-    screen.getByRole("button", { name: "Remover dos favoritos: Pessoas" }),
+    screen.getByRole("button", { name: "Remover dos favoritos: Vínculos Funcionais" }),
   );
-  expect(acessos()).toEqual(["/painel", "/pessoas", "/vinculos"]);
+  expect(acessos()).toEqual(["/pessoas", "/vinculos"]);
   expect(
     screen.queryByRole("button", { name: /favoritos: Pasta Funcional/ }),
   ).toBeNull();

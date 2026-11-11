@@ -16,6 +16,7 @@ export interface AppTopbarSeplagProps {
   hideMenuToggle?: boolean;
   searchMenuItems?: IMenuSeplag[];
   extraContent?: React.ReactNode;
+  appearanceControl?: React.ReactNode;
 }
 export const AppTopbarSeplag = (props: AppTopbarSeplagProps) => {
   return (
@@ -45,6 +46,7 @@ export const AppTopbarSeplag = (props: AppTopbarSeplagProps) => {
         >
           {props.nomeSistema} - {props.ambienteSistema}
         </span>
+        {props.appearanceControl}
         <AppSwitcherSeplag
           items={props.systemas}
           currentSystem={props.nomeSistema}

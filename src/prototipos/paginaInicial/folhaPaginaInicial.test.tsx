@@ -60,7 +60,7 @@ it("exibe cards dos sete menus principais da Folha com destinos disponíveis", (
 
 it("exibe o modelo da página inicial com somente acessos da Folha e menu próprio", () => {
   montar();
-  expect(screen.getByRole("heading", { name: "Olá, Sigepito!" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Olá, Servidor(a)!" })).toBeTruthy();
   expect(
     screen.getByRole("heading", { name: "Avisos importantes" }),
   ).toBeTruthy();
@@ -101,7 +101,7 @@ it("abre avisos e retorna à página inicial mantendo o contexto da Folha", () =
       .every((l) => l.getAttribute("href") === FOLHA_PAGINA_INICIAL_PATH),
   ).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
-  expect(screen.getByRole("heading", { name: "Olá, Sigepito!" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Olá, Servidor(a)!" })).toBeTruthy();
 });
 it("abre a consulta de cronograma da Folha sem acessar a configuração ou trocar de módulo", () => {
   montar();
@@ -116,25 +116,25 @@ it("abre a consulta de cronograma da Folha sem acessar a configuração ou troca
       .every((l) => l.getAttribute("href") === FOLHA_PAGINA_INICIAL_PATH),
   ).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
-  expect(screen.getByRole("heading", { name: "Olá, Sigepito!" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Olá, Servidor(a)!" })).toBeTruthy();
 });
 it("prioriza favoritos da Folha sem navegar nem inserir cards de Gestão de Pessoas", () => {
   montar();
   fireEvent.click(
     screen.getByRole("button", {
-      name: "Adicionar aos favoritos: Ficha Financeira",
+      name: "Adicionar aos favoritos: Relatórios",
     }),
   );
   expect(acessos()[0].getAttribute("aria-label")).toBe(
-    "Acessar Ficha Financeira",
+    "Acessar Relatórios",
   );
-  expect(screen.getByRole("heading", { name: "Olá, Sigepito!" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Olá, Servidor(a)!" })).toBeTruthy();
   fireEvent.click(
     screen.getByRole("button", {
-      name: "Remover dos favoritos: Ficha Financeira",
+      name: "Remover dos favoritos: Relatórios",
     }),
   );
   expect(acessos()[0].getAttribute("aria-label")).toBe(
-    "Acessar Painel Informativo",
+    "Acessar Rubricas",
   );
 });

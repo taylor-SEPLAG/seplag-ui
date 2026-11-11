@@ -47,6 +47,7 @@ export interface LayoutSeplagProps {
   onSelecionarVinculo: (vinculo: IVinculoSeplag) => void;
   profileExtraActions?: ReactNode;
   topbarExtraContent?: ReactNode;
+  topbarAppearanceControl?: ReactNode;
 }
 
 export function LayoutSeplag({
@@ -73,6 +74,7 @@ export function LayoutSeplag({
   onSelecionarVinculo,
   profileExtraActions,
   topbarExtraContent,
+  topbarAppearanceControl,
 }: Readonly<LayoutSeplagProps>) {
   const [layoutColorMode] = useState("light");
   const [staticMenuInactive, setStaticMenuInactive] = useState(() => {
@@ -227,6 +229,7 @@ export function LayoutSeplag({
           hideMenuToggle={compactNavigation}
           searchMenuItems={compactNavigation ? menuItems : undefined}
           extraContent={topbarExtraContent}
+          appearanceControl={topbarAppearanceControl}
         />
         <div className="layout-scroll">
           <div className="layout-content">{children ?? <Outlet />}</div>
