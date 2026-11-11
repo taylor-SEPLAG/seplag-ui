@@ -6621,6 +6621,16 @@
   font-weight: 700;
 }
 
+.prototype-folha-referencia-nova-faixa-grid--irrf {
+  grid-template-columns: minmax(80px, 0.5fr) repeat(2, minmax(150px, 1fr)) minmax(110px, 0.65fr) minmax(200px, 1.2fr);
+  align-items: start;
+}
+
+.prototype-folha-referencia-nova-faixa-grid--irrf small {
+  font-weight: 400;
+  line-height: 1.4;
+}
+
 .prototype-folha-referencia-nova-faixa-grid label strong {
   color: #c62828;
 }
