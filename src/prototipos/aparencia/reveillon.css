@@ -1,0 +1,83 @@
+﻿/* New Year: same components, separate decorative layers. */
+[data-sigep-appearance="reveillon"] { --sigep-reveillon-navy:#071a32; --sigep-reveillon-gold:#dbad43; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-topbar-compact { position:relative; isolation:isolate; background:linear-gradient(110deg,#0c2647,#06142b); border-bottom:1px solid #cca351; }
+[data-sigep-appearance="reveillon"] .layout-topbar-compact::before { content:""; pointer-events:none; position:absolute; top:calc(100% - 6px); left:0; right:0; height:30px; z-index:1; background:url('./reveillon-luzes.svg') repeat-x center top/320px 32px; }
+[data-sigep-appearance="reveillon"] .sigep-appearance-trigger { border:1px solid #f0bd58; color:#ffe69f; background:#ffffff0b; box-shadow:inset 0 0 0 1px #dba44055,0 0 9px #d6a95125; }
+[data-sigep-appearance="reveillon"] .sigep-appearance-menu [aria-checked="true"] { background:linear-gradient(110deg,#fff2c9,#efc96d); border-color:#e0b452; color:#34270e; }
+[data-sigep-appearance="reveillon"] .sigep-appearance-menu [aria-checked="true"] > .sigep-appearance-radio { border-color:#956b11; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-sidebar { background:linear-gradient(110deg,#0b213e,#051329); }
+[data-sigep-appearance="reveillon"] .layout-sidebar-header .layout-logo img { filter:url('./reveillon-brand.svg#navy'); }
+[data-sigep-appearance="reveillon"] .layout-sidebar::before { content:""; pointer-events:none; position:absolute; inset:60px 0 0; width:auto; height:auto; opacity:.55; background:url('./reveillon-fogos.svg') left top/210px 280px repeat-y; }
+[data-sigep-appearance="reveillon"] .layout-sidebar .layout-menu-container { margin-bottom:112px; }
+[data-sigep-appearance="reveillon"] .layout-sidebar::after { content:""; pointer-events:none; position:absolute; z-index:0; bottom:0; left:auto; right:9px; width:132px; height:132px; background:url('./reveillon-decoracoes-v1.png') 0 100%/200% 200% no-repeat; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-sidebar .layout-menu li > a { min-height:38px; padding:10px 14px; font-size:12.5px; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-submenu-toggle { width:38px; height:38px; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-profile-expanded { background:#0d2442; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-sidebar .layout-menu li[data-route-active="true"] > a,
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-sidebar .layout-menu li > a.active-route { background:linear-gradient(110deg,#dfab39,#ffe39a,#dcaa39); border:1px solid #f6d37d; color:#171f2b; border-radius:7px; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-menu li[data-route-active="true"] > a > i:first-child,
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-menu li[data-route-active="true"] > .layout-submenu-toggle { color:#172137 !important; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-profile { padding:12px 8px 10px; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-profile-avatar { position:relative; width:136px; height:136px; padding:0; border-radius:0; background:transparent; overflow:visible; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation .layout-profile-avatar .sigep-mascote-avatar { width:136px; height:136px; background:transparent; }
+[data-sigep-appearance="reveillon"] .layout-profile-avatar .sigep-mascote-avatar > span,
+[data-sigep-appearance="reveillon"] .layout-profile-avatar > img { visibility:hidden; }
+[data-sigep-appearance="reveillon"] .layout-profile-avatar::before { content:""; pointer-events:none; position:absolute; inset:-3px; z-index:1; background:url('./reveillon-avatar-v1.png') center/contain no-repeat; }
+[data-sigep-appearance="reveillon"] .layout-compact-navigation.layout-navigation-collapsed .layout-profile-avatar,
+[data-sigep-appearance="reveillon"] .layout-compact-navigation.layout-navigation-collapsed .layout-profile-avatar .sigep-mascote-avatar { width:46px; height:46px; }
+[data-sigep-appearance="reveillon"] .layout-navigation-collapsed .layout-menu-container { margin-bottom:38px; }
+[data-sigep-appearance="reveillon"] .layout-navigation-collapsed .layout-sidebar::after { width:42px; height:42px; right:10px; }
+[data-sigep-appearance="reveillon"] .sigep-pagina-inicial { padding:0 28px 26px; background:#faf8f3; color:#101d36; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho { position:relative; isolation:isolate; overflow:hidden; display:flex; align-items:flex-start; min-height:205px; margin:0 -28px 18px; padding:43px 35px 37px; gap:20px; background:#06142c; border-radius:0; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho::before { content:""; pointer-events:none; position:absolute; inset:0; z-index:-1; background:url('./reveillon-banner-v2.png') center 50%/cover no-repeat; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho::after { content:""; pointer-events:none; position:absolute; inset:0; z-index:-1; opacity:.6; background-image:radial-gradient(circle at 57% 23%,#fff1b5 1px,transparent 3px),radial-gradient(circle at 78% 66%,#ffd868 1px,transparent 3px),radial-gradient(circle at 14% 82%,#f3ce72 1px,transparent 3px); }
+[data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho > div:first-child { max-width:34%; flex:1; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho h1 { color:#fff; font-size:30px; line-height:1.2; margin-bottom:10px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho p { color:#f3f5fa; font-size:13px; line-height:1.5; max-width:390px; }
+.sigep-reveillon-greeting { position:absolute; pointer-events:none; top:36px; left:55%; width:22%; color:#ffe09a; text-align:center; font:italic 52px/.95 "Brush Script MT","Segoe Script",Georgia,cursive; text-shadow:0 0 9px #e6b852a0,0 2px 3px #1c163b; transform:rotate(-6deg); }
+.sigep-reveillon-greeting strong { display:block; font-size:1.28em; font-weight:500; margin-top:5px; letter-spacing:2px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-data { position:absolute; right:22px; bottom:8px; color:#f9f4df; font-size:12px; font-weight:600; padding:4px 8px; background:#06142ca0; border-radius:4px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-informacoes { gap:22px; margin-bottom:18px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-informativo { min-height:142px; padding:18px; gap:16px; border-radius:14px; border-color:#e7d8b5; box-shadow:0 3px 10px #815a1e13; background:linear-gradient(120deg,#fff,#faf5e9); }
+[data-sigep-appearance="reveillon"] .sigep-inicial-avisos { background:url('./reveillon-fogos.svg') right top/180px 170px no-repeat,linear-gradient(120deg,#fff,#f3f6fa,#fff7e8); }
+[data-sigep-appearance="reveillon"] .sigep-inicial-cronograma { background:url('./reveillon-fogos.svg') right top/180px 170px no-repeat,linear-gradient(120deg,#fff,#fff4de); }
+[data-sigep-appearance="reveillon"] .sigep-inicial-informativo > div { padding-right:105px; z-index:1; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-informativo .sigep-inicial-icone { width:56px; height:56px; border-radius:12px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-informativo h2 { color:#101d36; font-size:19px; margin-bottom:6px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-informativo p { color:#29364d; font-size:12.5px; line-height:1.5; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-informativo a { margin-top:10px; color:#192a47; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-informativo::before { content:""; pointer-events:none; position:absolute; left:0; right:0; bottom:0; top:auto; width:100%; height:46px; opacity:1; border-radius:0; background:url('./reveillon-fita.svg') bottom/100% 100% no-repeat; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-informativo::after { content:""; pointer-events:none; position:absolute; z-index:0; right:5px; bottom:4px; left:auto; top:auto; width:115px; height:115px; opacity:1; border-radius:0; background:url('./reveillon-decoracoes-v1.png') 100% 0/200% 200% no-repeat; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-cronograma::after { background-position:0 100%; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-secao { margin-bottom:14px; padding:0 4px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-secao h2 { color:#101d36; font-size:23px; margin:0 0 3px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-secao p { color:#35425a; font-size:12px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-modulos { gap:14px 18px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-card-wrapper .sigep-inicial-modulo { min-height:126px; padding:16px 14px 15px; border-radius:14px; border-color:#ead8ae; background:linear-gradient(120deg,#fff,#fffcf5); box-shadow:0 2px 5px #805c1d13; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-modulo .sigep-module-navigation-icon { width:52px; height:52px; border-radius:12px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-modulo .sigep-module-navigation-icon i { font-size:27px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-modulo .sigep-module-navigation-body { padding-right:0; z-index:1; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-modulo .sigep-module-navigation-body h3 { color:#101d36; font-size:14px; line-height:1.3; margin-bottom:5px; padding-right:28px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-modulo .sigep-module-navigation-body p { color:#344057; font-size:12px; line-height:1.4; padding-right:12px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-modulo .sigep-module-navigation-action { color:#162a4d; font-size:12px; margin-top:9px; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-modulos .sigep-module-navigation-card::before { content:""; pointer-events:none; position:absolute; z-index:0; top:auto; bottom:0; left:0; right:0; width:100%; height:36px; opacity:1; border-radius:0; background:url('./reveillon-fita.svg') bottom/100% 100% no-repeat; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-modulos .sigep-module-navigation-card::after { content:""; pointer-events:none; position:absolute; z-index:1; top:2px; right:33px; left:auto; bottom:auto; width:35px; height:35px; opacity:.8; border-radius:0; background:url('./reveillon-decoracoes-v1.png') 0 0/200% 200% no-repeat; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-favorito { top:7px; right:5px; z-index:2; width:25px; height:25px; color:#263951; }
+[data-sigep-appearance="reveillon"] .sigep-inicial-card-wrapper:is(:hover,:focus-within) > a.sigep-inicial-modulo { border-color:#c99a35; background-color:#fff7e0; box-shadow:0 5px 16px #c1973533; }
+@media(min-width:1101px) { [data-sigep-appearance="reveillon"] .sigep-inicial-modulos { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+@media(max-width:1100px) { [data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho > div:first-child { max-width:36%; } [data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho h1 { font-size:25px; } .sigep-reveillon-greeting { left:54%; top:52px; font-size:38px; } [data-sigep-appearance="reveillon"] .sigep-inicial-informativo > div { padding-right:74px; } [data-sigep-appearance="reveillon"] .sigep-inicial-informativo::after { width:88px; height:88px; } }
+@media(max-width:650px) {
+  [data-sigep-appearance="reveillon"] .layout-topbar-module > span { max-width:100px; font-size:12px !important; margin-right:0 !important; }
+  [data-sigep-appearance="reveillon"] .sigep-pagina-inicial { padding:0 14px 20px; }
+  [data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho { flex-direction:column; margin:0 -14px 16px; min-height:370px; padding:40px 22px 160px; }
+  [data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho::before { background-size:auto 330px; background-position:44% bottom; }
+  [data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho > div:first-child { max-width:100%; }
+  [data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho h1 { font-size:27px; }
+  .sigep-reveillon-greeting { top:auto; bottom:53px; left:auto; right:14px; width:44%; font-size:33px; }
+  [data-sigep-appearance="reveillon"] .sigep-inicial-data { right:14px; bottom:9px; font-size:11px; }
+  [data-sigep-appearance="reveillon"] .sigep-inicial-informacoes { gap:14px; }
+}
+@keyframes sigep-reveillon-sparkles { 0%,100% { opacity:.35; } 50% { opacity:.95; } }
+@keyframes sigep-reveillon-greeting-glow { 0%,100% { text-shadow:0 0 7px #e6b85280,0 2px 3px #1c163b; } 50% { text-shadow:0 0 15px #f8c862b0,0 2px 3px #1c163b; } }
+@media(prefers-reduced-motion:no-preference) { [data-sigep-appearance="reveillon"] .sigep-inicial-cabecalho::after { animation:sigep-reveillon-sparkles 2.8s ease-in-out 3; } [data-sigep-appearance="reveillon"] .sigep-reveillon-greeting { animation:sigep-reveillon-greeting-glow 2.8s ease-in-out 3; } }
+@media(prefers-reduced-motion:reduce) { [data-sigep-appearance="reveillon"] *, [data-sigep-appearance="reveillon"] *::before, [data-sigep-appearance="reveillon"] *::after { animation:none !important; transition:none !important; } }

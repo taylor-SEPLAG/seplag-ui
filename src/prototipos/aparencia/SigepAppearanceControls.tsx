@@ -1,17 +1,17 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { setSigepAppearance, useSigepAppearance, type SigepAppearance } from "./appearanceStore";
+import { setSigepAppearance, useSigepAppearance, SIGEP_APPEARANCE_OPTIONS } from "./appearanceStore";
 import "./sigepAppearance.css";
+import "./reveillon.css";
+import "./noturno.css";
 export function SigepAppearanceScope({ enabled, children }: { enabled: boolean; children: ReactNode }) {
   const appearance = useSigepAppearance();
   return <div className="prototype-shell" data-sigep-appearance={enabled ? appearance : undefined}>{children}</div>;
 }
-const options: { value: SigepAppearance; icon: string; label: string }[] = [
-  { value: "padrao", icon: "☀️", label: "Padrão" },
-  { value: "natal", icon: "🎄", label: "Modo Natalino" },
-];
+const options = SIGEP_APPEARANCE_OPTIONS;
 export function SigepAppearanceMenu() {
   const appearance = useSigepAppearance();
   const [open, setOpen] = useState(false);
+  const activeOption = options.find(option => option.value === appearance) ?? options[0];
   const root = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null);
   const choices = useRef<(HTMLButtonElement|null)[]>([]);
   const id = useId();
@@ -25,7 +25,7 @@ export function SigepAppearanceMenu() {
     return () => { document.removeEventListener("pointerdown", outside);document.removeEventListener("keydown", escape); };
   }, [open, appearance]);
   return <div ref={root} className="sigep-appearance-control" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setOpen(false);}}>
-    <button ref={trigger} className="sigep-appearance-trigger" type="button" aria-label="Aparência do sistema" title="Aparência do sistema" aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined} onClick={()=>setOpen(value=>!value)} onKeyDown={event=>{if(event.key === "ArrowDown" || event.key === "ArrowUp"){event.preventDefault();setOpen(true);}}}><span aria-hidden="true">{options[1].icon}</span></button>
+    <button ref={trigger} className="sigep-appearance-trigger" type="button" aria-label="Aparência do sistema" title="Aparência do sistema" aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined} onClick={()=>setOpen(value=>!value)} onKeyDown={event=>{if(event.key === "ArrowDown" || event.key === "ArrowUp"){event.preventDefault();setOpen(true);}}}><span aria-hidden="true">{activeOption.icon}</span></button>
     {open && <div className="sigep-appearance-menu" id={id} role="menu" aria-labelledby={id+"-title"} onKeyDown={event=>{
       const index=choices.current.indexOf(document.activeElement as HTMLButtonElement);
       let next: number|undefined;

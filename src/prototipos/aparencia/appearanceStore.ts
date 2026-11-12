@@ -1,9 +1,18 @@
 import { useSyncExternalStore } from "react";
-export type SigepAppearance = "padrao" | "natal";
+export const SIGEP_APPEARANCE_OPTIONS = [
+  { value: "padrao", icon: "\u2600\ufe0f", label: "Padr\u00e3o" },
+  { value: "natal", icon: "\ud83c\udf84", label: "Modo Natalino" },
+  { value: "noturno", icon: "\ud83c\udf19", label: "Modo Noturno" },
+  { value: "reveillon", icon: "\u2728", label: "Modo R\u00e9veillon" },
+] as const;
+export type SigepAppearance = typeof SIGEP_APPEARANCE_OPTIONS[number]["value"];
 export const APPEARANCE_KEY = "sigep:aparencia";
 const eventName = "sigep:aparencia-alterada";
 function getAppearance(): SigepAppearance {
-  try { return localStorage.getItem(APPEARANCE_KEY) === "natal" ? "natal" : "padrao"; }
+  try {
+    const saved = localStorage.getItem(APPEARANCE_KEY);
+    return SIGEP_APPEARANCE_OPTIONS.some(option => option.value === saved) ? saved as SigepAppearance : "padrao";
+  }
   catch { return "padrao"; }
 }
 let memoryAppearance: SigepAppearance | null = null;

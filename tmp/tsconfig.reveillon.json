@@ -1,0 +1,1 @@
+{"extends":"../tsconfig.app.json","include":["../src/vite-env.d.ts","../src/prototipos/aparencia/appearanceStore.ts","../src/prototipos/aparencia/SigepAppearanceControls.tsx","../src/prototipos/paginaInicial/PaginaInicialContent.tsx"]}

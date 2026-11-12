@@ -1,3 +1,4 @@
+import { useSigepAppearance } from "../aparencia/appearanceStore";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { IMenuSeplag } from "../../componentes/layout/Config/menu";
@@ -35,6 +36,7 @@ export function PaginaInicialContent({
   avisosDestino = AVISOS_PATH,
   cronogramaDestino = CALENDARIO_CRONOGRAMA_PATH,
 }: Props) {
+  const appearance = useSigepAppearance();
   const [favoritos, setFavoritos] = useState<string[]>([]);
   const [agora, setAgora] = useState(() => new Date());
   useEffect(() => {
@@ -96,6 +98,7 @@ export function PaginaInicialContent({
             acompanhe os principais eventos.
           </p>
         </div>
+        {appearance === "reveillon" && <span className="sigep-reveillon-greeting" aria-hidden="true">Feliz <strong>2027</strong></span>}
         <time
           className="sigep-inicial-data"
           dateTime={new Intl.DateTimeFormat("en-CA", {

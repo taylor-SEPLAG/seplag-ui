@@ -1,0 +1,31 @@
+/* Cover the outer gutters and the remaining space below the home content. */
+[data-sigep-appearance="noturno"] { background:#101a2c; }
+[data-sigep-appearance="noturno"] .layout-wrapper,
+[data-sigep-appearance="noturno"] .layout-compact-navigation :is(.layout-main,.layout-scroll,.layout-content) { background:#101a2c; }
+[data-sigep-appearance="noturno"] .layout-compact-navigation .layout-footer { background:#101c31; color:#c4d0e3; border-top:1px solid #35425b; }
+/* Night mode affects navigation and the home screen, without seasonal artwork. */
+[data-sigep-appearance="noturno"] .layout-compact-navigation .layout-topbar-compact { background:#101c31; border-bottom:1px solid #35425b; }
+[data-sigep-appearance="noturno"] .layout-compact-navigation .layout-sidebar { background:linear-gradient(120deg,#142139,#0c1629); }
+[data-sigep-appearance="noturno"] .layout-sidebar-header .layout-logo img { filter:url('./reveillon-brand.svg#navy'); }
+[data-sigep-appearance="noturno"] .layout-compact-navigation .layout-profile-expanded { background:#172842; }
+[data-sigep-appearance="noturno"] .layout-compact-navigation .layout-sidebar .layout-menu li[data-route-active="true"] > a,
+[data-sigep-appearance="noturno"] .layout-compact-navigation .layout-sidebar .layout-menu li > a.active-route { color:#eef6ff; background:#294c76; }
+[data-sigep-appearance="noturno"] .layout-compact-navigation .layout-menu li[data-route-active="true"] > a > i:first-child { color:#b4d5ff !important; }
+[data-sigep-appearance="noturno"] .sigep-pagina-inicial { background:#101a2c; color:#e8effb; }
+[data-sigep-appearance="noturno"] .sigep-pagina-inicial :is(h1,h2,h3) { color:#e8effb; }
+[data-sigep-appearance="noturno"] .sigep-pagina-inicial p { color:#c4d0e3; }
+[data-sigep-appearance="noturno"] .sigep-inicial-data { color:#c6dcf6; }
+[data-sigep-appearance="noturno"] .sigep-inicial-informativo { background:#1c2b43; border-color:#374963; box-shadow:0 3px 12px #0002; }
+[data-sigep-appearance="noturno"] .sigep-inicial-proximo { color:#e1e9f5; }
+[data-sigep-appearance="noturno"] .sigep-inicial-informativo a { color:#a7d2ff; }
+[data-sigep-appearance="noturno"] .sigep-inicial-card-wrapper .sigep-inicial-modulo { background:#19283f; border-color:#35455f; box-shadow:0 3px 12px #0002; }
+[data-sigep-appearance="noturno"] .sigep-inicial-modulo .sigep-module-navigation-action { color:#a7d2ff; }
+[data-sigep-appearance="noturno"] .sigep-inicial-favorito { color:#bed1e9; }
+[data-sigep-appearance="noturno"] .sigep-inicial-favorito[aria-pressed="true"] { color:#ffd582; }
+[data-sigep-appearance="noturno"] .sigep-inicial-card-wrapper:is(:hover,:focus-within) > a.sigep-inicial-modulo { border-color:#82b7ed; background-color:#213654; }
+[data-sigep-appearance="noturno"] .sigep-appearance-menu { color:#e5edf9; background:#1c2b43; border-color:#3b4f6c; }
+[data-sigep-appearance="noturno"] .sigep-appearance-menu h2 { color:#e5edf9; border-color:#3b4f6c; }
+[data-sigep-appearance="noturno"] .sigep-appearance-menu [role="menuitemradio"] { color:#e5edf9; background:#1c2b43; }
+[data-sigep-appearance="noturno"] .sigep-appearance-menu [role="menuitemradio"]:hover { background:#2b4262; }
+[data-sigep-appearance="noturno"] .sigep-appearance-menu [aria-checked="true"] { border-color:#80b4ed; background:#29466c; }
+@media(prefers-reduced-motion:reduce) { [data-sigep-appearance="noturno"] *, [data-sigep-appearance="noturno"] *::before, [data-sigep-appearance="noturno"] *::after { animation:none !important; transition:none !important; } }

@@ -115,3 +115,42 @@ it("preserva favoritos, links e a data da pagina inicial ao alternar a aparencia
   expect(screen.getByRole("link", {name:"Acessar Pessoas"})).toBe(link);
   expect(link.getAttribute("href")).toBe("/pessoas");
 });
+it("oferece os quatro temas e permite chegar ao Reveillon pelo teclado", () => {
+  mount();open();
+  const options=screen.getAllByRole('menuitemradio');
+  expect(options.map(option=>option.textContent?.replace(/^[^A-Za-zP]+/,''))).toEqual(['Padr\u00e3o','Modo Natalino','Modo Noturno','Modo R\u00e9veillon']);
+  fireEvent.keyDown(options[0],{key:'End'});
+  const newYear=screen.getByRole('menuitemradio',{name:/Modo R\u00e9veillon/});
+  expect(document.activeElement).toBe(newYear);
+  fireEvent.click(newYear);
+  expect(scope().getAttribute('data-sigep-appearance')).toBe('reveillon');
+  expect(localStorage.getItem(APPEARANCE_KEY)).toBe('reveillon');
+  expect(screen.getByRole('button',{name:'Apar\u00eancia do sistema'}).textContent).toBe('\u2728');
+  open();expect(screen.getAllByRole('menuitemradio').filter(option=>option.getAttribute('aria-checked')==='true')).toHaveLength(1);
+});
+it.each(['noturno','reveillon'] as const)('restaura a preferencia %s ao abrir novamente', theme => {
+  localStorage.setItem(APPEARANCE_KEY,theme);
+  const view=mount();expect(scope().getAttribute('data-sigep-appearance')).toBe(theme);
+  view.unmount();mount();expect(scope().getAttribute('data-sigep-appearance')).toBe(theme);
+  open();fireEvent.click(screen.getByRole('menuitemradio',{name:/Padr\u00e3o/}));
+  expect(scope().getAttribute('data-sigep-appearance')).toBe('padrao');
+});
+it('mostra Feliz 2027 somente no Reveillon e preserva data, favoritos e links nos quatro temas', () => {
+  render(<MemoryRouter><SigepAppearanceScope enabled><SigepAppearanceMenu /><PaginaInicialContent
+    menu={[{label:'Pessoas',icon:'pi pi-users',to:'/pessoas'}]} nomeUsuario='Servidor' avisos={0} cronogramas={0}
+    modulos={[{nome:'Pessoas',descricao:'Consultar pessoas',icone:'pi pi-users'}]}
+  /></SigepAppearanceScope></MemoryRouter>);
+  fireEvent.click(screen.getByRole('button',{name:'Adicionar aos favoritos: Pessoas'}));
+  const favorite=screen.getByRole('button',{name:'Remover dos favoritos: Pessoas'});
+  const date=document.querySelector('time')!.getAttribute('datetime');
+  const link=screen.getByRole('link',{name:'Acessar Pessoas'});
+  const labels=['Modo R\u00e9veillon','Modo Noturno','Modo Natalino','Padr\u00e3o'];
+  labels.forEach((label,index)=>{
+    open();fireEvent.click(screen.getByRole('menuitemradio',{name:new RegExp(label)}));
+    const greeting=document.querySelector('.sigep-reveillon-greeting');
+    if(index===0)expect(greeting?.textContent).toBe('Feliz 2027');else expect(greeting).toBeNull();
+    expect(screen.getByRole('button',{name:'Remover dos favoritos: Pessoas'})).toBe(favorite);
+    expect(document.querySelector('time')!.getAttribute('datetime')).toBe(date);
+    expect(screen.getByRole('link',{name:'Acessar Pessoas'})).toBe(link);
+  });
+});
