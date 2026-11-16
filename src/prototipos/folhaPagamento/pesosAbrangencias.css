@@ -1,0 +1,106 @@
+.pesos-page { color: #173b63; width: 100%; min-width: 0; box-sizing: border-box; }
+.pesos-content { display: flex; flex-direction: column; min-width: 0; }
+.pesos-content.v2v-page { width: 100%; }
+.pesos-description { margin: 0 0 20px; }
+.pesos-page p { line-height: 1.6; }
+.pesos-info { padding: 14px 16px; background: #eef5ff; border: 1px solid #d5e6fc; border-radius: 6px; margin: 18px 0; }
+.pesos-version-info { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; margin: 0 0 16px; background: #FFFBEB; border-color: #FDE68A; }
+.pesos-version-info > i { color: #D97706; margin-top: 2px; font-size: 18px; line-height: 24px; flex-shrink: 0; }
+.pesos-version-info h2 { margin: 0 0 6px; font-size: 16px; line-height: 1.5; color: #173b63; }
+.pesos-version-info p { margin: 0; font-size: 14px; color: #425e7a; }
+.pesos-version-flow { display: inline; color: #173b63; font-size: 14px; }
+.pesos-toolbar, .pesos-actions, .pesos-metadata { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 18px 0; }
+.pesos-filtros { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 20px; align-items: end; width: 100%; box-sizing: border-box; padding: 20px; background: #f7f9fc; border: 1px solid #d6e2ef; border-radius: 6px; margin-bottom: 20px; }
+.pesos-filtros label { display: grid; gap: 8px; min-width: 0; font-weight: 600; }
+.pesos-filtros select { width: 100%; min-width: 0; box-sizing: border-box; height: 40px; }
+.pesos-list-toolbar.v2v-grid-toolbar { justify-content: space-between; flex-wrap: wrap; gap: 16px; width: 100%; box-sizing: border-box; padding: 16px; border-radius: 0; }
+.pesos-toolbar-left, .pesos-toolbar-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; min-width: 0; }
+.pesos-toolbar-right { margin-left: auto; }
+.pesos-active-indicator { color: #536273; font-size: 14px; }
+.pesos-list-toolbar .p-button, .pesos-filtros .p-button { margin: 0; max-width: 100%; flex-shrink: 0; }
+.pesos-page select, .pesos-page input { font: inherit; padding: 10px 12px; border: 1px solid #b9cde0; border-radius: 5px; background: white; color: #173b63; }
+.pesos-page input { width: 150px; max-width: 100%; }
+.pesos-table { width: 100%; box-sizing: border-box; overflow-x: auto; border: 1px solid #d6e2ef; border-radius: 6px; }
+.pesos-list-table { border-radius: 0; border-color: #dfe5ec; }
+.pesos-list-table table { table-layout: fixed; min-width: 680px; }
+.pesos-list-table th, .pesos-list-table td { height: 60px; box-sizing: border-box; vertical-align: middle; }
+.pesos-content .pesos-filtros label { gap: 8px; font-size: 1rem; color: #173b63; }
+.pesos-content .pesos-filtros .p-dropdown-label { padding: 11px 12px; }
+.pesos-content .pesos-filtros .prototype-category-clear { padding: 0; }
+.pesos-content.prototype-grupos-calculo-management .pesos-filtros { grid-template-columns: minmax(0, 240px) minmax(0, 240px) auto; justify-content: start; }
+.pesos-list-table .pesos-actions { margin: 0; gap: 8px; flex-wrap: nowrap; justify-content: center; align-items: center; }
+.pesos-list-table .pesos-actions .p-button-icon-only { display: inline-flex; align-items: center; justify-content: center; gap: 0; padding: 0; width: 42px; height: 42px; flex: 0 0 42px; }
+.pesos-list-table .pesos-actions .p-button-icon { margin: 0; line-height: 1; }
+.pesos-list-table .pesos-actions .p-button-label { display: none; }
+.pesos-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 200px; text-align: center; padding: 24px 16px; box-sizing: border-box; }
+.pesos-empty > i { font-size: 32px; color: #bdc7d2; }
+.pesos-empty > strong { color: #536273; font-size: 16px; }
+.pesos-empty > p { color: #647b95; margin: 0; max-width: 640px; }
+.pesos-table table { width: 100%; border-collapse: collapse; text-align: left; }
+.pesos-table th { background: #eef3f9; font-weight: 600; }
+.pesos-table th, .pesos-table td { padding: 16px; border-bottom: 1px solid #e2eaf2; }
+.pesos-table tr:last-child td { border-bottom: 0; }
+.pesos-atual { background: #f3faf7; }
+.pesos-badge { display: inline-block; background: #edf0f3; color: #536273; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+.pesos-badge--ativa { background: #dcf4e6; color: #17643c; }
+.pesos-alert, .pesos-success { padding: 15px; border-radius: 6px; margin: 16px 0; }
+.pesos-alert { background: #fff0ee; color: #9e302a; }
+.pesos-success { background: #e6f5ec; color: #17643c; }
+.pesos-timeline { list-style: none; padding: 0 0 0 20px; border-left: 3px solid #cbdcf0; margin: 24px 0; }
+.pesos-timeline li { padding: 18px; margin-bottom: 16px; border: 1px solid #d6e2ef; border-radius: 6px; }
+.pesos-form { width: 100%; min-width: 0; }
+.pesos-vigencia { border: 1px solid #d6e2ef; border-radius: 6px; margin-bottom: 20px; background: #fff; overflow: hidden; }
+.pesos-vigencia > header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #d6e2ef; }
+.pesos-vigencia > header > i { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 6px; background: #e8f1ff; color: #0875e1; font-size: 18px; }
+.pesos-vigencia h2 { margin: 0 0 4px; font-size: 16px; color: #173b63; }
+.pesos-vigencia header p { margin: 0; color: #647b95; font-size: 13px; }
+.pesos-vigencia-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 260px)); gap: 16px; padding: 16px; }
+.pesos-vigencia-fields > [class*="col-"] { width: 100%; min-width: 0; padding: 0; }
+.pesos-vigencia-fields .p-calendar { width: 100%; }
+.pesos-content .pesos-vigencia-fields input { width: 100%; min-width: 0; }
+.pesos-vigencia-error { margin: 0; padding: 0 16px 16px; color: #b42318; font-size: 13px; }
+@media (max-width: 600px) { .pesos-vigencia-fields { grid-template-columns: minmax(0, 1fr); } }
+.pesos-summary { width: 100%; margin-bottom: 20px; border: 1px solid #d8e3ee; border-radius: 6px; background: #fff; overflow: hidden; }
+.pesos-summary > h2 { display: flex; align-items: center; gap: 10px; margin: 0; padding: 14px 16px; background: #07558f; color: #fff; font-size: 1rem; }
+.pesos-summary-fields { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px 24px; margin: 0; padding: 18px 16px; }
+.pesos-summary-fields > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.pesos-summary-fields dt { color: #617992; font-size: .84rem; }
+.pesos-summary-fields dd { margin: 0; color: #123354; font-size: 1rem; font-weight: 600; overflow-wrap: anywhere; }
+@media (max-width: 900px) { .pesos-summary-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .pesos-summary-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 380px) { .pesos-summary-fields { grid-template-columns: minmax(0, 1fr); } }
+.pesos-config-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.pesos-config-main, .pesos-help { min-width: 0; }
+.pesos-config-table th, .pesos-config-table td { padding: 16px 20px; height: 72px; vertical-align: middle; }
+.pesos-config-table th { height: 52px; background: #f1f5f9; }
+.pesos-config-table th:last-child { width: 190px; }
+.pesos-content .pesos-config-table label { display: block; font-weight: 500; }
+.pesos-content .pesos-config-table input { width: 150px; height: 43px; box-sizing: border-box; }
+.pesos-config-table input::-webkit-inner-spin-button, .pesos-config-table input::-webkit-outer-spin-button { opacity: 1; }
+.pesos-config-table input[aria-invalid="true"] { border-color: #b83b35; }
+.pesos-required { color: #b83b35; }
+.pesos-required-note { color: #647b95; font-size: 13px; margin: 10px 0 0; }
+.pesos-help { display: grid; gap: 18px; }
+.pesos-help-card { padding: 12px 16px; border-radius: 6px; border: 1px solid #E2E8F0; }
+.pesos-help-how { background: #F8FAFC; }
+.pesos-help-card h2 { display: flex; align-items: center; gap: 10px; font-size: 16px; line-height: 1.5; color: #173b63; margin: 0 0 8px; }
+.pesos-help-how h2 > i { color: #07558f; }
+.pesos-help-card p { font-size: 14px; color: #425e7a; margin: 0 0 12px; }
+.pesos-help-card p:last-child { margin-bottom: 0; }
+.pesos-help-card ul { margin: 0; padding-left: 20px; list-style: disc; color: #425e7a; font-size: 14px; line-height: 1.6; }
+.pesos-help-card li + li { margin-top: 8px; }
+.pesos-form-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid #dfe5ec; padding-top: 20px; margin-top: 24px; }
+.pesos-form-footer .p-button { max-width: 100%; margin: 0; }
+@media (max-width: 1000px) { .pesos-config-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) {
+  .pesos-content.prototype-grupos-calculo-management .pesos-filtros { grid-template-columns: minmax(0, 1fr); justify-content: stretch; }
+  .pesos-filtros { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 16px; }
+  .pesos-filtros .p-button { justify-self: start; }
+  .pesos-toolbar-right { margin-left: 0; }
+  .pesos-list-toolbar { align-items: flex-start; }
+  .pesos-table th, .pesos-table td { padding: 12px; }
+  .pesos-empty { min-height: 180px; }
+  .pesos-config-table th, .pesos-config-table td { padding: 12px; }
+  .pesos-config-table th:last-child { width: 130px; }
+  .pesos-content .pesos-config-table input { width: 110px; }
+}

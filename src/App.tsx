@@ -1,3 +1,4 @@
+import { PrototiposFolhaPesosAbrangenciasPage } from "./prototipos/PrototiposPage";
 import { FichaFinanceiraV2Page } from "./prototipos/fichaFinanceiraV2/FichaFinanceiraV2Page";
 import { HistoricoParametrizacaoPage } from './prototipos/licencas/HistoricoParametrizacaoPage';
 import {
@@ -2366,6 +2367,10 @@ function App() {
       <Route
         path="/prototipos/folha/grupo-eleitos/novo"
         element={<PrototiposFolhaGrupoEleitoFormPage />}
+      />
+      <Route
+        path="/prototipos/folha/pesos-abrangencias"
+        element={<PrototiposFolhaPesosAbrangenciasPage />}
       />
       <Route
         path="/prototipos/folha/grupos-calculo"

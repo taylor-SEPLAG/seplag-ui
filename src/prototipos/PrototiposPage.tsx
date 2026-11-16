@@ -1,3 +1,4 @@
+import { PesosAbrangenciasContent } from "./folhaPagamento/PesosAbrangenciasContent";
 import { consultarTetoRgps, encadearVigenciasRgps, rgpsData, rgpsNumero, situacaoRgps, validarFaixasRgps } from "./folhaRgps";
 import { consultarReferenciasIrrf, encadearVigenciasIrrf, irrfAberta, irrfData, irrfMoeda, irrfNumero, migrarPeriodoIrrf, periodoIrrf, situacaoIrrf, sugerirParcelaIrrf, validarDadosIrrf, validarFaixaIrrf, validarTabelaIrrf } from "./folhaIrrf";
 import { consultarValorReferencia, normalizarPeriodoReferencia } from "./valoresReferencia";
@@ -11,7 +12,7 @@ import type { ProcessamentoFolhaForm } from "./folhaPagamento/types";
 import { camposAbrangenciaFolha, criteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
 import "./vinculos/vinculoV2.css";
 import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
-import { abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, temAbrangencia, lerAbrangenciaGrupo, salvarAbrangenciaGrupo, filtrarVinculosElegiveis, type CriteriosAbrangencia, type CatalogoAbrangencia } from "./folhaPagamento/abrangenciaGrupoCalculo";
+import { abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, carreirasDosCargos, temAbrangencia, lerAbrangenciaGrupo, salvarAbrangenciaGrupo, filtrarVinculosElegiveis, type CriteriosAbrangencia, type CatalogoAbrangencia } from "./folhaPagamento/abrangenciaGrupoCalculo";
 import { RevisaoImpactados, type ResultadoRevisao } from "./folhaPagamento/RevisaoImpactados";
 import { lerEstruturaOrganizacional } from "./estruturaOrganizacional/estruturaOrganizacionalStore";
 import { todos as vinculosParaGrupoCalculo } from "./vinculos/vinculoDados";
@@ -139,6 +140,7 @@ import avatarUsuario from "../assets/img/avatar-usuario.svg";
 import brasaoMt from "../assets/img/brasao-mt.svg";
 import "../componentes/layout/layout/Layout.css";
 import "./prototipos.css";
+import "./folhaPagamento/carreiraCargoGrupo.css";
 import { folhaPagamentoService } from "./folhaPagamento/folhaPagamentoService";
 import type {
   FolhaPagamentoExecucaoRow,
@@ -787,6 +789,13 @@ export const menuFolha: IMenuSeplag[] = [
         label: "Competência da folha",
         icon: "pi pi-circle-on",
         to: FOLHA_COMPETENCIAS_BASE_PATH,
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+      },
+      {
+        label: "Pesos das Abrangências",
+        icon: "pi pi-circle-on",
+        to: "/prototipos/folha/pesos-abrangencias",
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
@@ -27716,6 +27725,10 @@ export function PrototiposFolhaValorReferenciaVigenciaFormPage() {
   </PrototypeSystemPage>;
 }
 
+export function PrototiposFolhaPesosAbrangenciasPage() {
+  return <PrototypeSystemPage nomeSistema="FOLHA" ambienteSistema="Teste" menuItems={menuFolha}><PesosAbrangenciasContent /></PrototypeSystemPage>;
+}
+
 export function PrototiposFolhaGruposFolhaPage() {
   const navigate = useNavigate();
   const [grupos] = useState<GrupoFolhaRow[]>(() =>
@@ -34653,7 +34666,6 @@ export function PrototiposFolhaGruposCalculoPage() {
       <div className="prototype-page-content prototype-page-content--white prototype-folha-grupos-calculo-page v2v-shell">
         <CardSeplag
           title="Gestão de Grupos de Cálculo"
-          actions={<div className="prototype-grupos-competencia-header"><label htmlFor="grupos-competencia">Competência:<select title="Filtrar grupos por competência" id="grupos-competencia" value={competenciaSelecionada} onChange={e=>{setSearchParams({competencia:e.target.value});fecharHistoricoGrupoCalculo();}}>{contexto.opcoes.map(c=><option key={c} value={c}>{formatarCompetenciaGrupo(c)}</option>)}</select></label><div className="prototype-grupos-competencia-vigente">Competência vigente: <strong>{formatarCompetenciaGrupo(contexto.vigente)}</strong></div></div>}
           cols="12"
           cardHeaderClassNames="prototype-carreira-card v2v-card"
           headerNavigation={<BreadcrumbSeplag divided homeTo={FOLHA_PAGINA_INICIAL_PATH} items={[{ label: "Página Inicial", to: FOLHA_PAGINA_INICIAL_PATH }, { label: "Folha" }, { label: "Grupos de Cálculo da Folha", to: "/prototipos/folha/grupos-calculo" }]} />}
@@ -34693,7 +34705,6 @@ export function PrototiposFolhaGruposCalculoPage() {
             </div>
 
           </div>
-          <div role="note" className="prototype-grupos-competencia-info"><i className="pi pi-info-circle" aria-hidden="true" /><span>Os grupos de cálculo são organizados por competência. Ao avançar para uma nova competência, o sistema replica automaticamente os grupos ativos da competência anterior, iniciando-os na versão V1, sem necessidade de novo cadastro.</span></div>
           <section className="v2v-panel v2v-management-results" aria-label="Grupos de cálculo cadastrados">
             <div className="v2v-grid-toolbar">            <div>
               <BotaoSeplag
@@ -34822,7 +34833,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
   const somenteLeitura = searchParams.get("modo") === "visualizar";
   const contextoCompetencias=contextoCompetenciasGrupos();
   const competenciaInicial=contextoCompetencias.opcoes.includes(searchParams.get("competencia")??"") ? searchParams.get("competencia")! : contextoCompetencias.vigente;
-  const [competenciaSelecionada,setCompetenciaSelecionada]=useState(competenciaInicial);
+  const [competenciaSelecionada]=useState(competenciaInicial);
   const [erroCompetencia,setErroCompetencia]=useState("");
   const competenciaValida=contextoCompetencias.opcoes.includes(competenciaSelecionada);
   const dadosCompetencia=useMemo(()=>lerGruposCalculoCompetencia(competenciaSelecionada || competenciaInicial),[competenciaSelecionada,competenciaInicial]);
@@ -34870,7 +34881,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
   const credenciaisPublicacaoValidas = Boolean(
     competenciaValida && credenciaisPublicacao.usuario.trim() &&
       credenciaisPublicacao.senha.trim() &&
-      dataInicioPublicacao.trim() && dataInicioPublicacao.slice(3)===formatarCompetenciaGrupo(competenciaSelecionada),
+      dataInicioPublicacao.trim(),
   );
 
   const catalogoAbrangencia = useMemo(criarCatalogoAbrangenciaFolha, []);
@@ -34918,15 +34929,11 @@ function PrototiposFolhaGrupoCalculoFormContent() {
   });
 
   const validarCompetencia = () => {
-    if(competenciaValida){setErroCompetencia("");return true;}
-    setErroCompetencia("Selecione a compet\u00eancia para salvar ou aprovar o grupo.");return false;
-  };
-  const alterarCompetencia = (valor:string|null) => {
-    const competencia=valor??"";setCompetenciaSelecionada(competencia);setErroCompetencia("");
-    if(competencia){
-      const inicio="01/"+formatarCompetenciaGrupo(competencia);setDataInicioPublicacao(inicio);setValue("dataAtivacao",inicio);
-      if(isEdit){const parametros=new URLSearchParams(searchParams);parametros.set("competencia",competencia);navigate({search:parametros.toString()},{replace:true});}
-    }
+    const inicio = watch("dataAtivacao") ?? "";
+    const fim = watch("dataEncerramento") ?? "";
+    if (!inicio || !carreiraDataParaIso(inicio)) { setErroCompetencia("Informe uma data início válida."); return false; }
+    if (fim && (!carreiraDataParaIso(fim) || carreiraDataParaIso(fim) < carreiraDataParaIso(inicio))) { setErroCompetencia("A data fim deve ser igual ou posterior à data início."); return false; }
+    setErroCompetencia(""); return true;
   };
   const camposAbrangencia = { regimes: "abrangenciaRegimeJuridico", tipos: "abrangenciaTipoVinculo", carreiras: "abrangenciaCarreiras", orgaos: "abrangenciaOrgao", unidades: "abrangenciaUnidades", cargos: "abrangenciaCargos" } as const;
   const abrangenciaAtual: CriteriosAbrangencia = {
@@ -34974,7 +34981,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
       ...grupo,id:grupo?.id??Date.now(),codigo:grupo?.codigo??("G"+Date.now()),grupo:nome,nivel:grupo?.nivel??1,
       herdaDe:watch("abrangenciaHerdarDe")==="nenhum" ? "-" : watch("abrangenciaHerdarDe")??"-",
       orgaoSetor:criterios.orgaos.join(", ")||"Todos",tipoVinculo:criterios.tipos.join(", ")||"Todos",
-      situacao,inicioVigencia:situacao==="ATIVO"?dataInicioPublicacao:grupo?.inicioVigencia??("01/"+formatarCompetenciaGrupo(competenciaSelecionada)),fimVigencia:"-",
+      situacao,inicioVigencia:watch("dataAtivacao"),fimVigencia:watch("dataEncerramento")||"-",
       rubricas:ativas.length,pendencias:0,abrangencia:criterios,composicaoRubricas:ativas.map(r=>({codigo:r.codigo,nomeRubrica:r.nomeRubrica})),
       rubricasProprias:ativas.filter(r=>r.origem==="manual").map(r=>r.codigo),responsavel:credenciaisPublicacao.usuario||grupo?.responsavel||"Admin User",
     };
@@ -35074,7 +35081,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
     if (!temAbrangencia(abrangenciaAtual)) { setErroAbrangencia("Ao menos um campo ativo de abrang\u00eancia deve ser preenchido para aprovar."); return; }
     if (!validarConflitosAbrangencia()) return;
     setCredenciaisPublicacao({ usuario: "", senha: "" });
-    setDataInicioPublicacao(dataInicioV2);
+    setDataInicioPublicacao(watch("dataAtivacao") || dataInicioV2);
     setPublicacaoFeedback("");
     setModalPublicacaoAberto(true);
   };
@@ -35089,7 +35096,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
 
     if (!temAbrangencia(abrangenciaAtual)) { setErroAbrangencia("Ao menos um campo ativo de abrang\u00eancia deve ser preenchido para aprovar."); return; }
     if (modoVersionamento && grupo && gruposCalculoMock.some(g => g.herdaDe === grupo.grupo)) {
-      setDataInicioPublicacao(dataInicioV2);
+      setDataInicioPublicacao(watch("dataAtivacao") || dataInicioV2);
       setModalPublicacaoAberto(false);
       setModalRevisaoAberto(true);
       return;
@@ -35097,7 +35104,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
     if(!persistirRegistro("ATIVO"))return;
     salvarCriteriosAbrangencia();
     setValue("situacao", SITUACAO_VIGENCIA.ATIVO);
-    setValue("dataAtivacao", dataInicioPublicacao);
+    setValue("dataAtivacao", watch("dataAtivacao"));
     setPublicacaoConcluida(true);
     setModalPublicacaoAberto(false);
     setPublicacaoFeedback("");
@@ -35180,29 +35187,13 @@ function PrototiposFolhaGrupoCalculoFormContent() {
             disabled={formularioBloqueado}
             getFormErrorMessage={() => null}
           />
-          {modoVersionamento && (
-            <div className="col-12 prototype-grupo-calculo-vigencia">
-              <DateFieldSeplag
-                name="dataAtivacao"
-                control={control}
-                label="Data Início"
-                cols="12 12 3"
-                required
-                disabled={formularioBloqueado}
-                minDate={amanha}
-                maxDate={new Date(anoCompetencia,mesCompetencia,0)}
-                getFormErrorMessage={() => null}
-              />
-            </div>
-          )}
 
           </section>
           <section className="col-12 prototype-grupo-calculo-card prototype-grupo-calculo-competencia" aria-labelledby="grupo-competencia-titulo">
-            <header className="prototype-grupo-calculo-card-heading"><i className="pi pi-calendar" aria-hidden="true" /><div><h2 id="grupo-competencia-titulo">Competência</h2><p>Selecione a competência (mês/ano) para a qual o grupo de cálculo será válido.</p></div></header>
+            <header className="prototype-grupo-calculo-card-heading"><i className="pi pi-calendar" aria-hidden="true" /><div><h2 id="grupo-competencia-titulo">Vigência</h2><p>Informe a data início e, se necessário, a data fim do grupo de cálculo.</p></div></header>
             <div className="grid prototype-category-form-fields">
-              <DropdownFieldSeplag name="competencia" control={control} label="Competência" cols="12 12 6" required disabled={formularioBloqueado}
-                options={contextoCompetencias.opcoes.map(value=>({label:formatarCompetenciaGrupo(value),value}))} optionLabel="label" optionValue="value" placeholder="MM/AAAA"
-                onChange={alterarCompetencia} getFormErrorMessage={()=>erroCompetencia ? <small role="alert" className="p-error">{erroCompetencia}</small> : null} />
+              <DateFieldSeplag name="dataAtivacao" control={control} label="Data início" cols="12 12 6" required disabled={formularioBloqueado} getFormErrorMessage={() => erroCompetencia ? <small role="alert" className="p-error">{erroCompetencia}</small> : null} />
+              <DateFieldSeplag name="dataEncerramento" control={control} label="Data fim" cols="12 12 6" disabled={formularioBloqueado} getFormErrorMessage={() => null} />
             </div>
           </section>
           <div className="col-12 prototype-grupo-calculo-rubricas-section">
@@ -35236,18 +35227,28 @@ function PrototiposFolhaGrupoCalculoFormContent() {
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} unidades selecionadas"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, unidades: valores })} getFormErrorMessage={() => null}
                 />
+                <div className="col-12">
+                <div className="prototype-carreira-cargo-group" role="group" aria-label="Carreira e Cargo">
+                  <div className="prototype-carreira-cargo-heading"><h3><i className="pi pi-link" aria-hidden="true" />Carreira e Cargo estão relacionados</h3></div>
+                  <div className="prototype-carreira-cargo-fields">
                 <MultiSelectFieldSeplag
-                  name={camposAbrangencia.carreiras} control={control} label="Carreira" cols="12 12 6"
+                  name={camposAbrangencia.carreiras} control={control} label="Carreira" cols="12"
                   disabled={formularioBloqueado || !opcoesDaAbrangencia.carreiraAtiva} options={opcoesDaAbrangencia.carreiras}
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} carreiras selecionadas"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, carreiras: valores })} getFormErrorMessage={() => null}
                 />
+                <i className="pi pi-arrow-right prototype-carreira-cargo-arrow" aria-hidden="true" />
                 <MultiSelectFieldSeplag
-                  name={camposAbrangencia.cargos} control={control} label="Cargo" cols="12 12 6"
+                  name={camposAbrangencia.cargos} control={control} label="Cargo" cols="12"
                   disabled={formularioBloqueado} options={opcoesDaAbrangencia.cargos}
+                  placeholder={abrangenciaAtual.carreiras.length ? "Selecione um cargo desta carreira..." : "Selecione um cargo..."}
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} cargos selecionados"
-                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, cargos: valores })} getFormErrorMessage={() => null}
+                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, cargos: valores, carreiras: valores.length ? carreirasDosCargos(valores, abrangenciaAtual, catalogoAbrangencia) : abrangenciaAtual.carreiras })} getFormErrorMessage={() => null}
                 />
+                  </div>
+                  <p className="prototype-carreira-cargo-guidance"><i className="pi pi-info-circle" aria-hidden="true" />Filtra os cargos pela carreira. Cargos sem carreira continuam disponíveis.</p>
+                </div>
+                </div>
               </div>
               <p className="prototype-grupo-calculo-abrangencia-hint"><i className="pi pi-info-circle" aria-hidden="true" />Ao menos um campo ativo de abrangência deve ser preenchido para aprovar.</p>
               {erroAbrangencia && <p role="alert" style={{ color: "#b42318" }}>{erroAbrangencia}</p>}

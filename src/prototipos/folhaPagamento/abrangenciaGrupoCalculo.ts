@@ -76,6 +76,9 @@ export function opcoesAbrangencia(
       (!f.orgaos.length || contem(f.orgaos, unidade.orgao)),
   );
   const cargos = c.cargos.filter((cargo) => {
+    if (carreirasSelecionadas.length && !tiposConsiderados.some(tipo =>
+      f.carreiras.includes(cargo.carreirasPorTipo[tipo.value]),
+    )) return false;
     if (!restringirTipos && !carreirasSelecionadas.length) return true;
     return tiposConsiderados.some(
       (tipo) =>
@@ -94,6 +97,18 @@ export function opcoesAbrangencia(
     cargos,
     carreiraAtiva,
   };
+}
+
+export function carreirasDosCargos(
+  cargos: string[],
+  filtros: CriteriosAbrangencia,
+  catalogo: CatalogoAbrangencia,
+): string[] {
+  const tipos = opcoesAbrangencia({ ...filtros, carreiras: [], cargos: [] }, catalogo).tipos
+    .filter(tipo => !filtros.tipos.length || filtros.tipos.includes(tipo.value));
+  return [...new Set(catalogo.cargos.filter(cargo => cargos.includes(cargo.value))
+    .flatMap(cargo => tipos.map(tipo => cargo.carreirasPorTipo[tipo.value]))
+    .filter(carreira => Boolean(carreira) && catalogo.carreiras.some(c => c.value === carreira)))];
 }
 
 // A ordem segue as dependências; apenas seleções incompatíveis são removidas.

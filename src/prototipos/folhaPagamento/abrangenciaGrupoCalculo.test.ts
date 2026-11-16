@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   abrangenciaVazia,
+  carreirasDosCargos,
   ajustarAbrangencia,
   filtrarVinculosElegiveis,
   opcoesAbrangencia,
@@ -75,6 +76,13 @@ const catalogo: CatalogoAbrangencia = {
 };
 const base = () => abrangenciaVazia();
 describe("abrangência do grupo de cálculo", () => {
+  it("relaciona cargos diretamente às carreiras e aceita cargos sem carreira", () => {
+    expect(carreirasDosCargos(["analista"], base(), catalogo)).toEqual(["ADM"]);
+    expect(carreirasDosCargos(["assessor"], base(), catalogo)).toEqual([]);
+    expect(carreirasDosCargos(["analista", "prof"], base(), catalogo)).toEqual(["ADM", "EDU"]);
+    expect(opcoesAbrangencia({ ...base(), carreiras: ["ADM"] }, catalogo).cargos.map(c => c.value)).toEqual(["analista"]);
+    expect(ajustarAbrangencia({ ...base(), carreiras: ["EDU"], cargos: ["analista"] }, catalogo).cargos).toEqual([]);
+  });
   it("lista todos os cadastros quando não há restrições", () => {
     const opcoes = opcoesAbrangencia(base(), catalogo);
     for (const campo of Object.keys(base()) as (keyof ReturnType<
