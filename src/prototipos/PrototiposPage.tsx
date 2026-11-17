@@ -1,4 +1,6 @@
 import { PesosAbrangenciasContent } from "./folhaPagamento/PesosAbrangenciasContent";
+import { useVersaoPesosAbrangenciaAtiva, type VersaoPesosAbrangencia } from "./folhaPagamento/pesosAbrangenciasStore";
+import { calcularSomatoriaPesosAbrangencia, type PesosAplicadosAbrangencia } from "./folhaPagamento/somatoriaPesosAbrangencia";
 import { consultarTetoRgps, encadearVigenciasRgps, rgpsData, rgpsNumero, situacaoRgps, validarFaixasRgps } from "./folhaRgps";
 import { consultarReferenciasIrrf, encadearVigenciasIrrf, irrfAberta, irrfData, irrfMoeda, irrfNumero, migrarPeriodoIrrf, periodoIrrf, situacaoIrrf, sugerirParcelaIrrf, validarDadosIrrf, validarFaixaIrrf, validarTabelaIrrf } from "./folhaIrrf";
 import { consultarValorReferencia, normalizarPeriodoReferencia } from "./valoresReferencia";
@@ -711,42 +713,6 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
 export const menuFolha: IMenuSeplag[] = [
   {label:'Página Inicial',icon:'pi pi-home',to:FOLHA_PAGINA_INICIAL_PATH,visibleOnMenu:true,visibleOnRouter:true},
   {
-    label: "Painel Informativo",
-    icon: "pi pi-home",
-    to: FOLHA_PAINEL_INFORMATIVO_PATH,
-    visibleOnMenu: true,
-    visibleOnRouter: true,
-  },
-  {
-    label: "Rubricas",
-    icon: "pi pi-tag",
-    to: areasNavegacaoFolha.rubricas.rota,
-    visibleOnMenu: true,
-    visibleOnRouter: true,
-    items: [
-      { label: "Catálogo de Rubricas", icon: "pi pi-circle-on", to: "/prototipos/folha/catalogo-rubricas", visibleOnMenu: true, visibleOnRouter: true },
-      { label: "Solicitação de Rubrica", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-    ],
-  },
-  {
-    label: "Cadastro",
-    icon: "pi pi-list",
-    to: areasNavegacaoFolha.cadastro.rota,
-    visibleOnMenu: true,
-    visibleOnRouter: true,
-    items: [
-      { label: "Evento", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-      { label: "Tipo Evento", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-      {
-        label: "Grupo de Eleitos",
-        icon: "pi pi-circle-on",
-        to: "/prototipos/folha/grupo-eleitos",
-        visibleOnMenu: true,
-        visibleOnRouter: true,
-      },
-    ],
-  },
-  {
     label: "Parâmetros de Folha",
     icon: "pi pi-sliders-h",
     to: FOLHA_PARAMETROS_BASE_PATH,
@@ -770,15 +736,21 @@ export const menuFolha: IMenuSeplag[] = [
     ],
   },
   {
-    label: "Pensões",
+    label: "Grupo de Eleitos",
     icon: "pi pi-users",
-    to: areasNavegacaoFolha.pensoes.rota,
+    to: "/prototipos/folha/grupo-eleitos",
+    visibleOnMenu: true,
+    visibleOnRouter: true,
+  },
+  {
+    label: "Rubricas",
+    icon: "pi pi-tag",
+    to: areasNavegacaoFolha.rubricas.rota,
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
-      { label: "Pensão Alimentícia", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-      { label: "Pensão Especial", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-      { label: "Pensão por Morte", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Catálogo de Rubricas", icon: "pi pi-circle-on", to: "/prototipos/folha/catalogo-rubricas", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Solicitação de Rubrica", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
     ],
   },
   {
@@ -879,6 +851,36 @@ export const menuFolha: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
+    ],
+  },
+  {
+    label: "Cadastro",
+    icon: "pi pi-list",
+    to: areasNavegacaoFolha.cadastro.rota,
+    visibleOnMenu: true,
+    visibleOnRouter: true,
+    items: [
+      { label: "Evento", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Tipo Evento", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+    ],
+  },
+  {
+    label: "Painel Informativo",
+    icon: "pi pi-home",
+    to: FOLHA_PAINEL_INFORMATIVO_PATH,
+    visibleOnMenu: true,
+    visibleOnRouter: true,
+  },
+  {
+    label: "Pensões",
+    icon: "pi pi-users",
+    to: areasNavegacaoFolha.pensoes.rota,
+    visibleOnMenu: true,
+    visibleOnRouter: true,
+    items: [
+      { label: "Pensão Alimentícia", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Pensão Especial", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Pensão por Morte", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
     ],
   },
 ];
@@ -2134,6 +2136,7 @@ interface GrupoCalculoRow {
   versao?: number;
   responsavel?: string;
   abrangencia?: CriteriosAbrangencia;
+  pesosAplicados?: PesosAplicadosAbrangencia;
   criteriosProprios?: CriteriosAbrangencia;
   composicaoRubricas?: { codigo: string; nomeRubrica: string }[];
   rubricasProprias?: string[];
@@ -7276,7 +7279,7 @@ const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
   14: [gruposCalculoMock[13]],
 };
 
-function aplicarRevisaoGruposCalculo(resultado: ResultadoRevisao & { criteriosPai: CriteriosAbrangencia; rubricasPai: { codigo: string; nomeRubrica: string }[] }, alvos = gruposCalculoMock, historicos = gruposCalculoVersoesMock) {
+function aplicarRevisaoGruposCalculo(resultado: ResultadoRevisao & { criteriosPai: CriteriosAbrangencia; rubricasPai: { codigo: string; nomeRubrica: string }[]; versaoPesos?: VersaoPesosAbrangencia }, alvos = gruposCalculoMock, historicos = gruposCalculoVersoesMock) {
   const pai = alvos.find(g => g.grupo === resultado.pai);
   if (!pai) return;
   const registros = [{ id: pai.id, criterios: resultado.criteriosPai, rubricas: resultado.rubricasPai }, ...resultado.grupos];
@@ -7287,6 +7290,7 @@ function aplicarRevisaoGruposCalculo(resultado: ResultadoRevisao & { criteriosPa
     const historico = historicos[registro.id] ?? [anterior];
     const detalhes = resultado.grupos.find(g => g.id === registro.id);
     const nova: GrupoCalculoRow = { ...anterior, versao: (anterior.versao ?? historico.length) + 1, abrangencia: registro.criterios, criteriosProprios: detalhes?.criteriosProprios, composicaoRubricas: registro.rubricas, rubricasProprias: detalhes?.rubricasProprias, referenciaHeranca: detalhes ? { grupo: detalhes.origem, versao: detalhes.versaoOrigem } : anterior.referenciaHeranca, rubricas: registro.rubricas.length, inicioVigencia: resultado.inicio, fimVigencia: "-", situacao: "ATIVO", pendencias: 0 };
+    nova.pesosAplicados = calcularSomatoriaPesosAbrangencia(registro.criterios, resultado.versaoPesos);
     historicos[registro.id] = [nova, { ...anterior, fimVigencia: resultado.fimAnterior, situacao: "ENCERRADO" }, ...historico.slice(1)];
     alvos[indice] = nova;
   }
@@ -34772,6 +34776,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
   const {grupos:gruposCalculoMock,versoes:gruposCalculoVersoesMock}=dadosCompetencia;
   const voltarCompetencia="/prototipos/folha/grupos-calculo?competencia="+competenciaSelecionada;
   const grupo = gruposCalculoMock.find((item) => String(item.id) === id);
+  const versaoPesosAtiva = useVersaoPesosAbrangenciaAtiva();
   const [anoCompetencia,mesCompetencia]=(competenciaSelecionada || competenciaInicial).split("-").map(Number);
   const amanha = new Date(anoCompetencia,mesCompetencia-1,1);
   const dataInicioV2 = formatDatePtBr(amanha);
@@ -34916,6 +34921,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
       situacao,inicioVigencia:watch("dataAtivacao"),fimVigencia:watch("dataEncerramento")||"-",
       rubricas:ativas.length,pendencias:0,abrangencia:criterios,composicaoRubricas:ativas.map(r=>({codigo:r.codigo,nomeRubrica:r.nomeRubrica})),
       rubricasProprias:ativas.filter(r=>r.origem==="manual").map(r=>r.codigo),responsavel:credenciaisPublicacao.usuario||grupo?.responsavel||"Admin User",
+      pesosAplicados:calcularSomatoriaPesosAbrangencia(criterios,versaoPesosAtiva),
     };
     salvarGrupoCompetencia(competenciaSelecionada,registro,modoVersionamento);return true;
   };
@@ -35418,7 +35424,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
                 // Um único registro preserva o histórico e publica toda a cadeia no protótipo.
                 const chave = `sigep:grupo-calculo:revisoes-aprovadas:${competenciaSelecionada}`;
                 const historico = JSON.parse(localStorage.getItem(chave) ?? "[]");
-                const revisao = { ...resultado, rubricasPai: rubricasGerenciadas.filter(r => !r.excluida).map(r => ({ codigo: r.codigo, nomeRubrica: r.nomeRubrica })), criteriosAntes: resultado.grupos.map(d => ({ id: d.id, criterios: d.criteriosAntes })) };
+                const revisao = { ...resultado, versaoPesos: versaoPesosAtiva, rubricasPai: rubricasGerenciadas.filter(r => !r.excluida).map(r => ({ codigo: r.codigo, nomeRubrica: r.nomeRubrica })), criteriosAntes: resultado.grupos.map(d => ({ id: d.id, criterios: d.criteriosAntes })) };
                 localStorage.setItem(chave, JSON.stringify([...historico, revisao]));
                 aplicarRevisaoGruposCalculo(revisao,gruposCalculoMock,gruposCalculoVersoesMock);
 

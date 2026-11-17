@@ -12,7 +12,7 @@ export const acessosPaginaInicialFolha = [
   },
   {
     nome: "Cadastro",
-    descricao: "Gerencie eventos, tipos de evento e grupos de eleitos.",
+    descricao: "Gerencie eventos e tipos de evento.",
     icone: "pi pi-list",
     corIcone: "var(--sigep-modulo-estrutura)",
   },

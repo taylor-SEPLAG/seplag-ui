@@ -6,21 +6,14 @@ import { Paginator } from "primereact/paginator";
 import { FOLHA_PAGINA_INICIAL_PATH } from "../paginaInicial/folhaModel";
 import { CardSeplag } from "@componentes/Card";
 import { ModalSeplag } from "@componentes/Modal";
+import { carregarVersoesPesosAbrangencia as carregar, salvarVersoesPesosAbrangencia, versaoPesosEstaAtiva as estaAtiva, type VersaoPesosAbrangencia as Versao } from "./pesosAbrangenciasStore";
 import "./pesosAbrangencias.css";
 
-const CHAVE = "sigep:pesos-abrangencias:v1";
 const criterios = ["Órgão/Entidade", "Regime Jurídico", "Tipo de Vínculo", "Carreira", "Unidade de Lotação", "Cargo"];
 const ordemCriterios = [1, 2, 0, 4, 3, 5];
 const pesoValido = (valor: string) => Boolean(valor.trim()) && Number.isFinite(Number(valor)) && Number(valor) >= 0 && Number(valor) <= 10;
-type Versao = { numero: number; inicio: string; fim: string | null; pesos: number[] };
 const data = (valor: string | null) => valor ? new Date(valor).toLocaleDateString("pt-BR", { timeZone: "America/Cuiaba" }) : "-";
-const estaAtiva = (versao: Versao) => !versao.fim || new Date(versao.fim).getTime() > Date.now();
 const situacao = (versao: Versao) => estaAtiva(versao) ? "Ativo" : "Encerrada";
-function carregar(): Versao[] {
-  const dados: unknown = JSON.parse(localStorage.getItem(CHAVE) ?? "[]");
-  if (!Array.isArray(dados) || !dados.every(v => Number.isInteger(v.numero) && typeof v.inicio === "string" && (v.fim === null || typeof v.fim === "string") && Array.isArray(v.pesos) && [5, 6].includes(v.pesos.length) && v.pesos.every((p: unknown) => typeof p === "number" && Number.isFinite(p) && p >= 0))) throw new Error("Dados inválidos");
-  return dados;
-}
 
 export function PesosAbrangenciasContent() {
   const [estado, setEstado] = useState(() => {
@@ -63,7 +56,7 @@ export function PesosAbrangenciasContent() {
       const numero = Math.max(0, ...salvas.map(v => v.numero)) + 1;
       const nova: Versao = { numero, inicio: agora, fim: null, pesos: pesos.map(Number) };
       const versoes = [nova, ...salvas.map(v => estaAtiva(v) ? { ...v, fim: agora } : v)];
-      localStorage.setItem(CHAVE, JSON.stringify(versoes));
+      salvarVersoesPesosAbrangencia(versoes);
       setEstado({ versoes, erro: "" }); setConfirmar(false); setTela("lista"); setErro("");
       setPaginacao(p => ({ ...p, first: 0 }));
       setSucesso(ativa ? `Parametrização atualizada com sucesso! A versão V${numero} foi criada e ativada. A versão V${ativa.numero} foi encerrada e permanece disponível no histórico.` : "Parametrização aprovada com sucesso! A versão V1 foi criada e está ativa.");
