@@ -22,7 +22,7 @@
 .pesos-page input { width: 150px; max-width: 100%; }
 .pesos-table { width: 100%; box-sizing: border-box; overflow-x: auto; border: 1px solid #d6e2ef; border-radius: 6px; }
 .pesos-list-table { border-radius: 0; border-color: #dfe5ec; }
-.pesos-list-table table { table-layout: fixed; min-width: 680px; }
+.pesos-list-table table { table-layout: fixed; min-width: 420px; }
 .pesos-list-table th, .pesos-list-table td { height: 60px; box-sizing: border-box; vertical-align: middle; }
 .pesos-content .pesos-filtros label { gap: 8px; font-size: 1rem; color: #173b63; }
 .pesos-content .pesos-filtros .p-dropdown-label { padding: 11px 12px; }
@@ -49,17 +49,6 @@
 .pesos-timeline { list-style: none; padding: 0 0 0 20px; border-left: 3px solid #cbdcf0; margin: 24px 0; }
 .pesos-timeline li { padding: 18px; margin-bottom: 16px; border: 1px solid #d6e2ef; border-radius: 6px; }
 .pesos-form { width: 100%; min-width: 0; }
-.pesos-vigencia { border: 1px solid #d6e2ef; border-radius: 6px; margin-bottom: 20px; background: #fff; overflow: hidden; }
-.pesos-vigencia > header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #d6e2ef; }
-.pesos-vigencia > header > i { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 6px; background: #e8f1ff; color: #0875e1; font-size: 18px; }
-.pesos-vigencia h2 { margin: 0 0 4px; font-size: 16px; color: #173b63; }
-.pesos-vigencia header p { margin: 0; color: #647b95; font-size: 13px; }
-.pesos-vigencia-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 260px)); gap: 16px; padding: 16px; }
-.pesos-vigencia-fields > [class*="col-"] { width: 100%; min-width: 0; padding: 0; }
-.pesos-vigencia-fields .p-calendar { width: 100%; }
-.pesos-content .pesos-vigencia-fields input { width: 100%; min-width: 0; }
-.pesos-vigencia-error { margin: 0; padding: 0 16px 16px; color: #b42318; font-size: 13px; }
-@media (max-width: 600px) { .pesos-vigencia-fields { grid-template-columns: minmax(0, 1fr); } }
 .pesos-summary { width: 100%; margin-bottom: 20px; border: 1px solid #d8e3ee; border-radius: 6px; background: #fff; overflow: hidden; }
 .pesos-summary > h2 { display: flex; align-items: center; gap: 10px; margin: 0; padding: 14px 16px; background: #07558f; color: #fff; font-size: 1rem; }
 .pesos-summary-fields { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px 24px; margin: 0; padding: 18px 16px; }

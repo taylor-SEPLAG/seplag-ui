@@ -3,8 +3,6 @@ import { BotaoIconSeplag, BotaoLimparFiltroSeplag, BotaoSeplag, BotaoVoltarSepla
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
 import { Dropdown } from "primereact/dropdown";
 import { Paginator } from "primereact/paginator";
-import { useForm } from "react-hook-form";
-import { DateFieldSeplag } from "@componentes/Fields";
 import { FOLHA_PAGINA_INICIAL_PATH } from "../paginaInicial/folhaModel";
 import { CardSeplag } from "@componentes/Card";
 import { ModalSeplag } from "@componentes/Modal";
@@ -18,14 +16,6 @@ type Versao = { numero: number; inicio: string; fim: string | null; pesos: numbe
 const data = (valor: string | null) => valor ? new Date(valor).toLocaleDateString("pt-BR", { timeZone: "America/Cuiaba" }) : "-";
 const estaAtiva = (versao: Versao) => !versao.fim || new Date(versao.fim).getTime() > Date.now();
 const situacao = (versao: Versao) => estaAtiva(versao) ? "Ativo" : "Encerrada";
-const dataVigencia = (valor: string | undefined, fim = false): string | null => {
-  const partes = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(valor ?? "");
-  if (!partes) return null;
-  const [, dia, mes, ano] = partes;
-  const teste = new Date(`${ano}-${mes}-${dia}T12:00:00Z`);
-  if (!Number.isFinite(teste.getTime()) || teste.getUTCDate() !== Number(dia) || teste.getUTCMonth() + 1 !== Number(mes) || teste.getUTCFullYear() !== Number(ano)) return null;
-  return new Date(`${ano}-${mes}-${dia}T${fim ? "23:59:59.999" : "00:00:00.000"}-04:00`).toISOString();
-};
 function carregar(): Versao[] {
   const dados: unknown = JSON.parse(localStorage.getItem(CHAVE) ?? "[]");
   if (!Array.isArray(dados) || !dados.every(v => Number.isInteger(v.numero) && typeof v.inicio === "string" && (v.fim === null || typeof v.fim === "string") && Array.isArray(v.pesos) && [5, 6].includes(v.pesos.length) && v.pesos.every((p: unknown) => typeof p === "number" && Number.isFinite(p) && p >= 0))) throw new Error("Dados inválidos");
@@ -46,12 +36,9 @@ export function PesosAbrangenciasContent() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [confirmar, setConfirmar] = useState(false);
-  const { control: controlVigencia, getValues: lerVigencia, reset: limparVigencia } = useForm<{ inicio: string; fim: string }>({ defaultValues: { inicio: "", fim: "" } });
-  const [erroVigencia, setErroVigencia] = useState("");
   const ativa = estado.versoes.find(estaAtiva);
   const proximaVersao = Math.max(0, ...estado.versoes.map(v => v.numero)) + 1;
   const abrirEdicao = () => {
-    limparVigencia({ inicio: ativa ? new Date().toLocaleDateString("pt-BR", { timeZone: "America/Cuiaba" }) : "", fim: "" }); setErroVigencia("");
     setSelecionada(ativa ?? null);
     setPesos(Array.from({ length: criterios.length }, (_, i) => String(ativa ? ativa.pesos[i] ?? 0 : [100, 40, 30, 20, 10, 0][i])));
     setErro(""); setSucesso(""); setTela("editar");
@@ -63,14 +50,6 @@ export function PesosAbrangenciasContent() {
     if (ativa && pesos.every((p, i) => Number(p) === (ativa.pesos[i] ?? 0))) {
       setErro("Nenhuma alteração identificada. Modifique pelo menos um peso para gerar uma nova versão."); return;
     }
-    {
-      const vigencia = lerVigencia();
-      const inicio = dataVigencia(vigencia.inicio);
-      const fim = dataVigencia(vigencia.fim, true);
-      if (!inicio) { setErroVigencia("Informe uma data de início válida."); return; }
-      if (vigencia.fim && (!fim || fim < inicio)) { setErroVigencia("A data de fim deve ser válida e igual ou posterior à data de início."); return; }
-    }
-    setErroVigencia("");
     setErro(""); setConfirmar(true);
   };
   const aprovar = () => {
@@ -82,13 +61,12 @@ export function PesosAbrangenciasContent() {
       }
       const agora = new Date().toISOString();
       const numero = Math.max(0, ...salvas.map(v => v.numero)) + 1;
-      const vigencia = lerVigencia();
-      const nova: Versao = { numero, inicio: dataVigencia(vigencia.inicio)!, fim: dataVigencia(vigencia.fim, true), pesos: pesos.map(Number) };
+      const nova: Versao = { numero, inicio: agora, fim: null, pesos: pesos.map(Number) };
       const versoes = [nova, ...salvas.map(v => estaAtiva(v) ? { ...v, fim: agora } : v)];
       localStorage.setItem(CHAVE, JSON.stringify(versoes));
       setEstado({ versoes, erro: "" }); setConfirmar(false); setTela("lista"); setErro("");
       setPaginacao(p => ({ ...p, first: 0 }));
-      setSucesso(ativa ? `Parametrização atualizada com sucesso! A versão V${numero} foi criada e ativada. A versão V${ativa.numero} foi encerrada e permanece disponível no histórico.` : `Parametrização aprovada com sucesso! A versão V1 foi criada com a vigência informada. Situação: ${situacao(nova)}.`);
+      setSucesso(ativa ? `Parametrização atualizada com sucesso! A versão V${numero} foi criada e ativada. A versão V${ativa.numero} foi encerrada e permanece disponível no histórico.` : "Parametrização aprovada com sucesso! A versão V1 foi criada e está ativa.");
     } catch { setConfirmar(false); setErro("Não foi possível salvar a parametrização. As alterações não foram aprovadas. Tente novamente."); }
   };
   const visualizar = (v: Versao) => { setSelecionada(v); setErro(""); setTela("visualizar"); };
@@ -119,10 +97,22 @@ export function PesosAbrangenciasContent() {
           <div className="prototype-category-clear"><BotaoLimparFiltroSeplag type="button" label="Limpar filtros" icon="pi pi-refresh" onClick={() => { setVersaoFiltro(""); setSituacaoFiltro(""); setPaginacao(p => ({ ...p, first: 0 })); }} /></div>
         </div>
         <section className="v2v-panel v2v-management-results" aria-label="Parametrizações cadastradas">
-        <div className="v2v-grid-toolbar pesos-list-toolbar">
-          <div className="pesos-toolbar-left"><BotaoSeplag type="button" label={estado.versoes.length ? "Nova versão" : "Nova parametrização"} icon="pi pi-plus" disabled={Boolean(estado.erro) || (estado.versoes.length > 0 && !ativa)} onClick={abrirEdicao} /></div>
+        {!estado.versoes.length && <div className="v2v-grid-toolbar pesos-list-toolbar">
+          <div className="pesos-toolbar-left"><BotaoSeplag type="button" label="Nova parametrização" icon="pi pi-plus" disabled={Boolean(estado.erro)} onClick={abrirEdicao} /></div>
+        </div>}
+        <div className="pesos-table pesos-list-table prototype-grupos-calculo-flat-table">
+          <table className="v2v-table v2v-inner-table">
+            <colgroup><col style={{ width: "30%" }} /><col style={{ width: "40%" }} /><col style={{ width: "30%" }} /></colgroup>
+            <thead><tr><th>Versão</th><th>Situação</th><th>Ações</th></tr></thead>
+            <tbody>{paginadas.map(v => <tr key={v.numero} className={estaAtiva(v) ? "pesos-atual" : ""}>
+              <td><strong>V{v.numero}</strong></td><td>{badge(v)}</td>
+              <td><div className="pesos-actions">
+                <BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar" aria-label="Visualizar" onClick={() => visualizar(v)} />
+                {v === ativa && <BotaoIconSeplag type="button" icon="pi pi-plus" severity="warning" tooltip="Nova versão" aria-label={`Nova versão a partir de V${v.numero}`} onClick={abrirEdicao} />}
+              </div></td>
+            </tr>)}{!listadas.length && <tr><td colSpan={3}><div className="pesos-empty"><i className="pi pi-cog" aria-hidden="true" /><strong>{estado.versoes.length ? "Nenhuma parametrização encontrada" : "Nenhuma parametrização cadastrada"}</strong><p>{estado.versoes.length ? "Ajuste os filtros para consultar as parametrizações." : "Cadastre a primeira parametrização de pesos para definir a prioridade dos Grupos de Cálculo da Folha."}</p></div></td></tr>}</tbody>
+          </table>
         </div>
-        <div className="pesos-table pesos-list-table prototype-grupos-calculo-flat-table"><table className="v2v-table v2v-inner-table"><colgroup><col style={{ width: "12%" }} /><col style={{ width: "26%" }} /><col style={{ width: "26%" }} /><col style={{ width: "18%" }} /><col style={{ width: "18%" }} /></colgroup><thead><tr><th>Versão</th><th>Data de início</th><th>Data fim</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{paginadas.map(v => <tr key={v.numero} className={estaAtiva(v) ? "pesos-atual" : ""}><td><strong>V{v.numero}</strong></td><td>{data(v.inicio)}</td><td>{data(v.fim)}</td><td>{badge(v)}</td><td><div className="pesos-actions"><BotaoIconSeplag type="button" icon="pi pi-eye" tooltip="Visualizar" aria-label="Visualizar" onClick={() => visualizar(v)} /></div></td></tr>)}{!listadas.length && <tr><td colSpan={5}><div className="pesos-empty"><i className="pi pi-cog" aria-hidden="true" /><strong>{estado.versoes.length ? "Nenhuma parametrização encontrada" : "Nenhuma parametrização cadastrada"}</strong><p>{estado.versoes.length ? "Ajuste os filtros para consultar as parametrizações." : "Cadastre a primeira parametrização de pesos para definir a prioridade dos Grupos de Cálculo da Folha."}</p></div></td></tr>}</tbody></table></div>
         <Paginator className="prototype-grupos-calculo-paginator" first={primeiroRegistro} rows={paginacao.rows} totalRecords={listadas.length} rowsPerPageOptions={[10, 20, 50]} onPageChange={e => setPaginacao({ first: e.first, rows: e.rows })} />
         </section>
       </>}
@@ -138,14 +128,6 @@ export function PesosAbrangenciasContent() {
           </dl>
         </section>}
         <form className="pesos-form" noValidate onSubmit={e => { e.preventDefault(); validar(); }}>
-          {tela === "editar" && <section className="pesos-vigencia" aria-labelledby="pesos-vigencia-title">
-            <header><i className="pi pi-calendar" aria-hidden="true" /><div><h2 id="pesos-vigencia-title">Vigência</h2><p>Informe a data início e, se necessário, a data fim da parametrização de pesos.</p></div></header>
-            <div className="pesos-vigencia-fields">
-              <DateFieldSeplag name="inicio" control={controlVigencia} label="Data início" cols="12" required getFormErrorMessage={() => null} />
-              <DateFieldSeplag name="fim" control={controlVigencia} label="Data fim" cols="12" getFormErrorMessage={() => null} />
-            </div>
-            {erroVigencia && <p role="alert" className="pesos-vigencia-error">{erroVigencia}</p>}
-          </section>}
           <div className={tela === "editar" ? "pesos-config-layout" : ""}>
             {tela === "editar" && <aside className="pesos-help" aria-label="Informações sobre os pesos">
               <section className="pesos-help-card pesos-help-how"><h2><i className="pi pi-cog" aria-hidden="true" />Como o peso funciona?</h2>
