@@ -80,7 +80,7 @@ describe("abrangência do grupo de cálculo", () => {
     expect(carreirasDosCargos(["analista"], base(), catalogo)).toEqual(["ADM"]);
     expect(carreirasDosCargos(["assessor"], base(), catalogo)).toEqual([]);
     expect(carreirasDosCargos(["analista", "prof"], base(), catalogo)).toEqual(["ADM", "EDU"]);
-    expect(opcoesAbrangencia({ ...base(), carreiras: ["ADM"] }, catalogo).cargos.map(c => c.value)).toEqual(["analista"]);
+    expect(opcoesAbrangencia({ ...base(), carreiras: ["ADM"] }, catalogo).cargos.map(c => c.value)).toEqual(["analista", "assessor", "auxiliar"]);
     expect(ajustarAbrangencia({ ...base(), carreiras: ["EDU"], cargos: ["analista"] }, catalogo).cargos).toEqual([]);
   });
   it("lista todos os cadastros quando não há restrições", () => {

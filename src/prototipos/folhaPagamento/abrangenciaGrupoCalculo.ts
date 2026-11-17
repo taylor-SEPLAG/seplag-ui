@@ -76,17 +76,10 @@ export function opcoesAbrangencia(
       (!f.orgaos.length || contem(f.orgaos, unidade.orgao)),
   );
   const cargos = c.cargos.filter((cargo) => {
-    if (carreirasSelecionadas.length && !tiposConsiderados.some(tipo =>
-      f.carreiras.includes(cargo.carreirasPorTipo[tipo.value]),
-    )) return false;
-    if (!restringirTipos && !carreirasSelecionadas.length) return true;
-    return tiposConsiderados.some(
-      (tipo) =>
-        cargo.tipos.includes(tipo.value) &&
-        (!tipo.possuiCarreira ||
-          !carreirasSelecionadas.length ||
-          f.carreiras.includes(cargo.carreirasPorTipo[tipo.value])),
-    );
+    if (restringirTipos && !tiposConsiderados.some(tipo => cargo.tipos.includes(tipo.value))) return false;
+    if (!carreirasSelecionadas.length) return true;
+    const vinculadas = tiposConsiderados.map(tipo => cargo.carreirasPorTipo[tipo.value]).filter(carreira => c.carreiras.some(c => c.value === carreira));
+    return !vinculadas.length || vinculadas.some(carreira => f.carreiras.includes(carreira));
   });
   return {
     regimes: c.regimes,

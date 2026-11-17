@@ -141,6 +141,7 @@ import brasaoMt from "../assets/img/brasao-mt.svg";
 import "../componentes/layout/layout/Layout.css";
 import "./prototipos.css";
 import "./folhaPagamento/carreiraCargoGrupo.css";
+import { CarreiraCargoListas } from "./folhaPagamento/CarreiraCargoListas";
 import { folhaPagamentoService } from "./folhaPagamento/folhaPagamentoService";
 import type {
   FolhaPagamentoExecucaoRow,
@@ -35228,26 +35229,10 @@ function PrototiposFolhaGrupoCalculoFormContent() {
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, unidades: valores })} getFormErrorMessage={() => null}
                 />
                 <div className="col-12">
-                <div className="prototype-carreira-cargo-group" role="group" aria-label="Carreira e Cargo">
-                  <div className="prototype-carreira-cargo-heading"><h3><i className="pi pi-link" aria-hidden="true" />Carreira e Cargo estão relacionados</h3></div>
-                  <div className="prototype-carreira-cargo-fields">
-                <MultiSelectFieldSeplag
-                  name={camposAbrangencia.carreiras} control={control} label="Carreira" cols="12"
-                  disabled={formularioBloqueado || !opcoesDaAbrangencia.carreiraAtiva} options={opcoesDaAbrangencia.carreiras}
-                  optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} carreiras selecionadas"
-                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, carreiras: valores })} getFormErrorMessage={() => null}
-                />
-                <i className="pi pi-arrow-right prototype-carreira-cargo-arrow" aria-hidden="true" />
-                <MultiSelectFieldSeplag
-                  name={camposAbrangencia.cargos} control={control} label="Cargo" cols="12"
-                  disabled={formularioBloqueado} options={opcoesDaAbrangencia.cargos}
-                  placeholder={abrangenciaAtual.carreiras.length ? "Selecione um cargo desta carreira..." : "Selecione um cargo..."}
-                  optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} cargos selecionados"
-                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, cargos: valores, carreiras: valores.length ? carreirasDosCargos(valores, abrangenciaAtual, catalogoAbrangencia) : abrangenciaAtual.carreiras })} getFormErrorMessage={() => null}
-                />
-                  </div>
-                  <p className="prototype-carreira-cargo-guidance"><i className="pi pi-info-circle" aria-hidden="true" />Filtra os cargos pela carreira. Cargos sem carreira continuam disponíveis.</p>
-                </div>
+                  <CarreiraCargoListas catalogo={catalogoAbrangencia} criterios={abrangenciaAtual} disabled={formularioBloqueado}
+                    onCarreirasChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, carreiras: valores })}
+                    onCargosChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, cargos: valores, carreiras: valores.length ? carreirasDosCargos(valores, abrangenciaAtual, catalogoAbrangencia) : abrangenciaAtual.carreiras })}
+                  />
                 </div>
               </div>
               <p className="prototype-grupo-calculo-abrangencia-hint"><i className="pi pi-info-circle" aria-hidden="true" />Ao menos um campo ativo de abrangência deve ser preenchido para aprovar.</p>

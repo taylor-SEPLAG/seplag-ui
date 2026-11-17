@@ -1,17 +1,3 @@
 .prototype-grupo-calculo-competencia > .prototype-category-form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 260px)); gap: 16px; margin: 0; }
 .prototype-grupo-calculo-competencia > .prototype-category-form-fields > [class*="col-"] { width: 100%; padding: 0; min-width: 0; }
-.prototype-carreira-cargo-group { margin-top: 8px; padding: 16px; border: 1px solid #d5e6fc; border-radius: 10px; background: #f1f7ff; }
-.prototype-carreira-cargo-heading { margin-bottom: 14px; }
-.prototype-carreira-cargo-heading h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; font-weight: 600; line-height: 1.5; color: #0875e1; }
-.prototype-carreira-cargo-heading h3 > i { color: #0875e1; font-size: 13px; }
-.prototype-carreira-cargo-fields { display: grid; grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr); gap: 12px; align-items: end; }
-.prototype-carreira-cargo-fields > .prototype-carreira-cargo-arrow { display: grid; place-items: center; align-self: end; height: 40px; margin: 0; padding: 0; color: #0875e1; font-size: 18px; line-height: 1; }
-.prototype-carreira-cargo-fields > [class*="col-"] { padding: 0; width: 100%; min-width: 0; }
-.prototype-carreira-cargo-fields .p-multiselect { width: 100%; background: #fff; }
-.prototype-carreira-cargo-group .prototype-carreira-cargo-guidance { display: flex; align-items: baseline; gap: 8px; margin: 10px 0 0; color: #35618c; font-size: 12px; line-height: 1.5; }
-.prototype-carreira-cargo-guidance > i { color: #0875e1; flex-shrink: 0; }
-@media (max-width: 700px) {
-  .prototype-grupo-calculo-competencia > .prototype-category-form-fields { grid-template-columns: minmax(0, 1fr); }
-  .prototype-carreira-cargo-fields { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .prototype-carreira-cargo-fields > .prototype-carreira-cargo-arrow { display: none; }
-}
+@media (max-width: 700px) { .prototype-grupo-calculo-competencia > .prototype-category-form-fields { grid-template-columns: minmax(0, 1fr); } }
