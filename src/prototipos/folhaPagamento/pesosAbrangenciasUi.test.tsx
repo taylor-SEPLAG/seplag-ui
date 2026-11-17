@@ -21,7 +21,7 @@ it("pagina as versões e retorna ao início ao limpar os filtros", () => {
 it("aprova a primeira versão, impede duplicação e preserva os pesos históricos", () => {
   render(<MemoryRouter><PesosAbrangenciasContent /></MemoryRouter>);
   fireEvent.click(screen.getByRole("button", { name: "Nova parametrização" }));
-  expect((screen.getByLabelText("Órgão/Entidade") as HTMLInputElement).value).toBe("100");
+  expect((screen.getByLabelText("Órgão/Entidade") as HTMLInputElement).value).toBe("10");
   expect(screen.queryByRole("region", { name: "Vigência" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Aprovar parametrização" }));
   expect(localStorage.getItem(chave)).toBeNull();
@@ -33,11 +33,11 @@ it("aprova a primeira versão, impede duplicação e preserva os pesos históric
   expect(screen.getByText("Nova versão: V2")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Aprovar nova versão" }));
   expect(screen.getByRole("alert").textContent).toContain("Nenhuma alteração identificada");
-  fireEvent.change(screen.getByLabelText("Órgão/Entidade"), { target: { value: "80" } });
+  fireEvent.change(screen.getByLabelText("Órgão/Entidade"), { target: { value: "8" } });
   fireEvent.click(screen.getByRole("button", { name: "Aprovar nova versão" }));
   fireEvent.click(screen.getByRole("button", { name: "Confirmar aprovação" }));
   const versoes = JSON.parse(localStorage.getItem(chave)!);
-  expect(versoes.map((v: { pesos: number[] }) => v.pesos[0])).toEqual([80, 100]);
+  expect(versoes.map((v: { pesos: number[] }) => v.pesos[0])).toEqual([8, 10]);
   expect(versoes[0].fim).toBeNull();
   expect(versoes[1].fim).toBe(versoes[0].inicio);
   expect(screen.queryByRole("button", { name: "Nova versão a partir de V1" })).toBeNull();
@@ -54,10 +54,10 @@ it("cancela sem salvar e não sobrescreve dados inválidos", () => {
 it("valida campos e cancela sem criar uma versão", () => {
   render(<MemoryRouter><PesosAbrangenciasContent /></MemoryRouter>);
   fireEvent.click(screen.getByRole("button", { name: "Nova parametrização" }));
-  fireEvent.change(screen.getByLabelText("Órgão/Entidade"), { target: { value: "80" } });
-  fireEvent.change(screen.getByLabelText("Carreira"), { target: { value: "101" } });
+  fireEvent.change(screen.getByLabelText("Órgão/Entidade"), { target: { value: "8" } });
+  fireEvent.change(screen.getByLabelText("Carreira"), { target: { value: "11" } });
   fireEvent.click(screen.getByRole("button", { name: "Aprovar parametrização" }));
-  expect(screen.getByRole("alert").textContent).toContain("de 0 a 100");
+  expect(screen.getByRole("alert").textContent).toContain("de 0 a 10");
   expect(screen.queryByRole("button", { name: "Confirmar aprovação" })).toBeNull();
   fireEvent.change(screen.getByLabelText("Carreira"), { target: { value: "-1" } });
   fireEvent.click(screen.getByRole("button", { name: "Aprovar parametrização" }));
@@ -82,10 +82,10 @@ it("preserva a versão ativa ao cancelar o versionamento", () => {
   expect(screen.getByRole("cell", { name: "V2" })).toBeTruthy();
 });
 it("registra as datas automaticamente no versionamento e preserva os dados anteriores", () => {
-  localStorage.setItem(chave, JSON.stringify([{ numero: 1, inicio: "2026-11-16T04:00:00Z", fim: null, pesos: [100, 40, 30, 20, 10, 0] }]));
+  localStorage.setItem(chave, JSON.stringify([{ numero: 1, inicio: "2026-11-16T04:00:00Z", fim: null, pesos: [10, 4, 3, 2, 1, 0] }]));
   render(<MemoryRouter><PesosAbrangenciasContent /></MemoryRouter>);
   fireEvent.click(screen.getByRole("button", { name: "Nova versão a partir de V1" }));
-  fireEvent.change(screen.getByLabelText("Regime Jurídico"), { target: { value: "60" } });
+  fireEvent.change(screen.getByLabelText("Regime Jurídico"), { target: { value: "6" } });
   fireEvent.click(screen.getByRole("button", { name: "Aprovar nova versão" }));
   const antesDaAprovacao = Date.now();
   fireEvent.click(screen.getByRole("button", { name: "Confirmar aprovação" }));
@@ -93,8 +93,8 @@ it("registra as datas automaticamente no versionamento e preserva os dados anter
   expect(new Date(nova.inicio).getTime()).toBeGreaterThanOrEqual(antesDaAprovacao);
   expect(new Date(nova.inicio).getTime()).toBeLessThanOrEqual(Date.now());
   expect(nova.fim).toBeNull();
-  expect(nova.pesos[1]).toBe(60);
-  expect(anterior.pesos[1]).toBe(40);
+  expect(nova.pesos[1]).toBe(6);
+  expect(anterior.pesos[1]).toBe(4);
   expect(anterior.inicio).toBe("2026-11-16T04:00:00Z");
   expect(anterior.fim).toBe(nova.inicio);
   expect(screen.getByRole("cell", { name: "Ativo" })).toBeTruthy();

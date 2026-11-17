@@ -11,7 +11,7 @@ import "./pesosAbrangencias.css";
 const CHAVE = "sigep:pesos-abrangencias:v1";
 const criterios = ["Órgão/Entidade", "Regime Jurídico", "Tipo de Vínculo", "Carreira", "Unidade de Lotação", "Cargo"];
 const ordemCriterios = [1, 2, 0, 4, 3, 5];
-const pesoValido = (valor: string) => Boolean(valor.trim()) && Number.isFinite(Number(valor)) && Number(valor) >= 0 && Number(valor) <= 100;
+const pesoValido = (valor: string) => Boolean(valor.trim()) && Number.isFinite(Number(valor)) && Number(valor) >= 0 && Number(valor) <= 10;
 type Versao = { numero: number; inicio: string; fim: string | null; pesos: number[] };
 const data = (valor: string | null) => valor ? new Date(valor).toLocaleDateString("pt-BR", { timeZone: "America/Cuiaba" }) : "-";
 const estaAtiva = (versao: Versao) => !versao.fim || new Date(versao.fim).getTime() > Date.now();
@@ -40,12 +40,12 @@ export function PesosAbrangenciasContent() {
   const proximaVersao = Math.max(0, ...estado.versoes.map(v => v.numero)) + 1;
   const abrirEdicao = () => {
     setSelecionada(ativa ?? null);
-    setPesos(Array.from({ length: criterios.length }, (_, i) => String(ativa ? ativa.pesos[i] ?? 0 : [100, 40, 30, 20, 10, 0][i])));
+    setPesos(Array.from({ length: criterios.length }, (_, i) => String(ativa ? ativa.pesos[i] ?? 0 : [10, 4, 3, 2, 1, 0][i])));
     setErro(""); setSucesso(""); setTela("editar");
   };
   const validar = () => {
     if (!pesos.every(pesoValido)) {
-      setErro("Verifique os pesos informados. Todos os pesos são obrigatórios e devem possuir valores numéricos de 0 a 100."); return;
+      setErro("Verifique os pesos informados. Todos os pesos são obrigatórios e devem possuir valores numéricos de 0 a 10."); return;
     }
     if (ativa && pesos.every((p, i) => Number(p) === (ativa.pesos[i] ?? 0))) {
       setErro("Nenhuma alteração identificada. Modifique pelo menos um peso para gerar uma nova versão."); return;
@@ -139,8 +139,8 @@ export function PesosAbrangenciasContent() {
               </section>
             </aside>}
             <section aria-label="Configuração dos pesos" className="pesos-config-main">
-              <div className="pesos-table pesos-config-table"><table><thead><tr><th>Critério da Abrangência</th><th>Peso (pontos){tela === "editar" && <span className="pesos-required" aria-hidden="true"> *</span>}</th></tr></thead><tbody>{ordemCriterios.map(i => criterios[i]).map((c, indice) => { const i = ordemCriterios[indice]; return <tr key={c}><td><label htmlFor={`peso-${i}`}>{c}</label></td><td>{tela === "editar" ? <input id={`peso-${i}`} aria-label={c} type="number" min="0" max="100" step="any" required aria-invalid={Boolean(erro) && !pesoValido(pesos[i] ?? "")} value={pesos[i] ?? ""} onChange={e => setPesos(p => p.map((v, j) => j === i ? e.target.value : v))} /> : selecionada?.pesos[i] ?? "—"}</td></tr>; })}</tbody></table></div>
-              {tela === "editar" && <p className="pesos-required-note">* Pesos obrigatórios. Informe valores de 0 a 100.</p>}
+              <div className="pesos-table pesos-config-table"><table><thead><tr><th>Critério da Abrangência</th><th>Peso (pontos){tela === "editar" && <span className="pesos-required" aria-hidden="true"> *</span>}</th></tr></thead><tbody>{ordemCriterios.map(i => criterios[i]).map((c, indice) => { const i = ordemCriterios[indice]; return <tr key={c}><td><label htmlFor={`peso-${i}`}>{c}</label></td><td>{tela === "editar" ? <input id={`peso-${i}`} aria-label={c} type="number" min="0" max="10" step="any" required aria-invalid={Boolean(erro) && !pesoValido(pesos[i] ?? "")} value={pesos[i] ?? ""} onChange={e => setPesos(p => p.map((v, j) => j === i ? e.target.value : v))} /> : selecionada?.pesos[i] ?? "—"}</td></tr>; })}</tbody></table></div>
+              {tela === "editar" && <p className="pesos-required-note">* Pesos obrigatórios. Informe valores de 0 a 10.</p>}
             </section>
           </div>
           <div className="pesos-form-footer">{tela === "editar" ? <BotaoSeplag type="button" variant="back" label="Cancelar" icon="pi pi-times" onClick={() => { setTela("lista"); setErro(""); }} /> : <BotaoVoltarSeplag onClick={() => { setTela("lista"); setErro(""); }} />}{tela === "editar" && <BotaoSeplag type="submit" label={ativa ? "Aprovar nova versão" : "Aprovar parametrização"} icon="pi pi-check" />}</div>

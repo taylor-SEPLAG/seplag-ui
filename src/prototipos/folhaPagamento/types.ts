@@ -1,3 +1,5 @@
+import type { CriteriosAbrangencia } from "./abrangenciaGrupoCalculo";
+
 export type FolhaPagamentoSituacao =
   | "RASCUNHO"
   | "ABERTO"
@@ -315,4 +317,9 @@ export type UpdateGrupoFolhaRequest = GrupoFolhaForm;
 
 export interface ExecutarFolhaPagamentoRequest {
   folhaPagamentoId: number;
+  tipoExecucao?: "PARCIAL" | "TOTAL";
+  competenciaInicial?: string;
+  competenciaFinal?: string;
+  criterios?: CriteriosAbrangencia;
+  grupoEleitos?: string;
 }

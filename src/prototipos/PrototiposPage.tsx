@@ -6,10 +6,12 @@ import { ValoresReferenciaListagem, ValoresReferenciaFormulario } from "./Valore
 import { SigepAppearanceScope, SigepAppearanceMenu } from "./aparencia/SigepAppearanceControls";
 import { carregarGruposCompetencia, salvarGrupoCompetencia, excluirGrupoCompetencia, salvarConjuntoCompetencia, formatarCompetenciaGrupo } from "./folhaPagamento/gruposCalculoCompetencia";
 import { AbrangenciaProcessamentoFolha } from "./folhaPagamento/AbrangenciaProcessamentoFolha";
+import { CompetenciasProcessamentoFolha } from "./folhaPagamento/CompetenciasProcessamentoFolha";
+import { parametrosExecucao, validarAbrangenciaProcessamento, valoresProcessamento } from "./folhaPagamento/regrasProcessamentoFolha";
 import { AlertaConflitoAbrangencia } from "./folhaPagamento/AlertaConflitoAbrangencia";
 import { abrangenciaLegadaGrupo, identificarConflitosAbrangencia } from "./folhaPagamento/conflitosAbrangenciaGrupo";
 import type { ProcessamentoFolhaForm } from "./folhaPagamento/types";
-import { camposAbrangenciaFolha, criteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
+import { camposAbrangenciaFolha, criteriosDaFolha, normalizarCriteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
 import "./vinculos/vinculoV2.css";
 import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
 import { abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, carreirasDosCargos, temAbrangencia, lerAbrangenciaGrupo, salvarAbrangenciaGrupo, filtrarVinculosElegiveis, type CriteriosAbrangencia, type CatalogoAbrangencia } from "./folhaPagamento/abrangenciaGrupoCalculo";
@@ -6296,6 +6298,11 @@ const folhaPagamentoGrupoEleitosOptions = [
   { label: "PESSOA FÍSICA", value: "PESSOA FÍSICA" },
   { label: "Grupo Teste", value: "Grupo Teste" },
   { label: "Teste 24/04/2026", value: "Teste 24/04/2026" },
+];
+
+const folhaProcessamentoGrupoEleitosOptions = [
+  { label: "Nenhum", value: "" },
+  ...gruposEleitosMock.filter(grupo => grupo.situacao === "ATIVO").map(grupo => ({ label: grupo.descricao, value: grupo.descricao })),
 ];
 
 const folhaConformidadeNumeroFolhaOptions = [
@@ -29813,13 +29820,6 @@ export function PrototiposFolhaPagamentoPage({
     const grupo = gruposFolha.find((item) => item.id === grupoFolhaId);
     return grupo ? grupo.grupo : "-";
   };
-  const usuarioLogadoProcessamentoMock = {
-    orgaos: ["SEPLAG", "MTI"],
-    regimesJuridicos: ["Estatutário Civil"],
-    categorias: ["Área Meio"],
-    cargos: ["Analista Administrativo"],
-    grupoEleitos: "",
-  };
   const catalogoProcessamento = useMemo(criarCatalogoAbrangenciaFolha, []);
   const {
     control: logControl,
@@ -29842,6 +29842,7 @@ export function PrototiposFolhaPagamentoPage({
     setValue: setValueProcessamento,
     watch: watchProcessamento,
     handleSubmit: handleSubmitProcessamento,
+    formState: { errors: processamentoModalErrors },
   } = useForm<ProcessamentoFolhaForm>({
     defaultValues: {
       numeroFolha: "",
@@ -30113,9 +30114,11 @@ export function PrototiposFolhaPagamentoPage({
     { label: ".XLSX", value: ".XLSX" },
   ];
   const processamentoTipoExecucao = watchProcessamento("tipoExecucao");
-  const processamentoTotal = processamentoTipoExecucao === "TOTAL";
   const processamentoNumeroFolha = watchProcessamento("numeroFolha");
   const processamentoNomeFolha = watchProcessamento("nomeFolha");
+  const folhaProcessamentoOrigem = folhaSelecionada?.numero === processamentoNumeroFolha && folhaSelecionada?.nome === processamentoNomeFolha
+    ? folhaSelecionada : folhas.find(folha => folha.numero === processamentoNumeroFolha && folha.nome === processamentoNomeFolha);
+  const competenciasProcessamentoOptions = folhaPagamentoService.listarCompetencias().map(competencia => ({ label: formatMesAno(competencia.competencia), value: formatMesAno(competencia.competencia) }));
   const processamentoNumeroFolhaOptions = Array.from(
     new Map(
       folhas.map((folha) => [
@@ -30145,7 +30148,7 @@ export function PrototiposFolhaPagamentoPage({
     );
     if (
       folhaSelecionadaPorNumero &&
-      processamentoNomeFolha !== folhaSelecionadaPorNumero.nome
+      !folhas.some(folha => folha.numero === processamentoNumeroFolha && folha.nome === processamentoNomeFolha)
     ) {
       setValueProcessamento("nomeFolha", folhaSelecionadaPorNumero.nome);
     }
@@ -30155,6 +30158,14 @@ export function PrototiposFolhaPagamentoPage({
     processamentoNumeroFolha,
     setValueProcessamento,
   ]);
+
+  useEffect(() => {
+    if (!modalProcessamentoAberto || !folhaProcessamentoOrigem) return;
+    setValueProcessamento("competencia", formatMesAno(folhaProcessamentoOrigem.competencia));
+    setValueProcessamento("competenciaFinal", "");
+    setValueProcessamento("grupoEleitos", folhaProcessamentoOrigem.grupoEleitos ?? "");
+  }, [modalProcessamentoAberto, folhaProcessamentoOrigem, setValueProcessamento]);
+  useEffect(() => { setProcessamentoErrors({}); }, [folhaProcessamentoOrigem, processamentoTipoExecucao]);
 
   const isTextoPreenchido = (value?: string) => Boolean(value?.trim());
   const temAbrangenciaFolha = (data: FolhaPagamentoForm) =>
@@ -30290,21 +30301,11 @@ export function PrototiposFolhaPagamentoPage({
       numeroFolha: folha.numero,
       nomeFolha: folha.nome,
       competencia: formatMesAno(folha.competencia),
+      competenciaFinal: "",
       tipoExecucao: "TOTAL",
-      carreiras: folha.abrangenciaCarreiras ?? [],
-      unidades: folha.abrangenciaUnidades ?? [],
-      tiposVinculo: folha.abrangenciaTipoVinculo ?? [],
-      orgaos: folha.orgaos.length
-        ? folha.orgaos
-        : usuarioLogadoProcessamentoMock.orgaos,
-      regimesJuridicos: folha.abrangenciaRegimeJuridico?.length ? folha.abrangenciaRegimeJuridico : folha.regimeJuridico
-        ? [folha.regimeJuridico]
-        : usuarioLogadoProcessamentoMock.regimesJuridicos,
-      categorias: folha.categoria
-        ? [folha.categoria]
-        : usuarioLogadoProcessamentoMock.categorias,
-      cargos: folha.abrangenciaCargos?.length ? folha.abrangenciaCargos : folha.cargo ? [folha.cargo] : usuarioLogadoProcessamentoMock.cargos,
-      grupoEleitos: folha.grupoEleitos || usuarioLogadoProcessamentoMock.grupoEleitos,
+      ...valoresProcessamento(normalizarCriteriosDaFolha(folha, catalogoProcessamento)),
+      setores: [], categorias: [], subcategorias: [],
+      grupoEleitos: folha.grupoEleitos ?? "",
     });
     setModalProcessamentoAberto(true);
   };
@@ -30316,8 +30317,8 @@ export function PrototiposFolhaPagamentoPage({
   };
 
   const getProcessamentoErrorMessage = (name: keyof ProcessamentoFolhaForm) => {
-    const message = processamentoErrors[name];
-    return message ? <small className="p-error">{message}</small> : null;
+    const message = processamentoErrors[name] ?? processamentoModalErrors[name]?.message;
+    return typeof message === "string" ? <small className="p-error">{message}</small> : null;
   };
 
   const validarFormularioProcessamento = (data: ProcessamentoFolhaForm) => {
@@ -30332,20 +30333,10 @@ export function PrototiposFolhaPagamentoPage({
     }
     if (!data.tipoExecucao) errors.tipoExecucao = "Campo obrigatório";
 
-    if (data.tipoExecucao === "PARCIAL") {
-      const possuiFiltro =
-        Boolean(data.orgaos?.length) ||
-        Boolean(data.carreiras?.length) ||
-        Boolean(data.regimesJuridicos?.length) ||
-        Boolean(data.tiposVinculo?.length) ||
-        Boolean(data.unidades?.length) ||
-        Boolean(data.cargos?.length) ||
-        Boolean(data.grupoEleitos);
-
-      if (!possuiFiltro) {
-        errors.orgaos = "Campo obrigatório";
-      }
-    }
+    const folhaParametrizada = folhaProcessamentoOrigem?.numero === data.numeroFolha && folhaProcessamentoOrigem?.nome === data.nomeFolha
+      ? folhaProcessamentoOrigem : folhas.find(folha => folha.numero === data.numeroFolha && folha.nome === data.nomeFolha);
+    if (!folhaParametrizada) { errors.numeroFolha = "Selecione uma folha cadastrada."; errors.nomeFolha = "Selecione uma folha cadastrada."; }
+    else Object.assign(errors, validarAbrangenciaProcessamento(data, folhaParametrizada, catalogoProcessamento, folhaProcessamentoGrupoEleitosOptions));
 
     setProcessamentoErrors(errors);
     return Object.keys(errors).length === 0;
@@ -30489,7 +30480,11 @@ export function PrototiposFolhaPagamentoPage({
       return;
     }
 
-    folhaPagamentoService.executarFolha({ folhaPagamentoId: folha.id });
+    const dadosExecucao: ProcessamentoFolhaForm = data ?? { tipoExecucao: "TOTAL", competencia: folha.competencia,
+      ...valoresProcessamento(normalizarCriteriosDaFolha(folha, catalogoProcessamento)), grupoEleitos: folha.grupoEleitos };
+    const errosExecucao = validarAbrangenciaProcessamento(dadosExecucao, folha, catalogoProcessamento, folhaProcessamentoGrupoEleitosOptions);
+    if (Object.keys(errosExecucao).length) { setProcessamentoErrors(errosExecucao); return; }
+    folhaPagamentoService.executarFolha(parametrosExecucao(folha.id, dadosExecucao, catalogoProcessamento));
 
     const novaExecucao: FolhaPagamentoExecucaoRow = {
       id: Math.max(...execucoes.map((execucao) => execucao.id), 1000) + 1,
@@ -30514,8 +30509,6 @@ export function PrototiposFolhaPagamentoPage({
         item.id === folha.id
           ? {
             ...item,
-              competencia: competenciaProcessamento,
-              mesAnoReferencia: competenciaProcessamento,
               situacao: "AGUARDANDO_PROCESSAMENTO",
               ultimaExecucao: "28/05/2026 10:00",
             }
@@ -30543,7 +30536,7 @@ export function PrototiposFolhaPagamentoPage({
       return;
     }
 
-    processarFolha(folhaParaProcessar, data);
+    processarFolha(folhaProcessamentoOrigem ?? folhaParaProcessar, data);
   };
 
   const abrirExecucoesFolha = (folha: FolhaPagamentoRow) => {
@@ -31380,29 +31373,10 @@ export function PrototiposFolhaPagamentoPage({
                 optionValue="value"
                 getFormErrorMessage={() => getProcessamentoErrorMessage("nomeFolha")}
               />
-              <TextFieldSeplag
-                name="competencia"
-                control={processamentoControl}
-                label="Competência"
-                placeholder="MM/AAAA"
-                cols="12 12 6"
-                required
-                maxLength={7}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("competencia")}
-              />
-              <RadioButtonFieldSeplag
-                name="tipoExecucao"
-                control={processamentoControl}
-                label="Tipo de execução"
-                cols="12 12 6"
-                required
-                options={[
-                  { label: "Parcial", value: "PARCIAL" },
-                  { label: "Total", value: "TOTAL" },
-                ]}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("tipoExecucao")}
-              />
-              <AbrangenciaProcessamentoFolha control={processamentoControl} setValue={setValueProcessamento} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaPagamentoGrupoEleitosOptions} disabled={processamentoTotal} getError={getProcessamentoErrorMessage} />
+              <CompetenciasProcessamentoFolha control={processamentoControl} setValue={setValueProcessamento} options={competenciasProcessamentoOptions} getError={getProcessamentoErrorMessage} />
+              <AbrangenciaProcessamentoFolha control={processamentoControl} setValue={setValueProcessamento} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaProcessamentoGrupoEleitosOptions}
+                original={normalizarCriteriosDaFolha(folhaProcessamentoOrigem ?? {}, catalogoProcessamento)} folhaId={folhaProcessamentoOrigem?.id}
+                onChange={() => setProcessamentoErrors({})} getError={getProcessamentoErrorMessage} />
             </div>
           </div>
         </ModalSeplag>
@@ -31989,7 +31963,7 @@ export function PrototiposFolhaPagamentoPage({
 export function PrototiposFolhaProcessamentoFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const folhas = folhaPagamentoService.listarFolhas();
+  const [folhas] = useState(() => folhaPagamentoService.listarFolhas());
   const competencias = folhaPagamentoService.listarCompetencias();
   const competenciaVigente = competencias.find((competencia) => competencia.situacao === "ATIVA");
   const [feedback, setFeedback] = useState("");
@@ -32008,16 +31982,6 @@ export function PrototiposFolhaProcessamentoFormPage() {
       ),
     ) ?? folhas[0];
 
-  const usuarioLogadoProcessamentoMock = {
-    orgaos: ["SEPLAG", "MTI"],
-    setores: ["administracao-central"],
-    regimesJuridicos: ["Estatutário Civil"],
-    tiposVinculo: ["efetivo"],
-    categorias: ["Área Meio"],
-    subcategorias: ["administracao-direta"],
-    cargos: ["Analista Administrativo"],
-    grupoEleitos: "",
-  };
 
   const catalogoProcessamento = useMemo(criarCatalogoAbrangenciaFolha, []);
 
@@ -32059,35 +32023,19 @@ export function PrototiposFolhaProcessamentoFormPage() {
       ),
       competenciaFinal: "",
       tipoExecucao: "TOTAL",
-      carreiras: folhaDisponivel?.abrangenciaCarreiras ?? [],
-      unidades: folhaDisponivel?.abrangenciaUnidades ?? [],
-      orgaos: folhaDisponivel?.orgaos?.length
-        ? folhaDisponivel.orgaos
-        : usuarioLogadoProcessamentoMock.orgaos,
-      setores: usuarioLogadoProcessamentoMock.setores,
-      regimesJuridicos: folhaDisponivel?.abrangenciaRegimeJuridico?.length ? folhaDisponivel.abrangenciaRegimeJuridico : folhaDisponivel?.regimeJuridico
-        ? [folhaDisponivel.regimeJuridico]
-        : usuarioLogadoProcessamentoMock.regimesJuridicos,
-      tiposVinculo: folhaDisponivel?.abrangenciaTipoVinculo?.length ? folhaDisponivel.abrangenciaTipoVinculo : usuarioLogadoProcessamentoMock.tiposVinculo,
-      categorias: folhaDisponivel?.categoria
-        ? [folhaDisponivel.categoria]
-        : usuarioLogadoProcessamentoMock.categorias,
-      subcategorias: usuarioLogadoProcessamentoMock.subcategorias,
-      cargos: folhaDisponivel?.abrangenciaCargos?.length ? folhaDisponivel.abrangenciaCargos : folhaDisponivel?.cargo
-        ? [folhaDisponivel.cargo]
-        : usuarioLogadoProcessamentoMock.cargos,
-      grupoEleitos:
-        folhaDisponivel?.grupoEleitos ||
-        usuarioLogadoProcessamentoMock.grupoEleitos,
+      ...valoresProcessamento(normalizarCriteriosDaFolha(folhaDisponivel ?? {}, catalogoProcessamento)),
+      setores: [], categorias: [], subcategorias: [],
+      grupoEleitos: folhaDisponivel?.grupoEleitos ?? "",
     },
   });
 
   const competenciasOptions = [...new Set(competencias.map(competencia => competencia.competencia))]
     .sort().reverse().map(competencia => ({ label: formatMesAno(competencia), value: formatMesAno(competencia) }));
   const tipoExecucao = watch("tipoExecucao");
-  const processamentoTotal = tipoExecucao === "TOTAL";
   const numeroFolhaSelecionado = watch("numeroFolha");
   const nomeFolhaSelecionado = watch("nomeFolha");
+  const folhaAtualProcessamento = folhaDisponivel?.numero === numeroFolhaSelecionado && folhaDisponivel?.nome === nomeFolhaSelecionado
+    ? folhaDisponivel : folhas.find(folha => folha.numero === numeroFolhaSelecionado && folha.nome === nomeFolhaSelecionado);
   const numeroFolhaOptions = Array.from(
     new Map(
       folhas.map((folha) => [
@@ -32111,11 +32059,18 @@ export function PrototiposFolhaProcessamentoFormPage() {
     const folhaSelecionada = folhas.find(
       (folha) => folha.numero === numeroFolhaSelecionado,
     );
-    if (folhaSelecionada && nomeFolhaSelecionado !== folhaSelecionada.nome) {
+    if (folhaSelecionada && !folhas.some(folha => folha.numero === numeroFolhaSelecionado && folha.nome === nomeFolhaSelecionado)) {
       setValue("nomeFolha", folhaSelecionada.nome);
-      setValue("competencia", formatMesAno(folhaSelecionada.competencia));
     }
   }, [folhas, nomeFolhaSelecionado, numeroFolhaSelecionado, setValue]);
+
+  useEffect(() => {
+    if (!folhaAtualProcessamento) return;
+    setValue("competencia", formatMesAno(folhaAtualProcessamento.competencia));
+    setValue("competenciaFinal", "");
+    setValue("grupoEleitos", folhaAtualProcessamento.grupoEleitos ?? "");
+  }, [folhaAtualProcessamento, setValue]);
+  useEffect(() => { setProcessamentoErrors({}); }, [folhaAtualProcessamento, tipoExecucao]);
 
   const getProcessamentoErrorMessage = (name: keyof ProcessamentoFolhaForm) => {
     const message = processamentoErrors[name] ?? processamentoFormErrors[name]?.message;
@@ -32134,20 +32089,10 @@ export function PrototiposFolhaProcessamentoFormPage() {
     }
     if (!data.tipoExecucao) errors.tipoExecucao = "Campo obrigatório";
 
-    if (data.tipoExecucao === "PARCIAL") {
-      const possuiFiltro =
-        Boolean(data.orgaos?.length) ||
-        Boolean(data.carreiras?.length) ||
-        Boolean(data.regimesJuridicos?.length) ||
-        Boolean(data.tiposVinculo?.length) ||
-        Boolean(data.unidades?.length) ||
-        Boolean(data.cargos?.length) ||
-        Boolean(data.grupoEleitos);
-
-      if (!possuiFiltro) {
-        errors.orgaos = "Campo obrigatório";
-      }
-    }
+    const folhaParametrizada = folhaAtualProcessamento?.numero === data.numeroFolha && folhaAtualProcessamento?.nome === data.nomeFolha
+      ? folhaAtualProcessamento : folhas.find(folha => folha.numero === data.numeroFolha && folha.nome === data.nomeFolha);
+    if (!folhaParametrizada) { errors.numeroFolha = "Selecione uma folha cadastrada."; errors.nomeFolha = "Selecione uma folha cadastrada."; }
+    else Object.assign(errors, validarAbrangenciaProcessamento(data, folhaParametrizada, catalogoProcessamento, folhaProcessamentoGrupoEleitosOptions));
 
     setProcessamentoErrors(errors);
     return Object.keys(errors).length === 0;
@@ -32158,6 +32103,8 @@ export function PrototiposFolhaProcessamentoFormPage() {
   const executarProcessamento = (data: ProcessamentoFolhaForm) => {
     if (!validarFormulario(data)) return;
 
+    if (!folhaAtualProcessamento) return;
+    folhaPagamentoService.executarFolha(parametrosExecucao(folhaAtualProcessamento.id, data, catalogoProcessamento));
     setFeedback("Registro cadastrado com sucesso!");
     reset({
       ...data,
@@ -32212,47 +32159,10 @@ export function PrototiposFolhaProcessamentoFormPage() {
                 optionValue="value"
                 getFormErrorMessage={() => getProcessamentoErrorMessage("nomeFolha")}
               />
-              <div className="col-12">
-              <div className="prototype-processamento-competencias">
-              <DropdownFieldSeplag
-                name="competencia"
-                control={control}
-                label="Competência inicial"
-                cols="12"
-                required
-                options={competenciasOptions}
-                optionLabel="label"
-                optionValue="value"
-                onChange={valor => setValue("competencia", valor ?? "", { shouldDirty: true, shouldValidate: true })}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("competencia")}
-              />
-              <DropdownFieldSeplag
-                name="competenciaFinal"
-                control={control}
-                label="Competência final"
-                cols="12"
-                disabled
-                options={competenciasOptions}
-                optionLabel="label"
-                optionValue="value"
-                showClear={false}
-                getFormErrorMessage={() => null}
-              />
-              <RadioButtonFieldSeplag
-                name="tipoExecucao"
-                control={control}
-                label="Tipo de execução"
-                cols="12"
-                required
-                options={[
-                  { label: "Parcial", value: "PARCIAL" },
-                  { label: "Total", value: "TOTAL" },
-                ]}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("tipoExecucao")}
-              />
-              </div>
-              </div>
-              <AbrangenciaProcessamentoFolha control={control} setValue={setValue} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaPagamentoGrupoEleitosOptions} disabled={processamentoTotal} getError={getProcessamentoErrorMessage} />
+              <CompetenciasProcessamentoFolha control={control} setValue={setValue} options={competenciasOptions} getError={getProcessamentoErrorMessage} />
+              <AbrangenciaProcessamentoFolha control={control} setValue={setValue} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaProcessamentoGrupoEleitosOptions}
+                original={normalizarCriteriosDaFolha(folhaAtualProcessamento ?? {}, catalogoProcessamento)} folhaId={folhaAtualProcessamento?.id}
+                onChange={() => setProcessamentoErrors({})} getError={getProcessamentoErrorMessage} />
             </div>
 
             <div className="prototype-processamento-folha-footer">
