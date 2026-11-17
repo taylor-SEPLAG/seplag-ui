@@ -11,6 +11,7 @@ export interface ProcessamentoFolhaForm {
   numeroFolha?: string;
   nomeFolha?: string;
   competencia?: string;
+  competenciaFinal?: string;
   tipoExecucao?: "PARCIAL" | "TOTAL";
   orgaos?: string[];
   setores?: string[];

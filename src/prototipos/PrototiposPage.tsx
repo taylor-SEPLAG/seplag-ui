@@ -31990,9 +31990,8 @@ export function PrototiposFolhaProcessamentoFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const folhas = folhaPagamentoService.listarFolhas();
-  const competenciaVigente = folhaPagamentoService
-    .listarCompetencias()
-    .find((competencia) => competencia.situacao === "ATIVA");
+  const competencias = folhaPagamentoService.listarCompetencias();
+  const competenciaVigente = competencias.find((competencia) => competencia.situacao === "ATIVA");
   const [feedback, setFeedback] = useState("");
   const [processamentoErrors, setProcessamentoErrors] =
     useState<Partial<Record<keyof ProcessamentoFolhaForm, string>>>({});
@@ -32050,6 +32049,7 @@ export function PrototiposFolhaProcessamentoFormPage() {
     setValue,
     watch,
     handleSubmit,
+    formState: { errors: processamentoFormErrors },
   } = useForm<ProcessamentoFolhaForm>({
     defaultValues: {
       numeroFolha: folhaDisponivel?.numero ?? "",
@@ -32057,6 +32057,7 @@ export function PrototiposFolhaProcessamentoFormPage() {
       competencia: formatMesAno(
         folhaDisponivel?.competencia ?? competenciaVigente?.competencia ?? "",
       ),
+      competenciaFinal: "",
       tipoExecucao: "TOTAL",
       carreiras: folhaDisponivel?.abrangenciaCarreiras ?? [],
       unidades: folhaDisponivel?.abrangenciaUnidades ?? [],
@@ -32081,6 +32082,8 @@ export function PrototiposFolhaProcessamentoFormPage() {
     },
   });
 
+  const competenciasOptions = [...new Set(competencias.map(competencia => competencia.competencia))]
+    .sort().reverse().map(competencia => ({ label: formatMesAno(competencia), value: formatMesAno(competencia) }));
   const tipoExecucao = watch("tipoExecucao");
   const processamentoTotal = tipoExecucao === "TOTAL";
   const numeroFolhaSelecionado = watch("numeroFolha");
@@ -32115,8 +32118,8 @@ export function PrototiposFolhaProcessamentoFormPage() {
   }, [folhas, nomeFolhaSelecionado, numeroFolhaSelecionado, setValue]);
 
   const getProcessamentoErrorMessage = (name: keyof ProcessamentoFolhaForm) => {
-    const message = processamentoErrors[name];
-    return message ? <small className="p-error">{message}</small> : null;
+    const message = processamentoErrors[name] ?? processamentoFormErrors[name]?.message;
+    return typeof message === "string" ? <small className="p-error">{message}</small> : null;
   };
 
   const validarFormulario = (data: ProcessamentoFolhaForm) => {
@@ -32209,21 +32212,37 @@ export function PrototiposFolhaProcessamentoFormPage() {
                 optionValue="value"
                 getFormErrorMessage={() => getProcessamentoErrorMessage("nomeFolha")}
               />
-              <TextFieldSeplag
+              <div className="col-12">
+              <div className="prototype-processamento-competencias">
+              <DropdownFieldSeplag
                 name="competencia"
                 control={control}
-                label="Competência"
-                placeholder="MM/AAAA"
-                cols="12 12 6"
+                label="Competência inicial"
+                cols="12"
                 required
-                maxLength={7}
+                options={competenciasOptions}
+                optionLabel="label"
+                optionValue="value"
+                onChange={valor => setValue("competencia", valor ?? "", { shouldDirty: true, shouldValidate: true })}
                 getFormErrorMessage={() => getProcessamentoErrorMessage("competencia")}
+              />
+              <DropdownFieldSeplag
+                name="competenciaFinal"
+                control={control}
+                label="Competência final"
+                cols="12"
+                disabled
+                options={competenciasOptions}
+                optionLabel="label"
+                optionValue="value"
+                showClear={false}
+                getFormErrorMessage={() => null}
               />
               <RadioButtonFieldSeplag
                 name="tipoExecucao"
                 control={control}
                 label="Tipo de execução"
-                cols="12 12 6"
+                cols="12"
                 required
                 options={[
                   { label: "Parcial", value: "PARCIAL" },
@@ -32231,6 +32250,8 @@ export function PrototiposFolhaProcessamentoFormPage() {
                 ]}
                 getFormErrorMessage={() => getProcessamentoErrorMessage("tipoExecucao")}
               />
+              </div>
+              </div>
               <AbrangenciaProcessamentoFolha control={control} setValue={setValue} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaPagamentoGrupoEleitosOptions} disabled={processamentoTotal} getError={getProcessamentoErrorMessage} />
             </div>
 

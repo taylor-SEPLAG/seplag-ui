@@ -8,7 +8,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { DomHandler } from "primereact/utils";
 import { PrototiposFolhaProcessamentoFormPage } from "../PrototiposPage";
@@ -95,6 +95,13 @@ it("exibe os seis campos na ordem da imagem e preserva o bloqueio da execução 
       <PrototiposFolhaProcessamentoFormPage />
     </MemoryRouter>,
   );
+  const competenciaInicial = document.getElementById("competencia")!;
+  const competenciaFinal = document.getElementById("competenciaFinal")!;
+  expect(competenciaInicial.classList.contains("p-dropdown")).toBe(true);
+  expect(competenciaInicial.classList.contains("p-disabled")).toBe(false);
+  expect(competenciaInicial.closest('[aria-required="true"]')).toBeTruthy();
+  expect(competenciaFinal.classList.contains("p-disabled")).toBe(true);
+  expect(competenciaFinal.closest('[aria-required="true"]')).toBeNull();
   expect(
     [...document.querySelectorAll(".p-multiselect")].map((e) => e.id),
   ).toEqual([
@@ -112,9 +119,34 @@ it("exibe os seis campos na ordem da imagem e preserva o bloqueio da execução 
   for (const label of ["Setor", "Categoria", "Subcategoria"])
     expect(screen.queryByText(label)).toBeNull();
   fireEvent.click(screen.getByRole("radio", { name: "Parcial" }));
+  expect(competenciaFinal.classList.contains("p-disabled")).toBe(true);
   expect(document.querySelectorAll(".p-multiselect.p-disabled")).toHaveLength(
     0,
   );
+});
+
+it("exige competência inicial válida e permite processar com competência final vazia", async () => {
+  render(<MemoryRouter initialEntries={["/processamento-teste"]}><Routes>
+    <Route path="/processamento-teste" element={<PrototiposFolhaProcessamentoFormPage />} />
+    <Route path="/prototipos/folha/processamento/processamento-folha" element={<p>Retornou à listagem</p>} />
+  </Routes></MemoryRouter>);
+  const inicial = document.getElementById("competencia")!;
+  const final = document.getElementById("competenciaFinal")!;
+  fireEvent.pointerUp(inicial.querySelector(".p-dropdown-clear-icon")!);
+  expect(inicial.querySelector(".p-dropdown-label")?.textContent).toBe("Selecione...");
+  fireEvent.click(screen.getByRole("button", { name: "Executar Processamento" }));
+  expect(await screen.findByText("Competência inicial é obrigatório")).toBeTruthy();
+  expect(screen.queryByText("Registro cadastrado com sucesso!")).toBeNull();
+  expect(final.classList.contains("p-disabled")).toBe(true);
+  expect(final.querySelector(".p-dropdown-label")?.textContent).toBe("Selecione...");
+  const opcoes = await abrir("competencia");
+  expect(opcoes.getAllByRole("option").every(opcao => /^\d{2}\/\d{4}$/.test(opcao.textContent ?? ""))).toBe(true);
+  fireEvent.click(opcoes.getByRole("option", { name: "05/2026" }));
+  await waitFor(() => expect(inicial.querySelector(".p-dropdown-label")?.textContent).toBe("05/2026"));
+  fireEvent.click(screen.getByRole("button", { name: "Executar Processamento" }));
+  await waitFor(() => expect([...document.querySelectorAll(".prototype-processamento-folha-page-form .p-error")].map(erro => erro.textContent)).toEqual([]));
+  expect(await screen.findByText("Registro cadastrado com sucesso!")).toBeTruthy();
+  expect(await screen.findByText("Retornou à listagem")).toBeTruthy();
 });
 
 it("normaliza os filtros legados da folha sem perder carreira, unidade ou grupo de eleitos", async () => {
