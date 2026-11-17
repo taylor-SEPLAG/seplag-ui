@@ -12,6 +12,8 @@ import {
   OCORRENCIAS_POR_NATUREZA,
   OPCOES_VINCULOS,
   GRAUS_PARENTESCO,
+  ABRANGENCIAS,
+  LIMITE_MAXIMO_HORAS,
   carregarEventos,
   clonarEvento,
   configuracaoDoEvento,
@@ -285,23 +287,33 @@ export function ParametrizacaoLicencasFormPage({
     const recorrencia = principal.travaRecorrencia
       ? `${principal.recorrenciaQuantidade}x / ${principal.recorrenciaIntervalo} ${principal.recorrenciaUnidade}`
       : "";
-    const duracao = principal.semLimite
-      ? "Sem limite"
-      : principal.abrangencias.length === 1 &&
-          principal.abrangencias[0] === "Por Horas"
-        ? "Por horas"
+    const porHoras =
+      principal.abrangencias.length === 1 &&
+      principal.abrangencias[0] === "Por Horas";
+    const duracao = porHoras
+      ? "Por horas"
+      : principal.semLimite
+        ? "Sem limite"
         : "Dias corridos";
+    const regras = Object.fromEntries(
+      evento.vinculos.map((v) => [v, regraAtual(v)]),
+    );
+    const vinculosComParentesco = evento.vinculos.filter(
+      (v) => regras[v].exigeParentesco,
+    );
+    const grausParentesco = GRAUS_PARENTESCO.filter((g) =>
+      vinculosComParentesco.some((v) => regras[v].grausParentesco.includes(g)),
+    );
     try {
       salvarEvento(
         {
           ...evento,
+          parentesco: vinculosComParentesco.length > 0,
           quantidade: principal.quantidade,
           configuracao: {
             ...config,
             ...principal,
-            regrasPorVinculo: Object.fromEntries(
-              evento.vinculos.map((v) => [v, regraAtual(v)]),
-            ),
+            regrasPorVinculo: regras,
             contagem: "Dias corridos",
             efeitosFinanceiros: Object.fromEntries(
               evento.vinculos.map((v) => {
@@ -319,7 +331,7 @@ export function ParametrizacaoLicencasFormPage({
               }),
             ),
             documentosLegaisIds: config.documentosLegaisIds ?? [],
-            grausParentesco: evento.parentesco ? config.grausParentesco : [],
+            grausParentesco,
           },
           descricao: config.fundamentoLegal,
           recorrencia,
@@ -642,45 +654,9 @@ export function ParametrizacaoLicencasFormPage({
                       </summary>
                       <div className="pl-type-rules-body">
                         <div className="pl-config-grid">
-                          <div className="pl-col-4">
-                            <label>
-                              <span>
-                                Dias Máximos Permitidos (Dias corridos){" "}
-                                <em>*</em>
-                              </span>
-                              <input
-                                type="number"
-                                min={1}
-                                step={1}
-                                required={!regra.semLimite}
-                                disabled={regra.semLimite}
-                                value={regra.semLimite ? "" : regra.quantidade}
-                                placeholder={
-                                  regra.semLimite ? "Sem Limite" : "Ex.: 8"
-                                }
-                                onChange={(e) =>
-                                  mudarRegra(vinculo, {
-                                    quantidade: Number(e.target.value),
-                                  })
-                                }
-                              />
-                            </label>
-                            <label className="pl-check-inline">
-                              <input
-                                type="checkbox"
-                                checked={regra.semLimite}
-                                onChange={(e) =>
-                                  mudarRegra(vinculo, {
-                                    semLimite: e.target.checked,
-                                  })
-                                }
-                              />
-                              Sem Limite de Dias
-                            </label>
-                          </div>
                           <label className="pl-col-4">
                             <span>
-                              Abrangência <em>*</em>
+                              Abrangência (Unidade de Contagem) <em>*</em>
                             </span>
                             <select
                               required
@@ -698,10 +674,96 @@ export function ParametrizacaoLicencasFormPage({
                               <option value="" disabled>
                                 Selecione uma opção
                               </option>
-                              <option value="Dia Integral">Dia Integral</option>
-                              <option value="Por Horas">Por Horas</option>
+                              {ABRANGENCIAS.map((a) => (
+                                <option key={a.value} value={a.value}>
+                                  {a.label}
+                                </option>
+                              ))}
                             </select>
                           </label>
+                          {regra.abrangencias[0] === "Dia Integral" && (
+                            <div className="pl-col-4">
+                              <label>
+                                <span>
+                                  Dias Máximos Permitidos (Dias corridos){" "}
+                                  <em>*</em>
+                                </span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  step={1}
+                                  required={!regra.semLimite}
+                                  disabled={regra.semLimite}
+                                  value={
+                                    regra.semLimite ? "" : regra.quantidade
+                                  }
+                                  placeholder={
+                                    regra.semLimite ? "Sem limite" : "Ex.: 8"
+                                  }
+                                  onChange={(e) =>
+                                    mudarRegra(vinculo, {
+                                      quantidade: Number(e.target.value),
+                                    })
+                                  }
+                                />
+                              </label>
+                              <label className="pl-check-inline">
+                                <input
+                                  type="checkbox"
+                                  checked={regra.semLimite}
+                                  onChange={(e) =>
+                                    mudarRegra(vinculo, {
+                                      semLimite: e.target.checked,
+                                    })
+                                  }
+                                />
+                                Sem Limite de Dias
+                              </label>
+                            </div>
+                          )}
+                          {regra.abrangencias[0] === "Por Horas" && (
+                            <div className="pl-col-4">
+                              <label>
+                                <span>
+                                  Limite Máximo de Horas (Máx.{" "}
+                                  {LIMITE_MAXIMO_HORAS}) <em>*</em>
+                                </span>
+                                {regra.semLimiteHoras ? (
+                                  <input
+                                    type="text"
+                                    readOnly
+                                    disabled
+                                    value={"Até " + LIMITE_MAXIMO_HORAS}
+                                  />
+                                ) : (
+                                  <input
+                                    type="time"
+                                    required
+                                    min="00:01"
+                                    max={LIMITE_MAXIMO_HORAS}
+                                    value={regra.limiteHoras}
+                                    onChange={(e) =>
+                                      mudarRegra(vinculo, {
+                                        limiteHoras: e.target.value,
+                                      })
+                                    }
+                                  />
+                                )}
+                              </label>
+                              <label className="pl-check-inline">
+                                <input
+                                  type="checkbox"
+                                  checked={regra.semLimiteHoras}
+                                  onChange={(e) =>
+                                    mudarRegra(vinculo, {
+                                      semLimiteHoras: e.target.checked,
+                                    })
+                                  }
+                                />
+                                Sem Limite de Horas (Até {LIMITE_MAXIMO_HORAS})
+                              </label>
+                            </div>
+                          )}
                           <label className="pl-col-4">
                             <span>
                               Possui Trava de Recorrência? <em>*</em>
@@ -773,62 +835,67 @@ export function ParametrizacaoLicencasFormPage({
                               </div>
                             </fieldset>
                           )}
+                          <div className="pl-col-12 pl-parentesco-block">
+                            <label>
+                              <span>
+                                Exige Parentesco? <em>*</em>
+                              </span>
+                              <select
+                                value={String(regra.exigeParentesco)}
+                                onChange={(e) =>
+                                  mudarRegra(vinculo, {
+                                    exigeParentesco: e.target.value === "true",
+                                  })
+                                }
+                              >
+                                <option value="false">Não</option>
+                                <option value="true">Sim</option>
+                              </select>
+                            </label>
+                            {regra.exigeParentesco && (
+                              <fieldset className="pl-parentesco">
+                                <legend>
+                                  Graus de Parentesco Autorizados no Sistema
+                                </legend>
+                                <p>Marque os permitidos para esta licença:</p>
+                                <div>
+                                  {GRAUS_PARENTESCO.map((g) => (
+                                    <button
+                                      type="button"
+                                      key={g}
+                                      aria-pressed={regra.grausParentesco.includes(
+                                        g,
+                                      )}
+                                      onClick={() =>
+                                        mudarRegra(vinculo, {
+                                          grausParentesco:
+                                            regra.grausParentesco.includes(g)
+                                              ? regra.grausParentesco.filter(
+                                                  (v) => v !== g,
+                                                )
+                                              : [...regra.grausParentesco, g],
+                                        })
+                                      }
+                                    >
+                                      {regra.grausParentesco.includes(g) && (
+                                        <i
+                                          className="pi pi-check"
+                                          aria-hidden="true"
+                                        />
+                                      )}
+                                      {g}
+                                    </button>
+                                  ))}
+                                </div>
+                              </fieldset>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </details>
                   </section>
                 );
               })}
-              <div className="pl-config-grid">
-                <div className="pl-col-12 pl-parentesco-block">
-                  <label>
-                    <span>
-                      Exige Parentesco? <em>*</em>
-                    </span>
-                    <select
-                      value={String(evento.parentesco)}
-                      onChange={(e) =>
-                        mudar("parentesco", e.target.value === "true")
-                      }
-                    >
-                      <option value="false">Não</option>
-                      <option value="true">Sim</option>
-                    </select>
-                  </label>
-                  {evento.parentesco && (
-                    <fieldset className="pl-parentesco">
-                      <legend>
-                        Graus de Parentesco Autorizados no Sistema
-                      </legend>
-                      <p>Marque os permitidos para esta licença:</p>
-                      <div>
-                        {GRAUS_PARENTESCO.map((g) => (
-                          <button
-                            type="button"
-                            key={g}
-                            aria-pressed={config.grausParentesco.includes(g)}
-                            onClick={() =>
-                              configurar(
-                                "grausParentesco",
-                                config.grausParentesco.includes(g)
-                                  ? config.grausParentesco.filter(
-                                      (v) => v !== g,
-                                    )
-                                  : [...config.grausParentesco, g],
-                              )
-                            }
-                          >
-                            {config.grausParentesco.includes(g) && (
-                              <i className="pi pi-check" aria-hidden="true" />
-                            )}
-                            {g}
-                          </button>
-                        ))}
-                      </div>
-                    </fieldset>
-                  )}
-                </div>
-              </div>
             </Secao>
             <Secao
               id="pl-documentacao"

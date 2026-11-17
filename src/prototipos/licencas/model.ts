@@ -63,10 +63,24 @@ export interface RegraDuracaoVinculo {
   quantidade: number;
   abrangencias: string[];
   semLimite: boolean;
+  /** Limite máximo no formato HH:mm (até 23:59). Usado quando a abrangência é "Por Horas". */
+  limiteHoras: string;
+  /** Quando true, o limite é "Até 23:59" e `limiteHoras` é ignorado. */
+  semLimiteHoras: boolean;
+  exigeParentesco: boolean;
+  grausParentesco: string[];
   travaRecorrencia: boolean;
   recorrenciaQuantidade: number;
   recorrenciaIntervalo: number;
   recorrenciaUnidade: "Meses" | "Dias" | "Anos" | "Ano Civil";
+}
+export const LIMITE_MAXIMO_HORAS = "23:59";
+export const ABRANGENCIAS = [
+  { value: "Dia Integral", label: "Dia Integral (Dias corridos)" },
+  { value: "Por Horas", label: "Por Horas (Intradiário - Máx. 23:59)" },
+] as const;
+export function horasValidas(valor: string) {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(valor) && valor !== "00:00";
 }
 export interface ConfiguracaoEvento {
   regrasPorVinculo?: Record<string, RegraDuracaoVinculo>;
@@ -145,17 +159,20 @@ export function regraDoVinculo(
   vinculo: string,
 ): RegraDuracaoVinculo {
   const config = configuracaoDoEvento(evento);
-  return (
-    config.regrasPorVinculo?.[vinculo] ?? {
-      quantidade: evento.quantidade,
-      abrangencias: config.abrangencias,
-      semLimite: config.semLimite,
-      travaRecorrencia: config.travaRecorrencia,
-      recorrenciaQuantidade: config.recorrenciaQuantidade,
-      recorrenciaIntervalo: config.recorrenciaIntervalo,
-      recorrenciaUnidade: config.recorrenciaUnidade,
-    }
-  );
+  return {
+    quantidade: evento.quantidade,
+    abrangencias: config.abrangencias,
+    semLimite: config.semLimite,
+    limiteHoras: "",
+    semLimiteHoras: false,
+    exigeParentesco: evento.parentesco,
+    grausParentesco: config.grausParentesco ?? [],
+    travaRecorrencia: config.travaRecorrencia,
+    recorrenciaQuantidade: config.recorrenciaQuantidade,
+    recorrenciaIntervalo: config.recorrenciaIntervalo,
+    recorrenciaUnidade: config.recorrenciaUnidade,
+    ...config.regrasPorVinculo?.[vinculo],
+  };
 }
 export interface FiltrosLicencas {
   codigo?: string;
@@ -346,7 +363,9 @@ export function validarEvento(
       const regra = regraDoVinculo(evento, vinculo);
       const nome =
         OPCOES_VINCULOS.find((o) => o.value === vinculo)?.label ?? vinculo;
+      const porHoras = regra.abrangencias.includes("Por Horas");
       if (
+        !porHoras &&
         !regra.semLimite &&
         (!Number.isInteger(regra.quantidade) || regra.quantidade < 1)
       )
@@ -354,6 +373,23 @@ export function validarEvento(
           nome +
           ": Informe uma dura\u00e7\u00e3o m\u00e1xima inteira maior que zero."
         );
+      if (
+        porHoras &&
+        !regra.semLimiteHoras &&
+        !horasValidas(regra.limiteHoras)
+      )
+        return (
+          nome +
+          ": Informe o limite m\u00e1ximo de horas entre 00:01 e " +
+          LIMITE_MAXIMO_HORAS +
+          "."
+        );
+      if (
+        regra.exigeParentesco &&
+        (!regra.grausParentesco.length ||
+          regra.grausParentesco.some((g) => !GRAUS_PARENTESCO.includes(g)))
+      )
+        return nome + ": Selecione os graus de parentesco autorizados.";
       if (
         !regra.abrangencias.length ||
         regra.abrangencias.some(

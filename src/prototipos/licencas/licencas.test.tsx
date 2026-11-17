@@ -425,7 +425,7 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
   fireEvent.change(regras.getByLabelText("Unidade de recorrência"), {
     target: { value: "Anos" },
   });
-  fireEvent.change(screen.getByLabelText("Exige Parentesco? *"), {
+  fireEvent.change(regras.getByLabelText("Exige Parentesco? *"), {
     target: { value: "true" },
   });
   selecionarAmparoLegal();
