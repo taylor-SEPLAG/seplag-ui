@@ -2,24 +2,21 @@ import { useEffect, type ReactNode } from "react";
 import { useWatch, type Control, type UseFormSetValue } from "react-hook-form";
 import { MultiSelectFieldSeplag } from "../../componentes/Fields/MultiSelectField";
 import { DropdownFieldSeplag } from "../../componentes/Fields/DropdownField";
-import {
-  ajustarAbrangencia,
-  opcoesAbrangencia,
-  type CatalogoAbrangencia,
-  type CriteriosAbrangencia,
-  type OpcaoAbrangencia,
+import type {
+  CatalogoAbrangencia,
+  CriteriosAbrangencia,
+  OpcaoAbrangencia,
 } from "./abrangenciaGrupoCalculo";
-import { criteriosDaFolha } from "./abrangenciaFolhaPagamento";
+import {
+  ajustarProcessamento,
+  campoProcessamentoBloqueado,
+  camposProcessamento as campos,
+  criteriosDoProcessamento,
+  criteriosProcessamento as chaves,
+  opcoesProcessamento,
+} from "./regrasProcessamentoFolha";
 import type { ProcessamentoFolhaForm } from "./types";
 
-const campos = {
-  regimes: "regimesJuridicos",
-  tipos: "tiposVinculo",
-  orgaos: "orgaos",
-  unidades: "unidades",
-  carreiras: "carreiras",
-  cargos: "cargos",
-} as const;
 const rotulos = {
   regimes: "Regime Jurídico",
   tipos: "Tipo de Vínculo",
@@ -28,57 +25,65 @@ const rotulos = {
   unidades: "Unidade de Lotação",
   cargos: "Cargo",
 };
-const chaves = Object.keys(campos) as (keyof CriteriosAbrangencia)[];
 
 export function AbrangenciaProcessamentoFolha({
   control,
   setValue,
   catalogo,
   grupoEleitosOptions,
-  disabled,
+  original,
+  folhaId,
   getError,
+  onChange,
 }: {
   control: Control<ProcessamentoFolhaForm>;
   setValue: UseFormSetValue<ProcessamentoFolhaForm>;
   catalogo: CatalogoAbrangencia;
   grupoEleitosOptions: OpcaoAbrangencia[];
-  disabled: boolean;
+  original: CriteriosAbrangencia;
+  folhaId?: number;
   getError: (campo: keyof ProcessamentoFolhaForm) => ReactNode;
+  onChange?: () => void;
 }) {
   const valores = useWatch({ control });
-  const criterios = criteriosDaFolha(
-    {
-      abrangenciaRegimeJuridico: valores.regimesJuridicos,
-      abrangenciaTipoVinculo: valores.tiposVinculo,
-      orgaos: valores.orgaos,
-      abrangenciaCarreiras: valores.carreiras,
-      abrangenciaUnidades: valores.unidades,
-      abrangenciaCargos: valores.cargos,
-    },
+  const tipo = valores.tipoExecucao ?? "TOTAL";
+  const criterios = criteriosDoProcessamento(
+    valores as ProcessamentoFolhaForm,
     catalogo,
   );
-  const opcoes = opcoesAbrangencia(criterios, catalogo);
-  const assinaturaAtual = JSON.stringify(
-    chaves.map((c) => valores[campos[c]] ?? []),
-  );
-  const assinaturaNormalizada = JSON.stringify(chaves.map((c) => criterios[c]));
-  // Normaliza também valores legados recebidos ao abrir ou restaurar o processamento.
+  const opcoes = opcoesProcessamento(criterios, original, tipo, catalogo);
+  const contexto = JSON.stringify({ folhaId, original, tipo });
+  // A origem não é derivada dos campos editáveis. Trocar folha ou tipo restaura
+  // a parametrização completa, descartando restrições da execução anterior.
   useEffect(() => {
-    const atuais: string[][] = JSON.parse(assinaturaAtual);
-    const novos: string[][] = JSON.parse(assinaturaNormalizada);
-    chaves.forEach((c, i) => {
-      if (JSON.stringify(atuais[i]) !== JSON.stringify(novos[i]))
-        setValue(campos[c], novos[i]);
-    });
-  }, [assinaturaAtual, assinaturaNormalizada, setValue]);
-  const aplicar = (novos: CriteriosAbrangencia) => {
-    const ajustados = ajustarAbrangencia(novos, catalogo);
+    const { original: base }: { original: CriteriosAbrangencia } =
+      JSON.parse(contexto);
+    chaves.forEach((c) =>
+      setValue(
+        campos[c],
+        c === "unidades" && !base.orgaos.length ? [] : [...base[c]],
+      ),
+    );
+  }, [contexto, setValue]);
+  const aplicar = (
+    campo: keyof CriteriosAbrangencia,
+    selecionados: string[],
+  ) => {
+    if (campoProcessamentoBloqueado(campo, criterios, original, tipo)) return;
+    const ajustados = ajustarProcessamento(
+      { ...criterios, [campo]: selecionados },
+      original,
+      tipo,
+      catalogo,
+      campo,
+    );
     chaves.forEach((c) =>
       setValue(campos[c], ajustados[c], { shouldDirty: true }),
     );
     setValue("setores", []);
     setValue("categorias", []);
     setValue("subcategorias", []);
+    onChange?.();
   };
   return (
     <>
@@ -95,10 +100,8 @@ export function AbrangenciaProcessamentoFolha({
           dataKey="value"
           placeholder="Selecione..."
           selectedItemsLabel="{0} selecionados"
-          disabled={disabled || (c === "carreiras" && !opcoes.carreiraAtiva)}
-          onChange={(selecionados) =>
-            aplicar({ ...criterios, [c]: selecionados })
-          }
+          disabled={campoProcessamentoBloqueado(c, criterios, original, tipo)}
+          onChange={(selecionados) => aplicar(c, selecionados)}
           getFormErrorMessage={() => getError(campos[c])}
         />
       ))}
@@ -110,7 +113,7 @@ export function AbrangenciaProcessamentoFolha({
         options={grupoEleitosOptions}
         optionLabel="label"
         optionValue="value"
-        disabled={disabled}
+        onChange={onChange}
         getFormErrorMessage={() => getError("grupoEleitos")}
       />
     </>

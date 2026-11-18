@@ -17,7 +17,7 @@ export const camposAbrangenciaFolha = {
 } as const;
 
 // Aceita também os códigos e rótulos usados nas folhas anteriores ao novo formulário.
-export function criteriosDaFolha(
+export function normalizarCriteriosDaFolha(
   data: FolhaPagamentoForm,
   catalogo: CatalogoAbrangencia,
 ): CriteriosAbrangencia {
@@ -36,36 +36,44 @@ export function criteriosDaFolha(
             (s) => normalizarChaveAbrangencia(s) === chave,
           ),
         );
-        return opcao ? [opcao.value] : [];
+        return opcao
+          ? [opcao.value]
+          : ["", "todos", "todas"].includes(chave)
+            ? []
+            : [v];
       }),
     ),
   ];
+  return {
+    regimes: normalizar(
+      data.abrangenciaRegimeJuridico?.length
+        ? data.abrangenciaRegimeJuridico
+        : data.regimeJuridico
+          ? [data.regimeJuridico]
+          : [],
+      catalogo.regimes,
+    ),
+    tipos: normalizar(data.abrangenciaTipoVinculo ?? [], catalogo.tipos),
+    orgaos: normalizar(data.orgaos ?? [], catalogo.orgaos),
+    carreiras: normalizar(data.abrangenciaCarreiras ?? [], catalogo.carreiras),
+    unidades: normalizar(data.abrangenciaUnidades ?? [], catalogo.unidades),
+    cargos: normalizar(
+      data.abrangenciaCargos?.length
+        ? data.abrangenciaCargos
+        : data.cargo
+          ? [data.cargo]
+          : [],
+      catalogo.cargos,
+    ),
+  };
+}
+
+export function criteriosDaFolha(
+  data: FolhaPagamentoForm,
+  catalogo: CatalogoAbrangencia,
+): CriteriosAbrangencia {
   return ajustarAbrangencia(
-    {
-      regimes: normalizar(
-        data.abrangenciaRegimeJuridico?.length
-          ? data.abrangenciaRegimeJuridico
-          : data.regimeJuridico
-            ? [data.regimeJuridico]
-            : [],
-        catalogo.regimes,
-      ),
-      tipos: normalizar(data.abrangenciaTipoVinculo ?? [], catalogo.tipos),
-      orgaos: normalizar(data.orgaos ?? [], catalogo.orgaos),
-      carreiras: normalizar(
-        data.abrangenciaCarreiras ?? [],
-        catalogo.carreiras,
-      ),
-      unidades: normalizar(data.abrangenciaUnidades ?? [], catalogo.unidades),
-      cargos: normalizar(
-        data.abrangenciaCargos?.length
-          ? data.abrangenciaCargos
-          : data.cargo
-            ? [data.cargo]
-            : [],
-        catalogo.cargos,
-      ),
-    },
+    normalizarCriteriosDaFolha(data, catalogo),
     catalogo,
   );
 }

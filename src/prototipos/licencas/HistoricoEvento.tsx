@@ -21,7 +21,9 @@ export function camposHistorico(evento: EventoLicenca) {
     const efeito = c.efeitosFinanceiros?.[vinculo];
     const regra = regraDoVinculo(evento, vinculo);
     const nome = OPCOES_VINCULOS.find(o => o.value === vinculo)?.label ?? vinculo;
-    dados[`Dias Máximos Permitidos (${nome})`] = regra.semLimite ? 'Sem limite' : String(regra.quantidade);
+    if (regra.abrangencias.includes('Por Horas')) dados[`Limite Máximo de Horas (${nome})`] = regra.semLimiteHoras ? 'Até 23:59' : regra.limiteHoras;
+    else dados[`Dias Máximos Permitidos (${nome})`] = regra.semLimite ? 'Sem limite' : String(regra.quantidade);
+    dados[`Exige Parentesco (${nome})`] = regra.exigeParentesco ? `Sim (${[...regra.grausParentesco].sort().join(', ')})` : 'Não';
     dados[`Abrangência (${nome})`] = [...regra.abrangencias].sort().join(', ');
     dados[`Trava de Recorrência (${nome})`] = regra.travaRecorrencia ? `${regra.recorrenciaQuantidade} ocorrência(s) a cada ${regra.recorrenciaIntervalo} ${regra.recorrenciaUnidade}` : 'Não';
     financeiros[`Gera ônus (${nome})`] = efeito ? efeito.geraOnus ? 'Sim' : 'Não' : 'Não configurado';

@@ -1,0 +1,14 @@
+.cc-select-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; }
+.cc-select-fields > [class*="col-"] { width: 100%; min-width: 0; padding: 0; }
+.cc-select-fields .p-multiselect { background: var(--surface-card, #fff); }
+.cc-cargo-options .p-multiselect-item > span { flex: 1; min-width: 0; }
+.cc-cargo-options .cc-select-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-width: 0; }
+.cc-cargo-options .cc-select-option-name { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.cc-cargo-options .cc-select-option-career, .cc-cargo-options .cc-select-option-no-career { margin-left: auto; color: #526e8b; font-size: 12px; text-align: right; white-space: normal; }
+.cc-cargo-options .cc-select-option-career { max-width: 45%; }
+.cc-cargo-options .cc-select-option-no-career { padding: 0 7px; border: 1px dashed #9bafc4; border-radius: 12px; white-space: nowrap; }
+@media (max-width: 700px) {
+  .cc-select-fields { grid-template-columns: minmax(0, 1fr); padding-left: 0; }
+  .cc-cargo-options .cc-select-option { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .cc-cargo-options .cc-select-option-career, .cc-cargo-options .cc-select-option-no-career { max-width: 100%; margin-left: 0; text-align: left; }
+}

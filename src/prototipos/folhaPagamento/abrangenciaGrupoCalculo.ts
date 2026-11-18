@@ -76,14 +76,10 @@ export function opcoesAbrangencia(
       (!f.orgaos.length || contem(f.orgaos, unidade.orgao)),
   );
   const cargos = c.cargos.filter((cargo) => {
-    if (!restringirTipos && !carreirasSelecionadas.length) return true;
-    return tiposConsiderados.some(
-      (tipo) =>
-        cargo.tipos.includes(tipo.value) &&
-        (!tipo.possuiCarreira ||
-          !carreirasSelecionadas.length ||
-          f.carreiras.includes(cargo.carreirasPorTipo[tipo.value])),
-    );
+    if (restringirTipos && !tiposConsiderados.some(tipo => cargo.tipos.includes(tipo.value))) return false;
+    if (!carreirasSelecionadas.length) return true;
+    const vinculadas = tiposConsiderados.map(tipo => cargo.carreirasPorTipo[tipo.value]).filter(carreira => c.carreiras.some(c => c.value === carreira));
+    return !vinculadas.length || vinculadas.some(carreira => f.carreiras.includes(carreira));
   });
   return {
     regimes: c.regimes,
@@ -94,6 +90,18 @@ export function opcoesAbrangencia(
     cargos,
     carreiraAtiva,
   };
+}
+
+export function carreirasDosCargos(
+  cargos: string[],
+  filtros: CriteriosAbrangencia,
+  catalogo: CatalogoAbrangencia,
+): string[] {
+  const tipos = opcoesAbrangencia({ ...filtros, carreiras: [], cargos: [] }, catalogo).tipos
+    .filter(tipo => !filtros.tipos.length || filtros.tipos.includes(tipo.value));
+  return [...new Set(catalogo.cargos.filter(cargo => cargos.includes(cargo.value))
+    .flatMap(cargo => tipos.map(tipo => cargo.carreirasPorTipo[tipo.value]))
+    .filter(carreira => Boolean(carreira) && catalogo.carreiras.some(c => c.value === carreira)))];
 }
 
 // A ordem segue as dependências; apenas seleções incompatíveis são removidas.

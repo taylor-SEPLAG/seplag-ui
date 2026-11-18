@@ -1,3 +1,4 @@
+import { PrototiposFolhaPesosAbrangenciasPage } from "./prototipos/PrototiposPage";
 import { FichaFinanceiraV2Page } from "./prototipos/fichaFinanceiraV2/FichaFinanceiraV2Page";
 import { HistoricoParametrizacaoPage } from './prototipos/licencas/HistoricoParametrizacaoPage';
 import {
@@ -13,6 +14,7 @@ import {
 import { useMemo, useState } from "react";
 import {
   FiArrowLeft,
+  FiBarChart2,
   FiBookOpen,
   FiCalendar,
   FiChevronLeft,
@@ -529,6 +531,7 @@ function CalendarioPage() {
     { label: "Onboarding DEV", to: "/calendario/onboarding-dev", icon: FiUsers },
     { label: "Tutoriais", to: "/calendario/tutoriais", icon: FiBookOpen },
     { label: "Integrantes", to: "/calendario/integrantes", icon: FiUsers },
+    { label: "Indicadores", to: "/calendario/indicadores", icon: FiBarChart2 },
   ];
   const weekdays = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
   const juneEvents = [
@@ -1469,6 +1472,14 @@ function CalendarioPage() {
           </section>
         ) : null}
 
+        {location.pathname === "/calendario/indicadores" ? (
+          <section className="calendar-main-panel" aria-labelledby="calendar-indicadores-title">
+            <header className="calendar-panel-header">
+              <FiBarChart2 aria-hidden="true" />
+              <h1 id="calendar-indicadores-title">Indicadores</h1>
+            </header>
+          </section>
+        ) : null}
         {location.pathname === "/calendario/onboarding-dev" ? <OnboardingDev /> : null}
         {location.pathname === "/calendario/tutoriais" ? (
           <section className="calendar-main-panel">
@@ -2382,6 +2393,10 @@ function App() {
       <Route
         path="/prototipos/folha/grupo-eleitos/novo"
         element={<PrototiposFolhaGrupoEleitoFormPage />}
+      />
+      <Route
+        path="/prototipos/folha/pesos-abrangencias"
+        element={<PrototiposFolhaPesosAbrangenciasPage />}
       />
       <Route
         path="/prototipos/folha/grupos-calculo"

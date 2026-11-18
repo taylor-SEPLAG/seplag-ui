@@ -1,3 +1,6 @@
+import { PesosAbrangenciasContent } from "./folhaPagamento/PesosAbrangenciasContent";
+import { useVersaoPesosAbrangenciaAtiva, type VersaoPesosAbrangencia } from "./folhaPagamento/pesosAbrangenciasStore";
+import { calcularSomatoriaPesosAbrangencia, type PesosAplicadosAbrangencia } from "./folhaPagamento/somatoriaPesosAbrangencia";
 import { consultarTetoRgps, encadearVigenciasRgps, rgpsData, rgpsNumero, situacaoRgps, validarFaixasRgps } from "./folhaRgps";
 import { consultarReferenciasIrrf, encadearVigenciasIrrf, irrfAberta, irrfData, irrfMoeda, irrfNumero, migrarPeriodoIrrf, periodoIrrf, situacaoIrrf, sugerirParcelaIrrf, validarDadosIrrf, validarFaixaIrrf, validarTabelaIrrf } from "./folhaIrrf";
 import { consultarValorReferencia, normalizarPeriodoReferencia } from "./valoresReferencia";
@@ -5,13 +8,15 @@ import { ValoresReferenciaListagem, ValoresReferenciaFormulario } from "./Valore
 import { SigepAppearanceScope, SigepAppearanceMenu } from "./aparencia/SigepAppearanceControls";
 import { carregarGruposCompetencia, salvarGrupoCompetencia, excluirGrupoCompetencia, salvarConjuntoCompetencia, formatarCompetenciaGrupo } from "./folhaPagamento/gruposCalculoCompetencia";
 import { AbrangenciaProcessamentoFolha } from "./folhaPagamento/AbrangenciaProcessamentoFolha";
+import { CompetenciasProcessamentoFolha } from "./folhaPagamento/CompetenciasProcessamentoFolha";
+import { parametrosExecucao, validarAbrangenciaProcessamento, valoresProcessamento } from "./folhaPagamento/regrasProcessamentoFolha";
 import { AlertaConflitoAbrangencia } from "./folhaPagamento/AlertaConflitoAbrangencia";
 import { abrangenciaLegadaGrupo, identificarConflitosAbrangencia } from "./folhaPagamento/conflitosAbrangenciaGrupo";
 import type { ProcessamentoFolhaForm } from "./folhaPagamento/types";
-import { camposAbrangenciaFolha, criteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
+import { camposAbrangenciaFolha, criteriosDaFolha, normalizarCriteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
 import "./vinculos/vinculoV2.css";
 import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
-import { abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, temAbrangencia, lerAbrangenciaGrupo, salvarAbrangenciaGrupo, filtrarVinculosElegiveis, type CriteriosAbrangencia, type CatalogoAbrangencia } from "./folhaPagamento/abrangenciaGrupoCalculo";
+import { abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, carreirasDosCargos, temAbrangencia, lerAbrangenciaGrupo, salvarAbrangenciaGrupo, filtrarVinculosElegiveis, type CriteriosAbrangencia, type CatalogoAbrangencia } from "./folhaPagamento/abrangenciaGrupoCalculo";
 import { RevisaoImpactados, type ResultadoRevisao } from "./folhaPagamento/RevisaoImpactados";
 import { lerEstruturaOrganizacional } from "./estruturaOrganizacional/estruturaOrganizacionalStore";
 import { todos as vinculosParaGrupoCalculo } from "./vinculos/vinculoDados";
@@ -144,6 +149,8 @@ import avatarUsuario from "../assets/img/avatar-usuario.svg";
 import brasaoMt from "../assets/img/brasao-mt.svg";
 import "../componentes/layout/layout/Layout.css";
 import "./prototipos.css";
+import "./folhaPagamento/carreiraCargoGrupo.css";
+import { CarreiraCargoListas } from "./folhaPagamento/CarreiraCargoListas";
 import { folhaPagamentoService } from "./folhaPagamento/folhaPagamentoService";
 import type {
   FolhaPagamentoExecucaoRow,
@@ -723,42 +730,6 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
 export const menuFolha: IMenuSeplag[] = [
   {label:'Página Inicial',icon:'pi pi-home',to:FOLHA_PAGINA_INICIAL_PATH,visibleOnMenu:true,visibleOnRouter:true},
   {
-    label: "Painel Informativo",
-    icon: "pi pi-home",
-    to: FOLHA_PAINEL_INFORMATIVO_PATH,
-    visibleOnMenu: true,
-    visibleOnRouter: true,
-  },
-  {
-    label: "Rubricas",
-    icon: "pi pi-tag",
-    to: areasNavegacaoFolha.rubricas.rota,
-    visibleOnMenu: true,
-    visibleOnRouter: true,
-    items: [
-      { label: "Catálogo de Rubricas", icon: "pi pi-circle-on", to: "/prototipos/folha/catalogo-rubricas", visibleOnMenu: true, visibleOnRouter: true },
-      { label: "Solicitação de Rubrica", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-    ],
-  },
-  {
-    label: "Cadastro",
-    icon: "pi pi-list",
-    to: areasNavegacaoFolha.cadastro.rota,
-    visibleOnMenu: true,
-    visibleOnRouter: true,
-    items: [
-      { label: "Evento", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-      { label: "Tipo Evento", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-      {
-        label: "Grupo de Eleitos",
-        icon: "pi pi-circle-on",
-        to: "/prototipos/folha/grupo-eleitos",
-        visibleOnMenu: true,
-        visibleOnRouter: true,
-      },
-    ],
-  },
-  {
     label: "Parâmetros de Folha",
     icon: "pi pi-sliders-h",
     to: FOLHA_PARAMETROS_BASE_PATH,
@@ -782,15 +753,21 @@ export const menuFolha: IMenuSeplag[] = [
     ],
   },
   {
-    label: "Pensões",
+    label: "Grupo de Eleitos",
     icon: "pi pi-users",
-    to: areasNavegacaoFolha.pensoes.rota,
+    to: "/prototipos/folha/grupo-eleitos",
+    visibleOnMenu: true,
+    visibleOnRouter: true,
+  },
+  {
+    label: "Rubricas",
+    icon: "pi pi-tag",
+    to: areasNavegacaoFolha.rubricas.rota,
     visibleOnMenu: true,
     visibleOnRouter: true,
     items: [
-      { label: "Pensão Alimentícia", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-      { label: "Pensão Especial", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
-      { label: "Pensão por Morte", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Catálogo de Rubricas", icon: "pi pi-circle-on", to: "/prototipos/folha/catalogo-rubricas", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Solicitação de Rubrica", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
     ],
   },
   {
@@ -804,6 +781,13 @@ export const menuFolha: IMenuSeplag[] = [
         label: "Competência da folha",
         icon: "pi pi-circle-on",
         to: FOLHA_COMPETENCIAS_BASE_PATH,
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+      },
+      {
+        label: "Pesos das Abrangências",
+        icon: "pi pi-circle-on",
+        to: "/prototipos/folha/pesos-abrangencias",
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
@@ -884,6 +868,36 @@ export const menuFolha: IMenuSeplag[] = [
         visibleOnMenu: true,
         visibleOnRouter: true,
       },
+    ],
+  },
+  {
+    label: "Cadastro",
+    icon: "pi pi-list",
+    to: areasNavegacaoFolha.cadastro.rota,
+    visibleOnMenu: true,
+    visibleOnRouter: true,
+    items: [
+      { label: "Evento", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Tipo Evento", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+    ],
+  },
+  {
+    label: "Painel Informativo",
+    icon: "pi pi-home",
+    to: FOLHA_PAINEL_INFORMATIVO_PATH,
+    visibleOnMenu: true,
+    visibleOnRouter: true,
+  },
+  {
+    label: "Pensões",
+    icon: "pi pi-users",
+    to: areasNavegacaoFolha.pensoes.rota,
+    visibleOnMenu: true,
+    visibleOnRouter: true,
+    items: [
+      { label: "Pensão Alimentícia", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Pensão Especial", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
+      { label: "Pensão por Morte", icon: "pi pi-circle-on", url: "#", visibleOnMenu: true, visibleOnRouter: true },
     ],
   },
 ];
@@ -2139,6 +2153,7 @@ interface GrupoCalculoRow {
   versao?: number;
   responsavel?: string;
   abrangencia?: CriteriosAbrangencia;
+  pesosAplicados?: PesosAplicadosAbrangencia;
   criteriosProprios?: CriteriosAbrangencia;
   composicaoRubricas?: { codigo: string; nomeRubrica: string }[];
   rubricasProprias?: string[];
@@ -6305,6 +6320,11 @@ const folhaPagamentoGrupoEleitosOptions = [
   { label: "Teste 24/04/2026", value: "Teste 24/04/2026" },
 ];
 
+const folhaProcessamentoGrupoEleitosOptions = [
+  { label: "Nenhum", value: "" },
+  ...gruposEleitosMock.filter(grupo => grupo.situacao === "ATIVO").map(grupo => ({ label: grupo.descricao, value: grupo.descricao })),
+];
+
 const folhaConformidadeNumeroFolhaOptions = [
   { label: "01 - Folha Normal", value: "01" },
   { label: "02 - Folha com descontos", value: "02" },
@@ -7276,7 +7296,7 @@ const gruposCalculoVersoesMock: Record<number, GrupoCalculoRow[]> = {
   14: [gruposCalculoMock[13]],
 };
 
-function aplicarRevisaoGruposCalculo(resultado: ResultadoRevisao & { criteriosPai: CriteriosAbrangencia; rubricasPai: { codigo: string; nomeRubrica: string }[] }, alvos = gruposCalculoMock, historicos = gruposCalculoVersoesMock) {
+function aplicarRevisaoGruposCalculo(resultado: ResultadoRevisao & { criteriosPai: CriteriosAbrangencia; rubricasPai: { codigo: string; nomeRubrica: string }[]; versaoPesos?: VersaoPesosAbrangencia }, alvos = gruposCalculoMock, historicos = gruposCalculoVersoesMock) {
   const pai = alvos.find(g => g.grupo === resultado.pai);
   if (!pai) return;
   const registros = [{ id: pai.id, criterios: resultado.criteriosPai, rubricas: resultado.rubricasPai }, ...resultado.grupos];
@@ -7287,6 +7307,7 @@ function aplicarRevisaoGruposCalculo(resultado: ResultadoRevisao & { criteriosPa
     const historico = historicos[registro.id] ?? [anterior];
     const detalhes = resultado.grupos.find(g => g.id === registro.id);
     const nova: GrupoCalculoRow = { ...anterior, versao: (anterior.versao ?? historico.length) + 1, abrangencia: registro.criterios, criteriosProprios: detalhes?.criteriosProprios, composicaoRubricas: registro.rubricas, rubricasProprias: detalhes?.rubricasProprias, referenciaHeranca: detalhes ? { grupo: detalhes.origem, versao: detalhes.versaoOrigem } : anterior.referenciaHeranca, rubricas: registro.rubricas.length, inicioVigencia: resultado.inicio, fimVigencia: "-", situacao: "ATIVO", pendencias: 0 };
+    nova.pesosAplicados = calcularSomatoriaPesosAbrangencia(registro.criterios, resultado.versaoPesos);
     historicos[registro.id] = [nova, { ...anterior, fimVigencia: resultado.fimAnterior, situacao: "ENCERRADO" }, ...historico.slice(1)];
     alvos[indice] = nova;
   }
@@ -27749,6 +27770,10 @@ export function PrototiposFolhaValorReferenciaVigenciaFormPage() {
   </PrototypeSystemPage>;
 }
 
+export function PrototiposFolhaPesosAbrangenciasPage() {
+  return <PrototypeSystemPage nomeSistema="FOLHA" ambienteSistema="Teste" menuItems={menuFolha}><PesosAbrangenciasContent /></PrototypeSystemPage>;
+}
+
 export function PrototiposFolhaGruposFolhaPage() {
   const navigate = useNavigate();
   const [grupos] = useState<GrupoFolhaRow[]>(() =>
@@ -29832,13 +29857,6 @@ export function PrototiposFolhaPagamentoPage({
     const grupo = gruposFolha.find((item) => item.id === grupoFolhaId);
     return grupo ? grupo.grupo : "-";
   };
-  const usuarioLogadoProcessamentoMock = {
-    orgaos: ["SEPLAG", "MTI"],
-    regimesJuridicos: ["Estatutário Civil"],
-    categorias: ["Área Meio"],
-    cargos: ["Analista Administrativo"],
-    grupoEleitos: "",
-  };
   const catalogoProcessamento = useMemo(criarCatalogoAbrangenciaFolha, []);
   const {
     control: logControl,
@@ -29861,6 +29879,7 @@ export function PrototiposFolhaPagamentoPage({
     setValue: setValueProcessamento,
     watch: watchProcessamento,
     handleSubmit: handleSubmitProcessamento,
+    formState: { errors: processamentoModalErrors },
   } = useForm<ProcessamentoFolhaForm>({
     defaultValues: {
       numeroFolha: "",
@@ -30132,9 +30151,11 @@ export function PrototiposFolhaPagamentoPage({
     { label: ".XLSX", value: ".XLSX" },
   ];
   const processamentoTipoExecucao = watchProcessamento("tipoExecucao");
-  const processamentoTotal = processamentoTipoExecucao === "TOTAL";
   const processamentoNumeroFolha = watchProcessamento("numeroFolha");
   const processamentoNomeFolha = watchProcessamento("nomeFolha");
+  const folhaProcessamentoOrigem = folhaSelecionada?.numero === processamentoNumeroFolha && folhaSelecionada?.nome === processamentoNomeFolha
+    ? folhaSelecionada : folhas.find(folha => folha.numero === processamentoNumeroFolha && folha.nome === processamentoNomeFolha);
+  const competenciasProcessamentoOptions = folhaPagamentoService.listarCompetencias().map(competencia => ({ label: formatMesAno(competencia.competencia), value: formatMesAno(competencia.competencia) }));
   const processamentoNumeroFolhaOptions = Array.from(
     new Map(
       folhas.map((folha) => [
@@ -30164,7 +30185,7 @@ export function PrototiposFolhaPagamentoPage({
     );
     if (
       folhaSelecionadaPorNumero &&
-      processamentoNomeFolha !== folhaSelecionadaPorNumero.nome
+      !folhas.some(folha => folha.numero === processamentoNumeroFolha && folha.nome === processamentoNomeFolha)
     ) {
       setValueProcessamento("nomeFolha", folhaSelecionadaPorNumero.nome);
     }
@@ -30174,6 +30195,14 @@ export function PrototiposFolhaPagamentoPage({
     processamentoNumeroFolha,
     setValueProcessamento,
   ]);
+
+  useEffect(() => {
+    if (!modalProcessamentoAberto || !folhaProcessamentoOrigem) return;
+    setValueProcessamento("competencia", formatMesAno(folhaProcessamentoOrigem.competencia));
+    setValueProcessamento("competenciaFinal", "");
+    setValueProcessamento("grupoEleitos", folhaProcessamentoOrigem.grupoEleitos ?? "");
+  }, [modalProcessamentoAberto, folhaProcessamentoOrigem, setValueProcessamento]);
+  useEffect(() => { setProcessamentoErrors({}); }, [folhaProcessamentoOrigem, processamentoTipoExecucao]);
 
   const isTextoPreenchido = (value?: string) => Boolean(value?.trim());
   const temAbrangenciaFolha = (data: FolhaPagamentoForm) =>
@@ -30309,21 +30338,11 @@ export function PrototiposFolhaPagamentoPage({
       numeroFolha: folha.numero,
       nomeFolha: folha.nome,
       competencia: formatMesAno(folha.competencia),
+      competenciaFinal: "",
       tipoExecucao: "TOTAL",
-      carreiras: folha.abrangenciaCarreiras ?? [],
-      unidades: folha.abrangenciaUnidades ?? [],
-      tiposVinculo: folha.abrangenciaTipoVinculo ?? [],
-      orgaos: folha.orgaos.length
-        ? folha.orgaos
-        : usuarioLogadoProcessamentoMock.orgaos,
-      regimesJuridicos: folha.abrangenciaRegimeJuridico?.length ? folha.abrangenciaRegimeJuridico : folha.regimeJuridico
-        ? [folha.regimeJuridico]
-        : usuarioLogadoProcessamentoMock.regimesJuridicos,
-      categorias: folha.categoria
-        ? [folha.categoria]
-        : usuarioLogadoProcessamentoMock.categorias,
-      cargos: folha.abrangenciaCargos?.length ? folha.abrangenciaCargos : folha.cargo ? [folha.cargo] : usuarioLogadoProcessamentoMock.cargos,
-      grupoEleitos: folha.grupoEleitos || usuarioLogadoProcessamentoMock.grupoEleitos,
+      ...valoresProcessamento(normalizarCriteriosDaFolha(folha, catalogoProcessamento)),
+      setores: [], categorias: [], subcategorias: [],
+      grupoEleitos: folha.grupoEleitos ?? "",
     });
     setModalProcessamentoAberto(true);
   };
@@ -30335,8 +30354,8 @@ export function PrototiposFolhaPagamentoPage({
   };
 
   const getProcessamentoErrorMessage = (name: keyof ProcessamentoFolhaForm) => {
-    const message = processamentoErrors[name];
-    return message ? <small className="p-error">{message}</small> : null;
+    const message = processamentoErrors[name] ?? processamentoModalErrors[name]?.message;
+    return typeof message === "string" ? <small className="p-error">{message}</small> : null;
   };
 
   const validarFormularioProcessamento = (data: ProcessamentoFolhaForm) => {
@@ -30351,20 +30370,10 @@ export function PrototiposFolhaPagamentoPage({
     }
     if (!data.tipoExecucao) errors.tipoExecucao = "Campo obrigatório";
 
-    if (data.tipoExecucao === "PARCIAL") {
-      const possuiFiltro =
-        Boolean(data.orgaos?.length) ||
-        Boolean(data.carreiras?.length) ||
-        Boolean(data.regimesJuridicos?.length) ||
-        Boolean(data.tiposVinculo?.length) ||
-        Boolean(data.unidades?.length) ||
-        Boolean(data.cargos?.length) ||
-        Boolean(data.grupoEleitos);
-
-      if (!possuiFiltro) {
-        errors.orgaos = "Campo obrigatório";
-      }
-    }
+    const folhaParametrizada = folhaProcessamentoOrigem?.numero === data.numeroFolha && folhaProcessamentoOrigem?.nome === data.nomeFolha
+      ? folhaProcessamentoOrigem : folhas.find(folha => folha.numero === data.numeroFolha && folha.nome === data.nomeFolha);
+    if (!folhaParametrizada) { errors.numeroFolha = "Selecione uma folha cadastrada."; errors.nomeFolha = "Selecione uma folha cadastrada."; }
+    else Object.assign(errors, validarAbrangenciaProcessamento(data, folhaParametrizada, catalogoProcessamento, folhaProcessamentoGrupoEleitosOptions));
 
     setProcessamentoErrors(errors);
     return Object.keys(errors).length === 0;
@@ -30508,7 +30517,11 @@ export function PrototiposFolhaPagamentoPage({
       return;
     }
 
-    folhaPagamentoService.executarFolha({ folhaPagamentoId: folha.id });
+    const dadosExecucao: ProcessamentoFolhaForm = data ?? { tipoExecucao: "TOTAL", competencia: folha.competencia,
+      ...valoresProcessamento(normalizarCriteriosDaFolha(folha, catalogoProcessamento)), grupoEleitos: folha.grupoEleitos };
+    const errosExecucao = validarAbrangenciaProcessamento(dadosExecucao, folha, catalogoProcessamento, folhaProcessamentoGrupoEleitosOptions);
+    if (Object.keys(errosExecucao).length) { setProcessamentoErrors(errosExecucao); return; }
+    folhaPagamentoService.executarFolha(parametrosExecucao(folha.id, dadosExecucao, catalogoProcessamento));
 
     const novaExecucao: FolhaPagamentoExecucaoRow = {
       id: Math.max(...execucoes.map((execucao) => execucao.id), 1000) + 1,
@@ -30533,8 +30546,6 @@ export function PrototiposFolhaPagamentoPage({
         item.id === folha.id
           ? {
             ...item,
-              competencia: competenciaProcessamento,
-              mesAnoReferencia: competenciaProcessamento,
               situacao: "AGUARDANDO_PROCESSAMENTO",
               ultimaExecucao: "28/05/2026 10:00",
             }
@@ -30562,7 +30573,7 @@ export function PrototiposFolhaPagamentoPage({
       return;
     }
 
-    processarFolha(folhaParaProcessar, data);
+    processarFolha(folhaProcessamentoOrigem ?? folhaParaProcessar, data);
   };
 
   const abrirExecucoesFolha = (folha: FolhaPagamentoRow) => {
@@ -31399,29 +31410,10 @@ export function PrototiposFolhaPagamentoPage({
                 optionValue="value"
                 getFormErrorMessage={() => getProcessamentoErrorMessage("nomeFolha")}
               />
-              <TextFieldSeplag
-                name="competencia"
-                control={processamentoControl}
-                label="Competência"
-                placeholder="MM/AAAA"
-                cols="12 12 6"
-                required
-                maxLength={7}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("competencia")}
-              />
-              <RadioButtonFieldSeplag
-                name="tipoExecucao"
-                control={processamentoControl}
-                label="Tipo de execução"
-                cols="12 12 6"
-                required
-                options={[
-                  { label: "Parcial", value: "PARCIAL" },
-                  { label: "Total", value: "TOTAL" },
-                ]}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("tipoExecucao")}
-              />
-              <AbrangenciaProcessamentoFolha control={processamentoControl} setValue={setValueProcessamento} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaPagamentoGrupoEleitosOptions} disabled={processamentoTotal} getError={getProcessamentoErrorMessage} />
+              <CompetenciasProcessamentoFolha control={processamentoControl} setValue={setValueProcessamento} options={competenciasProcessamentoOptions} getError={getProcessamentoErrorMessage} />
+              <AbrangenciaProcessamentoFolha control={processamentoControl} setValue={setValueProcessamento} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaProcessamentoGrupoEleitosOptions}
+                original={normalizarCriteriosDaFolha(folhaProcessamentoOrigem ?? {}, catalogoProcessamento)} folhaId={folhaProcessamentoOrigem?.id}
+                onChange={() => setProcessamentoErrors({})} getError={getProcessamentoErrorMessage} />
             </div>
           </div>
         </ModalSeplag>
@@ -32008,10 +32000,9 @@ export function PrototiposFolhaPagamentoPage({
 export function PrototiposFolhaProcessamentoFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const folhas = folhaPagamentoService.listarFolhas();
-  const competenciaVigente = folhaPagamentoService
-    .listarCompetencias()
-    .find((competencia) => competencia.situacao === "ATIVA");
+  const [folhas] = useState(() => folhaPagamentoService.listarFolhas());
+  const competencias = folhaPagamentoService.listarCompetencias();
+  const competenciaVigente = competencias.find((competencia) => competencia.situacao === "ATIVA");
   const [feedback, setFeedback] = useState("");
   const [processamentoErrors, setProcessamentoErrors] =
     useState<Partial<Record<keyof ProcessamentoFolhaForm, string>>>({});
@@ -32028,16 +32019,6 @@ export function PrototiposFolhaProcessamentoFormPage() {
       ),
     ) ?? folhas[0];
 
-  const usuarioLogadoProcessamentoMock = {
-    orgaos: ["SEPLAG", "MTI"],
-    setores: ["administracao-central"],
-    regimesJuridicos: ["Estatutário Civil"],
-    tiposVinculo: ["efetivo"],
-    categorias: ["Área Meio"],
-    subcategorias: ["administracao-direta"],
-    cargos: ["Analista Administrativo"],
-    grupoEleitos: "",
-  };
 
   const catalogoProcessamento = useMemo(criarCatalogoAbrangenciaFolha, []);
 
@@ -32069,6 +32050,7 @@ export function PrototiposFolhaProcessamentoFormPage() {
     setValue,
     watch,
     handleSubmit,
+    formState: { errors: processamentoFormErrors },
   } = useForm<ProcessamentoFolhaForm>({
     defaultValues: {
       numeroFolha: folhaDisponivel?.numero ?? "",
@@ -32076,34 +32058,21 @@ export function PrototiposFolhaProcessamentoFormPage() {
       competencia: formatMesAno(
         folhaDisponivel?.competencia ?? competenciaVigente?.competencia ?? "",
       ),
+      competenciaFinal: "",
       tipoExecucao: "TOTAL",
-      carreiras: folhaDisponivel?.abrangenciaCarreiras ?? [],
-      unidades: folhaDisponivel?.abrangenciaUnidades ?? [],
-      orgaos: folhaDisponivel?.orgaos?.length
-        ? folhaDisponivel.orgaos
-        : usuarioLogadoProcessamentoMock.orgaos,
-      setores: usuarioLogadoProcessamentoMock.setores,
-      regimesJuridicos: folhaDisponivel?.abrangenciaRegimeJuridico?.length ? folhaDisponivel.abrangenciaRegimeJuridico : folhaDisponivel?.regimeJuridico
-        ? [folhaDisponivel.regimeJuridico]
-        : usuarioLogadoProcessamentoMock.regimesJuridicos,
-      tiposVinculo: folhaDisponivel?.abrangenciaTipoVinculo?.length ? folhaDisponivel.abrangenciaTipoVinculo : usuarioLogadoProcessamentoMock.tiposVinculo,
-      categorias: folhaDisponivel?.categoria
-        ? [folhaDisponivel.categoria]
-        : usuarioLogadoProcessamentoMock.categorias,
-      subcategorias: usuarioLogadoProcessamentoMock.subcategorias,
-      cargos: folhaDisponivel?.abrangenciaCargos?.length ? folhaDisponivel.abrangenciaCargos : folhaDisponivel?.cargo
-        ? [folhaDisponivel.cargo]
-        : usuarioLogadoProcessamentoMock.cargos,
-      grupoEleitos:
-        folhaDisponivel?.grupoEleitos ||
-        usuarioLogadoProcessamentoMock.grupoEleitos,
+      ...valoresProcessamento(normalizarCriteriosDaFolha(folhaDisponivel ?? {}, catalogoProcessamento)),
+      setores: [], categorias: [], subcategorias: [],
+      grupoEleitos: folhaDisponivel?.grupoEleitos ?? "",
     },
   });
 
+  const competenciasOptions = [...new Set(competencias.map(competencia => competencia.competencia))]
+    .sort().reverse().map(competencia => ({ label: formatMesAno(competencia), value: formatMesAno(competencia) }));
   const tipoExecucao = watch("tipoExecucao");
-  const processamentoTotal = tipoExecucao === "TOTAL";
   const numeroFolhaSelecionado = watch("numeroFolha");
   const nomeFolhaSelecionado = watch("nomeFolha");
+  const folhaAtualProcessamento = folhaDisponivel?.numero === numeroFolhaSelecionado && folhaDisponivel?.nome === nomeFolhaSelecionado
+    ? folhaDisponivel : folhas.find(folha => folha.numero === numeroFolhaSelecionado && folha.nome === nomeFolhaSelecionado);
   const numeroFolhaOptions = Array.from(
     new Map(
       folhas.map((folha) => [
@@ -32127,15 +32096,22 @@ export function PrototiposFolhaProcessamentoFormPage() {
     const folhaSelecionada = folhas.find(
       (folha) => folha.numero === numeroFolhaSelecionado,
     );
-    if (folhaSelecionada && nomeFolhaSelecionado !== folhaSelecionada.nome) {
+    if (folhaSelecionada && !folhas.some(folha => folha.numero === numeroFolhaSelecionado && folha.nome === nomeFolhaSelecionado)) {
       setValue("nomeFolha", folhaSelecionada.nome);
-      setValue("competencia", formatMesAno(folhaSelecionada.competencia));
     }
   }, [folhas, nomeFolhaSelecionado, numeroFolhaSelecionado, setValue]);
 
+  useEffect(() => {
+    if (!folhaAtualProcessamento) return;
+    setValue("competencia", formatMesAno(folhaAtualProcessamento.competencia));
+    setValue("competenciaFinal", "");
+    setValue("grupoEleitos", folhaAtualProcessamento.grupoEleitos ?? "");
+  }, [folhaAtualProcessamento, setValue]);
+  useEffect(() => { setProcessamentoErrors({}); }, [folhaAtualProcessamento, tipoExecucao]);
+
   const getProcessamentoErrorMessage = (name: keyof ProcessamentoFolhaForm) => {
-    const message = processamentoErrors[name];
-    return message ? <small className="p-error">{message}</small> : null;
+    const message = processamentoErrors[name] ?? processamentoFormErrors[name]?.message;
+    return typeof message === "string" ? <small className="p-error">{message}</small> : null;
   };
 
   const validarFormulario = (data: ProcessamentoFolhaForm) => {
@@ -32150,20 +32126,10 @@ export function PrototiposFolhaProcessamentoFormPage() {
     }
     if (!data.tipoExecucao) errors.tipoExecucao = "Campo obrigatório";
 
-    if (data.tipoExecucao === "PARCIAL") {
-      const possuiFiltro =
-        Boolean(data.orgaos?.length) ||
-        Boolean(data.carreiras?.length) ||
-        Boolean(data.regimesJuridicos?.length) ||
-        Boolean(data.tiposVinculo?.length) ||
-        Boolean(data.unidades?.length) ||
-        Boolean(data.cargos?.length) ||
-        Boolean(data.grupoEleitos);
-
-      if (!possuiFiltro) {
-        errors.orgaos = "Campo obrigatório";
-      }
-    }
+    const folhaParametrizada = folhaAtualProcessamento?.numero === data.numeroFolha && folhaAtualProcessamento?.nome === data.nomeFolha
+      ? folhaAtualProcessamento : folhas.find(folha => folha.numero === data.numeroFolha && folha.nome === data.nomeFolha);
+    if (!folhaParametrizada) { errors.numeroFolha = "Selecione uma folha cadastrada."; errors.nomeFolha = "Selecione uma folha cadastrada."; }
+    else Object.assign(errors, validarAbrangenciaProcessamento(data, folhaParametrizada, catalogoProcessamento, folhaProcessamentoGrupoEleitosOptions));
 
     setProcessamentoErrors(errors);
     return Object.keys(errors).length === 0;
@@ -32174,6 +32140,8 @@ export function PrototiposFolhaProcessamentoFormPage() {
   const executarProcessamento = (data: ProcessamentoFolhaForm) => {
     if (!validarFormulario(data)) return;
 
+    if (!folhaAtualProcessamento) return;
+    folhaPagamentoService.executarFolha(parametrosExecucao(folhaAtualProcessamento.id, data, catalogoProcessamento));
     setFeedback("Registro cadastrado com sucesso!");
     reset({
       ...data,
@@ -32228,29 +32196,10 @@ export function PrototiposFolhaProcessamentoFormPage() {
                 optionValue="value"
                 getFormErrorMessage={() => getProcessamentoErrorMessage("nomeFolha")}
               />
-              <TextFieldSeplag
-                name="competencia"
-                control={control}
-                label="Competência"
-                placeholder="MM/AAAA"
-                cols="12 12 6"
-                required
-                maxLength={7}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("competencia")}
-              />
-              <RadioButtonFieldSeplag
-                name="tipoExecucao"
-                control={control}
-                label="Tipo de execução"
-                cols="12 12 6"
-                required
-                options={[
-                  { label: "Parcial", value: "PARCIAL" },
-                  { label: "Total", value: "TOTAL" },
-                ]}
-                getFormErrorMessage={() => getProcessamentoErrorMessage("tipoExecucao")}
-              />
-              <AbrangenciaProcessamentoFolha control={control} setValue={setValue} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaPagamentoGrupoEleitosOptions} disabled={processamentoTotal} getError={getProcessamentoErrorMessage} />
+              <CompetenciasProcessamentoFolha control={control} setValue={setValue} options={competenciasOptions} getError={getProcessamentoErrorMessage} />
+              <AbrangenciaProcessamentoFolha control={control} setValue={setValue} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaProcessamentoGrupoEleitosOptions}
+                original={normalizarCriteriosDaFolha(folhaAtualProcessamento ?? {}, catalogoProcessamento)} folhaId={folhaAtualProcessamento?.id}
+                onChange={() => setProcessamentoErrors({})} getError={getProcessamentoErrorMessage} />
             </div>
 
             <div className="prototype-processamento-folha-footer">
@@ -34686,7 +34635,6 @@ export function PrototiposFolhaGruposCalculoPage() {
       <div className="prototype-page-content prototype-page-content--white prototype-folha-grupos-calculo-page v2v-shell">
         <CardSeplag
           title="Gestão de Grupos de Cálculo"
-          actions={<div className="prototype-grupos-competencia-header"><label htmlFor="grupos-competencia">Competência:<select title="Filtrar grupos por competência" id="grupos-competencia" value={competenciaSelecionada} onChange={e=>{setSearchParams({competencia:e.target.value});fecharHistoricoGrupoCalculo();}}>{contexto.opcoes.map(c=><option key={c} value={c}>{formatarCompetenciaGrupo(c)}</option>)}</select></label><div className="prototype-grupos-competencia-vigente">Competência vigente: <strong>{formatarCompetenciaGrupo(contexto.vigente)}</strong></div></div>}
           cols="12"
           cardHeaderClassNames="prototype-carreira-card v2v-card"
           headerNavigation={<BreadcrumbSeplag divided homeTo={FOLHA_PAGINA_INICIAL_PATH} items={[{ label: "Página Inicial", to: FOLHA_PAGINA_INICIAL_PATH }, { label: "Folha" }, { label: "Grupos de Cálculo da Folha", to: "/prototipos/folha/grupos-calculo" }]} />}
@@ -34726,7 +34674,6 @@ export function PrototiposFolhaGruposCalculoPage() {
             </div>
 
           </div>
-          <div role="note" className="prototype-grupos-competencia-info"><i className="pi pi-info-circle" aria-hidden="true" /><span>Os grupos de cálculo são organizados por competência. Ao avançar para uma nova competência, o sistema replica automaticamente os grupos ativos da competência anterior, iniciando-os na versão V1, sem necessidade de novo cadastro.</span></div>
           <section className="v2v-panel v2v-management-results" aria-label="Grupos de cálculo cadastrados">
             <div className="v2v-grid-toolbar">            <div>
               <BotaoSeplag
@@ -34855,13 +34802,14 @@ function PrototiposFolhaGrupoCalculoFormContent() {
   const somenteLeitura = searchParams.get("modo") === "visualizar";
   const contextoCompetencias=contextoCompetenciasGrupos();
   const competenciaInicial=contextoCompetencias.opcoes.includes(searchParams.get("competencia")??"") ? searchParams.get("competencia")! : contextoCompetencias.vigente;
-  const [competenciaSelecionada,setCompetenciaSelecionada]=useState(competenciaInicial);
+  const [competenciaSelecionada]=useState(competenciaInicial);
   const [erroCompetencia,setErroCompetencia]=useState("");
   const competenciaValida=contextoCompetencias.opcoes.includes(competenciaSelecionada);
   const dadosCompetencia=useMemo(()=>lerGruposCalculoCompetencia(competenciaSelecionada || competenciaInicial),[competenciaSelecionada,competenciaInicial]);
   const {grupos:gruposCalculoMock,versoes:gruposCalculoVersoesMock}=dadosCompetencia;
   const voltarCompetencia="/prototipos/folha/grupos-calculo?competencia="+competenciaSelecionada;
   const grupo = gruposCalculoMock.find((item) => String(item.id) === id);
+  const versaoPesosAtiva = useVersaoPesosAbrangenciaAtiva();
   const [anoCompetencia,mesCompetencia]=(competenciaSelecionada || competenciaInicial).split("-").map(Number);
   const amanha = new Date(anoCompetencia,mesCompetencia-1,1);
   const dataInicioV2 = formatDatePtBr(amanha);
@@ -34903,7 +34851,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
   const credenciaisPublicacaoValidas = Boolean(
     competenciaValida && credenciaisPublicacao.usuario.trim() &&
       credenciaisPublicacao.senha.trim() &&
-      dataInicioPublicacao.trim() && dataInicioPublicacao.slice(3)===formatarCompetenciaGrupo(competenciaSelecionada),
+      dataInicioPublicacao.trim(),
   );
 
   const catalogoAbrangencia = useMemo(criarCatalogoAbrangenciaFolha, []);
@@ -34951,15 +34899,11 @@ function PrototiposFolhaGrupoCalculoFormContent() {
   });
 
   const validarCompetencia = () => {
-    if(competenciaValida){setErroCompetencia("");return true;}
-    setErroCompetencia("Selecione a compet\u00eancia para salvar ou aprovar o grupo.");return false;
-  };
-  const alterarCompetencia = (valor:string|null) => {
-    const competencia=valor??"";setCompetenciaSelecionada(competencia);setErroCompetencia("");
-    if(competencia){
-      const inicio="01/"+formatarCompetenciaGrupo(competencia);setDataInicioPublicacao(inicio);setValue("dataAtivacao",inicio);
-      if(isEdit){const parametros=new URLSearchParams(searchParams);parametros.set("competencia",competencia);navigate({search:parametros.toString()},{replace:true});}
-    }
+    const inicio = watch("dataAtivacao") ?? "";
+    const fim = watch("dataEncerramento") ?? "";
+    if (!inicio || !carreiraDataParaIso(inicio)) { setErroCompetencia("Informe uma data início válida."); return false; }
+    if (fim && (!carreiraDataParaIso(fim) || carreiraDataParaIso(fim) < carreiraDataParaIso(inicio))) { setErroCompetencia("A data fim deve ser igual ou posterior à data início."); return false; }
+    setErroCompetencia(""); return true;
   };
   const camposAbrangencia = { regimes: "abrangenciaRegimeJuridico", tipos: "abrangenciaTipoVinculo", carreiras: "abrangenciaCarreiras", orgaos: "abrangenciaOrgao", unidades: "abrangenciaUnidades", cargos: "abrangenciaCargos" } as const;
   const abrangenciaAtual: CriteriosAbrangencia = {
@@ -35007,9 +34951,10 @@ function PrototiposFolhaGrupoCalculoFormContent() {
       ...grupo,id:grupo?.id??Date.now(),codigo:grupo?.codigo??("G"+Date.now()),grupo:nome,nivel:grupo?.nivel??1,
       herdaDe:watch("abrangenciaHerdarDe")==="nenhum" ? "-" : watch("abrangenciaHerdarDe")??"-",
       orgaoSetor:criterios.orgaos.join(", ")||"Todos",tipoVinculo:criterios.tipos.join(", ")||"Todos",
-      situacao,inicioVigencia:situacao==="ATIVO"?dataInicioPublicacao:grupo?.inicioVigencia??("01/"+formatarCompetenciaGrupo(competenciaSelecionada)),fimVigencia:"-",
+      situacao,inicioVigencia:watch("dataAtivacao"),fimVigencia:watch("dataEncerramento")||"-",
       rubricas:ativas.length,pendencias:0,abrangencia:criterios,composicaoRubricas:ativas.map(r=>({codigo:r.codigo,nomeRubrica:r.nomeRubrica})),
       rubricasProprias:ativas.filter(r=>r.origem==="manual").map(r=>r.codigo),responsavel:credenciaisPublicacao.usuario||grupo?.responsavel||"Admin User",
+      pesosAplicados:calcularSomatoriaPesosAbrangencia(criterios,versaoPesosAtiva),
     };
     salvarGrupoCompetencia(competenciaSelecionada,registro,modoVersionamento);return true;
   };
@@ -35107,7 +35052,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
     if (!temAbrangencia(abrangenciaAtual)) { setErroAbrangencia("Ao menos um campo ativo de abrang\u00eancia deve ser preenchido para aprovar."); return; }
     if (!validarConflitosAbrangencia()) return;
     setCredenciaisPublicacao({ usuario: "", senha: "" });
-    setDataInicioPublicacao(dataInicioV2);
+    setDataInicioPublicacao(watch("dataAtivacao") || dataInicioV2);
     setPublicacaoFeedback("");
     setModalPublicacaoAberto(true);
   };
@@ -35122,7 +35067,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
 
     if (!temAbrangencia(abrangenciaAtual)) { setErroAbrangencia("Ao menos um campo ativo de abrang\u00eancia deve ser preenchido para aprovar."); return; }
     if (modoVersionamento && grupo && gruposCalculoMock.some(g => g.herdaDe === grupo.grupo)) {
-      setDataInicioPublicacao(dataInicioV2);
+      setDataInicioPublicacao(watch("dataAtivacao") || dataInicioV2);
       setModalPublicacaoAberto(false);
       setModalRevisaoAberto(true);
       return;
@@ -35130,7 +35075,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
     if(!persistirRegistro("ATIVO"))return;
     salvarCriteriosAbrangencia();
     setValue("situacao", SITUACAO_VIGENCIA.ATIVO);
-    setValue("dataAtivacao", dataInicioPublicacao);
+    setValue("dataAtivacao", watch("dataAtivacao"));
     setPublicacaoConcluida(true);
     setModalPublicacaoAberto(false);
     setPublicacaoFeedback("");
@@ -35213,29 +35158,13 @@ function PrototiposFolhaGrupoCalculoFormContent() {
             disabled={formularioBloqueado}
             getFormErrorMessage={() => null}
           />
-          {modoVersionamento && (
-            <div className="col-12 prototype-grupo-calculo-vigencia">
-              <DateFieldSeplag
-                name="dataAtivacao"
-                control={control}
-                label="Data Início"
-                cols="12 12 3"
-                required
-                disabled={formularioBloqueado}
-                minDate={amanha}
-                maxDate={new Date(anoCompetencia,mesCompetencia,0)}
-                getFormErrorMessage={() => null}
-              />
-            </div>
-          )}
 
           </section>
           <section className="col-12 prototype-grupo-calculo-card prototype-grupo-calculo-competencia" aria-labelledby="grupo-competencia-titulo">
-            <header className="prototype-grupo-calculo-card-heading"><i className="pi pi-calendar" aria-hidden="true" /><div><h2 id="grupo-competencia-titulo">Competência</h2><p>Selecione a competência (mês/ano) para a qual o grupo de cálculo será válido.</p></div></header>
+            <header className="prototype-grupo-calculo-card-heading"><i className="pi pi-calendar" aria-hidden="true" /><div><h2 id="grupo-competencia-titulo">Vigência</h2><p>Informe a data início e, se necessário, a data fim do grupo de cálculo.</p></div></header>
             <div className="grid prototype-category-form-fields">
-              <DropdownFieldSeplag name="competencia" control={control} label="Competência" cols="12 12 6" required disabled={formularioBloqueado}
-                options={contextoCompetencias.opcoes.map(value=>({label:formatarCompetenciaGrupo(value),value}))} optionLabel="label" optionValue="value" placeholder="MM/AAAA"
-                onChange={alterarCompetencia} getFormErrorMessage={()=>erroCompetencia ? <small role="alert" className="p-error">{erroCompetencia}</small> : null} />
+              <DateFieldSeplag name="dataAtivacao" control={control} label="Data início" cols="12 12 6" required disabled={formularioBloqueado} getFormErrorMessage={() => erroCompetencia ? <small role="alert" className="p-error">{erroCompetencia}</small> : null} />
+              <DateFieldSeplag name="dataEncerramento" control={control} label="Data fim" cols="12 12 6" disabled={formularioBloqueado} getFormErrorMessage={() => null} />
             </div>
           </section>
           <div className="col-12 prototype-grupo-calculo-rubricas-section">
@@ -35269,18 +35198,12 @@ function PrototiposFolhaGrupoCalculoFormContent() {
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} unidades selecionadas"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, unidades: valores })} getFormErrorMessage={() => null}
                 />
-                <MultiSelectFieldSeplag
-                  name={camposAbrangencia.carreiras} control={control} label="Carreira" cols="12 12 6"
-                  disabled={formularioBloqueado || !opcoesDaAbrangencia.carreiraAtiva} options={opcoesDaAbrangencia.carreiras}
-                  optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} carreiras selecionadas"
-                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, carreiras: valores })} getFormErrorMessage={() => null}
-                />
-                <MultiSelectFieldSeplag
-                  name={camposAbrangencia.cargos} control={control} label="Cargo" cols="12 12 6"
-                  disabled={formularioBloqueado} options={opcoesDaAbrangencia.cargos}
-                  optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} cargos selecionados"
-                  onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, cargos: valores })} getFormErrorMessage={() => null}
-                />
+                <div className="col-12">
+                  <CarreiraCargoListas catalogo={catalogoAbrangencia} criterios={abrangenciaAtual} disabled={formularioBloqueado}
+                    onCarreirasChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, carreiras: valores })}
+                    onCargosChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, cargos: valores, carreiras: valores.length ? carreirasDosCargos(valores, abrangenciaAtual, catalogoAbrangencia) : abrangenciaAtual.carreiras })}
+                  />
+                </div>
               </div>
               <p className="prototype-grupo-calculo-abrangencia-hint"><i className="pi pi-info-circle" aria-hidden="true" />Ao menos um campo ativo de abrangência deve ser preenchido para aprovar.</p>
               {erroAbrangencia && <p role="alert" style={{ color: "#b42318" }}>{erroAbrangencia}</p>}
@@ -35534,7 +35457,7 @@ function PrototiposFolhaGrupoCalculoFormContent() {
                 // Um único registro preserva o histórico e publica toda a cadeia no protótipo.
                 const chave = `sigep:grupo-calculo:revisoes-aprovadas:${competenciaSelecionada}`;
                 const historico = JSON.parse(localStorage.getItem(chave) ?? "[]");
-                const revisao = { ...resultado, rubricasPai: rubricasGerenciadas.filter(r => !r.excluida).map(r => ({ codigo: r.codigo, nomeRubrica: r.nomeRubrica })), criteriosAntes: resultado.grupos.map(d => ({ id: d.id, criterios: d.criteriosAntes })) };
+                const revisao = { ...resultado, versaoPesos: versaoPesosAtiva, rubricasPai: rubricasGerenciadas.filter(r => !r.excluida).map(r => ({ codigo: r.codigo, nomeRubrica: r.nomeRubrica })), criteriosAntes: resultado.grupos.map(d => ({ id: d.id, criterios: d.criteriosAntes })) };
                 localStorage.setItem(chave, JSON.stringify([...historico, revisao]));
                 aplicarRevisaoGruposCalculo(revisao,gruposCalculoMock,gruposCalculoVersoesMock);
 
