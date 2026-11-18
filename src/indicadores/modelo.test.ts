@@ -4,6 +4,8 @@ import type { DadosProjeto, HistoriaProjeto } from "./types";
 import {
   agrupar,
   calcularCapacity,
+  calcularCapacitySprint,
+  contarDiasUteis,
   compararRecorteAnterior,
   concluida,
   filtrarHistorias,
@@ -14,6 +16,7 @@ import {
   qaAprovada,
   homologada,
   resumir,
+  somarCapacityBruta,
   tendencia,
   variacao,
 } from "./modelo";
@@ -185,19 +188,56 @@ describe("base real das Sprints 18 a 23", () => {
     expect(variacao(10, 0)).toBeNull();
     expect(tendencia([null, null])).toEqual([null, null]);
   });
-  it("gera insights determinísticos com fundamento e sem inventar disponibilidade", () => {
+  it("gera insights determinísticos com a jornada de capacity informada", () => {
     const insights = gerarInsights(dados.historias, primeiras);
     expect(insights).toEqual(gerarInsights(dados.historias, primeiras));
     expect(insights.find((i) => i.id === "complexidade")?.valor).toContain(
       "15,6%",
     );
     expect(insights.find((i) => i.id === "capacity")?.valor).toBe(
-      "Capacity real não informada",
+      "8 h/dia por desenvolvedor",
     );
     expect(
       insights.find((i) => i.id === "reaparecimento")?.historias,
     ).toHaveLength(28);
   });
+});
+it("calcula a capacity de cada sprint com equipe distinta, dias de segunda a sexta e jornada de 8 horas", () => {
+  const capacidades = dados.sprints.map((s) =>
+    calcularCapacitySprint(s, dados.historias),
+  );
+  expect(capacidades.map((c) => c.desenvolvedores)).toEqual([
+    7, 7, 7, 7, 12, 11,
+  ]);
+  expect(capacidades.map((c) => c.diasUteis)).toEqual([11, 12, 11, 12, 13, 12]);
+  expect(capacidades.map((c) => c.diaria)).toEqual([56, 56, 56, 56, 96, 88]);
+  expect(capacidades.map((c) => c.bruta)).toEqual([
+    616, 672, 616, 672, 1248, 1056,
+  ]);
+  expect(somarCapacityBruta(capacidades)).toBe(4880);
+  const repetidas = [...dados.historias, ...dados.historias];
+  expect(calcularCapacitySprint(dados.sprints[5], repetidas)).toEqual(
+    capacidades[5],
+  );
+});
+it("conta os extremos do período, exclui fins de semana e preserva datas ausentes como desconhecidas", () => {
+  expect(contarDiasUteis("2026-11-20", "2026-11-23")).toBe(2);
+  expect(contarDiasUteis("2026-11-21", "2026-11-22")).toBe(0);
+  expect(contarDiasUteis("2026-11-23", "2026-11-23")).toBe(1);
+  expect(contarDiasUteis("2028-02-29", "2028-02-29")).toBe(1);
+  expect(contarDiasUteis("2026-02-30", "2026-03-01")).toBeNull();
+  expect(contarDiasUteis("2026-11-23", "2026-11-20")).toBeNull();
+  expect(contarDiasUteis("2026-11-23", null)).toBeNull();
+  const desconhecida = calcularCapacitySprint(
+    { ...dados.sprints[5], fim: null },
+    dados.historias,
+  );
+  expect(desconhecida).toMatchObject({
+    desenvolvedores: 11,
+    diaria: 88,
+    bruta: null,
+  });
+  expect(somarCapacityBruta([desconhecida])).toBeNull();
 });
 it("calcula apenas uma simulação explícita de capacity, com dedicação e reservas", () => {
   const entrada = {

@@ -1,0 +1,335 @@
+.fluxo-faixa-idade.is-critico {
+  color: #a24b35 !important;
+  font-weight: 600;
+}
+.fluxo-faixa-idade.is-atencao {
+  color: #986320 !important;
+  font-weight: 600;
+}
+.fluxo-painel {
+  display: grid;
+  gap: 28px;
+}
+.fluxo-painel h2,
+.fluxo-painel h3 {
+  color: #123354;
+  margin: 0 0 8px;
+}
+.fluxo-painel p {
+  line-height: 1.55;
+}
+.fluxo-intro,
+.fluxo-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.fluxo-acoes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.fluxo-cobertura,
+.fluxo-pilula {
+  padding: 8px 12px;
+  background: #edf6fb;
+  color: #14648c;
+  border-radius: 20px;
+  font-size: 12px;
+}
+.fluxo-painel label,
+.fluxo-dialog label,
+.fluxo-drawer label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #36516d;
+}
+.fluxo-painel select,
+.fluxo-painel input,
+.fluxo-dialog select,
+.fluxo-dialog input,
+.fluxo-dialog textarea,
+.fluxo-drawer select {
+  border: 1px solid #cbd9e5;
+  padding: 10px;
+  border-radius: 7px;
+  font: inherit;
+  color: #24415c;
+  background: #fff;
+  min-width: 0;
+}
+.fluxo-filtros {
+  padding: 18px;
+}
+.fluxo-filtros select[multiple] {
+  height: 98px;
+}
+.fluxo-metodologia {
+  border: 1px solid #dce5ed;
+  border-radius: 8px;
+  padding: 14px;
+  background: #f7fafc;
+  font-size: 12px;
+}
+.fluxo-metodologia summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #36516d;
+}
+.fluxo-kanban {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(220px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding: 6px 2px 16px;
+  overscroll-behavior-x: contain;
+}
+.fluxo-coluna {
+  border: 1px solid #dce5ed;
+  border-top: 3px solid;
+  border-radius: 10px;
+  background: #f6f9fc;
+  padding: 12px;
+  max-height: 620px;
+  overflow: auto;
+}
+.fluxo-coluna header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.fluxo-coluna h4 {
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+  color: #24415c;
+}
+.fluxo-coluna header > strong {
+  background: #e5eff6;
+  border-radius: 12px;
+  min-width: 24px;
+  text-align: center;
+  padding: 3px;
+  font-size: 12px;
+}
+.fluxo-coluna header small {
+  grid-column: 1/-1;
+  font-size: 11px;
+  color: #627588;
+}
+.fluxo-coluna.is-excesso {
+  background: #fff8ed;
+  border-color: #e8bb75;
+}
+.fluxo-us {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #dce5ed;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 6px #12335406;
+  padding: 12px;
+  display: grid;
+  gap: 9px;
+  margin-bottom: 10px;
+  color: #24415c;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.fluxo-us:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px #12335415;
+}
+.fluxo-us > span {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.fluxo-us > strong {
+  font-size: 12px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fluxo-us small,
+.fluxo-us footer {
+  font-size: 11px;
+  color: #627588;
+  line-height: 1.4;
+}
+.fluxo-us footer {
+  border-top: 1px solid #e7eef4;
+  padding-top: 8px;
+}
+.fluxo-us em {
+  font-style: normal;
+  color: #a85822;
+  background: #fff1e6;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+.fluxo-us.is-bloqueada {
+  border-left: 3px solid #d49648;
+}
+.fluxo-coluna-vazia {
+  font-size: 12px;
+  color: #7b8fa2;
+  min-height: 80px;
+  text-align: center;
+  align-content: center;
+}
+.fluxo-section-title {
+  margin-bottom: 18px;
+}
+.fluxo-painel section {
+  min-width: 0;
+}
+.fluxo-painel > .ind-chart-grid {
+  min-width: 0;
+}
+.fluxo-mini-metricas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 14px 0 18px;
+}
+.fluxo-mini-metricas > span {
+  padding: 10px 14px;
+  border: 1px solid #dce5ed;
+  background: #fff;
+  border-radius: 8px;
+  color: #526a82;
+  font-size: 12px;
+}
+.fluxo-mini-metricas b {
+  color: #24415c;
+}
+.fluxo-aging-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.fluxo-aging-legenda > span {
+  background: #f3f7fa;
+  padding: 6px 8px;
+  border-radius: 5px;
+  color: #627588;
+  font-size: 11px;
+}
+.fluxo-insight {
+  border-left: 3px solid #10a69c;
+  padding: 12px 16px;
+  background: #edf9f6;
+  color: #285a50;
+}
+.fluxo-nota {
+  font-size: 12px;
+  color: #627588;
+}
+.fluxo-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.fluxo-form-wide {
+  grid-column: 1/-1;
+}
+.fluxo-dialog fieldset {
+  border: 1px solid #dce5ed;
+  border-radius: 8px;
+  padding: 14px;
+}
+.fluxo-dialog fieldset > div + div {
+  margin-top: 12px;
+}
+.fluxo-dialog legend {
+  color: #36516d;
+  font-size: 13px;
+  font-weight: 600;
+}
+.fluxo-dialog .fluxo-acoes {
+  margin-top: 22px;
+}
+.fluxo-dialog label small {
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+.fluxo-simulacao {
+  padding: 12px;
+  background: #edf6fc;
+  border: 1px dashed #7aafce;
+  border-radius: 8px;
+  color: #14648c;
+}
+.fluxo-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #627588;
+}
+.fluxo-periodo {
+  background: #f6f9fc;
+  padding: 14px;
+  border: 1px solid #dce5ed;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+.fluxo-selecao {
+  padding: 8px;
+  background: #edf6fc;
+  color: #14648c;
+  font-size: 12px;
+}
+.fluxo-grafico .ind-chart-data [aria-pressed="true"] {
+  outline: 2px solid #087bb5;
+}
+.fluxo-painel button:focus-visible,
+.fluxo-dialog :is(button, input, select, textarea):focus-visible,
+.fluxo-drawer button:focus-visible {
+  outline: 3px solid #49a1d1;
+  outline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .fluxo-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .fluxo-acoes > .ind-button {
+    flex: 1 1 100%;
+  }
+  .fluxo-section-title > label {
+    width: 100%;
+  }
+  .fluxo-kanban {
+    grid-template-columns: repeat(6, 245px);
+  }
+  .fluxo-mini-metricas > span {
+    flex: 1 1 40%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fluxo-us {
+    transition: none;
+  }
+  .fluxo-us:hover {
+    transform: none;
+  }
+}

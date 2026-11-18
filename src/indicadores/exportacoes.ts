@@ -1,11 +1,13 @@
 import { graficosAtivos, type RegistroGrafico } from "./registroGraficos";
 import {
   gerarInsights,
-  nomesUnicos,
+  JORNADA_DIARIA,
+  calcularCapacitySprint,
   numero,
   percentual,
   primeirasAparicoes,
   resumir,
+  somarCapacityBruta,
 } from "./modelo";
 import type { DadosProjeto, FiltrosProjeto, HistoriaProjeto } from "./types";
 import logoEstado from "../assets/img/logo-seplag-sigep.png";
@@ -38,11 +40,7 @@ const equipePorSprint = (
     .filter((s) => s.numero >= filtros.inicial && s.numero <= filtros.final)
     .map((s) => ({
       sprint: s.numero,
-      nomes: nomesUnicos(
-        historias
-          .filter((h) => h.sprint === s.numero)
-          .flatMap((h) => h.desenvolvedores),
-      ),
+      ...calcularCapacitySprint(s, historias),
     }));
 export function imagemGrafico(registro: RegistroGrafico): string {
   registro.chart.stop();
@@ -106,6 +104,7 @@ export function textoExecutivo(
 ) {
   const primeiras = primeirasAparicoes(dados.historias),
     r = resumir(historias, primeiras),
+    equipe = equipePorSprint(dados, historias, filtros),
     insights = gerarInsights(historias, primeiras);
   return [
     `PROJETO SIGEP — RESUMO EXECUTIVO`,
@@ -118,11 +117,14 @@ export function textoExecutivo(
     `Taxa de conclusão confirmada: ${percentual(r.taxaConclusao)}; registros sem situação não são considerados concluídos.`,
     `${r.reaparecidas} reaparições; média de ${numero(r.media, 2)} pontos por história pontuada.`,
     `Desenvolvedores disponíveis no período: ${r.desenvolvedores} nomes distintos atribuídos às histórias.`,
-    ...equipePorSprint(dados, historias, filtros).map(
+    `Jornada diária: ${JORNADA_DIARIA} h por desenvolvedor.`,
+    `Capacity bruta planejada no período: ${numero(somarCapacityBruta(equipe))} h.`,
+    ...equipe.map(
       (s) =>
-        `Sprint ${s.sprint}: ${s.nomes.length} desenvolvedores disponíveis.`,
+        `Sprint ${s.sprint}: ${s.nomes.length} desenvolvedores disponíveis. ${numero(s.diasUteis)} dias (seg. a sex.); capacity diária: ${numero(s.diaria)} h; capacity bruta: ${numero(s.bruta)} h.`,
     ),
-    `FTE e capacidade em horas: não informados.`,
+    `Capacity bruta: dias de segunda a sexta, com início e fim incluídos, antes dos descontos de feriados, férias e suporte.`,
+    `FTE, capacity líquida e horas efetivamente utilizadas: não informados.`,
     "",
     ...insights.flatMap((i) => [
       `${i.titulo}: ${i.valor}`,
@@ -147,6 +149,7 @@ export async function exportarExcel(
   livro.created = new Date();
   const info = livro.addWorksheet("Origem e filtros");
   const resumo = resumir(historias, primeirasAparicoes(dados.historias));
+  const equipeSprints = equipePorSprint(dados, historias, filtros);
   info.addRows([
     ["Projeto SIGEP — Indicadores gerenciais"],
     ["Arquivo", dados.arquivo],
@@ -156,7 +159,16 @@ export async function exportarExcel(
       "Desenvolvedores disponíveis",
       "Nomes distintos atribuídos às histórias por sprint; nomes sem repetição no total do período",
     ],
-    ["FTE / capacidade em horas", "Não informados"],
+    ["Jornada diária (h por desenvolvedor)", JORNADA_DIARIA],
+    [
+      "Capacity bruta planejada (h)",
+      somarCapacityBruta(equipeSprints) ?? "Não informado",
+    ],
+    [
+      "Dias de capacity",
+      "Segunda a sexta, início e fim incluídos, antes dos descontos de feriados, férias e suporte",
+    ],
+    ["FTE / capacity líquida / horas utilizadas", "Não informados"],
     ["Regra de conclusão", "Situação da última aparição de cada US no recorte"],
     [
       "Story points",
@@ -232,12 +244,20 @@ export async function exportarExcel(
     { header: "Sprint", width: 15 },
     { header: "Desenvolvedores disponíveis", width: 30 },
     { header: "Nomes atribuídos às histórias", width: 100 },
+    { header: "Jornada diária (h)", width: 24 },
+    { header: "Dias (seg. a sex.)", width: 24 },
+    { header: "Capacity diária (h)", width: 24 },
+    { header: "Capacity bruta (h)", width: 24 },
   ];
   equipe.addRows(
-    equipePorSprint(dados, historias, filtros).map((s) => [
+    equipeSprints.map((s) => [
       s.sprint,
       s.nomes.length,
       s.nomes.join(", "),
+      s.jornada,
+      s.diasUteis,
+      s.diaria,
+      s.bruta,
     ]),
   );
   equipe.views = [{ state: "frozen", ySplit: 1 }];
@@ -309,7 +329,8 @@ export async function exportarPDF(
     `Última importação: ${new Date(dados.importadoEm).toLocaleString("pt-BR", { timeZone: "America/Cuiaba" })}`,
   );
   const primeiras = primeirasAparicoes(dados.historias),
-    r = resumir(historias, primeiras);
+    r = resumir(historias, primeiras),
+    equipe = equipePorSprint(dados, historias, filtros);
   texto(
     `${r.distintas} histórias distintas | ${r.registros} registros | Pontos estimados: ${numero(r.pontuadas ? r.pontos : null)}`,
     11,
@@ -322,12 +343,18 @@ export async function exportarPDF(
     `Desenvolvedores disponíveis no período: ${r.desenvolvedores} nomes distintos atribuídos às histórias.`,
   );
   texto(
-    equipePorSprint(dados, historias, filtros)
-      .map((s) => `Sprint ${s.sprint}: ${s.nomes.length}`)
+    equipe
+      .map(
+        (s) =>
+          `Sprint ${s.sprint}: ${s.nomes.length} devs; ${numero(s.bruta)} h`,
+      )
       .join(" | "),
   );
   texto(
-    `Situação conhecida em ${r.conhecidas} de ${r.distintas} histórias. Capacidade em horas e FTE não informados. QA e homologação não são inferidos de situação Finalizada.`,
+    `Capacity bruta planejada: ${numero(somarCapacityBruta(equipe))} h. ${JORNADA_DIARIA} h/dia por desenvolvedor × dias de segunda a sexta, início e fim incluídos, antes dos descontos de feriados, férias e suporte.`,
+  );
+  texto(
+    `Situação conhecida em ${r.conhecidas} de ${r.distintas} histórias. Capacidade líquida, horas efetivamente utilizadas e FTE não informados. QA e homologação não são inferidos de situação Finalizada.`,
   );
   for (const registro of graficosAtivos.values()) {
     const png = imagemGrafico(registro),

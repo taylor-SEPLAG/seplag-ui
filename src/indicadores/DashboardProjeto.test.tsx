@@ -37,6 +37,9 @@ vi.mock("./GraficoProjeto", () => ({
     </article>
   ),
 }));
+vi.mock("./RoscaAnalise", () => ({
+  RoscaAnalise: () => <div>Distribuição do esforço registrado</div>,
+}));
 beforeEach(() => {
   localStorage.clear();
   vi.stubGlobal("matchMedia", (query: string) => ({
@@ -57,18 +60,116 @@ afterEach(() => {
   localStorage.clear();
   vi.unstubAllGlobals();
 });
-const montar = () =>
+const montar = (secaoAnalise = false) =>
   render(
     <MemoryRouter>
-      <DashboardProjeto />
+      <DashboardProjeto secaoAnalise={secaoAnalise} />
     </MemoryRouter>,
   );
 const card = (nome: string) =>
   screen.getByRole("button", { name: `Detalhar ${nome}` });
 
+it("integra produtividade sem confundir a conclusão do desenvolvimento com análise e abre o relatório próprio", async () => {
+  montar(true);
+  fireEvent.click(
+    screen.getByRole("tab", { name: "Produtividade da Análise" }),
+  );
+  expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+    "Produtividade e Capacidade da Análise",
+  );
+  await waitFor(() =>
+    expect(card("Histórias atribuídas").textContent).toContain("144"),
+  );
+  expect(card("Histórias com análise concluída").textContent).toContain(
+    "Não informado",
+  );
+  expect(card("Capacity da equipe").textContent).toContain("Não informado");
+  fireEvent.click(screen.getByRole("button", { name: "Exportar relatório" }));
+  const dialog = screen.getByRole("dialog");
+  expect(
+    within(dialog).getByRole("button", { name: "Exportar PDF" }),
+  ).toBeTruthy();
+  expect(
+    within(dialog).getByRole("button", { name: "Exportar Excel" }),
+  ).toBeTruthy();
+});
+
+it("salva atividade com datas e captura a conclusão explícita da especificação sem alterar a base importada", async () => {
+  montar(true);
+  fireEvent.click(
+    screen.getByRole("tab", { name: "Produtividade da Análise" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Registrar atividade" }));
+  const dialog = screen.getByRole("dialog"),
+    form = within(dialog);
+  const h = base.historias.find((h) => h.analistas.length)!;
+  fireEvent.change(form.getByLabelText("Analista"), {
+    target: { value: h.analistas[0] },
+  });
+  fireEvent.change(form.getByLabelText("Sprint"), {
+    target: { value: String(h.sprint) },
+  });
+  fireEvent.change(form.getByLabelText(/História \(US\)/), {
+    target: { value: h.codigo },
+  });
+  fireEvent.change(form.getByLabelText("Tipo de atividade"), {
+    target: { value: "Especificação" },
+  });
+  fireEvent.change(form.getByLabelText("Data de início"), {
+    target: { value: "2026-11-02" },
+  });
+  fireEvent.change(form.getByLabelText("Data de conclusão"), {
+    target: { value: "2026-11-04" },
+  });
+  fireEvent.change(form.getByLabelText("Horas dedicadas"), {
+    target: { value: "6" },
+  });
+  fireEvent.change(form.getByLabelText("Situação"), {
+    target: { value: "Concluída" },
+  });
+  fireEvent.click(form.getByRole("button", { name: "Salvar registro" }));
+  await waitFor(() =>
+    expect(card("Histórias com análise concluída").textContent).toContain("1"),
+  );
+  const salvo = JSON.parse(localStorage.getItem("sigep:analise:v1")!);
+  expect(salvo.atividades[0].horas).toBe(6);
+  expect(salvo.transicoes.map((t: { etapa: string }) => t.etapa)).toEqual([
+    "Especificação",
+    "Conclusão da especificação",
+  ]);
+  expect(localStorage.getItem("sigep:indicadores-projeto:v1")).toBeNull();
+  expect(card("Tempo médio de análise").textContent).toContain("Não informado");
+});
+
+it("mantém simulação separada e permite filtrar analistas no drawer de origem", async () => {
+  montar(true);
+  fireEvent.click(
+    screen.getByRole("tab", { name: "Produtividade da Análise" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Simular Capacity" }));
+  const dialog = screen.getByRole("dialog");
+  fireEvent.change(within(dialog).getByLabelText("Quantidade de analistas"), {
+    target: { value: "4" },
+  });
+  expect(dialog.textContent).toContain("240,0 h");
+  expect(localStorage.getItem("sigep:analise:v1")).toBeNull();
+  fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+  fireEvent.click(card("Histórias atribuídas"));
+  expect(screen.getByLabelText("Analista do detalhamento")).toBeTruthy();
+  expect(screen.getByLabelText("Sprint do detalhamento")).toBeTruthy();
+});
+
 it("abre na Visão Geral, mostra os dados reais e permite navegar pelas abas com teclado", async () => {
   montar();
-  expect(screen.getAllByRole("tab")).toHaveLength(8);
+  expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+    "Visão Geral",
+    "Evolução das Sprints",
+    "Capacity e Equipe",
+    "Analistas e Desenvolvedores",
+    "Complexidade",
+    "Squads e Módulos",
+    "Riscos e Insights",
+  ]);
   expect(
     screen
       .getByRole("tab", { name: "Visão Geral" })
@@ -174,6 +275,40 @@ it("usa os nomes atribuídos também na métrica de desenvolvedores disponíveis
       name: "Comparativo por squad registrada — Squad 4 — Desenvolvedores disponíveis",
     }).textContent,
   ).toBe("2");
+});
+it("exibe capacity de 8 horas por desenvolvedor e atualiza o total ao selecionar uma sprint", async () => {
+  montar();
+  fireEvent.click(screen.getByRole("tab", { name: "Capacity e Equipe" }));
+  expect(
+    screen.getByText("Capacity bruta planejada").parentElement?.textContent,
+  ).toContain("4.880 h");
+  const jornada = screen.getByLabelText("Horas por dia") as HTMLInputElement;
+  expect(jornada.value).toBe("8");
+  fireEvent.change(screen.getByLabelText("Sprint inicial"), {
+    target: { value: "23" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+  expect(
+    screen.getByText("Capacity bruta planejada").parentElement?.textContent,
+  ).toContain("1.056 h");
+  expect(
+    screen.getByRole("button", {
+      name: "Capacity bruta por sprint — Sprint 23 — Capacity bruta (h)",
+    }).textContent,
+  ).toBe("1056");
+  const tabela = screen.getByRole("table", {
+    name: /Capacity planejada por sprint/,
+  });
+  expect(
+    within(tabela)
+      .getAllByRole("row")
+      .slice(1)
+      .map((linha) =>
+        within(linha)
+          .getAllByRole("cell")
+          .map((celula) => celula.textContent),
+      ),
+  ).toEqual([["Sprint 23", "11", "12", "8 h", "88 h", "1.056 h"]]);
 });
 it("preserva uma importação manual mais recente do que a base fornecida", async () => {
   const nova = {

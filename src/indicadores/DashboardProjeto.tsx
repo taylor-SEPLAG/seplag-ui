@@ -30,6 +30,7 @@ import {
 import { StatusHistoria, TabelaHistorias } from "./ComponentesProjeto";
 import {
   compararRecorteAnterior,
+  calcularCapacitySprint,
   filtrarHistorias,
   filtrosIniciais,
   nomesUnicos,
@@ -50,6 +51,8 @@ import baseInicial from "./dados-iniciais.json";
 import type { DadosProjeto, HistoriaProjeto } from "./types";
 import logoEstado from "../assets/img/logo-seplag-sigep.png";
 import "./indicadores.css";
+import ProdutividadeAnalise from "./ProdutividadeAnalise";
+import FluxoAnalise from "./FluxoAnalise";
 
 const CHAVE = "sigep:indicadores-projeto:v1";
 const ABAS = [
@@ -58,7 +61,6 @@ const ABAS = [
   { id: "capacity", titulo: "Capacity e Equipe" },
   { id: "pessoas", titulo: "Analistas e Desenvolvedores" },
   { id: "complexidade", titulo: "Complexidade" },
-  { id: "qualidade", titulo: "Entregas e Qualidade" },
   { id: "squads", titulo: "Squads e Módulos" },
   { id: "riscos", titulo: "Riscos e Insights" },
 ];
@@ -101,12 +103,20 @@ function carregarBase(): { dados: DadosProjeto; erro: string } {
     };
   }
 }
-export default function DashboardProjeto() {
+export default function DashboardProjeto({
+  secaoAnalise = false,
+}: { secaoAnalise?: boolean } = {}) {
+  const abas = secaoAnalise
+    ? [
+        { id: "analise", titulo: "Produtividade da Análise" },
+        { id: "fluxo", titulo: "Fluxo de Análise (WIP)" },
+      ]
+    : ABAS;
   const [estado, setEstado] = useState(carregarBase),
     dados = estado.dados;
   const [rascunho, setRascunho] = useState(() => filtrosIniciais(dados)),
     [filtros, setFiltros] = useState(rascunho),
-    [aba, setAba] = useState("visao"),
+    [aba, setAba] = useState(secaoAnalise ? "analise" : "visao"),
     [foco, setFoco] = useState<number | null>(null);
   const [detalhe, setDetalhe] = useState<DetalheProjeto | null>(null),
     [historia, setHistoria] = useState<HistoriaProjeto | null>(null);
@@ -148,6 +158,7 @@ export default function DashboardProjeto() {
             periodo: s.periodo,
             historias: registros,
             resumo: resumir(registros, primeiras),
+            capacity: calcularCapacitySprint(s, registros),
           };
         }),
     [dados, filtros.inicial, filtros.final, historias, primeiras],
@@ -211,14 +222,14 @@ export default function DashboardProjeto() {
   };
   const tecladoAbas = (e: KeyboardEvent<HTMLButtonElement>, indice: number) => {
     let destino = indice;
-    if (e.key === "ArrowRight") destino = (indice + 1) % ABAS.length;
+    if (e.key === "ArrowRight") destino = (indice + 1) % abas.length;
     else if (e.key === "ArrowLeft")
-      destino = (indice - 1 + ABAS.length) % ABAS.length;
+      destino = (indice - 1 + abas.length) % abas.length;
     else if (e.key === "Home") destino = 0;
-    else if (e.key === "End") destino = ABAS.length - 1;
+    else if (e.key === "End") destino = abas.length - 1;
     else return;
     e.preventDefault();
-    selecionarAba(ABAS[destino].id);
+    selecionarAba(abas[destino].id);
     tabsRef.current
       ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
       .item(destino)
@@ -241,6 +252,7 @@ export default function DashboardProjeto() {
     setFoco(null);
     setErro("");
     setMensagem("Filtros restaurados para o período disponível na planilha.");
+    window.dispatchEvent(new Event("sigep:analise-limpar"));
   };
   const importar = async (file: File) => {
     if (!file.name.toLowerCase().endsWith(".xlsx")) {
@@ -327,14 +339,25 @@ export default function DashboardProjeto() {
           <span>/</span>
           <Link to="/calendario/indicadores">Indicadores</Link>
           <span>/</span>
-          <span aria-current="page">Indicadores do Projeto</span>
+          <span aria-current="page">
+            {secaoAnalise
+              ? "Produtividade da Análise"
+              : "Indicadores do Projeto"}
+          </span>
         </nav>
         <div className="ind-page-heading">
           <div>
-            <h1 id={`${id}-titulo`}>Dashboard Gerencial — Projeto SIGEP</h1>
+            <h1 id={`${id}-titulo`}>
+              {aba === "fluxo"
+                ? "Gestão do Fluxo de Análise"
+                : aba === "analise"
+                  ? "Produtividade e Capacidade da Análise"
+                  : "Dashboard Gerencial — Projeto SIGEP"}
+            </h1>
             <p>
-              Acompanhamento de capacidade, produtividade, complexidade e
-              evolução das entregas.
+              {aba === "fluxo"
+                ? "Monitoramento do trabalho em andamento, tempo de ciclo, gargalos e capacidade de conclusão das análises."
+                : "Acompanhamento de capacidade, produtividade, complexidade e evolução das entregas."}
             </p>
           </div>
           <div className="ind-page-actions">
@@ -363,9 +386,26 @@ export default function DashboardProjeto() {
                 type="button"
                 className="ind-button"
                 disabled={ocupado || importando}
-                aria-expanded={exportacao}
-                aria-controls={`${id}-exportacao`}
-                onClick={() => setExportacao((v) => !v)}
+                aria-expanded={
+                  ["analise", "fluxo"].includes(aba) ? undefined : exportacao
+                }
+                aria-controls={
+                  ["analise", "fluxo"].includes(aba)
+                    ? undefined
+                    : `${id}-exportacao`
+                }
+                aria-haspopup={
+                  ["analise", "fluxo"].includes(aba) ? "dialog" : undefined
+                }
+                onClick={() =>
+                  aba === "fluxo"
+                    ? window.dispatchEvent(new Event("sigep:fluxo-relatorio"))
+                    : aba === "analise"
+                      ? window.dispatchEvent(
+                          new Event("sigep:analise-relatorio"),
+                        )
+                      : setExportacao((v) => !v)
+                }
               >
                 <FiDownload aria-hidden="true" />
                 {ocupado ? "Gerando relatório..." : "Exportar relatório"}
@@ -381,7 +421,7 @@ export default function DashboardProjeto() {
                           dados,
                           historias,
                           filtros,
-                          ABAS.find((a) => a.id === aba)!.titulo,
+                          abas.find((a) => a.id === aba)!.titulo,
                         ),
                       )
                     }
@@ -577,7 +617,7 @@ export default function DashboardProjeto() {
         aria-label="Análises do projeto"
         ref={tabsRef}
       >
-        {ABAS.map((item, i) => (
+        {abas.map((item, i) => (
           <button
             type="button"
             role="tab"
@@ -643,7 +683,13 @@ export default function DashboardProjeto() {
         id={`${id}-painel`}
         aria-labelledby={`${id}-tab-${aba}`}
       >
-        <AbasProjeto aba={aba} ctx={ctx} />
+        {aba === "fluxo" ? (
+          <FluxoAnalise ctx={ctx} />
+        ) : aba === "analise" ? (
+          <ProdutividadeAnalise ctx={ctx} />
+        ) : (
+          <AbasProjeto aba={aba} ctx={ctx} />
+        )}
       </div>
       <footer className="ind-page-footer">
         <details>
@@ -654,13 +700,24 @@ export default function DashboardProjeto() {
             compartilhados mantêm todas as associações. Estimativas ausentes
             permanecem desconhecidas.
           </p>
-          <p>
-            Conclusão usa a situação da última aparição da US no recorte. A taxa
-            representa conclusões confirmadas, com cobertura de situação
-            indicada nos cards. Desenvolvedores disponíveis são os nomes
-            distintos atribuídos às histórias por sprint. Aprovação em QA,
-            homologação e FTE exigem evidências próprias.
-          </p>
+          {["analise", "fluxo"].includes(aba) ? (
+            <p>
+              Conclusões da análise exigem registros próprios de conclusão da
+              especificação. Aprovações, rodadas e horas ativas exigem
+              evidências específicas; a situação de desenvolvimento não
+              substitui esses registros. Disponibilidade da equipe e FTE são
+              calculados apenas das alocações cadastradas, sem inferência pela
+              atribuição de histórias.
+            </p>
+          ) : (
+            <p>
+              Conclusão usa a situação da última aparição da US no recorte. A
+              taxa representa conclusões confirmadas, com cobertura de situação
+              indicada nos cards. Desenvolvedores disponíveis são os nomes
+              distintos atribuídos às histórias por sprint. Aprovação em QA,
+              homologação e FTE exigem evidências próprias.
+            </p>
+          )}
           <p>
             {dados.historicosIgnorados} linhas históricas ou sem vínculo com o
             período atual ignoradas. {dados.removidas} US explicitamente

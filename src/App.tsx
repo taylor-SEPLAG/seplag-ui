@@ -1316,7 +1316,16 @@ function CalendarioPage() {
                     }
                   >
                     <FiBarChart2 aria-hidden="true" />
-                    <span>Indicadores do Projeto SIGEP</span>
+                    <span>Dashboard Gerencial</span>
+                  </NavLink>
+                  <NavLink
+                    to="/calendario/indicadores/analise"
+                    className={({ isActive }) =>
+                      `calendar-sidebar-link${isActive ? " is-active" : ""}`
+                    }
+                  >
+                    <FiUsers aria-hidden="true" />
+                    <span>Produtividade da Análise</span>
                   </NavLink>
                 </nav>
               ) : null}
@@ -1507,8 +1516,8 @@ function CalendarioPage() {
           </section>
         ) : null}
 
-        {location.pathname === "/calendario/indicadores" || location.pathname === "/calendario/indicadores/projeto" ? (
-          <Suspense fallback={<section className="calendar-main-panel" role="status"><header className="calendar-panel-header"><FiBarChart2 aria-hidden="true"/><h1>Carregando indicadores...</h1></header></section>}><DashboardProjeto /></Suspense>
+        {["/calendario/indicadores", "/calendario/indicadores/projeto", "/calendario/indicadores/analise"].includes(location.pathname) ? (
+          <Suspense fallback={<section className="calendar-main-panel" role="status"><header className="calendar-panel-header"><FiBarChart2 aria-hidden="true"/><h1>Carregando indicadores...</h1></header></section>}><DashboardProjeto key={location.pathname} secaoAnalise={location.pathname === "/calendario/indicadores/analise"} /></Suspense>
         ) : null}
         {location.pathname === "/calendario/onboarding-dev" ? <OnboardingDev /> : null}
         {location.pathname === "/calendario/tutoriais" ? (

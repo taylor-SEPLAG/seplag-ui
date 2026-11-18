@@ -10,32 +10,29 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import { GraficoProjeto, type SerieProjeto } from "./GraficoProjeto";
-import {
-  Ajuda,
-  CardInsight,
-  EstadoVazio,
-  KpiProjeto,
-} from "./ComponentesProjeto";
+import { CardInsight, EstadoVazio, KpiProjeto } from "./ComponentesProjeto";
 import {
   FAIXAS,
+  JORNADA_DIARIA,
   agrupar,
   calcularCapacity,
   concluida,
   faixaComplexidade,
   gerarInsights,
   homologada,
-  iniciada,
   nomesUnicos,
   numero,
   percentual,
   qaAprovada,
   reapareceu,
+  somarCapacityBruta,
   tendencia,
   ultimasHistorias,
   variacao,
 } from "./modelo";
 import type {
   CapacityEntrada,
+  CapacitySprint,
   DadosProjeto,
   FiltrosProjeto,
   GrupoProjeto,
@@ -64,6 +61,7 @@ export interface ContextoProjeto {
     periodo: string;
     historias: HistoriaProjeto[];
     resumo: ResumoProjeto;
+    capacity: CapacitySprint;
   }[];
   foco: number | null;
   abrir: (detalhe: DetalheProjeto) => void;
@@ -80,8 +78,6 @@ const CORES = [
   "#e18e6d",
   "#679fc0",
 ];
-const porcentagem = (numerador: number, denominador: number) =>
-  denominador ? (numerador / denominador) * 100 : null;
 const idsSprint = (ctx: ContextoProjeto) =>
   ctx.sprints.map((s) => `Sprint ${s.numero}`);
 const foco = (ctx: ContextoProjeto) =>
@@ -398,6 +394,7 @@ function EvolucaoSprints({ ctx }: { ctx: ContextoProjeto }) {
               <th>Sprint</th>
               <th>Registros</th>
               <th>Desenvolvedores disponíveis</th>
+              <th>Capacity bruta (h)</th>
               <th>Variação do escopo</th>
               <th>Pontos</th>
               <th>Pontuadas / sem estimativa</th>
@@ -420,6 +417,7 @@ function EvolucaoSprints({ ctx }: { ctx: ContextoProjeto }) {
                 </td>
                 <td>{s.resumo.registros}</td>
                 <td>{s.resumo.desenvolvedores}</td>
+                <td>{numero(s.capacity.bruta)}</td>
                 <td>
                   {i
                     ? percentual(
@@ -455,7 +453,7 @@ function SimuladorCapacity({ ctx }: { ctx: ContextoProjeto }) {
   const [entrada, setEntrada] = useState<CapacityEntrada>({
     pessoas: null,
     dias: null,
-    jornada: null,
+    jornada: JORNADA_DIARIA,
     dedicacao: null,
     suporte: 0,
     afastamentos: 0,
@@ -594,6 +592,7 @@ function CapacityEquipe({ ctx }: { ctx: ContextoProjeto }) {
     antes = nomesUnicos(
       anterior?.historias.flatMap((h) => h.desenvolvedores) ?? [],
     );
+  const bruta = somarCapacityBruta(ctx.sprints.map((s) => s.capacity));
   const grupos = [
     {
       titulo: "Primeira associação nesta comparação",
@@ -688,8 +687,12 @@ function CapacityEquipe({ ctx }: { ctx: ContextoProjeto }) {
       </div>
       <div className="ind-mini-grid">
         <div>
-          <span>Capacity bruta histórica</span>
-          <strong>Não informado</strong>
+          <span>Capacity bruta planejada</span>
+          <strong>
+            {numero(bruta)}
+            {bruta !== null && " h"}
+          </strong>
+          <small>{JORNADA_DIARIA} h/dia por desenvolvedor</small>
         </div>
         <div>
           <span>Capacity líquida histórica</span>
@@ -702,8 +705,66 @@ function CapacityEquipe({ ctx }: { ctx: ContextoProjeto }) {
         <div>
           <span>Carga planejada / FTE disponível</span>
           <strong>Não informado</strong>
-          <small>Dedicação e jornada não informadas.</small>
+          <small>Dedicação efetiva não informada.</small>
         </div>
+      </div>
+      <GraficoProjeto
+        id="capacity-sprints"
+        titulo="Capacity bruta por sprint"
+        descricao="Desenvolvedores × dias de segunda a sexta × 8 h. Início e fim incluídos, antes dos descontos de feriados, férias e suporte."
+        periodo={ctx.periodo}
+        labels={idsSprint(ctx)}
+        selecionado={foco(ctx)}
+        series={[
+          {
+            nome: "Capacity bruta (h)",
+            cor: CORES[1],
+            valores: ctx.sprints.map((s) => s.capacity.bruta),
+          },
+        ]}
+        onSelecionar={(i) => {
+          const sprint = ctx.sprints[i];
+          ctx.destacar(sprint.numero);
+          ctx.abrir({
+            titulo: `Capacity bruta — Sprint ${sprint.numero}`,
+            valor:
+              sprint.capacity.bruta === null
+                ? "Não informado"
+                : `${numero(sprint.capacity.bruta)} h`,
+            formula: `${sprint.periodo}. ${sprint.capacity.desenvolvedores} desenvolvedores × ${numero(sprint.capacity.diasUteis)} dias de segunda a sexta × ${JORNADA_DIARIA} h/dia. Antes dos descontos de feriados, férias e suporte.`,
+            historias: sprint.historias,
+          });
+        }}
+      />
+      <div className="ind-table-scroll">
+        <table className="ind-table">
+          <caption>Capacity planejada por sprint · {ctx.periodo}</caption>
+          <thead>
+            <tr>
+              <th>Sprint</th>
+              <th>Desenvolvedores</th>
+              <th>Dias (seg. a sex.)</th>
+              <th>Jornada diária</th>
+              <th>Capacity diária</th>
+              <th>Capacity bruta</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ctx.sprints.map((s) => (
+              <tr key={s.numero}>
+                <td>Sprint {s.numero}</td>
+                <td>{s.capacity.desenvolvedores}</td>
+                <td>{numero(s.capacity.diasUteis)}</td>
+                <td>{s.capacity.jornada} h</td>
+                <td>{numero(s.capacity.diaria)} h</td>
+                <td>
+                  {numero(s.capacity.bruta)}
+                  {s.capacity.bruta !== null && " h"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
       <SimuladorCapacity ctx={ctx} />
       <div className="ind-section-heading">
@@ -1227,150 +1288,6 @@ function Complexidade({ ctx }: { ctx: ContextoProjeto }) {
     </>
   );
 }
-function EntregasQualidade({ ctx }: { ctx: ContextoProjeto }) {
-  const unicas = ultimasHistorias(ctx.historias),
-    conhecidas = unicas.some((h) => h.situacao !== "Não informado"),
-    qaDisponivel = unicas.some((h) => h.qaSituacao),
-    homDisponivel = unicas.some((h) => h.homologacao);
-  const etapas = [
-    { nome: "Planejadas", historias: unicas, valor: unicas.length },
-    {
-      nome: "Desenvolvimento iniciado",
-      historias: unicas.filter(iniciada),
-      valor: conhecidas ? unicas.filter(iniciada).length : null,
-    },
-    {
-      nome: "Desenvolvimento concluído",
-      historias: unicas.filter(concluida),
-      valor: ctx.resumo.concluidas,
-    },
-    {
-      nome: "Enviadas para QA",
-      historias: unicas.filter((h) => h.qaSituacao),
-      valor: qaDisponivel ? unicas.filter((h) => h.qaSituacao).length : null,
-    },
-    {
-      nome: "Aprovadas em QA",
-      historias: unicas.filter(qaAprovada),
-      valor: qaDisponivel ? unicas.filter(qaAprovada).length : null,
-    },
-    {
-      nome: "Homologadas",
-      historias: unicas.filter(homologada),
-      valor: homDisponivel ? unicas.filter(homologada).length : null,
-    },
-  ];
-  return (
-    <>
-      <article className="ind-panel">
-        <div className="ind-section-heading">
-          <div>
-            <h3>Funil de entrega — evidências disponíveis</h3>
-            <p>{ctx.periodo} · situação da última aparição de cada US.</p>
-          </div>
-          <Ajuda texto="A ausência de dados de QA ou homologação não é convertida em zero. Finalizada comprova apenas a conclusão registrada na fonte." />
-        </div>
-        <div className="ind-funnel">
-          {etapas.map((e, i) => (
-            <button
-              type="button"
-              key={e.nome}
-              className={e.valor === null ? "is-missing" : ""}
-              style={{
-                width: `${100 - i * 6}%`,
-                animationDelay: `${i * 80}ms`,
-              }}
-              onClick={() =>
-                ctx.abrir({
-                  titulo: e.nome,
-                  valor: numero(e.valor),
-                  formula:
-                    e.valor === null
-                      ? "Dado de QA/homologação não disponível na fonte atual. Atribuir um responsável QA ou indicar ambiente de teste não comprova aprovação."
-                      : "US distintas na última aparição, com evidência explícita da etapa na situação registrada.",
-                  historias: e.historias,
-                })
-              }
-            >
-              <span>{e.nome}</span>
-              <strong>{numero(e.valor)}</strong>
-              <small>
-                {i === 0
-                  ? "Base planejada"
-                  : e.valor === null
-                    ? "Dado não disponível"
-                    : `${percentual(porcentagem(e.valor, unicas.length))} da base · conversão da etapa anterior: ${percentual(etapas[i - 1].valor ? (e.valor / etapas[i - 1].valor!) * 100 : null)}`}
-              </small>
-            </button>
-          ))}
-        </div>
-        <p className="ind-note">
-          Dado de QA/homologação não disponível na fonte atual. A conclusão
-          registrada não substitui validação em testes.
-        </p>
-      </article>
-      <div className="ind-charts-grid">
-        <GraficoVolume ctx={ctx} id="qualidade-reaparecidas" />
-        <GraficoProjeto
-          id="reaparecimento-percentual"
-          titulo="Percentual de reaparições por sprint"
-          periodo={ctx.periodo}
-          labels={idsSprint(ctx)}
-          tipo="line"
-          selecionado={foco(ctx)}
-          series={[
-            {
-              nome: "Reaparições / registros (%)",
-              cor: CORES[3],
-              valores: ctx.sprints.map((s) =>
-                porcentagem(s.resumo.reaparecidas, s.resumo.registros),
-              ),
-            },
-          ]}
-          onSelecionar={(i) =>
-            abrirSprint(
-              ctx,
-              i,
-              "Reaparições",
-              ctx.sprints[i].historias.filter((h) =>
-                reapareceu(h, ctx.primeiras),
-              ),
-              "Reaparição confirma a presença em sprints diferentes. O motivo não está estruturado na fonte; não se presume atraso ou retrabalho.",
-            )
-          }
-        />
-      </div>
-      <div className="ind-section-heading">
-        <div>
-          <h2>Qualidade, testes e homologação</h2>
-          <p>
-            Integração com evidências específicas de QA, defeitos e homologação.
-          </p>
-        </div>
-      </div>
-      <div className="ind-quality-grid">
-        {[
-          "Defeitos por sprint",
-          "Histórias devolvidas para correção",
-          "Reprovações em QA",
-          "Reprovações em homologação",
-          "Aprovações sem ressalvas",
-          "Tempo médio de correção",
-          "Taxa de retrabalho",
-        ].map((t) => (
-          <article className="ind-panel" key={t}>
-            <h3>{t}</h3>
-            <strong className="ind-unavailable">Não informado</strong>
-            <p>
-              Sem registro específico na planilha. Requer integração com Redmine
-              ou controle de testes.
-            </p>
-          </article>
-        ))}
-      </div>
-    </>
-  );
-}
 function SquadsModulos({ ctx }: { ctx: ContextoProjeto }) {
   const [squads, setSquads] = useState<string[]>([]),
     [metrica, setMetrica] = useState<
@@ -1658,7 +1575,6 @@ export const AbasProjeto = memo(function AbasProjeto({
   if (aba === "capacity") return <CapacityEquipe ctx={ctx} />;
   if (aba === "pessoas") return <Pessoas ctx={ctx} />;
   if (aba === "complexidade") return <Complexidade ctx={ctx} />;
-  if (aba === "qualidade") return <EntregasQualidade ctx={ctx} />;
   if (aba === "squads") return <SquadsModulos ctx={ctx} />;
   return <RiscosInsights ctx={ctx} />;
 });

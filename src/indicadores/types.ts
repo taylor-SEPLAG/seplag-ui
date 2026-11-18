@@ -105,6 +105,14 @@ export interface CapacityEntrada {
   afastamentos: number;
   outras: number;
 }
+export interface CapacitySprint {
+  desenvolvedores: number;
+  nomes: string[];
+  jornada: number;
+  diasUteis: number | null;
+  diaria: number;
+  bruta: number | null;
+}
 export interface CapacityResultado {
   bruta: number;
   alocada: number;

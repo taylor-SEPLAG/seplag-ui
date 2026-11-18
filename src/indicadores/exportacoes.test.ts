@@ -56,13 +56,16 @@ it("preserva as remanescentes da Sprint 22 no relatório filtrado apenas pela Sp
     textoExecutivo(dados, filtrarHistorias(dados, danielle), danielle),
   ).toContain("3 reaparições");
 });
-it("informa a equipe por sprint e deduplica os desenvolvedores no total do período", () => {
+it("informa equipe e capacity por sprint com jornada de 8 horas", () => {
   const dados = base as DadosProjeto;
   const filtros = filtrosIniciais(dados);
   const texto = textoExecutivo(dados, dados.historias, filtros);
   expect(texto).toContain(
     "Desenvolvedores disponíveis no período: 12 nomes distintos",
   );
+  expect(texto).toContain("Jornada diária: 8 h por desenvolvedor.");
+  expect(texto).toContain("Capacity bruta planejada no período: 4.880 h.");
+  expect(texto).toContain("capacity diária: 88 h; capacity bruta: 1.056 h.");
   for (const [sprint, quantidade] of [
     [18, 7],
     [19, 7],
@@ -82,6 +85,7 @@ it("informa a equipe por sprint e deduplica os desenvolvedores no total do perí
     sprint22,
   );
   expect(filtrado).toContain("Sprint 22: 12 desenvolvedores disponíveis.");
+  expect(filtrado).toContain("Capacity bruta planejada no período: 1.248 h.");
   expect(filtrado).not.toContain("Sprint 23: 11 desenvolvedores disponíveis.");
   expect(filtrado).not.toContain("headcount disponível");
 });

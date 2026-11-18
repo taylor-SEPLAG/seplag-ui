@@ -1,6 +1,7 @@
 import type {
   CapacityEntrada,
   CapacityResultado,
+  CapacitySprint,
   DadosProjeto,
   DimensaoProjeto,
   FiltrosProjeto,
@@ -8,6 +9,7 @@ import type {
   HistoriaProjeto,
   InsightProjeto,
   ResumoProjeto,
+  SprintProjeto,
 } from "./types";
 
 export const numero = (valor: number | null | undefined, casas = 0) =>
@@ -184,6 +186,60 @@ export const FAIXAS = [
   "Outras pontuações",
   "Sem estimativa",
 ];
+export const JORNADA_DIARIA = 8;
+
+export function contarDiasUteis(
+  inicio: string,
+  fim: string | null,
+): number | null {
+  const data = (valor: string | null) => {
+    if (!valor || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) return null;
+    const instante = Date.parse(`${valor}T00:00:00Z`);
+    return Number.isFinite(instante) &&
+      new Date(instante).toISOString().slice(0, 10) === valor
+      ? instante
+      : null;
+  };
+  const primeiro = data(inicio),
+    ultimo = data(fim);
+  if (primeiro === null || ultimo === null || ultimo < primeiro) return null;
+  const total = (ultimo - primeiro) / 86400000 + 1;
+  let dias = Math.floor(total / 7) * 5;
+  const inicioSemana = new Date(primeiro).getUTCDay();
+  for (let i = 0; i < total % 7; i++) {
+    const dia = (inicioSemana + i) % 7;
+    if (dia !== 0 && dia !== 6) dias++;
+  }
+  return dias;
+}
+
+export function calcularCapacitySprint(
+  sprint: SprintProjeto,
+  historias: HistoriaProjeto[],
+): CapacitySprint {
+  const nomes = nomesUnicos(
+    historias
+      .filter((h) => h.sprint === sprint.numero)
+      .flatMap((h) => h.desenvolvedores),
+  );
+  const diasUteis = contarDiasUteis(sprint.inicio, sprint.fim);
+  const diaria = nomes.length * JORNADA_DIARIA;
+  return {
+    desenvolvedores: nomes.length,
+    nomes,
+    jornada: JORNADA_DIARIA,
+    diasUteis,
+    diaria,
+    bruta: diasUteis === null ? null : diaria * diasUteis,
+  };
+}
+export const somarCapacityBruta = (
+  capacidades: CapacitySprint[],
+): number | null =>
+  capacidades.some((c) => c.bruta === null)
+    ? null
+    : capacidades.reduce((total, c) => total + c.bruta!, 0);
+
 export function calcularCapacity(e: CapacityEntrada): CapacityResultado | null {
   if (
     [e.pessoas, e.dias, e.jornada, e.dedicacao].some(
@@ -336,14 +392,14 @@ export function gerarInsights(
     });
   insights.push({
     id: "capacity",
-    titulo: "Capacity em horas não informada",
-    valor: "Capacity real não informada",
+    titulo: "Jornada de capacity definida",
+    valor: `${JORNADA_DIARIA} h/dia por desenvolvedor`,
     explicacao:
-      "Os desenvolvedores disponíveis são os nomes distintos atribuídos às histórias. A fonte não informa dedicação e jornada para calcular FTE e capacidade em horas.",
+      "A capacity bruta usa os nomes distintos atribuídos às histórias de cada sprint, multiplicados pelos dias de segunda a sexta do período e pela jornada diária de 8 horas informada pelo usuário.",
     impacto:
-      "Não é possível concluir se há capacidade insuficiente a partir das atribuições.",
+      "A capacidade planejada em horas permite acompanhar a equipe ao longo das sprints. Descontos de feriados, férias, suporte e dedicação são tratados na simulação.",
     pergunta:
-      "Podemos integrar alocação, jornadas e indisponibilidades para medir a capacidade real?",
+      "Quais reservas de tempo precisam ser consideradas na capacidade líquida?",
     tom: "info",
     historias: [],
   });
