@@ -1,0 +1,6272 @@
+{
+  "versao": 1,
+  "arquivo": "PROJETO SIGEP - CONTROLE US (5).xlsx",
+  "importadoEm": "2026-11-18T14:46:04.701Z",
+  "historias": [
+    {
+      "id": "S18-US008",
+      "codigo": "US008",
+      "titulo": "US 008 - Manter Tipo de Vinculo",
+      "sprint": 18,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Luciano"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/34065",
+      "documento": "https://docs.google.com/document/d/1oFviSxzVCtM_mTla75MdbahsTcp2Amht5z4TJvnw7jk/edit?tab=t.8o89cbq3ka9j",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        12
+      ]
+    },
+    {
+      "id": "S18-US195",
+      "codigo": "US195",
+      "titulo": "US195 - Quadros Autorizados - 01 - Listagem de Quadros Autorizados",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Bussolo",
+        "Rodrigo Thaua"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/33997",
+      "documento": "https://docs.google.com/document/d/17Gots1RaJi-dBNcoHavxsbRV5yVavJgpBoGEgPDFWeQ/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        2
+      ]
+    },
+    {
+      "id": "S18-US196",
+      "codigo": "US196",
+      "titulo": "US196 - Quadros Autorizados - 02 - Consultar Histórico de Versões",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Luciano"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/33998",
+      "documento": "https://docs.google.com/document/d/1gzm4Kcue01LisCm_Kgem94zC-TXmEptzwIYG9XAwmuk/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        3
+      ]
+    },
+    {
+      "id": "S18-US197",
+      "codigo": "US197",
+      "titulo": "US197 - Quadros Autorizados - 03 - Cadastrar Novo Quadro Autorizado",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Luciano"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/33999",
+      "documento": "https://docs.google.com/document/d/1zPbjSS4mUUlgcCtwo0yy21atmN2j0Cd-xfumHZv2yLY/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        4
+      ]
+    },
+    {
+      "id": "S18-US199",
+      "codigo": "US199",
+      "titulo": "US199 - Quadros Autorizados - 05 - Versionar: Ampliação -  Redução - Transformação - Extinção",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Bussolo",
+        "Thassyus"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/34001",
+      "documento": "https://docs.google.com/document/d/1rN8mmuaspxqh7QJV5HqZ06CaEYZSd8wuH9ztByBOwko/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        5
+      ]
+    },
+    {
+      "id": "S18-US200",
+      "codigo": "US200",
+      "titulo": "US200 - Quadros Autorizados - 06 - Versionar: Distribuição",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/34002",
+      "documento": "https://docs.google.com/document/d/1_WKZWqPS3ls44BVsbdaCya3T9nXrXVq3Y30TVue6ieI/edit?tab=t.2c14ljlw3nhu",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        6
+      ]
+    },
+    {
+      "id": "S18-US201",
+      "codigo": "US201",
+      "titulo": "US201 - Quadros Autorizados - 07 - Versionar: Redistribuição",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/34205",
+      "documento": "https://docs.google.com/document/d/1sh4ibJF7jfhHhxoLhmQ5BEBjBSPgXVuFmMu31lo6RUw/edit?tab=t.2c14ljlw3nhu",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        7
+      ]
+    },
+    {
+      "id": "S18-US202",
+      "codigo": "US202",
+      "titulo": "US202 - Quadros Autorizados - 08 - Versionar: Atualização da base legal",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/34290",
+      "documento": "https://docs.google.com/document/d/1WZ_UxBw5UslAZMitFQx16VI2asX6nNrMHllzYPQ3oE0/edit?tab=t.2c14ljlw3nhu",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        8
+      ]
+    },
+    {
+      "id": "S18-US205",
+      "codigo": "US205",
+      "titulo": "US205 - Vagas Individualizadas - 01 - Consultar Vagas Individualizadas por Quadro Autorizado",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/34007",
+      "documento": "https://docs.google.com/document/d/1SqH5Zukki2L9WddA8KonAdTO3R9bsz0OXoUypECPH3Y/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        9
+      ]
+    },
+    {
+      "id": "S18-US206",
+      "codigo": "US206",
+      "titulo": "US206 - Vagas Individualizadas - 02 - Filtrar Vagas Individualizadas",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/34008",
+      "documento": "https://docs.google.com/document/d/1a9vYuu6RjFn9Afeic--rMyYtLAGqPHvwk2nqqylvoxw/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        10
+      ]
+    },
+    {
+      "id": "S18-US207",
+      "codigo": "US207",
+      "titulo": "US207 - Vagas Individualizadas - 03 - Visualizar Detalhes da Vaga Individualizada",
+      "sprint": 18,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [],
+      "periodoOriginal": "17/07/2026 - 31/07/2026",
+      "redmine": "http://redmine/issues/34009",
+      "documento": "https://docs.google.com/document/d/1Qxf6X80JRzzkWqcs766kV-lXq_k4zxry6UIs0qOjZM8/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": "Teste",
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 18",
+      "linhas": [
+        11
+      ]
+    },
+    {
+      "id": "S19-US148",
+      "codigo": "US148",
+      "titulo": "US148 – Componente de Base Legal - V2",
+      "sprint": 19,
+      "menu": "Documentação",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/35047",
+      "documento": "https://docs.google.com/document/d/1Df0oGnXqIHjkEUmBvd-McWdt3Eak7iMxBF2cFVX6Tac/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        4
+      ]
+    },
+    {
+      "id": "S19-US209",
+      "codigo": "US209",
+      "titulo": "US209 - Tipo de Vínculo - Listagem, Filtro, Encerramento e Extinção",
+      "sprint": 19,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 2,
+      "dependencias": [],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34587",
+      "documento": "https://docs.google.com/document/d/1Qh8EVZ99E7TzG8frs32YhYaxKNkwtgDQ4-XA_AKdRsM/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        2
+      ]
+    },
+    {
+      "id": "S19-US210",
+      "codigo": "US210",
+      "titulo": "US210 - Tipo de Vínculo - Cadastro, Visualização e Edição",
+      "sprint": 19,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34588",
+      "documento": "https://docs.google.com/document/d/1yyCIpu142L-ybxmL4q-Lzl7YMeUcZM0nly7vFGpBFsI/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        3
+      ]
+    },
+    {
+      "id": "S19-US211",
+      "codigo": "US211",
+      "titulo": "US211 - Carreira - Listagem, Filtro, Encerramento e Extinção",
+      "sprint": 19,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 2,
+      "dependencias": [
+        "US212"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34589",
+      "documento": "https://docs.google.com/document/d/1bZrmeFn1dv-k0QPFY8PRsiqVmRNc5vTa6rtoqTj7zME/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        7
+      ]
+    },
+    {
+      "id": "S19-US212",
+      "codigo": "US212",
+      "titulo": "US212 - Carreira - Cadastro, Visualização e Edição",
+      "sprint": 19,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [
+        "US244"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34590",
+      "documento": "https://docs.google.com/document/d/1l4x6hMQacivs8NAV1FoM_Jp5E18vb_jvp-1npSXwAHE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        8
+      ]
+    },
+    {
+      "id": "S19-US213",
+      "codigo": "US213",
+      "titulo": "US213 - Cargo - Listagem, Filtro e Extinção",
+      "sprint": 19,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 2,
+      "dependencias": [
+        "US214"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34594",
+      "documento": "https://docs.google.com/document/d/1M0AWmke7Nj2rztSMUIe5UfpmpbmAP4TTZk4mwMfYkmE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        11
+      ]
+    },
+    {
+      "id": "S19-US214",
+      "codigo": "US214",
+      "titulo": "US214 - Cargo - Cadastro, Visualização e Edição",
+      "sprint": 19,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [
+        "US212",
+        "US216",
+        "US244"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34595",
+      "documento": "https://docs.google.com/document/d/1-N7I3940fGfbv5Y3GBo4fzUX3hBKqcmcZeAr9_eXPrE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        12
+      ]
+    },
+    {
+      "id": "S19-US215",
+      "codigo": "US215",
+      "titulo": "US215 - Perfil Profissional - Listagem, Filtro, Encerramento e Extinção",
+      "sprint": 19,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [
+        "US216"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34591",
+      "documento": "https://docs.google.com/document/d/1i1xWzwefWPJkB0H52hPJdCMHn-oGg9PdVd-m2n9sp_Y/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        9
+      ]
+    },
+    {
+      "id": "S19-US216",
+      "codigo": "US216",
+      "titulo": "US216 - Perfil Profissional - Cadastro, Visualização e Edição",
+      "sprint": 19,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34592",
+      "documento": "https://docs.google.com/document/d/1hC5YVcVjiuJZmydfNI1kxwpZHgMYnYMIMh3uInEAfTE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        10
+      ]
+    },
+    {
+      "id": "S19-US217",
+      "codigo": "US217",
+      "titulo": "US217 - Controle de certame - Listagem de Certames / Novo Certame",
+      "sprint": 19,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [
+        "US218",
+        "US219",
+        "US220",
+        "US221",
+        "US222"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34655",
+      "documento": "https://docs.google.com/document/d/1bMCA7eecqusCJpjCm87oOuSFbe3-vT53LxfH121xef0/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        17
+      ]
+    },
+    {
+      "id": "S19-US218",
+      "codigo": "US218",
+      "titulo": "US218 - Controle de certame - Cadastro de Certame — Identificação",
+      "sprint": 19,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US210",
+        "US244"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34656",
+      "documento": "https://docs.google.com/document/d/1NDneHkHYx-BkluF3hp1JOTIZkzvyMUAAw7W1UGajEvo/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        18
+      ]
+    },
+    {
+      "id": "S19-US219",
+      "codigo": "US219",
+      "titulo": "US219 - Controle de Certame - Cadastro de Certame - Cronograma",
+      "sprint": 19,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US225"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34657",
+      "documento": "https://docs.google.com/document/d/1fFtKo0xbsBdHjxWI-ay8Esr5yIdhltx12b9nhcowMSk/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        19
+      ]
+    },
+    {
+      "id": "S19-US220",
+      "codigo": "US220",
+      "titulo": "US220 - Controle de Certame - Cadastro de Certame - Vagas",
+      "sprint": 19,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US210",
+        "US244"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34658",
+      "documento": "https://docs.google.com/document/d/1z3xBkzi0pzDxz7aGvdP2KfKiytFzLlyKwM3GufQoYJY/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        20
+      ]
+    },
+    {
+      "id": "S19-US221",
+      "codigo": "US221",
+      "titulo": "US221 - Controle de Certame - Cadastro de Certame - Contrato e Custos",
+      "sprint": 19,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US244"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34659",
+      "documento": "https://docs.google.com/document/d/1LFnYyiZIXmq3mo6NHLwoYcbaaTMPis9S-lCBL-hCUqs/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        21
+      ]
+    },
+    {
+      "id": "S19-US222",
+      "codigo": "US222",
+      "titulo": "US222- Controle de Certame - Cadastro de Certame - Documentos",
+      "sprint": 19,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [
+        "US218",
+        "US219",
+        "US220",
+        "US221"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34660",
+      "documento": "https://docs.google.com/document/d/1IajG2QppdNDUU254cKOk-yFHFJZLuO7mywuLpc2x5n4/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        22
+      ]
+    },
+    {
+      "id": "S19-US223",
+      "codigo": "US223",
+      "titulo": "US223 - Controle de Certame - Situação",
+      "sprint": 19,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [
+        "US218",
+        "US219",
+        "US220",
+        "US221",
+        "US222"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34662",
+      "documento": "https://docs.google.com/document/d/1wPrR0l0pK_mWgyNaYIkOxXKv2C7sB4VPNXhThFf0UzA/edit?usp=drive_web&ouid=115579406593562827780",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        23
+      ]
+    },
+    {
+      "id": "S19-US224",
+      "codigo": "US224",
+      "titulo": "US224 - Controle de Certame - Cadastro de Certame - Local",
+      "sprint": 19,
+      "menu": "Locais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 2,
+      "dependencias": [],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34597",
+      "documento": "https://docs.google.com/document/d/15E7UCS1eUlRHh_QuHUsI_wGGWkhPPXILoZGgOSChYGI/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        14
+      ]
+    },
+    {
+      "id": "S19-US225",
+      "codigo": "US225",
+      "titulo": "US225 - Controle de certame - Cadastro de Certame — Fase do certame",
+      "sprint": 19,
+      "menu": "Fases do Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34596",
+      "documento": "https://docs.google.com/document/d/1vuOZ1DO1yeUKbp6Lau0ibp3Q33CPeVQnPgjT-Ixq0vQ/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        13
+      ]
+    },
+    {
+      "id": "S19-US242",
+      "codigo": "US242",
+      "titulo": "US242 - Listagem de Documentos Legais",
+      "sprint": 19,
+      "menu": "Documentação",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Thaua"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 2,
+      "dependencias": [],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34653",
+      "documento": "https://docs.google.com/document/d/1VGClks-X3GViWH2yNSyFLCscOZHtJpoQJK27nb5bm3o/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        5
+      ]
+    },
+    {
+      "id": "S19-US243",
+      "codigo": "US243",
+      "titulo": "US243 - Controle de Certame - Histórico",
+      "sprint": 19,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US223"
+      ],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34663",
+      "documento": "https://docs.google.com/document/d/1pmF88PAUS7AW8vpDrqc_TxWzufbn-9tiJYwxQkf0Us4/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        24
+      ]
+    },
+    {
+      "id": "S19-US244",
+      "codigo": "US244",
+      "titulo": "US244 - Cadastro de Documentos Legais",
+      "sprint": 19,
+      "menu": "Documentação",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Thaua"
+      ],
+      "qa": [
+        "Deyvison"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34654",
+      "documento": "https://docs.google.com/document/d/1DmtiWAOJcqpo--Z7eNPBSs5Miw0uPif0x0Hm-7S9R_I/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        6
+      ]
+    },
+    {
+      "id": "S19-US245",
+      "codigo": "US245",
+      "titulo": "US245 - Controle de Certame - Cadastro de Certame - Tipo de Cotas",
+      "sprint": 19,
+      "menu": "Tipo de Cota",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [
+        "Murilo"
+      ],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "02/09/2026 - 17/09/2026",
+      "redmine": "http://redmine/issues/34661",
+      "documento": "https://docs.google.com/document/d/1NyvS7D2ihh0ja8EWxGYRlRUYqRC8ZqwIYbqzMTBg-xs/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 19 - 0209 a 1709",
+      "linhas": [
+        16
+      ]
+    },
+    {
+      "id": "S20-US095",
+      "codigo": "US095",
+      "titulo": "US095 – Gestão de Documentos do Sistema v3",
+      "sprint": 20,
+      "menu": "Parametrização",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35193",
+      "documento": "https://docs.google.com/document/d/1WvwAoIRwoJqypp2RAzBrSfjAoM-zFNFVUSrq297kUEU/edit?tab=t.nakb3tlruvbr",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        23
+      ]
+    },
+    {
+      "id": "S20-US209",
+      "codigo": "US209",
+      "titulo": "US209 - Tipo de Vínculo - Listagem, Filtro, Encerramento e Extinção - V2",
+      "sprint": 20,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 2,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35194",
+      "documento": "https://docs.google.com/document/d/1Qh8EVZ99E7TzG8frs32YhYaxKNkwtgDQ4-XA_AKdRsM/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        41
+      ]
+    },
+    {
+      "id": "S20-US210",
+      "codigo": "US210",
+      "titulo": "US210 - Tipo de Vínculo - Cadastro, Visualização e Edição - V2",
+      "sprint": 20,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35195",
+      "documento": "https://docs.google.com/document/d/1yyCIpu142L-ybxmL4q-Lzl7YMeUcZM0nly7vFGpBFsI/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        42
+      ]
+    },
+    {
+      "id": "S20-US211",
+      "codigo": "US211",
+      "titulo": "US211 - Carreira - Listagem, Filtro, Encerramento e Extinção - V2",
+      "sprint": 20,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 2,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35215",
+      "documento": "https://docs.google.com/document/d/1bZrmeFn1dv-k0QPFY8PRsiqVmRNc5vTa6rtoqTj7zME/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        43
+      ]
+    },
+    {
+      "id": "S20-US212",
+      "codigo": "US212",
+      "titulo": "US212 - Carreira - Cadastro, Visualização e Edição - V2",
+      "sprint": 20,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 2,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35216",
+      "documento": "https://docs.google.com/document/d/1l4x6hMQacivs8NAV1FoM_Jp5E18vb_jvp-1npSXwAHE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        44
+      ]
+    },
+    {
+      "id": "S20-US213",
+      "codigo": "US213",
+      "titulo": "US213 - Cargo - Listagem, Filtro e Extinção  -V2",
+      "sprint": 20,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35219",
+      "documento": "https://docs.google.com/document/d/1M0AWmke7Nj2rztSMUIe5UfpmpbmAP4TTZk4mwMfYkmE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        47
+      ]
+    },
+    {
+      "id": "S20-US214",
+      "codigo": "US214",
+      "titulo": "US214 - Cargo - Cadastro, Visualização e Edição - V2",
+      "sprint": 20,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35220",
+      "documento": "https://docs.google.com/document/d/1-N7I3940fGfbv5Y3GBo4fzUX3hBKqcmcZeAr9_eXPrE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        48
+      ]
+    },
+    {
+      "id": "S20-US215",
+      "codigo": "US215",
+      "titulo": "US215 - Perfil Profissional - Listagem, Filtro, Encerramento e Extinção - V2",
+      "sprint": 20,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35217",
+      "documento": "https://docs.google.com/document/d/1i1xWzwefWPJkB0H52hPJdCMHn-oGg9PdVd-m2n9sp_Y/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        45
+      ]
+    },
+    {
+      "id": "S20-US216",
+      "codigo": "US216",
+      "titulo": "US216 - Perfil Profissional - Cadastro, Visualização e Edição - V2",
+      "sprint": 20,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35218",
+      "documento": "https://docs.google.com/document/d/1hC5YVcVjiuJZmydfNI1kxwpZHgMYnYMIMh3uInEAfTE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        46
+      ]
+    },
+    {
+      "id": "S20-US218",
+      "codigo": "US218",
+      "titulo": "US218 - Controle de certame - Cadastro de Certame — Identificação - V2",
+      "sprint": 20,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35221",
+      "documento": "https://docs.google.com/document/d/1NDneHkHYx-BkluF3hp1JOTIZkzvyMUAAw7W1UGajEvo/edit?tab=t.2csburm6vkdv",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        49
+      ]
+    },
+    {
+      "id": "S20-US220",
+      "codigo": "US220",
+      "titulo": "US220 - Controle de Certame - Cadastro de Certame - Vagas - V2",
+      "sprint": 20,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35223",
+      "documento": "https://docs.google.com/document/d/1z3xBkzi0pzDxz7aGvdP2KfKiytFzLlyKwM3GufQoYJY/edit?tab=t.iuw2bvhrmq20",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        51
+      ]
+    },
+    {
+      "id": "S20-US221",
+      "codigo": "US221",
+      "titulo": "US221 - Controle de Certame - Cadastro de Certame - Contrato e Custos - V2",
+      "sprint": 20,
+      "menu": "Controle de Certame",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35222",
+      "documento": "https://docs.google.com/document/d/1LFnYyiZIXmq3mo6NHLwoYcbaaTMPis9S-lCBL-hCUqs/edit?tab=t.mtjmsqhbt7k6",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        50
+      ]
+    },
+    {
+      "id": "S20-US226",
+      "codigo": "US226",
+      "titulo": "US226 - 01 - Gestão de Ingresso - Tela Inicial",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [
+        "US248"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35229",
+      "documento": "https://docs.google.com/document/d/1r-Hup_WsFhiindglgwUcAC-2tDcgRFxdywKZhpEFz34/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        30
+      ]
+    },
+    {
+      "id": "S20-US227",
+      "codigo": "US227",
+      "titulo": "US227 - 01.1 - Novo Ingresso SELETIVO - Aba Ingresso",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US247"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35230",
+      "documento": "https://docs.google.com/document/d/1IqqpZRvYAyAq1SZNIsoLCKkJ7jZ67CY1NQvZixe7DGo/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        31
+      ]
+    },
+    {
+      "id": "S20-US228",
+      "codigo": "US228",
+      "titulo": "US228 - 01.2 - Novo Ingresso SELETIVO - Aba Documentação",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US247"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35231",
+      "documento": "https://docs.google.com/document/d/1sTGqhZveYgsIaatHEUlrmU0prk2UNk22xTwDwXtH_B8/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        32
+      ]
+    },
+    {
+      "id": "S20-US229",
+      "codigo": "US229",
+      "titulo": "US229 - 01.3 - Novo Ingresso SELETIVO - Aba Efetivo Exercício",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US247"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35232",
+      "documento": "https://docs.google.com/document/d/1WLDwV-t8TTs2l6hLuymK8p-ytBXyfWls57KOkIojqJw/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        33
+      ]
+    },
+    {
+      "id": "S20-US230",
+      "codigo": "US230",
+      "titulo": "US230 - 01.4 - Novo Ingresso CONCURSO - Aba Ingresso",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US247"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35233",
+      "documento": "https://docs.google.com/document/d/1NevJ0GMGQX3efwOWLktAR5bUleOc_dt2vIun6QdDtfE/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        34
+      ]
+    },
+    {
+      "id": "S20-US231",
+      "codigo": "US231",
+      "titulo": "US231- 01.5 - Novo Ingresso CONCURSO - Aba Analise do Provimento",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [
+        "US247"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35234",
+      "documento": "https://docs.google.com/document/d/1KCffSaR3YhMPoKJ10DPjqgU9daRbnR7c6FbulLzqXjE/edit?usp=drive_web&ouid=115579406593562827780",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        35
+      ]
+    },
+    {
+      "id": "S20-US232",
+      "codigo": "US232",
+      "titulo": "US232 - 02 - Gerenciar Ingressos Processo Seletivo",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US247"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35235",
+      "documento": "https://docs.google.com/document/d/1gtO_RGc9s_HeSOmVIyYn0mf1LehOxJVGE2jkyFSlg9M/edit?usp=drive_web&ouid=115579406593562827780",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        36
+      ]
+    },
+    {
+      "id": "S20-US233",
+      "codigo": "US233",
+      "titulo": "US233 - 02.1 - Cancelar Ingresso PS",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [
+        "US217"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35236",
+      "documento": "https://docs.google.com/document/d/1CGkmCB-tzTXUWLBPhGm9NVeX3w7CRIaZFRj5L9mFPA8/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        37
+      ]
+    },
+    {
+      "id": "S20-US235",
+      "codigo": "US235",
+      "titulo": "US235 - 03 - Gerenciar Ingressos Concurso",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US217"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35237",
+      "documento": "https://docs.google.com/document/d/12ROIuke8dws1DkA-aK38xzPYQ9f154szEiB8l07s53g/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        38
+      ]
+    },
+    {
+      "id": "S20-US238",
+      "codigo": "US238",
+      "titulo": "US238 - 04 - Gestão do Efetivo Exercício",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [
+        "US217"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35238",
+      "documento": "https://docs.google.com/document/d/1Vu5gEQe_64FnfQs84NRxd7NHnMOvs2eebVb3AurjrbQ/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        39
+      ]
+    },
+    {
+      "id": "S20-US239",
+      "codigo": "US239",
+      "titulo": "US239 - 04.1 - Atuar no Efetivo Exercício",
+      "sprint": 20,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [
+        "US217"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35239",
+      "documento": "https://docs.google.com/document/d/1d5vNK8yFvOKL2VcyBkTVfyezb5pyrcwemUz8U5652Fs/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        40
+      ]
+    },
+    {
+      "id": "S20-US247",
+      "codigo": "US247",
+      "titulo": "US247 - 01 - Tabela de vencimentos - Tela Inicial",
+      "sprint": 20,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35224",
+      "documento": "https://docs.google.com/document/d/1GL8do3b6w7bgQPaskZxrcMDmA0e_8bh6_p9AYOQGXtI/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        24
+      ]
+    },
+    {
+      "id": "S20-US248",
+      "codigo": "US248",
+      "titulo": "US248 - 02 - Nova Tabela de Vencimentos - Aba Identificação e Vigência",
+      "sprint": 20,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [
+        "US247"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35225",
+      "documento": "https://docs.google.com/document/d/1f44B7WrcIIJf3Co4rkm68BFyO_feF_W_z0vJqa-LsL8/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        25
+      ]
+    },
+    {
+      "id": "S20-US249",
+      "codigo": "US249",
+      "titulo": "US249 - 03 - Nova Tabela de Vencimentos - Aba Valores por Nível e Classe",
+      "sprint": 20,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [
+        "US214"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35226",
+      "documento": "https://docs.google.com/document/d/1iY3RmWPGIrJhV0kPEyKsP7kLhALWviQ0mKJUcpl6uKQ/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        26
+      ]
+    },
+    {
+      "id": "S20-US250",
+      "codigo": "US250",
+      "titulo": "US250 - 04 -  Aplicação de RGA",
+      "sprint": 20,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [
+        "US248"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35227",
+      "documento": "https://docs.google.com/document/d/1936mU71k8NfJFYhdISpdI3E_IXoqt2mEOpPMTH8ZgKs/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        27
+      ]
+    },
+    {
+      "id": "S20-US251",
+      "codigo": "US251",
+      "titulo": "US251 - 05 - Versionar Tabela de Vencimentos",
+      "sprint": 20,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [
+        "US248"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35228",
+      "documento": "https://docs.google.com/document/d/1ZCpkaW-5JG_J5OVs_zWPt26XIloeQjhHeo0p1_xNDyM/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        28
+      ]
+    },
+    {
+      "id": "S20-US252",
+      "codigo": "US252",
+      "titulo": "US252 - 06 - Histórico da Tabela de Vencimentos",
+      "sprint": 20,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [
+        "US248"
+      ],
+      "periodoOriginal": "21/09/2026 - 05/10/2026",
+      "redmine": "http://redmine/issues/35356",
+      "documento": "https://docs.google.com/document/d/1mBkZswtcn0OT0JnV_yVQy0_hBkrHaTn-j3-MfrbIIKs/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 20 - 2109 a 0510",
+      "linhas": [
+        29
+      ]
+    },
+    {
+      "id": "S21-US210",
+      "codigo": "US210",
+      "titulo": "US210 - Tipo de Vínculo - Cadastro, Visualização e Edição - V3",
+      "sprint": 21,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/35854",
+      "documento": "https://docs.google.com/document/d/1yyCIpu142L-ybxmL4q-Lzl7YMeUcZM0nly7vFGpBFsI/edit?tab=t.n4uuw7ksmd5y",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        30
+      ]
+    },
+    {
+      "id": "S21-US214",
+      "codigo": "US214",
+      "titulo": "US214 - Cargo - Cadastro, Visualização e Edição - V3",
+      "sprint": 21,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/35853",
+      "documento": "https://docs.google.com/document/d/1-N7I3940fGfbv5Y3GBo4fzUX3hBKqcmcZeAr9_eXPrE/edit?tab=t.6j3b78trysph",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        31
+      ]
+    },
+    {
+      "id": "S21-US216",
+      "codigo": "US216",
+      "titulo": "US216 - Perfil Profissional - Cadastro, Visualização e Edição - V4",
+      "sprint": 21,
+      "menu": "Cargo e Concurso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/36225",
+      "documento": "https://docs.google.com/document/d/1hC5YVcVjiuJZmydfNI1kxwpZHgMYnYMIMh3uInEAfTE/edit?tab=t.g2kf2qhzkbbd",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        58
+      ]
+    },
+    {
+      "id": "S21-US227",
+      "codigo": "US227",
+      "titulo": "US227 - 01.1 - Novo Ingresso SELETIVO - Aba Ingresso - V2",
+      "sprint": 21,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35835",
+      "documento": "https://docs.google.com/document/d/1IqqpZRvYAyAq1SZNIsoLCKkJ7jZ67CY1NQvZixe7DGo/edit?tab=t.so9jwasjv33f",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        48
+      ]
+    },
+    {
+      "id": "S21-US228",
+      "codigo": "US228",
+      "titulo": "US228 - 01.2 - Novo Ingresso SELETIVO - Aba Documentação - V2",
+      "sprint": 21,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35836",
+      "documento": "https://docs.google.com/document/d/1sTGqhZveYgsIaatHEUlrmU0prk2UNk22xTwDwXtH_B8/edit?tab=t.29v3kkt32tjj",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        49
+      ]
+    },
+    {
+      "id": "S21-US229",
+      "codigo": "US229",
+      "titulo": "US229 - 01.3 - Novo Ingresso SELETIVO - Aba Efetivo Exercício - V2",
+      "sprint": 21,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35837",
+      "documento": "https://docs.google.com/document/d/1WLDwV-t8TTs2l6hLuymK8p-ytBXyfWls57KOkIojqJw/edit?tab=t.g4gzuy2l8zsd",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        50
+      ]
+    },
+    {
+      "id": "S21-US230",
+      "codigo": "US230",
+      "titulo": "US230 - 01.4 - Novo Ingresso CONCURSO - Aba Ingresso - V2",
+      "sprint": 21,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35838",
+      "documento": "https://docs.google.com/document/d/1NevJ0GMGQX3efwOWLktAR5bUleOc_dt2vIun6QdDtfE/edit?tab=t.q8mmbieikjdx",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        51
+      ]
+    },
+    {
+      "id": "S21-US234",
+      "codigo": "US234",
+      "titulo": "US234 - 02.2 - Histórico do Ingresso - PS",
+      "sprint": 21,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/36350",
+      "documento": "https://docs.google.com/document/d/1f5jog_ZYV1-Mkh9s16OJXDSBl_8JWK_agzre0coQiqI/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        59
+      ]
+    },
+    {
+      "id": "S21-US236",
+      "codigo": "US236",
+      "titulo": "US236 - 03.1 - Histórico do Ingresso - CONCURSO",
+      "sprint": 21,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/36351",
+      "documento": "https://docs.google.com/document/d/17pZZMbGHV6dn95e-cQJJMHhp3vlYgOLe6vI_uW6Xqzo/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        60
+      ]
+    },
+    {
+      "id": "S21-US239",
+      "codigo": "US239",
+      "titulo": "US239 - 04.1 - Atuar no Efetivo Exercício - V2",
+      "sprint": 21,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 3,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35839",
+      "documento": "https://docs.google.com/document/d/1d5vNK8yFvOKL2VcyBkTVfyezb5pyrcwemUz8U5652Fs/edit?tab=t.f9vbq6i9lhhd",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        52
+      ]
+    },
+    {
+      "id": "S21-US240",
+      "codigo": "US240",
+      "titulo": "US240 - 03.3 - Ver detalhes - Concurso",
+      "sprint": 21,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/36114",
+      "documento": "https://docs.google.com/document/d/14xI9M4AMwu7lE1KezzTNBLgBw8KO6WgXB0suTgpsljM/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        56
+      ]
+    },
+    {
+      "id": "S21-US241",
+      "codigo": "US241",
+      "titulo": "US241 - 02.3 - Ver detalhes - PS",
+      "sprint": 21,
+      "menu": "Gestão de Ingresso",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/36115",
+      "documento": "https://docs.google.com/document/d/1xo7m6z23NpN4WGgu34xFkc3WuU3xxxQVqTGd7vp55u8/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        57
+      ]
+    },
+    {
+      "id": "S21-US247",
+      "codigo": "US247",
+      "titulo": "US247 - 01 - Tabela de vencimentos - Tela Inicial - V2",
+      "sprint": 21,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/35789",
+      "documento": "https://docs.google.com/document/d/1GL8do3b6w7bgQPaskZxrcMDmA0e_8bh6_p9AYOQGXtI/edit?tab=t.ct980rd04kqr",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        23
+      ]
+    },
+    {
+      "id": "S21-US248",
+      "codigo": "US248",
+      "titulo": "US248 - 02 - Nova Tabela de Vencimentos - Aba Identificação e Vigência - V2",
+      "sprint": 21,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/35792",
+      "documento": "https://docs.google.com/document/d/1f44B7WrcIIJf3Co4rkm68BFyO_feF_W_z0vJqa-LsL8/edit?tab=t.k8qq6wlv5yid",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        24
+      ]
+    },
+    {
+      "id": "S21-US249",
+      "codigo": "US249",
+      "titulo": "US249 - 03 - Nova Tabela de Vencimentos - Aba Valores por Nível e Classe- V2",
+      "sprint": 21,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/35794",
+      "documento": "https://docs.google.com/document/d/1iY3RmWPGIrJhV0kPEyKsP7kLhALWviQ0mKJUcpl6uKQ/edit?tab=t.mfxj6t281rma",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        25
+      ]
+    },
+    {
+      "id": "S21-US251",
+      "codigo": "US251",
+      "titulo": "US251 - 05 - Versionar Tabela de Vencimentos - V2",
+      "sprint": 21,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/35798",
+      "documento": "https://docs.google.com/document/d/1ZCpkaW-5JG_J5OVs_zWPt26XIloeQjhHeo0p1_xNDyM/edit?tab=t.f5pqo9wyw07o",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        28
+      ]
+    },
+    {
+      "id": "S21-US252",
+      "codigo": "US252",
+      "titulo": "US252 - 06 - Histórico da Tabela de Vencimentos - V2",
+      "sprint": 21,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/35800",
+      "documento": "https://docs.google.com/document/d/1mBkZswtcn0OT0JnV_yVQy0_hBkrHaTn-j3-MfrbIIKs/edit?tab=t.e601hjlfzlaj",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        29
+      ]
+    },
+    {
+      "id": "S21-US256",
+      "codigo": "US256",
+      "titulo": "US256 – Consultar Estruturas e Unidades",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2021",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35830",
+      "documento": "https://docs.google.com/document/d/1UsOj4csdBoSjLmBmsw8RbxnIzVwGHDx91eOK20J7fDY/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        43
+      ]
+    },
+    {
+      "id": "S21-US257",
+      "codigo": "US257",
+      "titulo": "US257 - Cadastrar Nova Estrutura",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2022",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35831",
+      "documento": "https://docs.google.com/document/d/1uyVTmYO7fLRMcT3k3GUBUnSKSke7dFyOFaxqIhL6d0M/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        44
+      ]
+    },
+    {
+      "id": "S21-US258",
+      "codigo": "US258",
+      "titulo": "US258 – Cadastrar e Gerenciar Unidades da Estrutura Organizacional",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 21,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2023",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35832",
+      "documento": "https://docs.google.com/document/d/1kDFP7_nN-tZnOhucmsJew7j0Dm3b1DT0y8qCXVZvh9s/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        45
+      ]
+    },
+    {
+      "id": "S21-US259",
+      "codigo": "US259",
+      "titulo": "US259 – Publicar Nova Estrutura",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2024",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35833",
+      "documento": "https://docs.google.com/document/d/1dBytEmzMUyjpwVAUt0J26oiYWOmGlpp0bPwUng6ews4/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        46
+      ]
+    },
+    {
+      "id": "S21-US260",
+      "codigo": "US260",
+      "titulo": "US260 – Visualizar Estrutura Organizacional e Unidades",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2025",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35834",
+      "documento": "https://docs.google.com/document/d/1FBa4IkHszEG8hbuJDWr2uYVehp9EnAk5k_V-gfeNlZg/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        47
+      ]
+    },
+    {
+      "id": "S21-US261",
+      "codigo": "US261",
+      "titulo": "US261 – Cadastrar Órgão ou Entidade – Dados Cadastrais",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2015",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35824",
+      "documento": "https://docs.google.com/document/d/11P33UzK73Rttf_xT2ohFF0YZQBbAoA9gEJAYpNEqyp4/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        37
+      ]
+    },
+    {
+      "id": "S21-US262",
+      "codigo": "US262",
+      "titulo": "US262– Cadastro de Órgãos e Entidades – Aba de Localização e Contato",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2016",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35825",
+      "documento": "https://docs.google.com/document/d/1RQtVyUBYyWRFAaEcamF9wDCVs_6_L4Op3xh2FLPcIV4/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        38
+      ]
+    },
+    {
+      "id": "S21-US263",
+      "codigo": "US263",
+      "titulo": "US263 – Cadastro de Órgãos e Entidades – Aba de Responsável e Dados Bancários",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2017",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35826",
+      "documento": "https://docs.google.com/document/d/18MitlchH-LLiGto9Buufq4iGu46Eg27FLS8QxEYJVrk/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        39
+      ]
+    },
+    {
+      "id": "S21-US264",
+      "codigo": "US264",
+      "titulo": "US264 – Cadastro de Órgãos e Entidade – Aba de Integrações",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2018",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35827",
+      "documento": "https://docs.google.com/document/d/1lrQkpx0mnXrYZAR8b6QgC0kVHYycj1tMgw5-_wNMNnc/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        40
+      ]
+    },
+    {
+      "id": "S21-US265",
+      "codigo": "US265",
+      "titulo": "US265 – Consulta e Listagem Unificada de Órgãos e Entidades",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2010",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35818",
+      "documento": "https://docs.google.com/document/d/1rixx3gQEMdERHlGV-1qxrV_VteTNzmkXabXD4L79bQA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        32
+      ]
+    },
+    {
+      "id": "S21-US266",
+      "codigo": "US266",
+      "titulo": "US266 – Cadastro de Ente Federativo – Aba de Dados Cadastrais",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2011",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35819",
+      "documento": "https://docs.google.com/document/d/1nPi5szKPO6FBqVjvSdMhpj6Eg-nd6FjtZ9kgSRNpsLM/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        33
+      ]
+    },
+    {
+      "id": "S21-US267",
+      "codigo": "US267",
+      "titulo": "US267 – Ente Federativo – Aba de Localização e Contato",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2012",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35821",
+      "documento": "https://docs.google.com/document/d/1NnjaImCsD7hI3iYVuk09AZX_-K5CnbLpYIEgrZaLQy4/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        34
+      ]
+    },
+    {
+      "id": "S21-US268",
+      "codigo": "US268",
+      "titulo": "US268 – Ente Federativo – Aba de Responsável e Dados Bancários",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2013",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35822",
+      "documento": "https://docs.google.com/document/d/1MZnjdqa8s1fAOwb1Iu7sWA6_ccmFeSjw61kF2IPFqyg/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        35
+      ]
+    },
+    {
+      "id": "S21-US269",
+      "codigo": "US269",
+      "titulo": "US269 – Cadastro de Ente Federativo – Aba de Integrações",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2014",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35823",
+      "documento": "https://docs.google.com/document/d/1g3UJIsA5-0yDhW99utGs7WX5hkNmFMw9ZTr2tyyJzVA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        36
+      ]
+    },
+    {
+      "id": "S21-US270",
+      "codigo": "US270",
+      "titulo": "US270 –Cadastro Simplificado de Órgãos Externos",
+      "sprint": 21,
+      "menu": "Estrutura Organizacional",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2019",
+      "redmine": "http://redmine.sad.infovia-mt/issues/35828",
+      "documento": "https://docs.google.com/document/d/1LmAN2LTzbjyQlocqohWy_-_KPMkwGMe6Hrh64_Owo10/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        41
+      ]
+    },
+    {
+      "id": "S21-US272",
+      "codigo": "US272",
+      "titulo": "US272 - 03.1 - Nova Tabela de Vencimentos - Aba Revisão das Jornadas",
+      "sprint": 21,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/35795",
+      "documento": "https://docs.google.com/document/d/17d2nEWufUAKBQaxcek388cdcnHMRSR98XJBmtxQ3g3Y/edit?tab=t.mfxj6t281rma",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        26
+      ]
+    },
+    {
+      "id": "S21-US273",
+      "codigo": "US273",
+      "titulo": "US273 - 02.1 - Nova Tabela de Vencimentos - Comissionados",
+      "sprint": 21,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "07/10/2026 - 22/10/2026",
+      "redmine": "http://redmine/issues/35796",
+      "documento": "https://docs.google.com/document/d/1S7rQYX-qWnhn2izBTebZkk7kPJQ236BdFtJ9mnXkyvQ/edit?tab=t.k8qq6wlv5yid",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 21 - 0710 a 2210",
+      "linhas": [
+        27
+      ]
+    },
+    {
+      "id": "S22-US170",
+      "codigo": "US170",
+      "titulo": "US170 -  Manter Processamento da Folha  - V2",
+      "sprint": 22,
+      "menu": "Processamento da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36758",
+      "documento": "https://docs.google.com/document/d/1izfaRlRLCwbmin8lE2T-LJG6MeH9Pku0-6O6J5-6uhw/edit?tab=t.g6y92x11l7p0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        53
+      ]
+    },
+    {
+      "id": "S22-US172",
+      "codigo": "US172",
+      "titulo": "US172 -  [PDF] Template do Relatório Técnico de Processamento da Folha",
+      "sprint": 22,
+      "menu": "Processamento da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36761",
+      "documento": "https://docs.google.com/document/d/1KWlcsJfFh4nLkSGD-aDRFn0rue5bc9chSniduoMKluA/edit?tab=t.5t4z7h4mhsaa",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        54
+      ]
+    },
+    {
+      "id": "S22-US253",
+      "codigo": "US253",
+      "titulo": "US253 - 07 - Aplicação de RGA em lote - Aba Seleção das Tabelas",
+      "sprint": 22,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36505",
+      "documento": "https://docs.google.com/document/d/1uuJdTkTaoSmpT6n7RSUUny_Q219nyQT10ud-XfeOjxM/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        30
+      ]
+    },
+    {
+      "id": "S22-US254",
+      "codigo": "US254",
+      "titulo": "US254 - 08 - Aplicação de RGA em lote - Aba Parâmetros do RGA",
+      "sprint": 22,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36506",
+      "documento": "https://docs.google.com/document/d/1ODHqRTf1conAAjunaF5ZAMWIQQhcrrKQ2LjaRlO7a_Y/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        31
+      ]
+    },
+    {
+      "id": "S22-US255",
+      "codigo": "US255",
+      "titulo": "US255 - 09 - Aplicação de RGA em lote - Pré-visualização",
+      "sprint": 22,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36507",
+      "documento": "https://docs.google.com/document/d/13qrsq-mdvTOlwGYyWOEwHxq_RpwTQyvp8tqgAKJ3-6I/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        32
+      ]
+    },
+    {
+      "id": "S22-US274",
+      "codigo": "US274",
+      "titulo": "US274 - 01 -  Gestão de Ingresso de Comissionados",
+      "sprint": 22,
+      "menu": "Ingresso Comissionados",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36515",
+      "documento": "https://docs.google.com/document/d/1EMnqkX_afXQpndfVc06z-EhzP9AV60QBfObVXvq5g28/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        38
+      ]
+    },
+    {
+      "id": "S22-US275",
+      "codigo": "US275",
+      "titulo": "US275 - 02 - Novo Ingresso Comissionado - Aba Ingresso",
+      "sprint": 22,
+      "menu": "Ingresso Comissionados",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36516",
+      "documento": "https://docs.google.com/document/d/1Q4vT-0078uUQK_0VWklX28PfaqEEu7lcPU7ujHBvsxA/edit?tab=t.so9jwasjv33f",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        39
+      ]
+    },
+    {
+      "id": "S22-US276",
+      "codigo": "US276",
+      "titulo": "US276 - 03 - Novo Ingresso Comissionado - Aba Documentação",
+      "sprint": 22,
+      "menu": "Ingresso Comissionados",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36517",
+      "documento": "https://docs.google.com/document/d/1ePHk7hq4M39L-ko-pkdWxzh_0cacUBY8fyy6II_eVk0/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        40
+      ]
+    },
+    {
+      "id": "S22-US277",
+      "codigo": "US277",
+      "titulo": "US277- 04 - Novo Ingresso Comissionado - Aba Efetivo Exercício",
+      "sprint": 22,
+      "menu": "Ingresso Comissionados",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36518",
+      "documento": "https://docs.google.com/document/d/1oqBGex-1IUtaeiJzwRxxK88QC7SpdYz2n31E9XrRUb8/edit?tab=t.f9vbq6i9lhhd",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        41
+      ]
+    },
+    {
+      "id": "S22-US278",
+      "codigo": "US278",
+      "titulo": "US278 - Comissão - Cadastro da Comissão — Listagem",
+      "sprint": 22,
+      "menu": "Comissões",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36662",
+      "documento": "https://docs.google.com/document/d/1fArD06eSFXMT0kX0CvxcnkB4vLMiEL754roxqyFeq3w/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        42
+      ]
+    },
+    {
+      "id": "S22-US279",
+      "codigo": "US279",
+      "titulo": "US279 - Comissão - Cadastro da Comissão — Identificação",
+      "sprint": 22,
+      "menu": "Comissões",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36663",
+      "documento": "https://docs.google.com/document/d/1NZMOePNWvhT1_VYNYkyvRTZgDkk3HKrOn1B-4AaPq7E/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        43
+      ]
+    },
+    {
+      "id": "S22-US280",
+      "codigo": "US280",
+      "titulo": "US280 - Comissão - Cadastro da Comissão — Membros",
+      "sprint": 22,
+      "menu": "Comissões",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36664",
+      "documento": "https://docs.google.com/document/d/1lWafyvld4zBXx1a8WG98fPiKqaF_aTWWW7wYE6f9TQ4/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        44
+      ]
+    },
+    {
+      "id": "S22-US281",
+      "codigo": "US281",
+      "titulo": "US281 - Comissão - Cadastro da Comissão — Historico",
+      "sprint": 22,
+      "menu": "Comissões",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36665",
+      "documento": "https://docs.google.com/document/d/1yR5jQ-A-aKIugIi_N-gLQ3gRa9JMPkf3kr2kdKBXI3w/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        45
+      ]
+    },
+    {
+      "id": "S22-US284",
+      "codigo": "US284",
+      "titulo": "US284 - Cadastrar Exceção",
+      "sprint": 22,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36504",
+      "documento": "https://docs.google.com/document/d/1fgBOKB77wzYdrurYhwETQRyuoJbqTpcgPVZs9s_Ymio/edit?tab=t.k8qq6wlv5yid",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        29
+      ]
+    },
+    {
+      "id": "S22-US285",
+      "codigo": "US285",
+      "titulo": "US285 - Contratos Temporários – Consulta de Quadros",
+      "sprint": 22,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36693",
+      "documento": "https://docs.google.com/document/d/1nBBSRqavSWn3ImZEPSkUtTgczv7RL58SRzSxkbuVNqc/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        46
+      ]
+    },
+    {
+      "id": "S22-US286",
+      "codigo": "US286",
+      "titulo": "US286 – Contratos Temporários – Cadastro de Quadro",
+      "sprint": 22,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36694",
+      "documento": "https://docs.google.com/document/d/1Jw7Ob52HfpQOHVHgOeISD5k6GUz5T9ohBI-RlwE4TgQ/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        47
+      ]
+    },
+    {
+      "id": "S22-US287",
+      "codigo": "US287",
+      "titulo": "US287 – Contratos Temporários – Vagas Individualizadas",
+      "sprint": 22,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36695",
+      "documento": "https://docs.google.com/document/d/1XbI9SbSK4D51W6DjSE0_k2TrHkLnv2Oh5rG3SkfLJCc/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        48
+      ]
+    },
+    {
+      "id": "S22-US300",
+      "codigo": "US300",
+      "titulo": "US300 - Gestão de Vinculos - Tela Inicial",
+      "sprint": 22,
+      "menu": "Tabela de Vencimentos",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "3"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua",
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36508",
+      "documento": "https://docs.google.com/document/d/1I-LjIDM6QiKJA7ipGDScgpoa12t0lVq0M4JDgVVi_Qg/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        33
+      ]
+    },
+    {
+      "id": "S22-US301",
+      "codigo": "US301",
+      "titulo": "US301 - Cadastrar Vinculo",
+      "sprint": 22,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "3"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua",
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36509",
+      "documento": "https://docs.google.com/document/d/1UhihSglCFD5l2jowR9x1E0eGW7lr8t16dPj6rmzfiEw/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        34
+      ]
+    },
+    {
+      "id": "S22-US302",
+      "codigo": "US302",
+      "titulo": "US302 - Gestão de Ferias - Tela Inicial",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36666",
+      "documento": "https://docs.google.com/document/d/18t3Exx9ymuNyCHWR4jCmb5aIOVE2Y2vTsFEARTidgJw/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        57
+      ]
+    },
+    {
+      "id": "S22-US303",
+      "codigo": "US303",
+      "titulo": "US303 - Solicitar Ferias - Individual",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36667",
+      "documento": "https://docs.google.com/document/d/1kDmI0TpWStOsOf-G_7BibK6Arhu61etbHfZA64mYQGA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        58
+      ]
+    },
+    {
+      "id": "S22-US304",
+      "codigo": "US304",
+      "titulo": "US304 - Solicitar Férias - Coletiva aba Órgão e Servidor",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36668",
+      "documento": "https://docs.google.com/document/d/1UCUe3hCIDkOrM4JLu2A42fE1DLPDBDmZ22B1aRspmiE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        59
+      ]
+    },
+    {
+      "id": "S22-US305",
+      "codigo": "US305",
+      "titulo": "US305 - Solicitar Férias - Coletiva aba Parcelas e Alertas",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36669",
+      "documento": "https://docs.google.com/document/d/18MnaCZUimWZADprcJfIi_KzmR0_y8AWu1cBNWJrA63c/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        60
+      ]
+    },
+    {
+      "id": "S22-US306",
+      "codigo": "US306",
+      "titulo": "US306 - Solicitar Férias - Agendamento em Lote aba Orgão e Servidores",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36671",
+      "documento": "https://docs.google.com/document/d/1WiK72ZWBEwn4hGCknqh-cSpmFdlfPmQ1NCIOqot8CoU/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        61
+      ]
+    },
+    {
+      "id": "S22-US307",
+      "codigo": "US307",
+      "titulo": "US307 - Solicitar Férias - Agendamento em Lote aba Parcelas e Alertas",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36672",
+      "documento": "https://docs.google.com/document/d/1mmzuHol6189IemQPjQ1uecgSIkP4qrrKfSGFCy4FWfA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        62
+      ]
+    },
+    {
+      "id": "S22-US308",
+      "codigo": "US308",
+      "titulo": "US308 - Solicitar Férias - Recesso Remunerado",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36673",
+      "documento": "https://docs.google.com/document/d/1YtYiv-5CYlalghjYMguO4mvuFIpXufEPVfSW5OvOByA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        63
+      ]
+    },
+    {
+      "id": "S22-US309",
+      "codigo": "US309",
+      "titulo": "US309 - Aprovações de Férias",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36674",
+      "documento": "https://docs.google.com/document/d/1jvlvT3KCrCdikh7S86aPmNSHOIYRGh2LAaPk7K84J8s/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        64
+      ]
+    },
+    {
+      "id": "S22-US311",
+      "codigo": "US311",
+      "titulo": "US311 - Encerramento de Vínculo - Encerrar Vínculo - Listagem e Encerramento",
+      "sprint": 22,
+      "menu": "Encerramento de Vinculo",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "3"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua",
+        "Rogério",
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36510",
+      "documento": "https://docs.google.com/document/d/1j1gwA9Wr3FVMFjIExhuARYFROmvB43eUsWoykE-0nBQ/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        35
+      ]
+    },
+    {
+      "id": "S22-US312",
+      "codigo": "US312",
+      "titulo": "US312 - Encerramento de Vínculo - Formas de Encerramento - Listagem",
+      "sprint": 22,
+      "menu": "Encerramento de Vinculo",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "3"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua",
+        "Rogério",
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36511",
+      "documento": "https://docs.google.com/document/d/1-9fDb_nGYxBaIBVJPzErJH6GK6D5PuWCQJxQCUJWj0E/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        36
+      ]
+    },
+    {
+      "id": "S22-US313",
+      "codigo": "US313",
+      "titulo": "US313 - Encerramento de Vínculo - Forma de Encerramento - Cadastrar",
+      "sprint": 22,
+      "menu": "Encerramento de Vinculo",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "3"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua",
+        "Rogério",
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36512",
+      "documento": "https://docs.google.com/document/d/1ieZcvYHhtdmSlNBkXNeCi9RyOe7OU4sCMYH32mU6ICs/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        37
+      ]
+    },
+    {
+      "id": "S22-US317",
+      "codigo": "US317",
+      "titulo": "US317 - Histórico  Solicitação de Férias",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36675",
+      "documento": "https://docs.google.com/document/d/1iAUsys1JapokB1JzxfPbgXD4Pz2hEPPWdXDJssw-FpA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        65
+      ]
+    },
+    {
+      "id": "S22-US318",
+      "codigo": "US318",
+      "titulo": "US318 – Consulta de Parametrização de Ocorrências",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36496",
+      "documento": "https://docs.google.com/document/d/1cBkyb38ex6Z64z3ZcGLvAxOzWGb8RwJRm0N1mGEahD4/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        24
+      ]
+    },
+    {
+      "id": "S22-US319",
+      "codigo": "US319",
+      "titulo": "US319 – Cadastrar Parametrização de Ocorrências – Aba Dados da Parametrização",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36497",
+      "documento": "https://docs.google.com/document/d/13spfwD7p1yydPrM_RZyUOVKiMf2kofzhjBZ6Bopwk3A/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        25
+      ]
+    },
+    {
+      "id": "S22-US320",
+      "codigo": "US320",
+      "titulo": "US320 – Cadastro de Parametrização de Ocorrências – Aba de Efeitos Financeiros por tipo de vínculo",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36498",
+      "documento": "https://docs.google.com/document/d/18o6TujfqmYq1RXdsgYg_FfpiIGvg_tB27q7HbtE0VNQ/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        26
+      ]
+    },
+    {
+      "id": "S22-US321",
+      "codigo": "US321",
+      "titulo": "US321 – Consultar licença, afastamento ou ausência",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36501",
+      "documento": "https://docs.google.com/document/d/1ldR6WrmY1Qc89AscFCh_xy9sUQIy5nPIPya9DQQAc8A/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        27
+      ]
+    },
+    {
+      "id": "S22-US322",
+      "codigo": "US322",
+      "titulo": "US322 – Cadastrar lançamento de licença, afastamento ou ausência",
+      "sprint": 22,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36502",
+      "documento": "https://docs.google.com/document/d/1QflGoDspXw9AE4713_FE2DCvQxI_VqIDvtql_xYbyyw/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        28
+      ]
+    },
+    {
+      "id": "S22-US323",
+      "codigo": "US323",
+      "titulo": "US323 - RC - Elegibilidade do Servidor e Exceções Rubrica 1040 - SUBSIDIOS.docx",
+      "sprint": 22,
+      "menu": "Motor de Calculo",
+      "modulo": "Folha de Pagamento",
+      "squads": [],
+      "analistas": [
+        "Marcela"
+      ],
+      "desenvolvedores": [
+        "Roberto"
+      ],
+      "qa": [],
+      "situacao": "Não informado",
+      "situacaoOriginal": null,
+      "andamentoOriginal": null,
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": null,
+      "documento": "https://docs.google.com/document/d/1nvULUQIcLeyBWmyyT2Jgibu5iiTyK6lo/edit?usp=drive_link&ouid=111521791943363859816&rtpof=true&sd=true",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        23
+      ]
+    },
+    {
+      "id": "S22-US326",
+      "codigo": "US326",
+      "titulo": "US326 – Contratos Temporários – Versionamento por Ampliação",
+      "sprint": 22,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1",
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36696",
+      "documento": "https://docs.google.com/document/d/1uP1avYkmc1DcdjhGFXM4H2qYYUTDZQ2n_nw3kHm77uk/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        49
+      ]
+    },
+    {
+      "id": "S22-US327",
+      "codigo": "US327",
+      "titulo": "US327 – Página Inicial e Navegação por Módulos do SIGEP",
+      "sprint": 22,
+      "menu": "Pagina Inicial",
+      "modulo": "Gestão de Pessoas, Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Andre Parada"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": null,
+      "documento": "https://docs.google.com/document/d/1iwgxk2bT-KHshQUmPlNt1j03eojuZKfx4YcYz-0mr-c/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        55
+      ]
+    },
+    {
+      "id": "S22-US330",
+      "codigo": "US330",
+      "titulo": "US330 - Remoção dos Menus Instituição, Setor e Categoria",
+      "sprint": 22,
+      "menu": "Pagina Inicial",
+      "modulo": "Gestão de Pessoas, Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "João Guilherme"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36756",
+      "documento": "https://docs.google.com/document/d/154gbE2TpAOi3Cp2aDF056Oy6rJNmZ3lVmvustpyw8xA/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        51
+      ]
+    },
+    {
+      "id": "S22-US331",
+      "codigo": "US331",
+      "titulo": "US331 - Grupo de Calculo da Folha - Amarrações Sistêmicas",
+      "sprint": 22,
+      "menu": "Grupos de Cálculo da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36697",
+      "documento": "https://docs.google.com/document/d/1nbvQD_yTUBdC81euA2Gw20n-2ZIw9rfogAQ5dCt1i9Q/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        50
+      ]
+    },
+    {
+      "id": "S22-US332",
+      "codigo": "US332",
+      "titulo": "US332 - Folha de Pagamento - Amarrações Sistêmicas",
+      "sprint": 22,
+      "menu": "Grupos de Cálculo da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "João Guilherme"
+      ],
+      "qa": [],
+      "situacao": "Finalizada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Finalizada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "26/10/2026 - 11/11/2026",
+      "redmine": "http://redmine/issues/36757",
+      "documento": "https://docs.google.com/document/d/1xpE1fS2DiLHGSiEyGnMd2K1-oAVBqsf-zocMEUSPYY0/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 22 - 2610 a 1111",
+      "linhas": [
+        52
+      ]
+    },
+    {
+      "id": "S23-US057",
+      "codigo": "US057",
+      "titulo": "US057 -  Manter Grupo de Eleitos  - V4",
+      "sprint": 23,
+      "menu": "Grupo de Eleitos",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "1"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37298",
+      "documento": "https://docs.google.com/document/d/1F5sacNOlUdSlMkUIfOF72GP_Nuv_FgcRzPI-CgqtcNs/edit?tab=t.ucue5gl53qrg",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        53
+      ]
+    },
+    {
+      "id": "S23-US137",
+      "codigo": "US137",
+      "titulo": "US137 - Busca Grupos de Usuários- V3",
+      "sprint": 23,
+      "menu": "Gerencimanento de Grupos",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "1"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37299",
+      "documento": "https://docs.google.com/document/d/17Oxfk9SMDz-UnwkddX0E_yYPw5sKQU95gcMn7AWSkiA/edit?tab=t.iokvhicx5gxz",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        54
+      ]
+    },
+    {
+      "id": "S23-US166",
+      "codigo": "US166",
+      "titulo": "US166 - Manter Grupo de Cálculo - V6",
+      "sprint": 23,
+      "menu": "Grupos de Cálculo da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37285",
+      "documento": "https://docs.google.com/document/d/1zNDri84rtSVJtdc9U_t5RIjmx8eJ_7i2HEhtoh2XdNM/edit?tab=t.59qmeecph9ol",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        27
+      ]
+    },
+    {
+      "id": "S23-US170",
+      "codigo": "US170",
+      "titulo": "US170 -  Manter Processamento da Folha  - V3",
+      "sprint": 23,
+      "menu": "Grupos de Cálculo da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano",
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37286",
+      "documento": "https://docs.google.com/document/d/1izfaRlRLCwbmin8lE2T-LJG6MeH9Pku0-6O6J5-6uhw/edit?tab=t.l5n9gd5axocg",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        28
+      ]
+    },
+    {
+      "id": "S23-US282",
+      "codigo": "US282",
+      "titulo": "US282 - Adequação do Amparo Legal e remoção do Menu Documentos Legais",
+      "sprint": 23,
+      "menu": "Amparo Legal",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37307",
+      "documento": "https://docs.google.com/document/d/10RZZQeJkh3ByAF8lg_5FGyf_P5y6bgO1xLQgq4KVGaA/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        59
+      ]
+    },
+    {
+      "id": "S23-US288",
+      "codigo": "US288",
+      "titulo": "US288 - Quadro de Vagas Comissionados - Consulta e Histórico",
+      "sprint": 23,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37309",
+      "documento": "https://docs.google.com/document/d/11AVBOfiAZVGKNhZB89yhpnW3DLUVTqSAS05jz_uAwDM/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        61
+      ]
+    },
+    {
+      "id": "S23-US289",
+      "codigo": "US289",
+      "titulo": "US289 - Quadro de Vagas Comissionados - Cadastro Inicial",
+      "sprint": 23,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37308",
+      "documento": "https://docs.google.com/document/d/1ij3e8s9-3Yes5iVN_dnC5TWOdM2yc5XOGgXXIhbnUak/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        60
+      ]
+    },
+    {
+      "id": "S23-US290",
+      "codigo": "US290",
+      "titulo": "US290 - Quadro de Vagas Comissionados - Vagas Individualizadas - Consulta",
+      "sprint": 23,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37314",
+      "documento": "https://docs.google.com/document/d/1ufPV0dLgrVOFqtL_iDntABegE6r6oydn48-DU1ZiP6I/edit?usp=drive_web&ouid=115579406593562827780",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        65
+      ]
+    },
+    {
+      "id": "S23-US291",
+      "codigo": "US291",
+      "titulo": "US291 - Quadro de Vagas Comissionados - Versionamento",
+      "sprint": 23,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Thassyus"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37310",
+      "documento": "https://docs.google.com/document/d/1_lWb3OhnHpWFQeJrwLoMS4A7vmCNOuVSjRq6hnlPOX0/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        62
+      ]
+    },
+    {
+      "id": "S23-US292",
+      "codigo": "US292",
+      "titulo": "US292 - Quadro de Vagas Comissionados - Limites de DGA - Consulta e Histórico de Vigências",
+      "sprint": 23,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rogério"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37311",
+      "documento": "https://docs.google.com/document/d/1_HUSF33MZ9tXmcrZjGj7NS97BIEC5UOz_jqmAcjq6vw/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        63
+      ]
+    },
+    {
+      "id": "S23-US293",
+      "codigo": "US293",
+      "titulo": "US293 - Quadro de Vagas Comissionados - Limites de DGA - Cadastro de Tabela",
+      "sprint": 23,
+      "menu": "Controle de Vagas",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "Rogério"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37313",
+      "documento": "https://docs.google.com/document/d/1uzlcWB_saMlomITr5sXiUnQ30-PizZkfjOfAmWc52MU/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        64
+      ]
+    },
+    {
+      "id": "S23-US302",
+      "codigo": "US302",
+      "titulo": "US302 - Gestão de Ferias - Tela Inicial",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36666",
+      "documento": "https://docs.google.com/document/d/18t3Exx9ymuNyCHWR4jCmb5aIOVE2Y2vTsFEARTidgJw/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        33
+      ]
+    },
+    {
+      "id": "S23-US303",
+      "codigo": "US303",
+      "titulo": "US303 - Solicitar Ferias - Individual",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36667",
+      "documento": "https://docs.google.com/document/d/1kDmI0TpWStOsOf-G_7BibK6Arhu61etbHfZA64mYQGA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        34
+      ]
+    },
+    {
+      "id": "S23-US304",
+      "codigo": "US304",
+      "titulo": "US304 - Solicitar Férias - Coletiva aba Órgão e Servidor",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36668",
+      "documento": "https://docs.google.com/document/d/1UCUe3hCIDkOrM4JLu2A42fE1DLPDBDmZ22B1aRspmiE/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        35
+      ]
+    },
+    {
+      "id": "S23-US305",
+      "codigo": "US305",
+      "titulo": "US305 - Solicitar Férias - Coletiva aba Parcelas e Alertas",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36669",
+      "documento": "https://docs.google.com/document/d/18MnaCZUimWZADprcJfIi_KzmR0_y8AWu1cBNWJrA63c/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        36
+      ]
+    },
+    {
+      "id": "S23-US306",
+      "codigo": "US306",
+      "titulo": "US306 - Solicitar Férias - Agendamento em Lote aba Orgão e Servidores",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36671",
+      "documento": "https://docs.google.com/document/d/1WiK72ZWBEwn4hGCknqh-cSpmFdlfPmQ1NCIOqot8CoU/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        37
+      ]
+    },
+    {
+      "id": "S23-US307",
+      "codigo": "US307",
+      "titulo": "US307 - Solicitar Férias - Agendamento em Lote aba Parcelas e Alertas",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36672",
+      "documento": "https://docs.google.com/document/d/1mmzuHol6189IemQPjQ1uecgSIkP4qrrKfSGFCy4FWfA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        38
+      ]
+    },
+    {
+      "id": "S23-US308",
+      "codigo": "US308",
+      "titulo": "US308 - Solicitar Férias - Recesso Remunerado",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36673",
+      "documento": "https://docs.google.com/document/d/1YtYiv-5CYlalghjYMguO4mvuFIpXufEPVfSW5OvOByA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        39
+      ]
+    },
+    {
+      "id": "S23-US309",
+      "codigo": "US309",
+      "titulo": "US309 - Aprovações de Férias",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36674",
+      "documento": "https://docs.google.com/document/d/1jvlvT3KCrCdikh7S86aPmNSHOIYRGh2LAaPk7K84J8s/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        40
+      ]
+    },
+    {
+      "id": "S23-US314",
+      "codigo": "US314",
+      "titulo": "US314 - Histórico Funcional - Tela Inicial",
+      "sprint": 23,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37300",
+      "documento": "https://docs.google.com/document/d/1zll6MdVZYFTbAG0HUSpUix5FjlwWkBF5M654qvWoJtM/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        55
+      ]
+    },
+    {
+      "id": "S23-US315",
+      "codigo": "US315",
+      "titulo": "US315 - Visualizar Histórico Funcional do Servidor",
+      "sprint": 23,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "1"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Thaua"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37301",
+      "documento": "https://docs.google.com/document/d/1TsccWXFj4eX2qshdjC7t2C3wGlXFVJZTZ1tNu-acjJc/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        56
+      ]
+    },
+    {
+      "id": "S23-US316",
+      "codigo": "US316",
+      "titulo": "US316 - Exportar Histórico Funcional do Servidor - NAO PRIORIZAR",
+      "sprint": 23,
+      "menu": "Vinculos Funcionais",
+      "modulo": "Gestão de Pessoas",
+      "squads": [],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": null,
+      "documento": "https://docs.google.com/document/d/15vCdMt_fo9dAt5AT1jgNRw_h-qMhCoxT1wSpCSA32sc/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        66
+      ]
+    },
+    {
+      "id": "S23-US317",
+      "codigo": "US317",
+      "titulo": "US317 - Histórico  Solicitação de Férias",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36675",
+      "documento": "https://docs.google.com/document/d/1iAUsys1JapokB1JzxfPbgXD4Pz2hEPPWdXDJssw-FpA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        41
+      ]
+    },
+    {
+      "id": "S23-US319",
+      "codigo": "US319",
+      "titulo": "US319 – Cadastrar Parametrização de Ocorrências – Aba Dados da Parametrização",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36497",
+      "documento": "https://docs.google.com/document/d/13spfwD7p1yydPrM_RZyUOVKiMf2kofzhjBZ6Bopwk3A/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        30
+      ]
+    },
+    {
+      "id": "S23-US321",
+      "codigo": "US321",
+      "titulo": "US321 – Consultar licença, afastamento ou ausência",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36501",
+      "documento": "https://docs.google.com/document/d/1ldR6WrmY1Qc89AscFCh_xy9sUQIy5nPIPya9DQQAc8A/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        31
+      ]
+    },
+    {
+      "id": "S23-US322",
+      "codigo": "US322",
+      "titulo": "US322 – Cadastrar lançamento de licença, afastamento ou ausência",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Danielle"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro",
+        "Gabriel Rodrigues"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/36502",
+      "documento": "https://docs.google.com/document/d/1QflGoDspXw9AE4713_FE2DCvQxI_VqIDvtql_xYbyyw/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        32
+      ]
+    },
+    {
+      "id": "S23-US328",
+      "codigo": "US328",
+      "titulo": "US328 - Avisos Importantes na Pagina Inicial",
+      "sprint": 23,
+      "menu": "Pagina Inicial",
+      "modulo": "Gestão de Pessoas, Folha de Pagamento",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37305",
+      "documento": "https://docs.google.com/document/d/167p6Z9c0x02g--N8Dtmwx5lNaSE4f63WcgAhb6Kl0lo/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        57
+      ]
+    },
+    {
+      "id": "S23-US329",
+      "codigo": "US329",
+      "titulo": "US329 - Cronograma na Pagina Inicial",
+      "sprint": 23,
+      "menu": "Pagina Inicial",
+      "modulo": "Gestão de Pessoas, Folha de Pagamento",
+      "squads": [
+        "3"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Alex Sandro"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37306",
+      "documento": "https://docs.google.com/document/d/1-ezI-W-0u2py-6-zKRH568X-7hTnhyteRlZJ24cN2YA/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        58
+      ]
+    },
+    {
+      "id": "S23-US333",
+      "codigo": "US333",
+      "titulo": "US333 – Adequar relacionamento do Vínculo para Pessoa Física",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "1"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Rodrigo Bussolo"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 13,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37280",
+      "documento": "https://docs.google.com/document/d/19KH34w82H03M0X07HAFqHSWp-0eHwSIuTiPUo9dtg8s/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        23
+      ]
+    },
+    {
+      "id": "S23-US334",
+      "codigo": "US334",
+      "titulo": "US334 - Tabelas de Referência - 01 - Tela de Listagem",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37287",
+      "documento": "https://docs.google.com/document/d/1ESLDLG0xasQvf99BSqfvHnz7NBpRNN7QIXmFHYye88Y/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        43
+      ]
+    },
+    {
+      "id": "S23-US335",
+      "codigo": "US335",
+      "titulo": "US335 - Tabelas de Referência - 02 - RGPS - Regime Geral de Previdência Social",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37288",
+      "documento": "https://docs.google.com/document/d/1kiWuv3-w3AMdjNFljqOOhLodABE0n8PB1b0MoozTl6M/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        44
+      ]
+    },
+    {
+      "id": "S23-US336",
+      "codigo": "US336",
+      "titulo": "US336 - Tabelas de Referência - 03 - IRRF - Imposto de Renda Retido na Fonte",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37289",
+      "documento": "https://docs.google.com/document/d/1LLDaItK8lwRH0tzDLi1Odsk9cAcBV8pGksDJ94ZWvow/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        45
+      ]
+    },
+    {
+      "id": "S23-US337",
+      "codigo": "US337",
+      "titulo": "US337 - Tabelas de Referência - 04 - RPPS - Servidor Civil Ativo",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37290",
+      "documento": "https://docs.google.com/document/d/1pS28zc9dsj9xO978l12l1OwvYWbRE2WUa-8xi03XyhM/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        46
+      ]
+    },
+    {
+      "id": "S23-US338",
+      "codigo": "US338",
+      "titulo": "US338 - Tabelas de Referência - 05 - RPPS - Servidor Civil Ativo PREVCOM",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37291",
+      "documento": "https://docs.google.com/document/d/1YeSlAQ9lJYU-Eqsquimbx75aGC5Ki_uAxC2iFubhtp4/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        47
+      ]
+    },
+    {
+      "id": "S23-US339",
+      "codigo": "US339",
+      "titulo": "US339 - Tabelas de Referência - 06 - RPPS - Inativo/Pensionista LC 700 por faixas de proventos",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37292",
+      "documento": "https://docs.google.com/document/d/1wjLwyL70uPRb5eTXT72jtcZLpnQwAgUCag1bbWIzCWQ/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        48
+      ]
+    },
+    {
+      "id": "S23-US340",
+      "codigo": "US340",
+      "titulo": "US340 - Tabelas de Referência - 07 - RPPS - Inativo/Pensionista sobre excedente do salário mínimo",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37293",
+      "documento": "https://docs.google.com/document/d/1EtRNpeQfEuNenavmjVx0zHYQnYdHNwxYWn8HZwlPKKA/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        49
+      ]
+    },
+    {
+      "id": "S23-US341",
+      "codigo": "US341",
+      "titulo": "US341 - Tabelas de Referência - 08 - RPPS - Militar por faixas do limite legal PM/BM",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37294",
+      "documento": "https://docs.google.com/document/d/1tavMZ26yE4rb2dUbzOTioeRpYn-ypEmwyDZoHvwqfMs/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        50
+      ]
+    },
+    {
+      "id": "S23-US342",
+      "codigo": "US342",
+      "titulo": "US342 - Tabelas de Referência - 09 - RPPS - Beneficiário com doença incapacitante sobre excedente do teto RGPS",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 5,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37295",
+      "documento": "https://docs.google.com/document/d/1py6qSHDgrizWpcP3c__bOIPBt7sNGICyZLVdtmm8GOk/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        51
+      ]
+    },
+    {
+      "id": "S23-US343",
+      "codigo": "US343",
+      "titulo": "US343 - Valores de Referência",
+      "sprint": 23,
+      "menu": "Parametros da Folha",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Taylor"
+      ],
+      "desenvolvedores": [
+        "João Guilherme",
+        "Lohan"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37296",
+      "documento": "https://docs.google.com/document/d/1nYOm5YElGvpjpwbKnbBeAdRvJSfr_7lfPikjDFObh4w/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        52
+      ]
+    },
+    {
+      "id": "S23-US344",
+      "codigo": "US344",
+      "titulo": "US344 - Gestão da Parametrização de Pesos",
+      "sprint": 23,
+      "menu": "Peso das Abrangências",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37281",
+      "documento": "https://docs.google.com/document/d/12XSONaAJkdkrMA_BskY2ag31iZvbLxcWVqEwtKZldCc/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        24
+      ]
+    },
+    {
+      "id": "S23-US345",
+      "codigo": "US345",
+      "titulo": "US345 - Cadastrar Parametrização de Pesos das Abrangências",
+      "sprint": 23,
+      "menu": "Peso das Abrangências",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37282",
+      "documento": "https://docs.google.com/document/d/1EvqLSE3xmdquGfUi7SXKtduoP-0LMv2-P-5SnNZT4bU/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        25
+      ]
+    },
+    {
+      "id": "S23-US346",
+      "codigo": "US346",
+      "titulo": "US346 - Versionar Parametrização de Pesos das Abrangências",
+      "sprint": 23,
+      "menu": "Peso das Abrangências",
+      "modulo": "Folha de Pagamento",
+      "squads": [
+        "2"
+      ],
+      "analistas": [
+        "Isabeli"
+      ],
+      "desenvolvedores": [
+        "Luciano"
+      ],
+      "qa": [],
+      "situacao": "Em andamento",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Em andamento",
+      "pontos": null,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37283",
+      "documento": "https://docs.google.com/document/d/16xDZVVlh20c2OTcpRaEJ-VFIL_X_JUjE56AOHY0f7iw/edit?tab=t.yn9sqe33pqra",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        26
+      ]
+    },
+    {
+      "id": "S23-US348",
+      "codigo": "US348",
+      "titulo": "US348 - Suspender Férias - Art. 17",
+      "sprint": 23,
+      "menu": "Direitos e Beneficios",
+      "modulo": "Gestão de Pessoas",
+      "squads": [
+        "4"
+      ],
+      "analistas": [
+        "Carlos"
+      ],
+      "desenvolvedores": [
+        "Andre Parada",
+        "Tiago"
+      ],
+      "qa": [],
+      "situacao": "Não iniciada",
+      "situacaoOriginal": null,
+      "andamentoOriginal": "Não iniciada",
+      "pontos": 8,
+      "dependencias": [],
+      "periodoOriginal": "16/11/2026 - 01/12/2026",
+      "redmine": "http://redmine/issues/37316",
+      "documento": "https://docs.google.com/document/d/1aFAkZsgOGLThiHi_yIxjCxEBPrVOQW1BiAaZ3jkLw6c/edit?tab=t.0",
+      "observacoes": null,
+      "ambiente": null,
+      "qaSituacao": null,
+      "homologacao": null,
+      "aba": "SPRINT 23 - ATUAL",
+      "linhas": [
+        42
+      ]
+    }
+  ],
+  "sprints": [
+    {
+      "numero": 18,
+      "inicio": "2026-07-17",
+      "fim": "2026-07-31",
+      "periodo": "17/07/2026 a 31/07/2026",
+      "aba": "SPRINT 18"
+    },
+    {
+      "numero": 19,
+      "inicio": "2026-09-02",
+      "fim": "2026-09-17",
+      "periodo": "02/09/2026 a 17/09/2026",
+      "aba": "SPRINT 19 - 0209 a 1709"
+    },
+    {
+      "numero": 20,
+      "inicio": "2026-09-21",
+      "fim": "2026-10-05",
+      "periodo": "21/09/2026 a 05/10/2026",
+      "aba": "SPRINT 20 - 2109 a 0510"
+    },
+    {
+      "numero": 21,
+      "inicio": "2026-10-07",
+      "fim": "2026-10-22",
+      "periodo": "07/10/2026 a 22/10/2026",
+      "aba": "SPRINT 21 - 0710 a 2210"
+    },
+    {
+      "numero": 22,
+      "inicio": "2026-10-26",
+      "fim": "2026-11-11",
+      "periodo": "26/10/2026 a 11/11/2026",
+      "aba": "SPRINT 22 - 2610 a 1111"
+    },
+    {
+      "numero": 23,
+      "inicio": "2026-11-16",
+      "fim": "2026-12-01",
+      "periodo": "16/11/2026 a 01/12/2026",
+      "aba": "SPRINT 23 - ATUAL"
+    }
+  ],
+  "avisos": [
+    {
+      "tipo": "exclusao",
+      "sprint": 21,
+      "linhas": [
+        42
+      ],
+      "mensagem": "US271 excluída dos indicadores: explicitamente marcada como removida do escopo na Sprint 21."
+    },
+    {
+      "tipo": "periodo",
+      "sprint": 21,
+      "linhas": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "mensagem": "Sprint 21: 15 registros possuem término inconsistente. O recorte usa o início 07/10/2026 e o término predominante 22/10/2026; os valores originais foram preservados."
+    }
+  ],
+  "historicosIgnorados": 103,
+  "removidas": 1
+}

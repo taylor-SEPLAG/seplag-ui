@@ -43,9 +43,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.8",
+    "chart.js": "^4.5.1",
+    "chartjs-plugin-zoom": "^2.2.0",
     "date-fns": "^4.1.0",
     "exceljs": "^3.4.0",
     "jspdf": "^4.2.1",
+    "jszip": "^3.10.1",
     "lucide-react": "^1.60.0",
     "uuid": "^13.0.0"
   },

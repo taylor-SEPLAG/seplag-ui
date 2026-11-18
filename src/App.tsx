@@ -11,7 +11,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import {
   FiArrowLeft,
   FiBarChart2,
@@ -502,6 +502,8 @@ const getCalendarWeeks = (date: Date): CalendarDay[][] => {
   );
 };
 
+const DashboardProjeto = lazy(() => import("./indicadores/DashboardProjeto"));
+
 function CalendarioPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -701,26 +703,26 @@ function CalendarioPage() {
       { start: 4, end: 4, track: 2, label: "REVIEW", type: "cyan" },
       { start: 5, end: 5, track: 2, label: "Entrega Sprint 21", type: "red" },
       { start: 5, end: 5, track: 3, label: "Refinamento Sprint 23", type: "rose" },
-      { start: 6, end: 6, track: 2, label: "Planning Sprint 23", type: "orange" },
-      { start: 6, end: 7, track: 3, label: "SPRINT DEV 23", type: "green" },
-      { start: 6, end: 7, track: 4, label: "SPRINT TESTE 22", type: "mint" },
     ],
     [
       { start: 1, end: 1, track: 1, label: "FERIADO", type: "holiday" },
       { start: 6, end: 6, track: 1, label: "FERIADO", type: "holiday" },
+      { start: 2, end: 2, track: 2, label: "Planning Sprint 23", type: "orange" },
+      { start: 2, end: 7, track: 3, label: "SPRINT DEV 23", type: "green" },
+      { start: 2, end: 7, track: 4, label: "SPRINT TESTE 22", type: "mint" },
+    ],
+    [
       { start: 1, end: 7, track: 3, label: "SPRINT DEV 23", type: "green" },
       { start: 1, end: 7, track: 4, label: "SPRINT TESTE 22", type: "mint" },
     ],
     [
-      { start: 1, end: 6, track: 3, label: "SPRINT DEV 23", type: "green" },
-      { start: 1, end: 6, track: 4, label: "SPRINT TESTE 22", type: "mint" },
-    ],
-    [
-      { start: 2, end: 2, track: 2, label: "Entrega Sprint 22", type: "red" },
-      { start: 2, end: 2, track: 3, label: "Refinamento Sprint 24", type: "rose" },
-      { start: 3, end: 3, track: 2, label: "Planning Sprint 24", type: "orange" },
-      { start: 3, end: 7, track: 3, label: "SPRINT DEV 24", type: "blue" },
-      { start: 3, end: 7, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
+      { start: 4, end: 4, track: 2, label: "Entrega Sprint 22", type: "red" },
+      { start: 4, end: 4, track: 5, label: "Refinamento Sprint 24", type: "rose" },
+      { start: 5, end: 5, track: 2, label: "Planning Sprint 24", type: "orange" },
+      { start: 5, end: 7, track: 3, label: "SPRINT DEV 24", type: "blue" },
+      { start: 5, end: 7, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
+      { start: 1, end: 3, track: 3, label: "SPRINT DEV 23", type: "green" },
+      { start: 1, end: 3, track: 4, label: "SPRINT TESTE 22", type: "mint" },
     ],
   ];
   const staticMonthData: Record<
@@ -736,20 +738,24 @@ function CalendarioPage() {
       weeks: getCalendarWeeks(new Date(2026, 11, 1)),
       events: [
         [
-          { start: 3, end: 3, track: 2, label: "Planning Sprint 24", type: "orange" },
-          { start: 3, end: 7, track: 3, label: "SPRINT DEV 24", type: "blue" },
-          { start: 3, end: 7, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
+          { start: 4, end: 4, track: 2, label: "Entrega Sprint 22", type: "red" },
+          { start: 4, end: 4, track: 5, label: "Refinamento Sprint 24", type: "rose" },
+          { start: 5, end: 5, track: 2, label: "Planning Sprint 24", type: "orange" },
+          { start: 5, end: 7, track: 3, label: "SPRINT DEV 24", type: "blue" },
+          { start: 5, end: 7, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
+          { start: 1, end: 3, track: 3, label: "SPRINT DEV 23", type: "green" },
+          { start: 1, end: 3, track: 4, label: "SPRINT TESTE 22", type: "mint" },
         ],
         [
           { start: 1, end: 7, track: 3, label: "SPRINT DEV 24", type: "blue" },
           { start: 1, end: 7, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
         ],
         [
-          { start: 1, end: 3, track: 3, label: "SPRINT DEV 24", type: "blue" },
-          { start: 1, end: 3, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
-          { start: 3, end: 3, track: 2, label: "REVIEW", type: "cyan" },
-          { start: 4, end: 4, track: 2, label: "Entrega Sprint 23", type: "red" },
-          { start: 4, end: 7, track: 3, label: "Entrega Final sprint 24", type: "red" },
+          { start: 1, end: 5, track: 3, label: "SPRINT DEV 24", type: "blue" },
+          { start: 1, end: 5, track: 4, label: "SPRINT TESTE 23", type: "lightBlue" },
+          { start: 5, end: 5, track: 2, label: "REVIEW", type: "cyan" },
+          { start: 6, end: 6, track: 2, label: "Entrega Sprint 23", type: "red" },
+          { start: 6, end: 7, track: 3, label: "Entrega Final sprint 24", type: "red" },
         ],
         [
           { start: 1, end: 5, track: 3, label: "Entrega Final sprint 24", type: "red" },
@@ -944,7 +950,8 @@ function CalendarioPage() {
     { title: "Sprint DEV 20", inicio:new Date(2026, 8, 21), fim:new Date(2026, 9, 5), period:"21 de setembro a 05 de outubro" },
     { title: "Sprint DEV 21", inicio:new Date(2026, 9, 7), fim:new Date(2026, 9, 22), period:"07 de outubro a 22 de outubro" },
     { title: "Sprint DEV 22", inicio:new Date(2026, 9, 26), fim:new Date(2026, 10, 10), period:"26 de outubro a 10 de novembro" },
-    { title: "Sprint DEV 23", inicio:new Date(2026, 10, 12), fim:new Date(2026, 10, 27), period:"12 de novembro a 27 de novembro" },
+    { title: "Sprint DEV 23", inicio:new Date(2026, 10, 16), fim:new Date(2026, 11, 1), period:"16 de novembro a 01 de dezembro" },
+    { title: "Sprint DEV 24", inicio:new Date(2026, 11, 3), fim:new Date(2026, 11, 17), period:"03 de dezembro a 17 de dezembro" },
   ];
   const dataAtual = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const sprintDevAtual = sprintsDev.find((sprint) => dataAtual >= sprint.inicio && dataAtual <= sprint.fim);
@@ -1086,11 +1093,26 @@ function CalendarioPage() {
       { title: "REVIEW", period: "10 de nov.", type: "cyan" },
       { title: "Entrega Sprint 21", period: "11 de nov.", type: "red" },
       { title: "Refinamento Sprint 23", period: "11 de nov.", type: "rose" },
-      { title: "Planning Sprint 23", period: "12 de nov.", type: "orange" },
-      { title: "SPRINT DEV 23", period: "12 de nov. - 27 de nov.", type: "green" },
-      { title: "SPRINT TESTE 22", period: "12 de nov. - 27 de nov.", type: "mint" },
-      { title: "Entrega Sprint 22", period: "30 de nov.", type: "red" },
-      { title: "Refinamento Sprint 24", period: "30 de nov.", type: "rose" },
+      { title: "Planning Sprint 23", period: "16 de nov.", type: "orange" },
+      { title: "SPRINT DEV 23", period: "16 de nov. - 01 de dez.", type: "green" },
+      { title: "SPRINT TESTE 22", period: "16 de nov. - 01 de dez.", type: "mint" },
+      { title: "Entrega Sprint 22", period: "02 de dez.", type: "red" },
+      { title: "Refinamento Sprint 24", period: "02 de dez.", type: "rose" },
+      { title: "Planning Sprint 24", period: "03 de dez.", type: "orange" },
+      { title: "SPRINT DEV 24", period: "03 de dez. - 17 de dez.", type: "blue" },
+      { title: "SPRINT TESTE 23", period: "03 de dez. - 17 de dez.", type: "lightBlue" },
+    ],
+    "2026-12": [
+      { title: "SPRINT DEV 23", period: "16 de nov. - 01 de dez.", type: "green" },
+      { title: "SPRINT TESTE 22", period: "16 de nov. - 01 de dez.", type: "mint" },
+      { title: "Entrega Sprint 22", period: "02 de dez.", type: "red" },
+      { title: "Refinamento Sprint 24", period: "02 de dez.", type: "rose" },
+      { title: "Planning Sprint 24", period: "03 de dez.", type: "orange" },
+      { title: "SPRINT DEV 24", period: "03 de dez. - 17 de dez.", type: "blue" },
+      { title: "SPRINT TESTE 23", period: "03 de dez. - 17 de dez.", type: "lightBlue" },
+      { title: "REVIEW", period: "17 de dez.", type: "cyan" },
+      { title: "Entrega Sprint 23", period: "18 de dez.", type: "red" },
+      { title: "Entrega Final sprint 24", period: "18 de dez. - 24 de dez.", type: "red" },
     ],
     "2026-06": [
       { title: "Sprint Dev - 16", period: "01 de jun. - 10 de jun.", type: "green" },
@@ -1276,6 +1298,19 @@ function CalendarioPage() {
                   >
                     <FiFileText aria-hidden="true" />
                     <span>Abertura de Redmine</span>
+                  </NavLink>
+                </nav>
+              ) : null}
+              {item.to === "/calendario/indicadores" ? (
+                <nav className="calendar-sidebar-submenu" aria-label="Indicadores">
+                  <NavLink
+                    to="/calendario/indicadores/projeto"
+                    className={({ isActive }) =>
+                      `calendar-sidebar-link${isActive ? " is-active" : ""}`
+                    }
+                  >
+                    <FiBarChart2 aria-hidden="true" />
+                    <span>Indicadores do Projeto SIGEP</span>
                   </NavLink>
                 </nav>
               ) : null}
@@ -1466,13 +1501,8 @@ function CalendarioPage() {
           </section>
         ) : null}
 
-        {location.pathname === "/calendario/indicadores" ? (
-          <section className="calendar-main-panel" aria-labelledby="calendar-indicadores-title">
-            <header className="calendar-panel-header">
-              <FiBarChart2 aria-hidden="true" />
-              <h1 id="calendar-indicadores-title">Indicadores</h1>
-            </header>
-          </section>
+        {location.pathname === "/calendario/indicadores" || location.pathname === "/calendario/indicadores/projeto" ? (
+          <Suspense fallback={<section className="calendar-main-panel" role="status"><header className="calendar-panel-header"><FiBarChart2 aria-hidden="true"/><h1>Carregando indicadores...</h1></header></section>}><DashboardProjeto /></Suspense>
         ) : null}
         {location.pathname === "/calendario/onboarding-dev" ? <OnboardingDev /> : null}
         {location.pathname === "/calendario/tutoriais" ? (

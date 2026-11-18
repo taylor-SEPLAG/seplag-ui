@@ -1,0 +1,196 @@
+import { describe, expect, it } from "vitest";
+import base from "./dados-iniciais.json";
+import type { DadosProjeto, HistoriaProjeto } from "./types";
+import {
+  agrupar,
+  calcularCapacity,
+  compararRecorteAnterior,
+  concluida,
+  filtrarHistorias,
+  filtrosIniciais,
+  gerarInsights,
+  primeirasAparicoes,
+  qaAprovada,
+  homologada,
+  resumir,
+  tendencia,
+  variacao,
+} from "./modelo";
+
+const dados = base as DadosProjeto,
+  primeiras = primeirasAparicoes(dados.historias);
+describe("base real das Sprints 18 a 23", () => {
+  it("reconcilia histórias distintas, presenças, pontos e reaparições com o arquivo", () => {
+    expect(resumir(dados.historias, primeiras)).toMatchObject({
+      distintas: 144,
+      registros: 181,
+      pontos: 1087,
+      reaparecidas: 37,
+      pontuadas: 149,
+      semPontos: 32,
+      concluidas: 99,
+      conhecidas: 143,
+      semDev: 11,
+      taxaConclusao: 68.75,
+    });
+    const sprints = dados.sprints.map((s) =>
+      resumir(
+        dados.historias.filter((h) => h.sprint === s.numero),
+        primeiras,
+      ),
+    );
+    expect(sprints.map((s) => s.registros)).toEqual([11, 22, 29, 34, 42, 43]);
+    expect(sprints.map((s) => s.pontos)).toEqual([74, 123, 202, 188, 189, 311]);
+    expect(sprints.map((s) => [s.novas, s.reaparecidas])).toEqual([
+      [11, 0],
+      [22, 0],
+      [18, 11],
+      [21, 13],
+      [42, 0],
+      [30, 13],
+    ]);
+    expect(sprints.at(-1)?.media).toBeCloseTo(8.4054, 4);
+    expect(sprints.map((s) => s.concluidas)).toEqual([11, 22, 29, 34, 28, 0]);
+    expect(sprints.map((s) => s.desenvolvedores)).toEqual([7, 7, 7, 7, 12, 11]);
+  });
+  it("preserva associações compartilhadas sem duplicar os totais globais", () => {
+    const grupos = agrupar(dados.historias, "analistas");
+    expect(
+      Object.fromEntries(grupos.map((g) => [g.nome, g.distintas])),
+    ).toEqual({
+      Taylor: 42,
+      Danielle: 23,
+      Carlos: 25,
+      Isabeli: 53,
+      Marcela: 1,
+    });
+    const compartilhada = dados.historias.find(
+      (h) => h.desenvolvedores.length > 1,
+    )!;
+    const participantes = agrupar([compartilhada], "desenvolvedores");
+    expect(participantes.length).toBe(compartilhada.desenvolvedores.length);
+    expect(participantes.every((g) => g.registros === 1)).toBe(true);
+    expect(resumir([compartilhada]).distintas).toBe(1);
+  });
+  it("trata conclusão pela última aparição e não infere QA de um nome atribuído", () => {
+    const sprint22 = dados.historias.filter((h) => h.sprint === 22);
+    expect(resumir(sprint22).concluidas).toBe(28);
+    expect(resumir(dados.historias).concluidas).toBe(99);
+    expect(
+      resumir(
+        dados.historias
+          .filter((h) => h.sprint === 18)
+          .map((h) => ({ ...h, situacao: "Não informado" })),
+      ).concluidas,
+    ).toBeNull();
+    expect(dados.historias.some((h) => h.qa.length > 0)).toBe(true);
+    expect(dados.historias.some(qaAprovada)).toBe(false);
+    expect(dados.historias.some(homologada)).toBe(false);
+    expect(dados.historias.filter(concluida).every((h) => h.sprint <= 22)).toBe(
+      true,
+    );
+  });
+  it("não confunde histórias removidas com observações de priorização", () => {
+    expect(dados.historias.some((h) => h.codigo === "US271")).toBe(false);
+    expect(dados.historias.some((h) => h.codigo === "US316")).toBe(true);
+    expect(dados.removidas).toBe(1);
+    expect(dados.avisos.find((a) => a.tipo === "periodo")?.linhas).toHaveLength(
+      15,
+    );
+    expect(dados.sprints.map((s) => s.numero)).toEqual([
+      18, 19, 20, 21, 22, 23,
+    ]);
+  });
+  it("combina filtros e compara apenas recortes anteriores presentes na fonte", () => {
+    const exemplo = dados.historias.find(
+      (h) => h.squads.length && h.desenvolvedores.length && h.analistas.length,
+    )!;
+    const filtros = {
+      ...filtrosIniciais(dados),
+      squad: exemplo.squads[0],
+      analista: exemplo.analistas[0],
+      desenvolvedor: exemplo.desenvolvedores[0],
+      modulo: exemplo.modulo!,
+      situacao: exemplo.situacao,
+    };
+    const filtradas = filtrarHistorias(dados, filtros);
+    expect(filtradas.length).toBeGreaterThan(0);
+    expect(
+      filtradas.every(
+        (h) =>
+          h.squads.includes(filtros.squad) &&
+          h.analistas.includes(filtros.analista) &&
+          h.desenvolvedores.includes(filtros.desenvolvedor) &&
+          h.modulo === filtros.modulo &&
+          h.situacao === filtros.situacao,
+      ),
+    ).toBe(true);
+    expect(compararRecorteAnterior(dados, filtrosIniciais(dados))).toBeNull();
+    expect(
+      compararRecorteAnterior(dados, {
+        ...filtrosIniciais(dados),
+        inicial: 23,
+        final: 23,
+      }),
+    ).toHaveLength(42);
+    expect(
+      compararRecorteAnterior(dados, {
+        ...filtrosIniciais(dados),
+        comparar: false,
+        inicial: 23,
+        final: 23,
+      }),
+    ).toBeNull();
+  });
+  it("mantém estimativas ausentes como desconhecidas e aceita zero explicitamente informado", () => {
+    const semPontos = { ...dados.historias[0], pontos: null };
+    expect(resumir([semPontos]).media).toBeNull();
+    expect(
+      resumir([{ ...semPontos, situacao: "Finalizada" }]).pontosConcluidos,
+    ).toBeNull();
+    expect(
+      resumir([
+        semPontos,
+        { ...semPontos, id: "zero", codigo: "US999", pontos: 0 },
+      ] as HistoriaProjeto[]).media,
+    ).toBe(0);
+    expect(variacao(10, 0)).toBeNull();
+    expect(tendencia([null, null])).toEqual([null, null]);
+  });
+  it("gera insights determinísticos com fundamento e sem inventar disponibilidade", () => {
+    const insights = gerarInsights(dados.historias, primeiras);
+    expect(insights).toEqual(gerarInsights(dados.historias, primeiras));
+    expect(insights.find((i) => i.id === "complexidade")?.valor).toContain(
+      "15,6%",
+    );
+    expect(insights.find((i) => i.id === "capacity")?.valor).toBe(
+      "Capacity real não informada",
+    );
+    expect(
+      insights.find((i) => i.id === "reaparecimento")?.historias,
+    ).toHaveLength(37);
+  });
+});
+it("calcula apenas uma simulação explícita de capacity, com dedicação e reservas", () => {
+  const entrada = {
+    pessoas: 2,
+    dias: 10,
+    jornada: 8,
+    dedicacao: 50,
+    suporte: 8,
+    afastamentos: 8,
+    outras: 4,
+  };
+  expect(calcularCapacity({ ...entrada, pessoas: null })).toBeNull();
+  expect(calcularCapacity({ ...entrada, dedicacao: 101 })).toBeNull();
+  expect(calcularCapacity(entrada)).toEqual({
+    bruta: 160,
+    alocada: 80,
+    indisponivel: 100,
+    liquida: 60,
+    fte: 1,
+    excesso: false,
+  });
+  expect(calcularCapacity({ ...entrada, suporte: 100 })?.excesso).toBe(true);
+  expect(calcularCapacity({ ...entrada, suporte: 100 })?.liquida).toBe(0);
+});
