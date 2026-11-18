@@ -65,6 +65,11 @@ import { VagasIndividualizadasContent as IndividualizadasTemporariosContent } fr
 import { VagasComissionadosContent } from "./controleVagasComissionados/VagasComissionadosContent";
 import { QuadroAutorizadoContent as QuadroComissionadosContent } from "./controleVagasComissionados/QuadroAutorizadoContent";
 import { VagasIndividualizadasContent as IndividualizadasComissionadosContent } from "./controleVagasComissionados/VagasIndividualizadasContent";
+import { VagasComissionadosContent as BacklogVagasComissionadosContent } from "./controleVagasComissionadosBacklog/VagasComissionadosContent";
+import { QuadroAutorizadoContent as BacklogQuadroComissionadosContent } from "./controleVagasComissionadosBacklog/QuadroAutorizadoContent";
+import { VagasIndividualizadasContent as BacklogIndividualizadasComissionadosContent } from "./controleVagasComissionadosBacklog/VagasIndividualizadasContent";
+import { BreadcrumbVagas as BreadcrumbVagasComissionadosBacklog } from "./controleVagasComissionadosBacklog/BreadcrumbVagas";
+import { LimitesDgaContent as BacklogLimitesDgaContent } from "./controleVagasComissionadosBacklog/LimitesDgaContent";
 import { VagasResidentesContent } from "./controleVagasResidentes/VagasResidentesContent";
 import { QuadroAutorizadoContent as QuadroResidentesContent } from "./controleVagasResidentes/QuadroAutorizadoContent";
 import { VagasIndividualizadasContent as IndividualizadasResidentesContent } from "./controleVagasResidentes/VagasIndividualizadasContent";
@@ -688,6 +693,18 @@ export const menuGestaoPessoas: IMenuSeplag[] = [
           { label: "Quadro Autorizado", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/controle-vagas-2.0/quadro-autorizado`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Distribuição", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/controle-vagas-2.0/distribuicao`, visibleOnMenu: true, visibleOnRouter: true },
           { label: "Vagas Individualizadas", icon: "pi pi-circle-on", to: `${BACKLOG_BASE_PATH}/controle-vagas-2.0/vagas`, visibleOnMenu: true, visibleOnRouter: true },
+        ],
+      },
+      {
+        label: "Vagas Comissionados — backup",
+        icon: "pi pi-box",
+        to: "/prototipos/sigep/backlog/vagas-comissionados",
+        visibleOnMenu: true,
+        visibleOnRouter: true,
+        items: [
+          { label: "Quadro Autorizado", icon: "pi pi-circle-on", to: "/prototipos/sigep/backlog/vagas-comissionados/quadro-autorizado", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Vagas Individualizadas", icon: "pi pi-circle-on", to: "/prototipos/sigep/backlog/vagas-comissionados/vagas", visibleOnMenu: true, visibleOnRouter: true },
+          { label: "Limites de DGA", icon: "pi pi-circle-on", to: "/prototipos/sigep/backlog/vagas-comissionados/limites-dga", visibleOnMenu: true, visibleOnRouter: true },
         ],
       },
       {
@@ -8626,6 +8643,22 @@ export function PrototiposVagasComissionadosQuadroPage() {
 export function PrototiposVagasComissionadosIndividualizadasPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
       <BreadcrumbVagasComissionados /><IndividualizadasComissionadosContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogVagasComissionadosPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasComissionadosBacklog /><BacklogVagasComissionadosContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogVagasComissionadosQuadroPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasComissionadosBacklog /><BacklogQuadroComissionadosContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogVagasComissionadosIndividualizadasPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasComissionadosBacklog /><BacklogIndividualizadasComissionadosContent /></PrototypeSystemPage>;
+}
+export function PrototiposBacklogLimitesDgaPage() {
+  return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>
+      <BreadcrumbVagasComissionadosBacklog /><BacklogLimitesDgaContent /></PrototypeSystemPage>;
 }
 export function PrototiposVagasResidentesPage() {
   return <PrototypeSystemPage nomeSistema="SIGEP" ambienteSistema="Protótipo" menuItems={menuGestaoPessoas}>

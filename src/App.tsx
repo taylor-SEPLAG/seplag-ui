@@ -68,6 +68,10 @@ import {
   PrototiposVagasComissionadosPage,
   PrototiposVagasComissionadosQuadroPage,
   PrototiposVagasComissionadosIndividualizadasPage,
+  PrototiposBacklogVagasComissionadosPage,
+  PrototiposBacklogVagasComissionadosQuadroPage,
+  PrototiposBacklogVagasComissionadosIndividualizadasPage,
+  PrototiposBacklogLimitesDgaPage,
   PrototiposVagasResidentesPage,
   PrototiposVagasResidentesQuadroPage,
   PrototiposVagasResidentesIndividualizadasPage,
@@ -226,6 +230,8 @@ import { FeriasEditarRecessoPage } from "./prototipos/ferias/FeriasEditarRecesso
 import { PrototiposOrganogramaCanvasPage } from "./prototipos/estruturaOrganizacional/OrganogramaCanvasPage";
 import { PrototiposLimitesDgaPage } from "./prototipos/estruturaOrganizacional/LimitesDgaPage";
 import { PrototiposNovoLimiteDgaPage } from "./prototipos/controleVagasComissionados/NovoLimiteDgaPage";
+import { PrototiposNovaVigenciaLimiteDgaPage } from "./prototipos/controleVagasComissionados/NovaVigenciaLimiteDgaPage";
+import { PrototiposNovoLimiteDgaPage as PrototiposBacklogNovoLimiteDgaPage } from "./prototipos/controleVagasComissionadosBacklog/NovoLimiteDgaPage";
 import { PrototiposUnidadesPage } from "./prototipos/estruturaOrganizacional/UnidadesPage";
 import { PrototiposTipoUnidadeCadastroPage, PrototiposTiposUnidadesPage } from "./prototipos/estruturaOrganizacional/TiposUnidadesPage";
 import {
@@ -1718,6 +1724,16 @@ function App() {
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/organograma-canvas" element={<PrototiposOrganogramaCanvasPage />} />
       <Route path="/prototipos/sigep/controle-vagas/comissionados/limites-dga" element={<PrototiposLimitesDgaPage />} />
       <Route path="/prototipos/sigep/controle-vagas/comissionados/limites-dga/novo" element={<PrototiposNovoLimiteDgaPage />} />
+      <Route path="/prototipos/sigep/controle-vagas/comissionados/limites-dga/:id/nova-vigencia" element={<PrototiposNovaVigenciaLimiteDgaPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas-comissionados" element={<PrototiposBacklogVagasComissionadosPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas-comissionados/vagas" element={<PrototiposBacklogVagasComissionadosIndividualizadasPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas-comissionados/quadro-autorizado" element={<PrototiposBacklogVagasComissionadosQuadroPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas-comissionados/quadro-autorizado/novo" element={<PrototiposBacklogVagasComissionadosQuadroPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas-comissionados/quadro-autorizado/:id" element={<PrototiposBacklogVagasComissionadosQuadroPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas-comissionados/quadro-autorizado/:id/editar" element={<PrototiposBacklogVagasComissionadosQuadroPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas-comissionados/quadro-autorizado/:id/nova-versao" element={<PrototiposBacklogVagasComissionadosQuadroPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas-comissionados/limites-dga" element={<PrototiposBacklogLimitesDgaPage />} />
+      <Route path="/prototipos/sigep/backlog/vagas-comissionados/limites-dga/novo" element={<PrototiposBacklogNovoLimiteDgaPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades" element={<PrototiposTiposUnidadesPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/tipos-unidades/cadastrar" element={<PrototiposTipoUnidadeCadastroPage />} />
       <Route path="/prototipos/sigep/gestao/cadastro/estrutura-organizacional/unidades" element={<PrototiposUnidadesPage />} />

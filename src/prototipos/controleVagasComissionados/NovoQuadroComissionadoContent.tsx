@@ -12,6 +12,7 @@ import { MensagemSeplag } from "../../componentes/Mensagem";
 import { ModalSeplag } from "../../componentes/Modal";
 import { DateFieldSeplag, DropdownFieldSeplag, TextFieldSeplag } from "../../componentes/Fields";
 import { BaseLegalVinculada } from "./BaseLegalVinculada";
+import { EstruturaDotacoesComissionadas } from "./EstruturaDotacoesComissionadas";
 import { listarCargosControleVagasComissionadas } from "./cargosComissionadosStore";
 import { listarPerfisDgaControleVagasComissionadas } from "./perfisDgaStore";
 import { criarSnapshotLimiteDga, obterVigenciaLimiteDga } from "../estruturaOrganizacional/limitesDgaStore";
@@ -121,12 +122,14 @@ export function NovoQuadroComissionadoContent() {
   const dataVigenciaFutura = Boolean(dataVigencia && dataVigencia > dataAtual);
   const [documentosLegaisIds, setDocumentosLegaisIds] = useState<string[]>(() => rascunhoInicial?.documentosLegaisIds ?? []);
   const [niveis, setNiveis] = useState<Nivel[]>(() => normalizarNiveis(rascunhoInicial?.niveis));
+  const [estruturaOrganizacionalVersaoId, setEstruturaOrganizacionalVersaoId] = useState(() => rascunhoInicial?.estruturaOrganizacionalVersaoId ?? "");
   const [motivoVersionamento, setMotivoVersionamento] = useState(() => rascunhoInicial?.motivoVersionamento ?? "");
   const [simbolosAbertos, setSimbolosAbertos] = useState<string[]>([]);
   const [importadorAberto, setImportadorAberto] = useState(false);
   const [quadroOrigemId, setQuadroOrigemId] = useState("");
   const emVersionamento = Boolean(rascunhoInicial?.versao && rascunhoInicial.versao > 1);
   const [salvo, setSalvo] = useState(false);
+  const [erroSalvar, setErroSalvar] = useState("");
   const reducoesComOcupacao = emVersionamento ? listarReducoesComOcupacao(niveis) : [];
   const reducoesPendentes = reducoesComOcupacao.filter((reducao) => !reducao.extincaoProgressiva);
   const dotacoesOriginais = useMemo(() => indexarDotacoes(normalizarNiveis(rascunhoInicial?.niveis)), [rascunhoInicial]);
@@ -167,13 +170,14 @@ export function NovoQuadroComissionadoContent() {
 
   const salvarQuadro = () => {
     if (dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length || !vigenciaLimiteDga || excessosDga.length) return;
-    salvarRascunhoQuadroComissionado({
+    const resultado = salvarRascunhoQuadroComissionado({
       id: idQuadro,
       nome,
       orgao,
       dataVigencia,
       documentosLegaisIds,
       niveis: structuredClone(niveis) as NivelComissionadoSalvo[],
+      estruturaOrganizacionalVersaoId: estruturaOrganizacionalVersaoId || undefined,
       quadroBaseId: rascunhoInicial?.quadroBaseId ?? idQuadro,
       versao: rascunhoInicial?.versao ?? 1,
       versaoAnteriorId: rascunhoInicial?.versaoAnteriorId,
@@ -181,6 +185,11 @@ export function NovoQuadroComissionadoContent() {
       limiteDgaSnapshot: criarSnapshotLimiteDga(vigenciaLimiteDga),
       salvoEm: new Date().toISOString(),
     });
+    if ("erro" in resultado) {
+      setErroSalvar(resultado.erro);
+      return;
+    }
+    setErroSalvar("");
     setSalvo(true);
   };
   return <div className="prototype-quadro-page novo-quadro-comissionado">
@@ -189,6 +198,7 @@ export function NovoQuadroComissionadoContent() {
     </header>
 
     <MensagemSeplag visible={salvo} severity="success" message="Estrutura do quadro salva para o órgão selecionado." />
+    <MensagemSeplag visible={Boolean(erroSalvar)} severity="error" message={erroSalvar} />
 
     {emVersionamento && reducoesComOcupacao.length > 0 && <section className={`nqc-reducoes-pendencias ${reducoesPendentes.length ? "is-blocking" : "is-progressive"}`}>
       <i className={reducoesPendentes.length ? "pi pi-exclamation-triangle" : "pi pi-info-circle"} />
@@ -216,6 +226,7 @@ export function NovoQuadroComissionadoContent() {
         <TextFieldSeplag name="nome" control={vigenciaControl} label="Nome do quadro" required cols="12" placeholder="Ex.: Estrutura organizacional da SESP" getFormErrorMessage={() => null} />
         <DropdownFieldSeplag name="orgao" control={vigenciaControl} label="Órgão" required cols="12" options={opcoesOrgao} optionLabel="label" optionValue="value" optionDisabled="indisponivel" onChange={(orgaoSelecionado) => { if (orgaoSelecionado && quadroExistenteDoOrgao(String(orgaoSelecionado))) setValorVigencia("orgao", "", { shouldDirty: true, shouldValidate: true }); }} itemTemplate={(option) => option.indisponivel ? <span className="nqc-orgao-com-quadro" aria-label={option.motivoIndisponibilidade}><span>{option.label}</span><small>{option.quadroCodigo}</small></span> : <span>{option.label}</span>} panelClassName="nqc-orgao-dropdown-panel" placeholder="Selecione" getFormErrorMessage={() => null} />
       </div>
+      {!emVersionamento && <small className="nqc-orgao-unico-hint"><i className="pi pi-info-circle" /> Cada órgão possui um único quadro. Para alterar um quadro existente, use a ação <strong>Nova versão</strong> na listagem.</small>}
     </section>
 
     
@@ -229,9 +240,8 @@ export function NovoQuadroComissionadoContent() {
     </section>
 
     <section className="nqc-card nqc-estrutura">
-      <header><i className="pi pi-sitemap" /><div><h2>Estrutura organizacional</h2><p>Adicione os níveis da estrutura. Em cada nível, registre itens, subitens e suas dotações autorizadas.</p></div><div className="nqc-estrutura-acoes"><BotaoVoltarSeplag label="Importar estrutura" icon="pi pi-download" onClick={() => setImportadorAberto(true)} /><BotaoAdicionarSeplag label="Adicionar nível" onClick={() => setNiveis((atual) => [...atual, novoNivel()])} /></div></header>
-      {!niveis.length && <div className="nqc-empty"><i className="pi pi-sitemap" /><strong>Nenhum nível cadastrado</strong><span>Comece por um nível, como “Direção Superior” ou “Administração Sistêmica”.</span></div>}
-      <div className="nqc-niveis">{niveis.map((nivel, indice) => <NivelEditor key={nivel.id} nivel={nivel} indice={indice} onChange={(atualizar) => atualizarNivel(nivel.id, atualizar)} onRemove={() => setNiveis((atual) => atual.filter((item) => item.id !== nivel.id))} simbologias={simbologias} emVersionamento={emVersionamento} dotacoesOriginais={dotacoesOriginais} limitesPorSimbologia={limitePorSimbologia} resumoPorSimbologia={resumoSimbologias} />)}</div>
+      <header><i className="pi pi-sitemap" /><div><h2>Estrutura e dotações</h2><p>A estrutura organizacional é a fonte das unidades. Distribua cargos comissionados e funções de confiança em cada unidade.</p></div></header>
+      <EstruturaDotacoesComissionadas orgao={orgao} dataVigencia={dataVigencia} niveis={niveis as NivelComissionadoSalvo[]} onChange={(proximosNiveis) => setNiveis(normalizarNiveis(proximosNiveis))} versaoId={estruturaOrganizacionalVersaoId} onVersaoChange={setEstruturaOrganizacionalVersaoId} />
     </section>
 
     <section className="nqc-card nqc-resumo">
@@ -260,7 +270,7 @@ export function NovoQuadroComissionadoContent() {
       </div>
     </ModalSeplag>
 
-    <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow"><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !niveis.length || dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length > 0 || !vigenciaLimiteDga || excessosDga.length > 0 || (emVersionamento && !motivoVersionamento.trim())} onClick={salvarQuadro} /></div></footer>
+    <footer className="prototype-quadro-form-actions prototype-quadro-form-actions--flow"><div className="nqc-footer-actions"><BotaoVoltarSeplag label="Cancelar" onClick={() => navigate(-1)} /><BotaoSalvarSeplag label="Salvar quadro" disabled={!nome.trim() || !orgao || !dataVigencia || !documentosLegaisIds.length || !estruturaOrganizacionalVersaoId || !total || dataVigenciaFutura || orgaoSelecionadoJaPossuiQuadro || reducoesPendentes.length > 0 || !vigenciaLimiteDga || excessosDga.length > 0 || (emVersionamento && !motivoVersionamento.trim())} onClick={salvarQuadro} /></div></footer>
     </div>
   </div>;
 }

@@ -10,6 +10,7 @@
 .novo-limite-dga-row>[class*="col-"]{align-self:stretch!important;display:flex!important;align-items:center!important}.novo-limite-dga-row .content-rotulo{display:flex!important;align-items:center!important;width:100%;height:100%}.novo-limite-dga-row .content-rotulo .element{width:100%}
 .novo-limite-dga-row{min-height:3.75rem}.novo-limite-dga-row .p-inputnumber,.novo-limite-dga-row .p-inputnumber-input{height:2.5rem!important}.novo-limite-dga-row .p-inputnumber-input{box-sizing:border-box}
 .novo-limite-dga-fields .p-calendar,.novo-limite-dga-fields .p-calendar .p-inputtext,.novo-limite-dga-fields .p-calendar .p-datepicker-trigger{height:2.5rem!important}.novo-limite-dga-fields .p-calendar .p-inputtext{box-sizing:border-box}
+.novo-limite-dga-erro{margin:.75rem 0 0;color:#b42318;font-size:.82rem;font-weight:700}
 
 /* Modal de vigência: conteúdo ocupa a largura útil e somente a tabela rola. */
 .limites-dga-modal.col-12 { width: 100%; min-width: 0; }
