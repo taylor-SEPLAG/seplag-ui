@@ -31,6 +31,8 @@ export interface QuadroComissionadoSalvo {
   situacao?: "Ativo" | "Extinto" | "Encerrado";
   documentosLegaisIds: string[];
   niveis: NivelComissionadoSalvo[];
+  /** Versão publicada do organograma utilizada para distribuir as dotações. */
+  estruturaOrganizacionalVersaoId?: string;
   salvoEm: string;
   quadroBaseId?: string;
   versao?: number;
@@ -2191,6 +2193,13 @@ export function lerRascunhoQuadroComissionado(): QuadroComissionadoSalvo | null 
 export function salvarRascunhoQuadroComissionado(quadro: QuadroComissionadoSalvo) {
   const quadros = listarQuadrosComissionados();
   const quadroBaseId = quadro.quadroBaseId ?? quadro.id;
+  // Cada órgão possui uma única série de quadro. Alterações posteriores devem
+  // sempre ser registradas como uma nova versão da mesma série, nunca como um
+  // segundo quadro para o órgão.
+  const quadroDoMesmoOrgao = quadros.find((item) => item.orgao.trim().toLocaleLowerCase("pt-BR") === quadro.orgao.trim().toLocaleLowerCase("pt-BR"));
+  if (quadroDoMesmoOrgao && (quadroDoMesmoOrgao.quadroBaseId ?? quadroDoMesmoOrgao.id) !== quadroBaseId) {
+    return { erro: `Já existe o quadro ${quadroDoMesmoOrgao.codigo ?? "cadastrado"} para o órgão ${quadro.orgao}. Crie uma nova versão desse quadro para registrar alterações.` };
+  }
   const codigoDaSerie = quadros.find((item) => (item.quadroBaseId ?? item.id) === quadroBaseId)?.codigo;
   const quadroConfirmado = {
     ...quadro,
@@ -2207,7 +2216,7 @@ export function salvarRascunhoQuadroComissionado(quadro: QuadroComissionadoSalvo
   const persistido = persistidos.find((item) => item.id === quadroConfirmado.id)!;
   window.localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(persistido));
   window.localStorage.setItem(CHAVE_CADASTROS, JSON.stringify(persistidos));
-  return persistido;
+  return { quadro: persistido };
 }
 export function prepararNovoQuadroComissionado() {
   window.localStorage.removeItem(CHAVE_RASCUNHO);
