@@ -101,7 +101,7 @@ it("abre na Visão Geral, mostra os dados reais e permite navegar pelas abas com
 it("prioriza a nova base fornecida sobre a planilha anterior salva no navegador", async () => {
   const antiga = {
     ...base,
-    arquivo: "PROJETO SIGEP - CONTROLE US (3).xlsx",
+    arquivo: "PROJETO SIGEP - CONTROLE US (5).xlsx",
     importadoEm: new Date(Date.parse(base.importadoEm) - 60000).toISOString(),
     historias: base.historias.slice(0, 1),
   };
@@ -111,7 +111,7 @@ it("prioriza a nova base fornecida sobre a planilha anterior salva no navegador"
     expect(card("Histórias concluídas").textContent).toContain("99"),
   );
   expect(card("Histórias distintas").textContent).toContain("144");
-  expect(screen.getByText("PROJETO SIGEP - CONTROLE US (5).xlsx")).toBeTruthy();
+  expect(screen.getByText("PROJETO SIGEP - CONTROLE US (6).xlsx")).toBeTruthy();
 });
 it("preserva uma importação manual mais recente do que a base fornecida", async () => {
   const nova = {
