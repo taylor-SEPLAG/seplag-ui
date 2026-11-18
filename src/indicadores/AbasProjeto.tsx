@@ -116,7 +116,7 @@ function GraficoVolume({
     <GraficoProjeto
       id={id}
       titulo="Histórias registradas por sprint"
-      descricao="Primeira aparição e reaparições no recorte. Clique nas barras para consultar a origem."
+      descricao="Histórias novas e remanescentes no período, considerando o histórico da base. Clique nas barras para consultar a origem."
       periodo={ctx.periodo}
       labels={idsSprint(ctx)}
       empilhado
@@ -141,7 +141,7 @@ function GraficoVolume({
           ctx.sprints[i].historias.filter(
             (h) => reapareceu(h, ctx.primeiras) === Boolean(serie),
           ),
-          "A primeira aparição é definida no intervalo de sprints selecionado, antes dos filtros por pessoa ou módulo.",
+          "A primeira aparição considera todo o histórico da base. Histórias de sprints anteriores continuam remanescentes ao filtrar uma única sprint.",
         )
       }
     />
@@ -232,12 +232,12 @@ function VisaoGeral({ ctx }: { ctx: ContextoProjeto }) {
     },
     {
       titulo: "Desenvolvedores disponíveis",
-      valor: null,
-      anterior: null,
+      valor: r.desenvolvedores,
+      anterior: a?.desenvolvedores,
       icone: <FiUsers />,
-      nota: `${r.desenvolvedores} nomes associados às histórias`,
+      nota: "Nomes distintos atribuídos às histórias",
       ajuda:
-        "A planilha registra atribuições, mas não comprova alocação, dedicação ou disponibilidade efetiva. Nomes na coluna Dev não representam headcount confirmado.",
+        "Nomes distintos na coluna Dev das histórias filtradas. Um nome conta uma vez por sprint e uma vez no total do período, mesmo quando aparece em várias US.",
       historias: ctx.historias.filter((h) => h.desenvolvedores.length),
     },
     {
@@ -247,7 +247,7 @@ function VisaoGeral({ ctx }: { ctx: ContextoProjeto }) {
       icone: <FiRepeat />,
       nota: "Registros já presentes em outra sprint",
       ajuda:
-        "Registros de uma US que já apareceu em sprint anterior dentro do intervalo selecionado. Reaparição não significa automaticamente atraso ou retrabalho.",
+        "Registros de uma US que já apareceu em sprint anterior no histórico da base, mesmo fora do intervalo selecionado. Reaparição não significa automaticamente atraso ou retrabalho.",
       historias: ctx.historias.filter((h) => reapareceu(h, ctx.primeiras)),
     },
     {
@@ -397,6 +397,7 @@ function EvolucaoSprints({ ctx }: { ctx: ContextoProjeto }) {
             <tr>
               <th>Sprint</th>
               <th>Registros</th>
+              <th>Desenvolvedores disponíveis</th>
               <th>Variação do escopo</th>
               <th>Pontos</th>
               <th>Pontuadas / sem estimativa</th>
@@ -418,6 +419,7 @@ function EvolucaoSprints({ ctx }: { ctx: ContextoProjeto }) {
                   </button>
                 </td>
                 <td>{s.resumo.registros}</td>
+                <td>{s.resumo.desenvolvedores}</td>
                 <td>
                   {i
                     ? percentual(
@@ -611,22 +613,17 @@ function CapacityEquipe({ ctx }: { ctx: ContextoProjeto }) {
       <div className="ind-charts-grid">
         <GraficoProjeto
           id="equipe-evolucao"
-          titulo="Profissionais associados às histórias"
+          titulo="Desenvolvedores disponíveis por sprint"
           periodo={ctx.periodo}
-          descricao={`Nomes na coluna Dev; disponibilidade efetiva e FTE histórico não informados. ${ctx.resumo.semDev} registros do recorte sem desenvolvedor informado.`}
+          descricao={`Nomes distintos atribuídos às histórias, contados uma vez por sprint. ${ctx.resumo.semDev} registros do recorte sem desenvolvedor informado.`}
           labels={idsSprint(ctx)}
           tipo="line"
           selecionado={foco(ctx)}
           series={[
             {
-              nome: "Desenvolvedores identificados",
+              nome: "Desenvolvedores disponíveis",
               cor: CORES[0],
               valores: ctx.sprints.map((s) => s.resumo.desenvolvedores),
-            },
-            {
-              nome: "Disponíveis (não informado)",
-              cor: CORES[1],
-              valores: ctx.sprints.map(() => null),
             },
             {
               nome: "FTE (não informado)",
@@ -634,7 +631,18 @@ function CapacityEquipe({ ctx }: { ctx: ContextoProjeto }) {
               valores: ctx.sprints.map(() => null),
             },
           ]}
-          onSelecionar={(i) => abrirSprint(ctx, i, "Atribuições identificadas")}
+          onSelecionar={(i) => {
+            const sprint = ctx.sprints[i];
+            ctx.destacar(sprint.numero);
+            ctx.abrir({
+              titulo: `Desenvolvedores disponíveis — Sprint ${sprint.numero}`,
+              valor: `${sprint.resumo.desenvolvedores} desenvolvedores`,
+              formula: `Nomes distintos atribuídos às histórias desta sprint: ${nomesUnicos(sprint.historias.flatMap((h) => h.desenvolvedores)).join(", ") || "nenhum nome informado"}.`,
+              historias: sprint.historias.filter(
+                (h) => h.desenvolvedores.length,
+              ),
+            });
+          }}
         />
         <article className="ind-panel">
           <h3>Composição das atribuições</h3>
@@ -694,7 +702,7 @@ function CapacityEquipe({ ctx }: { ctx: ContextoProjeto }) {
         <div>
           <span>Carga planejada / FTE disponível</span>
           <strong>Não informado</strong>
-          <small>Disponibilidade efetiva não consta na fonte.</small>
+          <small>Dedicação e jornada não informadas.</small>
         </div>
       </div>
       <SimuladorCapacity ctx={ctx} />
@@ -702,8 +710,8 @@ function CapacityEquipe({ ctx }: { ctx: ContextoProjeto }) {
         <div>
           <h2>Demanda e capacidade</h2>
           <p>
-            Unidades em painéis separados. A disponibilidade efetiva continua
-            não informada.
+            Desenvolvedores contados pelas atribuições. Esforço em pontos e
+            capacidade em horas são apresentados separadamente.
           </p>
         </div>
       </div>
@@ -1444,20 +1452,24 @@ function SquadsModulos({ ctx }: { ctx: ContextoProjeto }) {
               nome: opcoes[metrica],
               cor: CORES[0],
               valores: grupos.map((g) =>
-                metrica === "disponiveis" ||
-                (metrica === "pontos" && !g.pontuadas)
-                  ? null
-                  : g[metrica],
+                metrica === "disponiveis"
+                  ? g.desenvolvedores
+                  : metrica === "pontos" && !g.pontuadas
+                    ? null
+                    : g[metrica],
               ),
             },
           ]}
           onSelecionar={(i) =>
             ctx.abrir({
               titulo: `Squad ${grupos[i].nome}`,
-              valor: `${grupos[i].distintas} histórias distintas`,
+              valor:
+                metrica === "disponiveis"
+                  ? `${grupos[i].desenvolvedores} desenvolvedores disponíveis`
+                  : `${grupos[i].distintas} histórias distintas`,
               formula:
                 metrica === "disponiveis"
-                  ? "Disponibilidade efetiva não consta na fonte. A associação de desenvolvedores não é headcount disponível."
+                  ? "Quantidade de nomes distintos atribuídos às histórias da squad no período selecionado."
                   : "Agrupamento pela coluna Squad da linha de origem, sem inferir composição histórica a partir de texto livre.",
               historias: grupos[i].historias,
             })

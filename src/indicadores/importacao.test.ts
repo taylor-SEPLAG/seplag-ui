@@ -110,6 +110,32 @@ it("usa o início da sprint e o término predominante, preservando o ano origina
   expect(dados.historias[0].pontos).toBeNull();
   expect(dados.avisos.find((a) => a.tipo === "periodo")?.linhas).toEqual([3]);
 });
+it("mantém as férias apenas na Sprint 23 ao reimportar a planilha", async () => {
+  const livro = new ExcelJS.Workbook();
+  livro.addWorksheet("SPRINT 22").addRows([
+    ["US", "SPRINT", "Complexidade"],
+    ["US302 - Gestão de Férias", "23/10/2026 - 11/11/2026", 8],
+  ]);
+  livro.addWorksheet("SPRINT 23").addRows([
+    ["US", "SPRINT", "Complexidade"],
+    ["US302 - Gestão de Férias", "16/11/2026 - 01/12/2026", 8],
+    ["US400 - Outra história", "16/11/2026 - 01/12/2026", 5],
+  ]);
+  const dados = await importarPlanilha(
+    await livro.xlsx.writeBuffer(),
+    "reimportada.xlsx",
+  );
+  expect(dados.historias.map((h) => [h.codigo, h.sprint])).toEqual([
+    ["US302", 23],
+    ["US400", 23],
+  ]);
+  expect(dados.replanejadas).toHaveLength(1);
+  expect(dados.replanejadas![0]).toMatchObject({
+    historia: { codigo: "US302", sprint: 22, pontos: 8, linhas: [2] },
+    sprintDestino: 23,
+  });
+  expect(dados.removidas).toBe(0);
+});
 it("rejeita fontes sem as abas do recorte e não executa conteúdo de células", async () => {
   const livro = new ExcelJS.Workbook();
   livro.addWorksheet("BACKLOG").addRows([

@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import base from "./dados-iniciais.json";
 import { textoExecutivo } from "./exportacoes";
-import { filtrosIniciais } from "./modelo";
+import { filtrarHistorias, filtrosIniciais } from "./modelo";
 import type { DadosProjeto } from "./types";
 
 it("preserva a primeira aparição no recorte mesmo quando o filtro de pessoa oculta a associação anterior", () => {
@@ -44,4 +44,44 @@ it("não transforma a ausência de estimativa em zero nos relatórios e preserva
   expect(
     textoExecutivo(dados, [{ ...historia, pontos: 0 }], filtros),
   ).toContain("Pontos estimados: 0");
+});
+it("preserva as remanescentes da Sprint 22 no relatório filtrado apenas pela Sprint 23", () => {
+  const dados = base as DadosProjeto;
+  const filtros = { ...filtrosIniciais(dados), inicial: 23, final: 23 };
+  expect(
+    textoExecutivo(dados, filtrarHistorias(dados, filtros), filtros),
+  ).toContain("4 reaparições");
+  const danielle = { ...filtros, analista: "Danielle" };
+  expect(
+    textoExecutivo(dados, filtrarHistorias(dados, danielle), danielle),
+  ).toContain("3 reaparições");
+});
+it("informa a equipe por sprint e deduplica os desenvolvedores no total do período", () => {
+  const dados = base as DadosProjeto;
+  const filtros = filtrosIniciais(dados);
+  const texto = textoExecutivo(dados, dados.historias, filtros);
+  expect(texto).toContain(
+    "Desenvolvedores disponíveis no período: 12 nomes distintos",
+  );
+  for (const [sprint, quantidade] of [
+    [18, 7],
+    [19, 7],
+    [20, 7],
+    [21, 7],
+    [22, 12],
+    [23, 11],
+  ]) {
+    expect(texto).toContain(
+      `Sprint ${sprint}: ${quantidade} desenvolvedores disponíveis.`,
+    );
+  }
+  const sprint22 = { ...filtros, inicial: 22, final: 22 };
+  const filtrado = textoExecutivo(
+    dados,
+    filtrarHistorias(dados, sprint22),
+    sprint22,
+  );
+  expect(filtrado).toContain("Sprint 22: 12 desenvolvedores disponíveis.");
+  expect(filtrado).not.toContain("Sprint 23: 11 desenvolvedores disponíveis.");
+  expect(filtrado).not.toContain("headcount disponível");
 });

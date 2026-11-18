@@ -1,4 +1,5 @@
 import { nomesUnicos, normalizar } from "./modelo.ts";
+import { ajustarEscopoProjeto } from "./ajustesEscopo.ts";
 import type { DadosProjeto, HistoriaProjeto, SprintProjeto } from "./types";
 
 export function textoCelula(valor: unknown): string {
@@ -319,5 +320,5 @@ export async function importarPlanilha(
       tipo: "estrutura",
       mensagem: `Abas/períodos não disponíveis: ${faltantes.map((n) => `Sprint ${n}`).join(", ")}. Nenhum valor foi presumido para essas sprints.`,
     });
-  return dados;
+  return ajustarEscopoProjeto(dados);
 }

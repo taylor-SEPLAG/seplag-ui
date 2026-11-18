@@ -289,7 +289,7 @@ export function gerarInsights(
       id: "reaparecimento",
       titulo: "Histórias em mais de uma sprint",
       valor: `${numero(geral.reaparecidas)} reaparições`,
-      explicacao: `Na Sprint ${ultima}, ${atual.reaparecidas} de ${atual.registros} registros (${percentual(atual.registros ? (atual.reaparecidas / atual.registros) * 100 : null)}) já apareceram antes no recorte.`,
+      explicacao: `Na Sprint ${ultima}, ${atual.reaparecidas} de ${atual.registros} registros (${percentual(atual.registros ? (atual.reaparecidas / atual.registros) * 100 : null)}) já apareceram em sprints anteriores no histórico da base.`,
       impacto:
         "Reaparição pode representar continuidade, divisão ou replanejamento; o motivo não está estruturado na fonte.",
       pergunta: "Quais reaparições representam continuidade planejada?",
@@ -336,10 +336,10 @@ export function gerarInsights(
     });
   insights.push({
     id: "capacity",
-    titulo: "Disponibilidade ainda não mensurável",
+    titulo: "Capacity em horas não informada",
     valor: "Capacity real não informada",
     explicacao:
-      "A fonte contém atribuições de histórias, mas não comprova dedicação, jornada ou disponibilidade histórica. Por isso, FTE e capacidade real permanecem não informados.",
+      "Os desenvolvedores disponíveis são os nomes distintos atribuídos às histórias. A fonte não informa dedicação e jornada para calcular FTE e capacidade em horas.",
     impacto:
       "Não é possível concluir se há capacidade insuficiente a partir das atribuições.",
     pergunta:

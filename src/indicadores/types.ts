@@ -34,7 +34,7 @@ export interface SprintProjeto {
   aba: string;
 }
 export interface AvisoDados {
-  tipo: "periodo" | "duplicidade" | "exclusao" | "estrutura";
+  tipo: "periodo" | "duplicidade" | "exclusao" | "estrutura" | "replanejamento";
   mensagem: string;
   sprint?: number;
   linhas?: number[];
@@ -44,6 +44,7 @@ export interface DadosProjeto {
   arquivo: string;
   importadoEm: string;
   historias: HistoriaProjeto[];
+  replanejadas?: { historia: HistoriaProjeto; sprintDestino: number }[];
   sprints: SprintProjeto[];
   avisos: AvisoDados[];
   historicosIgnorados: number;

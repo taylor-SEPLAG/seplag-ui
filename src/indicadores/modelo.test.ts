@@ -10,6 +10,7 @@ import {
   filtrosIniciais,
   gerarInsights,
   primeirasAparicoes,
+  reapareceu,
   qaAprovada,
   homologada,
   resumir,
@@ -23,14 +24,14 @@ describe("base real das Sprints 18 a 23", () => {
   it("reconcilia histórias distintas, presenças, pontos e reaparições com o arquivo", () => {
     expect(resumir(dados.historias, primeiras)).toMatchObject({
       distintas: 144,
-      registros: 181,
+      registros: 172,
       pontos: 1087,
-      reaparecidas: 37,
+      reaparecidas: 28,
       pontuadas: 149,
-      semPontos: 32,
+      semPontos: 23,
       concluidas: 99,
       conhecidas: 143,
-      semDev: 11,
+      semDev: 2,
       taxaConclusao: 68.75,
     });
     const sprints = dados.sprints.map((s) =>
@@ -39,15 +40,15 @@ describe("base real das Sprints 18 a 23", () => {
         primeiras,
       ),
     );
-    expect(sprints.map((s) => s.registros)).toEqual([11, 22, 29, 34, 42, 43]);
+    expect(sprints.map((s) => s.registros)).toEqual([11, 22, 29, 34, 33, 43]);
     expect(sprints.map((s) => s.pontos)).toEqual([74, 123, 202, 188, 189, 311]);
     expect(sprints.map((s) => [s.novas, s.reaparecidas])).toEqual([
       [11, 0],
       [22, 0],
       [18, 11],
       [21, 13],
-      [42, 0],
-      [30, 13],
+      [33, 0],
+      [39, 4],
     ]);
     expect(sprints.at(-1)?.media).toBeCloseTo(8.4054, 4);
     expect(sprints.map((s) => s.concluidas)).toEqual([11, 22, 29, 34, 28, 0]);
@@ -71,6 +72,33 @@ describe("base real das Sprints 18 a 23", () => {
     expect(participantes.length).toBe(compartilhada.desenvolvedores.length);
     expect(participantes.every((g) => g.registros === 1)).toBe(true);
     expect(resumir([compartilhada]).distintas).toBe(1);
+  });
+  it("reconhece US319, US321 e US322 como remanescentes da Sprint 22, mantendo férias como novas", () => {
+    const codigos = ["US319", "US321", "US322"];
+    const remanescentes = dados.historias.filter(
+      (h) => h.sprint === 23 && codigos.includes(h.codigo),
+    );
+    expect(remanescentes.map((h) => h.codigo)).toEqual(codigos);
+    expect(
+      remanescentes.every(
+        (h) => primeiras.get(h.codigo) === 22 && reapareceu(h, primeiras),
+      ),
+    ).toBe(true);
+    expect(resumir(remanescentes, primeiras)).toMatchObject({
+      novas: 0,
+      reaparecidas: 3,
+    });
+    const sprint23 = dados.historias.filter((h) => h.sprint === 23);
+    expect(resumir(sprint23, primeiras)).toMatchObject({
+      novas: 39,
+      reaparecidas: 4,
+    });
+    expect(
+      sprint23
+        .filter((h) => /Férias/i.test(h.titulo))
+        .every((h) => !reapareceu(h, primeiras)),
+    ).toBe(true);
+    expect(sprint23.some((h) => h.codigo === "US219")).toBe(false);
   });
   it("trata conclusão pela última aparição e não infere QA de um nome atribuído", () => {
     const sprint22 = dados.historias.filter((h) => h.sprint === 22);
@@ -132,7 +160,7 @@ describe("base real das Sprints 18 a 23", () => {
         inicial: 23,
         final: 23,
       }),
-    ).toHaveLength(42);
+    ).toHaveLength(33);
     expect(
       compararRecorteAnterior(dados, {
         ...filtrosIniciais(dados),
@@ -168,7 +196,7 @@ describe("base real das Sprints 18 a 23", () => {
     );
     expect(
       insights.find((i) => i.id === "reaparecimento")?.historias,
-    ).toHaveLength(37);
+    ).toHaveLength(28);
   });
 });
 it("calcula apenas uma simulação explícita de capacity, com dedicação e reservas", () => {

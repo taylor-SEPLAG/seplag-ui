@@ -1,6 +1,7 @@
 import { graficosAtivos, type RegistroGrafico } from "./registroGraficos";
 import {
   gerarInsights,
+  nomesUnicos,
   numero,
   percentual,
   primeirasAparicoes,
@@ -28,12 +29,21 @@ export const descreverFiltros = (f: FiltrosProjeto) =>
     f.modulo || "Todos os módulos",
     f.situacao || "Todas as situações",
   ].join(" · ");
-const primeirasDoRecorte = (dados: DadosProjeto, filtros: FiltrosProjeto) =>
-  primeirasAparicoes(
-    dados.historias.filter(
-      (h) => h.sprint >= filtros.inicial && h.sprint <= filtros.final,
-    ),
-  );
+const equipePorSprint = (
+  dados: DadosProjeto,
+  historias: HistoriaProjeto[],
+  filtros: FiltrosProjeto,
+) =>
+  dados.sprints
+    .filter((s) => s.numero >= filtros.inicial && s.numero <= filtros.final)
+    .map((s) => ({
+      sprint: s.numero,
+      nomes: nomesUnicos(
+        historias
+          .filter((h) => h.sprint === s.numero)
+          .flatMap((h) => h.desenvolvedores),
+      ),
+    }));
 export function imagemGrafico(registro: RegistroGrafico): string {
   registro.chart.stop();
   registro.chart.update("none");
@@ -94,7 +104,7 @@ export function textoExecutivo(
   historias: HistoriaProjeto[],
   filtros: FiltrosProjeto,
 ) {
-  const primeiras = primeirasDoRecorte(dados, filtros),
+  const primeiras = primeirasAparicoes(dados.historias),
     r = resumir(historias, primeiras),
     insights = gerarInsights(historias, primeiras);
   return [
@@ -107,7 +117,12 @@ export function textoExecutivo(
     `${numero(r.concluidas)} conclusões confirmadas na última aparição de cada US; ${r.conhecidas}/${r.distintas} histórias têm situação conhecida.`,
     `Taxa de conclusão confirmada: ${percentual(r.taxaConclusao)}; registros sem situação não são considerados concluídos.`,
     `${r.reaparecidas} reaparições; média de ${numero(r.media, 2)} pontos por história pontuada.`,
-    `Disponibilidade efetiva, FTE e capacity real: não informados. Profissionais citados nas histórias não comprovam headcount disponível.`,
+    `Desenvolvedores disponíveis no período: ${r.desenvolvedores} nomes distintos atribuídos às histórias.`,
+    ...equipePorSprint(dados, historias, filtros).map(
+      (s) =>
+        `Sprint ${s.sprint}: ${s.nomes.length} desenvolvedores disponíveis.`,
+    ),
+    `FTE e capacidade em horas: não informados.`,
     "",
     ...insights.flatMap((i) => [
       `${i.titulo}: ${i.valor}`,
@@ -131,13 +146,17 @@ export async function exportarExcel(
   livro.creator = "SIGEP";
   livro.created = new Date();
   const info = livro.addWorksheet("Origem e filtros");
-  const resumo = resumir(historias, primeirasDoRecorte(dados, filtros));
+  const resumo = resumir(historias, primeirasAparicoes(dados.historias));
   info.addRows([
     ["Projeto SIGEP — Indicadores gerenciais"],
     ["Arquivo", dados.arquivo],
     ["Importado em", dados.importadoEm],
     ["Filtros", descreverFiltros(filtros)],
-    ["Disponibilidade / FTE / capacity real", "Não informados"],
+    [
+      "Desenvolvedores disponíveis",
+      "Nomes distintos atribuídos às histórias por sprint; nomes sem repetição no total do período",
+    ],
+    ["FTE / capacidade em horas", "Não informados"],
     ["Regra de conclusão", "Situação da última aparição de cada US no recorte"],
     [
       "Story points",
@@ -148,7 +167,7 @@ export async function exportarExcel(
       pontos: resumo.pontuadas ? resumo.pontos : null,
     }).map(([k, v]) => [
       k === "desenvolvedores"
-        ? "Profissionais distintos associados às histórias"
+        ? "Total de desenvolvedores disponíveis no período"
         : k,
       v ?? "Não informado",
     ]),
@@ -208,7 +227,21 @@ export async function exportarExcel(
     ]);
   aba.views = [{ state: "frozen", ySplit: 1 }];
   aba.autoFilter = { from: "A1", to: "S1" };
-  for (const folha of [info, aba]) {
+  const equipe = livro.addWorksheet("Equipe por sprint");
+  equipe.columns = [
+    { header: "Sprint", width: 15 },
+    { header: "Desenvolvedores disponíveis", width: 30 },
+    { header: "Nomes atribuídos às histórias", width: 100 },
+  ];
+  equipe.addRows(
+    equipePorSprint(dados, historias, filtros).map((s) => [
+      s.sprint,
+      s.nomes.length,
+      s.nomes.join(", "),
+    ]),
+  );
+  equipe.views = [{ state: "frozen", ySplit: 1 }];
+  for (const folha of [info, aba, equipe]) {
     folha.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
     folha.getRow(1).fill = {
       type: "pattern",
@@ -275,7 +308,7 @@ export async function exportarPDF(
   texto(
     `Última importação: ${new Date(dados.importadoEm).toLocaleString("pt-BR", { timeZone: "America/Cuiaba" })}`,
   );
-  const primeiras = primeirasDoRecorte(dados, filtros),
+  const primeiras = primeirasAparicoes(dados.historias),
     r = resumir(historias, primeiras);
   texto(
     `${r.distintas} histórias distintas | ${r.registros} registros | Pontos estimados: ${numero(r.pontuadas ? r.pontos : null)}`,
@@ -286,7 +319,15 @@ export async function exportarPDF(
     `${numero(r.concluidas)} conclusões confirmadas | ${r.reaparecidas} reaparições | Média: ${numero(r.media, 2)} pontos`,
   );
   texto(
-    `Situação conhecida em ${r.conhecidas} de ${r.distintas} histórias. Capacidade real e FTE não informados. QA e homologação não são inferidos de situação Finalizada.`,
+    `Desenvolvedores disponíveis no período: ${r.desenvolvedores} nomes distintos atribuídos às histórias.`,
+  );
+  texto(
+    equipePorSprint(dados, historias, filtros)
+      .map((s) => `Sprint ${s.sprint}: ${s.nomes.length}`)
+      .join(" | "),
+  );
+  texto(
+    `Situação conhecida em ${r.conhecidas} de ${r.distintas} histórias. Capacidade em horas e FTE não informados. QA e homologação não são inferidos de situação Finalizada.`,
   );
   for (const registro of graficosAtivos.values()) {
     const png = imagemGrafico(registro),

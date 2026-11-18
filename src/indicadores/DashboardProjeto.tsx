@@ -45,6 +45,7 @@ import {
 } from "./exportacoes";
 import { graficosAtivos } from "./registroGraficos";
 import { importarPlanilha } from "./importacao";
+import { ajustarEscopoProjeto } from "./ajustesEscopo";
 import baseInicial from "./dados-iniciais.json";
 import type { DadosProjeto, HistoriaProjeto } from "./types";
 import logoEstado from "../assets/img/logo-seplag-sigep.png";
@@ -92,7 +93,7 @@ function carregarBase(): { dados: DadosProjeto; erro: string } {
     ) {
       return { dados: baseInicial as DadosProjeto, erro: "" };
     }
-    return { dados, erro: "" };
+    return { dados: ajustarEscopoProjeto(dados), erro: "" };
   } catch {
     return {
       dados: baseInicial as DadosProjeto,
@@ -127,23 +128,15 @@ export default function DashboardProjeto() {
     () => filtrarHistorias(dados, filtros),
     [dados, filtros],
   );
-  const primeiras = useMemo(
-    () =>
-      primeirasAparicoes(
-        dados.historias.filter(
-          (h) => h.sprint >= filtros.inicial && h.sprint <= filtros.final,
-        ),
-      ),
-    [dados, filtros.inicial, filtros.final],
-  );
+  const primeiras = useMemo(() => primeirasAparicoes(dados.historias), [dados]);
   const resumo = useMemo(
     () => resumir(historias, primeiras),
     [historias, primeiras],
   );
   const anterior = useMemo(() => {
     const registros = compararRecorteAnterior(dados, filtros);
-    return registros ? resumir(registros) : null;
-  }, [dados, filtros]);
+    return registros ? resumir(registros, primeiras) : null;
+  }, [dados, filtros, primeiras]);
   const sprints = useMemo(
     () =>
       dados.sprints
@@ -664,8 +657,9 @@ export default function DashboardProjeto() {
           <p>
             Conclusão usa a situação da última aparição da US no recorte. A taxa
             representa conclusões confirmadas, com cobertura de situação
-            indicada nos cards. Aprovação em QA, homologação, headcount
-            disponível e FTE exigem evidências próprias.
+            indicada nos cards. Desenvolvedores disponíveis são os nomes
+            distintos atribuídos às histórias por sprint. Aprovação em QA,
+            homologação e FTE exigem evidências próprias.
           </p>
           <p>
             {dados.historicosIgnorados} linhas históricas ou sem vínculo com o

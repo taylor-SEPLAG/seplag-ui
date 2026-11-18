@@ -1,7 +1,7 @@
 {
   "versao": 1,
   "arquivo": "PROJETO SIGEP - CONTROLE US (6).xlsx",
-  "importadoEm": "2026-11-18T14:58:49.803Z",
+  "importadoEm": "2026-11-18T15:16:59.760Z",
   "historias": [
     {
       "id": "S18-US008",
@@ -3952,246 +3952,6 @@
       ]
     },
     {
-      "id": "S22-US302",
-      "codigo": "US302",
-      "titulo": "US302 - Gestão de Ferias - Tela Inicial",
-      "sprint": 22,
-      "menu": "Direitos e Beneficios",
-      "modulo": "Gestão de Pessoas",
-      "squads": [],
-      "analistas": [
-        "Carlos"
-      ],
-      "desenvolvedores": [],
-      "qa": [],
-      "situacao": "Não informado",
-      "situacaoOriginal": null,
-      "andamentoOriginal": null,
-      "pontos": null,
-      "dependencias": [],
-      "periodoOriginal": "26/10/2026 - 11/11/2026",
-      "redmine": "http://redmine/issues/36666",
-      "documento": "https://docs.google.com/document/d/18t3Exx9ymuNyCHWR4jCmb5aIOVE2Y2vTsFEARTidgJw/edit?tab=t.0",
-      "observacoes": null,
-      "ambiente": null,
-      "qaSituacao": null,
-      "homologacao": null,
-      "aba": "SPRINT 22 - 2610 a 1111",
-      "linhas": [
-        57
-      ]
-    },
-    {
-      "id": "S22-US303",
-      "codigo": "US303",
-      "titulo": "US303 - Solicitar Ferias - Individual",
-      "sprint": 22,
-      "menu": "Direitos e Beneficios",
-      "modulo": "Gestão de Pessoas",
-      "squads": [],
-      "analistas": [
-        "Carlos"
-      ],
-      "desenvolvedores": [],
-      "qa": [],
-      "situacao": "Não informado",
-      "situacaoOriginal": null,
-      "andamentoOriginal": null,
-      "pontos": null,
-      "dependencias": [],
-      "periodoOriginal": "26/10/2026 - 11/11/2026",
-      "redmine": "http://redmine/issues/36667",
-      "documento": "https://docs.google.com/document/d/1kDmI0TpWStOsOf-G_7BibK6Arhu61etbHfZA64mYQGA/edit?tab=t.0",
-      "observacoes": null,
-      "ambiente": null,
-      "qaSituacao": null,
-      "homologacao": null,
-      "aba": "SPRINT 22 - 2610 a 1111",
-      "linhas": [
-        58
-      ]
-    },
-    {
-      "id": "S22-US304",
-      "codigo": "US304",
-      "titulo": "US304 - Solicitar Férias - Coletiva aba Órgão e Servidor",
-      "sprint": 22,
-      "menu": "Direitos e Beneficios",
-      "modulo": "Gestão de Pessoas",
-      "squads": [],
-      "analistas": [
-        "Carlos"
-      ],
-      "desenvolvedores": [],
-      "qa": [],
-      "situacao": "Não informado",
-      "situacaoOriginal": null,
-      "andamentoOriginal": null,
-      "pontos": null,
-      "dependencias": [],
-      "periodoOriginal": "26/10/2026 - 11/11/2026",
-      "redmine": "http://redmine/issues/36668",
-      "documento": "https://docs.google.com/document/d/1UCUe3hCIDkOrM4JLu2A42fE1DLPDBDmZ22B1aRspmiE/edit?tab=t.0",
-      "observacoes": null,
-      "ambiente": null,
-      "qaSituacao": null,
-      "homologacao": null,
-      "aba": "SPRINT 22 - 2610 a 1111",
-      "linhas": [
-        59
-      ]
-    },
-    {
-      "id": "S22-US305",
-      "codigo": "US305",
-      "titulo": "US305 - Solicitar Férias - Coletiva aba Parcelas e Alertas",
-      "sprint": 22,
-      "menu": "Direitos e Beneficios",
-      "modulo": "Gestão de Pessoas",
-      "squads": [],
-      "analistas": [
-        "Carlos"
-      ],
-      "desenvolvedores": [],
-      "qa": [],
-      "situacao": "Não informado",
-      "situacaoOriginal": null,
-      "andamentoOriginal": null,
-      "pontos": null,
-      "dependencias": [],
-      "periodoOriginal": "26/10/2026 - 11/11/2026",
-      "redmine": "http://redmine/issues/36669",
-      "documento": "https://docs.google.com/document/d/18MnaCZUimWZADprcJfIi_KzmR0_y8AWu1cBNWJrA63c/edit?tab=t.0",
-      "observacoes": null,
-      "ambiente": null,
-      "qaSituacao": null,
-      "homologacao": null,
-      "aba": "SPRINT 22 - 2610 a 1111",
-      "linhas": [
-        60
-      ]
-    },
-    {
-      "id": "S22-US306",
-      "codigo": "US306",
-      "titulo": "US306 - Solicitar Férias - Agendamento em Lote aba Orgão e Servidores",
-      "sprint": 22,
-      "menu": "Direitos e Beneficios",
-      "modulo": "Gestão de Pessoas",
-      "squads": [],
-      "analistas": [
-        "Carlos"
-      ],
-      "desenvolvedores": [],
-      "qa": [],
-      "situacao": "Não informado",
-      "situacaoOriginal": null,
-      "andamentoOriginal": null,
-      "pontos": null,
-      "dependencias": [],
-      "periodoOriginal": "26/10/2026 - 11/11/2026",
-      "redmine": "http://redmine/issues/36671",
-      "documento": "https://docs.google.com/document/d/1WiK72ZWBEwn4hGCknqh-cSpmFdlfPmQ1NCIOqot8CoU/edit?tab=t.0",
-      "observacoes": null,
-      "ambiente": null,
-      "qaSituacao": null,
-      "homologacao": null,
-      "aba": "SPRINT 22 - 2610 a 1111",
-      "linhas": [
-        61
-      ]
-    },
-    {
-      "id": "S22-US307",
-      "codigo": "US307",
-      "titulo": "US307 - Solicitar Férias - Agendamento em Lote aba Parcelas e Alertas",
-      "sprint": 22,
-      "menu": "Direitos e Beneficios",
-      "modulo": "Gestão de Pessoas",
-      "squads": [],
-      "analistas": [
-        "Carlos"
-      ],
-      "desenvolvedores": [],
-      "qa": [],
-      "situacao": "Não informado",
-      "situacaoOriginal": null,
-      "andamentoOriginal": null,
-      "pontos": null,
-      "dependencias": [],
-      "periodoOriginal": "26/10/2026 - 11/11/2026",
-      "redmine": "http://redmine/issues/36672",
-      "documento": "https://docs.google.com/document/d/1mmzuHol6189IemQPjQ1uecgSIkP4qrrKfSGFCy4FWfA/edit?tab=t.0",
-      "observacoes": null,
-      "ambiente": null,
-      "qaSituacao": null,
-      "homologacao": null,
-      "aba": "SPRINT 22 - 2610 a 1111",
-      "linhas": [
-        62
-      ]
-    },
-    {
-      "id": "S22-US308",
-      "codigo": "US308",
-      "titulo": "US308 - Solicitar Férias - Recesso Remunerado",
-      "sprint": 22,
-      "menu": "Direitos e Beneficios",
-      "modulo": "Gestão de Pessoas",
-      "squads": [],
-      "analistas": [
-        "Carlos"
-      ],
-      "desenvolvedores": [],
-      "qa": [],
-      "situacao": "Não informado",
-      "situacaoOriginal": null,
-      "andamentoOriginal": null,
-      "pontos": null,
-      "dependencias": [],
-      "periodoOriginal": "26/10/2026 - 11/11/2026",
-      "redmine": "http://redmine/issues/36673",
-      "documento": "https://docs.google.com/document/d/1YtYiv-5CYlalghjYMguO4mvuFIpXufEPVfSW5OvOByA/edit?tab=t.0",
-      "observacoes": null,
-      "ambiente": null,
-      "qaSituacao": null,
-      "homologacao": null,
-      "aba": "SPRINT 22 - 2610 a 1111",
-      "linhas": [
-        63
-      ]
-    },
-    {
-      "id": "S22-US309",
-      "codigo": "US309",
-      "titulo": "US309 - Aprovações de Férias",
-      "sprint": 22,
-      "menu": "Direitos e Beneficios",
-      "modulo": "Gestão de Pessoas",
-      "squads": [],
-      "analistas": [
-        "Carlos"
-      ],
-      "desenvolvedores": [],
-      "qa": [],
-      "situacao": "Não informado",
-      "situacaoOriginal": null,
-      "andamentoOriginal": null,
-      "pontos": null,
-      "dependencias": [],
-      "periodoOriginal": "26/10/2026 - 11/11/2026",
-      "redmine": "http://redmine/issues/36674",
-      "documento": "https://docs.google.com/document/d/1jvlvT3KCrCdikh7S86aPmNSHOIYRGh2LAaPk7K84J8s/edit?tab=t.0",
-      "observacoes": null,
-      "ambiente": null,
-      "qaSituacao": null,
-      "homologacao": null,
-      "aba": "SPRINT 22 - 2610 a 1111",
-      "linhas": [
-        64
-      ]
-    },
-    {
       "id": "S22-US311",
       "codigo": "US311",
       "titulo": "US311 - Encerramento de Vínculo - Encerrar Vínculo - Listagem e Encerramento",
@@ -4300,36 +4060,6 @@
       "aba": "SPRINT 22 - 2610 a 1111",
       "linhas": [
         37
-      ]
-    },
-    {
-      "id": "S22-US317",
-      "codigo": "US317",
-      "titulo": "US317 - Histórico  Solicitação de Férias",
-      "sprint": 22,
-      "menu": "Direitos e Beneficios",
-      "modulo": "Gestão de Pessoas",
-      "squads": [],
-      "analistas": [
-        "Carlos"
-      ],
-      "desenvolvedores": [],
-      "qa": [],
-      "situacao": "Não informado",
-      "situacaoOriginal": null,
-      "andamentoOriginal": null,
-      "pontos": null,
-      "dependencias": [],
-      "periodoOriginal": "26/10/2026 - 11/11/2026",
-      "redmine": "http://redmine/issues/36675",
-      "documento": "https://docs.google.com/document/d/1iAUsys1JapokB1JzxfPbgXD4Pz2hEPPWdXDJssw-FpA/edit?tab=t.0",
-      "observacoes": null,
-      "ambiente": null,
-      "qaSituacao": null,
-      "homologacao": null,
-      "aba": "SPRINT 22 - 2610 a 1111",
-      "linhas": [
-        65
       ]
     },
     {
@@ -6265,8 +5995,323 @@
         47
       ],
       "mensagem": "Sprint 21: 15 registros possuem término inconsistente. O recorte usa o início 07/10/2026 e o término predominante 22/10/2026; os valores originais foram preservados."
+    },
+    {
+      "tipo": "replanejamento",
+      "sprint": 22,
+      "linhas": [
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65
+      ],
+      "mensagem": "Escopo corrigido pelo usuário: as 10 histórias de férias (US302, US303, US304, US305, US306, US307, US308, US309, US317, US348) pertencem exclusivamente à Sprint 23 e são contabilizadas como novas, sem remanescência da Sprint 22. As aparições da Sprint 22 foram retiradas dos indicadores e preservadas apenas para rastreabilidade."
     }
   ],
   "historicosIgnorados": 103,
-  "removidas": 1
+  "removidas": 1,
+  "replanejadas": [
+    {
+      "historia": {
+        "id": "S22-US302",
+        "codigo": "US302",
+        "titulo": "US302 - Gestão de Ferias - Tela Inicial",
+        "sprint": 22,
+        "menu": "Direitos e Beneficios",
+        "modulo": "Gestão de Pessoas",
+        "squads": [],
+        "analistas": [
+          "Carlos"
+        ],
+        "desenvolvedores": [],
+        "qa": [],
+        "situacao": "Não informado",
+        "situacaoOriginal": null,
+        "andamentoOriginal": null,
+        "pontos": null,
+        "dependencias": [],
+        "periodoOriginal": "26/10/2026 - 11/11/2026",
+        "redmine": "http://redmine/issues/36666",
+        "documento": "https://docs.google.com/document/d/18t3Exx9ymuNyCHWR4jCmb5aIOVE2Y2vTsFEARTidgJw/edit?tab=t.0",
+        "observacoes": null,
+        "ambiente": null,
+        "qaSituacao": null,
+        "homologacao": null,
+        "aba": "SPRINT 22 - 2610 a 1111",
+        "linhas": [
+          57
+        ]
+      },
+      "sprintDestino": 23
+    },
+    {
+      "historia": {
+        "id": "S22-US303",
+        "codigo": "US303",
+        "titulo": "US303 - Solicitar Ferias - Individual",
+        "sprint": 22,
+        "menu": "Direitos e Beneficios",
+        "modulo": "Gestão de Pessoas",
+        "squads": [],
+        "analistas": [
+          "Carlos"
+        ],
+        "desenvolvedores": [],
+        "qa": [],
+        "situacao": "Não informado",
+        "situacaoOriginal": null,
+        "andamentoOriginal": null,
+        "pontos": null,
+        "dependencias": [],
+        "periodoOriginal": "26/10/2026 - 11/11/2026",
+        "redmine": "http://redmine/issues/36667",
+        "documento": "https://docs.google.com/document/d/1kDmI0TpWStOsOf-G_7BibK6Arhu61etbHfZA64mYQGA/edit?tab=t.0",
+        "observacoes": null,
+        "ambiente": null,
+        "qaSituacao": null,
+        "homologacao": null,
+        "aba": "SPRINT 22 - 2610 a 1111",
+        "linhas": [
+          58
+        ]
+      },
+      "sprintDestino": 23
+    },
+    {
+      "historia": {
+        "id": "S22-US304",
+        "codigo": "US304",
+        "titulo": "US304 - Solicitar Férias - Coletiva aba Órgão e Servidor",
+        "sprint": 22,
+        "menu": "Direitos e Beneficios",
+        "modulo": "Gestão de Pessoas",
+        "squads": [],
+        "analistas": [
+          "Carlos"
+        ],
+        "desenvolvedores": [],
+        "qa": [],
+        "situacao": "Não informado",
+        "situacaoOriginal": null,
+        "andamentoOriginal": null,
+        "pontos": null,
+        "dependencias": [],
+        "periodoOriginal": "26/10/2026 - 11/11/2026",
+        "redmine": "http://redmine/issues/36668",
+        "documento": "https://docs.google.com/document/d/1UCUe3hCIDkOrM4JLu2A42fE1DLPDBDmZ22B1aRspmiE/edit?tab=t.0",
+        "observacoes": null,
+        "ambiente": null,
+        "qaSituacao": null,
+        "homologacao": null,
+        "aba": "SPRINT 22 - 2610 a 1111",
+        "linhas": [
+          59
+        ]
+      },
+      "sprintDestino": 23
+    },
+    {
+      "historia": {
+        "id": "S22-US305",
+        "codigo": "US305",
+        "titulo": "US305 - Solicitar Férias - Coletiva aba Parcelas e Alertas",
+        "sprint": 22,
+        "menu": "Direitos e Beneficios",
+        "modulo": "Gestão de Pessoas",
+        "squads": [],
+        "analistas": [
+          "Carlos"
+        ],
+        "desenvolvedores": [],
+        "qa": [],
+        "situacao": "Não informado",
+        "situacaoOriginal": null,
+        "andamentoOriginal": null,
+        "pontos": null,
+        "dependencias": [],
+        "periodoOriginal": "26/10/2026 - 11/11/2026",
+        "redmine": "http://redmine/issues/36669",
+        "documento": "https://docs.google.com/document/d/18MnaCZUimWZADprcJfIi_KzmR0_y8AWu1cBNWJrA63c/edit?tab=t.0",
+        "observacoes": null,
+        "ambiente": null,
+        "qaSituacao": null,
+        "homologacao": null,
+        "aba": "SPRINT 22 - 2610 a 1111",
+        "linhas": [
+          60
+        ]
+      },
+      "sprintDestino": 23
+    },
+    {
+      "historia": {
+        "id": "S22-US306",
+        "codigo": "US306",
+        "titulo": "US306 - Solicitar Férias - Agendamento em Lote aba Orgão e Servidores",
+        "sprint": 22,
+        "menu": "Direitos e Beneficios",
+        "modulo": "Gestão de Pessoas",
+        "squads": [],
+        "analistas": [
+          "Carlos"
+        ],
+        "desenvolvedores": [],
+        "qa": [],
+        "situacao": "Não informado",
+        "situacaoOriginal": null,
+        "andamentoOriginal": null,
+        "pontos": null,
+        "dependencias": [],
+        "periodoOriginal": "26/10/2026 - 11/11/2026",
+        "redmine": "http://redmine/issues/36671",
+        "documento": "https://docs.google.com/document/d/1WiK72ZWBEwn4hGCknqh-cSpmFdlfPmQ1NCIOqot8CoU/edit?tab=t.0",
+        "observacoes": null,
+        "ambiente": null,
+        "qaSituacao": null,
+        "homologacao": null,
+        "aba": "SPRINT 22 - 2610 a 1111",
+        "linhas": [
+          61
+        ]
+      },
+      "sprintDestino": 23
+    },
+    {
+      "historia": {
+        "id": "S22-US307",
+        "codigo": "US307",
+        "titulo": "US307 - Solicitar Férias - Agendamento em Lote aba Parcelas e Alertas",
+        "sprint": 22,
+        "menu": "Direitos e Beneficios",
+        "modulo": "Gestão de Pessoas",
+        "squads": [],
+        "analistas": [
+          "Carlos"
+        ],
+        "desenvolvedores": [],
+        "qa": [],
+        "situacao": "Não informado",
+        "situacaoOriginal": null,
+        "andamentoOriginal": null,
+        "pontos": null,
+        "dependencias": [],
+        "periodoOriginal": "26/10/2026 - 11/11/2026",
+        "redmine": "http://redmine/issues/36672",
+        "documento": "https://docs.google.com/document/d/1mmzuHol6189IemQPjQ1uecgSIkP4qrrKfSGFCy4FWfA/edit?tab=t.0",
+        "observacoes": null,
+        "ambiente": null,
+        "qaSituacao": null,
+        "homologacao": null,
+        "aba": "SPRINT 22 - 2610 a 1111",
+        "linhas": [
+          62
+        ]
+      },
+      "sprintDestino": 23
+    },
+    {
+      "historia": {
+        "id": "S22-US308",
+        "codigo": "US308",
+        "titulo": "US308 - Solicitar Férias - Recesso Remunerado",
+        "sprint": 22,
+        "menu": "Direitos e Beneficios",
+        "modulo": "Gestão de Pessoas",
+        "squads": [],
+        "analistas": [
+          "Carlos"
+        ],
+        "desenvolvedores": [],
+        "qa": [],
+        "situacao": "Não informado",
+        "situacaoOriginal": null,
+        "andamentoOriginal": null,
+        "pontos": null,
+        "dependencias": [],
+        "periodoOriginal": "26/10/2026 - 11/11/2026",
+        "redmine": "http://redmine/issues/36673",
+        "documento": "https://docs.google.com/document/d/1YtYiv-5CYlalghjYMguO4mvuFIpXufEPVfSW5OvOByA/edit?tab=t.0",
+        "observacoes": null,
+        "ambiente": null,
+        "qaSituacao": null,
+        "homologacao": null,
+        "aba": "SPRINT 22 - 2610 a 1111",
+        "linhas": [
+          63
+        ]
+      },
+      "sprintDestino": 23
+    },
+    {
+      "historia": {
+        "id": "S22-US309",
+        "codigo": "US309",
+        "titulo": "US309 - Aprovações de Férias",
+        "sprint": 22,
+        "menu": "Direitos e Beneficios",
+        "modulo": "Gestão de Pessoas",
+        "squads": [],
+        "analistas": [
+          "Carlos"
+        ],
+        "desenvolvedores": [],
+        "qa": [],
+        "situacao": "Não informado",
+        "situacaoOriginal": null,
+        "andamentoOriginal": null,
+        "pontos": null,
+        "dependencias": [],
+        "periodoOriginal": "26/10/2026 - 11/11/2026",
+        "redmine": "http://redmine/issues/36674",
+        "documento": "https://docs.google.com/document/d/1jvlvT3KCrCdikh7S86aPmNSHOIYRGh2LAaPk7K84J8s/edit?tab=t.0",
+        "observacoes": null,
+        "ambiente": null,
+        "qaSituacao": null,
+        "homologacao": null,
+        "aba": "SPRINT 22 - 2610 a 1111",
+        "linhas": [
+          64
+        ]
+      },
+      "sprintDestino": 23
+    },
+    {
+      "historia": {
+        "id": "S22-US317",
+        "codigo": "US317",
+        "titulo": "US317 - Histórico  Solicitação de Férias",
+        "sprint": 22,
+        "menu": "Direitos e Beneficios",
+        "modulo": "Gestão de Pessoas",
+        "squads": [],
+        "analistas": [
+          "Carlos"
+        ],
+        "desenvolvedores": [],
+        "qa": [],
+        "situacao": "Não informado",
+        "situacaoOriginal": null,
+        "andamentoOriginal": null,
+        "pontos": null,
+        "dependencias": [],
+        "periodoOriginal": "26/10/2026 - 11/11/2026",
+        "redmine": "http://redmine/issues/36675",
+        "documento": "https://docs.google.com/document/d/1iAUsys1JapokB1JzxfPbgXD4Pz2hEPPWdXDJssw-FpA/edit?tab=t.0",
+        "observacoes": null,
+        "ambiente": null,
+        "qaSituacao": null,
+        "homologacao": null,
+        "aba": "SPRINT 22 - 2610 a 1111",
+        "linhas": [
+          65
+        ]
+      },
+      "sprintDestino": 23
+    }
+  ]
 }
