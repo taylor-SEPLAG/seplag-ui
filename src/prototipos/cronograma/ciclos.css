@@ -178,3 +178,8 @@
   min-width: 0;
   box-sizing: border-box;
 }
+
+.ciclos-campo-obrigatorio::after {
+  content: " *";
+  color: #c72727;
+}

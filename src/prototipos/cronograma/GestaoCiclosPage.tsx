@@ -89,9 +89,9 @@ export function GestaoCiclosContent() {
     [ocupado, setOcupado] = useState(false);
   const [pagina, setPagina] = useState(1),
     [porPagina, setPorPagina] = useState(10);
-  const filtrados = ciclos.filter(
-      (c) => Number(c.competencia.slice(0, 4)) === ano,
-    ),
+  const filtrados = ciclos
+      .filter((c) => Number(c.competencia.slice(0, 4)) === ano)
+      .sort((a, b) => b.competencia.localeCompare(a.competencia)),
     totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina)),
     atual = Math.min(pagina, totalPaginas);
   const anos = [
@@ -315,7 +315,7 @@ export function GestaoCiclosContent() {
             <form className="v2v-page ciclos-modal" onSubmit={continuar}>
               <div className="ciclos-periodo">
                 <label>
-                  Ano
+                  <span className="ciclos-campo-obrigatorio">Ano</span>
                   <input
                     required
                     type="number"
@@ -329,7 +329,7 @@ export function GestaoCiclosContent() {
                   />
                 </label>
                 <label>
-                  Mês
+                  <span className="ciclos-campo-obrigatorio">Mês</span>
                   <select
                     required
                     value={mesNovo}
@@ -373,7 +373,9 @@ export function GestaoCiclosContent() {
               {reaproveitar && referencias.length > 0 && (
                 <section className="ciclos-referencia">
                   <label>
-                    Ciclo de referência
+                    <span className="ciclos-campo-obrigatorio">
+                      Ciclo de referência
+                    </span>
                     <select
                       required
                       value={referenciaEfetiva}
