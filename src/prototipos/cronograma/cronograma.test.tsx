@@ -261,7 +261,58 @@ it("mês sem cronograma tem mensagem própria e a tela não permite nenhuma manu
 });
 
 it("abre no mes e dia atuais mesmo com competencia anterior", () => {
-  render(<MemoryRouter><CalendarioContent calendario={calendario()} agora={new Date("2026-10-27T12:00:00-04:00")} /></MemoryRouter>);
+  render(
+    <MemoryRouter>
+      <CalendarioContent
+        calendario={calendario()}
+        agora={new Date("2026-10-27T12:00:00-04:00")}
+      />
+    </MemoryRouter>,
+  );
   expect(screen.getByRole("table", { name: /Outubro.*2026/i })).toBeTruthy();
-  expect(screen.getByRole("button", { name: "27/10/2026 — 0 eventos" }).getAttribute("aria-pressed")).toBe("true");
+  expect(
+    screen
+      .getByRole("button", { name: "27/10/2026 — 0 eventos" })
+      .getAttribute("aria-pressed"),
+  ).toBe("true");
+});
+
+it("exibe seções somente no mês e ano do ciclo cadastrado ao navegar", () => {
+  const dados = {
+    ...calendario(),
+    tipos: [
+      {
+        id: "junho",
+        nome: "Seção de junho",
+        cor: "#2155d6",
+        competencia: "2026-06",
+      },
+      {
+        id: "julho",
+        nome: "Seção de julho sem eventos",
+        cor: "#ec5800",
+        competencia: "2026-07",
+      },
+      {
+        id: "outro-ano",
+        nome: "Seção de outro ano",
+        cor: "#2155d6",
+        competencia: "2027-06",
+      },
+    ],
+  };
+  render(
+    <MemoryRouter>
+      <CalendarioContent calendario={dados} agora={agora} />
+    </MemoryRouter>,
+  );
+  const legenda = within(screen.getByLabelText("Categorias de eventos"));
+  expect(legenda.getByText("Seção de junho")).toBeTruthy();
+  expect(legenda.queryByText("Seção de julho sem eventos")).toBeNull();
+  expect(legenda.queryByText("Seção de outro ano")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Próximo mês" }));
+  expect(legenda.queryByText("Seção de junho")).toBeNull();
+  expect(legenda.getByText("Seção de julho sem eventos")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Próximo mês" }));
+  expect(screen.getByLabelText("Categorias de eventos").textContent).toBe("");
 });

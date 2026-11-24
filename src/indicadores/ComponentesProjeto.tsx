@@ -95,6 +95,7 @@ export function KpiProjeto({
   periodo,
   anterior,
   comparar,
+  textoIndisponivel = "Não informado",
   onClick,
 }: {
   titulo: string;
@@ -107,6 +108,7 @@ export function KpiProjeto({
   periodo: string;
   anterior?: number | null;
   comparar?: boolean;
+  textoIndisponivel?: string;
   onClick: () => void;
 }) {
   const delta = variacao(valor, anterior ?? null);
@@ -124,7 +126,11 @@ export function KpiProjeto({
         aria-label={`Detalhar ${titulo}`}
       >
         <strong className={valor === null ? "is-unavailable" : ""}>
-          <Contador valor={valor} casas={casas} />
+          {valor === null ? (
+            textoIndisponivel
+          ) : (
+            <Contador valor={valor} casas={casas} />
+          )}
           {valor !== null && sufixo}
         </strong>
         <span>{nota}</span>

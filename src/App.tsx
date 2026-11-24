@@ -1,3 +1,4 @@
+import { GestaoCiclosPage, EditarCicloPage, VisualizarCicloPage } from './prototipos/cronograma/GestaoCiclosPage';
 import { PrototiposFolhaPesosAbrangenciasPage } from "./prototipos/PrototiposPage";
 import { FichaFinanceiraV2Page } from "./prototipos/fichaFinanceiraV2/FichaFinanceiraV2Page";
 import { HistoricoParametrizacaoPage } from './prototipos/licencas/HistoricoParametrizacaoPage';
@@ -28,7 +29,7 @@ import { RedmineTutorial } from "./RedmineTutorial";
 import { DashboardNomeadosPage } from "./prototipos/ingresso/DashboardNomeadosPage";
 import { DashboardIngressoPage } from "./prototipos/ingresso/DashboardIngressoPage";
 import { PaginaInicialPage } from "./prototipos/paginaInicial/PaginaInicialPage";
-import { CalendarioCronogramaPage, ConfigurarCronogramaPage } from "./prototipos/cronograma/CalendarioCronogramaPage";
+import { CalendarioCronogramaPage } from "./prototipos/cronograma/CalendarioCronogramaPage";
 import { AvisosPage } from "./prototipos/avisos/AvisosPage";
 import { VidaFuncionalPage } from "./prototipos/vidaFuncional/VidaFuncionalPage";
 import { EncerrarVinculoPage } from "./prototipos/encerramentoVinculo/EncerrarVinculoPage";
@@ -1718,7 +1719,11 @@ function App() {
       />
       <Route path="/prototipos/sigep" element={<Navigate to="/prototipos/sigep/pagina-inicial" replace />} />
       <Route path="/prototipos/sigep/pagina-inicial" element={<PaginaInicialPage />} />
-      <Route path="/prototipos/sigep/cronograma/configurar" element={<ConfigurarCronogramaPage />} />
+      <Route path="/prototipos/sigep/cronograma/ciclos" element={<GestaoCiclosPage />} />
+      <Route path="/prototipos/sigep/cronograma/configurar" element={<Navigate to="/prototipos/sigep/cronograma/ciclos" replace />} />
+      <Route path="/prototipos/sigep/cronograma/configurar/:competencia" element={<EditarCicloPage />} />
+      <Route path="/prototipos/sigep/cronograma/ciclos/:competencia/editar" element={<EditarCicloPage />} />
+      <Route path="/prototipos/sigep/cronograma/ciclos/:competencia/visualizar" element={<VisualizarCicloPage />} />
       <Route path="/prototipos/sigep/cronograma" element={<CalendarioCronogramaPage />} />
       <Route path="/prototipos/sigep/avisos-importantes" element={<AvisosPage />} />
       <Route path="/prototipos/sigep/cadastro" element={<PrototiposCadastroGeralPage />} />

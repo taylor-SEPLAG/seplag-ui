@@ -33,7 +33,7 @@ export interface EventoCronograma {
 export interface CalendarioFonte {
   titulo: string;
   competencia: string;
-  tipos: { id: string; nome: string; cor: string }[];
+  tipos: { id: string; nome: string; cor: string; competencia?: string }[];
   eventos: EventoCronograma[];
   semData: number;
 }

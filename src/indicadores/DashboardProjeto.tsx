@@ -109,7 +109,7 @@ export default function DashboardProjeto({
   const abas = secaoAnalise
     ? [
         { id: "analise", titulo: "Produtividade da Análise" },
-        { id: "fluxo", titulo: "Fluxo de Análise (WIP)" },
+        // Fluxo WIP preservado no código; oculto nesta versão simplificada.
       ]
     : ABAS;
   const [estado, setEstado] = useState(carregarBase),
@@ -357,7 +357,9 @@ export default function DashboardProjeto({
             <p>
               {aba === "fluxo"
                 ? "Monitoramento do trabalho em andamento, tempo de ciclo, gargalos e capacidade de conclusão das análises."
-                : "Acompanhamento de capacidade, produtividade, complexidade e evolução das entregas."}
+                : aba === "analise"
+                  ? "Acompanhamento da demanda, complexidade e capacidade dos analistas de requisitos."
+                  : "Acompanhamento de capacidade, produtividade, complexidade e evolução das entregas."}
             </p>
           </div>
           <div className="ind-page-actions">

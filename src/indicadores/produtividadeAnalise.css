@@ -159,3 +159,40 @@
     width: 100%;
   }
 }
+/* Os quatro gráficos mantêm a grade institucional e acomodam seletores simples. */
+.analise-painel .ind-chart-grid > section {
+  min-width: 0;
+}
+.analise-painel .ind-chart-grid > section > label {
+  margin-bottom: 12px;
+}
+.analise-painel .ind-chart-grid > section > .analise-fonte {
+  padding: 0 12px;
+}
+.analise-painel .ind-status {
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.analise-painel .ind-kpi {
+  transition:
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+.analise-painel .ind-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px #12335412;
+}
+.analise-dialog output {
+  align-self: center;
+  color: #123354;
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .analise-painel .ind-kpi {
+    transition: none;
+  }
+  .analise-painel .ind-kpi:hover {
+    transform: none;
+  }
+}

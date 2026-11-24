@@ -69,94 +69,92 @@ const montar = (secaoAnalise = false) =>
 const card = (nome: string) =>
   screen.getByRole("button", { name: `Detalhar ${nome}` });
 
-it("integra produtividade sem confundir a conclusão do desenvolvimento com análise e abre o relatório próprio", async () => {
+it("integra quatro indicadores sem dados fictícios e oculta WIP", async () => {
   montar(true);
-  fireEvent.click(
-    screen.getByRole("tab", { name: "Produtividade da Análise" }),
-  );
-  expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
-    "Produtividade e Capacidade da Análise",
-  );
   await waitFor(() =>
     expect(card("Histórias atribuídas").textContent).toContain("144"),
   );
-  expect(card("Histórias com análise concluída").textContent).toContain(
+  expect(card("Complexidade média da análise").textContent).toContain(
+    "Não classificado",
+  );
+  expect(card("Tempo médio de levantamento").textContent).toContain(
     "Não informado",
   );
-  expect(card("Capacity da equipe").textContent).toContain("Não informado");
+  expect(card("Analistas da equipe").textContent).toContain("Não informado");
+  expect(
+    screen.queryByRole("tab", { name: "Fluxo de Análise (WIP)" }),
+  ).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Exportar relatório" }));
-  const dialog = screen.getByRole("dialog");
   expect(
-    within(dialog).getByRole("button", { name: "Exportar PDF" }),
-  ).toBeTruthy();
-  expect(
-    within(dialog).getByRole("button", { name: "Exportar Excel" }),
+    within(screen.getByRole("dialog")).getByRole("button", {
+      name: "Exportar resumo",
+    }),
   ).toBeTruthy();
 });
-
-it("salva atividade com datas e captura a conclusão explícita da especificação sem alterar a base importada", async () => {
+it("persiste ICA por US com histórico e preserva dados legados e planilha", async () => {
+  localStorage.setItem("sigep:analise:v1", "legado");
   montar(true);
-  fireEvent.click(
-    screen.getByRole("tab", { name: "Produtividade da Análise" }),
-  );
-  fireEvent.click(screen.getByRole("button", { name: "Registrar atividade" }));
-  const dialog = screen.getByRole("dialog"),
-    form = within(dialog);
-  const h = base.historias.find((h) => h.analistas.length)!;
-  fireEvent.change(form.getByLabelText("Analista"), {
-    target: { value: h.analistas[0] },
-  });
-  fireEvent.change(form.getByLabelText("Sprint"), {
-    target: { value: String(h.sprint) },
-  });
-  fireEvent.change(form.getByLabelText(/História \(US\)/), {
-    target: { value: h.codigo },
-  });
-  fireEvent.change(form.getByLabelText("Tipo de atividade"), {
-    target: { value: "Especificação" },
-  });
-  fireEvent.change(form.getByLabelText("Data de início"), {
-    target: { value: "2026-11-02" },
-  });
-  fireEvent.change(form.getByLabelText("Data de conclusão"), {
-    target: { value: "2026-11-04" },
-  });
-  fireEvent.change(form.getByLabelText("Horas dedicadas"), {
-    target: { value: "6" },
-  });
-  fireEvent.change(form.getByLabelText("Situação"), {
-    target: { value: "Concluída" },
-  });
-  fireEvent.click(form.getByRole("button", { name: "Salvar registro" }));
+  const classificar = () => {
+    fireEvent.click(
+      screen.getByRole("button", { name: "Classificar Complexidade" }),
+    );
+    const f = within(screen.getByRole("dialog"));
+    fireEvent.change(f.getByLabelText("Seleção da US"), {
+      target: { value: "US008" },
+    });
+    return f;
+  };
+  const f = classificar();
+  for (const label of [
+    "Regras de negócio",
+    "Fluxos e telas",
+    "Dependências",
+    "Validação dos requisitos",
+  ])
+    fireEvent.change(f.getByLabelText(label), { target: { value: "3" } });
+  fireEvent.click(f.getByRole("button", { name: "Salvar" }));
   await waitFor(() =>
-    expect(card("Histórias com análise concluída").textContent).toContain("1"),
+    expect(card("Complexidade média da análise").textContent).toContain("12,0"),
   );
-  const salvo = JSON.parse(localStorage.getItem("sigep:analise:v1")!);
-  expect(salvo.atividades[0].horas).toBe(6);
-  expect(salvo.transicoes.map((t: { etapa: string }) => t.etapa)).toEqual([
-    "Especificação",
-    "Conclusão da especificação",
-  ]);
+  const edicao = classificar();
+  expect(
+    (edicao.getByLabelText("Regras de negócio") as HTMLSelectElement).value,
+  ).toBe("3");
+  fireEvent.change(edicao.getByLabelText("Regras de negócio"), {
+    target: { value: "1" },
+  });
+  fireEvent.click(edicao.getByRole("button", { name: "Salvar" }));
+  expect(
+    JSON.parse(localStorage.getItem("sigep:analise-simples:v1")!)
+      .classificacoes,
+  ).toHaveLength(2);
+  expect(localStorage.getItem("sigep:analise:v1")).toBe("legado");
   expect(localStorage.getItem("sigep:indicadores-projeto:v1")).toBeNull();
-  expect(card("Tempo médio de análise").textContent).toContain("Não informado");
 });
-
-it("mantém simulação separada e permite filtrar analistas no drawer de origem", async () => {
+it("registra datas e abre detalhamento das histórias", async () => {
   montar(true);
   fireEvent.click(
-    screen.getByRole("tab", { name: "Produtividade da Análise" }),
+    screen.getAllByRole("button", { name: "Registrar Levantamento" })[0],
   );
-  fireEvent.click(screen.getByRole("button", { name: "Simular Capacity" }));
-  const dialog = screen.getByRole("dialog");
-  fireEvent.change(within(dialog).getByLabelText("Quantidade de analistas"), {
-    target: { value: "4" },
+  const f = within(screen.getByRole("dialog"));
+  fireEvent.change(f.getByLabelText("Seleção da US"), {
+    target: { value: "US008" },
   });
-  expect(dialog.textContent).toContain("240,0 h");
-  expect(localStorage.getItem("sigep:analise:v1")).toBeNull();
-  fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+  fireEvent.change(f.getByLabelText("Data de início do levantamento"), {
+    target: { value: "2026-11-20" },
+  });
+  fireEvent.change(f.getByLabelText("Data de envio para validação"), {
+    target: { value: "2026-11-24" },
+  });
+  fireEvent.click(f.getByRole("button", { name: "Salvar" }));
+  await waitFor(() =>
+    expect(card("Tempo médio de levantamento").textContent).toContain("2,0"),
+  );
   fireEvent.click(card("Histórias atribuídas"));
-  expect(screen.getByLabelText("Analista do detalhamento")).toBeTruthy();
-  expect(screen.getByLabelText("Sprint do detalhamento")).toBeTruthy();
+  expect(
+    screen.getAllByRole("columnheader", { name: "Complexidade da Análise" })
+      .length,
+  ).toBe(2);
 });
 
 it("abre na Visão Geral, mostra os dados reais e permite navegar pelas abas com teclado", async () => {
@@ -488,5 +486,67 @@ it("corrige uma importação salva com férias na Sprint 22 e adiadas para a Spr
     expect(
       card("Histórias distintas").querySelector("strong")?.textContent,
     ).toBe("33"),
+  );
+});
+
+it("registra equipe histórica sem percentual presumido e permite editar dedicação", async () => {
+  montar(true);
+  fireEvent.click(screen.getByRole("button", { name: "Gerenciar Equipe" }));
+  const f = within(screen.getByRole("dialog"));
+  fireEvent.change(f.getByLabelText("Analista"), {
+    target: { value: "Carlos" },
+  });
+  fireEvent.change(
+    f.getByLabelText("Data de entrada no SIGEP / início da alocação"),
+    { target: { value: "2026-07-17" } },
+  );
+  fireEvent.change(f.getByLabelText("Tipo de dedicação"), {
+    target: { value: "Parcial" },
+  });
+  fireEvent.click(f.getByRole("button", { name: "Salvar" }));
+  let salvo = JSON.parse(localStorage.getItem("sigep:analise-simples:v1")!);
+  expect(salvo.alocacoes[0].percentual).toBeNull();
+  fireEvent.click(f.getByRole("button", { name: "Editar" }));
+  fireEvent.change(
+    f.getByLabelText("Percentual de dedicação ao SIGEP (opcional)"),
+    { target: { value: "40" } },
+  );
+  fireEvent.click(f.getByRole("button", { name: "Salvar" }));
+  salvo = JSON.parse(localStorage.getItem("sigep:analise-simples:v1")!);
+  expect(salvo.alocacoes).toHaveLength(1);
+  expect(salvo.alocacoes[0].percentual).toBe(40);
+  fireEvent.click(f.getByRole("button", { name: "Fechar" }));
+  await waitFor(() =>
+    expect(card("Analistas da equipe").textContent).toContain("1"),
+  );
+});
+it("rejeita backup inválido sem substituir dados complementares", async () => {
+  const registro = {
+    versao: 1,
+    classificacoes: [],
+    levantamentos: [],
+    alocacoes: [],
+    feriados: ["2026-11-20"],
+  };
+  localStorage.setItem("sigep:analise-simples:v1", JSON.stringify(registro));
+  montar(true);
+  const input = document.querySelector(
+    'input[accept=".json,application/json"]',
+  )!;
+  fireEvent.change(input, {
+    target: {
+      files: [
+        {
+          text: async () =>
+            JSON.stringify({ ...registro, feriados: ["2026-02-30"] }),
+        },
+      ],
+    },
+  });
+  await waitFor(() =>
+    expect(screen.getByText(/Arquivo inválido ou armazenamento/)).toBeTruthy(),
+  );
+  expect(JSON.parse(localStorage.getItem("sigep:analise-simples:v1")!)).toEqual(
+    registro,
   );
 });

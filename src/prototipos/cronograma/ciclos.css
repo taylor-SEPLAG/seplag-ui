@@ -1,0 +1,180 @@
+.ciclos-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.ciclos-heading .v2v-description {
+  margin: 0;
+}
+.ciclos-filtro.v2v-filters {
+  grid-template-columns: minmax(150px, 240px);
+}
+.ciclos-total {
+  padding-top: 14px;
+  color: #5c7289;
+  font-size: 0.85rem;
+}
+.ciclos-modal.v2v-page {
+  display: grid;
+  gap: 18px;
+  padding: 8px;
+  background: white;
+}
+@media (max-width: 650px) {
+  .ciclos-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+.cronograma-config-campos {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.cronograma-config-campos:disabled button,
+.cronograma-config-campos:disabled .prototype-folha-home-drag-handle {
+  display: none;
+}
+.ciclos-voltar {
+  padding: 16px 0 4px;
+}
+.ciclos-periodo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.ciclos-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ciclos-reaproveitar p,
+.ciclos-referencia p {
+  margin: 8px 0 0;
+  color: #5c7289;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.ciclos-referencia,
+.cronograma-config-aviso {
+  padding: 16px;
+  border: 1px solid #cbdff6;
+  border-radius: 6px;
+  background: #edf5ff;
+  color: #245582;
+}
+@media (max-width: 420px) {
+  .ciclos-periodo {
+    grid-template-columns: 1fr;
+  }
+}
+/* A consulta não utiliza as colunas reservadas aos controles de manutenção. */
+.prototype-folha-home-schedule-config .cronograma-config-campos:disabled {
+  display: grid;
+  gap: 20px;
+}
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  .prototype-folha-home-config-list {
+  display: grid;
+  gap: 20px;
+}
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  .prototype-folha-home-config-section-head {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 14px 16px;
+}
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  .prototype-folha-home-icon-actions,
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  .prototype-folha-home-config-event-header
+  > span:first-child,
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  .prototype-folha-home-config-event-header
+  > span:last-child {
+  display: none;
+}
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  .prototype-folha-home-config-observation-field {
+  margin: 16px 0;
+}
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  .prototype-folha-home-config-event-header,
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  .prototype-folha-home-config-event {
+  grid-template-columns: minmax(185px, 0.3fr) minmax(185px, 0.3fr) minmax(
+      0,
+      1fr
+    );
+  gap: 16px;
+  padding: 12px 16px;
+}
+.prototype-folha-home-schedule-config .cronograma-config-campos:disabled input,
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  opacity: 1;
+  -webkit-text-fill-color: #123354;
+}
+@media (max-width: 850px) {
+  .prototype-folha-home-schedule-config
+    .cronograma-config-campos:disabled
+    .prototype-folha-home-config-event-header {
+    display: none;
+  }
+  .prototype-folha-home-schedule-config
+    .cronograma-config-campos:disabled
+    .prototype-folha-home-config-event {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .prototype-folha-home-schedule-config
+    .cronograma-config-campos:disabled
+    .prototype-folha-home-config-event
+    label::before {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.78rem;
+    color: #4b5563;
+  }
+  .prototype-folha-home-schedule-config
+    .cronograma-config-campos:disabled
+    .prototype-folha-home-config-event
+    label:nth-of-type(1)::before {
+    content: "Data início";
+  }
+  .prototype-folha-home-schedule-config
+    .cronograma-config-campos:disabled
+    .prototype-folha-home-config-event
+    label:nth-of-type(2)::before {
+    content: "Data fim";
+  }
+  .prototype-folha-home-schedule-config
+    .cronograma-config-campos:disabled
+    .prototype-folha-home-config-event
+    label:nth-of-type(3)::before {
+    content: "Descrição";
+  }
+}
+.prototype-folha-home-schedule-config
+  .cronograma-config-campos:disabled
+  .prototype-folha-home-config-event
+  label
+  input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}

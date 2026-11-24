@@ -29,11 +29,17 @@ function aparenciaTipo(cor: string) {
 }
 export function CalendarioContent({
   calendario,
+  mesInicial,
+  somenteLeitura = false,
+  voltarPath,
   agora = new Date(),
   homePath = HOME,
   cronogramaPath = CALENDARIO_CRONOGRAMA_PATH,
 }: {
   calendario: CalendarioFonte;
+  mesInicial?: string;
+  somenteLeitura?: boolean;
+  voltarPath?: string;
   agora?: Date;
   homePath?: string;
   cronogramaPath?: string;
@@ -42,14 +48,13 @@ export function CalendarioContent({
   const hoje = diaCuiaba(agora);
   const [mesEscolhido, setMes] = useState<string | null>(null);
   const [diaEscolhido, setDia] = useState<string | null>(null);
-  const mes = mesEscolhido ?? hoje.slice(0, 7);
-  const dia = diaEscolhido ?? hoje;
+  const mes = mesEscolhido ?? mesInicial ?? hoje.slice(0, 7);
+  const dia = diaEscolhido ?? (mesInicial ? `${mesInicial}-01` : hoje);
   const [modo, setModo] = useState<"mes" | "lista">("mes");
   const [busca, setBusca] = useState("");
   const filtro = normalizar(busca.trim());
-  const filtrados = calendario.eventos.filter(
-    (evento) =>
-      normalizar(`${evento.nome} ${evento.descricao}`).includes(filtro),
+  const filtrados = calendario.eventos.filter((evento) =>
+    normalizar(`${evento.nome} ${evento.descricao}`).includes(filtro),
   );
   const noMes = eventosDoMes(filtrados, mes);
   const disponivel = eventosDoMes(calendario.eventos, mes).length > 0;
@@ -87,7 +92,7 @@ export function CalendarioContent({
             className="sigep-cronograma-voltar-acao"
             unstyled
             raised={false}
-            onClick={() => navigate(homePath)}
+            onClick={() => navigate(voltarPath ?? homePath)}
           />
         </div>
         <header className="sigep-cronograma-header">
@@ -96,24 +101,30 @@ export function CalendarioContent({
               <i className="pi pi-calendar" aria-hidden="true" />
             </span>
             <div>
-              <h1>Cronograma da Folha</h1>
+              <h1>
+                {cronogramaPath.startsWith("/prototipos/sigep/folha/")
+                  ? "Cronograma da Folha"
+                  : "Cronograma"}
+              </h1>
               <p>{calendario.titulo}</p>
             </div>
           </div>
-          <div className="sigep-cronograma-header-acoes">
-            <BotaoSeplag
-              type="button"
-              label="Configurar cronograma"
-              icon="pi pi-cog"
-              onClick={() =>
-                navigate(
-                  cronogramaPath.startsWith("/prototipos/sigep/folha/")
-                    ? "/prototipos/folha/cronograma"
-                    : "/prototipos/sigep/cronograma/configurar",
-                )
-              }
-            />
-          </div>
+          {!somenteLeitura && (
+            <div className="sigep-cronograma-header-acoes">
+              <BotaoSeplag
+                type="button"
+                label="Configurar cronograma"
+                icon="pi pi-cog"
+                onClick={() =>
+                  navigate(
+                    cronogramaPath.startsWith("/prototipos/sigep/folha/")
+                      ? "/prototipos/folha/cronograma"
+                      : "/prototipos/sigep/cronograma/ciclos",
+                  )
+                }
+              />
+            </div>
+          )}
         </header>
       </div>
       <section
@@ -180,16 +191,23 @@ export function CalendarioContent({
             </button>
           </div>
         </div>
-        <div className="sigep-cronograma-legenda" aria-label="Tipos de folha">
-          {calendario.tipos.map((item) => (
-            <span key={item.id}>
-              <i
-                style={{ background: aparenciaTipo(item.cor).cor }}
-                aria-hidden="true"
-              />
-              {item.nome}
-            </span>
-          ))}
+        <div
+          className="sigep-cronograma-legenda"
+          aria-label="Categorias de eventos"
+        >
+          {calendario.tipos
+            .filter(
+              (item) => (item.competencia ?? calendario.competencia) === mes,
+            )
+            .map((item) => (
+              <span key={item.id}>
+                <i
+                  style={{ background: aparenciaTipo(item.cor).cor }}
+                  aria-hidden="true"
+                />
+                {item.nome}
+              </span>
+            ))}
         </div>
         {!disponivel && (
           <p className="sigep-cronograma-vazio" role="status">
@@ -203,8 +221,8 @@ export function CalendarioContent({
         )}
         {calendario.semData > 0 && (
           <p className="sigep-cronograma-aviso">
-            {calendario.semData} evento(s) sem período válido na configuração da
-            folha. Não é possível posicioná-los no calendário.
+            {calendario.semData} evento(s) sem período válido na configuração do
+            cronograma. Não é possível posicioná-los no calendário.
           </p>
         )}
         {modo === "mes" ? (

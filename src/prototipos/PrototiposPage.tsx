@@ -4869,13 +4869,13 @@ interface FolhaTabelaReferenciaFiltroForm {
   tabela?: string;
 }
 
-interface FolhaCronogramaEvento {
+export interface FolhaCronogramaEvento {
   periodo: string;
   descricao: string;
   status: string;
 }
 
-interface FolhaCronogramaSecao {
+export interface FolhaCronogramaSecao {
   id: number;
   titulo: string;
   marcador: string;
@@ -4883,7 +4883,7 @@ interface FolhaCronogramaSecao {
   eventos: FolhaCronogramaEvento[];
 }
 
-interface FolhaCronogramaState {
+export interface FolhaCronogramaState {
   tituloCiclo: string;
   secoes: FolhaCronogramaSecao[];
 }
@@ -25130,9 +25130,10 @@ export function PrototiposFolhaPage({
   );
 }
 
-export function PrototiposFolhaCronogramaPage({ sigep = false }: { sigep?: boolean } = {}) {
+export function PrototiposFolhaCronogramaPage({ sigep = false, avisoInicial, somenteLeitura = false, cicloInicial, competenciaCiclo, aoSalvarCiclo, aoVoltarCiclos }: { sigep?: boolean; avisoInicial?: string; somenteLeitura?: boolean; cicloInicial?: FolhaCronogramaState; competenciaCiclo?: string; aoSalvarCiclo?: (configuracao: FolhaCronogramaState) => Promise<void>; aoVoltarCiclos?: () => void } = {}) {
   const navigate = useNavigate();
-  const cronogramaInicial = loadFolhaCronogramaState();
+  const [cronogramaInicial] = useState(() => cicloInicial ?? loadFolhaCronogramaState());
+  const [salvandoCiclo, setSalvandoCiclo] = useState(false);
   const [tituloCiclo, setTituloCiclo] = useState(cronogramaInicial.tituloCiclo);
   const [homeFormError, setHomeFormError] = useState("");
   const [eventoArrastado, setEventoArrastado] = useState<{
@@ -25144,11 +25145,12 @@ export function PrototiposFolhaCronogramaPage({ sigep = false }: { sigep?: boole
     useState<FolhaCronogramaSecao[]>(cronogramaInicial.secoes);
 
   useEffect(() => {
+    if (aoSalvarCiclo || somenteLeitura) return;
     saveFolhaCronogramaState({
       tituloCiclo,
       secoes: cronogramasFolha,
     });
-  }, [tituloCiclo, cronogramasFolha]);
+  }, [tituloCiclo, cronogramasFolha, aoSalvarCiclo, somenteLeitura]);
 
   const parsePeriodoEvento = (periodo: string) => {
     const partes = periodo.split(" - ").map((item) => item.trim());
@@ -25168,9 +25170,9 @@ export function PrototiposFolhaCronogramaPage({ sigep = false }: { sigep?: boole
     const { dataInicio, dataFim, horario } = parsePeriodoEvento(periodo);
     const normalizarDataHora = (value: string) => {
       if (!value) return "";
-      if (/\d{4}/.test(value)) return value;
+      if (/\d{4}/.test(value)) return `${value}${horario && !/\b\d{2}:\d{2}\b/.test(value) ? ` ${horario}` : ""}`;
 
-      return `${value}/2026${horario ? ` ${horario}` : ""}`.trim();
+      return `${value}/${competenciaCiclo?.slice(0,4) ?? "2026"}${horario ? ` ${horario}` : ""}`.trim();
     };
 
     return {
@@ -25336,21 +25338,26 @@ export function PrototiposFolhaCronogramaPage({ sigep = false }: { sigep?: boole
       <div className="prototype-page-content prototype-page-content--white prototype-folha-cronograma-page">
         <CardSeplag
           headerNavigation={
+            <>
             <BreadcrumbSeplag
               divided
               homeTo={sigep ? "/prototipos/sigep/pagina-inicial" : FOLHA_PAGINA_INICIAL_PATH}
               items={[
                 { label: "Página Inicial", to: sigep ? "/prototipos/sigep/pagina-inicial" : FOLHA_PAGINA_INICIAL_PATH },
                 { label: "Cronograma", to: sigep ? "/prototipos/sigep/cronograma" : "/prototipos/sigep/folha/calendario" },
-                { label: "Configurar cronograma", to: sigep ? "/prototipos/sigep/cronograma/configurar" : "/prototipos/folha/cronograma" },
+                ...(competenciaCiclo ? [{ label: "Gestão de Ciclos do Cronograma", to: `/prototipos/sigep/cronograma/ciclos?ano=${competenciaCiclo.slice(0,4)}` }] : []),
+                { label: somenteLeitura ? "Visualizar configuração do cronograma" : "Configurar cronograma", to: sigep && competenciaCiclo ? `/prototipos/sigep/cronograma/configurar/${competenciaCiclo}${somenteLeitura ? "?visualizar=1" : ""}` : sigep ? "/prototipos/sigep/cronograma/configurar" : "/prototipos/folha/cronograma" },
               ]}
             />
+            </>
           }
-          title="Configurar cronograma"
+          title={somenteLeitura ? "Visualizar configuração do cronograma" : "Configurar cronograma"}
           cols="12"
           cardHeaderClassNames="prototype-regime-card"
         >
           <div className="prototype-folha-home-schedule-config prototype-folha-home-schedule-config--page">
+            {avisoInicial && <p className="cronograma-config-aviso" role="status">{avisoInicial}</p>}
+            <fieldset disabled={somenteLeitura} className="cronograma-config-campos" aria-label={somenteLeitura ? "Configuração do cronograma em modo de visualização" : "Configuração do cronograma"}>
             <label className="prototype-folha-cronograma-title-field">
               Título do ciclo
               <input
@@ -25373,6 +25380,7 @@ export function PrototiposFolhaCronogramaPage({ sigep = false }: { sigep?: boole
                     if (secaoArrastadaId) event.preventDefault();
                   }}
                   onDrop={() => {
+                    if (somenteLeitura) return;
                     if (secaoArrastadaId) {
                       moverSecaoCronograma(secaoArrastadaId, cronograma.id);
                       setSecaoArrastadaId(null);
@@ -25383,7 +25391,7 @@ export function PrototiposFolhaCronogramaPage({ sigep = false }: { sigep?: boole
                     <i
                       className="pi pi-bars prototype-folha-home-drag-handle"
                       aria-hidden="true"
-                      draggable
+                      draggable={!somenteLeitura}
                       onDragStart={() => setSecaoArrastadaId(cronograma.id)}
                       onDragEnd={() => setSecaoArrastadaId(null)}
                     />
@@ -25453,7 +25461,7 @@ export function PrototiposFolhaCronogramaPage({ sigep = false }: { sigep?: boole
                         <div
                           key={`${cronograma.id}-${eventoIndex}-${evento.periodo}-${evento.descricao}`}
                           className="prototype-folha-home-config-event"
-                          draggable
+                          draggable={!somenteLeitura}
                           onDragStart={() =>
                             setEventoArrastado({
                               cronogramaId: cronograma.id,
@@ -25549,24 +25557,31 @@ export function PrototiposFolhaCronogramaPage({ sigep = false }: { sigep?: boole
               <i className="pi pi-plus" aria-hidden="true" />
               Nova seção
             </button>
+            </fieldset>
             <div className="prototype-folha-home-modal-actions">
-              <BotaoVoltarSeplag
+              {(!aoVoltarCiclos || somenteLeitura) && <BotaoVoltarSeplag
                 type="button"
                 label="Voltar"
-                onClick={() => navigate(sigep ? "/prototipos/sigep/cronograma" : "/prototipos/sigep/folha/calendario")}
-              />
-              <BotaoSalvarSeplag
+                onClick={() => aoVoltarCiclos ? aoVoltarCiclos() : navigate(sigep ? "/prototipos/sigep/cronograma" : "/prototipos/sigep/folha/calendario")}
+              />}
+              {!somenteLeitura && <BotaoSalvarSeplag
                 type="button"
                 label="Salvar"
                 icon="pi pi-save"
-                onClick={() => {
-                  saveFolhaCronogramaState({
-                    tituloCiclo,
-                    secoes: cronogramasFolha,
-                  });
+                disabled={salvandoCiclo}
+                onClick={async () => {
+                  if (somenteLeitura) return;
+                  if (aoSalvarCiclo) {
+                    setSalvandoCiclo(true);
+                    try { await aoSalvarCiclo({ tituloCiclo, secoes: cronogramasFolha }); }
+                    catch (erro) { setHomeFormError(erro instanceof Error ? erro.message : "Não foi possível salvar o ciclo."); }
+                    finally { setSalvandoCiclo(false); }
+                    return;
+                  }
+                  saveFolhaCronogramaState({ tituloCiclo, secoes: cronogramasFolha });
                   navigate(sigep ? "/prototipos/sigep/cronograma" : "/prototipos/sigep/folha/calendario");
                 }}
-              />
+              />}
             </div>
           </div>
         </CardSeplag>

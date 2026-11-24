@@ -9,7 +9,10 @@ import {
   within,
 } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import DashboardProjeto from "./DashboardProjeto";
+import FluxoAnalise from "./FluxoAnalise";
+import type { ContextoProjeto } from "./AbasProjeto";
+import type { DadosProjeto } from "./types";
+import { filtrosIniciais, primeirasAparicoes, resumir } from "./modelo";
 import { CHAVE_FLUXO, novoFluxo, type MovimentoFluxo } from "./fluxoModelo";
 import type { PropsGraficoFluxo } from "./GraficoFluxo";
 import base from "./dados-iniciais.json";
@@ -84,21 +87,38 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 const montar = () => {
+  const dados = base as DadosProjeto,
+    primeiras = primeirasAparicoes(dados.historias);
+  const ctx: ContextoProjeto = {
+    dados,
+    historias: dados.historias,
+    filtros: filtrosIniciais(dados),
+    primeiras,
+    periodo: "Sprints 18 a 23",
+    resumo: resumir(dados.historias, primeiras),
+    anterior: null,
+    sprints: [],
+    foco: null,
+    abrir: () => {},
+    destacar: () => {},
+    filtrarModulo: () => {},
+  };
   render(
     <MemoryRouter>
-      <DashboardProjeto secaoAnalise />
+      <h1>Gestão do Fluxo de Análise</h1>
+      <button
+        onClick={() => window.dispatchEvent(new Event("sigep:fluxo-relatorio"))}
+      >
+        Exportar relatório
+      </button>
+      <FluxoAnalise ctx={ctx} />
     </MemoryRouter>,
   );
-  fireEvent.click(screen.getByRole("tab", { name: "Fluxo de Análise (WIP)" }));
 };
 const card = (nome: string) =>
   screen.getByRole("button", { name: `Detalhar ${nome}` });
-it("abre o submenu com abas próprias e mantém indicadores desconhecidos sem histórico", () => {
+it("preserva módulo WIP fora da navegação simplificada e mantém lacunas sem histórico", () => {
   montar();
-  expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual([
-    "Produtividade da Análise",
-    "Fluxo de Análise (WIP)",
-  ]);
   expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
     "Gestão do Fluxo de Análise",
   );
