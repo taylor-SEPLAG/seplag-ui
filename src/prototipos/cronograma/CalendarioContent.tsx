@@ -101,11 +101,7 @@ export function CalendarioContent({
               <i className="pi pi-calendar" aria-hidden="true" />
             </span>
             <div>
-              <h1>
-                {cronogramaPath.startsWith("/prototipos/sigep/folha/")
-                  ? "Cronograma da Folha"
-                  : "Cronograma"}
-              </h1>
+              <h1>Cronograma da Folha</h1>
               <p>{calendario.titulo}</p>
             </div>
           </div>

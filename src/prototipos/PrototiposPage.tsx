@@ -25559,11 +25559,11 @@ export function PrototiposFolhaCronogramaPage({ sigep = false, avisoInicial, som
             </button>
             </fieldset>
             <div className="prototype-folha-home-modal-actions">
-              {(!aoVoltarCiclos || somenteLeitura) && <BotaoVoltarSeplag
+              <BotaoVoltarSeplag
                 type="button"
                 label="Voltar"
                 onClick={() => aoVoltarCiclos ? aoVoltarCiclos() : navigate(sigep ? "/prototipos/sigep/cronograma" : "/prototipos/sigep/folha/calendario")}
-              />}
+              />
               {!somenteLeitura && <BotaoSalvarSeplag
                 type="button"
                 label="Salvar"
