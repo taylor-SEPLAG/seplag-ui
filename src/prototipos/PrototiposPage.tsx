@@ -16,7 +16,7 @@ import type { ProcessamentoFolhaForm } from "./folhaPagamento/types";
 import { camposAbrangenciaFolha, criteriosDaFolha, normalizarCriteriosDaFolha } from "./folhaPagamento/abrangenciaFolhaPagamento";
 import "./vinculos/vinculoV2.css";
 import { areasNavegacaoFolha } from "./navigation/folhaNavigation";
-import { abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, carreirasDosCargos, temAbrangencia, lerAbrangenciaGrupo, salvarAbrangenciaGrupo, filtrarVinculosElegiveis, type CriteriosAbrangencia, type CatalogoAbrangencia } from "./folhaPagamento/abrangenciaGrupoCalculo";
+import { opcoesHierarquiaGrupo, ajustarHierarquiaGrupo, abrangenciaVazia, ajustarAbrangencia, opcoesAbrangencia, carreirasDosCargos, temAbrangencia, lerAbrangenciaGrupo, salvarAbrangenciaGrupo, filtrarVinculosElegiveis, type CriteriosAbrangencia, type CatalogoAbrangencia } from "./folhaPagamento/abrangenciaGrupoCalculo";
 import { RevisaoImpactados, type ResultadoRevisao } from "./folhaPagamento/RevisaoImpactados";
 import { lerEstruturaOrganizacional } from "./estruturaOrganizacional/estruturaOrganizacionalStore";
 import { todos as vinculosParaGrupoCalculo } from "./vinculos/vinculoDados";
@@ -34857,10 +34857,11 @@ function PrototiposFolhaGrupoCalculoFormContent() {
   const catalogoAbrangencia = useMemo(criarCatalogoAbrangenciaFolha, []);
   const chaveAbrangencia = `${competenciaSelecionada}:${modoVersionamento ? `${id}:v${versaoEmEdicao}` : id ?? "novo"}`;
   const [abrangenciaInicial] = useState(() => {
+    if (!isEdit) return abrangenciaVazia();
     const base = grupo ? abrangenciaLegadaGrupo(grupo, catalogoAbrangencia) : abrangenciaVazia();
     const anterior = modoVersionamento ? lerAbrangenciaGrupo(`${competenciaSelecionada}:${id}`, base) : base;
     const salva = lerAbrangenciaGrupo(chaveAbrangencia, anterior);
-    return ajustarAbrangencia(abrangenciaLegadaGrupo({ abrangencia: salva }, catalogoAbrangencia), catalogoAbrangencia);
+    return ajustarHierarquiaGrupo(abrangenciaLegadaGrupo({ abrangencia: salva }, catalogoAbrangencia), catalogoAbrangencia);
   });
   const [erroAbrangencia, setErroAbrangencia] = useState("");
   const [validacaoConflitosSolicitada, setValidacaoConflitosSolicitada] = useState(false);
@@ -34911,9 +34912,9 @@ function PrototiposFolhaGrupoCalculoFormContent() {
     carreiras: watch("abrangenciaCarreiras") ?? [], orgaos: watch("abrangenciaOrgao") ?? [],
     unidades: watch("abrangenciaUnidades") ?? [], cargos: watch("abrangenciaCargos") ?? [],
   };
-  const opcoesDaAbrangencia = opcoesAbrangencia(abrangenciaAtual, catalogoAbrangencia);
+  const opcoesDaAbrangencia = opcoesHierarquiaGrupo(abrangenciaAtual, catalogoAbrangencia);
   const aplicarAbrangencia = (criterios: CriteriosAbrangencia) => {
-    const novos = ajustarAbrangencia({ ...criterios, unidades: criterios.orgaos.length ? criterios.unidades : [] }, catalogoAbrangencia);
+    const novos = ajustarHierarquiaGrupo({ ...criterios, unidades: criterios.orgaos.length ? criterios.unidades : [] }, catalogoAbrangencia);
     for (const campo of Object.keys(camposAbrangencia) as (keyof CriteriosAbrangencia)[]) setValue(camposAbrangencia[campo], novos[campo], { shouldDirty: true });
     setErroAbrangencia("");
   };
@@ -34938,14 +34939,14 @@ function PrototiposFolhaGrupoCalculoFormContent() {
     return false;
   };
   const salvarCriteriosAbrangencia = () => {
-    const criterios = ajustarAbrangencia(abrangenciaAtual, catalogoAbrangencia);
+    const criterios = ajustarHierarquiaGrupo(abrangenciaAtual, catalogoAbrangencia);
     const elegiveis = filtrarVinculosElegiveis(vinculosParaGrupoCalculo(), criterios, catalogoAbrangencia).map(v => v.id);
     salvarAbrangenciaGrupo(chaveAbrangencia, criterios, elegiveis);
   };
   const persistirRegistro = (situacao: "RASCUNHO" | "ATIVO") => {
     if(!validarCompetencia())return false;
     const nome=(watch("nome")??"").trim();if(!nome){setErroAbrangencia("Informe o nome do grupo.");return false;}
-    const criterios=ajustarAbrangencia(abrangenciaAtual,catalogoAbrangencia);
+    const criterios=ajustarHierarquiaGrupo(abrangenciaAtual,catalogoAbrangencia);
     const ativas=rubricasGerenciadas.filter(r=>!r.excluida);
     const registro: GrupoCalculoRow = {
       ...grupo,id:grupo?.id??Date.now(),codigo:grupo?.codigo??("G"+Date.now()),grupo:nome,nivel:grupo?.nivel??1,
@@ -35176,32 +35177,32 @@ function PrototiposFolhaGrupoCalculoFormContent() {
               <div className="grid prototype-category-form-fields">
                 <MultiSelectFieldSeplag
                   name={camposAbrangencia.regimes} control={control} label="Regime Jurídico" cols="12 12 6"
-                  disabled={formularioBloqueado} options={opcoesDaAbrangencia.regimes}
+                  disabled={formularioBloqueado || Boolean(abrangenciaAtual.tipos.length || abrangenciaAtual.orgaos.length || abrangenciaAtual.cargos.length)} options={opcoesDaAbrangencia.regimes}
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} regimes selecionados"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, regimes: valores })} getFormErrorMessage={() => null}
                 />
                 <MultiSelectFieldSeplag
                   name={camposAbrangencia.tipos} control={control} label="Tipo de Vínculo" cols="12 12 6"
-                  disabled={formularioBloqueado} options={opcoesDaAbrangencia.tipos}
+                  disabled={formularioBloqueado || Boolean(abrangenciaAtual.orgaos.length || abrangenciaAtual.cargos.length)} options={opcoesDaAbrangencia.tipos}
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} vínculos selecionados"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, tipos: valores })} getFormErrorMessage={() => null}
                 />
                 <MultiSelectFieldSeplag
                   name={camposAbrangencia.orgaos} control={control} label="Órgão/Entidade" cols="12 12 6"
-                  disabled={formularioBloqueado} options={opcoesDaAbrangencia.orgaos}
+                  disabled={formularioBloqueado || Boolean(abrangenciaAtual.cargos.length)} options={opcoesDaAbrangencia.orgaos}
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} órgãos/entidades selecionados"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, orgaos: valores })} getFormErrorMessage={() => null}
                 />
                 <MultiSelectFieldSeplag
                   name={camposAbrangencia.unidades} control={control} label="Unidade de Lotação" cols="12 12 6"
-                  disabled={formularioBloqueado || !abrangenciaAtual.orgaos.length} options={opcoesDaAbrangencia.unidades}
+                  disabled={formularioBloqueado || Boolean(abrangenciaAtual.cargos.length) || !abrangenciaAtual.orgaos.length} options={opcoesDaAbrangencia.unidades}
                   optionLabel="label" optionValue="value" dataKey="value" selectedItemsLabel="{0} unidades selecionadas"
                   onChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, unidades: valores })} getFormErrorMessage={() => null}
                 />
                 <div className="col-12">
                   <CarreiraCargoListas catalogo={catalogoAbrangencia} criterios={abrangenciaAtual} disabled={formularioBloqueado}
                     onCarreirasChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, carreiras: valores })}
-                    onCargosChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, cargos: valores, carreiras: valores.length ? carreirasDosCargos(valores, abrangenciaAtual, catalogoAbrangencia) : abrangenciaAtual.carreiras })}
+                    onCargosChange={valores => aplicarAbrangencia({ ...abrangenciaAtual, cargos: valores })}
                   />
                 </div>
               </div>

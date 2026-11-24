@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  opcoesHierarquiaGrupo,
+  ajustarHierarquiaGrupo,
   abrangenciaVazia,
   carreirasDosCargos,
   ajustarAbrangencia,
@@ -191,4 +193,12 @@ describe("abrangência do grupo de cálculo", () => {
       ).map((v) => v.id),
     ).toEqual(["3"]);
   });
+});
+
+it("RN100 preserva filtros anteriores e limpa descendentes incompat?veis", () => {
+  const f = ajustarHierarquiaGrupo({ ...base(), regimes: ["Civil"], tipos: ["com", "efe"], orgaos: ["seduc"], unidades: ["u1", "u2"], cargos: ["analista", "prof"], carreiras: ["ADM", "EDU"] }, catalogo);
+  expect(f).toEqual({ ...base(), regimes: ["Civil"], tipos: ["efe"], orgaos: ["seduc"], unidades: ["u2"], cargos: ["prof"], carreiras: ["EDU"] });
+  expect(opcoesHierarquiaGrupo(f, catalogo).carreiras.map(c => c.value)).toEqual(["EDU"]);
+  expect(ajustarHierarquiaGrupo({ ...f, orgaos: [] }, catalogo).unidades).toEqual([]);
+  expect(opcoesHierarquiaGrupo({ ...base(), cargos: ["analista"] }, catalogo).carreiras.map(c => c.value)).toEqual(["ADM"]);
 });

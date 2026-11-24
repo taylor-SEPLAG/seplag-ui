@@ -37,7 +37,7 @@ it("mantém opções recolhidas e mostra a carreira do cargo ao abrir a seleçã
   expect(within(cargo).getByText("Profissionais da Administração")).toBeTruthy();
   fireEvent.click(cargo);
   await fechar("abrangenciaCargos");
-  expect(carreiras.value).toContain("Profissionais da Administração");
+  expect(carreiras.value).toBe("");
   expect(cargos.value).toContain("Administrador Público Efetivo");
   expect(cargos.getAttribute("aria-expanded")).toBe("false");
 });
@@ -59,17 +59,20 @@ it("identifica cargos sem carreira e limpa as seleções pelo botão geral", asy
   expect(carreiras.value).toBe("");
 });
 
-it("remove o cargo incompatível ao trocar a carreira e preserva os demais campos", async () => {
+it("reabre as carreiras ao remover o cargo e preserva os demais campos", async () => {
   const { cargos } = montar();
   fireEvent.change(screen.getByPlaceholderText("Digite o nome do grupo"), { target: { value: "Grupo preservado" } });
   let opcoes = await abrir("abrangenciaCargos");
   fireEvent.click(opcoes.getByRole("option", { name: /^Administrador Público Efetivo/ }));
   await fechar("abrangenciaCargos");
   opcoes = await abrir("abrangenciaCarreiras");
-  fireEvent.click(opcoes.getByRole("option", { name: "Profissionais da Educação", exact: true }));
-  fireEvent.click(opcoes.getByRole("option", { name: "Profissionais da Administração" }));
+  expect(opcoes.queryByRole("option", { name: "Profissionais da Educação", exact: true })).toBeNull();
   await fechar("abrangenciaCarreiras");
+  opcoes = await abrir("abrangenciaCargos");
+  fireEvent.click(opcoes.getByRole("option", { name: /^Administrador Público Efetivo/ }));
+  await fechar("abrangenciaCargos");
   expect(cargos.value).toBe("");
+  opcoes = await abrir("abrangenciaCarreiras");
+  expect(opcoes.getByRole("option", { name: "Profissionais da Educação", exact: true })).toBeTruthy();
   expect((screen.getByPlaceholderText("Digite o nome do grupo") as HTMLInputElement).value).toBe("Grupo preservado");
-  expect(screen.getByText("Ao menos um campo ativo de abrangência deve ser preenchido para aprovar.")).toBeTruthy();
 });

@@ -44,8 +44,8 @@ it("exibe apenas os seis filtros na ordem solicitada e preserva as demais seçõ
     "abrangenciaTipoVinculo",
     "abrangenciaOrgao",
     "abrangenciaUnidades",
-    "abrangenciaCarreiras",
     "abrangenciaCargos",
+    "abrangenciaCarreiras",
   ]);
   for (const label of [
     "Regime Jurídico",
@@ -170,4 +170,42 @@ it("recebe o filtro da listagem e salva na competencia alterada sem afetar as de
   expect(depois['2026-04'].grupos.find((g:{grupo:string})=>g.grupo==='Novo grupo de abril')).toMatchObject({competencia:'2026-04',versao:1});
   expect(depois['2026-03']).toEqual(antes['2026-03']);
   expect(depois['2026-05']).toEqual(antes['2026-05']);
+});
+
+it("aplica e reavalia bloqueios sem perder o regime selecionado", async () => {
+  montar();
+  const bloqueado = (id: string) => document.getElementById(id)!.classList.contains("p-disabled");
+  let opcoes = await abrir("abrangenciaRegimeJuridico");
+  fireEvent.click(opcoes.getByRole("option", { name: "REGIME ESPECIAL" }));
+  fechar("abrangenciaRegimeJuridico");
+  opcoes = await abrir("abrangenciaTipoVinculo");
+  fireEvent.click(opcoes.getByRole("option", { name: "Contrato Temporário" }));
+  fechar("abrangenciaTipoVinculo");
+  expect(bloqueado("abrangenciaRegimeJuridico")).toBe(true);
+  expect(document.getElementById("abrangenciaRegimeJuridico")!.textContent).toContain("REGIME ESPECIAL");
+  opcoes = await abrir("abrangenciaTipoVinculo");
+  fireEvent.click(opcoes.getByRole("option", { name: "Contrato Temporário" }));
+  fechar("abrangenciaTipoVinculo");
+  expect(bloqueado("abrangenciaRegimeJuridico")).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+  opcoes = await abrir("abrangenciaCargos");
+  fireEvent.click(opcoes.getByRole("option", { name: /^Administrador Público Efetivo/ }));
+  fechar("abrangenciaCargos");
+  for (const id of ["abrangenciaRegimeJuridico", "abrangenciaTipoVinculo", "abrangenciaOrgao", "abrangenciaUnidades"]) expect(bloqueado(id)).toBe(true);
+  opcoes = await abrir("abrangenciaCarreiras");
+  expect(opcoes.getByRole("option", { name: "Profissionais da Administração" })).toBeTruthy();
+  expect(opcoes.queryByRole("option", { name: "Profissionais da Educação", exact: true })).toBeNull();
+});
+
+it("inicia novo cadastro vazio mesmo com abrangencia anterior salva", () => {
+  localStorage.setItem("sigep:grupo-calculo:abrangencia:2026-05:novo", JSON.stringify({ criterios: { regimes: ["ESTATUTARIO CIVIL"], tipos: ["TV001"], orgaos: ["seduc"], unidades: [], cargos: [], carreiras: [] } }));
+  montar();
+  const secao = screen.getByRole("region", { name: "Abrang\u00eancia" });
+  const campos = Array.from(secao.querySelectorAll(".p-multiselect"));
+  expect(campos).toHaveLength(6);
+  for (const campo of campos) {
+    expect(campo.querySelector("input[role='combobox']")?.getAttribute("value") ?? "").toBe("");
+    expect(campo.classList.contains("p-disabled")).toBe(campo.id === "abrangenciaUnidades");
+    expect(campo.querySelectorAll(".p-multiselect-token")).toHaveLength(0);
+  }
 });

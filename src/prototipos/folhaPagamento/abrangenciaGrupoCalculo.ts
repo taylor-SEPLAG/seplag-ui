@@ -92,6 +92,30 @@ export function opcoesAbrangencia(
   };
 }
 
+// RN099/RN100: bloqueios de edi??o n?o removem filtros.
+export function opcoesHierarquiaGrupo(f: CriteriosAbrangencia, c: CatalogoAbrangencia) {
+  const tipos = c.tipos.filter(t => !f.regimes.length || intersecta(t.regimes, f.regimes));
+  const ativos = tipos.filter(t => !f.tipos.length || f.tipos.includes(t.value));
+  const restringir = Boolean(f.regimes.length || f.tipos.length);
+  const relacionadas = (cargo: CatalogoAbrangencia["cargos"][number]) => ativos.filter(t => cargo.tipos.includes(t.value)).map(t => cargo.carreirasPorTipo[t.value]).filter(Boolean);
+  const cargosPorTipo = c.cargos.filter(cargo => !restringir || ativos.some(t => cargo.tipos.includes(t.value)));
+  const carreirasPorTipo = c.carreiras.filter(carreira => cargosPorTipo.some(cargo => relacionadas(cargo).includes(carreira.value)));
+  const orgaos = c.orgaos.filter(orgao => !restringir || carreirasPorTipo.some(carreira => contem(carreira.orgaos, orgao.value)) || cargosPorTipo.some(cargo => !relacionadas(cargo).length));
+  const unidades = c.unidades.filter(u => contem(f.orgaos, u.orgao) && orgaos.some(o => contem([o.value], u.orgao)));
+  const orgaosAtivos = f.unidades.length ? unidades.filter(u => f.unidades.includes(u.value)).map(u => u.orgao) : f.orgaos;
+  const cargos = cargosPorTipo.filter(cargo => !orgaosAtivos.length || !relacionadas(cargo).length || c.carreiras.some(carreira => relacionadas(cargo).includes(carreira.value) && intersecta(carreira.orgaos, orgaosAtivos)));
+  const carreiras = carreirasPorTipo.filter(carreira => (!orgaosAtivos.length || intersecta(carreira.orgaos, orgaosAtivos)) && (!f.cargos.length || cargos.some(cargo => f.cargos.includes(cargo.value) && relacionadas(cargo).includes(carreira.value))));
+  return { regimes: c.regimes, tipos, orgaos, unidades, cargos, carreiras, carreiraAtiva: carreiras.length > 0 };
+}
+export function ajustarHierarquiaGrupo(f: CriteriosAbrangencia, c: CatalogoAbrangencia): CriteriosAbrangencia {
+  const atual = { ...f };
+  for (const campo of ["regimes", "tipos", "orgaos", "unidades", "cargos", "carreiras"] as const) {
+    const opcoes = opcoesHierarquiaGrupo(atual, c)[campo];
+    atual[campo] = [...new Set(atual[campo])].filter(v => opcoes.some(o => o.value === v));
+  }
+  return atual;
+}
+
 export function carreirasDosCargos(
   cargos: string[],
   filtros: CriteriosAbrangencia,
@@ -144,7 +168,7 @@ export function filtrarVinculosElegiveis<T extends VinculoParaAbrangencia>(
   filtros: CriteriosAbrangencia,
   c: CatalogoAbrangencia,
 ): T[] {
-  const f = ajustarAbrangencia(filtros, c);
+  const f = ajustarHierarquiaGrupo(filtros, c);
   const corresponde = (
     selecionados: string[],
     opcoes: OpcaoAbrangencia[],
