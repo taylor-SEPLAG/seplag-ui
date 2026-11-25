@@ -1,3 +1,8 @@
+import { SimulacaoExecucao } from "./folhaPagamento/SimulacaoExecucao";
+import { simularExecucao, type ResultadoSimulacao } from "./folhaPagamento/simulacaoExecucaoModelo";
+import { consultarGruposCompetencia } from "./folhaPagamento/gruposCalculoCompetencia";
+import { carregarVersoesPesosAbrangencia, selecionarVersaoPesosAtiva } from "./folhaPagamento/pesosAbrangenciasStore";
+import { SecaoProcessamentoFolha } from "./folhaPagamento/SecaoProcessamentoFolha";
 import { PesosAbrangenciasContent } from "./folhaPagamento/PesosAbrangenciasContent";
 import { useVersaoPesosAbrangenciaAtiva, type VersaoPesosAbrangencia } from "./folhaPagamento/pesosAbrangenciasStore";
 import { calcularSomatoriaPesosAbrangencia, type PesosAplicadosAbrangencia } from "./folhaPagamento/somatoriaPesosAbrangencia";
@@ -2142,6 +2147,7 @@ interface RegimeJuridicoTesteRow extends RegimeJuridicoRow {
 }
 
 interface GrupoEleitosRow {
+  vinculosIds?: string[];
   id: number;
   descricao: string;
   situacao: StatusOperacionalVigenciaSeplag;
@@ -32017,10 +32023,13 @@ export function PrototiposFolhaProcessamentoFormPage() {
   const [searchParams] = useSearchParams();
   const [folhas] = useState(() => folhaPagamentoService.listarFolhas());
   const competencias = folhaPagamentoService.listarCompetencias();
-  const competenciaVigente = competencias.find((competencia) => competencia.situacao === "ATIVA");
+  const competenciaVigente = competencias.find(
+    (competencia) => competencia.situacao === "ATIVA",
+  );
   const [feedback, setFeedback] = useState("");
-  const [processamentoErrors, setProcessamentoErrors] =
-    useState<Partial<Record<keyof ProcessamentoFolhaForm, string>>>({});
+  const [processamentoErrors, setProcessamentoErrors] = useState<
+    Partial<Record<keyof ProcessamentoFolhaForm, string>>
+  >({});
 
   const folhaIdSelecionada = Number(searchParams.get("folhaId"));
   const folhaSelecionadaPorAtalho = Number.isFinite(folhaIdSelecionada)
@@ -32032,8 +32041,8 @@ export function PrototiposFolhaProcessamentoFormPage() {
       ["ABERTO", "PROCESSO_COM_SUCESSO", "PROCESSO_COM_ERRO"].includes(
         folha.situacao,
       ),
-    ) ?? folhas[0];
-
+    ) ??
+    folhas[0];
 
   const catalogoProcessamento = useMemo(criarCatalogoAbrangenciaFolha, []);
 
@@ -32068,6 +32077,7 @@ export function PrototiposFolhaProcessamentoFormPage() {
     formState: { errors: processamentoFormErrors },
   } = useForm<ProcessamentoFolhaForm>({
     defaultValues: {
+      folhaPagamentoId: folhaDisponivel?.id ?? null,
       numeroFolha: folhaDisponivel?.numero ?? "",
       nomeFolha: folhaDisponivel?.nome ?? "",
       competencia: formatMesAno(
@@ -32075,46 +32085,60 @@ export function PrototiposFolhaProcessamentoFormPage() {
       ),
       competenciaFinal: "",
       tipoExecucao: "TOTAL",
-      ...valoresProcessamento(normalizarCriteriosDaFolha(folhaDisponivel ?? {}, catalogoProcessamento)),
-      setores: [], categorias: [], subcategorias: [],
+      ...valoresProcessamento(
+        normalizarCriteriosDaFolha(
+          folhaDisponivel ?? {},
+          catalogoProcessamento,
+        ),
+      ),
+      setores: [],
+      categorias: [],
+      subcategorias: [],
       grupoEleitos: folhaDisponivel?.grupoEleitos ?? "",
     },
   });
 
-  const competenciasOptions = [...new Set(competencias.map(competencia => competencia.competencia))]
-    .sort().reverse().map(competencia => ({ label: formatMesAno(competencia), value: formatMesAno(competencia) }));
-  const tipoExecucao = watch("tipoExecucao");
-  const numeroFolhaSelecionado = watch("numeroFolha");
-  const nomeFolhaSelecionado = watch("nomeFolha");
-  const folhaAtualProcessamento = folhaDisponivel?.numero === numeroFolhaSelecionado && folhaDisponivel?.nome === nomeFolhaSelecionado
-    ? folhaDisponivel : folhas.find(folha => folha.numero === numeroFolhaSelecionado && folha.nome === nomeFolhaSelecionado);
-  const numeroFolhaOptions = Array.from(
-    new Map(
-      folhas.map((folha) => [
-        folha.numero,
-        {
-          label: folha.numero.toUpperCase(),
-          value: folha.numero,
-        },
-      ]),
-    ).values(),
+  const assinaturaSimulacao = JSON.stringify(watch());
+  const [simulacao, setSimulacao] = useState<{
+    assinatura: string;
+    resultado: ResultadoSimulacao;
+    invalida: boolean;
+    demonstracao?: boolean;
+  } | null>(null);
+  const [erroSimulacao, setErroSimulacao] = useState("");
+  const simulacaoValida = Boolean(
+    simulacao &&
+    !simulacao.invalida &&
+    !simulacao.demonstracao &&
+    simulacao.assinatura === assinaturaSimulacao &&
+    simulacao.resultado.apta,
   );
-  const nomeFolhaOptions = folhas
-    .filter((folha) => !numeroFolhaSelecionado || folha.numero === numeroFolhaSelecionado)
-    .map((folha) => ({
-      label: folha.nome.toUpperCase(),
-      value: folha.nome,
-    }));
   useEffect(() => {
-    if (!numeroFolhaSelecionado) return;
-
-    const folhaSelecionada = folhas.find(
-      (folha) => folha.numero === numeroFolhaSelecionado,
+    setSimulacao((atual) =>
+      atual && atual.assinatura !== assinaturaSimulacao && !atual.invalida
+        ? { ...atual, invalida: true }
+        : atual,
     );
-    if (folhaSelecionada && !folhas.some(folha => folha.numero === numeroFolhaSelecionado && folha.nome === nomeFolhaSelecionado)) {
-      setValue("nomeFolha", folhaSelecionada.nome);
-    }
-  }, [folhas, nomeFolhaSelecionado, numeroFolhaSelecionado, setValue]);
+    setErroSimulacao("");
+  }, [assinaturaSimulacao]);
+  const competenciasOptions = [
+    ...new Set(competencias.map((competencia) => competencia.competencia)),
+  ]
+    .sort()
+    .reverse()
+    .map((competencia) => ({
+      label: formatMesAno(competencia),
+      value: formatMesAno(competencia),
+    }));
+  const tipoExecucao = watch("tipoExecucao");
+  const folhaPagamentoIdSelecionado = watch("folhaPagamentoId");
+  const folhaAtualProcessamento = folhas.find(
+    (folha) => folha.id === folhaPagamentoIdSelecionado,
+  );
+  const folhasProcessamentoOptions = folhas.map((folha) => ({
+    label: `${folha.numero} — ${folha.nome.toUpperCase()}`,
+    value: folha.id,
+  }));
 
   useEffect(() => {
     if (!folhaAtualProcessamento) return;
@@ -32122,11 +32146,16 @@ export function PrototiposFolhaProcessamentoFormPage() {
     setValue("competenciaFinal", "");
     setValue("grupoEleitos", folhaAtualProcessamento.grupoEleitos ?? "");
   }, [folhaAtualProcessamento, setValue]);
-  useEffect(() => { setProcessamentoErrors({}); }, [folhaAtualProcessamento, tipoExecucao]);
+  useEffect(() => {
+    setProcessamentoErrors({});
+  }, [folhaAtualProcessamento, tipoExecucao]);
 
   const getProcessamentoErrorMessage = (name: keyof ProcessamentoFolhaForm) => {
-    const message = processamentoErrors[name] ?? processamentoFormErrors[name]?.message;
-    return typeof message === "string" ? <small className="p-error">{message}</small> : null;
+    const message =
+      processamentoErrors[name] ?? processamentoFormErrors[name]?.message;
+    return typeof message === "string" ? (
+      <small className="p-error">{message}</small>
+    ) : null;
   };
 
   const validarFormulario = (data: ProcessamentoFolhaForm) => {
@@ -32141,22 +32170,144 @@ export function PrototiposFolhaProcessamentoFormPage() {
     }
     if (!data.tipoExecucao) errors.tipoExecucao = "Campo obrigatório";
 
-    const folhaParametrizada = folhaAtualProcessamento?.numero === data.numeroFolha && folhaAtualProcessamento?.nome === data.nomeFolha
-      ? folhaAtualProcessamento : folhas.find(folha => folha.numero === data.numeroFolha && folha.nome === data.nomeFolha);
-    if (!folhaParametrizada) { errors.numeroFolha = "Selecione uma folha cadastrada."; errors.nomeFolha = "Selecione uma folha cadastrada."; }
-    else Object.assign(errors, validarAbrangenciaProcessamento(data, folhaParametrizada, catalogoProcessamento, folhaProcessamentoGrupoEleitosOptions));
+    const folhaParametrizada = folhas.find(
+      (folha) => folha.id === data.folhaPagamentoId,
+    );
+    if (!folhaParametrizada) {
+      errors.folhaPagamentoId = "Selecione uma folha cadastrada.";
+      errors.numeroFolha = "Selecione uma folha cadastrada.";
+      errors.nomeFolha = "Selecione uma folha cadastrada.";
+    } else
+      Object.assign(
+        errors,
+        validarAbrangenciaProcessamento(
+          data,
+          folhaParametrizada,
+          catalogoProcessamento,
+          folhaProcessamentoGrupoEleitosOptions,
+        ),
+      );
 
     setProcessamentoErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
+  const calcularSimulacao = (data: ProcessamentoFolhaForm) => {
+    const versaoPesos = selecionarVersaoPesosAtiva(
+      carregarVersoesPesosAbrangencia(),
+    );
+    const resultado = simularExecucao(
+      {
+        folhaPagamentoId: data.folhaPagamentoId!,
+        competenciaInicial: data.competencia!,
+        competenciaFinal: data.competenciaFinal,
+        tipoExecucao: data.tipoExecucao!,
+        criterios: criteriosDaFolhaProcessamento(data),
+        grupoEleitos: data.grupoEleitos,
+      },
+      {
+        grupos: (competencia) =>
+          consultarGruposCompetencia(
+            competencia,
+            gruposCalculoMock,
+            gruposCalculoVersoesMock,
+          ).map((g) => {
+            const criterios = lerAbrangenciaGrupo(
+              competencia + ":" + g.id,
+              abrangenciaLegadaGrupo(g, catalogoProcessamento),
+            );
+            const total =
+              calcularSomatoriaPesosAbrangencia(criterios, versaoPesos)
+                ?.total ??
+              (Object.values(criterios).every((v) => !v.length) ? 0 : null);
+            return {
+              ...g,
+              competencia,
+              versao: g.versao ?? 1,
+              criterios,
+              peso: total,
+              pendencias: g.pendencias ?? 0,
+            };
+          }),
+        vinculos: vinculosParaGrupoCalculo,
+        eleitos: (nome) =>
+          gruposEleitosMock.find((g) => g.descricao === nome)?.vinculosIds,
+      },
+      catalogoProcessamento,
+    );
+    if (
+      !folhaAtualProcessamento ||
+      !["ABERTO", "PROCESSO_COM_SUCESSO", "PROCESSO_COM_ERRO"].includes(
+        folhaAtualProcessamento.situacao,
+      )
+    ) {
+      resultado.impedimentos.push(
+        "Só é possível processar folhas abertas ou já processadas.",
+      );
+      resultado.apta = false;
+    }
+    return resultado;
+  };
+  function criteriosDaFolhaProcessamento(
+    data: ProcessamentoFolhaForm,
+  ): CriteriosAbrangencia {
+    return {
+      regimes: data.regimesJuridicos ?? [],
+      tipos: data.tiposVinculo ?? [],
+      orgaos: data.orgaos ?? [],
+      unidades: data.unidades ?? [],
+      cargos: data.cargos ?? [],
+      carreiras: data.carreiras ?? [],
+    };
+  }
+  const simular = (data: ProcessamentoFolhaForm) => {
+    if (!validarFormulario(data)) return;
+    setErroSimulacao("");
+    try {
+      const resultado = calcularSimulacao(data);
+      setSimulacao({
+        assinatura: JSON.stringify(data),
+        resultado,
+        invalida: false,
+      });
+    } catch (erro) {
+      setSimulacao(null);
+      setErroSimulacao(
+        erro instanceof Error
+          ? erro.message
+          : "Não foi possível realizar a simulação.",
+      );
+    }
+  };
   const cancelar = () => navigate(FOLHA_PROCESSAMENTO_BASE_PATH);
 
   const executarProcessamento = (data: ProcessamentoFolhaForm) => {
-    if (!validarFormulario(data)) return;
-
+    if (!simulacaoValida || !validarFormulario(data)) return;
+    try {
+      const atual = calcularSimulacao(data);
+      if (
+        !atual.apta ||
+        JSON.stringify(atual) !== JSON.stringify(simulacao?.resultado)
+      ) {
+        setSimulacao((anterior) =>
+          anterior ? { ...anterior, invalida: true } : null,
+        );
+        return;
+      }
+    } catch {
+      setSimulacao((anterior) =>
+        anterior ? { ...anterior, invalida: true } : null,
+      );
+      return;
+    }
     if (!folhaAtualProcessamento) return;
-    folhaPagamentoService.executarFolha(parametrosExecucao(folhaAtualProcessamento.id, data, catalogoProcessamento));
+    folhaPagamentoService.executarFolha(
+      parametrosExecucao(
+        folhaAtualProcessamento.id,
+        data,
+        catalogoProcessamento,
+      ),
+    );
     setFeedback("Registro cadastrado com sucesso!");
     reset({
       ...data,
@@ -32171,15 +32322,32 @@ export function PrototiposFolhaProcessamentoFormPage() {
       ambienteSistema="Teste"
       menuItems={menuFolha}
     >
-      <div className="prototype-page-content prototype-page-content--white prototype-folha-pagamento-page">
+      <div className="prototype-page-content prototype-page-content--white prototype-folha-pagamento-page processamento-blocos">
         <CardSeplag
-          title="Processamento da Folha"
           cols="12"
+          title="Processamento da Folha"
           cardHeaderClassNames="prototype-regime-card"
+          headerNavigation={
+            <BreadcrumbSeplag
+              divided
+              homeTo={FOLHA_PAGINA_INICIAL_PATH}
+              items={[
+                { label: "Folha", to: FOLHA_PAGINA_INICIAL_PATH },
+                {
+                  label: "Processamento da Folha",
+                  to: FOLHA_PROCESSAMENTO_BASE_PATH,
+                },
+                { label: "Cadastrar" },
+              ]}
+            />
+          }
           actions={
             <div className="prototype-competencia-vigente">
               Competência vigente:{" "}
-              <strong>{formatMesAno(competenciaVigente?.competencia ?? "")}</strong>
+              <strong>
+                {formatMesAno(competenciaVigente?.competencia ?? "") ||
+                  "Não informada"}
+              </strong>
             </div>
           }
         >
@@ -32188,35 +32356,90 @@ export function PrototiposFolhaProcessamentoFormPage() {
           ) : null}
 
           <div className="col-12 prototype-processamento-folha-page-form">
-            <div className="grid prototype-category-form-fields">
-              <DropdownFieldSeplag
-                name="numeroFolha"
-                control={control}
-                label="Número da Folha"
-                cols="12 12 6"
-                required
-                options={numeroFolhaOptions}
-                optionLabel="label"
-                optionValue="value"
-                getFormErrorMessage={() => getProcessamentoErrorMessage("numeroFolha")}
-              />
-              <DropdownFieldSeplag
-                name="nomeFolha"
-                control={control}
-                label="Nome da Folha"
-                cols="12 12 6"
-                required
-                options={nomeFolhaOptions}
-                optionLabel="label"
-                optionValue="value"
-                getFormErrorMessage={() => getProcessamentoErrorMessage("nomeFolha")}
-              />
-              <CompetenciasProcessamentoFolha control={control} setValue={setValue} options={competenciasOptions} getError={getProcessamentoErrorMessage} />
-              <AbrangenciaProcessamentoFolha control={control} setValue={setValue} catalogo={catalogoProcessamento} grupoEleitosOptions={folhaProcessamentoGrupoEleitosOptions}
-                original={normalizarCriteriosDaFolha(folhaAtualProcessamento ?? {}, catalogoProcessamento)} folhaId={folhaAtualProcessamento?.id}
-                onChange={() => setProcessamentoErrors({})} getError={getProcessamentoErrorMessage} />
-            </div>
+            <SecaoProcessamentoFolha
+              titulo="Dados do Processamento"
+              icone="pi pi-cog"
+            >
+              <div className="grid prototype-category-form-fields">
+                <DropdownFieldSeplag
+                  name="folhaPagamentoId"
+                  control={control}
+                  label="Folha de Pagamento"
+                  cols="12"
+                  required
+                  options={folhasProcessamentoOptions}
+                  optionLabel="label"
+                  optionValue="value"
+                  onChange={(id) => {
+                    const folha = folhas.find((f) => f.id === id);
+                    setValue("numeroFolha", folha?.numero ?? "");
+                    setValue("nomeFolha", folha?.nome ?? "");
+                    setProcessamentoErrors({});
+                  }}
+                  getFormErrorMessage={() =>
+                    getProcessamentoErrorMessage("folhaPagamentoId") ??
+                    getProcessamentoErrorMessage("numeroFolha") ??
+                    getProcessamentoErrorMessage("nomeFolha")
+                  }
+                />
+                <CompetenciasProcessamentoFolha
+                  control={control}
+                  setValue={setValue}
+                  options={competenciasOptions}
+                  getError={getProcessamentoErrorMessage}
+                />
+              </div>
+            </SecaoProcessamentoFolha>
+            <AbrangenciaProcessamentoFolha
+              agrupar
+              control={control}
+              setValue={setValue}
+              catalogo={catalogoProcessamento}
+              grupoEleitosOptions={folhaProcessamentoGrupoEleitosOptions}
+              original={normalizarCriteriosDaFolha(
+                folhaAtualProcessamento ?? {},
+                catalogoProcessamento,
+              )}
+              folhaId={folhaAtualProcessamento?.id}
+              onChange={() => setProcessamentoErrors({})}
+              getError={getProcessamentoErrorMessage}
+            />
 
+            {erroSimulacao && (
+              <p role="alert" className="simulacao-faixa is-erro">
+                {erroSimulacao}
+              </p>
+            )}
+            <SimulacaoExecucao
+              resultado={simulacao?.resultado ?? null}
+              invalida={Boolean(
+                simulacao &&
+                (simulacao.invalida ||
+                  simulacao.assinatura !== assinaturaSimulacao),
+              )}
+              onSimular={handleSubmit(simular)}
+              demonstracao={simulacao?.demonstracao}
+              onDemonstrarSemGrupos={() => {
+                setErroSimulacao("");
+                setSimulacao({
+                  assinatura: assinaturaSimulacao,
+                  resultado: {
+                    grupos: [],
+                    total: null,
+                    impedimentos: [],
+                    apta: false,
+                  },
+                  invalida: false,
+                  demonstracao: true,
+                });
+              }}
+              consultar={(ids, inicio, quantidade) => {
+                const pagina = new Set(ids.slice(inicio, inicio + quantidade));
+                return vinculosParaGrupoCalculo().filter((v) =>
+                  pagina.has(v.id),
+                );
+              }}
+            />
             <div className="prototype-processamento-folha-footer">
               <BotaoVoltarSeplag
                 type="button"
@@ -32228,6 +32451,7 @@ export function PrototiposFolhaProcessamentoFormPage() {
                 type="button"
                 variant="save"
                 label="Executar Processamento"
+                disabled={!simulacaoValida}
                 icon="pi pi-play"
                 onClick={handleSubmit(executarProcessamento)}
               />

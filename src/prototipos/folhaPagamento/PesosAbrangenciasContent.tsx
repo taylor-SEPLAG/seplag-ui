@@ -6,7 +6,7 @@ import { Paginator } from "primereact/paginator";
 import { FOLHA_PAGINA_INICIAL_PATH } from "../paginaInicial/folhaModel";
 import { CardSeplag } from "@componentes/Card";
 import { ModalSeplag } from "@componentes/Modal";
-import { carregarVersoesPesosAbrangencia as carregar, salvarVersoesPesosAbrangencia, versaoPesosEstaAtiva as estaAtiva, type VersaoPesosAbrangencia as Versao } from "./pesosAbrangenciasStore";
+import { carregarVersoesPesosAbrangencia as carregar, salvarVersoesPesosAbrangencia, selecionarVersaoPesosAtiva, versaoPesosEstaAtiva as estaAtiva, type VersaoPesosAbrangencia as Versao } from "./pesosAbrangenciasStore";
 import "./pesosAbrangencias.css";
 
 const criterios = ["Órgão/Entidade", "Regime Jurídico", "Tipo de Vínculo", "Carreira", "Unidade de Lotação", "Cargo"];
@@ -29,7 +29,7 @@ export function PesosAbrangenciasContent() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [confirmar, setConfirmar] = useState(false);
-  const ativa = estado.versoes.find(estaAtiva);
+  const ativa = selecionarVersaoPesosAtiva(estado.versoes);
   const proximaVersao = Math.max(0, ...estado.versoes.map(v => v.numero)) + 1;
   const abrirEdicao = () => {
     setSelecionada(ativa ?? null);

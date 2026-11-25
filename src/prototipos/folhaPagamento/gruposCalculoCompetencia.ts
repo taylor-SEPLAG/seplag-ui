@@ -102,3 +102,15 @@ export function excluirGrupoCompetencia(competencia:string,id:number){
   dados.grupos=dados.grupos.filter(g=>g.id!==id);delete dados.versoes[id];gravar(banco);
 }
 export function salvarConjuntoCompetencia<T extends GrupoPorCompetencia>(competencia:string,dados:DadosGrupos<T>){const banco=ler<T>();banco[competencia]=clonar(dados);gravar(banco);}
+
+/** Consulta de versões para prévias: não migra, replica nem grava dados. */
+export function consultarGruposCompetencia<T extends GrupoPorCompetencia>(competencia:string,base:T[],historicos:Record<number,T[]>):T[]{
+  const serializado=localStorage.getItem(chave);
+  if(serializado){
+    const banco=JSON.parse(serializado) as Record<string,DadosGrupos<T>>;
+    if(!banco[competencia]) return [];
+    const dados=banco[competencia];
+    return clonar(dados.grupos.flatMap(grupo=>dados.versoes[grupo.id]?.length?dados.versoes[grupo.id]:[grupo]));
+  }
+  return clonar(base.flatMap(grupo=>(historicos[grupo.id]??[grupo]).map((v,i,todos)=>({...v,versao:v.versao??todos.length-i,competencia}))));
+}

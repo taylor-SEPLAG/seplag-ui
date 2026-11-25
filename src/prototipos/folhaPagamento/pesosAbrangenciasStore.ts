@@ -13,6 +13,15 @@ export type VersaoPesosAbrangencia = {
 export const versaoPesosEstaAtiva = (versao: VersaoPesosAbrangencia) =>
   !versao.fim || new Date(versao.fim).getTime() > Date.now();
 
+/** A parametrização aprovada é global, inclusive para execuções de competências anteriores. */
+export function selecionarVersaoPesosAtiva(
+  versoes: VersaoPesosAbrangencia[],
+): VersaoPesosAbrangencia | undefined {
+  return versoes
+    .filter(versaoPesosEstaAtiva)
+    .sort((a, b) => b.numero - a.numero)[0];
+}
+
 export function carregarVersoesPesosAbrangencia(
   serializado: string | null = localStorage.getItem(CHAVE_PESOS_ABRANGENCIAS),
 ): VersaoPesosAbrangencia[] {
@@ -71,8 +80,8 @@ export function useVersaoPesosAbrangenciaAtiva() {
   const serializado = useSyncExternalStore(assinar, snapshot, () => null);
   return useMemo(() => {
     try {
-      return carregarVersoesPesosAbrangencia(serializado).find(
-        versaoPesosEstaAtiva,
+      return selecionarVersaoPesosAtiva(
+        carregarVersoesPesosAbrangencia(serializado),
       );
     } catch {
       return undefined;

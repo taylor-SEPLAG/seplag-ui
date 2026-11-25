@@ -1,0 +1,135 @@
+﻿.processamento-bloco-cabecalho > div:first-of-type {
+  flex: 1;
+  min-width: 0;
+}
+.processamento-bloco-acoes {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.simulacao-faixa {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid;
+  border-radius: 5px;
+  font-size: 14px;
+}
+.simulacao-faixa > i {
+  margin-top: 2px;
+}
+.simulacao-faixa p {
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+.simulacao-faixa.is-sucesso {
+  color: #246743;
+  border-color: #bce2cc;
+  background: #effaf3;
+}
+.simulacao-faixa.is-alerta {
+  color: #805b11;
+  border-color: #efd89d;
+  background: #fff9e9;
+}
+.simulacao-faixa.is-erro {
+  color: #a52a31;
+  border-color: #edc5c8;
+  background: #fff3f3;
+}
+.simulacao-grupos-titulo {
+  margin: 20px 0 12px;
+  font-size: 15px;
+  color: #334e68;
+}
+.simulacao-tabela-scroll {
+  overflow-x: auto;
+}
+.simulacao-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: #334e68;
+}
+.simulacao-tabela th,
+.simulacao-tabela td {
+  padding: 10px 12px;
+  border: 1px solid #e1e7ee;
+  text-align: left;
+  vertical-align: middle;
+}
+.simulacao-tabela th {
+  background: #f6f9fc;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.simulacao-tabela .simulacao-numero {
+  text-align: right;
+}
+.simulacao-expandir {
+  border: 0;
+  background: transparent;
+  color: #0874d1;
+  padding: 6px;
+  cursor: pointer;
+}
+.simulacao-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #086abc;
+}
+.simulacao-vinculos {
+  padding: 12px;
+  background: #fafcff;
+}
+.simulacao-vinculos h4 {
+  margin: 0;
+  font-size: 14px;
+}
+.simulacao-vinculos p,
+.simulacao-inicial {
+  color: #64748b;
+  font-size: 13px;
+}
+.simulacao-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@media (max-width: 650px) {
+  .processamento-bloco-cabecalho {
+    flex-wrap: wrap;
+  }
+  .processamento-bloco-acoes {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.simulacao-sem-vinculo {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid #efd89d;
+  border-radius: 4px;
+  background: #fff7e3;
+  color: #805b11;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.simulacao-resumo {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+.simulacao-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}

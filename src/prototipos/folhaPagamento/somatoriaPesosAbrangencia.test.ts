@@ -4,6 +4,7 @@ import { abrangenciaVazia } from "./abrangenciaGrupoCalculo";
 import { calcularSomatoriaPesosAbrangencia } from "./somatoriaPesosAbrangencia";
 import {
   carregarVersoesPesosAbrangencia,
+  selecionarVersaoPesosAtiva,
   type VersaoPesosAbrangencia,
 } from "./pesosAbrangenciasStore";
 import { salvarGrupoCompetencia } from "./gruposCalculoCompetencia";
@@ -110,4 +111,28 @@ it("preserva a versão dos pesos e a soma da versão anterior ao versionar um gr
     { versao: 2, total: 4 },
   ]);
   expect(grupo.pesosAplicados).toEqual({ versao: 2, total: 4 });
+});
+
+it("seleciona a versão global ativa mais recente sem depender da competência da folha", () => {
+  const atual = {
+    ...versao,
+    numero: 4,
+    inicio: "2026-11-25T12:00:00Z",
+    fim: null,
+  };
+  const anterior = {
+    ...versao,
+    numero: 3,
+    inicio: "2026-01-01T00:00:00Z",
+    fim: "2026-11-01T00:00:00Z",
+  };
+  const foraDeOrdem = [anterior, atual];
+  expect(selecionarVersaoPesosAtiva(foraDeOrdem)).toEqual(atual);
+  expect(foraDeOrdem[0]).toEqual(anterior);
+  expect(
+    calcularSomatoriaPesosAbrangencia(
+      { ...abrangenciaVazia(), tipos: ["Efetivo"] },
+      selecionarVersaoPesosAtiva(foraDeOrdem),
+    ),
+  ).toEqual({ versao: 4, total: 3 });
 });

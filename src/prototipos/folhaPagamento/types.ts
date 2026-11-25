@@ -10,6 +10,7 @@ export type FolhaPagamentoSituacao =
   | "PROCESSO_COM_FALHAS";
 
 export interface ProcessamentoFolhaForm {
+  folhaPagamentoId?: number | null;
   numeroFolha?: string;
   nomeFolha?: string;
   competencia?: string;
