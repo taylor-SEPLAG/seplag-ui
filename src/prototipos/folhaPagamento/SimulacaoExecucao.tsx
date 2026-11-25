@@ -89,6 +89,7 @@ export function SimulacaoExecucao({
   onSimular,
   onDemonstrarSemGrupos,
   demonstracao = false,
+  parametrosResumo,
   consultar,
 }: {
   resultado: ResultadoSimulacao | null;
@@ -96,6 +97,7 @@ export function SimulacaoExecucao({
   onSimular: () => void;
   onDemonstrarSemGrupos?: () => void;
   demonstracao?: boolean;
+  parametrosResumo?: string;
   consultar: (
     ids: string[],
     inicio: number,
@@ -186,9 +188,23 @@ export function SimulacaoExecucao({
                 <>
                   <strong>Nenhum Grupo de Cálculo encontrado</strong>
                   <p>
+                    Não existe nenhum Grupo de Cálculo compatível com{" "}
+                    {parametrosResumo ? (
+                      <>
+                        os parâmetros: <strong>{parametrosResumo}</strong>.
+                      </>
+                    ) : (
+                      "os parâmetros informados."
+                    )}
+                  </p>
+                  <p>
                     O processamento será realizado, porém não haverá vínculos a
-                    processar, pois não existe Grupo de Cálculo compatível com
-                    os parâmetros informados.
+                    processar.
+                  </p>
+                  <p>
+                    Para que existam vínculos elegíveis, é necessário cadastrar
+                    um Grupo de Cálculo com abrangência compatível com os
+                    parâmetros apresentados acima.
                   </p>
                 </>
               ) : impedida ? (

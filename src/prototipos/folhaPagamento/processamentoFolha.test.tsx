@@ -669,6 +669,10 @@ it("demonstra ausência de grupos sem consultar dados nem executar, e permite vo
   );
   await screen.findByText("Nenhum Grupo de Cálculo encontrado");
   expect(screen.getByText(/Demonstração do cenário sem grupos/)).toBeTruthy();
+  const parametrosMensagem = screen.getByText(/Competência inicial: 05\/2026/);
+  expect(parametrosMensagem.textContent).toContain("Regime Jurídico:");
+  expect(parametrosMensagem.textContent).toContain("Tipo de Vínculo:");
+  expect(parametrosMensagem.textContent).toContain("Órgão/Entidade:");
   expect(simulacaoModelo.simularExecucao).not.toHaveBeenCalled();
   expect(executar).not.toHaveBeenCalled();
   expect(
