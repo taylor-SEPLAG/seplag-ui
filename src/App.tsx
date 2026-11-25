@@ -2437,6 +2437,7 @@ function App() {
         path="/prototipos/folha/grupo-eleitos/novo"
         element={<PrototiposFolhaGrupoEleitoFormPage />}
       />
+      <Route path="/prototipos/folha/grupo-eleitos/:id/visualizar" element={<PrototiposFolhaGrupoEleitoFormPage somenteLeitura />} />
       <Route
         path="/prototipos/folha/pesos-abrangencias"
         element={<PrototiposFolhaPesosAbrangenciasPage />}

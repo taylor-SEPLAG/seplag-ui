@@ -126,6 +126,7 @@ import {
   STATUS_OPERACIONAL_VIGENCIA,
   SituacaoVigenciaSeplag,
   validarSituacaoVigenciaSeplag,
+  calcularStatusOperacionalVigenciaSeplag,
   type StatusOperacionalVigenciaSeplag,
   type SituacaoVigenciaValueSeplag,
 } from "@componentes/SituacaoVigencia";
@@ -4565,51 +4566,16 @@ const regimesJuridicosMock: RegimeJuridicoRow[] = [
   },
 ];
 
+const pessoasGruposEleitos = vinculosParaGrupoCalculo();
 const gruposEleitosMock: GrupoEleitosRow[] = [
-  {
-    id: 81,
-    descricao: "PESSOA FÍSICA",
-    situacao: "ATIVO",
-    quantidadeEleitos: 0,
-  },
-  {
-    id: 79,
-    descricao: "abc123",
-    situacao: "ATIVO",
-    quantidadeEleitos: 0,
-  },
-  {
-    id: 80,
-    descricao:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas minima reprehenderit cupiditate tempore. Commodi dignissimos ad impedit repellendus consequatur aliquam cumque magnam saepe vero dolor acc",
-    situacao: "ENCERRADO",
-    quantidadeEleitos: 0,
-  },
-  {
-    id: 77,
-    descricao: "Grupo Teste",
-    situacao: "ATIVO",
-    quantidadeEleitos: 0,
-  },
-  {
-    id: 75,
-    descricao: "TESTE",
-    situacao: "RASCUNHO",
-    quantidadeEleitos: 0,
-  },
-  {
-    id: 76,
-    descricao: "TESTE",
-    situacao: "ENCERRADO",
-    quantidadeEleitos: 0,
-  },
-  {
-    id: 74,
-    descricao: "Teste 24/04/2026",
-    situacao: STATUS_OPERACIONAL_VIGENCIA.EXTINTO,
-    quantidadeEleitos: 0,
-  },
-];
+  { id: 81, descricao: "Grupo 15 pessoas", situacao: "ATIVO", pessoas: pessoasGruposEleitos.filter((p, indice, pessoas) => pessoas.findIndex(outra => outra.cpf === p.cpf) === indice).slice(0, 15) },
+  { id: 79, descricao: "Grupo de Ativos", situacao: "ATIVO", pessoas: pessoasGruposEleitos.filter(p => p.situacao === "Ativo") },
+  { id: 80, descricao: "Grupo de Encerrados", situacao: "ENCERRADO", pessoas: pessoasGruposEleitos.filter(p => p.situacao === "Encerrado") },
+  { id: 77, descricao: "Grupo da SEPLAG", situacao: "ATIVO", pessoas: pessoasGruposEleitos.filter(p => p.orgao === "SEPLAG") },
+  { id: 75, descricao: "Grupo de Novos Servidores", situacao: "AGENDADO", pessoas: pessoasGruposEleitos.filter(p => p.situacao === "Ativo").slice(0, 10) },
+  { id: 76, descricao: "Grupo de Efetivos", situacao: "ATIVO", pessoas: pessoasGruposEleitos.filter(p => p.tipo === "Nomeado Efetivo") },
+  { id: 74, descricao: "Grupo de Temporários", situacao: "EXTINTO", pessoas: pessoasGruposEleitos.filter(p => p.tipo === "Contrato Temporário") },
+].map(({pessoas, ...grupo}) => ({...grupo, situacao: grupo.situacao as StatusOperacionalVigenciaSeplag, vinculosIds: pessoas.map(p => p.id), quantidadeEleitos: pessoas.length}));
 
 const regimesJuridicosTesteMock: RegimeJuridicoTesteRow[] = [
   {
@@ -7378,6 +7344,18 @@ const grupoEleitoParticipantesMock: GrupoEleitoParticipanteRow[] = [
     orgaoEntidade: "",
     dataExercicioAposentadoria: "20/04/2026",
   },
+  ...pessoasGruposEleitos
+    .filter((pessoa, indice, pessoas) => pessoas.findIndex(outra => outra.cpf === pessoa.cpf) === indice)
+    .slice(0, 50)
+    .map((pessoa, indice) => ({
+      id: 7 + indice,
+      matricula: pessoa.matricula,
+      cpf: pessoa.cpf,
+      vinculo: pessoa.numero,
+      servidor: pessoa.nome,
+      orgaoEntidade: pessoa.orgao,
+      dataExercicioAposentadoria: pessoa.inicio,
+    })),
 ];
 
 const instituicaoOptions = [
@@ -7699,44 +7677,6 @@ function getRubricasGrupoCalculoPorAbrangencia({
 
   return Array.from(codes);
 }
-
-const grupoEleitoFiltroAvancadoOptions = {
-  instituicoes: [
-    { label: "Governo do Estado de Mato Grosso", value: "govmt" },
-    { label: "SEPLAG-MT", value: "seplag" },
-    { label: "MTI", value: "mti" },
-  ],
-  orgaos: [
-    { label: "SEPLAG-MT", value: "seplag" },
-    { label: "SEFAZ-MT", value: "sefaz" },
-    { label: "SEDUC-MT", value: "seduc" },
-  ],
-  tiposVinculo: [
-    { label: "Efetivo", value: "efetivo" },
-    { label: "Comissionado", value: "comissionado" },
-    { label: "Temporário", value: "temporario" },
-  ],
-  setores: [
-    { label: "SAPGD", value: "sapgd" },
-    { label: "CPPTI", value: "cppti" },
-    { label: "Gabinete", value: "gabinete" },
-  ],
-  categorias: [
-    { label: "Estatutário Civil", value: "estatutario-civil" },
-    { label: "Militar", value: "militar" },
-    { label: "Celetista", value: "celetista" },
-  ],
-  subcategorias: [
-    { label: "Professor 30h", value: "professor-30h" },
-    { label: "Professor 40h", value: "professor-40h" },
-    { label: "Administrativo", value: "administrativo" },
-  ],
-  cargos: [
-    { label: "Analista Administrativo", value: "analista-administrativo" },
-    { label: "Técnico Administrativo", value: "tecnico-administrativo" },
-    { label: "Gestor Governamental", value: "gestor-governamental" },
-  ],
-};
 
 const situacaoOptions = [
   { label: "Ativo", value: "ATIVO" },
@@ -37409,25 +37349,59 @@ export function PrototiposFolhaPenhoraJudicialPage() {
   );
 }
 
+const grupoEleitosSituacaoOptions = [
+  { label: "AGENDADO", value: "AGENDADO" },
+  { label: "ATIVO", value: "ATIVO" },
+  { label: "ENCERRADO", value: "ENCERRADO" },
+  { label: "EXTINTO", value: "EXTINTO" },
+];
+
+function renderGrupoEleitosSituacao(situacao: string) {
+  const cores: Record<string, {color: string; backgroundColor: string}> = {
+    AGENDADO: {color: "#175cd3", backgroundColor: "#eff8ff"},
+    ATIVO: {color: "#00843d", backgroundColor: "#dff3e7"},
+    ENCERRADO: {color: "#334e68", backgroundColor: "#edf0f3"},
+    EXTINTO: {color: "#b42318", backgroundColor: "#fff1f0"},
+  };
+  return <span className="grupo-eleitos-status-tag" style={cores[situacao]}>{grupoEleitosSituacaoOptions.find(o => o.value === situacao)?.label.toLocaleLowerCase("pt-BR").replace(/^./, letra => letra.toLocaleUpperCase("pt-BR")) ?? situacao}</span>;
+}
+
 export function PrototiposFolhaGrupoEleitosPage() {
   const navigate = useNavigate();
-  const { control, reset } = useForm<GrupoEleitosFiltroForm>({
+  const [pagina, setPagina] = useState(0);
+  const [porPagina, setPorPagina] = useState(5);
+  const { control, reset, watch } = useForm<GrupoEleitosFiltroForm>({
     defaultValues: {
       termo: "",
       situacao: "",
     },
   });
+  const termo = watch("termo") ?? "";
+  const situacao = watch("situacao") ?? "";
+  useEffect(() => { setPagina(0); }, [termo, situacao]);
+  const filtrados = gruposEleitosMock.filter(grupo =>
+    grupo.descricao.toLocaleLowerCase("pt-BR").includes(termo.trim().toLocaleLowerCase("pt-BR")) &&
+    (!situacao || grupo.situacao === situacao)
+  );
+  const totalPages = Math.ceil(filtrados.length / porPagina);
+  const paginaAtual = Math.min(pagina, Math.max(0, totalPages - 1));
+  const conteudo = filtrados.slice(paginaAtual * porPagina, (paginaAtual + 1) * porPagina);
   const grupoEleitosResults = {
-    ...createResults(gruposEleitosMock),
-    totalPages: 5,
-    totalRecords: 42,
-    size: 10,
-    sizePage: 10,
+    ...createResults(conteudo),
+    totalPages,
+    totalRecords: filtrados.length,
+    pageActual: paginaAtual,
+    number: paginaAtual,
+    first: paginaAtual === 0,
+    last: paginaAtual >= totalPages - 1,
+    size: porPagina,
+    sizePage: porPagina,
   };
   const grupoEleitosColumns: ColumnMetaSeplag<GrupoEleitosRow>[] = [
+    { field: "id", header: "ID" },
     {
       field: "descricao",
-      header: "Descrição",
+      header: "Nome",
     },
     {
       field: "quantidadeEleitos",
@@ -37435,7 +37409,7 @@ export function PrototiposFolhaGrupoEleitosPage() {
     },
     {
       header: "Situação",
-      body: (row) => renderGrupoCalculoStatusBadge(row.situacao),
+      body: (row) => renderGrupoEleitosSituacao(row.situacao),
     },
   ];
 
@@ -37455,7 +37429,7 @@ export function PrototiposFolhaGrupoEleitosPage() {
             <TextFieldSeplag
               name="termo"
               control={control}
-              label="Descrição"
+              label="Nome"
               cols="12 12 6"
               getFormErrorMessage={() => null}
             />
@@ -37464,7 +37438,7 @@ export function PrototiposFolhaGrupoEleitosPage() {
               control={control}
               label="Situação"
               cols="12 12 4"
-              options={regimeSituacaoOptions}
+              options={grupoEleitosSituacaoOptions}
               optionLabel="label"
               optionValue="value"
               getFormErrorMessage={() => null}
@@ -37472,7 +37446,7 @@ export function PrototiposFolhaGrupoEleitosPage() {
             <div className="prototype-category-clear col-12 md:col-6 lg:col-2">
               <BotaoLimparFiltroSeplag
                 type="button"
-                label="Limpar"
+                label="Limpar Filtro"
                 icon="pi pi-refresh"
                 onClick={() =>
                   reset({
@@ -37488,8 +37462,8 @@ export function PrototiposFolhaGrupoEleitosPage() {
             <TablePaginadoSeplag
               dataKey="id"
               data={grupoEleitosResults}
-              rows={10}
-              rowsPerPage={[10]}
+              rows={porPagina}
+              rowsPerPage={[5, 10, 20]}
               paginator
               lazy
               selectionMode={null}
@@ -37498,264 +37472,420 @@ export function PrototiposFolhaGrupoEleitosPage() {
               handleAdicionar={() =>
                 navigate("/prototipos/folha/grupo-eleitos/novo")
               }
-              handleView={() => {}}
+              handleView={grupo => navigate(`/prototipos/folha/grupo-eleitos/${grupo.id}/visualizar`)}
               handleEdit={() => {}}
               handleDelete={() => {}}
-              handleOnPageChange={() => {}}
+              handleOnPageChange={(event) => {
+                const tamanho = event.rows ?? porPagina;
+                setPorPagina(tamanho);
+                setPagina(Math.floor((event.first ?? 0) / tamanho));
+              }}
             />
           </div>
         </CardSeplag>
+
       </div>
     </PrototypeSystemPage>
   );
 }
 
-export function PrototiposFolhaGrupoEleitoFormPage() {
+export function PrototiposFolhaGrupoEleitoFormPage({
+  somenteLeitura = false,
+}: { somenteLeitura?: boolean } = {}) {
   const navigate = useNavigate();
-  const [participantesDisponiveis, setParticipantesDisponiveis] = useState(
-    grupoEleitoParticipantesMock.slice(4),
+  const { id } = useParams();
+  const grupo = somenteLeitura
+    ? gruposEleitosMock.find((grupo) => grupo.id === Number(id))
+    : undefined;
+  const participantes = somenteLeitura
+    ? pessoasGruposEleitos.map((pessoa, indice) => ({
+        id: 10000 + indice,
+        matricula: pessoa.matricula,
+        cpf: pessoa.cpf,
+        vinculo: pessoa.numero,
+        servidor: pessoa.nome,
+        orgaoEntidade: pessoa.orgao,
+        dataExercicioAposentadoria: pessoa.inicio,
+      }))
+    : grupoEleitoParticipantesMock;
+  const [eleitos, setEleitos] = useState<GrupoEleitoParticipanteRow[]>(() =>
+    participantes.filter((p) =>
+      grupo?.vinculosIds?.some(
+        (id) => id === pessoasGruposEleitos[p.id - 10000]?.id,
+      ),
+    ),
   );
-  const [participantesEleitos, setParticipantesEleitos] = useState(
-    grupoEleitoParticipantesMock.slice(0, 4),
-  );
-  const { control, setValue } = useForm<GrupoEleitoForm>({
+  const [marcados, setMarcados] = useState<number[]>([]);
+  const [busca, setBusca] = useState("");
+  const { control, watch, setValue } = useForm<GrupoEleitoForm>({
     defaultValues: {
-      descricao: "",
-      situacao: SITUACAO_VIGENCIA.ATIVO,
-      dataAtivacao: "08/05/2026",
-      dataEncerramento: "",
-      motivoEncerramento: "",
-      dataExtincao: "",
-      motivoExtincao: "",
-      observacoes: "",
+      descricao: grupo?.descricao ?? "",
+      dataAtivacao: grupo
+        ? grupo.situacao === "AGENDADO"
+          ? "01/12/2099"
+          : "01/01/2026"
+        : "",
+      observacoes: grupo ? `Integrantes do ${grupo.descricao}.` : "",
+      situacao:
+        grupo?.situacao === "ENCERRADO"
+          ? "ENCERRADO"
+          : grupo?.situacao === "EXTINTO"
+            ? "EXTINTO"
+            : "ATIVO",
       participanteBusca: "",
-      consultar: "todos",
-      filtroInstituicao: [],
-      filtroOrgao: [],
-      filtroTipoVinculo: [],
-      filtroSetor: [],
-      filtroCategoria: [],
-      filtroSubcategoria: [],
-      filtroCargo: [],
     },
   });
-  const renderParticipantePickListItem = (participante: GrupoEleitoParticipanteRow) => (
-    <div className="prototype-grupo-picklist-item">
-      <span className="prototype-grupo-matricula">{participante.matricula || "-"}</span>
-      <strong>{participante.servidor}</strong>
-      <span className="prototype-grupo-cpf">{participante.cpf}</span>
-    </div>
-  );
-  const handleClearParticipanteFilters = () => {
-    setValue("participanteBusca", "");
-    setValue("filtroInstituicao", []);
-    setValue("filtroOrgao", []);
-    setValue("filtroTipoVinculo", []);
-    setValue("filtroSetor", []);
-    setValue("filtroCategoria", []);
-    setValue("filtroSubcategoria", []);
-    setValue("filtroCargo", []);
+  const situacao = watch("situacao");
+  const statusExibido = calcularStatusOperacionalVigenciaSeplag({
+    situacao,
+    dataAtivacao: watch("dataAtivacao"),
+  });
+  const termo = busca.trim().toLocaleLowerCase("pt-BR");
+  const normalizar = (valor: string) =>
+    valor.replace(/[^\p{L}\p{N}]/gu, "").toLocaleLowerCase("pt-BR");
+  const disponiveis = participantes
+    .filter((p) => !eleitos.some((e) => e.id === p.id))
+    .filter(
+      (p) =>
+        !termo ||
+        [p.servidor, p.cpf, p.matricula].some((v) =>
+          normalizar(v).includes(normalizar(termo)),
+        ),
+    );
+  const transferir = (adicionar: boolean, todos: boolean) => {
+    if (somenteLeitura) return;
+    const origem = adicionar ? disponiveis : eleitos;
+    const itens = origem.filter((p) => todos || marcados.includes(p.id));
+    setEleitos((atual) =>
+      adicionar
+        ? [...atual, ...itens]
+        : atual.filter((p) => !itens.some((i) => i.id === p.id)),
+    );
+    setMarcados([]);
   };
-
+  const tabela = (
+    titulo: string,
+    pessoas: GrupoEleitoParticipanteRow[],
+    vazia: string,
+  ) => (
+    <section className="grupo-eleitos-lista" aria-label={titulo}>
+      <h3>
+        {titulo} <span>({pessoas.length})</span>
+      </h3>
+      <div className="grupo-eleitos-lista-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  aria-label={"Selecionar todos em " + titulo}
+                  checked={
+                    pessoas.length > 0 &&
+                    pessoas.every((p) => marcados.includes(p.id))
+                  }
+                  disabled={!pessoas.length}
+                  onChange={(e) =>
+                    setMarcados((atual) =>
+                      e.target.checked
+                        ? [...new Set([...atual, ...pessoas.map((p) => p.id)])]
+                        : atual.filter(
+                            (id) => !pessoas.some((p) => p.id === id),
+                          ),
+                    )
+                  }
+                />
+              </th>
+              <th>Matrícula</th>
+              <th>Nome</th>
+              <th>CPF</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pessoas.map((p) => (
+              <tr key={p.id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    aria-label={
+                      "Selecionar " + p.servidor + " vínculo " + p.vinculo
+                    }
+                    checked={marcados.includes(p.id)}
+                    onChange={(e) =>
+                      setMarcados((atual) =>
+                        e.target.checked
+                          ? [...atual, p.id]
+                          : atual.filter((id) => id !== p.id),
+                      )
+                    }
+                  />
+                </td>
+                <td>{p.matricula || "-"}</td>
+                <td>{p.servidor}</td>
+                <td>{p.cpf}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!pessoas.length && (
+          <div className="grupo-eleitos-vazio">
+            <i className="pi pi-users" aria-hidden="true" />
+            <p>{vazia}</p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
   return (
     <PrototypeSystemPage
       nomeSistema="FOLHA"
       ambienteSistema="Teste"
       menuItems={menuFolha}
     >
-      <form onSubmit={(event) => event.preventDefault()}>
+      <form
+        onSubmit={(event) => event.preventDefault()}
+        className="grupo-eleitos-cadastro"
+      >
         <div className="prototype-page-content prototype-page-content--white">
+          <BreadcrumbSeplag
+            divided
+            items={[
+              { label: "Cadastro" },
+              { label: "Grupo Eleitos", to: "/prototipos/folha/grupo-eleitos" },
+              { label: somenteLeitura ? "Visualizar" : "Cadastrar" },
+            ]}
+          />
           <CardSeplag
-            title="Cadastrar - Grupo de Eleito"
+            title={
+              somenteLeitura
+                ? "Visualizar - Grupo de Eleitos"
+                : "Cadastrar - Grupo de Eleitos"
+            }
             cols="12"
             cardHeaderClassNames="prototype-category-card"
           >
-            <div className="col-12 prototype-category-form prototype-grupo-eleito-form">
-              <div className="grid prototype-category-form-fields prototype-grupo-eleito-form-fields">
-                <TextFieldSeplag
-                  name="descricao"
-                  control={control}
-                  label="Descrição"
-                  cols="12 12 12"
-                  required
-                  getFormErrorMessage={() => null}
-                />
-                <TextAreaFieldSeplag
-                  name="observacoes"
-                  control={control}
-                  label="Observações"
-                  cols="12 12 12"
-                  maxLength={500}
-                  getFormErrorMessage={() => null}
-                />
-                <div className="col-12 prototype-category-vigencia">
-                  <SituacaoVigenciaSeplag<GrupoEleitoForm>
-                    control={control}
-                    setValue={setValue}
-                    rotuloDataAtivacao="Data Criação"
-                    cols={{
-                      situacao: "12 12 3",
-                      dataAtivacao: "12 12 3",
-                      statusOperacional: "col-12 md:col-4 lg:col-4",
-                      dataEncerramento: "12 12 3",
-                      motivoEncerramento: "12",
-                      dataExtincao: "12 12 3",
-                      motivoExtincao: "12",
-                    }}
-                    getFormErrorMessage={() => null}
-                  />
-                </div>
-              </div>
-
-              <div className="prototype-grupo-participantes">
-                <div className="prototype-grupo-picklist-shell">
-                  <div className="prototype-grupo-card-search">
-                    <div className="prototype-grupo-card-search-label">
-                      Nome, CPF ou Matrícula<span>*</span>
-                    </div>
-                    <div className="prototype-grupo-card-search-row">
-                      <Controller
-                        name="participanteBusca"
+            <div className="col-12 grupo-eleitos-conteudo">
+              <fieldset
+                disabled={somenteLeitura}
+                className="grupo-eleitos-campos"
+              >
+                <SecaoProcessamentoFolha
+                  titulo="Dados do Grupo"
+                  icone="pi pi-id-card"
+                >
+                  <div className="grid grupo-eleitos-dados">
+                    <TextFieldSeplag
+                      name="descricao"
+                      control={control}
+                      label="Nome"
+                      cols="12 12 9"
+                      required
+                      getFormErrorMessage={() => null}
+                    />
+                    <DateFieldSeplag
+                      name="dataAtivacao"
+                      control={control}
+                      label="Data de Início"
+                      cols="12 12 3"
+                      required
+                      getFormErrorMessage={() => null}
+                    />
+                    <TextAreaFieldSeplag
+                      name="observacoes"
+                      control={control}
+                      label="Observações"
+                      cols="12"
+                      maxLength={500}
+                      getFormErrorMessage={() => null}
+                    />
+                  </div>
+                </SecaoProcessamentoFolha>
+                <SecaoProcessamentoFolha
+                  titulo="Situação"
+                  icone="pi pi-info-circle"
+                >
+                  <div className="grid grupo-eleitos-dados">
+                    <div className="col-12 grupo-eleitos-situacao">
+                      <div className="grupo-eleitos-situacao-label">
+                        Situação {renderGrupoEleitosSituacao(statusExibido)}{" "}
+                        <span className="p-error">*</span>
+                      </div>
+                      <RadioButtonFieldSeplag
+                        name="situacao"
                         control={control}
-                        render={({ field }) => (
-                          <input
-                            {...field}
-                            className="p-inputtext p-component"
-                            placeholder="Buscar por nome, CPF ou matrícula..."
-                          />
+                        label=""
+                        cols="12"
+                        options={grupoEleitosSituacaoOptions.filter(
+                          (opcao) => opcao.value !== "AGENDADO",
                         )}
+                        getFormErrorMessage={() => null}
                       />
+                    </div>
+                    {situacao === "ENCERRADO" && (
+                      <>
+                        <DateFieldSeplag
+                          name="dataEncerramento"
+                          control={control}
+                          label="Data de Encerramento"
+                          required
+                          cols="12 6"
+                          getFormErrorMessage={() => null}
+                        />
+                        <TextAreaFieldSeplag
+                          name="motivoEncerramento"
+                          control={control}
+                          label="Motivo do Encerramento"
+                          cols="12 6"
+                          getFormErrorMessage={() => null}
+                        />
+                      </>
+                    )}
+                    {situacao === "EXTINTO" && (
+                      <>
+                        <DateFieldSeplag
+                          name="dataExtincao"
+                          control={control}
+                          label="Data de Extinção"
+                          required
+                          cols="12 6"
+                          getFormErrorMessage={() => null}
+                        />
+                        <TextAreaFieldSeplag
+                          name="motivoExtincao"
+                          control={control}
+                          label="Motivo da Extinção"
+                          cols="12 6"
+                          getFormErrorMessage={() => null}
+                        />
+                      </>
+                    )}
+                  </div>
+                </SecaoProcessamentoFolha>
+                <SecaoProcessamentoFolha
+                  titulo="Selecionar Pessoas"
+                  icone="pi pi-users"
+                >
+                  <div className="grupo-eleitos-pessoas">
+                    <div className="grupo-eleitos-busca">
+                      <div>
+                        <label htmlFor="busca-pessoas-eleitos">
+                          Nome, CPF ou Matrícula
+                        </label>
+                        <div className="grupo-eleitos-busca-input">
+                          <i className="pi pi-search" aria-hidden="true" />
+                          <Controller
+                            name="participanteBusca"
+                            control={control}
+                            render={({ field }) => (
+                              <input
+                                {...field}
+                                id="busca-pessoas-eleitos"
+                                className="p-inputtext p-component"
+                                placeholder="Digite o nome, CPF ou matrícula"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    setBusca(field.value ?? "");
+                                    setMarcados([]);
+                                  }
+                                }}
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
+                      <BotaoSeplag
+                        type="button"
+                        label="Consultar"
+                        icon="pi pi-search"
+                        onClick={() => {
+                          setBusca(watch("participanteBusca") ?? "");
+                          setMarcados([]);
+                        }}
+                      />
+                      <BotaoLimparFiltroSeplag
+                        type="button"
+                        label="Limpar"
+                        icon="pi pi-refresh"
+                        onClick={() => {
+                          setValue("participanteBusca", "");
+                          setBusca("");
+                          setMarcados([]);
+                        }}
+                      />
+                    </div>
+                    <div className="grupo-eleitos-selecao">
+                      {tabela(
+                        "Disponíveis",
+                        disponiveis,
+                        "Nenhuma pessoa encontrada.",
+                      )}
+                      <div className="grupo-eleitos-transferir">
+                        {[
+                          {
+                            icon: "pi pi-angle-double-right",
+                            label: "Adicionar todos os disponíveis",
+                            adicionar: true,
+                            todos: true,
+                            disabled: !disponiveis.length,
+                          },
+                          {
+                            icon: "pi pi-angle-right",
+                            label: "Adicionar pessoas selecionadas",
+                            adicionar: true,
+                            todos: false,
+                            disabled: !disponiveis.some((p) =>
+                              marcados.includes(p.id),
+                            ),
+                          },
+                          {
+                            icon: "pi pi-angle-left",
+                            label: "Remover pessoas selecionadas",
+                            adicionar: false,
+                            todos: false,
+                            disabled: !eleitos.some((p) =>
+                              marcados.includes(p.id),
+                            ),
+                          },
+                          {
+                            icon: "pi pi-angle-double-left",
+                            label: "Remover todos os eleitos",
+                            adicionar: false,
+                            todos: true,
+                            disabled: !eleitos.length,
+                          },
+                        ].map((a) => (
+                          <button
+                            key={a.label}
+                            type="button"
+                            aria-label={a.label}
+                            title={a.label}
+                            disabled={a.disabled}
+                            onClick={() => transferir(a.adicionar, a.todos)}
+                          >
+                            <i className={a.icon} aria-hidden="true" />
+                          </button>
+                        ))}
+                      </div>
+                      {tabela(
+                        "Eleitos",
+                        eleitos,
+                        "Nenhuma pessoa selecionada.",
+                      )}
                     </div>
                   </div>
-
-                  <details className="prototype-grupo-inline-filters" open>
-                    <summary className="prototype-grupo-inline-filters-title">
-                      <span>
-                        <i className="pi pi-filter" aria-hidden="true" />
-                        Filtros avançados
-                      </span>
-                      <i className="pi pi-chevron-down prototype-grupo-accordion-chevron" aria-hidden="true" />
-                    </summary>
-                    <div className="grid prototype-grupo-advanced-filter-grid">
-                      <MultiSelectFieldSeplag
-                        name="filtroInstituicao"
-                        control={control}
-                        label="Instituição"
-                        cols="12 6 4"
-                        options={grupoEleitoFiltroAvancadoOptions.instituicoes}
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Selecionar instituições"
-                        getFormErrorMessage={() => null}
-                      />
-                      <MultiSelectFieldSeplag
-                        name="filtroOrgao"
-                        control={control}
-                        label="Órgão"
-                        cols="12 6 4"
-                        options={grupoEleitoFiltroAvancadoOptions.orgaos}
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Selecionar órgãos"
-                        getFormErrorMessage={() => null}
-                      />
-                      <MultiSelectFieldSeplag
-                        name="filtroSetor"
-                        control={control}
-                        label="Setores"
-                        cols="12 6 4"
-                        options={grupoEleitoFiltroAvancadoOptions.setores}
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Selecionar setores"
-                        getFormErrorMessage={() => null}
-                      />
-                      <MultiSelectFieldSeplag
-                        name="filtroCategoria"
-                        control={control}
-                        label="Categoria"
-                        cols="12 6 4"
-                        options={grupoEleitoFiltroAvancadoOptions.categorias}
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Selecionar categorias"
-                        getFormErrorMessage={() => null}
-                      />
-                      <MultiSelectFieldSeplag
-                        name="filtroSubcategoria"
-                        control={control}
-                        label="Subcategoria"
-                        cols="12 6 4"
-                        options={grupoEleitoFiltroAvancadoOptions.subcategorias}
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Selecionar subcategorias"
-                        getFormErrorMessage={() => null}
-                      />
-                      <MultiSelectFieldSeplag
-                        name="filtroCargo"
-                        control={control}
-                        label="Cargo"
-                        cols="12 6 4"
-                        options={grupoEleitoFiltroAvancadoOptions.cargos}
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Selecionar cargos"
-                        getFormErrorMessage={() => null}
-                      />
-                      <MultiSelectFieldSeplag
-                        name="filtroTipoVinculo"
-                        control={control}
-                        label="Tipo de Vínculo"
-                        cols="12 6 4"
-                        options={grupoEleitoFiltroAvancadoOptions.tiposVinculo}
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Selecionar Tipo de Vínculo"
-                        getFormErrorMessage={() => null}
-                      />
-                      <div className="col-12 md:col-6 lg:col-8 prototype-grupo-inline-filter-actions">
-                        <BotaoSeplag
-                          type="button"
-                          label="Aplicar Filtro"
-                          icon="pi pi-filter"
-                          style={{ height: 30, marginBottom: 0 }}
-                        />
-                        <BotaoLimparFiltroSeplag
-                          type="button"
-                          label="Limpar"
-                          icon="pi pi-refresh"
-                          style={{ height: 30, marginBottom: 0 }}
-                          onClick={handleClearParticipanteFilters}
-                        />
-                      </div>
-                    </div>
-                  </details>
-
-                  <PickListSeplag<GrupoEleitoParticipanteRow>
-                    title=""
-                    titleNaoSelecionados="Disponíveis"
-                    titleSelecionados="Eleitos"
-                    dataKey="id"
-                    dataLabel="servidor"
-                    filterBy="matricula,cpf,servidor"
-                    filterPlaceholder="Filtrar participantes..."
-                    naoSelecionados={participantesDisponiveis}
-                    selecionados={participantesEleitos}
-                    setNaoSelecionados={setParticipantesDisponiveis}
-                    setSelecionados={setParticipantesEleitos}
-                    naoSelecionadosItemTemplate={renderParticipantePickListItem}
-                    selecionadosItemTemplate={renderParticipantePickListItem}
-                  />
-                </div>
-              </div>
-
-              <div className="prototype-category-form-footer">
-                <BotaoVoltarSeplag
+                </SecaoProcessamentoFolha>
+              </fieldset>
+              <div className="grupo-eleitos-rodape">
+                <BotaoSeplag
                   type="button"
+                  label="Voltar"
+                  icon="pi pi-arrow-left"
+                  className="grupo-eleitos-voltar"
+                  outlined
                   onClick={() => navigate("/prototipos/folha/grupo-eleitos")}
                 />
-                <BotaoSalvarSeplag type="submit" />
+                {!somenteLeitura && <BotaoSalvarSeplag type="submit" />}
               </div>
             </div>
           </CardSeplag>

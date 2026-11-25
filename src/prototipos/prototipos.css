@@ -8489,11 +8489,14 @@
 
 .prototype-folha-grupo-filters {
   display: grid;
-  grid-template-columns: minmax(300px, 1fr) minmax(220px, 0.72fr) 168px;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 146px;
   align-items: end;
-  gap: 12px 16px;
-  max-width: 820px;
-  margin-bottom: 12px;
+  gap: 16px;
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 12px 8px 20px;
 }
 
 .prototype-folha-grupo-filters::before,
@@ -8782,29 +8785,42 @@
 
 .prototype-folha-grupo-table .p-datatable-thead > tr > th:nth-child(1),
 .prototype-folha-grupo-table .p-datatable-tbody > tr > td:nth-child(1) {
-  width: auto;
-  min-width: 360px;
-  word-break: normal;
+  width: 70px;
+  min-width: 70px;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
 }
 
 .prototype-folha-grupo-table .p-datatable-thead > tr > th:nth-child(2),
 .prototype-folha-grupo-table .p-datatable-tbody > tr > td:nth-child(2) {
-  width: 160px;
-  min-width: 160px;
+  width: auto;
+  min-width: 260px;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
 }
 
 .prototype-folha-grupo-table .p-datatable-thead > tr > th:nth-child(3),
 .prototype-folha-grupo-table .p-datatable-tbody > tr > td:nth-child(3) {
   width: 190px;
-  min-width: 240px;
-  white-space: nowrap;
-  word-break: normal;
+  min-width: 160px;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
 }
 
 .prototype-folha-grupo-table .p-datatable-thead > tr > th:nth-child(4),
 .prototype-folha-grupo-table .p-datatable-tbody > tr > td:nth-child(4) {
-  width: 110px;
-  min-width: 110px;
+  width: 150px;
+  min-width: 140px;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
+}
+
+.prototype-folha-grupo-table .p-datatable-thead > tr > th:nth-child(5),
+.prototype-folha-grupo-table .p-datatable-tbody > tr > td:nth-child(5) {
+  width: 100px;
+  min-width: 100px;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
 }
 
 .prototype-page-content--white .p-card {
@@ -21869,3 +21885,205 @@
 @media(max-width:800px){.prototype-grupos-competencia-header{padding-left:0;gap:8px;justify-content:flex-end;}.prototype-grupos-competencia-header label{flex-wrap:wrap;}}
 
 .prototype-grupos-calculo-management .prototype-grupos-calculo-paginator { justify-content: center; flex-wrap: wrap; width: 100%; }
+
+@media (max-width: 767px) {
+  .prototype-folha-grupo-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Cadastro de grupos de eleitos */
+.grupo-eleitos-cadastro .grupo-eleitos-conteudo { width: 100%; min-width: 0; }
+.grupo-eleitos-cadastro .grupo-eleitos-dados { margin: 0 -8px; }
+.grupo-eleitos-cadastro .grupo-eleitos-dados .p-inputtext,
+.grupo-eleitos-cadastro .grupo-eleitos-dados .p-calendar,
+.grupo-eleitos-cadastro .grupo-eleitos-dados textarea { width: 100%; }
+.grupo-eleitos-cadastro .grupo-eleitos-dados textarea { min-height: 80px; }
+.grupo-eleitos-situacao-label { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.grupo-eleitos-situacao > [class*="col-"] { padding: 0; }
+.grupo-eleitos-pessoas { border-top: 1px solid #dce3ed; margin-top: 8px; padding-top: 16px; }
+.grupo-eleitos-pessoas h2 { font-size: 1.05rem; margin: 0 0 12px; }
+.grupo-eleitos-busca { display: grid; grid-template-columns: minmax(200px, 1fr) auto auto; align-items: end; gap: 16px; max-width: 1120px; margin-bottom: 20px; }
+.grupo-eleitos-busca label { display: block; margin-bottom: 6px; font-weight: 600; }
+.grupo-eleitos-busca-input { position: relative; }
+.grupo-eleitos-busca-input > i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #7b8797; }
+.grupo-eleitos-busca-input input { width: 100%; height: 40px; padding-left: 36px; }
+.grupo-eleitos-busca .p-button { margin: 0; height: 40px; }
+.grupo-eleitos-selecao { display: grid; grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr); align-items: stretch; gap: 16px; }
+.grupo-eleitos-lista { border: 1px solid #dce3ed; border-radius: 4px; min-width: 0; overflow: hidden; }
+.grupo-eleitos-lista h3 { background: #f5f6f8; font-size: 0.95rem; padding: 12px; margin: 0; border-bottom: 1px solid #dce3ed; }
+.grupo-eleitos-lista h3 span { font-weight: 400; }
+.grupo-eleitos-lista-scroll { height: 260px; overflow: auto; position: relative; }
+.grupo-eleitos-lista table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+.grupo-eleitos-lista th { background: #f8fafc; position: sticky; top: 0; z-index: 1; }
+.grupo-eleitos-lista th, .grupo-eleitos-lista td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e6ebf2; }
+.grupo-eleitos-lista td:nth-child(2), .grupo-eleitos-lista td:last-child { white-space: nowrap; }
+.grupo-eleitos-lista input[type="checkbox"] { accent-color: #008cff; width: 16px; height: 16px; cursor: pointer; }
+.grupo-eleitos-vazio { min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #66788a; text-align: center; padding: 16px; }
+.grupo-eleitos-vazio i { font-size: 2.5rem; }
+.grupo-eleitos-vazio p { margin: 12px 0 0; }
+.grupo-eleitos-transferir { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
+.grupo-eleitos-transferir button { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid #008cff; color: #008cff; background: white; cursor: pointer; }
+.grupo-eleitos-transferir button:first-child { background: #008cff; color: white; }
+.grupo-eleitos-transferir button:disabled { opacity: 0.4; cursor: default; }
+.grupo-eleitos-transferir button:focus-visible { outline: 2px solid #005eb8; outline-offset: 3px; }
+.grupo-eleitos-rodape { display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; margin-top: 20px; border-top: 1px solid #dce3ed; }
+@media (max-width: 767px) {
+  .grupo-eleitos-busca { grid-template-columns: 1fr 1fr; }
+  .grupo-eleitos-busca > div:first-child { grid-column: 1 / -1; }
+  .grupo-eleitos-selecao { grid-template-columns: minmax(0, 1fr); }
+  .grupo-eleitos-transferir { flex-direction: row; }
+}
+
+.grupo-eleitos-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.grupo-eleitos-cadastro .grupo-eleitos-pessoas {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+.grupo-eleitos-cadastro .grupo-eleitos-situacao-label {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: auto;
+}
+.grupo-eleitos-cadastro .grupo-eleitos-situacao-label > span {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+}
+.grupo-eleitos-cadastro .grupo-eleitos-situacao > [class*="col-"] {
+  width: 100%;
+  padding-top: 8px;
+}
+.grupo-eleitos-cadastro .grupo-eleitos-rodape {
+  margin-top: 0;
+}
+
+.grupo-eleitos-status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  width: fit-content;
+  min-height: 26px;
+  padding: 4px 13px;
+  border: 0;
+  border-radius: 999px;
+  box-sizing: border-box;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.prototype-folha-grupo-page .prototype-folha-grupo-filters {
+  display: grid !important;
+  grid-template-columns: minmax(0, 516px) minmax(0, 383px) 170px;
+  gap: 14px;
+  padding-bottom: 28px;
+}
+.prototype-folha-grupo-table .p-datatable-thead > tr > th,
+.prototype-folha-grupo-table .p-datatable-tbody > tr > td {
+  padding: 10px 8px;
+  font-weight: 400;
+}
+.prototype-folha-grupo-table .p-datatable-thead > tr > th { background: #f7f9fb; }
+.prototype-folha-grupo-table .p-datatable-header { padding: 8px; background: #f7f9fb; }
+@media (max-width: 767px) {
+  .prototype-folha-grupo-page .prototype-folha-grupo-filters { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Keep the group listing width independent of the current page content. */
+.prototype-folha-grupo-page .prototype-folha-grupo-filters,
+.prototype-folha-grupo-page .prototype-folha-grupo-table {
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.prototype-folha-grupo-page .prototype-folha-grupo-table > div,
+.prototype-folha-grupo-page .prototype-folha-grupo-table .p-datatable {
+  width: 100%;
+  min-width: 0;
+}
+.prototype-folha-grupo-page .prototype-folha-grupo-table .p-datatable-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.prototype-folha-grupo-page .prototype-folha-grupo-filters .content-rotulo,
+.prototype-folha-grupo-page .prototype-folha-grupo-filters .elemento {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.prototype-folha-grupo-table .p-splitbutton {
+  display: inline-flex;
+  width: 72px;
+  min-width: 72px;
+  max-width: 100%;
+}
+.prototype-folha-grupo-table .p-splitbutton > .p-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px !important;
+  min-width: 0 !important;
+  height: 38px;
+  padding: 0 !important;
+}
+.prototype-folha-grupo-table .p-datatable-tbody > tr > td:last-child {
+  white-space: nowrap;
+}
+
+.prototype-folha-grupo-page .prototype-folha-grupo-filters .prototype-category-clear .p-button {
+  min-width: 170px;
+  padding-inline: 14px;
+}
+.prototype-folha-grupo-page .prototype-folha-grupo-filters .prototype-category-clear .p-button-label {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.grupo-eleitos-rodape .p-button {
+  height: 36px;
+  min-width: 108px;
+  margin-bottom: 0;
+}
+.grupo-eleitos-rodape .grupo-eleitos-voltar.p-button {
+  background: #fff;
+  color: #2196f3;
+  border: 1px solid #2196f3;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px #00000026;
+}
+.grupo-eleitos-rodape .grupo-eleitos-voltar .p-button-label {
+  font-weight: 400;
+}
+
+.prototype-folha-grupo-table .p-datatable-thead > tr > th {
+  font-weight: 700;
+}
+
+.grupo-eleitos-campos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  width: 100%;
+}
+.grupo-eleitos-campos:disabled input[type="checkbox"] { cursor: default; }
