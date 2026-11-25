@@ -147,7 +147,7 @@ it("migra códigos antigos preservando os dados e os códigos numéricos existen
   }));
   localStorage.setItem(STORAGE_LICENCAS, JSON.stringify(antigos));
   const dados = carregarEventos();
-  expect(dados.map((e) => e.codigo)).toEqual(["2", "1", "3", "4", "5"]);
+  expect(dados.map((e) => e.codigo)).toEqual(["2", "1", "3", "4", "5", "6", "7", "8", "9"]);
   expect(dados.map((e) => e.id)).toEqual(antigos.map((e) => e.id));
   expect(dados.every((e) => e.descricao === "Descrição preservada")).toBe(true);
   expect(carregarEventos()).toEqual(dados);
@@ -167,19 +167,25 @@ it("exibe os vínculos autorizados em uma lista no modal", () => {
   for (const vinculo of eventosIniciais[0].vinculos)
     expect(modal.getByText(vinculo, { exact: false })).toBeTruthy();
 });
-it("preserva os cinco eventos e os valores de duração da referência", () => {
+it("preserva os eventos de referência e os exemplos com valores de duração", () => {
   const dados = carregarEventos();
-  expect(dados).toHaveLength(5);
-  expect(dados.filter((e) => e.natureza === "Licença")).toHaveLength(2);
-  expect(dados.filter((e) => e.natureza === "Afastamento")).toHaveLength(1);
-  expect(dados.filter((e) => e.natureza === "Ausência")).toHaveLength(2);
+  expect(dados).toHaveLength(9);
+  expect(dados.filter((e) => e.natureza === "Licença")).toHaveLength(3);
+  expect(dados.filter((e) => e.natureza === "Afastamento")).toHaveLength(2);
+  expect(dados.filter((e) => e.natureza === "Ausência")).toHaveLength(4);
   expect(dados.map(rotuloDuracao)).toEqual([
     "8 Dias Corridos",
     "Sem limite",
     "1 Dia Útil",
     "Sem limite",
     "Por horas",
+    "Por horas",
+    "Por horas",
+    "180 Dias Corridos",
+    "Sem limite",
   ]);
+  expect(regraDoVinculo(dados[5], "Efetivo").limiteHoras).toBe("04:00");
+  expect(regraDoVinculo(dados[6], "Efetivo").semLimiteHoras).toBe(true);
   expect(dados[0].parentesco).toBe(true);
   expect(dados[2].recorrencia).toBe("1x / 12m");
   expect(dados[4].situacao).toBe("Inativo");
@@ -206,12 +212,12 @@ it("clona com novo identificador, exige código único e preserva o original", (
   const original = carregarEventos()[0],
     copia = clonarEvento(original);
   expect(copia.id).not.toBe(original.id);
-  expect(copia.codigo).toBe("6");
+  expect(copia.codigo).toBe("10");
   expect(() =>
     salvarEvento({ ...copia, codigo: "1" }, carregarEventos()),
   ).toThrow(/código único/);
-  salvarEvento({ ...copia, codigo: "6" }, carregarEventos());
-  expect(carregarEventos()).toHaveLength(6);
+  salvarEvento({ ...copia, codigo: "10" }, carregarEventos());
+  expect(carregarEventos()).toHaveLength(10);
   expect(carregarEventos().find((e) => e.id === original.id)).toEqual(original);
 });
 it("remove a inativação manual das ações", () => {
@@ -255,11 +261,11 @@ it("abre a clonagem preenchida e salva uma nova parametrização", async () => {
   ).toBe(true);
   if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
-  expect(carregarEventos()).toHaveLength(6);
+  expect(carregarEventos()).toHaveLength(10);
   expect(
     within(
       screen.getByRole("table", { name: "Ocorrências parametrizadas" }),
-    ).getByText("6"),
+    ).getByText("10"),
   ).toBeTruthy();
 });
 it("cadastra e edita um evento sem duplicar o registro existente", async () => {
@@ -282,10 +288,10 @@ it("cadastra e edita um evento sem duplicar o registro existente", async () => {
   fireEvent.change(financeiro.getByLabelText(/A partir de qual dia/), { target: { value: '3' } });
   if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
-  expect(carregarEventos()).toHaveLength(6);
-  const id = carregarEventos().find((e) => e.codigo === "6")!.id;
+  expect(carregarEventos()).toHaveLength(10);
+  const id = carregarEventos().find((e) => e.codigo === "10")!.id;
   expect(carregarEventos().find(e => e.id === id)?.configuracao?.efeitosFinanceiros?.Efetivo).toEqual({ geraOnus: true, suspendeRemuneracao: true, diaInicioSuspensao: 3 });
-  await acaoEvento("6", "Editar");
+  await acaoEvento("10", "Editar");
   expect((screen.getByLabelText(/A partir de qual dia/) as HTMLInputElement).value).toBe('3');
   fireEvent.change(
     screen.getByLabelText("Nome da Ocorrência (Exibido no Lançamento) *"),
@@ -293,7 +299,7 @@ it("cadastra e edita um evento sem duplicar o registro existente", async () => {
   );
   if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
-  expect(carregarEventos()).toHaveLength(6);
+  expect(carregarEventos()).toHaveLength(10);
   expect(carregarEventos().find((e) => e.id === id)?.nome).toBe(
     "Evento revisado",
   );
@@ -433,7 +439,7 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
   fireEvent.click(screen.getByRole("button", { name: "Tio(a)" }));
   if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
-  const salvo = carregarEventos().find((e) => e.codigo === "6")!;
+  const salvo = carregarEventos().find((e) => e.codigo === "10")!;
   expect(salvo.vinculos).toEqual(["Residente", "Temporário Único"]);
   expect(salvo.duracao).toBe("Sem limite");
   expect(salvo.recorrencia).toBe("2x / 3 Anos");
@@ -445,7 +451,7 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
     grausParentesco: ["Pai / Mãe", "Tio(a)"],
   });
   expect(salvo.historico).toHaveLength(1);
-  await acaoEvento("6", "Editar");
+  await acaoEvento("10", "Editar");
 
   fireEvent.change(
     screen.getByLabelText("Nome da Ocorrência (Exibido no Lançamento) *"),
@@ -453,7 +459,7 @@ it("publica todas as regras do HTML e preserva as versões anteriores ao editar"
   );
   if (screen.queryByRole('button', {name: 'Avançar'})) fireEvent.click(screen.getByRole('button', {name: 'Avançar'}));
   fireEvent.click(screen.getByRole("button", { name: "Salvar e Publicar" }));
-  const revisado = carregarEventos().find((e) => e.codigo === "6")!;
+  const revisado = carregarEventos().find((e) => e.codigo === "10")!;
   expect(revisado.historico).toHaveLength(2);
   expect(revisado.historico![0].dados.nome).toBe("Parametrização completa");
   expect(revisado.historico![1].dados.nome).toBe("Parametrização revisada");

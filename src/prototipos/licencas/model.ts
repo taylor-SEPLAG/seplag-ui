@@ -261,7 +261,91 @@ export const eventosIniciais: EventoLicenca[] = [
     recorrencia: "",
     situacao: "Inativo",
   },
+  comRegra(
+    {
+      id: "aus-011",
+      codigo: "6",
+      nome: "Acompanhamento de Familiar em Consulta Médica (Horas)",
+      descricao: "Declaração de Comparecimento / Atestado de Horas",
+      natureza: "Ausência",
+      categoria: CATEGORIAS[3],
+      vinculos: ["Efetivo", "Comissionado", "Temporário"],
+      duracao: "Por horas",
+      quantidade: 0,
+      parentesco: true,
+      recorrencia: "",
+      situacao: "Ativo",
+    },
+    {
+      limiteHoras: "04:00",
+      semLimiteHoras: false,
+      exigeParentesco: true,
+      grausParentesco: ["Cônjuge / Companheiro(a)", "Pai / Mãe"],
+    },
+  ),
+  comRegra(
+    {
+      id: "aus-012",
+      codigo: "7",
+      nome: "Comparecimento a Audiência Judicial (Horas)",
+      descricao: "Intimação ou Certidão de Comparecimento",
+      natureza: "Ausência",
+      categoria: CATEGORIAS[3],
+      vinculos: ["Efetivo", "Comissionado", "Temporário", "Estagiário"],
+      duracao: "Por horas",
+      quantidade: 0,
+      parentesco: false,
+      recorrencia: "",
+      situacao: "Ativo",
+    },
+    { limiteHoras: "", semLimiteHoras: true },
+  ),
+  {
+    id: "lic-102",
+    codigo: "8",
+    nome: "Licença à Gestante / Maternidade",
+    descricao: "Atestado Médico / Certidão de Nascimento",
+    natureza: "Licença",
+    categoria: CATEGORIAS[1],
+    vinculos: ["Efetivo", "Comissionado", "Temporário"],
+    duracao: "Dias corridos",
+    quantidade: 180,
+    parentesco: false,
+    recorrencia: "",
+    situacao: "Ativo",
+  },
+  {
+    id: "afs-046",
+    codigo: "9",
+    nome: "Afastamento para Exercício de Mandato Eletivo",
+    descricao: "Certidão da Justiça Eleitoral / Diplomação",
+    natureza: "Afastamento",
+    categoria: CATEGORIAS[5],
+    vinculos: ["Efetivo"],
+    duracao: "Sem limite",
+    quantidade: 0,
+    parentesco: false,
+    recorrencia: "",
+    situacao: "Ativo",
+  },
 ];
+/** Cria um evento de exemplo com a mesma regra aplicada a todos os seus vínculos. */
+function comRegra(
+  evento: EventoLicenca,
+  regra: Partial<RegraDuracaoVinculo>,
+): EventoLicenca {
+  const base = configuracaoDoEvento(evento);
+  return {
+    ...evento,
+    configuracao: {
+      ...base,
+      inicioVigencia: "2026-01-01",
+      regrasPorVinculo: Object.fromEntries(
+        evento.vinculos.map((v) => [v, { ...regraDoVinculo(evento, v), ...regra }]),
+      ),
+    },
+  };
+}
 const normalizar = (texto: string) =>
   texto
     .normalize("NFD")
