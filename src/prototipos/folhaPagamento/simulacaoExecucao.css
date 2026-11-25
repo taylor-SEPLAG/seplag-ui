@@ -133,3 +133,8 @@
   justify-content: flex-end;
   gap: 10px;
 }
+.simulacao-parametros {
+  display: block;
+  white-space: pre-line;
+  margin-top: 6px;
+}

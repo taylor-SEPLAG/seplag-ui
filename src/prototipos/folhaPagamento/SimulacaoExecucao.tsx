@@ -191,7 +191,10 @@ export function SimulacaoExecucao({
                     Não existe nenhum Grupo de Cálculo compatível com{" "}
                     {parametrosResumo ? (
                       <>
-                        os parâmetros: <strong>{parametrosResumo}</strong>.
+                        os parâmetros:{" "}
+                        <strong className="simulacao-parametros">
+                          {parametrosResumo}
+                        </strong>
                       </>
                     ) : (
                       "os parâmetros informados."
@@ -203,8 +206,8 @@ export function SimulacaoExecucao({
                   </p>
                   <p>
                     Para que existam vínculos elegíveis, é necessário cadastrar
-                    um Grupo de Cálculo com abrangência compatível com os
-                    parâmetros apresentados acima.
+                    um Grupo de Cálculo com abrangência compatível com ao menos
+                    um parâmetro apresentado acima.
                   </p>
                 </>
               ) : impedida ? (

@@ -32139,13 +32139,9 @@ export function PrototiposFolhaProcessamentoFormPage() {
   const rotulosParametros: Record<keyof CriteriosAbrangencia, string> = { regimes: 'Regime Jurídico', tipos: 'Tipo de Vínculo', orgaos: 'Órgão/Entidade', unidades: 'Unidade de Lotação', cargos: 'Cargo', carreiras: 'Carreira' };
   const criteriosResumo = criteriosDaFolhaProcessamento(parametrosAtuais);
   const parametrosResumo = [
-    folhaAtualProcessamento ? 'Folha de Pagamento: ' + folhaAtualProcessamento.numero + ' — ' + folhaAtualProcessamento.nome : '',
-    parametrosAtuais.competencia ? 'Competência inicial: ' + parametrosAtuais.competencia : '',
-    parametrosAtuais.competenciaFinal ? 'Competência final: ' + parametrosAtuais.competenciaFinal : '',
-    parametrosAtuais.tipoExecucao ? 'Tipo de execução: ' + (parametrosAtuais.tipoExecucao === 'TOTAL' ? 'Total' : 'Parcial') : '',
     ...(Object.keys(rotulosParametros) as (keyof CriteriosAbrangencia)[]).filter(c => criteriosResumo[c].length).map(c => rotulosParametros[c] + ': ' + criteriosResumo[c].map(valor => catalogoProcessamento[c].find(o => o.value === valor)?.label ?? valor).join(', ')),
     parametrosAtuais.grupoEleitos ? 'Grupo de Eleitos: ' + parametrosAtuais.grupoEleitos : '',
-  ].filter(Boolean).join(' · ');
+  ].filter(Boolean).join('\n');
   const folhasProcessamentoOptions = folhas.map((folha) => ({
     label: `${folha.numero} — ${folha.nome.toUpperCase()}`,
     value: folha.id,
