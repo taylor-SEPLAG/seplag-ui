@@ -12,13 +12,13 @@ import type { ResultsSeplag } from "@interfaces/Results";
 import { OrgaosEntidadesCadastro } from "./OrgaosEntidadesCadastro";
 import "./orgaosEntidades.css";
 
-type Registro = { id:number; nome:string; sigla:string; cnpj:string; tipo:"Ente Federativo"|"Órgão"|"Entidade"|"Órgão Externo"; classificacao:string; esfera:string; tipoOrganizacao?:string };
+type Registro = { id:number; nome:string; sigla:string; cnpj:string; tipo:"Ente Federativo"|"Órgão"|"Entidade"|"Órgão Externo"; classificacao:string; esfera:string; esferaPoder?:string; tipoOrganizacao?:string };
 type Filtros = { busca:string; tipo:string; classificacao:string };
 const registros:Registro[] = [
   {id:1,nome:"Estado de Mato Grosso",sigla:"GOV",cnpj:"03.507.415/0001-00",tipo:"Ente Federativo",classificacao:"Ente Federativo",esfera:"Estadual"},
   {id:2,nome:"Secretaria de Estado de Planejamento e Gestão",sigla:"SEPLAG",cnpj:"03.507.415/0011-16",tipo:"Órgão",classificacao:"Secretaria",tipoOrganizacao:"Secretaria",esfera:"Estadual"},
   {id:3,nome:"Departamento Estadual de Trânsito",sigla:"DETRAN-MT",cnpj:"03.829.702/0001-70",tipo:"Entidade",classificacao:"Autarquia",tipoOrganizacao:"Autarquia",esfera:"Estadual"},
-  {id:4,nome:"Assembleia Legislativa do Estado de Mato Grosso",sigla:"ALMT",cnpj:"03.929.049/0001-11",tipo:"Órgão Externo",classificacao:"Órgão Externo",esfera:"Estadual"},
+  {id:4,nome:"Assembleia Legislativa do Estado de Mato Grosso",sigla:"ALMT",cnpj:"03.929.049/0001-11",tipo:"Órgão Externo",classificacao:"Órgão Externo",esfera:"Estadual",esferaPoder:"Legislativo"},
   {id:5,nome:"Controladoria Geral do Estado",sigla:"CGE",cnpj:"03.507.415/0024-30",tipo:"Órgão",classificacao:"Órgão Desconcentrado",tipoOrganizacao:"Órgão Desconcentrado",esfera:"Estadual"},
   {id:6,nome:"Empresa Mato-grossense de Tecnologia da Informação",sigla:"MTI",cnpj:"15.011.059/0001-52",tipo:"Entidade",classificacao:"Empresa Pública",tipoOrganizacao:"Empresa Pública",esfera:"Estadual"},
 ];
@@ -27,7 +27,7 @@ const noError=()=>null;
 
 function CadastroOrgaoExterno({registro}:Readonly<{registro?:Registro}>) {
   const navigate=useNavigate();
-  const {control}=useForm<Record<string,string>>({defaultValues:{sigla:registro?.sigla??"",cnpj:registro?.cnpj??"",descricao:registro?.nome??"",tipoOrgao:registro?"Órgão público":"",cep:"",uf:"MT",municipio:"",bairro:"",tipoLogradouro:"Avenida",logradouro:"",numero:"",complemento:"",telefone1:"",telefone2:"",website:"",email1:"",email2:""}});
+  const {control}=useForm<Record<string,string>>({defaultValues:{sigla:registro?.sigla??"",cnpj:registro?.cnpj??"",descricao:registro?.nome??"",tipoOrgao:registro?"Órgão público":"",esferaGoverno:registro?.esfera??"",esferaPoder:registro?.esferaPoder??"",cep:"",uf:"MT",municipio:"",bairro:"",tipoLogradouro:"Avenida",logradouro:"",numero:"",complemento:"",telefone1:"",telefone2:"",website:"",email1:"",email2:""}});
   const common={control,getFormErrorMessage:noError};
   return <div className="prototype-carreira-register-page orgao-cadastro-page">
     <BreadcrumbSeplag divided className="prototype-doc-breadcrumb" items={[{label:"Cadastro"},{label:"Estrutura Organizacional"},{label:"Órgãos e Entidades"},{label:"Cadastrar"}]}/>
@@ -39,6 +39,8 @@ function CadastroOrgaoExterno({registro}:Readonly<{registro?:Registro}>) {
             <CNPJFieldSeplag name="cnpj" required validarCNPJ={false} {...common}/>
             <TextFieldSeplag name="descricao" label="Descrição" required placeholder="Informe a descrição" {...common}/>
             <DropdownFieldSeplag name="tipoOrgao" label="Tipo de órgão" required options={opts(["Órgão público","Entidade privada","Organização social","Instituição de ensino","Outro"])} optionLabel="label" optionValue="value" placeholder="Selecione..." {...common}/>
+            <DropdownFieldSeplag name="esferaGoverno" label="Esfera de Governo" options={opts(["Federal","Estadual","Municipal","Distrital"])} optionLabel="label" optionValue="value" placeholder="Selecione..." {...common}/>
+            <DropdownFieldSeplag name="esferaPoder" label="Esfera de Poder" options={opts(["Executivo","Legislativo","Judiciário","Órgão Autônomo"])} optionLabel="label" optionValue="value" placeholder="Selecione..." {...common}/>
           </div>
         </PanelSeplag>
         <PanelSeplag title="Endereço" description="Informe o endereço institucional." className="orgao-form-section">
