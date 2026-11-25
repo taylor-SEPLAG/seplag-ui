@@ -1,4 +1,5 @@
 import React from "react";
+import { Blocks } from "lucide-react";
 import {
   AppSwitcherSeplag,
   type AppSystemItemSeplag,
@@ -41,10 +42,16 @@ export const AppTopbarSeplag = (props: AppTopbarSeplagProps) => {
       {props.searchMenuItems && <GlobalSearch items={props.searchMenuItems} />}
       {props.extraContent}
       <div className="layout-topbar-module" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        {props.ambienteSistema === "Protótipo" && (
+          <span className={styles["prototype-badge"]}>
+            <Blocks size={16} aria-hidden="true" className={styles["prototype-icon"]} />
+            Protótipo
+          </span>
+        )}
         <span
           style={{ fontSize: "18px", fontWeight: 600, marginRight: "10px" }}
         >
-          {props.nomeSistema} - {props.ambienteSistema}
+          {props.nomeSistema}{props.ambienteSistema !== "Protótipo" && ` - ${props.ambienteSistema}`}
         </span>
         {props.appearanceControl}
         <AppSwitcherSeplag

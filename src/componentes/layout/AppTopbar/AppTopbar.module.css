@@ -85,3 +85,33 @@
 .menu-btn.open .menu-burger::after {
   transform: rotate(-45deg) translate(35px, 35px);
 }
+
+.prototype-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.prototype-icon {
+  flex-shrink: 0;
+  animation: prototype-build 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes prototype-build {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  35% { transform: translateY(-2px) rotate(-10deg); }
+  65% { transform: translateY(-2px) rotate(10deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prototype-icon { animation: none; }
+}

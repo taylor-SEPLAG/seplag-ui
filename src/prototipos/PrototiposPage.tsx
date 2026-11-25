@@ -1211,7 +1211,7 @@ export function PrototypeSystemPage({
     <SigepAppearanceScope enabled={usarLayoutSigep}>
       <LayoutSeplag
         nomeSistema={nomeSistema}
-        ambienteSistema={ambienteSistema}
+        ambienteSistema={ambienteSistema ? "Protótipo" : ambienteSistema}
         sistemas={sistemas}
         logoSrc={usarLayoutSigep ? logoSeplagSigep : logoSeplag}
         menuItems={menuItems.map(item => item.label === "Painel Informativo" ? { ...item, visibleOnMenu: false } : item)}
