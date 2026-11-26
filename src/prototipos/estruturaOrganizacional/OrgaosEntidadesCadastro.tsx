@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { Checkbox } from "primereact/checkbox";
 import { BadgeSeplag } from "@componentes/Badge";
 import { BotaoSalvarSeplag, BotaoSeplag, BotaoVoltarSeplag } from "@componentes/Botao";
 import { BreadcrumbSeplag } from "@componentes/Breadcrumb";
@@ -127,6 +128,7 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
       esferaPoder: "Executivo",
       formaAdministracao: registro?.tipo === "Entidade" ? "Administração Indireta" : "Administração Direta",
       personalidade: "Não",
+      permiteFeriasColetivas: "N",
       tipoOrganizacao: registro?.tipoOrganizacao ?? "Secretaria",
       estabelecimento: "Matriz",
       codigoOrgao: "",
@@ -337,6 +339,37 @@ export function OrgaosEntidadesCadastro({ tipoInicial = "orgao", registro, onBac
                 {tipoInicial !== "ente" && <DropdownFieldSeplag name="orgaoSuperior" label="Órgão de Vinculação" disabled={disabled} options={opts(["Governadoria do Estado", "Casa Civil", "Secretaria de Estado de Planejamento e Gestão - SEPLAG"])} optionLabel="label" optionValue="value" placeholder="Selecione, se houver" showClear {...common} />}
               </div>
             </PanelSeplag>
+            {tipoInicial !== "ente" && (
+              <PanelSeplag title="Férias" className="orgao-form-section orgao-ferias-section">
+                <div className="orgao-fields-grid">
+                <div className="orgao-regras-ferias" style={{ gridColumn: "1 / -1" }}>
+                    <Controller
+                      name="permiteFeriasColetivas"
+                      control={control}
+                      render={({ field }) => (
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                          <Checkbox
+                            inputId="permiteFeriasColetivas"
+                            checked={field.value === "S"}
+                            onChange={(e) => field.onChange(e.checked ? "S" : "N")}
+                            disabled={disabled}
+                            aria-describedby="permiteFeriasColetivas-ajuda"
+                          />
+                          <div>
+                            <label htmlFor="permiteFeriasColetivas" style={{ fontWeight: 500, cursor: disabled ? "default" : "pointer" }}>
+                              Permitir férias coletivas
+                            </label>
+                            <small id="permiteFeriasColetivas-ajuda" style={{ display: "block", color: "#6c757d" }}>
+                              Habilita o lançamento em lote para este órgão.
+                            </small>
+                          </div>
+                        </div>
+                      )}
+                    />
+                </div>
+                </div>
+              </PanelSeplag>
+            )}
             {false && <PanelSeplag title="Informações para o eSocial" description="Dados utilizados nas obrigações do eSocial." className="orgao-form-section orgao-esocial-original">
               <div className="orgao-fields-grid cols-3">
                 <DropdownFieldSeplag name="situacao" label="Situação cadastral" disabled={disabled} options={opts(["Ativa", "Baixada"])} optionLabel="label" optionValue="value" {...common} />
