@@ -103,8 +103,9 @@ function funcao(nome, contexto, arvore = ast) {
 test("carregamento real distingue armazenamento vazio, ausente e corrompido sem sobrescrever", () => {
   let armazenado = null;
   const mock = [referencia()];
-  const carregar = funcao("carregarFolhaValoresReferencia", { window: { localStorage: { getItem: () => armazenado } }, FOLHA_VALORES_REFERENCIA_STORAGE_KEY: "teste", folhaValoresReferenciaMock: mock, normalizarPeriodoReferencia });
+  const carregar = funcao("carregarFolhaValoresReferencia", { window: { localStorage: { getItem: () => armazenado } }, FOLHA_VALORES_REFERENCIA_STORAGE_KEY: "teste", folhaValoresReferenciaMock: mock, auxilioTransporteReferencia: funcao("auxilioTransporteReferencia", { calcularSituacaoVigenciaReferencia: () => "Ativo" }), normalizarPeriodoReferencia });
   assert.equal(carregar().valores[0].vigencias[0].fimVigencia, "01/01/2027");
+  assert.equal(carregar().valores.find(item => item.codigo === "AUXILIO_TRANSPORTE").vigencias[0].valor, "R$ 220,54");
   armazenado = "[]";
   assert.deepEqual(carregar().valores, []);
   armazenado = "{invalido";

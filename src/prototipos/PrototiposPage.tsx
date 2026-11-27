@@ -5802,6 +5802,21 @@ const salvarFolhaTabelaReferenciaRppsVigencia = (
 
   salvarFolhaTabelaReferenciaRppsVigencias(proximasVigencias);
 };
+const auxilioTransporteReferencia: FolhaValorReferenciaRow = {
+  codigo: "AUXILIO_TRANSPORTE",
+  nome: "AUXÍLIO TRANSPORTE",
+  tipo: "Monetário",
+  vigencias: [{
+    id: 1016,
+    ano: "2026",
+    vigencia: "01/01/2026 até 31/12/2026",
+    valor: "R$ 220,54",
+    inicioVigencia: "01/01/2026",
+    fimVigencia: "31/12/2026",
+    situacao: calcularSituacaoVigenciaReferencia("01/01/2026", "31/12/2026"),
+  }],
+};
+
 const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
   {
     codigo: "SALARIO_MINIMO",
@@ -5984,6 +5999,7 @@ const folhaValoresReferenciaMock: FolhaValorReferenciaRow[] = [
       },
     ],
   },
+  auxilioTransporteReferencia,
 ];
 
 const carregarFolhaValoresReferencia = (): { valores: FolhaValorReferenciaRow[]; erro?: string } => {
@@ -5993,7 +6009,8 @@ const carregarFolhaValoresReferencia = (): { valores: FolhaValorReferenciaRow[];
     if (!Array.isArray(valores) || !valores.every((item) => item && typeof item.codigo === "string" && typeof item.nome === "string" && ["Monetário", "Numérico"].includes(item.tipo) && Array.isArray(item.vigencias) && item.vigencias.every((vigencia: FolhaValorReferenciaVigenciaRow) => vigencia && typeof vigencia.id === "number" && typeof vigencia.valor === "string"))) {
       throw new Error("Dados inválidos");
     }
-    return { valores: valores.map((item: FolhaValorReferenciaRow) => ({ ...item, vigencias: item.vigencias.map((vigencia) => normalizarPeriodoReferencia(vigencia)) })) };
+    const atualizados = valores.length > 0 && !valores.some((item: FolhaValorReferenciaRow) => item.codigo === "AUXILIO_TRANSPORTE") ? [...valores, auxilioTransporteReferencia] : valores;
+    return { valores: atualizados.map((item: FolhaValorReferenciaRow) => ({ ...item, vigencias: item.vigencias.map((vigencia) => normalizarPeriodoReferencia(vigencia)) })) };
   } catch {
     return { valores: [], erro: "Não foi possível carregar os Valores de Referência. Os dados armazenados foram preservados. Tente novamente." };
   }
